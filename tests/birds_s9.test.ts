@@ -24,7 +24,9 @@ describe('session-9 birds', () => {
     for (let t = 0; t < 7200; t += 10) { sandgrouseAt(2, 1, t, [0, 0], p); if (p.visible) { seen++; expect(p.pos.y).toBeGreaterThan(15); expect(p.pos.y).toBeLessThan(65); } else gone++; }
     expect(seen).toBeGreaterThan(50); expect(gone).toBeGreaterThan(50); expect(BIRDS.sandgrouse.hours[1]).toBeLessThan(9.5); });
   it('the summer visitors keep their seasons; the residents stay', () => {
-    for (const k of ['hoopoe', 'beeeater', 'egret', 'wheatear'] as const) { expect(BIRDS[k].months).not.toContain(0); expect(BIRDS[k].months).toContain(5); }
+    for (const k of ['hoopoe', 'beeeater', 'egret', 'wheatear', 'roller'] as const) { expect(BIRDS[k].months).not.toContain(0); expect(BIRDS[k].months).toContain(5); }
+    expect(BIRDS.duck.months).toContain(0); expect(BIRDS.duck.months).not.toContain(5); // ducks winter here
+    for (const k of ['owl', 'bulbul'] as const) expect(BIRDS[k].months.length).toBe(12);
     for (const k of ['chukar', 'heron', 'jackdaw', 'magpie', 'sandgrouse'] as const) expect(BIRDS[k].months.length).toBe(12);
   });
 });

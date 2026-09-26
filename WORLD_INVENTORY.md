@@ -98,15 +98,15 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | PARTIAL (D-263: jirds at their burrows at dawn and dusk; no jerboas); unrendered |
 | G44 | small wild cats and carnivores (jungle cat, wildcat, badger, marten) | A115; F-009 | fauna | B | MISSING/PARTIAL |
 | G45 | partridges seen, flushing on the slope | A124; F-029, W-009 | birds | B | BUILT (D-262: coveys on the slope, flushing together); unrendered |
-| G46 | hoopoe, bee-eater and roller seen | A125, A139; W-048, F-050 | birds | B/C | PARTIAL (D-262: hoopoe and bee-eater; no roller); unrendered |
-| G47 | owls seen | A126; W-031 | birds | C | MISSING/PARTIAL |
+| G46 | hoopoe, bee-eater and roller seen | A125, A139; W-048, F-050 | birds | B/C | BUILT (D-262 hoopoe, bee-eater; D-269 roller); unrendered |
+| G47 | owls seen | A126; W-031 | birds | C | PARTIAL (D-269: the little owl seen; scops owls only heard) |
 | G48 | doves and rock doves | A127; F-030 | birds | C | BUILT (a8b1f4d: doves in the courts, flushing); unrendered |
 | G49 | larks over fields and steppe | A128; F-014 | birds | C | BUILT (a8b1f4d: song flight over fields in spring); unrendered |
 | G50 | white storks | A129; F-016, W-015 | birds | C | BUILT (a8b1f4d: walking the wet ground in spring and summer); unrendered |
-| G51 | cranes, geese and ducks in winter and on migration | A130; W-043, W-056, SO-012 | birds | B | PARTIAL (a8b1f4d: winter cranes in a V; no geese or ducks) |
+| G51 | cranes, geese and ducks in winter and on migration | A130; W-043, W-056, SO-012 | birds | B | BUILT (a8b1f4d cranes; D-269 wintering ducks; no geese); unrendered |
 | G52 | herons and egrets | A131; F-004 | birds | C | BUILT (D-262: grey heron, little egret); unrendered |
 | G53 | vultures | A132; W-022, F-048 | birds | B | BUILT (a8b1f4d: griffon vultures soaring over Kuh-e Rahmat); unrendered |
-| G54 | nightingale and bulbul in the gardens | A134; W-033 | birds | C | MISSING/PARTIAL |
+| G54 | nightingale and bulbul in the gardens | A134; W-033 | birds | C | PARTIAL (D-269: bulbuls seen; nightingales only heard) |
 | G55 | choughs, jackdaws and ravens | A135; F-049 | birds | C | BUILT (D-262: a jackdaw and chough flock over the cliff); unrendered |
 | G56 | magpies | A136; problems #6 | birds | C | BUILT (D-262); unrendered |
 | G57 | sandgrouse and bustard | A138; F-024 | birds | C | PARTIAL (D-262: sandgrouse flights at dawn; no bustard); unrendered |

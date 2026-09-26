@@ -6481,3 +6481,14 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Opt-in** (`?heat=1`, HEAT_ON) until a render verifies the node graph: the post graph is the one place a bad node breaks every
   frame (the session-2 lesson: a runtime select() there crashed the page). Moment heat-mirage-jun is queued with the flag.
 - **Not done:** medium quality (no depth-derived world position there) gets none; no refraction of the sun's disc.
+
+## D-269 The little owl, bulbuls, rollers, wintering ducks; the water birds kept out of the river beds (session 9; G46, G47, G51, G54)
+- **What** (wildlife.ts BIRDS): little owls on the slope and stony steppe by day and dusk (flush at 14 m); white-eared bulbuls
+  hopping in the courts and gardens (flush at 5 m); rollers circling low over the fields Apr-Aug; parties of 4 wintering ducks
+  (Nov-Mar) resting at the water's edge, the party flushing together at 25 m and flying 120 m off. All C; the owls' and the
+  bulbul's voices were already in the soundscape.
+- **A fix:** the water birds were placed from the rivers' centreline points, and the terrain there is the channel's bed, under
+  0.4-1.8 m of water: the storks (and the herons and egrets of D-262) could be drawn under the surface. They now take `banks`
+  (points 6 m out from each side of a river's channel within 5 km, and the canals' line) and a wader's ground that never goes
+  below the bank's level less 0.4 m (over the channel they stand at about the water's level, as on a shallow margin; C).
+- **Tests.** birds_s9 (the seasons of the new birds), wildlife pass.

@@ -206,7 +206,14 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       const slope: [number, number][] = [], steppe: [number, number][] = [], sl = (e: number, n: number) => Math.hypot(terrain.heightAt(e + 10, -n) - terrain.heightAt(e - 10, -n), terrain.heightAt(e, -n - 10) - terrain.heightAt(e, -n + 10)) / 20;
       for (let e = 250; e <= 1600; e += 150) for (let n = -1600; n <= 1600; n += 150) { const g = sl(e, n); if (g > 0.15 && g < 0.5) slope.push([e, n]); }
       for (let e = -3000; e <= 1500; e += 300) for (let n = -2500; n <= 2500; n += 300) if (Math.hypot(e, n) > 700 && sl(e, n) < 0.15 && landUseAt(plain.data.zones, e, -n).use === 'natural') steppe.push([e, n]);
-      return { fields, waters, slope, steppe }; })());
+      // the water birds' edges (session 9): points 6 m out from each side of the rivers' channels (the centreline is the bed,
+      // under the water) and the canals' own line (their water is at ground level)
+      const banks: [number, number][] = [];
+      for (const r of plain.data.rivers.rivers) for (let i = 4; i < r.x.length - 4; i += 4) { if (Math.hypot(r.x[i], r.y[i]) > 5000) continue;
+        const tx = r.x[i + 4] - r.x[i - 4], ty = r.y[i + 4] - r.y[i - 4], L = Math.hypot(tx, ty) || 1, o = r.topWidth / 2 + 6;
+        banks.push([r.x[i] - ty / L * o, r.y[i] + tx / L * o], [r.x[i] + ty / L * o, r.y[i] - tx / L * o]); }
+      for (const c of plain.data.canals) for (let i = 0; i < c.pts.length; i += 4) if (Math.hypot(c.pts[i][0], c.pts[i][1]) < 5000) banks.push(c.pts[i] as [number, number]);
+      return { fields, waters, slope, steppe, banks }; })());
   root.add(birds.group);
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   // the small life around the viewer (session 9: flies at the middens, dragonflies at the water's edge, butterflies over the

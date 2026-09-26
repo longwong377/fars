@@ -18,7 +18,7 @@ import type { NavGrid, P2 } from '../people/navgrid';
 import type { Terrain } from '../terrain/heightfield';
 
 export interface BirdSpecies { id: string; name: string; tier: string; months: number[]; hours: [number, number]; span: number; length: number; colour: [number, number, number]; flapHz: number; count: number }
-export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane' | 'bat' | 'chukar' | 'hoopoe' | 'beeeater' | 'heron' | 'egret' | 'jackdaw' | 'magpie' | 'sandgrouse' | 'wheatear', BirdSpecies> = {
+export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane' | 'bat' | 'chukar' | 'hoopoe' | 'beeeater' | 'heron' | 'egret' | 'jackdaw' | 'magpie' | 'sandgrouse' | 'wheatear' | 'owl' | 'bulbul' | 'roller' | 'duck', BirdSpecies> = {
   swallow: { id: 'swallow', name: 'barn swallow / common swift', tier: 'C (expected, not sourced; summer migrant)', months: [2, 3, 4, 5, 6, 7, 8], hours: [5.5, 19.5], span: 0.33, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 36 },
   raptor: { id: 'raptor', name: 'buzzard / golden eagle', tier: 'B (Zagros raptors, extract) / C on-site', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [8.5, 17.5], span: 1.9, length: 0.85, colour: [0.28, 0.21, 0.14], flapHz: 2.2, count: 2 },
   sparrow: { id: 'sparrow', name: 'house sparrow', tier: 'C (expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.24, length: 0.15, colour: [0.42, 0.33, 0.24], flapHz: 14, count: 40 },
@@ -41,6 +41,12 @@ export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 
   magpie: { id: 'magpie', name: 'magpie', tier: 'C (fields and village edges)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.5, 18], span: 0.56, length: 0.45, colour: [0.2, 0.21, 0.24], flapHz: 5, count: 8 },
   sandgrouse: { id: 'sandgrouse', name: 'sandgrouse flights to water at dawn', tier: 'C (black-bellied and pin-tailed sandgrouse of the Iranian plateau: recollection)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.2, 8.8], span: 0.62, length: 0.33, colour: [0.62, 0.53, 0.38], flapHz: 7, count: 14 },
   wheatear: { id: 'wheatear', name: 'wheatears on the stony steppe', tier: 'C (wheatears of the Iranian steppe: recollection)', months: [2, 3, 4, 5, 6, 7, 8, 9], hours: [6, 18.5], span: 0.27, length: 0.15, colour: [0.72, 0.68, 0.6], flapHz: 12, count: 10 },
+  // session 9 (G47, G54, G46, G51): the little owl of open country, bulbuls in the gardens and courts, rollers over the fields in
+  // summer, wintering ducks on the rivers and canals (C; the owls' and bulbul's voices are in the soundscape)
+  owl: { id: 'owl', name: 'little owl', tier: 'C (resident of open country, ruins and rocks; seen by day and at dusk)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [7, 19.5], span: 0.55, length: 0.22, colour: [0.48, 0.4, 0.3], flapHz: 6, count: 5 },
+  bulbul: { id: 'bulbul', name: 'white-eared bulbul', tier: 'C (gardens of southern Iran: recollection)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.28, length: 0.18, colour: [0.38, 0.35, 0.3], flapHz: 12, count: 8 },
+  roller: { id: 'roller', name: 'European roller', tier: 'C (summer visitor of open country with posts and trees)', months: [3, 4, 5, 6, 7], hours: [7, 18], span: 0.66, length: 0.31, colour: [0.3, 0.55, 0.7], flapHz: 5, count: 4 },
+  duck: { id: 'duck', name: 'wintering ducks (mallard, teal)', tier: 'B (ducks winter on the Fars wetlands: SOUNDSCAPE.md section 4) / C here', months: [10, 11, 0, 1, 2], hours: [6.5, 17.5], span: 0.85, length: 0.55, colour: [0.35, 0.33, 0.28], flapHz: 8, count: 12 },
   crane: { id: 'crane', name: 'common crane (winter flocks)', tier: 'B (winter cranes, geese and ducks at the Fars lakes: SOUNDSCAPE.md section 4, Bakhtegan) / C passage', months: [10, 11, 0, 1, 2], hours: [7.5, 16.5], span: 2.1, length: 1.1, colour: [0.55, 0.57, 0.6], flapHz: 1.6, count: 18 },
 };
 /** a crow's place (closed form): three quarters of each spell on the ground at its midden, walking and pecking between
@@ -167,11 +173,11 @@ export class Birds {
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private e = new THREE.Euler(0, 0, 0, 'YXZ');
   private middens: P2[] = []; private kiteBases: P2[] = []; private fields: P2[] = []; private waters: P2[] = []; private doveSpots: P2[] = []; private doveFlush = new Map<number, { from: THREE.Vector3; to: P2; t0: number }>();
   /** session 9: the new ground birds' spots (they move when flushed) and flights; the slope's covey spots and the steppe's */
-  private gSpots = new Map<string, P2[]>(); private gFlush = new Map<string, Map<number, { from: P2; to: P2; t0: number }>>(); private slope: P2[] = []; private steppe: P2[] = [];
+  private gSpots = new Map<string, P2[]>(); private gFlush = new Map<string, Map<number, { from: P2; to: P2; t0: number }>>(); private slope: P2[] = []; private steppe: P2[] = []; /** the water birds' edges: beside the channels, not on their beds */ private banks: P2[] = [];
   /** `town` (D-210): the town's middens (the crows' rounds) and the places the kites circle over (middens, the stockyard) */
-  constructor(private seed: number, private nav: NavGrid, private terrain: Terrain, anchors: P2[], town?: { middens: P2[]; kites: P2[] }, wild?: { fields: P2[]; waters: P2[]; slope?: P2[]; steppe?: P2[] }) {
+  constructor(private seed: number, private nav: NavGrid, private terrain: Terrain, anchors: P2[], town?: { middens: P2[]; kites: P2[] }, wild?: { fields: P2[]; waters: P2[]; slope?: P2[]; steppe?: P2[]; banks?: P2[] }) {
     this.group.name = 'wildlife-birds';
-    this.anchors = anchors; if (town) { this.middens = town.middens; this.kiteBases = town.kites; } if (wild) { this.fields = wild.fields; this.waters = wild.waters; this.slope = wild.slope ?? []; this.steppe = wild.steppe ?? []; }
+    this.anchors = anchors; if (town) { this.middens = town.middens; this.kiteBases = town.kites; } if (wild) { this.fields = wild.fields; this.waters = wild.waters; this.slope = wild.slope ?? []; this.steppe = wild.steppe ?? []; this.banks = wild.banks ?? []; }
     const rng = new Rng(seed, 'sparrow-spots');
     for (let i = 0; i < BIRDS.sparrow.count; i++) { const a = anchors[i % anchors.length]; const s = nav.snap(a[0] + rng.range(-10, 10), a[1] + rng.range(-10, 10), 6); if (s) this.sparrowSpots.push(s); }
     for (let i = 0; i < BIRDS.dove.count; i++) { const a = anchors[(i * 3) % anchors.length]; const s = nav.snap(a[0] + rng.range(-14, 14), a[1] + rng.range(-14, 14), 6); if (s) this.doveSpots.push(s); }
@@ -205,7 +211,7 @@ export class Birds {
         else if (sp.id === 'kite') { if (!this.kiteBases.length) continue; const b = this.kiteBases[i % this.kiteBases.length]; kiteAt(b, this.terrain.heightAt(b[0], -b[1]), sd, t, p); }
         else if (sp.id === 'dove') { if (!this.groundBirdAt(this.doveSpots, this.doveFlush, 5, i, t, player, p, 'dove')) continue; }
         else if (sp.id === 'lark') { if (!this.fields.length) continue; const b = this.fields[i % this.fields.length]; larkAt(b, this.terrain.heightAt(b[0], -b[1]), sd, t, p); }
-        else if (sp.id === 'stork') { if (!this.waters.length) continue; const b = this.waters[(i * 7) % this.waters.length]; storkAt(b, this.gh, sd, t, p); }
+        else if (sp.id === 'stork') { const pool = this.banks.length ? this.banks : this.waters; if (!pool.length) continue; const b = pool[(i * 7) % pool.length]; storkAt(b, this.wetGround, sd, t, p); }
         else if (sp.id === 'vulture') { const base: P2 = [900 + i * 500, 300 - i * 700]; raptorAt(base, this.terrain.heightAt(base[0], -base[1]) + 200, sd, t, wind.x, wind.n, p); }
         else if (sp.id === 'crane') { craneAt(i, this.seed, t, p); if (!p.visible) continue; }
         else if (sp.id === 'chukar') { if (!this.slope.length) continue; const cv = Math.floor(i / 8), base = this.slope[(cv * 5) % this.slope.length];
@@ -215,9 +221,14 @@ export class Birds {
         else if (sp.id === 'wheatear') { const pool = this.steppe.length ? this.steppe : this.fields; if (!pool.length) continue; if (!this.groundBird('wheatear', i, pool[(i * 11 + 2) % pool.length], t, player, p, 4, 10, 25, 1.5, i)) continue; }
         else if (sp.id === 'beeeater') { const pool = this.waters.length ? this.waters : this.fields; if (!pool.length) continue; const b = pool[(Math.floor(i / 7) * 13 + 5) % pool.length];
           swallowAt([b[0] + (i % 7) * 4, b[1]], this.terrain.heightAt(b[0], -b[1]) + 10 + (i % 3) * 5, sd, t * 0.8, p); }
-        else if (sp.id === 'heron' || sp.id === 'egret') { if (!this.waters.length) continue; const b = this.waters[(i * (sp.id === 'heron' ? 17 : 23) + 9) % this.waters.length]; storkAt(b, this.gh, sd, t, p); }
+        else if (sp.id === 'heron' || sp.id === 'egret') { const pool = this.banks.length ? this.banks : this.waters; if (!pool.length) continue; const b = pool[(i * (sp.id === 'heron' ? 17 : 23) + 9) % pool.length]; storkAt(b, this.wetGround, sd, t, p); }
         else if (sp.id === 'jackdaw') { const base: P2 = [330, -60]; flockAt(base, this.terrain.heightAt(base[0], -base[1]), this.seed, i, t, p); }
         else if (sp.id === 'sandgrouse') { if (!this.waters.length) continue; const w0 = this.waters[Math.floor(new Rng(this.seed, `sgw:${Math.floor(t / 720)}`).range(0, this.waters.length * 0.999))]; sandgrouseAt(i, this.seed, t, w0, p); if (!p.visible) continue; p.pos.y += this.terrain.heightAt(p.pos.x, p.pos.z); }
+        else if (sp.id === 'owl') { const pool = this.slope.length ? this.slope : this.steppe; if (!pool.length) continue; if (!this.groundBird('owl', i, pool[(i * 13 + 7) % pool.length], t, player, p, 3, 14, 40, 2.5, i)) continue; }
+        else if (sp.id === 'bulbul') { const a = this.anchors[(i * 5 + 2) % this.anchors.length]; if (!this.groundBird('bulbul', i, a, t, player, p, 6, 5, 18, 1.4, i, true)) continue; }
+        else if (sp.id === 'roller') { if (!this.fields.length) continue; const b = this.fields[(i * 17 + 1) % this.fields.length]; kiteAt(b, this.terrain.heightAt(b[0], -b[1]) - 25, sd, t * 1.3, p); } // low hunting circles, 10-95 m
+        else if (sp.id === 'duck') { const pool = this.banks.length ? this.banks : this.waters; if (!pool.length) continue; const b = pool[(Math.floor(i / 4) * 29 + 11) % pool.length]; // small parties resting at the water's edge, flushing at 25 m
+          if (!this.groundBird('duck', i, b, t, player, p, 4, 25, 120, 6, Math.floor(i / 4))) continue; }
         else if (sp.id === 'bat') { const pool = i % 2 && this.waters.length ? this.waters : this.anchors, a = pool[(i * 5) % pool.length]; batAt(a, i % 2 && this.waters.length ? this.terrain.heightAt(a[0], -a[1]) : (this.nav.heightAt(a[0], a[1]) || 0), sd, t, p); }
         else { if (!this.sparrowAt(i, t, player, p)) continue; }
         this.e.set(0, p.heading, 0); this.q.setFromEuler(this.e); if (p.bank) this.q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), p.bank));
@@ -227,6 +238,9 @@ export class Birds {
     }
   }
   private gh = (e: number, n: number) => this.terrain.heightAt(e, -n);
+  /** a wader's ground: the terrain, but never the channel's bed (the birds' walking circles reach over the channel: there they
+   *  stand at the bank's level, as on the shallow margin; C) */
+  private wetGround = (e: number, n: number) => { let y = this.terrain.heightAt(e, -n); for (const [dx, dn] of [[3, 0], [-3, 0], [0, 3], [0, -3]]) y = Math.max(y, this.terrain.heightAt(e + dx * 4, -(n + dn * 4)) - 0.4); return y; };
   /** a session-9 ground bird of species `id`, number `i`, whose home is `home`: `key` groups birds that flush together (a
    *  covey); `nav`: on the town's walkable ground (courts) rather than the terrain */
   private groundBird(id: string, i: number, home: P2, t: number, player: P2 | null, out: BirdPose, r: number, flushR: number, away: number, dur: number, key: number, nav = false): boolean {
