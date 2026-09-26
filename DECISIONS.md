@@ -5840,3 +5840,76 @@ moment-*-webgpu.png in the worktree, not committed).**
   tests/defaults.test.ts (T-K10). Camera rigs (`?test`) keep the evidence-strict setting unless `&court=seasonal`, so their views stay
   comparable; coverage samples the default world. The arrival itself is not yet simulated: the court is present from day 0 to 116
   and only its departure is simulated (the Phase 5 report); D-239 and T-F8 need the arrival.
+
+## D-234 The town's houses as built: two levels of detail, each household's house, the street doors (session 8 workstream; replaces D-228's PLACEHOLDER box slabs; UD-06, UD-08, UD-14 via D-233/D-236)
+- **Read first: what is broken, placeholder or unverified.**
+  - **Renders: pending** (the shared queue; this entry is updated when they land).
+  - **Interiors:** rooms are furnished by use and each house burns a lamp in the evening, but **no one is drawn inside** (the people sim keeps a person at home hidden, D-143; src/people not touched).
+  - **The distant level (beyond ~72 m of a 32 m tile's centre) is simplified**: walls and roofs as plain plastered boxes with
+    the eave's shadow line and the street-door leaves; no footing, pole ends, spouts, windows, repairs or court things. F3
+    says so on every far face (`lod: 'far'`). Between ~40 and ~100 m the switch between levels pops (a tile at a time).
+  - **The near level is built on the main thread (B59)**: a teleport into the town builds its 15–17 tiles at once (0.9–1.6 s
+    headless); walking, the next ring is built 3 ms a frame and merged 4 ms a frame, but a node walk of 200 m on a loaded box
+    still had 24–137 frames over 30 ms (single steps up to ~100 ms: GC and the largest walls; tools/dev/house_probe.ts).
+  - **The town's drawn people walk through shut street doors (B60)**; the people's walking grid still takes every street
+    door as open (as D-051's grid does).
+  - Everything is **tier C** (SETTLEMENT.md §8): no house of Achaemenid Fars is excavated; the analogues (Hasanlu, Baba Jan,
+    Nush-i Jan, Tall-i Takht, Babylon, the region's vernacular) are search extracts (B6), B at best for the analogue.
+  - Not done: seasons on the houses (sleeping mats in summer only, dung cakes in the cold months, grain drying after the
+    harvest); interiors beyond walls, ceilings and the court doors' mats (rooms are dark volumes: no furnishings); lamps.
+- **Evidence (SETTLEMENT.md §8, the table with every choice, its analogue and its tier; Q-610 … Q-617).** New source keys:
+  HASANLU-SX, BABAJAN-SX, NUSHIJAN-SX, TALLTAKHT-SX, MESO-HOUSE-SX, IR-VERNROOF-SX, IR-BRICK, ROLLER-SX, WINDCATCHER-SX;
+  town rows house_walls, house_roofs, house_access, house_porticoes, house_courts (lint:chrono fail-closed on every house
+  fixture and every part's sources). Blocklist: windcatchers (oldest verified 14th c. CE), fired-brick houses/brick vaults.
+- **The plan is unchanged** (plots, rooms, courts, doors, hearths, capacities: town_plots.json valid). Three plan-level
+  additions, all hashes of the plot id (no draw from the plan's streams): each house's life and fixtures (houseplan.ts
+  `planHouses`), the parapet by standing (0.2–0.6 m), and the court facade's top at the eave (site.ts `EAVE_LIP` = roof +
+  0.12 m, was roof + parapet), read alike by the walls, the colliders, the people's sightlines (people/sightline.ts) and the
+  LOS raster. The people's court spots avoid the cells a fixture stands in (walk.ts `plotCells`; 5,689 cells).
+- **The generator (houses.ts).** Per plot, from its cells: walls with their real thickness on a fieldstone footing (the
+  `fieldstone` surface: Worley stones in mud mortar), faces subdivided (≤ 1.3 × 1.2 m) and bulged ±0.7–2.5 cm by the house's
+  standing and age (smooth normals), holes for windows, vents and the door niche with their reveals; exposed tops worn round
+  and uneven; per room a roof of 1 m quads laid to a 2 % fall, the ceiling of matting and 4–6-sided poles every 0.42–0.58 m
+  spanning the room's depth, the eave on the pole ends where the room fronts its court (brush layer, earth front, mud lip,
+  a spout with its splash stone), lane spouts through the parapet with their streak; lintels, worn thresholds, pivot stones,
+  rolled mats; decals a few mm proud: repair patches (fresh plaster), bare brick (the `house_brick` surface), soot over
+  hearths, ovens, forges and the niche, dung cakes, the drain's stain. Court fixtures: ladders, porticoes, benches, the
+  animal's manger and dung, fodder, brushwood, baskets and broom, mortar, washing on a line, a fleece on the parapet, a
+  cradle; roof rollers, fuel, sleeping mats; pegs by the door. Surfaces: house_plaster (D-218's skirt, float arcs, cracks,
+  run-off), house_roof, house_socle, house_timber (poplar, weathered), house_brick; per-vertex ambient occlusion (`aoNode`:
+  interiors 0.16, court and lane faces from the sky they see) — an occlusion of the indirect light, not an albedo change.
+- **Levels and budgets.** Near: tiles of 32 m (site-local), those within NEAR_R = 72 m of the eye, built on demand, dropped
+  beyond 152 m, the shown ones merged into 6 meshes (plaster, stone, timber, brick, items, props; the court's things in the last two cast
+  shadows), rebuilt a part at a time when the shown set changes (shown within 72 m, kept to 88 m). Far: one mesh per cluster
+  with a tile id per vertex; the vertex stage collapses the tiles whose texel in a state texture (NEAR_STATE) is set, and the
+  CPU sets it only when it swaps the merged near meshes in, so the two always agree; its shadow pass does not collapse (`castShadowPositionNode`), so the far level casts every house's shadow, near ones
+  included (its roofs sit at the low edge of the near roofs' fall, its surfaces at or inside the near ones). Measured
+  headless (tests/houses.test.ts): far level 0.558 M triangles in 16 meshes (was 0.906 M for the whole settlement with every
+  jar and toy); near at q_s1 / q_w1 / q_s3 lane spots: 16 / 15 / 17 tiles, 5 meshes, 336 / 314 / 376 k triangles of which
+  after rooms were furnished 418 / 387 / 466 k triangles, 71 / 67 / 80 k cast; the whole town's near level would be 4.9 M triangles (431 tiles, worst 29.4 k). In-frame draws and triangles: pending the render.
+- **Street doors (towndoors.ts).** 1,494 street doors: a leaf of 3–5 poplar planks on two battens on a pivot post, three
+  variants by the timber's age (3 instanced draws for the doors within 220 m), turning 1.5 s; shut and barred from dusk
+  (each house at its own moment between sun −3° and −9°) to dawn; by day per house and day: shut ~22 %, ajar ~33 %, open
+  ~45 %; workshops, stores, stables open by day; E works the door faced within 2.2 m (after the palace doors) until the
+  household's own hours next change; a shut leaf in the near ring is a collider.
+- **Variety (UD-08: nothing copy-pasted; measured, tests/houses.test.ts).** 1,447 houses and workshops, 1,447 distinct
+  configurations (plot, rooms, court, lane face, fixtures, age, addition, animal); no identical house within 20 m; 1,364
+  distinct lane faces (frontage, height, parapet, footing, door timber, tone) with one identical pair within 20 m. Each house
+  its own standing (from its size and kind), age (1–50 years), months since re-plastering, later room strip (35 % of houses
+  over 15 years), repairs and bare brick by age and care, door timber, hinge side, animal; 11,581 fixtures.
+- **People, hearths and sight (tests/houses.test.ts, town_glow.test.ts).** Every street door leaf hangs in its plan
+  doorway (the walking grid's door edge); fixtures stand in their own plot, never on a doorway's cells; 873 house hearths
+  stand in their courts ≥ 0.3 m clear of the wall faces, exactly where the fire system burns them. The LOS raster (D-227)
+  reads the new geometry: 422 / 423 court facades at roof + lip, 233 / 239 outer walls at their top, 9 parapet heights.
+  D-227's measurements on the new houses: town-smoke-dusk 0 flames in sight of 420 in frame (lit walls Σ 0.034 fire-candela;
+  was 0.03), Kuh-e Rahmat 0 of 593 (Σ 0.166; was 0.30), overhead q_s1 41 of 103 flames (was 47); a hearth's light leaves
+  its court by 0.92 sr (was 0.98; FIRE_ESCAPE_SR 1.0 within its ±25 %). B49 stands.
+- **Files:** src/world/settlement/houses.ts, houseplan.ts, towndoors.ts (new), build.ts, geom.ts (extra attributes, smooth
+  quads, polygons), site.ts (EAVE_LIP, lives/fixtures/blocked), plan.ts (planHouses), walk.ts (plotCells), surfaces.ts;
+  src/render/materials.ts (`fieldstone`); src/people/sightline.ts (the facade top); src/main.ts (E on town doors);
+  src/data/settlement.json, sources.json, blocklist.json; tools/lint_chrono.ts; tests/houses.test.ts (new),
+  settlement_build.test.ts, shader_build.test.ts (D-234 case), tests/e2e/settlement.spec.ts (court-q_s1, door-q_s1 views);
+  tools/dev/house_probe.ts, house_preview.ts (a CPU preview: finds geometry errors, proves nothing); research/SETTLEMENT.md
+  §8, ANACHRONISM_BLOCKLIST.md.
+- **Records:** Q-610 … Q-617; B59, B60. D-228's PLACEHOLDER flag is lifted from every house face; the far level is marked
+  as the distant level instead.
