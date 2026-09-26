@@ -84,6 +84,11 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // LMT, magnitude 0.3, at true azimuth 235.4°, 19.1° up (tools/dev/meteor_find.ts); wide over the Terrace, then 20°
   { n: 'meteor-terrace', day: 154, hour: 1.927083, w: 'clear', v: [-36, 125, 1.6, 235.4, 12], fov: 60 },
   { n: 'meteor-tele', day: 154, hour: 1.927083, w: 'clear', v: [-36, 125, 1.6, 235.4, 19.1], fov: 20 },
+  // session 9 (T-J5): a rainbow on the curtain of a shower cell 11.5 km ENE (bearing 64.6°, radius 6.5 km, seed 1) with the sun 18°
+  // up in the west on day 12 at 17:00 (tools/dev/rainbow_find.ts; src/world/rainShafts.ts BOW): the primary crosses the curtain
+  // ~10-12° up; from the Terrace's NW corner and from the plain west of the Grand Stair, looking toward the antisolar side
+  { n: 'rainbow-terrace', day: 12, hour: 17, w: 'auto', v: [-36, 125, 1.6, 75, 8], fov: 70 },
+  { n: 'rainbow-plain', day: 12, hour: 17, w: 'auto', v: [-600, 60, 1.6, 75, 8], fov: 70 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },

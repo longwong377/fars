@@ -479,7 +479,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time); }
-      shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air);
+      shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
+        ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)
       if (audio.ctx) {
         const cam = ctx.camera, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);

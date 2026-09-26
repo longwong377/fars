@@ -20,7 +20,7 @@
 // Streaks drift down; the top fades into the cloud base. σ, k and the shapes are C.
 import * as THREE from 'three/webgpu';
 import { colourOnly } from '../render/fx';
-import { color, uniform, positionWorld, cameraPosition, normalWorld, normalize, vec3, vec2, float, dot, abs, exp, smoothstep, clamp, mx_noise_float, length, max, mix } from 'three/tsl';
+import { color, uniform, positionWorld, cameraPosition, normalWorld, normalize, vec3, vec2, float, dot, abs, exp, smoothstep, clamp, mx_noise_float, length, max, mix, acos } from 'three/tsl';
 import type { Terrain } from '../terrain/heightfield';
 import { azAltToWorld } from '../sky/ephemeris';
 import { CLOUD_BASE } from '../sky/clouds';
@@ -59,12 +59,29 @@ export const shaftAlpha = (tau: number, y01: number, snow: boolean, streak = 1) 
 /** how much darker the sky reads through the curtain than beside it: 1 − out / J with behind = J (per unit J) */
 export const skyDarkening = (alpha: number, tAir: number, k: number) => alpha * tAir * (1 - k);
 
+/** Rainbows (session 9, T-J5): sunlight scattered back by the falling drops, on the rain itself, at the angle θ from the
+ *  antisolar point. Geometry B (Descartes' minimum-deviation angles for water, n ≈ 1.331-1.343 across the visible band,
+ *  smeared by the Sun's 0.53° disc): the primary red at 42.3°, green 41.5°, blue 40.8°; the secondary reversed and ~43 % as
+ *  bright, red 50.5°, green 51.3°, blue 52.6°; the sky inside the primary brighter (the light the drops send inside it) and
+ *  Alexander's dark band between the bows. The bow's brightness relative to the Sun is C (BOW_GAIN), checked on screen. */
+export const BOW = { primary: [42.3, 41.5, 40.8], secondary: [50.5, 51.3, 52.6], sigma: [0.45, 0.6], secondaryShare: 0.43, inside: 0.18 };
+export const BOW_GAIN = 0.03;
+/** the bow's spectral weight per channel at θ degrees from the antisolar point (1 = the primary's peak) */
+export function bowWeight(thetaDeg: number): [number, number, number] {
+  const g = (c: number, s: number) => Math.exp(-0.5 * ((thetaDeg - c) / s) ** 2);
+  const inside = BOW.inside * smooth(20, 40.6, thetaDeg) * (thetaDeg < 40.8 ? 1 : 0); // brighter toward the bow, fading toward the antisolar point
+  return [0, 1, 2].map(i => g(BOW.primary[i], BOW.sigma[0]) + BOW.secondaryShare * g(BOW.secondary[i], BOW.sigma[1]) + inside) as [number, number, number];
+}
+
 interface Shaft { mesh: THREE.Mesh; radius: any; core: any; sigma: any; off: [number, number]; scale: number; dist: number; tAir: number }
 
 export class RainShafts {
   readonly group = new THREE.Group();
   private shafts: Shaft[] = [];
   private uTime = uniform(0); private uSnow = uniform(0);
+  /** the rainbow's light source: the direction to the sun (world) and its colour × intensity × its visibility at the rain (0 when
+   *  the sun is down, behind cloud or snow falls: no bow in snow) */
+  private uSunW = uniform(new THREE.Vector3(0, 1, 0)); private uBowE = uniform(new THREE.Color(0, 0, 0));
   /** the fallback curtain colour when no air is given (tests, no sky): the fog colour × k */
   private uTint = uniform(new THREE.Color(0.25, 0.26, 0.28));
   /** debug switches (uniforms, so a page can flip them between screenshots): red colour, full opacity */
@@ -111,6 +128,11 @@ export class RainShafts {
       const tAir = exp(air.opticalDepthNode(cameraPosition, core).negate());
       col = J.mul(vec3(1).sub(tAir.mul(float(1).sub(k))));
     } else col = this.uTint.mul(k.div(0.42));
+    // the rainbow: the antisolar angle of this view ray, the bow's spectral weight (bowWeight's GPU copy), times the rain's opacity
+    const th = acos(clamp(dot(v.negate(), this.uSunW.negate()), -1, 1)).mul(180 / Math.PI), g = (c: number, sg: number) => exp(th.sub(c).div(sg).mul(th.sub(c).div(sg)).mul(-0.5));
+    const inside = float(BOW.inside).mul(smoothstep(20, 40.6, th)).mul(float(1).sub(smoothstep(40.6, 40.9, th)));
+    const bow = vec3(...([0, 1, 2].map(i => g(BOW.primary[i], BOW.sigma[0]).add(g(BOW.secondary[i], BOW.sigma[1]).mul(BOW.secondaryShare)).add(inside)) as [any, any, any]));
+    col = col.add(bow.mul(this.uBowE).mul(BOW_GAIN).mul(float(1).sub(this.uSnow)));
     m.colorNode = mix(col, color(1, 0, 0), this.dbgRed);
     m.opacityNode = mix(alpha, float(1), this.dbgFull);
     m.needsUpdate = true;
@@ -126,8 +148,10 @@ export class RainShafts {
   /** place the cell for this moment; `cell` from WeatherSystem.rainCell; hides the shafts when the player is inside the
    *  rain (the local streaks and fog take over) or the cell is beyond the far terrain. `air`: the SkySystem's air (the
    *  colour is built from it on the GPU); `skyTint`: the fog colour, the fallback without it */
-  update(dt: number, camPos: THREE.Vector3, cell: { distanceM: number; bearingTrueDeg: number; intensity: number; snow: boolean; radiusM: number } | null, skyTint: THREE.Color, air?: Air | AirOptics | null) {
+  update(dt: number, camPos: THREE.Vector3, cell: { distanceM: number; bearingTrueDeg: number; intensity: number; snow: boolean; radiusM: number } | null, skyTint: THREE.Color, air?: Air | AirOptics | null,
+    sun?: { dirW: THREE.Vector3; rgb: THREE.Color; visible: number }) {
     this.uTime.value += dt;
+    if (sun) { this.uSunW.value.copy(sun.dirW); (this.uBowE.value as THREE.Color).copy(sun.rgb).multiplyScalar(Math.max(0, sun.visible)); } else (this.uBowE.value as THREE.Color).setRGB(0, 0, 0);
     const A = air && (air as Air).jNode ? (air as Air) : null, optics: AirOptics | undefined = A ? A.optics : (air as AirOptics | undefined) ?? undefined;
     if (A && A !== this.air) { this.air = A; for (const s of this.shafts) this.build(s); }
     const show = !!cell && cell.distanceM > cell.radiusM * 0.8 && cell.distanceM < 70000;
