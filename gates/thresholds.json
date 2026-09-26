@@ -1234,7 +1234,7 @@
    "sample_min": 200,
    "sample": "targets per area",
    "tool": "tools/dev/walkers.ts",
-   "status": "to-build",
+   "status": "partial",
    "anti_proxy": "targets drawn only where bots already walk: targets are drawn over the area registry, not the nav grid",
    "ud": "UD-06",
    "since": "rev 2 (s8)"
@@ -1250,7 +1250,7 @@
    "sample_min": 20,
    "sample": "bot-hours per area",
    "tool": "tools/dev/walkers.ts",
-   "status": "to-build",
+   "status": "partial",
    "anti_proxy": "stuck bots respawned before 10 s are hidden: every respawn is logged as stuck",
    "ud": "UD-06",
    "since": "rev 2 (s8)"

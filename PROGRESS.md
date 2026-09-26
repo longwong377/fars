@@ -1,6 +1,20 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **H workstream (session 8, D-237): walking — still broken or unverified first.** NOT verified in a browser: the persistence spec
+  and the beyond-the-Terrace walkthrough (tests/e2e/persistence.spec.ts, walkthrough.spec.ts) were queued and never ran (the render
+  lane was full; cancelled at session close), so T-H3, T-H3r, T-H3s, T-H3v have no evidence and the solidity pools, autosave and
+  IndexedDB have run only in node. Walk bots (offline, 60 targets per area, 7 of 14 areas measured before close; mountain, fields,
+  banks, roads, camps, Tol-e Ajori, Naqsh-e Rustam not in the final run): the town reaches 61.7 % of random targets (house doors
+  narrowed to 0.30-0.53 m by wall ends: 767 of 10,583, Q-640; lane routes graze walls and cross wells: Q-641), the Terrace 93.3 %
+  (the Treasury's standing people block its aisles), villages 95 % with 13 moves through village walls (the people's village rasters
+  and the drawn compounds disagree at village_p22); T-H1r worst 61.7 %, T-H1s worst 27.5 % stuck (B61). The player's controller sinks
+  up to 0.18 m on 29° far-ring slopes (Q-642). Placed objects still use the bilinear height (up to ~0.5 m off the drawn ground on the
+  mid ring: Q-645). **Fixed, measured in node:** the fall through Kuh-e Rahmat (per-chunk streamed colliders from the drawn chunks:
+  audit's 24 crossings 12-13 fell → 0; 2,100 seam crossings 0 falls, 0 rescues, 0 invisible walls; collider vs drawn mesh at the ring
+  seams worst 1.34 mm over 10,000 samples per seam: T-H1 built); a step-up bug that sent the player uphill at 11.7 m/s on every slope
+  over 11°; everyone and every animal within 16 m solid (pools of 160 + 64); autosave (60 s, on hidden/pagehide/beforeunload) with a
+  byte-identical save round trip including walks, chronicle and route cache. Evidence: REVIEWS/evidence/s8-h/.
 - **Photo #24 side by side (session 8, job d232check, shots/moment-calib-24-now-webgpu.png vs references #24): the render fails
   plainly.** The wall now draws joints (no longer flat or black), but it reads as grey concrete where the photo's stone is warm
   tan-brown; the polygonal foot of big blocks along the W wall (photo, 38 % of its length) is not visible; the plain is smooth brown

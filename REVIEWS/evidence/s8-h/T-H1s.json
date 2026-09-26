@@ -1,0 +1,108 @@
+{
+ "id": "T-H1s",
+ "value": 27.505,
+ "n": 0.129,
+ "commit": "fe25a69",
+ "tool": "tools/dev/walkers.ts",
+ "unit": "%",
+ "scope": "area",
+ "offline": true,
+ "meta": {
+  "date": "2026-09-26",
+  "seed": 2,
+  "N": 60
+ },
+ "areas": {
+  "terrace": {
+   "reached_pct": 93.33,
+   "targets": 60,
+   "stuck_pct": 17.363,
+   "bot_hours": 0.887,
+   "hard": {
+    "stuck": 4,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 0,
+    "through_walls": 0
+   }
+  },
+  "approach": {
+   "reached_pct": 100,
+   "targets": 60,
+   "stuck_pct": 0.006,
+   "bot_hours": 0.499,
+   "hard": {
+    "stuck": 0,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 0,
+    "through_walls": 0
+   }
+  },
+  "town": {
+   "reached_pct": 61.67,
+   "targets": 60,
+   "stuck_pct": 27.505,
+   "bot_hours": 1.19,
+   "hard": {
+    "stuck": 23,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 4,
+    "through_walls": 0
+   }
+  },
+  "compounds": {
+   "reached_pct": 100,
+   "targets": 60,
+   "stuck_pct": 0.018,
+   "bot_hours": 0.367,
+   "hard": {
+    "stuck": 0,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 0,
+    "through_walls": 0
+   }
+  },
+  "villages": {
+   "reached_pct": 95,
+   "targets": 60,
+   "stuck_pct": 3.442,
+   "bot_hours": 0.564,
+   "hard": {
+    "stuck": 3,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 2,
+    "through_walls": 13
+   }
+  },
+  "precinct": {
+   "reached_pct": 100,
+   "targets": 60,
+   "stuck_pct": 8.532,
+   "bot_hours": 0.129,
+   "hard": {
+    "stuck": 0,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 0,
+    "through_walls": 0
+   }
+  },
+  "burial": {
+   "reached_pct": 100,
+   "targets": 60,
+   "stuck_pct": 1.95,
+   "bot_hours": 0.146,
+   "hard": {
+    "stuck": 0,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 0,
+    "through_walls": 0
+   }
+  }
+ }
+}
