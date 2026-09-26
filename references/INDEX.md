@@ -61,3 +61,52 @@ reconstruction (inspiration, tier C at best); **M** = mood only; **✗** = unrel
 3. **Gate of All Nations (queued):** colossi on plinths projecting from the façade, a frieze band above the lintels, recessed pilasters, bronze-studded timber door leaves, red floor.
 4. **Interiors:** a red polished floor is already B in research (Stein 2016); dim hypostyle interiors as mood targets.
 5. Logged conflicts: shaft colours (Q-020), horse capitals (Q-021), settlement density (painting vs Sumner), tombs shown in reconstructions (absent in 467).
+
+## 6. Second upload (session 8, 2026-09-26): 34 files, each viewed in full
+**What changed:** this set holds PHOTOGRAPHS of the site as it stands (the first set had none), measured plans and
+19th-century drawings. Weights as above, plus **Ph** = photograph of the site today (a yardstick for stone, light,
+landscape and the Now view; content still comes from the evidence). Where EXIF survives, the capture time is given
+(camera time, assumed Iran standard time). Third-party, copyrighted, reference only: never in the build.
+
+| # | file | what it is | weight | use |
+|---|---|---|---|---|
+| 0 | `DNa inscription naqst rostam.jpg` | Darius I's tomb, the DNa panel: cut cuneiform lines, the upper register's figures, sun cutting across (PaintShop-processed) | Ph | cuneiform incision look; weathered limestone colour; eroded relief |
+| 1 | `Naqsh-e Rustam 2.webp` | the cliff with three tomb façades and the Sasanian reliefs at the foot | Ph | cliff rock, jointing, scale; **the Sasanian reliefs are later than 467: absent in the build by design** |
+| 2 | `Naqsh-e Rustam 3.webp` | one tomb façade close (portico, throne-bearers, a Sasanian equestrian relief below) | Ph | façade proportions, weathering |
+| 3 | `Naqsh-e Rustam 5.webp` | the cliff from a low angle, people for scale. EXIF 2019-02-08 15:17, 8 mm (F. Kriechbaumer; Lightroom) | Ph | dated: a Naqsh calibration candidate (processed) |
+| 4 | `Naqsh-e Rustam 6.webp` | the Ka'ba-ye Zardosht before a tomb. EXIF 2019-02-08 15:00, 12 mm | Ph | the Ka'ba and the cliff; modern road/cars to ignore |
+| 5 | `The Gate of All Nations 2.webp` | the Gate's E doorway: human-headed colossi, lintel, two hall columns, blue sky (G. Giannopoulos 2010) | Ph | **wall block joints and tone variation (B40)**; colossi carving (beards, feathers) |
+| 6 | `The Gate of All Nations 3.webp` | the same colossus close in warm sun | Ph | coursing, weathering, wing feathers |
+| 7 | `The Gate of All Nations 4.jpg` | the same, cooler light (watermark ARCHEOLOGY) | Ph | as 6 |
+| 8 | `aeriel view of persepolis and surrounding mountains.webp` | from an airliner: the Terrace, Kuh-e Rahmat, the plain | Ph | **Kuh-e Rahmat's bedded limestone benches and cliff bands (supports D-223)**; modern tent city, plantations, roads to ignore |
+| 9 | `another map 2.jpg` | site plan with the fortification line up the mountain and the S building group; 200 m bar | P | fortification wall check |
+| 10 | `another map with some topographical data.jpg` | 'Alī Hākemī 1950, "Plan of the Imperial Achaemenian Palaces", 1:1500, numbered legend | P | independent plan: contours, **underground watercourses (drains: D-214)**, stone-cut well, watchmen's forts, mud-brick buildings N of the platform; the Artaxerxes II tomb (later) to keep out |
+| 11 | `another map.jpg` | German-labelled map: Kuh-i Rahmat, **quarries (Steinbruch) incl. "two unfinished capitals"**, rock-cut channels (Kanal), Frataraka temple, unfinished rock tomb, modern roads | P | **quarry positions (Q-565, Q-570)**; channels on the mountain |
+| 12 | `another map.webp` | byte-identical to `palace-of-darius-i-and-xerxes.webp` (§1) | P | duplicate |
+| 13 | `another view from above.jpg` | NASA Earth Observatory satellite image, 1 km bar | Ph (sat) | Kuh-e Rahmat's ridges and colour from above; modern fields and roadway |
+| 14 | `column 3.jpg` | 19th-c. engraving (Alamy): horse-protome capital column, cruciform volute section, height mark | A | horse capitals (Q-021); profiles |
+| 15 | `column 4.jpg` | 19th-c. engraving: composite bull column with sections of the volute block, bell and base fluting | A | profiles, flute counts |
+| 16 | `column 5.jpeg` | 19th-c. plate "Chapiteaux et bases, ruines de Persépolis" (Bouchet del., Guillaumot sculp.) | A | capitals and bases incl. a horse capital |
+| 17 | `column 6.jpg` | 19th-c. reconstruction engraving: Apadana column with its entablature (bull capital, beam, dentils, palmettes) | A/R | entablature layering |
+| 18 | `column in louvre.jpg` | the Louvre's double-bull capital (Susa, Darius) under a timber beam, museum light | Ph (object) | **the stone's true finish where unweathered: pale grey, dark-veined, smooth (B40)**; collars, hair, rosetted volutes |
+| 19 | `columns today.jpg` | fluted columns with broken capitals, sunlit against a storm sky, Kuh-e Rahmat green behind (watermark) | Ph | weathered stone in sun; the Now view; modern shelter roofs |
+| 20 | `eastern stairs.jpg` | 19th-c. drawing (Alamy) of the Apadana stair façades: lion-bull triangles, inscription panels, guard files, delegation registers | A (layout B) | relief programme layout |
+| 21 | `gate of all nations more.webp` | the Gate in low golden sun: bull colossi, three columns, the E doorway | Ph | **Kuh-e Rahmat close: bedded outcrops and scree (D-223)**; Gate wall coursing |
+| 22 | `more column in museum.jpg` | the Louvre capital in full; **the Susa glazed-brick archers frieze** behind | Ph (object) | glazed-brick colours (D-214) |
+| 23 | `persepolis and plain.webp` | panorama from the mountainside: the Hall of 100 Columns, the Apadana under its shelter, the plain, far ranges in haze | Ph | aerial perspective; spring green; scale; plantations modern |
+| 24 | `persepolis and the mountain behind the ruins 2.webp` | the Terrace's S/W retaining wall from the plain, Kuh-e Rahmat behind. EXIF **2019-02-08 15:59:34**, 14 mm (F. Kriechbaumer; Lightroom) | Ph | **best calibration candidate (§8.1)**: dated, the wall's blocks, polygonal base course, gravel ground; tone variation measurable (B40) |
+| 25 | `persepolis and the mountain behind the ruins.jpg` | older low-resolution aerial of the Terrace, mountain, approach | Ph | massing |
+| 26 | `persepolis from plain over head landscape.jpg` | satellite view of the Marvdasht basin: rivers, ranges, field grid, Marvdasht town | Ph (sat) | ranges and river courses; modern fields and town |
+| 27 | `persepolis mountains front.jpg` | **historical sepia aerial (1930s?), from the mountain W over the excavated Terrace to the open plain with tracks and the far mesas** | Ph (historical) | **the pre-modern plain (§5.2.2, NEEDS #3)**: no plantations; the most valuable landscape image |
+| 28 | `plane view.webp` | byte-identical to #8 | Ph | duplicate |
+| 29 | `reliefs.webp` | the Apadana E stair reliefs close in warm sun: guards with side-notched shields, lion-bull, tree register, rosette bands, **merlons with a recessed vertical slot in each face** | Ph | **relief depth and edge crispness (D-226)**; **merlon form (ours lack the slot: to fix)** |
+| 30 | `someone's mock up.jpg` | AI-generated colourful Apadana (red/blue columns, mirror floor, generic figures) | ✗ | mood only; never a yardstick |
+| 31 | `stairs 2.jpg` | the Apadana stair: delegation reliefs, cypresses, guards on the parapet, treads | Ph | stone colour, relief depth |
+| 32 | `stairs more.webp` | measured elevations of two stair façades (audience scene; guard version) with the merlon row; 0–5 m bar | P/R | stair façade proportions |
+| 33 | `stairs today.webp` | the Grand Stair from the landing, the Terrace wall's huge blocks, the Gate columns beyond (stock watermark) | Ph | masonry variation (B40) |
+
+**Findings for the build (session 8):** (1) merlons need the recessed vertical slot (#29); (2) Kuh-e Rahmat's bedded benches
+confirm D-223's model (#8, #21, #24); (3) quarry positions and the unfinished capitals (#11) answer Q-565/Q-570; (4) Hākemī's
+watercourses (#10) check the drains (D-214); (5) the pre-modern open plain with tracks (#27); (6) the unweathered Susa capital
+(#18) and the real walls (#5, #24, #33) give measurable stone variation for B40; (7) #24 (dated) can drive the §8.1
+calibration scene (processed JPEG: colour ratios only, with care).
