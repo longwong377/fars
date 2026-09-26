@@ -77,7 +77,7 @@ export interface GeoOpts {
 
 const T = townJson as any, L = livesJson as any;
 /** D-255: the acts of the Treasury's metal trades (at its metal workshops) */
-const METAL_ACTS = new Set<ActivityId>(['smith', 'goldsmith', 'polish_metal', 'cut_seal']);
+const METAL_ACTS = new Set<ActivityId>(['smith', 'goldsmith', 'polish_metal', 'cut_seal']), METAL_TRADES = new Set(['shiner', 'sealcutter']);
 const FAC: Record<string, P2> = Object.fromEntries((T.facilities as any[]).map(f => [f.id, f.at as P2]));
 const S = { spot: salt('popgeo-spot'), ring: salt('popgeo-ring'), dir: salt('popgeo-dir'), vil: salt('popgeo-village'), pick: salt('popgeo-pick') };
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -304,8 +304,9 @@ export class PopGeo {
       case 'estate': { const x = this.housePlot(parseInt(q, 10), pid); if (!x || !this.plan) return this.none(place, 'estate plot not built'); return this.inPlot(this.plan.sites[x[0]], x[1], pid, place, indoor, 'town', undefined, 'estate: ') ?? this.none(place, 'estate plot empty'); }
       // (D-255: the metal trades of the Treasury's workshops, the goldsmiths, the shiners and the seal cutters, at its metal
       // workshops, the forge's work at the forge)
-      case 'ws': { const a = T.treasury_workshops.around, c: P2 = [a[0] + (+tail - 1.5) * 150, a[1]]; const metal = METAL_ACTS.has(act);
-        return this.workshop(pid, place, c, metal ? ['metal'] : ['metal', 'wood', 'textile', 'pottery'], metal ? 6 : 12, indoor, 'treasury workshop: ', act === 'smith' ? day : undefined); }
+      // (by the person's trade, not the act: the workshop is the same one whatever is done in it, the meal and the rest too)
+      case 'ws': { const a = T.treasury_workshops.around, c: P2 = [a[0] + (+tail - 1.5) * 150, a[1]]; const metal = METAL_TRADES.has(this.pop.persons[pid]?.sub ?? '') || METAL_ACTS.has(act);
+        return this.workshop(pid, place, c, metal ? ['metal'] : ['metal', 'wood', 'textile', 'pottery'], metal ? 6 : 12, indoor, 'treasury workshop: ', metal ? day : undefined, act === 'smith'); }
       // D-255: the tannery by the canal NE of the Terrace, downwind of the town, and the sesame-oil press by the royal stores:
       // not built; their people work in the open at the town.json places with the beams, vats, frames, mortars and jars their
       // performances carry (activities.ts; C)
@@ -510,13 +511,13 @@ export class PopGeo {
   }
   /** workers of a workshop group spread over the `n` workshop plots of its crafts nearest its place (C); `forgeDay`: the
    *  worker is at the workshop's forge that day (D-255) */
-  private workshop(pid: number, place: string, c: P2, crafts: string[], n: number, indoor: boolean, what: string, forgeDay?: number): Spot {
+  private workshop(pid: number, place: string, c: P2, crafts: string[], n: number, indoor: boolean, what: string, forgeDay?: number, atForge = false): Spot {
     if (!this.plan) return this.none(place, 'no town');
     const cand = this.workshops.filter(w => crafts.includes(w.craft)).map(w => ({ w, d: Math.hypot(w.c[0] - c[0], w.c[1] - c[1]) })).sort((a, b) => a.d - b.d).slice(0, n);
     if (!cand.length) return this.none(place, 'no workshop of that craft');
     const fg = forgeDay !== undefined ? this.pop.treasuryForge(pid, forgeDay) : null; // (D-255: the day's pairs at the forges, in turn)
     const w = cand[fg ? fg.slot % cand.length : Math.floor(this.hash(pid, place, 19) * cand.length)].w;
-    if (forgeDay !== undefined) { const f = this.forgeSpot(this.plan.sites[w.si], w.pi, pid, forgeDay); if (f) return f; }
+    if (forgeDay !== undefined && atForge) { const f = this.forgeSpot(this.plan.sites[w.si], w.pi, pid, forgeDay); if (f) return f; }
     return this.inPlot(this.plan.sites[w.si], w.pi, pid, place, indoor, 'town', undefined, what) ?? this.none(place, 'empty workshop');
   }
   /** D-255: at a metal workshop's forge (its 'forge' fitting, the 'anvil' fitting giving the side the court opens to): the
