@@ -64,7 +64,18 @@ for weathered stone, the plain and the hills, and must be labelled as such (tier
 | tachara-*, harem-portico, capitals in any view | `another artist rendition 3.jpg`, `… 4.jpg`, `… 5.jpg`, `… 6.jpg`, `… 7.jpg`, `another column.webp` |
 | town-smoke-dusk*, settlement-* | `persepolis more 1.jpg` (mood; its density conflicts with Sumner), `persepolis more.jpg` |
 | layout in any wide view | `Persepolis Plan.webp`, `palace-of-darius-i-and-xerxes.webp` (P) |
-Never judge against the ✗ files (`another artist rendition 8.png`, `one artist rendition.png`, `apadana more.jpg`, `another soldier.jpg`).
+**Photographs of the site today (second upload, INDEX.md §6): the reviewer's yardstick for stone, light and landscape, in
+place of memory wherever they cover a view:**
+| moments / renders | photographs to open |
+|---|---|
+| stair-climb*, dawn-stair-top*, the Terrace wall, any ashlar | `persepolis and the mountain behind the ruins 2.webp`, `stairs today.webp`, `The Gate of All Nations 2.webp` |
+| gate-dusk, Gate views, colossi | `The Gate of All Nations 2.webp`, `… 3.webp`, `… 4.jpg`, `gate of all nations more.webp` |
+| reliefs-raking, apadana-e-stair-raking, tripylon-n-stair, merlons | `reliefs.webp`, `stairs 2.jpg` |
+| capitals and columns up close | `column in louvre.jpg`, `more column in museum.jpg`, `columns today.jpg` |
+| plain-*, the approach, mountains (Kuh-e Rahmat) | `persepolis and plain.webp`, `persepolis mountains front.jpg` (pre-modern), `aeriel view of persepolis and surrounding mountains.webp`, `gate of all nations more.webp` |
+| plain-naqsh-*, Naqsh-e Rustam | `Naqsh-e Rustam 2.webp`, `… 3.webp`, `… 5.webp`, `… 6.webp`, `DNa inscription naqst rostam.jpg` (the Sasanian reliefs in them are later than 467: never count them as missing) |
+| now-* (the Now view) | `columns today.jpg`, `persepolis and plain.webp`, `stairs today.webp`, `The Gate of All Nations 2.webp` |
+Never judge against the ✗ files (`another artist rendition 8.png`, `one artist rendition.png`, `apadana more.jpg`, `another soldier.jpg`, `someone's mock up.jpg`).
 
 ## Shadow review round 5 (§13.11) — REVIEWS/shadow_phase5_r5.md
 Input: `npx tsx tools/shadow_days.ts 1 97 > REVIEWS/shadow_days_input_seed1_pick97.txt` on the merged tree (after D-150).
