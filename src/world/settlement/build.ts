@@ -67,7 +67,7 @@ export class Settlement {
   private clusterOfSite = new Map<string, Cluster>();
   private near = new Map<number, NearTile>();
   /** the near tiles shown, merged into one mesh per material (5 draws, 2 of them casting, whatever the number of tiles) */
-  private merged: Partial<Record<keyof HB, THREE.Mesh>> = {}; private shownKey = '';
+  private merged: Partial<Record<keyof HB, THREE.Mesh>> = {};
   /** the day the near tiles were built for; a change of season rebuilds them (houses.ts seasonOf) */
   private nearDay = 0;
   private nearMats!: Record<keyof HB, THREE.Material>;
@@ -338,6 +338,9 @@ export class Settlement {
     if (this.mergeJob) { const t0 = performance.now(), all = sync || lost; if (all) this.nearInfo.syncMerges++; let done = false; while (!done && (all || performance.now() - t0 < 4)) { const t1 = performance.now(); done = !!this.mergeJob.next().done; const d = performance.now() - t1; if (!all && d > this.nearInfo.maxMergeStep) this.nearInfo.maxMergeStep = d; } if (done) this.mergeJob = null; this.nearInfo.mergeMs = performance.now() - t0; }
     this.nearInfo.tiles = tiles; this.nearInfo.tris = tris; this.nearInfo.meshes = Object.values(this.merged).filter(m => m && m.visible).length;
   }
+  /** forget every near tile (the season turned): the far level stands in until they are rebuilt (the next update, at once) */
+  private resetNear() { this.job = null; this.mergeJob = null; const st = NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) st[(t + 1) * 4] = 0; NEAR_STATE.needsUpdate = true; this.shownSet.clear(); this.wantKey = '';
+    for (const t of [...this.near.keys()]) this.dropNear(t); for (const m of Object.values(this.merged)) if (m) m.visible = false; }
   private tileXZ(t: number) { return this.houses[Math.floor(t / 4096)].tiles.get(t)!; }
   private wantKey = ''; private shownSet = new Set<number>(); private mergeJob: Generator<void, void, void> | null = null;
   /** concatenate the wanted tiles' geometry per material, a part at a time; then swap the merged meshes and the far level's
@@ -411,7 +414,7 @@ export class Settlement {
   update(dt: number, ctx: { camera: THREE.Camera; clock: any; sky: any; skyLight?: any; cond: any; player: any }) {
     const p = ctx.player?.position ?? ctx.camera.position; this.streamColliders(p.x, p.z);
     const cp = ctx.camera.position;
-    const day = ctx.clock?.dayIndex ?? 0; if (seasonOf(day) !== seasonOf(this.nearDay)) { for (const t of [...this.near.keys()]) this.dropNear(t); this.shownKey = ''; } this.nearDay = day;
+    const day = ctx.clock?.dayIndex ?? 0; if (seasonOf(day) !== seasonOf(this.nearDay)) this.resetNear(); this.nearDay = day;
     this.nearUpdate(cp.x, cp.z, 1);
     this.doors?.update(dt, cp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30, this.nearTile);
     for (const m of this.casters) { const bs = m.geometry.boundingSphere!; m.castShadow = bs.center.distanceTo(cp) - bs.radius < SHADOW_RANGE; }
