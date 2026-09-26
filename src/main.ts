@@ -303,7 +303,7 @@ async function boot() {
   let planFlip: boolean | null = null;
   let covPass: any = null; // the coverage pass, built on first use (a dev module, loaded on demand)
   const coverage = async () => { if (!covPass) { const { CoveragePass } = await import('./dev/coverage');
-    covPass = new CoveragePass({ renderer, scene, camera, root: world.root, terrain: tmesh.group, world, sunAlt: () => sky.state.sunAlt,
+    covPass = new CoveragePass({ renderer, scene, camera, root: world.root, terrain: tmesh.group, world, sunAlt: () => sky.state.sunAlt, sunDir: () => sky.sun.position.clone().sub(sky.sun.target.position).normalize(),
       advance: (s: number) => api.advanceWorld(s, 0.5), tick: () => api.tick() }); } return covPass as import('./dev/coverage').CoveragePass; };
   (window as any).__parsa = api;
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }

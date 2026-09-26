@@ -31,8 +31,11 @@
 // by far the largest area (~150 km² in reach) but its views change slowly with position (a field looks like the next
 // field), so it gets fewer points per km² with sub-strata for each kind of place; the approach and the mountain are
 // small or visited less. Inside an area, strata get points in proportion to sqrt(walkable area) (min 3 per stratum), so
-// small rooms are not starved and big open grounds do not swamp the sample. Times: WORLD_STATES (day/hour/weather) are
-// dealt out per area in proportion to their weights (day-heavy: what a visitor mostly sees), so every area sees a spread.
+// small rooms are not starved and big open grounds do not swamp the sample. Times (tools/dev/coverage_time.ts, MASTER_PLAN
+// axis B, D-242): each view gets a month, an hour band and a weather state (every month, band and state at least once per
+// area; weather by the climate's frequency; world-level pairs completed), realised as a real day and hour of the simulated
+// year where that happens (weather 'auto'), forced through the override only where the climate never makes it.
+// The seed is not chosen: it is the first 8 hex digits of a commit hash (MASTER_PLAN §4.2), recorded in the file's meta.
 // Revisits: REVISIT_SHARE of every area's places are rendered a second time at a contrasting state (another season and
 // another hour or weather), so no place is judged at one moment only. Variety: VARIETY_PLACES populated places are
 // rendered at the same hour on VARIETY_DAYS (D-236: the same place at the same hour on different days must differ).
@@ -40,7 +43,7 @@
 // raster; on the plain towards the Terrace or the monument), 40 % uniformly random. Eye 1.6 m. Deterministic by seed.
 // The camera is the player's: the spec renders at the player's field of view (70°) with no rig clearance for people.
 //
-// Usage: npx tsx tools/dev/coverage_points.ts [seed=1] [out=tests/data/coverage_points.json]
+// Usage: npx tsx tools/dev/coverage_points.ts [--commit <sha> (default: git rev-parse HEAD)] [out=tests/data/coverage_points.json]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { buildTerrace } from '../../src/arch/terrace';
 import { pointInPoly, type Part, type Pt } from '../../src/arch/parts';
@@ -54,6 +57,8 @@ import { trackLines } from '../../src/world/plain/ribbons';
 import { buildTownPlan, type TownPlan } from '../../src/world/settlement/plan';
 import { Site, LANE, SQUARE, OUT, ROOM, COURT, YARD } from '../../src/world/settlement/site';
 import { siteMoves } from '../../src/world/settlement/walk';
+import { execFileSync } from 'node:child_process';
+import { assignArea, realise, climate, pairCoverage, areaHits, HOUR_BANDS, WEATHERS, FORCE_MONTHS, type Band, type Weather } from './coverage_time';
 
 export const EYE = 1.6;
 export const REACH = 7000; // m from the grid origin (the Apadana)
@@ -76,22 +81,8 @@ export const BUILT_EDGES = [
 export const EDGE_OFFSET = 300; // m inside / outside the edge
 export const REVISIT_SHARE = 0.15;
 export const VARIETY_DAYS = [25, 26, 33] as const, VARIETY_HOUR = 10, VARIETY_PLACES = 5;
-/** world states: day index (day 0 = the 467 year's first day, April), local hour, weather override, and the share of
- *  points each gets (day-heavy; dusk, dawn and night; overcast, rain, snow and dust each a few) */
-export const WORLD_STATES = [
-  { id: 'am-may', day: 25, hour: 9.0, w: 'clear', share: 0.16 },
-  { id: 'pm-apr', day: 0, hour: 15.5, w: 'clear', share: 0.16 },
-  { id: 'noon-aug', day: 120, hour: 12.5, w: 'clear', share: 0.14 },
-  { id: 'early-jun', day: 60, hour: 7.0, w: 'clear', share: 0.08 },
-  { id: 'overcast-oct', day: 200, hour: 11.0, w: 'overcast', share: 0.08 },
-  { id: 'dusk-apr', day: 0, hour: 18.75, w: 'clear', share: 0.08 },
-  { id: 'night-apr', day: 0, hour: 22.0, w: 'clear', share: 0.08 },
-  { id: 'winter-jan', day: 280, hour: 11.0, w: 'clear', share: 0.06 },
-  { id: 'dawn-apr', day: 0, hour: 5.85, w: 'clear', share: 0.04 },
-  { id: 'rain-feb', day: 300, hour: 13.0, w: 'rain', share: 0.04 },
-  { id: 'snow-jan', day: 285, hour: 10.0, w: 'snow', share: 0.04 },
-  { id: 'dust-jul', day: 100, hour: 14.0, w: 'dust', share: 0.04 },
-] as const;
+/** the seed of a sample: the first 8 hex digits of a commit hash (never a chosen number; MASTER_PLAN §4.2) */
+export const seedOf = (commit: string) => { if (!/^[0-9a-f]{8}/.test(commit)) throw new Error(`coverage: not a commit hash: ${commit}`); return parseInt(commit.slice(0, 8), 16); };
 
 export interface CovPoint {
   id: string; area: Area; sub: string; e: number; n: number; eye: number;
@@ -99,12 +90,14 @@ export interface CovPoint {
    *  (below a room's roof in the town; __parsa.view's `cast`), null = the walkable grid's floor */
   cast: number | null;
   az: number; /** true azimuth, deg */ pitch: number; headingWhy: 'open' | 'random' | 'subject'; openM: number;
-  state: string; day: number; hour: number; w: string;
+  /** month (Julian, 1-12), hour band and weather state; `state` = band/weather; day index and local hour where they happen;
+   *  w = the weather override ('auto' = the climate's own state; else forced) */
+  month: number; band: Band; weather: Weather; state: string; day: number; hour: number; w: string; forced: boolean; sunAlt: number; moonAlt: number; moonFrac: number;
   /** the place (position + heading) this view shows; a revisit shares its place with the first visit */
   place: string; revisit?: boolean;
 }
 export interface VarietyPlace { place: string; area: Area; sub: string; e: number; n: number; eye: number; cast: number | null; az: number; pitch: number; days: number[]; hour: number; w: string }
-export interface CovFile { meta: { seed: number; total: number; reach: number; weights: any; states: typeof WORLD_STATES; edges: typeof BUILT_EDGES; strata: Record<string, { area: number; n: number }>; notes: string[] }; points: CovPoint[]; variety: VarietyPlace[] }
+export interface CovFile { meta: { seed: number; commit: string | null; total: number; reach: number; weights: any; edges: typeof BUILT_EDGES; strata: Record<string, { area: number; n: number }>; time: any; interimAreas: string; notes: string[] }; points: CovPoint[]; variety: VarietyPlace[]; extras: CovPoint[] }
 
 type P2 = [number, number];
 const deg = Math.PI / 180;
@@ -256,9 +249,9 @@ const pickHeading = (rng: Rng, run: (b: number) => number) => {
   const b = rng.range(0, 360); return { b, why: 'random' as const, open: run(b) };
 };
 
-export function samplePoints(seed = 1): CovFile {
+export function samplePoints(seed = 1, commit: string | null = null): CovFile {
   const W = loadWorld(), rng = (name: string) => new Rng(seed, 'coverage:' + name);
-  const pts: Omit<CovPoint, 'id' | 'state' | 'day' | 'hour' | 'w' | 'place'>[] = [];
+  const pts: Omit<CovPoint, 'id' | 'month' | 'band' | 'weather' | 'state' | 'day' | 'hour' | 'w' | 'forced' | 'sunAlt' | 'moonAlt' | 'moonFrac' | 'place'>[] = [];
   const strata: Record<string, { area: number; n: number }> = {};
   const add = (area: Area, sub: string, e: number, n: number, cast: number | null, h: { b: number; why: CovPoint['headingWhy']; open: number }, pitch: number) =>
     pts.push({ area, sub, e: r2(e), n: r2(n), eye: EYE, cast, az: r1(trueAz(h.b)), pitch: r1(pitch), headingWhy: h.why, openM: r1(h.open) });
@@ -406,43 +399,60 @@ export function samplePoints(seed = 1): CovFile {
     }
   }
 
-  // --- world states: dealt per area in proportion to the shares (largest remainder), shuffled within the area
+  // --- times: month × hour band × weather per area (coverage_time.ts), realised on real days of the simulated year
   const out: CovPoint[] = [];
   const byArea = new Map<Area, typeof pts>(); for (const p of pts) { let a = byArea.get(p.area); if (!a) byArea.set(p.area, a = []); a.push(p); }
-  for (const [area, list] of byArea) {
-    const R = rng('states:' + area), quota = allocate(list.length, Object.fromEntries(WORLD_STATES.map(s => [s.id, s.share])), 0, 1);
-    const deal: string[] = []; for (const s of WORLD_STATES) for (let i = 0; i < (quota[s.id] ?? 0); i++) deal.push(s.id);
-    for (let i = deal.length - 1; i > 0; i--) { const j = R.int(0, i); [deal[i], deal[j]] = [deal[j], deal[i]]; }
-    list.forEach((p, i) => { const s = WORLD_STATES.find(x => x.id === deal[i])!; out.push({ id: '', ...p, state: s.id, day: s.day, hour: s.hour, w: s.w, place: '' }); });
-  }
+  const seen = new Set<string>(), floors = new Set<CovPoint>();
+  const put = (p: (typeof pts)[number], t: ReturnType<typeof realise>, extra: Partial<CovPoint> = {}): CovPoint =>
+    ({ id: '', ...p, month: t.month, band: t.band, weather: t.weather, state: `${t.band}/${t.weather}`, day: t.day, hour: t.hour, w: t.w, forced: t.forced, sunAlt: t.sunAlt, moonAlt: t.moonAlt, moonFrac: t.moonFrac, place: '', ...extra });
+  for (const area of Object.keys(AREA_WEIGHTS) as Area[]) { const list = byArea.get(area) ?? [], R = rng('time:' + area);
+    const rows = assignArea(R, list.length, seen);
+    list.forEach((p, i) => { const r = rows[i], q = put(p, realise(R, r.month, r.band, r.weather)); if (r.floor) floors.add(q); out.push(q); }); }
+  // world-level pairs (T-B1p): complete band × weather and month × band on views that carry no floor
+  { const R = rng('time:pairs'), areas = Object.keys(AREA_WEIGHTS);
+    for (let pass = 0; pass < 4; pass++) {
+      const cov = pairCoverage(out, areas); if (!cov.miss.bw.length && !cov.miss.mb.length) break;
+      const free = () => out.filter(q => !floors.has(q));
+      for (const k of cov.miss.bw) { const [b, w] = k.split('|') as [Band, Weather]; const c0 = free().filter(q => climate(q.month, b)[w] > 0), c1 = free().filter(q => FORCE_MONTHS[w].includes(q.month)), c = c0.length ? c0 : c1.length ? c1 : free().filter(q => q.band === b);
+        const pool = c.length ? c : free(); const q = pool[R.int(0, pool.length - 1)];
+        Object.assign(q, put(q, realise(R, q.month, b, w))); floors.add(q); }
+      for (const k of cov.miss.mb) { const [m, b] = k.split('|'); const c = free().filter(q => q.month === +m); const pool = c.length ? c : free(); const q = pool[R.int(0, pool.length - 1)];
+        const p = climate(+m, b as Band); let u = R.next(), w: Weather = 'clear'; for (const x of WEATHERS) { if (u < p[x]) { w = x; break; } u -= p[x]; }
+        Object.assign(q, put(q, realise(R, +m, b as Band, w))); floors.add(q); }
+    } }
   // places: one per first visit (stable order before sorting)
   out.forEach((p, i) => { p.place = `pl-${String(i).padStart(3, '0')}`; });
-  // revisits: REVISIT_SHARE of each area's places again at a contrasting state (another season, and another hour or weather)
-  const season = (d: number) => Math.floor((((d % 365) + 365) % 365) / 91.25);
-  const contrast = (a: typeof WORLD_STATES[number], b: typeof WORLD_STATES[number]) => season(a.day) !== season(b.day) && (Math.abs(a.hour - b.hour) >= 3 || a.w !== b.w);
+  // revisits: REVISIT_SHARE of each area's places again at a contrasting time: 3-9 months away, another hour band, the
+  // climate's weather for it
   for (const area of Object.keys(AREA_WEIGHTS) as Area[]) {
     const R = rng('revisit:' + area), list = out.filter(p => p.area === area && !p.revisit), n = Math.round(list.length * REVISIT_SHARE);
     const pick = [...list]; for (let i = pick.length - 1; i > 0; i--) { const j = R.int(0, i); [pick[i], pick[j]] = [pick[j], pick[i]]; }
-    for (const p of pick.slice(0, n)) { const s0 = WORLD_STATES.find(s => s.id === p.state)!, opts = WORLD_STATES.filter(s => contrast(s0, s));
-      const s = opts[R.int(0, opts.length - 1)]; out.push({ ...p, state: s.id, day: s.day, hour: s.hour, w: s.w, revisit: true }); }
+    for (const p of pick.slice(0, n)) { const m = ((p.month - 1 + R.int(3, 9)) % 12) + 1, bands = HOUR_BANDS.filter(b => b !== p.band), b = bands[R.int(0, bands.length - 1)];
+      const cl = climate(m, b); let u = R.next(), w: Weather = 'clear'; for (const x of WEATHERS) { if (u < cl[x]) { w = x; break; } u -= cl[x]; }
+      out.push(put(p, realise(R, m, b, w), { place: p.place, revisit: true })); }
   }
   // variety: populated places, the same hour on several days
   const variety: VarietyPlace[] = [];
   { const R = rng('variety'), want: [string, number][] = [['town:lanes', 2], ['approach', 1], ['terrace:open', 1], ['plain:villages', 1]];
     for (const [sub, k] of want) { const c = out.filter(p => p.sub === sub && !p.revisit); for (let i = 0; i < k && c.length; i++) { const p = c.splice(R.int(0, c.length - 1), 1)[0];
-      variety.push({ place: p.place, area: p.area, sub: p.sub, e: p.e, n: p.n, eye: p.eye, cast: p.cast, az: p.az, pitch: p.pitch, days: [...VARIETY_DAYS], hour: VARIETY_HOUR, w: 'clear' }); } } }
-  // order: by world state (the spec loads the page once per chunk and steps setTime), then area, sub, position
-  const si = (id: string) => WORLD_STATES.findIndex(s => s.id === id);
-  out.sort((a, b) => si(a.state) - si(b.state) || a.area.localeCompare(b.area) || a.sub.localeCompare(b.sub) || a.e - b.e || a.n - b.n || a.place.localeCompare(b.place));
+      variety.push({ place: p.place, area: p.area, sub: p.sub, e: p.e, n: p.n, eye: p.eye, cast: p.cast, az: p.az, pitch: p.pitch, days: [...VARIETY_DAYS], hour: VARIETY_HOUR, w: 'auto' }); } } }
+  // order: by day and hour (one page load per chunk steps setTime from view to view)
+  out.sort((a, b) => a.day - b.day || a.hour - b.hour || a.area.localeCompare(b.area) || a.place.localeCompare(b.place));
   out.forEach((p, i) => { p.id = `cov-${String(i).padStart(3, '0')}`; });
-  return { meta: { seed, total: out.length, reach: REACH, weights: { area: AREA_WEIGHTS, town: TOWN_WEIGHTS, plain: PLAIN_WEIGHTS, far: FAR_WEIGHTS, terrace: 'sqrt(walkable area) per stratum, min 3', revisit: REVISIT_SHARE }, states: WORLD_STATES, edges: BUILT_EDGES, strata,
-    notes: ['rooftops: not walkable in the build (Q-630)', 'the plain beyond REACH m of the Apadana is not sampled (walking reach, not the whole plain)', 'states are dealt per area in proportion to their shares', 'revisits share a place id with the first visit'] }, points: out, variety };
+  const areasL = Object.keys(AREA_WEIGHTS), pc = pairCoverage(out, areasL);
+  const time = { areaHits: areaHits(out), pairs: { share: +pc.share.toFixed(4), missing: pc.miss }, forced: out.filter(p => p.forced).length,
+    weathers: Object.fromEntries(WEATHERS.map(w => [w, out.filter(p => p.weather === w).length])), bands: Object.fromEntries(HOUR_BANDS.map(b => [b, out.filter(p => p.band === b).length])) };
+  return { meta: { seed, commit, total: out.length, reach: REACH, weights: { area: AREA_WEIGHTS, town: TOWN_WEIGHTS, plain: PLAIN_WEIGHTS, far: FAR_WEIGHTS, terrace: 'sqrt(walkable area) per stratum, min 3', revisit: REVISIT_SHARE }, edges: BUILT_EDGES, strata, time,
+    interimAreas: 'INTERIM areas (not the MASTER_PLAN §4.3 registry: data/areas.json from tools/dev/areas.ts is not built): six top-level areas and their strata, from the walkable grid, the town plan, the plain data and the terrain',
+    notes: ['rooftops: not walkable in the build (Q-630)', 'the plain beyond REACH m of the Apadana is not sampled (walking reach, not the whole plain)', 'revisits share a place id with the first visit', 'extras: worst-first views (up to 25 % more) go in `extras`, reported apart, never in a pass rate; none yet (Tier 0 is not built)'] }, points: out, variety, extras: [] };
 }
 
 if (process.argv[1]?.endsWith('coverage_points.ts')) {
-  const seed = +(process.argv[2] ?? 1), f = process.argv[3] ?? 'tests/data/coverage_points.json';
-  const t0 = Date.now(), res = samplePoints(seed);
+  const a = process.argv.slice(2), ci = a.indexOf('--commit'), commit = ci >= 0 ? a.splice(ci, 2)[1] : execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const f = a[0] ?? 'tests/data/coverage_points.json', seed = seedOf(commit);
+  const t0 = Date.now(), res = samplePoints(seed, commit);
   writeFileSync(f, JSON.stringify(res, null, 0).replace(/\},\{"id"/g, '},\n{"id"'));
   const by = new Map<string, number>(); for (const p of res.points) by.set(p.sub, (by.get(p.sub) ?? 0) + 1);
-  console.log(`${res.points.length} points (${res.points.filter(p => p.revisit).length} revisits), ${res.variety.length} variety places → ${f} (${Date.now() - t0} ms)`); for (const [k, v] of [...by].sort()) console.log(`  ${k.padEnd(30)} ${v}`);
+  console.log(`${res.points.length} points (${res.points.filter(p => p.revisit).length} revisits), ${res.variety.length} variety places, seed ${seed} (commit ${commit.slice(0, 8)}) → ${f} (${Date.now() - t0} ms)`);
+  console.log(`  time: pairs ${(res.meta.time.pairs.share * 100).toFixed(1)} %, forced ${res.meta.time.forced}; per area ${JSON.stringify(res.meta.time.areaHits)}`); for (const [k, v] of [...by].sort()) console.log(`  ${k.padEnd(30)} ${v}`);
 }

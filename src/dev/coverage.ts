@@ -27,6 +27,8 @@ import { uniform, attribute, vec4, float, floor, mod, texture, Fn, bool, positio
 export interface CovCtx {
   renderer: THREE.WebGPURenderer; scene: THREE.Scene; camera: THREE.PerspectiveCamera; root: THREE.Object3D; terrain: THREE.Object3D;
   world: any; sunAlt: () => number; advance: (seconds: number) => void; tick: () => Promise<void>;
+  /** unit vector toward the sun (world frame), for excluding the sun's disc from clipped pixels (T-A3c) */
+  sunDir?: () => THREE.Vector3;
 }
 export interface CovEntry { id: number; key: string; top: string; label: string; ph: boolean; tier: string | null; tris: number; area: number; density: number; geo: string; mat: string; instances: number }
 export const FLAG_W = 512, FLAG_H = 288; // 16:9; W × 4 bytes is a multiple of 256 (WebGPU readback rows)
@@ -178,6 +180,13 @@ export class CoveragePass {
     const res: any = { W: FLAG_W, H: FLAG_H, ms: 0, meshes: this.entries.length - 1, effectsHidden: effects, hiddenTop, ...idShares(ids, this.entries, elev, FLAG_W, FLAG_H, o.top ?? 30) };
     if (o.frame) {
       const img = await createImageBitmap(await (await fetch('data:image/png;base64,' + o.frame)).blob());
+      { // the gate metrics at the frame's own resolution (MASTER_PLAN T-A2f, T-A3c, T-A3k, T-A3n, T-B2m/f)
+        const fc = new OffscreenCanvas(img.width, img.height), fg = fc.getContext('2d')!; fg.drawImage(img, 0, 0);
+        const cam = this.c.camera, sd = this.c.sunDir?.(), v = new THREE.Vector3();
+        const nearSun = sd ? (x: number, y: number) => { v.set(((x + 0.5) / img.width) * 2 - 1, 1 - ((y + 0.5) / img.height) * 2, 0.5).unproject(cam).sub(cam.position).normalize(); return v.dot(sd) > Math.cos(2 * Math.PI / 180); } : () => false;
+        res.gate = gateMetrics(fg.getImageData(0, 0, img.width, img.height).data, img.width, img.height, ids, FLAG_W, FLAG_H, nearSun);
+        res.gate.fireLux = +(this.c.world.fire?.localIlluminance?.(cam.position) ?? 0).toPrecision(3);
+      }
       const cv = new OffscreenCanvas(FLAG_W, FLAG_H), g = cv.getContext('2d')!; g.drawImage(img, 0, 0, FLAG_W, FLAG_H);
       const masks: { miss?: Uint8Array; low?: Uint8Array } = {};
       res.frame = analyseFrame(g.getImageData(0, 0, FLAG_W, FLAG_H).data, ids, dist, this.entries, elev, FLAG_W, FLAG_H, this.c.sunAlt() < -4, masks);
@@ -255,13 +264,13 @@ export function elevations(cam: THREE.PerspectiveCamera, W: number, H: number) {
 }
 /** per-view shares from an ID buffer: sky, placeholder, untiered, sky holes (sky below −1°); per object and per top group */
 export function idShares(ids: Uint16Array, E: CovEntry[], elev: Float32Array, W: number, H: number, top = 30) {
-  const N = W * H, count = new Float64Array(E.length); let bad = 0, hole = 0, ph = 0, untiered = 0, sky = 0;
+  const N = W * H, count = new Float64Array(E.length); let bad = 0, hole = 0, ph = 0, untiered = 0, phU = 0, sky = 0;
   for (let k = 0; k < N; k++) { const id = ids[k]; if (id >= E.length) { bad++; continue; } count[id]++;
     if (id === 0) { sky++; if (elev[k] < SKY_HOLE_DEG) hole++; continue; }
-    if (E[id].ph) ph++; if (!E[id].tier) untiered++; }
+    if (E[id].ph) ph++; if (!E[id].tier) untiered++; if (E[id].ph || !E[id].tier) phU++; }
   const objects = E.map((e, i) => ({ e, px: count[i] })).filter(q => q.px > 0 && q.e.id > 0).sort((a, b) => b.px - a.px);
   const groups: Record<string, number> = {}; for (const q of objects) groups[q.e.top] = (groups[q.e.top] ?? 0) + q.px / N;
-  return { shares: { sky: r4(sky / N), placeholder: r4(ph / N), untiered: r4(untiered / N), skyHole: r4(hole / N), badId: r4(bad / N) },
+  return { shares: { sky: r4(sky / N), placeholder: r4(ph / N), untiered: r4(untiered / N), phOrUntiered: r4(phU / N), skyHole: r4(hole / N), badId: r4(bad / N) },
     visibleMeshes: objects.length, materials: new Set(objects.map(q => q.e.mat)).size, geometries: new Set(objects.map(q => q.e.geo)).size,
     objects: objects.filter(q => q.px / N >= 0.002).slice(0, top).map(q => ({ key: q.e.key, share: r4(q.px / N), ph: q.e.ph, tier: q.e.tier, tris: q.e.tris, density: +q.e.density.toPrecision(3), inst: q.e.instances })),
     phObjects: objects.filter(q => q.e.ph && q.px / N >= 0.0002).slice(0, 20).map(q => ({ key: q.e.key, share: r4(q.px / N), tier: q.e.tier })),
@@ -342,4 +351,29 @@ export async function maskImage(ids: Uint16Array, E: CovEntry[], m: { miss?: Uin
     d[4 * k] = r; d[4 * k + 1] = gg; d[4 * k + 2] = b; d[4 * k + 3] = 255; }
   g.putImageData(img, 0, 0); const u8 = new Uint8Array(await (await c.convertToBlob({ type: 'image/png' })).arrayBuffer());
   let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return btoa(s);
+}
+
+/** the MASTER_PLAN gate metrics of one frame at its own resolution (W×H RGBA), sky from the ID buffer (iw×ih) scaled:
+ *  T-A2f flat-region share (12 px blocks with Ystd/Y < 0.03, sky excluded, in 4-connected regions ≥ 2 % of the frame);
+ *  T-A3c clipped share (any channel ≥ 254; the sun's disc, within 2° of the sun, excluded; flames are NOT excluded);
+ *  T-A3k crush share (every channel ≤ 2; the report applies it by day); T-A3n black tiles (16 px tiles exactly 0,0,0);
+ *  T-B2 the mean tone-mapped luma of the frame (0-255, Rec. 709 on the display values) */
+export function gateMetrics(d: Uint8ClampedArray | Uint8Array, W: number, H: number, ids: Uint16Array, iw: number, ih: number, nearSun: (x: number, y: number) => boolean = () => false) {
+  const N = W * H, sky = (x: number, y: number) => ids[Math.min(ih - 1, Math.floor((y * ih) / H)) * iw + Math.min(iw - 1, Math.floor((x * iw) / W))] === 0;
+  let lum = 0, clip = 0, crush = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = 4 * (y * W + x), r = d[i], g = d[i + 1], b = d[i + 2];
+    lum += 0.2126 * r + 0.7152 * g + 0.0722 * b; if (r <= 2 && g <= 2 && b <= 2) crush++;
+    if ((r >= 254 || g >= 254 || b >= 254) && !(sky(x, y) && nearSun(x, y))) clip++; }
+  let black = 0; for (let ty = 0; ty + 16 <= H; ty += 16) for (let tx = 0; tx + 16 <= W; tx += 16) { let all = true;
+    for (let y = ty; y < ty + 16 && all; y++) for (let x = tx; x < tx + 16; x++) { const i = 4 * (y * W + x); if (d[i] || d[i + 1] || d[i + 2]) { all = false; break; } } if (all) black++; }
+  const B = 12, BW = Math.floor(W / B), BH = Math.floor(H / B), flat = new Uint8Array(BW * BH), px = new Uint16Array(BW * BH);
+  for (let by = 0; by < BH; by++) for (let bx = 0; bx < BW; bx++) { let n = 0, s = 0, s2 = 0;
+    for (let y = by * B; y < by * B + B; y++) for (let x = bx * B; x < bx * B + B; x++) { if (sky(x, y)) continue; const i = 4 * (y * W + x), Y = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; n++; s += Y; s2 += Y * Y; }
+    if (n < (B * B) / 2) continue; const m = s / n, sd = Math.sqrt(Math.max(0, s2 / n - m * m)); if (m > 0 && sd / m < 0.03) { flat[by * BW + bx] = 1; px[by * BW + bx] = n; } }
+  let flatPx = 0; const seen = new Uint8Array(BW * BH);
+  for (let b0 = 0; b0 < BW * BH; b0++) { if (!flat[b0] || seen[b0]) continue; const st = [b0], comp: number[] = [b0]; seen[b0] = 1;
+    while (st.length) { const b = st.pop()!, bx = b % BW, by = (b / BW) | 0;
+      for (const [nx, ny] of [[bx + 1, by], [bx - 1, by], [bx, by + 1], [bx, by - 1]]) { if (nx < 0 || ny < 0 || nx >= BW || ny >= BH) continue; const nb = ny * BW + nx; if (flat[nb] && !seen[nb]) { seen[nb] = 1; st.push(nb); comp.push(nb); } } }
+    const a = comp.reduce((t, b) => t + px[b], 0); if (a >= 0.02 * N) flatPx += a; }
+  return { W, H, flatRegion: r4(flatPx / N), clipped: r4(clip / N), crush: r4(crush / N), blackTiles: black, meanLuma: +(lum / N).toFixed(1), fireLux: 0 };
 }

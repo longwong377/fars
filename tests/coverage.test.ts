@@ -6,12 +6,17 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { texture, positionLocal, vec3 } from 'three/tsl';
-import { samplePoints, loadWorld, onNav, townCells, slopeDeg, allocate, AREA_WEIGHTS, TOWN_WEIGHTS, PLAIN_WEIGHTS, FAR_WEIGHTS, BUILT_EDGES, MAX_SLOPE, WORLD_STATES, type CovFile } from '../tools/dev/coverage_points';
+import { execFileSync } from 'node:child_process';
+import { samplePoints, seedOf, loadWorld, onNav, townCells, slopeDeg, allocate, AREA_WEIGHTS, TOWN_WEIGHTS, PLAIN_WEIGHTS, FAR_WEIGHTS, BUILT_EDGES, MAX_SLOPE, type CovFile } from '../tools/dev/coverage_points';
+import { HOUR_BANDS, WEATHERS, classifyBand, classifyWeather, yearTable, pairCoverage } from '../tools/dev/coverage_time';
+import { gateMetrics } from '../src/dev/coverage';
+import { cell, validate, viewGate, thresholds } from '../tools/dev/coverage_report';
 import { CoveragePass, analyseFrame, idShares, type CovEntry } from '../src/dev/coverage';
 import { aggregate, varietyOf, score, normKey, reportMd, type Rec } from '../tools/dev/coverage_report';
 
 let A: CovFile;
-beforeAll(() => { A = samplePoints(1); }, 120_000);
+const F: CovFile = JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8'));
+beforeAll(() => { A = samplePoints(F.meta.seed, F.meta.commit); }, 180_000);
 
 describe('coverage sampler', () => {
   it('represents every area and sub-area, with the written weights', () => {
@@ -38,20 +43,39 @@ describe('coverage sampler', () => {
     }
     expect(bad).toEqual([]);
   });
-  it('is deterministic by seed, and the committed sample is the seed-1 sample', () => {
-    const B = samplePoints(1), C = samplePoints(2);
+  it('is deterministic by seed; the committed sample is the sampler\'s output for a seed taken from a commit hash in history', () => {
+    const B = samplePoints(F.meta.seed, F.meta.commit), C = samplePoints(F.meta.seed + 1);
     expect(JSON.stringify(B)).toBe(JSON.stringify(A));
     expect(JSON.stringify(C.points.map(p => [p.e, p.n]))).not.toBe(JSON.stringify(A.points.map(p => [p.e, p.n])));
-    const F = JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8'));
+    expect(F.meta.seed).toBe(seedOf(F.meta.commit!)); // not a chosen number (MASTER_PLAN §4.2)
+    expect(() => execFileSync('git', ['cat-file', '-e', `${F.meta.commit}^{commit}`])).not.toThrow();
     expect(F.points).toEqual(A.points); expect(F.variety).toEqual(A.variety);
-  });
-  it('spreads world states over every area, revisits places at contrasting states, and sets up the variety days', () => {
-    for (const a of Object.keys(AREA_WEIGHTS)) { const n = new Set(A.points.filter(p => p.area === a).map(p => p.state)).size; expect(n, a).toBeGreaterThanOrEqual(a === 'rahmat' ? 6 : 8); }
+    expect(() => seedOf('not-a-hash')).toThrow();
+  }, 180_000);
+  it('spreads months, hour bands and weathers: every one in every area (T-B1m/h/w), world pairs complete (T-B1p), weather by climate', () => {
+    for (const a of Object.keys(AREA_WEIGHTS)) { const P = A.points.filter(p => p.area === a);
+      expect(new Set(P.map(p => p.month)).size, a).toBe(12); expect(new Set(P.map(p => p.band)).size, a).toBe(HOUR_BANDS.length); expect(new Set(P.map(p => p.weather)).size, a).toBe(WEATHERS.length); }
+    expect(pairCoverage(A.points, Object.keys(AREA_WEIGHTS)).share).toBe(1);
+    // weather follows the climate (D-242): ordinary states dominate, rare ones hold their floor
+    const n = (w: string) => A.points.filter(p => p.weather === w).length; expect(n('clear') + n('cloud')).toBeGreaterThan(A.points.length * 0.6); expect(n('snow')).toBeGreaterThanOrEqual(6);
+    // every view's (day, hour) really has its band and (unless forced) its weather in the simulated year
+    const T = yearTable(), at = (d: number, h: number) => T[d * 48 + Math.min(47, Math.floor(h * 2))];
+    for (const p of A.points) { const c = at(p.day, p.hour); expect(c.band, p.id).toBe(p.band); if (!p.forced) { expect(c.weather, p.id).toBe(p.weather); expect(p.w).toBe('auto'); } }
+    // forced snow only in winter (the simulated year has no snow day: FORCE_MONTHS)
+    for (const p of A.points.filter(q => q.weather === 'snow')) expect([12, 1, 2], p.id).toContain(p.month);
     const rev = A.points.filter(p => p.revisit); expect(rev.length).toBeGreaterThan(50);
-    for (const r of rev) { const f = A.points.find(p => p.place === r.place && !p.revisit)!; expect(f).toBeTruthy(); expect(r.state).not.toBe(f.state); expect([r.e, r.n, r.az]).toEqual([f.e, f.n, f.az]); }
+    for (const r of rev) { const f = A.points.find(p => p.place === r.place && !p.revisit)!; expect(f).toBeTruthy(); expect([r.e, r.n, r.az]).toEqual([f.e, f.n, f.az]);
+      const dm = Math.min((r.month - f.month + 12) % 12, (f.month - r.month + 12) % 12); expect(dm, r.id).toBeGreaterThanOrEqual(3); expect(r.band).not.toBe(f.band); }
     expect(A.variety.length).toBe(5); for (const v of A.variety) expect(v.days.length).toBe(3);
-    // chunks are ordered by state (one page load steps through them)
-    const si = A.points.map(p => WORLD_STATES.findIndex(s => s.id === p.state)); for (let i = 1; i < si.length; i++) expect(si[i]).toBeGreaterThanOrEqual(si[i - 1]);
+    for (let i = 1; i < A.points.length; i++) expect(A.points[i].day * 24 + A.points[i].hour).toBeGreaterThanOrEqual(A.points[i - 1].day * 24 + A.points[i - 1].hour);
+    expect(A.meta.interimAreas).toMatch(/INTERIM/); expect(A.extras).toEqual([]);
+  });
+  it('classifies hour bands and weather states', () => {
+    expect(classifyBand(-30, 1, -10, 0.9)).toBe('moonless-night'); expect(classifyBand(-30, 1, 30, 0.9)).toBe('moonlit-night'); expect(classifyBand(-30, 1, 30, 0.3)).toBeNull();
+    expect(classifyBand(-10, 5, 0, 0)).toBe('pre-dawn'); expect(classifyBand(2, 6, 0, 0)).toBe('dawn'); expect(classifyBand(40, 12, 0, 0)).toBe('noon'); expect(classifyBand(-10, 19, 0, 0)).toBe('dusk');
+    const c = { lightning: false, rain: 0, windMs: 3, snowFall: 0, dust: 0, mist: 0, cloud: 0.1 };
+    expect(classifyWeather(c)).toBe('clear'); expect(classifyWeather({ ...c, cloud: 0.5 })).toBe('cloud'); expect(classifyWeather({ ...c, rain: 0.5 })).toBe('rain');
+    expect(classifyWeather({ ...c, rain: 0.5, windMs: 12 })).toBe('storm'); expect(classifyWeather({ ...c, rain: 0.5, lightning: true })).toBe('lightning');
   });
   it('allocates exactly, sqrt-weighted with a minimum', () => {
     const a = allocate(20, { big: 10000, mid: 100, small: 1 }, 3); expect(Object.values(a).reduce((x, y) => x + y, 0)).toBe(20);
@@ -142,6 +166,24 @@ describe('coverage report', () => {
     expect(A.failRate).toBeCloseTo(3 / 4, 6); expect(score(R[2])).toBe(0); expect(normKey('a/b12 c3.5')).toBe('a/b# c#');
     const { md } = reportMd(R, {}, { q: 'test', sheet: null, src: 'x' });
     expect(md.indexOf('Read first')).toBeLessThan(md.indexOf('Per area')); expect(md).toContain('settlement/cluster q_s#');
+  });
+  it('computes the gate metrics of a frame (T-A2f, T-A3c, T-A3k, T-A3n, luma) and the board cells', () => {
+    const W = 96, H = 48, iw = 48, ih = 24, d = new Uint8ClampedArray(4 * W * H), ids = new Uint16Array(iw * ih).fill(1);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = 4 * (y * W + x); const v = x < 48 ? 100 : 100 + ((x * 37 + y * 91) % 40); d.set([v, v, v, 255], i); }
+    for (let y = 0; y < 16; y++) for (let x = 80; x < 96; x++) d.set([0, 0, 0, 255], 4 * (y * W + x)); // one black tile
+    for (let y = 40; y < 48; y++) for (let x = 0; x < 10; x++) d.set([255, 255, 255, 255], 4 * (y * W + x)); // clipped
+    const g = gateMetrics(d, W, H, ids, iw, ih);
+    expect(g.blackTiles).toBe(1); expect(g.clipped).toBeCloseTo(80 / (W * H), 4); expect(g.crush).toBeCloseTo(256 / (W * H), 4); expect(g.flatRegion).toBeGreaterThan(0.3); expect(g.flatRegion).toBeLessThan(0.55);
+    const th = thresholds('nope.json'); expect(th.rows['T-A2f'].value).toBe(3);
+    const r = (id: string, flat: number, dep = 'h1'): Rec => ({ id, area: 'town', sub: 'town:lanes', state: 's', q: 'test', seed: 7, dep, commit: 'abcdef12', sunAlt: 30, cam: [1, 2, 1.6, 3, 4],
+      shares: { sky: 0.3, placeholder: 0, untiered: 0, phOrUntiered: 0, skyHole: 0, badId: 0 }, gate: { flatRegion: flat, clipped: 0, crush: 0, blackTiles: 0, meanLuma: 90 } });
+    expect(viewGate(r('a', 0.01))!['T-A2f']).toBeCloseTo(1, 6);
+    expect(cell([r('a', 0.01)], 'T-A2f', th.rows['T-A2f'], 'h1').status).toBe('INSUFFICIENT');
+    expect(cell([r('a', 0.05)], 'T-A2f', th.rows['T-A2f'], 'h1').status).toBe('FAIL');
+    expect(cell(Array.from({ length: 59 }, (_, i) => r(`v${i}`, 0.01)), 'T-A2f', th.rows['T-A2f'], 'h1').status).toBe('PASS');
+    expect(cell([r('a', 0.01, 'old')], 'T-A2f', th.rows['T-A2f'], 'h1').status).toBe('STALE');
+    const v = validate([r('cov-000', 0), { ...r('cov-001', 0), seed: 8 }, { ...r('cov-002', 0), extra: true }], { meta: { seed: 7 }, points: [{ id: 'cov-000', e: 1, n: 2, eye: 1.6, az: 3, pitch: 4 }] });
+    expect(v.ok.map(x => x.id)).toEqual(['cov-000']); expect(v.refused.map(x => x.id)).toEqual(['cov-001']); expect(v.extras.map(x => x.id)).toEqual(['cov-002']);
   });
   it('flags scenes that are identical across days, and empty ones', () => {
     const Y = Array.from({ length: 64 * 36 }, (_, i) => i % 200), same = { objects: { a: 0.5 }, people: ['p1', 'p2'], acts: { walk: 2 }, animals: 0, impostors: 0, Y };

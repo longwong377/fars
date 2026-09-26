@@ -2,14 +2,66 @@
 // views first, placeholder and low-detail objects by the pixels they cost, repetition, life and scene variety across days
 // (shots/coverage_variety.json), and writes REVIEWS/coverage_report.md plus a contact sheet of the worst 30 thumbnails
 // (REVIEWS/coverage_worst.jpg, python3 + Pillow; skipped with a note if unavailable).
-// Usage: npx tsx tools/dev/coverage_report.ts [coverage.json] [out.md] [Q filter, e.g. test]
+// The MASTER_PLAN board (§5): per (interim) area and threshold id, the cell's status from the evidence: PASS, FAIL,
+// INSUFFICIENT (fewer views than the row's sample_min and no failure) or STALE (evidence rendered with another dependency hash
+// than the tree's: tools/dev/coverage_dep.ts; STALE counts as FAIL), with the evidence commit and hash. Evidence whose view ids
+// or cameras differ from the sample file (another seed, another sampler) is REFUSED and listed, never counted; worst-first
+// extras are reported apart and never counted in a pass rate.
+// Usage: npx tsx tools/dev/coverage_report.ts [coverage.json] [out.md] [Q filter, e.g. test] [--legacy: include refused evidence as a pilot]
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { depHash } from './coverage_dep';
+import { HOUR_BANDS, WEATHERS, pairCoverage } from './coverage_time';
+
+/** the threshold rows this report computes (MASTER_PLAN §4, gates/thresholds.json; the file wins when present) */
+export const GATE_IDS = ['T-A1', 'T-A2f', 'T-A3c', 'T-A3k', 'T-A3n', 'T-B2m', 'T-B2f', 'T-B1m', 'T-B1h', 'T-B1w', 'T-B1p', 'T-C1'] as const;
+const FALLBACK: Record<string, { op: string; value: number; unit: string; sample_min: number }> = {
+  'T-A1': { op: '<=', value: 0, unit: '% of pixels', sample_min: 59 }, 'T-A2f': { op: '<=', value: 3, unit: '% of frame', sample_min: 59 },
+  'T-A3c': { op: '<=', value: 0.5, unit: '% of frame', sample_min: 59 }, 'T-A3k': { op: '<=', value: 1, unit: '% of frame', sample_min: 59 },
+  'T-A3n': { op: '<=', value: 0, unit: 'count', sample_min: 59 }, 'T-B2m': { op: '<=', value: 20, unit: '/255', sample_min: 8 }, 'T-B2f': { op: '<=', value: 45, unit: '/255', sample_min: 8 },
+  'T-B1m': { op: '>=', value: 12, unit: 'count', sample_min: 1 }, 'T-B1h': { op: '>=', value: 8, unit: 'count', sample_min: 1 }, 'T-B1w': { op: '>=', value: 9, unit: 'count', sample_min: 1 },
+  'T-B1p': { op: '>=', value: 100, unit: '%', sample_min: 1 }, 'T-C1': { op: '<=', value: 0, unit: 'count', sample_min: 16 } };
+export function thresholds(file = 'gates/thresholds.json') {
+  const out = { ...FALLBACK }; let src = 'embedded copy (gates/thresholds.json not in this tree)';
+  if (existsSync(file)) { const rows = JSON.parse(readFileSync(file, 'utf8')).thresholds as any[]; for (const r of rows) if (r.id in out) out[r.id] = { op: r.op, value: r.value, unit: r.unit, sample_min: r.sample_min }; src = file; }
+  return { rows: out, src };
+}
+/** per-view values of the gate metrics (null where the view does not qualify: T-A3k by day only, T-B2 at night away from fire) */
+export function viewGate(r: Rec) {
+  const g = r.gate, s = r.shares; if (!g || !s) return null;
+  const awayFromFire = (g.fireLux ?? 0) < 0.05;
+  return { 'T-A1': 100 * (s.phOrUntiered ?? (s.placeholder + s.untiered)), 'T-A2f': 100 * g.flatRegion, 'T-A3c': 100 * g.clipped, 'T-A3k': (r.sunAlt ?? -90) > 0 ? 100 * g.crush : null, 'T-A3n': g.blackTiles,
+    'T-B2m': r.band === 'moonless-night' && awayFromFire ? g.meanLuma : null, 'T-B2f': r.band === 'moonlit-night' && (r.moonFrac ?? 0) >= 0.9 && awayFromFire ? g.meanLuma : null,
+    'T-C1': r.rigClear ?? 0 } as Record<string, number | null>;
+}
+const pass = (op: string, v: number, t: number) => op === '<=' ? v <= t + 1e-9 : op === '>=' ? v >= t - 1e-9 : op === '<' ? v < t : v > t;
+export interface Cell { status: 'PASS' | 'FAIL' | 'INSUFFICIENT' | 'STALE' | 'n/a'; n: number; fails: number; worst: number | null; commit: string; dep: string }
+/** one board cell: every qualifying view must meet the threshold; fewer than sample_min views and no failure = INSUFFICIENT */
+export function cell(recs: Rec[], id: string, th: { op: string; value: number; sample_min: number }, currentDep: string | null): Cell {
+  const vals = recs.map(r => ({ r, v: viewGate(r)?.[id] ?? null })).filter(x => x.v !== null) as { r: Rec; v: number }[];
+  const commits = [...new Set(vals.map(x => (x.r.commit ?? '?').slice(0, 8)))], deps = [...new Set(vals.map(x => x.r.dep ?? '?'))];
+  if (!vals.length) return { status: 'n/a', n: 0, fails: 0, worst: null, commit: '', dep: '' };
+  const f = vals.filter(x => !pass(th.op, x.v, th.value)).length, worst = th.op.startsWith('<') ? Math.max(...vals.map(x => x.v)) : Math.min(...vals.map(x => x.v));
+  const stale = currentDep !== null && deps.some(d => d !== currentDep);
+  return { status: stale ? 'STALE' : f ? 'FAIL' : vals.length < th.sample_min ? 'INSUFFICIENT' : 'PASS', n: vals.length, fails: f, worst, commit: commits.join(','), dep: deps.join(',') };
+}
+/** evidence validation: the record's seed and camera must be the sample file's for its id */
+export function validate(recs: Rec[], sample: any) {
+  const byId = new Map((sample?.points ?? []).map((p: any) => [p.id, p])); const ok: Rec[] = [], refused: { id: string; why: string }[] = [], extras: Rec[] = [];
+  for (const r of recs) { const p: any = byId.get(r.id);
+    if (r.extra) { extras.push(r); continue; }
+    if (r.seed === undefined || r.seed !== sample?.meta?.seed) { refused.push({ id: r.id, why: `seed ${r.seed ?? 'none'} ≠ sample ${sample?.meta?.seed}` }); continue; }
+    if (!p || (r.cam && JSON.stringify(r.cam) !== JSON.stringify([p.e, p.n, p.eye, p.az, p.pitch]))) { refused.push({ id: r.id, why: 'camera differs from the sample' }); continue; }
+    ok.push(r); }
+  return { ok, refused, extras };
+}
 
 /** provisional pass/fail thresholds per view (C, Q-633): tuned once a full pass exists; never lowered to pass */
 export const FAIL = { placeholder: 0.05, missing: 0.05, lowDetail: 0.25 } as const;
 export interface Rec { id: string; place?: string; area: string; sub: string; state: string; q: string; error?: string; revisit?: boolean; sunAlt?: number;
-  shares?: { sky: number; placeholder: number; untiered: number; skyHole: number; badId: number }; missing?: number | null; flatness?: number | null; lowDetail?: number | null;
+  seed?: number; commit?: string; dep?: string; extra?: boolean; cam?: number[]; month?: number; band?: string; weather?: string; moonFrac?: number; forced?: boolean; rigClear?: number;
+  gate?: { flatRegion: number; clipped: number; crush: number; blackTiles: number; meanLuma: number; fireLux?: number } | null;
+  shares?: { sky: number; placeholder: number; untiered: number; phOrUntiered?: number; skyHole: number; badId: number }; missing?: number | null; flatness?: number | null; lowDetail?: number | null;
   frame?: any; objects?: { key: string; share: number; ph: boolean; tier: string | null; tris: number; density: number }[]; phObjects?: { key: string; share: number }[]; groups?: Record<string, number>;
   drawCalls?: number; triangles?: number; materials?: number; geometries?: number; visibleMeshes?: number; repetition?: any; life?: any; ms?: number }
 
@@ -65,7 +117,23 @@ export function varietyOf(shots: VarShot[]) {
 
 const pc = (x: number) => Number.isFinite(x) ? `${(x * 100).toFixed(1)} %` : '–';
 const f2 = (x: number) => Number.isFinite(x) ? x.toFixed(2) : '–';
-export function reportMd(recs: Rec[], vari: Record<string, any>, o: { q: string; sheet: string | null; src: string }) {
+export function boardMd(recs: Rec[], sample: any, currentDep: string | null, th = thresholds()) {
+  const L: string[] = [], areas = [...new Set(recs.map(r => r.area))].sort(), ids = GATE_IDS.filter(i => !i.startsWith('T-B1'));
+  L.push('## Board (MASTER_PLAN §5; INTERIM areas, not the §4.3 registry)', '', `Thresholds from ${th.src}. Current dependency hash ${currentDep ?? '(not computed)'}. A cell: status, failing/qualifying views, worst value, evidence commit, dependency hash. STALE counts as FAIL; INSUFFICIENT = fewer views than the row's sample_min and none failing.`, '');
+  L.push(`| area | ${ids.map(i => `${i} (${th.rows[i].op} ${th.rows[i].value} ${th.rows[i].unit})`).join(' | ')} |`, `|---|${ids.map(() => '---').join('|')}|`);
+  for (const a of [...areas, '(world)']) { const rs = a === '(world)' ? recs : recs.filter(r => r.area === a);
+    L.push(`| ${a} | ${ids.map(i => { const c = cell(rs, i, th.rows[i], currentDep); return c.status === 'n/a' ? 'n/a' : `**${c.status}** ${c.fails}/${c.n}, worst ${c.worst === null ? '–' : +c.worst.toFixed(2)} @${c.commit} #${c.dep}`; }).join(' | ')} |`); }
+  // time coverage: the sample's plan and what has been rendered (T-B1m/h/w per area, T-B1p world pairs)
+  const hits = (rs: { month?: number; band?: string; weather?: string }[]) => ({ m: new Set(rs.map(r => r.month).filter(Boolean)).size, h: new Set(rs.map(r => r.band).filter(Boolean)).size, w: new Set(rs.map(r => r.weather).filter(Boolean)).size });
+  L.push('', '### Time coverage (T-B1m ≥ 12 months, T-B1h ≥ 8 hour bands, T-B1w ≥ 9 weathers per area; T-B1p world pairs)', '', '| area | planned (sample) months / bands / weathers | rendered months / bands / weathers |', '|---|---|---|');
+  const sAreas = [...new Set((sample?.points ?? []).map((p: any) => p.area))].sort() as string[];
+  for (const a of sAreas) { const P = hits((sample.points as any[]).filter(p => p.area === a)), R = hits(recs.filter(r => r.area === a));
+    const st = (x: { m: number; h: number; w: number }) => `${x.m} / ${x.h} / ${x.w} ${x.m >= 12 && x.h >= 8 && x.w >= 9 ? 'PASS' : 'FAIL'}`; L.push(`| ${a} | ${st(P)} | ${st(R)} |`); }
+  const pr = (rows: any[]) => pairCoverage(rows.filter(r => r.month && r.band && r.weather), sAreas).share;
+  L.push('', `World pairs (band × weather, month × band, area × weather): planned ${(100 * pr(sample?.points ?? [])).toFixed(1)} %, rendered ${(100 * pr(recs)).toFixed(1)} % (T-B1p ≥ 100 %). Bands ${HOUR_BANDS.length}, weathers ${WEATHERS.length}.`);
+  return L.join('\n');
+}
+export function reportMd(recs: Rec[], vari: Record<string, any>, o: { q: string; sheet: string | null; src: string; board?: string; refused?: { id: string; why: string }[]; extras?: Rec[] }) {
   const A = aggregate(recs), L: string[] = [];
   const at = recs.map(r => (r as any).at).filter(Boolean).sort();
   const vrows = Object.values(vari).map((v: any) => ({ v, r: varietyOf(v.shots) }));
@@ -77,8 +145,12 @@ export function reportMd(recs: Rec[], vari: Record<string, any>, o: { q: string;
   L.push(`- This covers ${cover} sub-areas. Views of the sample not yet rendered are not in this report; the sample is \`tests/data/coverage_points.json\`.`);
   L.push('- The low-detail measure (triangles per steradian at the pixel\'s distance AND shading high-frequency detail, both below thresholds) is a proxy (C, Q-632): it catches unflagged boxes, but a procedurally shaded low-poly surface can pass it and a clean real surface can fail it. The tiling measure is a heuristic: colonnades, merlons, courses and steps are periodic by design.');
   L.push('- Metrics are measurements, not judgements: the rubric reviewer\'s scores on a stratified sample are separate (D-233).');
+  L.push('- Areas are INTERIM (six top-level areas and their strata from the walkable grid, the town plan, the plain data and the terrain), not the MASTER_PLAN §4.3 registry: `data/areas.json` / `tools/dev/areas.ts` is not built.');
+  if (o.refused?.length) L.push(`- **${o.refused.length} records REFUSED** (seed or camera not the sample file's): ${[...new Set(o.refused.map(r => r.why))].slice(0, 3).join('; ')}. Not counted anywhere below${o.q.includes('legacy') ? ' except where marked pilot' : ''}.`);
+  if (o.extras?.length) L.push(`- ${o.extras.length} worst-first extra views are reported apart and never counted in a pass rate.`);
   if (vrows.length) L.push(`- Scene variety (D-236): ${vrows.filter(x => x.r.verdict !== 'differs').length} of ${vrows.length} places are near-identical or empty across days.`);
   L.push('');
+  if (o.board) L.push(o.board, '');
   L.push('## Per area (worst first)', '', '| area | views | fail | placeholder (mean / max) | missing | low detail | flatness (median) | tiling blocks | identical inst. ≤ 30 m (median) | people in view | idle share | worst view |', '|---|---|---|---|---|---|---|---|---|---|---|---|');
   for (const g of A.areas) L.push(`| ${g.key} | ${g.n}${g.errors ? ` (${g.errors} err)` : ''} | ${pc(g.failRate)} | ${pc(g.ph)} / ${pc(g.phMax)} | ${pc(g.missing)} | ${pc(g.low)} | ${f2(g.flat)} | ${pc(g.tiling)} | ${Number.isFinite(g.rep) ? g.rep : '–'} | ${f2(g.people)} | ${pc(g.idle)} | ${g.worst} |`);
   L.push('', '## Per sub-area (worst first)', '', '| sub-area | views | fail | placeholder | missing | low detail | flatness | people | worst |', '|---|---|---|---|---|---|---|---|---|');
@@ -110,7 +182,10 @@ export function reportMd(recs: Rec[], vari: Record<string, any>, o: { q: string;
 if (process.argv[1]?.endsWith('coverage_report.ts')) {
   const src = process.argv[2] ?? 'shots/coverage.json', out = process.argv[3] ?? 'REVIEWS/coverage_report.md', qf = process.argv[4];
   const all: Record<string, Rec> = existsSync(src) ? JSON.parse(readFileSync(src, 'utf8')) : {};
-  const recs = Object.values(all).filter(r => !qf || r.q === qf);
+  const legacy = process.argv.includes('--legacy'), sample = existsSync('tests/data/coverage_points.json') ? JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8')) : null;
+  const val = validate(Object.values(all).filter(r => !qf || r.q === qf), sample);
+  const recs = legacy ? [...val.ok, ...Object.values(all).filter(r => (!qf || r.q === qf) && val.refused.some(x => x.id === r.id))] : val.ok;
+  const board = boardMd(val.ok, sample, depHash('.'));
   const vsrc = src.replace(/\.json$/, '_variety.json'), vari = existsSync(vsrc) ? Object.fromEntries(Object.entries(JSON.parse(readFileSync(vsrc, 'utf8'))).filter(([k]) => !qf || k.includes(`|${qf}|`))) : {};
   const q = qf ?? [...new Set(recs.map(r => r.q))].join(', ');
   // contact sheet of the worst 30 (python3 + Pillow)
@@ -127,6 +202,6 @@ for i,e in enumerate(L):
 S.save(sys.argv[2],quality=82)`;
     try { execFileSync('python3', ['-c', py, spec, 'REVIEWS/coverage_worst.jpg']); sheet = 'REVIEWS/coverage_worst.jpg'; } catch (e) { console.warn('contact sheet skipped:', String(e).slice(0, 200)); }
   }
-  const { md } = reportMd(recs, vari, { q, sheet, src });
+  const { md } = reportMd(recs, vari, { q: legacy ? q + ' (legacy pilot records included)' : q, sheet, src, board, refused: val.refused, extras: val.extras });
   writeFileSync(out, md); console.log(`${recs.length} views → ${out}${sheet ? ` + ${sheet}` : ''}`);
 }
