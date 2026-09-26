@@ -100,7 +100,7 @@ test('coverage', async ({ page }, info) => {
         animals: r.life?.animals?.instances ?? 0, impostors: r.life?.impostors ?? 0, Y: r.th.Y, sky: r.fm.shares.sky, ms: Date.now() - t1 });
       console.log(`variety ${id}: people ${r.life?.people} acts ${JSON.stringify(r.life?.acts)} (${((Date.now() - t1) / 1000).toFixed(0)} s)`);
     }
-    saveJson(VOUT, `${pl.place}|${Q}|${info.project.name}`, { place: pl.place, sub: pl.sub, seed: PTS.meta.seed, commit: COMMIT, dep: DEP, cam: [pl.e, pl.n, pl.eye, pl.az, pl.pitch], hour: pl.hour, w: pl.w, shots, at: new Date().toISOString() });
+    if (shots.length) saveJson(VOUT, `${pl.place}|${Q}|${info.project.name}`, { place: pl.place, sub: pl.sub, seed: PTS.meta.seed, commit: COMMIT, dep: DEP, cam: [pl.e, pl.n, pl.eye, pl.az, pl.pitch], hour: pl.hour, w: pl.w, shots, at: new Date().toISOString() });
   }
 
   for (const v of work) {
