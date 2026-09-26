@@ -11,7 +11,7 @@ import * as THREE from 'three/webgpu';
 import { uniform, vec4, attribute, float } from 'three/tsl';
 import { u01, salt } from '../people/hash';
 import { azAltToWorld } from './ephemeris';
-import { LONGITUDE_E } from '../core/calendar';
+import { LONGITUDE_E, START_JDN } from '../core/calendar';
 
 export const METEOR_R = 3, METEOR_LIMIT_MAG = 6.5, METEOR_DRAWN_MAG = 5.0; // fainter ones are not drawn (below the render's reach)
 const S = salt('meteors');
@@ -64,7 +64,8 @@ export class Meteors {
   /** jdUT: the world's time; camPos: the dome's centre; night: 0 by day … 1 in full darkness (the stars' uniform) */
   update(jdUT: number, camPos: THREE.Vector3, night: number) {
     this.night.value = night; this.group.position.copy(camPos);
-    const lmt = jdUT + 0.5 + LONGITUDE_E / 360, day = Math.floor(lmt), t = (lmt - day) * 86400;
+    // the simulation's day index and local mean time (clock.ts: jdUT = START_JDN + t − 0.5 − LMT/24), as meteorsAt is keyed
+    const lmt = jdUT + 0.5 + LONGITUDE_E / 360 - START_JDN, day = Math.floor(lmt), t = (lmt - day) * 86400;
     this.active = night > 0.05 ? meteorsAt(this.seed, day, t).slice(0, MAX) : [];
     this.pos.fill(0); this.col.fill(0);
     this.active.forEach((m, i) => { const tau = t - m.start, b = meteorBright(m.mag, tau / m.dur);
