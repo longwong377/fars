@@ -15,7 +15,7 @@ import { depHash } from '../../tools/dev/coverage_dep';
 // Env: Q=test|high|ultra  FRAMES (frames per view; default 3 at test, 6 otherwise)  START, END (index range into the
 // points), CHUNK (max views per run, default 40: keep a run under the watchdog)  STRIDE, OFFSET (every STRIDE-th point:
 // a pilot over all states and areas)  FOV=photo (40°) instead of the player's  LIFE=0 (skip the life probe)
-// VARIETY=N (after the points: the first N variety places, each at the same hour on the file's days; D-236)  POINTS=0 (variety only)
+// VARIETY=N (before the points: the first N variety places, each at the same hour on the file's days; D-236)  POINTS=0 (variety only)
 // TIMEOUT (s, default 7000; a run stops starting views 4 min before it)  OUT (default shots/coverage.json)
 const PTS = JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8'));
 const Q = process.env.Q ?? 'test', FRAMES = +(process.env.FRAMES ?? (Q === 'test' ? 3 : 6)), TIMEOUT = +(process.env.TIMEOUT ?? 7000);
@@ -87,6 +87,21 @@ test('coverage', async ({ page }, info) => {
   const state = { key: `${first.day}|${first.hour}|${first.w}` };
   const late = () => Date.now() - t0 > (TIMEOUT - 240) * 1000;
 
+  // variety (D-236): the same place at the same hour on several days; how different are the scenes?
+  for (const pl of vwork) {
+    const shots: any[] = [];
+    for (const day of pl.days) {
+      if (late()) break;
+      const t1 = Date.now();
+      const r = await shoot(page, pl, day, pl.hour, pl.w, state);
+      const id = `${pl.place}-d${day}`; writeFileSync(`shots/coverage/var-${id}-${Q}.jpg`, Buffer.from(r.th.jpg, 'base64'));
+      shots.push({ day, objects: Object.fromEntries((r.fm.objects ?? []).map((o: any) => [o.key, o.share])), people: r.life?.keys ?? [], acts: r.life?.acts ?? {}, byCls: r.life?.byCls ?? null,
+        animals: r.life?.animals?.instances ?? 0, impostors: r.life?.impostors ?? 0, Y: r.th.Y, sky: r.fm.shares.sky, ms: Date.now() - t1 });
+      console.log(`variety ${id}: people ${r.life?.people} acts ${JSON.stringify(r.life?.acts)} (${((Date.now() - t1) / 1000).toFixed(0)} s)`);
+    }
+    saveJson(VOUT, `${pl.place}|${Q}|${info.project.name}`, { place: pl.place, sub: pl.sub, seed: PTS.meta.seed, commit: COMMIT, dep: DEP, cam: [pl.e, pl.n, pl.eye, pl.az, pl.pitch], hour: pl.hour, w: pl.w, shots, at: new Date().toISOString() });
+  }
+
   for (const v of work) {
     if (late()) { console.log('coverage: out of time; stopping (resume with the same env)'); break; }
     const t1 = Date.now();
@@ -109,19 +124,5 @@ test('coverage', async ({ page }, info) => {
     }
   }
 
-  // variety (D-236): the same place at the same hour on several days; how different are the scenes?
-  for (const pl of vwork) {
-    const shots: any[] = [];
-    for (const day of pl.days) {
-      if (late()) break;
-      const t1 = Date.now();
-      const r = await shoot(page, pl, day, pl.hour, pl.w, state);
-      const id = `${pl.place}-d${day}`; writeFileSync(`shots/coverage/var-${id}-${Q}.jpg`, Buffer.from(r.th.jpg, 'base64'));
-      shots.push({ day, objects: Object.fromEntries((r.fm.objects ?? []).map((o: any) => [o.key, o.share])), people: r.life?.keys ?? [], acts: r.life?.acts ?? {}, byCls: r.life?.byCls ?? null,
-        animals: r.life?.animals?.instances ?? 0, impostors: r.life?.impostors ?? 0, Y: r.th.Y, sky: r.fm.shares.sky, ms: Date.now() - t1 });
-      console.log(`variety ${id}: people ${r.life?.people} acts ${JSON.stringify(r.life?.acts)} (${((Date.now() - t1) / 1000).toFixed(0)} s)`);
-    }
-    saveJson(VOUT, `${pl.place}|${Q}|${info.project.name}`, { place: pl.place, sub: pl.sub, seed: PTS.meta.seed, commit: COMMIT, dep: DEP, cam: [pl.e, pl.n, pl.eye, pl.az, pl.pitch], hour: pl.hour, w: pl.w, shots, at: new Date().toISOString() });
-  }
   console.log('errors:', errs.slice(0, 12).join('\n'));
 });
