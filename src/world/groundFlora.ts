@@ -103,3 +103,29 @@ export class GroundFlora {
     return true;
   }
 }
+
+/** session 9 (WORLD_INVENTORY G73): rose bushes along the paradise's channels (the damask and the other old roses of Persian
+ *  gardens: C for 467), 0.6-1.1 m domes whose blossoms (small pale quads on the dome) open pink in May-June and a few again in
+ *  October (`roseBloom`). Fixed positions from the garden's frame (world.ts); static, always drawn (a few hundred). */
+export const roseBloom = (month: number) => [0, 0, 0, 0.05, 0.8, 1, 0.3, 0.05, 0.1, 0.35, 0.1, 0][month];
+function roseGeometry() {
+  const d = new THREE.SphereGeometry(0.5, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2); d.scale(1, 0.9, 1);
+  const bl: THREE.BufferGeometry[] = [];
+  for (let k = 0; k < 22; k++) { const a = k * 2.39996, el = 0.25 + 1.1 * ((k * 0.618) % 1), r = 0.5, q = new THREE.PlaneGeometry(0.06, 0.06);
+    q.lookAt(new THREE.Vector3(Math.cos(a) * Math.cos(el), Math.sin(el) * 0.9, Math.sin(a) * Math.cos(el))); q.translate(Math.cos(a) * Math.cos(el) * r * 1.02, Math.sin(el) * r * 0.92, Math.sin(a) * Math.cos(el) * r * 1.02); bl.push(q); }
+  return build([d, ...bl], [0, ...bl.map(() => 1)]);
+}
+export class RoseBeds {
+  readonly mesh: THREE.InstancedMesh; private uBloom = uniform(0);
+  constructor(spots: { e: number; n: number; y: number; size: number; rot: number }[]) {
+    const g = roseGeometry(), m = new THREE.MeshStandardNodeMaterial({ roughness: 0.85, side: THREE.DoubleSide });
+    const part = attribute('part', 'float');
+    m.colorNode = mix(vec3(0.12, 0.2, 0.08), mix(vec3(0.12, 0.2, 0.08), vec3(0.85, 0.45, 0.55), this.uBloom), part);
+    this.mesh = new THREE.InstancedMesh(g, m, Math.max(1, spots.length)); this.mesh.name = 'flora-roses'; this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    const M = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3();
+    spots.forEach((p, i) => { e.set(0, p.rot, 0); q.setFromEuler(e); M.compose(v.set(p.e, p.y - 0.05, -p.n), q, s.set(p.size, p.size, p.size)); this.mesh.setMatrixAt(i, M); });
+    this.mesh.count = spots.length;
+    this.mesh.userData = { tier: 'C', src: 'RECON', note: 'rose bushes along the paradise\'s channels (old roses of Persian gardens: C for 467); blossoms May-June, a few in October' };
+  }
+  update(month: number) { this.uBloom.value = roseBloom(month); }
+}

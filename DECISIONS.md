@@ -6509,3 +6509,11 @@ moment-*-webgpu.png in the worktree, not committed).**
   nothing else moved. Near tufts: alfalfa bushy, flax slender (C). The flax's blue flowers are not drawn (the crop texture holds
   height, green, straw and tillage only).
 - **Tests.** plain, plain_d223, plain_look, landscape, beasts, court_fill pass (73).
+
+## D-272 Roses along the paradise's channel (session 9; gap hunters G73; C)
+- **What** (groundFlora.ts RoseBeds; world.ts): rose bushes (0.6-1.1 m domes) every 2 m on both sides of the paradise's axis
+  channel (1.7 m from its line, inside the plane and cypress rows at 3.2 m; clear of the basins where the cross channels meet),
+  ~260 bushes; their blossoms (small pale quads on the dome) open pink in May-June, a few again in October. Drawn from the
+  garden's frame (Site.grid) without adding fittings, so the town's plan and its derived data do not move. Old roses in Persian
+  gardens: C for 467 (the damask rose's Achaemenid presence is not attested in our sources).
+- **Tests.** tests/roses.test.ts (2): the axis points lie in the garden and clear of the axis trees; the bloom calendar.

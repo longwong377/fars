@@ -125,7 +125,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G70 | juniper | A173; FL-007 | trees | C | MISSING/PARTIAL |
 | G71 | spring wildflowers (tulips, poppies, irises, crown imperial) | A220; W-039 | flora | B/C | BUILT (D-258: bloom tint far, flower heads near, by the calendar); unrendered |
 | G72 | tragacanth and thorn cushions, camelthorn, thistles | A221, A223; FL-008 | flora | B | BUILT (D-264: near the walker; the far slopes keep the terrain's painted shrubs); unrendered |
-| G73 | roses in the paradise | A226; FL-016 | flora | C | MISSING/PARTIAL |
+| G73 | roses in the paradise | A226; FL-016 | flora | C | BUILT (D-272: along the axis channel); unrendered |
 | G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | BUILT (D-259: 7 % of the irrigated plots; not on the rain-fed land); unrendered |
 | G75 | flax | A202; FL-013 | crops | C | BUILT (D-271: 1 % of irrigated plots; no blue flowers drawn); unrendered |
 | G76 | melons, cucumbers and gourds | A205; FL-012 | crops | C | MISSING/PARTIAL |
