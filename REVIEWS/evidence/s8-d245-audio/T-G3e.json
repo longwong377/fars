@@ -1,0 +1,41 @@
+{
+ "id": "T-G3e",
+ "value": 100,
+ "n": 4,
+ "commit": "7b3e24325b91c6baf97292f0914af40a7f10888e",
+ "tool": "tools/dev/audio_render.ts",
+ "method": "node, recording mock of the Web Audio graph driven by the real audio code (tools/dev/audio_graph.ts); NOT the browser render (BLOCKERS B65)",
+ "seed": 1,
+ "day": 120,
+ "hour": 10,
+ "unit": "%",
+ "what": "rivers at 5, 25 and 50 m from the bank in the month of lowest flow and a fire at 8 m, each heard above -40 dBFS at its own position (canals reported, not counted: not rivers)",
+ "probes": [
+  {
+   "k": "river 5 m",
+   "v": -28.9
+  },
+  {
+   "k": "river 25 m",
+   "v": -34.4
+  },
+  {
+   "k": "river 50 m",
+   "v": -38.4
+  },
+  {
+   "k": "fire 8 m",
+   "v": -37.6
+  }
+ ],
+ "water": {
+  "month": 7,
+  "levelsDb": {
+   "river 5 m": -28.9,
+   "river 25 m": -34.4,
+   "river 50 m": -38.4,
+   "canal 5 m": -38.7,
+   "canal 25 m": -48.5
+  }
+ }
+}

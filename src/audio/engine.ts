@@ -9,17 +9,48 @@ export interface Space { id: string; volume: number; surface: number; alpha: num
 /** Sabine: RT60 = 0.161 V / (S·ᾱ) (s). */
 export const rt60 = (s: Space) => (0.161 * s.volume) / (s.surface * s.alpha);
 
+/** D-245 (MASTER_PLAN T-G1: true peak ≤ −1 dBTP, "a limiter is present"): the master bus ends in a compressor used as a
+ *  limiter (threshold −10 dBFS, knee 0, ratio 20, 2 ms attack; the browser's compressor kernel also looks ahead 6 ms), its
+ *  automatic make-up gain taken back out (the Web Audio spec applies (1 / curve(0 dBFS))^0.6 to everything), then a soft
+ *  ceiling (a WaveShaper at 4× oversampling) that bounds every sample: linear to curveKnee·ceiling (−9.1 dBFS), then a tanh
+ *  knee toward the ceiling (0.5 = −6.0 dBFS). Three ways of holding the true peak were measured on full-scale and +6 dB white
+ *  noise, high-passed noise (rain) and a 12 kHz sine (tools/dev/audio_render.ts limiterStudy): at this ceiling the curve at
+ *  1× still leaves −0.4 dBTP (the inter-sample peaks of noise ride ~5 dB over its sample peaks), a 16 kHz low-pass after it
+ *  holds −3.1 dBTP but dulls the whole mix, the curve at 4× holds −2.9 dBTP (chosen); with the ceiling at −2 dBFS none of the
+ *  three holds −1 dBTP on +6 dB noise (+0.7 to +2.8). The 4× resampling is modelled in node, not the browser's own. */
+export const LIMITER = { threshold: -10, knee: 0, ratio: 20, attack: 0.002, release: 0.2, ceiling: 0.5, curveKnee: 0.7, oversample: '4x' } as const;
+/** the compressor's automatic make-up gain (Web Audio spec, DynamicsCompressorNode: makeup = (1 / curve(1))^0.6, knee 0) */
+export function limiterMakeup(thresholdDb: number = LIMITER.threshold, ratio: number = LIMITER.ratio): number {
+  const outDb = thresholdDb + (0 - thresholdDb) / ratio; return (1 / 10 ** (outDb / 20)) ** 0.6;
+}
+/** the ceiling's transfer curve over input −1…1: identity below knee·ceiling, then k + (c − k)·tanh((|x| − k)/(c − k)) */
+export function ceilingCurve(n = 4097, ceiling: number = LIMITER.ceiling, knee: number = LIMITER.curveKnee): Float32Array {
+  const out = new Float32Array(n), k = knee * ceiling, w = ceiling - k;
+  for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1, a = Math.abs(x); out[i] = Math.sign(x) * (a <= k ? a : k + w * Math.tanh((a - k) / w)); }
+  return out;
+}
+
 export class AudioEngine {
   ctx: AudioContext | null = null;
   master!: GainNode; ch!: Record<Channel, GainNode>;
+  /** D-245: the master bus's limiter, its make-up trim and the ceiling (master → limiter → trim → ceiling → destination) */
+  bus!: { limiter: DynamicsCompressorNode; trim: GainNode; ceiling: WaveShaperNode };
   private dry!: GainNode; private wet!: GainNode; private conv!: ConvolverNode;
   private irCache = new Map<string, AudioBuffer>(); currentSpace = '';
   unlocked = false;
   unlock() {
     if (this.ctx) { void this.ctx.resume(); return; }
     const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext; if (!Ctx) return;
-    this.ctx = new Ctx({ latencyHint: 'interactive' }); const c = this.ctx!;
-    this.master = c.createGain(); this.master.connect(c.destination);
+    this.attach(new Ctx({ latencyHint: 'interactive' }));
+  }
+  /** build the mixer on a context (the browser's, or a recording mock in node: tools/dev/audio_graph.ts) */
+  attach(ctx: AudioContext) {
+    this.ctx = ctx; const c = ctx;
+    this.master = c.createGain();
+    { const L = LIMITER, lim = c.createDynamicsCompressor(), trim = c.createGain(), ceil = c.createWaveShaper();
+      lim.threshold.value = L.threshold; lim.knee.value = L.knee; lim.ratio.value = L.ratio; lim.attack.value = L.attack; lim.release.value = L.release;
+      trim.gain.value = 1 / limiterMakeup(); ceil.curve = ceilingCurve() as Float32Array<ArrayBuffer>; ceil.oversample = L.oversample;
+      this.master.connect(lim); lim.connect(trim); trim.connect(ceil); ceil.connect(c.destination); this.bus = { limiter: lim, trim, ceiling: ceil }; }
     this.dry = c.createGain(); this.wet = c.createGain(); this.conv = c.createConvolver();
     this.dry.connect(this.master); this.conv.connect(this.wet); this.wet.connect(this.master);
     this.ch = {} as any;
@@ -97,8 +128,9 @@ export class AudioEngine {
   private noiseN = 0;
   /** a fresh noise buffer: each call starts its own sequence (audit D: one fixed seed made every footstep, strike and fire
    *  crackle the same waveform, so repeats were audible; MASTER_PLAN T-G2, T-G2f) */
-  noiseBuffer(seconds: number, colour: 'white' | 'pink' | 'brown' = 'white'): AudioBuffer {
-    const c = this.ctx!, n = Math.floor(c.sampleRate * seconds), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+  noiseBuffer(seconds: number, colour: 'white' | 'pink' | 'brown' = 'white', sampleRate?: number): AudioBuffer {
+    // D-245: beds whose band is low (wind, flies, fire, rivers) are generated at a lower rate (the context resamples)
+    const c = this.ctx!, sr = sampleRate ?? c.sampleRate, n = Math.floor(sr * seconds), b = c.createBuffer(1, n, sr), d = b.getChannelData(0);
     let b0 = 0, b1 = 0, b2 = 0, last = 0, seed = noiseSeed(++this.noiseN);
     for (let i = 0; i < n; i++) { const w = ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296) * 2 - 1;
       if (colour === 'white') d[i] = w; else if (colour === 'pink') { b0 = 0.99765 * b0 + w * 0.099; b1 = 0.963 * b1 + w * 0.2965; b2 = 0.57 * b2 + w * 1.0527; d[i] = (b0 + b1 + b2 + w * 0.1848) * 0.2; }

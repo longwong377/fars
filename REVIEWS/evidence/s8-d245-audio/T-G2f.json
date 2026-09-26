@@ -1,0 +1,13 @@
+{
+ "id": "T-G2f",
+ "value": 0.267,
+ "n": 549,
+ "commit": "7b3e24325b91c6baf97292f0914af40a7f10888e",
+ "tool": "tools/dev/audio_render.ts",
+ "method": "node, recording mock of the Web Audio graph driven by the real audio code (tools/dev/audio_graph.ts); NOT the browser render (BLOCKERS B65)",
+ "seed": 1,
+ "day": 120,
+ "hour": 10,
+ "unit": "r",
+ "what": "largest correlation between any two footsteps within 10 s (n = pairs)"
+}

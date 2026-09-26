@@ -13,11 +13,16 @@
 // (in the air about the listener), wind and rain are not point sources and are not occluded. Tiers: species B/C
 // (SOUND-R), sound designs C.
 import { AudioEngine, Space } from './engine';
+import { NoiseStream } from './beds';
 import { Rng } from '../core/rng';
 
 export const SPACES: Record<string, Space> = {
   open: { id: 'open', volume: 2e6, surface: 1e6, alpha: 0.9 },
   portico: { id: 'portico', volume: 60 * 18 * 19, surface: 60 * 18 * 2 + 60 * 19, alpha: 0.5 },
+  /** D-245 (audit D: "acoustics stop at the Terrace"): a lane of the town or a village between house walls (C): a 30 m
+   *  stretch 4 m wide between 3.5 m mud-brick walls, open above and at the ends (earth floor 0.3, plastered walls 0.05,
+   *  the openings 1): RT60 ≈ 0.35 s, the short slap of a street */
+  street: { id: 'street', volume: 30 * 4 * 3.5, surface: 120 + 210 + 120 + 28, alpha: (0.3 * 120 + 0.05 * 210 + 148) / 478 },
 };
 /** mean absorption per roofed hall (C): plaster walls, lime-plaster floor, timber ceiling; halls in use are assumed to
  *  carry hangings/furnishings (0.14), the Gate is bare (0.1) */
@@ -138,6 +143,9 @@ export const STRIKE_KINDS = ['chisel', 'quern', 'dice', 'hoe', 'sickle', 'loom',
   // D-210: the animals' voices at the animal (crowd performances, world/fauna.ts)
   'bray', 'bark', 'cluck', 'cockcrow', 'grunt'] as const;
 export const LAYER_SOUNDS = ['murmur', 'footsteps', 'fire'] as const;
+/** a lit fire's crackle bed level (C). D-245: 0.08 was −49 dBFS at 8 m (tools/dev/audio_render.ts), below the −40 dB a
+ *  visible fire within 10 m must reach (MASTER_PLAN T-G3e) */
+export const FIRE_BED = 0.3;
 /** a short noise burst through a filter (work sounds) */
 function burst(e: AudioEngine, out: AudioNode, t: number, dur: number, colour: 'white' | 'pink' | 'brown', type: BiquadFilterType, f0: number, f1: number, q: number, gain: number) {
   const c = e.ctx!, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = e.noiseBuffer(dur + 0.02, colour);
@@ -192,32 +200,35 @@ export function ambientWeight(b: Bird, ctx: { hour: number; month: number; place
 /** the tier of an ambient species or layer heard (dev overlay) */
 export const AMBIENT_TIER = (id: string) => id === 'flies' ? 'C (expected at dung and middens: brief section 5.5; not sourced)' : BIRDS.find(b => b.id === id)?.tier ?? '?';
 export class Soundscape {
-  private windSrc?: AudioBufferSourceNode; private windGain?: GainNode; private windFilter?: BiquadFilterNode; private whistle?: BiquadFilterNode; private whistleGain?: GainNode;
-  private rainSrc?: AudioBufferSourceNode; private rainGain?: GainNode; private birdBus?: GainNode;
-  /** D-210: the flies' buzz at dung, middens and animals (a looped layer; C) */
+  // D-245: the beds are NoiseStreams (src/audio/beds.ts): fresh noise segments crossfaded, never a loop (they were 4–6 s loops)
+  private windSrc?: NoiseStream; private windGain?: GainNode; private windFilter?: BiquadFilterNode; private whistle?: BiquadFilterNode; private whistleGain?: GainNode;
+  private rainSrc?: NoiseStream; private rainGain?: GainNode; private birdBus?: GainNode; private fliesSrc?: NoiseStream;
+  /** D-210: the flies' buzz at dung, middens and animals (a stream, D-245; C) */
   private fliesGain?: GainNode;
   /** D-210: the ambient species heard lately (dev overlay F3: what and its tier) */
   readonly heard = new Map<string, number>();
   /** the flies' level (0-1) set by the last update (tests, overlay) */
   fliesLevel = 0;
-  private fireNodes = new Map<string, { gain: GainNode; pan: PannerNode }>();
+  private fireNodes = new Map<string, { gain: GainNode; pan: PannerNode; bed: NoiseStream }>();
+  /** D-245: the rain's and the flies' streams run until a few seconds after their level falls to nothing (the gain's decay) */
+  private rainTail = -1; private fliesTail = -1;
   private rng = new Rng(1, 'soundscape'); private nextStep = 0; private nextChisel = 0; private started = false;
   lastSpace = 'open';
   constructor(readonly e: AudioEngine) {}
   private start() {
     const e = this.e, c = e.ctx!; this.started = true;
-    const loop = (buf: AudioBuffer) => { const s = c.createBufferSource(); s.buffer = buf; s.loop = true; s.start(); return s; };
-    this.windSrc = loop(e.noiseBuffer(6, 'pink')); this.windFilter = c.createBiquadFilter(); this.windFilter.type = 'lowpass'; this.windGain = c.createGain(); this.windGain.gain.value = 0;
-    this.windSrc.connect(this.windFilter); this.windFilter.connect(this.windGain); this.windGain.connect(e.ch.ambience);
+    // wind (≤ ~2 kHz after its low-pass) and the whistle from one pink stream at 16 kHz; rain (high-passed at 900 Hz) white at 32 kHz
+    this.windSrc = new NoiseStream(e, 'pink', { seg: 6, fade: 0.6, sampleRate: 16000 }); this.windFilter = c.createBiquadFilter(); this.windFilter.type = 'lowpass'; this.windGain = c.createGain(); this.windGain.gain.value = 0;
+    this.windSrc.out.connect(this.windFilter); this.windFilter.connect(this.windGain); this.windGain.connect(e.ch.ambience);
     this.whistle = c.createBiquadFilter(); this.whistle.type = 'bandpass'; this.whistle.Q.value = 18; this.whistle.frequency.value = 520; this.whistleGain = c.createGain(); this.whistleGain.gain.value = 0;
-    this.windSrc.connect(this.whistle); this.whistle.connect(this.whistleGain); this.whistleGain.connect(e.ch.ambience);
-    this.rainSrc = loop(e.noiseBuffer(5, 'white')); const rf = c.createBiquadFilter(); rf.type = 'highpass'; rf.frequency.value = 900; this.rainGain = c.createGain(); this.rainGain.gain.value = 0;
-    this.rainSrc.connect(rf); rf.connect(this.rainGain); this.rainGain.connect(e.ch.ambience);
+    this.windSrc.out.connect(this.whistle); this.whistle.connect(this.whistleGain); this.whistleGain.connect(e.ch.ambience);
+    this.rainSrc = new NoiseStream(e, 'white', { seg: 5, fade: 0.5, sampleRate: 32000 }); const rf = c.createBiquadFilter(); rf.type = 'highpass'; rf.frequency.value = 900; this.rainGain = c.createGain(); this.rainGain.gain.value = 0;
+    this.rainSrc.out.connect(rf); rf.connect(this.rainGain); this.rainGain.connect(e.ch.ambience);
     this.birdBus = c.createGain(); this.birdBus.gain.value = 1; this.birdBus.connect(e.ch.ambience);
     { // flies: pink noise through a narrow band at the wingbeat (~200 Hz), its pitch and loudness wandering (C)
-      const src = loop(e.noiseBuffer(4, 'pink')), f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 215; f.Q.value = 6;
+      this.fliesSrc = new NoiseStream(e, 'pink', { seg: 5, fade: 0.5, sampleRate: 8000 }); const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 215; f.Q.value = 6;
       const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 0.7; lg.gain.value = 35; lfo.connect(lg); lg.connect(f.frequency); lfo.start();
-      this.fliesGain = c.createGain(); this.fliesGain.gain.value = 0; src.connect(f); f.connect(this.fliesGain); this.fliesGain.connect(e.ch.ambience); }
+      this.fliesGain = c.createGain(); this.fliesGain.gain.value = 0; this.fliesSrc.out.connect(f); f.connect(this.fliesGain); this.fliesGain.connect(e.ch.ambience); }
   }
   thunder(delay: number, strength: number) {
     const e = this.e; if (!e.ctx) return; const c = e.ctx, t = c.currentTime + delay;
@@ -260,12 +271,16 @@ export class Soundscape {
     place?: Place; sun?: { rise: number; set: number }; tempC?: number }) {
     const e = this.e; if (!e.ctx || e.ctx.state !== 'running') return; if (!this.started) this.start();
     const c = e.ctx, t = c.currentTime;
-    const sp = SPACES[ctx.insideSpace] ?? SPACES.open; e.setSpace(sp, ctx.insideSpace === 'open' ? 0.05 : 0.35);
+    // D-245: in the lanes of the town and the villages the open air has the walls' short slap (SPACES.street, C)
+    const street = ctx.insideSpace === 'open' && (ctx.place?.town ?? 0) > 0.75; this.lastSpace = street ? 'street' : ctx.insideSpace;
+    const sp = street ? SPACES.street : SPACES[ctx.insideSpace] ?? SPACES.open; e.setSpace(sp, street ? 0.12 : ctx.insideSpace === 'open' ? 0.05 : 0.35);
     const inside = ctx.insideSpace !== 'open' && ctx.insideSpace !== 'portico';
     this.windGain!.gain.setTargetAtTime(Math.min(0.5, 0.03 + ctx.windMs * 0.04) * (inside ? 0.25 : 1), t, 0.5);
     this.windFilter!.frequency.setTargetAtTime(250 + ctx.windMs * 120, t, 0.5);
     this.whistleGain!.gain.setTargetAtTime(ctx.nearColumns ? Math.min(0.08, Math.max(0, ctx.windMs - 3) * 0.015) : 0, t, 0.8);
     this.rainGain!.gain.setTargetAtTime(ctx.rain * (inside ? 0.12 : 0.35), t, 0.4);
+    // the beds' streams run while they can be heard (a silent bed schedules nothing)
+    this.windSrc!.tick(); if (ctx.rain > 0.002) this.rainTail = t + 3; if (t < this.rainTail) this.rainSrc!.tick();
     // birds: Poisson calls by species season/time; muffled inside
     this.birdBus!.gain.setTargetAtTime((inside ? 0.25 : 1) * (1 - ctx.rain * 0.8), t, 0.5);
     for (const b of BIRDS) {
@@ -280,13 +295,15 @@ export class Soundscape {
     const pl = ctx.place, warm = (ctx.tempC ?? 20) > 14 && ctx.month >= 3 && ctx.month <= 9 && ctx.hour > 7 && ctx.hour < 19.5;
     this.fliesLevel = pl && warm ? Math.min(1, pl.midden * 0.9 + pl.animals * 0.6) * (1 - ctx.rain) : 0;
     this.fliesGain!.gain.setTargetAtTime(0.03 * this.fliesLevel * (inside ? 0.3 : 1), t, 0.6); if (this.fliesLevel > 0.05) this.heard.set('flies', t);
+    if (this.fliesLevel > 0.001) this.fliesTail = t + 4; if (t < this.fliesTail) this.fliesSrc!.tick();
     // fires: crackle source per lit fire within 40 m
     for (const f of ctx.fires) {
       const d = Math.hypot(f.pos.x - ctx.listener.x, f.pos.y - ctx.listener.y, f.pos.z - ctx.listener.z);
       let n = this.fireNodes.get(f.id);
-      if (f.lit && d < 40 && !n) { const s = c.createBufferSource(); s.buffer = e.noiseBuffer(3, 'pink'); s.loop = true; const lf = c.createBiquadFilter(); lf.type = 'lowpass'; lf.frequency.value = 900;
-        const g = c.createGain(); g.gain.value = 0; const pan = e.panner(f.pos.x, f.pos.y, f.pos.z, 1.5, 60); s.connect(lf); lf.connect(g); g.connect(pan); e.route(pan, 'effects'); s.start(); n = { gain: g, pan }; this.fireNodes.set(f.id, n); }
-      if (n) { n.gain.gain.setTargetAtTime(f.lit && d < 40 ? 0.08 * (0.7 + 0.3 * this.rng.next()) : 0, t, 0.05); if (this.rng.next() < dt * 6 && f.lit && d < 25) { // crackle pops
+      if (f.lit && d < 40 && !n) { const bed = new NoiseStream(e, 'pink', { seg: 4, fade: 0.4, sampleRate: 8000 }); const lf = c.createBiquadFilter(); lf.type = 'lowpass'; lf.frequency.value = 900;
+        const g = c.createGain(); g.gain.value = 0; const pan = e.panner(f.pos.x, f.pos.y, f.pos.z, 1.5, 60); bed.out.connect(lf); lf.connect(g); g.connect(pan); e.route(pan, 'effects'); n = { gain: g, pan, bed }; this.fireNodes.set(f.id, n); }
+      if (n) { if (f.lit && d < 40) n.bed.tick(); // D-245: each fire's own stream, never a shared loop (audit D: two fires played one 3 s loop)
+        n.gain.gain.setTargetAtTime(f.lit && d < 40 ? FIRE_BED * (0.7 + 0.3 * this.rng.next()) : 0, t, 0.05); if (this.rng.next() < dt * 6 && f.lit && d < 25) { // crackle pops
           const s = c.createBufferSource(); s.buffer = e.noiseBuffer(0.02, 'white'); const g = c.createGain(); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03); s.connect(g); g.connect(n.pan); s.start(t); } }
     }
     // generic worksite chisels only when no simulated masons drive `strike` (kept for audio tests without people)

@@ -1,0 +1,74 @@
+{
+ "id": "T-G2",
+ "value": 2,
+ "n": 4,
+ "commit": "7b3e24325b91c6baf97292f0914af40a7f10888e",
+ "tool": "tools/dev/audio_render.ts",
+ "method": "node, recording mock of the Web Audio graph driven by the real audio code (tools/dev/audio_graph.ts); NOT the browser render (BLOCKERS B65)",
+ "seed": 1,
+ "day": 120,
+ "hour": 10,
+ "unit": "count",
+ "what": "voice renders sharing a unit within 60 s whose 0.3 s segments correlate > 0.9 (sustained over all three 0.1 s thirds), plain or after pitch normalisation; plus buffers started twice within 60 s",
+ "perScene": [
+  {
+   "scene": "synthetic gathering",
+   "voicePairsSharingAUnit": 835,
+   "maxXcorrPitchNormalised": 0.875,
+   "maxXcorrPlain": 0.789,
+   "maxSingleWindowXcorr": 0.963,
+   "maxPair": "p47/p45 arc:spr voice/voice",
+   "over09": 0,
+   "examples": [],
+   "bufferReusesWithin60s": 0,
+   "control": {
+    "pitchShiftedCopy": 0.992
+   }
+  },
+  {
+   "scene": "town (4 talkers within 15 m at e -1186, n -912)",
+   "voicePairsSharingAUnit": 281,
+   "maxXcorrPitchNormalised": 0.92,
+   "maxXcorrPlain": 0.813,
+   "maxSingleWindowXcorr": 0.913,
+   "maxPair": "p4516/p5373 op:apadāna- bed/bed",
+   "over09": 2,
+   "examples": [
+    "a41/a65 op.remark.parsa_uvaspa 0.92",
+    "p4516/p5373 op:apadāna- 0.92"
+   ],
+   "bufferReusesWithin60s": 0,
+   "control": {
+    "pitchShiftedCopy": 0.989
+   }
+  },
+  {
+   "scene": "terrace (2 talkers within 15 m at e 132, n 5)",
+   "voicePairsSharingAUnit": 5,
+   "maxXcorrPitchNormalised": 0.742,
+   "maxXcorrPlain": 0.443,
+   "maxSingleWindowXcorr": 0.905,
+   "maxPair": "a108/a104 arc:dhb voice/voice",
+   "over09": 0,
+   "examples": [],
+   "bufferReusesWithin60s": 0,
+   "control": {
+    "pitchShiftedCopy": 0.992
+   }
+  },
+  {
+   "scene": "village (6 talkers within 15 m at e -5392, n 4165)",
+   "voicePairsSharingAUnit": 480,
+   "maxXcorrPitchNormalised": 0.879,
+   "maxXcorrPlain": 0.737,
+   "maxSingleWindowXcorr": 0.917,
+   "maxPair": "p32736/p32666 op:stūnā bed/bed",
+   "over09": 0,
+   "examples": [],
+   "bufferReusesWithin60s": 0,
+   "control": {
+    "pitchShiftedCopy": 0.86
+   }
+  }
+ ]
+}

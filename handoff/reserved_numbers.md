@@ -11,4 +11,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-235 | s8 | coverage harness for every inch (Q-630..Q-639) | worktree-agent-af3e66fbfe7229375 | in flight |
 | D-237 | s8 | walkability: fall-through, walk everywhere, autosave (Q-640..Q-649, B61..B62) | worktree-agent-a1aaf525d1db6ee63 | in flight |
 | D-244 | s8 | indoor truth on screen (Q-650..Q-659, B63..B64) | worktree agent (indoor truth) | in flight |
-| D-245 | s8 | the town is not mute (Q-660..Q-669, B65..B66) | worktree agent (audio) | in flight |
+| D-245 | s8 | the town is not mute (Q-660..Q-669, B65..B66) | worktree-agent-af46721eb7f032c30 | merged (session 8, after 22956d7) |

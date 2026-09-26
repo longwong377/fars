@@ -1,6 +1,20 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **D-245 the town is not mute — UNHEARD: no browser has played any of it (B65).** Voices now come from everyone the crowd places
+  near the listener (skinned and impostor, detailed agents and the population), in their own language and their own voice,
+  published words only; peoples without a corpus (Egyptian, Lydian, Carian, Lycian, Cappadocian, Bactrian, Sogdian, Thracian, West
+  Semitic) gesture and hum, never another people's words (T-K1a2); a grain bed for talkers beyond 20 m; the jaw moves only with the
+  voice. Still broken or placeholder: the voice is the formant synthesiser (PLACEHOLDER-QUALITY, never rated), rendered on the main
+  thread (2–5 ms a unit, budget 2 a frame); **T-G2 fails (2 repeats a minute in the town scene: Old Persian's small lexicon)**;
+  no voices beyond 60 m (a court assembly heard from afar has no crowd bed); wordless voice is not captioned; town and plain
+  buildings still do not occlude and houses have no rooms (T-G6, T-G6o not measured); loudness bands (T-G1t/n/v/m, T-G5d) not
+  measured; everything is measured in node on a recording mock of the Web Audio graph, not a render (tools/dev/audio_render.ts,
+  REVIEWS/evidence/s8-d245-audio). Measured there: limiter present, modelled true peak −6.1 dBTP (T-G1); no loop and no reused
+  buffer in 60 s of all seven beds (T-G2b); footsteps r ≤ 0.27 (T-G2f); every talker within 15 m heard above −40 dBFS in all four
+  scenes (T-G3 100 %, n = 4 scenes, not bot-hours); the river −38.4 dBFS at 50 m in August, a fire −37.6 at 8 m (T-G3e 100 %).
+  Also fixed: the synthesiser's noise seed (every hashed voice seed gave one noise sequence, scripted lines included). The lead
+  must listen: a town lane at midday, the Terrace forecourt, a village, the Pulvar bank, rain on a fire (B65, B66, DECISIONS D-245).
 - **Photo #24 side by side (session 8, job d232check, shots/moment-calib-24-now-webgpu.png vs references #24): the render fails
   plainly.** The wall now draws joints (no longer flat or black), but it reads as grey concrete where the photo's stone is warm
   tan-brown; the polygonal foot of big blocks along the W wall (photo, 38 % of its length) is not visible; the plain is smooth brown

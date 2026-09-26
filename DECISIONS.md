@@ -5840,3 +5840,78 @@ moment-*-webgpu.png in the worktree, not committed).**
   tests/defaults.test.ts (T-K10). Camera rigs (`?test`) keep the evidence-strict setting unless `&court=seasonal`, so their views stay
   comparable; coverage samples the default world. The arrival itself is not yet simulated: the court is present from day 0 to 116
   and only its departure is simulated (the Phase 5 report); D-239 and T-F8 need the arrival.
+
+## D-245 The town is not mute: population voices, a master limiter, beds that never loop, running water (session 8, UD-06, UD-07, UD-08; MASTER_PLAN §6 order step 1; T-G1, T-G2, T-G2b, T-G2f, T-G3, T-G3e, T-K1a2)
+- **How this could pass its tests while the intent fails (said before building, and measured against):** (1) a limiter in the
+  graph that something bypasses to the destination (measured: exactly one node feeds the destination, the ceiling); (2) voices that
+  exist in a synthetic test while the world still feeds only the 135 agents (the world now feeds `crowd.nearPeople`: skinned and
+  impostor people of every source; the tool builds its scenes from the real population view, no agents needed); (3) per-person
+  parameters that differ negligibly (measured: pairwise voice distance ≥ 1 on five axes, and the pitch-normalised correlation of the
+  same word said by two people); (4) beds without `loop` that still reuse one buffer (measured: buffers started twice within 60 s);
+  (5) speakers "present" but at −60 dB after roll-off, occlusion and filters (measured: each utterance's RMS through its path's real
+  filters and gains, the panner's law and the master bus); (6) a talker given a slot but starved of renders while the jaw keeps
+  moving (the jaw now moves only while the voice plays: a starved talker is a silent listener, and render waits are counted); (7) a
+  river source placed far off or too quiet (measured at 5, 25 and 50 m from the bank in the month of lowest flow).
+- **What.**
+  - **Master bus** (src/audio/engine.ts LIMITER): master → DynamicsCompressor (−10 dBFS, ratio 20, knee 0, 2 ms / 200 ms) → a trim
+    that removes the spec's automatic make-up gain → WaveShaper ceiling (linear to −9.1 dBFS, tanh knee to −6.0 dBFS, 4×
+    oversampling) → destination. Three approaches measured on full-scale and +6 dB white noise, high-passed noise and a 12 kHz
+    sine: ceiling at 1× −0.4 dBTP worst (fails), ceiling + 16 kHz low-pass −3.1 dBTP (dulls the mix), ceiling at 4× −2.9 dBTP
+    (chosen); at a −2 dBFS ceiling none of the three holds (+0.7…+2.8 dBTP).
+  - **Population voices** (src/audio/voices.ts PopulationVoices; src/people/talkers.ts; crowd.nearPeople): everyone the crowd
+    places within 60 m whose activity sounds as talk (talk, eat, exchange), from any source. Within 20 m (≤ 48) each talker has an
+    individual HRTF/equal-power voice; beyond, or over the cap, a grain bed of √n streams (≤ 8), each grain one unit in a talker's
+    own voice at that talker, low-passed with distance, rendered afresh (no pool, no loop). Conversations: talkers of one place
+    within 3 m take turns, the longer silent the likelier to speak next, with rare overlaps; eaters talk less. The crowd's jaw
+    moves only while that person's voice plays (crowd.voice / claimVoices), so a visible speaker is a heard speaker.
+  - **Published words only** (D-241): an utterance is one whole speech line (people/speech_lines.ts, no role restriction) or one
+    attested lexicon entry (murmurEligible, tier A/B); never joined into new sentences; a person never repeats a unit or a word of
+    one within 60 s. The phonotactic pseudo-word murmur (src/audio/murmur.ts) is no longer used in the world.
+  - **Languages** by origin (HOME_LANG) or the roster's listed languages. **Wordless voice (T-K1a2), listed here as the plan asks:**
+    peoples without a usable published corpus in the repo — Egyptian, Lydian, Carian, Lycian, Cappadocian, Bactrian, Sogdian,
+    Thracian, West Semitic speakers, and any origin without a lexicon — are never given Aramaic (or any other people's) words: they
+    gesture and use ten wordless vocalisations (hums of assent, doubt and thought, hesitations, a realising "ah"; checked against
+    the modern-word list) with long pauses, unless a detailed agent's roster lists a lexicon language of theirs (an Egyptian with
+    Aramaic speaks Aramaic). Mixed company speaks Aramaic, the lingua franca (brief §10; C), among those who have a language of
+    words; the wordless stay wordless. Medes stay in Old Persian through HOME_LANG, as the sim does (C, an existing decision).
+  - **Each person's own voice** (personVoice, from their seed): pitch, pace, breathiness, timbre (formant scale), vowel space (new
+    `f2`), pitch wander (new `wander`), phone-timing jitter (new `durJitter`), accent strength (new `accent`), glottal pulse shape,
+    jitter and shimmer (new `glottis`, `jitter`, `shimmer`; more with age); a new voice is moved (deterministically) at least one
+    unit (VOICE_MIN) from every voice in earshot; every utterance varies its pitch ±4 %, pace ±8 %, vowels ±2 %, accent and, for a
+    word, its tune. The new VoiceParams fields default to the old synthesiser, so scripted speech is unchanged except for the seed
+    fix below.
+  - **Bug fixed:** renderPlan seeded its noise with `(seed * 2654435761) >>> 0`; for every hashed voice seed the float product lost
+    its low bits and gave s = 1, so every voice (the scripted lines' too) used one jitter, shimmer and frication sequence. Now
+    `Math.imul` (identical for seeds below 2²¹).
+  - **Beds** (src/audio/beds.ts NoiseStream): wind, the column whistle, rain, flies, every fire's crackle, rivers and canals play
+    chains of fresh noise segments (4–6 s, each its own seed, low-rate buffers for low bands) with equal-power crossfades, scheduled
+    1.5 s ahead from the frame loop; nothing loops. A stalled frame loop gives a gap, never a loop. A fire's bed only runs while it
+    is within 40 m (it used to loop forever once met). The fire bed level rose 0.08 → 0.3 (FIRE_BED: −49 → −38 dBFS at 8 m).
+  - **Running water** (src/audio/water.ts WaterSound): the nearest point of the nearest river (within 150 m) and canal (60 m) carries
+    a rumble and a drifting gurgle, line-source roll-off 0.4, level by month (FLOW: snowmelt high water, lowest Aug–Sep). C.
+  - **Acoustics beyond the Terrace (partial):** a `street` space (RT60 ≈ 0.35 s) in the town's and villages' lanes. Town and plain
+    buildings are still not occluders; houses have no rooms (T-G6, T-G6o not measured).
+  - **Captions (out of world):** a lexicon utterance within 6 m reaches the translation layer (words and gloss) unless a scripted
+    line was shown in the last 4 s; wordless voice is not captioned yet.
+  - **Measurement** (tools/dev/audio_render.ts with tools/dev/audio_graph.ts, audio_scenes.ts): node has no OfflineAudioContext and
+    node-web-audio-api is not installed, so the real code runs on a recording mock of the Web Audio graph holding the real samples;
+    it writes REVIEWS/evidence/s8-d245-audio/<id>.json for T-G1, T-G2, T-G2b, T-G2f, T-G3, T-G3e. What the browser adds (HRTF,
+    convolver, its compressor and resampler, the device) is not measured (B65).
+- **Tier.** Every sound design, level, voice range, the wordless set and the lingua-franca rule C. The voice is the formant
+  synthesiser: PLACEHOLDER-QUALITY (F3 says so).
+- **Rejected.** Aramaic words for peoples without a corpus (T-K1a2); pseudo-words for close voices (invented, D-241); a pool of
+  pre-rendered phrases (repeats, audit D M7); long looped buffers (a 30 s loop of noise is still a loop: T-G2b anti-proxy); an
+  AudioWorklet noise generator (cannot be tested in node here; the stream achieves the same with plain nodes).
+- **Measured:** (tools/dev/audio_render.ts --scene all --secs 60 --evidence s8-d245-audio on 7b3e243; REVIEWS/evidence/s8-d245-audio;
+  four scenes: a synthetic 60-person gathering, and the real population view at day 120, 10:00 in the town (e −1186, n −912; 20
+  talkers, 4 within 15 m), on the Terrace (2) and in a village (17, 6 within 15 m), each at its densest talker spot):
+  **T-G1** limiter the sole feed of the destination; modelled true peak −6.09 dBTP worst (dry mix up to +1.4 dBFS in the gathering;
+  +12 dB hot −5.5; full-scale noise −2.8). **T-G2 FAILS: 2** (town: an Old Persian line and a word said by two people 0.92 after
+  pitch normalisation); 0 in the gathering over 835 shared-unit pairs, on the Terrace and in the village; 0 buffers reused; the
+  detector finds a 3–5 % pitch-shifted copy at 0.95–0.99 (0.86 on one short village render). **T-G2b** no looped source and no
+  buffer started twice in 60 s of all seven beds (value 60 s: the render length, a lower bound). **T-G2f** 0.27 over 549 pairs of
+  steps within 10 s. **T-G3** 100 % in every scene (30/30, 4/4, 2/2, 6/6 talkers within 15 m voiced; quietest voice −38.7 dBFS).
+  **T-G3e** 100 %: the river −28.9 / −34.4 / −38.4 dBFS at 5 / 25 / 50 m from the bank in August, a fire at 8 m −37.6; canals
+  −38.7 / −48.5 at 5 / 25 m (not counted). n is scenes, not the rows' samples (B66). Statuses T-G1, T-G2, T-G2b, T-G2f, T-G3,
+  T-G3e → partial (evidence committed); built needs the samples. Not measured: T-G1l, T-G1t, T-G1n, T-G1v, T-G1m, T-G5d, T-G2m,
+  T-G6, T-G6o (B65); T-K1a2 and T-K3c are other tools' rows (the voices follow T-K1a2; lexicon speech near is captioned).

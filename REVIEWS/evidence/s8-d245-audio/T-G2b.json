@@ -1,0 +1,31 @@
+{
+ "id": "T-G2b",
+ "value": 60,
+ "n": 7,
+ "commit": "7b3e24325b91c6baf97292f0914af40a7f10888e",
+ "tool": "tools/dev/audio_render.ts",
+ "method": "node, recording mock of the Web Audio graph driven by the real audio code (tools/dev/audio_graph.ts); NOT the browser render (BLOCKERS B65)",
+ "seed": 1,
+ "day": 120,
+ "hour": 10,
+ "unit": "s",
+ "what": "every bed played 60 s: no looped source and no buffer started twice, so the value is the render length (a lower bound; NoiseStream segments are fresh noise, never repeated)",
+ "beds": {
+  "kinds": [
+   "wind",
+   "column whistle",
+   "rain",
+   "flies",
+   "fire crackle",
+   "river",
+   "canal"
+  ],
+  "secs": 60,
+  "loopedSources": 0,
+  "shortestLoopS": null,
+  "buffersStarted": 128,
+  "distinctBuffers": 128,
+  "reusesWithin60s": 0,
+  "shortestReuseS": null
+ }
+}

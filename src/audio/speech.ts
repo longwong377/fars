@@ -31,6 +31,20 @@ export interface VoiceParams {
   breath?: number;
   /** jitter/noise seed (deterministic output) */
   seed?: number;
+  /** D-245: timbre, a multiplier on the formant frequencies (vocal-tract length; ≈0.93–1.07, default 1) */
+  formant?: number;
+  /** D-245: a further multiplier on F2 and F3 only (the speaker's own vowel space; ≈0.95–1.05, default 1) */
+  f2?: number;
+  /** D-245: slow wander of the pitch (relative amplitude, ≈0.01–0.05, default 0) on two incommensurate oscillations whose
+   *  rates and phases come from `seed`: no two utterances share a pitch contour */
+  wander?: number;
+  /** D-245: each phone's length varies by up to this share (±, from `seed`; ≈0.1–0.2, default 0): speech is never metronomic */
+  durJitter?: number;
+  /** D-245: the strength of the stress accent (a multiplier on the pitch bump of stressed syllables; default 1) */
+  accent?: number;
+  /** D-245: the speaker's glottis, 0–1 (default 0.5): the glottal pulse's open phase 0.30–0.50 and closing phase 0.12–0.20 of
+   *  the period (a pressed to a lax voice), and their jitter and shimmer (defaults 1 % and 3 %) */
+  glottis?: number; jitter?: number; shimmer?: number;
 }
 export type Intonation = 'fall' | 'rise' | 'level';
 
@@ -49,7 +63,7 @@ export function voiceBase(v: VoiceParams): { f0: number; formantScale: number; b
   if (v.age < 13) { f0 = 275; formantScale = 1.28; breath = 0.1; }
   else if (v.sex === 'f') { f0 = v.age > 50 ? 190 : 205; formantScale = 1.16; breath = 0.08; }
   else { f0 = v.age > 55 ? 122 : v.age < 18 ? 150 : 115; formantScale = v.age < 18 ? 1.08 : 1; breath = 0.03; }
-  return { f0: f0 * v.pitch, formantScale, breath: breath + (v.breath ?? 0) };
+  return { f0: f0 * v.pitch, formantScale: formantScale * (v.formant ?? 1), breath: breath + (v.breath ?? 0) };
 }
 
 export interface Frame {
@@ -58,7 +72,9 @@ export interface Frame {
   ff: number; fbw: number; nasal: number; trill: number;
 }
 export interface Segment { sym: string; manner: string; start: number; end: number; stressed: boolean; word: number }
-export interface Plan { frames: Frame[]; frameSec: number; duration: number; segments: Segment[]; f0Base: number; formantScale: number }
+export interface Plan { frames: Frame[]; frameSec: number; duration: number; segments: Segment[]; f0Base: number; formantScale: number;
+  /** D-245: the glottal pulse's open and closing phases (share of the period), jitter and shimmer (defaults 0.4, 0.16, 0.01, 0.03) */
+  oq?: number; cq?: number; jitter?: number; shimmer?: number }
 
 interface Phase {
   dur: number; av: number; ah: number; af: number; F: [number, number, number]; B1: number; ff: number; fbw: number;
@@ -119,7 +135,8 @@ export function planUtterance(ipa: string, voice: VoiceParams, opts: { lang?: La
     stressed.add(syl[si].nucleus);
     if (w === lastWord) { const s = syl[syl.length - 1]; for (const p of [s.nucleus, ...s.coda]) finalSyl.add(p); }
   }
-  const scale3 = (F: readonly number[]): [number, number, number] => [F[0] * sc, F[1] * sc, F[2] * sc];
+  const f2k = voice.f2 ?? 1, scale3 = (F: readonly number[]): [number, number, number] => [F[0] * sc, F[1] * sc * f2k, F[2] * sc * f2k];
+  const wv = voice.wander ?? 0, ws = (voice.seed ?? 1) >>> 0, wp1 = ((ws % 997) / 997) * 2 * Math.PI, wp2 = (((ws >>> 10) % 991) / 991) * 2 * Math.PI, wr = 2.1 + (((ws >>> 20) % 97) / 97) * 1.8;
   const nextVowel = (i: number) => { for (let k = i + 1; k < phones.length; k++) if (phones[k].def.manner === 'vowel') return phones[k]; return null; };
   const prevVowel = (i: number) => { for (let k = i - 1; k >= 0; k--) if (phones[k].def.manner === 'vowel') return phones[k]; return null; };
   const phases: Phase[] = [];
@@ -184,6 +201,8 @@ export function planUtterance(ipa: string, voice: VoiceParams, opts: { lang?: La
     segments.push({ sym: p.sym + (p.long ? 'ː' : ''), manner: d.manner, start: 0, end: 0, stressed: stressed.has(p), word: p.word });
   });
   phases.push(silence(0.09));
+  { const dj = voice.durJitter ?? 0; if (dj) { let q = Math.imul((voice.seed ?? 1) | 0, 0x9e3779b1) >>> 0 || 7;
+    for (let k = 1; k < phases.length - 1; k++) { q ^= q << 13; q >>>= 0; q ^= q >>> 17; q ^= q << 5; q >>>= 0; phases[k].dur *= 1 + dj * (q / 2147483648 - 1); } } }
   // lay phases on the time axis
   let t = 0; const starts: number[] = [];
   for (const ph of phases) { starts.push(t); t += ph.dur; }
@@ -208,8 +227,9 @@ export function planUtterance(ipa: string, voice: VoiceParams, opts: { lang?: La
     const tail = T - 0.09 - tf; // time to the end of the last phone
     if (tail < 0.28) { const u = Math.min(1, Math.max(0, 1 - tail / 0.28)); f0 *= intonation === 'rise' ? 1 + 0.28 * u : intonation === 'fall' ? 1 - 0.14 * u : 1; }
     let b = 0; for (const c of bumps) b += Math.exp(-(((tf - c) / 0.07) ** 2));
-    f0 *= 1 + 0.14 * Math.min(1, b);
+    f0 *= 1 + 0.14 * (voice.accent ?? 1) * Math.min(1, b);
     if (ph.creak) f0 *= 0.72;
+    if (wv) f0 *= 1 + wv * (0.6 * Math.sin(2 * Math.PI * wr * tf + wp1) + 0.4 * Math.sin(2 * Math.PI * wr * 1.93 * tf + wp2));
     const ampDecl = 1 - 0.22 * (tf / T);
     const tgt: Frame = { f0, av: ph.av * ampDecl, ah: ph.ah * ampDecl, af: ph.af, F1: ph.F[0], F2: ph.F[1], F3: ph.F[2], B1: ph.B1 * Math.sqrt(sc), B2: 100 * sc, B3: 160 * sc,
       ff: ph.ff, fbw: ph.fbw, nasal: ph.nasal, trill: ph.trill };
@@ -223,7 +243,8 @@ export function planUtterance(ipa: string, voice: VoiceParams, opts: { lang?: La
     }
     frames.push({ ...cur });
   }
-  return { frames, frameSec: FRAME, duration: T, segments, f0Base, formantScale: sc };
+  const g = voice.glottis ?? 0.5;
+  return { frames, frameSec: FRAME, duration: T, segments, f0Base, formantScale: sc, oq: 0.3 + 0.2 * g, cq: 0.12 + 0.08 * g, jitter: voice.jitter ?? 0.01, shimmer: voice.shimmer ?? 0.03 };
 }
 
 // ---------------------------------------------------------------- DSP
@@ -245,9 +266,9 @@ class BandPass {
   run(x: number) { const y = this.b0 * x + this.b2 * this.x2 - this.a1 * this.y1 - this.a2 * this.y2; this.x2 = this.x1; this.x1 = x; this.y2 = this.y1; this.y1 = y; return y; }
 }
 /** Rosenberg-type glottal flow pulse over one period (phase 0–1): rise 40 %, fall 16 %, closed 44 %. */
-function glottalFlow(ph: number): number {
-  if (ph < 0.4) return 0.5 * (1 - Math.cos((Math.PI * ph) / 0.4));
-  if (ph < 0.56) return Math.cos((Math.PI * (ph - 0.4)) / 0.32);
+function glottalFlow(ph: number, oq = 0.4, cq = 0.16): number {
+  if (ph < oq) return 0.5 * (1 - Math.cos((Math.PI * ph) / oq));
+  if (ph < oq + cq) return Math.cos((Math.PI * (ph - oq)) / (2 * cq));
   return 0;
 }
 
@@ -263,9 +284,10 @@ export function renderPlan(plan: Plan, sampleRate = 24000, seed = 1, peak = 0.8)
   const fr = new BandPass();
   const sc = plan.formantScale;
   R[3].set(Math.min(3500 * sc, sampleRate * 0.45), 300, sampleRate); R[4].set(Math.min(4500 * sc, sampleRate * 0.47), 450, sampleRate);
-  let s = (seed * 2654435761) >>> 0 || 1;
+  let s = Math.imul(seed | 0, 2654435761 | 0) >>> 0 || 1; // (D-245: Math.imul; the float product of a large seed lost its low bits, so every hashed voice seed gave s = 1: one noise for all)
   const noise = () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296 * 2 - 1; };
   let phase = 0, prevFlow = 0, jit = 0, shim = 1, hp = 0, hpIn = 0;
+  const OQ = plan.oq ?? 0.4, CQ = plan.cq ?? 0.16, JIT = plan.jitter ?? 0.01, SHIM = plan.shimmer ?? 0.03;
   const F = plan.frames, fs = plan.frameSec;
   let p: Frame = F[0];
   const UPD = 24;
@@ -281,8 +303,8 @@ export function renderPlan(plan: Plan, sampleRate = 24000, seed = 1, peak = 0.8)
     }
     // glottal source (flow derivative = source + lip radiation), jitter 1 %, shimmer 3 %
     phase += (p.f0 * (1 + jit)) / sampleRate;
-    if (phase >= 1) { phase -= 1; jit = noise() * 0.01; shim = 1 + noise() * 0.03; }
-    const flow = glottalFlow(phase);
+    if (phase >= 1) { phase -= 1; jit = noise() * JIT; shim = 1 + noise() * SHIM; }
+    const flow = glottalFlow(phase, OQ, CQ);
     let voice = (flow - prevFlow) * (sampleRate / p.f0) * 0.12 * p.av * shim; prevFlow = flow;
     if (p.trill > 0.5) voice *= 0.3 + 0.7 * (0.5 + 0.5 * Math.cos(2 * Math.PI * 26 * t));
     const asp = noise() * p.ah * ASP_GAIN * (0.6 + 0.4 * flow);
@@ -387,7 +409,7 @@ export class Speech {
   onSubtitle: ((s: Subtitle, h: SpeechHandle) => void) | null = null;
   constructor(readonly e: AudioEngine, readonly backends: VoiceBackend[] = [new FormantBackend()], readonly maxCache = 96) {}
 
-  private key(req: SpeechRequest) { const v = req.voice; return `${req.lineId ?? ''}|${req.ipa}|${req.lang}|${req.intonation}|${v.sex}|${v.age}|${v.pitch.toFixed(3)}|${v.rate.toFixed(3)}|${v.breath ?? 0}|${v.seed ?? 1}`; }
+  private key(req: SpeechRequest) { const v = req.voice; return `${req.lineId ?? ''}|${req.ipa}|${req.lang}|${req.intonation}|${v.sex}|${v.age}|${v.pitch.toFixed(3)}|${v.rate.toFixed(3)}|${v.breath ?? 0}|${v.seed ?? 1}|${v.formant ?? 1}|${v.f2 ?? 1}|${v.wander ?? 0}|${v.durJitter ?? 0}|${v.accent ?? 1}|${v.glottis ?? 0.5}|${v.jitter ?? 0.01}|${v.shimmer ?? 0.03}`; }
 
   /** Render (or fetch from cache) the audio for a request; tries each backend in order. */
   async buffer(req: SpeechRequest): Promise<{ buf: AudioBuffer; backend: string } | null> {
