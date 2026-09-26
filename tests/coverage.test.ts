@@ -10,7 +10,10 @@ import { execFileSync } from 'node:child_process';
 import { samplePoints, seedOf, loadWorld, onNav, townCells, slopeDeg, allocate, AREA_WEIGHTS, TOWN_WEIGHTS, PLAIN_WEIGHTS, FAR_WEIGHTS, BUILT_EDGES, MAX_SLOPE, type CovFile } from '../tools/dev/coverage_points';
 import { HOUR_BANDS, WEATHERS, classifyBand, classifyWeather, yearTable, pairCoverage } from '../tools/dev/coverage_time';
 import { gateMetrics } from '../src/dev/coverage';
-import { cell, validate, viewGate, thresholds } from '../tools/dev/coverage_report';
+import { cell, validate, viewGate, thresholds, evidenceFor, boardAll } from '../tools/dev/coverage_report';
+import { writeFileSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { CoveragePass, analyseFrame, idShares, type CovEntry } from '../src/dev/coverage';
 import { aggregate, varietyOf, score, normKey, reportMd, type Rec } from '../tools/dev/coverage_report';
 
@@ -185,6 +188,13 @@ describe('coverage report', () => {
     expect(cell([r('a', 0.01, 'old')], 'T-A2f', th.rows['T-A2f'], 'h1').status).toBe('STALE');
     const v = validate([r('cov-000', 0), { ...r('cov-001', 0), seed: 8 }, { ...r('cov-002', 0), extra: true }], { meta: { seed: 7 }, points: [{ id: 'cov-000', e: 1, n: 2, eye: 1.6, az: 3, pitch: 4 }] });
     expect(v.ok.map(x => x.id)).toEqual(['cov-000']); expect(v.refused.map(x => x.id)).toEqual(['cov-001']); expect(v.extras.map(x => x.id)).toEqual(['cov-002']);
+    // evidence files and the every-id board
+    const e = evidenceFor('T-A2f', [r('a', 0.01), r('b', 0.05)], null, th.rows['T-A2f'], 'h1'); expect(e).toMatchObject({ id: 'T-A2f', n: 2, fails: 1, status: 'FAIL', commit: 'abcdef12' }); expect(e.value).toBeCloseTo(5, 6);
+    const tf = join(mkdtempSync(join(tmpdir(), 'cov-')), 'th.json');
+    writeFileSync(tf, JSON.stringify({ thresholds: [{ id: 'T-A2f', axis: 'A', op: '<=', value: 3, unit: '%', sample_min: 59 }, { id: 'T-A3c', axis: 'A', op: '<=', value: 0.5, unit: '%', sample_min: 59, superseded_by: 'T-A3c2' },
+      { id: 'T-A2s2', axis: 'A', op: '>=', value: 72, unit: '%', sample_min: 59 }, { id: 'T-Z9', axis: 'Z', op: '<=', value: 0, unit: 'count', sample_min: 1 }] }));
+    const b = boardAll([r('a', 0.01)], null, 'h1', tf);
+    expect(b).toMatch(/\| T-A2f .*INSUFFICIENT/); expect(b).toMatch(/\| T-A3c .*SUPERSEDED by T-A3c2/); expect(b).toMatch(/\| T-A2s2 .*NOT-MEASURED \(needs reference/); expect(b).toMatch(/\| T-Z9 .*NOT-MEASURED/);
   });
   it('flags scenes that are identical across days, and empty ones', () => {
     const Y = Array.from({ length: 64 * 36 }, (_, i) => i % 200), same = { objects: { a: 0.5 }, people: ['p1', 'p2'], acts: { walk: 2 }, animals: 0, impostors: 0, Y };

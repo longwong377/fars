@@ -111,7 +111,7 @@ test('coverage', async ({ page }, info) => {
       writeFileSync(`shots/coverage/${v.id}-${Q}.jpg`, Buffer.from(r.th.jpg, 'base64')); if (r.fm.maskPng) writeFileSync(`shots/coverage/${v.id}-${Q}-mask.png`, Buffer.from(r.fm.maskPng, 'base64'));
       const f = r.fm.frame ?? {};
       const rec = { id: v.id, place: v.place, area: v.area, sub: v.sub, state: v.state, month: v.month, band: v.band, weather: v.weather, day: v.day, hour: v.hour, w: v.w, forced: !!v.forced,
-        moonFrac: v.moonFrac, moonAlt: v.moonAlt, rigClear: 0, revisit: !!v.revisit, extra: !!v.extra, seed: PTS.meta.seed, commit: COMMIT, dep: DEP, q: Q, project: info.project.name, fov: fovArg ?? 'player', frames: FRAMES,
+        moonFrac: v.moonFrac, moonAlt: v.moonAlt, rigClear: 0, court: process.env.COURT ?? 'seasonal', revisit: !!v.revisit, extra: !!v.extra, seed: PTS.meta.seed, commit: COMMIT, dep: DEP, q: Q, project: info.project.name, fov: fovArg ?? 'player', frames: FRAMES,
         cam: [v.e, v.n, v.eye, v.az, v.pitch], sunAlt: +r.st.sky.sunAlt.toFixed(1), drawCalls: r.st.drawCalls, triangles: r.st.triangles, backend: r.st.backend,
         shares: r.fm.shares, gate: r.fm.gate ?? null, missing: f.missing ?? null, flatness: f.flatness ?? null, lowDetail: f.lowDetail ?? null, frame: f, objects: r.fm.objects, phObjects: r.fm.phObjects, groups: r.fm.groups,
         visibleMeshes: r.fm.visibleMeshes, tieredSourced: r.fm.tieredSourced, untieredKeys: r.fm.untieredKeys, materials: r.fm.materials, geometries: r.fm.geometries, hiddenTop: r.fm.hiddenTop, flagMs: r.fm.ms,
