@@ -257,7 +257,7 @@ export class SiteHouses {
     const nrm = (k: number) => { const a = (k / sides) * Math.PI * 2; return [e1[0] * Math.cos(a) + e2[0] * Math.sin(a), e1[1] * Math.cos(a) + e2[1] * Math.sin(a), e1[2] * Math.cos(a) + e2[2] * Math.sin(a)]; };
     const cd = sh(c, 0.92);
     for (let k = 0; k < sides; k++) b.quadN(ring(A, k), ring(A, k + 1), ring(Bp, k + 1), ring(Bp, k), nrm(k), nrm(k + 1), nrm(k + 1), nrm(k), c, c, cd, cd, owner);
-    if (caps) { b.poly(Array.from({ length: sides }, (_, k) => ring(Bp, k)), w, sh(c, 1.08), owner); if (caps !== 'end') b.poly(Array.from({ length: sides }, (_, k) => ring(A, k)), w.map(x => -x), sh(c, 1.08), owner); }
+    if (caps) { const eg: RGB = [c[0] * 0.78, c[1] * 0.74, c[2] * 0.7]; b.poly(Array.from({ length: sides }, (_, k) => ring(Bp, k)), w, eg, owner); if (caps !== 'end') b.poly(Array.from({ length: sides }, (_, k) => ring(A, k)), w.map(x => -x), eg, owner); } // (end grain: darker, weathered)
   }
 
   /** a wall at full detail: footing, plastered faces (bulge, holes, patches), a worn cap on exposed tops, lintels and
@@ -269,7 +269,7 @@ export class SiteHouses {
     const house = we.plot >= 0 && HOUSE_KINDS.has(s.plots[we.plot].kind);
     // the top: the plan's, lowered under the roof where the room's eave oversails a court facade
     let top = sp.top, eaveCourt = 0;
-    if (w.kind === 'facade' && we.room >= 0) { const r = this.rooms[this.roomOf.get(we.room)!]; const sg = this.courtSign(w); if (r && sg && this.eaveOn(r, w, sg)) { top = r.R - ROOF_T; eaveCourt = sg; } }
+    if (w.kind === 'facade' && we.room >= 0) { const r = this.rooms[this.roomOf.get(we.room)!]; const sg = this.courtSign(w); if (r && sg && this.eaveOn(r, w, sg)) { top = r.R - ROOF_T + ROOF.beam; eaveCourt = sg; /* built up between the pole ends to the brush layer: the poles pass through it */ } }
     const sides = [this.side(w, -1), this.side(w, 1)];
     const exposedTop = sides.every(sd => sd.cls !== 'room' || top > sd.roof + 0.05) && !eaveCourt && w.kind !== 'partition';
     // an exposed top wears unevenly: a fine and a broad undulation, and the odd notch the rain has cut (C; by the age of the
@@ -505,7 +505,7 @@ export class SiteHouses {
       const A0 = acrossU ? this.wp(e0, a, y) : this.wp(a, e0, y), B0 = acrossU ? this.wp(e1, a, y) : this.wp(a, e1, y);
       // the pole's end that oversails the court is capped (seen); the one buried in the wall is not
       const [A, Bq] = out0 && !out1 ? [B0, A0] : [A0, B0];
-      B.timber.set("ao", 0.2); const pc = sh(pole, 0.88 + 0.22 * hi(seed, k, 5)); this.pole(B.timber, A, Bq, rr, out0 || out1 ? 6 : 4, pc, this.owner(r.plot, P.eave), out0 || out1 ? 'end' : false); }
+      B.timber.set("ao", 0.2); const pc = sh(pole, 0.88 + 0.22 * hi(seed, k, 5)); this.pole(B.timber, A, Bq, rr, out0 || out1 ? 8 : 4, pc, this.owner(r.plot, P.eave), out0 || out1 ? 'end' : false); }
     B.timber.set('ao', 1);
     this.furnish(r, B);
     // eaves: the brush layer's underside and front, the earth front, the lip (broken at the spout), the spout
