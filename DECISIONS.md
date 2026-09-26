@@ -6276,3 +6276,43 @@ moment-*-webgpu.png in the worktree, not committed).**
   graph's nodes (the plain's worn paths from `openRuns` follow them); the plan now builds in ~3-4 s in node (was 1.4 s: Q-671).
   A 14-day soak (tools/soak.ts 14 60 1) keeps plansWellFormed true.
 - **Tier.** Engineering on C-tier plans. Door widths: excavated Achaemenid and Elamite house doors 0.7-1.0 m (C, recollection).
+
+## D-257 The roads ford the rivers; the Pasargadae road redrawn off the river (session 9; gap hunters A061, B-022, W-014, A519; tier C)
+- **What was wrong.** Every road that met the Pulvar or the Kur ran into the water: no ford, bridge or boat (settlement.json only
+  said "ford or bridge, C"). Measured before the fix: the four settlement.json roads as drawn (settlement/water.ts meander) meet a
+  river centreline 18 times, 14 of them the Pasargadae road, whose polyline was digitised on the modern Pulvar's own line (its
+  vertices 1-43 m from the river): it crossed the river back and forth and ran *inside* the channel for ~400 m near grid
+  (12.2 km, 16.9 km). 44 village tracks (straight lines between villages, ribbons.ts) crossed a river too, and 23 track samples
+  ran along a channel, up to ~250 m.
+- **Fords** (src/world/plain/crossings.ts): wherever a road or village track as drawn cuts a river centreline, a ford square to
+  the stream: a cobble causeway across the channel at the road's width, its top 0.30 m (Pulvar) / 0.35 m (Kur) over the bed, the
+  bank ramps paved the same; stepping stones a few metres downstream with their tops 0.15 m over the low-water level; four
+  stakes on the bank tops; at each Kur ford an upturned round hide boat on the bank with its pole. Against the monthly flow
+  table (plain.json, C): the Pulvar runs 0.09-0.11 m over the causeway Aug-Oct (it breaks over it) and 0.9 m in April; the Kur
+  0.37-0.44 m Aug-Oct (knee-deep: carts and pack animals ford it) and 1.45 m in April (not fordable: the boat). Colliders on
+  every slab and stone (the causeway is walked). 51 fords (7 on roads, 44 on tracks).
+- **No bridges, no ferries.** The rivers are small and not navigable; Herodotus' royal road passes its "navigable rivers ... by
+  ferries" (5.52: the Tigris, the Gyndes, the Choaspes, far to the W; B, read in the Perseus text this session); round boats of
+  hide on a willow frame are his Mesopotamian river boats (1.194, B there, C here). A Persian bridge on the Pulvar or the Kur in
+  467 has no evidence we hold (the Band-e Amir weir is 10th c. CE and blocked).
+- **The Pasargadae road redrawn** (tools/dev/reroute_pasargadae.ts; settlement.json `course_note`): beyond its third vertex
+  (5.2 km NE of the Terrace) its course is the least-cost path over a 40 m grid of the valley (distance x (1 + (slope/5 %)^2);
+  ground over 25 % impassable, 35 % within 250 m of the river, a gorge road cut into the side at Tang-e Bulaghi, C; entering
+  the channel costs a ford, 8 km; the wet margin and leaving the valley floor cost extra), simplified to 15 m without any
+  shortcut coming nearer the river. Three tries: a smoothed offset of the river line (17 crossings, 50 km, up a 76 % slope),
+  a least-cost path without a valley term (7 crossings, a 10 km cross-country detour round the gorge), then this. Measured: 3
+  crossings of the Pulvar (a ford each; two of them 225 m apart at a meander at 32.4 km E: Q-720), 66 km (was 56 km, cutting
+  across the bends), grade p50 0.7 %, p95 6.7 %, max 31 % (in the gorge), 1.3 km over 10 %, 441 m from the Sivand quarry.
+  The route map: REVIEWS/evidence/s9-crossings/route_pasargadae.png. The modern trace stays in `polyline_latlon`.
+- **Village tracks** (`keepOffChannels`): a track sample within 8 m of a channel's top edge and running within 45 deg of the
+  stream is moved onto the bank it is on; a crossing is left to its ford.
+- **The plain's mesh budget** (tests/plain.test.ts, <= 40 meshes) was full at 40: the fords are one mesh (stones as rubble; stakes
+  and boat on a `soft` vertex attribute that switches the stone's relief off), and the quarries' faces (0.2 k triangles, the
+  limestone whose albedo the rubble surface shares) are merged into it (`plain-stone`), keeping their own F3 description per face.
+  The gate is not raised.
+- **Tests.** tests/crossings.test.ts (5): the four attested road-river meetings exist; no road or track sample in a channel is
+  more than 30 m from a ford; the causeway and stepping stones against the flow table; each causeway top within 6 cm of plan.
+  plain.test.ts (quarry F3 on `plain-stone`), settlement, settlement_build, visitor_access, maplayers, terrain_walk,
+  plain_d223, plain_look pass; town_plots.json rebuilt unchanged.
+- **Unverified on screen**: two moments queued (ford-pulvar-sep, ford-kur-apr). Nobody crosses at a ford yet (traffic.ts routes
+  run W and S; the drum haulage of D-256 will use the Pasargadae road); no water sound over the causeway.
