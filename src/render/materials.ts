@@ -125,6 +125,10 @@ export interface SurfaceDef {
   /** a rock face's jointed blocks (D-217, C): each block (a cell `size` m: across, up, across; its edges warped by noise)
    *  gets its own tone, ±`tone` of the albedo, and each bed (the rows) a tone of its own, ±`bed` */
   rockBlocks?: { size: [number, number, number]; tone: number; bed: number };
+  /** D-234: a footing of rough fieldstones laid in mud, on vertical faces: Worley cells `size` m across (a little lower than
+   *  wide), each stone its own tone (±`tone`), the mortar between them `gap` (in cell units) of the mud colour `mortar`,
+   *  the stones standing proud of the mortar by ~6 % of their size; band-limited (the mean beyond ~3 px a stone) (C) */
+  fieldstone?: { size: number; tone: number; gap: number; mortar: [number, number, number] };
   /** herb layer that follows SEASON (ground surfaces only) */
   herbs?: number;
   /** ashlar only: each block (the joint pattern's course × block cells) gets its own tone, ±this fraction of the albedo:
@@ -672,6 +676,16 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const hb = fract(sin(bi.mul(127.1).add(bj.mul(311.7)).add(bk.mul(74.7))).mul(43758.5453)).mul(2).sub(1);
     const hr = fract(sin(bj.mul(269.5).add(19.19)).mul(43758.5453)).mul(2).sub(1);
     alb = alb.mul(float(1).add(hb.mul(B.tone)).add(hr.mul(B.bed)));
+  }
+  if (d.fieldstone) { // D-234: a rubble footing (C): stones as Worley cells on the face's own horizontal axis and height
+    const F = d.fieldstone, hl = vec2(n.x, n.z).length().max(1e-3), tx = n.z.div(hl), tz = n.x.negate().div(hl), vert = float(1).sub(smoothstep(0.4, 0.7, abs(n.y)));
+    const q = vec2(p.x.mul(tx).add(p.z.mul(tz)).div(F.size), p.y.div(F.size * 0.62)), wv = mx_worley_noise_vec2(q), edge = wv.y.sub(wv.x);
+    const fq = fwidth(q).length().max(1e-4), near = float(1).sub(smoothstep(0.25, 0.55, fq));
+    const mortar = float(1).sub(smoothstep(float(F.gap), fq.max(0.03).add(F.gap), edge)).mul(near).mul(vert);
+    const tone = float(1).add(mx_noise_float(vec3(q.x.mul(2.1), q.y.mul(2.1), wv.x.mul(3.7))).mul(F.tone));
+    alb = mix(alb.mul(mix(float(1), tone, vert)), lin(F.mortar), mortar.mul(0.85));
+    rough = mix(rough, float(0.95), mortar);
+    height = (height ?? float(0)).add(float(1).sub(mortar).mul(smoothstep(float(F.gap), float(F.gap + 0.25), edge)).mul(F.size * 0.06).mul(near).mul(vert));
   }
   if (d.streaks) { // vertical weathering streaks: noise fast across the face, slow down it (C)
     const f = d.streaks.freq, q = vec3(p.x.mul(f), p.y.mul(f * (d.streaks.stretch ?? 0.08)), p.z.mul(f));

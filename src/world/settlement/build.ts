@@ -7,10 +7,14 @@ import type { Physics } from '../../player/physics';
 import type { Terrain } from '../../terrain/heightfield';
 import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
+import { attribute, positionLocal, uniform, step } from 'three/tsl';
+import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, HOUSE_PARTS, type HB } from './houses';
+import { TownDoors } from './towndoors';
+import { fixturesOf, livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
 import { Batch, RGB, lin } from './geom';
 import { buildTownPlan, TownPlan, ROWS, FEATURES, Prop } from './plan';
-import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM } from './site';
+import { Site, Plot, Wall, P2, ROOM } from './site';
 import { HOUSE_BASIS } from './town_rules';
 import { hashString, Rng } from '../../core/rng';
 import { buildAjori } from './ajori';
@@ -18,15 +22,28 @@ import { TreeField } from './trees';
 import { buildWaterAndRoads } from './water';
 import { TownHaze } from './haze';
 
-/** what the dev overlay (F3) says of every plot's walls, roofs and doors (D-228) */
-export const PLOT_PLACEHOLDER = 'PLACEHOLDER geometry: the walls, roofs and street-door leaves are plain box slabs, and the street doors stand open and never move (the plan itself, plots, rooms, courts and lanes, is the C reconstruction).';
-export interface Desc { tier: string; src: string; note: string; placeholder?: boolean }
+/** what F3 adds on the far level of the houses (D-234: beyond NEAR_R the houses are drawn as walls and roofs in plain boxes
+ *  with the eave's shadow line; their footings, pole ends, spouts, windows, repairs and court things are drawn near only) */
+export const FAR_LOD_NOTE = 'distant level of detail (beyond ~72 m): walls and roofs as plain plastered boxes with the eave line; the footing, pole ends, spouts, windows, repairs and the household\'s things are drawn within ~72 m (D-234).';
+/** the eye (world x, z) the far level collapses its near tiles around, and the radius (houses.ts) */
+export const NEAR_EYE = uniform(new THREE.Vector2(1e9, 1e9)), NEAR_RADIUS = uniform(NEAR_R);
+/** small fittings drawn near only; large ones (ovens, kilns, wells ...) also on the far level */
+const FAR_FITTINGS = new Set(['oven', 'kiln', 'forge', 'well', 'column', 'trough', 'manger']);
+const SKIP_FITTINGS = new Set(['tree', 'channel', 'ditch', 'midden', 'pen_dung', 'pit', 'pool']);
+export interface Desc { tier: string; src: string; note: string; placeholder?: boolean; lod?: string; part?: number }
 interface ColBox { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }
-interface Cluster { id: string; c: P2; batches: Map<string, Batch>; desc: Desc[] }
+interface Cluster { id: string; c: P2; batches: Map<string, Batch>; desc: Desc[]; far: Batch }
 interface SiteCol { id: string; c: P2; r: number; boxes: ColBox[]; live: any[] | null }
 
 const MUD: RGB = [0.56, 0.47, 0.36], TIMBER: RGB = [0.36, 0.26, 0.17], POT: RGB = [0.63, 0.43, 0.3], STONE: RGB = [0.55, 0.53, 0.49], BONE: RGB = [0.82, 0.78, 0.68];
-const shade = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
+const shade = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k], sh = shade;
+/** F3: a face's owner is (description × 32 + part) on the houses' levels (houses.ts HOUSE_PARTS) */
+function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
+  if (o < 0) return null; const d = desc[o >> 5], part = o & 31; if (!d) return null;
+  const P = HOUSE_PARTS[part]; const base: Desc = part && P?.note ? { tier: P.tier, src: `${P.src};${d.src}`, note: `${d.note} — ${P.note}` } : { ...d };
+  base.part = part; if (far) { base.lod = "far"; base.note = `${base.note} [${FAR_LOD_NOTE}]`; }
+  return base;
+}
 /** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
 export const SHADOW_RANGE = 150;
 
@@ -40,6 +57,15 @@ export class Settlement {
   /** town meshes cast shadows only within SHADOW_RANGE of the camera: distant town content stays out of the cascades */
   private casters: THREE.Mesh[] = [];
   readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, trees: 0, buildMs: 0, phases: {} as Record<string, number> };
+  /** D-234: each site's houses (far and near levels), the near tiles built (tile → meshes), the street doors */
+  readonly houses: SiteHouses[] = [];
+  private clusterOfSite = new Map<string, Cluster>();
+  private near = new Map<number, { hs: SiteHouses; meshes: THREE.Mesh[]; tris: number; cl: Cluster }>();
+  private nearMats!: Record<keyof HB, THREE.Material>;
+  private farMeshes: THREE.Mesh[] = [];
+  private fitDesc = new Map<string, Int32Array>();
+  doors!: TownDoors;
+  readonly nearInfo = { tiles: 0, tris: 0, meshes: 0, buildMs: 0, lastBuildMs: 0 };
   constructor(private phys: Physics | null, private terrain: Terrain, fire: FireSystem, quality = 'high') {
     const t0 = performance.now();
     this.fire = fire;
@@ -63,13 +89,14 @@ export class Settlement {
       let best = '', bd = Infinity; for (const q of quarters) { const d = Math.hypot(q.frame.c[0] - s.frame.c[0], q.frame.c[1] - s.frame.c[1]) - Math.min(q.W, q.H) / 2 - rs; if (d < 60 && d < bd) { bd = d; best = q.id; } }
       return best || s.id;
     };
-    const getC = (id: string, c: P2) => { let x = clusters.get(id); if (!x) { x = { id, c, batches: new Map(), desc: [] }; clusters.set(id, x); } return x; };
+    const getC = (id: string, c: P2) => { let x = clusters.get(id); if (!x) { x = { id, c, batches: new Map(), desc: [], far: plasterBatch(true) }; clusters.set(id, x); } return x; };
     const B = (cl: Cluster, mat: string) => { let b = cl.batches.get(mat); if (!b) { b = new Batch(); cl.batches.set(mat, b); } return b; };
 
-    for (const s of this.plan.sites) {
+    this.plan.sites.forEach((s, si) => {
       const cl = getC(clusterOf(s), s.frame.c); const col: SiteCol = { id: s.id, c: s.frame.c, r: Math.hypot(s.W, s.H) / 2 + 5, boxes: [], live: null };
-      this.cols.push(col); this.buildSite(s, cl, B(cl, 'mud'), () => B(cl, 'stone'), col, H);
-    }
+      this.cols.push(col); this.buildSite(s, si, cl, () => B(cl, 'stone'), col, H);
+    });
+    this.doors = new TownDoors(this.houses.flatMap(h => h.doors), phys); this.group.add(this.doors.group);
     phase('sites');
     // props (Takht-e Rustam, the Dasht-e Gohar hall)
     const groupBase = new Map<string, number>(); for (const [g, pts] of this.plan.groups) groupBase.set(g, Math.min(...pts.map(p => H(p[0], p[1]))));
@@ -120,6 +147,24 @@ export class Settlement {
     const mats: Record<string, THREE.Material> = {
       mud: surfaceMaterial('mud_plaster', { vertexColors: true }), stone: surfaceMaterial('stone_plain', { vertexColors: true }), takht: surfaceMaterial('takht_stone'), refuse: surfaceMaterial('refuse', { vertexColors: true }),
     };
+    // D-234: the houses' far level, collapsed where a tile is drawn near (the same test in the shadow pass)
+    const far = surfaceMaterial('house_plaster', { vertexColors: true, arch: true, variant: 'far' }) as any;
+    far.positionNode = positionLocal.mul(step(NEAR_RADIUS, attribute('tile', 'vec2').sub(NEAR_EYE).length())); far.aoNode = attribute('ao', 'float');
+    // ... but it casts every house's shadow, near ones too (its surfaces lie at or inside the near ones: the roofs at the low
+    // edge of their fall), so the near walls, roofs and footings need not cast: a third of the near triangles in the cascades
+    far.castShadowPositionNode = positionLocal;
+    for (const cl of clusters.values()) { const b = cl.far; if (!b.tris) continue;
+      const m = new THREE.Mesh(b.toGeometry(), far); m.name = `settlement:${cl.id}:far`; m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false;
+      const owner = b.owner, desc = cl.desc; m.userData = { tier: 'C', src: 'RECON', note: `settlement cluster ${cl.id} (houses, distant level)`, describe: (hit: any) => partDesc(desc, owner[hit?.faceIndex ?? -1], true) };
+      this.group.add(m); this.info.tris += b.tris; this.info.meshes++; this.casters.push(m); this.farMeshes.push(m); }
+    this.nearMats = {
+      plaster: Object.assign(surfaceMaterial('house_plaster', { vertexColors: true, arch: true }), { aoNode: attribute('ao', 'float') }),
+      stone: Object.assign(surfaceMaterial('house_socle', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
+      timber: Object.assign(surfaceMaterial('house_timber', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
+      brick: Object.assign(surfaceMaterial('house_brick', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
+      items: null as any,
+    };
+    this.nearMats.items = this.nearMats.plaster;
     for (const cl of clusters.values()) for (const [mat, b] of cl.batches) {
       if (!b.tris) continue;
       const m = new THREE.Mesh(b.toGeometry(), mats[mat]); m.name = `settlement:${cl.id}:${mat}`; m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false;
@@ -144,18 +189,19 @@ export class Settlement {
     this.info.buildMs = performance.now() - t0;
   }
 
-  /** plot base heights, walls, roofs, doors, fittings of one site into its cluster's batch; colliders; fires */
-  private buildSite(s: Site, cl: Cluster, mud: Batch, stone: () => Batch, col: SiteCol, H: (e: number, n: number) => number) {
+  /** plot base heights and descriptions of one site; its houses' far level into its cluster's batch; colliders; fires; the
+   *  fittings' geometry (large ones on the far level; all of them in the near tiles) */
+  private buildSite(s: Site, si: number, cl: Cluster, stone: () => Batch, col: SiteCol, H: (e: number, n: number) => number) {
     const plots = s.plots, base = new Float32Array(plots.length), local = new Uint8Array(plots.length), pdesc = new Int32Array(plots.length), pcol: RGB[] = [];
+    const lives = livesOf(s);
     for (const p of plots) {
       const [i0, j0, i1, j1] = p.rect; const pts: P2[] = [[i0, j0], [i1, j0], [i1, j1], [i0, j1], [(i0 + i1) / 2, (j0 + j1) / 2]].map(([i, j]) => s.grid(s.u0 + i, s.v0 + j));
       base[p.idx] = pts.reduce((a, q) => a + H(q[0], q[1]), 0) / pts.length;
       local[p.idx] = (i1 - i0) * (j1 - j0) > 2500 && p.roofed === 0 ? 1 : 0; // big open enclosures: walls follow the ground (roofed plots keep one base, so walls and roofs agree)
-      const row = ROWS[p.row];
+      const row = ROWS[p.row], L = lives[p.idx];
       pdesc[p.idx] = cl.desc.length;
-      // PLACEHOLDER (§3.7, Phase 6+7 review M4): the plan (plots, rooms, courts, lanes) is the C reconstruction, but its
-      // walls, roofs and street doors are drawn as plain box slabs, and the doors stand open and never move
-      cl.desc.push({ tier: row?.tier ?? 'C', src: row?.src ?? 'RECON', placeholder: true, note: `${p.id}: ${kindLabel(p)}${p.capacity ? `, houses ${p.capacity}` : ''}, ${p.area} m² (${p.roofed} m² roofed). ${p.note || ''} ${row?.note ?? HOUSE_BASIS} ${PLOT_PLACEHOLDER}`.replace(/\s+/g, ' ') });
+      const life = L && HOUSE_KINDS.has(p.kind) ? ` The household's standing ${(L.standing * 100).toFixed(0)} of 100 (from the house's size and kind, C), the house ${L.age} years old, re-plastered ${L.sincePlaster} months ago${L.addition >= 0 ? ', a room strip added later' : ''}${L.animal ? `, keeps ${L.animal === 'donkey' ? 'a donkey' : L.animal}` : ''} (C, D-234).` : '';
+      cl.desc.push({ tier: row?.tier ?? 'C', src: row?.src ?? 'RECON', note: `${p.id}: ${kindLabel(p)}${p.capacity ? `, houses ${p.capacity}` : ''}, ${p.area} m² (${p.roofed} m² roofed). ${p.note || ''} ${row?.note ?? HOUSE_BASIS}${life}`.replace(/\s+/g, ' ') });
       const rng = new Rng(hashString(p.id), 'colour');
       const official = p.kind === 'official';
       // each house its own batch of loam: brightness varies, the hue only slightly toward warmer or greyer (C)
@@ -163,84 +209,109 @@ export class Settlement {
       const baseC: RGB = official ? [0.58, 0.57, 0.45] : [MUD[0] * k + warm, MUD[1] * k, MUD[2] * k - warm];
       pcol[p.idx] = lin(baseC);
     }
-    // walls
-    for (const w of s.walls()) {
-      const along = w.v0 === w.v1; // u-direction wall
-      const cu = (w.u0 + w.u1) / 2, cv = (w.v0 + w.v1) / 2, len = along ? w.u1 - w.u0 : w.v1 - w.v0;
-      const g0 = s.grid(w.u0, w.v0), g1 = s.grid(w.u1, w.v1), gm = s.grid(cu, cv);
-      const hA = H(g0[0], g0[1]), hB = H(g1[0], g1[1]), hM = H(gm[0], gm[1]); const gmin = Math.min(hA, hB, hM), gmax = Math.max(hA, hB, hM);
-      let top = -Infinity, doorBase = Infinity, owner = -1, colr: RGB = pcol[w.sides[0].plot];
-      for (const sd of w.sides) { const b = local[sd.plot] ? gmin : base[sd.plot]; top = Math.max(top, b + sd.top); doorBase = Math.min(doorBase, b); if (owner < 0) { owner = pdesc[sd.plot]; colr = pcol[sd.plot]; } }
-      top = Math.max(top, gmax + 0.9);
-      const y0 = gmin - 0.4;
-      const hu = along ? len / 2 : w.thick / 2, hv = along ? w.thick / 2 : len / 2;
-      if (w.door) {
-        const yl = Math.max(doorBase, gmax) + DOOR_H; if (top - yl > 0.05) mud.box(gm[0], gm[1], s.frame.theta, hu, hv, yl, top, shade(colr, 0.9), colr, owner);
-        continue;
-      }
-      mud.box(gm[0], gm[1], s.frame.theta, hu, hv, y0, top, shade(colr, 0.72), colr, owner);
-      col.boxes.push({ x: gm[0], y: (y0 + top) / 2, z: -gm[1], hx: hu, hy: (top - y0) / 2, hz: hv, rot: s.frame.theta });
-    }
-    // roofs
-    for (const r of s.roofs()) {
-      const p = plots[r.plot]; const top = base[r.plot] + p.height;
-      const g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
-      mud.box(g[0], g[1], s.frame.theta, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, top - ROOF_T, top, shade(pcol[r.plot], 0.8), pcol[r.plot], pdesc[r.plot]);
-    }
-    // street doors: timber leaves, standing open against the vestibule wall (C: doors do not move in the town yet)
-    const tb = lin(TIMBER);
-    for (const p of plots) { const d = s.doorPoints(p); if (!d || p.kind === 'garden') continue;
-      const ia = p.door!.cell % s.W, ja = (p.door!.cell / s.W) | 0, ib = p.door!.out % s.W, jb = (p.door!.out / s.W) | 0;
-      const nu = ia - ib, nv = ja - jb; // inward
-      const hinge = [d.mid[0] + nu * 0.45 + (nv ? 0.45 : 0), d.mid[1] + nv * 0.45 + (nu ? 0.45 : 0)] as P2;
-      const leaf = s.grid(hinge[0] + nu * 0.45, hinge[1] + nv * 0.45); const b = base[p.idx];
-      mud.box(leaf[0], leaf[1], s.frame.theta, nv ? 0.03 : 0.45, nv ? 0.45 : 0.03, b, b + 1.95, tb, shade(tb, 1.1), pdesc[p.idx]);
-    }
-    // fittings
-    for (const f of s.fittings) {
-      if (f.kind === 'tree' || f.kind === 'channel' || f.kind === 'ditch' || f.kind === 'midden' || f.kind === 'pen_dung' || f.kind === 'pit') {
-        // channels: their dressed stone blocks and basins are built with the water (water.ts channelStones, D-149)
-        continue; }
+    const hs = new SiteHouses(s, si, H, base, local, pcol, pdesc, cl.desc); this.houses.push(hs); this.clusterOfSite.set(s.id, cl);
+    hs.buildFar(cl.far);
+    // wall colliders (the plan's walls: the same boxes as before D-234, so the walk and the people agree)
+    for (const w of s.walls()) { if (w.door) continue; const sp = hs.wallSpan(w), along = w.v0 === w.v1, len = along ? w.u1 - w.u0 : w.v1 - w.v0;
+      const hu = along ? len / 2 : w.thick / 2, hv = along ? w.thick / 2 : len / 2; col.boxes.push({ x: sp.gm[0], y: (sp.y0 + sp.top) / 2, z: -sp.gm[1], hx: hu, hy: (sp.top - sp.y0) / 2, hz: hv, rot: s.frame.theta }); }
+    // fixtures that stop the visitor: benches, mangers, portico posts (houseplan.ts)
+    for (const f of fixturesOf(s)) { const nu = Math.cos(f.rot), nv = Math.sin(f.rot);
+      if (f.kind === 'bench' || f.kind === 'tether') { const d = f.kind === 'bench' ? 0.27 + 0.225 : 0.52, g = s.grid(f.u + nu * d, f.v + nv * d), y = H(g[0], g[1]), hh = f.kind === 'bench' ? 0.21 : 0.31;
+        col.boxes.push({ x: g[0], y: y + hh, z: -g[1], hx: f.kind === 'bench' ? 0.225 : 0.25, hy: hh, hz: f.kind === 'bench' ? f.len / 2 : 0.55, rot: s.frame.theta + f.rot }); }
+      if (f.kind === 'portico') for (const [u, v] of f.posts!) { const g = s.grid(u, v), y = H(g[0], g[1]); col.boxes.push({ x: g[0], y: y + 1.5, z: -g[1], hx: 0.12, hy: 1.5, hz: 0.12, rot: 0 }); } }
+    // fittings: descriptions, fires and colliders once; geometry of the large ones on the far level
+    const fdesc = new Int32Array(s.fittings.length); this.fitDesc.set(s.id, fdesc);
+    s.fittings.forEach((f, fi) => {
+      fdesc[fi] = cl.desc.length; cl.desc.push({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)` });
+      if (SKIP_FITTINGS.has(f.kind)) { if (f.kind === 'pool') { const b = s.plots[f.plot]?.kind === "garden" ? stone() : cl.far.set("tile", 1e9, 1e9); this.poolKerb(s, f, b, H, b === cl.far ? fdesc[fi] * 32 : fdesc[fi]); } return; } // channels: water.ts
       const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
-      const d = cl.desc.length; cl.desc.push({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)` });
-      const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
-      const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
       const fireMeta = (sched: FireSchedule) => ({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)`, sched, group: s.id, plot: f.plot >= 0 ? plots[f.plot]?.id : undefined });
       const addFire = (kind: FireKind, e: number, n: number, yy: number, sched: FireSchedule) => { this.fire.add(kind, new THREE.Vector3(e, yy, -n), { ...fireMeta(sched), body: false }); this.fireIdx.push({ site: s.id, kind }); this.info.fires++; };
       switch (f.kind) {
-        case 'hearth': this.hearthRing(mud, g, y, d); addFire('hearth', g[0], g[1], y, plots[f.plot]?.kind === 'official' || plots[f.plot]?.kind === 'station' || plots[f.plot]?.kind === 'store' || plots[f.plot]?.kind === 'stable' ? 'night' : 'home'); break;
-        case 'oven': { const oc = lin([0.6, 0.47, 0.34]); mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 8, shade(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 8, oc, shade(oc, 0.25), d, true);
-          col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.35, hy: 0.45, hz: 0.35, rot: 0 }); addFire('oven', g[0], g[1], y + 0.55, 'bake'); break; }
-        case 'forge': mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, shade(mc, 0.5), shade(mc, 0.35), d); addFire('hearth', g[0], g[1], y + 0.45, 'day'); break;
-        case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, shade(mc, 0.55), shade(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, shade(mc, 0.85), shade(mc, 0.4), d);
-          col.boxes.push({ x: g[0], y: y + 1, z: -g[1], hx: r * 0.8, hy: 1, hz: r * 0.8, rot: 0 }); addFire('kiln', g[0], g[1], y, 'day'); break; }
-        case 'jar': case 'jar_big': case 'vat': { const k = (f.kind === 'jar' ? 1 : f.kind === 'jar_big' ? 1.5 : 1.7) * f.size, wide = f.kind === 'vat' ? 1.5 : 1;
-          mud.lathe(g[0], g[1], y - 0.05, [[0.12 * k * wide, 0], [0.25 * k * wide, 0.22 * k], [0.24 * k * wide, 0.48 * k], [0.12 * k * wide, 0.68 * k], [0.11 * k * wide, 0.72 * k]], 7, pot, d); break; }
-        case 'quern': mud.box(g[0], g[1], th, 0.28, 0.2, y - 0.05, y + 0.14, st, st, d); mud.box(...at(0, 0.02), th, 0.12, 0.08, y + 0.14, y + 0.22, st, st, d); break;
-        case 'grind_slab': { mud.box(g[0], g[1], th, 0.32, 0.22, y - 0.05, y + 0.1, st, st, d);
-          const pig: RGB[] = [[0.12, 0.28, 0.62], [0.22, 0.48, 0.34], [0.55, 0.2, 0.13], [0.76, 0.58, 0.26]]; pig.forEach((pc, i) => mud.box(...at(-0.2 + i * 0.13, 0.05), th, 0.035, 0.035, y + 0.1, y + 0.15, lin(pc), lin(pc), d)); break; }
-        case 'loom': { for (const s2 of [-0.7, 0.7]) mud.box(...at(s2, 0), th, 0.05, 0.05, y - 0.1, y + 1.7, tim, tim, d); mud.box(...at(0, 0), th, 0.8, 0.05, y + 1.62, y + 1.72, tim, tim, d);
-          mud.box(...at(0, 0.02), th, 0.62, 0.008, y + 0.25, y + 1.6, lin([0.8, 0.76, 0.66]), lin([0.78, 0.7, 0.58]), d); break; }
-        case 'timber': { const L = (f.len ?? 3) / 2; for (let x = 0; x < 5; x++) mud.box(...at(0, -0.6 + (x % 3) * 0.3), th, L, 0.13, y + (x > 2 ? 0.26 : 0), y + (x > 2 ? 0.5 : 0.25), tim, shade(tim, 1.15), d); break; }
-        case 'anvil': mud.box(g[0], g[1], th, 0.22, 0.2, y - 0.05, y + 0.5, st, shade(st, 0.8), d); break;
-        case 'bench': mud.box(g[0], g[1], th, 0.8, 0.25, y, y + 0.8, tim, tim, d); break;
-        case 'knucklebones': for (let x = 0; x < 5; x++) mud.box(...at(x * 0.07 - 0.14, (x % 2) * 0.05), th + x, 0.018, 0.012, y, y + 0.02, lin(BONE), lin(BONE), d); break;
-        // D-215: a leather ball, a clay bull on wheels (wheels as flat discs, seen from above) and a clay rattle (C)
-        case 'toys': { const clay = lin([0.66, 0.47, 0.33]), hide = lin([0.55, 0.4, 0.26]);
-          mud.lathe(...at(-0.25, 0.1), y, [[0.001, 0], [0.035, 0.012], [0.05, 0.05], [0.035, 0.088], [0.001, 0.1]], 5, hide, d);
-          mud.box(...at(0.15, 0), th, 0.085, 0.05, y + 0.04, y + 0.11, clay, clay, d); mud.box(...at(0.25, 0), th, 0.03, 0.028, y + 0.08, y + 0.14, clay, clay, d);
-          for (const s2 of [-1, 1]) mud.box(...at(0.15, s2 * 0.055), th, 0.075, 0.006, y, y + 0.05, shade(clay, 0.8), clay, d);
-          mud.lathe(...at(0.05, -0.25), y, [[0.001, 0], [0.03, 0.02], [0.034, 0.04], [0.012, 0.07], [0.008, 0.12]], 5, clay, d); break; }
-        case 'trough': mud.box(g[0], g[1], th, 0.7 * f.size, 0.28, y - 0.05, y + 0.5, st, st, d); col.boxes.push({ x: g[0], y: y + 0.25, z: -g[1], hx: 0.7 * f.size, hy: 0.3, hz: 0.28, rot: th }); break;
-        case 'manger': mud.box(g[0], g[1], th, 0.9, 0.3, y - 0.05, y + 0.85, shade(mc, 0.85), mc, d); col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.9, hy: 0.45, hz: 0.3, rot: th }); break;
-        case 'well': this.well(g, y, mud, d); col.boxes.push({ x: g[0], y: y + 0.35, z: -g[1], hx: 0.85, hy: 0.4, hz: 0.85, rot: 0 }); break;
-        case 'column': { mud.cyl(g[0], g[1], 0.55, 0.5, y - 0.2, y + 0.4, 10, st, st, d); mud.cyl(g[0], g[1], 0.3, 0.27, y + 0.4, y + f.size, 10, lin([0.78, 0.72, 0.62]), lin([0.78, 0.72, 0.62]), d, false);
-          mud.box(g[0], g[1], th, 0.45, 0.45, y + f.size, y + f.size + 0.35, tim, tim, d); col.boxes.push({ x: g[0], y: y + f.size / 2, z: -g[1], hx: 0.35, hy: f.size / 2, hz: 0.35, rot: 0 }); break; }
-        case 'pool': this.poolKerb(s, f, s.plots[f.plot]?.kind === 'garden' ? stone() : mud, H, d); break;
+        case 'hearth': addFire('hearth', g[0], g[1], y, plots[f.plot]?.kind === 'official' || plots[f.plot]?.kind === 'station' || plots[f.plot]?.kind === 'store' || plots[f.plot]?.kind === 'stable' ? 'night' : 'home'); break;
+        case 'oven': col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.35, hy: 0.45, hz: 0.35, rot: 0 }); addFire('oven', g[0], g[1], y + 0.55, 'bake'); break;
+        case 'forge': addFire('hearth', g[0], g[1], y + 0.45, 'day'); break;
+        case 'kiln': { const r = 1.2 * f.size; col.boxes.push({ x: g[0], y: y + 1, z: -g[1], hx: r * 0.8, hy: 1, hz: r * 0.8, rot: 0 }); addFire('kiln', g[0], g[1], y, 'day'); break; }
+        case 'trough': col.boxes.push({ x: g[0], y: y + 0.25, z: -g[1], hx: 0.7 * f.size, hy: 0.3, hz: 0.28, rot: th }); break;
+        case 'manger': col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.9, hy: 0.45, hz: 0.3, rot: th }); break;
+        case 'well': col.boxes.push({ x: g[0], y: y + 0.35, z: -g[1], hx: 0.85, hy: 0.4, hz: 0.85, rot: 0 }); break;
+        case 'column': col.boxes.push({ x: g[0], y: y + f.size / 2, z: -g[1], hx: 0.35, hy: f.size / 2, hz: 0.35, rot: 0 }); break;
         default: break;
       }
+      if (FAR_FITTINGS.has(f.kind)) { const t = hs.tileInfo(hs.tileOfPlotEl(f.plot, f.u, f.v)); cl.far.set('tile', t.x, t.z).set('y0', -1000).set('ytop', 1e4).set('ao', 1); this.fittingGeom(s, f, cl.far, H, fdesc[fi] * 32); }
+    });
+  }
+  /** a fitting's geometry (hearth ring, oven, kiln, jars, quern, loom ...) into a batch; `d` the owner (description × 32) */
+  private fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: number, n: number) => number, d: number) {
+    const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
+    const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
+    const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
+    switch (f.kind) {
+      case 'hearth': this.hearthRing(mud, g, y, d); break;
+      case 'oven': { const oc = lin([0.6, 0.47, 0.34]); mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 10, sh(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 10, oc, sh(oc, 0.25), d, true); break; }
+      case 'forge': mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, sh(mc, 0.5), sh(mc, 0.35), d); break;
+      case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }
+      case 'jar': case 'jar_big': case 'vat': { const k = (f.kind === 'jar' ? 1 : f.kind === 'jar_big' ? 1.5 : 1.7) * f.size, wide = f.kind === 'vat' ? 1.5 : 1;
+        mud.lathe(g[0], g[1], y - 0.05, [[0.12 * k * wide, 0], [0.25 * k * wide, 0.22 * k], [0.24 * k * wide, 0.48 * k], [0.12 * k * wide, 0.68 * k], [0.11 * k * wide, 0.72 * k]], 9, pot, d); break; }
+      case 'quern': mud.box(g[0], g[1], th, 0.28, 0.2, y - 0.05, y + 0.14, st, st, d); mud.box(...at(0, 0.02), th, 0.12, 0.08, y + 0.14, y + 0.22, st, st, d); break;
+      case 'grind_slab': { mud.box(g[0], g[1], th, 0.32, 0.22, y - 0.05, y + 0.1, st, st, d);
+        const pig: RGB[] = [[0.12, 0.28, 0.62], [0.22, 0.48, 0.34], [0.55, 0.2, 0.13], [0.76, 0.58, 0.26]]; pig.forEach((pc, i) => mud.box(...at(-0.2 + i * 0.13, 0.05), th, 0.035, 0.035, y + 0.1, y + 0.15, lin(pc), lin(pc), d)); break; }
+      case 'loom': { for (const s2 of [-0.7, 0.7]) mud.box(...at(s2, 0), th, 0.05, 0.05, y - 0.1, y + 1.7, tim, tim, d); mud.box(...at(0, 0), th, 0.8, 0.05, y + 1.62, y + 1.72, tim, tim, d);
+        mud.box(...at(0, 0.02), th, 0.62, 0.008, y + 0.25, y + 1.6, lin([0.8, 0.76, 0.66]), lin([0.78, 0.7, 0.58]), d); break; }
+      case 'timber': { const L = (f.len ?? 3) / 2; for (let x = 0; x < 5; x++) mud.box(...at(0, -0.6 + (x % 3) * 0.3), th, L, 0.13, y + (x > 2 ? 0.26 : 0), y + (x > 2 ? 0.5 : 0.25), tim, sh(tim, 1.15), d); break; }
+      case 'anvil': mud.box(g[0], g[1], th, 0.22, 0.2, y - 0.05, y + 0.5, st, sh(st, 0.8), d); break;
+      case 'bench': mud.box(g[0], g[1], th, 0.8, 0.25, y, y + 0.8, tim, tim, d); break;
+      case 'knucklebones': for (let x = 0; x < 5; x++) mud.box(...at(x * 0.07 - 0.14, (x % 2) * 0.05), th + x, 0.018, 0.012, y, y + 0.02, lin(BONE), lin(BONE), d); break;
+      // D-215: a leather ball, a clay bull on wheels (wheels as flat discs, seen from above) and a clay rattle (C)
+      case 'toys': { const clay = lin([0.66, 0.47, 0.33]), hide = lin([0.55, 0.4, 0.26]);
+        mud.lathe(...at(-0.25, 0.1), y, [[0.001, 0], [0.035, 0.012], [0.05, 0.05], [0.035, 0.088], [0.001, 0.1]], 5, hide, d);
+        mud.box(...at(0.15, 0), th, 0.085, 0.05, y + 0.04, y + 0.11, clay, clay, d); mud.box(...at(0.25, 0), th, 0.03, 0.028, y + 0.08, y + 0.14, clay, clay, d);
+        for (const s2 of [-1, 1]) mud.box(...at(0.15, s2 * 0.055), th, 0.075, 0.006, y, y + 0.05, sh(clay, 0.8), clay, d);
+        mud.lathe(...at(0.05, -0.25), y, [[0.001, 0], [0.03, 0.02], [0.034, 0.04], [0.012, 0.07], [0.008, 0.12]], 5, clay, d); break; }
+      case 'trough': mud.box(g[0], g[1], th, 0.7 * f.size, 0.28, y - 0.05, y + 0.5, st, st, d); break;
+      case 'manger': mud.box(g[0], g[1], th, 0.9, 0.3, y - 0.05, y + 0.85, sh(mc, 0.85), mc, d); break;
+      case 'well': this.well(g, y, mud, d); break;
+      case 'column': { mud.cyl(g[0], g[1], 0.55, 0.5, y - 0.2, y + 0.4, 10, st, st, d); mud.cyl(g[0], g[1], 0.3, 0.27, y + 0.4, y + f.size, 10, lin([0.78, 0.72, 0.62]), lin([0.78, 0.72, 0.62]), d, false);
+        mud.box(g[0], g[1], th, 0.45, 0.45, y + f.size, y + f.size + 0.35, tim, tim, d); break; }
+      default: break;
     }
   }
+  /** one near tile: the houses at full detail, the fittings in it (houses.ts); meshes that name their plot and part (F3) */
+  private buildNear(hs: SiteHouses, tile: number, cl: Cluster) {
+    const t0 = performance.now(), B = newHB(), s = hs.s, fd = this.fitDesc.get(s.id)!;
+    hs.buildTile(tile, B);
+    B.items.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
+    s.fittings.forEach((f, fi) => { if (SKIP_FITTINGS.has(f.kind) || hs.tileOfPlotEl(f.plot, f.u, f.v) !== tile) return; this.fittingGeom(s, f, B.items, (e, n) => this.terrain.heightAt(e, -n), fd[fi] * 32); });
+    const meshes: THREE.Mesh[] = []; let tris = 0;
+    for (const k of ['plaster', 'stone', 'timber', 'brick', 'items'] as const) { const b = B[k]; if (!b.tris) continue;
+      // walls, roofs, footings and brick cast no shadow of their own (the far level casts theirs); poles, ladders, porticoes,
+      // fittings and court things do
+      const m = new THREE.Mesh(b.toGeometry(), this.nearMats[k]); m.name = `settlement:near:${tile}:${k}`; m.castShadow = k === 'timber' || k === 'items'; m.receiveShadow = true; m.matrixAutoUpdate = false;
+      const owner = b.owner, desc = cl.desc; m.userData = { tier: 'C', src: 'RECON', note: `houses near (${k})`, describe: (hit: any) => partDesc(desc, owner[hit?.faceIndex ?? -1], false) };
+      meshes.push(m); tris += b.tris; this.group.add(m); }
+    const ms = performance.now() - t0; this.nearInfo.buildMs += ms; this.nearInfo.lastBuildMs = ms;
+    return { hs, meshes, tris, cl };
+  }
+  /** the near tiles round the eye: all within NEAR_R built at once, the next ring one per call (`prefetch`), shown within
+   *  NEAR_R, dropped beyond NEAR_R + 80 m; the far level's uniform eye moved to match */
+  nearUpdate(x: number, z: number, prefetch = 1) {
+    NEAR_EYE.value.set(x, z);
+    let tiles = 0, tris = 0, meshes = 0;
+    for (const hs of this.houses) { const s = hs.s, rs = Math.hypot(s.W, s.H) / 2;
+      if (Math.hypot(s.frame.c[0] - x, -s.frame.c[1] - z) > rs + NEAR_R + 120) { for (const [t, n] of this.near) if (n.hs === hs) this.dropNear(t); continue; }
+      const cl = this.clusterOfSite.get(s.id)!;
+      for (const [t, info] of hs.tiles) { const d = Math.hypot(info.x - x, info.z - z); let n = this.near.get(t);
+        if (d < NEAR_R + 0.25) { if (!n) { n = this.buildNear(hs, t, cl); this.near.set(t, n); } }
+        else if (d < NEAR_R + 40 && !n && prefetch > 0) { prefetch--; n = this.buildNear(hs, t, cl); this.near.set(t, n); }
+        else if (n && d > NEAR_R + 80) { this.dropNear(t); n = undefined; }
+        if (n) { const vis = d < NEAR_R + 0.25; for (const m of n.meshes) m.visible = vis; if (vis) { tiles++; tris += n.tris; meshes += n.meshes.length; } } } }
+    this.nearInfo.tiles = tiles; this.nearInfo.tris = tris; this.nearInfo.meshes = meshes;
+  }
+  private dropNear(t: number) { const n = this.near.get(t); if (!n) return; for (const m of n.meshes) { this.group.remove(m); m.geometry.dispose(); } this.near.delete(t); }
+  /** is tile t drawn near (the eye within NEAR_R of its centre)? */
+  nearTile = (t: number) => { const n = this.near.get(t); return !!n && n.meshes.length > 0 && n.meshes[0].visible; };
+  /** E on a street door (main.ts, after the palace doors) */
+  useDoor(camera: THREE.Camera) { return this.doors?.use(camera) ?? null; }
   /** a ring of hearth stones with ash inside (C) */
   private hearthRing(b: Batch, g: P2, y: number, d: number) {
     const st = lin([0.5, 0.48, 0.44]), ash = lin([0.2, 0.19, 0.18]);
@@ -281,11 +352,13 @@ export class Settlement {
   update(dt: number, ctx: { camera: THREE.Camera; clock: any; sky: any; skyLight?: any; cond: any; player: any }) {
     const p = ctx.player?.position ?? ctx.camera.position; this.streamColliders(p.x, p.z);
     const cp = ctx.camera.position;
+    this.nearUpdate(cp.x, cp.z, 1);
+    this.doors?.update(dt, cp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30, this.nearTile);
     for (const m of this.casters) { const bs = m.geometry.boundingSphere!; m.castShadow = bs.center.distanceTo(cp) - bs.radius < SHADOW_RANGE; }
     this.trees.update(ctx.camera, ctx.clock?.dayIndex ?? 0, ctx.cond?.windMs ?? 2); this.wr.update(ctx.camera.position);
     this.haze.update(dt, ctx.camera, ctx.sky?.sunAlt ?? 30, ctx.cond?.windMs ?? 2, ctx.cond?.windDirDeg ?? 0, ctx.clock?.localHour ?? 12, ctx.skyLight);
   }
-  stats() { return { ...this.info, casting: this.casters.filter(m => m.castShadow).length, trees: this.trees.stats(), haze: this.haze.stats() }; }
+  stats() { return { ...this.info, casting: this.casters.filter(m => m.castShadow).length, near: { ...this.nearInfo }, doors: { ...(this.doors?.stats ?? {}) }, trees: this.trees.stats(), haze: this.haze.stats() }; }
 }
 
 function kindLabel(p: Plot) {

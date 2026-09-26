@@ -107,4 +107,18 @@ describe('surface shaders build (WGSL, node)', () => {
     for (const m of meshes) { try { const b = build(renderer, scene, camera, m); if (!b.fragment.includes('output')) fails.push(m.name + ': no output'); } catch (e: any) { fails.push(`${m.name}: ${String(e?.message ?? e).slice(0, 300)}`); } }
     expect(fails).toEqual([]);
   });
+  it('the houses (D-234): the far level with its near-tile collapse and shadow position, the near materials with their ambient occlusion, the street doors generate WGSL', async () => {
+    const { Settlement } = await import('../src/world/settlement/build'), { FireSystem } = await import('../src/world/fire'), { loadTerrain } = await import('./plainLib');
+    const renderer = makeRenderer(), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.05, 110000);
+    const sun = new THREE.DirectionalLight(0xffffff, 3); sun.castShadow = true; scene.add(new THREE.HemisphereLight(0xbfd6ff, 0x6b5a45, 0.6), sun, sun.target);
+    if (!renderer.backend.device) renderer.backend.device = { limits: { maxUniformBufferBindingSize: 65536, maxStorageBufferBindingSize: 134217728 } };
+    const town = new Settlement(null, loadTerrain(), new FireSystem(0), 'test'); const q = town.plan.sites.find(s => s.id === 'q_s1')!;
+    town.nearUpdate(q.frame.c[0], -q.frame.c[1], 0); town.doors.update(0, new THREE.Vector3(q.frame.c[0], 0, -q.frame.c[1]), 3, 20, () => true);
+    const meshes: THREE.Mesh[] = [], seen = new Set<string>();
+    town.group.traverse((o: any) => { if (!o.isMesh) return; const k = /:far$/.test(o.name) ? 'far' : /settlement:near:/.test(o.name) ? 'near:' + o.name.split(':').pop() : /settlement-doors/.test(o.name) ? 'doors' : ''; if (k && !seen.has(k)) { seen.add(k); meshes.push(o); } });
+    expect([...seen].sort()).toEqual(['doors', 'far', 'near:brick', 'near:items', 'near:plaster', 'near:stone', 'near:timber'].filter(k => seen.has(k) || k !== 'near:brick'));
+    const fails: string[] = [];
+    for (const m of meshes) { try { const b = build(renderer, scene, camera, m); if (!b.fragment.includes('output')) fails.push(m.name + ': no output'); if (/:far$/.test(m.name) && !/tile/.test(b.vertex)) fails.push('far: no tile attribute in the vertex stage'); } catch (e: any) { fails.push(`${m.name}: ${String(e?.message ?? e).slice(0, 300)}`); } }
+    expect(fails).toEqual([]);
+  }, 300_000);
 });

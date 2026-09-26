@@ -11,7 +11,7 @@
 import type { Part } from '../arch/parts';
 import { pointInPoly, polyBounds } from '../arch/parts';
 import { NAV } from './navgrid';
-import { Site, ROOM, COURT, DOOR_H, toLocal } from '../world/settlement/site';
+import { Site, ROOM, COURT, DOOR_H, EAVE_LIP, toLocal } from '../world/settlement/site';
 import type { PopGeo } from './popgeo';
 
 type V3 = [number, number, number];
@@ -82,7 +82,7 @@ export class Sightlines {
       if (c1 !== c2) return Math.max(topOf(k1), topOf(k2));
       const s1 = s.sub[k1], s2 = s.sub[k2], p = s.plots[c1];
       if (s1 === s2) return s1 === ROOM && s.room[k1] !== s.room[k2] ? p.height : 0;
-      if (s1 === ROOM || s2 === ROOM) return p.height + p.parapet;
+      if (s1 === ROOM || s2 === ROOM) return p.height + EAVE_LIP; // D-234: the court facade ends at the eave
       return p.yardWall; };
     const cross = (k1: number, k2: number, y: number, g: number) => { const t = wallTop(k1, k2); if (!t || y >= g + t) return true; return s.doors.has(s.edgeBetween(k1, k2)) && y < g + DOOR_H; };
     for (let f = f0; f <= f1 + 1e-9; f += step) { const [e, n, y] = at(Math.min(f, f1)); const [u, v] = toLocal(s.frame, e, n), i = s.ci(u), j = s.cj(v);
