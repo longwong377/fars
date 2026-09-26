@@ -12,8 +12,8 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-237 | s8 | walkability: fall-through, walk everywhere, autosave (Q-640..Q-649, B61..B62) | worktree-agent-a1aaf525d1db6ee63 | merged (session 8, bbc4e99) |
 | D-244 | s8 | indoor truth on screen (Q-650..Q-659, B63..B64) | worktree-agent-af7d905287e998e62 | merged (session 8, 78f2a3b) |
 | D-245 | s8 | the town is not mute (Q-660..Q-669, B65..B66) | worktree-agent-af46721eb7f032c30 | merged (session 8, after 22956d7) |
-| D-249 | s9 | town walkability: doors and lane clearance (Q-670..Q-679, B67..B69) | agent worktree (town_walk) | in flight |
+| D-249 | s9 | town walkability: doors and lane clearance (Q-670..Q-679, B67..B69) | worktree-agent-a9436d235d3ab7e79 | merged 8e78687 (agent stopped by an interruption; its uncommitted work kept as WIP c8a1e13; T-H1r/T-H1s not met, B67) |
 | D-250 | s9 | cached world (lead; speed plan D-248 step 1) | claude/amazing-fermi-40ds7j | in flight |
 | D-251 | s9 | tiered tests (lead; speed plan D-248 step 2) | claude/amazing-fermi-40ds7j | in flight |
-| D-252 | s9 | the court's arrival simulated; a new game starts before it (Q-680..Q-689, B70..B72) | agent worktree (court_arrival) | in flight |
+| D-252 | s9 | the court's arrival simulated; a new game starts before it (Q-680..Q-689, B70..B72) | worktree-agent-a05470624036dba65 | merged 8d7f15c (agent stopped by an interruption before its soak: unverified) |
 | D-253 | s9 | the renderless world (?norender) and its throughput (lead) | claude/amazing-fermi-40ds7j | in flight |
