@@ -190,7 +190,9 @@ function runArea(A: Area): Res {
         // (D-249) a person standing in the way: first a short step round them, to either side (as a player walks round
         // someone in a lane or a court: 0.9-1.5 m aside), then on
         if (byLiving) for (let k = 0; k < 6 && !passed; k++) { const p = pl.position, de = we - p.x, dn = wn + p.z, a = Math.atan2(de, dn) + (k % 2 ? -1 : 1) * (1.3 + 0.2 * Math.floor(k / 2)), L = 0.9 + 0.3 * Math.floor(k / 2);
-          walkTo(p.x + Math.sin(a) * L, -p.z + Math.cos(a) * L, 0.3, 1.5, 3); passed = walkTo(we, wn, last ? 0.6 : 0.35, 3); }
+          walkTo(p.x + Math.sin(a) * L, -p.z + Math.cos(a) * L, 0.3, 1.5, 3); passed = walkTo(we, wn, last ? 0.6 : 0.35, 3);
+          // a waypoint a person stands on: aim past it at the next one (a player does not walk into someone)
+          if (!passed && !last) { const [ne, nn] = path[i + 1]; if (walkTo(ne, nn, i + 1 === path.length - 1 ? 0.6 : 0.35, 3)) { passed = true; i++; stopAt = [ne, nn]; } } }
         if (byLiving) for (let k = 0; k < 20 && !passed; k++) { W.step(pl, DT * 15, { forward: 0, yaw: 0 }); R.botT += DT * 15; passed = walkTo(we, wn, last ? 0.6 : 0.35, 1); } // wait (5 s at most) for them to move
         for (let k = 0; k < (A.router === 'open' ? 8 : 4) && !passed; k++) { const p = pl.position, de = we - p.x, dn = wn + p.z, a = Math.atan2(de, dn) + (k % 2 ? -1 : 1) * (0.9 + 0.25 * Math.floor(k / 2)), L = 2.5 + k;
           walkTo(p.x + Math.sin(a) * L, -p.z + Math.cos(a) * L, 0.5, 2, 6); passed = walkTo(we, wn, last ? 0.6 : 0.35, 3); }

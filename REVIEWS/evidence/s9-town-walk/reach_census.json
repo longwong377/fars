@@ -1,0 +1,468 @@
+{
+ "id": "reach_census",
+ "value": 99.454,
+ "unit": "% of quarter plot cells a body can walk to",
+ "commit": "e7e5f55",
+ "tool": "tools/dev/reach_census.ts",
+ "body_min_m": 0.28,
+ "quarter": {
+  "plot_cells": 183761,
+  "plot_cells_reached_pct": 99.454,
+  "lane_cells": 53195,
+  "lane_cells_reached_pct": 99.944,
+  "plots": 1486,
+  "plots_shut": 6,
+  "plots_partly_reached": 35
+ },
+ "compound": {
+  "plot_cells": 263736,
+  "plot_cells_reached_pct": 99.667,
+  "lane_cells": 0,
+  "lane_cells_reached_pct": 0,
+  "plots": 8,
+  "plots_shut": 0,
+  "plots_partly_reached": 3
+ },
+ "worst": [
+  {
+   "site": "estate_2",
+   "plot": "estate_2-0001",
+   "kind": "elite",
+   "cells": 6277,
+   "reached": 5452,
+   "at": [
+    -2700,
+    1850
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0077",
+   "kind": "house",
+   "cells": 178,
+   "reached": 0,
+   "at": [
+    -1032.8881106474244,
+    544.5132709988061
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0082",
+   "kind": "house",
+   "cells": 140,
+   "reached": 0,
+   "at": [
+    -1028.8338789599889,
+    559.169778271161
+   ]
+  },
+  {
+   "site": "q_s3",
+   "plot": "q_s3-0198",
+   "kind": "yard",
+   "cells": 146,
+   "reached": 21,
+   "at": [
+    -1144.7767126691235,
+    -897.4390770879716
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0222",
+   "kind": "house",
+   "cells": 117,
+   "reached": 0,
+   "at": [
+    -317.2686182122769,
+    -886.8212921088189
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0056",
+   "kind": "house",
+   "cells": 105,
+   "reached": 0,
+   "at": [
+    -1129.8241095942,
+    531.0722104680788
+   ]
+  },
+  {
+   "site": "q_s4",
+   "plot": "q_s4-0074",
+   "kind": "house",
+   "cells": 100,
+   "reached": 0,
+   "at": [
+    -981.248844368275,
+    -1451.510282924969
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0173",
+   "kind": "pen",
+   "cells": 99,
+   "reached": 0,
+   "at": [
+    -1015.8902234118261,
+    629.7031872420205
+   ]
+  },
+  {
+   "site": "q_s2",
+   "plot": "q_s2-0182",
+   "kind": "pen",
+   "cells": 270,
+   "reached": 222,
+   "at": [
+    -807.037687599849,
+    -1020.3819620919821
+   ]
+  },
+  {
+   "site": "q_s2",
+   "plot": "q_s2-0181",
+   "kind": "pen",
+   "cells": 192,
+   "reached": 157,
+   "at": [
+    -745.1031253198331,
+    -1079.0727620114144
+   ]
+  },
+  {
+   "site": "estate_3",
+   "plot": "estate_3-0001",
+   "kind": "elite",
+   "cells": 6277,
+   "reached": 6247,
+   "at": [
+    -2950,
+    2250
+   ]
+  },
+  {
+   "site": "estate_1",
+   "plot": "estate_1-0001",
+   "kind": "elite",
+   "cells": 6277,
+   "reached": 6253,
+   "at": [
+    -2050,
+    1720
+   ]
+  },
+  {
+   "site": "q_s3",
+   "plot": "q_s3-0131",
+   "kind": "house",
+   "cells": 130,
+   "reached": 122,
+   "at": [
+    -1150.9974105588283,
+    -836.909721253261
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0112",
+   "kind": "house",
+   "cells": 238,
+   "reached": 232,
+   "at": [
+    -439.86515307570323,
+    -936.6343389889356
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0161",
+   "kind": "workshop",
+   "cells": 72,
+   "reached": 69,
+   "at": [
+    -1068.259415613562,
+    633.6991487205199
+   ]
+  },
+  {
+   "site": "q_s2",
+   "plot": "q_s2-0025",
+   "kind": "workshop",
+   "cells": 125,
+   "reached": 123,
+   "at": [
+    -796.5275052890804,
+    -1164.7496733981961
+   ]
+  },
+  {
+   "site": "q_s2",
+   "plot": "q_s2-0160",
+   "kind": "workshop",
+   "cells": 147,
+   "reached": 145,
+   "at": [
+    -821.4661611470818,
+    -1018.8590861624319
+   ]
+  },
+  {
+   "site": "q_s4",
+   "plot": "q_s4-0023",
+   "kind": "workshop",
+   "cells": 93,
+   "reached": 91,
+   "at": [
+    -992.2605776467082,
+    -1501.9011722821201
+   ]
+  },
+  {
+   "site": "q_s4",
+   "plot": "q_s4-0042",
+   "kind": "workshop",
+   "cells": 58,
+   "reached": 56,
+   "at": [
+    -888.6080644213816,
+    -1486.1323263486506
+   ]
+  },
+  {
+   "site": "q_s4",
+   "plot": "q_s4-0033",
+   "kind": "workshop",
+   "cells": 73,
+   "reached": 71,
+   "at": [
+    -972.6824705381833,
+    -1488.0016139421177
+   ]
+  },
+  {
+   "site": "q_s4",
+   "plot": "q_s4-0071",
+   "kind": "workshop",
+   "cells": 190,
+   "reached": 188,
+   "at": [
+    -896.9198038844477,
+    -1446.1146429187204
+   ]
+  },
+  {
+   "site": "q_s4",
+   "plot": "q_s4-0105",
+   "kind": "workshop",
+   "cells": 158,
+   "reached": 156,
+   "at": [
+    -1035.469503561135,
+    -1428.73705046465
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0039",
+   "kind": "workshop",
+   "cells": 82,
+   "reached": 80,
+   "at": [
+    -1159.2909138451603,
+    518.5839180613648
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0061",
+   "kind": "workshop",
+   "cells": 116,
+   "reached": 114,
+   "at": [
+    -1156.102795715497,
+    548.9168358700971
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0063",
+   "kind": "workshop",
+   "cells": 137,
+   "reached": 135,
+   "at": [
+    -1136.9978227769645,
+    548.9198388587482
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0131",
+   "kind": "workshop",
+   "cells": 169,
+   "reached": 167,
+   "at": [
+    -1123.6614347443854,
+    618.4064617026056
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0002",
+   "kind": "workshop",
+   "cells": 112,
+   "reached": 111,
+   "at": [
+    -482.771443665904,
+    -1042.2861266112434
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0245",
+   "kind": "house",
+   "cells": 40,
+   "reached": 39,
+   "at": [
+    -527.2626801957682,
+    -969.8859893735029
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0072",
+   "kind": "house",
+   "cells": 151,
+   "reached": 150,
+   "at": [
+    -416.5532398798186,
+    -981.5765763959399
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0089",
+   "kind": "house",
+   "cells": 138,
+   "reached": 137,
+   "at": [
+    -399.25896695891663,
+    -977.6512580474032
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0108",
+   "kind": "house",
+   "cells": 123,
+   "reached": 122,
+   "at": [
+    -417.08477662787647,
+    -950.2561761959829
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0111",
+   "kind": "house",
+   "cells": 64,
+   "reached": 63,
+   "at": [
+    -362.4121952965759,
+    -980.5779315965584
+   ]
+  },
+  {
+   "site": "q_s1",
+   "plot": "q_s1-0139",
+   "kind": "workshop",
+   "cells": 139,
+   "reached": 138,
+   "at": [
+    -474.06068386742794,
+    -887.6862473624767
+   ]
+  },
+  {
+   "site": "q_s2",
+   "plot": "q_s2-0088",
+   "kind": "workshop",
+   "cells": 297,
+   "reached": 296,
+   "at": [
+    -739.0812350972782,
+    -1115.2630485279299
+   ]
+  },
+  {
+   "site": "q_s2",
+   "plot": "q_s2-0113",
+   "kind": "workshop",
+   "cells": 190,
+   "reached": 189,
+   "at": [
+    -793.2462152117278,
+    -1083.9197090568193
+   ]
+  },
+  {
+   "site": "q_s2",
+   "plot": "q_s2-0157",
+   "kind": "workshop",
+   "cells": 98,
+   "reached": 97,
+   "at": [
+    -828.7218858376413,
+    -1030.967119000792
+   ]
+  },
+  {
+   "site": "q_w1",
+   "plot": "q_w1-0135",
+   "kind": "workshop",
+   "cells": 116,
+   "reached": 115,
+   "at": [
+    -512.54571876032,
+    503.99048041488413
+   ]
+  },
+  {
+   "site": "q_w2",
+   "plot": "q_w2-0135",
+   "kind": "workshop",
+   "cells": 176,
+   "reached": 175,
+   "at": [
+    -1006.6483193437117,
+    607.6161501117087
+   ]
+  },
+  {
+   "site": "q_w3",
+   "plot": "q_w3-0031",
+   "kind": "workshop",
+   "cells": 115,
+   "reached": 114,
+   "at": [
+    -906.56435474342,
+    -146.84991879301197
+   ]
+  },
+  {
+   "site": "q_w3",
+   "plot": "q_w3-0150",
+   "kind": "workshop",
+   "cells": 87,
+   "reached": 86,
+   "at": [
+    -865.7374888742098,
+    -29.984966718844227
+   ]
+  }
+ ]
+}

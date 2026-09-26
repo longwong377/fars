@@ -1,0 +1,72 @@
+{
+ "id": "door_clearance",
+ "value": 0.3,
+ "unit": "m",
+ "n": 10583,
+ "commit": "ddbf276",
+ "tool": "tools/dev/door_census.ts",
+ "target": ">= 0.8 m every door (Q-640, D-249)",
+ "method": "free run through the door midpoint along its line, least of 25 lines from 0.6 m outside to 0.6 m inside; solids: Site.walls() boxes and footprints.ts (the colliders build.ts makes)",
+ "all": {
+  "n": 10583,
+  "min": 0.3,
+  "p1": 0.525,
+  "p5": 0.525,
+  "median": 1,
+  "under_0_8": 1677,
+  "under_0_62": 769
+ },
+ "street": {
+  "n": 1505,
+  "min": 0.3,
+  "p1": 0.4,
+  "p5": 0.65,
+  "median": 1,
+  "under_0_8": 94,
+  "under_0_62": 24
+ },
+ "inside": {
+  "n": 9078,
+  "min": 0.3,
+  "p1": 0.525,
+  "p5": 0.525,
+  "median": 1,
+  "under_0_8": 1583,
+  "under_0_62": 745
+ },
+ "quarters": {
+  "n": 10327,
+  "min": 0.3,
+  "p1": 0.525,
+  "p5": 0.525,
+  "median": 1,
+  "under_0_8": 1667,
+  "under_0_62": 760
+ },
+ "compounds": {
+  "n": 256,
+  "min": 0.525,
+  "p1": 0.525,
+  "p5": 0.8,
+  "median": 1,
+  "under_0_8": 10,
+  "under_0_62": 9
+ },
+ "worst": [
+  "q_s1 inner door at grid (-512.1, -959.2): 0.30 m",
+  "q_s1 inner door at grid (-379.7, -1020.1): 0.30 m",
+  "q_s1 inner door at grid (-497.3, -909.4): 0.30 m",
+  "q_s1 inner door at grid (-378.0, -954.3): 0.30 m",
+  "q_s1 street door at grid (-466.3, -916.0): 0.30 m",
+  "q_s1 inner door at grid (-329.1, -895.3): 0.30 m",
+  "q_s1 street door at grid (-313.4, -893.4): 0.30 m",
+  "q_s1 street door at grid (-425.3, -826.9): 0.30 m",
+  "q_s2 inner door at grid (-837.7, -1177.1): 0.30 m",
+  "q_s2 inner door at grid (-831.5, -1140.6): 0.30 m",
+  "q_s2 inner door at grid (-744.4, -1135.2): 0.30 m",
+  "q_s2 inner door at grid (-860.2, -1003.8): 0.30 m",
+  "q_s3 inner door at grid (-1236.2, -970.0): 0.30 m",
+  "q_s3 inner door at grid (-1225.8, -968.3): 0.30 m",
+  "q_s3 inner door at grid (-1211.6, -893.2): 0.30 m"
+ ]
+}

@@ -94,23 +94,24 @@ export function cellSpot(s: Site, k: number): [number, number, number] {
   const r = cellRoom(s, k), l = LATTICE[spots(s).li[k]]; return [s.cu(k % s.W) + l[0], s.cv((k / s.W) | 0) + l[1], r];
 }
 
-/** the most room a body finds crossing the edge from cell k to its neighbour (dir 0: to (i + 1, j); 1: to (i, j + 1)):
- *  the best of 5 points along the edge (cached per site, a byte an edge) */
+/** the room a body keeps stepping from cell k to its neighbour (dir 0: to (i + 1, j); 1: to (i, j + 1)): the least
+ *  clearance along the segment between the two cells' walking spots (every 0.1 m), up to 0.45 m. Measured on the walk
+ *  itself, not on the shared edge: two wall ends offset across a lane's jog leave a diagonal slot inside a cell that no
+ *  edge sample sees (cached per site, a byte an edge) */
 const EROOM = new Map<Site, Uint8Array>();
+function segRoom(s: Site, a: number, b: number, need: number): number {
+  const p = cellSpot(s, a), q = cellSpot(s, b), L = Math.hypot(q[0] - p[0], q[1] - p[1]), n = Math.max(1, Math.ceil(L / 0.1)); let m = 0.45;
+  for (let t = 0; t <= n; t++) { const c = clearAt(s, p[0] + (q[0] - p[0]) * t / n, p[1] + (q[1] - p[1]) * t / n); if (c < m) { m = c; if (m < need) return m; } }
+  return m;
+}
 export function edgeRoom(s: Site, k: number, dir: 0 | 1): number {
   let m = EROOM.get(s); if (!m) EROOM.set(s, m = new Uint8Array(s.W * s.H * 2)); const key = k * 2 + dir; if (m[key]) return dec(m[key]);
-  const i = k % s.W, j = (k / s.W) | 0; let best = 0;
-  for (const f of [0.5, 0.3, 0.7, 0.1, 0.9]) { const c = dir === 0 ? clearAt(s, s.u0 + i + 1, s.v0 + j + f) : clearAt(s, s.u0 + i + f, s.v0 + j + 1); if (c > best) best = c; if (best >= 0.45) break; }
-  m[key] = enc(best); return dec(m[key]);
+  m[key] = enc(segRoom(s, k, dir === 0 ? k + 1 : k + s.W, -1)); return dec(m[key]);
 }
-
-/** whether an edge has room >= `need` somewhere along it (early out) */
-export function edgeHasRoom(s: Site, k: number, dir: 0 | 1, need: number): boolean {
-  const m = EROOM.get(s), key = k * 2 + dir; if (m && m[key]) return dec(m[key]) >= need;
-  const i = k % s.W, j = (k / s.W) | 0;
-  for (const f of [0.5, 0.3, 0.7, 0.1, 0.9]) if ((dir === 0 ? clearAt(s, s.u0 + i + 1, s.v0 + j + f) : clearAt(s, s.u0 + i + f, s.v0 + j + 1)) >= need) return true;
-  return false;
-}
+/** whether the step from cell k to its neighbour keeps room >= `need` (early out) */
+export function edgeHasRoom(s: Site, k: number, dir: 0 | 1, need: number): boolean { return edgeRoom(s, k, dir) >= need; }
+/** whether a diagonal step between two cells' spots keeps room >= `need` */
+export function diagHasRoom(s: Site, a: number, b: number, need: number): boolean { return segRoom(s, a, b, need) >= need; }
 
 class Heap { // binary min-heap of (priority, key)
   k: number[] = []; p: number[] = [];
@@ -188,7 +189,7 @@ export function siteSearch(s: Site, start: number, goal: number | null, exitTo: 
       const room = kk === goal ? 1 : cellRoom(s, kk); if (room < BODY_MIN) continue;
       if (!di || !dj) { if (edgeRoom(s, di ? Math.min(k, kk) : Math.min(k, kk), di ? 0 : 1) < BODY_MIN) continue; }
       else { const a1 = k + di, b1 = k + dj * W; if (cellRoom(s, a1) < BODY_MIN || cellRoom(s, b1) < BODY_MIN) continue;
-        if (edgeRoom(s, Math.min(k, a1), 0) < BODY_MIN || edgeRoom(s, Math.min(a1, kk), 1) < BODY_MIN || edgeRoom(s, Math.min(k, b1), 1) < BODY_MIN || edgeRoom(s, Math.min(b1, kk), 0) < BODY_MIN) continue; }
+        if (!diagHasRoom(s, k, kk, BODY_MIN) || edgeRoom(s, Math.min(k, a1), 0) < BODY_MIN || edgeRoom(s, Math.min(a1, kk), 1) < BODY_MIN || edgeRoom(s, Math.min(k, b1), 1) < BODY_MIN || edgeRoom(s, Math.min(b1, kk), 0) < BODY_MIN) continue; }
       const ng = S.g[k] + (di && dj ? Math.SQRT2 : 1) + (room < WALL_CLEAR ? 1.5 : 0);
       if (S.stamp[kk] !== run || ng < S.g[kk]) { S.stamp[kk] = run; S.g[kk] = ng; S.from[kk] = k; HEAP.push(kk, ng + h(kk)); }
     }
