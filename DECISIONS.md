@@ -6368,6 +6368,64 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Tests.** plain, plain_d223 (IRR_CROP), plain_look, landscape, beasts, court_fill, small_life pass (81). The rain-fed land
   keeps barley and fallow only (dry-farmed pulses: not done).
 
+## D-254 The villages as real places: one raster for the people and the drawn houses, the town's house generator at village scale (session 9; UD-06, UD-08, UD-14; T-A1, T-D3, T-J7; WORLD_INVENTORY G2 / A072 / B-023; B64)
+- **How this could pass its tests while the intent fails (said before building, and measured against):** (1) the rasters are
+  right but the drawn houses still read as boxes: within ~72 m the houses are the town's near level (walls with thickness,
+  lintels, roofs of poles, ceilings, furnished rooms), beyond it a massing level (boxes of yard walls, pen and room ranges):
+  the far level IS box massing, as the town's is, and only a render judges the hand-over (two views added to plain.spec,
+  village-p22-lane by day and at dusk); (2) the drawn walls and the people's raster disagree (D-237 at village_p22): they are
+  now the same object: the people (popgeo.ts) and the drawn village (villagehouses.ts) share one cached Site per village,
+  asserted by identity in tests/villages.test.ts; (3) sleepers "inside rooms" but inside solid geometry or colliders: the test
+  casts rays from 160 room cells of p22's near level (all roofed as drawn, 153 walled on >= 3 sides within 6 m) and checks no
+  collider over any room cell nor within 0.4 m of an inner cell, and 1,533 sampled village sleepers (37 villages, 23:00) lie in
+  a room of their own compound >= 0.3 m clear of every collider; (4) a budget passing because the near level never appears in
+  the budget view (village-p22 stands 70 m outside the village): a node budget test now stands at the well of p22 and of the
+  largest village (p01) with the near level built.
+- **The plan (villages.ts).** Compounds on the village's 1 m grid (one angle per village; each compound's own turn is drawn
+  and dropped to keep the stream), sides in whole metres, never overlapping: a compound that would come within 2 m (LANE_MIN)
+  of a neighbour is shrunk toward COMPOUND_MIN 11 m, else the ground is left open (3,983 compounds, as before). Each plan: a
+  main range of 2-3 rooms along the N side (3-5 m deep), a wing on the E or W side (55 %, split in two when long), an animal
+  pen (3-5 x 3-4 m) in a S corner behind a 1.4 m wall, the gate in the S wall, a door from every room onto the court (or,
+  where the wing shuts a room off, through the partition to the next room), and the fittings on the compound's own grid:
+  the tannur in a yard corner, the hearth before the rooms, 1-2 clay bins and 1-3 jars against the walls, the manger in the
+  pen, all clear of every doorway. >98 % of the 3,983 plans are distinct (T-E5). All C (the region's courtyard house by
+  analogy, D-207). villageCompounds is memoised (the plain, the people, the animals and the tools ask for the same plan).
+- **The raster (villagesite.ts).** One Site per village (the frame popgeo used): compound plots (kind 'house', yard walls
+  yard_wall_h_m 2.0 m and 0.55 m, room walls wall_m 0.6 m, partitions 0.4 m), pen plots (kind 'pen', sharing their compound's
+  rect so the two are drawn near or far together), the doors, the fittings, planHouses (houseplan.ts: each house's life, ladder,
+  bench, fuel, fodder, baskets, roof things), the village well in the lane nearest the centre. 22,232 doorways, least clear
+  width 1.00 m (none under 0.8 m); connectPlots adds no door (every room, yard and pen is joined to its gate by the plan);
+  settleDoors is not run (its whole-raster pass cost 1.2 s; nothing to settle, measured).
+- **The drawn villages (villagehouses.ts).** At load, from the plans alone (~1 s in node): the far level (one mesh per 10 km
+  cell: 8 meshes, 395 k triangles; was 12 meshes of 324 k boxes), collapsed per 32 m tile where the near level is drawn (its
+  own state texture) and casting for near and far; the gates' leaves (the town's TownDoors with one variant: 1 instanced
+  mesh; the records equal SiteHouses' own, tested); the threshing floors (villages.ts threshingFloor: the people's own bearing,
+  beyond every compound; drawn beaten earth and a stone kerb); the fires. When the eye or the player comes within 322 m of a
+  village's edge its raster and SiteHouses are built, one step a frame (p22: 173 ms the larger step in node; p01: 681 ms: B74),
+  then its colliders (walls, fixture and fitting footprints, bins; 1,500 a frame) and its near tiles (the town's machinery:
+  32 m tiles within 72 m, prefetched 3 ms a frame, merged into two meshes: the structure, a draw per material, not casting; the
+  things, casting). The plain keeps 39 meshes (<= 40): 8 far + 2 near + 1 gate mesh replace 12.
+- **Night light.** Each compound's hearth ('home') and the evening lamp in its first living room (houses.ts roomUse; 3,741 of
+  3,983 compounds) join the fire system: 7,724 fires. The ovens are drawn, not fires (Q-690). The fire system now writes an
+  unlit flame once and skips it while it stays out, and redraws a `slow` fire beyond 250 m one frame in 8 (the villages'):
+  both leave the town's matrices unchanged. Cost at 20 h (node, loaded box): fire.update 1.2 ms town only -> 5.4 ms with the
+  villages (B75).
+- **The people (popgeo.ts).** vsite is the shared raster (villagesite.ts); a village plot's spots are its rooms' and yards'
+  inner cells where they have any (a spot is a cell centre +- 0.25 m: beside a 0.6 m wall it stood in it); the well spot is the
+  drawn well; the threshing floor is the drawn one (radius 6 m). Town spots unchanged.
+- **Town output unchanged.** build.ts fittingGeom/partDesc became module functions, houses.ts exports its hash, TownDoors takes
+  an optional variant count, site.ts gains the 'bin' fitting kind (none in the town), fire.ts the two skips above; settlement
+  and houses tests pass. The fire system builds after the plain (world.ts), so the villages' fires join it.
+- **Measured.** tests/villages.test.ts (8 tests), plain.test.ts (32 + the new in-village budget), fauna, beasts, landscape,
+  smoke_dust, houses, settlement_build, crossings: 79 + 33 pass. Plain budget (node, frameTriangles, now counting a draw per
+  geometry group): village-p22 view 1.275 -> 1.697 M (fov 40) and 1.414 -> 1.927 M (fov 70) of which the villages +0.03 M
+  main +0.035 M shadow and the fords' merge (675e7ff, plain-stone 0.335 M shadow) the rest; at p22's well 1.60-1.81 M, at
+  p01's well 1.70-1.80 M, 31-46 calls (<= 150, < 2.0 M). tools/dev/village_count.ts, tools/dev/village_fires_bench.ts.
+- **Placeholder flag removed** from the villages (no compound is a box within the near radius; the far level is a distance
+  level like the town's). NOT removed: B64's other half (town and village rooms have the town's furnish only; nobody sleeps
+  on a roof, Q-650).
+- **Tier.** C throughout (layout, rooms, pens, fittings, floors, lamps); Sumner's densities B derived.
+
 ## D-260 The human sounds that are not words: laughter, children's calls, babies crying (session 9; gap hunters G33; C)
 - **What.** audio/voices.ts: after a turn in a conversation, one listener laughs in 12 % of turns (voiceless h and an open vowel,
   pulsed 3-4 times and falling, 1.3x pace, a little louder); a child's unit is a call at play in 25 % of their units (long vowel

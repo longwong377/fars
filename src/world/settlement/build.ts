@@ -44,7 +44,7 @@ interface NearTile { hs: SiteHouses; geo: Partial<Record<keyof HB, { g: THREE.Bu
 const MUD: RGB = [0.56, 0.47, 0.36], TIMBER: RGB = [0.36, 0.26, 0.17], POT: RGB = [0.63, 0.43, 0.3], STONE: RGB = [0.55, 0.53, 0.49], BONE: RGB = [0.82, 0.78, 0.68];
 const shade = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k], sh = shade;
 /** F3: a face's owner is (description × 32 + part) on the houses' levels (houses.ts HOUSE_PARTS) */
-function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
+export function partDesc(desc: Desc[], o: number, far: boolean): Desc | null {
   if (o < 0) return null; const d = desc[o >> 5], part = o & 31; if (!d) return null;
   const P = HOUSE_PARTS[part]; const base: Desc = part && P?.note ? { tier: P.tier, src: `${P.src};${d.src}`, note: `${d.note} — ${P.note}` } : { ...d };
   base.part = part; if (far) { base.lod = "far"; base.note = `${base.note} [${FAR_LOD_NOTE}]`; }
@@ -247,50 +247,11 @@ export class Settlement {
         case 'kiln': addFire('kiln', g[0], g[1], y, 'day'); break;
         default: break; // (the colliders: siteFootprints above)
       }
-      if (FAR_FITTINGS.has(f.kind)) { const t = hs.tileOfPlotEl(f.plot, f.u, f.v); hs.tileInfo(t); cl.far.set('tileId', t + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1); this.fittingGeom(s, f, cl.far, H, fdesc[fi] * 32); }
+      if (FAR_FITTINGS.has(f.kind)) { const t = hs.tileOfPlotEl(f.plot, f.u, f.v); hs.tileInfo(t); cl.far.set('tileId', t + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1); fittingGeom(s, f, cl.far, H, fdesc[fi] * 32); }
     });
   }
   /** a fitting's geometry (hearth ring, oven, kiln, jars, quern, loom ...) into a batch; `d` the owner (description × 32) */
-  private fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: number, n: number) => number, d: number) {
-    const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
-    const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
-    const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
-    switch (f.kind) {
-      case 'hearth': { this.hearthRing(mud, g, y, d);
-        // the household's cooking things by the hearth (C): a round-bottomed cooking pot, one or two bowls, a bread basket
-        const h = (hashString(`${s.id}:${f.u.toFixed(1)}:${f.v.toFixed(1)}`) % 1000) / 1000, cp = lin([0.4, 0.3, 0.23]), bw = lin([0.66, 0.46, 0.32]);
-        const [pe, pn] = at(0.62, 0.15 + 0.2 * h); mud.lathe(pe, pn, y - 0.02, [[0.05, 0], [0.15, 0.07], [0.17, 0.16], [0.12, 0.26], [0.11, 0.29]], 8, sh(cp, 0.8 + 0.3 * h), d);
-        for (let k = 0; k < 1 + Math.round(h * 2); k++) { const [be, bn] = at(0.35 + 0.2 * k, -0.5 - 0.1 * k); mud.lathe(be, bn, y, [[0.03, 0], [0.08, 0.02], [0.1, 0.06], [0.1, 0.065]], 8, sh(bw, 0.9 + 0.2 * ((h * 7 + k) % 1)), d); }
-        if (h > 0.4) { const [ke, kn] = at(-0.6, 0.4); mud.lathe(ke, kn, y, [[0.14, 0], [0.19, 0.08], [0.2, 0.12]], 9, lin([0.62, 0.52, 0.34]), d); }
-        break; }
-      case 'oven': { const oc = lin([0.6, 0.47, 0.34]); mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 10, sh(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 10, oc, sh(oc, 0.25), d, true); break; }
-      case 'forge': mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, sh(mc, 0.5), sh(mc, 0.35), d); break;
-      case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }
-      case 'jar': case 'jar_big': case 'vat': { const k = (f.kind === 'jar' ? 1 : f.kind === 'jar_big' ? 1.5 : 1.7) * f.size, wide = f.kind === 'vat' ? 1.5 : 1;
-        mud.lathe(g[0], g[1], y - 0.05, [[0.12 * k * wide, 0], [0.25 * k * wide, 0.22 * k], [0.24 * k * wide, 0.48 * k], [0.12 * k * wide, 0.68 * k], [0.11 * k * wide, 0.72 * k]], 9, pot, d); break; }
-      case 'quern': mud.box(g[0], g[1], th, 0.28, 0.2, y - 0.05, y + 0.14, st, st, d); mud.box(...at(0, 0.02), th, 0.12, 0.08, y + 0.14, y + 0.22, st, st, d); break;
-      case 'grind_slab': { mud.box(g[0], g[1], th, 0.32, 0.22, y - 0.05, y + 0.1, st, st, d);
-        const pig: RGB[] = [[0.12, 0.28, 0.62], [0.22, 0.48, 0.34], [0.55, 0.2, 0.13], [0.76, 0.58, 0.26]]; pig.forEach((pc, i) => mud.box(...at(-0.2 + i * 0.13, 0.05), th, 0.035, 0.035, y + 0.1, y + 0.15, lin(pc), lin(pc), d)); break; }
-      case 'loom': { for (const s2 of [-0.7, 0.7]) mud.box(...at(s2, 0), th, 0.05, 0.05, y - 0.1, y + 1.7, tim, tim, d); mud.box(...at(0, 0), th, 0.8, 0.05, y + 1.62, y + 1.72, tim, tim, d);
-        mud.box(...at(0, 0.02), th, 0.62, 0.008, y + 0.25, y + 1.6, lin([0.8, 0.76, 0.66]), lin([0.78, 0.7, 0.58]), d); break; }
-      case 'timber': { const L = (f.len ?? 3) / 2; for (let x = 0; x < 5; x++) mud.box(...at(0, -0.6 + (x % 3) * 0.3), th, L, 0.13, y + (x > 2 ? 0.26 : 0), y + (x > 2 ? 0.5 : 0.25), tim, sh(tim, 1.15), d); break; }
-      case 'anvil': mud.box(g[0], g[1], th, 0.22, 0.2, y - 0.05, y + 0.5, st, sh(st, 0.8), d); break;
-      case 'bench': mud.box(g[0], g[1], th, 0.8, 0.25, y, y + 0.8, tim, tim, d); break;
-      case 'knucklebones': for (let x = 0; x < 5; x++) mud.box(...at(x * 0.07 - 0.14, (x % 2) * 0.05), th + x, 0.018, 0.012, y, y + 0.02, lin(BONE), lin(BONE), d); break;
-      // D-215: a leather ball, a clay bull on wheels (wheels as flat discs, seen from above) and a clay rattle (C)
-      case 'toys': { const clay = lin([0.66, 0.47, 0.33]), hide = lin([0.55, 0.4, 0.26]);
-        mud.lathe(...at(-0.25, 0.1), y, [[0.001, 0], [0.035, 0.012], [0.05, 0.05], [0.035, 0.088], [0.001, 0.1]], 5, hide, d);
-        mud.box(...at(0.15, 0), th, 0.085, 0.05, y + 0.04, y + 0.11, clay, clay, d); mud.box(...at(0.25, 0), th, 0.03, 0.028, y + 0.08, y + 0.14, clay, clay, d);
-        for (const s2 of [-1, 1]) mud.box(...at(0.15, s2 * 0.055), th, 0.075, 0.006, y, y + 0.05, sh(clay, 0.8), clay, d);
-        mud.lathe(...at(0.05, -0.25), y, [[0.001, 0], [0.03, 0.02], [0.034, 0.04], [0.012, 0.07], [0.008, 0.12]], 5, clay, d); break; }
-      case 'trough': mud.box(g[0], g[1], th, 0.7 * f.size, 0.28, y - 0.05, y + 0.5, st, st, d); break;
-      case 'manger': mud.box(g[0], g[1], th, 0.9, 0.3, y - 0.05, y + 0.85, sh(mc, 0.85), mc, d); break;
-      case 'well': this.well(g, y, mud, d); break;
-      case 'column': { mud.cyl(g[0], g[1], 0.55, 0.5, y - 0.2, y + 0.4, 10, st, st, d); mud.cyl(g[0], g[1], 0.3, 0.27, y + 0.4, y + f.size, 10, lin([0.78, 0.72, 0.62]), lin([0.78, 0.72, 0.62]), d, false);
-        mud.box(g[0], g[1], th, 0.45, 0.45, y + f.size, y + f.size + 0.35, tim, tim, d); break; }
-      default: break;
-    }
-  }
+  // (fittingGeom: a module function below, shared with the villages: plain/villagehouses.ts, D-254)
   /** one near tile: the houses at full detail, the fittings in it (houses.ts); geometry per material, kept for merging */
   private buildNear(hs: SiteHouses, tile: number, cl: Cluster): NearTile {
     const t0 = performance.now(), out: { n?: NearTile } = {}; this.nearInfo.syncBuilds++;
@@ -313,7 +274,7 @@ export class Settlement {
     const s = hs.s, fd = this.fitDesc.get(s.id)!; let c = 0;
     B.items.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
     for (let fi = 0; fi < s.fittings.length; fi++) { const f = s.fittings[fi]; if (SKIP_FITTINGS.has(f.kind) || hs.tileOfPlotEl(f.plot, f.u, f.v) !== tile) continue;
-      this.fittingGeom(s, f, B.items, (e, n) => this.terrain.heightAt(e, -n), fd[fi] * 32); if (++c % 12 === 0) yield; }
+      fittingGeom(s, f, B.items, (e, n) => this.terrain.heightAt(e, -n), fd[fi] * 32); if (++c % 12 === 0) yield; }
     const geo: NearTile['geo'] = {}; let tris = 0;
     for (const k of NEAR_KEYS) { const b = B[k]; if (!b.tris) continue; geo[k] = { g: b.toGeometry(), owner: b.owner.slice() }; tris += b.tris; yield; }
     out.n = { hs, geo, tris, cl };
@@ -375,19 +336,6 @@ export class Settlement {
   nearTile = (t: number) => this.shownSet.has(t);
   /** E on a street door (main.ts, after the palace doors) */
   useDoor(camera: THREE.Camera) { return this.doors?.use(camera) ?? null; }
-  /** a ring of hearth stones with ash inside (C) */
-  private hearthRing(b: Batch, g: P2, y: number, d: number) {
-    const st = lin([0.5, 0.48, 0.44]), ash = lin([0.2, 0.19, 0.18]);
-    for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; b.box(g[0] + Math.cos(a) * 0.42, g[1] + Math.sin(a) * 0.42, a, 0.1, 0.13, y - 0.05, y + 0.14, st, shade(st, 1.1), d); }
-    b.cyl(g[0], g[1], 0.34, 0.3, y - 0.05, y + 0.03, 6, ash, ash, d);
-  }
-  private well(g: P2, y: number, b: Batch, d: number) {
-    const st = lin(STONE), ro = 0.8, ri = 0.55, n = 10, x = g[0], z = -g[1];
-    b.cyl(g[0], g[1], ro, ro * 0.96, y - 0.2, y + 0.7, n, shade(st, 0.8), st, d, false);
-    for (let s = 0; s < n; s++) { const a0 = (s / n) * Math.PI * 2, a1 = ((s + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2;
-      b.quad([x + Math.cos(a0) * ri, y - 0.1, z + Math.sin(a0) * ri], [x + Math.cos(a1) * ri, y - 0.1, z + Math.sin(a1) * ri], [x + Math.cos(a1) * ri, y + 0.7, z + Math.sin(a1) * ri], [x + Math.cos(a0) * ri, y + 0.7, z + Math.sin(a0) * ri], [-Math.cos(am), 0, -Math.sin(am)], shade(st, 0.4), shade(st, 0.4), st, st, d);
-      b.quad([x + Math.cos(a0) * ri, y + 0.7, z + Math.sin(a0) * ri], [x + Math.cos(a1) * ri, y + 0.7, z + Math.sin(a1) * ri], [x + Math.cos(a1) * ro * 0.96, y + 0.7, z + Math.sin(a1) * ro * 0.96], [x + Math.cos(a0) * ro * 0.96, y + 0.7, z + Math.sin(a0) * ro * 0.96], [0, 1, 0], st, st, st, st, d); }
-  }
   private kerbs(s: Site, f: Site['fittings'][0], b: Batch, H: (e: number, n: number) => number, d: number) {
     // stone-lined channel: two kerbs along its length, laid in 6 m pieces that follow the ground
     const L = f.len ?? 1, du = Math.cos(f.rot), dv = Math.sin(f.rot), w = (f.wid ?? 0.3) / 2 + 0.1, st = lin(STONE);
@@ -433,3 +381,59 @@ function kindLabel(p: Plot) {
   }
 }
 export type { Wall, Prop };
+
+/** a fitting's geometry (hearth ring, oven, kiln, jars, quern, loom ...) into a batch; `d` the owner (description × 32).
+ *  A module function (D-254: the villages draw their fittings with it too); the town's output is unchanged */
+export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: number, n: number) => number, d: number) {
+  const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
+  const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
+  const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
+  switch (f.kind) {
+    case 'hearth': { hearthRing(mud, g, y, d);
+      // the household's cooking things by the hearth (C): a round-bottomed cooking pot, one or two bowls, a bread basket
+      const h = (hashString(`${s.id}:${f.u.toFixed(1)}:${f.v.toFixed(1)}`) % 1000) / 1000, cp = lin([0.4, 0.3, 0.23]), bw = lin([0.66, 0.46, 0.32]);
+      const [pe, pn] = at(0.62, 0.15 + 0.2 * h); mud.lathe(pe, pn, y - 0.02, [[0.05, 0], [0.15, 0.07], [0.17, 0.16], [0.12, 0.26], [0.11, 0.29]], 8, sh(cp, 0.8 + 0.3 * h), d);
+      for (let k = 0; k < 1 + Math.round(h * 2); k++) { const [be, bn] = at(0.35 + 0.2 * k, -0.5 - 0.1 * k); mud.lathe(be, bn, y, [[0.03, 0], [0.08, 0.02], [0.1, 0.06], [0.1, 0.065]], 8, sh(bw, 0.9 + 0.2 * ((h * 7 + k) % 1)), d); }
+      if (h > 0.4) { const [ke, kn] = at(-0.6, 0.4); mud.lathe(ke, kn, y, [[0.14, 0], [0.19, 0.08], [0.2, 0.12]], 9, lin([0.62, 0.52, 0.34]), d); }
+      break; }
+    case 'oven': { const oc = lin([0.6, 0.47, 0.34]); mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 10, sh(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 10, oc, sh(oc, 0.25), d, true); break; }
+    case 'forge': mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, sh(mc, 0.5), sh(mc, 0.35), d); break;
+    case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }
+    case 'jar': case 'jar_big': case 'vat': { const k = (f.kind === 'jar' ? 1 : f.kind === 'jar_big' ? 1.5 : 1.7) * f.size, wide = f.kind === 'vat' ? 1.5 : 1;
+      mud.lathe(g[0], g[1], y - 0.05, [[0.12 * k * wide, 0], [0.25 * k * wide, 0.22 * k], [0.24 * k * wide, 0.48 * k], [0.12 * k * wide, 0.68 * k], [0.11 * k * wide, 0.72 * k]], 9, pot, d); break; }
+    case 'quern': mud.box(g[0], g[1], th, 0.28, 0.2, y - 0.05, y + 0.14, st, st, d); mud.box(...at(0, 0.02), th, 0.12, 0.08, y + 0.14, y + 0.22, st, st, d); break;
+    case 'grind_slab': { mud.box(g[0], g[1], th, 0.32, 0.22, y - 0.05, y + 0.1, st, st, d);
+      const pig: RGB[] = [[0.12, 0.28, 0.62], [0.22, 0.48, 0.34], [0.55, 0.2, 0.13], [0.76, 0.58, 0.26]]; pig.forEach((pc, i) => mud.box(...at(-0.2 + i * 0.13, 0.05), th, 0.035, 0.035, y + 0.1, y + 0.15, lin(pc), lin(pc), d)); break; }
+    case 'loom': { for (const s2 of [-0.7, 0.7]) mud.box(...at(s2, 0), th, 0.05, 0.05, y - 0.1, y + 1.7, tim, tim, d); mud.box(...at(0, 0), th, 0.8, 0.05, y + 1.62, y + 1.72, tim, tim, d);
+      mud.box(...at(0, 0.02), th, 0.62, 0.008, y + 0.25, y + 1.6, lin([0.8, 0.76, 0.66]), lin([0.78, 0.7, 0.58]), d); break; }
+    case 'timber': { const L = (f.len ?? 3) / 2; for (let x = 0; x < 5; x++) mud.box(...at(0, -0.6 + (x % 3) * 0.3), th, L, 0.13, y + (x > 2 ? 0.26 : 0), y + (x > 2 ? 0.5 : 0.25), tim, sh(tim, 1.15), d); break; }
+    case 'anvil': mud.box(g[0], g[1], th, 0.22, 0.2, y - 0.05, y + 0.5, st, sh(st, 0.8), d); break;
+    case 'bench': mud.box(g[0], g[1], th, 0.8, 0.25, y, y + 0.8, tim, tim, d); break;
+    case 'knucklebones': for (let x = 0; x < 5; x++) mud.box(...at(x * 0.07 - 0.14, (x % 2) * 0.05), th + x, 0.018, 0.012, y, y + 0.02, lin(BONE), lin(BONE), d); break;
+    // D-215: a leather ball, a clay bull on wheels (wheels as flat discs, seen from above) and a clay rattle (C)
+    case 'toys': { const clay = lin([0.66, 0.47, 0.33]), hide = lin([0.55, 0.4, 0.26]);
+      mud.lathe(...at(-0.25, 0.1), y, [[0.001, 0], [0.035, 0.012], [0.05, 0.05], [0.035, 0.088], [0.001, 0.1]], 5, hide, d);
+      mud.box(...at(0.15, 0), th, 0.085, 0.05, y + 0.04, y + 0.11, clay, clay, d); mud.box(...at(0.25, 0), th, 0.03, 0.028, y + 0.08, y + 0.14, clay, clay, d);
+      for (const s2 of [-1, 1]) mud.box(...at(0.15, s2 * 0.055), th, 0.075, 0.006, y, y + 0.05, sh(clay, 0.8), clay, d);
+      mud.lathe(...at(0.05, -0.25), y, [[0.001, 0], [0.03, 0.02], [0.034, 0.04], [0.012, 0.07], [0.008, 0.12]], 5, clay, d); break; }
+    case 'trough': mud.box(g[0], g[1], th, 0.7 * f.size, 0.28, y - 0.05, y + 0.5, st, st, d); break;
+    case 'manger': mud.box(g[0], g[1], th, 0.9, 0.3, y - 0.05, y + 0.85, sh(mc, 0.85), mc, d); break;
+    case 'well': wellGeom(g, y, mud, d); break;
+    case 'column': { mud.cyl(g[0], g[1], 0.55, 0.5, y - 0.2, y + 0.4, 10, st, st, d); mud.cyl(g[0], g[1], 0.3, 0.27, y + 0.4, y + f.size, 10, lin([0.78, 0.72, 0.62]), lin([0.78, 0.72, 0.62]), d, false);
+      mud.box(g[0], g[1], th, 0.45, 0.45, y + f.size, y + f.size + 0.35, tim, tim, d); break; }
+    default: break;
+  }
+}
+/** a ring of hearth stones with ash inside (C) */
+function hearthRing(b: Batch, g: P2, y: number, d: number) {
+  const st = lin([0.5, 0.48, 0.44]), ash = lin([0.2, 0.19, 0.18]);
+  for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; b.box(g[0] + Math.cos(a) * 0.42, g[1] + Math.sin(a) * 0.42, a, 0.1, 0.13, y - 0.05, y + 0.14, st, shade(st, 1.1), d); }
+  b.cyl(g[0], g[1], 0.34, 0.3, y - 0.05, y + 0.03, 6, ash, ash, d);
+}
+function wellGeom(g: P2, y: number, b: Batch, d: number) {
+  const st = lin(STONE), ro = 0.8, ri = 0.55, n = 10, x = g[0], z = -g[1];
+  b.cyl(g[0], g[1], ro, ro * 0.96, y - 0.2, y + 0.7, n, shade(st, 0.8), st, d, false);
+  for (let s = 0; s < n; s++) { const a0 = (s / n) * Math.PI * 2, a1 = ((s + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2;
+    b.quad([x + Math.cos(a0) * ri, y - 0.1, z + Math.sin(a0) * ri], [x + Math.cos(a1) * ri, y - 0.1, z + Math.sin(a1) * ri], [x + Math.cos(a1) * ri, y + 0.7, z + Math.sin(a1) * ri], [x + Math.cos(a0) * ri, y + 0.7, z + Math.sin(a0) * ri], [-Math.cos(am), 0, -Math.sin(am)], shade(st, 0.4), shade(st, 0.4), st, st, d);
+    b.quad([x + Math.cos(a0) * ri, y + 0.7, z + Math.sin(a0) * ri], [x + Math.cos(a1) * ri, y + 0.7, z + Math.sin(a1) * ri], [x + Math.cos(a1) * ro * 0.96, y + 0.7, z + Math.sin(a1) * ro * 0.96], [x + Math.cos(a0) * ro * 0.96, y + 0.7, z + Math.sin(a0) * ro * 0.96], [0, 1, 0], st, st, st, st, d); }
+}

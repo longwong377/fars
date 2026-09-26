@@ -25,6 +25,8 @@ import type { ActivityId } from './activities';
 import type { TownPlan } from '../world/settlement/plan';
 import { TownWalk, plotCells, openCode, walkableCell, siteLine } from '../world/settlement/walk';
 import { Site, OUT, ROOM, YARD, COURT, toLocal, toGrid } from '../world/settlement/site';
+import { villageSite } from '../world/plain/villagesite';
+import { threshingFloor, THRESH_R, type Compound } from '../world/plain/villages';
 import townJson from '../data/town.json';
 import livesJson from '../data/lives.json';
 
@@ -64,7 +66,8 @@ const ORDERED = new Set(['forecourt_wait', 'court_audience', 'court_audience_fro
 export interface Route { pts: Float64Array; cum: Float64Array; len: number }
 /** a built village as the plain builds it (plain/villages.ts Village and Compound, the fields used here) */
 export interface VillageIn { id: string; x: number; y: number; r: number; pop: number }
-export interface CompoundIn { x: number; y: number; w: number; d: number; angle: number; rooms: { u0: number; v0: number; u1: number; v1: number }[]; gate: number; seed: number }
+/** a built compound (plain/villages.ts Compound: its plan on the village's grid, D-254) */
+export type CompoundIn = Compound;
 export interface GeoOpts {
   pop: Population; nav: NavGrid; town: TownPlan | null;
   /** ground height (m) at grid (e, n): the terrain; the Terrace grid is used where it is walkable */
@@ -120,7 +123,7 @@ export class PopGeo {
   private siteIx = new Map<string, number>();
   /** population village id → built village index; household → compound index */
   private vmap = new Map<string, number>(); private hhCompound = new Map<number, number>();
-  private vsites = new Map<number, { walk: TownWalk; site: Site; comps: CompoundIn[]; gates: number[] }>();
+  private vsites = new Map<number, { walk: TownWalk; site: Site; comps: CompoundIn[]; gates: number[]; well: P2 | null }>();
   readonly stair: P2;
   /** Terrace routes between place anchors (A* is costly: 20-200 ms on the 0.5 m grid) and the step's search budget */
   private navCore = new Map<string, P2[] | null>(); navBudget = Infinity;
@@ -178,35 +181,13 @@ export class PopGeo {
     for (const [q, vi] of this.vmap) { const n = this.compoundsOf ? this.compoundsOf(vi).length : 0, h = this.vhh.get(q)?.length ?? 0; out.push({ id: `${q}→${this.villages[vi].id}`, households: h, compounds: n, perCompound: n ? h / n : 0 }); }
     return out;
   }
-  /** a built village as a walkable raster (1 m): compounds are plots, their yard walls stand on the plot edges, the gate
-   *  in the S wall and each room's door onto the yard are doors (compoundBoxes' geometry: plain/villages.ts) */
+  /** a built village as a walkable raster (1 m): D-254, the one raster the drawn village is built from (plain/villagesite.ts:
+   *  compounds are plots on the village's grid, their walls on the plot edges, the gate in the S wall, each room's door onto
+   *  the yard, the pens, the fittings, the well), so the people and the drawn walls agree by construction */
   private vsite(vi: number) {
     let x = this.vsites.get(vi); if (x) return x;
-    const v = this.villages[vi], comps = this.compoundsOf ? this.compoundsOf(vi) : [];
-    const theta = comps.length ? comps[0].angle : 0, W = 2 * Math.ceil(v.r * 1.3) + 40;
-    const s = new Site({ id: v.id, feature: v.id, zone: 'plain', popZone: 'plain', kind: 'compound', tier: 'C', src: 'RECON', note: 'village (plain/villages.ts)' }, { c: [v.x, v.y], theta }, W, W);
-    s.cell.fill(OUT); const gates: number[] = [];
-    comps.forEach((c, ci) => {
-      const p = s.addPlot({ id: `${v.id}-c${ci}`, kind: 'house', rect: [0, 0, 0, 0], o: [0, 0], t: [1, 0], n: [0, 1], w: c.w, d: c.d, door: null, court: true, height: 2.6, parapet: 0, yardWall: 2, outerT: 0.5, row: 'village_houses', feature: v.id, note: '' });
-      const ca = Math.cos(c.angle), sa = Math.sin(c.angle), R = Math.hypot(c.w, c.d) / 2 + 1, [lu, lv] = toLocal(s.frame, c.x, c.y);
-      const loc = (u: number, w: number): P2 => { const e = c.x + u * ca - w * sa, n = c.y + u * sa + w * ca; return toLocal(s.frame, e, n); };
-      const toC = (i: number, j: number): P2 => { const [e, n] = s.grid(s.cu(i), s.cv(j)), de = e - c.x, dn = n - c.y; return [de * ca + dn * sa, -de * sa + dn * ca]; };
-      const rid = c.rooms.map(() => s.newRoom());
-      for (let j = s.cj(lv - R); j <= s.cj(lv + R); j++) for (let i = s.ci(lu - R); i <= s.ci(lu + R); i++) { if (!s.inb(i, j)) continue; const [u, w] = toC(i, j); if (Math.abs(u) > c.w / 2 || Math.abs(w) > c.d / 2) continue;
-        const k = s.k(i, j); s.cell[k] = p.idx; s.sub[k] = YARD; c.rooms.forEach((r, ri) => { if (u >= r.u0 && u <= r.u1 && w >= r.v0 && w <= r.v1) { s.sub[k] = ROOM; s.room[k] = rid[ri]; } }); }
-      // a door between the plot cell nearest the given compound-local point and its open (or yard) 4-neighbour
-      const door = (u: number, w: number, outCode: (k: number) => boolean, street: boolean) => {
-        const [pu, pv] = loc(u, w); let best: [number, number] | null = null, bd = 9;
-        for (let j = s.cj(pv) - 2; j <= s.cj(pv) + 2; j++) for (let i = s.ci(pu) - 2; i <= s.ci(pu) + 2; i++) { if (!s.inb(i, j)) continue; const k = s.k(i, j); if (s.cell[k] !== p.idx) continue;
-          for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { if (!s.inb(i + di, j + dj)) continue; const ko = s.k(i + di, j + dj); if (!outCode(ko)) continue;
-            const d = Math.hypot(s.cu(i) + di * 0.5 - pu, s.cv(j) + dj * 0.5 - pv); if (d < bd) { bd = d; best = [k, ko]; } } }
-        if (!best) return; s.doors.add(s.edgeBetween(best[0], best[1])); if (street && !p.door) p.door = { cell: best[0], out: best[1] };
-      };
-      door(c.gate * (c.w - 3), -c.d / 2, k => s.cell[k] === OUT, true); if (p.door) gates.push(ci); else gates.push(-1);
-      const du = (c.seed % 7) / 7 - 0.5; c.rooms.forEach((r, ri) => { const yard = (k: number) => s.cell[k] === p.idx && s.sub[k] === YARD;
-        if (ri === 0) door((r.u0 + r.u1) / 2 + du * (r.u1 - r.u0) * 0.6, r.v0, yard, false); else door(r.u0 < 0 ? r.u1 : r.u0, (r.v0 + r.v1) / 2, yard, false); });
-    });
-    x = { walk: new TownWalk([s]), site: s, comps, gates }; this.vsites.set(vi, x); return x;
+    const v = this.villages[vi], vs = villageSite(v, this.compoundsOf ? this.compoundsOf(vi) : []);
+    x = { walk: new TownWalk([vs.site]), site: vs.site, comps: vs.comps, gates: vs.gates, well: vs.well }; this.vsites.set(vi, x); return x;
   }
   /** the village whose raster contains (e, n), or -1 */
   private villageAt(e: number, n: number): number {
@@ -219,7 +200,7 @@ export class PopGeo {
   private none(place: string, why: string): Spot { this.stats.unresolved++; this.unresolved.set(place.split(':')[0], (this.unresolved.get(place.split(':')[0]) ?? 0) + 1); return { e: 0, n: 0, out: false, heading: 0, net: 'open', what: `${place}: ${why}`, ok: false }; }
   /** a cell of a site plot: an open (court/yard) cell for work, a room for indoor acts; deterministic per person */
   private inPlot(s: Site, pi: number, pid: number, key: string, indoor: boolean, net: 'town' | 'village', v?: number, what = ''): Spot | null {
-    const cells = plotCells(s, pi), list = indoor ? (cells.rooms.length ? cells.rooms : cells.open) : (cells.open.length ? cells.open : cells.rooms); if (!list.length) return null;
+    const cells = net === 'village' ? this.innerCells(s, pi) : plotCells(s, pi), list = indoor ? (cells.rooms.length ? cells.rooms : cells.open) : (cells.open.length ? cells.open : cells.rooms); if (!list.length) return null;
     const u = this.hash(pid, key, 1), k = list[Math.floor(u * list.length)], out = !indoor && cells.open.length > 0;
     const j = this.hash(pid, key, 2) * 0.5 - 0.25, jj = this.hash(pid, key, 3) * 0.5 - 0.25;
     const [e, n] = s.grid(s.cu(k % s.W) + j, s.cv((k / s.W) | 0) + jj);
@@ -229,6 +210,20 @@ export class PopGeo {
     const room = !out && s.cell[k] === pi && s.sub[k] === ROOM ? { inside: true, plot: this.plotKey(net, s, pi, v), wall: P.height + 0.3 } : {};
     return this.sp(e, n, out, headingOf(c[0] - e, c[1] - n) + (this.hash(pid, key, 4) - 0.5) * 120, net, `${what}${out ? 'court' : 'room'} of ${P.id}`, { ...(v !== undefined ? { v } : {}), ...walled, ...room });
   }
+  /** D-254: a village plot's cells as plotCells gives them, but a room's or a yard's inner cells (all four neighbours in the same
+   *  room or yard) where it has any: a person stands or lies clear of the drawn walls (a wall of 0.45-0.6 m stands on the cell
+   *  edge; a spot is the cell's centre +- 0.25 m, so beside a wall it would stand in it) */
+  private innerCells(s: Site, pi: number): { open: number[]; rooms: number[] } {
+    const key = s.id + ':' + pi; let x = this.inner.get(key); if (x) return x;
+    const c = plotCells(s, pi), same = (k: number, kk: number) => s.cell[kk] === s.cell[k] && s.sub[kk] === s.sub[k] && (s.sub[k] !== ROOM || s.room[kk] === s.room[k]);
+    const inner = (k: number) => { const i = k % s.W, j = (k / s.W) | 0; return i > 0 && j > 0 && i < s.W - 1 && j < s.H - 1 && same(k, k + 1) && same(k, k - 1) && same(k, k + s.W) && same(k, k - s.W); };
+    // (per room: its inner cells, else all its cells, so every room keeps its share of the sleepers)
+    const byRoom = new Map<number, number[]>(); for (const k of c.rooms) (byRoom.get(s.room[k]) ?? byRoom.set(s.room[k], []).get(s.room[k])!).push(k);
+    const rooms: number[] = []; for (const ks of byRoom.values()) { const inn = ks.filter(inner); rooms.push(...(inn.length ? inn : ks)); }
+    const open = c.open.filter(inner);
+    x = { open: open.length ? open : c.open, rooms }; this.inner.set(key, x); return x;
+  }
+  private inner = new Map<string, { open: number[]; rooms: number[] }>();
   /** a plot's key: a town plot positive, a village compound negative */
   private plotKey(net: 'town' | 'village', s: Site, pi: number, v?: number) { return net === 'town' ? ((this.siteIx.get(s.id) ?? 0) + 1) * 100000 + pi : -(((v ?? 0) + 1) * 100000 + pi); }
   /** the key of the walled plot a grid point is in (0: none; lanes, open ground, the Terrace) */
@@ -466,8 +461,8 @@ export class PopGeo {
   /** the well nearest the house (a public well of the quarter; C which one) */
   private well(pid: number, q: string, day: number): Spot {
     const H = this.pop.households[this.pop.home(pid, day)];
-    if (H.zone === 'plain') { const m = this.villageOf(H.id); if (!m) return this.none('well', 'village not built'); const v = this.villages[m.vi], s = this.vsite(m.vi).site, [u, w] = toLocal(s.frame, v.x, v.y);
-      const k = this.nearOpen(s, s.k(s.ci(u), s.cj(w)), pid, `well:${q}`, 40); return this.cellSpot(s, k, pid, `well:${q}`, 'village', `the village well of ${v.id} (C: at the village centre)`, [v.x, v.y], m.vi); }
+    if (H.zone === 'plain') { const m = this.villageOf(H.id); if (!m) return this.none('well', 'village not built'); const v = this.villages[m.vi], V = this.vsite(m.vi), s = V.site, at: P2 = V.well ?? [v.x, v.y], [u, w] = toLocal(s.frame, at[0], at[1]);
+      const k = this.nearOpen(s, s.k(s.ci(u), s.cj(w)), pid, `well:${q}`, 40, kk => !s.blocked?.has(kk)); return this.cellSpot(s, k, pid, `well:${q}`, 'village', `the village well of ${v.id} (C: in the lane nearest the village centre, D-254)`, at, m.vi); }
     const hd = this.homeDoor(pid, day); const from = hd && hd.s.plots[hd.pi].door ? hd.s.cellGrid(hd.s.plots[hd.pi].door!.out) : this.pop.quarters[q]?.xy;
     if (!from || !this.wells.length || !this.town) return this.none('well', 'no well built');
     const w = this.wells.reduce((b, x) => Math.hypot(x[0] - from[0], x[1] - from[1]) < Math.hypot(b[0] - from[0], b[1] - from[1]) ? x : b);
@@ -570,8 +565,11 @@ export class PopGeo {
       const c = this.vsite(m.vi).comps[m.ci], o: P2 = [300 - k * 150, 200 + k * 120];
       return this.openNear([c.x + o[0], c.y + o[1]], 30, pid, `field:${tail}`, `field ${k} of household ${hh}`); }
     const H = this.pop.households[this.pop.home(pid, day)]; const vi = this.vmap.get(parts[0]) ?? (H.zone === 'plain' ? this.villageOf(H.id)?.vi : undefined); if (vi === undefined) return this.none(head, 'village not built');
-    const v = this.villages[vi], base = (h32(this.seed, S.vil, salt(v.id)) / 4294967296) * Math.PI * 2, a = base + (head === 'threshing' ? 0 : head === 'vineyard' ? 2.1 : 4.2), d = v.r + (head === 'threshing' ? 45 : 260);
-    return this.openNear([v.x + Math.cos(a) * d, v.y + Math.sin(a) * d], head === 'threshing' ? 14 : 45, pid, `${head}:${tail}`, `${head} of ${v.id} (C)`);
+    const v = this.villages[vi];
+    // D-254: the threshing floor as the village builds it (plain/villages.ts threshingFloor: beyond the compounds, drawn)
+    if (head === 'threshing') return this.openNear(threshingFloor(v, this.vsite(vi).comps, this.seed), THRESH_R - 1, pid, `${head}:${tail}`, `the threshing floor of ${v.id} (C)`);
+    const base = (h32(this.seed, S.vil, salt(v.id)) / 4294967296) * Math.PI * 2, a = base + (head === 'vineyard' ? 2.1 : 4.2), d = v.r + 260;
+    return this.openNear([v.x + Math.cos(a) * d, v.y + Math.sin(a) * d], 45, pid, `${head}:${tail}`, `${head} of ${v.id} (C)`);
   }
   /** transhumant bands (E-49): camps and the day's stretch of road W of the town (C) */
   private band(pid: number, head: string, tail: string): Spot {

@@ -18,6 +18,8 @@ export type FireSchedule = 'night' | 'home' | 'bake' | 'day' | 'kept';
 /** `plot`: the town house plot the fire belongs to (settlement build.ts): the household living there drives a 'home' hearth
  *  and a 'bake' oven (D-220, hearthSmoke.ts) */
 export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string; sched?: FireSchedule; group?: string; plot?: string;
+  /** D-254: a fire whose flame, beyond SLOW_R of the eye, is redrawn one frame in SLOW_N (its flicker is not seen from there;
+   *  the villages' ~8,000 hearths and lamps) */ slow?: boolean;
   /** its tile in the baked fire-light occlusion atlas (D-222), −1 when not baked (the town's fires); set on first use */ occ?: number }
 const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; range: number; smoke: number }> = {
   torch: { flameH: 0.45, flameW: 0.22, power: 1.2, range: 14, smoke: 0.2 },
@@ -32,6 +34,8 @@ const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; ra
 /** smoke puffs come only from fires within this distance of the camera (the pool is shared; far smoke is the town's plumes
  *  and the smoke layer over the town and villages, landSmoke.ts) */
 export const SMOKE_RANGE = 300;
+/** D-254: `slow` fires beyond SLOW_R (m) are redrawn one frame in SLOW_N */
+export const SLOW_R = 250, SLOW_N = 8;
 /** the near smoke puffs (D-220): a pool of SMOKE_MAX; each smoking fire, nearest first, gets PUFFS[kind] of them, each
  *  living PUFF_LIFE s on a cycle staggered by the fire's seed. Their places are closed-form in time (the velocity relaxes from
  *  the buoyant rise to the wind's drift at PUFF_RELAX /s), so a frozen test render (dt = 0) shows them: the old pool
@@ -157,6 +161,7 @@ export class FireSystem {
   }
   private smokeN = 0;
   private flux!: THREE.InstancedBufferAttribute;
+  private drawnLit: Uint8Array | null = null; private frameN = 0;
   /** `shadowLights`: how many of the nearest fires' lights cast shadows (cube maps of `shadowMapSize`; 0 by default: D-216,
    *  measured cost in BLOCKERS) */
   constructor(maxLights: number, shadowLights = 0, shadowMapSize = 512) {
@@ -193,7 +198,7 @@ export class FireSystem {
   }
   /** `base` = where the object stands (floor) or, for torches, the bracket point on the wall */
   /** `meta.body: false` = the caller draws the fire's body itself (the settlement merges its hearths and ovens) */
-  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; plot?: string; body?: boolean }) {
+  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; plot?: string; body?: boolean; slow?: boolean }) {
     const lift = LIFT[kind];
     const { body, ...m } = meta;
     this.fires.push({ id: `${kind}-${this.fires.length}`, kind, pos: base.clone().add(new THREE.Vector3(0, lift, 0)), lit: false, seed: this.rng.next() * 100, ...m });
@@ -267,12 +272,19 @@ export class FireSystem {
     // flames: cylindrical billboards (yaw only) facing the camera, no narrower than FLAME_MIN_PX with their light conserved
     const viewH = typeof innerHeight === 'number' ? innerHeight : 1080, fov = (camera as THREE.PerspectiveCamera).fov ?? 70;
     const pxPerRad = viewH / 2 / Math.tan((fov * Math.PI) / 360);
+    // (D-254: an unlit flame is written once, at zero size, and skipped while it stays out: the same matrices, a fraction of
+    // the work with the villages' ~8,000 hearths and lamps registered)
+    if (!this.drawnLit || this.drawnLit.length !== this.fires.length) this.drawnLit = new Uint8Array(this.fires.length).fill(1);
+    const DL = this.drawnLit, frame = this.frameN++, cp0 = camera.position, scl0 = new THREE.Vector3();
     this.fires.forEach((f, i) => {
+      if (!f.lit && !DL[i]) return;
+      if (f.slow && f.lit && DL[i] && (i + frame) % SLOW_N !== 0 && f.pos.distanceToSquared(cp0) > SLOW_R * SLOW_R) return;
+      DL[i] = f.lit ? 1 : 0;
       const s = SPEC[f.kind]; const sc = f.lit ? 1 : 0;
       const flick = 0.85 + 0.15 * Math.sin(t * 13 + f.seed) * Math.sin(t * 7.3 + f.seed * 2);
       const { k, flux } = flameFootprint(s.flameW, f.pos.distanceTo(camera.position), pxPerRad); this.flux.array[i] = flux;
       e.set(0, Math.atan2(camera.position.x - f.pos.x, camera.position.z - f.pos.z), 0); q.setFromEuler(e);
-      m4.compose(f.pos, q, new THREE.Vector3(s.flameW * sc * k, s.flameH * sc * flick * k, 1)); this.flames.setMatrixAt(i, m4);
+      m4.compose(f.pos, q, scl0.set(s.flameW * sc * k, s.flameH * sc * flick * k, 1)); this.flames.setMatrixAt(i, m4);
     });
     this.flames.instanceMatrix.needsUpdate = true; this.flux.needsUpdate = true;
     // lights to the nearest lit fires (the fire light model, fireLight)

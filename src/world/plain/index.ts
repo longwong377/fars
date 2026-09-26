@@ -3,7 +3,7 @@
 // Everything placed traces to a plain.json feature and carries {tier, src, note, placeholder} for the dev overlay (F3).
 //
 // Budget (D-039, D-120): the plain adds a fixed handful of draw calls whatever the view (terrain material layer: 0;
-// rivers + canal water: 2; canal banks: 1; tracks: 1; villages: one per occupied 8 km cell; far tree impostors: 1; mid
+// rivers + canal water: 2; canal banks: 1; tracks: 1; villages: one far mesh per occupied 10 km cell, two near meshes (a draw per material) and the gate leaves (D-254); far tree impostors: 1; mid
 // ring impostors: 1; orchard rows: 1; near trees: wood + leaves at LOD0, LOD1 with shadows and LOD1 without: 6 (+ shadow
 // cascades; empty sets draw nothing); near crops: 1; reeds, rushes and grass at the water: 1; Naqsh-e Rustam: 7;
 // quarries: 1). Measured in tests/e2e/plain.spec.ts.
@@ -14,7 +14,9 @@ import type { Physics } from '../../player/physics';
 import type { Quality } from '../../core/settings';
 import { loadRivers, RiversData, feature, tag, settlementRoads } from './data';
 import { buildCanals, Canal } from './canals';
-import { placeVillages, buildVillageMeshes, Village, Box } from './villages';
+import { placeVillages, villageCompounds, Village } from './villages';
+import { VillageHouses } from './villagehouses';
+import type { FireSystem } from '../fire';
 import { buildZones, ZoneMap } from './fields';
 import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
@@ -53,6 +55,8 @@ export const PLAIN_DRAWS_SETTLEMENT_ROADS = false;
 export interface PlainBuild {
   group: THREE.Group; data: { rivers: RiversData; canals: Canal[]; villages: Village[]; zones: ZoneMap };
   update(dt: number, ctx: any): void;
+  /** D-254: the villages as built (their sites, houses, gates, colliders) */
+  villageHouses: VillageHouses;
   stats(): Record<string, number>; summary(): string;
   /** dev: every plain tree within R of grid (e, n), as [e, n, crown width] */
   treesAround(e: number, n: number, R: number): number[][];
@@ -60,7 +64,7 @@ export interface PlainBuild {
    *  that draw them after the view cull */
   nearTrees(): { placed: TreeInst[][]; sets: NearTreeSet[]; models: TreeKit['models'] };
 }
-export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null; /** the court setting's retinue camps (D-199): trodden ground */ camps?: { c: [number, number]; r: number }[]; /** D-227: the Terrace's drain mouths (herbs below them) */ drains?: { at: [number, number]; n: [number, number] }[] }): Promise<PlainBuild> {
+export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null; /** the court setting's retinue camps (D-199): trodden ground */ camps?: { c: [number, number]; r: number }[]; /** D-227: the Terrace's drain mouths (herbs below them) */ drains?: { at: [number, number]; n: [number, number] }[]; /** D-254: the villages' hearths, ovens and lamps join it (before it builds) */ fire?: FireSystem | null }): Promise<PlainBuild> {
   const t0 = performance.now(), Q = PLAIN_QUALITY[opts.quality] ?? PLAIN_QUALITY.high;
   const group = new THREE.Group(); group.name = 'plain';
   group.userData = tag(feature('fields_irrigated_pulvar'), 'the Marvdasht plain, 467 BCE (plain.json)');
@@ -88,7 +92,8 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const tLines = keepOffChannels(trackLines(villages), rivers.rivers); const tr = tracksMesh(tLines, terrain); group.add(tr);
   if (PLAIN_DRAWS_SETTLEMENT_ROADS) for (const r of settlementRoads()) group.add(tracksMesh([r.pts], terrain, r.width, 'plain-road-' + r.id)); // off by default (D-040)
   // villages
-  const vb = buildVillageMeshes(villages, terrain, opts.seed); group.add(vb.group);
+  // D-254: the villages as built (villagehouses.ts: one raster per village shared with the people; the town's house generator)
+  const vb = new VillageHouses(villages, villages.map(v => villageCompounds(v, terrain, opts.seed)), terrain, phys, opts.fire ?? null, opts.seed); group.add(vb.group);
   // trees (D-120): one kit (models, leaf atlas, impostor atlas) shared with the town gardens
   const kit = TreeKit.get({ impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
   const nearC = uniform(new THREE.Vector3(1e9, 0, 1e9)), nearR = uniform(0); // the 3-D set: centre and radius
@@ -118,16 +123,13 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   if (phys) { nr.colliders(phys); for (const b of qb.boxes) phys.addBox(b.c, b.h, b.rot); for (const b of fords.boxes) phys.addBox(b.c, b.h, b.rot); }
   const tBuild = performance.now() - t0;
 
-  // lazy colliders near the player: village boxes, river corridor trimeshes, tree trunks
-  const villageColl = new Map<string, any[]>(), riverColl = new Map<number, any>();
+  // lazy colliders near the player: river corridor trimeshes, tree trunks (the villages stream their own: villagehouses.ts)
+  const riverColl = new Map<number, any>();
   let trunkColl: any[] = [], lastTrunk = new THREE.Vector3(1e9, 0, 1e9);
   /** colliders exist around the player and around the camera (a free test camera places itself on what it can hit) */
   const syncColliders = (p: { x: number; y: number; z: number }, c: { x: number; y: number; z: number }) => {
     if (!phys) return;
     const dist = (x: number, z: number) => Math.min(Math.hypot(x - p.x, z - p.z), Math.hypot(x - c.x, z - c.z));
-    for (const v of villages) { const d = dist(v.x, -v.y) - v.r, has = villageColl.has(v.id);
-      if (d < 500 && !has) villageColl.set(v.id, (vb.boxes.get(v.id) ?? []).filter((b: Box) => !b.door).map((b: Box) => phys.addBox(new THREE.Vector3(b.cx, b.cy, b.cz), new THREE.Vector3(b.hx, b.hy, b.hz), b.rot)));
-      else if (d > 800 && has) { for (const c of villageColl.get(v.id)!) phys.world.removeCollider(c, false); villageColl.delete(v.id); } }
     rv.segments.forEach((s, i) => { const d = dist(s.cx, -s.cy), has = riverColl.has(i);
       if (d < 600 && !has) riverColl.set(i, phys.addTrimesh(s.pos, s.idx, { tier: 'C', what: 'river corridor' }));
       else if (d > 900 && has) { phys.world.removeCollider(riverColl.get(i), false); riverColl.delete(i); } });
@@ -214,10 +216,11 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
     const fNear = qNear || fords.crossings.some(c => Math.hypot(c.x - cam.x, -c.y - cam.z) < 600); // the quarries share the fords' mesh (D-257) fords.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = fNear; });
     const pp = ctx.player?.position ?? cam; syncColliders(pp, cam); syncTrunks(pp);
+    vb.update(dt, cam, pp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30);
     void dt;
   };
   const placedTris = () => placed.a.length * TRIS.lod0 + (placed.b.length + placed.c.length) * TRIS.lod1;
-  const stats = () => ({ fords: fords.crossings.length, fordStones: fords.stats.stones, canals: canals.length, villages: villages.length, compounds: vb.compounds, villageTris: vb.tris, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
+  const stats = () => ({ fords: fords.crossings.length, fordStones: fords.stats.stones, canals: canals.length, villages: villages.length, compounds: vb.info.compounds, villageTris: vb.info.farTris, villageNearTris: vb.nearInfo.tris, villageNearTiles: vb.nearInfo.tiles, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
     nearTrees: placed.a.length + placed.b.length + placed.c.length, lod0Trees: placed.a.length, shadowTrees: placed.a.length + placed.b.length, nearTreeTris: placedTris(), nearR: Math.round(nearR.value),
     nearTreesDrawn: lod0.drawn() + lod1s.drawn() + lod1n.drawn(), shadowTreesDrawn: lod0.count() + lod1s.count(),
     midTrees: midCount, orchardRows: orch.userData.rows, treeKitMs: Math.round(kit.buildMs), treeBakeMs: Math.round(kit.bakeMs), treeBakes: kit.bakes,
@@ -231,6 +234,6 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const t of woodlandTrees(zones, e, -n, R)) add(t);
     return out;
   };
-  return { group, data: { rivers, canals, villages, zones }, update, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
+  return { group, data: { rivers, canals, villages, zones }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees} (LOD0 ${s.lod0Trees}), mid-ring impostors ${s.midTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }

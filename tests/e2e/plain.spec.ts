@@ -19,6 +19,10 @@ const VIEWS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'field-august', day: 120, hour: 10, w: 'clear', v: [-5205, 1611, 1.6, 251, -12] },
   { n: 'field-january', day: 280, hour: 11, w: 'clear', v: [-5205, 1611, 1.6, 251, -12] },
   { n: 'village-p22', day: 0, hour: 16, w: 'clear', v: [-973, 3287, 1.6, 341, 1] },
+  // D-254: inside village P22 (its lane by the well, looking at the compound 25 m ENE of it) by day and at dusk (sun ~-5 deg:
+  // the hearths lit in the yards, the lamps in the living rooms, the gates shutting)
+  { n: 'village-p22-lane', day: 0, hour: 16, w: 'clear', v: [-980, 3530, 1.6, 42, 2] },
+  { n: 'village-p22-dusk', day: 0, hour: 18.9, w: 'clear', v: [-980, 3530, 1.6, 42, 2] },
   // Kuh-e Rahmat's W face from the open ground NW of the Terrace (0.6-2.5 km), afternoon sun on it (D-190: rock, strata,
   // gullies, scree and shrubs below the DEM's 30 m)
   { n: 'rahmat-west-pm', day: 0, hour: 16, w: 'clear', v: [-250, 500, 1.6, 95, 6] },

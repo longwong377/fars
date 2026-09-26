@@ -51,7 +51,7 @@ const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 /** hash of integers to [0, 1) */
-const hi = (...a: number[]) => { let h = 2166136261 >>> 0; for (const x of a) { h ^= Math.floor(x) | 0; h = Math.imul(h, 16777619) >>> 0; h ^= h >>> 13; } return (h >>> 0) / 4294967296; };
+export const hi = (...a: number[]) => { let h = 2166136261 >>> 0; for (const x of a) { h ^= Math.floor(x) | 0; h = Math.imul(h, 16777619) >>> 0; h ^= h >>> 13; } return (h >>> 0) / 4294967296; };
 /** smooth value noise in 2D (0..1) */
 function vn(x: number, y: number, seed = 0) {
   const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
