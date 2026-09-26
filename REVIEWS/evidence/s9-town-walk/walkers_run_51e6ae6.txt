@@ -1,0 +1,34 @@
+[cpu_slot] slot 1: npx tsx tools/dev/walkers.ts town,compounds --targets 200 --json /tmp/claude-0/-home-user-fars/f386af01-b91d-5cb6-bd5f-2d7c709da98b/scratchpad/run4.json
+offline world built in 48 s
+town | 200 | 187 (93.5 %) | 4 | 16.36 % | 13 | 0 | 0 | 0 | 2 | 6 | 5 | 0 | 0 | 200.6 (1828 s)
+    not reached (-899.5, -1074.5): stopped at (-779.1, -1048.9) by a person or an animal, walking to (-772.8, -1049.8)
+    not reached (-766.1, -1159.9): stopped at (-769.0, -1163.8) by a person or an animal, walking to (-771.4, -1162.2)
+    not reached (-789.6, -1018.3): stopped at (-769.5, -1162.8) by drawn, walking to (-767.6, -1163.8)
+    no route to (-763.4, -1090.6)
+    not reached (-763.4, -1090.6): stopped at (-789.6, -1018.3) by drawn, walking to (-763.4, -1090.6)
+    no route to (-852.7, -1014.5)
+    not reached (-852.7, -1014.5): stopped at (-763.4, -1090.6) by drawn, walking to (-852.7, -1014.5)
+    not reached (-790.3, -1002.0): stopped at (-857.5, -1013.4) by a person or an animal, walking to (-857.6, -1013.8)
+    invisible wall (other) at (-851.7, -1143.9) feet -18.80 heading to (-851.9, -1145.9), ground slope 0°
+    not reached (-733.1, -1083.8): stopped at (-853.2, -1145.9) by a person or an animal, walking to (-853.9, -1145.6)
+    no route to (-760.1, -1089.1)
+    not reached (-760.1, -1089.1): stopped at (-807.4, -1073.9) by drawn, walking to (-760.1, -1089.1)
+    no route to (-849.1, -1154.3)
+    invisible wall (no collider ahead) at (-760.1, -1089.1) feet -18.73 heading to (-849.1, -1154.3), ground slope 0°
+compounds | 200 | 187 (93.5 %) | 2 | 25.26 % | 13 | 0 | 0 | 0 | 3 | 8 | 2 | 0 | 0 | 83.4 (754 s)
+    no route to (-1445.1, 389.5)
+    invisible wall (no collider ahead) at (-1477.4, 407.4) feet -15.02 heading to (-1445.1, 389.5), ground slope 0°
+    no route to (-1436.3, 410.8)
+    invisible wall (no collider ahead) at (-1445.1, 389.5) feet -14.32 heading to (-1436.3, 410.8), ground slope 0°
+    not reached (-1466.1, 419.5): stopped at (-1466.8, 416.6) by drawn, walking to (-1466.1, 419.5)
+    not reached (-1443.5, 411.3): stopped at (-1465.8, 417.3) by drawn, walking to (-1465.4, 415.7)
+    not reached (-1466.4, 421.7): stopped at (-1466.8, 416.6) by drawn, walking to (-1466.4, 421.7)
+    not reached (-1472.8, 395.3): stopped at (-1466.8, 416.8) by a person or an animal, walking to (-1467.2, 413.5)
+    not reached (-1467.0, 423.0): stopped at (-1466.8, 416.6) by drawn, walking to (-1467.0, 423.0)
+    not reached (-1444.8, 399.0): stopped at (-1465.8, 417.3) by drawn, walking to (-1465.4, 415.7)
+    not reached (-1467.0, 419.8): stopped at (-1466.8, 416.6) by drawn, walking to (-1467.0, 419.8)
+    invisible wall (other) at (-1466.8, 416.8) feet -14.97 heading to (-1461.8, 381.7), ground slope 0°
+    not reached (-1466.4, 418.5): stopped at (-1466.8, 416.5) by drawn, walking to (-1466.4, 418.5)
+    not reached (-1454.2, 414.1): stopped at (-1465.8, 417.3) by drawn, walking to (-1465.4, 415.7)
+    not reached (-1416.9, 402.6): stopped at (-1452.7, 411.5) by a person or an animal, walking to (-1452.2, 410.9)
+(wall clock 44 min)

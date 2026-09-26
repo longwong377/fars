@@ -6241,3 +6241,38 @@ moment-*-webgpu.png in the worktree, not committed).**
   `--evidence <pass>`.
 - **Rejected.** Keeping the court present from day 0 and "arriving" only in the chronicle (the anti-proxy of T-F8); an arrival
   on day 0 with the before in a previous year the simulation does not hold; the king arriving in a chariot (no asset, B71).
+
+## D-249 Town walkability: doors a body fits through, routes that keep off the walls (session 9; UD-06, UD-08; T-H1r, T-H1s, T-D1; Q-640, Q-641)
+- **What.** The lower town's plan (all quarters, Persepolis West, the compounds that share site.ts) is made walkable at the
+  source, world-wide, with no random draw (nothing else in the town moves):
+  (1) `Site.walls()` never extends a wall run past a jamb into a door opening; `Site.doorClear(e)` gives a door opening's clear
+  width as built (a wall meeting a jamb at right angles takes its half thickness). (2) `Site.connectPlots()`: every place of a
+  house (each room, the court, the yard) is joined through doors to its street door (the plan left some room strips and absorbed
+  yards shut). (3) `Site.settleDoors(0.8)`: a door narrowed below 0.8 m moves along its wall, or to another edge between the
+  same two places, or to an edge between one of them and another place of the same plot while the two stay joined (a room
+  opening off the next room, as the plan's rooms that touch no court do); an inner doorway where two places meet along two
+  cells only becomes two cells wide; a closet one cell wide joins the room it opens into; jars, querns, toys and grinding slabs
+  in a doorway's way step aside (586 moved). (4) `access.ts ensureAccess`: a place of a quarter's plot no body reaches (measured
+  with the routes' own rules) gets a door onto a reached place of the same plot, else onto a reached lane (the street door moves
+  there when its own lane pocket is out of reach). (5) `footprints.ts`: the fixtures' and fittings' colliders (benches, mangers,
+  portico posts, ovens, kilns, troughs, wells, columns) come from one list that build.ts and the routes both read.
+  (6) walk.ts: clearance is measured to the solids' faces (`clearAt`: the walls as built, 0.4-0.7 m thick, the footprints and
+  the plan's solid props), not to the raster's edges; routes run through each cell's walking spot (the point of the cell with
+  the most room, up to 0.45 m); a cell or a step (measured along the walk between two spots) with less than BODY_MIN = 0.28 m of
+  room (a 0.56 m slot: the player's capsule is 0.54 m with its skin) is not walked; string-pulled lines keep WALL_CLEAR = 0.3 m
+  from every face; lane-graph nodes stand at the roomiest open cell within 2 cells.
+- **Measured** (REVIEWS/evidence/s9-town-walk/; before = ddbf276, after = 51e6ae6):
+  door census (tools/dev/door_census.ts, on the collider geometry, not on the formula; it reproduces Q-640's count): doors under
+  0.8 m 1,677 of 10,583 → 15 of 10,883; under 0.62 m 769 → 12; p1 0.525 → 0.8 m. Route census (tools/dev/route_census.ts, 400
+  wanderer pairs, brute force against every wall and footprint box): route length within 0.25 m of a solid 40.1 % → 0 %; least
+  clearance per route p5 0 → 0.30 m, min 0.215 m. Reach census (tools/dev/reach_census.ts): 99.24 % of the quarters' plot cells
+  with room for a body and 99.74 % of lane cells are reachable (10 plots shut behind one-cell lanes: Q-670). Walk bots
+  (tools/dev/walkers.ts, 200 targets): town 75.0 % reached / 27.9 % stuck (ddbf276, 60 targets) → 93.5 % / 16.4 %; T-H1r and
+  T-H1s are NOT met (B67). The walk bots now step round a standing person and aim past a waypoint one stands on (a player's
+  policy; stated so the gain is not read as the world's), report the collider that stopped them, and write evidence to a
+  named pass (`--merge … --pass`).
+- **Derived data changed.** src/data/town_plots.json (the street doors of 86 plots moved; homes and capacities unchanged: 1,456
+  homes, town capacity 7,830); tests/data/coverage_points.json (50 town points re-drawn for the same seed commit); the lane
+  graph's nodes (the plain's worn paths from `openRuns` follow them); the plan now builds in ~3-4 s in node (was 1.4 s: Q-671).
+  A 14-day soak (tools/soak.ts 14 60 1) keeps plansWellFormed true.
+- **Tier.** Engineering on C-tier plans. Door widths: excavated Achaemenid and Elamite house doors 0.7-1.0 m (C, recollection).

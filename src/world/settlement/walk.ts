@@ -10,6 +10,7 @@
 // Frames: grid (e, n) metres (D-002); a site's cells are its local raster (site.ts).
 import { Site, OUT, LANE, SQUARE, ROOM, COURT, YARD, toLocal, type P2 } from './site';
 import { siteExits, type TownPlan } from './plan';
+import { siteFootprints, wallBox, boxDist } from './footprints';
 
 /** open ground a person may stand on without entering a plot */
 export const openCode = (c: number) => c === LANE || c === SQUARE || c === OUT;
@@ -28,6 +29,89 @@ export function passable(s: Site, k1: number, k2: number): boolean {
 }
 /** a cell a person can be in: open ground, or a court, yard or room of a plot */
 export const walkableCell = (s: Site, k: number) => { const c = s.cell[k]; return c >= 0 || openCode(c); };
+
+// ---- clearance (D-249; Q-641) ------------------------------------------------------------------------------------------
+// A route keeps a body's clearance from what is solid where it walks: the walls as built (Site.walls(): 0.4-0.7 m thick,
+// centred on the raster edges), the fixtures' and fittings' colliders (footprints.ts: benches, mangers, portico posts,
+// ovens, kilns, troughs, wells, columns) and the plan's solid props standing in a site (TownWalk.fromPlan). Measured as the
+// distance to the nearest solid's face, not to a raster edge.
+/** a walked line keeps this far from the face of any wall or solid fitting (a body's half width at the shoulders, 0.25 m,
+ *  and a margin), except within 0.35 m of its ends (a spot by a wall) */
+export const WALL_CLEAR = 0.3;
+/** a cell a route may pass through, and every edge it crosses, leaves at least this much room somewhere (else a solid
+ *  fills it: a well, a kiln; or the gap is narrower than a body turned sideways and the player's capsule, 0.54 m with
+ *  its skin: a 0.56 m slot between two plots' walls, a door narrowed by a wall at its jamb) */
+export const BODY_MIN = 0.28;
+const REACH = 0.5;
+interface SBox { u: number; v: number; hu: number; hv: number; c: number; s: number }
+interface SolidIx { boxes: SBox[]; cell: Map<number, number[]> }
+const SOLIDS = new Map<Site, SolidIx>(), EXTRA = new Map<Site, SBox[]>(), PROPS_ADDED = new WeakSet<object>();
+/** solids a site's own plan does not hold (the plan's props standing in it): local boxes, `rot` from local +u */
+export function addSiteSolids(s: Site, boxes: { u: number; v: number; hu: number; hv: number; rot: number }[]) {
+  const x = EXTRA.get(s) ?? []; for (const b of boxes) x.push({ u: b.u, v: b.v, hu: b.hu, hv: b.hv, c: Math.cos(b.rot), s: Math.sin(b.rot) }); EXTRA.set(s, x); SOLIDS.delete(s); SPOTS.delete(s); EROOM.delete(s); }
+/** the site's solids and a per-cell index of those within REACH of each cell (built once per site) */
+export function siteSolids(s: Site): SolidIx {
+  let x = SOLIDS.get(s); if (x) return x;
+  const boxes: SBox[] = [];
+  for (const w of s.walls()) { if (w.door) continue; const b = wallBox(w); boxes.push({ ...b, c: 1, s: 0 }); }
+  for (const f of siteFootprints(s)) boxes.push({ u: f.u, v: f.v, hu: f.hu, hv: f.hv, c: Math.cos(f.rot), s: Math.sin(f.rot) });
+  boxes.push(...(EXTRA.get(s) ?? []));
+  const cell = new Map<number, number[]>();
+  boxes.forEach((b, bi) => { const eu = Math.abs(b.c) * b.hu + Math.abs(b.s) * b.hv + REACH, ev = Math.abs(b.s) * b.hu + Math.abs(b.c) * b.hv + REACH;
+    for (let j = Math.max(0, s.cj(b.v - ev)); j <= Math.min(s.H - 1, s.cj(b.v + ev)); j++) for (let i = Math.max(0, s.ci(b.u - eu)); i <= Math.min(s.W - 1, s.ci(b.u + eu)); i++) {
+      const k = j * s.W + i, l = cell.get(k); if (l) l.push(bi); else cell.set(k, [bi]); } });
+  x = { boxes, cell }; SOLIDS.set(s, x); return x;
+}
+/** distance from local (u, v) to the nearest solid of the site (capped at REACH) */
+export function clearAt(s: Site, u: number, v: number): number {
+  const i = s.ci(u), j = s.cj(v); if (!s.inb(i, j)) return REACH; const ix = siteSolids(s), l = ix.cell.get(j * s.W + i); if (!l) return REACH;
+  let d = REACH; for (const bi of l) { const b = ix.boxes[bi]; const x = boxDist(u, v, b, b.c, b.s); if (x < d) { d = x; if (d <= 0) return 0; } } return d;
+}
+/** a cell's walking spot: the point of the cell (on a 0.175 m lattice) with the most room up to 0.45 m, nearest its centre;
+ *  and that room. Routes run through these spots, so they keep off the walls' faces. Cached per site in bytes (the room in
+ *  steps of 3 mm, the lattice point's index): 2 bytes a cell, filled as routes reach it */
+const SPOTS = new Map<Site, { q: Uint8Array; li: Uint8Array }>();
+const LATTICE: [number, number][] = (() => { const o: [number, number][] = []; for (const y of [-2, -1, 0, 1, 2]) for (const x of [-2, -1, 0, 1, 2]) o.push([x * 0.175, y * 0.175]); return o.sort((a, b) => Math.hypot(a[0], a[1]) - Math.hypot(b[0], b[1]) || a[0] - b[0] || a[1] - b[1]); })();
+const QS = REACH / 254, enc = (r: number) => 1 + Math.round(Math.max(0, Math.min(REACH, r)) / QS), dec = (q: number) => (q - 1) * QS;
+function spots(s: Site) { let m = SPOTS.get(s); if (!m) SPOTS.set(s, m = { q: new Uint8Array(s.W * s.H), li: new Uint8Array(s.W * s.H) }); return m; }
+/** the room of a cell's walking spot (m, up to 0.45) */
+export function cellRoom(s: Site, k: number): number {
+  const m = spots(s); if (m.q[k]) return dec(m.q[k]);
+  const cu = s.cu(k % s.W), cv = s.cv((k / s.W) | 0); let best = -1, bi = 0;
+  for (let x = 0; x < LATTICE.length; x++) { const c = Math.min(0.45, clearAt(s, cu + LATTICE[x][0], cv + LATTICE[x][1])); if (c > best + 1e-6) { best = c; bi = x; } if (c >= 0.45) break; }
+  m.q[k] = enc(best); m.li[k] = bi; return dec(m.q[k]);
+}
+/** whether a cell has room >= `need` somewhere (stops at the first lattice point that has it; the full room is cached
+ *  once computed) */
+export function cellHasRoom(s: Site, k: number, need: number): boolean {
+  const m = spots(s); if (m.q[k]) return dec(m.q[k]) >= need;
+  const cu = s.cu(k % s.W), cv = s.cv((k / s.W) | 0);
+  for (const [du, dv] of LATTICE) if (clearAt(s, cu + du, cv + dv) >= need) return true;
+  return cellRoom(s, k) >= need;
+}
+/** a cell's walking spot (local u, v) and its room */
+export function cellSpot(s: Site, k: number): [number, number, number] {
+  const r = cellRoom(s, k), l = LATTICE[spots(s).li[k]]; return [s.cu(k % s.W) + l[0], s.cv((k / s.W) | 0) + l[1], r];
+}
+
+/** the room a body keeps stepping from cell k to its neighbour (dir 0: to (i + 1, j); 1: to (i, j + 1)): the least
+ *  clearance along the segment between the two cells' walking spots (every 0.1 m), up to 0.45 m. Measured on the walk
+ *  itself, not on the shared edge: two wall ends offset across a lane's jog leave a diagonal slot inside a cell that no
+ *  edge sample sees (cached per site, a byte an edge) */
+const EROOM = new Map<Site, Uint8Array>();
+function segRoom(s: Site, a: number, b: number, need: number): number {
+  const p = cellSpot(s, a), q = cellSpot(s, b), L = Math.hypot(q[0] - p[0], q[1] - p[1]), n = Math.max(1, Math.ceil(L / 0.1)); let m = 0.45;
+  for (let t = 0; t <= n; t++) { const c = clearAt(s, p[0] + (q[0] - p[0]) * t / n, p[1] + (q[1] - p[1]) * t / n); if (c < m) { m = c; if (m < need) return m; } }
+  return m;
+}
+export function edgeRoom(s: Site, k: number, dir: 0 | 1): number {
+  let m = EROOM.get(s); if (!m) EROOM.set(s, m = new Uint8Array(s.W * s.H * 2)); const key = k * 2 + dir; if (m[key]) return dec(m[key]);
+  m[key] = enc(segRoom(s, k, dir === 0 ? k + 1 : k + s.W, -1)); return dec(m[key]);
+}
+/** whether the step from cell k to its neighbour keeps room >= `need` (early out) */
+export function edgeHasRoom(s: Site, k: number, dir: 0 | 1, need: number): boolean { return edgeRoom(s, k, dir) >= need; }
+/** whether a diagonal step between two cells' spots keeps room >= `need` */
+export function diagHasRoom(s: Site, a: number, b: number, need: number): boolean { return segRoom(s, a, b, need) >= need; }
 
 class Heap { // binary min-heap of (priority, key)
   k: number[] = []; p: number[] = [];
@@ -54,6 +138,20 @@ export function siteMoves(s: Site): Uint8Array {
   for (let j = 0; j < s.H; j++) for (let i = 0; i < s.W; i++) { const k = s.k(i, j);
     if (i + 1 < s.W && passable(s, k, k + 1)) m[k] |= 1; if (j + 1 < s.H && passable(s, k, k + s.W)) m[k] |= 2; }
   MOVES.set(s, m); return m;
+}
+/** forget a site's derived walking data (its solids, spots, edge rooms and moves): after its doors, fittings or fixtures
+ *  change while the plan is built (access.ts) */
+export function resetSiteCaches(s: Site) { SOLIDS.delete(s); SPOTS.delete(s); EROOM.delete(s); MOVES.delete(s); SCRATCH.delete(s); }
+/** the cells a body can walk to from the open cells on the site's edge, by the routes' own rules (legal moves, a cell's
+ *  room and each crossed edge's room >= BODY_MIN) */
+export function siteReach(s: Site): Uint8Array {
+  const W = s.W, H = s.H, seen = new Uint8Array(W * H), q: number[] = [], m = siteMoves(s);
+  for (let k = 0; k < W * H; k++) { const i = k % W, j = (k / W) | 0; if ((i === 0 || j === 0 || i === W - 1 || j === H - 1) && openCode(s.cell[k]) && cellRoom(s, k) >= BODY_MIN) { seen[k] = 1; q.push(k); } }
+  while (q.length) { const k = q.pop()!, i = k % W, j = (k / W) | 0;
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= W || jj >= H) continue; const kk = jj * W + ii; if (seen[kk]) continue;
+      const lo = Math.min(k, kk), dir: 0 | 1 = di ? 0 : 1; if (!(dir === 0 ? (m[lo] & 1) : (m[lo] & 2))) continue;
+      if (!edgeHasRoom(s, lo, dir, BODY_MIN) || !cellHasRoom(s, kk, BODY_MIN)) continue; seen[kk] = 1; q.push(kk); } }
+  return seen;
 }
 /** orthogonal move from cell k by (di, dj) (one of them 0) */
 const mv = (m: Uint8Array, W: number, k: number, di: number, dj: number) => di === 1 ? (m[k] & 1) !== 0 : di === -1 ? (m[k - 1] & 1) !== 0 : dj === 1 ? (m[k] & 2) !== 0 : (m[k - W] & 2) !== 0;
@@ -85,7 +183,14 @@ export function siteSearch(s: Site, start: number, goal: number | null, exitTo: 
     if (++n > maxExpand) break;
     for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
       if (!di && !dj) continue; const kk = move8(s, k, di, dj); if (kk < 0 || S.closed[kk] === run) continue;
-      const ng = S.g[k] + (di && dj ? Math.SQRT2 : 1);
+      // (D-249) a cell a solid fills is not walked through (the goal may be one: a spot by a well); a tight one costs more;
+      // a diagonal step needs room in both cells it cuts past; every edge crossed needs room for a body along it (two walls
+      // offset across a one-cell passage, a narrowed door: edgeRoom)
+      const room = kk === goal ? 1 : cellRoom(s, kk); if (room < BODY_MIN) continue;
+      if (!di || !dj) { if (edgeRoom(s, di ? Math.min(k, kk) : Math.min(k, kk), di ? 0 : 1) < BODY_MIN) continue; }
+      else { const a1 = k + di, b1 = k + dj * W; if (cellRoom(s, a1) < BODY_MIN || cellRoom(s, b1) < BODY_MIN) continue;
+        if (!diagHasRoom(s, k, kk, BODY_MIN) || edgeRoom(s, Math.min(k, a1), 0) < BODY_MIN || edgeRoom(s, Math.min(a1, kk), 1) < BODY_MIN || edgeRoom(s, Math.min(k, b1), 1) < BODY_MIN || edgeRoom(s, Math.min(b1, kk), 0) < BODY_MIN) continue; }
+      const ng = S.g[k] + (di && dj ? Math.SQRT2 : 1) + (room < WALL_CLEAR ? 1.5 : 0);
       if (S.stamp[kk] !== run || ng < S.g[kk]) { S.stamp[kk] = run; S.g[kk] = ng; S.from[kk] = k; HEAP.push(kk, ng + h(kk)); }
     }
   }
@@ -93,11 +198,9 @@ export function siteSearch(s: Site, start: number, goal: number | null, exitTo: 
   const cells: number[] = []; for (let k = end; k !== -1; k = S.from[k]) cells.push(k); cells.reverse(); return cells;
 }
 
-/** the walls are 0.45-0.55 m thick on the cell edges (site.ts): a walked line keeps this far from any edge it may not cross */
-export const WALL_CLEAR = 0.3;
 /** straight walk between two local points of a site: every cell the segment crosses is walkable, each cell-to-cell step is
- *  a legal move (diagonal steps need a legal detour), and the line keeps `r` from every wall (an edge it could not cross
- *  from where it is: the walls are thick), except within 0.35 m of its ends (a spot by a wall) */
+ *  a legal move (diagonal steps need a legal detour), and the line keeps `r` from the face of every wall and solid fitting
+ *  (clearAt), except within 0.35 m of its ends (a spot by a wall) */
 export function siteLine(s: Site, a: P2, b: P2, r = WALL_CLEAR): boolean {
   const L = Math.hypot(b[0] - a[0], b[1] - a[1]), steps = Math.max(1, Math.ceil(L / 0.1));
   let pi = s.ci(a[0]), pj = s.cj(a[1]); if (!s.inb(pi, pj) || !walkableCell(s, s.k(pi, pj))) return false;
@@ -105,14 +208,14 @@ export function siteLine(s: Site, a: P2, b: P2, r = WALL_CLEAR): boolean {
     if (i !== pi || j !== pj) { if (!s.inb(i, j)) return false;
       const k0 = s.k(pi, pj); if (Math.abs(i - pi) > 1 || Math.abs(j - pj) > 1 || move8(s, k0, i - pi, j - pj) < 0) return false;
       pi = i; pj = j; }
-    if (r > 0 && f * L > 0.35 && (1 - f) * L > 0.35) { // clearance: the neighbours the body reaches into must be reachable
-      const fu = u - s.u0 - i, fv = v - s.v0 - j, k = s.k(i, j), du = fu < r ? -1 : fu > 1 - r ? 1 : 0, dv = fv < r ? -1 : fv > 1 - r ? 1 : 0;
-      if (du && move8(s, k, du, 0) < 0) return false; if (dv && move8(s, k, 0, dv) < 0) return false; if (du && dv && move8(s, k, du, dv) < 0) return false; } }
+    if (r > 0 && f * L > 0.35 && (1 - f) * L > 0.35 && clearAt(s, u, v) < r) return false; }
   return true;
 }
 /** cell path → string-pulled polyline of local points (the first and last points are the given ends) */
 export function pullPath(s: Site, cells: number[], a: P2, b: P2 | null): P2[] {
-  const pts: P2[] = cells.map(k => [s.cu(k % s.W), s.cv((k / s.W) | 0)]); pts[0] = a; if (b) pts[pts.length - 1] = b;
+  // the cells' walking spots, the ends' own cells included (an end by a wall steps to its cell's spot first when no
+  // straight line from it is clear): [a, spot0, spot1 ... spotN, b]
+  const pts: P2[] = [a, ...cells.map(k => { const p = cellSpot(s, k); return [p[0], p[1]] as P2; })]; if (b) pts.push(b);
   const out: P2[] = [pts[0]]; let cur = 0;
   while (cur < pts.length - 1) { let nxt = cur + 1; for (let t = Math.min(pts.length - 1, cur + 120); t > cur + 1; t--) if (siteLine(s, pts[cur], pts[t])) { nxt = t; break; } out.push(pts[nxt]); cur = nxt; }
   return out;
@@ -141,6 +244,14 @@ export class TownWalk {
   static fromPlan(plan: TownPlan, extraNodes: P2[] = []) {
     const roads: P2[] = []; for (const r of plan.roads) for (let i = 1; i < r.pts.length; i++) { const [a, b] = [r.pts[i - 1], r.pts[i]], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 150));
       for (let k = i === 1 ? 0 : 1; k <= n; k++) { const p: P2 = [a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]; if (Math.hypot(p[0], p[1]) < 8000) roads.push(p); } }
+    // the plan's solid props that stand in a site's raster (pavilion posts and walls, the hall's columns, grave stones) are
+    // solids its routes keep clear of (D-249): those reaching down to a body (their foot under 1.8 m)
+    if (!PROPS_ADDED.has(plan)) { PROPS_ADDED.add(plan);
+      for (const s of plan.sites) { const R = Math.hypot(s.W, s.H) / 2 + 2, list: { u: number; v: number; hu: number; hv: number; rot: number }[] = [];
+        for (const p of plan.props) { if (!p.collide || p.y0 > 1.8 || Math.hypot(p.c[0] - s.frame.c[0], p.c[1] - s.frame.c[1]) > R + Math.max(p.hu, p.hv)) continue;
+          const [u, v] = toLocal(s.frame, p.c[0], p.c[1]); if (Math.abs(u) > s.W / 2 + p.hu + p.hv || Math.abs(v) > s.H / 2 + p.hu + p.hv) continue;
+          list.push({ u, v, hu: p.hu, hv: p.shape === 'cyl' ? p.hu : p.hv, rot: p.theta - s.frame.theta }); }
+        if (list.length) addSiteSolids(s, list); } }
     return new TownWalk(plan.sites, [...roads, ...extraNodes]); }
   private static key(x: number, y: number) { return (x + 4096) * 8192 + (y + 4096); }
   /** the site indices whose box may contain (e, n) */
@@ -160,16 +271,22 @@ export class TownWalk {
     const seen = new Set<number>();
     for (let x = Math.floor(e0 / TownWalk.CELL); x <= Math.floor(e1 / TownWalk.CELL); x++) for (let y = Math.floor(n0 / TownWalk.CELL); y <= Math.floor(n1 / TownWalk.CELL); y++)
       for (const si of this.grid.get(TownWalk.key(x, y)) ?? []) { if (seen.has(si)) continue; seen.add(si); const B = this.boxes[si]; if (B.e1 < e0 || B.e0 > e1 || B.n1 < n0 || B.n0 > n1) continue;
-        const s = B.s, la = toLocal(s.frame, a[0], a[1]), lb = toLocal(s.frame, b[0], b[1]); const L = Math.hypot(lb[0] - la[0], lb[1] - la[1]), steps = Math.max(1, Math.ceil(L / 0.25)), r = WALL_CLEAR;
+        const s = B.s, la = toLocal(s.frame, a[0], a[1]), lb = toLocal(s.frame, b[0], b[1]); const L = Math.hypot(lb[0] - la[0], lb[1] - la[1]), steps = Math.max(1, Math.ceil(L / 0.25));
         for (let t = 0; t <= steps; t++) { const f = t / steps, u = la[0] + (lb[0] - la[0]) * f, v = la[1] + (lb[1] - la[1]) * f, i = s.ci(u), j = s.cj(v); if (!s.inb(i, j)) continue; if (!openCode(s.cell[s.k(i, j)])) return false;
-          if (f * L > 0.35 && (1 - f) * L > 0.35) { const fu = u - s.u0 - i, fv = v - s.v0 - j, du = fu < r ? -1 : fu > 1 - r ? 1 : 0, dv = fv < r ? -1 : fv > 1 - r ? 1 : 0;
-            for (const [x, y] of [[du, 0], [0, dv], [du, dv]]) { if (!x && !y) continue; const ii = i + x, jj = j + y; if (s.inb(ii, jj) && !openCode(s.cell[s.k(ii, jj)])) return false; } } } }
+          if (f * L > 0.35 && (1 - f) * L > 0.35 && clearAt(s, u, v) < WALL_CLEAR) return false; } }
     return true;
   }
   /** build the lane graph: each node joined to up to 6 nearest clear nodes of its own site within 400 m; every pair of
    *  sites within 6 km by their 3 shortest clear runs; the extra nodes (the Terrace approach, facilities) to up to 8
    *  nearest clear nodes within 2.5 km */
   private build() {
+    // (D-249) a lane mouth or gate node stands where a body has room: the walking spot of the roomiest open cell within
+    // 2 cells of it (a node in a lane's jog, 0.15 m from two walls, was a waypoint nobody could reach)
+    this.nodes.forEach((p, i) => { const si = this.nodeSite[i]; if (si < 0) return; const s = this.boxes[si].s, [u, v] = toLocal(s.frame, p[0], p[1]), ci = s.ci(u), cj = s.cj(v);
+      let best = -1, bk = -1, bd = Infinity;
+      for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) { const i2 = ci + di, j2 = cj + dj; if (!s.inb(i2, j2)) continue; const k = s.k(i2, j2); if (!openCode(s.cell[k])) continue;
+        const r = Math.min(0.45, cellRoom(s, k)), d = Math.hypot(di, dj); if (r > best + 1e-6 || (Math.abs(r - best) <= 1e-6 && d < bd)) { best = r; bk = k; bd = d; } }
+      if (bk >= 0) { const sp = cellSpot(s, bk); this.nodes[i] = s.grid(sp[0], sp[1]); } });
     const N = this.nodes, C = 300, links: [number, number][][] = N.map(() => []); this.links = links;
     N.forEach((p, i) => { const k = TownWalk.key(Math.floor(p[0] / C), Math.floor(p[1] / C)); (this.nodeGrid.get(k) ?? this.nodeGrid.set(k, []).get(k)!).push(i); });
     const link = (i: number, j: number) => { if (links[i].some(l => l[0] === j)) return; const d = Math.hypot(N[i][0] - N[j][0], N[i][1] - N[j][1]); links[i].push([j, d]); links[j].push([i, d]); };
@@ -243,11 +360,11 @@ export class TownWalk {
     const sec = Math.round(Math.atan2(toward[1] - s.frame.c[1], toward[0] - s.frame.c[0]) / (Math.PI / 8)) & 15, key = `${la.si}:${la.k}:${sec}`;
     let hit = this.leaveCache.get(key);
     if (hit === undefined) { const a8 = sec * Math.PI / 8, far: P2 = [s.frame.c[0] + Math.cos(a8) * 4000, s.frame.c[1] + Math.sin(a8) * 4000];
-      const cells = siteSearch(s, la.k, null, toLocal(s.frame, far[0], far[1])); hit = cells ? pullPath(s, cells, [s.cu(la.k % s.W), s.cv((la.k / s.W) | 0)], null).map(p => s.grid(p[0], p[1])) : null;
+      const cells = siteSearch(s, la.k, null, toLocal(s.frame, far[0], far[1])), sp = cellSpot(s, la.k); hit = cells ? pullPath(s, cells, [sp[0], sp[1]], null).map(p => s.grid(p[0], p[1])) : null;
       if (this.leaveCache.size > 60_000) this.leaveCache.clear(); this.leaveCache.set(key, hit); }
     if (!hit) return null;
-    // the cached way starts at the cell's centre: from the exact point straight to its second point when that is clear,
-    // else by the centre (a step inside one cell)
+    // the cached way starts at the cell's walking spot: from the exact point straight to its second point when that is
+    // clear, else by the spot (a step inside one cell)
     if (hit.length > 1 && siteLine(s, [la.u, la.v], toLocal(s.frame, hit[1][0], hit[1][1]))) return [a, ...hit.slice(1)];
     return [a, ...hit];
   }

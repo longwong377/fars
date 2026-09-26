@@ -1,0 +1,25 @@
+{
+ "id": "route_clearance",
+ "value": 0,
+ "unit": "% of route length under 0.25 m from a solid",
+ "n": 387,
+ "commit": "51e6ae6",
+ "tool": "tools/dev/route_census.ts",
+ "seed": 1,
+ "walk": "../../src/world/settlement/walk",
+ "pairs": 400,
+ "routes": 387,
+ "no_route": 13,
+ "route_km": 54.55,
+ "least_clearance": {
+  "min": 0.215,
+  "p1": 0.29,
+  "p5": 0.301,
+  "median": 0.309
+ },
+ "share_under_0_25": 0,
+ "share_under_0_3": 0.005,
+ "share_in_solid": 0,
+ "routes_touching_under_0_25": 1,
+ "worst": []
+}

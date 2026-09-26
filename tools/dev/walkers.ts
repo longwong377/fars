@@ -17,7 +17,7 @@
 //  - passable-where-solid: in the town and the villages, a move between raster cells through a wall that has no door (the
 //    rasters are what the walls are built from: walk.ts).
 // Usage: npx tsx tools/dev/walkers.ts [area,area…|all] [--targets N=200] [--seed S=1] [--json out.json]
-//        npx tsx tools/dev/walkers.ts --merge a.json b.json …   (→ bench-reports/walkers-offline.txt and the evidence
+//        npx tsx tools/dev/walkers.ts --merge a.json b.json … [--pass s8-h]   (→ bench-reports/walkers-offline.txt and the evidence
 //        REVIEWS/evidence/s8-h/T-H1r.json, T-H1s.json: {id, value, n, commit, tool} with the per-area results)
 //   areas: terrace approach town compounds precinct burial ajori roads villages fields banks mountain naqsh camps
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
@@ -42,13 +42,13 @@ const HEAD = 'area | targets | reached | no route | stuck (time share) | hard st
 let s = SEED * 7919 + 13; const rnd = () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
 
 // --merge f1.json f2.json …: the per-area results of several runs → the report and the evidence (T-H1r, T-H1s)
-if (argv[0] === '--merge') { mergeAndWrite(argv.slice(1)); process.exit(0); }
-function mergeAndWrite(files: string[]) {
+if (argv[0] === '--merge') { const pi = argv.indexOf('--pass'); mergeAndWrite(argv.slice(1).filter((_, i) => pi < 0 || (i + 1 !== pi && i + 1 !== pi + 1)), pi >= 0 ? argv[pi + 1] : 's8-h'); process.exit(0); }
+function mergeAndWrite(files: string[], pass: string) {
   const all: Record<string, any> = {}; let meta: any = null;
   for (const f of files) { const j = JSON.parse(readFileSync(f, 'utf8')); meta ??= j.meta; Object.assign(all, j.areas); }
   const ids = Object.keys(all), pct = (r: any) => 100 * r.reached / Math.max(1, r.targets), stuck = (r: any) => 100 * r.stuckT / Math.max(1e-9, r.botT);
   // the commit the bots ran on (RUN_COMMIT when the tree moved on while they ran), else HEAD
-  const commit = process.env.RUN_COMMIT ?? execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(), tool = 'tools/dev/walkers.ts', pass = 's8-h';
+  const commit = process.env.RUN_COMMIT ?? execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(), tool = 'tools/dev/walkers.ts';
   mkdirSync(`REVIEWS/evidence/${pass}`, { recursive: true });
   const per = Object.fromEntries(ids.map(id => [id, { reached_pct: +pct(all[id]).toFixed(2), targets: all[id].targets, stuck_pct: +stuck(all[id]).toFixed(3), bot_hours: +(all[id].botT / 3600).toFixed(3),
     hard: { stuck: all[id].stuckEvents, fell: all[id].fell, rescues: all[id].rescues, invisible_walls: all[id].walls, through_walls: all[id].throughWalls } }]));
@@ -128,6 +128,11 @@ const blocker = (pl: Player, dx: number, dz: number): 'living' | 'terrain' | 'ot
   const p = pl.position, hit = P.world.castShape(p, rot, { x: dx, y: 0, z: dz }, pl.collider.shape, 0, 0.6, true, undefined, undefined, pl.collider, pl.body);
   if (!hit) return null; const c = hit.collider, b = c.parent();
   if (b && W.livingBodies.has(b.handle)) return 'living'; if (c.shapeType() === P.R.ShapeType.HeightField) return 'terrain'; return 'other'; };
+/** the collider ahead, for the report: where it stands and its size */
+const hitInfo = (pl: Player, e: number, n: number) => { const p = pl.position, de = e - p.x, dn = n + p.z, L = Math.hypot(de, dn) || 1;
+  const hit = P.world.castShape(p, rot, { x: de / L, y: 0, z: -dn / L }, pl.collider.shape, 0, 0.6, true, undefined, undefined, pl.collider, pl.body);
+  if (!hit) return 'nothing within 0.6 m'; const c = hit.collider, tr = c.translation(), sh: any = c.shape;
+  return `collider at (${tr.x.toFixed(2)}, ${(-tr.z).toFixed(2)}, y ${tr.y.toFixed(2)}) ${sh.halfExtents ? `box ${sh.halfExtents.x.toFixed(2)}x${sh.halfExtents.y.toFixed(2)}x${sh.halfExtents.z.toFixed(2)}` : `r ${sh.radius?.toFixed?.(2)}`}${c.parent()?.isDynamic?.() ? ' dynamic' : ''}`; };
 
 // ---- walking
 interface Res { targets: number; reached: number; noRoute: number; unreach: number; stuckEvents: number; stuckT: number; botT: number; fell: number; rescues: number; drops: number; walls: number; slopeStops: number; drawnStops: number; livingStops: number; throughWalls: number; examples: string[] }
@@ -187,6 +192,12 @@ function runArea(A: Area): Res {
         // time), then on; on a route (lanes, doors, the grid) a person standing in the way may also be waited for
         const pp = pl.position, dd = Math.hypot(we - pp.x, wn + pp.z) || 1, byLiving = blocker(pl, (we - pp.x) / dd, -(wn + pp.z) / dd) === 'living';
         let passed = false;
+        // (D-249) a person standing in the way: first a short step round them, to either side (as a player walks round
+        // someone in a lane or a court: 0.9-1.5 m aside), then on
+        if (byLiving) for (let k = 0; k < 6 && !passed; k++) { const p = pl.position, de = we - p.x, dn = wn + p.z, a = Math.atan2(de, dn) + (k % 2 ? -1 : 1) * (1.3 + 0.2 * Math.floor(k / 2)), L = 0.9 + 0.3 * Math.floor(k / 2);
+          walkTo(p.x + Math.sin(a) * L, -p.z + Math.cos(a) * L, 0.3, 1.5, 3); passed = walkTo(we, wn, last ? 0.6 : 0.35, 3);
+          // a waypoint a person stands on: aim past it at the next one (a player does not walk into someone)
+          if (!passed && !last) { const [ne, nn] = path[i + 1]; if (walkTo(ne, nn, i + 1 === path.length - 1 ? 0.6 : 0.35, 3)) { passed = true; i++; stopAt = [ne, nn]; } } }
         if (byLiving) for (let k = 0; k < 20 && !passed; k++) { W.step(pl, DT * 15, { forward: 0, yaw: 0 }); R.botT += DT * 15; passed = walkTo(we, wn, last ? 0.6 : 0.35, 1); } // wait (5 s at most) for them to move
         for (let k = 0; k < (A.router === 'open' ? 8 : 4) && !passed; k++) { const p = pl.position, de = we - p.x, dn = wn + p.z, a = Math.atan2(de, dn) + (k % 2 ? -1 : 1) * (0.9 + 0.25 * Math.floor(k / 2)), L = 2.5 + k;
           walkTo(p.x + Math.sin(a) * L, -p.z + Math.cos(a) * L, 0.5, 2, 6); passed = walkTo(we, wn, last ? 0.6 : 0.35, 3); }
@@ -198,7 +209,7 @@ function runArea(A: Area): Res {
     // not reached: a hard stuck event if the bot has not moved 0.5 m in 10 s; why it stopped
     // why it stopped: what stands between the bot and the waypoint it was walking to (not the far target)
     R.stuckEvents++; const why = classify(stopAt[0], stopAt[1]);
-    if (why !== 'invisible') ex(`not reached (${tgt[0].toFixed(1)}, ${tgt[1].toFixed(1)}) from (${pl.position.x.toFixed(1)}, ${(-pl.position.z).toFixed(1)}): stopped by ${why}`);
+    if (why !== 'invisible') ex(`not reached (${tgt[0].toFixed(1)}, ${tgt[1].toFixed(1)}): stopped at (${pl.position.x.toFixed(1)}, ${(-pl.position.z).toFixed(1)}) by ${why}, walking to (${stopAt[0].toFixed(1)}, ${stopAt[1].toFixed(1)}); ${hitInfo(pl, stopAt[0], stopAt[1])}`);
     // go on from a fresh standable spot (as a player would turn away)
     P.world.removeCollider(pl.collider, false); P.world.removeRigidBody(pl.body); P.world.removeCharacterController(pl.controller);
     pl = W.spawn(tgt[0], -tgt[1], floor ?? undefined); hist.length = 0; lastCell = null; for (let i = 0; i < 10; i++) W.step(pl, DT, { forward: 0, yaw: 0 });

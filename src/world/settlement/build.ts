@@ -10,7 +10,7 @@ import { surfaceMaterial } from '../../render/materials';
 import { attribute, positionLocal, textureLoad, ivec2, int, float, step } from 'three/tsl';
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, HOUSE_PARTS, seasonOf, type HB } from './houses';
 import { TownDoors } from './towndoors';
-import { fixturesOf, livesOf, HOUSE_KINDS } from './houseplan';
+import { livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
 import { Batch, RGB, lin } from './geom';
 import { buildTownPlan, TownPlan, ROWS, FEATURES, Prop } from './plan';
@@ -21,6 +21,7 @@ import { buildAjori } from './ajori';
 import { TreeField } from './trees';
 import { buildWaterAndRoads } from './water';
 import { TownHaze } from './haze';
+import { siteFootprints } from './footprints';
 
 /** what F3 adds on the far level of the houses (D-234: beyond NEAR_R the houses are drawn as walls and roofs in plain boxes
  *  with the eave's shadow line; their footings, pole ends, spouts, windows, repairs and court things are drawn near only) */
@@ -228,29 +229,23 @@ export class Settlement {
     // wall colliders (the plan's walls: the same boxes as before D-234, so the walk and the people agree)
     for (const w of s.walls()) { if (w.door) continue; const sp = hs.wallSpan(w), along = w.v0 === w.v1, len = along ? w.u1 - w.u0 : w.v1 - w.v0;
       const hu = along ? len / 2 : w.thick / 2, hv = along ? w.thick / 2 : len / 2; col.boxes.push({ x: sp.gm[0], y: (sp.y0 + sp.top) / 2, z: -sp.gm[1], hx: hu, hy: (sp.top - sp.y0) / 2, hz: hv, rot: s.frame.theta }); }
-    // fixtures that stop the visitor: benches, mangers, portico posts (houseplan.ts)
-    for (const f of fixturesOf(s)) { const nu = Math.cos(f.rot), nv = Math.sin(f.rot);
-      if (f.kind === 'bench' || f.kind === 'tether') { const d = f.kind === 'bench' ? 0.27 + 0.225 : 0.52, g = s.grid(f.u + nu * d, f.v + nv * d), y = H(g[0], g[1]), hh = f.kind === 'bench' ? 0.21 : 0.31;
-        col.boxes.push({ x: g[0], y: y + hh, z: -g[1], hx: f.kind === 'bench' ? 0.225 : 0.25, hy: hh, hz: f.kind === 'bench' ? f.len / 2 : 0.55, rot: s.frame.theta + f.rot }); }
-      if (f.kind === 'portico') for (const [u, v] of f.posts!) { const g = s.grid(u, v), y = H(g[0], g[1]); col.boxes.push({ x: g[0], y: y + 1.5, z: -g[1], hx: 0.12, hy: 1.5, hz: 0.12, rot: 0 }); } }
+    // fixtures that stop the visitor (benches, mangers, portico posts: houseplan.ts) and the fittings' colliders (ovens, kilns,
+    // troughs, mangers, wells, columns): one list, footprints.ts, which the routes read too (D-249)
+    for (const f of siteFootprints(s)) { const g = s.grid(f.u, f.v), y = H(g[0], g[1]); col.boxes.push({ x: g[0], y: y + f.y, z: -g[1], hx: f.hu, hy: f.hy, hz: f.hv, rot: s.frame.theta + f.rot }); }
     // fittings: descriptions, fires and colliders once; geometry of the large ones on the far level
     const fdesc = new Int32Array(s.fittings.length); this.fitDesc.set(s.id, fdesc);
     s.fittings.forEach((f, fi) => {
       fdesc[fi] = cl.desc.length; cl.desc.push({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)` });
       if (SKIP_FITTINGS.has(f.kind)) { if (f.kind === 'pool') { const b = s.plots[f.plot]?.kind === "garden" ? stone() : cl.far.set("tileId", 0); this.poolKerb(s, f, b, H, b === cl.far ? fdesc[fi] * 32 : fdesc[fi]); } return; } // channels: water.ts
-      const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
+      const g = s.grid(f.u, f.v), y = H(g[0], g[1]);
       const fireMeta = (sched: FireSchedule) => ({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)`, sched, group: s.id, plot: f.plot >= 0 ? plots[f.plot]?.id : undefined });
       const addFire = (kind: FireKind, e: number, n: number, yy: number, sched: FireSchedule) => { this.fire.add(kind, new THREE.Vector3(e, yy, -n), { ...fireMeta(sched), body: false }); this.fireIdx.push({ site: s.id, kind }); this.info.fires++; };
       switch (f.kind) {
         case 'hearth': addFire('hearth', g[0], g[1], y, plots[f.plot]?.kind === 'official' || plots[f.plot]?.kind === 'station' || plots[f.plot]?.kind === 'store' || plots[f.plot]?.kind === 'stable' ? 'night' : 'home'); break;
-        case 'oven': col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.35, hy: 0.45, hz: 0.35, rot: 0 }); addFire('oven', g[0], g[1], y + 0.55, 'bake'); break;
+        case 'oven': addFire('oven', g[0], g[1], y + 0.55, 'bake'); break;
         case 'forge': addFire('hearth', g[0], g[1], y + 0.45, 'day'); break;
-        case 'kiln': { const r = 1.2 * f.size; col.boxes.push({ x: g[0], y: y + 1, z: -g[1], hx: r * 0.8, hy: 1, hz: r * 0.8, rot: 0 }); addFire('kiln', g[0], g[1], y, 'day'); break; }
-        case 'trough': col.boxes.push({ x: g[0], y: y + 0.25, z: -g[1], hx: 0.7 * f.size, hy: 0.3, hz: 0.28, rot: th }); break;
-        case 'manger': col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.9, hy: 0.45, hz: 0.3, rot: th }); break;
-        case 'well': col.boxes.push({ x: g[0], y: y + 0.35, z: -g[1], hx: 0.85, hy: 0.4, hz: 0.85, rot: 0 }); break;
-        case 'column': col.boxes.push({ x: g[0], y: y + f.size / 2, z: -g[1], hx: 0.35, hy: f.size / 2, hz: 0.35, rot: 0 }); break;
-        default: break;
+        case 'kiln': addFire('kiln', g[0], g[1], y, 'day'); break;
+        default: break; // (the colliders: siteFootprints above)
       }
       if (FAR_FITTINGS.has(f.kind)) { const t = hs.tileOfPlotEl(f.plot, f.u, f.v); hs.tileInfo(t); cl.far.set('tileId', t + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1); this.fittingGeom(s, f, cl.far, H, fdesc[fi] * 32); }
     });

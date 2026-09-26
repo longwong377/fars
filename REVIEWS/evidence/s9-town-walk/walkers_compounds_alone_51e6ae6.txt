@@ -1,0 +1,4 @@
+[cpu_slot] slot 1: npx tsx tools/dev/walkers.ts compounds --targets 200 --json /tmp/claude-0/-home-user-fars/f386af01-b91d-5cb6-bd5f-2d7c709da98b/scratchpad/comp5.json
+offline world built in 38 s
+compounds | 200 | 200 (100.0 %) | 0 | 0.02 % | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 57.4 (485 s)
+(wall clock 9 min)

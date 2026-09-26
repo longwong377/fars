@@ -1,0 +1,38 @@
+{
+ "id": "route_clearance",
+ "value": 40.103,
+ "unit": "% of route length under 0.25 m from a solid",
+ "n": 383,
+ "commit": "ddbf276",
+ "tool": "tools/dev/route_census.ts",
+ "seed": 1,
+ "walk": "../../src/world/settlement/walk",
+ "pairs": 400,
+ "routes": 383,
+ "no_route": 17,
+ "route_km": 54.47,
+ "least_clearance": {
+  "min": 0,
+  "p1": 0,
+  "p5": 0,
+  "median": 0.15
+ },
+ "share_under_0_25": 40.103,
+ "share_under_0_3": 44.877,
+ "share_in_solid": 0.2617,
+ "routes_touching_under_0_25": 381,
+ "worst": [
+  "-657.4, 426.6: 0.04 m (route 1)",
+  "-657.4, 426.5: 0.02 m (route 1)",
+  "-657.4, 426.4: 0.04 m (route 1)",
+  "-657.4, 426.3: 0.05 m (route 1)",
+  "-657.4, 426.2: 0.07 m (route 1)",
+  "-657.4, 426.1: 0.09 m (route 1)",
+  "-966.9, -1480.0: 0.10 m (route 2)",
+  "-966.9, -1479.9: 0.00 m (route 2)",
+  "-966.9, -1479.8: 0.00 m (route 2)",
+  "-966.9, -1479.7: 0.00 m (route 2)",
+  "-966.9, -1479.6: 0.02 m (route 2)",
+  "-966.9, -1479.5: 0.03 m (route 2)"
+ ]
+}
