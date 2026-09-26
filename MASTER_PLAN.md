@@ -1,6 +1,6 @@
 # MASTER PLAN — how PĀRSA becomes a time machine
 
-**Status:** governing document, **rev 2.1**. Rev 1 was critiqued by an independent adversarial reviewer
+**Status:** governing document, **rev 2.2** (§13). Rev 1 was critiqued by an independent adversarial reviewer
 (`REVIEWS/master_plan_critique.md`) and rev 2 folded it in. Rev 2 was critiqued by a second one
 (`REVIEWS/master_plan_critique_rev2.md`), who defeated all thirteen attacks on its guards and found impossible or undefined
 numbers; rev 2.1 folds that in (§13). Read `USER_DIRECTIONS.md` (the user's own words, append-only) and this plan at the start
@@ -209,7 +209,8 @@ dusk, rain on the plain, ×60), **T-K9w** 0 hard breaks under the WebGL2 fallbac
 third session; **T-R3** every session ships ≥ 1 change a player would notice; **T-R4** 0 open critical review findings; **T-R5** 0
 open findings of the representation review (brief §12), every audit round; **T-R6** 0 agent branches unmerged and unrecorded at a
 session's close (UD-03); **T-R7** 0 guard weakenings found by the audit diff (UD-12); **T-R8** 0 working rules of CLAUDE.md dropped
-or reworded without a user direction (UD-04); **T-R9** 0 requests to the user beyond the easy list (UD-13).
+or reworded without a user direction (UD-04); **T-R9** 0 requests to the user beyond the easy list (UD-13); **T-R10** 0 sibling cloud
+sessions or other extra paid compute without a user direction naming it (UD-15).
 
 ### 4.1 Thresholds are data and only tighten
 
@@ -298,7 +299,10 @@ its worst cells.
    (done); voices from the population and a limiter (D-245).
 2. **The cheapest honest instrument (time-boxed to one session; what is not built by its close reads NOT-MEASURED on the board
    and stays first in the next session):**
-   - the renderless mode first, with its throughput (bot-hours per core-hour, with Tier-1 jobs running) written to
+   - **speed first (UD-15, D-248):** a cached world (the generated town, terrain and population serialised to disk and loaded
+     instead of rebuilt, so a page is ready in seconds: T-H4) and tiered tests (a fast tier while working, the heavy people and
+     world suites once at the session gate, both through `tools/dev/cpu_slot.sh`);
+   - the renderless mode first among the instruments, with its throughput (bot-hours per core-hour, with Tier-1 jobs running) written to
      `gates/budget.json`; if it cannot run at ≥ 10× real time on 2 cores, the headline measure moves to node Tier-0 people probes
      against the crowd feed and this plan says so;
    - the area registry;
@@ -461,6 +465,14 @@ Every session:
 
 ## 9. Constraints and how they are handled
 
+**Speed (UD-15, D-248).** The build is bound by one software render lane (no GPU: a high frame 2.5–4 min, a page load 35 s idle
+to 4 min busy) and four shared cores. In this order: move every check that does not need pixels off the lane (the renderless
+mode: bots, people traces, audio, soaks); render cheaply where pixels are needed (ID and depth passes at 480×270 for detection,
+test quality for Tier 1, full quality only for the Tier-2 judged views); cache the generated world so page loads take seconds;
+tier the tests; heavy node work only through `tools/dev/cpu_slot.sh`, and no new work while load is above 6 or the render queue
+holds a job that another agent needs. No sibling cloud sessions or other extra paid compute without a user direction (UD-15,
+T-R10). The user may optionally run one command on a machine with a GPU; never waited on.
+
 No GPU (SwiftShader, one render lane): detection without the lane (Tier 0, renderless), statistics on seeded Tier-1 samples,
 judgement on Tier 2, canaries for change (§4.2); views grouped per page load; ≤ 3 rendering agents; the render queue uses `flock`,
 which a killed process releases, so no stale lock can block it. No texture or scan libraries (proxy): procedural materials
@@ -504,6 +516,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-12 | preserve this scope; update the master plan when needed | header, §4.1, §8, §13, this table | tests/scope_ledger.test.ts, tests/gates_ratchet.test.ts, T-R7 |
 | UD-13 | photos: easy list, no notes needed | §9 | NEEDS_FROM_ME.md, T-R9 |
 | UD-14 | extrapolate from knowledge of the period; fill every gap | §1, §7, axis J | T-J6, T-I3, T-I5, T-I7 |
+| UD-15 | speed: no sibling sessions; renderless mode, cached world, cheaper renders, tiered tests | §6 order step 2, §9 | T-R10, T-H4 |
 
 ## 13. Revision log
 
@@ -513,3 +526,4 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | 1.1 | 2026-09-26 (s8) | Audit D folded in (fall-through, walk coverage, sound, seeds, autosave, bench, worker) | audit D |
 | 2 | 2026-09-26 (s8) | The first critique's ten changes: the illusion-break log as headline (§3); locked thresholds that only tighten (§4.1, `gates/thresholds.json`, `tests/gates_ratchet.test.ts`); the sampling architecture and budget (§4.2); the area registry and the world's edge (§4.3); the reorder (stop the bleeding, a one-session instrument, a village-to-Apadana transect, multipliers first, a visible change every session); calibrated blind judges and detector escapes (§8); identity, families and perceptual repetition (E); systems' depth, conservation, emergence and player independence (F); long horizons (J); the player's experience (new axis K); process thresholds (R); the generated board with STALE = FAIL (§5); TO-BUILD marked; the trace measured by threshold ids; section order fixed; DRAFT cleared | REVIEWS/master_plan_critique.md; UD-07, UD-12 |
 | 2.1 | 2026-09-26 (s8) | The second critique: guards fail closed, check every version and `ratchet/*` tags, descend from the baseline, lock sample/scope/tool, derive status from evidence, accept a loosening only when the user's own words name it, and take errata for thresholds wrong in principle (9 superseded, `gates/errata/`); the scope test locks direction text, trace references, scope phrases, TO-BUILD tools, cited record numbers, template clauses and saved briefs; the guards run in the pre-commit hook, `npm run build` and GitHub Actions; every id on the board, NOT-MEASURED = FAIL, rows scoped (area, world, session, process); corrected numbers (image statistics against photographs, the photo test's final standard, night lower bounds, loudness bands, defined metrics for faces and yearly sameness, the perpetual 467); 64 new rows (close-up faces, the §1.1 moments, the brief's own numeric gates, saves, cross-engine determinism, download and compile budgets, GPU memory, the bench and WebGL2, ×600, acoustics and music, the corpus rule, the translation layer, representation, attested people in their lifetimes, real objects, flashes and captions, the prober, a threshold for every direction); every status reset to to-build; anti-proxies for all; the court by default; defaults pinned; TASKS ticks removed; step 2 and its deadlock fixed; session close hygiene | REVIEWS/master_plan_critique_rev2.md; UD-03, UD-10, UD-12 |
+| 2.2 | 2026-09-26 (s8) | The speed plan: renderless mode, a cached world, cheaper renders, tiered tests first in step 2; no extra paid compute without a user direction (T-R10) | UD-15 |

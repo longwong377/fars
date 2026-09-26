@@ -6138,3 +6138,14 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **The camera rig's world now follows the clock** (`src/main.ts` simStep): before, `__parsa.view()` froze the people's
   simulation at the page-load time, so any spec that stepped `setTime` within one page (plain.spec, crowd_scale.spec's later
   scenes, this spec) showed the sun of the new time over the people of the old one. Render-affecting for such specs.
+
+## D-248 The speed plan (session 8, UD-15)
+- **What.** The build is bound by one software render lane and four shared cores (measured: a high frame 2.5–4 min, a page load
+  35 s idle to 244 s busy, load 11 held renders for hours). In order: (1) a cached world: the generated town, terrain and
+  population serialised to disk and loaded instead of rebuilt at every page load; (2) tiered tests: a fast tier while working,
+  the heavy suites once at the session gate; (3) the renderless mode for every check that needs no pixels (bots, people traces,
+  audio, soaks); (4) cheap renders: ID/depth passes at 480×270 for detection, test quality for Tier 1, full quality only for the
+  Tier-2 judged views; (5) heavy node work only through tools/dev/cpu_slot.sh, and nothing new started while load is above 6 or
+  the render queue holds a job another agent needs.
+- **Rejected by the user.** Sibling cloud sessions as parallel render lanes (extra usage); T-R10 holds this.
+- **Optional.** The user may run one command on a machine with a GPU; the plan never waits on it.

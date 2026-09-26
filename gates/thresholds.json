@@ -2713,6 +2713,22 @@
    "anti_proxy": "hard asks hidden inside a long easy list: every item is something a person can take on a phone without instructions",
    "ud": "UD-13",
    "since": "rev 2.1 (s8)"
+  },
+  {
+   "id": "T-R10",
+   "axis": "R",
+   "scope": "process",
+   "metric": "sibling cloud sessions or other extra paid compute started without a user direction naming it",
+   "op": "<=",
+   "value": 0,
+   "unit": "sessions",
+   "sample_min": 1,
+   "sample": "every session",
+   "tool": "handoff/reserved_numbers.md",
+   "status": "to-build",
+   "anti_proxy": "a sibling session relabelled a \"worker\" or a \"render job\" is still extra compute: any container beyond this session counts",
+   "ud": "UD-15",
+   "since": "rev 2.2 (s8)"
   }
  ]
 }

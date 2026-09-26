@@ -59,6 +59,8 @@ Their worktrees under .claude/worktrees/ can be removed (`git worktree remove -f
 - D-246 (the perpetual 467) and D-247 (a fall off the Terrace) are decided, not implemented.
 
 ## Next steps, in order (MASTER_PLAN §6)
+0. **Speed first (UD-15, D-248):** the cached world (page loads in seconds) and tiered tests, then the renderless mode. No sibling
+   cloud sessions (the user declined them: T-R10). Check `uptime` and the render queue before launching anything.
 1. Session start: `git fetch --unshallow --tags` if shallow; `npm ci`; `npm run guards`; merge or record any agent branch left
    in handoff/reserved_numbers.md.
 2. Verify session 8 on screen: one grouped render job for the town (lane-q_s1, court-q_s1, town-smoke-dusk), the persistence
