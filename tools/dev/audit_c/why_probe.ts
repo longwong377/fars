@@ -1,0 +1,24 @@
+import { readFileSync } from 'node:fs';
+import { NavGrid } from '../../../src/people/navgrid';
+import { PeopleSim, type Env } from '../../../src/people/sim';
+import { WeatherSystem } from '../../../src/weather/weatherState';
+import { buildTownPlan } from '../../../src/world/settlement/plan';
+import { PopGeo } from '../../../src/people/popgeo';
+import { PopView } from '../../../src/people/popview';
+import { buildCanals } from '../../../src/world/plain/canals';
+import { placeVillages, villageCompounds } from '../../../src/world/plain/villages';
+import { loadTerrain, loadRiversFile } from '../../../tests/plainLib';
+process.chdir('/home/user/fars');
+const W = new WeatherSystem(1);
+const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
+const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
+const sim = new PeopleSim(1, nav, env); const plan = buildTownPlan(); const terrain = loadTerrain(); const rivers = loadRiversFile(); const canals = buildCanals(terrain, rivers.rivers, 1);
+const villages = placeVillages(terrain, rivers.rivers, canals, 1);
+const geo = new PopGeo({ pop: sim.pop, nav, town: plan, ground: (e, n) => terrain.heightAt(e, -n), villages, compounds: vi => villageCompounds(villages[vi], terrain, 1), canals: canals.map(c => c.pts), seed: 1 });
+const view = new PopView(sim, geo, 1); view.radius = +(process.argv[7] ?? 600); view.margin = 300;
+const [E, N, day, h, R] = process.argv.slice(2, 7).map(Number);
+const t = day * 24 + h; view.settle(t, [E, N]); const c = W.conditions(day, h);
+const vis = view.query([E, N], R).filter(o => o.agent < 0);
+console.log(`day ${day} h ${h}: rain ${c.rain.toFixed(2)} temp ${c.tempC.toFixed(1)} wind ${c.windMs.toFixed(1)}; visible ${vis.length}; walled-court share ${(vis.filter(o=>o.wall>0).length/Math.max(1,vis.length)).toFixed(2)}`);
+const m: Record<string, number> = {}; for (const o of vis) { const k = `${o.act} | ${o.why.slice(0, 90)} | ${o.what.replace(/q_\w+-\d+/g,'#').slice(0,40)}`; m[k] = (m[k] ?? 0) + 1; }
+for (const [k, v] of Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, +(process.argv[8] ?? 30))) console.log(String(v).padStart(4), k);
