@@ -44,9 +44,9 @@ export function nearCrops(zm: ZoneMap, cropTex: THREE.DataTexture, day: any, win
   const pg = positionGeometry;
   // vine rows (ROW.vineyard): a leafless stock is a narrow bundle of old wood; its spread opens as the shoots leaf out (C)
   const is = (r: number) => step(r - 0.5, a.x).mul(step(a.x, r + 0.5));
-  const green = st.y, straw = st.z, isVine = is(ROW.vineyard), isPulse = is(ROW.pulses), isGarden = is(ROW.garden), vLeaf = clamp(green.div(0.6), 0, 1);
+  const green = st.y, straw = st.z, isVine = is(ROW.vineyard), isPulse = is(ROW.pulses).add(is(ROW.alfalfa)), isGarden = is(ROW.garden), isFlax = is(ROW.flax), vLeaf = clamp(green.div(0.6), 0, 1);
   // pulses bushy and spreading, the garden's garlic and onion leaves upright and narrow (session 9, C)
-  const spread = h.mul(0.6).add(0.4).mul(mix(float(1), vLeaf.mul(0.75).add(0.25), isVine)).mul(float(1).add(isPulse.mul(0.5)).sub(isGarden.mul(0.55)));
+  const spread = h.mul(0.6).add(0.4).mul(mix(float(1), vLeaf.mul(0.75).add(0.25), isVine)).mul(float(1).add(isPulse.mul(0.5)).sub(isGarden.mul(0.55)).sub(isFlax.mul(0.45))); // (alfalfa bushy as the pulses; flax slender, upright)
   m.positionNode = instanceTransform(vec3(pg.x.mul(spread), pg.y.mul(h), pg.z.mul(spread)), iscl, ipos).add(vec3(sway, 0, sway.mul(0.5)));
   m.normalNode = instanceNormal(mix(normalGeometry, vec3(0, 1, 0), 0.75).normalize(), iscl); // leaves lit like a canopy, not like flat cards
   const gCol = mix(vec3(0.12, 0.2, 0.05), vec3(0.085, 0.155, 0.045), smoothstep(0.2, 0.8, hCrop)), sCol = mix(vec3(0.4, 0.34, 0.19), vec3(0.5, 0.39, 0.16), smoothstep(0.1, 0.4, hCrop));

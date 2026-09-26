@@ -6499,3 +6499,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   "ʔhə" reads as "he" and is not used), not while speaking; once in ~500 s per person Nov-Mar (winter colds), 1,200 s in spring
   and autumn, 1,800 s in summer (C). No sickness in the population's plans drives it (the sick are not modelled as such).
 - **Tests.** audio_population (coughs heard, never from the baby; a cough is not a conversational turn).
+
+## D-271 Alfalfa and flax on the irrigated land (session 9; gap hunters GA3, G75)
+- **What** (plain.json crops and crop_mix; seasonal.ts; fields.ts IRR_STEPS; crops.ts): alfalfa 2 % of the irrigated plots
+  (the "Median grass", fodder for the horses: Strabo 11.13.7 and Pliny NH 18.144, a claim for Media, B there / C here;
+  perennial, winter-dormant, regrowing to ~0.45 m and cut about every 35 days April-October, never ploughed) and flax 1 %
+  (sown about 20 November, pulled about 20 June, little stubble; C). Barley goes to 42 %; the other shares are unchanged.
+  CROP_ROWS gains the two before fallow (fallow is row 8, the irrigated steps count 0-8); every row index is named (D-259), so
+  nothing else moved. Near tufts: alfalfa bushy, flax slender (C). The flax's blue flowers are not drawn (the crop texture holds
+  height, green, straw and tillage only).
+- **Tests.** plain, plain_d223, plain_look, landscape, beasts, court_fill pass (73).

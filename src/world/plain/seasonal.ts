@@ -61,7 +61,7 @@ export function monthIndex(doy: number) { const cum = [0, 31, 59, 90, 120, 151, 
 // ---------------------------------------------------------------- fields
 /** crop-state rows (the order is the row index used by the terrain shader and the crop instances) */
 /** the crop rows (the shader's crop texture rows, in this order: the irrigated mix's cumulative steps count up to `fallow`) */
-export const CROP_ROWS = ['barley', 'wheat', 'emmer_spelt', 'sesame', 'pulses', 'garden', 'fallow', 'orchard_floor', 'vineyard', 'steppe'] as const;
+export const CROP_ROWS = ['barley', 'wheat', 'emmer_spelt', 'sesame', 'pulses', 'garden', 'alfalfa', 'flax', 'fallow', 'orchard_floor', 'vineyard', 'steppe'] as const;
 /** row indices the shader and fields.ts use */
 export const ROW = Object.fromEntries(CROP_ROWS.map((r, i) => [r, i])) as Record<typeof CROP_ROWS[number], number>;
 export type CropRow = typeof CROP_ROWS[number];
@@ -122,6 +122,12 @@ export function cropState(row: CropRow, doy: number): CropState {
     // September; dug over in October (C)
     case 'garden': { const h = monthly(heights('garden'), d), set = window(d, 285, 300, 5), lift = window(d, 140, 152, 4), summer = window(d, 160, 262, 10);
       return { height: h, green: Math.min(0.6, h / 0.45 * 0.6) * (1 - lift * 0.8) + summer * 0.1, straw: lift * 0.3, tilled: Math.max(set, window(d, 150, 162, 4)) * 0.8 }; }
+    // alfalfa (GA3): perennial, winter-dormant, regrowing to ~0.45 m and cut about every 35 days Apr-Oct (a saw-tooth: the cut
+    // plot short and yellow-green for a few days, then green again); watered, never ploughed (C)
+    case 'alfalfa': { const top = monthly(heights('alfalfa'), d), cutting = d >= 95 && d < 300, cyc = cutting ? ((d - 95) % 35) / 35 : 1, h = cutting ? 0.06 + (top - 0.06) * Math.min(1, cyc * 1.25) : top;
+      const g = Math.min(1, h / 0.3) * (d < 60 || d > 330 ? 0.5 : 0.95); return { height: h, green: g, straw: cutting && cyc < 0.1 ? 0.35 : 0.05, tilled: 0 }; }
+    // flax (G75): sown about 20 November, pulled about 20 June (no stubble: pulled by the root), retted and dried off the field (C)
+    case 'flax': { const c = winterCereal('flax', d, 324, 150, 168, 171); return (d >= 171 && d < 310) ? { ...c, straw: c.straw * 0.2 } : c; }
     case 'fallow': { const hb = herb(d); return { height: 0.12 * hb.green, green: hb.green * 0.45, straw: hb.dry * 0.4, tilled: 0 }; } // grazed weedy fallow: soil shows between the weeds (C)
     case 'orchard_floor': { const hb = herb(d); return { height: 0.15, green: Math.max(0.35, hb.green) * 0.8, straw: hb.dry * 0.2, tilled: 0 }; } // watered ground under trees (C)
     // head-trained vine stocks (about half a metre of old wood) all year; budburst in April (crops.vines leaf_out Apr),

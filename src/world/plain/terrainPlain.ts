@@ -129,7 +129,7 @@ export class PlainGround {
       for (const [row, w] of weights) { let h = 0, g = 0, s = 0, t = 0; for (off = -PLOT_OFFSET_DAYS; off <= PLOT_OFFSET_DAYS; off += 4) { const c = cropState(CROP_ROWS[row], doy + off); h += c.height; g += c.green; s += c.straw; t += c.tilled; }
         const k = w / Math.ceil((2 * PLOT_OFFSET_DAYS + 1) / 4); v.x += Math.min(1, h / 1.5) * k; v.y += g * k; v.z += s * k; v.w += t * k; }
       return v; };
-    const irr = [...IRR_STEPS.map((t, i) => t - (i ? IRR_STEPS[i - 1] : 0)), 1 - IRR_CROP]; // rows 0..6 (6 = fallow)
+    const irr = [...IRR_STEPS.map((t, i) => t - (i ? IRR_STEPS[i - 1] : 0)), 1 - IRR_CROP]; // rows 0..ROW.fallow
     this.meanIrr.value.copy(mean(irr.map((w, i) => [i, w] as [number, number])));
     this.meanIrrCrop.value.copy(mean(irr.slice(0, IRR_STEPS.length).map((w, i) => [i, w / IRR_CROP] as [number, number]))); this.meanIrrFallow.value.copy(mean([[ROW.fallow, 1]]));
     this.meanRainCrop.value.copy(mean([[ROW.barley, ROTATION.crop], [ROW.fallow, 1 - ROTATION.crop]]));
@@ -246,7 +246,7 @@ export class PlainGround {
       const hc = unitN(hash2N(ph, uint(7), SALT.crop)), ho = unitN(hash2N(ph, uint(9), SALT.offset));
       // the district's irrigated fallow share scales the crop thresholds (fields.ts irrigatedScale, D-223)
       const irrSc = float(IRR_CROP).add(unitN(hash2N(dux, duz, SALT.irrFallow)).mul(2).sub(1).mul(IRR_FALLOW_SPREAD)).div(IRR_CROP);
-      const kIrr = IRR_STEPS.map(t => step(irrSc.mul(t), hc)).reduce((a: any, b: any) => a.add(b)); // 0..6 (6 = fallow): the rows' order
+      const kIrr = IRR_STEPS.map(t => step(irrSc.mul(t), hc)).reduce((a: any, b: any) => a.add(b)); // 0..ROW.fallow: the rows' order
       const kRain = step(mix(float(ROTATION.fallow), float(ROTATION.crop), cropYear), hc).mul(ROW.fallow), kOrch = float(ROW.orchard_floor).add(step(1 - VINE_SHARE, hc));
       const k = wI.mul(kIrr).add(wR.mul(kRain)).add(wOrch.mul(kOrch)).add(float(1).sub(wI).sub(wR).sub(wOrch).max(0).mul(ROW.steppe));
       const off = floor(ho.mul(2 * PLOT_OFFSET_DAYS + 1)).sub(PLOT_OFFSET_DAYS);
