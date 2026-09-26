@@ -88,3 +88,46 @@ Population, with the court absent (all C): this research took 3,000–6,000 for 
 3. Sumner 1986 site list, with coordinates, sizes, the paved road and the irrigation systems (archive.org full text is blocked).
 4. Boucharlat et al. 2012 map (canal courses); Gondet 2018 plan (N complex position).
 5. Evidence for Persepolis housing and storehouses: none found.
+
+## 8. Houses as built (D-234)
+
+**Read first.** No house of Achaemenid Fars has been excavated or published in anything this research could reach (Persepolis
+West trench plans not retrieved; the Tol-e Ajori and Area B reports describe a gate and a craft yard, not houses). Every
+house element is therefore **tier C**, filled by the gap rule (D-207): the most probable form by analogy from the region
+and period, the analogue's own tier named. Full texts are blocked (B6): every row below is a search extract (SX), capped
+at B for the analogue. Searched 2026-09-26: Hasanlu (Penn Expedition essay; Roaf 2012; Danti 2011 "Artisan's House"),
+Baba Jan (Iranica), Nush-i Jan (Stronach & Roaf 2007 via Cambridge History / Livius), Godin Tepe (Iranica), Tall-i Takht
+(Iranica / Livius), Susa Ville Royale (Iranica: Achaemenid dwellings not identified by Ghirshman), Tol-e Spid / Mamasani
+(Achaemenid ceramics, no house plans in the extracts), Babylon Merkes (Baker 2014, Kaskal 2024), Mesopotamian house
+construction summaries, Iranian vernacular flat roofs (Iranica "Construction materials"; argemishijan), the Iron Age
+Levantine roof roller, the windcatcher's date (Iranica "Bādgīr").
+
+| element | as built (houses.ts, houseplan.ts, towndoors.ts) | analogue and what it says | source | tier |
+|---|---|---|---|---|
+| house type | courtyard house, rooms on 2–4 sides, one street door into a bent vestibule (the plan, unchanged) | first-millennium Babylonian courtyard house | BAKER2014 (SX) | B analogue / C |
+| walls | sun-dried mud brick, 0.7 m outer (two bricks and render), 0.55 m to the court, 0.4 m between rooms | Achaemenid bricks ~33 cm square, 10–13 cm thick; well-built Babylonian one-storey houses often 1.0 m (three bricks, 2 cubits) | IR-BRICK, MESO-HOUSE-SX | B analogue / C (the plan's 1 m cells keep 0.7 m) |
+| footing | rough fieldstones laid in mud, 0.2–0.6 m above the lane by the household's standing | stone foundations under mud brick: Hasanlu ("roughly squared stones", "a roughly 1-m uncut stone foundation"), Baba Jan, Tall-i Takht | HASANLU-SX, BABAJAN-SX, TALLTAKHT-SX | B analogue / C |
+| plaster | straw-tempered mud plaster, a renewed skirting coat with damp and salt, float arcs, shrinkage cracks, run-off under the tops; hand-laid undulation ±0.7–2.5 cm; repair patches (fresh plaster) and bare brick by the house's age and care; soot above hearths, ovens and forges | earthen plaster at Pasargadae and Persepolis; D-218's foot | STEIN2016 (SX) | B / C |
+| roof | poplar poles spanning the 3–4 m rooms every 0.42–0.58 m, brush and matting, ~12 cm of packed earth with a clay-and-straw coat laid to a 2 % fall (≤ 8 cm) toward the court | Babylonian roofs "of mud over layers of matting laid on a framework of wooden rafters"; reed impressions in the Hasanlu roof collapse; the region's flat roof (poplar poles ≤ 4 m, cross battens, straw or foliage, mud laid to a slope) | MESO-HOUSE-SX, HASANLU-SX, IR-VERNROOF-SX | B analogues / C |
+| eave | where a room fronts its court the roof oversails the court wall 0.24–0.38 m on the pole ends; brush and earth over them; a 9 cm mud lip; the court facade ends under the roof (EAVE_LIP: roof + 0.12 m as the people's sightlines and the LOS raster read it) | vernacular | IR-VERNROOF-SX | C |
+| parapet | round the roofs on the lane and neighbour sides, 0.2–0.6 m by standing (a lip for the poorest, knee-high for privacy on the roof) | vernacular; no evidence either way for Achaemenid Fars | RECON | C |
+| spouts | a hollowed timber spout at the low edge of each draining roof: over the court (a splash stone below), or through the parapet to the lane (a run-off streak down the wall) | vernacular | RECON | C |
+| doorways | 1 m wide, 2 m high, timber lintel bearing 0.22 m each side; street doors: a stone threshold worn hollow, the door's pivot stone inside the hinge jamb; room doors: some with a rolled mat under the lintel | Babylonian doors "of wood ... swung on doorposts set in sockets of brick or stone"; wooden doorjambs at Hasanlu | MESO-HOUSE-SX, HASANLU-SX | B analogues / C |
+| street doors | poplar planks on two battens on a pivot post; shut and barred from dusk (each house at its own moment, sun −3° to −9°) to dawn; by day shut (~22 %: the household out), ajar or open, per house and day; E opens/shuts; a shut leaf near the visitor is a collider | as above | MESO-HOUSE-SX | C (the hours) |
+| windows | 0–2 small high windows (0.4–0.6 m) per court facade by standing, sill 1.35–1.7 m, under a timber lintel; vent slits (0.2 × 0.34 m) high in some lane walls; unglazed | "wood ... for door and window-frames" (Babylon); glazed panes blocklisted | MESO-HOUSE-SX | C |
+| niche | a small niche by the street door (a lamp at night) | a niche in the Baba Jan Painted Chamber (monumental); vernacular | BABAJAN-SX | C |
+| ladder | a poplar ladder against a court facade in every house with a court | Babylonian wooden stairways; Hasanlu brick stairs round a brick column in the major buildings | MESO-HOUSE-SX, HASANLU-SX | C |
+| portico | 27 large houses: two timber posts on rough stone bases, a beam, a roof like the rooms' before the main room | Hasanlu Burned Building II: "paired wooden portico columns", "wooden columns standing on irregular, uncarved stone slab bases"; columned rooms on courts at Baba Jan, Nush-i Jan | HASANLU-SX, BABAJAN-SX, NUSHIJAN-SX | B analogues / C |
+| benches | a mud-brick bench along a court wall in 25–75 % of houses by standing | "low benches along its walls" in the Tol-e Ajori inner room; "a low mud-brick bench against the back wall of the portico" at Hasanlu | TOLAJORI2017, HASANLU-SX | B analogues / C |
+| court things | the household's donkey, goats or sheep tied at a mud manger with dung trodden in, fodder heaped by it; brushwood fuel against a wall; dung cakes drying on a sunny wall; baskets and a broom; a mortar and pestle; washing on a cord; a fleece or rug on the parapet; a cradle | PF rations for animals (B); the rest the probable reconstruction (C) | CDLI-PF, RECON | C |
+| roof things | a stone roller for the earth after rain (in 45–75 % of houses), fuel stacked, reed sleeping mats rolled | Iron Age roof rollers (southern Levant: "tamped down with a roller ... after the rainy season") | ROLLER-SX | C |
+| drains | a drain hole through the court wall to the lane, its outfall stained | Babylonian court and bathroom drains | MESO-HOUSE-SX | C |
+| not built | windcatchers (oldest verified 14th c. CE: blocklisted), domes and brick vaults (blocklisted), fired-brick house walls (blocklisted: monumental only), glazed windows, second storeys (no evidence; the plan is one storey, Q-082), stairs of brick in ordinary houses | — | WINDCATCHER-SX | — |
+
+**Each household's house (houseplan.ts, UD-08/UD-14):** its standing (from the plot's size and kind: the population places its
+largest households in the largest houses first, D-081), the house's age (1–50 years: the town grew with the Terrace from
+c. 518), months since the court was re-plastered, a later room strip on some old houses (a different plaster), repairs and
+bare patches by age and care, its door timber (grey old poplar to fresh planks), its hinge side, its animal. All hashes of
+the plot id: the plan's random streams, plots, courts, doors and hearths are untouched (town_plots.json unchanged).
+Measured (tests/houses.test.ts): 1,447 houses and workshops, **1,447 distinct configurations**; no identical house within
+20 m; 1,364 distinct lane faces (frontage, height, parapet, footing, door timber, tone), one identical pair within 20 m.

@@ -12,7 +12,7 @@ const t0 = performance.now();
 const town = new Settlement(null, T, new FireSystem(0), 'high');
 console.log(`build ${(performance.now() - t0).toFixed(0)} ms; phases ${JSON.stringify(town.info.phases)}`);
 let far = 0, other = 0, meshes = 0;
-town.group.traverse((o: any) => { if (!o.isMesh || o.isInstancedMesh) return; meshes++; const t = (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; if (/:far$/.test(o.name)) far += t; else other += t; });
+town.group.traverse((o: any) => { if (!o.isMesh || o.isInstancedMesh) return; meshes++; const t = (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; if (o.geometry.getAttribute('tile')) far += t; else other += t; });
 console.log(`far level ${(far / 1e6).toFixed(3)} M tris; other settlement meshes ${(other / 1e6).toFixed(3)} M; ${meshes} meshes`);
 const siteId = process.argv[2] ?? 'q_s1';
 const s = town.plan.sites.find(x => x.id === siteId)!;

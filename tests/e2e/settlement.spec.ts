@@ -21,6 +21,10 @@ const EXTRA: V[] = [
   { n: 'mountain-dusk', day: 0, hour: 18.75, w: 'clear', ab: true, spot: 'mountain' },
   { n: 'lane-q_w1-dusk', day: 0, hour: 18.9, w: 'clear', spot: 'lane:q_w1' },
   { n: 'workshop-area-b', day: 25, hour: 9.5, w: 'clear', spot: 'areab' },
+  // D-234: in a house's court (its corner, looking across it at the eaves, doors and the household's things), and in the lane
+  // before a street door
+  { n: 'court-q_s1', day: 25, hour: 10.5, w: 'clear', spot: 'court:q_s1' },
+  { n: 'door-q_s1', day: 25, hour: 16.5, w: 'clear', spot: 'door:q_s1' },
 ];
 const Q = process.env.Q ?? 'test';
 const only = process.env.ONLY?.split(',');
@@ -58,6 +62,15 @@ for (const v of [...VIEWS, ...EXTRA]) for (const town of v.ab ? [true, false] : 
           const g = s.grid(s.u0 + best.i, s.v0 + best.j), th = s.frame.theta + (best.alongU ? 0 : Math.PI / 2); // look along +u or +v
           const gridBearing = 90 - th * 180 / Math.PI; return [g[0], g[1], 1.6, ((gridBearing + 341) % 360 + 360) % 360, 2];
         }
+        if (spot.startsWith('court:') || spot.startsWith('door:')) { // the house nearest the quarter's centre with a court of 20+ cells
+          const s = plan.sites.find((x: any) => x.id === spot.split(':')[1]); let best: any = null;
+          for (const p of s.plots) { if (!p.door || (p.kind !== 'house' && p.kind !== 'house_large')) continue; const cells: number[] = []; for (let k = 0; k < s.cell.length; k++) if (s.cell[k] === p.idx && s.sub[k] === 2) cells.push(k);
+            if (cells.length < 20) continue; const [i0, j0, i1, j1] = p.rect, r = Math.hypot(s.cu((i0 + i1) / 2), s.cv((j0 + j1) / 2)); if (!best || r < best.r) best = { p, cells, r }; }
+          if (spot.startsWith('court:')) { let lo = best.cells[0], su = 0, sv = 0; for (const k of best.cells) { const u = s.cu(k % s.W), v = s.cv((k / s.W) | 0); su += u; sv += v; if (u + v < s.cu(lo % s.W) + s.cv((lo / s.W) | 0)) lo = k; }
+            const g = s.grid(s.cu(lo % s.W), s.cv((lo / s.W) | 0)), c = s.grid(su / best.cells.length, sv / best.cells.length), gb = Math.atan2(c[0] - g[0], c[1] - g[1]) * 180 / Math.PI;
+            return [g[0], g[1], 1.6, ((gb + 341) % 360 + 360) % 360, 8]; }
+          const d = s.doorPoints(best.p), nu = d.inside[0] - d.out[0], nv = d.inside[1] - d.out[1], g = s.grid(d.out[0] - nu * 0.6, d.out[1] - nv * 0.6), t = s.grid(d.inside[0], d.inside[1]);
+          const gb = Math.atan2(t[0] - g[0], t[1] - g[1]) * 180 / Math.PI + 25; return [g[0], g[1], 1.6, ((gb + 341) % 360 + 360) % 360, 6]; }
         if (spot === 'areab') { const s = plan.sites.find((x: any) => x.id === 'q_w2'); const p = s.plots.find((q: any) => q.id === 'pw_area_b-yard'); const [i0, j0, i1, j1] = p.rect;
           const g = s.grid(s.u0 + (i0 + i1) / 2 + 6, s.v0 + (j0 + j1) / 2), th = s.frame.theta + Math.PI; const gb = 90 - th * 180 / Math.PI; return [g[0], g[1], 1.6, ((gb + 341) % 360 + 360) % 360, -8]; }
         if (spot === 'ajori') { const c = plan.gate.c, th = plan.gate.theta; const e = c[0] + Math.cos(th) * 60, n = c[1] + Math.sin(th) * 60; const gb = 90 - (th + Math.PI) * 180 / Math.PI; return [e, n, 1.6, ((gb + 341) % 360 + 360) % 360, 6]; }
