@@ -5584,3 +5584,14 @@ moment-*-webgpu.png in the worktree, not committed).**
   look (the Now view), not the target; the brief for the reviewer says so (handoff/review_briefs.md). The gate is unchanged.
 - **Consequence:** D-230's block tone (13 %, 1σ) stands; the on-screen flatness left after AgX's shallow local slope at the
   stone's level (0.42, vs ≥ 1 for a camera curve) is logged in B40 as a tone-mapping question, not a material one.
+
+## D-233 Every inch: coverage replaces chosen moments as the photoreal standard (session 8, the user's direction)
+- **Direction (user, verbatim intent):** "just moments is not nearly good enough ... this needs to feel like a time machine,
+  there should be nowhere I go that takes me out of the illusion meaning every inch needs to be up to that standard".
+- **Decision:** the §8.2 rubric keeps its gate (no category below 4) but is applied to COVERAGE: viewpoints sampled over
+  every walkable area (the Terrace's nav grid, the town's walking grid, the plain within the player's reach), not only the
+  ~40 camera-rig moments. Tooling: a coverage sampler (tools/dev/coverage_points.ts), a coverage spec that renders them and
+  measures per view the share of pixels drawn by objects flagged placeholder in F3 (an ID pass from each mesh's userData),
+  plus flat-surface and blank-region measures; a vision reviewer scores a stratified sample per area. Areas are worked in
+  order of failure; the town's placeholder houses first.
+- **Consequence:** PROGRESS and the gates report coverage per area; "done" for photorealism means the coverage passes.

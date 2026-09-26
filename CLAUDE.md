@@ -53,3 +53,12 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
 - **Before merging an agent branch:** records conflict (DECISIONS, OPEN_QUESTIONS, BLOCKERS, PROGRESS) are unions of appended
   rows: keep both sides, no blank line inside a table; reserve D/Q/B number ranges per agent in its prompt.
 - **After a render-affecting merge**, re-render the moments it touches before claiming a fix; a node test is not a render.
+
+## Every inch (the user's direction, session 8; D-233)
+The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
+of the Terrace, the town and the plain must reach the photoreal bar, one way or another. Measure it as coverage, not by
+chosen views: the coverage harness (`tests/e2e/coverage.spec.ts`, `tools/dev/coverage_points.ts`) renders viewpoints
+sampled over every walkable area and reports, per view and per area, the share of pixels drawn by PLACEHOLDER-flagged
+objects, flat/blank surfaces, and the rubric reviewer's scores on a sample. The backlog is ordered by the areas that fail
+most; a phase or area is done only when its coverage passes. Placeholders (town houses, procedural reliefs, stand-in
+people at distance) are the first targets.
