@@ -72,8 +72,11 @@ def a_couch_covered():
     legs = couch_legs(L, W, fy, C['leg_r'])
     body = box(L, W, H - fy, (0, 0, fy), 'body', bevel=0.03)
     hd = box(0.12, W, head - fy, (L / 2 - 0.06, 0, fy), 'hd', bevel=0.03)
-    cl = grid(L + 0.6, W + 0.6, 70, 34, 'cover', z=head + 0.08)
-    drape(cl, [body, hd] + legs, frames=70, mass=0.25, bending=0.2, thickness=0.006)
+    cl = grid(L + 0.5, W + 0.6, 40, 22, 'cover', z=H + 0.03)
+    for v in cl.data.vertices:  # start in the couch's shape: over the head end where it rises, the edges already falling
+        x, y = v.co.x, v.co.y; top = head + 0.03 if x > L / 2 - 0.14 else H + 0.03
+        ex = max(0.0, abs(x) - L / 2 - 0.02); ey = max(0.0, abs(y) - W / 2 - 0.02); v.co.z = top - (ex + ey) * 1.6
+    drape(cl, [body, hd] + legs, frames=60, mass=0.3, bending=0.15, thickness=0.006)
     bpy.data.objects.remove(body, do_unlink=True); bpy.data.objects.remove(hd, do_unlink=True)
     solidify(cl, 0.004, 1)
     return dict(metal=join(legs, 'metal'), cover=cl)
@@ -392,12 +395,21 @@ def gv(x, y, z):
     return (x, -z, y)
 
 def stone_lump(r, seed, name='stone', flat=0.7):
-    """a field stone: an irregular lump (metaballs, then displaced), r its half size"""
-    rnd = random.Random(seed); e = []
-    for k in range(4):
-        e.append(('ELLIPSOID', (rnd.uniform(-0.35, 0.35) * r, rnd.uniform(-0.35, 0.35) * r, rnd.uniform(0.1, 0.4) * r * flat), r * rnd.uniform(0.55, 0.8), (rnd.uniform(0.8, 1.3), rnd.uniform(0.8, 1.2), flat * rnd.uniform(0.8, 1.1)), 2))
-    ob = meta(e, res=r / 6, name=name)
-    displace(ob, r * 0.12, r * 0.6, seed=seed)
+    """a field stone of the limestone country: a block split along its bedding and joints (a box cut by 7 random planes:
+    angular faces, not a river pebble), its arrises worn round, the faces a little uneven; r its half size, base on z = 0"""
+    import bmesh as _b
+    rnd = random.Random(seed); bm = _b.new(); _b.ops.create_cube(bm, size=2 * r)
+    for v in bm.verts: v.co.z = (v.co.z + r) * flat * rnd.uniform(0.8, 1.0); v.co.x *= rnd.uniform(0.8, 1.15); v.co.y *= rnd.uniform(0.75, 1.05)
+    for k in range(7):
+        n = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-0.2, 1.0))).normalized(); c = Vector((0, 0, r * flat * 0.5)) + n * r * rnd.uniform(0.55, 0.85)
+        geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+        res = _b.ops.bisect_plane(bm, geom=geom, plane_co=c, plane_no=n, clear_outer=True)
+        edges = [e for e in res['geom_cut'] if isinstance(e, _b.types.BMEdge)]
+        if edges: _b.ops.holes_fill(bm, edges=edges, sides=0)
+    _b.ops.recalc_face_normals(bm, faces=bm.faces)
+    ob = from_bm(bm, name, smooth=False)
+    m = ob.modifiers.new('bev', 'BEVEL'); m.width = r * 0.08; m.segments = 2; m.limit_method = 'NONE'; apply_mods(ob)
+    subdiv(ob, 1); displace(ob, r * 0.035, r * 0.35, seed=seed); sharp(ob, 35)
     for v in ob.data.vertices:
         if v.co.z < 0: v.co.z *= 0.3
     # the metaballs' surface lies inside their radii: scaled so the stone's larger footprint side is 2r
@@ -734,8 +746,7 @@ def a_tool_trowel():
 @asset(ground=True)
 def a_tool_brick():
     """a sun-dried mud brick 33 x 33 x 11 cm: the arrises worn round, the faces a little uneven, straw ends in them (C)"""
-    b = box(0.33, 0.33, 0.11, (0, 0, -0.055), 'brick', bevel=0.012, segs=2)
-    subdiv(b, 1); displace(b, 0.004, 0.05, seed=52)
+    b = brick_piece(52, 0.33, 0.11, 0.33); xform(b, (0, 0, -0.055))
     return dict(mud=b)
 
 @asset(ground=False)
@@ -1110,7 +1121,14 @@ def heap(r, h, x=0, z=0, seed=0, lump=0.2, name='heap', res=None, flat=0.0):
     for v in ob.data.vertices: v.co.x = (v.co.x - cx) * kx; v.co.y = (v.co.y - cy) * ky; v.co.z *= kz
     q = G((x, 0, z)); return xform(ob, (q.x, q.y, 0))
 def brick_piece(seed, w=0.33, h=0.105, d=0.33):
-    b = box(w, d, h, (0, 0, 0), 'brick', bevel=0.01, segs=1); displace(b, 0.004, 0.06, seed=seed); return b
+    """a sun-dried mud brick: flat faces with the mould's straightness, arrises worn by handling (a 6 mm two-step round),
+    a chip knocked off a corner here and there, the faces shallowly uneven (C)"""
+    b = box(w, d, h, (0, 0, 0), 'brick', bevel=0.006, segs=2); rnd = random.Random(seed)
+    cx, cy = rnd.choice((-1, 1)) * w / 2, rnd.choice((-1, 1)) * d / 2
+    for v in b.data.vertices:
+        dd = math.hypot(v.co.x - cx, v.co.y - cy)
+        if dd < 0.05 and v.co.z > h * 0.5: v.co.z -= (0.05 - dd) * 0.5
+    displace(b, 0.0015, 0.04, seed=seed); sharp(b, 30); return b
 def sheaf(L=0.9, seed=0):
     """a sheaf of cut barley along +Y (game) from its butt: the stalks narrowing to the band, the ears flaring beyond it
     (C): a fluted lathe, the ears roughened"""
@@ -1948,12 +1966,27 @@ def a_kiln():
     """a potter's updraft kiln: a round firing chamber of mud brick, plastered, its domed top with a vent, the stoking mouth
     arched at the foot (C), 2.4 m across and 2.0 m high at size 1"""
     r = 1.2
-    k = lathe([(0.0, 0.0), (r, 0.0), (r * 1.01, 0.4), (r * 0.97, 1.0), (r * 0.92, 1.3), (r * 0.7, 1.65), (0.4, 1.92), (0.3, 2.0), (0.22, 2.0), (0.22, 1.9), (0.0, 1.9)], 32, 'kiln', wobble=0.02, seed=703)
-    subdiv(k, 1); displace(k, 0.02, 0.3, seed=704)
-    cut = sweep([(0, -1.6, 0.0), (0, -0.8, 0.0)], 0.35, 14, 'cut')
+    k = lathe([(0.0, 0.0), (r, 0.0), (r * 1.01, 0.4), (r * 0.97, 1.0), (r * 0.92, 1.3), (r * 0.7, 1.65), (0.4, 1.92), (0.3, 2.0), (0.22, 2.0), (0.22, 1.9), (0.0, 1.9)], 48, 'kiln', wobble=0.02, seed=703)
+    subdiv(k, 2)
+    for v in k.data.vertices:  # the courses: 11 cm bricks with sunk mud joints, staggered head joints, the plaster worn off in patches
+        rr = math.hypot(v.co.x, v.co.y); a = math.atan2(v.co.y, v.co.x); z = v.co.z
+        if rr < 0.3: continue
+        course = int(z / 0.12); fz = (z / 0.12) % 1.0; fa = ((a * rr / 0.36) + 0.5 * (course % 2)) % 1.0
+        joint = max(0.0, 1 - min(fz, 1 - fz) / 0.08) + max(0.0, 1 - min(fa, 1 - fa) / 0.05)
+        worn = 0.35 + 0.65 * max(0.0, noise.noise(Vector((v.co.x * 1.8, v.co.y * 1.8, z * 1.8))))  # the plaster thin, fallen away in patches
+        bulge = 0.006 * math.sin(math.pi * fz)  # each course's brick face a little proud
+        k_ = 1 + (bulge * worn - 0.02 * min(1.0, joint) * worn) / max(rr, 0.3); v.co.x *= k_; v.co.y *= k_
+    displace(k, 0.012, 0.25, seed=704); displace(k, 0.004, 0.05, seed=705)
+    cut = sweep([(0, -1.6, 0.0), (0, -0.8, 0.0)], 0.35, 20, 'cut')
     for v in cut.data.vertices: v.co.z = max(v.co.z, -0.1)
     boolean(k, cut)
-    return dict(mud=k)
+    arch = sweep([(0.4 * math.cos(t), -1.16 - 0.04 * math.sin(t * 7), 0.38 * math.sin(t) + 0.02) for t in [math.pi * i / 14 for i in range(15)]], 0.07, 6, 'arch', scale=(1.0, 1.4))
+    flues = []
+    for i in range(6):
+        a = TAU * i / 6; c = sweep([(0.28 * math.cos(a), 0.28 * math.sin(a), 1.7), (0.34 * math.cos(a), 0.34 * math.sin(a), 2.1)], 0.045, 8, 'flue')
+        boolean(k, c)
+    soot = heap(0.3, 0.02, 0, 0, seed=706, lump=0.4, name='soot', res=0.03); xform(soot, (0, -1.25, 0.0))
+    return dict(mud=k, brick=arch, ash=soot)
 
 @asset(ground=True)
 def a_loom_upright():

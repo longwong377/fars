@@ -14,7 +14,7 @@ const BLENDER = process.env.BLENDER ?? 'C:/Program Files/Blender Foundation/Blen
 const OUT = 'public/models/props', WORK = process.env.WORK ?? 'T:/fars-assets-s12/props/models';
 export const TARGETS = {
   couch: { metal: [2400, 800], mattress: [900, 300], bolster: [192, 64] },
-  couch_covered: { metal: [1200, 400], cover: [3000, 1000] },
+  couch_covered: { metal: [1200, 400], cover: [8000, 2400] },
   table: { metal: [2400, 800] },
   footstool: { frame: [1200, 400] },
   burner: { bronze: [4000, 1400] },
@@ -35,6 +35,7 @@ export const TARGETS = {
   wo_stooks: { ears: [900, 300], straw: [900, 300], straw_d: [600, 200] }, wo_hurdles: { wattle: [3000, 1000], wood_d: [2000, 700] }, wo_grapes: { grape: [900, 300] }, wo_nuts: { nut: [900, 300] }, wo_bellows_stand: { skin: [700, 250] },
   quern: { stone: [1200, 400] }, beads: { beads: [900, 300] }, bale: { cloth: [1200, 400] },
   manger: { straw: [300, 120], mud: [600, 250] }, forge: { coal: [300, 100] }, timber_stack: { wood: [800, 300] },
+  kiln: { mud: [4000, 1400] },
   tool_bow: { wood: [180, 90] }, tool_toy_bow: { wood: [140, 70] }, tool_rope: { cord: [200, 100] }, tool_towel: { linen: [48, 24] }, tool_beater: { wood: [48, 24] },
 };
 const want = process.argv.slice(2).filter(a => !a.startsWith('--'));
