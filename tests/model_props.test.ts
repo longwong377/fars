@@ -87,7 +87,7 @@ describe('modelled props (D-325): held props', () => {
     const tris = PROP_CLASSES.map((_, c) => propUnionGeometry(c).getAttribute('position').count / 3);
     console.log(`carried-prop unions with the models: ${tris.join(' / ')} triangles per instance`);
     // the in-game budgets with the modelled props (node's procedural budgets, 1,000 / 700, stay in tests/performances.test.ts)
-    expect(tris[0]).toBeLessThanOrEqual(4000); expect(tris[1]).toBeLessThanOrEqual(3000); expect(tris[4]).toBeLessThanOrEqual(1500);
+    expect(tris[0]).toBeLessThanOrEqual(4000); expect(tris[1]).toBeLessThanOrEqual(3000); expect(tris[2]).toBeLessThanOrEqual(3500); expect(tris[4]).toBeLessThanOrEqual(1500);
   });
 });
 describe('modelled props (D-325): work objects', () => {

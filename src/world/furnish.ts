@@ -24,7 +24,7 @@ const GOOD_MODEL: Record<string, string> = { alabaster_vessel: 'alabastron', blu
 function arrowBundle(): THREE.BufferGeometry | null {
   const a = modelParts('tool_arrow', 1); if (!a) return null; const one = mergedModel(a); one.deleteAttribute('ao');
   const gs: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < 20; i++) { const r = 0.012 * Math.sqrt(i), t = i * 2.4; gs.push(one.clone().translate(r * Math.cos(t), r * Math.sin(t), -0.36).rotateY(Math.PI / 2).rotateX(0.02 * Math.sin(i)).translate(0, 0.05, 0)); }
+  for (let i = 0; i < 20; i++) { const r = 0.0075 * Math.sqrt(i), t = i * 2.4; /* (a tight bundle, 3.5 cm across) */ gs.push(one.clone().translate(r * Math.cos(t), r * Math.sin(t), -0.36).rotateY(Math.PI / 2).rotateX(0.02 * Math.sin(i)).translate(0, 0.05, 0)); }
   return mergeGeometries(gs);
 }
 

@@ -128,7 +128,7 @@ const TOOL_PAINT: Record<string, [RGB, number, number]> = {
   straw: [STRAW, 0, 1], cloth: [[0.62, 0.58, 0.5], 0, 1], wool: [[0.8, 0.76, 0.66], 0, 1], bone: [[0.8, 0.76, 0.66], 0, 0.7], clay: [[0.66, 0.46, 0.32], 0, 0.9], cord: [[0.62, 0.54, 0.38], 0, 0.95],
   leather: [[0.5, 0.36, 0.23], 0, 0.8], reed: [[0.7, 0.62, 0.43], 0, 0.7], cane: [CANE, 0, 0.55], linen: [[0.8, 0.77, 0.7], 0, 1], hair: [[0.82, 0.8, 0.74], 0, 1], feather: [[0.3, 0.28, 0.25], 0, 0.9],
   stone: [[0.55, 0.5, 0.45], 0, 0.8], mud: [[0.62, 0.53, 0.4], 0, 0.95], green: [[0.3, 0.42, 0.2], 0, 0.8], petal: [[0.82, 0.8, 0.72], 0, 0.8], band: [[0.75, 0.62, 0.36], 0, 0.9],
-  hot: [[1.0, 0.42, 0.12], 0.2, 0.6], ink: [[0.08, 0.07, 0.06], 0, 0.5],
+  hot: [[1.0, 0.42, 0.12], 0.2, 0.6], ink: [[0.08, 0.07, 0.06], 0, 0.5], skin: [[0.78, 0.7, 0.55], 0, 0.8],
 };
 const TOOL_OVERRIDE: Record<string, Record<string, [RGB, number, number]>> = {
   bow: { wood: [[0.3, 0.2, 0.12], 0, 0.6] }, toy_bow: { wood: [[0.42, 0.3, 0.18], 0, 0.6] }, parasol: { cloth: [[0.62, 0.2, 0.2], 0, 0.9], wood: [[0.45, 0.33, 0.21], 0, 0.7] },
@@ -140,7 +140,9 @@ const TOOL_OVERRIDE: Record<string, Record<string, [RGB, number, number]>> = {
  *  instruments, the carried children) */
 export const MODELLED_TOOLS = ['spear', 'spear_apple', 'spear_gpom', 'mallet', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick',
   'barsom', 'stylus', 'hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'toy_bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel', 'ball', 'rattle',
-  'hammer', 'tongs', 'hammer_s', 'punch', 'balance', 'seal_cyl', 'drill_bow', 'scraper', 'pestle', 'pen', 'plectrum'];
+  'hammer', 'tongs', 'hammer_s', 'punch', 'balance', 'seal_cyl', 'drill_bow', 'scraper', 'pestle', 'pen', 'plectrum',
+  // the instruments' bodies (their strings and finger-holes stay the builder's: placed by instrumentForms.ts)
+  'harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe'];
 const TOOL_SV: Record<string, (x: number, y: number, z: number) => [number, number, number]> = {
   spindle: (_x, y) => [0, y < -0.005 ? -1 : 0, 0], // (below the hand: lowered by the yarn's length)
   balance: (x, y) => [0, y < -0.13 ? (x > 0 ? 1 : -1) : 0, 0], // (the pans rock: the right one up, the left one down)
@@ -150,6 +152,10 @@ function toolModel(kind: string): THREE.BufferGeometry | null {
   const p = modelParts('tool_' + kind, 0); if (!p) return null;
   const gs = Object.entries(p).map(([k, g]) => { const t = TOOL_OVERRIDE[kind]?.[k] ?? TOOL_PAINT[k] ?? [WOOD, 0, 0.8]; return paint(g, t[0], t[1], t[2], TOOL_SV[kind]); });
   if (kind === 'bow' || kind === 'toy_bow') gs.push(...bowString(kind === 'toy_bow' ? 0.3 : 0.52));
+  if (kind === 'harp_v') for (let i = 0; i < HARP_V.strings; i++) { const s = harpVString(i); gs.push(paint(rod(s.foot, s.head, 0.0012, 0.0012, 3), GUT, 0, 0.5)); }
+  if (kind === 'harp_h') for (let i = 0; i < HARP_H.strings; i++) { const s = harpHString(i); gs.push(paint(rod(s.foot, s.head, 0.0012, 0.0012, 3), GUT, 0, 0.5)); }
+  if (kind === 'lyre') for (let i = 0; i < LYRE.strings; i++) { const s = lyreString(i); gs.push(paint(rod(s.foot, s.head, 0.0011, 0.0011, 3), GUT, 0, 0.5)); }
+  if (kind === 'reed_pipe') for (let i = 0; i < REED_PIPE.holes; i++) gs.push(paint(box(0.007, 0.002, 0.007, 0, REED_PIPE.r + 0.0005, REED_PIPE.hole0 + i * REED_PIPE.holeStep), [0.2, 0.16, 0.1], 0, 0.9));
   return merge(gs);
 }
 /** the bowstring (its middle drawn back by the instance parameter), from the limbs' tips to z −0.14 */

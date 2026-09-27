@@ -31,7 +31,8 @@ export const TARGETS = {
   tool_parasol: { cloth: [160, 60], band: [80, 40] }, tool_mould: { wood: [300, 120] }, tool_balance: { bronze: [260, 120] },
   // the work objects (one instanced draw per kind in view: a few thousand triangles each at most)
   wo_fold: { thorn: [2400, 800], thorn_d: [2400, 800] }, wo_grass_bed: { grass: [800, 300], meat_boiled: [600, 200] }, wo_dung_cakes: { dung: [800, 300] }, wo_bellows: { skin: [1200, 400] },
-  wo_drum_rough: { lime: [1200, 400] }, wo_hurdles: { wattle: [3000, 1000] }, wo_grapes: { grape: [900, 300] }, wo_nuts: { nut: [900, 300] }, wo_bellows_stand: { skin: [700, 250] },
+  wo_drum_rough: { lime: [1200, 400], chips: [600, 200] }, wo_bier: { linen: [1200, 400] }, wo_hide_frames: { wood_d: [1200, 400] }, wo_drying_rack: { linen: [600, 250], red: [600, 250] },
+  wo_stooks: { ears: [900, 300], straw: [900, 300], straw_d: [600, 200] }, wo_hurdles: { wattle: [3000, 1000], wood_d: [2000, 700] }, wo_grapes: { grape: [900, 300] }, wo_nuts: { nut: [900, 300] }, wo_bellows_stand: { skin: [700, 250] },
   quern: { stone: [1200, 400] }, beads: { beads: [900, 300] }, bale: { cloth: [1200, 400] },
   manger: { straw: [300, 120], mud: [600, 250] }, forge: { coal: [300, 100] }, timber_stack: { wood: [800, 300] },
   tool_bow: { wood: [180, 90] }, tool_toy_bow: { wood: [140, 70] }, tool_rope: { cord: [200, 100] }, tool_towel: { linen: [48, 24] }, tool_beater: { wood: [48, 24] },

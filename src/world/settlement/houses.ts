@@ -19,7 +19,10 @@ import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site'
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
 import { kitOn, kitLog, kitPiece, kitFrame } from './kit';
-import { scanShape } from '../../render/scanProps';
+import { scanShape, modelFit, mergedModel } from '../../render/scanProps';
+/** D-325: a modelled prop (tools/blender/model_props.py) fitted to a box, its parts merged (position, normal, the baked occlusion
+ *  Batch.geo multiplies in), or null (the procedural form is drawn) */
+const modelGeo = (id: string, size: [number, number, number], lod = 1) => { const p = modelFit(id, size, lod); return p ? mergedModel(p) : null; };
 
 /** tile size (m, site-local) and the near radius (m, from the eye to a tile's centre) */
 export const TILE = 32, NEAR_R = 72;
@@ -639,10 +642,14 @@ export class SiteHouses {
       B.timber.poly([this.wp(mu0, mv0, gy(mu0, mv0) + 0.13), this.wp(mu1, mv0, gy(mu1, mv0) + 0.13), this.wp(mu1, mv1, gy(mu1, mv1) + 0.13), this.wp(mu0, mv1, gy(mu0, mv1) + 0.13)], [0, 1, 0], mat, own);
       const bed: RGB[] = [[0.7, 0.64, 0.52], [0.52, 0.28, 0.2], [0.42, 0.36, 0.3], [0.66, 0.5, 0.3]]; const nb = 1 + Math.floor(hi(r.room, 7) * 3);
       for (let k = 0; k < nb; k++) { const a = along[0] + 0.3 + k * 0.75; if (a + 0.6 > along[1]) break; const [ua, va] = atBack(a, 0.16), [ub, vb] = atBack(a + 0.6, 0.16), y = gy(ua, va) + 0.13 + 0.14;
-        this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own); }
+        // D-325: the bedding a modelled roll (the spiral of the rolled felt at its ends), along the back wall
+        const rg = modelGeo('roll', [0.6, 0.26, 0.28]), pa = s.grid(ua, va), pb = s.grid(ub, vb);
+        if (rg) B.timber.geo((pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2, y - 0.14, rg, Math.atan2(pb[1] - pa[1], pb[0] - pa[0]), lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own);
+        else this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own); }
       const L = this.lampSpot(r.plot); if (L) { const [lu, lv] = this.backPoint(r, 0.5, 0.2); const lg = s.grid(lu, lv); if (Math.hypot(lg[0] - L[0], lg[1] - L[1]) < 0.01) { const [bu, bv] = this.backPoint(r, 0.5, 0.08);
         this.lbox(B.plaster, bu, bv, 0.18, 0.18, L[2] - 0.1, L[2] - 0.02, sh(this.tone(r.plot, 1, false), 0.7), sh(this.tone(r.plot, 1, false), 0.8), own); // a ledge of mud
-        B.plaster.lathe(lg[0], lg[1], L[2] - 0.02, [[0.03, 0], [0.07, 0.02], [0.075, 0.035], [0.06, 0.035]], 7, lin([0.6, 0.42, 0.3]), own);
+        const lm = modelGeo('lamp', [0.17, 0.035, 0.14]); // D-325: the modelled saucer lamp with its pinched spout
+        if (lm) B.plaster.geo(lg[0], lg[1], L[2] - 0.02, lm, hi(r.room, 9) * 6.283, lin([0.6, 0.42, 0.3]), own); else B.plaster.lathe(lg[0], lg[1], L[2] - 0.02, [[0.03, 0], [0.07, 0.02], [0.075, 0.035], [0.06, 0.035]], 7, lin([0.6, 0.42, 0.3]), own);
         } }
       const [fu, fv] = atBack(along[1] - 0.35, 0.2), fy = gy(fu, fv) + 0.13; for (let k = 0; k < 3 + Math.floor(h * 4); k++) { const c = lin(bed[(k + Math.floor(h * 4)) % bed.length]); this.lbox(B.timber, fu, fv, 0.28 - 0.01 * k, 0.22, fy + k * 0.05, fy + k * 0.05 + 0.045, sh(c, 0.85), c, own, false, 0.05 * k); } }
     B.plaster.set('ao', 1); B.timber.set('ao', 1);

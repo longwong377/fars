@@ -135,12 +135,7 @@ def a_burner():
             (r * 0.82, h * 0.75), (r * 0.82, h * 0.775), (r * 0.62, h * 0.79), (r * 0.62, h * 0.83), (r * 0.44, h * 0.845), (r * 0.44, h * 0.885), (r * 0.27, h * 0.9), (r * 0.27, h * 0.93),
             (r * 0.1, h * 0.95), (r * 0.12, h * 0.975), (r * 0.08, h * 0.995), (0.0, h)]
     parts.append(lathe(prof, 28, 'stand'))
-    # crenellated tiers: stepped merlons round each tier's rim (the Persian stepped crenellation, as on the parapets; C)
-    for zr, rr, n in ((h * 0.775, r * 0.82, 16), (h * 0.83, r * 0.62, 12), (h * 0.885, r * 0.44, 9)):
-        for k in range(n):
-            a = TAU * (k + 0.5) / n
-            m = box(0.018, 0.012, 0.02, (0, 0, 0), bevel=0.002); m2 = box(0.01, 0.012, 0.012, (0, 0, 0.02), bevel=0.001)
-            parts.append(xform(join([m, m2]), (math.cos(a) * rr, math.sin(a) * rr, zr), (0, 0, a + math.pi / 2)))
+    # (the lid plain-stepped: the relief's lid form is open, Q-971)
     return dict(bronze=join(parts, 'bronze'))
 
 @asset()
@@ -2012,6 +2007,71 @@ def a_manger():
     for v in st.data.vertices: v.co.y *= 0.25
     xform(st, (0, 0, 0.74))
     return dict(mud=b, straw=st)
+
+# ======================================================================================================== instruments (people/instrumentForms.ts; the strings stay the builder's)
+@asset(ground=False)
+def a_tool_harp_v():
+    """the vertical angular harp's wooden parts (M-19, M-20: B type; C form): the soundbox, a long box tapering to its foot,
+    its face of hide, leaning over the strings (HARP_V.lean), and the string rod through its foot with a knob at each end"""
+    lean, L, W, D = 0.26, 0.95, 0.085, 0.11
+    sb = box(W, D, L, (0, 0, 0), 'sb', bevel=0.012, segs=2)
+    for v in sb.data.vertices:  # tapering toward the foot, the back rounded
+        t = v.co.z / L; k = 0.55 + 0.45 * t; v.co.x *= k; v.co.y *= 0.7 + 0.3 * t
+    xform(sb, (0, 0, -0.03)); xform(sb, (0, 0, 0), (lean, 0, 0))  # (three rotateX(lean) of a box along +Y: the game's X rotation)
+    rod = pathG([(0, 0, -0.05), (0, 0, 0.5)], [0.018, 0.0144], 10, 'rod')
+    knobs = [atG(lathe([(0.0, -0.02), (0.022, -0.012), (0.024, 0.0), (0.016, 0.014), (0.0, 0.02)], 10, 'k'), (0, 0, z)) for z in (-0.055, 0.505)]
+    return dict(wood=sb, wood_d=join([rod] + knobs, 'wood_d'))
+
+@asset(ground=False)
+def a_tool_harp_h():
+    """the horizontal angular harp's wooden parts (M-21: B type; C form): the soundbox held level under the arm, tapering, and
+    the rising string arm with a knob"""
+    L, W, H = 0.72, 0.085, 0.1
+    sb = box(W, L, H, (0, -L / 2, -H / 2), 'sb', bevel=0.012, segs=2)
+    for v in sb.data.vertices: t = -v.co.y / L; v.co.x *= 1.0 - 0.35 * t; v.co.z *= 1.0 - 0.35 * t
+    arm = pathG([(0, 0.05, 0.68), (0, 0.22, 0.66), (0, 0.4, 0.6)], [0.017, 0.015, 0.013], 8, 'arm')
+    knob = atG(lathe([(0.0, -0.01), (0.02, 0.0), (0.012, 0.03), (0.0, 0.035)], 8, 'k'), (0, 0.41, 0.6))
+    return dict(wood=sb, wood_d=join([arm, knob], 'wood_d'))
+
+@asset(ground=False)
+def a_tool_lyre():
+    """the round-bodied lyre's wooden parts (SOUND-R: C): a round soundbox, domed at the back, its face flat with the bridge,
+    two curving arms and the yoke with its turning pegs"""
+    r, th = 0.15, 0.07
+    body = lathe([(0.0, -th / 2 - 0.012), (r * 0.6, -th / 2 - 0.006), (r * 0.95, -th / 2 + 0.01), (r, 0.0), (r * 0.99, th / 2), (0.0, th / 2)], 24, 'body')
+    xform(body, G((0, 0, r)))  # (the lathe's axis is the game's Y: the disc lies in the game's X-Z plane, its faces toward +-Y)
+    arms = [pathG([(s * 0.1, 0, 0.24), (s * 0.125, 0, 0.4), (s * 0.13, 0, 0.54)], [0.014, 0.012, 0.011], 7, 'arm') for s in (-1, 1)]
+    yoke = pathG([(-0.16, 0, 0.54), (0.16, 0, 0.56)], 0.012, 8, 'yoke')
+    pegs = [rodG((-0.06 + 0.12 * i / 8 * 1.25, 0.0, 0.535), (-0.06 + 0.12 * i / 8 * 1.25, 0.03, 0.535), 0.004, 0.004, 4, 'peg') for i in range(9)]
+    bridge = boxG(0.14, 0.012, 0.012, 0, 0.039, 0.1)
+    return dict(wood=body, wood_d=join(arms + [yoke, bridge] + pegs, 'wood_d'))
+
+@asset(ground=False)
+def a_tool_frame_drum():
+    """the frame drum: a wooden hoop 0.36 m across with the membrane laced over its front face (C)"""
+    hoop = lathe([(0.176, -0.06), (0.18, -0.06), (0.18, 0.0), (0.176, 0.0)], 32, 'hoop'); xform(hoop, (0, 0, 0), (math.pi / 2, 0, 0))
+    skin = lathe([(0.0, 0.0015), (0.179, 0.0005), (0.182, -0.004)], 32, 'skin'); xform(skin, (0, 0, 0), (math.pi / 2, 0, 0))
+    back = lathe([(0.0, -0.059), (0.176, -0.059)], 32, 'back'); xform(back, (0, 0, 0), (math.pi / 2, 0, 0))
+    lace = [pathG([(0.18 * math.cos(a), 0.18 * math.sin(a), -0.005), (0.183 * math.cos(a), 0.183 * math.sin(a), -0.03)], 0.0018, 3, 'l') for a in [TAU * i / 24 for i in range(24)]]
+    return dict(wood=hoop, skin=join([skin, back], 'skin'), cord=join(lace, 'cord'))
+
+@asset(ground=False)
+def a_tool_double_pipe():
+    """the double pipe: two canes diverging from the mouth, each with its node rings and a bound mouthpiece (C)"""
+    p = []; mp = []
+    for s in (-1, 1):
+        e = (s * math.sin(0.21) * 0.34, 0, math.cos(0.21) * 0.34)
+        p.append(pathG([(0, 0, 0.005), e], [0.0064, 0.008], 7, 'cane'))
+        for t in (0.35, 0.7): p.append(rodG((e[0] * t, 0, e[2] * t - 0.002), (e[0] * t, 0, e[2] * t + 0.002), 0.0088, 0.0088, 7, 'node'))
+        mp.append(rodG((0, 0, -0.012), (0, 0, 0.012), 0.0056, 0.0064, 6, 'mp'))
+    return dict(cane=join(p, 'cane'), cord=join(mp, 'cord'))
+
+@asset(ground=False)
+def a_tool_reed_pipe():
+    """a herder's cane pipe with its nodes and a cut reed (M-18: C); the finger-holes are the builder's"""
+    p = [pathG([(0, 0, -0.005), (0, 0, 0.3)], 0.0085, 8, 'cane')]
+    for z in (0.08, 0.22): p.append(rodG((0, 0, z - 0.002), (0, 0, z + 0.002), 0.0093, 0.0093, 8, 'node'))
+    return dict(cane=join(p, 'cane'))
 
 # ======================================================================================================== driver
 if __name__ == '__main__':

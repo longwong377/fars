@@ -185,7 +185,7 @@ function composite(kind: WorkKind): THREE.BufferGeometry | null {
       return merge([...g, lamp]); }
     case 'cart': { const c = woParts('wo_cart', kind); if (!c || !has('sack_lying')) return null; const bedY = 0.62;
       for (let i = 0; i < 5; i++) { const x = (i % 2 ? 0.3 : -0.3) + 0.03 * jit(i), z = -0.75 + i * 0.36;
-        c.push(P(mergedModel(modelFit('sack_lying', [0.62, 0.3, 0.4], 0)!).rotateY(Math.PI / 2 + 0.2 * jit(i, 3)).translate(x, bedY, z), [0.64, 0.58, 0.46], 1)); }
+        c.push(P(mergedModel(modelFit('sack_lying', [0.62, 0.3, 0.4], 1)!).rotateY(Math.PI / 2 + 0.2 * jit(i, 3)).translate(x, bedY, z), [0.64, 0.58, 0.46], 1)); }
       return merge(c); }
   }
   return null;

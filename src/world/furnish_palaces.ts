@@ -362,6 +362,8 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
   return out;
 }
 
+/** a furnishing material by name (the probe pages; PalaceFurnishings draws with the same) */
+export function furnishingMaterial(mat: string): THREE.Material { Object.assign(SURFACES, FURNISH_SURFACES); return mat === 'furn_carpet' ? carpetMaterial() : surfaceMaterial(mat, { vertexColors: true }); }
 // ---------------- the drawn furnishings ----------------
 const MATS: Mat[] = ['furn_textile', 'furn_carpet', 'timber', 'furn_gilt', 'furn_silver', 'bronze', 'furn_clay', 'matting'];
 /** D-325: the carpets' material: the woven textile's surface with the knotted pile's normal map (tools/blender/carpet_pile.py:
