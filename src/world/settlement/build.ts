@@ -128,7 +128,9 @@ export class Settlement {
       const base = groupBase.get(p.group) ?? H(p.c[0], p.c[1]);
       const d = cl.desc.length; cl.desc.push({ tier: ROWS[p.row]?.tier ?? FEATURES[p.row]?.tier ?? 'C', src: ROWS[p.row]?.src ?? FEATURES[p.feature]?.src ?? 'RECON', note: p.note });
       const cc = p.colour ? lin(p.colour) : p.mat === 'timber' ? lin(TIMBER) : p.mat === 'stone' ? lin(STONE) : lin(MUD);
-      if (p.shape === 'box') b.box(p.c[0], p.c[1], p.theta, p.hu, p.hv, base + p.y0, base + p.y1, p.mat === 'mud' ? shade(cc, 0.75) : cc, cc, d);
+      const mdl = p.model ?? p.inModel, parts = mdl ? modelParts(mdl, 0) : null; // (D-325: a prop drawn from its model)
+      if (parts) { if (p.model) for (const [k, g] of Object.entries(parts)) b.geo(p.c[0], p.c[1], base, g, p.theta, k === 'ash' ? lin([0.16, 0.15, 0.14]) : cc, d); }
+      else if (p.shape === 'box') b.box(p.c[0], p.c[1], p.theta, p.hu, p.hv, base + p.y0, base + p.y1, p.mat === 'mud' ? shade(cc, 0.75) : cc, cc, d);
       else b.cyl(p.c[0], p.c[1], p.hu, p.hu * (p.r1 ?? 1), base + p.y0, base + p.y1, 12, cc, cc, d);
       if (p.collide) { let pc = propCol.get(p.group); if (!pc) { pc = { id: 'props:' + p.group, c: p.c, r: 60, boxes: [], live: null }; propCol.set(p.group, pc); this.cols.push(pc); }
         pc.boxes.push({ x: p.c[0], y: base + (p.y0 + p.y1) / 2, z: -p.c[1], hx: p.hu, hy: (p.y1 - p.y0) / 2, hz: p.hv, rot: p.theta }); }

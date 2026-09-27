@@ -714,12 +714,14 @@ export class SiteHouses {
           else B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
         // a broom of twigs against the wall-side of the baskets
         const gy = g(0.6, 0.1); this.pole(B.props, W3(0.55, 0.35, gy + 0.02), W3(0.62, 0.05, gy + 1.1), 0.016, 4, sh(tb, 0.9), own); B.props.set('ao', 1); break; }
-      case 'mortar': { const gy = g(0, 0), [u, v] = at(0, 0), [e, nn] = s.grid(u, v); B.stone.set('ao', 0.85); B.stone.lathe(e, nn, gy - 0.05, [[0.22, 0], [0.24, 0.2], [0.2, 0.38], [0.13, 0.38]], 9, sh(st, 0.95), own); B.stone.set('ao', 1);
+      case 'mortar': { const gy = g(0, 0), [u, v] = at(0, 0), [e, nn] = s.grid(u, v); B.stone.set('ao', 0.85); const mg = modelGeo('wo_oil_press', [0.48, 0.38, 0.48]); // (D-325: the modelled stone mortar)
+        if (mg) B.stone.geo(e, nn, gy - 0.05, mg, hi(f.plot, 31) * 6.283, sh(st, 0.95), own); else B.stone.lathe(e, nn, gy - 0.05, [[0.22, 0], [0.24, 0.2], [0.2, 0.38], [0.13, 0.38]], 9, sh(st, 0.95), own); B.stone.set('ao', 1);
         B.props.set('ao', 0.9); this.pole(B.props, W3(0.05, 0, gy + 0.3), W3(0.25, 0.3, gy + 1.1), 0.035, 5, sh(tb, 0.95), own); B.props.set('ao', 1); break; }
       case 'cradle': { const gy = g(0, 0), [u, v] = at(0, 0), c = sh(tb, 1.05); B.props.set('ao', 0.85); this.lbox(B.props, u, v, 0.28, 0.45, gy + 0.08, gy + 0.36, sh(c, 0.8), c, own, false, yaw);
         for (const e of [-0.38, 0.38]) { const [u2, v2] = at(e, 0); this.lbox(B.props, u2, v2, 0.3, 0.03, gy, gy + 0.1, c, c, own, false, yaw + Math.PI / 2); } const cl = lin([0.75, 0.7, 0.6]); this.lbox(B.props, u, v, 0.25, 0.4, gy + 0.36, gy + 0.4, cl, cl, own, false, yaw); B.props.set('ao', 1); break; }
       case 'roller': { const sp = this.roofSpot(f); if (!sp) break; const a = f.rot, A = this.wp(sp.u - Math.cos(a) * 0.3, sp.v - Math.sin(a) * 0.3, sp.y + 0.14), Bq = this.wp(sp.u + Math.cos(a) * 0.3, sp.v + Math.sin(a) * 0.3, sp.y + 0.14);
-        B.stone.set('ao', 1); this.pole(B.stone, A, Bq, 0.14, 9, sh(st, 1.0), own); break; }
+        B.stone.set('ao', 1); const rg = modelGeo('roller', [0.6, 0.28, 0.28], 0), c0 = s.grid(sp.u, sp.v); // (D-325: the modelled limestone roller)
+        if (rg) B.stone.geo(c0[0], c0[1], sp.y, rg, Math.atan2(s.grid(sp.u + Math.cos(a), sp.v + Math.sin(a))[1] - c0[1], s.grid(sp.u + Math.cos(a), sp.v + Math.sin(a))[0] - c0[0]), sh(st, 1.0), own); else this.pole(B.stone, A, Bq, 0.14, 9, sh(st, 1.0), own); break; }
       case 'roof_fuel': { const sp = this.roofSpot(f); if (!sp) break;
         // after the harvest: the household's grain share spread on a mat on the roof to dry (C)
         if (seasonOf(this.day) === 'harvest' && hi(f.plot, 91) < 0.5) { const g = lin([0.74, 0.64, 0.42]), a = f.rot + 1.2; B.props.set('ao', 1);
@@ -732,7 +734,8 @@ export class SiteHouses {
         B.props.set('ao', 1); break; }
       case 'roof_mats': { const sp = this.roofSpot(f); if (!sp || seasonOf(this.day) !== 'warm' && seasonOf(this.day) !== 'harvest') break; const n = 1 + (f.alt ?? 0) % 3; B.props.set('ao', 0.95); // rolled on the roof only while the nights are slept there
         for (let k = 0; k < n; k++) { const a = f.rot, o = (k - (n - 1) / 2) * 0.3, cu = sp.u - Math.sin(a) * o, cv = sp.v + Math.cos(a) * o; const c = k === 1 ? lin([0.55, 0.3, 0.22]) : sh(lin([0.63, 0.56, 0.4]), 0.9 + 0.15 * hi(k, f.plot));
-          this.pole(B.props, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own); }
+          const rg = modelGeo('roll', [1.8, 0.24, 0.24]), c0 = s.grid(cu, cv), c1 = s.grid(cu + Math.cos(a), cv + Math.sin(a)); // (D-325: the modelled roll)
+          if (rg) B.props.geo(c0[0], c0[1], sp.y, rg, Math.atan2(c1[1] - c0[1], c1[0] - c0[0]), c, own); else this.pole(B.props, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own); }
         B.props.set('ao', 1); break; }
       case 'fleece': { // over a lane-facing parapet of the house
         const cand = this.walls.filter(w => w.plot === f.plot && w.w.kind === 'outer' && !w.w.door && Math.hypot(w.w.u1 - w.w.u0, w.w.v1 - w.w.v0) > 1.5); if (!cand.length) break;

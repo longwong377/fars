@@ -8221,6 +8221,89 @@
     0.30500001180917025
    ],
    "tex": 0
+  },
+  "m_roller": {
+   "file": "models/props/m_roller.glb",
+   "of": "roller",
+   "role": "model",
+   "parts": [
+    "stone"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 9444,
+   "sha256": "d9d13bbfdfa730f57ea1eb344de8837c2909f03ad59edd77589fe35f7e0fe65e",
+   "tris": {
+    "lod0": 252,
+    "lod1": 88
+   },
+   "partTris": {
+    "lod0__stone": 252,
+    "lod1__stone": 88
+   },
+   "box": [
+    [
+     -0.3004137873649597,
+     0.00009866058826446533,
+     -0.14078263938426971
+    ],
+    [
+     0.30082178115844727,
+     0.2856031656265259,
+     0.13963033258914948
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.601235568523407,
+    0.2855045050382614,
+    0.2804129719734192
+   ],
+   "tex": 0
+  },
+  "m_fire_altar": {
+   "file": "models/props/m_fire_altar.glb",
+   "of": "fire_altar",
+   "role": "model",
+   "parts": [
+    "stone",
+    "ash"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 64548,
+   "sha256": "5fc2b8be58afd0891ef56debd30c7840675a1f797105dc20fb0f40a084207653",
+   "tris": {
+    "lod0": 2024,
+    "lod1": 706
+   },
+   "partTris": {
+    "lod0__stone": 756,
+    "lod0__ash": 1268,
+    "lod1__stone": 264,
+    "lod1__ash": 442
+   },
+   "box": [
+    [
+     -0.4506096839904785,
+     -0.25061944127082825,
+     -0.45057040452957153
+    ],
+    [
+     0.45047011971473694,
+     1.184999942779541,
+     0.4504166543483734
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.9010798037052155,
+    1.4356193840503693,
+    0.900987058877945
+   ],
+   "tex": 0
   }
  }
 }

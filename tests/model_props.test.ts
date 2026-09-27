@@ -133,4 +133,13 @@ describe('modelled props (D-325): the town’s and villages’ fittings', () => 
     console.log(rows.join(' | '));
   });
 });
+describe('modelled props (D-325): the precinct’s fire altar', () => {
+  it('the altar’s steps and embers are one model (drawn in the first step’s place), their colliders kept', async () => {
+    const { precinctProps } = await import('../src/world/settlement/precinct');
+    const props: any[] = [], groups = new Map(); precinctProps(props, groups);
+    const alt = props.filter(p => p.group === 'precinct_altar');
+    expect(alt.filter(p => p.model === 'fire_altar')).toHaveLength(1); expect(alt.filter(p => p.inModel === 'fire_altar').length).toBe(alt.length - 1);
+    expect(model('fire_altar')).not.toBeNull(); expect(alt.filter(p => p.collide).length).toBeGreaterThanOrEqual(7);
+  });
+});
 void modelParts;

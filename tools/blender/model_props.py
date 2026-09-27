@@ -2073,6 +2073,35 @@ def a_tool_reed_pipe():
     for z in (0.08, 0.22): p.append(rodG((0, 0, z - 0.002), (0, 0, z + 0.002), 0.0093, 0.0093, 8, 'node'))
     return dict(cane=join(p, 'cane'))
 
+@asset(ground=True)
+def a_roller():
+    """a roof roller: a limestone cylinder with a socket at each end for the wooden handle, the face worn smooth, the ends
+    rough (the flat roofs rolled after rain: RECOLLECTION of the Iranian village practice; C), 0.6 m long, 0.28 m across,
+    lying along x"""
+    r = lathe([(0.0, -0.3), (0.12, -0.3), (0.135, -0.285), (0.14, -0.2), (0.142, 0.0), (0.14, 0.2), (0.135, 0.285), (0.12, 0.3), (0.0, 0.3)], 18, 'roller', wobble=0.02, seed=801)
+    displace(r, 0.004, 0.06, seed=802)
+    for v in r.data.vertices:
+        if abs(v.co.z) > 0.295 and math.hypot(v.co.x, v.co.y) < 0.03: v.co.z *= 0.9  # the handle's sockets
+    xform(r, (0, 0, 0.142), (0, math.pi / 2, 0))
+    return dict(stone=r)
+
+@asset(ground=True)
+def a_fire_altar():
+    """the precinct's fire altar (the altar on the Naqsh-e Rustam tomb facades: a stepped foot, a square shaft, a stepped top:
+    NR-ALTAR, B; its steps and sizes the precinct's, settlement/precinct.ts PRECINCT.altar, C): each step a limestone block
+    with its arrises worn round, the lowest set 0.25 m into the ground, a shallow hollow in the top for the fire with ash
+    and embers in it"""
+    foot = [(0.45, 0.12), (0.37, 0.12), (0.29, 0.12)]; shaft = (0.22, 0.5); top = [(0.29, 0.1), (0.37, 0.1), (0.45, 0.12)]
+    st = []; y = 0.0
+    for i, (hh, h) in enumerate(foot + [shaft] + top):
+        y0 = -0.25 if i == 0 else y; b = box(2 * hh, 2 * hh, h + (y - y0), (0, 0, y0), 'step', bevel=0.012, segs=2)
+        displace(b, 0.003, 0.08, seed=900 + i); st.append(b); y += h
+    stone = join(st, 'stone')
+    for v in stone.data.vertices:  # the fire's hollow in the top
+        if v.co.z > y - 0.01 and abs(v.co.x) < 0.36 and abs(v.co.y) < 0.36: v.co.z -= 0.05 * (1 - (v.co.x / 0.36) ** 2) * (1 - (v.co.y / 0.36) ** 2)
+    ash = heap(0.3, 0.05, 0, 0, seed=910, lump=0.4, name='ash', res=0.02); xform(ash, (0, 0, y - 0.045))
+    return dict(stone=stone, ash=ash)
+
 # ======================================================================================================== driver
 if __name__ == '__main__':
     job = json.load(open(sys.argv[sys.argv.index('--') + 1]))
