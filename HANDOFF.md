@@ -54,11 +54,8 @@ this section, `sessions/s11.md`, BLOCKERS.md, `COVERAGE.md`, and **CLAUDE.md's n
   The tells now are FORM, not surface: the protome "a toy cow", colossi heads low, reliefs flat painted cards, props simple
   forms, joints drawn not built, block faces flat, people's hair helmets and boxy dress, straight box lanes. Surface scans are in
   everywhere (T-A7 ~0 in the measured views).
-- **WebGPU pipelines over 16 samplers (17, 17, 19) in the merged world, likely FIXED but UNVERIFIED:** `SAMPLERDBG=1` in
-  moments.spec (counts the compiled fragment shader's samplers) named harem:room_fittings, the merged furnishings' material
-  (propMaterialMulti, 4 kinds x 2 scan maps = 17); each kind now lays its scan without its roughness map (1 sampler). The
-  19-sampler pipeline was not named by the hook (likely the same material with more kinds). First job of the next session: one
-  verification batch (the 11 views in sessions/s11.md) with zero validation errors; if any remain, run it with SAMPLERDBG=1.
+- **WebGPU pipelines over 16 samplers** (named and cut, unverified): checked inside session 12's ONE verification batch, not as
+  its own task. SAMPLERDBG=1 names any that remain.
 - **One branch NOT merged (pushed):** `s11-realism-town` (D-303); see "Unmerged" below. The people (D-304 inside D-307) are merged.
 - **Night lanes in the town are black** (lamps light only their rooms, B111); the zodiacal light does not show; night clouds
   are black blobs. The belly (D-292) is not seen on screen (GB12 PARTIAL).
@@ -102,6 +99,8 @@ this section, `sessions/s11.md`, BLOCKERS.md, `COVERAGE.md`, and **CLAUDE.md's n
   world runs failed only on the unidentified 17/19-sampler pipelines (B122), which are not the people's material.
 
 ## Next steps, in order
+**SUPERSEDED by the SESSION 12 PLAN at the top of this file (UD-19, D-308): on Vagon, bulk building of the look; in the
+cloud, bulk depth. The list below is the session-11 backlog: fold its items into those two tracks, never let them lead.**
 1. The sampler bug (above); then one full verification batch with zero validation errors.
 2. Merge s11-realism-town (plan above).
 3. FORM, through the Blender pipeline (research/BLENDER_PLAN.md): re-proportion the protome and colossi from the photographs
