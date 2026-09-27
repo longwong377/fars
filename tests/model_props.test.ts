@@ -143,3 +143,15 @@ describe('modelled props (D-325): the precinct’s fire altar', () => {
   });
 });
 void modelParts;
+describe('modelled props (D-325): the houses’ fixtures', () => {
+  it('the houses’ near tiles draw the modelled fixtures (and stay within the tile budget)', async () => {
+    const { Settlement } = await import('../src/world/settlement/build');
+    const { FireSystem } = await import('../src/world/fire');
+    const { newHB } = await import('../src/world/settlement/houses');
+    const { loadTerrain } = await import('./plainLib');
+    const town = new Settlement(null, loadTerrain(), new FireSystem(0), 'test');
+    const count = (off: boolean) => { setModelsOff(off); let tris = 0, worst = 0; for (const hs of town.houses.slice(0, 6)) for (const t of hs.tiles.keys()) { const B = newHB(); hs.buildTile(t, B); let tt = 0; for (const b of Object.values(B)) tt += (b as any).tris; tris += tt; worst = Math.max(worst, tt); } setModelsOff(false); return { tris, worst }; };
+    const a = count(true), b = count(false); console.log(`houses near (6 sites): ${JSON.stringify(a)} -> ${JSON.stringify(b)}`);
+    expect(b.tris).toBeGreaterThan(a.tris); expect(b.worst).toBeLessThan(70_000); expect(b.tris).toBeLessThan(a.tris * 1.2); // (the models at lod2: +13 % on the procedural tiles, measured)
+  }, 600_000);
+});

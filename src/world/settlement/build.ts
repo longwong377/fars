@@ -28,6 +28,7 @@ import { scanShape, modelFit, modelParts, model } from '../../render/scanProps';
  *  colour (the baked occlusion darkens it per vertex, Batch.geo); `size` fits the model's box (null: its own size), `at` is
  *  its offset in the fitting's frame. False when the model is not loaded (the procedural fitting is drawn) */
 function putModel(b: Batch, id: string, e: number, n: number, y0: number, theta: number, cols: Record<string, RGB>, d: number, size: [number, number, number] | null = null, lod = 0, at: [number, number] = [0, 0]): boolean {
+  lod = 2; // (the near tiles hold a whole quarter's fittings: every one at the models' lod2)
   const p = size ? modelFit(id, size, lod) : modelParts(id, lod); if (!p) return false;
   const c = Math.cos(theta), s = Math.sin(theta), E = e + at[0] * c - at[1] * s, N = n + at[0] * s + at[1] * c;
   for (const [k, g] of Object.entries(p)) { const col = cols[k] ?? cols['*']; if (col) b.geo(E, N, y0, g, theta, col, d); }
@@ -424,7 +425,7 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
         putModel(mud, 'hearth', g[0], g[1], y - 0.03, th, { stone: lin([0.5, 0.48, 0.44]), ash: lin([0.22, 0.21, 0.2]) }, d, [0.9, 0.18, 0.9], 1);
         putModel(mud, 'cookpot', g[0], g[1], y - 0.02, th, { '*': shade(lin([0.4, 0.3, 0.23]), 0.8 + 0.3 * h0) }, d, [0.34, 0.29, 0.34], 1, [0.62, 0.15 + 0.2 * h0]);
         for (let k = 0; k < 1 + Math.round(h0 * 2); k++) putModel(mud, 'bowl', g[0], g[1], y, th + k, { '*': shade(lin([0.66, 0.46, 0.32]), 0.9 + 0.2 * ((h0 * 7 + k) % 1)) }, d, [0.2, 0.065, 0.2], 1, [0.35 + 0.2 * k, -0.5 - 0.1 * k]);
-        if (h0 > 0.4) { const bk = scanShape('basket', Math.round(h0 * 10), [0.4, 0.12, 0.4], 1), [ke, kn] = at(-0.6, 0.4); if (bk) mud.geo(ke, kn, y, bk, th, lin([0.62, 0.52, 0.34]), d); }
+        if (h0 > 0.4) { const bk = scanShape('basket', Math.round(h0 * 10), [0.4, 0.12, 0.4], 2), [ke, kn] = at(-0.6, 0.4); if (bk) mud.geo(ke, kn, y, bk, th, lin([0.62, 0.52, 0.34]), d); }
         break; }
       hearthRing(mud, g, y, d);
       // the household's cooking things by the hearth (C): a round-bottomed cooking pot, one or two bowls, a bread basket
@@ -444,7 +445,7 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
     case 'kiln': { const r = 1.2 * f.size; if (!far && putModel(mud, 'kiln', g[0], g[1], y - 0.1, th, { mud: sh(mc, 0.7) }, d, [2 * r, 2.0 * f.size + 0.1, 2 * r])) break; /* (D-325) */ mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }
     case 'jar': case 'jar_big': case 'vat': { const k = (f.kind === 'jar' ? 1 : f.kind === 'jar_big' ? 1.5 : 1.7) * f.size, wide = f.kind === 'vat' ? 1.5 : 1;
       // session 12 (D-310): jars are a CC0 scan's shape (render/scanProps.ts) fitted to the lathe's box, when loaded; the vat stays
-      const sj = far ? null : scanShape(f.kind !== 'vat' ? 'jar' : 'vat', Math.round((g[0] + g[1]) * 7), [0.5 * k * wide, 0.72 * k, 0.5 * k * wide], 1); // (D-325: the modelled jars and vat, lod1, near; the far level keeps the 9-sided lathe)
+      const sj = far ? null : scanShape(f.kind !== 'vat' ? 'jar' : 'vat', Math.round((g[0] + g[1]) * 7), [0.5 * k * wide, 0.72 * k, 0.5 * k * wide], 2); // (D-325: the modelled jars and vat, lod1, near; the far level keeps the 9-sided lathe)
       if (sj) mud.geo(g[0], g[1], y - 0.05, sj, (g[0] * 3.7 + g[1]) % 6.283, pot, d);
       else mud.lathe(g[0], g[1], y - 0.05, [[0.12 * k * wide, 0], [0.25 * k * wide, 0.22 * k], [0.24 * k * wide, 0.48 * k], [0.12 * k * wide, 0.68 * k], [0.11 * k * wide, 0.72 * k]], 9, pot, d); break; }
     case 'quern': if (!far && putModel(mud, 'quern', g[0], g[1], y - 0.05, th, { stone: st }, d, [0.56, 0.27, 0.4], 1)) break; // (D-325: the modelled saddle quern)

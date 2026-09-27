@@ -953,11 +953,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 109476,
-   "sha256": "81d2bd1f69624c27caaf818b0aa8300f83d5b3235eed9502612624aabe27e8e1",
+   "bytes": 121232,
+   "sha256": "3ca7507e3f186ae90f35e843891a956ecb068ae651f98ae733ffdf75d0ec2045",
    "tris": {
     "lod0": 3492,
-    "lod1": 1164
+    "lod1": 1164,
+    "lod2": 400
    },
    "partTris": {
     "lod0__metal": 2400,
@@ -965,7 +966,10 @@
     "lod0__bolster": 192,
     "lod1__metal": 800,
     "lod1__mattress": 300,
-    "lod1__bolster": 64
+    "lod1__bolster": 64,
+    "lod2__metal": 236,
+    "lod2__mattress": 100,
+    "lod2__bolster": 64
    },
    "box": [
     [
@@ -998,17 +1002,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 175036,
-   "sha256": "ca6e538d747f59174ca75c8b375874450346730acffe1d2c65b5f0ca48fba2e1",
+   "bytes": 195468,
+   "sha256": "5409f6e64661aca4746188bb50320dc3348649f0a5655db46c1ac36156e90d32",
    "tris": {
     "lod0": 4968,
-    "lod1": 2800
+    "lod1": 2800,
+    "lod2": 840
    },
    "partTris": {
     "lod0__metal": 1200,
     "lod0__cover": 3768,
     "lod1__metal": 400,
-    "lod1__cover": 2400
+    "lod1__cover": 2400,
+    "lod2__metal": 120,
+    "lod2__cover": 720
    },
    "box": [
     [
@@ -1040,15 +1047,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 73284,
-   "sha256": "b309adc06b3352ec7dd795be94ee4e7d69cb7e23ee84dea19b8b570f4e59c60b",
+   "bytes": 79876,
+   "sha256": "ba7fcddb0f6b8d7c0f29940615c190aad880647f6f3f98b61c07b995e0a417d1",
    "tris": {
     "lod0": 2400,
-    "lod1": 800
+    "lod1": 800,
+    "lod2": 237
    },
    "partTris": {
     "lod0__metal": 2400,
-    "lod1__metal": 800
+    "lod1__metal": 800,
+    "lod2__metal": 237
    },
    "box": [
     [
@@ -1080,15 +1089,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 27536,
-   "sha256": "07c7351d985c4bf2341aa55ae01c5aed636d7d224cab12e70f017ed12d5ac75e",
+   "bytes": 33400,
+   "sha256": "804b2679e0a2d64595b72102faf2e5c53be5d1aa3283a7ac121e4c1c5cebe5ff",
    "tris": {
     "lod0": 828,
-    "lod1": 288
+    "lod1": 288,
+    "lod2": 288
    },
    "partTris": {
     "lod0__wood": 828,
-    "lod1__wood": 288
+    "lod1__wood": 288,
+    "lod2__wood": 288
    },
    "box": [
     [
@@ -1120,15 +1131,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 39228,
-   "sha256": "579329b51572cbc030cb6a41d034ff225d895171f8c4681a3d7666b2286fcca4",
+   "bytes": 43740,
+   "sha256": "873d98b1167054ab4c52957d72d53bccd4389dfea0b9f47a1ad5fcd89aca0dcc",
    "tris": {
     "lod0": 1200,
-    "lod1": 400
+    "lod1": 400,
+    "lod2": 116
    },
    "partTris": {
     "lod0__frame": 1200,
-    "lod1__frame": 400
+    "lod1__frame": 400,
+    "lod2__frame": 116
    },
    "box": [
     [
@@ -1160,15 +1173,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 120800,
-   "sha256": "a3f8f091264268c88af53367fecc4f87625d98f173349c27b7111f71b95d0f58",
+   "bytes": 130924,
+   "sha256": "58494cd912232a1b17287a971fa10bca34a185c13a09d8fc6e53ea60f70da8e4",
    "tris": {
     "lod0": 4000,
-    "lod1": 1400
+    "lod1": 1400,
+    "lod2": 420
    },
    "partTris": {
     "lod0__bronze": 4000,
-    "lod1__bronze": 1400
+    "lod1__bronze": 1400,
+    "lod2__bronze": 420
    },
    "box": [
     [
@@ -1201,17 +1216,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 68880,
-   "sha256": "279743395edb7958322b1b168b18351cd15cd20625d450260560979ab2f93084",
+   "bytes": 76808,
+   "sha256": "29491c21cf52591e02b2b13d69afb5499867691204cc6e740d2fda6e55ca05c4",
    "tris": {
     "lod0": 2168,
-    "lod1": 758
+    "lod1": 758,
+    "lod2": 296
    },
    "partTris": {
     "lod0__bronze": 1888,
     "lod0__clay": 280,
     "lod1__bronze": 660,
-    "lod1__clay": 98
+    "lod1__clay": 98,
+    "lod2__bronze": 198,
+    "lod2__clay": 98
    },
    "box": [
     [
@@ -1245,11 +1263,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 106460,
-   "sha256": "d03d0d132f636f421c372e1abf191f1825f118bc573f4c5e1ae12fbedfb8b6f2",
+   "bytes": 119796,
+   "sha256": "cfe45575d5d05214afa7ee7cb17d56ea62451825f81dac0bae390d9cb397adea",
    "tris": {
     "lod0": 3276,
-    "lod1": 1144
+    "lod1": 1144,
+    "lod2": 446
    },
    "partTris": {
     "lod0__wood": 1836,
@@ -1257,7 +1276,10 @@
     "lod0__bronze": 1008,
     "lod1__wood": 642,
     "lod1__lid": 150,
-    "lod1__bronze": 352
+    "lod1__bronze": 352,
+    "lod2__wood": 192,
+    "lod2__lid": 150,
+    "lod2__bronze": 104
    },
    "box": [
     [
@@ -1290,17 +1312,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 58616,
-   "sha256": "383e51b091b4a68fc6181d18b0153e815a0737c903942b93d0497e9de7002f62",
+   "bytes": 67640,
+   "sha256": "b2ceb2bb2a34b2eb54173f04f7057cad427d58848031f5f6530877c4cb999e32",
    "tris": {
     "lod0": 1948,
-    "lod1": 680
+    "lod1": 680,
+    "lod2": 164
    },
    "partTris": {
     "lod0__pile": 188,
     "lod0__fringe": 1760,
     "lod1__pile": 64,
-    "lod1__fringe": 616
+    "lod1__fringe": 616,
+    "lod2__pile": 64,
+    "lod2__fringe": 100
    },
    "box": [
     [
@@ -1332,15 +1357,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 81068,
-   "sha256": "8fd07ff46126db3fff0c5e7476d15b71fbfd3533f58bb1d9b6a5ae7756581d35",
+   "bytes": 83368,
+   "sha256": "ca147579cd15b85ca7a674fa0e1c2966165510ae39019ef0bd09f5e6a4e7acaf",
    "tris": {
     "lod0": 2152,
-    "lod1": 752
+    "lod1": 752,
+    "lod2": 62
    },
    "partTris": {
     "lod0__textile": 2152,
-    "lod1__textile": 752
+    "lod1__textile": 752,
+    "lod2__textile": 62
    },
    "box": [
     [
@@ -1374,11 +1401,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 161576,
-   "sha256": "67358bd396cf32847c675fd825569f890991807f10c4a31d5c09eaf72d1569d8",
+   "bytes": 181908,
+   "sha256": "53b72c51c0b73a41c88e54326ba2e7a0430334788fc2b6dfa65af68ed8b203a2",
    "tris": {
     "lod0": 4700,
-    "lod1": 1533
+    "lod1": 1533,
+    "lod2": 570
    },
    "partTris": {
     "lod0__cloth": 2400,
@@ -1386,7 +1414,10 @@
     "lod0__rod": 700,
     "lod1__cloth": 800,
     "lod1__band": 483,
-    "lod1__rod": 250
+    "lod1__rod": 250,
+    "lod2__cloth": 240,
+    "lod2__band": 80,
+    "lod2__rod": 250
    },
    "box": [
     [
@@ -1420,11 +1451,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 265416,
-   "sha256": "a9457b397426c406c2872ce67756de6736962e9d8d4d956d19000ab662a34285",
+   "bytes": 297920,
+   "sha256": "25ec89b0427ca6eee3bcdf9f3cd50c4efbd50fb8f52e7406b172b09375d91f94",
    "tris": {
     "lod0": 7599,
-    "lod1": 2600
+    "lod1": 2600,
+    "lod2": 574
    },
    "partTris": {
     "lod0__gilt": 1200,
@@ -1432,7 +1464,10 @@
     "lod0__band": 3999,
     "lod1__gilt": 400,
     "lod1__cloth": 800,
-    "lod1__band": 1400
+    "lod1__band": 1400,
+    "lod2__gilt": 120,
+    "lod2__cloth": 240,
+    "lod2__band": 214
    },
    "box": [
     [
@@ -1464,15 +1499,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 92280,
-   "sha256": "601a018959643ee55be74b2d2ef825150da765b196abe32ef85fe5907a41ed45",
+   "bytes": 103812,
+   "sha256": "c3414938f4a77cf5adb43ac5e39e14201f3f55e49ca020c8974c0063206b6430",
    "tris": {
     "lod0": 2600,
-    "lod1": 895
+    "lod1": 895,
+    "lod2": 105
    },
    "partTris": {
     "lod0__matting": 2600,
-    "lod1__matting": 895
+    "lod1__matting": 895,
+    "lod2__matting": 105
    },
    "box": [
     [
@@ -1505,17 +1542,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 144772,
-   "sha256": "f0220c0514307f44dc0fed628f5e83f199d857bac0a2f6477c9c3b5e0c0f72db",
+   "bytes": 161064,
+   "sha256": "a30e48f5d036cbf3b30743947e391734a52e1544aa93a0a625830c590ae48e48",
    "tris": {
     "lod0": 4600,
-    "lod1": 1600
+    "lod1": 1600,
+    "lod2": 605
    },
    "partTris": {
     "lod0__gilt": 4000,
     "lod0__cushion": 600,
     "lod1__gilt": 1400,
-    "lod1__cushion": 200
+    "lod1__cushion": 200,
+    "lod2__gilt": 405,
+    "lod2__cushion": 200
    },
    "box": [
     [
@@ -1547,15 +1587,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9636,
-   "sha256": "e13ac26178d4d238cb1aeb88fa843e939bce730a123a8112033fd1f2af842e18",
+   "bytes": 12352,
+   "sha256": "dff89e2cad3adcdf5c8f07fe4baaaabc024fbc71f5a406a84409c107ec487888",
    "tris": {
     "lod0": 220,
-    "lod1": 110
+    "lod1": 110,
+    "lod2": 110
    },
    "partTris": {
     "lod0__leaf": 220,
-    "lod1__leaf": 110
+    "lod1__leaf": 110,
+    "lod2__leaf": 110
    },
    "box": [
     [
@@ -1587,15 +1629,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6052,
-   "sha256": "78ddfd04529550bbc66dee0336562aecbd6d30c677b6e33da90f83dad2219e3f",
+   "bytes": 7380,
+   "sha256": "a26d5ce1e1546720bdd2af211344d7b8e5d1e45ea9cd6aff7fe2a210e7b0df87",
    "tris": {
     "lod0": 188,
-    "lod1": 64
+    "lod1": 64,
+    "lod2": 64
    },
    "partTris": {
     "lod0__band": 188,
-    "lod1__band": 64
+    "lod1__band": 64,
+    "lod2__band": 64
    },
    "box": [
     [
@@ -1627,15 +1671,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6312,
-   "sha256": "ee1573a01e210d92750293e9d0ef08153f88738256eb68be37ea9d26d3a5d97a",
+   "bytes": 7688,
+   "sha256": "eac3a31817b726e314deb8d0e35dd3c9070b1dcd3c48de0ce783f592e7eef450",
    "tris": {
     "lod0": 196,
-    "lod1": 68
+    "lod1": 68,
+    "lod2": 68
    },
    "partTris": {
     "lod0__boss": 196,
-    "lod1__boss": 68
+    "lod1__boss": 68,
+    "lod2__boss": 68
    },
    "box": [
     [
@@ -1667,15 +1713,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 14776,
-   "sha256": "da5a1a7755bd64e35326c04ec187346142a292337a2dd2ef0a9c36d536fe7e1f",
+   "bytes": 17856,
+   "sha256": "38e30b630029507dd784dfdbb61d44138dc992171fa74de71ef6476fe466a757",
    "tris": {
     "lod0": 512,
-    "lod1": 178
+    "lod1": 178,
+    "lod2": 178
    },
    "partTris": {
     "lod0__shoe": 512,
-    "lod1__shoe": 178
+    "lod1__shoe": 178,
+    "lod2__shoe": 178
    },
    "box": [
     [
@@ -1707,15 +1755,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 4004,
-   "sha256": "be951c350610b0df515d2c357a1c085a3ddb7f132bd50b2160c3edbfad8e9112",
+   "bytes": 4928,
+   "sha256": "b653e71a7ba092ed28402bc31c058bed6391292b7f50883bf490bd7d8d9b4f6b",
    "tris": {
     "lod0": 60,
-    "lod1": 20
+    "lod1": 20,
+    "lod2": 20
    },
    "partTris": {
     "lod0__post": 60,
-    "lod1__post": 20
+    "lod1__post": 20,
+    "lod2__post": 20
    },
    "box": [
     [
@@ -1748,17 +1798,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 139316,
-   "sha256": "8a9cb9481e91a6db5969429d4718f813dc77ecffa6bd9a52ffc7c7cfb88c3f3c",
+   "bytes": 151888,
+   "sha256": "e8b068ad41a51456fd6857a6e247751a733ad68f68a45aaa794dea6f5ca837ad",
    "tris": {
     "lod0": 4544,
-    "lod1": 1588
+    "lod1": 1588,
+    "lod2": 474
    },
    "partTris": {
     "lod0__bronze": 2988,
     "lod0__coal": 1556,
     "lod1__bronze": 1044,
-    "lod1__coal": 544
+    "lod1__coal": 544,
+    "lod2__bronze": 312,
+    "lod2__coal": 162
    },
    "box": [
     [
@@ -1792,11 +1845,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 43964,
-   "sha256": "e84098a360f669e8ef0d88dd3151be25be96625be03a7ac0b1635a04ad37a8be",
+   "bytes": 50616,
+   "sha256": "1e95cf5cc53ddfb78733da4f7ce1ab9b6a746177b6c990af9f49105345eb7280",
    "tris": {
     "lod0": 1284,
-    "lod1": 446
+    "lod1": 446,
+    "lod2": 220
    },
    "partTris": {
     "lod0__wood": 56,
@@ -1804,7 +1858,10 @@
     "lod0__bracket": 296,
     "lod1__wood": 18,
     "lod1__head": 326,
-    "lod1__bracket": 102
+    "lod1__bracket": 102,
+    "lod2__wood": 18,
+    "lod2__head": 100,
+    "lod2__bracket": 102
    },
    "box": [
     [
@@ -1837,17 +1894,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 74164,
-   "sha256": "bc632f73a213153c979045263c5ac0faeb4b638a560b2f2ed5e9732b0310dc6b",
+   "bytes": 83004,
+   "sha256": "ced54e56f5a50a7482aba33780e75e8ea91574382c379696ad3d21712f205885",
    "tris": {
     "lod0": 2300,
-    "lod1": 800
+    "lod1": 800,
+    "lod2": 280
    },
    "partTris": {
     "lod0__stone": 2200,
     "lod0__ash": 100,
     "lod1__stone": 700,
-    "lod1__ash": 100
+    "lod1__ash": 100,
+    "lod2__stone": 240,
+    "lod2__ash": 40
    },
    "box": [
     [
@@ -1879,15 +1939,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 76028,
-   "sha256": "4dce7530157015426a04fae8d49671b513b55b6fb96d973449c1f003200b658e",
+   "bytes": 82620,
+   "sha256": "3cbd570620bd2d6cf8700777538ce066898be9edba0c5fe2d66fe3d461a76131",
    "tris": {
     "lod0": 2494,
-    "lod1": 872
+    "lod1": 872,
+    "lod2": 260
    },
    "partTris": {
     "lod0__mud": 2494,
-    "lod1__mud": 872
+    "lod1__mud": 872,
+    "lod2__mud": 260
    },
    "box": [
     [
@@ -1919,15 +1981,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11076,
-   "sha256": "579646409d88df77f80e6886d05f71d9c263bfb47f53da25a77b7f40d04adcf1",
+   "bytes": 12824,
+   "sha256": "bd0d3a2d2f89027acb95809432896ba01ba34c4abed46f00b4bc1d8d4584c461",
    "tris": {
     "lod0": 308,
-    "lod1": 106
+    "lod1": 106,
+    "lod2": 40
    },
    "partTris": {
     "lod0__clay": 308,
-    "lod1__clay": 106
+    "lod1__clay": 106,
+    "lod2__clay": 40
    },
    "box": [
     [
@@ -1959,15 +2023,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 45672,
-   "sha256": "4b5cc1d299da3ad39a8a3958b593650543f9d5c4b2b8f9d232bfa9c7c6ab1447",
+   "bytes": 48520,
+   "sha256": "9e30052e1c5d8a4430749f0b393af80f16da9b5b8d436f15d5deb5c7a7de707b",
    "tris": {
     "lod0": 1472,
-    "lod1": 514
+    "lod1": 514,
+    "lod2": 90
    },
    "partTris": {
     "lod0__clay": 1472,
-    "lod1__clay": 514
+    "lod1__clay": 514,
+    "lod2__clay": 90
    },
    "box": [
     [
@@ -1999,15 +2065,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 39992,
-   "sha256": "1312319323eae4c4b55016c83b6a74b13e3b4b78266cc3cc1041f864be706b93",
+   "bytes": 42956,
+   "sha256": "c6709ca308626882d38e1c034fe8dfcd6485698209629ec53f31d339718ae9e0",
    "tris": {
     "lod0": 1272,
-    "lod1": 444
+    "lod1": 444,
+    "lod2": 88
    },
    "partTris": {
     "lod0__clay": 1272,
-    "lod1__clay": 444
+    "lod1__clay": 444,
+    "lod2__clay": 88
    },
    "box": [
     [
@@ -2039,15 +2107,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 28204,
-   "sha256": "32bbafc9eecdcab1040af2cf60758e2dec7babba470b7f870a4f2264cf03b466",
+   "bytes": 30836,
+   "sha256": "4d5cbe7f56e90f82a5c2696b33921e33128db33fa67427130d0b9aed1fd9fdfe",
    "tris": {
     "lod0": 884,
-    "lod1": 308
+    "lod1": 308,
+    "lod2": 80
    },
    "partTris": {
     "lod0__clay": 884,
-    "lod1__clay": 308
+    "lod1__clay": 308,
+    "lod2__clay": 80
    },
    "box": [
     [
@@ -2079,15 +2149,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 30496,
-   "sha256": "fa7bf6bfa34525bf31ae56fc299fc206a64c80700c14f35d1ac018513de19b1a",
+   "bytes": 32688,
+   "sha256": "eac59622c6bca16327cc97daf3f6fe99c9af84489ac460f73a4aff3fdb198ef3",
    "tris": {
     "lod0": 960,
-    "lod1": 336
+    "lod1": 336,
+    "lod2": 60
    },
    "partTris": {
     "lod0__clay": 960,
-    "lod1__clay": 336
+    "lod1__clay": 336,
+    "lod2__clay": 60
    },
    "box": [
     [
@@ -2119,15 +2191,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 32388,
-   "sha256": "5fe7737e9755887323aa780ad952a46ce1f742a29ae17aa69693c55238db5438",
+   "bytes": 35596,
+   "sha256": "50f2588578730b9e7dbe61c4401a1c5e4ce797095733f4bc1113d50cd5706690",
    "tris": {
     "lod0": 1024,
-    "lod1": 358
+    "lod1": 358,
+    "lod2": 106
    },
    "partTris": {
     "lod0__metal": 1024,
-    "lod1__metal": 358
+    "lod1__metal": 358,
+    "lod2__metal": 106
    },
    "box": [
     [
@@ -2159,15 +2233,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 31676,
-   "sha256": "671dc0f2142e0b290b6fbccea9169daaf5fea9ac89ab916fa54357d6c37ed929",
+   "bytes": 34600,
+   "sha256": "91f5c1a3466cf1e65cb851df68c65f9a8f8488da92f014b6e368df2b9d3708a7",
    "tris": {
     "lod0": 992,
-    "lod1": 346
+    "lod1": 346,
+    "lod2": 86
    },
    "partTris": {
     "lod0__clay": 992,
-    "lod1__clay": 346
+    "lod1__clay": 346,
+    "lod2__clay": 86
    },
    "box": [
     [
@@ -2199,15 +2275,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 30228,
-   "sha256": "f4ca1f4d22984d13e3bf934ed661eccdafabdc82fbd0e9f86315bc82e48c24d6",
+   "bytes": 33296,
+   "sha256": "e148e3e942de55f64ebabe594e830ccf1189f0aa8508925d48430e09f4beefb1",
    "tris": {
     "lod0": 952,
-    "lod1": 332
+    "lod1": 332,
+    "lod2": 100
    },
    "partTris": {
     "lod0__clay": 952,
-    "lod1__clay": 332
+    "lod1__clay": 332,
+    "lod2__clay": 100
    },
    "box": [
     [
@@ -2239,15 +2317,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 25480,
-   "sha256": "cc10678c2081d5855c22880d2db9165c564f0bd35700b40df28f71ffd2a057d3",
+   "bytes": 30644,
+   "sha256": "36bf28943a00d6745c1066bf3affb3c1b9cf3bd11912f44dd5a42ade0de51913",
    "tris": {
     "lod0": 792,
-    "lod1": 276
+    "lod1": 276,
+    "lod2": 276
    },
    "partTris": {
     "lod0__clay": 792,
-    "lod1__clay": 276
+    "lod1__clay": 276,
+    "lod2__clay": 276
    },
    "box": [
     [
@@ -2279,15 +2359,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 24768,
-   "sha256": "897a133c1083783273e4a5cabf7fbe63272554f30a4f39f53b91fcd5deaf0305",
+   "bytes": 29836,
+   "sha256": "07012f506717980291e031d3e009f58ecc0280186d6e589e794b176ca2146557",
    "tris": {
     "lod0": 764,
-    "lod1": 266
+    "lod1": 266,
+    "lod2": 266
    },
    "partTris": {
     "lod0__clay": 764,
-    "lod1__clay": 266
+    "lod1__clay": 266,
+    "lod2__clay": 266
    },
    "box": [
     [
@@ -2319,15 +2401,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 90560,
-   "sha256": "248a95ef76e41bdb336cb4a16cf6d0f123a5ff3164db4e8d55f3f087b67f819d",
+   "bytes": 98324,
+   "sha256": "69094fb5c40a3792b4f79938986ea084a9b0e86b53971258ebd3ef1f577ead2e",
    "tris": {
     "lod0": 3000,
-    "lod1": 1000
+    "lod1": 1000,
+    "lod2": 300
    },
    "partTris": {
     "lod0__clay": 3000,
-    "lod1__clay": 1000
+    "lod1__clay": 1000,
+    "lod2__clay": 300
    },
    "box": [
     [
@@ -2362,11 +2446,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11692,
-   "sha256": "bd020a9c77a9884917ccd0d24de82d94abfcb9e07d5c317f120b4d4a296986e5",
+   "bytes": 14448,
+   "sha256": "fd2f6fbaedc96ca50236af88d8e8165c3a79b47d82e588d6dfab053bfd92d5a0",
    "tris": {
     "lod0": 128,
-    "lod1": 40
+    "lod1": 40,
+    "lod2": 40
    },
    "partTris": {
     "lod0__s0": 32,
@@ -2376,7 +2461,11 @@
     "lod1__s0": 10,
     "lod1__s1": 10,
     "lod1__s2": 10,
-    "lod1__s3": 10
+    "lod1__s3": 10,
+    "lod2__s0": 10,
+    "lod2__s1": 10,
+    "lod2__s2": 10,
+    "lod2__s3": 10
    },
    "box": [
     [
@@ -2409,17 +2498,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 50228,
-   "sha256": "b697f9ba97a38f17a3141101b93d17ea440e78391c0d8be1630ad94959a9e886",
+   "bytes": 54516,
+   "sha256": "5275a7e517d9a7e790ce94e263e2be76c1ac264cd36d7fe3a75683cd60407012",
    "tris": {
     "lod0": 1620,
-    "lod1": 490
+    "lod1": 490,
+    "lod2": 114
    },
    "partTris": {
     "lod0__cloth": 1500,
     "lod0__cord": 120,
     "lod1__cloth": 450,
-    "lod1__cord": 40
+    "lod1__cord": 40,
+    "lod2__cloth": 90,
+    "lod2__cord": 24
    },
    "box": [
     [
@@ -2452,17 +2544,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 47320,
-   "sha256": "71ece3f53b4d8e0307a75e7c431cfc63cd89d4e72dd7ad81b0e9c7e07372a4c5",
+   "bytes": 52352,
+   "sha256": "5c7bbfb096007f3c11af3be87d4e9334b5ab91113ef32dee24a8384443b93a62",
    "tris": {
     "lod0": 1520,
-    "lod1": 460
+    "lod1": 460,
+    "lod2": 166
    },
    "partTris": {
     "lod0__cloth": 1400,
     "lod0__cord": 120,
     "lod1__cloth": 420,
-    "lod1__cord": 40
+    "lod1__cord": 40,
+    "lod2__cloth": 126,
+    "lod2__cord": 40
    },
    "box": [
     [
@@ -2496,11 +2591,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 17476,
-   "sha256": "dc0eb79cd0c06ab58e7a0a53a9cf6a06a689fbe5e753d75a7f9ca62c33312f04",
+   "bytes": 22300,
+   "sha256": "ab1645538860a35911b3535145dc1e027ed6c40d8935501bba5391f24f52df91",
    "tris": {
     "lod0": 366,
-    "lod1": 118
+    "lod1": 118,
+    "lod2": 118
    },
    "partTris": {
     "lod0__wood": 38,
@@ -2508,7 +2604,10 @@
     "lod0__silver": 204,
     "lod1__wood": 12,
     "lod1__bronze": 42,
-    "lod1__silver": 64
+    "lod1__silver": 64,
+    "lod2__wood": 12,
+    "lod2__bronze": 42,
+    "lod2__silver": 64
    },
    "box": [
     [
@@ -2542,11 +2641,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 14568,
-   "sha256": "be5898287b7a839edb67ca380620b5da24a96ec72afe9ebe5b88a8f27e372278",
+   "bytes": 18588,
+   "sha256": "6d6a1827c16992b1b706f86e5577c5d63371c5c111134a172ca7e77ce186f174",
    "tris": {
     "lod0": 298,
-    "lod1": 99
+    "lod1": 99,
+    "lod2": 99
    },
    "partTris": {
     "lod0__wood": 38,
@@ -2554,7 +2654,10 @@
     "lod0__gold": 136,
     "lod1__wood": 12,
     "lod1__bronze": 42,
-    "lod1__gold": 45
+    "lod1__gold": 45,
+    "lod2__wood": 12,
+    "lod2__bronze": 42,
+    "lod2__gold": 45
    },
    "box": [
     [
@@ -2588,11 +2691,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 17468,
-   "sha256": "d575f87a00ae4254fb8479df317219f9d421ba987c80be6143a605f180b3a7f7",
+   "bytes": 22288,
+   "sha256": "7c139cddd5e831052956fc4014253144bfcce97bd0d39cc8f8be4bf7bf58a0fb",
    "tris": {
     "lod0": 366,
-    "lod1": 118
+    "lod1": 118,
+    "lod2": 118
    },
    "partTris": {
     "lod0__wood": 38,
@@ -2600,7 +2704,10 @@
     "lod0__gold": 204,
     "lod1__wood": 12,
     "lod1__bronze": 42,
-    "lod1__gold": 64
+    "lod1__gold": 64,
+    "lod2__wood": 12,
+    "lod2__bronze": 42,
+    "lod2__gold": 64
    },
    "box": [
     [
@@ -2633,17 +2740,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9472,
-   "sha256": "5cf21b26363cc16f294f24a82d4cd6c502bd33a22dd8b44210f6333af09ff730",
+   "bytes": 12080,
+   "sha256": "58c38662a5180436b9b79e12fa9e6cd880d2d3966229d081b2ef14732e47ee9b",
    "tris": {
     "lod0": 190,
-    "lod1": 66
+    "lod1": 66,
+    "lod2": 66
    },
    "partTris": {
     "lod0__wood": 70,
     "lod0__wood_d": 120,
     "lod1__wood": 24,
-    "lod1__wood_d": 42
+    "lod1__wood_d": 42,
+    "lod2__wood": 24,
+    "lod2__wood_d": 42
    },
    "box": [
     [
@@ -2676,17 +2786,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 8620,
-   "sha256": "33b8d479c4caf3a453399766893ac5efac21045745e5b1e0c485156dba860147",
+   "bytes": 11064,
+   "sha256": "4e33e443876287f8925d75ae3883a19355574a86f3c4121cbbb783697d30ce3f",
    "tris": {
     "lod0": 162,
-    "lod1": 56
+    "lod1": 56,
+    "lod2": 56
    },
    "partTris": {
     "lod0__iron": 92,
     "lod0__wood": 70,
     "lod1__iron": 32,
-    "lod1__wood": 24
+    "lod1__wood": 24,
+    "lod2__iron": 32,
+    "lod2__wood": 24
    },
    "box": [
     [
@@ -2720,11 +2833,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11524,
-   "sha256": "9d4fe6574435e0e7402ac238003f995ac543b584cd7acdc08c13e46ed2e00b2d",
+   "bytes": 14888,
+   "sha256": "e2492d1ffec76aacfb5598d8fbba3e84bdfcde2bf60416621ac737bd7df5d6b9",
    "tris": {
     "lod0": 204,
-    "lod1": 67
+    "lod1": 67,
+    "lod2": 67
    },
    "partTris": {
     "lod0__wood": 32,
@@ -2732,7 +2846,10 @@
     "lod0__wool": 76,
     "lod1__wood": 10,
     "lod1__stone": 32,
-    "lod1__wool": 25
+    "lod1__wool": 25,
+    "lod2__wood": 10,
+    "lod2__stone": 32,
+    "lod2__wool": 25
    },
    "box": [
     [
@@ -2765,17 +2882,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 8568,
-   "sha256": "8e9482fa1906a083043588e49cd8194176777f3fa9f9e8126f6b60c1a0bffbdf",
+   "bytes": 11168,
+   "sha256": "34db0ee510f8bf3788e665823f82f03d1aca5028296d2c5d69b61df7ff2eaf3a",
    "tris": {
     "lod0": 152,
-    "lod1": 70
+    "lod1": 70,
+    "lod2": 70
    },
    "partTris": {
     "lod0__wood": 32,
     "lod0__wool": 120,
     "lod1__wood": 10,
-    "lod1__wool": 60
+    "lod1__wool": 60,
+    "lod2__wood": 10,
+    "lod2__wool": 60
    },
    "box": [
     [
@@ -2808,17 +2928,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 7220,
-   "sha256": "0b5203682eed60a5dff91fc7d8e52665523d689e8ec7d61fd5486f9cd0bf52b5",
+   "bytes": 9380,
+   "sha256": "f3eac69236d9deec4dc7fac626564c526b8b06b3bcaf09a7544d00b504e10b94",
    "tris": {
     "lod0": 116,
-    "lod1": 38
+    "lod1": 38,
+    "lod2": 38
    },
    "partTris": {
     "lod0__wood": 38,
     "lod0__bronze": 78,
     "lod1__wood": 12,
-    "lod1__bronze": 26
+    "lod1__bronze": 26,
+    "lod2__wood": 12,
+    "lod2__bronze": 26
    },
    "box": [
     [
@@ -2850,15 +2973,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 5200,
-   "sha256": "0a5e2f25af0614a85dac64928b3c8c44b6aac213bfbb0f1b283df9e57d5f499b",
+   "bytes": 6604,
+   "sha256": "1e6391459bbb2a037797eaacfe7f02725a935a72a4426a1a5a8ff1df496629b0",
    "tris": {
     "lod0": 80,
-    "lod1": 40
+    "lod1": 40,
+    "lod2": 40
    },
    "partTris": {
     "lod0__mud": 80,
-    "lod1__mud": 40
+    "lod1__mud": 40,
+    "lod2__mud": 40
    },
    "box": [
     [
@@ -2891,17 +3016,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 7396,
-   "sha256": "677e47a2a671c788f84fec311171548bea61e710042864848b47e248eb5b9476",
+   "bytes": 9584,
+   "sha256": "5214a3acf078538244b165a94d7b41ffeaaa3079e77ff0fd91447d20990a918f",
    "tris": {
     "lod0": 122,
-    "lod1": 40
+    "lod1": 40,
+    "lod2": 40
    },
    "partTris": {
     "lod0__wood_d": 38,
     "lod0__iron": 84,
     "lod1__wood_d": 12,
-    "lod1__iron": 28
+    "lod1__iron": 28,
+    "lod2__wood_d": 12,
+    "lod2__iron": 28
    },
    "box": [
     [
@@ -2933,15 +3061,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 5916,
-   "sha256": "961e68b6b7dde7198284102289c9ef4234e137bad15003d53c58fe6ea81dfef5",
+   "bytes": 7616,
+   "sha256": "4a799250bd5b7850deb9e5032ce30f64726fdd6041111ceb246e010d30ffad7f",
    "tris": {
     "lod0": 120,
-    "lod1": 60
+    "lod1": 60,
+    "lod2": 60
    },
    "partTris": {
     "lod0__cloth": 120,
-    "lod1__cloth": 60
+    "lod1__cloth": 60,
+    "lod2__cloth": 60
    },
    "box": [
     [
@@ -2973,15 +3103,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6716,
-   "sha256": "56859458e5c1e5ea37c746ee04c543a73aa1e643f3cf21b515302aaf582980a7",
+   "bytes": 8668,
+   "sha256": "863bfc5e920bf820ebedaa1847be6820e8056ed049d607620f165d3b0b01d9ea",
    "tris": {
     "lod0": 126,
-    "lod1": 42
+    "lod1": 42,
+    "lod2": 42
    },
    "partTris": {
     "lod0__straw": 126,
-    "lod1__straw": 42
+    "lod1__straw": 42,
+    "lod2__straw": 42
    },
    "box": [
     [
@@ -3013,15 +3145,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 3944,
-   "sha256": "75a2daffda9ee98b8aae02519a44ff508ccab0db8c1c7e8f0dce4cf97c091e5e",
+   "bytes": 5164,
+   "sha256": "78e11e3874e5a5fd59a83858e9d9216f055befabfc3337a0f7d08832e212f3b9",
    "tris": {
     "lod0": 60,
-    "lod1": 30
+    "lod1": 30,
+    "lod2": 30
    },
    "partTris": {
     "lod0__cloth": 60,
-    "lod1__cloth": 30
+    "lod1__cloth": 30,
+    "lod2__cloth": 30
    },
    "box": [
     [
@@ -3053,15 +3187,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 4104,
-   "sha256": "db16c1a71a2768cacf65fd49205ea3d44329b1a626f32bf0413e656f0c6aa76c",
+   "bytes": 5420,
+   "sha256": "db7efa94876e6749db730637f25c107fa09b91eb346d510990e98ee87bbcc85f",
    "tris": {
     "lod0": 58,
-    "lod1": 28
+    "lod1": 28,
+    "lod2": 28
    },
    "partTris": {
     "lod0__bone": 58,
-    "lod1__bone": 28
+    "lod1__bone": 28,
+    "lod2__bone": 28
    },
    "box": [
     [
@@ -3095,11 +3231,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 10036,
-   "sha256": "2676cac9f99c021c7e5559c7f8b6852fb645e2d85a3dcdaa0290c99f2e2831ee",
+   "bytes": 13300,
+   "sha256": "acc1ff8658a98373da2cddd8ce24242e404334f741e8117baee6e8cd115e3236",
    "tris": {
     "lod0": 136,
-    "lod1": 44
+    "lod1": 44,
+    "lod2": 44
    },
    "partTris": {
     "lod0__reed": 42,
@@ -3107,7 +3244,10 @@
     "lod0__feather": 36,
     "lod1__reed": 14,
     "lod1__bronze": 19,
-    "lod1__feather": 11
+    "lod1__feather": 11,
+    "lod2__reed": 14,
+    "lod2__bronze": 19,
+    "lod2__feather": 11
    },
    "box": [
     [
@@ -3139,15 +3279,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 2872,
-   "sha256": "4377de09950e5a3c6e87dcb02681653a480c01dd62adf9d875a82a95178d5a0d",
+   "bytes": 3764,
+   "sha256": "98adcd25bca6fd6dec8e381505173647e3dc85138cb7b8bfb02e81b4443bd2d1",
    "tris": {
     "lod0": 32,
-    "lod1": 10
+    "lod1": 10,
+    "lod2": 10
    },
    "partTris": {
     "lod0__cord": 32,
-    "lod1__cord": 10
+    "lod1__cord": 10,
+    "lod2__cord": 10
    },
    "box": [
     [
@@ -3179,15 +3321,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 8384,
-   "sha256": "7d96afcc03249fdd215eb66a040591cf5181ce0a759af095e24334c25378aace",
+   "bytes": 10372,
+   "sha256": "8460aae5c666d77ffa12fa8885753e80628c691b1c09c75996af46af5d670432",
    "tris": {
     "lod0": 212,
-    "lod1": 74
+    "lod1": 74,
+    "lod2": 74
    },
    "partTris": {
     "lod0__wood": 212,
-    "lod1__wood": 74
+    "lod1__wood": 74,
+    "lod2__wood": 74
    },
    "box": [
     [
@@ -3219,15 +3363,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 3496,
-   "sha256": "4151571ef69ede2c1e80df67a37e4699ea8ac21754248ac653a95ad1d18fb6d8",
+   "bytes": 4560,
+   "sha256": "0119afe44e62d7d80a2e81f0d9d08b0964054424104d0f4898f8204f507c7287",
    "tris": {
     "lod0": 48,
-    "lod1": 15
+    "lod1": 15,
+    "lod2": 15
    },
    "partTris": {
     "lod0__wood_d": 48,
-    "lod1__wood_d": 15
+    "lod1__wood_d": 15,
+    "lod2__wood_d": 15
    },
    "box": [
     [
@@ -3260,17 +3406,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 8076,
-   "sha256": "4a81dd8f701c4beeebb82884f73bb427c6f3662d6a2362c10d576a07d2ca1ec0",
+   "bytes": 10616,
+   "sha256": "9421e4453aa5550148569560abc040babf09787e066e6b4fdc26caafaa2a0257",
    "tris": {
     "lod0": 122,
-    "lod1": 42
+    "lod1": 42,
+    "lod2": 42
    },
    "partTris": {
     "lod0__wood": 98,
     "lod0__cord": 24,
     "lod1__wood": 34,
-    "lod1__cord": 8
+    "lod1__cord": 8,
+    "lod2__wood": 34,
+    "lod2__cord": 8
    },
    "box": [
     [
@@ -3302,15 +3451,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 2568,
-   "sha256": "6f5de8a77a17e2318cbf298583dedd163d21f0febd3d99d85aa25df2ab787f5e",
+   "bytes": 3428,
+   "sha256": "0e5d7eedac2245f4c7f9fa0953539fe282bda16919e5935dcc2aab5cf5156ebd",
    "tris": {
     "lod0": 20,
-    "lod1": 8
+    "lod1": 8,
+    "lod2": 8
    },
    "partTris": {
     "lod0__reed": 20,
-    "lod1__reed": 8
+    "lod1__reed": 8,
+    "lod2__reed": 8
    },
    "box": [
     [
@@ -3343,17 +3494,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6004,
-   "sha256": "50664f57654234447d968209b552d196c017f9a03653f965eaf58a01e2f1c893",
+   "bytes": 7928,
+   "sha256": "6a03dfa6744b0c244e29266424666da0aee3e66606a68eca0ee745f2a74d37d2",
    "tris": {
     "lod0": 76,
-    "lod1": 24
+    "lod1": 24,
+    "lod2": 24
    },
    "partTris": {
     "lod0__wood": 32,
     "lod0__iron": 44,
     "lod1__wood": 10,
-    "lod1__iron": 14
+    "lod1__iron": 14,
+    "lod2__wood": 10,
+    "lod2__iron": 14
    },
    "box": [
     [
@@ -3387,11 +3541,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11216,
-   "sha256": "63f73e4fd391f12ea6e3303c95e4cb831d77937552c66be0ca0543e2c5c78206",
+   "bytes": 14644,
+   "sha256": "80ed57871fe55c1a0001a53f728800c07c9a52b4503b866fc105b11baea99685",
    "tris": {
     "lod0": 180,
-    "lod1": 60
+    "lod1": 60,
+    "lod2": 60
    },
    "partTris": {
     "lod0__wood": 32,
@@ -3399,7 +3554,10 @@
     "lod0__cord": 24,
     "lod1__wood": 10,
     "lod1__wood_d": 42,
-    "lod1__cord": 8
+    "lod1__cord": 8,
+    "lod2__wood": 10,
+    "lod2__wood_d": 42,
+    "lod2__cord": 8
    },
    "box": [
     [
@@ -3432,17 +3590,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 4864,
-   "sha256": "760ca9f06314ded89780f783923eb50a752bf0ecd3de23c5edf411992296926e",
+   "bytes": 6596,
+   "sha256": "d8b8bb22836f7c9af3e0bdac17892a8f1f33d07fd036e8a86589e721f1ccaafb",
    "tris": {
     "lod0": 38,
-    "lod1": 16
+    "lod1": 16,
+    "lod2": 16
    },
    "partTris": {
     "lod0__wood_d": 26,
     "lod0__iron": 12,
     "lod1__wood_d": 8,
-    "lod1__iron": 8
+    "lod1__iron": 8,
+    "lod2__wood_d": 8,
+    "lod2__iron": 8
    },
    "box": [
     [
@@ -3474,15 +3635,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 3228,
-   "sha256": "51611ceabd43f0ea7a946be923be1cbf595b436072a3ff16f6eec5c0a0588d7a",
+   "bytes": 4184,
+   "sha256": "f78923187e9f0dccd35583579fb1cdffd869bcb5073fa2f10719b17af931e024",
    "tris": {
     "lod0": 44,
-    "lod1": 14
+    "lod1": 14,
+    "lod2": 14
    },
    "partTris": {
     "lod0__wood": 44,
-    "lod1__wood": 14
+    "lod1__wood": 14,
+    "lod2__wood": 14
    },
    "box": [
     [
@@ -3515,17 +3678,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 10848,
-   "sha256": "4cd668920f8af2dd5c5dabe83c5b493dd57d225044ab803a3f342246481d0c99",
+   "bytes": 14084,
+   "sha256": "87725c49c1dcad3a22fb2668f31e21289f8c1d13c019238c3520dfe931243920",
    "tris": {
     "lod0": 196,
-    "lod1": 63
+    "lod1": 63,
+    "lod2": 63
    },
    "partTris": {
     "lod0__straw": 168,
     "lod0__cord": 28,
     "lod1__straw": 55,
-    "lod1__cord": 8
+    "lod1__cord": 8,
+    "lod2__straw": 55,
+    "lod2__cord": 8
    },
    "box": [
     [
@@ -3557,15 +3723,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11824,
-   "sha256": "d4d2f00fd51199be79a0f4ced943d71a512e6fea20b5ae23d8af5563c0870794",
+   "bytes": 14804,
+   "sha256": "abb2d295c9e3f413f97e7941cbdee5cb18a9af7e59d72893afaa2ea1b3d42e0c",
    "tris": {
     "lod0": 300,
-    "lod1": 120
+    "lod1": 120,
+    "lod2": 120
    },
    "partTris": {
     "lod0__wood": 300,
-    "lod1__wood": 120
+    "lod1__wood": 120,
+    "lod2__wood": 120
    },
    "box": [
     [
@@ -3597,15 +3765,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 8560,
-   "sha256": "06361f5bdfde489e0a4c90855518bda4b134479f5318da6258443d4a2b9d87be",
+   "bytes": 10896,
+   "sha256": "5498251fedb0672012f55c23a2301bea43f887529b6e5c5d7b6a7a8be5fbbdd1",
    "tris": {
     "lod0": 200,
-    "lod1": 100
+    "lod1": 100,
+    "lod2": 100
    },
    "partTris": {
     "lod0__cord": 200,
-    "lod1__cord": 100
+    "lod1__cord": 100,
+    "lod2__cord": 100
    },
    "box": [
     [
@@ -3639,11 +3809,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 7656,
-   "sha256": "13c1e592de1eeedce7c654f8d50756616c124a5a60d59ebfd504506ac5ed90c8",
+   "bytes": 10280,
+   "sha256": "8a4e083ce6289b588c8f4b05fb4868ab164d4539e81de6e5e7ce597cc6b82570",
    "tris": {
     "lod0": 76,
-    "lod1": 26
+    "lod1": 26,
+    "lod2": 26
    },
    "partTris": {
     "lod0__wood": 32,
@@ -3651,7 +3822,10 @@
     "lod0__cord": 24,
     "lod1__wood": 10,
     "lod1__iron": 8,
-    "lod1__cord": 8
+    "lod1__cord": 8,
+    "lod2__wood": 10,
+    "lod2__iron": 8,
+    "lod2__cord": 8
    },
    "box": [
     [
@@ -3684,17 +3858,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 10360,
-   "sha256": "363441df074e54180bc18e66b943eb544f9ea3b490a63cee6ba2087e02aef5c1",
+   "bytes": 13416,
+   "sha256": "3fa789e362b4cf98b2b73193a628539aa00656ab30ba4ed16abc865829a0ad16",
    "tris": {
     "lod0": 204,
-    "lod1": 98
+    "lod1": 98,
+    "lod2": 98
    },
    "partTris": {
     "lod0__wood": 180,
     "lod0__leather": 24,
     "lod1__wood": 90,
-    "lod1__leather": 8
+    "lod1__leather": 8,
+    "lod2__wood": 90,
+    "lod2__leather": 8
    },
    "box": [
     [
@@ -3727,17 +3904,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9040,
-   "sha256": "c4ad0e86622b8dca28e83b3d134f5fc8d395d7a0244c0a11afec21e1b56d1d19",
+   "bytes": 11776,
+   "sha256": "3e8b9f0e9523d7b3656ee9dbfd2dbc874f064700a91ff35189b1c32bdfdb1cf2",
    "tris": {
     "lod0": 164,
-    "lod1": 78
+    "lod1": 78,
+    "lod2": 78
    },
    "partTris": {
     "lod0__wood": 140,
     "lod0__leather": 24,
     "lod1__wood": 70,
-    "lod1__leather": 8
+    "lod1__leather": 8,
+    "lod2__wood": 70,
+    "lod2__leather": 8
    },
    "box": [
     [
@@ -3769,15 +3949,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 3548,
-   "sha256": "1bdad3fb6e05250317e2355705ccd9c3523e8a3e26645b7fa626b0819c410eee",
+   "bytes": 4668,
+   "sha256": "c718378fbf2cbc8eb0f9e940abfc7e80ce43986b35bdb1b43a7a9cd9618667e6",
    "tris": {
     "lod0": 48,
-    "lod1": 24
+    "lod1": 24,
+    "lod2": 24
    },
    "partTris": {
     "lod0__wood": 48,
-    "lod1__wood": 24
+    "lod1__wood": 24,
+    "lod2__wood": 24
    },
    "box": [
     [
@@ -3810,17 +3992,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 5528,
-   "sha256": "9024f1b1b1f5fc63cc919ed206b6e05766ccdb1feb38f7e902ea99aebbf8d6fb",
+   "bytes": 7324,
+   "sha256": "6f5f9b7d3bd2bc726fab1d9862d19c4d3a32bbb8b1382ced337344e318ed6a4f",
    "tris": {
     "lod0": 64,
-    "lod1": 20
+    "lod1": 20,
+    "lod2": 20
    },
    "partTris": {
     "lod0__wood": 32,
     "lod0__wood_d": 32,
     "lod1__wood": 10,
-    "lod1__wood_d": 10
+    "lod1__wood_d": 10,
+    "lod2__wood": 10,
+    "lod2__wood_d": 10
    },
    "box": [
     [
@@ -3852,15 +4037,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6704,
-   "sha256": "b0b07138addda5a2fcf6070796a467a26ead6d555259fddc5d3ed0eaaed06682",
+   "bytes": 8400,
+   "sha256": "0f037d1bef5875b782d6eef48b5fc618a0135602c077af7ba1f95396b2e6db98",
    "tris": {
     "lod0": 152,
-    "lod1": 52
+    "lod1": 52,
+    "lod2": 52
    },
    "partTris": {
     "lod0__gold": 152,
-    "lod1__gold": 52
+    "lod1__gold": 52,
+    "lod2__gold": 52
    },
    "box": [
     [
@@ -3895,11 +4082,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 21116,
-   "sha256": "ad94f8ef76b8dd0c6dd5366a3e27b6471a8f0752c09ace7904309dc6b7f32831",
+   "bytes": 27816,
+   "sha256": "705cf8a29454e7d7ee69ab526b104b098f21622c76999efcc073d118e97f31a8",
    "tris": {
     "lod0": 392,
-    "lod1": 139
+    "lod1": 139,
+    "lod2": 139
    },
    "partTris": {
     "lod0__wood": 24,
@@ -3909,7 +4097,11 @@
     "lod1__wood": 8,
     "lod1__cloth": 60,
     "lod1__gold": 32,
-    "lod1__band": 39
+    "lod1__band": 39,
+    "lod2__wood": 8,
+    "lod2__cloth": 60,
+    "lod2__gold": 32,
+    "lod2__band": 39
    },
    "box": [
     [
@@ -3942,17 +4134,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9220,
-   "sha256": "03e7bb112d3ec05dba1ae2cd1cb0ccce258c114e6a43d17a4b1fce7ab0ec04e5",
+   "bytes": 11980,
+   "sha256": "dca1f4106966dadd980e970f712127abb4346dc5e18395863fd8950720909097",
    "tris": {
     "lod0": 160,
-    "lod1": 56
+    "lod1": 56,
+    "lod2": 56
    },
    "partTris": {
     "lod0__green": 20,
     "lod0__petal": 140,
     "lod1__green": 8,
-    "lod1__petal": 48
+    "lod1__petal": 48,
+    "lod2__green": 8,
+    "lod2__petal": 48
    },
    "box": [
     [
@@ -3985,17 +4180,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 10672,
-   "sha256": "580f86bd22740189a1e7276ab8007040b1b11a47c7f4c16e29241af25791f306",
+   "bytes": 13820,
+   "sha256": "866db9e930bc341a79b89d10e4863c8061df3b5cd7d6838e5aec28f9d3950902",
    "tris": {
     "lod0": 198,
-    "lod1": 64
+    "lod1": 64,
+    "lod2": 64
    },
    "partTris": {
     "lod0__gold": 72,
     "lod0__hair": 126,
     "lod1__gold": 24,
-    "lod1__hair": 40
+    "lod1__hair": 40,
+    "lod2__gold": 24,
+    "lod2__hair": 40
    },
    "box": [
     [
@@ -4027,15 +4225,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 3544,
-   "sha256": "8a6aca89e51a2326cc0936ca451e797e705ab3d7550d117beec99d47579c0303",
+   "bytes": 4668,
+   "sha256": "ef3ccdd674b8604b033d4ab878620be38a11fdd8f0b3436a6c9c8feaecbd5d69",
    "tris": {
     "lod0": 48,
-    "lod1": 24
+    "lod1": 24,
+    "lod2": 24
    },
    "partTris": {
     "lod0__linen": 48,
-    "lod1__linen": 24
+    "lod1__linen": 24,
+    "lod2__linen": 24
    },
    "box": [
     [
@@ -4067,15 +4267,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6108,
-   "sha256": "fc6a2a7fe4c7fc2fa9d0717cad25c06b8ef104ea51fb9be9e339b29a00eaa8e0",
+   "bytes": 7616,
+   "sha256": "20487966fb8ab7c40d103a54aff4f9f66352d9e3d0984f5dd4f143ad095cb318",
    "tris": {
     "lod0": 140,
-    "lod1": 48
+    "lod1": 48,
+    "lod2": 48
    },
    "partTris": {
     "lod0__leather": 140,
-    "lod1__leather": 48
+    "lod1__leather": 48,
+    "lod2__leather": 48
    },
    "box": [
     [
@@ -4107,15 +4309,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 5036,
-   "sha256": "ff4e826976da5905e394acf4d2ad00d044b5ed74bc8c7f762100a420d9bd4f4c",
+   "bytes": 6384,
+   "sha256": "bdbd6c0fbec0ca706f5093e9c5a38afc929d183a5a25a106f6de0d598fd1d0bc",
    "tris": {
     "lod0": 100,
-    "lod1": 34
+    "lod1": 34,
+    "lod2": 34
    },
    "partTris": {
     "lod0__clay": 100,
-    "lod1__clay": 34
+    "lod1__clay": 34,
+    "lod2__clay": 34
    },
    "box": [
     [
@@ -4148,17 +4352,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 5524,
-   "sha256": "bbb2fd142578c12045e99b91fb8997789e74c6738bfad833ae4fd6410dabc2bb",
+   "bytes": 7316,
+   "sha256": "a5066270395d1989f96e8b77de36d2406df42a9a49d9a31533fc92c1d78277e1",
    "tris": {
     "lod0": 64,
-    "lod1": 20
+    "lod1": 20,
+    "lod2": 20
    },
    "partTris": {
     "lod0__wood": 32,
     "lod0__iron": 32,
     "lod1__wood": 10,
-    "lod1__iron": 10
+    "lod1__iron": 10,
+    "lod2__wood": 10,
+    "lod2__iron": 10
    },
    "box": [
     [
@@ -4191,17 +4398,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9232,
-   "sha256": "7bfd99c2ccc8c04962ae8421d4f6df1dc87f2570b6a11e4668e48c367dc1d718",
+   "bytes": 11800,
+   "sha256": "99300a8d366e8ff9c7974eb910bb421b988a82d640162e6a5a20d360361d58b2",
    "tris": {
     "lod0": 180,
-    "lod1": 60
+    "lod1": 60,
+    "lod2": 60
    },
    "partTris": {
     "lod0__iron": 72,
     "lod0__hot": 108,
     "lod1__iron": 24,
-    "lod1__hot": 36
+    "lod1__hot": 36,
+    "lod2__iron": 24,
+    "lod2__hot": 36
    },
    "box": [
     [
@@ -4234,17 +4444,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 5232,
-   "sha256": "024874a86da6aa0e35d921b59708ccf52bc18b760c6ef943c01992c3f550229c",
+   "bytes": 7000,
+   "sha256": "f66022ea949196619acba6ccd6460b028884214cf27c1b574260a20e89b67ae1",
    "tris": {
     "lod0": 52,
-    "lod1": 18
+    "lod1": 18,
+    "lod2": 18
    },
    "partTris": {
     "lod0__wood": 20,
     "lod0__bronze": 32,
     "lod1__wood": 8,
-    "lod1__bronze": 10
+    "lod1__bronze": 10,
+    "lod2__wood": 8,
+    "lod2__bronze": 10
    },
    "box": [
     [
@@ -4276,15 +4489,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 2884,
-   "sha256": "b4e25a1df8f687f8dc8b9f4e10b81977d9b36f7146261612aac4759ea7f1f20c",
+   "bytes": 3780,
+   "sha256": "4cb00f9d0a0ff0f1e01d9dfc2ad29fc130ccbdf5aefb4168e42d87bb1bdb1f40",
    "tris": {
     "lod0": 32,
-    "lod1": 10
+    "lod1": 10,
+    "lod2": 10
    },
    "partTris": {
     "lod0__bronze": 32,
-    "lod1__bronze": 10
+    "lod1__bronze": 10,
+    "lod2__bronze": 10
    },
    "box": [
     [
@@ -4317,17 +4532,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 15036,
-   "sha256": "ea634f7b3376855b8bf2a1cf4c7ae36a02e9814b3fd06e2feb16b0cee11f87fb",
+   "bytes": 19392,
+   "sha256": "492fead5279c241883049d46449f26d86beddd8019c0596d29ba99abc34c0d87",
    "tris": {
     "lod0": 320,
-    "lod1": 134
+    "lod1": 134,
+    "lod2": 134
    },
    "partTris": {
     "lod0__cord": 60,
     "lod0__bronze": 260,
     "lod1__cord": 14,
-    "lod1__bronze": 120
+    "lod1__bronze": 120,
+    "lod2__cord": 14,
+    "lod2__bronze": 120
    },
    "box": [
     [
@@ -4359,15 +4577,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 5404,
-   "sha256": "8b1d26b6d90c7ad0950840269df45b87e59ec61d2db36abc790ead4c8bcf1686",
+   "bytes": 6756,
+   "sha256": "7faed9345dca01978612f5a37f579d08e026c55d1ef1a40a5c1322278a707fcc",
    "tris": {
     "lod0": 120,
-    "lod1": 42
+    "lod1": 42,
+    "lod2": 42
    },
    "partTris": {
     "lod0__stone": 120,
-    "lod1__stone": 42
+    "lod1__stone": 42,
+    "lod2__stone": 42
    },
    "box": [
     [
@@ -4400,17 +4620,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6396,
-   "sha256": "c302de3eddbb8cb9bbe10ce84a8396ee06957f8cc617e584331bb150def5c90a",
+   "bytes": 8464,
+   "sha256": "0b0ced121705ac54e4e80648a1efd3defb038d01e5073bd2ff132d40b8f29ffb",
    "tris": {
     "lod0": 94,
-    "lod1": 36
+    "lod1": 36,
+    "lod2": 36
    },
    "partTris": {
     "lod0__wood_d": 86,
     "lod0__leather": 8,
     "lod1__wood_d": 28,
-    "lod1__leather": 8
+    "lod1__leather": 8,
+    "lod2__wood_d": 28,
+    "lod2__leather": 8
    },
    "box": [
     [
@@ -4443,17 +4666,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6324,
-   "sha256": "1390a23cdb4db6088d82522fa7aaef5e4a6e7dc47647e23067bcb1904ea0650a",
+   "bytes": 8348,
+   "sha256": "6b3b16a88031cfa48cac6fecff35909e7f744d407257cba5c221cb7b515249a6",
    "tris": {
     "lod0": 84,
-    "lod1": 30
+    "lod1": 30,
+    "lod2": 30
    },
    "partTris": {
     "lod0__iron": 20,
     "lod0__wood": 64,
     "lod1__iron": 8,
-    "lod1__wood": 22
+    "lod1__wood": 22,
+    "lod2__iron": 8,
+    "lod2__wood": 22
    },
    "box": [
     [
@@ -4485,15 +4711,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 4676,
-   "sha256": "917977e47caf40b61b07f5d32b0639c800d8c5c9e7c451189c005f7a4802bd65",
+   "bytes": 5920,
+   "sha256": "5cbad27c581b6167ffb8e80af4c917e7df215181a33f6f9817b9a1896d59f6d1",
    "tris": {
     "lod0": 92,
-    "lod1": 32
+    "lod1": 32,
+    "lod2": 32
    },
    "partTris": {
     "lod0__wood": 92,
-    "lod1__wood": 32
+    "lod1__wood": 32,
+    "lod2__wood": 32
    },
    "box": [
     [
@@ -4526,17 +4754,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 4736,
-   "sha256": "b491208f67da0a07e6ce25bcee92b59a11045bcb523b26cd887381d27c0657e6",
+   "bytes": 6468,
+   "sha256": "a719ea4131c94c0e5e3a743edfab1f460b561a147d51101c921c8f15b7b4bd5b",
    "tris": {
     "lod0": 32,
-    "lod1": 16
+    "lod1": 16,
+    "lod2": 16
    },
    "partTris": {
     "lod0__reed": 16,
     "lod0__ink": 16,
     "lod1__reed": 8,
-    "lod1__ink": 8
+    "lod1__ink": 8,
+    "lod2__reed": 8,
+    "lod2__ink": 8
    },
    "box": [
     [
@@ -4568,15 +4799,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 2700,
-   "sha256": "2325f5c4d350bf40f2eacee5eb6829935318029db814cbd424ed0cba55b68c45",
+   "bytes": 3564,
+   "sha256": "30615dcb93ac8235a2f93c7ebb66009ec5baf235e7e3177b65e7e241df9206d4",
    "tris": {
     "lod0": 26,
-    "lod1": 8
+    "lod1": 8,
+    "lod2": 8
    },
    "partTris": {
     "lod0__bone": 26,
-    "lod1__bone": 8
+    "lod1__bone": 8,
+    "lod2__bone": 8
    },
    "box": [
     [
@@ -4611,11 +4844,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 28060,
-   "sha256": "c872e114867adba6a25a1397f633d21796d288dee38b2242ca6a1b677e0ea03c",
+   "bytes": 35432,
+   "sha256": "834e12ca872251653201c8abf35ac5f067470ab1bcdb1b3ace6a84988c2f6b51",
    "tris": {
     "lod0": 668,
-    "lod1": 264
+    "lod1": 264,
+    "lod2": 264
    },
    "partTris": {
     "lod0__lime": 256,
@@ -4625,7 +4859,11 @@
     "lod1__lime": 102,
     "lod1__wood_d": 22,
     "lod1__wood": 128,
-    "lod1__cord": 12
+    "lod1__cord": 12,
+    "lod2__lime": 102,
+    "lod2__wood_d": 22,
+    "lod2__wood": 128,
+    "lod2__cord": 12
    },
    "box": [
     [
@@ -4657,15 +4895,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 96392,
-   "sha256": "705a572be93766a3c3fd229a961eb7915b52804ff7779ca418d2ec1ce258e71c",
+   "bytes": 104164,
+   "sha256": "9d0805497d7851ba8bbe9d8ba24ebe1abab4c093d86f934e2446fa7a1e37ea51",
    "tris": {
     "lod0": 2160,
-    "lod1": 864
+    "lod1": 864,
+    "lod2": 258
    },
    "partTris": {
     "lod0__brick": 2160,
-    "lod1__brick": 864
+    "lod1__brick": 864,
+    "lod2__brick": 258
    },
    "box": [
     [
@@ -4698,17 +4938,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 19532,
-   "sha256": "ffe3da9657fb0116ad2d16b6aa683e389d7f43f0b5f2b04dcce93a36395532f7",
+   "bytes": 24548,
+   "sha256": "0216eda85093cb0336279491429ee96800a52c75434c4fc93a6e2080ddb76e74",
    "tris": {
     "lod0": 488,
-    "lod1": 188
+    "lod1": 188,
+    "lod2": 188
    },
    "partTris": {
     "lod0__mud_wet": 424,
     "lod0__straw": 64,
     "lod1__mud_wet": 168,
-    "lod1__straw": 20
+    "lod1__straw": 20,
+    "lod2__mud_wet": 168,
+    "lod2__straw": 20
    },
    "box": [
     [
@@ -4741,17 +4984,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 74516,
-   "sha256": "37c025fe13ec03c390c9fdd2677ddf5adc2fd8cbddbe27c9ccaca2cb681f4b92",
+   "bytes": 82044,
+   "sha256": "78235bbcded92d90d69b6476376536f2a9818f6eb2dcc749854a6c08d8e82ee1",
    "tris": {
     "lod0": 1620,
-    "lod1": 646
+    "lod1": 646,
+    "lod2": 254
    },
    "partTris": {
     "lod0__mud": 216,
     "lod0__brick": 1404,
     "lod1__mud": 86,
-    "lod1__brick": 560
+    "lod1__brick": 560,
+    "lod2__mud": 86,
+    "lod2__brick": 168
    },
    "box": [
     [
@@ -4784,17 +5030,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 14240,
-   "sha256": "56c5c04f15a460f11f0c4fa5dd0a3e84f5224b678a72a4cf558f452a237b1850",
+   "bytes": 18036,
+   "sha256": "529f8aa111da5794f303efb06b3e9e519922d26d909d2c43724a53551921f501",
    "tris": {
     "lod0": 328,
-    "lod1": 130
+    "lod1": 130,
+    "lod2": 130
    },
    "partTris": {
     "lod0__wicker": 280,
     "lod0__mud_wet": 48,
     "lod1__wicker": 112,
-    "lod1__mud_wet": 18
+    "lod1__mud_wet": 18,
+    "lod2__wicker": 112,
+    "lod2__mud_wet": 18
    },
    "box": [
     [
@@ -4828,11 +5077,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 27380,
-   "sha256": "5a43e5e1eb0b8c247264ce53f1ec1a836aa0ea342391ce293943ac6b20b793f8",
+   "bytes": 33128,
+   "sha256": "4e5885fa7199fc4012974ba11065c304dc1bba5ce8535b4c65702f8e394a1b85",
    "tris": {
     "lod0": 540,
-    "lod1": 212
+    "lod1": 212,
+    "lod2": 212
    },
    "partTris": {
     "lod0__mud_wet": 108,
@@ -4840,7 +5090,10 @@
     "lod0__mud": 108,
     "lod1__mud_wet": 42,
     "lod1__brick": 128,
-    "lod1__mud": 42
+    "lod1__mud": 42,
+    "lod2__mud_wet": 42,
+    "lod2__brick": 128,
+    "lod2__mud": 42
    },
    "box": [
     [
@@ -4874,24 +5127,28 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 55840,
-   "sha256": "501eed7bac4da2758a35e1b66b8f5cfcdb4eae103e65860f8fda3eb74bf4c10b",
+   "bytes": 101596,
+   "sha256": "42b0e359832f4b231339b2e2ef3f23f417854a2c78f7ba072d2388a82bd5ac47",
    "tris": {
-    "lod0": 1464,
-    "lod1": 584
+    "lod0": 2364,
+    "lod1": 944,
+    "lod2": 430
    },
    "partTris": {
     "lod0__wood": 432,
-    "lod0__stone": 936,
+    "lod0__stone": 1836,
     "lod0__chips": 96,
     "lod1__wood": 172,
-    "lod1__stone": 374,
-    "lod1__chips": 38
+    "lod1__stone": 734,
+    "lod1__chips": 38,
+    "lod2__wood": 172,
+    "lod2__stone": 220,
+    "lod2__chips": 38
    },
    "box": [
     [
      -1.5003559589385986,
-     -0.020405391231179237,
+     -0.0004469752311706543,
      -0.367897629737854
     ],
     [
@@ -4903,7 +5160,7 @@
    "ao": true,
    "size_m": [
     3.00042188167572,
-    0.5806286130100489,
+    0.5606701970100403,
     0.7328976094722748
    ],
    "tex": 0
@@ -4923,11 +5180,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 105848,
-   "sha256": "a415b788b2510ace6e51c06da843f5fb08af0685e7901ed4907f8389e04c579b",
+   "bytes": 170780,
+   "sha256": "d6c92ec6894cab528ad3879a9d5ba3c0427897db544783f4de111260ea5cc62f",
    "tris": {
-    "lod0": 2516,
-    "lod1": 1230
+    "lod0": 3620,
+    "lod1": 1672,
+    "lod2": 714
    },
    "partTris": {
     "lod0__wood": 772,
@@ -4935,13 +5193,19 @@
     "lod0__red": 48,
     "lod0__blue": 48,
     "lod0__warp": 528,
-    "lod0__stone": 948,
+    "lod0__stone": 2052,
     "lod1__wood": 308,
     "lod1__wood_d": 68,
     "lod1__red": 18,
     "lod1__blue": 18,
     "lod1__warp": 440,
-    "lod1__stone": 378
+    "lod1__stone": 820,
+    "lod2__wood": 100,
+    "lod2__wood_d": 68,
+    "lod2__red": 18,
+    "lod2__blue": 18,
+    "lod2__warp": 264,
+    "lod2__stone": 246
    },
    "box": [
     [
@@ -4950,14 +5214,14 @@
      -0.9352169036865234
     ],
     [
-     0.600672721862793,
+     0.6079802513122559,
      0.23402045667171478,
      2.035216808319092
     ]
    ],
    "ao": true,
    "size_m": [
-    1.200672686100006,
+    1.207980215549469,
     0.27543313428759575,
     2.9704337120056152
    ],
@@ -4973,15 +5237,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 26948,
-   "sha256": "ac24d5e07e65a06f07bf4b822b35ca85667d9e47ba12f4c18ce6ba30c82b859a",
+   "bytes": 30400,
+   "sha256": "4225812b36ab70d126397ed445367c8a1b0995a6da6a4b708036668efe152823",
    "tris": {
     "lod0": 800,
-    "lod1": 300
+    "lod1": 300,
+    "lod2": 100
    },
    "partTris": {
     "lod0__dung": 800,
-    "lod1__dung": 300
+    "lod1__dung": 300,
+    "lod2__dung": 100
    },
    "box": [
     [
@@ -5013,15 +5279,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 18452,
-   "sha256": "2d5bd852186a2be9d320e2ae246e9a68ee90b8fa663fdda9763beb0a365ac688",
+   "bytes": 23012,
+   "sha256": "eed18f97de26ae79cb4bfce7876bda3219443a14b619d5db2eb56159b16ef371",
    "tris": {
     "lod0": 496,
-    "lod1": 188
+    "lod1": 188,
+    "lod2": 188
    },
    "partTris": {
     "lod0__straw_d": 496,
-    "lod1__straw_d": 188
+    "lod1__straw_d": 188,
+    "lod2__straw_d": 188
    },
    "box": [
     [
@@ -5054,17 +5322,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 27052,
-   "sha256": "7079938bd8a2fe9fb4e99aeccf2e373de92b0507477ee6311364df3ecd3579e3",
+   "bytes": 33376,
+   "sha256": "d29607b43a63fa5e72347e862d63b58f95367e70a9109b5dda7fa95c1e902413",
    "tris": {
     "lod0": 760,
-    "lod1": 302
+    "lod1": 302,
+    "lod2": 302
    },
    "partTris": {
     "lod0__wool": 376,
     "lod0__wool_d": 384,
     "lod1__wool": 150,
-    "lod1__wool_d": 152
+    "lod1__wool_d": 152,
+    "lod2__wool": 150,
+    "lod2__wool_d": 152
    },
    "box": [
     [
@@ -5098,11 +5369,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 77288,
-   "sha256": "4c392873a7280fb89ad8b245121552ed4875dcfbe2d186fcc446032a7f3f1ab1",
+   "bytes": 86808,
+   "sha256": "83933a0b31b8bedf03fdec18e39b90aa910b4b6ead4a09c4a8fcd0463f85033b",
    "tris": {
     "lod0": 2308,
-    "lod1": 922
+    "lod1": 922,
+    "lod2": 328
    },
    "partTris": {
     "lod0__hide": 108,
@@ -5110,7 +5382,10 @@
     "lod0__fat": 80,
     "lod1__hide": 42,
     "lod1__meat": 848,
-    "lod1__fat": 32
+    "lod1__fat": 32,
+    "lod2__hide": 42,
+    "lod2__meat": 254,
+    "lod2__fat": 32
    },
    "box": [
     [
@@ -5143,17 +5418,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 17256,
-   "sha256": "7fabd46280891f9501fb4308ff1d0f7eaccfa45dff5b0269ca53de4d75da72c9",
+   "bytes": 21624,
+   "sha256": "d42b76c2084324acc5e6dbdc125ce24e9978384b173edf5cd5bd528151fdd75a",
    "tris": {
     "lod0": 432,
-    "lod1": 172
+    "lod1": 172,
+    "lod2": 172
    },
    "partTris": {
     "lod0__hide": 216,
     "lod0__hide_d": 216,
     "lod1__hide": 86,
-    "lod1__hide_d": 86
+    "lod1__hide_d": 86,
+    "lod2__hide": 86,
+    "lod2__hide_d": 86
    },
    "box": [
     [
@@ -5185,15 +5463,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 16228,
-   "sha256": "f5027e889ad7dd8c0b1b67e06d80c3aa95f3c3c4bcada09526d41dfdc1b54fe1",
+   "bytes": 19908,
+   "sha256": "0e37b83b4c8268e0f556c4319d09ec67f010eeac1a2a3e60756efe236a387cd5",
    "tris": {
     "lod0": 464,
-    "lod1": 184
+    "lod1": 184,
+    "lod2": 184
    },
    "partTris": {
     "lod0__meat": 464,
-    "lod1__meat": 184
+    "lod1__meat": 184,
+    "lod2__meat": 184
    },
    "box": [
     [
@@ -5225,15 +5505,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 35928,
-   "sha256": "73041f15679a02b11b69c3fb89cd8bf1bfe548abe06d2ee636073e8c8b8c9c87",
+   "bytes": 42860,
+   "sha256": "c689852ca987ec289a0f67ba10c56462938013b6bdbca78f0f0f0956b7087f5e",
    "tris": {
     "lod0": 900,
-    "lod1": 299
+    "lod1": 299,
+    "lod2": 60
    },
    "partTris": {
     "lod0__grape": 900,
-    "lod1__grape": 299
+    "lod1__grape": 299,
+    "lod2__grape": 60
    },
    "box": [
     [
@@ -5265,15 +5547,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 37176,
-   "sha256": "8d1c3423cef38efb166e4ee40c3fb7742f5557d17cb9a2585da51c486a393931",
+   "bytes": 45124,
+   "sha256": "09fbf745098d0a7c5a227471b2af91ad8a4f26e7505468816b169702f6f45b17",
    "tris": {
     "lod0": 900,
-    "lod1": 296
+    "lod1": 296,
+    "lod2": 70
    },
    "partTris": {
     "lod0__nut": 900,
-    "lod1__nut": 296
+    "lod1__nut": 296,
+    "lod2__nut": 70
    },
    "box": [
     [
@@ -5305,15 +5589,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 14172,
-   "sha256": "87f55beb9ca8709e886191b3584ec3d7c597ee4808ffa5e2cb1e0c7494ec47df",
+   "bytes": 17696,
+   "sha256": "38e943f294e23caa021e4a5da5282588ca78baa00599357a78896dca02e956e2",
    "tris": {
     "lod0": 368,
-    "lod1": 146
+    "lod1": 146,
+    "lod2": 146
    },
    "partTris": {
     "lod0__fish": 368,
-    "lod1__fish": 146
+    "lod1__fish": 146,
+    "lod2__fish": 146
    },
    "box": [
     [
@@ -5347,11 +5633,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 60660,
-   "sha256": "f638a17e86c8d002b657d9fe2a550f6d53e9795aacb3de85deaf13885b2570d1",
+   "bytes": 71056,
+   "sha256": "c4976aa2e732bad03c8ffc63778f100eed083c0f82de88622013907a1d750752",
    "tris": {
     "lod0": 1672,
-    "lod1": 668
+    "lod1": 668,
+    "lod2": 332
    },
    "partTris": {
     "lod0__earth": 120,
@@ -5359,7 +5646,10 @@
     "lod0__wood_d": 352,
     "lod1__earth": 48,
     "lod1__straw": 480,
-    "lod1__wood_d": 140
+    "lod1__wood_d": 140,
+    "lod2__earth": 48,
+    "lod2__straw": 144,
+    "lod2__wood_d": 140
    },
    "box": [
     [
@@ -5393,11 +5683,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 88644,
-   "sha256": "45530a5ffcc627a6a2e3351fae3f16c698b7470eec9cb1a8ee20bed3560bb93a",
+   "bytes": 111044,
+   "sha256": "0015cc8e3d549689651ccd6cc88b36130b9b3ec2242d58fcd42e7c827b22bf90",
    "tris": {
     "lod0": 2398,
-    "lod1": 899
+    "lod1": 899,
+    "lod2": 889
    },
    "partTris": {
     "lod0__straw": 899,
@@ -5405,7 +5696,10 @@
     "lod0__straw_d": 599,
     "lod1__straw": 299,
     "lod1__ears": 299,
-    "lod1__straw_d": 301
+    "lod1__straw_d": 301,
+    "lod2__straw": 299,
+    "lod2__ears": 299,
+    "lod2__straw_d": 291
    },
    "box": [
     [
@@ -5439,11 +5733,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 48064,
-   "sha256": "9acaf014c519dc4747045b73aebd3f0803ca5446d658182974b2a2035d048238",
+   "bytes": 59552,
+   "sha256": "509483ff1f01260ddf0230b20107f21d088262b9a0b23c760729643624534378",
    "tris": {
     "lod0": 1280,
-    "lod1": 509
+    "lod1": 509,
+    "lod2": 509
    },
    "partTris": {
     "lod0__straw": 392,
@@ -5451,7 +5746,10 @@
     "lod0__straw_d": 384,
     "lod1__straw": 156,
     "lod1__ears": 201,
-    "lod1__straw_d": 152
+    "lod1__straw_d": 152,
+    "lod2__straw": 156,
+    "lod2__ears": 201,
+    "lod2__straw_d": 152
    },
    "box": [
     [
@@ -5485,11 +5783,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 15816,
-   "sha256": "6aec8206fad2dd65f25d28df2e1a95d15159ff87f4803a9f0d5712e90f904c6e",
+   "bytes": 20232,
+   "sha256": "9497253e78054c8107d25c5f68c2fee315adcc9949a83ef580ae728da93f3baa",
    "tris": {
     "lod0": 320,
-    "lod1": 126
+    "lod1": 126,
+    "lod2": 126
    },
    "partTris": {
     "lod0__straw": 98,
@@ -5497,7 +5796,10 @@
     "lod0__straw_d": 96,
     "lod1__straw": 39,
     "lod1__ears": 50,
-    "lod1__straw_d": 37
+    "lod1__straw_d": 37,
+    "lod2__straw": 39,
+    "lod2__ears": 50,
+    "lod2__straw_d": 37
    },
    "box": [
     [
@@ -5530,17 +5832,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 32496,
-   "sha256": "27cb447f4c14c78c5c8aed73eeb308ef1af3782ebca23638d2745ae566180bf0",
+   "bytes": 40388,
+   "sha256": "378d2730ddd33a98180812c19cf384f837314bb0e4020d9a63a1868a094e436b",
    "tris": {
     "lod0": 888,
-    "lod1": 354
+    "lod1": 354,
+    "lod2": 354
    },
    "partTris": {
     "lod0__grain": 720,
     "lod0__chaff": 168,
     "lod1__grain": 288,
-    "lod1__chaff": 66
+    "lod1__chaff": 66,
+    "lod2__grain": 288,
+    "lod2__chaff": 66
    },
    "box": [
     [
@@ -5572,15 +5877,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 15584,
-   "sha256": "0b4d536dd71349ace6ef813f43e7f697a79bf3c2fa88012178dbb8a59fc720c2",
+   "bytes": 19140,
+   "sha256": "a493972af8519994d89d1abe22e412ae7ae3d63f935df1d930e158b1b2829240",
    "tris": {
     "lod0": 444,
-    "lod1": 176
+    "lod1": 176,
+    "lod2": 176
    },
    "partTris": {
     "lod0__earth": 444,
-    "lod1__earth": 176
+    "lod1__earth": 176,
+    "lod2__earth": 176
    },
    "box": [
     [
@@ -5613,17 +5920,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 28012,
-   "sha256": "d6962304cff92e18edbd172e8e57e76abe8baa335a6285a5140b50bb4718a1bb",
+   "bytes": 34296,
+   "sha256": "40181ee3c17848b182e2d4ad37b4a51fd2dd0f0fd6da4c578f01b0aa52a06a42",
    "tris": {
     "lod0": 732,
-    "lod1": 292
+    "lod1": 292,
+    "lod2": 292
    },
    "partTris": {
     "lod0__lime": 540,
     "lod0__grape": 192,
     "lod1__lime": 216,
-    "lod1__grape": 76
+    "lod1__grape": 76,
+    "lod2__lime": 216,
+    "lod2__grape": 76
    },
    "box": [
     [
@@ -5655,15 +5965,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 68448,
-   "sha256": "69e29bd1cc09580eb340c4edadb292ae0dbd8714dbbe6c3c4eddc54d53b50848",
+   "bytes": 75864,
+   "sha256": "9592a27bbe6abbaed4fa370e70d6d330f031b12b40580cc104e5b05002a476b6",
    "tris": {
     "lod0": 2088,
-    "lod1": 834
+    "lod1": 834,
+    "lod2": 241
    },
    "partTris": {
     "lod0__wood_d": 2088,
-    "lod1__wood_d": 834
+    "lod1__wood_d": 834,
+    "lod2__wood_d": 241
    },
    "box": [
     [
@@ -5700,25 +6012,32 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 66444,
-   "sha256": "53259de51087b47a2ff56d86ca7b4f873452f330da6f0544cc9fd733f308ce62",
+   "bytes": 111616,
+   "sha256": "8839098e1b0938a36f576ea004034db3971ed614800a25e13f376f3f932ba023",
    "tris": {
-    "lod0": 1810,
-    "lod1": 718
+    "lod0": 2626,
+    "lod1": 1044,
+    "lod2": 712
    },
    "partTris": {
     "lod0__stone": 108,
-    "lod0__stone_d": 372,
+    "lod0__stone_d": 1188,
     "lod0__pig_blue": 316,
     "lod0__pig_green": 332,
     "lod0__pig_red": 354,
     "lod0__pig_ochre": 328,
     "lod1__stone": 42,
-    "lod1__stone_d": 148,
+    "lod1__stone_d": 474,
     "lod1__pig_blue": 126,
     "lod1__pig_green": 132,
     "lod1__pig_red": 140,
-    "lod1__pig_ochre": 130
+    "lod1__pig_ochre": 130,
+    "lod2__stone": 42,
+    "lod2__stone_d": 142,
+    "lod2__pig_blue": 126,
+    "lod2__pig_green": 132,
+    "lod2__pig_red": 140,
+    "lod2__pig_ochre": 130
    },
    "box": [
     [
@@ -5728,14 +6047,14 @@
     ],
     [
      0.17980217933654785,
-     0.1165187805891037,
+     0.14332833886146545,
      0.1301126927137375
     ]
    ],
    "ao": true,
    "size_m": [
     0.36019331216812134,
-    0.1166730260301847,
+    0.14348258430254646,
     0.2604766935110092
    ],
    "tex": 0
@@ -5752,11 +6071,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 77504,
-   "sha256": "f5a53aa0b0dcee37a96726f3a5552b77fb5e8584c36615e3d6a46ae09578085b",
+   "bytes": 90500,
+   "sha256": "0d2bb7546e8e480bc00e145fbcae609854fb5248723a1e46be68ad65542c273b",
    "tris": {
     "lod0": 2356,
-    "lod1": 860
+    "lod1": 860,
+    "lod2": 580
    },
    "partTris": {
     "lod0__wood": 724,
@@ -5764,7 +6084,10 @@
     "lod0__linen": 1200,
     "lod1__wood": 288,
     "lod1__wood_d": 172,
-    "lod1__linen": 400
+    "lod1__linen": 400,
+    "lod2__wood": 288,
+    "lod2__wood_d": 172,
+    "lod2__linen": 120
    },
    "box": [
     [
@@ -5797,35 +6120,38 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 23980,
-   "sha256": "8ad3b2cdcef39a637f9be184590c6165deff9f382cc5840d6564bdfcbf68f578",
+   "bytes": 54928,
+   "sha256": "399f872298735e3de75f2153b6a1272a20882edc40a83776791068e40779b9b2",
    "tris": {
-    "lod0": 660,
-    "lod1": 262
+    "lod0": 1328,
+    "lod1": 530,
+    "lod2": 256
    },
    "partTris": {
-    "lod0__stone": 304,
+    "lod0__stone": 972,
     "lod0__cloth": 356,
-    "lod1__stone": 120,
-    "lod1__cloth": 142
+    "lod1__stone": 388,
+    "lod1__cloth": 142,
+    "lod2__stone": 114,
+    "lod2__cloth": 142
    },
    "box": [
     [
-     -0.2682940363883972,
-     -0.03830195218324661,
-     -0.3098124563694
+     -0.3103387951850891,
+     -0.020319776609539986,
+     -0.2800000011920929
     ],
     [
      0.6299999952316284,
-     0.15870973467826843,
-     0.23415307700634003
+     0.2280561327934265,
+     0.24345746636390686
     ]
    ],
    "ao": true,
    "size_m": [
-    0.8982940316200256,
-    0.19701168686151505,
-    0.54396553337574
+    0.9403387904167175,
+    0.2483759094029665,
+    0.5234574675559998
    ],
    "tex": 0
   },
@@ -5842,11 +6168,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 71556,
-   "sha256": "43f246ecc2a6a76934a7041ad39d1f29d3570ba5ef9b16ecffd6f5e86705cb74",
+   "bytes": 88288,
+   "sha256": "4834852b5e088e8543b0955ca90b238a3cd4f4318fc3614e5020f7379287568c",
    "tris": {
     "lod0": 2056,
-    "lod1": 840
+    "lod1": 840,
+    "lod2": 840
    },
    "partTris": {
     "lod0__wood_d": 592,
@@ -5856,7 +6183,11 @@
     "lod1__wood_d": 236,
     "lod1__wood": 104,
     "lod1__linen": 250,
-    "lod1__red": 250
+    "lod1__red": 250,
+    "lod2__wood_d": 236,
+    "lod2__wood": 104,
+    "lod2__linen": 250,
+    "lod2__red": 250
    },
    "box": [
     [
@@ -5892,11 +6223,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 61252,
-   "sha256": "8e067efd083203d6fb155b27a09ad3ce7a24c28b6ca410af1c747649f8f2c0ad",
+   "bytes": 72860,
+   "sha256": "7a3b2c90f4aa44c8c259fc26bd626622df1e3c67d63ca3966244e7919be81956",
    "tris": {
     "lod0": 1668,
-    "lod1": 664
+    "lod1": 664,
+    "lod2": 416
    },
    "partTris": {
     "lod0__wood_d": 308,
@@ -5908,7 +6240,12 @@
     "lod1__straw": 352,
     "lod1__cord": 152,
     "lod1__hide": 24,
-    "lod1__dark": 14
+    "lod1__dark": 14,
+    "lod2__wood_d": 122,
+    "lod2__straw": 104,
+    "lod2__cord": 152,
+    "lod2__hide": 24,
+    "lod2__dark": 14
    },
    "box": [
     [
@@ -5943,38 +6280,43 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 83108,
-   "sha256": "43633bbeee514fdd62d0059c564fbf52a5569c6ccb1326afe389ac7f992ffd26",
+   "bytes": 169460,
+   "sha256": "8cd067c50f102c687298f188dcefc76c8117d17a0c12e4f177afab715897c144",
    "tris": {
-    "lod0": 2432,
-    "lod1": 972
+    "lod0": 4256,
+    "lod1": 1700,
+    "lod2": 854
    },
    "partTris": {
     "lod0__ash": 80,
-    "lod0__stone": 1200,
+    "lod0__stone": 3024,
     "lod0__ember": 492,
     "lod0__wood_d": 660,
     "lod1__ash": 32,
-    "lod1__stone": 480,
+    "lod1__stone": 1208,
     "lod1__ember": 196,
-    "lod1__wood_d": 264
+    "lod1__wood_d": 264,
+    "lod2__ash": 32,
+    "lod2__stone": 362,
+    "lod2__ember": 196,
+    "lod2__wood_d": 264
    },
    "box": [
     [
      -0.2999351918697357,
-     -0.014000380411744118,
+     -0.0030136287678033113,
      -0.3204286992549896
     ],
     [
      0.33302924036979675,
-     0.10884709656238556,
+     0.11876125633716583,
      0.3275648057460785
     ]
    ],
    "ao": true,
    "size_m": [
     0.6329644322395325,
-    0.12284747697412968,
+    0.12177488510496914,
     0.6479935050010681
    ],
    "tex": 0
@@ -5992,11 +6334,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 43228,
-   "sha256": "ce9c40d5dcbbd383dff7b13e2308b36cac492112a728782d3781fa3b221f1b61",
+   "bytes": 50356,
+   "sha256": "ba10ac19ffd82e8684839f64ffdf988f088d774e8ff90fba15d7e36a6291c96a",
    "tris": {
     "lod0": 1144,
-    "lod1": 454
+    "lod1": 454,
+    "lod2": 182
    },
    "partTris": {
     "lod0__wood": 968,
@@ -6006,7 +6349,11 @@
     "lod1__wood": 386,
     "lod1__wood_d": 52,
     "lod1__iron": 8,
-    "lod1__cord": 8
+    "lod1__cord": 8,
+    "lod2__wood": 114,
+    "lod2__wood_d": 52,
+    "lod2__iron": 8,
+    "lod2__cord": 8
    },
    "box": [
     [
@@ -6039,17 +6386,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 111460,
-   "sha256": "afe84b3f405f12354606b3c61fb999c5623eaff3d9006448b39ab69ba4a793cc",
+   "bytes": 124192,
+   "sha256": "0540781ff070f3d084fecd3c662429470c86c05c5d900b82224d5f4e0215d8a2",
    "tris": {
     "lod0": 2848,
-    "lod1": 1136
+    "lod1": 1136,
+    "lod2": 336
    },
    "partTris": {
     "lod0__wood_d": 1724,
     "lod0__wood": 1124,
     "lod1__wood_d": 688,
-    "lod1__wood": 448
+    "lod1__wood": 448,
+    "lod2__wood_d": 206,
+    "lod2__wood": 130
    },
    "box": [
     [
@@ -6084,11 +6434,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 167984,
-   "sha256": "db0d5f7e4c1476d26b8a0b7da013cfe8c3ece0927649250687a6a336254a0bcc",
+   "bytes": 186944,
+   "sha256": "6f83edeecfb5b7758ae2784985ab1033832c78b6f50210170ae1a634dfee2e4b",
    "tris": {
     "lod0": 4528,
-    "lod1": 1808
+    "lod1": 1808,
+    "lod2": 541
    },
    "partTris": {
     "lod0__wood_d": 1400,
@@ -6098,7 +6449,11 @@
     "lod1__wood_d": 560,
     "lod1__wood": 448,
     "lod1__beam": 792,
-    "lod1__cord": 8
+    "lod1__cord": 8,
+    "lod2__wood_d": 167,
+    "lod2__wood": 130,
+    "lod2__beam": 236,
+    "lod2__cord": 8
    },
    "box": [
     [
@@ -6133,11 +6488,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 88676,
-   "sha256": "165e580ad449b0b44dc888cc6690b7a7cd83f21803f693eb44605fd14057c49e",
+   "bytes": 101796,
+   "sha256": "0645eb9d433da48e50a4cbd7df2ca36847e2a797dbbf6c28ad429fbb2d78be25",
    "tris": {
     "lod0": 2532,
-    "lod1": 1011
+    "lod1": 1011,
+    "lod2": 412
    },
    "partTris": {
     "lod0__wood_d": 1264,
@@ -6147,7 +6503,11 @@
     "lod1__wood_d": 505,
     "lod1__wood": 328,
     "lod1__leather": 146,
-    "lod1__gilt": 32
+    "lod1__gilt": 32,
+    "lod2__wood_d": 134,
+    "lod2__wood": 100,
+    "lod2__leather": 146,
+    "lod2__gilt": 32
    },
    "box": [
     [
@@ -6182,11 +6542,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 234688,
-   "sha256": "804c1f830d7c5cf057e30185ce48e0091a45b4c9339d49542c7f5eacd8507db3",
+   "bytes": 260912,
+   "sha256": "eb559b25eab688e23605fe10290ac63f909c732beee0511573da6b4c18a51f00",
    "tris": {
     "lod0": 6116,
-    "lod1": 2443
+    "lod1": 2443,
+    "lod2": 760
    },
    "partTris": {
     "lod0__wood_d": 2800,
@@ -6196,7 +6557,11 @@
     "lod1__wood_d": 1120,
     "lod1__wood": 713,
     "lod1__red": 42,
-    "lod1__cloth": 568
+    "lod1__cloth": 568,
+    "lod2__wood_d": 336,
+    "lod2__wood": 212,
+    "lod2__red": 42,
+    "lod2__cloth": 170
    },
    "box": [
     [
@@ -6232,11 +6597,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 195772,
-   "sha256": "70c198d2104e0836d098fd40d66a5c76312c048af2c0f03783a12f8743691fa3",
+   "bytes": 228024,
+   "sha256": "220d208348f5f3922c8194f2ac15bc4d15990114f589c69e9620784d07883870",
    "tris": {
     "lod0": 5304,
-    "lod1": 2018
+    "lod1": 2018,
+    "lod2": 678
    },
    "partTris": {
     "lod0__wattle": 2500,
@@ -6248,7 +6614,12 @@
     "lod1__wood_d": 700,
     "lod1__mud": 42,
     "lod1__mud_roof": 42,
-    "lod1__pot": 234
+    "lod1__pot": 234,
+    "lod2__wattle": 200,
+    "lod2__wood_d": 160,
+    "lod2__mud": 42,
+    "lod2__mud_roof": 42,
+    "lod2__pot": 234
    },
    "box": [
     [
@@ -6280,15 +6651,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11744,
-   "sha256": "096750bf4c26763a3d97da5328488c1518964f0b4d1b4d68d3555808a1816d0d",
+   "bytes": 14852,
+   "sha256": "39591f4dece9d7e90a37901928c60031aa64735f1788271330c824322298e776",
    "tris": {
     "lod0": 280,
-    "lod1": 112
+    "lod1": 112,
+    "lod2": 112
    },
    "partTris": {
     "lod0__bone": 280,
-    "lod1__bone": 112
+    "lod1__bone": 112,
+    "lod2__bone": 112
    },
    "box": [
     [
@@ -6322,11 +6695,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 56152,
-   "sha256": "a6f7e46a9e289cfc719d9ecfa0b0153f3c57f484f30ab37032e908d0da1ea961",
+   "bytes": 63304,
+   "sha256": "8297ec893376a4fc8fd9eff62087240192b7ecde1b30a72119c5d8b5726253ed",
    "tris": {
     "lod0": 1622,
-    "lod1": 648
+    "lod1": 648,
+    "lod2": 204
    },
    "partTris": {
     "lod0__clay_toy": 1584,
@@ -6334,7 +6708,10 @@
     "lod0__cord": 14,
     "lod1__clay_toy": 632,
     "lod1__wood_d": 8,
-    "lod1__cord": 8
+    "lod1__cord": 8,
+    "lod2__clay_toy": 188,
+    "lod2__wood_d": 8,
+    "lod2__cord": 8
    },
    "box": [
     [
@@ -6369,11 +6746,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 75132,
-   "sha256": "c4d906b2747a8d06e5577c31cbc6e038ac3a9f1139e406f3ef47602edb8bdd29",
+   "bytes": 87184,
+   "sha256": "41b2cc4722996eba8bb2a7539b6157fe3ae8b9b1846f3ce1456205379bcaa140",
    "tris": {
     "lod0": 2196,
-    "lod1": 876
+    "lod1": 876,
+    "lod2": 488
    },
    "partTris": {
     "lod0__linen": 568,
@@ -6383,7 +6761,11 @@
     "lod1__linen": 226,
     "lod1__grain": 554,
     "lod1__pot": 88,
-    "lod1__wine": 8
+    "lod1__wine": 8,
+    "lod2__linen": 226,
+    "lod2__grain": 166,
+    "lod2__pot": 88,
+    "lod2__wine": 8
    },
    "box": [
     [
@@ -6416,17 +6798,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 46328,
-   "sha256": "a0bc166afe57f76d2f3eb6f8eaae87bf7beceb87b136983d198e54f9c0582140",
+   "bytes": 53748,
+   "sha256": "c00c2b82be5b93bc61d0829d8a1383014ad6257f0262ab36a0f2e5d7bba5f28e",
    "tris": {
     "lod0": 1400,
-    "lod1": 500
+    "lod1": 500,
+    "lod2": 300
    },
    "partTris": {
     "lod0__grass": 800,
     "lod0__meat_boiled": 600,
     "lod1__grass": 300,
-    "lod1__meat_boiled": 200
+    "lod1__meat_boiled": 200,
+    "lod2__grass": 100,
+    "lod2__meat_boiled": 200
    },
    "box": [
     [
@@ -6460,11 +6845,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 32672,
-   "sha256": "1fce7176400268563eb3f0c834b54761f7c59fed2f9bb3c2aff4cc1508040d20",
+   "bytes": 40632,
+   "sha256": "2bc6a8d55d05ad10c2adade6a8907a0b187fa84eae06aa01ada7843f1cd9098d",
    "tris": {
     "lod0": 740,
-    "lod1": 294
+    "lod1": 294,
+    "lod2": 294
    },
    "partTris": {
     "lod0__wood_d": 528,
@@ -6472,7 +6858,10 @@
     "lod0__scale": 60,
     "lod1__wood_d": 210,
     "lod1__iron": 60,
-    "lod1__scale": 24
+    "lod1__scale": 24,
+    "lod2__wood_d": 210,
+    "lod2__iron": 60,
+    "lod2__scale": 24
    },
    "box": [
     [
@@ -6507,11 +6896,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 33120,
-   "sha256": "16187d678ee7fcf11c1d88155fe449c0ccc0d82949dc80c9e209dcbba9c50d14",
+   "bytes": 41260,
+   "sha256": "15dc3f503a523b9385c7c6bd32924df056b9e9d59e1f82f7bbda4dbddba48a51",
    "tris": {
     "lod0": 848,
-    "lod1": 308
+    "lod1": 308,
+    "lod2": 308
    },
    "partTris": {
     "lod0__mud": 108,
@@ -6521,7 +6911,11 @@
     "lod1__mud": 42,
     "lod1__skin": 250,
     "lod1__pot": 8,
-    "lod1__wood": 8
+    "lod1__wood": 8,
+    "lod2__mud": 42,
+    "lod2__skin": 250,
+    "lod2__pot": 8,
+    "lod2__wood": 8
    },
    "box": [
     [
@@ -6554,17 +6948,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 41632,
-   "sha256": "a823b61f9d4003e36c12a43bb3c53e3f19dfb6fa6f278435e15a8f926aa8a292",
+   "bytes": 46756,
+   "sha256": "5ac5f5c76cb926004881ec8dfd99065454014052fbf92c7c29090d2d7b01bd4f",
    "tris": {
     "lod0": 1248,
-    "lod1": 416
+    "lod1": 416,
+    "lod2": 130
    },
    "partTris": {
     "lod0__skin": 1200,
     "lod0__pot": 48,
     "lod1__skin": 398,
-    "lod1__pot": 18
+    "lod1__pot": 18,
+    "lod2__skin": 112,
+    "lod2__pot": 18
    },
    "box": [
     [
@@ -6599,11 +6996,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 42656,
-   "sha256": "0166bceeb822fdf387510dc847e9a8ee34586fe6b4fc6ef676c3a552e246e8af",
+   "bytes": 53048,
+   "sha256": "a5eb10da4b11de0e2ab9d4f06e420b92710dd144d7ee6f73bb23b5885eb767ab",
    "tris": {
     "lod0": 1144,
-    "lod1": 456
+    "lod1": 456,
+    "lod2": 456
    },
    "partTris": {
     "lod0__wood_d": 440,
@@ -6613,7 +7011,11 @@
     "lod1__wood_d": 176,
     "lod1__iron": 8,
     "lod1__silver": 230,
-    "lod1__wood": 42
+    "lod1__wood": 42,
+    "lod2__wood_d": 176,
+    "lod2__iron": 8,
+    "lod2__silver": 230,
+    "lod2__wood": 42
    },
    "box": [
     [
@@ -6649,11 +7051,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 71460,
-   "sha256": "ecc95445c510ac31d05459a7356c51ec8caaf122c79b10ce4b497252d1745cb8",
+   "bytes": 84236,
+   "sha256": "177ffc2775b7b37845cfce6abb57cf619ca20cdac2e56f58855b1d75ad31336e",
    "tris": {
     "lod0": 1836,
-    "lod1": 730
+    "lod1": 730,
+    "lod2": 428
    },
    "partTris": {
     "lod0__wood": 380,
@@ -6665,7 +7068,12 @@
     "lod1__diorite": 426,
     "lod1__pot": 78,
     "lod1__silver": 32,
-    "lod1__tablet": 42
+    "lod1__tablet": 42,
+    "lod2__wood": 152,
+    "lod2__diorite": 124,
+    "lod2__pot": 78,
+    "lod2__silver": 32,
+    "lod2__tablet": 42
    },
    "box": [
     [
@@ -6701,11 +7109,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 21204,
-   "sha256": "620d464f5c99f6e6e95664dd91d887888cd4213db855f3affadb2f19e4378939",
+   "bytes": 27528,
+   "sha256": "f5e87db77cd269d12c7e49db716eb1dbc915a773f14120585f2835dad0b26d45",
    "tris": {
     "lod0": 392,
-    "lod1": 158
+    "lod1": 158,
+    "lod2": 158
    },
    "partTris": {
     "lod0__stone": 108,
@@ -6717,7 +7126,12 @@
     "lod1__wood": 8,
     "lod1__lapis": 34,
     "lod1__pot": 66,
-    "lod1__sand": 8
+    "lod1__sand": 8,
+    "lod2__stone": 42,
+    "lod2__wood": 8,
+    "lod2__lapis": 34,
+    "lod2__pot": 66,
+    "lod2__sand": 8
    },
    "box": [
     [
@@ -6752,11 +7166,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 72808,
-   "sha256": "e1296890fc47d03ac3b4d6d0f9106eb69a173f255a964ed89ea2130a6279d209",
+   "bytes": 83336,
+   "sha256": "e821be574117087c953d407982bc4a286bb080f72f0bba9314c274b84290e7f4",
    "tris": {
     "lod0": 2100,
-    "lod1": 842
+    "lod1": 842,
+    "lod2": 362
    },
    "partTris": {
     "lod0__wood_d": 880,
@@ -6766,7 +7181,11 @@
     "lod1__wood_d": 352,
     "lod1__hide_w": 332,
     "lod1__stain": 8,
-    "lod1__scrap": 150
+    "lod1__scrap": 150,
+    "lod2__wood_d": 104,
+    "lod2__hide_w": 100,
+    "lod2__stain": 8,
+    "lod2__scrap": 150
    },
    "box": [
     [
@@ -6801,39 +7220,44 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 61476,
-   "sha256": "723255adc43525fc215747d05156033979084808d0da534c357fb09d37ee9900",
+   "bytes": 154968,
+   "sha256": "61a14f5e0984174682f6ea352ca4770ee7a616bbaf1653793297da7063913e32",
    "tris": {
-    "lod0": 1644,
-    "lod1": 655
+    "lod0": 3180,
+    "lod1": 1269,
+    "lod2": 543
    },
    "partTris": {
     "lod0__mud": 240,
     "lod0__liquor": 24,
     "lod0__hide": 324,
-    "lod0__brick": 1056,
+    "lod0__brick": 2592,
     "lod1__mud": 96,
     "lod1__liquor": 9,
     "lod1__hide": 128,
-    "lod1__brick": 422
+    "lod1__brick": 1036,
+    "lod2__mud": 96,
+    "lod2__liquor": 9,
+    "lod2__hide": 128,
+    "lod2__brick": 310
    },
    "box": [
     [
-     -0.7708524465560913,
+     -0.7704606056213379,
      -0.0009235117468051612,
-     -0.6856105923652649
+     -0.6852641105651855
     ],
     [
-     0.7707995176315308,
+     0.7703018188476562,
      0.46146073937416077,
-     0.7804883718490601
+     0.780336856842041
     ]
    ],
    "ao": true,
    "size_m": [
-    1.541651964187622,
+    1.5407624244689941,
     0.46238425112096593,
-    1.466098964214325
+    1.4656009674072266
    ],
    "tex": 0
   },
@@ -6852,11 +7276,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 83240,
-   "sha256": "a1da03a9bafa6aa31986acf6f9c02ae9cee4c8f7659c6100205bfbb9e3f811df",
+   "bytes": 99828,
+   "sha256": "53bc1f1f5c18021180652c99ce6de5db24786159719297d06fb1f42f9e60531a",
    "tris": {
     "lod0": 2224,
-    "lod1": 798
+    "lod1": 798,
+    "lod2": 518
    },
    "partTris": {
     "lod0__stain": 12,
@@ -6870,7 +7295,13 @@
     "lod1__wood_d": 400,
     "lod1__hide": 86,
     "lod1__hide_w": 42,
-    "lod1__cord": 84
+    "lod1__cord": 84,
+    "lod2__stain": 8,
+    "lod2__lime": 178,
+    "lod2__wood_d": 120,
+    "lod2__hide": 86,
+    "lod2__hide_w": 42,
+    "lod2__cord": 84
    },
    "box": [
     [
@@ -6903,17 +7334,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11516,
-   "sha256": "d85ee5d2fa66ed03e321706b93458fd85d392ec9cf56df46e9cffb93d28c1633",
+   "bytes": 14724,
+   "sha256": "7e5b80473bdfb5d56254762bd448c0cb76a637f0a27e19866ea2cd1e39263283",
    "tris": {
     "lod0": 242,
-    "lod1": 96
+    "lod1": 96,
+    "lod2": 96
    },
    "partTris": {
     "lod0__stone": 200,
     "lod0__paste": 42,
     "lod1__stone": 80,
-    "lod1__paste": 16
+    "lod1__paste": 16,
+    "lod2__stone": 80,
+    "lod2__paste": 16
    },
    "box": [
     [
@@ -6947,11 +7381,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 191156,
-   "sha256": "f40766f25edeb70467b1232ae04a662057166908bbc1a5aabba097f6c3bb3a81",
+   "bytes": 209680,
+   "sha256": "801c80b9cb1473b742e9628f3dee4b3124657be3fe23754066550f36dc54af9f",
    "tris": {
     "lod0": 6140,
-    "lod1": 2136
+    "lod1": 2136,
+    "lod2": 640
    },
    "partTris": {
     "lod0__thorn": 2400,
@@ -6959,7 +7394,10 @@
     "lod0__straw_d": 1340,
     "lod1__thorn": 800,
     "lod1__thorn_d": 800,
-    "lod1__straw_d": 536
+    "lod1__straw_d": 536,
+    "lod2__thorn": 240,
+    "lod2__thorn_d": 240,
+    "lod2__straw_d": 160
    },
    "box": [
     [
@@ -6994,11 +7432,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 39156,
-   "sha256": "a7c5b505ce6418f2618bc40b660b7654e99980040b538a583942ea3c768393c4",
+   "bytes": 48896,
+   "sha256": "79a2cd29da34a706e3865f90bb8792da9640e3ba00cb79173e35ee5e183a20ba",
    "tris": {
     "lod0": 1020,
-    "lod1": 402
+    "lod1": 402,
+    "lod2": 402
    },
    "partTris": {
     "lod0__lime": 224,
@@ -7008,7 +7447,11 @@
     "lod1__lime": 88,
     "lod1__wood_d": 22,
     "lod1__wood": 128,
-    "lod1__cord": 164
+    "lod1__cord": 164,
+    "lod2__lime": 88,
+    "lod2__wood_d": 22,
+    "lod2__wood": 128,
+    "lod2__cord": 164
    },
    "box": [
     [
@@ -7042,11 +7485,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 18484,
-   "sha256": "3011d220803e273d7117e10297d9fb8d36d378c73d0a71a2992a522634b0fd64",
+   "bytes": 23520,
+   "sha256": "7df406223fdd3f997bc0b5df693fe759efe1e03b732355137318d5c5e55aa01c",
    "tris": {
     "lod0": 412,
-    "lod1": 162
+    "lod1": 162,
+    "lod2": 162
    },
    "partTris": {
     "lod0__wood_d": 56,
@@ -7054,7 +7498,10 @@
     "lod0__cord": 32,
     "lod1__wood_d": 22,
     "lod1__wood": 128,
-    "lod1__cord": 12
+    "lod1__cord": 12,
+    "lod2__wood_d": 22,
+    "lod2__wood": 128,
+    "lod2__cord": 12
    },
    "box": [
     [
@@ -7087,17 +7534,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 45552,
-   "sha256": "9fdeb918cfaa40a31be0f38d378556bd104cfeb9fe0391d05b8769dcb41f8c43",
+   "bytes": 53332,
+   "sha256": "c25565887a145fdb85fc1ad458b5e211fb44359151822616659e80454a72d41a",
    "tris": {
     "lod0": 1272,
-    "lod1": 600
+    "lod1": 600,
+    "lod2": 320
    },
    "partTris": {
     "lod0__lime": 672,
     "lod0__chips": 600,
     "lod1__lime": 400,
-    "lod1__chips": 200
+    "lod1__chips": 200,
+    "lod2__lime": 120,
+    "lod2__chips": 200
    },
    "box": [
     [
@@ -7130,23 +7580,26 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 40088,
-   "sha256": "199ef593fd06721687096a0c49b053132dde1b3c70f907839e9cb556765d5bc5",
+   "bytes": 70932,
+   "sha256": "f0a6c68f1e3034c7a1a2a39d6faaf247cbee49f1a9e8b133d15c962fa88fcfe6",
    "tris": {
-    "lod0": 1116,
-    "lod1": 430
+    "lod0": 1680,
+    "lod1": 656,
+    "lod2": 382
    },
    "partTris": {
     "lod0__wicker": 708,
-    "lod0__stone": 408,
+    "lod0__stone": 972,
     "lod1__wicker": 268,
-    "lod1__stone": 162
+    "lod1__stone": 388,
+    "lod2__wicker": 268,
+    "lod2__stone": 114
    },
    "box": [
     [
      -0.28600001335144043,
-     -0.00899535696953535,
-     -0.5601979494094849
+     -0.006000000052154064,
+     -0.5551842451095581
     ],
     [
      0.28588470816612244,
@@ -7157,8 +7610,8 @@
    "ao": true,
    "size_m": [
     0.5718847215175629,
-    0.5749953417107463,
-    1.31083744764328
+    0.571999984793365,
+    1.3058237433433533
    ],
    "tex": 0
   },
@@ -7174,11 +7627,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 18332,
-   "sha256": "582bb5ad2ddd6e023cf0ca7676cbcbb6ea84c725d5180d8c5f87edd85bb7b6e5",
+   "bytes": 24248,
+   "sha256": "b05ad20a82a7606b3983a0f524ffefe996251e856dc0767341bf70ee1f031409",
    "tris": {
     "lod0": 346,
-    "lod1": 212
+    "lod1": 212,
+    "lod2": 212
    },
    "partTris": {
     "lod0__wood": 32,
@@ -7186,7 +7640,10 @@
     "lod0__hair": 300,
     "lod1__wood": 12,
     "lod1__cord": 8,
-    "lod1__hair": 192
+    "lod1__hair": 192,
+    "lod2__wood": 12,
+    "lod2__cord": 8,
+    "lod2__hair": 192
    },
    "box": [
     [
@@ -7220,11 +7677,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 73664,
-   "sha256": "1532bf11423296d09f4f65e8ecef2d15e332aa843a00ae0494c918bdf50548c9",
+   "bytes": 85572,
+   "sha256": "9f32202185a698fe1e2b9c654eb6fc008b0220a4359f22d8df79f99823812d7c",
    "tris": {
     "lod0": 2124,
-    "lod1": 848
+    "lod1": 848,
+    "lod2": 444
    },
    "partTris": {
     "lod0__mud": 108,
@@ -7232,7 +7690,10 @@
     "lod0__mud_wet": 576,
     "lod1__mud": 42,
     "lod1__pot": 576,
-    "lod1__mud_wet": 230
+    "lod1__mud_wet": 230,
+    "lod2__mud": 42,
+    "lod2__pot": 172,
+    "lod2__mud_wet": 230
    },
    "box": [
     [
@@ -7264,15 +7725,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 2600,
-   "sha256": "3915bb358daef56011f2e60a3071b9f83c5397be6a36a1a5c3fd1ced33ec360a",
+   "bytes": 3552,
+   "sha256": "8ef1733a7689b7c9ad862bcd8f9e8b2854cdb580c30698580328a3d14d1e9a93",
    "tris": {
     "lod0": 12,
-    "lod1": 8
+    "lod1": 8,
+    "lod2": 8
    },
    "partTris": {
     "lod0__milk": 12,
-    "lod1__milk": 8
+    "lod1__milk": 8,
+    "lod2__milk": 8
    },
    "box": [
     [
@@ -7304,15 +7767,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 40220,
-   "sha256": "8765d24d81b5f87b7205ad4c062bdec109706f03e45d6cc2caa6ab8c3f0e3874",
+   "bytes": 44040,
+   "sha256": "f4b6a600635ec8362967e729addbb9a384f6bbd3c8efecab571496982bd3a589",
    "tris": {
     "lod0": 1288,
-    "lod1": 450
+    "lod1": 450,
+    "lod2": 134
    },
    "partTris": {
     "lod0__stone": 1288,
-    "lod1__stone": 450
+    "lod1__stone": 450,
+    "lod2__stone": 134
    },
    "box": [
     [
@@ -7344,15 +7809,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 29136,
-   "sha256": "c6e89f4bd6b4a0b06ad605a96b94f75d0c45a147719ddd80a75837ed85ad83dd",
+   "bytes": 32324,
+   "sha256": "cd105b0b77547b1d5e71d1c20b73424efb922d558b6745e2190633d9b959c2c6",
    "tris": {
     "lod0": 908,
-    "lod1": 314
+    "lod1": 314,
+    "lod2": 98
    },
    "partTris": {
     "lod0__gold": 908,
-    "lod1__gold": 314
+    "lod1__gold": 314,
+    "lod2__gold": 98
    },
    "box": [
     [
@@ -7384,15 +7851,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 25736,
-   "sha256": "bbdf0b57d01c8d045dba6425be20d4a752627833ec82a2de6fae6d31596588ff",
+   "bytes": 30996,
+   "sha256": "3a4e92f7641710076c27ddbcb5cb54a827c88305f99668673740ea5ec709c3ba",
    "tris": {
     "lod0": 796,
-    "lod1": 278
+    "lod1": 278,
+    "lod2": 278
    },
    "partTris": {
     "lod0__stone": 796,
-    "lod1__stone": 278
+    "lod1__stone": 278,
+    "lod2__stone": 278
    },
    "box": [
     [
@@ -7426,11 +7895,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 42904,
-   "sha256": "0c7628fffcbc372e2f0290186520fdfcd146d732c13541386c7bf143a0321032",
+   "bytes": 52180,
+   "sha256": "238b3a66e666dce95b0ff90944a2365bf5f352b99b14f6a10c7c3b29997f65bf",
    "tris": {
     "lod0": 1256,
-    "lod1": 438
+    "lod1": 438,
+    "lod2": 438
    },
    "partTris": {
     "lod0__hide": 560,
@@ -7438,7 +7908,10 @@
     "lod0__bronze": 120,
     "lod1__hide": 196,
     "lod1__cord": 200,
-    "lod1__bronze": 42
+    "lod1__bronze": 42,
+    "lod2__hide": 196,
+    "lod2__cord": 200,
+    "lod2__bronze": 42
    },
    "box": [
     [
@@ -7470,15 +7943,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9648,
-   "sha256": "a7f1b19a76326912e0b9d46d9dc960cf234f381f4d6a227ba5fa0f66e5ea75b9",
+   "bytes": 11824,
+   "sha256": "0686896836e97f5fc5143d57d8b3c721fe6aa180b966339a1b60386f8672f63a",
    "tris": {
     "lod0": 260,
-    "lod1": 90
+    "lod1": 90,
+    "lod2": 90
    },
    "partTris": {
     "lod0__ivory": 260,
-    "lod1__ivory": 90
+    "lod1__ivory": 90,
+    "lod2__ivory": 90
    },
    "box": [
     [
@@ -7510,15 +7985,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 30452,
-   "sha256": "7ead2783e35f64b97d4846735bd3d8778d4b670f02eeac47755802360e1de576",
+   "bytes": 33524,
+   "sha256": "c49ef794770fe8c6dc0e7256152fa090f517efd5beca9f27c8c1fd6d0eb1b34b",
    "tris": {
     "lod0": 960,
-    "lod1": 336
+    "lod1": 336,
+    "lod2": 100
    },
    "partTris": {
     "lod0__glass": 960,
-    "lod1__glass": 336
+    "lod1__glass": 336,
+    "lod2__glass": 100
    },
    "box": [
     [
@@ -7551,17 +8028,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 51276,
-   "sha256": "a5df9d9ba6ad6b39207af8c427b61815347ca1bc5c9c85a6c09e1cffe8838f31",
+   "bytes": 63876,
+   "sha256": "7ff87c49086fafdc5c539932166f52ea1db5d34c8993b0255304e9576f96f86f",
    "tris": {
     "lod0": 1236,
-    "lod1": 384
+    "lod1": 384,
+    "lod2": 206
    },
    "partTris": {
     "lod0__pot": 336,
     "lod0__beads": 900,
     "lod1__pot": 116,
-    "lod1__beads": 268
+    "lod1__beads": 268,
+    "lod2__pot": 116,
+    "lod2__beads": 90
    },
    "box": [
     [
@@ -7593,15 +8073,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 37308,
-   "sha256": "b1533d8b9841791c441ef9eac0f04bf1e3afd0127a8911f4d4bdc6eaa993c0cd",
+   "bytes": 40888,
+   "sha256": "95bdf8dc5c2950ad90743c2066fc6e6132ae6c8d7113fdc3b0df7770a39c9b11",
    "tris": {
     "lod0": 1200,
-    "lod1": 400
+    "lod1": 400,
+    "lod2": 120
    },
    "partTris": {
     "lod0__stone": 1200,
-    "lod1__stone": 400
+    "lod1__stone": 400,
+    "lod2__stone": 120
    },
    "box": [
     [
@@ -7634,17 +8116,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 53436,
-   "sha256": "9b17466a4525e0c9a10c9e63d696f864c62d118ba106d5dbeb4d45b31d390447",
+   "bytes": 60440,
+   "sha256": "2e8168d90b4f7b95a77e7c29e9343bbb4949a76fb9c4874138f3edeb4be7e70c",
    "tris": {
     "lod0": 1680,
-    "lod1": 568
+    "lod1": 568,
+    "lod2": 288
    },
    "partTris": {
     "lod0__cloth": 1200,
     "lod0__cord": 480,
     "lod1__cloth": 400,
-    "lod1__cord": 168
+    "lod1__cord": 168,
+    "lod2__cloth": 120,
+    "lod2__cord": 168
    },
    "box": [
     [
@@ -7678,11 +8163,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 28680,
-   "sha256": "a823d586d2db65ea9b57d66e4e9442f5d775494304e72a8ddb34da88c4139b8b",
+   "bytes": 35188,
+   "sha256": "25b391073d248026011a6c2c455e57f30a4d0cf9013cfadbc5777bf848af66bc",
    "tris": {
     "lod0": 788,
-    "lod1": 268
+    "lod1": 268,
+    "lod2": 268
    },
    "partTris": {
     "lod0__mud": 432,
@@ -7690,7 +8176,10 @@
     "lod0__clay": 56,
     "lod1__mud": 150,
     "lod1__coal": 100,
-    "lod1__clay": 18
+    "lod1__clay": 18,
+    "lod2__mud": 150,
+    "lod2__coal": 100,
+    "lod2__clay": 18
    },
    "box": [
     [
@@ -7724,11 +8213,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 139620,
-   "sha256": "fd438e696fd9b18864d427a7c15f2342e7dd585b70f533f2a32fe77eaed3ef6f",
+   "bytes": 154080,
+   "sha256": "dee552ec5584f98d16ffbdc8baba9d59ed657f0377f1f9cce0bed4a78a5a0f89",
    "tris": {
     "lod0": 4520,
-    "lod1": 1578
+    "lod1": 1578,
+    "lod2": 598
    },
    "partTris": {
     "lod0__mud": 4000,
@@ -7736,7 +8226,10 @@
     "lod0__ash": 344,
     "lod1__mud": 1400,
     "lod1__brick": 60,
-    "lod1__ash": 118
+    "lod1__ash": 118,
+    "lod2__mud": 420,
+    "lod2__brick": 60,
+    "lod2__ash": 118
    },
    "box": [
     [
@@ -7770,11 +8263,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 25892,
-   "sha256": "cdad55fcaceec39cbf69e1ba630d4f3d914c8dc7c5ff38d446ab01a9af29dfb7",
+   "bytes": 33528,
+   "sha256": "ecf1293831cdfa65841894eceebcb62d1f05d67f36e866ef30e1079a2a58c1ec",
    "tris": {
     "lod0": 420,
-    "lod1": 145
+    "lod1": 145,
+    "lod2": 145
    },
    "partTris": {
     "lod0__wood": 132,
@@ -7782,7 +8276,10 @@
     "lod0__cloth": 48,
     "lod1__wood": 45,
     "lod1__warp": 84,
-    "lod1__cloth": 16
+    "lod1__cloth": 16,
+    "lod2__wood": 45,
+    "lod2__warp": 84,
+    "lod2__cloth": 16
    },
    "box": [
     [
@@ -7814,15 +8311,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 26688,
-   "sha256": "97233f4d2959c1bb83002f1e104c1ea32a68cf32a598e4bc1e0e28fdb29a179e",
+   "bytes": 30008,
+   "sha256": "b1226620e3a5f7646d657d0df0a31fbe354531b322f5f82fa7bb7bbeb0a091a2",
    "tris": {
     "lod0": 800,
-    "lod1": 300
+    "lod1": 300,
+    "lod2": 100
    },
    "partTris": {
     "lod0__wood": 800,
-    "lod1__wood": 300
+    "lod1__wood": 300,
+    "lod2__wood": 100
    },
    "box": [
     [
@@ -7854,15 +8353,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 25184,
-   "sha256": "ead62b8955eeccd9bead06c6caada628e90c259aad55dbf209af3336b6c13cd9",
+   "bytes": 30536,
+   "sha256": "bf82b34edc9dac136f43d262c7dd69ab60dcc9faf4d2e3e3d3809f94092c8d2a",
    "tris": {
     "lod0": 756,
-    "lod1": 264
+    "lod1": 264,
+    "lod2": 264
    },
    "partTris": {
     "lod0__wood": 756,
-    "lod1__wood": 264
+    "lod1__wood": 264,
+    "lod2__wood": 264
    },
    "box": [
     [
@@ -7895,17 +8396,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11960,
-   "sha256": "7f9bcf10e13d1ff25b49b36a2ff22a6ce895474d52c366cd09201996d118cd30",
+   "bytes": 15104,
+   "sha256": "2b2a8cc704da0cf2d089a946f9a2bf24a837b51bbec564bbb8ae4b4fa03f6a75",
    "tris": {
     "lod0": 252,
-    "lod1": 92
+    "lod1": 92,
+    "lod2": 92
    },
    "partTris": {
     "lod0__stone": 240,
     "lod0__water": 12,
     "lod1__stone": 84,
-    "lod1__water": 8
+    "lod1__water": 8,
+    "lod2__stone": 84,
+    "lod2__water": 8
    },
    "box": [
     [
@@ -7938,17 +8442,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 31648,
-   "sha256": "b307cf1b0f2c6c1c64eadbb59a11cd139cf57d9ccb2d661b9833761995858697",
+   "bytes": 39052,
+   "sha256": "0aa1e85dc8455272e68495b9ad32a1a2abefdb75f88d0eba8d4e04bd16854783",
    "tris": {
     "lod0": 900,
-    "lod1": 370
+    "lod1": 370,
+    "lod2": 370
    },
    "partTris": {
     "lod0__mud": 600,
     "lod0__straw": 300,
     "lod1__mud": 250,
-    "lod1__straw": 120
+    "lod1__straw": 120,
+    "lod2__mud": 250,
+    "lod2__straw": 120
    },
    "box": [
     [
@@ -7981,17 +8488,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 11748,
-   "sha256": "a0a5e9104fdb1c9c1b5f739066d1d60659f3d8824cb031f112fc468b09c2ede0",
+   "bytes": 14804,
+   "sha256": "7011375e37370b25b194a504d181ad2b64cedfdc95e96f6da92936b8a4c9e778",
    "tris": {
     "lod0": 264,
-    "lod1": 90
+    "lod1": 90,
+    "lod2": 90
    },
    "partTris": {
     "lod0__wood": 108,
     "lod0__wood_d": 156,
     "lod1__wood": 36,
-    "lod1__wood_d": 54
+    "lod1__wood_d": 54,
+    "lod2__wood": 36,
+    "lod2__wood_d": 54
    },
    "box": [
     [
@@ -8024,17 +8534,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9200,
-   "sha256": "99d6435bf8076b15d1ae13e433d05e381ece4de1f77406a243818e1ace8752b9",
+   "bytes": 11720,
+   "sha256": "0b235c0efc35b1a10ffb35353a47ea26ad96144974660e7b8144f1d7c949551e",
    "tris": {
     "lod0": 184,
-    "lod1": 62
+    "lod1": 62,
+    "lod2": 62
    },
    "partTris": {
     "lod0__wood": 108,
     "lod0__wood_d": 76,
     "lod1__wood": 36,
-    "lod1__wood_d": 26
+    "lod1__wood_d": 26,
+    "lod2__wood": 36,
+    "lod2__wood_d": 26
    },
    "box": [
     [
@@ -8067,17 +8580,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 18032,
-   "sha256": "f93a03b308bf453307724c39b606865de0596e2a0bf1d2d05fb9d899ec3d542e",
+   "bytes": 22596,
+   "sha256": "2b72ce3c440875c9cdc1541e3877bbafc8fd247f7d0fdc1f2dbfbdb5b23d0571",
    "tris": {
     "lod0": 416,
-    "lod1": 137
+    "lod1": 137,
+    "lod2": 137
    },
    "partTris": {
     "lod0__wood": 192,
     "lod0__wood_d": 224,
     "lod1__wood": 66,
-    "lod1__wood_d": 71
+    "lod1__wood_d": 71,
+    "lod2__wood": 66,
+    "lod2__wood_d": 71
    },
    "box": [
     [
@@ -8111,11 +8627,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 26796,
-   "sha256": "c1a7d378cd59089c3b2cdf983a0c6d288e3b780c1e910414614c8ac7b29f32d3",
+   "bytes": 34660,
+   "sha256": "1b7b7f414601e067f907b7803e7fdeb2ec7299fefd5cd9d10fd3a4fffe91c8e0",
    "tris": {
     "lod0": 512,
-    "lod1": 161
+    "lod1": 161,
+    "lod2": 161
    },
    "partTris": {
     "lod0__wood": 192,
@@ -8123,7 +8640,10 @@
     "lod0__cord": 192,
     "lod1__wood": 66,
     "lod1__skin": 44,
-    "lod1__cord": 51
+    "lod1__cord": 51,
+    "lod2__wood": 66,
+    "lod2__skin": 44,
+    "lod2__cord": 51
    },
    "box": [
     [
@@ -8156,17 +8676,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9224,
-   "sha256": "efd6fadc8d58947f1f248efea9fece9ea7042fb6c2457cf1b019752a86664ab6",
+   "bytes": 11952,
+   "sha256": "b6a30ed53a94bbaa46cce58c112643455b52e2c6fcc12e4e928a3812b6040d32",
    "tris": {
     "lod0": 164,
-    "lod1": 58
+    "lod1": 58,
+    "lod2": 58
    },
    "partTris": {
     "lod0__cane": 144,
     "lod0__cord": 20,
     "lod1__cane": 50,
-    "lod1__cord": 8
+    "lod1__cord": 8,
+    "lod2__cane": 50,
+    "lod2__cord": 8
    },
    "box": [
     [
@@ -8198,15 +8721,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 4680,
-   "sha256": "666d6e63731704fe398abbc596f15c85d0ac3eb4a6cd31d90b3752e9942b12e5",
+   "bytes": 6000,
+   "sha256": "1f0d1da077d5e82b672bb6f8ca9e36ff06bfb04fb0e543b941d4e393b2b86f57",
    "tris": {
     "lod0": 84,
-    "lod1": 28
+    "lod1": 28,
+    "lod2": 28
    },
    "partTris": {
     "lod0__cane": 84,
-    "lod1__cane": 28
+    "lod1__cane": 28,
+    "lod2__cane": 28
    },
    "box": [
     [
@@ -8238,15 +8763,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 9444,
-   "sha256": "d9d13bbfdfa730f57ea1eb344de8837c2909f03ad59edd77589fe35f7e0fe65e",
+   "bytes": 11588,
+   "sha256": "c9e4dd837a9e226599f952ba9ad1d6a7cf045705aade733a4eebd1867b9db08c",
    "tris": {
     "lod0": 252,
-    "lod1": 88
+    "lod1": 88,
+    "lod2": 88
    },
    "partTris": {
     "lod0__stone": 252,
-    "lod1__stone": 88
+    "lod1__stone": 88,
+    "lod2__stone": 88
    },
    "box": [
     [
@@ -8279,17 +8806,20 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 64548,
-   "sha256": "5fc2b8be58afd0891ef56debd30c7840675a1f797105dc20fb0f40a084207653",
+   "bytes": 73668,
+   "sha256": "805092ced11786a7c1a552ffe9215426eb5c3cfceaa893dbeb2a8c8f12efdcaa",
    "tris": {
     "lod0": 2024,
-    "lod1": 706
+    "lod1": 706,
+    "lod2": 396
    },
    "partTris": {
     "lod0__stone": 756,
     "lod0__ash": 1268,
     "lod1__stone": 264,
-    "lod1__ash": 442
+    "lod1__ash": 442,
+    "lod2__stone": 264,
+    "lod2__ash": 132
    },
    "box": [
     [
@@ -8323,11 +8853,12 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 33060,
-   "sha256": "4fb82e9476024fd1cd7682f82c4da8bf1ded6d9e1286357b4785418a23b6258c",
+   "bytes": 40300,
+   "sha256": "7f5b68724eff118d1ec9307c35e2ea5c964880be0a3ed8b2081a433ff0e0552e",
    "tris": {
     "lod0": 908,
-    "lod1": 314
+    "lod1": 314,
+    "lod2": 314
    },
    "partTris": {
     "lod0__mud": 768,
@@ -8335,7 +8866,10 @@
     "lod0__dark": 32,
     "lod1__mud": 268,
     "lod1__lid": 36,
-    "lod1__dark": 10
+    "lod1__dark": 10,
+    "lod2__mud": 268,
+    "lod2__lid": 36,
+    "lod2__dark": 10
    },
    "box": [
     [
@@ -8367,15 +8901,17 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 13584,
-   "sha256": "651b660530f76938dacf0fabd2e55651a5a0882a505530afafd49bb88c1af125",
+   "bytes": 16500,
+   "sha256": "a817dc1785b953007f356c799cc516b87b2b82f4b34378f411ad1eae6d7dbde2",
    "tris": {
     "lod0": 392,
-    "lod1": 136
+    "lod1": 136,
+    "lod2": 136
    },
    "partTris": {
     "lod0__clay": 392,
-    "lod1__clay": 136
+    "lod1__clay": 136,
+    "lod2__clay": 136
    },
    "box": [
     [
@@ -8394,6 +8930,392 @@
     0.9605557024478912,
     0.20989617356099188,
     0.4989110380411148
+   ],
+   "tex": 0
+  },
+  "m_peg": {
+   "file": "models/props/m_peg.glb",
+   "of": "peg",
+   "role": "model",
+   "parts": [
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 5160,
+   "sha256": "28b6ceb28a22fd0ce2d014f444c6740f85c7c4186e3e2cc46ce57b0aeae5e7ad",
+   "tris": {
+    "lod0": 38,
+    "lod1": 12,
+    "lod2": 12
+   },
+   "partTris": {
+    "lod0__wood": 38,
+    "lod1__wood": 12,
+    "lod2__wood": 12
+   },
+   "box": [
+    [
+     -0.030735468491911888,
+     -0.10040313005447388,
+     -0.03080189973115921
+    ],
+    [
+     0.03334299102425575,
+     0.4507463872432709,
+     0.03247792646288872
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.06407845951616764,
+    0.5511495172977448,
+    0.06327982619404793
+   ],
+   "tex": 0
+  },
+  "m_firewood_lean": {
+   "file": "models/props/m_firewood_lean.glb",
+   "of": "firewood_lean",
+   "role": "model",
+   "parts": [
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 30240,
+   "sha256": "6c28daf4d694d91bd1bba3d4848725038309dca1a5c4a5923e6b2c91187b5e75",
+   "tris": {
+    "lod0": 540,
+    "lod1": 540,
+    "lod2": 112
+   },
+   "partTris": {
+    "lod0__wood": 540,
+    "lod1__wood": 540,
+    "lod2__wood": 112
+   },
+   "box": [
+    [
+     -0.4234471619129181,
+     -0.010851223953068256,
+     -0.2188328504562378
+    ],
+    [
+     0.521660327911377,
+     0.9522616863250732,
+     0.21582430601119995
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.945107489824295,
+    0.9631129102781415,
+    0.43465715646743774
+   ],
+   "tex": 0
+  },
+  "m_hung_cloth": {
+   "file": "models/props/m_hung_cloth.glb",
+   "of": "hung_cloth",
+   "role": "model",
+   "parts": [
+    "cloth"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 66440,
+   "sha256": "17b221c86badff0544facb1b6e23da048c4ec480a5339ad9daf47a1eef0ba3d1",
+   "tris": {
+    "lod0": 2104,
+    "lod1": 736,
+    "lod2": 50
+   },
+   "partTris": {
+    "lod0__cloth": 2104,
+    "lod1__cloth": 736,
+    "lod2__cloth": 50
+   },
+   "box": [
+    [
+     -0.5199956297874451,
+     -0.05005377531051636,
+     -0.045050401240587234
+    ],
+    [
+     0.5200130343437195,
+     1.0019999742507935,
+     0.04504779726266861
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.0400086641311646,
+    1.0520537495613098,
+    0.09009819850325584
+   ],
+   "tex": 0
+  },
+  "m_cradle": {
+   "file": "models/props/m_cradle.glb",
+   "of": "cradle",
+   "role": "model",
+   "parts": [
+    "wood",
+    "cloth"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 71468,
+   "sha256": "a477a37a951bf034f085a4da02d1ecea0a4ec38286ef1e45c8667873771b1d0e",
+   "tris": {
+    "lod0": 2052,
+    "lod1": 716,
+    "lod2": 180
+   },
+   "partTris": {
+    "lod0__wood": 796,
+    "lod0__cloth": 1256,
+    "lod1__wood": 278,
+    "lod1__cloth": 438,
+    "lod2__wood": 110,
+    "lod2__cloth": 70
+   },
+   "box": [
+    [
+     -0.4766440987586975,
+     0.004411541856825352,
+     -0.3318207263946533
+    ],
+    [
+     0.47674795985221863,
+     0.33199286460876465,
+     0.3318207263946533
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.9533920586109161,
+    0.3275813227519393,
+    0.6636414527893066
+   ],
+   "tex": 0
+  },
+  "m_brush_pile": {
+   "file": "models/props/m_brush_pile.glb",
+   "of": "brush_pile",
+   "role": "model",
+   "parts": [
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 51088,
+   "sha256": "2434990035fec86fffb556c8087af113596877ae9076de873ea439e3d7b9a18a",
+   "tris": {
+    "lod0": 924,
+    "lod1": 556,
+    "lod2": 66
+   },
+   "partTris": {
+    "lod0__wood": 924,
+    "lod1__wood": 556,
+    "lod2__wood": 66
+   },
+   "box": [
+    [
+     -0.7247546911239624,
+     0.0125096645206213,
+     -0.4015637934207916
+    ],
+    [
+     0.720528781414032,
+     0.3362448513507843,
+     0.36708754301071167
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.4452834725379944,
+    0.323735186830163,
+    0.7686513364315033
+   ],
+   "tex": 0
+  },
+  "m_dung_stack": {
+   "file": "models/props/m_dung_stack.glb",
+   "of": "dung_stack",
+   "role": "model",
+   "parts": [
+    "dung"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 23116,
+   "sha256": "5e4d21cc64120c16b1f01c69016744eda7ae49eaa2cc6d55b0192b9d2867821d",
+   "tris": {
+    "lod0": 600,
+    "lod1": 200,
+    "lod2": 60
+   },
+   "partTris": {
+    "lod0__dung": 600,
+    "lod1__dung": 200,
+    "lod2__dung": 60
+   },
+   "box": [
+    [
+     -0.11470344662666321,
+     -0.0040901233442127705,
+     -0.12260545790195465
+    ],
+    [
+     0.12694670259952545,
+     0.2666153609752655,
+     0.10827192664146423
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.24165014922618866,
+    0.2707054843194783,
+    0.23087738454341888
+   ],
+   "tex": 0
+  },
+  "m_fleece_parapet": {
+   "file": "models/props/m_fleece_parapet.glb",
+   "of": "fleece_parapet",
+   "role": "model",
+   "parts": [
+    "wool"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 48608,
+   "sha256": "4a1615454834ae1a5e3ad913c3d0d2ef412f42fe9c9a1c746325416a6adc665f",
+   "tris": {
+    "lod0": 1500,
+    "lod1": 500,
+    "lod2": 80
+   },
+   "partTris": {
+    "lod0__wool": 1500,
+    "lod1__wool": 500,
+    "lod2__wool": 80
+   },
+   "box": [
+    [
+     -0.40188315510749817,
+     -0.46502000093460083,
+     -0.2591404616832733
+    ],
+    [
+     0.40301504731178284,
+     0.052340272814035416,
+     0.26073625683784485
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.804898202419281,
+    0.5173602737486362,
+    0.5198767185211182
+   ],
+   "tex": 0
+  },
+  "m_rug_folded": {
+   "file": "models/props/m_rug_folded.glb",
+   "of": "rug_folded",
+   "role": "model",
+   "parts": [
+    "textile"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 15480,
+   "sha256": "20657b081c68ca792b47755c16e566a938a72b4bfd884275bcc510ee42c6cfc7",
+   "tris": {
+    "lod0": 400,
+    "lod1": 150,
+    "lod2": 24
+   },
+   "partTris": {
+    "lod0__textile": 400,
+    "lod1__textile": 150,
+    "lod2__textile": 24
+   },
+   "box": [
+    [
+     -0.280308336019516,
+     -0.0035872459411621094,
+     -0.22036969661712646
+    ],
+    [
+     0.2799399793148041,
+     0.0493503175675869,
+     0.22048182785511017
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.5602483153343201,
+    0.05293756350874901,
+    0.44085152447223663
+   ],
+   "tex": 0
+  },
+  "m_basket_cradle": {
+   "file": "models/props/m_basket_cradle.glb",
+   "of": "basket_cradle",
+   "role": "model",
+   "parts": [
+    "wicker",
+    "cloth"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 54348,
+   "sha256": "b6969d25dc0bb4cf410e129231e90a1a4dd6cee7f373e694637da0edd89069a6",
+   "tris": {
+    "lod0": 1464,
+    "lod1": 510,
+    "lod2": 286
+   },
+   "partTris": {
+    "lod0__wicker": 928,
+    "lod0__cloth": 536,
+    "lod1__wicker": 324,
+    "lod1__cloth": 186,
+    "lod2__wicker": 100,
+    "lod2__cloth": 186
+   },
+   "box": [
+    [
+     -0.41624999046325684,
+     -0.0004786658682860434,
+     -0.25699999928474426
+    ],
+    [
+     0.4161500930786133,
+     0.18239231407642365,
+     0.25699999928474426
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.8324000835418701,
+    0.1828709799447097,
+    0.5139999985694885
    ],
    "tex": 0
   }
