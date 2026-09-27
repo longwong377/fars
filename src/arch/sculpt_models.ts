@@ -218,7 +218,13 @@ export function protomeSDF(lod: 0 | 1 = 0): PieceSDF {
   const forepart = (X: number, y: number, z: number) => { const b = block(X, y, z); return b > 0.3 ? b : smin(b, sdEllipsoid(X - B.shoulder_c[0], y - B.shoulder_c[1], Math.abs(z) - B.shoulder_c[2], B.shoulder_r[0], B.shoulder_r[1], B.shoulder_r[2]), B.shoulder_blend); };
   // head frame: s along poll → muzzle, t perpendicular (up-forward) in the median plane
   const P0 = H.poll as number[], M0 = H.muzzle as number[], hl = Math.hypot(M0[0] - P0[0], M0[1] - P0[1]), ax = [(M0[0] - P0[0]) / hl, (M0[1] - P0[1]) / hl], tn = [-ax[1], ax[0]];
-  const headParts = bullHead(H, HR, B.feature_blend, detail);
+  // D-312: the head is the capital bull's head frame scaled per axis (head.scale [s, t, z], measured on the photographed
+  // capitals: the head is ~0.55 of the protome's height and hangs forward and down in front of the chest; D-151's head was
+  // ~0.33 of it and held forward like a cow's), a conservative distance bound (the smallest factor)
+  const HS = (H.scale as number[] | undefined) ?? [1, 1, 1], hsMin = Math.min(...HS), hsMax = Math.max(...HS);
+  const head0 = bullHead(H, HR, B.feature_blend, detail);
+  const headParts = (s: number, t: number, Z: number): [number, number, number] => { const [a, , c] = head0(s / HS[0], t / HS[1], Z / HS[2]); return [a * hsMin, head0(s, t, Z)[1], c * hsMin]; }; // horns keep their D-151 size (the photographed horns are short, inserted stubs)
+  const headR = 0.8 * hsMax;
   // the folded foreleg: its side outline (forearm, knee, cannon on the base, fetlock and hoof) extruded to a width that
   // narrows from the forearm to the cannon, arrises rounded; a knee cap; the cleft between the claws at LOD0
   const legOut = flat2(L.outline);
@@ -237,7 +243,7 @@ export function protomeSDF(lod: 0 | 1 = 0): PieceSDF {
     d = smin(d, legs(X, y, z), 0.035);
     // head, horns and ears
     const dx = X - P0[0], dy = y - P0[1];
-    if (dx * dx + dy * dy < 0.8 * 0.8) {
+    if (dx * dx + dy * dy < headR * headR) {
       const s = dx * ax[0] + dy * ax[1], t = dx * tn[0] + dy * tn[1], Z = Math.abs(z);
       const [hd, horn, ear] = headParts(s, t, Z);
       d = smin(d, hd, B.head_blend);
@@ -256,8 +262,8 @@ export function protomeSDF(lod: 0 | 1 = 0): PieceSDF {
     const bib = (u: number, v: number) => Math.abs(u) <= C.apron_w[0] + ((C.apron_w[1] - C.apron_w[0]) * (v - C.apron_y[0])) / (C.apron_y[1] - C.apron_y[0]);
     const fs = C.forelock_scale;
     const charts: LockChart[] = [
-      { origin: [2.2, 0, 0], du: [0, 0, 1], dv: [0, 1, 0], dir: [-1, 0, 0], u: [-0.4, 0.4], v: C.apron_y, inField: bib, pitch: C.pitch, rad: C.rad, amp: C.amp },
-      { origin: [P0[0] + tn[0] * 0.6, P0[1] + tn[1] * 0.6, 0], du: [ax[0], ax[1], 0], dv: [0, 0, 1], dir: [-tn[0], -tn[1], 0], u: [C.forelock_s[0], C.forelock_s[1]], v: [-C.forelock_w, C.forelock_w], inField: () => true, pitch: C.pitch * fs, rad: C.rad * fs, amp: C.amp * fs },
+      { origin: [2.2, 0, 0], du: [0, 0, 1], dv: [0, 1, 0], dir: [-1, 0, 0], u: [-0.4, 0.4], v: C.apron_y, inField: bib, pitch: C.pitch, rad: C.rad, amp: C.amp, accept: (p: V3) => { const hx = Math.abs(p[0]) - P0[0], hy = p[1] - P0[1]; return headParts(hx * ax[0] + hy * ax[1], hx * tn[0] + hy * tn[1], Math.abs(p[2]))[0] > 0.03; } },
+      { origin: [P0[0] + tn[0] * 0.6 * HS[1], P0[1] + tn[1] * 0.6 * HS[1], 0], du: [ax[0], ax[1], 0], dv: [0, 0, 1], dir: [-tn[0], -tn[1], 0], u: [C.forelock_s[0] * HS[0], C.forelock_s[1] * HS[0]], v: [-C.forelock_w * HS[2], C.forelock_w * HS[2]], inField: () => true, pitch: C.pitch * fs, rad: C.rad * fs, amp: C.amp * fs },
     ];
     locks = { list: placeLocks(base, charts), surface: base, mirrorX: true, turns: C.turns, gw: C.groove_w, gd: C.groove_d, bevel: C.bevel, height: C.amp / C.rad, depth: C.depth, tris: MC.lock_tris };
   }
@@ -271,7 +277,7 @@ export function protomeSDF(lod: 0 | 1 = 0): PieceSDF {
   const f: SDF = (x, y, z) => { const X = Math.abs(x), d = base(X, y, z); return detail || d > 0.05 ? d : d - pad(X, y, z); };
   const weight = (x: number, y: number, z: number) => {
     const X = Math.abs(x), dx = X - P0[0], dy = y - P0[1];
-    if (dx * dx + dy * dy < 0.62 * 0.62) return MC.weight_face;
+    if (dx * dx + dy * dy < 0.62 * 0.62 * hsMax * hsMax) return MC.weight_face;
     if (Math.abs(z) > 0.36 && y > 0.4 && y < 1.4 && X < 1.2) return MC.weight_flank;
     return 1;
   };

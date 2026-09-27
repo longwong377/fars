@@ -12,7 +12,8 @@
 // known (no ramp or crane evidence retrieved, D-022): scaffold form, drum stacking and yard layout are all C.
 import * as THREE from 'three/webgpu';
 import { InstancedLOD, carvedMaterial } from '../arch/meshes';
-import { columnMeshesByMaterial, toGeometry, srow, capitalAlone } from '../arch/sculpt';
+import { columnMeshesByMaterial, toGeometry, srow, capitalAlone, protomeBox, protomeMesh, type Lod } from '../arch/sculpt';
+import { model, fitLevel, bakedMaterial, registerSwap } from '../render/models';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { surfaceMaterial, DEBRIS } from '../render/materials';
 import { BUILD } from '../people/construction';
@@ -56,7 +57,10 @@ export class ConstructionView {
     for (const c of C.columns) { const k = stateKey(c); if (!groups.has(k)) groups.set(k, []); groups.get(k)!.push(c); }
     const SW = srow<any>('lod', 'switch'), o = this.ord, shaftH = o.height - o.baseH - o.capitalH;
     for (const [k, cols] of groups) {
-      const c0 = cols[0], built = c0.drums / c0.drumsTotal, st = { fluted: c0.fluted >= 1, capital: c0.capitalSet };
+      // D-312: a set capital's double-bull protome is the Blender-built model (public/models/capital_protome.glb) as on the
+      // finished halls (arch/meshes.ts), the capital drawn without its procedural protome; the procedural one when not loaded
+      const c0 = cols[0], built = c0.drums / c0.drumsTotal, PM = c0.capitalSet && protomeBox(o) ? model('capital_protome') : null;
+      const st = { fluted: c0.fluted >= 1, capital: c0.capitalSet, ...(PM ? { protome: false } : {}) };
       const top = o.baseH + shaftH * built + (st.capital ? o.capitalH : 0); // instance height for the LOD distance rule
       const at = new Float32Array(cols.length * 4); cols.forEach((c, i) => at.set([c.at[0], this.floor, -c.at[1], top], i * 4));
       const L0 = columnMeshesByMaterial(o, built, 0, st), L1 = columnMeshesByMaterial(o, built, 1, st);
@@ -66,6 +70,17 @@ export class ConstructionView {
         lod.userData = { tier: 'C', src: 'RECON', building: B, placeholder: false,
           note: `Hall of 100 Columns under construction, ${cols.length} column(s): ${c0.drums}/${c0.drumsTotal} drums set, ${st.fluted ? 'fluted' : 'shaft plain (fluting follows erection, C)'}, ${st.capital ? 'capital set' : 'no capital yet'}; state from the simulation (src/people/construction.ts, D-022; rates C)` };
         lod.levels.forEach((im, j) => { im.name = `${lod.name}:lod${j}`; im.userData = lod.userData; });
+        this.group.add(lod);
+      }
+      if (PM) {
+        const [lo, hi] = protomeBox(o)!, surf = 'limestone_carved';
+        const mats = PM.maps.map((map, j) => bakedMaterial(surf, map, `${PM.id}:${j}`));
+        const lod = new InstancedLOD(PM.lods.map(g => fitLevel(g, lo, hi)), mats[0], at, SW.column, SW.hysteresis);
+        lod.name = `${B}:construction:${k}:protome`;
+        lod.userData = { tier: 'C', src: 'RECON;PHOTO', building: B, placeholder: false, model: PM.id,
+          note: `double-bull protome of the capitals set on ${cols.length} column(s) under construction: the Blender-built model (D-305/D-306, proportions re-measured on the photographed capitals D-312, form C)` };
+        lod.levels.forEach((im, j) => { im.material = mats[j] ?? mats[0]; im.name = `${lod.name}:lod${j}`; im.userData = lod.userData;
+          const pm = protomeMesh(o, j as Lod); if (pm) registerSwap(im, [toGeometry(pm), carvedMaterial('limestone')]); });
         this.group.add(lod);
       }
     }
@@ -98,10 +113,20 @@ export class ConstructionView {
     for (let k = 0; k < site.dressed; k++) { const e = ex0 + 1.5 + (k % perRow) * pitch, n = ny0 + 1.6 + (2 + Math.floor(k / perRow)) * pitch;
       dressed.push(cyl(r, dh, e, n)); marks.push(drumMark(new THREE.Vector3(e, y + dh, -n), r, k)); }
     // capitals: finished ones beside the carving place, the block in work as a roughed-out box of the capital's size
-    const cap = capitalAlone(o, 1);
-    if (cap) {
-      const g0 = toGeometry(cap); g0.computeBoundingBox(); const bb = g0.boundingBox!;
+    // D-312: the finished capitals' protomes are the Blender-built model (as on the columns), the rest of the capital procedural
+    const YM = protomeBox(o) ? model('capital_protome') : null, cap = capitalAlone(o, 1, !YM), capFull = YM ? capitalAlone(o, 1) : cap;
+    if (cap && capFull) {
+      const gf = toGeometry(capFull); gf.computeBoundingBox(); const bb = gf.boundingBox!; gf.dispose();
+      const g0 = toGeometry(cap), y0c = o.height - o.capitalH;
       for (let k = 0; k < site.capitalsReady; k++) dressed.push(g0.clone().translate(cx - 6 - k * 6, y, -cy));
+      if (YM && site.capitalsReady > 0) {
+        const [lo, hi] = protomeBox(o)!, pg = fitLevel(YM.lods[0], lo, hi), mat = bakedMaterial('limestone_carved', YM.maps[0], `${YM.id}:0`);
+        const im = new THREE.InstancedMesh(pg, mat, site.capitalsReady), M4 = new THREE.Matrix4();
+        for (let k = 0; k < site.capitalsReady; k++) im.setMatrixAt(k, M4.makeTranslation(cx - 6 - k * 6, y - y0c, -cy));
+        im.castShadow = im.receiveShadow = true; im.name = 'hall100:site:protome';
+        im.userData = { tier: 'C', src: 'RECON;PHOTO', building: B, placeholder: false, model: YM.id, note: `masons' yard: the protome of ${site.capitalsReady} finished capital(s), the Blender-built model (D-305/D-306/D-312)` };
+        this.yard.add(im);
+      }
       if (site.capitalInWork) rough.push(new THREE.BoxGeometry(bb.max.x - bb.min.x + 0.2, bb.max.y - bb.min.y + 0.15, bb.max.z - bb.min.z + 0.2).translate(cx, y + (bb.max.y - bb.min.y + 0.15) / 2, -cy));
       g0.dispose();
     }

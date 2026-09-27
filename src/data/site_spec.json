@@ -1282,12 +1282,12 @@
    "v": {
     "length": 5.0,
     "width": 1.6,
-    "height": 5.5
+    "height": 6.7
    },
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "doorway colossi (bulls W, human-headed winged bulls E): height 5.5 from a weak popular source (C), length/width proportional; placed in the door reveals"
+   "note": "doorway colossi (bulls W, human-headed winged bulls E): height measured on the Gate's front photograph (fars-assets/photos/gate_of_all_nations/81527995_GateOfAllNations_Frontview.jpg: plinth foot to crown top = 0.79 of the door opening, door_height 10.0 m, less the 1.2 m plinth = 6.7 m; D-312, s12; was 5.5 from a weak popular source, which left the colossi small in the jamb (review s11)); length/width kept (the passage fixes the length); placed in the door reveals"
   },
   "inscription_placement": {
    "v": "XPa above each of the 4 colossi (one trilingual per colossus pair side; which version on which jamb C)",
