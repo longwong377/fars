@@ -134,6 +134,16 @@ Their worktrees under .claude/worktrees/ can be removed (`git worktree remove -f
    registry, Tier 0, walker bots (five policies), the Tier-1 sampler, the generated board, anchors, escapes, event kinds.
 5. At close: sessions/s09.md, fates in reserved_numbers.md, tag `ratchet/s09` pushed.
 
+## Tools (session 10 additions)
+- **Area registry:** `npm run areas` (cpu slot, ~15 min, ~4 GB) → data/areas.json, T-A6/T-A6x evidence, the envelope cache
+  (shots/cache/envelope.bin, 348 MB, gitignored). Any edit under src/ or tools/dev/lib makes T-A6/T-A6x STALE: re-run, then board.
+- **Board:** `npm run board` (~1 s) → COVERAGE.md. tests/coverage_board.test.ts is in `npm run guards` (not in the pre-commit hook):
+  after a source change run `npm run board` and commit COVERAGE.md with it, or guards/test:fast/CI fail.
+- **Tier 0:** `npm run tier0` (cpu slot, ~1.5 min with the envelope cache) → REVIEWS/evidence/s10-instruments/tier0.json.
+- **Render jobs at quality high:** one view (one page load) per job with `TIMEOUT=3500 PW_TIMEOUT=3550`; two loads at high
+  timed out at 2900 s under load (tj5a). `URLX=&flag=1` in a job's env line reaches the page (the probe-loop A/B used it).
+- **Never `pgrep -f <pattern> | xargs kill` from the Bash tool:** the pattern matches the tool's own shell and kills it.
+
 ## Tools (session 8 additions)
 - `npm run guards`; `tools/dev/cpu_slot.sh <cmd>` (always, for soaks/bots/audio/bakes/long vitest); `tools/dev/audio_render.ts
   --evidence <pass>` (D-245); `tools/dev/plan_dump.ts <pid> <day0> [day1] [seed] [--court]`; `tools/dev/sim_cost.ts`;
