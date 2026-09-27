@@ -82,7 +82,7 @@ def G(x, y, z):  # game coordinates -> Blender
 def crest(seed):
     r = random.Random(seed)
     prof = [(-0.5, -0.14), (-0.51, -0.05), (-0.42, 0.03), (0.0, 0.06), (0.42, 0.03), (0.51, -0.05), (0.5, -0.14)]
-    NX = 5; X0, X1 = -1.02, 1.02
+    NX = 4; X0, X1 = -1.02, 1.02
     verts, faces, shade = [], [], []
     for ix in range(NX):
         x = X0 + (X1 - X0) * ix / (NX - 1)
@@ -96,13 +96,16 @@ def crest(seed):
             else: yy0 = y
             yy = yy0 + (d * 0.6 + dip if not face else d * 0.3)
             zz = z + (math.copysign(d * 0.5, z) if face else 0)
-            if ix in (0, NX - 1): zz = z; yy = y + dip * 0.3 if not face else y
+            if ix in (0, NX - 1): zz = z; yy = y  # module ends: the bare profile, so modules and mirrored modules meet without a step
             verts.append(G(x, yy, zz)); shade.append(0.94 + 0.12 * (0.5 + nz(p, 3.0, seed + 5)))
     n = len(prof)
     for ix in range(NX - 1):
         for k in range(n - 1):
             a = ix * n + k; b = a + 1; c = a + n + 1; d = a + n
             faces.append((a, d, c, b))
+    # the ends closed (a crest seen end-on at a wall's end or a doorway shows mud, not a hollow)
+    faces.append(tuple(range(n)))
+    faces.append(tuple((NX - 1) * n + k for k in range(n))[::-1])
     ob = mesh_from(verts, faces, shade, f'crest{seed}'); smooth(ob); return ob
 
 def log(seed):
