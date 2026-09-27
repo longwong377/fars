@@ -213,7 +213,9 @@ export function buildTerrace(): BuildResult {
     // parts, colliders and render never overlap
     const K = v<any>(b, 'r_colossus'), G = v<Record<string, string>>(b, 'guardians'), jambs: Box[] = [];
     for (const [side, sx, dir] of [['W', x0, -1], ['E', x1, 1]] as const) for (const dy of [-1, 1] as const) {
-      const pl = v(b, 'r_colossus_plinth'), pc: Pt = [sx + dir * (K.length / 2 - tx), c[1] + dy * (dw / 2 + K.width / 2)];
+      // D-312: the colossus's inner end stops the door leaf's thickness short of the inner wall face (the leaves' pivots stand in
+      // the passage's inner end, r_door_leaves hang inner, C; Q-890), its fore-part projecting outward from the facade (IR-PERS)
+      const pl = v(b, 'r_colossus_plinth'), pc: Pt = [sx + dir * (K.length / 2 - tx + v<any>(b, 'r_door_leaves').thickness), c[1] + dy * (dw / 2 + K.width / 2)];
       jambs.push(box(b, 'plinth', 'limestone', 'C', S_(b, 'r_colossus_plinth'), pc, [K.length, K.width], fl, fl + pl, { solid: true }));
       jambs.push(box(b, 'colossus', 'limestone', 'C', srcOf(row(b, 'guardians'), row(b, 'r_colossus')), pc, [K.length, K.width], fl + pl, fl + pl + K.height,
         { solid: true, sculpt: { model: /human-headed/.test(G[side]) ? 'lamassu' : 'bull', facing: dir, passage: dy === 1 ? -1 : 1 },

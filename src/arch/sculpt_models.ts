@@ -223,7 +223,7 @@ export function protomeSDF(lod: 0 | 1 = 0): PieceSDF {
   // ~0.33 of it and held forward like a cow's), a conservative distance bound (the smallest factor)
   const HS = (H.scale as number[] | undefined) ?? [1, 1, 1], hsMin = Math.min(...HS), hsMax = Math.max(...HS);
   const head0 = bullHead(H, HR, B.feature_blend, detail);
-  const headParts = (s: number, t: number, Z: number): [number, number, number] => { const [a, , c] = head0(s / HS[0], t / HS[1], Z / HS[2]); return [a * hsMin, head0(s, t, Z)[1], c * hsMin]; }; // horns keep their D-151 size (the photographed horns are short, inserted stubs)
+  const headParts = (s: number, t: number, Z: number): [number, number, number] => { const ES = (H.ear_shift as number[] | undefined) ?? [0, 0, 0], HSh = (H.horn_shift as number[] | undefined) ?? [0, 0, 0]; return [head0(s / HS[0], t / HS[1], Z / HS[2])[0] * hsMin, head0(s - HSh[0], t - HSh[1], Z - HSh[2])[1], head0(s - ES[0], t - ES[1], Z - ES[2])[2]]; }; // horn_shift raises the horns ~0.08 D (they sweep up and forward from the poll in the photographs); horns and ears keep their D-151 size (the photographed horns are short inserted stubs); the ears moved down the head (toward the muzzle) and out, beside the brow below the horns as on the photographed capital (head.ear_shift, C)
   const headR = 0.8 * hsMax;
   // the folded foreleg: its side outline (forearm, knee, cannon on the base, fetlock and hoof) extruded to a width that
   // narrows from the forearm to the cannon, arrises rounded; a knee cap; the cleft between the claws at LOD0
