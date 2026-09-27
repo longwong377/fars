@@ -18,7 +18,7 @@ import { MASONRY, courseTexels } from './masonry';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
-import { applyScan } from './scans';
+import { applyScan, scanOf } from './scans';
 import { incisionNodes } from './incision';
 import type { Atlas } from '../arch/carving';
 import { roofedNode } from './probes/roofs';
@@ -77,6 +77,13 @@ export const SURF_AB = uniform(1);
 /** D-285's A/B switch (window.__parsaSurf.d285): 0 = the surfaces before D-285 (no soiling of the stone, no plastering campaign
  *  or rain wash on the mud plaster, the D-157 foot band and 3 m run-off everywhere), so a render can compare both at one exposure */
 export const SURF_D285 = uniform(1);
+/** D-300: the Now view's modern gravel forecourt W of the Terrace (0 = the 467 plain; set by src/world/nowview.ts). Photograph #24
+ *  (2019) shows pale grey gravel from the camera to the wall's foot: display rgb 143/121/112 against the render's earth 99/85/62
+ *  in calib-24-now. The earth there takes a per-channel factor (linear, from those means through the display curve, C: the
+ *  photo is graded) inside the forecourt (grid e −330…−63, n −120…240, 12 m soft edges; its extent C, recollection of the
+ *  visitors' approach and the photo) */
+export const NOW_GROUND = uniform(0);
+export const NOW_GRAVEL = { rect: [-330, -120, -63, 240] as [number, number, number, number], soft: 12, factor: [2.1, 2.0, 3.1] as [number, number, number] };
 if (typeof globalThis !== 'undefined') (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), surf: SURF_AB, d285: SURF_D285 };
 /** D-285: the cell along a course that holds at most one drip stain (m) */
 export const SOIL_CELL = 0.55;
@@ -271,7 +278,9 @@ const SOIL_TERRACE: SoilDef = { drip: 0.12, share: 0.5, w: [0.03, 0.1], len: [0.
  *  The spread set against the only mud plaster in the references, the modern kahgel coat round the Gate's hall in #21, at the
  *  render's pixel footprint (tools/dev/plaster_photo_d285.py: Ystd/Y 0.036 in 0.5 m windows at 0.032 m/px; the D-188 plaster
  *  read 0.020 on the CPU mirror, 0.036-0.041 now: tests/materials_d285.test.ts) */
-const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.05, chroma: 0.012, seam: 0, wash: 0.1, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
+/** D-300 (session 11 renders at the player's lens: the Gate's walls one flat tan field at 24 m, no bay or wash seen): the
+ *  batches 1σ 7 % and the wash 13 % lighter, so the campaign reads at 20-60 m; the 0.5 m spread stays the photo's (tests) */
+const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.07, chroma: 0.012, seam: 0, wash: 0.13, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
 /** stair blocks along the step (D-218, C): 1.9 m ± 30 %; the row's joint crosses the first tread of each row 6 cm in front of
  *  the next riser (the blocks' 4–5 steps per row: grand_stair.block_construction, B) */
 export const STAIR_BLOCK = { length: 1.9, jitter: 0.6, rowJoint: 0.06 };
@@ -300,10 +309,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // with straw, finished fine: a light buff (sRGB 0.64/0.55/0.43, L* 60, the town render's hue lightened as a fine clay
   // finish dries, C). The greyish yellow-green clay paint is attested only for the Treasury (Schmidt) and at
   // Pasargadae: `mudbrick_painted` below, used by the Treasury alone
-  mudbrick: { albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.2 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483)' },
+  mudbrick: { albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483); D-300: the shrinkage cracks at 0.3 and the salt line at 0.08 of their D-188/D-218 strength (the session-11 blind review: Voronoi craze patches and a decal-like base line)' },
   // the Treasury's walls: mud plaster coated with a greyish yellow-green clay paint, attested at Pasargadae and, per
   // Schmidt, on the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone C
-  mudbrick_painted: { albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.2 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
+  mudbrick_painted: { albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, tone: { sd: 0.09, chroma: 0.015, patch: 0.05 }, foot: 1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
@@ -334,7 +343,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
 };
 /** the Now view's Terrace (nowview.ts, D-201): the limestone as the ruin's other stone (its court included, as before), with the
  *  retaining walls' layout of D-232 on its walls */
-SURFACES.terrace_now = { ...SURFACES.limestone, joints: RETAINING, note: SURFACES.limestone.note + '; D-232: the Terrace walls\' photographed joint layout (terrace.r_masonry)' };
+/** D-300: the foot's proud blocks (src/arch/terrace_foot.ts): the retaining walls' stone and layout, no court fill on their up-facing
+ *  ledges (the platform's top takes court_fill; a block's top is its own stone, dusty) */
+SURFACES.terrace_foot = { ...SURFACES.terrace, top: undefined, note: SURFACES.terrace.note + '; D-300: the polygonal foot as proud blocks (Q-600, C)' };
+SURFACES.terrace_now = { ...SURFACES.limestone, joints: { ...RETAINING, blockSd: 0.27 }, note: SURFACES.limestone.note + '; D-232: the Terrace walls\' photographed joint layout (terrace.r_masonry); D-300: the ruin\'s block tone, 1σ 0.27 between blocks as measured on #24 (D-230, B40), in the Now view only (the 467 stone keeps 0.13)' };
 
 /** shading normal from a procedural height field (view space; surface-gradient method, Mikkelsen 2010) */
 function bumped(h: any) {
@@ -1026,19 +1038,25 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   const m = new SurfaceNodeMaterial(); // vertex colours are read explicitly below; the vertexColors flag would multiply them in a second time
   const n = normalWorld;
   const base = opts.vertexColors ? attribute('color', 'vec3') : lin(d.albedo);
-  let L = layer(d, base, !!opts.arch);
+  // each layer takes its own surface's scan (D-300: the Terrace's court top took the retaining wall's rock scan)
+  let L = applyScan(name, layer(d, base, !!opts.arch));
   if (d.top && SURFACES[d.top]) { // up-facing faces use another surface (sharp transition at the arris)
-    const T = layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch); const t = smoothstep(0.7, 0.9, n.y);
+    const T = applyScan(d.top, layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch)); const t = smoothstep(0.7, 0.9, n.y);
     L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
+  }
+  if (name === 'earth') { // D-300: the Now view's gravel forecourt (NOW_GROUND, NOW_GRAVEL), identity in the 467 world
+    const G = NOW_GRAVEL, pw = positionWorld, e = pw.x, nn = pw.z.negate();
+    const inside = smoothstep(0, G.soft, min(min(e.sub(G.rect[0]), float(G.rect[2]).sub(e)), min(nn.sub(G.rect[1]), float(G.rect[3]).sub(nn)))).mul(NOW_GROUND);
+    L = { ...L, alb: L.alb.mul(mix(vec3(1), vec3(...G.factor), inside)).min(0.8) };
   }
   if (d.under && SURFACES[d.under]) { // down-facing faces use another surface (the ceiling's matting, D-188)
     const U = layer(SURFACES[d.under], lin(SURFACES[d.under].albedo), !!opts.arch); const t = smoothstep(0.7, 0.9, n.y.negate());
     L = { alb: mix(L.alb, U.alb, t), rough: mix(L.rough, U.rough, t), height: L.height && U.height ? mix(L.height, U.height, t) : (L.height ?? U.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
   }
-  L = applyScan(name, L); // scanned grain over the procedural surface (session 11; identity in node)
+  // (the scanned grain over the procedural surface, session 11: applied per layer above; identity in node)
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
-  m.userData = { tier: d.tier, note: d.note };
+  m.userData = { tier: d.tier, note: d.note, surface: SURFACES[name] ? name : 'limestone', scan: scanOf(SURFACES[name] ? name : 'limestone') }; // (D-300: T-A7 reads surface and scan)
   if (!opts.modify) receiveReliefShadow(m); // the architecture's surfaces carry the reliefs' cast shadows (D-226); the plain's layers do not
   cache.set(key, m);
   return m;
@@ -1118,7 +1136,7 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   const key = 'painted-stone'; const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES.limestone_carved, F = (PC as any).paint.film.v, LS = (PC as any).paint.loss.v, G = (PC as any).paint.gold.v;
   const p = positionWorld;
-  const S = layer(d, lin(d.albedo));
+  const S = applyScan('limestone_carved', layer(d, lin(d.albedo))); // D-300: the bare stone between and under the paint takes the carved stone's scan
   const pig = attribute('color', 'vec3'), cov = attribute('paint', 'float'), gilt = attribute('gilt', 'float');
   // the paint's noise fields are faded to their mean where their period falls under ~3 pixels (D-204): the ~7 mm losses and the
   // pigment grain, point-sampled per pixel from a few metres away, turned every painted surface into salt-and-pepper speckle
@@ -1150,7 +1168,7 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   m.metalnessNode = leaf;
   receiveReliefShadow(m); // the figures' shadows on themselves (D-226)
   (m as any).setupLightingModel = () => new GiltLighting();
-  m.userData = { tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
+  m.userData = { surface: 'limestone_carved', scan: scanOf('limestone_carved'), tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
   cache.set(key, m);
   return m;
 }
@@ -1163,12 +1181,12 @@ export function incisedMaterial(surface: string, atlas: Atlas): THREE.MeshStanda
   const key = `incised:${surface}:${atlas.tex.uuid}`; const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES[surface] ?? SURFACES.limestone;
   const m = new SurfaceNodeMaterial();
-  finish(m, layer(d, lin(d.albedo)), d);
+  finish(m, applyScan(SURFACES[surface] ? surface : 'limestone', layer(d, lin(d.albedo))), d); // D-300: the cut shows the host face's scanned grain (the same world-space tiles)
   const I = incisionNodes(atlas);
   m.normalNode = I.normalView; m.aoNode = I.ao; m.opacityNode = I.mask; m.alphaTest = 0.5;
   m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -4;
   receiveReliefShadow(m); // an inscription beside a relief lies in its shadow like the face it is cut into (D-226)
-  m.userData = { tier: 'C', note: `incised signs in ${surface} (D-177): the stone's own surface; V-section, walls at 45° (C)` };
+  m.userData = { surface: SURFACES[surface] ? surface : 'limestone', scan: scanOf(SURFACES[surface] ? surface : 'limestone'), tier: 'C', note: `incised signs in ${surface} (D-177): the stone's own surface; V-section, walls at 45° (C)` };
   cache.set(key, m);
   return m;
 }
@@ -1201,6 +1219,6 @@ export function paintedShaftMaterial(P: ShaftPaint): THREE.MeshStandardNodeMater
     const tone = L.alb.div(vec3(...plasterLin)).clamp(0.6, 1.4);
     return { alb: paint.mul(tone), rough: L.rough.mul(0.9), height: L.height, tilt: L.tilt };
   } });
-  m.userData = { tier: 'C', note: `the Treasury shafts' paint (D-214, Q-020): painted 'in bright colours' (B); the scheme after the Persepolis and Pasargadae painted plaster (Stein et al. 2016, B) and the red floors: a ground, a lattice of lozenges in the line colour (${P.around} per turn, ${P.lozenge_h} m tall), bands at the foot and the head (all C; treasury.r_shaft_paint)` };
+  m.userData = { ...m.userData, tier: 'C', note: `the Treasury shafts' paint (D-214, Q-020): painted 'in bright colours' (B); the scheme after the Persepolis and Pasargadae painted plaster (Stein et al. 2016, B) and the red floors: a ground, a lattice of lozenges in the line colour (${P.around} per turn, ${P.lozenge_h} m tall), bands at the foot and the head (all C; treasury.r_shaft_paint)` };
   return m;
 }

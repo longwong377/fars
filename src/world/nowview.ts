@@ -16,7 +16,7 @@ import type { Part, Box, Material } from '../arch/parts';
 import type { Physics } from '../player/physics';
 import { buildMeshes, carvedMaterial, flatMaterial } from '../arch/meshes';
 import { colossusFrontProjections } from '../arch/sculpt';
-import { surfaceMaterial, paintedStoneMaterial, type Layer } from '../render/materials';
+import { surfaceMaterial, paintedStoneMaterial, NOW_GROUND, type Layer } from '../render/materials';
 import { setRoofsPresent } from '../render/probes/roofs';
 import { setReliefMaterialOverride } from '../arch/reliefs';
 import { nowParts, NOW_DATA, type NowResult } from '../arch/now';
@@ -33,7 +33,9 @@ const ALL: Material[] = ['limestone', 'limestone_dark', 'mudbrick', 'mudbrick_pa
  *  albedo, crust, dust and iron staining together, applied as one factor on the Now view's limestone (tier C: the photo is
  *  Lightroom-graded, its tone curve unknown; the ratio is exposure-free but not grade-free). The 467 stone (≈50 years from the
  *  quarry) keeps its pale grey (D-230, D-285) */
-export const NOW_STONE_TINT: [number, number, number] = [0.284, 0.212, 0.203];
+/** D-300 (session 11 render calib-24-now, display sRGB over the wall_sun region: luma 92.7 against the photo's 86.3, R/B 1.33
+ *  against 1.74): the red kept and green and blue lowered by the display-to-linear ratios (1.15, 0.84, 0.74 of the D-285 factor) */
+export const NOW_STONE_TINT: [number, number, number] = [0.327, 0.178, 0.15];
 function patina(strength: number, dark: [number, number, number], rough: number, tint?: [number, number, number]) {
   return (L: Layer): Layer => {
     const p = positionWorld, n = normalWorld, n01 = (x: any) => mx_noise_float(x).mul(0.5).add(0.5);
@@ -118,6 +120,8 @@ export class NowView {
       if (!map.has(carved)) map.set(carved, nowMaterial(m, false));
       if (!map.has(flat)) map.set(flat, nowMaterial(m, true));
     }
+    // D-300: the foot's proud blocks (kept, world.ts) in the ruin's weathered stone and block tone (#24)
+    map.set(surfaceMaterial('terrace_foot'), (() => { const x = surfaceMaterial('terrace_now', { variant: 'now-foot', modify: patina(0.85, [0.2, 0.195, 0.185], 0.7, NOW_STONE_TINT) }); x.userData = { ...x.userData, tier: 'C', note: NOTE }; return x; })());
     this.swapMap = map;
     g.traverse(o => { const m = o as THREE.Mesh; if (!(m as any).isMesh) return; const r = map.get(m.material as THREE.Material); if (r) m.material = r; });
     if (phys) phys.world.forEachCollider(c => { if (!before.has(c.handle)) { this.own.push(c.handle); c.setEnabled(false); } });
@@ -150,7 +154,7 @@ export class NowView {
       if (to) { this.swapped.push({ o: m, was: m.material }); m.material = to; }
     });
     setReliefMaterialOverride(this.reliefNow);
-    setRoofsPresent(false);
+    setRoofsPresent(false); NOW_GROUND.value = 1; // (D-300: the gravel forecourt)
     this.physics(true);
   }
   private leave() {
@@ -160,7 +164,7 @@ export class NowView {
     const painted = paintedStoneMaterial();
     for (const k of this.o.keep ?? []) k.traverse(o => { const m = o as THREE.Mesh; if ((m as any).isMesh && m.material === this.reliefNow) m.material = painted; });
     setReliefMaterialOverride(null);
-    setRoofsPresent(true);
+    setRoofsPresent(true); NOW_GROUND.value = 0;
     if (this.group) this.group.visible = false;
     this.physics(false);
   }

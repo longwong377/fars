@@ -262,5 +262,67 @@
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal)"
   ]
+ },
+ "rock_boulder_dry": {
+  "meanLinear": [
+   0.401,
+   0.3397,
+   0.27315
+  ],
+  "meanAO": 0.9294,
+  "meanRough": 0.6333,
+  "name": "Rock Boulder Dry",
+  "authors": [
+   "Dimitrios Savva",
+   "Rico Cilliers"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rock_boulder_dry",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "rock_surface": {
+  "meanLinear": [
+   0.16122,
+   0.11992,
+   0.08478
+  ],
+  "meanAO": 0.8554,
+  "meanRough": 0.8411,
+  "name": "Rock Surface",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rock_surface",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "clay_floor_001": {
+  "meanLinear": [
+   0.19547,
+   0.11623,
+   0.04778
+  ],
+  "meanAO": 0.9795,
+  "meanRough": 0.6856,
+  "name": "Clay Floor 001",
+  "authors": [
+   "Dimitrios Savva",
+   "Rico Cilliers"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/clay_floor_001",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
  }
 }
