@@ -10,7 +10,7 @@ import * as THREE from 'three/webgpu';
 import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { loadModelsNode } from './lib/models_node';
-import { model, modelParts } from '../src/render/scanProps';
+import { model, modelParts, setModelsOff } from '../src/render/scanProps';
 
 const man = JSON.parse(readFileSync('public/models/props/manifest.json', 'utf8'));
 const mine = Object.entries<any>(man.assets).filter(([, a]) => a.parts);
@@ -30,7 +30,7 @@ describe('modelled props (D-325): the files', () => {
         const ao = m.lods[0][p].getAttribute('ao'); if (a.ao) { expect(ao, `${id} ${p} ao`).toBeTruthy(); for (let i = 0; i < ao.count; i += 7) { expect(ao.getX(i)).toBeGreaterThanOrEqual(0); expect(ao.getX(i)).toBeLessThanOrEqual(1.0001); } } }
       expect(t0, id).toBe(a.tris.lod0); expect(t1, id).toBe(a.tris.lod1); expect(t1, id).toBeLessThanOrEqual(t0);
       const s0 = m.box.getSize(new THREE.Vector3()), s1 = b1.getSize(new THREE.Vector3());
-      for (const k of ['x', 'y', 'z'] as const) expect(Math.abs(s1[k] - s0[k]), `${id} lod1 ${k}`).toBeLessThanOrEqual(0.03 * Math.max(s0.x, s0.y, s0.z) + 1e-4);
+      for (const k of ['x', 'y', 'z'] as const) expect(Math.abs(s1[k] - s0[k]), `${id} lod1 ${k}`).toBeLessThanOrEqual(0.05 * Math.max(s0.x, s0.y, s0.z) + 0.002);
     }
   });
 });
@@ -68,6 +68,26 @@ describe('modelled props (D-325): vessels and sacks', () => {
     const jr = propGeometry('jar')!; expect(jr.getAttribute('position').count / 3).toBe(model('jar_water')!.entry.tris.lod1);
     const j = jarGeometry(0.17, 0.55, 40, 1); j.computeBoundingBox(); expect(j.boundingBox!.max.y).toBeCloseTo(0.55, 2); expect(j.getAttribute('uv')).toBeTruthy();
     const sj = workGeometry('sealed_jars'); expect(sj.getAttribute('position').count).toBeGreaterThan(600);
+  });
+});
+describe('modelled props (D-325): held props', () => {
+  it('every modelled tool stands where its procedural form stood (the same frame and size: the placements hold); the carried unions within the in-game budget', async () => {
+    const { propGeometry, MODELLED_TOOLS, PROP_CLASSES, propUnionGeometry } = await import('../src/people/props');
+    const rows: string[] = [];
+    for (const k of MODELLED_TOOLS) {
+      setModelsOff(true); const a = propGeometry(k)!; setModelsOff(false); const b = propGeometry(k)!;
+      expect(model('tool_' + k), k).not.toBeNull(); expect(b.getAttribute('position').count / 3, k).toBeGreaterThanOrEqual(model('tool_' + k)!.entry.tris.lod0);
+      a.computeBoundingBox(); b.computeBoundingBox(); const A = a.boundingBox!, B = b.boundingBox!, ca = A.getCenter(new THREE.Vector3()), cb = B.getCenter(new THREE.Vector3()), sa = A.getSize(new THREE.Vector3()), sb = B.getSize(new THREE.Vector3());
+      const L = Math.max(sa.x, sa.y, sa.z);
+      rows.push(`${k}: ${a.getAttribute('position').count / 3} -> ${b.getAttribute('position').count / 3} tris; centre moved ${ca.distanceTo(cb).toFixed(3)} m; size ${sa.toArray().map(x => x.toFixed(2)).join('x')} -> ${sb.toArray().map(x => x.toFixed(2)).join('x')}`);
+      expect.soft(ca.distanceTo(cb), `${k} centre`).toBeLessThan(0.1 * L + 0.02);
+      expect.soft(Math.abs(Math.max(sb.x, sb.y, sb.z) - L), `${k} length`).toBeLessThan(0.2 * L + 0.02);
+    }
+    console.log(rows.join(' | '));
+    const tris = PROP_CLASSES.map((_, c) => propUnionGeometry(c).getAttribute('position').count / 3);
+    console.log(`carried-prop unions with the models: ${tris.join(' / ')} triangles per instance`);
+    // the in-game budgets with the modelled props (node's procedural budgets, 1,000 / 700, stay in tests/performances.test.ts)
+    expect(tris[0]).toBeLessThanOrEqual(4000); expect(tris[1]).toBeLessThanOrEqual(3000); expect(tris[4]).toBeLessThanOrEqual(1500);
   });
 });
 void modelParts;

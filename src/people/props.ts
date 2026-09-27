@@ -14,7 +14,7 @@ import { HB } from './humanFormat';
 import type { Pose } from './anim';
 import { ptTabletGeometry } from '../world/writing';
 import { HARP_V, HARP_H, LYRE, FRAME_DRUM, DOUBLE_PIPE, REED_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
-import { scanShape, modelShape, aoFactor } from '../render/scanProps';
+import { scanShape, modelShape, aoFactor, modelParts } from '../render/scanProps';
 
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 type RGB = [number, number, number];
@@ -116,8 +116,53 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   babe_cradle: { tier: 'C', note: 'a baby asleep in a shallow oval basket cradle on the ground at home (gap audit item 4; basketry is attested in the period, the cradle C)' },
 };
 
+// ------------------------------------------------------------------------------------------------ D-325: the modelled tools
+// Every tool, weapon and held thing of the lists below is the project's model (tools/blender/model_props.py `tool_<kind>`:
+// the spear's leaf blade with its midrib, socket and ring and the pomegranate or apple butt; the recurved bow's tapering
+// limbs and wrapped grip; the sickle's toothed crescent; the hoe's socket eye; the fork's lashed crosspiece and curving
+// tines; the spindle's domed whorl and cop; the balance's pans on their cords; ...), in the same frame and at the same size
+// as the procedural form it replaces (which stays as the stand-in when the models are not loaded). Its parts are named for
+// what they are made of and painted here; the baked occlusion is multiplied into the colour (paint).
+const TOOL_PAINT: Record<string, [RGB, number, number]> = {
+  wood: [WOOD, 0, 0.7], wood_d: [WOOD_D, 0, 0.7], iron: [IRON, 0.6, 0.5], bronze: [BRONZE, 0.8, 0.4], silver: [[0.8, 0.8, 0.78], 1, 0.3], gold: [[0.9, 0.72, 0.36], 1, 0.3],
+  straw: [STRAW, 0, 1], cloth: [[0.62, 0.58, 0.5], 0, 1], wool: [[0.8, 0.76, 0.66], 0, 1], bone: [[0.8, 0.76, 0.66], 0, 0.7], clay: [[0.66, 0.46, 0.32], 0, 0.9], cord: [[0.62, 0.54, 0.38], 0, 0.95],
+  leather: [[0.5, 0.36, 0.23], 0, 0.8], reed: [[0.7, 0.62, 0.43], 0, 0.7], cane: [CANE, 0, 0.55], linen: [[0.8, 0.77, 0.7], 0, 1], hair: [[0.82, 0.8, 0.74], 0, 1], feather: [[0.3, 0.28, 0.25], 0, 0.9],
+  stone: [[0.55, 0.5, 0.45], 0, 0.8], mud: [[0.62, 0.53, 0.4], 0, 0.95], green: [[0.3, 0.42, 0.2], 0, 0.8], petal: [[0.82, 0.8, 0.72], 0, 0.8], band: [[0.75, 0.62, 0.36], 0, 0.9],
+  hot: [[1.0, 0.42, 0.12], 0.2, 0.6], ink: [[0.08, 0.07, 0.06], 0, 0.5],
+};
+const TOOL_OVERRIDE: Record<string, Record<string, [RGB, number, number]>> = {
+  bow: { wood: [[0.3, 0.2, 0.12], 0, 0.6] }, toy_bow: { wood: [[0.42, 0.3, 0.18], 0, 0.6] }, parasol: { cloth: [[0.62, 0.2, 0.2], 0, 0.9], wood: [[0.45, 0.33, 0.21], 0, 0.7] },
+  seal_cyl: { stone: [[0.28, 0.33, 0.52], 0.1, 0.35] }, whisk: { gold: [[0.62, 0.48, 0.26], 0.7, 0.4] }, sceptre: { gold: [[0.62, 0.48, 0.26], 0.7, 0.4] }, mallet: { wood: [[0.42, 0.31, 0.2], 0, 0.7], wood_d: [[0.4, 0.29, 0.18], 0, 0.7] },
+  rattle: { clay: [[0.66, 0.46, 0.32], 0, 0.9] }, ball: { leather: [[0.55, 0.4, 0.26], 0, 0.85] }, brick: { mud: [[0.62, 0.53, 0.4], 0, 0.95] }, stick: { wood_d: [[0.4, 0.3, 0.2], 0, 0.9] },
+  lead: { cord: [[0.6, 0.52, 0.36], 0, 0.95] }, drill_bow: { leather: [[0.5, 0.36, 0.22], 0, 0.9] }, barsom: { wood: [[0.5, 0.42, 0.26], 0, 0.9] }, cloth: { cloth: [[0.62, 0.58, 0.5], 0, 1] },
+};
+/** the kinds drawn from their models (the rest keep their procedural forms: the tablet (writing.ts), the leather sheet, the
+ *  instruments, the carried children) */
+export const MODELLED_TOOLS = ['spear', 'spear_apple', 'spear_gpom', 'mallet', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick',
+  'barsom', 'stylus', 'hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'toy_bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel', 'ball', 'rattle',
+  'hammer', 'tongs', 'hammer_s', 'punch', 'balance', 'seal_cyl', 'drill_bow', 'scraper', 'pestle', 'pen', 'plectrum'];
+const TOOL_SV: Record<string, (x: number, y: number, z: number) => [number, number, number]> = {
+  spindle: (_x, y) => [0, y < -0.005 ? -1 : 0, 0], // (below the hand: lowered by the yarn's length)
+  balance: (x, y) => [0, y < -0.13 ? (x > 0 ? 1 : -1) : 0, 0], // (the pans rock: the right one up, the left one down)
+};
+function toolModel(kind: string): THREE.BufferGeometry | null {
+  if (!MODELLED_TOOLS.includes(kind)) return null;
+  const p = modelParts('tool_' + kind, 0); if (!p) return null;
+  const gs = Object.entries(p).map(([k, g]) => { const t = TOOL_OVERRIDE[kind]?.[k] ?? TOOL_PAINT[k] ?? [WOOD, 0, 0.8]; return paint(g, t[0], t[1], t[2], TOOL_SV[kind]); });
+  if (kind === 'bow' || kind === 'toy_bow') gs.push(...bowString(kind === 'toy_bow' ? 0.3 : 0.52));
+  return merge(gs);
+}
+/** the bowstring (its middle drawn back by the instance parameter), from the limbs' tips to z −0.14 */
+function bowString(half: number): THREE.BufferGeometry[] {
+  const P = (u: number): [number, number, number] => { const y = half * u, a = Math.abs(u); return [0, y, 0.06 * a * a - 0.1 * a + (a > 0.8 ? 0.35 * (a - 0.8) : 0)]; };
+  const tip = P(1), bot = P(-1), mid: [number, number, number] = [0, 0, -0.14], sv = (_x: number, y: number): [number, number, number] => [0, 0, Math.abs(y) < 0.02 ? -1 : 0];
+  return [paint(rod(tip, mid, 0.0025, 0.0025, 3), [0.82, 0.78, 0.66], 0, 0.8, sv), paint(rod(mid, bot, 0.0025, 0.0025, 3), [0.82, 0.78, 0.66], 0, 0.8, sv)];
+}
+
 /** geometry of a kind; the Phase 3 kinds keep their old origins (spear: at the butt; others: at the grip) */
 export function propGeometry(kind: string): THREE.BufferGeometry | null {
+  const tm = toolModel(kind); if (tm) return tm;
+  if (kind === 'bowl') { const ph = modelParts('phiale', 1); if (ph) return paint(ph.metal, [0.82, 0.8, 0.76], 1, 0.28); } // (D-325: the lobed phiale, modelled)
   switch (kind) {
     case 'spear': { // shaft 2.1 m, bronze blade, silver pomegranate butt (sphere with a small crown), C proportions
       const shaft = paint(new THREE.CylinderGeometry(0.014, 0.016, 2.1, 6).translate(0, 1.13, 0), [0.45, 0.33, 0.21], 0, 0.7);

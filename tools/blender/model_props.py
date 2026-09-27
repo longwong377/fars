@@ -631,6 +631,449 @@ def a_sack_lying():
     cord = sweep([(0.245, cy + 0.05 * math.cos(a), cz + 0.05 * math.sin(a)) for a in [TAU * i / 16 for i in range(17)]], 0.006, 5, 'cord', caps=False)
     return dict(cloth=s, cord=cord)
 
+# ======================================================================================================== held props (people/props.ts)
+# In the props' own frames (props.ts): the Phase 3 kinds keep their origins (the spear at its butt, +Y up the shaft; the
+# mallet at the grip, its handle down -Y); the tools of the work cycles are in a grip frame: origin at the grip, +Z (game)
+# toward the working end, +Y the tool's roll reference. Sizes are the procedural forms' (so the placements hold); the
+# forms are C unless props.ts's note says otherwise. Parts are named by what they are made of (props.ts TOOL_PAINT colours
+# them): wood, wood_d, iron, bronze, silver, gold, straw, cloth, wool, bone, clay, cord, leather, reed, cane, linen, hair.
+def G(p): return Vector((p[0], -p[2], p[1]))
+def rodG(a, b, r0, r1=None, seg=6, name='rod', caps=True, scale=None):
+    return sweep([G(a), G(b)], [r0, r0 if r1 is None else r1], seg, name, caps, scale=scale)
+def pathG(pts, radii, seg=6, name='path', caps=True, scale=None, up=(0, 0, 1)):
+    return sweep([G(p) for p in pts], radii, seg, name, caps, scale=scale, up=up)
+def alongZ(ob, z0=0.0):
+    """a lathe built along Blender z turned to run along the game's +Z from z0"""
+    return xform(ob, (0, -z0, 0), (math.pi / 2, 0, 0))
+def atG(ob, p):
+    q = G(p); return xform(ob, (q.x, q.y, q.z))
+def leaf_blade(y0, L, w, t, seg=4, name='blade', axis='y'):
+    """a leaf-shaped blade with a midrib (a diamond section) from y0 along game +Y (axis 'y') or +Z (axis 'z'), length L,
+    greatest width w at 30 %"""
+    ts = [i / 8 for i in range(9)]
+    wf = lambda s: w * (math.sin(math.pi * min(1, s / 0.3) / 2) if s < 0.3 else (1 - (s - 0.3) / 0.7) ** 0.8) + 0.0015
+    pts = [(0, y0 + L * s, 0) if axis == 'y' else (0, 0, y0 + L * s) for s in ts]
+    return pathG(pts, lambda s: wf(s), seg, name, scale=(1.0, t / w), up=(0, 1, 0) if axis == 'y' else (0, 0, 1))
+
+def spear_common(butt):
+    wood = [pathG([(0, 0.08, 0), (0.002, 1.1, 0), (0, 2.18, 0)], [0.016, 0.015, 0.014], 7, 'shaft')]
+    br = [rodG((0, 2.16, 0), (0, 2.25, 0), 0.0175, 0.0145, 8, 'socket'), rodG((0, 2.165, 0), (0, 2.18, 0), 0.0195, 0.0195, 8, 'ring'),
+          leaf_blade(2.24, 0.27, 0.029, 0.009, 4, 'blade')]
+    b = []
+    if butt == 'apple':
+        b.append(atG(lathe([(0.0, -0.043), (0.03, -0.04), (0.047, -0.015), (0.047, 0.012), (0.035, 0.035), (0.012, 0.042), (0.0, 0.036)], 12, 'apple'), (0, 0.045, 0)))
+        b.append(rodG((0, 0.08, 0), (0, 0.1, 0), 0.004, 0.006, 5, 'stalk'))
+    else:
+        b.append(atG(lathe([(0.0, -0.045), (0.03, -0.04), (0.046, -0.01), (0.044, 0.02), (0.03, 0.038), (0.016, 0.045), (0.014, 0.05)], 12, 'pom'), (0, 0.05, 0)))
+        for k in range(6):  # the crown of sepals toward the shaft
+            a = TAU * k / 6; b.append(rodG((0.012 * math.cos(a), 0.095, 0.012 * math.sin(a)), (0.02 * math.cos(a), 0.118, 0.02 * math.sin(a)), 0.005, 0.002, 4, 'sepal'))
+    return wood, br, b
+
+@asset(ground=False)
+def a_tool_spear():
+    """the long spear of the guards (props.ts: a pomegranate butt, silver for the ordinary guards: B; C form): a tapering
+    ash shaft 2.1 m, a bronze socket with a ring and a leaf-shaped blade with a midrib, the pomegranate butt with its crown"""
+    w, br, b = spear_common('pom'); return dict(wood=join(w, 'wood'), bronze=join(br, 'bronze'), silver=join(b, 'silver'))
+@asset(ground=False)
+def a_tool_spear_apple():
+    """the spear with an apple of gold at the butt (Herodotus 7.41: B; C form)"""
+    w, br, b = spear_common('apple'); return dict(wood=join(w, 'wood'), bronze=join(br, 'bronze'), gold=join(b, 'gold'))
+@asset(ground=False)
+def a_tool_spear_gpom():
+    """the spear with a golden pomegranate at the butt (Herodotus 7.41: B; C form)"""
+    w, br, b = spear_common('pom'); return dict(wood=join(w, 'wood'), bronze=join(br, 'bronze'), gold=join(b, 'gold'))
+
+@asset(ground=False)
+def a_tool_mallet():
+    """a wooden mallet: a barrel head on a handle with a swelling at the grip end (legacy frame: the handle down -Y from the
+    grip, the head across x at -0.3 m) (C)"""
+    h = pathG([(0, 0.02, 0), (0, -0.14, 0), (0, -0.3, 0)], [0.017, 0.015, 0.014], 7, 'handle')
+    k = atG(lathe([(0.0, 0), (0.019, 0), (0.021, 0.012), (0.0, 0.02)], 8, 'knob'), (0, 0.015, 0))
+    head = lathe([(0.0, -0.06), (0.043, -0.06), (0.05, -0.045), (0.052, 0.0), (0.05, 0.045), (0.043, 0.06), (0.0, 0.06)], 12, 'head')
+    xform(head, (0, 0, -0.3), (0, math.pi / 2, 0))
+    return dict(wood=join([h, k], 'wood'), wood_d=head)
+
+@asset(ground=False)
+def a_tool_sickle():
+    """an iron sickle (the sickle of the ancient Near East: B type; C form): the blade leaving the handle's thumb end and
+    curving toward +Y in a flat crescent that narrows to the point, its inner edge toothed; a wooden handle with a pommel"""
+    r = 0.13; pts = []
+    for i in range(12):
+        a = (i / 11) * math.pi * 1.05; pts.append((0, r - r * math.cos(a), 0.07 + r * math.sin(a)))
+    blade = pathG(pts, lambda t: 0.013 * (1 - 0.75 * t) + 0.002, 4, 'blade', scale=(1.0, 0.18), up=(1, 0, 0))
+    handle = pathG([(0, 0, -0.075), (0, 0.002, 0), (0, 0, 0.075)], [0.017, 0.015, 0.016], 7, 'handle')
+    pom = atG(lathe([(0.0, 0), (0.02, 0.002), (0.022, 0.012), (0.0, 0.016)], 8, 'pom'), (0, 0, -0.078))
+    alongZ(pom, 0.078)
+    return dict(iron=blade, wood=join([handle, pom], 'wood'))
+
+@asset(ground=False)
+def a_tool_spindle():
+    """a drop spindle hanging on its yarn (spindle whorls of the period: B): the yarn from the hand, the cop of spun wool on
+    the shaft, a domed stone whorl low on a tapering wooden shaft (C); the parts below the hand are moved by the yarn's length"""
+    yarn = rodG((0, 0, 0), (0, -0.012, 0), 0.0012, 0.0012, 4, 'yarn')
+    shaft = pathG([(0, -0.01, 0), (0, -0.16, 0), (0, -0.3, 0)], [0.0035, 0.005, 0.003], 6, 'shaft')
+    whorl = atG(lathe([(0.0, -0.006), (0.02, -0.006), (0.025, -0.002), (0.022, 0.004), (0.012, 0.009), (0.0, 0.01)], 12, 'whorl'), (0, -0.245, 0))
+    cop = atG(lathe([(0.0, -0.03), (0.006, -0.03), (0.013, -0.018), (0.014, 0.01), (0.009, 0.026), (0.0, 0.03)], 8, 'cop'), (0, -0.07, 0))
+    return dict(wood=shaft, stone=whorl, wool=join([cop, yarn], 'wool'))
+
+@asset(ground=False)
+def a_tool_distaff():
+    """a distaff: a rod with a hank of combed wool bound round its head (C)"""
+    rod = pathG([(0, 0, -0.1), (0, 0, 0.12), (0, 0, 0.42)], [0.008, 0.0085, 0.006], 6, 'rod')
+    wool = meta([('ELLIPSOID', G((0, 0, 0.33 + 0.02 * k)), 0.05 - 0.004 * abs(k - 2), (1.0, 1.0, 1.1), 2) for k in range(5)], res=0.009, name='wool')
+    displace(wool, 0.008, 0.02, seed=51)
+    return dict(wood=rod, wool=wool)
+
+@asset(ground=False)
+def a_tool_trowel():
+    """a small bronze trowel for mud mortar: a leaf blade on a cranked tang, a wooden handle (C)"""
+    h = pathG([(0, 0, -0.065), (0, 0, 0.0), (0, 0, 0.06)], [0.013, 0.015, 0.012], 7, 'handle')
+    tang = pathG([(0, 0, 0.055), (0, -0.004, 0.075), (0, -0.01, 0.085)], 0.004, 5, 'tang')
+    bl = [(0, -0.011, 0.085 + 0.13 * t) for t in [i / 6 for i in range(7)]]
+    blade = pathG(bl, lambda t: 0.04 * math.sin(math.pi * (0.25 + 0.75 * t)) ** 0.7 + 0.002, 4, 'blade', scale=(1.0, 0.06), up=(0, 0, 1))
+    return dict(wood=h, bronze=join([tang, blade], 'bronze'))
+
+@asset(ground=True)
+def a_tool_brick():
+    """a sun-dried mud brick 33 x 33 x 11 cm: the arrises worn round, the faces a little uneven, straw ends in them (C)"""
+    b = box(0.33, 0.33, 0.11, (0, 0, -0.055), 'brick', bevel=0.012, segs=2)
+    subdiv(b, 1); displace(b, 0.004, 0.05, seed=52)
+    return dict(mud=b)
+
+@asset(ground=False)
+def a_tool_knife():
+    """an iron knife: a curved back and straight edge, a bolster and a wooden handle with rivets (C)"""
+    h = pathG([(0, 0, -0.06), (0, 0.001, 0), (0, 0, 0.05)], [0.012, 0.014, 0.013], 7, 'handle')
+    pts = [(0, -0.004 + 0.012 * t * (1 - t), 0.05 + 0.15 * t) for t in [i / 7 for i in range(8)]]
+    blade = pathG(pts, lambda t: 0.015 * (1 - t ** 1.5) + 0.0015, 4, 'blade', scale=(1.0, 0.18), up=(1, 0, 0))
+    bol = rodG((0, 0, 0.046), (0, 0, 0.056), 0.014, 0.012, 7, 'bolster')
+    return dict(wood_d=h, iron=join([blade, bol], 'iron'))
+
+@asset(ground=False)
+def a_tool_cloth():
+    """a wet cloth or a hank of wool being washed, twisted between the hands (C)"""
+    pts = [(-0.18 + 0.36 * t, 0.012 * math.sin(t * 9), 0.01 * math.cos(t * 7)) for t in [i / 12 for i in range(13)]]
+    c = pathG(pts, [0.04, 0.046, 0.04, 0.047, 0.042, 0.048, 0.043, 0.047, 0.04, 0.046, 0.041, 0.045, 0.038], 7, 'cloth', scale=(1.0, 0.72))
+    displace(c, 0.006, 0.02, seed=53)
+    return dict(cloth=c)
+
+@asset(ground=False)
+def a_tool_wisp():
+    """a twist of straw for rubbing down an animal: a bundle of stalks bound in the middle (C)"""
+    parts = []
+    for k in range(9):
+        a = TAU * k / 9; r = 0.012 + 0.006 * (k % 2)
+        parts.append(pathG([(r * math.cos(a) * 0.6, r * math.sin(a) * 0.6, -0.07), (r * math.cos(a) * 0.4, r * math.sin(a) * 0.4, 0.0), (r * math.cos(a) * 1.6, r * math.sin(a) * 1.6, 0.17)], 0.0035, 3, 'stalk'))
+    return dict(straw=join(parts, 'straw'))
+
+@asset(ground=False)
+def a_tool_rag():
+    """a crumpled polishing rag (C)"""
+    r = meta([('ELLIPSOID', (0.008 * k - 0.012, 0.006 * (k % 2), 0.004 * k), 0.028, (1.0, 1.3, 0.75), 2) for k in range(4)], res=0.007, name='rag')
+    displace(r, 0.008, 0.015, seed=54); alongZ(r, 0)
+    return dict(cloth=r)
+
+@asset(ground=False)
+def a_tool_awl():
+    """a bone awl: a knuckle-end handle and a polished point (C)"""
+    h = meta([('ELLIPSOID', G((0, 0, -0.03)), 0.017, (1.0, 1.0, 2.2), 2), ('ELLIPSOID', G((0, 0, -0.055)), 0.014, (1.3, 1.0, 1.0), 2)], res=0.004, name='h')
+    p = pathG([(0, 0, 0.0), (0, 0, 0.06), (0, 0, 0.125)], [0.008, 0.004, 0.0008], 5, 'pt')
+    return dict(bone=join([h, p], 'bone'))
+
+@asset(ground=False)
+def a_tool_arrow():
+    """a reed arrow with a bronze trilobate head and three fletchings (arrowheads by the hundred in the Treasury: B; C form)"""
+    shaft = pathG([(0, 0, 0.0), (0, 0, 0.35), (0, 0, 0.7)], [0.0042, 0.0045, 0.004], 5, 'shaft')
+    nock = rodG((0, 0, -0.004), (0, 0, 0.012), 0.005, 0.0045, 5, 'nock')
+    head = []
+    for k in range(3):
+        a = TAU * k / 3; head.append(pathG([(0, 0, 0.7), (0.009 * math.cos(a), 0.009 * math.sin(a), 0.715), (0, 0, 0.745)], [0.0015, 0.0012, 0.0003], 3, 'lobe'))
+    head.append(rodG((0, 0, 0.695), (0, 0, 0.745), 0.004, 0.0008, 5, 'core'))
+    fl = []
+    for k in range(3):
+        a = TAU * k / 3 + 0.3
+        v = [G((0.002 * math.cos(a), 0.002 * math.sin(a), 0.02)), G((0.011 * math.cos(a), 0.011 * math.sin(a), 0.035)), G((0.011 * math.cos(a), 0.011 * math.sin(a), 0.1)), G((0.002 * math.cos(a), 0.002 * math.sin(a), 0.11))]
+        import bmesh as _b
+        bm = _b.new(); vs = [bm.verts.new(p) for p in v]; bm.faces.new(vs); ob = from_bm(bm, 'vane'); solidify(ob, 0.0006, 0); fl.append(ob)
+    return dict(reed=join([shaft, nock], 'reed'), bronze=join(head, 'bronze'), feather=join(fl, 'feather'))
+
+@asset(ground=False)
+def a_tool_lead():
+    """a lead rope of twisted plant fibre, down from the hand to an animal (C)"""
+    return dict(cord=pathG([(0, 0, 0), (0, -0.05, 0.3), (0, -0.1, 0.65)], 0.0075, 6, 'lead'))
+
+@asset(ground=False)
+def a_tool_ladle():
+    """a wooden ladle: a deep bowl carved with its handle, the handle ending in a hook (C)"""
+    h = pathG([(0, 0.012, -0.09), (0, 0, 0.0), (0, 0, 0.2), (0, 0.01, 0.36)], [0.009, 0.011, 0.01, 0.012], 6, 'handle')
+    bowl = vessel([(0.0, 0.0), (0.03, 0.004), (0.045, 0.022), (0.048, 0.04)], 0.004, 14, 'bowl', 0.02, seed=55)
+    xform(bowl, (0, -0.4, -0.01 + 0.0))
+    return dict(wood=join([h, bowl], 'wood'))
+
+@asset(ground=False)
+def a_tool_stick():
+    """a brushwood stick for the fire: crooked, with a side twig and knots (C)"""
+    s = pathG([(0, 0, -0.15), (0.01, 0.004, 0.1), (-0.006, 0.0, 0.3), (0.008, 0.006, 0.55)], [0.013, 0.011, 0.01, 0.007], 5, 'stick')
+    t = pathG([(0.004, 0.003, 0.22), (0.05, 0.01, 0.33)], [0.005, 0.003], 4, 'twig')
+    return dict(wood_d=join([s, t], 'wood_d'))
+
+@asset(ground=False)
+def a_tool_barsom():
+    """the barsom: a bundle of thin twigs held upright, tied near the foot (OXUS-PLAQUE: B; C length and form)"""
+    tw = []
+    for k in range(7):
+        a = TAU * k / 7; r = 0.008
+        tw.append(pathG([(r * math.cos(a), r * math.sin(a), -0.1), (r * math.cos(a) * 0.8, r * math.sin(a) * 0.8, -0.04), (r * math.cos(a) * 1.8 + 0.002 * k, r * math.sin(a) * 1.8, 0.36 - 0.01 * (k % 3))], 0.0028, 3, 'twig'))
+    tie = rodG((0, 0, -0.06), (0, 0, -0.045), 0.011, 0.011, 7, 'tie')
+    return dict(wood=join(tw, 'wood'), cord=tie)
+
+@asset(ground=False)
+def a_tool_stylus():
+    """a reed stylus cut to a wedge at the tip (C)"""
+    s = pathG([(0, 0, -0.07), (0, 0, 0.05), (0, 0, 0.075)], [0.0045, 0.004, 0.0012], 4, 'stylus')
+    return dict(reed=s)
+
+@asset(ground=False)
+def a_tool_hoe():
+    """a hoe: an iron blade with a socket eye on a 1.25 m wooden handle (C)"""
+    h = pathG([(0, 0, -0.45), (0, 0.003, 0.2), (0, 0, 0.8)], [0.016, 0.017, 0.018], 6, 'handle')
+    eye = rodG((0, 0.03, 0.8), (0, -0.04, 0.82), 0.026, 0.024, 7, 'eye')
+    bl = pathG([(0, -0.03, 0.81), (0, -0.12, 0.812), (0, -0.2, 0.815)], [0.06, 0.075, 0.085], 4, 'blade', scale=(1.0, 0.09), up=(0, 0, 1))
+    return dict(wood=h, iron=join([eye, bl], 'iron'))
+
+@asset(ground=False)
+def a_tool_fork():
+    """a wooden winnowing fork: a shaft, a crosspiece lashed on, four tines curving up (C)"""
+    s = pathG([(0, 0, -0.55), (0, 0.004, 0.3), (0, 0, 1.15)], [0.015, 0.016, 0.017], 6, 'shaft')
+    cp = rodG((-0.11, 0, 1.15), (0.11, 0, 1.15), 0.016, 0.016, 6, 'cross', scale=(1.0, 1.6))
+    tines = [pathG([(x, 0, 1.15), (x * 1.1, 0.01, 1.3), (x * 1.2, 0.045, 1.48)], [0.008, 0.007, 0.004], 5, 'tine') for x in (-0.09, -0.03, 0.03, 0.09)]
+    lash = rodG((0, 0, 1.13), (0, 0, 1.17), 0.021, 0.021, 7, 'lash')
+    return dict(wood=s, wood_d=join([cp] + tines, 'wood_d'), cord=lash)
+
+@asset(ground=False)
+def a_tool_goad():
+    """a goad stick with an iron point (C)"""
+    return dict(wood_d=pathG([(0, 0, -0.25), (0.006, 0, 0.5), (0, 0.004, 1.12)], [0.011, 0.009, 0.007], 5, 'goad'), iron=rodG((0, 0.004, 1.11), (0, 0.004, 1.16), 0.006, 0.0008, 4, 'pt'))
+
+@asset(ground=False)
+def a_tool_staff():
+    """a herder's staff: a natural stick, a little crooked, its top worn smooth (C)"""
+    return dict(wood=pathG([(0, 0, -0.12), (0.01, 0.005, 0.4), (-0.006, 0, 1.0), (0.004, 0.006, 1.5)], [0.017, 0.018, 0.017, 0.016], 6, 'staff'))
+
+@asset(ground=False)
+def a_tool_broom():
+    """a handleless broom: a bundle of twigs bound tight at one end, spreading at the other (C)"""
+    tw = []
+    for k in range(12):
+        a = TAU * k / 12; r0 = 0.02 + 0.006 * (k % 2)
+        tw.append(pathG([(r0 * math.cos(a), r0 * math.sin(a), -0.1), (r0 * 0.9 * math.cos(a), r0 * 0.9 * math.sin(a), 0.18), (r0 * 4.2 * math.cos(a), r0 * 3.0 * math.sin(a), 0.56)], [0.004, 0.004, 0.0025], 3, 'tw'))
+    bind = rodG((0, 0, 0.1), (0, 0, 0.18), 0.03, 0.031, 8, 'bind')
+    return dict(straw=join(tw, 'straw'), cord=bind)
+
+@asset(ground=True)
+def a_tool_mould():
+    """a wooden brick mould: an open frame of four boards pegged at the corners, a handle at each end (for 33 cm bricks: C;
+    the brick mould attested in Babylonia: B)"""
+    w, h, t = 0.36, 0.11, 0.022; parts = []
+    for s in (-1, 1):
+        parts.append(box(t, w + 0.02, h, (s * (w / 2 - t / 2), 0, 0), bevel=0.003))
+        parts.append(box(w, t, h, (0, s * (w / 2 - t / 2), 0), bevel=0.003))
+        parts.append(pathG([(s * (w / 2 + 0.01), h * 0.7, -0.02), (s * (w / 2 + 0.07), h * 0.72, 0.0), (s * (w / 2 + 0.01), h * 0.7, 0.02)], 0.011, 6, 'handle'))
+    return dict(wood=join(parts, 'wood'))
+
+@asset(ground=False)
+def a_tool_rope():
+    """a hauling rope of plant fibre (the path the rope props.ts gives it), three-strand laid (C)"""
+    pts = [(0, -0.55, -0.62), (0, -0.1, -0.42), (0, 0, -0.26), (0, 0, 0.3), (0, -0.06, 1.5), (0, -0.22, 3), (0, -0.5, 4.6)]
+    fine = []
+    for i in range(len(pts) - 1):
+        for k in range(4): t = k / 4; fine.append(tuple(pts[i][j] + (pts[i + 1][j] - pts[i][j]) * t for j in range(3)))
+    fine.append(pts[-1])
+    return dict(cord=pathG(fine, lambda t: 0.013 * (1 + 0.08 * math.sin(t * 900)), 6, 'rope', caps=True))
+
+@asset(ground=False)
+def a_tool_adze():
+    """a carpenter's adze: an iron blade across the haft's end, lashed to a crooked haft (C)"""
+    h = pathG([(0, 0, -0.08), (0, 0.004, 0.2), (0, 0, 0.46)], [0.015, 0.016, 0.018], 6, 'haft')
+    bl = pathG([(0, 0.035, 0.44), (0, -0.025, 0.46), (0, -0.085, 0.47)], [0.018, 0.024, 0.028], 4, 'blade', scale=(1.0, 0.12), up=(0, 0, 1))
+    lash = rodG((0, 0, 0.42), (0, 0, 0.46), 0.02, 0.021, 7, 'lash')
+    return dict(wood=h, iron=bl, cord=lash)
+
+def bow_limbs(half, th, recurve=1.0):
+    P = lambda u: (0, half * u, (0.06 * abs(u) ** 2 - 0.1 * abs(u) + (0.35 * (abs(u) - 0.8) if abs(u) > 0.8 else 0)) * recurve)
+    us = [i / 10 for i in range(-10, 11)]
+    limb = pathG([P(u) for u in us], lambda t: (0.016 - 0.009 * abs(2 * t - 1)) * th + 0.0015, 6, 'limb', scale=(1.0, 0.7), up=(0, 1, 0))
+    grip = rodG(P(-0.1), P(0.1), 0.019 * th, 0.019 * th, 7, 'grip')
+    return limb, grip, P
+
+@asset(ground=False)
+def a_tool_bow():
+    """the composite bow, recurved (the guards' bows of the reliefs and the Susa bricks: B; C form): limbs of horn, wood
+    and sinew tapering to stiff recurved ears, a leather-wrapped grip; the string is the builder's (drawn back per frame)"""
+    limb, grip, P = bow_limbs(0.52, 1.0)
+    return dict(wood=limb, leather=grip)
+@asset(ground=False)
+def a_tool_toy_bow():
+    """a boy's small bow of the recurved form, 0.6 m (C)"""
+    limb, grip, P = bow_limbs(0.3, 0.6)
+    return dict(wood=limb, leather=grip)
+
+@asset(ground=False)
+def a_tool_beater():
+    """a wooden weaving sword: a long flat blade thinning to one edge, rounded ends (C)"""
+    b = box(0.62, 0.06, 0.012, (0, 0, -0.006), 'b', bevel=0.004)
+    for v in b.data.vertices:
+        if v.co.y < 0: v.co.z *= 0.35
+        v.co.y *= 1 - 0.15 * (abs(v.co.x) / 0.31) ** 4
+    return dict(wood=b)
+
+@asset(ground=False)
+def a_tool_paddle():
+    """a wooden stirring paddle for the mash: a pole and a broad blade (C)"""
+    s = pathG([(0, 0, -0.55), (0, 0.003, 0.2), (0, 0, 0.9)], [0.017, 0.017, 0.018], 6, 'pole')
+    bl = pathG([(0, 0, 0.88), (0, 0, 1.0), (0, 0, 1.13)], [0.035, 0.06, 0.055], 6, 'blade', scale=(1.0, 0.16), up=(0, 0, 1))
+    return dict(wood=s, wood_d=bl)
+
+@asset(ground=False)
+def a_tool_sceptre():
+    """the king's long staff, gilded, with a knob (door-jamb and audience reliefs: B; C form)"""
+    s = pathG([(0, 0, -0.75), (0, 0, 0.9)], [0.013, 0.012], 8, 'staff')
+    knob = alongZ(lathe([(0.0, 0), (0.016, 0.004), (0.03, 0.025), (0.028, 0.045), (0.012, 0.06), (0.0, 0.062)], 12, 'knob'), 0.885)
+    ferrule = rodG((0, 0, -0.76), (0, 0, -0.72), 0.015, 0.014, 8, 'ferrule')
+    return dict(gold=join([s, knob, ferrule], 'gold'))
+
+@asset(ground=False)
+def a_tool_parasol():
+    """the parasol held over the king (HADISH-JAMB: B): a 2 m pole, ribs under a cloth canopy 1.2 m across with a fringed
+    edge, a finial (C)"""
+    pole = pathG([(0, 0, -0.3), (0, 0, 1.78)], [0.016, 0.014], 7, 'pole')
+    can = lathe([(0.0, 0.2), (0.08, 0.18), (0.3, 0.11), (0.52, 0.035), (0.6, 0.0), (0.59, -0.005), (0.3, 0.1), (0.0, 0.19)], 16, 'can')
+    alongZ(can, 1.56)
+    ribs = [pathG([(0, 0, 1.63), (0.55 * math.cos(TAU * k / 12), 0.55 * math.sin(TAU * k / 12), 1.57)], 0.004, 3, 'rib') for k in range(12)]
+    fringe = alongZ(lathe([(0.6, 0.0), (0.605, -0.07), (0.59, -0.07), (0.585, 0.0)], 24, 'fr'), 1.56)
+    fin = alongZ(lathe([(0.0, 0), (0.02, 0.01), (0.012, 0.05), (0.0, 0.06)], 8, 'fin'), 1.76)
+    return dict(wood=pole, cloth=can, gold=join(ribs + [fin], 'gold'), band=fringe)
+
+@asset(ground=False)
+def a_tool_lotus():
+    """a lotus flower on its stem in the king's left hand (the reliefs: B; C form): a stem, a calyx and a cup of petals"""
+    stem = pathG([(0, 0, -0.04), (0.004, 0, 0.1), (0, 0, 0.2)], 0.004, 4, 'stem')
+    pet = []
+    for k in range(7):
+        a = TAU * k / 7
+        pet.append(pathG([(0, 0, 0.2), (0.012 * math.cos(a), 0.012 * math.sin(a), 0.225), (0.022 * math.cos(a), 0.022 * math.sin(a), 0.27)], [0.004, 0.009, 0.002], 4, 'p', scale=(1.0, 0.3), up=(math.cos(a), math.sin(a), 0)))
+    return dict(green=stem, petal=join(pet, 'petal'))
+
+@asset(ground=False)
+def a_tool_whisk():
+    """the fly-whisk (door-jamb reliefs: B): a gilded handle and a long horsehair tuft falling from it (C)"""
+    h = pathG([(0, 0, -0.08), (0, 0, 0.26)], [0.012, 0.011], 7, 'h')
+    cap = alongZ(lathe([(0.0, 0), (0.016, 0.0), (0.02, 0.02), (0.014, 0.03), (0.0, 0.03)], 8, 'c'), 0.25)
+    hairs = [pathG([(0.004 * math.cos(TAU * k / 9), 0.004 * math.sin(TAU * k / 9), 0.27), (0.02 * math.cos(TAU * k / 9), 0.02 * math.sin(TAU * k / 9), 0.45), (0.04 * math.cos(TAU * k / 9), 0.035 * math.sin(TAU * k / 9) - 0.01, 0.62)], [0.006, 0.006, 0.003], 3, 'hr') for k in range(9)]
+    return dict(gold=join([h, cap], 'gold'), hair=join(hairs, 'hair'))
+
+@asset(ground=False)
+def a_tool_towel():
+    """the folded linen towel over the hand (door-jamb reliefs: B; C form)"""
+    t = box(0.08, 0.34, 0.02, (0, 0, -0.01), 't', bevel=0.006, segs=2)
+    xform(t, (0, 0.12, 0))
+    for v in t.data.vertices: v.co.z += 0.02 * math.sin(v.co.y * 18)
+    return dict(linen=t)
+
+@asset(ground=False)
+def a_tool_ball():
+    """a child's stitched leather ball, 10 cm (C)"""
+    b = lathe([(0.0, -0.05)] + [(0.05 * math.sin(math.pi * k / 8), -0.05 * math.cos(math.pi * k / 8)) for k in range(1, 8)] + [(0.0, 0.05)], 10, 'ball')
+    displace(b, 0.002, 0.02, seed=56)
+    return dict(leather=b)
+
+@asset(ground=False)
+def a_tool_rattle():
+    """a hollow fired-clay rattle with a stub handle (C)"""
+    body = alongZ(lathe([(0.0, 0.0), (0.02, 0.005), (0.034, 0.03), (0.032, 0.05), (0.018, 0.068), (0.0, 0.072)], 10, 'b'), 0.065)
+    h = pathG([(0, 0, -0.03), (0, 0, 0.07)], [0.011, 0.014], 6, 'h')
+    return dict(clay=join([body, h], 'clay'))
+
+@asset(ground=False)
+def a_tool_hammer():
+    """a smith's hammer: an iron head with a flat face and a peen, wedged on a wooden haft (C)"""
+    h = pathG([(0, 0, -0.06), (0, 0.002, 0.12), (0, 0, 0.3)], [0.013, 0.014, 0.016], 6, 'haft')
+    head = pathG([(0, 0.05, 0.29), (0, 0.0, 0.29), (0, -0.07, 0.29)], [0.02, 0.022, 0.012], 6, 'head', scale=(1.0, 1.15), up=(1, 0, 0))
+    return dict(wood=h, iron=head)
+
+@asset(ground=False)
+def a_tool_tongs():
+    """a smith's iron tongs holding a bar at a red heat (C)"""
+    arms = []
+    for s in (-1, 1):
+        arms.append(pathG([(0, 0.008 * s, -0.08), (0, 0.012 * s, 0.34), (0, 0.004 * s, 0.44)], [0.007, 0.006, 0.005], 5, 'arm'))
+    piv = rodG((-0.012, 0, 0.34), (0.012, 0, 0.34), 0.008, 0.008, 6, 'pivot')
+    bar = box(0.018, 0.16, 0.018, G((0, -0.009, 0.5)), 'bar', bevel=0.002)
+    return dict(iron=join(arms + [piv], 'iron'), hot=bar)
+
+@asset(ground=False)
+def a_tool_hammer_s():
+    """a goldsmith's small hammer (C)"""
+    h = pathG([(0, 0, -0.04), (0, 0, 0.18)], [0.008, 0.009], 6, 'h')
+    head = pathG([(0, 0.02, 0.18), (0, 0.0, 0.18), (0, -0.04, 0.18)], [0.01, 0.011, 0.006], 6, 'hd', up=(1, 0, 0))
+    return dict(wood=h, bronze=head)
+
+@asset(ground=False)
+def a_tool_punch():
+    """a bronze chasing punch (C)"""
+    return dict(bronze=pathG([(0, 0, -0.04), (0, 0, 0.05), (0, 0, 0.07)], [0.0055, 0.0045, 0.002], 6, 'p'))
+
+@asset(ground=False)
+def a_tool_balance():
+    """a hand balance: a bronze beam on a cord with knobbed ends, two pans on three cords each (B by analogy; C form); the
+    pans rock with the builder's parameter"""
+    cord = [rodG((0, 0, 0), (0, -0.1, 0), 0.0018, 0.0018, 4, 'c')]
+    beam = [pathG([(-0.165, -0.1, 0), (0, -0.098, 0), (0.165, -0.1, 0)], [0.004, 0.005, 0.004], 6, 'beam')]
+    for s in (-1, 1): beam.append(atG(lathe([(0.0, -0.006), (0.007, -0.004), (0.007, 0.004), (0.0, 0.006)], 6, 'k'), (0.168 * s, -0.1, 0)))
+    pans = []
+    for s in (-1, 1):
+        for k in range(3):
+            a = TAU * k / 3; cord.append(rodG((0.16 * s, -0.1, 0), (0.16 * s + 0.045 * math.cos(a), -0.265, 0.045 * math.sin(a)), 0.0012, 0.0012, 3, 'pc'))
+        pans.append(atG(vessel([(0.0, 0.0), (0.03, 0.002), (0.052, 0.014), (0.058, 0.02)], 0.002, 14, 'pan', 0.0), (0.16 * s, -0.285, 0)))
+    return dict(cord=join(cord, 'cord'), bronze=join(beam + pans, 'bronze'))
+
+@asset(ground=False)
+def a_tool_seal_cyl():
+    """a stone cylinder seal, 3 cm, bored through, its surface cut in intaglio (the rolling's figures not modelled; C)"""
+    s = lathe([(0.0035, -0.016), (0.009, -0.016), (0.0092, -0.012), (0.0092, 0.012), (0.009, 0.016), (0.0035, 0.016), (0.0035, -0.016)], 10, 's')
+    xform(s, (0, 0, 0), (0, math.pi / 2, 0))
+    return dict(stone=s)
+
+@asset(ground=False)
+def a_tool_drill_bow():
+    """the seal cutter's bow for the drill: a bent stick and its thong (B by analogy; C)"""
+    y = lambda a: 0.05 * math.sin(math.pi * a)
+    stick = pathG([(0, y(i / 8), i / 8 * 0.46 - 0.02) for i in range(9)], [0.009, 0.008, 0.008, 0.008, 0.007, 0.007, 0.007, 0.006, 0.006], 5, 'stick')
+    thong = rodG((0, 0, -0.02), (0, 0, 0.44), 0.002, 0.002, 3, 'thong')
+    return dict(wood_d=stick, leather=thong)
+
+@asset(ground=False)
+def a_tool_scraper():
+    """a tanner's two-handled scraper: a curved iron blade between two wooden handles (C)"""
+    bl = pathG([(-0.13, -0.03, 0.03), (0, -0.03, 0.04), (0.13, -0.03, 0.03)], 0.025, 4, 'bl', scale=(0.12, 1.0), up=(0, 0, 1))
+    hs = [pathG([(0.15 * s, -0.05, 0.02), (0.15 * s, 0.0, 0.01), (0.15 * s, 0.06, 0.0)], [0.013, 0.015, 0.014], 6, 'h') for s in (-1, 1)]
+    return dict(iron=bl, wood=join(hs, 'wood'))
+
+@asset(ground=False)
+def a_tool_pestle():
+    """a long wooden pestle, waisted for the hands, its pounding end broad and worn (C)"""
+    return dict(wood=pathG([(0, 0, -0.62), (0, 0, -0.2), (0, 0, 0.2), (0, 0, 0.5), (0, 0, 0.6), (0, 0, 0.66)], [0.034, 0.028, 0.028, 0.034, 0.043, 0.04], 8, 'p'))
+
+@asset(ground=False)
+def a_tool_pen():
+    """a reed pen for ink, its tip cut and inked (C)"""
+    return dict(reed=pathG([(0, 0, -0.1), (0, 0, 0.07)], [0.0035, 0.003], 5, 'p'), ink=rodG((0, 0, 0.07), (0, 0, 0.085), 0.003, 0.0008, 5, 'ink'))
+
+@asset(ground=False)
+def a_tool_plectrum():
+    """a plectrum stick (C)"""
+    return dict(bone=pathG([(0, 0, -0.03), (0, 0, 0.1), (0, 0, 0.13)], [0.005, 0.004, 0.002], 5, 'p', scale=(1.0, 0.6)))
+
 # ======================================================================================================== driver
 if __name__ == '__main__':
     job = json.load(open(sys.argv[sys.argv.index('--') + 1]))

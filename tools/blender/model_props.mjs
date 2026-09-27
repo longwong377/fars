@@ -26,6 +26,10 @@ export const TARGETS = {
   vat: { clay: [3000, 1000] },
   sack: { cloth: [1500, 450], cord: [120, 40] },
   sack_lying: { cloth: [1400, 420], cord: [120, 40] },
+  // the carried props (their unions' budgets: tests/model_props.test.ts)
+  tool_distaff: { wool: [120, 60] }, tool_brick: { mud: [80, 40] }, tool_rag: { cloth: [60, 30] }, tool_awl: { bone: [60, 30] }, tool_cloth: { cloth: [120, 60] },
+  tool_parasol: { cloth: [160, 60], band: [80, 40] }, tool_mould: { wood: [300, 120] }, tool_balance: { bronze: [260, 120] },
+  tool_bow: { wood: [180, 90] }, tool_toy_bow: { wood: [140, 70] }, tool_rope: { cord: [200, 100] }, tool_towel: { linen: [48, 24] }, tool_beater: { wood: [48, 24] },
 };
 const want = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const src = readFileSync('tools/blender/model_props.py', 'utf8');
