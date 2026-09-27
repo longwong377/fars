@@ -62,7 +62,7 @@ const put = (P: Parts, m: Mat, g: THREE.BufferGeometry, rgb?: RGB) => { (P[m] ??
  *  put under their materials and colours; false when the model is not loaded (the procedural stand-in is drawn) */
 export const FURNISH_LOD = { lod: 0 };
 function putModel(P: Parts, id: string, map: Record<string, [Mat, RGB?]>, M?: THREE.Matrix4): boolean {
-  const parts = modelParts(id, FURNISH_LOD.lod, M); if (!parts) return false;
+  const parts = modelParts(id, map.__lod1 ? 1 : FURNISH_LOD.lod, M); if (!parts) return false; // (__lod1: a piece drawn at lod1 even near: the hangings, 30 of them)
   for (const [k, g] of Object.entries(parts)) { const t = map[k]; if (t) put(P, t[0], g, t[1]); }
   return true;
 }
@@ -74,7 +74,7 @@ const patch = (x0: number, x1: number, z0: number, z1: number, y: number) => new
 
 function carpetGeo(P: Parts, variant: number, L: number, W: number) {
   const C = F().carpet, t = C.thick, b = Math.min(C.border, 0.14 * Math.min(L, W)), col = C.colours;
-  const cp = modelParts('carpet', FURNISH_LOD.lod);
+  const cp = modelParts('carpet', 1); // (lod1 always: the tassels' extra triangles do not read; 134 carpets laid out)
   if (cp) { // D-325: the pile slab (unit, scaled to the carpet) and the warp ends' fringe beyond the short ends (at their own length)
     put(P, 'furn_carpet', cp.pile.applyMatrix4(new THREE.Matrix4().makeScale(L, t / 0.012, W)), col.border);
     const Fr = cp.fringe, Q = Fr.getAttribute('position'); for (let i = 0; i < Q.count; i++) { const x = Q.getX(i); Q.setXYZ(i, Math.sign(x) * (L / 2 + Math.abs(x) - 0.5), Q.getY(i), Q.getZ(i) * W); }
@@ -96,7 +96,7 @@ function carpetGeo(P: Parts, variant: number, L: number, W: number) {
 function rollsGeo(P: Parts, n: number, r: number, len: number, cols: RGB[]) { // a pile of rolls along x: rows of k, k-1, … (C)
   let k = Math.max(1, Math.ceil((Math.sqrt(8 * n + 1) - 1) / 2)), left = n, row = 0;
   while (left > 0 && k > 0) { const m = Math.min(k, left);
-    for (let i = 0; i < m; i++) { const z = (i - (m - 1) / 2) * 2 * r, rl = modelFit('roll', [len, 2 * r, 2 * r], FURNISH_LOD.lod, [0, row * r * 1.7, z]); // D-325: the modelled roll (the spiral at its ends)
+    for (let i = 0; i < m; i++) { const z = (i - (m - 1) / 2) * 2 * r, rl = modelFit('roll', [len, 2 * r, 2 * r], 1, [0, row * r * 1.7, z]); // D-325: the modelled roll (the spiral at its ends)
       if (rl) put(P, 'furn_textile', rl.textile, cols[(i + row) % cols.length]); else put(P, 'furn_textile', cylX(r, len, 0, r + row * r * 1.7, z), cols[(i + row) % cols.length]); }
     left -= m; k--; row++; }
 }
@@ -145,7 +145,7 @@ function jarGeo(P: Parts) { const J = F().jar, h = J.h, r = J.r;
 function hangingGeo(P: Parts, variant: number) { // x along the wall, z out of it (the wall face at z = 0), y from the floor
   const H = F().hanging, w = H.w, h = H.h, top = H.top, z = H.off_wall, cols = (H.colours as RGB[][])[variant % H.colours.length];
   // D-325: the modelled hanging (folds, bands, fringe, rod and rings), its cloth's top at the hanging's top
-  if (putModel(P, 'hanging', { cloth: ['furn_textile', cols[0]], band: ['furn_textile', cols[1]], rod: ['furn_gilt'] }, new THREE.Matrix4().makeTranslation(0, top - h, z))) return;
+  if (putModel(P, 'hanging', { __lod1: ['furn_textile'], cloth: ['furn_textile', cols[0]], band: ['furn_textile', cols[1]], rod: ['furn_gilt'] }, new THREE.Matrix4().makeTranslation(0, top - h, z))) return;
   put(P, 'furn_textile', box(w, h, H.thick, 0, top - h, z), cols[0]);
   for (const f of [0.12, 0.5, 0.88]) put(P, 'furn_textile', box(w, h * 0.06, H.thick, 0, top - h * f - h * 0.03, z + 0.002), cols[1]); // woven bands (C)
   put(P, 'furn_textile', box(w, 0.08, H.thick * 0.5, 0, top - h - 0.08, z), cols[1]); // the fringe
@@ -382,8 +382,11 @@ const VC = new Set<Mat>(MATS); // (D-325: all: the occlusion of the modelled pie
 export class PalaceFurnishings {
   readonly group = new THREE.Group();
   readonly plan: FurnItem[];
-  readonly info = { items: { stored: 0, use: 0 }, tris: { stored: 0, use: 0 }, meshes: { stored: 0, use: 0 }, colliders: { stored: 0, use: 0 }, buildMs: 0 };
-  private groups = new Map<string, THREE.Group>(); // building|state
+  readonly info = { items: { stored: 0, use: 0 }, tris: { stored: 0, use: 0 }, trisFar: { stored: 0, use: 0 }, meshes: { stored: 0, use: 0 }, colliders: { stored: 0, use: 0 }, buildMs: 0 };
+  private groups = new Map<string, THREE.Group>(); // building|state|lod
+  /** D-325: each building's pieces at the models' lod0 near and lod1 beyond NEAR_M outside the pieces' footprint */
+  static readonly NEAR_M = 12;
+  private rects = new Map<string, [number, number, number, number]>();
   private centres = new Map<string, [number, number]>();
   private live: any[] = []; private state: FurnState = 'stored';
   constructor(parts: Part[], manifest: Manifest, doorways: Doorway[], private opts: { court: boolean; phys?: Physics | null }) {
@@ -393,8 +396,8 @@ export class PalaceFurnishings {
     this.plan = palaceFurnishingPlan(parts, manifest, doorways).filter(it => opts.court || it.state === 'stored');
     const byGroup = new Map<string, FurnItem[]>(); for (const it of this.plan) { const k = `${it.building}|${it.state}`; (byGroup.get(k) ?? byGroup.set(k, []).get(k)!).push(it); }
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), one = new THREE.Vector3(1, 1, 1);
-    for (const [k, items] of byGroup) {
-      const [b, st] = k.split('|') as [string, FurnState], g = new THREE.Group(); g.name = `palace-furnishings:${b}:${st}`; g.visible = st === 'stored';
+    for (const lod of [0, 1]) for (const [k0, items] of byGroup) { FURNISH_LOD.lod = lod; const k = `${k0}|${lod}`;
+      const [b, st] = k0.split('|') as [string, FurnState], g = new THREE.Group(); g.name = `palace-furnishings:${b}:${st}${lod ? ':far' : ''}`; g.visible = st === 'stored' && lod === 0;
       const acc: Partial<Record<Mat, THREE.BufferGeometry[]>> = {}, owners: Partial<Record<Mat, number[]>> = {};
       items.forEach((it, idx) => { const P = itemGeometry(it); m4.compose(new THREE.Vector3(it.e, it.y, -it.n), q.setFromAxisAngle(up, it.theta), one);
         for (const mat of MATS) for (const geo of P[mat] ?? []) { geo.applyMatrix4(m4); (acc[mat] ??= []).push(geo); const o = (owners[mat] ??= []); for (let t = 0; t < geo.getAttribute('position').count / 3; t++) o.push(idx); } });
@@ -404,10 +407,12 @@ export class PalaceFurnishings {
         const own = owners[mat]!;
         mesh.userData = { tier: 'C', src: 'TREAS-AUD;HDT;PAZYRYK;ASB-GARDEN;ESTHER-1.6;RECON', note: `${b} furnishings, ${st === 'use' ? 'laid out for the court (court setting, in residence)' : 'the court away: stored, covered, the steward\'s minimum'} (D-212, C)`,
           describe: (h: any) => { const it = items[own[h?.faceIndex ?? -1]]; return it ? { tier: 'C', src: 'RECON', note: `${it.kind} in the ${b} ${it.room}: ${it.note}` } : null; } };
-        g.add(mesh); this.info.tris[st] += geo.getAttribute('position').count / 3; this.info.meshes[st]++; }
-      this.group.add(g); this.groups.set(k, g); this.info.items[st] += items.length;
+        g.add(mesh); (lod ? this.info.trisFar : this.info.tris)[st] += geo.getAttribute('position').count / 3; if (!lod) this.info.meshes[st]++; }
+      this.group.add(g); this.groups.set(k, g); if (!lod) this.info.items[st] += items.length;
       const xs = items.map(i => i.e), ys = items.map(i => i.n); this.centres.set(k, [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2]);
+      this.rects.set(k, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]);
     }
+    FURNISH_LOD.lod = 0;
     for (const st of ['stored', 'use'] as FurnState[]) this.info.colliders[st] = this.colliderBoxes(st).length;
     this.setColliders('stored');
     this.info.buildMs = performance.now() - t0;
@@ -440,7 +445,9 @@ export class PalaceFurnishings {
     const st: FurnState = this.opts.court && courtHere ? 'use' : 'stored';
     if (st !== this.state) { this.state = st; this.setColliders(st); }
     const cull = F().cull;
-    for (const [k, g] of this.groups) { const c = this.centres.get(k)!; g.visible = k.endsWith('|' + st) && Math.hypot(cam.x - c[0], -cam.z - c[1]) < cull; }
+    for (const [k, g] of this.groups) { const c = this.centres.get(k)!, r = this.rects.get(k)!, [, s, l] = k.split('|');
+      const out = Math.hypot(Math.max(r[0] - cam.x, 0, cam.x - r[2]), Math.max(r[1] + cam.z, 0, -cam.z - r[3])), near = out < PalaceFurnishings.NEAR_M;
+      g.visible = s === st && Math.hypot(cam.x - c[0], -cam.z - c[1]) < cull && (l === '0') === near; }
   }
   get current() { return this.state; }
   summary() { const s = this.state; return `palace furnishings (D-212, C): ${this.info.items[s]} pieces ${s === 'use' ? 'laid out for the court' : 'stored / in the steward\'s use'}, ${(this.info.tris[s] / 1e3).toFixed(1)} k tris in ${this.info.meshes[s]} meshes, ${this.info.colliders[s]} colliders`; }

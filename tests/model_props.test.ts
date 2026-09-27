@@ -47,7 +47,7 @@ describe('modelled props (D-325): palace furnishings', () => {
       if (k === 'jar') continue; // (the jar: a CC0 scan's shape, D-310)
       const P = itemGeometry(it); let t = 0; const box = new THREE.Box3();
       for (const list of Object.values(P)) for (const g of list as THREE.BufferGeometry[]) { t += tris(g); g.computeBoundingBox(); box.union(g.boundingBox!); }
-      const M = model(of[k])!, own = Object.values(M.lods[0]).reduce((s, g) => s + tris(g), 0);
+      const M = model(of[k])!, own = Object.values(M.lods[['carpet', 'carpet_rolls', 'hanging_rolls', 'hanging'].includes(k) ? 1 : 0]).reduce((s, g) => s + tris(g), 0);
       // the model's triangles are there (a roll pile or a stack holds several; a carpet adds its pattern's patches)
       expect(t, k).toBeGreaterThanOrEqual(own * 0.99);
       const size = box.getSize(new THREE.Vector3());
@@ -55,7 +55,7 @@ describe('modelled props (D-325): palace furnishings', () => {
       console.log(`${k}: ${t} triangles, ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)} m (item ${(2 * it.hu).toFixed(2)} x ${it.h.toFixed(2)} x ${(2 * it.hv).toFixed(2)})`);
     }
     console.log(pf.summary(), JSON.stringify(pf.info.tris));
-    expect(pf.info.tris.stored).toBeLessThan(600_000); expect(pf.info.tris.use).toBeLessThan(2_500_000);
+    expect(pf.info.tris.stored).toBeLessThan(300_000); expect(pf.info.tris.use).toBeLessThan(450_000); expect(pf.info.trisFar.use).toBeLessThan(pf.info.tris.use * 0.65); console.log('far', JSON.stringify(pf.info.trisFar));
   });
 });
 describe('modelled props (D-325): vessels and sacks', () => {
