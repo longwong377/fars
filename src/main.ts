@@ -36,7 +36,7 @@ import { bloomAt, doyOf } from './world/plain/seasonal';
 import { RAIN_CELL } from './sky/clouds';
 import { roofedAt } from './render/probes/roofs';
 import { seasonAt } from './world/season';
-import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
+import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 installWebGPUCompat();
 
@@ -114,11 +114,9 @@ async function boot() {
   const clock = new WorldClock(START.day, +(P.get('hour') ?? START.hour));
   clock.scale = TEST ? 0 : settings.timeScale;
 
-  // cascaded shadows (high/ultra): 4 cascades to 600 m; lower qualities keep the single follow-the-player map
-  if (settings.quality === 'high' || settings.quality === 'ultra') {
-    const csm = new CSMShadowNode(sky.sun, { cascades: 4, maxFar: 600, mode: 'practical', lightMargin: 200 });
-    (sky.sun.shadow as any).shadowNode = csm; sky.sun.shadow.mapSize.set(Q.shadowMapSize / 2, Q.shadowMapSize / 2);
-  }
+  // cascaded shadows (high/ultra; D-309: fixed breaks 8/50/160/600 m, 4096² a cascade, per-cascade biases, 12-16-tap PCF —
+  // src/render/sunShadows.ts); lower qualities keep the single follow-the-player map
+  installSunCascades(sky.sun, settings.quality);
   TRACE('before pipeline');
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality, sky.hemi);
   TRACE('pipeline built');
