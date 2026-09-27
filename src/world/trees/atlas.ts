@@ -23,19 +23,31 @@ export const tileUV = (i: number) => ({ u: (i % COLS) / COLS, v: Math.floor(i / 
 export const PAD = 6;
 
 export interface Atlas { width: number; height: number; levels: { data: Uint8Array; width: number; height: number }[]; fill: number[];
+  /** tile side (px) at level 0 */ tile: number;
+  /** a texel's shade multiplier is shade[0] + shade[1] x R (R = the red channel, 0..1): the procedural tiles hold a shade in
+   *  0..1 around (0.55, 0.6); the Blender tiles hold the rendered radiance under a uniform sky (the leaves' own occlusion) */ shade: [number, number];
+  /** where the tiles come from: 'procedural' (drawn here in JS, a stand-in) or 'blender' (Cycles renders of modelled leaves) */ source: 'procedural' | 'blender';
+  /** a petal texel's shade multiplier: petal[0] + petal[1] x R */ petal: [number, number];
   /** per-texel leaf tilt (RG: tilt along the tile's u and v, encoded 0..1; A: coverage), same layout and mips */
   tilt: { data: Uint8Array; width: number; height: number }[] }
 /** how far a leaf's tilt turns the card's lighting normal (render.ts and impostor.ts) */
 export const TILT = 0.55;
 
 type Cls = 0 | 1 | 2; // leaf, petal, bark
-class Canvas {
+/** what a tile is drawn with: the rasteriser here (Canvas) or the recorder that hands the same primitives to Blender (Recorder) */
+export interface Painter {
+  line(px: number, py: number, qx: number, qy: number, w0: number, w1: number, cls: Cls, shade: number): void;
+  leaf(x: number, y: number, ang: number, L: number, hw: (s: number) => number, shade: number, cls?: Cls): void;
+  palmate(x: number, y: number, ang: number, L: number, lobes: number[], width: number, base: number, shade: number): void;
+  flower(x: number, y: number, r: number, shade: number, petals?: number): void;
+}
+class Canvas implements Painter {
   readonly a: Float32Array; readonly r: Float32Array; readonly g: Float32Array; readonly b: Float32Array; readonly tx: Float32Array; readonly ty: Float32Array; private readonly pad: number;
   /** the tilt of what is being drawn (tile axes; each leaf faces its own way and curves across its midrib), 0 for twigs */
   tilt: (x: number, y: number) => [number, number] = () => [0, 0];
   private trng = new Rng(7, 'leaf-tilt');
   constructor(readonly n = TILE) { this.a = new Float32Array(n * n); this.r = new Float32Array(n * n); this.g = new Float32Array(n * n); this.b = new Float32Array(n * n); this.tx = new Float32Array(n * n); this.ty = new Float32Array(n * n); this.pad = Math.max(2, Math.round(PAD * n / TILE)); }
-  private randTilt(): [number, number] { const a = this.trng.range(0, Math.PI * 2), m = 0.75 * Math.sqrt(this.trng.next()); return [Math.cos(a) * m, Math.sin(a) * m]; }
+  protected randTilt(): [number, number] { const a = this.trng.range(0, Math.PI * 2), m = 0.75 * Math.sqrt(this.trng.next()); return [Math.cos(a) * m, Math.sin(a) * m]; }
   /** paint where inside(x, y) (tile units 0..1) holds at texel centres, over a bbox; shade(x, y) 0..1. One sample per
    *  texel: the full-size level is used only close up (alpha-tested edges), the mip chain does the filtering */
   shape(x0: number, y0: number, x1: number, y1: number, inside: (x: number, y: number) => boolean, cls: Cls, shade: (x: number, y: number) => number) {
@@ -80,7 +92,7 @@ class Canvas {
   }
   private palmate0(x: number, y: number, ang: number, L: number, lobes: number[], width: number, base: number, shade: number) {
     const c = Math.cos(ang), s = Math.sin(ang);
-    const Rt = lut(u => { const th = (u - 0.5) * 4.6; let m = 0; for (const lb of lobes) m = Math.max(m, Math.exp(-(((th - lb) / width) ** 2))); return (base + (1 - base) * m) * (0.55 + 0.45 * Math.cos(th * 0.35)); }, 256);
+    const Rt = palmRadius(lobes, width, base);
     this.shape(x - L, y - L, x + L, y + L, (px, py) => {
       const dx = px - x, dy = py - y, a = dx * s + dy * c, t = dx * c - dy * s; if (a < -0.18 * L) return false;
       const th = Math.atan2(t, a); if (th > 2.3 || th < -2.3) return false;
@@ -98,9 +110,47 @@ class Canvas {
   }
 }
 
+/** the polar outline of a palmate blade (units of its length), as a table over u = th / 4.6 + 0.5 (th: angle from the
+ *  midrib, -2.3..2.3 rad) */
+function palmRadius(lobes: number[], width: number, base: number) {
+  return lut(u => { const th = (u - 0.5) * 4.6; let m = 0; for (const lb of lobes) m = Math.max(m, Math.exp(-(((th - lb) / width) ** 2))); return (base + (1 - base) * m) * (0.55 + 0.45 * Math.cos(th * 0.35)); }, 256);
+}
+
+/** One recorded primitive of a tile (Recorder), in tile units (0..1, v up), in drawing order (a later one lies over an
+ *  earlier one). tilt: the leaf's random facing (the Canvas's randTilt; its normal is ~ (tx, ty, 1)). */
+export type Prim =
+  | { k: 'line'; p: [number, number]; q: [number, number]; w0: number; w1: number; cls: Cls; shade: number }
+  | { k: 'leaf'; x: number; y: number; ang: number; L: number; hw: number[]; shade: number; cls: Cls; tilt: [number, number] }
+  | { k: 'palm'; x: number; y: number; ang: number; L: number; R: number[]; lobes: number[]; shade: number; tilt: [number, number] }
+  | { k: 'flower'; x: number; y: number; r: number; shade: number; petals: number; ph: number; tilt: [number, number] };
+/** samples of a blade's half-width profile (s = i / HW_N) and of a palmate outline (th = -2.3 + 4.6 i / PALM_N) */
+export const HW_N = 48, PALM_N = 96;
+/** records a tile's primitives instead of rasterising them (the same calls, the same random streams as Canvas), for the
+ *  Blender atlas (tools/blender/trees_atlas.py models each leaf, twig and flower and renders the tiles in Cycles) */
+class Recorder implements Painter {
+  readonly prims: Prim[] = [];
+  private trng = new Rng(7, 'leaf-tilt');
+  private randTilt(): [number, number] { const a = this.trng.range(0, Math.PI * 2), m = 0.75 * Math.sqrt(this.trng.next()); return [Math.cos(a) * m, Math.sin(a) * m]; }
+  line(px: number, py: number, qx: number, qy: number, w0: number, w1: number, cls: Cls, shade: number) { this.prims.push({ k: 'line', p: [px, py], q: [qx, qy], w0, w1, cls, shade }); }
+  leaf(x: number, y: number, ang: number, L: number, hw: (s: number) => number, shade: number, cls: Cls = 0) {
+    const tilt = this.randTilt(); this.prims.push({ k: 'leaf', x, y, ang, L, hw: Array.from({ length: HW_N + 1 }, (_, i) => hw(i / HW_N)), shade, cls, tilt });
+  }
+  palmate(x: number, y: number, ang: number, L: number, lobes: number[], width: number, base: number, shade: number) {
+    const tilt = this.randTilt(), Rt = palmRadius(lobes, width, base);
+    // the rasteriser's cut behind the petiole (a > -0.18 L) folded into the outline
+    const R = Array.from({ length: PALM_N + 1 }, (_, i) => { const th = -2.3 + (4.6 * i) / PALM_N, r = Rt(th / 4.6 + 0.5), c = Math.cos(th); return c < 0 ? Math.min(r, 0.18 / -c) : r; });
+    this.prims.push({ k: 'palm', x, y, ang, L, R, lobes, shade, tilt });
+  }
+  flower(x: number, y: number, r: number, shade: number, petals = 5) { const tilt = this.randTilt(); this.prims.push({ k: 'flower', x, y, r, shade, petals, ph: shade * 13, tilt }); }
+}
+/** every tile's primitives at the given leaf fractions (as buildAtlas draws them) */
+export function recordTiles(leafFrac: Partial<Record<TileName, number>>): { name: TileName; prims: Prim[] }[] {
+  return TILE_NAMES.map(name => { const r = new Recorder(); drawTile(name, leafFrac[name] ?? 0.1, r); return { name, prims: r.prims }; });
+}
+
 // ---------------------------------------------------------------- leaf outlines (half-width in units of leaf length)
 /** a profile as a 129-entry lookup table (the rasteriser calls it per texel) */
-const lut = (f: (s: number) => number, n = 128) => { const t = new Float32Array(n + 1); for (let i = 0; i <= n; i++) t[i] = f(i / n); return (s: number) => { const x = Math.min(n, Math.max(0, s * n)), i = Math.min(n - 1, x | 0); return t[i] + (t[i + 1] - t[i]) * (x - i); }; };
+const lut =(f: (s: number) => number, n = 128) => { const t = new Float32Array(n + 1); for (let i = 0; i <= n; i++) t[i] = f(i / n); return (s: number) => { const x = Math.min(n, Math.max(0, s * n)), i = Math.min(n - 1, x | 0); return t[i] + (t[i + 1] - t[i]) * (x - i); }; };
 const HW0: Record<string, (s: number) => number> = {
   ovate: s => 0.3 * Math.pow(Math.sin(Math.PI * Math.pow(s, 0.8)), 0.9),
   lanceolate: s => 0.11 * Math.pow(Math.sin(Math.PI * s), 0.9),
@@ -166,7 +216,7 @@ function clumpMask(rng: Rng, r: number, stray = 0.03) {
   };
 }
 
-function drawTile(name: TileName, leafFrac: number, c: Canvas) {
+function drawTile(name: TileName, leafFrac: number, c: Painter) {
   const rng = new Rng(hashString(name), 'leaf-atlas');
   const L = Math.min(0.3, Math.max(0.035, leafFrac)); // leaf length in tile units
   // shoots every ~1.6 leaf lengths, down to the level that fills the cluster (small leaves: a finer twig network)
@@ -264,7 +314,25 @@ export function buildAtlas(leafFrac: Partial<Record<TileName, number>>): Atlas {
       tb[o] = Math.max(-1, Math.min(1, c.tx[k])) * 0.5 + 0.5; tb[o + 1] = Math.max(-1, Math.min(1, c.ty[k])) * 0.5 + 0.5; tb[o + 2] = 0.5; tb[o + 3] = c.a[k]; }
     fill.push(n / (TILE * TILE));
   });
-  return { width: W, height: H, levels: mipChain(base, W, H, TILE, COLS, ROWS, 7), fill, tilt: mipChain(tb, W, H, TILE, COLS, ROWS, 7) };
+  return { width: W, height: H, tile: TILE, shade: [0.55, 0.6], petal: [0.85, 0.15], source: 'procedural', levels: mipChain(base, W, H, TILE, COLS, ROWS, 7), fill, tilt: mipChain(tb, W, H, TILE, COLS, ROWS, 7) };
+}
+
+/** the atlas from the Blender-rendered images (tools/blender/trees.mjs: public/models/trees/leaf_*.png), RGBA8 in the atlas
+ *  layout with row 0 at v = 0 (the loader flips the PNG's top-down rows): colour = (shade R, petal share G, bark share B,
+ *  coverage A), tilt = (tilt along u, tilt along v, -, coverage). The mips are built here as for the procedural tiles
+ *  (coverage kept per tile), so the near shaders, the impostor baker and the tests read either the same way. */
+export function atlasFromImages(col: Uint8Array | Uint8ClampedArray, tilt: Uint8Array | Uint8ClampedArray, W: number, H: number, shade: [number, number]): Atlas {
+  const tile = W / COLS; if (tile !== H / ROWS || tile !== Math.round(tile)) throw new Error(`atlas image ${W}x${H} is not ${COLS}x${ROWS} square tiles`);
+  const base = new Float32Array(W * H * 4), tb = new Float32Array(W * H * 4);
+  for (let i = 0; i < W * H * 4; i++) { base[i] = col[i] / 255; tb[i] = tilt[i] / 255; }
+  // the tilt's coverage is the colour's (one outline)
+  for (let i = 3; i < W * H * 4; i += 4) tb[i] = base[i];
+  const fill: number[] = [];
+  for (let t = 0; t < TILE_NAMES.length; t++) { const ox = (t % COLS) * tile, oy = Math.floor(t / COLS) * tile; let n = 0;
+    for (let j = 0; j < tile; j++) for (let i = 0; i < tile; i++) if (base[((oy + j) * W + ox + i) * 4 + 3] >= 0.5) n++;
+    fill.push(n / (tile * tile)); }
+  const nl = Math.round(Math.log2(tile)) - 1;
+  return { width: W, height: H, tile, shade, petal: [0, shade[1]], source: 'blender', levels: mipChain(base, W, H, tile, COLS, ROWS, nl), fill, tilt: mipChain(tb, W, H, tile, COLS, ROWS, nl) };
 }
 
 /** RGBA float (0..1) -> mip levels as RGBA8, per tile: colour averaged by coverage (transparent texels take the colour of

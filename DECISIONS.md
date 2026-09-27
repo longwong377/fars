@@ -7588,3 +7588,31 @@ moment-*-webgpu.png in the worktree, not committed).**
   hour 17 both walls shaded, 50/51 sRGB (was 45/46). The lab's closed room (1 × 2 m door): mean 43 (was 39). The world's dark
   interiors are NOT from D-309: room-treasury-store's lower-frame luma p50 25 in the verify render vs 24 in session 11
   (merged2); the tone look leaves darks unchanged (tests/tone_look.test.ts). World not re-rendered.
+
+## D-327 The trees from Blender, every species and every tree layer: Cycles-rendered leaf tiles from modelled leaves, skinned bark-mapped branch meshes, CC0 bark scans (session 12, agent trees; UD-19, UD-17, D-233; T-R12; BLENDER_PLAN row 7)
+- **What:** `node tools/blender/trees.mjs` rebuilds the whole tree class from the game's own generators (numbers before
+  pictures): (1) the 22 leaf, blossom and twig tiles of the leaf atlas are recorded from atlas.ts's own drawing (the same
+  sprays, leaves, flowers and random streams: `recordTiles`) and modelled in 3-D by tools/blender/trees_atlas.py (blades
+  with the species' outline folded along the midrib, arched, tipped and facing their recorded tilt; palmate blades cupped;
+  twigs as tapered round shoots; five-petalled cupped corollas; flattened scale-leaf shoots), then rendered in Cycles (512 px
+  tiles, 128 spp, OptiX) under a uniform sky: the shade channel is the leaves' own occlusion x their vein/margin albedo, the
+  tilt channel the rendered normals, petal and bark shares antialiased; each tile is scaled to the procedural tile's mean
+  shade (the season colours of seasonal.ts were tuned on it) and its coverage matches the procedural tile's within 4 %
+  (twig tiles 3-5 %), so the calibrated card sizes, LOD and impostor agreements hold (tests/tree_assets.test.ts).
+  (2) Every species variant's branch skeleton (model.ts) is skinned by tools/blender/trees_wood.py into continuous tubes
+  (a branch continues into its best-aligned child; Catmull-Rom bends; 12 sides on a trunk down to 3 on a shoot; flared,
+  buttressed foot; tip cones) within the game's own budgets (LOD0 768, LOD1 128 triangles: TRIS unchanged), with bark UVs
+  in tiles of the species' scan size and Cycles-baked vertex occlusion (branches and ground). (3) Each species takes a CC0
+  Poly Haven bark scan of its genus or bark type (src/data/tree_bark.json, tier C): luminance detail, a warm-cool axis and
+  the normal map over the species' measured tint (the tint stays the evidence's).
+- **World-wide:** every tree layer draws through one TreeKit (render.ts): the plain's near sets, the mid and far impostors
+  and the orchard row impostors (plain/index.ts, plain/trees.ts), the town gardens (settlement/trees.ts) and the tree lab.
+  The kit takes the Blender atlas and wood when `loadTreeAssets` (world.ts, before any tree layer) loaded them; the CPU
+  impostor baker (and its worker) bakes from the same rendered tiles. `?treeassets=0` draws the procedural stand-ins, and
+  the dev overlay (F3) then says PLACEHOLDER (TreeKit.assetNote).
+- **Not done (B163):** the impostors are still CPU-baked (8 horizontal views, re-baked per foliage state), not Cycles
+  octahedral renders: a pre-rendered impostor cannot follow the seasons card by card (leaf-out, blossom, autumn colour, bare
+  crowns) without one atlas per state (measured: 45 rows x 5 leaf states x 8 views x 96 px x 2 maps = ~60 MB GPU, ~15 MB
+  download, against today's 26 MB baked in place); they now bake from the Cycles-rendered tiles.
+- Download +17.8 MB (atlas PNGs 7.5, wood 1.7, bark JPEGs 8.1 at 1024 px); GPU: atlas 4096x1536 x2 RGBA8 + mips (~67 MB),
+  bark array 15 x 1024² RGBA8 + mips (~84 MB), wood data textures ~5 MB.
