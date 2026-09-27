@@ -7,7 +7,8 @@ import * as THREE from 'three/webgpu';
 import { surfaceMaterial, paintedStoneMaterial, SURFACES } from '../src/render/materials';
 import { setScanTexturesForTest } from '../src/render/scans';
 import { installProbeLight } from '../src/render/probes/runtime';
-const NODE_MAX = 7; // 16 on the page (render 3: 7 passed; render v4: 8 failed)
+const NODE_MAX = 6; // 16 on the page with one to spare (render 3: 7 passed; render v4: 8 failed; the merged session-11 render
+// failed a pipeline at 17 with the Terrace platform at 7: the page's own count varies with the scene's lights)
 describe('D-300 fragment samplers with every scan loaded (node)', () => {
   it('no surface exceeds the 16 samplers of a fragment stage on the page', () => {
     setScanTexturesForTest();

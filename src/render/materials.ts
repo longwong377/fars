@@ -1045,7 +1045,10 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   const base = opts.vertexColors ? attribute('color', 'vec3') : lin(d.albedo);
   // each layer takes its own surface's scan (D-300: the Terrace's court top took the retaining wall's rock scan), except
   // where the modify lays its own scans (D-302's ground layers, opts.scan false); identity in node
-  let L = opts.scan === false ? layer(d, base, !!opts.arch) : applyScan(name, layer(d, base, !!opts.arch));
+  // (a surface with a top layer keeps its procedural roughness: the merged session-11 render found a 17-sampler pipeline with the
+  // Terrace platform at the node limit (wall scan, its roughness and normal maps, the court's scan); the scene's lights add a
+  // varying number on the page, so the platform keeps one sampler of headroom)
+  let L = opts.scan === false ? layer(d, base, !!opts.arch) : applyScan(name, layer(d, base, !!opts.arch), !!(d.top && SURFACES[d.top]));
   if (d.top && SURFACES[d.top]) { // up-facing faces use another surface (sharp transition at the arris)
     // (the top layer's scan without its roughness map: the Terrace platform stood at 17 samplers with the wall's normal map, D-300)
     const T = applyScan(d.top, layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch), true); const t = smoothstep(0.7, 0.9, n.y);
