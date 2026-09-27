@@ -14,6 +14,7 @@ import { HB } from './humanFormat';
 import type { Pose } from './anim';
 import { ptTabletGeometry } from '../world/writing';
 import { HARP_V, HARP_H, LYRE, FRAME_DRUM, DOUBLE_PIPE, REED_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
+import { scanShape } from '../render/scanProps';
 
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 type RGB = [number, number, number];
@@ -125,10 +126,13 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
       return merge([shaft, socket, blade, butt, crown]);
     }
     case 'sack': return paint(new THREE.SphereGeometry(0.22, 8, 5).scale(1, 0.75, 0.7), [0.62, 0.55, 0.42], 0, 0.95);
-    case 'jar': return paint(new THREE.LatheGeometry([[0, 0], [0.1, 0.02], [0.16, 0.18], [0.12, 0.36], [0.06, 0.42], [0.07, 0.46]].map(([x, y]) => new THREE.Vector2(x, y)), 14), [0.66, 0.46, 0.3], 0, 0.85);
+    // session 12 (D-310): the jar and the basket are CC0 scans' shapes (Poly Haven; render/scanProps.ts) fitted to the old forms' boxes, when loaded
+    case 'jar': { const sj = scanShape('jar', 1, [0.32, 0.46, 0.32], 0); if (sj) return paint(sj, [0.66, 0.46, 0.3], 0, 0.85); }
+      return paint(new THREE.LatheGeometry([[0, 0], [0.1, 0.02], [0.16, 0.18], [0.12, 0.36], [0.06, 0.42], [0.07, 0.46]].map(([x, y]) => new THREE.Vector2(x, y)), 14), [0.66, 0.46, 0.3], 0, 0.85);
     case 'tablet': return paint(ptTabletGeometry('full', 2), [0.56, 0.48, 0.37], 0, 0.9); // the written tablet's form at its LOD (writing.ts)
     case 'mallet': return merge([paint(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 6).translate(0, -0.15, 0), [0.42, 0.31, 0.2], 0, 0.7), paint(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 8).rotateZ(Math.PI / 2).translate(0, -0.3, 0), [0.4, 0.29, 0.18], 0, 0.7)]);
-    case 'basket': return paint(new THREE.CylinderGeometry(0.18, 0.13, 0.18, 12, 1, true), [0.6, 0.52, 0.32], 0, 0.9);
+    case 'basket': { const sb = scanShape('basket', 0, [0.36, 0.18, 0.36], 0); if (sb) return paint(sb.translate(0, -0.09, 0), [0.6, 0.52, 0.32], 0, 0.9); }
+      return paint(new THREE.CylinderGeometry(0.18, 0.13, 0.18, 12, 1, true), [0.6, 0.52, 0.32], 0, 0.9);
     // ------------------------------------------------ work tools (grip frame: +Z toward the working end)
     case 'hoe': return merge([paint(rod([0, 0, -0.45], [0, 0, 0.8], 0.016, 0.018, 5), WOOD, 0, 0.7),
       paint(box(0.17, 0.2, 0.012, 0, -0.1, 0.8).rotateX(0).translate(0, 0, 0), IRON, 0.6, 0.55), paint(rod([0, 0, 0.78], [0, -0.03, 0.82], 0.025, 0.025, 5, true), IRON, 0.6, 0.55)]);

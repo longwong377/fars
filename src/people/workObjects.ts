@@ -11,6 +11,7 @@ import { attribute } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { paintGeometry as paint, rodGeometry as rod, propGeometry } from './props';
 import { nearCascadesOnly } from './humanGPU';
+import { scanShape } from '../render/scanProps';
 
 export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field' | 'jar' | 'mortar_tub' | 'brick_course' | 'beam' | 'loom' | 'dung_cakes' | 'vat' | 'fodder'
   | 'fleece' | 'butchery' | 'hides' | 'basket_meat' | 'threshing_floor' | 'stooks' | 'sheaves' | 'sheaf' | 'grain_heap' | 'spoil' | 'basket_fruit' | 'press' | 'brushwood'
@@ -38,6 +39,10 @@ const mound = (r: number, h: number, seg = 9, x = 0, z = 0) => new THREE.LatheGe
 const lathe = (pts: number[][], seg: number) => new THREE.LatheGeometry(pts.map(([a, b]) => new THREE.Vector2(a, b)), seg);
 const P = (g: THREE.BufferGeometry, c: RGB, rough = 0.9, metal = 0) => paint(g, c, metal, rough);
 const merge = (gs: THREE.BufferGeometry[]) => mergeGeometries(gs)!;
+// session 12 (D-310): jars and baskets from CC0 scans' shapes (Poly Haven; render/scanProps.ts) fitted to the old forms' boxes
+// (radius r, height h, base on y = 0), when loaded; else the procedural form
+const SJ = (seed: number, r: number, h: number, alt: () => THREE.BufferGeometry) => scanShape('jar', seed, [2 * r, h, 2 * r], 0) ?? alt();
+const SB = (seed: number, r: number, h: number, alt: () => THREE.BufferGeometry) => scanShape('basket', seed, [2 * r, h, 2 * r], 0) ?? alt();
 /** a small deterministic jitter */
 const jit = (i: number, s = 1) => (Math.sin(i * 12.9898 + s * 78.233) * 43758.5453) % 1;
 /** a sheaf of cut barley along +Y from its butt: the stalks narrowing to the band, the ears flaring beyond it (C) */
@@ -153,7 +158,7 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       g.push(...joint(-0.25, 0.1, 0.07, 0.17, 0.4), ...joint(0.02, -0.1, 0.06, 0.15, -0.3), ...joint(0.28, 0.12, 0.08, 0.2, 1.2), ...joint(0.05, 0.2, 0.05, 0.1, 2));
       return merge(g); }
     case 'hides': { const g: THREE.BufferGeometry[] = []; for (let i = 0; i < 4; i++) g.push(P(box(0.62, 0.035, 0.46, 0.02 * jit(i), i * 0.036, 0.02 * jit(i, 3)).rotateY(0.15 * jit(i, 5)), i % 2 ? HIDE : [0.42, 0.3, 0.2], 0.85)); return merge(g); }
-    case 'basket_meat': return merge([P(new THREE.CylinderGeometry(0.2, 0.15, 0.18, 10, 1, true).translate(0, 0.09, 0), [0.6, 0.52, 0.32]), P(mound(0.17, 0.08, 7).translate(0, 0.1, 0), MEAT, 0.6)]);
+    case 'basket_meat': return merge([P(SB(0, 0.2, 0.18, () => new THREE.CylinderGeometry(0.2, 0.15, 0.18, 10, 1, true).translate(0, 0.09, 0)), [0.6, 0.52, 0.32]), P(mound(0.17, 0.08, 7).translate(0, 0.1, 0), MEAT, 0.6)]);
     case 'threshing_floor': return merge([P(new THREE.CylinderGeometry(3.5, 3.55, 0.05, 28).translate(0, 0.025, 0), [0.66, 0.58, 0.4], 1), P(new THREE.CylinderGeometry(2.9, 3.3, 0.1, 22, 1, true).translate(0, 0.08, 0), STRAW, 1),
       P(new THREE.CylinderGeometry(2.9, 2.9, 0.02, 22).translate(0, 0.12, 0), STRAW_D, 1), P(rod([0, 0, 0], [0, 1.5, 0], 0.07, 0.06, 6), WOOD_D)]);
     case 'stooks': { const g: THREE.BufferGeometry[] = []; // three stooks of five sheaves standing ears up, leaning together
@@ -163,7 +168,7 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
     case 'sheaf': return merge([sheafLying(0.9).translate(-0.45, 0, 0), P(rod([-0.07, 0.085, 0], [-0.03, 0.085, 0], 0.06, 0.06, 7), STRAW_D)]); // the band being tied
     case 'grain_heap': return merge([P(new THREE.ConeGeometry(0.65, 0.45, 12).translate(0, 0.225, 0), [0.62, 0.5, 0.3], 1), P(mound(0.9, 0.08, 10, 0.5, 0.3), [0.74, 0.66, 0.46], 1)]);
     case 'spoil': return P(mound(0.55, 0.3, 9), EARTH);
-    case 'basket_fruit': return merge([P(new THREE.CylinderGeometry(0.2, 0.15, 0.2, 10, 1, true).translate(0, 0.1, 0), [0.6, 0.52, 0.32]), P(mound(0.18, 0.1, 8).translate(0, 0.12, 0), [0.26, 0.12, 0.2], 0.5)]);
+    case 'basket_fruit': return merge([P(SB(1, 0.2, 0.2, () => new THREE.CylinderGeometry(0.2, 0.15, 0.2, 10, 1, true).translate(0, 0.1, 0)), [0.6, 0.52, 0.32]), P(mound(0.18, 0.1, 8).translate(0, 0.12, 0), [0.26, 0.12, 0.2], 0.5)]);
     case 'press': { const g = [P(box(1.7, 0.02, 1.7, 0, 0, 0), LIME, 0.8), P(box(1.5, 0.03, 1.5, 0, 0.1, 0), [0.28, 0.12, 0.18], 0.4)];
       for (const [x, z, w, d] of [[0, 0.82, 1.74, 0.1], [0, -0.82, 1.74, 0.1], [0.82, 0, 0.1, 1.54], [-0.82, 0, 0.1, 1.54]]) g.push(P(box(w, 0.32, d, x, 0, z), LIME, 0.8));
       return merge(g); }
@@ -283,7 +288,7 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (let i = 0; i < 7; i++) g.push(paint(box(0.018, 0.008, 0.012, 0.12 + 0.04 * jit(i), top + 0.02 + 0.004 * i, 0.05 + 0.04 * jit(i, 2)).rotateY(0), SILVER, 1, 0.35));
       g.push(P(box(0.07, 0.022, 0.05, -0.15, top, 0.1), [0.56, 0.48, 0.37], 0.9));
       return merge(g); }
-    case 'sealed_jars': { const CLAY: RGB = [0.52, 0.42, 0.3], jarG = (x: number, z: number, sc: number) => [P(lathe([[0.001, 0], [0.13, 0.03], [0.24, 0.3], [0.2, 0.55], [0.1, 0.62], [0.11, 0.66]], 12).scale(sc, sc, sc).translate(x, 0, z), POT, 0.85),
+    case 'sealed_jars': { const CLAY: RGB = [0.52, 0.42, 0.3], jarG = (x: number, z: number, sc: number) => [P(SJ(Math.round(x * 10), 0.24, 0.66, () => lathe([[0.001, 0], [0.13, 0.03], [0.24, 0.3], [0.2, 0.55], [0.1, 0.62], [0.11, 0.66]], 12)).scale(sc, sc, sc).translate(x, 0, z), POT, 0.85),
         P(new THREE.CylinderGeometry(0.1 * sc, 0.1 * sc, 0.03, 10).translate(x, 0.67 * sc, z), CLAY, 0.9), P(new THREE.SphereGeometry(0.045 * sc, 6, 4).scale(1, 0.5, 1).translate(x + 0.02, 0.69 * sc, z), CLAY, 0.9)];
       return merge([...jarG(0, 0, 0.95), ...jarG(0.62, 0.2, 1.05), P(new THREE.SphereGeometry(1, 8, 5).scale(0.22, 0.28, 0.18).translate(-0.55, 0.26, 0.15), [0.62, 0.55, 0.42], 1),
         P(new THREE.SphereGeometry(0.03, 5, 3).translate(-0.55, 0.56, 0.1), CLAY, 0.9)]); }
@@ -313,7 +318,7 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       g.push(P(new THREE.SphereGeometry(1, 8, 5).scale(0.2, 0.26, 0.17).translate(0.55, 0.24, -0.1), [0.62, 0.55, 0.42], 1), P(new THREE.CylinderGeometry(0.18, 0.14, 0.16, 10, 1, true).translate(-0.5, 0.08, -0.05), [0.6, 0.52, 0.32]),
         P(mound(0.16, 0.08, 7, -0.5, -0.05).translate(0, 0.08, 0), [0.6, 0.48, 0.3], 0.9));
       return merge(g); }
-    case 'oil_jars': { const g: THREE.BufferGeometry[] = []; for (let i = 0; i < 4; i++) g.push(P(lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.18], [0.1, 0.34], [0.05, 0.4], [0.055, 0.43]], 10).translate(i * 0.32, 0, 0.03 * jit(i)), POT, 0.8),
+    case 'oil_jars': { const g: THREE.BufferGeometry[] = []; for (let i = 0; i < 4; i++) g.push(P(SJ(i, 0.14, 0.43, () => lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.18], [0.1, 0.34], [0.05, 0.4], [0.055, 0.43]], 10)).translate(i * 0.32, 0, 0.03 * jit(i)), POT, 0.8),
         P(new THREE.CylinderGeometry(0.05, 0.05, 0.03, 8).translate(i * 0.32, 0.43, 0.03 * jit(i)), [0.52, 0.42, 0.3], 0.9));
       g.push(P(lathe([[0.001, 0], [0.04, 0.004], [0.05, 0.02], [0.048, 0.022]], 8).scale(1, 1, 1.3).translate(-0.3, 0, 0.1), POT, 0.8));
       return merge(g); }
@@ -344,7 +349,7 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       P(lathe([[0.001, 0], [0.06, 0.01], [0.075, 0.07], [0.05, 0.13], [0.032, 0.15], [0.038, 0.17], [0.001, 0.16]], 8).translate(0.3, 0, 0.05), POT, 0.85)]);
     case 'milk_pot': return merge([P(lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.12], [0.12, 0.22], [0.08, 0.26], [0.09, 0.29], [0.07, 0.29], [0.001, 0.2]], 10), POT, 0.85),
       P(new THREE.CylinderGeometry(0.075, 0.075, 0.004, 10).translate(0, 0.24, 0), [0.92, 0.9, 0.84], 0.6)]);
-    case 'basket_fish': { const g = [P(new THREE.CylinderGeometry(0.22, 0.17, 0.2, 10, 1, true).translate(0, 0.1, 0), [0.6, 0.52, 0.32])];
+    case 'basket_fish': { const g = [P(SB(0, 0.22, 0.2, () => new THREE.CylinderGeometry(0.22, 0.17, 0.2, 10, 1, true).translate(0, 0.1, 0)), [0.6, 0.52, 0.32])];
       for (let i = 0; i < 4; i++) g.push(P(new THREE.SphereGeometry(1, 6, 3).scale(0.035, 0.03, 0.15).rotateY(i * 0.8).translate(0.06 * jit(i), 0.16 + 0.02 * i, 0.06 * jit(i, 2)), [0.5, 0.5, 0.44], 0.35, 0.2));
       return merge(g); }
     case 'fish_trap': return merge([P(new THREE.ConeGeometry(0.28, 1.1, 9, 1, true).rotateX(-Math.PI / 2).translate(0, 0.28, 0.2), [0.56, 0.48, 0.3], 1), P(box(0.2, 0.14, 0.16, 0, 0, -0.45), STONE, 0.9)]);
@@ -355,7 +360,7 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) { const x = -1.0 + 0.4 * c, y = 0.25 + 0.36 * r;
         g.push(P(new THREE.CylinderGeometry(0.16, 0.16, 0.86, 9, 1, true).rotateX(Math.PI / 2).translate(x, y, 0.03), POT, 0.9)); g.push(P(new THREE.CircleGeometry(0.16, 9).translate(x, y, -0.41), MUD_WET, 1)); }
       return merge(g); }
-    case 'basket_nuts': return merge([P(new THREE.CylinderGeometry(0.2, 0.15, 0.2, 10, 1, true).translate(0, 0.1, 0), [0.6, 0.52, 0.32]), P(mound(0.18, 0.1, 8).translate(0, 0.12, 0), [0.62, 0.55, 0.36], 0.8)]);
+    case 'basket_nuts': return merge([P(SB(1, 0.2, 0.2, () => new THREE.CylinderGeometry(0.2, 0.15, 0.2, 10, 1, true).translate(0, 0.1, 0)), [0.6, 0.52, 0.32]), P(mound(0.18, 0.1, 8).translate(0, 0.12, 0), [0.62, 0.55, 0.36], 0.8)]);
     case 'ard': { // in the ploughman's frame: the stilt rises to his left hand (≈ 0.12, 0.92, 0.5), the share runs in the soil at z ≈ 1.2, the beam goes to the yoke
       // on the oxen's necks in front of the withers (the team walks at z 3.35: animals.ts 'team'; yoke at z 4.05)
       const g = [P(rod([0.12, 0.92, 0.52], [0.06, 0.08, 1.02], 0.025, 0.03, 5), WOOD), P(rod([0.12, 0.92, 0.52], [0.24, 0.98, 0.48], 0.02, 0.02, 4), WOOD_D),

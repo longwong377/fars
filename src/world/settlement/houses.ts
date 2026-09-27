@@ -19,6 +19,7 @@ import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site'
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
 import { kitOn, kitLog, kitPiece, kitFrame } from './kit';
+import { scanShape } from '../../render/scanProps';
 
 /** tile size (m, site-local) and the near radius (m, from the eye to a tile's centre) */
 export const TILE = 32, NEAR_R = 72;
@@ -610,7 +611,10 @@ export class SiteHouses {
     else if (use === 'store') { // a store: jars and sacks along the back wall
       const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
       for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
-        if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
+        // session 12 (D-310): the store's jars are a CC0 scan's shape (render/scanProps.ts) fitted to the lathe's box, when loaded
+        const sj = hi(r.room, k, 2) < 0.65 ? scanShape('jar', Math.floor(hi(r.room, k, 5) * 3), [0.52 * kk, 0.82 * kk, 0.52 * kk], 0) : null;
+        if (sj) B.plaster.geo(g[0], g[1], y - 0.05, sj, hi(r.room, k, 6) * 6.283, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
+        else if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
         else B.plaster.lathe(g[0], g[1], y - 0.02, [[0.16, 0], [0.22, 0.15], [0.2, 0.42], [0.1, 0.55], [0.03, 0.58]], 6, sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own); } }
     else { // a living room: the reed mat, bedding rolled against the back wall, folded rugs, a low platform in larger rooms
       const inset = 0.45, mu0 = u0 + inset, mu1 = u1 - inset, mv0 = v0 + inset, mv1 = v1 - inset, mat = sh(lin(MAT), 0.95 + 0.1 * h);
@@ -680,7 +684,9 @@ export class SiteHouses {
           B.props.quad(q[0], q[1], q[2], q[3], [nx, 0, nz], c, c, sh(c, 0.95), sh(c, 0.95), own); B.props.quad(q[1], q[0], q[3], q[2], [-nx, 0, -nz], sh(c, 0.9), sh(c, 0.9), sh(c, 0.85), sh(c, 0.85), own); } break; }
       case 'baskets': { B.props.set('ao', 0.85); const bc = lin([0.62, 0.52, 0.34]); const n = 1 + (f.alt ?? 0) % 3;
         for (let k = 0; k < n; k++) { const a = (k - (n - 1) / 2) * 0.45, gy = g(a, 0), k2 = 0.8 + 0.5 * hi(f.alt ?? 0, k), [u, v] = at(a, 0); const [e, nn] = s.grid(u, v);
-          B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
+          const sb = scanShape('basket', k + (f.alt ?? 0), [0.42 * k2, 0.3 * k2, 0.42 * k2]); // session 12 (D-310): a CC0 scan's basket, when loaded
+          if (sb) B.props.geo(e, nn, gy - 0.01, sb, hi(k, 11) * 6.283, sh(bc, 0.85 + 0.25 * hi(k, 9)), own);
+          else B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
         // a broom of twigs against the wall-side of the baskets
         const gy = g(0.6, 0.1); this.pole(B.props, W3(0.55, 0.35, gy + 0.02), W3(0.62, 0.05, gy + 1.1), 0.016, 4, sh(tb, 0.9), own); B.props.set('ao', 1); break; }
       case 'mortar': { const gy = g(0, 0), [u, v] = at(0, 0), [e, nn] = s.grid(u, v); B.stone.set('ao', 0.85); B.stone.lathe(e, nn, gy - 0.05, [[0.22, 0], [0.24, 0.2], [0.2, 0.38], [0.13, 0.38]], 9, sh(st, 0.95), own); B.stone.set('ao', 1);

@@ -7512,3 +7512,30 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Change (the whole class, every instance):** `belt` (7 costumes: persian and its guard/king/court_woman dresses, median, worker, woman, envoy, envoy_short, envoy_bare; the child has none) is now `sashGeo` (src/people/outfits.ts): the band (fuller in the middle of its height), a knot at the front a little to the wearer's left, and two hanging ends (27 and 21 cm, 3.4 cm wide, lined) lying on the skirt; LOD2 one end; the crowd's impostors and far LODs take it from the same pieces. The drape registry (tools/blender/people.json people_cloth) gains kind `sash` (band and knot pinned from 3.5 cm below the belt's centre up, the ends free, bending 0.15) with a collider of the body plus the group's skirt (tools/blender/sources/people_cloth.ts bodyWith). Settled displacement rms 3-6 mm, max 15-24 mm. Tier: the girdle B (IR-CAND), the knot and ends C (the reliefs do not show the tying).
 - **Budgets:** persian LOD0 41,730 -> ~41,980 (the first cut, 42,058, was over: knot and ends thinned) (the knot 6 x 3 + caps, the ends 2 x 8 rings); every costume within [42,000, 7,000, 3,200, 800] (tests/people_models.test.ts).
 - **Pipeline:** people_cloth rebuilt (129 s CPU) and --verify reproduced; people_hair rebuilt (outfits.ts is its input) and reproduced byte-identical.
+## D-310 CC0 scanned models in bulk: loose rock, ground flora, jars and baskets (session 12; UD-19, UD-17, D-233; T-R12)
+- **Downloads (T: only; the cloud cannot reach Poly Haven):** 111 Poly Haven models (CC0 1.0), glTF at 2k and 4k, 4.3 GB, under
+  T:/fars-assets-s12/models/polyhaven with T:/fars-assets-s12/models/manifest.json (url, licence, sha256 per file): rocks,
+  boulders, cliffs and coast rock, stones, shrubs, grasses, weeds, dead wood and roots, stumps, ceramic vases and pots, jugs,
+  wicker baskets, wooden crates, bowls, buckets, tools, stools, ladders, fruit. For the lead to push to branch assets-archive.
+- **Pipeline:** `node tools/blender/ph_props.mjs [id]` (Blender headless, tools/blender/ph_props.py): join, base on y = 0,
+  split files that lay several variants side by side (overlapping footprints = one variant), decimate (collapse) to lod0/lod1,
+  maps to 512/1024 JPEG, Draco GLB -> public/models/props/<id>.glb + manifest.json (47 GLBs, 22 MB). Runtime:
+  src/render/scanProps.ts (loaded before the world is built; scanProp / propsFor / scanShape / scanMaterial).
+- **Colour:** the scan's luminance relative to its mean times the place's measured colour (the rock palette of terrainPlain.ts,
+  sRGB, linearised; the flora's seasonal tints): the scans' grain and shading, not their Namaqualand hue.
+- **Classes switched:** (1) loose rock: new GroundRocks (src/world/groundRocks.ts): stones on the steppe, fields' edges and
+  the slopes within 40 m, boulders and fallen blocks on the slopes within 110 m, from the 8 m cells' context; the world drew no
+  standing rock before (only the terrain's texture): tier B for the rock, C for number and place. (2) ground flora: all three
+  kinds of groundFlora.ts (cushion, camelthorn, thistle) drawn from scans in the same placements; the procedural forms stay as
+  hidden stand-ins (flagged PLACEHOLDER when the scans fail to load). No CC0 scan of Astragalus or Alhagi exists: the nearest
+  forms are used (C). (3) jars: furnish.ts jarGeometry (the Treasury's sealed and bitumen jars, the scribes' jars, the room
+  fittings' storage jars), furnish_palaces.ts jarGeo, props.ts 'jar' (carried; also workObjects' 'jar'), workObjects'
+  sealed_jars and oil_jars: the scan's body fitted to each builder's own r and h; the builders' materials kept.
+  Also the town's and villages' jars: settlement/build.ts fittings 'jar' / 'jar_big' (courts, village yards) and houses.ts store
+  rooms' jars, through a new Batch.geo (settlement/geom.ts: a prepared geometry into the house batches); two one-line edits in
+  the house files (the house-kit agent's area). The lod1 levels of the vessels decimate badly (collapse over UV seams): every
+  jar uses lod0 (~1500 triangles), a cost the world render must measure.
+  (4) baskets: props.ts 'basket', workObjects' basket_meat / basket_fruit / basket_nuts / basket_fish, the scribes' reed
+  baskets of tablets (furnish.ts) and the houses' court baskets (houses.ts 'baskets', through Batch.geo).
+- **Not switched (honest):** the vats and the houses' sacks, sacks (no CC0 scan of a period sack),
+  sherds on the roads (roadLitter.ts), pots in the hearth/milk/basin performances, bowls, crates.

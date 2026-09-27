@@ -9,6 +9,7 @@ import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, float, vec3, mix, uniform, length, smoothstep, cameraPosition } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
 import { CELL, type CellCtx, type SmallWorld } from './smallLife';
+import { scanProp, scanMaterial, fitProp, type ScanProp } from '../render/scanProps';
 
 export type FloraKind = 'cushion' | 'camelthorn' | 'thistle';
 export const FLORA_R = 36;
@@ -21,6 +22,21 @@ export const FLORA: Record<FloraKind, { name: string; where: Partial<Record<Cell
 function h32(...v: number[]) { let h = 2166136261 >>> 0; for (const x of v) { h = Math.imul(h ^ (x | 0), 16777619) >>> 0; h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0; } return h >>> 0; }
 const u01 = (...v: number[]) => h32(...v) / 4294967296;
 const KIDX: Record<FloraKind, number> = { cushion: 1, camelthorn: 2, thistle: 3 };
+/** session 12 (D-310): the CC0 scans (Poly Haven; src/render/scanProps.ts) each kind is drawn with, when loaded; the procedural
+ *  forms below are then the stand-ins (hidden, still filled: tests and the A/B). No Astragalus or Alhagi scan exists in a CC0
+ *  library: the nearest forms are used (a dense low twiggy shrub squashed to the cushion's dome, a low twiggy shrub, upright
+ *  stems) and tinted with the kinds' measured, seasonal colours (C for the forms). */
+export const FLORA_SCANS: Record<FloraKind, { ids: string[]; fit: 'box' | 'height' }> = {
+  cushion: { ids: ['shrub_03_v1', 'shrub_03_v2', 'shrub_03_v3', 'shrub_03_v4'], fit: 'box' },
+  camelthorn: { ids: ['shrub_03_v1', 'shrub_03_v2', 'shrub_03_v3', 'shrub_03_v4'], fit: 'height' },
+  thistle: { ids: ['nettle_plant_v1', 'nettle_plant_v2', 'nettle_plant_v5', 'nettle_plant_v6'], fit: 'height' },
+};
+export const FLORA_LOD_NEAR = 12;
+/** the unit box a scan is fitted to, as the procedural unit forms: the cushion a dome 1 x 0.55 x 1; the others unit height, their own proportions */
+function scanUnit(k: FloraKind, p: ScanProp): [number, number, number] {
+  if (FLORA_SCANS[k].fit === 'box') return [1, 0.55, 1];
+  const h = Math.max(1e-3, p.size[1]); return [p.size[0] / h, 1, p.size[2] / h];
+}
 
 /** the season's look (month 0 = January): camelthorn's dryness, the thistles' green, flower and dryness (C) */
 export function floraSeason(month: number) {
@@ -53,9 +69,12 @@ export class GroundFlora {
   readonly meshes = new Map<FloraKind, THREE.InstancedMesh>();
   private uDry = uniform(0.5); private uGreen = uniform(0); private uFlower = uniform(0);
   private cells = new Map<number, CellCtx>();
+  private scanCounts: Record<FloraKind, number[]> = { cushion: [], camelthorn: [], thistle: [] };
   private last: { e: number; n: number; month: number } = { e: 1e9, n: 1e9, month: -1 };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private eu = new THREE.Euler(); private v = new THREE.Vector3(); private s = new THREE.Vector3();
   stats: Record<FloraKind, number> = { cushion: 0, camelthorn: 0, thistle: 0 };
+  /** per kind: the scans drawn and their meshes ([scan * 2 + level]) */
+  readonly scan = new Map<FloraKind, { props: ScanProp[]; slots: THREE.InstancedMesh[]; per: number }>();
   constructor(private seed: number, private world: SmallWorld) {
     this.group.name = 'ground-flora';
     const geos: Record<FloraKind, THREE.BufferGeometry> = { cushion: cushionGeometry(), camelthorn: camelthornGeometry(), thistle: thistleGeometry() };
@@ -70,6 +89,25 @@ export class GroundFlora {
       const mesh = new THREE.InstancedMesh(g, m, FLORA[k].max); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.name = `flora-${k}`;
       mesh.userData = { tier: k === 'cushion' ? 'B/C' : 'C', src: 'SMALL-R', note: `${FLORA[k].name}: near the viewer only, stands and density reconstructed (C)` };
       this.meshes.set(k, mesh); this.group.add(mesh);
+      // the scans (D-310): one InstancedMesh per scan and level, the same placements; the stand-in hidden
+      const props = FLORA_SCANS[k].ids.map(scanProp).filter((p): p is ScanProp => !!p);
+      if (props.length) {
+        const per = Math.ceil(FLORA[k].max / props.length) + 8, slots: THREE.InstancedMesh[] = [];
+        for (const p of props) {
+          const u = p.size[1] > 0 ? scanUnit(k, p) : [1, 1, 1] as [number, number, number];
+          const part = smoothstep(0.78, 0.95, positionLocal.y); // the head of a stem (thistle) or the top of the plant
+          const tint = k === 'cushion' ? mix(vec3(0.3, 0.33, 0.22), vec3(0.4, 0.42, 0.3), positionLocal.y.mul(2).clamp(0, 1)) : k === 'camelthorn' ? mix(vec3(0.2, 0.28, 0.1), vec3(0.36, 0.27, 0.17), this.uDry)
+            : mix(mix(vec3(0.48, 0.42, 0.3), vec3(0.2, 0.3, 0.11), this.uGreen), mix(vec3(0.55, 0.47, 0.34), vec3(0.45, 0.2, 0.45), this.uFlower), part);
+          const sm = scanMaterial(p, tint, { roughness: 0.9, side: THREE.DoubleSide }); sm.positionNode = positionLocal.mul(grow);
+          for (const lod of [0, 1]) {
+            const sg = fitProp(p.lods[lod], u); sg.setAttribute('fpos', new THREE.InstancedBufferAttribute(new Float32Array(per * 3), 3));
+            const im = new THREE.InstancedMesh(sg, sm, per); im.count = 0; im.frustumCulled = false; im.castShadow = false; im.receiveShadow = true; im.name = `flora-${k}:${p.id}:lod${lod}`;
+            im.userData = { tier: mesh.userData.tier, src: 'SMALL-R;POLYHAVEN-CC0', placeholder: false, note: `${FLORA[k].name}: CC0 scan ${p.id} (Poly Haven), the nearest real form (no CC0 scan of the species exists), in the kind's measured seasonal colour; near the viewer only, stands and density reconstructed (C)` };
+            slots.push(im); this.group.add(im);
+          }
+        }
+        this.scan.set(k, { props, slots, per }); mesh.visible = false;
+      } else mesh.userData = { ...mesh.userData, placeholder: true, note: `PLACEHOLDER: procedural stand-in (the CC0 scans did not load). ${mesh.userData.note}` };
     }
   }
   private ctx(ix: number, iy: number): CellCtx {
@@ -83,12 +121,14 @@ export class GroundFlora {
     if (Math.hypot(viewer[0] - this.last.e, viewer[1] - this.last.n) < 4 && month === this.last.month) return false;
     this.last = { e: viewer[0], n: viewer[1], month };
     const counts: Record<FloraKind, number> = { cushion: 0, camelthorn: 0, thistle: 0 };
+    for (const k of Object.keys(FLORA) as FloraKind[]) this.scanCounts[k] = (this.scan.get(k)?.slots ?? []).map(() => 0);
     const i0 = Math.floor((viewer[0] - FLORA_R) / CELL), i1 = Math.floor((viewer[0] + FLORA_R) / CELL), j0 = Math.floor((viewer[1] - FLORA_R) / CELL), j1 = Math.floor((viewer[1] + FLORA_R) / CELL);
     for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
       if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > FLORA_R + CELL) continue;
       const cx = this.ctx(ix, iy);
       for (const k of Object.keys(FLORA) as FloraKind[]) {
         const w = FLORA[k].where[cx]; if (!w || u01(this.seed, ix, iy, KIDX[k], 31) >= w[0]) continue;
+        const sc = this.scanCounts[k];
         const n = w[1] + (h32(this.seed, ix, iy, KIDX[k], 32) % (w[2] - w[1] + 1)), mesh = this.meshes.get(k)!, fpos = mesh.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute;
         for (let i = 0; i < n && counts[k] < FLORA[k].max; i++) {
           const e = (ix + u01(this.seed, ix, iy, i, KIDX[k], 33)) * CELL, nn = (iy + u01(this.seed, ix, iy, i, KIDX[k], 34)) * CELL, y = this.world.ground(e, nn); if (!Number.isFinite(y)) continue;
@@ -96,10 +136,13 @@ export class GroundFlora {
           this.eu.set(0, u01(this.seed, ix, iy, i, 36) * 6.283, 0); this.q.setFromEuler(this.eu); this.v.set(e, y - 0.03, -nn);
           this.m4.compose(this.v, this.q, k === 'cushion' ? this.s.set(sz, sz, sz) : this.s.set(sz * 0.8, sz, sz * 0.8));
           const c = counts[k]++; mesh.setMatrixAt(c, this.m4); fpos.setXYZ(c, e, y, -nn);
+          const S = this.scan.get(k); if (S) { const vi = h32(this.seed, ix, iy, i, KIDX[k], 37) % S.props.length, near = Math.hypot(e - viewer[0], nn - viewer[1]) < FLORA_LOD_NEAR ? 0 : 1, si = vi * 2 + near, im = S.slots[si];
+            if (sc[si] < S.per) { const j2 = sc[si]++; im.setMatrixAt(j2, this.m4); (im.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).setXYZ(j2, e, y, -nn); } }
         }
       }
     }
-    for (const k of Object.keys(FLORA) as FloraKind[]) { const m = this.meshes.get(k)!; m.count = counts[k]; m.instanceMatrix.needsUpdate = true; (m.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).needsUpdate = true; this.stats[k] = counts[k]; }
+    for (const k of Object.keys(FLORA) as FloraKind[]) { const m = this.meshes.get(k)!; m.count = counts[k]; m.instanceMatrix.needsUpdate = true; (m.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).needsUpdate = true; this.stats[k] = counts[k];
+      const S = this.scan.get(k); if (S) S.slots.forEach((im, i) => { im.count = this.scanCounts[k][i]; im.instanceMatrix.needsUpdate = true; (im.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).needsUpdate = true; }); }
     return true;
   }
 }

@@ -25,6 +25,7 @@ import { surfaceMaterial, SURFACES, type SurfaceDef } from '../render/materials'
 import type { Part, Manifest, Doorway, Column, Box } from '../arch/parts';
 import type { Physics } from '../player/physics';
 import courtJson from '../data/court.json';
+import { scanShape } from '../render/scanProps';
 
 type RGB = [number, number, number];
 export type FurnState = 'stored' | 'use';
@@ -115,7 +116,8 @@ function lampGeo(P: Parts) { // a bronze lamp stand with a clay lamp on its dish
 function chestGeo(P: Parts) { const C = F().chest; put(P, 'timber', box(C.len, C.h - 0.06, C.w), [0.5, 0.37, 0.26]); put(P, 'timber', box(C.len + 0.04, 0.06, C.w + 0.04, 0, C.h - 0.06, 0), [0.44, 0.32, 0.22]);
   for (const x of [-0.3, 0.3]) put(P, 'bronze', box(0.04, C.h - 0.05, C.w + 0.01, x * C.len, 0, 0)); }
 function jarGeo(P: Parts) { const J = F().jar, h = J.h, r = J.r;
-  put(P, 'furn_clay', lathe([[0, 0], [r * 0.35, 0], [r * 0.8, h * 0.18], [r, h * 0.45], [r * 0.9, h * 0.7], [r * 0.45, h * 0.88], [r * 0.4, h * 0.92], [r * 0.48, h * 0.96], [r * 0.45, h], [0, h]], 14), [0.64, 0.49, 0.36]);
+  // session 12 (D-310): the jar's body is a CC0 scan's (Poly Haven; render/scanProps.ts) fitted to r and h, when loaded
+  put(P, 'furn_clay', scanShape('jar', 2, [2 * r, h, 2 * r]) ?? lathe([[0, 0], [r * 0.35, 0], [r * 0.8, h * 0.18], [r, h * 0.45], [r * 0.9, h * 0.7], [r * 0.45, h * 0.88], [r * 0.4, h * 0.92], [r * 0.48, h * 0.96], [r * 0.45, h], [0, h]], 14), [0.64, 0.49, 0.36]);
   put(P, 'furn_clay', new THREE.SphereGeometry(r * 0.46, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.4, 1).translate(0, h, 0), [0.5, 0.4, 0.3]); } // the clay stopper
 function hangingGeo(P: Parts, variant: number) { // x along the wall, z out of it (the wall face at z = 0), y from the floor
   const H = F().hanging, w = H.w, h = H.h, top = H.top, z = H.off_wall, cols = (H.colours as RGB[][])[variant % H.colours.length];
