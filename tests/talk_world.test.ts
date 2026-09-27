@@ -16,7 +16,7 @@ import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, type Env } from '../src/people/sim';
 import { segAt } from '../src/people/population';
 import { WeatherSystem } from '../src/weather/weatherState';
-import { parseIntent, requestOf, wordsRefuse } from '../src/people/converse/intent';
+import { parseIntent, requestOf, wordsRefuse, looseRequest, tagAsked } from '../src/people/converse/intent';
 import { Mind } from '../src/people/converse/mind';
 import { talkTurn } from '../src/people/converse/turn';
 import { systemPrompt, approxTokens, PROMPT_TOKENS } from '../src/people/converse/prompt';
@@ -60,6 +60,15 @@ describe('the tag and the ask (intent.ts)', () => {
       ['Go home, friend, you look tired.', 'go_home'], ['What work do you do?', null], ['Who lives in your house?', null], ['What is that great terrace up there?', null]];
     for (const [s, k, a] of T) { const r = requestOf(s); expect(r?.kind ?? null, s).toBe(k); if (a) expect(r?.arg ?? '', s).toContain(a.split(' ')[0]); }
     expect(wordsRefuse('No, stranger, I cannot leave the post.')).toBe(true); expect(wordsRefuse('Yes, come this way.')).toBe(false);
+  });
+  it('the first GPU run’s lessons: a tag the stranger gave no cue for is not an ask; a paraphrase is read by its one family; a stray tag is taken out', () => {
+    // (gemma-2-2b answered "I am looking for the river" with [go_home], "Remain here until I come back" with [go_home])
+    expect(tagAsked({ kind: 'go_home' }, 'I am looking for the river.')).toBe(false); expect(tagAsked({ kind: 'lead_to', arg: 'river' }, 'I am looking for the river.')).toBe(true);
+    const T: [string, string | null, string?][] = [['I am looking for the river.', 'lead_to', 'river'], ['Leave off your work a moment, friend.', 'stop_work'], ['Remain here until I come back.', 'wait_here'],
+      ['Could Bagačiθrā come and meet me?', 'fetch', 'Bagačiθrā'], ['Point me to the mill, friend.', 'lead_to', 'mill'], ['Head home now, friend.', 'go_home'],
+      ['Who lives in your house?', null], ['What work do you do?', null], ['Do you remember me?', null], ['Is your work hard?', null]];
+    for (const [s, k, a] of T) { const r = looseRequest(s); expect(r?.kind ?? null, s).toBe(k); if (a) expect(r?.arg ?? '', s).toContain(a); }
+    const p = parseIntent('My hands are full. [stay_work]".'); expect(p.intent).toBe(null); expect(p.words).toBe('My hands are full.');
   });
 });
 

@@ -7578,3 +7578,56 @@ moment-*-webgpu.png in the worktree, not committed).**
   stops the leaf's thickness (r_door_leaves.thickness 0.25 m) short of the inner face and the fore-part projects 2.2 m
   (C; Q-890). The protome's horns are raised ~0.08 D in the head frame (protome.head.horn_shift [-0.07, 0.035, 0] D): with
   the head hung low they no longer rose above the poll; the photographs show them sweeping up and forward (C).
+
+## D-315 Conversations act on the world and are remembered per save (session 12; UD-21, UD-18, UD-07, UD-08; T-E10, T-E9)
+
+**How this could pass its tests while the intent fails (said before starting, and measured against):** (1) a stand-in model
+that always writes the right tag makes the parse look perfect while a real 1-2 B model forgets it: so the ask has two
+detectors (the grammar on the stranger's words, the model's tag) and the parser is tested on messy real-model shapes, and
+the node T-E10 number is labelled the PLUMBING's, the real model's measured apart (the lab's GPU run); (2) a deed written
+into a plan that nobody draws: so tests/talk_view.test.ts measures the population view's positions against the step's
+place (the well), the follower against the stranger's way, and tests/talk_world.test.ts walks a detailed agent (a camp
+child) after the stranger across the Terrace; (3) a deed that does not survive a reload: every request of the T-E10 set is
+checked in a fresh world loaded from the JSON save; (4) a recall that comes from the same conversation's prompt: the recalls
+are asked in the reloaded world with a fresh mind; (5) "no event = identical world" broken silently: a no-player run's
+save is compared byte for byte with a world never spoken to, and has no `talk` key; (6) a prompt over the watchdog budget:
+the estimate is calibrated against the Qwen2.5 and Gemma-2 tokenizers and the budget test runs over the whole T-E9 set.
+
+**What was built.** `src/people/talk.ts` (TalkWorld, owned by the sim): the SIMULATION decides every ask
+(`consider`): present, awake, not too small (< 5), not sick, not mourning, not in the dark (for walks), not on duty (a
+guard on watch or within call of the posts; the work of a gang, an office, the Treasury, a priest's fire, a servant's
+master: DUTY_WORDS, C), rank (a leader of a group does not go off with a stranger), family and custom (a child follows
+until called home: until the house's next meal, at most 0.6 h; a child goes at most a short walk from the house and gives
+only water without asking the mother; a woman of the house does not go off with a strange man and walks him only to the
+well, the lane or a house; tier C, custom by analogy, no source read: Q-910; the goods: Q-911), distance (one way at most 0.4 h of walking,
+Population.walkH), what they have (bread and water at home; the work's goods: beer, grapes, fruit, milk, oil, flour; never
+silver, the king's weapons or tablets), and temperament (a seeded draw on the person's trait: the wary refuse most). A
+deed is NEW PLAN STEPS laid over the day (Population.plan = the talk overlay on basePlan; every planner reads basePlan, so
+no one else's day changes): a walk to the place, a pause there pointing it out, the walk back to where the day has them by
+then; following = `@stranger` steps (the view and the agents place them on the stranger's own way, 1.5 m behind, 1.1 m
+more for each in the file) then `@back:<place>` (the way retraced); fetch = the asker walks to the one fetched and back
+with them, and the one fetched gets a `come` event of their own (they decide too: at work, asleep, sick or away they do
+not come, and the asker says so). Every player-caused change is an event in the save (`sim.save().talk`: the deeds with
+their steps, the pauses, the memory rows, what each has to tell); replayed on load; with no event the save and every plan
+are as before. The pause of a conversation: the person stops, turns to the stranger (sim: heading, `performance` = talk;
+popview: frozen at the moment addressed, act talk, facing), the task waits; afterwards the view catches the person up with
+the day at 1.5× (no jump) unless they set off on a deed. Memory: one row per conversation per person (≤ 58 estimated
+tokens; the last three verbatim, older folded to counts), what the stranger said, the deed or refusal, what they said;
+gossip is a pure function of what each has to tell (never folded, last 8), the households and Population ties: kin hear in
+2-14 h, friends and neighbours in 12-48 h, second-hand through one's own circle 1-3 days after that; the prompt carries the
+two that matter most (a deed first, one's own before hearsay). `converse/intent.ts` (the closed set, the tag parser, the
+grammar), `converse/turn.ts` (one turn, words and deed together; used by the world ?converse, the lab and the test),
+`converse/prompt.ts` (memory and tag lines inside the 450-token budget: the life's least needed lines go first),
+`converse/tokens.ts` (the estimate, calibrated), `converse/talkset.ts` (the T-E10 set and runner),
+`tests/talk_world.test.ts`, `tests/talk_view.test.ts`, `tests/talk_standin.ts`, the lab's `talkSet`.
+
+**Measured.** Node (tests/talk_world.test.ts, the stand-in model: the PLUMBING): T-E10 100 % of 158 (64 requests over every class and kind: 23 done, 26 refused for a reason of the day, 15 nothing to change; 64 recalls from the reloaded save; 30 of 30 heard second-hand or from kin), REVIEWS/evidence/s12-talk/T-E10.json. The population view carries the steps out (tests/talk_view.test.ts: a townsman walked to the well along the lanes, stood at it, went back; a follower drawn 1.5 m behind on the stranger's way and walking it back; a person spoken to stops and faces the stranger). The prompt with two memory rows and the tag line: true count max 423 (Qwen2.5), 426 (Gemma-2) over the T-E9 set (tools/dev/converse_tokens.ts), the estimate calibrated to 0-8 % above. ONE GPU run (gemma-2-2b on the T4, requests 0-15 and their recalls, 40 cases): 17.5 % (requests 7/16, recalls 0/16, heard 0/8; median answer 2.0 s), REVIEWS/evidence/s12-talk/T-E10-gpu-run1.json: the model tagged asks never made ("[go_home]" to "I am looking for the river"), refused in its own words where the scorer wanted a "no", and ignored the memory at the head of a long brief. Fixed after the run (unmeasured on the GPU: one run allowed): a tag counts only with a cue of its kind in the stranger's words and paraphrases are read by their one family (intent.ts tagAsked, looseRequest); the reason named in the reply counts as the refusal (talkset.ts sharesReason); the memory that matters most goes with the stranger's words on a talk's first turn and when asked about earlier meetings (turn.ts); stray tags are taken out of the words.
+
+**Stays behind ?converse** (not the default): T-E9 is 61 % measured (target 95), the real model's T-E10 is 17.5 % on its one run (before the fixes), and
+the model is a ~1.5 GB download. Without ?converse nothing of this runs (no event: the world is unchanged).
+
+**Not done / known limits (C, logged):** the player has no goods of their own (a trade needs something given to them first);
+a person fetched to the stranger meets them at the asker's place, not where the stranger stands if they were walking; a
+walker addressed and then setting off on a deed can jump along their route in the view (rare); followers leave the view's
+candidate set if led far beyond their home's range; children's plans that read a mother's day read her base plan (a
+mother who followed the stranger is still "talking" in her child's plan's words).

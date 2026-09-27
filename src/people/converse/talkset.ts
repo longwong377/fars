@@ -69,7 +69,7 @@ export function buildTalkSet(pop: Population, cal: EventCalendar, seed: number, 
   return out;
 }
 
-export interface TalkScored { c: TalkCase; pass: boolean; why: string[]; reply: string; deed?: string; expect?: string[]; ms?: number; memory?: string[] }
+export interface TalkScored { c: TalkCase; pass: boolean; why: string[]; reply: string; deed?: string; expect?: string[]; ms?: number; memory?: string[]; raw?: string }
 /** a request's result */
 export function scoreRequest(c: TalkCase, o: TurnOut, planHas: boolean): TalkScored {
   const why: string[] = []; const d = o.decision; const reply = o.answer.text;
@@ -77,24 +77,29 @@ export function scoreRequest(c: TalkCase, o: TurnOut, planHas: boolean): TalkSco
   if (!d) why.push('no decision: the ask was read by neither the grammar nor the tag');
   else if (d.ok && !d.noop && !planHas) why.push('the deed is not in the day plan');
   else if (!d.ok && /does not understand|does not know (the place|whom)/.test(d.reason)) why.push(`refused for want of understanding: ${d.reason}`);
-  if (d) { const no = o.tag?.kind === 'refuse' || wordsRefuse(reply); if (d.ok && no) why.push('the words refuse what the day does'); if (!d.ok && !no) why.push('the words agree to what the simulation refused'); }
+  // (a refusal in the words: a "no", the refuse tag, or the reason itself in the person's words: "Foreman's counting us")
+  if (d) { const no = o.tag?.kind === 'refuse' || wordsRefuse(reply) || (!d.ok && sharesReason(reply, d.reason)); if (d.ok && no && !(d.noop)) why.push('the words refuse what the day does'); if (!d.ok && !no) why.push('the words agree to what the simulation refused'); }
   return { c, pass: !why.length, why, reply, deed: d ? `${d.kind}${d.arg ? ':' + d.arg : ''} ${d.ok ? (d.noop ? 'ok (nothing to change)' : 'DONE') : 'refused'}: ${d.reason}` : 'none' };
 }
 /** the words a recall must name (from the recalled request's event in the save) */
 export function recallExpect(ev: { kind: string; ok: boolean; arg?: string; item?: string; reason: string; other?: number } | null, name: (pid: number) => string, sourceName?: string): string[] {
   if (!ev) return [];
   const k: string[] = [];
-  if (!ev.ok) k.push('would not|could not|cannot|refused|did not');
+  if (!ev.ok) k.push("would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|" + ev.reason.split(/\s+/).filter(w => w.replace(/[^a-z]/gi, '').length >= 6).map(w => w.toLowerCase().replace(/[^a-z]/g, '').slice(0, 5)).join('|'));
   else switch (ev.kind) {
-    case 'follow': k.push('walk|came along|follow'); break;
+    case 'follow': k.push('walk|along|follow|join|company|came with'); break;
     case 'lead_to': k.push(placeWords(ev.arg ?? '').replace(/^the /, '').replace(/ of the magi$/, '')); break;
     case 'fetch': k.push(ev.other !== undefined ? name(ev.other) : 'fetch'); break;
     case 'give': case 'trade': k.push(ev.item ?? 'gave'); break;
-    case 'stop_work': k.push('stop'); break; case 'wait_here': k.push('wait'); break; case 'go_home': k.push('home'); break;
+    case 'stop_work': k.push('stop|rest'); break; case 'wait_here': k.push('wait|await|stay'); break; case 'go_home': k.push('home|house'); break;
   }
-  if (sourceName) k.push(sourceName);
+  if (sourceName) k.push(`${sourceName}|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour`); // (who told them: by name or by what they are to them)
   return k;
 }
+const stem = (w: string) => w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '').slice(0, 5);
+const STOPW = new Set(['there', 'their', 'these', 'those', 'cannot', 'leave', 'stran', 'house', 'which', 'would', 'about', 'nobod', 'walks']);
+/** the reply names something of the refusal's reason (a word of five letters or more, by its stem) */
+export function sharesReason(reply: string, reason: string): boolean { const R = new Set(reason.split(/\s+/).filter(w => w.replace(/[^a-z]/gi, '').length >= 5).map(stem).filter(x => !STOPW.has(x))); return reply.split(/\s+/).some(w => R.has(stem(w))); }
 export function scoreRecall(c: TalkCase, o: TurnOut, expect: string[]): TalkScored {
   const why: string[] = []; const reply = o.answer.text;
   if (!o.answer.ok) why.push(`fence: ${o.answer.hits.map(h => h.kind + ':' + h.term).join(', ') || 'no answer'}`);
@@ -110,13 +115,13 @@ export async function runTalkSet(mind: Mind, make: () => PeopleSim, set: TalkCas
   const sim = make(); const reqs = set.filter(c => c.kind !== 'recall' && c.kind !== 'heard'); const res: TalkScored[] = []; const out = new Map<number, TurnOut>();
   for (const c of reqs) { sim.jumpTo(c.day * 24 + c.hour); const o = await talkTurn(mind, sim, c.pid, c.say, { conv: sim.t }); out.set(c.i, o); mind.forget();
     const d = o.decision; const planHas = !!d && d.ok && !d.noop ? sim.pop.plan(c.pid, c.day).some(s => s.why === d.segs?.[0]?.why) : false;
-    const r = scoreRequest(c, o, planHas); r.ms = o.answer.totalMs; res.push(r); log?.(`${c.i} ${c.kind} ${r.pass ? 'pass' : 'FAIL ' + r.why.join('; ')}`); }
+    const r = scoreRequest(c, o, planHas); r.ms = o.answer.totalMs; r.raw = o.answer.raw; res.push(r); log?.(`${c.i} ${c.kind} ${r.pass ? 'pass' : 'FAIL ' + r.why.join('; ')}`); }
   const saved = JSON.parse(JSON.stringify(sim.save())); const b = make(); b.load(saved);
   for (const r of res) { const d = out.get(r.c.i)!.decision; if (d?.ok && !d.noop && JSON.stringify(b.pop.plan(r.c.pid, r.c.day)) !== JSON.stringify(sim.pop.plan(r.c.pid, r.c.day))) { r.pass = false; r.why.push('the deed did not survive the reload'); } }
   for (const c of set.filter(x => x.kind === 'recall' || x.kind === 'heard')) {
     const src = reqs[c.of!]; const ev = out.get(src.i)?.decision?.event ?? null; b.jumpTo(c.day * 24 + c.hour);
     const o = await talkTurn(mind, b, c.pid, c.say, { conv: b.t }); mind.forget();
-    const r = scoreRecall(c, o, recallExpect(ev, x => b.talk.name(x), c.kind === 'heard' ? b.talk.name(src.pid) : undefined)); r.ms = o.answer.totalMs; r.memory = o.memory; res.push(r); log?.(`${c.i} ${c.kind} ${r.pass ? 'pass' : 'FAIL ' + r.why.join('; ')}`);
+    const r = scoreRecall(c, o, recallExpect(ev, x => b.talk.name(x), c.kind === 'heard' ? b.talk.name(src.pid) : undefined)); r.ms = o.answer.totalMs; r.memory = o.memory; r.raw = o.answer.raw; res.push(r); log?.(`${c.i} ${c.kind} ${r.pass ? 'pass' : 'FAIL ' + r.why.join('; ')}`);
   }
   const pass = res.filter(r => r.pass).length, value = +(100 * pass / Math.max(1, res.length)).toFixed(1);
   const by = (k: string) => { const x = res.filter(r => (r.c.kind === 'recall' || r.c.kind === 'heard' ? r.c.kind : 'request') === k); return [x.filter(r => r.pass).length, x.length]; };

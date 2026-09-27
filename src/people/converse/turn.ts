@@ -14,7 +14,7 @@ import type { Decision, TalkEvent } from '../talk';
 import type { Mind, Answer } from './mind';
 import type { Turn, Knows } from './prompt';
 import { lifeRecord } from './life';
-import { requestOf, wordsRefuse, DEEDS, type Intent, type Deed } from './intent';
+import { requestOf, looseRequest, tagAsked, wordsRefuse, type Intent, type Deed } from './intent';
 
 export interface TurnOut {
   pid: number; said: string; answer: Answer; knows: Knows; memory: string[];
@@ -37,11 +37,17 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   const memory = sim.talk.recall(pid, t, 2);
   const agent = sim.pop.persons[pid]?.agent ?? -1;
   const knows: Knows = (sim.talk.rows.get(pid)?.length ?? 0) > 0 ? 'recognise' : agent >= 0 ? sim.memory.greeting(agent, t) : memory.length ? 'nod' : 'none';
-  const request = requestOf(said);
+  // the ask: the grammar's, else a paraphrase by its one cued family (the simulation's word goes with the words either way)
+  const request = requestOf(said) ?? looseRequest(said);
   const pre = request ? sim.talk.consider(pid, t, request) : null;
-  let answer = await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory, note: pre ? verdictNote(pre) : undefined });
+  // (the first GPU run: a 2 B model ignores the memory at the head of a long brief: on the first turn of a talk, or asked
+  // about earlier meetings, the memory that matters most goes with the stranger's words too)
+  const first = !(sim.talk.rows.get(pid) ?? []).some(r => r.conv === o.conv); const top = sim.talk.recall(pid, t, 1)[0];
+  const remind = top && (first || /\b(remember|before|met|heard|know me|say of|spoken)\b/i.test(said)) ? `What you remember of the stranger: ${top}` : '';
+  const note = [pre ? verdictNote(pre) : '', remind].filter(Boolean).join(' ') || undefined;
+  let answer = await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory, note });
   const tag = answer.intent ?? null;
-  const ask = request ?? (tag && (DEEDS as string[]).includes(tag.kind) ? tag : null);
+  const ask = request ?? (tagAsked(tag, said) ? tag : null); // (a tag the stranger's words give no cue for is the model's, not an ask)
   const saidNo = answer.ok && (tag?.kind === 'refuse' || ((!tag || tag.kind === 'none') && wordsRefuse(answer.text)));
   let decision: TurnOut['decision'] = null, retold = false;
   if (ask) {

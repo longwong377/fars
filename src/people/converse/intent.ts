@@ -42,11 +42,13 @@ export function parseIntent(raw: string): { intent: Intent | null; words: string
   // ACTION: follow / Tag - lead to the well / Intent = none (a line of its own at the end)
   for (const m of text.matchAll(/(?:^|\n|\s)(?:tag|action|intent|act|deed)\s*[:=-]\s*([a-z_ -]{2,20}?)(?:\s*[:(,-]\s*([^\n)]{0,60}))?\)?\s*$/gi)) {
     const k = kindOf(m[1]); if (!k) continue; found.push({ i: m.index!, len: m[0].length, intent: { kind: k, arg: cleanArg(m[2]) } }); }
-  if (!found.length) return { intent: null, words: text.trim() };
+  // (a tag of the model's own outside the set, "[stay_work]", is taken out of the words too)
+  const stray = (w: string) => w.replace(/\[\s*[a-z_ -]{2,20}(?:\s*[:=][^\]\n]{0,60})?\s*\]["”']?/gi, ' ').replace(/\s+([.,!?])/g, '$1').replace(/\s+/g, ' ').replace(/\.\.(?!\.)/g, '.').trim();
+  if (!found.length) return { intent: null, words: stray(text) };
   // the last tag wins (a model that corrects itself), and every tag is taken out of the words
   found.sort((a, b) => a.i - b.i); const last = found[found.length - 1].intent;
   for (const f of [...found].sort((a, b) => b.i - a.i)) text = text.slice(0, f.i) + ' ' + text.slice(f.i + f.len);
-  return { intent: last, words: text.replace(/\s+([.,!?])/g, '$1').replace(/\s+/g, ' ').trim() };
+  return { intent: last, words: stray(text) };
 }
 
 // the stranger's words: a small grammar of asking (English, the translation layer's language; C)
@@ -76,5 +78,34 @@ export function requestOf(said: string): Intent | null {
 }
 /** a reply's words refuse (the person's own "no"), for words and deeds to agree (the sim never makes a "no" do it) */
 export function wordsRefuse(words: string): boolean {
-  return /\b(no[,.! ]|not now|i cannot|i can't|i can not|i will not|i won't|i must not|i may not|i dare not|not allowed|forbidden|go away|leave me|find someone else|ask someone else|another time|not today)\b/i.test(` ${words} `);
+  return /\b(no[,.! ]|not now|not going to|can't just|cannot just|no time|i am busy|i'm busy|not mine to|not for strangers|sorry|i cannot|i can't|i can not|i will not|i won't|i must not|i may not|i dare not|not allowed|forbidden|go away|leave me|find someone else|ask someone else|another time|not today)\b/i.test(` ${words} `);
 }
+
+// D-315 (the first GPU run, session 12): a real 1-2 B model writes tags the stranger never asked for ("[go_home]" to "I am
+// looking for the river") and misses paraphrases the grammar does not read. So a tag is taken only when the stranger's
+// words carry a cue of that kind of ask (FAMILIES), and a paraphrase the grammar misses is read by its family when only
+// one family is cued. The words of asking by family (C; English, the translation layer's):
+const FAMILIES: [Deed, RegExp][] = [
+  ['follow', /\b(with me|along|company|follow|come too|accompany|join me)\b/i],
+  ['lead_to', /\b(the way|where (is|are|can|do)|looking for|find|show me|take me|lead me|guide|point me|how (do|would|can) i (get|reach|go)|reach)\b/i],
+  ['fetch', /\b(fetch|call|bring|come and meet|come here|come out|summon|send for|go and get)\b/i],
+  ['trade', /\b(trade|exchange|swap|barter|in return|for my)\b/i],
+  ['give', /\b(give|spare|share|may i have|can i have|could i have|any \w+ to (eat|drink|spare)|thirsty|hungry|a drink|some (water|bread|beer|milk))\b/i],
+  ['stop_work', /\b(stop|rest|leave off|put (down|aside)|break from|pause|set (it|your work) down)\b/i],
+  ['wait_here', /\b(wait|stay|remain|don'?t go|do not go|until i (come|return))\b/i],
+  ['go_home', /\b(go|head|get|run|return|hurry)\b.{0,20}\b(home|your house)\b/i],
+];
+/** the kinds of ask the stranger's words carry a cue of */
+export function cues(said: string): Deed[] { const s = said.replace(/[’]/g, "'"); return FAMILIES.filter(([, re]) => re.test(s)).map(([k]) => k); }
+/** a paraphrase the grammar does not read, taken by its family when only one is cued (its object: the words after the cue) */
+export function looseRequest(said: string): Intent | null {
+  if (/^\s*(who|what|when|why|which|whose|how (old|many|much|long|are|is|was))\b/i.test(said)) return null; // (a question about them, not an ask)
+  const c = cues(said).filter(k => !(k === 'give' && cues(said).includes('trade'))); if (c.length !== 1) return null; const kind = c[0];
+  const obj = (re: RegExp) => { const m = re.exec(said); return m ? m[1].replace(/,\s*(friend|stranger|sir|please)$/i, '').replace(/[?.!,]+$/, '').replace(/^(the|a|an|some|any)\s+/i, '').trim() || undefined : undefined; };
+  if (kind === 'lead_to') return { kind, arg: obj(/\b(?:looking for|find|reach|to|for)\s+(.{2,40}?)[?.!]*$/i) };
+  if (kind === 'fetch') return { kind, arg: obj(/\b(?:fetch|call|bring|summon|send for|get)\s+(.{2,30}?)(?: for me| here)?[?.!]*$/i) ?? obj(/^(?:could|can|would|will)\s+(.{2,30}?)\s+come\b/i) };
+  if (kind === 'give') return { kind, arg: /thirsty|drink/i.test(said) ? 'water' : /hungry|eat/i.test(said) ? 'bread' : obj(/\b(?:any|some|spare|share|have)\s+(.{2,20}?)(?: to spare)?[?.!]*$/i) };
+  return { kind };
+}
+/** a tag the stranger's words give no cue for is not an ask (the model's, not the stranger's) */
+export function tagAsked(tag: Intent | null, said: string): boolean { return !!tag && (DEEDS as string[]).includes(tag.kind) && cues(said).includes(tag.kind as Deed); }

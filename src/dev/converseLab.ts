@@ -59,7 +59,7 @@ const lab = {
   talkSet: async (n = 64, from = 0, to = 1e9) => { const S = await world(); const all = buildTalkSet(S.pop, S.cal, SEED, n);
     const keep = (c: { i: number; kind: string; of?: number }) => c.kind === 'recall' || c.kind === 'heard' ? c.of! >= from && c.of! < to : c.i >= from && c.i < to;
     const r = await runTalkSet(mind, make!, all.filter(keep), s => { $('status').textContent = s; }); const { world: _w, ...rest } = r; void _w;
-    return { model: mind.model, ...rest, res: r.res.map(x => ({ i: x.c.i, kind: x.c.kind, job: x.c.job, say: x.c.say, reply: x.reply, deed: x.deed, pass: x.pass, why: x.why, ms: x.ms, memory: x.memory })) }; },
+    return { model: mind.model, ...rest, res: r.res.map(x => ({ i: x.c.i, kind: x.c.kind, job: x.c.job, say: x.c.say, reply: x.reply, deed: x.deed, pass: x.pass, why: x.why, ms: x.ms, memory: x.memory, raw: x.raw })) }; },
   cases: async (n = 72) => { const S = await world(); return buildTestSet(S.pop, SEED, n); },
   /** a spoken case: the samples go through speech recognition, then the person answers; the time is both together */
   spoken: async (i: number, samples: number[], n = 72) => {
