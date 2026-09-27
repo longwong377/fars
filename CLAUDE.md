@@ -80,6 +80,10 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   procedural base (src/render/scans.ts; the measured tint and layout stay, the scan adds the grain); every asset in
   ASSET_LEDGER.md. The user's direction (session 11): every inch looking real, and every limit of the old machine revisited.
 - Agents: briefs carry handoff/agent_template.md's fixed clauses and its machine section.
+- **Disk:** C: is 75 GB and ran down to 3.5 GB free in session 11 (downloads, worktrees, models). Large re-downloadable files
+  (language models, browser caches) live on T: ("Temporary Storage", ~210 GB, may be wiped when the machine stops) behind
+  a junction at their old path; anything that cannot be re-fetched stays on C: or goes to git. Check free space before
+  large downloads.
 
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
