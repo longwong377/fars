@@ -1,0 +1,182 @@
+{
+ "id": "T-E10",
+ "value": 100,
+ "n": 158,
+ "commit": "a2c6c71",
+ "tool": "tests/talk_world.test.ts",
+ "unit": "%",
+ "status": "PLUMBING PASS (stand-in model; the real model unmeasured)",
+ "model": "stand-in (tests/talk_standin.ts)",
+ "pass": 158,
+ "requests": [
+  64,
+  64
+ ],
+ "recalls": [
+  64,
+  64
+ ],
+ "heard": [
+  30,
+  30
+ ],
+ "kinds": {
+  "follow": [
+   8,
+   8
+  ],
+  "lead_to": [
+   8,
+   8
+  ],
+  "fetch": [
+   8,
+   8
+  ],
+  "give": [
+   8,
+   8
+  ],
+  "trade": [
+   8,
+   8
+  ],
+  "stop_work": [
+   8,
+   8
+  ],
+  "wait_here": [
+   8,
+   8
+  ],
+  "go_home": [
+   8,
+   8
+  ],
+  "recall": [
+   64,
+   64
+  ],
+  "heard": [
+   30,
+   30
+  ]
+ },
+ "deeds": {
+  "done": 23,
+  "refused": 26,
+  "noop": 15
+ },
+ "fails": [],
+ "sample": [
+  {
+   "i": 0,
+   "kind": "follow",
+   "job": "guard",
+   "hour": 5.29,
+   "say": "Walk with me for a while.",
+   "reply": "Yes, stranger, I will. I am Irdaša.",
+   "deed": "follow DONE: walks with the stranger a while"
+  },
+  {
+   "i": 1,
+   "kind": "lead_to",
+   "job": "builder",
+   "hour": 10.62,
+   "say": "I am looking for the river.",
+   "reply": "No, stranger, I cannot: the foreman counts the gang at the work; he cannot leave it.",
+   "deed": "lead_to:river refused: the foreman counts the gang at the work; he cannot leave it"
+  },
+  {
+   "i": 2,
+   "kind": "fetch",
+   "job": "porter",
+   "hour": 15.45,
+   "say": "Could your mother come and meet me?",
+   "reply": "No, stranger, I cannot: the loads are counted by the scribe; he cannot leave them.",
+   "deed": "fetch:your mother refused: the loads are counted by the scribe; he cannot leave them"
+  },
+  {
+   "i": 3,
+   "kind": "give",
+   "job": "camp",
+   "hour": 20.54,
+   "say": "I am thirsty.",
+   "reply": "Yes, stranger, I will. I am Dātazātā.",
+   "deed": "give:water DONE: gave water"
+  },
+  {
+   "i": 4,
+   "kind": "trade",
+   "job": "treasury",
+   "hour": 7.59,
+   "say": "I will give you my bread for some water.",
+   "reply": "Yes, stranger, I will. I am Raučaduxçā.",
+   "deed": "trade:some water for my bread DONE: traded bread for water"
+  },
+  {
+   "i": 5,
+   "kind": "stop_work",
+   "job": "scribe",
+   "hour": 12.67,
+   "say": "Leave off your work a moment, friend.",
+   "reply": "No, stranger, I cannot: at the tablets for the king’s house; he cannot leave them.",
+   "deed": "stop_work refused: at the tablets for the king’s house; he cannot leave them"
+  },
+  {
+   "i": 6,
+   "kind": "wait_here",
+   "job": "official",
+   "hour": 17.44,
+   "say": "Remain here until I come back.",
+   "reply": "Yes, stranger, I will. I am .",
+   "deed": "wait_here ok (nothing to change): was staying here anyway"
+  },
+  {
+   "i": 7,
+   "kind": "go_home",
+   "job": "storekeeper",
+   "hour": 22.41,
+   "say": "Head home now, friend.",
+   "reply": "No, stranger, I cannot: is sick and lying down.",
+   "deed": "go_home refused: is sick and lying down"
+  },
+  {
+   "i": 8,
+   "kind": "follow",
+   "job": "servant",
+   "hour": 9.39,
+   "say": "Keep me company along the road, friend.",
+   "reply": "No, stranger, I cannot: a woman of the house does not go off with a strange man.",
+   "deed": "follow refused: a woman of the house does not go off with a strange man"
+  },
+  {
+   "i": 9,
+   "kind": "lead_to",
+   "job": "miller",
+   "hour": 14.4,
+   "say": "Where is the storehouse?",
+   "reply": "No, stranger, I cannot: a woman of the house does not walk a strange man about; she points the way. [refuse: a woman of the house does not walk a strange man about; she points the way]",
+   "deed": "lead_to:storehouse refused: a woman of the house does not walk a strange man about; she points the way"
+  },
+  {
+   "i": 10,
+   "kind": "fetch",
+   "job": "weaver",
+   "hour": 19.41,
+   "say": "Could Bagačiθrā come and meet me?",
+   "reply": "No, stranger, I cannot: it is dark: nobody walks about with a stranger at night.",
+   "deed": "fetch:Bagačiθrā refused: it is dark: nobody walks about with a stranger at night"
+  },
+  {
+   "i": 11,
+   "kind": "give",
+   "job": "brewer",
+   "hour": 6.74,
+   "say": "I am thirsty.",
+   "reply": "Yes, stranger, I will. I am Bēl-ēṭir.",
+   "deed": "give:water DONE: gave water"
+  }
+ ],
+ "note": "the seeded request-and-recall set (src/people/converse/talkset.ts): 64 requests over every class, every kind, hours 5-22, a quarter in paraphrases the grammar does not read; each person asked the next day in the RELOADED save what passed, and every second one’s kin or friend three days later what they heard. Answered by a deterministic stand-in (tests/talk_standin.ts) that reads only the prompt: this measures the plumbing (the ask read, the simulation deciding, the plan changed and surviving the reload, the memory and gossip reaching the prompt), not a real model (the lab GPU run: converseLab.ts talkSet)."
+}
