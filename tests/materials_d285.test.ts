@@ -81,3 +81,20 @@ describe('D-285 soiled ashlar (B40: sunlit stone Ystd/Y 0.15-0.25)', () => {
     for (const [n, f] of res) { expect(n[1]).toBeGreaterThan(n[0] - 0.002); expect(f[1]).toBeGreaterThan(f[0] - 0.002); }
   }, 900_000);
 });
+
+describe('D-285 the Now view\'s stone against photograph #24 (session 11, the lead\'s GPU measurement)', () => {
+  it('the tint takes the wall/ground ratio from the render\'s 1.47 to the photo\'s 0.73 and its R/B toward the photo\'s 1.65', async () => {
+    const { NOW_STONE_TINT } = await import('../src/world/nowview');
+    const { agxGrey } = await import('./lib/stone_cpu');
+    const dec = (v: number) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+    const enc = (y: number) => (y <= 0.0031308 ? y * 12.92 : 1.055 * y ** (1 / 2.4) - 0.055) * 255;
+    const inv = (d: number) => { let lo = 1e-6, hi = 100; for (let i = 0; i < 80; i++) { const m = Math.sqrt(lo * hi); if (agxGrey(m) < d) lo = m; else hi = m; } return Math.sqrt(lo * hi); };
+    const render = [141, 132, 118], ground = 90.8; // the render's wall rgb and ground luma (display sRGB)
+    const out = render.map((c, i) => enc(agxGrey(inv(dec(c)) * NOW_STONE_TINT[i])));
+    const luma = 0.2126 * out[0] + 0.7152 * out[1] + 0.0722 * out[2];
+    rows.push(`Now view stone (calib-24-now, lead's render s11): wall rgb ${render.join('/')} → ${out.map(v => v.toFixed(0)).join('/')}; wall/ground ${(133.3 / ground).toFixed(2)} → ${(luma / ground).toFixed(2)} (photo 0.73); R/B ${(render[0] / render[2]).toFixed(2)} → ${(out[0] / out[2]).toFixed(2)} (photo 1.65)`);
+    report();
+    expect(Math.abs(luma / ground - 0.73)).toBeLessThan(0.05);
+    expect(Math.abs(out[0] / out[2] - 1.65)).toBeLessThan(0.1);
+  });
+});

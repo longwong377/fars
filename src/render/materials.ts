@@ -259,7 +259,7 @@ const STONE: StoneDef = { beds: 0.09, stylo: { share: 0.45, w: 0.0024, dark: 0.4
 /** D-285 (C): ~50 years of soiling on the dressed stone (SoilDef): stains under ~45 % of the 0.55 m cells along each bed joint,
  *  3-9 cm wide, 0.2-0.7 m long, 10 % darker at the joint. The
  *  Terrace's retaining walls, 12-18 m of open face over the plain: stains 12 % and longer, run-off from the top reaching 6 m down,
- *  the splash and dust band not drawn (session 11 render: the platform part runs from its foundation, y0 = −r_found_depth, so the D-157 band measured from y0 lies underground on every retaining wall; a ground-level attribute is needed, B92). No measurement of 467 exists: amplitudes judged against the least
+ *  the splash and dust band not drawn (session 11 render: the platform part runs from its foundation, y0 = −r_found_depth, so the D-157 band measured from y0 lies underground on every retaining wall; a ground-level attribute is needed, B91). No measurement of 467 exists: amplitudes judged against the least
  *  weathered stone in the photographs (#29, D-230: 90 years exposed since its excavation, block tone 1σ ~0.10) and kept below it */
 const SOIL: SoilDef = { drip: 0.1, share: 0.45, w: [0.03, 0.09], len: [0.2, 0.7] };
 const SOIL_TERRACE: SoilDef = { drip: 0.12, share: 0.5, w: [0.03, 0.1], len: [0.3, 0.9] };
