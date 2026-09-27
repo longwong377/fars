@@ -10,6 +10,7 @@ import type { HumanAssets } from './humanAssets';
 import type { OutfitBuild, CostumeLOD, Dress } from './outfits';
 import { BUILT } from './outfits';
 import { HumanMaterial, PERSON_TEXELS, type HumanTextures } from './humanMaterial';
+import { skinLayersOf, type HumanScans } from './humanScans';
 import { NBONES, PALETTE_STRIDE } from './humanRig';
 
 export const SOURCE_WIDTH = 2048;
@@ -65,7 +66,7 @@ export class HumanGPU {
   palette: Float32Array; prevPalette: Float32Array; person: Float32Array;
   capacity: number;
   private personDirty = true;
-  constructor(readonly A: HumanAssets, readonly O: OutfitBuild, images: { skin: THREE.Texture; eye: THREE.Texture }, opts: { capacity?: number; velocity?: boolean; castShadow?: boolean } = {}) {
+  constructor(readonly A: HumanAssets, readonly O: OutfitBuild, images: { skin: THREE.Texture; eye: THREE.Texture; scans?: HumanScans | null }, opts: { capacity?: number; velocity?: boolean; castShadow?: boolean } = {}) {
     this.group.name = 'people:humans';
     this.capacity = Math.max(16, opts.capacity ?? 256);
     const rows = Math.ceil(O.source.length / 4 / SOURCE_WIDTH);
@@ -75,6 +76,8 @@ export class HumanGPU {
       source: dataTex(src, SOURCE_WIDTH, rows), sourceWidth: SOURCE_WIDTH, NV: O.NV,
       bones: dataTex(this.palette, NBONES * 3, this.capacity), prevBones: dataTex(this.prevPalette, NBONES * 3, this.capacity), person: dataTex(this.person, PERSON_TEXELS, this.capacity),
       skin: images.skin, eye: images.eye,
+      // D-304: the scanned skin and cloth layers, and each body variant's light- and dark-toned skin layer
+      scans: images.scans ?? null, skinLayers: images.scans ? A.variants.map((v, i) => skinLayersOf(v.meta, i, images.scans!.skinIds)) : [],
     };
     this.material = new HumanMaterial(this.textures); this.materials.push(this.material);
     const shadowMat = new HumanMaterial(this.textures, { shadowOnly: true }); this.materials.push(shadowMat);
