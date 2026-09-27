@@ -59,3 +59,9 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-306 | s11 | the carving: capitals and the Gate colossi from the photographs (Q-840..Q-849, B118..B120) | agent worktree (carving) | merged session 11 (Q-840..Q-843, B118..B120 used) |
 | D-307 | s11 | the people, round 2: garments, hair and beards (Q-850..Q-859, B121..B123) | agent worktree (people2) | merged session 11 (B121..B123, Q-850 used; Q-851..Q-859 unused) |
 | D-308 | s11 | the lead: mass production on the GPU machine (UD-19, T-R12) | claude/amazing-fermi-40ds7j | done (the session 12 plan) |
+| D-309 | s12 | the lighting at the T4's full quality (Q-860..Q-869, B124..B126) | agent worktree T:/fars-wt/lighting, branch s12-lighting | in flight |
+| D-310 | s12 | CC0 3D models in bulk: rocks, flora, jars, baskets, props (Q-870..Q-879, B127..B129) | agent worktree T:/fars-wt/models, branch s12-models | in flight |
+| D-311 | s12 | the Blender mudbrick house kit; every house rebuilt (Q-880..Q-889, B130..B132) | agent worktree T:/fars-wt/housekit, branch s12-housekit | in flight |
+| D-312 | s12 | the monuments' forms: protome, colossi, reliefs, block faces (Q-890..Q-899, B133..B135) | agent worktree T:/fars-wt/monuments, branch s12-monuments | in flight |
+| D-313 | s12 | the people's forms: garments, belts, hair and beards (Q-900..Q-909, B136..B138) | agent worktree T:/fars-wt/people, branch s12-people | in flight |
+| D-314..D-319 | s12 | the lead's own decisions (Q-910..Q-919, B139..B141) | claude/amazing-fermi-40ds7j | reserved |
