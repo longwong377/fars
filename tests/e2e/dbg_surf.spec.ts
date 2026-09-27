@@ -31,6 +31,12 @@ const VIEWS: Record<string, { day: number; hour: number; v: [number, number, num
   'calib-24': { day: 303, hour: 16.087, v: [-166.6, 108.9, 1.6, 117.0, 7.5], fov: 34.4 },
   'gate-w-day': { day: 303, hour: 16.087, v: [-40, 124.6, 1.6, 90, 15], fov: 40 },
   'terrace-wall-near': { day: 303, hour: 16.087, v: [-73.5, 22, 1.6, 71, 18], fov: 40 },
+  // D-285, session 11: the same stone and plaster at the player's lens (4.5 m from the salient's W face, its polygonal foot, the
+  // foot band and the drip stains; 5 m from the Gate's W wall N of its door, the plaster's strokes, bays and seams), and the
+  // gate-dusk moment (moments.spec, fov OUT = 40)
+  'terrace-wall-lens': { day: 303, hour: 16.087, v: [-66, 22, 1.6, 71, 12], fov: IN },
+  'gate-w-lens': { day: 303, hour: 16.087, v: [-21.5, 133, 1.6, 71, 10], fov: IN },
+  'gate-dusk': { day: 0, hour: 19.25, v: [-40, 124.6, 1.6, 90, 15], fov: 40 },
 };
 const SET: Record<string, Record<string, number | boolean>> = {
   B: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true, d285: 1 },
@@ -62,6 +68,12 @@ test('surfaces A/B', async ({ page }) => {
       const px = await orig(rt, x, y, W, H, ...a); if (meter) w.__meterLast = px; return px;
     };
   });
+  // the scene camera of the last frame (D-285: its matrices go into surf-stats.json so that world regions can be projected onto the
+  // screenshots offline, tools/dev/surf_regions_d285.ts): the far-reaching perspective camera the pipeline renders the scene with
+  await page.evaluate(() => {
+    const w = window as any, r = w.__parsa.renderer, orig = r.render.bind(r);
+    r.render = (sc: any, cam: any, ...a: any[]) => { if (cam?.isPerspectiveCamera && cam.far > 1e4) w.__cam = cam; return orig(sc, cam, ...a); };
+  });
   mkdirSync('shots', { recursive: true });
   const out: Record<string, any> = {}, w0: { last?: string } = {};
   for (const [nameF, vs] of only) {
@@ -85,12 +97,33 @@ test('surfaces A/B', async ({ page }) => {
       for (let i = 0; i < frames; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
       const png = await page.screenshot({ path: `shots/surf-${name}-${vn.replace("=", "-")}${process.env.TAG ?? ""}.png` });
       const lum = await lumStats(page, png);
-      const info = await page.evaluate(() => { const p = (window as any).__parsa, st = p.stats(), e = p.exposureInfo(); return { drawCalls: st.drawCalls, triangles: st.triangles, exposure: e.exposure, meterEV: e.meterEV, envCaptures: (window as any).__parsaSurf.envCaptures?.() }; });
+      const info = await page.evaluate(() => { const w = window as any, p = w.__parsa, st = p.stats(), e = p.exposureInfo(), c = w.__cam; return { drawCalls: st.drawCalls, triangles: st.triangles, exposure: e.exposure, meterEV: e.meterEV, envCaptures: w.__parsaSurf.envCaptures?.(), cam: c ? { view: Array.from(c.matrixWorldInverse.elements), proj: Array.from(c.projectionMatrix.elements), pos: c.position.toArray() } : null }; });
       out[`${name}|${vn}`] = { ...info, lum, frameS: +((Date.now() - ts) / 1000 / frames).toFixed(1) };
       console.log(name, vn, JSON.stringify(out[`${name}|${vn}`]));
       { const f = 'shots/surf-stats.json', all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {}; all[`${name}|${vn}`] = out[`${name}|${vn}`]; writeFileSync(f, JSON.stringify(all, null, 1)); } // after every render (a killed run keeps what it did)
     }
     await page.evaluate(() => { (window as any).__meterFreeze = null; });
+  }
+  // SIDE=out.png|photo-url|shot1+shot2 (D-285): photo #24 framed to the rig view (its solved camera, f 1461.47 px on the 1500 px
+  // image, resampled to the rig's 34.4° over 540 rows) above the renders, labelled, composed in the page (no image library in node)
+  if (process.env.SIDE) {
+    const [outF, photo, list] = process.env.SIDE.split('|'), shots = list.split('+').filter(f => existsSync(f));
+    const b64 = shots.map(f => readFileSync(f).toString('base64'));
+    const png = await page.evaluate(async ([photo, b64, labels]) => {
+      const ph = await createImageBitmap(await (await fetch(photo)).blob()), k = 270 / Math.tan((34.4 / 2) * Math.PI / 180) / 1461.47;
+      const H = 540 * (1 + b64.length) + 20 * b64.length, c = new OffscreenCanvas(960, H), g = c.getContext('2d')!;
+      g.fillStyle = '#000'; g.fillRect(0, 0, 960, H); g.fillStyle = '#282828'; g.fillRect(0, 0, 960, 540);
+      const w = ph.width * k, h = ph.height * k; g.drawImage(ph, (960 - w) / 2, (540 - h) / 2, w, h);
+      g.font = '14px sans-serif'; g.fillStyle = '#ff0'; g.fillText('photo #24 (2019-02-08 15:59 IRST, Lightroom), framed to the rig view', 8, 18);
+      for (let i = 0; i < b64.length; i++) {
+        const im = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64[i])).blob()), y = (i + 1) * 560;
+        g.drawImage(im, 0, y, 960, 540); g.fillStyle = '#ff0'; g.fillText(labels[i], 8, y + 18);
+      }
+      const bl = await c.convertToBlob({ type: 'image/png' }); const a = new Uint8Array(await bl.arrayBuffer()); let s = '';
+      for (let i = 0; i < a.length; i += 8192) s += String.fromCharCode(...a.subarray(i, i + 8192));
+      return btoa(s);
+    }, [photo, b64, shots.map(f => 'render: ' + f.split('/').pop())] as const);
+    writeFileSync(outF, Buffer.from(png, 'base64')); console.log('side by side ->', outF);
   }
   console.log('errors/warnings:', errs.slice(0, 15).join('\n'));
 });

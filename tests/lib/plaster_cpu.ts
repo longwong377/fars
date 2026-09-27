@@ -65,29 +65,29 @@ function albHeight(d: SurfaceDef, W: PlasterWall, x: number, y: number, fp: numb
   }
   const PW = d.plasterWeather;
   if (PW && d285) {
-    const wob = mxNoise3(rx / 0.9 + 6.1, ry / 0.9 + 2.7, rz / 0.9 + 4.3) * (0.07 / MX_NOISE_SD * 0.5);
+    const wob = mxNoise3(rx * ns * 1.7, ry * ns * 1.7, rz * ns * 1.7) * (0.07 / MX_NOISE_SD * 0.5); // the mottle's ~1 m octave
     const L = ashlarCells(x + wob, y + wob * 0.8, { course: (PW.lift[0] + PW.lift[1]) / 2, block: PW.bay, width: 0, dark: 0, vary: { course: PW.lift, jitter: 1.0 } });
     const b1 = hash12(L.blk + 0.37, L.c + 11.3), b2 = hash12(L.blk * 0.71 + 19.1, L.c + 3.3), b3 = hash12(L.c * 1.618 + 5.1, L.blk + 2.9);
     const g = (b1 + b2 - 1) * PW.sd * Math.sqrt(6), ch = (b3 - 0.5) * 2 * PW.chroma;
     f *= 1 + g + 0.2126 * ch - 0.0722 * 1.4 * ch; // luminance of (1+g+ch, 1+g, 1+g−1.4ch)
     const Hd = PW.hand, ang = Math.PI / 4 + (hash12(L.blk + 7.7, L.c + 1.3) - 0.5) * 1.75, ca = Math.cos(ang), sa = Math.sin(ang);
     const u = x * ca + y * sa, v = y * ca - x * sa, zS = u * 0.41 + v * 0.29;
-    const rel = mxNoise3(u / Hd.len + b1 * 37, v / Hd.wid + b2 * 19, zS) * bandLimit(fp, Hd.wid)
-      + mxNoise3(u / (Hd.len / 2.8) + b2 * 23, v / (Hd.wid / 2.8) + b1 * 11, zS * 2.8 + 5.1) * 0.4 * bandLimit(fp, Hd.wid / 2.8);
+    const n1 = mxNoise3(u / Hd.len + b1 * 37, v / Hd.wid + b2 * 19, zS) * bandLimit(fp, Hd.wid);
+    const n2 = mxNoise3(u / (Hd.len / 2.8) + b2 * 23, v / (Hd.wid / 2.8) + b1 * 11, zS * 2.8 + 5.1) * bandLimit(fp, Hd.wid / 2.8);
+    const rel = n1 + n2 * 0.4;
     h += rel * Hd.amp / MX_NOISE_SD;
-    const mot = mxNoise3(rx / 0.45 + 9.7, ry / 0.45 + 3.1, rz / 0.45 + 5.9) * bandLimit(fp, 0.45) + mxNoise3(u / 0.4 + b2 * 13, v / 0.14 + b1 * 7, zS * 1.9 + 2.3) * 0.6 * bandLimit(fp, 0.14);
+    const mot = n1 + n2 * 0.6; // session 11: the relief's noises (the coat lighter on its ridges)
     f *= 1 + mot * Hd.mottle / (MX_NOISE_SD * Math.hypot(1, 0.6));
-    const dE = Math.min(L.dBed, L.dHead), seam = bandCover(dE, fp / Math.SQRT2, 0.0125) * smoothstep(-0.1, 0.25, mxNoise3(rx / 2 + 1.3, ry / 2 + 8.8, rz / 2 + 3.7));
+    const dE = Math.min(L.dBed, L.dHead), seam = bandCover(dE, fp / Math.SQRT2, 0.0125) * (hash12(L.blk + 5.3, L.c + 0.7) >= 0.5 ? 1 : 0);
     f *= 1 - seam * PW.seam; h += seam * 0.0008;
-    const below = W.top - wy;
-    if (below >= 0) {
-      const fade = 1 - smoothstep(0.3, PW.washH, below);
-      const q = [x * 3.2, wy * 0.22, 0.37];
-      const lane = smoothstep(0.52, 0.82, mxNoise3(q[0], q[1], q[2]) * 0.5 + 0.5 + mxNoise3(q[0] * 3.1, q[1] * 2.3, q[2]) * 0.12 * bandLimit(fp, 0.1));
-      f *= 1 + lane * fade * PW.wash + fade * 0.025; h -= lane * fade * 0.0015 * bandLimit(fp, 0.12);
-    }
   }
   if (d.runoff) f *= runoffAt(d, x, wy, W.z, W.top);
+  const below = W.top - wy;
+  if (PW && d285 && d.runoff && below >= 0) { // the rain wash: lanes between the run-off streaks (materials.ts, the run-off block)
+    const r0 = mxNoise3(x * 2.2 + 4.1, wy * 0.2 + 0.3, W.z * 2.2 + 7.9) * 0.5 + 0.5, fade = 1 - smoothstep(0.3, PW.washH, below);
+    const lane = smoothstep(0.52, 0.82, 1 - r0);
+    f *= 1 + lane * fade * PW.wash + fade * 0.025; h -= lane * fade * 0.0015 * bandLimit(fp, 0.12);
+  }
   return { f, h };
 }
 

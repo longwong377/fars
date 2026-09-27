@@ -208,14 +208,14 @@ export interface SoilDef { drip: number; share: number; w: [number, number]; len
 /** D-285 (C): a mud-plastered wall of the palaces. The coat is laid from a scaffold in lifts (`lift` m high) and bays along the
  *  wall (`bay` m), each a batch of mud of its own tone (1σ `sd`, triangular) and hue (± `chroma`), the edges hand-laid (wobbled
  *  ±7 cm) with a faint overlap ridge where one bay meets the next (`seam`: its darkening, over ~2.5 cm); the rain washes the
- *  upper `washH` m (arch meshes: below the part's top) in vertical lanes, the fines gone and the coarse sand and straw showing:
+ *  upper `washH` m (arch meshes: below the part's top) in vertical lanes between the run-off streaks, the fines gone and the coarse sand and straw showing:
  *  lighter by up to `wash`, rougher and a little sunk (rills) */
 export interface PlasterWeatherDef {
   lift: [number, number]; bay: number; sd: number; chroma: number; seam: number; wash: number; washH: number;
   /** the hand's work inside a bay: the coat pressed on in strokes `len` × `wid` m along a direction of the bay's own (±50° off
    *  the diagonal), leaving a relief of `amp` m (two octaves, the second 2.8× finer); and the coat's mottle (uneven drying, clay
-   *  and sand segregating, soiling), 1σ `mottle` of the albedo at 0.45 m and in 0.4 × 0.14 m sweeps along the strokes. Band-limited: each octave fades to its
-   *  mean under ~3 px */
+   *  and sand segregating, soiling), 1σ `mottle` of the albedo on the strokes' own two octaves (the coat dries lighter on its ridges). Band-limited:
+   *  each octave fades to its mean under ~3 px */
   hand: { amp: number; len: number; wid: number; mottle: number };
 }
 /** neutral grey of luminous reflectance Y (linear) as the sRGB triple the surface table uses */
@@ -264,8 +264,9 @@ const STONE: StoneDef = { beds: 0.09, stylo: { share: 0.45, w: 0.0024, dark: 0.4
 const SOIL: SoilDef = { drip: 0.1, share: 0.45, w: [0.03, 0.09], len: [0.2, 0.7] };
 const SOIL_TERRACE: SoilDef = { drip: 0.12, share: 0.5, w: [0.03, 0.1], len: [0.3, 0.9] };
 /** D-285 (C): the palaces' mud plaster (PlasterWeatherDef): lifts 1.1-1.7 m (a scaffold's working height), bays ~3 m ± 50 %
- *  (a batch of mud), 1σ 4 % between batches and ±1.2 % in hue, a 3 % overlap ridge on half the edges; hand strokes 0.6 × 0.25 m
- *  leaving a 2.5 mm (1σ) undulation, the coat's mottle 6 % at 0.45/0.16 m; the rain wash 7 % lighter in lanes over the top 4 m.
+ *  (a batch of mud), 1σ 5 % between batches and ±1.2 % in hue, a 4 % overlap ridge round half the bays; hand strokes 0.6 × 0.25 m
+ *  leaving a 2.5 mm (1σ) undulation, the coat's mottle 4.5 % on the strokes; the rain wash 10 % lighter in lanes over the top 5 m.
+ *  (Session 11: 2 noise calls over the D-188 plaster; fragment ALU +8.5 %, tools/dev/shader_cost_d285.ts.)
  *  The spread set against the only mud plaster in the references, the modern kahgel coat round the Gate's hall in #21, at the
  *  render's pixel footprint (tools/dev/plaster_photo_d285.py: Ystd/Y 0.036 in 0.5 m windows at 0.032 m/px; the D-188 plaster
  *  read 0.020 on the CPU mirror, 0.036-0.041 now: tests/materials_d285.test.ts) */
@@ -595,7 +596,8 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
   // Naqsh rock's 0.32 m at 0.26 m per pixel from 200 m) aliased into a speckle that crawled as the camera moved
   const fpM = fwidth(p).length().max(1e-6);
   const fine = mx_noise_float(pr.mul(d.noiseScale * 9.0)).mul(d.noiseAmp * 0.12).mul(bandLimit(fpM, 1 / (d.noiseScale * 9.0)));
-  const midO = mx_noise_float(pr.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25).mul(bandLimit(fpM, 1 / (d.noiseScale * 1.7)));
+  const midN = mx_noise_float(pr.mul(d.noiseScale * 1.7)); // (D-285: also the plaster bays' edge wobble)
+  const midO = midN.mul(d.noiseAmp * 0.25).mul(bandLimit(fpM, 1 / (d.noiseScale * 1.7)));
   const mott = d.tone ? fine.add(mx_noise_float(pr.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(midO).mul(float(1).sub(SURF_AB)))
     : mx_noise_float(pr.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(midO).add(fine);
   let alb = base.mul(float(1).add(mott));
@@ -646,7 +648,7 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const PW = d.plasterWeather, vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y))).mul(SURF_D285);
     const hl = vec2(n.x, n.z).length().max(1e-3), t = p.x.mul(n.z.div(hl)).sub(p.z.mul(n.x.div(hl)));
     const hb = arch ? p.y.sub(attribute('y0', 'float')) : p.y;
-    const wob = mx_noise_float(pr.div(0.9).add(vec3(6.1, 2.7, 4.3))).mul(0.07 / MX_NOISE_SD * 0.5);
+    const wob = midN.mul(0.07 / MX_NOISE_SD * 0.5); // the mottle's ~1 m octave (noiseScale × 1.7), unfiltered
     const Lc = ashlarCells(t.add(wob), hb.add(wob.mul(0.8)), { course: (PW.lift[0] + PW.lift[1]) / 2, block: PW.bay, width: 0, dark: 0, vary: { course: PW.lift, jitter: 1.0 } });
     const b1 = hash12(Lc.blk.add(0.37), Lc.c.add(11.3)), b2 = hash12(Lc.blk.mul(0.71).add(19.1), Lc.c.add(3.3)), b3 = hash12(Lc.c.mul(1.618).add(5.1), Lc.blk.add(2.9));
     const g = b1.add(b2).sub(1).mul(PW.sd * Math.sqrt(6)).mul(vert), ch = b3.sub(0.5).mul(2 * PW.chroma).mul(vert);
@@ -656,27 +658,21 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const Hd = PW.hand, fpH = fwidth(p).length().max(1e-6);
     const ang = float(Math.PI / 4).add(hash12(Lc.blk.add(7.7), Lc.c.add(1.3)).sub(0.5).mul(1.75)), ca = cos(ang), sa = sin(ang);
     const u = t.mul(ca).add(hb.mul(sa)), v = hb.mul(ca).sub(t.mul(sa)), zS = u.mul(0.41).add(v.mul(0.29));
-    const rel = mx_noise_float(vec3(u.div(Hd.len).add(b1.mul(37)), v.div(Hd.wid).add(b2.mul(19)), zS)).mul(bandLimit(fpH, Hd.wid))
-      .add(mx_noise_float(vec3(u.div(Hd.len / 2.8).add(b2.mul(23)), v.div(Hd.wid / 2.8).add(b1.mul(11)), zS.mul(2.8).add(5.1))).mul(0.4).mul(bandLimit(fpH, Hd.wid / 2.8)));
+    // (session 11, the shader cost: the mottle reuses the relief's two noises, weighted apart, so the coat dries lighter on its
+    // ridges and the albedo follows the hand's strokes; the overlap ridge picks its edges by the bay's hash, the rain lanes are
+    // one octave: 8 noise calls → 4)
+    const n1 = mx_noise_float(vec3(u.div(Hd.len).add(b1.mul(37)), v.div(Hd.wid).add(b2.mul(19)), zS)).mul(bandLimit(fpH, Hd.wid));
+    const n2 = mx_noise_float(vec3(u.div(Hd.len / 2.8).add(b2.mul(23)), v.div(Hd.wid / 2.8).add(b1.mul(11)), zS.mul(2.8).add(5.1))).mul(bandLimit(fpH, Hd.wid / 2.8));
+    const rel = n1.add(n2.mul(0.4));
     height = (height ?? float(0)).add(rel.mul(Hd.amp / MX_NOISE_SD).mul(vert));
-    const mot = mx_noise_float(pr.div(0.45).add(vec3(9.7, 3.1, 5.9))).mul(bandLimit(fpH, 0.45)).add(mx_noise_float(vec3(u.div(0.4).add(b2.mul(13)), v.div(0.14).add(b1.mul(7)), zS.mul(1.9).add(2.3))).mul(0.6).mul(bandLimit(fpH, 0.14)));
+    const mot = n1.add(n2.mul(0.6));
     alb = alb.mul(float(1).add(mot.mul(Hd.mottle / (MX_NOISE_SD * Math.hypot(1, 0.6))).mul(vert)));
     // the overlap ridge where one bay or lift meets the next: a 2.5 cm band, darker by `seam`, 0.8 mm proud, along about half
     // of the edges (a 2 m noise), box-filtered over the pixel footprint
-    const dE = min(Lc.dBed, Lc.dHead), seam = bandCover(dE, fwidth(dE).max(1e-5), 0.0125).mul(smoothstep(-0.1, 0.25, mx_noise_float(pr.div(2).add(vec3(1.3, 8.8, 3.7))))).mul(vert);
+    const dE = min(Lc.dBed, Lc.dHead), seam = bandCover(dE, fwidth(dE).max(1e-5), 0.0125).mul(step(0.5, hash12(Lc.blk.add(5.3), Lc.c.add(0.7)))).mul(vert);
     alb = alb.mul(float(1).sub(seam.mul(PW.seam)));
     height = (height ?? float(0)).add(seam.mul(0.0008));
-    if (arch) { // the rain wash below the wall's top: vertical lanes (fast across the face, slow down it), strongest at the top
-      const below = attribute('ytop', 'float').sub(p.y);
-      const fade = float(1).sub(smoothstep(float(0.3), float(PW.washH), below)).mul(step(0, below)).mul(float(1).sub(roofedNode())).mul(vert);
-      const fpW = fwidth(p).length().max(1e-6);
-      const q = vec3(t.mul(3.2), p.y.mul(0.22), float(0.37));
-      const lane = smoothstep(0.52, 0.82, mx_noise_float(q).mul(0.5).add(0.5).add(mx_noise_float(q.mul(vec3(3.1, 2.3, 1))).mul(0.12).mul(bandLimit(fpW, 0.1))));
-      const w = lane.mul(fade);
-      alb = alb.mul(float(1).add(w.mul(PW.wash)).add(fade.mul(0.025))); // the lanes lighter (the fines washed out), the top bleached
-      rough = rough.add(w.mul(0.05)).min(1);
-      height = height.sub(w.mul(0.0015).mul(bandLimit(fpW, 0.12)));
-    }
+    // the rain wash below the wall's top: in the run-off block below (it shares the run-off's streak noise)
   }
   if (d.weave) { // plaited reed mat (D-188, C), band-limited: where a reed spans under ~3 px only the cells' tone remains
     const W = d.weave, q = p.xz, cell = floor(q.div(W.cell)), alt = fract(cell.x.add(cell.y).mul(0.5)).mul(2); // 0 | 1
@@ -958,7 +954,16 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
   if (arch && d.runoff) { // run-off below the tops of exposed stone (D-157, C): streaks fast across the face, slow down it
     const below = attribute('ytop', 'float').sub(p.y), vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));
     const q = vec3(p.x.mul(2.2), p.y.mul(0.2), p.z.mul(2.2));
-    const st = smoothstep(0.15, 0.65, mx_noise_float(q.add(vec3(4.1, 0.3, 7.9))).mul(0.5).add(0.5).add(mx_noise_float(q.mul(2.7)).mul(0.15)));
+    const r0 = mx_noise_float(q.add(vec3(4.1, 0.3, 7.9))).mul(0.5).add(0.5);
+    const st = smoothstep(0.15, 0.65, r0.add(mx_noise_float(q.mul(2.7)).mul(0.15)));
+    if (d.plasterWeather) { // D-285: the rain wash on mud plaster (PlasterWeatherDef): lanes between the run-off streaks (where the
+      // water ran fast the fines are gone and the coarse sand and straw show: lighter, rougher, a little sunk), strongest at the top
+      const PW = d.plasterWeather, fadeW = float(1).sub(smoothstep(float(0.3), float(PW.washH), below)).mul(step(0, below)).mul(float(1).sub(roofedNode())).mul(vert).mul(SURF_D285);
+      const w = smoothstep(0.52, 0.82, float(1).sub(r0)).mul(fadeW);
+      alb = alb.mul(float(1).add(w.mul(PW.wash)).add(fadeW.mul(0.025))); // the lanes lighter (the fines washed out), the top bleached
+      rough = rough.add(w.mul(0.05)).min(1);
+      height = (height ?? float(0)).sub(w.mul(0.0015).mul(bandLimit(fwidth(p).length().max(1e-6), 0.12)));
+    }
     const rl = d.runoffLen ? mix(float(3), float(d.runoffLen), SURF_D285) : float(3); // D-285: per surface (a tall wall's streaks run further)
     const fade = float(1).sub(smoothstep(float(0.2), rl, below)).mul(step(0, below)).mul(float(1).sub(roofedNode())); // no rain under the roofs (D-188)
     alb = alb.mul(float(1).sub(st.mul(fade).mul(vert).mul(d.runoff).mul(SURF_AB)));
