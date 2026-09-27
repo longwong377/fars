@@ -320,7 +320,7 @@ export const PIECES: Record<string, PieceMeta> = {
   headcloth: { id: 'headcloth', label: 'headcloth / mantle over head and shoulders', tier: 'C', src: 'IR-WOMEN', note: 'women workers: tunic with a mantle or headcloth (MATERIAL_CULTURE, reconstruction C); not a chador (blocklisted)' },
   child_upper: { id: 'child_upper', label: 'child’s short tunic', tier: 'C', src: 'RECON', note: 'no imagery; smaller tunic (MATERIAL_CULTURE, C)' },
   child_skirt: { id: 'child_skirt', label: 'child’s tunic skirt', tier: 'C', src: 'RECON', note: 'reconstruction' },
-  belt: { id: 'belt', label: 'cloth belt', tier: 'B', src: 'IR-CAND', note: 'the robe and the tunic are girt at the waist' },
+  belt: { id: 'belt', label: 'cloth belt (tied sash)', tier: 'B', src: 'IR-CAND', note: 'the robe and the tunic are girt at the waist (B); D-313: tied at the front in a knot with two hanging ends, cloth-simulated in Blender (the tying C)' },
   shoes: { id: 'shoes', label: 'low leather shoes', tier: 'B', src: 'IR-CLOTH', note: 'simple flat-soled shoes, probably leather; strap detail C; form a leather last over the foot (D-206, C: no toes)' },
   boots: { id: 'boots', label: 'laced ankle boots', tier: 'C', src: 'RECON', note: 'Median riding dress: ankle boots (NOT SEEN, C); a soft leather shaft and vamp over a last, rim turned under (D-206, C); laces not modelled' },
   hair: { id: 'hair', label: 'scalp hair, curled', tier: 'B', src: 'RELIEF-R', note: 'curled hair as carved on the reliefs; colour natural dark (the reliefs paint it dark blue, a convention), C' },
@@ -551,7 +551,7 @@ function merge(key: string, gs: Geo[]): Geo {
   return out;
 }
 /** band around the body at a height, fitted over whatever is placed there already (belts) */
-function beltTube(L: Lib, key: string, lod: number, over: string[], o: { dy: number; h: number; col: number; mat: number }) {
+function beltTube(L: Lib, key: string, lod: number, over: string[], o: { dy: number; h: number; col: number; mat: number; bulge?: number }) {
   const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.8));
   const cache = { v: null as HumanVariant | null, r: [] as number[] };
   /** support function (64 θ bins) of the garments already placed under the belt, in the belt's ring plane */
@@ -562,8 +562,46 @@ function beltTube(L: Lib, key: string, lod: number, over: string[], o: { dy: num
   return tubeGeo(L.A, key, { segs, rings: 2, lining: 0.004, closeTop: true,
     frame: (c, t) => vertFrame([0, c.J('spine_01')[1] + o.dy + o.h / 2 - t * o.h, c.J('pelvis')[2] + 0.02]),
     support: { parts: [P.belly, P.pelvis, P.chest], slab: 0.012 }, // (D-307: the torso at the belt's own rings, was 3 cm: the hips below held the belt off the cinched waist)
-    radius: (c, t, th, sup) => Math.max(sup(th) + 0.012, rimAt(overSupport(c), th) + 0.004), // over the upper shell and the skirt top (D-307: the drape cinches both under the belt, to 6 and 12 mm off the torso: the belt 4 mm over them)
+    radius: (c, t, th, sup) => Math.max(sup(th) + 0.012, rimAt(overSupport(c), th) + 0.004) + (o.bulge ?? 0) * Math.sin(Math.PI * t), // (D-313: a folded cloth band is fuller in the middle of its height) // over the upper shell and the skirt top (D-307: the drape cinches both under the belt, to 6 and 12 mm off the torso: the belt 4 mm over them)
     weights: () => [W('spine_01', 0.6), W('pelvis', 0.4)], mat: o.mat, col: o.col });
+}
+/** D-313 (s12; B121 "belts read as rigid hoops standing off the body"): the belt as a tied sash — a soft band wrapped
+ *  round the waist over the skirt (fuller in the middle of its height, as a folded cloth band is), a knot at the front a
+ *  little to the wearer's left, and two hanging ends of unequal length lying on the skirt below it. The ends are cloth-
+ *  simulated in Blender (people_cloth, kind 'sash': pinned under the knot, free below, the body and the group's skirt as
+ *  colliders) and take the settled drape. Tier C for the knot and ends (the reliefs show the girdle, not its tying; a
+ *  knotted cloth girdle with hanging ends is the probable tying by analogy, C). */
+export const SASH = { knotTh: -0.3, knotW: 0.022, knotD: 0.012, knotH: 0.05, endW: 0.034, endL: [0.27, 0.21] as [number, number], endGap: 0.1 };
+function sashGeo(L: Lib, key: string, lod: number, over: string[], o: { dy: number; h: number; col: number; mat: number; bulge?: number }) {
+  const bandKey = `${key}_band`, band = beltTube(L, bandKey, lod, over, o);
+  const bandPlace = band.place; band.place = (c: Ctx) => { const p = bandPlace(c); c.placed.set(bandKey, p); return p; };
+  const beltY = (c: Ctx) => c.J('spine_01')[1] + o.dy, zc = (c: Ctx) => c.J('pelvis')[2] + 0.02;
+  const dirOf = (th: number): V3 => [-Math.sin(th), 0, Math.cos(th)];
+  /** the outer radius of the band and the skirts about the belt's axis at height y, direction θ */
+  const outer = (c: Ctx, y: number, th: number, keys: string[], slab = 0.012) => rimAt(placedSupport(c, keys, vertFrame([0, y, zc(c)]), slab), th);
+  const kc = { v: null as HumanVariant | null, r: 0 };
+  const knotR = (c: Ctx) => { if (kc.v !== c.v) { kc.v = c.v; kc.r = outer(c, beltY(c), SASH.knotTh, [bandKey]); } return kc.r; };
+  const kSegs = lod === 0 ? 6 : lod === 1 ? 5 : 4, kRings = lod === 0 ? 3 : 2;
+  const knot = tubeGeo(L.A, `${key}_knot`, { segs: kSegs, rings: kRings, capStart: true, capEnd: true,
+    frame: (c, t) => { const d = dirOf(SASH.knotTh), r = knotR(c) + SASH.knotD * 0.55, y0 = beltY(c) + SASH.knotH * 0.45, y1 = beltY(c) - SASH.knotH * 0.55;
+      const a: V3 = [d[0] * r, y0, zc(c) + d[2] * r], b: V3 = [d[0] * r, y1, zc(c) + d[2] * r]; return segFrame(a, b, t, d); },
+    radius: (c, t, th) => { const s = Math.pow(Math.max(0, Math.sin(Math.PI * (0.08 + 0.84 * t))), 0.5); // a rounded knot, pinched at the top
+      return s * (SASH.knotW * SASH.knotD) / Math.hypot(SASH.knotD * Math.cos(th), SASH.knotW * Math.sin(th)) * (1 + 0.08 * Math.sin(th * 2 + t * 5)); },
+    weights: () => [W('spine_01', 0.6), W('pelvis', 0.4)], mat: o.mat, col: o.col });
+  const eSegs = lod === 0 ? 2 : 1, eRings = lod === 0 ? 8 : lod === 1 ? 4 : 2;
+  const end = (s: 0 | 1) => { const L0 = SASH.endL[s], th0 = SASH.knotTh + (s ? 1 : -1) * SASH.endGap * 0.5, dth = SASH.endW / 0.15 / 2;
+    const top = (c: Ctx) => beltY(c) - SASH.knotH * 0.35, keys = [...over, bandKey], rc = { v: null as HumanVariant | null, m: new Map<number, number[]>() };
+    return tubeGeo(L.A, `${key}_end${s}`, { segs: eSegs, rings: eRings, lining: 0.0025, arc: [th0 - dth, th0 + dth],
+      frame: (c, t) => vertFrame([0, top(c) - L0 * t, zc(c)]),
+      // on the skirt, a few mm off it (the second end over the first), standing off a little more toward the tip
+      // (the skirt's rings are ~5 cm apart at full detail: the support over a 4 cm slab, as a running maximum down the end, so it
+      // hangs straight off the fullest point above instead of stepping in and out between rings)
+      radius: (c, t, th) => { if (rc.v !== c.v) { rc.v = c.v; rc.m.clear(); } let run = rc.m.get(t);
+        if (!run) { run = new Array(64).fill(0); for (let q = 0; q <= 4; q++) { const sp = placedSupport(c, keys, vertFrame([0, top(c) - L0 * t * q / 4, zc(c)]), 0.04); for (let k = 0; k < 64; k++) run[k] = Math.max(run[k], sp[k]); } rc.m.set(t, run); }
+        return rimAt(run, th) + 0.005 + (s ? 0.003 : 0) + 0.004 * sstep(0.6, 1, t); },
+      weights: t => [W('pelvis', 1 - 0.5 * sstep(0.2, 1, t)), W('thigh_l', 0.5 * sstep(0.2, 1, t))],
+      slack: t => 0.5 * sstep(0.3, 1, t), mat: o.mat, col: o.col }); };
+  return merge(key, lod >= 2 ? [band, knot, end(0)] : [band, knot, end(0), end(1)]);
 }
 /** feet: shoes (low) or boots (to above the ankle). D-206: built as leather over a last, not as a shell of the foot: the
  *  foot shell (even moved onto the foot's convex hull) kept the mid body's coarse toes as notches and read as a bare foot
@@ -1202,7 +1240,7 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
       return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.014, flare: 0.06, pleats: 22, pleatAmp: 0.006, folds: 0.005 }), T.seg, rings, true, hem); }
     case 'headcloth': return headcloth(L, `${id}@${lod}`, lod);
     case 'belt': { const over = ['robe_skirt', 'tunic_skirt', 'work_skirt', 'dress_skirt', 'child_skirt'].map(k => geoKey(k, lod)); // skirts only: the upper shells include the sleeves
-      return beltTube(L, `${id}@${lod}`, lod, over, { dy: -0.005, h: 0.045, col: COL.trim, mat: MAT.cloth_trim }); }
+      return sashGeo(L, `${id}@${lod}`, lod, over, { dy: -0.005, h: 0.045, col: COL.trim, mat: MAT.cloth_trim, bulge: 0.003 }); }
     case 'shoes': return footShell(L, `${id}@${lod}`, lod, 0.035);
     case 'boots': return footShell(L, `${id}@${lod}`, lod, 0.11);
     // D-307: at full detail the hair, the bunch, the beards and the brows take the Blender-groomed strand cards over the

@@ -112,6 +112,13 @@ describe('garment drape (people_cloth)', () => {
     let ss = 0; for (let i = 0; i < g.n; i++) for (let e = 0; e < 3; e++) ss += (O.source[a + i * 4 + e] - O0.source[b + i * 4 + e]) ** 2;
     expect(Math.sqrt(ss / g.n)).toBeGreaterThan(0.01);
   });
+  it('D-313: the belt is a tied sash: knot and hanging ends at every LOD, their Blender drape for men and women, the ends 20+ cm below the waist', () => {
+    const D = M.drape!;
+    for (const lod of [0, 1, 2]) for (const grp of ['men', 'women']) { const k = `belt@${lod}|${grp}`, S = D.sets[k]; expect(S, k).toBeTruthy(); expect(S.meta.rms, k).toBeGreaterThan(0.001); expect(S.meta.max, k).toBeLessThan(0.06); }
+    for (const vid of ['m03', 'f02']) { const v = A.byId[vid], g = O.geos!['belt@0'], a = v.index * O.NV * 4 + O.pieceBase['belt@0'] * 4, waist = v.joints[HB.spine_01 * 3 + 1];
+      let lo = 9; for (let i = 0; i < g.n; i++) { const y = O.source[a + i * 4 + 1]; expect(Number.isFinite(y)).toBe(true); lo = Math.min(lo, y); }
+      expect(waist - lo, vid).toBeGreaterThan(0.2); expect(waist - lo, vid).toBeLessThan(0.35); }
+  });
   it('drape frames are orthonormal and applying a zero drape changes nothing', () => {
     const g = O0.geos!['robe_skirt@0'], v = A.byId.m03, b = v.index * O0.NV * 4 + O0.pieceBase['robe_skirt@0'] * 4;
     const pos = new Float32Array(g.n * 3); for (let i = 0; i < g.n; i++) for (let e = 0; e < 3; e++) pos[i * 3 + e] = O0.source[b + i * 4 + e];

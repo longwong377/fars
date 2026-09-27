@@ -484,10 +484,30 @@
         0.05,
         0.12
        ]
+      },
+      "belt": {
+       "kind": "sash",
+       "groups": [
+        "men",
+        "women"
+       ],
+       "collider": {
+        "men": "tunic_skirt",
+        "women": "dress_skirt"
+       },
+       "dy": -0.005,
+       "pinY": [
+        -0.055,
+        -0.035
+       ],
+       "cloth": {
+        "bending": 0.15,
+        "body_thickness": 0.006
+       }
       }
      }
     },
-    "args_note": "C throughout. The cut's ease (wide cut / fitted) after the dress research: the women's many-folded dress (IR-WOMEN, B for 'many-folded') 1.3; the knee-length tunics 1.15; the court robe 1.06 (its pleats are the reliefs' and baked in the mesh: drape.ts ROBE; more ease would undo them). Cloth: Blender's cloth settings for a medium wool or linen (vertex mass 0.2 kg, tension 15, shear 5, bending 0.5, the robe's stiffer 1.0, the dress's softer 0.3), collision 4 mm off the body, 60 frames at 24 fps (2.5 s: the drape settles), the gathered waist drawn in over the first 20. Groups' reference bodies: m03 (the outfits' reference), f02, c01. Arms are not colliders for skirts and upper garments (they swing in the game). Gathers: the waist of a gathered skirt is drawn in along a wave of 10 folds (the full-detail tube has 40 columns: 4 a fold) whose length is the wide cut's, so the cloth below buckles into folds; the court robe is not gathered (its pleats are baked). LODs 0-2: the far body (and the impostors baked from it) takes the drape too (shells share the mid LOD's geometry). The belt cinches: under it the upper garment is drawn in to 6 mm off the torso, the skirt's top band to 12 mm (a fuller cut of the upper garments settled as a pot belly in the first render, so they keep their fitted cut). The band under the belt is drawn in tight (the belt cinches it); the gathers start just below it."
+    "args_note": "C throughout. The cut's ease (wide cut / fitted) after the dress research: the women's many-folded dress (IR-WOMEN, B for 'many-folded') 1.3; the knee-length tunics 1.15; the court robe 1.06 (its pleats are the reliefs' and baked in the mesh: drape.ts ROBE; more ease would undo them). Cloth: Blender's cloth settings for a medium wool or linen (vertex mass 0.2 kg, tension 15, shear 5, bending 0.5, the robe's stiffer 1.0, the dress's softer 0.3), collision 4 mm off the body, 60 frames at 24 fps (2.5 s: the drape settles), the gathered waist drawn in over the first 20. Groups' reference bodies: m03 (the outfits' reference), f02, c01. Arms are not colliders for skirts and upper garments (they swing in the game). Gathers: the waist of a gathered skirt is drawn in along a wave of 10 folds (the full-detail tube has 40 columns: 4 a fold) whose length is the wide cut's, so the cloth below buckles into folds; the court robe is not gathered (its pleats are baked). LODs 0-2: the far body (and the impostors baked from it) takes the drape too (shells share the mid LOD's geometry). The belt cinches: under it the upper garment is drawn in to 6 mm off the torso, the skirt's top band to 12 mm (a fuller cut of the upper garments settled as a pot belly in the first render, so they keep their fitted cut). The band under the belt is drawn in tight (the belt cinches it); the gathers start just below it. D-313: the belt is a tied sash (outfits.ts sashGeo): its band and knot pinned (from 3.5 cm below the belt's centre up), the two hanging ends free below, softer (bending 0.15: a narrow cloth strip), with the group's skirt as placed (men the tunic skirt, women the dress) joined to the body as the collider so the ends lie on the skirt, not through it. One drape set per group serves every costume of the group (the court robe takes the tunic's)."
    },
    "blender": {
     "script": "tools/blender/cloth.py"
