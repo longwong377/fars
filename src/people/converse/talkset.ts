@@ -82,20 +82,24 @@ export function scoreRequest(c: TalkCase, o: TurnOut, planHas: boolean): TalkSco
   return { c, pass: !why.length, why, reply, deed: d ? `${d.kind}${d.arg ? ':' + d.arg : ''} ${d.ok ? (d.noop ? 'ok (nothing to change)' : 'DONE') : 'refused'}: ${d.reason}` : 'none' };
 }
 /** the words a recall must name (from the recalled request's event in the save) */
-export function recallExpect(ev: { kind: string; ok: boolean; arg?: string; item?: string; reason: string; other?: number } | null, name: (pid: number) => string, sourceName?: string): string[] {
+/** the words a recall must name (from the recalled request's event in the save): what was asked or done (the place, the
+ *  person fetched, the thing, the kind of ask), or for a refusal the refusal itself. One alternation: any of them recalls it.
+ *  (Run 2 of D-315: "We talked about the river" recalled a refused ask; the scorer had wanted the refusal's words only. Who
+ *  told a hearer is not required; a denial fails whatever else is said: scoreRecall) */
+export function recallExpect(ev: { kind: string; ok: boolean; arg?: string; item?: string; reason: string; other?: number } | null, name: (pid: number) => string, _sourceName?: string): string[] {
   if (!ev) return [];
-  const k: string[] = [];
-  if (!ev.ok) k.push("would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|" + ev.reason.split(/\s+/).filter(w => w.replace(/[^a-z]/gi, '').length >= 6).map(w => w.toLowerCase().replace(/[^a-z]/g, '').slice(0, 5)).join('|'));
-  else switch (ev.kind) {
-    case 'follow': k.push('walk|along|follow|join|company|came with'); break;
-    case 'lead_to': k.push(placeWords(ev.arg ?? '').replace(/^the /, '').replace(/ of the magi$/, '')); break;
-    case 'fetch': k.push(ev.other !== undefined ? name(ev.other) : 'fetch'); break;
-    case 'give': case 'trade': k.push(ev.item ?? 'gave'); break;
-    case 'stop_work': k.push('stop|rest'); break; case 'wait_here': k.push('wait|await|stay'); break; case 'go_home': k.push('home|house'); break;
+  const alt: string[] = []; const argWord = (ev.arg ?? '').replace(/^(the|a|an|your|my|some)\s+/i, '').split(/\s+/).slice(-1)[0]?.replace(/[^\p{L}]/gu, '') ?? '';
+  switch (ev.kind) {
+    case 'follow': alt.push('walk', 'along', 'follow', 'join', 'company', 'come with', 'came with'); break;
+    case 'lead_to': { const p = placeWords(ev.arg ?? '').replace(/^the /, '').replace(/ of the magi$/, ''); alt.push(p === 'place' ? argWord : p); if (argWord && argWord.length > 3) alt.push(argWord); alt.push('the way'); break; }
+    case 'fetch': if (ev.other !== undefined) alt.push(name(ev.other)); if (argWord.length > 2) alt.push(argWord); alt.push('fetch', 'call', 'bring'); break;
+    case 'give': case 'trade': alt.push(ev.item ?? argWord, ...(ev.kind === 'trade' ? ['trade', 'exchange'] : [])); break;
+    case 'stop_work': alt.push('stop', 'rest', 'leave off', 'break'); break; case 'wait_here': alt.push('wait', 'await', 'stay', 'remain'); break; case 'go_home': alt.push('home', 'house'); break;
   }
-  if (sourceName) k.push(`${sourceName}|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour`); // (who told them: by name or by what they are to them)
-  return k;
+  if (!ev.ok) alt.push('would not', 'could not', 'cannot', "can't", "couldn't", "wouldn't", 'refused', 'did not', "didn't", 'said no', 'not able');
+  return [alt.filter(Boolean).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, '')).join('|')];
 }
+const DENY = /\b(never seen|not seen|haven't seen|have not seen|don't know you|do not know you|not heard|haven't heard|never heard|do not recall|don't recall|don't remember|do not remember|never met)\b/i;
 const stem = (w: string) => w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '').slice(0, 5);
 const STOPW = new Set(['there', 'their', 'these', 'those', 'cannot', 'leave', 'stran', 'house', 'which', 'would', 'about', 'nobod', 'walks']);
 /** the reply names something of the refusal's reason (a word of five letters or more, by its stem) */
@@ -106,6 +110,7 @@ export function scoreRecall(c: TalkCase, o: TurnOut, expect: string[]): TalkScor
   if (!expect.length) why.push('nothing to recall (the request left no event)');
   const plain = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   for (const e of expect) if (!new RegExp(`(${plain(e)})`, 'i').test(plain(reply))) why.push(`does not recall: ${e}`);
+  if (DENY.test(reply.replace(/[’]/g, "'"))) why.push('denies the meeting');
   return { c, pass: !why.length, why, reply, expect };
 }
 

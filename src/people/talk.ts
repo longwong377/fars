@@ -413,7 +413,7 @@ export class TalkWorld {
   rowText(r: MemRow, now: number): string {
     if (r.folded) return cut(`Before that you had met the stranger ${r.folded === 1 ? 'once' : `${r.folded} times`}, since ${when(r.firstT ?? r.t, now)}${r.asked.length ? ` (he asked you: ${r.asked.join('; ')})` : ''}.`, 44);
     // (at most ROW_TOKENS: what the stranger said goes first, then what the person said; what was done never)
-    const head = `${cap(when(r.t, now))} the foreign stranger spoke with you.`, d = r.deed ? deedOutcome(r.deed, 'you') : '';
+    const head = `${cap(when(r.t, now))} this same stranger spoke with you.`, d = r.deed ? deedOutcome(r.deed, 'you') : '';
     const asked = (n: number) => r.asked.length && n ? `He said: “${r.asked.slice(-n).join('” and “')}”.` : ''; const said = r.said ? `You told him: “${r.said}”.` : '';
     for (const x of [[head, asked(2), d, said], [head, asked(1), d, said], [head, asked(1), d], [head, d || asked(1)]]) { const t = x.filter(Boolean).join(' '); if (approxTokens(t) <= ROW_TOKENS) return t; }
     return cut([head, d].filter(Boolean).join(' '), 30);
@@ -437,8 +437,8 @@ export class TalkWorld {
       if (!got.length) continue;
       const top = [...got].sort((a, b) => (b.k.deed ? 1 : 0) - (a.k.deed ? 1 : 0) || b.at - a.at)[0]; const n = got.length, sx = P.persons[src].sex; const times = n > 1 ? ` ${n === 2 ? 'twice' : `${n} times`}` : '';
       const d0 = Math.floor(top.k.t / 24);
-      out.push(top.via < 0 ? { t: top.at, from: src, hand: 1, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} your ${this.relWord(pid, src, d0)} ${this.name(src)} told you: a foreign stranger ${summary3(top.k, sx, undefined, times)}.`, 44) }
-        : { t: top.at, from: top.via, hand: 2, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} you heard from ${this.name(top.via)}: a foreign stranger ${summary3(top.k, sx, this.name(src), times)}.`, 44) });
+      out.push(top.via < 0 ? { t: top.at, from: src, hand: 1, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} your ${this.relWord(pid, src, d0)} ${this.name(src)} told you: this same stranger ${summary3(top.k, sx, undefined, times)}.`, 44) }
+        : { t: top.at, from: top.via, hand: 2, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} you heard from ${this.name(top.via)}: this same stranger ${summary3(top.k, sx, this.name(src), times)}.`, 44) });
     }
     return out.sort((a, b) => a.t - b.t);
   }

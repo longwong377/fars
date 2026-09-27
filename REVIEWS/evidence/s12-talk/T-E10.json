@@ -2,7 +2,7 @@
  "id": "T-E10",
  "value": 100,
  "n": 158,
- "commit": "d6f82f4",
+ "commit": "77914db",
  "tool": "tests/talk_world.test.ts",
  "unit": "%",
  "status": "PLUMBING PASS (stand-in model; the real model unmeasured)",
@@ -156,7 +156,7 @@
    "job": "miller",
    "hour": 14.4,
    "say": "Where is the storehouse?",
-   "reply": "No, stranger, I cannot: a woman of the house does not walk a strange man about; she points the way. What you remember of the stranger: In the month Ādukanaiša your neighbour Irtuppiya told you: a foreign stranger talked with him and asked to go home, but he would not. [refuse: a woman of the house does not walk a strange man about; she points the way. What you remember of the stranger: In the month Ādukanaiša your neighbour Irtuppiya told you: a foreign stranger talked with him and asked to go home, but he would not]",
+   "reply": "No, stranger, I cannot: a woman of the house does not walk a strange man about; she points the way. [refuse: a woman of the house does not walk a strange man about; she points the way]",
    "deed": "lead_to:storehouse refused: a woman of the house does not walk a strange man about; she points the way"
   },
   {
