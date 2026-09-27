@@ -68,7 +68,8 @@ function albHeight(d: SurfaceDef, W: PlasterWall, x: number, y: number, fp: numb
     const wob = mxNoise3(rx * ns * 1.7, ry * ns * 1.7, rz * ns * 1.7) * (0.07 / MX_NOISE_SD * 0.5); // the mottle's ~1 m octave
     const L = ashlarCells(x + wob, y + wob * 0.8, { course: (PW.lift[0] + PW.lift[1]) / 2, block: PW.bay, width: 0, dark: 0, vary: { course: PW.lift, jitter: 1.0 } });
     const b1 = hash12(L.blk + 0.37, L.c + 11.3), b2 = hash12(L.blk * 0.71 + 19.1, L.c + 3.3), b3 = hash12(L.c * 1.618 + 5.1, L.blk + 2.9);
-    const g = (b1 + b2 - 1) * PW.sd * Math.sqrt(6), ch = (b3 - 0.5) * 2 * PW.chroma;
+    const dE = Math.min(L.dBed, L.dHead), feather = smoothstep(0, 0.4, dE);
+    const g = (b1 + b2 - 1) * PW.sd * Math.sqrt(6) * feather, ch = (b3 - 0.5) * 2 * PW.chroma * feather;
     f *= 1 + g + 0.2126 * ch - 0.0722 * 1.4 * ch; // luminance of (1+g+ch, 1+g, 1+g−1.4ch)
     const Hd = PW.hand, ang = Math.PI / 4 + (hash12(L.blk + 7.7, L.c + 1.3) - 0.5) * 1.75, ca = Math.cos(ang), sa = Math.sin(ang);
     const u = x * ca + y * sa, v = y * ca - x * sa, zS = u * 0.41 + v * 0.29;
@@ -78,7 +79,7 @@ function albHeight(d: SurfaceDef, W: PlasterWall, x: number, y: number, fp: numb
     h += rel * Hd.amp / MX_NOISE_SD;
     const mot = n1 + n2 * 0.6; // session 11: the relief's noises (the coat lighter on its ridges)
     f *= 1 + mot * Hd.mottle / (MX_NOISE_SD * Math.hypot(1, 0.6));
-    const dE = Math.min(L.dBed, L.dHead), seam = bandCover(dE, fp / Math.SQRT2, 0.0125) * (hash12(L.blk + 5.3, L.c + 0.7) >= 0.5 ? 1 : 0);
+    const seam = bandCover(dE, fp / Math.SQRT2, 0.0125) * (hash12(L.blk + 5.3, L.c + 0.7) >= 0.5 ? 1 : 0);
     f *= 1 - seam * PW.seam; h += seam * 0.0008;
   }
   if (d.runoff) f *= runoffAt(d, x, wy, W.z, W.top);
