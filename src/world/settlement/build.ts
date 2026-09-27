@@ -23,7 +23,16 @@ import { TreeField } from './trees';
 import { buildWaterAndRoads } from './water';
 import { TownHaze } from './haze';
 import { siteFootprints } from './footprints';
-import { scanShape } from '../../render/scanProps';
+import { scanShape, modelFit, modelParts, model } from '../../render/scanProps';
+/** D-325: a modelled prop's parts into a batch at a fitting's place (grid e, n; base y0; turned by theta), each part in its
+ *  colour (the baked occlusion darkens it per vertex, Batch.geo); `size` fits the model's box (null: its own size), `at` is
+ *  its offset in the fitting's frame. False when the model is not loaded (the procedural fitting is drawn) */
+function putModel(b: Batch, id: string, e: number, n: number, y0: number, theta: number, cols: Record<string, RGB>, d: number, size: [number, number, number] | null = null, lod = 0, at: [number, number] = [0, 0]): boolean {
+  const p = size ? modelFit(id, size, lod) : modelParts(id, lod); if (!p) return false;
+  const c = Math.cos(theta), s = Math.sin(theta), E = e + at[0] * c - at[1] * s, N = n + at[0] * s + at[1] * c;
+  for (const [k, g] of Object.entries(p)) { const col = cols[k] ?? cols['*']; if (col) b.geo(E, N, y0, g, theta, col, d); }
+  return true;
+}
 
 /** what F3 adds on the far level of the houses (D-234: beyond NEAR_R the houses are drawn as walls and roofs in plain boxes
  *  with the eave's shadow line; their footings, pole ends, spouts, windows, repairs and court things are drawn near only) */
@@ -391,9 +400,18 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
   const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
   const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
   switch (f.kind) {
-    case 'hearth': { hearthRing(mud, g, y, d);
+    case 'hearth': {
+      // D-325 (near): the modelled hearth (eleven field stones round the ash bed), the cooking pot, the bowls and the basket
+      const h0 = (hashString(`${s.id}:${f.u.toFixed(1)}:${f.v.toFixed(1)}`) % 1000) / 1000;
+      if (!far && model('hearth') && model('cookpot') && model('bowl')) {
+        putModel(mud, 'hearth', g[0], g[1], y - 0.03, th, { stone: lin([0.5, 0.48, 0.44]), ash: lin([0.22, 0.21, 0.2]) }, d, [0.9, 0.18, 0.9], 1);
+        putModel(mud, 'cookpot', g[0], g[1], y - 0.02, th, { '*': shade(lin([0.4, 0.3, 0.23]), 0.8 + 0.3 * h0) }, d, [0.34, 0.29, 0.34], 1, [0.62, 0.15 + 0.2 * h0]);
+        for (let k = 0; k < 1 + Math.round(h0 * 2); k++) putModel(mud, 'bowl', g[0], g[1], y, th + k, { '*': shade(lin([0.66, 0.46, 0.32]), 0.9 + 0.2 * ((h0 * 7 + k) % 1)) }, d, [0.2, 0.065, 0.2], 1, [0.35 + 0.2 * k, -0.5 - 0.1 * k]);
+        if (h0 > 0.4) { const bk = scanShape('basket', Math.round(h0 * 10), [0.4, 0.12, 0.4], 1), [ke, kn] = at(-0.6, 0.4); if (bk) mud.geo(ke, kn, y, bk, th, lin([0.62, 0.52, 0.34]), d); }
+        break; }
+      hearthRing(mud, g, y, d);
       // the household's cooking things by the hearth (C): a round-bottomed cooking pot, one or two bowls, a bread basket
-      const h = (hashString(`${s.id}:${f.u.toFixed(1)}:${f.v.toFixed(1)}`) % 1000) / 1000, cp = lin([0.4, 0.3, 0.23]), bw = lin([0.66, 0.46, 0.32]);
+      const h = h0, cp = lin([0.4, 0.3, 0.23]), bw = lin([0.66, 0.46, 0.32]);
       const [pe, pn] = at(0.62, 0.15 + 0.2 * h); mud.lathe(pe, pn, y - 0.02, [[0.05, 0], [0.15, 0.07], [0.17, 0.16], [0.12, 0.26], [0.11, 0.29]], 8, sh(cp, 0.8 + 0.3 * h), d);
       for (let k = 0; k < 1 + Math.round(h * 2); k++) { const [be, bn] = at(0.35 + 0.2 * k, -0.5 - 0.1 * k); mud.lathe(be, bn, y, [[0.03, 0], [0.08, 0.02], [0.1, 0.06], [0.1, 0.065]], 8, sh(bw, 0.9 + 0.2 * ((h * 7 + k) % 1)), d); }
       if (h > 0.4) { const [ke, kn] = at(-0.6, 0.4); mud.lathe(ke, kn, y, [[0.14, 0], [0.19, 0.08], [0.2, 0.12]], 9, lin([0.62, 0.52, 0.34]), d); }
@@ -404,30 +422,43 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
       if (!far) { const q = kitPiece('tannur', (hashString(`${s.id}:${f.u.toFixed(1)}:${f.v.toFixed(1)}:t`) % 1000) / 1000), c = Math.cos(th), sn = Math.sin(th), k = 0.82;
         kitFrame(mud, q, [g[0], y - 0.02, -g[1]], [c * k, 0, -sn * k], [0, 1.0, 0], [-sn * k, 0, -c * k], oc, d, 1); break; }
       mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 10, sh(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 10, oc, sh(oc, 0.25), d, true); break; }
-    case 'forge': mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, sh(mc, 0.5), sh(mc, 0.35), d); break;
-    case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }
+    case 'forge': if (!far && putModel(mud, 'forge', g[0], g[1], y - 0.1, th, { mud: sh(mc, 0.5), coal: lin([0.09, 0.08, 0.07]), clay: lin([0.6, 0.45, 0.32]) }, d, [1.0 * f.size, 0.65, 0.8 * f.size])) break; // (D-325)
+      mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, sh(mc, 0.5), sh(mc, 0.35), d); break;
+    case 'kiln': { const r = 1.2 * f.size; if (!far && putModel(mud, 'kiln', g[0], g[1], y - 0.1, th, { mud: sh(mc, 0.7) }, d, [2 * r, 2.0 * f.size + 0.1, 2 * r])) break; /* (D-325) */ mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }
     case 'jar': case 'jar_big': case 'vat': { const k = (f.kind === 'jar' ? 1 : f.kind === 'jar_big' ? 1.5 : 1.7) * f.size, wide = f.kind === 'vat' ? 1.5 : 1;
       // session 12 (D-310): jars are a CC0 scan's shape (render/scanProps.ts) fitted to the lathe's box, when loaded; the vat stays
-      const sj = scanShape(f.kind !== 'vat' ? 'jar' : 'vat', Math.round((g[0] + g[1]) * 7), [0.5 * k * wide, 0.72 * k, 0.5 * k * wide], 1); // (D-325: the modelled jars and vat, lod1)
+      const sj = far ? null : scanShape(f.kind !== 'vat' ? 'jar' : 'vat', Math.round((g[0] + g[1]) * 7), [0.5 * k * wide, 0.72 * k, 0.5 * k * wide], 1); // (D-325: the modelled jars and vat, lod1, near; the far level keeps the 9-sided lathe)
       if (sj) mud.geo(g[0], g[1], y - 0.05, sj, (g[0] * 3.7 + g[1]) % 6.283, pot, d);
       else mud.lathe(g[0], g[1], y - 0.05, [[0.12 * k * wide, 0], [0.25 * k * wide, 0.22 * k], [0.24 * k * wide, 0.48 * k], [0.12 * k * wide, 0.68 * k], [0.11 * k * wide, 0.72 * k]], 9, pot, d); break; }
-    case 'quern': mud.box(g[0], g[1], th, 0.28, 0.2, y - 0.05, y + 0.14, st, st, d); mud.box(...at(0, 0.02), th, 0.12, 0.08, y + 0.14, y + 0.22, st, st, d); break;
-    case 'grind_slab': { mud.box(g[0], g[1], th, 0.32, 0.22, y - 0.05, y + 0.1, st, st, d);
+    case 'quern': if (!far && putModel(mud, 'quern', g[0], g[1], y - 0.05, th, { stone: st }, d, [0.56, 0.27, 0.4], 1)) break; // (D-325: the modelled saddle quern)
+      mud.box(g[0], g[1], th, 0.28, 0.2, y - 0.05, y + 0.14, st, st, d); mud.box(...at(0, 0.02), th, 0.12, 0.08, y + 0.14, y + 0.22, st, st, d); break;
+    case 'grind_slab': { if (!far && putModel(mud, 'wo_pigment_slab', g[0], g[1], y - 0.05, th, { stone: st, stone_d: sh(st, 0.9), pig_blue: lin([0.12, 0.28, 0.62]), pig_green: lin([0.22, 0.48, 0.34]), pig_red: lin([0.55, 0.2, 0.13]), pig_ochre: lin([0.76, 0.58, 0.26]) }, d, [0.64, 0.2, 0.44])) break; // (D-325)
+      mud.box(g[0], g[1], th, 0.32, 0.22, y - 0.05, y + 0.1, st, st, d);
       const pig: RGB[] = [[0.12, 0.28, 0.62], [0.22, 0.48, 0.34], [0.55, 0.2, 0.13], [0.76, 0.58, 0.26]]; pig.forEach((pc, i) => mud.box(...at(-0.2 + i * 0.13, 0.05), th, 0.035, 0.035, y + 0.1, y + 0.15, lin(pc), lin(pc), d)); break; }
-    case 'loom': { for (const s2 of [-0.7, 0.7]) mud.box(...at(s2, 0), th, 0.05, 0.05, y - 0.1, y + 1.7, tim, tim, d); mud.box(...at(0, 0), th, 0.8, 0.05, y + 1.62, y + 1.72, tim, tim, d);
+    case 'loom': { if (!far && putModel(mud, 'loom_upright', g[0], g[1], y - 0.1, th, { wood: tim, warp: lin([0.8, 0.76, 0.66]), cloth: lin([0.78, 0.7, 0.58]) }, d, [1.6, 1.82, 0.12])) break; // (D-325)
+      for (const s2 of [-0.7, 0.7]) mud.box(...at(s2, 0), th, 0.05, 0.05, y - 0.1, y + 1.7, tim, tim, d); mud.box(...at(0, 0), th, 0.8, 0.05, y + 1.62, y + 1.72, tim, tim, d);
       mud.box(...at(0, 0.02), th, 0.62, 0.008, y + 0.25, y + 1.6, lin([0.8, 0.76, 0.66]), lin([0.78, 0.7, 0.58]), d); break; }
-    case 'timber': { const L = (f.len ?? 3) / 2; for (let x = 0; x < 5; x++) mud.box(...at(0, -0.6 + (x % 3) * 0.3), th, L, 0.13, y + (x > 2 ? 0.26 : 0), y + (x > 2 ? 0.5 : 0.25), tim, sh(tim, 1.15), d); break; }
-    case 'anvil': mud.box(g[0], g[1], th, 0.22, 0.2, y - 0.05, y + 0.5, st, sh(st, 0.8), d); break;
-    case 'bench': mud.box(g[0], g[1], th, 0.8, 0.25, y, y + 0.8, tim, tim, d); break;
-    case 'knucklebones': for (let x = 0; x < 5; x++) mud.box(...at(x * 0.07 - 0.14, (x % 2) * 0.05), th + x, 0.018, 0.012, y, y + 0.02, lin(BONE), lin(BONE), d); break;
+    case 'timber': { const L = (f.len ?? 3) / 2; if (!far && putModel(mud, 'timber_stack', g[0], g[1], y, th, { wood: tim }, d, [2 * L, 0.5, 0.86], 1)) break; // (D-325)
+      for (let x = 0; x < 5; x++) mud.box(...at(0, -0.6 + (x % 3) * 0.3), th, L, 0.13, y + (x > 2 ? 0.26 : 0), y + (x > 2 ? 0.5 : 0.25), tim, sh(tim, 1.15), d); break; }
+    case 'anvil': if (!far && putModel(mud, 'wo_anvil', g[0], g[1], y - 0.05, th, { wood_d: sh(tim, 0.8), iron: lin([0.26, 0.25, 0.24]), scale: lin([0.18, 0.16, 0.15]) }, d)) break; // (D-325)
+      mud.box(g[0], g[1], th, 0.22, 0.2, y - 0.05, y + 0.5, st, sh(st, 0.8), d); break;
+    case 'bench': if (!far && putModel(mud, 'bench', g[0], g[1], y, th, { wood: tim }, d, [1.6, 0.8, 0.5], 1)) break; // (D-325)
+      mud.box(g[0], g[1], th, 0.8, 0.25, y, y + 0.8, tim, tim, d); break;
+    case 'knucklebones': if (!far && putModel(mud, 'wo_knucklebones', g[0], g[1], y, th, { bone: lin(BONE) }, d)) break; // (D-325) for (let x = 0; x < 5; x++) mud.box(...at(x * 0.07 - 0.14, (x % 2) * 0.05), th + x, 0.018, 0.012, y, y + 0.02, lin(BONE), lin(BONE), d); break;
     // D-215: a leather ball, a clay bull on wheels (wheels as flat discs, seen from above) and a clay rattle (C)
     case 'toys': { const clay = lin([0.66, 0.47, 0.33]), hide = lin([0.55, 0.4, 0.26]);
+      if (!far && model('wo_toy_wheeled') && model('tool_ball') && model('tool_rattle')) { // (D-325: the modelled clay bull on wheels, the leather ball, the rattle)
+        putModel(mud, 'wo_toy_wheeled', g[0], g[1], y, th + Math.PI / 2, { clay_toy: clay, wood_d: tim, cord: lin([0.72, 0.64, 0.46]) }, d, null, 0, [0.15, 0]);
+        putModel(mud, 'tool_ball', g[0], g[1], y, th, { leather: hide }, d, [0.1, 0.1, 0.1], 0, [-0.25, 0.1]);
+        putModel(mud, 'tool_rattle', g[0], g[1], y, th, { clay }, d, [0.16, 0.07, 0.07], 0, [0.05, -0.25]); break; }
       mud.lathe(...at(-0.25, 0.1), y, [[0.001, 0], [0.035, 0.012], [0.05, 0.05], [0.035, 0.088], [0.001, 0.1]], 5, hide, d);
       mud.box(...at(0.15, 0), th, 0.085, 0.05, y + 0.04, y + 0.11, clay, clay, d); mud.box(...at(0.25, 0), th, 0.03, 0.028, y + 0.08, y + 0.14, clay, clay, d);
       for (const s2 of [-1, 1]) mud.box(...at(0.15, s2 * 0.055), th, 0.075, 0.006, y, y + 0.05, sh(clay, 0.8), clay, d);
       mud.lathe(...at(0.05, -0.25), y, [[0.001, 0], [0.03, 0.02], [0.034, 0.04], [0.012, 0.07], [0.008, 0.12]], 5, clay, d); break; }
-    case 'trough': mud.box(g[0], g[1], th, 0.7 * f.size, 0.28, y - 0.05, y + 0.5, st, st, d); break;
-    case 'manger': mud.box(g[0], g[1], th, 0.9, 0.3, y - 0.05, y + 0.85, sh(mc, 0.85), mc, d); break;
+    case 'trough': if (!far && putModel(mud, 'trough', g[0], g[1], y - 0.05, th, { stone: st, water: lin([0.32, 0.36, 0.36]) }, d, [1.4 * f.size, 0.55, 0.56])) break; // (D-325)
+      mud.box(g[0], g[1], th, 0.7 * f.size, 0.28, y - 0.05, y + 0.5, st, st, d); break;
+    case 'manger': if (!far && putModel(mud, 'manger', g[0], g[1], y - 0.05, th, { mud: sh(mc, 0.85), straw: lin([0.72, 0.62, 0.38]) }, d, [1.8, 0.9, 0.6])) break; // (D-325)
+      mud.box(g[0], g[1], th, 0.9, 0.3, y - 0.05, y + 0.85, sh(mc, 0.85), mc, d); break;
     case 'well': wellGeom(g, y, mud, d); break;
     case 'column': { mud.cyl(g[0], g[1], 0.55, 0.5, y - 0.2, y + 0.4, 10, st, st, d); mud.cyl(g[0], g[1], 0.3, 0.27, y + 0.4, y + f.size, 10, lin([0.78, 0.72, 0.62]), lin([0.78, 0.72, 0.62]), d, false);
       mud.box(g[0], g[1], th, 0.45, 0.45, y + f.size, y + f.size + 0.35, tim, tim, d); break; }

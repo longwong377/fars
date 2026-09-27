@@ -119,4 +119,18 @@ describe('modelled props (D-325): the Treasury goods and the rooms’ fittings',
     expect(g1).not.toBe(g0); expect(r1).not.toBe(r0);
   });
 });
+describe('modelled props (D-325): the town’s and villages’ fittings', () => {
+  it('near, every prop fitting is drawn from its model; far, the cheap procedural form stays', async () => {
+    const { fittingGeom } = await import('../src/world/settlement/build');
+    const { Batch } = await import('../src/world/settlement/geom');
+    const site: any = { id: 'test', grid: (u: number, v: number) => [u, v], frame: { theta: 0.3 } };
+    const rows: string[] = [];
+    for (const kind of ['hearth', 'forge', 'kiln', 'quern', 'grind_slab', 'loom', 'timber', 'anvil', 'bench', 'knucklebones', 'toys', 'trough', 'manger', 'jar', 'vat']) {
+      const f: any = { kind, u: 1, v: 2, rot: 0, size: 1, len: 3 }, t = (off: boolean, far: boolean) => { setModelsOff(off); const b = new Batch(); fittingGeom(site, f, b, () => 0, 1, far); setModelsOff(false); return b.tris; };
+      const proc = t(true, false), near = t(false, false), far = t(false, true); rows.push(`${kind}: ${proc} -> near ${near}, far ${far}`);
+      expect(near, kind).not.toBe(proc); expect(far, kind).toBe(proc);
+    }
+    console.log(rows.join(' | '));
+  });
+});
 void modelParts;

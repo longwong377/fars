@@ -1935,6 +1935,84 @@ def a_bale():
     cords = [sweep([(x, 0.5 * 0.92 * math.cos(a), 0.5 + 0.5 * 0.92 * math.sin(a)) for a in [TAU * i / 24 for i in range(25)]], 0.012, 5, 'cord', caps=False) for x in (-0.25, 0.25)]
     return dict(cloth=b, cord=join(cords, 'cord'))
 
+# ======================================================================================================== the town's and villages' fittings (settlement/build.ts fittingGeom)
+# In the fitting's frame (u along the fitting's rotation = game x, v = game z; base on y = 0), at the procedural boxes' sizes
+@asset(ground=True)
+def a_forge():
+    """a smith's forge: a low block of mud brick plastered, a hollow hearth in its top with charcoal, a clay tuyere entering
+    from the side where the bellows are worked, soot on the plaster (C), 1.0 x 0.65 x 0.8 m"""
+    blk = box(1.0, 0.8, 0.65, (0, 0, 0), 'forge', bevel=0.05, segs=2); subdiv(blk, 1); displace(blk, 0.012, 0.15, seed=701)
+    for v in blk.data.vertices:
+        if v.co.z > 0.6 and abs(v.co.x) < 0.3 and abs(v.co.y) < 0.25: v.co.z -= 0.08 * (1 - (v.co.x / 0.3) ** 2) * (1 - (v.co.y / 0.25) ** 2)
+    coal = heap(0.24, 0.05, 0, 0, seed=702, lump=0.6, name='coal', res=0.02); xform(coal, (0, 0, 0.56))
+    tuy = sweep([(-0.62, 0, 0.5), (-0.5, 0, 0.52), (-0.28, 0, 0.56)], [0.05, 0.045, 0.04], 10, 'tuyere')
+    return dict(mud=blk, coal=coal, clay=tuy)
+
+@asset(ground=True)
+def a_kiln():
+    """a potter's updraft kiln: a round firing chamber of mud brick, plastered, its domed top with a vent, the stoking mouth
+    arched at the foot (C), 2.4 m across and 2.0 m high at size 1"""
+    r = 1.2
+    k = lathe([(0.0, 0.0), (r, 0.0), (r * 1.01, 0.4), (r * 0.97, 1.0), (r * 0.92, 1.3), (r * 0.7, 1.65), (0.4, 1.92), (0.3, 2.0), (0.22, 2.0), (0.22, 1.9), (0.0, 1.9)], 32, 'kiln', wobble=0.02, seed=703)
+    subdiv(k, 1); displace(k, 0.02, 0.3, seed=704)
+    cut = sweep([(0, -1.6, 0.0), (0, -0.8, 0.0)], 0.35, 14, 'cut')
+    for v in cut.data.vertices: v.co.z = max(v.co.z, -0.1)
+    boolean(k, cut)
+    return dict(mud=k)
+
+@asset(ground=True)
+def a_loom_upright():
+    """an upright loom against a wall: two posts, a top beam and a lower beam, the warp between them with the woven cloth rising
+    from the foot, the heddle bar across (C), 1.6 m wide, 1.72 m high"""
+    posts = [pathG([(s, -0.1, 0), (s, 1.72, 0)], [0.05, 0.045], 8, 'post') for s in (-0.7, 0.7)]
+    beams = [pathG([(-0.8, y, 0), (0.8, y, 0)], 0.04, 8, 'beam') for y in (1.67, 0.25)]
+    heddle = pathG([(-0.72, 1.0, 0.06), (0.72, 1.0, 0.06)], 0.015, 6, 'heddle')
+    warp = []
+    for i in range(40):
+        x = -0.6 + 1.2 * i / 39; warp.append(pathG([(x, 0.26, 0.02), (x, 1.66, 0.02)], 0.0016, 3, 'w', caps=False))
+    cloth = boxG(1.22, 0.55, 0.008, 0, 0.27, 0.02); subdiv(cloth, 1); displace(cloth, 0.003, 0.05, seed=705)
+    return dict(wood=join(posts + beams + [heddle], 'wood'), warp=join(warp, 'warp'), cloth=cloth)
+
+@asset(ground=True)
+def a_timber_stack():
+    """squared timbers stacked on the ground, three below and two across the top of them (C), 1 m long (the builder scales the
+    length)"""
+    t = []
+    for x in range(5):
+        b = boxG(1.0, 0.24 if x < 3 else 0.23, 0.26, 0, 0 if x < 3 else 0.26, -0.3 + (x % 3) * 0.3 + (0.15 if x > 2 else 0), bevel=0.01)
+        subdiv(b, 1); displace(b, 0.004, 0.08, seed=710 + x); t.append(b)
+    return dict(wood=join(t, 'wood'))
+
+@asset(ground=True)
+def a_bench():
+    """a wooden work bench: a thick plank top on four legs with stretchers (C), 1.6 x 0.5 x 0.8 m"""
+    parts = [box(1.6, 0.5, 0.07, (0, 0, 0.73), bevel=0.01)]
+    for sx in (-1, 1):
+        for sy in (-1, 1): parts.append(box(0.07, 0.07, 0.73, (sx * 0.7, sy * 0.19, 0), bevel=0.006))
+    for sy in (-1, 1): parts.append(box(1.4, 0.04, 0.06, (0, sy * 0.19, 0.18), bevel=0.004))
+    b = join(parts, 'wood'); displace(b, 0.002, 0.1, seed=715)
+    return dict(wood=b)
+
+@asset(ground=True)
+def a_trough():
+    """a stone trough hollowed from a block, water standing in it (C), 1.4 x 0.56 x 0.55 m at size 1"""
+    b = box(1.4, 0.56, 0.55, (0, 0, 0), 'block', bevel=0.03, segs=2)
+    cut = box(1.2, 0.36, 0.5, (0, 0, 0.12), 'cut', bevel=0.05, segs=3)
+    boolean(b, cut); displace(b, 0.006, 0.12, seed=720)
+    w = box(1.18, 0.34, 0.005, (0, 0, 0.4), 'water')
+    return dict(stone=b, water=w)
+
+@asset(ground=True)
+def a_manger():
+    """a manger of mud brick, plastered, its top hollowed for the fodder, some straw in it (C), 1.8 x 0.6 x 0.9 m"""
+    b = box(1.8, 0.6, 0.9, (0, 0, 0), 'manger', bevel=0.04, segs=2)
+    cut = box(1.6, 0.4, 0.3, (0, 0, 0.72), 'cut', bevel=0.06, segs=3)
+    boolean(b, cut); subdiv(b, 1); displace(b, 0.01, 0.15, seed=725)
+    st = heap(0.7, 0.08, 0, 0, seed=726, lump=0.6, name='straw', res=0.03)
+    for v in st.data.vertices: v.co.y *= 0.25
+    xform(st, (0, 0, 0.74))
+    return dict(mud=b, straw=st)
+
 # ======================================================================================================== driver
 if __name__ == '__main__':
     job = json.load(open(sys.argv[sys.argv.index('--') + 1]))

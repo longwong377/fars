@@ -33,6 +33,7 @@ export const TARGETS = {
   wo_fold: { thorn: [2400, 800], thorn_d: [2400, 800] }, wo_grass_bed: { grass: [800, 300], meat_boiled: [600, 200] }, wo_dung_cakes: { dung: [800, 300] }, wo_bellows: { skin: [1200, 400] },
   wo_drum_rough: { lime: [1200, 400] }, wo_hurdles: { wattle: [3000, 1000] }, wo_grapes: { grape: [900, 300] }, wo_nuts: { nut: [900, 300] }, wo_bellows_stand: { skin: [700, 250] },
   quern: { stone: [1200, 400] }, beads: { beads: [900, 300] }, bale: { cloth: [1200, 400] },
+  manger: { straw: [300, 120], mud: [600, 250] }, forge: { coal: [300, 100] }, timber_stack: { wood: [800, 300] },
   tool_bow: { wood: [180, 90] }, tool_toy_bow: { wood: [140, 70] }, tool_rope: { cord: [200, 100] }, tool_towel: { linen: [48, 24] }, tool_beater: { wood: [48, 24] },
 };
 const want = process.argv.slice(2).filter(a => !a.startsWith('--'));

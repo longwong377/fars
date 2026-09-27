@@ -99,9 +99,11 @@ export class Batch {
   /** a prepared geometry (base on y = 0, footprint centred: a CC0 scan's shape, D-310) at grid (e, n), its base at y0, turned by
    *  theta about the vertical, in one colour */
   geo(e: number, n: number, y0: number, g: THREE.BufferGeometry, theta: number, c: RGB, owner = -1) {
-    const P = g.getAttribute('position'), N = g.getAttribute('normal'), cs = Math.cos(theta), sn = Math.sin(theta), base: number[] = [];
+    const P = g.getAttribute('position'), N = g.getAttribute('normal'), A = g.getAttribute('ao'), cs = Math.cos(theta), sn = Math.sin(theta), base: number[] = [];
     for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i), nx = N ? N.getX(i) : 0, ny = N ? N.getY(i) : 1, nz = N ? N.getZ(i) : 0;
-      base.push(this.v(e + x * cs + z * sn, y0 + P.getY(i), -n - x * sn + z * cs, nx * cs + nz * sn, ny, -nx * sn + nz * cs, c)); }
+      // (D-325: a modelled prop's baked occlusion darkens its colour per vertex)
+      const k = A ? 0.45 + 0.55 * A.getX(i) : 1, ci: RGB = A ? [c[0] * k, c[1] * k, c[2] * k] : c;
+      base.push(this.v(e + x * cs + z * sn, y0 + P.getY(i), -n - x * sn + z * cs, nx * cs + nz * sn, ny, -nx * sn + nz * cs, ci)); }
     const I = g.index; if (I) for (let t = 0; t + 2 < I.count; t += 3) this.tri(base[I.getX(t)], base[I.getX(t + 1)], base[I.getX(t + 2)], owner);
     else for (let t = 0; t + 2 < P.count; t += 3) this.tri(base[t], base[t + 1], base[t + 2], owner);
   }
