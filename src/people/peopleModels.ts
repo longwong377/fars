@@ -41,7 +41,7 @@ export interface DrapeSetMeta {
    *  kind, per-vertex displacement (3 × i16, 0.1 mm units) */
   n: number; group: string; frame: 'tube' | 'shell'; d: Slice; rms: number; max: number; note: string;
 }
-export interface DrapeMeta { version: 1; groups: Record<string, string>; sets: Record<string, DrapeSetMeta> }
+export interface DrapeMeta { version: 1 | 2; groups: Record<string, string>; sets: Record<string, DrapeSetMeta> }
 export interface DrapeSet { meta: DrapeSetMeta; d: Int16Array }
 export interface PeopleDrape { meta: DrapeMeta; sets: Record<string, DrapeSet> }
 

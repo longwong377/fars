@@ -74,6 +74,10 @@ export interface HumanTextures {
   scans?: HumanScans | null; skinLayers?: [number, number][];
   /** D-307: the strand atlas of the hair cards (peopleModels.loadHairAtlas; R shade, G depth, B strand direction, A coverage)
    *  and its layout: columns, rows, card class → row per hair style (null: no cards in the costumes) */
+  /** D-322: the garments carry their simulated folds in the geometry (people_cloth loaded): no shading stand-ins for them */
+  simCloth?: boolean;
+  /** D-322: each body variant's group (0 men, 1 women, 2 children): which channel of the fold layers its garments read */
+  groups?: number[];
   hairAtlas?: THREE.Texture | null; cards?: { cols: number; rows: number; classRows: number[][]; w: number; h: number; levels: number } | null;
 }
 /** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
@@ -245,6 +249,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     };
     const vColor = varyingProperty('vec3', 'vHumanColor'), vHair = varyingProperty('vec3', 'vHumanCol2'), vMat = varyingProperty('vec4', 'vHumanMat'), vBind = varyingProperty('vec3', 'vHumanBind'), vAux = varyingProperty('vec4', 'vHumanAux'), vExt = varyingProperty('vec4', 'vHumanExt');
     const vWear = varyingProperty('vec4', 'vHumanWear'), vSkinL = varyingProperty('vec2', 'vHumanSkinL');
+    const vFold = varyingProperty('vec4', 'vHumanFold'), vFoldG = varyingProperty('vec3', 'vHumanFoldG');
+    const FOLD = T.scans && T.scans.foldBase >= 0 && T.groups?.length ? T.scans : null;
     const SL = T.scans && T.skinLayers?.length ? T.skinLayers : null;
     this.positionNode = Fn((builder: any) => {
       const s = src.toVar(), nB = decodeN(s.w);
@@ -323,6 +329,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const mixW = sw.x.mul(sw.y).mul(4).clamp(0, 1), bend = float(1).sub(dot(normalize(yA), normalize(yB))).mul(2).clamp(0, 1).mul(mixW).mul(clothC).mul(float(1).sub(skirtV));
       vWear.assign(vec4(wear.x, bend, ampPh, wear.w));
       // D-304: the body variant's light- and dark-toned skin layers (one term per variant: arithmetic, no lookup texture)
+      // D-322: the garments' fold atlas coordinate (fuv: x ≥ 2 on the lower levels of detail, which read the second layer; < 0
+      // none) and the channel of the person's group
+      if (FOLD) { const f = attribute('fuv', 'vec2'), lo = step(1.5, f.x); vFold.assign(vec4(f.x.sub(lo.mul(2)), f.y, lo, step(-0.5, f.x)));
+        let gi: any = float(0); T.groups!.forEach((g, k) => { if (g) gi = gi.add(is(person0.x, k).mul(g)); }); vFoldG.assign(vec3(is(gi, 0), is(gi, 1), is(gi, 2))); }
       if (SL) { let sl: any = vec2(0); SL.forEach(([a, b], k) => { sl = sl.add(vec2(a, b).mul(is(person0.x, k))); }); vSkinL.assign(sl); }
       return p;
     })();
@@ -531,7 +541,17 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const hz = float(1).sub(smoothstep(0.04, DRAPE.hang.top, U.y)).mul(step(-0.03, U.y)).mul(is(prm, PRM_UPPER)).mul(kCloth);
     const hangH = sin(thB.mul(DRAPE.hang.n).add(n3.mul(2.5))).mul(DRAPE.hang.h).mul(hz).mul(band(DRAPE.hang.n / 0.9));
     clothAlb = clothAlb.mul(float(1).sub(hem.mul(DRAPE.hemDark)));
-    const clothH = n2.mul(mix(DRAPE.lump, 0.0012, is(prm, 4))).add(n1.mul(mix(DRAPE.streak.h[0], DRAPE.streak.h[1], isLinen)).mul(band(DRAPE.streak.f[1]))).add(weaveH).add(pleatH).add(robeH).add(foldH).add(wrinkleH).add(hemH).add(gatherH).add(hangH); // linen is smoother than wool
+    // D-322: with the garments re-cut from Blender's cloth simulations (T.simCloth), their folds, pleats, gathers and blousing
+    // are in the geometry: the shading stand-ins for them (the pleat field, the robe's creases, the gathers and the hanging
+    // folds of the upper garments: "pleats as a shading stripe", B121) are left out
+    const fake = T.simCloth ? 0 : 1;
+    // D-322: the settled cloth's folds finer than the mesh (the fold layers: people_cloth's post-step), in the garment's own
+    // atlas; faded where a triangle spans a chart's seam (its atlas coordinate jumps: the tubes' back seam, the body UV's)
+    let simFoldH: any = float(0);
+    if (FOLD) { const fu = vFold.xy, seamF = float(1).sub(smoothstep(0.02, 0.05, max(fu.x.fwidth(), fu.y.fwidth())));
+      const fs = texture(FOLD.cloth, fu).depth(vFold.z.add(FOLD.foldBase)).rgb;
+      simFoldH = dot(fs, vFoldG).sub(0.5).mul(2 * FOLD.foldScale).mul(vFold.w).mul(seamF).mul(kCloth); }
+    const clothH = n2.mul(mix(DRAPE.lump, 0.0012, is(prm, 4))).add(n1.mul(mix(DRAPE.streak.h[0], DRAPE.streak.h[1], isLinen)).mul(band(DRAPE.streak.f[1]))).add(weaveH).add(simFoldH).add(pleatH.mul(fake)).add(robeH.mul(fake)).add(foldH).add(wrinkleH).add(hemH).add(gatherH.mul(fake)).add(hangH.mul(fake)); // linen is smoother than wool
 
     // ---- felt, leather, metal, wood, wicker
     const feltAlb = vColor.mul(float(1).add(n3.mul(0.1)).add(n1.mul(0.05))).mul(mix(vec3(1), scanDet, SC ? SCAN.cloth.alb[2] : 0));

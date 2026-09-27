@@ -468,10 +468,12 @@ function skirtTube(L: Lib, key: string, lod: number, o: { top: number; hem: (c: 
   folds?: number;
   /** D-225: the Persian robe's baked pleats (drape.ts ROBE/robePleat) in place of the ripples: its own columns (denser at
    *  the front), rings and a coarser lining, class parameter PRM_ROBE */
-  robe?: boolean }) {
-  const T = TESS[lod], rings = o.robe ? ROBE.rings[lod] : skirtRings(lod), segs = o.robe ? ROBE.segs[lod] : T.seg;
+  robe?: boolean;
+  /** D-322: columns (default the level's) */
+  segs?: number }) {
+  const T = TESS[lod], rings = o.robe ? ROBE.rings[lod] : skirtRings(lod), segs = o.robe ? ROBE.segs[lod] : o.segs ?? T.seg;
   const kneeT = 0.55;
-  const g = tubeGeo(L.A, key, { segs, rings, lining: 0.004, thAt: o.robe ? robeTheta : undefined, liningStride: o.robe ? 2 : 1,
+  const g = tubeGeo(L.A, key, { segs, rings, lining: 0.004, thAt: o.robe ? robeTheta : undefined, liningStride: 2, // (D-322: every skirt's lining takes every second ring: the columns go to the outer layer, which carries the folds)
     frame: (c, t) => { const top = c.J('spine_01')[1] + o.top, hemMid = o.hem(c, Math.PI / 2); const y = lerp(top, hemMid, t); const zc = lerp(c.J('pelvis')[2] + 0.02, c.J('calf_l')[2] - 0.01, t); return vertFrame([0, y, zc]); },
     support: { parts: [P.pelvis, P.belly, ...LEGS], slab: 0.03, running: 'max' },
     radius: (c, t, th, sup) => {
@@ -1220,6 +1222,10 @@ function withCards(L: Lib, id: string, lod: number, base: Geo): Geo {
   return base.n ? merge(base.key, [base, cardGeo(L, `${id}@${lod}_cards`, S, C.meta.headH)]) : cardGeo(L, base.key, S, C.meta.headH);
 }
 
+/** D-322: the skirts' columns per level of detail (the settled folds are sampled at them: a fold needs two columns); their
+ *  linings take every second ring, which pays for the columns (the tunics' 1,680 triangles at full detail kept; the dress,
+ *  worn by women and envoys, whose costumes have room, and the child's take more) */
+export const SKIRT_SEGS: Record<string, [number, number, number]> = { tunic_skirt: [52, 14, 8], work_skirt: [52, 14, 8], child_skirt: [64, 16, 8], dress_skirt: [80, 18, 10] };
 function buildPiece(L: Lib, id: string, lod: number): Geo {
   const J = L.J;
   switch (id) {
@@ -1231,13 +1237,13 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'tunic_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.97, hipDrop: 0.08, neckDrop: 0.03, thick: 0.009, armThick: 0.006, smooth: 2 });
     case 'tunic_skirt': case 'work_skirt': case 'child_skirt': { const T = TESS[lod], rings = skirtRings(lod);
       const hem = (c: Ctx) => c.J('calf_l')[1] + (id === 'tunic_skirt' ? 0.0 : 0.04);
-      return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.01, flare: 0.035, pleats: 14, pleatAmp: 0.004, folds: 0.007 }), T.seg, rings, true, hem); }
+      const segs = SKIRT_SEGS[id][lod]; return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.01, flare: 0.035, pleats: 14, pleatAmp: 0.004, folds: 0.007, segs }), segs, rings, true, hem, undefined, 2); }
     case 'trousers': return trouserShell(L, `${id}@${lod}`, lod, COL.second);
     case 'work_trousers': return trouserShell(L, `${id}@${lod}`, lod, COL.second);
     case 'work_upper': case 'child_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.22, hipDrop: 0.08, neckDrop: 0.03, thick: 0.009, armThick: 0.007, smooth: 2 });
     case 'dress_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.96, hipDrop: 0.1, neckDrop: 0.025, thick: 0.01, armThick: 0.008, smooth: 3 });
     case 'dress_skirt': { const T = TESS[lod], rings = skirtRings(lod); const hem = () => 0.03;
-      return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.014, flare: 0.06, pleats: 22, pleatAmp: 0.006, folds: 0.005 }), T.seg, rings, true, hem); }
+      const segs = SKIRT_SEGS[id][lod]; return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.014, flare: 0.06, pleats: 22, pleatAmp: 0.006, folds: 0.005, segs }), segs, rings, true, hem, undefined, 2); }
     case 'headcloth': return headcloth(L, `${id}@${lod}`, lod);
     case 'belt': { const over = ['robe_skirt', 'tunic_skirt', 'work_skirt', 'dress_skirt', 'child_skirt'].map(k => geoKey(k, lod)); // skirts only: the upper shells include the sleeves
       return sashGeo(L, `${id}@${lod}`, lod, over, { dy: -0.005, h: 0.045, col: COL.trim, mat: MAT.cloth_trim, bulge: 0.003 }); }
@@ -1349,6 +1355,8 @@ function geoNormals(pos: Float32Array, index: number[], n: number) {
 const SHELLS = new Set(['robe_upper', 'tunic_upper', 'work_upper', 'child_upper', 'dress_upper', 'trousers', 'work_trousers', 'hair', 'beard_short', 'headcloth']); // (D-206: footwear and the felt cap are lofted with their own far tessellation) // (the bob is a shell and a curtain: its own far geometry, D-155)
 const geoLod = (id: string, lod: number) => (SHELLS.has(id) && lod === 2 ? 1 : lod);
 const geoKey = (id: string, lod: number) => `${id}@${geoLod(id, lod)}`;
+/** the geometry key a piece is built under at a level of detail (shells share the mid tessellation at LOD 2) */
+export const geoKeyOf = geoKey;
 /** placement order: pieces a belt is fitted over come first */
 const ORDER = (id: string) => (id === 'belt' ? 2 : id.includes('upper') || id.includes('skirt') ? 0 : 1);
 

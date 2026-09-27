@@ -102,7 +102,7 @@ describe('garment drape (people_cloth)', () => {
     const D = M.drape!; expect(D).toBeTruthy();
     for (const [k, S] of Object.entries(D.sets)) {
       const [key] = k.split('|'); expect(O.geos![key]?.n, k).toBe(S.meta.n);
-      expect(S.meta.max, k).toBeLessThan(0.2);
+      expect(S.meta.max, k).toBeLessThan(key.startsWith('veil') ? 0.25 : 0.2); // (D-322: the veil, cut as an open sheet flaring off the back, falls in to the back by up to 21 cm when simulated)
       if (/skirt|sleeves|veil/.test(key)) expect(S.meta.rms, k).toBeGreaterThan(0.005);
     }
   });
