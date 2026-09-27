@@ -6713,3 +6713,13 @@ moment-*-webgpu.png in the worktree, not committed).**
      royal guard's sleeping places: B63), the Tripylon's building site, then materials and masonry against the photo references
      (B57; the rubric's materials 1/5), each verified on screen.
 - **Not changed:** MASTER_PLAN's gates and thresholds; the gap inventory stays the backlog, now ordered by ring.
+
+## D-278 The eclipsed Moon drawn at its perceived brightness (session 10; B84)
+- **Problem (B84):** eclipse-moon-tele at day 101 01:08 (a deep partial eclipse, obscuration > 0.85) drew the umbral part of the
+  disc at 3e-4 of the full Moon: 1/255 under the night exposure, only the lit sliver showing. To the naked eye the umbral part of
+  an eclipsed Moon is plainly seen, coppery (A: Danjon's scale is a naked-eye scale).
+- **Decision:** the disc's DRAWN umbra is set on the same perceptual footing as the stars (their `bright` is not photometric
+  either): `UMBRA_DISPLAY` = 3 % of the full disc's radiance at the umbra's edge, 40 % of that at the shadow's axis (Danjon L 2),
+  the penumbra easing in (squared) so the edge is not a step (C; reasoning in ephemeris.ts). The Moon's light on the LAND keeps
+  the photometric `light` (`earthShadow`), so the landscape darkens at the eclipse as it does. Pinned in tests/eclipse.test.ts.
+- **Verification:** eclipse-terrace and eclipse-moon-tele re-queued (render lane, session 10).

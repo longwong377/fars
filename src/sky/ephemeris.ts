@@ -76,6 +76,13 @@ export function starAzAlt(raDeg: number, decDeg: number, pmraMas: number, pmdecM
  *  UMBRA_BRIGHTNESS, the red light the Earth's atmosphere bends into the shadow, C). */
 export const UMBRA_BRIGHTNESS = 3e-4; // Danjon L ≈ 2 (C): a deep brick-red umbra, grey at its centre
 export const UMBRA_RGB: [number, number, number] = [1.0, 0.42, 0.22]; // C
+/** The umbra as DRAWN on the disc (session 10, B84): the eye dark-adapts across four to five decades that the frame's night
+ *  exposure does not follow (the stars are drawn on the same perceptual footing, skySystem's `bright`), so the photometric ratio
+ *  (3e-4, or ~1e-5 for Danjon L 2) drew the disc at 1/255 and totality vanished. A totally eclipsed Moon is plainly seen,
+ *  coppery, by the naked eye (A: every account, Danjon's scale). Drawn at ~3 % of the full disc's radiance at the umbra's edge
+ *  (a brightness ratio of 1e-5 to the power of Stevens' ~0.33 for brightness in the dark, ≈ 0.02-0.03: C), darkening to 40 % of
+ *  that at the shadow's axis (Danjon L 2: dark grey centre, brighter rim). The Moon's light on the land keeps `light` above. */
+export const UMBRA_DISPLAY = 0.03, UMBRA_DISPLAY_CORE = 0.4;
 const KM_PER_AU = 149597870.7, R_EARTH = 6378.14, R_SUN = 696000, R_MOON = 1737.4;
 export function earthShadow(jdUT: number, moonTopoW?: [number, number, number]) {
   const t = timeFromJD(jdUT), S = A.GeoVector(A.Body.Sun, t, true), M = A.GeoMoon(t);

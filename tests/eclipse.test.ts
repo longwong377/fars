@@ -2,7 +2,7 @@
 // with astronomy-engine's eclipse search (contacts, depth), and the Moon is untouched away from it.
 import { describe, it, expect } from 'vitest';
 import * as A from 'astronomy-engine';
-import { earthShadow, timeFromJD, moonHorizon, UMBRA_BRIGHTNESS } from '../src/sky/ephemeris';
+import { earthShadow, timeFromJD, moonHorizon, UMBRA_BRIGHTNESS, UMBRA_DISPLAY, UMBRA_DISPLAY_CORE } from '../src/sky/ephemeris';
 import { START_JDN } from '../src/core/calendar';
 
 const e = A.SearchLunarEclipse(timeFromJD(START_JDN - 0.5)), peak = e.peak.ut + 2451545.0;
@@ -22,5 +22,10 @@ describe('the lunar eclipse of 467 BCE (sim day 101)', () => {
   it('outside the penumbra the Moon is at full brightness', () => {
     expect(earthShadow(peak - 4 / 24).light).toBe(1); expect(earthShadow(peak + 4 / 24).light).toBe(1);
     expect(earthShadow(peak - 30).light).toBe(1);
+  });
+  it('the umbra is drawn at its perceived brightness, not the photometric ratio (B84): a coppery disc, darker at the axis', () => {
+    expect(UMBRA_DISPLAY).toBeGreaterThanOrEqual(0.015); expect(UMBRA_DISPLAY).toBeLessThanOrEqual(0.06);
+    expect(UMBRA_DISPLAY_CORE).toBeGreaterThan(0.2); expect(UMBRA_DISPLAY_CORE).toBeLessThan(1);
+    expect(UMBRA_DISPLAY).toBeGreaterThan(UMBRA_BRIGHTNESS * 30); // never back to the ratio that drew it black
   });
 });

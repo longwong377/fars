@@ -9,7 +9,7 @@ import * as THREE from 'three/webgpu';
 import { HALO_R } from './halo';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int, step } from 'three/tsl';
-import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt, earthShadow, UMBRA_BRIGHTNESS, UMBRA_RGB } from './ephemeris';
+import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt, earthShadow, UMBRA_RGB, UMBRA_DISPLAY, UMBRA_DISPLAY_CORE } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { Meteors } from './meteors';
 import { Planets } from './planets';
@@ -231,7 +231,10 @@ export class SkySystem {
     // umbra only the red light the Earth's atmosphere bends in (ephemeris.ts; geometry A/B, the umbra's colour and depth C)
     const dSh = length(normalize(positionWorld.sub(cameraPosition)).sub(this.uShadowW)); // chord ≈ angle for small angles
     const tSh = clamp(dSh.sub(this.uShadow.x).div(this.uShadow.y.sub(this.uShadow.x)), 0, 1);
-    const eclipse = mix(vec3(1, 1, 1), mix(vec3(...UMBRA_RGB).mul(UMBRA_BRIGHTNESS), vec3(1, 1, 1), tSh), this.uShadow.z);
+    // (B84, session 10: the umbra drawn at its perceived brightness, UMBRA_DISPLAY, darker towards the axis; the penumbra's
+    // inner part eases in (tSh squared) so the drawn edge is not a step from 3 % to half-lit)
+    const core = mix(float(UMBRA_DISPLAY_CORE), float(1), clamp(dSh.div(this.uShadow.x), 0, 1));
+    const eclipse = mix(vec3(1, 1, 1), mix(vec3(...UMBRA_RGB).mul(core.mul(UMBRA_DISPLAY)), vec3(1, 1, 1), tSh.mul(tSh)), this.uShadow.z);
     mm.colorNode = vec4(vec3(0.95, 0.93, 0.88).mul(lit.mul(1.2)).add(vec3(0.8, 1.0, 1.4).mul(this.uEarthshine)).mul(eclipse), 1);
     this.moon = new THREE.Mesh(new THREE.SphereGeometry(moonR, 32, 16), mm);
     this.moon.frustumCulled = false; this.moon.renderOrder = -8;
