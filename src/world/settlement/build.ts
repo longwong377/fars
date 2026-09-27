@@ -383,7 +383,7 @@ export function litterMaterial() { const m = Object.assign(surfaceMaterial('litt
 export function siteGround(s: Site, H: (e: number, n: number) => number, ground: Batch, outR = 0) {
   const near = outR > 0 ? nearPlots(s, outR) : null; // D-303: the villages' lanes are the raster's open ground (OUT) between the compounds
   const green = (k: number) => { const c = s.cell[k]; if (c < 0) return c === -1 && !near?.[k]; const kd = s.plots[c].kind; return kd === 'garden' || kd === 'yard' || (kd === 'elite' && s.sub[k] === 3); };
-  const colOf = (k: number): RGB => { const c = s.cell[k]; if (c < 0) return c === -4 ? lin([0.54, 0.47, 0.37]) : lin([0.53, 0.46, 0.36]); // (D-303: the square a shade, not a pale rectangle) const sb = s.sub[k]; return sb === 1 ? lin([0.44, 0.38, 0.3]) : sb === 2 ? lin([0.56, 0.49, 0.38]) : lin([0.5, 0.43, 0.33]); };
+  const colOf = (k: number): RGB => { const c = s.cell[k]; if (c < 0) return c === -4 ? lin([0.54, 0.47, 0.37]) : lin([0.53, 0.46, 0.36]); /* (D-303: the square a shade, not a pale rectangle) */ const sb = s.sub[k]; return sb === 1 ? lin([0.44, 0.38, 0.3]) : sb === 2 ? lin([0.56, 0.49, 0.38]) : lin([0.5, 0.43, 0.33]); };
   // D-223 (rubric s7 pass 2 fix 9: from the Terrace the town's roofs did not read against its ground): the ground between
   // the houses is darker where the houses close in on it (the sky it sees, and the damp and litter a lane collects),
   // by the share of roofed cells within 3 m of each corner: up to 30 % darker at the foot of a wall in a narrow lane
