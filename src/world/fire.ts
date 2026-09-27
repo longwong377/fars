@@ -326,16 +326,24 @@ export class FireSystem {
   }
   /** illuminance at `p` (renderer units, on a surface facing each fire: the eye's adaptation) from the fires' cast light
    *  as the point lights cast it (fireLight: the same candela, mean flicker, decay and cut-off window; D-216) */
-  localIlluminance(p: THREE.Vector3) {
-    let e = 0; const q = new THREE.Vector3();
+  localIlluminance(p: THREE.Vector3, view?: THREE.Vector3) {
+    let e = 0; const q = new THREE.Vector3(), dir = new THREE.Vector3();
     for (const f of this.lightedFires(p)) { const L = fireLight(f.kind); q.copy(f.pos); q.y += L.height - LIFT[f.kind];
-      e += L.candela * FIRE_FLICKER_MEAN * pointAttenuation(q.distanceTo(p), L.cutoff, L.decay); }
+      // with a view direction, the light entering the eye: a surface facing the view (cosine, D-297), plus a floor for the
+      // light the fire scatters off everything round the eye; a fire behind the head no longer closes the eye (session 11:
+      // the night-sky views from the Terrace rendered black with a brazier behind the camera)
+      const facing = view ? FIRE_SCATTER + (1 - FIRE_SCATTER) * Math.max(0, dir.subVectors(q, p).normalize().dot(view)) : 1;
+      e += facing * L.candela * FIRE_FLICKER_MEAN * pointAttenuation(q.distanceTo(p), L.cutoff, L.decay); }
     return e * this.lightScale;
   }
   stats() { return { fires: this.fires.length, lit: this.fires.filter(f => f.lit).length, smoke: this.smokeN }; }
 }
 
 /** lit state of a scheduled fire (C). `seed` (0..100) staggers the fires so a town lights up over an hour, not at once. */
+/** light a fire scatters off the surroundings into an eye facing away from it, as a share of the facing value (C: a
+ *  lit ground of albedo ~0.2–0.3 round a brazier returns a few tenths of the light; D-297) */
+export const FIRE_SCATTER = 0.15;
+
 export function scheduleLit(sched: FireSchedule, hour: number, sunAlt: number, seed: number): boolean {
   const j = (seed % 1 + (seed * 0.137) % 1) % 1; // 0..1
   const pm = hour >= 12;

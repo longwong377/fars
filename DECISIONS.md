@@ -6991,3 +6991,28 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Seen (GPU, Q high, session 11):** stair-foot-ground: the plain reads as real cracked dry earth where it read as blotchy
   camouflage; calib-24-now: grain on the wall and the plain, but the wall stays pale grey (the D-285 Now-view tint is on
   its branch) and Kuh-e Rahmat stays a smooth dune (the terrain mesh does not use surfaceMaterial): next.
+
+## D-296 Speaking with the people (session 11; UD-18; T-E9) — the plan
+- **Direction (UD-18):** the user wants to speak to a person and have them answer, in a world anyone runs from a URL on a
+  good GPU. It supersedes §10 where they differ; the rest of §10 stands.
+- **Decision (the design, to build after the realism push of UD-17):** (1) **baked lives**, generated offline on the GPU
+  machine for every person (history, household ties, debts and quarrels, the year's events), shipped as data: every visitor
+  gets them, no GPU cost; (2) **in-browser speech recognition** (a Whisper-class model on WebGPU) or typing; (3) **an
+  in-browser language model** (1-3 B parameters, 4-bit, cached after the first visit) playing that one person from their baked
+  life, fenced to what a person at Persepolis in 467 could know, never hinting at the fate; the rule simulation stays the
+  source of truth and the model only answers or picks from the person's own actions; (4) **the reply in the translation
+  layer** (English, out of world); heard, the person speaks in their own voice with attested words where they exist and
+  period prosody otherwise; an English voice is an out-of-world option. (5) Without a capable GPU the people live as now.
+- **Measure:** T-E9 (≥ 95 % of the conversation test set answered in character within 4 s, nothing anachronistic).
+
+## D-297 The fires' light at the eye weighted by the view direction (session 11)
+- **Problem:** every night-sky view from the Terrace rendered black (zodiacal-mar, meteor-terrace, eclipse-terrace,
+  eclipse-moon-tele: frame means 0.4-0.7, exposure pinned at X_MIN 0.35), batched or on a fresh load. On the open plain the
+  same night exposed at X_MAX 6. The eye's adaptation summed each fire's illuminance "on a surface facing each fire"
+  (fire.ts localIlluminance), so a brazier behind the head closed the eye as if the player stared into it.
+- **Decision (C):** with a view direction the fire's light at the eye is that on a surface facing the view: the cosine
+  term, with a floor FIRE_SCATTER 0.15 of the facing value for the light the fire returns off the ground and walls round the
+  eye. main.ts passes the camera's view direction; the coverage harness's fireLux keeps the facing-every-fire value.
+- **Measured (?norender probe, day 322, the Terrace at [-36, 125] looking W at 16°):** 19:42 and 23:00 exposure 0.35 → 1.84;
+  the open plain at 23:00 stays 6; noon stays 0.99. Tests: the fire and exposure tests 32/32. Renders: the four night views
+  re-rendered after this entry (sessions/s11.md).

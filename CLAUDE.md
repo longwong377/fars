@@ -68,6 +68,19 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   rows: keep both sides, no blank line inside a table; reserve D/Q/B number ranges per agent in its prompt.
 - **After a render-affecting merge**, re-render the moments it touches before claiming a fix; a node test is not a render.
 
+## The GPU machine (session 11 on; supersedes the SwiftShader-era rules above where they differ)
+- Windows (Vagon), NVIDIA Tesla T4, 16 cores, 63 GB, open internet. Clone setup: `git config core.autocrlf false` (the guards
+  compare bytes), `npm ci`, the installed Chrome drives the GPU (`PW_CHANNEL=chrome npx playwright test … --project=gpu`;
+  Playwright's own chrome.exe does not start here). No python, flock or pgrep: cpu_slot.sh and the queue scripts do not run;
+  run node jobs directly, several at once.
+- A page load is ~11 min (world ~3 min, then shader compiles in the first 3 frames); a warm frame 0.1 s. Render every view of
+  a job in one load (`BATCH=1`), at the player's lens and quality by default. **Never edit a tree whose dev server is serving
+  a render**: vite reloads the page and kills the run; work in another worktree (`../fars-wt/*`).
+- **B7 is lifted: texture and asset libraries are reachable.** Surfaces use CC0 scans (Poly Haven, ambientCG) over the
+  procedural base (src/render/scans.ts; the measured tint and layout stay, the scan adds the grain); every asset in
+  ASSET_LEDGER.md. The user's direction (session 11): every inch looking real, and every limit of the old machine revisited.
+- Agents: briefs carry handoff/agent_template.md's fixed clauses and its machine section.
+
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
 of the Terrace, the town and the plain must reach the photoreal bar, one way or another. Measure it as coverage, not by

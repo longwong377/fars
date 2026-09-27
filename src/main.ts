@@ -386,6 +386,7 @@ async function boot() {
     world.simulate?.(dt, clock);
   }
   let exposure = 1, adaptT = 0, skyVis = -1, rayVis = 1, probeVis = { eye: 1, w: 0 };
+  const fireView = new THREE.Vector3(); // the camera's view direction for the fires' light at the eye (D-297)
   /** frozen test renders adapt fully every frame; a camera-rig sequence may instead carry the eye over from an earlier view:
    *  `from` = the exposure the eye had there, `seconds` since (adaptExposure's time constants), D-187 */
   let adaptHold: { from: number; seconds: number } | null = null;
@@ -436,7 +437,7 @@ async function boot() {
       sky.air.setInterior(probeVis.w > 0 ? probeVis.w * Math.min(1, probeVis.eye) + (1 - probeVis.w) : 1, probeVis.w > 0 ? probeVolumeExtent(camera.position) : 0); }
     // the sun the eye has: above the terrain's horizon at the camera (D-156: Kuh-e Rahmat shades the Terrace at sunrise)
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) * sky.eyeSunVisibility : 0;
-    const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
+    const fireE = world.fire ? world.fire.localIlluminance(camera.position, camera.getWorldDirection(fireView)) : 0; // D-297: the light entering the eye
     // outdoors (and beside walls, from the upward rays): the session-3 law; the sky's lights carry the eye's gain beyond its range (D-117)
     const outside = exposureTarget(sunE, sky.hemi.intensity * 0.8, rayVis, sky.moonLight.intensity * 0.3, fireE, sky.fireScale);
     // inside a probe volume the eye adapts to the interior's own light (D-141); blended in stops across the volume's edge
