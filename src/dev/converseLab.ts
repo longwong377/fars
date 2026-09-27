@@ -11,17 +11,18 @@ import { buildTestSet, score, type Scored } from '../people/converse/testset';
 import { heardReply } from '../people/converse/voice';
 import { systemPrompt } from '../people/converse/prompt';
 import { bakeMessages, parseBake, checkBake, type Baked } from '../people/converse/bake';
+import { buildTalkSet, runTalkSet } from '../people/converse/talkset';
 
 const $ = (id: string) => document.getElementById(id)!;
 const P = new URLSearchParams(location.search);
 const SEED = +(P.get('seed') ?? 1);
-let sim: PeopleSim | null = null;
+let sim: PeopleSim | null = null; let make: (() => PeopleSim) | null = null;
 async function world() {
   if (sim) return sim;
   const bin = (p: string) => fetch('/' + p).then(r => r.arrayBuffer());
   const nav = await NavGrid.load(bin);
   const W = new WeatherSystem(SEED), env = (t: number): Env => { const dd = Math.floor(t / 24), c = W.conditions(dd, t - dd * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
-  sim = new PeopleSim(SEED, nav, env); return sim;
+  make = () => new PeopleSim(SEED, nav, env); sim = make(); return sim;
 }
 const mind = new Mind(); let ears: Ears | null = null; let voice: EnglishVoice | null = null;
 const rec = async (pid: number, day: number, hour: number) => { const S = await world(); return lifeRecord(S.pop, S.cal, pid, day, hour); };
@@ -53,6 +54,12 @@ const lab = {
     for (const c of T) { const L = lifeRecord(S.pop, S.cal, c.pid, c.day, c.hour); const a = await mind.answer(L, 'none', [], c.prompt); out.push({ ...score(c, L, a.text, a.totalMs, a.ttftMs, a.tries, a.ok), primeMs: a.primeMs, raw: a.raw, tokens: a.tokens } as any); }
     return out;
   },
+  /** D-315 (T-E10): the request-and-recall set with the loaded model: requests [from, to) of the seeded set and their recalls,
+   *  the requests in one world, the recalls in the save reloaded into another (talkset.ts runTalkSet) */
+  talkSet: async (n = 64, from = 0, to = 1e9) => { const S = await world(); const all = buildTalkSet(S.pop, S.cal, SEED, n);
+    const keep = (c: { i: number; kind: string; of?: number }) => c.kind === 'recall' || c.kind === 'heard' ? c.of! >= from && c.of! < to : c.i >= from && c.i < to;
+    const r = await runTalkSet(mind, make!, all.filter(keep), s => { $('status').textContent = s; }); const { world: _w, ...rest } = r; void _w;
+    return { model: mind.model, ...rest, res: r.res.map(x => ({ i: x.c.i, kind: x.c.kind, job: x.c.job, say: x.c.say, reply: x.reply, deed: x.deed, pass: x.pass, why: x.why, ms: x.ms, memory: x.memory, raw: x.raw })) }; },
   cases: async (n = 72) => { const S = await world(); return buildTestSet(S.pop, SEED, n); },
   /** a spoken case: the samples go through speech recognition, then the person answers; the time is both together */
   spoken: async (i: number, samples: number[], n = 72) => {

@@ -8,8 +8,11 @@ import { fenceHits, type FenceHit } from './fence';
 import { primeParts, tidy, type Knows, type Turn } from './prompt';
 import { hearAsPerson } from './hear';
 import type { LifeRecord } from './life';
+import { parseIntent, type Intent } from './intent';
 
-export interface Answer { heard?: string; recovered?: boolean; text: string; raw: string; ok: boolean; hits: FenceHit[]; tries: number; ttftMs: number; totalMs: number; primeMs: number; tokens: number; prefillTps: number; decodeTps: number }
+/** D-315: what the person remembers of the stranger (talk.ts recall) and the simulation's word on what was asked */
+export interface AskOpts { memory?: string[]; note?: string; /** a turn that is not the stranger's words (the retelling of a refusal: turn.ts) */ userText?: string }
+export interface Answer { /** D-315: the tag the model ended with (intent.ts; null: none) */ intent?: Intent | null; heard?: string; recovered?: boolean; text: string; raw: string; ok: boolean; hits: FenceHit[]; tries: number; ttftMs: number; totalMs: number; primeMs: number; tokens: number; prefillTps: number; decodeTps: number }
 export interface LoadInfo { ms: number; model: string }
 type Msg = { role: 'system' | 'user' | 'assistant'; content: string };
 
@@ -30,9 +33,9 @@ export class Mind {
   /** prime the model with a person's life when the stranger comes near (prompt.ts primeParts): two short read-ins, kept in
    *  the model's cache (WebLLM's multi-round KV reuse) for the talk; returns the time taken (0: already primed for this
    *  person, hour and familiarity) */
-  async prime(L: LifeRecord, knows: Knows, prose?: string | null): Promise<number> {
-    const key = [L.seed, L.pid, L.day, Math.floor(L.hour), knows].join('|'); if (key === this.primedFor) return 0;
-    const t0 = performance.now(); const P = primeParts(L, knows, prose); const msgs: Msg[] = [{ role: 'system', content: P.system }];
+  async prime(L: LifeRecord, knows: Knows, prose?: string | null, memory?: string[] | null): Promise<number> {
+    const key = [L.seed, L.pid, L.day, Math.floor(L.hour), knows, (memory ?? []).join('|')].join('|'); if (key === this.primedFor) return 0;
+    const t0 = performance.now(); const P = primeParts(L, knows, prose, memory); const msgs: Msg[] = [{ role: 'system', content: P.system }];
     for (const f of P.facts) { msgs.push({ role: 'user', content: f });
       const r = await this.engine!.chat.completions.create({ messages: msgs, max_tokens: 24, temperature: 0.7, ...this.extra() } as any) as any;
       msgs.push({ role: 'assistant', content: r.choices[0].message.content ?? '' }); }
@@ -46,31 +49,33 @@ export class Mind {
   recoveries = 0;
   /** the answer, and if the GPU device was lost on the way (the Windows watchdog under a busy card: DXGI_ERROR_DEVICE_HUNG),
    *  the model reloaded and the answer asked once more (the time counts: T-E9 fails it when it runs past 4 s) */
-  async answer(L: LifeRecord, knows: Knows, history: Turn[], said: string, prose?: string | null, maxTokens = 64): Promise<Answer> {
+  async answer(L: LifeRecord, knows: Knows, history: Turn[], said: string, prose?: string | null, maxTokens = 64, opts: AskOpts = {}): Promise<Answer> {
     const t0 = performance.now();
-    try { return await this.answerOnce(L, knows, history, said, prose, maxTokens); }
+    try { return await this.answerOnce(L, knows, history, said, prose, maxTokens, opts); }
     catch (e) { if (!/disposed|device|lost|mapAsync|unmapped/i.test(String(e))) throw e;
       this.recoveries++; console.warn('[converse] GPU device lost; reloading the model', String(e).slice(0, 200)); await this.unload().catch(() => {}); await this.load(this.model);
-      const a = await this.answerOnce(L, knows, history, said, prose, maxTokens); return { ...a, totalMs: performance.now() - t0, recovered: true } as Answer; }
+      const a = await this.answerOnce(L, knows, history, said, prose, maxTokens, opts); return { ...a, totalMs: performance.now() - t0, recovered: true } as Answer; }
   }
-  private async answerOnce(L: LifeRecord, knows: Knows, _history: Turn[], said: string, prose?: string | null, maxTokens = 64): Promise<Answer> {
-    const primeMs = await this.prime(L, knows, prose);
-    const e = this.engine!; const t0 = performance.now(); let ttft = -1, tokens = 0, raw = '', text = '', hits: FenceHit[] = [], tries = 0, prefill = 0, decode = 0;
+  private async answerOnce(L: LifeRecord, knows: Knows, _history: Turn[], said: string, prose?: string | null, maxTokens = 64, opts: AskOpts = {}): Promise<Answer> {
+    const primeMs = await this.prime(L, knows, prose, opts.memory);
+    const e = this.engine!; const t0 = performance.now(); let ttft = -1, tokens = 0, raw = '', text = '', hits: FenceHit[] = [], tries = 0, prefill = 0, decode = 0; let intent: Intent | null = null;
     const h = hearAsPerson(said); // the fence on the way in (hear.ts): later words reach the person as "…"
-    let msgs: Msg[] = [...this.conv, { role: 'user', content: `The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''} (Answer as ${L.name}, from your own life.)` }];
+    // (D-315: the simulation's word on what was asked, when the stranger asked for something: "(You can do it.)" / "(You
+    // cannot: on watch ...)"; the person's own words and tag follow)
+    let msgs: Msg[] = [...this.conv, { role: 'user', content: opts.userText ?? `The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''}${opts.note ? ` (${opts.note})` : ''} (Answer as ${L.name}, from your own life.)` }];
     while (tries < 2) {
       tries++; raw = '';
       const stream = await e.chat.completions.create({ messages: msgs, stream: true, stream_options: { include_usage: true }, max_tokens: maxTokens, temperature: 0.7, top_p: 0.9, frequency_penalty: 0.3, presence_penalty: 0.1, ...this.extra() } as any) as any;
       for await (const ch of stream) { const d = ch.choices?.[0]?.delta?.content ?? ''; if (d && ttft < 0) ttft = performance.now() - t0; raw += d;
         if (ch.usage) { tokens += ch.usage.completion_tokens; prefill = ch.usage.extra?.prefill_tokens_per_s ?? prefill; decode = ch.usage.extra?.decode_tokens_per_s ?? decode; } }
       msgs = [...msgs, { role: 'assistant', content: raw }];
-      text = tidy(raw); hits = fenceHits(text);
+      const pi = parseIntent(raw); intent = pi.intent; text = tidy(pi.words); hits = fenceHits(text); // (D-315: the tag read and taken out before the words are tidied and fenced)
       if (!hits.length && text.length > 1) break;
       const words = [...new Set(hits.map(h => `“${h.term}”`))].join(', ');
       msgs.push({ role: 'user', content: hits.length ? `(Say that again as yourself: you do not know ${words}, and you never speak of what is to come.)` : '(Answer me as yourself, briefly.)' });
     }
     this.conv = msgs;
-    return { heard: h.text, text, raw, ok: !hits.length && text.length > 1, hits, tries, ttftMs: ttft, totalMs: performance.now() - t0, primeMs, tokens, prefillTps: prefill, decodeTps: decode };
+    return { intent, heard: h.text, text, raw, ok: !hits.length && text.length > 1, hits, tries, ttftMs: ttft, totalMs: performance.now() - t0, primeMs, tokens, prefillTps: prefill, decodeTps: decode };
   }
 }
 
