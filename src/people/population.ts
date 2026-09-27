@@ -210,6 +210,10 @@ export function backFromOk(segs: Seg[], i: number) {
 }
 /** the quarter a place of the town is in (lane:q_lt_e, training:q_lt_e), else the place (B S7 of r7: two trips down to one quarter) */
 export function quarterOf(pl: string) { const q = pl.split(':')[1]; return q && q.startsWith('q_') ? q : pl; }
+/** the words of a day kept in by the weather only near the weather (words() and the care layer, which cuts such spells: D-292) */
+export function keptInWords(segs: Seg[], wx: DayCtx['wx']) {
+  for (const s of segs) { const k = weatherWord(s.why); if (k && !weatherNear(wx, k, s.t0, s.t1)) s.why = s.why.replace(/^at home: (storm|heavy rain|rain)$/, 'at home').replace(/^(at home: )?(storm|heavy rain|rain): /, 'at home: ').replace(/^at home: kept in by the (heavy rain|rain|storm)$/, 'at home').replace(/kept in by the (heavy rain|rain|storm)/, 'at home'); }
+}
 export function dustWear(segs: Seg[], wx: DayCtx['wx']) {
     const W = 'the face wrapped against the dust';
     // (a plan copied from another's brings her wrap with it: taken off and decided here again)
@@ -1728,7 +1732,7 @@ export class Population {
   private careGet<T>(k: string, f: () => T): T { if (this.careCache.has(k)) return this.careCache.get(k) as T; if (this.careCache.size > 60000) this.careCache.clear(); const v = f(); this.careCache.set(k, v); return v; }
   /** a spell of the planner's day that care may take: at one of the places, at leisure or at light work, awake, not carried */
   private static careFree(s: Seg, places: string[], child = false) {
-    return places.includes(s.place) && s.where !== 'road' && (child ? /^(play|rest|talk)$/ : /^(rest|talk|spin|craft|gamble|exchange)$/).test(s.act) && !/nurs|asleep|\bill\b|mourn|feed|in labour|birth|the dead|minding|carried|keeping|guarding|the heat/.test(s.why); }
+    return places.includes(s.place) && s.where !== 'road' && (child ? /^(play|rest|talk)$/ : /^(rest|talk|spin|craft|gamble|exchange)$/).test(s.act) && !/nurs|asleep|\bill\b|mourn|feed|in labour|birth|the dead|minding|carried|keeping|guarding|the heat|errand/.test(s.why); }
   /** [a, b] of `segs` lies wholly in spells that care may take */
   private static careSpan(segs: Seg[], a: number, b: number, places: string[], child = false) {
     if (a < 0 || b > 24) return false; for (const s of segs) { if (s.t1 <= a + 1e-9 || s.t0 >= b - 1e-9) continue; if (!Population.careFree(s, places, child)) return false; } return true; }
@@ -1739,6 +1743,12 @@ export class Population {
   /** the town quarters' households (lazy) */
   private qHouses: Map<string, number[]> | null = null;
   private housesOfQ(q: string) { if (!this.qHouses) { this.qHouses = new Map(); for (const H of this.households) if (H.zone === 'town') (this.qHouses.get(H.q) ?? this.qHouses.set(H.q, []).get(H.q)!).push(H.id); } return this.qHouses.get(q) ?? []; }
+  /** a care spell over [a, b] (its walks included) leaves no stub of a spell elsewhere behind it or before it: the place
+   *  the person is at just before a and just after b is the care's own, a walk, or a spell that goes on for a while there
+   *  (no walk out of the lane for a few minutes and straight back into it, or out of it and home again: people_days_r5) */
+  static careEdges(segs: Seg[], a: number, b: number, place: string[]) {
+    const s0 = segAt(segs, a - 1e-3), s1 = segAt(segs, b + 1e-3), ok = (s: Seg, rest: number) => s.where === 'road' || place.includes(s.place) || rest > CARE_STUB;
+    return ok(s0, a - s0.t0) && ok(s1, s1.t1 - b); }
   /** the quarter's barbers on day d: the first ceil(men / body_care.men_per_barber), by the quarter's own draw, of its
    *  working men of 28-60 (the builders, porters, craftsmen and servants of its houses) who are there, not ill and at home */
   barbersOf(q: string, d: number): number[] {
@@ -1757,7 +1767,7 @@ export class Population {
       for (const x of men) { const xh = this.households[this.home(x, d)].home, xs = this.rawPlan(x, d), wk = Math.max(0.05, this.walkH(xh, lane, d, 'town', 'town'));
         let done = false; for (const b0 of bar) { if (b0.n >= BC.shaves_max) continue;
           for (let a = b0.t; a + len <= end; a += 0.25) { const b = a + len; if (wetHours(C.wx, a - 0.3, b + 0.3) > 0) continue;
-            if (Population.careSpan(b0.bs, a - b0.wk, b + b0.wk, [b0.bh, lane]) && Population.careSpan(xs, a - wk, b + wk, [xh, lane]) && this.careAlone(b0.B, d, a - b0.wk, b + b0.wk) && this.careAlone(x, d, a - wk, b + wk) && this.careLeave(b0.B, d, a - b0.wk, b + b0.wk) && this.careLeave(x, d, a - wk, b + wk)) { out.push([b0.B, x, a, b]); b0.t = b + 0.05; b0.n++; done = true; break; } }
+            if (Population.careSpan(b0.bs, a - b0.wk, b + b0.wk, [b0.bh, lane]) && Population.careSpan(xs, a - wk, b + wk, [xh, lane]) && Population.careEdges(b0.bs, a - b0.wk, b + b0.wk, [lane]) && Population.careEdges(xs, a - wk, b + wk, [lane]) && this.careAlone(b0.B, d, a - b0.wk, b + b0.wk) && this.careAlone(x, d, a - wk, b + wk) && this.careLeave(b0.B, d, a - b0.wk, b + b0.wk) && this.careLeave(x, d, a - wk, b + wk)) { out.push([b0.B, x, a, b]); b0.t = b + 0.05; b0.n++; done = true; break; } }
           if (done) break; } }
       return out; }); }
   /** the day's delousing in a household: [the woman, the child, t0, t1] on the doorstep, or null */
@@ -1773,7 +1783,7 @@ export class Population {
       if (a1 < a0) return null;
       for (const w of women) { const ws = this.rawPlan(w, d), cs = this.rawPlan(child, d);
         for (let k = 0; k * 0.25 < span; k++) { const a = a0 + ((off + k * 0.25) % span), b = a + len; if (a > a1 || wetHours(C.wx, a - 0.2, b + 0.2) > 0) continue;
-          if (Population.careSpan(ws, a, b, [home]) && Population.careSpan(cs, a - wk, b + wk, [home, lane], true) && this.careAlone(child, d, a - wk, b + wk) && cs.every(x => x.t1 <= a - wk || x.t0 >= b + wk || x.with === undefined || x.with === w)) return [w, child, a, b] as [number, number, number, number]; } }
+          if (Population.careSpan(ws, a, b, [home]) && Population.careSpan(cs, a - wk, b + wk, [home, lane], true) && Population.careEdges(ws, a, b, [home]) && Population.careEdges(cs, a - wk, b + wk, [home]) && this.careAlone(child, d, a - wk, b + wk) && cs.every(x => x.t1 <= a - wk || x.t0 >= b + wk || x.with === undefined || x.with === w)) return [w, child, a, b] as [number, number, number, number]; } }
       return null; }); }
   /** D-292 (gap hunter C, C-D23; GC24): before a wedding, a word and a look at the well: on some of the days before it, when
    *  the bride draws water at her quarter's well and her husband-to-be is free at the time, he is there too, for a few minutes
@@ -1785,7 +1795,7 @@ export class Population {
       const H = this.households[this.home(bride, d)], GH = this.households[this.home(g, d)]; if (!H || !GH || (GH.zone !== 'town' && GH.zone !== 'plain')) return null;
       const well = `well:${H.q}`, W: Where = GH.zone === 'plain' ? 'plain' : 'town', gs = this.rawPlan(g, d), wk = Math.max(0.05, this.walkH(GH.home, well, d, W, W)), lane = `lane:${GH.q}`;
       for (const s of this.rawPlan(bride, d)) { if (s.act !== 'draw_water' || s.place !== well || s.t1 - s.t0 < 0.12 || s.with !== undefined) continue;
-        const a = s.t0, b = Math.min(s.t1, a + 0.2); if (Population.careSpan(gs, a - wk, b + wk, [GH.home, lane]) && this.careAlone(g, d, a - wk, b + wk) && this.careLeave(g, d, a - wk, b + wk)) return [bride, g, a, b] as [number, number, number, number]; }
+        const a = s.t0, b = Math.min(s.t1, a + 0.2); if (Population.careSpan(gs, a - wk, b + wk, [GH.home, lane]) && Population.careEdges(gs, a - wk, b + wk, [well]) && this.careAlone(g, d, a - wk, b + wk) && this.careLeave(g, d, a - wk, b + wk)) return [bride, g, a, b] as [number, number, number, number]; }
       return null; }); }
   /** D-292 (gap hunter C, C-D19; GC23): a man of the heavy work (the building sites, the porters, the fields, the herds) hurt
    *  now and then: a kick from an animal, a stone on the foot, a fall on the scaffolding: he limps for some days after it,
@@ -1804,6 +1814,8 @@ export class Population {
     const C = this.cal.ctx(d), home = H.home, age = this.ageOn(pid, d), his = p.sex === 'f' ? 'her' : 'his', BC = L.body_care, W: Where = H.zone === 'plain' ? 'plain' : 'town';
     let out: Seg[] | null = null;
     const put = (a: number, b: number, parts: Seg[]) => { const segs = out ?? base.map(x => ({ ...x })); const r: Seg[] = [];
+      // (a remainder of the spell cut under 7 s is no part of the day: the care takes it in, so no sliver is left: people_days_r4)
+      for (const s of segs) { if (s.t0 < a - 1e-9 && s.t1 > a && a - s.t0 < 0.002) { a = s.t0; parts[0].t0 = a; } if (s.t1 > b + 1e-9 && s.t0 < b && s.t1 - b < 0.002) { b = s.t1; parts[parts.length - 1].t1 = b; } }
       for (const s of segs) { if (s.t1 <= a + 1e-9 || s.t0 >= b - 1e-9) { r.push(s); continue; } if (s.t0 < a - 1e-9) r.push({ ...s, t1: a }); if (s.t1 > b + 1e-9) r.push({ ...s, t0: b }); }
       const i = r.findIndex(s => s.t0 >= b - 1e-9); r.splice(i < 0 ? r.length : i, 0, ...parts); out = r; };
     const at = (h: number) => segAt(out ?? base, h);
@@ -1836,12 +1848,15 @@ export class Population {
         else if (x === pid) visit(a, b, `lane:${H.q}`, 'being shaved by the barber in the lane, sitting on the ground: his beard trimmed or his cheeks shaved', B); }
       for (const [a, b] of mine) visit(a, b, `lane:${H.q}`, 'shaving men of the quarter in the lane: a beard trimmed or the cheeks shaved with a bronze razor, water from a jar'); }
     // before the wedding, a word and a look at the well (the groom comes; the bride's own words gain it)
-    if (p.spouse !== undefined && p.marry < 1e9 && d < p.marry) { const bride = p.sex === 'f' ? pid : p.spouse, cw = this.courtingOn(bride, d);
+    if (p.spouse !== undefined && (p.sex === 'f' ? p : this.persons[p.spouse]).marry < 1e9 && d < (p.sex === 'f' ? p : this.persons[p.spouse]).marry) { const bride = p.sex === 'f' ? pid : p.spouse, cw = this.courtingOn(bride, d); // (the wedding day is the bride's move: the groom's own marry is unset)
       if (cw) { const [bb, g, a, b] = cw, bn = nameFor(this.seed, this.persons[bb]), gn = nameFor(this.seed, this.persons[g]);
         if (pid === g) visit(a, b, `well:${this.households[this.home(bb, d)].q}`, `at the well: a word and a look with ${bn ?? 'the girl'} while she draws water (they are to marry)`, bb, 'talk');
         else if (pid === bb) { const segs = out ?? base.map(x => ({ ...x })); for (const x of segs) if (x.act === 'draw_water' && Math.abs(x.t0 - a) < 1e-6) x.why = `${x.why}, a word and a look exchanged with ${gn ?? 'the man'} she is to marry`; out = segs; } } }
     if (!out) return base; const o: Seg[] = this.relabel(pid, d, out); // (the words of the pieces cut from a spell "with the household" are checked again)
-    dustWear(o, C.wx); coldWear(o, C.wx, false); return o;
+    keptInWords(o, C.wx); dustWear(o, C.wx); coldWear(o, C.wx, false);
+    // (the build puts the best clothes last, after the dust wrap and the cold: kept so when the wrap is decided here again)
+    for (const s of o) if (s.wear && /best clothes/.test(s.wear) && !/(^|, and )in the best clothes$/.test(s.wear)) s.wear = `${s.wear.replace(/in the best clothes, and /, '')}, and in the best clothes`;
+    return o;
   }
 }
 
@@ -2226,7 +2241,7 @@ class Planner {
     for (const s of segs) if (/\bthe heat\b|\bin the heat\b/.test(s.why) && !(s.t1 > 10.5 && s.t0 < 18)) s.why = s.act === 'sleep' ? 'a short sleep' : 'resting at home';
     // (the words of a day kept in by the weather only near the weather: "at home: storm" hours before the storm came or after
     // it had gone; B S8 of shadow review r8; planCheck (d) WEATHER_WORDS)
-    for (const s of segs) { const k = weatherWord(s.why); if (k && !weatherNear(this.C.wx, k, s.t0, s.t1)) s.why = s.why.replace(/^at home: (storm|heavy rain|rain)$/, 'at home').replace(/^(at home: )?(storm|heavy rain|rain): /, 'at home: ').replace(/^at home: kept in by the (heavy rain|rain|storm)$/, 'at home').replace(/kept in by the (heavy rain|rain|storm)/, 'at home'); }
+    keptInWords(segs, this.C.wx);
     const short = segs.map((s, i) => /through the heat/.test(s.why) && heatStretch(segs, i) < 0.75);
     for (let i = 0; i < segs.length; i++) { const s = segs[i];
       if (short[i]) s.why = /^sleeping through the heat/.test(s.why) ? 'a short sleep in the heat of the day' + s.why.replace(/^sleeping through the heat( of the day)?/, '') : s.why.replace(/ through the heat( of the day)?/, ' in the heat of the day');
@@ -4773,6 +4788,8 @@ export function wakeIndex(segs: Seg[], home: string): number {
     return s.place === home && n.place === home && n.where !== 'road' && n.act !== 'lie_ill' && n.act !== 'sleep' && !NIGHT_FEED.test(n.why) && s.t1 - s.t0 > 0.2 ? i : -1; }
   return -1; }
 /** D-292: who is hurt at work now and then (Population.injuryOn), and how (C) */
+/** the least of a spell elsewhere left before or after a care spell (h): below it the care is not laid there (C) */
+const CARE_STUB = 0.35;
 const INJURY_JOBS = new Set(['builder', 'porter', 'farmer', 'herder', 'groom', 'camp']);
 const INJURY_HOW = ['kicked in the shin by one of the animals', 'a stone dropped on his foot at the building works', 'turned his ankle under a load'];
 /** D-292: the running water of the plain (the river, the canals, their banks), and a washing done on the bank from a jar */

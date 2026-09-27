@@ -14,7 +14,7 @@ import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
 import { TownWalk, siteMoves, openCode } from '../src/world/settlement/walk';
 import { ROOM, toLocal, type Site } from '../src/world/settlement/site';
 import { PopGeo, routeAt, type Spot, type Route } from '../src/people/popgeo';
-import { PopView, MIN_PACE, MAX_PACE, CHILD_H, HAND_SNAP, handReach } from '../src/people/popview';
+import { PopView, MIN_PACE, MAX_PACE, CHILD_H, HAND_SNAP, handReach, PAIR_FOLLOW, PAIR_GAP } from '../src/people/popview';
 import { buildCanals } from '../src/world/plain/canals';
 import { placeVillages, villageCompounds } from '../src/world/plain/villages';
 import { loadTerrain, loadRiversFile } from './plainLib';
@@ -109,11 +109,15 @@ describe('population view: the plans in the built world (D-143)', () => {
     expect(close / standing).toBeLessThan(0.05);
   }, 600_000);
   it('positions are the plans\': a person at a place is at its spot; a walker is on the route between the plan\'s places and arrives at its hour', () => {
-    const d = 25, P = sim.pop; let stays = 0, walks = 0; const bad: string[] = [];
+    const d = 25, P = sim.pop; let stays = 0, walks = 0, paired = 0; const bad: string[] = [];
     for (const h of [8.25, 10.5, 16.75]) { sim.jumpTo(d * 24 + h); view.settle(d * 24 + h, [-400, -300]);
       const byPid = new Map(view.visible.filter(o => o.agent < 0).map(o => [o.pid, o]));
       for (const s of (view as any).list) { const o = byPid.get(s.pid); if (!o || !s.plan) continue; const seg = segAt(P.plan(s.pid, d), h);
         // at a place: at its spot, or (when others stood there first) at the clear place beside it that the view gave them
+        // (D-292: the one of a pair of the body's care placed by the other, a child in front of the woman going through its
+        // hair, a man in front of the barber, the groom by the bride at the well: at the pair's gap from the partner, not at its own spot)
+        if (s.mode === 1 && seg.where !== 'road' && PAIR_FOLLOW.test(o.why) && seg.with !== undefined && byPid.has(seg.with)) { const q = byPid.get(seg.with)!, g = Math.hypot(q.e - o.e, q.n - o.n); paired++;
+          if (g > Math.max(...Object.values(PAIR_GAP)) + 0.05) bad.push(`p${s.pid} paired with p${seg.with} at ${seg.place}: ${g.toFixed(2)} m from the partner`); continue; }
         if (s.mode === 1 && seg.where !== 'road' && !o.moving) { stays++; const sp = geo.spot(s.pid, seg.place, seg.act, d, h, planIndoors(seg, P.cal.ctx(d).wx, sunTimes(d), h) /* D-244: the plan's roof */), aside = Math.hypot(s.sepE - sp.e, s.sepN - sp.n);
           if (!s.what.includes('leaves')) { if (Math.hypot(s.sepE - o.e, s.sepN - o.n) > 0.01) bad.push(`p${s.pid} at ${seg.place}: drawn ${Math.hypot(s.sepE - o.e, s.sepN - o.n).toFixed(2)} m off its place`);
             if (aside > 5.1) bad.push(`p${s.pid} at ${seg.place}: ${aside.toFixed(2)} m from its spot`); } }
@@ -122,7 +126,7 @@ describe('population view: the plans in the built world (D-143)', () => {
           for (let k = 0; k <= 200; k++) { routeAt(r, r.len * k / 200, q); best = Math.min(best, Math.hypot(q.e - o.e, q.n - o.n)); } if (best > r.len / 200 + 0.05 + (o.hand === 2 ? HAND_SNAP + handReach(1.44).gap : 0)) bad.push(`p${s.pid} walking ${best.toFixed(2)} m off its route`);
           routeAt(r, r.len, q); const end = Math.hypot(q.e - s.spot.e, q.n - s.spot.n); if (end > 0.05) bad.push(`p${s.pid}: route ends ${end.toFixed(2)} m from the place it walks to`);
           if (Math.abs(s.w1 - (d * 24 + seg.t1)) > 1e-6 && !(s.w1 > d * 24 + seg.t1)) bad.push(`p${s.pid}: walk ends at ${s.w1.toFixed(3)}, the plan's block at ${(d * 24 + seg.t1).toFixed(3)}`); } } }
-    note('m03', `positions: ${stays} people at their places, ${walks} on their way; ${bad.length} off ${JSON.stringify(bad.slice(0, 5))}`);
+    note('m03', `positions: ${stays} people at their places, ${walks} on their way, ${paired} placed by their partner (D-292); ${bad.length} off ${JSON.stringify(bad.slice(0, 5))}`);
     expect(stays).toBeGreaterThan(1000); expect(walks).toBeGreaterThan(50); expect(bad).toEqual([]);
   }, 600_000);
   it('walks take the plans\' hours at a walking pace (route length / the plan\'s time; leaving late when the plan allows more)', () => {

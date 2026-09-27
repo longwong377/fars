@@ -477,7 +477,7 @@ export class PopView {
    *  no begging is shown */
   impairOf(pid: number, day: number): 0 | 1 | 2 {
     const p = this.pop.persons[pid]; if (p.agent >= 0 || p.job === 'guard' || p.job === 'messenger') return 0;
-    if (this.pop.injuryOn(pid, day)) return 1; // D-292 (GC23): a limp for some days after a hurt at work (C)
+    if (this.pop.injuryOn?.(pid, day)) return 1; // D-292 (GC23): a limp for some days after a hurt at work (C)
     const u = h32(this.seed, S.impair, pid) / 4294967296, age = this.pop.ageOn(pid, day);
     if (p.sex === 'm' && age >= IMPAIR.lame.ages[0] && age <= IMPAIR.lame.ages[1] && u < IMPAIR.lame.share) return 1;
     if (age >= IMPAIR.blind.from && u < IMPAIR.blind.share) return 2;

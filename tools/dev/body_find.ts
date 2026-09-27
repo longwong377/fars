@@ -13,7 +13,7 @@ const P = W.pop, pose = (e: number, n: number, headingDeg: number, dist = 4) => 
   return `[${ce.toFixed(1)}, ${cn.toFixed(1)}, 1.6, ${((g - 19 + 360) % 360).toFixed(1)}, -6]`; };
 const rows: string[] = [];
 for (const vp of W.view.visible) { if (vp.agent >= 0) continue; const x = P.dueIn(vp.pid, day);
-  if (x !== null && x >= 0 && x < 70 && P.expecting(vp.pid, day)) rows.push(`WITH CHILD p${vp.pid} due ${x} d, belly ${P.gravid(vp.pid, day).toFixed(2)}, ${vp.moving ? 'walking' : 'standing'} ${vp.act} "${vp.why}" at (${vp.e.toFixed(1)}, ${vp.n.toFixed(1)}) h ${vp.heading.toFixed(0)}: ${vp.what}; camera ${pose(vp.e, vp.n, vp.heading)}`);
+  if (x !== null && x >= 0 && x < 70 && P.expecting(vp.pid, day)) rows.push(`WITH CHILD p${vp.pid} due ${x} d, belly ${P.gravid(vp.pid, day).toFixed(2)}, ${vp.moving ? 'walking' : 'standing'} ${vp.act} "${vp.why}" at (${vp.e.toFixed(1)}, ${vp.n.toFixed(1)}) h ${vp.heading.toFixed(0)}: ${vp.what}; camera ${pose(vp.e, vp.n, vp.heading)}, in profile ${pose(vp.e, vp.n, vp.heading + 90, 3)} or ${pose(vp.e, vp.n, vp.heading - 90, 3)}`);
   if (vp.act === 'tend_body') rows.push(`CARE p${vp.pid} "${vp.why}" at (${vp.e.toFixed(1)}, ${vp.n.toFixed(1)}) h ${vp.heading.toFixed(0)}: ${vp.what}; camera ${pose(vp.e, vp.n, vp.heading)}`); }
 console.log(`seed ${seed} day ${day} ${hour} h: ${W.view.visible.length} out of doors within ${radius} m; pairs placed ${W.view.pairs.placed}, alone ${W.view.pairs.alone}`);
 for (const r of rows) console.log(r);

@@ -324,7 +324,7 @@ export class Crowd {
   /** the day's bellies for everyone attached (each day's refresh: the months go on) */
   private bellies(day: number, force = false) {
     const pop = this.view?.pop ?? this.sim?.pop; if (!pop || (!force && day === this.bellyDay)) return; this.bellyDay = day;
-    for (const p of this.persons.values()) { if (p.extra) continue; const pid = this.popPid(p); if (pid >= 0) this.setBelly(p, pop.gravid(pid, day)); } }
+    for (const p of this.persons.values()) { if (p.extra) continue; const pid = this.popPid(p); if (pid >= 0) this.setBelly(p, pop.gravid?.(pid, day) ?? 0); } }
   private newPerson(key: string, agent: Agent | null, look: PersonLook, seed: number): Person {
     const slot = this.allocSlot(); this.writePerson(slot, look);
     const v = this.humans.A.variants[look.variant];
@@ -342,7 +342,7 @@ export class Crowd {
   attach(a: Agent): Person {
     const hit = this.byAgent.get(a.id); if (hit) return hit; const key = `a${a.id}`;
     const look = lookFor(this.humans.A, { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } as LookInput, this.seed);
-    const p = this.newPerson(key, a, look, a.seed); if (a.pid >= 0 && this.sim) this.setBelly(p, this.sim.pop.gravid(a.pid, Math.floor(this.sim.t / 24))); return p;
+    const p = this.newPerson(key, a, look, a.seed); if (a.pid >= 0 && this.sim) this.setBelly(p, this.sim.pop.gravid?.(a.pid, Math.floor(this.sim.t / 24)) ?? 0); return p;
   }
   detach(a: Agent | string) { const p = typeof a === 'string' ? this.persons.get(a) : this.byAgent.get(a.id); if (!p) return; this.freeSlot(p.slot); this.persons.delete(p.key); if (p.agent) this.byAgent.delete(p.agent.id); else if (p.pid >= 0) this.byPid.delete(p.pid); }
   /** attach a person of the population (D-143): their look from the view (a detailed agent keeps its own); idempotent */
@@ -351,7 +351,7 @@ export class Crowd {
     const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
     if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
     const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p);
-    const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid(pid, day)); return p;
+    const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid?.(pid, day) ?? 0); return p; // (gravid?.: a view built on a partial population, as the tests' stand-ins, draws no belly)
   }
   /** an extra person not driven by the simulation (test lineups, the performance sheet): fixed place, yaw and animation,
    *  or an activity (`act`, with the plan's reason `why`) performed with its props, work objects and animals */
@@ -506,7 +506,7 @@ export class Crowd {
     if (act !== p.act || why !== p.why) { // the performance changes only with the activity or the plan's reason
       p.act = act ?? ''; p.why = why; p.perf = act ? performanceFor(act, why, a ? a.seed : Math.round(p.animK * 159), e?.variant, vp ? this.who(p.pid) : undefined) : null; p.actPlaceholder = !!p.perf?.placeholder;
       // D-215 (gap audit item 37): the lame walk with a staff, the blind feel their way with one
-      if (vp?.impair && p.perf && act === 'walk' && !p.perf.animals) { const hurt = vp.impair === 1 && p.pid >= 0 ? this.view?.pop.injuryOn(p.pid, Math.floor((this.sim?.t ?? 0) / 24)) : null;
+      if (vp?.impair && p.perf && act === 'walk' && !p.perf.animals) { const hurt = vp.impair === 1 && p.pid >= 0 ? this.view?.pop.injuryOn?.(p.pid, Math.floor((this.sim?.t ?? 0) / 24)) : null;
         p.perf = { ...p.perf, anim: vp.impair === 1 ? 'limp' : 'feel', prop: 'staff', note: hurt ? `limping on a staff, ${hurt.how} some days ago (gap hunter C, C-D19: hurts of the heavy work; C: D-292)` : vp.impair === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; } }
     p.anim = p.perf ? p.perf.anim : e?.anim ?? 'idle';
   }

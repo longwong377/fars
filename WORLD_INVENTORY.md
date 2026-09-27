@@ -181,7 +181,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GA26 | dance at weddings and festivals | A525; C-D43 | arts | B claim | MISSING/PARTIAL |
 | GA27 | recitation of heroes' songs to the young | A527; C-D31 | arts | B claim | MISSING/PARTIAL |
 | GA28 | wrestling, races, riding contests | A530 | recreation | C | MISSING/PARTIAL |
-| GA29 | lullabies and lament | A534, A562; C-D30 | sound | C | MISSING/PARTIAL |
+| GA29 | lullabies and lament | A534, A562; C-D30 | sound | C | PARTIAL (D-292: the lullaby, hummed; no lament) |
 | GA30 | Aramaic leather with writing (partial) | A536 | records | B | MISSING/PARTIAL |
 | GA31 | polygyny and concubinage | A540 | family | B claim | MISSING/PARTIAL |
 | GA32 | divorce, widow remarriage, fostering | A541 | family | C | MISSING/PARTIAL |
@@ -229,7 +229,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB9 | dye works (partial) | B-057 | crafts | C | MISSING/PARTIAL |
 | GB10 | litters for nobles and royal women | B-061 | transport | C | MISSING/PARTIAL |
 | GB11 | dates arriving by pack train | B-066, P-008; C-L07 | commodities | B | MISSING/PARTIAL |
-| GB12 | pregnancy visible | B-075; C-D09 | people | C | MISSING/PARTIAL |
+| GB12 | pregnancy visible | B-075; C-D09 | people | C | FILLED (D-292; the belly is not drawn on the impostors at distance) |
 | GB13 | silver weighed on a balance (performed as `inspect`: a detector escape) | B-095, P-022 | economy | B | FILLED (D-255) |
 | GB14 | writing boards and the scribe's kit | B-099 | records | C | MISSING/PARTIAL |
 | GB15 | rain on timber and cloth heard | B-103 | sound | C | BUILT (D-293 addendum); not heard in a browser |
@@ -260,14 +260,14 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB40 | quail | F-015 | birds | C | PARTIAL (D-288: heard, not seen) |
 | GB41 | rooks and crows in the winter fields (partial) | F-017 | birds | C | MISSING/PARTIAL |
 | GB42 | swallows nesting under the eaves (partial) | F-040; C-F15, C-W21 | birds | C | MISSING/PARTIAL |
-| GB43 | fleas and lice (scratching) | F-044; C-D06 | people | C | MISSING/PARTIAL |
+| GB43 | fleas and lice (scratching) | F-044; C-D06 | people | C | PARTIAL (D-292: a child deloused on the doorstep; no scratching) |
 | GB44 | trot and gallop (every animal walks; a courier never hurries) | F-056 | animals | C | MISSING/PARTIAL |
 | GB45 | lotus and water lilies in the pools | FL-017 | flora | C | MISSING/PARTIAL |
 | GB46 | a bath or washing room in elite houses | S-004; C-D05 | housing | C | MISSING/PARTIAL |
 | GB47 | a scribal school | S-005 | education | C | MISSING/PARTIAL |
 | GB48 | household cults of the foreign workers (Q-471) | S-009 | religion | C | MISSING/PARTIAL |
 | GB49 | workmen at the Xerxes façade at Naqsh-e Rustam | S-011 | construction | C | MISSING/PARTIAL |
-| GB50 | the Persian washing rule (Hdt 1.138) contradicted by garrison laundry in the river | S-017; C-D46, C-D47 | religion / consistency | B claim | MISSING/PARTIAL |
+| GB50 | the Persian washing rule (Hdt 1.138) contradicted by garrison laundry in the river | S-017; C-D46, C-D47 | religion / consistency | B claim | FILLED (D-292) |
 | GB51 | horses whinnying and snorting | SO-001; C-W01 | sound | C | BUILT (D-282); not heard in a browser |
 | GB52 | cattle lowing | SO-002 | sound | C | BUILT (D-256: the herds' lowing, a new strike; the compounds' cows at night) |
 | GB53 | camels grumbling | SO-003; C-W02 | sound | C | BUILT (D-282); not heard in a browser |
@@ -288,7 +288,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GC3 | glass vessels (Achaemenid cut glass) in the Treasury | C-L30 | commodities | B | MISSING |
 | GC4 | bitumen: jar sealing, waterproofing, basket linings | C-L31 | commodities | B | MISSING |
 | GC5 | measuring vessels: the QA/BAR grain measure at every issue, the marriš wine jar | C-L38, C-L39 | measures | A units / C form | MISSING |
-| GC6 | shaving and trimming beards; barbers | C-L50, C-D07 | people | C | MISSING |
+| GC6 | shaving and trimming beards; barbers | C-L50, C-D07 | people | C | FILLED (D-292) |
 | GC7 | bow and arrow makers (fletchers) | C-L53 | crafts | B/C | MISSING |
 | GC8 | personal seals: thousands of designs (only two exist), seals worn on a cord at the wrist or neck | C-S02, C-S03 | records | A diversity / B wearing | MISSING/PARTIAL |
 | GC9 | camel riders (only led strings) | C-S17 | transport | A word / C | MISSING |
@@ -302,14 +302,14 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GC17 | private tablets and records in a scribe's house | C-H27 | records | B analogy | PARTIAL |
 | GC18 | shoulder yoke for two jars or baskets | C-H28 | transport | B | MISSING |
 | GC19 | waterskin; butter-churning skin on a tripod | C-H29 | food processing | C | MISSING |
-| GC20 | washing face and hands | C-D04 | people | C | MISSING |
+| GC20 | washing face and hands | C-D04 | people | C | FILLED (D-292) |
 | GC21 | menstrual seclusion (uncertain: Vendidad date disputed) | C-D11 | people | C | MISSING |
 | GC22 | stripping to the waist in the heat at harvest or building | C-D13 | dress | C | MISSING |
-| GC23 | injuries and accidents: a cut, a fall, a kick | C-D19 | health | C | MISSING |
-| GC24 | courtship before the wedding | C-D23 | family | C | MISSING |
+| GC23 | injuries and accidents: a cut, a fall, a kick | C-D19 | health | C | PARTIAL (D-292: a limp on a staff after a hurt at work; no bound hand) |
+| GC24 | courtship before the wedding | C-D23 | family | C | FILLED (D-292) |
 | GC25 | a quarrel coming to blows, pulled apart | C-D25 | law | C | MISSING |
 | GC26 | banking the hearth at night (partial) | C-D33 | housing | C | PARTIAL |
-| GC27 | the herd boy's sling for turning the flock or scaring wolves | C-D38 | husbandry | C | MISSING |
+| GC27 | the herd boy's sling for turning the flock or scaring wolves | C-D38 | husbandry | C | FILLED (D-292) |
 | GC28 | Persian boys' riding lessons (Hdt 1.136; archery only; partial) | C-D41 | childhood | B claim | PARTIAL |
 | GC29 | animal droppings on the royal road, the lanes and the stair foot | C-F08 | traces | C | PARTIAL (D-284: the roads and the halts; not the lanes); render queued |
 | GC30 | sherd and litter scatter and household ash by the doors (partial) | C-F09, C-F10 | traces | C | PARTIAL (D-284: sherds on the roads; not the lanes, no ash) |

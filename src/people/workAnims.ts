@@ -860,8 +860,8 @@ function pound(t: number, k: number): Pose {
 function washFace(t: number, k: number): Pose {
   const P = 5.2, q = fr(t / P + k * 0.31), p = blank();
   const up = ramp(q, 0.12, 0.3) * (1 - ramp(q, 0.46, 0.6)), rub = win(q, 0.3, 0.46, 0.03), hands = win(q, 0.66, 0.95, 0.04);
-  const T = kneelBody(p, t, k, 0.75 + 0.35 * up);
-  const face = v3.add(T.chestT, app(T.chestR, [0, 0.33, 0.14])), low: V3 = [0, 0.14, 0.42], mid: V3 = [0, 0.3, 0.36];
+  const T = kneelBody(p, t, k, 0.95 + 0.15 * up);
+  const face = v3.add(T.chestT, app(T.chestR, [0, 0.33, 0.14])), low: V3 = [0, 0.2, 0.45], mid: V3 = [0, 0.34, 0.4];
   const c = mixV(low, face, up), w = 0.04 * S(2 * PI * t * 2.2) * rub, hr = 0.05 * S(2 * PI * t * 2.6) * hands;
   const at = hands > 0.05 ? mid : c;
   grip(p, T, 'r', [at[0] - 0.045 + w + hr, at[1] + 0.02 * rub, at[2] - 0.02 * up], [-0.9, -0.6, -0.3], 1.1);
@@ -884,7 +884,7 @@ function delouse(t: number, k: number): Pose {
 function shave(t: number, k: number): Pose {
   const P = 6, q = fr(t / P + k * 0.17), p = blank(), T = kneelBody(p, t, k, 0.22);
   const rinse = win(q, 0.8, 0.95, 0.03), st = fr(t / 1.1 + k), down = st < 0.7 ? st / 0.7 : 1 - (st - 0.7) / 0.3, side = fr(t / (2 * P) + k) < 0.5 ? 1 : -1;
-  const razor: V3 = mixV([-0.02 + 0.06 * side, 0.9 - 0.1 * down, 0.4], [-0.32, 0.2, 0.34], rinse);
+  const razor: V3 = mixV([-0.02 + 0.06 * side, 0.9 - 0.1 * down, 0.4], [-0.3, 0.45, 0.36], rinse);
   grip(p, T, 'r', razor, [-0.9, -0.6, -0.3], 0.5); grip(p, T, 'l', [0.06 - 0.06 * side, 0.9, 0.42], [0.9, -0.6, -0.3], -0.9);
   look(p, T, rinse > 0.5 ? [-0.3, 0.2, 0.35] : [0.02 * side, 0.86, 0.45]); p.grip = [0.3, 1]; return p;
 }
@@ -897,9 +897,9 @@ function sling(t: number, k: number): Pose {
   const turn = whirl * 2 * PI * 1.6 * (u - 25.5);
   const T = body(p, { hp: 0.04 + 0.1 * cast, sp: 0.05 + 0.12 * cast, drop: -0.015, hy: 0.05 * wob(t * 0.2, k) - 0.25 * whirl + 0.35 * cast }, t, k);
   stance(p, T, { w: 0.14, zl: 0.12 * (whirl + cast), zr: -0.05 - 0.08 * cast, out: 0.22 });
-  const rest: V3 = [-0.2, 0.86, 0.08], head: V3 = [-0.1 + 0.28 * C(turn), 1.75 + 0.06 * S(turn), 0.05 + 0.28 * S(turn)], throw_: V3 = [-0.08, 1.35, 0.62], pouch: V3 = [0.02, 1.02, 0.3];
+  const rest: V3 = [-0.19, 0.92, 0.14], head: V3 = [-0.1 + 0.26 * C(turn), 1.66 + 0.05 * S(turn), 0.08 + 0.26 * S(turn)], throw_: V3 = [-0.08, 1.35, 0.62], pouch: V3 = [0.02, 1.02, 0.3];
   const R = cast > 0.05 ? mixV(head, throw_, cast) : whirl > 0.05 ? mixV(pouch, head, whirl) : mixV(rest, pouch, load);
-  grip(p, T, 'r', R, [-0.8, -0.9, -0.3], 0.4); grip(p, T, 'l', load > 0.05 ? [pouch[0] + 0.06, pouch[1], pouch[2]] : [0.2, 0.86, 0.06 + 0.25 * cast], [0.8, -1, -0.2]);
+  grip(p, T, 'r', R, [-0.8, -0.9, -0.3], 0.4); grip(p, T, 'l', load > 0.05 ? [pouch[0] + 0.06, pouch[1], pouch[2]] : [0.19, 0.92, 0.12 + 0.25 * cast], [0.8, -1, -0.2]);
   look(p, T, [6 * S(t * 0.11 + k), 0.3, 8 + 4 * C(t * 0.07 + k)]); p.grip = [load > 0.05 ? 0.8 : 0.2, 1]; return p;
 }
 export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
