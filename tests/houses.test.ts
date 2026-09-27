@@ -17,6 +17,9 @@ import { ROOM, COURT, YARD, EAVE_LIP, type Site } from '../src/world/settlement/
 import { heightRaster, rasterAt } from './lib/townLos';
 import { loadTerrain } from './plainLib';
 import { hashString } from '../src/core/rng';
+import { registerScanStandIns, VESSEL_IDS } from './lib/scanStandIns';
+// Q-960: the houses' scan vessels at the triangles the browser draws (node cannot load the GLBs)
+registerScanStandIns(VESSEL_IDS);
 
 let town: Settlement, fire: FireSystem, T: ReturnType<typeof loadTerrain>;
 beforeAll(() => { T = loadTerrain(); fire = new FireSystem(0); town = new Settlement(null, T, fire, 'test'); }, 300_000);

@@ -9,6 +9,7 @@
 // HOUSE_PARTS). The pieces carry their own baked AO and a per-vertex shade; the callers keep the measured tints.
 import data from '../../data/housekit.json';
 import type { Batch, RGB } from './geom';
+import { scanShape, SHAPES } from '../../render/scanProps';
 
 /** `yr` (D-324, the eave pole 'plog'): each vertex's offset along the piece's y in its own radius units (the end's relief, kept
  *  whatever the length), p.y then the share of the length (0 the start, 1 the end) */
@@ -50,4 +51,20 @@ export function kitLog(b: Batch, A: number[], Bp: number[], r: number, base: RGB
   // a quarter of a turn by the hash, so neighbouring poles do not show the same knots
   const a = h * Math.PI * 2, c = Math.cos(a), s = Math.sin(a), X = [0, 1, 2].map(j => (e1[j] * c + e2[j] * s) * r), Z = [0, 1, 2].map(j => (-e1[j] * s + e2[j] * c) * r);
   kitFrame(b, kitPiece(prefix, h), A, X, d, Z, base, owner, aoMul, 0.12, undefined, w.map(x => x * r));
+}
+
+/** Q-960 (D-324b): a CC0 scan's vessel (D-310: the jars and baskets of the houses) as a lathe of its own silhouette: the scan's
+ *  widest radius in `rings` bands of its height (lod1, cached per variant), turned on `sides`. The houses' batches are vertex-
+ *  coloured (the scan's maps are not drawn there), so the scan's 700-1500 triangles bought only its outline: this keeps the
+ * *  outline at 72 (lod 1: the store rooms' jars, the middle ring) or 150 triangles. False when no scan of the class is loaded (the caller draws its procedural form) */
+const PROFILES = new Map<string, [number, number][]>();
+export function scanVessel(b: Batch, cls: keyof typeof SHAPES, seed: number, e: number, n: number, y0: number, size: [number, number, number], col: RGB, owner: number, lod: 0 | 1 = 0): boolean {
+  const nv = SHAPES[cls].length, v = Math.abs(Math.floor(seed)) % nv, rings = lod ? 3 : 6, key = `${cls}:${v}:${rings}`;
+  let prof = PROFILES.get(key);
+  if (!prof) { const g = scanShape(cls, v, [1, 1, 1], 1); if (!g) return false; const P = g.getAttribute('position'), R = new Array(rings).fill(0);
+    for (let i = 0; i < P.count; i++) { const y = P.getY(i), k = Math.min(rings - 1, Math.max(0, Math.floor(y * rings))); R[k] = Math.max(R[k], Math.hypot(P.getX(i), P.getZ(i))); }
+    for (let k = 0; k < rings; k++) if (!R[k]) R[k] = R[Math.max(0, k - 1)] || 0.3;
+    prof = [[R[0] * 0.92, 0], ...R.map((r, k) => [r, (k + 0.5) / rings] as [number, number]), [R[rings - 1] * 0.96, 1]]; PROFILES.set(key, prof); g.dispose(); }
+  const sx = size[0], sy = size[1]; b.lathe(e, n, y0, prof.map(([r, y]) => [r * sx, y * sy] as [number, number]), lod ? 8 : 10, col, owner); void size[2];
+  return true;
 }

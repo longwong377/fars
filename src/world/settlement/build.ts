@@ -13,7 +13,7 @@ import { TownDoors } from './towndoors';
 import { livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
 import { Batch, RGB, lin } from './geom';
-import { kitFrame, kitPiece } from './kit';
+import { kitFrame, kitPiece, scanVessel } from './kit';
 import { buildTownPlan, TownPlan, ROWS, FEATURES, Prop } from './plan';
 import { Site, Plot, Wall, P2, ROOM } from './site';
 import { HOUSE_BASIS } from './town_rules';
@@ -23,7 +23,6 @@ import { TreeField } from './trees';
 import { buildWaterAndRoads } from './water';
 import { TownHaze } from './haze';
 import { siteFootprints } from './footprints';
-import { scanShape } from '../../render/scanProps';
 
 /** what F3 adds on the far level of the houses (D-234: beyond NEAR_R the houses are drawn as walls and roofs in plain boxes
  *  with the eave's shadow line; their footings, pole ends, spouts, windows, repairs and court things are drawn near only) */
@@ -423,9 +422,8 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
     case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }
     case 'jar': case 'jar_big': case 'vat': { const k = (f.kind === 'jar' ? 1 : f.kind === 'jar_big' ? 1.5 : 1.7) * f.size, wide = f.kind === 'vat' ? 1.5 : 1;
       // session 12 (D-310): jars are a CC0 scan's shape (render/scanProps.ts) fitted to the lathe's box, when loaded; the vat stays
-      const sj = f.kind !== 'vat' ? scanShape('jar', Math.round((g[0] + g[1]) * 7), [0.5 * k * wide, 0.72 * k, 0.5 * k * wide], 0) : null;
-      if (sj) mud.geo(g[0], g[1], y - 0.05, sj, (g[0] * 3.7 + g[1]) % 6.283, pot, d);
-      else mud.lathe(g[0], g[1], y - 0.05, [[0.12 * k * wide, 0], [0.25 * k * wide, 0.22 * k], [0.24 * k * wide, 0.48 * k], [0.12 * k * wide, 0.68 * k], [0.11 * k * wide, 0.72 * k]], 9, pot, d); break; }
+      // (Q-960: the scan's silhouette as a lathe, kit.ts scanVessel; far: the middle ring's)
+      if (!(f.kind !== 'vat' && scanVessel(mud, 'jar', Math.round((g[0] + g[1]) * 7), g[0], g[1], y - 0.05, [0.5 * k * wide, 0.72 * k, 0.5 * k * wide], pot, d, far ? 1 : 0))) mud.lathe(g[0], g[1], y - 0.05, [[0.12 * k * wide, 0], [0.25 * k * wide, 0.22 * k], [0.24 * k * wide, 0.48 * k], [0.12 * k * wide, 0.68 * k], [0.11 * k * wide, 0.72 * k]], 9, pot, d); break; }
     case 'quern': mud.box(g[0], g[1], th, 0.28, 0.2, y - 0.05, y + 0.14, st, st, d); mud.box(...at(0, 0.02), th, 0.12, 0.08, y + 0.14, y + 0.22, st, st, d); break;
     case 'grind_slab': { mud.box(g[0], g[1], th, 0.32, 0.22, y - 0.05, y + 0.1, st, st, d);
       const pig: RGB[] = [[0.12, 0.28, 0.62], [0.22, 0.48, 0.34], [0.55, 0.2, 0.13], [0.76, 0.58, 0.26]]; pig.forEach((pc, i) => mud.box(...at(-0.2 + i * 0.13, 0.05), th, 0.035, 0.035, y + 0.1, y + 0.15, lin(pc), lin(pc), d)); break; }

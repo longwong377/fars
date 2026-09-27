@@ -20,6 +20,9 @@ import { updateReliefs, settleReliefs } from '../src/arch/reliefs';
 import { WorldClock } from '../src/core/clock';
 import { sunHorizon, azAltToWorld } from '../src/sky/ephemeris';
 import { widenedFrustum, treeViewClass, shadowSunDir, VIEW_CULL } from '../src/world/trees/render';
+import { registerScanStandIns, VESSEL_IDS } from './lib/scanStandIns';
+// Q-960: the houses' scan vessels at the triangles the browser draws (node cannot load the GLBs)
+registerScanStandIns(VESSEL_IDS);
 
 const T = loadTerrain(), R = loadRiversFile();
 

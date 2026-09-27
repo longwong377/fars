@@ -1,10 +1,12 @@
 // D-324: where the houses' triangles go, per level and part (houses.ts HOUSE_PARTS), at the three lane spots of the budget
 // test (tests/houses.test.ts: q_s1, q_w1, q_s3, near tiles within NEAR_R, each at the level nearUpdate gives it; LOD=0|1 forces one) and over the far level. `npx tsx tools/dev/house_parts.ts`
 import { loadTerrain } from '../../tests/plainLib';
+import { registerScanStandIns } from '../../tests/lib/scanStandIns';
 import { FireSystem } from '../../src/world/fire';
 import { Settlement } from '../../src/world/settlement/build';
 import { newHB, HOUSE_PARTS, P, NEAR_R, NEAR0 } from '../../src/world/settlement/houses';
 
+if (process.env.SCAN !== '0') console.log('scan stand-ins', registerScanStandIns());
 const T = loadTerrain(), town = new Settlement(null, T, new FireSystem(0), 'test');
 const names = Object.fromEntries(Object.entries(P).map(([k, v]) => [v, k])) as Record<number, string>;
 for (const id of (process.argv[2] ?? "q_s1,q_w1,q_s3").split(",").filter(x => x !== "none")) {
