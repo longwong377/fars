@@ -20,3 +20,12 @@ verbatim from gates/thresholds.json}.
 
 ## Slots
 - {task}; {areas}; {files in scope}; {what "done" means in thresholds}; {UD ids}; {reserved numbers}; {render budget}
+
+## Machine section (session 11 on; copy into every brief after the fixed clauses)
+On the GPU machine (session 11 on: Windows, NVIDIA T4, 16 cores, 63 GB, open internet), this clause governs where it
+   differs from 3 and 7. Render with Playwright directly on the real GPU (`PW_CHANNEL=chrome --project=gpu`, your own
+   E2E_PORT), at the player's lens and quality; a page load is ~11 min, a warm frame 0.1 s, so put all your views in one
+   load (moments.spec.ts `BATCH=1`). Never edit files in a tree whose dev server is serving a render (it reloads the page).
+   Run node jobs directly (no cpu_slot.sh, flock or python here). Surfaces must read as real at arm's length: use CC0
+   scans and assets (Poly Haven, ambientCG; src/render/scans.ts; each recorded in ASSET_LEDGER.md) over the procedural
+   base, keeping the measured tints and layouts; a procedural stand-in where a scan exists is a placeholder.
