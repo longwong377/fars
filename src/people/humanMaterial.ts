@@ -34,7 +34,7 @@ const {
   cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE } from './humanFormat';
-import { ROBE, BEARD } from './drape';
+import { ROBE, BEARD, BELLY } from './drape';
 
 /** height field → shading normal (view space; surface gradient from screen-space derivatives, Mikkelsen 2010) */
 function bumped(h: any) {
@@ -59,8 +59,9 @@ export interface HumanTextures {
   skin: THREE.Texture; eye: THREE.Texture;
 }
 /** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
- *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair, 6 leather, 7 [grime brightness, scale, hat height (D-189), flags],
- *  8 felt/headgear, 9 wear [garment age, fit (m), fold amplitude (mm) + phase, hem soil] (looks.wearTexel, D-189).
+ *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair (w: the belly of a woman with child, 0..1, D-292), 6 leather
+ *  (w: the abdomen's height in bind space, m), 7 [grime brightness, scale, hat height (D-189), flags], 8 felt/headgear (w: the
+ *  abdomen's front z in bind space, m), 9 wear [garment age, fit (m), fold amplitude (mm) + phase, hem soil] (looks.wearTexel, D-189).
  *  stubble (1.w): 0 none, 0..1 shaven stubble, 2 = bearded (the skin under the beard reads as roots) */
 export const PERSON_TEXELS = 10;
 /** reference skin tone the baked albedo was authored for (sRGB; tools/humans/skin.ts REF_TONE) */
@@ -232,10 +233,20 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       // for the court dressing (look flags' hairStyle 1); a working man's long beard keeps the plain mass
       const courtV = is(mod(floor(person0.z.add(0.5).div(2 ** LOOK_BITS.hairStyle[0])), 2 ** LOOK_BITS.hairStyle[1]), 1);
       const rowV = hext.z.sub(0.6).mul(BEARD.rowAmp).mul(is(hmat.x, MAT.hair)).mul(is(hmat.w, 3)).mul(courtV);
-      const bind = s.xyz.add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS))).add(nB.mul(rowV));
+      // D-292: the belly of a woman with child (drape.ts bellyOffset, mirrored term for term): amount in texel 5 w, the
+      // abdomen's frame (navel height, front surface z) in texels 6 w and 8 w; zero amount leaves every vertex where it was
+      const bAmt = row(5).w, bYc = row(6).w, bZ0 = row(8).w;
+      const bRx = float(BELLY.rx[0]).add(bAmt.mul(BELLY.rx[1])), bDy = s.y.sub(bYc.add(BELLY.rise[0]).add(bAmt.mul(BELLY.rise[1])));
+      const bRy = mix(float(BELLY.ryLow[0]).add(bAmt.mul(BELLY.ryLow[1])), float(BELLY.ryUp[0]).add(bAmt.mul(BELLY.ryUp[1])), step(0, bDy));
+      const bUx = s.x.div(bRx), bUy = bDy.div(bRy), bQ = max(float(1).sub(bUx.mul(bUx)).sub(bUy.mul(bUy)), 0), bSq = sqrt(bQ);
+      const bS = smoothstep(bZ0.sub(BELLY.front[0]), bZ0.sub(BELLY.front[1]), s.z), bStand = max(s.z.sub(bZ0).sub(BELLY.skin), 0);
+      const bDz = max(bAmt.mul(BELLY.term).mul(bQ).mul(bSq).sub(bStand.mul(BELLY.take)), 0).mul(bS), bMoved = step(1e-6, bDz);
+      const bDh = bAmt.mul(-BELLY.term * BELLY.exp * 2).mul(bSq).mul(bS);
+      const nBb = normalize(nB.sub(vec3(bDh.mul(s.x).div(bRx.mul(bRx)), bDh.mul(bDy).div(bRy.mul(bRy)), 0).mul(nB.z.mul(bMoved))));
+      const bind = s.xyz.add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS))).add(nB.mul(rowV)).add(vec3(0, bDz.mul(-BELLY.drop), bDz));
       const R = skinned(boneTex);
       const p = toWorld(vec3(dot(R[0], vec4(bind, 1)), dot(R[1], vec4(bind, 1)), dot(R[2], vec4(bind, 1))), root).toVar();
-      const n = rotN(normalize(vec3(dot(R[0].xyz, nB), dot(R[1].xyz, nB), dot(R[2].xyz, nB))), root);
+      const n = rotN(normalize(vec3(dot(R[0].xyz, nBb), dot(R[1].xyz, nBb), dot(R[2].xyz, nBb))), root);
       // drape sag (cloth only: body vertices use the slack byte for other data): slack × SAG_MAX × horizontality of the
       // vertex's main bone (its −Y axis in world is −column 1)
       const b0 = int(si.x).mul(3);
@@ -268,7 +279,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       vMat.assign(vec4(hmat.x, hmat.w, person0.z, person0.w));
       vBind.assign(s.xyz);
       // the garment's fading susceptibility (its colour texel's w) and the bind normal's up component (D-189)
-      const kFade = colT.w.mul(clothC);
+      const kFade = colT.w.mul(clothC).mul(step(colSlot, 4.5)); // (texels 5, 6 and 8 carry other data in w: D-292)
       vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x)); vExt.assign(vec4(hext.y, hext.w, nB.y, kFade));
       // joint wrinkles: how much the two main bones of a mixed-weight cloth vertex are turned against each other
       const bA = int(si.x).mul(3), bB = int(si.y).mul(3);

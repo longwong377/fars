@@ -133,7 +133,7 @@ const TERRACE_XY: [number, number] = [-52, 118.5];
  *  carries his work to the royal stores on this share of days (C) */
 const TANNERS_GROUP = 7, OIL_EVERY = 25, SMITH_DELIVER = 0.15;
 const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
-  dispo: salt('dispo'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral') };
+  dispo: salt('dispo'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral'), birthNext: salt('birth-next'), care: salt('body-care') };
 const AGE: [number, number, number][] = L.age_structure.v;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** a feed or a spell while the household sleeps (Planner.nightWords): in the night, or at first light before getting up, or
@@ -353,6 +353,8 @@ export class Population {
   court: CourtResidents | null = null;
   cal!: EventCalendar;
   private lifeByDay: { births: number[]; deaths: number[]; marriages: number[] }[] = [];
+  /** D-292 (C-D09): the day each woman gives birth (this year's births, and a draw of the next year's for the months after it) */
+  private due = new Map<number, number>();
   private bdayByDay: number[][] = [];
   private shepherds: number[] = [];
   /** the road station's messengers, in their order (idx: the day's duty alternates, messenger()) */
@@ -792,8 +794,20 @@ export class Population {
       (this.kidsOf.get(i) ?? this.kidsOf.set(i, []).get(i)!).push(c);
       if (u01(this.seed, S.birth, i, 2) < L.infant_death_first_year.v) { const dd = Math.min(REGNAL_DAYS - 1, day + 1 + Math.floor(u01(this.seed, S.birth, i, 3) * 120)); this.persons[c].dies = dd; this.lifeByDay[dd].deaths.push(c); this.households[home].deaths.push(dd); }
       if (p.group >= 0) this.join(p.group, c);
-      this.lifeByDay[day].births.push(c); this.households[home].births.push(day);
+      this.lifeByDay[day].births.push(c); this.households[home].births.push(day); this.due.set(i, day);
     }
+    // D-292 (C-D09): the women who give birth in the first months after the year carry the child in its last months: the
+    // next year's births drawn at the same rate among the women who could have conceived by then (married, or married this
+    // year at least ten months before the birth; 15-44 then; no birth this year; her youngest past one), from their own
+    // stream so no other draw moves (C)
+    { const PG = L.pregnancy, pbN = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365;
+      for (let i = 0; i < n0; i++) {
+        const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || this.due.has(i) || p.age + 1 < 15 || p.age + 1 > 44 || p.dies < REGNAL_DAYS || p.leave < REGNAL_DAYS) continue;
+        const bride = !p.wife && p.marry < REGNAL_DAYS; if (!p.wife && !bride) continue;
+        if ((this.kidsOf.get(i) ?? []).some(c => this.persons[c].age === 0)) continue;
+        const ub = u01(this.seed, S.birthNext, i); if (ub >= pbN) continue;
+        const day = REGNAL_DAYS + Math.floor(ub / pbN * REGNAL_DAYS); if (day - REGNAL_DAYS >= PG.show_days || (bride && day < p.marry + PG.after_wedding_days)) continue;
+        this.due.set(i, day); } }
     for (let i = 0; i < n0; i++) { const p = this.persons[i]; if (p.persian && p.age >= 16 && p.bday >= 0 && (p.zone === 'town' || p.zone === 'plain' || p.job === 'guard')) this.bdayByDay[p.bday].push(i); }
     this.foster();
     this.bereaved();
@@ -1485,6 +1499,18 @@ export class Population {
   jarsOf(pid: number, d: number) { const h = this.home(pid, d), H = this.households[h]; if (H.zone !== 'town' && H.zone !== 'plain') return 0; const x = this.hday(h, d); return pid === x.waterer ? x.jars - (x.helper >= 0 ? 1 : 0) : pid === x.helper ? 1 : 0; }
   /** a woman's baby born in the last 45 days lives today (A S2 of shadow review r9: 705 mother-days "with the baby" after it had
    *  died) */
+  /** D-292 (C-D09; E-70): how far a woman is carrying a child on day d, as the belly the renderer draws: 0 when she is not
+   *  (never for a woman who gives no birth), rising with the months from `show_days` before the birth to 1 on its day; for
+   *  `postpartum_days` after it, the soft belly going down (lives.json pregnancy; the curve C) */
+  gravid(pid: number, d: number): number {
+    const B = this.due.get(pid); if (B === undefined || !this.present(pid, d)) return 0; const G = L.pregnancy, x = B - d;
+    if (x >= G.show_days) return 0; if (x >= 0) return Math.pow(1 - x / G.show_days, G.shape_power);
+    return -x <= G.postpartum_days ? G.postpartum * (1 - -x / G.postpartum_days) : 0;
+  }
+  /** D-292: the days until a woman gives birth (negative after it), or null when she gives no birth this year or early the next */
+  dueIn(pid: number, d: number): number | null { const B = this.due.get(pid); return B === undefined ? null : B - d; }
+  /** D-292: visibly with child on day d (the months when the belly reads under the clothes: lives.json pregnancy.visible_days) */
+  expecting(pid: number, d: number): boolean { const x = this.dueIn(pid, d); return x !== null && x >= 0 && x < L.pregnancy.visible_days && this.present(pid, d); }
   babyLives(pid: number, d: number) { const H = this.households[this.home(pid, d)]; for (const x of H.births) if (x <= d && d - x < 45) for (const c of this.lifeByDay[x].births) if (this.persons[c].mother === pid && this.present(c, d)) return true; return false; }
   /** the day's caravan of goods for the Treasury at the stair foot (PeopleSim.events$ unloads it; C): its hour, the first from
    *  09:00 out of the rain's and the storm's spans (none when the weather holds the road until 15:00), and its sacks. The
@@ -1641,7 +1667,7 @@ export class Population {
    *  returned segments as read-only */
   plan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }
-    const v = this.relabel(pid, day, this.rawPlan(pid, day)); let m = this.planCache.get(day); if (!m) { m = new Map(); this.planCache.set(day, m); } m.set(pid, v); this.planCount++; return v; }
+    const v = this.care(pid, day, this.relabel(pid, day, this.rawPlan(pid, day))); let m = this.planCache.get(day); if (!m) { m = new Map(); this.planCache.set(day, m); } m.set(pid, v); this.planCount++; return v; }
   /** a person's day as the planner builds it, before the words that name the household are checked against the household's
    *  own plans (relabel). The planners read each other's days from here, so that no plan waits on its own household */
   rawPlan(pid: number, day: number): Seg[] { const c = this.rawCache.get(day)?.get(pid); if (c) return c;
@@ -1685,6 +1711,137 @@ export class Population {
     // (spells made the same by the new words are one spell)
     for (let i = o.length - 1; i > 0; i--) { const a = o[i - 1], b = o[i]; if (a.place === b.place && a.act === b.act && a.why === b.why && a.where === b.where && (a.with ?? -1) === (b.with ?? -1) && a.wear === b.wear && a.carry === b.carry && a.ev === b.ev && Math.abs(a.t1 - b.t0) < 1e-9) { a.t1 = b.t1; o.splice(i, 1); } }
     return o;
+  }
+
+  // ------------------------------------------------------------------ D-292: the body's care (gap hunter C, C-D04..C-D07)
+  /** The body's care, laid over the day plans after the planner (plan = care(relabel(raw))): it reads the others' days from
+   *  rawPlan only, so no plan waits on another's care. Tier C throughout (lives.json body_care):
+   *  - at rising, face and hands washed at the house's water jar in the courtyard (inside when it rains), everyone of three
+   *    and over in a house of the town or the plain: the minutes come off the end of the night's sleep, so no morning work
+   *    moves (the Persians' care for water and purity, Herodotus 1.138, a Greek claim: B; the daily custom C);
+   *  - now and then a woman of the house goes through a child's hair for lice on the doorstep, parting it with her fingers
+   *    (lice combs are ordinary finds of the period: B analogy; the hour and the doorstep C): both at home and at leisure;
+   *  - in each town quarter a man who shaves and trims for the quarter in his free hours (Babylonian barbers, gallabu, are
+   *    attested in the Neo-Babylonian texts: B analogy; the man and his hours C) sees men of the quarter in the lane in
+   *    their free hours (about one barber to 90 grown men; a man about monthly), where the two are free at the same time */
+  private careCache = new Map<string, unknown>();
+  private careGet<T>(k: string, f: () => T): T { if (this.careCache.has(k)) return this.careCache.get(k) as T; if (this.careCache.size > 60000) this.careCache.clear(); const v = f(); this.careCache.set(k, v); return v; }
+  /** a spell of the planner's day that care may take: at one of the places, at leisure or at light work, awake, not carried */
+  private static careFree(s: Seg, places: string[], child = false) {
+    return places.includes(s.place) && s.where !== 'road' && (child ? /^(play|rest|talk)$/ : /^(rest|talk|spin|craft|gamble|exchange)$/).test(s.act) && !/nurs|asleep|\bill\b|mourn|feed|in labour|birth|the dead|minding|carried|keeping|guarding|the heat/.test(s.why); }
+  /** [a, b] of `segs` lies wholly in spells that care may take */
+  private static careSpan(segs: Seg[], a: number, b: number, places: string[], child = false) {
+    if (a < 0 || b > 24) return false; for (const s of segs) { if (s.t1 <= a + 1e-9 || s.t0 >= b - 1e-9) continue; if (!Population.careFree(s, places, child)) return false; } return true; }
+  /** nobody of the person's house is with them (a little one following, a child minded) over [a, b] */
+  private careAlone(pid: number, d: number, a: number, b: number) { for (const x of this.membersOn(this.home(pid, d), d)) if (x !== pid) for (const s of this.rawPlan(x, d)) if (s.with === pid && s.t1 > a && s.t0 < b) return false; return true; }
+  /** leaving the house over [a, b] leaves no one of it "with the household" there without the household (planCheck (d)) */
+  private careLeave(pid: number, d: number, a: number, b: number) { for (const x of this.membersOn(this.home(pid, d), d)) if (x !== pid) for (const s of this.rawPlan(x, d)) if (s.t1 > a && s.t0 < b && /with the household|kept for the late-comer|the others of the house/.test(s.why)) return false; return true; }
+  /** the town quarters' households (lazy) */
+  private qHouses: Map<string, number[]> | null = null;
+  private housesOfQ(q: string) { if (!this.qHouses) { this.qHouses = new Map(); for (const H of this.households) if (H.zone === 'town') (this.qHouses.get(H.q) ?? this.qHouses.set(H.q, []).get(H.q)!).push(H.id); } return this.qHouses.get(q) ?? []; }
+  /** the quarter's barbers on day d: the first ceil(men / body_care.men_per_barber), by the quarter's own draw, of its
+   *  working men of 28-60 (the builders, porters, craftsmen and servants of its houses) who are there, not ill and at home */
+  barbersOf(q: string, d: number): number[] {
+    const all = this.careGet(`bq${q}`, () => { const men: number[] = []; let grown = 0; for (const h of this.housesOfQ(q)) for (const x of this.households[h].members) { const p = this.persons[x]; if (p.sex === 'm' && p.age >= 16) grown++; if (p.sex === 'm' && p.age >= 28 && p.age <= 60 && p.agent < 0 && ['builder', 'porter', 'craftsman', 'servant'].includes(p.job)) men.push(x); }
+      return { k: Math.max(1, Math.ceil(grown / L.body_care.men_per_barber)), men: men.sort((a, b) => u01(this.seed, S.care, a, 1) - u01(this.seed, S.care, b, 1)) }; });
+    return all.men.slice(0, all.k + 2).filter(x => this.present(x, d) && !this.sick(x, d) && this.persons[x].hh === this.home(x, d) && !this.mourning(x, d) && !this.festDay(x, d) && !this.weddingOf(x, d)).slice(0, all.k); }
+  /** the day's shaves in a town quarter: [barber, man, t0, t1] (the session in the lane; the walks to it lie outside it) */
+  shavesOn(q: string, d: number): [number, number, number, number][] {
+    return this.careGet(`sq${q}:${d}`, () => {
+      const out: [number, number, number, number][] = [], BB = this.barbersOf(q, d); if (!BB.length) return out; const BC = L.body_care, C = this.cal.ctx(d), lane = `lane:${q}`;
+      if (C.wx.dust) return out;
+      const bar = BB.map(B => { const bh = this.households[this.home(B, d)].home; return { B, bh, bs: this.rawPlan(B, d), wk: Math.max(0.05, this.walkH(bh, lane, d, 'town', 'town')), t: Math.max(BC.barber_from_h, C.sun.rise + 1), n: 0 }; });
+      const isB = new Set(BB), men: number[] = []; for (const h of this.housesOfQ(q)) for (const x of this.membersOn(h, d)) { const p = this.persons[x]; if (!isB.has(x) && p.sex === 'm' && this.ageOn(x, d) >= 16 && p.agent < 0 && !this.sick(x, d) && u01(this.seed, S.care, x, d, 2) < BC.shave_p_day) men.push(x); }
+      men.sort((a, b) => u01(this.seed, S.care, a, d, 3) - u01(this.seed, S.care, b, d, 3));
+      const end = C.sun.set - 0.3, len = BC.shave_h;
+      for (const x of men) { const xh = this.households[this.home(x, d)].home, xs = this.rawPlan(x, d), wk = Math.max(0.05, this.walkH(xh, lane, d, 'town', 'town'));
+        let done = false; for (const b0 of bar) { if (b0.n >= BC.shaves_max) continue;
+          for (let a = b0.t; a + len <= end; a += 0.25) { const b = a + len; if (wetHours(C.wx, a - 0.3, b + 0.3) > 0) continue;
+            if (Population.careSpan(b0.bs, a - b0.wk, b + b0.wk, [b0.bh, lane]) && Population.careSpan(xs, a - wk, b + wk, [xh, lane]) && this.careAlone(b0.B, d, a - b0.wk, b + b0.wk) && this.careAlone(x, d, a - wk, b + wk) && this.careLeave(b0.B, d, a - b0.wk, b + b0.wk) && this.careLeave(x, d, a - wk, b + wk)) { out.push([b0.B, x, a, b]); b0.t = b + 0.05; b0.n++; done = true; break; } }
+          if (done) break; } }
+      return out; }); }
+  /** the day's delousing in a household: [the woman, the child, t0, t1] on the doorstep, or null */
+  combOf(h: number, d: number): [number, number, number, number] | null {
+    return this.careGet(`ch${h}:${d}`, () => {
+      const H = this.households[h], BC = L.body_care; if ((H.zone !== 'town' && H.zone !== 'plain') || u01(this.seed, S.care, h, d, 4) >= BC.comb_p_day) return null;
+      const C = this.cal.ctx(d); if (C.wx.dust || C.festival) return null; const mem = this.membersOn(h, d).filter(x => this.persons[x].agent < 0 && !this.sick(x, d) && !this.mourning(x, d));
+      const kids = mem.filter(x => { const a = this.ageOn(x, d); return a >= BC.comb_ages[0] && a <= BC.comb_ages[1]; }); if (!kids.length) return null;
+      const child = kids[Math.floor(u01(this.seed, S.care, h, d, 5) * kids.length)], mo = this.persons[child].mother;
+      const women = mem.filter(x => x !== child && this.persons[x].sex === 'f' && this.ageOn(x, d) >= 12 && !this.gaveBirthSoon(x, d)).sort((a, b) => (a === mo ? -1 : 0) - (b === mo ? -1 : 0));
+      const home = H.home, W: Where = H.zone === 'plain' ? 'plain' : 'town', lane = `lane:${H.q}`, wk = Math.max(0.05, this.walkH(home, lane, d, W, W)), len = BC.comb_h[0] + (BC.comb_h[1] - BC.comb_h[0]) * u01(this.seed, S.care, h, d, 6);
+      const a0 = Math.max(C.sun.rise + 1.5, 7), a1 = C.sun.set - 0.6 - len, span = Math.max(0.25, a1 - a0 + 0.25), off = u01(this.seed, S.care, h, d, 7) * span;
+      if (a1 < a0) return null;
+      for (const w of women) { const ws = this.rawPlan(w, d), cs = this.rawPlan(child, d);
+        for (let k = 0; k * 0.25 < span; k++) { const a = a0 + ((off + k * 0.25) % span), b = a + len; if (a > a1 || wetHours(C.wx, a - 0.2, b + 0.2) > 0) continue;
+          if (Population.careSpan(ws, a, b, [home]) && Population.careSpan(cs, a - wk, b + wk, [home, lane], true) && this.careAlone(child, d, a - wk, b + wk) && cs.every(x => x.t1 <= a - wk || x.t0 >= b + wk || x.with === undefined || x.with === w)) return [w, child, a, b] as [number, number, number, number]; } }
+      return null; }); }
+  /** D-292 (gap hunter C, C-D23; GC24): before a wedding, a word and a look at the well: on some of the days before it, when
+   *  the bride draws water at her quarter's well and her husband-to-be is free at the time, he is there too, for a few minutes
+   *  (courtship customs of the period are not recorded: the restraint of a word and a look is C). [bride, groom, t0, t1] */
+  courtingOn(bride: number, d: number): [number, number, number, number] | null {
+    return this.careGet(`w${bride}:${d}`, () => {
+      const B = this.persons[bride], g = B.spouse, BC = L.body_care; if (g === undefined || B.marry >= 1e9 || d >= B.marry || d < B.marry - BC.court_days || !this.present(g, d) || !this.present(bride, d)) return null;
+      if (u01(this.seed, S.care, bride, d, 9) >= BC.court_p_day || this.sick(bride, d) || this.sick(g, d)) return null;
+      const H = this.households[this.home(bride, d)], GH = this.households[this.home(g, d)]; if (!H || !GH || (GH.zone !== 'town' && GH.zone !== 'plain')) return null;
+      const well = `well:${H.q}`, W: Where = GH.zone === 'plain' ? 'plain' : 'town', gs = this.rawPlan(g, d), wk = Math.max(0.05, this.walkH(GH.home, well, d, W, W)), lane = `lane:${GH.q}`;
+      for (const s of this.rawPlan(bride, d)) { if (s.act !== 'draw_water' || s.place !== well || s.t1 - s.t0 < 0.12 || s.with !== undefined) continue;
+        const a = s.t0, b = Math.min(s.t1, a + 0.2); if (Population.careSpan(gs, a - wk, b + wk, [GH.home, lane]) && this.careAlone(g, d, a - wk, b + wk) && this.careLeave(g, d, a - wk, b + wk)) return [bride, g, a, b] as [number, number, number, number]; }
+      return null; }); }
+  /** D-292 (gap hunter C, C-D19; GC23): a man of the heavy work (the building sites, the porters, the fields, the herds) hurt
+   *  now and then: a kick from an animal, a stone on the foot, a fall on the scaffolding: he limps for some days after it,
+   *  leaning on a staff (popview impairOf), and goes on with what work he can (C). The day of the hurt and its days, or null */
+  injuryOn(pid: number, d: number): { day: number; days: number; how: string } | null {
+    const p = this.persons[pid], BC = L.body_care; if (p.sex !== 'm' || p.agent >= 0 || !INJURY_JOBS.has(p.job)) return null; const a = this.ageOn(pid, d); if (a < 14 || a > 60) return null;
+    for (let x = d; x > d - BC.injury_days[1] && x >= 0; x--) { if (u01(this.seed, S.care, pid, x, 10) >= BC.injury_p_day) continue; const days = BC.injury_days[0] + Math.floor(u01(this.seed, S.care, pid, x, 11) * (BC.injury_days[1] - BC.injury_days[0]));
+      if (d - x < days) return { day: x, days, how: INJURY_HOW[p.job === 'herder' || p.job === 'groom' || p.job === 'farmer' ? 0 : p.job === 'builder' ? 1 : 2] }; }
+    return null; }
+  /** a woman in the last weeks before a birth or the first after it (no stooping over a child's head then: C) */
+  private gaveBirthSoon(x: number, d: number) { const k = this.dueIn(x, d); return k !== null && k > -30 && k < 20; }
+  /** the day plan with the body's care laid over it (see careCache) */
+  private care(pid: number, d: number, base: Seg[]): Seg[] {
+    const p = this.persons[pid]; if (p.agent >= 0 || p.zone === 'transient' || !this.present(pid, d) || !base.length) return base;
+    const hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain')) return base;
+    const C = this.cal.ctx(d), home = H.home, age = this.ageOn(pid, d), his = p.sex === 'f' ? 'her' : 'his', BC = L.body_care, W: Where = H.zone === 'plain' ? 'plain' : 'town';
+    let out: Seg[] | null = null;
+    const put = (a: number, b: number, parts: Seg[]) => { const segs = out ?? base.map(x => ({ ...x })); const r: Seg[] = [];
+      for (const s of segs) { if (s.t1 <= a + 1e-9 || s.t0 >= b - 1e-9) { r.push(s); continue; } if (s.t0 < a - 1e-9) r.push({ ...s, t1: a }); if (s.t1 > b + 1e-9) r.push({ ...s, t0: b }); }
+      const i = r.findIndex(s => s.t0 >= b - 1e-9); r.splice(i < 0 ? r.length : i, 0, ...parts); out = r; };
+    const at = (h: number) => segAt(out ?? base, h);
+    /** the care spell at `place` over [a, b], with the walks there and back when the person is elsewhere (lane and house) */
+    const visit = (a: number, b: number, place: string, why: string, withP?: number, act: ActivityId = 'tend_body') => {
+      // (where the person is before and after: the place of the spell there, or, on a walk, the place it comes from or goes to)
+      const cur = out ?? base, s0r = at(a - 1e-3), s1r = at(b + 1e-3);
+      const s0 = s0r.where !== 'road' ? s0r : [...cur].reverse().find(x => x.t0 < a && x.where !== 'road') ?? s0r, s1 = s1r.where !== 'road' ? s1r : cur.find(x => x.t0 > b && x.where !== 'road') ?? s1r;
+      const wk0 = s0.place === place ? 0 : Math.max(0.05, this.walkH(s0.place, place, d, W, W)), wk1 = s1.place === place ? 0 : Math.max(0.05, this.walkH(place, s1.place, d, W, W));
+      const parts: Seg[] = [];
+      if (wk0) parts.push({ t0: a - wk0, t1: a, place: `road:${W}`, act: 'walk', why: place.startsWith('lane:') ? 'out to the lane' : 'to the doorstep', where: 'road' });
+      parts.push({ t0: a, t1: b, place, act, why, where: W, ...(withP !== undefined ? { with: withP } : {}), ev: 'D-292', ...(s0.wear ? { wear: s0.wear } : {}) });
+      if (wk1) parts.push({ t0: b, t1: b + wk1, place: `road:${W}`, act: 'walk', why: s1.place.startsWith('lane:') ? 'back out to the lane' : 'back into the house', where: 'road' });
+      put(a - wk0, b + wk1, parts); };
+    // the morning wash at rising: the end of the night's sleep at home, then awake at home
+    const wi = wakeIndex(base, home), s0 = base[wi], s1 = base[wi + 1];
+    if (age >= 3 && wi >= 0 && !this.sick(pid, d)) {
+      const len = BC.wash_h[0] + (BC.wash_h[1] - BC.wash_h[0]) * u01(this.seed, S.care, pid, d, 8), a = s0.t1 - len, wet = wetHours(C.wx, a, s0.t1) > 0, where = wet ? 'inside the house' : 'in the courtyard';
+      const why = age < 7 ? `washing ${his} face and hands at the water jar ${where} at rising, with a splash` : `washing ${his} face and hands at the water jar ${where} at rising, the water poured into a basin`;
+      put(a, s0.t1, [{ t0: a, t1: s0.t1, place: home, act: 'tend_body', why, where: s1.where, ev: 'D-292', ...(s1.wear ? { wear: s1.wear } : {}) }]); }
+    // a child's hair gone through for lice on the doorstep
+    const cb = this.combOf(hid, d);
+    if (cb && (cb[0] === pid || cb[1] === pid)) { const [w, c, a, b] = cb, cn = nameFor(this.seed, this.persons[c]), cs = this.persons[c].sex === 'f' ? 'her' : 'his';
+      if (w === pid) visit(a, b, home, `picking the lice from ${cn ?? (this.persons[c].sex === 'f' ? 'the girl' : 'the boy')}’s hair on the doorstep, parting it with ${his} fingers`);
+      else visit(a, b, home, `having ${cs} hair gone through for lice on the doorstep, sitting still in front of ${nameFor(this.seed, this.persons[w]) ?? 'her'}`, w); }
+    // the barber in the lane
+    if (H.zone === 'town' && p.sex === 'm' && age >= 16) { const mine: [number, number][] = [];
+      for (const [B, x, a, b] of this.shavesOn(H.q, d)) {
+        if (B === pid) { const l = mine[mine.length - 1]; if (l && a - l[1] < 0.4) l[1] = b; else mine.push([a, b]); } // (one spell in the lane for sessions close together)
+        else if (x === pid) visit(a, b, `lane:${H.q}`, 'being shaved by the barber in the lane, sitting on the ground: his beard trimmed or his cheeks shaved', B); }
+      for (const [a, b] of mine) visit(a, b, `lane:${H.q}`, 'shaving men of the quarter in the lane: a beard trimmed or the cheeks shaved with a bronze razor, water from a jar'); }
+    // before the wedding, a word and a look at the well (the groom comes; the bride's own words gain it)
+    if (p.spouse !== undefined && p.marry < 1e9 && d < p.marry) { const bride = p.sex === 'f' ? pid : p.spouse, cw = this.courtingOn(bride, d);
+      if (cw) { const [bb, g, a, b] = cw, bn = nameFor(this.seed, this.persons[bb]), gn = nameFor(this.seed, this.persons[g]);
+        if (pid === g) visit(a, b, `well:${this.households[this.home(bb, d)].q}`, `at the well: a word and a look with ${bn ?? 'the girl'} while she draws water (they are to marry)`, bb, 'talk');
+        else if (pid === bb) { const segs = out ?? base.map(x => ({ ...x })); for (const x of segs) if (x.act === 'draw_water' && Math.abs(x.t0 - a) < 1e-6) x.why = `${x.why}, a word and a look exchanged with ${gn ?? 'the man'} she is to marry`; out = segs; } } }
+    if (!out) return base; const o: Seg[] = this.relabel(pid, d, out); // (the words of the pieces cut from a spell "with the household" are checked again)
+    dustWear(o, C.wx); coldWear(o, C.wx, false); return o;
   }
 }
 
@@ -1894,7 +2051,7 @@ class Planner {
     this.fieldBite(segs); this.water(segs); this.homeStops(segs); this.fire(segs);
     if (this.age >= 2) this.meals(segs);
     if (this.p.sex === 'f' && this.age >= 14) { this.feedGaps(segs); this.littleFeeds(segs); }
-    this.joinSlivers(segs); this.tidy(segs); this.shelterHome(segs); this.words(segs); this.carries(segs); this.dustVeil(segs); this.coldWear(segs);
+    this.joinSlivers(segs); this.tidy(segs); this.shelterHome(segs); this.words(segs); this.bankWash(segs); this.carries(segs); this.dustVeil(segs); this.coldWear(segs);
     const mo = this.p.mother, festive = this.festive || (this.p.job === 'child' && this.age < 5 && mo >= 0 && P.present(mo, this.d) && (P.festDay(mo, this.d) || !!P.weddingOf(mo, this.d)));
     if (festive) for (const s of segs) if (s.where !== 'away' && s.act !== 'sleep' && s.act !== 'lie_ill' && !/best clothes/.test(s.wear ?? '')) s.wear = s.wear ? `${s.wear}, and in the best clothes` : 'in the best clothes';
     return segs;
@@ -2054,6 +2211,15 @@ class Planner {
   /** words that assert what the plan does not hold are put right (D-191, planCheck (d)): "through the heat" for a stretch
    *  of under 45 min (S9 of reviewer B, r7: "sleeping through the heat of the day" for 40 min) is a short sleep or a rest
    *  in the heat; "before leaving" for bread eaten an hour or more before the person leaves is bread and water */
+  /** D-292 (gap hunter C, C-D46): the Persians do not wash in a river nor let others do so (Herodotus 1.138, a Greek claim: B;
+   *  the project applies it to the river offerings too, events_calendar.json): a Persian's washing, and every guard's, at the
+   *  river or a canal is done on the bank with water drawn up in a jar, away from the stream (the jar and the place C) */
+  private bankWash(segs: Seg[]) {
+    if (!this.p.persian && this.p.job !== 'guard') return;
+    for (const s of segs) if (s.act === 'wash' && STREAM.test(s.place) && !ON_BANK.test(s.why)) {
+      const w = s.why.replace(/ at the (river|water)\b/, '').replace(/ to the water\b/, '');
+      s.why = `${w} on the bank, with water drawn up in a jar, away from the stream (the Persians' rule: HDT 1.138)`; }
+  }
   private words(segs: Seg[]) {
     // (words of the heat on a spell outside the day's hot hours, 10:30-18:00: a rest after six in the evening, 8 in the soak of
     // 302ed5f); then "through the heat" by its stretch, decided for all spells at once (one short stretch in the soak of 3a823c4)
@@ -4599,5 +4765,18 @@ class Planner {
 }
 /** the plan segment in force at hour h */
 /** a funeral is over, and its people home, this long before sunset at the latest (h; D-209 addendum, soak s8; C) */
+/** D-292: the spell of the night's sleep at home that ends at rising (between 03:00 and 12:00, the night's feeds between),
+ *  followed by the day awake at home (not a feed before getting up, not lying ill, not the road), or -1 */
+export function wakeIndex(segs: Seg[], home: string): number {
+  for (let i = 0; i + 1 < segs.length; i++) { const s = segs[i], n = segs[i + 1]; if (s.t1 <= 3) continue; if (s.t1 >= 12) return -1;
+    if (s.act !== 'sleep') { if (NIGHT_FEED.test(s.why) && s.place === home) continue; return -1; }
+    return s.place === home && n.place === home && n.where !== 'road' && n.act !== 'lie_ill' && n.act !== 'sleep' && !NIGHT_FEED.test(n.why) && s.t1 - s.t0 > 0.2 ? i : -1; }
+  return -1; }
+/** D-292: who is hurt at work now and then (Population.injuryOn), and how (C) */
+const INJURY_JOBS = new Set(['builder', 'porter', 'farmer', 'herder', 'groom', 'camp']);
+const INJURY_HOW = ['kicked in the shin by one of the animals', 'a stone dropped on his foot at the building works', 'turned his ankle under a load'];
+/** D-292: the running water of the plain (the river, the canals, their banks), and a washing done on the bank from a jar */
+export const STREAM = /^(river|canal:|bank:)/;
+export const ON_BANK = /on the bank, with water drawn up in a jar/;
 export const FUNERAL_BEFORE_SET_H = 2.5;
 export function segAt(segs: Seg[], h: number): Seg { for (const s of segs) if (h < s.t1) return s; return segs[segs.length - 1]; }

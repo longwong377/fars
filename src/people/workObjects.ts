@@ -26,7 +26,9 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   // D-255: the crafts and the records
   | 'anvil' | 'bellows_stand' | 'bellows' | 'stake' | 'weigh_table' | 'sealed_jars' | 'seal_bench' | 'tan_beam' | 'tan_vat' | 'hide_frames' | 'oil_press' | 'oil_jars'
   // D-256: the work on the land (the fold against the wolves, the drums from the quarry, milking, fishing, snaring, bees, nuts)
-  | 'fold' | 'drum_haul' | 'sledge' | 'drum_rough' | 'milk_pot' | 'basket_fish' | 'fish_trap' | 'snare' | 'hives' | 'basket_nuts';
+  | 'fold' | 'drum_haul' | 'sledge' | 'drum_rough' | 'milk_pot' | 'basket_fish' | 'fish_trap' | 'snare' | 'hives' | 'basket_nuts'
+  // D-292: the body's care (the basin the face is washed over, the barber's jar)
+  | 'basin';
 type RGB = [number, number, number];
 const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
@@ -105,6 +107,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   sledge: { tier: 'C', note: 'the drum sledge going back empty to the quarry: two heavy runners and cross-pieces, the traces forward to the yokes (C: D-256)' },
   drum_rough: { tier: 'C', note: 'a column drum roughed out at the quarry, over-size, the point marks on it, chips about its foot (C: D-256)' },
   milk_pot: { tier: 'C', note: 'a round-bellied clay pot for the milk (C: D-256)' },
+  basin: { tier: 'C', note: 'a wide shallow clay basin with a little water in it, the water jar beside: the face and hands washed over it, the water poured from a small jug (plain wide bowls and basins are ordinary finds: B; the use C: D-292)' },
   basket_fish: { tier: 'C', note: 'a basket with the catch, barbel and carp of the river (C: D-256)' },
   fish_trap: { tier: 'C', note: 'a conical wicker fish trap at the water\'s edge, weighted with a stone (C: D-256)' },
   snare: { tier: 'C', note: 'a pegged snare line: a cord between two pegs with horsehair nooses along it (C: D-256)' },
@@ -336,6 +339,9 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
     case 'drum_rough': { const g = [P(new THREE.CylinderGeometry(0.84, 0.88, 1.3, 9).translate(0, 0.65, 0), LIME, 1)];
       for (let i = 0; i < 6; i++) g.push(P(mound(0.18 + 0.08 * Math.abs(jit(i)), 0.07, 5, 1.0 * Math.cos(i * 1.1), 1.0 * Math.sin(i * 1.1)), [0.7, 0.68, 0.63], 1));
       return merge(g); }
+    case 'basin': return merge([P(lathe([[0.001, 0], [0.12, 0.005], [0.2, 0.05], [0.23, 0.1], [0.215, 0.105], [0.19, 0.06], [0.001, 0.02]], 12), POT, 0.85),
+      P(new THREE.CylinderGeometry(0.185, 0.185, 0.003, 12).translate(0, 0.055, 0), [0.32, 0.36, 0.36], 0.08),
+      P(lathe([[0.001, 0], [0.06, 0.01], [0.075, 0.07], [0.05, 0.13], [0.032, 0.15], [0.038, 0.17], [0.001, 0.16]], 8).translate(0.3, 0, 0.05), POT, 0.85)]);
     case 'milk_pot': return merge([P(lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.12], [0.12, 0.22], [0.08, 0.26], [0.09, 0.29], [0.07, 0.29], [0.001, 0.2]], 10), POT, 0.85),
       P(new THREE.CylinderGeometry(0.075, 0.075, 0.004, 10).translate(0, 0.24, 0), [0.92, 0.9, 0.84], 0.6)]);
     case 'basket_fish': { const g = [P(new THREE.CylinderGeometry(0.22, 0.17, 0.2, 10, 1, true).translate(0, 0.1, 0), [0.6, 0.52, 0.32])];

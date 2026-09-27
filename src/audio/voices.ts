@@ -52,6 +52,9 @@ export interface NearPerson {
   group: string | null;
   /** session 9: the way they face (world yaw, the rig's +Z forward: crowd.ts yawOf), when the crowd knows it (their breath) */
   yaw?: number;
+  /** D-292 (C-D30, GA29): a woman with a small child in her arms, lap, cradle or on the mat beside her at its bedtime: she hums it
+   *  to sleep (crowd.ts nearPeople) */
+  lull?: boolean;
 }
 /** a published unit: a whole speech line or one attested lexicon entry; or, for a people without a corpus, a wordless voice */
 export interface Unit { id: string; ipa: string; intonation: Intonation; kind: 'line' | 'word' | 'wordless'; parts: string[]; tier: string; gloss: string; translit: string }
@@ -74,6 +77,12 @@ export const COUGH = nonverbal('cough', 'a cough', [['ʔhəʔhə', 'fall'], ['ʔ
 /** how often (C): a listener laughs after one turn in LAUGH_P; a child's unit is a call in CHILD_CALL_P; a baby near the
  *  listener starts a bout of crying once in CRY_EVERY_S seconds on average, 3-10 cries with a gasp between */
 export const LAUGH_P = 0.12, CHILD_CALL_P = 0.25, CRY_EVERY_S = 900;
+/** D-292 (gap hunter C, C-D30; WORLD_INVENTORY GA29): a lullaby hummed to a small child at its bedtime, wordless (no song text
+ *  of the period survives for it, and none is invented: brief §10, C): a slow tune of LULL_NOTES hummed notes on the steps of
+ *  a narrow scale (semitones from her own pitch), falling to the end of each phrase, a breath between phrases; phrases for as
+ *  long as she sits with it, with a rest now and then. The notes are the hums of WORDLESS */
+export const LULL = nonverbal('lull', 'a lullaby hummed to a small child, without words', [['m̩ː', 'level'], ['mː', 'fall'], ['m̩ː', 'rise'], ['mː', 'level']]);
+export const LULL_STEPS = [0, 2, 3, 5, 7] as const, LULL_NOTES: [number, number] = [4, 7], LULL_REST_P = 0.25;
 /** a person near the listener coughs once in this many seconds on average (world.ts sets it by season: winter colds; C) */
 export const COUGH_EVERY_S = 1200;
 
@@ -118,7 +127,7 @@ export const voiceDist = (a: VoiceParams, b: VoiceParams) => { const A = voiceBa
   return Math.hypot(dp / VOICE_MIN.pitch, (Math.log(A.formantScale / B.formantScale) - dp) / VOICE_MIN.formant, (a.rate - b.rate) / VOICE_MIN.rate,
     ((a.glottis ?? 0.5) - (b.glottis ?? 0.5)) / VOICE_MIN.glottis, ((a.f2 ?? 1) - (b.f2 ?? 1)) / VOICE_MIN.f2); };
 const wrap = (v: number, lo: number, w: number) => lo + ((((v - lo) % w) + w) % w);
-interface Slot { key: string; p: NearPerson; voice: VoiceParams; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number }
+interface Slot { key: string; p: NearPerson; voice: VoiceParams; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number; /** D-292: the lullaby's phrase: notes left, its length, the scale step */ lull?: { left: number; n: number; step: number } }
 interface Group { busyUntil: number; nextAt: number; speaker: string | null; turnLeft: number; last: string | null; /** a listener's laugh after the turn */ laughAt?: number; laughBy?: string }
 /** one utterance or grain started (the offline measurement reads these: tools/dev/audio_render.ts) */
 export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: LangId | 'wordless'; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
@@ -268,6 +277,15 @@ export class PopulationVoices {
       if (!s.bout) { if (!s.rng.chance(Math.min(1, Math.max(0, dt)) / this.cryEvery)) continue; s.bout = 3 + s.rng.int(0, 7); }
       const end = this.utter(s, null, now, 'voice', false, d, { unit: s.rng.pick(CRY), loud: 1.5, pitch: 1.9 }); if (end == null) continue;
       s.bout--; s.nextAt = end + 0.25 + 0.5 * s.rng.next() + (s.bout ? 0 : 2); }
+    // lullabies (D-292): a woman with a small child at its bedtime hums it to sleep, a phrase of notes stepping down, a breath,
+    // another; nothing else interrupts her in those hours but the child's own cry (C)
+    for (const p of people) { if (!p.lull) continue; const d = Math.hypot(p.x - listener.x, p.y + 1.5 - listener.y, p.z - listener.z); if (d > this.clearR) continue;
+      const s = this.slot(p, now); s.seen = now; s.p = p; this.claimed.add(p.key); if (now < s.busyUntil || now < s.nextAt) continue;
+      if (!s.lull || s.lull.left <= 0) { if (s.lull && s.rng.chance(LULL_REST_P)) { s.lull = undefined; s.nextAt = now + 4 + 8 * s.rng.next(); continue; }
+        const n = LULL_NOTES[0] + s.rng.int(0, LULL_NOTES[1] - LULL_NOTES[0]), top = 2 + s.rng.int(0, 2); s.lull = { left: n, n, step: top }; }
+      const L = s.lull, k = L.n - L.left, semis = LULL_STEPS[Math.max(0, Math.min(LULL_STEPS.length - 1, L.step))], pitch = Math.pow(2, (semis - 2) / 12) * 0.92;
+      const end = this.utter(s, null, now, 'voice', false, d, { unit: LULL[(k + (L.left === 1 ? 1 : 0)) % LULL.length], loud: 0.55, pitch }); if (end == null) continue;
+      L.left--; L.step = Math.max(0, L.step + (s.rng.chance(0.65) ? -1 : 1)); s.nextAt = end + (L.left ? 0.05 + 0.12 * s.rng.next() : 1.2 + 1.3 * s.rng.next()); }
     // coughs (G34): anyone past infancy within clearR now and then, not while they speak (C)
     for (const p of people) { if (p.age < 2) continue; const d = Math.hypot(p.x - listener.x, p.y + 1.5 - listener.y, p.z - listener.z); if (d > this.clearR) continue;
       if (!this.rng.chance(Math.min(1, Math.max(0, dt)) / this.coughEvery)) continue;

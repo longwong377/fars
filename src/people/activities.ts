@@ -30,7 +30,9 @@ export type ActivityId =
   | 'smith' | 'goldsmith' | 'weigh' | 'seal' | 'cut_seal' | 'tan' | 'press_oil'
   // D-256: the work on the land the gap hunters found missing (WORLD_INVENTORY G12-G17, G30): milking, fishing, fowling and
   // snaring, the quarry, the bees
-  | 'milk' | 'fish' | 'fowl' | 'quarry' | 'bees';
+  | 'milk' | 'fish' | 'fowl' | 'quarry' | 'bees'
+  // D-292: the body's care (gap hunter C, C-D04..C-D07)
+  | 'tend_body';
 
 /** props an activity can put in the hands (props.ts PROPS) */
 export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'mallet' | 'basket' | 'bread'
@@ -240,7 +242,10 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
         note: 'herding the village cows and calves on the river meadow and the fallow, a dog with them (cattle breed the plough oxen of the plain, E-40; the herd, its size and its grounds C: D-256). Their lowing is theirs (crowd.ts: a low now and then, the strike low)' },
       // D-256: the flock watched at night in its fold (the bands' watch by turns: E-49; the fold C)
       { when: /in the night|by turns/, animals: { kind: 'fold', species: SHEEP, n: 24, pace: 1, dogs: 2 }, work: [FOLD],
-        note: 'watching the flock penned in its thorn fold through the night, by turns, with the dogs, against the wolves (the watch: E-49 herders and dogs, C; the fold C: D-256)' }],
+        note: 'watching the flock penned in its thorn fold through the night, by turns, with the dogs, against the wolves (the watch: E-49 herders and dogs, C; the fold C: D-256)' },
+      // D-292 (GC27, C-D38): a herd boy turns a stray back or scares off a dog or a wolf with a stone from his sling
+      { when: 0.45, anim: 'sling', prop: 'lead', sex: 'm', ages: [8, 17],
+        note: 'a herd boy with his sling, now and then whirling a stone about his head and letting it go at a stray at the flock\'s edge (slings and sling stones are common finds of the Near East, and slingers are named among the Achaemenid troops: B analogy; the herd boy\'s use C: D-292)' }],
     note: 'herding sheep and goats (state flocks attested, PF 58-60: A; the herder leaning on his staff, the flock grazing about him: C). The bleats are the flock’s. Two dogs with every flock (D-210: E-49’s participants “herders, dogs and donkeys”; the herders’ plans “with the dogs”; dogs spared by the magi, HDT 1.140, a claim; C), lying by the herdsman or at the flock’s edge and going round it; they bark at a stranger who comes close' },
   shear: { anim: 'shear', prop: 'knife', tier: 'C', animals: { kind: 'lying', species: ['sheep'] }, work: [{ kind: 'fleece', at: [0.55, 0, 0.3] }],
     note: 'shearing the state flock (E-47, season C): kneeling at a sheep laid on its side, the fleece cut with a knife (shears are not attested in the research files: Q-192; plucking, recalled for Babylonian temple flocks in E-47, is NOT SEEN)' },
@@ -305,7 +310,10 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     note: 'carrying the dead out of the settlement on a bier, four bearers (E-71; HDT 1.140 for burial in the earth: B claim). Exposure is never shown',
     variants: [{ when: 0.5, anim: 'bier_l', work: [{ kind: 'bier', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer with the bier’s pole on the left shoulder (C)' }] },
   wash: { anim: 'wash', prop: 'cloth', sound: 'wash', tier: 'C', work: [{ kind: 'wash_stone', at: [0, 0, 0.55] }, { kind: 'drying_rack', at: [1.7, 0, -0.6] }],
-    note: 'washing clothes and wool at the water: rinsed, beaten on a stone, wrung, hung to dry (C)' },
+    note: 'washing clothes and wool at the water: rinsed, beaten on a stone, wrung, hung to dry (C)',
+    // D-292 (gap hunter C, C-D46): a Persian or a guard does it on the bank from a jar, never in the stream
+    variants: [{ when: /on the bank, with water drawn up in a jar/, work: [{ kind: 'wash_stone', at: [0, 0, 0.55] }, { kind: 'jar', at: [0.62, 0, 0.3] }, { kind: 'drying_rack', at: [1.7, 0, -0.6] }],
+      note: 'washing clothes on the bank with water drawn up from the stream in a jar, rinsed and beaten on a stone well back from the water, wrung, hung to dry: the Persians neither wash in a river nor let others do so (Herodotus 1.138, a Greek claim: B; the jar and the place C: D-292)' }] },
   train: { anim: 'archery', prop: 'bow', prop2: 'arrow', sound: 'bow', tier: 'B', work: [{ kind: 'target', at: [0, 0, 22] }],
     note: 'boys of households of standing learning to shoot with the bow (HDT 1.136, a Greek claim: B; XEN-CYR 1.2.15; Q-146): shooting at a straw target at 22 m (C)',
     variants: [{ when: 0.35, anim: 'ride', prop: undefined, prop2: undefined, sound: undefined, work: [], animals: { kind: 'mount', species: ['horse_saddle'], pace: 0 },
@@ -362,6 +370,16 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   bees: { anim: 'pick', tier: 'C', work: [{ kind: 'hives', at: [0, 0, 0.9] }],
     note: 'seeing to the hives: clay-pipe hives stacked in a low wall in the garden, the ends opened and looked into; the buzz of the bees comes from the hives (crowd.ts, the strike buzz) (honey in the PF texts: RECOLLECTION NOT SEEN; the clay-pipe hive of Iran and the Near East, recollection; C: D-256)',
     variants: [{ when: /honey|comb/, prop: 'knife', work: [{ kind: 'hives', at: [0, 0, 0.9] }, { kind: 'jar', at: [0.6, 0, 0.1] }], note: 'taking the honey: the combs cut from the back of the pipe hives with a knife into a jar, some left for the bees for the winter (C: D-256)' }] },
+  // ============================================ D-292: the body's care (gap hunter C, C-D04..C-D07; population.ts care; every motion C)
+  tend_body: { anim: 'wash_face', sound: 'water', tier: 'C', work: [{ kind: 'basin', at: [0, 0, 0.42] }],
+    note: 'washing the face and hands at rising, kneeling over a clay basin by the house\'s water jar, the water scooped up in both hands and poured from a small jug; never in running water (the Persians\' care for water, Herodotus 1.138, a Greek claim: B; the daily custom and the basin C: D-292)',
+    variants: [
+      { when: /^picking the lice/, anim: 'delouse', sound: undefined, work: [],
+        note: 'going through a child\'s hair for lice on the doorstep, the child sitting in front of her; the fingers part the hair and pick (lice combs of wood and bone are ordinary finds of the period: B analogy; a comb is not drawn; the doorstep and the hour C: D-292)' },
+      { when: /^having (his|her) hair gone through/, anim: 'sit', sound: undefined, work: [], note: 'a child sitting still on the doorstep while its hair is gone through for lice (C: D-292)' },
+      { when: /^shaving men/, anim: 'shave', prop: 'knife', sound: undefined, work: [{ kind: 'jar', at: [-0.42, 0, 0.3] }],
+        note: 'the quarter\'s barber kneeling up in the lane in front of a man sitting on the ground, a bronze razor in his right hand, his left steadying the head, the razor rinsed in a water jar (barbers, gallabu, in the Neo-Babylonian texts: B analogy; bronze razors are known finds of the region: RECOLLECTION, NOT SEEN; the man, the lane and the hour C: D-292)' },
+      { when: /^being shaved/, anim: 'sit', sound: undefined, work: [], note: 'a man sitting on the ground in the lane, his beard trimmed or his cheeks shaved by the quarter\'s barber (C: D-292)' }] },
   // D-199 (court setting only): the king as the door-jamb and audience reliefs show him, and the two attendants behind him
   royal_walk: { anim: 'walk', moving: true, prop: 'sceptre', prop2: 'lotus', sound: 'footsteps', tier: 'B', note: 'the king walking, the long staff in his right hand and a lotus in his left (door-jamb reliefs of the Tachara and the Hadish, HADISH-JAMB: B); the gait and the pace C' },
   enthroned: { anim: 'enthroned', prop: 'sceptre', prop2: 'lotus', tier: 'B', work: [{ kind: 'throne', at: [0, 0, 0] }], note: 'the king enthroned at an audience, staff and lotus in his hands, his feet on the footstool (the Treasury audience relief, TREAS-AUD: B); where the throne stood in the Apadana and the hours C; the king does not move or speak (brief §1.1 restraint)' },
