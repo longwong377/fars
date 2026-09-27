@@ -9,6 +9,7 @@ import { tmpdir, cpus } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildTerrace } from '../src/arch/terrace';
+import { partsKey } from '../src/arch/partsKey';
 import { memberMaterials } from '../src/arch/sculpt';
 import { SPEC } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
@@ -81,7 +82,7 @@ rmSync(dir, { recursive: true, force: true });
 
 const data = assemble(sky, b1, b2, reach), filled = dilate(vols, data);
 console.log(`dilated into ${filled} probes inside solids (weight ${DILATED})`);
-const hash = createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16);
+const hash = createHash('sha1').update(partsKey(parts)).digest('hex').slice(0, 16);
 const field: ProbeField = { volumes: vols, data, count: pos.length, normalBias: BAKE.normalBias, tier: 'C', note: '' };
 // summary: the ambient at each hall's centre relative to open ground (sky 0.8, sun 2.1 in renderer units: a clear midday)
 const stats: Record<string, number> = {};

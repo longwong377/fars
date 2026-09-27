@@ -31,6 +31,7 @@ export interface WorldBuild {
   nowView?: NowView;
 }
 import { buildTerrace } from '../arch/terrace';
+import { partsKey } from '../arch/partsKey';
 import type { Doorway } from '../arch/parts';
 import { setTraffic } from '../render/materials';
 import { buildMeshes } from '../arch/meshes';
@@ -136,6 +137,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const fireOccP = loadFireOcc('/'); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
+  // the parts as tools/build_probes.ts hashes them: before the builders below use them (session 11: hashed after
+  // buildMeshes/DoorSystem, the page warned of stale probes on a fresh bake)
+  const partsJson = partsKey(parts);
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
@@ -148,7 +152,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const doors = new DoorSystem(parts, phys); root.add(doors.group); // D-051
   { // stale probes still light the halls, but say so (the unit test tests/probes.test.ts fails on the same condition)
     const pf = await probesP, h = pf?.partsHash;
-    if (pf && h) try { const d = new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(JSON.stringify(parts)))); const now = [...d].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16);
+    if (pf && h) try { const d = new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(partsJson))); const now = [...d].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16);
       if (now !== h) console.warn(`[probes] baked for parts ${h}, the architecture is ${now}: rerun npx tsx tools/build_probes.ts`); } catch { /* no SubtleCrypto (insecure context) */ } }
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const reliefs = buildReliefs(manifest); root.add(reliefs);

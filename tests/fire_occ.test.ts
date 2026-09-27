@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
+import { partsKey } from '../src/arch/partsKey';
 import { terraceFireLights } from '../src/world/firePlaces';
 import { octEncode, octDecode, occAt, bakeTile, tileOf, OCC_TILE, type FireOcc, type OccTracer } from '../src/world/fireOcc';
 
@@ -26,7 +27,7 @@ describe('fire-light occlusion (D-222)', () => {
     }
   });
   it('the bake is current: parts hash, tile size and the fires list match the tree (else rerun tools/build_fire_occ.ts)', () => {
-    expect(occ.partsHash).toBe(createHash('sha1').update(JSON.stringify(T.parts)).digest('hex').slice(0, 16));
+    expect(occ.partsHash).toBe(createHash('sha1').update(partsKey(T.parts)).digest('hex').slice(0, 16));
     expect(occ.tile).toBe(OCC_TILE);
     expect(occ.fires).toEqual(terraceFireLights(T.manifest, T.parts, T.doorways));
     expect(occ.data.length).toBe(occ.cols * occ.tile * occ.rows * occ.tile);

@@ -12,6 +12,7 @@ import { activityLint } from '../src/people/activityLint';
 import { COSTUMES, DRESSES } from '../src/people/outfits';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { buildTerrace } from '../src/arch/terrace';
+import { partsKey } from '../src/arch/partsKey';
 
 const navMeta = JSON.parse(readFileSync('public/generated/nav.json', 'utf8'));
 const loadNav = () => new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
@@ -29,7 +30,7 @@ function runDay(sim: PeopleSim, day: number, dt: number, onSample?: (h: number) 
 
 describe('walkable grid', () => {
   it('is up to date with the architecture (parts hash) — rerun `npx tsx tools/build_nav.ts` if this fails', () => {
-    const hash = createHash('sha1').update(JSON.stringify(buildTerrace().parts)).digest('hex').slice(0, 16);
+    const hash = createHash('sha1').update(partsKey(buildTerrace().parts)).digest('hex').slice(0, 16);
     expect(navMeta.partsHash).toBe(hash);
     for (const k of ['e0', 'n0', 'cell', 'w', 'h'] as const) expect(navMeta[k]).toBe(NAV[k]);
   });

@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
+import { partsKey } from '../src/arch/partsKey';
 import { memberMaterials } from '../src/arch/sculpt';
 import { SPEC } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
@@ -30,6 +31,6 @@ fires.forEach((f, k) => {
 });
 const half = new Uint16Array(atlas.length); for (let i = 0; i < atlas.length; i++) half[i] = THREE.DataUtils.toHalfFloat(atlas[i]);
 writeFileSync('public/generated/fire_occ.f16', Buffer.from(half.buffer));
-const partsHash = createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16);
+const partsHash = createHash('sha1').update(partsKey(parts)).digest('hex').slice(0, 16);
 writeFileSync('public/generated/fire_occ.json', JSON.stringify({ tier: 'C', note: 'fire-light occlusion of the Terrace fires (D-222); positions C like the fires', tile: OCC_TILE, cols: OCC_COLS, rows, far: OCC_FAR, partsHash, fires, built: new Date().toISOString().slice(0, 10) }) + '\n');
 console.log(`fire occlusion: ${fires.length} fires (${inside} inside a solid), atlas ${W}×${H}, ${((Date.now() - T0) / 1000).toFixed(0)} s`);

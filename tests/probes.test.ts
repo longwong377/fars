@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import type { Part, Box, Prism, Material } from '../src/arch/parts';
 import { buildTerrace } from '../src/arch/terrace';
+import { partsKey } from '../src/arch/partsKey';
 import { v as specV } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
 import { TraceScene, sceneFromParts } from '../src/render/probes/trace';
@@ -189,7 +190,7 @@ describe('light probes: the baked Terrace field', () => {
   const ap = (manifest as any).apadana, [cx, cy] = ap.hallCentre as number[], fl = ap.podium as number, inner = ap.hallInterior / 2;
   const at = (e: number, n: number, h = 1.6) => visAt(F, e, fl + h, -n);
   it('is up to date with the architecture (parts hash) — rerun `npx tsx tools/build_probes.ts` if this fails', () => {
-    expect(meta.partsHash).toBe(createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16));
+    expect(meta.partsHash).toBe(createHash('sha1').update(partsKey(parts)).digest('hex').slice(0, 16));
     expect(F.count).toBe(F.data.length / PROBE_STRIDE);
     expect(F.volumes.map(v => v.building).sort()).toEqual(probeVolumes(parts, manifest).map(v => v.building).sort());
   });

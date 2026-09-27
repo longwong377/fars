@@ -11,6 +11,7 @@ import { createHash } from 'node:crypto';
 import { Ring, Terrain, TerrainMeta } from '../src/terrain/heightfield';
 import { Physics } from '../src/player/physics';
 import { buildTerrace } from '../src/arch/terrace';
+import { partsKey } from '../src/arch/partsKey';
 import { buildMeshes } from '../src/arch/meshes';
 import { NAV } from '../src/people/navgrid';
 
@@ -95,7 +96,7 @@ for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
   if (j + 1 < h && out[idx(i, j + 1)] !== NAV.blocked) { if (legal(i, j, i, j + 1)) edges[idx(i, j)] |= 2; else cut++; }
 }
 writeFileSync('public/generated/nav_edges.u8', Buffer.from(edges.buffer));
-const hash = createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16);
+const hash = createHash('sha1').update(partsKey(parts)).digest('hex').slice(0, 16);
 writeFileSync('public/generated/nav.i16', Buffer.from(out.buffer));
 writeFileSync('public/generated/nav.json', JSON.stringify({ ...NAV, partsHash: hash, walkable: walk, cutEdges: cut, rays, built: new Date().toISOString().slice(0, 10) }, null, 1));
 console.log(`nav grid ${w}×${h} @ ${cell} m: ${walk} walkable cells (${kept} cells in narrow passages kept by the clearance test) (${(walk * cell * cell / 1e4).toFixed(1)} ha), ${rays} rays, ${cut} edges cut by thin walls, ${((Date.now() - t0) / 1000).toFixed(1)} s, parts ${hash}`);
