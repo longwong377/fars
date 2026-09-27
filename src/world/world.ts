@@ -67,6 +67,8 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
+import { FOOTPRINTS } from '../arch/spec';
+import { toLocal } from './settlement/site';
 import settlementData from '../data/settlement.json';
 import { DustDevils } from './dustDevils';
 import { BreathFx, BREATH_R, breathVisibility } from './breath';
@@ -232,8 +234,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     for (const c of plain.data.canals) wet.addPolyline(c.pts as [number, number][], 5, 9);
     for (const m of townMiddens) dung.add(m[0], m[1]); if ((FAUNA_FAC as any).tannery) dung.add((FAUNA_FAC as any).tannery[0], (FAUNA_FAC as any).tannery[1]); // the tannery's flies (D-255)
     const ground = (e: number, n: number) => { const y = nav.heightAt(e, n); return Number.isFinite(y) ? y : terrain.heightAt(e, -n); };
+    // (session 10, the planets-dusk render: a thistle grew out of the Terrace's paving; built ground, the Terrace and the town's
+    // plots, holds no flora and no small life but the middens' flies)
+    const terr = (FOOTPRINTS as any).terrace.polygon as [number, number][], inPoly = (P: [number, number][], x: number, y: number) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
+    const built = (e: number, n: number) => inPoly(terr, e, n) || !!settlement?.plan.sites.some(s0 => { const s = s0 as any; const [u, v] = toLocal(s.frame, e, n), i = s.ci(u), j = s.cj(v); return s.inb(i, j) && s.cell[s.k(i, j)] >= 0; });
     const ctxAt = (e: number, n: number): CellCtx => {
       if (dung.any(e, n, 6)) return 'midden';
+      if (built(e, n)) return 'none';
       const [d, i] = wet.nearest(e, n, 40); if (i >= 0) { const tg = wet.tags[i], hw = tg === 9 ? 1.5 : halfW[tg]; if (d > hw - 4 && d < hw + 8) return 'water'; if (d <= hw - 4) return 'none'; }
       const h = (a: number, b: number) => terrain.heightAt(a, -b), sl = Math.hypot(h(e + 4, n) - h(e - 4, n), h(e, n + 4) - h(e, n - 4)) / 8;
       if (sl > 0.3) return 'rock';
