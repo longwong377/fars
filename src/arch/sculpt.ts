@@ -387,8 +387,8 @@ function capitalMesh(o: ColumnOrder, lod: Lod, protome = true, volute = true): N
 const COL_CACHE = new Map<string, NormMesh>(), PART_CACHE = new Map<string, NormMesh | null>();
 const cached = (key: string, make: () => NormMesh | null) => { if (!PART_CACHE.has(key)) PART_CACHE.set(key, make()); return PART_CACHE.get(key)!; };
 /** the capital of an order alone, standing on y = 0 (a finished capital waiting in the masons' yard, src/world/construction.ts) */
-export function capitalAlone(o: ColumnOrder, lod: Lod = 1): NormMesh | null {
-  const m = cached(`cap|${JSON.stringify(o)}|${lod}`, () => capitalMesh(o, lod)); if (!m) return null;
+export function capitalAlone(o: ColumnOrder, lod: Lod = 1, protome = true): NormMesh | null {
+  const m = cached(`cap|${JSON.stringify(o)}|${lod}${protome ? '' : '|np'}`, () => capitalMesh(o, lod, protome)); if (!m) return null;
   return transformNorm(m, [1, 0, 0, 0, 0, 1, 0, -(o.height - o.capitalH), 0, 0, 1, 0]);
 }
 /** the whole column in local space (base at y = 0, top at o.height); built < 1: shaft partly raised, no capital.

@@ -163,3 +163,12 @@ batched full-world render (tests/e2e/blender_hero.spec.ts is the pattern: A/B in
 - **Iterating:** tools/blender/preview_high.py renders a SOURCE surface (the carving before any bake) in ~20 s;
   tools/blender/probe/carving_probe.{html,ts,mjs} renders the carved pieces in the game's renderer without the world (load
   6 s + ~100 s of shader compiling), before/after per view, with calibration pieces on the ground for the photographs.
+
+## 8. Session 12 (D-312): the forms re-proportioned
+
+- **Protome (all 210 capitals + the Hall of 100 Columns' set capitals + the masons' yard):** head measured on the fallen
+  capital (columns_capitals/130306670): ~0.55 of the protome's height, face near vertical, muzzle hanging in front of the
+  chest down to ~0.9 D; built with a per-axis head scale (sculpture.json protome.head.scale) and a raised neck crest.
+  The Hall of 100 Columns' columns under construction and the yard's finished capitals now draw this GLB (were procedural).
+- **Colossi (4):** r_colossus 5.5 -> 6.7 m from the Gate's front photograph; the W bulls' head 1.5 m/unit (was 1.2).
+- **Not done:** relief atlases (row 3) and the block faces' baked detail; the lamassu's own head proportions; any blind review.

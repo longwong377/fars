@@ -7438,3 +7438,31 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Tests:** tests/sun_shadows.test.ts (texels, breaks vs the air-light and the people's reach, the shared installer),
   tests/tone_look.test.ts (CPU mirror = AgX at the identity look; the fitted look monotonic, brighter at the top, night not
   lifted). Probe renders: shots/sunshadow-{old,new}-high-h10-{face,full,feet}-gpu.png (not committed; T:/fars-wt/lighting).
+## D-312 The monuments' forms re-proportioned from the photographs: every protome capital, every Gate colossus (session 12, agent monuments; UD-19, UD-17, D-233; T-R12; B118, B120, Q-842)
+- **Decision:** the forms (not the carving) of the two Blender-built monument classes are re-measured on the photographs and
+  rebuilt through the D-305 pipeline, so every instance changes (210 protome capitals, 4 colossi, instanced from the same assets):
+  - **Double-bull protome** (sculpture.json protome.head, body.profile; sculpt_models.ts protomeSDF). Measured on
+    fars-assets/photos/columns_capitals/130306670 (the fallen capital, side/three-quarter; protome height 2.0 D = ~900 px):
+    poll at y ~1.96 D, muzzle at ~0.8-0.9 D, head length poll-to-muzzle ~1.1 D (0.55 of the height), the face nearly vertical,
+    hanging in front of the chest over the folded forelegs, the neck crest arching to the poll. D-151's head was 0.75 D long,
+    0.33 of the height, held forward and up (the "toy cow"). Now: poll (1.14, 1.9), muzzle (1.6, 0.98), the head frame scaled
+    [1.3, 1.2, 1.1] (length, depth, width; horns kept at their size: the photographed horns are short inserted stubs), crest
+    raised to meet the poll (profile 1.55 -> 1.64, 1.74 -> 1.9); the chest apron's locks are no longer placed where the head
+    now covers the chest; the carving's halter, collar and mane paths moved onto the new head and neck (carving.json).
+  - **Gate colossi.** SITE_SPEC gate_nations.r_colossus height 5.5 -> 6.7 m, measured on the Gate's front photograph
+    (81527995: plinth foot to crown top = 0.79 of the door opening; door_height 10.0 m, C; less the 1.2 m plinth): the old
+    value was from a weak popular source and left the colossi "small in the jamb" (review s11). The model is authored in its
+    reference box and fitted to r_colossus, so all four grow (length kept: the passage fixes it). The W bulls' head: scale
+    1.2 -> 1.5 m/unit, poll set back to (1.45, 4.82) so the larger horns clear the jamb frame (was a sixth of the forepart's
+    height, "heads low").
+  - **Routing:** the Hall of 100 Columns' columns under construction (world/construction.ts, once the simulation sets a
+    capital) and the masons' yard's finished capitals now draw the Blender protome (bakedMaterial, A/B swap registered) and
+    the capital without its procedural protome (sculpt.ts capitalAlone(o, lod, protome)).
+- **Alternatives:** keep D-151's head and only add carving (rejected: the reviewers' failure is the form); non-uniform
+  stretch of the old head (that is what the per-axis head scale is, with a measured target); a new head model (no time, and
+  no measured drawing: Q-840's ISAC plates remain the next source).
+- **Evidence:** node/Blender previews of the source surfaces (T:/fars-assets-s12/monuments/prev/*), the build's manifest
+  (public/models/manifest.json), tests listed in the session's report. Tier stays C (form by proportion to photographs, by eye).
+- **Not done (honest):** relief figures as baked carved geometry (row 3) and the block faces' baked chisel/spall detail were
+  not started in this agent's window; the reliefs stay flagged PLACEHOLDER (RELIEF_META). The E lamassu's head was not
+  re-proportioned beyond the r_colossus height. Reversible: the data rows and one SITE_SPEC value.
