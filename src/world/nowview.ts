@@ -25,14 +25,24 @@ const ALL: Material[] = ['limestone', 'limestone_dark', 'mudbrick', 'mudbrick_pa
 /** weathering of exposed limestone (C, RECOLLECTION of the site's look: grey stone darkened by a patchy grey-black crust and
  *  lichen, streaked where water runs down, darkest on up-facing surfaces; paint gone). Albedo mixed toward `dark` by a
  *  blotch-and-streak field; roughness raised to at least `rough` (the polish is gone except on the dark stone's faces). */
-function patina(strength: number, dark: [number, number, number], rough: number) {
+/** D-285 (session 11, the lead's GPU measurement of calib-24-now against photograph #24, display sRGB luma of the retaining
+ *  wall's sunlit face and the plain in front of it): wall/ground 0.73 in the photo, 1.47 in the render; the wall's R/B 1.65 in
+ *  the photo, 1.19 in the render (the ruin's stone reads warm brown-grey, the render's a neutral pale grey: "grey concrete").
+ *  Inverting AgX (tests/lib/stone_cpu.ts agxGrey) at the render's levels, the stone's scene-linear radiance must fall to 0.22 of
+ *  the render's (per channel 0.28 / 0.21 / 0.20 to reach the photo's hue at the photo's wall/ground ratio): the weathered stone's
+ *  albedo, crust, dust and iron staining together, applied as one factor on the Now view's limestone (tier C: the photo is
+ *  Lightroom-graded, its tone curve unknown; the ratio is exposure-free but not grade-free). The 467 stone (≈50 years from the
+ *  quarry) keeps its pale grey (D-230, D-285) */
+export const NOW_STONE_TINT: [number, number, number] = [0.284, 0.212, 0.203];
+function patina(strength: number, dark: [number, number, number], rough: number, tint?: [number, number, number]) {
   return (L: Layer): Layer => {
     const p = positionWorld, n = normalWorld, n01 = (x: any) => mx_noise_float(x).mul(0.5).add(0.5);
     const blotch = n01(p.mul(0.23)).mul(0.6).add(n01(p.mul(1.7)).mul(0.4));
     const streak = n01(vec3(p.x.mul(3.1), p.y.mul(0.18), p.z.mul(3.1)));
     const up = smoothstep(0.4, 0.9, n.y);
     const m = clamp(smoothstep(0.35, 0.75, blotch.mul(0.55).add(streak.mul(0.45))).add(up.mul(0.25)), 0, 1).mul(strength);
-    return { ...L, alb: mix(L.alb.mul(0.86), vec3(dark[0], dark[1], dark[2]), m), rough: max(L.rough, float(rough)) };
+    const alb = mix(L.alb.mul(0.86), vec3(dark[0], dark[1], dark[2]), m);
+    return { ...L, alb: tint ? alb.mul(vec3(tint[0], tint[1], tint[2])) : alb, rough: max(L.rough, float(rough)) };
   };
 }
 const NOTE = 'Now view surface (C, D-201): RECOLLECTION of the weathered stone, NOT SEEN; patina procedural, paint gone';
@@ -43,7 +53,7 @@ export function nowMaterial(m: Material, arch: boolean): THREE.Material {
   const tag = (x: THREE.MeshStandardNodeMaterial) => { x.userData = { ...x.userData, tier: 'C', note: NOTE }; return x; };
   switch (m) {
     case 'limestone': case 'terrace': case 'rubble': // (D-232: the Terrace's walls keep their photographed joint layout in the ruin)
-      return tag(surfaceMaterial(arch ? (m === 'terrace' ? 'terrace_now' : 'limestone') : 'limestone_carved', { arch, variant: 'now', modify: patina(0.85, [0.2, 0.195, 0.185], 0.7) }));
+      return tag(surfaceMaterial(arch ? (m === 'terrace' ? 'terrace_now' : 'limestone') : 'limestone_carved', { arch, variant: 'now', modify: patina(0.85, [0.2, 0.195, 0.185], 0.7, NOW_STONE_TINT) }));
     case 'limestone_dark':
       return tag(surfaceMaterial('limestone_dark', { arch, variant: 'now', modify: patina(0.45, [0.1, 0.1, 0.1], 0.3) }));
     case 'steel':

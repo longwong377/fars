@@ -6949,6 +6949,31 @@ moment-*-webgpu.png in the worktree, not committed).**
   frame from the J2000 obliquity (tests/zodiacal.test.ts: the Sun on it, |β| < 0.8°, at every hour and season). Unrendered:
   moment `zodiacal-mar` queued (day 322, the new moon of early March).
 
+## D-285 Terrace materials against the references (sessions 10-11; UD-01, UD-05, UD-06, UD-16; B40, B91-B93, Q-750, Q-751)
+- **Gap:** the Terrace's surfaces read as CG (gate-dusk: the Gate's walls one flat orange-brown; #24: the Terrace wall "grey
+  concrete"; B40 sunlit ashlar Ystd/Y 0.15-0.25 not met).
+- **Decision (src/render/materials.ts, behind `window.__parsaSurf.d285`; C):** (1) the palaces' mud plaster (every `mudbrick` /
+  `mudbrick_painted` part) gets its plastering campaign, PlasterWeatherDef: lifts 1.1-1.7 m and bays ~3 m, each a batch of its
+  own tone (1σ 5 %) feathered to the mean over the last 0.4 m to its edges; hand strokes 0.6 × 0.25 m in a direction of the bay's
+  own (2.5 mm relief, two octaves), the coat's mottle (4.5 %) on the same two noises (lighter on the ridges); rain-wash lanes
+  over the top 5 m between the run-off streaks (sharing their noise). No overlap ridge (a 2 % ridge read as coursing joints at
+  5 m in the session-11 blind review). Set against the only mud plaster in the references (#21, the modern kahgel coat round
+  the Gate's hall: Ystd/Y 0.036 in 0.5 m windows at 0.032 m/px). (2) Dressed stone: drip stains hanging from the bed joints
+  (SoilDef), the Terrace's run-off reaching 6 m down. (3) The Now view's limestone (src/world/nowview.ts NOW_STONE_TINT):
+  scene-linear × (0.284, 0.212, 0.203), from the lead's GPU measurement of calib-24-now against #24 (display luma wall/ground
+  0.73 photo vs 1.47 render; wall R/B 1.65 vs 1.19), inverting AgX at the render's levels. **The 467 stone stays pale grey:**
+  ~50 years from the quarry it has not the ruin's 2,500 years of crust, dust and iron staining (D-230: near-fresh block tone 13 %
+  from #29); the #24 comparison binds the Now view, not 467.
+- **Evidence (GPU renders, T4, quality test, probes stale: the lead rebakes later):** the Gate's W wall at 24 m, 0.5 m windows
+  0.022 → 0.032 (N of the door) and 0.018 → 0.024 (S), photo 0.036; at 5 m 0.019 → 0.033; gate-dusk (render 1, before the feathering) 0.072 → 0.098 (N). The
+  Terrace's stone: no measurable change (calib-24 region 0.067 both; B40, B92). Fragment ALU (tools/dev/shader_cost_d285.ts,
+  WGSL built in node, noise calls weighted by their bodies): mudbrick +8.3 % (WGSL chars +20.6 %), limestone +1.2 %, terrace
+  +0.6 %. Blind review (REVIEWS/d285_materials_review.md, uncalibrated): materials 1-2/5, 7/7 frames read as CG; no difference
+  seen at 24-150 m (B93).
+- **Rejected:** raising the block tone to the ruin's 23-27 % to meet B40 (weathered-stone amplitudes on 50-year-old stone);
+  a dust band 0.9 m high on the retaining walls (it lies underground: y0 is the foundation, B91).
+- **Reversible:** yes (the d285 switch; NOW_STONE_TINT one constant).
+
 ## D-295 Scanned surface detail over the procedural surfaces; the adapter's texture limit (session 11; B7, B24; UD-06, UD-14)
 - **Problem:** every surface was procedural TSL because no texture library was reachable (B7, proxy 403). The renders and
   the D-285 blind review (7/7 frames "reads as CG") show procedural grain does not reach the photoreal bar at arm's length.
