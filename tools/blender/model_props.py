@@ -72,8 +72,11 @@ def a_couch_covered():
     legs = couch_legs(L, W, fy, C['leg_r'])
     body = box(L, W, H - fy, (0, 0, fy), 'body', bevel=0.03)
     hd = box(0.12, W, head - fy, (L / 2 - 0.06, 0, fy), 'hd', bevel=0.03)
-    cl = grid(L + 0.6, W + 0.6, 70, 34, 'cover', z=head + 0.08)
-    drape(cl, [body, hd] + legs, frames=70, mass=0.25, bending=0.2, thickness=0.006)
+    cl = grid(L + 0.5, W + 0.6, 40, 22, 'cover', z=H + 0.03)
+    for v in cl.data.vertices:  # start in the couch's shape: over the head end where it rises, the edges already falling
+        x, y = v.co.x, v.co.y; top = head + 0.03 if x > L / 2 - 0.14 else H + 0.03
+        ex = max(0.0, abs(x) - L / 2 - 0.02); ey = max(0.0, abs(y) - W / 2 - 0.02); v.co.z = top - (ex + ey) * 1.6
+    drape(cl, [body, hd] + legs, frames=60, mass=0.3, bending=0.15, thickness=0.006)
     bpy.data.objects.remove(body, do_unlink=True); bpy.data.objects.remove(hd, do_unlink=True)
     solidify(cl, 0.004, 1)
     return dict(metal=join(legs, 'metal'), cover=cl)
@@ -392,12 +395,21 @@ def gv(x, y, z):
     return (x, -z, y)
 
 def stone_lump(r, seed, name='stone', flat=0.7):
-    """a field stone: an irregular lump (metaballs, then displaced), r its half size"""
-    rnd = random.Random(seed); e = []
-    for k in range(4):
-        e.append(('ELLIPSOID', (rnd.uniform(-0.35, 0.35) * r, rnd.uniform(-0.35, 0.35) * r, rnd.uniform(0.1, 0.4) * r * flat), r * rnd.uniform(0.55, 0.8), (rnd.uniform(0.8, 1.3), rnd.uniform(0.8, 1.2), flat * rnd.uniform(0.8, 1.1)), 2))
-    ob = meta(e, res=r / 6, name=name)
-    displace(ob, r * 0.12, r * 0.6, seed=seed)
+    """a field stone of the limestone country: a block split along its bedding and joints (a box cut by 7 random planes:
+    angular faces, not a river pebble), its arrises worn round, the faces a little uneven; r its half size, base on z = 0"""
+    import bmesh as _b
+    rnd = random.Random(seed); bm = _b.new(); _b.ops.create_cube(bm, size=2 * r)
+    for v in bm.verts: v.co.z = (v.co.z + r) * flat * rnd.uniform(0.8, 1.0); v.co.x *= rnd.uniform(0.8, 1.15); v.co.y *= rnd.uniform(0.75, 1.05)
+    for k in range(7):
+        n = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-0.2, 1.0))).normalized(); c = Vector((0, 0, r * flat * 0.5)) + n * r * rnd.uniform(0.55, 0.85)
+        geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+        res = _b.ops.bisect_plane(bm, geom=geom, plane_co=c, plane_no=n, clear_outer=True)
+        edges = [e for e in res['geom_cut'] if isinstance(e, _b.types.BMEdge)]
+        if edges: _b.ops.holes_fill(bm, edges=edges, sides=0)
+    _b.ops.recalc_face_normals(bm, faces=bm.faces)
+    ob = from_bm(bm, name, smooth=False)
+    m = ob.modifiers.new('bev', 'BEVEL'); m.width = r * 0.08; m.segments = 2; m.limit_method = 'NONE'; apply_mods(ob)
+    subdiv(ob, 1); displace(ob, r * 0.035, r * 0.35, seed=seed); sharp(ob, 35)
     for v in ob.data.vertices:
         if v.co.z < 0: v.co.z *= 0.3
     # the metaballs' surface lies inside their radii: scaled so the stone's larger footprint side is 2r
@@ -734,8 +746,7 @@ def a_tool_trowel():
 @asset(ground=True)
 def a_tool_brick():
     """a sun-dried mud brick 33 x 33 x 11 cm: the arrises worn round, the faces a little uneven, straw ends in them (C)"""
-    b = box(0.33, 0.33, 0.11, (0, 0, -0.055), 'brick', bevel=0.012, segs=2)
-    subdiv(b, 1); displace(b, 0.004, 0.05, seed=52)
+    b = brick_piece(52, 0.33, 0.11, 0.33); xform(b, (0, 0, -0.055))
     return dict(mud=b)
 
 @asset(ground=False)
@@ -1110,7 +1121,14 @@ def heap(r, h, x=0, z=0, seed=0, lump=0.2, name='heap', res=None, flat=0.0):
     for v in ob.data.vertices: v.co.x = (v.co.x - cx) * kx; v.co.y = (v.co.y - cy) * ky; v.co.z *= kz
     q = G((x, 0, z)); return xform(ob, (q.x, q.y, 0))
 def brick_piece(seed, w=0.33, h=0.105, d=0.33):
-    b = box(w, d, h, (0, 0, 0), 'brick', bevel=0.01, segs=1); displace(b, 0.004, 0.06, seed=seed); return b
+    """a sun-dried mud brick: flat faces with the mould's straightness, arrises worn by handling (a 6 mm two-step round),
+    a chip knocked off a corner here and there, the faces shallowly uneven (C)"""
+    b = box(w, d, h, (0, 0, 0), 'brick', bevel=0.006, segs=2); rnd = random.Random(seed)
+    cx, cy = rnd.choice((-1, 1)) * w / 2, rnd.choice((-1, 1)) * d / 2
+    for v in b.data.vertices:
+        dd = math.hypot(v.co.x - cx, v.co.y - cy)
+        if dd < 0.05 and v.co.z > h * 0.5: v.co.z -= (0.05 - dd) * 0.5
+    displace(b, 0.0015, 0.04, seed=seed); sharp(b, 30); return b
 def sheaf(L=0.9, seed=0):
     """a sheaf of cut barley along +Y (game) from its butt: the stalks narrowing to the band, the ears flaring beyond it
     (C): a fluted lathe, the ears roughened"""
@@ -1948,12 +1966,27 @@ def a_kiln():
     """a potter's updraft kiln: a round firing chamber of mud brick, plastered, its domed top with a vent, the stoking mouth
     arched at the foot (C), 2.4 m across and 2.0 m high at size 1"""
     r = 1.2
-    k = lathe([(0.0, 0.0), (r, 0.0), (r * 1.01, 0.4), (r * 0.97, 1.0), (r * 0.92, 1.3), (r * 0.7, 1.65), (0.4, 1.92), (0.3, 2.0), (0.22, 2.0), (0.22, 1.9), (0.0, 1.9)], 32, 'kiln', wobble=0.02, seed=703)
-    subdiv(k, 1); displace(k, 0.02, 0.3, seed=704)
-    cut = sweep([(0, -1.6, 0.0), (0, -0.8, 0.0)], 0.35, 14, 'cut')
+    k = lathe([(0.0, 0.0), (r, 0.0), (r * 1.01, 0.4), (r * 0.97, 1.0), (r * 0.92, 1.3), (r * 0.7, 1.65), (0.4, 1.92), (0.3, 2.0), (0.22, 2.0), (0.22, 1.9), (0.0, 1.9)], 48, 'kiln', wobble=0.02, seed=703)
+    subdiv(k, 2)
+    for v in k.data.vertices:  # the courses: 11 cm bricks with sunk mud joints, staggered head joints, the plaster worn off in patches
+        rr = math.hypot(v.co.x, v.co.y); a = math.atan2(v.co.y, v.co.x); z = v.co.z
+        if rr < 0.3: continue
+        course = int(z / 0.12); fz = (z / 0.12) % 1.0; fa = ((a * rr / 0.36) + 0.5 * (course % 2)) % 1.0
+        joint = max(0.0, 1 - min(fz, 1 - fz) / 0.08) + max(0.0, 1 - min(fa, 1 - fa) / 0.05)
+        worn = 0.35 + 0.65 * max(0.0, noise.noise(Vector((v.co.x * 1.8, v.co.y * 1.8, z * 1.8))))  # the plaster thin, fallen away in patches
+        bulge = 0.006 * math.sin(math.pi * fz)  # each course's brick face a little proud
+        k_ = 1 + (bulge * worn - 0.02 * min(1.0, joint) * worn) / max(rr, 0.3); v.co.x *= k_; v.co.y *= k_
+    displace(k, 0.012, 0.25, seed=704); displace(k, 0.004, 0.05, seed=705)
+    cut = sweep([(0, -1.6, 0.0), (0, -0.8, 0.0)], 0.35, 20, 'cut')
     for v in cut.data.vertices: v.co.z = max(v.co.z, -0.1)
     boolean(k, cut)
-    return dict(mud=k)
+    arch = sweep([(0.4 * math.cos(t), -1.16 - 0.04 * math.sin(t * 7), 0.38 * math.sin(t) + 0.02) for t in [math.pi * i / 14 for i in range(15)]], 0.07, 6, 'arch', scale=(1.0, 1.4))
+    flues = []
+    for i in range(6):
+        a = TAU * i / 6; c = sweep([(0.28 * math.cos(a), 0.28 * math.sin(a), 1.7), (0.34 * math.cos(a), 0.34 * math.sin(a), 2.1)], 0.045, 8, 'flue')
+        boolean(k, c)
+    soot = heap(0.3, 0.02, 0, 0, seed=706, lump=0.4, name='soot', res=0.03); xform(soot, (0, -1.25, 0.0))
+    return dict(mud=k, brick=arch, ash=soot)
 
 @asset(ground=True)
 def a_loom_upright():
@@ -2118,6 +2151,118 @@ def a_kneading_trough():
     for v in t.data.vertices: v.co.y *= 0.52
     return dict(clay=t)
 
+# ======================================================================================================== the houses' fixtures (settlement/houses.ts fixture)
+@asset(ground=True)
+def a_peg():
+    """a tethering peg: a hewn stake driven into the ground, its head bruised by the mallet, a notch for the rope (C), 0.45 m
+    above ground (0.1 below)"""
+    p = pathG([(0, -0.1, 0), (0.003, 0.2, 0.002), (0, 0.45, 0)], [0.022, 0.03, 0.033], 7, 'peg'); displace(p, 0.003, 0.03, seed=1001)
+    for v in p.data.vertices:
+        if 0.33 < v.co.z < 0.37: v.co.x *= 0.75; v.co.y *= 0.75
+    return dict(wood=sharp(p, 30))
+
+@asset(ground=True)
+def a_firewood_lean():
+    """firewood stacked on end against a wall: crooked branches and split sticks leaning in, their feet out on the ground
+    (C); 1 m wide, 1 m high, the wall at the game's -z, the feet toward +z"""
+    rnd = random.Random(1002); st = []
+    for k in range(18):
+        x = rnd.uniform(-0.48, 0.48); lean = rnd.uniform(0.15, 0.4); h = rnd.uniform(0.65, 1.0); r = rnd.uniform(0.012, 0.03)
+        mid = (x + rnd.uniform(-0.05, 0.05), h * 0.5, -0.2 + lean * 0.5 + rnd.uniform(-0.02, 0.02))
+        st.append(pathG([(x, 0.0, -0.2 + lean), mid, (x + rnd.uniform(-0.1, 0.1), h, -0.2)], [r, r * 0.9, r * 0.7], 5, 'stick'))
+        if k % 3 == 0: st.append(pathG([mid, (mid[0] + rnd.uniform(-0.12, 0.12), mid[1] + 0.2, mid[2] + 0.03)], [r * 0.5, r * 0.3], 4, 'twig'))
+    ob = join(st, 'wood'); displace(ob, 0.003, 0.05, seed=1003)
+    return dict(wood=ob)
+
+@asset(ground=False)
+def a_hung_cloth():
+    """a washed cloth hung over a cord to dry: folded over it, the two halves hanging, the lower edge uneven, a few creases
+    (C); unit width 1 m, drop 1 m, the cord at the top (y = 1)"""
+    c = grid(1.0, 2.0, 16, 30, 'cloth')
+    for v in c.data.vertices:
+        u, t = v.co.x, v.co.y / 2.0 + 0.5; side = 1 if t > 0.5 else -1; dd = abs(t - 0.5) * 2.0
+        crease = 0.012 * math.sin(u * 17 + side) * dd
+        v.co = G((u + 0.02 * math.sin(dd * 5 + u * 3), 1.0 - dd * (1.0 - 0.05 * math.sin(u * 9 + side)), side * (0.012 + 0.02 * dd) * min(1.0, dd / 0.05) + crease))
+    solidify(c, 0.004, 0)
+    return dict(cloth=c)
+
+@asset(ground=True)
+def a_cradle():
+    """a wooden cradle on two rockers: a shallow box of boards, the rockers across its ends, a cloth over it (C), 0.9 m long"""
+    parts = []
+    for sy in (-1, 1): parts.append(box(0.86, 0.02, 0.2, (0, sy * 0.27, 0.1), bevel=0.004))
+    for sx in (-1, 1): parts.append(box(0.02, 0.56, 0.22, (sx * 0.43, 0, 0.09), bevel=0.004))
+    parts.append(box(0.84, 0.52, 0.015, (0, 0, 0.1), bevel=0.003))
+    for sx in (-1, 1):
+        rk = sweep([(sx * 0.38, 0.3 * math.sin(a), 0.1 - 0.1 * math.cos(a) + 0.02) for a in [-1.2 + 2.4 * i / 10 for i in range(11)]], 0.018, 6, 'rocker', scale=(0.6, 1.0))
+        parts.append(rk)
+    cl = grid(0.95, 0.66, 20, 14, 'cl', z=0.32)
+    for v in cl.data.vertices:
+        ex = max(0.0, abs(v.co.x) - 0.44); ey = max(0.0, abs(v.co.y) - 0.28); v.co.z = 0.32 - (ex + ey) * 2.2 + 0.01 * math.sin(v.co.x * 20) - 0.03 * (1 - (v.co.x / 0.47) ** 2) * (1 - (v.co.y / 0.33) ** 2) * 0
+    solidify(cl, 0.004, 0)
+    return dict(wood=join(parts, 'wood'), cloth=cl)
+
+@asset(ground=True)
+def a_brush_pile():
+    """brushwood and dry thorn laid on a roof for the fire: branches crossing in layers (C), 1 x 0.3 x 0.9 m"""
+    rnd = random.Random(1004); b = []
+    for k in range(22):
+        a = rnd.uniform(-0.35, 0.35); L = rnd.uniform(0.6, 1.0); z = 0.03 + 0.08 * (k // 7) + rnd.uniform(0, 0.03); c = (rnd.uniform(-0.25, 0.25), rnd.uniform(-0.3, 0.3))
+        p0 = (c[0] - math.cos(a) * L / 2, c[1] - math.sin(a) * L / 2, z); p1 = (c[0] + math.cos(a) * L / 2, c[1] + math.sin(a) * L / 2, z + 0.02)
+        b.append(sweep([p0, ((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2 + rnd.uniform(-0.03, 0.03), z + 0.02), p1], [0.02, 0.016, 0.01], 5, 'br'))
+        for j in range(2):
+            t = rnd.uniform(0.3, 0.8); q = (p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, z + 0.01)
+            b.append(sweep([q, (q[0] + rnd.uniform(-0.15, 0.15), q[1] + rnd.uniform(-0.15, 0.15), q[2] + 0.03)], [0.007, 0.003], 3, 'tw'))
+    return dict(wood=join(b, 'wood'))
+
+@asset(ground=True)
+def a_dung_stack():
+    """dried dung cakes stacked for the fire: flat patties, each with the palm's print, piled a little askew (C)"""
+    rnd = random.Random(1005); c = []
+    for k in range(8):
+        p = lathe([(0.0, 0.0), (0.09, 0.0), (0.1, 0.012), (0.095, 0.026), (0.07, 0.032), (0.0, 0.03)], 12, 'cake', wobble=0.08, seed=1006 + k)
+        for v in p.data.vertices:
+            if v.co.z > 0.025: v.co.z -= 0.006 * max(0.0, 1 - math.hypot(v.co.x + 0.02, v.co.y) / 0.05)
+        c.append(xform(p, (rnd.uniform(-0.02, 0.02), rnd.uniform(-0.02, 0.02), 0.033 * k), (rnd.uniform(-0.05, 0.05), rnd.uniform(-0.05, 0.05), rnd.uniform(0, 3))))
+    return dict(dung=join(c, 'dung'))
+
+@asset(ground=False)
+def a_fleece_parapet():
+    """a fleece laid over a parapet to air: the wool thick and lumpy, draped by the cloth solver over a wall top 0.4 m thick,
+    hanging on both faces (C); 0.8 m along the wall, the wall top at y = 0"""
+    wall = box(1.4, 0.4, 1.2, (0, 0, -1.2), 'wall')
+    f = grid(0.8, 1.4, 20, 34, 'fleece', z=0.05)
+    drape(f, [wall], frames=50, mass=0.5, bending=0.8, thickness=0.012)
+    bpy.data.objects.remove(wall, do_unlink=True)
+    solidify(f, 0.025, 1); displace(f, 0.012, 0.02, seed=1007)
+    return dict(wool=f)
+
+@asset(ground=True)
+def a_rug_folded():
+    """a woollen rug folded for the day: soft rounded folds, the edges a little frayed (C), 0.56 x 0.045 x 0.44 m"""
+    r = box(0.56, 0.44, 0.045, (0, 0, 0), 'rug', bevel=0.018, segs=3); subdiv(r, 1)
+    tex = bpy.data.textures.new('cr', 'STUCCI'); tex.noise_scale = 0.08
+    m = r.modifiers.new('d', 'DISPLACE'); m.texture = tex; m.strength = 0.004; m.mid_level = 0.5; apply_mods(r)
+    for v in r.data.vertices:
+        if v.co.x > 0.25: v.co.z += 0.006 * math.sin(v.co.y * 40)  # the fold's soft edge
+    return dict(textile=r)
+
+@asset(ground=True)
+def a_basket_cradle():
+    """a baby's cradle of basketry: a shallow oval basket of coiled reed with a rolled rim, a cloth laid in it (gap audit
+    item 4: basketry of the period, B; the cradle C), 0.8 x 0.17 x 0.48 m (the builder's form's box)"""
+    o = [(0.16, 0.0), (0.2, 0.03), (0.225, 0.12), (0.24, 0.17)]
+    b = vessel(o, 0.014, 32, 'b', 0.02, seed=1101)
+    for v in b.data.vertices:
+        rr = math.hypot(v.co.x, v.co.y)
+        if rr > 0.05: k = 1 + 0.02 * math.sin(v.co.z * 260) * min(1.0, (rr - 0.05) / 0.1); v.co.x *= k; v.co.y *= k  # the coils
+        v.co.x *= 1.65
+    rim = sweep([(0.245 * 1.65 * math.cos(a), 0.245 * math.sin(a), 0.172) for a in [TAU * i / 40 for i in range(41)]], 0.012, 6, 'rim', caps=False)
+    cl = grid(0.62, 0.34, 14, 8, 'cloth', z=0.045)
+    for v in cl.data.vertices: v.co.z += 0.01 * math.sin(v.co.x * 20) * math.cos(v.co.y * 15)
+    solidify(cl, 0.004, 0)
+    return dict(wicker=join([b, rim], 'wicker'), cloth=cl)
+
 # ======================================================================================================== driver
 if __name__ == '__main__':
     job = json.load(open(sys.argv[sys.argv.index('--') + 1]))
@@ -2126,7 +2271,7 @@ if __name__ == '__main__':
         t0 = time.time(); A = ASSETS[id_]
         clear()
         parts = A['fn']()
-        lod0 = {}; lod1 = {}
+        lod0 = {}; lod1 = {}; lod2 = {}  # lod2: the town's houses draw their furnishings at it (a tile holds dozens of rooms)
         tgt = job.get('targets', {}).get(id_, {})
         for p, ob in parts.items():
             triangulate(ob); weld(ob)
@@ -2134,17 +2279,19 @@ if __name__ == '__main__':
             if t: decimate(ob, t[0])
             lod0[p] = ob
             o1 = copy(ob, ob.name + '_1'); decimate(o1, t[1] if t else max(8, int(tris(ob) * A['lod1']))); lod1[p] = o1
+            o2 = copy(o1, ob.name + '_2'); decimate(o2, t[2] if t and len(t) > 2 else (tris(o1) if tris(o1) < 300 else max(100, int(tris(o1) * 0.3)))); lod2[p] = o2  # (small or thin pieces keep lod1: a 30 % collapse breaks them)
         if A['ao']:
-            for o in lod1.values(): o.hide_render = True
-            bake_ao(list(lod0.values()), ground=A['ground'])
-            for o in lod1.values(): o.hide_render = False
-            for o in lod0.values(): o.hide_render = True
-            bake_ao(list(lod1.values()), ground=A['ground'])
-            for o in lod0.values(): o.hide_render = False
+            levels = [lod0, lod1, lod2]
+            for i, L in enumerate(levels):
+                for j, M in enumerate(levels):
+                    for o in M.values(): o.hide_render = j != i
+                bake_ao(list(L.values()), ground=A['ground'])
+            for L in levels:
+                for o in L.values(): o.hide_render = False
         # the model's box (game axes: x, y up, z = -Blender y) over lod0
         pts = [o.matrix_world @ Vector(c) for o in lod0.values() for c in o.bound_box]
         box_ = [[min(p.x for p in pts), min(p.z for p in pts), min(-p.y for p in pts)], [max(p.x for p in pts), max(p.z for p in pts), max(-p.y for p in pts)]]
-        tr = export(os.path.join(outd, id_ + '.glb'), [lod0, lod1], ao=A['ao'])
+        tr = export(os.path.join(outd, id_ + '.glb'), [lod0, lod1, lod2], ao=A['ao'])
         report[id_] = dict(tris=tr, box=box_, seconds=round(time.time() - t0, 1), ao=A['ao'])
         print('[model_props]', id_, json.dumps(report[id_]), flush=True)
     json.dump(report, open(os.path.join(outd, 'model_props.out.json'), 'w'), indent=1)

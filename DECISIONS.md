@@ -7878,9 +7878,17 @@ mother who followed the stranger is still "talking" in her child's plan's words)
   wicker, stone; the parts' names give it, else a guess from colour and metalness). 172 models, 6.7 MB.
   A probe page renders every class before/after in the game's renderer without the world (tools/blender/probe/props_probe.*,
   shots in T:/fars-assets-s12/props/probe*): no WebGPU validation error.
-- **Not done (honest):** the houses' tether, firewood, laundry line, cradle, roof fuel and fleece, the living rooms' mats and
-  folded rugs (houses.ts; its ladders and benches are D-324's), the carried children (people, not props), crates (no
-  builder draws one), the tablet (writing.ts). No world render (the lead's batch).
+- **Round 2 (after the merge, 65a86dd):** the houses' tether (manger and peg), firewood, laundry, cradle, roof brushwood and
+  dung cakes, fleece over the parapet (cloth-solver drape), the living rooms' reed mats and folded rugs; the babes' basket
+  cradle; the carried tablet at writing.ts's rounded middle level (with the models loaded). A third level (lod2) for every
+  model: the town's houses and fittings draw it (a near tile holds dozens of rooms): measured on six sites, the near tiles
+  +13 % over the procedural forms (worst tile 66 k, the procedural 58.7 k). Palace furnishings: carpets, rolls and
+  hangings at lod1; each building's pieces at lod0 within 12 m of their footprint, lod1 beyond: with the court laid out
+  399 k near / 240 k far (was 656 k); T-K has no triangle threshold (T-K6 is the frame-time model): measured, not gated.
+  Weak forms fixed: field stones split along planes (angular), bricks with crisp worn arrises and chips, the kiln's
+  courses, stoke arch and flues, the couch cover laid in the couch's shape before it settles.
+- **Not done (honest):** crates (no builder draws one); the carried children themselves (people); the tablet's text
+  (its UVs are not carried by the props' material). No world render (the lead's batch).
 ## D-315 (continued) The GPU runs after the merge (session 12): the real models on T-E10 and T-E9
 
 Three runs were allowed, one at a time, through gpu_slot. Run 2's first attempt died two minutes in on an invalid shader

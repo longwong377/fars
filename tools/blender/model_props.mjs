@@ -14,17 +14,19 @@ const BLENDER = process.env.BLENDER ?? 'C:/Program Files/Blender Foundation/Blen
 const OUT = 'public/models/props', WORK = process.env.WORK ?? 'T:/fars-assets-s12/props/models';
 export const TARGETS = {
   couch: { metal: [2400, 800], mattress: [900, 300], bolster: [192, 64] },
-  couch_covered: { metal: [1200, 400], cover: [3000, 1000] },
+  couch_covered: { metal: [1200, 400], cover: [8000, 2400] },
   table: { metal: [2400, 800] },
   footstool: { frame: [1200, 400] },
   burner: { bronze: [4000, 1400] },
   throne: { gilt: [4000, 1400], cushion: [600, 200] },
   hanging: { cloth: [2400, 800], band: [1600, 500], rod: [700, 250] },
   canopy: { gilt: [1200, 400], cloth: [2400, 800], band: [4000, 1400] },
-  mat: { matting: [2600, 900] },
-  hearth: { stone: [2200, 700], ash: [300, 100] },
+  mat: { matting: [2600, 900, 60] }, roll: { textile: [2152, 752, 64] }, rug_folded: { textile: [400, 150, 24] }, lamp: { clay: [308, 106, 40] },
+  jar_store: { clay: [1472, 514, 90] }, jar_water: { clay: [1272, 444, 90] }, jar_neck: { clay: [884, 308, 80] }, bowl: { clay: [960, 336, 60] }, cookpot: { clay: [992, 346, 90] },
+  manger: { straw: [300, 120, 50], mud: [600, 250, 80] }, cradle: { wood: [796, 278, 110], cloth: [1256, 438, 70] }, hung_cloth: { cloth: [2104, 736, 50] }, peg: { wood: [38, 12, 12] },
+  hearth: { stone: [2200, 700, 240], ash: [300, 100, 40] },
   vat: { clay: [3000, 1000] },
-  sack: { cloth: [1500, 450], cord: [120, 40] },
+  sack: { cloth: [1500, 450, 90], cord: [120, 40, 16] },
   sack_lying: { cloth: [1400, 420], cord: [120, 40] },
   // the carried props (their unions' budgets: tests/model_props.test.ts)
   tool_distaff: { wool: [120, 60] }, tool_brick: { mud: [80, 40] }, tool_rag: { cloth: [60, 30] }, tool_awl: { bone: [60, 30] }, tool_cloth: { cloth: [120, 60] },
@@ -35,6 +37,7 @@ export const TARGETS = {
   wo_stooks: { ears: [900, 300], straw: [900, 300], straw_d: [600, 200] }, wo_hurdles: { wattle: [3000, 1000], wood_d: [2000, 700] }, wo_grapes: { grape: [900, 300] }, wo_nuts: { nut: [900, 300] }, wo_bellows_stand: { skin: [700, 250] },
   quern: { stone: [1200, 400] }, beads: { beads: [900, 300] }, bale: { cloth: [1200, 400] },
   manger: { straw: [300, 120], mud: [600, 250] }, forge: { coal: [300, 100] }, timber_stack: { wood: [800, 300] },
+  kiln: { mud: [4000, 1400] }, fleece_parapet: { wool: [1500, 500, 80] }, firewood_lean: { wood: [1600, 600, 120] }, brush_pile: { wood: [1600, 600, 120] }, dung_stack: { dung: [600, 200, 60] },
   tool_bow: { wood: [180, 90] }, tool_toy_bow: { wood: [140, 70] }, tool_rope: { cord: [200, 100] }, tool_towel: { linen: [48, 24] }, tool_beater: { wood: [48, 24] },
 };
 const want = process.argv.slice(2).filter(a => !a.startsWith('--'));
@@ -55,9 +58,10 @@ for (const id of ids) {
   const buf = readFileSync(`${WORK}/${id}.glb`), key = `m_${id}`;
   writeFileSync(`${OUT}/${key}.glb`, buf);
   const parts = [...new Set(Object.keys(R.tris).map(k => k.split('__')[1]))];
+  const lod2 = Object.entries(R.tris).filter(([k]) => k.startsWith('lod2__')).reduce((s, [, v]) => s + v, 0);
   const sum = l => Object.entries(R.tris).filter(([k]) => k.startsWith(`lod${l}__`)).reduce((s, [, v]) => s + v, 0);
   man.assets[key] = { file: `models/props/${key}.glb`, of: id, role: 'model', parts, licence: 'CC0 1.0', author: 'the project: a script-built model, no third-party source', source: 'tools/blender/model_props.py (D-325)', bytes: buf.length,
-    sha256: createHash('sha256').update(buf).digest('hex'), tris: { lod0: sum(0), lod1: sum(1) }, partTris: R.tris, box: R.box, ao: R.ao, size_m: [0, 1, 2].map(i => R.box[1][i] - R.box[0][i]), tex: 0 };
+    sha256: createHash('sha256').update(buf).digest('hex'), tris: { lod0: sum(0), lod1: sum(1), lod2 }, partTris: R.tris, box: R.box, ao: R.ao, size_m: [0, 1, 2].map(i => R.box[1][i] - R.box[0][i]), tex: 0 };
 }
 writeFileSync(MAN, JSON.stringify(man, null, 1) + '\n');
 const mine = Object.values(man.assets).filter(a => a.role === 'model');
