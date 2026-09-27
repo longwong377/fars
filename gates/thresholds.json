@@ -1,5 +1,5 @@
 {
- "about": "MASTER_PLAN.md \u00a74.1: every threshold of the Walker Test. Ids are never removed; metric, unit, axis, scope, op and sample never change (tool too, once a row is partial or built); values only tighten; sample_min never falls. Status is derived from evidence (REVIEWS/evidence/**/<id>.json written by the row's tool) and may always be demoted. A loosening needs \"loosened_by\": a UD-nn whose own text names the id and the new value; a threshold proven wrong in principle takes \"superseded_by\" with gates/errata/<id>.md. tests/gates_ratchet.test.ts enforces this against git history and the ratchet/* tags, and fails closed.",
+ "about": "MASTER_PLAN.md §4.1: every threshold of the Walker Test. Ids are never removed; metric, unit, axis, scope, op and sample never change (tool too, once a row is partial or built); values only tighten; sample_min never falls. Status is derived from evidence (REVIEWS/evidence/**/<id>.json written by the row's tool) and may always be demoted. A loosening needs \"loosened_by\": a UD-nn whose own text names the id and the new value; a threshold proven wrong in principle takes \"superseded_by\" with gates/errata/<id>.md. tests/gates_ratchet.test.ts enforces this against git history and the ratchet/* tags, and fails closed.",
  "thresholds": [
   {
    "id": "T-H0",
@@ -223,7 +223,7 @@
    "sample": "Tier-2 views per session",
    "tool": "handoff/review_template.md",
    "status": "to-build",
-   "anti_proxy": "a reviewer told which frames are renders is lenient: judged blind among anchors and photographs (\u00a78)",
+   "anti_proxy": "a reviewer told which frames are renders is lenient: judged blind among anchors and photographs (§8)",
    "ud": "UD-01",
    "since": "rev 2 (s8)"
   },
@@ -2745,6 +2745,38 @@
    "anti_proxy": "a change merged without any view of its own still counts (one view per merged decision at least); a view rendered but not looked at and logged in sessions/sNN.md is not judged",
    "ud": "UD-16",
    "since": "rev 2.3 (s9)"
+  },
+  {
+   "id": "T-A7",
+   "axis": "A",
+   "scope": "area",
+   "metric": "share of the coverage sample's surface pixels drawn by a surface for which a scan exists (src/render/scans.ts SCAN_USE) but none is applied: a procedural stand-in",
+   "op": "<=",
+   "value": 0,
+   "unit": "%",
+   "sample_min": 20,
+   "sample": "the Tier-1 coverage sample (tools/dev/coverage_points.ts), every area",
+   "tool": "src/render/scans.ts",
+   "status": "to-build",
+   "anti_proxy": "a scan applied at a strength too weak to read (alb < 0.3) or tiled so it averages to flat colour at the view distance counts as not applied; a surface left without any scan entry is judged by T-A4, not excused here",
+   "ud": "UD-17",
+   "since": "rev 2.4 (s11)"
+  },
+  {
+   "id": "T-E9",
+   "axis": "E",
+   "scope": "world",
+   "metric": "share of the conversation test set (spoken or typed prompts to people within 3 m, every class of person, every hour) answered in character within 4 s, with nothing anachronistic (the T-I1 checklist) and no hint of the world's fate",
+   "op": ">=",
+   "value": 95,
+   "unit": "%",
+   "sample_min": 60,
+   "sample": "the conversation test set, seeded, across classes, places and hours",
+   "tool": "src/people/",
+   "status": "to-build",
+   "anti_proxy": "a reply that ignores the person's own life (name, household, work, the day's events) or could be said by anyone counts as a failure; a canned fallback counts as a failure; the heard world stays period by default (English only in the translation layer)",
+   "ud": "UD-18",
+   "since": "rev 2.4 (s11)"
   }
  ]
 }

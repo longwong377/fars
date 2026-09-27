@@ -6948,3 +6948,16 @@ moment-*-webgpu.png in the worktree, not committed).**
   anti-solar point; extinction by air mass; visible under the same night, Moon and cloud factor as the Milky Way. The ecliptic
   frame from the J2000 obliquity (tests/zodiacal.test.ts: the Sun on it, |β| < 0.8°, at every hour and season). Unrendered:
   moment `zodiacal-mar` queued (day 322, the new moon of early March).
+
+## D-296 Speaking with the people (session 11; UD-18; T-E9) — the plan
+- **Direction (UD-18):** the user wants to speak to a person and have them answer, in a world anyone runs from a URL on a
+  good GPU. It supersedes §10 where they differ; the rest of §10 stands.
+- **Decision (the design, to build after the realism push of UD-17):** (1) **baked lives**, generated offline on the GPU
+  machine for every person (history, household ties, debts and quarrels, the year's events), shipped as data: every visitor
+  gets them, no GPU cost; (2) **in-browser speech recognition** (a Whisper-class model on WebGPU) or typing; (3) **an
+  in-browser language model** (1-3 B parameters, 4-bit, cached after the first visit) playing that one person from their baked
+  life, fenced to what a person at Persepolis in 467 could know, never hinting at the fate; the rule simulation stays the
+  source of truth and the model only answers or picks from the person's own actions; (4) **the reply in the translation
+  layer** (English, out of world); heard, the person speaks in their own voice with attested words where they exist and
+  period prosody otherwise; an English voice is an out-of-world option. (5) Without a capable GPU the people live as now.
+- **Measure:** T-E9 (≥ 95 % of the conversation test set answered in character within 4 s, nothing anachronistic).
