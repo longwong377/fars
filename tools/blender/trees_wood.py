@@ -31,7 +31,7 @@ AO_DIST, AO_SPP = 0.06, 64
 def v3(p): return np.array(p, np.float64)
 def close(p, q): return float(np.linalg.norm(v3(p) - v3(q))) < 1e-5
 
-def chains_of(segs):
+def chains_of(segs, lod=0, cmax=2):
     ch = []
     for i, s in enumerate(segs):
         if ch and ch[-1][-1] == i - 1 and close(s['a'], segs[i - 1]['b']) and s['level'] == segs[i - 1]['level']: ch[-1].append(i)
@@ -45,7 +45,7 @@ def chains_of(segs):
         used.add(k); seq = list(c)
         while True:
             e = segs[seq[-1]]; end = tuple(np.round(v3(e['b']), 5)); de = v3(e['b']) - v3(e['a']); de /= max(1e-9, np.linalg.norm(de))
-            best, bs = None, 0.35
+            best, bs = None, 0.8  # continue only within ~35 deg: a sharper turn is a fork, joined by a crotch (below)
             for j in starts.get(end, []):
                 if j in used: continue
                 s0 = segs[ch[j][0]]; d = v3(s0['b']) - v3(s0['a']); d /= max(1e-9, np.linalg.norm(d))
@@ -58,8 +58,29 @@ def chains_of(segs):
         P = [v3(segs[seq[0]]['a'])]; R = [segs[seq[0]]['ra']]; L = [segs[seq[0]]['level']]
         for i in seq: P.append(v3(segs[i]['b'])); R.append(segs[i]['rb']); L.append(segs[i]['level'])
         for q in range(1, len(seq)):
-            if segs[seq[q]]['level'] != segs[seq[q - 1]]['level']: R[q] = min(R[q], segs[seq[q]]['ra'])
+            # a continued child: the step from the parent's end to the child's start spread over the joint (half-way)
+            if segs[seq[q]]['level'] != segs[seq[q - 1]]['level']: R[q] = 0.5 * (R[q] + segs[seq[q]]['ra'])
         out.append({'P': np.array(P), 'R': np.array(R), 'level': L[0], 'n': len(seq), 'SL': [segs[i]['level'] for i in seq]})
+    # crotches: a chain that leaves another (its first point is one of the other's points) rises inside its parent: it
+    # starts a parent's radius below the joint on the parent's axis (moved a third of that radius toward its own way), at
+    # 0.7 x the parent's radius, and bends out through the joint (Catmull-Rom), so a fork splits like wood that grew,
+    # not a stick pushed into a stump; a parent ending at such a fork closes in a low dome between its children
+    for c in out:
+        p0 = c['P'][0]; best = None
+        for q in out:
+            if q is c: continue
+            d = np.linalg.norm(q['P'] - p0, axis=1); i = int(np.argmin(d))
+            if d[i] < 1e-4 and (best is None or q['R'][i] > best[0]): best = (q['R'][i], q, i)
+        if best is None or len(c['P']) < 2 or c['level'] > cmax: continue  # the finer shoots join without (their collar)
+        Rp, q, i = best
+        dp = q['P'][i] - q['P'][i - 1] if i > 0 else q['P'][1] - q['P'][0]; dp = dp / max(1e-9, np.linalg.norm(dp))
+        d0 = c['P'][1] - p0; d0 = d0 / max(1e-9, np.linalg.norm(d0)); h = d0 - dp * (d0 @ dp); hl = np.linalg.norm(h); h = h / hl if hl > 1e-6 else h
+        root = p0 - dp * 1.4 * Rp + h * Rp * 0.3
+        c['P'] = np.vstack([root, c['P']]); c['R'] = np.concatenate([[max(c['R'][0], 0.78 * Rp)], c['R']]); c['R'][1] = max(c['R'][1], 0.58 * Rp)
+        c['SL'] = [c['SL'][0]] + c['SL']; c['n'] += 1; c['crotch'] = True
+        if i == len(q['P']) - 1: q['dome'] = (dp, Rp)
+    for q in out:  # a parent ending at a fork ends inside its children's bases, narrowed (after every child found it)
+        if q.get('dome'): dp, Rp = q['dome']; q['P'] = q['P'].copy(); q['P'][-1] = q['P'][-1] - dp * 0.7 * Rp; q['R'][-1] = 0.68 * Rp
     return out
 
 def catmull(P, R, k):
@@ -95,8 +116,13 @@ def frame(d):
 
 def build(m, lod):
     segs = m['segs'] if SEGS[lod] is None else m['segs'][:SEGS[lod]]
-    chs = chains_of(segs); H = m['H']; B = BARK[m['species']]; sw, sh = B['size_m']
-    plans, tot = plan(chs, BUDGET[lod], H, lod)
+    H = m['H']; B = BARK[m['species']]; sw, sh = B['size_m']
+    # crotches up to the secondary branches (LOD1: the limbs), fewer if the budget asks
+    for cmax in ((2, 1, 0) if lod == 0 else (1, 0)):
+        chs = chains_of(segs, lod, cmax)
+        try: plans, tot = plan(chs, BUDGET[lod], H, lod); break
+        except RuntimeError:
+            if cmax == 0: raise
     rng = np.random.default_rng(m['row'] * 7 + lod)
     V, I = [], []
     for c, (S, sub_l) in zip(chs, plans):
@@ -147,7 +173,7 @@ def build(m, lod):
                 c0, c1 = a0 + S + 1, a1 + S + 1
                 I += [a0, a1, c0, a1, c1, c0]  # counter-clockwise seen from outside (D x T points in)
         if lod == 0 and Rr[-1] > 0:  # the tip closes in a short cone
-            tip = P[-1] + D[-1] * Rr[-1] * 1.5; ti = len(V)
+            tip = P[-1] + D[-1] * Rr[-1] * (0.45 if c.get('dome') else 1.5); ti = len(V)
             V.append((*tip, *D[-1], *e1, Nu * 0.5, vacc + 1.5 * Rr[-1] * Nu / (2 * math.pi * max(1e-4, Rr[-1])) * (sw / sh), 1.0))
             last = b0 + (nr - 1) * (S + 1)
             for k in range(S): I += [last + k, last + k + 1, ti]

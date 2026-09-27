@@ -39,10 +39,10 @@ export const SHADE_B = 1.8;
 if (want('atlas')) {
   const dir = `${WORK}/atlas${TILE}`;
   blender('tools/blender/trees_atlas.py', [SRC, dir, String(TILE), String(SPP), DEVICE], 'atlas', DEVICE === 'GPU');
-  atlasPost(dir);
+  await atlasPost(dir);
 }
-if (steps.includes('atlaspost')) atlasPost(`${WORK}/atlas${TILE}`);
-function atlasPost(dir) {
+if (steps.includes('atlaspost')) await atlasPost(`${WORK}/atlas${TILE}`);
+async function atlasPost(dir) {
   const J = JSON.parse(readFileSync(SRC, 'utf8')), A = J.atlas, sh = readNpy(`${dir}/shade.npy`), cl = readNpy(`${dir}/cls.npy`), nr = readNpy(`${dir}/nrm.npy`);
   const [H, W] = sh.shape, T = W / A.cols, pad = Math.max(2, Math.round(A.pad * T / 256));
   const col = new Uint8Array(W * H * 4), tilt = new Uint8Array(W * H * 4), u8 = x => Math.max(0, Math.min(255, Math.round(x * 255)));
@@ -66,11 +66,19 @@ function atlasPost(dir) {
     let f = 0; for (let j = 0; j < T; j++) for (let i = 0; i < T; i++) if (col[((oy + j) * W + ox + i) * 4 + 3] >= 128) f++;
     stats.push({ tile: A.names[t], scale: +k.toFixed(4), fill: +(f / (T * T)).toFixed(4), procFill: A.procFill[t], clipped: over });
   }
-  writePng(`${OUT}/leaf_col.png`, col, W, H); writePng(`${OUT}/leaf_tilt.png`, tilt, W, H);
+  // lossless WebP (the coverage-kept mips need exact alpha); the tilt at half size (a leaf's facing is smooth across it):
+  // T-K7 (the first-load download) is over, so the class takes as little of it as it can (D-327 rev 2)
+  await writeWebp(`${OUT}/leaf_col.webp`, col, W, H); await writeWebp(`${OUT}/leaf_tilt.webp`, tilt, W, H, 2);
   writeFileSync(`${WORK}/atlas_stats.json`, JSON.stringify({ tile: T, shadeB: SHADE_B, render: JSON.parse(readFileSync(`${dir}/atlas_render.json`, 'utf8')), tiles: stats }, null, 1));
   log('atlas', `${W}x${H}`, stats.map(s => `${s.tile} fill ${s.fill} (proc ${s.procFill}) x${s.scale}${s.clipped ? ` clipped ${s.clipped}` : ''}`).join('; '));
 }
-/** RGBA8 rows bottom-up (v up) -> a PNG (rows top-down) */
+/** RGBA8 rows bottom-up (v up) -> a lossless WebP (rows top-down), optionally shrunk by `div` */
+async function writeWebp(path, data, W, H, div = 1) {
+  const flip = Buffer.alloc(W * H * 4); for (let j = 0; j < H; j++) flip.set(data.subarray((H - 1 - j) * W * 4, (H - j) * W * 4), j * W * 4);
+  let img = createRequireSync()('sharp')(flip, { raw: { width: W, height: H, channels: 4 } });
+  if (div > 1) img = img.resize(W / div, H / div, { kernel: 'lanczos3' });
+  writeFileSync(path, await img.webp({ lossless: true, exact: true, effort: 6 }).toBuffer());
+}
 function writePng(path, data, W, H) {
   const { PNG } = createRequireSync()('playwright-core/lib/utilsBundle');
   const png = new PNG({ width: W, height: H, colorType: 6 });
