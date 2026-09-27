@@ -46,11 +46,14 @@ export const HOUSE_PARTS: PartDef[] = [
 ];
 export const P = { whole: 0, wall: 1, socle: 2, roof: 3, eave: 4, ceiling: 5, door: 6, window: 7, spout: 8, portico: 9, ladder: 10, bench: 11, fixture: 12, repair: 13, soot: 14, leaf: 15 } as const;
 
-const MUD: RGB = [0.56, 0.47, 0.36], POLE: RGB = [0.5, 0.43, 0.34], BRUSH: RGB = [0.52, 0.45, 0.31], MAT: RGB = [0.5, 0.43, 0.3], STONE: RGB = [0.53, 0.51, 0.47];
+const MUD: RGB = [0.56, 0.47, 0.36], POLE: RGB = [0.5, 0.43, 0.34], BRUSH: RGB = [0.52, 0.45, 0.31], MAT: RGB = [0.5, 0.43, 0.3], STONE: RGB = [0.56, 0.52, 0.46];
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 const mixc = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 /** hash of integers to [0, 1) */
+/** a well-mixed hash of small integers to [0, 1) (murmur3's finaliser per argument; D-303: `hi` of neighbouring cells' indices
+ *  fell on a lattice, so the lanes' litter came out as evenly spaced cow pats) */
+export const hm = (...a: number[]) => { let h = 0x9e3779b9 | 0; for (const x of a) { h = Math.imul(h ^ (Math.floor(x) | 0), 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; } h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); h ^= h >>> 12; return (h >>> 0) / 4294967296; };
 export const hi = (...a: number[]) => { let h = 2166136261 >>> 0; for (const x of a) { h ^= Math.floor(x) | 0; h = Math.imul(h, 16777619) >>> 0; h ^= h >>> 13; } return (h >>> 0) / 4294967296; };
 /** smooth value noise in 2D (0..1) */
 function vn(x: number, y: number, seed = 0) {
@@ -68,10 +71,10 @@ export function seasonOf(day: number): 'harvest' | 'warm' | 'cold' { const d = (
 export function doorVar(id: string) { const h = (k: number) => hashString(`${id}:door:${k}`) / 4294967296;
   return { drop: 0.15 * h(1), lh: 0.1 + 0.07 * h(2), bear: 0.15 + 0.17 * h(3), step: h(4) < 0.4 ? 1 : 0, niche: h(5) < 0.75 ? 1 : 0 }; }
 /** the batches a build writes into */
-export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch; props: Batch }
+export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch; props: Batch; /** D-303: the lanes' litter (its own draw: a stronger depth bias than the lanes' ground, which lies 0.1 m over the terrain with one) */ litter: Batch }
 export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tileId', 1, [0]); return b; };
 export const plainBatch = () => new Batch().addAttr('ao', 1, [1]);
-export const newHB = (): HB => ({ plaster: plasterBatch(), stone: plainBatch(), timber: plainBatch(), brick: plainBatch(), items: plasterBatch(), props: plainBatch() });
+export const newHB = (): HB => ({ plaster: plasterBatch(), stone: plainBatch(), timber: plainBatch(), brick: plainBatch(), items: plasterBatch(), props: plainBatch(), litter: plasterBatch() });
 
 interface Side { cls: 'room' | 'court' | 'open'; plot: number; roof: number }
 interface RoomEl { plot: number; room: number; i0: number; j0: number; i1: number; j1: number; full: boolean; drain: number; eave: number; tile: number; R: number; fall: number }
@@ -90,6 +93,8 @@ export class SiteHouses {
   readonly doors: StreetDoor[] = [];
   private fixByPlot = new Map<number, Fixture[]>(); private fitByPlot = new Map<number, Site['fittings']>(); private wallsByTile = new Map<number, WallEl[]>(); private roomsByTile = new Map<number, RoomEl[]>();
   private cs: number; private sn: number;
+  /** D-303: open cells (OUT) that are lanes (a village's ground between its compounds: build.ts nearPlots), or null */
+  outLane: Uint8Array | null = null;
   constructor(readonly s: Site, readonly si: number, readonly H: (e: number, n: number) => number, readonly base: Float32Array, readonly local: Uint8Array, readonly pcol: RGB[], readonly pdesc: Int32Array, desc: { tier: string; src: string; note: string }[]) {
     this.cs = Math.cos(s.frame.theta); this.sn = Math.sin(s.frame.theta);
     this.lives = livesOf(s); this.fixtures = fixturesOf(s);
@@ -205,7 +210,45 @@ export class SiteHouses {
   *tileSteps(tile: number, B: HB, day = 0): Generator<void, void, void> {
     for (const we of this.wallsByTile.get(tile) ?? []) { this.day = day; this.wallNear(we, B); yield; }
     for (const r of this.roomsByTile.get(tile) ?? []) { this.day = day; this.roomNear(r, B); yield; }
-    this.day = day; this.fixturesNear(tile, B);
+    this.day = day; this.fixturesNear(tile, B); yield;
+    this.litterNear(tile, B);
+  }
+  /** D-303: what a used lane and court collect (C; the before renders: lanes swept clean as a floor): donkey and goat droppings
+   *  (fresh dark to dry pale), a cow pat now and then, sherds of broken jars, stones kicked loose, wisps of straw and chaff, all
+   *  hashed from the cell (never random), densest near the doors and walls where the traffic turns and the brooms stop, and on
+   *  the lanes' crowns fewer; in the court sherds and chaff by the work but no dung (swept daily). ~10 % of lane cells (x 1.6 by a wall), ~5 % of
+   *  court cells */
+  private litterNear(tile: number, B: HB) {
+    const s = this.s, ti = ((tile % 4096) / 64) | 0, tj = tile % 64, b = B.litter, own = this.owner(-1, P.fixture);
+    b.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
+    const SHERD: RGB = lin([0.62, 0.46, 0.35]), SHERD2: RGB = lin([0.56, 0.48, 0.39]), DUNG: RGB = lin([0.3, 0.25, 0.19]), DRY: RGB = lin([0.46, 0.41, 0.33]), STRAW: RGB = lin([0.7, 0.62, 0.45]), PEB: RGB = lin([0.55, 0.53, 0.49]);
+    const wallNear = (i: number, j: number) => { for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const c = s.inb(i + di, j + dj) ? s.cell[s.k(i + di, j + dj)] : -1; if (c >= 0 && s.sub[s.k(i + di, j + dj)] === ROOM) return true; } return false; };
+    for (let j = tj * TILE; j < Math.min(s.H, tj * TILE + TILE); j++) for (let i = ti * TILE; i < Math.min(s.W, ti * TILE + TILE); i++) {
+      const k = s.k(i, j), c = s.cell[k], lane = c === -2 || c === -4 || (c === -1 && !!this.outLane?.[k]), court = c >= 0 && s.sub[k] === COURT && HOUSE_KINDS.has(s.plots[c].kind);
+      if (!lane && !court) continue;
+      const h0 = hm(this.si, i, j, 71), p = (lane ? 0.1 : 0.05) * (wallNear(i, j) ? 1.6 : 1);
+      if (h0 > p) continue;
+      const n = 1 + Math.floor(hm(this.si, i, j, 72) * (lane ? 3 : 2));
+      for (let q = 0; q < n; q++) { const r = (m: number) => hm(this.si, i, j, 80 + q * 7 + m);
+        const u = s.u0 + i + 0.1 + 0.8 * r(0), v = s.v0 + j + 0.1 + 0.8 * r(1), g = s.grid(u, v), y = this.gl(u, v) + 0.112, yaw = r(2) * Math.PI * 2, kind = r(3);
+        if (lane && kind < 0.45) { // droppings: a small cluster of pellets (goat, donkey) or a flattened pat (cattle)
+          const col = r(4) < 0.35 ? DUNG : mixc(DUNG, DRY, 0.4 + 0.6 * r(5));
+          if (r(6) < 0.25) { b.cyl(g[0], g[1], 0.12 + 0.07 * r(7), 0.07, y - 0.01, y + 0.03, 7, col, sh(col, 0.9), own); continue; }
+          const m = 2 + Math.floor(r(7) * 4); for (let e = 0; e < m; e++) { const a2 = yaw + e * 2.4, d = 0.03 + 0.07 * hm(i, j, q, e);
+            b.cyl(g[0] + Math.cos(a2) * d, g[1] + Math.sin(a2) * d, 0.024 + 0.01 * hm(j, i, e), 0.012, y - 0.005, y + 0.03, 4, col, sh(col, 0.85), own); }
+        } else if (kind < 0.7) { // a sherd: a curved piece of a jar's wall lying flat or on edge
+          const col = r(4) < 0.7 ? SHERD : SHERD2, L = 0.06 + 0.1 * r(5), W = L * (0.5 + 0.4 * r(6)), cA = Math.cos(yaw), sA = Math.sin(yaw), tilt = r(7) < 0.8 ? 0.02 : 0.05;
+          const P = (x: number, z: number, dy: number) => [g[0] + x * cA - z * sA, y + dy, -(g[1] + x * sA + z * cA)];
+          const pts = Array.from({ length: 6 }, (_, e) => { const a2 = e / 6 * Math.PI * 2, rr = 0.7 + 0.3 * hm(i, j, q, e, 9); return P(Math.cos(a2) * L * rr, Math.sin(a2) * W * rr, 0.004 + tilt * L * (1 + Math.cos(a2))); }); // an irregular hexagon, one edge lifted
+          b.poly(pts, [0, 1, 0], [col, col, sh(col, 0.92), sh(col, 0.88), sh(col, 0.9), col], own);
+        } else if (kind < 0.85) { // a stone kicked loose
+          const e2 = 0.025 + 0.05 * r(4); b.box(g[0], g[1], yaw, e2 * 1.3, e2, y - 0.02, y + e2 * 0.9, sh(PEB, 0.85), sh(PEB, 0.9 + 0.2 * r(5)), own);
+        } else { // straw and chaff: a few thin blades
+          const m = 3 + Math.floor(r(4) * 3); for (let e = 0; e < m; e++) { const a2 = yaw + (hm(i, j, q, e, 3) - 0.5) * 1.2, L = 0.08 + 0.12 * hm(i, j, e, 4), cx = g[0] + (hm(i, j, e, 5) - 0.5) * 0.2, cz = g[1] + (hm(i, j, e, 6) - 0.5) * 0.2, ca = Math.cos(a2), sa = Math.sin(a2), w = 0.005;
+            b.quad([cx - ca * L - sa * w, y + 0.006, -(cz - sa * L + ca * w)], [cx + ca * L - sa * w, y + 0.006, -(cz + sa * L + ca * w)], [cx + ca * L + sa * w, y + 0.006, -(cz + sa * L - ca * w)], [cx - ca * L + sa * w, y + 0.006, -(cz - sa * L - ca * w)], [0, 1, 0], STRAW, STRAW, STRAW, STRAW, own); }
+        }
+      }
+    }
   }
   /** the day of the year the near tiles show (seasonal things on the roofs) */
   private day = 0;
@@ -347,11 +390,14 @@ export class SiteHouses {
         const soc = house || (we.plot >= 0 && s.plots[we.plot].kind !== 'garden') ? L.socle : 0.3;
         const ysoc = (x: number) => gAt(x) + soc;
         const dist = this.openDist(w, sg), aoF = (y: number) => { const yr = y - floor; if (!dist) return 1; const [D, Ho] = dist; const dh = Ho - yr; const v = dh > 0 ? 1 - dh / Math.hypot(dh, D) : 1; return Math.max(0.3, Math.min(1, v * (sd.cls === 'court' ? 0.88 : 0.95) * (0.82 + 0.18 * smooth(yr / 1.2)))); };
-        const stc = lin(STONE), stcol = sh(stc, 0.9 + 0.2 * hi(we.plot, 5));
+        // D-303: the footing's stones splashed and dusted with the lane's mud (a third of the way to the mud's tone: the renders
+        // showed a clean grey tiled band), and its ledge filled with the mud that washes down the plaster (was clean stone: a pale
+        // line along every wall's foot)
+        const stc = mixc(lin(STONE), lin(MUD), 0.35), stcol = sh(stc, 0.9 + 0.2 * hi(we.plot, 5)), ledge = sh(lin(MUD), 0.9);
         this.face(B.stone, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sp.y0 + 0.2, yt: ysoc, holes: [], bulge: 0, seed, col: (_x, y) => sh(stcol, 0.86 + 0.14 * smooth((y - floor) / 0.4)), owner: this.owner(we.plot, P.socle), ao: aoF, y0: () => -1000, ytop: 1e4, off: 0.035 });
         // the footing's top ledge
         B.stone.set('ao', 0.9); { const n = Math.max(1, Math.ceil(len / 1.5)); for (let k = 0; k < n; k++) { const a = along0 + (len * k) / n, z = along0 + (len * (k + 1)) / n, ya = ysoc(a), yz = ysoc(z);
-          const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, sg * (t / 2 + o2)), y); B.stone.quad(p(a, 0, ya), p(z, 0, yz), p(z, 0.035, yz), p(a, 0.035, ya), [0, 1, 0], stcol, stcol, stcol, stcol, this.owner(we.plot, P.socle)); } } B.stone.set('ao', 1);
+          const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, sg * (t / 2 + o2)), y); B.stone.quad(p(a, 0, ya), p(z, 0, yz), p(z, 0.035, yz), p(a, 0.035, ya), [0, 1, 0], ledge, ledge, ledge, ledge, this.owner(we.plot, P.socle)); } } B.stone.set('ao', 1);
         const nv = doorVar(s.plots[we.plot].id);
         if (nicheHere && sd.cls === 'open' && nv.niche) { const nw = 0.1 + 0.06 * hi(seed, 61), nh = 0.13 + 0.07 * hi(seed, 62), ny = floor + 1.1 + 0.35 * hi(seed, 63), sc = nicheHere.len > 0 ? sB - 0.35 - 0.25 * hi(seed, 64) : sA + 0.35 + 0.25 * hi(seed, 64);
           if (sc - nw - 0.01 > sA + 0.1 && sc + nw + 0.01 < sB - 0.1) { faceHoles.push({ s0: sc - nw, s1: sc + nw, y0: ny, y1: ny + 2 * nh, through: false, depth: 0.12 + 0.08 * hi(seed, 65) });

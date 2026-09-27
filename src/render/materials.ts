@@ -897,7 +897,7 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const tone = float(1).add(mx_noise_float(vec3(q.x.mul(2.1), q.y.mul(2.1), wv.x.mul(3.7))).mul(F.tone));
     alb = mix(alb.mul(mix(float(1), tone, vert)), lin(F.mortar), mortar.mul(0.85));
     rough = mix(rough, float(0.95), mortar);
-    height = (height ?? float(0)).add(float(1).sub(mortar).mul(smoothstep(float(F.gap), float(F.gap + 0.25), edge)).mul(F.size * 0.06).mul(near).mul(vert));
+    height = (height ?? float(0)).add(float(1).sub(mortar).mul(smoothstep(float(F.gap), float(F.gap + 0.25), edge)).mul(F.size * 0.03).mul(near).mul(vert));
   }
   if (d.streaks) { // vertical weathering streaks: noise fast across the face, slow down it (C)
     const f = d.streaks.freq, q = vec3(p.x.mul(f), p.y.mul(f * (d.streaks.stretch ?? 0.08)), p.z.mul(f));
@@ -1038,7 +1038,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   L = applyScan(name, L); // scanned grain over the procedural surface (session 11; identity in node)
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
-  m.userData = { tier: d.tier, note: d.note };
+  m.userData = { tier: d.tier, note: d.note, surface: name }; m.name = `surface:${name}`; // (the name: T-A7 sampling, tests/e2e/town_real.spec.ts)
   if (!opts.modify) receiveReliefShadow(m); // the architecture's surfaces carry the reliefs' cast shadows (D-226); the plain's layers do not
   cache.set(key, m);
   return m;

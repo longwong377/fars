@@ -262,5 +262,130 @@
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal)"
   ]
+ },
+ "clay_floor_001": {
+  "meanLinear": [
+   0.19522,
+   0.11599,
+   0.04756
+  ],
+  "meanAO": 0.9796,
+  "meanRough": 0.6861,
+  "name": "Clay Floor 001",
+  "authors": [
+   "Dimitrios Savva",
+   "Rico Cilliers"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/clay_floor_001",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "nor.jpg (OpenGL normal, 1k)"
+  ]
+ },
+ "dirt": {
+  "meanLinear": [
+   0.12525,
+   0.08519,
+   0.04869
+  ],
+  "meanAO": 0.8965,
+  "meanRough": 0.9442,
+  "name": "Dirt",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/dirt",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "nor.jpg (OpenGL normal, 1k)"
+  ]
+ },
+ "Ground025": {
+  "meanLinear": [
+   0.47697,
+   0.28778,
+   0.12584
+  ],
+  "meanAO": 0.9243,
+  "meanRough": 0.4628,
+  "name": "Ground025",
+  "authors": [
+   "ambientCG"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Ground025",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal) (built from AO and Roughness)",
+   "nor.jpg (OpenGL normal, 1k)"
+  ]
+ },
+ "burned_ground_01": {
+  "meanLinear": [
+   0.13467,
+   0.09979,
+   0.07152
+  ],
+  "meanAO": 0.6037,
+  "meanRough": 0.519,
+  "name": "Burned Ground 01",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/burned_ground_01",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "nor.jpg (OpenGL normal, 1k)"
+  ]
+ },
+ "excavated_soil_wall": {
+  "meanLinear": [
+   0.1516,
+   0.0756,
+   0.02393
+  ],
+  "meanAO": 0.8151,
+  "meanRough": 0.9668,
+  "name": "Excavated Soil Wall",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/excavated_soil_wall",
+  "res": "2k",
+  "maps": [
+   "nor.jpg (OpenGL normal, 1k) only: its relief under clay_floor_001's colour (D-303)"
+  ]
+ },
+ "dry_riverbed_rock": {
+  "meanLinear": [
+   0.13791,
+   0.0939,
+   0.07005
+  ],
+  "meanAO": 0.771,
+  "meanRough": 0.6055,
+  "name": "Dry Riverbed Rock",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/dry_riverbed_rock",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "nor.jpg (OpenGL normal, 1k)"
+  ]
  }
 }

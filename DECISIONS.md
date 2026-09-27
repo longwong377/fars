@@ -7053,3 +7053,73 @@ moment-*-webgpu.png in the worktree, not committed).**
   output the worst of 32 rows above 2° is **0.040°** (tests/sky.horizons.test.ts, threshold 0.1°: passes). Against the
   airless output it read 0.129° worst, all of it refraction (mean Δalt 0.112° below 10° elevation, 0.015° above 20°): the
   test compares like with like now. B2 resolved.
+
+## D-303 Every inch real: the town and the villages (session 11; UD-17, UD-06, UD-08, UD-14; T-A7, T-A4, T-A4cg; B76)
+- **Read first: what is broken, placeholder or unverified.**
+  - **Rendered in the world after the change: 4 views only** (lane-q_s1, court-q_s1, wall-q_s1, workshop-area-b; GPU, high,
+    the player's 70°; shots/town-*-after1-high-gpu.png). The world run then lost the GPU (DXGI_ERROR_DEVICE_HUNG, the card's
+    watchdog, several agents rendering) and every later view came out blank: **the Terrace's view over the town, the door view,
+    the night lane (the lamps), the dusk lane, the village views (village-p22, -lane, -dusk: the new village ground, litter,
+    far-level doorways and eaves) and the tannery and press views are NOT rendered after the change** (B111). The village
+    changes are measured in node only (tests/villages.test.ts, houses budgets) and were never seen in a frame.
+  - **The walls still read as CG up close** in the renders: the mud plaster now has grain and relief, but the lane faces are
+    long unbroken planes with dead-straight tops; the fieldstone footing still reads as a band of grey tiles with a pale ledge
+    at its top; the pale square in the lane (a SQUARE cell block) still shows as a lighter rectangle at 20-40 m. Not fixed.
+  - **The workshops are not built places** (the tannery, the oil press, the quarry huts: open ground with the performers' work
+    objects, D-255, src/people/workObjects.ts: outside this brief's files): B110. The town's smiths' forges are fittings in
+    their houses (as before). Nothing changed there.
+  - **The village far level is still box massing** (72 m out): each compound's range now shows its doorways onto the court as
+    dark openings and an eave's shadow line (as the town's far level), unrendered. The near level (the town's generator) was
+    already real houses (D-254); no walkable village area is drawn with box compounds within 72 m of the eye.
+  - T-A7 is measured on the views' own pick samples (8 x 5 or 16 x 9 picks a view, tests/e2e/town_real.spec.ts), not on the
+    coverage harness's Tier-1 sample (its T-A7 tool is still to build: B109).
+- **How this could pass its tests while the intent fails (said before building):** every town surface already had a scan entry,
+  so T-A7 read ~0 before any change while the walls rendered flat brown (the clay_plaster scan is nearly featureless: its
+  grain did not read) and the lanes smooth (sandy_gravel_02). So the measure was the render at arm's length, the anti-proxy
+  of T-A7 (a scan too weak to read, or tiled to flat colour at the view distance, counts as none: the spec computes each hit's
+  tile size in pixels), and a lab page for the surfaces (below), not the scan table.
+- **Decision (C for every choice: modern scans for the grain of 467; the tints stay the evidence's):**
+  - **Scans (src/render/scans.ts, src/data/scans.json, public/textures/, ASSET_LEDGER.md):** the town's and villages' mud
+    plaster (house_plaster, mud_plaster, their far levels) takes a hand-trowelled clay coat's colour (Poly Haven clay_floor_001,
+    2.4 m tile and a 7 m tile against repeats) with an eroded earth wall's relief (excavated_soil_wall's normal map, 3 m, at
+    0.15); the up-facing faces (roofs, wall tops) their own scan, the rolled clay-and-straw coat (dirt, with its normal map);
+    the footings a stone (dry_riverbed_rock, was a plaster scan); the lanes, courts and roads trodden dry earth with grit and
+    prints (ambientCG Ground025 with its normal map; was sandy_gravel_02, smooth); middens and pens ash, straw and dung
+    (burned_ground_01). Six CC0 sets copied from fars-assets (diff and arm at 2K; the ambientCG arm built from its AO and
+    roughness; normal maps at 1K), measured as the first 13 were (mean linear colour, roughness, AO).
+  - **Normal maps wired (scans.ts):** a use's `nor` (strength, optionally another scan's map at its own tile) is sampled
+    triplanar and blended in world space (UDN: each projection's tangent x, y along the world axes its u, v run on; consistent
+    with the albedo's projection on either face, so no sign flips), added to the layer's `tilt`; the luminance bump stays at a
+    quarter under it. A use's `top` gives up-facing faces their own scan (the materials' smoothstep 0.7-0.9 of the normal's y).
+    One sampler per normal map (the T4 grants 48 a stage, D-295).
+  - **The lanes' litter (houses.ts litterNear, per near tile, hashed from the cell):** droppings (goat and donkey pellets, a
+    cow pat now and then; fresh to dry), sherds (irregular flat pieces, one edge lifted), stones kicked loose, wisps of straw,
+    on ~10 % of lane cells (x 1.6 by a wall) and ~5 % of court cells (no dung in the courts: swept); its own surface (`litter`:
+    no roof coat on up-facing faces, which had taken the sherds' colour) and draw (no shadows), 12 mm over the lanes' ground
+    with a depth bias. Its own hash (`hm`, murmur3's finaliser): `hi` of neighbouring cells' indices fell on a lattice and
+    the litter came out as evenly spaced cow pats (the other `hi` uses in houses.ts are not re-checked: Q-812).
+  - **The lanes' ground (build.ts siteGround, exported):** each vertex the mean colour of the cells round it and a hashed
+    patchiness (+-7 %), so a square, court or floor meets the lane in a soft seam, not a 4 m block's hard edge.
+  - **The villages' lanes (B76):** the trodden ground (siteGround) of each built village's lanes within 5 m of a compound
+    (VILLAGE_LANE_R; the village raster's open cells, build.ts nearPlots), courts, pens and floors, one mesh per built village
+    (road surface), and the same cells take the litter. They were the plain's herb layer.
+  - **The villages' far level:** each room range's doorways onto the court as dark openings 4.5 cm proud of the face, and the
+    eave's shadow line along the ranges' court faces (the town's far level draws it).
+  - **Plaster:** the shrinkage cracks at 0.4 (their Worley net read as drawn lines at arm's length), the fieldstone footing's
+    mortar mud-brown and its stones domed half as high (they shaded to black gaps), the stone colour warmer.
+  - **A lab page (townlab.html, src/dev/townLab.ts, tests/e2e/townlab.spec.ts):** one quarter's houses at full detail (the
+    town's own plan and generator) on flat ground under the game's sky, sun, shadows and post pipeline with the scans: a
+    load of ~1-2 min against the world's 11-30; eleven iterations of the surfaces were judged there (shots/townlab-*.png).
+    The judgement that counts is the world's.
+- **Measured.** T-A7 on the views' picks: before 0 / 0 / 0.81 % (lane, court, wall-q_s1: a timber tile under 8 px at its
+  distance), after 0 % on the four rendered views (30-34 surface picks a view of 40; the town_real.spec's anti-proxy check);
+  node: every surface the town's and villages' meshes use has a scan at alb >= 0.3 and every scan named is shipped and
+  measured (tests/scans_town.test.ts). Near level at the three lane spots (tests/houses.test.ts): 532 / 505 / 591 k triangles
+  (was 514 / 486 / 573 k; the litter ~18 k), 7 meshes (one more draw, the litter), casting unchanged (87 / 83 / 94 k).
+  Frame luminance means unchanged within 0.4 (lane 85.4 -> 85.1, court 77.3 -> 77.2, wall 84.5 -> 84.7).
+- **Files:** src/render/scans.ts, src/render/materials.ts (the material's name `surface:<name>`; the footing's dome),
+  src/data/scans.json, public/textures/{clay_floor_001, dirt, Ground025, burned_ground_01, dry_riverbed_rock,
+  excavated_soil_wall}, src/world/settlement/{build, houses, surfaces}.ts, src/world/plain/villagehouses.ts, src/dev/townLab.ts,
+  townlab.html, tests/e2e/{town_real, townlab, dbg_townlab}.spec.ts, tests/scans_town.test.ts, tests/shader_build.test.ts (the
+  litter's mesh), tools/dev/litter_probe.ts, ASSET_LEDGER.md.
+- **Records:** Q-810 ... Q-812; B109 ... B111.

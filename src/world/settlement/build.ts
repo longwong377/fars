@@ -33,12 +33,12 @@ const NS_W = 512, NS_H = 240; export const NEAR_STATE = new THREE.DataTexture(ne
 const NEAR_HYST = 16;
 /** small fittings drawn near only; large ones (ovens, kilns, wells ...) also on the far level */
 const FAR_FITTINGS = new Set(['oven', 'kiln', 'forge', 'well', 'column', 'trough', 'manger']);
-const SKIP_FITTINGS = new Set(['tree', 'channel', 'ditch', 'midden', 'pen_dung', 'pit', 'pool']);
+export const SKIP_FITTINGS = new Set(['tree', 'channel', 'ditch', 'midden', 'pen_dung', 'pit', 'pool']);
 export interface Desc { tier: string; src: string; note: string; placeholder?: boolean; lod?: string; part?: number }
 interface ColBox { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }
 interface Cluster { id: string; c: P2; batches: Map<string, Batch>; desc: Desc[]; far: Batch }
 interface SiteCol { id: string; c: P2; r: number; boxes: ColBox[]; live: any[] | null }
-const NEAR_KEYS = ['plaster', 'stone', 'timber', 'brick', 'items', 'props'] as const;
+const NEAR_KEYS = ['plaster', 'stone', 'timber', 'brick', 'items', 'props', 'litter'] as const;
 interface NearTile { hs: SiteHouses; geo: Partial<Record<keyof HB, { g: THREE.BufferGeometry; owner: Int32Array }>>; tris: number; cl: Cluster }
 
 const MUD: RGB = [0.56, 0.47, 0.36], TIMBER: RGB = [0.36, 0.26, 0.17], POT: RGB = [0.63, 0.43, 0.3], STONE: RGB = [0.55, 0.53, 0.49], BONE: RGB = [0.82, 0.78, 0.68];
@@ -128,25 +128,7 @@ export class Settlement {
     // trodden ground: lanes, squares, courts and floors of the quarters and compounds are bare packed earth, not the
     // plain's seasonal herb layer (gardens and orchards keep it). One receive-only mesh, 4 m tiles draped on the terrain.
     const ground = new Batch(), gDesc: Desc[] = [{ tier: 'C', src: 'RECON', note: 'trodden earth of lanes, squares, courts and floors (C)' }];
-    for (const s of this.plan.sites) {
-      const green = (k: number) => { const c = s.cell[k]; if (c < 0) return c === -1; const kd = s.plots[c].kind; return kd === 'garden' || kd === 'yard' || (kd === 'elite' && s.sub[k] === 3); };
-      const colOf = (k: number): RGB => { const c = s.cell[k]; if (c < 0) return c === -4 ? lin([0.56, 0.49, 0.39]) : lin([0.53, 0.46, 0.36]); const sb = s.sub[k]; return sb === 1 ? lin([0.44, 0.38, 0.3]) : sb === 2 ? lin([0.56, 0.49, 0.38]) : lin([0.5, 0.43, 0.33]); };
-      // D-223 (rubric s7 pass 2 fix 9: from the Terrace the town's roofs did not read against its ground): the ground between
-      // the houses is darker where the houses close in on it (the sky it sees, and the damp and litter a lane collects),
-      // by the share of roofed cells within 3 m of each corner: up to 30 % darker at the foot of a wall in a narrow lane
-      // (C); the roofs are lighter than before (surfaces.ts mud_roof)
-      const R3 = 3, occ = (i: number, j: number) => { let r = 0, n = 0;
-        for (let dj = -R3; dj < R3; dj++) for (let di = -R3; di < R3; di++) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= s.W || jj >= s.H) continue; n++; if (s.cell[s.k(ii, jj)] >= 0 && s.sub[s.k(ii, jj)] === ROOM) r++; }
-        return 1 - 0.3 * (n ? r / n : 0); };
-      const tile = (i0: number, j0: number, n: number, c: RGB) => { const P = (i: number, j: number) => { const g = s.grid(s.u0 + i, s.v0 + j); return [g[0], H(g[0], g[1]) + 0.1, -g[1]]; };
-        const C = (i: number, j: number): RGB => shade(c, occ(i, j));
-        ground.quad(P(i0, j0), P(i0 + n, j0), P(i0 + n, j0 + n), P(i0, j0 + n), [0, 1, 0], C(i0, j0), C(i0 + n, j0), C(i0 + n, j0 + n), C(i0, j0 + n), 0); };
-      for (let bj = 0; bj < s.H; bj += 4) for (let bi = 0; bi < s.W; bi += 4) {
-        let all = true; for (let j = bj; j < Math.min(s.H, bj + 4) && all; j++) for (let i = bi; i < Math.min(s.W, bi + 4); i++) if (green(s.k(i, j))) { all = false; break; }
-        if (all && bi + 4 <= s.W && bj + 4 <= s.H) { tile(bi, bj, 4, colOf(s.k(bi + 1, bj + 1))); continue; }
-        for (let j = bj; j < Math.min(s.H, bj + 4); j++) for (let i = bi; i < Math.min(s.W, bi + 4); i++) if (!green(s.k(i, j))) tile(i, j, 1, colOf(s.k(i, j)));
-      }
-    }
+    for (const s of this.plan.sites) siteGround(s, H, ground);
     phase('ground');
     // middens, dung, bone pits: one refuse mesh (grime where work happens, brief 5.5)
     const refuse = new Batch(), rDesc: Desc[] = [];
@@ -173,9 +155,9 @@ export class Settlement {
       stone: Object.assign(surfaceMaterial('house_socle', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
       timber: Object.assign(surfaceMaterial('house_timber', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
       brick: Object.assign(surfaceMaterial('house_brick', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
-      items: null as any, props: null as any,
+      items: null as any, props: null as any, litter: null as any,
     };
-    this.nearMats.items = this.nearMats.plaster; this.nearMats.props = this.nearMats.timber;
+    this.nearMats.items = this.nearMats.plaster; this.nearMats.props = this.nearMats.timber; this.nearMats.litter = litterMaterial();
     for (const cl of clusters.values()) for (const [mat, b] of cl.batches) {
       if (!b.tris) continue;
       const m = new THREE.Mesh(b.toGeometry(), mats[mat]); m.name = `settlement:${cl.id}:${mat}`; m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false;
@@ -384,6 +366,47 @@ export type { Wall, Prop };
 
 /** a fitting's geometry (hearth ring, oven, kiln, jars, quern, loom ...) into a batch; `d` the owner (description × 32).
  *  A module function (D-254: the villages draw their fittings with it too); the town's output is unchanged */
+/** the trodden ground of a site (lanes, squares, courts, floors) as 1-4 m quads 0.1 m over the terrain, green cells (gardens,
+ *  yards, the elite's garden) left to the plain's herb layer; exported for the villages (D-303: their lanes were the plain's herbs) */
+/** D-303: the open cells (OUT) within r cells (Chebyshev) of a plot's cell: the trodden ground round a village's compounds */
+export function nearPlots(s: Site, r: number): Uint8Array {
+  const m = new Uint8Array(s.cell.length); let front: number[] = [];
+  for (let k = 0; k < s.cell.length; k++) if (s.cell[k] >= 0) { m[k] = 1; front.push(k); }
+  for (let d = 0; d < r; d++) { const nx: number[] = []; for (const k of front) { const i = k % s.W, j = (k / s.W) | 0;
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const ii = i + di, jj = j + dj; if (!s.inb(ii, jj)) continue; const q = s.k(ii, jj); if (!m[q]) { m[q] = 1; nx.push(q); } } } front = nx; }
+  return m;
+}
+/** D-303: the lanes' litter (houses.ts litterNear): its own surface (vertex colours, no roof coat on the up-facing faces) and
+ *  draw (no shadows cast), 12 mm over the lanes' ground with a depth bias twice the ground's (the ground's -4/-8 slope bias
+ *  hid every flat piece at a walking eye's grazing angles: townlab renders d-h; seen from above they were there) */
+export function litterMaterial() { const m = Object.assign(surfaceMaterial('litter', { vertexColors: true }), { aoNode: attribute('ao', 'float') }) as any; m.polygonOffset = true; m.polygonOffsetFactor = 8; m.polygonOffsetUnits = 16; return m as THREE.Material; }
+export function siteGround(s: Site, H: (e: number, n: number) => number, ground: Batch, outR = 0) {
+  const near = outR > 0 ? nearPlots(s, outR) : null; // D-303: the villages' lanes are the raster's open ground (OUT) between the compounds
+  const green = (k: number) => { const c = s.cell[k]; if (c < 0) return c === -1 && !near?.[k]; const kd = s.plots[c].kind; return kd === 'garden' || kd === 'yard' || (kd === 'elite' && s.sub[k] === 3); };
+  const colOf = (k: number): RGB => { const c = s.cell[k]; if (c < 0) return c === -4 ? lin([0.54, 0.47, 0.37]) : lin([0.53, 0.46, 0.36]); // (D-303: the square a shade, not a pale rectangle) const sb = s.sub[k]; return sb === 1 ? lin([0.44, 0.38, 0.3]) : sb === 2 ? lin([0.56, 0.49, 0.38]) : lin([0.5, 0.43, 0.33]); };
+  // D-223 (rubric s7 pass 2 fix 9: from the Terrace the town's roofs did not read against its ground): the ground between
+  // the houses is darker where the houses close in on it (the sky it sees, and the damp and litter a lane collects),
+  // by the share of roofed cells within 3 m of each corner: up to 30 % darker at the foot of a wall in a narrow lane
+  // (C); the roofs are lighter than before (surfaces.ts mud_roof)
+  const R3 = 3, occ = (i: number, j: number) => { let r = 0, n = 0;
+    for (let dj = -R3; dj < R3; dj++) for (let di = -R3; di < R3; di++) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= s.W || jj >= s.H) continue; n++; if (s.cell[s.k(ii, jj)] >= 0 && s.sub[s.k(ii, jj)] === ROOM) r++; }
+    return 1 - 0.3 * (n ? r / n : 0); };
+  // D-303: each vertex takes the mean colour of the (non-green) cells round it and a hashed patchiness (±7 %, 1-4 m), so a
+  // square, a court or a floor meets the lane in a soft seam, not the 4 m block's hard edge (the before render: a pale
+  // rectangle in the lane)
+  const vcol = (i: number, j: number): RGB => { const c: RGB = [0, 0, 0]; let n = 0;
+    for (const [di, dj] of [[-1, -1], [0, -1], [-1, 0], [0, 0]]) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= s.W || jj >= s.H) continue; const k = s.k(ii, jj); if (green(k)) continue; const q = colOf(k); c[0] += q[0]; c[1] += q[1]; c[2] += q[2]; n++; }
+    const h = hashString(`${s.id}:${i}:${j}`) / 4294967296, g = 0.93 + 0.14 * h; return n ? [c[0] / n * g, c[1] / n * g, c[2] / n * g] : colOf(s.k(Math.min(s.W - 1, i), Math.min(s.H - 1, j))); };
+  const tile = (i0: number, j0: number, n: number, _c: RGB) => { const P = (i: number, j: number) => { const g = s.grid(s.u0 + i, s.v0 + j); return [g[0], H(g[0], g[1]) + 0.1, -g[1]]; };
+    const C = (i: number, j: number): RGB => shade(vcol(i, j), occ(i, j));
+    ground.quad(P(i0, j0), P(i0 + n, j0), P(i0 + n, j0 + n), P(i0, j0 + n), [0, 1, 0], C(i0, j0), C(i0 + n, j0), C(i0 + n, j0 + n), C(i0, j0 + n), 0); };
+  for (let bj = 0; bj < s.H; bj += 4) for (let bi = 0; bi < s.W; bi += 4) {
+    let all = true; for (let j = bj; j < Math.min(s.H, bj + 4) && all; j++) for (let i = bi; i < Math.min(s.W, bi + 4); i++) if (green(s.k(i, j))) { all = false; break; }
+    if (all && bi + 4 <= s.W && bj + 4 <= s.H) { tile(bi, bj, 4, colOf(s.k(bi + 1, bj + 1))); continue; }
+    for (let j = bj; j < Math.min(s.H, bj + 4); j++) for (let i = bi; i < Math.min(s.W, bi + 4); i++) if (!green(s.k(i, j))) tile(i, j, 1, colOf(s.k(i, j)));
+  }
+}
+
 export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: number, n: number) => number, d: number) {
   const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
   const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };

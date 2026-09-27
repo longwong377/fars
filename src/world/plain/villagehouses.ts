@@ -24,7 +24,7 @@ import { surfaceMaterial } from '../../render/materials';
 import { registerSettlementSurfaces } from '../settlement/surfaces';
 import { SiteHouses, plasterBatch, newHB, NEAR_R, TILE, seasonOf, doorVar, hi, type HB, type StreetDoor } from '../settlement/houses';
 import { TownDoors } from '../settlement/towndoors';
-import { fittingGeom, partDesc, type Desc } from '../settlement/build';
+import { fittingGeom, partDesc, litterMaterial, siteGround, nearPlots, type Desc } from '../settlement/build';
 import { siteFootprints } from '../settlement/footprints';
 import { Batch, lin, type RGB } from '../settlement/geom';
 import { lifeOf, parapetOf } from '../settlement/houseplan';
@@ -42,8 +42,10 @@ export const VILLAGE_CELL = 10000, VILLAGE_CELL_OFF = 5000;
 /** a village's raster and houses are built when the eye or the player comes within this of its edge (m) */
 export const VILLAGE_BUILD_R = NEAR_R + 250;
 const NEAR_HYST = 16;
+/** D-303: the trodden ground round a village's compounds reaches this many metres out from their walls */
+export const VILLAGE_LANE_R = 5;
 /** the near meshes: the structure (does not cast: the far level casts for it) and the things (cast) */
-const STRUCT: (keyof HB)[] = ['plaster', 'stone', 'timber', 'brick'], THINGS: (keyof HB)[] = ['items', 'props'];
+const STRUCT: (keyof HB)[] = ['plaster', 'stone', 'timber', 'brick'], THINGS: (keyof HB)[] = ['items', 'props', 'litter'];
 const SRC = 'SUMNER1986;RECON';
 const MUD: RGB = [0.56, 0.47, 0.36];
 const sh = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
@@ -62,7 +64,7 @@ export class VillageHouses {
   readonly group = new THREE.Group();
   /** the far level: one mesh per cell and the centres (world x, z) of its villages (plain/index.ts switches shadows on near) */
   readonly cells: { mesh: THREE.Mesh; centres: [number, number][] }[] = [];
-  readonly info = { villages: 0, compounds: 0, rooms: 0, gates: 0, fittings: 0, fires: 0, lamps: 0, farTris: 0, floors: 0, built: 0, colliders: 0, liveColliders: 0, buildMs: 0, lazyMs: 0, lazyMaxMs: 0 };
+  readonly info = { groundTris: 0, villages: 0, compounds: 0, rooms: 0, gates: 0, fittings: 0, fires: 0, lamps: 0, farTris: 0, floors: 0, built: 0, colliders: 0, liveColliders: 0, buildMs: 0, lazyMs: 0, lazyMaxMs: 0 };
   readonly nearInfo = { tiles: 0, tris: 0, builds: 0, syncBuilds: 0, jobBuilds: 0, buildMs: 0, maxStep: 0, mergeMs: 0, syncMerges: 0 };
   /** the gates (every compound's, from its plan; the same records SiteHouses makes: tests/villages.test.ts) */
   readonly gates: StreetDoor[] = [];
@@ -76,6 +78,7 @@ export class VillageHouses {
   private nearDay = 0;
   private structMesh: THREE.Mesh; private thingsMesh: THREE.Mesh;
   private H: (e: number, n: number) => number;
+  private groundMat: THREE.Material | null = null;
 
   constructor(readonly villages: Village[], comps: Compound[][], terrain: Terrain, private phys: Physics | null, fire: FireSystem | null, seed = 1) {
     const t0 = performance.now();
@@ -140,7 +143,7 @@ export class VillageHouses {
     // the near meshes (one per group of materials; each material a draw)
     const mat = (name: string) => Object.assign(surfaceMaterial(name, { vertexColors: true, ...(name === 'house_plaster' ? { arch: true } : {}) }), { aoNode: attribute('ao', 'float') });
     const M = [mat('house_plaster'), mat('house_socle'), mat('house_timber'), mat('house_brick')];
-    this.structMesh = new THREE.Mesh(emptyGeometry(), M); this.structMesh.name = 'plain-villages-near'; this.thingsMesh = new THREE.Mesh(emptyGeometry(), [M[0], M[2]]); this.thingsMesh.name = 'plain-villages-near-things';
+    this.structMesh = new THREE.Mesh(emptyGeometry(), M); this.structMesh.name = 'plain-villages-near'; this.thingsMesh = new THREE.Mesh(emptyGeometry(), [M[0], M[2], litterMaterial()]); this.thingsMesh.name = 'plain-villages-near-things';
     for (const m of [this.structMesh, this.thingsMesh]) { m.castShadow = m === this.thingsMesh; m.receiveShadow = true; m.matrixAutoUpdate = false; m.frustumCulled = false; m.visible = false; m.userData = { ...tag(vu, 'village houses near (D-254)') }; this.group.add(m); }
     this.doors = new TownDoors(this.gates, phys, 1, 'plain-villages-doors'); this.doors.group.userData = { ...tag(vu, 'village gates: leaves of poplar planks (D-234 door system; D-254)') }; this.group.add(this.doors.group);
     this.info.buildMs = performance.now() - t0;
@@ -175,6 +178,16 @@ export class VillageHouses {
     box(-W - tr / 2, rv0, W + tr / 2, D + tr / 2, roomTop, roofC, ownR);
     const wing = c.rooms.filter(r => !main.includes(r)); if (wing.length) { const u0 = Math.min(...wing.map(r => r.u0)), u1 = Math.max(...wing.map(r => r.u1)), v0 = Math.min(...wing.map(r => r.v0)), v1 = Math.max(...wing.map(r => r.v1));
       box(u0 - (u0 <= -W + 1e-6 ? tr / 2 : 0), v0 - (v0 <= -D + 1e-6 ? tr / 2 : 0), u1 + (u1 >= W - 1e-6 ? tr / 2 : 0), v1, roomTop, roofC, ownR); }
+    // D-303: the rooms' doorways onto the court as dark openings 4.5 cm proud of the ranges' faces (the far level's ranges were
+    // blind boxes; the doors between rooms fall inside the mass and are not seen), and the eave's shadow line along the court
+    // faces of the ranges, as the town's far level draws it (houses.ts buildFar)
+    const dk = sh(col, 0.2); for (const d of c.doors) { const hu = d.along === 'u' ? 0.5 : 0.045, hv = d.along === 'u' ? 0.045 : 0.5; box(d.u - hu, d.v - hv, d.u + hu, d.v + hv, base + DOOR_H - 0.1, dk, ownR); }
+    { const o = 0.3, eb = roomTop - parapet - 0.3, et = roomTop - parapet - 0.1, ec = sh(col, 0.6);
+      const slab = (u0: number, v0: number, u1: number, v1: number) => { const mu = (u0 + u1) / 2, mv = (v0 + v1) / 2; b.set('y0', base).set('ytop', et);
+        b.box(lu + mu * ca - mv * sa, lv + mu * sa + mv * ca, c.angle, Math.abs(u1 - u0) / 2, Math.abs(v1 - v0) / 2, eb, et, sh(ec, 0.7), ec, ownR, true); };
+      if (main.length) slab(-W, rv0 - o, W, rv0);
+      if (wing.length) { const u0 = Math.min(...wing.map(r => r.u0)), u1 = Math.max(...wing.map(r => r.u1)), v0 = Math.min(...wing.map(r => r.v0)), west = u0 <= -W + 1e-6, inner = west ? u1 : u0;
+        slab(west ? inner : inner - o, v0, west ? inner + o : inner, rv0 - o); } }
   }
   /** a threshing floor: beaten earth, a kerb of fieldstones (C) */
   private floor(cell: VCell, v: Village, at: P2) {
@@ -205,6 +218,13 @@ export class VillageHouses {
       for (const f of siteFootprints(s)) { const g = s.grid(f.u, f.v), y = this.H(g[0], g[1]); boxes.push({ x: g[0], y: y + f.y, z: -g[1], hx: f.hu, hy: f.hy, hz: f.hv, rot: s.frame.theta + f.rot }); }
       for (const f of s.fittings) if (f.kind === 'bin') { const b = binBox(f), g = s.grid(f.u, f.v), y = this.H(g[0], g[1]); boxes.push({ x: g[0], y: y + b.hy, z: -g[1], hx: b.hu, hy: b.hy, hz: b.hv, rot: s.frame.theta + f.rot }); }
       S.col = { boxes, live: null }; S.fd = fd; S.hs = hs; this.info.built++; this.info.colliders += boxes.length;
+      // D-303 (B76: the village lanes were the plain's herb layer): the trodden ground of the lanes within LANE_R of a compound,
+      // the courts, pens and floors, drawn as the town's (build.ts siteGround); the same cells take the lanes' litter (houses.ts)
+      hs.outLane = nearPlots(s, VILLAGE_LANE_R);
+      const gb = new Batch(); siteGround(s, this.H, gb, VILLAGE_LANE_R);
+      if (gb.tris) { if (!this.groundMat) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -4; gm.polygonOffsetUnits = -8; this.groundMat = gm; }
+        const m = new THREE.Mesh(gb.toGeometry(), this.groundMat!); m.name = `plain-villages-ground:${S.v.id}`; m.receiveShadow = true; m.matrixAutoUpdate = false;
+        m.userData = { ...tag(feature('villages_unlocated'), 'trodden earth of the village lanes, courts, pens and floors (C, D-303)') }; this.group.add(m); this.info.groundTris += gb.tris; }
     }
     const ms = performance.now() - t0; this.info.lazyMs += ms; this.info.lazyMaxMs = Math.max(this.info.lazyMaxMs, ms);
     return !!S.hs;
