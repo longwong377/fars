@@ -7056,23 +7056,34 @@ moment-*-webgpu.png in the worktree, not committed).**
 
 ## D-303 Every inch real: the town and the villages (session 11; UD-17, UD-06, UD-08, UD-14; T-A7, T-A4, T-A4cg; B76)
 - **Read first: what is broken, placeholder or unverified.**
-  - **Rendered in the world after the change: 4 views only** (lane-q_s1, court-q_s1, wall-q_s1, workshop-area-b; GPU, high,
-    the player's 70°; shots/town-*-after1-high-gpu.png). The world run then lost the GPU (DXGI_ERROR_DEVICE_HUNG, the card's
-    watchdog, several agents rendering) and every later view came out blank: **the Terrace's view over the town, the door view,
-    the night lane (the lamps), the dusk lane, the village views (village-p22, -lane, -dusk: the new village ground, litter,
-    far-level doorways and eaves) and the tannery and press views are NOT rendered after the change** (B111). The village
-    changes are measured in node only (tests/villages.test.ts, houses budgets) and were never seen in a frame.
-  - **The walls still read as CG up close** in the renders: the mud plaster now has grain and relief, but the lane faces are
-    long unbroken planes with dead-straight tops; the fieldstone footing still reads as a band of grey tiles with a pale ledge
-    at its top; the pale square in the lane (a SQUARE cell block) still shows as a lighter rectangle at 20-40 m. Not fixed.
+  - **A blind review (REVIEWS/d303_town_review.md, uncalibrated: no anchor set) scored all 8 town frames (4 before, 4 after
+    the first pass) with a lowest category of 1-2 and all 8 "reads as CG"** (T-A4 >= 4 and T-A4cg = 0 fail; the brief's >= 3
+    is not met). After the change: materials 2 (was 1); the scanned walls read as craggy rock, the footing as a grey band of
+    tiled flagstones with a white skirting strip, the lanes as wide, straight extruded boxes with no doors, spouts or ruts;
+    the workshop yard's kneeling clone crowd working at nothing (the people's, not this brief's), red flower sprites (the
+    plain's). Fixed after the review and seen only in the lab (townlab.spec, frames -o): the wall scan finer and weaker, the
+    footing mud-splashed with a mud ledge, the square a shade. **These last fixes are NOT rendered in the world**: the world
+    frames after the change (shots/town-*-after1-*, town-*-after2-*) show the first pass (house_plaster at a 2.4 m tile, alb
+    0.9, relief 0.5: a string replace that reached only mud_plaster left it so until the last commit; at arm's length the door
+    view reads as veined marble).
+  - **The lanes stay long unbroken planes with dead-straight tops, no doors on many faces, no drains or ruts** (the plan's
+    geometry, D-234): not addressed. The lanes' litter is drawn (sherds, droppings, stones, straw).
+  - **The town at night and at dusk is black from the lane** (lane-q_s1-night 21:30 frame mean 8.8, lane-q_w1-dusk 18:54
+    mean 5.0): the evening lamps burn inside the rooms and none of their light reaches the lane; the village at dusk the same
+    (23.7, the sky only). "The town's lamps at night" is not met; no change made.
+  - **The villages:** the lanes' trodden ground, litter and the far level's doorways and eaves are built (node tests) but no
+    frame shows them: village-p22-lane stands on the plain at the village's edge (its picks hit terrain and a yard wall, no
+    village ground), village-p22 sees the village as a line of low boxes at ~250 m. The near level (the town's generator,
+    D-254) already drew real houses within 72 m: no walkable village area is drawn with box compounds near the eye.
   - **The workshops are not built places** (the tannery, the oil press, the quarry huts: open ground with the performers' work
-    objects, D-255, src/people/workObjects.ts: outside this brief's files): B110. The town's smiths' forges are fittings in
-    their houses (as before). Nothing changed there.
-  - **The village far level is still box massing** (72 m out): each compound's range now shows its doorways onto the court as
-    dark openings and an eave's shadow line (as the town's far level), unrendered. The near level (the town's generator) was
-    already real houses (D-254); no walkable village area is drawn with box compounds within 72 m of the eye.
-  - T-A7 is measured on the views' own pick samples (8 x 5 or 16 x 9 picks a view, tests/e2e/town_real.spec.ts), not on the
-    coverage harness's Tier-1 sample (its T-A7 tool is still to build: B109).
+    objects, D-255, src/people/workObjects.ts: outside this brief's files): B110. Rendered after (tannery-work, press-work) for
+    the record, unchanged.
+  - **The Terrace view (terrace-w-day) does not show the town** (a parapet and the plain at 70°): the view needs re-aiming.
+  - T-A7 is measured on the views' own picks (8 x 5 a view, tests/e2e/town_real.spec.ts), not on the coverage harness's
+    Tier-1 sample (its T-A7 tool is still to build: B109).
+  - The world renders: the first run (before) lost 9 views to its 50 min timeout (the picks: 144 a view); the second lost the
+    GPU (DXGI_ERROR_DEVICE_HUNG) after 4 views; the third hit a full C: drive (ENOSPC) after 3; the fourth rendered the other
+    11. The spec now fails on black frames (a lost device had passed as "1 passed").
 - **How this could pass its tests while the intent fails (said before building):** every town surface already had a scan entry,
   so T-A7 read ~0 before any change while the walls rendered flat brown (the clay_plaster scan is nearly featureless: its
   grain did not read) and the lanes smooth (sandy_gravel_02). So the measure was the render at arm's length, the anti-proxy
@@ -7081,8 +7092,8 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Decision (C for every choice: modern scans for the grain of 467; the tints stay the evidence's):**
   - **Scans (src/render/scans.ts, src/data/scans.json, public/textures/, ASSET_LEDGER.md):** the town's and villages' mud
     plaster (house_plaster, mud_plaster, their far levels) takes a hand-trowelled clay coat's colour (Poly Haven clay_floor_001,
-    2.4 m tile and a 7 m tile against repeats) with an eroded earth wall's relief (excavated_soil_wall's normal map, 3 m, at
-    0.15); the up-facing faces (roofs, wall tops) their own scan, the rolled clay-and-straw coat (dirt, with its normal map);
+    1.6 m tile at alb 0.7 and a 6 m tile against repeats) with an eroded earth wall's relief (excavated_soil_wall's normal map,
+    2.5 m, at 0.22: judged in the lab only; the world frames show 2.4 m, alb 0.9, relief 0.5, read as rock or marble); the up-facing faces (roofs, wall tops) their own scan, the rolled clay-and-straw coat (dirt, with its normal map);
     the footings a stone (dry_riverbed_rock, was a plaster scan); the lanes, courts and roads trodden dry earth with grit and
     prints (ambientCG Ground025 with its normal map; was sandy_gravel_02, smooth); middens and pens ash, straw and dung
     (burned_ground_01). Six CC0 sets copied from fars-assets (diff and arm at 2K; the ambientCG arm built from its AO and
@@ -7112,11 +7123,13 @@ moment-*-webgpu.png in the worktree, not committed).**
     load of ~1-2 min against the world's 11-30; eleven iterations of the surfaces were judged there (shots/townlab-*.png).
     The judgement that counts is the world's.
 - **Measured.** T-A7 on the views' picks: before 0 / 0 / 0.81 % (lane, court, wall-q_s1: a timber tile under 8 px at its
-  distance), after 0 % on the four rendered views (30-34 surface picks a view of 40; the town_real.spec's anti-proxy check);
+  distance), after 0 % on all 14 views (lanes, court, wall, door, yard, night, dusk, villages, workshops; 5-34 surface picks a
+  view of 40; the anti-proxy: alb >= 0.3 and the largest tile >= 8 px at the hit's distance);
   node: every surface the town's and villages' meshes use has a scan at alb >= 0.3 and every scan named is shipped and
   measured (tests/scans_town.test.ts). Near level at the three lane spots (tests/houses.test.ts): 532 / 505 / 591 k triangles
   (was 514 / 486 / 573 k; the litter ~18 k), 7 meshes (one more draw, the litter), casting unchanged (87 / 83 / 94 k).
-  Frame luminance means unchanged within 0.4 (lane 85.4 -> 85.1, court 77.3 -> 77.2, wall 84.5 -> 84.7).
+  Frame luminance means unchanged within 0.4 (lane 85.4 -> 85.1, court 77.3 -> 77.2, wall 84.5 -> 84.7). Draw calls in the
+  lane views 653-669 (the whole frame; the litter adds one draw).
 - **Files:** src/render/scans.ts, src/render/materials.ts (the material's name `surface:<name>`; the footing's dome),
   src/data/scans.json, public/textures/{clay_floor_001, dirt, Ground025, burned_ground_01, dry_riverbed_rock,
   excavated_soil_wall}, src/world/settlement/{build, houses, surfaces}.ts, src/world/plain/villagehouses.ts, src/dev/townLab.ts,

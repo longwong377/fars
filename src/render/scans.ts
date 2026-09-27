@@ -42,8 +42,8 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // D-303: the town's and villages' mud plaster: a hand-trowelled clay coat's colour (clay_floor_001) with an eroded earth wall's
   // relief (rain rills, trowel ridges: excavated_soil_wall's normal map); the roofs' rolled clay-and-straw coat on up-facing faces
   // (dirt); was clay_plaster, whose grain did not read (the town's before renders: flat brown walls)
-  mud_plaster: { scan: 'clay_floor_001', scale: 1.4, scale2: 6, alb: 0.5, height: 0.003, rough: 0.4, nor: { k: 0.1, scan: 'excavated_soil_wall', scale: 2.5 }, top: { scan: 'dirt', scale: 2.5, scale2: 10, alb: 0.85, nor: { k: 0.7 } } },
-  house_plaster: { scan: 'clay_floor_001', scale: 2.4, scale2: 9, alb: 0.9, height: 0.003, rough: 0.4, nor: { k: 0.5, scan: 'excavated_soil_wall', scale: 3 }, top: { scan: 'dirt', scale: 2.5, scale2: 10, alb: 0.85, nor: { k: 0.7 } } },
+  mud_plaster: { scan: 'clay_floor_001', scale: 1.6, scale2: 6, alb: 0.7, height: 0.003, rough: 0.4, nor: { k: 0.22, scan: 'excavated_soil_wall', scale: 2.5 }, top: { scan: 'dirt', scale: 2.5, scale2: 10, alb: 0.85, nor: { k: 0.7 } } },
+  house_plaster: { scan: 'clay_floor_001', scale: 1.6, scale2: 6, alb: 0.7, height: 0.003, rough: 0.4, nor: { k: 0.22, scan: 'excavated_soil_wall', scale: 2.5 }, top: { scan: 'dirt', scale: 2.5, scale2: 10, alb: 0.85, nor: { k: 0.7 } } },
   house_socle: { scan: 'dry_riverbed_rock', scale: 1.0, alb: 0.6, height: 0.003, rough: 0.4, nor: { k: 0.35 } }, // D-303: fieldstone (was a plaster scan on stone)
   plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.35, height: 0.002, rough: 0.3 },
   earth: { scan: 'dry_ground_01', scale: 2.5, scale2: 11, alb: 0.8, height: 0.01, rough: 0.5, rock: { scan: 'aerial_ground_rock', scale: 60, scale2: 240, alb: 0.9, ny0: 0.8, ny1: 0.92 } },
