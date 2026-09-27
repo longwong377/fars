@@ -7097,3 +7097,35 @@ moment-*-webgpu.png in the worktree, not committed).**
   442 s, frame 1 329 s, frame 2 33 s, then 0.2 s: the first frames compiled again (the keys still differ, as D-250 found on
   SwiftShader), and the load took ~30 min against ~11 min without it (partly the contention). Rejected. The next levers: the
   browser's shader cache across page loads (measuring), and D-250's single "uber" surface program (fewer pipelines).
+
+## D-301 Every inch real: the interiors (session 11; UD-17, UD-06, UD-08; T-A7, T-A4, T-A4cg; Q-790, B103, B104)
+- **How it could pass while the intent fails (said before starting), and the measure against it:** T-A7 read from SCAN_USE's
+  names alone passes with a scan at a weight too small to see, or with the props (plain coloured materials, not surfaces) never
+  counted. Measured instead per pixel: the coverage ID render (src/dev/coverage.ts) now carries each mesh's material scan
+  (material.userData.scan, scans.ts scanOf; props too), and moments.spec `SCANPROBE=1` writes the unscanned share per view
+  (shots/scanprobe.json); and a blind reviewer judged before/after frames shuffled together (REVIEWS/d301_interiors_review.md).
+- **Built.** Nine CC0 scans added (public/textures: clay_floor_001, grey_plaster_02, Wicker010B, Tatami001, hessian_230,
+  Fabric043, Leather014, Metal013, rock_surface; src/data/scans.json means measured as the first 13; ASSET_LEDGER.md). SCAN_USE:
+  the red plaster floors (plus a roughness that follows the scan's luminance, `roughLum`: the scan's own roughness map is flat),
+  the Treasury's clay-painted plaster, carved limestone (columns), the ceilings' reed matting (roof_timber's underside now takes
+  its own surface's scan), bronze, the palaces' furnishings (furn_*), and `prop_<kind>` for furnishings by what they are made of
+  (materials.ts propMaterial / propMaterialMulti: reed, wicker, felt, textile, clay, stone, leather, metal, wood, mud; the merged
+  rooms' and scribes' furnishings stay one draw, each vertex keeping its kind's scan). Forms (world/furnish.ts): hand-built jars
+  (40-sided, out of round, neck and rolled rim; were 12-sided), soft corded bales and corslets, a convex shield with rim and boss,
+  saddle querns with a worn hollow and a loaf rubbing stone, felt bedrolls, 32-36-sided vessels and baskets; the hearth a ring of
+  eleven field stones (fire.ts; was a 10-sided torus). The store rooms' big jars stand along the doorway wall off the benches
+  (rooms.ts; they stood in a row down the middle, in the walking line). The garrison's quarters and the royal kitchens have a
+  mud-plastered floor (terrace.ts buildRanges 'mud'; they showed the open court's gravel indoors). The baked fire shadows are
+  filtered 4 × 4 texels and floored at one bounce (fireOcc.ts OCC_BOUNCE 0.15, C): the posts' shadows had drawn hard black
+  stepped smears on the garrison's walls. Rebaked: fire_occ, probes, nav; the coverage sample regenerated (same commit seed).
+- **Measured (GPU, Q high, FOV game, one load: moments.spec room-* views and breath-dawn).** Unscanned share of the drawn pixels
+  excluding people, before → after: treasury-store 91.3 % → 0, treasury-bench 81.2 % → 0, treasury-hall 73.3 % → 0, harem-apt
+  48.5 % → 0, kitchen 0.6 % → 0, garrison-night 12.3 % → 0.3 %, garrison-mats-night 44.3 % → 0.3 %, breath-dawn 55.0 % → 0.3 %
+  (what remains: the people's work objects, the terrain through a door, glazed brick). T-A7 inside the rooms: 0 but for the
+  people's props. Blind review (uncalibrated, stills at `high`): materials 1-2/5 in all 16 frames, 16/16 read as CG; the newer
+  frame read more real in 5 of the 6 pairs told apart (garrison ×2, store, bench, kitchen), the Gate hall's slightly less (the
+  floor's second scan tile drew blood-like blotches: removed after the review, unrendered). The done-bar (materials ≥ 3) is not
+  met: B103.
+- **Named faults:** the Treasury store's faceted jars (fixed), untextured goods (scanned; still primitives at the bench: B103),
+  flat red floor (scan grain; the gloss still reads uniform in the Gate hall: B104), jars in the walking line (fixed); the garrison's
+  black smears (fixed: the baked fire shadows), sleepers sharing mats (logged: Q-790); breath-dawn's glossy uniform red (B104).

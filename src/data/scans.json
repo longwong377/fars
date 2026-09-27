@@ -528,5 +528,187 @@
    "arm.jpg (R ao, G roughness, B metal)",
    "disp.jpg (height, linear)"
   ]
+ },
+ "clay_floor_001": {
+  "meanLinear": [
+   0.19547,
+   0.11623,
+   0.04778
+  ],
+  "meanAO": 0.9795,
+  "meanRough": 0.6861,
+  "name": "Clay Floor 001",
+  "authors": [
+   "Dimitrios Savva",
+   "Rico Cilliers"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/clay_floor_001",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "Fabric043": {
+  "meanLinear": [
+   0.28549,
+   0.25463,
+   0.24626
+  ],
+  "meanAO": 1,
+  "meanRough": 0.6709,
+  "name": "Fabric 043",
+  "authors": [
+   "ambientCG (Lennart Demes / Struffel Productions)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Fabric043",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
+  ]
+ },
+ "grey_plaster_02": {
+  "meanLinear": [
+   0.27978,
+   0.23105,
+   0.16051
+  ],
+  "meanAO": 0.8291,
+  "meanRough": 0.7994,
+  "name": "Grey Plaster 02",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/grey_plaster_02",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "hessian_230": {
+  "meanLinear": [
+   0.28163,
+   0.19912,
+   0.10713
+  ],
+  "meanAO": 0.9023,
+  "meanRough": 0.5845,
+  "name": "Hessian 230",
+  "authors": [
+   "colormass",
+   "Rico Cilliers"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/hessian_230",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "Leather014": {
+  "meanLinear": [
+   0.08084,
+   0.03851,
+   0.03366
+  ],
+  "meanAO": 1,
+  "meanRough": 0.5493,
+  "name": "Leather 014",
+  "authors": [
+   "ambientCG (Lennart Demes / Struffel Productions)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Leather014",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
+  ]
+ },
+ "Metal013": {
+  "meanLinear": [
+   0.18927,
+   0.14386,
+   0.11324
+  ],
+  "meanAO": 1,
+  "meanRough": 0.4377,
+  "name": "Metal 013",
+  "authors": [
+   "ambientCG (Lennart Demes / Struffel Productions)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Metal013",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
+  ]
+ },
+ "rock_surface": {
+  "meanLinear": [
+   0.16142,
+   0.11994,
+   0.08442
+  ],
+  "meanAO": 0.8554,
+  "meanRough": 0.8413,
+  "name": "Rock Surface",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rock_surface",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "Tatami001": {
+  "meanLinear": [
+   0.69895,
+   0.53574,
+   0.20104
+  ],
+  "meanAO": 0.7304,
+  "meanRough": 0.6934,
+  "name": "Tatami 001",
+  "authors": [
+   "ambientCG (Lennart Demes / Struffel Productions)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Tatami001",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
+  ]
+ },
+ "Wicker010B": {
+  "meanLinear": [
+   0.16149,
+   0.11906,
+   0.08541
+  ],
+  "meanAO": 0.8271,
+  "meanRough": 0.7774,
+  "name": "Wicker 010 B",
+  "authors": [
+   "ambientCG (Lennart Demes / Struffel Productions)"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Wicker010B",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
+  ]
  }
 }

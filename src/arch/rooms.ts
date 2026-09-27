@@ -267,12 +267,10 @@ export function roomFittings(room: Room, F: RoomFit): Fittings {
     case 'store': case 'hall': {
       const sides = (['N', 'S', 'E', 'W'] as Side[]).filter(s => !room.open.includes(s));
       layBenches(main, F, clear, room.use === 'store' && doorSide ? sides.filter(s => s !== doorSide) : sides, room.fl, out);
-      if (room.use === 'store') { // big jars down the middle where the room is wide enough to walk round them (C)
-        const lx = main.x[1] - main.x[0] >= main.y[1] - main.y[0], across = lx ? main.y[1] - main.y[0] : main.x[1] - main.x[0];
-        if (across >= 2 * (F.bench.depth + F.work_off + F.aisle) + 2 * F.jar_r) { const [q0, q1] = lx ? main.x : main.y, c = lx ? mid(main.y) : mid(main.x);
-          const m = Math.min(F.jars_store, Math.floor((q1 - q0 - 2 * (F.bench.depth + F.aisle)) / F.jar_pitch));
-          for (let i = 0; i < m; i++) { const q = mid([q0, q1]) + (i - (m - 1) / 2) * F.jar_pitch, p: Pt = lx ? [q, c] : [c, q]; if (!clear.some(z => ovl(z, rectAt(p, [F.jar_r * 2, F.jar_r * 2])))) out.jars.push(p); } }
-      }
+      // the big jars along the doorway's wall (which carries no bench), either side of the doorway's approach, off the benches
+      // (C). D-301: they stood in a row down the middle, in the walking line from the door to the benches (the rooms_d276
+      // treasury-store render); a store's floor between its benches is where the storekeepers walk and work
+      if (room.use === 'store') layJars(main, room, F, clear, F.jars_store, out, out.benches.map(q => rectAt(q.c, q.size)));
       break; }
     case 'mess': {
       layBenches(main, F, clear, [OPP[room.open[0] ?? 'S']], room.fl, out);

@@ -107,8 +107,9 @@ function hang(b: string, doorways: Doorway[], blocked: Record<string, [number, n
 }
 /** red lime-plaster floor finish over a hall interior (global.interior_floor; attested for the Tachara and Treasury, B;
  *  extended to the other halls, C) */
-const floorFinish = (b: string, c: Pt, sx: number, sy: number, fl: number, attested: boolean) =>
-  box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, attested ? T_('global', 'interior_floor') : 'C', S_('global', 'interior_floor'), c, [sx, sy], fl, fl + v('global', 'r_floor_finish'), { solid: false, note: attested ? 'red hematite-painted lime plaster floor (B)' : 'red lime-plaster floor as in the Tachara and Treasury (C here)' });
+const floorFinish = (b: string, c: Pt, sx: number, sy: number, fl: number, attested: boolean, mud = false) => mud
+  ? box(b, 'floor_finish', 'mudbrick', 'C', 'RECON', c, [sx, sy], fl, fl + v('global', 'r_floor_finish'), { solid: false, note: 'mud-plastered earth floor of a service room (the ordinary floor of the houses and stores: B by analogy; here C, D-301)' })
+  : box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, attested ? T_('global', 'interior_floor') : 'C', S_('global', 'interior_floor'), c, [sx, sy], fl, fl + v('global', 'r_floor_finish'), { solid: false, note: attested ? 'red hematite-painted lime plaster floor (B)' : 'red lime-plaster floor as in the Tachara and Treasury (C here)' });
 /** landing row {x:[x0,x1], y:[y0,y1], z} → solid box from `base` */
 const landingBox = (b: string, t: Tier, s: string, L: { x: [number, number]; y: [number, number]; z: number }, base: number, kind = 'landing') =>
   box(b, kind, 'limestone', t, s, [(L.x[0] + L.x[1]) / 2, (L.y[0] + L.y[1]) / 2], [L.x[1] - L.x[0], L.y[1] - L.y[0]], base, L.z, { solid: true });
@@ -550,7 +551,9 @@ export function buildTerrace(): BuildResult {
   // fittings that stand solid: benches, and storage jars and querns as colliders (drawn by world/furnish.ts, kinds 'jar' and
   // 'quern'), and the lamps' mud ledges. Door leaves on the store rooms (<building>.r_room_doors). The manifest keeps every
   // room box (the fires' rooms, D-216), the benches (the stored goods), the mats, jars, querns, hearths and lamps
-  const buildRanges = (b: RoomBuilding, attestedFloor: boolean, finish: boolean) => {
+  // finish: the rooms' floor: the red lime plaster (true), a mud-plastered earth floor ('mud': the garrison's quarters and the
+  // royal kitchens, D-301: they showed the open court's gravel fill indoors), or none
+  const buildRanges = (b: RoomBuilding, attestedFloor: boolean, finish: boolean | 'mud') => {
     const B = terraceRanges().find(q => q.b === b); if (!B) return null;
     const F = roomFit(), FD = v<FrameDims>('global', 'r_door_frame'), WI = v<any>('global', 'r_window'), NI = v<any>('global', 'r_niche');
     const rt = T_(b, 'room_ranges'), rs = srcOf(row(b, 'room_ranges'), row(b, 'r_rooms')), ft = T_('global', 'r_room_fittings'), fs = S_('global', 'r_room_fittings');
@@ -570,7 +573,7 @@ export function buildTerrace(): BuildResult {
         out.roomCount++;
         for (const r of [room, ...(room.back ? [room.back] : [])]) {
           const c: Pt = [(r.x[0] + r.x[1]) / 2, (r.y[0] + r.y[1]) / 2], sx = r.x[1] - r.x[0], sy = r.y[1] - r.y[0];
-          out.rooms.push([c[0], c[1], sx, sy, fl, clear]); if (finish) parts.push(floorFinish(b, c, sx, sy, fl, attestedFloor));
+          out.rooms.push([c[0], c[1], sx, sy, fl, clear]); if (finish) parts.push(floorFinish(b, c, sx, sy, fl, attestedFloor, finish === 'mud'));
         }
         const fit = roomFittings(room, F), note = `${room.id} (${room.use}): `;
         for (const q of fit.benches) { parts.push(box(b, 'bench', 'mudbrick', ft, fs, q.c, q.size, fl, q.top, { solid: true, note: note + 'mud-brick bench along the wall (C)' })); out.benches.push([q.c[0], q.c[1], q.size[0], q.size[1], q.top]); }
@@ -679,11 +682,11 @@ export function buildTerrace(): BuildResult {
   if (present('garrison')) {
     const W = v<any>('garrison', 'r_wall'); perimeter('garrison', fpRing('garrison'), v('garrison', 'floor') + v('garrison', 'r_floor_raise'), W.thickness, W.height, 'garrison enclosure (C)', v<any>('garrison', 'r_doors'));
     // D-276: the quarters along the garrison street, its store and kitchen, and the royal guard's mess on the guards' court
-    const GR = buildRanges('garrison', false, false);
+    const GR = buildRanges('garrison', false, 'mud');
     manifest.garrison = { ranges: GR as any };
   }
   // D-276: the royal kitchens on the open ground W of the Hadish (court.json court_kitchen; terrace.room_ranges, C)
-  { const KR = buildRanges('terrace', false, false); if (KR) (manifest.terrace as any).ranges = KR; }
+  { const KR = buildRanges('terrace', false, 'mud'); if (KR) (manifest.terrace as any).ranges = KR; }
 
   // ---------------- East fortification (mud brick) ----------------
   if (present('fortification_e')) {
