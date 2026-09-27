@@ -261,7 +261,8 @@
          ]
         }
        }
-      ]
+      ],
+      "alphaTest": 0.5
      },
      "args_note": "C throughout, after the reliefs (hair to the nape bunched behind, the long beard to the upper chest cut square: outfits.ts LEN 0.12 m below the chin) and MATERIAL_CULTURE 'Hair and beards'. Spacing (m) between card roots on the surface; len, width, lift [root, tip] (m); the second layer of scalp hair shorter and lifted (volume, a broken outline). Atlas: 2048 px, 8 columns x 4 rows (cells 256 x 512 px: ~80 um a pixel across a 2 cm card, so a strand is about one pixel wide); rows straight/wavy, natural curls, ringlets (the rolled curls of the court dressing), fine (brows, short hairs); curl radius and pitch as shares of the cell (natural curl ~4 mm across, ringlets ~3 mm: C). classRows: card class (0 scalp and nape, 1 beards, 2 brows) -> atlas row per hair style (0 natural, 1 court, 2 straight). The MakeHuman CC0 hair textures give each strand its shade (their luminance along the strand)."
     },
@@ -294,7 +295,10 @@
    "budget_note": "download <= 6 MB of T-K7's 60 MB; GPU: the atlas UASTC 2048^2 with mips ~5.6 MB (T-K8 3.5 GB); triangles per set at the full-detail LOD (the costumes' 42,000 of tests/humans_runtime.test.ts hold the sum)",
    "tier": "C",
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
-   "ledger": "People's hair cards and strand atlas (public/models/people/people_hair.*; D-307)"
+   "ledger": "People's hair cards and strand atlas (public/models/people/people_hair.*; D-307)",
+   "post": {
+    "script": "tools/blender/sources/people_hair_post.ts"
+   }
   },
   "people_cloth": {
    "title": "garment drape: Blender's cloth solver settles the procedural skirts, upper garments, sleeves, the kandys, the headcloth and the veil on a reference body of each group (men, women, children)",

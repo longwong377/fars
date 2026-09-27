@@ -52,6 +52,10 @@ function torsoSupport(vid: string, y: number, zc: number): Float32Array {
     const x = v.pos[i * 3], z = v.pos[i * 3 + 2] - zc; for (let b = 0; b < 64; b++) { const th = (b / 64) * 2 * Math.PI, h = x * Math.sin(th) + z * Math.cos(th); if (h > r[b]) r[b] = h; } }
   supCache.set(k, r); return r;
 }
+/** a vertex skinned mostly to an arm (upper arm, forearm, hand, fingers): a sleeve, never drawn in by the belt (it hangs
+ *  beside the waist: drawing it in tore the cuffs open in the second render) */
+const ARM_BONES = new Set(Object.entries(HB).filter(([b]) => /^(upperarm|lowerarm|hand|thumb|index|middle|ring|pinky)_/.test(b)).map(([, i]) => i));
+const onArm = (g: Geo, i: number) => ARM_BONES.has(g.si[i * 4]) && g.sw[i * 4] > 127;
 const supAt = (r: Float32Array, th: number) => { const f = ((((th / (2 * Math.PI)) % 1) + 1) % 1) * 64, b0 = Math.floor(f) % 64, a = f - Math.floor(f); return r[b0] * (1 - a) + r[(b0 + 1) % 64] * a; };
 
 for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for (const lod of LODS) for (const group of P.groups as string[]) {
@@ -60,7 +64,7 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
   const base = v.index * O.NV * 4 + O.pieceBase[key] * 4;
   const pos = new Float32Array(g.n * 3); for (let i = 0; i < g.n; i++) for (let e = 0; e < 3; e++) pos[i * 3 + e] = O.source[base + i * 4 + e];
   // outer layer only (a tube's lining, cavity 150, follows its outer vertex afterwards: people_cloth_post.ts)
-  const outer = new Int32Array(g.n).fill(-1); let no = 0; for (let i = 0; i < g.n; i++) if (g.ao[i] !== 150) outer[i] = no++;
+  const outer = new Int32Array(g.n).fill(-1); let no = 0; for (let i = 0; i < g.n; i++) if (P.kind === 'upper' || g.ao[i] !== 150) outer[i] = no++; // (a shell has no lining: its cavity byte can be 150 by chance)
   const tri: number[] = []; for (let t = 0; t < g.index.length; t += 3) { const a = outer[g.index[t]], b = outer[g.index[t + 1]], c = outer[g.index[t + 2]]; if (a >= 0 && b >= 0 && c >= 0) tri.push(a, b, c); }
   const tgt = new Float32Array(no * 3), start = new Float32Array(no * 3), pin = new Float32Array(no);
   const waist = J(vid, 'spine_01')[1], chest = J(vid, 'spine_03')[1], neck = J(vid, 'neck_01')[1];
@@ -77,9 +81,9 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
     // the belt cinches: under it (a skirt's top band, an upper garment's band at the waist) the cloth is drawn in to the
     // torso's support + `cinch` (the layers: upper garment, skirt, belt, each a few mm over the one below)
     let rc = r;
-    if (P.cinch != null) { const sup = supAt(torsoSupport(vid, y, zc), th) + P.cinch;
+    if (P.cinch != null) { const sup0 = supAt(torsoSupport(vid, y, zc), th), sup = sup0 + P.cinch;
       const k = P.kind === 'skirt' ? 1 - sstep(P.pinTop, P.pinTop + gBand, t) : sstep(waist - 0.05, waist - 0.02, y) * (1 - sstep(waist + 0.02, waist + 0.04, y));
-      rc = r + (Math.min(r, sup) - r) * k; }
+      rc = r + (Math.min(r, sup) - r) * k * (r < sup0 + 0.035 && !onArm(g, i) ? 1 : 0); } // (the torso's cloth only: a sleeve hanging beside the waist is not drawn in: it tore the cuffs open in the second render)
     const rg = rc + (gA ? gA * Math.sin(P.gathers * th + 0.7) : 0);
     tgt.set(gA || rc !== r ? [x / (r || 1) * rg, y, zc + (z - zc) / (r || 1) * rg] : [x, y, z], o * 3);
     let w = 0, ease = 1;

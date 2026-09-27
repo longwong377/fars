@@ -26,7 +26,7 @@ function build(kind: 'wgsl' | 'glsl', which: 'main' | 'shadow', velocity = false
   const tex = () => { const t = new THREE.Texture(); t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.colorSpace = THREE.SRGBColorSpace; return t; };
   // D-304: the scanned skin and cloth layers (array textures; humanScans.ts), stand-ins of the loaded shape
   const arr = (n: number) => { const t = new THREE.DataArrayTexture(new Uint8Array(4 * 4 * 4 * n), 4, 4, n); t.colorSpace = THREE.SRGBColorSpace; t.minFilter = THREE.LinearMipmapLinearFilter; return t; };
-  const sc = scans ? { skin: arr(12), cloth: arr(4), skinIds: ['m_young_a', 'm_young_b', 'm_mid', 'm_old', 'f_young_a', 'f_young_b', 'f_mid', 'f_old', 'm_young_d', 'm_old_d', 'f_young_d', 'f_old_d'],
+  const all = arr(16), sc = scans ? { skin: all, cloth: all, clothBase: 12, skinIds: ['m_young_a', 'm_young_b', 'm_mid', 'm_old', 'f_young_a', 'f_young_b', 'f_mid', 'f_old', 'm_young_d', 'm_old_d', 'f_young_d', 'f_old_d'],
     cloth_: [{ id: 'linen', layer: 0, tile: 0.245 }, { id: 'wool', layer: 1, tile: 0.43 }, { id: 'felt', layer: 2, tile: 0.2 }, { id: 'leather', layer: 3, tile: 0.25 }], clothK: 0.4 } : null;
   const atlas = cards ? (() => { const t = tex(); t.colorSpace = THREE.NoColorSpace; return t; })() : null;
   const gpu = new HumanGPU(A, cards ? OC! : O, { skin: tex(), eye: tex(), scans: sc as any, hairAtlas: atlas, cards: cards ? PM.cards!.meta : null }, { capacity: 16 });
@@ -64,6 +64,10 @@ describe('the human material builds (D-155)', () => {
       const m = build(kind, 'main', false, true, true), p = build(kind, 'main', false, true);
       expect(m.frag.length).toBeGreaterThan(p.frag.length + 500); // the atlas sample, the strand tangent, the hashed cut
       expect(build(kind, 'shadow', false, true, true).vert.length).toBeGreaterThan(5000);
+    }, 60_000);
+    if (kind === 'wgsl') it('wgsl: the material samples through one sampler (the scans array) with every layer and the strand atlas loaded (D-307: the world lights fill the rest of the 16)', () => {
+      const m = build('wgsl', 'main', false, true, true), n = (m.frag.match(/var w+ : sampler;/g) ?? []).length;
+      expect(n).toBeLessThanOrEqual(1);
     }, 60_000);
   }
 });

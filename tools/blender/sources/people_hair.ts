@@ -159,8 +159,10 @@ const whorl: V3 = [0, headTop[1] - 0.012, hz - 0.035]; // the crown's whorl, a l
 const scalpFlow = (p: V3): V3 => { const r = sub(p, whorl); r[1] = Math.min(r[1], 0) - 0.02; return nrm(add(nrm(r), scl(down, 0.35))); };
 // men's hair combed back from the brow and down behind the ears to the bunch at the nape (the reliefs: C for real hair)
 const backFlow = (p: V3): V3 => nrm([p[0] * 1.5, -0.45 - 0.5 * sstep(hz, hz - 0.06, p[2]) - 2.5 * sstep(eyeY + 0.03, eyeY - 0.03, p[1]), -1 + 0.8 * sstep(eyeY + 0.03, eyeY - 0.03, p[1])]); // (the sideburns and the hair below the temples fall down, not back)
-// the bob's fringe is cut above the brows, the rest at the jaw
-const bobCut = (dy: number) => (q: V3, r0: V3) => (r0[2] > hz + 0.045 && Math.abs(r0[0]) < 0.055 ? eyeY + 0.022 : J('jaw')[1] - dy);
+// the bob: combed back from the brow (as the men's hair; no fringe: a fringe read as the 1920s in the first review) and
+// cut level at the jaw at the sides and the back
+const bobCut = (dy: number) => () => J('jaw')[1] - dy;
+const bobFlow = (p: V3): V3 => (p[2] > hz + 0.03 ? backFlow(p) : scalpFlow(p));
 // the bun: the bunch at the nape (outfits.ts bunGeo's ellipsoid on the reference), pushed out of by the nape cards
 const bun = (() => { const h = J('head'), nk = J('neck_01'); const y = lerp(nk[1], h[1], 0.35); let zb = 1; for (let i = 0; i < A.NO; i++) { const pt = A.part[i]; if (pt !== PART.head && pt !== PART.neck) continue; if (Math.abs(ref.pos[i * 3 + 1] - y) > 0.012 || Math.abs(ref.pos[i * 3]) > 0.03) continue; zb = Math.min(zb, ref.pos[i * 3 + 2]); } return { c: [0, y + 0.005, zb + 0.012] as V3, r: [0.068, 0.05, 0.036] as V3 }; })();
 const outOfBun = (q: V3): V3 => { const R = bun.r.map(x => x + 0.006) as V3; const e: V3 = [(q[0] - bun.c[0]) / R[0], (q[1] - bun.c[1]) / R[1], (q[2] - bun.c[2]) / R[2]]; const l = len(e); if (l >= 1 || q[2] > bun.c[2] + 0.01) return q; return add(bun.c, [e[0] / l * R[0], e[1] / l * R[1], e[2] / l * R[2]]); };
@@ -186,8 +188,8 @@ const STYLES: Record<string, { region: Float32Array; thr: number; spacing: numbe
       { len: S.hair.len2, width: S.hair.width2, lift: S.hair.lift2, segs: 2, gravity: 4, flow: backFlow, cls: 0, ao: [0.8, 1], spacingK: 1.5, cutY: napeCut } ] },
   hair_bob: { region: scalpR, thr: 0.5, spacing: S.bob.spacing, note: 'the bob: cards from the scalp falling to the jaw, cut level',
     layers: [
-      { len: S.bob.len, width: S.bob.width, lift: S.bob.lift, segs: 6, gravity: 9, flow: scalpFlow, cls: 0, ao: [0.55, 0.95], cutY: bobCut(0.02) },
-      { len: S.bob.len, width: S.bob.width2, lift: S.bob.lift2, segs: 5, gravity: 9, flow: scalpFlow, cls: 0, ao: [0.75, 1], cutY: bobCut(0.025), spacingK: 1.6 } ] },
+      { len: S.bob.len, width: S.bob.width, lift: S.bob.lift, segs: 6, gravity: 9, flow: bobFlow, cls: 0, ao: [0.55, 0.95], cutY: bobCut(0.02) },
+      { len: S.bob.len, width: S.bob.width2, lift: S.bob.lift2, segs: 5, gravity: 9, flow: bobFlow, cls: 0, ao: [0.75, 1], cutY: bobCut(0.025), spacingK: 1.6 } ] },
   bun: { region: napeR, thr: 0.5, spacing: S.bun.spacing, note: 'the bunch at the nape: cards from the back of the skull over the bun',
     layers: [{ len: S.bun.len, width: S.bun.width, lift: S.bun.lift, segs: 4, gravity: 3, flow: () => down, cls: 0, ao: [0.6, 1], push: outOfBun }] },
   beard_long: { region: beardR, thr: 0.5, spacing: S.beard_long.spacing, note: 'the long beard: cards down from the cheeks, chin and upper lip, hanging below the jaw to a square cut',

@@ -22,9 +22,14 @@ for (const S of job.sims) {
   const pos = new Float32Array(g.n * 3); for (let i = 0; i < g.n; i++) for (let e = 0; e < 3; e++) pos[i * 3 + e] = O.source[base + i * 4 + e];
   const sb = readFileSync(S.cloth.replace('.ply', '.settled.f32')), settled = new Float32Array(sb.buffer.slice(sb.byteOffset, sb.byteOffset + sb.byteLength));
   // world displacement of the outer vertices (Blender axes back to the game's: (x, -z, y) -> (x, y, z))
+  // (a pinned vertex takes its target exactly, a partly pinned one in proportion: the solver's pins are springs, and a few
+  // millimetres of drift at the sleeves' pinned cuffs tore them open in the first render)
+  const rd = (p: string) => { const b = readFileSync(p); return new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength)); };
+  const pin = rd(S.pin), tgt = rd(S.target);
   const dw = new Float32Array(g.n * 3), isOuter = new Uint8Array(g.n); let o = 0;
-  for (let i = 0; i < g.n; i++) { if (g.ao[i] === 150) continue; isOuter[i] = 1;
-    const x = settled[o * 3], y = settled[o * 3 + 2], z = -settled[o * 3 + 1]; dw[i * 3] = x - pos[i * 3]; dw[i * 3 + 1] = y - pos[i * 3 + 1]; dw[i * 3 + 2] = z - pos[i * 3 + 2]; o++; }
+  for (let i = 0; i < g.n; i++) { if (S.kind !== 'upper' && g.ao[i] === 150) continue; isOuter[i] = 1; // (a shell has no lining)
+    const w = Math.min(1, Math.max(0, pin[o])), bl = (k: number) => settled[o * 3 + k] * (1 - w) + tgt[o * 3 + k] * w;
+    const x = bl(0), y = bl(2), z = -bl(1); dw[i * 3] = x - pos[i * 3]; dw[i * 3 + 1] = y - pos[i * 3 + 1]; dw[i * 3 + 2] = z - pos[i * 3 + 2]; o++; }
   for (const q of settled) if (!Number.isFinite(q)) throw new Error(`${S.key}|${S.group}: the solver returned a non-finite position`);
   if (o !== S.outer) throw new Error(`${S.key}|${S.group}: ${o} outer vertices, the solver had ${S.outer}`);
   // linings: the nearest outer vertex's displacement

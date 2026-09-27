@@ -28,10 +28,10 @@
 import * as THREE from 'three/webgpu';
 import * as TSL from 'three/tsl';
 const {
-  Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
+  log2, Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
   varyingProperty, normalLocal, positionPrevious, positionView, normalView, normalViewGeometry, positionViewDirection, sign, mx_noise_float, diffuseColor,
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
-  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition, frameId,
+  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE, PRM_CARD } from './humanFormat';
 import { ROBE, BEARD, BELLY } from './drape';
@@ -43,6 +43,17 @@ function bumped(h: any) {
   const r1 = dpdy.cross(n), r2 = n.cross(dpdx), det = dpdx.dot(r1);
   const grad = sign(det).mul(h.dFdx().mul(r1).add(h.dFdy().mul(r2)));
   return abs(det).mul(n).sub(grad).normalize();
+}
+/** D-307: a bilinear, mip-selected read of a texture by textureLoad (4 loads): no sampler. The human material's fragment
+ *  stage is at WebGPU's 16 samplers in the world (the CSM's cascades, the horizon, the probes; the first world render of the
+ *  hair atlas failed validation with 19), so its own textures that can go without one do. `size` = level 0 in texels, `levels`
+ *  the mip count. */
+function loadBilinear(tex: THREE.Texture, uvIn: any, size: [number, number], levels: number) {
+  const S0 = vec2(...size), du = uvIn.dFdx().mul(S0), dv = uvIn.dFdy().mul(S0);
+  const lod = clamp(floor(log2(max(max(length(du), length(dv)), 1e-6)).add(0.5)), 0, levels - 1);
+  const Sl = max(floor(S0.div(exp2(lod))), vec2(1)), p = uvIn.mul(Sl).sub(0.5), i0 = floor(p), fr = p.sub(i0), hi = Sl.sub(1);
+  const L = (ox: number, oy: number) => texture(tex).load(ivec2(clamp(i0.add(vec2(ox, oy)), vec2(0), hi))).level(int(lod));
+  return mix(mix(L(0, 0), L(1, 0), fr.x), mix(L(0, 1), L(1, 1), fr.x), fr.y);
 }
 /** 1 when the (rounded) class id equals k, else 0 (arithmetic, no branches) */
 const is = (m: any, k: number) => float(1).sub(step(0.5, abs(m.sub(k))));
@@ -63,7 +74,7 @@ export interface HumanTextures {
   scans?: HumanScans | null; skinLayers?: [number, number][];
   /** D-307: the strand atlas of the hair cards (peopleModels.loadHairAtlas; R shade, G depth, B strand direction, A coverage)
    *  and its layout: columns, rows, card class → row per hair style (null: no cards in the costumes) */
-  hairAtlas?: THREE.Texture | null; cards?: { cols: number; rows: number; classRows: number[][] } | null;
+  hairAtlas?: THREE.Texture | null; cards?: { cols: number; rows: number; classRows: number[][]; w: number; h: number; levels: number } | null;
 }
 /** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
  *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair (w: the belly of a woman with child, 0..1, D-292), 6 leather
@@ -140,9 +151,10 @@ export const SCAN = { darkY: [0.17, 0.075] as [number, number],
   cloth: { alb: [0.9, 1, 0.9, 0.9], h: [0.00045, 0.0007, 0.0006, 0.0004] } };
 export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, bumpMass: 0.002, kk: [0.09, 0.06] as [number, number] };
 /** D-307 (C): the strand cards. Albedo = hair colour × the atlas' shade × 2 (its mean is 0.5) × a back strand's darkening
- *  (depth 0 → back); the coverage is tested against a threshold hashed per bind-space point between thr[0] and thr[1] (TRAA's
- *  jitter averages the dither into partial coverage); the strand's direction across the card tilts the highlight's tangent */
-export const CARD = { back: 0.55, thr: [0.15, 0.55] as [number, number], tilt: 0.9 };
+ *  (depth 0 → back); the coverage is tested at `alphaTest`, the value the atlas' coverage-preserving mips were made for
+ *  (tools/blender/sources/people_hair_post.ts: a card keeps its density at every distance; the first render's hashed test
+ *  read as speckled noise at the strands' edges); the strand's direction across the card tilts the highlight's tangent */
+export const CARD = { back: 0.55, alphaTest: 0.5, tilt: 0.9 };
 
 class HumanLightingModel extends THREE.PhysicalLightingModel {
   constructor(private S: Record<string, any>) { super(); }
@@ -350,7 +362,11 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const u1 = n1.mul(0.5).add(0.5), u2 = n2.mul(0.5).add(0.5), u3 = n3.mul(0.5).add(0.5);
 
     // ---- skin: baked albedo (atlas left half) and detail (right half: crease height, oil, age lines, translucency)
-    const uvA = U.mul(vec2(0.5, 1)), sA = texture(T.skin, uvA), sD = texture(T.skin, uvA.add(vec2(0.5, 0)));
+    // (D-307: read by textureLoad, bilinear with its own mip choice: no sampler; the atlas is 2:1, the halves 2048 × 1024 px each
+    // half)
+    const skW = (T.skin as any).image?.width ?? 2048, skH = (T.skin as any).image?.height ?? 1024, skL = Math.floor(Math.log2(Math.max(skW, skH))) + 1;
+    const uvA = U.mul(vec2(0.5, 1));
+    const sA = loadBilinear(T.skin, uvA, [skW, skH], skL), sD = loadBilinear(T.skin, uvA.add(vec2(0.5, 0)), [skW, skH], skL); // (a load indexes memory rows as a sample's uv does: no flip)
     const refLin = new THREE.Color().setRGB(...REF_TONE, THREE.SRGBColorSpace);
     const tone = vColor.div(vec3(refLin.r, refLin.g, refLin.b));
     const stub = vAux.z, roots = step(1.5, stub), stubV = min(stub, 1).mul(float(1).sub(roots));
@@ -423,7 +439,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const cellV = floor(vAux.y.mul(255).add(0.5)), cls = floor(cellV.div(8)), colC = cellV.sub(cls.mul(8));
       let rowC: any = float(0); CA.classRows.forEach((rs, c) => rs.forEach((r, st) => { if (r) rowC = rowC.add(is(cls, c).mul(is(hairStyle, st)).mul(r)); }));
       const auv = vec2(colC.add(U.x.clamp(0.004, 0.996)).div(CA.cols), rowC.add(U.y.clamp(0.004, 0.996)).div(CA.rows));
-      const at = texture(T.hairAtlas!, auv);
+      const at = loadBilinear(T.hairAtlas!, auv, [CA.w, CA.h], CA.levels); // (textureLoad: no sampler)
       cardDepth = at.g; cardCov = at.a;
       cardAlb = vColor.mul(at.r.mul(2)).mul(mix(float(CARD.back), float(1), at.g));
       // the strand direction: dp/dv (root → tip) and dp/du (across) from the screen derivatives, turned by the atlas' B
@@ -473,7 +489,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     if (SC) { const tl = SC.cloth_.map(c => c.tile ?? 0.25), lay = kCloth.mul(float(1).sub(isLinen)).add(kFelt.mul(2)).add(kLeather.mul(3));
       const tile = float(tl[0]).add(is(lay, 1).mul(tl[1] - tl[0])).add(is(lay, 2).mul(tl[2] - tl[0])).add(is(lay, 3).mul(tl[3] - tl[0]));
       const q = P.div(tile), w0 = pow(abs(nb), vec3(4)), wt = w0.div(max(dot(w0, vec3(1)), 1e-4));
-      const smp = (c: any) => texture(SC.cloth, c).depth(lay);
+      const smp = (c: any) => texture(SC.cloth, c).depth(lay.add(SC.clothBase ?? 0)); // (D-307: the cloth's layers follow the skin's in one array)
       const sT = smp(q.zy).mul(wt.x).add(smp(q.xz).mul(wt.y)).add(smp(q.xy).mul(wt.z));
       scanDet = sT.rgb.mul(1 / SC.clothK); scanH = sT.a.sub(0.5); }
     const weaveK = band(fq);
@@ -593,10 +609,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const clumpC = abs(fract(along.mul(mix(LASH.clumps, LASH.clumps * 0.6, e2)).add(n1.mul(0.35))).sub(0.5)).mul(2);
     const lashW = float(1).sub(tl).mul(float(1).sub(tl).max(0).sqrt()).mul(0.8).add(0.1).mul(mix(1, 0.7, e2));
     const lashCut = max(step(lashW, clumpC), step(0.9, tl)).mul(float(1).sub(bits('kohl').mul(step(tl, KOHL.band)))); // (kohl: the root band solid)
-    // D-307: a card is cut where the atlas' coverage is under a threshold hashed per bind-space point (a stable dither that
-    // TRAA's jitter averages into the strands' partial coverage)
-    const hashC = fract(sin(dot(floor(P.mul(4000)), vec3(12.9898, 78.233, 37.719))).mul(43758.5453).add(mod(float(frameId), 8).mul(0.618034)));
-    const cardCut = step(cardCov, mix(float(CARD.thr[0]), float(CARD.thr[1]), hashC));
+    // D-307: a card is cut where the atlas' coverage is under the test its mips were made for (a fixed threshold: TRAA
+    // antialiases the edges; a per-pixel hashed threshold read as speckled noise in the first review)
+    const cardCut = step(cardCov, CARD.alphaTest);
     this.maskNode = float(1).sub(kShell.mul(max(edgeCut, silCut))).sub(kCard.mul(cardCut)).sub(kLash.mul(lashCut)).greaterThan(0.5);
     // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and
     // a constant fragment so the main pass only pays for vertices; the shadow pass uses this positionNode

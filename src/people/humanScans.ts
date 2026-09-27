@@ -14,7 +14,9 @@ import * as THREE from 'three/webgpu';
 import type { HumanVariantMeta } from './humanFormat';
 
 export interface ScanLayerMeta { id: string; layer: number; tile?: number; fabric?: string; k?: number }
-export interface HumanScans { skin: THREE.DataArrayTexture; cloth: THREE.DataArrayTexture; skinIds: string[]; cloth_: ScanLayerMeta[]; clothK: number }
+/** D-307: skin and cloth are one array texture (the skin's layers first, the cloth's from `clothBase`): one binding and one
+ *  sampler in the human material's fragment stage, whose samplers the world's lights and shadows nearly fill (WebGPU: 16) */
+export interface HumanScans { skin: THREE.DataArrayTexture; cloth: THREE.DataArrayTexture; clothBase: number; skinIds: string[]; cloth_: ScanLayerMeta[]; clothK: number }
 export const SCANS_DIR = 'generated/humans/scans';
 
 async function img(url: string): Promise<ImageBitmap> {
@@ -41,15 +43,16 @@ export async function loadHumanScans(base = '/'): Promise<HumanScans | null> {
     const n: number = meta.size, skins: ScanLayerMeta[] = meta.skin, cloth: ScanLayerMeta[] = meta.cloth;
     const cv = document.createElement('canvas'); cv.width = cv.height = n;
     const ctx = cv.getContext('2d', { willReadFrequently: true, colorSpace: 'srgb' } as any) as CanvasRenderingContext2D;
-    const S = new Uint8Array(n * n * 4 * skins.length);
+    const S = new Uint8Array(n * n * 4 * (skins.length + cloth.length)); // (D-307: the cloth's layers follow the skin's)
     const sb = await Promise.all(skins.map(s => img(`${dir}skin_${String(s.layer).padStart(2, '0')}.jpg`)));
     sb.forEach((b, k) => { S.set(pixels(ctx, b, n), k * n * n * 4); b.close(); });
-    const C = new Uint8Array(n * n * 4 * cloth.length);
+    const C = S.subarray(n * n * 4 * skins.length);
     const cb = await Promise.all(cloth.map(c => Promise.all([img(`${dir}cloth_${c.layer}.jpg`), img(`${dir}cloth_${c.layer}_h.jpg`)])));
     cb.forEach(([d, h], k) => { const D = pixels(ctx, d, n).slice(), H = pixels(ctx, h, n), o = k * n * n * 4;
       for (let i = 0; i < n * n; i++) D[i * 4 + 3] = H[i * 4]; // the height in alpha (data, not colour: sRGB formats leave alpha linear)
       C.set(D, o); d.close(); h.close(); });
-    return { skin: arrayTex(S, n, skins.length, true), cloth: arrayTex(C, n, cloth.length, true), skinIds: skins.map(s => s.id), cloth_: cloth, clothK: cloth[0]?.k ?? 0.4 };
+    const all = arrayTex(S, n, skins.length + cloth.length, true); // (both were sRGB arrays: the cloth's height in alpha stays linear)
+    return { skin: all, cloth: all, clothBase: skins.length, skinIds: skins.map(s => s.id), cloth_: cloth, clothK: cloth[0]?.k ?? 0.4 };
   } catch (e) { console.warn('human scans not loaded (procedural skin and weave kept)', e); return null; }
 }
 

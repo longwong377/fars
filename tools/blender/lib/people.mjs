@@ -43,7 +43,11 @@ export function buildPeopleAsset(id, E, o) {
   if (E.post) run(npx, ['tsx', E.post.script, src, out, `${src}/args.json`], { shell });
   for (const png of E.ktx ?? []) {
     if (!ktx) throw new Error(`${id}: ${png} needs the KTX-Software CLI (ktx) and none was found`);
-    run(ktx, ['create', '--format', 'R8G8B8A8_UNORM', '--assign-tf', 'linear', '--encode', 'uastc', '--uastc-quality', '2', '--zstd', '18', '--generate-mipmap', `${out}/${png}`, `${out}/${png.replace(/\.png$/, '.ktx2')}`]);
+    // a post-step may have written the mip chain itself (<name>.levels.json: coverage-preserving alpha, D-307): those levels
+    // are encoded as they are; otherwise the CLI generates the mipmaps
+    const lv = `${out}/${png.replace(/\.png$/, '.levels.json')}`, own = existsSync(lv) ? JSON.parse(readFileSync(lv, 'utf8')).levels : null;
+    const inputs = own ? ['--levels', String(own.length), ...own.map(x => `${out}/${x}`)] : ['--generate-mipmap', `${out}/${png}`];
+    run(ktx, ['create', '--format', 'R8G8B8A8_UNORM', '--assign-tf', 'linear', '--encode', 'uastc', '--uastc-quality', '2', '--zstd', '18', ...inputs, `${out}/${png.replace(/\.png$/, '.ktx2')}`]);
   }
   const files = {}; let bytes = 0;
   for (const f of E.outputs) { const b = readFileSync(`${out}/${f}`); files[f] = { sha256: sha(b), bytes: b.length }; bytes += b.length; }
