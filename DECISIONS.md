@@ -7399,3 +7399,42 @@ moment-*-webgpu.png in the worktree, not committed).**
   at the T4's full quality; CC0 3D models in bulk from Poly Haven for rocks, plants and props; a Blender mudbrick house kit;
   photogrammetric rock for the mountain and outcrops; the people's garments and hair), iterating on probe pages and verified
   once, in one batched render and one review at the end. Measured by T-R12 (>= 5 classes a GPU session).
+
+## D-309 The lighting at the T4's quality, world-wide: the sun's cascades and the tone curve (session 12; UD-19, D-308; B113; Q-860, B124)
+- **Why:** the lead's diagnosis (D-308): the real-time lighting was sized for SwiftShader. Measured on the human lab (the
+  world's sky, sun, CSM and post pipeline; tests/e2e/sunshadow_probe.spec.ts, `?csm=old&tone=agx` = session 11): the
+  nearest cascade's texel was **48 mm** at the lab's 50° lens (practical split lambda 0.5: the first cascade reached ~75 m;
+  2048² maps; one 6 cm normal bias and a 6-24 cm depth bias shared by all cascades; three r186's PCF = 5 taps at radius 1,
+  PCFSoftShadowMap is removed there and falls back to it). The session-11 midday world renders (shots/moment-*-merged2)
+  measured against 74 sunlit Wikimedia photographs of the Terrace (fars-assets/photos: apadana, gate_of_all_nations,
+  hall_100_columns; reference only), lower 60 % of the frame: luma p5/p25/p50/p75/p95 = 59/104/121/137/149 against
+  59/103/133/165/199 (tools/dev/tone_fit.mjs): the top of the range compressed by ~50 levels (sunlit stone never nears white;
+  the court reads as an overcast grey).
+- **Decision (defaults at high and ultra, world-wide; src/render/sunShadows.ts, main.ts, the human lab):** fixed cascade
+  breaks 8 / 50 / 160 / 600 m, 4096² a cascade (4 cascades: the WebGPU 16-sampler limit, B122, rules out a fifth); depth
+  bias 1 texel (≥ 8 mm) and normal bias 1.5 texels (10 mm … 0.3 m) from each cascade's own extent; a 12-tap (high) / 16-tap
+  (ultra) Vogel PCF whose radius is the sun's penumbra at 1 m (0.53°), ≥ 1.25 texels; ultra fades between cascades.
+  Measured on the probe: texels 2.6 / 16 / 52 / 193 mm (were 48 / 98 / 163 / 386). Cascade 1 still covers the hall
+  air-light's 48 m (airlight.ts); the people cast into cascades 0-2 (SHADOW_CASCADE_REACH 130 m; were 0-1).
+- **Decision (post, high/ultra):** the SSR and the sun contact shadows at full resolution at high as at ultra (were half); the SSGI
+  (GI + AO) at 3 slices × 12 steps at high and 4 × 16 at ultra (were 2 × 8 and 3 × 16).
+- **Frame time (T-K6 context; human lab, 1920×1080, T4, 40 frames, submit + queue done):** high 1.6 ms (session 11) → 2.0 ms,
+  ultra 2.2 ms. The number did not move with the SSGI sample count, so it probably misses most GPU work (the lab is one floor,
+  one wall and four people): it is NOT evidence that the world holds its budget; the world frame is unmeasured (the lead's render).
+- **Low sun (hour 17, the lineup in the wall's shadow):** no acne on the ground, the wall or the people with the smaller biases;
+  the wall's shadow edge is crisper. Medium (the look without SSGI) and ultra (cascade fade, 16 taps) load and draw with no
+  console error; the probe's 12/16 filter taps share one sampler per cascade (no new WebGPU validation error; cf. B122). Night
+  (hour 21) is black in the lab with and without the look (no fire or moon there): night under the look is unverified in the world.
+- **Decision (tone, medium and above):** AgX with a fitted look (src/render/toneLook.ts: the ASC-CDL form of the AgX
+  reference's looks after the sigmoid): slope 1, power 1.4, saturation 0.9, scene exposure × 2.6. The fit re-tones the
+  renders' own pixels (inverted through plain AgX) and minimises the distance to the photographs' percentiles and
+  saturation: error 2.25 → 0.85; p5…p95 → 67/119/138/155/169, saturation 0.22 (photos 0.22). Grey map (scene → sRGB, plain |
+  look): 0.005: 6|5, 0.05: 70|79, 0.18: 128|146, 1: 202|221, 4: 239|248 — darks unchanged, mids and highlights lifted, the
+  soft shoulder kept (a slope 1.1 fit, error 0.67, clipped hard at scene 2 and was rejected). `?tone=agx` draws plain AgX.
+  Low and test qualities (direct render, the renderer's AgX) are unchanged.
+- **Not done (logged):** probe or baked sky-visibility light in the town lanes, courts and village houses (the probe field is
+  still only in the roofed buildings); PCSS (a blocker search needs a non-comparison read of the shadow map); a tone fit per
+  sun altitude (the fit is midday only; dawn, dusk, night and interiors take the same look unverified).
+- **Tests:** tests/sun_shadows.test.ts (texels, breaks vs the air-light and the people's reach, the shared installer),
+  tests/tone_look.test.ts (CPU mirror = AgX at the identity look; the fitted look monotonic, brighter at the top, night not
+  lifted). Probe renders: shots/sunshadow-{old,new}-high-h10-{face,full,feet}-gpu.png (not committed; T:/fars-wt/lighting).

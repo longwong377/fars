@@ -12,7 +12,7 @@ import { Crowd } from '../people/crowd';
 import { shadowsSeePeople } from '../people/humanGPU';
 import { surfaceMaterial } from '../render/materials';
 import { loadScans } from '../render/scans';
-import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
+import { installSunCascades } from '../render/sunShadows';
 import { FIRE_RGB, FIRE_FLICKER_MEAN, fireLight } from '../world/fire';
 import type { AnimId } from '../people/anim';
 installWebGPUCompat();
@@ -32,8 +32,7 @@ async function boot() {
   const sky = new SkySystem(scene, QUALITY[quality].shadowMapSize, quality); await sky.loadStars('/');
   // the world's cascaded shadows at high and ultra (main.ts; D-304: the lab's single 240 m map, 6 cm a texel, drew the chin's
   // shadow on the chest in stairs, which the world does not)
-  if (quality === 'high' || quality === 'ultra') { const csm = new CSMShadowNode(sky.sun, { cascades: 4, maxFar: 600, mode: 'practical', lightMargin: 200 });
-    (sky.sun.shadow as any).shadowNode = csm; sky.sun.shadow.mapSize.set(QUALITY[quality].shadowMapSize / 2, QUALITY[quality].shadowMapSize / 2); }
+  installSunCascades(sky.sun, quality); // D-309
   shadowsSeePeople(sky.sun);
   const clock = new WorldClock(+(P.get('day') ?? 25), +(P.get('hour') ?? 10));
   await loadScans('/'); // the floor's and the wall's scanned grain, as in the world (D-295)
