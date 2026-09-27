@@ -68,11 +68,16 @@ function tube(pts: V3[], r0: number, r1: number) {
 }
 /** a leaf (ear): a flattened ellipsoid from its root `a` to its tip direction, `w` wide and `t` thick, its flat face
  *  turned to `face` (the cup opens that way: a smaller ellipsoid is carved out of that face) */
-function leaf(a: V3, dir: V3, L: number, w: number, t: number, face: V3) {
+function leaf(a: V3, dir: V3, L: number, w: number, t: number, face: V3, tri = false) {
   const u = nrm(dir), c = add(a, mul(u, L * 0.5)), s0 = sub(face, mul(u, dot(face, u))), n = nrm(s0), side = cross(u, n);
-  const outer = ell(c, [w * 0.5, t * 0.5, L * 0.5], u, side); // first axis = side (width), second = the face normal (thickness)
-  const cupC = add(add(c, mul(n, t * 0.55)), mul(u, L * 0.04)), cup = ell(cupC, [w * 0.36, t * 0.4, L * 0.4], u, side);
+  const outer = tri ? flatCone(a, add(a, mul(u, L)), w * 0.5, w * 0.08, n, w / t) : ell(c, [w * 0.5, t * 0.5, L * 0.5], u, side); // (first axis = side: the width; second = the face normal: the thickness)
+  const cupC = add(add(c, mul(n, t * 0.55)), mul(u, L * 0.04)), cup = tri ? flatCone(add(add(a, mul(n, t * 0.45)), mul(u, L * 0.08)), add(add(a, mul(n, t * 0.45)), mul(u, L * 0.85)), w * 0.36, w * 0.04, n, w / t) : ell(cupC, [w * 0.36, t * 0.4, L * 0.4], u, side);
   return { outer, cup, n };
+}
+/** a round cone from a (radius ra) to b (rb) flattened `k` times along n (a triangular ear) */
+function flatCone(a: V3, b: V3, ra: number, rb: number, n: V3, k: number) {
+  const f = (x: number, y: number, z: number) => { const q: V3 = [x - a[0], y - a[1], z - a[2]], dn = dot(q, n) * (k - 1), p: V3 = add(add(q, mul(n, dn)), a); return sdRoundCone(p[0], p[1], p[2], a[0], a[1], a[2], b[0], b[1], b[2], ra, rb) / k; };
+  return { f, c: lerp3(a, b, 0.5), R: len3(sub(b, a)) / 2 + Math.max(ra, rb) };
 }
 
 // ----------------------------------------------------------------------------------------------------------- noise
@@ -255,6 +260,12 @@ function build(sp: Species): Form {
     if (fam === 'bovid') { const a = add(lerp3(base, top, 0.8), mul(nperp, -hr * 1.0)), b: V3 = [0, bellyY + 0.12 * g, 0.44 * L];
       put(ell(lerp3(a, b, 0.5), [0.03 * g, (sp === 'zebu' ? 0.2 : 0.12) * g, len3(sub(b, a)) * 0.55], sub(b, a)), 0.05 * g, 'head'); }
     head(sp, B, P, fam, rig, put, cut, putAll);
+    if (B.ruff) { const hr2 = B.headR, u = hd, v = nrm(cross(u, [1, 0, 0])), at = (a: number, b: number): V3 => add(add(top, mul(u, a * B.head)), mul(v, b * hr2));
+      putAll(sweep(nk.map((q, i) => ({ p: add(q.p, mul(nperp, 0.03 + 0.02 * i / (nk.length - 1))), rw: q.rw + 0.035, rd: q.rd + 0.045 })), 5), 0.04, 'head', 'ruff');
+      put(ell(at(-0.08, 0.05), [hr2 * 1.25, hr2 * 1.15, B.head * 0.16], u), 0.04, 'head', 'ruff');                           // behind the ears
+      for (const q of [-1, 1]) put(ell(add(at(0.16, -0.45), [q * hr2 * 0.95, 0, 0]), [hr2 * 0.4, hr2 * 1.0, B.head * 0.2], add(u, mul(v, -0.6))), 0.04, 'skull', 'ruff'); // the cheeks' frame
+      put(ell(add(at(0.05, -1.2), [0, -0.02, 0]), [hr2 * 0.7, hr2 * 0.8, B.head * 0.2], add(u, mul(v, -1.2))), 0.04, 'head', 'ruff'); // the throat
+      put(ell([0, by - 0.12 * g, 0.42 * L], [0.24 * g, 0.36 * g, 0.1 * L], [0, -0.4, 1]), 0.06, 'body', 'ruff'); }                   // the chest
     tail(sp, B, fam, rig, g, L, put, putAll);
     // the equids' mane: a roached, upright crest along the neck's top from the withers to the poll (the Apadana horses'
     // clipped manes, B imagery; the ass's own short upright mane) and the forelock's tuft
@@ -334,22 +345,26 @@ function head(sp: Species, B: typeof ANIMAL_BUILD[Species], P: FP, fam: Family, 
   const H = B.head, hr = B.headR, u = R.hd, x: V3 = [1, 0, 0], v = nrm(cross(u, x)); // head frame: u along the head, v up across it
   const at = (a: number, b: number, c = 0): V3 => add(add(add(R.top, mul(u, a * H)), mul(v, b * hr)), [c * hr, 0, 0]);
   const G: Group = 'skull', carn = fam === 'canid' || fam === 'felid';
-  // the head: one swept section from the poll to the muzzle (the family's profile: jowl, forehead, face, muzzle)
-  putAll(sweep(P.head.map(([t, o, w, d]) => ({ p: at(t, o), rw: w * hr, rd: d * hr })), 6), hr * 0.12, G);
-  putAll(sweep(P.jaw.map(([t, o, w, d]) => ({ p: at(t, o), rw: w * hr, rd: d * hr })), 6), hr * 0.3, G);
-  const pr = (t: number) => prof(P.head, t), pjw = (t: number) => prof(P.jaw, t);
-  // the forehead's flat and the brow, the cheekbone, the lower jaw's edge and the chin
-  const pc = pjw(0.9);
-  if (fam === 'suid') put(ell(at(1.0, -0.05), [hr * 0.44, hr * 0.4, H * 0.035], u), hr * 0.06, G, 'nose'); // the snout's disc
-  // nostrils, the mouth's line
-  const tn = fam === 'suid' ? 1.02 : 0.95, pn = pr(Math.min(tn, 0.95));
-  for (const s of [-1, 1]) cut(ell(add(at(tn, pn[1] + (fam === 'suid' ? 0 : pn[3] * 0.1)), [s * pn[2] * hr * 0.45, 0, 0]), [hr * 0.08, hr * 0.12, hr * 0.13], add(u, mul(v, -0.2))), hr * 0.05, G, 'nose');
-  if (fam !== 'suid') for (const s of [-1, 1]) cut(cone(add(at(0.95, pc[1] + pc[3] * 0.9), [s * pc[2] * hr * 0.6, 0, 0]), add(at(0.66, pjw(0.66)[1] + pjw(0.66)[3] * 0.95), [s * pjw(0.66)[2] * hr * 1.0, 0, 0]), hr * 0.035, hr * 0.02), hr * 0.03, G, 'mouth');
-  // eyes set into the head's side under the brow (the grazers' on the side, the hunters' forward)
-  { const pe = pr(P.eyeT), side = pe[2] * hr * (carn ? 0.78 : 0.86);
-    for (const s of [-1, 1]) { const e = add(at(P.eyeT, pe[1] + P.eyeV * pe[3]), [s * side, 0, 0]);
-      put(ell(e, [hr * 0.16, hr * 0.14, hr * 0.17], add(u, [s * (carn ? 0.3 : 0.6), 0, 0])), hr * 0.03, G, 'eye');
-      put(ell(add(add(e, mul(v, hr * 0.17)), [-s * hr * 0.03, 0, 0]), [hr * 0.2, hr * 0.08, hr * 0.28], u), hr * 0.12, G); } }
+  if (carn) carnHead(sp, fam, at, u, v, hr, H, put, cut, putAll);
+  else {
+    // the head: one swept section from the poll to the muzzle (the family's profile: jowl, forehead, face, muzzle)
+    putAll(sweep(P.head.map(([t, o, w, d]) => ({ p: at(t, o), rw: w * hr, rd: d * hr })), 6), hr * 0.12, G);
+    putAll(sweep(P.jaw.map(([t, o, w, d]) => ({ p: at(t, o), rw: w * hr, rd: d * hr })), 6), hr * 0.3, G);
+    const pr = (t: number) => prof(P.head, t), pjw = (t: number) => prof(P.jaw, t);
+    // the forehead's flat and the brow, the cheekbone, the lower jaw's edge and the chin
+    const pc = pjw(0.9);
+    if (fam === 'suid') put(ell(at(1.0, -0.05), [hr * 0.44, hr * 0.4, H * 0.035], u), hr * 0.06, G, 'nose'); // the snout's disc
+    // nostrils, the mouth's line
+    const tn = fam === 'suid' ? 1.02 : 0.95, pn = pr(Math.min(tn, 0.95));
+    for (const s of [-1, 1]) cut(ell(add(at(tn, pn[1] + (fam === 'suid' ? 0 : pn[3] * 0.1)), [s * pn[2] * hr * 0.45, 0, 0]), [hr * 0.08, hr * 0.12, hr * 0.13], add(u, mul(v, -0.2))), hr * 0.05, G, 'nose');
+    if (fam !== 'suid') for (const s of [-1, 1]) cut(cone(add(at(0.95, pc[1] + pc[3] * 0.9), [s * pc[2] * hr * 0.6, 0, 0]), add(at(0.66, pjw(0.66)[1] + pjw(0.66)[3] * 0.95), [s * pjw(0.66)[2] * hr * 1.0, 0, 0]), hr * 0.035, hr * 0.02), hr * 0.03, G, 'mouth');
+    // eyes set into the head's side under the brow (the grazers' on the side, the hunters' forward)
+    { const pe = pr(P.eyeT), side = pe[2] * hr * (carn ? 0.78 : 0.86);
+      for (const s of [-1, 1]) { const e = add(at(P.eyeT, pe[1] + P.eyeV * pe[3]), [s * side, 0, 0]);
+        put(ell(e, [hr * 0.16, hr * 0.14, hr * 0.17], add(u, [s * (carn ? 0.3 : 0.6), 0, 0])), hr * 0.03, G, 'eye');
+        put(ell(add(add(e, mul(v, hr * 0.17)), [-s * hr * 0.03, 0, 0]), [hr * 0.2, hr * 0.08, hr * 0.28], u), hr * 0.12, G); } }
+  }
+  const pr = (t: number) => prof(P.head, t);
   // ears
   const ear = B.ears;
   if (ear !== 'none') {
@@ -363,12 +378,37 @@ function head(sp: Species, B: typeof ANIMAL_BUILD[Species], P: FP, fam: Family, 
       else if (ear === 'mid') { dir = [s * 0.55, 0.8, -0.12]; wid = EL * 0.5; face = [s * 0.2, 0, 1]; }
       else if (fam === 'caprine') { dir = [s * 1, -0.35, -0.1]; wid = EL * 0.6; face = [0, 0.4, 1]; } // the sheep's and the urial's small drooping ears
       else { dir = [s * 0.45, 0.85, -0.15]; wid = EL * 0.85; face = [s * 0.25, 0, 1]; }            // small and round (the cats, the camels)
-      const lf = leaf(root, dir, EL, wid, Math.max(0.014, EL * 0.11), face);
+      const lf = leaf(root, dir, EL, wid, Math.max(0.014, EL * 0.11), face, fam === 'canid' || fam === 'felid' || ear === 'prick');
       put(lf.outer, hr * 0.1, G, 'coat', 'ear');
       cut(lf.cup, EL * 0.04, G, 'inner_ear');
     }
   }
   horns(sp, B, R, at, pr, hr, put);
+}
+/** the dogs', the wolf's, the fox's, the hyena's and the cats' heads (C, from skulls and photographs of the living animals):
+ *  the round cranium behind the eyes, the cheek arches (the cats' wide), the stop where the forehead drops to the muzzle, the
+ *  muzzle (the canids' about half the head, the cats' a third, broad and blunt, with whisker pads), the nose leather, the
+ *  lower jaw and chin, eyes set forward under the brow */
+function carnHead(sp: Species, fam: Family, at: (a: number, b: number, c?: number) => V3, u: V3, v: V3, hr: number, H: number, put: Put, cut: Put, putAll: PutAll) {
+  const G: Group = 'skull', fel = fam === 'felid';
+  const ts = fel ? (sp === 'cheetah' ? 0.72 : sp === 'lion' ? 0.68 : 0.7) : sp === 'hyena' ? 0.54 : sp === 'fox' ? 0.54 : 0.58;   // the stop
+  const mw = sp === 'fox' ? 0.78 : sp === 'hyena' ? 1.2 : sp === 'lion' ? 1.12 : sp === 'cheetah' ? 0.85 : 1; // the muzzle's breadth
+  const ck = fel ? (sp === 'lion' ? 1.35 : sp === 'cheetah' ? 1.05 : 1.22) : sp === 'hyena' ? 1.25 : sp === 'fox' ? 0.85 : 1; // the cheeks
+  put(ell(at(0.24, 0.16), [hr * (fel ? 1.05 : 0.98), hr * (fel ? 1.0 : 0.92), H * (fel ? 0.32 : 0.28)], u), hr * 0.35, G); // the cranium
+  put(ell(at(0.02, -0.02), [hr * 0.8, hr * 0.85, H * 0.14], u), hr * 0.35, G);                // its back, over the neck
+  for (const q of [-1, 1]) put(ell(add(at(ts - 0.16, -0.32), [q * hr * 0.6 * ck, 0, 0]), [hr * 0.42 * ck, hr * 0.5, H * 0.17], u), hr * 0.3, G); // the cheek arches
+  const m0 = fel ? { t: ts - 0.16, o: -0.1, w: 0.78, d: 0.66 } : { t: ts - 0.1, o: -0.08, w: 0.56, d: 0.6 };
+  const m1 = fel ? { t: 0.88, o: -0.26, w: 0.56, d: 0.44 } : { t: 0.95, o: -0.3, w: 0.34, d: 0.32 };
+  putAll(sweep([{ p: at(m0.t, m0.o), rw: m0.w * mw * hr, rd: m0.d * hr }, { p: at((m0.t + m1.t) / 2, (m0.o + m1.o) / 2 - 0.02), rw: (m0.w + m1.w) / 2 * mw * hr, rd: (m0.d + m1.d) / 2 * hr }, { p: at(m1.t, m1.o), rw: m1.w * mw * hr, rd: m1.d * hr }], 4), hr * 0.18, G);
+  if (fel) for (const q of [-1, 1]) put(ell(add(at(0.82, -0.4), [q * hr * 0.26 * mw, 0, 0]), [hr * 0.22, hr * 0.22, H * 0.09], u), hr * 0.14, G); // the whisker pads
+  putAll(sweep([{ p: at(0.3, -0.72), rw: hr * 0.7 * ck, rd: hr * 0.34 }, { p: at(0.62, -0.72), rw: hr * 0.5 * mw, rd: hr * 0.28 }, { p: at(fel ? 0.8 : 0.88, fel ? -0.6 : -0.58), rw: hr * (fel ? 0.36 : 0.24) * mw, rd: hr * (fel ? 0.24 : 0.16) }], 3), hr * 0.2, G); // the lower jaw
+  put(ell(at(fel ? 0.93 : 0.99, fel ? -0.2 : -0.16), [hr * (fel ? 0.22 : 0.26) * mw, hr * 0.16, H * 0.025], u), hr * 0.08, G, 'nose'); // the nose leather
+  for (const q of [-1, 1]) cut(ell(add(at(fel ? 0.955 : 1.0, fel ? -0.24 : -0.2), [q * hr * 0.14 * mw, 0, 0]), [hr * 0.06, hr * 0.06, hr * 0.08], u), hr * 0.03, G, 'nose');
+  for (const q of [-1, 1]) cut(cone(add(at(0.96, fel ? -0.52 : -0.46), [q * hr * 0.1, 0, 0]), add(at(ts + 0.1, -0.56), [q * hr * 0.4 * mw, 0, 0]), hr * 0.012, hr * 0.008), hr * 0.012, G, 'mouth');
+  // the eyes, forward, under the brow at the stop
+  for (const q of [-1, 1]) { const e = add(at(ts - 0.12, fel ? 0.12 : 0.18), [q * hr * (fel ? 0.55 : 0.58), 0, 0]);
+    put(ell(e, [hr * 0.15, hr * 0.13, hr * 0.15], add(u, [q * 0.35, 0, 0])), hr * 0.03, G, 'eye');
+    put(ell(add(e, mul(v, hr * 0.16)), [hr * 0.2, hr * 0.08, hr * 0.22], u), hr * 0.1, G); }
 }
 function horns(sp: Species, B: typeof ANIMAL_BUILD[Species], R: Rig, at: (a: number, b: number, c?: number) => V3, pr: (t: number) => Row, hr: number, put: Put) {
   const G: Group = 'skull', p0 = pr(0.06);
@@ -384,12 +424,16 @@ function horns(sp: Species, B: typeof ANIMAL_BUILD[Species], R: Rig, at: (a: num
     else if (B.horns === 'ox') { const zb = sp === 'zebu' || sp === 'cow' ? 0.8 : 1;
       curve(s, add(at(0.02, p0[1] + p0[3] * 0.7), [s * p0[2] * hr * 0.8, 0, 0]), ([[0.08, 0.01, 0.02], [0.07, 0.03, 0.04], [0.03, 0.06, 0.04], [0.0, 0.06, 0.02]] as V3[]).map(d => mul(d, zb)), 0.032, 0.008); }
     else if (B.horns === 'gazelle') curve(s, root, [[0.012, 0.07, -0.04], [0.016, 0.06, -0.04], [0.0, 0.06, -0.01], [-0.012, 0.05, 0.02]], 0.013, 0.004);
-    else if (B.horns === 'antler') { // the fallow buck's palmate antlers: a beam up and back with a brow tine, a flattened palm with its points
-      const a0 = add(at(0.06, p0[1] + p0[3] * 0.7), [s * hr * 0.4, 0, 0]), b0 = add(a0, [s * 0.1, 0.2, -0.06]), c0 = add(b0, [s * 0.06, 0.12, -0.04]);
-      for (const t of tube([a0, b0, c0], 0.018, 0.013)) put(t, 0.004, G, 'horn');
-      for (const t of tube([add(a0, [s * 0.02, 0.04, 0]), add(a0, [s * 0.05, 0.08, 0.1])], 0.01, 0.004)) put(t, 0.003, G, 'horn');
-      const palm = add(c0, [s * 0.04, 0.05, -0.06]); put(ell(palm, [0.016, 0.06, 0.11], [s * 0.3, 0.6, -0.8]), 0.01, G, 'horn');
-      for (let j = 0; j < 4; j++) { const q0 = add(palm, [s * (0.02 + 0.015 * j), 0.05 + 0.02 * j, 0.05 - 0.035 * j]); for (const t of tube([q0, add(q0, [s * 0.03, 0.05, -0.02])], 0.008, 0.003)) put(t, 0.004, G, 'horn'); } }
+    else if (B.horns === 'antler') { // the Mesopotamian fallow buck: burr, a long beam curving out, back and up, brow and trez tines, a small crown palm with points (C)
+      const a0 = add(at(0.06, p0[1] + p0[3] * 0.7), [s * hr * 0.4, 0, 0]);
+      put(ell(a0, [0.024, 0.014, 0.024], [0, 1, 0]), 0.004, G, 'horn');                                        // the burr
+      const beam: V3[] = [a0, add(a0, [s * 0.05, 0.1, -0.04]), add(a0, [s * 0.11, 0.22, -0.09]), add(a0, [s * 0.14, 0.33, -0.11]), add(a0, [s * 0.14, 0.43, -0.07])];
+      for (const t of tube(beam, 0.02, 0.012)) put(t, 0.004, G, 'horn');
+      for (const t of tube([add(a0, [s * 0.01, 0.03, 0.01]), add(a0, [s * 0.03, 0.07, 0.08]), add(a0, [s * 0.04, 0.12, 0.13])], 0.011, 0.004)) put(t, 0.003, G, 'horn'); // brow tine
+      for (const t of tube([beam[2], add(beam[2], [s * 0.02, 0.05, 0.07]), add(beam[2], [s * 0.03, 0.11, 0.1])], 0.009, 0.003)) put(t, 0.003, G, 'horn'); // trez tine
+      const palm = add(beam[4], [s * 0.01, 0.03, -0.03]); put(ell(palm, [0.012, 0.035, 0.07], [0, 0.8, -0.6]), 0.008, G, 'horn');
+      for (let j = 0; j < 3; j++) { const q0 = add(palm, [s * 0.005, 0.02 + 0.01 * j, 0.03 - 0.035 * j]); for (const t of tube([q0, add(q0, [s * 0.015, 0.06, -0.015 * j])], 0.007, 0.002)) put(t, 0.003, G, 'horn'); }
+    }
   }
 }
 function tail(sp: Species, B: typeof ANIMAL_BUILD[Species], fam: Family, R: Rig, g: number, L: number, put: Put, putAll: PutAll) {
@@ -422,7 +466,7 @@ function extras(sp: Species, B: typeof ANIMAL_BUILD[Species], fam: Family, R: Ri
   if (B.humps === 2) for (const z of [0.2, -0.2]) { put(ell([0, backY + 0.02 * g, z * L], [0.2 * g, 0.28 * g, 0.13 * L]), 0.12 * g, 'body'); put(ell([0, backY + 0.2 * g, z * L - 0.02], [0.1 * g, 0.1 * g, 0.08 * L], [0, 0.3, -1]), 0.08 * g, 'body', 'wool'); }
   if (B.humps === 1) put(ell([0, backY - 0.02 * g, -0.02 * L], [0.28 * g, 0.36 * g, 0.24 * L]), 0.16 * g, 'body');
   if (fam === 'camelid') { // the camel's chest pad and the callosities of the knees; the Bactrian's woolly throat, forearms and hump tops
-    put(ell([0, bellyY + 0.02, 0.32 * L], [0.12 * g, 0.08 * g, 0.1 * L]), 0.05 * g, 'body', 'pad');
+    put(ell([0, bellyY + 0.035, 0.3 * L], [0.1 * g, 0.045 * g, 0.09 * L]), 0.06 * g, 'body', 'pad');
     if (B.humps === 2) { const t = lerp3(R.base, R.top, 0.45), n = nrm(cross(R.neckDir, [1, 0, 0])); put(ell(add(t, mul(n, -0.1)), [0.1, 0.16, 0.22], R.neckDir), 0.06, 'head', 'wool');
       for (const lg of R.legs.filter(l => l.fore > 0)) put(ell([lg.x, bellyY - 0.05, lg.z + 0.02], [0.09, 0.14, 0.09]), 0.05, `leg${R.legs.indexOf(lg)}` as Group, 'wool'); }
   }
@@ -440,9 +484,7 @@ function extras(sp: Species, B: typeof ANIMAL_BUILD[Species], fam: Family, R: Ri
     for (const s of [-1, 1]) { const a = add(R.muzzle, [s * B.headR * 0.5, -0.05, -0.1]); for (const t of tube([a, add(a, [s * 0.02, 0.035, 0.03]), add(a, [s * 0.025, 0.07, 0.02])], 0.011, 0.004)) put(t, 0.003, 'skull', 'tusk'); }
   }
   if (sp === 'hyena') for (const q of sweep([0.46, 0.3, 0.1, -0.1, -0.3].map((t, i) => ({ p: [0, backY + T.yz(t * L) - 0.005 - i * 0.004, t * L] as V3, rw: 0.018, rd: 0.035 - i * 0.004 })), 3)) put(q, 0.02, 'body', 'mane');
-  if (B.ruff) { // the lion's mane: a ruff over the neck, the throat and the chest, darker than the coat
-    const c = lerp3(R.base, R.top, 0.6); put(ell(add(c, [0, 0.02, -0.02]), [B.headR * 1.95, B.headR * 2.2, B.neck * 0.75 + 0.1], R.neckDir), 0.08, 'head', 'ruff');
-    put(ell([0, by - 0.05, 0.4 * L], [0.3 * g, 0.4 * g, 0.12 * L]), 0.06, 'body', 'ruff'); }
+
   // ---- gear
   if (B.gear === 'pack' || B.gear === 'pack_camel' || B.gear === 'saddle') gear(sp, B, R, T, put);
 }
@@ -481,35 +523,40 @@ function gear(sp: Species, B: typeof ANIMAL_BUILD[Species], R: Rig, T: { g: numb
  *  feathered thighs, the scaled shanks and four toes */
 function fowl(sp: Species, B: typeof ANIMAL_BUILD[Species], R: Rig, put: Put, cut: Put) {
   const g = B.girth, L = B.len, by = R.bodyY, ck = sp === 'cock';
-  put(ell([0, by, -0.02 * L], [0.44 * g, 0.5 * g, 0.5 * L], [0, 0.35, 1]), 0.04, 'body', 'feather');
-  put(ell([0, by - 0.05 * g, 0.22 * L], [0.4 * g, 0.44 * g, 0.26 * L]), 0.04, 'body', 'feather');
-  for (const s of [-1, 1]) put(ell([s * 0.4 * g, by + 0.08 * g, -0.08 * L], [0.1 * g, 0.34 * g, 0.4 * L], [0, 0.25, 1]), 0.02, 'body', 'feather');
-  // tail
-  const tb: V3 = [0, by + 0.2 * g, -0.42 * L];
-  if (!ck) put(ell(add(tb, [0, 0.07, -0.02]), [0.025, 0.07, 0.09], [0, 1, -0.6]), 0.02, 'tail', 'feather');
-  else { put(ell(add(tb, [0, 0.08, -0.02]), [0.03, 0.07, 0.1], [0, 1, -0.5]), 0.02, 'tail', 'sickle');
-    for (const s of [-1, 0, 1]) for (const t of tube([tb, add(tb, [s * 0.012, 0.13, -0.05]), add(tb, [s * 0.016, 0.17, -0.12]), add(tb, [s * 0.014, 0.12, -0.2]), add(tb, [s * 0.01, 0.05, -0.23])], 0.014, 0.005)) put(t, 0.006, 'tail', 'sickle'); }
-  // neck (hackles) and head
-  for (const t of tube([R.base, lerp3(R.base, R.top, 0.5), R.top], g * 0.15, B.headR * 0.95)) put(t, 0.015, 'head', 'feather');
-  if (ck) put(ell(lerp3(R.base, R.top, 0.4), [g * 0.17, g * 0.19, B.neck * 0.4], R.neckDir), 0.015, 'head', 'feather');
-  const H = B.head, hr = B.headR, u = R.hd, v = nrm(cross(u, [1, 0, 0]));
-  const at = (a: number, b: number): V3 => add(add(R.top, mul(u, a * H)), mul(v, b * hr));
-  put(ell(at(0.2, 0.2), [hr * 0.95, hr * 1.0, hr * 1.2], u), 0.01, 'skull', 'feather');
-  put(cone(at(0.45, 0.1), at(1.0, -0.2), hr * 0.42, hr * 0.08), 0.004, 'skull', 'beak');
-  for (const s of [-1, 1]) put(ell(add(at(0.3, 0.35), [s * hr * 0.75, 0, 0]), [hr * 0.18, hr * 0.18, hr * 0.18]), 0.003, 'skull', 'eye');
-  // the comb (single, serrated: five points on the cock, a small one on the hen) and the wattles
-  const cs = ck ? 1 : 0.5;
-  put(ell(at(0.35, 1.05), [0.005, 0.02 * cs, 0.035 * cs], u), 0.004, 'skull', 'comb');
-  for (let i = 0; i < 5; i++) put(ell(add(at(0.1 + i * 0.12, 1.1), mul(v, 0.02 * cs)), [0.004, 0.007 * cs, 0.012 * cs], v), 0.004, 'skull', 'comb');
-  for (const s of [-1, 1]) put(ell(add(at(0.62, -1.2), [s * 0.006, 0, 0]), [0.006, 0.01 * cs, 0.018 * cs], v), 0.004, 'skull', 'comb');
-  // legs: the feathered thigh, the scaled shank (yellow-grey), four toes (three forward, one back)
+  const putAll = (ss: { f: Prim['f']; c: V3; R: number }[], k: number, group: Group, part: Part) => { for (const q of ss) put(q, k, group, part); };
+  // the body: a deep keel under a back that rises to the tail, the breast full and forward, the folded wings along the sides
+  putAll(sweep([{ p: [0, by + 0.12 * g, 0.36 * L], rw: 0.32 * g, rd: 0.38 * g }, { p: [0, by + 0.02 * g, 0.2 * L], rw: 0.47 * g, rd: 0.57 * g }, { p: [0, by - 0.02 * g, -0.04 * L], rw: 0.46 * g, rd: 0.52 * g },
+    { p: [0, by + 0.1 * g, -0.26 * L], rw: 0.36 * g, rd: 0.38 * g }, { p: [0, by + 0.24 * g, -0.4 * L], rw: 0.16 * g, rd: 0.18 * g }], 5), 0.03, 'body', 'feather');
+  for (const q of [-1, 1]) putAll(sweep([{ p: [q * 0.36 * g, by + 0.1 * g, 0.18 * L], rw: 0.08 * g, rd: 0.18 * g }, { p: [q * 0.42 * g, by + 0.06 * g, -0.06 * L], rw: 0.1 * g, rd: 0.3 * g }, { p: [q * 0.3 * g, by + 0.06 * g, -0.34 * L], rw: 0.06 * g, rd: 0.12 * g }], 4), 0.015, 'body', 'feather');
+  // the tail: the hen's a narrow upright fan; the cock's broad sickles arching up, over and down, over the saddle's hackles
+  const tb: V3 = [0, by + 0.24 * g, -0.4 * L];
+  if (!ck) putAll(sweep([{ p: tb, rw: 0.022, rd: 0.03 }, { p: add(tb, [0, 0.06, -0.035]), rw: 0.014, rd: 0.04 }, { p: add(tb, [0, 0.1, -0.05]), rw: 0.007, rd: 0.025 }], 4), 0.012, 'tail', 'feather');
+  else { putAll(sweep([{ p: tb, rw: 0.035, rd: 0.035 }, { p: add(tb, [0, 0.08, -0.05]), rw: 0.025, rd: 0.03 }, { p: add(tb, [0, 0.14, -0.07]), rw: 0.012, rd: 0.02 }], 4), 0.015, 'tail', 'sickle');
+    for (const q of [-1, 0, 1]) putAll(sweep([{ p: add(tb, [q * 0.01, 0.02, 0]), rw: 0.006, rd: 0.022 }, { p: add(tb, [q * 0.016, 0.15, -0.06]), rw: 0.006, rd: 0.022 }, { p: add(tb, [q * 0.02, 0.2, -0.15]), rw: 0.005, rd: 0.018 },
+      { p: add(tb, [q * 0.02, 0.15, -0.25]), rw: 0.004, rd: 0.012 }, { p: add(tb, [q * 0.018, 0.05, -0.3]), rw: 0.003, rd: 0.006 }], 4), 0.004, 'tail', 'sickle');
+    for (const q of [-1, 1]) put(ell([q * 0.2 * g, by + 0.3 * g, -0.3 * L], [0.1 * g, 0.12 * g, 0.18 * L], [0, -0.6, -1]), 0.02, 'body', 'feather'); } // the saddle hackles
+  // the neck, short and thick with hackles, the small head, the beak, the eyes
+  const H = B.head, hr = B.headR, u = R.hd, v = nrm(cross(u, [1, 0, 0])), at = (a: number, b: number): V3 => add(add(R.top, mul(u, a * H)), mul(v, b * hr));
+  putAll(sweep([{ p: add(R.base, [0, 0.03, -0.02]), rw: g * 0.34, rd: g * 0.36 }, { p: lerp3(R.base, R.top, 0.55), rw: g * (ck ? 0.2 : 0.17), rd: g * (ck ? 0.22 : 0.19) }, { p: at(0.1, -0.1), rw: hr * 0.95, rd: hr * 1.0 }], 4), 0.015, 'head', 'feather');
+  put(ell(at(0.25, 0.15), [hr * 0.9, hr * 0.95, hr * 1.25], u), 0.01, 'skull', 'feather');
+  putAll(sweep([{ p: at(0.55, 0.05), rw: hr * 0.34, rd: hr * 0.36 }, { p: at(0.8, -0.1), rw: hr * 0.2, rd: hr * 0.2 }, { p: at(0.98, -0.3), rw: hr * 0.05, rd: hr * 0.05 }], 3), 0.004, 'skull', 'beak');
+  for (const q of [-1, 1]) put(ell(add(at(0.33, 0.28), [q * hr * 0.72, 0, 0]), [hr * 0.17, hr * 0.17, hr * 0.17]), 0.003, 'skull', 'eye');
+  // the single comb (a serrated blade from the beak's base over the crown: the cock's tall with five points, the hen's low),
+  // the wattles under the beak, the ear lobes
+  const cs = ck ? 1 : 0.45, cl = 0.004 * (ck ? 1.2 : 1);
+  putAll(sweep([{ p: at(0.55, 0.7), rw: cl, rd: 0.008 * cs }, { p: at(0.3, 1.0), rw: cl, rd: 0.014 * cs }, { p: at(0.0, 0.95), rw: cl, rd: 0.012 * cs }], 3), 0.003, 'skull', 'comb');
+  for (let i = 0; i < 5; i++) { const t = 0.5 - i * 0.12, c0 = at(t, 1.0 + 0.2 * Math.sin((i / 4) * Math.PI)); put(ell(add(c0, mul(v, 0.016 * cs)), [cl, 0.007 * cs, 0.013 * cs], v), 0.003, 'skull', 'comb'); }
+  for (const q of [-1, 1]) put(ell(add(at(0.6, -1.25), [q * 0.006, 0, 0]), [0.006, 0.01 * cs, 0.022 * cs], v), 0.004, 'skull', 'comb');
+  for (const q of [-1, 1]) put(ell(add(at(0.1, -0.35), [q * hr * 0.85, 0, 0]), [hr * 0.08, hr * 0.22, hr * 0.18], u), 0.003, 'skull', ck ? 'comb' : 'feather');
+  // legs: the feathered thigh, the scaled shank (yellow), the spur of the cock, four toes (three forward, one back)
   R.legs.forEach((lg, i) => { const G = `leg${i}` as Group, X = lg.x, r = B.leg;
-    put(ell([X, R.hipY - 0.01, lg.z], [r * 2.6, r * 3.5, r * 2.8]), 0.01, G, 'feather');
+    put(ell([X, R.hipY + 0.005, lg.z], [r * 2.8, r * 3.4, r * 3.0]), 0.012, G, 'feather');
     const hock: V3 = [X, R.kneeY, lg.zk], ft: V3 = [X, r * 0.8, lg.zk + 0.005];
-    put(cone([X, R.hipY - r * 2, lg.z], hock, r * 1.6, r * 1.0), 0.006, G, 'feather');
-    put(cone(hock, ft, r * 0.9, r * 0.8), 0.004, G, 'shank');
-    for (const a of [-0.45, 0, 0.45]) put(cone(ft, add(ft, [Math.sin(a) * 0.045, -r * 0.3, Math.cos(a) * 0.045]), r * 0.55, r * 0.35), 0.003, G, 'shank');
-    put(cone(ft, add(ft, [0, -r * 0.2, -0.025]), r * 0.5, r * 0.3), 0.003, G, 'shank'); });
+    put(cone([X, R.hipY - r * 2, lg.z], hock, r * 1.8, r * 1.1), 0.008, G, 'feather');
+    put(cone(hock, ft, r * 0.85, r * 0.75), 0.004, G, 'shank');
+    if (ck) put(cone(lerp3(hock, ft, 0.6), add(lerp3(hock, ft, 0.6), [0, 0.004, -0.018]), r * 0.35, r * 0.1), 0.002, G, 'shank');
+    for (const a of [-0.45, 0, 0.45]) put(cone(ft, add(ft, [Math.sin(a) * 0.045, -r * 0.3, Math.cos(a) * 0.045]), r * 0.5, r * 0.32), 0.003, G, 'shank');
+    put(cone(ft, add(ft, [0, -r * 0.2, -0.025]), r * 0.45, r * 0.3), 0.003, G, 'shank'); });
   void cut;
 }
 
@@ -562,7 +609,7 @@ const srgb = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) **
 const S = (r: number, g: number, b: number): [number, number, number] => [srgb(r), srgb(g), srgb(b)];
 const FIXED: Partial<Record<Part, [number, number, number]>> = {
   hoof: S(0.2, 0.17, 0.14), horn: S(0.55, 0.5, 0.4), eye: S(0.05, 0.035, 0.03), nose: S(0.12, 0.1, 0.09), mouth: S(0.1, 0.07, 0.07), inner_ear: S(0.62, 0.5, 0.46),
-  udder: S(0.8, 0.6, 0.55), comb: S(0.66, 0.1, 0.08), beak: S(0.72, 0.62, 0.34), shank: S(0.7, 0.6, 0.32), tusk: S(0.86, 0.82, 0.72), claw: S(0.18, 0.16, 0.14), pad: S(0.28, 0.24, 0.2),
+  udder: S(0.8, 0.6, 0.55), comb: S(0.66, 0.1, 0.08), beak: S(0.72, 0.62, 0.34), shank: S(0.7, 0.6, 0.32), tusk: S(0.86, 0.82, 0.72), claw: S(0.18, 0.16, 0.14), pad: S(0.5, 0.44, 0.38),
   cloth: S(0.55, 0.14, 0.1), wicker: S(0.58, 0.47, 0.3), sack: S(0.64, 0.58, 0.46), rope: S(0.5, 0.42, 0.3), pad_saddle: S(0.35, 0.22, 0.14),
 };
 /** the albedo at a point of the dense source: RGB (linear) and the coat mask A. Where A = 1 the game multiplies RGB x 2 by
@@ -607,7 +654,7 @@ export function coat(F: Form, p: V3, part: Part, group: Group, tag?: string): RG
     shade(1 + 0.12 * Math.sin((z * 0.8 + y * 0.5) / 0.012 * Math.PI));
   }
   // the family's and the species' marks
-  const belly = group === 'body' ? 1 - smoothstep(0.12, 0.42, vy) : 0, chin = head && hu > 0.15 ? smoothstep(-0.2, -0.7, dot(sub(p, R.top), nrm(cross(R.hd, [1, 0, 0]))) / ANIMAL_BUILD[sp].headR) : 0;
+  const belly = group === 'body' ? 1 - smoothstep(0.12, 0.42, vy) : 0, chin = head && hu > 0.15 ? smoothstep(-0.5, -0.9, dot(sub(p, R.top), nrm(cross(R.hd, [1, 0, 0]))) / ANIMAL_BUILD[sp].headR) : 0;
   const muzzleEnd = head ? smoothstep(0.72, 0.9, hu) : 0;
   switch (sp) {
     case 'donkey': case 'donkey_pack': { pale(S(0.78, 0.74, 0.68), Math.max(belly * 0.85, muzzleEnd * 0.9, inner * 0.6 * (1 - legY * 0.3)));
