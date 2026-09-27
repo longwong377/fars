@@ -29,7 +29,7 @@ function build(kind: 'wgsl' | 'glsl', which: 'main' | 'shadow', velocity = false
   const all = arr(16), sc = scans ? { skin: all, cloth: all, clothBase: 12, skinIds: ['m_young_a', 'm_young_b', 'm_mid', 'm_old', 'f_young_a', 'f_young_b', 'f_mid', 'f_old', 'm_young_d', 'm_old_d', 'f_young_d', 'f_old_d'],
     cloth_: [{ id: 'linen', layer: 0, tile: 0.245 }, { id: 'wool', layer: 1, tile: 0.43 }, { id: 'felt', layer: 2, tile: 0.2 }, { id: 'leather', layer: 3, tile: 0.25 }], clothK: 0.4 } : null;
   const atlas = cards ? (() => { const t = tex(); t.colorSpace = THREE.NoColorSpace; return t; })() : null;
-  const gpu = new HumanGPU(A, cards ? OC! : O, { skin: tex(), eye: tex(), scans: sc as any, hairAtlas: atlas, cards: cards ? PM.cards!.meta : null }, { capacity: 16 });
+  const gpu = new HumanGPU(A, cards ? OC! : O, { skin: tex(), eye: tex(), scans: sc as any, hairAtlas: atlas, hairNormal: atlas ? (() => { const t = tex(); t.colorSpace = THREE.NoColorSpace; return t; })() : null, cards: cards ? PM.cards!.meta : null }, { capacity: 16 });
   const cm = [...gpu.costumes.values()][0]; const mesh = which === 'main' ? cm.mesh : cm.shadow!.mesh;
   const canvas: any = { style: {}, width: 4, height: 4, addEventListener() {}, removeEventListener() {}, getContext() { return null; }, getRootNode() { return null; } };
   const renderer: any = new (THREE as any).WebGPURenderer({ canvas, forceWebGL: kind === 'glsl' });

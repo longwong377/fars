@@ -2,7 +2,7 @@
 // body, vertex colours: skin, the scalp and beard roots darkened as the game's shells do) and the hair cards placed exactly as
 // the game places them (src/people/peopleModels.ts placeCards), their UVs in the strand atlas for a hair style; then
 // tools/blender/preview_people.py renders a sheet in Cycles. Iteration only (seconds), not evidence of the game's look.
-// Usage: npx tsx tools/blender/preview_people.ts <outDir> <variant:set+set:style> ...   e.g. m03:hair+bun+beard_long+brows:1
+// Usage: [ATLAS=<the build's out/people_hair_atlas.png>] npx tsx tools/blender/preview_people.ts <outDir> <variant:set+set:style> ...   e.g. m03:hair+bun+beard_long+brows:1
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { decodeHumanAssets } from '../../src/people/humanAssets';
 import { PART } from '../../src/people/humanFormat';
@@ -13,7 +13,8 @@ import { readPeopleModels, placeCards, headHeight } from '../../src/people/peopl
 const [out, ...specs] = process.argv.slice(2); mkdirSync(out, { recursive: true });
 const HD = 'public/generated/humans', bin = readFileSync(`${HD}/humans.bin`);
 const A = decodeHumanAssets(JSON.parse(readFileSync(`${HD}/humans.json`, 'utf8')), bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) as ArrayBuffer);
-const M = readPeopleModels(f => { try { return readFileSync(`public/${f}`); } catch { return null; } });
+// OUT=<a build's out dir>: the cards and atlas of a build not yet copied to public/ (iteration)
+const OUTD = process.env.OUT; const M = readPeopleModels(f => { try { return readFileSync(OUTD && f.startsWith('models/people/') ? `${OUTD}/${f.slice(14)}` : `public/${f}`); } catch { return null; } });
 if (!M.cards) throw new Error('no cards: build people_hair first');
 const C = M.cards; const rv = (pid: number) => { for (let i = 0; i < A.NO; i++) if (A.orig[i] === pid) return i; return 0; };
 const topRV = rv(A.meta.landmarks.head_top), chinRV = rv(A.meta.landmarks.chin);
@@ -47,5 +48,5 @@ for (const spec of specs) {
   const file = `${out}/${spec.replace(/[:+]/g, '_')}.obj`; writeFileSync(file, lines.join('\n') + '\n');
   list.push({ obj: file, label: spec, eyeY: v.eyeY, hz: v.joints[HB.head * 3 + 2] });
 }
-writeFileSync(`${out}/preview_job.json`, JSON.stringify({ items: list, atlas: 'T:/fars-blender/people2/people_hair/out/people_hair_atlas.png', out_png: `${out}/sheet.png` }, null, 1));
+writeFileSync(`${out}/preview_job.json`, JSON.stringify({ items: list, atlas: process.env.ATLAS ?? (OUTD ? `${OUTD}/people_hair_atlas.png` : 'T:/fars-blender/people2/people_hair/out/people_hair_atlas.png'), out_png: `${out}/sheet.png` }, null, 1));
 console.log('wrote', list.length, 'previews');

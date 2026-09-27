@@ -28,6 +28,7 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   // D-307: the Blender-built hair cards and garment drape (public/models/people; null each when absent: the procedural pieces)
   const [meta, bin, skin, eye, scans, pm] = await Promise.all([get('humans.json').then(r => r.json()), get('humans.bin').then(r => r.arrayBuffer()), loader.loadAsync(base + 'skin.png'), loader.loadAsync(base + 'eye.png'), loadHumanScans(opts.base ?? '/'), loadPeopleModels(opts.base ?? '/')]);
   const hairAtlas = pm.atlasUrl ? await loadHairAtlas(pm.atlasUrl) : null;
+  const hairNormal = hairAtlas && pm.normalUrl ? await loadHairAtlas(pm.normalUrl) : null; // D-323 (null: the cards shade flat)
   const models: PeopleModels = { cards: hairAtlas ? pm.cards : null, drape: pm.drape }; // (no atlas, no cards: they would draw untextured)
   for (const t of [skin, eye]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
   const useWorker = typeof Worker !== 'undefined' && typeof window !== 'undefined';
@@ -38,6 +39,6 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   try { O = outfits ? await outfits : (await MeshoptSimplifier.ready, buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier), models })); }
   catch (e) { console.warn('outfit worker failed, building on the main thread', e); await MeshoptSimplifier.ready; O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier), models }); }
   const t2 = performance.now();
-  const gpu = new HumanGPU(A, O, { skin, eye, scans, hairAtlas, cards: models.cards?.meta ?? null }, { capacity: opts.capacity, velocity: opts.velocity });
+  const gpu = new HumanGPU(A, O, { skin, eye, scans, hairAtlas, hairNormal, cards: models.cards?.meta ?? null }, { capacity: opts.capacity, velocity: opts.velocity });
   return { A, O, gpu, ms: { load: t1 - t0, outfits: t2 - t1, gpu: performance.now() - t2, worker: !!outfits } };
 }
