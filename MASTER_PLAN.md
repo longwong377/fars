@@ -517,6 +517,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-13 | photos: easy list, no notes needed | §9 | NEEDS_FROM_ME.md, T-R9 |
 | UD-14 | extrapolate from knowledge of the period; fill every gap | §1, §7, axis J | T-J6, T-I3, T-I5, T-I7 |
 | UD-15 | speed: no sibling sessions; renderless mode, cached world, cheaper renders, tiered tests | §6 order step 2, §9 | T-R10, T-H4 |
+| UD-16 | the full scope, complete, as fast as possible: two lanes at full rate (render lane never idle, in value order; agents ring by ring: Terrace, town, plain) with a cap on the unverified | §6 order (D-275) | T-R11 |
 
 ## 13. Revision log
 

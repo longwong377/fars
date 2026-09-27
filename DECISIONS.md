@@ -6694,3 +6694,22 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Addendum (D-257, after the ford-pulvar-sep render):** the causeway read as a flight of clean pale steps across the channel
   (level 1 m slabs at stepped heights, the cobbles near dressed-limestone white). Each slab is now tilted to the slope between its
   neighbours, and the cobbles are weathered river greys (sRGB 0.39-0.53). Re-render queued (ford-pulvar-sep, TAG v2).
+
+## D-275 Two lanes at full rate, ring by ring, with a cap on the unverified (session 9; UD-16)
+- **Why.** Session 9 built breadth fast (63 inventory rows, three agents) while the render lane (one SwiftShader lock, 20-40
+  min a job) verified almost none of it; every render that did run found a flaw the node tests missed. 158 of 170 thresholds
+  are to-build, the coverage pass never ran, and the Terrace (where the player arrives) still fails the photoreal bar. The user
+  wants the full scope, complete, as fast as possible (UD-16): not a pause in breadth, but no idle resource and no unverified pile.
+- **The order from now on.**
+  1. **The render lane is never idle and runs in value order:** first the throughput multipliers (the probeloop/shareinst
+     pixel A/B, then default-on), then T-J5 at the player's lens, then coverage chunks of the current ring, then each merged
+     change's own views. A view that shows a flaw is fixed and re-queued before new content of that ring is merged.
+  2. **The build lane (agents, ≤ 2 at once for memory, node-first, ≤ 2 browser runs each) works ring by ring:** Terrace, then the
+     town, then the plain. New content is admitted only in the ring being verified, and only while the unverified backlog (merged
+     but never judged on screen) stays under what the render lane clears in one session (~20 job-views).
+  3. **The instruments come early, not last:** the coverage harness run over the Terrace (D-235's tools), the renderless walker
+     bots (D-253), the generated board: progress becomes a number the lead does not choose.
+  4. **Ring 1, the Terrace, first:** the missing rooms (the Treasury's rooms, the Harem's rooms, the garrison's quarters and the
+     royal guard's sleeping places: B63), the Tripylon's building site, then materials and masonry against the photo references
+     (B57; the rubric's materials 1/5), each verified on screen.
+- **Not changed:** MASTER_PLAN's gates and thresholds; the gap inventory stays the backlog, now ordered by ring.

@@ -1,5 +1,5 @@
 {
- "about": "MASTER_PLAN.md §4.1: every threshold of the Walker Test. Ids are never removed; metric, unit, axis, scope, op and sample never change (tool too, once a row is partial or built); values only tighten; sample_min never falls. Status is derived from evidence (REVIEWS/evidence/**/<id>.json written by the row's tool) and may always be demoted. A loosening needs \"loosened_by\": a UD-nn whose own text names the id and the new value; a threshold proven wrong in principle takes \"superseded_by\" with gates/errata/<id>.md. tests/gates_ratchet.test.ts enforces this against git history and the ratchet/* tags, and fails closed.",
+ "about": "MASTER_PLAN.md \u00a74.1: every threshold of the Walker Test. Ids are never removed; metric, unit, axis, scope, op and sample never change (tool too, once a row is partial or built); values only tighten; sample_min never falls. Status is derived from evidence (REVIEWS/evidence/**/<id>.json written by the row's tool) and may always be demoted. A loosening needs \"loosened_by\": a UD-nn whose own text names the id and the new value; a threshold proven wrong in principle takes \"superseded_by\" with gates/errata/<id>.md. tests/gates_ratchet.test.ts enforces this against git history and the ratchet/* tags, and fails closed.",
  "thresholds": [
   {
    "id": "T-H0",
@@ -223,7 +223,7 @@
    "sample": "Tier-2 views per session",
    "tool": "handoff/review_template.md",
    "status": "to-build",
-   "anti_proxy": "a reviewer told which frames are renders is lenient: judged blind among anchors and photographs (§8)",
+   "anti_proxy": "a reviewer told which frames are renders is lenient: judged blind among anchors and photographs (\u00a78)",
    "ud": "UD-01",
    "since": "rev 2 (s8)"
   },
@@ -2729,6 +2729,22 @@
    "anti_proxy": "a sibling session relabelled a \"worker\" or a \"render job\" is still extra compute: any container beyond this session counts",
    "ud": "UD-15",
    "since": "rev 2.2 (s8)"
+  },
+  {
+   "id": "T-R11",
+   "axis": "R",
+   "scope": "process",
+   "metric": "views of merged changes never judged on screen (the unverified backlog) at session close",
+   "op": "<=",
+   "value": 20,
+   "unit": "job-views",
+   "sample_min": 1,
+   "sample": "every session close",
+   "tool": "sessions/",
+   "status": "to-build",
+   "anti_proxy": "a change merged without any view of its own still counts (one view per merged decision at least); a view rendered but not looked at and logged in sessions/sNN.md is not judged",
+   "ud": "UD-16",
+   "since": "rev 2.3 (s9)"
   }
  ]
 }

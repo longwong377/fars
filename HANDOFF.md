@@ -37,15 +37,25 @@ Running: moontele (planets-moon-tele done, eclipse-moon-tele done, frost/breath/
 (+tannery, press), tj5a, village (dusk, lane), ford2 (both fords + frost after fixes), tj5b, ab_old, ab_new. The queue dies with
 the container: a new session re-queues from tests/e2e/moments.spec.ts and plain.spec.ts (the views are all in the specs).
 
-## Next steps, in order
-1. Session start as usual (guards, fetch). Re-queue: the T-J5 views at FOV=game Q=high; the fords, frost, village dusk, crafts,
-   quarry; judge each and log in sessions/s10.md. Fix B84 (eclipse brightness) and whatever the renders show.
-2. Idle-box re-run of the four timing tests; T-F8 soaks for seeds 7 and a fresh seed (via cpu_slot).
-3. The pixel A/B for probeloop/shareinst; default them on if identical; heat on by default once its effect is seen.
-4. A third gap hunter with a different checklist (T-J6); then the people-side gaps: garrison rooms (G22), roof sleeping (G23),
-   latrines (G24), plastering at work (G25), board games (G32), tomb guardians (G35), the royal hunt (G11).
-5. B83 (a finer terrain ring over the rivers) and B74 (village build in a worker).
-6. At close: sessions/s10.md, fates in reserved_numbers.md, tag ratchet/s10.
+## Next steps, in order (D-275: two lanes at full rate, ring by ring; UD-16)
+The user's direction at close (UD-16): the full scope, as complete as possible, as fast as possible. D-275 sets how: a **render
+lane** that is never idle and a **build lane** of at most 2 agents, ring by ring (Terrace, then town, then plain), admitted only
+while the unverified backlog (merged changes never judged on screen) is at most ~20 job-views (T-R11, locked).
+1. **Session start:** guards, `git fetch --unshallow --tags` if shallow, `uptime`/`free -g`. The render queue died with the
+   container: re-queue at once, in value order: (a) the probeloop/shareinst pixel A/B (if identical, default on: every later
+   render is cheaper); (b) T-J5 at FOV=game Q=high (planets-dusk, halo-sundogs, dust-devils-jun, rainbow-plain, meteor-terrace);
+   (c) the unverified backlog of session 9 (fords, frost, village dusk, crafts, quarry, small life, flowers). Judge each, log
+   in sessions/s10.md; fix B84 and what the renders show.
+2. **Build lane, ring 1 (the Terrace):** launch the D-276 agent from `handoff/briefs/s09/terrace_rooms.md` (reserved D-276,
+   Q-730..Q-739, B85..B87; NOT launched in session 9): the Treasury and Harem rooms, garrison quarters and guard sleeping (B63),
+   then the Tripylon site. A second agent only if the backlog is under the cap: materials against the photos (B57).
+3. **Instruments early:** the coverage harness (D-235, T-R rows), renderless walker bots, the generated COVERAGE board: they
+   decide what ring 1 still lacks.
+4. Idle-box re-run of the four timing tests; T-F8 soaks for seeds 7 and a fresh seed (via cpu_slot).
+5. A third gap hunter with a different checklist (T-J6); the people-side gaps: roof sleeping (G23), latrines (G24), plastering
+   (G25), board games (G32), tomb guardians (G35), the royal hunt (G11).
+6. Ring 2/3 work after ring 1 passes coverage: B67 town walk, B83 (finer terrain ring over the rivers), B74 (village build in a worker).
+7. At close: sessions/s10.md, fates in reserved_numbers.md (D-276's), tag ratchet/s10.
 
 ---
 
