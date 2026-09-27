@@ -10,7 +10,23 @@ import { Rng } from '../core/rng';
 import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
 import { ptTabletGeometry, bullaGeometry, clayMaterial, writtenMeta } from './writing';
 import { propMaterial, propMaterialMulti } from '../render/materials';
-import { scanShape } from '../render/scanProps';
+import { scanShape, modelFit, mergedModel, model, modelParts } from '../render/scanProps';
+/** D-325: a modelled form fitted to the box of the procedural form it replaces (base, footprint centre and size kept), its
+ *  parts merged (position, normal); null when the model is not loaded */
+export function fitToForm(id: string, form: THREE.BufferGeometry, lod = 0): THREE.BufferGeometry | null {
+  if (!model(id)) return null; form.computeBoundingBox(); const b = form.boundingBox!, s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
+  const g = mergedModel(modelFit(id, [s.x, s.y, s.z], lod, [c.x, b.min.y, c.z])!); g.deleteAttribute('ao'); return g;
+}
+/** the Treasury's goods drawn from the project's models (tools/blender/model_props.py), each fitted to its procedural form's box */
+const GOOD_MODEL: Record<string, string> = { alabaster_vessel: 'alabastron', blue_vessel: 'bowl', chert_set: 'mortar_set', silver_phiale: 'phiale', gold_rhyton: 'rhyton', textile_bale: 'bale', scale_armour: 'bale',
+  shield: 'shield', bead_bowl: 'beads', ivory_tusk: 'tusk', glass_bowl: 'glass_bowl' };
+/** a bundle of arrows lying on the bench, tied at two points: twenty of the modelled arrows (tool_arrow) (D-325) */
+function arrowBundle(): THREE.BufferGeometry | null {
+  const a = modelParts('tool_arrow', 1); if (!a) return null; const one = mergedModel(a); one.deleteAttribute('ao');
+  const gs: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 20; i++) { const r = 0.0075 * Math.sqrt(i), t = i * 2.4; /* (a tight bundle, 3.5 cm across) */ gs.push(one.clone().translate(r * Math.cos(t), r * Math.sin(t), -0.36).rotateY(Math.PI / 2).rotateX(0.02 * Math.sin(i)).translate(0, 0.05, 0)); }
+  return mergeGeometries(gs);
+}
 
 // D-301 (every inch real: the interiors): the furnishings' silhouettes and grain. A storage jar is a smooth, slightly
 // out-of-round hand-built body with a neck and a rolled rim (was a 12-sided lathe: faceted); a bale of cloth is a soft,
@@ -20,7 +36,7 @@ import { scanShape } from '../render/scanProps';
  *  little out of round (a coil-built pot, not a thrown one: C) */
 export function jarGeometry(r: number, h: number, seg = 40, seed = 1): THREE.BufferGeometry {
   // session 12 (D-310): a CC0 scan's jar (Poly Haven; render/scanProps.ts) fitted to r and h, when loaded; else the lathe below
-  const sj = scanShape('jar', seed, [2 * r, h, 2 * r], 0); if (sj) return sj;
+  const sj = scanShape('jar', seed, [2 * r, h, 2 * r], 1); if (sj) return sj; // (D-325: the period's modelled jar, lod1)
   const P: [number, number][] = [[0, 0], [r * 0.3, 0], [r * 0.55, h * 0.04], [r * 0.82, h * 0.16], [r * 0.97, h * 0.34], [r, h * 0.5], [r * 0.95, h * 0.64],
     [r * 0.8, h * 0.76], [r * 0.56, h * 0.85], [r * 0.42, h * 0.89], [r * 0.4, h * 0.93], [r * 0.45, h * 0.965], [r * 0.47, h * 0.985], [r * 0.43, h], [r * 0.36, h * 0.99], [0, h * 0.975]];
   const g = lathe(P, seg), pos = g.getAttribute('position') as THREE.BufferAttribute;
@@ -70,6 +86,8 @@ const FORMS: Record<string, () => THREE.BufferGeometry> = {
   glass_bowl: () => lathe([[0, 0], [0.04, 0], [0.085, 0.03], [0.095, 0.065], [0.09, 0.066], [0.078, 0.034], [0, 0.006]], 32), // a cut-glass bowl
   bitumen_jar: () => jarGeometry(0.13, 0.41, 32, 5),
 };
+// D-325: each good's model when loaded, fitted to its procedural form's box (the arrows: a bundle of the modelled arrows)
+for (const [k, f] of Object.entries(FORMS)) { const id = GOOD_MODEL[k]; FORMS[k] = () => { const p = f(); if (k === 'arrow_bundle') return arrowBundle() ?? p; return (id && fitToForm(id, p, 1)) || p; }; } // (lod1: the goods stand by the hundred on the benches)
 const COLOURS: Record<string, [number, number, number, number]> = { // sRGB albedo, roughness
   alabaster_vessel: [0.86, 0.82, 0.72, 0.3], blue_vessel: [0.13, 0.28, 0.62, 0.35], chert_set: [0.3, 0.38, 0.31, 0.45], arrow_bundle: [0.62, 0.55, 0.38, 0.8], sealed_jar: [0.6, 0.42, 0.3, 0.85],
   // D-276: metals drawn partly metallic (no environment reflection: the bronze_metalness precedent, D-030); the rest as found
@@ -194,11 +212,13 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   const tag = (o: THREE.Object3D, note: string, src = 'IR-TREAS;MATCULT-R;RECON') => { o.userData = { tier: 'C', src, note: `${note} (D-221)` }; return o; };
   // the reed mats the three sit on, at their places round the desk's things (site_spec scribes_room.seats)
   const [mw, md] = R.mat as number[], seats = Object.values(SR.seats as Record<string, [number, number, number]>);
-  const mats = new THREE.InstancedMesh(new THREE.PlaneGeometry(mw, md).rotateX(-Math.PI / 2), propMaterial('reed', { color: [0.6, 0.52, 0.34], rough: 0.95 }), seats.length);
+  const matP = new THREE.PlaneGeometry(mw, md).rotateX(-Math.PI / 2), matM = model('mat') ? mergedModel(modelFit('mat', [mw, 0.01, md], 1)!) : null; if (matM) matM.deleteAttribute('ao'); // (D-325: the modelled reed mat)
+  const mats = new THREE.InstancedMesh(matM ?? matP, propMaterial('reed', { color: [0.6, 0.52, 0.34], rough: 0.95 }), seats.length);
   seats.forEach(([e, nn, h], i) => mats.setMatrixAt(i, m4.compose(new THREE.Vector3(e, fl + 0.006, -nn), q.setFromAxisAngle(up, -(h * Math.PI) / 180), one)));
   mats.name = 'scribes:mats'; group.add(tag(mats, 'reed mats to sit on at the desk (reed matting is the common floor covering of the region: B by analogy; one to each place C)'));
   // the lamp: a clay saucer lamp with a pinched nozzle on the bench (its flame and light: firePlaces.ts); the wall above it sooted
-  const L = R.lamp, lampG = mergeGeometries([strip(lathe([[0, 0], [L.r * 0.7, 0], [L.r, 0.016], [L.r * 1.02, 0.03], [L.r * 0.9, 0.03], [L.r * 0.82, 0.016], [0, 0.012]], 14)), strip(new THREE.BoxGeometry(0.03, 0.012, 0.026).translate(L.r + 0.01, 0.024, 0))])!;
+  const L = R.lamp, lampP = mergeGeometries([strip(lathe([[0, 0], [L.r * 0.7, 0], [L.r, 0.016], [L.r * 1.02, 0.03], [L.r * 0.9, 0.03], [L.r * 0.82, 0.016], [0, 0.012]], 14)), strip(new THREE.BoxGeometry(0.03, 0.012, 0.026).translate(L.r + 0.01, 0.024, 0))])!;
+  const lampG = fitToForm('lamp', lampP) ?? lampP; // (D-325: the modelled saucer lamp with its pinched spout)
   const lamp = new THREE.Mesh(lampG, mat([0.6, 0.45, 0.32], 0.8)); lamp.position.set(L.at[0], bTop, -L.at[1]); lamp.rotation.y = -Math.PI / 2; lamp.name = 'scribes:lamp';
   group.add(tag(lamp, 'a clay saucer lamp with a pinched nozzle (the lamp type of the Iron Age Near East: B by analogy); lit through the working day as a fire of kind lamp (world firePlaces.ts, session 8; C)'));
   const sootMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.05, 0.045, 0.04, THREE.SRGBColorSpace), roughness: 0.95, metalness: 0 });
@@ -207,10 +227,10 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   soot.position.set(L.at[0], bTop + 0.04 + sh / 2, -(room[1] + room[3] / 2) + 0.004); soot.name = 'scribes:soot'; soot.castShadow = false;
   group.add(tag(soot, 'lamp soot on the wall plaster above the lamp\'s place (the evenings\' work: C)'));
   // the ink by the Aramaic secretary: a small pot of carbon ink (Aramaic ink epigraphs: B)
-  const I = R.ink_pot, ink = new THREE.Mesh(mergeGeometries([strip(lathe([[0, 0], [I.r * 0.8, 0], [I.r, I.h * 0.5], [I.r * 0.75, I.h], [I.r * 0.8, I.h * 1.05], [0, I.h * 1.05]], 12))])!, mat([0.26, 0.21, 0.17], 0.7));
+  const I = R.ink_pot, inkP = mergeGeometries([strip(lathe([[0, 0], [I.r * 0.8, 0], [I.r, I.h * 0.5], [I.r * 0.75, I.h], [I.r * 0.8, I.h * 1.05], [0, I.h * 1.05]], 12))])!, ink = new THREE.Mesh(fitToForm('jar_neck', inkP) ?? inkP, mat([0.26, 0.21, 0.17], 0.7));
   ink.position.set(I.at[0], fl, -I.at[1]); ink.name = 'scribes:ink'; group.add(tag(ink, 'a small pot of ink for the Aramaic secretary\'s pen (Aramaic written in carbon ink on the PF tablets\' epigraphs: B; the pot C)'));
   // a bowl of water by the clay, to wet it and the fingers (C)
-  const Wb = R.water_bowl, bowl = new THREE.Mesh(strip(lathe([[0, 0], [Wb.r * 0.6, 0], [Wb.r, 0.05], [Wb.r * 0.95, 0.055], [Wb.r * 0.9, 0.035], [0, 0.035]], 16)), mat([0.62, 0.47, 0.33], 0.8));
+  const Wb = R.water_bowl, bowlP = strip(lathe([[0, 0], [Wb.r * 0.6, 0], [Wb.r, 0.05], [Wb.r * 0.95, 0.055], [Wb.r * 0.9, 0.035], [0, 0.035]], 16)), bowl = new THREE.Mesh(fitToForm('basin', bowlP) ?? bowlP, mat([0.62, 0.47, 0.33], 0.8));
   bowl.position.set(Wb.at[0], fl, -Wb.at[1]); bowl.name = 'scribes:water_bowl'; group.add(tag(bowl, 'a bowl of water by the clay, to keep it and the hands wet (C)'));
   // two jars for tablets in the SE corner (tablets kept in jars and baskets: Mesopotamian archive practice, B by analogy)
   const jarG = strip(jarGeometry(0.17, 0.55, 36, 3));
@@ -299,18 +319,24 @@ export function buildRoomFittings(b: string, R: { mats: number[][]; jars: number
     rolls.push(m4.clone().compose(new THREE.Vector3(c[0], fl + F.mat_t + 0.08, -c[1]), q.setFromAxisAngle(up, -h), one));
   });
   // (D-301: the mats' edges bound and a little raised, the bedding a roll of felt, flattened by its weight, not an 8-sided cylinder)
-  inst(baleGeometry(1, 1, 1, 0.02, false).translate(0, -0.5, 0), mat([0.62, 0.53, 0.35], 0.95), matsA, `${b}:mats`); inst(baleGeometry(1, 1, 1, 0.02, false).translate(0, -0.5, 0), mat([0.55, 0.47, 0.3], 0.95), matsB, `${b}:mats_b`);
-  inst(new THREE.CylinderGeometry(0.085, 0.085, mw * 0.85, 24, 1).rotateZ(Math.PI / 2).scale(1, 0.8, 1), mat([0.5, 0.36, 0.24], 0.9), rolls, `${b}:bedrolls`);
+  // (D-325: the reed mats and the rolled bedding are the modelled mat and roll, when loaded)
+  const mUnit = model('mat') ? mergedModel(modelFit('mat', [1, 1, 1], 1, [0, -0.5, 0])!) : null, rollP = new THREE.CylinderGeometry(0.085, 0.085, mw * 0.85, 24, 1).rotateZ(Math.PI / 2).scale(1, 0.8, 1);
+  for (const g of [mUnit]) if (g) g.deleteAttribute('ao');
+  inst(mUnit ?? baleGeometry(1, 1, 1, 0.02, false).translate(0, -0.5, 0), mat([0.62, 0.53, 0.35], 0.95), matsA, `${b}:mats`); inst(mUnit?.clone() ?? baleGeometry(1, 1, 1, 0.02, false).translate(0, -0.5, 0), mat([0.55, 0.47, 0.3], 0.95), matsB, `${b}:mats_b`);
+  const rollM = model('roll') ? (() => { rollP.computeBoundingBox(); const bb = rollP.boundingBox!, sz = bb.getSize(new THREE.Vector3()); const g = mergedModel(modelFit('roll', [sz.x, sz.y, sz.z], 1, [0, bb.min.y, 0])!); g.deleteAttribute('ao'); return g; })() : null;
+  inst(rollM ?? rollP, mat([0.5, 0.36, 0.24], 0.9), rolls, `${b}:bedrolls`);
   // storage jars: a round-bottomed jar set in the floor, its mouth closed with a clay stopper (C)
   const r = F.jar_r, jh = F.jar_h;
   inst(jarGeometry(r, jh, 40, 7), mat([0.62, 0.44, 0.31], 0.85),
     R.jars.map(([e, n, fl], i) => m4.clone().compose(new THREE.Vector3(e, fl - 0.02, -n), q.setFromAxisAngle(up, i * 1.7), one)), `${b}:jars`);
   // querns: a saddle quern (a stone slab) with its rubbing stone on it
   const [qw, qd] = F.quern as [number, number];
-  inst(mergeGeometries([strip(quernGeometry(qw, 0.12, qd)), strip(new THREE.SphereGeometry(0.5, 16, 8).scale(qw * 0.36, 0.075, qd * 0.62).translate(qw * 0.05, 0.1, 0))])!, mat([0.52, 0.5, 0.46], 0.8),
+  const quernP = mergeGeometries([strip(quernGeometry(qw, 0.12, qd)), strip(new THREE.SphereGeometry(0.5, 16, 8).scale(qw * 0.36, 0.075, qd * 0.62).translate(qw * 0.05, 0.1, 0))])!;
+  inst(fitToForm('quern', quernP) ?? quernP, mat([0.52, 0.5, 0.46], 0.8), // (D-325: the modelled saddle quern and its rubbing stone)
     R.querns.map(([e, n, fl]) => m4.clone().compose(new THREE.Vector3(e, fl, -n), q.identity(), one)), `${b}:querns`);
   // saucer lamps on the ledges (their flames: firePlaces.ts)
-  inst(lathe([[0, 0], [0.04, 0], [0.055, 0.016], [0.057, 0.03], [0.05, 0.03], [0.045, 0.016], [0, 0.012]], 24), mat([0.6, 0.45, 0.32], 0.8),
+  const lampP = lathe([[0, 0], [0.04, 0], [0.055, 0.016], [0.057, 0.03], [0.05, 0.03], [0.045, 0.016], [0, 0.012]], 24);
+  inst(fitToForm('lamp', lampP, 1) ?? lampP, mat([0.6, 0.45, 0.32], 0.8), // (D-325: the modelled saucer lamp)
     R.lamps.map(([e, n, y]) => m4.clone().compose(new THREE.Vector3(e, y, -n), q.identity(), one)), `${b}:lamps`);
   const RK: Record<string, string> = { mats: 'reed', mats_b: 'reed', bedrolls: 'felt', jars: 'clay', querns: 'stone', lamps: 'clay' };
   mergeStatic(group, names, `${b}:room_fittings`, n => RK[n.split(':')[1]] ?? 'clay');

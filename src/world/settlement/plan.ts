@@ -25,7 +25,9 @@ export const thetaOfBearing = (gridDeg: number) => (90 - gridDeg) * deg;
 
 export type Mat = 'mud' | 'stone' | 'brick' | 'timber' | 'glaze' | 'refuse';
 /** a box or cylinder prop (grid frame; heights above a base sampled from the terrain: its group's lowest corner) */
-export interface Prop { shape: 'box' | 'cyl'; mat: Mat; c: P2; theta: number; hu: number; hv: number; y0: number; y1: number; group: string; collide: boolean; row: string; feature: string; note: string; colour?: [number, number, number]; r1?: number }
+/** (D-325) `model`: a modelled prop drawn in this prop's place (at c, theta, the group's base) when loaded, instead of its
+ *  shape; `inModel`: this prop's shape is part of that model (not drawn when it is loaded; its collider stays) */
+export interface Prop { model?: string; inModel?: string; shape: 'box' | 'cyl'; mat: Mat; c: P2; theta: number; hu: number; hv: number; y0: number; y1: number; group: string; collide: boolean; row: string; feature: string; note: string; colour?: [number, number, number]; r1?: number }
 export interface TreeSpot { c: P2; species: string; size: number; row: string; feature: string }
 export interface WaterPiece { kind: 'pool' | 'channel' | 'well' | 'canal' | 'ditch'; pts: P2[]; width: number; level: number; row: string; feature: string; note?: string }
 export interface Road { id: string; feature: string; row: string; pts: P2[]; width: number; note: string }

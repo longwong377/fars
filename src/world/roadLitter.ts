@@ -7,6 +7,10 @@
 import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, float, length, smoothstep, cameraPosition } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
+import { modelParts } from '../render/scanProps';
+/** the sherds' kinds in the litter geometry: 1 .. SHERDS (D-325: the four modelled sherds of a broken jar, or the one
+ *  procedural curved piece when the models are not loaded) */
+let SHERDS = 1;
 
 export const LITTER_R = 30;
 export interface LitterRoad { id: string; pts: P2[]; width: number; /** relative traffic (1 = the royal road) */ use: number }
@@ -16,7 +20,11 @@ const u01 = (...v: number[]) => h32(...v) / 4294967296;
 function litterGeometry() {
   const parts: THREE.BufferGeometry[] = [], kinds: number[] = [];
   for (let k = 0; k < 4; k++) { const s = new THREE.SphereGeometry(0.035 + 0.01 * (k % 2), 5, 3); s.scale(1, 0.55, 1.2); s.translate(0.05 * Math.cos(k * 2.1), 0.012, 0.05 * Math.sin(k * 2.1)); parts.push(s); kinds.push(0); }
-  const c = new THREE.CylinderGeometry(0.16, 0.16, 0.012, 7, 1, true, 0, 1.1); c.rotateZ(Math.PI / 2); c.translate(0, 0.02, 0); c.translate(0.5, 0, 0); parts.push(c); kinds.push(1);
+  // D-325: four sherds of a broken jar (tools/blender/model_props.py: curved pieces of a 1 cm wall with jagged broken edges,
+  // lying convex or concave side up), each its own kind; else the procedural curved piece
+  const sh = modelParts('sherds', 0);
+  if (sh) { SHERDS = 0; for (const k of ['s0', 's1', 's2', 's3']) if (sh[k]) { parts.push(sh[k]); kinds.push(++SHERDS); } }
+  else { SHERDS = 1; const c = new THREE.CylinderGeometry(0.16, 0.16, 0.012, 7, 1, true, 0, 1.1); c.rotateZ(Math.PI / 2); c.translate(0, 0.02, 0); c.translate(0.5, 0, 0); parts.push(c); kinds.push(1); }
   const P: number[] = [], N: number[] = [], K: number[] = [];
   parts.forEach((g0, i) => { const g = g0.index ? g0.toNonIndexed() : g0, p = g.getAttribute('position'), n = g.getAttribute('normal'); for (let j = 0; j < p.count; j++) { P.push(p.getX(j), p.getY(j), p.getZ(j)); N.push(n.getX(j), n.getY(j), n.getZ(j)); K.push(kinds[i]); } });
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('kind', new THREE.Float32BufferAttribute(K, 1)); return g;
@@ -30,7 +38,7 @@ export class RoadLitter {
     const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.85, side: THREE.DoubleSide });
     const d = length(attribute('fpos', 'vec3').xz.sub(cameraPosition.xz)), grow = float(1).sub(smoothstep(LITTER_R * 0.8, LITTER_R, d));
     // each instance is either the dung clump (its sherd part collapsed) or the sherd (its lumps collapsed)
-    const keep = float(1).sub(attribute('kind', 'float').sub(attribute('which', 'float')).abs());
+    const keep = float(1).sub(attribute('kind', 'float').sub(attribute('which', 'float')).abs()).max(0); // (D-325: several sherd kinds: clamped)
     m.positionNode = positionLocal.mul(grow.mul(keep));
     this.mesh = new THREE.InstancedMesh(g, m, this.max); this.mesh.count = 0; this.mesh.frustumCulled = false; this.mesh.castShadow = false; this.mesh.receiveShadow = true; this.mesh.name = 'road-litter';
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(this.max * 3), 3);
@@ -42,7 +50,7 @@ export class RoadLitter {
     const fpos = this.mesh.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute, which = this.mesh.geometry.getAttribute('which') as THREE.InstancedBufferAttribute; let c = 0;
     const put = (e: number, n: number, kind: number, key: number[]) => { if (c >= this.max) return; const y = this.ground(e, n); if (!Number.isFinite(y)) return;
       const sz = kind ? 0.6 + 0.8 * u01(...key, 5) : 0.8 + 0.7 * u01(...key, 5); this.eu.set(0, u01(...key, 6) * 6.283, 0); this.q.setFromEuler(this.eu);
-      this.m4.compose(this.v.set(e, y, -n), this.q, this.s.set(sz, sz, sz)); this.mesh.setMatrixAt(c, this.m4); fpos.setXYZ(c, e, y, -n); which.setX(c, kind);
+      this.m4.compose(this.v.set(e, y, -n), this.q, this.s.set(sz, sz, sz)); this.mesh.setMatrixAt(c, this.m4); fpos.setXYZ(c, e, y, -n); which.setX(c, kind ? 1 + (h32(...key, 11) % SHERDS) : 0);
       const age = u01(...key, 7); if (kind) this.col.setRGB(0.55 + 0.1 * age, 0.36 + 0.06 * age, 0.24); else this.col.setRGB(0.12 + 0.3 * age, 0.1 + 0.24 * age, 0.06 + 0.17 * age); // (sherds buff-red; dung dark when fresh, pale straw-grey when dry)
       this.mesh.setColorAt(c, this.col); c++; };
     this.roads.forEach((R, ri) => { let s0 = 0;
