@@ -46,3 +46,14 @@ describe('the winter murmuration (GA45)', () => {
     starlingAt(3, 200, 1, 100, [0, 0], 0, 1, a); expect(a.pos.y).toBeLessThan(25);
   });
 });
+
+import { kestrelAt } from '../src/world/wildlife';
+describe('kestrels (GA44)', () => {
+  it('hover in place most of each cycle, 5-25 m up, facing into the wind, and slide on to the next spot', () => {
+    const a = pose(), b = pose(); let hover = 0, n = 0, facing = 0;
+    for (let t = 0; t < 2000; t += 3.7) { kestrelAt([0, 0], () => 0, 7, t, { x: 3, n: 0 }, a); kestrelAt([0, 0], () => 0, 7, t + 0.5, { x: 3, n: 0 }, b); n++;
+      const v = Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z) / 0.5; if (v < 1.5) { hover++; if (Math.abs(a.heading - Math.atan2(-3, 0)) < 1e-6) facing++; }
+      expect(a.pos.y).toBeLessThan(30); expect(v).toBeLessThan(20); }
+    expect(hover / n).toBeGreaterThan(0.45); expect(facing / hover).toBeGreaterThan(0.8); // (the slow start of a slide faces its way)
+  });
+});

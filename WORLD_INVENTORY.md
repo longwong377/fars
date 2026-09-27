@@ -196,7 +196,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GA41 | the wolf-killing month (*Vṛkazana) and its act | A105 | calendar | A name / C | MISSING/PARTIAL |
 | GA42 | Persian squirrel | A114 | fauna | C | MISSING/PARTIAL |
 | GA43 | delegation beasts drawn (lioness, okapi, ibex) | A117 | fauna | B | MISSING/PARTIAL |
-| GA44 | kestrels | A133 | birds | C | MISSING/PARTIAL |
+| GA44 | kestrels | A133 | birds | C | BUILT (D-287: hovering over the fields); unrendered |
 | GA45 | winter starlings | A137 | birds | C | BUILT (D-286: a dusk murmuration over the Pulvar's reeds, Nov-Feb); render queued |
 | GA46 | ants | A155; C-W23 | insects | C | MISSING/PARTIAL |
 | GA47 | freshwater crab | A162 | invertebrates | C | MISSING/PARTIAL |

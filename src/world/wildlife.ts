@@ -18,7 +18,7 @@ import type { NavGrid, P2 } from '../people/navgrid';
 import type { Terrain } from '../terrain/heightfield';
 
 export interface BirdSpecies { id: string; name: string; tier: string; months: number[]; hours: [number, number]; span: number; length: number; colour: [number, number, number]; flapHz: number; count: number }
-export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane' | 'bat' | 'chukar' | 'hoopoe' | 'beeeater' | 'heron' | 'egret' | 'jackdaw' | 'magpie' | 'sandgrouse' | 'wheatear' | 'owl' | 'bulbul' | 'roller' | 'duck' | 'starling', BirdSpecies> = {
+export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane' | 'bat' | 'chukar' | 'hoopoe' | 'beeeater' | 'heron' | 'egret' | 'jackdaw' | 'magpie' | 'sandgrouse' | 'wheatear' | 'owl' | 'bulbul' | 'roller' | 'duck' | 'starling' | 'kestrel', BirdSpecies> = {
   // (session 10, GB29: instances SWIFTS.first.. of the swallows' mesh are the swifts' screaming parties: one draw call for both)
   swallow: { id: 'swallow', name: 'barn swallow; common and pallid swifts', tier: 'C (expected, not sourced; summer migrants)', months: [2, 3, 4, 5, 6, 7, 8], hours: [4.8, 20.2], span: 0.36, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 60 },
   raptor: { id: 'raptor', name: 'buzzard / golden eagle', tier: 'B (Zagros raptors, extract) / C on-site', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [8.5, 17.5], span: 1.9, length: 0.85, colour: [0.28, 0.21, 0.14], flapHz: 2.2, count: 2 },
@@ -51,6 +51,9 @@ export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 
   // session 10 (WORLD_INVENTORY GA45): common starlings wintering on the plain, gathering at dusk over the river's reeds in a
   // murmuration before they drop in to roost (Nov-Feb; hours replaced by swiftScreaming's sun: murmurationOn)
   starling: { id: 'starling', name: 'common starlings: a winter murmuration over the reeds', tier: 'C (starlings winter in huge flocks on the plains of Fars and roost in reedbeds: expected, not sourced)', months: [10, 11, 0, 1], hours: [15, 19], span: 0.38, length: 0.2, colour: [0.09, 0.09, 0.1], flapHz: 12, count: 1500 },
+  // session 10 (GA44): kestrels hunting over the fields and the steppe, hovering in place into the wind, then sliding off to hover
+  // again or dropping on a vole (C: common and lesser kestrels of the Iranian plateau; expected, not sourced)
+  kestrel: { id: 'kestrel', name: 'kestrels hovering over the fields', tier: 'C (common kestrel resident, lesser kestrel a summer breeder on the plateau: expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [7, 17.5], span: 0.75, length: 0.34, colour: [0.55, 0.36, 0.22], flapHz: 9, count: 6 },
   crane: { id: 'crane', name: 'common crane (winter flocks)', tier: 'B (winter cranes, geese and ducks at the Fars lakes: SOUNDSCAPE.md section 4, Bakhtegan) / C passage', months: [10, 11, 0, 1, 2], hours: [7.5, 16.5], span: 2.1, length: 1.1, colour: [0.55, 0.57, 0.6], flapHz: 1.6, count: 18 },
 };
 /** a crow's place (closed form): three quarters of each spell on the ground at its midden, walking and pecking between
@@ -179,6 +182,18 @@ export function sunHoursOfMonth(m: number): [number, number] {
   const dec = -23.44 * Math.cos((2 * Math.PI / 365) * (m * 30.4 + 15 + 10)) * Math.PI / 180, lat = 29.94 * Math.PI / 180;
   const H = Math.acos(Math.max(-1, Math.min(1, (Math.sin(-0.0145) - Math.sin(lat) * Math.sin(dec)) / (Math.cos(lat) * Math.cos(dec))))) * 12 / Math.PI;
   return [12 - H, 12 + H];
+}
+/** session 10 (GA44): a kestrel's hunt over home ground `base` (grid), ground `g`: in cycles of ~40 s it hovers 20-30 s at 10-22 m
+ *  (the wingbeat fast, the body still, facing the wind), slides 30-60 m on to its next spot, and one cycle in five ends in a
+ *  stoop to the ground and a climb back (C) */
+export function kestrelAt(base: P2, g: (e: number, n: number) => number, seed: number, t: number, wind: { x: number; n: number }, out: BirdPose) {
+  const T = 40, c = Math.floor(t / T), f = (t - c * T) / T, r0 = new Rng(seed, 'kestrel'), ph = r0.range(0, 6.3), ps = r0.range(0, 6.3), spot = (k: number): P2 => [base[0] + 150 * Math.sin(k * 0.31 + ph), base[1] + 150 * Math.cos(k * 0.23 + ps)]; // (a beat over its ground, 20-50 m from spot to spot)
+  const a = spot(c), b = spot(c + 1), rr = new Rng(seed, `kestrelh:${c}`), h = rr.range(10, 22), stoop = rr.chance(0.2), into = Math.atan2(-wind.x, -wind.n);
+  if (f < 0.65) { const dip = stoop && f > 0.5 ? Math.sin((f - 0.5) / 0.15 * Math.PI) : 0, e = a[0] + 0.3 * Math.sin(t * 1.3), n = a[1] + 0.3 * Math.cos(t * 1.1);
+    out.pos.set(e, g(e, n) + h * (1 - 0.92 * dip) + 0.15 * Math.sin(t * 2.1), -n); out.heading = Math.abs(wind.x) + Math.abs(wind.n) > 0.3 ? into : rr.range(0, 6.28); out.bank = 0; out.flap = dip > 0.3 ? 0 : 1; }
+  else { const k = (f - 0.65) / 0.35, s = k * k * (3 - 2 * k), e = a[0] + (b[0] - a[0]) * s, n = a[1] + (b[1] - a[1]) * s;
+    out.pos.set(e, g(e, n) + h + 6 * Math.sin(Math.PI * k), -n); out.heading = Math.atan2(b[0] - a[0], b[1] - a[1]); out.bank = 0.2 * Math.sin(Math.PI * k); out.flap = k < 0.3 ? 1 : 0.2; }
+  out.visible = true;
 }
 /** session 10 (GA45): the starlings' murmuration: from 50 min before sunset to 12 min after it, in the winter months (C) */
 export function murmurationOn(month: number, hour: number) { if (![10, 11, 0, 1].includes(month)) return false; const set = sunHoursOfMonth(month)[1]; return hour >= set - 0.83 && hour <= set + 0.2; }
@@ -311,6 +326,7 @@ export class Birds {
         else if (sp.id === 'starling') { const pool = this.banks.length ? this.banks : this.waters; if (!pool.length || !murmurationOn(month, hour)) continue;
           const near = (q: P2) => Math.hypot(q[0] + 1658, q[1] - 2919), roost = this.roost ??= pool.reduce((b, q) => (near(q) < near(b) ? q : b), pool[0]), set = sunHoursOfMonth(month)[1], drop = Math.max(0, Math.min(1, (hour - set) / 0.2));
           starlingAt(i, sp.count, this.seed, t, roost, this.terrain.heightAt(roost[0], -roost[1]), drop, p); }
+        else if (sp.id === 'kestrel') { const pool = [...this.fields, ...this.steppe]; if (!pool.length) continue; kestrelAt(pool[(i * 37 + 11) % pool.length], this.gh, hashSeed(this.seed, 'kestrel', i), t, wind, p); }
         else if (sp.id === 'bat') { const pool = i % 2 && this.waters.length ? this.waters : this.anchors, a = pool[(i * 5) % pool.length]; batAt(a, i % 2 && this.waters.length ? this.terrain.heightAt(a[0], -a[1]) : (this.nav.heightAt(a[0], a[1]) || 0), sd, t, p); }
         else { if (!this.sparrowAt(i, t, player, p)) continue; }
         this.e.set(0, p.heading, 0); this.q.setFromEuler(this.e); if (p.bank) this.q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), p.bank));

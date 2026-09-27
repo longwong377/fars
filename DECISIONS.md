@@ -6791,3 +6791,9 @@ moment-*-webgpu.png in the worktree, not committed).**
   each stands for ~15 of a real flock's tens of thousands, so far off a bird is drawn no smaller than ~1.2 mrad (the flock's
   darkness from the birds not drawn). Closed-form in time like every bird. Tests: tests/swifts.test.ts (season and hours; the cloud
   holds together, 10-160 m up, < 40 m/s; drops into the reeds). Moment `murmuration-jan` queued.
+
+## D-287 Kestrels hovering over the fields (session 10; WORLD_INVENTORY GA44)
+- **Decision (C: common kestrels resident, lesser kestrels summer breeders on the plateau; expected, not sourced):** six kestrels
+  hunting over the fields and steppe by day, all year: 40 s cycles of hovering 20-30 s at 10-22 m facing into the wind (fast
+  wingbeat, body still), a slide 20-50 m to the next spot of its beat, one cycle in five a stoop to the ground and back. One
+  instanced mesh. Tests: tests/swifts.test.ts. Unrendered (small at any distance; judged in the plain views that include fields).
