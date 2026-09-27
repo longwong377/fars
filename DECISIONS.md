@@ -7578,3 +7578,49 @@ moment-*-webgpu.png in the worktree, not committed).**
   stops the leaf's thickness (r_door_leaves.thickness 0.25 m) short of the inner face and the fore-part projects 2.2 m
   (C; Q-890). The protome's horns are raised ~0.08 D in the head frame (protome.head.horn_shift [-0.07, 0.035, 0] D): with
   the head hung low they no longer rose above the poll; the photographs show them sweeping up and forward (C).
+
+## D-326 The animals as modelled bodies, every species (session 12, agent animals; UD-19, UD-17, D-233; T-R12; BLENDER_PLAN row 4)
+- **What changed, world-wide.** Every animal the game draws goes through one class, `Animals` (src/people/animals.ts), used
+  by the crowd (the work animals of every performance: flocks, ploughs, threshing, strings, mounts, draught, folds) and by
+  the fauna (world/fauna.ts: yard dogs and fowl, the herds of the villages and bands, the paradise's game, the boar, the wild
+  beasts of world/beasts.ts). That class now draws, for every one of the 34 species, a modelled body with two levels and
+  baked maps (public/models/animals/, loaded at startup by src/people/animalModels.ts, awaited by world.ts with the other
+  models); the procedural spheres-and-tubes stay only as the stand-in when a model is absent or `?animals=0` / `?models=0`.
+- **How the bodies are made (C).** One anatomy per family (equid, bovid, caprine, cervid, antelope, suid, camelid, canid,
+  felid, hare, fowl; src/people/animalForm.ts): the torso a swept elliptical section along the spine with the family's
+  profile (croup, flank, barrel, girth, withers, breast; the carnivores' tuck-up), the shoulder blade, upper arm, thigh and
+  hamstring blended over it, the legs as swept sections through elbow/stifle, knee/hock (with its point), cannon and
+  fetlock, and the family's foot (hoof, cloven hoof with dewclaws, camel pad, paw with toes and claws, the fowl's scaled
+  toes); the neck a swept section from the withers to the poll narrowing at the throat latch; the head a face section and
+  a lower-jaw section (the jowl, the throat's notch), nostrils and mouth carved, eyes under a brow, cupped ears, annulated
+  horns per species (goat, bezoar scimitars, urial curls, cattle, gazelle lyres, fallow palms); the species' marks (humps,
+  zebu hump and dewlap, udder, fat tail, fleece, boar crest and tusks and snout disc, lion's mane, hyena's crest, the
+  fowl's comb, wattles, wings, sickles) and the travelling gear (pack saddle, wicker panniers, sack, girth; the camel's
+  sacks; the saddle cloth). All sizes come from ANIMAL_BUILD and animalFrame (the rig's own pivots), so the model bends where
+  the stand-in did. The coat's relief (hair streaks along the flow, the fleece's Worley locks, mane and tail strands,
+  feathers, horn rings, hoof growth lines, the wicker's weave) and its albedo with a coat mask are computed per vertex of a
+  dense (1.6-4.5 mm) marching-cubes source; Blender (tools/blender/animals.py) decimates the plain surface to lod0
+  (5.6 k large / 4.6 k medium / 3.6 k small / 1.6 k fowl and hare) and lod1 (a fifth), unwraps, and bakes normal,
+  occlusion, albedo and mask from the dense source; KTX2 maps (1024 px large and medium, 512 px small).
+- **The coat.** The albedo map's alpha is the coat mask: where 1, the game multiplies the map (x 2) by the instance's coat
+  colour (ANIMAL_BUILD.coat: the variety of a flock is kept); where 0 the map is the colour itself (hooves, horns, eyes, nose,
+  the gear, a white belly, a black mane). The marks the old notes said were "NOT modelled" are now in the maps (C, from the
+  living animals): the fallow deer's spots and white rump, the gazelle's flank band, pale belly and face stripes, the onager's
+  and the ass's dorsal stripe and cross, the bay's black points, the leopard's rosettes, the cheetah's spots and tear marks,
+  the hyena's stripes, the fox's white tip and dark stockings, the wolf's saddle, the pale bellies of the wild species.
+  No CC0 fur or hide scan exists (ambientCG, Poly Haven searched): the coats are procedural (ASSET_LEDGER).
+- **The rig: weights transferred from the anatomy.** animalForm.rigWeights gives each vertex of a loaded level the rig's
+  attributes from the part distances: the leg weight where the leg is nearer than the torso and below the hip, the knee
+  weight over the knee, the head weight along the neck from its root, the tail weight; smooth across every blend, so the
+  vertex shader's gait, graze and lie cycles (unchanged) drive the body without tearing (tests/animal_models.test.ts: no
+  edge stretched past 3x + 3 cm in any pose). The shader now also turns the normal and tangent with the joints (the lit
+  surface follows the grazing head and the swinging legs) and applies the baked normal map and occlusion.
+- **Levels.** lod1 beyond `lod1At` = 14 x the body's length from the eye (Animals.begin now takes the eye: the crowd's and
+  the fauna's camera); triangles counted per level in stats (the fauna's < 400 k budget test measures the drawn levels).
+- **Head carriage.** animalFrame's head pitch is per family where the rig's single neck joint can still bring the muzzle to
+  the ground (deer 0.7, gazelle 0.65, boar 0.85, camel 0.3, dogs 0.4, cats 0.35; the others keep 0.55): the horse's steeper
+  carriage (0.95) was tried and fails the graze (the muzzle stops 16-28 cm above the ground): a second head joint is the
+  fix (Q-980).
+- **Not done / placeholder (honest):** the forms are C, by eye from the build numbers, and are not yet photoreal: the heads
+  of the grazers still read long and tubular from some angles; no fur cards (the coat is maps only); the gait is the old
+  lateral-walk cycle (no trot, no hopping hare); every species of a family shares one proportion table.

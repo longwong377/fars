@@ -19,7 +19,8 @@
 // a string of pack animals walks nose to tail behind its driver, an ox pair draws a cart behind its carter, a horse carries
 // its rider.
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, positionGeometry, vec3, sin, cos, max, float, uniform } from 'three/tsl';
+import { attribute, positionLocal, positionGeometry, normalGeometry, modelViewMatrix, texture, uv, varying, mix, vec3, vec4, sin, cos, max, float, uniform } from 'three/tsl';
+import { animalModel } from './animalModels';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { nearCascadesOnly } from './humanGPU';
 import { interleave } from './props';
@@ -132,13 +133,19 @@ function tube(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, seg = 
   const L = a.distanceTo(b); const g = new THREE.CylinderGeometry(r1, r0, L, seg, 1, !caps).translate(0, L / 2, 0);
   g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize())).translate(a.x, a.y, a.z); return g;
 }
+/** D-326: how far below the horizontal each family carries its head at rest (rad; C, from the living animals: the deer's,
+ *  the gazelle's and the boar's lower, the dog's, the cats' and the camel's nearly level), never steeper than the rig's
+ *  one neck joint can still bring to the ground; every other form keeps the old 0.55 */
+const HEAD_PITCH: Record<string, number> = { cervid: 0.7, antelope: 0.65, suid: 0.85, camelid: 0.3, canid: 0.4, felid: 0.35 }; // (no steeper than the rig's neck pitch can bring to the ground: the equids, the cattle and the small stock keep 0.55)
+const FAMILY_OF = (sp: Species) => /^(donkey|horse|mule|onager)/.test(sp) ? 'equid' : /^(ox|cow|calf|zebu)$/.test(sp) ? 'bovid' : /^(sheep|goat|wild_goat|urial)$/.test(sp) ? 'caprine' : /^(deer|stag)$/.test(sp) ? 'cervid'
+  : /^gazelle/.test(sp) ? 'antelope' : sp === 'boar' ? 'suid' : /^(camel|dromedary)/.test(sp) ? 'camelid' : /^(dog|wolf|fox|hyena)$/.test(sp) ? 'canid' : /^(lion|lioness|cheetah|leopard)$/.test(sp) ? 'felid' : sp === 'hare' ? 'hare' : 'fowl';
 /** the neck base (head pivot), the head's centre and direction, and the graze angle that brings the muzzle to the ground */
 export function animalFrame(sp: Species) {
   const B = ANIMAL_BUILD[sp], bodyY = B.h - B.girth * 0.5;
   // the neck root: at the barrel's centre for the small stock, lower at the breast for the big animals (nb, x girth)
   const base = new THREE.Vector3(0, bodyY + B.girth * (B.nb ?? 0.04), B.len * 0.4);
   const top = base.clone().add(new THREE.Vector3(0, Math.sin(B.neckA), Math.cos(B.neckA)).multiplyScalar(B.neck));
-  const hd = new THREE.Vector3(0, -Math.sin(0.55), Math.cos(0.55)); // the head points forward and down
+  const ha = HEAD_PITCH[FAMILY_OF(sp)] ?? 0.55, hd = new THREE.Vector3(0, -Math.sin(ha), Math.cos(ha)); // the head points forward and down (D-326: at the family's own carriage)
   const muzzle = top.clone().add(hd.clone().multiplyScalar(B.head));
   // graze: pitch about the neck base (x) until the muzzle is 3 cm above the ground
   let lo = 0, hi = 1.9; for (let i = 0; i < 30; i++) { const a = (lo + hi) / 2, d = muzzle.clone().sub(base); const y = base.y + d.y * Math.cos(a) - d.z * Math.sin(a); if (y > 0.03) lo = a; else hi = a; }
@@ -362,26 +369,33 @@ export const FOLD_R = 6, FOLD_AT = 7.5;
 /** where the cart stands behind its draught pair (the performer's frame: the axle, m; workObjects 'cart') */
 export const CART_AT: [number, number, number] = [0, 0, -(1.2 + 1.85 + 0.45 + 1.2)];
 
-/** the animals: one instanced mesh per species, filled every frame by the crowd (begin / push / end) */
+/** the animals: one instanced mesh per species and level, filled every frame by the crowd and the fauna (begin / push /
+ *  end). D-326: a species whose modelled body is loaded (animalModels.ts) draws it, lod0 near and lod1 beyond its
+ *  distance (the manifest's lod1At, m, from the eye given to begin); else its procedural stand-in (one level). */
+type Slot = { mesh: THREE.InstancedMesh; data: THREE.InterleavedBuffer; state: THREE.InterleavedBufferAttribute; rot: THREE.InterleavedBufferAttribute[]; coat: THREE.InterleavedBufferAttribute | null; n: number; box: THREE.Box3; tris: number };
 export class Animals {
   readonly group = new THREE.Group();
-  private meshes = new Map<Species, { mesh: THREE.InstancedMesh; data: THREE.InterleavedBuffer; state: THREE.InterleavedBufferAttribute; rot: THREE.InterleavedBufferAttribute[]; n: number; box: THREE.Box3 }>();
+  private meshes = new Map<string, Slot>();
   private uTime = uniform(0);
+  private eye: { x: number; y: number; z: number } | null = null;
   /** animals not drawn this frame because their species' instance cap was full (reported by stats: never silent) */
   dropped = 0;
   constructor(private cap = 512, name = 'animals:work') { this.group.name = name; }
   /** D-220: called for every animal pushed (the world's dust: a walking animal raises dust on dry earth) */
   onPush: ((a: AnimalInst, M: THREE.Matrix4) => void) | null = null;
-  private mesh(sp: Species) {
-    let m = this.meshes.get(sp); if (m) return m;
-    const g = animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp);
-    // per instance, in one interleaved buffer: the state (gait phase, walk, graze, lie) and the instance's rotation (its
-    // matrix's axes). three.js applies the instance matrix to positionLocal BEFORE the material's positionNode, so the rig
-    // deforms the raw geometry position in the animal's own frame and adds the displacement turned by these axes
-    // (rotating legs about pivots in world space would throw them across the field)
-    const data = interleave(g, ['aState', 'aRx', 'aRy', 'aRz'], { count: this.cap, sizes: [4, 3, 3, 3] }); data.setUsage(THREE.DynamicDrawUsage);
+  private mesh(sp: Species, lod: number): Slot {
+    const key = `${sp}:${lod}`; let m = this.meshes.get(key); if (m) return m;
+    const model = animalModel(sp);
+    const g = model ? model.lods[lod].clone() : animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp);
+    if (model) interleave(g, ['aLeg', 'aPiv', 'aHT']);
+    // per instance, in one interleaved buffer: the state (gait phase, walk, graze, lie), the instance's rotation (its
+    // matrix's axes) and (the models) the coat colour. three.js applies the instance matrix to positionLocal BEFORE the
+    // material's positionNode, so the rig deforms the raw geometry position in the animal's own frame and adds the
+    // displacement turned by these axes (rotating legs about pivots in world space would throw them across the field)
+    const names = ['aState', 'aRx', 'aRy', 'aRz', ...(model ? ['aCoat'] : [])];
+    const data = interleave(g, names, { count: this.cap, sizes: [4, 3, 3, 3, ...(model ? [3] : [])] }); data.setUsage(THREE.DynamicDrawUsage);
     const state = g.getAttribute('aState') as THREE.InterleavedBufferAttribute, rot = ['aRx', 'aRy', 'aRz'].map(n => g.getAttribute(n) as THREE.InterleavedBufferAttribute);
-    const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.95 }); mat.vertexColors = true;
+    const mat = new THREE.MeshStandardNodeMaterial({ roughness: model ? 0.82 : 0.95 }); mat.vertexColors = !model;
     const L = attribute('aLeg', 'vec4'), Pv = attribute('aPiv', 'vec4'), H = attribute('aHT', 'vec4'), S = attribute('aState', 'vec4');
     const rx = (p: any, a: any, cy: any, cz: any) => { const dy = p.y.sub(cy), dz = p.z.sub(cz), c = cos(a), s = sin(a); return vec3(p.x, cy.add(dy.mul(c)).sub(dz.mul(s)), cz.add(dy.mul(s)).add(dz.mul(c))); };
     const ph = S.x.add(L.x), fore = max(L.w, float(0));
@@ -395,21 +409,41 @@ export class Animals {
     const at = H.y.mul(0.3).mul(sin(this.uTime.mul(1.1).add(S.x.mul(0.1)))), c = cos(at), s = sin(at), dz = p.z.sub(H.w);
     p = vec3(p.x.mul(c).add(dz.mul(s)), p.y, H.w.sub(p.x.mul(s)).add(dz.mul(c)));
     p = p.add(vec3(0, S.w.mul(-drop).add(S.y.mul(0.012).mul(sin(ph.mul(2)))), 0));
-    const d = p.sub(P0);
-    mat.positionNode = positionLocal.add(attribute('aRx', 'vec3').mul(d.x)).add(attribute('aRy', 'vec3').mul(d.y)).add(attribute('aRz', 'vec3').mul(d.z)) as any;
+    const d = p.sub(P0), Rx = attribute('aRx', 'vec3'), Ry = attribute('aRy', 'vec3'), Rz = attribute('aRz', 'vec3');
+    mat.positionNode = positionLocal.add(Rx.mul(d.x)).add(Ry.mul(d.y)).add(Rz.mul(d.z)) as any;
+    if (model) {
+      // the surface turns with the rig: the normal and the tangent pitched by the joints' summed angle (every rotation of
+      // the rig but the tail's is about a lateral axis), yawed by the tail's, carried to the world by the instance's axes
+      // and to the view; the baked normal map on that frame, the occlusion on the indirect light
+      const turn = (v: any) => { const A = a1.add(a2).add(ah), ca = cos(A), sa = sin(A); let q: any = vec3(v.x, v.y.mul(ca).sub(v.z.mul(sa)), v.y.mul(sa).add(v.z.mul(ca)));
+        q = vec3(q.x.mul(c).add(q.z.mul(s)), q.y, q.x.mul(s).negate().add(q.z.mul(c))); return modelViewMatrix.mul(vec4(Rx.mul(q.x).add(Ry.mul(q.y)).add(Rz.mul(q.z)), 0)).xyz.normalize(); };
+      const T4 = attribute('tangent', 'vec4'), vN = varying(turn(normalGeometry)), vT = varying(turn(T4.xyz)), vW = varying(T4.w);
+      const tn = texture(model.nrm, uv()), ta = texture(model.albedo, uv()), m3 = tn.rgb.mul(2).sub(1);
+      const N = vN.normalize(), T = vT.sub(N.mul(vT.dot(N))).normalize(), Bt = N.cross(T).mul(vW);
+      mat.normalNode = T.mul(m3.x).add(Bt.mul(m3.y)).add(N.mul(m3.z)).normalize() as any;
+      mat.aoNode = tn.a as any;
+      mat.colorNode = mix(ta.rgb, attribute('aCoat', 'vec3').mul(ta.rgb).mul(2), ta.a) as any;
+    }
     const mesh = new THREE.InstancedMesh(g, mat, this.cap); mesh.count = 0; mesh.visible = false; mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere();
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `animals:${sp}`; mesh.userData = { tier: 'C', src: 'RECON', note: `${ANIMAL_BUILD[sp].note}; ${ANIMAL_BUILD[sp].tier}` }; mesh.raycast = () => {};
-    mesh.setColorAt(0, new THREE.Color(1, 1, 1)); nearCascadesOnly(mesh);
-    this.group.add(mesh); m = { mesh, data, state, rot, n: 0, box: new THREE.Box3() }; this.meshes.set(sp, m); return m;
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `animals:${sp}${model ? `:lod${lod}` : ''}`; mesh.raycast = () => {};
+    mesh.userData = { tier: 'C', src: 'RECON', note: `${ANIMAL_BUILD[sp].note}; ${ANIMAL_BUILD[sp].tier}${model ? `; modelled body level ${lod} (D-326: anatomy src/people/animalForm.ts, built in Blender by tools/blender/animals.mjs, baked coat maps)` : '; procedural stand-in (the modelled body not loaded)'}` };
+    if (!model) mesh.setColorAt(0, new THREE.Color(1, 1, 1));
+    nearCascadesOnly(mesh);
+    this.group.add(mesh); m = { mesh, data, state, rot, coat: model ? g.getAttribute('aCoat') as THREE.InterleavedBufferAttribute : null, n: 0, box: new THREE.Box3(), tris: (g.index ? g.index.count : g.getAttribute('position').count) / 3 };
+    this.meshes.set(key, m); return m;
   }
-  begin(time: number) { this.uTime.value = time % 100000; this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
+  /** a frame's start: the time (the rig's idle cycles) and the eye (the level of detail; none: the nearest level) */
+  begin(time: number, eye?: { x: number; y: number; z: number } | null) { this.uTime.value = time % 100000; this.dropped = 0; this.eye = eye ?? null; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
   /** an animal at a world transform with its state */
   push(a: AnimalInst, M: THREE.Matrix4) {
     this.onPush?.(a, M);
-    const m = this.mesh(a.sp); if (m.n >= this.cap) { this.dropped++; return; } const i = m.n++;
+    const model = animalModel(a.sp), e = M.elements;
+    const lod = model && this.eye && Math.hypot(e[12] - this.eye.x, e[13] - this.eye.y, e[14] - this.eye.z) > model.lod1At ? 1 : 0;
+    const m = this.mesh(a.sp, lod); if (m.n >= this.cap) { this.dropped++; return; } const i = m.n++;
     m.mesh.setMatrixAt(i, M); m.state.setXYZW(i, a.phase % (TWO_PI * 64), a.walk, a.graze, a.lie);
-    const e = M.elements; m.rot[0].setXYZ(i, e[0], e[1], e[2]); m.rot[1].setXYZ(i, e[4], e[5], e[6]); m.rot[2].setXYZ(i, e[8], e[9], e[10]);
-    const c = ANIMAL_BUILD[a.sp].coat, k = Math.min(c.length - 1, Math.floor(a.coat * c.length)); _c.setRGB(c[k][0], c[k][1], c[k][2], THREE.SRGBColorSpace); m.mesh.setColorAt(i, _c);
+    m.rot[0].setXYZ(i, e[0], e[1], e[2]); m.rot[1].setXYZ(i, e[4], e[5], e[6]); m.rot[2].setXYZ(i, e[8], e[9], e[10]);
+    const c = ANIMAL_BUILD[a.sp].coat, k = Math.min(c.length - 1, Math.floor(a.coat * c.length)); _c.setRGB(c[k][0], c[k][1], c[k][2], THREE.SRGBColorSpace);
+    if (m.coat) m.coat.setXYZ(i, _c.r, _c.g, _c.b); else m.mesh.setColorAt(i, _c);
     m.box.expandByPoint(_p.setFromMatrixPosition(M));
   }
   end() {
@@ -419,8 +453,8 @@ export class Animals {
       if (im.instanceColor) { im.instanceColor.needsUpdate = true; im.instanceColor.clearUpdateRanges(); im.instanceColor.addUpdateRange(0, m.n * 3); }
       m.box.getBoundingSphere(im.boundingSphere!); im.boundingSphere!.radius += 1.5; }
   }
-  stats() { let draws = 0, instances = 0, triangles = 0; const species: Record<string, number> = {};
-    for (const [k, m] of this.meshes) if (m.n) { draws++; instances += m.n; triangles += m.n * m.mesh.geometry.getAttribute('position').count / 3; species[k] = m.n; }
-    return { draws, instances, triangles, species, dropped: this.dropped }; }
+  stats() { let draws = 0, instances = 0, triangles = 0, modelled = 0; const species: Record<string, number> = {};
+    for (const [k, m] of this.meshes) if (m.n) { draws++; instances += m.n; triangles += m.n * m.tris; const sp = k.split(':')[0]; species[sp] = (species[sp] ?? 0) + m.n; if (m.coat) modelled += m.n; }
+    return { draws, instances, triangles, species, dropped: this.dropped, modelled }; }
 }
 const _p = new THREE.Vector3(), _c = new THREE.Color();

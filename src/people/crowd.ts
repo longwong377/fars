@@ -600,7 +600,7 @@ export class Crowd {
     const gpu = this.humans.gpu; gpu.begin();
     for (const c of this.carried) c.mesh.count = 0; this.propsDropped = 0;
     if ((this.frame & 63) === 0) for (const [k, pl] of this.plays) if (time > pl.until + 5) this.plays.delete(k);
-    this.things.begin(); this.animals.begin(time); this.shared.clear();
+    this.things.begin(); this.animals.begin(time, cam); this.shared.clear();
     // order by distance for the full-detail cap
     const list = this.list; list.length = 0;
     for (const p of this.persons.values()) {
