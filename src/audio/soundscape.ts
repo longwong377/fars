@@ -307,7 +307,7 @@ export class Soundscape {
   fliesLevel = 0;
   private fireNodes = new Map<string, { gain: GainNode; pan: PannerNode; bed: NoiseStream }>();
   /** D-245: the rain's and the flies' streams run until a few seconds after their level falls to nothing (the gain's decay) */
-  private rainTail = -1; private fliesTail = -1;
+  private rainTail = -1; private fliesTail = -1; private roofGain?: GainNode;
   private rng = new Rng(1, 'soundscape'); private nextStep = 0; private nextChisel = 0; private started = false;
   lastSpace = 'open';
   constructor(readonly e: AudioEngine) {}
@@ -320,6 +320,10 @@ export class Soundscape {
     this.windSrc.out.connect(this.whistle); this.whistle.connect(this.whistleGain); this.whistleGain.connect(e.ch.ambience);
     this.rainSrc = new NoiseStream(e, 'white', { seg: 5, fade: 0.5, sampleRate: 32000 }); const rf = c.createBiquadFilter(); rf.type = 'highpass'; rf.frequency.value = 900; this.rainGain = c.createGain(); this.rainGain.gain.value = 0;
     this.rainSrc.out.connect(rf); rf.connect(this.rainGain); this.rainGain.connect(e.ch.ambience);
+    // session 10 (WORLD_INVENTORY GB15): under a roof or an awning the rain is heard on it, dull and close (the same stream,
+    // low-passed), and dripping from the roof's edge and spouts (C)
+    { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 650; lp.Q.value = 0.6; this.roofGain = c.createGain(); this.roofGain.gain.value = 0;
+      this.rainSrc.out.connect(lp); lp.connect(this.roofGain); this.roofGain.connect(e.ch.ambience); }
     this.birdBus = c.createGain(); this.birdBus.gain.value = 1; this.birdBus.connect(e.ch.ambience);
     { // flies: pink noise through a narrow band at the wingbeat (~200 Hz), its pitch and loudness wandering (C)
       this.fliesSrc = new NoiseStream(e, 'pink', { seg: 5, fade: 0.5, sampleRate: 8000 }); const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 215; f.Q.value = 6;
@@ -375,6 +379,9 @@ export class Soundscape {
     this.windFilter!.frequency.setTargetAtTime(250 + ctx.windMs * 120, t, 0.5);
     this.whistleGain!.gain.setTargetAtTime(ctx.nearColumns ? Math.min(0.08, Math.max(0, ctx.windMs - 3) * 0.015) : 0, t, 0.8);
     this.rainGain!.gain.setTargetAtTime(ctx.rain * (inside ? 0.12 : 0.35), t, 0.4);
+    const covered = inside || ctx.insideSpace === 'portico'; this.roofGain!.gain.setTargetAtTime(covered ? ctx.rain * 0.5 : 0, t, 0.4);
+    if (covered && ctx.rain > 0.08 && this.rng.chance(Math.min(1, dt * (1 + 6 * ctx.rain)))) { // a drip off the edge (or a spout's stream at a heavier rain)
+      const f = 900 + 900 * this.rng.next(); chirp(e, e.ch.ambience, t + 0.01, f, f * 0.55, 0.05, 0.025 * Math.min(1, ctx.rain * 2)); }
     // the beds' streams run while they can be heard (a silent bed schedules nothing)
     this.windSrc!.tick(); if (ctx.rain > 0.002) this.rainTail = t + 3; if (t < this.rainTail) this.rainSrc!.tick();
     // birds: Poisson calls by species season/time; muffled inside

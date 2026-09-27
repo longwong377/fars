@@ -6834,3 +6834,5 @@ moment-*-webgpu.png in the worktree, not committed).**
   working it) groans on its pivot in the stone socket; when it comes shut, a hollow thud, and at night the bar dropped into its
   brackets. TownDoors.onSound, strike kinds `door`, `door_shut`, `door_bar`. Tests: tests/door_sounds.test.ts. Not heard in a
   browser (B65). The town's drawn people still do not work the doors as they pass (D-234's note stands).
+- **Addendum (GB15):** under a roof, a portico or an awning the rain is heard on it (the rain stream low-passed at 650 Hz, at 0.5 ×
+  the rain) and dripping off the edge (drops at 1-7 a second with the rain's strength). soundscape.ts. Not heard in a browser.

@@ -232,7 +232,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB12 | pregnancy visible | B-075; C-D09 | people | C | MISSING/PARTIAL |
 | GB13 | silver weighed on a balance (performed as `inspect`: a detector escape) | B-095, P-022 | economy | B | FILLED (D-255) |
 | GB14 | writing boards and the scribe's kit | B-099 | records | C | MISSING/PARTIAL |
-| GB15 | rain on timber and cloth heard | B-103 | sound | C | MISSING/PARTIAL |
+| GB15 | rain on timber and cloth heard | B-103 | sound | C | BUILT (D-293 addendum); not heard in a browser |
 | GB16 | barley loaves issued by the state bakery (partial) | P-004 | commodities | A | MISSING/PARTIAL |
 | GB17 | milking performed | P-016 | husbandry | C | MISSING/PARTIAL |
 | GB18 | eggs | P-018 | commodities | C | MISSING/PARTIAL |
