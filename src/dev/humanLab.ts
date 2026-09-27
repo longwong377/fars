@@ -39,6 +39,12 @@ async function boot() {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), surfaceMaterial('court_fill')); floor.receiveShadow = true; scene.add(floor);
   // a wall behind the lineup (a backdrop for judging silhouettes and bounce light)
   const wall = new THREE.Mesh(new THREE.BoxGeometry(30, 6, 1).translate(0, 3, -6), surfaceMaterial('mudbrick')); wall.receiveShadow = wall.castShadow = true; scene.add(wall);
+  // ?lane=1 (D-309c): a second 4 m wall 2 m in front of it (a town lane, 2 m wide, running east-west from x = -15 to 15), and a
+  // closed room (4 × 5 m, 3.5 m high, a 1 × 2 m door on its south side) at x = 25 for an interior exposure
+  if (P.get('lane') === '1') { const w2 = new THREE.Mesh(new THREE.BoxGeometry(30, 4, 1).translate(0, 2, -3), surfaceMaterial('mudbrick')); w2.receiveShadow = w2.castShadow = true; scene.add(w2);
+    const R = (w: number, h: number, d: number, x: number, y: number, z: number) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d).translate(x, y, z), surfaceMaterial('mudbrick')); m.receiveShadow = m.castShadow = true; scene.add(m); };
+    R(5.6, 3.5, 0.3, 25, 1.75, -5.15); R(0.3, 3.5, 5.6, 22.15, 1.75, -2.5); R(0.3, 3.5, 5.6, 27.85, 1.75, -2.5); R(5.6, 0.3, 5.6, 25, 3.65, -2.5); // back, sides, roof
+    R(2.3, 3.5, 0.3, 23.15, 1.75, 0.15); R(2.3, 3.5, 0.3, 26.85, 1.75, 0.15); R(1, 1.5, 0.3, 25, 2.75, 0.15); } // the south wall round a 1 × 2 m door
   const t0 = performance.now();
   const humans = await loadHumans({ velocity: quality !== 'test' && quality !== 'low' });
   const crowd = new Crowd(null, 1, humans); scene.add(crowd.group);
