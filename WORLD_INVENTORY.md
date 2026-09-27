@@ -159,7 +159,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GA4 | animal branding and marking | A034 | husbandry | C | MISSING/PARTIAL |
 | GA5 | cheese making and drying | A047 | food processing | C | MISSING/PARTIAL |
 | GA6 | fruit drying on roofs and mats | A048 | food processing | C | MISSING/PARTIAL |
-| GA7 | elite symposium drinking | A053; C-L03, C-S09, C-D28 | drink | B claim | MISSING/PARTIAL |
+| GA7 | elite symposium drinking | A053; C-L03, C-S09, C-D28 | drink | B claim | PARTIAL (D-283: the rations drunk in company in the lanes and on visits; the elite symposium not built) |
 | GA8 | barefoot poor and children | A065 | dress | C | MISSING/PARTIAL |
 | GA9 | mourning dress and signs | A066; C-D27 | death | B claim | MISSING/PARTIAL |
 | GA10 | tattooing (Thracians) | A067 | adornment | B claim | MISSING/PARTIAL |
@@ -311,8 +311,8 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GC26 | banking the hearth at night (partial) | C-D33 | housing | C | PARTIAL |
 | GC27 | the herd boy's sling for turning the flock or scaring wolves | C-D38 | husbandry | C | MISSING |
 | GC28 | Persian boys' riding lessons (Hdt 1.136; archery only; partial) | C-D41 | childhood | B claim | PARTIAL |
-| GC29 | animal droppings on the royal road, the lanes and the stair foot | C-F08 | traces | C | MISSING |
-| GC30 | sherd and litter scatter and household ash by the doors (partial) | C-F09, C-F10 | traces | C | PARTIAL |
+| GC29 | animal droppings on the royal road, the lanes and the stair foot | C-F08 | traces | C | PARTIAL (D-284: the roads and the halts; not the lanes); render queued |
+| GC30 | sherd and litter scatter and household ash by the doors (partial) | C-F09, C-F10 | traces | C | PARTIAL (D-284: sherds on the roads; not the lanes, no ash) |
 | GC31 | footprints and hoofprints in mud after rain | C-F14 | traces | C | MISSING |
 | GC32 | door sealings (clay on a peg) on the town's store doors (partial) | C-F27 | records | A | PARTIAL |
 | GC33 | the king's chariot or horse on the road (partial, B71) | C-W41 | court | B | PARTIAL |
