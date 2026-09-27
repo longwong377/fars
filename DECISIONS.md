@@ -6713,3 +6713,58 @@ moment-*-webgpu.png in the worktree, not committed).**
      royal guard's sleeping places: B63), the Tripylon's building site, then materials and masonry against the photo references
      (B57; the rubric's materials 1/5), each verified on screen.
 - **Not changed:** MASTER_PLAN's gates and thresholds; the gap inventory stays the backlog, now ordered by ring.
+
+## D-277 The instruments: the area registry from the physical envelope, the board from evidence, Tier 0 (session 10; UD-06, UD-07, UD-12, UD-16; T-A6, T-A6x; MASTER_PLAN §4.2, §4.3, §5)
+- **How this could pass its tests while the intent fails (said before building, and measured against):** (1) the envelope is
+  whatever the build says it is (the nav grid, 35 ha) → it is computed from the terrain rings' own triangles and every static
+  collider, and the test re-checks the cover on 6,000 seeded random points of the terrain rings that it judges walkable itself;
+  (2) a catch-all class tiles the world, so the cover is 100 % by construction while places that deserve judging on their own
+  hide in a class → the cover is reported with the unique share beside it (0.15 % of the 20,459 km² envelope; 14.9 % of it within
+  7 km of the Apadana is judged area by area), every Terrace building, town site and village is required by name in the test,
+  and the classes are only the near ground, plain sectors and far land; (3) areas are big enough to dilute a failing place →
+  polygon areas (never the smaller walkable share) against 1 km² and 0.25 ha for interiors, recomputed in the test; (4) the board
+  shows a PASS nobody earned → it reads only evidence files, needs the row's own tool, a dependency hash equal to the tree's and a
+  commit in this history no more than 4 sessions old, and a test regenerates it and fails on any difference.
+- **The envelope (tools/dev/lib/envelope.ts):** terrain rings at their own resolution, a triangle walkable when its slope is within
+  the controller's 42°, 4-connected reach from the spawn across the ring seams; architecture patches at 0.5 m wherever a static
+  non-terrain collider stands (found by enumerating the physics world: the Terrace, inscription stones, waterworks, furnishings,
+  every town collider group, all 37 villages built for the purpose, Naqsh-e Rustam, quarries, fords), a 2.5-D flood fill with the
+  player's step (0.42 m), 42° floors, 1.7 m headroom and knee/head rays. Doors are open (kinematic leaves are left out of every
+  query); people, animals, tree trunks and the river corridor trimeshes outside patches are not obstacles. Measured: 20,459 km²,
+  of which 16.4 km² by the 0.5 m fill (92 patches; the Terrace-and-town cluster 6,679 buckets, 27 M cells).
+- **The registry (tools/dev/areas.ts → data/areas.json):** 388 areas, 167 unique: per Terrace building its roofed ground (roof
+  parts; split on a 50 m grid when over 0.25 ha: the Apadana hall in 10 pieces, the Treasury in 5) and its open ground, the
+  Terrace courts by nearest building, 29 town sites, the town and garden zones outside the sites (≤ 900 m tiles), 11 named sites
+  (Naqsh-e Rustam from the cliff data; features inside another unique area are listed in its `contains`), the 8 court camps, 37
+  villages, 15 Pulvar reaches of 2 km within ±10,240 m (the Kur runs outside that square), the approach, and the transect as an
+  overlay. Classes: near ground (25 tiles of 819.2 m over the near ring: the open ground between the Terrace, the town and the
+  plain, and Kuh-e Rahmat's lower slopes; made a class because MASTER_PLAN §4.3's unique list does not name open ground), plain
+  sectors (64 tiles of 10.24 km within ±40,960 m), far land (132 tiles to ±71,680 m). A building added to buildTerrace gets its
+  areas on the next run and the test fails until then (D-276).
+- **The transect (MASTER_PLAN §6 step 3 names its parts, not its line; C):** the village nearest the Terrace, the canal crossing on
+  the straight line to the town quarter nearest the spawn, that quarter, the stair foot (the spawn), the Grand Stair, the Gate, the
+  Apadana and its court; 30 m either side, plus those Terrace areas (0.26 km²).
+- **Results:** T-A6 100 % (PASS; by construction, see (2)); T-A6x 0.699 km² (a Bagh-e Firuzi zone tile), interiors ≤ 0.226 ha
+  (PASS). The world's edge is walkable: 7,146 reached far-ring edge cells (Q-740). The envelope's up-ray finds no roof collider
+  anywhere (roofs have no collider: Q-742), so interiors come from the roof parts only.
+- **The board (tools/dev/coverage_report.ts --board-only, `npm run board`):** one cell per id of gates/thresholds.json; statuses
+  NOT-MEASURED, STALE (no dependency hash, another hash, a commit not in history, > 4 sessions old), FAIL-EXCEPTION, INSUFFICIENT,
+  FAIL, PASS, SUPERSEDED; sessions from the closing commits in sessions/sNN.md; per-area table with the illusion-break rate first
+  (T-H0 / T-H0s per-area evidence; none yet). tests/coverage_board.test.ts joins `npm run guards` (≈ 1 s, deterministic: no
+  timestamp or tree hash in the file). Every earlier evidence file lacks a dependency hash and reads STALE: 2 of 171 PASS.
+  coverage_dep.ts gains depHashFor(tool) (the tool's file plus what it reads; a broad default for unlisted tools).
+- **Tier 0 (tools/dev/tier0.ts):** 813,966 cells over the 167 unique areas and the transect in 53 s after a 30 s world build (no
+  sampling needed). Per area: reachability of standable floors (unreached floors at the level of reached ground within 10 m:
+  q_n1 22 % of its standable ground, the other quarters 5-7 %, villages ~1.6 %: candidates, Q-741), collider vs drawn (terrain;
+  the Terrace's upward triangles: the Grand Stair 33 % of cells off by > 5 cm, worst 0.76 m; 43 undrawn-floor cells on the
+  transect), placeholder and untiered records within 200 m (47 areas see a PLACEHOLDER record, mostly the inscription stones,
+  Tol-e Ajori's body and glaze and the Naqsh-e Rustam reliefs; no untiered record), and repetition in the view cone (the door
+  bands and bosses, the Apadana columns). No threshold row names tools/dev/tier0.ts, so its file carries no id and moves no cell.
+- **Also:** data/event_kinds.json (57 calendar kinds, 22 rare-tail, 15 place classes, 288 states; tools/dev/lib/event_kinds.ts)
+  and gates/budget.json (tools/dev/lib/budget.ts: measured t_load, t_test, t_high and the node offline bot throughput with
+  sources; t_id, t_ultra and the ?norender throughput not measured). With 167 unique areas a Tier-1 rotation is 10,340 views: holding
+  T-B3 needs 2,585 test views (205 lane-hours) a session at the measured 285 s a view (Q-743).
+- **Alternatives considered:** the envelope from the nav grid (rejected: MASTER_PLAN §4.3); a full-world 0.5 m fill (rejected:
+  ~80 G cells; the terrain's own triangles are the collider away from architecture); villages and river reaches as a class
+  (rejected: the brief and §4.3 list them as unique); near ground as unique tiles (tried in the first run: 192 unique; changed
+  to a class, see above).

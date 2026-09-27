@@ -1,9 +1,13 @@
 // Tier 0 (MASTER_PLAN §4.2, D-277): a node pass over the area registry with no render lane. Every 5 m in each unique area
 // (4 m in the transect), per cell:
 //  - STANDABLE and REACHED: the lowest floor under the cell (downward rays through every surface: a floor is a surface
-//    within the 42° climb angle with 1.7 m of headroom; roofs and wall tops above a floor do not count), and whether the
+//    within the 42° climb angle with 1.7 m of headroom, no lower than RESCUE_DEPTH (1 m) under the drawn terrain: no walkable
+//    floor lies deeper (player.ts), and the inside of a Terrace part's volume is not a floor; roofs and wall tops above a
+//    floor do not count), and whether the
 //    walkable envelope (tools/dev/lib/envelope.ts: the full collider set, doors open) reaches it. A standable cell the player
-//    cannot reach is a sealed room, a walled court or an island: listed;
+//    cannot reach, with reached ground at its level (± 1.5 m) within 10 m, is a sealed room, a walled court or an island:
+//    counted and listed; an unreached floor with no reached ground at its level near it is the top of a wall, a column or
+//    a roof (counted apart as "tops", not a finding);
 //  - COLLIDER vs DRAWN: on terrain, the collider's floor (the streamed heightfield) against the drawn surface
 //    (Terrain.surfaceAt, the triangles terrainMesh.ts draws); on the Terrace, the collider floor against the highest
 //    upward-facing drawn triangle within 1 m of it (the Terrace's meshes as buildMeshes draws them). A floor with no drawn
@@ -25,8 +29,13 @@ import { loadEnvelope, envelopeAt, terrainLayer, patchBuckets, fillPatch, FLOOR_
 import { AreaIndex, inMulti, type Area } from './lib/areas_geo';
 import { depHashFor } from './coverage_dep';
 import { CoveragePass } from '../../src/dev/coverage';
+import { RESCUE_DEPTH } from '../../src/player/player';
+import { buildTerrace } from '../../src/arch/terrace';
+import { pointInPoly } from '../../src/arch/parts';
 
 export const TOOL = 'tools/dev/tier0.ts', SPACING = 5, SPACING_TRANSECT = 4, VIEW_R = 200, REP_R = 30;
+/** a point inside a Terrace box part (centre c, size, turned by rot) */
+const inBox = (p: any, e: number, n: number) => { const r = -(p.rot ?? 0), c = Math.cos(r), s = Math.sin(r), de = e - p.c[0], dn = n - p.c[1]; return Math.abs(de * c - dn * s) <= p.size[0] / 2 && Math.abs(de * s + dn * c) <= p.size[1] / 2; };
 const arg = (k: string) => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : undefined; };
 
 interface Flagged { e: number; n: number; r: number; key: string; ph: boolean; untiered: boolean }
@@ -71,9 +80,11 @@ function drawnBins(scene: THREE.Scene, bb: [number, number, number, number]) {
     const P = me.geometry.attributes.position, I = me.geometry.index, n = I ? I.count / 3 : P.count / 3;
     for (let t = 0; t < n; t++) { const i0 = I ? I.getX(3 * t) : 3 * t, i1 = I ? I.getX(3 * t + 1) : 3 * t + 1, i2 = I ? I.getX(3 * t + 2) : 3 * t + 2;
       a.fromBufferAttribute(P, i0).applyMatrix4(me.matrixWorld); b.fromBufferAttribute(P, i1).applyMatrix4(me.matrixWorld); c.fromBufferAttribute(P, i2).applyMatrix4(me.matrixWorld);
-      nrm.subVectors(b, a).cross(c.clone().sub(a)); const L = nrm.length(); if (L < 1e-9 || Math.abs(nrm.y / L) < 0.7) continue; tris++;
+      nrm.subVectors(b, a).cross(c.clone().sub(a)); const L = nrm.length(); if (L < 1e-9 || Math.abs(nrm.y / L) < 0.7) continue;
+      const e0 = Math.max(bb[0], Math.min(a.x, b.x, c.x)), e1 = Math.min(bb[2], Math.max(a.x, b.x, c.x)), n0 = Math.max(bb[1], Math.min(-a.z, -b.z, -c.z)), n1 = Math.min(bb[3], Math.max(-a.z, -b.z, -c.z));
+      if (e0 > e1 || n0 > n1) continue; tris++;
       const tri = [a.x, -a.z, a.y, b.x, -b.z, b.y, c.x, -c.z, c.y];
-      for (let i = Math.floor(Math.min(a.x, b.x, c.x) / 2); i <= Math.floor(Math.max(a.x, b.x, c.x) / 2); i++) for (let j = Math.floor(Math.min(-a.z, -b.z, -c.z) / 2); j <= Math.floor(Math.max(-a.z, -b.z, -c.z) / 2); j++) { const k = bk(i, j); let l = bins.get(k); if (!l) bins.set(k, l = []); l.push(...tri); } } });
+      for (let i = Math.floor(e0 / 2); i <= Math.floor(e1 / 2); i++) for (let j = Math.floor(n0 / 2); j <= Math.floor(n1 / 2); j++) { const k = bk(i, j); let l = bins.get(k); if (!l) bins.set(k, l = []); l.push(...tri); } } });
   /** drawn heights of upward triangles over (e, n) */
   const at = (e: number, n: number): number[] => { const l = bins.get(bk(Math.floor(e / 2), Math.floor(n / 2))); if (!l) return []; const out: number[] = [];
     for (let q = 0; q < l.length; q += 9) { const [x0, y0, h0, x1, y1, h1, x2, y2, h2] = l.slice(q, q + 9); const d = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2); if (Math.abs(d) < 1e-12) continue;
@@ -107,21 +118,35 @@ async function main() {
   const plan = list.map(a => ({ a, cells: cellsOf(a) })), total = plan.reduce((s, p) => s + p.cells.length, 0); log(`${plan.length} areas, ${total} cells`);
   const down = (e: number, n: number, from: number) => W.castRayAndGetNormal(new R.Ray({ x: e, y: from, z: -n }, { x: 0, y: -1, z: 0 }), 600, true, EXC);
   const headroom = (e: number, n: number, y: number) => W.castRay(new R.Ray({ x: e, y: y + 0.05, z: -n }, { x: 0, y: 1, z: 0 }), BODY_H - 0.05, true, EXC) === null;
+  // the Terrace's solid parts are hollow trimesh shells to the physics: a "floor" inside one (the terrain under a platform)
+  // is not a floor. Their volumes from the parts (prisms and boxes, y0…y1), bucketed at 8 m.
+  const PB = new Map<number, any[]>();
+  for (const p of buildTerrace().parts as any[]) { if (!p.solid || (p.type !== 'prism' && p.type !== 'box')) continue; const sh = p.type === 'prism' ? p.polygon : null;
+    const r = p.type === 'box' ? Math.hypot(p.size[0], p.size[1]) / 2 : 0, xs = sh ? sh.map((q: number[]) => q[0]) : [p.c[0] - r, p.c[0] + r], ys = sh ? sh.map((q: number[]) => q[1]) : [p.c[1] - r, p.c[1] + r];
+    for (let i = Math.floor(Math.min(...xs) / 8); i <= Math.floor(Math.max(...xs) / 8); i++) for (let j = Math.floor(Math.min(...ys) / 8); j <= Math.floor(Math.max(...ys) / 8); j++) { const k = bk(i, j); let l = PB.get(k); if (!l) PB.set(k, l = []); l.push(p); } }
+  const insidePart = (e: number, n: number, y: number) => (PB.get(bk(Math.floor(e / 8), Math.floor(n / 8))) ?? []).some(p => y > p.y0 - 0.05 && y < p.y1 - 0.3 && (p.type === 'prism' ? pointInPoly(e, n, p.polygon) : inBox(p, e, n)));
+  /** an unreached floor counts when reached ground within 10 m lies at its level (± 1.5 m): a sealed room or court, not the
+   *  top of a wall, a column or a roof */
+  const sameLevel = (e: number, n: number, f: number) => { for (const r of [2.5, 5, 10]) for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4, q = envelopeAt(E, e + r * Math.cos(a), n + r * Math.sin(a)); if (q.reach && Math.abs(q.y - f) <= 1.5) return true; } return false; };
   /** the lowest standable floor under (e, n): every surface from above, stepping through solids */
   const lowestFloor = (e: number, n: number, top: number, bottom: number) => { let y = top, best: number | null = null;
-    for (let k = 0; k < 40 && y > bottom; k++) { const h = down(e, n, y); if (!h) break; if (h.timeOfImpact < 1e-4) { y -= 0.25; continue; }
-      const f = y - h.timeOfImpact; if (h.normal.y >= FLOOR_NY && headroom(e, n, f)) best = f; y = f - 0.02; }
+    for (let k = 0; k < 60 && y > bottom; k++) { const h = down(e, n, y); if (!h) break;
+      if (h.timeOfImpact < 1e-4) { // inside a solid: leave it through its far side (a non-solid ray from inside finds the exit)
+        const x = W.castRay(new R.Ray({ x: e, y, z: -n }, { x: 0, y: -1, z: 0 }), 600, false, EXC); y -= (x && x.timeOfImpact > 1e-4 ? x.timeOfImpact : 0.25) + 0.02; continue; }
+      const f = y - h.timeOfImpact; if (f < bottom) break; if (h.normal.y >= FLOOR_NY && headroom(e, n, f) && !insidePart(e, n, f)) best = f; y = f - 0.02; }
     return best; };
   const out: Record<string, any> = {}; let done = 0, spent = 0, sampledAreas = 0;
   for (const { a, cells } of plan) {
     const ta = Date.now(), left = budgetMs - (Date.now() - t0), perCell = done ? spent / done : 0.4, remaining = plan.slice(plan.findIndex(p => p.a === a)).reduce((s, p) => s + p.cells.length, 0);
     const stride = perCell * remaining > left ? Math.max(1, Math.ceil((perCell * remaining) / Math.max(1, left))) : 1; if (stride > 1) sampledAreas++;
     const cx = (a.bbox[0] + a.bbox[2]) / 2, cn = (a.bbox[1] + a.bbox[3]) / 2; P.updateTerrain(w.T, { x: cx, y: 0, z: -cn }, Math.hypot(a.bbox[2] - a.bbox[0], a.bbox[3] - a.bbox[1]) / 2 + 64); P.step(1e-4);
-    const S = { cells: 0, standable: 0, reached: 0, unreached: [] as number[][], unreachedN: 0, cvd: { n: 0, over5cm: 0, max: 0, at: null as number[] | null, undrawn: 0, sunk: 0 }, ph: { cells: 0, max: 0, keys: new Map<string, number>() }, un: { cells: 0, max: 0, keys: new Map<string, number>() }, rep: [] as number[], repKeys: new Map<string, number>() };
+    const S = { cells: 0, standable: 0, reached: 0, unreached: [] as number[][], unreachedN: 0, tops: 0, cvd: { n: 0, over5cm: 0, max: 0, at: null as number[] | null, undrawn: 0, sunk: 0 }, ph: { cells: 0, max: 0, keys: new Map<string, number>() }, un: { cells: 0, max: 0, keys: new Map<string, number>() }, rep: [] as number[], repKeys: new Map<string, number>() };
     for (let ci = 0; ci < cells.length; ci += stride) { const [e, n] = cells[ci]; S.cells++;
       const env = envelopeAt(E, e, n), surf = w.T.surfaceAt(e, -n);
-      const floor = lowestFloor(e, n, Math.max(surf, Number.isNaN(env.y) ? surf : env.y) + 40, surf - 3);
-      if (floor !== null) { S.standable++; if (env.reach) S.reached++; else { S.unreachedN++; if (S.unreached.length < 12) S.unreached.push([+e.toFixed(1), +n.toFixed(1), +floor.toFixed(2)]); } }
+      const floor = lowestFloor(e, n, Math.max(surf, Number.isNaN(env.y) ? surf : env.y) + 40, surf - RESCUE_DEPTH);
+      if (floor !== null) { if (env.reach) { S.standable++; S.reached++; }
+        else if (sameLevel(e, n, floor)) { S.standable++; S.unreachedN++; if (S.unreached.length < 12) S.unreached.push([+e.toFixed(1), +n.toFixed(1), +floor.toFixed(2)]); }
+        else S.tops++; }
       // collider vs drawn
       if (env.layer === 'terrain') { const h = down(e, n, surf + 3); if (h) { const d = surf + 3 - h.timeOfImpact - surf; S.cvd.n++; if (Math.abs(d) > 0.05) S.cvd.over5cm++; if (Math.abs(d) > Math.abs(S.cvd.max)) { S.cvd.max = +d.toFixed(3); S.cvd.at = [e, n]; } } }
       else if (env.reach && e >= tb[0] && e <= tb[2] && n >= tb[1] && n <= tb[3]) { const hs = D.at(e, n).filter(y => Math.abs(y - env.y) <= 1); S.cvd.n++;
@@ -139,7 +164,7 @@ async function main() {
     }
     const ms = Date.now() - ta; done += S.cells; spent += ms; const top = (m: Map<string, number>) => [...m].sort((x, y) => y[1] - x[1]).slice(0, 5).map(([k, v]) => ({ key: k, cells: v }));
     const rep = [...S.rep].sort((x, y) => x - y);
-    out[a.id] = { kind: a.kind, spacing_m: a.overlay ? SPACING_TRANSECT : SPACING, stride, cells: S.cells, standable: S.standable, reached_pct: S.standable ? +(100 * S.reached / S.standable).toFixed(2) : null, unreached_standable: S.unreachedN, unreached_examples: S.unreached,
+    out[a.id] = { kind: a.kind, spacing_m: a.overlay ? SPACING_TRANSECT : SPACING, stride, cells: S.cells, standable: S.standable, reached_pct: S.standable ? +(100 * S.reached / S.standable).toFixed(2) : null, unreached_standable: S.unreachedN, unreached_examples: S.unreached, unreached_tops: S.tops,
       collider_vs_drawn: { n: S.cvd.n, over_5cm_pct: S.cvd.n ? +(100 * S.cvd.over5cm / S.cvd.n).toFixed(2) : null, worst_m: S.cvd.max, worst_at: S.cvd.at, undrawn_floor: S.cvd.undrawn, drawn_over_30cm: S.cvd.sunk },
       placeholder: { cells_pct: S.cells ? +(100 * S.ph.cells / S.cells).toFixed(2) : 0, max_records: S.ph.max, top: top(S.ph.keys) }, untiered: { cells_pct: S.cells ? +(100 * S.un.cells / S.cells).toFixed(2) : 0, max_records: S.un.max, top: top(S.un.keys) },
       repetition: { median: rep[Math.floor(rep.length / 2)] ?? 0, p95: rep[Math.floor(rep.length * 0.95)] ?? 0, max: rep[rep.length - 1] ?? 0, top: top(S.repKeys) }, ms };
