@@ -6745,3 +6745,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   shrill buzzing calls of 5-8 kHz (a procedural design, C; strike kind `swifts`). Sunrise and sunset from the month at 29.94° N.
 - **Tests:** tests/swifts.test.ts (season and hours; clear of the halls, 15-34 m/s, parties strung within 40 m; the strike kind);
   tests/wildlife.test.ts unchanged. **Unverified:** not seen or heard; the moment `swifts-dusk` is queued.
+
+## D-281 A crowd heard from afar (session 10; WORLD_INVENTORY GB56)
+- **Gap:** the population's voices (D-245) end at 60 m (individual voices to 20 m, the grain bed to 60 m): a court assembly of
+  hundreds in the Apadana's court, a market lane or a festival fell silent 61 m away.
+- **Decision (C, a procedural design):** src/audio/farcrowd.ts: the talkers from 60 to 400 m, gathered twice a second, binned into
+  8 directions; each sector with talkers is a never-looping pink NoiseStream through a speech band (520 Hz, Q 0.7), low-passed with
+  distance (2.2 kHz − 4 Hz/m, ≥ 450 Hz), fluttering at a syllable's pace (deeper for fewer voices), at 0.12 √n before the panner's
+  distance law, placed at the talkers' centroid and routed through the occlusion (walls between muffle it). Unintelligible by
+  construction: no lexicon unit is rendered for it (brief §10 holds). Tests: tests/farcrowd.test.ts. **Unverified:** not heard in
+  a browser (B65 still stands for the whole audio engine); the level is calibrated by reasoning, not by listening.

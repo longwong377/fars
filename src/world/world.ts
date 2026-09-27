@@ -88,6 +88,7 @@ import { villageCompounds } from './plain/villages';
 import { loadHumans, type HumanSystem } from '../people/humans';
 import { Speech, Subtitle, RecordingBackend, FormantBackend } from '../audio/speech';
 import { PopulationVoices, type NearPerson } from '../audio/voices';
+import { FarCrowd, FAR_R } from '../audio/farcrowd';
 import { WaterSound } from '../audio/water';
 import { OcclusionField } from '../audio/occlusion';
 import { MusicSystem } from '../audio/music';
@@ -337,7 +338,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const ms = performance.now() - t0;
   (root.userData as any).manifest = manifest;
   let time = 0; let lastFlash = 0;
-  const audio = new AudioEngine(); const sound = new Soundscape(audio);
+  const audio = new AudioEngine(); const sound = new Soundscape(audio); const farCrowd = new FarCrowd(audio), farBuf: NearPerson[] = []; let farAt = 0;
   // the Now view has no people of 467: their voices, music and effects are muted while it is on (the wind stays)
   const vols = (v: Settings['volume']) => (nowView.active ? { ...v, voices: 0, music: 0, effects: 0 } : v);
   nowView.onChange = () => { if (settings) audio.setVolumes(vols(settings.volume)); };
@@ -569,6 +570,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           const near = nowView.active ? [] : crowd.nearPeople(cam.position, voices.bedR, nearBuf);
           voices.coughEvery = [0, 1, 2, 10, 11].includes(ctx.cond.day.climMonth) ? 500 : [5, 6, 7].includes(ctx.cond.day.climMonth) ? 1800 : 1200; // winter colds (C)
           voices.update(dt, near, cam.position, k => (scriptedUntil.get(k) ?? -1) > time);
+          // session 10 (GB56): the talkers from 60 m to FAR_R as a distant murmur (the wide gather twice a second: it builds a
+          // NearPerson for everyone within 400 m)
+          if (time >= farAt) { farAt = time + 0.5; if (nowView.active) farBuf.length = 0; else crowd.nearPeople(cam.position, FAR_R, farBuf); }
+          farCrowd.update(farBuf, cam.position);
           const at = audio.ctx.currentTime; for (const [k, v] of voices.speaking) crowd.voice(k, time + (v.from - at), time + (v.to - at), time);
           crowd.claimVoices(voices.claimed, time);
           if ((Math.floor(time) & 31) === 0) for (const [k, u] of scriptedUntil) if (u < time) scriptedUntil.delete(k);
@@ -598,7 +603,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       const o = audio.occlusionOf(lastHandle?.panner), s = lastSpoken;
       return [s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}${o ? ` · occlusion ${o.gainDb.toFixed(1)} dB, ${Math.round(o.cutoffHz)} Hz via ${o.path}` : ''}` : 'speech heard: none yet',
         ...director.lines(),
-        ...voices.lines(),
+        ...voices.lines(), ...farCrowd.lines(),
         `water (D-245, synthesised, C): river ${Number.isFinite(water.near.river) ? `${water.near.river.toFixed(0)} m` : 'none within 150 m'}, canal ${Number.isFinite(water.near.canal) ? `${water.near.canal.toFixed(0)} m` : 'none within 60 m'} · space ${sound.lastSpace}`,
         `animals and insects heard (D-210, synthesised, C): ${sound.heardLines().join(' · ') || 'none in the last minute'}${sound.fliesLevel > 0.05 ? ` · flies ${sound.fliesLevel.toFixed(2)}` : ''}`,
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];

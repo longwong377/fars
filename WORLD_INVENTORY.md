@@ -256,7 +256,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB53 | camels grumbling | SO-003 | sound | C | MISSING/PARTIAL |
 | GB54 | hooves, cart wheels and harness on the road | SO-004 | sound | C | MISSING/PARTIAL |
 | GB55 | door pivots and bolts heard | SO-009 | sound | C | MISSING/PARTIAL |
-| GB56 | a crowd bed beyond 60 m (a court assembly heard from afar) | SO-011 | sound | C | MISSING/PARTIAL |
+| GB56 | a crowd bed beyond 60 m (a court assembly heard from afar) | SO-011 | sound | C | BUILT (D-281: a distant murmur by direction, 60-400 m); not heard in a browser |
 | GB57 | a roof reached: stairs to the Apadana towers | W-058 | architecture | B | MISSING/PARTIAL |
 | GB58 | goods in the lanes: a place of exchange (partial) | S-002 | exchange | C | MISSING/PARTIAL |
 | GB59 | drainage filth in the lanes (partial) | B-054 | traces | C | MISSING/PARTIAL |
