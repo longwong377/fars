@@ -25,9 +25,16 @@ const VIEWS: Record<string, { day: number; hour: number; v: [number, number, num
   'tripylon-n-stair': { day: 25, hour: 16, v: [82, -38, 1.6, 161, 6], fov: 40 },
   'hall100-site': { day: 25, hour: 9.5, v: [146, 45, 1.6, 161, 4], fov: 40 },
   'apadana-hall-axis': { day: 25, hour: 11, v: [1.9, 12, 1.6, 161, 6], fov: IN },
+  // D-285: the #24 calibration frame (moments.spec calib-24), the Gate's W façade in the same late-winter afternoon sun (from the
+  // Grand Stair's top landing, as gate-dusk), and the Terrace's W salient face frontal from 12 m on the plain (sunlit ashlar,
+  // the sun 12° off its normal): one world state, one page load
+  'calib-24': { day: 303, hour: 16.087, v: [-166.6, 108.9, 1.6, 117.0, 7.5], fov: 34.4 },
+  'gate-w-day': { day: 303, hour: 16.087, v: [-40, 124.6, 1.6, 90, 15], fov: 40 },
+  'terrace-wall-near': { day: 303, hour: 16.087, v: [-73.5, 22, 1.6, 71, 18], fov: 40 },
 };
 const SET: Record<string, Record<string, number | boolean>> = {
-  B: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true },
+  B: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true, d285: 1 },
+  D0: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true, d285: 0 }, // D-285: B without D-285's soiling and plaster
   A: { surf: 0, env: 0, ssr: 0, sss: 0, giDirect: 0, contact: 0, bevels: false },
   gi0: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 0, contact: 1, bevels: true },
   // one term off: B − env0 = the sky specular the materials add, B − ssr0 = the screen-space reflections

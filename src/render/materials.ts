@@ -73,7 +73,12 @@ export const DEBRIS = { rect: uniform(new THREE.Vector4(0, 0, 0, 0)), amount: un
 /** A/B switch for measurements (D-157; window.__parsaSurf.surf): 1 = the session-4 triage surfaces; 0 = no broad tone, no
  *  wall-foot band or floor wear, block tone at the old ±8 %, no worn arrises or block tilt (the varied coursing stays) */
 export const SURF_AB = uniform(1);
-if (typeof globalThis !== 'undefined') (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), surf: SURF_AB };
+/** D-285's A/B switch (window.__parsaSurf.d285): 0 = the surfaces before D-285 (no soiling of the stone, no plastering campaign
+ *  or rain wash on the mud plaster, the D-157 foot band and 3 m run-off everywhere), so a render can compare both at one exposure */
+export const SURF_D285 = uniform(1);
+if (typeof globalThis !== 'undefined') (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), surf: SURF_AB, d285: SURF_D285 };
+/** D-285: the cell along a course that holds at most one drip stain (m) */
+export const SOIL_CELL = 0.55;
 
 export interface Joints {
   course: number; block: number; width: number; dark: number;
@@ -185,6 +190,33 @@ export interface SurfaceDef {
   /** the foot of a plastered mud-brick wall (D-218, C; arch meshes): a renewed skirting coat up to `h` m (± 0.12 m, its upper
    *  edge a slight step), damper and darker by `dark`, with a whitish salt tide line (`salt`) along the top of the damp */
   skirt?: { h: number; dark: number; salt: number };
+  /** D-285: how far below the part's top the run-off streaks reach (m; default 3) and the height of the splash and dust band at
+   *  the foot (m; default 0.32, the D-157 band) */
+  runoffLen?: number; footH?: number;
+  /** D-285: ~50 years of soiling on dressed stone (SoilDef) */
+  soil?: SoilDef;
+  /** D-285: the plastering campaign and the weather on a mud-plastered wall (PlasterWeatherDef) */
+  plasterWeather?: PlasterWeatherDef;
+}
+/** D-285 (C): the soiling of dressed stone in ~50 years of rain and dust on an open plain (the Terrace's oldest walls went up
+ *  from ~518 BCE). Water running down an ashlar face gathers in the joints and leaves each block at its lower arris, so the
+ *  stains hang from the bed joints: `drip` = their darkening at the joint (fading to nothing `len` m below it, widening as they
+ *  go; `w` m wide; in `share` of the 0.55 m cells along each course), stronger near the wall's top, where more water runs, and
+ *  none under the roofs. The stains follow the joint pattern, so the soiling is structured by the masonry as on a real wall,
+ *  never a noise laid over it */
+export interface SoilDef { drip: number; share: number; w: [number, number]; len: [number, number] }
+/** D-285 (C): a mud-plastered wall of the palaces. The coat is laid from a scaffold in lifts (`lift` m high) and bays along the
+ *  wall (`bay` m), each a batch of mud of its own tone (1σ `sd`, triangular) and hue (± `chroma`), the edges hand-laid (wobbled
+ *  ±7 cm) with a faint overlap ridge where one bay meets the next (`seam`: its darkening, over ~2.5 cm); the rain washes the
+ *  upper `washH` m (arch meshes: below the part's top) in vertical lanes, the fines gone and the coarse sand and straw showing:
+ *  lighter by up to `wash`, rougher and a little sunk (rills) */
+export interface PlasterWeatherDef {
+  lift: [number, number]; bay: number; sd: number; chroma: number; seam: number; wash: number; washH: number;
+  /** the hand's work inside a bay: the coat pressed on in strokes `len` × `wid` m along a direction of the bay's own (±50° off
+   *  the diagonal), leaving a relief of `amp` m (two octaves, the second 2.8× finer); and the coat's mottle (uneven drying, clay
+   *  and sand segregating, soiling), 1σ `mottle` of the albedo at 0.45 m and in 0.4 × 0.14 m sweeps along the strokes. Band-limited: each octave fades to its
+   *  mean under ~3 px */
+  hand: { amp: number; len: number; wid: number; mottle: number };
 }
 /** neutral grey of luminous reflectance Y (linear) as the sRGB triple the surface table uses */
 function grey(Y: number): [number, number, number] { const v = linearToSrgb(Y); return [v, v, v]; }
@@ -224,6 +256,20 @@ const RETAINING: Joints = { ...HAIRLINE, retaining: true };
  *  stylolites and fossils: a grey Cretaceous-type limestone, RECOLLECTION; the toothed chisel at Pasargadae and Persepolis:
  *  Nylander 1970, RECOLLECTION, NOT SEEN), the amplitudes calibrated to the rubric's photographic range (Q-480) */
 const STONE: StoneDef = { beds: 0.09, stylo: { share: 0.45, w: 0.0024, dark: 0.45 }, pits: { cell: 0.022, r: 0.12, dark: 0.5, depth: 0.0015 }, tool: { l: 0.08, w: 0.03, tilt: 0.02, pitch: 0.004, groove: 0.00012 }, polish: 0.4 };
+/** D-285 (C): ~50 years of soiling on the dressed stone (SoilDef): stains under ~45 % of the 0.55 m cells along each bed joint,
+ *  3-9 cm wide, 0.2-0.7 m long, 10 % darker at the joint. The
+ *  Terrace's retaining walls, 12-18 m of open face over the plain: stains 12 % and longer, run-off from the top reaching 6 m down,
+ *  the splash and dust band ~0.9 m high (the D-157 band 0.32 m). No measurement of 467 exists: amplitudes judged against the least
+ *  weathered stone in the photographs (#29, D-230: 90 years exposed since its excavation, block tone 1σ ~0.10) and kept below it */
+const SOIL: SoilDef = { drip: 0.1, share: 0.45, w: [0.03, 0.09], len: [0.2, 0.7] };
+const SOIL_TERRACE: SoilDef = { drip: 0.12, share: 0.5, w: [0.03, 0.1], len: [0.3, 0.9] };
+/** D-285 (C): the palaces' mud plaster (PlasterWeatherDef): lifts 1.1-1.7 m (a scaffold's working height), bays ~3 m ± 50 %
+ *  (a batch of mud), 1σ 4 % between batches and ±1.2 % in hue, a 3 % overlap ridge on half the edges; hand strokes 0.6 × 0.25 m
+ *  leaving a 2.5 mm (1σ) undulation, the coat's mottle 6 % at 0.45/0.16 m; the rain wash 7 % lighter in lanes over the top 4 m.
+ *  The spread set against the only mud plaster in the references, the modern kahgel coat round the Gate's hall in #21, at the
+ *  render's pixel footprint (tools/dev/plaster_photo_d285.py: Ystd/Y 0.036 in 0.5 m windows at 0.032 m/px; the D-188 plaster
+ *  read 0.020 on the CPU mirror, 0.036-0.041 now: tests/materials_d285.test.ts) */
+const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.05, chroma: 0.012, seam: 0.04, wash: 0.1, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
 /** stair blocks along the step (D-218, C): 1.9 m ± 30 %; the row's joint crosses the first tread of each row 6 cm in front of
  *  the next riser (the blocks' 4–5 steps per row: grand_stair.block_construction, B) */
 export const STAIR_BLOCK = { length: 1.9, jitter: 0.6, rowJoint: 0.06 };
@@ -233,7 +279,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // Persepolis light grey limestone, freshly dressed (LIMESTONE above: stone B, N7 C). Ashlar dry-laid
   // without mortar (SITE_SPEC terrace.wall_material, B: 'dry-laid'; Grand Stair 'dry-jointed', B) and, by the Achaemenid
   // practice of anathyrosis (recollection, C; Q-071), fitted to hairline joints: 0.8 mm (C), not a sunk mortar groove
-  limestone: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, stone: STONE, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, wear: { alb: 0.05, rough: 0.2 }, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed light grey limestone (Iranica, B), dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo N7 = 42 % C (D-188) pending calibration photo (NEEDS #13); D-230: block tone 1σ 13 % from the site photographs (the least weathered in-situ stone, Apadana E stair #29; the weathered walls #24 show 27 %, mostly weathering; B40); D-218: rounded arrises, laminae, stylolites, pits, chisel facets (C, Q-480); stairs in blocks of 4–5 steps (B, Grand Stair; others C), treads foot-polished (C)' },
+  limestone: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, stone: STONE, soil: SOIL, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, wear: { alb: 0.05, rough: 0.2 }, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed light grey limestone (Iranica, B), dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo N7 = 42 % C (D-188) pending calibration photo (NEEDS #13); D-230: block tone 1σ 13 % from the site photographs (the least weathered in-situ stone, Apadana E stair #29; the weathered walls #24 show 27 %, mostly weathering; B40); D-218: rounded arrises, laminae, stylolites, pits, chisel facets (C, Q-480); stairs in blocks of 4–5 steps (B, Grand Stair; others C), treads foot-polished (C)' },
   // the merlons (D-218, rubric s7 fix 10: 'box stacks'): each a monolith of the same stone, its own tone, no joints across it
   // (it sits on its coping on the chamfered foot joint), dust on the step ledges and faint run-off under them (C)
   limestone_merlon: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, blockTone: 0.13, joints: HAIRLINE, stone: STONE, monolith: { w: 0.9, h: 0.9, steps: 4, dust: 0.14, runoff: 0.07 }, tone: { sd: 0.075, chroma: 0.01 }, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'four-stepped merlon: one block of the dressed light grey limestone (monolith C), its own tone, dust on the ledges and run-off (C, D-218)' },
@@ -252,10 +298,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // with straw, finished fine: a light buff (sRGB 0.64/0.55/0.43, L* 60, the town render's hue lightened as a fine clay
   // finish dries, C). The greyish yellow-green clay paint is attested only for the Treasury (Schmidt) and at
   // Pasargadae: `mudbrick_painted` below, used by the Treasury alone
-  mudbrick: { albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.2 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483)' },
+  mudbrick: { albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.2 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483)' },
   // the Treasury's walls: mud plaster coated with a greyish yellow-green clay paint, attested at Pasargadae and, per
   // Schmidt, on the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone C
-  mudbrick_painted: { albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.2 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
+  mudbrick_painted: { albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.2 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, tone: { sd: 0.09, chroma: 0.015, patch: 0.05 }, foot: 1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
@@ -280,7 +326,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
   // limestone dressing chips over the levelled platform (C)
   court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.015 }, macro: { sd: 0.08, chroma: 0.015 }, debris: true, traffic: true, pebbles: { cover: 0.07, size: 0.45, albedo: [0.66, 0.64, 0.59] }, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
-  terrace: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: RETAINING, blockTone: 0.13, stone: STONE, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); D-232: the joint layout measured on photographs #24 and #33 (SITE_SPEC terrace.r_masonry: course heights 0.45-1.65 m, blocks 1.2-7 m, split blocks, a polygonal foot of large blocks and dressed bedrock on the W and S walls, the Grand Stair recess with jogged beds and leaning joints; C); open court surface C (Q-027)' },
+  terrace: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: RETAINING, blockTone: 0.13, stone: STONE, soil: SOIL_TERRACE, runoffLen: 6, footH: 0.9, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); D-232: the joint layout measured on photographs #24 and #33 (SITE_SPEC terrace.r_masonry: course heights 0.45-1.65 m, blocks 1.2-7 m, split blocks, a polygonal foot of large blocks and dressed bedrock on the W and S walls, the Grand Stair recess with jogged beds and leaning joints; C); open court surface C (Q-027)' },
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
   rubble: { albedo: LIMESTONE, roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips: the Terrace limestone (albedo as `limestone`, D-188)' },
 };
@@ -365,7 +411,7 @@ function ashlarCells(a: any, b: any, J: Joints) {
   // distances to the bed joints below and above (D-218: the side tells the worn arris which way it faces)
   const above = step(split, f), dBelow = f.sub(above.mul(split)), dAbove = mix(split, float(H), above).sub(f);
   const dBed = min(dBelow, dAbove), sBed = step(dBelow, dAbove).mul(2).sub(1); // +1: the nearest bed joint is below
-  return { dBed, sBed, c, ...headCells(a, J.block, V.jitter, c) };
+  return { dBed, sBed, dAbove, c, ...headCells(a, J.block, V.jitter, c) };
 }
 /** head joints along a course `c` (D-157): a hashed bond offset, each joint jittered by ±jitter/2 of the block length L.
  *  Returns the distance (m) to the nearest head joint, its side (sHead +1: the joint is at smaller `a`) and the block index */
@@ -457,7 +503,7 @@ function retainingCells(t: any, p: any, nx: any, nz: any) {
   // in the foot: the cell edges alone; above it, the courses and the foot's top edge, whichever is nearer
   const polyB = max(inFoot, step(edge, dBedC)); // 1: the nearest "bed" is a cell edge
   const dBed = mix(dBedC, edge, polyB), sBed = mix(sBedC, float(1), polyB);
-  return { dBed, sBed, dHead: mix(dHead, float(1e3), inFoot), sHead, c: mix(cU, c1.y.add(7000), inFoot), blk: mix(blk, c1.x, inFoot), polyB, eDir, inFoot, edge };
+  return { dBed, sBed, dAbove: mix(dAbove, float(1e3), inFoot), dHead: mix(dHead, float(1e3), inFoot), sHead, c: mix(cU, c1.y.add(7000), inFoot), blk: mix(blk, c1.x, inFoot), polyB, eDir, inFoot, edge };
 }
 /** bandCover() with the half width as a node */
 function bandCoverN(d: any, px: any, hw: any) {
@@ -594,6 +640,44 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
       height = (height ?? float(0)).sub(crack.mul(0.0008).mul(float(1).sub(smoothstep(0.3, 0.8, fp.div(0.0024)))));
     }
   }
+  if (d.plasterWeather) { // D-285: the plastering campaign and the rain on a mud-plastered wall (PlasterWeatherDef; CPU mirror
+    // tests/lib/plaster_cpu.ts). Lifts and bays: the varied-coursing cells (ashlarCells) of lift × bay, on the face's own
+    // horizontal axis and the height above the wall's base, their edges wobbled by a 0.9 m noise (±7 cm)
+    const PW = d.plasterWeather, vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y))).mul(SURF_D285);
+    const hl = vec2(n.x, n.z).length().max(1e-3), t = p.x.mul(n.z.div(hl)).sub(p.z.mul(n.x.div(hl)));
+    const hb = arch ? p.y.sub(attribute('y0', 'float')) : p.y;
+    const wob = mx_noise_float(pr.div(0.9).add(vec3(6.1, 2.7, 4.3))).mul(0.07 / MX_NOISE_SD * 0.5);
+    const Lc = ashlarCells(t.add(wob), hb.add(wob.mul(0.8)), { course: (PW.lift[0] + PW.lift[1]) / 2, block: PW.bay, width: 0, dark: 0, vary: { course: PW.lift, jitter: 1.0 } });
+    const b1 = hash12(Lc.blk.add(0.37), Lc.c.add(11.3)), b2 = hash12(Lc.blk.mul(0.71).add(19.1), Lc.c.add(3.3)), b3 = hash12(Lc.c.mul(1.618).add(5.1), Lc.blk.add(2.9));
+    const g = b1.add(b2).sub(1).mul(PW.sd * Math.sqrt(6)).mul(vert), ch = b3.sub(0.5).mul(2 * PW.chroma).mul(vert);
+    alb = alb.mul(vec3(float(1).add(g).add(ch), float(1).add(g), float(1).add(g).sub(ch.mul(1.4))));
+    // the hand's strokes: a relief stretched along the bay's own stroke direction (a skew plane through the noise lattice: no
+    // lattice plane, D-218), and the coat's mottle (a broad isotropic octave and sweeps along the strokes)
+    const Hd = PW.hand, fpH = fwidth(p).length().max(1e-6);
+    const ang = float(Math.PI / 4).add(hash12(Lc.blk.add(7.7), Lc.c.add(1.3)).sub(0.5).mul(1.75)), ca = cos(ang), sa = sin(ang);
+    const u = t.mul(ca).add(hb.mul(sa)), v = hb.mul(ca).sub(t.mul(sa)), zS = u.mul(0.41).add(v.mul(0.29));
+    const rel = mx_noise_float(vec3(u.div(Hd.len).add(b1.mul(37)), v.div(Hd.wid).add(b2.mul(19)), zS)).mul(bandLimit(fpH, Hd.wid))
+      .add(mx_noise_float(vec3(u.div(Hd.len / 2.8).add(b2.mul(23)), v.div(Hd.wid / 2.8).add(b1.mul(11)), zS.mul(2.8).add(5.1))).mul(0.4).mul(bandLimit(fpH, Hd.wid / 2.8)));
+    height = (height ?? float(0)).add(rel.mul(Hd.amp / MX_NOISE_SD).mul(vert));
+    const mot = mx_noise_float(pr.div(0.45).add(vec3(9.7, 3.1, 5.9))).mul(bandLimit(fpH, 0.45)).add(mx_noise_float(vec3(u.div(0.4).add(b2.mul(13)), v.div(0.14).add(b1.mul(7)), zS.mul(1.9).add(2.3))).mul(0.6).mul(bandLimit(fpH, 0.14)));
+    alb = alb.mul(float(1).add(mot.mul(Hd.mottle / (MX_NOISE_SD * Math.hypot(1, 0.6))).mul(vert)));
+    // the overlap ridge where one bay or lift meets the next: a 2.5 cm band, darker by `seam`, 0.8 mm proud, along about half
+    // of the edges (a 2 m noise), box-filtered over the pixel footprint
+    const dE = min(Lc.dBed, Lc.dHead), seam = bandCover(dE, fwidth(dE).max(1e-5), 0.0125).mul(smoothstep(-0.1, 0.25, mx_noise_float(pr.div(2).add(vec3(1.3, 8.8, 3.7))))).mul(vert);
+    alb = alb.mul(float(1).sub(seam.mul(PW.seam)));
+    height = (height ?? float(0)).add(seam.mul(0.0008));
+    if (arch) { // the rain wash below the wall's top: vertical lanes (fast across the face, slow down it), strongest at the top
+      const below = attribute('ytop', 'float').sub(p.y);
+      const fade = float(1).sub(smoothstep(float(0.3), float(PW.washH), below)).mul(step(0, below)).mul(float(1).sub(roofedNode())).mul(vert);
+      const fpW = fwidth(p).length().max(1e-6);
+      const q = vec3(t.mul(3.2), p.y.mul(0.22), float(0.37));
+      const lane = smoothstep(0.52, 0.82, mx_noise_float(q).mul(0.5).add(0.5).add(mx_noise_float(q.mul(vec3(3.1, 2.3, 1))).mul(0.12).mul(bandLimit(fpW, 0.1))));
+      const w = lane.mul(fade);
+      alb = alb.mul(float(1).add(w.mul(PW.wash)).add(fade.mul(0.025))); // the lanes lighter (the fines washed out), the top bleached
+      rough = rough.add(w.mul(0.05)).min(1);
+      height = height.sub(w.mul(0.0015).mul(bandLimit(fpW, 0.12)));
+    }
+  }
   if (d.weave) { // plaited reed mat (D-188, C), band-limited: where a reed spans under ~3 px only the cells' tone remains
     const W = d.weave, q = p.xz, cell = floor(q.div(W.cell)), alt = fract(cell.x.add(cell.y).mul(0.5)).mul(2); // 0 | 1
     const u = mix(q.x, q.y, alt), other = mix(cell.y, cell.x, alt);
@@ -638,7 +722,7 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const t = p.x.mul(tx).add(p.z.mul(tz));
     // D-232: the retaining walls' layout (retainingCells) in place of the varied coursing on their vertical faces
     const RW = J.retaining ? retainingCells(t, p, n.x.div(hl), n.z.div(hl)) : null;
-    const W = RW ? { dBed: RW.dBed, sBed: RW.sBed, c: RW.c, dHead: RW.dHead, sHead: RW.sHead, blk: RW.blk } : ashlarCells(t, p.y, J);
+    const W = RW ? { dBed: RW.dBed, sBed: RW.sBed, dAbove: RW.dAbove, c: RW.c, dHead: RW.dHead, sHead: RW.sHead, blk: RW.blk } : ashlarCells(t, p.y, J);
     // up-facing faces: slabs in rows along z, blocks along x; the height enters the hash so every tread of a non-step part
     // (a stepped parapet) is its own block row
     const S = ashlarCells(p.x, p.z, J);
@@ -710,6 +794,25 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
       alb = alb.mul(R.f); height = (height ?? float(0)).add(R.h.mul(worn));
       const Tq1 = mix(vec3(1, 0, 0), vec3(tx, 0, tz), vs), Tq2 = mix(vec3(0, 0, 1), vec3(0, 1, 0), vs);
       tilt = tilt.add(Tq1.mul(R.tf.x).add(Tq2.mul(R.tf.y)).mul(worn));
+    }
+    if (d.soil) { // D-285: ~50 years of soiling, structured by the joints (SoilDef; CPU mirror tests/lib/stone_cpu.ts soilAt)
+      const So = d.soil, onFace = vs.mul(float(1).sub(isStep)).mul(SURF_D285);
+      // the stains under the bed joints: a cell of SOIL_CELL m along the course holds one (share), at a hashed place, width
+      // and length; its darkening fades down from the joint and it widens by half as it goes. Where it is under ~2 px wide
+      // it gives way to its mean over the cell (the D-147 rule)
+      const ci = floor(t.div(SOIL_CELL)), cc = W.c.add(0.5);
+      const present = step(hash12(ci.add(0.7), cc.add(3.3)), float(So.share));
+      const x0 = ci.add(float(0.15).add(hash12(ci, cc.add(8.1)).mul(0.7))).mul(SOIL_CELL);
+      const wS = float(So.w[0]).add(hash12(ci.add(4.4), cc).mul(So.w[1] - So.w[0]));
+      const lS = float(So.len[0]).add(hash12(cc.add(1.1), ci.add(2.2)).mul(So.len[1] - So.len[0]));
+      const s01 = W.dAbove.div(lS), along = clamp(float(1).sub(s01), 0, 1);
+      const wz = wS.mul(float(1).add(s01.min(1).mul(0.5))), dx = t.sub(x0).div(wz);
+      const res = float(1).sub(smoothstep(0.35, 0.9, fwidth(t).div(wz)));
+      const across = mix(float(So.share * 1.77).mul(wz).div(SOIL_CELL), exp(dx.mul(dx).negate()).mul(present), res);
+      // more water near the top of the wall (arch meshes: the part's top), none under the roofs
+      const wet = arch ? mix(float(1), float(0.45), smoothstep(0, 10, attribute('ytop', 'float').sub(p.y))).mul(float(1).sub(roofedNode())) : float(0.8);
+      const stain = along.mul(along).mul(across).mul(wet).mul(So.drip).mul(onFace);
+      alb = alb.mul(vec3(float(1).sub(stain), float(1).sub(stain), float(1).sub(stain.mul(0.9))));
     }
   } else if (d.joints) { // hairline ashlar joints (D-029): visual only, never sunk; on vertical faces only
     const J = d.joints;
@@ -825,7 +928,8 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const y0 = attribute('y0', 'float'), h = p.y.sub(y0);
     const vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));
     const along = vec3(p.x, float(0), p.z);
-    const top = clamp(float(0.32).add(mx_noise_float(along.mul(1.3).add(vec3(3.1, 0, 7.7))).mul(0.3)).add(mx_noise_float(along.mul(5.3).add(vec3(1.9, 0, 2.3))).mul(0.12)), 0.18, 0.48); // 0.2–0.45 m (never an empty smoothstep ramp)
+    const top0 = clamp(float(0.32).add(mx_noise_float(along.mul(1.3).add(vec3(3.1, 0, 7.7))).mul(0.3)).add(mx_noise_float(along.mul(5.3).add(vec3(1.9, 0, 2.3))).mul(0.12)), 0.18, 0.48); // 0.2–0.45 m (never an empty smoothstep ramp)
+    const top = d.footH ? top0.mul(mix(float(1), float(d.footH / 0.32), SURF_D285)) : top0; // D-285: a higher band where the wall stands on the open plain
     const strength = clamp(float(0.75).add(mx_noise_float(along.mul(0.35).add(vec3(9.3, 0, 4.1))).mul(1.2)), 0.25, 1.15); // patchy along the wall
     const band = float(1).sub(smoothstep(top.sub(0.1), top.add(0.05), h)).mul(float(0.6).add(float(1).sub(smoothstep(0, top, h)).mul(0.4)))
       .mul(step(-0.01, h)).mul(vert).mul(strength).mul(d.foot).mul(SURF_AB);
@@ -855,7 +959,8 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const below = attribute('ytop', 'float').sub(p.y), vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));
     const q = vec3(p.x.mul(2.2), p.y.mul(0.2), p.z.mul(2.2));
     const st = smoothstep(0.15, 0.65, mx_noise_float(q.add(vec3(4.1, 0.3, 7.9))).mul(0.5).add(0.5).add(mx_noise_float(q.mul(2.7)).mul(0.15)));
-    const fade = float(1).sub(smoothstep(0.2, 3, below)).mul(step(0, below)).mul(float(1).sub(roofedNode())); // no rain under the roofs (D-188)
+    const rl = d.runoffLen ? mix(float(3), float(d.runoffLen), SURF_D285) : float(3); // D-285: per surface (a tall wall's streaks run further)
+    const fade = float(1).sub(smoothstep(float(0.2), rl, below)).mul(step(0, below)).mul(float(1).sub(roofedNode())); // no rain under the roofs (D-188)
     alb = alb.mul(float(1).sub(st.mul(fade).mul(vert).mul(d.runoff).mul(SURF_AB)));
   }
   if (arch && d.wear) { // traffic wear along the axes of hall and portico floors (D-157, C). pbox = (cx, cz, ±hx, hz): hx > 0
