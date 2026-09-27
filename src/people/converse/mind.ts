@@ -6,9 +6,10 @@ import type { MLCEngineInterface } from '@mlc-ai/web-llm';
 import { appConfig } from './models';
 import { fenceHits, type FenceHit } from './fence';
 import { primeParts, tidy, type Knows, type Turn } from './prompt';
+import { hearAsPerson } from './hear';
 import type { LifeRecord } from './life';
 
-export interface Answer { text: string; raw: string; ok: boolean; hits: FenceHit[]; tries: number; ttftMs: number; totalMs: number; primeMs: number; tokens: number; prefillTps: number; decodeTps: number }
+export interface Answer { heard?: string; recovered?: boolean; text: string; raw: string; ok: boolean; hits: FenceHit[]; tries: number; ttftMs: number; totalMs: number; primeMs: number; tokens: number; prefillTps: number; decodeTps: number }
 export interface LoadInfo { ms: number; model: string }
 type Msg = { role: 'system' | 'user' | 'assistant'; content: string };
 
@@ -42,10 +43,21 @@ export class Mind {
 
   /** one answer as the person (primed first if need be): streamed (first-token time measured), tidied, fenced; on a fence
    *  failure the person is told the word they cannot know and answers again once. The talk stays in the model's cache */
-  async answer(L: LifeRecord, knows: Knows, _history: Turn[], said: string, prose?: string | null, maxTokens = 80): Promise<Answer> {
+  recoveries = 0;
+  /** the answer, and if the GPU device was lost on the way (the Windows watchdog under a busy card: DXGI_ERROR_DEVICE_HUNG),
+   *  the model reloaded and the answer asked once more (the time counts: T-E9 fails it when it runs past 4 s) */
+  async answer(L: LifeRecord, knows: Knows, history: Turn[], said: string, prose?: string | null, maxTokens = 64): Promise<Answer> {
+    const t0 = performance.now();
+    try { return await this.answerOnce(L, knows, history, said, prose, maxTokens); }
+    catch (e) { if (!/disposed|device|lost|mapAsync|unmapped/i.test(String(e))) throw e;
+      this.recoveries++; console.warn('[converse] GPU device lost; reloading the model', String(e).slice(0, 200)); await this.unload().catch(() => {}); await this.load(this.model);
+      const a = await this.answerOnce(L, knows, history, said, prose, maxTokens); return { ...a, totalMs: performance.now() - t0, recovered: true } as Answer; }
+  }
+  private async answerOnce(L: LifeRecord, knows: Knows, _history: Turn[], said: string, prose?: string | null, maxTokens = 64): Promise<Answer> {
     const primeMs = await this.prime(L, knows, prose);
     const e = this.engine!; const t0 = performance.now(); let ttft = -1, tokens = 0, raw = '', text = '', hits: FenceHit[] = [], tries = 0, prefill = 0, decode = 0;
-    let msgs: Msg[] = [...this.conv, { role: 'user', content: `The stranger says: “${said}”` }];
+    const h = hearAsPerson(said); // the fence on the way in (hear.ts): later words reach the person as "…"
+    let msgs: Msg[] = [...this.conv, { role: 'user', content: `The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''} (Answer as ${L.name}, from your own life.)` }];
     while (tries < 2) {
       tries++; raw = '';
       const stream = await e.chat.completions.create({ messages: msgs, stream: true, stream_options: { include_usage: true }, max_tokens: maxTokens, temperature: 0.7, top_p: 0.9, frequency_penalty: 0.3, presence_penalty: 0.1, ...this.extra() } as any) as any;
@@ -58,14 +70,14 @@ export class Mind {
       msgs.push({ role: 'user', content: hits.length ? `(Say that again as yourself: you do not know ${words}, and you never speak of what is to come.)` : '(Answer me as yourself, briefly.)' });
     }
     this.conv = msgs;
-    return { text, raw, ok: !hits.length && text.length > 1, hits, tries, ttftMs: ttft, totalMs: performance.now() - t0, primeMs, tokens, prefillTps: prefill, decodeTps: decode };
+    return { heard: h.text, text, raw, ok: !hits.length && text.length > 1, hits, tries, ttftMs: ttft, totalMs: performance.now() - t0, primeMs, tokens, prefillTps: prefill, decodeTps: decode };
   }
 }
 
 /** speech recognition in a worker */
 export class Ears {
   w: Worker | null = null; private pending: ((m: any) => void) | null = null;
-  async load(model = 'onnx-community/whisper-base', dtype: any = { encoder_model: 'fp32', decoder_model_merged: 'q4' }): Promise<number> {
+  async load(model = 'onnx-community/whisper-base', dtype: any = { encoder_model: 'fp16', decoder_model_merged: 'fp16' }): Promise<number> {
     this.w = new Worker(new URL('./asr_worker.ts', import.meta.url), { type: 'module' });
     this.w.onmessage = e => { const p = this.pending; this.pending = null; p?.(e.data); };
     const r = await this.ask({ type: 'load', model, dtype }); if (r.type === 'error') throw new Error(r.error); return r.ms;

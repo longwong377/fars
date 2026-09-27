@@ -6,7 +6,7 @@
 // translation layer only: the heard line is NOT a translation of it (tier C, said so in the layer's label).
 import { FormantBackend } from '../../audio/speech';
 import { personVoice, unitsFor, voiceLang, WORDLESS, type Unit } from '../../audio/voices';
-import { pickLineChain, type Intent } from '../speech_lines';
+import { candidateLines, type Intent } from '../speech_lines';
 import { voiceIdentity } from '../talkers';
 import { Rng, hashString } from '../../core/rng';
 import type { Population } from '../population';
@@ -29,11 +29,13 @@ const LANG_LABEL: Record<string, string> = { op: 'Old Persian', el: 'Elamite', a
 export function heardReply(pop: Population, pid: number, day: number, english: string, worldSeed: number, rate = 24000): Heard {
   const id = voiceIdentity(null, pid, pop, day, worldSeed); const v = personVoice(id); const { lang } = voiceLang(id.lang, id.langs);
   const r = new Rng((id.seed ^ hashString(english)) >>> 0, 'converse.heard');
-  const want = Math.min(3, Math.max(1, Math.round(english.split(/\s+/).length / 12)));
+  const want = Math.min(3, Math.max(1, Math.round(english.split(/\s+/).length / 7)));
   const units: Unit[] = [];
   if (lang) {
-    const p = pickLineChain({ langs: [LANG_LABEL[lang]], intents: intentsOf(english), seed: r.int(1, 1e9) });
-    const U = unitsFor(lang); const line = p ? U.lines.find(u => u.id === p.line.id) : null; if (line) units.push(line);
+    // the line: one of every line that fits what the reply does (all its intents' candidates together: the first intent
+    // alone often has a single line, heard again and again in the first world run)
+    const U = unitsFor(lang); const cands = intentsOf(english).flatMap(intent => candidateLines({ langs: [LANG_LABEL[lang]], intent })?.lines ?? []).map(l => U.lines.find(u => u.id === l.id)).filter((u): u is Unit => !!u);
+    const line = cands.length ? cands[r.int(0, cands.length - 1)] : null; if (line) units.push(line);
     while (units.length < want && U.words.length) { const w = r.pick(U.words); if (!units.includes(w)) units.push(w); }
   } else { while (units.length < want) units.push(r.pick(WORDLESS)); }
   const fb = new FormantBackend(rate); const parts: Float32Array[] = []; const gap = new Float32Array(Math.round(rate * 0.35));

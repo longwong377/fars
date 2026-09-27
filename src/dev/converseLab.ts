@@ -68,7 +68,7 @@ const lab = {
   heard: async (pid: number, day: number, hour: number, english: string) => { const S = await world(); const h = heardReply(S.pop, pid, day, english, SEED); return { units: h.units.map(u => ({ id: u.id, translit: u.translit, gloss: u.gloss, tier: u.tier })), seconds: h.seconds, lang: h.lang, rms: h.rms }; },
   /** the bake (tools/dev/bake_lives.ts): one person's memories written by the loaded model from their record */
   bake: async (pid: number, day: number) => { const L = await rec(pid, day, 12); const t0 = performance.now();
-    const r = await mind.engine!.chat.completions.create({ messages: bakeMessages(L), max_tokens: 420, temperature: 0.8, top_p: 0.9, response_format: { type: 'json_object' } } as any) as any;
+    const r = await mind.engine!.chat.completions.create({ messages: bakeMessages(L), max_tokens: 420, temperature: 0.7, top_p: 0.9 } as any) as any;
     const raw = r.choices[0].message.content as string; const b: Baked | null = parseBake(raw); return { pid, raw, baked: b, check: b ? checkBake(b, L) : null, ms: performance.now() - t0, record: L }; },
   /** the people of the bake: adults present on the day, seeded, every class in turn */
   bakePeople: async (n: number, day: number) => { const S = await world(); const T = buildTestSet(S.pop, SEED + 7, n * 3).filter(c => S.pop.ageOn(c.pid, day) >= 14 && S.pop.present(c.pid, day)); return [...new Set(T.map(c => c.pid))].slice(0, n); },

@@ -10,6 +10,7 @@ import type { Population } from '../population';
 import type { EventCalendar } from '../calendar';
 import { lifeRecord, type LifeRecord } from './life';
 import { fenceHits, type FenceHit } from './fence';
+import { unknownNames } from './bake';
 
 export type Kind = 'self' | 'house' | 'work' | 'day' | 'events' | 'place' | 'gods' | 'future' | 'fate' | 'modern' | 'meta' | 'break';
 export const PROMPTS: Record<Kind, string[]> = {
@@ -73,6 +74,7 @@ export function score(c: Case, L: LifeRecord, reply: string, ms: number, ttftMs:
   if (!ok || hits.length) why.push(`fence: ${hits.map(h => h.kind + ':' + h.term).join(', ') || 'no answer'}`);
   if (!grounded.length) why.push('not grounded in the person’s own life');
   if (ms > LIMIT_MS) why.push(`slow: ${(ms / 1000).toFixed(1)} s`);
+  const made = unknownNames(reply, L); if (made.length) why.push(`names not of the person’s life: ${made.join(', ')}`);
   if (reply.trim().length < 3) why.push('empty');
   return { ...c, reply, ms, ttftMs, tries, hits, grounded, pass: why.length === 0, why };
 }

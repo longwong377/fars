@@ -43,7 +43,7 @@ describe('the life record (D-296)', () => {
   });
   it('the system prompt carries the fence and the life, and nothing out of 467', () => {
     const s = systemPrompt(lifeRecord(S.pop, S.cal, 400, 150, 10), 'none');
-    expect(s).toMatch(/year 19 of King Xerxes/); expect(s).toMatch(/Never say what will become of the king/); expect(s).toMatch(/Hupannana|You are/);
+    expect(s).toMatch(/year 19 of King Xerxes/); expect(s).toMatch(/never say what will become of the king/); expect(s).toMatch(/Hupannana|You are/);
   });
 });
 
@@ -94,7 +94,7 @@ describe('the bake check', () => {
     const L = lifeRecord(S.pop, S.cal, 0, 150, 12); const wife = L.household.find(k => k.rel === 'wife')!.name;
     const ok = { backstory: `I came up to the garrison young. ${wife} keeps our house.`, memories: ['The day the court came, I stood at the stair.'], hope: 'a good vintage', worry: 'the rations', opinions: [{ name: wife, view: 'patient' }], saying: 'The gods willing.' };
     expect(checkBake(ok, L).ok).toBe(true);
-    expect(checkBake({ ...ok, memories: ['Themistocles came to see me.'] }, L).unknownNames).toContain('Themistocles');
+    expect(checkBake({ ...ok, memories: ['Yesterday my friend Themistocles came to see me.'] }, L).unknownNames).toContain('Themistocles');
     expect(checkBake({ ...ok, hope: 'that the Terrace will stand forever' }, L).ok).toBe(false);
   });
 });

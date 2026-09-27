@@ -9,7 +9,7 @@ import { lifeRecord, type LifeRecord } from './life';
 import { heardReply } from './voice';
 import type { Turn } from './prompt';
 
-export const DEFAULT_MODEL = 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC';
+export const DEFAULT_MODEL = 'gemma-2-2b-it-q4f16_1-MLC'; // D-296: measured on the T4 (the lab's T-E9 runs): the most natural voice of the 1-3 B models that fit 4 s and the watchdog
 export const NEAR_M = 3;
 interface Ctx { world: any; camera: THREE.Camera; clock: { dayIndex: number; localHour: number; t: number }; seed: number; englishVoice?: boolean }
 export interface Near { pid: number; agent: number | null; name: string; d: number; e: number; n: number }
@@ -58,7 +58,7 @@ export function mountConverse(c: Ctx) {
     let heard = null as any;
     if (a.ok) { const h = heardReply(sim.pop, near.pid, day, a.text, c.seed); heard = { lang: h.lang, units: h.units.map(u => u.translit || u.gloss), seconds: h.seconds };
       play(h.data, h.rate); if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => play(r.data, r.rate)).catch(() => {}); } }
-    show(a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`, `translation layer (English, out of world); heard: ${heard ? heard.lang : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s`);
+    show(a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`, `translation layer (English, out of world); heard: ${heard ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s`);
     const row = { pid: near.pid, name: L.name, d: +near.d.toFixed(2), said: text, reply: a.text, ok: a.ok, hits: a.hits, ms: performance.now() - t0 + heardMs, ttft: a.ttftMs, heard, key };
     state.last = row; state.log.push(row); return row;
   }
@@ -81,7 +81,7 @@ export function mountConverse(c: Ctx) {
   let primeP: Promise<any> = Promise.resolve();
   setInterval(() => { if (!state.loaded || state.busy) return; const n = nearest(c.world, eye(), 6); if (!n) return; const sim = c.world.people.sim;
     const L = lifeRecord(sim.pop, sim.cal, n.pid, c.clock.dayIndex, c.clock.localHour); const knows = n.agent !== null ? sim.memory.greeting(n.agent, sim.t) : 'none';
-    state.busy = true; primeP = mind.prime(L, knows).then(ms => { if (ms) state.log.push({ primed: n.pid, ms }); }).finally(() => { state.busy = false; }); }, 500);
+    state.busy = true; primeP = mind.prime(L, knows).then(ms => { if (ms) state.log.push({ primed: n.pid, ms }); }).catch(() => mind.forget()).finally(() => { state.busy = false; }); }, 500);
   const api = { state, say, nearest: () => nearest(c.world, eye()), load: ensure, mind, hear: async (samples: number[]) => { ears ??= new Ears(); if (!(ears as any).w) await ears.load(); return ears.hear(Float32Array.from(samples)); } };
   (window as any).__converse = api; return api;
 }

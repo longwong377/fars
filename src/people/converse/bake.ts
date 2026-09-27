@@ -5,6 +5,7 @@
 // to (world seed, pid): the world's seed changes per new game, so the shipped sample serves the default world (seed 1)
 // and the runtime uses the record alone elsewhere (DECISIONS D-296: why, and the plan for the full bake).
 import { fenceHits } from './fence';
+import { MONTHS } from '../calendar';
 import { lifeBriefShort, type LifeRecord } from './life';
 
 export interface Baked { backstory: string; memories: string[]; hope: string; worry: string; opinions: { name: string; view: string }[]; saying: string }
@@ -12,7 +13,7 @@ export interface BakedRow extends Baked { seed: number; pid: number; day: number
 
 export function bakeMessages(L: LifeRecord) {
   return [
-    { role: 'system' as const, content: 'You write the inner life of one ordinary person of Parsa (Persepolis) in the year 467 before our era, in the reign of King Xerxes, from the facts of their life given. Invent nothing that contradicts the facts; name no one who is not named in them; nothing after 467 and no hint of what later befell the king, the Terrace or the empire; nothing modern; no coins, paper or clocks. Plain English, as if translated. Answer only with JSON.' },
+    { role: 'system' as const, content: 'You write the inner life of one ordinary person of Parsa (Persepolis) in the year 467 before our era, in the reign of King Xerxes, from the facts of their life given. Invent nothing that contradicts the facts; name no one who is not named in them; nothing after 467 and no hint of what later befell the king, the Terrace or the empire; nothing modern; no coins, paper or clocks. Plain English, as if translated. Answer only with one JSON object, nothing before or after it.' },
     { role: 'user' as const, content: `${lifeBriefShort(L)}\n\nWrite JSON with these keys: "backstory" (2-3 sentences: how this person came to live and work where they do, from the facts), "memories" (3 short first-person memories, each specific: a person, a day, a place of their own life), "hope" (one sentence), "worry" (one sentence), "opinions" (up to 3 objects {"name", "view"} about people named above), "saying" (a turn of phrase this person often uses, in English).` },
   ];
 }
@@ -29,10 +30,25 @@ export function parseBake(raw: string): Baked | null {
 export function checkBake(b: Baked, L: LifeRecord): { fence: string[]; unknownNames: string[]; ok: boolean } {
   const all = [b.backstory, ...b.memories, b.hope, b.worry, ...b.opinions.map(o => `${o.name}: ${o.view}`), b.saying].join(' \n ');
   const fence = fenceHits(all).map(h => `${h.kind}:${h.term}`);
-  const known = new Set([L.name, ...L.household.map(k => k.name), ...L.friends.map(f => f.name), ...L.kinHouses.map(k => k.split('’')[0]), ...[...L.year, ...L.quarrels, ...L.debts].flatMap(y => y.match(/\p{Lu}[\p{L}\-’]+/gu) ?? [])].map(n => n.toLowerCase()));
-  const ALLOWED = /^(I|My|The|A|An|He|She|We|They|It|When|One|In|On|At|But|And|Of|To|Our|His|Her|This|That|If|After|Before|Then|Every|Now|Once|Some|May|With|For|As|Yes|No|Parsa|Persia|Persian|Persians|Terrace|King|Xerxes|Darius|Khshayarsha|Auramazda|Ahuramazda|Humban|Napiriša|Marduk|Nabû|Hadad|Ptah|Amun|Zeus|Elam|Elamite|Elamites|Susa|Babylon|Babylonian|Ecbatana|Media|Mede|Medes|Median|Sardis|Lydia|Lydian|Ionia|Ionian|Ionians|Egypt|Egyptian|Syria|Syrian|Bactria|Bactrian|Treasury|Hall|Hundred|Columns|Pulvar|Kur|Marv|Across-the-River|Nisanu|Ādukanaiša|Mišebaka|Yauna|Karapaθiya|Kārapaθiya)$/u;
-  const unknownNames = [...new Set((all.match(/\p{Lu}[\p{L}\-’]+/gu) ?? []).filter(n => !ALLOWED.test(n) && !known.has(n.toLowerCase())))];
-  return { fence, unknownNames, ok: fence.length === 0 && unknownNames.length === 0 };
+  const unknown = unknownNames(all, L);
+  return { fence, unknownNames: unknown, ok: fence.length === 0 && unknown.length === 0 };
+}
+
+/** names the model made up: capitalised words that are neither a name of the person's record (their own, their house's,
+ *  kin, friends, the year's events) nor a god, people, place or month of their world, nor an ordinary word opening a sentence
+ *  (a made-up kinsman contradicts the life the simulation gave them; a later name, e.g. Bahram, is an anachronism) */
+const WORLD_NAMES = new Set(['i', 'parsa', 'persia', 'persian', 'persians', 'terrace', 'king', 'xerxes', 'darius', 'khshayarsha', 'auramazda', 'ahuramazda', 'humban', 'napiriša', 'napirisa', 'marduk', 'nabû', 'nabu', 'hadad', 'ptah', 'amun', 'zeus', 'mithra', 'anahita', 'elam', 'elamite', 'elamites', 'susa', 'babylon', 'babylonian', 'babylonians', 'ecbatana', 'media', 'mede', 'medes', 'median', 'sardis', 'lydia', 'lydian', 'ionia', 'ionian', 'ionians', 'yauna', 'egypt', 'egyptian', 'syria', 'syrian', 'bactria', 'bactrian', 'sogdian', 'lycian', 'carian', 'cappadocian', 'thracian', 'treasury', 'hall', 'hundred', 'columns', 'pulvar', 'kur', 'across-the-river', 'mišebaka', 'greeks', 'greek', 'stranger', 'gods', 'god']);
+for (const m of MONTHS) for (const n of [m.op, m.bab, m.elam]) WORLD_NAMES.add(n.replace(/\s*\(\?\)/, '').toLowerCase());
+export function unknownNames(text: string, L: LifeRecord): string[] {
+  const known = new Set([L.name, ...L.household.map(k => k.name), ...L.friends.map(f => f.name), ...L.kinHouses.map(k => k.split('’')[0]), ...[...L.year, ...L.quarrels, ...L.debts, ...L.today.earlier, L.today.now, L.today.next ?? ''].flatMap(y => y.match(/\p{Lu}[\p{L}\-’]+/gu) ?? [])].map(n => n.toLowerCase().replace(/^\*/, '')));
+  const out: string[] = [];
+  for (const m of text.matchAll(/(^|[.!?:;“"\n…]\s*|\s)(\p{Lu}[\p{L}\-’']*)/gu)) {
+    const sentenceStart = m.index === 0 || /[.!?:;“"\n…]/.test(m[1]); const w = m[2].replace(/[’']s$/, ''); const lw = w.toLowerCase();
+    if (known.has(lw) || WORLD_NAMES.has(lw)) continue;
+    if (sentenceStart && /^[A-Za-z’'-]+$/.test(w)) continue; // an ordinary word opening a sentence ("Hard, yes.")
+    out.push(w);
+  }
+  return [...new Set(out)];
 }
 
 /** the memories as the runtime gives them to the model (one paragraph) */

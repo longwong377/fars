@@ -205,17 +205,18 @@ const short = (s: string, n = 9) => { const t = s.split(/[:(;]/)[0].trim().split
  *  is slow to read in, ~460 tokens a second on a T4, and one read of ~900 tokens hung the card past the Windows watchdog; the
  *  whole prompt stays under ~450 tokens). The events of the day that everyone shares are cut to the two nearest the person */
 export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
-  const kin = L.household.slice(0, 5).map(k => `${k.name} (${k.rel}, ${k.age})`).join(', ') || 'none';
+  // "your wife Dātabāmā (28)" reads right to a small model; "Dātabāmā (wife, 28)" was misread (a 2B made a child of two a wife)
+  const kin = L.household.slice(0, 5).map(k => /^kins|^the old/.test(k.rel) ? `${k.name} (${k.rel}, ${k.age})` : `your ${k.rel} ${k.name} (${k.age})`).join(', ') || 'no one: you live with your work group';
   const who = L.age < 14 ? (L.sex === 'm' ? 'boy' : 'girl') : L.sex === 'm' ? 'man' : 'woman';
   const ev = L.today.events.filter(e => !/^the gangs at work/.test(e)).slice(0, 1);
   const lines = [
     `You are ${L.name}, ${who} of ${L.age}, ${L.origin}; you speak ${L.language}.`,
-    `Work: ${short(L.job, 12)}${L.rank ? `, ${L.rank}` : ''}. Home: ${L.home.replace(/ \(a household of.*\)$/, '')}.`,
-    `Household: ${kin}.`,
-    L.friends.length ? `You know: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
+    `Work: ${short(L.job, 16)}${L.rank ? `, ${L.rank}` : ''}. Home: ${L.home.replace(/ \(a household of.*\)$/, '')}.`,
+    `In your house: ${kin}.`,
+    L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
     [...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].length ? `Lately: ${[...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].join('; ')}.` : '',
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
-    `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}. Now: ${L.today.now}${L.today.next ? `; then ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
+    `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${L.today.now.replace(/^[a-z ]+: /, '')}${L.today.next ? `; after this: ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
     ev.length ? `News today: ${ev.join('; ')}.` : '',
     prose ? `Memories: ${prose}` : '',
     L.knows.length > 6 ? `You know well: ${L.knows[L.knows.length - 1]}.` : '',
