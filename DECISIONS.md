@@ -7768,3 +7768,64 @@ mother who followed the stranger is still "talking" in her child's plan's words)
 - **Q-960 (open):** in the browser the near tiles carry ~20-40 % more triangles than node counts (probe: q_s1 court 583 k,
   q_s1 at 60 m 1.16 M): the CC0 scan jars and baskets (D-310, scanShape into the house batches) are drawn only in the
   browser, so tests/houses.test.ts budgets do not see them.
+
+## D-321 The dressed stone's block faces from a Blender-carved detail set, on every block of the world (session 12, agent blocks; UD-19, UD-17, UD-20, D-233; T-R12; Q-930, B145)
+- **How it could pass its tests while the intent fails (said first):** the set loads and every dressed-stone material samples it
+  (the tests see it in the shaders) but it reads as nothing: relief under the scans' grain, or relief that shows only in raking
+  light while the moments' sun is frontal; it repeats as a stamp block after block; its chips and margins land away from the
+  painted joints (a frame error); it aliases with distance; it covers the Terrace's walls but not the merlons, the foot, the
+  stairs, the Ka'ba or Takht-e Rustam; or it pushes a pipeline over WebGPU's 16 samplers so a material draws nothing on the page
+  (B122) while the node count passes. Measured against: probe renders from one page load with the set on, off and at a gain of
+  4-6 (placement), at arm's length, 3-4 m and 20+ m, in the moments' sun and in a raking sun; the page's WebGPU errors; the
+  sampler count with every scan loaded; the class list against every surface with a joint pattern.
+- **The asset (tools/blender/blockface.{json,py,mjs}; public/textures/blockface/blockface.ktx2, one KTX2 2-D array, UASTC + zstd,
+  mipmapped, 2048 px layers of 2.048 m: 1 mm a texel; ASSET_LEDGER):** every layer is CARVED, not painted: numpy inside Blender
+  lowers a quarry-rough face (band-limited periodic noise) by the strokes of a tool, each the tool's own cutting profile swept
+  along the stroke (toothed chisel: teeth ~4 mm apart leaving ridges, a shallow arc along the stroke, the facet tilted; flat
+  chisel: the blade's rounded corners, the stroke run out at its end; point: a V groove deepest where it entered), the surface the
+  minimum of the face and every cut (material removal), then rubbed (the peaks above a local mean lowered); Cycles bakes its
+  tangent-space normals and AO from the displaced 1 mm mesh with a wrapped margin (tileable). Seven layers: three toothed-chisel
+  faces in different hands (stroke 20-30 x 35-95 mm, working patches 0.16-0.46 m, their direction per patch), a flat-chisel face
+  over a claw (treads, landings, tops), a point-dressed face (the foot), and two layers of 16 arris strips (128 mm from the joint):
+  a margin of strokes along the arris (worked to the joint, ~3.7 cm) with conchoidal chips of handling and setting (~1 per metre,
+  7-48 mm), and for the foot a pitched, irregular arris with spalls (3.2 per metre). Packed RGBA: normal x, y, height, AO.
+- **Applied (src/render/blockface.ts, materials.ts; all C):** per block of the joint pattern already drawn (the block indices
+  choose the layer among the three hands, an offset over the tile and a mirror: no two neighbouring blocks show the same tile);
+  the strips addressed by the distance to the nearest bed and head joint (the retaining walls' course table and polygonal foot
+  edges, D-232, the palaces' varied coursing, D-157, the stair rows, D-218), meeting in a mitre at the corners, the deeper chip
+  over the other; the stair nosings (a tread's front, a riser's top) take the strip and a rounding worn by the feet (r 4 mm at a
+  flight's ends to 18 mm in its walked middle); the parts' own free arrises (the bevelled edges no other part continues) take it
+  too, through a new per-vertex attribute (meshes.ts 'adist': the distance to each of a face's four bevelled arrises, affine over
+  the face, so exact per fragment; stored as d - 1000 so a geometry without it has none). Tool grooves a little lighter (the
+  stun, 5 % per 1 sigma of relief), chips' fresh fracture 7 % lighter, a third of the AO into the albedo, the AO as the ambient
+  occlusion; the baked slopes drawn x1.6 on the chiselled faces (no self-shadowing in a normal map, C). The measured layouts and
+  the tints stay (the detail is mean-preserving); the rock-boulder scan keeps its colour grain and roughness on these surfaces
+  but not its normal map and only a sixth of its luminance bump (a weathered boulder's relief is not a dressed face's; the
+  normal map's sampler pays for the set's: the node sampler count unchanged, <= 6); the procedural tool facets of D-218 are
+  dropped where the set is loaded and its fossil pits a third as dark (the "black pepper" read at 1-3 m).
+- **The class, everywhere (every code path that draws a dressed block face):** materials.ts varied-ashlar branch (limestone:
+  every palace, stair, parapet, landing and wall of the Terrace, the waterworks, the inscription stones, the quarries' benches and
+  cut blocks, the masons' yard's dressed drums; terrace: the retaining walls with their foot; terrace_foot: the proud foot blocks,
+  rough), the monolith branch (every merlon), the hairline branch (kaba_white: the Ka'ba-ye Zardosht; takht_stone: Takht-e
+  Rustam), jointless dressed stone (stone_plain: the town's kerbs and well heads; nr_dressed: the dressed fields of the rock-cut tomb
+  facades at Naqsh-e Rustam, the same tools on the living rock) and the new stone_rough (the masons' blocks at
+  their places, people/crowd.ts, and the yard's quarry-rough drums, world/construction.ts: point-dressed sides, a clawed top; were
+  'rubble', the fords' stones). The Now view's stone inherits it (no work spent there: UD-20). tests/blockface.test.ts holds the
+  class list against every surface with a joint pattern (bricks excepted).
+- **Measured (probe, GPU T4, tools/dev/blockface_probe.mjs: the Terrace's architecture and scans lit by a sun and a sky
+  hemisphere, one page load, the set on and off per view; shots under T:/fars-assets-s12/blocks/shots, not committed):** the set
+  loads as BC7 (format 36492) in 2-4 s, no WebGPU error on any view (the Terrace, the stairs, and sample blocks of kaba_white,
+  takht_stone, stone_plain, stone_rough and a merlon). Luminance spread Ystd/Y in 32 px windows, off -> on: at arm's length
+  the Tachara stair block 0.178 -> 0.201, the Grand Stair's landing (raking sun) 0.125 -> 0.140 and (moment sun) 0.089 -> 0.096,
+  the Apadana E stair wall 0.100 -> 0.112, the retaining wall's point-dressed foot (moment sun) 0.104 -> 0.140 and (raking)
+  0.230 -> 0.484; at 3.5 m 0.114 -> 0.121; the whole Grand Stair (stair-climb-pm) 0.416 -> 0.417 (at 20+ m the set averages
+  out: the mips hold the mean; no crawl seen). Seen: the toothed chisel's strokes in patches on the blocks at 1-2 m (Tachara
+  stair, Ka'ba sample), chips along the joints as small dark notches in shade, the margins as a faint band along a joint in a
+  raking sun, the foot pocked; at a gain of 4-6 the strips follow the painted joints, the stair rows and the foot's polygonal
+  edges. Not seen yet: any view in the full world (the lead's batched render), the far LODs of the stair merlons.
+- **Not done / limits (B145):** real chipped geometry: the arrises keep D-157's 10 mm chamfer and the chips are in the maps
+  (no self-shadowing, no silhouette); the merlons' arrises take the strips on their front and back faces only (the stepped
+  outline's distance in the geometry's frame, B145 approach 3: done for those faces; their sides and ledges face marks only); the
+  carved members (their own finish, D-306) and the incised signs (incisedMaterial draws its own normal: the set is left out
+  there) are not this class.
+- **Reversible:** yes (`?noblockface`; `window.__parsaSurf.blockface(0)` at run time; the SurfaceDef `blockFace` flags).

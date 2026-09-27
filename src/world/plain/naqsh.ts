@@ -28,8 +28,8 @@ import { ReliefSet, type ReliefItem } from '../../arch/reliefs';
 const NR_GLYPH_MAX = 0.08;
 
 SURFACES.nr_rock = { albedo: [0.56, 0.52, 0.46], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.09, bump: { amp: 0.03, freq: 0.6 }, streaks: { amp: 0.12, freq: 0.5, stretch: 0.3 }, rockBlocks: { size: [6.5, 3.1, 40], tone: 0.07, bed: 0.03 }, tier: 'C', note: 'Naqsh-e Rustam cliff: buff-grey limestone, jointed blocks each with its own tone, bedding, run-off streaks 3× longer than wide (albedo, blocks and streaks C, D-144, D-217; was streaks stretched 12× down the face: a curtain)' };
-SURFACES.nr_dressed = { albedo: [0.55, 0.52, 0.47], roughness: 0.75, porosity: 0.3, noiseScale: 1.1, noiseAmp: 0.07, bump: { amp: 0.002, freq: 4 }, tier: 'C', note: 'dressed limestone of the rock-cut façades (albedo C)' };
-SURFACES.kaba_white = { albedo: [0.7, 0.68, 0.62], roughness: 0.6, porosity: 0.3, noiseScale: 1.2, noiseAmp: 0.06, joints: { course: 0.95, block: 1.9, width: 0.001, dark: 0.5 }, bump: { amp: 0.0015, freq: 5 }, tier: 'B/C', note: "Ka'ba-ye Zardosht: white limestone with dovetail-clamped blocks (B, search extract); tone C" };
+SURFACES.nr_dressed = { blockFace: 'dressed', albedo: [0.55, 0.52, 0.47], roughness: 0.75, porosity: 0.3, noiseScale: 1.1, noiseAmp: 0.07, bump: { amp: 0.002, freq: 4 }, tier: 'C', note: 'dressed limestone of the rock-cut façades (albedo C)' };
+SURFACES.kaba_white = { blockFace: 'dressed', albedo: [0.7, 0.68, 0.62], roughness: 0.6, porosity: 0.3, noiseScale: 1.2, noiseAmp: 0.06, joints: { course: 0.95, block: 1.9, width: 0.001, dark: 0.5 }, bump: { amp: 0.0015, freq: 5 }, tier: 'B/C', note: "Ka'ba-ye Zardosht: white limestone with dovetail-clamped blocks (B, search extract); tone C" };
 
 const NR = () => PLAIN.naqsh_e_rustam;
 const F_BEARERS = () => NR().facade.throne_bearers as number;
