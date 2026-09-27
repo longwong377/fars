@@ -17,6 +17,11 @@ import { v } from './spec';
 import { surfaceMaterial } from '../render/materials';
 import { INSCRIPTION_PICK_LAYER } from './decor';
 import { clayMaterial, sealingLumpGeometry, writtenMeta } from '../world/writing';
+import { modelParts } from '../render/scanProps';
+/** D-325: the leaves, bands, bosses, posts and shoes are the project's models (tools/blender/model_props.py): unit forms the
+ *  instances scale as they scaled the boxes, cylinders and hemispheres (planks with V-joints and chamfers; a strap with
+ *  rounded edges; a domed boss on a collar; a hewn post; a shoe with lips and rivets); the stand-ins when not loaded */
+const unit = (id: string, part: string, lod: number, alt: () => THREE.BufferGeometry): THREE.BufferGeometry => { const g = modelParts(id, lod)?.[part]; if (!g) return alt(); if (g.getAttribute('ao')) g.deleteAttribute('ao'); return g; };
 
 type RB = ReturnType<Physics['world']['createRigidBody']>;
 const LEAF = () => v<any>('global', 'r_door_leaf'), SEAL = () => v<any>('global', 'r_door_sealing'), SCHED = () => v<any>('global', 'r_door_schedule');
@@ -77,12 +82,12 @@ export class DoorSystem {
     const L = LEAF(), n = this.leaves.length;
     const timber = surfaceMaterial('timber'), bronze = bronzeMaterial();
     const mk = (g: THREE.BufferGeometry, m: THREE.Material, count: number, name: string, shadow: boolean) => { const im = new THREE.InstancedMesh(g, m, Math.max(1, count)); im.name = name; im.userData = { ...DOOR_META }; im.castShadow = shadow; im.receiveShadow = true; im.frustumCulled = false; this.group.add(im); return im; };
-    this.slab = mk(new THREE.BoxGeometry(1, 1, 1), timber, n, 'doors:leaves', true);
-    this.band = mk(new THREE.BoxGeometry(1, 1, 1), bronze, n * L.bands, 'doors:bands', true);
-    this.post = mk(new THREE.CylinderGeometry(1, 1, 1, 12), timber, n, 'doors:posts', true);
-    this.shoe = mk(new THREE.CylinderGeometry(1, 1, 1, 12), bronze, n, 'doors:shoes', false);
+    this.slab = mk(unit('door_leaf', 'leaf', 0, () => new THREE.BoxGeometry(1, 1, 1)), timber, n, 'doors:leaves', true);
+    this.band = mk(unit('door_band', 'band', 0, () => new THREE.BoxGeometry(1, 1, 1)), bronze, n * L.bands, 'doors:bands', true);
+    this.post = mk(unit('door_post', 'post', 0, () => new THREE.CylinderGeometry(1, 1, 1, 12)), timber, n, 'doors:posts', true);
+    this.shoe = mk(unit('door_shoe', 'shoe', 0, () => new THREE.CylinderGeometry(1, 1, 1, 12)), bronze, n, 'doors:shoes', false);
     let nb = 0; for (const { l } of this.leaves) nb += this.bossesPerFace(l) * 2 * L.bands;
-    this.boss = mk(new THREE.SphereGeometry(1, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2), bronze, nb, 'doors:bosses', false); // hemisphere facing +z
+    this.boss = mk(unit('door_boss', 'boss', 1, () => new THREE.SphereGeometry(1, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2)), bronze, nb, 'doors:bosses', false); // hemisphere facing +z
     this.leaves.forEach(({ l }, i) => { for (let k = 0; k < L.bands; k++) { const y = (l.height * (k + 1)) / (L.bands + 1);
       for (let j = 0; j < this.bossesPerFace(l); j++) for (const z of [1, -1]) this.bossList.push({ leaf: i, x: L.boss_pitch / 2 + j * L.boss_pitch, y, z }); } });
     this.buildSeals();

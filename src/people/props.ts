@@ -14,7 +14,7 @@ import { HB } from './humanFormat';
 import type { Pose } from './anim';
 import { ptTabletGeometry } from '../world/writing';
 import { HARP_V, HARP_H, LYRE, FRAME_DRUM, DOUBLE_PIPE, REED_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
-import { scanShape } from '../render/scanProps';
+import { scanShape, modelShape, aoFactor } from '../render/scanProps';
 
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 type RGB = [number, number, number];
@@ -22,8 +22,10 @@ type RGB = [number, number, number];
  *  (`sv`: the bowstring's middle, the spindle below the hand) */
 function paint(g: THREE.BufferGeometry, rgb: RGB, metal = 0, rough = 0.8, sv?: (x: number, y: number, z: number) => [number, number, number]): THREE.BufferGeometry {
   const gg = g.index ? g.toNonIndexed() : g; if (gg.getAttribute('uv')) gg.deleteAttribute('uv');
-  const n = gg.getAttribute('position').count, c = new Float32Array(n * 3), m = new Float32Array(n * 2), d = new Float32Array(n * 3); const P = gg.getAttribute('position');
-  for (let i = 0; i < n; i++) { c.set(rgb.map(lin), i * 3); m.set([metal, rough], i * 2); if (sv) d.set(sv(P.getX(i), P.getY(i), P.getZ(i)), i * 3); }
+  const n = gg.getAttribute('position').count, c = new Float32Array(n * 3), m = new Float32Array(n * 2), d = new Float32Array(n * 3); const P = gg.getAttribute('position'), L = rgb.map(lin);
+  // (D-325: a modelled prop's baked occlusion multiplied into its colour)
+  for (let i = 0; i < n; i++) { const k = aoFactor(gg, i); c[i * 3] = L[0] * k; c[i * 3 + 1] = L[1] * k; c[i * 3 + 2] = L[2] * k; m.set([metal, rough], i * 2); if (sv) d.set(sv(P.getX(i), P.getY(i), P.getZ(i)), i * 3); }
+  if (gg.getAttribute('ao')) gg.deleteAttribute('ao');
   gg.setAttribute('color', new THREE.BufferAttribute(c, 3)); gg.setAttribute('mr', new THREE.BufferAttribute(m, 2)); gg.setAttribute('sv', new THREE.BufferAttribute(d, 3)); return gg;
 }
 /** a cylinder from a to b (open ends unless `caps`) */
@@ -125,13 +127,15 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
       const crown = paint(new THREE.CylinderGeometry(0.012, 0.022, 0.03, 6).translate(0, 0.1, 0), [0.8, 0.8, 0.78], 1, 0.3);
       return merge([shaft, socket, blade, butt, crown]);
     }
-    case 'sack': return paint(new THREE.SphereGeometry(0.22, 8, 5).scale(1, 0.75, 0.7), [0.62, 0.55, 0.42], 0, 0.95);
+    case 'sack': { // D-325: the modelled filled sack lying (the cloth solver's settle; tools/blender/model_props.py), at lod1, in the old form's box
+      const sk = modelShape('sack_lying', 0, [0.44, 0.33, 0.31], 1); if (sk) return paint(sk.translate(0, -0.165, 0), [0.62, 0.55, 0.42], 0, 0.95); }
+      return paint(new THREE.SphereGeometry(0.22, 8, 5).scale(1, 0.75, 0.7), [0.62, 0.55, 0.42], 0, 0.95);
     // session 12 (D-310): the jar and the basket are CC0 scans' shapes (Poly Haven; render/scanProps.ts) fitted to the old forms' boxes, when loaded
-    case 'jar': { const sj = scanShape('jar', 1, [0.32, 0.46, 0.32], 0); if (sj) return paint(sj, [0.66, 0.46, 0.3], 0, 0.85); }
+    case 'jar': { const sj = modelShape('jar', 1, [0.32, 0.46, 0.32], 1) ?? scanShape('jar', 1, [0.32, 0.46, 0.32], 1); if (sj) return paint(sj, [0.66, 0.46, 0.3], 0, 0.85); } // (D-325: the period's water jar, modelled, at lod1)
       return paint(new THREE.LatheGeometry([[0, 0], [0.1, 0.02], [0.16, 0.18], [0.12, 0.36], [0.06, 0.42], [0.07, 0.46]].map(([x, y]) => new THREE.Vector2(x, y)), 14), [0.66, 0.46, 0.3], 0, 0.85);
     case 'tablet': return paint(ptTabletGeometry('full', 2), [0.56, 0.48, 0.37], 0, 0.9); // the written tablet's form at its LOD (writing.ts)
     case 'mallet': return merge([paint(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 6).translate(0, -0.15, 0), [0.42, 0.31, 0.2], 0, 0.7), paint(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 8).rotateZ(Math.PI / 2).translate(0, -0.3, 0), [0.4, 0.29, 0.18], 0, 0.7)]);
-    case 'basket': { const sb = scanShape('basket', 0, [0.36, 0.18, 0.36], 0); if (sb) return paint(sb.translate(0, -0.09, 0), [0.6, 0.52, 0.32], 0, 0.9); }
+    case 'basket': { const sb = scanShape('basket', 0, [0.36, 0.18, 0.36], 1); /* (D-325: lod1, since the weld fixed the scans' lod1) */ if (sb) return paint(sb.translate(0, -0.09, 0), [0.6, 0.52, 0.32], 0, 0.9); }
       return paint(new THREE.CylinderGeometry(0.18, 0.13, 0.18, 12, 1, true), [0.6, 0.52, 0.32], 0, 0.9);
     // ------------------------------------------------ work tools (grip frame: +Z toward the working end)
     case 'hoe': return merge([paint(rod([0, 0, -0.45], [0, 0, 0.8], 0.016, 0.018, 5), WOOD, 0, 0.7),

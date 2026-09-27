@@ -630,8 +630,8 @@ export class SiteHouses {
       const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
       for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
         // session 12 (D-310): the store's jars are a CC0 scan's shape (render/scanProps.ts) fitted to the lathe's box, when loaded
-        const sj = hi(r.room, k, 2) < 0.65 ? scanShape('jar', Math.floor(hi(r.room, k, 5) * 3), [0.52 * kk, 0.82 * kk, 0.52 * kk], 0) : null;
-        if (sj) B.plaster.geo(g[0], g[1], y - 0.05, sj, hi(r.room, k, 6) * 6.283, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
+        const sj = hi(r.room, k, 2) < 0.65 ? scanShape('jar', Math.floor(hi(r.room, k, 5) * 3), [0.52 * kk, 0.82 * kk, 0.52 * kk], 1) : scanShape('sack', k, [0.44 * (0.85 + 0.25 * hi(r.room, k, 4)), 0.58, 0.42], 1); // (D-325: modelled jars and sacks, lod1)
+        if (sj) B.plaster.geo(g[0], g[1], y - (hi(r.room, k, 2) < 0.65 ? 0.05 : 0.02), sj, hi(r.room, k, 6) * 6.283, hi(r.room, k, 2) < 0.65 ? sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)) : sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own);
         else if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
         else B.plaster.lathe(g[0], g[1], y - 0.02, [[0.16, 0], [0.22, 0.15], [0.2, 0.42], [0.1, 0.55], [0.03, 0.58]], 6, sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own); } }
     else { // a living room: the reed mat, bedding rolled against the back wall, folded rugs, a low platform in larger rooms
@@ -702,7 +702,7 @@ export class SiteHouses {
           B.props.quad(q[0], q[1], q[2], q[3], [nx, 0, nz], c, c, sh(c, 0.95), sh(c, 0.95), own); B.props.quad(q[1], q[0], q[3], q[2], [-nx, 0, -nz], sh(c, 0.9), sh(c, 0.9), sh(c, 0.85), sh(c, 0.85), own); } break; }
       case 'baskets': { B.props.set('ao', 0.85); const bc = lin([0.62, 0.52, 0.34]); const n = 1 + (f.alt ?? 0) % 3;
         for (let k = 0; k < n; k++) { const a = (k - (n - 1) / 2) * 0.45, gy = g(a, 0), k2 = 0.8 + 0.5 * hi(f.alt ?? 0, k), [u, v] = at(a, 0); const [e, nn] = s.grid(u, v);
-          const sb = scanShape('basket', k + (f.alt ?? 0), [0.42 * k2, 0.3 * k2, 0.42 * k2]); // session 12 (D-310): a CC0 scan's basket, when loaded
+          const sb = scanShape('basket', k + (f.alt ?? 0), [0.42 * k2, 0.3 * k2, 0.42 * k2], 1); // session 12 (D-310): a CC0 scan's basket, when loaded
           if (sb) B.props.geo(e, nn, gy - 0.01, sb, hi(k, 11) * 6.283, sh(bc, 0.85 + 0.25 * hi(k, 9)), own);
           else B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
         // a broom of twigs against the wall-side of the baskets

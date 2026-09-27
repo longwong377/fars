@@ -11,7 +11,7 @@ import { attribute } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { paintGeometry as paint, rodGeometry as rod, propGeometry } from './props';
 import { nearCascadesOnly } from './humanGPU';
-import { scanShape } from '../render/scanProps';
+import { scanShape, modelShape, modelParts } from '../render/scanProps';
 
 export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field' | 'jar' | 'mortar_tub' | 'brick_course' | 'beam' | 'loom' | 'dung_cakes' | 'vat' | 'fodder'
   | 'fleece' | 'butchery' | 'hides' | 'basket_meat' | 'threshing_floor' | 'stooks' | 'sheaves' | 'sheaf' | 'grain_heap' | 'spoil' | 'basket_fruit' | 'press' | 'brushwood'
@@ -41,8 +41,9 @@ const P = (g: THREE.BufferGeometry, c: RGB, rough = 0.9, metal = 0) => paint(g, 
 const merge = (gs: THREE.BufferGeometry[]) => mergeGeometries(gs)!;
 // session 12 (D-310): jars and baskets from CC0 scans' shapes (Poly Haven; render/scanProps.ts) fitted to the old forms' boxes
 // (radius r, height h, base on y = 0), when loaded; else the procedural form
-const SJ = (seed: number, r: number, h: number, alt: () => THREE.BufferGeometry) => scanShape('jar', seed, [2 * r, h, 2 * r], 0) ?? alt();
-const SB = (seed: number, r: number, h: number, alt: () => THREE.BufferGeometry) => scanShape('basket', seed, [2 * r, h, 2 * r], 0) ?? alt();
+// (D-325: the jars are the period's modelled forms with their baked occlusion, at lod1; the baskets the scans' lod1)
+const SJ = (seed: number, r: number, h: number, alt: () => THREE.BufferGeometry) => modelShape('jar', seed, [2 * r, h, 2 * r], 1) ?? scanShape('jar', seed, [2 * r, h, 2 * r], 1) ?? alt();
+const SB = (seed: number, r: number, h: number, alt: () => THREE.BufferGeometry) => scanShape('basket', seed, [2 * r, h, 2 * r], 1) ?? alt();
 /** a small deterministic jitter */
 const jit = (i: number, s = 1) => (Math.sin(i * 12.9898 + s * 78.233) * 43758.5453) % 1;
 /** a sheaf of cut barley along +Y from its butt: the stalks narrowing to the band, the ears flaring beyond it (C) */
@@ -184,6 +185,9 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       return merge(g); }
     case 'throne': { // origin under the seated king's root: the seat behind (z −0.22 … 0.22), the footstool in front (C)
       const GILT: RGB = [0.72, 0.56, 0.3], seatY = 0.525, g: THREE.BufferGeometry[] = [];
+      // D-325: the modelled throne and footstool (lion's paws on drums, turned legs, stretchers, finials; the footstool on bull's
+      // legs), in this frame at these heights: tools/blender/model_props.py
+      const th = modelParts('throne', 0); if (th) return merge([paint(th.gilt, GILT, 0.8, 0.4), paint(th.cushion, [0.45, 0.16, 0.14], 0, 0.95)]);
       g.push(paint(box(0.62, 0.05, 0.46, 0, seatY - 0.09, 0), GILT, 0.8, 0.4));
       g.push(paint(box(0.6, 0.045, 0.43, 0, seatY - 0.04, 0), [0.45, 0.16, 0.14], 0, 0.95)); // a cushion (C), its top the seat
       g.push(paint(box(0.6, 0.82, 0.045, 0, seatY - 0.04, -0.245), GILT, 0.8, 0.4));

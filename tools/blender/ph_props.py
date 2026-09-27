@@ -60,12 +60,27 @@ for j in jobs:
       xs = [v.co.x for v in ob.data.vertices]; ys = [v.co.y for v in ob.data.vertices]; zs = [v.co.z for v in ob.data.vertices]
       cx, cy, z0 = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, min(zs)
       for v in ob.data.vertices: v.co.x -= cx; v.co.y -= cy; v.co.z -= z0
+      # session 12 (D-325): weld the corners the glTF import split along UV seams and hard edges before decimating (Blender
+      # keeps UVs per face corner, so the seams survive the weld). Unwelded, every seam was an open boundary and the collapse
+      # crumpled the vessels' lod1 along them (D-310: every jar drew its lod0). 1e-5 of the diagonal: coincident corners only.
+      if j.get('weld'):
+          import bmesh
+          diag = ((max(xs) - min(xs)) ** 2 + (max(ys) - min(ys)) ** 2 + (max(zs) - min(zs)) ** 2) ** 0.5
+          bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=max(1e-6, 1e-5 * diag)); bm.to_mesh(ob.data); bm.free()
       tris0 = tri_count(ob)
       ob.name = 'lod0'; ob.data.name = 'lod0'
       lod1 = ob.copy(); lod1.data = ob.data.copy(); lod1.name = 'lod1'; lod1.data.name = 'lod1'; bpy.context.scene.collection.objects.link(lod1)
       res = {}
+      # a scan of many separate shells (the wicker strands of wicker_basket_01) cannot collapse below its shells' minimum:
+      # its lod1 is a voxel remesh (one closed surface at 1/50 of the diagonal, ~1 cm: the strands fuse) decimated to the target (its UVs are lost;
+      # the builders that draw baskets use their own materials, not the scan's maps)
+      if j.get('remesh1'):
+          import bmesh
+          diag = ((max(xs) - min(xs)) ** 2 + (max(ys) - min(ys)) ** 2 + (max(zs) - min(zs)) ** 2) ** 0.5
+          m = lod1.modifiers.new('rm', 'REMESH'); m.mode = 'VOXEL'; m.voxel_size = diag / 50; m.use_smooth_shade = True
+          bpy.context.view_layer.objects.active = lod1; bpy.ops.object.modifier_apply(modifier='rm')
       for o, target in ((ob, j['lod0']), (lod1, j['lod1'])):
-          r = min(1.0, target / max(1, tris0))
+          r = min(1.0, target / max(1, tri_count(o)))
           if r < 1.0:
               m = o.modifiers.new('dec', 'DECIMATE'); m.decimate_type = 'COLLAPSE'; m.ratio = r; m.use_collapse_triangulate = True
               bpy.context.view_layer.objects.active = o; bpy.ops.object.modifier_apply(modifier='dec')
