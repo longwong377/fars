@@ -5,7 +5,10 @@
 // Driven by tools/blender/probe/carving_probe.mjs.
 import * as THREE from 'three/webgpu';
 import { loadScans } from '../../../src/render/scans';
-import { loadModels, modelStats, ab } from '../../../src/render/models';
+import { loadModels, modelStats, ab, model, fitLevel, bakedMaterial, registerSwap } from '../../../src/render/models';
+import { protomeBox, protomeMesh, voluteBox, voluteMesh, toGeometry } from '../../../src/arch/sculpt';
+import { order } from '../../../src/arch/orders';
+import { carvedMaterial } from '../../../src/arch/meshes';
 import { loadSculpt } from '../../../src/arch/sculpt';
 import { buildTerrace } from '../../../src/arch/terrace';
 import { buildMeshes } from '../../../src/arch/meshes';
@@ -25,6 +28,16 @@ import { buildMeshes } from '../../../src/arch/meshes';
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0.55, 0.68, 0.85);
   scene.add(arch.group);
   arch.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = m.receiveShadow = true; } });
+  // calibration pieces (not in the game): an Apadana-size bull protome and a composite volute member lying on the ground
+  // at CALIB, off the Terrace, to pair with the photographs of the fallen capitals at their own lens
+  const CALIB = [-60, 0, 150];
+  for (const [id, boxOf, meshOf, dx] of [['capital_protome', protomeBox, protomeMesh, 0], ['capital_volute', voluteBox, voluteMesh, -7]] as const) {
+    const o = order('apadana', { capital: id === 'capital_protome' ? 'bull' : 'composite' }), [lo, hi] = (boxOf as any)(o)!, M = model(id);
+    if (!M) continue;
+    const g = fitLevel(M.lods[0], lo, hi), m = new THREE.Mesh(g, bakedMaterial('limestone_carved', M.maps[0], `${id}:0`));
+    m.position.set(CALIB[0] + dx, CALIB[1] - lo[1], CALIB[2]); m.castShadow = m.receiveShadow = true; scene.add(m);
+    registerSwap(m, [toGeometry((meshOf as any)(o, 0)!), carvedMaterial('limestone')]);
+  }
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9c8a70, roughness: 1 }));
   ground.position.y = -0.02; ground.receiveShadow = true; scene.add(ground);
   const sun = new THREE.DirectionalLight(0xfff1e0, 3.4), hemi = new THREE.HemisphereLight(0xbfd6ff, 0x8a7458, 1.0);

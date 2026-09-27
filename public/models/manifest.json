@@ -3,7 +3,7 @@
  "assets": {
   "capital_protome": {
    "file": "models/capital_protome.glb",
-   "inHash": "95b6a30f63685fbfb68a1287763f09a35395136d40936e5cc0ee265bff222a77",
+   "inHash": "b3a237016d1986dc0821f69e7f693a0dd57c69f9c4f6637ac1c318c78688e9d4",
    "outHash": "b11b839e90cebf060e9db9169608fca3ad3853a92c6d436a7bdafe7be96e405e",
    "bytes": 3260104,
    "gpuBytes": 6520387,
@@ -53,8 +53,8 @@
    "src": "RECON;IR-COL;PHOTO-CAP",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 40.5,
-   "build_s": 128,
+   "bake_s": 38.9,
+   "build_s": 117,
    "reproduced": {
     "outHash": "b11b839e90cebf060e9db9169608fca3ad3853a92c6d436a7bdafe7be96e405e",
     "device": "CPU",
@@ -64,16 +64,16 @@
   },
   "capital_volute": {
    "file": "models/capital_volute.glb",
-   "inHash": "dfffd2ae400b76322bcf0c784b9c2e3d328c69d9de7600593d83c5f2fd64088d",
-   "outHash": "872b58e0ab86c1c7ecd1f17a8e22b8efbc3e4b601af5d5531287ada522e6de7c",
-   "bytes": 1078152,
-   "gpuBytes": 1749651,
+   "inHash": "3490dddf130588e7694f53ea5de824e15e3069f73ac28e8f2e50e44b408d3fbc",
+   "outHash": "2b825689226bd66551eec33279c55377fdd0a1d3ce964ac1d6ec9ba5515bd398",
+   "bytes": 915616,
+   "gpuBytes": 1690851,
    "textures": "ktx2",
    "lods": [
     {
      "name": "lod0",
-     "tris": 2538,
-     "verts": 4224,
+     "tris": 2258,
+     "verts": 3069,
      "attrs": [
       "NORMAL",
       "POSITION",
@@ -85,9 +85,9 @@
       "w": 1024,
       "h": 1024,
       "format": "ktx2",
-      "bytes": 934862
+      "bytes": 790748
      },
-     "ao_mean": 0.7166
+     "ao_mean": 0.6612
     },
     {
      "name": "lod1",
@@ -114,10 +114,10 @@
    "src": "RECON;IR-COL;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 14.9,
-   "build_s": 39,
+   "bake_s": 15,
+   "build_s": 33,
    "reproduced": {
-    "outHash": "872b58e0ab86c1c7ecd1f17a8e22b8efbc3e4b601af5d5531287ada522e6de7c",
+    "outHash": "2b825689226bd66551eec33279c55377fdd0a1d3ce964ac1d6ec9ba5515bd398",
     "device": "CPU",
     "blender": "5.0.1",
     "mode": "bytes"
@@ -125,9 +125,9 @@
   },
   "colossus_bull": {
    "file": "models/colossus_bull.glb",
-   "inHash": "49ae6f5443697a155b4c0cc1db96d121d9bb06f659b4151146c33a747262edeb",
-   "outHash": "177a18665306dd62482fdb4bf1c2bcd2fe0f704a0269c83ee32fef87abe30e7d",
-   "bytes": 2930004,
+   "inHash": "d8820c985627e33c700909dd014bd3338311c1fa98c5f3e925fc542c853d205f",
+   "outHash": "4ac952c6037118cb7375d31a7d90744159709c47dc87a2293d450cb51159e2aa",
+   "bytes": 2930000,
    "gpuBytes": 9101243,
    "textures": "ktx2",
    "lods": [
@@ -146,7 +146,7 @@
       "w": 2048,
       "h": 2048,
       "format": "ktx2",
-      "bytes": 2193227
+      "bytes": 2193224
      },
      "ao_mean": 0.538
     },
@@ -175,57 +175,19 @@
    "src": "RECON;IR-PERS;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 48.1,
-   "build_s": 142,
+   "bake_s": 42.9,
+   "build_s": 113,
    "reproduced": {
-    "outHash": "177a18665306dd62482fdb4bf1c2bcd2fe0f704a0269c83ee32fef87abe30e7d",
+    "outHash": "4ac952c6037118cb7375d31a7d90744159709c47dc87a2293d450cb51159e2aa",
     "device": "CPU",
     "blender": "5.0.1",
-    "mode": "content",
-    "rebuilt": "6a7bb54b81bdd605682d5d4b0f7aa4bc5a134adb72d454deabefdeb3ec562c8c",
-    "geometry": true,
-    "geo": [
-     {
-      "mesh": "lod0",
-      "differ": 1,
-      "frac": 0.0000013857478604053035,
-      "max": 0.0004884004592895508
-     },
-     {
-      "mesh": "lod1",
-      "differ": 0,
-      "frac": 0,
-      "max": 0
-     }
-    ],
-    "maps": [
-     {
-      "differ": 0,
-      "frac": 0,
-      "max": 0
-     },
-     {
-      "differ": 0,
-      "frac": 0,
-      "max": 0
-     }
-    ],
-    "tol": {
-     "maps": {
-      "frac": 0.0001,
-      "max": 8
-     },
-     "geo": {
-      "frac": 0.0001,
-      "max": 0.001
-     }
-    }
+    "mode": "bytes"
    }
   },
   "colossus_lamassu": {
    "file": "models/colossus_lamassu.glb",
-   "inHash": "f7a97f7c49fa5d91bf979e39b838df3e34c55cb14b772cbfe38a5357d090f6f0",
-   "outHash": "f0750f2904f704eb6ecc8d2ea3be5e8b2d9b97d2105d13bc3f3479de9fad7cca",
+   "inHash": "40360842aad73089d06c5ce05a3cc8aade152761407386e4d6d9b093fc59a50d",
+   "outHash": "5f8fe6435a5e07fdde0e5d8f053b839c808d0932a8f052f1bac4fdf8ecd3034a",
    "bytes": 3400792,
    "gpuBytes": 9594527,
    "textures": "ktx2",
@@ -274,13 +236,51 @@
    "src": "RECON;IR-PERS;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 43.1,
-   "build_s": 157,
+   "bake_s": 41.2,
+   "build_s": 134,
    "reproduced": {
-    "outHash": "f0750f2904f704eb6ecc8d2ea3be5e8b2d9b97d2105d13bc3f3479de9fad7cca",
+    "outHash": "5f8fe6435a5e07fdde0e5d8f053b839c808d0932a8f052f1bac4fdf8ecd3034a",
     "device": "CPU",
     "blender": "5.0.1",
-    "mode": "bytes"
+    "mode": "content",
+    "rebuilt": "f0750f2904f704eb6ecc8d2ea3be5e8b2d9b97d2105d13bc3f3479de9fad7cca",
+    "geometry": true,
+    "geo": [
+     {
+      "mesh": "lod0",
+      "differ": 1,
+      "frac": 0.000001189617966086371,
+      "max": 0.0004884004592895508
+     },
+     {
+      "mesh": "lod1",
+      "differ": 0,
+      "frac": 0,
+      "max": 0
+     }
+    ],
+    "maps": [
+     {
+      "differ": 0,
+      "frac": 0,
+      "max": 0
+     },
+     {
+      "differ": 0,
+      "frac": 0,
+      "max": 0
+     }
+    ],
+    "tol": {
+     "maps": {
+      "frac": 0.0001,
+      "max": 8
+     },
+     "geo": {
+      "frac": 0.0001,
+      "max": 0.001
+     }
+    }
    }
   }
  }

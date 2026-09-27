@@ -4,9 +4,9 @@
 //  - high.ply: the member at a grid `cell` finer than the game's (volute.mc.cell), with the carving of the photographed
 //    capitals (tools/blender/carving.json volute): the ends of the rolls carry a TWELVE-PETALLED ROSETTE in a plain disc
 //    inside a raised rim (the Gate of All Nations' standing column, fars-assets/photos/gate_of_all_nations/90454591: every
-//    roll end on the broad faces), not the spiral channel the model cuts (tier C, D-151); so the high source takes the model
-//    with its spiral channel filled (volute.member.carve = 0 in this process only; the game's pieces keep theirs, Q-841) and
-//    adds the rosette, the rim, and the raised rings round the rolls' barrels on the narrow faces (same photograph);
+//    roll end on the broad faces), not the spiral channel the model cut (D-151; since D-306 sculpture.json volute.member.carve
+//    is 0, so the game's pieces have plain disc ends, Q-841): the rosette, its rim and the raised rings round the rolls'
+//    barrels on the narrow faces (same photograph) are relief on this surface only;
 //  - lod0.ply, lod1.ply: the game's own meshes (public/generated/sculpt_volute_{0,1}.bin), the bake's targets.
 // Usage: npx tsx tools/blender/sources/volute.ts <outDir> <cell> [carving=1]
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -24,7 +24,6 @@ const cell = +cellS, carving = carveS !== '0';
 mkdirSync(out, { recursive: true });
 const t0 = Date.now();
 const cfg = srow<any>('volute', 'mc'), C = (CARVING as any).volute;
-if (carving && C.fill_spiral) (S as any).volute.member.v.carve = 0; // the photographed ends are rosettes, not spirals (above)
 const prm = sculptParams(0), M = pieceModel('volute', prm, 0);
 const V = (S as any).volute.member.v, [wx, wz] = (SPEC as any).global.r_column_proportions.v.capital_boxes.volute as number[], hv = prm.voluteH;
 const t = V.relief * wx, rs = Math.min(wx * V.scroll_r, hv * V.scroll_r_max), rcx = wx / 2 - rs, eyeH = V.eye_h * t;
@@ -54,7 +53,7 @@ if (carving) {
   };
   R.field(rings, RI.h * rs);
   F = R.apply(M.f);
-  log.carving = { rosette: RO, rings: RI, fill_spiral: !!C.fill_spiral };
+  log.carving = { rosette: RO, rings: RI };
 }
 const raw = marchingCubes(F, M.min, M.max, cell);
 const n = sdfNormals(raw, F, cfg.crease, cell * (cfg.normal_eps ?? 0.3), cfg.max_dev ?? 60);

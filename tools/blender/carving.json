@@ -476,8 +476,7 @@
  "volute": {
   "unit": "D",
   "photo": "fars-assets/photos/gate_of_all_nations/90454591_The_stone_columns_of_the_Gate_of_All_Nations_they_were_1612_.jpg (standing composite column of the Gate: the volute member)",
-  "fill_spiral": true,
-  "fill_note": "the roll ends are photographed as rosettes in a plain disc (B for the motif on this member), not the spiral channel of the model (D-151, C): the high source is the model with its channel filled (carve 0), the rosette carved on it; the game's pieces keep their spiral (Q-841)",
+  "fill_note": "the roll ends are photographed as rosettes in a plain disc (B for the motif on this member), not the spiral channel of the D-151 model: since D-306 the model's channel is 0 deep (sculpture.json volute.member.carve, Q-841) and the rosette is carved in the baked map",
   "rosette": {
    "R": 0.72,
    "h": 0.1,

@@ -1,6 +1,6 @@
 {
  "version": 1,
- "hash": "cee0c54b5eb34eb3",
+ "hash": "0a1e75154cb1c112",
  "params": {
   "voluteH": 1.6087500000000001,
   "colossusFront": 0.8450000000000006
@@ -21,8 +21,8 @@
   "volute": [
    {
     "file": "generated/sculpt_volute_0.bin",
-    "verts": 3323,
-    "tris": 2538
+    "verts": 2679,
+    "tris": 2258
    },
    {
     "file": "generated/sculpt_volute_1.bin",

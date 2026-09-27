@@ -9,6 +9,11 @@ mkdirSync(OUT, { recursive: true });
 const SUN = [0.55, 0.62, 0.55]; // late morning, from the south-east (world +x east, +z south)
 export const VIEWS = [
   { n: 'gate-w-bull-head', eye: [-14.3, 1.6, -125.0], at: [-16.8, 4.6, -122.6], fov: 70 },
+  { n: 'gate-w-bull-34', eye: [-9.0, 1.6, -125.3], at: [-16.5, 4.8, -122.3], fov: 70 },
+  { n: 'gate-e-lamassu-34', eye: [9.0, 1.6, -125.3], at: [16.5, 4.8, -122.3], fov: 70 },
+  { n: 'calib-capital-34', eye: [-60 + 4.5, 1.6, 150 + 5.0], at: [-60 + 1.2, 1.7, 150], fov: 50 },
+  { n: 'calib-capital-head', eye: [-60 + 2.4, 2.4, 150 + 3.4], at: [-60 + 2.0, 2.3, 150], fov: 50 },
+  { n: 'calib-volute', eye: [-67 + 0.6, 1.6, 150 + 3.2], at: [-67, 1.3, 150], fov: 50 },
   { n: 'gate-w-bull-flank', eye: [-11.2, 1.6, -125.6], at: [-14.8, 3.4, -122.4], fov: 70 },
   { n: 'gate-e-lamassu-front', eye: [30, 1.6, -124.6], at: [16, 4.6, -124.6], fov: 70 },
   { n: 'gate-e-lamassu-passage', eye: [13.8, 1.6, -125.0], at: [16.6, 4.6, -122.4], fov: 70 },
