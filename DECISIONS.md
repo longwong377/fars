@@ -7422,7 +7422,9 @@ moment-*-webgpu.png in the worktree, not committed).**
   ultra 2.2 ms. The number did not move with the SSGI sample count, so it probably misses most GPU work (the lab is one floor,
   one wall and four people): it is NOT evidence that the world holds its budget; the world frame is unmeasured (the lead's render).
 - **Low sun (hour 17, the lineup in the wall's shadow):** no acne on the ground, the wall or the people with the smaller biases;
-  the wall's shadow edge is crisper.
+  the wall's shadow edge is crisper. Medium (the look without SSGI) and ultra (cascade fade, 16 taps) load and draw with no
+  console error; the probe's 12/16 filter taps share one sampler per cascade (no new WebGPU validation error; cf. B122). Night
+  (hour 21) is black in the lab with and without the look (no fire or moon there): night under the look is unverified in the world.
 - **Decision (tone, medium and above):** AgX with a fitted look (src/render/toneLook.ts: the ASC-CDL form of the AgX
   reference's looks after the sigmoid): slope 1, power 1.4, saturation 0.9, scene exposure × 2.6. The fit re-tones the
   renders' own pixels (inverted through plain AgX) and minimises the distance to the photographs' percentiles and
