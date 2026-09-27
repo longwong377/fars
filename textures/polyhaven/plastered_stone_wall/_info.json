@@ -1,0 +1,63 @@
+{
+ "date_published": 1688169600,
+ "name": "Plastered Stone Wall",
+ "categories": [
+  "wall",
+  "man made",
+  "plaster-concrete",
+  "rock"
+ ],
+ "type": 1,
+ "staging": null,
+ "tags": [
+  "rough",
+  "weathered",
+  "chipped",
+  "wall",
+  "damaged",
+  "cracked",
+  "discolored",
+  "worn",
+  "concrete",
+  "scratched",
+  "plaster",
+  "cement",
+  "rocks",
+  "cracked cement",
+  "scuffed",
+  "plastered",
+  "crumbling",
+  "stone",
+  "exterior"
+ ],
+ "authors": {
+  "Rob Tuytel": "All"
+ },
+ "info": null,
+ "dimensions": [
+  2500,
+  2500
+ ],
+ "max_resolution": [
+  16384,
+  16384
+ ],
+ "files_hash": "989ca73385d77daa99a88813fcecfc6e594d549e",
+ "description": "Free 16K texture: weathered plaster over stone with rough, chipped and cracked surfaces, discolored scuffs, crumbling cement and subtle rock detail.",
+ "category_id": "129d72a6-fe3d-5c05-9b24-cc75e89823bf",
+ "category": "Concrete/Plaster & Stucco/Plaster Over Brick & Stone",
+ "attributes": {
+  "surface_use": "wall",
+  "condition": [
+   "weathered",
+   "damaged",
+   "cracked",
+   "worn"
+  ],
+  "origin": "man_made",
+  "setting": "outdoor"
+ },
+ "img_version": "bbc39d7d",
+ "download_count": 81394,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/plastered_stone_wall.png?width=256&height=256&v=bbc39d7d"
+}

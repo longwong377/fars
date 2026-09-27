@@ -1,0 +1,55 @@
+{
+ "type": 1,
+ "name": "Japanese Cedar Planks",
+ "tags": [
+  "japanese",
+  "cedar",
+  "japanses cedar",
+  "natural wood grain",
+  "vertical planks",
+  "wood planks",
+  "wooden plank",
+  "paneling",
+  "roughhewn",
+  "sawn timber",
+  "hardwood",
+  "grain",
+  "wood grain"
+ ],
+ "authors": {
+  "Charlotte Baglioni": "Scanning",
+  "Rico Cilliers": "Processing "
+ },
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "dimensions": [
+  1130.000114440918,
+  1130.000114440918
+ ],
+ "staging": null,
+ "files_hash": "d17c951498700491c89317926c02e59efcd5f34b",
+ "description": "Free 8K texture of Japanese cedar planks - warm hardwood grain, vertical paneling with rough-hewn detail and light wear; ideal for interiors, furniture, props.",
+ "sponsors": [
+  "20953239",
+  "121968951"
+ ],
+ "category_id": "b8439687-3b90-5f1b-89b6-653eb24b657a",
+ "category": "Wood/Boards & Planks/Raw Sawn Timber",
+ "attributes": {
+  "surface_use": "wall",
+  "condition": [
+   "worn"
+  ],
+  "origin": "man_made"
+ },
+ "date_published": 1786448942,
+ "categories": [
+  "wood"
+ ],
+ "vault": "wood",
+ "img_version": "1f523951",
+ "download_count": 6637,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/japanese_cedar_planks.png?width=256&height=256&v=1f523951"
+}

@@ -1,0 +1,53 @@
+{
+ "name": "Quarry Wall 02",
+ "categories": [
+  "wall",
+  "outdoor",
+  "rock"
+ ],
+ "type": 1,
+ "tags": [
+  "rough",
+  "wall",
+  "rock",
+  "quarry",
+  "quarry stone",
+  "rock face",
+  "roughhewn",
+  "solid rock",
+  "mining",
+  "quarrying",
+  "mining site",
+  "stone wall",
+  "stone quarry"
+ ],
+ "authors": {
+  "Dimitrios Savva": "All"
+ },
+ "info": null,
+ "dimensions": [
+  1800.0000715255737,
+  1800.0000715255737
+ ],
+ "date_published": 1710201600,
+ "staging": null,
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "files_hash": "de887111b06488463d4a3d22108d9f78ee295df2",
+ "description": "Free 8K material: rough, layered quarry stone with pronounced horizontal striations, coarse weathered rock surface and muted brown-gray tones.",
+ "category_id": "f2e3fa2c-5ddb-54b9-9e4a-9ba42c7233af",
+ "category": "Stone/Rock & Cliffs/Stratified & Layered Rock",
+ "attributes": {
+  "surface_use": "wall",
+  "condition": [
+   "weathered"
+  ],
+  "origin": "natural",
+  "setting": "outdoor"
+ },
+ "img_version": "4349b50e",
+ "download_count": 6399,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/quarry_wall_02.png?width=256&height=256&v=4349b50e"
+}

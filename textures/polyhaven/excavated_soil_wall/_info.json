@@ -1,0 +1,50 @@
+{
+ "name": "Excavated Soil Wall",
+ "categories": [
+  "outdoor",
+  "wall",
+  "sand"
+ ],
+ "type": 1,
+ "tags": [
+  "sand",
+  "wall",
+  "cracks",
+  "excavation",
+  "soil",
+  "earth",
+  "dirt",
+  "dusty",
+  "dry",
+  "uneven"
+ ],
+ "authors": {
+  "Amal Kumar": "All"
+ },
+ "info": null,
+ "dimensions": [
+  1999.9996423721313,
+  1999.9996423721313
+ ],
+ "date_published": 1697500800,
+ "staging": null,
+ "max_resolution": [
+  16384,
+  16384
+ ],
+ "files_hash": "a4f887714035737be41c8712c0da8267ca39b3e6",
+ "description": "Free, 16K excavated soil wall texture showing dusty, dry sandy earth with deep grooves, uneven compacted clumps and a rough granular surface.",
+ "category_id": "d9215ca1-f9af-578a-a269-6cd2338bdba6",
+ "category": "Ground & Terrain/Soil & Mud/Bare Dirt & Soil",
+ "attributes": {
+  "surface_use": "wall",
+  "origin": "natural",
+  "setting": "outdoor",
+  "condition": [
+   "clean"
+  ]
+ },
+ "img_version": "93078fe7",
+ "download_count": 12476,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/excavated_soil_wall.png?width=256&height=256&v=93078fe7"
+}

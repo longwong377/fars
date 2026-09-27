@@ -1,0 +1,51 @@
+{
+ "type": 1,
+ "tags": [
+  "flat",
+  "cracked",
+  "floor",
+  "plain",
+  "brown",
+  "discolored",
+  "clay",
+  "yellow",
+  "painted"
+ ],
+ "name": "Clay Floor 001",
+ "categories": [
+  "floor",
+  "man made",
+  "plaster-concrete",
+  "dirty"
+ ],
+ "authors": {
+  "Dimitrios Savva": "Photography",
+  "Rico Cilliers": "Processing"
+ },
+ "date_published": 1625667644,
+ "staging": null,
+ "dimensions": [
+  2000,
+  2000
+ ],
+ "max_resolution": [
+  16384,
+  16384
+ ],
+ "files_hash": "b01a7c6af96abd22c885b08dba15d3ccef901896",
+ "description": "Free 16K texture of a painted clay floor: flat, discolored brown-yellow surface with fine cracks, smudges and a matte, slightly dusty plaster-like finish.",
+ "category_id": "615c9883-4041-5b7a-8947-869444e169cd",
+ "category": "Concrete/Plaster & Stucco/Clay & Earth Plaster",
+ "attributes": {
+  "surface_use": "floor",
+  "condition": [
+   "painted",
+   "cracked",
+   "worn"
+  ],
+  "origin": "man_made"
+ },
+ "img_version": "4d161445",
+ "download_count": 50079,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/clay_floor_001.png?width=256&height=256&v=4d161445"
+}

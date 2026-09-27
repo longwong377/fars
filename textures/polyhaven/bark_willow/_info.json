@@ -1,0 +1,54 @@
+{
+ "name": "Bark Willow",
+ "categories": [
+  "outdoor",
+  "natural",
+  "bark",
+  "wood"
+ ],
+ "type": 1,
+ "authors": {
+  "Dario Barresi": "Processing",
+  "Dimitrios Savva": "Photography"
+ },
+ "tags": [
+  "willow",
+  "bark",
+  "tree",
+  "forest",
+  "nature",
+  "brown",
+  "uneven",
+  "sallow",
+  "osier",
+  "old",
+  "wood",
+  "woodland"
+ ],
+ "info": null,
+ "dimensions": [
+  1000,
+  1000
+ ],
+ "date_published": 1668038400,
+ "staging": null,
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "files_hash": "787f334e5485184b67ffa509aeefed5a25f9be34",
+ "description": "Free 8K texture of willow bark, dark brown and sallow with deep fibrous furrows, rough uneven ridges and a coarse wooden surface.",
+ "category_id": "fc8dd00d-a670-5b83-af7f-2281cb9ca987",
+ "category": "Wood/Bark/Fissured Bark",
+ "attributes": {
+  "surface_use": "object",
+  "condition": [
+   "weathered"
+  ],
+  "origin": "natural",
+  "setting": "outdoor"
+ },
+ "img_version": "34bc8448",
+ "download_count": 120414,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/bark_willow.png?width=256&height=256&v=34bc8448"
+}

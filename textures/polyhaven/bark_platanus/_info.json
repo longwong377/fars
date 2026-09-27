@@ -1,0 +1,52 @@
+{
+ "name": "Bark Platanus",
+ "categories": [
+  "natural",
+  "bark"
+ ],
+ "type": 1,
+ "tags": [
+  "bark",
+  "tree bark",
+  "natural",
+  "bark texture",
+  "forestry",
+  "tree",
+  "tree trunk",
+  "tree texture",
+  "platanus",
+  "nature",
+  "organic"
+ ],
+ "authors": {
+  "Dimitrios Savva": "All"
+ },
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "dimensions": [
+  1500.0001192092896,
+  1500.0001192092896
+ ],
+ "staging": null,
+ "date_published": 1733356800,
+ "sponsors": [
+  "42579608"
+ ],
+ "files_hash": "803db1c1c6d0bad70a433e88d162e0bc125f5126",
+ "description": "Free 8K texture of Platanus bark: coarse, flaking plates and deep fissures with mottled brown-gray tones and rough organic relief.",
+ "category_id": "a965cbdc-272f-5c31-8e9d-fe415bf467fd",
+ "category": "Wood/Bark/Smooth & Peeling Bark",
+ "attributes": {
+  "surface_use": "object",
+  "condition": [
+   "weathered"
+  ],
+  "origin": "natural",
+  "setting": "outdoor"
+ },
+ "img_version": "ca498ce2",
+ "download_count": 2788,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/bark_platanus.png?width=256&height=256&v=ca498ce2"
+}

@@ -1,0 +1,54 @@
+{
+ "type": 1,
+ "name": "Worn Cracked Plaster",
+ "categories": [
+  "wall",
+  "man made",
+  "plaster-concrete",
+  "plaster"
+ ],
+ "tags": [
+  "rough",
+  "weathered",
+  "cracked",
+  "cracks",
+  "damaged",
+  "old",
+  "worn",
+  "wall",
+  "discolored",
+  "weatherbeaten",
+  "snaking cracks",
+  "dilapidated"
+ ],
+ "description": "Free 8k texture of worn, cracked plaster with rough, weathered surface, snaking dark cracks, discoloration and pitted dilapidated detailing.",
+ "authors": {
+  "Amal Kumar": "All"
+ },
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "dimensions": [
+  1799.9999523162842,
+  1799.9999523162842
+ ],
+ "files_hash": "d85f5d7f59ec87f109c992323ac810173847f1b8",
+ "date_published": 1771459200,
+ "staging": null,
+ "category_id": "ebaa964c-b45c-52e2-bd50-892d64616d87",
+ "category": "Concrete/Plaster & Stucco/Bare Plaster",
+ "attributes": {
+  "surface_use": "wall",
+  "condition": [
+   "weathered",
+   "cracked",
+   "damaged",
+   "worn"
+  ],
+  "origin": "man_made"
+ },
+ "img_version": "5d86301b",
+ "download_count": 1203,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/worn_cracked_plaster.png?width=256&height=256&v=5d86301b"
+}

@@ -1,0 +1,6045 @@
+{
+  "project": "PARSA - Persepolis 467 BCE",
+  "generated": "2026-09-27T08:01:33.939Z",
+  "layout": "textures/<source>/<id>/{diff,nor,rough,ao|arm,disp,metal}.jpg + preview.png; _info.json holds the raw API record",
+  "conventions": {
+    "diff": "sRGB albedo",
+    "nor": "OpenGL (+Y) normal: Poly Haven nor_gl / ambientCG NormalGL",
+    "arm": "Poly Haven packed R=AO G=roughness B=metalness (linear)"
+  },
+  "alsoAvailable": "Earlier Poly Haven downloads live in ../ph/ (rock_wall_02, cliff_side, aerial_ground_rock, clay_plaster, brown_mud_dry, clay_block_wall, dry_ground_01, gravelly_sand, sandy_gravel_02, dry_ground_rocks, dry_mud_field_001, mud_cracked_dry_03, rough_wood) and are not repeated here.",
+  "count": 90,
+  "totalBytes": 1218893330,
+  "materials": [
+    {
+      "id": "rock_face_03",
+      "source": "polyhaven",
+      "name": "Rock Face 03",
+      "page": "https://polyhaven.com/a/rock_face_03",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dario Barresi",
+        "Rico Cilliers"
+      ],
+      "group": "stone",
+      "tags": [
+        "natural",
+        "terrain",
+        "rock",
+        "outdoor",
+        "collection: verdant_trail",
+        "rough",
+        "cliff",
+        "uneven",
+        "weathered",
+        "wall",
+        "cracked",
+        "stone",
+        "rock face",
+        "rugged",
+        "chipped",
+        "eroded",
+        "cracks",
+        "rocks"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Rough Rock Faces",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2699.9995708465576,
+        "heightMm": 2699.9995708465576
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rock_face_03/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3814362,
+          "sha256": "644ee79df7ffbf5f6afc330b64dd3f33794bab8820915fe61ffe0c88ecfd7ece",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4473242,
+          "sha256": "a498cef4ba6191f6959b6d03fb835263c77271948264a289af24497ab7111dec",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3215097,
+          "sha256": "1921303981d12bccf72dd29d8a8daf823f1d9bb60400b447c64757203c1e2dad",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 798149,
+          "sha256": "5d24ec5a7f4f7333bcf9c158f63d0059d9a3ba234eeff7570a5f6cf2f4522cd5",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 133758,
+        "sha256": "43cfbdd57261517d87627597c8bda9a6d2636c1500a4332f9a50cfe52a7b81ac"
+      },
+      "use": "Weathered grey limestone rock face: Kuh-e Rahmat cliff behind the terrace, quarry faces",
+      "totalBytes": 12434608
+    },
+    {
+      "id": "rock_face_04",
+      "source": "polyhaven",
+      "name": "Rock Face 04",
+      "page": "https://polyhaven.com/a/rock_face_04",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dimitrios Savva"
+      ],
+      "group": "stone",
+      "tags": [
+        "outdoor",
+        "natural",
+        "rock",
+        "rough",
+        "uneven",
+        "weathered",
+        "old",
+        "cracked",
+        "chipped",
+        "rock face",
+        "leaves",
+        "dry leaves",
+        "fallen leaves",
+        "cracks",
+        "striated",
+        "geological"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Rough Rock Faces",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rock_face_04/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3929674,
+          "sha256": "297035d0c9c92ae8d8e17952ca527105916e06bb3160adfa4ceaa2689750688d",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4439404,
+          "sha256": "56541dd68f7a6a4d135ffb1a4bb52fbb49d55d500026376f52f1cb8dd346e804",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2512407,
+          "sha256": "37698fe51b60a59e36a8c8ff7ea679cbb150574d9da602a19985957ae00dab93",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 751476,
+          "sha256": "b2b9aecb368a44f5e2fc72c72ef020bff7886229e573d748d0f891768b00ca9a",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 128243,
+        "sha256": "fc22e6f5b13db7e1b23cc11d1d7900c09ce3696d214e46f5fc534eadcbbe54bd"
+      },
+      "use": "Dark weathered slab rock with fractured seams: dark-grey Persepolis limestone outcrops, terrace-edge bedrock",
+      "totalBytes": 11761204
+    },
+    {
+      "id": "dark_rock",
+      "source": "polyhaven",
+      "name": "Dark Rock",
+      "page": "https://polyhaven.com/a/dark_rock",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "stone",
+      "tags": [
+        "natural",
+        "outdoor",
+        "rock",
+        "uneven",
+        "rough",
+        "weathered",
+        "fissured",
+        "cracked",
+        "craggy",
+        "striated",
+        "geological",
+        "rock formation",
+        "veined",
+        "stone",
+        "fractured",
+        "metamorphic",
+        "striations",
+        "exposed rock"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Stratified & Layered Rock",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2421.1976528167725,
+        "heightMm": 2421.199083328247
+      },
+      "resolution": "2K",
+      "path": "polyhaven/dark_rock/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2159653,
+          "sha256": "0f01bfec36ec4546e23576a10c52ef073f9eb815826c5fce2a1cdb08cd8188b8",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3811444,
+          "sha256": "abb3c5f1f932693537333a6d467c3e79bb810afa84416d0deaa10ead9fb4f628",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2750758,
+          "sha256": "d3a26098ea5329f78a42e223e57c10f00af2a72854982197cc37cc151aa2fd5f",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 693929,
+          "sha256": "b72e529899ee15361d5b3ca14a75d6bbfecb7164388a4bf76a70809bbd978b77",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 105569,
+        "sha256": "5701066dcd01ca2c5a66a0b643b4ed06ded66df3b421ba0726d38ed60c4f86bb"
+      },
+      "use": "Dark fissured stratified rock: the dark bituminous limestone used for Persepolis masonry, raw/broken faces",
+      "totalBytes": 9521353
+    },
+    {
+      "id": "dark_rock_02",
+      "source": "polyhaven",
+      "name": "Dark Rock 02",
+      "page": "https://polyhaven.com/a/dark_rock_02",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "stone",
+      "tags": [
+        "outdoor",
+        "natural",
+        "rock",
+        "rough",
+        "rock face",
+        "weathered",
+        "fractured",
+        "stratified",
+        "craggy",
+        "striated",
+        "fissured",
+        "geological",
+        "veined",
+        "weathered rock",
+        "rock formation",
+        "striations",
+        "exposed rock"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Stratified & Layered Rock",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000.9167194366455,
+        "heightMm": 2000.917911529541
+      },
+      "resolution": "2K",
+      "path": "polyhaven/dark_rock_02/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2441558,
+          "sha256": "da78fb6dd90414ada98f6e1627aca6bc1acb480c8bce7aabfbde8e3beb666a71",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3870014,
+          "sha256": "37710c782598f158e07310dcbd3a8a89247d31255e6f21136707f66c3653bdec",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2575178,
+          "sha256": "e34aa572f0c578eadbf9d812ad514a22775880c7b19a6b98e979d99474fccbb5",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 609957,
+          "sha256": "65cf6d7072bfabab4736d165e986c4ae6e0cb2789be1babbb55618bf010779ea",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 106661,
+        "sha256": "b29cb4678eea74fbd1d1f2e0a9c74d10737214b45f3695e2973907f25f89126b"
+      },
+      "use": "Dark layered rock with sharp fractures: quarry cut faces, mountain rock tombs surroundings",
+      "totalBytes": 9603368
+    },
+    {
+      "id": "rock_boulder_dry",
+      "source": "polyhaven",
+      "name": "Rock Boulder Dry",
+      "page": "https://polyhaven.com/a/rock_boulder_dry",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dimitrios Savva",
+        "Rico Cilliers"
+      ],
+      "group": "stone",
+      "tags": [
+        "rock",
+        "outdoor",
+        "natural",
+        "terrain",
+        "weathered",
+        "chipped",
+        "rocks",
+        "boulder",
+        "stone",
+        "flat",
+        "damaged",
+        "eroded",
+        "cracked",
+        "rough",
+        "uneven"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Boulder Surfaces",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1799.9999523162842,
+        "heightMm": 1800.0001907348633
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rock_boulder_dry/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3437626,
+          "sha256": "c66de7f7b48ef1ba542c17af780787ca6d43da2160a46ff3544dd9fcdf65ca30",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3307320,
+          "sha256": "72a3c96d563fc17ac36c568802e106222e6480512d98e07318e1f431cea33dd6",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3164814,
+          "sha256": "9ef398eebef2a9477daa6a260ebe85003de0790bb7d8f7e5fd0d80b6943ea70e",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 785931,
+          "sha256": "e8ef6d94411f6b8396425426c08d9848feb0c81ac29c4a6acae28342786f17a1",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 118701,
+        "sha256": "2fd4fbf19b26e017450473ab6150c3ab66aa7f78de3907c3a16b62f1c590525b"
+      },
+      "use": "Dry chipped boulder surface: dressed-then-weathered limestone blocks, fallen ashlar, boulder props",
+      "totalBytes": 10814392
+    },
+    {
+      "id": "rock_surface",
+      "source": "polyhaven",
+      "name": "Rock Surface",
+      "page": "https://polyhaven.com/a/rock_surface",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "stone",
+      "tags": [
+        "natural",
+        "rock",
+        "rough",
+        "weathered",
+        "discolored",
+        "dirty",
+        "stone",
+        "boulder",
+        "coarse"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Boulder Surfaces",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rock_surface/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3750802,
+          "sha256": "00b52fc626948b0bb4a3ebe4c6513d75d19cc8ff50c3bc92567d66002836877b",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4709620,
+          "sha256": "f1cc9e614014461bbd556e5c83f434abf2b7b2a3b19af57ab39d6dfc1fd61f32",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3049455,
+          "sha256": "a3144b876a4274b61865702406d7f0cf359c8ce7c15ff4c942ae8c2add9b7ea6",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1291413,
+          "sha256": "4b84f3a9c026894191d71a8cd10a7d3ffb889b397d0d240f1ce7a5c9a6f14d9e",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 114724,
+        "sha256": "f75376af3f532a53e823f5d6c0967e93c44e6124d0e02cf8324dcbf1262c27d1"
+      },
+      "use": "Weathered discoloured rock surface: limestone ashlar wall faces at arm's length",
+      "totalBytes": 12916014
+    },
+    {
+      "id": "dry_riverbed_rock",
+      "source": "polyhaven",
+      "name": "Dry Riverbed Rock",
+      "page": "https://polyhaven.com/a/dry_riverbed_rock",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "stone",
+      "tags": [
+        "floor",
+        "natural",
+        "terrain",
+        "rock",
+        "outdoor",
+        "rough",
+        "rock face",
+        "uneven",
+        "weathered",
+        "cracked",
+        "stone"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Rough Rock Faces",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/dry_riverbed_rock/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4334972,
+          "sha256": "8db12446cefecf667f21b0c039bff6ceea6dd5e4ced676d13d545eee4603e67c",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3831261,
+          "sha256": "a4981b72e406759bd971fe5070979d40999ab8bf48173143c0b82660a1e0139c",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3180472,
+          "sha256": "efc91abe14b3bf6ea32142d4df22cb6bb8743d58c04de3056fbf983521809337",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 806175,
+          "sha256": "0e0471dadf3d0aab7e740a899ea11821974a486f47896d079852ca9bddcc3b5f",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 140441,
+        "sha256": "ca2ece795af60ed97efb2919759b2ba5b2cdd54c1892d0859bd026a87dc01b5a"
+      },
+      "use": "Cracked weathered stone face: terrace retaining wall blocks, exposed bedrock in the plain",
+      "totalBytes": 12293321
+    },
+    {
+      "id": "quarry_wall",
+      "source": "polyhaven",
+      "name": "Quarry Wall",
+      "page": "https://polyhaven.com/a/quarry_wall",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dimitrios Savva"
+      ],
+      "group": "stone",
+      "tags": [
+        "outdoor",
+        "natural",
+        "rock",
+        "rough",
+        "rock face",
+        "wall",
+        "quarry",
+        "solid",
+        "stonework",
+        "exterior",
+        "mining",
+        "quarrying",
+        "roughhewn",
+        "mining site",
+        "quarry stone"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Rough Rock Faces",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1800.0000715255737,
+        "heightMm": 1800.0000715255737
+      },
+      "resolution": "2K",
+      "path": "polyhaven/quarry_wall/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4036486,
+          "sha256": "b15e5ad724af4b8e8c3452cafa88ecd863a56260a421694521591e18455c7f8c",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4235129,
+          "sha256": "1968a72878c7f5cd4abcff6842d4df744664889f099dbe9bbbea9d4c0851be48",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3349705,
+          "sha256": "2c73d653d12ca47fffae173e6615c2da07e24b39787b23701dff0a7aee2069c8",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1147350,
+          "sha256": "5d5992d5515ed2af594543626cd7c57923151ca0ce525c641786a63cfb060cd8",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 134707,
+        "sha256": "1ecd98f49ae12bc3f77dce17b42f799c41a5b030bf7a4de9dfc16951618709a6"
+      },
+      "use": "Solid quarried rock face: Persepolis quarry, rock-cut stair sides, terrace scarps",
+      "totalBytes": 12903377
+    },
+    {
+      "id": "quarry_wall_02",
+      "source": "polyhaven",
+      "name": "Quarry Wall 02",
+      "page": "https://polyhaven.com/a/quarry_wall_02",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dimitrios Savva"
+      ],
+      "group": "stone",
+      "tags": [
+        "wall",
+        "outdoor",
+        "rock",
+        "rough",
+        "quarry",
+        "quarry stone",
+        "rock face",
+        "roughhewn",
+        "solid rock",
+        "mining",
+        "quarrying",
+        "mining site",
+        "stone wall",
+        "stone quarry"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Stratified & Layered Rock",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1800.0000715255737,
+        "heightMm": 1800.0000715255737
+      },
+      "resolution": "2K",
+      "path": "polyhaven/quarry_wall_02/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3835519,
+          "sha256": "8546776ac9c5284aa23f87d801cc28e76c6fdc01d6a9e8be5bdfb771c529b995",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4487145,
+          "sha256": "19386d3abc93678a3cbcd2ce040a4b404ea2f5a7b0561b46a90d780a2d25c080",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2416269,
+          "sha256": "6141f60dd26305cbe1f0ab7901e55fa9541a36145a9a36c79d1eb0ead0814c50",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 741663,
+          "sha256": "dbc7b35953a231c01cf16ba75fd4552670b31c7c3d4494a82b63f75b084b8386",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 128205,
+        "sha256": "1990c50617bd0724057f6ea65cde9287dfe4e46ec3d96268adf8e3a3e2ed5697"
+      },
+      "use": "Stratified quarry stone: quarry benches and tool-marked cut faces",
+      "totalBytes": 11608801
+    },
+    {
+      "id": "marble_cliff_02",
+      "source": "polyhaven",
+      "name": "Marble Cliff 02",
+      "page": "https://polyhaven.com/a/marble_cliff_02",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "stone",
+      "tags": [
+        "natural",
+        "rock",
+        "outdoor",
+        "aerial",
+        "rough",
+        "weathered",
+        "uneven",
+        "cracked",
+        "sedimentary",
+        "fissured",
+        "marble",
+        "craggy",
+        "drone",
+        "dusty",
+        "brown"
+      ],
+      "sourceCategory": "Stone/Rock & Cliffs/Marble & Metamorphic",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 6801.3715744018555,
+        "heightMm": 6801.3715744018555
+      },
+      "resolution": "2K",
+      "path": "polyhaven/marble_cliff_02/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4445553,
+          "sha256": "ef1312591e642534aa34f340c34d128a5e2f3e417effab6fa38e609f13948bf6",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4883397,
+          "sha256": "4100801a1582ff483c8cad1414c3c8c606db4c30e825cc9725907e4ecf8512af",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3387390,
+          "sha256": "6190b2d2b82af8c6eca9fb00da9c7849462e1bfc4109f8528eb422ae9f3f3f24",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1062078,
+          "sha256": "351c87b28ecd39ca1288a912d25fbf12d739a6f123ee2550489fed844eca29f6",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 147706,
+        "sha256": "ba903af75d7146e9fcef870b40c416869cc83bdeb227ac1b63c3905b030e5b8f"
+      },
+      "use": "Grey sedimentary cliff (limestone-like): mountain cliff backdrop, rock outcrops",
+      "totalBytes": 13926124
+    },
+    {
+      "id": "medieval_blocks_05",
+      "source": "polyhaven",
+      "name": "Medieval Blocks 05",
+      "page": "https://polyhaven.com/a/medieval_blocks_05",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "stone",
+      "tags": [
+        "wall",
+        "rock",
+        "man made",
+        "outdoor",
+        "dirty",
+        "floor",
+        "blocks",
+        "road",
+        "stones",
+        "gaps"
+      ],
+      "sourceCategory": "Stone/Cobblestone & Paving/Rough & Irregular Setts",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/medieval_blocks_05/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2461352,
+          "sha256": "50e63a7fbf6fe0440a7707ea32b7c34528c235906a8e20060027bc24fb94d965",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3890074,
+          "sha256": "091b012685ff753b63d3f2d06ee086ececd670172f1e655cc2f3b1578d142428",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 667549,
+          "sha256": "c3378a3f55828a2a182dc158df0185f6b37aab5423b46883ef5f9dea9515129e",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 391099,
+          "sha256": "ba1aef925bfd21c02da3ae922f6d812caaba7c9d2545a0e35f6778fd07a5f8d2",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 138669,
+        "sha256": "23a4c24811bc05d46b05a1c4b92d753edef0b33b0b729e4e4cd15f17ba2b14d8"
+      },
+      "use": "Chiselled limestone blocks with gaps: dressed stone paving / platform surface, fortification walls",
+      "totalBytes": 7548743
+    },
+    {
+      "id": "stone_block_wall",
+      "source": "polyhaven",
+      "name": "Stone Block Wall",
+      "page": "https://polyhaven.com/a/stone_block_wall",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "stone",
+      "tags": [
+        "wall",
+        "outdoor",
+        "rough",
+        "stone",
+        "stone blocks",
+        "ancient walls",
+        "fortress walls",
+        "stonework",
+        "stone wall",
+        "weathered",
+        "coarse",
+        "masonry"
+      ],
+      "sourceCategory": "Stone/Walls & Rubble/Fortress & Castle Walls",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2099.9999046325684,
+        "heightMm": 2099.9999046325684
+      },
+      "resolution": "2K",
+      "path": "polyhaven/stone_block_wall/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2609095,
+          "sha256": "cfe9eea5f081ef7e9a45c87ee867212b6e049e63c67db9ec7cca239b3ed9a304",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4922651,
+          "sha256": "b5fa3862163d1a4c54da4518059e9869f19ab4d3f0bff3e68bc7ed606e7892d8",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2394757,
+          "sha256": "ea776036738254041f299c18138e35fe004eacdf615d9d2713d8b93f653159b3",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1262588,
+          "sha256": "0bbfb2fa408e44a92622510231cacec11715f3ce2be8d5824fd4e33fd95638e0",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 105488,
+        "sha256": "78534b796eed7864ecb758e84efadabc29f9ad8b9d1fdbadb893a3f5d4389004"
+      },
+      "use": "Ancient stone block wall: terrace retaining wall (polygonal/ashlar masonry)",
+      "totalBytes": 11294579
+    },
+    {
+      "id": "sandstone_cracks",
+      "source": "polyhaven",
+      "name": "Sandstone Cracks",
+      "page": "https://polyhaven.com/a/sandstone_cracks",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "stone",
+      "tags": [
+        "wall",
+        "floor",
+        "natural",
+        "man made",
+        "outdoor",
+        "road",
+        "terrain",
+        "rough",
+        "dirt",
+        "ground",
+        "sandstone",
+        "cracked",
+        "plaster"
+      ],
+      "sourceCategory": "Stone/Slabs & Tiles/Sandstone",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/sandstone_cracks/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2870078,
+          "sha256": "6d3f99604c85a818277150db784ac66e67a4d91ddc255dabf61b3e956564090d",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4545235,
+          "sha256": "904e852268e1fb1bd5c0d035382f6a0e64c98dceea784fe957b1983d98b0231a",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 926548,
+          "sha256": "dceb90e9b1f1c8dfcdb33f953bcd5b585a6ddd25de066255e52ea43b82ade5df",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 658141,
+          "sha256": "6cfefa6461a06c2c8ddc8a4fbb56df9a0aab34db4b5c5b3429d0dc039c058158",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 130779,
+        "sha256": "19dff875fac1e028ffdb654722954788605b1ec48e3e8dd85e9461ff9dbbd050"
+      },
+      "use": "Cracked flat stone ground: bedrock pavement, worn stone courtyard floor",
+      "totalBytes": 9130781
+    },
+    {
+      "id": "rocks_ground_09",
+      "source": "polyhaven",
+      "name": "Rocks Ground 09",
+      "page": "https://polyhaven.com/a/rocks_ground_09",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "scree",
+      "tags": [
+        "terrain",
+        "natural",
+        "outdoor",
+        "rough",
+        "rock",
+        "stones",
+        "broken",
+        "gravel",
+        "gravelly",
+        "scattered pebbles",
+        "scattered rocks",
+        "stony",
+        "gravelly ground",
+        "rocks",
+        "rock fragments",
+        "loose debris",
+        "pebbled"
+      ],
+      "sourceCategory": "Ground & Terrain/Gravel & Pebbles/Crushed Aggregate",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 3000,
+        "heightMm": 3000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rocks_ground_09/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3545539,
+          "sha256": "cf93419edfeb18b8d1d82b033d8dd5010d5b7dceb996d9871471fefeea3cca87",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5003330,
+          "sha256": "34fb9d9aca12ac7cdca6d4ddc491c7fe17b82bf641c7be129a922677d5dc51e8",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 842148,
+          "sha256": "a4d2377653213195ea15ef50524780cd573c7eade6997afb23211ae53fbe9421",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 660922,
+          "sha256": "7a3a0bd31cc9b5b9ad1574478e9d9e1c6da94535616d61ca67dd69b90c83f4fd",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 139617,
+        "sha256": "72f81ece25a288b6fb32b22f549cb56f60bdd1eca5e7168cbb2323a7b57ae618"
+      },
+      "use": "Crushed angular rock: scree/talus at the foot of Kuh-e Rahmat, quarry debris",
+      "totalBytes": 10191556
+    },
+    {
+      "id": "rocky_trail_02",
+      "source": "polyhaven",
+      "name": "Rocky Trail 02",
+      "page": "https://polyhaven.com/a/rocky_trail_02",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "scree",
+      "tags": [
+        "outdoor",
+        "natural",
+        "dirty",
+        "sand",
+        "floor",
+        "stones",
+        "earthy",
+        "rugged",
+        "rough",
+        "terrain",
+        "gravelly",
+        "pathway",
+        "gritty",
+        "dusty",
+        "rocky",
+        "outdoors",
+        "dirt",
+        "rocks",
+        "ground",
+        "gravel",
+        "footprints",
+        "dry",
+        "stony"
+      ],
+      "sourceCategory": "Ground & Terrain/Rocky Ground/Rocky Paths & Trails",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rocky_trail_02/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3513677,
+          "sha256": "d755ac6c70729afce6bb78b9a265d16bdf599ece64f4f079d681433e77bb24a9",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5696654,
+          "sha256": "d85fc706716b921e1511b5dc0730ed820c904fe68603605a161095501622c0dd",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3878149,
+          "sha256": "2f8d71fb073c893e6a8330268d59eb85b4e3f46bbf41fa0b9bb7b230d1a0542f",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1748845,
+          "sha256": "9c97808021d2a764c417d4a08f1bd2e8599dd4b560df9e1217eacca5148ccd7a",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 134677,
+        "sha256": "1bfa4d8a05be4098c5d679a09342f2cc8904432c50f983aaf3a9be447051c4c9"
+      },
+      "use": "Dusty rocky trail with gravel and compacted dirt: approach roads and mountain paths",
+      "totalBytes": 14972002
+    },
+    {
+      "id": "rocky_trail",
+      "source": "polyhaven",
+      "name": "Rocky Trail",
+      "page": "https://polyhaven.com/a/rocky_trail",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "scree",
+      "tags": [
+        "outdoor",
+        "natural",
+        "terrain",
+        "rock",
+        "collection: pine_forest",
+        "rough",
+        "uneven",
+        "stones",
+        "gravel",
+        "chipped",
+        "rocks",
+        "nature",
+        "path",
+        "broken",
+        "cliff"
+      ],
+      "sourceCategory": "Ground & Terrain/Rocky Ground/Rocky Paths & Trails",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rocky_trail/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4208713,
+          "sha256": "5434c6377a0b74be356c6f1f0a13842a38111a3dcec9934bf74f7c6f6396c54b",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5525906,
+          "sha256": "c8783873d83d7a14cb339332ddf59ee7ee31c68c4cd72770e2f673402755c93c",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3986946,
+          "sha256": "cb3ec682ee4fc1d95b6d0a05dadcb03a0438f73ed0d7bb55b205c2c84d29dbef",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1244065,
+          "sha256": "965df3124aa534c25ea13d3e652e64c25897d13361e91914bddd845b0a768bcb",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 147629,
+        "sha256": "c1f1635c0cc5b04502ab7ff71ac1f426ac9f5fe99e49118110f025a880cdc97e"
+      },
+      "use": "Uneven rocky trail: hillside tracks, upper terrace slopes",
+      "totalBytes": 15113259
+    },
+    {
+      "id": "dry_river_pebbles",
+      "source": "polyhaven",
+      "name": "Dry River Pebbles",
+      "page": "https://polyhaven.com/a/dry_river_pebbles",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "scree",
+      "tags": [
+        "outdoor",
+        "natural",
+        "rock",
+        "river",
+        "rocks",
+        "pebbles",
+        "loose stones",
+        "loose rocks",
+        "rounded rocks",
+        "rounded pebbles",
+        "debris",
+        "riverbed"
+      ],
+      "sourceCategory": "Ground & Terrain/Gravel & Pebbles/River Pebbles",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000.9167194366455,
+        "heightMm": 2000.917911529541
+      },
+      "resolution": "2K",
+      "path": "polyhaven/dry_river_pebbles/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3251744,
+          "sha256": "f3d3b581bffc78be28b1eb4b73101bff574841944fb6867be901b3bc03d1bda7",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4113113,
+          "sha256": "d92c80789c6bfc07a5139832a1c4c26014bbb4754b579a1559b3e04efdfd8ad2",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2885568,
+          "sha256": "6a8bda9f85511b20427d86eab51cf27ccf5f3c28613668f21bc3bf3c518d8872",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1045333,
+          "sha256": "3feb42c26546c6937a8a238e558e21a09ed8f0b6139fd9dac96a207ecd9f5714",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 132926,
+        "sha256": "34cb53376173609e26856b4d42296a00c05352c1bf8413f11b28a011cebdbf1f"
+      },
+      "use": "Dry river pebbles: Pulvar river bed and dry channels",
+      "totalBytes": 11428684
+    },
+    {
+      "id": "gravel_stones",
+      "source": "polyhaven",
+      "name": "Gravel Stones",
+      "page": "https://polyhaven.com/a/gravel_stones",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "scree",
+      "tags": [
+        "outdoor",
+        "gravel",
+        "natural",
+        "rough",
+        "uneven",
+        "stones",
+        "gritty",
+        "grey",
+        "pebbles",
+        "coarse",
+        "pebbly",
+        "pathway",
+        "driveway",
+        "gravelly",
+        "gray",
+        "garden walkway",
+        "rocky",
+        "scattered pebbles",
+        "gritty texture",
+        "stony",
+        "driveway stones"
+      ],
+      "sourceCategory": "Ground & Terrain/Gravel & Pebbles/Driveway Gravel",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/gravel_stones/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3220057,
+          "sha256": "cacad132d39976f66451271b4eeb1e6ee11ecbff2cd3160f2b9d4323aa2b0136",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5469483,
+          "sha256": "13a0218f69539da3e8f9ad805213ce311a936d30c05558d8e42ebb46fde5b7eb",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3805569,
+          "sha256": "58c21dcfbfcbe7aa423dced4872bb0eff2988aae303cf268e787a102eb80a3dc",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1861900,
+          "sha256": "05e5ced91f3f3785e79ae825916c26ef4597a6c8b4d47a1e23f8eb212a2a174b",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 126494,
+        "sha256": "ba7d4e1e216ec78419cc39847c6a11e98e4b4f9eda3ad485d9d7535e022ae4a6"
+      },
+      "use": "Grey angular gravel: gravel-bedded courts, construction fill, spoil heaps",
+      "totalBytes": 14483503
+    },
+    {
+      "id": "ganges_river_pebbles",
+      "source": "polyhaven",
+      "name": "Ganges River Pebbles",
+      "page": "https://polyhaven.com/a/ganges_river_pebbles",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "scree",
+      "tags": [
+        "natural",
+        "rock",
+        "outdoor",
+        "terrain",
+        "rough",
+        "uneven",
+        "pebbles",
+        "pebble",
+        "scattered pebbles",
+        "scattered",
+        "river",
+        "pebbly",
+        "rocky",
+        "bumpy"
+      ],
+      "sourceCategory": "Ground & Terrain/Gravel & Pebbles/River Pebbles",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2159.9998474121094,
+        "heightMm": 2159.9998474121094
+      },
+      "resolution": "2K",
+      "path": "polyhaven/ganges_river_pebbles/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3264787,
+          "sha256": "4284c19b6a546c8536a2d5383e5dcdbbae83ab6c2c337c7a0fb25284b0bea419",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4615719,
+          "sha256": "c73e2ea059f50f25d7f8dd719048d26bc0ca355d3009b0ef806898531231d03b",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2802994,
+          "sha256": "0eff7b74b212195259a5b84daaa06bf57f8d4cb22ff9c568dd89bccc1b0a55dc",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1180201,
+          "sha256": "b94d0412ba92f1dba019a73f915b2aaffd2737111c605dd9a6ff166f3cb3b536",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 137010,
+        "sha256": "b5f8a1ff72ed40c002f15bbe753e13ffed5dd8dfcf5de81fbb02940b78cccea1"
+      },
+      "use": "Scattered river pebbles in silt: riverbank, drainage channels",
+      "totalBytes": 12000711
+    },
+    {
+      "id": "dirt",
+      "source": "polyhaven",
+      "name": "Dirt",
+      "page": "https://polyhaven.com/a/dirt",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Charlotte Baglioni"
+      ],
+      "group": "ground",
+      "tags": [
+        "floor",
+        "dirty",
+        "sand",
+        "dirt",
+        "ground",
+        "nature",
+        "earth",
+        "dusty",
+        "rocky",
+        "debris",
+        "footprints"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Bare Dirt & Soil",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/dirt/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3053062,
+          "sha256": "126d3e4886cc94b494ba609ddc323a77ff0362a1b156c3750d5d2a0a0ead02b8",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4914156,
+          "sha256": "ff629fce04c5d6d581cfcb604ea85df6b726798e60d982fd5484c60cddcccd88",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2562993,
+          "sha256": "bc8993cef8c8ac85e3c9d4d26e560e866a0e46d64ffa0826c3173fa2a4bc7bc5",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1274950,
+          "sha256": "4678a6034a118aba4ae5219a14c8503c3d4f96f54d6ecb86347338872d54af46",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 115023,
+        "sha256": "5ef0320c45eafd0c6cf9677d1a10afea5742fa88fe8a6789b1813678acdd750f"
+      },
+      "use": "Dusty compacted earth with small rocks: generic plain ground, trodden open areas",
+      "totalBytes": 11920184
+    },
+    {
+      "id": "brown_mud",
+      "source": "polyhaven",
+      "name": "Brown Mud",
+      "page": "https://polyhaven.com/a/brown_mud",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "ground",
+      "tags": [
+        "terrain",
+        "natural",
+        "outdoor",
+        "mud",
+        "dirt",
+        "stones",
+        "dry",
+        "ground",
+        "soil",
+        "plant debris",
+        "granular",
+        "organic matter",
+        "earthy",
+        "twigs",
+        "earth"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Bare Dirt & Soil",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1299.996018409729,
+        "heightMm": 1299.996018409729
+      },
+      "resolution": "2K",
+      "path": "polyhaven/brown_mud/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2093509,
+          "sha256": "726a0f5222fdf8b2bcdbec56fee8ea55150c217eab35a893ad5831f28cee3a5f",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3073051,
+          "sha256": "a3df5f6f7493a1762626c6d0d47872d969744a49931de50fe79f71a5eae8f857",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 853175,
+          "sha256": "57c0b38133ce6a6e9d25368ddbdf27e7a99458961cb5f4fb778deef3845e23e4",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 656319,
+          "sha256": "cd42cf5e42a77ce272c4d5a1ec32fc67008854664c072f1206a6a4946d0e754d",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 118806,
+        "sha256": "4ff5ea18897af1b7fbd077621a2f2dd609c0908e97457637b828ce3e9fb46c2f"
+      },
+      "use": "Dry granular soil with stones and twigs: town lanes, village yards",
+      "totalBytes": 6794860
+    },
+    {
+      "id": "dirt_aerial_02",
+      "source": "polyhaven",
+      "name": "Dirt Aerial 02",
+      "page": "https://polyhaven.com/a/dirt_aerial_02",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "ground",
+      "tags": [
+        "terrain",
+        "outdoor",
+        "sand",
+        "natural",
+        "aerial",
+        "mud",
+        "rough",
+        "soil",
+        "erosion",
+        "compacted",
+        "tracks"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Compacted Soil",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 20000,
+        "heightMm": 20000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/dirt_aerial_02/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 1723913,
+          "sha256": "f4c81ff69a62773dd6dbfe8f3116980a53d8e730e1731ea7992836115d8f56c6",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 2567986,
+          "sha256": "a907cdca993c1e1a0ffbd528de84916d58feda891f283f599b9d7c68bc33c603",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 760811,
+          "sha256": "e747ae332b5b6e02d44eb77a6349b24c7a6d5377035cfc5927876d5a95087f19",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 530184,
+          "sha256": "5f0ae83df528874deaecd9fcb5f40aefeab2f6d8c6957ffed2793247041e981b",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 113542,
+        "sha256": "be8c17de2d4b27f7afeeb56a611456c1d4173558e40382b13ef69f44c35c4c09"
+      },
+      "use": "Compacted eroded soil with tracks: cart roads, caravan routes",
+      "totalBytes": 5696436
+    },
+    {
+      "id": "farm_furrows",
+      "source": "polyhaven",
+      "name": "Farm Furrows",
+      "page": "https://polyhaven.com/a/farm_furrows",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "ground",
+      "tags": [
+        "outdoor",
+        "floor",
+        "rough",
+        "uneven",
+        "dirt",
+        "dirty",
+        "dirt soil",
+        "soil",
+        "farm",
+        "sticks",
+        "twigs",
+        "small twigs",
+        "ploughed",
+        "furrows",
+        "rutted",
+        "earthy",
+        "cloddy",
+        "compacted earth"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Bare Dirt & Soil",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2097.8498458862305,
+        "heightMm": 2097.850799560547
+      },
+      "resolution": "2K",
+      "path": "polyhaven/farm_furrows/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2891328,
+          "sha256": "673f876ad96deaae49cbca81a932e5f1ccf1b01634297719d8258f1fe6e73436",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4953988,
+          "sha256": "68eab28e4ea6fcdc109da73f0f33302d9206e44db5557ecf81ca9fac18fbb1d7",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3085085,
+          "sha256": "53ce3e8df4a1da0477d0440992d3e8433d5d83f3e24964725ce05e835a389e9c",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1065886,
+          "sha256": "a7dfd724ae0cd4e61e7df8194c3c1a2ccb20e7816362fcf19b9032f6e13039b8",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 120079,
+        "sha256": "c0cc61db454a6e0b532665e8841cdda2a54b1634efc548ad664abf67032c602f"
+      },
+      "use": "Ploughed furrowed soil: irrigated fields on the Marvdasht plain",
+      "totalBytes": 12116366
+    },
+    {
+      "id": "farm_soil",
+      "source": "polyhaven",
+      "name": "Farm Soil",
+      "page": "https://polyhaven.com/a/farm_soil",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "ground",
+      "tags": [
+        "floor",
+        "natural",
+        "dirty",
+        "uneven",
+        "sand",
+        "sandy",
+        "dusty",
+        "ploughed",
+        "soil",
+        "earth",
+        "ground",
+        "granulated",
+        "cloddy"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Bare Dirt & Soil",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1999.9992847442627,
+        "heightMm": 2000.000238418579
+      },
+      "resolution": "2K",
+      "path": "polyhaven/farm_soil/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2841569,
+          "sha256": "c86b4e3e86218fb06efb69691a7fe25a61dab82fb0967542b33fbd5cacc5ddc0",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5895886,
+          "sha256": "cfbf20c26de00d3e09a1546803b4f0a71a4d78938e4f1e1eeb37c049249e1240",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3820624,
+          "sha256": "5e721aa1dfd392df9142fa6910e8ca00469b203d4116a433ba9b747a6a1dc0ad",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1570471,
+          "sha256": "f277195afc454eeecdcd9da51486defdc7a6021828dee0a8ee430c456c1701b6",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 122796,
+        "sha256": "69614578e66f57b899a10a670d077c0199d8bd2b42f29789c7dcee1809c2dc7d"
+      },
+      "use": "Crumbly tilled farm soil: gardens, freshly worked fields",
+      "totalBytes": 14251346
+    },
+    {
+      "id": "excavated_soil_wall",
+      "source": "polyhaven",
+      "name": "Excavated Soil Wall",
+      "page": "https://polyhaven.com/a/excavated_soil_wall",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "earth-wall",
+      "tags": [
+        "outdoor",
+        "wall",
+        "sand",
+        "cracks",
+        "excavation",
+        "soil",
+        "earth",
+        "dirt",
+        "dusty",
+        "dry",
+        "uneven"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Bare Dirt & Soil",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1999.9996423721313,
+        "heightMm": 1999.9996423721313
+      },
+      "resolution": "2K",
+      "path": "polyhaven/excavated_soil_wall/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2659985,
+          "sha256": "228effbe6848a4c95ac18030ea9a5de59a2fdd98f1ffb00ff16ac8e49920df9b",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4892651,
+          "sha256": "95aec73af2943290156d352044e8d1daff40b99512948232ab46096e6d37b56d",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3058402,
+          "sha256": "155d7c514946da3513bdb7f531c745bca1d658acdba223d155486b777faa5bb8",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 843223,
+          "sha256": "3884dd2b499c976fa425c6642864b5b7a621bf854e67cdcf375f6e9b66568b9a",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 117577,
+        "sha256": "e7dd2e51ee7b3b11838c33e7962faac34984e8f81529dac8188b6ffd34dc85c3"
+      },
+      "use": "Dry grooved earth wall: rammed-earth / pisé walls, cut banks, canal sides",
+      "totalBytes": 11571838
+    },
+    {
+      "id": "red_mud_stones",
+      "source": "polyhaven",
+      "name": "Red Mud Stones",
+      "page": "https://polyhaven.com/a/red_mud_stones",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "ground",
+      "tags": [
+        "terrain",
+        "outdoor",
+        "natural",
+        "mud",
+        "dirt",
+        "flat",
+        "dry",
+        "rocks",
+        "compact soil",
+        "organic debris",
+        "roots",
+        "gothic",
+        "soil",
+        "cracked",
+        "earthy",
+        "plant debris"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Cracked Dry Mud & Clay",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1500,
+        "heightMm": 1500
+      },
+      "resolution": "2K",
+      "path": "polyhaven/red_mud_stones/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2641035,
+          "sha256": "16ad71e17a0aecde2a21b50599ca967d66a7bc2c7fc9857c4ffcb99203e1b439",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5542860,
+          "sha256": "528dece0b6bdcf5c3bd69a9e4d3d1045bdb853e4db469901988b79cbb2fe215f",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 951095,
+          "sha256": "c362bc594e6c1ad144d542eb3e51b29f08ef604fbb46c38fd1d290f216aefcfe",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 708358,
+          "sha256": "882183ce015c7a0f2111e9d49c2432969fc5dc18b3c78d5065dac94ade2cee8b",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 122905,
+        "sha256": "36a93c7085ac97a52fabc26bcffcdc85bb3015a787bf4b26c2d96e806ce27b9c"
+      },
+      "use": "Dry compact reddish clay with fine cracks: clay floors, dried mud courts",
+      "totalBytes": 9966253
+    },
+    {
+      "id": "cracked_red_ground",
+      "source": "polyhaven",
+      "name": "Cracked Red Ground",
+      "page": "https://polyhaven.com/a/cracked_red_ground",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "ground",
+      "tags": [
+        "outdoor",
+        "natural",
+        "dirty",
+        "floor",
+        "sand",
+        "rough",
+        "uneven",
+        "old",
+        "weathered",
+        "worn",
+        "cracked",
+        "brown",
+        "stones",
+        "dry",
+        "ground",
+        "dirt",
+        "rocks",
+        "red",
+        "clay",
+        "cracks",
+        "eroded",
+        "nature"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Cracked Dry Mud & Clay",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/cracked_red_ground/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2849587,
+          "sha256": "c8ad67508a7bd54c7490a8b7d619b09b3c48a1fb7794c99fde286407272f2db0",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4271462,
+          "sha256": "53b92d5436f6c5faadf0f43a2e49541a68d6416e1b47c68938f3093ec16defc5",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2713517,
+          "sha256": "b7fed827ba46fb798baa2cf978c096ad31c76c81fa16b6e44589f00aa7c665b4",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1222962,
+          "sha256": "f6d020181b2ef55341bb6dfb6c5eef0bda647ed8cd0d58ba4680493258e21704",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 132406,
+        "sha256": "e8792255111bddb17bc6324faf05bbbb79f9691524b9fc73340f6fd7a60b25ea"
+      },
+      "use": "Cracked weathered earth: parched fields, dried puddle areas",
+      "totalBytes": 11189934
+    },
+    {
+      "id": "mud_cracked_dry_riverbed_002",
+      "source": "polyhaven",
+      "name": "Mud Cracked Dry Riverbed 002",
+      "page": "https://polyhaven.com/a/mud_cracked_dry_riverbed_002",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dario Barresi",
+        "Dimitrios Savva"
+      ],
+      "group": "ground",
+      "tags": [
+        "outdoor",
+        "natural",
+        "terrain",
+        "sand",
+        "weathered",
+        "cracked",
+        "rough",
+        "ground",
+        "dry",
+        "uneven",
+        "mud",
+        "cracks",
+        "nature",
+        "flaked",
+        "lake"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Cracked Dry Mud & Clay",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/mud_cracked_dry_riverbed_002/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3199788,
+          "sha256": "c72035416915d7990ae9cd6a421c5d33f14ed07893f1fc39f8e485964fc17504",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5622981,
+          "sha256": "d491dfe0403d5854ded62b532317ee0b2e8791512014a706b58e199542e1143f",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3625065,
+          "sha256": "07faf6a2248e15a9eb83933b834bfe13aa30004ad018b34f34fa712fabdc2a8b",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1522457,
+          "sha256": "73469bbe2b0f5da1fc15e0f471af1e525600a675a6433ccc95fbde9ce5834a2b",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 129765,
+        "sha256": "6fc93f7d2d2fdc8fdcda5e54df41b05494dc330502acf6dba9983731e4e8e839"
+      },
+      "use": "Cracked dry riverbed mud: Pulvar margins, dried irrigation ditches",
+      "totalBytes": 14100056
+    },
+    {
+      "id": "brown_mud_02",
+      "source": "polyhaven",
+      "name": "Brown Mud 02",
+      "page": "https://polyhaven.com/a/brown_mud_02",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "ground",
+      "tags": [
+        "terrain",
+        "natural",
+        "outdoor",
+        "mud",
+        "dirt",
+        "stones",
+        "dry",
+        "ground",
+        "footprints",
+        "soil",
+        "compact soil",
+        "wet soil",
+        "plant debris",
+        "roots",
+        "sticks",
+        "earth"
+      ],
+      "sourceCategory": "Ground & Terrain/Soil & Mud/Wet Mud",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1299.996018409729,
+        "heightMm": 1299.996018409729
+      },
+      "resolution": "2K",
+      "path": "polyhaven/brown_mud_02/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2163682,
+          "sha256": "5c735b1df784ab1990f4e209c55d27fa4e7a19508e40484ed5aa783266783726",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4234657,
+          "sha256": "3d6eec0adba8fd514d5634c56f806ad40206975c3ef17de1e2468b9e3ebcf719",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 1008909,
+          "sha256": "3a36675669ede2c2a85062b0201372acbafdfe14ae5e48efae3a2af85b039212",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 585864,
+          "sha256": "e788adc410cf05a4d0e381c1b8a1c93c7c0ec0c471faeefcc3f4a018f8a4c5ec",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 117629,
+        "sha256": "4d9aafbf17c50884347602d29a634345fa5b1f66b47520978dd8b55a270a4dea"
+      },
+      "use": "Wet/compact brown mud with footprints: riverbank, watering places, brick-making pits",
+      "totalBytes": 8110741
+    },
+    {
+      "id": "damp_sand",
+      "source": "polyhaven",
+      "name": "Damp Sand",
+      "page": "https://polyhaven.com/a/damp_sand",
+      "licence": "CC0-1.0",
+      "authors": [
+        "eye-candy.xyz"
+      ],
+      "group": "ground",
+      "tags": [
+        "outdoor",
+        "sand",
+        "coarse",
+        "beach",
+        "wet",
+        "brown",
+        "ground",
+        "costal",
+        "granular",
+        "grainy",
+        "moist",
+        "riverbank",
+        "footprints",
+        "playground",
+        "sandpit"
+      ],
+      "sourceCategory": "Ground & Terrain/Sand/Beach & Coastal Sand",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2039.9997234344482,
+        "heightMm": 2039.9997234344482
+      },
+      "resolution": "2K",
+      "path": "polyhaven/damp_sand/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3944799,
+          "sha256": "31225a161db73c919a2e6bb780d0e9b16df77a8f4d13cfb9d0ed815093b43483",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5318803,
+          "sha256": "cac8c7c14656a7acafd33ea980ff45b3956adac20420a26429a8b51df9922727",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2986338,
+          "sha256": "0c176d6ddbe6ad884d7fdf6563867aadeaf927fe644f2e78e98b52749f5f276c",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1466331,
+          "sha256": "f3f24e7d4f4b565ff2320a5735a9b98131be442058c821e4692de1f49e1d1c46",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 123372,
+        "sha256": "06700eeef68a045d5632d58c52131fdd2817d9be92869efa28e38eb0f1fe3cbc"
+      },
+      "use": "Damp coarse sand: river sandbars, wet banks",
+      "totalBytes": 13839643
+    },
+    {
+      "id": "sand_01",
+      "source": "polyhaven",
+      "name": "Sand 01",
+      "page": "https://polyhaven.com/a/sand_01",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "ground",
+      "tags": [
+        "terrain",
+        "sand",
+        "outdoor",
+        "natural",
+        "uneven",
+        "trampled",
+        "clay",
+        "plaster",
+        "dry"
+      ],
+      "sourceCategory": "Ground & Terrain/Sand/Compacted & Trampled Sand",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1500,
+        "heightMm": 1500
+      },
+      "resolution": "2K",
+      "path": "polyhaven/sand_01/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 1984816,
+          "sha256": "f311767ab68e132cb9de4160493a71ff17ec765c699d411facd5154d9a9a9c18",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 2503853,
+          "sha256": "b784b6a0526b79c81635bf423be9bc517ad36278ae5d68a4ff30f46eac56f0e3",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 477093,
+          "sha256": "9e5bd07e9835ecec7ff0e9241625cb18b24e193b0e0b83c4886cfd772b8e58c8",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 462489,
+          "sha256": "3edaf84b5075600a0c26665d69e4c45dc8bf9df045f126fd18686d0688448a5f",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 123362,
+        "sha256": "7cd00b7b62e23663836b00a77caf6151e197ca9cb9e185f9b54a68c862d24919"
+      },
+      "use": "Trampled dry clay-sand: trodden courts, packed paths, parade ground",
+      "totalBytes": 5551613
+    },
+    {
+      "id": "burned_ground_01",
+      "source": "polyhaven",
+      "name": "Burned Ground 01",
+      "page": "https://polyhaven.com/a/burned_ground_01",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "ash",
+      "tags": [
+        "terrain",
+        "outdoor",
+        "natural",
+        "mud",
+        "burned",
+        "fire",
+        "dirt",
+        "ash",
+        "plant debris",
+        "plant litter",
+        "leaves",
+        "dry leaves",
+        "dry grass",
+        "gravel",
+        "gravelly",
+        "fallen leaves",
+        "organic debris",
+        "loose stones",
+        "charred soil",
+        "scorched earth"
+      ],
+      "sourceCategory": "Ground & Terrain/Rocky Ground/Stony Dirt",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1000,
+        "heightMm": 1000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/burned_ground_01/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4127752,
+          "sha256": "3d7f67558e6ec57a50b56e196c37665ea4a1b3d7f8dc4049618f9002e08c109d",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 1433507,
+          "sha256": "703e907fe5cdf952aea61134600be985453da66d1a6d88519e5b7cd71d93c9f0",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 934751,
+          "sha256": "74b8f7e351ed268c009457f9f2586632eb9339e08fe48a677c29a90783b19878",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 657242,
+          "sha256": "c952251c285d68bb95aa9833b97c5681b57c8faf320b7b820282f43db00ea20f",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 146121,
+        "sha256": "b1688fcd8d60f2cb0a7f0d7d9a3c5ea97dcd41291b7ae94b6f9f720d81ff5d86"
+      },
+      "use": "Scorched ground with ash and charred soil: hearths, burn areas, kiln yards",
+      "totalBytes": 7299373
+    },
+    {
+      "id": "withered_grass",
+      "source": "polyhaven",
+      "name": "Withered Grass",
+      "page": "https://polyhaven.com/a/withered_grass",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Charlotte Baglioni"
+      ],
+      "group": "vegetation",
+      "tags": [
+        "natural",
+        "outdoor",
+        "floor",
+        "old",
+        "weathered",
+        "grass",
+        "dead grass",
+        "discolored",
+        "driedup",
+        "dry"
+      ],
+      "sourceCategory": "Ground & Terrain/Grass & Vegetation/Dry & Sparse Grass",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1999.9996423721313,
+        "heightMm": 1999.9996423721313
+      },
+      "resolution": "2K",
+      "path": "polyhaven/withered_grass/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4632786,
+          "sha256": "0cf0fca68cbf4277199a2b9b7b3a8013357e4087247b1367f86d4a53b4fafa7e",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 6194953,
+          "sha256": "5fd42baf06224086cb9afcb2f7a3b9f26feddd719bf1f9aed65ec49c586e7ff9",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 4802892,
+          "sha256": "0b4bfb6549a56c48f7239be7f520124b38e7842188b8d1d53b0a376686c40371",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2432965,
+          "sha256": "2e9ade0a66c6d6b9990ce19ead20b155e1aed7969e4e86f8210fc7595dd2983d",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 137715,
+        "sha256": "311072d645d4fa7c643e32d6490144685f539bde061f712d079294b279534b93"
+      },
+      "use": "Sun-bleached withered grass: summer steppe, field margins",
+      "totalBytes": 18201311
+    },
+    {
+      "id": "grass_ground",
+      "source": "polyhaven",
+      "name": "Grass Ground",
+      "page": "https://polyhaven.com/a/grass_ground",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Charlotte Baglioni"
+      ],
+      "group": "vegetation",
+      "tags": [
+        "outdoor",
+        "natural",
+        "terrain",
+        "dirty",
+        "grass",
+        "dry grass",
+        "dirt",
+        "root",
+        "dead grass",
+        "turf",
+        "dry"
+      ],
+      "sourceCategory": "Ground & Terrain/Grass & Vegetation/Dry & Sparse Grass",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2509.999990463257,
+        "heightMm": 2509.999990463257
+      },
+      "resolution": "2K",
+      "path": "polyhaven/grass_ground/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3787330,
+          "sha256": "4272bddc71a7fa659d1deeb13a9df8c42e68a5ac8cde7523187e4a081e028258",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5968024,
+          "sha256": "effa95c06af273c974476d9a74a234668a1c9292f60fffb4fa40348d638ee7f3",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3850286,
+          "sha256": "79554d3cb2c1cbf4351960e16bc6bba004fa3112d256ff1b500ac994694b5673",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2667246,
+          "sha256": "7871dd774df740647f16341196f60b6680c69f8073046ae9129f4a319685f2db",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 124613,
+        "sha256": "bfc16845a02ddfe2a017437669e88be4220fca766bde233d76a1707b76263b5f"
+      },
+      "use": "Dry sparse grass over dirt: grazing land, stubble-like field edges",
+      "totalBytes": 16397499
+    },
+    {
+      "id": "clay_floor_001",
+      "source": "polyhaven",
+      "name": "Clay Floor 001",
+      "page": "https://polyhaven.com/a/clay_floor_001",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dimitrios Savva",
+        "Rico Cilliers"
+      ],
+      "group": "plaster",
+      "tags": [
+        "floor",
+        "man made",
+        "plaster-concrete",
+        "dirty",
+        "flat",
+        "cracked",
+        "plain",
+        "brown",
+        "discolored",
+        "clay",
+        "yellow",
+        "painted"
+      ],
+      "sourceCategory": "Concrete/Plaster & Stucco/Clay & Earth Plaster",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/clay_floor_001/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 486125,
+          "sha256": "c4de5c599e1abbceefb2317e3a18ba0f8a5d86e41a70a22e950a80e870038dda",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 464460,
+          "sha256": "b71e3a64faa9f1e47de68aa2108daa8d2f6be11a844bcca846bd54bb476e4b0f",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 401643,
+          "sha256": "50fa6579ef6d1f1d266e72cd6566d3dfc2d8a08e0dcd38da398a6719dfd5a367",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 149306,
+          "sha256": "4f0a42a276f39b8da06c7460d35ab3828b0354c21125215cccc2c1f5de7347d2",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 79953,
+        "sha256": "1fbf7eab39919752d95d7bd3d403c9008e22df448f81dabbb3659f29b0eb4962"
+      },
+      "use": "Flat cracked clay floor: beaten-earth / mud-plaster floors of halls and houses",
+      "totalBytes": 1581487
+    },
+    {
+      "id": "patterned_clay_plaster",
+      "source": "polyhaven",
+      "name": "Patterned Clay Plaster",
+      "page": "https://polyhaven.com/a/patterned_clay_plaster",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "plaster",
+      "tags": [
+        "wall",
+        "outdoor",
+        "plaster-concrete",
+        "man made",
+        "weathered",
+        "rough",
+        "pattern",
+        "clay",
+        "patterned",
+        "lines",
+        "decorative",
+        "traditional",
+        "exterior",
+        "handmade"
+      ],
+      "sourceCategory": "Concrete/Plaster & Stucco/Clay & Earth Plaster",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/patterned_clay_plaster/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2523745,
+          "sha256": "58f841b0340359202d0bc9cd0f6e258ac5a2a0893b6fff6601e2948108cfd400",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3392343,
+          "sha256": "199a8560bf05f19ab4cecf9b489e42d96edacda9e546820ee2ba92a974051f7c",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2144123,
+          "sha256": "aa5369556198232eb5524645ceec360976bc57d0e1f966b447ef7e83c91ed87a",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1104771,
+          "sha256": "61cbd106a2d264171ff95b4b4dc4b7059beadd27b915ea37efbd008875beb7dd",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 103292,
+        "sha256": "ab28cf2984faeb53a1cfc70956b5d662e496abff98dff6b35166afc408cbd942"
+      },
+      "use": "Rough weathered clay plaster: mud-plastered mudbrick walls (check pattern)",
+      "totalBytes": 9268274
+    },
+    {
+      "id": "worn_cracked_plaster",
+      "source": "polyhaven",
+      "name": "Worn Cracked Plaster",
+      "page": "https://polyhaven.com/a/worn_cracked_plaster",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Amal Kumar"
+      ],
+      "group": "plaster",
+      "tags": [
+        "wall",
+        "man made",
+        "plaster-concrete",
+        "plaster",
+        "rough",
+        "weathered",
+        "cracked",
+        "cracks",
+        "damaged",
+        "old",
+        "worn",
+        "discolored",
+        "weatherbeaten",
+        "snaking cracks",
+        "dilapidated"
+      ],
+      "sourceCategory": "Concrete/Plaster & Stucco/Bare Plaster",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1799.9999523162842,
+        "heightMm": 1799.9999523162842
+      },
+      "resolution": "2K",
+      "path": "polyhaven/worn_cracked_plaster/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3773492,
+          "sha256": "26b3771611b553d87b8411d5dd20c64aec79e295b87f4f5f1b94dcb04157988a",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3418770,
+          "sha256": "879136c54b32fa9029a5393d49b848f8a6039501a699c847f754388d69ead70a",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2298861,
+          "sha256": "a33b2554c1f022e3001b43fb61d07ff079bf999c6433eed1efabd59d2d44eceb",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1425656,
+          "sha256": "d6288f5cb84022adba67a4f94a262ac2d05cb7117a6a0c20ab9a26b4e6342b3e",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 117094,
+        "sha256": "9809cf3d6bc45b8a6f4330022b6da5971faf58067d62a4ed16bb91f0fc232f14"
+      },
+      "use": "Worn cracked plaster: weathered lime/gypsum plaster on palace walls",
+      "totalBytes": 11033873
+    },
+    {
+      "id": "white_rough_plaster",
+      "source": "polyhaven",
+      "name": "White Rough Plaster",
+      "page": "https://polyhaven.com/a/white_rough_plaster",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "plaster",
+      "tags": [
+        "plaster-concrete",
+        "man made",
+        "wall",
+        "outdoor",
+        "indoor",
+        "dirty",
+        "broken",
+        "chipped",
+        "damaged",
+        "rough"
+      ],
+      "sourceCategory": "Concrete/Plaster & Stucco/Bare Plaster",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1000,
+        "heightMm": 1000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/white_rough_plaster/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2828405,
+          "sha256": "4fb1f54ac26b28b23c8f8efa708d3062684fe6122e3f001b18bcd268027fcb17",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 2551147,
+          "sha256": "75668cb16a244c3647e78fd3dd4601616a15bf59e90bb090655b19a8095da71c",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 630658,
+          "sha256": "015049bc6f56894ccae59768c8790f7afa4aeef621012b0f9e51415b5f5084d9",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 486365,
+          "sha256": "595cbd455ccd493d9cf7425290b2134a71350a2fa4f1d6acb3c0555b810513c1",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 123535,
+        "sha256": "e75806eadfb478fd4242fbd1f901ab9231d23db59dd13588879f25a7bfc8739c"
+      },
+      "use": "Broken rough white plaster: lime-plastered interiors, damaged render",
+      "totalBytes": 6620110
+    },
+    {
+      "id": "grey_plaster_02",
+      "source": "polyhaven",
+      "name": "Grey Plaster 02",
+      "page": "https://polyhaven.com/a/grey_plaster_02",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "plaster",
+      "tags": [
+        "plaster",
+        "outdoor",
+        "indoor",
+        "man made",
+        "dirty",
+        "wall",
+        "floor",
+        "plaster-concrete",
+        "collection: the_shed",
+        "rough",
+        "worn",
+        "cracked"
+      ],
+      "sourceCategory": "Concrete/Plaster & Stucco/Bare Plaster",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1000,
+        "heightMm": 1000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/grey_plaster_02/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3305310,
+          "sha256": "2094a17962b352299d8e6b01848acf2496deed0c283f96fdb373128334356d8e",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 2099645,
+          "sha256": "cab8e86d685fd306868b838700ffb02e876ca8d322e6dd7deb5a93e3cdad366c",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 1654213,
+          "sha256": "092c7e567aac0a6e092cf591a3e4773326d138a5847e82063ec4763731551298",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 659175,
+          "sha256": "099d3073f83ae15f305d19b8affec113f078e13f0c1634c18801d793d4fee8a7",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 120382,
+        "sha256": "72b368c36a87a974742904537b639f0e90d1865ef7c1950f0f424d271ecfdb00"
+      },
+      "use": "Worn cracked grey plaster: gypsum plaster, weathered render",
+      "totalBytes": 7838725
+    },
+    {
+      "id": "rough_plaster_broken",
+      "source": "polyhaven",
+      "name": "Rough Plaster Broken",
+      "page": "https://polyhaven.com/a/rough_plaster_broken",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "plaster",
+      "tags": [
+        "plaster-concrete",
+        "man made",
+        "wall",
+        "outdoor",
+        "dirty",
+        "rough",
+        "brown",
+        "weathered",
+        "uneven",
+        "old",
+        "peeling",
+        "patches",
+        "cement",
+        "plastered",
+        "damaged"
+      ],
+      "sourceCategory": "Concrete/Plaster & Stucco/Bare Plaster",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1500,
+        "heightMm": 1500
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rough_plaster_broken/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2753565,
+          "sha256": "aff4e2eb8cb2c8eae4ae62c9952e6b509946848f07b5e4e8e2e8aa52359c8eb5",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 1211542,
+          "sha256": "992f669fe6291a20ae9f86404cfa9d5cafbe964ec5d7775a9bcd6629a5070408",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 1178223,
+          "sha256": "1aaac2398d06e7c6f96886684dee96f133c06938304efab52c2072ec5e7ffc26",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 488100,
+          "sha256": "13645f5ff87e299a41ba627cd24ecaee8cd3830977772d45669a0b23ace93d25",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 113783,
+        "sha256": "dbe26377863d4dbc37e886c9ebd3227f97a327c73ad8a2fa730b2ec82798a078"
+      },
+      "use": "Brown weathered rough plaster: earthen render on outbuildings",
+      "totalBytes": 5745213
+    },
+    {
+      "id": "plastered_stone_wall",
+      "source": "polyhaven",
+      "name": "Plastered Stone Wall",
+      "page": "https://polyhaven.com/a/plastered_stone_wall",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "plaster",
+      "tags": [
+        "wall",
+        "man made",
+        "plaster-concrete",
+        "rock",
+        "rough",
+        "weathered",
+        "chipped",
+        "damaged",
+        "cracked",
+        "discolored",
+        "worn",
+        "concrete",
+        "scratched",
+        "plaster",
+        "cement",
+        "rocks",
+        "cracked cement",
+        "scuffed",
+        "plastered",
+        "crumbling",
+        "stone",
+        "exterior"
+      ],
+      "sourceCategory": "Concrete/Plaster & Stucco/Plaster Over Brick & Stone",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2500,
+        "heightMm": 2500
+      },
+      "resolution": "2K",
+      "path": "polyhaven/plastered_stone_wall/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2877659,
+          "sha256": "8f20192144ce4725c7cfa7def9cbcd0d069bccc59ee8f2a2d80ed9647f717213",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3940544,
+          "sha256": "25bed6b5b2d66bb3305ffa9a4308d105828fafa6cc37e806041b8b3d103139f1",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2788901,
+          "sha256": "8c044e5a2738ea187d00d043505b854cd49753ec1a44e3cbe91190da1a5147d5",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 968462,
+          "sha256": "090b4937b575fc1cff0ad3c654419f4eee2d6b38db410a75303b13f522e526fd",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 107484,
+        "sha256": "7fa39fbdea9022b3e0fc854ab4c1b51a95db4b016b36edf55d728bc8e13def19"
+      },
+      "use": "Plaster over rubble stone, chipped: fortification wall, rubble-core walls with render",
+      "totalBytes": 10683050
+    },
+    {
+      "id": "bark_platanus",
+      "source": "polyhaven",
+      "name": "Bark Platanus",
+      "page": "https://polyhaven.com/a/bark_platanus",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dimitrios Savva"
+      ],
+      "group": "wood",
+      "tags": [
+        "natural",
+        "bark",
+        "tree bark",
+        "bark texture",
+        "forestry",
+        "tree",
+        "tree trunk",
+        "tree texture",
+        "platanus",
+        "nature",
+        "organic"
+      ],
+      "sourceCategory": "Wood/Bark/Smooth & Peeling Bark",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1500.0001192092896,
+        "heightMm": 1500.0001192092896
+      },
+      "resolution": "2K",
+      "path": "polyhaven/bark_platanus/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3471181,
+          "sha256": "68b2a75c71674dce0a1139aa0602df7b7e6d26cc0b3286f6e1e6bf33965cfd17",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5050600,
+          "sha256": "6c4739aa0c2393661d3bef8368a27de8d3785c9445f98bc94c9a148154ed54ae",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2416426,
+          "sha256": "a06c103da007483548a799788f8ca2bd2bc09c667401f1da12c6a2e5c03dcce1",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 483869,
+          "sha256": "fdadbf8c51cc8660fa585b525a135113f7155b31810940877ef7bf28c10c001a",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 123848,
+        "sha256": "4a4a473c69053fa0475bf0c509fd5dbde66dd945a98a544b260d11e7c618bcaf"
+      },
+      "use": "Plane-tree (chenar) bark: platanus trees in gardens and along canals",
+      "totalBytes": 11545924
+    },
+    {
+      "id": "bark_willow",
+      "source": "polyhaven",
+      "name": "Bark Willow",
+      "page": "https://polyhaven.com/a/bark_willow",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dario Barresi",
+        "Dimitrios Savva"
+      ],
+      "group": "wood",
+      "tags": [
+        "outdoor",
+        "natural",
+        "bark",
+        "wood",
+        "willow",
+        "tree",
+        "forest",
+        "nature",
+        "brown",
+        "uneven",
+        "sallow",
+        "osier",
+        "old",
+        "woodland"
+      ],
+      "sourceCategory": "Wood/Bark/Fissured Bark",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1000,
+        "heightMm": 1000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/bark_willow/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3154082,
+          "sha256": "d87e97687eb0abd61031161f2895ab7eafc241c850380e978d011ef98a45a67b",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5586193,
+          "sha256": "2984fe9d23f2cfb9b235fc50eea85f514b27be3f4addc7c7142afba077c9970e",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3684160,
+          "sha256": "a508687692d7b2e4aaab3af35cdfc9db50d1f9b686823fc773f312036dcb615f",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1212681,
+          "sha256": "6a7c4c7a28b3b4a5910a1d525dd21633abbae4509664b63efa511d08dd1ce6ac",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 122333,
+        "sha256": "7aac5eee7d718c7d5a1930b31ab149923a3d6ab73ff8139240168fece08a71b3"
+      },
+      "use": "Willow bark: riverside willows and poplars",
+      "totalBytes": 13759449
+    },
+    {
+      "id": "palm_bark",
+      "source": "polyhaven",
+      "name": "Palm Bark",
+      "page": "https://polyhaven.com/a/palm_bark",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Charlotte Baglioni"
+      ],
+      "group": "wood",
+      "tags": [
+        "natural",
+        "bark",
+        "tree",
+        "tree bark",
+        "tree trunk",
+        "palm",
+        "bark texture",
+        "environment",
+        "tropical",
+        "trunk",
+        "forestry"
+      ],
+      "sourceCategory": "Wood/Bark/Tropical Bark",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1860.0000143051147,
+        "heightMm": 1860.0000143051147
+      },
+      "resolution": "2K",
+      "path": "polyhaven/palm_bark/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2942835,
+          "sha256": "5be19ff60fef0cbddb4381e345a76fdeabcc184d643efbf55f0b34ec687cf480",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5285941,
+          "sha256": "03aec0241647d43f3d14a7596bb54ba2d43d1f4cd3a28b5a880b4abd9bf08161",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2906081,
+          "sha256": "656708dc3a5c7c6551240252c116cda5d9be3e9a52ce08c5f34cc8e88a67e484",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1590552,
+          "sha256": "15717e8751e4f32949bb5a8916a47655016fff80ff767e8f1973abe8c9420558",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 115722,
+        "sha256": "21faf7c9c0c2421b7fbc979e7fc29bba0a31bf3c71c31eb36f8811dd6cf44fa1"
+      },
+      "use": "Dark fibrous palm bark: date-palm trunks",
+      "totalBytes": 12841131
+    },
+    {
+      "id": "chinese_cedar_bark",
+      "source": "polyhaven",
+      "name": "Chinese Cedar Bark",
+      "page": "https://polyhaven.com/a/chinese_cedar_bark",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Charlotte Baglioni"
+      ],
+      "group": "wood",
+      "tags": [
+        "natural",
+        "bark",
+        "rough",
+        "tree",
+        "tree bark",
+        "tree trunk",
+        "nature",
+        "trunk",
+        "bark texture",
+        "cedar bark",
+        "chinese cedar"
+      ],
+      "sourceCategory": "Wood/Bark/Fissured Bark",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2269.9999809265137,
+        "heightMm": 2269.9999809265137
+      },
+      "resolution": "2K",
+      "path": "polyhaven/chinese_cedar_bark/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2990448,
+          "sha256": "e72eeda8438d801e57ad5d4551cbda743e0d1e3ec7fea71d4d334df336382a5b",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3946238,
+          "sha256": "c5b20c962e618dc558a26c6207682dc810b0f824044d173868c394465ffefd39",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2478450,
+          "sha256": "7f7ac5846542d4d085546b7a05cd5e059b5e594bc1904b238a9332aefdec3014",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1125703,
+          "sha256": "c65112d974399e6d12d1a31a75f2d1f0b4bfec3cc3dd1bb061edaf8f58f1ec91",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 113232,
+        "sha256": "673dfca784b0f0cd5fcabf8b0c2d557dbd1698de2cbfc87e21e4be667be408e8"
+      },
+      "use": "Fissured cedar bark: cedar logs / unhewn roof beams",
+      "totalBytes": 10654071
+    },
+    {
+      "id": "japanese_cedar_planks",
+      "source": "polyhaven",
+      "name": "Japanese Cedar Planks",
+      "page": "https://polyhaven.com/a/japanese_cedar_planks",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Charlotte Baglioni",
+        "Rico Cilliers"
+      ],
+      "group": "wood",
+      "tags": [
+        "wood",
+        "japanese",
+        "cedar",
+        "japanses cedar",
+        "natural wood grain",
+        "vertical planks",
+        "wood planks",
+        "wooden plank",
+        "paneling",
+        "roughhewn",
+        "sawn timber",
+        "hardwood",
+        "grain",
+        "wood grain"
+      ],
+      "sourceCategory": "Wood/Boards & Planks/Raw Sawn Timber",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1130.000114440918,
+        "heightMm": 1130.000114440918
+      },
+      "resolution": "2K",
+      "path": "polyhaven/japanese_cedar_planks/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2812544,
+          "sha256": "92fd3742f4744e6262e8093c5dfb919a6bbabac48fe672734d4cba7bc5a4aea3",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3776186,
+          "sha256": "8f9d6194b9345b9a89702a0a146edf70728a2dc2d23050b60260a1442a2df526",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2782361,
+          "sha256": "48b6a27493efc3b691ee4d3bbca74779f55480ca8a87626d5cf0f4ebd68119be",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 629439,
+          "sha256": "19635f5f556e338e893051800481447f8d07803ae581609cf3a55f6d25a1b782",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 104010,
+        "sha256": "8e0d3a4ceb8bf2f5a5aea9f4fb0180cede31f0ea1f8cd006f5f9e270267336a8"
+      },
+      "use": "Cedar planks, warm grain: Lebanese-cedar roof beams, doors, ceilings (cedar-like)",
+      "totalBytes": 10104540
+    },
+    {
+      "id": "weathered_planks",
+      "source": "polyhaven",
+      "name": "Weathered Planks",
+      "page": "https://polyhaven.com/a/weathered_planks",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dario Barresi",
+        "Dimitrios Savva"
+      ],
+      "group": "wood",
+      "tags": [
+        "outdoor",
+        "wood",
+        "man made",
+        "wall",
+        "floor",
+        "wooden",
+        "bridge",
+        "planks",
+        "old",
+        "weathered",
+        "worn",
+        "damaged",
+        "discolored",
+        "chipped",
+        "stained",
+        "brown",
+        "cracked",
+        "cabin"
+      ],
+      "sourceCategory": "Wood/Boards & Planks/Weathered Planks",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2000,
+        "heightMm": 2000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/weathered_planks/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2385451,
+          "sha256": "e763f1257acdfdbb31764c9ec9d480fd4efa5cc008f8b63d73a916d53d938942",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3184832,
+          "sha256": "d851c42bb0dbcf21012e9ca1ac308b04bc9071a4e87118ccd79eec762fd030dc",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2296561,
+          "sha256": "379c785034a890844ac6a88497680a6d8a972d1fe489a8031fab432e007361c4",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 656603,
+          "sha256": "cab181de40a1d0c6ed1877bc068557e5eb671121f1ae2edbf5f18481f1652e3e",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 97076,
+        "sha256": "cf5e8ddee42f7e0c2abd07ecafa60bc923d84ecaa03a5786b099bed43135b638"
+      },
+      "use": "Weathered old planks: scaffolding, doors, carts, market stalls",
+      "totalBytes": 8620523
+    },
+    {
+      "id": "brown_planks_03",
+      "source": "polyhaven",
+      "name": "Brown Planks 03",
+      "page": "https://polyhaven.com/a/brown_planks_03",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "wood",
+      "tags": [
+        "wood",
+        "man made",
+        "indoor",
+        "outdoor",
+        "clean",
+        "wall",
+        "planks",
+        "untreated",
+        "boat",
+        "costal",
+        "dry",
+        "old",
+        "withered"
+      ],
+      "sourceCategory": "Wood/Boards & Planks/Weathered Planks",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1000,
+        "heightMm": 1000
+      },
+      "resolution": "2K",
+      "path": "polyhaven/brown_planks_03/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2411538,
+          "sha256": "1140ceac531c2dfe2e714357e34cd81cce62878ced24fa711b87c4ca24416058",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 2425492,
+          "sha256": "4aa94e511dda5ed998194debaf6049806f44a0afd3b750168efcd7a35bc0ff4a",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 600422,
+          "sha256": "ee1e6f626913af7b56268ac396d887b941f27efc85006f0ec22b416e5d50e570",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 314265,
+          "sha256": "27a63c6c8a2bfabdfc1847ffe0d6bc7a9665af3e5d0ed4594f604673eeabcf61",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 105473,
+        "sha256": "88a0424294fb89dcfeb5db71ffbbcfcd523cf2067740b62c0b0774f70618b84b"
+      },
+      "use": "Dry untreated weathered planks: boards, boxes, rough doors",
+      "totalBytes": 5857190
+    },
+    {
+      "id": "wood_planks_grey",
+      "source": "polyhaven",
+      "name": "Wood Planks Grey",
+      "page": "https://polyhaven.com/a/wood_planks_grey",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "wood",
+      "tags": [
+        "floor",
+        "wall",
+        "wood",
+        "outdoor",
+        "man made",
+        "planks",
+        "worn",
+        "old",
+        "grey",
+        "flat",
+        "seaside",
+        "costal",
+        "ocean",
+        "dirty",
+        "discolored",
+        "cabin"
+      ],
+      "sourceCategory": "Wood/Boards & Planks/Weathered Planks",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1500,
+        "heightMm": 1500.0001192092896
+      },
+      "resolution": "2K",
+      "path": "polyhaven/wood_planks_grey/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 998333,
+          "sha256": "31bdd475c6f1520fccc34a6823bfab8ba61ce5fd6dd97a3d1d868c21295e1000",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 647815,
+          "sha256": "466b35df82e1af23ece3882bda9b272a25ab6b89876dbeb369faf2eb50b4cb3a",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 691036,
+          "sha256": "f57c13f1650585cd1886f6e60710c29de61672a0b554deb05c7a4bd088f2ff19",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 85477,
+          "sha256": "0c77fd78d8b1c37bb14022e1487f858195acefbfc74097682e24bf553d89dc44",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 99195,
+        "sha256": "0c2ada4896883ef8b3a9a4820558db4ec9d3d734079a40b96c21d32ca1936d9f"
+      },
+      "use": "Grey sun-worn planks: exposed timber, gates",
+      "totalBytes": 2521856
+    },
+    {
+      "id": "raw_plank_wall",
+      "source": "polyhaven",
+      "name": "Raw Plank Wall",
+      "page": "https://polyhaven.com/a/raw_plank_wall",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dimitrios Savva"
+      ],
+      "group": "wood",
+      "tags": [
+        "wall",
+        "man made",
+        "raw wood",
+        "wood",
+        "weathered",
+        "chipped",
+        "worn",
+        "scratched",
+        "wooden",
+        "discolored",
+        "damaged",
+        "planks",
+        "cabin",
+        "grain",
+        "knotty pine",
+        "roughhewn"
+      ],
+      "sourceCategory": "Wood/Boards & Planks/Weathered Planks",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 1870.0001239776611,
+        "heightMm": 1870.0001239776611
+      },
+      "resolution": "2K",
+      "path": "polyhaven/raw_plank_wall/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2522671,
+          "sha256": "dd9099dfffc98d897739d03714f863d5e55ac3ea95b5185914d03d789307c354",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3223836,
+          "sha256": "554a8c1cc95d86f0aa8844c4897a7dc5e269e40eac2f3254c22efb1b84599347",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 2432109,
+          "sha256": "ed9afe2fb246149f5c5f75ccede0a8db16db91089e0d33a157e4e9b019a8dd03",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 813999,
+          "sha256": "e41abc9107f920fb0fb7000d40592963a3e84b92c67bff4411882275c13c10a9",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 102400,
+        "sha256": "2e35c4e55a82a04a8bee7d7776cce1a20f06bbb66e9144cba32c4a6bbfd4fb0d"
+      },
+      "use": "Chipped weathered wooden boards: shutters, workshop walls",
+      "totalBytes": 9095015
+    },
+    {
+      "id": "reed_roof_03",
+      "source": "polyhaven",
+      "name": "Reed Roof 03",
+      "page": "https://polyhaven.com/a/reed_roof_03",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "reed",
+      "tags": [
+        "roofing",
+        "outdoor",
+        "man made",
+        "reed",
+        "rough",
+        "village",
+        "thatch",
+        "hay",
+        "straw",
+        "hut",
+        "medieval"
+      ],
+      "sourceCategory": "Organic/Thatch & Reed/Thatched Roofing",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2500,
+        "heightMm": 2500
+      },
+      "resolution": "2K",
+      "path": "polyhaven/reed_roof_03/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2542280,
+          "sha256": "37387ea8ca03608db77a646c605d2c8e43b88c13484df80c8024c0e8a2a53ad5",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 4740364,
+          "sha256": "3f910f89e4c037ebf435c8d4ddc5d28a2ae99eb084317858aa6432d5aa1dda23",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 1097697,
+          "sha256": "3ba7842668b4d62479093527de078cb05540637662efcf9398f38e4912e9a9bc",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 632910,
+          "sha256": "5fa1a01db741c43bd475c4968881882376b2f59e521e3f331817c689fe06c92c",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 134707,
+        "sha256": "2b05b0069265ced3c4582f7374cc3c4b20b72795278e4de64f875cea00e022dc"
+      },
+      "use": "Weathered reed thatch: reed roofs of sheds and village houses",
+      "totalBytes": 9147958
+    },
+    {
+      "id": "riet_01",
+      "source": "polyhaven",
+      "name": "Riet 01",
+      "page": "https://polyhaven.com/a/riet_01",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel"
+      ],
+      "group": "reed",
+      "tags": [
+        "roofing",
+        "outdoor",
+        "man made",
+        "reed",
+        "grey",
+        "old",
+        "village",
+        "straw",
+        "hut",
+        "thatch",
+        "rural",
+        "medieval"
+      ],
+      "sourceCategory": "Organic/Thatch & Reed/Reed & Straw",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2500,
+        "heightMm": 2500
+      },
+      "resolution": "2K",
+      "path": "polyhaven/riet_01/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2630988,
+          "sha256": "75aa1978e4a675d693de0e834689c6dae28bad35af92f32426873a50129864de",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 1945994,
+          "sha256": "6287bc2f8baa59881255f42859ccb7949911899c0e3ad554393de241930b2bb7",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 1494204,
+          "sha256": "de725ae59db2b586ea8bce4f7342693954dd40b33aaba354ae3418644328aeb2",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 457782,
+          "sha256": "ff75ca54bd6b7fc70d0de9ab9fac415ea4d33cf611ea4470c74c4c0a546aa8ec",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 22598,
+        "sha256": "1d90df4838e2434331de1ee9b11d0ef27db3429047124f666129d277d3458af3"
+      },
+      "use": "Grey weathered reed/straw layers: old thatch, reed matting (roof underlayer)",
+      "totalBytes": 6551566
+    },
+    {
+      "id": "thatch_roof_angled",
+      "source": "polyhaven",
+      "name": "Thatch Roof Angled",
+      "page": "https://polyhaven.com/a/thatch_roof_angled",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Rob Tuytel",
+        "Dimitrios Savva"
+      ],
+      "group": "reed",
+      "tags": [
+        "outdoor",
+        "man made",
+        "roofing",
+        "rough",
+        "thatch",
+        "reed",
+        "roof",
+        "structure",
+        "structural",
+        "weathered",
+        "straw",
+        "grass",
+        "hut",
+        "medieval",
+        "village",
+        "house",
+        "hay"
+      ],
+      "sourceCategory": "Organic/Thatch & Reed/Thatched Roofing",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 539.9999618530273,
+        "heightMm": 539.9999618530273
+      },
+      "resolution": "2K",
+      "path": "polyhaven/thatch_roof_angled/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3225496,
+          "sha256": "dd544436986e9be6ae80996fbd132c67b38c81e8ed1b7c4384a961efe87460b7",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5097746,
+          "sha256": "e7b71772b830fb1a45f82cb796ace9233e5c331f4c3410aba142d8c69a8710e0",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3201145,
+          "sha256": "1d843bd2cf4476d1ae00c55a5d43a8a29a2dbc6e2215779bb51cee957f5893e7",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1340179,
+          "sha256": "c1c3faa0c8d87c0aa88b96e223a12f17fe2e76eebcc9d2724aa17246d26b85f5",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 123549,
+        "sha256": "6bba80f39bb6d9b6ef7e96f07046566542a7b014ef5b5a996fb2afa57b6dd9d5"
+      },
+      "use": "Dense reed bundles: reed/palm-frond roofing, animal shelters",
+      "totalBytes": 12988115
+    },
+    {
+      "id": "hessian_230",
+      "source": "polyhaven",
+      "name": "Hessian 230",
+      "page": "https://polyhaven.com/a/hessian_230",
+      "licence": "CC0-1.0",
+      "authors": [
+        "colormass",
+        "Rico Cilliers"
+      ],
+      "group": "textile",
+      "tags": [
+        "fabric",
+        "hessian",
+        "burlap",
+        "rough",
+        "brown",
+        "natural",
+        "coarse",
+        "sack",
+        "jute",
+        "rustic",
+        "textile ",
+        "sackcloth"
+      ],
+      "sourceCategory": "Textiles & Leather/Sackcloth",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 268.7538661074732,
+        "heightMm": 267.1999931335449
+      },
+      "resolution": "2K",
+      "path": "polyhaven/hessian_230/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3828573,
+          "sha256": "1c1d66e3764dded1cfafa5147ea56a28ef7648e3c5cae6892b8dada92d408685",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3759284,
+          "sha256": "a285b3716eed4e7c8eddbe9412d35049c2e05e85d9dc78d6052ab74db5041204",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 4692408,
+          "sha256": "cbebf37ba0422bbf9df10f2fe69134e06afa4458d17a9066c772991ade0056d3",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2039184,
+          "sha256": "dab9d86c779d02ac995dec4fab11efb42988d037ca1864fe401947ef68bceb76",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 141773,
+        "sha256": "a56b18ed2178755fc479185a35101bc1eb39089608d1e88e3f8002fae655b9ff"
+      },
+      "use": "Coarse burlap/hessian: sacks, tent cloth, coarse wraps",
+      "totalBytes": 14461222
+    },
+    {
+      "id": "hessian_380",
+      "source": "polyhaven",
+      "name": "Hessian 380",
+      "page": "https://polyhaven.com/a/hessian_380",
+      "licence": "CC0-1.0",
+      "authors": [
+        "colormass",
+        "Rico Cilliers"
+      ],
+      "group": "textile",
+      "tags": [
+        "fabric",
+        "hessian",
+        "burlap",
+        "rough",
+        "brown",
+        "natural",
+        "fine",
+        "sack",
+        "jute",
+        "rustic",
+        "textile ",
+        "sackcloth"
+      ],
+      "sourceCategory": "Textiles & Leather/Sackcloth",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 273.86577004511844,
+        "heightMm": 273.79998564720154
+      },
+      "resolution": "2K",
+      "path": "polyhaven/hessian_380/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3680469,
+          "sha256": "14a21d84cdd20cb3c64457b070d1ce220496e25652de063709ceed2ab453ee09",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3932047,
+          "sha256": "822d1e1df6b9d9cf362db09ddc6b99eb31f56215e32dc1afe1a983979e3db982",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 4753213,
+          "sha256": "f37593fcc2e247b360aa8f6244618ca95c87d6b8caf3a6de5a97a5b1fa742b19",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2435635,
+          "sha256": "3270caea1aef8061336d3dee591f1d58a8792cd1cc5f73d02f610b473960cf4e",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 103236,
+        "sha256": "821ff8499cd394126917763d4a0da06d80cc7cefe01740e529d3ff0b8a28ca08"
+      },
+      "use": "Finer natural hessian: coarse linen/jute weave, awnings",
+      "totalBytes": 14904600
+    },
+    {
+      "id": "rough_linen",
+      "source": "polyhaven",
+      "name": "Rough Linen",
+      "page": "https://polyhaven.com/a/rough_linen",
+      "licence": "CC0-1.0",
+      "authors": [
+        "colormass",
+        "Rico Cilliers"
+      ],
+      "group": "textile",
+      "tags": [
+        "fabric",
+        "cotton",
+        "hessian",
+        "blue",
+        "fine",
+        "textile ",
+        "woven",
+        "linen",
+        "weave",
+        "crosshatch"
+      ],
+      "sourceCategory": "Textiles & Leather/Woven/Linen & Hessian-weave",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 270.7081392676629,
+        "heightMm": 271.29998803138733
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rough_linen/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3607181,
+          "sha256": "e71016e08dfebea1dd4e8a2a675e3b617a889a782af782f1abb795906f4db1b4",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3849356,
+          "sha256": "c5733ad50cfe0f90c546f3d4076590c1c78a4fd1a83c967cc9c92dc8175b99e6",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 5194705,
+          "sha256": "c5f29705fc1843c15f48ca187bec1d8b61bccb5859cbbf9a8b793eb172f0593b",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2906011,
+          "sha256": "7d3764a5d574432b701b12bb047826de768a47200f7e70bf9430a6404a5f3688",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 91530,
+        "sha256": "4c16c3dc4c571a41873ac6cfc8f39b98bd8374402a54bf960c9d74ff108abf36"
+      },
+      "use": "Rough linen weave (blue-dyed): garments, hangings; recolour for undyed linen",
+      "totalBytes": 15648783
+    },
+    {
+      "id": "rust_coarse_01",
+      "source": "polyhaven",
+      "name": "Rust Coarse 01",
+      "page": "https://polyhaven.com/a/rust_coarse_01",
+      "licence": "CC0-1.0",
+      "authors": [
+        "Dimitrios Savva",
+        "Rico Cilliers"
+      ],
+      "group": "metal",
+      "tags": [
+        "metal",
+        "outdoor",
+        "man made",
+        "dirty",
+        "wall",
+        "coarse",
+        "rusty",
+        "rust",
+        "red",
+        "stained",
+        "grunge",
+        "old",
+        "weathered",
+        "iron",
+        "steel",
+        "rough"
+      ],
+      "sourceCategory": "Metal/Sheet & Corrugated/Flat Sheet",
+      "creationMethod": "photoscan",
+      "realWorldSize": {
+        "widthMm": 2199.9998092651367,
+        "heightMm": 2200.000286102295
+      },
+      "resolution": "2K",
+      "path": "polyhaven/rust_coarse_01/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3519719,
+          "sha256": "5b8801674fa53ff1b6f7853300f50aa7a1b31e69278554803bd957fe9fa7e392",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3685688,
+          "sha256": "495d3c87da059827ffaf49dae59f967cb3e0b187f4426ab0a47088c3fa83e50b",
+          "role": "normal (OpenGL)"
+        },
+        "arm": {
+          "file": "arm.jpg",
+          "bytes": 3527204,
+          "sha256": "22f10597662e8d5268f79960d23c4a03790a2083f9f05d0680c3535152b26843",
+          "role": "AO(R)/roughness(G)/metalness(B)"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1477214,
+          "sha256": "50aa9c1c01cad6d5b445da5ba9b733058cfee07b173ee4dc0d1ab16dce7264b7",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 109157,
+        "sha256": "68a99be8938ef22db449034c74b210b5cb82b65ea9ea6144e346d751ed5dbfbe"
+      },
+      "use": "Coarse rust: iron tools, nails, door fittings, weapons",
+      "totalBytes": 12318982
+    },
+    {
+      "id": "Rock051",
+      "source": "ambientcg",
+      "name": "Rock 051",
+      "page": "https://ambientcg.com/view?id=Rock051",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "stone",
+      "tags": [
+        "Rock",
+        "cliff",
+        "mountain",
+        "rock",
+        "stone",
+        "wall"
+      ],
+      "sourceCategory": "Rock",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Rock051/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6219341,
+          "sha256": "62f0e799649b03a29e627021fc4023dbe86415af98bb89887eba0bd13dd6a431",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 8365941,
+          "sha256": "3ce30cda8bf3f8652de9df97f61e74cab3d5e23d3e3537cb2faf02e281b118e5",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2197649,
+          "sha256": "aa23e66b4f7a354151a6d728a4ed83842fb1d5e034462ea55ead8ecaa48dad91",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 2526746,
+          "sha256": "d066fe2cb00f3e316a7c1e7c559c0f86379e45fa741b13c860ce25258bc468e0",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1072255,
+          "sha256": "3ce3359274418f814d6cc01782389fbf499f0ab1faab7bcf48bb8411b5f3bb71",
+          "role": "displacement/height"
+        },
+        "metal": {
+          "file": "metal.jpg",
+          "bytes": 17515,
+          "sha256": "8e7903d8a7e8ab8a09cb0f1b5c32730680238dc1d6053dc51b5c89347817234b",
+          "role": "metalness"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 125145,
+        "sha256": "9a62c171c479c961843b05c39c49d24d56e401598da6fec9be2f21637933344e"
+      },
+      "use": "Mountain cliff wall: Kuh-e Rahmat rock faces",
+      "totalBytes": 20524592
+    },
+    {
+      "id": "Rock052",
+      "source": "ambientcg",
+      "name": "Rock 052",
+      "page": "https://ambientcg.com/view?id=Rock052",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "stone",
+      "tags": [
+        "Rock",
+        "beige",
+        "cliff",
+        "mountain",
+        "rock",
+        "stone",
+        "wall"
+      ],
+      "sourceCategory": "Rock",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Rock052/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 5679577,
+          "sha256": "7894391f722f0baf9a3b97bfa7e02be79026c32439bbc5e6734fd4ed500a4d16",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 6774382,
+          "sha256": "8bfa8aefcbfab31aace4c934ec3cb3fb6161cbd847e8619248f0fdbb894bb8a9",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2103662,
+          "sha256": "5e4924eb1d2b5e81ee8564d35fc81702a45f78361a187e2221d4e4850cda8ef8",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 2364939,
+          "sha256": "cf5458aa2a1b9fe6d8ea8edd9bf61bab85553100dcddab6505465227306f0017",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 826392,
+          "sha256": "d0ae0d0f2d518913a36f72ba45a4433308dab915c40520a9cfc4da134df4c9b7",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 112318,
+        "sha256": "bf60ddd3348e0fc58638ba335da266a4c3040ecb5e243c4cc00be9cdd3585d7c"
+      },
+      "use": "Beige mountain cliff: lighter weathered limestone outcrops",
+      "totalBytes": 17861270
+    },
+    {
+      "id": "Rock055",
+      "source": "ambientcg",
+      "name": "Rock 055",
+      "page": "https://ambientcg.com/view?id=Rock055",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "stone",
+      "tags": [
+        "Rock",
+        "beige",
+        "brown",
+        "cliff",
+        "rock",
+        "stone",
+        "wall"
+      ],
+      "sourceCategory": "Rock",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Rock055/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2768342,
+          "sha256": "c3c4fb15f1a99ef4e96e8f2f1bafb3335a94fc13d0ffc0bce4e97957d347edba",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3303658,
+          "sha256": "72f715a154c01a0441a6de091375376da55de3c44ca7371680e8cdefb3ece03f",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 943089,
+          "sha256": "1ced7dca92b82d00398321ed856560863dd7a05caa195460d88bfa20c77f98ff",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 1249841,
+          "sha256": "f0247128d743ece396e5ebb7425846c502c63d7e5fc1247ba46f34a5fe72b9bd",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 369458,
+          "sha256": "33229fa5f5ea39a0586fe1492d9a931dfc64bf4045020ded5ce88865f95b9364",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 114287,
+        "sha256": "9ca59c6a5f3b84f327a4b20666c47d094e37c75841b6c664cd619f2794a8b230"
+      },
+      "use": "Beige-brown cliff stone wall: rock outcrops, terrace scarps",
+      "totalBytes": 8748675
+    },
+    {
+      "id": "Rock056",
+      "source": "ambientcg",
+      "name": "Rock 056",
+      "page": "https://ambientcg.com/view?id=Rock056",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "stone",
+      "tags": [
+        "Rock",
+        "brown",
+        "cliff",
+        "mountain",
+        "rock",
+        "rocky",
+        "stone",
+        "wall"
+      ],
+      "sourceCategory": "Rock",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Rock056/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3103502,
+          "sha256": "acf51fd0e4a60867f7774bcdc3233928390df6afbd191b3dfa6064b8fbf194ac",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3879742,
+          "sha256": "e7a8996d023033c0361260c784f753eb7e96a540cb0e55b6fd0c7832d3d11ecc",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 1173057,
+          "sha256": "9450ecc7a0a882a923de3b59dbd9e4e3cc690041b72611a43737f7a457fd4b79",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 1339788,
+          "sha256": "5bc1d6acf0cb03d7eea916c837616fcf348cd4159385e95221481ef2d97e76fe",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 400722,
+          "sha256": "97f23baa154db42bcbd245963e8c6bc01d52989cbd80f57c99cdbedbdd80ab6e",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 120345,
+        "sha256": "266bf49c6cc18b8bf6a55efb49802fcc6318f7ffdae03f2d550474e3fd8ba134"
+      },
+      "use": "Brown rocky mountain cliff wall: Kuh-e Rahmat slopes, rock outcrops above the terrace",
+      "totalBytes": 10017156
+    },
+    {
+      "id": "Rocks006",
+      "source": "ambientcg",
+      "name": "Rocks 006",
+      "page": "https://ambientcg.com/view?id=Rocks006",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "scree",
+      "tags": [
+        "Rocks",
+        "edges",
+        "gravel",
+        "grey",
+        "light",
+        "pebbles",
+        "rocks",
+        "sharp",
+        "stone",
+        "stones"
+      ],
+      "sourceCategory": "Rocks",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Rocks006/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 5756126,
+          "sha256": "77eeb8919d566c6d7dc98810bc6a3e0f1cd32f0c3bf22cac6d429fa4accbb875",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 9671482,
+          "sha256": "ab1733eb0f78d152c70d83016edb35dfdd2d2ab8a174a79294587060e6c74381",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2961690,
+          "sha256": "fa75fde2d98e68c3e64a2ce9e71ef43c543a836eb2a28963f7a4dc890bd1c61b",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 2322916,
+          "sha256": "a65a9634c0f01a4d802f40f4ff0eafc44a4fef17c9157ef4d5038ae95351a512",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1770303,
+          "sha256": "6238a6ee4d70defa6becb2582d618f3a42b501d544bee1a4952fd65885f9a803",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 150648,
+        "sha256": "4788e80c2260359ef98d20cacd15dc171c7a04e61cc14a030bfc67010fb0ec01"
+      },
+      "use": "Sharp-edged light grey scree / crushed stone: talus, quarry chippings",
+      "totalBytes": 22633165
+    },
+    {
+      "id": "Gravel040",
+      "source": "ambientcg",
+      "name": "Gravel 040",
+      "page": "https://ambientcg.com/view?id=Gravel040",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "scree",
+      "tags": [
+        "Gravel",
+        "dirt",
+        "floor",
+        "gravel",
+        "gray",
+        "rocks",
+        "rocky",
+        "slate",
+        "stone"
+      ],
+      "sourceCategory": "Gravel",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Gravel040/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6117544,
+          "sha256": "b8fc5746b429e869266d06bfcf5a5dfe6cdf8e0d720fa78d492a86b17ab5e70c",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 9034716,
+          "sha256": "d24c0338792c95e43cb6a02be9e4c26fa166759e65e1e4ea99113d7dbe523445",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2844206,
+          "sha256": "cdb485ef15e4154f12a57f1993450d8760b56ca97db2f4f3376844577f1e630a",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 3216333,
+          "sha256": "ebb26934d52114a3e6060f6ce79cc81094c6de2a2bf5478147265be869d820b2",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2280287,
+          "sha256": "af0cfe294070885290772e26b90013ce1fbe4fc1327a2192357260e652960c55",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 133794,
+        "sha256": "8974bca83f17eaa1be47a9bef30a9c636c35d29831a30b5b101770a50aa80afc"
+      },
+      "use": "Rocky slate-like gravel floor: stony hillside ground",
+      "totalBytes": 23626880
+    },
+    {
+      "id": "Ground031",
+      "source": "ambientcg",
+      "name": "Ground 031",
+      "page": "https://ambientcg.com/view?id=Ground031",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "ground",
+      "tags": [
+        "Ground",
+        "cracks",
+        "desert",
+        "dry",
+        "ground",
+        "sand",
+        "soil"
+      ],
+      "sourceCategory": "Ground",
+      "creationMethod": "PBRApproximated",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Ground031/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6254908,
+          "sha256": "0e21d8c100cdd7ab200cf165eabd583ad0da322dad86483a167beed87128198b",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 8992674,
+          "sha256": "574b03caeab29df038f89a448f46b5f496eb9ee5254e30465eb67218e09f871c",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2589289,
+          "sha256": "54996f5e4dbb595625221cf613b2061a1bd8a577b4aac6e5c8a9849595238b84",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 1608924,
+          "sha256": "0aa30194aadb3d11e78e8468e4a8fb7cbf0aa019402dc18ec35c23dcb7225eea",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1753376,
+          "sha256": "4a64fcd9392cda4e43dfdfd1aa038b398fbab41e99056f2d98266ed9cae6b10f",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 137796,
+        "sha256": "3e3f98e8eb4416113bed84c18456202ae8fbb8278e917e24c2baf847a39cf857"
+      },
+      "use": "Dry cracked desert soil: parched plain, summer fields",
+      "totalBytes": 21336967
+    },
+    {
+      "id": "Ground102",
+      "source": "ambientcg",
+      "name": "Ground 102",
+      "page": "https://ambientcg.com/view?id=Ground102",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "ground",
+      "tags": [
+        "Ground",
+        "beige",
+        "brown",
+        "compressed",
+        "dirt",
+        "dry",
+        "ground",
+        "outdoor",
+        "rough",
+        "sand",
+        "stamped",
+        "uneven"
+      ],
+      "sourceCategory": "Ground",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Ground102/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 5822038,
+          "sha256": "5d079b1336a36d53d461e573fd2a10afde19c3f920b93c751077ad5b53596d1d",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 7256863,
+          "sha256": "9ce680457a05bc2d291d243c0db9b5cc7dd31f555d7aabf0dbd484344ef8a483",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2940587,
+          "sha256": "a41ce60f44fb910cb72f3321d6e3214dcf38222a9224a6beb77ea815370b851b",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 3191586,
+          "sha256": "dfb059805631b0d6cc88a6092531dea7e19b9a5306e0976f978f0d7a98f35191",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1204078,
+          "sha256": "a0f6d413ca6375499a1325952d9a869d4f3c737581370472d16d37025ad6b412",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 108869,
+        "sha256": "786d5cf7f8a5767f745bc45ac3994c7a951599c7b34af64cb826b6dbfc896444"
+      },
+      "use": "Compressed dry dirt: trodden courts, packed paths",
+      "totalBytes": 20524021
+    },
+    {
+      "id": "Ground105",
+      "source": "ambientcg",
+      "name": "Ground 105",
+      "page": "https://ambientcg.com/view?id=Ground105",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "earth-wall",
+      "tags": [
+        "Ground",
+        "beige",
+        "brown",
+        "dirt",
+        "dry",
+        "eroded",
+        "ground",
+        "layered",
+        "natural",
+        "rough",
+        "rustic",
+        "uneven"
+      ],
+      "sourceCategory": "Ground",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Ground105/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6486218,
+          "sha256": "d46dc77b5cbe03cbf4936ad5d9e6859174cfd082c925dc8cf4c90a5ac07b63aa",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 8774970,
+          "sha256": "0bef6756eca99c8920ed453325c26fc0a9c4848952881fde32b461c590bbd17f",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 3076724,
+          "sha256": "aa1bd17eaca8cd6bc1767c5153a72445b232b8aed27c738f38743a832c769427",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 3224848,
+          "sha256": "be7c83cd008fda5eab024eb4b57278c0617ce65a503425d2ea3deb5ce0bd51b5",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1729687,
+          "sha256": "dc49b1ca62f4301ab27195b8672b3d2b72ecc4317ecab4d7cc3cc55e27a0861e",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 121137,
+        "sha256": "fbb33e149cd70e975946217d6386c364f7b0dcdd34f1b1755313ca4b96a9a821"
+      },
+      "use": "Dry eroded layered earth: eroded banks, rammed-earth erosion",
+      "totalBytes": 23413584
+    },
+    {
+      "id": "Ground109",
+      "source": "ambientcg",
+      "name": "Ground 109",
+      "page": "https://ambientcg.com/view?id=Ground109",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "ground",
+      "tags": [
+        "Ground",
+        "beige",
+        "brown",
+        "dirt",
+        "dry",
+        "ground",
+        "mud",
+        "natural",
+        "pebbles",
+        "rocky",
+        "rough",
+        "scattered",
+        "soil"
+      ],
+      "sourceCategory": "Ground",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": {
+        "widthCm": 280,
+        "heightCm": 280
+      },
+      "resolution": "2K",
+      "path": "ambientcg/Ground109/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 5881439,
+          "sha256": "0d96216c34be43b166151172e2b884849ec9b3fc24b221a0179a27c4dc876d0b",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 8350263,
+          "sha256": "68b01962ac79d49b86fcaabbdf2d24f957b4d76fa03617da729869650fde4ef0",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2660000,
+          "sha256": "495ac3077f9a36b542a4feb4599f19fd58d9221107a7983a9534a10795c3c2b2",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 3290360,
+          "sha256": "5cee035431380e1824e6d5020330ebe22ca638c6064c73233befe95ce6e609fc",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1455330,
+          "sha256": "60c1f135c46d6d36a720eaed12aeb96cf5771e1d548550cad3cfd44a723a0682",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 113594,
+        "sha256": "63a2f73d2d2af6a30b1ea2be7080794a7f1b7a8f96020b33484c26ec3856819b"
+      },
+      "use": "Dry mud with pebbles: village lanes, plain ground",
+      "totalBytes": 21750986
+    },
+    {
+      "id": "Ground083",
+      "source": "ambientcg",
+      "name": "Ground 083",
+      "page": "https://ambientcg.com/view?id=Ground083",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "ground",
+      "tags": [
+        "Ground",
+        "beige",
+        "dirt",
+        "ground",
+        "mud",
+        "river",
+        "sand",
+        "soil",
+        "water",
+        "wet"
+      ],
+      "sourceCategory": "Ground",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Ground083/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 5891693,
+          "sha256": "64ca50dae1a03a449c1ab3c071075a733f3ad28eb11b142a9c75bbfcf016296a",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 8056228,
+          "sha256": "d1cccc15de25acbb731729f70459b25207ab0a31a5b71ffc6ab4cd7a2e6a1bc9",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2994537,
+          "sha256": "1d5948050c9b0bbde85ee13c3c1826af228268475766c4207fd5484ac06c66ce",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 2623689,
+          "sha256": "be320351f183ee6f7533bc046a356673c325112a4173e7c90dfed5949512877a",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1448516,
+          "sha256": "bbaa74d507243dc472cd5a784fb00f051b0920f9476a6df147b20c737e23b3d9",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 128984,
+        "sha256": "646bee18df15150fee4cd59449e3bce320909a6c375c700bb80e1c1b160bcde6"
+      },
+      "use": "Beige river mud with water: Pulvar riverbank, wet mud",
+      "totalBytes": 21143647
+    },
+    {
+      "id": "Ground026",
+      "source": "ambientcg",
+      "name": "Ground 026",
+      "page": "https://ambientcg.com/view?id=Ground026",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "ground",
+      "tags": [
+        "Ground",
+        "clay",
+        "flat",
+        "ground",
+        "mud",
+        "smooth"
+      ],
+      "sourceCategory": "Ground",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Ground026/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6739013,
+          "sha256": "965df353dd3c08e7097ee6451a35bebf7f3fdb045ad2913bff05b5b608b7aa13",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 9528470,
+          "sha256": "6801609594ee0776013c254cb28536ecc6aae7d49083c38280968222f9237929",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2723770,
+          "sha256": "a4fdac74637bb004512288b66d93f203722c0633de6fea1e22112f0c408b19b3",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 1723755,
+          "sha256": "0991f512a094d9ec7d5aee7f05948f902299213ade72fbe341ec5b3a6baa2ec1",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1218353,
+          "sha256": "5be5d238f9280f7207152b7b276f29346ebc2bfe90f3cc9839699c8a841c6650",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 107480,
+        "sha256": "e552c72814a88d6c6c150bfad94c4a4e5390fb1f975cd1cca99103ff3463f0db"
+      },
+      "use": "Flat smooth clay mud: clay pits, mudbrick-making yards, wet floors",
+      "totalBytes": 22040841
+    },
+    {
+      "id": "Ground025",
+      "source": "ambientcg",
+      "name": "Ground 025",
+      "page": "https://ambientcg.com/view?id=Ground025",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "ground",
+      "tags": [
+        "Ground",
+        "brown",
+        "clay",
+        "dirt",
+        "ground",
+        "mud",
+        "wet"
+      ],
+      "sourceCategory": "Ground",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Ground025/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6416318,
+          "sha256": "b964d5a69a06eda24ea1ebae0eb74638f6b76924ebea33d22adf8f2e9f82f87b",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 8589897,
+          "sha256": "cb8e623d6911a7ebfa4dda414ccdd5455fc6f2196655cfd9d569f6275c8830d3",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2811062,
+          "sha256": "dc4201b2d803142d0609dd56c0149cfda5ed68951efb3bda95126281b446a274",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 1714322,
+          "sha256": "3e7f79545c48d3ed4d635183c561ca8246f83b7c8dcd0b6d2f19404197f83b56",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1332636,
+          "sha256": "0c9ff378df1a1497f96dacbc7de6ed15832ee1e11a9d7eaa7010b38afeff8a4d",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 127429,
+        "sha256": "1a01f1dae93e0447c13ec49f5f43bd8abe1eebcdada6d475047606e59aba64cf"
+      },
+      "use": "Wet brown clay mud: irrigation channels, puddled lanes",
+      "totalBytes": 20991664
+    },
+    {
+      "id": "Plaster007",
+      "source": "ambientcg",
+      "name": "Plaster 007",
+      "page": "https://ambientcg.com/view?id=Plaster007",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "plaster",
+      "tags": [
+        "Plaster",
+        "broken",
+        "old",
+        "paint",
+        "plaster",
+        "wall",
+        "white"
+      ],
+      "sourceCategory": "Plaster",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Plaster007/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4573950,
+          "sha256": "8beca526f03dfaa073a806d1adbab4a4134892914a409c023fddafeb6b970b23",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 7421342,
+          "sha256": "632b817ad9bf49ba53be50450cba0cbebd115d7b50588cbffcde7eb0032f89ac",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2941802,
+          "sha256": "77844313b7f1b67bd86c7c10bc9e53377511812eeedd1e32242a060f4c3b9d86",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 2652009,
+          "sha256": "407018b4272f2fc0aaadee7e8d20e8ca3bcc15bb9adce9820cf3ea4a436ed469",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1385453,
+          "sha256": "a7a925ddd21a96a12747b00d0091023564153768392721db52aeea7719044715",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 88125,
+        "sha256": "fab38ed691a0fa2e50a87b10dbfcd04b69125bae29b63a438c0b23bc4409e1a1"
+      },
+      "use": "Old broken white plaster: lime/gypsum plaster failing over masonry",
+      "totalBytes": 19062681
+    },
+    {
+      "id": "Clay002",
+      "source": "ambientcg",
+      "name": "Clay 002",
+      "page": "https://ambientcg.com/view?id=Clay002",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "ceramic",
+      "tags": [
+        "Clay",
+        "brown",
+        "clay"
+      ],
+      "sourceCategory": "Clay",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Clay002/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2503798,
+          "sha256": "137fdf28807cbe03c5fb8a13b0ebf57f29fa7c89c96db4091527f6d6c3edcfc8",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 9048797,
+          "sha256": "e82c24ec175f6c407d2400db9cc241c910c832a180dfd92ce56464799a595c35",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2928930,
+          "sha256": "a5d308f8a7d2acdfddcdf189ee12a628e1336d64a50ef605465e7e442bb912c2",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 2560022,
+          "sha256": "01f125521f38295730f761b176ce6fd3b4c9b624b645747f40b1db9066985418",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2195768,
+          "sha256": "5b54a182b3bf80a6ae4253973f791e2de6344eea8ee6dcd072cb1ad97d646dd7",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 57157,
+        "sha256": "d96b91e6edf9c335cf70347cabc4a78e07e15f9c19afbf0b9e4c423a67ce1798"
+      },
+      "use": "Brown clay surface: unglazed ceramic, mud-plaster",
+      "totalBytes": 19294472
+    },
+    {
+      "id": "Clay003",
+      "source": "ambientcg",
+      "name": "Clay 003",
+      "page": "https://ambientcg.com/view?id=Clay003",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "ceramic",
+      "tags": [
+        "Clay",
+        "bright",
+        "clay",
+        "orange"
+      ],
+      "sourceCategory": "Clay",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Clay003/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 1747190,
+          "sha256": "35f5b0f988efa9174e6a55e891bb4458919ad893067f10313b5cac911a4160eb",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 7789419,
+          "sha256": "f715aa6e32101fc9af4a028dea3f4aa85c081d33439a8df8211744988926e543",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2700911,
+          "sha256": "331f609884ab6f5822a525ae5c3d927d25be82efc9c004447fd5dfa8f30105a5",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 2147044,
+          "sha256": "2b3c187c1bdb5150a1343d1bc3837c322a793498b32326be37a8cf1d1cfa4054",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1800767,
+          "sha256": "0552f19c87425af3af6f074e53df78a2865e24c3e1682092de614b603c9ca3cb",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 56894,
+        "sha256": "b95761be1551f4a507b25a2229e113d29a8640ba423556319c6c5e6a5e7815f9"
+      },
+      "use": "Orange clay surface: terracotta / unglazed fired ceramic vessels, pipes",
+      "totalBytes": 16242225
+    },
+    {
+      "id": "Bark015",
+      "source": "ambientcg",
+      "name": "Bark 015",
+      "page": "https://ambientcg.com/view?id=Bark015",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "wood",
+      "tags": [
+        "Bark",
+        "bark",
+        "beige",
+        "brown",
+        "damaged",
+        "forest",
+        "layered",
+        "natural",
+        "old",
+        "organic",
+        "outdoor",
+        "rough",
+        "rustic",
+        "striped",
+        "tree",
+        "wood"
+      ],
+      "sourceCategory": "Bark",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Bark015/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6978032,
+          "sha256": "c78189243820925cffca35f9c8fe160391be6ab041cf055507981c6100434542",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 8948118,
+          "sha256": "66caa594e41379de3d781d9d1ab35354ab0ac7202028b1729ad2704733f0f8a3",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2705983,
+          "sha256": "3a1a2342c6e5b15aa7a929188ec670240424d56b49e4bacc3419c95bbd04fdb7",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 3276828,
+          "sha256": "a0f35d86742c0779fd76ce0b0822d13e770ef16c953190d01e179ce23be885ce",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1403920,
+          "sha256": "dccb2d4a31db74e66b47ee774bcb2240f1e7cb25608ff8ea5eef7a07e4991dc1",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 132081,
+        "sha256": "c4f16cca4f7f33ab06925db9903d8faa84cd809af141b2359878c227a8f4cebc"
+      },
+      "use": "Layered damaged bark: poplar/cypress trunks, firewood",
+      "totalBytes": 23444962
+    },
+    {
+      "id": "Planks039",
+      "source": "ambientcg",
+      "name": "Planks 039",
+      "page": "https://ambientcg.com/view?id=Planks039",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "wood",
+      "tags": [
+        "Planks",
+        "dirty",
+        "large",
+        "medieval",
+        "old",
+        "planks",
+        "rough",
+        "wooden"
+      ],
+      "sourceCategory": "Planks",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": {
+        "widthCm": 150,
+        "heightCm": 75
+      },
+      "resolution": "2K",
+      "path": "ambientcg/Planks039/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2742383,
+          "sha256": "68cb2be12896a83e380d281e0f1b0cb4cede14259f56fa61a262016b7f0b3a97",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 2522771,
+          "sha256": "54567f8660aa73f00a449fc68663ab08215cc938699cfa2470e6d5d161dd49b3",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 1168162,
+          "sha256": "8e22deaea3ee6d08729acb1b0be81961cb21530bb8a0af84aba75fca0e4222f1",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 1346766,
+          "sha256": "34fc81d545b9726e906d8c2bb60945567e982e91781eb6f3cf687b51a6ca496c",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 344765,
+          "sha256": "44a92d2ee071465a2246c729ed7576d0c28ddff24d1f827d98a9fa9802b16066",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 105819,
+        "sha256": "919474a8d51e28c429e7190db60e864febf7b6a1a6f4c9881dc467e0672ffdd5"
+      },
+      "use": "Large rough old planks: heavy doors, cart beds, scaffolding",
+      "totalBytes": 8230666
+    },
+    {
+      "id": "TreeEnd004",
+      "source": "ambientcg",
+      "name": "Tree End 004",
+      "page": "https://ambientcg.com/view?id=TreeEnd004",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "wood",
+      "tags": [
+        "Tree End",
+        "end",
+        "log",
+        "tree",
+        "wood"
+      ],
+      "sourceCategory": "Tree End",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/TreeEnd004/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 3368990,
+          "sha256": "66fc2b5d59dfc584110255ce8518d18b3a796bcf5ce29d6f306f1e332e527652",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 5208630,
+          "sha256": "2540f1b557ceb924164075cb5e6437d2fb245a9bf37e81f9a2f8ab139076bde0",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 1385553,
+          "sha256": "c16af96f354e4884d8d71b71349dc081c3f832fb10c9e58a79004d6a11f65acd",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 511621,
+          "sha256": "e68bbc7ec8fd7445fe43dde3d581ece0bf7ee40162f80a46fee5e83515d4e5e0",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 63091,
+        "sha256": "b8fb572d9b1c2d7f06c3ed1161e1345187ee09498a221f7a8eb677c4e40418ff"
+      },
+      "use": "Log end grain: beam ends, stacked firewood, cut logs",
+      "totalBytes": 10537885
+    },
+    {
+      "id": "Logs001",
+      "source": "ambientcg",
+      "name": "Logs 001",
+      "page": "https://ambientcg.com/view?id=Logs001",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "wood",
+      "tags": [
+        "Logs",
+        "fire",
+        "logs",
+        "wood"
+      ],
+      "sourceCategory": "Logs",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": {
+        "widthCm": 200,
+        "heightCm": 200
+      },
+      "resolution": "2K",
+      "path": "ambientcg/Logs001/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 5701172,
+          "sha256": "1ae364feb90f85e227481c0542382661097271f70cae2351e095b619e2a2ca28",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 7932724,
+          "sha256": "44e302afeff5463d965791f2b510714e45ea6fb5ab51e37ef70c34f34b83efe7",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2040284,
+          "sha256": "a4e4cd36acdd9ee66421500d0b0362f0ddada752f496489a2fea9aa848fad1cf",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 3239561,
+          "sha256": "080c0068d282bb6cf14edad579b54022b9af645a1960b9d40a10c8319366a593",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 971695,
+          "sha256": "884255a62e9eb5776f5a6028be0619fa4ffcdf1851d38a095002c102897da1d1",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 135815,
+        "sha256": "1e05418d9d4cdd46801c25366d616219baeba159d11c4e554948de112f488a66"
+      },
+      "use": "Stacked split firewood: woodpiles by kitchens, kilns and hearths",
+      "totalBytes": 20021251
+    },
+    {
+      "id": "ThatchedRoof001A",
+      "source": "ambientcg",
+      "name": "Thatched Roof 001 A",
+      "page": "https://ambientcg.com/view?id=ThatchedRoof001A",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "reed",
+      "tags": [
+        "Thatched Roof",
+        "brown",
+        "medieval",
+        "roof",
+        "roofing",
+        "straw",
+        "thatched"
+      ],
+      "sourceCategory": "Thatched Roof",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/ThatchedRoof001A/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4616359,
+          "sha256": "267ae86a8fb25cbe0ada4eaecf535949dc300d6a4ca8ed3601847bad14539884",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 9141428,
+          "sha256": "4125f3a96595fdc0f092531a97d2b094110ff21127a4ce2bb057a513ef960a9a",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2119482,
+          "sha256": "84d1e2739bca3be8aa75821883ff6039bf8ea7d542d4c59b3e51fa9a69b92254",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 3364077,
+          "sha256": "6effb969625d111808342b96401f0cce35e25d7472fc71f452222126ae1a2509",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2585229,
+          "sha256": "d5bd92c40251047605a85a73889a53f30a60e91de53bdd46c8f6d6deac7223d3",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 94042,
+        "sha256": "40ba1e74ed87eff255c343780e5daefc968a3ab7dc4af48358667dcbd472e6f1"
+      },
+      "use": "Straw thatch: straw roofing, hay stacks, stubble texture",
+      "totalBytes": 21920617
+    },
+    {
+      "id": "Wicker010B",
+      "source": "ambientcg",
+      "name": "Wicker 010 B",
+      "page": "https://ambientcg.com/view?id=Wicker010B",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "reed",
+      "tags": [
+        "Wicker",
+        "brown",
+        "dirty",
+        "old",
+        "wicker"
+      ],
+      "sourceCategory": "Wicker",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Wicker010B/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4265510,
+          "sha256": "8334188188caa0fb13c2c4fe04895357490d49f1e464680c1264fb8bb79c6e01",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 6571101,
+          "sha256": "ecbe0e4eaf657d56f8cef1846e7c08fcd71e2a831d0e82bf308b43fe4fdca408",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 1962138,
+          "sha256": "3c0007d0f62151d141ec7ead7f22b1e5806583f05aff42dfa2b93ee79ca1220d",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 1868241,
+          "sha256": "57f0c16832cd68d0862baf6e6869bb182d5190a8ec19dcb573e62d3303976b68",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1183745,
+          "sha256": "56730c7a66aff64895a631b4b18da5aa84de6962ce5afd913a8a5f855a15efa0",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 117423,
+        "sha256": "94bf07d2b559e96132579b718a6949e47eb116a4a83ea0bb04f023dee571f743"
+      },
+      "use": "Old dirty wicker: baskets, woven reed screens",
+      "totalBytes": 15968158
+    },
+    {
+      "id": "Tatami001",
+      "source": "ambientcg",
+      "name": "Tatami 001",
+      "page": "https://ambientcg.com/view?id=Tatami001",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "reed",
+      "tags": [
+        "Tatami",
+        "beige",
+        "floor",
+        "tatami",
+        "yellow"
+      ],
+      "sourceCategory": "Tatami",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": {
+        "widthCm": 250,
+        "heightCm": 250
+      },
+      "resolution": "2K",
+      "path": "ambientcg/Tatami001/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4889860,
+          "sha256": "4a6ee0c45c3c1dc425ffc298f107c765d1082e497aee4cf87782c65744e2c5e2",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 7846176,
+          "sha256": "6f50abf1fef9ef1b98946c89e67cfa3c8b0539d7b4bc0d3436d4dde00188f4a1",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2779736,
+          "sha256": "140119f3d49030c1d7bcb63f39a5a421c2541cb422f5c5c90191a1a78fcfe9f4",
+          "role": "roughness"
+        },
+        "ao": {
+          "file": "ao.jpg",
+          "bytes": 3113258,
+          "sha256": "123c946b0cd6c026e54312d0eea17a0489e3dc8719e2ae2269796473282d99b9",
+          "role": "ambient occlusion"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2720824,
+          "sha256": "a834f619f903bfd2ca78f88561fc56aba346806a2584a71c5b92af895ef028be",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 101222,
+        "sha256": "c26ad1ca9a7794180bf44708256e9435cc728c6759a72bfb5a9478a09c4b1d59"
+      },
+      "use": "Woven straw mat: reed/rush floor matting",
+      "totalBytes": 21451076
+    },
+    {
+      "id": "Rope001",
+      "source": "ambientcg",
+      "name": "Rope 001",
+      "page": "https://ambientcg.com/view?id=Rope001",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "textile",
+      "tags": [
+        "Rope",
+        "beige",
+        "light",
+        "rope",
+        "string"
+      ],
+      "sourceCategory": "Rope",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Rope001/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 2109415,
+          "sha256": "b3c6341dd0dbda13747fa4c652eb53a3774900368899b89bb1286475a13a4808",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3494870,
+          "sha256": "af23f9a1753b2eba9720df538378b6817e7c32f213872043c1c7f1c629f75827",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 901933,
+          "sha256": "73bfe960cf7210623b9c11fd8da1a090115dfa075d946d4bb3177de2cfb52cfb",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 627327,
+          "sha256": "14243258e34bbb32e1db03bc798785543e1bc0f9d1c0f7ff37e7f45a728bd5b8",
+          "role": "displacement/height"
+        },
+        "metal": {
+          "file": "metal.jpg",
+          "bytes": 8353,
+          "sha256": "b2875438bec606de909a3211fb014b5d9f58760e5f08edb5091a1e9f0ec65da6",
+          "role": "metalness"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 108180,
+        "sha256": "adac226091c0b76b83bd50ddec66d4d437e84acda6bd4841dc1564f425dbcb62"
+      },
+      "use": "Light plant-fibre rope: ropes, lashings, rigging of awnings",
+      "totalBytes": 7250078
+    },
+    {
+      "id": "Fabric031",
+      "source": "ambientcg",
+      "name": "Fabric 031",
+      "page": "https://ambientcg.com/view?id=Fabric031",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "textile",
+      "tags": [
+        "Fabric",
+        "fabric",
+        "grey",
+        "large",
+        "weave",
+        "wool",
+        "woven"
+      ],
+      "sourceCategory": "Fabric",
+      "creationMethod": "PBRApproximated",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Fabric031/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6028125,
+          "sha256": "8caafd51c13585e10d60a4766c71d6e0fd9478e5b4747380417416f1d6b82759",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 9684078,
+          "sha256": "72f23ab78ff50b5f13c6ab071a2cc39286d098bc451037d32526a5a6295236d6",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2124524,
+          "sha256": "12b102cb36e29f8a75a68d72ab8e4ad561bc71d32a7ea9bb25eb8efedb1f1725",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 3527177,
+          "sha256": "e0d8bbc481aed9f53606ba98832b3f6fd176d7254fc676b05fcb230a41dd94cd",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 101080,
+        "sha256": "fb1f1d145317fbbf5c512082bdd2d14e98484e6fb446a959e330d6446a4084d3"
+      },
+      "use": "Coarse grey wool weave: woollen garments, blankets, tent cloth",
+      "totalBytes": 21464984
+    },
+    {
+      "id": "Fabric034",
+      "source": "ambientcg",
+      "name": "Fabric 034",
+      "page": "https://ambientcg.com/view?id=Fabric034",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "textile",
+      "tags": [
+        "Fabric",
+        "fabric",
+        "felt",
+        "grey",
+        "white"
+      ],
+      "sourceCategory": "Fabric",
+      "creationMethod": "PBRApproximated",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Fabric034/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4877156,
+          "sha256": "fb7e0bc5da7bd0d62d20140e936c89884212f0cb7e44b5c6f8b9837cddd2242a",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 9607311,
+          "sha256": "3e42b594ddb376a1f9f6909b236bc1f280469b08c500fa4f199d29f9e8591c5a",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2787687,
+          "sha256": "b8be247a5ea8e54224d8c5d88e057611eec8721193ce881d08dcdcaa09cd5700",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 3188749,
+          "sha256": "e75278308c6a9cd0b745ff930082046d4b6e0365dcfe04bd7fe1905130fcf06c",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 69591,
+        "sha256": "d8cb2b72d96dbf583da4621f811a0e5c17183c37cf143ceb13e2af5f9ff2cb4d"
+      },
+      "use": "Grey felt: felt caps, saddle cloths, nomad felts",
+      "totalBytes": 20530494
+    },
+    {
+      "id": "Fabric043",
+      "source": "ambientcg",
+      "name": "Fabric 043",
+      "page": "https://ambientcg.com/view?id=Fabric043",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "textile",
+      "tags": [
+        "Fabric",
+        "fabric",
+        "grey",
+        "rough"
+      ],
+      "sourceCategory": "Fabric",
+      "creationMethod": "PBRPhotogrammetry",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Fabric043/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 7035545,
+          "sha256": "7bfc34bf1f126c301b1b492188d6917a404159afc05aa6a3c3e7d1a3e9262f7a",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 10766786,
+          "sha256": "24309fd591636efcdbdcb30313b6a777bdb353469e9172b86213da0c700c2a03",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2503633,
+          "sha256": "fec29ce51ddbc36941a371b457c6fd9debb8d1a78e088365cfd404f8db54d2af",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2701771,
+          "sha256": "d301de9e832ef5b900d180185cca2ec5978b6c418672072117211c84effcbf14",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 101523,
+        "sha256": "d749125455a3fc18144e7128ec09a0d173df857be606746cc4139a8473f5d4dd"
+      },
+      "use": "Rough grey fabric (photoscan): coarse undyed cloth",
+      "totalBytes": 23109258
+    },
+    {
+      "id": "Fabric001",
+      "source": "ambientcg",
+      "name": "Fabric 001",
+      "page": "https://ambientcg.com/view?id=Fabric001",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "textile",
+      "tags": [
+        "Fabric",
+        "cloth",
+        "fabric",
+        "old",
+        "white"
+      ],
+      "sourceCategory": "Fabric",
+      "creationMethod": "PBRApproximated",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Fabric001/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4566198,
+          "sha256": "da64a6ab2fe6a93844a4d6e11a3fe54cd3b65de166ed02976e0bddcf3a214360",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 6590125,
+          "sha256": "4c874fc5046c857228c12fe0fb430eb4f38f7b553a09fcab75c720d701599109",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2896211,
+          "sha256": "72efeb74b9554110fbff4fa89d97b195b5473857ac8bd58d1c1a47ac5bfb64f9",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2051797,
+          "sha256": "3b4a8ee647f39d1741f7972dc5049cdfefa53a8a076c823d4cdb1851e522768a",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 69927,
+        "sha256": "00fa2b8a2887e5ca2510132612c61decf7e201a980b9ff874933e30773017e65"
+      },
+      "use": "Old white cloth: linen garments, hangings",
+      "totalBytes": 16174258
+    },
+    {
+      "id": "Leather014",
+      "source": "ambientcg",
+      "name": "Leather 014",
+      "page": "https://ambientcg.com/view?id=Leather014",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "leather",
+      "tags": [
+        "Leather",
+        "brown",
+        "leather",
+        "old",
+        "scratched",
+        "scratches",
+        "scuffs",
+        "used",
+        "vintage"
+      ],
+      "sourceCategory": "Leather",
+      "creationMethod": "PBRApproximated",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Leather014/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6146191,
+          "sha256": "2fa4bc209d1ebd32ab3274a07bb41b73708717ab40096b077d4d76717a1407d8",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 7280342,
+          "sha256": "3a5cc1494a2ccf4a486df750a5b372ea7898311b522a7a0a5e98f6d165e35e6d",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2236728,
+          "sha256": "d2c6e22c8bc9873cdc5e3ee7a8c1ab5139058b3969fd9538141f979f43fdca67",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1424168,
+          "sha256": "11e9dbfed5ca89e6a1dee2d046f542e4ed68f0f74d1796484102d1630a080c27",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 82222,
+        "sha256": "7a6e4fd303825e5f3a6cc4055e152b00b139103d89c57a909ec418cb20cf3731"
+      },
+      "use": "Old scratched leather: straps, harness, shields, bags",
+      "totalBytes": 17169651
+    },
+    {
+      "id": "Leather039",
+      "source": "ambientcg",
+      "name": "Leather 039",
+      "page": "https://ambientcg.com/view?id=Leather039",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "leather",
+      "tags": [
+        "Leather",
+        "bright",
+        "fine",
+        "leather",
+        "light",
+        "rough",
+        "suede"
+      ],
+      "sourceCategory": "Leather",
+      "creationMethod": "PBRMultiAngle",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Leather039/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 5841943,
+          "sha256": "6db683d25dc9ca9272f27089df5bcc605a40552b2da3cbab0fbdfc9e8bdf4508",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 7850093,
+          "sha256": "7f7e8477b00fd5430c5d465ac9583ee5a891081426b0425d0b32a1ce7dba524e",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 3162342,
+          "sha256": "90873234accb27fbf8758781717ecbd84ed7b35d56a3bba572c7c587736a025e",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 3344591,
+          "sha256": "bb7b71c25fe2b3f4744e3b73877f1fe755ac96c55422ff78ab75900cae9553ed",
+          "role": "displacement/height"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 75043,
+        "sha256": "75274cd93fc2e2d70c6ae9d7e25669787139d877eee1a019f93998351f115ae9"
+      },
+      "use": "Light rough suede: rawhide, soft leather garments, boots",
+      "totalBytes": 20274012
+    },
+    {
+      "id": "Metal013",
+      "source": "ambientcg",
+      "name": "Metal 013",
+      "page": "https://ambientcg.com/view?id=Metal013",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "metal",
+      "tags": [
+        "Metal",
+        "bronze",
+        "dark",
+        "eroded",
+        "erosion",
+        "metal",
+        "old",
+        "rough"
+      ],
+      "sourceCategory": "Metal",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Metal013/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 6846757,
+          "sha256": "e64815aac383dd0c5ad55019c6235145abe069ec9bb71867d847403a6fa403d6",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 7751306,
+          "sha256": "f68eca65e0df76095b0e6119b016833cd4145601b3968a56148bc04046cf32b9",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 1900367,
+          "sha256": "875b9ce8d9422a82723580949e59e4a15483ff7f315e35df521dfc666b04f714",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 2247468,
+          "sha256": "8e515f048784f81bcce94b005284b2df5fd911f76e716801353f8265085f7ba3",
+          "role": "displacement/height"
+        },
+        "metal": {
+          "file": "metal.jpg",
+          "bytes": 2855307,
+          "sha256": "1d822c142f6f6621fe01b5a8feda1bdbfea19a04ed916f18ebd37d9616cd8441",
+          "role": "metalness"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 112183,
+        "sha256": "f1abdf6b2bcf5a67abae279d4b77c7364f01c62e7efbf331469c9caaf8365614"
+      },
+      "use": "Dark eroded bronze: bronze fittings, door sheathing, vessels",
+      "totalBytes": 21713388
+    },
+    {
+      "id": "Metal058B",
+      "source": "ambientcg",
+      "name": "Metal 058 B",
+      "page": "https://ambientcg.com/view?id=Metal058B",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "metal",
+      "tags": [
+        "Metal",
+        "copper",
+        "metal",
+        "oxidation"
+      ],
+      "sourceCategory": "Metal",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Metal058B/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 4653208,
+          "sha256": "78ee8322b4ad729a95e1136375a016b22c016eb38122b7fce93b0cbb076bb650",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 3160414,
+          "sha256": "42fdcda2cb1a30e95cc8f8de1383f6484047ec07d38130b0ea3dbe6023dffcc6",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 1595901,
+          "sha256": "8776bac9be2cb814d8d94d83c42679649e908cd56c6bb2fa00d12a0962a873ba",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 1042553,
+          "sha256": "fdb0a3cda79dd0953f38012a7d72b12fcd229ba8a033f6eb70df5c0933db56fe",
+          "role": "displacement/height"
+        },
+        "metal": {
+          "file": "metal.jpg",
+          "bytes": 1148877,
+          "sha256": "da39f4fa7afb638f5f973f6a06687561b9ddb7997c91910236db521f91e847e8",
+          "role": "metalness"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 89433,
+        "sha256": "2d3c83361913d9750d226e7f397da78205367a938c000361c4229e47625426f7"
+      },
+      "use": "Oxidised copper (patina): copper vessels, cladding with verdigris",
+      "totalBytes": 11690386
+    },
+    {
+      "id": "Metal053C",
+      "source": "ambientcg",
+      "name": "Metal 053 C",
+      "page": "https://ambientcg.com/view?id=Metal053C",
+      "licence": "CC0-1.0",
+      "authors": [
+        "ambientCG (Lennart Demes / Struffel Productions)"
+      ],
+      "authorsNote": "ambientCG API does not return per-asset authors; all assets are published by ambientCG under CC0.",
+      "group": "metal",
+      "tags": [
+        "Metal",
+        "damaged",
+        "iron",
+        "metal",
+        "old",
+        "rusted"
+      ],
+      "sourceCategory": "Metal",
+      "creationMethod": "PBRProcedural",
+      "realWorldSize": null,
+      "resolution": "2K",
+      "path": "ambientcg/Metal053C/",
+      "maps": {
+        "diff": {
+          "file": "diff.jpg",
+          "bytes": 5360184,
+          "sha256": "68b432232f0e155a91ec76a7d6138b70be5eb8620de9139d3b6f9e28f67285a5",
+          "role": "albedo (sRGB)"
+        },
+        "nor": {
+          "file": "nor.jpg",
+          "bytes": 2471700,
+          "sha256": "44887aacee54d70fd13b851a4b35e2b9dca2db0e8a60a11178168e3b7e6edb46",
+          "role": "normal (OpenGL)"
+        },
+        "rough": {
+          "file": "rough.jpg",
+          "bytes": 2629149,
+          "sha256": "d1afc00d87d9636bc9fcce0dcd0f005cfdc71e489b490b5acb6f69993030594b",
+          "role": "roughness"
+        },
+        "disp": {
+          "file": "disp.jpg",
+          "bytes": 909538,
+          "sha256": "5bf1020ed718f556823995a337a8ab9785bd1ac9b99df402979b5131062145e4",
+          "role": "displacement/height"
+        },
+        "metal": {
+          "file": "metal.jpg",
+          "bytes": 2490733,
+          "sha256": "d884ebbbf66dd2a714ac68adfa33a30d6ee76df3a375ef5c0fd43325ccc9429f",
+          "role": "metalness"
+        }
+      },
+      "preview": {
+        "file": "preview.png",
+        "bytes": 122586,
+        "sha256": "b9ebc65220e14faf9eb4861c5b0c7ad3547ec034610e82b60695a4fd922d1c7d"
+      },
+      "use": "Old rusted iron: iron tools, clamps, weapons",
+      "totalBytes": 13983890
+    }
+  ]
+}

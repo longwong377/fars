@@ -1,0 +1,54 @@
+{
+ "type": 1,
+ "name": "Dark Rock",
+ "categories": [
+  "natural",
+  "outdoor",
+  "rock"
+ ],
+ "tags": [
+  "uneven",
+  "rough",
+  "weathered",
+  "rock",
+  "fissured",
+  "cracked",
+  "craggy",
+  "striated",
+  "geological",
+  "rock formation",
+  "veined",
+  "stone",
+  "fractured",
+  "metamorphic",
+  "striations",
+  "exposed rock"
+ ],
+ "description": "Free 8K dark rock texture with layered fractures, deep crevices and chipped edges, charcoal tone and rough, slightly matte surface with subtle highlights.",
+ "authors": {
+  "Amal Kumar": "All"
+ },
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "dimensions": [
+  2421.1976528167725,
+  2421.199083328247
+ ],
+ "files_hash": "3c4dc6dd0a7867dfbca5064d5d38e006d9be5b8d",
+ "staging": null,
+ "date_published": 1782864000,
+ "attributes": {
+  "condition": [
+   "weathered"
+  ],
+  "origin": "natural",
+  "setting": "outdoor"
+ },
+ "category_id": "f2e3fa2c-5ddb-54b9-9e4a-9ba42c7233af",
+ "category": "Stone/Rock & Cliffs/Stratified & Layered Rock",
+ "img_version": "d0e24f23",
+ "download_count": 12533,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/dark_rock.png?width=256&height=256&v=d0e24f23"
+}

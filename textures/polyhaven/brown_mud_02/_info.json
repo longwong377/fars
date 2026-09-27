@@ -1,0 +1,53 @@
+{
+ "scale": "1,2",
+ "type": 1,
+ "date_published": 1529359200,
+ "name": "Brown Mud 02",
+ "old_id": 78,
+ "categories": [
+  "terrain",
+  "natural",
+  "outdoor"
+ ],
+ "authors": {
+  "Rob Tuytel": "All"
+ },
+ "dimensions": [
+  1299.996018409729,
+  1299.996018409729
+ ],
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "files_hash": "6a62cb727f45d057bef755785ef55144c0523e23",
+ "tags": [
+  "mud",
+  "dirt",
+  "stones",
+  "dry",
+  "ground",
+  "footprints",
+  "soil",
+  "compact soil",
+  "wet soil",
+  "plant debris",
+  "roots",
+  "sticks",
+  "earth"
+ ],
+ "description": "Free 8K texture of brown mud featuring compact and wet patches, coarse clods, embedded stones, roots, sticks and plant debris with footprint marks.",
+ "category_id": "12aa7954-48be-5855-812b-7dc4aca856fd",
+ "category": "Ground & Terrain/Soil & Mud/Wet Mud",
+ "attributes": {
+  "surface_use": "ground",
+  "condition": [
+   "weathered"
+  ],
+  "origin": "natural",
+  "setting": "outdoor"
+ },
+ "img_version": "e736736c",
+ "download_count": 81526,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/brown_mud_02.png?width=256&height=256&v=e736736c"
+}

@@ -1,0 +1,57 @@
+{
+ "type": 1,
+ "name": "Marble Cliff 02",
+ "tags": [
+  "rough",
+  "weathered",
+  "uneven",
+  "rock",
+  "cracked",
+  "sedimentary",
+  "sedimentary",
+  "fissured",
+  "marble",
+  "craggy",
+  "drone",
+  "dusty",
+  "brown"
+ ],
+ "description": "Free 8k texture of a weathered, craggy marble cliff - rough, fissured sedimentary rock with deep cracks, uneven surfaces and dusty brown veining.",
+ "authors": {
+  "Amal Kumar": "All"
+ },
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "dimensions": [
+  6801.3715744018555,
+  6801.3715744018555
+ ],
+ "files_hash": "b82c1ee56a75261deec98695ca45906e8d27917a",
+ "date_published": 1776297600,
+ "staging": null,
+ "sponsors": [
+  "121968951"
+ ],
+ "categories": [
+  "natural",
+  "rock",
+  "outdoor",
+  "aerial"
+ ],
+ "category_id": "19a0b774-8b0a-5853-a205-8f019fe00ae9",
+ "category": "Stone/Rock & Cliffs/Marble & Metamorphic",
+ "attributes": {
+  "condition": [
+   "weathered",
+   "cracked"
+  ],
+  "origin": "natural",
+  "setting": "outdoor",
+  "aerial": true
+ },
+ "img_version": "4b173ec8",
+ "download_count": 6225,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/marble_cliff_02.png?width=256&height=256&v=4b173ec8"
+}

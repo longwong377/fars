@@ -1,0 +1,55 @@
+{
+ "type": 1,
+ "date_published": 1540870287,
+ "name": "Red Mud Stones",
+ "old_id": 170,
+ "categories": [
+  "terrain",
+  "outdoor",
+  "natural"
+ ],
+ "authors": {
+  "Rob Tuytel": "All"
+ },
+ "dimensions": [
+  1500,
+  1500
+ ],
+ "sponsors": [
+  "77433244"
+ ],
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "files_hash": "0ecfc8ec38d337f9ac1b78cc2862dae2978a9185",
+ "tags": [
+  "mud",
+  "dirt",
+  "flat",
+  "dry",
+  "rocks",
+  "compact soil",
+  "organic debris",
+  "roots",
+  "gothic",
+  "soil",
+  "cracked",
+  "earthy",
+  "plant debris"
+ ],
+ "description": "Free 8K texture: red mud stones - dry, compact reddish clay with fine cracks, scattered pebbles, root fibers and an earthy matte grain.",
+ "category_id": "804988d5-eb1b-5364-afc9-ce19b3edc12d",
+ "category": "Ground & Terrain/Soil & Mud/Cracked Dry Mud & Clay",
+ "attributes": {
+  "surface_use": "ground",
+  "condition": [
+   "cracked"
+  ],
+  "origin": "natural",
+  "setting": "outdoor"
+ },
+ "img_version": "b96e84b7",
+ "download_count": 50607,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/red_mud_stones.png?width=256&height=256&v=b96e84b7"
+}

@@ -1,0 +1,54 @@
+{
+ "scale": "3x3M",
+ "type": 1,
+ "date_published": 1603733161,
+ "name": "Rocks Ground 09",
+ "old_id": 289,
+ "categories": [
+  "terrain",
+  "natural",
+  "outdoor"
+ ],
+ "authors": {
+  "Rob Tuytel": "All"
+ },
+ "dimensions": [
+  3000,
+  3000
+ ],
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "files_hash": "a4575b4036bf069e83641bcc283a048ffbaa1460",
+ "tags": [
+  "rough",
+  "rock",
+  "stones",
+  "broken",
+  "gravel",
+  "gravelly",
+  "scattered pebbles",
+  "scattered rocks",
+  "stony",
+  "gravelly ground",
+  "rocks",
+  "rock fragments",
+  "loose debris",
+  "pebbled"
+ ],
+ "description": "Free 8K texture of rough, gravelly ground with scattered pebbles and rock fragments, dusty brown soil, loose debris and high-detail stony surface.",
+ "category_id": "ff767449-ea44-5527-96f0-d74aa52df2d0",
+ "category": "Ground & Terrain/Gravel & Pebbles/Crushed Aggregate",
+ "attributes": {
+  "surface_use": "ground",
+  "origin": "natural",
+  "setting": "outdoor",
+  "condition": [
+   "clean"
+  ]
+ },
+ "img_version": "56dfd3de",
+ "download_count": 20382,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/rocks_ground_09.png?width=256&height=256&v=56dfd3de"
+}

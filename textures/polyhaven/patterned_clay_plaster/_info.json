@@ -1,0 +1,53 @@
+{
+ "name": "Patterned Clay Plaster",
+ "categories": [
+  "wall",
+  "outdoor",
+  "plaster-concrete",
+  "man made"
+ ],
+ "type": 1,
+ "tags": [
+  "weathered",
+  "rough",
+  "wall",
+  "pattern",
+  "clay",
+  "patterned",
+  "lines",
+  "decorative",
+  "traditional",
+  "outdoor",
+  "exterior",
+  "handmade"
+ ],
+ "authors": {
+  "Amal Kumar": "All"
+ },
+ "info": null,
+ "dimensions": [
+  2000,
+  2000
+ ],
+ "date_published": 1705968000,
+ "staging": null,
+ "max_resolution": [
+  16384,
+  16384
+ ],
+ "files_hash": "19c4625322fe7472c0cd00db6d03095d6cf36b48",
+ "description": "Free 16K clay plaster texture:  rough exterior surface with handmade overlapping arc patterns, fine trowel lines and soft earthy beige tones.",
+ "category_id": "615c9883-4041-5b7a-8947-869444e169cd",
+ "category": "Concrete/Plaster & Stucco/Clay & Earth Plaster",
+ "attributes": {
+  "surface_use": "wall",
+  "condition": [
+   "weathered"
+  ],
+  "origin": "man_made",
+  "setting": "outdoor"
+ },
+ "img_version": "0de26168",
+ "download_count": 24089,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/patterned_clay_plaster.png?width=256&height=256&v=0de26168"
+}

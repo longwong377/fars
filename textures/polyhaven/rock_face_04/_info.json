@@ -1,0 +1,55 @@
+{
+ "type": 1,
+ "name": "Rock Face 04",
+ "categories": [
+  "outdoor",
+  "natural",
+  "rock"
+ ],
+ "category": "Stone/Rock & Cliffs/Rough Rock Faces",
+ "attributes": {
+  "surface_use": "wall",
+  "origin": "natural",
+  "setting": "outdoor",
+  "condition": [
+   "weathered",
+   "dirty",
+   "cracked"
+  ]
+ },
+ "tags": [
+  "rough",
+  "uneven",
+  "weathered",
+  "old",
+  "cracked",
+  "chipped",
+  "rock face",
+  "rock",
+  "leaves",
+  "dry leaves",
+  "fallen leaves",
+  "cracks",
+  "striated",
+  "geological"
+ ],
+ "description": "Free 8K rock face texture with dark, weathered slabs, deep fractured seams, and leaf litter in crevices. Rough, earthy tones with subtle sheen.",
+ "authors": {
+  "Dimitrios Savva": "All"
+ },
+ "category_id": "bf84369c-cc7c-5347-ad17-173353e859b8",
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "dimensions": [
+  2000,
+  2000
+ ],
+ "files_hash": "cab69c8b2b5c5dc82a8d7a5ae9bd82889894a363",
+ "date_published": 1787529600,
+ "staging": null,
+ "img_version": "815aa0e0",
+ "download_count": 1682,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/rock_face_04.png?width=256&height=256&v=815aa0e0"
+}

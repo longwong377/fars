@@ -1,0 +1,50 @@
+{
+ "type": 1,
+ "name": "Farm Soil",
+ "categories": [
+  "floor",
+  "natural",
+  "dirty"
+ ],
+ "category": "Ground & Terrain/Soil & Mud/Bare Dirt & Soil",
+ "attributes": {
+  "surface_use": "ground",
+  "origin": "natural",
+  "setting": "outdoor",
+  "condition": [
+   "dirty"
+  ]
+ },
+ "tags": [
+  "uneven",
+  "sand",
+  "sandy",
+  "dusty",
+  "ploughed",
+  "soil",
+  "earth",
+  "ground",
+  "granulated",
+  "cloddy"
+ ],
+ "description": "Free 8K farm soil texture with dark brown, slightly damp earth, crumbly clods, fine grit and stray roots; rough, matte surface with rich micro detail.",
+ "authors": {
+  "Amal Kumar": "All"
+ },
+ "info": "One of our nearby neighbors has a small farm in their yard and they had ploughed the soil recently. Was a good opportunity to scan it. Tried to scan it carefully because walking over it would compact the soil and leave footmarks.",
+ "category_id": "d9215ca1-f9af-578a-a269-6cd2338bdba6",
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "dimensions": [
+  1999.9992847442627,
+  2000.000238418579
+ ],
+ "files_hash": "b93416f6e73ab09fc3d0c5d76e1721bda83177e8",
+ "date_published": 1788912000,
+ "staging": null,
+ "img_version": "a2aced0e",
+ "download_count": 2496,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/farm_soil.png?width=256&height=256&v=a2aced0e"
+}

@@ -1,0 +1,54 @@
+{
+ "type": 1,
+ "name": "Farm Furrows",
+ "categories": [
+  "outdoor",
+  "floor"
+ ],
+ "category": "Ground & Terrain/Soil & Mud/Bare Dirt & Soil",
+ "attributes": {
+  "surface_use": "ground",
+  "origin": "natural",
+  "setting": "outdoor",
+  "condition": [
+   "dirty"
+  ]
+ },
+ "tags": [
+  "rough",
+  "uneven",
+  "dirt",
+  "dirty",
+  "dirt soil",
+  "soil",
+  "farm",
+  "sticks",
+  "twigs",
+  "small twigs",
+  "ploughed",
+  "furrows",
+  "rutted",
+  "earthy",
+  "cloddy",
+  "compacted earth"
+ ],
+ "description": "Free 8K texture of plowed farm soil with deep ridged furrows, damp brown earth, rough clods and scattered straw bits, rich micro detail and subtle sheen.",
+ "authors": {
+  "Amal Kumar": "All"
+ },
+ "category_id": "d9215ca1-f9af-578a-a269-6cd2338bdba6",
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "dimensions": [
+  2097.8498458862305,
+  2097.850799560547
+ ],
+ "files_hash": "67fc60308bb4cd38a29529922eef395df64ef6f3",
+ "date_published": 1787011200,
+ "staging": null,
+ "img_version": "8be23643",
+ "download_count": 985,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/farm_furrows.png?width=256&height=256&v=8be23643"
+}

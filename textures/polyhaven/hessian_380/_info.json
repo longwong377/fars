@@ -1,0 +1,50 @@
+{
+ "type": 1,
+ "name": "Hessian 380",
+ "authors": {
+  "colormass": "Photography",
+  "Rico Cilliers": "Processing"
+ },
+ "max_resolution": [
+  8327,
+  8325
+ ],
+ "dimensions": [
+  273.86577004511844,
+  273.79998564720154
+ ],
+ "staging": null,
+ "files_hash": "3965e4ecb1f5357d7678af8153cd4de69e6053fc",
+ "tags": [
+  "burlap",
+  "rough",
+  "brown",
+  "natural",
+  "fine",
+  "sack",
+  "hessian",
+  "jute",
+  "rustic",
+  "textile ",
+  "sackcloth"
+ ],
+ "description": "Free 8K material - coarse brown hessian (jute) burlap with fine woven sackcloth detail; rough, rustic surface ideal for fabrics, props and environment work.",
+ "date_published": 1757078158,
+ "categories": [
+  "fabric",
+  "hessian"
+ ],
+ "category_id": "369ad7ee-f8f6-5a22-9cba-cb2553e440b5",
+ "category": "Textiles & Leather/Sackcloth",
+ "attributes": {
+  "surface_use": "object",
+  "origin": "man_made",
+  "condition": [
+   "clean"
+  ]
+ },
+ "vault": "fabric",
+ "img_version": "4de51cc6",
+ "download_count": 26829,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/hessian_380.png?width=256&height=256&v=4de51cc6"
+}

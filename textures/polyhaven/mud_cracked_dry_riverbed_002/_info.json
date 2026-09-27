@@ -1,0 +1,54 @@
+{
+ "categories": [
+  "outdoor",
+  "natural",
+  "terrain",
+  "sand"
+ ],
+ "type": 1,
+ "tags": [
+  "weathered",
+  "cracked",
+  "rough",
+  "ground",
+  "dry",
+  "uneven",
+  "mud",
+  "cracks",
+  "nature",
+  "flaked",
+  "lake"
+ ],
+ "dimensions": [
+  2000,
+  2000
+ ],
+ "date_published": 1654732800,
+ "staging": null,
+ "name": "Mud Cracked Dry Riverbed 002",
+ "max_resolution": [
+  8192,
+  8192
+ ],
+ "files_hash": "f2e98edc195840c54be1b2447a8fe5fea7e23395",
+ "authors": {
+  "Dario Barresi": "Processing",
+  "Dimitrios Savva": "Photography"
+ },
+ "description": "Free 8K texture of cracked dry riverbed mud: rough, weathered, flaky plates with deep fissures and clayey brown, uneven surface.",
+ "category_id": "804988d5-eb1b-5364-afc9-ce19b3edc12d",
+ "category": "Ground & Terrain/Soil & Mud/Cracked Dry Mud & Clay",
+ "attributes": {
+  "surface_use": "ground",
+  "condition": [
+   "cracked",
+   "weathered",
+   "damaged"
+  ],
+  "origin": "natural",
+  "setting": "outdoor"
+ },
+ "img_version": "f276c506",
+ "download_count": 29060,
+ "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/mud_cracked_dry_riverbed_002.png?width=256&height=256&v=f276c506"
+}
