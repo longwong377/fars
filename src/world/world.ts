@@ -343,6 +343,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   nowView.onChange = () => { if (settings) audio.setVolumes(vols(settings.volume)); };
   crowd.onHit = (kind, pos) => sound.strike(kind, pos);
   fauna.onSound = (kind, pos) => sound.strike(kind, pos); // D-210: barks, cock-crow, clucks, grunts at the animal
+  birds.onScream = pos => sound.strike('swifts', pos); // session 10 (GB29): a swift party screaming past
   // speech + crowd murmur (D-011): murmur from everyone whose activity sounds as talk; lines only from the lexicons
   // voices: eSpeak-NG clips pre-rendered from the lexicon IPA (tools/build_speech.py) first, the formant synthesiser for anything missing
   const voiceManifest = await fetch('/voices/manifest.json').then(r => (r.ok ? r.json() : { clips: {} })).catch(() => ({ clips: {} }));

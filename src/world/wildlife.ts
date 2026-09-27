@@ -19,7 +19,8 @@ import type { Terrain } from '../terrain/heightfield';
 
 export interface BirdSpecies { id: string; name: string; tier: string; months: number[]; hours: [number, number]; span: number; length: number; colour: [number, number, number]; flapHz: number; count: number }
 export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane' | 'bat' | 'chukar' | 'hoopoe' | 'beeeater' | 'heron' | 'egret' | 'jackdaw' | 'magpie' | 'sandgrouse' | 'wheatear' | 'owl' | 'bulbul' | 'roller' | 'duck', BirdSpecies> = {
-  swallow: { id: 'swallow', name: 'barn swallow / common swift', tier: 'C (expected, not sourced; summer migrant)', months: [2, 3, 4, 5, 6, 7, 8], hours: [5.5, 19.5], span: 0.33, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 36 },
+  // (session 10, GB29: instances SWIFTS.first.. of the swallows' mesh are the swifts' screaming parties: one draw call for both)
+  swallow: { id: 'swallow', name: 'barn swallow; common and pallid swifts', tier: 'C (expected, not sourced; summer migrants)', months: [2, 3, 4, 5, 6, 7, 8], hours: [4.8, 20.2], span: 0.36, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 60 },
   raptor: { id: 'raptor', name: 'buzzard / golden eagle', tier: 'B (Zagros raptors, extract) / C on-site', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [8.5, 17.5], span: 1.9, length: 0.85, colour: [0.28, 0.21, 0.14], flapHz: 2.2, count: 2 },
   sparrow: { id: 'sparrow', name: 'house sparrow', tier: 'C (expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.24, length: 0.15, colour: [0.42, 0.33, 0.24], flapHz: 14, count: 40 },
   crow: { id: 'crow', name: 'hooded crow', tier: 'C (crows and ravens expected, not sourced: SOUNDSCAPE.md section 4; D-210)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.2, 18.3], span: 0.95, length: 0.46, colour: [0.2, 0.2, 0.21], flapHz: 3.5, count: 30 },
@@ -163,7 +164,57 @@ export function raptorAt(base: P2, ground: number, seed: number, t: number, wind
   out.heading = Math.atan2(-R * w * Math.sin(w * t + p), R * w * Math.cos(w * t + p)); out.bank = -0.35 * Math.sign(w); out.flap = Math.sin(0.11 * t + p) > 0.93 ? 1 : 0; out.visible = true;
 }
 
+/** session 10 (WORLD_INVENTORY GB29): common and pallid swifts (C: summer breeders of the Iranian plateau's towns, cliffs and
+ *  ruins, April-August; expected, not sourced). By day they feed high over the plain (60-180 m, wide circles); from ~1.6 h
+ *  before sunset to ~20 min after it, and briefly after sunrise, they race in screaming parties of eight low round the Terrace's
+ *  halls and towers at ~22 m/s, 13-35 m over the platform (above the lower palaces' roofs), weaving (behaviour C, as every swift colony does). Instances
+ *  `first`.. of the swallows' mesh; `circuits` are the halls they lap (grid centre, half-extents): the Apadana, the Hall of 100
+ *  Columns, the Tachara-Hadish block (their footprints' bounds, arch/spec.ts; the laps C) */
+export const SWIFTS = { first: 36, count: 24, party: 8, speed: 22, months: [3, 4, 5, 6, 7], circuits: [[[2, 2], [63, 58]], [[146, -29], [37, 37]], [[6, -119], [45, 62]]] as [P2, P2][] } as const;
+/** sunrise and sunset (local solar hours) at Persepolis (29.94° N) in climatological month m (0 = January), to ~10 min (C) */
+export function sunHoursOfMonth(m: number): [number, number] {
+  const dec = -23.44 * Math.cos((2 * Math.PI / 365) * (m * 30.4 + 15 + 10)) * Math.PI / 180, lat = 29.94 * Math.PI / 180;
+  const H = Math.acos(Math.max(-1, Math.min(1, (Math.sin(-0.0145) - Math.sin(lat) * Math.sin(dec)) / (Math.cos(lat) * Math.cos(dec))))) * 12 / Math.PI;
+  return [12 - H, 12 + H];
+}
+/** is it the swifts' screaming time (evening parties, and a shorter bout after sunrise)? */
+export function swiftScreaming(month: number, hour: number): boolean {
+  if (!SWIFTS.months.includes(month as never)) return false; const [rise, set] = sunHoursOfMonth(month);
+  return (hour >= set - 1.6 && hour <= set + 0.33) || (hour >= rise + 0.1 && hour <= rise + 0.8);
+}
+/** closed-form swift flight: bird `k` (0..count-1). Screaming: the party (k / party) laps its circuit, a rounded rectangle
+ *  round the hall, each bird trailing the leader by 0.18 s with its own lateral and vertical offset and a weave; otherwise
+ *  high feeding circles. Returns the party's leader index too (for the screams) */
+export function swiftAt(k: number, seed: number, t: number, screaming: boolean, platform: number, out: BirdPose) {
+  const party = Math.floor(k / SWIFTS.party), j = k % SWIFTS.party, r = new Rng(seed, `swift:${k}`), pr = new Rng(seed, `swiftparty:${party}`);
+  if (!screaming) { // feeding high: wide circles over the Terrace and the plain W of it
+    const R = r.range(70, 220), w = r.range(0.08, 0.16) * (r.chance(0.5) ? 1 : -1), p = r.range(0, 6.3), cx = r.range(-400, 200), cn = r.range(-200, 300), h = r.range(60, 180);
+    out.pos.set(cx + R * Math.cos(w * t + p), platform + h + 12 * Math.sin(0.1 * t + p), -(cn + R * Math.sin(w * t + p)));
+    out.heading = Math.atan2(-R * w * Math.sin(w * t + p), R * w * Math.cos(w * t + p)); out.bank = -0.4 * Math.sign(w); out.flap = Math.sin(0.7 * t + p) > 0 ? 1 : 0.1; out.visible = true; return;
+  }
+  const [[cx, cn], [ax, an]] = SWIFTS.circuits[party % SWIFTS.circuits.length], pad = pr.range(6, 14), A = ax + pad, B = an + pad, rr = 18;
+  const per = 2 * (2 * (A - rr) + 2 * (B - rr)) + 2 * Math.PI * rr, dir = pr.chance(0.5) ? 1 : -1;
+  const lap = (s0: number): [number, number] => { // arc length -> grid (x, n) on the rounded rectangle, counter-clockwise
+    let s = ((s0 % per) + per) % per; const L1 = 2 * (A - rr), L2 = 2 * (B - rr), q = Math.PI * rr / 2;
+    const arc = (ox: number, on: number, a0: number, u: number): [number, number] => [ox + rr * Math.cos(a0 + u / rr), on + rr * Math.sin(a0 + u / rr)];
+    const segs: [number, (u: number) => [number, number]][] = [
+      [L1, u => [cx - (A - rr) + u, cn - B]], [q, u => arc(cx + (A - rr), cn - (B - rr), -Math.PI / 2, u)],
+      [L2, u => [cx + A, cn - (B - rr) + u]], [q, u => arc(cx + (A - rr), cn + (B - rr), 0, u)],
+      [L1, u => [cx + (A - rr) - u, cn + B]], [q, u => arc(cx - (A - rr), cn + (B - rr), Math.PI / 2, u)],
+      [L2, u => [cx - A, cn + (B - rr) - u]], [q, u => arc(cx - (A - rr), cn - (B - rr), Math.PI, u)]];
+    for (const [len, f] of segs) { if (s <= len) return f(s); s -= len; } return segs[0][1](0);
+  };
+  const sp = SWIFTS.speed * pr.range(0.9, 1.1), s = dir * (sp * (t - j * 0.18) + pr.range(0, per)), [x, n] = lap(s), [x2, n2] = lap(s + dir), hd = Math.atan2(x2 - x, n2 - n);
+  const side = r.range(-3, 3) + 2.5 * Math.sin(1.7 * t + r.range(0, 6.3)), up = pr.range(18, 30) + r.range(-2, 2) + 3 * Math.sin(0.9 * t + j);
+  const hx = Math.sin(hd), hn = Math.cos(hd); // heading as (east, north) for grid heading hd (0 = north)
+  out.pos.set(x + hn * side, platform + up, -(n - hx * side)); out.heading = hd; out.bank = 0.5 * Math.sin(1.7 * t + j); out.flap = Math.sin(2.3 * t + j) > -0.2 ? 1 : 0.2; out.visible = true;
+}
 export class Birds {
+  /** session 10: a screaming party of swifts close enough to be heard (grid position of its leader, m); set by the world */
+  onScream?: (pos: THREE.Vector3) => void;
+  private nextScream = new Map<number, number>(); private floors = new Map<number, number>();
+  private swiftFloor(k: number) { const c = Math.floor(k / SWIFTS.party) % SWIFTS.circuits.length; let y = this.floors.get(c);
+    if (y === undefined) { const [e, n] = SWIFTS.circuits[c][0], h = this.nav.heightAt(e, n); y = Number.isFinite(h) ? h : this.terrain.heightAt(e, -n); this.floors.set(c, y); } return y; }
   readonly group = new THREE.Group();
   private meshes = new Map<string, THREE.InstancedMesh>();
   private uTime = uniform(0);
@@ -204,7 +255,11 @@ export class Birds {
       let n = 0;
       if (active) for (let i = 0; i < sp.count; i++) {
         const p = this.pose, sd = hashSeed(this.seed, sp.id, i);
-        if (sp.id === 'swallow') { const a = this.anchors[i % this.anchors.length]; swallowAt(a, this.nav.heightAt(a[0], a[1]) || 0, sd, t, p); }
+        if (sp.id === 'swallow' && i >= SWIFTS.first) { const k = i - SWIFTS.first, sc = swiftScreaming(month, hour); if (!SWIFTS.months.includes(month as never)) continue;
+          swiftAt(k, this.seed, t, sc, this.swiftFloor(k), p); // (heights over the platform's floor under the party's circuit)
+          if (sc && k % SWIFTS.party === 0 && player && this.onScream && Math.hypot(p.pos.x - player[0], -p.pos.z - player[1]) < 90) { const due = this.nextScream.get(k) ?? 0;
+            if (t >= due) { this.onScream(p.pos); this.nextScream.set(k, t + new Rng(this.seed, `scream:${k}:${Math.floor(t)}`).range(2.5, 7)); } } }
+        else if (sp.id === 'swallow') { const a = this.anchors[i % this.anchors.length]; swallowAt(a, this.nav.heightAt(a[0], a[1]) || 0, sd, t, p); }
         else if (sp.id === 'raptor') { const base: P2 = [260 + i * 350, -40 - i * 220]; raptorAt(base, this.terrain.heightAt(base[0], -base[1]), sd, t, wind.x, wind.n, p); }
         else if (sp.id === 'crow') { if (!this.middens.length) continue; crowAt(this.middens, this.gh, this.seed, i, t, false, p);
           if (player && p.flap === 0 && Math.hypot(player[0] - p.pos.x, player[1] + p.pos.z) < 8) crowAt(this.middens, this.gh, this.seed, i, t, true, p); }

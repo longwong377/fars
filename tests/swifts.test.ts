@@ -1,0 +1,34 @@
+// The swifts' screaming parties round the Terrace's halls (session 10, WORLD_INVENTORY GB29; world/wildlife.ts SWIFTS). What is
+// measured: the season and the screaming hours; at the screaming hours every party keeps its circuit clear of the halls it laps
+// (outside their footprints' bounds, or above the palaces' roofs), flies at a swift's pace and holds together; the scream is a
+// strike kind the soundscape plays.
+import { describe, it, expect } from 'vitest';
+import * as THREE from 'three/webgpu';
+import { swiftAt, swiftScreaming, sunHoursOfMonth, SWIFTS, BIRDS, type BirdPose } from '../src/world/wildlife';
+import { STRIKE_KINDS } from '../src/audio/soundscape';
+import { footprint } from '../src/arch/spec';
+
+const pose = (): BirdPose => ({ pos: new THREE.Vector3(), heading: 0, bank: 0, flap: 0, visible: false });
+describe('swifts (GB29)', () => {
+  it('breed April-August; scream in the 1.6 h before sunset to 20 min after it, and after sunrise; feed high otherwise', () => {
+    const [rise, set] = sunHoursOfMonth(5); expect(rise).toBeGreaterThan(4.6); expect(rise).toBeLessThan(5.3); expect(set).toBeGreaterThan(18.7); expect(set).toBeLessThan(19.4); // June at 30° N (solar time)
+    expect(swiftScreaming(5, set - 1)).toBe(true); expect(swiftScreaming(5, rise + 0.4)).toBe(true); expect(swiftScreaming(5, 12)).toBe(false);
+    expect(swiftScreaming(0, set - 1)).toBe(false); expect(swiftScreaming(9, set - 1)).toBe(false);
+    expect(SWIFTS.first + SWIFTS.count).toBe(BIRDS.swallow.count); // (they share the swallows' mesh: no draw call of their own)
+    const p = pose(); for (let k = 0; k < SWIFTS.count; k++) { swiftAt(k, 1, 777, false, 0, p); expect(p.pos.y).toBeGreaterThan(40); }
+  });
+  it('screaming parties lap their halls clear of the buildings, at 15-34 m/s (the screaming dash), the eight birds strung within 40 m of the leader', () => {
+    const boxes = ['apadana', 'hall100', 'tachara', 'hadish', 'tripylon', 'treasury', 'harem'].map(k => footprint(k).polygon as [number, number][]).map(pl => {
+      const xs = pl.map(q => q[0]), ys = pl.map(q => q[1]); return [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]; });
+    const a = pose(), b = pose(), lead = pose(); let low = Infinity, vmin = Infinity, vmax = 0, spread = 0;
+    for (let k = 0; k < SWIFTS.count; k++) for (let t = 0; t < 300; t += 0.7) {
+      swiftAt(k, 1, t, true, 0, a); swiftAt(k, 1, t + 0.1, true, 0, b); const v = a.pos.distanceTo(b.pos) / 0.1; vmin = Math.min(vmin, v); vmax = Math.max(vmax, v);
+      swiftAt(k - (k % SWIFTS.party), 1, t, true, 0, lead); spread = Math.max(spread, a.pos.distanceTo(lead.pos));
+      const e = a.pos.x, n = -a.pos.z, inBox = boxes.some(([x0, x1, y0, y1]) => e > x0 && e < x1 && n > y0 && n < y1); if (inBox) low = Math.min(low, a.pos.y);
+      expect(a.pos.y).toBeGreaterThan(12); expect(a.pos.y).toBeLessThan(36);
+    }
+    expect(vmin).toBeGreaterThan(15); expect(vmax).toBeLessThan(34); expect(spread).toBeLessThan(40);
+    if (low !== Infinity) expect(low).toBeGreaterThan(12); // (over a lower palace only above its roof)
+  });
+  it('the scream is a strike kind', () => { expect(STRIKE_KINDS).toContain('swifts'); });
+});

@@ -122,6 +122,18 @@ export function roar(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1
 /** a striped hyena's whoop: a rising "whoo-oop", repeated a few times */
 export function whoop(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const n = 2 + r.int(0, 4); for (let i = 0; i < n; i++) voice(e, out, t + i * (1.4 + 0.6 * r.next()), 0.9, 300 + 60 * r.next(), 760 + 120 * r.next(), [[900, 2]], 0.04 * gain, 'triangle'); }
 /** a leopard's sawing call: rasping strokes on the in- and out-breath */
+/** session 10 (GB29): a swift party's screams: each bird a shrill buzzing "srrreee" of 0.35-0.8 s, 5-8 kHz falling slightly,
+ *  its buzz a fast rasp (~70 Hz) of the voice, three to seven birds overlapping (C: the common and pallid swifts' call) */
+export function swiftScream(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) {
+  const c = e.ctx!, n = 3 + r.int(0, 5);
+  for (let i = 0; i < n; i++) { const at = t + i * (0.08 + 0.18 * r.next()), d = 0.35 + 0.45 * r.next(), f0 = 5200 + 2600 * r.next();
+    const o = c.createOscillator(), am = c.createOscillator(), amg = c.createGain(), g = c.createGain(), f = c.createBiquadFilter();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, at); o.frequency.exponentialRampToValueAtTime(f0 * 0.82, at + d);
+    am.type = 'square'; am.frequency.value = 55 + 35 * r.next(); amg.gain.value = 0.5; am.connect(amg); amg.connect(g.gain);
+    f.type = 'bandpass'; f.frequency.value = f0; f.Q.value = 1.4;
+    g.gain.setValueAtTime(0.0001, at); g.gain.linearRampToValueAtTime(0.02 * gain, at + 0.04); g.gain.setValueAtTime(0.017 * gain, at + d * 0.75); g.gain.exponentialRampToValueAtTime(0.0001, at + d);
+    o.connect(f); f.connect(g); g.connect(out); o.start(at); am.start(at); o.stop(at + d + 0.02); am.stop(at + d + 0.02); }
+}
 export function sawCall(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const n = 8 + r.int(0, 6); for (let i = 0; i < n; i++) { const at = t + i * 0.42; voice(e, out, at, 0.2, 150, 120, [[400, 2], [900, 3]], 0.05 * gain, 'sawtooth'); hiss(e, out, at, 0.2, 700, 1.2, 0.03 * gain, 'pink'); } }
 export const BIRDS: Bird[] = [
   { id: 'see-see partridge', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [[5, 8.5], [17, 19.5]], rate: 0.12, tier: 'B species / C call',
@@ -174,7 +186,9 @@ export const STRIKE_KINDS = ['chisel', 'quern', 'dice', 'hoe', 'sickle', 'loom',
   // in the balance's pan, the seal cutter's bow drill, the tanner's scraper, the pestle in the oil mortar
   'hammer', 'bellows', 'quench', 'chase', 'clink', 'drill', 'scrape', 'pound',
   // D-256: the cattle's low and the bees' buzz at the hives (the work on the land)
-  'low', 'buzz'] as const;
+  'low', 'buzz',
+  // session 10 (GB29): the swifts' screaming parties racing round the Terrace's halls at dusk (world/wildlife.ts SWIFTS)
+  'swifts'] as const;
 export const LAYER_SOUNDS = ['murmur', 'footsteps', 'fire'] as const;
 /** a lit fire's crackle bed level (C). D-245: 0.08 was −49 dBFS at 8 m (tools/dev/audio_render.ts), below the −40 dB a
  *  visible fire within 10 m must reach (MASTER_PLAN T-G3e) */
@@ -228,6 +242,7 @@ export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: nu
     case 'roar': { const p = at(0.8, 120, 6000, 24); roar(e, p, t, rng); return true; }
     case 'whoop': { const p = at(0.8, 30, 1500, 12); whoop(e, p, t, rng); return true; }
     case 'saw': { const p = at(0.8, 25, 900, 8); sawCall(e, p, t, rng); return true; }
+    case 'swifts': { const p = at(0, 8, 250, 3); swiftScream(e, p, t, rng); return true; }
     case 'bleat': { // a sheep's or goat's bleat: a buzzy tone with vibrato through a vocal formant (C)
       const p = at(0.6, 4, 250), o = c.createOscillator(), v = c.createOscillator(), vg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain(), f0 = 330 + 190 * j, d = 0.45 + 0.35 * rng.next();
       o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * 0.9, t + d);

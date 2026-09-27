@@ -229,7 +229,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB26 | interpreters | P-060 | administration | B analogy | MISSING/PARTIAL |
 | GB27 | accountants with a counting board (partial) | P-061 | administration | C | MISSING/PARTIAL |
 | GB28 | merchants and traders (partial) | P-066 | exchange | C | MISSING/PARTIAL |
-| GB29 | swifts screaming over the Terrace (partial) | W-026 | birds | C | MISSING/PARTIAL |
+| GB29 | swifts screaming over the Terrace (partial) | W-026 | birds | C | BUILT (D-280: screaming parties round the halls at dusk, heard within 90 m); unrendered |
 | GB30 | the Belt of Venus in its colour (partial, B44) | W-027 | sky | A | MISSING/PARTIAL |
 | GB31 | nightjar | W-032 | birds | C | MISSING/PARTIAL |
 | GB32 | mountain springs and seeps | N-010 | water | C | MISSING/PARTIAL |

@@ -6733,3 +6733,15 @@ moment-*-webgpu.png in the worktree, not committed).**
   on any wet night, and shelter in them on a wet day off, each on his own place along the inner walls (`quarry_camp.ts`).
   Tests: tests/land_work.test.ts (every place inside a hut and apart; cold-month nights all in the huts; the sledge's route
   2 m clear of them). Unrendered: the huts join the quarry view in the render lane.
+
+## D-280 Swifts screaming round the Terrace's halls (session 10; WORLD_INVENTORY GB29)
+- **Gap:** swifts were folded into the swallows' hawking loops over the courts; the sight and sound of every summer evening
+  over a ruin or an old town of the plateau (screaming parties racing round the buildings) was absent.
+- **Decision (C: common and pallid swifts breed in the towns, cliffs and ruins of the Iranian plateau, April-August; behaviour
+  as every swift colony):** 24 swifts in three parties of eight, instances of the swallows' mesh (no new draw call). By day they
+  feed high (60-180 m); from 1.6 h before sunset to 20 min after it, and for ~40 min after sunrise, each party laps its hall (the
+  Apadana, the Hall of 100 Columns, the Tachara-Hadish block; the footprints' bounds) at ~22 m/s, 13-35 m over the platform,
+  strung out behind a leader and weaving. A party within 90 m of the walker screams every 2.5-7 s at its leader's place: 3-7
+  shrill buzzing calls of 5-8 kHz (a procedural design, C; strike kind `swifts`). Sunrise and sunset from the month at 29.94° N.
+- **Tests:** tests/swifts.test.ts (season and hours; clear of the halls, 15-34 m/s, parties strung within 40 m; the strike kind);
+  tests/wildlife.test.ts unchanged. **Unverified:** not seen or heard; the moment `swifts-dusk` is queued.
