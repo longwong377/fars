@@ -88,6 +88,11 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   language-model prefill, and a portrait run while other agents rendered). Keep at most two heavy renders at once; keep
   single dispatches short (prompts ≤ ~450 tokens for the in-browser model). Do not change the Windows TDR settings.
   Every render goes through `node tools/dev/gpu_slot.mjs <label> -- npx playwright test …` (two slots under T:/gpu-slots).
+- **Blender 5.0.1** is installed (`C:/Program Files/Blender Foundation/Blender 5.0/blender.exe`; headless: `blender -b
+  --factory-startup --python tools/blender/<script>.py`; ~20 s start-up; Cycles bakes on the T4 via OptiX/CUDA; glTF export with
+  Draco). Use it for real prop and architecture geometry, normal/AO bakes, LODs and impostors, garment drape (cloth
+  simulation baked into meshes) and hair cards; scripts live in tools/blender/ so every asset is reproducible. Heavy Cycles
+  bakes take a GPU slot. (The Blender MCP is not connected to Claude Code; the scripted route is the project's.)
 
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
