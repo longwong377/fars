@@ -32,44 +32,85 @@
   ]
  ],
  "sets": {
-  "hair": {
-   "n": 1090,
-   "tris": 794,
-   "cards": 148,
-   "note": "scalp hair: two layers of cards away from the crown and down, the outer shorter (volume, a broken outline)",
+  "hair_crown": {
+   "n": 678,
+   "tris": 494,
+   "cards": 92,
+   "note": "scalp hair above the hat line: worn bareheaded only",
    "anchor": {
     "o": 0,
-    "n": 3270,
+    "n": 2034,
     "t": "u16"
    },
    "bary": {
-    "o": 6540,
-    "n": 2180,
+    "o": 4068,
+    "n": 1356,
     "t": "f32"
    },
    "off": {
-    "o": 15260,
-    "n": 3270,
+    "o": 9492,
+    "n": 2034,
     "t": "f32"
    },
    "uv": {
-    "o": 28340,
-    "n": 2180,
+    "o": 17628,
+    "n": 1356,
     "t": "f32"
    },
    "cell": {
-    "o": 37060,
-    "n": 1090,
+    "o": 23052,
+    "n": 678,
     "t": "u8"
    },
    "ao": {
-    "o": 38152,
-    "n": 1090,
+    "o": 23732,
+    "n": 678,
     "t": "u8"
    },
    "index": {
-    "o": 39244,
-    "n": 2382,
+    "o": 24412,
+    "n": 1482,
+    "t": "u16"
+   }
+  },
+  "hair": {
+   "n": 412,
+   "tris": 300,
+   "cards": 56,
+   "note": "scalp hair: two layers of cards away from the crown and down, the outer shorter (volume, a broken outline) (below the hat line; above it: hair_crown)",
+   "anchor": {
+    "o": 27376,
+    "n": 1236,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 29848,
+    "n": 824,
+    "t": "f32"
+   },
+   "off": {
+    "o": 33144,
+    "n": 1236,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 38088,
+    "n": 824,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 41384,
+    "n": 412,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 41796,
+    "n": 412,
+    "t": "u8"
+   },
+   "index": {
+    "o": 42208,
+    "n": 900,
     "t": "u16"
    }
   },

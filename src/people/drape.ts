@@ -225,7 +225,10 @@ export const beardRow = (t: number, thFront: number) => (Math.pow(Math.sin(Math.
  *  vertex `standoff` m ahead of z0 moves `take` × its standoff less, so the displacement never reorders layers (the map
  *  z → z + dz has slope ≥ 1 − take > 0 along z) and the clothes never pass into the body. Tier C (the shape; the biology A). */
 export const BELLY = { term: 0.15, rx: [0.1, 0.07] as [number, number], ryUp: [0.09, 0.08] as [number, number], ryLow: [0.07, 0.06] as [number, number], rise: [0, 0.05] as [number, number],
-  front: [0.1, 0.03] as [number, number], skin: 0.012, take: 0.5, drop: 0.12, exp: 1.5 };
+  front: [0.1, 0.03] as [number, number], skin: 0.012, take: 0.5, drop: 0.12, exp: 1.5,
+  /** D-307: cloth below the dome's centre hangs from its front (a dress falls from the bump, it does not cling under it):
+   *  its displacement is the dome's height on the centre line at its x, fading over `fall` m below the centre (C) */
+  fall: 0.6 };
 export interface BellyFrame { yc: number; z0: number }
 const bellyCache = new WeakMap<HumanVariant, BellyFrame>();
 /** the abdomen's frame in a body variant's bind space: yc, halfway between spine_01 and spine_02 (the navel's height, near
@@ -238,12 +241,14 @@ export function bellyFrame(A: HumanAssets, v: HumanVariant): BellyFrame {
 }
 /** the belly's displacement of a bind-space point (x, y, z) for amount a (0..1) in frame F: [dy, dz], and the dome's slope
  *  [∂h/∂x, ∂h/∂y] there (for the normal: n' ∝ n − n_z·(hx, hy, 0) where the vertex moves) */
-export function bellyOffset(x: number, y: number, z: number, a: number, F: BellyFrame): { dy: number; dz: number; hx: number; hy: number } {
+export function bellyOffset(x: number, y: number, z: number, a: number, F: BellyFrame, cloth = false): { dy: number; dz: number; hx: number; hy: number } {
   if (a <= 0) return { dy: 0, dz: 0, hx: 0, hy: 0 };
   const B = BELLY, rx = B.rx[0] + B.rx[1] * a, c = F.yc + B.rise[0] + B.rise[1] * a, dy0 = y - c, ry = dy0 > 0 ? B.ryUp[0] + B.ryUp[1] * a : B.ryLow[0] + B.ryLow[1] * a;
-  const r2 = (x / rx) ** 2 + (dy0 / ry) ** 2; if (r2 >= 1) return { dy: 0, dz: 0, hx: 0, hy: 0 };
-  const h = B.term * a * Math.pow(1 - r2, B.exp), s = sstep(F.z0 - B.front[0], F.z0 - B.front[1], z), stand = Math.max(0, z - F.z0 - B.skin);
-  const dz = Math.max(0, h - B.take * stand) * s; if (dz <= 0) return { dy: 0, dz: 0, hx: 0, hy: 0 };
-  const dh = -B.term * a * B.exp * Math.pow(1 - r2, B.exp - 1) * 2 * s;
+  const r2 = (x / rx) ** 2 + (dy0 / ry) ** 2, s = sstep(F.z0 - B.front[0], F.z0 - B.front[1], z), stand = Math.max(0, z - F.z0 - B.skin);
+  // D-307: cloth under the dome's centre hangs from it (the dome's centre-line height at this x, fading down over B.fall)
+  const qx = Math.max(0, 1 - (x / rx) ** 2), fall = cloth && dy0 < 0 ? Math.max(0, B.term * a * Math.pow(qx, B.exp) * (1 - sstep(0, B.fall, -dy0)) - B.take * stand) * s : 0;
+  const dzD = r2 < 1 ? Math.max(0, B.term * a * Math.pow(1 - r2, B.exp) - B.take * stand) * s : 0;
+  const dz = Math.max(dzD, fall); if (dz <= 0) return { dy: 0, dz: 0, hx: 0, hy: 0 };
+  const dh = dzD >= fall && r2 < 1 ? -B.term * a * B.exp * Math.pow(1 - r2, B.exp - 1) * 2 * s : 0;
   return { dy: -B.drop * dz, dz, hx: dh * x / (rx * rx), hy: dh * dy0 / (ry * ry) };
 }

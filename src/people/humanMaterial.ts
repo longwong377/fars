@@ -31,7 +31,7 @@ const {
   Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
   varyingProperty, normalLocal, positionPrevious, positionView, normalView, normalViewGeometry, positionViewDirection, sign, mx_noise_float, diffuseColor,
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
-  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition,
+  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition, frameId,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE, PRM_CARD } from './humanFormat';
 import { ROBE, BEARD, BELLY } from './drape';
@@ -142,7 +142,7 @@ export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, bumpMass: 
 /** D-307 (C): the strand cards. Albedo = hair colour × the atlas' shade × 2 (its mean is 0.5) × a back strand's darkening
  *  (depth 0 → back); the coverage is tested against a threshold hashed per bind-space point between thr[0] and thr[1] (TRAA's
  *  jitter averages the dither into partial coverage); the strand's direction across the card tilts the highlight's tangent */
-export const CARD = { back: 0.55, thr: [0.22, 0.62] as [number, number], tilt: 0.9 };
+export const CARD = { back: 0.55, thr: [0.15, 0.55] as [number, number], tilt: 0.9 };
 
 class HumanLightingModel extends THREE.PhysicalLightingModel {
   constructor(private S: Record<string, any>) { super(); }
@@ -259,7 +259,11 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const bRy = mix(float(BELLY.ryLow[0]).add(bAmt.mul(BELLY.ryLow[1])), float(BELLY.ryUp[0]).add(bAmt.mul(BELLY.ryUp[1])), step(0, bDy));
       const bUx = s.x.div(bRx), bUy = bDy.div(bRy), bQ = max(float(1).sub(bUx.mul(bUx)).sub(bUy.mul(bUy)), 0), bSq = sqrt(bQ);
       const bS = smoothstep(bZ0.sub(BELLY.front[0]), bZ0.sub(BELLY.front[1]), s.z), bStand = max(s.z.sub(bZ0).sub(BELLY.skin), 0);
-      const bDz = max(bAmt.mul(BELLY.term).mul(bQ).mul(bSq).sub(bStand.mul(BELLY.take)), 0).mul(bS), bMoved = step(1e-6, bDz);
+      // D-307: cloth under the dome's centre hangs from it (drape.ts bellyOffset's `fall`, cloth classes only)
+      const bQx = max(float(1).sub(bUx.mul(bUx)), 0), bCloth = step(0.5, hmat.x).mul(step(hmat.x, 3.5)).mul(step(bDy, 0));
+      const bFall = max(bAmt.mul(BELLY.term).mul(bQx).mul(sqrt(bQx)).mul(float(1).sub(smoothstep(0, BELLY.fall, bDy.negate()))).sub(bStand.mul(BELLY.take)), 0).mul(bS).mul(bCloth);
+      const bDome = max(bAmt.mul(BELLY.term).mul(bQ).mul(bSq).sub(bStand.mul(BELLY.take)), 0).mul(bS).mul(step(1e-9, bQ));
+      const bDz = max(bDome, bFall), bMoved = step(1e-6, bDz).mul(step(bFall, bDome));
       const bDh = bAmt.mul(-BELLY.term * BELLY.exp * 2).mul(bSq).mul(bS);
       const nBb = normalize(nB.sub(vec3(bDh.mul(s.x).div(bRx.mul(bRx)), bDh.mul(bDy).div(bRy.mul(bRy)), 0).mul(nB.z.mul(bMoved))));
       const bind = s.xyz.add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS))).add(nB.mul(rowV)).add(vec3(0, bDz.mul(-BELLY.drop), bDz));
@@ -591,7 +595,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const lashCut = max(step(lashW, clumpC), step(0.9, tl)).mul(float(1).sub(bits('kohl').mul(step(tl, KOHL.band)))); // (kohl: the root band solid)
     // D-307: a card is cut where the atlas' coverage is under a threshold hashed per bind-space point (a stable dither that
     // TRAA's jitter averages into the strands' partial coverage)
-    const hashC = fract(sin(dot(floor(P.mul(4000)), vec3(12.9898, 78.233, 37.719))).mul(43758.5453));
+    const hashC = fract(sin(dot(floor(P.mul(4000)), vec3(12.9898, 78.233, 37.719))).mul(43758.5453).add(mod(float(frameId), 8).mul(0.618034)));
     const cardCut = step(cardCov, mix(float(CARD.thr[0]), float(CARD.thr[1]), hashC));
     this.maskNode = float(1).sub(kShell.mul(max(edgeCut, silCut))).sub(kCard.mul(cardCut)).sub(kLash.mul(lashCut)).greaterThan(0.5);
     // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and

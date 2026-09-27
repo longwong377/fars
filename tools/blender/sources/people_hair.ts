@@ -233,6 +233,14 @@ for (const [id, S0] of Object.entries(STYLES)) {
     const r = rnd(seed * 31 + li);
     for (const h of roots) { const c = walk(h, st, r); if (c) cards.push(c); }
   }
+  // the scalp's cards rooted above the line a hat's rim covers (outfits.ts headRingFrame: eye height + 4.5 cm, 0.1 rad lower
+  // at the back) are their own set, hair_crown, worn only bareheaded (looks.ts): no card through the felt
+  if (id === 'hair') { const crown = (c: Card) => { const q = c.hits[0].q; return q[1] > eyeY + 0.042 - 0.1 * Math.max(0, hz - q[2]); };
+    writeSet('hair_crown', cards.filter(crown), 'scalp hair above the hat line: worn bareheaded only');
+    writeSet('hair', cards.filter(c => !crown(c)), S0.note + ' (below the hat line; above it: hair_crown)'); }
+  else writeSet(id, cards, S0.note);
+}
+function writeSet(id: string, cards: Card[], note: string) {
   // vertices: two per card point (left, right), anchored at each point's contact
   const nv = cards.reduce((s, c) => s + c.pts.length * 2, 0);
   const anchor = new Uint16Array(nv * 3), bary = new Float32Array(nv * 2), off = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), cell = new Uint8Array(nv), ao = new Uint8Array(nv); const index: number[] = [];
@@ -244,7 +252,7 @@ for (const [id, S0] of Object.entries(STYLES)) {
       uv[v * 2] = s < 0 ? 0 : 1; uv[v * 2 + 1] = k / (n - 1); cell[v] = c.cls * 8 + c.col; ao[v] = Math.round(255 * lerp(c.ao[0], c.ao[1], k / (n - 1))); v++; }
     for (let k = 0; k + 1 < n; k++) { const l0 = base + k * 2, r0 = l0 + 1, l1 = l0 + 2, r1 = l0 + 3; index.push(l0, r0, l1, r0, r1, l1); } }
   if (v > 65535) throw new Error(id + ': too many vertices');
-  sets[id] = { n: nv, tris: index.length / 3, cards: cards.length, note: S0.note,
+  sets[id] = { n: nv, tris: index.length / 3, cards: cards.length, note,
     anchor: W.add(anchor), bary: W.add(bary), off: W.add(off), uv: W.add(uv), cell: W.add(cell), ao: W.add(ao), index: W.add(Uint16Array.from(index)) };
   const lens = cards.map(c => c.pts.reduce((s, p, k) => s + (k ? len(sub(p, c.pts[k - 1])) : 0), 0));
   let maxOff = 0; for (let i = 0; i < nv; i++) maxOff = Math.max(maxOff, Math.hypot(off[i * 3], off[i * 3 + 1], off[i * 3 + 2]));

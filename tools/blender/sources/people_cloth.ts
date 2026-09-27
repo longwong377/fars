@@ -59,18 +59,23 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
     // a gathered waist: the pinned band is drawn in along a wave of `gathers` folds round the waist whose length is the wide
     // cut's (so the cloth below buckles into folds instead of shrinking); amplitude from the ease: L ≈ 2π √(r² + N²A²/2)
     const th = Math.atan2(x, z - zc), r = Math.hypot(x, z - zc);
-    const gA = P.kind === 'skirt' && P.gathers && t < P.pinTop ? r * Math.sqrt(2 * (P.ease * P.ease - 1)) / P.gathers : 0;
+    // (the band under the belt, t < pinTop, is drawn in tight: the belt cinches it; the gathers start just below it, over
+    // `gatherBand`: the folds come out from under the belt)
+    const gBand = P.gatherBand ?? 0.04, inG = P.kind === 'skirt' && P.gathers && t >= P.pinTop && t < P.pinTop + gBand;
+    const gA = inG ? r * Math.sqrt(2 * (P.ease * P.ease - 1)) / P.gathers * sstep(P.pinTop, P.pinTop + gBand * 0.5, t) : 0;
     const rg = r + gA * Math.sin(P.gathers * th + 0.7);
     tgt.set(gA ? [x / (r || 1) * rg, y, zc + (z - zc) / (r || 1) * rg] : [x, y, z], o * 3);
     let w = 0, ease = 1;
     switch (P.kind) {
-      case 'skirt': w = t < P.pinTop ? 1 : 0; ease = 1 + (P.ease - 1) * sstep(0, 0.25, t); break; // the waist is gathered in; the cut is wide below
+      case 'skirt': w = t < P.pinTop + (P.gathers ? gBand : 0) ? 1 : 0; ease = 1 + (P.ease - 1) * sstep(0, 0.25, t); break; // the waist is gathered in; the cut is wide below
       case 'upper': w = Math.max(sstep(chest - 0.02, chest + 0.04, y), sstep(waist + 0.06, waist - 0.01, y), Math.abs(x) > P.armX ? P.armPin : 0); break;
       case 'sleeve': w = t < P.pinTop ? 1 : 0; break;
       case 'hang': w = sstep(P.pinY[0], P.pinY[1], y - neck); break; // coats and cloths hang from the shoulders or the head
     }
     pin[o] = w;
-    start.set(P.kind === 'skirt' ? [x * ease, y, zc + (z - zc) * ease] : [x, y, z], o * 3);
+    // an upper garment is cut fuller than its fitted shell between the pins (`ease` about the torso's axis): it settles in folds
+    if (P.kind === 'upper' && P.ease) ease = 1 + (P.ease - 1) * (1 - w);
+    start.set(P.kind === 'skirt' || P.kind === 'upper' ? [x * ease, y, zc + (z - zc) * ease] : [x, y, z], o * 3);
   }
   // a part of the piece with nothing pinned (the kandys's hanging sleeves are tubes of their own) would fall away: such a
   // connected part is pinned whole (it keeps its procedural shape; D-307)

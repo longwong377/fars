@@ -325,6 +325,7 @@ export const PIECES: Record<string, PieceMeta> = {
   boots: { id: 'boots', label: 'laced ankle boots', tier: 'C', src: 'RECON', note: 'Median riding dress: ankle boots (NOT SEEN, C); a soft leather shaft and vamp over a last, rim turned under (D-206, C); laces not modelled' },
   hair: { id: 'hair', label: 'scalp hair, curled', tier: 'B', src: 'RELIEF-R', note: 'curled hair as carved on the reliefs; colour natural dark (the reliefs paint it dark blue, a convention), C' },
   hair_bob: { id: 'hair_bob', label: 'bobbed hair', tier: 'B', src: 'IR-WOMEN', note: 'elite Persian woman statuette from Egypt: bobbed hair (B); for workers C' },
+  hair_crown: { id: 'hair_crown', label: 'scalp hair above the hat line (strand cards)', tier: 'B', src: 'RELIEF-R', note: 'D-307: the strand cards of the scalp above the line a hat, cap or crown covers; worn only bareheaded (looks.ts), so no card pokes through the felt' },
   bun: { id: 'bun', label: 'hair bunched at the nape', tier: 'B', src: 'RELIEF-R', note: 'Persian and Median men on the reliefs wear the hair gathered in a mass at the back of the neck; size C' },
   beard_long: { id: 'beard_long', label: 'long curled beard, squared', tier: 'B', src: 'RELIEF-R', note: 'long beard with rows of curls on the reliefs (B); D-225: in the court dressing its hanging mass is laid out in stacked rows of spiral curls (rolls in the mesh, curls in the material); a working man\'s long beard stays a plain mass; length, row and curl sizes C (Q-241)' },
   beard_short: { id: 'beard_short', label: 'short beard', tier: 'C', src: 'RECON', note: 'workers and foreigners: short beard (reconstruction)' },
@@ -358,29 +359,31 @@ export const PIECES: Record<string, PieceMeta> = {
 // costume composition: pieces per dress; `opt` = optional per person (a bit in the person's piece mask)
 export interface CostumeDef { dress: Dress; always: string[]; opt: string[] }
 export const COSTUMES: Record<Dress, CostumeDef> = {
-  persian: { dress: 'persian', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow', 'crown', 'earrings', 'bracelets', 'shield', 'crown_w', 'veil'] },
+  persian: { dress: 'persian', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow', 'crown', 'earrings', 'bracelets', 'shield', 'crown_w', 'veil', 'hair_crown'] },
   // guards wear the Persian costume (the same mesh) with the bow and quiver bits always set: one draw fewer per LOD and cascade
-  guard: { dress: 'guard', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'earrings', 'bracelets', 'shield'] },
+  guard: { dress: 'guard', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'earrings', 'bracelets', 'shield', 'hair_crown'] },
   // D-199, court setting only: the king wears the Persian costume's mesh with the crown bit set (as the guards, above)
-  king: { dress: 'king', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown'], opt: ['hair', 'bun', 'beard_long', 'earrings', 'bracelets'] },
+  king: { dress: 'king', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown'], opt: ['hair', 'bun', 'beard_long', 'earrings', 'bracelets', 'hair_crown'] },
   // D-215 (gap audit item 22, BLOCKERS B20c): the women of the court on the Persian costume's mesh (as the guards and the
   // king): the many-folded robe belted at the front (IR-WOMEN: the elite woman's dress, B), the crenellated crown and the
   // long veil down the back (the Pazyryk women, B), gold at the ears and wrists; no new mesh and no new draw
-  court_woman: { dress: 'court_woman', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown_w', 'veil'], opt: ['hair', 'earrings', 'bracelets'] },
+  court_woman: { dress: 'court_woman', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown_w', 'veil'], opt: ['hair', 'earrings', 'bracelets', 'hair_crown'] },
   // D-199, court setting only: the delegations' own dress (the Apadana reliefs, research/COURT.md, src/data/delegations.json)
   // in three costumes: the long sleeved garment of the lowland peoples, the knee-length tunic of the others (trousers and
   // boots optional) and the bare-chested wrap to the knee (the Indians), each people with its own headgear and footwear
   // from the optional pieces. Their meshes are drawn only when delegates are in view (a costume with no instances is not
   // drawn). Not one costume with every piece optional: that one kept the whole body under its garments (52,444
   // triangles at full detail against the 42,000 budget; the knee-length one with an optional tunic 43,049)
-  envoy: { dress: 'envoy', always: ['brows', 'tunic_upper', 'dress_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_low', 'headband', 'fillet', 'torque'] },
-  envoy_short: { dress: 'envoy_short', always: ['brows', 'tunic_upper', 'tunic_skirt', 'belt'], opt: ['trousers', 'shoes', 'boots', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_pointed', 'cap_low', 'headband', 'akinaka'] },
-  envoy_bare: { dress: 'envoy_bare', always: ['brows', 'tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband'] },
-  median: { dress: 'median', always: ['brows', 'tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets', 'mouth_cover'] },
-  worker: { dress: 'worker', always: ['brows', 'work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
-  woman: { dress: 'woman', always: ['brows', 'dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b'] },
-  child: { dress: 'child', always: ['brows', 'child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
+  envoy: { dress: 'envoy', always: ['brows', 'tunic_upper', 'dress_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_low', 'headband', 'fillet', 'torque', 'hair_crown'] },
+  envoy_short: { dress: 'envoy_short', always: ['brows', 'tunic_upper', 'tunic_skirt', 'belt'], opt: ['trousers', 'shoes', 'boots', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_pointed', 'cap_low', 'headband', 'akinaka', 'hair_crown'] },
+  envoy_bare: { dress: 'envoy_bare', always: ['brows', 'tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband', 'hair_crown'] },
+  median: { dress: 'median', always: ['brows', 'tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets', 'mouth_cover', 'hair_crown'] },
+  worker: { dress: 'worker', always: ['brows', 'work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft', 'hair_crown'] },
+  woman: { dress: 'woman', always: ['brows', 'dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b', 'hair_crown'] },
+  child: { dress: 'child', always: ['brows', 'child_upper', 'child_skirt'], opt: ['hair', 'shoes', 'hair_crown'] },
 };
+/** D-307: pieces made of strand cards alone (people_hair): drawn at full detail only, and only when the cards are loaded */
+export const CARD_PIECES = new Set(['brows', 'hair_crown']);
 /** the built costume (one instanced mesh per LOD) a dress is drawn with */
 export const COSTUME_OF: Record<Dress, Dress> = { persian: 'persian', guard: 'persian', median: 'median', worker: 'worker', woman: 'woman', child: 'child', envoy: 'envoy', envoy_short: 'envoy_short', envoy_bare: 'envoy_bare', king: 'persian', court_woman: 'persian' };
 /** the costumes that are built */
@@ -399,7 +402,7 @@ const coldCache = new Map<Dress, [number, number]>();
 export function coldBits(dress: Dress): [number, number] {
   let c = coldCache.get(dress); if (c) return c; const b = (id: string) => { const k = pieceBit(dress, id); return k ? 1 << k : 0; };
   const on = dress === 'median' ? b('kandys') : dress === 'worker' ? b('work_trousers') | b('cap_soft') : dress === 'woman' ? b('headcloth') : dress === 'child' ? b('shoes') : 0;
-  const off = dress === 'woman' ? b('hair') | b('hair_bob') : 0; c = [on, off]; coldCache.set(dress, c); return c;
+  const off = (dress === 'woman' ? b('hair') | b('hair_bob') : 0) | (dress === 'worker' || dress === 'woman' ? b('hair_crown') : 0); c = [on, off]; coldCache.set(dress, c); return c;
 }
 /** D-244 (T-D4 "all with rain posture or cover"): in the rain (above RAIN_COVER, the plan's own rain: calendar dayWx) those
  *  out in it cover the head and shoulders with what their dress has for it: the Median kandys over the shoulders, a working
@@ -410,7 +413,7 @@ const rainCache = new Map<Dress, [number, number]>();
 export function rainBits(dress: Dress): [number, number] {
   let c = rainCache.get(dress); if (c) return c; const b = (id: string) => { const k = pieceBit(dress, id); return k ? 1 << k : 0; };
   const on = dress === 'median' ? b('kandys') : dress === 'worker' ? b('cap_soft') : dress === 'woman' ? b('headcloth') : 0;
-  const off = dress === 'woman' ? b('hair') | b('hair_bob') : 0; c = [on, off]; rainCache.set(dress, c); return c;
+  const off = (dress === 'woman' ? b('hair') | b('hair_bob') : 0) | (dress === 'worker' || dress === 'woman' ? b('hair_crown') : 0); c = [on, off]; rainCache.set(dress, c); return c;
 }
 /** a person's piece mask for the air's temperature (°C) and the rain (0-1, D-244) */
 export function weatherMask(dress: Dress, mask: number, tempC: number, rain = 0): number {
@@ -553,13 +556,13 @@ function beltTube(L: Lib, key: string, lod: number, over: string[], o: { dy: num
   const cache = { v: null as HumanVariant | null, r: [] as number[] };
   /** support function (64 θ bins) of the garments already placed under the belt, in the belt's ring plane */
   const overSupport = (c: Ctx) => { if (cache.v === c.v) return cache.r; const F = vertFrame([0, c.J('spine_01')[1] + o.dy, c.J('pelvis')[2] + 0.02]); const r = new Array(64).fill(0);
-    for (const k of over) { const pp = c.placed.get(k); if (!pp) continue; for (let i = 0; i < pp.length; i += 3) { const dx = pp[i] - F.o[0], dy = pp[i + 1] - F.o[1], dz = pp[i + 2] - F.o[2]; if (Math.abs(dy) > o.h * 0.8) continue;
+    for (const k of over) { const pp = c.placed.get(k); if (!pp) continue; for (let i = 0; i < pp.length; i += 3) { const dx = pp[i] - F.o[0], dy = pp[i + 1] - F.o[1], dz = pp[i + 2] - F.o[2]; if (Math.abs(dy) > o.h * 0.55) continue; /* (D-307: the belt's own height: the drape's gathers start just below it) */
       const x = dx * F.u[0] + dz * F.u[2], y = dx * F.v[0] + dz * F.v[2]; for (let b = 0; b < 64; b++) { const h = x * COS64[b] + y * SIN64[b]; if (h > r[b]) r[b] = h; } } }
     cache.v = c.v; cache.r = r; return r; };
   return tubeGeo(L.A, key, { segs, rings: 2, lining: 0.004, closeTop: true,
     frame: (c, t) => vertFrame([0, c.J('spine_01')[1] + o.dy + o.h / 2 - t * o.h, c.J('pelvis')[2] + 0.02]),
     support: { parts: [P.belly, P.pelvis, P.chest], slab: 0.03 },
-    radius: (c, t, th, sup) => Math.max(sup(th) + 0.019, rimAt(overSupport(c), th) + 0.005), // over the upper shell (≤ 1.3 cm) and the skirt top
+    radius: (c, t, th, sup) => Math.max(sup(th) + 0.016, rimAt(overSupport(c), th) + 0.004), // over the upper shell (≤ 1.3 cm) and the skirt top (D-307: cinched 3 mm closer)
     weights: () => [W('spine_01', 0.6), W('pelvis', 0.4)], mat: o.mat, col: o.col });
 }
 /** feet: shoes (low) or boots (to above the ankle). D-206: built as leather over a last, not as a shell of the foot: the
@@ -1209,6 +1212,7 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'bun': return withCards(L, id, lod, bunGeo(L, `${id}@${lod}`, lod === 0 && L.models?.cards?.sets.bun ? 1 : lod)); // (under the cards the core takes the mid tessellation)
     case 'beard_long': return withCards(L, id, lod, beardGeo(L, `${id}@${lod}`, lod, true, lod === 0 && !!L.models?.cards?.sets.beard_long));
     case 'beard_short': return withCards(L, id, lod, beardGeo(L, `${id}@${lod}`, lod, false));
+    case 'hair_crown': return withCards(L, id, lod, newGeo(`${id}@${lod}`, 0, [], () => new Float32Array(0)));
     case 'brows': return withCards(L, id, lod, newGeo(`${id}@${lod}`, 0, [], () => new Float32Array(0)));
     case 'hat_fluted': return flutedHatFitted(L, `${id}@${lod}`, lod);
     case 'fillet': return headBand(L, `${id}@${lod}`, lod, { dy: 0.04, w: 0.022, t: 0.006, twisted: true, col: COL.trim });

@@ -166,7 +166,7 @@
       "rows": [
        {
         "kind": "straight",
-        "strands": 120,
+        "strands": 170,
         "clumps": 5,
         "wave": 0.025,
         "clump": 0.35,
@@ -188,7 +188,7 @@
        },
        {
         "kind": "curly",
-        "strands": 110,
+        "strands": 200,
         "clumps": 6,
         "curl_r": 0.09,
         "curl_pitch": 0.12,
@@ -214,7 +214,7 @@
        },
        {
         "kind": "ringlet",
-        "strands": 120,
+        "strands": 200,
         "clumps": 4,
         "curl_r": 0.07,
         "curl_pitch": 0.075,
@@ -240,7 +240,7 @@
        },
        {
         "kind": "fine",
-        "strands": 80,
+        "strands": 110,
         "clumps": 8,
         "spread": 0.12,
         "len": [
@@ -281,12 +281,13 @@
     "bytes": 6000000,
     "gpu_bytes": 6000000,
     "tris": {
-     "hair": 2400,
+     "hair": 1600,
      "hair_bob": 2600,
      "bun": 700,
      "beard_long": 2200,
      "beard_short": 1200,
-     "brows": 200
+     "brows": 200,
+     "hair_crown": 1200
     }
    },
    "budget_note": "download <= 6 MB of T-K7's 60 MB; GPU: the atlas UASTC 2048^2 with mips ~5.6 MB (T-K8 3.5 GB); triangles per set at the full-detail LOD (the costumes' 42,000 of tests/humans_runtime.test.ts hold the sum)",
@@ -310,7 +311,8 @@
     "args": {
      "lods": [
       0,
-      1
+      1,
+      2
      ],
      "groups": {
       "men": "m03",
@@ -364,7 +366,8 @@
         "women"
        ],
        "armX": 0.16,
-       "armPin": 0.7
+       "armPin": 0.7,
+       "ease": 1.08
       },
       "tunic_upper": {
        "kind": "upper",
@@ -372,7 +375,8 @@
         "men"
        ],
        "armX": 0.16,
-       "armPin": 1
+       "armPin": 1,
+       "ease": 1.08
       },
       "tunic_skirt": {
        "kind": "skirt",
@@ -389,7 +393,8 @@
         "men"
        ],
        "armX": 0.16,
-       "armPin": 1
+       "armPin": 1,
+       "ease": 1.08
       },
       "work_skirt": {
        "kind": "skirt",
@@ -406,7 +411,8 @@
         "women"
        ],
        "armX": 0.16,
-       "armPin": 1
+       "armPin": 1,
+       "ease": 1.12
       },
       "dress_skirt": {
        "kind": "skirt",
@@ -427,7 +433,8 @@
         "children"
        ],
        "armX": 0.12,
-       "armPin": 1
+       "armPin": 1,
+       "ease": 1.08
       },
       "child_skirt": {
        "kind": "skirt",
@@ -470,7 +477,7 @@
       }
      }
     },
-    "args_note": "C throughout. The cut's ease (wide cut / fitted) after the dress research: the women's many-folded dress (IR-WOMEN, B for 'many-folded') 1.3; the knee-length tunics 1.15; the court robe 1.06 (its pleats are the reliefs' and baked in the mesh: drape.ts ROBE; more ease would undo them). Cloth: Blender's cloth settings for a medium wool or linen (vertex mass 0.2 kg, tension 15, shear 5, bending 0.5, the robe's stiffer 1.0, the dress's softer 0.3), collision 4 mm off the body, 60 frames at 24 fps (2.5 s: the drape settles), the gathered waist drawn in over the first 20. Groups' reference bodies: m03 (the outfits' reference), f02, c01. Arms are not colliders for skirts and upper garments (they swing in the game). Gathers: the waist of a gathered skirt is drawn in along a wave of 10 folds (the full-detail tube has 40 columns: 4 a fold) whose length is the wide cut's, so the cloth below buckles into folds; the court robe is not gathered (its pleats are baked)."
+    "args_note": "C throughout. The cut's ease (wide cut / fitted) after the dress research: the women's many-folded dress (IR-WOMEN, B for 'many-folded') 1.3; the knee-length tunics 1.15; the court robe 1.06 (its pleats are the reliefs' and baked in the mesh: drape.ts ROBE; more ease would undo them). Cloth: Blender's cloth settings for a medium wool or linen (vertex mass 0.2 kg, tension 15, shear 5, bending 0.5, the robe's stiffer 1.0, the dress's softer 0.3), collision 4 mm off the body, 60 frames at 24 fps (2.5 s: the drape settles), the gathered waist drawn in over the first 20. Groups' reference bodies: m03 (the outfits' reference), f02, c01. Arms are not colliders for skirts and upper garments (they swing in the game). Gathers: the waist of a gathered skirt is drawn in along a wave of 10 folds (the full-detail tube has 40 columns: 4 a fold) whose length is the wide cut's, so the cloth below buckles into folds; the court robe is not gathered (its pleats are baked). LODs 0-2: the far body (and the impostors baked from it) takes the drape too (shells share the mid LOD's geometry). Upper garments are cut 8 % fuller (the dress 12 %) than their fitted shell between the pins over the shoulders and under the belt, so they settle in folds. The band under the belt is drawn in tight (the belt cinches it); the gathers start just below it."
    },
    "blender": {
     "script": "tools/blender/cloth.py"

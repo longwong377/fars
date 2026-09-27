@@ -58,12 +58,38 @@
    "max": 0.02452,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
+  "robe_skirt@2|men": {
+   "n": 80,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 23904,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.01021,
+   "max": 0.01872,
+   "note": "skirt: settled by Blender's cloth solver on m03"
+  },
+  "robe_skirt@2|women": {
+   "n": 80,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 24384,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.00999,
+   "max": 0.01758,
+   "note": "skirt: settled by Blender's cloth solver on f02"
+  },
   "robe_sleeves@0|men": {
    "n": 1280,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 23904,
+    "o": 24864,
     "n": 3840,
     "t": "i16"
    },
@@ -76,7 +102,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 31584,
+    "o": 32544,
     "n": 3840,
     "t": "i16"
    },
@@ -89,7 +115,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 39264,
+    "o": 40224,
     "n": 480,
     "t": "i16"
    },
@@ -102,7 +128,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 40224,
+    "o": 41184,
     "n": 480,
     "t": "i16"
    },
@@ -110,17 +136,43 @@
    "max": 0.09821,
    "note": "sleeve: settled by Blender's cloth solver on f02"
   },
+  "robe_sleeves@2|men": {
+   "n": 128,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 42144,
+    "n": 384,
+    "t": "i16"
+   },
+   "rms": 0.01974,
+   "max": 0.06364,
+   "note": "sleeve: settled by Blender's cloth solver on m03"
+  },
+  "robe_sleeves@2|women": {
+   "n": 128,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 42912,
+    "n": 384,
+    "t": "i16"
+   },
+   "rms": 0.03556,
+   "max": 0.13413,
+   "note": "sleeve: settled by Blender's cloth solver on f02"
+  },
   "robe_upper@0|men": {
    "n": 1024,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 41184,
+    "o": 43680,
     "n": 3072,
     "t": "i16"
    },
-   "rms": 0.00195,
-   "max": 0.01819,
+   "rms": 0.0039,
+   "max": 0.03223,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "robe_upper@0|women": {
@@ -128,12 +180,12 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 47328,
+    "o": 49824,
     "n": 3072,
     "t": "i16"
    },
-   "rms": 0.00193,
-   "max": 0.01574,
+   "rms": 0.00349,
+   "max": 0.02015,
    "note": "upper: settled by Blender's cloth solver on f02"
   },
   "robe_upper@1|men": {
@@ -141,12 +193,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 53472,
+    "o": 55968,
     "n": 951,
     "t": "i16"
    },
-   "rms": 0.00272,
-   "max": 0.0181,
+   "rms": 0.00389,
+   "max": 0.01832,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "robe_upper@1|women": {
@@ -154,12 +206,12 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 55376,
+    "o": 57872,
     "n": 951,
     "t": "i16"
    },
-   "rms": 0.00457,
-   "max": 0.04468,
+   "rms": 0.00554,
+   "max": 0.04831,
    "note": "upper: settled by Blender's cloth solver on f02"
   },
   "tunic_upper@0|men": {
@@ -167,12 +219,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 57280,
+    "o": 59776,
     "n": 3198,
     "t": "i16"
    },
-   "rms": 0.00034,
-   "max": 0.00505,
+   "rms": 0.0027,
+   "max": 0.01429,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "tunic_upper@1|men": {
@@ -180,12 +232,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 63676,
+    "o": 66172,
     "n": 897,
     "t": "i16"
    },
-   "rms": 0.00087,
-   "max": 0.00818,
+   "rms": 0.00286,
+   "max": 0.01554,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "tunic_skirt@0|men": {
@@ -193,12 +245,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 65472,
+    "o": 67968,
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.02662,
-   "max": 0.09832,
+   "rms": 0.01717,
+   "max": 0.04391,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "tunic_skirt@1|men": {
@@ -206,12 +258,25 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 70752,
+    "o": 73248,
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.02496,
-   "max": 0.06008,
+   "rms": 0.0234,
+   "max": 0.03715,
+   "note": "skirt: settled by Blender's cloth solver on m03"
+  },
+  "tunic_skirt@2|men": {
+   "n": 80,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 74424,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.02445,
+   "max": 0.0362,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "work_upper@0|men": {
@@ -219,12 +284,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 71928,
+    "o": 74904,
     "n": 2961,
     "t": "i16"
    },
-   "rms": 0.00183,
-   "max": 0.01904,
+   "rms": 0.00377,
+   "max": 0.02218,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "work_upper@1|men": {
@@ -232,12 +297,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 77852,
+    "o": 80828,
     "n": 963,
     "t": "i16"
    },
-   "rms": 0.00378,
-   "max": 0.03123,
+   "rms": 0.00475,
+   "max": 0.03293,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "work_skirt@0|men": {
@@ -245,12 +310,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 79780,
+    "o": 82756,
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.02309,
-   "max": 0.08468,
+   "rms": 0.01895,
+   "max": 0.04751,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "work_skirt@1|men": {
@@ -258,12 +323,25 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 85060,
+    "o": 88036,
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.0245,
-   "max": 0.06895,
+   "rms": 0.02331,
+   "max": 0.03711,
+   "note": "skirt: settled by Blender's cloth solver on m03"
+  },
+  "work_skirt@2|men": {
+   "n": 80,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 89212,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.02441,
+   "max": 0.03651,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "dress_upper@0|women": {
@@ -271,12 +349,12 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 86236,
+    "o": 89692,
     "n": 3234,
     "t": "i16"
    },
-   "rms": 0.0011,
-   "max": 0.01787,
+   "rms": 0.00491,
+   "max": 0.02407,
    "note": "upper: settled by Blender's cloth solver on f02"
   },
   "dress_upper@1|women": {
@@ -284,12 +362,12 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 92704,
+    "o": 96160,
     "n": 942,
     "t": "i16"
    },
-   "rms": 0.00188,
-   "max": 0.02114,
+   "rms": 0.00516,
+   "max": 0.02013,
    "note": "upper: settled by Blender's cloth solver on f02"
   },
   "dress_skirt@0|women": {
@@ -297,12 +375,12 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 94588,
+    "o": 98044,
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.03388,
-   "max": 0.09672,
+   "rms": 0.03336,
+   "max": 0.0959,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
   "dress_skirt@0|men": {
@@ -310,12 +388,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 99868,
+    "o": 103324,
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.03822,
-   "max": 0.10238,
+   "rms": 0.03467,
+   "max": 0.08587,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "dress_skirt@1|women": {
@@ -323,12 +401,12 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 105148,
+    "o": 108604,
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.05372,
-   "max": 0.12101,
+   "rms": 0.05255,
+   "max": 0.08835,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
   "dress_skirt@1|men": {
@@ -336,12 +414,38 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 106324,
+    "o": 109780,
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.05138,
-   "max": 0.10756,
+   "rms": 0.05179,
+   "max": 0.08689,
+   "note": "skirt: settled by Blender's cloth solver on m03"
+  },
+  "dress_skirt@2|women": {
+   "n": 80,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 110956,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.05371,
+   "max": 0.07891,
+   "note": "skirt: settled by Blender's cloth solver on f02"
+  },
+  "dress_skirt@2|men": {
+   "n": 80,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 111436,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.05411,
+   "max": 0.0773,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "child_upper@0|children": {
@@ -349,12 +453,12 @@
    "group": "children",
    "frame": "shell",
    "d": {
-    "o": 107500,
+    "o": 111916,
     "n": 2961,
     "t": "i16"
    },
-   "rms": 0.00225,
-   "max": 0.01861,
+   "rms": 0.0026,
+   "max": 0.0185,
    "note": "upper: settled by Blender's cloth solver on c01"
   },
   "child_upper@1|children": {
@@ -362,12 +466,12 @@
    "group": "children",
    "frame": "shell",
    "d": {
-    "o": 113424,
+    "o": 117840,
     "n": 963,
     "t": "i16"
    },
-   "rms": 0.00382,
-   "max": 0.02761,
+   "rms": 0.0037,
+   "max": 0.01763,
    "note": "upper: settled by Blender's cloth solver on c01"
   },
   "child_skirt@0|children": {
@@ -375,12 +479,12 @@
    "group": "children",
    "frame": "shell",
    "d": {
-    "o": 115352,
+    "o": 119768,
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.01523,
-   "max": 0.05108,
+   "rms": 0.01341,
+   "max": 0.04795,
    "note": "skirt: settled by Blender's cloth solver on c01"
   },
   "child_skirt@1|children": {
@@ -388,12 +492,25 @@
    "group": "children",
    "frame": "shell",
    "d": {
-    "o": 120632,
+    "o": 125048,
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.01978,
-   "max": 0.05109,
+   "rms": 0.01736,
+   "max": 0.02694,
+   "note": "skirt: settled by Blender's cloth solver on c01"
+  },
+  "child_skirt@2|children": {
+   "n": 80,
+   "group": "children",
+   "frame": "shell",
+   "d": {
+    "o": 126224,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.01775,
+   "max": 0.02476,
    "note": "skirt: settled by Blender's cloth solver on c01"
   },
   "kandys@0|men": {
@@ -401,7 +518,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 121808,
+    "o": 126704,
     "n": 5181,
     "t": "i16"
    },
@@ -414,7 +531,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 132172,
+    "o": 137068,
     "n": 933,
     "t": "i16"
    },
@@ -422,12 +539,25 @@
    "max": 0.09844,
    "note": "hang: settled by Blender's cloth solver on m03"
   },
+  "kandys@2|men": {
+   "n": 229,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 138936,
+    "n": 687,
+    "t": "i16"
+   },
+   "rms": 0.02374,
+   "max": 0.09722,
+   "note": "hang: settled by Blender's cloth solver on m03"
+  },
   "headcloth@0|women": {
    "n": 772,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 134040,
+    "o": 140312,
     "n": 2316,
     "t": "i16"
    },
@@ -440,7 +570,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 138672,
+    "o": 144944,
     "n": 663,
     "t": "i16"
    },
@@ -453,7 +583,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 140000,
+    "o": 146272,
     "n": 1326,
     "t": "i16"
    },
@@ -466,12 +596,25 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 142652,
+    "o": 148924,
     "n": 324,
     "t": "i16"
    },
    "rms": 0.03343,
    "max": 0.05966,
+   "note": "hang: settled by Blender's cloth solver on f02"
+  },
+  "veil@2|women": {
+   "n": 48,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 149572,
+    "n": 144,
+    "t": "i16"
+   },
+   "rms": 0.0165,
+   "max": 0.02819,
    "note": "hang: settled by Blender's cloth solver on f02"
   }
  }

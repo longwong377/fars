@@ -31,7 +31,8 @@ const PEOPLE: any[] = [
 ];
 const SPACING = 1.8, DIST = 1.5, DAY = 25, NIGHT_HOUR = 22;
 const TAG0 = process.env.TAG ? `${process.env.TAG}-` : '';
-// VARIANTS: comma list of page variants, each its own load in the same run ('noscans' = the procedural skin and weave, D-295's A/B)
+// VARIANTS: comma list of page variants, each its own load in the same run ('noscans' = the procedural skin and weave, D-295's A/B;
+// D-307: 'nomodels' = without the Blender-built hair cards and drape, '?peoplemodels=0': the before of the same run)
 const VARIANTS = (process.env.VARIANTS ?? 'scans').split(',');
 const FOV = process.env.FOV && process.env.FOV !== 'game' ? +process.env.FOV : 60;
 for (const VAR of VARIANTS) test(`portraits (${VAR}): 20 people at 1.5 m by day and by fire light, and crowds`, async ({ page }) => {
@@ -41,7 +42,7 @@ for (const VAR of VARIANTS) test(`portraits (${VAR}): 20 people at 1.5 m by day 
   await page.setViewportSize({ width: +(process.env.W ?? 1920), height: +(process.env.H ?? 1080) });
   const t0 = Date.now(), el = () => `${((Date.now() - t0) / 1000).toFixed(0)} s`;
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(`${m.type()}: ${m.text().slice(0, 300)}`); });
-  await page.goto(`/humanlab.html?test&quality=${process.env.Q ?? 'high'}&hour=10&day=${DAY}&fov=${FOV}${VAR === 'noscans' ? '&noscans' : ''}`);
+  await page.goto(`/humanlab.html?test&quality=${process.env.Q ?? 'high'}&hour=10&day=${DAY}&fov=${FOV}${VAR === 'noscans' ? '&noscans' : ''}${VAR === 'nomodels' ? '&peoplemodels=0' : ''}`);
   await page.waitForFunction(() => (window as any).__lab?.ready === true || (window as any).__lab?.error, null, { timeout: 2_400_000 });
   expect(await page.evaluate(() => (window as any).__lab.error ?? null)).toBeNull();
   console.log('load', el());
@@ -82,6 +83,11 @@ for (const VAR of VARIANTS) test(`portraits (${VAR}): 20 people at 1.5 m by day 
       for (let i = 0; i < 300; i++) { const dress = dresses[i % dresses.length], d = a + (b - a) * Math.sqrt((i + 0.5) / 300), ang = (((i * 0.618) % 1) - 0.5) * 1.2;
         cr.addExtra(`s${i}`, { id: -100 - i, sex: dress === 'woman' ? 'f' : 'm', role: dress === 'guard' ? 'guard' : dress === 'child' ? 'child' : dress === 'woman' ? 'grinder' : 'mason', dress, seed: 5000 + i, x: d * Math.sin(ang), y: 0, z: 4 - d * Math.cos(ang), yaw: i * 2.4, anim: anims[i % anims.length], look: null }); } }, [near, far]);
     await shoot(n, 12);
+    // D-307: the crowd's frame time, 40 warm frames, the GPU's queue drained before and after (the lab renders what the
+    // world's pipeline renders at this quality; the wall time per frame bounds the GPU time of the people)
+    stats[n].frameMs = await page.evaluate(async () => { const L = (window as any).__lab, dev = L.renderer.backend?.device;
+      if (dev) await dev.queue.onSubmittedWorkDone(); const t0 = performance.now(); await L.render(40); if (dev) await dev.queue.onSubmittedWorkDone(); return +((performance.now() - t0) / 40).toFixed(2); });
+    console.log(n, 'frame ms', stats[n].frameMs);
   };
   await crowd('crowd-near-day', 2, 20, [0, 1.6, 4], [0, 1.2, -10]);
   await crowd('crowd-far-day', 20, 120, [0, 1.6, 4], [0, 1.0, -40]);

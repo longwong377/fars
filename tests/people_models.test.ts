@@ -8,6 +8,7 @@ import { decodeHumanAssets, meshoptSimplify, type HumanAssets } from '../src/peo
 import { buildOutfits, BUILT, COSTUMES, COSTUME_OF, DRESSES, type OutfitBuild } from '../src/people/outfits';
 import { readPeopleModels, placeCards, headHeight, drapeFrames, applyDrape, DRAPE_UNIT, type PeopleModels } from '../src/people/peopleModels';
 import { HB, PART, PRM_CARD, MAT } from '../src/people/humanFormat';
+import { bellyFrame, bellyOffset, BELLY } from '../src/people/drape';
 import { MeshoptSimplifier } from 'three/addons/libs/meshopt_simplifier.module.js';
 // @ts-ignore plain node module shared with the build
 import { readPeopleRegistry, readPeopleManifest, peopleInputHash, PEOPLE_DIR } from '../tools/blender/lib/people.mjs';
@@ -131,5 +132,19 @@ describe('garment drape (people_cloth)', () => {
       expect(inside / Math.max(1, n), `${vid} ${key} in a thigh`).toBeLessThan(0.01);
     }
     void PART;
+  });
+});
+
+describe('the belly through the drape (D-292, D-307)', () => {
+  it('at term the dress falls from the bump: its front below the dome moves forward (fading to the hem), the body under it does not, and the dress stays ahead of the body', () => {
+    const v = A.byId.f02, F = bellyFrame(A, v), key = 'dress_skirt@0', g = O.geos![key], a0 = v.index * O.NV * 4 + O.pieceBase[key] * 4;
+    const c = F.yc + BELLY.rise[0] + BELLY.rise[1];
+    let near = 0, nNear = 0;
+    for (let i = 0; i < g.n; i++) { const x = O.source[a0 + i * 4], y = O.source[a0 + i * 4 + 1], z = O.source[a0 + i * 4 + 2]; if (Math.abs(x) > 0.03 || z < F.z0 - 0.02) continue;
+      const o = bellyOffset(x, y, z, 1, F, true); if (y < c - 0.08 && y > c - 0.2) { near += o.dz; nNear++; }
+      expect(o.dz).toBeGreaterThanOrEqual(bellyOffset(x, y, z, 1, F, false).dz); }
+    expect(nNear).toBeGreaterThan(0); expect(near / nNear, 'the front 8-20 cm below the centre of the dome').toBeGreaterThan(0.05);
+    // the body is never moved by the fall (it is cloth only)
+    for (let i = 0; i < A.NO; i += 3) { const x = v.pos[i * 3], y = v.pos[i * 3 + 1], z = v.pos[i * 3 + 2]; if (y > c) continue; expect(bellyOffset(x, y, z, 1, F).dz).toBe(bellyOffset(x, y, z, 1, F, false).dz); }
   });
 });
