@@ -81,9 +81,9 @@ export const SURF_D285 = uniform(1);
  *  (2019) shows pale grey gravel from the camera to the wall's foot: display rgb 143/121/112 against the render's earth 99/85/62
  *  in calib-24-now. The earth there takes a per-channel factor (linear, from those means through the display curve, C: the
  *  photo is graded) inside the forecourt (grid e −330…−63, n −120…240, 12 m soft edges; its extent C, recollection of the
- *  visitors' approach and the photo) */
+ *  visitors' approach and the photo). Render 2 with (2.1, 2.0, 3.1): the ground 124/108/95 (luma 110.7): × (1.36, 1.28, 1.44) */
 export const NOW_GROUND = uniform(0);
-export const NOW_GRAVEL = { rect: [-330, -120, -63, 240] as [number, number, number, number], soft: 12, factor: [2.1, 2.0, 3.1] as [number, number, number] };
+export const NOW_GRAVEL = { rect: [-330, -120, -63, 240] as [number, number, number, number], soft: 12, factor: [2.9, 2.6, 4.5] as [number, number, number] };
 if (typeof globalThis !== 'undefined') (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), surf: SURF_AB, d285: SURF_D285 };
 /** D-285: the cell along a course that holds at most one drip stain (m) */
 export const SOIL_CELL = 0.55;
@@ -1047,7 +1047,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   if (name === 'earth') { // D-300: the Now view's gravel forecourt (NOW_GROUND, NOW_GRAVEL), identity in the 467 world
     const G = NOW_GRAVEL, pw = positionWorld, e = pw.x, nn = pw.z.negate();
     const inside = smoothstep(0, G.soft, min(min(e.sub(G.rect[0]), float(G.rect[2]).sub(e)), min(nn.sub(G.rect[1]), float(G.rect[3]).sub(nn)))).mul(NOW_GROUND);
-    L = { ...L, alb: L.alb.mul(mix(vec3(1), vec3(...G.factor), inside)).min(0.8) };
+    L = { ...L, alb: L.alb.mul(mix(vec3(1), vec3(...G.factor), inside)).min(0.85) };
   }
   if (d.under && SURFACES[d.under]) { // down-facing faces use another surface (the ceiling's matting, D-188)
     const U = layer(SURFACES[d.under], lin(SURFACES[d.under].albedo), !!opts.arch); const t = smoothstep(0.7, 0.9, n.y.negate());

@@ -34,8 +34,9 @@ const ALL: Material[] = ['limestone', 'limestone_dark', 'mudbrick', 'mudbrick_pa
  *  Lightroom-graded, its tone curve unknown; the ratio is exposure-free but not grade-free). The 467 stone (≈50 years from the
  *  quarry) keeps its pale grey (D-230, D-285) */
 /** D-300 (session 11 render calib-24-now, display sRGB over the wall_sun region: luma 92.7 against the photo's 86.3, R/B 1.33
- *  against 1.74): the red kept and green and blue lowered by the display-to-linear ratios (1.15, 0.84, 0.74 of the D-285 factor) */
-export const NOW_STONE_TINT: [number, number, number] = [0.327, 0.178, 0.15];
+ *  against 1.74): the red kept and green and blue lowered by the display-to-linear ratios (1.15, 0.84, 0.74 of the D-285 factor);
+ *  render 2 (0.327, 0.178, 0.15): wall 108/86/73, R/B 1.48, still pinkish grey against the photo's 111/81/64: × (1.06, 0.88, 0.75) */
+export const NOW_STONE_TINT: [number, number, number] = [0.347, 0.156, 0.113];
 function patina(strength: number, dark: [number, number, number], rough: number, tint?: [number, number, number]) {
   return (L: Layer): Layer => {
     const p = positionWorld, n = normalWorld, n01 = (x: any) => mx_noise_float(x).mul(0.5).add(0.5);

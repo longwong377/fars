@@ -87,16 +87,18 @@ describe('D-285 the Now view\'s stone against photograph #24 (session 11, the le
   // calib-24-now with the D-285 tint: wall 105/91/78, luma 92.7 against the photo's 86.3; R/B 1.33 against 1.74; the ground 86
   // against 125: the gap in wall/ground is the ground's, fixed by the Now view's gravel forecourt, NOW_GRAVEL). The D-300 tint is
   // derived from that render: the photo's wall colour within 15 %
-  it('the tint takes the wall toward the photo colour (D-300, from the D-285 render)', async () => {
+  it('the tint takes the wall toward the photo colour (D-300, from the latest render)', async () => {
     const { NOW_STONE_TINT } = await import('../src/world/nowview');
     const { agxGrey } = await import('./lib/stone_cpu');
     const dec = (v: number) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
     const enc = (y: number) => (y <= 0.0031308 ? y * 12.92 : 1.055 * y ** (1 / 2.4) - 0.055) * 255;
     const inv = (d: number) => { let lo = 1e-6, hi = 100; for (let i = 0; i < 80; i++) { const m = Math.sqrt(lo * hi); if (agxGrey(m) < d) lo = m; else hi = m; } return Math.sqrt(lo * hi); };
-    const render = [105, 91, 78], D285 = [0.284, 0.212, 0.203], photo = { luma: 86.3, rb: 1.74 }; // calib-24-now-before (GPU, high)
+    // from the latest GPU render of calib-24-now (D-300 render 2: wall 108/86/73 with the tint 0.327/0.178/0.15; the D-285 render
+    // gave 105/91/78 with 0.284/0.212/0.203; the mono AgX mirror over-predicts the hue shift ~1.5×, so each step is re-anchored)
+    const render = [108, 86, 73], D285 = [0.327, 0.178, 0.15], photo = { luma: 86.3, rb: 1.74 };
     const out = render.map((c, i) => enc(agxGrey(inv(dec(c)) * NOW_STONE_TINT[i] / D285[i])));
     const luma = 0.2126 * out[0] + 0.7152 * out[1] + 0.0722 * out[2];
-    rows.push(`Now view stone (calib-24-now, D-285 render s11): wall rgb ${render.join('/')} → ${out.map(v => v.toFixed(0)).join('/')}; luma → ${luma.toFixed(1)} (photo ${photo.luma}); R/B ${(render[0] / render[2]).toFixed(2)} → ${(out[0] / out[2]).toFixed(2)} (photo ${photo.rb})`);
+    rows.push(`Now view stone (calib-24-now, D-300 render 2): wall rgb ${render.join('/')} → ${out.map(v => v.toFixed(0)).join('/')}; luma → ${luma.toFixed(1)} (photo ${photo.luma}); R/B ${(render[0] / render[2]).toFixed(2)} → ${(out[0] / out[2]).toFixed(2)} (photo ${photo.rb})`);
     report();
     expect(Math.abs(luma / photo.luma - 1)).toBeLessThan(0.15);
     expect(Math.abs(out[0] / out[2] / photo.rb - 1)).toBeLessThan(0.15);
