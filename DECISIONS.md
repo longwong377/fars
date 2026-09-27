@@ -6797,3 +6797,8 @@ moment-*-webgpu.png in the worktree, not committed).**
   hunting over the fields and steppe by day, all year: 40 s cycles of hovering 20-30 s at 10-22 m facing into the wind (fast
   wingbeat, body still), a slide 20-50 m to the next spot of its beat, one cycle in five a stoop to the ground and back. One
   instanced mesh. Tests: tests/swifts.test.ts. Unrendered (small at any distance; judged in the plain views that include fields).
+
+## D-288 Quail, nightjar and reed warblers heard (session 10; WORLD_INVENTORY GB40, GB31, GB39)
+- **Decision (C: summer birds of the plateau, expected, not sourced; calls procedural):** the quail's three-note "wet-my-lips" from
+  the crops at morning and evening (Apr-Aug), the nightjar's long churring from the slopes after dark (Apr-Aug), the reed warblers'
+  chatter at the water (where: water). Ambient species of the soundscape (heard, not seen). Not heard in a browser (B65).

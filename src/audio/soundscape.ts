@@ -179,6 +179,15 @@ export const BIRDS: Bird[] = [
     call: (e, o, t, r) => croak(e, o, t, r) },
   { id: 'cicadas', months: [5, 6, 7], hours: [[10, 17.5]], where: 'trees', minTemp: 26, rate: 0.35, tier: 'C (summer daytime drone in trees: SOUNDSCAPE.md section 6, no Fars source)', far: [6, 60],
     call: (e, o, t, r) => cicada(e, o, t, r) },
+  // session 10 (WORLD_INVENTORY GB40, GB31, GB39): the quail's "wet-my-lips" from the standing crop by day and at dusk in spring and
+  // summer; the nightjar's long churring from the stony slopes and steppe after dusk; the reed warblers' chattering song at the
+  // water's reeds (all C: summer birds of the plateau, expected, not sourced; calls procedural)
+  { id: 'common quail', months: [3, 4, 5, 6, 7], hours: [[5, 10], [17, 21.5]], rate: 0.05, tier: 'C (summer breeder in the crops; expected, not sourced)', far: [30, 220],
+    call: (e, o, t, r) => { const n = 2 + r.int(0, 3); for (let k = 0; k < n; k++) { const at = t + k * (1.4 + 0.3 * r.next()); chirp(e, o, at, 2600, 2900, 0.07, 0.03); chirp(e, o, at + 0.22, 2400, 3000, 0.09, 0.035); chirp(e, o, at + 0.37, 2400, 3000, 0.09, 0.035); } } },
+  { id: 'nightjar', months: [3, 4, 5, 6, 7], hours: [[20, 24], [0, 3.5]], rate: 0.02, tier: 'C (European nightjar on the stony slopes; expected, not sourced)', far: [40, 300],
+    call: (e, o, t, r) => { const d = 4 + 6 * r.next(), f = 1100 + 250 * r.next(); voice(e, o, t, d, f, f * (0.92 + 0.1 * r.next()), [[f, 3]], 0.012, 'square', 38 + 6 * r.next()); } },
+  { id: 'reed warbler', months: [3, 4, 5, 6, 7], hours: [[4.8, 11], [16, 20.5]], where: 'water', rate: 0.25, tier: 'C (reed and great reed warblers in the river reeds; expected, not sourced)', far: [6, 60],
+    call: (e, o, t, r) => { const n = 6 + r.int(0, 10); for (let k = 0; k < n; k++) { const f = 1800 + 2600 * r.next(); chirp(e, o, t + k * (0.11 + 0.08 * r.next()), f, f * (0.7 + 0.6 * r.next()), 0.06 + 0.05 * r.next(), 0.018); } } },
   { id: 'wild boar grunting', months: ALL, hours: [[19, 24], [0, 5.5]], where: 'water', rate: 0.02, tier: 'B species (Fars) / C place and call', far: [30, 200],
     call: (e, o, t, r) => grunt(e, o, t, r, 0.5) },
 ];

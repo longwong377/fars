@@ -248,7 +248,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB28 | merchants and traders (partial) | P-066 | exchange | C | MISSING/PARTIAL |
 | GB29 | swifts screaming over the Terrace (partial) | W-026 | birds | C | BUILT (D-280: screaming parties round the halls at dusk, heard within 90 m); unrendered |
 | GB30 | the Belt of Venus in its colour (partial, B44) | W-027 | sky | A | MISSING/PARTIAL |
-| GB31 | nightjar | W-032 | birds | C | MISSING/PARTIAL |
+| GB31 | nightjar | W-032 | birds | C | PARTIAL (D-288: heard, not seen) |
 | GB32 | mountain springs and seeps | N-010 | water | C | MISSING/PARTIAL |
 | GB33 | salt crusts and playas toward the lakes | N-014 | landscape | C | MISSING/PARTIAL |
 | GB34 | limestone outcrops and scree texture (partial, B57) | N-012 | landscape | A | MISSING/PARTIAL |
@@ -256,8 +256,8 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB36 | otter | F-002 | fauna | B | MISSING/PARTIAL |
 | GB37 | Caspian turtle | F-003 | reptiles | B | MISSING/PARTIAL |
 | GB38 | kingfisher | F-005 | birds | C | MISSING/PARTIAL |
-| GB39 | reed warblers | F-010 | birds | C | MISSING/PARTIAL |
-| GB40 | quail | F-015 | birds | C | MISSING/PARTIAL |
+| GB39 | reed warblers | F-010 | birds | C | PARTIAL (D-288: heard, not seen) |
+| GB40 | quail | F-015 | birds | C | PARTIAL (D-288: heard, not seen) |
 | GB41 | rooks and crows in the winter fields (partial) | F-017 | birds | C | MISSING/PARTIAL |
 | GB42 | swallows nesting under the eaves (partial) | F-040; C-F15, C-W21 | birds | C | MISSING/PARTIAL |
 | GB43 | fleas and lice (scratching) | F-044; C-D06 | people | C | MISSING/PARTIAL |
