@@ -121,10 +121,19 @@ function sweep(ctrl: SP[], ns = 4): { f: Prim['f']; c: V3; R: number }[] {
     const s0 = sub([1, 0, 0], mul(e3, e3[0])), e1 = nrm(len3(s0) > 1e-6 ? s0 : [0, 1, 0]), e2 = cross(e3, e1);
     segs.push({ A, Bq, ab, l2, e1, e2, e3, c: lerp3(A.p, Bq.p, 0.5), R: Math.sqrt(l2) / 2 + Math.max(A.rw, A.rd, Bq.rw, Bq.rd) });
   }
+  const LB = new Float64Array(segs.length);
+  const one = (S: typeof segs[number], x: number, y: number, z: number) => {
+    const { A, Bq, ab, l2, e1, e2, e3 } = S;
+    const qx = x - A.p[0], qy = y - A.p[1], qz = z - A.p[2], h = clamp((qx * ab[0] + qy * ab[1] + qz * ab[2]) / l2, 0, 1);
+    const dx = qx - ab[0] * h, dy = qy - ab[1] * h, dz = qz - ab[2] * h, rw = A.rw + (Bq.rw - A.rw) * h, rd = A.rd + (Bq.rd - A.rd) * h;
+    return sdEllipsoid(dx * e1[0] + dy * e1[1] + dz * e1[2], dx * e2[0] + dy * e2[1] + dz * e2[2], dx * e3[0] + dy * e3[1] + dz * e3[2], rw, rd, Math.min(rw, rd));
+  };
   const f = (x: number, y: number, z: number) => {
-    let d = 1e9;
-    for (const S of segs) {
-      const lb = Math.sqrt((x - S.c[0]) ** 2 + (y - S.c[1]) ** 2 + (z - S.c[2]) ** 2) - S.R; if (lb > d) continue;
+    // the nearest bound first (its distance prunes the rest)
+    let i0 = 0; for (let i = 0; i < segs.length; i++) { const S = segs[i]; LB[i] = Math.sqrt((x - S.c[0]) ** 2 + (y - S.c[1]) ** 2 + (z - S.c[2]) ** 2) - S.R; if (LB[i] < LB[i0]) i0 = i; }
+    let d = one(segs[i0], x, y, z);
+    for (let i = 0; i < segs.length; i++) {
+      if (i === i0 || LB[i] > d) continue; const S = segs[i];
       const { A, Bq, ab, l2, e1, e2, e3 } = S;
       const qx = x - A.p[0], qy = y - A.p[1], qz = z - A.p[2], h = clamp((qx * ab[0] + qy * ab[1] + qz * ab[2]) / l2, 0, 1);
       const dx = qx - ab[0] * h, dy = qy - ab[1] * h, dz = qz - ab[2] * h, rw = A.rw + (Bq.rw - A.rw) * h, rd = A.rd + (Bq.rd - A.rd) * h;
@@ -182,11 +191,11 @@ const FAM: Record<Family, FP> = {
     hoof: 'pad', forearm: 0.85, thigh: 0.85, shoulder: 0.9, slope: 0, eyeT: 0.24, eyeV: 0.3, neckRoot: [0.1, -0.03] },
   canid: { torso: [[-0.5, 0.06, 0.13, 0.19], [-0.44, 0.08, 0.29, 0.37], [-0.33, 0.1, 0.34, 0.39], [-0.18, 0.12, 0.33, 0.37], [-0.02, 0.07, 0.37, 0.45], [0.16, 0.0, 0.42, 0.53], [0.3, 0.0, 0.38, 0.52], [0.41, -0.06, 0.3, 0.42], [0.48, -0.1, 0.2, 0.26]],
     neck: [[0, 0, 0.26, 0.38], [0.5, 0.02, 0.21, 0.29], [1, 0, 0.8, 0.85]],
-    head: [[-0.05, 0.15, 0.95, 0.95], [0.18, 0.1, 1.1, 0.95], [0.36, -0.05, 0.9, 0.75], [0.5, -0.3, 0.55, 0.55], [0.72, -0.4, 0.45, 0.45], [0.9, -0.45, 0.38, 0.38], [0.97, -0.45, 0.34, 0.32]], jaw: [[0.25, -0.8, 0.8, 0.5], [0.5, -0.85, 0.45, 0.3], [0.85, -0.8, 0.3, 0.2]],
+    head: [[-0.05, 0.15, 0.95, 0.95], [0.2, 0.1, 1.1, 0.95], [0.42, 0.0, 0.95, 0.8], [0.56, -0.18, 0.72, 0.68], [0.75, -0.24, 0.62, 0.6], [0.9, -0.27, 0.55, 0.52], [0.97, -0.27, 0.5, 0.44]], jaw: [[0.3, -0.75, 0.8, 0.5], [0.55, -0.75, 0.5, 0.34], [0.88, -0.7, 0.36, 0.24]],
     hoof: 'paw', forearm: 0.85, thigh: 1.05, shoulder: 1, slope: 0, eyeT: 0.36, eyeV: 0.2, neckRoot: [0.18, -0.05] },
   felid: { torso: [[-0.5, 0.04, 0.14, 0.2], [-0.44, 0.06, 0.32, 0.4], [-0.32, 0.08, 0.38, 0.44], [-0.15, 0.1, 0.38, 0.42], [0, 0.06, 0.4, 0.46], [0.16, 0.01, 0.43, 0.52], [0.3, 0.02, 0.38, 0.52], [0.41, -0.05, 0.3, 0.42], [0.48, -0.08, 0.2, 0.26]],
     neck: [[0, 0, 0.3, 0.4], [0.5, 0.02, 0.25, 0.32], [1, 0, 0.9, 0.9]],
-    head: [[-0.05, 0.1, 1.0, 0.95], [0.22, 0.05, 1.15, 0.95], [0.45, -0.1, 0.95, 0.78], [0.68, -0.3, 0.7, 0.58], [0.88, -0.35, 0.6, 0.5], [0.96, -0.38, 0.55, 0.42]], jaw: [[0.2, -0.75, 0.95, 0.6], [0.5, -0.8, 0.7, 0.4], [0.85, -0.75, 0.45, 0.28]],
+    head: [[-0.05, 0.1, 1.0, 0.95], [0.22, 0.05, 1.15, 0.98], [0.45, -0.05, 1.05, 0.88], [0.66, -0.16, 0.95, 0.76], [0.84, -0.22, 0.82, 0.68], [0.95, -0.25, 0.72, 0.58]], jaw: [[0.25, -0.75, 0.95, 0.6], [0.55, -0.75, 0.75, 0.45], [0.86, -0.7, 0.5, 0.32]],
     hoof: 'paw', forearm: 1.15, thigh: 1.1, shoulder: 1.1, slope: 0, eyeT: 0.4, eyeV: 0.22, neckRoot: [0.14, -0.04] },
   hare: { torso: [[-0.5, 0.0, 0.2, 0.3], [-0.42, 0.04, 0.4, 0.48], [-0.3, 0.05, 0.44, 0.5], [-0.12, 0.02, 0.44, 0.48], [0.05, 0, 0.42, 0.46], [0.22, 0, 0.4, 0.46], [0.36, -0.02, 0.34, 0.42], [0.46, -0.06, 0.22, 0.3]],
     neck: [[0, 0, 0.3, 0.34], [1, 0, 0.9, 0.9]],
@@ -379,7 +388,7 @@ function horns(sp: Species, B: typeof ANIMAL_BUILD[Species], R: Rig, at: (a: num
       const a0 = add(at(0.06, p0[1] + p0[3] * 0.7), [s * hr * 0.4, 0, 0]), b0 = add(a0, [s * 0.1, 0.2, -0.06]), c0 = add(b0, [s * 0.06, 0.12, -0.04]);
       for (const t of tube([a0, b0, c0], 0.018, 0.013)) put(t, 0.004, G, 'horn');
       for (const t of tube([add(a0, [s * 0.02, 0.04, 0]), add(a0, [s * 0.05, 0.08, 0.1])], 0.01, 0.004)) put(t, 0.003, G, 'horn');
-      const palm = add(c0, [s * 0.05, 0.08, -0.02]); put(ell(palm, [0.016, 0.08, 0.13], [s * 0.4, 1, -0.2]), 0.01, G, 'horn');
+      const palm = add(c0, [s * 0.04, 0.05, -0.06]); put(ell(palm, [0.016, 0.06, 0.11], [s * 0.3, 0.6, -0.8]), 0.01, G, 'horn');
       for (let j = 0; j < 4; j++) { const q0 = add(palm, [s * (0.02 + 0.015 * j), 0.05 + 0.02 * j, 0.05 - 0.035 * j]); for (const t of tube([q0, add(q0, [s * 0.03, 0.05, -0.02])], 0.008, 0.003)) put(t, 0.004, G, 'horn'); } }
   }
 }
@@ -430,7 +439,7 @@ function extras(sp: Species, B: typeof ANIMAL_BUILD[Species], fam: Family, R: Ri
     for (let i = 0; i <= 8; i++) { const z = 0.45 * L - i * 0.1 * L; put(ell([0, backY + T.yz(z) + 0.03 - Math.abs(z) * 0.05, z], [0.03, 0.07, 0.07]), 0.03, 'body', 'mane'); }
     for (const s of [-1, 1]) { const a = add(R.muzzle, [s * B.headR * 0.5, -0.05, -0.1]); for (const t of tube([a, add(a, [s * 0.02, 0.035, 0.03]), add(a, [s * 0.025, 0.07, 0.02])], 0.011, 0.004)) put(t, 0.003, 'head', 'tusk'); }
   }
-  if (sp === 'hyena') for (let i = 0; i <= 9; i++) { const z = 0.45 * L - i * 0.09 * L; put(ell([0, backY + T.yz(z) + 0.02, z], [0.02, 0.06, 0.06]), 0.025, 'body', 'mane'); }
+  if (sp === 'hyena') for (const q of sweep([0.46, 0.3, 0.1, -0.1, -0.3].map((t, i) => ({ p: [0, backY + T.yz(t * L) - 0.005 - i * 0.004, t * L] as V3, rw: 0.018, rd: 0.035 - i * 0.004 })), 3)) put(q, 0.02, 'body', 'mane');
   if (B.ruff) { // the lion's mane: a ruff over the neck, the throat and the chest, darker than the coat
     const c = lerp3(R.base, R.top, 0.6); put(ell(add(c, [0, 0.02, -0.02]), [B.headR * 1.95, B.headR * 2.2, B.neck * 0.75 + 0.1], R.neckDir), 0.08, 'head', 'ruff');
     put(ell([0, by - 0.05, 0.4 * L], [0.3 * g, 0.4 * g, 0.12 * L]), 0.06, 'body', 'ruff'); }
@@ -481,8 +490,8 @@ function fowl(sp: Species, B: typeof ANIMAL_BUILD[Species], R: Rig, put: Put, cu
   else { put(ell(add(tb, [0, 0.08, -0.02]), [0.03, 0.07, 0.1], [0, 1, -0.5]), 0.02, 'tail', 'sickle');
     for (const s of [-1, 0, 1]) for (const t of tube([tb, add(tb, [s * 0.012, 0.13, -0.05]), add(tb, [s * 0.016, 0.17, -0.12]), add(tb, [s * 0.014, 0.12, -0.2]), add(tb, [s * 0.01, 0.05, -0.23])], 0.014, 0.005)) put(t, 0.006, 'tail', 'sickle'); }
   // neck (hackles) and head
-  for (const t of tube([R.base, lerp3(R.base, R.top, 0.5), R.top], g * 0.22, B.headR * 1.05)) put(t, 0.02, 'head', 'feather');
-  if (ck) put(ell(lerp3(R.base, R.top, 0.55), [g * 0.25, g * 0.3, B.neck * 0.45], R.neckDir), 0.02, 'head', 'feather');
+  for (const t of tube([R.base, lerp3(R.base, R.top, 0.5), R.top], g * 0.15, B.headR * 0.95)) put(t, 0.015, 'head', 'feather');
+  if (ck) put(ell(lerp3(R.base, R.top, 0.4), [g * 0.17, g * 0.19, B.neck * 0.4], R.neckDir), 0.015, 'head', 'feather');
   const H = B.head, hr = B.headR, u = R.hd, v = nrm(cross(u, [1, 0, 0]));
   const at = (a: number, b: number): V3 => add(add(R.top, mul(u, a * H)), mul(v, b * hr));
   put(ell(at(0.2, 0.2), [hr * 0.95, hr * 1.0, hr * 1.2], u), 0.01, 'head', 'feather');
@@ -598,7 +607,7 @@ export function coat(F: Form, p: V3, part: Part, group: Group, tag?: string): RG
     shade(1 + 0.12 * Math.sin((z * 0.8 + y * 0.5) / 0.012 * Math.PI));
   }
   // the family's and the species' marks
-  const belly = 1 - smoothstep(0.12, 0.42, vy), chin = head ? smoothstep(-0.2, -0.7, dot(sub(p, R.top), nrm(cross(R.hd, [1, 0, 0])) ) / ANIMAL_BUILD[sp].headR) : 0;
+  const belly = group === 'body' ? 1 - smoothstep(0.12, 0.42, vy) : 0, chin = head && hu > 0.15 ? smoothstep(-0.2, -0.7, dot(sub(p, R.top), nrm(cross(R.hd, [1, 0, 0]))) / ANIMAL_BUILD[sp].headR) : 0;
   const muzzleEnd = head ? smoothstep(0.72, 0.9, hu) : 0;
   switch (sp) {
     case 'donkey': case 'donkey_pack': { pale(S(0.78, 0.74, 0.68), Math.max(belly * 0.85, muzzleEnd * 0.9, inner * 0.6 * (1 - legY * 0.3)));
@@ -629,7 +638,7 @@ export function coat(F: Form, p: V3, part: Part, group: Group, tag?: string): RG
     case 'dog': pale(S(0.86, 0.8, 0.68), Math.max(belly * 0.7, inner * 0.6, chin * 0.5, onLeg && legY < 0.35 ? 0.4 : 0)); break;
     case 'wolf': { pale(S(0.85, 0.8, 0.72), Math.max(belly * 0.85, inner * 0.7, chin * 0.8, muzzleEnd * 0.4)); if (group === 'body' && vy > 0.7 && z > -0.3 && z < 0.35) shade(0.7); if (head && hu > 0.3) shade(0.9); break; }
     case 'fox': { pale(S(0.9, 0.88, 0.84), Math.max(belly * 0.8, chin * 0.95, muzzleEnd * (chin > 0.2 ? 1 : 0))); if (onLeg && legY < 1.4) pale(S(0.08, 0.06, 0.05), smoothstep(1.4, 0.8, legY) * 0.85); if (tag === 'ear') pale(S(0.1, 0.07, 0.06), 0.7); break; }
-    case 'hyena': { pale(S(0.8, 0.76, 0.66), belly * 0.6); if (group === 'body' || onLeg) { const st = Math.sin((z * 2.2 + y * 0.6) / 0.07 * Math.PI) + 0.4 * vnoise(x / 0.04, y / 0.04, z / 0.04); if (st > 0.55 && vy > 0.2) pale(S(0.12, 0.1, 0.08), 0.85); }
+    case 'hyena': { pale(S(0.8, 0.76, 0.66), belly * 0.6); if (group === 'body' || onLeg) { const st = Math.sin((z * 2.2 + y * 0.6) / 0.09 * Math.PI) + 0.5 * vnoise(x / 0.04, y / 0.04, z / 0.04); if (st > 0.8 && vy > 0.2) pale(S(0.12, 0.1, 0.08), 0.85); }
       if (head && muzzleEnd > 0.2) pale(S(0.12, 0.1, 0.08), muzzleEnd * 0.8); break; }
     case 'lion': case 'lioness': pale(S(0.86, 0.8, 0.68), Math.max(belly * 0.6, chin * 0.7, inner * 0.5)); if (tag === 'ear') pale(S(0.14, 0.1, 0.08), 0.6); break;
     case 'leopard': { pale(S(0.9, 0.86, 0.78), Math.max(belly * 0.85, inner * 0.7, chin * 0.8));
