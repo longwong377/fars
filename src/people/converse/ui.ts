@@ -8,6 +8,7 @@ import { Mind, Ears, Mic, EnglishVoice } from './mind';
 import { lifeRecord, type LifeRecord } from './life';
 import { heardReply } from './voice';
 import type { Turn } from './prompt';
+import { bakedProse } from './bake';
 
 export const DEFAULT_MODEL = 'gemma-2-2b-it-q4f16_1-MLC'; // D-296: measured on the T4 (the lab's T-E9 runs): the most natural voice of the 1-3 B models that fit 4 s and the watchdog
 export const NEAR_M = 3;
@@ -34,6 +35,9 @@ export function mountConverse(c: Ctx) {
   panel.append(line, input, small); document.body.append(panel);
   const show = (html: string, note = '') => { panel.style.display = 'block'; line.innerHTML = html; small.textContent = note; };
   const state = { status: gpu ? 'idle' : 'no WebGPU: the people live as before', loaded: false, busy: false, last: null as any, history: new Map<number, Turn[]>(), log: [] as any[] };
+  // the baked prose layer (D-296): only for the world it was baked for (seed 1: src/data/lives_baked_s1.json)
+  let baked = new Map<number, any>(); if (c.seed === 1) import('../../data/lives_baked_s1.json').then(m => { baked = new Map(((m as any).default ?? m).rows.map((r: any) => [r.pid, r])); }).catch(() => {});
+  const prose = (pid: number) => bakedProse(baked.get(pid));
   let audio: AudioContext | null = null;
   const play = (data: Float32Array, rate: number) => { audio ??= new AudioContext(); const b = audio.createBuffer(1, data.length, rate); b.getChannelData(0).set(data); const s = audio.createBufferSource(); s.buffer = b; s.connect(audio.destination); s.start(); };
   const eye = () => ({ e: c.camera.position.x, n: -c.camera.position.z });
@@ -53,7 +57,7 @@ export function mountConverse(c: Ctx) {
     if (near.agent !== null) sim.memory.note(near.agent, 'addressed', sim.t);
     const hist = state.history.get(near.pid) ?? [];
     await primeP; state.busy = true; show(`<b>${L.name}</b> <i>…</i>`, 'translation layer');
-    const t0 = performance.now(); const a = await mind.answer(L, knows, hist, text); state.busy = false;
+    const t0 = performance.now(); const a = await mind.answer(L, knows, hist, text, prose(near.pid)); state.busy = false;
     hist.push({ role: 'user', content: text }, { role: 'assistant', content: a.ok ? a.text : '' }); state.history.set(near.pid, hist.slice(-8));
     let heard = null as any;
     if (a.ok) { const h = heardReply(sim.pop, near.pid, day, a.text, c.seed); heard = { lang: h.lang, units: h.units.map(u => u.translit || u.gloss), seconds: h.seconds };
@@ -81,7 +85,7 @@ export function mountConverse(c: Ctx) {
   let primeP: Promise<any> = Promise.resolve();
   setInterval(() => { if (!state.loaded || state.busy) return; const n = nearest(c.world, eye(), 6); if (!n) return; const sim = c.world.people.sim;
     const L = lifeRecord(sim.pop, sim.cal, n.pid, c.clock.dayIndex, c.clock.localHour); const knows = n.agent !== null ? sim.memory.greeting(n.agent, sim.t) : 'none';
-    state.busy = true; primeP = mind.prime(L, knows).then(ms => { if (ms) state.log.push({ primed: n.pid, ms }); }).catch(() => mind.forget()).finally(() => { state.busy = false; }); }, 500);
+    state.busy = true; primeP = mind.prime(L, knows, prose(n.pid)).then(ms => { if (ms) state.log.push({ primed: n.pid, ms }); }).catch(() => mind.forget()).finally(() => { state.busy = false; }); }, 500);
   const api = { state, say, nearest: () => nearest(c.world, eye()), load: ensure, mind, hear: async (samples: number[]) => { ears ??= new Ears(); if (!(ears as any).w) await ears.load(); return ears.hear(Float32Array.from(samples)); } };
   (window as any).__converse = api; return api;
 }

@@ -1,0 +1,801 @@
+{
+ "_meta": {
+  "what": "the baked prose layer of people’s lives (D-296): written offline by a local model from each person’s record (life.ts) and checked (bake.ts checkBake: the fence, names only of the record); keyed to world seed and pid; tier C",
+  "model": "gemma-2-2b-it-q4f16_1-MLC",
+  "seed": 1,
+  "day": 150,
+  "made": "2026-09-27T12:10:58.153Z",
+  "tried": 50,
+  "kept": 30,
+  "rejected": [
+   {
+    "pid": 2707,
+    "why": [
+     "unparsed"
+    ]
+   },
+   {
+    "pid": 2896,
+    "why": [
+     "modern:political",
+     "modern:wind chime"
+    ]
+   },
+   {
+    "pid": 2857,
+    "why": [
+     "modern:job"
+    ]
+   },
+   {
+    "pid": 3138,
+    "why": [
+     "modern:silk"
+    ]
+   },
+   {
+    "pid": 3513,
+    "why": [
+     "name:Gūšāst"
+    ]
+   },
+   {
+    "pid": 3569,
+    "why": [
+     "unparsed"
+    ]
+   },
+   {
+    "pid": 3714,
+    "why": [
+     "unparsed"
+    ]
+   },
+   {
+    "pid": 3758,
+    "why": [
+     "name:Napiriša’"
+    ]
+   },
+   {
+    "pid": 3998,
+    "why": [
+     "modern:stray cat"
+    ]
+   },
+   {
+    "pid": 25567,
+    "why": [
+     "name:Kūstān",
+     "name:River"
+    ]
+   },
+   {
+    "pid": 21642,
+    "why": [
+     "unparsed"
+    ]
+   },
+   {
+    "pid": 13663,
+    "why": [
+     "unparsed"
+    ]
+   },
+   {
+    "pid": 5785,
+    "why": [
+     "name:Khandu",
+     "name:River"
+    ]
+   },
+   {
+    "pid": 55,
+    "why": [
+     "name:Čuṭa"
+    ]
+   },
+   {
+    "pid": 2890,
+    "why": [
+     "unparsed"
+    ]
+   },
+   {
+    "pid": 3332,
+    "why": [
+     "modern:silk"
+    ]
+   },
+   {
+    "pid": 6260,
+    "why": [
+     "name:Kadesh",
+     "name:Iddin"
+    ]
+   },
+   {
+    "pid": 289,
+    "why": [
+     "name:Terras"
+    ]
+   },
+   {
+    "pid": 1229,
+    "why": [
+     "fate:will fall",
+     "name:Dad"
+    ]
+   },
+   {
+    "pid": 2524,
+    "why": [
+     "modern:coin",
+     "name:Sparda"
+    ]
+   }
+  ]
+ },
+ "rows": [
+  {
+   "pid": 171,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 16157.765000000596,
+   "backstory": "I was born in the Median lands and grew up in Parsa. My father was a soldier in the Terrace garrison and I followed him, taking up the role of a spearman after I was old enough.",
+   "memories": [
+    "The first time I held a spear and felt its weight in my hand. My father taught me to aim and to fight with precision. The feeling was satisfying.",
+    "A day when I helped my father carry water from the well. We were thirsty and my brother was small, he learned to drink from the jug. He laughed at the way the water splashed.",
+    "Visiting my kin in the village of Tiššantamma. It was a joyous occasion and I felt proud to be a part of the community."
+   ],
+   "hope": "I hope to settle down and raise a family with my wife, Rtačiθrā.",
+   "worry": "I worry about what will happen to my family if there is a war.",
+   "opinions": [],
+   "saying": "By Auramazda, this is how it is.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "(no name recorded: he gives his father’s house)",
+   "job": "a spearman of the Terrace garrison (a company of a hundred in files of ten, on a five-day rota of watches and posts)"
+  },
+  {
+   "pid": 893,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 16552.10000000149,
+   "backstory": "My father and mother came from Elam to Parsa when I was a boy. They worked the land and built a home from mud.  I learned to work with my hands and to respect the earth. I am proud of my work and where I came from.",
+   "memories": [
+    "My father's calloused hand shaping a clay brick with precision, a quiet pride in his face. He taught me to be exact.",
+    "We were harvesting barley and my son Basakka, just a little one then, ran through the fields with his little stick, laughing. That's how he learned to love the earth and its bounty.",
+    "The annual festival in Parsa. The whole town was lit with fire and smoke. We had fresh bread and drank the sweet milk. It is a good thing to have a little to celebrate."
+   ],
+   "hope": "I hope my sons will have a good life and continue to work with their hands.",
+   "worry": "I worry that the barley won't grow well this year. The drought is bad.",
+   "opinions": [],
+   "saying": "By Napiriša, it is a good day when the sun is strong and the earth is dry.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Utira",
+   "job": "a brick maker and layer in the brick gang: moulding mud brick and laying the walls of the Hall of a Hundred Columns"
+  },
+  {
+   "pid": 3374,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 18566.670000001788,
+   "backstory": "My father Mannizza and my mother Ina-Esagil-rāmât came to Parsa from Elam when they were young. I was born here, and ever since I learned to walk, I’ve been carrying things. We’re Elamites, and we’re strong, we’re good at what we do.",
+   "memories": [
+    "I remember when my sister Philis, she’s a bit younger, she used to play with me. We’d make little houses out of clay. Now she’s a little girl and she’s strong like me. I’m proud of her.",
+    "Once, when I was younger, we had a whole basket of figs for the festival. My father’s smile was the biggest I’ve ever seen. He’s a good man.",
+    "I remember when Nergal-ušēzib was a little boy, his little feet always getting in trouble. But he’s grown up, and he’s a good man."
+   ],
+   "hope": "May my family stay healthy and strong. That’s all I ever want.",
+   "worry": "Sometimes I wish I could be a bit braver and handle more things alone.",
+   "opinions": [],
+   "saying": "By Humban, let’s go eat!",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Myrsos",
+   "job": "a porter of the town, carrying loads between the stores, the depot and the houses"
+  },
+  {
+   "pid": 1222,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 14590.504999998957,
+   "backstory": "I was born and raised in Elam. My parents came to Parsa when I was a child. I’ve been working here ever since, grinding barley for the king's soldiers.",
+   "memories": [
+    "The first time I saw Hupannana's little hand reach for a shard of clay, I was proud. He’s grown so much since then.",
+    "The first time I took Qudāšu to see the river. She was so small, and the world was so vast.",
+    "My friend Tapamet’s laughter is like the sun, bright and warm."
+   ],
+   "hope": "I hope my children grow strong and healthy.",
+   "worry": "I worry that the work camp’s conditions are harsh.",
+   "opinions": [],
+   "saying": "By Humban, that’s a good crack of barley.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Raučaduxçā",
+   "job": "a grinder of the work camp, grinding the gangs’ barley at the querns"
+  },
+  {
+   "pid": 3032,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 18378.829999998212,
+   "backstory": "My family and I came to Parsa from Babylon. My father was a merchant, and we were among the people who moved south to work with the royal stores. My wife and I are proud to be here.",
+   "memories": [
+    "My father teaching me how to measure the grain, with his rough hands and strong voice. He's gone now, but his spirit is with me.",
+    "We were hosting Dātačiθrā and his family for a meal, and his daughter was playing with my son Iddin-Nabû. She was a tiny firecracker.",
+    "Walking with my wife to the market, the scent of figs and dates filling the air. It's good to have a home, a place to gather."
+   ],
+   "hope": "I hope my children grow strong and find their place in life.",
+   "worry": "I'm worried Ankhhor is still waiting to give me his jar of beer. I'm not sure he'll remember.",
+   "opinions": [],
+   "saying": "By Nabû, these are good times!",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Marduk-šum-iddin",
+   "job": "a storekeeper of the royal stores"
+  },
+  {
+   "pid": 5755,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 14327.970000002533,
+   "backstory": "My father was from Elam, and he brought me and my siblings to Parsa with him. We’ve lived here ever since.",
+   "memories": [
+    "I remember seeing my grandfather’s old bow and arrow. He was a good hunter, and he taught me how to aim.",
+    "The first time I went to the spring near the Terrace with Aryastūnā, she was a young girl and I was little. It felt like a whole world away.",
+    "I’ve seen many children come and go. The way Čiθraduxçā holds her head up and walks with confidence makes me proud."
+   ],
+   "hope": "That my children will have a life full of peace and good fortune.",
+   "worry": "I wish they could be safe from harm.",
+   "opinions": [],
+   "saying": "By the gods, that’s a good thing!",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Raučastūnā",
+   "job": "a servant"
+  },
+  {
+   "pid": 3860,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 15577.27499999851,
+   "backstory": "I was born and raised in Parsa, and at age 18 I was apprenticed to the road station. The work is hard, but it's steady and pays well, and there's enough to eat.",
+   "memories": [
+    "My kin Pirriyašba and I were playing with our younger brothers in the dirt near the old irrigation canal. We'd build mud fortresses and fight imaginary battles.",
+    "I was tasked with delivering a message to the king's messengers when they came through Parsa. The king's guards were all tall and strong, and the whole affair made me nervous.",
+    "I saw the king's chariot once, a grand thing of polished wood and bronze. It was seen at the royal procession, and I watched with awe."
+   ],
+   "hope": "May I stay safe and healthy to continue my work and see my kin.",
+   "worry": "I wish the roads were safe and that I'd never be caught in an ambush.",
+   "opinions": [],
+   "saying": "By the gods, this heat is no joke.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Manyakka",
+   "job": "a messenger of the road station"
+  },
+  {
+   "pid": 3942,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 15039.859999999404,
+   "backstory": "My father was an Elamite, like me. He worked in the palace as a guard, and brought us here to Parsa when the king’s son was a boy. We’ve been here ever since.",
+   "memories": [
+    "The day I met Čiθrazātā at the palace’s gate. She’s strong, like an ox.",
+    "The time I saw my kin Miθraduxçā carrying a baby on his back through the marketplace. He’s a good man, but clumsy sometimes.",
+    "When I helped Metrodoros fix his broken plow. He’s not as strong as he was before."
+   ],
+   "hope": "I hope to see my kin’s children grow strong and healthy.",
+   "worry": "My wife’s health is a worry. She’s been coughing these past few days.",
+   "opinions": [],
+   "saying": "By Napiriša, it’s getting hot.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Utira",
+   "job": "a caretaker and lamp keeper of the palaces"
+  },
+  {
+   "pid": 4098,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 15618.02499999851,
+   "backstory": "I was born and raised here in Parsa, learned the ways of the land from my father. Work in the fields and gardens has been my life since I was a boy.",
+   "memories": [
+    "My father's calloused hand teaching me how to plant seeds with the precision of a weaver's loom.",
+    "The first time I saw the flocks of sheep crossing the meadow with their wool like a river of white, a sight that fills me with awe.",
+    "The coolness of the night after a long day working the fields, and the warmth of mother’s hand on mine as we sat in the courtyard, sharing a bowl of fresh bread."
+   ],
+   "hope": "May the rains come in abundance to nourish the land and sustain us through another year.",
+   "worry": "I hope that the drought doesn't return, that there is enough water to keep the land green.",
+   "opinions": [],
+   "saying": "‘The gods’ will be kind to us all.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Tiššantamma",
+   "job": "a gardener on an estate of the plain"
+  },
+  {
+   "pid": 6440,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 17875.070000000298,
+   "backstory": "My family and I came to Parsa from the land of Elam. My father was a weaver, and my mother, a skilled potter, taught me the craft of clay. My life here is a familiar song - I craft and serve the king.",
+   "memories": [
+    "My mother's laughter as she worked on the clay, her hands forming a delicate bird in the shape of a crane. The scent of burning wood and earth still fills my dreams.",
+    "We were walking through the fields to the annual harvest celebration, the music of our village echoing through the hills. The warmth of the sun on our faces, the taste of fresh dates on our lips. It was pure joy.",
+    "The king's men arrived from the south, their horses a flash of crimson and gold. We stood back to watch as they carried the royal seal, a symbol of strength and power."
+   ],
+   "hope": "I hope my daughter grows strong and learns to appreciate the beauty of life as I do.",
+   "worry": "I worry that the sickness may linger and become more severe. The old man’s remedies don’t seem to work.",
+   "opinions": [],
+   "saying": "By the strength of Napiriša, I will see this through.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Baduzarma",
+   "job": "a craftsman of the town"
+  },
+  {
+   "pid": 650,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 15913.359999999404,
+   "backstory": "My people, the Elamites, are from a land far to the south. We came to Parsa by the road and I was born here. My father was a laborer and my mother was a weaver.",
+   "memories": [
+    "The night I was born, the moon was bright and the sky was full of stars. My mother told me that is why I was named Sunkana.",
+    "The time I helped my father build a new well, my arms were sore but I was happy to contribute.",
+    "When Ziššukka and Padiaset came to visit, we laughed and played games. We shared stories and ate warm bread."
+   ],
+   "hope": "I hope that my family stays healthy and safe.",
+   "worry": "I worry that the drought might make things difficult for our families.",
+   "opinions": [],
+   "saying": "By Humban, we will see!",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Sunkana",
+   "job": "a labourer in the labour gang: earth, rubble and stone chips on the Hall of a Hundred Columns"
+  },
+  {
+   "pid": 3368,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 18950.484999999404,
+   "backstory": "I was born and raised in Parsa, working from a young age as a porter to support my family.  I’ve carried loads and moved things for many years, helping to keep our town running.",
+   "memories": [
+    "The day my Miθraduxçā taught me how to weave a simple basket from reeds, the smell of the reeds and the sun on my face. I was only a boy then.",
+    "My brother Pirriyašba and I were playing in the courtyard when a gust of wind blew a kite string across the road. We chased after it and nearly got hit by a passing horse.",
+    "The building of the Hall of a Hundred Columns was a sight to behold. The gangs worked hard, and we’d see them hauling stones and brick. It’s a grand sight, but it’s also a reminder of how much effort is needed to build something lasting."
+   ],
+   "hope": "May my family stay healthy and strong and that my brother's hands stay strong like those of the strong men of Parsa.",
+   "worry": "I’m worried that the heat will be too much for Miθraduxçā to handle, she’s getting older.",
+   "opinions": [],
+   "saying": "God’s will be done.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Mardunuya",
+   "job": "a porter of the town, carrying loads between the stores, the depot and the houses"
+  },
+  {
+   "pid": 1220,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 17120.46499999985,
+   "backstory": "I was born in Parsa, but my kin and I moved to the work camp to help support the king’s army.  My father worked the earth and my mother, she’s gone now, but she’d make the best bread in Parsa.  Now I grind barley.",
+   "memories": [
+    "I remember when my father's hands would shake with the effort of making a clay pot. He'd say, 'Miθraduxçā, your mother's spirit is in these hands.'",
+    "I remember Vahuduxçā’s laugh. She was like a wild wind through the camp.",
+    "We’d gather with kin and friends at the well. The water’s cool on a hot day, the sun’s not so strong."
+   ],
+   "hope": "I hope Bakumarda's spirit is with us in the afterlife, so we can look back at him with pride.",
+   "worry": "I worry about how my kin and I will keep working if the king’s armies fail.",
+   "opinions": [],
+   "saying": "‘Gods’ and ‘the king’s’ are the only two words that matter to us.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Miθraduxçā",
+   "job": "a grinder of the work camp, grinding the gangs’ barley at the querns"
+  },
+  {
+   "pid": 1941,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 14939.315000001341,
+   "backstory": "My family came to Parsa from the homeland of the Lydians. I’ve worked here at the Treasury since I was a girl. It’s a hard life, but it’s honest work.",
+   "memories": [
+    "The day my daughter Aryačiθrā fell and scraped her knee. We cleaned it up with some honey and cloth. She cried a bit but then was fine.",
+    "When my father-in-law’s caravan was robbed. That was a bad day.",
+    "I’m proud to see my daughter Aryastūnā learning to weave. She’s got a good eye for colors."
+   ],
+   "hope": "I hope my daughter grows strong and healthy.",
+   "worry": "I worry about the coming drought. The crops will be scarce if we don’t get some rain soon.",
+   "opinions": [],
+   "saying": "By the gods, that’s a mess.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Huzātā",
+   "job": "a textile worker of the Treasury"
+  },
+  {
+   "pid": 2760,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 16650.199999999255,
+   "backstory": "He was born and raised in Parsa, trained to serve the king and the administration since he was a young man.  He works in the administration and lives in the town of Parsa.",
+   "memories": [
+    "As a boy, I watched my father work in the administration. He was a good man, and I tried to follow his example.",
+    "My wife’s laughter is the best sound in the world. I miss her when she’s away.",
+    "I remember the day I first learned to read. It was a proud day."
+   ],
+   "hope": "That my family stays safe and healthy.",
+   "worry": "That my family's fortunes remain stable. The king's reign is not always peaceful.",
+   "opinions": [],
+   "saying": "By the god Auramazda, let’s keep our home safe and sound.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "(no name recorded: he gives his father’s house)",
+   "job": "an official of the administration"
+  },
+  {
+   "pid": 3086,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 20281.06500000134,
+   "backstory": "My family and I came to Parsa from Syria across the river. My father’s life was here before me. He told me much of the trade routes and the ways of this place. My own life’s work is a measure of responsibility and a blessing to me. I work as a storekeeper and have been here my whole life.",
+   "memories": [
+    "I remember my father’s stories of the old city, of the sun rising over the Euphrates and the cool river water. I remember how he’d take me and show me the way to the fish market, where we’d buy fresh fish and soak in the summer heat.",
+    "I remember the day I helped my father measure the flour for the royal baker. We measured with care, and the king’s hands were strong and steady. He would thank me with a nod.",
+    "I remember the time I saw an army come through Parsa. The soldiers were a sight to see. The ground shook with the weight of their horses. That day, the city felt different, and that was how we knew that something was different."
+   ],
+   "hope": "May the harvest be bountiful and that we have enough to feed our children.",
+   "worry": "The weather is hot and the barley is scarce. The sick are many. The king is distant and we are left to our own fate.",
+   "opinions": [],
+   "saying": "By Hadad, we’ll see what’s to come.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Zakkur",
+   "job": "a storekeeper of the royal stores"
+  },
+  {
+   "pid": 6046,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 16244.094999998808,
+   "backstory": "My father’s clan came to Parsa with the army. We Elamites are loyal to the king. I’ve been serving here since I was a boy.",
+   "memories": [
+    "The day I first saw Miθrazātā, she was tending the sheep. Her laughter was like the wind through the wheat.",
+    "The time Umanna and I brought home a fat lamb from the market. We were laughing and making bets on how long it would take to clean it.",
+    "The storm that came on Kārapaθiya. The roof was shaking and the rain was coming down hard. We huddled together and prayed to Humban."
+   ],
+   "hope": "May my daughters grow strong and healthy like their father.",
+   "worry": "The harvest is poor this year. We need the rain to bring more food to eat.",
+   "opinions": [],
+   "saying": "By Humban’s grace.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Šakada",
+   "job": "a servant"
+  },
+  {
+   "pid": 3157,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 19203.379999998957,
+   "backstory": "I was born and raised in Parsa, a proud city-woman of the earth, and married to a man of similar trade. We raised our children here and served the people's needs. We worked hard, but with a contented smile and laughter.",
+   "memories": [
+    "As a child, I remember my mother’s gentle hands kneading dough while the sun dipped below the horizon. The smell of fresh bread always filled our small home.",
+    "Once, I walked with my father to visit the king's terrace. The soldiers were there, their armor gleaming, and the air thrummed with a kind of power that made my chest swell.",
+    "My friend Huduxçā's laughter is a sound I cherish. We often sit together, sharing stories and the sweetness of freshly-baked dates."
+   ],
+   "hope": "May our children grow strong and healthy, and that they may all be kind to one another.",
+   "worry": "I worry that the mill's wheel may break. This is a vital part of our lives, and its failure would leave us without food.",
+   "opinions": [],
+   "saying": "May the gods be with us.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Hučiθrā",
+   "job": "a woman of the mill"
+  },
+  {
+   "pid": 3694,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 18547.094999998808,
+   "backstory": "I was a groomer for the king's roads from a young age, and my life here in Parsa is all I know. The roads of the king's domain were my teachers and my path.",
+   "memories": [
+    "I remember my father's strong calloused hands, his voice booming like thunder as he taught me to tame a wild stallion. We’d work side-by-side under the summer sun, the scent of sweat and leather filling the air.",
+    "The day I first saw the king’s own chariot. It was a magnificent thing, painted with gold and adorned with precious gems. The king was a distant figure, but his power was real.",
+    "My wife Farnaduxçā, she’s a patient and loving woman. Her smile is the brightest thing in the house, and she knows how to soothe me with a kind word."
+   ],
+   "hope": "That my children will grow strong and healthy and never face hardship like I did.",
+   "worry": "I fear the king’s roads are not safe. The messengers always come back with stories of bandits and unrest.",
+   "opinions": [],
+   "saying": "By the gods’ grace, and may the good fortune be with us.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Umanna",
+   "job": "a groom of the stables and the road station"
+  },
+  {
+   "pid": 3745,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 15664.79999999702,
+   "backstory": "I was born in Elam, a land far from here. My parents were herdsmen, and when they came to Parsa, I was a boy. The kings of Parsa keep us working with their flocks.",
+   "memories": [
+    "I was young and small, but strong. My father helped me to milk a goat, and I learned to laugh as much as he did. We were happy then.",
+    "Koes and I were playing near the city wall. He threw a pebble and it hit the water. It splashed and made a ripple. I liked that.",
+    "We went to visit my grandmother's home. She lived far from here. She was old and she was sick. I helped her with her chores. It was hard but I felt good to help."
+   ],
+   "hope": "I hope to keep my family safe and healthy.",
+   "worry": "I worry that there is not enough food to feed everyone.",
+   "opinions": [],
+   "saying": "By Napiriša, that’s a long story!",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Sunkana",
+   "job": "a herdsman of the state flocks"
+  },
+  {
+   "pid": 3861,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 18700.515000000596,
+   "backstory": "I was born and raised in Parsa. After my father’s passing, I took over his role as road station messenger. It’s a steady life, and one I’ve come to appreciate.",
+   "memories": [
+    "The heat of the summer solstice. The road was dusty, the sun blazing. Miθračiθrā had her hair loose, like a bird’s nest. We sat together under the shade of a fig tree, drinking water. Our daughter Raučačiθrā was giggling, chasing after butterfly.",
+    "The first time I traveled to Ecbatana. The city was a labyrinth of white stone and green. The scent of spices from distant lands filled the air. The road station was a mere outpost, a necessary stop in the grand scheme of things.",
+    "Bakerabba’s daughter’s wedding. The song was lively. The joy of the occasion was palpable. Miθračiθrā’s mother’s smile was bright, and Raučačiθrā’s laughter echoed through the night."
+   ],
+   "hope": "May the road be safe and the messengers find their way.",
+   "worry": "The kings’ whims are fickle, and the roads are never safe.",
+   "opinions": [],
+   "saying": "By the gods’ hand, may the road be clear.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Bakabana",
+   "job": "a messenger of the road station"
+  },
+  {
+   "pid": 3914,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 16602.164999999106,
+   "backstory": "I grew up in Parsa, learned the crafts from my father. He worked here too. This is where I've been for over a decade. Keeps me close to home.",
+   "memories": [
+    "The first time I saw Čiθrastūnā's face, she was a girl with eyes like sunset, laughing with my brother. We were young then.",
+    "In the heat of the summer, I'd be making bread with Tiššantamma, she'd be running with a clay pot. Made me proud.",
+    "One time, an earthquake shook the city.  We huddled in the street with the whole family. It's a scary thing, but I'm used to it."
+   ],
+   "hope": "I hope my son grows strong and healthy.",
+   "worry": "These guards, they are always strict. Too strict.",
+   "opinions": [],
+   "saying": "By Auramazda, we'll make it through.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Irtam",
+   "job": "a caretaker and lamp keeper of the palaces"
+  },
+  {
+   "pid": 6025,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 16616.905000001192,
+   "backstory": "I was born and raised in Parsa, trained to work the land like my father before me. I’ve worked here for many years, tilling the soil and watching the seasons change. My wife and children keep me grounded.",
+   "memories": [
+    "The first time I saw Dātačiθrā’s smile, it warmed me like the summer sun. We were young and our laughter echoed through our little house.",
+    "My son Manyabaduš running through the fields with his little donkey, his face smeared with earth and his laughter ringing with joy.",
+    "The cool night air of the Kārapaθiya moon festival. The whole town is lit with lanterns, the sound of laughter and songs carried by the wind."
+   ],
+   "hope": "I hope that my son will grow strong and follow his path.",
+   "worry": "I worry about our debts and if we’ll have enough to sow next year.",
+   "opinions": [],
+   "saying": "‘May the gods give us good harvests and strong hands!’",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Haturka",
+   "job": "a gardener on an estate of the plain"
+  },
+  {
+   "pid": 16391,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 14069.390000000596,
+   "backstory": "I grew up in Parsa, my father was a farmer. I learned to spin and to keep house and married Bakumarda after the harvest. He is a strong man. My life is quiet here in the village.",
+   "memories": [
+    "When my daughter Vahubāmā was small she would chase the sunbeams like a playful butterfly. I’d laugh and pull her back from the precipice.",
+    "The harvest festival is always a time of laughter and celebration, sharing stories with kin and drinking mead. It’s a time to celebrate life.",
+    "I remember the first time I saw Bakumarda’s face when he told me the king’s messengers were at the crossroads. He was proud of his duty to the king."
+   ],
+   "hope": "May the gods grant us a good harvest and peace in these times.",
+   "worry": "I worry that Vahubāmā will get too much heat. The sun is fierce today.",
+   "opinions": [],
+   "saying": "May the gods be with us.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Farnačiθrā",
+   "job": "keeper of the household: grinding, baking, water, spinning and the children"
+  },
+  {
+   "pid": 11730,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 17468.474999997765,
+   "backstory": "I was married to a man of good heart, but he passed when I was younger.  I’ve raised these children as best as I could.  This is how I’ve found solace and a good life in these quiet lands.",
+   "memories": [
+    "Miθraduxçā, all demure and shy, first learned to spin wool. She’s always had a gentle hand.",
+    "I remember the day I helped my father with the wheat harvest, how much sweat and laughter there was. We were a good team, he and me.",
+    "My Čiθrabāmā and I would sit by the fire and share stories. She’d tell me of the distant lands, and I’d tell her about the life here."
+   ],
+   "hope": "I hope Miššabadda will find her own happiness and be a good wife one day.",
+   "worry": "It worries me that the prices of wheat have gone up. This is not good for the poor.",
+   "opinions": [],
+   "saying": "God's will be done, and the gods may smile.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Čiθrazātā",
+   "job": "an elder of the household, past heavy work"
+  },
+  {
+   "pid": 39383,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 16880.880000002682,
+   "backstory": "My father was an Elamite from the land of Elam, and he brought my family to Parsa after the king’s army arrived. We’ve been here ever since. It’s good to be settled and strong in these lands.",
+   "memories": [
+    "My father and I were making a new irrigation system in the village. He taught me how to make the water run. We laughed, and I learned to respect water and its power.",
+    "The day I got married to Farnaduxçā, she was radiant. I’ll never forget how happy she looked. It was a bright day and we’re happy. We’re blessed.",
+    "The sun was setting over the mountains and Tiriya was showing off his sword to me. He’s getting strong, like his father."
+   ],
+   "hope": "May our land and crops be fruitful and may our children grow strong and healthy.",
+   "worry": "I hope that the king’s army doesn't come back and disturb our life.",
+   "opinions": [],
+   "saying": "By Napiriša, what a day!",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Babiruš",
+   "job": "a farmer of the plain (barley, wheat, sesame, vines)"
+  },
+  {
+   "pid": 5926,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 17050.56500000134,
+   "backstory": "I was born and raised in Parsa, my father a steward to the noble families. I’ve served many masters and inherited my own home from a distant cousin.  I’ve seen many harvests, but never had a share of land myself. The gods have been good to me.",
+   "memories": [
+    "My son Bakubeša, his laugh is like a wild wind through the reeds, even as a boy. He was always eager to run through the fields with me, and we’d spend hours chasing after birds.",
+    "The day my daughter Čiθrabāmā found a smooth pebble and held it up to the sun, her eyes wide with wonder. I’ll never forget the look of pure joy. She’s the one who learned to read from me.",
+    "My wife Aryastūnā and I, standing together at the Terrace, the sun setting in our hair. We’ve seen the city’s lights rise and fall with the moon."
+   ],
+   "hope": "May the harvest be bountiful and the children prosper.",
+   "worry": "I fear for the coming winter. The rains have been scarce and the winds have been unkind.",
+   "opinions": [],
+   "saying": "The gods’ blessing is a good thing.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Manyakka",
+   "job": "a steward of an estate"
+  },
+  {
+   "pid": 1143,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 15028.469999998808,
+   "backstory": "My family and I came to Parsa from the land of Elam.  We were among the people who came to work the brickyards and build homes here.",
+   "memories": [
+    "My father showed me how to shape clay to make bricks. He'd say, 'Naprap, your hands must be strong,' and I'd try to emulate him. I'm proud he taught me.",
+    "We were eating our barley meal when a messenger came to our village. He spoke of the king's campaign and how he'd conquered many lands. The whole village cheered.",
+    "My wife Tanetamun is always kind and patient with me. I feel blessed to have her and to be a good father to Utira."
+   ],
+   "hope": "May the good spirits bless us with rain and good health.",
+   "worry": "If we run out of barley, we'll have to borrow from Bakabana. It’s not easy to do that.",
+   "opinions": [],
+   "saying": "By Napiriša, that’s a good day’s work, good weather, and a full belly.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Naprap",
+   "job": "a brick maker and layer in the brick gang: moulding mud brick and laying the walls of the Hall of a Hundred Columns"
+  },
+  {
+   "pid": 3424,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 19652.379999998957,
+   "backstory": "I was born and raised in Parsa, working in the town since I was a young boy.  I carry loads between stores and houses to keep my family fed and clothed.",
+   "memories": [
+    "The first time I saw the Hall of a Hundred Columns, it was awe-inspiring to see the sheer scale of the construction. The gangs worked tirelessly, their strength and endurance inspiring.",
+    "When my mother got a new dress, the whole house was filled with song and laughter. She’s always had a warm heart, and that’s how she’s always made us feel safe.",
+    "The festival was great, but I can't forget the beer jar I owe to Bēl-ēṭir. It's a good thing I can still carry the weight of a few barrels."
+   ],
+   "hope": "May the gods bless us and our harvest be plentiful this year.",
+   "worry": "I hope that my family’s needs are met and that there is enough for them to eat.",
+   "opinions": [],
+   "saying": "By Auramazda’s grace.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Haturka",
+   "job": "a porter of the town, carrying loads between the stores, the depot and the houses"
+  },
+  {
+   "pid": 2952,
+   "model": "gemma-2-2b-it-q4f16_1-MLC",
+   "ms": 18585.51000000164,
+   "backstory": "My father was a merchant in Babylon, and we moved to Parsa when I was young. My wife and I work here as scribes. I've always loved these warm autumn days, and working is a way to give thanks to Nabû for this life.",
+   "memories": [
+    "The first time I saw Ina-Esagil-banât's eyes, bright and sparkling like the stars. We were both young then, and she had a way of making me smile even on the hottest days.",
+    "The day my daughter Gagâ learned to walk. She toddled across the courtyard, her little feet so clumsy but so full of joy. It was a day I'll never forget.",
+    "Archidike's laughter in the courtyard. She's a good woman, strong and kind. She helps with the farm work and always has a good word to say."
+   ],
+   "hope": "I hope that my family is safe and healthy.",
+   "worry": "I worry that the drought might continue and that we will not have enough to eat.",
+   "opinions": [],
+   "saying": "By Nabû’s light, let us eat and live in peace.",
+   "check": {
+    "fence": [],
+    "unknownNames": [],
+    "ok": true
+   },
+   "name": "Nergal-ušēzib",
+   "job": "a scribe of the stores, recording what comes in and goes out"
+  }
+ ]
+}

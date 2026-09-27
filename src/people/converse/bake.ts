@@ -37,21 +37,23 @@ export function checkBake(b: Baked, L: LifeRecord): { fence: string[]; unknownNa
 /** names the model made up: capitalised words that are neither a name of the person's record (their own, their house's,
  *  kin, friends, the year's events) nor a god, people, place or month of their world, nor an ordinary word opening a sentence
  *  (a made-up kinsman contradicts the life the simulation gave them; a later name, e.g. Bahram, is an anachronism) */
-const WORLD_NAMES = new Set(['i', 'parsa', 'persia', 'persian', 'persians', 'terrace', 'king', 'xerxes', 'darius', 'khshayarsha', 'auramazda', 'ahuramazda', 'humban', 'napiriša', 'napirisa', 'marduk', 'nabû', 'nabu', 'hadad', 'ptah', 'amun', 'zeus', 'mithra', 'anahita', 'elam', 'elamite', 'elamites', 'susa', 'babylon', 'babylonian', 'babylonians', 'ecbatana', 'media', 'mede', 'medes', 'median', 'sardis', 'lydia', 'lydian', 'ionia', 'ionian', 'ionians', 'yauna', 'egypt', 'egyptian', 'syria', 'syrian', 'bactria', 'bactrian', 'sogdian', 'lycian', 'carian', 'cappadocian', 'thracian', 'treasury', 'hall', 'hundred', 'columns', 'pulvar', 'kur', 'across-the-river', 'mišebaka', 'greeks', 'greek', 'stranger', 'gods', 'god']);
+const WORLD_NAMES = new Set(['i', 'parsa', 'persia', 'persian', 'persians', 'terrace', 'king', 'xerxes', 'darius', 'khshayarsha', 'auramazda', 'ahuramazda', 'humban', 'napiriša', 'napirisa', 'marduk', 'nabû', 'nabu', 'hadad', 'ptah', 'amun', 'zeus', 'mithra', 'anahita', 'elam', 'elamite', 'elamites', 'susa', 'babylon', 'babylonian', 'babylonians', 'ecbatana', 'media', 'mede', 'medes', 'median', 'sardis', 'lydia', 'lydian', 'ionia', 'ionian', 'ionians', 'yauna', 'egypt', 'egyptian', 'syria', 'syrian', 'bactria', 'bactrian', 'sogdian', 'lycian', 'carian', 'cappadocian', 'thracian', 'treasury', 'hall', 'hundred', 'columns', 'pulvar', 'kur', 'across-the-river', 'mišebaka', 'greeks', 'greek', 'stranger', 'gods', 'god', 'lydians', 'egyptians', 'syrians', 'bactrians', 'euphrates', 'tigris', 'arachosia', 'india', 'gandara', 'areia', 'sagartia', 'cappadocia', 'caria', 'lycia', 'thrace', 'sogdiana']);
 for (const m of MONTHS) for (const n of [m.op, m.bab, m.elam]) WORLD_NAMES.add(n.replace(/\s*\(\?\)/, '').toLowerCase());
 export function unknownNames(text: string, L: LifeRecord): string[] {
   const known = new Set([L.name, ...L.household.map(k => k.name), ...L.friends.map(f => f.name), ...L.kinHouses.map(k => k.split('’')[0]), ...[...L.year, ...L.quarrels, ...L.debts, ...L.today.earlier, L.today.now, L.today.next ?? ''].flatMap(y => y.match(/\p{Lu}[\p{L}\-’]+/gu) ?? [])].map(n => n.toLowerCase().replace(/^\*/, '')));
   const out: string[] = [];
   for (const m of text.matchAll(/(^|[.!?:;“"\n…]\s*|\s)(\p{Lu}[\p{L}\-’']*)/gu)) {
     const sentenceStart = m.index === 0 || /[.!?:;“"\n…]/.test(m[1]); const w = m[2].replace(/[’']s$/, ''); const lw = w.toLowerCase();
-    if (known.has(lw) || WORLD_NAMES.has(lw)) continue;
+    if (known.has(lw) || WORLD_NAMES.has(lw) || /^i[’'](d|m|ll|ve)$/.test(lw)) continue;
     if (sentenceStart && /^[A-Za-z’'-]+$/.test(w)) continue; // an ordinary word opening a sentence ("Hard, yes.")
     out.push(w);
   }
   return [...new Set(out)];
 }
 
-/** the memories as the runtime gives them to the model (one paragraph) */
+/** the memories as the runtime gives them to the model: short (the prompt's token budget, B98): the backstory's first
+ *  sentence, one memory and the saying (about 60 tokens) */
 export function bakedProse(b: Baked | null | undefined): string | null {
-  if (!b) return null; return [b.backstory, ...b.memories, `I hope ${b.hope.replace(/^I hope\s*/i, '')}`, `I worry ${b.worry.replace(/^I worry\s*/i, '')}`, ...b.opinions.map(o => `${o.name}: ${o.view}`), `I often say: “${b.saying}”`].filter(s => s && s.length > 3).join(' ');
+  if (!b) return null; const first = (t: string) => (t.match(/^[^.!?]+[.!?]/) ?? [t])[0].trim();
+  return [first(b.backstory), b.memories[0] ? first(b.memories[0]) : '', b.saying ? `You often say: “${b.saying.replace(/^[“"]|[”"]$/g, '')}”` : ''].filter(x => x.length > 3).join(' ');
 }
