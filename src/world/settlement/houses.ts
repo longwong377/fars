@@ -78,7 +78,10 @@ export function doorVar(id: string) { const h = (k: number) => hashString(`${id}
   return { drop: 0.15 * h(1), lh: 0.1 + 0.07 * h(2), bear: 0.15 + 0.17 * h(3), step: h(4) < 0.4 ? 1 : 0, niche: h(5) < 0.75 ? 1 : 0 }; }
 /** the batches a build writes into */
 export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch; props: Batch }
-export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tileId', 1, [0]); return b; };
+export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tileId', 1, [0]).addAttr('pband', 2, [0, -1e4]); return b; };
+/** D-324b: the far level's eave pole band: each vertex's distance along the eave (m) and the band's foot (world y); the far
+ *  material draws the pole ends in it (build.ts farPoleEnds). [0, -1e4] elsewhere */
+export const POLE_GAP = 0.5;
 export const plainBatch = () => new Batch().addAttr('ao', 1, [1]);
 export const newHB = (): HB => ({ plaster: plasterBatch(), stone: plainBatch(), timber: plainBatch(), brick: plainBatch(), items: plasterBatch(), props: plainBatch() });
 
@@ -219,12 +222,25 @@ export class SiteHouses {
         const yT = R - r.fall - 0.012, yc = R - ROOF_T + ROOF.beam, f0 = sgn * (t / 2), f1 = sgn * (t / 2 + o), own = this.owner(we.plot, P.eave), N = nrm(sgn), dk = sh(lin(POLE), 0.4), cd = sh(c, 0.92);
         b.quad(P3(sA, f0, yT), P3(sB, f0, yT), P3(sB, f1, yT), P3(sA, f1, yT), [0, 1, 0], c, c, c, c, own);
         b.quad(P3(sA, f1, yc), P3(sB, f1, yc), P3(sB, f1, yT), P3(sA, f1, yT), N, cd, cd, c, c, own);
-        b.set('ao', 0.35); b.quad(P3(sA, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, yc), P3(sA, f1 - sgn * 0.03, yc), N, sh(dk, 0.7), sh(dk, 0.7), dk, dk, own); b.set('ao', 1); } }
+        const o0 = P3(sA, 0, 0), al = [P3(sB, 0, 0)[0] - o0[0], P3(sB, 0, 0)[2] - o0[2]], aL = Math.hypot(al[0], al[1]) || 1; b.hook('pband', (x, _y, z) => [((x - o0[0]) * al[0] + (z - o0[2]) * al[1]) / aL + hi(we.plot, 5) * POLE_GAP, R - ROOF_T]);
+        b.set('ao', 0.35); b.quad(P3(sA, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, yc), P3(sA, f1 - sgn * 0.03, yc), N, sh(dk, 0.7), sh(dk, 0.7), dk, dk, own); b.set('ao', 1); b.hook('pband', undefined); b.set('pband', 0, -1e4); } }
     }
     for (const r of this.rooms) { b.set('tileId', r.tile + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
       // each roof its own earth (rolled and renewed at its own time: C)
       const c = sh(this.pcol[r.plot], 0.94 + 0.12 * hi(r.room, this.si, 7)), g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
       b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof)); }
+    // D-324b: the court things that show from afar: each ladder's rails against the eave (a thin slab each), the firewood and
+    // fodder stacks (a low block), from the near level's own fixtures
+    for (let fi = 0; fi < this.fixtures.length; fi++) { const f = this.fixtures[fi], own = this.fixDesc[fi] * 32 + P.fixture; if (f.kind !== 'ladder' && f.kind !== 'firewood' && f.kind !== 'fodder') continue;
+      const nu = Math.cos(f.rot), nv = Math.sin(f.rot), tu = -nv, tv = nu, at = (a: number, d: number): [number, number] => [f.u + tu * a + nu * d, f.v + tv * a + nv * d];
+      b.set('tileId', this.tileOfPlotEl(f.plot, f.u, f.v) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.85);
+      if (f.kind === 'ladder') { const R = this.base[f.plot] + s.plots[f.plot].height, top = R + 0.45, g0 = this.gl(...at(0, 1.1)), foot = 0.575 + (top - g0) * 0.2, c = sh(lin(POLE), 0.8);
+        for (const e of [-0.22, 0.22]) { const A = this.wp(...at(e, foot), g0 - 0.05), Bq = this.wp(...at(e * 0.95, 0.535), top), n = this.dirW(tu, tv), w = 0.035;
+          b.quad([A[0] - n[0] * w, A[1], A[2] - n[1] * w], [A[0] + n[0] * w, A[1], A[2] + n[1] * w], [Bq[0] + n[0] * w, Bq[1], Bq[2] + n[1] * w], [Bq[0] - n[0] * w, Bq[1], Bq[2] - n[1] * w], (() => { const d = this.dirW(nu, nv); return [d[0], 0, d[1]]; })(), c, c, c, c, own); }
+        continue; }
+      const [u, v] = at(0, f.kind === 'firewood' ? 0.45 : 0.27 + f.len * 0.35), gy = this.gl(u, v), g = s.grid(u, v), hgt = (f.h ?? 0.8) * (f.kind === 'fodder' ? 0.8 : 0.9);
+      const c = f.kind === 'fodder' ? lin([0.66, 0.58, 0.39]) : sh(lin([0.5, 0.43, 0.33]), 0.8);
+      b.box(g[0], g[1], s.frame.theta + f.rot, 0.3, f.len / 2, gy - 0.05, gy + hgt, sh(c, 0.7), c, own); }
     // the fuel stacked on the roofs (the near level's roof_fuel fixture: its place and length; brushwood and dung cakes as one stack)
     for (let fi = 0; fi < this.fixtures.length; fi++) { const f = this.fixtures[fi]; if (f.kind !== 'roof_fuel') continue; const sp = this.roofSpot(f); if (!sp) continue;
       b.set('tileId', this.tileOfPlotEl(f.plot, sp.u, sp.v) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.9); const g = s.grid(sp.u, sp.v), bc = sh(lin([0.47, 0.41, 0.31]), 0.85 + 0.2 * hi(f.alt ?? 0, 5));

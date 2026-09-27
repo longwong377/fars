@@ -7829,3 +7829,16 @@ mother who followed the stranger is still "talking" in her child's plan's words)
   carved members (their own finish, D-306) and the incised signs (incisedMaterial draws its own normal: the set is left out
   there) are not this class.
 - **Reversible:** yes (`?noblockface`; `window.__parsaSurf.blockface(0)` at run time; the SurfaceDef `blockFace` flags).
+- **D-324b (the lead's follow-up, same session):** (1) Q-960: tests/lib/scanStandIns.ts registers the CC0 vessels at the
+  manifest's triangle counts (lod0 1,500) in houses/houselod/villages/plain tests; with them counted the near tiles came to
+  ~1.1 M (q_s3); the houses' jars and baskets (store rooms, court baskets, court jar fittings; town and villages) are now lathes
+  of each scan's own silhouette (kit.ts scanVessel: its widest radius in bands of its height from lod1; 72 triangles in store
+  rooms, baskets and the middle ring, 150 for court jars), as the houses' batches are vertex-coloured and drew only the scans'
+  outline: q_s3 522 k, worst tile 59.0 k, all counted; the probe's court-w1 frame 602 k -> 226 k near triangles in the browser.
+  (2) The far level: the eave poles' ends drawn in the dark band by the far material (build.ts farPoleEnds: a disc of end grain
+  every 0.5 m, filtered to its mean share where the pixel is wider than a third of the gap; no triangles; town and villages),
+  ladders against the eaves and the firewood and fodder stacks as low silhouettes (far 731 k -> 749 k). Spouts are not drawn
+  far (2-3 px at 100 m). (3) The hand-overs, one camera each on the probe (tools/dev/house_lab.mjs pop40-*, pop72-*): 40 m (all
+  tiles full vs all middle ring, town.near0 override): 542 of 518,400 pixels differ by more than 4 levels (0.1 %): invisible.
+  72 m: near vs far differ strongly within 30 m (not a hand-over); at the 72 m ring the difference is the crest's droop and
+  width (~1 px) and the far roofs' flat top: not measured per tile (unverified in motion).

@@ -13,6 +13,10 @@ const V = [
   // the kit near: brick losses, benches, a doorway with jamb boards (door views above), the eave from under it
   { n: 'brick0', cam: 'brick:q_s1:0', fov: 50 }, { n: 'brick1', cam: 'brick:q_s3:5', fov: 50, sunAz: 250, sunAlt: 30 }, { n: 'brick2', cam: 'brick:q_w1:9:1.4', fov: 50 },
   { n: 'bench0', cam: 'bench:q_s1:0', fov: 55 }, { n: 'bench1', cam: 'bench:q_w1:4', fov: 55, sunAz: 130, sunAlt: 25 },
+  // D-324b: the hand-overs, each pair from one camera: the full level against the middle ring (40 m), the near levels against the far level (72 m)
+  { n: 'pop40-L0', cam: 'far:q_s1:45:1.7:200', fov: 50, near0: 1e4 }, { n: 'pop40-L1', cam: 'far:q_s1:45:1.7:200', fov: 50, near0: 0 },
+  { n: 'pop72-near', cam: 'far:q_w1:75:8:120', fov: 45 }, { n: 'pop72-far', cam: 'far:q_w1:75:8:120', fov: 45, farOnly: true },
+  { n: 'terrace-w1', cam: 'far:q_w1:180:18:150', fov: 30 }, { n: 'eaves100', cam: 'far:q_s1:100:30:200', fov: 18, sunAz: 150, sunAlt: 40 }, { n: 'terrace-s3', cam: 'far:q_s3:260:25:60', fov: 30 },
   // a village from 30 m and 200 m
   { n: 'village30', cam: 'village:0:40:2:180', fov: 60 }, { n: 'village200', cam: 'village:0:200:8:180', fov: 45 },
 ];

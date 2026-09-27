@@ -7,8 +7,8 @@ import type { Physics } from '../../player/physics';
 import type { Terrain } from '../../terrain/heightfield';
 import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
-import { attribute, positionLocal, textureLoad, ivec2, int, float, step } from 'three/tsl';
-import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, seasonOf, type HB } from './houses';
+import { attribute, positionLocal, positionWorld, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
+import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, POLE_GAP, seasonOf, type HB } from './houses';
 import { TownDoors } from './towndoors';
 import { livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
@@ -165,6 +165,7 @@ export class Settlement {
     // ... but it casts every house's shadow, near ones too (its surfaces lie at or inside the near ones: the roofs at the low
     // edge of their fall), so the near walls, roofs and footings need not cast: a third of the near triangles in the cascades
     far.castShadowPositionNode = positionLocal;
+    farPoleEnds(far);
     for (const cl of clusters.values()) { const b = cl.far; if (!b.tris) continue;
       const m = new THREE.Mesh(b.toGeometry(), far); m.name = `settlement:${cl.id}:far`; m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false;
       const owner = b.owner, desc = cl.desc; m.userData = { tier: 'C', src: 'RECON', note: `settlement cluster ${cl.id} (houses, distant level)`, describe: (hit: any) => partDesc(desc, owner[hit?.faceIndex ?? -1], true) };
@@ -285,6 +286,8 @@ export class Settlement {
    *  a few ms a frame (B59), shown within NEAR_R and kept until NEAR_R + NEAR_HYST, dropped beyond NEAR_R + 80 m. When the
    *  shown set changes the merged meshes are rebuilt a part at a time and swapped in with the far level's state texture;
    *  `sync` (tests; a jump) does it at once */
+  /** the full near level's radius (NEAR0; probes set it to compare the levels, D-324b) */
+  near0 = NEAR0;
   nearUpdate(x: number, z: number, prefetch = 1, sync = false) {
     let tiles = 0, tris = 0; const want: number[] = []; let lost = true;
     for (const hs of this.houses) { const s = hs.s, rs = Math.hypot(s.W, s.H) / 2;
@@ -292,7 +295,7 @@ export class Settlement {
       const cl = this.clusterOfSite.get(s.id)!;
       for (const [t, info] of hs.tiles) { const d = Math.hypot(info.x - x, info.z - z);
         // D-324: the level this tile wants (the full one within NEAR0, kept to NEAR0 + NEAR0_HYST), keyed tile × 2 + level
-        const lod: 0 | 1 = d < NEAR0 || (this.shownKey.has(2 * t) && d < NEAR0 + NEAR0_HYST) ? 0 : 1, K = 2 * t + lod, Ko = K ^ 1;
+        const lod: 0 | 1 = d < this.near0 || (this.shownKey.has(2 * t) && d < this.near0 + NEAR0_HYST) ? 0 : 1, K = 2 * t + lod, Ko = K ^ 1;
         if (d > NEAR_R + 80) { this.dropNear(K); this.dropNear(Ko); continue; }
         let show = -1;
         if (d < NEAR_R) {
@@ -446,6 +449,15 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
       mud.box(g[0], g[1], th, 0.45, 0.45, y + f.size, y + f.size + 0.35, tim, tim, d); break; }
     default: break;
   }
+}
+/** D-324b: the eave poles' ends on the far level, drawn in its pole band (houses.ts plasterBatch 'pband': the distance along the
+ *  eave and the band's foot): a light disc of end grain every POLE_GAP m in the dark band, filtered to its mean share where the
+ *  pixel is wider than a third of the gap (no shimmer from the Terrace); no triangles. The villages' far level takes it too */
+export function farPoleEnds(m: any) {
+  const pb = attribute('pband', 'vec2'), on = step(-1000, pb.y), v = positionWorld.y.sub(pb.y);
+  const f = fract(pb.x.div(POLE_GAP)).sub(0.5).mul(POLE_GAP), d = vec2(f, v.sub(0.085)).length(), disc = float(1).sub(smoothstep(0.05, 0.075, d));
+  const fw = fwidth(pb.x), share = 0.15, k = mix(disc, float(share), clamp(fw.mul(3 / POLE_GAP).sub(0.5), 0, 1));
+  m.colorNode = m.colorNode.mul(mix(float(1), float(3.2), k.mul(on)));
 }
 /** a ring of hearth stones with ash inside (C) */
 function hearthRing(b: Batch, g: P2, y: number, d: number) {

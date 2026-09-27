@@ -24,7 +24,7 @@ import { surfaceMaterial } from '../../render/materials';
 import { registerSettlementSurfaces } from '../settlement/surfaces';
 import { SiteHouses, plasterBatch, newHB, NEAR_R, NEAR0, NEAR0_HYST, TILE, seasonOf, doorVar, hi, type HB, type StreetDoor } from '../settlement/houses';
 import { TownDoors } from '../settlement/towndoors';
-import { fittingGeom, partDesc, type Desc } from '../settlement/build';
+import { fittingGeom, partDesc, farPoleEnds, type Desc } from '../settlement/build';
 import { siteFootprints } from '../settlement/footprints';
 import { Batch, lin, type RGB } from '../settlement/geom';
 import { lifeOf, parapetOf } from '../settlement/houseplan';
@@ -131,7 +131,7 @@ export class VillageHouses {
     // the far meshes (collapsed where drawn near; they cast every compound's shadow, near ones too)
     const far = surfaceMaterial('house_plaster', { vertexColors: true, arch: true, variant: 'village-far' }) as any;
     { const id = int(attribute('tileId', 'float')), stt = textureLoad(VILLAGE_NEAR_STATE, ivec2(id.mod(int(VNS_W)), id.div(int(VNS_W)))).r;
-      far.positionNode = positionLocal.mul(float(1).sub(step(0.5, stt))); } far.aoNode = attribute('ao', 'float'); far.castShadowPositionNode = positionLocal;
+      far.positionNode = positionLocal.mul(float(1).sub(step(0.5, stt))); } far.aoNode = attribute('ao', 'float'); far.castShadowPositionNode = positionLocal; farPoleEnds(far);
     for (const c of cells.values()) { if (!c.far.tris) continue;
       const m = new THREE.Mesh(c.far.toGeometry(), far); m.name = 'plain-villages-' + c.key; m.castShadow = false; m.receiveShadow = true; m.matrixAutoUpdate = false; // shadows on near the camera (index.ts)
       const owner = c.far.owner, desc = c.desc;
@@ -182,7 +182,8 @@ export class VillageHouses {
       const n = alongU ? N(0, d) : N(d, 0), yc = roof - 0.19, dk = sh(lin([0.5, 0.43, 0.34]), 0.4);
       b.set('y0', -1000).set('ytop', 1e4);
       b.quad(P(a, o, yc), P(bb, o, yc), P(bb, o, roof), P(a, o, roof), n, sh(col, 0.9), sh(col, 0.9), col, col, pd * 32 + 4);
-      b.set('ao', 0.35); b.quad(P(a, o - 0.03, roof - 0.35), P(bb, o - 0.03, roof - 0.35), P(bb, o - 0.03, yc), P(a, o - 0.03, yc), n, sh(dk, 0.7), sh(dk, 0.7), dk, dk, pd * 32 + 4); b.set('ao', 1); };
+      const o0 = L(0, 0, 0), ad = alongU ? N(1, 0) : N(0, 1); b.hook('pband', (x, _y, z) => [(x - o0[0]) * ad[0] + (z - o0[2]) * ad[2], roof - 0.35]); // (D-324b: the pole ends drawn in the band)
+      b.set('ao', 0.35); b.quad(P(a, o - 0.03, roof - 0.35), P(bb, o - 0.03, roof - 0.35), P(bb, o - 0.03, yc), P(a, o - 0.03, yc), n, sh(dk, 0.7), sh(dk, 0.7), dk, dk, pd * 32 + 4); b.set('ao', 1); b.hook('pband', undefined); b.set('pband', 0, -1e4); };
     box(-W - tr / 2, rv0, W + tr / 2, D + tr / 2, roof, roofC, ownR);
     box(-W - tr / 2, D + tr / 2 - pt, W + tr / 2, D + tr / 2, roomTop, col, own); // the parapet on the outer side
     eave(true, rv0, -W + tr / 2, W - tr / 2, -1);
