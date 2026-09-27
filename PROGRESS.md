@@ -4,7 +4,7 @@
 - **Session 11 (read HANDOFF.md's first section): the GPU machine.** Scans everywhere, the Blender pipeline, speaking
   with the people behind ?converse; every area still reads as CG in blind review (the tells are now form: capitals, colossi,
   reliefs, props, people's hair and dress, lanes). Three WebGPU pipelines exceed 16 samplers in the merged world (invalid).
-  Town (D-303) and people (D-304, D-307) branches not merged. T-E9 61 %. Soak gates populationVariety and plansWellFormed fail.
+  The town branch (D-303) is not merged (pushed; plan in HANDOFF). T-E9 61 %. Soak gates populationVariety and plansWellFormed fail.
 - **D-305 (session 11, the Blender pipeline):** the pipeline runs (`node tools/blender/build.mjs`, byte-reproducible on the CPU);
   one asset in the game, the capitals' double-bull protome with baked normal + occlusion maps, rendered A/B at the player's
   lens: a small visible gain, still CG (the model lacks the real capitals' carving, Q-830). Maps are PNG, not KTX2 (B115:

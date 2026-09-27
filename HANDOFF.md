@@ -16,7 +16,7 @@ this section, `sessions/s11.md`, BLOCKERS.md, `COVERAGE.md`, and **CLAUDE.md's n
   node counter (tests/samplers_d300.test.ts, now NODE_MAX 6) passes every surfaceMaterial, prop, incised and baked material, so
   the culprits are outside it; `SAMPLERDBG=1` in moments.spec names pipelines from their compiled fragment shader (see
   sessions/s11.md for the last run's result). First job of the next session: name them and cut their samplers.
-- **Two branches NOT merged (pushed):** `s11-realism-town` (D-303) and `s11-realism-people` (D-304); see "Unmerged" below.
+- **One branch NOT merged (pushed):** `s11-realism-town` (D-303); see "Unmerged" below. The people (D-304 inside D-307) are merged.
 - **Night lanes in the town are black** (lamps light only their rooms, B111); the zodiacal light does not show; night clouds
   are black blobs. The belly (D-292) is not seen on screen (GB12 PARTIAL).
 - **Speaking with the people (D-296) works behind `?converse` but fails T-E9 (61 %; target 95)** and replies take 4-10 s in the
@@ -55,13 +55,12 @@ this section, `sessions/s11.md`, BLOCKERS.md, `COVERAGE.md`, and **CLAUDE.md's n
   optional maps), materials.ts, scans.json and three textures. Merge by keeping the main branch's D-300 normal maps
   (`nor` number, triNormal) and porting D-303's `top` scans and its SCAN_USE entries onto them; then the town lab and one world
   render (town_real.spec.ts) and the sampler counter.
-- `s11-realism-people` (D-304): MakeHuman skin layers in array textures, cloth scans; its last world run hung the GPU (B114):
-  render its portrait spec alone before merging. D-307 (people round 2, below) may have merged it.
-- `s11-people2` (D-307): see sessions/s11.md for its final state.
+- The people (D-304 skin layers and cloth scans; D-307 hair cards, cloth drape, the human material at 1 sampler) are MERGED; its
+  world runs failed only on the unidentified 17/19-sampler pipelines (B122), which are not the people's material.
 
 ## Next steps, in order
 1. The sampler bug (above); then one full verification batch with zero validation errors.
-2. Merge s11-realism-town (plan above) and the people branches.
+2. Merge s11-realism-town (plan above).
 3. FORM, through the Blender pipeline (research/BLENDER_PLAN.md): re-proportion the protome and colossi from the photographs
    (B118); relief figures as carved geometry; props (jars, baskets, goods) and doors; the polygonal foot's spalls; lane geometry
    (doors, spouts, ruts); garments and hair (D-307's route); Kuh-e Rahmat outcrops and scree.
