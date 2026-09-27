@@ -1,1 +1,1 @@
-trodden (> 0.3) 0.67 ha from 47 doorways
+trodden (> 0.3) 1.35 ha from 139 doorways

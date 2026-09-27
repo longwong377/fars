@@ -86,9 +86,13 @@ export const gridExtent = (v: ProbeVolume) => ({
 export function volumeWeight(v: ProbeVolume, x: number, y: number, z: number): number {
   const g = gridExtent(v), [rx0, rx1, rz0, rz1] = v.roof, f = v.full;
   if (x < g.x0 || x > g.x1 || z < g.z0 || z > g.z1 || y < g.y0 || y > g.y1) return 0;
-  const wx = sstep(g.x0, rx0 - f, x) * (1 - sstep(rx1 + f, g.x1, x));
-  const wz = sstep(g.z0, rz0 - f, z) * (1 - sstep(rz1 + f, g.z1, z));
-  return wx * wz * sstep(v.yLo[0], v.yLo[1], y) * (1 - sstep(v.yHi[0], v.yHi[1], y));
+  // (D-276: as the shader's `ramp` (runtime.ts): an empty or reversed ramp is a step at its first edge. A volume trimmed
+  // against a close neighbour (the room ranges beside the halls) has its grid edge inside the fade zone: the reversed
+  // smoothstep gave weight 0 over the whole volume here, while the shader drew it at full weight)
+  const ramp = (a: number, b: number, t: number) => (b - a > 1e-3 ? sstep(a, b, t) : t >= a ? 1 : 0);
+  const wx = ramp(g.x0, rx0 - f, x) * (1 - ramp(rx1 + f, g.x1, x));
+  const wz = ramp(g.z0, rz0 - f, z) * (1 - ramp(rz1 + f, g.z1, z));
+  return wx * wz * ramp(v.yLo[0], v.yLo[1], y) * (1 - ramp(v.yHi[0], v.yHi[1], y));
 }
 export function volumeAt(F: ProbeField, x: number, y: number, z: number): ProbeVolume | null {
   for (const v of F.volumes) { const g = gridExtent(v); if (x >= g.x0 && x <= g.x1 && y >= g.y0 && y <= g.y1 && z >= g.z0 && z <= g.z1) return v; }

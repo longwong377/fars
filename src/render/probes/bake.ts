@@ -60,6 +60,10 @@ export function probeVolumes(parts: Part[], manifest: Manifest, o: BakeOptions =
   }
   // union of touching roofs at the same ceiling (per building), repeated until stable
   const groups: R[] = [];
+  // D-276: two groups merge only where their joint box covers no other roof: the room ranges' roofs touch in L shapes (the
+  // Harem's W wing and its main wing's apartments; the Treasury's store ranges and its N range), whose joint box would
+  // cover the Hadish or the Hall of 99 Columns, and a volume is a box
+  const inside = (a: R, o: R) => o.x0 < a.x1 - 0.01 && a.x0 < o.x1 - 0.01 && o.z0 < a.z1 - 0.01 && a.z0 < o.z1 - 0.01;
   for (const r of roofs) {
     let g: R = { ...r };
     for (let merged = true; merged;) {
@@ -67,7 +71,9 @@ export function probeVolumes(parts: Part[], manifest: Manifest, o: BakeOptions =
       for (let i = groups.length - 1; i >= 0; i--) {
         const q = groups[i], touch = q.x0 <= g.x1 + 0.01 && g.x0 <= q.x1 + 0.01 && q.z0 <= g.z1 + 0.01 && g.z0 <= q.z1 + 0.01;
         if (q.b !== g.b || !touch || Math.abs(q.ceil - g.ceil) > 0.05) continue;
-        g = { b: g.b, x0: Math.min(g.x0, q.x0), x1: Math.max(g.x1, q.x1), z0: Math.min(g.z0, q.z0), z1: Math.max(g.z1, q.z1), ceil: Math.min(g.ceil, q.ceil), top: Math.max(g.top, q.top) };
+        const u: R = { b: g.b, x0: Math.min(g.x0, q.x0), x1: Math.max(g.x1, q.x1), z0: Math.min(g.z0, q.z0), z1: Math.max(g.z1, q.z1), ceil: Math.min(g.ceil, q.ceil), top: Math.max(g.top, q.top) };
+        if (roofs.some(o => inside(u, o) && !inside(g, o) && !inside(q, o))) continue;
+        g = u;
         groups.splice(i, 1); merged = true;
       }
     }
@@ -85,7 +91,9 @@ export function probeVolumes(parts: Part[], manifest: Manifest, o: BakeOptions =
     if (A === B) continue;
     const ox = Math.min(A.m.x1, B.m.x1) - Math.max(A.m.x0, B.m.x0), oz = Math.min(A.m.z1, B.m.z1) - Math.max(A.m.z0, B.m.z0);
     if (ox <= 0 || oz <= 0) continue;
-    if (ox < oz) { if (A.r.x1 <= B.r.x0) { const mid = (A.r.x1 + B.r.x0) / 2; A.m.x1 = Math.min(A.m.x1, mid - 0.1); } else if (B.r.x1 <= A.r.x0) { const mid = (B.r.x1 + A.r.x0) / 2; A.m.x0 = Math.max(A.m.x0, mid + 0.1); } }
+    // (D-276: trim across the axis the two roofs are apart on; by the smaller overlap only when they are apart on both)
+    const sepX = A.r.x1 <= B.r.x0 || B.r.x1 <= A.r.x0, sepZ = A.r.z1 <= B.r.z0 || B.r.z1 <= A.r.z0;
+    if (sepX && (!sepZ || ox < oz)) { if (A.r.x1 <= B.r.x0) { const mid = (A.r.x1 + B.r.x0) / 2; A.m.x1 = Math.min(A.m.x1, mid - 0.1); } else if (B.r.x1 <= A.r.x0) { const mid = (B.r.x1 + A.r.x0) / 2; A.m.x0 = Math.max(A.m.x0, mid + 0.1); } }
     else { if (A.r.z1 <= B.r.z0) { const mid = (A.r.z1 + B.r.z0) / 2; A.m.z1 = Math.min(A.m.z1, mid - 0.1); } else if (B.r.z1 <= A.r.z0) { const mid = (B.r.z1 + A.r.z0) / 2; A.m.z0 = Math.max(A.m.z0, mid + 0.1); } }
   }
   for (const { b, floorOf, r, m } of boxes) {

@@ -13,7 +13,7 @@ export function capitalHeight(type: ColumnOrder['capital'], shaftD: number): num
 }
 export function order(building: string, opts: Partial<ColumnOrder> = {}): ColumnOrder {
   const P = v<any>('global', 'r_column_proportions');
-  const H = v(building, 'column_height');
+  const H: number = opts.height ?? v(building, 'column_height'); // (D-276: a room range's posts give their own height)
   const shaftD: number = opts.shaftD ?? (has(building, 'shaft_diameter_base') ? v(building, 'shaft_diameter_base') : has(building, 'r_shaft') ? v(building, 'r_shaft') : Math.max(P.shaft_min, H * P.default_shaft_over_h));
   const cap = opts.capital ?? 'bull';
   // a building's capital_height row describes its own capital type (row `capital`, e.g. the Apadana's composite)

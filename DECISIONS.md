@@ -6714,6 +6714,55 @@ moment-*-webgpu.png in the worktree, not committed).**
      (B57; the rubric's materials 1/5), each verified on screen.
 - **Not changed:** MASTER_PLAN's gates and thresholds; the gap inventory stays the backlog, now ordered by ring.
 
+## D-276 The Terrace's rooms: the Treasury's stores and halls, the Harem's apartments, the garrison's quarters, the guards' mess, the royal kitchens (session 10; B63; UD-06, UD-08, UD-14, UD-16)
+- **Why.** The Terrace's big complexes were enclosures round empty courts (terrace.ts "perimeter walls + key halls; C
+  interiors"): the garrison a wall round an open court, the Harem a hall in an empty walled wing, the Treasury a hall and its
+  N range in 11,000 m² of nothing. The plan keeps ~250 people (a quarter sample at 23:00) indoors there who had no room and were
+  not drawn (B63); and people "under a roof" were judged by whole traced footprints, so a sleeper could be drawn in the Harem's
+  empty W wing or the unroofed Tripylon and count as indoors (T-D3's anti-proxy).
+- **How it could pass while the intent fails (said before starting), and the measure against it:** rooms that are boxes with no
+  way in (measured: every room ≥ 30 % walkable on the grid, tests/rooms.test.ts; tools/dev/rooms_reach.ts: all 61 rooms reached,
+  800/800 sleeping places walkable); walls that are gaps where a neighbour "should" stand (sampled 0.3 m outside every side of
+  every room: something solid or a doorway, tests/rooms.test.ts; tools/dev/rooms_gaps.ts put each range's edge on the traced
+  enclosure faces); people counted under a roof that is not there (roofs are now the built roof parts); people drawn but
+  blocking the ways (the walk bots; the ways kept clear, below); a trace that passes by hiding people (noRoom counted per place).
+- **Built (src/arch/rooms.ts, terrace_rooms.ts; data SITE_SPEC <building>.room_ranges, r_rooms, global.r_room_fittings,
+  tools/apply_terrace_rooms_patch.py).** A range is a block of like rooms in a row (walls with plain doorways under lintels via
+  plan_walls.ts, one roof, posts, back rooms, floors); fittings by use from one pure function drive the parts (benches, jar and
+  quern colliders, lamp ledges), the drawn mats, bedrolls, jars, querns and lamps (world/furnish.ts buildRoomFittings: one draw
+  per building), the fires (hearths, lamps: firePlaces.ts) and the people's places (popgeo.ts).
+  - **Treasury** (REF-PLAN for the S part, B; C elsewhere; Q-730): the S part as the plan draws it (two columned store halls
+    4 × 4 / 4 × 5 posts, a court with store rooms N, E and S), store rooms in the strips W and E of the Hall of 99 Columns
+    (kept where D-067 put it), corridors 4 m wide, the E door's passage clear; 26 store rooms with benches carrying the stored
+    goods, big jars down the wider rooms, doors sealed (the N-half stores) or barred (the S part) out of hours (r_room_doors). The
+    stock gained silver phialai, gold rhyta, textile bales, scale corslets, shields, bead bowls, ivory, cut glass and bitumen jars
+    (the lead's gap hunt s10 C; tiers in treasury.stored_goods).
+  - **Harem** (ISAC-PA 6 + 16 four-column apartments, B; REF-PLAN rows, B; access C, Q-731): the main wing's six apartments
+    either side of a corridor from the hall's S doorway, the rooms beside the hall (entered by its W and E doorways), the
+    kitchens and the columned hall N of the court, the W wing's sixteen apartments in two rows along a corridor reached through a
+    passage room; each apartment a 4-post hall and a back room with at most 8 sleeping places.
+  - **Garrison** (REF-PLAN rooms along a street, B; C): seven quarters rooms (624 mats, a hearth and a lamp each), a store and a
+    kitchen E of the garrison street, the court on the 32-column hall's (later) site left open, the water point moved into it
+    (its well-head with it). **The royal guard's mess**: an open-fronted hall on posts on the N side of the guards' court
+    (court_guard_mess, Q-652: the night watch by the fire under a roof). **The royal kitchens**: three rooms where court.json
+    puts court_kitchen (Q-332, Q-733), built because the cooks lost the Hadish footprint's false roof.
+  - Not built: the Tripylon as a building site (task 4 of the brief; B86).
+- **People.** roofs.ts: under a roof = under a built roof part (the Tachara/Apadana/… roofs, the ranges); popgeo: the garrison's
+  men and the royal guard each on his own mat (pid mod 624, Q-732), lying asleep or sitting; the garrison hearth places round
+  their rooms' hearths; the mess and the kitchens under their roofs when the plan keeps them in; the Treasury's staff at bench
+  fronts off the aisles; nobody spread over a Terrace place or sent under a roof stands in a way kept clear (<building>.r_aisles,
+  every doorway's approach, the passage rooms). sim.ts's garrison agents sleep on the mats.
+- **Measured (node).** people_trace --gate, sample 4, court on: seed 1 T-D3 0, T-D3s 100 %, Terrace noRoom 0 at every moment
+  (baseline 251 at 23:00: court_guard_quarters 200, garrison_sleep 20, court_guard_mess 30; the mill and town forges 10-17 remain,
+  not Terrace); seed 7 T-D3 0, T-D3s 100 %, Terrace noRoom 0 (a transhumant band's camp 8 at night, not Terrace). T-D4 worst area
+  seed 1 3.55 % (was 3.45 %). Walkable grid −20,914 + 9 cells, none outside the ranges' blocks (tools/dev/nav_diff.ts).
+- **Also changed.** The probe bake no longer merges roofs whose joint box would cover another roof (the ranges' L shapes over the
+  Hadish and the Hall of 99 Columns), trims across the axis two roofs are apart on, and the CPU mirror volumeWeight treats an
+  empty or reversed ramp as the shader does (it gave weight 0 over whole trimmed volumes). Ceiling joists are drawn as their three
+  visible faces (6 triangles, meshes.ts joistGeometry): the ceilings stay under their 60,000-triangle budget with the ranges'
+  roofs (7,653 boxes). Posts of the ranges are plastered timber, painted only in the Treasury. Now view: the museum-hall rules
+  limited to the hall; jars and querns removed.
+
 ## D-278 The eclipsed Moon drawn at its perceived brightness (session 10; B84)
 - **Problem (B84):** eclipse-moon-tele at day 101 01:08 (a deep partial eclipse, obscuration > 0.85) drew the umbral part of the
   disc at 3e-4 of the full Moon: 1/255 under the night exposure, only the lit sliver showing. To the naked eye the umbral part of

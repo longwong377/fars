@@ -26,6 +26,8 @@ function shaftPaint(o: ColumnOrder): THREE.Material {
   return paintedShaftMaterial({ ground: pig(R.ground), line: pig(R.line), band: pig(R.band), around: R.around, lozenge_h: R.lozenge_h, line_w: R.line_w, band_h: R.band_h, edge_w: R.edge_w, y0: o.baseH, y1: o.height - o.capitalH, D: o.shaftD });
 }
 import { ceilingTimbers } from './ceilings';
+/** D-276: parts that are colliders only: the round fittings world/furnish.ts draws (storage jars, querns) */
+export const COLLIDER_ONLY = new Set(['jar', 'quern']);
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
 /** flat greybox material (plan-overlay tests, tools); the world uses procedural surfaces (render/materials.ts) */
 export function flatMaterial(m: Material) {
@@ -69,6 +71,18 @@ export function boxGeometry(b: Box): THREE.BufferGeometry {
   g.rotateY(b.rot ?? 0); // grid CCW rotation = world rotation about +Y (x east, z = −north)
   g.translate(b.c[0], (b.y0 + b.y1) / 2, -b.c[1]);
   return g.toNonIndexed();
+}
+/** D-276: a ceiling joist as the three faces anyone sees (its underside and its two long sides): its top lies against the
+ *  roof slab and its ends in the walls or on the beams, so 6 triangles instead of 12 (the ceilings' triangle budget,
+ *  tests/surfaces_s6.test.ts, with the room ranges' ceilings added) */
+export const JOIST_TRIS = 6;
+export function joistGeometry(b: Box): THREE.BufferGeometry {
+  const g = boxGeometry(b), alongX = b.size[0] >= b.size[1]; // (the ceilings' boxes are grid-aligned: ceilings.ts)
+  // non-indexed BoxGeometry: faces +x, −x, +y, −y, +z, −z, six vertices each; keep −y and the two faces along the length
+  const keep = [3, ...(alongX ? [4, 5] : [0, 1])], out = new THREE.BufferGeometry();
+  for (const name of ['position', 'normal'] as const) { const a = g.getAttribute(name).array as Float32Array, r = new Float32Array(keep.length * 18);
+    keep.forEach((f, i) => r.set(a.subarray(f * 18, f * 18 + 18), i * 18)); out.setAttribute(name, new THREE.BufferAttribute(r, 3)); }
+  return out;
 }
 
 // ---- bevels (D-157, C) -------------------------------------------------------------------------------------------------
@@ -387,7 +401,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   let colliders = 0;
   for (const p of parts) {
     if (p.type === 'column') {
-      const k = `${p.building}|${p.order.id}|${p.order.base}|${p.order.capital}|${p.order.shaftD}|${p.built.toFixed(2)}`;
+      const k = `${p.building}|${p.order.id}|${p.order.base}|${p.order.capital}|${p.order.shaftD}|${p.order.height}|${p.built.toFixed(2)}`;
       if (!cols.has(k)) cols.set(k, { order: p.order, built: p.built, parts: [] }); cols.get(k)!.parts.push(p);
       if (phys) { phys.addBox({ x: p.c[0], y: p.y0 + (p.order.baseH + (p.order.height - p.order.baseH) * p.built) / 2, z: -p.c[1] }, { x: p.order.baseW / 2, y: (p.order.baseH + (p.order.height - p.order.baseH) * p.built) / 2, z: p.order.baseW / 2 }); colliders++; }
       continue;
@@ -400,6 +414,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       phys.addTrimesh(new Float32Array(pos), idx, { building: p.building, kind: p.kind }); colliders++;
     }
     if (p.type === 'box' && p.sculpt) continue; // rendered as sculpture below; the box is the collider only
+    if (COLLIDER_ONLY.has(p.kind)) continue; // D-276: storage jars and querns: drawn round by world/furnish.ts; the box is the collider
     if (leaf) continue; // drawn (and moved) by the door system
     // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall). The render geometry is the part's
     // own, with its free arrises bevelled (D-157); the collider above stays the plain box
@@ -411,7 +426,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   }
   // the timber ceilings under the roofs (D-188): render geometry only, merged per building (no colliders, no bevels)
   for (const p of ceilingTimbers(parts)) {
-    const g = boxGeometry(p); for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
+    const g = p.kind === 'ceiling_joist' ? joistGeometry(p) : boxGeometry(p); for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
     partAttributes(g, p, index);
     const key = `${p.building}|${p.material}|${p.tier}|0|ceiling`;
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(g); e.plain.push(g.clone()); e.parts.push(p);
@@ -437,7 +452,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     for (const { material: mat, mesh } of L0) {
       const g0 = toGeometry(mesh), g1 = toGeometry(L1.find(x => x.material === mat)!.mesh);
       // the Treasury shafts were painted 'in bright colours' (B); colours not found: since D-214 the most probable scheme (C)
-      const painted = split && mat === 'plaster' && M.shaft === 'plaster';
+      const painted = split && mat === 'plaster' && M.shaft === 'plaster' && c.order.id === 'treasury'; // (D-276: the garrison's and the Harem's plastered posts are not the Treasury's painted shafts)
       const lod = new InstancedLOD([g0, g1], painted && !flatMode ? shaftPaint(c.order) : carvedMaterial(mat), at, SW.column, SW.hysteresis);
       const members = (['base', 'shaft', 'capital'] as const).filter(k => M[k] === mat).join(' + ');
       lod.name = `${b}:columns${split ? ':' + mat : ''}`;

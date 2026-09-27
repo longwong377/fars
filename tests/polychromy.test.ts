@@ -121,7 +121,7 @@ describe('masonry joints and carved stone (D-029)', () => {
     const surf = (o: any) => (o.levels ? o.levels[0] : o.children[0]).material.userData.note as string;
     for (const o of cols.filter(o => !o.name.startsWith('treasury'))) expect(surf(o), o.name).toBe(SURFACES.limestone_carved.note);
     for (const o of g.group.children.filter(o => o.name.includes(':colossus'))) expect(surf(o), o.name).toBe(SURFACES.limestone_carved.note);
-    const tr = cols.filter(o => o.name.startsWith('treasury')).map(o => o.name).sort();
+    const tr = [...new Set(cols.filter(o => o.name.startsWith('treasury')).map(o => o.name))].sort(); // (D-276: the S halls' posts are a second Treasury order, drawn in the same three surfaces)
     expect(tr).toEqual(['treasury:columns:limestone', 'treasury:columns:plaster', 'treasury:columns:timber']);
     const byName = (n: string) => cols.find(o => o.name === n);
     expect(surf(byName('treasury:columns:limestone'))).toBe(SURFACES.limestone_carved.note);

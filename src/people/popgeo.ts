@@ -20,6 +20,9 @@ import { sunTimes } from './calendar';
 import { hall100Layout } from './construction';
 import { footprint } from '../arch/spec';
 import { terraceRoofed } from './roofs';
+import { terraceRooms, roomFit, inAisle } from '../arch/terrace_rooms';
+import type { Room, Fittings } from '../arch/rooms';
+import { terraceBuilt } from '../arch/built';
 import { h32, salt } from './hash';
 import type { ActivityId } from './activities';
 import type { TownPlan } from '../world/settlement/plan';
@@ -368,6 +371,11 @@ export class PopGeo {
     const anchor = place === 'palaces' ? `palaces:${['apadana', 'tachara', 'hadish'][Math.floor(this.hash(pid, 'palaces', 12) * 3)]}` : (PLACES[place] as { anchor?: string } | undefined)?.anchor ?? place;
     const P = PLACES[place], A = this.abs[anchor], ap = this.anchorPt(anchor); if (!ap) return this.none(place, 'no walkable anchor');
     const K = this.pop.court;
+    // D-276: the places inside the room ranges (terrace_rooms.ts): a man of the garrison or the royal guard on his own mat in
+    // the quarters, the men round the hearth of their room, the night watch in the guards' mess, the Treasury's people at
+    // the benches (their places off the aisles: the walk bots found them standing in the ways between the benches)
+    const R = this.roomSpot(pid, place, act, indoor, ap);
+    if (R) return this.sp(R.at[0], R.at[1], true, R.heading, 'nav', `Terrace: ${place}, ${R.what} (C: D-276)`, { anchor: R.anchor });
     // D-221: a scribe's pupil at his place by the Treasury desk (site_spec treasury.scribes_room.seats, C)
     if (place === 'treasury_desk' && this.pop.persons[pid]?.pupilOf !== undefined && (act === 'write_tablet' || act === 'eat' || act === 'rest')) { const S = deskSeat('pupil');
       return this.sp(S.at[0], S.at[1], true, S.heading, 'nav', 'Terrace: treasury_desk, the pupil’s place by the desk (C: D-221)', { anchor, fixed: true }); }
@@ -393,7 +401,7 @@ export class PopGeo {
       // other places within 2.6 m
       else { const a = this.hash(pid, place, 13 + 50 * t) * Math.PI * 2, u = this.hash(pid, place, 14 + 50 * t), r = P.kind === 'hearth' ? Math.sqrt(1.6 * 1.6 + u * (8 * 8 - 1.6 * 1.6)) : P.kind === 'oven' ? 1.6 + u : 0.8 + 1.8 * u; e = P.at[0] + Math.cos(a) * r; n = P.at[1] + Math.sin(a) * r; if (P.kind === 'hearth' || P.kind === 'oven') face = P.at; }
       // the point itself where it is walkable (snapping to cell centres stacked people on one point), else the nearest cell
-      const q: P2 | null = this.nav.walkable(e, n) ? [e, n] : this.nav.snap(e, n, 4); if (q && (!clear || P?.kind === 'post' || clear(q[0], q[1])) && (Math.hypot(q[0] - ap[0], q[1] - ap[1]) < 0.3 || this.nav.lineClear(q, ap))) s = q; }
+      const q: P2 | null = this.nav.walkable(e, n) ? [e, n] : this.nav.snap(e, n, 4); if (q && (!clear || P?.kind === 'post' || clear(q[0], q[1])) && (P?.kind === 'post' || !inAisle(q[0], q[1])) && (Math.hypot(q[0] - ap[0], q[1] - ap[1]) < 0.3 || this.nav.lineClear(q, ap))) s = q; }
     s ??= ap;
     // D-244: the plan puts the person under a roof (the dark, the rain: population.ts planIndoors) at a place in the open:
     // they go in under the nearest roofed hall within ROOF_NEAR m (from the courts of the Harem into its halls, from the
@@ -406,12 +414,99 @@ export class PopGeo {
     const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : fo ? headingOf(fo[0] - s[0], fo[1] - s[1]) + (this.hash(pid, place, 16) - 0.5) * 30 /* (±15°: looking about, C) */ : P?.heading ?? this.hash(pid, place, 15) * 360;
     return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}${fo ? ', facing what is waited on (C: D-221)' : ''}${inRoof ? ', gone in under the nearest roof (C: D-244)' : ''}`, { anchor, ...(K && P?.kind === 'post' ? { fixed: true } : {}) });
   }
+  /** D-276: the room ranges' places for people (terrace_rooms.ts, rooms.ts roomFittings), laid out once. Each room gets an
+   *  anchor of its own (`room:<id>`, a pace inside its first doorway, or inside its open front): the cached routes reach it,
+   *  and a place in the room is chosen where it sees that anchor in a straight line, as every Terrace spot sees its anchor */
+  private rr: { mats: [number, number, number][]; rooms: { room: Room; fit: Fittings }[]; treasury: [number, number, number][]; hall99: [number, number, number][] } | null = null;
+  private ranges() {
+    if (this.rr) return this.rr;
+    const all = terraceRooms(), F = roomFit();
+    for (const { room } of all) { const d = room.doors[0], s = room.open[0];
+      const c: P2 = d ? [d.c[0] + d.n[0] * (d.depth / 2 + F.aisle), d.c[1] + d.n[1] * (d.depth / 2 + F.aisle)]
+        : s ? (s === 'S' ? [(room.x[0] + room.x[1]) / 2, room.y[0] + F.aisle] : s === 'N' ? [(room.x[0] + room.x[1]) / 2, room.y[1] - F.aisle] : s === 'E' ? [room.x[1] - F.aisle, (room.y[0] + room.y[1]) / 2] : [room.x[0] + F.aisle, (room.y[0] + room.y[1]) / 2])
+        : [(room.x[0] + room.x[1]) / 2, (room.y[0] + room.y[1]) / 2];
+      this.abs[`room:${room.id}`] = { c, h: [0, 0] }; }
+    const mats = all.filter(x => x.room.building === 'garrison' && x.room.use === 'quarters').flatMap(x => x.fit.sleep);
+    // the Hall of 99 Columns' benches (terrace.ts: manifest.treasury.benches): a place before each bench every work_pitch,
+    // facing it, none within an approach's depth of the hall's doorway (C)
+    const T = terraceBuilt().manifest.treasury as any, hall99: [number, number, number][] = [];
+    if (T?.benches && T?.room) { const [hcx, hcy, , hsy] = T.room as number[], door: P2 = [hcx, hcy + hsy / 2];
+      for (const [cx, cy, sx, sy] of T.benches as number[][]) { const alongX = sx > sy, len = alongX ? sx : sy, dep = alongX ? sy : sx, m = Math.max(1, Math.floor(len / F.work_pitch));
+        const nIn: P2 = alongX ? [0, Math.sign(hcy - cy)] : [Math.sign(hcx - cx), 0];
+        for (let i = 0; i < m; i++) { const a = -len / 2 + len * (i + 0.5) / m, e = cx + (alongX ? a : nIn[0] * (dep / 2 + F.work_off)), n = cy + (alongX ? nIn[1] * (dep / 2 + F.work_off) : a);
+          if (Math.hypot(e - door[0], n - door[1]) > F.approach) hall99.push([e, n, headingOf(-nIn[0], -nIn[1])]); } } }
+    const treasury = all.filter(x => x.room.building === 'treasury').flatMap(x => x.fit.work.map(([e, n, h]) => [e, n, (h * 180) / Math.PI] as [number, number, number]));
+    this.rr = { mats, rooms: all, treasury: [...treasury, ...hall99], hall99 };
+    return this.rr;
+  }
+  /** a walkable point at or next to p (the grid's erosion leaves a strip beside walls and benches unwalkable) */
+  private walkNear(p: P2): P2 | null { return this.nav.walkable(p[0], p[1]) ? p : this.nav.snap(p[0], p[1], 1.5); }
+  /** the range room holding p (its main room or back room) */
+  private roomAtPt(p: P2): Room | null {
+    const inR = (r: { x: [number, number]; y: [number, number] }) => p[0] > r.x[0] && p[0] < r.x[1] && p[1] > r.y[0] && p[1] < r.y[1];
+    return this.ranges().rooms.find(x => inR(x.room) || (x.room.back && inR(x.room.back)))?.room ?? null;
+  }
+  /** D-276: where a person at a place inside the room ranges is (null: the place is not one of them, or not now). Up to 8
+   *  candidates in turn: a walkable point, out of the ways kept clear (a sleeper on a mat excepted: the mats lie clear of
+   *  them), that sees its room's anchor (or the place's own, in the Hall of 99 Columns) in a straight line */
+  private roomSpot(pid: number, place: string, act: ActivityId, indoor: boolean, ap: P2): { at: P2; heading: number; what: string; anchor: string } | null {
+    const deg = (r: number) => (r * 180) / Math.PI, RR = this.ranges(), F = roomFit(), lying = act === 'sleep' || act === 'lie_ill';
+    type Cand = { p: P2; heading: number; what: string; mat?: boolean };
+    let gen: ((k: number) => Cand | null) | null = null;
+    const inRoom = (x: { room: Room; fit: Fittings }, k: number, what: string): Cand => { const r = x.room.back && this.hash(pid, place, 60 + k) < 0.4 ? x.room.back : x.room;
+      const p: P2 = [r.x[0] + (r.x[1] - r.x[0]) * (0.15 + 0.7 * this.hash(pid, place, 41 + 3 * k)), r.y[0] + (r.y[1] - r.y[0]) * (0.15 + 0.7 * this.hash(pid, place, 42 + 3 * k))];
+      return { p, heading: headingOf((x.room.x[0] + x.room.x[1]) / 2 - p[0], (x.room.y[0] + x.room.y[1]) / 2 - p[1]) + (this.hash(pid, place, 43 + 3 * k) - 0.5) * 60, what }; };
+    // the garrison's men and the royal guard (court_guard_quarters, B63): each on his own mat, lying on it asleep or ill,
+    // sitting on it otherwise (resting, mending his gear), facing into the room. Mats by person in turn (the people of one
+    // company are numbered in a row, so men sleeping at the same time lie on different mats; C)
+    if (place === 'garrison_sleep' || place === 'court_guard_quarters') { const M = RR.mats;
+      if (M.length) gen = k => { const m = M[(pid + k * 97) % M.length]; return { p: [m[0], m[1]], heading: deg(m[2]) + (lying ? 0 : 180), what: lying ? 'on his mat in the garrison quarters' : 'sitting on his mat in the garrison quarters', mat: true }; }; }
+    // the royal household (court.json court_harem, court_harem_s): the women and their attendants in the Harem's rooms (the
+    // women in the main wing's, the attendants in the W wing's), asleep on the apartments' mats, awake anywhere in the rooms;
+    // the women out in the N court by day when the plan lets them be out
+    else if (place === 'court_harem_s' || (place === 'court_harem' && indoor)) {
+      const H = RR.rooms.filter(x => x.room.building === 'harem' && x.room.use !== 'passage' && (place === 'court_harem_s' ? x.room.range.startsWith('ww_') : !x.room.range.startsWith('ww_')));
+      const S = H.flatMap(x => x.fit.sleep);
+      if (H.length) gen = k => { if (lying && S.length) { const m = S[(pid + k * 31) % S.length]; return { p: [m[0], m[1]], heading: deg(m[2]), what: 'asleep in the Harem\'s rooms', mat: true }; }
+        return inRoom(H[Math.floor(this.hash(pid, place, 44 + k) * H.length)], k, 'in the Harem\'s rooms'); }; }
+    // a hearth place inside a room (the garrison's hearths: people_places.json garrison_hearth_*): round that room's hearth,
+    // a pace out from the ring, facing the fire
+    else if (PLACES[place]?.kind === 'hearth') {
+      const at = PLACES[place].at, x = RR.rooms.find(q => at[0] > q.room.x[0] && at[0] < q.room.x[1] && at[1] > q.room.y[0] && at[1] < q.room.y[1] && q.fit.hearths.length);
+      if (x) gen = k => { const h = x.fit.hearths[0], a = this.hash(pid, place, 31 + 2 * k) * Math.PI * 2, r = F.hearth_r + F.work_off + F.work_off * this.hash(pid, place, 32 + 2 * k);
+        const p: P2 = [h[0] + Math.cos(a) * r, h[1] + Math.sin(a) * r]; return { p, heading: headingOf(h[0] - p[0], h[1] - p[1]), what: `round the hearth of ${x.room.id}` }; }; }
+    // the guards' mess under its roof when the plan keeps them in (the dark, the rain): round its two fires or on the bench
+    else if (place === 'court_guard_mess' && indoor) {
+      const x = RR.rooms.find(q => q.room.use === 'mess');
+      if (x && x.fit.work.length) gen = k => { const w = x.fit.work[Math.floor(this.hash(pid, place, 33 + 2 * k) * x.fit.work.length)], j = (this.hash(pid, place, 34 + 2 * k) - 0.5) * F.work_pitch * 0.5;
+        return { p: [w[0] + Math.cos(w[2]) * j, w[1] - Math.sin(w[2]) * j], heading: deg(w[2]), what: 'in the guards\' mess, under its roof' }; }; }
+    // the royal kitchens' cooks when the plan keeps them in (court.json court_kitchen): at the hearths and querns, or anywhere
+    else if (place === 'court_kitchen' && indoor) {
+      const K = RR.rooms.filter(q => q.room.range === 'royal_kitchens');
+      if (K.length) gen = k => { const x = K[Math.floor(this.hash(pid, place, 36 + k) * K.length)], W = x.fit.work;
+        if (W.length && this.hash(pid, place, 37 + k) < 0.5) { const w = W[Math.floor(this.hash(pid, place, 38 + k) * W.length)]; return { p: [w[0], w[1]], heading: deg(w[2]), what: 'at work in the royal kitchens' }; }
+        return inRoom(x, k, 'in the royal kitchens'); }; }
+    // the Treasury's staff at the benches: anywhere in its rooms (treasury_inside), or at the benches of the Hall of 99
+    // Columns near the store's anchor (treasury_store); never in a doorway's approach or between the benches' rows
+    else if (place === 'treasury_inside' || place === 'treasury_store') {
+      const list = place === 'treasury_store' ? RR.hall99.filter(w => Math.hypot(w[0] - ap[0], w[1] - ap[1]) < ROOF_NEAR / 2) : RR.treasury;
+      if (list.length) gen = k => { const w = list[Math.floor(this.hash(pid, `${place}:bench`, 35 + k) * list.length)]; return { p: [w[0], w[1]], heading: w[2], what: 'at a bench, off the aisle' }; }; }
+    if (!gen) return null;
+    for (let k = 0; k < 8; k++) {
+      const c = gen(k); if (!c) continue;
+      const q = c.mat && this.nav.walkable(c.p[0], c.p[1]) ? c.p : this.walkNear(c.p); if (!q || (!c.mat && inAisle(q[0], q[1]))) continue;
+      const room = this.roomAtPt(q), anchor = room ? `room:${room.id}` : place, a = room ? this.anchorPt(anchor) : ap;
+      if (!a || !(Math.hypot(q[0] - a[0], q[1] - a[1]) < 0.3 || this.nav.lineClear(q, a))) continue;
+      return { at: q, heading: c.heading, what: c.what, anchor };
+    }
+    return null;
+  }
   /** D-244: the nearest walkable point under a roofed Terrace building within ROOF_NEAR m of `s` (rings 1 m apart, starting
    *  at an angle of the person's own), or null */
   private roofNear(s: P2, pid: number, place: string): P2 | null {
     const a0 = this.hash(pid, place, 27) * Math.PI * 2;
     for (let r = 1; r <= ROOF_NEAR; r++) { const m = Math.max(8, Math.ceil((2 * Math.PI * r) / 1.2));
-      for (let k = 0; k < m; k++) { const a = a0 + (k / m) * Math.PI * 2, e = s[0] + Math.cos(a) * r, n = s[1] + Math.sin(a) * r; if (terraceRoofed(e, n) && this.nav.walkable(e, n)) return [e, n]; } }
+      for (let k = 0; k < m; k++) { const a = a0 + (k / m) * Math.PI * 2, e = s[0] + Math.cos(a) * r, n = s[1] + Math.sin(a) * r; if (terraceRoofed(e, n) && this.nav.walkable(e, n) && !inAisle(e, n)) return [e, n]; } }
     return null;
   }
   /** D-221: the centres of the forecourt's knots of talkers: every 3 m of the forecourt where a ring of 1.3 m round the

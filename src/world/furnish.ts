@@ -18,10 +18,24 @@ const FORMS: Record<string, () => THREE.BufferGeometry> = {
   chert_set: () => mergeGeometries([strip(lathe([[0, 0], [0.09, 0], [0.1, 0.06], [0.07, 0.07], [0, 0.07]])), strip(new THREE.CylinderGeometry(0.018, 0.022, 0.16, 8).rotateZ(1.2).translate(0.02, 0.1, 0))])!, // mortar + pestle
   arrow_bundle: () => new THREE.CylinderGeometry(0.05, 0.05, 0.75, 10).rotateZ(Math.PI / 2).translate(0, 0.05, 0), // bundle lying on the bench
   sealed_jar: () => lathe([[0, 0], [0.07, 0], [0.13, 0.12], [0.12, 0.3], [0.06, 0.36], [0.065, 0.4], [0, 0.4]]),
+  // D-276 (the lead's gap hunt s10 C: the stock the benches lacked). Forms C; the types' tiers in treasury.stored_goods
+  silver_phiale: () => lathe([[0, 0.012], [0.03, 0.004], [0.1, 0.012], [0.125, 0.04], [0.118, 0.042], [0.095, 0.016], [0.03, 0.01], [0, 0.02]], 20), // shallow bowl with a raised omphalos, stacked flat
+  gold_rhyton: () => lathe([[0, 0], [0.012, 0], [0.03, 0.08], [0.05, 0.2], [0.058, 0.24], [0.05, 0.24], [0, 0.23]], 14).rotateZ(1.3).translate(0.1, 0.035, 0), // a horn-shaped drinking vessel lying on its side
+  textile_bale: () => new THREE.BoxGeometry(0.42, 0.16, 0.3).translate(0, 0.08, 0), // folded cloth tied in a bale
+  scale_armour: () => new THREE.BoxGeometry(0.5, 0.07, 0.36).translate(0, 0.035, 0), // a scale corslet folded flat
+  shield: () => new THREE.CylinderGeometry(0.34, 0.34, 0.035, 16).rotateX(1.35).translate(0, 0.33, 0.1), // a round shield leaning on the wall
+  bead_bowl: () => mergeGeometries([strip(lathe([[0, 0], [0.05, 0], [0.08, 0.04], [0.085, 0.05], [0.075, 0.05], [0, 0.012]], 12)), strip(new THREE.SphereGeometry(0.07, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.35, 1).translate(0, 0.03, 0))])!, // a bowl heaped with beads
+  ivory_tusk: () => new THREE.TorusGeometry(0.45, 0.045, 6, 12, 1.1).rotateX(Math.PI / 2).translate(-0.3, 0.045, -0.15), // an elephant tusk lying on the bench
+  glass_bowl: () => lathe([[0, 0], [0.04, 0], [0.085, 0.03], [0.095, 0.065], [0.09, 0.066], [0.078, 0.034], [0, 0.006]], 16), // a cut-glass bowl
+  bitumen_jar: () => lathe([[0, 0], [0.07, 0], [0.13, 0.12], [0.12, 0.3], [0.06, 0.36], [0.07, 0.4], [0, 0.41]]),
 };
 const COLOURS: Record<string, [number, number, number, number]> = { // sRGB albedo, roughness
   alabaster_vessel: [0.86, 0.82, 0.72, 0.3], blue_vessel: [0.13, 0.28, 0.62, 0.35], chert_set: [0.3, 0.38, 0.31, 0.45], arrow_bundle: [0.62, 0.55, 0.38, 0.8], sealed_jar: [0.6, 0.42, 0.3, 0.85],
+  // D-276: metals drawn partly metallic (no environment reflection: the bronze_metalness precedent, D-030); the rest as found
+  silver_phiale: [0.78, 0.78, 0.76, 0.3], gold_rhyton: [0.86, 0.66, 0.3, 0.28], textile_bale: [0.55, 0.3, 0.22, 0.95], scale_armour: [0.5, 0.4, 0.26, 0.55], shield: [0.52, 0.4, 0.26, 0.85],
+  bead_bowl: [0.2, 0.26, 0.58, 0.4], ivory_tusk: [0.88, 0.83, 0.7, 0.4], glass_bowl: [0.7, 0.78, 0.72, 0.12], bitumen_jar: [0.16, 0.13, 0.11, 0.35],
 };
+const METALNESS: Record<string, number> = { silver_phiale: 0.35, gold_rhyton: 0.35, scale_armour: 0.2 };
 
 export function buildTreasuryGoods(benches: number[][], seed = 1): THREE.Group {
   const group = new THREE.Group(); group.name = 'treasury_goods';
@@ -45,7 +59,8 @@ export function buildTreasuryGoods(benches: number[][], seed = 1): THREE.Group {
     const idx = order.map((it, i) => (it === g.item ? i : -1)).filter(i => i >= 0 && i < slots.length);
     if (!idx.length || !FORMS[g.item]) continue;
     const [r, gg, b, rough] = COLOURS[g.item];
-    const mat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(r, gg, b, THREE.SRGBColorSpace), roughness: rough, metalness: 0 });
+    const mat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(r, gg, b, THREE.SRGBColorSpace), roughness: rough, metalness: METALNESS[g.item] ?? 0 });
+    if (g.item === 'glass_bowl') { mat.transparent = true; mat.opacity = 0.55; }
     const im = new THREE.InstancedMesh(FORMS[g.item](), mat, idx.length);
     idx.forEach((k, i) => { const sl = slots[k]; q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), sl.along + sl.rot); m4.compose(new THREE.Vector3(sl.x, sl.y, sl.z), q, s); im.setMatrixAt(i, m4); });
     im.castShadow = true; im.receiveShadow = true; im.name = `treasury:${g.item}`;
@@ -212,4 +227,43 @@ function mergeStatic(group: THREE.Group, names: string[], name: string) {
   const mesh = new THREE.Mesh(mergeGeometries(geos)!, m); mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true;
   mesh.userData = { tier: 'C', src: 'IR-TREAS;MATCULT-R;RECON', note: `the room's small furnishings, merged into one draw (each piece's record is on its named anchor): ${notes.join(' | ')}` };
   group.add(mesh);
+}
+
+/** D-276: the fittings of a building's room ranges (terrace.ts buildRanges → manifest[b].ranges): reed sleeping mats with a
+ *  bedroll at the head, storage jars, querns and the saucer lamps on their ledges, merged into one vertex-coloured mesh per
+ *  building (one draw). The hearths are the fire system's bodies (firePlaces.ts); the jars' and querns' colliders are
+ *  terrace.ts parts. Types from the town's houses and MATERIAL_CULTURE (reed mats, bedding, jars, querns, saucer lamps: B by
+ *  analogy); number and place by rule (C) */
+export function buildRoomFittings(b: string, R: { mats: number[][]; jars: number[][]; querns: number[][]; lamps: number[][] }): THREE.Group {
+  const group = new THREE.Group(); group.name = `${b}:rooms`;
+  const F = v<any>('global', 'r_room_fittings');
+  const mat = (rgb: [number, number, number], rough: number) => new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace), roughness: rough, metalness: 0 });
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), one = new THREE.Vector3(1, 1, 1), names: string[] = [];
+  const inst = (geo: THREE.BufferGeometry, m: THREE.Material, list: THREE.Matrix4[], name: string) => {
+    if (!list.length) return; const im = new THREE.InstancedMesh(geo, m, list.length); list.forEach((x, i) => im.setMatrixAt(i, x)); im.name = name;
+    im.userData = { tier: 'C', src: 'MATCULT-R;RECON', note: `${name.split(':')[1]} (types B by analogy with the town's houses; number and place C, D-276)` }; group.add(im); names.push(name); };
+  // mats: a thin slab of reed matting (two tones by turn), the bedding rolled at the head end
+  const matsA: THREE.Matrix4[] = [], matsB: THREE.Matrix4[] = [], rolls: THREE.Matrix4[] = [];
+  const [mw, ml] = F.mat as [number, number];
+  R.mats.forEach(([e, n, sx, sy, fl, h], i) => {
+    (i % 3 ? matsA : matsB).push(m4.clone().compose(new THREE.Vector3(e, fl + F.mat_t / 2, -n), q.identity(), new THREE.Vector3(sx, F.mat_t, sy)));
+    const hx = Math.sin(h), hy = Math.cos(h), c = [e + hx * (ml / 2 - 0.16), n + hy * (ml / 2 - 0.16)];
+    rolls.push(m4.clone().compose(new THREE.Vector3(c[0], fl + F.mat_t + 0.08, -c[1]), q.setFromAxisAngle(up, -h), one));
+  });
+  inst(new THREE.BoxGeometry(1, 1, 1), mat([0.62, 0.53, 0.35], 0.95), matsA, `${b}:mats`); inst(new THREE.BoxGeometry(1, 1, 1), mat([0.55, 0.47, 0.3], 0.95), matsB, `${b}:mats_b`);
+  inst(new THREE.CylinderGeometry(0.085, 0.085, mw * 0.85, 8).rotateZ(Math.PI / 2), mat([0.5, 0.36, 0.24], 0.9), rolls, `${b}:bedrolls`);
+  // storage jars: a round-bottomed jar set in the floor, its mouth closed with a clay stopper (C)
+  const r = F.jar_r, jh = F.jar_h;
+  inst(lathe([[0, 0], [r * 0.45, 0], [r * 0.9, jh * 0.25], [r, jh * 0.55], [r * 0.7, jh * 0.85], [r * 0.4, jh * 0.92], [r * 0.45, jh], [0, jh]], 12), mat([0.62, 0.44, 0.31], 0.85),
+    R.jars.map(([e, n, fl], i) => m4.clone().compose(new THREE.Vector3(e, fl - 0.02, -n), q.setFromAxisAngle(up, i * 1.7), one)), `${b}:jars`);
+  // querns: a saddle quern (a stone slab) with its rubbing stone on it
+  const [qw, qd] = F.quern as [number, number];
+  inst(mergeGeometries([strip(new THREE.BoxGeometry(qw, 0.12, qd).translate(0, 0.06, 0)), strip(new THREE.BoxGeometry(qw * 0.4, 0.07, qd * 0.7).translate(0, 0.155, 0))])!, mat([0.52, 0.5, 0.46], 0.8),
+    R.querns.map(([e, n, fl]) => m4.clone().compose(new THREE.Vector3(e, fl, -n), q.identity(), one)), `${b}:querns`);
+  // saucer lamps on the ledges (their flames: firePlaces.ts)
+  inst(lathe([[0, 0], [0.04, 0], [0.055, 0.016], [0.057, 0.03], [0.05, 0.03], [0.045, 0.016], [0, 0.012]], 12), mat([0.6, 0.45, 0.32], 0.8),
+    R.lamps.map(([e, n, y]) => m4.clone().compose(new THREE.Vector3(e, y, -n), q.identity(), one)), `${b}:lamps`);
+  mergeStatic(group, names, `${b}:room_fittings`);
+  const merged = group.getObjectByName(`${b}:room_fittings`); if (merged) merged.userData = { ...merged.userData, src: 'MATCULT-R;RECON' };
+  return group;
 }

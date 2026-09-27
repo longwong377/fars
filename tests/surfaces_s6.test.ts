@@ -6,6 +6,7 @@ import { SURFACES, atY, trafficMap, TRAFFIC } from '../src/render/materials';
 import { munsellY, srgbToLinear } from '../src/core/colour';
 import { buildTerrace } from '../src/arch/terrace';
 import { ceilingTimbers, CEILING } from '../src/arch/ceilings';
+import { joistGeometry, JOIST_TRIS } from '../src/arch/meshes';
 import { ssrBlurLod } from '../src/render/pipeline';
 import { falseShadowRate, type SSSCase } from './lib/sss_cpu';
 import { crenellationGeometry, CREN_BEVEL } from '../src/arch/decor';
@@ -58,7 +59,9 @@ describe('ceiling timbers (D-188)', () => {
     for (const b of ['apadana', 'hadish', 'tachara', 'harem', 'treasury']) expect(T.some(t => t.building === b && t.kind === 'ceiling_beam'), b).toBe(true);
     // render geometry only: the parts (colliders, walkable grid, probes, plan tests) are unchanged
     expect((parts as any[]).some(p => p.kind === 'ceiling_beam' || p.kind === 'ceiling_joist')).toBe(false);
-    const tris = T.length * 12; rows.push(`total ${T.length} boxes, ${tris} triangles`);
+    // (D-276: a joist is drawn as its three visible faces, meshes.ts joistGeometry; the count is of the triangles drawn)
+    const nj = T.filter(b => b.kind === 'ceiling_joist').length, tris = (T.length - nj) * 12 + nj * JOIST_TRIS; rows.push(`total ${T.length} boxes, ${tris} triangles`);
+    expect(joistGeometry(T.find(b => b.kind === 'ceiling_joist')!).getAttribute('position').count / 3).toBe(JOIST_TRIS);
     expect(tris).toBeLessThan(60000);
     mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/ceilings.txt', rows.join('\n') + '\n');
   });

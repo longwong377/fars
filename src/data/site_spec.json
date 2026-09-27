@@ -645,6 +645,54 @@
    "src": "LIVIUS-AI;LANG-R;ARIO-CATF;RECON",
    "tier": "C",
    "note": "D-214 (gap audit item 27): DPb 'on the garment of Darius on a relief in his Palace', one line (LIVIUS-AI via LANG-R, B; Old Persian only in that description), and XPk 'on Xerxes' garment on a relief' (B; LANG-R places it at the Hadish, with a query). Which reliefs is not read (Schmidt 1953 NOT SEEN): here the king on reveal 0 of the Tachara S main doorway (the Tachara's one king relief, B) for DPb and the king on reveal 0 of the Hadish E doorway (B relief; XPe above him) for XPk (C). The line runs across the lower robe just above the hem's lion strip (fx, fy: C); each sign's cut lies on the robe's own carved surface (the relief field sampled at `sample` points under it: each sign flat at the highest point it covers). The signs are small (glyph_min to glyph_max: C). XPk: every version the edition gives, stacked one line each (the description names Old Persian and Elamite only: Q-423); DPb's two edition lines are carved as the garment's one line (Q-429)"
+  },
+  "r_room_fittings": {
+   "v": {
+    "mat": [
+     0.8,
+     1.9
+    ],
+    "mat_t": 0.03,
+    "mat_gap": 0.12,
+    "wall_gap": 0.1,
+    "door_clear": 0.5,
+    "approach": 3.5,
+    "aisle": 1.3,
+    "hearth_r": 0.55,
+    "hearth_clear": 1.6,
+    "hearth_places": 4,
+    "mess_places": 6,
+    "post_clear": 0.45,
+    "lamp_h": 1.2,
+    "ledge": [
+     0.36,
+     0.24,
+     0.1
+    ],
+    "jar_r": 0.3,
+    "jar_h": 0.75,
+    "jar_pitch": 0.75,
+    "jars_quarters": 3,
+    "jars_store": 4,
+    "jars_service": 6,
+    "mats_apartment": 8,
+    "quern": [
+     0.55,
+     0.4
+    ],
+    "querns_service": 2,
+    "bench": {
+     "height": 0.45,
+     "depth": 0.7,
+     "gap": 0.8
+    },
+    "work_off": 0.8,
+    "work_pitch": 1.4
+   },
+   "u": "m",
+   "src": "MATCULT-R;SCHMIDT1953;RECON",
+   "tier": "C",
+   "note": "D-276: fittings of the Terrace rooms by use (all C; types from the town's houses, D-234, and MATERIAL_CULTURE): reed sleeping mats (mat w x l, thickness mat_t) laid head to the wall with mat_gap between them and wall_gap from the wall, none within door_clear of a doorway's leaf sweep or in its approach (a strip as wide as the doorway + 2 aisle/2, approach m deep) or within hearth_clear of the hearth or post_clear of a post; hearth_places / mess_places: the places round a hearth where the men sit to eat (quarters and kitchens / the mess); the aisle is the free way kept down the room between the rows. A clay hearth ring (hearth_r) in each quarters room and the kitchens; a saucer lamp on a mud ledge (ledge w x d x t) lamp_h up the back wall; storage jars (jar_r, jar_h) in a row at jar_pitch along a wall by the door; querns in the kitchens; an apartment's back room at most mats_apartment sleeping places (a household: the lady, her children and her women, C); mud-brick benches (height, depth; gap = free wall at the corners and by the door) along the walls of the stores carrying the stored goods (treasury.stored_goods). work_off: a storekeeper's place in front of a bench face (off the aisle), every work_pitch along it"
   }
  },
  "terrace": {
@@ -781,8 +829,8 @@
      },
      {
       "at": [
-       213.2,
-       106.0
+       215.3,
+       55.0
       ],
       "serves": "water"
      }
@@ -799,19 +847,122 @@
    "u": "m (grid)",
    "src": "IR-PERS;TERRACE-DRAINS;RECON",
    "tier": "C",
-   "note": "D-214 (gap audit item 31): cisterns fed by the rock-cut drains (TERRACE-DRAINS, search extracts: B), their heads not read. A well-head is drawn at each of the people's two water points on the Terrace (court.json court_cistern, people_places.json water: the points C), 1.2 m W of the spot where the water is drawn: a round stone kerb (r_out, r_in, h) on a square paving slab (`slab`). The large cistern cut at the E foot of the Kuh-e Rahmat behind the platform (search extract) is off the Terrace and its place is not read: not drawn. Q-428"
+   "note": "D-214 (gap audit item 31): cisterns fed by the rock-cut drains (TERRACE-DRAINS, search extracts: B), their heads not read. A well-head is drawn at each of the people's two water points on the Terrace (court.json court_cistern, people_places.json water: the points C), 1.2 m W of the spot where the water is drawn: a round stone kerb (r_out, r_in, h) on a square paving slab (`slab`). The large cistern cut at the E foot of the Kuh-e Rahmat behind the platform (search extract) is off the Terrace and its place is not read: not drawn. Q-428 D-276: the garrison's water point moved from inside the N quarters (212, 106) to its court (216.5, 55); the head 1.2 m W of it"
   },
   "r_masonry": {
-   "v": { "quantum": 0.02, "sections": 4, "y0": -40.0, "y1": 2.0,
-    "course_q": [0.45, 0.58, 0.72, 0.95, 1.02, 1.1, 1.22, 1.3, 1.39, 1.52, 1.65],
-    "block": { "base": 1.9, "per": 4, "joint_p": 0.6, "jitter": 0.25 },
-    "split": { "min_h": 1.4, "p": 0.25, "f": [0.28, 0.4] },
-    "stair": { "oblique": 0.21, "split_p": 0.5, "f": [0.25, 0.75], "box": [-47.0, -31.5, 79.5, 165.4] },
-    "foot": { "ground": -11.8, "height": 4.9, "lambda": 110, "offset": [2.22, 8.61], "theta": 0.1, "w": 0.05, "cell": 4.6, "row": 1.8, "jitter": [0.4, 0.14], "joint": 0.004, "lip": 0.02, "tilt": 0.026 } },
+   "v": {
+    "quantum": 0.02,
+    "sections": 4,
+    "y0": -40.0,
+    "y1": 2.0,
+    "course_q": [
+     0.45,
+     0.58,
+     0.72,
+     0.95,
+     1.02,
+     1.1,
+     1.22,
+     1.3,
+     1.39,
+     1.52,
+     1.65
+    ],
+    "block": {
+     "base": 1.9,
+     "per": 4,
+     "joint_p": 0.6,
+     "jitter": 0.25
+    },
+    "split": {
+     "min_h": 1.4,
+     "p": 0.25,
+     "f": [
+      0.28,
+      0.4
+     ]
+    },
+    "stair": {
+     "oblique": 0.21,
+     "split_p": 0.5,
+     "f": [
+      0.25,
+      0.75
+     ],
+     "box": [
+      -47.0,
+      -31.5,
+      79.5,
+      165.4
+     ]
+    },
+    "foot": {
+     "ground": -11.8,
+     "height": 4.9,
+     "lambda": 110,
+     "offset": [
+      2.22,
+      8.61
+     ],
+     "theta": 0.1,
+     "w": 0.05,
+     "cell": 4.6,
+     "row": 1.8,
+     "jitter": [
+      0.4,
+      0.14
+     ],
+     "joint": 0.004,
+     "lip": 0.02,
+     "tilt": 0.026
+    }
+   },
    "u": "m (heights above the court datum; box: grid e0, e1, n0, n1)",
    "src": "REF-PHOTO-24;REF-PHOTO-33;IR-PERS;RECON",
    "tier": "C",
    "note": "D-232: the joint layout of the Terrace retaining walls, measured on photograph #24 rectified onto the wall planes with the solved camera of D-230 (tools/dev/masonry_photo_d232.py; the joints read by eye on 4-5x crops with a 0.5 m grid, checked against an automatic bed profile). Courses laid level: 47 course heights, median 1.10 m (IQR 0.90-1.35, 0.45-1.65; 21 % thinner than 0.75 m, 15 % 1.5 m or more), drawn from their deciles (course_q), quantised to 2 cm; one course table per wall section (a face's plane picks one of 4) and one for the Grand Stair recess. Blocks: 57 lengths, median 2.2 m (IQR 2.0-3.5, 1.15-7.0; 26 % 3.5 m or more): drawn as runs of 4 cells of 1.9 m whose 3 inner joints are present with p 0.6, jittered +-0.25 cell (p25/median/p75 1.77/2.13/3.6, 27 % >= 3.5 m, max 7.6: CPU mirror, tests/masonry_d232.test.ts). A block of a course >= 1.4 m is split in a thin and a thick piece in 25 % (the photo's 0.46 + 1.1 m pieces of its 1.6 m course over ~22 % of its length, read the other way as blocks spanning two thin courses). The foot: large irregular blocks and dressed bedrock (IR-PERS: the Terrace partly cut from the rock, B) along 38 % of the 203 m of W wall read, 4.9 m high where present (median 4.84, IQR 4.74-5.29 above the plain at -11.8), 15 % of the wall area; its blocks 3.5-6.8 m long (median 5.8) by 1.4-2.2 m (median 1.8): a row-jittered Voronoi of 4.6 x 1.8 m cells, present on W- and S-facing walls where a 110 m plan noise exceeds theta (placed to agree with #24: present on the salient's W face for its first ~62 m, absent S of it), joints 4 mm with 2 cm rounded arrises, faces tilted up to +-1.5 deg (rougher than the dressed ashlar: C; the ruin's open joints are weathering). Grand Stair recess walls (#33, by eye: blocks of irregular height with jogged beds and leaning head joints, the IR-PERS 'huge irregular blocks', B): the same courses, split share 0.5 at 0.25-0.75 of the height, head joints leaning up to +-12 deg (C). Joint width of the dressed ashlar unchanged (Q-071). Not modelled: the foot's stepped-back plinth (geometry), Q-600"
+  },
+  "r_rooms": {
+   "v": {
+    "wall": 0.9,
+    "clear": 3.4,
+    "roof": 0.4,
+    "post": 0.35,
+    "door_width": 1.6,
+    "door_height": 2.3,
+    "inner_width": 1.0,
+    "inner_height": 2.1
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "D-276: the royal kitchens' rooms: mud-brick walls, a flat roof of poles and earth, clear height, doorways (all C)"
+  },
+  "room_ranges": {
+   "v": [
+    {
+     "id": "royal_kitchens",
+     "into": [],
+     "floor": 0.0,
+     "use": "service",
+     "x": [
+      -44.0,
+      -18.0
+     ],
+     "y": [
+      -176.0,
+      -160.0
+     ],
+     "axis": "x",
+     "n": 3,
+     "door": "N",
+     "note": "the king's kitchens: three rooms with hearths, querns and jars on the open ground W of the Hadish where court.json puts court_kitchen (the kitchens are NOT LOCATED on the Terrace, Q-332: C); built so the cooks the plan keeps indoors after dark have their roof (D-276: until then they stood under the Hadish's traced footprint, which is not a roof)"
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "D-276: the royal kitchens (court.json court_kitchen, NOT LOCATED: Q-332), three roofed rooms opening N onto the open ground W of the Hadish (C)"
   }
  },
  "grand_stair": {
@@ -1557,7 +1708,15 @@
    "note": "four-stepped crenellations crowning the stair façades (motif B, IR-PERS; size C); each face with the double-rebated slot of apadana.r_merlon_slot (B, D-230)"
   },
   "r_merlon_slot": {
-   "v": { "outer_w": 0.26, "outer_h": 0.41, "inner_w": 0.1, "inner_h": 0.33, "outer_d": 0.15, "inner_d": 0.15, "faces": 2 },
+   "v": {
+    "outer_w": 0.26,
+    "outer_h": 0.41,
+    "inner_w": 0.1,
+    "inner_h": 0.33,
+    "outer_d": 0.15,
+    "inner_d": 0.15,
+    "faces": 2
+   },
    "u": "fraction of the merlon (w: of its width, h: of its height, d: of its depth)",
    "src": "REF-PHOTO-29;REF-DRAW-32;RECON",
    "tier": "B/C",
@@ -4604,34 +4763,79 @@
    "v": [
     {
      "item": "alabaster_vessel",
-     "share": 0.4,
+     "share": 0.22,
      "note": "Egyptian calcite (alabaster) bowls and bottles, some inscribed (ISAC-FINDS, B)"
     },
     {
      "item": "blue_vessel",
-     "share": 0.1,
+     "share": 0.06,
      "note": "vessels of Egyptian-blue compound (ISAC-FINDS, B)"
     },
     {
      "item": "chert_set",
-     "share": 0.2,
+     "share": 0.12,
      "note": "green-chert mortars, pestles and plates with Aramaic ink texts (ISAC-FINDS, B)"
     },
     {
      "item": "arrow_bundle",
-     "share": 0.2,
+     "share": 0.12,
      "note": "bundles of bronze-tipped arrows; arrowheads and scabbard tips by the hundred among the finds (ISAC-FINDS, B; bundling C)"
     },
     {
      "item": "sealed_jar",
-     "share": 0.1,
+     "share": 0.06,
      "note": "jars sealed with clay labels (sealed labels on stored goods: C, verify in Schmidt Persepolis II)"
+    },
+    {
+     "item": "silver_phiale",
+     "share": 0.06,
+     "note": "silver and gold phialai (omphalos bowls) stacked: the Treasury held the king's plate and bullion (ALEX-HIST: the treasure carried off from Persepolis, B claim; Achaemenid phialai are known from other hoards, B type); the form C"
+    },
+    {
+     "item": "gold_rhyton",
+     "share": 0.02,
+     "note": "gold drinking horns (rhyta) among the plate (Achaemenid gold rhyta known from other finds, B type; here C)"
+    },
+    {
+     "item": "textile_bale",
+     "share": 0.1,
+     "note": "folded garments and cloth in bales: garments and textiles were issued and stored as wealth (Persepolis tablets, B practice; bales C)"
+    },
+    {
+     "item": "scale_armour",
+     "share": 0.05,
+     "note": "scale corslets folded flat: bronze and iron armour scales among the Treasury finds (ISAC-FINDS, B; folded corslets C)"
+    },
+    {
+     "item": "shield",
+     "share": 0.04,
+     "note": "round shields leaning by the arrows (weapons stored in the Treasury, ISAC-FINDS B; the shields' form C)"
+    },
+    {
+     "item": "bead_bowl",
+     "share": 0.03,
+     "note": "bowls of lapis lazuli and carnelian beads (beads of both stones among the finds, ISAC-FINDS B; in bowls C)"
+    },
+    {
+     "item": "ivory_tusk",
+     "share": 0.02,
+     "note": "raw elephant ivory (ivory objects among the finds, ISAC-FINDS B; tusks as stock C)"
+    },
+    {
+     "item": "glass_bowl",
+     "share": 0.03,
+     "note": "cut-glass bowls (Achaemenid cut glass, B type; at the Treasury C)"
+    },
+    {
+     "item": "bitumen_jar",
+     "share": 0.07,
+     "note": "jars coated and stoppered with bitumen (bitumen from Elam used as sealant, B practice; here C)"
     }
    ],
    "u": "",
-   "src": "ISAC-FINDS",
+   "src": "ISAC-FINDS;ALEX-HIST;RECON",
    "tier": "B",
-   "note": "what the Treasury held (types B, search extracts of ISAC Contents of the Treasury); quantities and placement C"
+   "note": "what the Treasury held (types B, search extracts of ISAC Contents of the Treasury; D-276 adds the plate, textiles, armour, beads, ivory and cut glass the gap hunt s10 C found missing, each tiered in its note); quantities and placement C"
   },
   "r_door_state": {
    "v": {
@@ -4751,7 +4955,28 @@
      -83.2
     ],
     "desk_heading": 90,
-    "seats": { "elamite": [186.8, -83.2, 90], "aramaic": [187.8, -83.75, 300], "pupil": [187.6, -82.5, 235], "visitor": [186.05, -82.45, 125] }
+    "seats": {
+     "elamite": [
+      186.8,
+      -83.2,
+      90
+     ],
+     "aramaic": [
+      187.8,
+      -83.75,
+      300
+     ],
+     "pupil": [
+      187.6,
+      -82.5,
+      235
+     ],
+     "visitor": [
+      186.05,
+      -82.45,
+      125
+     ]
+    }
    },
    "u": "m",
    "src": "IR-TREAS;REF-PLAN",
@@ -4777,14 +5002,69 @@
     ],
     "clay_lump": 0.12,
     "baskets": 3,
-    "mat": [0.95, 0.65],
-    "lamp": { "at": [188.9, -80.95], "r": 0.055, "soot": [0.34, 0.75] },
-    "ink_pot": { "at": [187.8, -83.35], "r": 0.035, "h": 0.07 },
-    "water_bowl": { "at": [186.55, -82.62], "r": 0.1 },
-    "jars": [[190.9, -84.2], [191.45, -84.2]],
-    "bench_baskets": [190.1, 190.7],
-    "seals": { "at": [187.2, -84.0], "n": 2, "len": 0.032, "d": 0.013 },
-    "floor_stain": { "c": [187.2, -83.2], "r": [1.3, 0.9] }
+    "mat": [
+     0.95,
+     0.65
+    ],
+    "lamp": {
+     "at": [
+      188.9,
+      -80.95
+     ],
+     "r": 0.055,
+     "soot": [
+      0.34,
+      0.75
+     ]
+    },
+    "ink_pot": {
+     "at": [
+      187.8,
+      -83.35
+     ],
+     "r": 0.035,
+     "h": 0.07
+    },
+    "water_bowl": {
+     "at": [
+      186.55,
+      -82.62
+     ],
+     "r": 0.1
+    },
+    "jars": [
+     [
+      190.9,
+      -84.2
+     ],
+     [
+      191.45,
+      -84.2
+     ]
+    ],
+    "bench_baskets": [
+     190.1,
+     190.7
+    ],
+    "seals": {
+     "at": [
+      187.2,
+      -84.0
+     ],
+     "n": 2,
+     "len": 0.032,
+     "d": 0.013
+    },
+    "floor_stain": {
+     "c": [
+      187.2,
+      -83.2
+     ],
+     "r": [
+      1.3,
+      0.9
+     ]
+    }
    },
    "u": "m",
    "src": "IR-TREAS;MATCULT-R;RECON",
@@ -4806,6 +5086,368 @@
    "src": "ISAC-PA;RELIEF-R;STEIN2016;RECON",
    "tier": "C",
    "note": "D-214 (gap audit item 29; Q-020): the Treasury's plastered timber shafts were painted 'in bright colours' (ISAC-PA, RELIEF-R: B); their colours and pattern were not found. Filled (D-207, C) after the painted plaster of Persepolis and Pasargadae (STEIN2016 via RELIEF-R: red, blue, white and green paint films on lime plaster; at Pasargadae up to five layers forming a geometric design, B) and the red of the Terrace floors (hematite, B): a red-ochre ground with a lattice of white lozenges (`around` per turn, lozenge_h m tall, lines line_w m wide) and an Egyptian-blue band at the foot and at the head of each shaft (band_h), edged white (edge_w). Pattern, sizes and which colour goes where: C. Restrained: no figured motif, no gilding (Q-426)"
+  },
+  "r_rooms": {
+   "v": {
+    "wall": 1.2,
+    "clear": 4.5,
+    "roof": 0.5,
+    "hall_clear": 5.5,
+    "hall_roof": 0.6,
+    "post": 0.45,
+    "door_width": 1.2,
+    "door_height": 2.4,
+    "inner_width": 1.0,
+    "inner_height": 2.2
+   },
+   "u": "m",
+   "src": "REF-PLAN;RECON",
+   "tier": "C",
+   "note": "D-276: the Treasury's inner rooms: mud-brick walls (wall), clear height under a flat timber-and-earth roof (roof) as the N range (r_n_range_height, C); the two columned store halls of the S part taller (hall_clear, hall_roof) on timber posts (post = shaft diameter, as the Hall of 99 Columns' plastered timber shafts, r_shaft, C). Doorways: door_width x door_height, as the N range's doorways read on REF-PLAN (1.1-1.3 m, B) with a timber lintel (C); inner openings (between a room and its back room) inner_width x inner_height (C)"
+  },
+  "room_ranges": {
+   "v": [
+    {
+     "id": "w_stores",
+     "into": [
+      "W"
+     ],
+     "use": "store",
+     "x": [
+      142.57,
+      153.2
+     ],
+     "y": [
+      -152.5,
+      -93.55
+     ],
+     "axis": "y",
+     "n": 7,
+     "door": "E",
+     "omit": [
+      "W"
+     ],
+     "note": "store rooms along the W enclosure wall, entered from the corridor W of the Hall of 99 Columns (C: REF-PLAN draws the W part as a columned hall 145-181 x -115..-152 where the model has its Hall of 99 Columns, Q-730)"
+    },
+    {
+     "id": "e_stores_s",
+     "into": [
+      "E"
+     ],
+     "use": "store",
+     "x": [
+      207.2,
+      217.89
+     ],
+     "y": [
+      -152.5,
+      -137.5
+     ],
+     "axis": "y",
+     "n": 2,
+     "door": "W",
+     "omit": [
+      "E"
+     ],
+     "note": "store rooms along the E enclosure wall S of the passage to the E door (C; REF-PLAN has rooms and a corridor here, x 206-217)"
+    },
+    {
+     "id": "e_stores_n",
+     "into": [
+      "E"
+     ],
+     "use": "store",
+     "x": [
+      207.2,
+      217.89
+     ],
+     "y": [
+      -131.5,
+      -93.55
+     ],
+     "axis": "y",
+     "n": 4,
+     "door": "W",
+     "omit": [
+      "E"
+     ],
+     "note": "store rooms along the E enclosure wall N of the passage to the E door (C)"
+    },
+    {
+     "id": "sw_hall_a",
+     "into": [
+      "W"
+     ],
+     "use": "hall",
+     "x": [
+      142.57,
+      168.0
+     ],
+     "y": [
+      -181.0,
+      -157.0
+     ],
+     "axis": "y",
+     "n": 1,
+     "omit": [
+      "W"
+     ],
+     "hall": true,
+     "units": {
+      "0": {
+       "doors": [
+        {
+         "side": "N",
+         "at": 155.0
+        },
+        {
+         "side": "E",
+         "at": -170.0
+        }
+       ],
+       "columns": [
+        4,
+        4
+       ]
+      }
+     },
+     "door": "N",
+     "note": "columned store hall in the SW, 4 x 4 posts (REF-PLAN: walls 144-168 x -158.5..-181, column dots 4 x 4 at ~4.2 m, B); doorways N to the S corridor and E to the court (C)"
+    },
+    {
+     "id": "sw_hall_b",
+     "into": [
+      "W",
+      "S"
+     ],
+     "use": "hall",
+     "x": [
+      142.57,
+      168.0
+     ],
+     "y": [
+      -212.68,
+      -181.0
+     ],
+     "axis": "y",
+     "n": 1,
+     "omit": [
+      "W",
+      "S",
+      "N"
+     ],
+     "hall": true,
+     "units": {
+      "0": {
+       "doors": [
+        {
+         "side": "E",
+         "at": -193.0
+        }
+       ],
+       "columns": [
+        4,
+        5
+       ]
+      }
+     },
+     "door": "E",
+     "note": "second columned store hall S of it (REF-PLAN: 144-168 x -182.5..-206, column dots 4 x 4; the model runs it to the S enclosure wall with a fifth row, C); doorway E to the court (C)"
+    },
+    {
+     "id": "court_n",
+     "into": [
+      "E"
+     ],
+     "use": "store",
+     "x": [
+      168.0,
+      217.89
+     ],
+     "y": [
+      -168.0,
+      -157.0
+     ],
+     "axis": "x",
+     "n": 5,
+     "door": "S",
+     "omit": [
+      "W",
+      "E"
+     ],
+     "units": {
+      "1": {
+       "use": "passage",
+       "doors": [
+        {
+         "side": "S"
+        },
+        {
+         "side": "N"
+        }
+       ]
+      },
+      "3": {
+       "doors": [
+        {
+         "side": "N"
+        }
+       ]
+      },
+      "4": {
+       "doors": [
+        {
+         "side": "N"
+        }
+       ]
+      }
+     },
+     "note": "rooms on the N side of the S court (REF-PLAN: a range 170-199 x -154..-168 with an inner wall at -165, B), continued E over the E range; the second is the way from the S corridor into the court, the two E rooms open N onto the corridor (C)"
+    },
+    {
+     "id": "court_s",
+     "into": [
+      "S"
+     ],
+     "use": "store",
+     "x": [
+      168.0,
+      199.0
+     ],
+     "y": [
+      -212.77,
+      -204.0
+     ],
+     "axis": "x",
+     "n": 4,
+     "door": "N",
+     "omit": [
+      "W",
+      "S",
+      "E"
+     ],
+     "note": "store rooms along the S enclosure wall, entered from the court (REF-PLAN: small rooms 175-212 x -206..-212, B; count C)"
+    },
+    {
+     "id": "e_range",
+     "into": [
+      "E",
+      "S"
+     ],
+     "use": "store",
+     "x": [
+      199.0,
+      217.89
+     ],
+     "y": [
+      -212.84,
+      -168.0
+     ],
+     "axis": "y",
+     "cuts": [
+      -197.4,
+      -188.2,
+      -178.6
+     ],
+     "door": "W",
+     "omit": [
+      "E",
+      "S"
+     ],
+     "units": {
+      "0": {
+       "doors": [
+        {
+         "side": "W",
+         "at": -201.0
+        }
+       ]
+      }
+     },
+     "note": "rooms E of the court (REF-PLAN: N-S walls at x 199-200 and 205-207, cross walls at y -165 and -196, B; the model's rooms 18 m deep, C)"
+    }
+   ],
+   "u": "m",
+   "src": "REF-PLAN;SCHMIDT1953;RECON",
+   "tier": "B/C",
+   "note": "D-276: the Treasury's room ranges beyond the Hall of 99 Columns and the N range. REF-PLAN (Schmidt-derived, +-1 m) draws the whole Treasury as halls, courts and ranges of rooms; the S part (S of y -152) is laid out here as the plan draws it: two columned halls in the SW, a court with rooms N, E and S of it (B for the walls read, C for the rest). N of that the model keeps its Hall of 99 Columns where D-067 put it (C; the plan's halls there are laid out differently, Q-730): store rooms fill the strips W and E of it between corridors 4 m wide, the E door's passage left clear. Every room is roofed; store rooms have benches along their walls and a sealed or barred door (r_room_doors)"
+  },
+  "r_room_doors": {
+   "v": {
+    "w_stores": "scheduled_sealed",
+    "e_stores_s": "scheduled_sealed",
+    "e_stores_n": "scheduled_sealed",
+    "court_n": "scheduled_locked",
+    "court_s": "scheduled_locked",
+    "e_range": "scheduled_locked"
+   },
+   "u": "",
+   "src": "MATCULT-R;RECON",
+   "tier": "C",
+   "note": "D-276: door leaves of the store rooms by range: the rooms along the enclosure walls N of the S corridor hold the valuables (treasury.stored_goods) and are sealed outside working hours like the Hall of 99 Columns (door sealing: global.r_door_sealing, B practice); the S part's rooms are barred (C). The columned halls and the passage have no leaves (C)"
+  },
+  "r_aisles": {
+   "v": [
+    {
+     "id": "w_corridor",
+     "x": [
+      153.2,
+      157.23
+     ],
+     "y": [
+      -152.5,
+      -93.55
+     ]
+    },
+    {
+     "id": "e_passage",
+     "x": [
+      203.23,
+      207.2
+     ],
+     "y": [
+      -152.5,
+      -93.55
+     ]
+    },
+    {
+     "id": "n_corridor",
+     "x": [
+      142.57,
+      217.89
+     ],
+     "y": [
+      -93.55,
+      -86.4
+     ]
+    },
+    {
+     "id": "s_corridor",
+     "x": [
+      142.57,
+      217.89
+     ],
+     "y": [
+      -157.0,
+      -147.95
+     ]
+    },
+    {
+     "id": "e_door",
+     "x": [
+      207.2,
+      217.89
+     ],
+     "y": [
+      -137.5,
+      -131.5
+     ]
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "D-276: the corridors, streets and passages between the room ranges, kept clear: nobody is placed standing in them (people/popgeo.ts; with every room's doorway approaches and the passage rooms), so the ways stay walkable (the walk bots found people standing in the Treasury's and the Harem's ways). Rectangles x, y (grid m) between the ranges' faces (C)"
   }
  },
  "harem": {
@@ -5147,6 +5789,440 @@
    "src": "ISAC-PA;SI-ARCH;RECON",
    "tier": "B/C",
    "note": "jamb programme of the Harem hall doorways"
+  },
+  "r_rooms": {
+   "v": {
+    "wall": 1.0,
+    "clear": 5.0,
+    "roof": 0.5,
+    "post": 0.5,
+    "door_width": 1.4,
+    "door_height": 2.8,
+    "inner_width": 1.0,
+    "inner_height": 2.4
+   },
+   "u": "m",
+   "src": "ISAC-PA;RECON",
+   "tier": "C",
+   "note": "D-276: the Harem's apartments and service rooms: mud-brick walls, a flat roof, clear height (C: below the main hall's 6 m columns); each apartment's hall has four columns (ISAC-PA: \"each 4-column hall\", B), drawn as timber posts on stone bases (post = shaft diameter, C); doorways door_width x door_height (C); the opening to each apartment's back room inner_width x inner_height (C)"
+  },
+  "room_ranges": {
+   "v": [
+    {
+     "id": "apt_w",
+     "into": [
+      "S"
+     ],
+     "use": "apartment",
+     "x": [
+      100.2,
+      111.0
+     ],
+     "y": [
+      -207.64,
+      -152.3
+     ],
+     "axis": "y",
+     "cuts": [
+      -198.7,
+      -194.7,
+      -173.75
+     ],
+     "door": "E",
+     "omit": [
+      "S"
+     ],
+     "columns": [
+      2,
+      2
+     ],
+     "back": 3.2,
+     "units": {
+      "1": {
+       "use": "passage",
+       "doors": [
+        {
+         "side": "W"
+        },
+        {
+         "side": "E"
+        }
+       ],
+       "columns": [
+        0,
+        0
+       ],
+       "back": 0
+      }
+     },
+     "note": "the main wing's W apartments (REF-PLAN: two columns of units S of the hall, y -155..-205, B), each a 4-column hall with a back room on the W; the second from the S is the passage from the W wing's corridor into the main wing (C)"
+    },
+    {
+     "id": "apt_e",
+     "into": [
+      "S",
+      "E"
+     ],
+     "use": "apartment",
+     "x": [
+      115.0,
+      132.17
+     ],
+     "y": [
+      -207.86,
+      -152.3
+     ],
+     "axis": "y",
+     "n": 3,
+     "door": "W",
+     "omit": [
+      "S",
+      "E"
+     ],
+     "columns": [
+      2,
+      2
+     ],
+     "back": 4.5,
+     "note": "the main wing's E apartments (REF-PLAN, B; the corridor between the two columns of units, x 111-115, from the hall's S doorway, C)"
+    },
+    {
+     "id": "side_w",
+     "into": [],
+     "use": "store",
+     "x": [
+      100.2,
+      104.7
+     ],
+     "y": [
+      -152.3,
+      -132.7
+     ],
+     "axis": "y",
+     "n": 1,
+     "omit": [
+      "E",
+      "S"
+     ],
+     "units": {
+      "0": {
+       "doors": [
+        {
+         "side": "E",
+         "at": -142.5,
+         "width": 2.0,
+         "via": true
+        }
+       ]
+      }
+     },
+     "door": "W",
+     "note": "the narrow store room W of the main hall, entered by the hall's W doorway (C)"
+    },
+    {
+     "id": "side_e",
+     "into": [
+      "E"
+     ],
+     "use": "store",
+     "x": [
+      124.8,
+      132.51
+     ],
+     "y": [
+      -152.3,
+      -132.7
+     ],
+     "axis": "y",
+     "n": 1,
+     "omit": [
+      "W",
+      "E",
+      "S"
+     ],
+     "units": {
+      "0": {
+       "doors": [
+        {
+         "side": "W",
+         "at": -142.5,
+         "width": 2.0,
+         "via": true
+        }
+       ]
+      }
+     },
+     "door": "E",
+     "note": "the store room E of the main hall, entered by the hall's E doorway (C)"
+    },
+    {
+     "id": "n_range",
+     "into": [
+      "W",
+      "E"
+     ],
+     "use": "service",
+     "x": [
+      100.2,
+      131.9
+     ],
+     "y": [
+      -112.0,
+      -100.0
+     ],
+     "axis": "x",
+     "n": 3,
+     "door": "S",
+     "omit": [
+      "W",
+      "E"
+     ],
+     "units": {
+      "1": {
+       "use": "passage",
+       "doors": [
+        {
+         "side": "S"
+        },
+        {
+         "side": "N"
+        }
+       ]
+      }
+     },
+     "note": "the kitchens and stores on the N side of the court (REF-PLAN draws rooms here, y -95..-112, B; their use C); the middle room is the way to the N hall (C)"
+    },
+    {
+     "id": "n_hall",
+     "into": [
+      "W",
+      "E",
+      "N"
+     ],
+     "use": "service",
+     "x": [
+      100.2,
+      131.9
+     ],
+     "y": [
+      -100.0,
+      -75.2
+     ],
+     "axis": "y",
+     "n": 1,
+     "omit": [
+      "W",
+      "E",
+      "N",
+      "S"
+     ],
+     "units": {
+      "0": {
+       "doors": [
+        {
+         "side": "S",
+         "at": 116.05,
+         "width": 1.4,
+         "via": true
+        },
+        {
+         "side": "N",
+         "at": 109.5,
+         "width": 2.4,
+         "via": true
+        }
+       ],
+       "columns": [
+        4,
+        3
+       ]
+      }
+     },
+     "door": "S",
+     "hall": true,
+     "note": "the columned hall N of the court, reached from the N passage of the Tripylon stair and through the N range (REF-PLAN draws column dots here, B; 4 x 3 posts and its use as the household's hall C)"
+    },
+    {
+     "id": "ww_n_a",
+     "into": [
+      "W",
+      "N"
+     ],
+     "use": "apartment",
+     "x": [
+      -4.05,
+      48.5
+     ],
+     "y": [
+      -195.2,
+      -183.34
+     ],
+     "axis": "x",
+     "n": 4,
+     "door": "S",
+     "omit": [
+      "W",
+      "N"
+     ],
+     "columns": [
+      2,
+      2
+     ],
+     "back": 3.2,
+     "note": "the W wing's N row of apartments, W half (REF-PLAN: units ~11-13 m wide in two rows along y -178..-206, B; ISAC-PA: 16 in the W wing, B)"
+    },
+    {
+     "id": "ww_n_b",
+     "into": [],
+     "use": "apartment",
+     "x": [
+      51.5,
+      100.2
+     ],
+     "y": [
+      -195.2,
+      -183.6
+     ],
+     "axis": "x",
+     "n": 4,
+     "door": "S",
+     "omit": [
+      "E"
+     ],
+     "columns": [
+      2,
+      2
+     ],
+     "back": 3.2,
+     "note": "the W wing's N row, E half; a 3 m slot between the halves (C)"
+    },
+    {
+     "id": "ww_s_a",
+     "into": [
+      "W"
+     ],
+     "use": "apartment",
+     "x": [
+      -4.46,
+      48.6
+     ],
+     "y": [
+      -208.2,
+      -198.2
+     ],
+     "axis": "x",
+     "n": 4,
+     "door": "N",
+     "omit": [
+      "W",
+      "E"
+     ],
+     "columns": [
+      2,
+      2
+     ],
+     "back": 2.6,
+     "note": "the W wing's S row, W part (REF-PLAN, B); a corridor 3 m wide between the rows (C)"
+    },
+    {
+     "id": "ww_s_b",
+     "into": [
+      "S"
+     ],
+     "use": "apartment",
+     "x": [
+      48.6,
+      89.0
+     ],
+     "y": [
+      -219.95,
+      -198.2
+     ],
+     "axis": "x",
+     "n": 3,
+     "door": "N",
+     "omit": [
+      "S"
+     ],
+     "columns": [
+      2,
+      2
+     ],
+     "back": 7.0,
+     "note": "the W wing's S row where the wing reaches further S (x 46-91 to y -222: the traced outline and REF-PLAN, B); deeper apartments with larger back rooms (C)"
+    },
+    {
+     "id": "ww_s_c",
+     "into": [],
+     "use": "apartment",
+     "x": [
+      89.0,
+      100.2
+     ],
+     "y": [
+      -207.6,
+      -198.2
+     ],
+     "axis": "x",
+     "n": 1,
+     "door": "N",
+     "omit": [
+      "W",
+      "E"
+     ],
+     "columns": [
+      2,
+      2
+     ],
+     "back": 2.6,
+     "note": "the sixteenth W-wing apartment, at the E end of the S row (C)"
+    }
+   ],
+   "u": "m",
+   "src": "REF-PLAN;ISAC-PA;RECON",
+   "tier": "B/C",
+   "note": "D-276: the Harem's room ranges beyond its main hall: the main wing's six apartments S of the hall (ISAC-PA: 6 in the main wing, each with a 4-column hall, B; REF-PLAN two columns of three units, B), the rooms beside the hall, the kitchens and the columned hall N of the court, and the W wing's sixteen apartments in two rows (ISAC-PA 16, B; REF-PLAN rows, B). Corridors, doorways and back rooms C. The W wing is reached from the main wing's corridor through a passage room (C)"
+  },
+  "r_aisles": {
+   "v": [
+    {
+     "id": "main_corridor",
+     "x": [
+      111.0,
+      115.0
+     ],
+     "y": [
+      -207.86,
+      -152.3
+     ]
+    },
+    {
+     "id": "ww_corridor",
+     "x": [
+      -4.5,
+      100.2
+     ],
+     "y": [
+      -198.2,
+      -195.2
+     ]
+    },
+    {
+     "id": "ww_slot",
+     "x": [
+      48.5,
+      51.5
+     ],
+     "y": [
+      -195.2,
+      -183.3
+     ]
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "D-276: the corridors, streets and passages between the room ranges, kept clear: nobody is placed standing in them (people/popgeo.ts; with every room's doorway approaches and the passage rooms), so the ways stay walkable (the walk bots found people standing in the Treasury's and the Harem's ways). Rectangles x, y (grid m) between the ranges' faces (C)"
   }
  },
  "garrison": {
@@ -5204,6 +6280,218 @@
    "src": "RECON",
    "tier": "C",
    "note": "doorways: W onto the court N of the Hall of 100 Columns; S into the Treasury NE entrance (positions C); W door moved from y 22.5 to 32 in Phase 4: the Hall of 100 Columns portico and its E anta tower (REF-PLAN) now occupy y 8.3..27 there (C)"
+  },
+  "r_rooms": {
+   "v": {
+    "wall": 1.0,
+    "clear": 3.2,
+    "roof": 0.4,
+    "post": 0.35,
+    "door_width": 1.4,
+    "door_height": 2.2,
+    "inner_width": 1.0,
+    "inner_height": 2.1
+   },
+   "u": "m",
+   "src": "SCHMIDT1953;RECON",
+   "tier": "C",
+   "note": "D-276: the garrison's quarters: \"modest mud-brick rooms\" (garrison.note, ISAC-PA B); walls, a flat roof of poles and earth under the enclosure's 4 m wall top, clear height, timber posts under the roof of the wider rooms (REF-PLAN draws rows of column dots in them, B; posts C), doorways door_width x door_height (C)"
+  },
+  "room_ranges": {
+   "v": [
+    {
+     "id": "quarters_s",
+     "into": [],
+     "use": "quarters",
+     "x": [
+      190.5,
+      214.0
+     ],
+     "y": [
+      -60.0,
+      25.5
+     ],
+     "axis": "y",
+     "cuts": [
+      -49.0,
+      -41.5,
+      -23.0,
+      -8.5,
+      15.0
+     ],
+     "door": "W",
+     "units": {
+      "0": {
+       "columns": [
+        3,
+        1
+       ]
+      },
+      "1": {
+       "use": "store"
+      },
+      "2": {
+       "columns": [
+        3,
+        2
+       ]
+      },
+      "3": {
+       "columns": [
+        3,
+        2
+       ]
+      },
+      "4": {
+       "columns": [
+        3,
+        3
+       ]
+      },
+      "5": {
+       "use": "service",
+       "columns": [
+        3,
+        1
+       ]
+      }
+     },
+     "note": "the S range of quarters E of the garrison street (REF-PLAN: a N-S street x 190-195 along the W and rooms 196-213 E of it with cross walls at y 25.5, 15, -8.5, -23, -41.5, -49 and rows of column dots, B); the narrow room the garrison's store, the N room its kitchen (C)"
+    },
+    {
+     "id": "quarters_n",
+     "into": [
+      "N"
+     ],
+     "use": "quarters",
+     "x": [
+      190.5,
+      214.0
+     ],
+     "y": [
+      76.0,
+      118.4
+     ],
+     "axis": "y",
+     "cuts": [
+      90.0,
+      104.0
+     ],
+     "door": "W",
+     "omit": [
+      "N"
+     ],
+     "columns": [
+      3,
+      1
+     ],
+     "note": "the N range of quarters (C: REF-PLAN draws rooms along the W side here, 180-195 x 75-120; the model continues the street and the S range's rooms)"
+    },
+    {
+     "id": "guard_mess",
+     "into": [],
+     "floor": 0.0,
+     "use": "mess",
+     "x": [
+      131.0,
+      171.0
+     ],
+     "y": [
+      145.5,
+      154.0
+     ],
+     "axis": "x",
+     "n": 1,
+     "door": "S",
+     "open": [
+      "S"
+     ],
+     "units": {
+      "0": {
+       "doors": []
+      }
+     },
+     "note": "the royal guard's mess: an open-fronted hall on posts along the N side of the guards' court (court.json court_guard_mess: the food carried out to the court for the bodyguard, Heracleides via Athenaeus 4.145, B claim; the hall C), where the night watch sits by the fire under a roof (Q-652)"
+    }
+   ],
+   "u": "m",
+   "src": "REF-PLAN;SCHMIDT1953;RECON",
+   "tier": "B/C",
+   "note": "D-276: the garrison's quarters: rows of rooms along a street (REF-PLAN, B; Schmidt's garrison quarters, SCHMIDT1953 B), the 32-column hall's site left as the garrison's open court (absent in 467, garrison.note), lanes S (to the S door), N (to the W door and the court) and a passage E of the rooms (C). Sleeping mats along the walls and between the post rows, a hearth and a lamp in each quarters room (C; the royal guard's sleeping places, court.json court_guard_quarters, and the garrison's, garrison_sleep: B63), the mess on the guards' court (C)"
+  },
+  "r_aisles": {
+   "v": [
+    {
+     "id": "street_s",
+     "x": [
+      184.48,
+      190.5
+     ],
+     "y": [
+      -65.05,
+      35.8
+     ]
+    },
+    {
+     "id": "street_n",
+     "x": [
+      183.86,
+      190.5
+     ],
+     "y": [
+      70.0,
+      118.4
+     ]
+    },
+    {
+     "id": "s_lane",
+     "x": [
+      184.48,
+      219.17
+     ],
+     "y": [
+      -65.05,
+      -60.0
+     ]
+    },
+    {
+     "id": "n_lane",
+     "x": [
+      183.86,
+      219.17
+     ],
+     "y": [
+      70.0,
+      76.0
+     ]
+    },
+    {
+     "id": "e_passage_s",
+     "x": [
+      214.0,
+      219.17
+     ],
+     "y": [
+      -60.0,
+      25.5
+     ]
+    },
+    {
+     "id": "e_passage_n",
+     "x": [
+      214.0,
+      219.15
+     ],
+     "y": [
+      76.0,
+      118.4
+     ]
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "D-276: the corridors, streets and passages between the room ranges, kept clear: nobody is placed standing in them (people/popgeo.ts; with every room's doorway approaches and the passage rooms), so the ways stay walkable (the walk bots found people standing in the Treasury's and the Harem's ways). Rectangles x, y (grid m) between the ranges' faces (C)"
   }
  },
  "fortification_e": {

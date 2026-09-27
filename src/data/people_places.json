@@ -206,31 +206,31 @@
    "id": "garrison_hearth_s",
    "kind": "hearth",
    "at": [
-    201.5,
-    -36.4
+    202.3,
+    -32.3
    ],
    "tier": "C",
-   "note": "garrison hearth (matches the fire placement)"
+   "note": "garrison hearth (matches the fire placement) (D-276: the hearth of its quarters room, terrace.ts room ranges)"
   },
   {
    "id": "garrison_hearth_m",
    "kind": "hearth",
    "at": [
-    201.5,
-    26.6
+    202.3,
+    6.8
    ],
    "tier": "C",
-   "note": "garrison hearth"
+   "note": "garrison hearth (D-276: the hearth of its quarters room, terrace.ts room ranges)"
   },
   {
    "id": "garrison_hearth_n",
    "kind": "hearth",
    "at": [
-    201.5,
-    89.7
+    205.8,
+    97.0
    ],
    "tier": "C",
-   "note": "garrison hearth"
+   "note": "garrison hearth (D-276: the hearth of its quarters room, terrace.ts room ranges)"
   },
   {
    "id": "garrison_sleep",
@@ -316,11 +316,11 @@
    "id": "water",
    "kind": "water",
    "at": [
-    212,
-    106
+    216.5,
+    55.0
    ],
    "tier": "C",
-   "note": "water point inside the garrison court (a cistern/drain system is known on the Terrace, B; this spot C)"
+   "note": "water point inside the garrison court (a cistern/drain system is known on the Terrace, B; this spot C) (D-276: moved from inside the N quarters to the garrison court)"
   },
   {
    "id": "treasury_store",

@@ -21,6 +21,7 @@ import { ACTIVITIES, ActivityId } from './activities';
 import type { Dress } from './body';
 import { EventCalendar, sunTimes as sunT } from './calendar';
 import { terraceRoofed } from './roofs';
+import { terraceRooms } from '../arch/terrace_rooms';
 import { Population, Seg, segAt, planIndoors, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT, TOWN_SITES, HEARTHS } from './population';
 import { hall100Layout, colPlace } from './construction';
 import { PlayerMemory, Encounter } from './memory';
@@ -193,7 +194,9 @@ export class PeopleSim {
     const spot = (pl: string, i: number, n: number): P2 => { const P = PLACES[pl]; if (!P.span) return P.at; const [[x0, y0], [x1, y1]] = P.span;
       const cols = Math.ceil(Math.sqrt(n * (x1 - x0) / Math.max(1, y1 - y0))), rows = Math.ceil(n / cols); const c = i % cols, r = Math.floor(i / cols);
       return this.nav.snap(x0 + (c + 0.5) * (x1 - x0) / cols, y0 + (r + 0.5) * (y1 - y0) / rows, 4) ?? P.at; };
-    guards.forEach((g, i) => (g.slot = spot('garrison_sleep', i, guards.length)));
+    // D-276: the garrison's men sleep on the mats of its quarters (terrace_rooms.ts), each his own, in turn
+    const mats = terraceRooms().filter(x => x.room.building === 'garrison' && x.room.use === 'quarters').flatMap(x => x.fit.sleep);
+    guards.forEach((g, i) => (g.slot = mats.length ? (this.nav.snap(mats[i % mats.length][0], mats[i % mats.length][1], 1.5) ?? spot('garrison_sleep', i, guards.length)) : spot('garrison_sleep', i, guards.length)));
     const masons = this.agents.filter(a => a.role === 'mason'); masons.forEach((m, i) => (m.slot = spot('worksite', i, masons.length)));
     const grinders = this.agents.filter(a => a.role === 'grinder' || a.role === 'baker'); grinders.forEach((g, i) => (g.slot = spot('querns', i, grinders.length)));
     for (const a of this.agents) { if (a.slot[0] === 0 && a.slot[1] === 0) a.slot = PLACES[a.home].at; a.pos = [...a.slot] as P2; }

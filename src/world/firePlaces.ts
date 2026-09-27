@@ -35,10 +35,13 @@ export function placeFires(fire: FireSink, m: any, parts: any[], doorways: Doorw
   const a = m.apadana; if (a) { const [cx] = a.hallCentre, pod = a.podium;
     for (const s of [-1, 1]) fire.add('brazier', gw(cx + s * 3, a.nStairEdge + 1.5, pod), C);
     for (const [e, n, y] of apadanaTorches(m, doorways)) fire.add('torch', gw(e, n, y), C); }
-  // garrison hearths and the Hall of 100 Columns work-camp oven/hearth
-  const gar = parts.find((p: any) => p.building === 'garrison' && p.kind === 'floor');
-  if (gar) { const xs = gar.polygon.map((q: any) => q[0]), ys = gar.polygon.map((q: any) => q[1]); const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
-    for (const y of [Math.min(...ys) + 30, (Math.min(...ys) + Math.max(...ys)) / 2, Math.max(...ys) - 30]) fire.add('hearth', gw(cx, y, 0.25), { ...C, note: 'garrison hearth (C)' }); }
+  // D-276: the room ranges' hearths (a hearth ring in each garrison quarters room, its kitchen, the guards' mess, the Harem's
+  // kitchens and N hall) and the saucer lamps on their ledges (terrace.ts buildRanges; rooms.ts roomFittings). The garrison's
+  // are kept through the night by the watch; the Harem's are domestic hearths and lamps (C)
+  for (const b of ['garrison', 'harem', 'treasury', 'terrace']) { const R = (m[b] as any)?.ranges as { hearths: number[][]; lamps: number[][] } | undefined; if (!R) continue;
+    for (const [e, n, fl] of R.hearths) fire.add('hearth', gw(e, n, fl), { ...C, sched: b === 'garrison' ? 'night' : 'home', note: `${b}: the room's hearth (C, D-276)` });
+    for (const [e, n, y] of R.lamps) fire.add('lamp', gw(e, n, y), { ...C, sched: 'home', body: false, note: `${b}: a saucer lamp on its ledge (C, D-276)` }); }
+  // the Hall of 100 Columns work-camp oven/hearth
   if (m.hall100) { const pl = (id: string) => (placesJson as any).places.find((q: any) => q.id === id).at as [number, number]; // the people's places and the fires agree
     fire.add('hearth', gw(...pl('work_hearth'), 0), { ...C, note: 'masons’ work-camp hearth, Hall of 100 Columns site (C)' }); fire.add('oven', gw(...pl('oven'), 0), { ...C, note: 'bread oven for the work gang (C)' }); }
   // Phase 4 palaces (all C): torches beside the main doorway inside each roofed hall; braziers at the Tachara and Hadish

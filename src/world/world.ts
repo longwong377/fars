@@ -45,7 +45,7 @@ import { FireSystem, fireLight, type FireKind } from './fire';
 import { placeFires } from './firePlaces';
 import { loadFireOcc } from './fireOcc';
 export { apadanaTorches, inDoorway } from './firePlaces';
-import { buildTreasuryGoods, buildScribesRoom } from './furnish';
+import { buildTreasuryGoods, buildScribesRoom, buildRoomFittings } from './furnish';
 import { PalaceFurnishings } from './furnish_palaces';
 import { buildReliefMarks } from '../arch/marks';
 import { loadWritingFonts } from './writing';
@@ -170,8 +170,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const glaze = buildGlazedFrieze(parts); if (glaze) root.add(glaze); // D-214 (item 28): the Apadana towers' glazed-brick frieze (C)
   for (const c of waterworks.colliders) phys.addBox({ x: c.c.x, y: c.c.y, z: c.c.z }, { x: c.half.x, y: c.half.y, z: c.half.z });
   insc.add(buildFoundationDeposits(manifest)); // the Apadana foundation deposits, sealed under the hall corners (D-068)
-  if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
+  if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods([...(manifest.treasury as any).benches, ...((manifest.treasury as any).storeBenches ?? [])], seed)); // stored goods (types B, placement C; D-276: the store rooms' benches too)
   if ((manifest.treasury as any)?.scribesRoom) root.add(buildScribesRoom((manifest.treasury as any).scribesRoom, (manifest.treasury as any).scribesShelves, seed)); // the scribes' room (D-067)
+  // D-276: the room ranges' mats, bedrolls, jars, querns and lamps (one draw per building)
+  for (const b of ['treasury', 'harem', 'garrison', 'terrace']) { const R = (manifest[b] as any)?.ranges; if (R) root.add(buildRoomFittings(b, R)); }
   // the palaces' furnishings (D-212, all C): stored with the court away, laid out for use while the court setting's court is here
   const palace = new PalaceFurnishings(parts, manifest, doorways, { court: settings?.courtCalendar === 'seasonal', phys }); root.add(palace.group);
   wmark('palace');
@@ -181,7 +183,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   await fireOccP;
   const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q], fireShadows); placeFires(fire, manifest, parts, doorways);
   // the halls' interiors: a fire's light stays on its side of their walls (D-216; manifest rooms [e, n, size e, size n, floor, height])
-  fire.setRooms(Object.values(manifest).map((m: any) => m?.room).filter((r: any) => Array.isArray(r))
+  // (D-276: and every room of the room ranges: a quarters hearth lights its own room, not the next one through the wall)
+  fire.setRooms([...Object.values(manifest).map((m: any) => m?.room), ...Object.values(manifest).flatMap((m: any) => m?.ranges?.rooms ?? [])].filter((r: any) => Array.isArray(r))
     .map(([cx, cy, sx, sy, fl, h]: number[]) => ({ x0: cx - sx / 2, x1: cx + sx / 2, z0: -cy - sy / 2, z1: -cy + sy / 2, y0: fl, y1: fl + h })));
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets;
   // the plain's villages join it too, D-254: it builds after the plain)

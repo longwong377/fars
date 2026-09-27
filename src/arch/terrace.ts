@@ -8,6 +8,8 @@ import { order } from './orders';
 import { Rng } from '../core/rng';
 import { polyDifference, polyUnion, polyIntersection, rectPoly, single } from './poly';
 import { buildPlanWalls, type PlanWall, type PlanOpening } from './plan_walls';
+import { roomFittings } from './rooms';
+import { terraceRanges, roomFit, type RoomBuilding } from './terrace_rooms';
 
 type Tier = 'A' | 'B' | 'C';
 const P = (building: string, kind: string, material: Material, tier: Tier, src: string, extra: Partial<Part> = {}) => ({ building, kind, material, tier, src, ...extra });
@@ -91,14 +93,14 @@ function openings(b: string, cx: number, cy: number, w: number, h: number, tx: n
   return { walls: walls.flatMap(q => cutWall(q, cutters) ?? [q]), frames, clear, blocked, windows: sides.reduce((s, k) => s + (W[k]?.length ?? 0), 0), niches: sides.reduce((s, k) => s + (N[k]?.length ?? 0), 0) };
 }
 // timber door leaves (global.r_door_leaf, D-051) on the doorways listed in the building's r_door_state row
-function hang(b: string, doorways: Doorway[], blocked: Record<string, [number, number][]>, thickness = v<any>('global', 'r_door_leaf').thickness, flip: string[] = []): Box[] {
-  const ST = v<Record<string, DoorState>>(b, 'r_door_state'), DL = v<any>('global', 'r_door_leaf'), out: Box[] = [];
+function hang(b: string, doorways: Doorway[], blocked: Record<string, [number, number][]>, thickness = v<any>('global', 'r_door_leaf').thickness, flip: string[] = [], states?: Record<string, DoorState>, stateRow = 'r_door_state'): Box[] {
+  const ST = states ?? v<Record<string, DoorState>>(b, 'r_door_state'), DL = v<any>('global', 'r_door_leaf'), out: Box[] = [];
   for (const d0 of doorways) {
     const state = ST[d0.door]; if (!state) continue;
     // a doorway whose leaves swing to the outer face (flip) has its n reversed: the approach side is then the n side
     const out1 = flip.includes(d0.door), d: Doorway = out1 ? { ...d0, n: [-d0.n[0], -d0.n[1]] } : d0;
     const rel = (blocked[d0.side] ?? []).map(([a0, a1]) => [a0 - d0.at, a1 - d0.at] as [number, number]).filter(([a0, a1]) => !(a0 < 0 && a1 > 0)); // not its own frame
-    out.push(...leafParts(d, state, { thickness, gap: DL.gap }, rel, { tier: tierOf(row(b, 'r_door_state'), row('global', 'r_door_leaf')), src: srcOf(row(b, 'r_door_state'), row('global', 'r_door_leaf')), material: 'timber' },
+    out.push(...leafParts(d, state, { thickness, gap: DL.gap }, rel, { tier: tierOf(row(b, stateRow), row('global', 'r_door_leaf')), src: srcOf(row(b, stateRow), row('global', 'r_door_leaf')), material: 'timber' },
       out1 ? [d.n[0], d.n[1]] : [-d.n[0], -d.n[1]]));
   }
   return out;
@@ -543,6 +545,45 @@ export function buildTerrace(): BuildResult {
     return gapways;
   };
   const fpRing = (k: string) => footprint(k).polygon.slice(0, -1) as Pt[];
+  // D-276: a building's room ranges (rooms.ts, laid out by terrace_rooms.ts): each range's walls with their doorways
+  // (buildPlanWalls: plain openings under a lintel), one roof over the range, posts under it, the rooms' floors, and the
+  // fittings that stand solid: benches, and storage jars and querns as colliders (drawn by world/furnish.ts, kinds 'jar' and
+  // 'quern'), and the lamps' mud ledges. Door leaves on the store rooms (<building>.r_room_doors). The manifest keeps every
+  // room box (the fires' rooms, D-216), the benches (the stored goods), the mats, jars, querns, hearths and lamps
+  const buildRanges = (b: RoomBuilding, attestedFloor: boolean, finish: boolean) => {
+    const B = terraceRanges().find(q => q.b === b); if (!B) return null;
+    const F = roomFit(), FD = v<FrameDims>('global', 'r_door_frame'), WI = v<any>('global', 'r_window'), NI = v<any>('global', 'r_niche');
+    const rt = T_(b, 'room_ranges'), rs = srcOf(row(b, 'room_ranges'), row(b, 'r_rooms')), ft = T_('global', 'r_room_fittings'), fs = S_('global', 'r_room_fittings');
+    const DS = SPEC[b]?.r_room_doors?.v as Record<string, DoorState> | undefined;
+    const meta = { building: b, material: 'mudbrick' as Material, tier: rt, src: rs };
+    const out = { rooms: [] as number[][], benches: [] as number[][], jars: [] as number[][], querns: [] as number[][], mats: [] as number[][], hearths: [] as number[][], lamps: [] as number[][], leaves: 0, posts: 0, roomCount: 0 };
+    for (const { R, G } of B.ranges) {
+      const fl = R.floor ?? B.fl, roof = G.roofs[0], clear = roof.y0 - fl;
+      const PB = buildPlanWalls(b, { wall: meta, door: meta, window: meta, niche: meta }, G.walls, G.openings, fl, roof.y0, { door: B.D.door_height, inner: B.D.inner_height }, FD, { sill: WI.sill, sillBlock: WI.sill_block, nicheDepth: NI.depth });
+      parts.push(...PB.walls.map(w => ({ ...w, note: `${R.id}: ${R.note ?? 'room range (C)'}` }))); doorways.push(...PB.doorways);
+      const st = DS?.[R.id];
+      if (st) { const ds = PB.doorways.filter(d => !d.door.endsWith('_back')); const L = hang(b, ds, PB.blocked, undefined, [], Object.fromEntries(ds.map(d => [d.door, st])), 'r_room_doors'); parts.push(...L); out.leaves += L.length; }
+      parts.push(box(b, 'roof', 'timber', 'C', rs, [(roof.x[0] + roof.x[1]) / 2, (roof.y[0] + roof.y[1]) / 2], [roof.x[1] - roof.x[0], roof.y[1] - roof.y[0]], roof.y0, roof.y1, { note: `flat roof of timber, reeds and earth over ${R.id} (C)` }));
+      const ord = order(b, { height: clear, shaftD: B.D.post, base: 'square2', capital: 'plain', material: 'timber' });
+      for (const q of G.posts) { parts.push(col(b, q.c, fl, ord, rt, srcOf(row(b, 'room_ranges'), row(b, 'r_rooms')))); out.posts++; }
+      for (const room of G.rooms) {
+        out.roomCount++;
+        for (const r of [room, ...(room.back ? [room.back] : [])]) {
+          const c: Pt = [(r.x[0] + r.x[1]) / 2, (r.y[0] + r.y[1]) / 2], sx = r.x[1] - r.x[0], sy = r.y[1] - r.y[0];
+          out.rooms.push([c[0], c[1], sx, sy, fl, clear]); if (finish) parts.push(floorFinish(b, c, sx, sy, fl, attestedFloor));
+        }
+        const fit = roomFittings(room, F), note = `${room.id} (${room.use}): `;
+        for (const q of fit.benches) { parts.push(box(b, 'bench', 'mudbrick', ft, fs, q.c, q.size, fl, q.top, { solid: true, note: note + 'mud-brick bench along the wall (C)' })); out.benches.push([q.c[0], q.c[1], q.size[0], q.size[1], q.top]); }
+        for (const q of fit.jars) { parts.push(box(b, 'jar', 'earth', ft, fs, q, [F.jar_r * 2, F.jar_r * 2], fl, fl + F.jar_h, { solid: true, note: note + 'storage jar (the collider; drawn by furnish.ts, C)' })); out.jars.push([q[0], q[1], fl]); }
+        for (const q of fit.querns) { parts.push(box(b, 'quern', 'limestone', ft, fs, q, F.quern, fl, fl + F.ledge[2] * 2, { solid: true, note: note + 'saddle quern (the collider; drawn by furnish.ts, C)' })); out.querns.push([q[0], q[1], fl]); }
+        for (const q of fit.lamps) { const along = Math.abs(q.n[1]) > Math.abs(q.n[0]); const y = fl + F.lamp_h;
+          parts.push(box(b, 'ledge', 'mudbrick', ft, fs, q.c, along ? [F.ledge[0], F.ledge[1]] : [F.ledge[1], F.ledge[0]], y - F.ledge[2], y, { solid: false, note: note + 'mud ledge for the lamp (C)' })); out.lamps.push([q.c[0], q.c[1], y, q.n[0], q.n[1]]); }
+        for (const q of fit.hearths) out.hearths.push([q[0], q[1], fl]);
+        fit.mats.forEach((q, i) => out.mats.push([q.c[0], q.c[1], q.size[0], q.size[1], fl, fit.sleep[i][2]]));
+      }
+    }
+    return out;
+  };
   if (present('treasury')) {
     const b = 'treasury', fl = v(b, 'floor') + v(b, 'r_floor_raise'), W = v<any>(b, 'r_wall');
     // the traced N edge includes the ~12 m street S of the Hall of 100 Columns: the N wall stands at y −78 (both plans)
@@ -600,8 +641,10 @@ export function buildTerrace(): BuildResult {
     // the Treasury's mud-brick walls carry the greyish yellow-green clay paint (Schmidt via Stein et al. 2016: clay-based
     // paint on the Treasury walls, B; its colour from the Pasargadae/Persepolis earthen-plaster fragments, C). Elsewhere
     // the walls take the evidenced default, mud plaster (D-188, Q-028); benches keep the plain mud plaster (C)
+    // D-276: the rooms beyond the Hall of 99 Columns and the N range (room_ranges): store rooms, the columned halls, the court
+    const TR = buildRanges('treasury', true, true);
     for (const p of parts) if (p.building === b && p.material === 'mudbrick' && p.kind !== 'bench') p.material = 'mudbrick_painted';
-    manifest.treasury = { room: [hcx, hcy, hsx, hsy, fl, ord.height], hall99Columns: pts.length, columnHeight: ord.height, northWallY: Math.max(...poly.map(q => q[1])), doors: DR.length, benches: benches as any,
+    manifest.treasury = { ranges: TR as any, storeBenches: (TR?.benches ?? []) as any, room: [hcx, hcy, hsx, hsy, fl, ord.height], hall99Columns: pts.length, columnHeight: ord.height, northWallY: Math.max(...poly.map(q => q[1])), doors: DR.length, benches: benches as any,
       scribesRoom: [(rx0 + rx1) / 2, (iwN + nIn) / 2, rx1 - rx0, nIn - iwN, fl, NH.clear] as any, scribesShelves: shelves as any };
   }
   if (present('harem')) {
@@ -629,9 +672,18 @@ export function buildTerrace(): BuildResult {
     for (const p of por) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'portico'), row(b, 'portico_layout'))));
     const hw = v(b, 'r_hall_wall');
     parts.push(box(b, 'roof', 'timber', 'C', 'RECON', [hc[0], (hc[1] - hy / 2 - hw + PL.front_y) / 2], [hx + 2 * hw, PL.front_y - (hc[1] - hy / 2 - hw)], fl + ord.height, fl + ord.height + hw / 2, { note: 'roof over the main hall and portico (C)' }));
-    manifest.harem = { room: [hc[0], hc[1], hx, hy, fl, ord.height], hallColumns: hall.length, porticoColumns: por.length, northEdge: Math.max(...poly.map(q => q[1])) };
+    // D-276: the apartments, the rooms beside the hall, the kitchens and the N hall, the W wing (room_ranges)
+    const HR = buildRanges('harem', false, true);
+    manifest.harem = { room: [hc[0], hc[1], hx, hy, fl, ord.height], hallColumns: hall.length, porticoColumns: por.length, northEdge: Math.max(...poly.map(q => q[1])), ranges: HR as any };
   }
-  if (present('garrison')) { const W = v<any>('garrison', 'r_wall'); perimeter('garrison', fpRing('garrison'), v('garrison', 'floor') + v('garrison', 'r_floor_raise'), W.thickness, W.height, 'garrison quarters (C)', v<any>('garrison', 'r_doors')); }
+  if (present('garrison')) {
+    const W = v<any>('garrison', 'r_wall'); perimeter('garrison', fpRing('garrison'), v('garrison', 'floor') + v('garrison', 'r_floor_raise'), W.thickness, W.height, 'garrison enclosure (C)', v<any>('garrison', 'r_doors'));
+    // D-276: the quarters along the garrison street, its store and kitchen, and the royal guard's mess on the guards' court
+    const GR = buildRanges('garrison', false, false);
+    manifest.garrison = { ranges: GR as any };
+  }
+  // D-276: the royal kitchens on the open ground W of the Hadish (court.json court_kitchen; terrace.room_ranges, C)
+  { const KR = buildRanges('terrace', false, false); if (KR) (manifest.terrace as any).ranges = KR; }
 
   // ---------------- East fortification (mud brick) ----------------
   if (present('fortification_e')) {
