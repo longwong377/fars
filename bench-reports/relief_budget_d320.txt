@@ -1,0 +1,17 @@
+ATLAS: 9 of 9 sets drawn with the atlas; built 9 sets, 927 figures (Apadana 550) in 1388 ms
+N audience panel, 2 m              tris   405019  L0..L4 35581 / 86886 / 33796 / 31188 / 0  far 162928  draws 202 (far 19, proxies 2)
+N audience panel, 4 m              tris   370519  L0..L4 0 / 81221 / 40542 / 31188 / 0  far 162928  draws 202 (far 19, proxies 2)
+N audience panel, 6 m              tris   314140  L0..L4 0 / 0 / 65464 / 31188 / 0  far 162928  draws 202 (far 19, proxies 2)
+N audience panel, 10 m             tris   309506  L0..L4 0 / 0 / 57954 / 13376 / 0  far 183776  draws 134 (far 20, proxies 0)
+N audience panel, 16 m             tris   291982  L0..L4 0 / 0 / 29198 / 11380 / 0  far 197324  draws 88 (far 21, proxies 0)
+N audience panel, 25 m             tris   260869  L0..L4 0 / 0 / 0 / 0 / 0  far 207909  draws 24 (far 23, proxies 0)
+E audience panel, 2 m              tris   401540  L0..L4 35581 / 86886 / 33796 / 11972 / 0  far 178665  draws 142 (far 20, proxies 3)
+E audience panel, 4 m              tris   367040  L0..L4 0 / 81221 / 40542 / 11972 / 0  far 178665  draws 142 (far 20, proxies 3)
+E audience panel, 6 m              tris   310661  L0..L4 0 / 0 / 65464 / 11972 / 0  far 178665  draws 141 (far 20, proxies 2)
+E audience panel, 10 m             tris   307402  L0..L4 0 / 0 / 57954 / 15008 / 0  far 180040  draws 146 (far 27, proxies 0)
+E audience panel, 16 m             tris   289878  L0..L4 0 / 0 / 29198 / 14339 / 0  far 192261  draws 100 (far 28, proxies 0)
+E audience panel, 25 m             tris   271096  L0..L4 0 / 0 / 0 / 0 / 0  far 218136  draws 31 (far 30, proxies 0)
+Apadana walk worst (tests/reliefs.test.ts): 345437 at E a=-0.8350000000000009 off=1.2 L0..L4 83730 / 78465 / 33726 / 10997 / 0
+Phase 4 jambs worst (all sets): 567036 at hall100:N1 jamb 1 off 0
+Grand Stair foot (all far)         tris   172956  L0..L4 0 / 0 / 0 / 0 / 0  far 172956  draws 9 (far 9, proxies 0)
+meshes generated 848, 34469 ms generating; total 37555 ms

@@ -7578,3 +7578,40 @@ moment-*-webgpu.png in the worktree, not committed).**
   stops the leaf's thickness (r_door_leaves.thickness 0.25 m) short of the inner face and the fore-part projects 2.2 m
   (C; Q-890). The protome's horns are raised ~0.08 D in the head frame (protome.head.horn_shift [-0.07, 0.035, 0] D): with
   the head hung low they no longer rose above the poll; the photographs show them sweeping up and forward (C).
+
+## D-320 The relief figures as carved stone, every one: a Blender-baked carved-relief atlas (session 12, agent reliefs; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN row 3)
+- **What:** every relief figure definition the world draws (221: the Apadana registers, audience panels, spandrels and rosette
+  bands; the Phase 4 stairs and door jambs incl. the blocked-out giants; the Naqsh-e Rustam tomb registers; the Neo-Elamite
+  relief) is carved once at 1.6 mm per texel on the stone (the old finest level's cell; the 3.4 m giants 1.7 mm, the canopy
+  3.2 mm): its heightfield (relief_field.ts, detail point-sampled: curls, pleats, flutes at full resolution) as a dense
+  surface in metres at the definition's most common depth ratio, clamped at the wall face, with the foot of every step at
+  least a quarter relief-depth high pulled up to 0.3 of the rise under its arris (the undercut: the masons' square-to-under
+  outlines of the Apadana photographs; C). Blender 5.0.1 / Cycles (tools/blender/relief_bake.py, OptiX on the T4 through
+  gpu_slot plus CPU jobs) bakes from a quad in front of it, orthographically: the object-space normal (4 samples) and the
+  ambient occlusion (64 rays, two relief-depths long: the contour shadow line, the folds, the curls). Texels where a front ray
+  met the underside of a folded undercut (0.6 %) take the heightfield's own normal. The paint (colour, film coverage with its
+  wear, gilding) is sampled on the same grid in node. Packed (shelf packing) into 5 array layers of 4096²: nao.ktx2 (normal
+  xy, occlusion, gilding; 21.5 MB) and paint.ktx2 (sRGB colour, coverage; 3.6 MB), UASTC + RDO 0.75 + zstd, mipmapped.
+  Index src/data/relief_atlas.json; build `npx tsx tools/blender/relief_atlas.ts --device=GPU --cpujobs=2 [--reuse]` (~25 min;
+  KTX encoding is most of it).
+- **In the game:** render/reliefAtlas.ts loads the two textures before the reliefs are built (world.ts), and every ReliefSet
+  whose figures are all in the atlas draws ATLAS_LODS (relief_atlas.ts): the same RTIN heightfield levels and switch distances
+  on grids half as fine, error bounds 0.07-0.19 (silhouette still cell-exact), no refinement at paint edges, positions and
+  triangles only (extractLod lean). Each vertex carries `ruv` (u, v, layer, instance depth ratio over the baked one) and the
+  wall frame; the paint material (materials.ts paintedStoneMaterial(atlas)) reads paint, gilding and occlusion from the atlas
+  and turns the baked normal into view space (tangent = up x normal, mirror by tangent.w: instanced rosettes do not turn a
+  tangent attribute), its slopes scaled by the depth ratio, the stone's and the film's fine relief bumped round it. The layer
+  index is rounded in the shader (an interpolated 2.0 came out 1.999 on some pixels: moire of the neighbouring layer).
+  ?reliefatlas=0 or a failed load leaves the legacy vertex-painted levels. Code paths switched: arch/reliefs.ts ReliefSet
+  (batch, far chunks, whole-set merge, shadow proxies, rosettes near and far), used by arch/decor.ts (Apadana, Phase 4) and
+  world/plain/naqsh.ts (tomb registers and, new, the Neo-Elamite relief's five worshippers, kind `elamite`, by analogy with
+  Kurangun and Kul-e Farah, C; they were five extruded silhouettes). Now view: the atlas material is swapped like the old one.
+- **Measured** (tools/relief_budget.ts, ATLAS=1; bench-reports/relief_budget_d320.txt): relief triangles before the audience
+  panel at 2 m 1.054 M -> 0.405 M, worst on the Apadana walk 1.112 M -> 0.345 M, worst at a Phase 4 jamb 1.450 M -> 0.567 M,
+  Grand Stair foot 0.474 M -> 0.173 M. GPU memory ~+110 MB (BC7), download +25 MB. Probe renders (tools/blender/probe/
+  relief_probe.*, GPU, T:/fars-assets-s12/reliefs/shots4): at 0.4-0.8 m the curls, flutes, eye and lids and the robe
+  pattern are as crisp as the legacy L0 and the paint edges crisper; at 6 m and beyond the relief shading is a little softer
+  than the legacy (the mip chain averages the normals); the legacy's zigzag shadow acne on the jambs is gone.
+- **Still placeholder (flag kept):** the drawing of the figures is the procedural reconstruction (relief_figures.ts, C) until
+  licensed scans or measured drawings replace it (NEEDS #10); the undercut depth and the AO reach are C. The wall around a
+  figure gets no baked contour occlusion (the relief mesh ends one level-cell past the outline; the sun shadows are D-226's).
