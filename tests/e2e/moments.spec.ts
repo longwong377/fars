@@ -236,6 +236,15 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // D-255 (crafts): the tannery by the canal NE of the Terrace and the sesame-oil press, day 60, 09:00 (the crafts agent's request)
   { n: 'tannery-work', day: 60, hour: 9, w: 'clear', v: [415, 420, 1.6, 26, -8], fov: 50 },
   { n: 'press-work', day: 60, hour: 9, w: 'clear', v: [-228, -702, 1.6, 26, -8], fov: 50 },
+  // D-292 (gap hunter C, C-D09; the body and the day): a lane of the lower town (q_s1) on a spring morning, day 30 (17 May) 08:30,
+  // a woman 22 days before her birth (Population.gravid 0.86: the belly ~13 cm) spinning on her doorstep, seen in profile from
+  // 3.2 m along the lane (the pose aimed at where the page put her: tests/e2e/dbg_body_day.spec.ts, tools/dev/body_find.ts).
+  // Rendered on the GPU at high (FOV game) before the probes' rebake: shots/body-lane-p4537-r-gpu.png. The belly does not read
+  // at this distance: her arms and the loose dress hide it (D-292)
+  { n: 'lane-with-child', day: 30, hour: 8.5, w: 'clear', v: [-333.2, -901.5, 1.6, 334.7, -10.6] },
+  // D-292 (C-D04): the morning wash at rising in a house's court (q_s1-0079: a woman at the water jar and basin), day 30 06:00,
+  // 4 m in front of her (body_find's pose). NOT rendered (the second browser run timed out before it)
+  { n: 'morning-wash', day: 30, hour: 6.0, w: 'clear', v: [-453.8, -956.5, 1.6, 167.5, -6] },
 ];
 test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES

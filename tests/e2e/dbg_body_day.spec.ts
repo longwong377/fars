@@ -5,12 +5,15 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 // the page's own view (world.people.view.visible), so the camera aims at where the page put them, and captures it from
 // four sides at 3.2 m (the rig keeps nobody within 2.5 m). The chosen poses go into moments.spec.ts.
 //   DBG=1 PW_CHANNEL=chrome E2E_PORT=5251 Q=high npx playwright test tests/e2e/dbg_body_day.spec.ts --project=gpu
+// Measured (session 11, T4): ready after ~5 min; the first view took ~30 min of shader compiling, and each new subject ~6 min
+// (the area streamed and its pipelines compiled): the 40-min budget covered 2 of 10 subjects. Give TIMEOUT 5400 or fewer subjects
 const STATES: { day: number; hour: number; subjects: { tag: string; pid: number; at: [number, number]; also?: number }[] }[] = [
   { day: 30, hour: 8.5, subjects: [
     { tag: 'lane-p1082', pid: 1082, at: [-381.2, -1011.6] }, // spinning on the doorstep, due in 32 days (0.79)
     { tag: 'lane-p4537', pid: 4537, at: [-333.6, -898.3] }, // spinning on the doorstep, due in 22 days (0.86)
     { tag: 'lane-p1872', pid: 1872, at: [-427.9, -1014.0] }, // walking to the storehouse, due in 5 days (0.97)
     { tag: 'lane-p3028', pid: 3028, at: [-479.5, -905.9] }, // mending clothes on the doorstep, due in 33 days (0.78)
+    { tag: 'comb-q90', pid: 1033, at: [-385.7, -987.8], also: 1035 }, // a boy's hair gone through for lice on the doorstep (the pair)
   ] },
   { day: 30, hour: 6.0, subjects: [
     { tag: 'wash-q35', pid: 3710, at: [-466.7, -1006.3], also: 3706 }, // a woman washing at rising; a woman with child (0.70) in the same court

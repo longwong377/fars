@@ -6948,3 +6948,32 @@ moment-*-webgpu.png in the worktree, not committed).**
   anti-solar point; extinction by air mass; visible under the same night, Moon and cloud factor as the Milky Way. The ecliptic
   frame from the J2000 obliquity (tests/zodiacal.test.ts: the Sun on it, |β| < 0.8°, at every hour and season). Unrendered:
   moment `zodiacal-mar` queued (day 322, the new moon of early March).
+
+## D-292 The body and the day: pregnancy seen, the body's care, the Persians' washing rule, the herd boy's sling, a lullaby, a word at the well, hurts (session 10-11; gap hunter C, C-D09, C-D04..C-D07, C-D46, C-D38, C-D30, C-D23, C-D19; WORLD_INVENTORY GB12, GC20, GC6, GB43, GB50, GC27, GA29, GC24, GC23; UD-07, UD-08, UD-14, UD-16)
+- **Gap:** nobody was ever visibly with child though births happen (E-70); nobody washed, was shaved or deloused; Persians and
+  guards washed clothes in the river against the rule Herodotus reports (1.138, a Greek claim: B); no sling, lullaby,
+  courtship or injury.
+- **Decision (C for every shape, rate and hour; the evidence tiers per item in lives.json and activities.ts notes):**
+  - Pregnancy: `Population.gravid/dueIn/expecting` from this year's births and, for the year's last months, a separate draw of
+    next year's first births at the same rate (no other draw moves). The belly is a per-person displacement in the humans'
+    vertex shader (humanMaterial, mirroring drape.ts `bellyOffset`), clothes taken up with it, ~15 cm at term, from ~180 days
+    before the birth, going down over 21 days after it; refreshed daily; F3 says "with child, the birth in N days".
+  - The body's care is a layer over the day plans (`Population.care`, reading only other people's raw plans): a wash of face
+    and hands at the house's jar at rising for everyone of three and over in the town and the plain (the minutes come off the
+    night's sleep: no morning work moves); a child's hair gone through for lice on the doorstep (the child seated in front of
+    the woman by popview's pairs); the quarter's barbers (1 per 90 men) shaving men in the lane in free hours. No care on
+    dust days, in the rain, in a servant's errand, or where it would leave a stub of a spell elsewhere (`careEdges`).
+  - The washing rule: a Persian or a guard washes clothes on the bank with water drawn up in a jar, never in the stream.
+  - A herd boy of 8-17 (45 % of them) uses a sling now and then; a woman with a small child at its bedtime hums it a wordless
+    lullaby (voices.ts LULL: no invented words, §10); on some days before a wedding the groom comes to the bride's well while
+    she draws water, for a word and a look; men of the heavy work are hurt now and then (0.25 %/day) and limp on a staff for
+    3-12 days.
+- **Measured (seed 1, 6 sampled days, node: tools/dev/body_trace.ts):** 5.46 % of women 15-44 visibly with child (target 3-6 %),
+  0 bellies without a birth; 3.66 washes per household-day (98.9 % of households); 0.45 shaves per man per month; delousing
+  0.087 per household-day; 0 of 5,272 Persian or guard launderings in the stream; 115 courting meetings at the well in the year.
+  Tests: people_belly, people_care, people_body_more, audio_population (lullaby), people_days*, performances, popview.
+- **Rendered (GPU, high, FOV game, before the probes' rebake):** the moment `lane-with-child` (day 30 08:30) as
+  shots/body-lane-p4537-r-gpu.png: the woman is there in profile, but **the belly does not read** (her spinning arms and the
+  loose dress hide it). `morning-wash` is posed, NOT rendered. The impostors (people at distance) draw no belly.
+- **Not done:** the quarrel that comes to blows (GC25); a cut hand bound (GC23's other half); lament (GA29's other half);
+  scratching (GB43).
