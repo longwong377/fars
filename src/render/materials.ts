@@ -361,9 +361,10 @@ SURFACES.terrace_foot = { ...SURFACES.terrace, top: undefined, blockFace: 'rough
 SURFACES.stone_rough = { ...SURFACES.limestone, joints: undefined, stone: undefined, soil: undefined, foot: 0, wear: undefined, runoff: 0, blockFace: 'rough', note: 'limestone blocks being worked: quarry-rough, point-dressed faces, the top being dressed with the claw (construction in 467 B; block size and working C; D-217, D-321)' };
 SURFACES.terrace_now = { ...SURFACES.limestone, joints: { ...RETAINING, blockSd: 0.27 }, note: SURFACES.limestone.note + '; D-232: the Terrace walls\' photographed joint layout (terrace.r_masonry); D-300: the ruin\'s block tone, 1σ 0.27 between blocks as measured on #24 (D-230, B40), in the Now view only (the 467 stone keeps 0.13)' };
 
-/** shading normal from a procedural height field (view space; surface-gradient method, Mikkelsen 2010) */
-function bumped(h: any) {
-  const dpdx = positionView.dFdx(), dpdy = positionView.dFdy(), n = normalView;
+/** shading normal from a procedural height field (view space; surface-gradient method, Mikkelsen 2010), around the
+ *  geometric normal or around `base` (a mapped normal: the relief atlas's carving, D-320) */
+function bumped(h: any, base: any = null) {
+  const dpdx = positionView.dFdx(), dpdy = positionView.dFdy(), n = base ?? normalView;
   const r1 = dpdy.cross(n), r2 = n.cross(dpdx), det = dpdx.dot(r1);
   const grad = sign(det).mul(h.dFdx().mul(r1).add(h.dFdy().mul(r2)));
   return abs(det).mul(n).sub(grad).normalize();
@@ -1211,12 +1212,15 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
  *  as a yellow film for that reason); here the lighting model reflects the skylight into the metal's specular lobe: the
  *  radiance round the reflection is taken as the skylight's irradiance at the point / pi (the hemisphere light, through the
  *  light probes indoors, so gold in a doorway is as dim as the doorway). Arithmetic masks only (D-012). */
-export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
-  const key = 'painted-stone'; const hit = cache.get(key); if (hit) return hit;
+export function paintedStoneMaterial(atlas: ReliefAtlasMaps | null = null): THREE.MeshStandardNodeMaterial {
+  const key = atlas ? `painted-stone:atlas:${atlas.nao.uuid}` : 'painted-stone'; const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES.limestone_carved, F = (PC as any).paint.film.v, LS = (PC as any).paint.loss.v, G = (PC as any).paint.gold.v;
   const p = positionWorld;
   const S = applyScan('limestone_carved', layer(d, lin(d.albedo))); // D-300: the bare stone between and under the paint takes the carved stone's scan
-  const pig = attribute('color', 'vec3'), cov = attribute('paint', 'float'), gilt = attribute('gilt', 'float');
+  // the paint, the gilding and the carving's occlusion: per vertex, or (D-320) from the carved-relief atlas at the vertex's
+  // `ruv` (arch/relief_atlas.ts: u, v, layer, depth-ratio correction)
+  const A = atlas ? reliefAtlasNodes(atlas) : null;
+  const pig = A ? A.pig : attribute('color', 'vec3'), cov = A ? A.cov : attribute('paint', 'float'), gilt = A ? A.gilt : attribute('gilt', 'float');
   // the paint's noise fields are faded to their mean where their period falls under ~3 pixels (D-204): the ~7 mm losses and the
   // pigment grain, point-sampled per pixel from a few metres away, turned every painted surface into salt-and-pepper speckle
   // and broke the paint edge along each outline into dots. The pixel footprint is |fwidth(world position)| in metres
@@ -1232,7 +1236,7 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   const gold = vec3(G.f0[0], G.f0[1], G.f0[2]).mul(float(1).add(mx_noise_float(p.mul(G.grain_freq)).mul(G.grain_amp)));
   // the carving's own sky occlusion (D-217, relief_field.carvingOcclusion): the skylight at the foot of each contour and in
   // the folds scaled by 1 − 0.85 × occlusion, and grime held in the recesses (up to 15 % darker, C)
-  const occ = clamp(attribute('ao', 'float'), 0, 1);
+  const occ = A ? A.occ : clamp(attribute('ao', 'float'), 0, 1);
   const L: Layer = { alb: mix(mix(S.alb, pig.mul(grain), film), gold, leaf).mul(float(1).sub(occ.mul(0.15))), rough: mix(mix(S.rough, float(F.roughness), film), float(G.roughness), leaf), height: (S.height ?? float(0)).add(film.add(leaf).mul(F.relief)) };
   class GiltLighting extends (THREE as any).PhysicalLightingModel {
     indirectSpecular(builder: any) {
@@ -1243,13 +1247,39 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   }
   const m = new THREE.MeshStandardNodeMaterial();
   finish(m, L, d);
+  // D-320: the atlas's carved surface is the shading normal; the stone's and the paint film's own fine relief bumped round it
+  if (A) m.normalNode = bumped(L.height ?? float(0), A.normal);
   m.aoNode = float(1).sub(occ.mul(0.85));
   m.metalnessNode = leaf;
   receiveReliefShadow(m); // the figures' shadows on themselves (D-226)
   (m as any).setupLightingModel = () => new GiltLighting();
-  m.userData = { surface: 'limestone_carved', scan: scanOf('limestone_carved'), tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
+  m.userData = { surface: 'limestone_carved', scan: scanOf('limestone_carved'), tier: 'C', ...(atlas ? { atlas: 'relief (D-320)' } : {}), note: (atlas ? 'the carving, paint and occlusion read from the carved-relief atlas baked by Blender (D-320); ' : '') + 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
   cache.set(key, m);
   return m;
+}
+
+/** the carved-relief atlas's two array textures (D-320; arch/relief_atlas.ts, render/reliefAtlas.ts) */
+export interface ReliefAtlasMaps { nao: THREE.Texture; paint: THREE.Texture }
+/** what the relief material reads from the atlas at the vertex's `ruv` (u, v, layer, ratio): the paint (colour, coverage), the
+ *  gilding, the sky occlusion (1 - the baked ambient occlusion), and the carved surface's normal in view space. The baked
+ *  normal is the surface's at the definition's baked depth ratio (x along the figure, y up, z out of the wall); its slopes
+ *  (x/z, y/z) scale with the instance's depth ratio (ruv.w = its ratio over the baked one), and the wall's frame (the
+ *  geometry's normal and tangent, turned by the instance's matrix: arch/reliefs.ts lodGeometryAtlas) takes it to view space */
+function reliefAtlasNodes(atlas: ReliefAtlasMaps) {
+  const r = attribute('ruv', 'vec4'), uv = r.xy;
+  const layered = (t: any) => t.isCompressedArrayTexture || t.isDataArrayTexture || t.isArrayTexture;
+  // the layer, rounded: the interpolated constant comes out a hair under the integer on some pixels, and the sampler truncates
+  const layer = r.z.add(0.5).floor();
+  const at = (t: THREE.Texture) => (layered(t) ? texture(t, uv).depth(layer) : texture(t, uv));
+  const P = at(atlas.paint), N = at(atlas.nao);
+  const bx = N.r.mul(2).sub(1), by = N.g.mul(2).sub(1), bz = float(1).sub(bx.mul(bx)).sub(by.mul(by)).max(0.0025).sqrt();
+  const nT = vec3(bx.div(bz).mul(r.w), by.div(bz).mul(r.w), float(1)).normalize();
+  // the wall's frame in view space: every relief stands on a vertical wall with the figure's up = the world's up (arch/reliefs.ts
+  // placements; tests/relief_atlas.test.ts), so the bitangent is the world's up, the tangent up x normal, turned by the
+  // geometry's mirror sign (tangent.w). Instanced meshes (the rosettes) do not turn a tangent attribute by the instance
+  // matrix, so the frame is built here and not from TBNViewMatrix
+  const Nv = normalView, up = cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz.normalize(), T = up.cross(Nv).normalize().mul(attribute('tangent', 'vec4').w);
+  return { pig: P.rgb, cov: P.a, gilt: N.a, occ: float(1).sub(N.b), normal: T.mul(nT.x).add(up.mul(nT.y)).add(Nv.mul(nT.z)).normalize() };
 }
 
 /** Incised signs (D-177; src/render/incision.ts): the host stone's own surface (the same world-space layer and weather as the

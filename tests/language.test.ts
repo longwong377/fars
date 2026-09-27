@@ -283,6 +283,8 @@ describe('language lint: every source that can reach the canvas', () => {
     'public/textures/clay_floor_001/diff.jpg': 'CC0 scan albedo (clay_floor_001; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/clay_floor_001/arm.jpg': 'CC0 scan AO/roughness/metal pack (clay_floor_001; viewed in a contact sheet, session 11 D-301: no text)',
     'public/models/people/people_hair_atlas.ktx2': 'the hair-card strand atlas, rendered by Blender/Cycles from MakeHuman CC0 hair shades (D-307; transcoded and viewed by the lead, session 11: strands only, no text)',
+    'public/models/reliefs/nao.ktx2': 'the carved-relief atlas, normal + occlusion + gilding of every relief figure baked by Blender/Cycles (D-320; layers decoded and viewed by the reliefs agent, session 12: carved figures only, no text: the inscriptions are cut by incision.ts, not baked here)',
+    'public/models/reliefs/paint.ktx2': 'the carved-relief atlas, the paint of the figures on the same grid (D-320; decoded and viewed, session 12: flat pigments and the robe patterns, no text)',
     'public/generated/humans/scans/cloth_0.jpg': 'cloth scan layer (CC0) (D-304/D-307; viewed in a contact sheet by the lead, session 11: no text)',
     'public/generated/humans/scans/cloth_0_h.jpg': 'cloth scan layer (CC0) (D-304/D-307; viewed in a contact sheet by the lead, session 11: no text)',
     'public/generated/humans/scans/cloth_1.jpg': 'cloth scan layer (CC0) (D-304/D-307; viewed in a contact sheet by the lead, session 11: no text)',
