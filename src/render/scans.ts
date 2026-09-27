@@ -11,6 +11,7 @@
 import * as THREE from 'three/webgpu';
 import { texture, positionWorld, normalWorld, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
 import SCANS from '../data/scans.json';
+import { loadBlockFace } from './blockface';
 
 export interface ScanUse { scan: string; scale: number; alb: number; height: number; rough: number; scale2?: number;
   /** roughness also follows the scan's luminance detail: × (1 + roughLum·(lum − 1)) (a burnished floor: the trowel's smooth strokes
@@ -31,6 +32,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   limestone_dark: { scan: 'rock_surface', scale: 1.4, alb: 0.35, height: 0.001, rough: 0.3 },
   terrace: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.5, height: 0.006, rough: 0.5, nor: 1.8 },
   terrace_foot: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.6, height: 0.01, rough: 0.5, nor: 2.2 }, // (the foot's rougher-dressed blocks)
+  stone_rough: { scan: 'rock_boulder_dry', scale: 1.7, scale2: 7.3, alb: 0.5, height: 0.004, rough: 0.5 }, // D-321: the blocks being worked (the Terrace's stone, quarry-fresh)
   terrace_now: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.8, height: 0.008, rough: 0.5, nor: 2.2 },
   stone_plain: { scan: 'rock_wall_02', scale: 1.6, alb: 0.6, height: 0.005, rough: 0.5 },
   takht_stone: { scan: 'rock_wall_02', scale: 2.0, alb: 0.7, height: 0.006, rough: 0.5 },
@@ -89,7 +91,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
  *  (no fitting scan: judged by T-A4): bronze, the glazed brick, the red-painted floors, reed matting, cloth */
 export const ALB_MIN = 0.3;
 export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark',
-  'terrace', 'terrace_now', 'terrace_foot', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted',
+  'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted',
   'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
   'refuse', 'timber', 'roof_timber', 'house_timber', 'scaffold'].map(k => [k, true]));
 /** the scan applied to a surface at a strength that reads (T-A7's anti-proxy: alb >= ALB_MIN), or null; what the builders record
@@ -109,6 +111,7 @@ export let scansOn = true;
 /** load every scan used (awaited before the world builds its materials); a no-op without a DOM (node) */
 export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
   if (typeof document === 'undefined') return;
+  await loadBlockFace(base, anisotropy); // D-321: the Blender-carved block faces (independent of ?noscans; ?noblockface)
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noscans')) { scansOn = false; return; }
   const L = new THREE.TextureLoader(), ids = [...new Set(Object.values(SCAN_USE).flatMap(u => u.rock ? [u.scan, u.rock.scan] : [u.scan]))];
   const withNor = new Set(Object.values(SCAN_USE).filter(u => u.nor).map(u => u.scan));
@@ -147,7 +150,9 @@ function triNormal(t: THREE.Texture, scale: number) {
   return vec3(float(0), tx.y, tx.x).mul(w.x).add(vec3(ty.x, float(0), ty.y).mul(w.y)).add(vec3(tz.x, tz.y, float(0)).mul(w.z));
 }
 /** `noRough`: keep the layer's procedural roughness (saves the arm map's sampler: a layer under another's, D-300) */
-export function applyScan<L extends { alb: any; rough: any; height: any | null; tilt?: any }>(name: string, L: L, noRough = false): L {
+/** `noNor` (D-321): no normal map and a sixth of the luminance bump (the dressed block faces: their relief is the carved set's,
+ *  blockface.ts, not a weathered boulder's; saves the normal map's sampler); the scan's colour grain and roughness stay */
+export function applyScan<L extends { alb: any; rough: any; height: any | null; tilt?: any }>(name: string, L: L, noRough = false, noNor = false): L {
   const u = SCAN_USE[name], T = u && TEX.get(u.scan), M = u && META[u.scan];
   if (!scansOn || !u || !T || !M) return L;
   const mean = vec3(...M.meanLinear);
@@ -166,8 +171,8 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null; 
   let rough = u.rock || noRough ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough));
   if (u.roughLum) rough = rough.mul(float(1).add(lum.sub(1).mul(u.roughLum)));
   rough = rough.clamp(0.05, 1);
-  const bump = lum.sub(1).mul(u.height);
-  const nt = u.nor && T.nor ? triNormal(T.nor, u.scale).mul(u.nor) : null;
+  const bump = lum.sub(1).mul(u.height * (noNor ? 1 / 6 : 1));
+  const nt = u.nor && T.nor && !noNor ? triNormal(T.nor, u.scale).mul(u.nor) : null;
   return { ...L, alb, rough, height: L.height ? L.height.add(bump) : bump, ...(nt ? { tilt: L.tilt ? L.tilt.add(nt) : nt } : {}) };
 }
 

@@ -17,8 +17,8 @@ export const SETTLEMENT_SURFACES: Record<string, SurfaceDef> = {
   // courses ~0.09 m with mortar (C)
   baked_brick: { albedo: [0.62, 0.5, 0.36], roughness: 0.85, porosity: 0.5, noiseScale: 1.5, noiseAmp: 0.1, joints: { course: 0.09, block: 0.34, width: 0.012, dark: 0.15 }, bump: { amp: 0.002, freq: 5 }, top: 'mud_roof', tier: 'B/C', note: 'baked-brick facing of the Tol-e Ajori gate (materials B: AJORI-BRICK2018; brick size, 12 mm mortar joints and tone C)' },
   // limestone without the Terrace ashlar joint pattern (small blocks, kerbs, bases, the Takht-e Rustam courses have their own joints)
-  stone_plain: { albedo: [0.5, 0.48, 0.44], roughness: 0.75, porosity: 0.35, noiseScale: 2, noiseAmp: 0.12, bump: { amp: 0.002, freq: 5 }, tier: 'C', note: 'local grey limestone (kerbs, well heads, column bases), C' },
-  takht_stone: { albedo: [0.52, 0.5, 0.46], roughness: 0.7, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: { course: 1.1, block: 2.6, width: 0.002, dark: 0.5 }, bump: { amp: 0.002, freq: 5 }, tier: 'C', note: 'Takht-e Rustam: local stone (LIVIUS-TR, B); block size C' },
+  stone_plain: { blockFace: 'dressed', albedo: [0.5, 0.48, 0.44], roughness: 0.75, porosity: 0.35, noiseScale: 2, noiseAmp: 0.12, bump: { amp: 0.002, freq: 5 }, tier: 'C', note: 'local grey limestone (kerbs, well heads, column bases), C' },
+  takht_stone: { blockFace: 'dressed', albedo: [0.52, 0.5, 0.46], roughness: 0.7, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: { course: 1.1, block: 2.6, width: 0.002, dark: 0.5 }, bump: { amp: 0.002, freq: 5 }, tier: 'C', note: 'Takht-e Rustam: local stone (LIVIUS-TR, B); block size C' },
   // earth roads: compacted, with fewer stones than the plain and no herb layer in the wheel tracks
   road: { albedo: [0.66, 0.56, 0.45], roughness: 0.96, porosity: 0.85, noiseScale: 0.6, noiseAmp: 0.1, bump: { amp: 0.006, freq: 1.5 }, chips: { cover: 0.03, size: 0.12, albedo: [0.6, 0.57, 0.5] }, tier: 'C', note: 'earth road, 6-8 m (settlement.json, C course)' },
   // D-234: the houses at full detail (houses.ts). Straw-tempered mud plaster over mud brick (earthen plaster at Pasargadae

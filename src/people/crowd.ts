@@ -275,7 +275,7 @@ export class Crowd {
     // uneven by a few cm, the top being dressed flat; its own mesh (one draw)
     const masons = sim.agents.filter(a => a.role === 'mason'), blocks: THREE.BufferGeometry[] = [];
     for (const a of masons) { const e = a.slot[0], n = a.slot[1] + 0.95; q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.1 * Math.sin(a.id)); blocks.push(masonBlock(a.id).applyMatrix4(M.compose(gw(e, n, nav.heightAt(e, n) || 0), q, one))); }
-    if (blocks.length) { const bm = new THREE.Mesh(mergeGeometries(blocks)!, surfaceMaterial('rubble')); bm.castShadow = bm.receiveShadow = true; bm.name = 'work:blocks';
+    if (blocks.length) { const bm = new THREE.Mesh(mergeGeometries(blocks)!, surfaceMaterial('stone_rough')); bm.castShadow = bm.receiveShadow = true; bm.name = 'work:blocks';
       bm.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'limestone blocks being dressed at the masons\' places, 1.4 × 0.75 × 0.9 m, quarry-rough with the top dressed (construction in 467 B; block size and working C; D-217)' };
       this.group.add(bm); nearCascadesOnly(bm); }
     const grind = sim.agents.filter(a => a.role === 'grinder' || a.role === 'baker');

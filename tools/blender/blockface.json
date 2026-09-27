@@ -1,0 +1,267 @@
+{
+ "about": "D-321: the dressed stone's block-face detail set (tools/blender/blockface.py builds it, tools/blender/blockface.mjs drives Blender and KTX). Each layer is a tileable 2.048 m square at 1 mm per texel whose surface is CARVED: a quarry-rough face lowered by the strokes of a tool (every stroke a swept tool profile, the surface the minimum of the uncut face and every cut: material removal), then partly rubbed; Blender (Cycles) bakes its tangent-space normals and ambient occlusion from the displaced mesh (a 1 mm grid with a wrapped margin, so the maps tile). Packed RGBA per texel: normal x, normal y (OpenGL, x along u, y along v), height (0.5 + h / hscale), AO. The strip layers hold 16 rows of 128 mm each: v = the distance from the block's arris (the joint), u along it: the margin strokes the mason cuts along an arris and the chips it takes in handling and setting. Tool, stroke and chip dimensions are tier C (Q-484, Q-930): the toothed chisel reached Persia with Ionian and Lydian masons (Nylander 1970, 'Ionians in Pasargadae', RECOLLECTION); the 4 mm tooth pitch and 8 x 3 cm facets of D-218; the photographs of the ruin used only for the tools' marks and their proportions (UD-20).",
+ "res": 2048,
+ "size_m": 2.048,
+ "strip_rows": 16,
+ "strip_px": 128,
+ "margin_px": 40,
+ "ao_samples": 48,
+ "layers": [
+  {
+   "id": "claw_a",
+   "kind": "claw",
+   "seed": 11,
+   "hscale": 4,
+   "ao_distance": 0.012,
+   "claw": {
+    "W": [
+     22,
+     28
+    ],
+    "L": [
+     40,
+     85
+    ],
+    "pitch": 4,
+    "g": 0.45,
+    "arc": 0.2,
+    "tilt": 0.012,
+    "row": 0.704,
+    "along": 0.634,
+    "patch": [
+     180,
+     360
+    ],
+    "dir0": 40,
+    "dirSd": 18,
+    "rub": 0.35,
+    "base": 0.35,
+    "rough": 0.45
+   },
+   "note": "toothed-chisel face, lightly rubbed: the walls' finish (teeth 4 mm apart cutting ~0.45 mm, facets tilted ~0.7°; C, Q-484)"
+  },
+  {
+   "id": "claw_b",
+   "kind": "claw",
+   "seed": 23,
+   "hscale": 4,
+   "ao_distance": 0.012,
+   "claw": {
+    "W": [
+     24,
+     30
+    ],
+    "L": [
+     50,
+     95
+    ],
+    "pitch": 4.2,
+    "g": 0.5,
+    "arc": 0.22,
+    "tilt": 0.014,
+    "row": 0.686,
+    "along": 0.616,
+    "patch": [
+     240,
+     460
+    ],
+    "dir0": -52,
+    "dirSd": 22,
+    "rub": 0.3,
+    "base": 0.4,
+    "rough": 0.45
+   },
+   "note": "toothed-chisel face, another mason's hand (wider chisel, larger working patches), rubbed (C)"
+  },
+  {
+   "id": "claw_c",
+   "kind": "claw",
+   "seed": 37,
+   "hscale": 4,
+   "ao_distance": 0.012,
+   "claw": {
+    "W": [
+     20,
+     26
+    ],
+    "L": [
+     35,
+     70
+    ],
+    "pitch": 3.8,
+    "g": 0.45,
+    "arc": 0.18,
+    "tilt": 0.012,
+    "row": 0.722,
+    "along": 0.651,
+    "patch": [
+     160,
+     300
+    ],
+    "dir0": 68,
+    "dirSd": 15,
+    "rub": 0.2,
+    "base": 0.3,
+    "rough": 0.45
+   },
+   "note": "toothed-chisel face, lightly rubbed (the fresher finish of the newest work) (C)"
+  },
+  {
+   "id": "flat",
+   "kind": "flat",
+   "seed": 41,
+   "hscale": 4,
+   "ao_distance": 0.012,
+   "claw": {
+    "W": [
+     22,
+     28
+    ],
+    "L": [
+     40,
+     85
+    ],
+    "pitch": 4,
+    "g": 0.35,
+    "arc": 0.15,
+    "tilt": 0.01,
+    "row": 0.704,
+    "along": 0.634,
+    "patch": [
+     200,
+     380
+    ],
+    "dir0": 30,
+    "dirSd": 25,
+    "rub": 0.3,
+    "base": 0.3,
+    "rough": 0.45
+   },
+   "flat": {
+    "W": [
+     30,
+     40
+    ],
+    "L": [
+     50,
+     95
+    ],
+    "arc": 0.12,
+    "tilt": 0.006,
+    "row": 0.85,
+    "along": 0.75,
+    "cover": 0.8,
+    "rub": 0.45,
+    "side": 0.14,
+    "dir0": 20
+   },
+   "note": "flat-chisel finish over the claw's (a few claw marks left where the flat chisel did not pass): treads, landings, the tops of walls and copings (C)"
+  },
+  {
+   "id": "point",
+   "kind": "point",
+   "seed": 53,
+   "hscale": 16,
+   "ao_distance": 0.02,
+   "point": {
+    "W": [
+     4.5,
+     8
+    ],
+    "L": [
+     6,
+     16
+    ],
+    "depth": [
+     1.2,
+     2.6
+    ],
+    "dir0": 55,
+    "dirSd": 20,
+    "base": 2.2,
+    "baseLam": [
+     60,
+     420
+    ],
+    "area": 60,
+    "scatter": 32
+   },
+   "note": "point-dressed (punched) face: the foot's large rough-dressed blocks and dressed bedrock (D-232, C)"
+  },
+  {
+   "id": "strip_fine",
+   "kind": "strip",
+   "seed": 67,
+   "hscale": 64,
+   "ao_distance": 0.03,
+   "strip": {
+    "margin": {
+     "W": [
+      12,
+      16
+     ],
+     "L": [
+      40,
+      65
+     ],
+     "rows": [
+      7,
+      18,
+      29
+     ],
+     "arc": 0.12,
+     "g": 0.3,
+     "pitch": 3.5,
+     "pre": 0.3,
+     "end": 37
+    },
+    "chips": {
+     "rate": 1,
+     "a0": 6,
+     "aMean": 12,
+     "aMax": 48,
+     "b": [
+      0.45,
+      0.95
+     ],
+     "d": [
+      0.22,
+      0.45
+     ]
+    }
+   },
+   "note": "arris strips of a newly dressed block in use: margin strokes along the arris and the few chips of handling and setting (0.75 per metre of arris, 7-40 mm) (C)"
+  },
+  {
+   "id": "strip_rough",
+   "kind": "strip",
+   "seed": 79,
+   "hscale": 64,
+   "ao_distance": 0.03,
+   "strip": {
+    "pitch": {
+     "c": [
+      4,
+      16
+     ],
+     "slope": 0.65
+    },
+    "chips": {
+     "rate": 3.2,
+     "a0": 6,
+     "aMean": 14,
+     "aMax": 60,
+     "b": [
+      0.5,
+      1
+     ],
+     "d": [
+      0.35,
+      0.7
+     ]
+    }
+   },
+   "note": "arris strips of the rough-dressed foot: a pitched, irregular arris and larger spalls (C)"
+  }
+ ]
+}
