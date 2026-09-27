@@ -73,3 +73,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-325 | s12 | Blender, all of it: props (Q-970..Q-979, B157..B159) | agent worktree T:/fars-wt/props, branch s12b-props | in flight |
 | D-326 | s12 | Blender, all of it: animals (Q-980..Q-989, B160..B162) | agent worktree T:/fars-wt/animals, branch s12b-animals | in flight |
 | D-327 | s12 | Blender, all of it: trees (Q-990..Q-999, B163..B165) | agent worktree T:/fars-wt/trees, branch s12b-trees | in flight |
+| D-315 | s12 | conversations act on the world and are remembered per save (UD-21; Q-910..Q-919, B139..B141) | agent worktree T:/fars-wt/talk, branch s12b-talk | in flight |

@@ -522,6 +522,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-18 | speak to the people and they answer: in-browser speech recognition and a language model playing each person (src/people/) from their own baked life, the reply in the translation layer, the heard world period by default | §7 (people), D-296 | T-E9 |
 | UD-19 | build en masse, not verify small details: GPU sessions replace whole asset classes (the lighting, rocks, props, house kits, people) with real modelled or scanned assets, verified once per batch (sessions/) | §6 order (the session 12 plan, HANDOFF.md), D-308 | T-R12 |
 | UD-20 | all the Blender work for everywhere (every class of research/BLENDER_PLAN.md, world-wide) done on the GPU machine; no effort on the present-day ruins view (src/arch/now.ts): the target is the living city | §6 order (sessions/s12.md, the second wave, handoff/briefs/s12) | T-R13 |
+| UD-21 | conversations act on the world (a person follows, leads, fetches, gives, refuses in character, through the simulation's own plans) and are remembered per save, with gossip along kin and friends | §6 order (sessions/s12.md, handoff/briefs/s12/talk.md; tests/talk_world.test.ts) | T-E10 |
 
 ## 13. Revision log
 

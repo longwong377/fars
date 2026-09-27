@@ -2809,6 +2809,22 @@
    "anti_proxy": "a class counts only when every instance in the world draws the new asset and a batched render shows it; a hero asset, a probe page or a node test does not count; the present-day ruins view does not count (UD-20)",
    "ud": "UD-20",
    "since": "rev 2.6 (s12)"
+  },
+  {
+   "id": "T-E10",
+   "axis": "E",
+   "scope": "world",
+   "metric": "share of a seeded request-and-recall test set (asks to follow, lead to a place, fetch a person, give or trade, stop work; and questions about a conversation held earlier in the same save, including one heard second-hand through kin or friends) where the person acts through the simulation (does it, or refuses for a reason of their own duties) and recalls correctly, with nothing anachronistic",
+   "op": ">=",
+   "value": 90,
+   "unit": "%",
+   "sample_min": 60,
+   "sample": "the conversation test set, seeded, across classes, places and hours",
+   "tool": "tests/talk_world.test.ts",
+   "status": "to-build",
+   "anti_proxy": "scripted or keyword-matched responses do not count; the action must change the simulation state and survive a save and reload; a recall must come from the save, not the prompt of the same conversation",
+   "ud": "UD-21",
+   "since": "rev 2.6 (s12)"
   }
  ]
 }
