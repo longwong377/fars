@@ -147,7 +147,11 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
         note: 'asleep in a cloak on the ground by the drum sledge where the haul halted for the night, the oxen unyoked and lying by it (C: D-256)' },
       { when: /by the empty sledge/, work: [{ kind: 'sledge', at: [-2.6, 0, 0.6] }], animals: { kind: 'fold', species: ['ox'], n: 4, pace: 1 },
         note: 'asleep by the empty sledge on the way back to the quarry, the oxen lying by it (C: D-256)' }] },
-  talk: { anim: 'talk', sound: 'murmur', tier: 'C', note: 'talking with gestures' },
+  talk: { anim: 'talk', sound: 'murmur', tier: 'C', note: 'talking with gestures',
+    // session 10 (D-283; gap hunter C, C-D28): the wine and beer rations drunk in company of an evening, the jar on the ground
+    // between them (wine and beer issued to workers: E-02, PF 50, A; the Persians "very fond of wine", Hdt 1.133, B claim; the
+    // company and the jar C)
+    variants: [{ when: /a jar of (beer|wine)/, work: [{ kind: 'jar', at: [0.5, 0, 0.4] }], note: 'drinking the ration in company of an evening, a jar of beer or wine set on the ground between them, poured into cups in turn (the rations: E-02, A; the evening company C: D-283)' }] },
   rest: { anim: 'sit', tier: 'C', note: 'sitting and resting' },
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
   inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)' },

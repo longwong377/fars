@@ -2452,7 +2452,7 @@ class Planner {
     if (kinEvent && !this.nursing && room(kinEvent.place, kinEvent.where)) { this.go(kinEvent.place, kinEvent.where, 'visiting'); this.add(Math.min(bed - 0.3, this.t + kinEvent.h), kinEvent.place, kinEvent.act, kinEvent.why, kinEvent.where); this.go(this.home, this.homeW, 'going home'); }
     else if (!rain && p.sex === 'm' && this.age >= 14 && !this.P.membersOn(this.hh.id, this.d).some(x => x !== this.pid && this.ageOf(x) >= 10) && room(`lane:${this.hh.q}`, this.homeW) && r.chance(0.5)) {
       // a man who lodges alone spends many evenings with the other men in the lane (C)
-      const l = `lane:${this.hh.q}`, e = Math.min(bed - 0.3, this.t + r.range(0.6, 1.8)), g = r.chance(0.4) && e <= this.lightEnd(); this.go(l, this.homeW); this.add(e, l, g ? 'gamble' : 'talk', g ? 'knucklebones with the men of the lane' : 'talking with the men of the lane', this.homeW); this.go(this.home, this.homeW); }
+      const l = `lane:${this.hh.q}`, e = Math.min(bed - 0.3, this.t + r.range(0.6, 1.8)), g = r.chance(0.4) && e <= this.lightEnd(), dr = !g && this.drinks(); this.go(l, this.homeW); this.add(e, l, g ? 'gamble' : 'talk', g ? 'knucklebones with the men of the lane' : dr ? `sharing a jar of ${dr} with the men of the lane` : 'talking with the men of the lane', this.homeW); this.go(this.home, this.homeW); }
     // (a festival evening: some of the women sing and beat the frame drum in the lane with the women of the lane, until the
     // light has gone and a little after, M-22; D-211, C)
     else if (!rain && this.festive && p.sex === 'f' && this.age >= 14 && this.age <= 55 && u01(this.P.seed, S.fam, this.pid, this.d, 91) < L.festival.drum_women && room(`lane:${this.hh.q}`, this.homeW) && this.t < this.sun.set + 0.6) {
@@ -2462,7 +2462,7 @@ class Planner {
       // children play out after the meal only in the warm half of the year and only until dusk (C)
       if (this.age < 14) { const dusk = this.sun.set + 0.15, teenPlayed = this.age >= 13 ? this.segs.reduce((a, s) => a + (s.act === 'play' && s.where !== 'road' && !/^minding/.test(s.why) ? s.t1 - s.t0 : 0), 0) : 0; if (u < E.play_children && this.age >= 5 && C.season !== 'winter' && C.wx.tmin >= 6 && dusk - this.t > 0.4 && teenPlayed < L.children.work.teen_play_cap_h - 0.4) { const l = `lane:${this.hh.q}`; this.go(l, this.homeW); this.add(Math.max(this.t + 0.2, Math.min(bed - 0.2, dusk - 0.05, this.t + r.range(0.4, 1.2), this.age >= 13 ? this.t + L.children.work.teen_play_cap_h - teenPlayed : 24)), l, 'play', 'playing in the lane until dusk', this.homeW); this.go(this.home, this.homeW, 'called in at dusk'); } }
       else if (p.sex === 'f' && this.age < 60 && u < E.well_women * 0.5 && this.homeW !== 'terrace' && this.canDraw()) this.well(this.t + 0.3, 'evening water');
-      else if (u < E.visit) { const v = this.visitTarget(); if (v && room(v.place, v.where)) { this.go(v.place, v.where, 'visiting'); this.add(Math.min(bed - 0.3, this.t + r.range(0.8, 2)), v.place, 'talk', `visiting ${v.name}`, v.where); this.go(this.home, this.homeW, 'going home'); } }
+      else if (u < E.visit) { const v = this.visitTarget(); if (v && room(v.place, v.where)) { this.go(v.place, v.where, 'visiting'); const dr = p.sex === 'm' && this.drinks(); this.add(Math.min(bed - 0.3, this.t + r.range(0.8, 2)), v.place, 'talk', dr ? `visiting ${v.name} over a jar of ${dr}` : `visiting ${v.name}`, v.where); this.go(this.home, this.homeW, 'going home'); } }
       else if (u < E.visit + E.exchange && !C.short.get(p.group) && this.lightEnd() - this.t - this.P.walkH(this.home, `lane:${this.hh.q}`, this.d, this.homeW, this.homeW) > 0.4) { const l = `lane:${this.hh.q}`; this.go(l, this.homeW); this.add(Math.max(this.t + 0.3, Math.min(bed - 0.3, this.lightEnd(), this.t + r.range(0.4, 1))), l, 'exchange', 'exchanging goods in kind with neighbours', this.homeW); this.go(this.home, this.homeW); }
       else if (p.sex === 'm' && u < E.visit + E.exchange + E.gamble_men) { const l = `lane:${this.hh.q}`, lit = this.lightEnd() - this.t - this.P.walkH(this.home, l, this.d, this.homeW, this.homeW) > 0.5; this.go(l, this.homeW);
         // (the words by the hour: "at dusk" until the light ends, "after dark" from then; A S7 and B S8 of shadow review r8:
@@ -2473,6 +2473,15 @@ class Planner {
     }
     if (this.t < bed) { const alone = !this.P.membersOn(this.hh.id, this.d).some(x => x !== this.pid && this.ageOf(x) >= 10);
       this.atHome(bed, alone ? 'rest' : this.age >= 60 || this.age < 14 ? 'rest' : r.chance(0.5) ? 'talk' : 'rest', alone ? 'resting at home' : 'with the household'); }
+  }
+  /** session 10 (D-283): an evening's drink in company: beer for most, wine in a Persian or a household of standing, in the
+   *  week after the month's wine or beer issue (E-02, days 1-5) more often (C: the shares), never for the young (under 16)
+   *  nor on a day of mourning in the house; null when not drinking */
+  private drinks(): 'beer' | 'wine' | null {
+    if (this.age < 16 || this.hh.deaths.some(d => d <= this.d && d > this.d - 7)) return null;
+    const dom = this.P.cal.ctx(this.d).dom ?? 15, u = u01(this.P.seed, S.fam, this.pid, this.d, 97);
+    if (u >= (dom <= 12 ? 0.45 : 0.2)) return null;
+    return this.hh.persian || u01(this.P.seed, S.fam, this.pid, this.d, 98) < 0.15 ? 'wine' : 'beer';
   }
   /** kin events worth a visit: a birth in a kin household (last 3 days), a death (mourning visit), a kin birthday meal */
   private kinVisit(): { place: string; where: Where; act: ActivityId; why: string; h: number } | null {

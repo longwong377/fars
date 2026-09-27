@@ -6764,3 +6764,11 @@ moment-*-webgpu.png in the worktree, not committed).**
   creak every 0.9-1.6 s, a courier's horse snorting (now and then whinnying) every 15-40 s, a camel string grumbling every
   12-45 s. New strike kinds `hoof`, `wheel`, `snort`, `whinny`, `camel` (soundscape.ts). Tests: tests/farcrowd.test.ts (the kinds
   play). **Unverified:** not heard in a browser (B65).
+
+## D-283 The rations drunk: an evening's jar of beer or wine in company (session 10; gap hunter C, C-D28, C-L03)
+- **Gap:** wine and beer are issued (E-02, PF 50: A) and delivered (E-09), and nobody ever drank.
+- **Decision (C for the company and the shares):** a man of 16 or more who spends the evening with the men of the lane, or goes
+  visiting, shares a jar some evenings: 45 % of such evenings in the twelve days after the month opens (the issue falls on days
+  1-5), 20 % otherwise; wine in Persian households (Hdt 1.133, a claim: B) and in 15 % of others', beer elsewhere; never in a house
+  with a death in the last week. The talk performance sets a jar on the ground between them. Tests: tests/drinking.test.ts.
+  Unrendered.
