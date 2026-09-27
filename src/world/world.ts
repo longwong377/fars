@@ -66,6 +66,8 @@ import { RAIN_CELL } from '../sky/clouds';
 import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
+import { RoadLitter } from './roadLitter';
+import settlementData from '../data/settlement.json';
 import { DustDevils } from './dustDevils';
 import { BreathFx, BREATH_R, breathVisibility } from './breath';
 import { bloomAt, doyOf } from './plain/seasonal';
@@ -239,6 +241,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     };
     return { life: new SmallLife(seed, { ground, ctxAt }), flora: new GroundFlora(seed, { ground, ctxAt }), ctx: ctxAt };
   })();
+  // session 10 (gap hunter C, C-F08/C-F09): droppings and sherds on the roads the traffic uses, more at the stair foot's halt and
+  // the station (roadLitter.ts)
+  const litter = new RoadLitter(seed, ((settlementData as any).features as any[]).filter(f => f.id.startsWith('road_') && f.polyline?.length > 1 && f.present_467 !== false)
+    .map(f => ({ id: f.id, pts: f.polyline as [number, number][], width: f.width_m ?? 6, use: ({ road_royal_west: 1, road_south_tirazzish: 0.8, road_pasargadae: 0.5, road_naqsh_e_rustam: 0.4 } as Record<string, number>)[f.id] ?? 0.3 })),
+    (e, n) => terrain.heightAt(e, -n), [[-52, 118.5], ...((FAUNA_FAC as any).station ? [(FAUNA_FAC as any).station as [number, number]] : [])]);
+  root.add(litter.mesh);
   const smallLife = small.life, flora = small.flora; // flora (session 9, G72): the thorn cushions, camelthorn and thistles near the viewer
   root.add(smallLife.group, flora.group);
   // roses along the paradise's axis channel (session 9, G73): both sides, every 2 m, clear of the basins where channels cross
@@ -565,7 +573,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
         devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
-        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex))); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
+        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex))); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)

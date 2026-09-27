@@ -125,6 +125,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // session 9 (G7): dust devils over the plain W of the Terrace on a hot June afternoon (day 54, 15:00, 37 C)
   // session 10 (GB29, D-280): the swifts' screaming parties lapping the Apadana an hour before sunset in mid-June (day 59, sunset ~19.0)
   { n: 'swifts-dusk', day: 59, hour: 18.1, w: 'clear', v: [-36, 125, 1.6, 150, 14], fov: 60 },
+  // session 10 (D-284): the ground at the stair foot's halt, where the caravans unload: droppings and sherds (roadLitter.ts)
+  { n: 'stair-foot-ground', day: 30, hour: 10, w: 'clear', v: [-60, 112, 1.6, 250, -18], fov: 60 },
   { n: 'dust-devils-jun', day: 54, hour: 15, w: 'clear', v: [-36, 125, 1.6, 251, 1], fov: 60 },
   // session 9 (G8): heat shimmer and the inferior mirage over the plain at a hot June noon, looking W along the level (opt-in ?heat=1)
   { n: 'heat-mirage-jun', day: 54, hour: 13.5, w: 'clear', v: [-36, 125, 1.6, 251, -0.5], fov: 20 },

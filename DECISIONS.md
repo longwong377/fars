@@ -6772,3 +6772,12 @@ moment-*-webgpu.png in the worktree, not committed).**
   1-5), 20 % otherwise; wine in Persian households (Hdt 1.133, a claim: B) and in 15 % of others', beer elsewhere; never in a house
   with a death in the last week. The talk performance sets a jar on the ground between them. Tests: tests/drinking.test.ts.
   Unrendered.
+
+## D-284 A used road is never clean: droppings and sherds (session 10; gap hunter C, C-F08, C-F09)
+- **Gap:** strings of donkeys, camels, ox carts and couriers' horses used the roads every day (traffic.ts) and left nothing; dung
+  lay only in the pens; sherds only as a texture in the middens.
+- **Decision (C, densities by reasoning):** src/world/roadLitter.ts: within 30 m of the viewer, along every road of 467 (the royal
+  road busiest; the south road 0.8, Pasargadae 0.5, Naqsh-e Rustam 0.4), clumps of droppings in the road's band (fresh-dark to
+  dry-pale) and now and then a sherd of a broken jar; more of both in a 25 m ring at the stair foot's halt and the road station.
+  One instanced mesh (instance colour), no shadows cast, grown in at the edge of its radius; positions hashed (never random).
+  Tests: tests/road_litter.test.ts. Moment `stair-foot-ground` queued.
