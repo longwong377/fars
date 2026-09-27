@@ -10,12 +10,11 @@ this section, `sessions/s11.md`, BLOCKERS.md, `COVERAGE.md`, and **CLAUDE.md's n
   The tells now are FORM, not surface: the protome "a toy cow", colossi heads low, reliefs flat painted cards, props simple
   forms, joints drawn not built, block faces flat, people's hair helmets and boxy dress, straight box lanes. Surface scans are in
   everywhere (T-A7 ~0 in the measured views).
-- **Three WebGPU pipelines exceed 16 samplers in the merged world (17, 17, 19)** in the verification batch (calib-24, calib-24-now,
-  terrace-wall-near, gate-w-day, apadana-enter-court, reliefs-raking, tachara-s-stair, stair-foot-ground, breath-dawn,
-  room-treasury-store, room-garrison-night): those pipelines are invalid (not drawn). All 11 frames render otherwise. The
-  node counter (tests/samplers_d300.test.ts, now NODE_MAX 6) passes every surfaceMaterial, prop, incised and baked material, so
-  the culprits are outside it; `SAMPLERDBG=1` in moments.spec names pipelines from their compiled fragment shader (see
-  sessions/s11.md for the last run's result). First job of the next session: name them and cut their samplers.
+- **WebGPU pipelines over 16 samplers (17, 17, 19) in the merged world, likely FIXED but UNVERIFIED:** `SAMPLERDBG=1` in
+  moments.spec (counts the compiled fragment shader's samplers) named harem:room_fittings, the merged furnishings' material
+  (propMaterialMulti, 4 kinds x 2 scan maps = 17); each kind now lays its scan without its roughness map (1 sampler). The
+  19-sampler pipeline was not named by the hook (likely the same material with more kinds). First job of the next session: one
+  verification batch (the 11 views in sessions/s11.md) with zero validation errors; if any remain, run it with SAMPLERDBG=1.
 - **One branch NOT merged (pushed):** `s11-realism-town` (D-303); see "Unmerged" below. The people (D-304 inside D-307) are merged.
 - **Night lanes in the town are black** (lamps light only their rooms, B111); the zodiacal light does not show; night clouds
   are black blobs. The belly (D-292) is not seen on screen (GB12 PARTIAL).
