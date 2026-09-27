@@ -6,6 +6,7 @@ import { decodeHumanAssets, HUMANS_DIR, meshoptSimplify, type HumanAssets } from
 import { MeshoptSimplifier } from 'three/addons/libs/meshopt_simplifier.module.js';
 import { buildOutfits, type OutfitBuild } from './outfits';
 import { HumanGPU } from './humanGPU';
+import { loadHumanScans } from './humanScans';
 
 export interface HumanSystem { A: HumanAssets; O: OutfitBuild; gpu: HumanGPU; ms: { load: number; outfits: number; gpu: number; worker: boolean } }
 
@@ -23,7 +24,7 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   const t0 = performance.now();
   const get = async (f: string) => { const r = await fetch(base + f); if (!r.ok) throw new Error(`${f}: ${r.status}`); return r; };
   const loader = new THREE.TextureLoader();
-  const [meta, bin, skin, eye] = await Promise.all([get('humans.json').then(r => r.json()), get('humans.bin').then(r => r.arrayBuffer()), loader.loadAsync(base + 'skin.png'), loader.loadAsync(base + 'eye.png')]);
+  const [meta, bin, skin, eye, scans] = await Promise.all([get('humans.json').then(r => r.json()), get('humans.bin').then(r => r.arrayBuffer()), loader.loadAsync(base + 'skin.png'), loader.loadAsync(base + 'eye.png'), loadHumanScans(opts.base ?? '/')]);
   for (const t of [skin, eye]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
   const useWorker = typeof Worker !== 'undefined' && typeof window !== 'undefined';
   const outfits = useWorker ? outfitsInWorker(meta, bin.slice(0)) : null;
@@ -33,6 +34,6 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   try { O = outfits ? await outfits : (await MeshoptSimplifier.ready, buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier) })); }
   catch (e) { console.warn('outfit worker failed, building on the main thread', e); await MeshoptSimplifier.ready; O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier) }); }
   const t2 = performance.now();
-  const gpu = new HumanGPU(A, O, { skin, eye }, { capacity: opts.capacity, velocity: opts.velocity });
+  const gpu = new HumanGPU(A, O, { skin, eye, scans }, { capacity: opts.capacity, velocity: opts.velocity });
   return { A, O, gpu, ms: { load: t1 - t0, outfits: t2 - t1, gpu: performance.now() - t2, worker: !!outfits } };
 }

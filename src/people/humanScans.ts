@@ -1,0 +1,64 @@
+// The people's scanned layers (D-304, session 11): MakeHuman's CC0 skins and CC0 textile and leather scans, built by
+// tools/build_humans_scans.py into public/generated/humans/scans/ and packed here into two array textures (one sampler
+// each: WebGPU's sampled-texture budget per fragment stage, D-295):
+//   skin  — 12 layers (1024²): the MakeHuman skin albedo of a sex and age, light- and dark-toned sources, each rescaled to
+//           the reference tone (REF_TONE) so the person's own tone (looks.ts) still sets the colour; the texture brings the
+//           variation (lips, lids, knuckles, blotches, veins, age). Every body variant takes one light and one dark layer
+//           (skinLayersOf) and the material blends them by the person's tone.
+//   cloth — 4 layers (1024²): linen, wool, felt, leather; RGB the scan over its own mean × k (so the garment keeps its
+//           dye), A its height (mean 0.5). Laid triplanar in the body's bind space (the weave moves with the cloth).
+// In node (tests, bakes) nothing is loaded and the material keeps its procedural skin albedo and weave (identity).
+// `?noscans` (the A/B of D-295) turns these off too. Tier C: modern skin and textiles for 467's grain; tone, dye and cut
+// stay the evidence's.
+import * as THREE from 'three/webgpu';
+import type { HumanVariantMeta } from './humanFormat';
+
+export interface ScanLayerMeta { id: string; layer: number; tile?: number; fabric?: string; k?: number }
+export interface HumanScans { skin: THREE.DataArrayTexture; cloth: THREE.DataArrayTexture; skinIds: string[]; cloth_: ScanLayerMeta[]; clothK: number }
+export const SCANS_DIR = 'generated/humans/scans';
+
+async function img(url: string): Promise<ImageBitmap> {
+  const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`);
+  return createImageBitmap(await r.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+}
+function pixels(ctx: CanvasRenderingContext2D, b: ImageBitmap, n: number): Uint8ClampedArray {
+  ctx.clearRect(0, 0, n, n); ctx.drawImage(b, 0, 0, n, n); return ctx.getImageData(0, 0, n, n).data;
+}
+function arrayTex(data: Uint8Array, n: number, layers: number, srgb: boolean) {
+  const t = new THREE.DataArrayTexture(data, n, n, layers);
+  t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType; t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
+  t.anisotropy = 8; t.flipY = false; t.needsUpdate = true; return t;
+}
+
+/** load and pack the layers; null without a DOM, with `?noscans`, or when the files are missing (the procedural path) */
+export async function loadHumanScans(base = '/'): Promise<HumanScans | null> {
+  if (typeof document === 'undefined' || typeof createImageBitmap === 'undefined') return null;
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noscans')) return null;
+  try {
+    const dir = `${base}${SCANS_DIR}/`;
+    const meta = await (await fetch(dir + 'scans.json')).json();
+    const n: number = meta.size, skins: ScanLayerMeta[] = meta.skin, cloth: ScanLayerMeta[] = meta.cloth;
+    const cv = document.createElement('canvas'); cv.width = cv.height = n;
+    const ctx = cv.getContext('2d', { willReadFrequently: true, colorSpace: 'srgb' } as any) as CanvasRenderingContext2D;
+    const S = new Uint8Array(n * n * 4 * skins.length);
+    const sb = await Promise.all(skins.map(s => img(`${dir}skin_${String(s.layer).padStart(2, '0')}.jpg`)));
+    sb.forEach((b, k) => { S.set(pixels(ctx, b, n), k * n * n * 4); b.close(); });
+    const C = new Uint8Array(n * n * 4 * cloth.length);
+    const cb = await Promise.all(cloth.map(c => Promise.all([img(`${dir}cloth_${c.layer}.jpg`), img(`${dir}cloth_${c.layer}_h.jpg`)])));
+    cb.forEach(([d, h], k) => { const D = pixels(ctx, d, n).slice(), H = pixels(ctx, h, n), o = k * n * n * 4;
+      for (let i = 0; i < n * n; i++) D[i * 4 + 3] = H[i * 4]; // the height in alpha (data, not colour: sRGB formats leave alpha linear)
+      C.set(D, o); d.close(); h.close(); });
+    return { skin: arrayTex(S, n, skins.length, true), cloth: arrayTex(C, n, cloth.length, true), skinIds: skins.map(s => s.id), cloth_: cloth, clothK: cloth[0]?.k ?? 0.4 };
+  } catch (e) { console.warn('human scans not loaded (procedural skin and weave kept)', e); return null; }
+}
+
+/** the light- and dark-toned skin layer of a body variant, by sex and age (children take the young women's: no child
+ *  skins in MakeHuman; smooth, beardless); within an age band the light source alternates by variant for variety */
+export function skinLayersOf(v: Pick<HumanVariantMeta, 'sex' | 'ageYears' | 'group'>, index: number, ids: string[]): [number, number] {
+  const L = (id: string) => Math.max(0, ids.indexOf(id));
+  const f = v.sex === 'f' || v.group === 'child', a = v.ageYears, p = f ? 'f' : 'm';
+  if (v.group === 'child' || a < 30) return [L(`${p}_young_${index % 2 ? 'b' : 'a'}`), L(`${p}_young_d`)];
+  if (a < 50) return [L(`${p}_mid`), L(a < 40 ? `${p}_young_d` : `${p}_old_d`)];
+  return [L(`${p}_old`), L(`${p}_old_d`)];
+}

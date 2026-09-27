@@ -262,5 +262,90 @@
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal)"
   ]
+ },
+ "rough_linen": {
+  "meanLinear": [
+   0.28822,
+   0.41166,
+   0.61673
+  ],
+  "meanAO": null,
+  "meanRough": 0.6593,
+  "name": "Rough Linen",
+  "authors": [
+   "colormass",
+   "Rico Cilliers"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rough_linen",
+  "res": "2k (people: 1024 layers in public/generated/humans/scans, D-304)",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "disp.jpg (height)"
+  ],
+  "use": "people (src/people/humanScans.ts), not SCAN_USE"
+ },
+ "Fabric031": {
+  "meanLinear": [
+   0.17066,
+   0.17019,
+   0.18725
+  ],
+  "meanAO": null,
+  "meanRough": 0.6094,
+  "name": "Fabric 031",
+  "authors": [
+   "ambientCG"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Fabric031",
+  "res": "2k (people: 1024 layers in public/generated/humans/scans, D-304)",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "disp.jpg (height)"
+  ],
+  "use": "people (src/people/humanScans.ts), not SCAN_USE"
+ },
+ "Fabric034": {
+  "meanLinear": [
+   0.36083,
+   0.35044,
+   0.38091
+  ],
+  "meanAO": null,
+  "meanRough": 0.8184,
+  "name": "Fabric 034",
+  "authors": [
+   "ambientCG"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Fabric034",
+  "res": "2k (people: 1024 layers in public/generated/humans/scans, D-304)",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "disp.jpg (height)"
+  ],
+  "use": "people (src/people/humanScans.ts), not SCAN_USE"
+ },
+ "Leather014": {
+  "meanLinear": [
+   0.08084,
+   0.03851,
+   0.03366
+  ],
+  "meanAO": null,
+  "meanRough": 0.5493,
+  "name": "Leather 014",
+  "authors": [
+   "ambientCG"
+  ],
+  "licence": "CC0",
+  "source": "https://ambientcg.com/view?id=Leather014",
+  "res": "2k (people: 1024 layers in public/generated/humans/scans, D-304)",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "disp.jpg (height)"
+  ],
+  "use": "people (src/people/humanScans.ts), not SCAN_USE"
  }
 }

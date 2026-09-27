@@ -17,9 +17,13 @@ beforeAll(() => {
   O = buildOutfits(A, { dresses: ['persian'], lods: [0, 2] });
 }, 60_000);
 
-function build(kind: 'wgsl' | 'glsl', which: 'main' | 'shadow', velocity = false) {
+function build(kind: 'wgsl' | 'glsl', which: 'main' | 'shadow', velocity = false, scans = false) {
   const tex = () => { const t = new THREE.Texture(); t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.colorSpace = THREE.SRGBColorSpace; return t; };
-  const gpu = new HumanGPU(A, O, { skin: tex(), eye: tex() }, { capacity: 16 });
+  // D-304: the scanned skin and cloth layers (array textures; humanScans.ts), stand-ins of the loaded shape
+  const arr = (n: number) => { const t = new THREE.DataArrayTexture(new Uint8Array(4 * 4 * 4 * n), 4, 4, n); t.colorSpace = THREE.SRGBColorSpace; t.minFilter = THREE.LinearMipmapLinearFilter; return t; };
+  const sc = scans ? { skin: arr(12), cloth: arr(4), skinIds: ['m_young_a', 'm_young_b', 'm_mid', 'm_old', 'f_young_a', 'f_young_b', 'f_mid', 'f_old', 'm_young_d', 'm_old_d', 'f_young_d', 'f_old_d'],
+    cloth_: [{ id: 'linen', layer: 0, tile: 0.245 }, { id: 'wool', layer: 1, tile: 0.43 }, { id: 'felt', layer: 2, tile: 0.2 }, { id: 'leather', layer: 3, tile: 0.25 }], clothK: 0.4 } : null;
+  const gpu = new HumanGPU(A, O, { skin: tex(), eye: tex(), scans: sc as any }, { capacity: 16 });
   const cm = [...gpu.costumes.values()][0]; const mesh = which === 'main' ? cm.mesh : cm.shadow!.mesh;
   const canvas: any = { style: {}, width: 4, height: 4, addEventListener() {}, removeEventListener() {}, getContext() { return null; }, getRootNode() { return null; } };
   const renderer: any = new (THREE as any).WebGPURenderer({ canvas, forceWebGL: kind === 'glsl' });
@@ -43,6 +47,11 @@ describe('the human material builds (D-155)', () => {
       expect(m.frag).toMatch(/0\.0078125/); expect(m.frag).toMatch(/80\.0/); expect(m.frag).toMatch(/14\.0/);
       const v = build(kind, 'main', true); expect(v.vert.length).toBeGreaterThan(m.vert.length); // previous-frame skinning
       const s = build(kind, 'shadow'); expect(s.vert.length).toBeGreaterThan(5000);
+    }, 60_000);
+    it(`${kind}: with the scanned skin and cloth layers (D-304)`, () => {
+      const m = build(kind, 'main', false, true), p = build(kind, 'main');
+      expect(m.frag.length).toBeGreaterThan(p.frag.length); expect(m.vert).toMatch(/vHumanSkinL/);
+      const v = build(kind, 'main', true, true); expect(v.vert.length).toBeGreaterThan(m.vert.length);
     }, 60_000);
   }
 });

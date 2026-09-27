@@ -1,0 +1,313 @@
+{
+ "note": "D-304: the people's scanned layers (tools/build_humans_scans.py). skin: MakeHuman CC0 skins rescaled to REF_TONE; cloth: CC0 scans / their mean x k (sRGB), heights mean 0.5",
+ "size": 1024,
+ "refTone": [
+  0.72,
+  0.53,
+  0.42
+ ],
+ "skin": [
+  {
+   "id": "m_young_a",
+   "layer": 0,
+   "source": "makehuman_cc0/skins/young_caucasian_male2/young_lightskinned_male_diffuse2.png",
+   "meanLinear": [
+    0.59101,
+    0.31367,
+    0.20663
+   ],
+   "meanSRGB": [
+    0.7924,
+    0.5958,
+    0.4919
+   ],
+   "hpSD": 0.0809,
+   "paintedHairShare": 0.2464
+  },
+  {
+   "id": "m_young_b",
+   "layer": 1,
+   "source": "makehuman_cc0/skins/young_asian_male/young_lightskinned_male_diffuse3.png",
+   "meanLinear": [
+    0.592,
+    0.31463,
+    0.20738
+   ],
+   "meanSRGB": [
+    0.793,
+    0.5966,
+    0.4927
+   ],
+   "hpSD": 0.0793,
+   "paintedHairShare": 0.2468
+  },
+  {
+   "id": "m_mid",
+   "layer": 2,
+   "source": "makehuman_cc0/skins/middleage_caucasian_male/middleage_lightskinned_male_diffuse.png",
+   "meanLinear": [
+    0.62807,
+    0.33058,
+    0.21096
+   ],
+   "meanSRGB": [
+    0.8141,
+    0.6102,
+    0.4967
+   ],
+   "hpSD": 0.0752,
+   "paintedHairShare": 0.294
+  },
+  {
+   "id": "m_old",
+   "layer": 3,
+   "source": "makehuman_cc0/skins/old_caucasian_male/old_lightskinned_male_diffuse.png",
+   "meanLinear": [
+    0.77075,
+    0.40295,
+    0.24017
+   ],
+   "meanSRGB": [
+    0.8915,
+    0.6674,
+    0.5273
+   ],
+   "hpSD": 0.0921,
+   "paintedHairShare": 0.3423
+  },
+  {
+   "id": "f_young_a",
+   "layer": 4,
+   "source": "makehuman_cc0/skins/young_caucasian_female/young_lightskinned_female_diffuse.png",
+   "meanLinear": [
+    0.68028,
+    0.38712,
+    0.26738
+   ],
+   "meanSRGB": [
+    0.8435,
+    0.6554,
+    0.5539
+   ],
+   "hpSD": 0.1071,
+   "paintedHairShare": 0.2542
+  },
+  {
+   "id": "f_young_b",
+   "layer": 5,
+   "source": "makehuman_cc0/skins/young_asian_female/young_lightskinned_female_diffuse3.png",
+   "meanLinear": [
+    0.69254,
+    0.38016,
+    0.24407
+   ],
+   "meanSRGB": [
+    0.8503,
+    0.6501,
+    0.5312
+   ],
+   "hpSD": 0.0873,
+   "paintedHairShare": 0.2673
+  },
+  {
+   "id": "f_mid",
+   "layer": 6,
+   "source": "makehuman_cc0/skins/middleage_caucasian_female/middleage_lightskinned_female_diffuse.png",
+   "meanLinear": [
+    0.648,
+    0.36062,
+    0.24426
+   ],
+   "meanSRGB": [
+    0.8255,
+    0.6347,
+    0.5314
+   ],
+   "hpSD": 0.0731,
+   "paintedHairShare": 0.3104
+  },
+  {
+   "id": "f_old",
+   "layer": 7,
+   "source": "makehuman_cc0/skins/old_caucasian_female/old_lightskinned_female_diffuse.png",
+   "meanLinear": [
+    0.66375,
+    0.3896,
+    0.28059
+   ],
+   "meanSRGB": [
+    0.8344,
+    0.6573,
+    0.5663
+   ],
+   "hpSD": 0.0782,
+   "paintedHairShare": 0.3355
+  },
+  {
+   "id": "m_young_d",
+   "layer": 8,
+   "source": "makehuman_cc0/skins/young_african_male/young_darkskinned_male_diffuse.png",
+   "meanLinear": [
+    0.10735,
+    0.04657,
+    0.02616
+   ],
+   "meanSRGB": [
+    0.3613,
+    0.239,
+    0.1762
+   ],
+   "hpSD": 0.1519,
+   "paintedHairShare": 0.3562
+  },
+  {
+   "id": "m_old_d",
+   "layer": 9,
+   "source": "makehuman_cc0/skins/old_african_male/old_darkskinned_male_diffuse.png",
+   "meanLinear": [
+    0.15307,
+    0.04341,
+    0.01728
+   ],
+   "meanSRGB": [
+    0.4276,
+    0.2305,
+    0.1395
+   ],
+   "hpSD": 0.1621,
+   "paintedHairShare": 0.3753
+  },
+  {
+   "id": "f_young_d",
+   "layer": 10,
+   "source": "makehuman_cc0/skins/young_african_female/young_darkskinned_female_diffuse.png",
+   "meanLinear": [
+    0.13956,
+    0.04965,
+    0.02762
+   ],
+   "meanSRGB": [
+    0.4094,
+    0.2469,
+    0.1815
+   ],
+   "hpSD": 0.1327,
+   "paintedHairShare": 0.3608
+  },
+  {
+   "id": "f_old_d",
+   "layer": 11,
+   "source": "makehuman_cc0/skins/old_african_female/old_darkskinned_female_diffuse.png",
+   "meanLinear": [
+    0.12965,
+    0.02643,
+    0.01049
+   ],
+   "meanSRGB": [
+    0.3954,
+    0.1772,
+    0.103
+   ],
+   "hpSD": 0.1844,
+   "paintedHairShare": 0.3793
+  }
+ ],
+ "cloth": [
+  {
+   "id": "linen",
+   "layer": 0,
+   "scan": "rough_linen",
+   "source": "polyhaven/rough_linen",
+   "fabric": "linen",
+   "meanLinear": [
+    0.28822,
+    0.41166,
+    0.61673
+   ],
+   "meanRough": 0.6593,
+   "threadsPerTile": 368.1,
+   "tile": 0.2454,
+   "scanDimsMm": [
+    270.7081392676629,
+    271.29998803138733
+   ],
+   "clipShare": 0.0,
+   "k": 0.4,
+   "name": "Rough Linen",
+   "authors": [
+    "colormass",
+    "Rico Cilliers"
+   ],
+   "url": "https://polyhaven.com/a/rough_linen"
+  },
+  {
+   "id": "wool",
+   "layer": 1,
+   "scan": "Fabric031",
+   "source": "ambientcg/Fabric031",
+   "fabric": "wool",
+   "meanLinear": [
+    0.17066,
+    0.17019,
+    0.18725
+   ],
+   "meanRough": 0.6094,
+   "threadsPerTile": 298.0,
+   "tile": 0.4257,
+   "scanDimsMm": null,
+   "clipShare": 0.0,
+   "k": 0.4,
+   "name": "Fabric 031",
+   "authors": [
+    "ambientCG (Lennart Demes)"
+   ],
+   "url": "https://ambientcg.com/view?id=Fabric031"
+  },
+  {
+   "id": "felt",
+   "layer": 2,
+   "scan": "Fabric034",
+   "source": "ambientcg/Fabric034",
+   "fabric": "felt",
+   "meanLinear": [
+    0.36083,
+    0.35044,
+    0.38091
+   ],
+   "meanRough": 0.8184,
+   "threadsPerTile": 0,
+   "tile": 0.2,
+   "scanDimsMm": null,
+   "clipShare": 0.0,
+   "k": 0.4,
+   "name": "Fabric 034",
+   "authors": [
+    "ambientCG (Lennart Demes)"
+   ],
+   "url": "https://ambientcg.com/view?id=Fabric034"
+  },
+  {
+   "id": "leather",
+   "layer": 3,
+   "scan": "Leather014",
+   "source": "ambientcg/Leather014",
+   "fabric": "leather",
+   "meanLinear": [
+    0.08084,
+    0.03851,
+    0.03366
+   ],
+   "meanRough": 0.5493,
+   "threadsPerTile": 0,
+   "tile": 0.25,
+   "scanDimsMm": null,
+   "clipShare": 0.00584,
+   "k": 0.4,
+   "name": "Leather 014",
+   "authors": [
+    "ambientCG (Lennart Demes)"
+   ],
+   "url": "https://ambientcg.com/view?id=Leather014"
+  }
+ ]
+}
