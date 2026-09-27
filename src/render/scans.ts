@@ -78,7 +78,6 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null }
   const mean = vec3(...M.meanLinear);
   let det = tri(T.diff, u.scale).rgb.div(mean);
   if (u.scale2) det = det.mul(tri(T.diff, u.scale2).rgb.div(mean)); // the larger tile breaks the small one's repeat
-  const arm = tri(T.arm, u.scale);
   const R = u.rock, RT = R && TEX.get(R.scan), RM = R && META[R.scan];
   if (R && RT && RM) { // slope-driven rock: full below ny0 (~37°), none above ny1 (~23°)
     const rmean = vec3(...RM.meanLinear), rdet = tri(RT.diff, R.scale).rgb.div(rmean).mul(tri(RT.diff, R.scale2).rgb.div(rmean));
@@ -86,7 +85,9 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null }
   }
   const lum = dot(det, vec3(0.2126, 0.7152, 0.0722));
   const alb = L.alb.mul(mix(vec3(1), det, u.alb));
-  const rough = L.rough.mul(mix(float(1), arm.g.div(M.meanRough), u.rough)).clamp(0.05, 1);
+  // the scan's roughness costs a sampler; a surface with a rock layer (the terrain) is at WebGPU's 16 samplers per stage
+  // without it, so there the procedural roughness stands (session 11: 17 samplers failed the terrain's pipeline)
+  const rough = u.rock ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough)).clamp(0.05, 1);
   const bump = lum.sub(1).mul(u.height);
   return { ...L, alb, rough, height: L.height ? L.height.add(bump) : bump };
 }
