@@ -1,10 +1,10 @@
 {
  "id": "T-A6x",
  "value": 0.6988,
- "n": 167,
- "commit": "cb24406",
+ "n": 198,
+ "commit": "48db34a",
  "tool": "tools/dev/areas.ts",
- "dep": "fd46f382b625",
+ "dep": "fda9bb9bd12b",
  "unit": "km2",
  "status": "PASS",
  "largest": "zone:zone_bagh_e_firuzi:5",

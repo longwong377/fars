@@ -1,25 +1,25 @@
 {
  "tool": "tools/dev/tier0.ts",
- "commit": "cb24406",
- "dep": "3bc32392c471",
- "registry_dep": "fd46f382b625",
+ "commit": "952f424",
+ "dep": "9d180aa0fec4",
+ "registry_dep": "fda9bb9bd12b",
  "spacing_m": 5,
  "spacing_transect_m": 4,
  "view_r_m": 200,
  "repetition_r_m": 30,
  "note": "Tier 0 per-area summary (MASTER_PLAN §4.2). No row of gates/thresholds.json names tools/dev/tier0.ts, so this file carries no id and moves no board cell. Near-level meshes the game builds only round the camera are read at the offline world's level; drawn-vs-collider covers the terrain and the Terrace only.",
  "meta": {
-  "areas": 167,
-  "cells_planned": 813966,
-  "cells_run": 813966,
+  "areas": 198,
+  "cells_planned": 813893,
+  "cells_run": 813893,
   "sampled_areas": 0,
   "budget_min": 30,
-  "run_s": 53,
+  "run_s": 107,
   "objects": {
-   "meshes": 468,
-   "instances": 3575,
-   "flaggedRecords": 87,
-   "faceSampled": 112356
+   "meshes": 570,
+   "instances": 5804,
+   "flaggedRecords": 113,
+   "faceSampled": 119272
   }
  },
  "areas": {
@@ -27,9 +27,9 @@
    "kind": "transect",
    "spacing_m": 4,
    "stride": 1,
-   "cells": 15958,
-   "standable": 15564,
-   "reached_pct": 99.51,
+   "cells": 15918,
+   "standable": 15524,
+   "reached_pct": 99.5,
    "unreached_standable": 77,
    "unreached_examples": [
     [
@@ -95,7 +95,7 @@
    ],
    "unreached_tops": 394,
    "collider_vs_drawn": {
-    "n": 13546,
+    "n": 13506,
     "over_5cm_pct": 0.44,
     "worst_m": 0.108,
     "worst_at": [
@@ -106,28 +106,28 @@
     "drawn_over_30cm": 0
    },
    "placeholder": {
-    "cells_pct": 15.49,
-    "max_records": 82,
+    "cells_pct": 15.28,
+    "max_records": 108,
     "top": [
      {
       "key": "inscriptions/inscription-slab:XPa",
-      "cells": 2464
+      "cells": 2424
      },
      {
       "key": "inscriptions/inscription:XPa:op:pick",
-      "cells": 2459
+      "cells": 2419
      },
      {
       "key": "inscriptions/inscription:XPa:op",
-      "cells": 2458
+      "cells": 2418
      },
      {
       "key": "inscriptions/inscription:XPa:bab",
-      "cells": 2454
+      "cells": 2414
      },
      {
       "key": "inscriptions/inscription:XPa:bab:pick",
-      "cells": 2454
+      "cells": 2414
      }
     ]
    },
@@ -139,7 +139,7 @@
    "repetition": {
     "median": 0,
     "p95": 7,
-    "max": 2528,
+    "max": 3824,
     "top": [
      {
       "key": "doors/doors:bands",
@@ -163,7 +163,7 @@
      }
     ]
    },
-   "ms": 1133
+   "ms": 5178
   },
   "terrace:apadana:interior:1": {
    "kind": "terrace-interior",
@@ -232,7 +232,7 @@
      }
     ]
    },
-   "ms": 10
+   "ms": 33
   },
   "terrace:apadana:interior:10": {
    "kind": "terrace-interior",
@@ -257,7 +257,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 72,
+    "max_records": 94,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -301,7 +301,7 @@
      }
     ]
    },
-   "ms": 7
+   "ms": 88
   },
   "terrace:apadana:interior:2": {
    "kind": "terrace-interior",
@@ -370,7 +370,7 @@
      }
     ]
    },
-   "ms": 1
+   "ms": 17
   },
   "terrace:apadana:interior:3": {
    "kind": "terrace-interior",
@@ -406,7 +406,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 72,
+    "max_records": 86,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -437,8 +437,8 @@
    },
    "repetition": {
     "median": 8,
-    "p95": 2528,
-    "max": 2528,
+    "p95": 3824,
+    "max": 3824,
     "top": [
      {
       "key": "doors/doors:bands",
@@ -454,7 +454,7 @@
      }
     ]
    },
-   "ms": 32
+   "ms": 283
   },
   "terrace:apadana:interior:4": {
    "kind": "terrace-interior",
@@ -495,7 +495,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 70,
+    "max_records": 78,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -526,8 +526,8 @@
    },
    "repetition": {
     "median": 8,
-    "p95": 2528,
-    "max": 2528,
+    "p95": 3824,
+    "max": 3824,
     "top": [
      {
       "key": "architecture/apadana:columns:lod1",
@@ -543,7 +543,7 @@
      }
     ]
    },
-   "ms": 40
+   "ms": 400
   },
   "terrace:apadana:interior:5": {
    "kind": "terrace-interior",
@@ -604,7 +604,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 74,
+    "max_records": 100,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -635,8 +635,8 @@
    },
    "repetition": {
     "median": 8,
-    "p95": 2528,
-    "max": 2528,
+    "p95": 3824,
+    "max": 3824,
     "top": [
      {
       "key": "architecture/apadana:columns:lod1",
@@ -652,7 +652,7 @@
      }
     ]
    },
-   "ms": 41
+   "ms": 466
   },
   "terrace:apadana:interior:7": {
    "kind": "terrace-interior",
@@ -677,7 +677,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 72,
+    "max_records": 92,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -708,8 +708,8 @@
    },
    "repetition": {
     "median": 8,
-    "p95": 2528,
-    "max": 2528,
+    "p95": 3824,
+    "max": 3824,
     "top": [
      {
       "key": "doors/doors:bands",
@@ -725,7 +725,7 @@
      }
     ]
    },
-   "ms": 45
+   "ms": 469
   },
   "terrace:apadana:interior:8": {
    "kind": "terrace-interior",
@@ -786,7 +786,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 81,
+    "max_records": 107,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -830,7 +830,875 @@
      }
     ]
    },
+   "ms": 91
+  },
+  "terrace:garrison:interior:1": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 0,
+   "standable": 0,
+   "reached_pct": null,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 11
+  },
+  "terrace:garrison:interior:10": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 30,
+   "standable": 30,
+   "reached_pct": 93.33,
+   "unreached_standable": 2,
+   "unreached_examples": [
+    [
+     202.5,
+     -42.5,
+     0.65
+    ],
+    [
+     207.5,
+     -42.5,
+     0.65
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 28,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     212.5,
+     -2.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 61,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 30
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 30
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 30
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 30
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 30
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 10,
+    "max": 10,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 30
+     }
+    ]
+   },
+   "ms": 81
+  },
+  "terrace:garrison:interior:11": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 15,
+   "standable": 15,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 15,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     212.5,
+     22.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 39,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 15
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 15
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 15
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 15
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 15
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 10,
+    "max": 10,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 15
+     }
+    ]
+   },
+   "ms": 40
+  },
+  "terrace:garrison:interior:12": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12,
+   "standable": 12,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 12,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     212.5,
+     97.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 28,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:el",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:el:pick",
+      "cells": 12
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 4,
+    "p95": 7,
+    "max": 7,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 12
+     }
+    ]
+   },
+   "ms": 30
+  },
+  "terrace:garrison:interior:13": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12,
+   "standable": 12,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 12,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     212.5,
+     117.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 18,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:el",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:el:pick",
+      "cells": 12
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 5,
+    "p95": 6,
+    "max": 6,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 12
+     }
+    ]
+   },
+   "ms": 8
+  },
+  "terrace:garrison:interior:2": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3,
+   "standable": 3,
+   "reached_pct": 0,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     137.5,
+     152.5,
+     0.45
+    ],
+    [
+     142.5,
+     152.5,
+     0.45
+    ],
+    [
+     147.5,
+     152.5,
+     0.45
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 16,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 3
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 3
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 3
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 3
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 3
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 7,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 3
+     }
+    ]
+   },
+   "ms": 17
+  },
+  "terrace:garrison:interior:3": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2,
+   "standable": 2,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 2,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     197.5,
+     -52.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 73,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPj:op:pick",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPj:el:pick",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPj:bab:pick",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPm:op:pick",
+      "cells": 2
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 1
+     },
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 7
+  },
+  "terrace:garrison:interior:4": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 10,
+   "standable": 10,
+   "reached_pct": 90,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     197.5,
+     -42.5,
+     0.65
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 9,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     197.5,
+     -2.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 67,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 10
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 10,
+    "max": 10,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 10
+     }
+    ]
+   },
+   "ms": 31
+  },
+  "terrace:garrison:interior:5": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 5,
+   "standable": 5,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 5,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     197.5,
+     22.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 39,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 5
+     },
+     {
+      "key": "inscriptions/inscription:XPg:op",
+      "cells": 5
+     },
+     {
+      "key": "inscriptions/inscription:XPg:op:pick",
+      "cells": 5
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 5
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 5
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 9,
+    "p95": 9,
+    "max": 9,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 5
+     }
+    ]
+   },
+   "ms": 13
+  },
+  "terrace:garrison:interior:6": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4,
+   "standable": 4,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 4,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     197.5,
+     97.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 30,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPb:el",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPb:el:pick",
+      "cells": 4
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 5,
+    "p95": 5,
+    "max": 5,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 4
+     }
+    ]
+   },
    "ms": 5
+  },
+  "terrace:garrison:interior:7": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12,
+   "standable": 12,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 12,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     197.5,
+     117.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 20,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 12
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 5,
+    "p95": 9,
+    "max": 9,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 12
+     }
+    ]
+   },
+   "ms": 5
+  },
+  "terrace:garrison:interior:8": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4,
+   "standable": 4,
+   "reached_pct": 0,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     152.5,
+     152.5,
+     0.45
+    ],
+    [
+     157.5,
+     152.5,
+     0.45
+    ],
+    [
+     162.5,
+     152.5,
+     0.45
+    ],
+    [
+     167.5,
+     152.5,
+     0.45
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 16,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 4
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 7,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 4
+     }
+    ]
+   },
+   "ms": 12
+  },
+  "terrace:garrison:interior:9": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6,
+   "standable": 6,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 6,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     212.5,
+     -52.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 67,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPj:op:pick",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPj:el:pick",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPj:bab:pick",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPm:op:pick",
+      "cells": 6
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 6
+     }
+    ]
+   },
+   "ms": 17
   },
   "terrace:gate_nations:interior": {
    "kind": "terrace-interior",
@@ -911,7 +1779,7 @@
      }
     ]
    },
-   "ms": 3
+   "ms": 15
   },
   "terrace:hadish:interior": {
    "kind": "terrace-interior",
@@ -936,7 +1804,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -980,20 +1848,165 @@
      }
     ]
    },
-   "ms": 11
+   "ms": 131
   },
-  "terrace:harem:interior": {
+  "terrace:harem:interior:1": {
    "kind": "terrace-interior",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 20,
-   "standable": 20,
+   "cells": 1,
+   "standable": 1,
    "reached_pct": 100,
    "unreached_standable": 0,
    "unreached_examples": [],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 20,
+    "n": 1,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 77,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 1
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 1
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 1
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 1
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 1
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 14,
+    "p95": 14,
+    "max": 14,
+    "top": [
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 14
+  },
+  "terrace:harem:interior:10": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 60,
+   "standable": 46,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 14,
+   "collider_vs_drawn": {
+    "n": 46,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     122.5,
+     -197.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 99,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 60
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 60
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 60
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 60
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 60
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 16,
+    "p95": 32,
+    "max": 32,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 25
+     },
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 22
+     },
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 12
+     },
+     {
+      "key": "architecture/harem:columns:lod1",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 198
+  },
+  "terrace:harem:interior:11": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 43,
+   "standable": 39,
+   "reached_pct": 97.44,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     132.5,
+     -137.5,
+     1.45
+    ]
+   ],
+   "unreached_tops": 4,
+   "collider_vs_drawn": {
+    "n": 38,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
@@ -1005,7 +2018,228 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 43
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 43
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 43
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 43
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 43
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 16,
+    "p95": 32,
+    "max": 32,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 31
+     },
+     {
+      "key": "architecture/harem:columns:lod1",
+      "cells": 8
+     },
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 4
+     }
+    ]
+   },
+   "ms": 129
+  },
+  "terrace:harem:interior:12": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 35,
+   "standable": 30,
+   "reached_pct": 96.67,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     127.5,
+     -87.5,
+     1
+    ]
+   ],
+   "unreached_tops": 5,
+   "collider_vs_drawn": {
+    "n": 29,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     112.5,
+     -97.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 101,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 35
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 35
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 35
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 35
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 35
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 6,
+    "p95": 20,
+    "max": 24,
+    "top": [
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 23
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 10
+     },
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 1
+     },
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 95
+  },
+  "terrace:harem:interior:2": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3,
+   "standable": 2,
+   "reached_pct": 50,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     -2.5,
+     -187.5,
+     6
+    ]
+   ],
+   "unreached_tops": 1,
+   "collider_vs_drawn": {
+    "n": 1,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 85,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 3
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 3
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 3
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 3
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 3
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 11,
+    "p95": 15,
+    "max": 15,
+    "top": [
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 3
+     }
+    ]
+   },
+   "ms": 7
+  },
+  "terrace:harem:interior:3": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 20,
+   "standable": 10,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 10,
+   "collider_vs_drawn": {
+    "n": 10,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 97,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -1035,21 +2269,406 @@
     "top": []
    },
    "repetition": {
-    "median": 16,
-    "p95": 32,
-    "max": 32,
+    "median": 13,
+    "p95": 16,
+    "max": 16,
     "top": [
      {
-      "key": "doors/doors:bands",
-      "cells": 17
-     },
-     {
-      "key": "architecture/harem:columns:lod1",
-      "cells": 3
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 20
      }
     ]
    },
-   "ms": 4
+   "ms": 39
+  },
+  "terrace:harem:interior:4": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 30,
+   "standable": 19,
+   "reached_pct": 47.37,
+   "unreached_standable": 10,
+   "unreached_examples": [
+    [
+     2.5,
+     -187.5,
+     1
+    ],
+    [
+     7.5,
+     -187.5,
+     6
+    ],
+    [
+     12.5,
+     -187.5,
+     6
+    ],
+    [
+     17.5,
+     -187.5,
+     6
+    ],
+    [
+     22.5,
+     -187.5,
+     6
+    ],
+    [
+     27.5,
+     -187.5,
+     6
+    ],
+    [
+     32.5,
+     -187.5,
+     6
+    ],
+    [
+     37.5,
+     -187.5,
+     6
+    ],
+    [
+     42.5,
+     -187.5,
+     6
+    ],
+    [
+     47.5,
+     -187.5,
+     6
+    ]
+   ],
+   "unreached_tops": 11,
+   "collider_vs_drawn": {
+    "n": 9,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 99,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 30
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 30
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 30
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 30
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 30
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 15,
+    "p95": 27,
+    "max": 28,
+    "top": [
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 18
+     },
+     {
+      "key": "architecture/hadish:columns:lod1",
+      "cells": 11
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 123
+  },
+  "terrace:harem:interior:5": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 36,
+   "standable": 25,
+   "reached_pct": 96,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     97.5,
+     -202.5,
+     1
+    ]
+   ],
+   "unreached_tops": 11,
+   "collider_vs_drawn": {
+    "n": 24,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 97,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 36
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 36
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 36
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 36
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 36
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 15,
+    "p95": 19,
+    "max": 19,
+    "top": [
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 36
+     }
+    ]
+   },
+   "ms": 100
+  },
+  "terrace:harem:interior:6": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 20,
+   "standable": 20,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 20,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 99,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 20
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 20
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 20
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 20
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 20
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 13,
+    "p95": 17,
+    "max": 17,
+    "top": [
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 20
+     }
+    ]
+   },
+   "ms": 63
+  },
+  "terrace:harem:interior:7": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 0,
+   "standable": 0,
+   "reached_pct": null,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 0
+  },
+  "terrace:harem:interior:8": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 0,
+   "standable": 0,
+   "reached_pct": null,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 1
+  },
+  "terrace:harem:interior:9": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6,
+   "standable": 5,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 1,
+   "collider_vs_drawn": {
+    "n": 5,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 97,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 6
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 13,
+    "p95": 14,
+    "max": 14,
+    "top": [
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 5
+     },
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 17
   },
   "terrace:tachara:interior": {
    "kind": "terrace-interior",
@@ -1080,7 +2699,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 80,
+    "max_records": 94,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -1120,52 +2739,52 @@
      }
     ]
    },
-   "ms": 8
+   "ms": 117
   },
   "terrace:treasury:interior:1": {
    "kind": "terrace-interior",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 1,
-   "standable": 1,
+   "cells": 2,
+   "standable": 2,
    "reached_pct": 100,
    "unreached_standable": 0,
    "unreached_examples": [],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 1,
+    "n": 2,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
      147.5,
-     -82.5
+     -202.5
     ],
     "undrawn_floor": 0,
     "drawn_over_30cm": 0
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 87,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 1
+      "cells": 2
      },
      {
       "key": "inscriptions/inscription:XPc:op",
-      "cells": 1
+      "cells": 2
      },
      {
       "key": "inscriptions/inscription:XPc:op:pick",
-      "cells": 1
+      "cells": 2
      },
      {
       "key": "inscriptions/inscription:XPc:el",
-      "cells": 1
+      "cells": 2
      },
      {
       "key": "inscriptions/inscription:XPc:el:pick",
-      "cells": 1
+      "cells": 2
      }
     ]
    },
@@ -1175,30 +2794,712 @@
     "top": []
    },
    "repetition": {
-    "median": 3,
-    "p95": 3,
-    "max": 3,
+    "median": 13,
+    "p95": 13,
+    "max": 13,
     "top": [
      {
-      "key": "architecture/hall100:columns:lod1",
-      "cells": 1
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 2
      }
     ]
    },
-   "ms": 8
+   "ms": 20
+  },
+  "terrace:treasury:interior:10": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 39,
+   "standable": 25,
+   "reached_pct": 60,
+   "unreached_standable": 10,
+   "unreached_examples": [
+    [
+     202.5,
+     -187.5,
+     0.75
+    ],
+    [
+     202.5,
+     -162.5,
+     1.05
+    ],
+    [
+     207.5,
+     -187.5,
+     0.75
+    ],
+    [
+     207.5,
+     -162.5,
+     0.75
+    ],
+    [
+     212.5,
+     -187.5,
+     0.75
+    ],
+    [
+     212.5,
+     -162.5,
+     1.05
+    ],
+    [
+     217.5,
+     -192.5,
+     0.75
+    ],
+    [
+     217.5,
+     -182.5,
+     0.75
+    ],
+    [
+     217.5,
+     -172.5,
+     0.75
+    ],
+    [
+     217.5,
+     -162.5,
+     0.75
+    ]
+   ],
+   "unreached_tops": 14,
+   "collider_vs_drawn": {
+    "n": 15,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     217.5,
+     -187.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 3
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 79,
+    "top": [
+     {
+      "key": "inscriptions/inscription:XPe:op",
+      "cells": 39
+     },
+     {
+      "key": "inscriptions/inscription:XPe:op:pick",
+      "cells": 39
+     },
+     {
+      "key": "inscriptions/inscription:XPe:el",
+      "cells": 39
+     },
+     {
+      "key": "inscriptions/inscription:XPe:el:pick",
+      "cells": 39
+     },
+     {
+      "key": "inscriptions/inscription:XPe:bab",
+      "cells": 39
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 32,
+    "p95": 40,
+    "max": 40,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 39
+     }
+    ]
+   },
+   "ms": 139
+  },
+  "terrace:treasury:interior:11": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 34,
+   "standable": 16,
+   "reached_pct": 37.5,
+   "unreached_standable": 10,
+   "unreached_examples": [
+    [
+     207.5,
+     -107.5,
+     0.3
+    ],
+    [
+     212.5,
+     -122.5,
+     0.75
+    ],
+    [
+     212.5,
+     -117.5,
+     0.3
+    ],
+    [
+     212.5,
+     -102.5,
+     0.75
+    ],
+    [
+     217.5,
+     -147.5,
+     0.75
+    ],
+    [
+     217.5,
+     -142.5,
+     0.75
+    ],
+    [
+     217.5,
+     -127.5,
+     0.75
+    ],
+    [
+     217.5,
+     -122.5,
+     0.3
+    ],
+    [
+     217.5,
+     -117.5,
+     0.75
+    ],
+    [
+     217.5,
+     -107.5,
+     0.75
+    ]
+   ],
+   "unreached_tops": 18,
+   "collider_vs_drawn": {
+    "n": 6,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     212.5,
+     -107.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 81,
+    "top": [
+     {
+      "key": "inscriptions/inscription:XPe:op",
+      "cells": 34
+     },
+     {
+      "key": "inscriptions/inscription:XPe:op:pick",
+      "cells": 34
+     },
+     {
+      "key": "inscriptions/inscription:XPe:el",
+      "cells": 34
+     },
+     {
+      "key": "inscriptions/inscription:XPe:el:pick",
+      "cells": 34
+     },
+     {
+      "key": "inscriptions/inscription:XPe:bab",
+      "cells": 34
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 30,
+    "p95": 38,
+    "max": 41,
+    "top": [
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 19
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 15
+     }
+    ]
+   },
+   "ms": 119
+  },
+  "terrace:treasury:interior:12": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 7,
+   "standable": 5,
+   "reached_pct": 80,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     217.5,
+     -97.5,
+     0.75
+    ]
+   ],
+   "unreached_tops": 2,
+   "collider_vs_drawn": {
+    "n": 4,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     212.5,
+     -82.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 81,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 7
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op",
+      "cells": 7
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op:pick",
+      "cells": 7
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el",
+      "cells": 7
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el:pick",
+      "cells": 7
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 20,
+    "p95": 28,
+    "max": 28,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 7
+     }
+    ]
+   },
+   "ms": 20
   },
   "terrace:treasury:interior:2": {
    "kind": "terrace-interior",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 72,
-   "standable": 68,
+   "cells": 10,
+   "standable": 8,
    "reached_pct": 100,
    "unreached_standable": 0,
    "unreached_examples": [],
-   "unreached_tops": 4,
+   "unreached_tops": 2,
    "collider_vs_drawn": {
-    "n": 68,
+    "n": 8,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     147.5,
+     -162.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 99,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 10
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 14,
+    "p95": 24,
+    "max": 24,
+    "top": [
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 6
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 4
+     }
+    ]
+   },
+   "ms": 28
+  },
+  "terrace:treasury:interior:3": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 10,
+   "standable": 8,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 2,
+   "collider_vs_drawn": {
+    "n": 8,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     147.5,
+     -112.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 1
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 101,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 10
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 10
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 25,
+    "p95": 30,
+    "max": 30,
+    "top": [
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 6
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 4
+     }
+    ]
+   },
+   "ms": 31
+  },
+  "terrace:treasury:interior:4": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2,
+   "standable": 2,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 2,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     147.5,
+     -97.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 101,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 2
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 24,
+    "p95": 24,
+    "max": 24,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 2
+     }
+    ]
+   },
+   "ms": 6
+  },
+  "terrace:treasury:interior:5": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 14,
+   "standable": 12,
+   "reached_pct": 83.33,
+   "unreached_standable": 2,
+   "unreached_examples": [
+    [
+     182.5,
+     -207.5,
+     0.75
+    ],
+    [
+     192.5,
+     -207.5,
+     0.75
+    ]
+   ],
+   "unreached_tops": 2,
+   "collider_vs_drawn": {
+    "n": 10,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     187.5,
+     -207.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 81,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 14
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op",
+      "cells": 14
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op:pick",
+      "cells": 14
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el",
+      "cells": 14
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el:pick",
+      "cells": 14
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 24,
+    "p95": 36,
+    "max": 36,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 14
+     }
+    ]
+   },
+   "ms": 63
+  },
+  "terrace:treasury:interior:6": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 55,
+   "standable": 32,
+   "reached_pct": 87.5,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     157.5,
+     -177.5,
+     0.3
+    ],
+    [
+     167.5,
+     -192.5,
+     0.3
+    ],
+    [
+     172.5,
+     -162.5,
+     0.3
+    ],
+    [
+     192.5,
+     -162.5,
+     1.05
+    ]
+   ],
+   "unreached_tops": 23,
+   "collider_vs_drawn": {
+    "n": 28,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     192.5,
+     -167.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 99,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 55
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op",
+      "cells": 55
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op:pick",
+      "cells": 55
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el",
+      "cells": 55
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el:pick",
+      "cells": 55
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 24,
+    "p95": 40,
+    "max": 44,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 45
+     },
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 10
+     }
+    ]
+   },
+   "ms": 172
+  },
+  "terrace:treasury:interior:7": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 100,
+   "standable": 70,
+   "reached_pct": 98.57,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     152.5,
+     -122.5,
+     0.3
+    ]
+   ],
+   "unreached_tops": 30,
+   "collider_vs_drawn": {
+    "n": 69,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
@@ -1210,27 +3511,27 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 73,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 72
+      "cells": 100
      },
      {
       "key": "inscriptions/inscription:XPd:op",
-      "cells": 72
+      "cells": 100
      },
      {
       "key": "inscriptions/inscription:XPd:op:pick",
-      "cells": 72
+      "cells": 100
      },
      {
       "key": "inscriptions/inscription:XPd:el",
-      "cells": 72
+      "cells": 100
      },
      {
       "key": "inscriptions/inscription:XPd:el:pick",
-      "cells": 72
+      "cells": 100
      }
     ]
    },
@@ -1240,28 +3541,32 @@
     "top": []
    },
    "repetition": {
-    "median": 37,
+    "median": 36,
     "p95": 41,
     "max": 43,
     "top": [
      {
       "key": "architecture/treasury:columns:limestone:lod1",
-      "cells": 72
+      "cells": 82
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 18
      }
     ]
    },
-   "ms": 17
+   "ms": 330
   },
-  "terrace:treasury:interior:3": {
+  "terrace:treasury:interior:8": {
    "kind": "terrace-interior",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 19,
+   "cells": 20,
    "standable": 16,
    "reached_pct": 100,
    "unreached_standable": 0,
    "unreached_examples": [],
-   "unreached_tops": 3,
+   "unreached_tops": 4,
    "collider_vs_drawn": {
     "n": 16,
     "over_5cm_pct": 0,
@@ -1275,27 +3580,27 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 19
+      "cells": 20
      },
      {
       "key": "inscriptions/inscription:XPd:op",
-      "cells": 19
+      "cells": 20
      },
      {
       "key": "inscriptions/inscription:XPd:op:pick",
-      "cells": 19
+      "cells": 20
      },
      {
       "key": "inscriptions/inscription:XPd:el",
-      "cells": 19
+      "cells": 20
      },
      {
       "key": "inscriptions/inscription:XPd:el:pick",
-      "cells": 19
+      "cells": 20
      }
     ]
    },
@@ -1305,124 +3610,77 @@
     "top": []
    },
    "repetition": {
-    "median": 23,
+    "median": 24,
     "p95": 38,
     "max": 38,
     "top": [
      {
       "key": "architecture/treasury:columns:limestone:lod1",
-      "cells": 19
+      "cells": 14
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 6
      }
     ]
    },
-   "ms": 5
+   "ms": 62
   },
-  "terrace:treasury:interior:4": {
+  "terrace:treasury:interior:9": {
    "kind": "terrace-interior",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 9,
-   "standable": 0,
-   "reached_pct": null,
-   "unreached_standable": 0,
-   "unreached_examples": [],
-   "unreached_tops": 9,
-   "collider_vs_drawn": {
-    "n": 0,
-    "over_5cm_pct": null,
-    "worst_m": 0,
-    "worst_at": null,
-    "undrawn_floor": 0,
-    "drawn_over_30cm": 0
-   },
-   "placeholder": {
-    "cells_pct": 100,
-    "max_records": 55,
-    "top": [
-     {
-      "key": "inscriptions/inscription:XPe:op",
-      "cells": 9
-     },
-     {
-      "key": "inscriptions/inscription:XPe:op:pick",
-      "cells": 9
-     },
-     {
-      "key": "inscriptions/inscription:XPe:el",
-      "cells": 9
-     },
-     {
-      "key": "inscriptions/inscription:XPe:el:pick",
-      "cells": 9
-     },
-     {
-      "key": "inscriptions/inscription:XPe:bab",
-      "cells": 9
-     }
+   "cells": 8,
+   "standable": 8,
+   "reached_pct": 75,
+   "unreached_standable": 2,
+   "unreached_examples": [
+    [
+     217.5,
+     -207.5,
+     0.75
+    ],
+    [
+     217.5,
+     -202.5,
+     0.75
     ]
-   },
-   "untiered": {
-    "cells_pct": 0,
-    "max_records": 0,
-    "top": []
-   },
-   "repetition": {
-    "median": 34,
-    "p95": 41,
-    "max": 41,
-    "top": [
-     {
-      "key": "architecture/treasury:columns:limestone:lod1",
-      "cells": 9
-     }
-    ]
-   },
-   "ms": 3
-  },
-  "terrace:treasury:interior:5": {
-   "kind": "terrace-interior",
-   "spacing_m": 5,
-   "stride": 1,
-   "cells": 4,
-   "standable": 3,
-   "reached_pct": 100,
-   "unreached_standable": 0,
-   "unreached_examples": [],
-   "unreached_tops": 1,
+   ],
+   "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 3,
+    "n": 6,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
      212.5,
-     -82.5
+     -202.5
     ],
     "undrawn_floor": 0,
     "drawn_over_30cm": 0
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 55,
+    "max_records": 75,
     "top": [
      {
-      "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 4
+      "key": "inscriptions/inscription:XPe:op",
+      "cells": 8
      },
      {
-      "key": "inscriptions/inscription:XPd:op",
-      "cells": 4
+      "key": "inscriptions/inscription:XPe:op:pick",
+      "cells": 8
      },
      {
-      "key": "inscriptions/inscription:XPd:op:pick",
-      "cells": 4
+      "key": "inscriptions/inscription:XPe:el",
+      "cells": 8
      },
      {
-      "key": "inscriptions/inscription:XPd:el",
-      "cells": 4
+      "key": "inscriptions/inscription:XPe:el:pick",
+      "cells": 8
      },
      {
-      "key": "inscriptions/inscription:XPd:el:pick",
-      "cells": 4
+      "key": "inscriptions/inscription:XPe:bab",
+      "cells": 8
      }
     ]
    },
@@ -1432,21 +3690,17 @@
     "top": []
    },
    "repetition": {
-    "median": 10,
-    "p95": 18,
-    "max": 18,
+    "median": 28,
+    "p95": 32,
+    "max": 32,
     "top": [
      {
-      "key": "architecture/treasury:columns:limestone:lod1",
-      "cells": 2
-     },
-     {
       "key": "doors/doors:bands",
-      "cells": 2
+      "cells": 8
      }
     ]
    },
-   "ms": 1
+   "ms": 39
   },
   "terrace:apadana:open": {
    "kind": "terrace-open",
@@ -1471,7 +3725,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 82,
+    "max_records": 108,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -1523,7 +3777,7 @@
      }
     ]
    },
-   "ms": 41
+   "ms": 308
   },
   "terrace:fortification_e:open": {
    "kind": "terrace-open",
@@ -1609,11 +3863,19 @@
    },
    "placeholder": {
     "cells_pct": 82.32,
-    "max_records": 41,
+    "max_records": 67,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
       "cells": 146
+     },
+     {
+      "key": "doors/door-sealing:treasury:e_stores_n_3_W|door treasury:e_stores_n_3_W: clay sealing over the cord bet",
+      "cells": 139
+     },
+     {
+      "key": "doors/writing:door_sealing:treasury:e_stores_n_3_W:pick|clay sealing over the cord between the knobs of a sealed Tre",
+      "cells": 139
      },
      {
       "key": "doors/door-sealing:treasury:hall99|door treasury:hall99: clay sealing over the cord between the",
@@ -1622,14 +3884,6 @@
      {
       "key": "doors/writing:door_sealing:treasury:hall99:pick|clay sealing over the cord between the knobs of a sealed Tre",
       "cells": 138
-     },
-     {
-      "key": "doors/door-sealing:treasury:E|door treasury:E: clay sealing over the cord between the knob",
-      "cells": 123
-     },
-     {
-      "key": "doors/writing:door_sealing:treasury:E:pick|clay sealing over the cord between the knobs of a sealed Tre",
-      "cells": 123
      }
     ]
    },
@@ -1639,34 +3893,34 @@
     "top": []
    },
    "repetition": {
-    "median": 0,
-    "p95": 8,
-    "max": 8,
+    "median": 4,
+    "p95": 24,
+    "max": 32,
     "top": [
      {
-      "key": "doors/doors:bands",
-      "cells": 40
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 67
      },
      {
-      "key": "doors/doors:posts",
-      "cells": 2
+      "key": "doors/doors:bands",
+      "cells": 57
      }
     ]
    },
-   "ms": 18
+   "ms": 218
   },
   "terrace:garrison:open": {
    "kind": "terrace-open",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 245,
-   "standable": 245,
+   "cells": 115,
+   "standable": 115,
    "reached_pct": 100,
    "unreached_standable": 0,
    "unreached_examples": [],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 245,
+    "n": 115,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
@@ -1678,27 +3932,27 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 49,
+    "max_records": 75,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 245
+      "cells": 115
      },
      {
       "key": "inscriptions/inscription:XPb:op",
-      "cells": 245
+      "cells": 115
      },
      {
       "key": "inscriptions/inscription:XPb:op:pick",
-      "cells": 245
+      "cells": 115
      },
      {
       "key": "inscriptions/inscription:XPb:bab",
-      "cells": 245
+      "cells": 115
      },
      {
       "key": "inscriptions/inscription:XPb:bab:pick",
-      "cells": 245
+      "cells": 115
      }
     ]
    },
@@ -1708,21 +3962,25 @@
     "top": []
    },
    "repetition": {
-    "median": 0,
-    "p95": 8,
-    "max": 8,
+    "median": 5,
+    "p95": 11,
+    "max": 12,
     "top": [
      {
-      "key": "architecture/hall100:columns:lod1",
-      "cells": 65
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 100
      },
      {
       "key": "doors/doors:bands",
-      "cells": 18
+      "cells": 8
+     },
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 2
      }
     ]
    },
-   "ms": 30
+   "ms": 205
   },
   "terrace:gate_nations:open": {
    "kind": "terrace-open",
@@ -1787,7 +4045,7 @@
      }
     ]
    },
-   "ms": 2
+   "ms": 3
   },
   "terrace:grand_stair:open": {
    "kind": "terrace-open",
@@ -1868,7 +4126,7 @@
      }
     ]
    },
-   "ms": 3
+   "ms": 11
   },
   "terrace:hadish:open": {
    "kind": "terrace-open",
@@ -1893,7 +4151,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -1929,15 +4187,19 @@
     "top": [
      {
       "key": "architecture/hadish:columns:lod1",
-      "cells": 92
+      "cells": 86
      },
      {
       "key": "doors/doors:bands",
       "cells": 11
+     },
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 6
      }
     ]
    },
-   "ms": 18
+   "ms": 216
   },
   "terrace:hall100:open": {
    "kind": "terrace-open",
@@ -2023,7 +4285,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 82,
+    "max_records": 108,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -2055,11 +4317,19 @@
    "repetition": {
     "median": 8,
     "p95": 11,
-    "max": 12,
+    "max": 13,
     "top": [
      {
       "key": "architecture/hall100:columns:lod1",
-      "cells": 284
+      "cells": 262
+     },
+     {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 20
+     },
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 2
      },
      {
       "key": "doors/doors:bands",
@@ -2067,37 +4337,17 @@
      }
     ]
    },
-   "ms": 48
+   "ms": 700
   },
   "terrace:harem:open": {
    "kind": "terrace-open",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 313,
-   "standable": 266,
-   "reached_pct": 97.74,
-   "unreached_standable": 6,
+   "cells": 72,
+   "standable": 57,
+   "reached_pct": 96.49,
+   "unreached_standable": 2,
    "unreached_examples": [
-    [
-     107.5,
-     -152.5,
-     1
-    ],
-    [
-     117.5,
-     -152.5,
-     1
-    ],
-    [
-     122.5,
-     -152.5,
-     1
-    ],
-    [
-     132.5,
-     -137.5,
-     1
-    ],
     [
      132.5,
      -132.5,
@@ -2109,41 +4359,41 @@
      1
     ]
    ],
-   "unreached_tops": 47,
+   "unreached_tops": 15,
    "collider_vs_drawn": {
-    "n": 260,
+    "n": 55,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
-     127.5,
-     -82.5
+     122.5,
+     -112.5
     ],
     "undrawn_floor": 0,
     "drawn_over_30cm": 0
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 313
+      "cells": 72
      },
      {
       "key": "inscriptions/inscription:XPc:op",
-      "cells": 313
+      "cells": 72
      },
      {
       "key": "inscriptions/inscription:XPc:op:pick",
-      "cells": 313
+      "cells": 72
      },
      {
       "key": "inscriptions/inscription:XPc:el",
-      "cells": 313
+      "cells": 72
      },
      {
       "key": "inscriptions/inscription:XPc:el:pick",
-      "cells": 313
+      "cells": 72
      }
     ]
    },
@@ -2153,33 +4403,25 @@
     "top": []
    },
    "repetition": {
-    "median": 1,
-    "p95": 28,
-    "max": 32,
+    "median": 16,
+    "p95": 36,
+    "max": 40,
     "top": [
      {
-      "key": "doors/doors:bands",
-      "cells": 90
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 40
      },
      {
-      "key": "architecture/hadish:columns:lod1",
-      "cells": 24
+      "key": "doors/doors:bands",
+      "cells": 28
      },
      {
       "key": "architecture/harem:columns:lod1",
-      "cells": 24
-     },
-     {
-      "key": "architecture/tripylon:columns:lod1",
-      "cells": 13
-     },
-     {
-      "key": "architecture/hall100:columns:lod1",
-      "cells": 10
+      "cells": 4
      }
     ]
    },
-   "ms": 43
+   "ms": 201
   },
   "terrace:tachara:open": {
    "kind": "terrace-open",
@@ -2230,7 +4472,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 80,
+    "max_records": 94,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -2270,26 +4512,20 @@
      }
     ]
    },
-   "ms": 1
+   "ms": 9
   },
   "terrace:treasury:open": {
    "kind": "terrace-open",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 281,
-   "standable": 281,
-   "reached_pct": 99.64,
-   "unreached_standable": 1,
-   "unreached_examples": [
-    [
-     217.5,
-     -212.5,
-     0.3
-    ]
-   ],
+   "cells": 89,
+   "standable": 89,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 280,
+    "n": 89,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
@@ -2301,27 +4537,27 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 281
+      "cells": 89
      },
      {
       "key": "inscriptions/inscription:XPd:op",
-      "cells": 281
+      "cells": 89
      },
      {
       "key": "inscriptions/inscription:XPd:op:pick",
-      "cells": 281
+      "cells": 89
      },
      {
       "key": "inscriptions/inscription:XPd:el",
-      "cells": 281
+      "cells": 89
      },
      {
       "key": "inscriptions/inscription:XPd:el:pick",
-      "cells": 281
+      "cells": 89
      }
     ]
    },
@@ -2331,21 +4567,21 @@
     "top": []
    },
    "repetition": {
-    "median": 3,
-    "p95": 33,
-    "max": 40,
+    "median": 32,
+    "p95": 40,
+    "max": 48,
     "top": [
      {
-      "key": "architecture/treasury:columns:limestone:lod1",
-      "cells": 130
+      "key": "doors/doors:bands",
+      "cells": 69
      },
      {
-      "key": "doors/doors:bands",
-      "cells": 13
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 20
      }
     ]
    },
-   "ms": 44
+   "ms": 287
   },
   "terrace:tripylon:open": {
    "kind": "terrace-open",
@@ -2376,7 +4612,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 82,
+    "max_records": 108,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -2412,56 +4648,60 @@
     "top": [
      {
       "key": "architecture/tripylon:columns:lod1",
-      "cells": 49
+      "cells": 41
+     },
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 8
      }
     ]
    },
-   "ms": 7
+   "ms": 106
   },
   "terrace:court:apadana": {
    "kind": "terrace-court",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 358,
-   "standable": 358,
+   "cells": 333,
+   "standable": 333,
    "reached_pct": 100,
    "unreached_standable": 0,
    "unreached_examples": [],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 358,
+    "n": 333,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
-     112.5,
-     97.5
+     107.5,
+     87.5
     ],
     "undrawn_floor": 0,
     "drawn_over_30cm": 0
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 82,
+    "max_records": 108,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 358
+      "cells": 333
      },
      {
       "key": "inscriptions/inscription:XPb:op",
-      "cells": 358
+      "cells": 333
      },
      {
       "key": "inscriptions/inscription:XPb:op:pick",
-      "cells": 358
+      "cells": 333
      },
      {
       "key": "inscriptions/inscription:XPg:op",
-      "cells": 358
+      "cells": 333
      },
      {
       "key": "inscriptions/inscription:XPg:op:pick",
-      "cells": 358
+      "cells": 333
      }
     ]
    },
@@ -2493,15 +4733,15 @@
      }
     ]
    },
-   "ms": 36
+   "ms": 505
   },
   "terrace:court:fortification_e": {
    "kind": "terrace-court",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 88,
-   "standable": 87,
-   "reached_pct": 96.55,
+   "cells": 77,
+   "standable": 76,
+   "reached_pct": 96.05,
    "unreached_standable": 3,
    "unreached_examples": [
     [
@@ -2522,7 +4762,7 @@
    ],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 84,
+    "n": 73,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
@@ -2533,28 +4773,28 @@
     "drawn_over_30cm": 0
    },
    "placeholder": {
-    "cells_pct": 92.05,
-    "max_records": 49,
+    "cells_pct": 90.91,
+    "max_records": 75,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 76
+      "cells": 65
      },
      {
       "key": "inscriptions/inscription:XPb:op",
-      "cells": 47
+      "cells": 36
      },
      {
       "key": "inscriptions/inscription:XPb:op:pick",
-      "cells": 47
+      "cells": 36
      },
      {
       "key": "inscriptions/inscription-slab:XPa",
-      "cells": 41
+      "cells": 30
      },
      {
       "key": "inscriptions/inscription:XPa:op",
-      "cells": 41
+      "cells": 30
      }
     ]
    },
@@ -2564,31 +4804,41 @@
     "top": []
    },
    "repetition": {
-    "median": 0,
-    "p95": 8,
-    "max": 8,
+    "median": 2,
+    "p95": 32,
+    "max": 40,
     "top": [
      {
-      "key": "doors/doors:bands",
-      "cells": 14
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 29
      },
      {
-      "key": "architecture/treasury:columns:limestone:lod1",
-      "cells": 1
+      "key": "doors/doors:bands",
+      "cells": 21
      }
     ]
    },
-   "ms": 6
+   "ms": 79
   },
   "terrace:court:garrison": {
    "kind": "terrace-court",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 357,
-   "standable": 356,
-   "reached_pct": 97.19,
-   "unreached_standable": 10,
+   "cells": 466,
+   "standable": 465,
+   "reached_pct": 97.42,
+   "unreached_standable": 12,
    "unreached_examples": [
+    [
+     92.5,
+     187.5,
+     0
+    ],
+    [
+     157.5,
+     162.5,
+     1
+    ],
     [
      182.5,
      72.5,
@@ -2642,39 +4892,39 @@
    ],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 346,
+    "n": 453,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
      222.5,
      127.5
     ],
-    "undrawn_floor": 0,
+    "undrawn_floor": 1,
     "drawn_over_30cm": 0
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 47,
+    "max_records": 73,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 357
+      "cells": 466
      },
      {
       "key": "inscriptions/inscription:XPb:op",
-      "cells": 357
+      "cells": 466
      },
      {
       "key": "inscriptions/inscription:XPb:op:pick",
-      "cells": 357
+      "cells": 466
      },
      {
       "key": "inscriptions/inscription:XPb:bab",
-      "cells": 354
+      "cells": 462
      },
      {
       "key": "inscriptions/inscription:XPb:bab:pick",
-      "cells": 354
+      "cells": 462
      }
     ]
    },
@@ -2684,13 +4934,17 @@
     "top": []
    },
    "repetition": {
-    "median": 0,
-    "p95": 1,
+    "median": 1,
+    "p95": 8,
     "max": 12,
     "top": [
      {
+      "key": "architecture/garrison:columns:limestone:lod1",
+      "cells": 225
+     },
+     {
       "key": "architecture/hall100:columns:lod1",
-      "cells": 13
+      "cells": 8
      },
      {
       "key": "doors/doors:bands",
@@ -2698,16 +4952,16 @@
      }
     ]
    },
-   "ms": 35
+   "ms": 314
   },
   "terrace:court:gate_nations": {
    "kind": "terrace-court",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 463,
-   "standable": 463,
-   "reached_pct": 99.14,
-   "unreached_standable": 4,
+   "cells": 376,
+   "standable": 376,
+   "reached_pct": 99.2,
+   "unreached_standable": 3,
    "unreached_examples": [
     [
      17.5,
@@ -2723,23 +4977,18 @@
      62.5,
      212.5,
      0
-    ],
-    [
-     92.5,
-     187.5,
-     0
     ]
    ],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 459,
+    "n": 373,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
-     102.5,
-     182.5
+     77.5,
+     117.5
     ],
-    "undrawn_floor": 2,
+    "undrawn_floor": 1,
     "drawn_over_30cm": 0
    },
    "placeholder": {
@@ -2748,23 +4997,23 @@
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 463
+      "cells": 376
      },
      {
       "key": "inscriptions/inscription:XPb:op",
-      "cells": 463
+      "cells": 376
      },
      {
       "key": "inscriptions/inscription:XPb:op:pick",
-      "cells": 463
+      "cells": 376
      },
      {
       "key": "inscriptions/inscription-slab:XPa",
-      "cells": 463
+      "cells": 376
      },
      {
       "key": "inscriptions/inscription:XPa:op",
-      "cells": 463
+      "cells": 376
      }
     ]
    },
@@ -2788,7 +5037,7 @@
      }
     ]
    },
-   "ms": 19
+   "ms": 169
   },
   "terrace:court:grand_stair": {
    "kind": "terrace-court",
@@ -2878,7 +5127,7 @@
      }
     ]
    },
-   "ms": 5
+   "ms": 23
   },
   "terrace:court:hadish": {
    "kind": "terrace-court",
@@ -2886,12 +5135,28 @@
    "stride": 1,
    "cells": 211,
    "standable": 211,
-   "reached_pct": 100,
-   "unreached_standable": 0,
-   "unreached_examples": [],
+   "reached_pct": 98.58,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     -27.5,
+     -172.5,
+     0
+    ],
+    [
+     -27.5,
+     -167.5,
+     0
+    ],
+    [
+     -27.5,
+     -162.5,
+     0
+    ]
+   ],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 211,
+    "n": 208,
     "over_5cm_pct": 0,
     "worst_m": 0,
     "worst_at": [
@@ -2903,7 +5168,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -2939,11 +5204,15 @@
     "top": [
      {
       "key": "doors/doors:bands",
-      "cells": 43
+      "cells": 40
      },
      {
       "key": "architecture/hadish:columns:lod1",
-      "cells": 35
+      "cells": 34
+     },
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 9
      },
      {
       "key": "architecture/tachara:columns:lod1",
@@ -2952,27 +5221,23 @@
      {
       "key": "architecture/tripylon:columns:lod1",
       "cells": 8
-     },
-     {
-      "key": "architecture/harem:columns:lod1",
-      "cells": 2
      }
     ]
    },
-   "ms": 25
+   "ms": 384
   },
   "terrace:court:hall100": {
    "kind": "terrace-court",
    "spacing_m": 5,
    "stride": 1,
-   "cells": 207,
-   "standable": 207,
+   "cells": 206,
+   "standable": 206,
    "reached_pct": 100,
    "unreached_standable": 0,
    "unreached_examples": [],
    "unreached_tops": 0,
    "collider_vs_drawn": {
-    "n": 207,
+    "n": 206,
     "over_5cm_pct": 0.97,
     "worst_m": -0.167,
     "worst_at": [
@@ -2984,27 +5249,27 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 82,
+    "max_records": 108,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
-      "cells": 207
+      "cells": 206
      },
      {
       "key": "inscriptions/inscription:XPb:op",
-      "cells": 207
+      "cells": 206
      },
      {
       "key": "inscriptions/inscription:XPb:op:pick",
-      "cells": 207
+      "cells": 206
      },
      {
       "key": "inscriptions/inscription:XPb:bab",
-      "cells": 207
+      "cells": 206
      },
      {
       "key": "inscriptions/inscription:XPb:bab:pick",
-      "cells": 207
+      "cells": 206
      }
     ]
    },
@@ -3020,19 +5285,19 @@
     "top": [
      {
       "key": "architecture/hall100:columns:lod1",
-      "cells": 124
+      "cells": 121
+     },
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 5
      },
      {
       "key": "doors/doors:bands",
       "cells": 4
-     },
-     {
-      "key": "architecture/tripylon:columns:lod1",
-      "cells": 2
      }
     ]
    },
-   "ms": 23
+   "ms": 429
   },
   "terrace:court:harem": {
    "kind": "terrace-court",
@@ -3088,7 +5353,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -3118,33 +5383,33 @@
     "top": []
    },
    "repetition": {
-    "median": 0,
+    "median": 11,
     "p95": 24,
     "max": 32,
     "top": [
      {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 178
+     },
+     {
       "key": "doors/doors:bands",
-      "cells": 52
-     },
-     {
-      "key": "architecture/harem:columns:lod1",
-      "cells": 11
-     },
-     {
-      "key": "architecture/tripylon:columns:lod1",
-      "cells": 8
-     },
-     {
-      "key": "architecture/hall100:columns:lod1",
-      "cells": 8
+      "cells": 53
      },
      {
       "key": "architecture/treasury:columns:limestone:lod1",
-      "cells": 6
+      "cells": 11
+     },
+     {
+      "key": "architecture/harem:columns:lod1",
+      "cells": 7
+     },
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 3
      }
     ]
    },
-   "ms": 29
+   "ms": 495
   },
   "terrace:court:tachara": {
    "kind": "terrace-court",
@@ -3175,7 +5440,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 80,
+    "max_records": 102,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -3219,7 +5484,7 @@
      }
     ]
    },
-   "ms": 8
+   "ms": 92
   },
   "terrace:court:treasury": {
    "kind": "terrace-court",
@@ -3271,11 +5536,11 @@
      -132.5
     ],
     "undrawn_floor": 0,
-    "drawn_over_30cm": 4
+    "drawn_over_30cm": 2
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 75,
+    "max_records": 101,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -3305,25 +5570,25 @@
     "top": []
    },
    "repetition": {
-    "median": 8,
-    "p95": 13,
-    "max": 16,
+    "median": 20,
+    "p95": 36,
+    "max": 40,
     "top": [
      {
       "key": "doors/doors:bands",
-      "cells": 32
+      "cells": 72
      },
      {
       "key": "architecture/treasury:columns:limestone:lod1",
-      "cells": 15
+      "cells": 5
      },
      {
       "key": "architecture/hall100:columns:lod1",
-      "cells": 7
+      "cells": 3
      }
     ]
    },
-   "ms": 11
+   "ms": 224
   },
   "terrace:court:tripylon": {
    "kind": "terrace-court",
@@ -3348,7 +5613,7 @@
    },
    "placeholder": {
     "cells_pct": 100,
-    "max_records": 82,
+    "max_records": 108,
     "top": [
      {
       "key": "inscriptions/inscription-stones:limestone_dark",
@@ -3379,12 +5644,16 @@
    },
    "repetition": {
     "median": 4,
-    "p95": 6,
-    "max": 7,
+    "p95": 7,
+    "max": 9,
     "top": [
      {
       "key": "architecture/tripylon:columns:lod1",
-      "cells": 63
+      "cells": 54
+     },
+     {
+      "key": "architecture/harem:columns:limestone:lod1",
+      "cells": 9
      },
      {
       "key": "architecture/hall100:columns:lod1",
@@ -3396,7 +5665,7 @@
      }
     ]
    },
-   "ms": 12
+   "ms": 131
   },
   "town:area_c_garden": {
    "kind": "town-site",
@@ -3473,7 +5742,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 23
+   "ms": 37
   },
   "town:estate_1": {
    "kind": "town-site",
@@ -3555,7 +5824,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 14
+   "ms": 19
   },
   "town:estate_2": {
    "kind": "town-site",
@@ -3652,7 +5921,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 11
+   "ms": 20
   },
   "town:estate_3": {
    "kind": "town-site",
@@ -3719,7 +5988,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 4
+   "ms": 25
   },
   "town:estate_4": {
    "kind": "town-site",
@@ -3781,7 +6050,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 12
+   "ms": 39
   },
   "town:garden_gohar": {
    "kind": "town-site",
@@ -3817,7 +6086,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 24
+   "ms": 74
   },
   "town:official": {
    "kind": "town-site",
@@ -3914,7 +6183,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 12
+   "ms": 22
   },
   "town:orchard_1": {
    "kind": "town-site",
@@ -3966,7 +6235,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 11
+   "ms": 27
   },
   "town:orchard_2": {
    "kind": "town-site",
@@ -4023,7 +6292,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 18
+   "ms": 30
   },
   "town:orchard_3": {
    "kind": "town-site",
@@ -4075,7 +6344,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 13
+   "ms": 25
   },
   "town:orchard_4": {
    "kind": "town-site",
@@ -4111,7 +6380,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 12
+   "ms": 23
   },
   "town:orchard_5": {
    "kind": "town-site",
@@ -4178,7 +6447,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 13
+   "ms": 24
   },
   "town:orchard_6": {
    "kind": "town-site",
@@ -4214,7 +6483,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 10
+   "ms": 19
   },
   "town:orchard_7": {
    "kind": "town-site",
@@ -4286,7 +6555,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 13
+   "ms": 24
   },
   "town:orchard_8": {
    "kind": "town-site",
@@ -4338,7 +6607,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 13
+   "ms": 25
   },
   "town:paradise": {
    "kind": "town-site",
@@ -4444,7 +6713,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 56
+   "ms": 110
   },
   "town:q_f1": {
    "kind": "town-site",
@@ -4541,7 +6810,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 6
+   "ms": 12
   },
   "town:q_g1": {
    "kind": "town-site",
@@ -4638,7 +6907,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 12
+   "ms": 21
   },
   "town:q_n1": {
    "kind": "town-site",
@@ -4735,7 +7004,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 16
+   "ms": 36
   },
   "town:q_s1": {
    "kind": "town-site",
@@ -4835,7 +7104,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 50
+   "ms": 106
   },
   "town:q_s2": {
    "kind": "town-site",
@@ -4932,7 +7201,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 33
+   "ms": 123
   },
   "town:q_s3": {
    "kind": "town-site",
@@ -5029,7 +7298,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 42
+   "ms": 77
   },
   "town:q_s4": {
    "kind": "town-site",
@@ -5126,7 +7395,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 31
+   "ms": 106
   },
   "town:q_w1": {
    "kind": "town-site",
@@ -5223,7 +7492,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 28
+   "ms": 55
   },
   "town:q_w2": {
    "kind": "town-site",
@@ -5320,7 +7589,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 30
+   "ms": 72
   },
   "town:q_w3": {
    "kind": "town-site",
@@ -5417,7 +7686,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 27
+   "ms": 76
   },
   "town:stables": {
    "kind": "town-site",
@@ -5459,7 +7728,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 7
+   "ms": 15
   },
   "town:stores": {
    "kind": "town-site",
@@ -5516,7 +7785,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 11
+   "ms": 17
   },
   "town:waystation": {
    "kind": "town-site",
@@ -5573,7 +7842,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 9
+   "ms": 20
   },
   "site:akhor_rostam_niches": {
    "kind": "named-site",
@@ -5612,7 +7881,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 20
+   "ms": 60
   },
   "site:bard_burideh": {
    "kind": "named-site",
@@ -5651,7 +7920,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 30
+   "ms": 80
   },
   "site:burial_ground_town": {
    "kind": "named-site",
@@ -5690,7 +7959,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 34
+   "ms": 65
   },
   "site:confluence": {
    "kind": "named-site",
@@ -5729,7 +7998,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 33
+   "ms": 50
   },
   "site:dam_sang_e_dokhtar": {
    "kind": "named-site",
@@ -5768,7 +8037,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 31
+   "ms": 54
   },
   "site:naqsh_e_rustam": {
    "kind": "named-site",
@@ -5853,7 +8122,7 @@
      }
     ]
    },
-   "ms": 132
+   "ms": 382
   },
   "site:qadamgah": {
    "kind": "named-site",
@@ -5892,7 +8161,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 30
+   "ms": 62
   },
   "site:quarry_majdabad": {
    "kind": "named-site",
@@ -5931,7 +8200,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 24
+   "ms": 55
   },
   "site:quarry_sivand": {
    "kind": "named-site",
@@ -5970,7 +8239,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 27
+   "ms": 48
   },
   "site:sacred_precinct": {
    "kind": "named-site",
@@ -5994,8 +8263,8 @@
     "drawn_over_30cm": 0
    },
    "placeholder": {
-    "cells_pct": 16.91,
-    "max_records": 10,
+    "cells_pct": 18.83,
+    "max_records": 22,
     "top": [
      {
       "key": "inscriptions/inscription:DPg:bab",
@@ -6030,7 +8299,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 34
+   "ms": 181
   },
   "site:takht_e_rustam": {
    "kind": "named-site",
@@ -6072,7 +8341,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 10
+   "ms": 21
   },
   "village:village_masumabad_west": {
    "kind": "village",
@@ -6172,7 +8441,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 53
+   "ms": 162
   },
   "village:village_p01": {
    "kind": "village",
@@ -6272,7 +8541,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 185
+   "ms": 650
   },
   "village:village_p02": {
    "kind": "village",
@@ -6372,7 +8641,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 151
+   "ms": 484
   },
   "village:village_p03": {
    "kind": "village",
@@ -6472,7 +8741,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 140
+   "ms": 501
   },
   "village:village_p04": {
    "kind": "village",
@@ -6572,7 +8841,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 142
+   "ms": 669
   },
   "village:village_p05": {
    "kind": "village",
@@ -6672,7 +8941,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 146
+   "ms": 409
   },
   "village:village_p06": {
    "kind": "village",
@@ -6772,7 +9041,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 125
+   "ms": 332
   },
   "village:village_p07": {
    "kind": "village",
@@ -6872,7 +9141,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 121
+   "ms": 352
   },
   "village:village_p08": {
    "kind": "village",
@@ -6972,7 +9241,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 137
+   "ms": 449
   },
   "village:village_p09": {
    "kind": "village",
@@ -7072,7 +9341,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 128
+   "ms": 376
   },
   "village:village_p10": {
    "kind": "village",
@@ -7172,7 +9441,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 120
+   "ms": 352
   },
   "village:village_p11": {
    "kind": "village",
@@ -7272,7 +9541,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 115
+   "ms": 273
   },
   "village:village_p12": {
    "kind": "village",
@@ -7372,7 +9641,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 103
+   "ms": 248
   },
   "village:village_p13": {
    "kind": "village",
@@ -7472,7 +9741,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 103
+   "ms": 277
   },
   "village:village_p14": {
    "kind": "village",
@@ -7572,7 +9841,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 120
+   "ms": 265
   },
   "village:village_p15": {
    "kind": "village",
@@ -7672,7 +9941,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 85
+   "ms": 235
   },
   "village:village_p16": {
    "kind": "village",
@@ -7772,7 +10041,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 83
+   "ms": 200
   },
   "village:village_p17": {
    "kind": "village",
@@ -7872,7 +10141,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 85
+   "ms": 186
   },
   "village:village_p18": {
    "kind": "village",
@@ -7972,7 +10241,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 87
+   "ms": 248
   },
   "village:village_p19": {
    "kind": "village",
@@ -8072,7 +10341,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 83
+   "ms": 196
   },
   "village:village_p20": {
    "kind": "village",
@@ -8172,7 +10441,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 84
+   "ms": 182
   },
   "village:village_p21": {
    "kind": "village",
@@ -8272,7 +10541,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 83
+   "ms": 191
   },
   "village:village_p22": {
    "kind": "village",
@@ -8372,7 +10641,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 74
+   "ms": 228
   },
   "village:village_p23": {
    "kind": "village",
@@ -8472,7 +10741,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 67
+   "ms": 162
   },
   "village:village_p24": {
    "kind": "village",
@@ -8572,7 +10841,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 60
+   "ms": 125
   },
   "village:village_p25": {
    "kind": "village",
@@ -8672,7 +10941,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 44
+   "ms": 110
   },
   "village:village_p26": {
    "kind": "village",
@@ -8772,7 +11041,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 42
+   "ms": 116
   },
   "village:village_p27": {
    "kind": "village",
@@ -8872,7 +11141,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 40
+   "ms": 99
   },
   "village:village_p28": {
    "kind": "village",
@@ -8972,7 +11241,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 34
+   "ms": 93
   },
   "village:village_p29": {
    "kind": "village",
@@ -9072,7 +11341,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 30
+   "ms": 94
   },
   "village:village_p30": {
    "kind": "village",
@@ -9172,7 +11441,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 44
+   "ms": 67
   },
   "village:village_p31": {
    "kind": "village",
@@ -9272,7 +11541,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 27
+   "ms": 56
   },
   "village:village_p32": {
    "kind": "village",
@@ -9369,7 +11638,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 24
+   "ms": 44
   },
   "village:village_p33": {
    "kind": "village",
@@ -9469,7 +11738,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 19
+   "ms": 45
   },
   "village:village_rakkan": {
    "kind": "village",
@@ -9569,7 +11838,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 106
+   "ms": 225
   },
   "village:village_saidun": {
    "kind": "village",
@@ -9669,7 +11938,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 68
+   "ms": 176
   },
   "village:village_tukrash": {
    "kind": "village",
@@ -9769,7 +12038,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 130
+   "ms": 370
   },
   "camp:court": {
    "kind": "camp",
@@ -9808,7 +12077,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 30
+   "ms": 72
   },
   "camp:p_horse": {
    "kind": "camp",
@@ -9847,7 +12116,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 89
+   "ms": 204
   },
   "camp:p_road": {
    "kind": "camp",
@@ -9886,7 +12155,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 67
+   "ms": 174
   },
   "camp:p_south": {
    "kind": "camp",
@@ -9925,7 +12194,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 73
+   "ms": 184
   },
   "camp:t_north": {
    "kind": "camp",
@@ -9964,7 +12233,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 56
+   "ms": 143
   },
   "camp:t_northwest": {
    "kind": "camp",
@@ -10003,7 +12272,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 47
+   "ms": 137
   },
   "camp:t_southwest": {
    "kind": "camp",
@@ -10042,7 +12311,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 52
+   "ms": 132
   },
   "camp:t_west": {
    "kind": "camp",
@@ -10081,7 +12350,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 50
+   "ms": 152
   },
   "zone:zone_bagh_e_firuzi:1": {
    "kind": "garden-zone",
@@ -10120,7 +12389,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 100
+   "ms": 302
   },
   "zone:zone_bagh_e_firuzi:2": {
    "kind": "garden-zone",
@@ -10170,7 +12439,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 213
+   "ms": 544
   },
   "zone:zone_bagh_e_firuzi:3": {
    "kind": "garden-zone",
@@ -10209,7 +12478,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 40
+   "ms": 73
   },
   "zone:zone_bagh_e_firuzi:4": {
    "kind": "garden-zone",
@@ -10248,7 +12517,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 146
+   "ms": 349
   },
   "zone:zone_bagh_e_firuzi:5": {
    "kind": "garden-zone",
@@ -10302,7 +12571,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 308
+   "ms": 761
   },
   "zone:zone_bagh_e_firuzi:6": {
    "kind": "garden-zone",
@@ -10341,7 +12610,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 87
+   "ms": 141
   },
   "zone:zone_bagh_e_firuzi:7": {
    "kind": "garden-zone",
@@ -10380,7 +12649,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 25
+   "ms": 26
   },
   "zone:zone_bagh_e_firuzi:8": {
    "kind": "garden-zone",
@@ -10419,7 +12688,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 79
+   "ms": 142
   },
   "zone:zone_dasht_e_gohar:1": {
    "kind": "garden-zone",
@@ -10455,7 +12724,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 54
+   "ms": 121
   },
   "zone:zone_dasht_e_gohar:2": {
    "kind": "garden-zone",
@@ -10532,7 +12801,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 303
+   "ms": 714
   },
   "zone:zone_dasht_e_gohar:3": {
    "kind": "garden-zone",
@@ -10568,7 +12837,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 33
+   "ms": 74
   },
   "zone:zone_dasht_e_gohar:4": {
    "kind": "garden-zone",
@@ -10607,7 +12876,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 36
+   "ms": 84
   },
   "zone:zone_dasht_e_gohar:5": {
    "kind": "garden-zone",
@@ -10646,7 +12915,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 226
+   "ms": 631
   },
   "zone:zone_dasht_e_gohar:6": {
    "kind": "garden-zone",
@@ -10685,7 +12954,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 38
+   "ms": 88
   },
   "zone:zone_lower_town_south:1": {
    "kind": "town-zone",
@@ -10724,7 +12993,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 165
+   "ms": 389
   },
   "zone:zone_lower_town_south:2": {
    "kind": "town-zone",
@@ -10763,7 +13032,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 63
+   "ms": 188
   },
   "zone:zone_lower_town_south:3": {
    "kind": "town-zone",
@@ -10802,7 +13071,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 227
+   "ms": 549
   },
   "zone:zone_lower_town_south:4": {
    "kind": "town-zone",
@@ -10841,7 +13110,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 76
+   "ms": 144
   },
   "zone:zone_persepolis_west:1": {
    "kind": "town-zone",
@@ -10880,7 +13149,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 233
+   "ms": 460
   },
   "zone:zone_persepolis_west:2": {
    "kind": "town-zone",
@@ -10919,7 +13188,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 266
+   "ms": 600
   },
   "zone:zone_persepolis_west:3": {
    "kind": "town-zone",
@@ -10958,7 +13227,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 38
+   "ms": 101
   },
   "zone:zone_persepolis_west:4": {
    "kind": "town-zone",
@@ -11018,7 +13287,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 250
+   "ms": 609
   },
   "zone:zone_persepolis_west:5": {
    "kind": "town-zone",
@@ -11078,7 +13347,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 271
+   "ms": 714
   },
   "zone:zone_persepolis_west:6": {
    "kind": "town-zone",
@@ -11117,7 +13386,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 26
+   "ms": 52
   },
   "river:river_pulvar:1": {
    "kind": "river-reach",
@@ -11156,7 +13425,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 141
+   "ms": 386
   },
   "river:river_pulvar:10": {
    "kind": "river-reach",
@@ -11216,7 +13485,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 119
+   "ms": 359
   },
   "river:river_pulvar:11": {
    "kind": "river-reach",
@@ -11255,7 +13524,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 49
+   "ms": 119
   },
   "river:river_pulvar:12": {
    "kind": "river-reach",
@@ -11325,7 +13594,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 142
+   "ms": 413
   },
   "river:river_pulvar:13": {
    "kind": "river-reach",
@@ -11364,7 +13633,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 136
+   "ms": 311
   },
   "river:river_pulvar:14": {
    "kind": "river-reach",
@@ -11444,7 +13713,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 130
+   "ms": 328
   },
   "river:river_pulvar:15": {
    "kind": "river-reach",
@@ -11494,7 +13763,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 91
+   "ms": 199
   },
   "river:river_pulvar:2": {
    "kind": "river-reach",
@@ -11533,7 +13802,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 136
+   "ms": 368
   },
   "river:river_pulvar:3": {
    "kind": "river-reach",
@@ -11572,7 +13841,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 27
+   "ms": 56
   },
   "river:river_pulvar:4": {
    "kind": "river-reach",
@@ -11642,7 +13911,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 150
+   "ms": 376
   },
   "river:river_pulvar:5": {
    "kind": "river-reach",
@@ -11712,7 +13981,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 130
+   "ms": 352
   },
   "river:river_pulvar:6": {
    "kind": "river-reach",
@@ -11767,7 +14036,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 130
+   "ms": 439
   },
   "river:river_pulvar:7": {
    "kind": "river-reach",
@@ -11827,7 +14096,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 130
+   "ms": 365
   },
   "river:river_pulvar:8": {
    "kind": "river-reach",
@@ -11877,7 +14146,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 145
+   "ms": 355
   },
   "river:river_pulvar:9": {
    "kind": "river-reach",
@@ -11916,7 +14185,7 @@
     "max": 0,
     "top": []
    },
-   "ms": 48
+   "ms": 138
   },
   "approach": {
    "kind": "approach",
@@ -11981,7 +14250,7 @@
      }
     ]
    },
-   "ms": 29
+   "ms": 147
   }
  }
 }
