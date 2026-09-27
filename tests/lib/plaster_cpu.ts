@@ -80,7 +80,7 @@ function albHeight(d: SurfaceDef, W: PlasterWall, x: number, y: number, fp: numb
     const mot = n1 + n2 * 0.6; // session 11: the relief's noises (the coat lighter on its ridges)
     f *= 1 + mot * Hd.mottle / (MX_NOISE_SD * Math.hypot(1, 0.6));
     const seam = bandCover(dE, fp / Math.SQRT2, 0.0125) * (hash12(L.blk + 5.3, L.c + 0.7) >= 0.5 ? 1 : 0);
-    f *= 1 - seam * PW.seam; h += seam * 0.0008;
+    if (PW.seam > 0) { f *= 1 - seam * PW.seam; h += seam * 0.0008; }
   }
   if (d.runoff) f *= runoffAt(d, x, wy, W.z, W.top);
   const below = W.top - wy;

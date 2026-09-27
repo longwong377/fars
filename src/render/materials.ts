@@ -264,13 +264,13 @@ const STONE: StoneDef = { beds: 0.09, stylo: { share: 0.45, w: 0.0024, dark: 0.4
 const SOIL: SoilDef = { drip: 0.1, share: 0.45, w: [0.03, 0.09], len: [0.2, 0.7] };
 const SOIL_TERRACE: SoilDef = { drip: 0.12, share: 0.5, w: [0.03, 0.1], len: [0.3, 0.9] };
 /** D-285 (C): the palaces' mud plaster (PlasterWeatherDef): lifts 1.1-1.7 m (a scaffold's working height), bays ~3 m ± 50 %
- *  (a batch of mud), 1σ 5 % between batches and ±1.2 % in hue, their tone feathered over the last 0.4 m to each edge, a 2 % overlap ridge round half the bays; hand strokes 0.6 × 0.25 m
+ *  (a batch of mud), 1σ 5 % between batches and ±1.2 % in hue, their tone feathered over the last 0.4 m to each edge, no overlap ridge (seam 0: a 2 % ridge read as coursing joints at 5 m in the session-11 blind review); hand strokes 0.6 × 0.25 m
  *  leaving a 2.5 mm (1σ) undulation, the coat's mottle 4.5 % on the strokes; the rain wash 10 % lighter in lanes over the top 5 m.
  *  (Session 11: 2 noise calls over the D-188 plaster; fragment ALU +8.5 %, tools/dev/shader_cost_d285.ts.)
  *  The spread set against the only mud plaster in the references, the modern kahgel coat round the Gate's hall in #21, at the
  *  render's pixel footprint (tools/dev/plaster_photo_d285.py: Ystd/Y 0.036 in 0.5 m windows at 0.032 m/px; the D-188 plaster
  *  read 0.020 on the CPU mirror, 0.036-0.041 now: tests/materials_d285.test.ts) */
-const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.05, chroma: 0.012, seam: 0.02, wash: 0.1, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
+const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.05, chroma: 0.012, seam: 0, wash: 0.1, washH: 5, hand: { amp: 0.0025, len: 0.6, wid: 0.25, mottle: 0.045 } };
 /** stair blocks along the step (D-218, C): 1.9 m ± 30 %; the row's joint crosses the first tread of each row 6 cm in front of
  *  the next riser (the blocks' 4–5 steps per row: grand_stair.block_construction, B) */
 export const STAIR_BLOCK = { length: 1.9, jitter: 0.6, rowJoint: 0.06 };
@@ -672,9 +672,11 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     alb = alb.mul(float(1).add(mot.mul(Hd.mottle / (MX_NOISE_SD * Math.hypot(1, 0.6))).mul(vert)));
     // the overlap ridge where one bay or lift meets the next: a 2.5 cm band, darker by `seam`, 0.8 mm proud, along about half
     // of the edges (a 2 m noise), box-filtered over the pixel footprint
-    const seam = bandCover(dE, fwidth(dE).max(1e-5), 0.0125).mul(step(0.5, hash12(Lc.blk.add(5.3), Lc.c.add(0.7)))).mul(vert);
-    alb = alb.mul(float(1).sub(seam.mul(PW.seam)));
-    height = (height ?? float(0)).add(seam.mul(0.0008));
+    if (PW.seam > 0) { // (off: session 11's blind review read the ridges at 5 m as coursing joints, dashed where they alias)
+      const seam = bandCover(dE, fwidth(dE).max(1e-5), 0.0125).mul(step(0.5, hash12(Lc.blk.add(5.3), Lc.c.add(0.7)))).mul(vert);
+      alb = alb.mul(float(1).sub(seam.mul(PW.seam)));
+      height = (height ?? float(0)).add(seam.mul(0.0008));
+    }
     // the rain wash below the wall's top: in the run-off block below (it shares the run-off's streak noise)
   }
   if (d.weave) { // plaited reed mat (D-188, C), band-limited: where a reed spans under ~3 px only the cells' tone remains
