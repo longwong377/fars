@@ -1669,7 +1669,12 @@ export class Population {
   }
   /** a person's day plan (pure; cached, since a child's plan reads its mother's, a toddler's its minders'). Treat the
    *  returned segments as read-only */
-  plan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
+  /** D-315 (UD-21): the stranger's deeds laid over the day plans (people/talk.ts TalkWorld; the sim sets it). The base plans
+   *  and every planner's reading of the others' days stay pure: only plan() carries the stranger's steps */
+  talk: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
+  plan(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
+  basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }
     const v = this.care(pid, day, this.relabel(pid, day, this.rawPlan(pid, day))); let m = this.planCache.get(day); if (!m) { m = new Map(); this.planCache.set(day, m); } m.set(pid, v); this.planCount++; return v; }
   /** a person's day as the planner builds it, before the words that name the household are checked against the household's
@@ -1710,7 +1715,7 @@ export class Population {
         put(i, { ...s, act, why }); continue; }
       if (/kept for the late-comer/.test(s.why) && !mem.some(x => this.rawPlan(x, d).some(o => o.act === 'eat' && /evening meal/.test(o.why) && o.place === s.place && o.t0 <= s.t0 - 0.25 && o.t0 > s.t0 - 4))) {
         put(i, { ...s, why: at(s, (s.t0 + s.t1) / 2) ? 'the evening meal with the household' : 'the evening meal' }); continue; }
-      if (/while the mother talks/.test(s.why) && s.with !== undefined && segAt(this.plan(s.with, d), (s.t0 + s.t1) / 2).act !== 'talk') put(i, { ...s, why: s.why.replace(/ while the mother talks/, ' near the mother').replace(/^playing nearby near/, 'playing near') }); }
+      if (/while the mother talks/.test(s.why) && s.with !== undefined && segAt(this.basePlan(s.with, d), (s.t0 + s.t1) / 2).act !== 'talk') put(i, { ...s, why: s.why.replace(/ while the mother talks/, ' near the mother').replace(/^playing nearby near/, 'playing near') }); }
     if (!out) return raw; const o: Seg[] = out;
     // (spells made the same by the new words are one spell)
     for (let i = o.length - 1; i > 0; i--) { const a = o[i - 1], b = o[i]; if (a.place === b.place && a.act === b.act && a.why === b.why && a.where === b.where && (a.with ?? -1) === (b.with ?? -1) && a.wear === b.wear && a.carry === b.carry && a.ev === b.ev && Math.abs(a.t1 - b.t0) < 1e-9) { a.t1 = b.t1; o.splice(i, 1); } }

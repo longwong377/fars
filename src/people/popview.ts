@@ -69,10 +69,12 @@ interface PS {
   pid: number; home: P2; work: P2 | null; d2: number;
   plan: DayPlan | null; next: DayPlan | null; prev: DayPlan | null;
   /** cached state and the absolute hours it holds for */
-  v0: number; v1: number; mode: 0 | 1 | 2; spot: Spot | null; route: Route | null; w0: number; w1: number; wOut: boolean;
+  v0: number; v1: number; /** 3: following the stranger or walking back their way (D-315, talk.ts) */ mode: 0 | 1 | 2 | 3; spot: Spot | null; route: Route | null; w0: number; w1: number; wOut: boolean;
   act: ActivityId; carry: number; speed: number; what: string; entry: number;
   /** the plan's reason for the act shown and its place (string indices; -1 none) */
   why: number; pl: number;
+  /** D-315: mode 3 is the walk back along the stranger's way (else: following) */
+  back?: boolean;
   spots: Map<number, Spot>;
   /** standing: ground height and carried prop, computed once per state */
   y: number; prop: ViewPerson['prop']; yOk: boolean;
@@ -228,7 +230,7 @@ export class PopView {
    *  roof then (D-244: indoorAt at the hour it is asked for; the block's midpoint when not given). A spot out of doors
    *  where the plan says indoors, not under a built roof, is a room not built: not drawn (`noRoom`; stats.noRoom) */
   private spotAt(s: PS, P: DayPlan, i: number, indoorArg?: boolean): Spot {
-    const place = this.strings[P.place[i]], act = ACTS[P.act[i]], h = (this.segT0(P, i) + P.t1[i]) / 2;
+    const place = backPlace(this.strings[P.place[i]]), act = ACTS[P.act[i]], h = (this.segT0(P, i) + P.t1[i]) / 2; // (D-315: the walk back along the stranger's way ends at its place)
     const indoor = indoorArg ?? this.indoorAt(P, i, h);
     // (keyed by the day too: a spot depends on the day, the home and the age with it; a lane's spot memoised on day 150 was
     // used on day 25, 9 m away, when the person had turned twelve in between: D-191)
@@ -248,6 +250,11 @@ export class PopView {
     const i = this.segIx(P, h), base = d * 24;
     const hide = (until: number, why: string) => { s.mode = 0; s.spot = null; s.v0 = t; s.v1 = until; s.what = why; };
     if (P.where[i] === AWAY) return hide(base + P.t1[i], 'away');
+    // D-315 (UD-21): following the stranger, or walking back the way they went: placed each update on the stranger's own way
+    // (talk.ts followPos: walkable, since the stranger walked it), not at a place of the plan
+    { const pl = this.strings[P.place[i]]; if (pl.charCodeAt(0) === 64 && (pl === '@stranger' || pl.startsWith('@back:'))) {
+      s.mode = 3; s.back = pl !== '@stranger'; s.spot = null; s.route = null; s.w0 = base + this.segT0(P, i); s.w1 = base + P.t1[i]; s.v0 = t; s.v1 = s.w1; s.act = 'walk'; s.why = P.why[i]; s.wp = -1; s.pl = -1; s.carry = -1; s.speed = 0;
+      s.what = s.back ? 'walking back the way the stranger led (D-315)' : 'following the stranger (D-315)'; return; } }
     if (P.where[i] === ROAD) {
       let i0 = i, i1 = i; while (i0 > 0 && P.where[i0 - 1] === ROAD) i0--; while (i1 < P.n - 1 && P.where[i1 + 1] === ROAD) i1++;
       const T0 = base + this.segT0(P, i0), T1 = base + P.t1[i1];
@@ -322,10 +329,11 @@ export class PopView {
     this.budgetLeft = this.planBudgetMs; this.tPlan = performance.now(); this.navLeft = this.navBudget; this.routeT = 0;
     const d = Math.floor(t / 24), h = t - d * 24; this.stats.pending = 0;
     // plan the nearest first (the list is sorted by distance); tomorrow's plans in the last hour of the day
-    for (const s of this.list) {
-      if (s.v0 <= t && t < s.v1 && (s.mode !== 0 || s.v1 > t)) continue;
+    this.talkChanged();
+    for (const s of this.list) { const te = this.tv(s.pid, t);
+      if (s.v0 <= te && te < s.v1 && (s.mode !== 0 || s.v1 > te)) continue;
       if (performance.now() - this.tPlan > this.budgetLeft && s.plan?.day !== d && s.next?.day !== d) { this.stats.pending++; continue; }
-      this.evaluate(s, t);
+      this.evaluate(s, te);
     }
     if (h > 23 && performance.now() - this.tPlan < this.budgetLeft) for (const s of this.list) { if (performance.now() - this.tPlan > this.budgetLeft) break; if (s.plan?.day === d && !s.next && this.pop.present(s.pid, d + 1)) this.planOf(s, d + 1); }
     this.collect(t); this.jumpedNow = false;
@@ -340,8 +348,9 @@ export class PopView {
     this.nOut = 0; this.nAgentVps = 0; let walking = 0, carried = 0; const day = Math.floor(t / 24);
     this.agentOcc.clear(); for (const a of this.sim.agents) if (!a.offmap) { const k = this.occKey(a.pos[0], a.pos[1]); const L = this.agentOcc.get(k); if (L) L.push(a); else this.agentOcc.set(k, [a]); }
     const upd = this.stats.updates; this.youngBuf.length = 0; this.handBuf.length = 0; this.blindBuf.length = 0; this.pairBuf.length = 0;
-    for (const s of this.list) {
-      const last = this.jumpedNow ? 0 : s.lastMode; s.lastMode = s.mode;
+    for (const s of this.list) { const te = this.tv(s.pid, t);
+      const last = this.jumpedNow ? 0 : s.lastMode; s.lastMode = s.mode === 3 ? 2 : s.mode;
+      if (s.mode === 3) { if (!s.isAgent && this.followView(s, te, day, upd)) walking++; continue; } // D-315
       if (s.occ >= 0 && (s.mode !== 1 || s.sepFor !== s.spot)) this.release(s);
       // D-215: a small child the view keeps indoors (asleep: the plan's "asleep, carried on her back", "asleep in her lap")
       // with someone who is out of doors is drawn with them too (children, below)
@@ -360,11 +369,11 @@ export class PopView {
       if (s.mode === 2 && o.impair === 2) this.blindBuf.push(s);
       o.pid = s.pid; o.agent = -1; o.hh = this.pop.home(s.pid, day); o.act = s.act; o.why = s.why >= 0 ? this.strings[s.why] : ''; o.place = s.mode === 1 && s.pl >= 0 ? this.strings[s.pl] : ''; o.what = s.what; o.entry = s.entry; o.carryNote = s.carry >= 0 ? this.strings[s.carry] : null;
       o.plot = s.mode === 1 ? s.spot.plot ?? 0 : 0; o.wall = s.mode === 1 ? s.spot.wall ?? 0 : 0; o.indoor = s.mode === 1 && !!s.spot.inside;
-      if (s.mode === 2 && s.route) { const f = Math.max(0, Math.min(1, (t - s.w0) / Math.max(1e-9, s.w1 - s.w0))); routeAt(s.route, f * s.route.len, this.tmp); o.e = this.tmp.e; o.n = this.tmp.n; o.heading = this.tmp.heading; o.moving = true; o.speed = s.speed; walking++;
+      if (s.mode === 2 && s.route) { const f = Math.max(0, Math.min(1, (te - s.w0) / Math.max(1e-9, s.w1 - s.w0))); routeAt(s.route, f * s.route.len, this.tmp); o.e = this.tmp.e; o.n = this.tmp.n; o.heading = this.tmp.heading; o.moving = true; o.speed = s.speed; walking++;
         if (!ACTIVITIES[o.act].moving) o.act = 'walk'; o.y = this.geo.y(o.e, o.n); o.prop = propOf(o.act, o.carryNote); }
       else {
-        if (s.sepFor !== s.spot) { this.separate(s, t, last === 2); s.yOk = false; }
-        const sp = s.spot, k = (t - s.sepT) * 3600 / STEP_S;
+        if (s.sepFor !== s.spot) { this.separate(s, te, last === 2); s.yOk = false; }
+        const sp = s.spot, k = (te - s.sepT) * 3600 / STEP_S;
         if (k >= 0 && k < 1 && (s.sepE !== sp.e || s.sepN !== sp.n)) { // just arrived: stepping aside from the spot
           o.e = sp.e + (s.sepE - sp.e) * k; o.n = sp.n + (s.sepN - sp.n) * k; o.heading = headingOf(s.sepE - sp.e, s.sepN - sp.n); o.moving = true; o.speed = Math.hypot(s.sepE - sp.e, s.sepN - sp.n) / STEP_S;
           o.y = this.geo.y(o.e, o.n, sp.net); o.prop = propOf(o.act, o.carryNote); walking++; s.viewV = s.ver; s.viewMoving = true; continue; }
@@ -374,6 +383,7 @@ export class PopView {
       s.viewV = s.ver; s.viewMoving = o.moving;
     }
     this.agentsOff(t);
+    this.faceStranger(t);
     this.children(day, upd);
     this.stats.visible = this.nOut; this.stats.walking = walking; this.stats.carried = carried;
   }
@@ -483,6 +493,28 @@ export class PopView {
     if (age >= IMPAIR.blind.from && u < IMPAIR.blind.share) return 2;
     return 0;
   }
+  // ------------------------------------------------------------------ D-315 (UD-21): the stranger's doings (talk.ts)
+  private talkV = 0;
+  /** people whose plans the stranger changed: their cached plans and states are dropped (evaluated afresh) */
+  private talkChanged() { const T = this.sim.talk; if (!T || T.version === this.talkV) return; const cs = T.changedSince(this.talkV); this.talkV = T.version;
+    for (const pid of cs ?? [...this.ps.keys()]) { const s = this.ps.get(pid); if (s) { s.plan = s.next = s.prev = null; s.v0 = 1; s.v1 = 0; } } }
+  /** the time a person is shown at: a conversation's pause holds them, then they catch up (talk.ts viewT); t otherwise */
+  private tv(pid: number, t: number) { return this.sim.talk ? this.sim.talk.viewT(pid, t) : t; }
+  private fpos = { e: 0, n: 0, heading: 0, moving: false };
+  /** a person following the stranger or walking back their way (mode 3): true when walking */
+  private followView(s: PS, t: number, day: number, upd: number): boolean {
+    if (!this.sim.talk?.followPos(s.pid, t, s.w0, s.w1, !!s.back, this.fpos)) return false;
+    let o = s.view; if (!o) s.view = o = PopView.blank(); this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; o.impair = this.impairOf(s.pid, day);
+    const F = this.fpos; o.pid = s.pid; o.agent = -1; o.hh = this.pop.home(s.pid, day); o.act = F.moving ? 'walk' : 'rest'; o.why = s.why >= 0 ? this.strings[s.why] : ''; o.place = ''; o.what = s.what; o.entry = 0; o.carryNote = null;
+    o.plot = 0; o.wall = 0; o.indoor = false; o.e = F.e; o.n = F.n; o.heading = F.heading; o.moving = F.moving; o.speed = F.moving ? this.pace(s.pid) : 0; o.y = this.geo.y(o.e, o.n); o.prop = null; s.viewV = -1; s.viewMoving = o.moving;
+    return o.moving;
+  }
+  /** the people the stranger is speaking with stand and face the stranger (talk.ts: the pause of a conversation) */
+  private faceStranger(t: number) {
+    const T = this.sim.talk; if (!T) return; const held = T.heldNow(t); if (!held.length) return; const p = T.player ?? this.sim.player; if (!p) return;
+    for (let i = 0; i < this.nOut; i++) { const o = this.out[i]; if (!held.includes(o.pid)) continue;
+      o.heading = headingOf(p[0] - o.e, p[1] - o.n); o.moving = false; o.speed = 0; o.act = 'talk'; const s = this.ps.get(o.pid); if (s) s.viewV = -1; }
+  }
   /** detailed agents off the Terrace: on their hidden legs through the town (the simulation's own timing, along the
    *  lanes) or at home (court or room, as the population's rule); elsewhere off the map they are not drawn */
   private legCache = new Map<string, Route | null>();
@@ -535,10 +567,12 @@ export class PopView {
   childStature(pid: number): number | null { const age = this.pop.ageOn(pid, Math.floor(this.sim.t / 24)); if (age >= 12) return null; return CHILD_H[Math.max(0, Math.min(11, age))]; }
   /** D-244: the view's state of a person (the renderless trace, tools/dev/people_trace.ts): 0 not drawn, 1 at a spot, 2
    *  walking; the spot (on a walk, where it goes) and its description; null when the person is not a candidate */
-  stateOf(pid: number): { mode: 0 | 1 | 2; spot: Spot | null; what: string } | null { const s = this.ps.get(pid); return s ? { mode: s.mode, spot: s.spot, what: s.what } : null; }
+  stateOf(pid: number): { mode: 0 | 1 | 2 | 3; spot: Spot | null; what: string } | null { const s = this.ps.get(pid); return s ? { mode: s.mode, spot: s.spot, what: s.what } : null; }
   /** the plan's description of a person now (dev overlay) */
   describe(pid: number): string { const s = this.ps.get(pid); return s ? `${s.what}${s.mode === 2 ? `, ${s.speed.toFixed(2)} m/s` : ''}` : 'not near'; }
 }
+/** D-315: the place a walk back along the stranger's way leads to (its plan place without the mark) */
+function backPlace(p: string) { return p.startsWith('@back:') ? p.slice(6) : p; }
 /** standing height (m) at ages 0-11 (C: growth-chart medians, both sexes; no skeletal series from Fars was read, Q-066) */
 export const CHILD_H = [0.7, 0.76, 0.87, 0.96, 1.03, 1.1, 1.16, 1.22, 1.28, 1.33, 1.38, 1.44];
 const fmtH = (h: number) => { const H = Math.floor(h), M = Math.round((h - H) * 60); return `${String(H).padStart(2, '0')}:${String(M % 60).padStart(2, '0')}`; };
