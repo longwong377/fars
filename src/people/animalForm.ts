@@ -30,7 +30,7 @@ export const FAMILY: Record<Species, Family> = {
 };
 /** rig groups: what a vertex follows (the torso and the gear are rigid; each leg swings about its hip and bends at its
  *  knee; the neck and head pitch about the neck root; the tail swings about its root) */
-export type Group = 'body' | 'leg0' | 'leg1' | 'leg2' | 'leg3' | 'head' | 'tail' | 'gear';
+export type Group = 'body' | 'leg0' | 'leg1' | 'leg2' | 'leg3' | 'head' | 'skull' | 'tail' | 'gear';
 /** surface parts: what colour and coat a point has */
 export type Part = 'coat' | 'hoof' | 'horn' | 'eye' | 'nose' | 'mouth' | 'inner_ear' | 'mane' | 'tailhair' | 'wool' | 'udder' | 'comb' | 'beak' | 'shank' | 'tusk'
   | 'feather' | 'sickle' | 'ruff' | 'pad' | 'claw' | 'cloth' | 'wicker' | 'sack' | 'rope' | 'pad_saddle';
@@ -263,7 +263,7 @@ function build(sp: Species): Form {
         const c = lerp3(nk[j - 1].p, nk[j].p, s), rd = nk[j - 1].rd + (nk[j].rd - nk[j - 1].rd) * s;
         ctrl.push({ p: add(c, mul(nperp, rd * 0.9 + hgt * 0.35)), rw: 0.02, rd: hgt * (0.55 + 0.45 * (1 - t)) * 0.5 }); }
       putAll(sweep(ctrl, 3), 0.015, 'head', 'mane');
-      if (!sp.startsWith('donkey') && sp !== 'onager') { const u = hd, v = nrm(cross(u, [1, 0, 0])); put(ell(add(add(top, mul(u, 0.14 * B.head)), mul(v, hr * 1.0)), [0.028, 0.025, 0.09], add(u, mul(v, 0.6))), 0.02, 'head', 'mane'); } }
+      if (!sp.startsWith('donkey') && sp !== 'onager') { const u = hd, v = nrm(cross(u, [1, 0, 0])); put(ell(add(add(top, mul(u, 0.14 * B.head)), mul(v, hr * 1.0)), [0.028, 0.025, 0.09], add(u, mul(v, 0.6))), 0.02, 'skull', 'mane'); } }
     extras(sp, B, fam, rig, { g, L, by, bellyY, backY, yz }, put, cut);
   }
   // bounds
@@ -333,7 +333,7 @@ function foot(fet: V3, footTop: number, r: number, P: FP, fam: Family, fore: boo
 function head(sp: Species, B: typeof ANIMAL_BUILD[Species], P: FP, fam: Family, R: Rig, put: Put, cut: Put, putAll: PutAll) {
   const H = B.head, hr = B.headR, u = R.hd, x: V3 = [1, 0, 0], v = nrm(cross(u, x)); // head frame: u along the head, v up across it
   const at = (a: number, b: number, c = 0): V3 => add(add(add(R.top, mul(u, a * H)), mul(v, b * hr)), [c * hr, 0, 0]);
-  const G: Group = 'head', carn = fam === 'canid' || fam === 'felid';
+  const G: Group = 'skull', carn = fam === 'canid' || fam === 'felid';
   // the head: one swept section from the poll to the muzzle (the family's profile: jowl, forehead, face, muzzle)
   putAll(sweep(P.head.map(([t, o, w, d]) => ({ p: at(t, o), rw: w * hr, rd: d * hr })), 6), hr * 0.12, G);
   putAll(sweep(P.jaw.map(([t, o, w, d]) => ({ p: at(t, o), rw: w * hr, rd: d * hr })), 6), hr * 0.3, G);
@@ -371,7 +371,7 @@ function head(sp: Species, B: typeof ANIMAL_BUILD[Species], P: FP, fam: Family, 
   horns(sp, B, R, at, pr, hr, put);
 }
 function horns(sp: Species, B: typeof ANIMAL_BUILD[Species], R: Rig, at: (a: number, b: number, c?: number) => V3, pr: (t: number) => Row, hr: number, put: Put) {
-  const G: Group = 'head', p0 = pr(0.06);
+  const G: Group = 'skull', p0 = pr(0.06);
   const curve = (s: number, root: V3, steps: V3[], r0: number, r1: number) => { const pts = [root]; let p = root; for (const d of steps) { p = add(p, [s * d[0], d[1], d[2]]); pts.push(p); } for (const t of tube(pts, r0, r1)) put(t, r0 * 0.25, G, 'horn'); };
   for (const s of [-1, 1]) {
     const root = add(at(0.08, p0[1] + p0[3] * 0.75), [s * p0[2] * hr * 0.35, 0, 0]);
@@ -434,10 +434,10 @@ function extras(sp: Species, B: typeof ANIMAL_BUILD[Species], fam: Family, R: Ri
     put(ell([0, by + 0.04 * g, 0.02 * L], [0.54 * g, 0.6 * g, 0.53 * L]), 0.12 * g, 'body', 'wool');
     put(ell(lerp3(R.base, R.top, 0.35), [0.28 * g, 0.34 * g, B.neck * 0.45], R.neckDir), 0.1 * g, 'head', 'wool');
   }
-  if (sp === 'goat' || sp === 'wild_goat') put(ell(add(R.muzzle, [0, -B.headR * 1.1, -0.1]), [0.02, 0.03, 0.07], [0, -1, 0.3]), 0.015, 'head', 'tailhair'); // the beard
+  if (sp === 'goat' || sp === 'wild_goat') put(ell(add(R.muzzle, [0, -B.headR * 1.1, -0.1]), [0.02, 0.03, 0.07], [0, -1, 0.3]), 0.015, 'skull', 'tailhair'); // the beard
   if (fam === 'suid') { // the boar's bristle crest along the neck and back, tusks
     for (let i = 0; i <= 8; i++) { const z = 0.45 * L - i * 0.1 * L; put(ell([0, backY + T.yz(z) + 0.03 - Math.abs(z) * 0.05, z], [0.03, 0.07, 0.07]), 0.03, 'body', 'mane'); }
-    for (const s of [-1, 1]) { const a = add(R.muzzle, [s * B.headR * 0.5, -0.05, -0.1]); for (const t of tube([a, add(a, [s * 0.02, 0.035, 0.03]), add(a, [s * 0.025, 0.07, 0.02])], 0.011, 0.004)) put(t, 0.003, 'head', 'tusk'); }
+    for (const s of [-1, 1]) { const a = add(R.muzzle, [s * B.headR * 0.5, -0.05, -0.1]); for (const t of tube([a, add(a, [s * 0.02, 0.035, 0.03]), add(a, [s * 0.025, 0.07, 0.02])], 0.011, 0.004)) put(t, 0.003, 'skull', 'tusk'); }
   }
   if (sp === 'hyena') for (const q of sweep([0.46, 0.3, 0.1, -0.1, -0.3].map((t, i) => ({ p: [0, backY + T.yz(t * L) - 0.005 - i * 0.004, t * L] as V3, rw: 0.018, rd: 0.035 - i * 0.004 })), 3)) put(q, 0.02, 'body', 'mane');
   if (B.ruff) { // the lion's mane: a ruff over the neck, the throat and the chest, darker than the coat
@@ -494,14 +494,14 @@ function fowl(sp: Species, B: typeof ANIMAL_BUILD[Species], R: Rig, put: Put, cu
   if (ck) put(ell(lerp3(R.base, R.top, 0.4), [g * 0.17, g * 0.19, B.neck * 0.4], R.neckDir), 0.015, 'head', 'feather');
   const H = B.head, hr = B.headR, u = R.hd, v = nrm(cross(u, [1, 0, 0]));
   const at = (a: number, b: number): V3 => add(add(R.top, mul(u, a * H)), mul(v, b * hr));
-  put(ell(at(0.2, 0.2), [hr * 0.95, hr * 1.0, hr * 1.2], u), 0.01, 'head', 'feather');
-  put(cone(at(0.45, 0.1), at(1.0, -0.2), hr * 0.42, hr * 0.08), 0.004, 'head', 'beak');
-  for (const s of [-1, 1]) put(ell(add(at(0.3, 0.35), [s * hr * 0.75, 0, 0]), [hr * 0.18, hr * 0.18, hr * 0.18]), 0.003, 'head', 'eye');
+  put(ell(at(0.2, 0.2), [hr * 0.95, hr * 1.0, hr * 1.2], u), 0.01, 'skull', 'feather');
+  put(cone(at(0.45, 0.1), at(1.0, -0.2), hr * 0.42, hr * 0.08), 0.004, 'skull', 'beak');
+  for (const s of [-1, 1]) put(ell(add(at(0.3, 0.35), [s * hr * 0.75, 0, 0]), [hr * 0.18, hr * 0.18, hr * 0.18]), 0.003, 'skull', 'eye');
   // the comb (single, serrated: five points on the cock, a small one on the hen) and the wattles
   const cs = ck ? 1 : 0.5;
-  put(ell(at(0.35, 1.05), [0.005, 0.02 * cs, 0.035 * cs], u), 0.004, 'head', 'comb');
-  for (let i = 0; i < 5; i++) put(ell(add(at(0.1 + i * 0.12, 1.1), mul(v, 0.02 * cs)), [0.004, 0.007 * cs, 0.012 * cs], v), 0.004, 'head', 'comb');
-  for (const s of [-1, 1]) put(ell(add(at(0.62, -1.2), [s * 0.006, 0, 0]), [0.006, 0.01 * cs, 0.018 * cs], v), 0.004, 'head', 'comb');
+  put(ell(at(0.35, 1.05), [0.005, 0.02 * cs, 0.035 * cs], u), 0.004, 'skull', 'comb');
+  for (let i = 0; i < 5; i++) put(ell(add(at(0.1 + i * 0.12, 1.1), mul(v, 0.02 * cs)), [0.004, 0.007 * cs, 0.012 * cs], v), 0.004, 'skull', 'comb');
+  for (const s of [-1, 1]) put(ell(add(at(0.62, -1.2), [s * 0.006, 0, 0]), [0.006, 0.01 * cs, 0.018 * cs], v), 0.004, 'skull', 'comb');
   // legs: the feathered thigh, the scaled shank (yellow-grey), four toes (three forward, one back)
   R.legs.forEach((lg, i) => { const G = `leg${i}` as Group, X = lg.x, r = B.leg;
     put(ell([X, R.hipY - 0.01, lg.z], [r * 2.6, r * 3.5, r * 2.8]), 0.01, G, 'feather');
@@ -539,7 +539,7 @@ export const formSDF = (F: Form) => { const e: Eval = { d: 0, part: 'coat', grou
  *  mane's and the tail's strands, the feathers' rows, the horns' rings, the hooves' growth lines, the wicker's weave */
 export function relief(F: Form, p: V3, part: Part, group: Group): number {
   const [x, y, z] = p, fam = F.fam;
-  const flow: V3 = group.startsWith('leg') ? [0, -1, 0] : group === 'tail' ? [0, -0.9, -0.3] : group === 'head' ? nrm([0, -0.35, -1]) : nrm([0, -0.25 - 0.3 * clamp((F.rig.bodyY - y) / 0.3, 0, 1), -1]);
+  const flow: V3 = group.startsWith('leg') ? [0, -1, 0] : group === 'tail' ? [0, -0.9, -0.3] : group === 'head' || group === 'skull' ? nrm([0, -0.35, -1]) : nrm([0, -0.25 - 0.3 * clamp((F.rig.bodyY - y) / 0.3, 0, 1), -1]);
   switch (part) {
     case 'wool': { const w = worley(x / 0.022, y / 0.022, z / 0.022); return 0.009 * (0.55 - w) + 0.002 * fbm(x / 0.006, y / 0.006, z / 0.006, 2); }
     case 'mane': case 'tailhair': case 'ruff': return (part === 'ruff' ? 0.007 : 0.004) * streak(p, part === 'mane' ? [0, 1, 0] : flow, 0.005, 8) + (part === 'ruff' ? 0.006 * fbm(x / 0.04, y / 0.04, z / 0.04, 2) : 0);
@@ -583,7 +583,7 @@ export function coat(F: Form, p: V3, part: Part, group: Group, tag?: string): RG
   // positions in the body's terms
   const vy = clamp((y - F.bellyY) / (F.backY - F.bellyY), 0, 1); // 0 belly .. 1 back
   const legY = y / Math.max(0.05, R.kneeY), onLeg = group.startsWith('leg');
-  const head = group === 'head', hu = head ? dot(sub(p, R.top), R.hd) / (ANIMAL_BUILD[sp].head) : 0; // 0 poll .. 1 muzzle
+  const head = group === 'head' || group === 'skull', hu = head ? dot(sub(p, R.top), R.hd) / (ANIMAL_BUILD[sp].head) : 0; // 0 poll .. 1 muzzle
   const inner = onLeg ? clamp(1 - Math.abs(x) / Math.abs(R.legs[+group[3]]?.x || 1), 0, 1) : 0;
   let k = grain, a = 1, abs: [number, number, number] | null = null, w = 0; // w: the share of `abs`
   const pale = (c: [number, number, number], s: number) => { if (s > w) { abs = c; w = s; } };
@@ -622,7 +622,7 @@ export function coat(F: Form, p: V3, part: Part, group: Group, tag?: string): RG
       if (sp === 'zebu' && head) shade(0.85); if (sp === 'zebu' && group === 'body' && Math.abs(z - 0.3 * ANIMAL_BUILD.zebu.len) < 0.25 && vy > 0.7) shade(0.8);
       shade(1 + 0.12 * (1 - belly) - 0.1 * belly); break; }
     case 'sheep': { if (head || onLeg) { const face = S(0.62, 0.52, 0.42); pale(face, 0.25); } break; }
-    case 'goat': case 'wild_goat': case 'urial': { if (sp !== 'goat') { pale(S(0.86, 0.82, 0.74), Math.max(belly * 0.9, inner * 0.8, muzzleEnd * 0.5)); if (sp === 'wild_goat' && head) shade(0.75); if (sp === 'urial' && group === 'head' && chin > 0.3) pale(S(0.2, 0.17, 0.14), 0.5); if (onLeg && legY < 0.6) pale(S(0.85, 0.82, 0.76), 0.35); if (sp === 'wild_goat' && group === 'body' && Math.abs(x) < 0.03 && vy > 0.8) shade(0.55); }
+    case 'goat': case 'wild_goat': case 'urial': { if (sp !== 'goat') { pale(S(0.86, 0.82, 0.74), Math.max(belly * 0.9, inner * 0.8, muzzleEnd * 0.5)); if (sp === 'wild_goat' && head) shade(0.75); if (sp === 'urial' && head && chin > 0.3) pale(S(0.2, 0.17, 0.14), 0.5); if (onLeg && legY < 0.6) pale(S(0.85, 0.82, 0.76), 0.35); if (sp === 'wild_goat' && group === 'body' && Math.abs(x) < 0.03 && vy > 0.8) shade(0.55); }
       else shade(1 + 0.2 * (fbm(x / 0.15, y / 0.15, z / 0.15, 2))); break; }
     case 'deer': case 'stag': { pale(S(0.9, 0.87, 0.8), Math.max(belly * 0.95, inner * 0.8));
       if (group === 'body' && vy > 0.45) { const sp2 = worley(x / 0.06 + 3, y / 0.06, z / 0.06); pale(S(0.92, 0.88, 0.8), smoothstep(0.24, 0.16, sp2) * 0.9); } // the dappled flanks

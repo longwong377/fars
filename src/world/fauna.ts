@@ -259,7 +259,7 @@ export class Fauna {
   update(c: FaunaCtx) {
     const A = this.animals, cam: P2 = [c.cam.x, -c.cam.z], st = this.stats; A.begin(c.t, c.cam); st.drawn = 0; st.bySpecies = {}; this.drawn.length = 0;
     const o = { sp: 'dog', e: 0, n: 0, x: 0, z: 0, yaw: 0, phase: 0, walk: 0, graze: 0, lie: 0, coat: 0 } as AnimalInst & { e: number; n: number }, sc = { s: 1 };
-    const push = (s = 1) => { const y = this.ground(o.e, o.n); this.qt.setFromAxisAngle(this.up, Math.PI - o.yaw); /* o.yaw: the compass heading atan2(de, dn); the rig faces +Z */ this.m4.compose(_v.set(o.e, y, -o.n), this.qt, _s.set(s, s, s)); A.push(o, this.m4); st.drawn++; st.bySpecies[o.sp] = (st.bySpecies[o.sp] ?? 0) + 1; this.drawn.push({ e: o.e, n: o.n }); };
+    const push = (s = 1) => { const y = this.ground(o.e, o.n); this.qt.setFromAxisAngle(this.up, Math.PI - o.yaw); /* o.yaw: the compass heading atan2(de, dn); the rig faces +Z */ this.m4.compose(_v.set(o.e, y, -o.n), this.qt, _s.set(s, s, s)); A.push(o, this.m4); o.gait = undefined; /* (a beast's trot is its own) */ st.drawn++; st.bySpecies[o.sp] = (st.bySpecies[o.sp] ?? 0) + 1; this.drawn.push({ e: o.e, n: o.n }); };
     const day = c.hour > c.sun.rise - 0.2 && c.hour < c.sun.set + 0.3, night = !day, dawn = c.hour > c.sun.rise - 1.3 && c.hour < c.sun.rise + 1.0;
     const sound = (kind: string, e: number, n: number, h: number) => this.onSound?.(kind, { x: e, y: this.ground(e, n) + h, z: -n });
     // yard dogs: the alarm at the visitor (14 m in, 20 m out), barking fast at first, then now and then (C)
@@ -305,7 +305,7 @@ export class Fauna {
     if (this.beasts) { const B = this.beasts, month = c.month;
       const wt = c.worldT ?? c.t, all = beastsAt(B, this.seed, wt, c.hour, c.sun, month);
       for (const b0 of all) { const b = keepAway(b0, c.player); if (Math.hypot(b.e - cam[0], b.n - cam[1]) > 1200) continue;
-        Object.assign(o, { sp: b.sp as Species, e: b.e, n: b.n, x: 0, z: 0, yaw: b.yaw, phase: (2 * Math.PI * c.t) / 1.2, walk: b.walk, graze: b.graze, lie: b.lie, coat: b.coat }); push(); }
+        Object.assign(o, { sp: b.sp as Species, e: b.e, n: b.n, x: 0, z: 0, yaw: b.yaw, phase: (2 * Math.PI * c.t) / 1.2 * (b.gait ? 1.9 : 1), walk: b.walk, graze: b.graze, lie: b.lie, coat: b.coat, gait: b.gait }); push(); }
       const wolf = all.find(x => x.sp === 'wolf');
       const at: Record<string, P2 | null> = { howl: wolf ? [wolf.e, wolf.n] : null,
         roar: B.lionDen, whoop: B.hyenaMidden, saw: B.leopardPath.length ? B.leopardPath[Math.floor(B.leopardPath.length / 2)] : null };
