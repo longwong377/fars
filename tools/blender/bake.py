@@ -5,7 +5,7 @@
 #   { "id", "high": ply, "lods": [{ "ply", "tex" (px) }], "out_glb", "out_dir", "device": "GPU"|"CPU",
 #     "bake": { "cage", "ray", "margin", "ao_samples", "ao_distance", "uv_angle", "uv_margin" }, "seed" }
 # What it does, in order (every step scripted so the asset is reproducible from its inputs):
-#  1. imports the high source and each level as PLY (y-up, converted to Blender's z-up; normals kept as custom normals);
+#  1. imports the high source and each level as PLY (written in Blender's z-up axes by lib/ply.ts; normals as custom normals);
 #  2. unwraps each level (Smart UV Project at a fixed angle and margin: deterministic);
 #  3. bakes, per level, the high source's tangent-space normals (selected-to-active, a cage `cage` out and rays up to `ray`
 #     long, both in the source's units) and its ambient occlusion (Cycles AO from the high surface, `ao_samples` samples,
@@ -45,7 +45,7 @@ log('device', dev_used)
 
 def import_ply(path, name):
     bpy.ops.object.select_all(action='DESELECT') if bpy.context.view_layer.objects.active else None
-    bpy.ops.wm.ply_import(filepath=path, forward_axis='NEGATIVE_Z', up_axis='Y')
+    bpy.ops.wm.ply_import(filepath=path)  # the file is in Blender's z-up axes already (tools/blender/lib/ply.ts)
     o = bpy.context.selected_objects[0]; o.name = name; o.data.name = name
     return o
 

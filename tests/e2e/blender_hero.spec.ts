@@ -7,14 +7,15 @@ import { lumStats } from './lib/lum';
 // "before"), then swapped back. Views: standing in the colonnades of the palaces whose capitals carry the double-bull
 // protome, looking up at one (poses from the column grids of src/arch/terrace.ts; eye 1.6 m over the floor; azimuths TRUE,
 // = grid + 341°, as __parsa.view takes them), at a morning
-// and a late-afternoon hour. Run:
+// and a late-afternoon hour. (Pitches raised after the first run, whose frames held the nearer columns' capitals at the top
+// edge: the 70° lens takes in the next row's capitals first.) Run:
 //   node C:/Users/Administrator/fars-assets/gpu_slot.mjs blender -- "set E2E_PORT=5321&& set PW_CHANNEL=chrome&& npx playwright test tests/e2e/blender_hero.spec.ts --project=gpu"
 const VIEWS: { n: string; v: [number, number, number, number, number] }[] = [
-  { n: 'apadana-w-portico', v: [-46.63, -4.9, 1.6, 359.4, 50] },     // 13.7 m from a W-portico bull capital (protome 16 m above the eye)
-  { n: 'tachara-portico', v: [-21.65, -82.7, 1.6, 20.4, 36] },       // 7.6 m from a Tachara capital (LOD0)
-  { n: 'harem-hall', v: [112.5, -138, 1.6, 28.4, 22.5] },            // 9.2 m from a Harem hall capital, in the roofed hall
-  { n: 'hadish-hall', v: [18.1, -155.6, 1.6, 26, 42] },              // 8.3 m from a Hadish capital
-  { n: 'hall100-hall', v: [140.2, -35.2, 1.6, 26, 40] },             // 13.2 m, the finished part of the Hall of 100 Columns
+  { n: 'apadana-w-portico', v: [-46.63, -4.9, 1.6, 359.4, 60] },     // 13.7 m from a W-portico bull capital (protome 16 m above the eye)
+  { n: 'tachara-portico', v: [-21.65, -82.7, 1.6, 20.4, 58] },       // 7.6 m from a Tachara capital (LOD0)
+  { n: 'harem-hall', v: [112.5, -138, 1.6, 28.4, 45] },            // 9.2 m from a Harem hall capital, in the roofed hall
+  { n: 'hadish-hall', v: [18.1, -155.6, 1.6, 26, 55] },              // 8.3 m from a Hadish capital
+  { n: 'hall100-hall', v: [140.2, -35.2, 1.6, 26, 55] },             // 13.2 m, the finished part of the Hall of 100 Columns
   { n: 'apadana-n-court', v: [1.9, 75, 1.6, 161, 30] },              // the N portico from the court: LOD0 near, LOD1 beyond 32 m
 ];
 const HOURS = [{ day: 25, hour: 10 }, { day: 25, hour: 17.2 }];

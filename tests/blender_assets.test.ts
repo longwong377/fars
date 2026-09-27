@@ -61,6 +61,18 @@ describe('Blender-built assets (D-305)', () => {
 
 describe('the capital protome in the game (D-305)', () => {
   const MAN0 = MAN.assets.capital_protome;
+  it('the levels stand as the game\'s pieces do: same axes and extent (accessor bounds within the Draco quantisation)', () => {
+    // (the first build passed every other test lying on its side: y and z swapped by the PLY import, D-305)
+    const { json } = parseGLB(readFileSync(`public/${MAN0.file}`));
+    for (const lod of [0, 1] as const) {
+      const mesh = json.meshes.find((m: any) => m.name === `lod${lod}`), a = json.accessors[mesh.primitives[0].attributes.POSITION];
+      const bb = new THREE.Box3().setFromArray(piece('protome', lod).pos);
+      for (let k = 0; k < 3; k++) {
+        expect(Math.abs(a.min[k] - bb.min.getComponent(k)), `lod${lod} min[${k}]`).toBeLessThan(2e-3);
+        expect(Math.abs(a.max[k] - bb.max.getComponent(k)), `lod${lod} max[${k}]`).toBeLessThan(2e-3);
+      }
+    }
+  });
   it('the baked levels keep the game\'s own triangles (the bake adds maps, not geometry)', () => {
     expect(MAN0.lods[0].tris).toBe(piece('protome', 0).idx.length / 3);
     expect(MAN0.lods[1].tris).toBe(piece('protome', 1).idx.length / 3);

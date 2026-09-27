@@ -3,9 +3,9 @@
  "assets": {
   "capital_protome": {
    "file": "models/capital_protome.glb",
-   "inHash": "7255381daabd68cf44b97cbae92d74ed4d7bab0c74714feb4a1fd00696372962",
-   "outHash": "9abff2d8a654591e0e5fada03e71d135e6801a326b6d6eaabc0cc11618050fb9",
-   "bytes": 2039684,
+   "inHash": "3f17c60b44280385849a7060ceab526648ad636c68cc03de5e2a1da972ef8117",
+   "outHash": "bf32300cfa1b0c2f5e90a5aae74a4a4cd2f03fc95edb107cd362b467b8eb1485",
+   "bytes": 2040696,
    "gpuBytes": 6782531,
    "textures": "png",
    "lods": [
@@ -24,9 +24,9 @@
       "w": 1024,
       "h": 1024,
       "format": "png",
-      "bytes": 1703399
+      "bytes": 1703675
      },
-     "ao_mean": 0.6598
+     "ao_mean": 0.6612
     },
     {
      "name": "lod1",
@@ -43,9 +43,9 @@
       "w": 256,
       "h": 256,
       "format": "png",
-      "bytes": 132105
+      "bytes": 132899
      },
-     "ao_mean": 0.8654
+     "ao_mean": 0.8734
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
@@ -53,13 +53,8 @@
    "src": "RECON;IR-COL",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 15.8,
-   "build_s": 68,
-   "reproduced": {
-    "outHash": "9abff2d8a654591e0e5fada03e71d135e6801a326b6d6eaabc0cc11618050fb9",
-    "device": "CPU",
-    "blender": "5.0.1"
-   }
+   "bake_s": 15.1,
+   "build_s": 68
   }
  }
 }
