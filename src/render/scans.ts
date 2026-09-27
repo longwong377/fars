@@ -87,6 +87,13 @@ export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
   }));
 }
 export const scansLoaded = () => TEX.size > 0;
+/** tests only (D-300): stand-in textures for every scan in use, so node builds the scanned shaders and counts their samplers
+ *  (WebGPU's 16 samplers per fragment stage: render v4 failed the Terrace platform's pipeline at 17) */
+export function setScanTexturesForTest(on = true): void {
+  TEX.clear(); if (!on) return;
+  for (const u of Object.values(SCAN_USE)) for (const id of u.rock ? [u.scan, u.rock.scan] : [u.scan])
+    if (!TEX.has(id)) TEX.set(id, { diff: new THREE.Texture(), arm: new THREE.Texture(), nor: Object.values(SCAN_USE).some(v => v.scan === id && v.nor) ? new THREE.Texture() : undefined });
+}
 
 /** triplanar sample of a texture at `scale` metres per tile (world space, weights from the world normal) */
 function tri(t: THREE.Texture, scale: number) {
@@ -103,7 +110,8 @@ function triNormal(t: THREE.Texture, scale: number) {
   const tx = texture(t, p.zy).xy.mul(2).sub(1), ty = texture(t, p.xz).xy.mul(2).sub(1), tz = texture(t, p.xy).xy.mul(2).sub(1);
   return vec3(float(0), tx.y, tx.x).mul(w.x).add(vec3(ty.x, float(0), ty.y).mul(w.y)).add(vec3(tz.x, tz.y, float(0)).mul(w.z));
 }
-export function applyScan<L extends { alb: any; rough: any; height: any | null; tilt?: any }>(name: string, L: L): L {
+/** `noRough`: keep the layer's procedural roughness (saves the arm map's sampler: a layer under another's, D-300) */
+export function applyScan<L extends { alb: any; rough: any; height: any | null; tilt?: any }>(name: string, L: L, noRough = false): L {
   const u = SCAN_USE[name], T = u && TEX.get(u.scan), M = u && META[u.scan];
   if (!scansOn || !u || !T || !M) return L;
   const mean = vec3(...M.meanLinear);
@@ -118,7 +126,7 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null; 
   const alb = L.alb.mul(mix(vec3(1), det, u.alb));
   // the scan's roughness costs a sampler; a surface with a rock layer (the terrain) is at WebGPU's 16 samplers per stage
   // without it, so there the procedural roughness stands (session 11: 17 samplers failed the terrain's pipeline)
-  const rough = u.rock ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough)).clamp(0.05, 1);
+  const rough = u.rock || noRough ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough)).clamp(0.05, 1);
   const bump = lum.sub(1).mul(u.height);
   const nt = u.nor && T.nor ? triNormal(T.nor, u.scale).mul(u.nor) : null;
   return { ...L, alb, rough, height: L.height ? L.height.add(bump) : bump, ...(nt ? { tilt: L.tilt ? L.tilt.add(nt) : nt } : {}) };

@@ -1046,7 +1046,8 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   // each layer takes its own surface's scan (D-300: the Terrace's court top took the retaining wall's rock scan)
   let L = applyScan(name, layer(d, base, !!opts.arch));
   if (d.top && SURFACES[d.top]) { // up-facing faces use another surface (sharp transition at the arris)
-    const T = applyScan(d.top, layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch)); const t = smoothstep(0.7, 0.9, n.y);
+    // (the top layer's scan without its roughness map: the Terrace platform stood at 17 samplers with the wall's normal map, D-300)
+    const T = applyScan(d.top, layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch), true); const t = smoothstep(0.7, 0.9, n.y);
     L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
   }
   if (name === 'earth') { // D-300: the Now view's gravel forecourt (NOW_GROUND, NOW_GRAVEL), identity in the 467 world
