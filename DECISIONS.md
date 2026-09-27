@@ -7053,3 +7053,38 @@ moment-*-webgpu.png in the worktree, not committed).**
   output the worst of 32 rows above 2° is **0.040°** (tests/sky.horizons.test.ts, threshold 0.1°: passes). Against the
   airless output it read 0.129° worst, all of it refraction (mean Δalt 0.112° below 10° elevation, 0.015° above 20°): the
   test compares like with like now. B2 resolved.
+
+## D-302 The land's ground layers: one scan per land cover (session 11; UD-17, UD-06, UD-14; T-A7, T-A4)
+- **Problem:** D-295 laid one scan (cracked dry earth, dry_ground_01) over the terrain's 'earth' before the plain's layers
+  (terrainPlain.ts), which then replaced that albedo wherever a field, a path, herbs or the hills' rock were drawn: cracks on
+  every bare patch, procedural colour everywhere else (the blotchy camouflage of the old plain views: the earth's herb patches
+  cut from a noise by a hard threshold), the rock scan overwritten on the mountain (a smooth dune in every render). The
+  river banks, canal banks and tracks took the same cracked earth. The terrain's material was at WebGPU's 16 samplers.
+- **Failure mode named before starting:** the audit could pass (every cover names a scan) while the scans read as tiled
+  texture, pixel speckle or flat colour at the view distance; so the measure is the render (blind review, photo #24 ratios).
+- **Decision (C):** src/render/scans.ts GROUND: 12 CC0 ground scans in ONE 2-D array texture (RGB the colour, A the
+  displacement; one sampler), groundScan(cover, tile m, {tri, scale2, bias}): dust (dirt), stony (rocks_ground_09), packed
+  (rocky_trail_02), straw (withered_grass), green (grass_ground), tilled (farm_soil), mud (brown_mud_02), cracked silt
+  (mud_cracked_dry_riverbed_002), rock (rock_face_03), aerial rock (aerial_ground_rock), scree (rocky_trail), river pebbles
+  (dry_river_pebbles). Each is multiplied into its own cover's albedo (scan ÷ its mean at 0.85: the measured tints and
+  layouts stay), its displacement the cover's bump; the earth's procedural bump, chips and herb blobs give way on the
+  terrain. The plain: the loam's dust (wet ground: mud, by WEATHER.wetness), stony patches over 150-400 m, dried cracked silt
+  only in the level low spots in the dry season, the season's herbs and every crop's, stubble's and the bunds' cover with an
+  edge moved by its scan's height, tilled plots on the ploughed-soil scan, the town's trodden ground and paths on the
+  trodden-earth scan. The hills: colluvium stony, scree, rock at 6/23 m triplanar, and over all the hills' ground the aerial
+  rock scan at 60/240 m (its pale patches clipped) as pattern and, mip-biased 16x, as ~1 m relief; rock warmer (HILL.rock
+  R/G 1.31 -> 1.62, luminance -7 %), the bands' riser/bench contrast lower (1.1/0.92), scrub denser on open slopes and
+  kept as dots by the footprint across the view, its lattice warped (rows along the contours). River banks: the silt band
+  cracked with gravel bars, the waterline mud, the sward's edge in tufts; canal banks and tracks likewise; SCAN_USE.earth
+  (other meshes) is dust, road is trodden earth. `?noscans` restores the procedural ground.
+- **Measured:** tools/dev/ground_probe (the terrain and banks without the world, ~10 s a load: 9 probe passes); calib-24 mountain
+  (tools/dev/calib24_mountain.py) in the Now view against photo #24, before (s11b) -> after (d302b) [photo]: 12 px texture
+  cv 0.122 -> 0.217 [0.292], R/G 1.21 -> 1.39 [1.56], B/G 0.758 -> 0.702 [0.751], mountain/wall 1.09 -> 0.97 [0.84],
+  p90/p10 3.23 -> 2.42 [2.56], bedding anisotropy 2.55 -> 2.67 [1.12], mountain/sky 0.81 -> 0.54 [0.27]. Within 20 %: R/G,
+  B/G, mountain/wall, p90/p10; not: texture (-26 %), anisotropy, mountain/sky (the sky's grade). Blind review of the land
+  (16 frames, 8 before / 8 after, shuffled; REVIEWS/d302_land_review.md): before 1.88, after 2.75 (6 of 8 at 3); 16/16 read as
+  CG. Tests: tests/scans_d302.test.ts (the T-A7 audit, 4/4) and 31 files touching the plain and the materials 252/253 (the
+  one failure, court_view pop-in, fails on the branch base too).
+- **Renders (GPU, Q high, FOV game; calib views at their own lens):** shots/moment-<view>-d302a/-d302b-gpu.png for
+  stair-foot-ground, small-spring-field, flowers-may, ford-pulvar-sep, drum-road, rainbow-plain, calib-24, calib-24-now,
+  ford-kur-apr (+ town-smoke-dusk-rahmat in d302b). Still wrong on screen: B106.

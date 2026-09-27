@@ -284,7 +284,8 @@ test('moments', async ({ page }, info) => {
       await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
       loaded = state;
     }
-    const fov = process.env.FOV === 'game' ? undefined : s.fov ?? OUT;
+    // KEEPFOV=<view,...>: those views keep their own lens under FOV=game (session 11, D-302: the calib views' photo comparison in the same load)
+    const fov = process.env.FOV === 'game' && !process.env.KEEPFOV?.split(',').includes(s.n) ? undefined : s.fov ?? OUT;
     if (s.carry) { // the eye of an earlier view of this state; rendered here (2 frames, no capture) if it was not
       const [fromN, secs] = s.carry, from = SHOTS.find(q => q.n === fromN)!;
       if (stateOf(from) !== state) throw new Error(`${s.n} carries the eye of ${fromN}, another world state`);
