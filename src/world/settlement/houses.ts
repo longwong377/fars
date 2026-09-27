@@ -142,6 +142,11 @@ export class SiteHouses {
     for (const r of this.rooms) (this.roomsByTile.get(r.tile) ?? this.roomsByTile.set(r.tile, []).get(r.tile)!).push(r);
   }
   // ---- frames -------------------------------------------------------------------------------------------------------
+  /** D-311: how many wall pieces end at each point (1 = a free end), and the door pieces' ends (the jambs) */
+  private endKey(u: number, v: number) { return `${Math.round(u * 20)},${Math.round(v * 20)}`; }
+  private _ends: Map<string, number> | null = null; private _doorEnds = new Set<string>();
+  private get ends() { if (!this._ends) { this._ends = new Map(); for (const we of this.walls) { const w = we.w; for (const k of [this.endKey(w.u0, w.v0), this.endKey(w.u1, w.v1)]) { this._ends.set(k, (this._ends.get(k) ?? 0) + 1); if (w.door) this._doorEnds.add(k); } } } return this._ends; }
+  private get doorEnds() { void this.ends; return this._doorEnds; }
   tileAt(u: number, v: number) { const ti = Math.floor((u - this.s.u0) / TILE), tj = Math.floor((v - this.s.v0) / TILE); return this.si * 4096 + ti * 64 + tj; }
   tileInfo(t: number) { let x = this.tiles.get(t); if (!x) { const ti = ((t % 4096) / 64) | 0, tj = t % 64; const c = this.s.grid(this.s.u0 + (ti + 0.5) * TILE, this.s.v0 + (tj + 0.5) * TILE); x = { c, x: c[0], z: -c[1] }; this.tiles.set(t, x); } return x; }
   /** local (u, v, y) → world [x, y, z] */
@@ -214,19 +219,23 @@ export class SiteHouses {
   /** face plane geometry of a wall: axis 0 = along u, 1 = along v; `cc` = the wall's centre line across; the face at
    *  cc + sg · (t / 2 + d) */
   private face(b: Batch, o: { ax: number; sA: number; sB: number; cc: number; t: number; sg: number; yb: (s: number) => number; yt: (s: number) => number; holes: Hole[]; bulge: number; seed: number;
-    col: (s: number, y: number) => RGB; owner: number; ao: (y: number) => number; y0: (s: number) => number; ytop: number; off?: number; st2?: number[] }) {
+    col: (s: number, y: number) => RGB; owner: number; ao: (y: number) => number; y0: (s: number) => number; ytop: number; off?: number; st2?: number[]; foot?: number }) {
     const { ax, sA, sB, cc, t, sg } = o, off = o.off ?? 0;
     if (sB - sA < 0.01) return;
     const st = [sA, sB]; for (const h of o.holes) st.push(Math.max(sA, Math.min(sB, h.s0)), Math.max(sA, Math.min(sB, h.s1)));
-    const step = o.bulge ? 1.3 : 3.0, n = Math.ceil((sB - sA) / step); for (let i = 1; i < n; i++) st.push(sA + ((sB - sA) * i) / n);
+    const step = o.bulge ? (o.foot ? 1.5 : 1.3) : 3.0, n = Math.ceil((sB - sA) / step); for (let i = 1; i < n; i++) st.push(sA + ((sB - sA) * i) / n);
     for (const x of o.st2 ?? []) if (x > sA && x < sB) st.push(x);
     const S = [...new Set(st.map(x => +x.toFixed(4)))].sort((a, b2) => a - b2);
     const yLo = Math.min(o.yb(sA), o.yb(sB)), yHi = Math.max(o.yt(sA), o.yt(sB));
-    const brk: number[] = []; for (const h of o.holes) brk.push(h.y0, h.y1); if (o.bulge) for (let y = Math.ceil(yLo) + 0.2; y < yHi; y += 1.2) brk.push(y);
+    const brk: number[] = []; for (const h of o.holes) brk.push(h.y0, h.y1); if (o.bulge) for (let y = Math.ceil(yLo) + (o.foot ? 1.0 : 0.2); y < yHi; y += (o.foot ? 1.5 : 1.2)) brk.push(y); // (D-311: the foot row carries the low bulge; rows 1.5 m apart pay for it)
+    if (o.foot) brk.push(yLo + 0.3); // D-311: the eroded foot's rows
     const BR = [...new Set(brk.map(x => +x.toFixed(4)))].sort((a, b2) => a - b2);
     const inHole = (sm: number, ym: number) => o.holes.some(h => sm > h.s0 && sm < h.s1 && ym > h.y0 && ym < h.y1);
     const T3 = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), N3 = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0);
-    const disp = (x: number, y: number) => { if (!o.bulge) return 0; let tp = Math.min(smooth((x - sA) / 0.3), smooth((sB - x) / 0.3), smooth((o.yt(x) - y) / 0.25), smooth((y - o.yb(x) - 0.05) / 0.3));
+    // D-311: the foot eaten back by splash and salt (a coved undercut up to o.foot deep, gone by ~0.4 m up), under the bulge
+    const footD = (x: number, y: number) => o.foot ? -o.foot * (1 - smooth((y - o.yb(x)) / 0.4)) * (0.6 + 0.4 * vn(x * 1.7 + o.seed, 1.3)) * Math.min(smooth((x - sA) / 0.3), smooth((sB - x) / 0.3)) : 0;
+    const disp = (x: number, y: number) => footD(x, y) + dispB(x, y);
+    const dispB = (x: number, y: number) => { if (!o.bulge) return 0; let tp = Math.min(smooth((x - sA) / 0.3), smooth((sB - x) / 0.3), smooth((o.yt(x) - y) / 0.25), smooth((y - o.yb(x) - 0.05) / 0.3));
       for (const h of o.holes) { const dx = Math.max(h.s0 - x, 0, x - h.s1), dy = Math.max(h.y0 - y, 0, y - h.y1); tp = Math.min(tp, smooth(Math.hypot(dx, dy) / 0.25)); }
       return o.bulge * tp * ((vn(x * 0.9 + o.seed, y * 0.9) * 0.7 + vn(x * 2.3 + o.seed * 1.7, y * 2.3 + 5) * 0.3) * 2 - 1); };
     // each vertex once (shared by up to four quads): position and normal (forward differences of the bulge)
@@ -372,8 +381,9 @@ export class SiteHouses {
               if (ps < sA + 0.2 || ps > sB - 0.2) continue; B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(...P2l(ps, sg * (t / 2 - 0.05)), py), this.wp(...P2l(ps, sg * (t / 2 + 0.17)), py + 0.03), 0.025, 5, sh(lin(POLE), 0.75 + 0.3 * hi(seed, q, 44)), this.owner(we.plot, P.fixture), 'end'); B.timber.set('ao', 1); } } }
         const bulge = (0.007 + 0.012 * (1 - L.standing) + 0.006 * (L.age / 50)) * (house ? 1 : 0.7);
         this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: ysoc, yt: x => ytopF(x) - bev, holes: faceHoles, bulge, seed: seed + si * 13, st2: topSt,
-          col: (_x, y) => { const yr = y - floor; return sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); },
-          owner: this.owner(we.plot, P.wall), ao: aoF, y0: ysoc, ytop: top });
+          col: (x, y) => { const yr = y - floor, yf = y - ysoc(x), f = kitOn ? 1 - smooth(yf / 0.38) : 0; // D-311: the foot's band: damp, salt-dark, the brick courses showing through (redder)
+            const c0 = sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); return mixc(c0, [c0[0] * 0.78, c0[1] * 0.7, c0[2] * 0.64], f * (sd.cls === 'open' ? 0.85 : 0.6)); },
+          owner: this.owner(we.plot, P.wall), ao: aoF, y0: ysoc, ytop: top, foot: kitOn ? (sd.cls === 'open' ? 0.035 : 0.02) * (house ? 1 : 1.5) : 0 });
         // decals on this face: repairs, bare brick, soot, the household's dung cakes, the drain's stain
         if (we.plot >= 0) this.faceDecals(we, sd, sg, floor, top, faceHoles, courtFix, decs, seed + si); // (yard and garden walls weather too)
         for (const [sgd, d] of decs) if (sgd === sg) this.decal(B, ax, cc, t, sg, d, col0, floor, we.plot);
@@ -382,10 +392,10 @@ export class SiteHouses {
         for (const h of faceHoles) this.reveal(B, ax, cc, t, sg, h, col0, we.plot);
       }
     }
-    // the cap of an exposed top (D-311): the Blender kit's slumped mud crest, ~3 m modules (three, mirrored by the hash) laid
+    // the cap of an exposed top (D-311): the Blender kit's slumped mud crest, ~4 m modules (three, mirrored by the hash) laid
     // along the wall, following its worn top (the undulations and the rain's notches above), drooping over both arrises
     if (exposedTop && kitOn) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
-      const nm = Math.max(1, Math.round(len / 3)), ml = len / nm, wz = t + 0.05, own = this.owner(we.plot, P.wall);
+      const nm = Math.max(1, Math.round(len / 3.9)), ml = len / nm, wz = t + 0.03, own = this.owner(we.plot, P.wall);
       const aw = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), cw = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0);
       for (let m = 0; m < nm; m++) { const q = kitPiece('crest', hi(seed, m, 91)), fl = hi(seed, m, 92) < 0.5 ? -1 : 1, mid = sA + ml * (m + 0.5), hx = ml / 2 / 1.02;
         // handedness of (along·fl, up, across) in the world: mirror the winding with it
@@ -408,7 +418,15 @@ export class SiteHouses {
     // the wall's ends (jambs and free ends)
     { const c = sh(this.tone(we.plot, 0, add), 0.97); B.plaster.set('y0', sp.gmin).set('ytop', top).set('ao', 0.85);
       for (const [x, dir] of [[sA, -1], [sB, 1]] as const) { const n = ax === 0 ? this.dirW(dir, 0) : this.dirW(0, dir), yt2 = ytopF(x) - (exposedTop ? 0 : 0);
-        const p = (o2: number, y: number) => this.wp(...P2l(x, o2), y); B.plaster.quad(p(-t / 2, sp.y0 + 0.3), p(t / 2, sp.y0 + 0.3), p(t / 2, yt2), p(-t / 2, yt2), [n[0], 0, n[1]], sh(c, 0.9), sh(c, 0.9), c, c, this.owner(we.plot, P.wall)); }
+        const p = (o2: number, y: number) => this.wp(...P2l(x, o2), y);
+        // D-311: a free end or a door jamb is worn round (the rain and the passing shoulders take the arris): the end bows out
+        // up to 6-9 cm in an elliptical arc meeting both faces tangentially; ends that abut another wall stay flat (hidden)
+        const ek = this.endKey(ax === 0 ? x : cc, ax === 0 ? cc : x);
+        if (kitOn && ((this.ends.get(ek) ?? 0) <= 1 || this.doorEnds.has(ek))) { const r = 0.06 + 0.03 * hi(seed, dir, 71), K = 3, y0e = sp.y0 + 0.3, own = this.owner(we.plot, P.wall);
+          const pt = (k: number, y: number) => { const th = -Math.PI / 2 + Math.PI * k / K; return this.wp(...P2l(x + dir * r * Math.cos(th), (t / 2) * Math.sin(th)), y); };
+          const nm = (k: number) => { const th = -Math.PI / 2 + Math.PI * k / K, na = Math.cos(th) / r, nc = Math.sin(th) / (t / 2); const al = ax === 0 ? this.dirW(dir, 0) : this.dirW(0, dir), ac = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0); const v = [al[0] * na + ac[0] * nc, 0, al[1] * na + ac[1] * nc], L2 = Math.hypot(v[0], v[2]) || 1; return [v[0] / L2, 0, v[2] / L2]; };
+          for (let k = 0; k < K; k++) B.plaster.quadN(pt(k, y0e), pt(k + 1, y0e), pt(k + 1, yt2), pt(k, yt2), nm(k), nm(k + 1), nm(k + 1), nm(k), sh(c, 0.9), sh(c, 0.9), c, c, own); continue; }
+        B.plaster.quad(p(-t / 2, sp.y0 + 0.3), p(t / 2, sp.y0 + 0.3), p(t / 2, yt2), p(-t / 2, yt2), [n[0], 0, n[1]], sh(c, 0.9), sh(c, 0.9), c, c, this.owner(we.plot, P.wall)); }
       B.plaster.set('ao', 1); }
   }
   /** does room r's eave oversail wall w (a court facade on side sg of the wall)? */
