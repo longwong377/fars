@@ -7881,3 +7881,30 @@ mother who followed the stranger is still "talking" in her child's plan's words)
 - **Not done (honest):** the houses' tether, firewood, laundry line, cradle, roof fuel and fleece, the living rooms' mats and
   folded rugs (houses.ts; its ladders and benches are D-324's), the carried children (people, not props), crates (no
   builder draws one), the tablet (writing.ts). No world render (the lead's batch).
+## D-315 (continued) The GPU runs after the merge (session 12): the real models on T-E10 and T-E9
+
+Three runs were allowed, one at a time, through gpu_slot. Run 2's first attempt died two minutes in on an invalid shader
+module on the shared card; it is counted as a run, and the model now reloads on that error too (mind.ts). Each T-E10 pass
+used requests 0-15 of the seeded set plus their recalls: 40 cases. Evidence: REVIEWS/evidence/s12-talk/T-E10-gpu-run2.json,
+T-E10-gpu-run3.json, T-E9-gpu-run3.json.
+- Run 2 (the four fixes after run 1; run-1 scorer): gemma-2-2b with the memory in the system brief 42.5 % (run 1: 17.5 %);
+  gemma with the memory just before the stranger's words 52.5 % (own recalls 8/16, heard 1/8); qwen2.5-1.5b, memory near the
+  question, 55 %.
+- Run 3 (memory near the question, framed "You remember:", naming "this same stranger"; the simulation's "no" said before the
+  stranger's words; a person who has only heard of the stranger is told so, where they were told "you have never seen this
+  stranger"). The scorer changed before this run: a recall names what was asked or done (for a refusal, the ask or the
+  refusal); a denial fails; a hearer need not name who told them. Results: gemma 52.5 % (requests 12/16, own recalls 7/16,
+  heard 2/8; median 1.5 s, p90 2.6 s); qwen2.5-1.5b 57.5 % (14/16, 7/16, 2/8; median 1.2 s). Rescored offline after one fix
+  to the scorer (curly apostrophes, "Can’t leave work."), with no new generation: gemma 55 %, qwen 57.5 %.
+  qwen2.5-3b lost the device ("Object has already been disposed") on the shared card: it does not stay under the watchdog.
+- T-E9 with the D-315 prompt (tag line added; auto-scored, no hand overrides): gemma 62.5 % (45/72; s11: 61.1 % with
+  overrides), median 1.1 s; qwen2.5-1.5b 47.2 %. 26 of gemma's 27 failures are "not grounded in the person's own life".
+  The tag line did not hurt T-E9.
+- What still fails. Recall: the models acknowledge the stranger but invent the content ("We spoke of the harvest", "You were
+  here last month") or deny it outright ("No one has spoken of you"), with the memory line right above the question. Hearsay
+  is worst (2/8): "this same stranger" helped little. Requests: 12-14 of 16 pass; the remaining failures are refusals in the
+  person's own words that the word list misses ("My word is my word").
+- Next (not done: GPU runs used up): a two-step recall (the simulation picks the remembered fact when the question is about
+  earlier meetings and hands the model only that one sentence to put in its own words); a small judge for refusals; a 3B
+  model once the card is free.
+- The default stays gemma-2-2b behind ?converse. Qwen2.5-1.5b is a little better on T-E10 but 15 points worse on T-E9.

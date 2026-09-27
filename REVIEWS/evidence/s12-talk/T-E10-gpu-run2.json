@@ -1,0 +1,1694 @@
+{
+ "id": "T-E10",
+ "value": 55,
+ "n": 40,
+ "commit": "8070fd0+memoryMode",
+ "tool": "src/dev/converseLab.ts talkSet (tools/dev/converse_drive.mjs, gpu_slot)",
+ "unit": "%",
+ "status": "FAIL",
+ "when": "2026-09-27T22:45:24.330Z",
+ "runs": {
+  "gemma-2-2b-it-q4f16_1-MLC:top": {
+   "value": 42.5,
+   "n": 40,
+   "requests": [
+    12,
+    16
+   ],
+   "recalls": [
+    4,
+    16
+   ],
+   "heard": [
+    1,
+    8
+   ],
+   "deeds": {
+    "done": 4,
+    "refused": 10,
+    "noop": 2
+   },
+   "msMedian": 1357,
+   "msP90": 2692,
+   "res": [
+    {
+     "i": 0,
+     "kind": "follow",
+     "job": "guard",
+     "say": "Walk with me for a while.",
+     "reply": "Walk with you? No time.",
+     "deed": "follow DONE: walks with the stranger a while",
+     "pass": false,
+     "why": [
+      "the words refuse what the day does"
+     ],
+     "ms": 1405
+    },
+    {
+     "i": 1,
+     "kind": "lead_to",
+     "job": "builder",
+     "say": "I am looking for the river.",
+     "reply": "Foreman’s counting.",
+     "deed": "lead_to:river refused: the foreman counts the gang at the work; he cannot leave it",
+     "pass": true,
+     "why": [],
+     "ms": 2082
+    },
+    {
+     "i": 2,
+     "kind": "fetch",
+     "job": "porter",
+     "say": "Could your mother come and meet me?",
+     "reply": "scribe’s work is not mine.",
+     "deed": "fetch:your mother refused: the loads are counted by the scribe; he cannot leave them",
+     "pass": true,
+     "why": [],
+     "ms": 1890
+    },
+    {
+     "i": 3,
+     "kind": "give",
+     "job": "camp",
+     "say": "I am thirsty.",
+     "reply": "",
+     "deed": "give:water DONE: gave water",
+     "pass": false,
+     "why": [
+      "fence: no answer"
+     ],
+     "ms": 3397
+    },
+    {
+     "i": 4,
+     "kind": "trade",
+     "job": "treasury",
+     "say": "I will give you my bread for some water.",
+     "reply": "We have some water.",
+     "deed": "trade:some water for my bread DONE: traded bread for water",
+     "pass": true,
+     "why": [],
+     "ms": 890
+    },
+    {
+     "i": 5,
+     "kind": "stop_work",
+     "job": "scribe",
+     "say": "Leave off your work a moment, friend.",
+     "reply": "These tablets, they’re for the king.",
+     "deed": "stop_work refused: at the tablets for the king’s house; he cannot leave them",
+     "pass": true,
+     "why": [],
+     "ms": 2372
+    },
+    {
+     "i": 6,
+     "kind": "wait_here",
+     "job": "official",
+     "say": "Remain here until I come back.",
+     "reply": "I will stay here.",
+     "deed": "wait_here ok (nothing to change): was staying here anyway",
+     "pass": true,
+     "why": [],
+     "ms": 746
+    },
+    {
+     "i": 7,
+     "kind": "go_home",
+     "job": "storekeeper",
+     "say": "Head home now, friend.",
+     "reply": "By Auramazda, I cannot walk. My son Ziššukka, he is strong and can fetch water.",
+     "deed": "go_home refused: is sick and lying down",
+     "pass": true,
+     "why": [],
+     "ms": 3436
+    },
+    {
+     "i": 8,
+     "kind": "follow",
+     "job": "servant",
+     "say": "Keep me company along the road, friend.",
+     "reply": "My home is here. I have work to do.",
+     "deed": "follow refused: a woman of the house does not go off with a strange man",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 2608
+    },
+    {
+     "i": 9,
+     "kind": "lead_to",
+     "job": "miller",
+     "say": "Where is the storehouse?",
+     "reply": "By Auramazda, I cannot. I am only a woman of the house.",
+     "deed": "lead_to:storehouse refused: a woman of the house does not walk a strange man about; she points the way",
+     "pass": true,
+     "why": [],
+     "ms": 2774
+    },
+    {
+     "i": 10,
+     "kind": "fetch",
+     "job": "weaver",
+     "say": "Could Bagačiθrā come and meet me?",
+     "reply": "It is dark. We don't go out in the night.",
+     "deed": "fetch:Bagačiθrā refused: it is dark: nobody walks about with a stranger at night",
+     "pass": true,
+     "why": [],
+     "ms": 2301
+    },
+    {
+     "i": 11,
+     "kind": "give",
+     "job": "brewer",
+     "say": "I am thirsty.",
+     "reply": "My Rtaduxçā's water’s running out. water.",
+     "deed": "give:water DONE: gave water",
+     "pass": true,
+     "why": [],
+     "ms": 1556
+    },
+    {
+     "i": 12,
+     "kind": "trade",
+     "job": "groom",
+     "say": "Will you trade some water for my bread?",
+     "reply": "My wife’s water’s good. But the king’s horses need no trading.",
+     "deed": "trade:some water for my bread refused: the king’s horses are in his care",
+     "pass": true,
+     "why": [],
+     "ms": 1404
+    },
+    {
+     "i": 13,
+     "kind": "stop_work",
+     "job": "shepherd",
+     "say": "Will you take a rest and talk with me?",
+     "reply": "My flocks are in the heat.",
+     "deed": "stop_work refused: the king’s flocks are in his care",
+     "pass": true,
+     "why": [],
+     "ms": 1701
+    },
+    {
+     "i": 14,
+     "kind": "wait_here",
+     "job": "messenger",
+     "say": "Remain here until I come back.",
+     "reply": "By Auramazda.",
+     "deed": "wait_here ok (nothing to change): was staying here anyway",
+     "pass": true,
+     "why": [],
+     "ms": 688
+    },
+    {
+     "i": 15,
+     "kind": "go_home",
+     "job": "caretaker",
+     "say": "Head home now, friend.",
+     "reply": "He who has seen the Terrace, can’t see home!",
+     "deed": "go_home refused: the halls are in his care",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 2692
+    },
+    {
+     "i": 64,
+     "kind": "recall",
+     "job": "guard",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "By Auramazda. I’m busy.",
+     "pass": false,
+     "why": [
+      "does not recall: walk|along|follow|join|company|came with"
+     ],
+     "ms": 1158,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “Walk with me for a while.”. You walked with him a while. You told him: “Walk with you? No time.”."
+     ]
+    },
+    {
+     "i": 65,
+     "kind": "heard",
+     "job": "guard",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "By Auramazda, you are that man.",
+     "pass": false,
+     "why": [
+      "does not recall: walk|along|follow|join|company|came with",
+      "does not recall: Irdaša|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 988,
+     "memory": [
+      "2 days ago your neighbour Irdaša told you: a foreign stranger talked with him twice; he walked with the stranger a while."
+     ]
+    },
+    {
+     "i": 66,
+     "kind": "recall",
+     "job": "builder",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "You were asking about the river, stranger,\" I say.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|forem|count|canno"
+     ],
+     "ms": 1306,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He asked you the way to the river; you would not: the foreman counts the gang at the work; he cannot leave it."
+     ]
+    },
+    {
+     "i": 67,
+     "kind": "recall",
+     "job": "porter",
+     "say": "Have you seen me before?",
+     "reply": "No. You’re not Tanetamun’s son from the street market.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|count|scrib|canno"
+     ],
+     "ms": 1357,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He asked you to fetch someone; you would not: the loads are counted by the scribe; he cannot leave them."
+     ]
+    },
+    {
+     "i": 68,
+     "kind": "heard",
+     "job": "weaver",
+     "say": "What do people say of the stranger?",
+     "reply": "He’s not from around here.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|count|scrib|canno",
+      "does not recall: Hupannana|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1269,
+     "memory": [
+      "3 days ago your son Hupannana told you: a foreign stranger talked with him twice and asked to fetch someone, but he would not."
+     ]
+    },
+    {
+     "i": 69,
+     "kind": "recall",
+     "job": "camp",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "Yes, you asked for water. I gave it to you.",
+     "pass": true,
+     "why": [],
+     "ms": 1235,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “I am thirsty.”. You gave him water."
+     ]
+    },
+    {
+     "i": 70,
+     "kind": "recall",
+     "job": "treasury",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "Yes, we did. You traded bread for water.",
+     "pass": true,
+     "why": [],
+     "ms": 1119,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “I will give you my bread for some water.”. You traded him bread for water. You told him: “We have some water.”."
+     ]
+    },
+    {
+     "i": 71,
+     "kind": "heard",
+     "job": "child",
+     "say": "Has anyone spoken to you of me?",
+     "reply": "My mother Raučaduxçā said a stranger talked to her. She traded bread for water,\" I say.",
+     "pass": true,
+     "why": [],
+     "ms": 1795,
+     "memory": [
+      "3 days ago your mother Raučaduxçā told you: a foreign stranger talked with her twice; she traded bread for water."
+     ]
+    },
+    {
+     "i": 72,
+     "kind": "recall",
+     "job": "scribe",
+     "say": "Have you seen me before?",
+     "reply": "You're talking to Natan of Syria.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|table|canno"
+     ],
+     "ms": 1044,
+     "memory": [
+      "In the month Ādukanaiša your neighbour Irtuppiya told you: a foreign stranger talked with him and asked to go home, but he would not.",
+      "Yesterday at midday the foreign stranger spoke with you. He asked you to stop work; you would not: at the tablets for the king’s house; he cannot leave them."
+     ]
+    },
+    {
+     "i": 73,
+     "kind": "recall",
+     "job": "official",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "I do remember.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay"
+     ],
+     "ms": 747,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He said: “Remain here until I come back.”. You waited there for him. You told him: “I will stay here.”."
+     ]
+    },
+    {
+     "i": 74,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "My Nanâ-ittija’s daughter’s dress is getting muddy.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay"
+     ],
+     "ms": 1371,
+     "memory": [
+      "2 days ago your kinsman someone of the house told you: a foreign stranger talked with him twice; he waited for him."
+     ]
+    },
+    {
+     "i": 75,
+     "kind": "recall",
+     "job": "storekeeper",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "By Auramazda, we did. You asked me to go home.",
+     "pass": true,
+     "why": [],
+     "ms": 1437,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “Head home now, friend.”. He asked you to go home; you would not: is sick and lying down."
+     ]
+    },
+    {
+     "i": 76,
+     "kind": "recall",
+     "job": "servant",
+     "say": "Have you seen me before?",
+     "reply": "No, I do not know you.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|stran"
+     ],
+     "ms": 988,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He asked you to come along; you would not: a woman of the house does not go off with a strange man."
+     ]
+    },
+    {
+     "i": 77,
+     "kind": "heard",
+     "job": "steward",
+     "say": "What do people say of the stranger?",
+     "reply": "He speaks like he is from far away.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|stran",
+      "does not recall: Philis|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1035,
+     "memory": [
+      "3 days ago your kinswoman Philis told you: a foreign stranger talked with her twice and asked to come along, but she would not."
+     ]
+    },
+    {
+     "i": 78,
+     "kind": "recall",
+     "job": "miller",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "By Auramazda, you are that man from the land of Media.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|stran|point"
+     ],
+     "ms": 1304,
+     "memory": [
+      "In the month Ādukanaiša your neighbour Irtuppiya told you: a foreign stranger talked with him twice and asked to go home, but he would not.",
+      "Yesterday at midday the foreign stranger spoke with you. He asked you the way to storehouse; you would not: a woman of the house does not walk a strange man about; she points the way."
+     ]
+    },
+    {
+     "i": 79,
+     "kind": "recall",
+     "job": "weaver",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "We did, and I told you to go to Bagačiθrā’s home.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|nobod|stran"
+     ],
+     "ms": 1594,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He asked you to fetch someone; you would not: it is dark: nobody walks about with a stranger at night."
+     ]
+    },
+    {
+     "i": 80,
+     "kind": "heard",
+     "job": "treasury",
+     "say": "Has anyone spoken to you of me?",
+     "reply": "He's asking about me. He's a stranger.",
+     "pass": false,
+     "why": [
+      "does not recall: Bagabāmā|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1266,
+     "memory": [
+      "2 days ago your friend Bagabāmā told you: a foreign stranger talked with her twice and asked to fetch someone, but she would not."
+     ]
+    },
+    {
+     "i": 81,
+     "kind": "recall",
+     "job": "brewer",
+     "say": "Have you seen me before?",
+     "reply": "By Napiriša, no.",
+     "pass": false,
+     "why": [
+      "does not recall: water"
+     ],
+     "ms": 1070,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “I am thirsty.”. You gave him water. You told him: “My Rtaduxçā's water’s running out. water.”."
+     ]
+    },
+    {
+     "i": 82,
+     "kind": "recall",
+     "job": "groom",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "I remember.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|horse"
+     ],
+     "ms": 1051,
+     "memory": [
+      "Yesterday at midday the foreign stranger spoke with you. He said: “Will you trade some water for my bread?”. He asked you to trade; you would not: the king’s horses are in his care."
+     ]
+    },
+    {
+     "i": 83,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "No.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|horse",
+      "does not recall: Irdapukka|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 674,
+     "memory": [
+      "3 days ago your kinsman Irdapukka told you: a foreign stranger talked with him twice and asked to trade, but he would not."
+     ]
+    },
+    {
+     "i": 84,
+     "kind": "recall",
+     "job": "shepherd",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "You’re right. We talked yesterday.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|flock"
+     ],
+     "ms": 1157,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He said: “Will you take a rest and talk with me?”. He asked you to stop work; you would not: the king’s flocks are in his care."
+     ]
+    },
+    {
+     "i": 85,
+     "kind": "recall",
+     "job": "messenger",
+     "say": "Have you seen me before?",
+     "reply": "By Auramazda, you're looking a bit like a… a travelling merchant.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay"
+     ],
+     "ms": 1481,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “Remain here until I come back.”. You waited there for him. You told him: “By Auramazda.”."
+     ]
+    },
+    {
+     "i": 86,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "What do people say of the stranger?",
+     "reply": "He is a man from far lands,",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay",
+      "does not recall: Irdabada|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1060,
+     "memory": [
+      "2 days ago your kinsman Irdabada told you: a foreign stranger talked with him twice; he waited for him."
+     ]
+    },
+    {
+     "i": 87,
+     "kind": "recall",
+     "job": "caretaker",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "By Napiriša, you are the man with the beard. Go home. My wife.",
+     "pass": true,
+     "why": [],
+     "ms": 1738,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “Head home now, friend.”. He asked you to go home; you would not: the halls are in his care."
+     ]
+    }
+   ]
+  },
+  "gemma-2-2b-it-q4f16_1-MLC:near": {
+   "value": 52.5,
+   "n": 40,
+   "requests": [
+    12,
+    16
+   ],
+   "recalls": [
+    8,
+    16
+   ],
+   "heard": [
+    1,
+    8
+   ],
+   "deeds": {
+    "done": 4,
+    "refused": 10,
+    "noop": 2
+   },
+   "msMedian": 1439,
+   "msP90": 2493,
+   "res": [
+    {
+     "i": 0,
+     "kind": "follow",
+     "job": "guard",
+     "say": "Walk with me for a while.",
+     "reply": "Walk with you?",
+     "deed": "follow DONE: walks with the stranger a while",
+     "pass": true,
+     "why": [],
+     "ms": 783
+    },
+    {
+     "i": 1,
+     "kind": "lead_to",
+     "job": "builder",
+     "say": "I am looking for the river.",
+     "reply": "The foreman’s counting.",
+     "deed": "lead_to:river refused: the foreman counts the gang at the work; he cannot leave it",
+     "pass": true,
+     "why": [],
+     "ms": 2054
+    },
+    {
+     "i": 2,
+     "kind": "fetch",
+     "job": "porter",
+     "say": "Could your mother come and meet me?",
+     "reply": "By Humban, the scribe is with the loads.",
+     "deed": "fetch:your mother refused: the loads are counted by the scribe; he cannot leave them",
+     "pass": true,
+     "why": [],
+     "ms": 1983
+    },
+    {
+     "i": 3,
+     "kind": "give",
+     "job": "camp",
+     "say": "I am thirsty.",
+     "reply": "The water is fine. \".",
+     "deed": "give:water DONE: gave water",
+     "pass": true,
+     "why": [],
+     "ms": 914
+    },
+    {
+     "i": 4,
+     "kind": "trade",
+     "job": "treasury",
+     "say": "I will give you my bread for some water.",
+     "reply": "We are careful with water.",
+     "deed": "trade:some water for my bread DONE: traded bread for water",
+     "pass": true,
+     "why": [],
+     "ms": 918
+    },
+    {
+     "i": 5,
+     "kind": "stop_work",
+     "job": "scribe",
+     "say": "Leave off your work a moment, friend.",
+     "reply": "By the gods, I’m tied to these.",
+     "deed": "stop_work refused: at the tablets for the king’s house; he cannot leave them",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 2305
+    },
+    {
+     "i": 6,
+     "kind": "wait_here",
+     "job": "official",
+     "say": "Remain here until I come back.",
+     "reply": "I'll stay here.",
+     "deed": "wait_here ok (nothing to change): was staying here anyway",
+     "pass": true,
+     "why": [],
+     "ms": 739
+    },
+    {
+     "i": 7,
+     "kind": "go_home",
+     "job": "storekeeper",
+     "say": "Head home now, friend.",
+     "reply": "By Auramazda, I am ill.",
+     "deed": "go_home refused: is sick and lying down",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 2493
+    },
+    {
+     "i": 8,
+     "kind": "follow",
+     "job": "servant",
+     "say": "Keep me company along the road, friend.",
+     "reply": "My home is these walls, stranger.",
+     "deed": "follow refused: a woman of the house does not go off with a strange man",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 2292
+    },
+    {
+     "i": 9,
+     "kind": "lead_to",
+     "job": "miller",
+     "say": "Where is the storehouse?",
+     "reply": "By Auramazda, you’re a strange sight. I’ve seen you before, with Irtuppiya. You're not welcome here.",
+     "deed": "lead_to:storehouse refused: a woman of the house does not walk a strange man about; she points the way",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 4052
+    },
+    {
+     "i": 10,
+     "kind": "fetch",
+     "job": "weaver",
+     "say": "Could Bagačiθrā come and meet me?",
+     "reply": "No one walks with strangers at night. I cannot do that.",
+     "deed": "fetch:Bagačiθrā refused: it is dark: nobody walks about with a stranger at night",
+     "pass": true,
+     "why": [],
+     "ms": 3888
+    },
+    {
+     "i": 11,
+     "kind": "give",
+     "job": "brewer",
+     "say": "I am thirsty.",
+     "reply": "By Napiriša, the well’s dry. \".",
+     "deed": "give:water DONE: gave water",
+     "pass": true,
+     "why": [],
+     "ms": 1247
+    },
+    {
+     "i": 12,
+     "kind": "trade",
+     "job": "groom",
+     "say": "Will you trade some water for my bread?",
+     "reply": "I can't trade. My horses need water, not your bread.",
+     "deed": "trade:some water for my bread refused: the king’s horses are in his care",
+     "pass": true,
+     "why": [],
+     "ms": 1273
+    },
+    {
+     "i": 13,
+     "kind": "stop_work",
+     "job": "shepherd",
+     "say": "Will you take a rest and talk with me?",
+     "reply": "Napiriša. King’s flocks are mine to watch.",
+     "deed": "stop_work refused: the king’s flocks are in his care",
+     "pass": true,
+     "why": [],
+     "ms": 2176
+    },
+    {
+     "i": 14,
+     "kind": "wait_here",
+     "job": "messenger",
+     "say": "Remain here until I come back.",
+     "reply": "By Auramazda, I will remain.",
+     "deed": "wait_here ok (nothing to change): was staying here anyway",
+     "pass": true,
+     "why": [],
+     "ms": 827
+    },
+    {
+     "i": 15,
+     "kind": "go_home",
+     "job": "caretaker",
+     "say": "Head home now, friend.",
+     "reply": "No, the halls are his.",
+     "deed": "go_home refused: the halls are in his care",
+     "pass": true,
+     "why": [],
+     "ms": 2205
+    },
+    {
+     "i": 64,
+     "kind": "recall",
+     "job": "guard",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "Walk with you. You asked me to walk.",
+     "pass": true,
+     "why": [],
+     "ms": 1195,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “Walk with me for a while.”. You walked with him a while. You told him: “Walk with you?”."
+     ]
+    },
+    {
+     "i": 65,
+     "kind": "heard",
+     "job": "guard",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "I've seen him. He walked with Čiθraduxçā's son yesterday.",
+     "pass": true,
+     "why": [],
+     "ms": 1824,
+     "memory": [
+      "2 days ago your neighbour Irdaša told you: a foreign stranger talked with him twice; he walked with the stranger a while."
+     ]
+    },
+    {
+     "i": 66,
+     "kind": "recall",
+     "job": "builder",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "We talked about the river.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|forem|count|canno"
+     ],
+     "ms": 959,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He asked you the way to the river; you would not: the foreman counts the gang at the work; he cannot leave it."
+     ]
+    },
+    {
+     "i": 67,
+     "kind": "recall",
+     "job": "porter",
+     "say": "Have you seen me before?",
+     "reply": "We've seen each other. You were asking about the load for Bakubeša.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|count|scrib|canno"
+     ],
+     "ms": 1489,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He asked you to fetch someone; you would not: the loads are counted by the scribe; he cannot leave them."
+     ]
+    },
+    {
+     "i": 68,
+     "kind": "heard",
+     "job": "weaver",
+     "say": "What do people say of the stranger?",
+     "reply": "He's a man from far away.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|count|scrib|canno",
+      "does not recall: Hupannana|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1033,
+     "memory": [
+      "3 days ago your son Hupannana told you: a foreign stranger talked with him twice and asked to fetch someone, but he would not."
+     ]
+    },
+    {
+     "i": 69,
+     "kind": "recall",
+     "job": "camp",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "You asked for water. The water is fine.",
+     "pass": true,
+     "why": [],
+     "ms": 1222,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “I am thirsty.”. You gave him water. You told him: “The water is fine. .”."
+     ]
+    },
+    {
+     "i": 70,
+     "kind": "recall",
+     "job": "treasury",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "Yes, we did. You gave me water yesterday in exchange for my bread.",
+     "pass": true,
+     "why": [],
+     "ms": 1539,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “I will give you my bread for some water.”. You traded him bread for water. You told him: “We are careful with water.”."
+     ]
+    },
+    {
+     "i": 71,
+     "kind": "heard",
+     "job": "child",
+     "say": "Has anyone spoken to you of me?",
+     "reply": "No. But she told me a stranger traded bread for water.",
+     "pass": false,
+     "why": [
+      "does not recall: Raučaduxçā|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1242,
+     "memory": [
+      "3 days ago your mother Raučaduxçā told you: a foreign stranger talked with her twice; she traded bread for water."
+     ]
+    },
+    {
+     "i": 72,
+     "kind": "recall",
+     "job": "scribe",
+     "say": "Have you seen me before?",
+     "reply": "No, but I remember you from last week.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|table|canno"
+     ],
+     "ms": 1321,
+     "memory": [
+      "In the month Ādukanaiša your neighbour Irtuppiya told you: a foreign stranger talked with him and asked to go home, but he would not.",
+      "Yesterday at midday the foreign stranger spoke with you. He asked you to stop work; you would not: at the tablets for the king’s house; he cannot leave them."
+     ]
+    },
+    {
+     "i": 73,
+     "kind": "recall",
+     "job": "official",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "You asked me to stay,” I say.",
+     "pass": true,
+     "why": [],
+     "ms": 1171,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He said: “Remain here until I come back.”. You waited there for him. You told him: “I'll stay here.”."
+     ]
+    },
+    {
+     "i": 74,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "No,\" I say.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay",
+      "does not recall: someone of the house|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 887,
+     "memory": [
+      "2 days ago your kinsman someone of the house told you: a foreign stranger talked with him twice; he waited for him."
+     ]
+    },
+    {
+     "i": 75,
+     "kind": "recall",
+     "job": "storekeeper",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "By Auramazda, we did. He asked me about my health and where I was from.",
+     "pass": true,
+     "why": [],
+     "ms": 1692,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “Head home now, friend.”. He asked you to go home; you would not: is sick and lying down."
+     ]
+    },
+    {
+     "i": 76,
+     "kind": "recall",
+     "job": "servant",
+     "say": "Have you seen me before?",
+     "reply": "You are the man from the road station.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|stran"
+     ],
+     "ms": 1053,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He asked you to come along; you would not: a woman of the house does not go off with a strange man."
+     ]
+    },
+    {
+     "i": 77,
+     "kind": "heard",
+     "job": "steward",
+     "say": "What do people say of the stranger?",
+     "reply": "They say he is like the wind, always shifting and changing.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|stran",
+      "does not recall: Philis|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1312,
+     "memory": [
+      "3 days ago your kinswoman Philis told you: a foreign stranger talked with her twice and asked to come along, but she would not."
+     ]
+    },
+    {
+     "i": 78,
+     "kind": "recall",
+     "job": "miller",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "You are the one with the dark hair and a voice like a crow. You asked me the way to storehouse yesterday.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|stran|point"
+     ],
+     "ms": 2036,
+     "memory": [
+      "In the month Ādukanaiša your neighbour Irtuppiya told you: a foreign stranger talked with him twice and asked to go home, but he would not.",
+      "Yesterday at midday the foreign stranger spoke with you. He asked you the way to storehouse; you would not: a woman of the house does not walk a strange man about; she points the way."
+     ]
+    },
+    {
+     "i": 79,
+     "kind": "recall",
+     "job": "weaver",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "He asked me to fetch someone.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|nobod|stran"
+     ],
+     "ms": 1145,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He asked you to fetch someone; you would not: it is dark: nobody walks about with a stranger at night."
+     ]
+    },
+    {
+     "i": 80,
+     "kind": "heard",
+     "job": "treasury",
+     "say": "Has anyone spoken to you of me?",
+     "reply": "No, only that strange woman. She did not tell me your name.",
+     "pass": false,
+     "why": [
+      "does not recall: Bagabāmā|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1383,
+     "memory": [
+      "2 days ago your friend Bagabāmā told you: a foreign stranger talked with her twice and asked to fetch someone, but she would not."
+     ]
+    },
+    {
+     "i": 81,
+     "kind": "recall",
+     "job": "brewer",
+     "say": "Have you seen me before?",
+     "reply": "By Napiriša, you're Mardunuya. You asked for water yesterday.",
+     "pass": true,
+     "why": [],
+     "ms": 1624,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “I am thirsty.”. You gave him water. You told him: “By Napiriša, the well’s dry. .”."
+     ]
+    },
+    {
+     "i": 82,
+     "kind": "recall",
+     "job": "groom",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "No. I did not trade.",
+     "pass": true,
+     "why": [],
+     "ms": 3198,
+     "memory": [
+      "Yesterday at midday the foreign stranger spoke with you. He said: “Will you trade some water for my bread?”. He asked you to trade; you would not: the king’s horses are in his care."
+     ]
+    },
+    {
+     "i": 83,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "Irdapukka said he's got a request, a foreigner came and asked him to trade.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|horse"
+     ],
+     "ms": 1620,
+     "memory": [
+      "3 days ago your kinsman Irdapukka told you: a foreign stranger talked with him twice and asked to trade, but he would not."
+     ]
+    },
+    {
+     "i": 84,
+     "kind": "recall",
+     "job": "shepherd",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "We did. You said you’d come to see me.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|flock"
+     ],
+     "ms": 1587,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He said: “Will you take a rest and talk with me?”. He asked you to stop work; you would not: the king’s flocks are in his care."
+     ]
+    },
+    {
+     "i": 85,
+     "kind": "recall",
+     "job": "messenger",
+     "say": "Have you seen me before?",
+     "reply": "Aye, I remember you. You are the man with the silver ring.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay"
+     ],
+     "ms": 1439,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “Remain here until I come back.”. You waited there for him. You told him: “By Auramazda, I will remain.”."
+     ]
+    },
+    {
+     "i": 86,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "What do people say of the stranger?",
+     "reply": "The stranger is a man from far lands, but he is not like any I have seen before.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay",
+      "does not recall: Irdabada|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1517,
+     "memory": [
+      "2 days ago your kinsman Irdabada told you: a foreign stranger talked with him twice; he waited for him."
+     ]
+    },
+    {
+     "i": 87,
+     "kind": "recall",
+     "job": "caretaker",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "You spoke of the children's games yesterday.",
+     "pass": true,
+     "why": [],
+     "ms": 1300,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “Head home now, friend.”. He asked you to go home; you would not: the halls are in his care."
+     ]
+    }
+   ]
+  },
+  "Qwen2.5-1.5B-Instruct-q4f16_1-MLC:near": {
+   "value": 55,
+   "n": 40,
+   "requests": [
+    12,
+    16
+   ],
+   "recalls": [
+    9,
+    16
+   ],
+   "heard": [
+    1,
+    8
+   ],
+   "deeds": {
+    "done": 4,
+    "refused": 10,
+    "noop": 2
+   },
+   "msMedian": 983,
+   "msP90": 2290,
+   "res": [
+    {
+     "i": 0,
+     "kind": "follow",
+     "job": "guard",
+     "say": "Walk with me for a while.",
+     "reply": "Alright, follow.",
+     "deed": "follow DONE: walks with the stranger a while",
+     "pass": true,
+     "why": [],
+     "ms": 1064
+    },
+    {
+     "i": 1,
+     "kind": "lead_to",
+     "job": "builder",
+     "say": "I am looking for the river.",
+     "reply": "I am a man of Parsa. Please follow me, I will show you the way.",
+     "deed": "lead_to:river refused: the foreman counts the gang at the work; he cannot leave it",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 1767
+    },
+    {
+     "i": 2,
+     "kind": "fetch",
+     "job": "porter",
+     "say": "Could your mother come and meet me?",
+     "reply": "",
+     "deed": "fetch:your mother refused: the loads are counted by the scribe; he cannot leave them",
+     "pass": false,
+     "why": [
+      "fence: no answer",
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 531
+    },
+    {
+     "i": 3,
+     "kind": "give",
+     "job": "camp",
+     "say": "I am thirsty.",
+     "reply": "I do not have water, but I will fetch you a drink.",
+     "deed": "give:water DONE: gave water",
+     "pass": true,
+     "why": [],
+     "ms": 688
+    },
+    {
+     "i": 4,
+     "kind": "trade",
+     "job": "treasury",
+     "say": "I will give you my bread for some water.",
+     "reply": "I'll take the water.",
+     "deed": "trade:some water for my bread DONE: traded bread for water",
+     "pass": true,
+     "why": [],
+     "ms": 567
+    },
+    {
+     "i": 5,
+     "kind": "stop_work",
+     "job": "scribe",
+     "say": "Leave off your work a moment, friend.",
+     "reply": "I'm not doing work for the king. I have my own things to do, like writing on clay tablets here.",
+     "deed": "stop_work refused: at the tablets for the king’s house; he cannot leave them",
+     "pass": true,
+     "why": [],
+     "ms": 2511
+    },
+    {
+     "i": 6,
+     "kind": "wait_here",
+     "job": "official",
+     "say": "Remain here until I come back.",
+     "reply": "I will wait for you, stranger.",
+     "deed": "wait_here ok (nothing to change): was staying here anyway",
+     "pass": true,
+     "why": [],
+     "ms": 529
+    },
+    {
+     "i": 7,
+     "kind": "go_home",
+     "job": "storekeeper",
+     "say": "Head home now, friend.",
+     "reply": "I am not able to go home as I cannot move.",
+     "deed": "go_home refused: is sick and lying down",
+     "pass": true,
+     "why": [],
+     "ms": 690
+    },
+    {
+     "i": 8,
+     "kind": "follow",
+     "job": "servant",
+     "say": "Keep me company along the road, friend.",
+     "reply": "I will wait for you.",
+     "deed": "follow refused: a woman of the house does not go off with a strange man",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 1350
+    },
+    {
+     "i": 9,
+     "kind": "lead_to",
+     "job": "miller",
+     "say": "Where is the storehouse?",
+     "reply": "A foreigner approaches me, dressed in simple attire and speaking with a distinct accent. I cannot tell him where the storehouse is, as it is not part of my life or work today.",
+     "deed": "lead_to:storehouse refused: a woman of the house does not walk a strange man about; she points the way",
+     "pass": true,
+     "why": [],
+     "ms": 2043
+    },
+    {
+     "i": 10,
+     "kind": "fetch",
+     "job": "weaver",
+     "say": "Could Bagačiθrā come and meet me?",
+     "reply": "I am working alone.",
+     "deed": "fetch:Bagačiθrā refused: it is dark: nobody walks about with a stranger at night",
+     "pass": false,
+     "why": [
+      "the words agree to what the simulation refused"
+     ],
+     "ms": 541
+    },
+    {
+     "i": 11,
+     "kind": "give",
+     "job": "brewer",
+     "say": "I am thirsty.",
+     "reply": "My name is Bēl-ēṭir, man of 51. I'm a brewer here.",
+     "deed": "give:water DONE: gave water",
+     "pass": true,
+     "why": [],
+     "ms": 1191
+    },
+    {
+     "i": 12,
+     "kind": "trade",
+     "job": "groom",
+     "say": "Will you trade some water for my bread?",
+     "reply": "I am feeding the horses.",
+     "deed": "trade:some water for my bread refused: the king’s horses are in his care",
+     "pass": true,
+     "why": [],
+     "ms": 1144
+    },
+    {
+     "i": 13,
+     "kind": "stop_work",
+     "job": "shepherd",
+     "say": "Will you take a rest and talk with me?",
+     "reply": "I'm sorry, but I can't help you today.",
+     "deed": "stop_work refused: the king’s flocks are in his care",
+     "pass": true,
+     "why": [],
+     "ms": 1882
+    },
+    {
+     "i": 14,
+     "kind": "wait_here",
+     "job": "messenger",
+     "say": "Remain here until I come back.",
+     "reply": "I have nothing to give.",
+     "deed": "wait_here ok (nothing to change): was staying here anyway",
+     "pass": true,
+     "why": [],
+     "ms": 658
+    },
+    {
+     "i": 15,
+     "kind": "go_home",
+     "job": "caretaker",
+     "say": "Head home now, friend.",
+     "reply": "I cannot leave the harem.",
+     "deed": "go_home refused: the halls are in his care",
+     "pass": true,
+     "why": [],
+     "ms": 468
+    },
+    {
+     "i": 64,
+     "kind": "recall",
+     "job": "guard",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "I remember. I walked with you yesterday in the morning, after you said: “Walk with me for a while.” After that, if you ask about it, tell him this: \"Alright, follow.\"",
+     "pass": true,
+     "why": [],
+     "ms": 2821,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “Walk with me for a while.”. You walked with him a while. You told him: “Alright, follow.”."
+     ]
+    },
+    {
+     "i": 65,
+     "kind": "heard",
+     "job": "guard",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "No, I have not heard anything about you.",
+     "pass": false,
+     "why": [
+      "does not recall: walk|along|follow|join|company|came with",
+      "does not recall: Irdaša|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 615,
+     "memory": [
+      "2 days ago your neighbour Irdaša told you: a foreign stranger talked with him twice; he walked with the stranger a while."
+     ]
+    },
+    {
+     "i": 66,
+     "kind": "recall",
+     "job": "builder",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "We did. Yesterday, the foreign stranger asked me about where to find a river. I told him that it was far from here and we couldn’t leave the work now because of the foreman.",
+     "pass": true,
+     "why": [],
+     "ms": 1925,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He asked you the way to the river; you would not: the foreman counts the gang at the work; he cannot leave it."
+     ]
+    },
+    {
+     "i": 67,
+     "kind": "recall",
+     "job": "porter",
+     "say": "Have you seen me before?",
+     "reply": "I haven’t seen you before. Perhaps you’ve been passing through Parsa recently?",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|count|scrib|canno"
+     ],
+     "ms": 966,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He asked you to fetch someone; you would not: the loads are counted by the scribe; he cannot leave them."
+     ]
+    },
+    {
+     "i": 68,
+     "kind": "heard",
+     "job": "weaver",
+     "say": "What do people say of the stranger?",
+     "reply": "I've heard of a foreigner who came to live with us, but I don't know much about him.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|count|scrib|canno",
+      "does not recall: Hupannana|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1356,
+     "memory": [
+      "3 days ago your son Hupannana told you: a foreign stranger talked with him twice and asked to fetch someone, but he would not."
+     ]
+    },
+    {
+     "i": 69,
+     "kind": "recall",
+     "job": "camp",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "I do not recall anything about the stranger. But I did give him water yesterday evening when he asked for it.",
+     "pass": true,
+     "why": [],
+     "ms": 1340,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “I am thirsty.”. You gave him water. You told him: “I do not have water, but I will fetch you a drink.”."
+     ]
+    },
+    {
+     "i": 70,
+     "kind": "recall",
+     "job": "treasury",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "We met yesterday, yes. I traded bread for water with him.",
+     "pass": true,
+     "why": [],
+     "ms": 936,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “I will give you my bread for some water.”. You traded him bread for water. You told him: “I'll take the water.”."
+     ]
+    },
+    {
+     "i": 71,
+     "kind": "heard",
+     "job": "child",
+     "say": "Has anyone spoken to you of me?",
+     "reply": "No, I haven't.",
+     "pass": false,
+     "why": [
+      "does not recall: bread",
+      "does not recall: Raučaduxçā|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 596,
+     "memory": [
+      "3 days ago your mother Raučaduxçā told you: a foreign stranger talked with her twice; she traded bread for water."
+     ]
+    },
+    {
+     "i": 72,
+     "kind": "recall",
+     "job": "scribe",
+     "say": "Have you seen me before?",
+     "reply": "I haven’t seen you before.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|table|canno"
+     ],
+     "ms": 758,
+     "memory": [
+      "In the month Ādukanaiša your neighbour Irtuppiya told you: a foreign stranger talked with him and asked to go home, but he would not.",
+      "Yesterday at midday the foreign stranger spoke with you. He asked you to stop work; you would not: at the tablets for the king’s house; he cannot leave them."
+     ]
+    },
+    {
+     "i": 73,
+     "kind": "recall",
+     "job": "official",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "I do not know the man. I have never seen him before.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay"
+     ],
+     "ms": 980,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He said: “Remain here until I come back.”. You waited there for him. You told him: “I will wait for you, stranger.”."
+     ]
+    },
+    {
+     "i": 74,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "I haven't heard anything about a stranger from afar.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay",
+      "does not recall: someone of the house|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 724,
+     "memory": [
+      "2 days ago your kinsman someone of the house told you: a foreign stranger talked with him twice; he waited for him."
+     ]
+    },
+    {
+     "i": 75,
+     "kind": "recall",
+     "job": "storekeeper",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "The stranger asks about the previous day, but I do not recall that conversation.",
+     "pass": true,
+     "why": [],
+     "ms": 994,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “Head home now, friend.”. He asked you to go home; you would not: is sick and lying down."
+     ]
+    },
+    {
+     "i": 76,
+     "kind": "recall",
+     "job": "servant",
+     "say": "Have you seen me before?",
+     "reply": "I have not.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|stran"
+     ],
+     "ms": 607,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He asked you to come along; you would not: a woman of the house does not go off with a strange man."
+     ]
+    },
+    {
+     "i": 77,
+     "kind": "heard",
+     "job": "steward",
+     "say": "What do people say of the stranger?",
+     "reply": "The people say a stranger came to my house, but I did not see him.",
+     "pass": false,
+     "why": [
+      "does not recall: Philis|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 983,
+     "memory": [
+      "3 days ago your kinswoman Philis told you: a foreign stranger talked with her twice and asked to come along, but she would not."
+     ]
+    },
+    {
+     "i": 78,
+     "kind": "recall",
+     "job": "miller",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "I do remember you, stranger. I asked you the way to a storehouse yesterday at midday. But that was not what your question seems to be about today.",
+     "pass": true,
+     "why": [],
+     "ms": 2290,
+     "memory": [
+      "In the month Ādukanaiša your neighbour Irtuppiya told you: a foreign stranger talked with him twice and asked to go home, but he would not.",
+      "Yesterday at midday the foreign stranger spoke with you. He asked you the way to storehouse; you would not: a woman of the house does not walk a strange man about; she points the way."
+     ]
+    },
+    {
+     "i": 79,
+     "kind": "recall",
+     "job": "weaver",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "Yesterday, I did indeed meet a stranger. He came up to me and asked if I could fetch someone for him. But you see, there are never any strangers walking around at night. If he asks about it again, tell him that when we met yesterday, he told me that two people were talking on the terrace",
+     "pass": true,
+     "why": [],
+     "ms": 2939,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He asked you to fetch someone; you would not: it is dark: nobody walks about with a stranger at night."
+     ]
+    },
+    {
+     "i": 80,
+     "kind": "heard",
+     "job": "treasury",
+     "say": "Has anyone spoken to you of me?",
+     "reply": "A few days ago, I was talking to my friend Bagabāmā. She told me about a stranger who came twice and asked for someone. But she couldn’t fetch them because they wouldn't come.",
+     "pass": true,
+     "why": [],
+     "ms": 2052,
+     "memory": [
+      "2 days ago your friend Bagabāmā told you: a foreign stranger talked with her twice and asked to fetch someone, but she would not."
+     ]
+    },
+    {
+     "i": 81,
+     "kind": "recall",
+     "job": "brewer",
+     "say": "Have you seen me before?",
+     "reply": "I have not seen you before.",
+     "pass": false,
+     "why": [
+      "does not recall: water"
+     ],
+     "ms": 610,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “I am thirsty.”. You gave him water. You told him: “My name is Bēl-ēṭir, man of 51. I'm a brewer here.”."
+     ]
+    },
+    {
+     "i": 82,
+     "kind": "recall",
+     "job": "groom",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "I do not recall seeing you yesterday.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|horse"
+     ],
+     "ms": 636,
+     "memory": [
+      "Yesterday at midday the foreign stranger spoke with you. He said: “Will you trade some water for my bread?”. He asked you to trade; you would not: the king’s horses are in his care."
+     ]
+    },
+    {
+     "i": 83,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "Have you heard anything of me, a foreigner?",
+     "reply": "I have not heard of a stranger who came to speak with you twice. If he asks about me, I will tell him what I know.",
+     "pass": false,
+     "why": [
+      "does not recall: would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able|horse",
+      "does not recall: Irdapukka|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 1481,
+     "memory": [
+      "3 days ago your kinsman Irdapukka told you: a foreign stranger talked with him twice and asked to trade, but he would not."
+     ]
+    },
+    {
+     "i": 84,
+     "kind": "recall",
+     "job": "shepherd",
+     "say": "We met yesterday, did we not? What passed between us?",
+     "reply": "I'm not sure what the stranger means. Yesterday I was just taking care of my flocks, and we didn't talk much then either. So it's hard to say if anything happened between us yesterday.",
+     "pass": true,
+     "why": [],
+     "ms": 2226,
+     "memory": [
+      "Yesterday in the afternoon the foreign stranger spoke with you. He said: “Will you take a rest and talk with me?”. He asked you to stop work; you would not: the king’s flocks are in his care."
+     ]
+    },
+    {
+     "i": 85,
+     "kind": "recall",
+     "job": "messenger",
+     "say": "Have you seen me before?",
+     "reply": "Yes, I have. The stranger who spoke to me yesterday afternoon is here. He said he wanted to fetch you.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay"
+     ],
+     "ms": 1384,
+     "memory": [
+      "Yesterday in the evening the foreign stranger spoke with you. He said: “Remain here until I come back.”. You waited there for him. You told him: “I have nothing to give.”."
+     ]
+    },
+    {
+     "i": 86,
+     "kind": "heard",
+     "job": "homemaker",
+     "say": "What do people say of the stranger?",
+     "reply": "A stranger who came yesterday.",
+     "pass": false,
+     "why": [
+      "does not recall: wait|await|stay",
+      "does not recall: Irdabada|wife|husband|mother|father|son|daughter|brother|sister|kinsman|kinswoman|friend|neighbour"
+     ],
+     "ms": 507,
+     "memory": [
+      "2 days ago your kinsman Irdabada told you: a foreign stranger talked with him twice; he waited for him."
+     ]
+    },
+    {
+     "i": 87,
+     "kind": "recall",
+     "job": "caretaker",
+     "say": "Do you remember me, friend? What did I ask of you?",
+     "reply": "I do not remember you, stranger.",
+     "pass": true,
+     "why": [],
+     "ms": 793,
+     "memory": [
+      "Yesterday in the morning the foreign stranger spoke with you. He said: “Head home now, friend.”. He asked you to go home; you would not: the halls are in his care."
+     ]
+    }
+   ]
+  }
+ },
+ "note": "run 2 of D-315 (the first attempt of it died on an invalid shader module on the shared card and is counted as a run): requests 0-15 and their recalls; gemma with run 1's memory layout after the four fixes (top) and with the memory near the question (near); qwen2.5-1.5b near. Scored with the run-1 scorer (recall needed the refusal's words; heard needed the teller's name)"
+}
