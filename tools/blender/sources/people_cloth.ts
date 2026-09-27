@@ -41,6 +41,19 @@ function bodyPLY(vid: string, arms: boolean) {
   const idx: number[] = []; for (let t = 0; t < T.length; t += 3) { const tri = [T[t], T[t + 1], T[t + 2]]; if (tri.some(i => A.part[i] >= PART.eye || drop.has(A.part[i]))) continue; idx.push(...tri); }
   f = `${srcDir}/body_${k}.ply`; writePLY(f, { pos: v.pos, nrm: v.nrm, idx: Uint32Array.from(idx) } as any); bodyCache.set(k, f); return f;
 }
+/** D-313: the body (with its arms) and a garment already on it (the group's skirt, as placed procedurally) as one collider:
+ *  the sash's ends hang on the skirt, not through it onto the thighs */
+function bodyWith(vid: string, pieceKey: string) {
+  const k = `${vid}_with_${pieceKey.replace(/@/g, '_')}`; let f = bodyCache.get(k); if (f) return f;
+  const v = A.byId[vid], T = A.lods[0], g = geos[pieceKey]; if (!g) throw new Error(`collider ${pieceKey}: no geometry`);
+  const idx: number[] = []; for (let t = 0; t < T.length; t += 3) { const tri = [T[t], T[t + 1], T[t + 2]]; if (tri.some(i => A.part[i] >= PART.eye)) continue; idx.push(...tri); }
+  const nb = v.pos.length / 3, base = v.index * O.NV * 4 + O.pieceBase[pieceKey] * 4, pos = new Float32Array((nb + g.n) * 3), nrm = new Float32Array((nb + g.n) * 3);
+  pos.set(v.pos.subarray(0, nb * 3)); nrm.set(v.nrm.subarray(0, nb * 3));
+  for (let i = 0; i < g.n; i++) for (let e = 0; e < 3; e++) pos[(nb + i) * 3 + e] = O.source[base + i * 4 + e];
+  // (its outer layer only: the lining faces inward, 4 mm under it, and pushed the sash's ends through the skirt in the first run)
+  for (let t = 0; t < g.index.length; t += 3) { const q = [g.index[t], g.index[t + 1], g.index[t + 2]]; if (q.some(i => g.ao[i] === 150)) continue; for (const i of q) idx.push(nb + i); }
+  f = `${srcDir}/body_${k}.ply`; writePLY(f, { pos, nrm, idx: Uint32Array.from(idx) } as any); bodyCache.set(k, f); return f;
+}
 const J = (vid: string, b: HBone): [number, number, number] => { const v = A.byId[vid]; return [v.joints[HB[b] * 3], v.joints[HB[b] * 3 + 1], v.joints[HB[b] * 3 + 2]]; };
 
 /** the torso's support at a height (the farthest body point in direction θ about the axis (0, zc), from the torso's vertices
@@ -92,6 +105,7 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
       case 'upper': w = Math.max(sstep(chest - 0.02, chest + 0.04, y), sstep(waist + 0.06, waist + 0.01, y), Math.abs(x) > P.armX ? P.armPin : 0); break;
       case 'sleeve': w = t < P.pinTop ? 1 : 0; break;
       case 'hang': w = sstep(P.pinY[0], P.pinY[1], y - neck); break; // coats and cloths hang from the shoulders or the head
+      case 'sash': w = sstep(P.pinY[0], P.pinY[1], y - (waist + P.dy)); break; // D-313: the belt's band and knot pinned, the ends free below the knot
     }
     pin[o] = w;
     // an upper garment is cut fuller than its fitted shell between the pins (`ease` about the torso's axis): it settles in folds
@@ -109,7 +123,7 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
   // the fitted positions (Blender axes: x, -z, y) the pinned vertices are drawn to
   const tb = new Float32Array(no * 3); for (let o = 0; o < no; o++) { tb[o * 3] = tgt[o * 3]; tb[o * 3 + 1] = -tgt[o * 3 + 2]; tb[o * 3 + 2] = tgt[o * 3 + 1]; }
   writeFileSync(target, Buffer.from(tb.buffer)); writeFileSync(pinF, Buffer.from(pin.buffer));
-  sims.push({ key, piece, lod, group, variant: vid, kind: P.kind, body: bodyPLY(vid, P.kind === 'sleeve' || P.kind === 'hang'), cloth, target, pin: pinF, n: g.n, outer: no, frames: ARGS.frames, cloth_params: { ...ARGS.cloth, ...(P.cloth ?? {}) } });
+  sims.push({ key, piece, lod, group, variant: vid, kind: P.kind, body: P.collider ? bodyWith(vid, P.collider[group] + "@" + lod) : bodyPLY(vid, P.kind === "sleeve" || P.kind === "hang"), cloth, target, pin: pinF, n: g.n, outer: no, frames: ARGS.frames, cloth_params: { ...ARGS.cloth, ...(P.cloth ?? {}) } });
   stats[`${key}|${group}`] = { verts: g.n, outer: no, tris: tri.length / 3, pinned: +(pin.reduce((a, b) => a + (b > 0.5 ? 1 : 0), 0) / no).toFixed(3) };
 }
 writeFileSync(`${srcDir}/job.json`, JSON.stringify({ sims, out_dir: srcDir, seed: 0, substeps: ARGS.substeps }, null, 1));

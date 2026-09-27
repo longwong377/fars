@@ -616,6 +616,84 @@
    "rms": 0.0165,
    "max": 0.02819,
    "note": "hang: settled by Blender's cloth solver on f02"
+  },
+  "belt@0|men": {
+   "n": 326,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 149860,
+    "n": 978,
+    "t": "i16"
+   },
+   "rms": 0.00483,
+   "max": 0.02261,
+   "note": "sash: settled by Blender's cloth solver on m03"
+  },
+  "belt@0|women": {
+   "n": 326,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 151816,
+    "n": 978,
+    "t": "i16"
+   },
+   "rms": 0.00578,
+   "max": 0.02392,
+   "note": "sash: settled by Blender's cloth solver on f02"
+  },
+  "belt@1|men": {
+   "n": 123,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 153772,
+    "n": 369,
+    "t": "i16"
+   },
+   "rms": 0.00354,
+   "max": 0.01465,
+   "note": "sash: settled by Blender's cloth solver on m03"
+  },
+  "belt@1|women": {
+   "n": 123,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 154512,
+    "n": 369,
+    "t": "i16"
+   },
+   "rms": 0.0041,
+   "max": 0.01679,
+   "note": "sash: settled by Blender's cloth solver on f02"
+  },
+  "belt@2|men": {
+   "n": 74,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 155252,
+    "n": 222,
+    "t": "i16"
+   },
+   "rms": 0.00471,
+   "max": 0.02033,
+   "note": "sash: settled by Blender's cloth solver on m03"
+  },
+  "belt@2|women": {
+   "n": 74,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 155696,
+    "n": 222,
+    "t": "i16"
+   },
+   "rms": 0.0056,
+   "max": 0.02438,
+   "note": "sash: settled by Blender's cloth solver on f02"
   }
  }
 }
