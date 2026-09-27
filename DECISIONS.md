@@ -7578,3 +7578,56 @@ moment-*-webgpu.png in the worktree, not committed).**
   stops the leaf's thickness (r_door_leaves.thickness 0.25 m) short of the inner face and the fore-part projects 2.2 m
   (C; Q-890). The protome's horns are raised ~0.08 D in the head frame (protome.head.horn_shift [-0.07, 0.035, 0] D): with
   the head hung low they no longer rose above the poll; the photographs show them sweeping up and forward (C).
+## D-324 The house kit finished, near to far: three levels of detail, the eave poles' ends, the brick at the foot, the kit's benches, rungs, jambs and stones, the walls' baked detail (session 12, agent houselod; UD-19, UD-17, D-233; T-R12; continues D-311)
+- **Still broken, placeholder or unverified (lead):** no world render (the lead's batched one). Evidence: the house probe page
+  (tools/dev/house_lab.*: the town and the villages on the terrain in the game's materials and scans, a sun with a shadow map
+  and a sky hemisphere; no sky model, probes, exposure or people; shots/houselab-*, copied to T:/fars-assets-s12/houselod/) and
+  Blender previews (tools/blender/preview_housekit2.py). The far level is still a geometric simplification: at 100-600 m its
+  walls are plastered masses with the scan and the baked detail, the parapets' worn line, the eave band, dark windows and
+  doorways, but no pole ends, spouts or court things. The octahedral impostors of the brief were not built for the houses
+  (measured below). The brick losses' first cut showed dark slivers at the rectangle's ends (the ring's outline missed the
+  corners): fixed in the kit (the corners among the ring's angles), not re-rendered. The bake's strength (nor 1.1, cav 0.3) is
+  set by eye on one probe frame (first at 1.6: the walls read lumpy).
+- **How it could pass its tests while the intent fails (said before starting):** pieces and triangles placed where no player
+  reads them (pole ends still reading as lumps, bricks behind a face with no hole, a far level with more triangles that still
+  reads as boxes, a normal map too faint to see or tiling in a grid, a level swap that pops at 40 m). Measured against:
+  Blender previews of every new piece before wiring (the first pole end, one smooth-shaded mesh, read as a crumpled cap and
+  was rebuilt with its own crisp end face; the first jamb read as a pipe and was flattened), probe renders at 2-3 m (courts,
+  doorways, losses, benches, ladders), 60-600 m and a village at 30 and 200 m, and the bake's statistics.
+- **Three levels (every house of the town and the villages: one generator, SiteHouses):** the near tiles are keyed tile x 2 +
+  level (build.ts, villagehouses.ts nearUpdate): the full level within NEAR0 = 40 m of a tile's centre (kept to 50 m), the
+  middle ring to NEAR_R = 72 m (a plaster grid twice as coarse, the 14-triangle crest crestL, the eave poles cut to the stubs
+  that show over the court, the rooms empty, half the firewood and roof fuel, the brick losses drawn flat), prefetched 20 m
+  ahead; the far level beyond. The middle ring is 59 % of the full level's triangles on q_s1/q_s3/q_w1 (tests/houselod.test.ts).
+- **The kit (tools/blender/housekit.py, src/data/housekit.json 0.19 MB; all AO-baked in Cycles):** plog (the eave pole with its
+  axe-chopped end, end grain from the pale rim to the dark heart, one or two checks notched in the rim; its end's relief kept
+  in radius units whatever the pole's length: kit.ts yr; 24 triangles), crestL, bench (slumped front, rounded ends, seats worn
+  hollow), rung (rawhide collars), jamb (adzed board, rotted foot, split head), stone and pebble (fieldstones), sill (the
+  threshold worn 3 cm hollow), bpl/bbr (a 0.9 x 0.38 m loss of the plaster: the ring flush with the face and broken back to
+  the brick, the courses behind in stretcher bond: bricks 33 cm (Iranica, B), courses 11.5 cm, joints 1.6 cm sunk (C)). The
+  log's bark relief cut to a third (+-15 % read as lumps). Wired, every instance: every eave pole (full level and stubs), every
+  ladder rung, court and vestibule bench, street doorway's jamb boards, doorstep, threshold, pivot stone, post base and drip
+  stone (the middle ring keeps the boxes), the brick losses on every exterior face by the household's bare share and age (they
+  replace D-234's flat bare-brick decals; 882 in three quarters). Bedding, rolled mats and the stone roller no longer take the
+  poplar log (pole(..., wood = false)). Batch.lathe lost a zero-height band under every cap (degenerate triangles).
+- **The far level (houses.ts buildFar, farCrest; villagehouses.ts farCompound):** exposed tops follow the near level's worn
+  line (topOf: the undulation and the rain's deeper notches, ~3 m stations); the eave a top, its earth front and the dark band
+  of the pole ends (6 triangles, was a 10-triangle box); windows (windowsOf, shared with the near level) and street doorways
+  dark; each roof its own earth; the roof fuel stacks. Villages: the ranges' roofs at the roof with the parapet on the outer
+  side (was one box to the parapet's top), the eave over the yard, the gateway dark. Town far level 573 k -> 731 k (< 800 k);
+  settlement 0.87 M static (< 1.2 M); the plain's frame at village P22 1.970 M (< 2.0 M: the villages' far additions were cut
+  to 4 triangles an eave and one parapet to fit).
+- **The walls' baked detail (tools/blender/wallbake.py; public/textures/housewall_bake/bake.jpg, 1024^2, 0.29 MB):** a 2.37 m
+  tile of mud plaster modelled as a periodic height field (1.85 mm) and built as a ~4.5 M-triangle Blender mesh: the coat's
+  relief, the float's arcs, straw, grit and pits, shrinkage cracks on a cell network, the brick courses faint through a thin
+  coat; Cycles bakes the tangent normal (OpenGL) onto a flat tile, the cavity (height against its 8 mm blur) from the same
+  field; packed R, G normal, B cavity (one sampler). scans.ts WALL_BAKE lays it triplanar over the clay_plaster scan on
+  house_plaster (near and far, town and villages): house_plaster 4 samplers (was 3; the page limit leaves 6).
+- **Octahedral impostors (tools/blender/impostor.py): measured, not built for the houses.** The houses are 1,447 unique
+  plans (and ~740 village compounds), not instances: an 8 x 8 atlas of 128 px cells is 4 MB of RGBA per house, 5.8 GB for the
+  town; one per 32 m tile, 431 x 4 MB = 1.7 GB, and a tile impostor would still pop against its neighbours at 72 m. The
+  geometric far level (731 k triangles, one mesh per cluster, relit by the game) is the probable best; impostor.py stays for
+  instanced classes (trees, props).
+- **Q-960 (open):** in the browser the near tiles carry ~20-40 % more triangles than node counts (probe: q_s1 court 583 k,
+  q_s1 at 60 m 1.16 M): the CC0 scan jars and baskets (D-310, scanShape into the house batches) are drawn only in the
+  browser, so tests/houses.test.ts budgets do not see them.

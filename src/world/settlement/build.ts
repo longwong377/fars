@@ -27,7 +27,7 @@ import { scanShape } from '../../render/scanProps';
 
 /** what F3 adds on the far level of the houses (D-234: beyond NEAR_R the houses are drawn as walls and roofs in plain boxes
  *  with the eave's shadow line; their footings, pole ends, spouts, windows, repairs and court things are drawn near only) */
-export const FAR_LOD_NOTE = 'distant level of detail (beyond ~72 m): walls and roofs as plain plastered boxes with the eave line; the footing, pole ends, spouts, windows, repairs and the household\'s things are drawn within ~72 m (D-234).';
+export const FAR_LOD_NOTE = 'distant level of detail (beyond ~72 m; D-234, D-324): walls and roofs as plastered masses, the exposed tops along their worn line, the eave\'s front over the dark band of the pole ends, windows and street doorways dark, the roofs\' fuel; the footing, pole ends, spouts, repairs and the household\'s things are drawn within ~72 m (the kit\'s full detail within ~40 m).';
 /** which tiles are drawn near (a texel per tile id + 1; texel 0 never): the far level collapses them in its vertex stage.
  *  Set only when the merged near meshes are swapped in, so the two always agree, whatever the eye does meanwhile */
 const NS_W = 512, NS_H = 240; export const NEAR_STATE = new THREE.DataTexture(new Uint8Array(NS_W * NS_H * 4), NS_W, NS_H, THREE.RGBAFormat, THREE.UnsignedByteType);

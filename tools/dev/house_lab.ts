@@ -50,6 +50,12 @@ import { Settlement } from '../../src/world/settlement/build';
     if (a[0] === 'far' || a[0] === 'village') { const c = a[0] === 'far' ? town.plan.sites.find(x => x.id === a[1])!.frame.c : [villages[+a[1]].x, villages[+a[1]].y];
       const d = +a[2], h = +a[3], br = (+a[4] * Math.PI) / 180, x = c[0] + Math.sin(br) * d, z = -(c[1] + Math.cos(br) * d), gy = H(c[0], -c[1]);
       const yaw = ((Math.atan2(c[0] - x, (-c[1]) - z) * 180) / Math.PI), pitch = (Math.atan2(gy + 3 - (H(x, z) + h), d) * 180) / Math.PI; return [x, z, H(x, z) + h, ((180 - yaw) % 360 + 360) % 360, pitch]; }
+    if (a[0] === 'brick') { const H2 = town.houses.find(q => q.s.id === a[1])!, g = H2.s.frame.c; town.nearUpdate(g[0], -g[1], 0, true);
+      const L = [...H2.losses.values()], q = L[+a[2] % L.length], back = +(a[3] ?? 2.2), x = q[0] + q[3] * back, z = q[2] + q[4] * back, gb = (Math.atan2(-q[3], q[4]) * 180) / Math.PI;
+      return [x, z, H(x, z) + 1.3, ((gb % 360) + 360) % 360, -8]; }
+    if (a[0] === 'bench') { const H2 = town.houses.find(q => q.s.id === a[1])!, bs = H2.fixtures.filter(f => f.kind === 'bench'), f = bs[+a[2] % bs.length], d = +(a[3] ?? 2.4);
+      const u = f.u + Math.cos(f.rot) * (0.5 + d), v = f.v + Math.sin(f.rot) * (0.5 + d), g = H2.s.grid(u, v), c = H2.s.grid(f.u, f.v), gb = (Math.atan2(c[0] - g[0], c[1] - g[1]) * 180) / Math.PI;
+      return [g[0], -g[1], H(g[0], -g[1]) + 1.5, ((gb % 360) + 360) % 360, -18]; }
     const s = town.plan.sites.find(x => x.id === a[1])!, hs = s.plots.filter(p => p.door && (p.kind === 'house' || p.kind === 'house_large')), p = hs[+a[2] % hs.length];
     if (a[0] === 'court') { let su = 0, sv = 0, n = 0, lo = [1e9, 1e9];
       for (let k = 0; k < s.cell.length; k++) if (s.cell[k] === p.idx && s.sub[k] === 2) { const u = s.cu(k % s.W), v = s.cv((k / s.W) | 0); su += u; sv += v; n++; if (u + v < lo[0] + lo[1]) lo = [u, v]; }

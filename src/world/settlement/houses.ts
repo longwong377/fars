@@ -6,8 +6,12 @@
 //    plaster has gone, soot above the hearths; flat roofs of poplar poles, brush and packed earth with a 2 % fall, the eave
 //    oversailing the court on the pole ends with a mud lip and a spout; ceilings of poles and matting inside; timber
 //    lintels, stone thresholds and pivot stones; small high windows; porticoes, ladders, benches and each household's
-//    things (houseplan.ts).
-//  - FAR (one mesh per cluster, always drawn): walls and roofs as plain boxes with the eave's shadow line; the tiles that
+//    things (houseplan.ts). D-324: two near levels, the full one within NEAR0 (the Blender kit's eave pole ends, brick
+//    losses, benches, rungs, jamb boards, stones, the rooms' things) and the middle ring to NEAR_R (a coarser plaster grid,
+//    the light crest, the pole stubs over the eaves, the rooms empty); the walls' plaster takes the Blender-baked detail
+//    (render/scans.ts WALL_BAKE) at every level.
+//  - FAR (one mesh per cluster, always drawn): walls and roofs as plastered masses (D-324: the exposed tops along their
+//    worn line, the eave's front over the dark pole band, windows and street doorways dark, roof fuel); the tiles that
 //    are drawn NEAR are collapsed in its vertex shader (a per-vertex tile id looked up in a state texture the CPU sets when
 //    it swaps in the merged near meshes), so every house is drawn exactly once, near or far; its shadow pass is not
 //    collapsed (castShadowPositionNode): the far level casts the near houses' shadows too.
@@ -34,19 +38,19 @@ export interface PartDef { tier: string; src: string; note: string }
 /** what F3 says of each part (D-234; SETTLEMENT.md §8 has the table with its sources) */
 export const HOUSE_PARTS: PartDef[] = [
   { tier: 'C', src: 'RECON', note: '' },
-  { tier: 'C', src: 'IR-BRICK;STEIN2016;RECON', note: 'wall of sun-dried mud brick (Achaemenid bricks ~33 cm square: Iranica, search extract, B), two bricks and a render thick (0.7 m outer, 0.55 m to the court, 0.4 m between rooms; C), faced with straw-tempered mud plaster (earthen plaster at Pasargadae and Persepolis: Stein et al. 2016, B), a renewed skirting coat, damp and salt at the foot (D-218, C); the plaster hand-laid, not flat (±1-2 cm, C); an exposed top capped by a slumped mud crest from the Blender house kit (D-311, tools/blender/housekit.py; C)' },
+  { tier: 'C', src: 'IR-BRICK;STEIN2016;RECON', note: 'wall of sun-dried mud brick (Achaemenid bricks ~33 cm square: Iranica, search extract, B), two bricks and a render thick (0.7 m outer, 0.55 m to the court, 0.4 m between rooms; C), faced with straw-tempered mud plaster (earthen plaster at Pasargadae and Persepolis: Stein et al. 2016, B), a renewed skirting coat, damp and salt at the foot (D-218, C); the plaster hand-laid, not flat (±1-2 cm, C); an exposed top capped by a slumped mud crest from the Blender house kit (D-311, tools/blender/housekit.py; C); the plaster\'s float arcs, straw, grit, pits and shrinkage cracks baked in Blender from a modelled wall (D-324, tools/blender/wallbake.py; C)' },
   { tier: 'C', src: 'HASANLU-SX;BABAJAN-SX;TALLTAKHT-SX;RECON', note: 'footing of rough fieldstones laid in mud under the brick (stone foundations under mud-brick walls at Hasanlu, Baba Jan and Tall-i Takht: search extracts, B analogues; its height above the lane, 0.2-0.6 m by the house, C)' },
-  { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;IR-VERNROOF-SX;RECON', note: 'flat roof: poplar poles spanning the room (the region\'s flat roof: poles of up to ~4 m, cross battens, brush or straw, mud laid to a fall: search extract, C analogy; reed impressions in roof collapse at Hasanlu, B analogue; Babylonian roofs "of mud over layers of matting laid on a framework of wooden rafters": search extract, B analogue), a clay-and-straw finish coat, a 2 % fall to the spout (C); the pole ends from the poplar log of the Blender house kit (D-311; C)' },
+  { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;IR-VERNROOF-SX;RECON', note: 'flat roof: poplar poles spanning the room (the region\'s flat roof: poles of up to ~4 m, cross battens, brush or straw, mud laid to a fall: search extract, C analogy; reed impressions in roof collapse at Hasanlu, B analogue; Babylonian roofs "of mud over layers of matting laid on a framework of wooden rafters": search extract, B analogue), a clay-and-straw finish coat, a 2 % fall to the spout (C); the poles from the poplar log of the Blender house kit (D-311; C), the eave poles\' ends chopped by the axe, their end grain and checks showing (D-324; C)' },
   { tier: 'C', src: 'IR-VERNROOF-SX;HASANLU-SX;RECON', note: 'the eave: the roof oversails the court wall by 0.24-0.38 m on the pole ends, brush and earth over them and a mud lip along the edge (C)' },
   { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;RECON', note: 'ceiling: poplar poles every ~0.5 m with matting over them, seen from below (C)' },
   { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;RECON', note: 'doorway: a timber lintel over a 1 m opening (wooden doorjambs and lintels at Hasanlu, B analogue), a stone threshold worn in the middle (the lintel an adzed beam from the Blender house kit, D-311) and the pivot stone of the door (Babylonian doors "swung on doorposts set in sockets of brick or stone": search extract, B analogue; C here)' },
   { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'a small high window or vent, unglazed (glazed panes are blocklisted), under a timber lintel; size and number C' },
   { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'a hollowed timber spout throwing the roof water clear of the wall (C; roof drainage by spouts is the region\'s vernacular, RECOLLECTION)' },
   { tier: 'C', src: 'HASANLU-SX;BABAJAN-SX;NUSHIJAN-SX;RECON', note: 'portico: timber posts on rough stone bases carrying a beam and a roof like the rooms\' (paired wooden portico columns at Hasanlu Burned Building II, wooden columns on uncarved stone slab bases: search extracts, B analogues; in a large town house C)' },
-  { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;RECON', note: 'a poplar ladder to the roof (C)' },
-  { tier: 'C', src: 'TOLAJORI2017;HASANLU-SX;RECON', note: 'a mud-brick bench (C; low benches along walls at Tol-e Ajori and Hasanlu: B analogues)' },
+  { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;RECON', note: 'a poplar ladder to the roof, its rungs bound to the rails with rawhide (C; the rungs from the Blender house kit, D-324)' },
+  { tier: 'C', src: 'TOLAJORI2017;HASANLU-SX;RECON', note: 'a mud-brick bench, plastered, its front slumped and its seats worn hollow (C; low benches along walls at Tol-e Ajori and Hasanlu: B analogues; the Blender house kit, D-324)' },
   { tier: 'C', src: 'RECON', note: '' },
-  { tier: 'C', src: 'RECON', note: 'repairs: a patch of fresh plaster, or bare brick where the plaster has fallen (C; the house\'s age and the household\'s care set how much)' },
+  { tier: 'C', src: 'RECON', note: 'repairs: a patch of fresh plaster, or the brick courses where the plaster has fallen in the damp band over the footing (bricks ~33 cm: Iranica, B; the loss and its place C, by the house\'s age and the household\'s care; the Blender house kit, D-324)' },
   { tier: 'C', src: 'RECON', note: 'soot from the hearth or the oven on the wall above it (C)' },
   { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door: a leaf of poplar planks on battens, turning on a pivot post in a stone socket (B analogue: Babylonian doors on doorposts in sockets), shut and barred at night, open, ajar or shut by day by the household (C)' },
 ];
@@ -261,6 +265,8 @@ export class SiteHouses {
     for (const r of this.roomsByTile.get(tile) ?? []) { this.day = day; this.lod = lod; this.roomNear(r, B); yield; }
     this.day = day; this.lod = lod; this.fixturesNear(tile, B);
   }
+  /** D-324: the brick losses drawn so far (world centre and the face's outward normal; the probes find them here) */
+  readonly losses = new Map<string, number[]>();
   /** the level of detail the near tile being built takes (D-324) */
   private lod: 0 | 1 = 0;
   /** the day of the year the near tiles show (seasonal things on the roofs) */
@@ -542,6 +548,7 @@ export class SiteHouses {
     const al = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), nA = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0), fl = h.fl ?? 1, x0 = fl > 0 ? h.s0 : h.s1;
     const O = this.wp(...P2l(x0, sg * (t / 2)), h.y0), X = [al[0] * fl, 0, al[1] * fl], Y = [0, 1, 0], Z = [nA[0], 0, nA[1]], own = this.owner(plot, P.repair);
     const ring = KIT[`bpl${h.brick}`], br = KIT[`bbr${h.brick}`]; if (!ring || !br) return;
+    { const c = this.wp(...P2l((h.s0 + h.s1) / 2, sg * (t / 2)), (h.y0 + h.y1) / 2); this.losses.set(`${c[0].toFixed(2)},${c[2].toFixed(2)}`, [c[0], c[1], c[2], nA[0], nA[1]]); }
     B.plaster.set('y0', ysoc((h.s0 + h.s1) / 2)).set('ytop', top).set('ao', aoF(h.y0 + BRICK_H / 2));
     kitFrame(B.plaster, ring, O, X, Y, Z, [1, 1, 1], own, B.plaster.cur('ao'), 0.3, k => sh(colF(x0 + fl * ring.p[k * 3], h.y0 + ring.p[k * 3 + 1]), ring.k[k]));
     const bc = sh(lin([0.62, 0.53, 0.41]), 0.88 + 0.15 * hi(seed, 131)); B.brick.set('ao', aoF(h.y0 + BRICK_H / 2));

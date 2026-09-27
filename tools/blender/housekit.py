@@ -382,17 +382,19 @@ def brick_patch(seed, W=0.9, H=0.38):
     # the loss, flush with the face on the rectangle's edge and broken back to the brick along an irregular outline (the
     # caller colours it as the wall); 'bbr': the bricks behind it in stretcher bond, their faces eroded and eased, the joints
     # sunk (the brick material)
-    r = random.Random(seed); N = 14; cx, cy = W / 2, H / 2
+    r = random.Random(seed); cx, cy = W / 2, H / 2
+    # the angles: the rectangle's four corners among them (so the ring's outer edge is the rectangle the wall's face leaves open)
+    ac = math.atan2(H / 2, W / 2); ANG = sorted([ac, math.pi - ac, math.pi + ac, 2 * math.pi - ac] + [2 * math.pi * (s + 0.5) / 12 for s in range(12)]); N = len(ANG)
     # the loss's outline: an irregular blob within the rectangle (margins 4-10 cm)
     outl = []
-    for s in range(N):
-        a = 2 * math.pi * s / N; c, sn = math.cos(a), math.sin(a)
+    for a in ANG:
+        c, sn = math.cos(a), math.sin(a)
         m = min((W / 2 - 0.05) / max(1e-6, abs(c)), (H / 2 - 0.04) / max(1e-6, abs(sn)))
         q = m * (0.72 + 0.26 * (0.5 + nz((c, sn, 0), 1.3, seed)) + 0.08 * r.random())
         q = min(q, m); outl.append((cx + c * q, cy + sn * q))
     rect = []
-    for s in range(N):
-        a = 2 * math.pi * s / N; c, sn = math.cos(a), math.sin(a)
+    for a in ANG:
+        c, sn = math.cos(a), math.sin(a)
         m = min((W / 2) / max(1e-6, abs(c)), (H / 2) / max(1e-6, abs(sn))); rect.append((cx + c * m, cy + sn * m))
     # the plaster piece: the ring on the face (z = 0) and the broken edge down to the brick (z = -plaster), crumbled outward
     V, F, K = [], [], []

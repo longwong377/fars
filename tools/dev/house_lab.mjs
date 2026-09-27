@@ -10,6 +10,9 @@ const V = [
   // the middle ring and the far level: a quarter from 60, 120 and 300 m, low and from the height of the Terrace
   { n: 'far60-s1', cam: 'far:q_s1:60:2:200', fov: 50 }, { n: 'far120-s1', cam: 'far:q_s1:120:6:200', fov: 45 },
   { n: 'far300-s1', cam: 'far:q_s1:300:20:160', fov: 40 }, { n: 'far600-w1', cam: 'far:q_w1:600:40:90', fov: 35 },
+  // the kit near: brick losses, benches, a doorway with jamb boards (door views above), the eave from under it
+  { n: 'brick0', cam: 'brick:q_s1:0', fov: 50 }, { n: 'brick1', cam: 'brick:q_s3:5', fov: 50, sunAz: 250, sunAlt: 30 }, { n: 'brick2', cam: 'brick:q_w1:9:1.4', fov: 50 },
+  { n: 'bench0', cam: 'bench:q_s1:0', fov: 55 }, { n: 'bench1', cam: 'bench:q_w1:4', fov: 55, sunAz: 130, sunAlt: 25 },
   // a village from 30 m and 200 m
   { n: 'village30', cam: 'village:0:40:2:180', fov: 60 }, { n: 'village200', cam: 'village:0:200:8:180', fov: 45 },
 ];
