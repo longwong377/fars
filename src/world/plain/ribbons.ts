@@ -5,7 +5,8 @@
 import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, positionWorld, vec3, float, mix, smoothstep, abs, mx_noise_float, color, max } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
-import { surfaceMaterial, type Layer } from '../../render/materials';
+import { surfaceMaterial, WEATHER, type Layer } from '../../render/materials';
+import { groundScan, groundLoaded } from '../../render/scans';
 import { liftNode } from './rivers';
 import type { Canal } from './canals';
 import type { Village } from './villages';
@@ -45,12 +46,19 @@ export function canalBanks(canals: Canal[], terrain: Terrain): THREE.Mesh {
     const w = c.width / 2;
     ribbon(c.pts, terrain, [[-(w + 2.2), 0.03, 1], [-(w + 0.7), crest, 0.5], [-w, 0.02, 0], [0, -0.25, 0], [w, 0.02, 0], [w + 0.7, crest, 0.5], [w + 2.2, 0.03, 1]], 12.5, buf);
   }
-  const mat = surfaceMaterial('earth', { vertexColors: true, variant: 'canalbank', modify: (L: Layer) => {
+  const mat = surfaceMaterial('earth', { vertexColors: true, variant: 'canalbank', scan: false, modify: (L: Layer) => {
     const t = attribute('lat', 'float');
+    // D-302: the spoil's dust (wet: mud), the bank's herbs and the wet mud at the water with their ground scans (identity in node)
+    const G = { dust: groundScan('dust', 2.0, { scale2: 9.1 }), mud: groundScan('mud', 1.6), green: groundScan('green', 2.5) }, on = groundLoaded();
+    const det = (c: any, w = 0.85): any => mix(vec3(1), c, w), wetG = WEATHER.wetness.mul(0.9);
+    const base = on ? attribute('color', 'vec3').mul(det(mix(G.dust.c, G.mud.c, wetG))) : L.alb;
     const grass = color(new THREE.Color().setRGB(0.27, 0.36, 0.14, THREE.SRGBColorSpace)), wet = color(new THREE.Color().setRGB(0.25, 0.21, 0.16, THREE.SRGBColorSpace));
-    let alb = mix(L.alb, grass.mul(mx_noise_float(positionWorld.mul(1.7)).mul(0.2).add(1)), smoothstep(0.1, 0.45, t).mul(float(1).sub(smoothstep(0.7, 1.0, t))).mul(0.8));
-    alb = mix(alb, wet, float(1).sub(smoothstep(0.0, 0.2, t)));
-    return { alb, rough: L.rough, height: L.height };
+    const gA = smoothstep(0.1, 0.45, t).mul(float(1).sub(smoothstep(0.7, 1.0, t))).mul(0.8), gE = on ? smoothstep(-1.4, 1.4, G.green.h.mul(0.5).add(gA.mul(2).sub(1).mul(2.4))).mul(0.9) : gA;
+    let alb = mix(base, grass.mul(det(G.green.c)).mul(mx_noise_float(positionWorld.mul(1.7)).mul(0.2).add(1)), gE);
+    const wA = float(1).sub(smoothstep(0.0, 0.2, t));
+    alb = mix(alb, wet.mul(det(G.mud.c)), wA);
+    const hS = mix(mix(mix(G.dust.h, G.mud.h, wetG).mul(0.006), G.green.h.mul(0.012), gE), G.mud.h.mul(0.006), wA);
+    return { alb, rough: L.rough, height: on ? hS : L.height };
   } });
   mat.positionNode = positionLocal.add(vec3(0, liftNode(positionLocal), 0));
   return mesh('plain-canal-banks', buf, mat, tag(feature('irrigation_systems_sumner'), 'canal spoil banks and water: procedural rule (off-takes every 2-4 km, contour at 0.5 m/km, 1.5-3 m wide: C)'));
@@ -89,14 +97,19 @@ export function tracksMesh(lines: [number, number][][], terrain: Terrain, width 
       if (s > 0.1) flush(); else run.push([x, y]); }
     flush();
   }
-  const mat = surfaceMaterial('earth', { vertexColors: true, variant: 'track', modify: (L: Layer) => {
+  const mat = surfaceMaterial('earth', { vertexColors: true, variant: 'track', scan: false, modify: (L: Layer) => {
     const t = abs(attribute('lat', 'float'));
+    // D-302: the trodden track's packed earth and fine gravel (wet: mud) over the dust of its verges, with their scans
+    const G = { dust: groundScan('dust', 2.0, { scale2: 9.1 }), packed: groundScan('packed', 2.0, { scale2: 8.3 }), mud: groundScan('mud', 1.6) }, on = groundLoaded();
+    const det = (c: any, w = 0.85): any => mix(vec3(1), c, w), wetG = WEATHER.wetness.mul(0.9);
+    const base = on ? attribute('color', 'vec3').mul(det(mix(G.dust.c, G.mud.c, wetG))) : L.alb;
     const packed = color(new THREE.Color().setRGB(0.58, 0.51, 0.40, THREE.SRGBColorSpace));
     const rut = float(1).sub(smoothstep(0.08, 0.2, abs(t.sub(0.55)))); // two wheel ruts
     const core = float(1).sub(smoothstep(0.85, 1.25, t));
-    let alb = mix(L.alb, packed.mul(mx_noise_float(positionWorld.mul(0.9)).mul(0.08).add(1)), core.mul(0.85));
+    let alb = mix(base, packed.mul(det(mix(G.packed.c, G.mud.c, wetG))).mul(mx_noise_float(positionWorld.mul(0.9)).mul(0.08).add(1)), core.mul(0.85));
     alb = alb.mul(float(1).sub(rut.mul(0.12).mul(core)));
-    return { alb, rough: L.rough, height: L.height ? L.height.mul(max(float(0.3), float(1).sub(core))).sub(rut.mul(0.03)) : null };
+    const hS = mix(mix(G.dust.h, G.mud.h, wetG).mul(0.006), mix(G.packed.h, G.mud.h, wetG).mul(0.008), core.mul(0.85)).sub(rut.mul(0.03));
+    return { alb, rough: L.rough, height: on ? hS : (L.height ? L.height.mul(max(float(0.3), float(1).sub(core))).sub(rut.mul(0.03)) : null) };
   } });
   mat.positionNode = positionLocal.add(vec3(0, liftNode(positionLocal).mul(0.5), 0));
   return mesh(name, buf, mat, tag(feature('villages_unlocated').tracks as any, name === 'plain-tracks' ? 'village tracks: reconstructed courses (C), 3.5 m compacted earth' : 'settlement.json roads beyond the settlement zones (courses C; drawn here only when PLAIN_DRAWS_SETTLEMENT_ROADS)'));

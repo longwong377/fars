@@ -9,7 +9,7 @@
 // Tier C (the scans are modern stone and earth standing in for the grain of 467's; the tint is the evidence's).
 // In node (tests, bakes) no texture is loaded and applyScan is the identity, so every CPU mirror of materials.ts still holds.
 import * as THREE from 'three/webgpu';
-import { texture, positionWorld, normalWorld, vec3, float, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
+import { texture, positionWorld, normalWorld, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
 import SCANS from '../data/scans.json';
 
 export interface ScanUse { scan: string; scale: number; alb: number; height: number; rough: number; scale2?: number;
@@ -34,9 +34,11 @@ export const SCAN_USE: Record<string, ScanUse> = {
   house_plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.7, height: 0.003, rough: 0.4 },
   house_socle: { scan: 'clay_plaster', scale: 2.0, alb: 0.6, height: 0.003, rough: 0.4 },
   plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.35, height: 0.002, rough: 0.3 },
-  earth: { scan: 'dry_ground_01', scale: 2.5, scale2: 11, alb: 0.8, height: 0.01, rough: 0.5, rock: { scan: 'aerial_ground_rock', scale: 60, scale2: 240, alb: 0.9, ny0: 0.8, ny1: 0.92 } },
+  // D-302: the terrain, the rivers' banks, the tracks and the canal banks lay their own ground layers (GROUND below, groundScan);
+  // this entry is the 'earth' of other meshes (the Now view's stumps, the lab ground): dust, not the cracked earth of D-295
+  earth: { scan: 'dirt', scale: 2.0, scale2: 9, alb: 0.8, height: 0.008, rough: 0.5 },
   court_fill: { scan: 'gravelly_sand', scale: 2.0, scale2: 9, alb: 0.7, height: 0.006, rough: 0.5 },
-  road: { scan: 'sandy_gravel_02', scale: 2.0, scale2: 9, alb: 0.8, height: 0.008, rough: 0.5 },
+  road: { scan: 'rocky_trail_02', scale: 2.0, scale2: 8.3, alb: 0.85, height: 0.01, rough: 0.5 }, // D-302: trodden earth and fine gravel (was sandy_gravel_02: too fine to read)
   bank: { scan: 'dry_ground_rocks', scale: 2.5, scale2: 11, alb: 0.8, height: 0.015, rough: 0.5 },
   refuse: { scan: 'dry_ground_rocks', scale: 2.0, alb: 0.7, height: 0.01, rough: 0.5 },
   timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
@@ -62,6 +64,7 @@ export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
     diff.colorSpace = THREE.SRGBColorSpace; arm.colorSpace = THREE.NoColorSpace;
     TEX.set(id, { diff, arm });
   }));
+  await loadGround(base, anisotropy);
 }
 export const scansLoaded = () => TEX.size > 0;
 
@@ -90,4 +93,86 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null }
   const rough = u.rock ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough)).clamp(0.05, 1);
   const bump = lum.sub(1).mul(u.height);
   return { ...L, alb, rough, height: L.height ? L.height.add(bump) : bump };
+}
+
+// ---------------------------------------------------------------- the ground layers (D-302)
+// The plain, the rivers' banks, the tracks and the hills are drawn by a few materials whose land cover changes per pixel (dust,
+// herbs, stubble, tilled plots, trodden paths, wet mud, rock, scree). D-295 laid ONE scan over the terrain (cracked dry earth)
+// before the plain's layers, which then replaced its albedo wherever a field, a path or the hills' rock was drawn: cracks on
+// every bare patch and procedural colour everywhere else. Here each cover takes its own scan, multiplied into that cover's own
+// albedo (scan ÷ its mean: the measured tints and layouts stay), with the scan's displacement as the cover's bump. The layers
+// are one 2-D array texture (RGB the scan's colour, sRGB; A its displacement), so all of them cost one sampler (WebGPU allows
+// 16 per fragment stage and the terrain's material had used all 16: D-295).
+/** land cover -> scan (public/textures/<id>; src/data/scans.json; ASSET_LEDGER.md). Tier C: modern ground standing in for 467's */
+export const GROUND = {
+  dust: 'dirt', //             dry loam with grit and small stones: the plain's bare ground
+  stony: 'rocks_ground_09', // stony soil: foot slopes, gravel fans, the steppe's stony patches
+  packed: 'rocky_trail_02', // trodden earth and fine gravel: paths, tracks, the town's used ground
+  straw: 'withered_grass', //  dry herbs, stubble, straw-coloured crops
+  green: 'grass_ground', //    green herbs and young crops
+  tilled: 'farm_soil', //      ploughed and sown ground
+  mud: 'brown_mud_02', //      wet mud after rain, the waterline
+  cracked: 'mud_cracked_dry_riverbed_002', // dried silt: the low spots where the rain stood, the rivers' summer bands
+  rock: 'rock_face_03', //     limestone outcrops and the mountain's rock (near)
+  rockFar: 'aerial_ground_rock', // the mountain's rock at 60-240 m tiles (an aerial scan: the pattern of outcrop and soil)
+  scree: 'rocky_trail', //     angular scree and talus
+  pebbles: 'dry_river_pebbles', // river gravel: the fords' and banks' beds
+} as const;
+export type GroundCover = keyof typeof GROUND;
+const GROUND_KEYS = Object.keys(GROUND) as GroundCover[];
+/** the array's side (texels); the scans are 2K */
+export const GROUND_RES = 2048;
+let groundArr: THREE.DataArrayTexture | null = null;
+/** per layer: the colour's linear mean (src/data/scans.json) and the height channel's mean and sd (measured on load) */
+const GSTAT = new Map<GroundCover, { mean: [number, number, number]; hMean: number; hSd: number }>();
+
+async function loadGround(base: string, anisotropy: number): Promise<void> {
+  const N = GROUND_KEYS.length, R = GROUND_RES, data = new Uint8Array(R * R * 4 * N);
+  const cv = new OffscreenCanvas(R, R), g = cv.getContext('2d', { willReadFrequently: true })!;
+  const pixels = async (url: string) => {
+    const r = await fetch(url); if (!r.ok || !(r.headers.get('content-type') ?? '').startsWith('image/')) return null; // (a dev server answers a missing file with its page)
+    const bm = await createImageBitmap(await r.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+    g.clearRect(0, 0, R, R); g.drawImage(bm, 0, 0, R, R); bm.close(); return g.getImageData(0, 0, R, R).data;
+  };
+  for (let k = 0; k < N; k++) {
+    const id = GROUND[GROUND_KEYS[k]], diff = await pixels(`${base}textures/${id}/diff.jpg`);
+    if (!diff) throw new Error(`ground scan ${id}: no diff.jpg`);
+    const disp = await pixels(`${base}textures/${id}/disp.jpg`), o = k * R * R * 4;
+    let s = 0, s2 = 0, n = 0;
+    for (let i = 0; i < R * R * 4; i += 4) {
+      // the height: the displacement map, or (no map: the aerial rock) the colour's luminance
+      const h = disp ? disp[i] : Math.round(0.2126 * diff[i] + 0.7152 * diff[i + 1] + 0.0722 * diff[i + 2]);
+      data[o + i] = diff[i]; data[o + i + 1] = diff[i + 1]; data[o + i + 2] = diff[i + 2]; data[o + i + 3] = h;
+      if ((i & 60) === 0) { s += h; s2 += h * h; n++; }
+    }
+    const m = s / n / 255, sd = Math.sqrt(Math.max(1e-6, s2 / n / 65025 - m * m));
+    GSTAT.set(GROUND_KEYS[k], { mean: META[id].meanLinear, hMean: m, hSd: sd });
+  }
+  const t = new THREE.DataArrayTexture(data, R, R, N);
+  t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType; t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.generateMipmaps = true; t.anisotropy = anisotropy; t.needsUpdate = true;
+  groundArr = t;
+}
+export const groundLoaded = () => groundArr !== null;
+
+/** one ground layer's detail at the pixel: `c` the scan's colour over its mean (1 on average), `h` its height in units of its
+ *  own sd (0 on average). Planar (world x, z: the ground) at `scale` m per tile, or triplanar (`tri`: rock on steep ground);
+ *  `scale2` multiplies in a second, larger tile turned 37° (breaks the repeat); `bias` a mip bias. Identity (c 1, h 0) when no scans are loaded */
+export function groundScan(cover: GroundCover, scale: number, o: { tri?: boolean; scale2?: number; /** mip bias: the layer's fine detail left out (a macro layer: its colour and relief over metres, not texels) */ bias?: number } = {}): { c: any; h: any } {
+  const S = GSTAT.get(cover);
+  if (!scansOn || !groundArr || !S) return { c: vec3(1), h: float(0) };
+  const k = int(GROUND_KEYS.indexOf(cover)), arr = groundArr, p = positionWorld;
+  const at = (uv: any) => o.bias ? texture(arr, uv).depth(k).bias(float(o.bias)) : texture(arr, uv).depth(k);
+  const one = (sc: number, rot: number) => {
+    const c = Math.cos(rot), s = Math.sin(rot), P = rot ? vec3(p.x.mul(c).sub(p.z.mul(s)), p.y, p.x.mul(s).add(p.z.mul(c))).add(vec3(17.3, 0, 41.9)) : p;
+    const q = P.div(sc);
+    if (!o.tri) return at(q.xz);
+    const w0 = pow(abs(normalWorld), vec3(4)), w = w0.div(max(dot(w0, vec3(1)), float(1e-4)));
+    return at(q.zy).mul(w.x).add(at(q.xz).mul(w.y)).add(at(q.xy).mul(w.z));
+  };
+  const mean = vec3(...S.mean), a = one(scale, 0);
+  let c: any = a.rgb.div(mean), h: any = a.a.sub(S.hMean).div(S.hSd);
+  if (o.scale2) { const b = one(o.scale2, 0.65); c = c.mul(b.rgb.div(mean)); h = h.add(b.a.sub(S.hMean).div(S.hSd).mul(0.5)); }
+  return { c, h };
 }

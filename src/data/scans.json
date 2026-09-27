@@ -19,6 +19,30 @@
    "arm.jpg (R ao, G roughness, B metal)"
   ]
  },
+ "brown_mud_02": {
+  "meanLinear": [
+   0.0781,
+   0.0614,
+   0.0406
+  ],
+  "meanAO": 0.7868,
+  "meanRough": 0.9507,
+  "meanDisp": 0.6455,
+  "sdDisp": 0.1058,
+  "name": "Brown Mud 02",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/brown_mud_02",
+  "res": "2k",
+  "tileMetres": 1.3,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
  "brown_mud_dry": {
   "meanLinear": [
    0.19405,
@@ -101,6 +125,30 @@
    "arm.jpg (R ao, G roughness, B metal)"
   ]
  },
+ "dirt": {
+  "meanLinear": [
+   0.12554,
+   0.08541,
+   0.04885
+  ],
+  "meanAO": 0.8966,
+  "meanRough": 0.9443,
+  "meanDisp": 0.411,
+  "sdDisp": 0.0833,
+  "name": "Dirt",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/dirt",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
  "dry_ground_01": {
   "meanLinear": [
    0.24127,
@@ -162,6 +210,78 @@
    "arm.jpg (R ao, G roughness, B metal)"
   ]
  },
+ "dry_river_pebbles": {
+  "meanLinear": [
+   0.22834,
+   0.16089,
+   0.0968
+  ],
+  "meanAO": 0.6828,
+  "meanRough": 0.8119,
+  "meanDisp": 0.5959,
+  "sdDisp": 0.1362,
+  "name": "Dry River Pebbles",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/dry_river_pebbles",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
+ "farm_soil": {
+  "meanLinear": [
+   0.09809,
+   0.05106,
+   0.02139
+  ],
+  "meanAO": 0.7662,
+  "meanRough": 0.9759,
+  "meanDisp": 0.4985,
+  "sdDisp": 0.0937,
+  "name": "Farm Soil",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/farm_soil",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
+ "grass_ground": {
+  "meanLinear": [
+   0.15738,
+   0.11846,
+   0.04863
+  ],
+  "meanAO": 0.7981,
+  "meanRough": 0.9368,
+  "meanDisp": 0.3436,
+  "sdDisp": 0.0638,
+  "name": "Grass Ground",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/grass_ground",
+  "res": "2k",
+  "tileMetres": 2.51,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
  "gravelly_sand": {
   "meanLinear": [
    0.29215,
@@ -203,6 +323,56 @@
    "arm.jpg (R ao, G roughness, B metal)"
   ]
  },
+ "mud_cracked_dry_riverbed_002": {
+  "meanLinear": [
+   0.27513,
+   0.18698,
+   0.11968
+  ],
+  "meanAO": 0.7356,
+  "meanRough": 0.7831,
+  "meanDisp": 0.4848,
+  "sdDisp": 0.1175,
+  "name": "Mud Cracked Dry Riverbed 002",
+  "authors": [
+   "Dario Barresi",
+   "Dimitrios Savva"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/mud_cracked_dry_riverbed_002",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
+ "rock_face_03": {
+  "meanLinear": [
+   0.23132,
+   0.14456,
+   0.08299
+  ],
+  "meanAO": 0.9151,
+  "meanRough": 0.8184,
+  "meanDisp": 0.5753,
+  "sdDisp": 0.1267,
+  "name": "Rock Face 03",
+  "authors": [
+   "Dario Barresi",
+   "Rico Cilliers"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rock_face_03",
+  "res": "2k",
+  "tileMetres": 2.7,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
  "rock_wall_02": {
   "meanLinear": [
    0.10534,
@@ -221,6 +391,78 @@
   "maps": [
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "rocks_ground_09": {
+  "meanLinear": [
+   0.22202,
+   0.19023,
+   0.16071
+  ],
+  "meanAO": 0.7361,
+  "meanRough": 0.8769,
+  "meanDisp": 0.341,
+  "sdDisp": 0.0762,
+  "name": "Rocks Ground 09",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rocks_ground_09",
+  "res": "2k",
+  "tileMetres": 3,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
+ "rocky_trail": {
+  "meanLinear": [
+   0.29609,
+   0.22094,
+   0.14893
+  ],
+  "meanAO": 0.6268,
+  "meanRough": 0.6492,
+  "meanDisp": 0.6211,
+  "sdDisp": 0.0606,
+  "name": "Rocky Trail",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rocky_trail",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
+  ]
+ },
+ "rocky_trail_02": {
+  "meanLinear": [
+   0.24599,
+   0.14926,
+   0.08492
+  ],
+  "meanAO": 0.6426,
+  "meanRough": 0.7902,
+  "meanDisp": 0.4318,
+  "sdDisp": 0.0803,
+  "name": "Rocky Trail 02",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rocky_trail_02",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
   ]
  },
  "rough_wood": {
@@ -261,6 +503,30 @@
   "maps": [
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "withered_grass": {
+  "meanLinear": [
+   0.42008,
+   0.2989,
+   0.19687
+  ],
+  "meanAO": 0.8016,
+  "meanRough": 0.8084,
+  "meanDisp": 0.3623,
+  "sdDisp": 0.0578,
+  "name": "Withered Grass",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/withered_grass",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "disp.jpg (height, linear)"
   ]
  }
 }

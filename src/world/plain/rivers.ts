@@ -12,7 +12,8 @@ import { attribute, uniform, positionLocal, positionWorld, cameraPosition, camer
 import { rippleNormal, waterBody, skyReflection, waterRoughness, WATER_SKY } from './waterShade';
 import type { Terrain } from '../../terrain/heightfield';
 import { curvatureDrop } from '../../terrain/heightfield';
-import { surfaceMaterial, type Layer } from '../../render/materials';
+import { surfaceMaterial, WEATHER, type Layer } from '../../render/materials';
+import { groundScan, groundLoaded } from '../../render/scans';
 import type { RiverProfile } from './data';
 import type { Canal } from './canals';
 import { feature, tag } from './data';
@@ -134,7 +135,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const pick = (u: any[], ri: any) => mix(u[0], u[1], ri);
   // bank vegetation and wetness by the date: the riparian sward's green share (seasonal.ts marginState, set in update)
   const swardGreen = uniform(1);
-  const bankMat = surfaceMaterial('earth', { vertexColors: true, variant: 'riverbank', modify: (L: Layer) => {
+  const bankMat = surfaceMaterial('earth', { vertexColors: true, variant: 'riverbank', scan: false, modify: (L: Layer) => {
     const a = attribute('river', 'vec4'), hrel = a.x, t = a.y, ri = a.z;
     const depth = pick(depthU, ri), above = hrel.sub(depth), flood = mix(float(1.2), float(1.8), ri); // today's water; the April (table peak) level
     // wet mud film at the waterline, a damp darker band above it
@@ -145,16 +146,26 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
     const band = step(0.14, above).mul(float(1).sub(smoothstep(flood.sub(0.05), flood.add(0.12), hrel)));
     const mud = color(new THREE.Color().setRGB(0.25, 0.21, 0.16, THREE.SRGBColorSpace)), siltC = color(new THREE.Color().setRGB(0.5, 0.46, 0.39, THREE.SRGBColorSpace));
     const siltTone = mx_noise_float(positionWorld.mul(0.7)).mul(0.1).add(1).mul(float(1).sub(smoothstep(0.2, 0.9, mx_noise_float(positionWorld.xz.mul(3.1)).abs()).mul(0.12))); // drying cracks
-    let alb = mix(L.alb, siltC.mul(siltTone), band.mul(0.85));
+    // D-302: each of the bank's covers with its ground scan (scans.ts GROUND): the apron's dust (wet: mud), the silt band's
+    // dried cracked silt with river gravel in bars, the waterline's mud, the sward's herbs (identity in node)
+    const G = { dust: groundScan('dust', 2.0, { scale2: 9.1 }), mud: groundScan('mud', 1.6), cracked: groundScan('cracked', 2.2), pebbles: groundScan('pebbles', 2.0), green: groundScan('green', 2.5), straw: groundScan('straw', 2.0) };
+    const det = (g: any, w = 0.85): any => mix(vec3(1), g.c, w), on = groundLoaded();
+    const wetG = WEATHER.wetness.mul(0.9), gravel = smoothstep(0.1, 0.45, mx_noise_float(positionWorld.xz.mul(0.09).add(vec2(3.7, 1.1)))).mul(float(1).sub(smoothstep(0.3, 0.9, above)));
+    const base = on ? attribute('color', 'vec3').mul(det({ c: mix(G.dust.c, G.mud.c, wetG) })) : L.alb;
+    const silt = siltC.mul(on ? siltTone.mul(0.5).add(0.5) : siltTone).mul(det({ c: mix(mix(G.cracked.c, G.mud.c, wetG), G.pebbles.c, gravel) }));
+    let hS: any = mix(mix(G.dust.h, G.mud.h, wetG).mul(0.006), mix(G.cracked.h.mul(0.004), G.pebbles.h.mul(0.02), gravel), band);
+    let alb = mix(base, mix(silt, silt.mul(0.85), gravel), band.mul(0.85));
     // above the flood line: a riparian sward on the upper bank, the bank top and the apron, thinning out toward the
     // terrain, greener and longer green than the steppe (the water table is near; C), in patches
     const grassG = color(new THREE.Color().setRGB(0.24, 0.33, 0.12, THREE.SRGBColorSpace)), grassS = color(new THREE.Color().setRGB(0.55, 0.49, 0.32, THREE.SRGBColorSpace));
     const patch = smoothstep(-0.35, 0.3, mx_noise_float(positionWorld.xz.mul(0.21)).add(mx_noise_float(positionWorld.xz.mul(1.3)).mul(0.35)));
     const sward = smoothstep(flood, flood.add(0.25), hrel).mul(float(1).sub(smoothstep(0.55, 1.0, t))).mul(patch.mul(0.35).add(0.6));
-    alb = mix(alb, mix(grassS, grassG, swardGreen).mul(mx_noise_float(positionWorld.mul(2.3)).mul(0.14).add(1)), sward);
+    const swC = mix(grassS.mul(det(G.straw)), grassG.mul(det(G.green)), swardGreen), swH = mix(G.straw.h, G.green.h, swardGreen);
+    const swE = on ? smoothstep(-1.4, 1.4, swH.mul(0.5).add(sward.mul(2).sub(1).mul(2.4))) : sward; // the sward's edge in tufts (its scan's height)
+    alb = mix(alb, swC.mul(mx_noise_float(positionWorld.mul(2.3)).mul(0.14).add(1)), swE); hS = mix(hS, swH.mul(0.012), swE);
     alb = mix(alb, alb.mul(0.62), damp);
-    alb = mix(alb, mud, wet);
-    return { alb, rough: mix(mix(L.rough, float(0.55), damp), float(0.22), wet), height: L.height };
+    alb = mix(alb, mud.mul(det(G.mud)), wet); hS = mix(hS, G.mud.h.mul(0.006), wet);
+    return { alb, rough: mix(mix(L.rough, float(0.55), damp), float(0.22), wet), height: on ? hS : L.height };
   } });
   bankMat.positionNode = positionLocal.add(vec3(0, liftNode(positionLocal), 0));
   const banks = new THREE.Mesh(bg, bankMat); banks.name = 'river-banks'; banks.receiveShadow = true; banks.frustumCulled = false; banks.userData = group.userData;

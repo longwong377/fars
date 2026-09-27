@@ -1019,7 +1019,7 @@ export class SurfaceNodeMaterial extends THREE.MeshStandardNodeMaterial {
 
 const cache = new Map<string, THREE.MeshStandardNodeMaterial>();
 const lin = (a: [number, number, number]) => color(new THREE.Color().setRGB(a[0], a[1], a[2], THREE.SRGBColorSpace));
-export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; variant?: string; arch?: boolean; modify?: (L: Layer, d: SurfaceDef) => Layer } = {}): THREE.MeshStandardNodeMaterial {
+export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; variant?: string; arch?: boolean; modify?: (L: Layer, d: SurfaceDef) => Layer; /** false: the modify lays its own scans (the ground layers, scans.ts groundScan; D-302) */ scan?: boolean } = {}): THREE.MeshStandardNodeMaterial {
   const key = name + (opts.vertexColors ? '+vc' : '') + (opts.variant ? '+' + opts.variant : '') + (opts.arch ? '+arch' : ''); // `modify` (Phase 7 plain layers) needs its own `variant` key
   const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES[name] ?? SURFACES.limestone;
@@ -1035,7 +1035,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
     const U = layer(SURFACES[d.under], lin(SURFACES[d.under].albedo), !!opts.arch); const t = smoothstep(0.7, 0.9, n.y.negate());
     L = { alb: mix(L.alb, U.alb, t), rough: mix(L.rough, U.rough, t), height: L.height && U.height ? mix(L.height, U.height, t) : (L.height ?? U.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
   }
-  L = applyScan(name, L); // scanned grain over the procedural surface (session 11; identity in node)
+  if (opts.scan !== false) L = applyScan(name, L); // scanned grain over the procedural surface (session 11; identity in node)
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
   m.userData = { tier: d.tier, note: d.note };

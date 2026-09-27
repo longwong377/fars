@@ -18,7 +18,8 @@
 //    gentle ground, and shrubs (pistachio-almond, B pollen; C placement), more in the gullies and on shaded slopes.
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, positionWorld, normalWorld, attribute, vec2, vec3, vec4, float, uint, int, ivec2, floor, fract, min, max, mix, step, smoothstep, length, fwidth, textureLoad, texture, abs, sin, cos, clamp, color, mx_noise_float, sqrt, dot } from 'three/tsl';
-import { surfaceMaterial, NOISE_FRAME, SEASON, BLOOM, type Layer } from '../../render/materials';
+import { surfaceMaterial, NOISE_FRAME, SEASON, BLOOM, WEATHER, type Layer } from '../../render/materials';
+import { groundScan, groundLoaded } from '../../render/scans';
 import { DISTRICT, SALT, STRIP, ZONE, ZoneMap, IRR_STEPS, IRR_CROP, IRR_FALLOW_SPREAD, ROTATION, VINE_SHARE, pcg } from './fields';
 import { CROP_ROWS, ROW, YEAR, cropTable, cropState, PLOT_OFFSET_DAYS, foliage } from './seasonal';
 import { GROUND, PATH_W, LUSH_MAX } from './townGround';
@@ -40,8 +41,9 @@ export const HILL = {
    *  warm grey-brown, not neutral grey (photos #24, #21, #8 and the satellite view #13: Kuh-e Rahmat buff-tan, its hue near
    *  the plain's; #13 R/G 1.22, B/G 0.73 through the haze): rock 10YR 5/2 (Y 0.19), dark patches 10YR 3.5/2, scree 10YR
    *  5.75/2, colluvium 10YR 5/3 (Munsell renotation, Illuminant C adapted to D65); the luminances kept (were 0.20, 0.10,
-   *  0.27, 0.18) */
-  rock: [0.530, 0.467, 0.393], rockDark: [0.381, 0.318, 0.249], scree: [0.608, 0.543, 0.465], slopeSoil: [0.554, 0.462, 0.352],
+   *  0.27, 0.18). D-302: rock, its dark patches and scree warmer (R/G 1.31 -> 1.46 for the rock, luminance within 3 %): photo #24's
+   *  mountain R/G 1.56 against the calib-24 render's 1.23 (tools/dev/calib24_mountain.py; the photo's grade unknown, so half-way) */
+  rock: [0.55, 0.46, 0.38], rockDark: [0.40, 0.31, 0.24], scree: [0.62, 0.53, 0.44], slopeSoil: [0.554, 0.462, 0.352],
   /** bedding: packages of beds (m) of which ~45 % form cliffs; beds 0.6-2.2 m; a gentle dip (C) */
   pkg: 12, cliffShare: 0.45, bed: [0.6, 1.6], dip: 0.05, dipDir: 0.52,
   /** D-223: a cliff package's riser (its top third: the resistant bed standing as a low cliff) over its bench; the riser
@@ -51,12 +53,12 @@ export const HILL = {
    *  rockDark (was 0.5), and the rock-soil-scrub mosaic: ±mosaic of the albedo in patches of mosaicL m, octave weights mosaicW (C) */
   riserK: 1.22, benchK: 0.84, weatherK: 0.75, mosaic: 0.28, mosaicL: [6, 16, 40], mosaicW: [0.3, 0.45, 0.45],
   /** shrubs: 5 m cells, crowns 0.6-1.6 m radius; cover on open slopes, in gullies, on shaded (north-facing) slopes (C) */
-  shrubCell: 5, shrubCover: { slope: 0.035, gully: 0.15, north: 0.04 },
+  shrubCell: 5, shrubCover: { slope: 0.08, gully: 0.12, north: 0.04 },
   /** D-223: the crowns as spheres in a 3-D jittered grid of 3 m cubes (no stretching on steep ground), radius 0.6-1.6 m */
   shrubCell3: 3, shrubR: [0.6, 1.6],
   /** within 2 km of the Terrace half the cover (fuel cutting; the woodland rule keeps 10 % of its trees there: the scrub
    *  regrows from its rootstock, C) */
-  shrubNearCapital: 0.5,
+  shrubNearCapital: 0.7,
 } as const;
 
 /** the ground cover when every 3-D shrub cell holds a crown: the crowns' volume fraction, (4/3)π E[r³] / cell³ with r
@@ -119,7 +121,7 @@ export class PlainGround {
     const a = flat(detail?.near), b = flat(detail?.mid);
     this.detNear = dataTex(a.data, a.n); this.detMid = dataTex(b.data, b.n); this.dn = { half: a.half, cell: a.cell, n: a.n }; this.dm = { half: b.half, cell: b.cell, n: b.n };
     const g = zones.ground; this.groundTex = g ? dataTex(g.data, g.n) : dataTex(new Uint8Array([255, 255, 0, 255]), 1);
-    this.material = surfaceMaterial('earth', { vertexColors: true, variant: 'plain', modify: (L: Layer) => this.modify(L) });
+    this.material = surfaceMaterial('earth', { vertexColors: true, variant: 'plain', scan: false, modify: (L: Layer) => this.modify(L) });
     this.material.userData = { tier: 'C', src: 'RECON;SUMNER1986;IR-FOODAG;SAEIDI2021;KR-BEDROCK;MD1988;GLO30-SPEC;COP-DEM', note: 'D-227: at the Terrace foot the herbs come back below the drain mouths and in 20-60 m patches between the paths (C); plain surface: loam and seasonal herbs; fields (plots C, crop calendar B/C, rain-fed crop/fallow by block C), orchard floors and woodland canopy from plain.json zones (C); the town\'s trampled ground, worn paths and garden plots (C); the hills: limestone rock, bedding, gullies from the DEM\'s drainage, scree and shrubs (lithology B, the rest C); D-223: cliff bands as riser and bench (a shading tilt), talus under the risers, aprons below steep ground, gravel fans at gully mouths, shrub crowns as 3-D spheres (no stretching on steep ground), irrigated fallow share by 800 m district (all C)' };
   }
   /** date → uniforms (called when the day changes) */
@@ -187,6 +189,26 @@ export class PlainGround {
       // a plot keeps its own state while it spans pixels across the view (minor < ~6-20 m); along the view a pixel mixes
       // ~major/40 m plots, whose mean keeps ~sqrt(40/major) of one plot's contrast (C)
       const plotKeep = float(1).sub(smoothstep(6.0, 20.0, minor)).mul(clamp(sqrt(float(40).div(major)), 0, 1));
+      // --- D-302: the ground layers' scans (scans.ts GROUND), one per land cover, each laid into its own cover's albedo below
+      // (scan ÷ its mean, weight GW: the measured tints stay) with its displacement as that cover's bump. Tiles at the scans'
+      // own photographed sizes (2-3 m), the dust with a second 9 m tile against the repeat; the mountain's rock at 6 m and, for
+      // the pattern of outcrop and soil a kilometre off, an aerial rock scan at 60 and 240 m. In node every layer is 1 / 0
+      const G = { dust: groundScan('dust', 2.0, { scale2: 9.1 }), stony: groundScan('stony', 3.0), packed: groundScan('packed', 2.0, { scale2: 8.3 }),
+        straw: groundScan('straw', 2.0), green: groundScan('green', 2.5), tilled: groundScan('tilled', 2.0), mud: groundScan('mud', 1.6),
+        cracked: groundScan('cracked', 2.2), scree: groundScan('scree', 2.4), rock: groundScan('rock', 6.0, { tri: true, scale2: 23 }),
+        rockFar: groundScan('rockFar', 60, { tri: true, scale2: 240 }),
+        rockRelief: groundScan('rockFar', 60, { tri: true, bias: 4 }) }; // (its relief with the texel-scale grain left out, 16x coarser: a probe render drew the fine grain's bump as pixel specks)
+      const GW = 0.85, det = (g: any, w: any = GW): any => mix(vec3(1), g.c ?? g, w);
+      // the wet ground's mud (after rain: WEATHER.wetness) in place of the dust's grain; finish() darkens it
+      const wetG = WEATHER.wetness.mul(0.9);
+      const dustC = mix(G.dust.c, G.mud.c, wetG), dustH = mix(G.dust.h, G.mud.h, wetG);
+      // a scan's height edge between two covers (D-302, the "camouflage" of the old plain views: covers cut from a noise by a
+      // hard threshold): cover share `a` (0..1) whose edge follows the upper cover's own scanned height (tufts stand where the
+      // herb scan stands high); far off, where the scan's mips average out, a soft ramp on the share alone (no blobs)
+      // (a probe render of D-302: a sharp edge on the scan's texel-scale height drew pixel-sized specks; the edge is a soft ramp
+      // in which the height moves the share by up to ~±0.25, widening as the pixel grows)
+      const soft = mix(float(1.4), float(2.2), smoothstep(0.03, 0.6, fw));
+      const hblend = (a: any, h: any) => smoothstep(soft.negate(), soft, h.mul(0.5).add(a.mul(2).sub(1).mul(2.4)));
       // --- district (800 m jittered-grid Voronoi)
       const qd = p.div(DISTRICT), cd = floor(qd);
       const f1 = float(1e9).toVar(), f2 = float(1e9).toVar(), bc = vec2(0).toVar(), bs = vec2(0).toVar();
@@ -262,37 +284,59 @@ export class PlainGround {
       const stFar = irrFar.mul(bI).add(meanRain.mul(bR)).add(meanOrch.mul(bO)).div(bSum);
       const S = mix(stFar, st, plotKeep), M = mix(bI.add(bR).add(bO).min(1).mul(allowed), mask, plotKeep);
       // --- colour of the plot from its state
-      const soil = attribute('color', 'vec3').mul(float(1).add(mx_noise_float(positionWorld.mul(0.25)).mul(0.08)));
+      const soil0 = attribute('color', 'vec3').mul(float(1).add(mx_noise_float(positionWorld.mul(0.25)).mul(0.08)));
+      const soil = soil0.mul(det(dustC)); // D-302: the loam with the dust scan's grain (wet: the mud's)
       const hgt = S.x.mul(1.5);
       const young = lin(0.30, 0.42, 0.15), mature = lin(0.22, 0.33, 0.13), ripe = lin(0.72, 0.60, 0.33), stubble = lin(0.66, 0.60, 0.46);
-      const green = mix(young, mature, smoothstep(0.2, 0.8, hgt));
-      const straw = mix(stubble, ripe, smoothstep(0.15, 0.4, hgt));
+      const green = mix(young, mature, smoothstep(0.2, 0.8, hgt)).mul(det(G.green));
+      const straw = mix(stubble, ripe, smoothstep(0.15, 0.4, hgt)).mul(det(G.straw));
       // vineyard rows (ROW.vineyard): leaves in stripes 2.5 m apart along the strip; tilled furrows 0.6 m apart (near only)
       const isVine = step(ROW.vineyard - 0.5, k).mul(step(k, ROW.vineyard + 0.5)).mul(near);
       const across = uv.x.mul(sw);
       const vineRow = smoothstep(0.55, 0.85, abs(fract(across.div(2.5)).sub(0.5)).mul(2).oneMinus().add(0.3));
-      const gCov = mix(S.y, S.y.mul(vineRow).mul(1.6).min(1), isVine), sCov = S.z;
+      // D-302: a crop's or the stubble's cover edge follows its scan's height (plants stand in tufts and gaps, not a flat tint)
+      const gCov = hblend(mix(S.y, S.y.mul(vineRow).mul(1.6).min(1), isVine), G.green.h), sCov = hblend(S.z, G.straw.h).min(float(1).sub(gCov));
       const furrow = sin(across.div(0.6).mul(Math.PI * 2)).mul(0.5).add(0.5);
       const tilled = S.w.mul(near);
       const bare = float(1).sub(gCov).sub(sCov).max(0);
-      const soilT = soil.mul(float(1).sub(tilled.mul(0.28).mul(furrow.mul(0.6).add(0.4))));
+      // tilled ground: the ploughed soil's scan in place of the dust's (its clods and furrow crumbs), by the plot's tilled state
+      const soilP = soil0.mul(det(mix(dustC, G.tilled.c, S.w.mul(float(1).sub(wetG.mul(0.5))))));
+      const soilT = soilP.mul(float(1).sub(tilled.mul(0.28).mul(furrow.mul(0.6).add(0.4))));
       const speck = mx_noise_float(positionWorld.mul(3.1)).mul(0.12).add(1);
       // each plot its own shade (sowing density, soil, weeding: +-12 %, C), so neighbouring plots of one crop still read apart
       const tint = unitN(hash2N(ph, uint(5), 43)).mul(0.24).add(0.88).mul(plotKeep).add(float(1).sub(plotKeep));
       let plotAlb: any = soilT.mul(bare).add(green.mul(gCov).mul(speck)).add(straw.mul(sCov).mul(speck)).mul(tint);
+      let plotH: any = mix(G.dust.h, G.tilled.h, S.w).mul(bare).add(G.green.h.mul(gCov)).add(G.straw.h.mul(sCov)).mul(0.012);
       // bunds on plot edges (0.35 m) and a track along district edges (2.5 m wide), near only, in fields
       const bund = float(1).sub(smoothstep(0.3, 0.6, edge)).mul(near).mul(mask); // earth bunds between plots, ~1 m wide (C)
       const track = float(1).sub(smoothstep(1.0, 1.6, dEdge)).mul(near).mul(mask);
-      plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2), 0.45), bund.mul(0.85));
-      plotAlb = mix(plotAlb, soil.mul(1.15).add(vec3(0.02, 0.018, 0.012)), track.mul(0.9));
-      let alb: any = mix(albIn, plotAlb, M);
+      plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2).mul(det(G.green)), 0.45), bund.mul(0.85));
+      plotAlb = mix(plotAlb, soil0.mul(det(G.packed)).mul(1.15).add(vec3(0.02, 0.018, 0.012)), track.mul(0.9));
+      plotH = mix(plotH, G.packed.h.mul(0.01), track.mul(0.9));
+      // --- the uncultivated ground (D-302; was the earth surface's own procedural herbs and chips, whose 3 m blobs cut by a
+      // hard threshold read as camouflage): the loam's dust (wet: mud), stony patches over ~150-400 m, dried and cracked silt
+      // in the low spots where the rain stands (none while wet), and the season's herbs, their edge following the herb scan
+      const lvl = smoothstep(0.996, 0.9995, normalWorld.y);
+      const stonyP = smoothstep(0.55, 0.85, mx_noise_float(vec3(p.x.mul(0.004), 7.7, p.y.mul(0.004))).mul(0.5).add(0.5).add(mx_noise_float(vec3(p.x.mul(0.03), 1.3, p.y.mul(0.03))).mul(0.12)));
+      let wildAlb: any = mix(soil, soil0.mul(0.97).mul(det(G.stony)), stonyP.mul(0.8));
+      let wildH: any = mix(dustH.mul(0.006), G.stony.h.mul(0.012), stonyP.mul(0.8));
+      const low = smoothstep(0.7, 0.76, mx_noise_float(positionWorld.mul(0.12)).mul(0.5).add(0.5)).mul(lvl).mul(float(1).sub(wetG)).mul(SEASON.dry.div(SEASON.green.add(SEASON.dry).max(0.001)));
+      wildAlb = mix(wildAlb, soil0.mul(0.95).mul(det(G.cracked)), low.mul(0.9)); wildH = mix(wildH, G.cracked.h.mul(0.004), low.mul(0.9));
+      { const gs = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)), amount = SEASON.green.add(SEASON.dry).min(1);
+        const q = p, dens = clamp(float(0.5).add(mx_noise_float(q.mul(0.04)).mul(0.3)).add(mx_noise_float(q.mul(0.15).add(5.1)).mul(0.18)), 0, 1);
+        const hH = mix(G.straw.h, G.green.h, gs), cov = hblend(dens, hH).mul(amount).mul(float(1).sub(low)).mul(0.9);
+        const veg = mix(lin(0.62, 0.55, 0.36).mul(det(G.straw)), lin(0.31, 0.36, 0.18).mul(det(G.green)), gs);
+        wildAlb = mix(wildAlb, veg, cov); wildH = mix(wildH, hH.mul(0.012), cov); }
+      let alb: any = mix(groundLoaded() ? wildAlb : albIn, plotAlb, M);
+      let hS: any = mix(groundLoaded() ? wildH : float(0), plotH, M);
       // session 9 (G71): the spring flowers on the uncultivated ground and the bunds: violet and yellow in March-April, red
       // (poppies, anemones) in April-May (BLOOM, seasonal.ts bloomAt; C). Each colour in its own patches ~40-80 m across over
       // about a fifth of the ground at its peak; inside a patch the heads are specks near (3-4 per m) and their mean far
       { const wild = float(1).sub(M).add(bund.mul(0.8)).min(1);
-        const patch = (o: number, amt: any) => smoothstep(0.58, 0.72, mx_noise_float(vec3(p.x.mul(0.017).add(o), o * 0.37, p.y.mul(0.017))).mul(0.5).add(0.5)).mul(amt);
+        // D-302: the patches' edges ragged (a 12 m octave) and their far mean lighter (0.2 of the ground, was 0.35: pink blobs from afar)
+        const patch = (o: number, amt: any) => smoothstep(0.52, 0.74, mx_noise_float(vec3(p.x.mul(0.017).add(o), o * 0.37, p.y.mul(0.017))).mul(0.5).add(0.5).add(mx_noise_float(vec3(p.x.mul(0.08), o, p.y.mul(0.08))).mul(0.08))).mul(amt);
         const headsNear = float(1).sub(smoothstep(0.08, 0.25, fw)); // a head spans a few pixels only under ~8 cm a pixel
-        const speckF = (o: number) => mix(float(0.35), step(0.62, mx_noise_float(vec3(p.x.mul(3.7).add(o), o, p.y.mul(3.7))).mul(0.5).add(0.5)), headsNear);
+        const speckF = (o: number) => mix(float(0.1), step(0.72, mx_noise_float(vec3(p.x.mul(3.7).add(o), o, p.y.mul(3.7))).mul(0.5).add(0.5)), headsNear);
         const fl = (o: number, amt: any, c: any) => { alb = mix(alb, c, patch(o, amt).mul(speckF(o)).mul(wild).mul(0.75)); };
         fl(11.3, BLOOM.violet, lin(0.24, 0.16, 0.42)); fl(27.9, BLOOM.yellow, lin(0.78, 0.66, 0.12)); fl(53.1, BLOOM.red, lin(0.62, 0.06, 0.04)); }
       // --- trampled ground and worn paths (the town, the Terrace foot): packed bare earth, the herbs trodden and grazed off,
@@ -305,21 +349,21 @@ export class PlainGround {
       const bl = (lam: number) => float(1).sub(smoothstep(0.15, 0.35, fw.div(lam)));
       const wearN = mx_noise_float(vec3(p.x.mul(0.03), 2.7, p.y.mul(0.03))).add(mx_noise_float(vec3(p.x.mul(0.09), 5.1, p.y.mul(0.09))).mul(0.5).mul(bl(11)));
       const trEff = clamp(trample.mul(float(1).add(wearN.mul(0.6))), 0, 1);
-      const packed = soil.mul(1.12).add(vec3(0.015, 0.012, 0.008));
+      const packed = soil0.mul(det(mix(G.packed.c, G.mud.c, wetG))).mul(1.12).add(vec3(0.015, 0.012, 0.008)); // D-302: the trodden-earth scan
       const litter = smoothstep(0.55, 0.8, mx_noise_float(positionWorld.mul(0.9).add(vec3(3.1, 0, 7.7)))).mul(near).mul(0.5);
       const toneT = float(1).add(mx_noise_float(vec3(p.x.mul(0.25), 8.3, p.y.mul(0.25))).mul(0.10).mul(bl(4))).add(mx_noise_float(vec3(p.x.mul(0.8), 1.9, p.y.mul(0.8))).mul(0.06).mul(bl(1.25)));
       const stain = smoothstep(0.35, 0.7, mx_noise_float(vec3(p.x.mul(0.12), 4.4, p.y.mul(0.12)))).mul(bl(8)).mul(0.18);
       const packedAlb = mix(packed, packed.mul(vec3(0.62, 0.58, 0.52)), litter).mul(toneT).mul(vec3(float(1).sub(stain), float(1).sub(stain.mul(1.1)), float(1).sub(stain.mul(1.3))));
       const tr = trEff.mul(float(1).sub(M)).mul(0.85);
-      alb = mix(alb, packedAlb, tr);
+      alb = mix(alb, packedAlb, tr); hS = mix(hS, mix(G.packed.h, G.mud.h, wetG).mul(0.008), tr);
       // D-227: where the foot's herbs grow back (damp below a drain, less trodden between the paths) they cover the ground in
       // their own colour, the season's green or straw (the road verges' herb, materials.ts herbs), tufted near, their mean far
-      { const herbC = mix(vec3(0.319, 0.264, 0.107), vec3(0.078, 0.107, 0.027), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)));
+      { const gsL = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)), herbC = mix(vec3(0.319, 0.264, 0.107).mul(det(G.straw)), vec3(0.078, 0.107, 0.027).mul(det(G.green)), gsL);
         const tuftL = smoothstep(0.35, 0.75, mx_noise_float(vec3(p.x.mul(2.3), 6.1, p.y.mul(2.3))).mul(0.5).add(0.5)).mul(near).add(float(1).sub(near).mul(0.6));
         alb = mix(alb, herbC.mul(float(1).add(mx_noise_float(vec3(p.x.mul(0.2), 3.3, p.y.mul(0.2))).mul(0.15))), lush.mul(tuftL).mul(SEASON.green.add(SEASON.dry).min(1)).mul(0.9)); }
       const pxD = fwidth(pathD).max(1e-4), hw = PATH_W / 2;
       const pathCov = clamp(min(float(hw), pathD.add(pxD.mul(0.5))).sub(max(float(-hw), pathD.sub(pxD.mul(0.5)))).max(0).div(pxD), 0, 1);
-      alb = mix(alb, packed.mul(1.05), pathCov.mul(0.5)); // a trodden line, not a road (after-run: at 0.8 the fan of paths read as roads)
+      alb = mix(alb, packed.mul(1.05), pathCov.mul(0.5)); hS = mix(hS, G.packed.h.mul(0.006), pathCov.mul(0.5)); // a trodden line, not a road (after-run: at 0.8 the fan of paths read as roads)
 
       // --- the hills (terrainDetail.ts maps: near ring 4 m, mid ring 16 m; beyond them the geometric normal alone)
       const Hb = HB;
@@ -373,9 +417,15 @@ export class PlainGround {
       const rockAlb = mix(linA(HILL.rock), linA(HILL.rockDark), weather.mul(HILL.weatherK)).mul(bedTone).mul(float(1).sub(recess.mul(0.35))).mul(faceK);
       const screeAlb = linA(HILL.scree).mul(float(1).add(mx_noise_float(P3.mul(1.7)).mul(0.1).mul(near))).mul(float(1).sub(fan.mul(0.06))); // fan gravel a little darker (finer, moister)
       const steepSoil = smoothstep(0.25, 0.6, slope).mul(hillOn).mul(0.55); // herbs thin out on steep colluvium
-      alb = mix(alb, mix(linA(HILL.slopeSoil), soil, 0.3), steepSoil);
-      alb = mix(alb, screeAlb, scree.mul(0.8));
-      alb = mix(alb, rockAlb, rock);
+      // D-302: each cover of the hills with its scan: the colluvium stony, the scree angular, the rock the limestone face's
+      alb = mix(alb, mix(linA(HILL.slopeSoil), soil0, 0.3).mul(det(G.stony)), steepSoil); hS = mix(hS, G.stony.h.mul(0.012), steepSoil);
+      alb = mix(alb, screeAlb.mul(det(G.scree)), scree.mul(0.8)); hS = mix(hS, G.scree.h.mul(0.02), scree.mul(0.8));
+      alb = mix(alb, rockAlb.mul(det(G.rock, 0.9)), rock); hS = mix(hS, G.rock.h.mul(0.06), rock);
+      // and over all the hills' ground the aerial rock scan at 60 and 240 m: the pattern of outcrop, soil and scrub that a
+      // kilometre off is the mountain's texture (the calib-24 view read Ystd/Y 0.12 in 12 px windows against photo #24's 0.29,
+      // and every render drew Kuh-e Rahmat as a smooth dune); as relief, a bump of ~1.5 m over its tiles where the DEM is silent
+      const hillAll = max(hillOn, rock).mul(Hb.has.max(smoothstep(0.15, 0.3, slope)));
+      alb = alb.mul(det(G.rockFar, hillAll.mul(0.8))); hS = hS.add(G.rockRelief.h.mul(1.0).mul(hillAll));
       alb = alb.mul(float(1).sub(gully.mul(0.28).mul(hillOn))).mul(float(1).add(cvx.mul(0.05).mul(hillOn))); // gullies hold shade and moisture
       // D-232: the rock-soil-scrub mosaic between the metre and the DEM's 30 m (C): bare slabs and outcrops lighter, soil- and
       // scrub-filled hollows and the unresolved cast shadows of the rough ground darker, in patches of ~6, 16 and 40 m (three
@@ -432,7 +482,11 @@ export class PlainGround {
         .mul(mix(float(HILL.shrubNearCapital), float(1), smoothstep(2000, 10000, length(p)))); // cut for fuel near the capital (C, as the woodland rule)
       // (the grid in the lattice-free frame of materials.ts, D-218: a level or axis-aligned ground would otherwise cut every
       // cell at one height, and the crowns' density would band with elevation, every 3 m, along the contours)
-      const P3r = vec3(dot(P3, v3(NOISE_FRAME[0])), dot(P3, v3(NOISE_FRAME[1])), dot(P3, v3(NOISE_FRAME[2])));
+      const P3f = vec3(dot(P3, v3(NOISE_FRAME[0])), dot(P3, v3(NOISE_FRAME[1])), dot(P3, v3(NOISE_FRAME[2])));
+      // D-302: the lattice warped by ±1.2 m over ~12 m (a plane through a jittered 3-D lattice still cuts it in rows: the probe
+      // renders of the hills drew the crowns in dotted lines along the contours). The warp's gradient (~0.2) keeps the crowns
+      // round within the D-223 test's tolerance; the CPU mirror shrubAt3 is the unwarped lattice
+      const wq = P3f.mul(0.083), P3r = P3f.add(vec3(mx_noise_float(wq), mx_noise_float(wq.add(vec3(5.2, 1.3, 8.7))), mx_noise_float(wq.add(vec3(2.9, 7.1, 3.4)))).mul(1.2));
       const S3 = HILL.shrubCell3, sq3 = P3r.div(S3), oct = floor(sq3).add(step(0.5, fract(sq3))).sub(1), dotS = float(0).toVar();
       for (let i = 0; i <= 1; i++) for (let j = 0; j <= 1; j++) for (let k2 = 0; k2 <= 1; k2++) {
         const c = oct.add(vec3(i, j, k2)), a = cellUN(c.x), b = cellUN(c.y), e = cellUN(c.z);
@@ -441,13 +495,15 @@ export class PlainGround {
         const present = step(unitN(hash3N(a, b, e, 64)), shrubCover.div(SHRUB_MAX_COVER));
         dotS.assign(max(dotS, float(1).sub(smoothstep(r.mul(0.6), r, length(P3r.sub(s3)))).mul(present)));
       }
-      const shrubNear = float(1).sub(smoothstep(0.5, 1.5, fw));
+      // D-302: by the footprint across the view (a crown 1.2-3.2 m wide stays a dot while it spans ~2 px across; by the
+      // footprint's length the mountain's shrubs a kilometre off gave way to their mean: the photo #24 mountain is speckled with them)
+      const shrubNear = float(1).sub(smoothstep(0.7, 1.6, minor));
       // twiggy grey-brown to leaf: D-223 a grey-green (wild almond's sparse grey leaves, pistachio's darker ones) rather than
       // the near-black of before, and the crown not quite opaque (sky and ground between the twigs, C)
       const shrubCol = mix(lin(0.38, 0.35, 0.30), lin(0.25, 0.28, 0.17), leaf.mul(0.6).add(0.4));
       const shrubAmt = mix(shrubCover.mul(0.9), dotS, shrubNear).mul(0.82);
       alb = mix(alb, shrubCol, shrubAmt);
-      const hOut = bund.mul(0.12).add(furrow.mul(tilled).mul(0.05)).sub(pathCov.mul(0.03)).add(ledge).add(masses).add(cut).add(dotS.mul(shrubNear).mul(0.5));
+      const hOut = hS.add(bund.mul(0.12)).add(furrow.mul(tilled).mul(0.05)).sub(pathCov.mul(0.03)).add(ledge).add(masses).add(cut).add(dotS.mul(shrubNear).mul(0.5));
       return vec4(alb, hOut);
     });
     // D-223: the cliff packages' riser and bench as a tilt of the shading normal (world space; materials.ts adds it to the
@@ -465,7 +521,9 @@ export class PlainGround {
       return vec4(nT.sub(n0).mul(on), 0);
     });
     const out = field(L.alb), tilt = tiltFn().xyz;
-    return { alb: out.xyz, rough: L.rough, height: L.height ? L.height.add(out.w) : out.w, tilt: L.tilt ? L.tilt.add(tilt) : tilt };
+    // D-302: with the ground scans the earth surface's own procedural bump and chips give way to the scans' displacement (hS)
+    const h0 = groundLoaded() ? null : L.height;
+    return { alb: out.xyz, rough: L.rough, height: h0 ? h0.add(out.w) : out.w, tilt: L.tilt ? L.tilt.add(tilt) : tilt };
   }
 }
 
