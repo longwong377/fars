@@ -7436,3 +7436,10 @@ moment-*-webgpu.png in the worktree, not committed).**
   r_door_leaves' note (5.0 m) predates this. (2) the protome's ears kept their D-151 size (as the horns) and moved down the
   head toward the brow and out (protome.head.ear_shift [0.2, 0, 0.06] D, C): the scaled ears stood above the horns like
   paddles; the photographed capital's ears stand out sideways below the horns.
+- **Revision 2:** the uniform 6.1 m colossus ended exactly on the inner wall face where the door leaf lies (tests: leaf
+  touching the colossus). terrace.ts already pinned the colossus's inner end at the inner wall face (it had grown outward,
+  not inward); the evidence for the leaves is the pivot sockets on the hall side (C, Q-073) and for the colossi their
+  fore-parts projecting outward from the facade (IR-PERS, B): neither places the colossus's inner end, so the inner end now
+  stops the leaf's thickness (r_door_leaves.thickness 0.25 m) short of the inner face and the fore-part projects 2.2 m
+  (C; Q-890). The protome's horns are raised ~0.08 D in the head frame (protome.head.horn_shift [-0.07, 0.035, 0] D): with
+  the head hung low they no longer rose above the poll; the photographs show them sweeping up and forward (C).

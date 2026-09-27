@@ -1,21 +1,21 @@
 {
  "version": 1,
- "hash": "304c9702885ca348",
+ "hash": "d2900f91766a22e0",
  "params": {
   "voluteH": 1.6087500000000001,
-  "colossusFront": 1.9450000000000003
+  "colossusFront": 2.1950000000000003
  },
  "pieces": {
   "protome": [
    {
     "file": "generated/sculpt_protome_0.bin",
-    "verts": 10558,
-    "tris": 8818
+    "verts": 10425,
+    "tris": 8788
    },
    {
     "file": "generated/sculpt_protome_1.bin",
-    "verts": 1334,
-    "tris": 1076
+    "verts": 1319,
+    "tris": 1074
    }
   ],
   "volute": [
@@ -33,25 +33,25 @@
   "colossus_bull": [
    {
     "file": "generated/sculpt_colossus_bull_0.bin",
-    "verts": 38735,
-    "tris": 49178
+    "verts": 38741,
+    "tris": 49188
    },
    {
     "file": "generated/sculpt_colossus_bull_1.bin",
-    "verts": 3564,
-    "tris": 4908
+    "verts": 3550,
+    "tris": 4900
    }
   ],
   "colossus_lamassu": [
    {
     "file": "generated/sculpt_colossus_lamassu_0.bin",
-    "verts": 45613,
-    "tris": 49116
+    "verts": 45647,
+    "tris": 49144
    },
    {
     "file": "generated/sculpt_colossus_lamassu_1.bin",
-    "verts": 3753,
-    "tris": 4910
+    "verts": 3750,
+    "tris": 4898
    }
   ]
  },
