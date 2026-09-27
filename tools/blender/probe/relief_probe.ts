@@ -6,7 +6,8 @@
 import * as THREE from 'three/webgpu';
 import { loadScans } from '../../../src/render/scans';
 import { loadModels } from '../../../src/render/models';
-import { loadReliefAtlas, reliefAtlasStats } from '../../../src/render/reliefAtlas';
+import { loadReliefAtlas, reliefAtlasStats, reliefAtlasMaps } from '../../../src/render/reliefAtlas';
+import { attribute, texture, vec3, vec4, normalView, float } from 'three/tsl';
 import { loadSculpt } from '../../../src/arch/sculpt';
 import { buildTerrace } from '../../../src/arch/terrace';
 import { buildMeshes } from '../../../src/arch/meshes';
@@ -48,6 +49,24 @@ import { ReliefSet, setReliefAtlas, updateReliefs, settleReliefs, reliefStats } 
     const at = (aa: number, o: number) => [f.origin[0] + f.along[0] * aa + f.normal[0] * o, -(f.origin[1] + f.along[1] * aa + f.normal[1] * o)];
     const [ex, ez] = at(a, off), [tx, tz] = at(a + da, 0); return { eye: [ex, f.y0 + y, ez], at: [tx, f.y0 + ty, tz] }; };
   (window as any).__facadeView = facadeView;
+  /** a camera `off` m square to the wall in front of the n-th figure of a kind (the atlas group's sets), eye at the figure's
+   *  mid-height + dy, looking at its point at height fraction fy (and along the wall by da m) */
+  (window as any).__itemView = (kind: string, n: number, off: number, fy = 0.6, dy = 0, da = 0) => {
+    const its = sets(atlas).flatMap(s => s.items).filter(it => it.kind === kind); const it = its[Math.min(n, its.length - 1)]; if (!it) return null;
+    const at = it.o.clone().addScaledVector(it.Y, it.S * fy).addScaledVector(it.X, da), eye = at.clone().addScaledVector(it.Z, off); eye.y += dy;
+    return { eye: eye.toArray(), at: at.toArray(), count: its.length };
+  };
+  // debug views of the atlas group: 'paint' (the paint texture), 'cov', 'ao', 'nrm' (the baked normal as colour), 'geo' (the vertex normal); '' = the material
+  const dbgMats = new Map<string, THREE.Material>(), origMat = new Map<THREE.Object3D, THREE.Material>();
+  (window as any).__debug = (mode0: string) => {
+    const nowall = mode0.endsWith('-nowall'), mode = mode0.replace('-nowall', ''); arch.group.visible = !nowall;
+    const M = reliefAtlasMaps()!, r = attribute('ruv', 'vec4'), at = (t: THREE.Texture) => texture(t, r.xy).depth(r.z.add(0.5).floor());
+    atlas.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh && !(m as any).isBatchedMesh) return; if (!origMat.has(m)) origMat.set(m, m.material as THREE.Material);
+      if (!mode) { m.material = origMat.get(m)!; return; }
+      let mat = dbgMats.get(mode); if (!mat) { const b = new THREE.MeshBasicNodeMaterial();
+        b.colorNode = mode === 'uv' ? vec3(r.x.mul(512).fract(), r.y.mul(512).fract(), r.z.div(5)) : mode === 'paint0' ? texture(M.paint, r.xy).depth(r.z.add(0.5).floor()).level(float(0)).rgb : mode === 'paint2' ? texture(M.paint, r.xy).depth(r.z.add(0.5).floor()).level(float(2)).rgb : mode === 'paint' ? at(M.paint).rgb : mode === 'cov' ? vec3(at(M.paint).a) : mode === 'ao' ? vec3(at(M.nao).b) : mode === 'nrm' ? vec3(at(M.nao).r, at(M.nao).g, float(1)) : normalView.mul(0.5).add(0.5);
+        dbgMats.set(mode, mat = b); } m.material = mat; });
+  };
   (window as any).__jambs = doorways.filter((d: any) => d.framed).map((d: any) => ({ id: d.id, c: d.c, u: d.u, n: d.n, width: d.width, y0: d.y0 }));
   (window as any).__shot = async (v: { eye: number[]; at: number[]; fov: number; sun: number[]; atlas: boolean }) => {
     legacy.visible = !v.atlas; atlas.visible = v.atlas;

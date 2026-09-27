@@ -10,7 +10,6 @@
 // modelling, the paint and the contour shading the triangles no longer need), each vertex carrying its atlas coordinate
 // (`ruv`: u, v, layer, depth-ratio correction) and the wall's frame (normal + tangent), so the shader reads the carved surface
 // at 1-2 mm per texel wherever the camera is. Pure data and arithmetic (runs in node, workers and the browser).
-import type { FigureDef } from './relief_field';
 import INDEX from '../data/relief_atlas.json';
 
 /** one figure definition's place in the atlas */
@@ -62,7 +61,10 @@ export const ATLAS_LODS = [
 /** texel coordinates → the vertex attribute `ruv` (u, v in the page, layer, depth-ratio correction) for a vertex at figure
  *  position (x, y) (unmirrored figure frame). `rho` = the instance's D/S: the shader scales the baked slopes by rho / e.rho */
 export function atlasUV(e: AtlasEntry, x: number, y: number, size: number): [number, number] {
-  return [(e.px[0] + 0.5 + (x - e.fig[0]) / e.cell) / size, (e.px[1] + 0.5 + (y - e.fig[1]) / e.cell) / size];
+  // clamped to the rectangle: a coarse level's background vertex can lie a cell beyond the margin, and would read the
+  // neighbouring figure's texels (the rectangle's edge is background)
+  const tx = Math.min(e.px[2] - 0.5, Math.max(0.5, 0.5 + (x - e.fig[0]) / e.cell)), ty = Math.min(e.px[3] - 0.5, Math.max(0.5, 0.5 + (y - e.fig[1]) / e.cell));
+  return [(e.px[0] + tx) / size, (e.px[1] + ty) / size];
 }
 
 /** texel size (figure units) for a definition drawn at most `sMax` m tall and `ext` figure units across: texel_m on the stone,
@@ -72,5 +74,3 @@ export function atlasCell(texel_m: number, maxTexels: number, sMax: number, ext:
   const t = (coarse ? 2 : 1) * texel_m / sMax;
   return Math.max(t, ext / (maxTexels - 1));
 }
-/** the figure's non-empty bounds from its definition (figure units): what the atlas rectangle covers (plus the margin) */
-export type Def = FigureDef;

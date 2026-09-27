@@ -13,7 +13,7 @@
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
 import { receiveReliefShadow, RELIEF_SHADOW_FLAG } from './reliefShadow';
 import * as THREE from 'three/webgpu';
-import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt, TBNViewMatrix } from 'three/tsl';
+import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt } from 'three/tsl';
 import { MASONRY, courseTexels } from './masonry';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
@@ -1200,11 +1200,18 @@ export interface ReliefAtlasMaps { nao: THREE.Texture; paint: THREE.Texture }
 function reliefAtlasNodes(atlas: ReliefAtlasMaps) {
   const r = attribute('ruv', 'vec4'), uv = r.xy;
   const layered = (t: any) => t.isCompressedArrayTexture || t.isDataArrayTexture || t.isArrayTexture;
-  const at = (t: THREE.Texture) => (layered(t) ? texture(t, uv).depth(r.z) : texture(t, uv));
+  // the layer, rounded: the interpolated constant comes out a hair under the integer on some pixels, and the sampler truncates
+  const layer = r.z.add(0.5).floor();
+  const at = (t: THREE.Texture) => (layered(t) ? texture(t, uv).depth(layer) : texture(t, uv));
   const P = at(atlas.paint), N = at(atlas.nao);
   const bx = N.r.mul(2).sub(1), by = N.g.mul(2).sub(1), bz = float(1).sub(bx.mul(bx)).sub(by.mul(by)).max(0.0025).sqrt();
   const nT = vec3(bx.div(bz).mul(r.w), by.div(bz).mul(r.w), float(1)).normalize();
-  return { pig: P.rgb, cov: P.a, gilt: N.a, occ: float(1).sub(N.b), normal: (TBNViewMatrix as any).mul(nT).normalize() };
+  // the wall's frame in view space: every relief stands on a vertical wall with the figure's up = the world's up (arch/reliefs.ts
+  // placements; tests/relief_atlas.test.ts), so the bitangent is the world's up, the tangent up x normal, turned by the
+  // geometry's mirror sign (tangent.w). Instanced meshes (the rosettes) do not turn a tangent attribute by the instance
+  // matrix, so the frame is built here and not from TBNViewMatrix
+  const Nv = normalView, up = cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz.normalize(), T = up.cross(Nv).normalize().mul(attribute('tangent', 'vec4').w);
+  return { pig: P.rgb, cov: P.a, gilt: N.a, occ: float(1).sub(N.b), normal: T.mul(nT.x).add(up.mul(nT.y)).add(Nv.mul(nT.z)).normalize() };
 }
 
 /** Incised signs (D-177; src/render/incision.ts): the host stone's own surface (the same world-space layer and weather as the

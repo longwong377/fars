@@ -35,9 +35,17 @@ const J = await p.evaluate(() => window.__jambs);
 for (const id of ['hall100:N1', 'tachara:S', 'harem:S1']) { const d = J.find(q => q.id.startsWith(id.split(':')[0]) && q.id.includes(id.split(':')[1] ?? '')) ?? null; if (!d) continue;
   const s = 1, w = d.width / 2, eye = [d.c[0] - d.u[0] * s * (w - 1.2) , d.y0 + 1.6, -(d.c[1] - d.u[1] * s * (w - 1.2))], at = [d.c[0] + d.u[0] * s * w - d.n[0] * 0.3, d.y0 + 1.5, -(d.c[1] + d.u[1] * s * w - d.n[1] * 0.3)];
   views.push({ n: `jamb-${d.id.replace(/[^a-z0-9]/gi, '_')}`, eye, at, fov: 70, sun: [0.2, 0.9, 0.35] }); }
+// views on named figures: [name, kind, n, off, fy, dy, da, fov, sun]
+const ITEMS = [
+  ['guard-0.8m', 'guard', 3, 0.8, 0.75, 0.1, 0, 60, SUN_E], ['guard-head-0.4m', 'guard', 3, 0.4, 0.82, 0.0, 0.02, 50, SUN_E], ['guard-2.5m', 'guard', 3, 2.5, 0.6, 0.6, 0.3, 70, SUN_E], ['guards-6m', 'guard', 3, 6, 0.6, 0.9, 1.5, 70, SUN_E],
+  ['delegate-1.2m', 'delegate', 20, 1.2, 0.6, 0.3, 0, 70, SUN_E], ['king-2m', 'king', 0, 2, 0.55, 0.2, 0, 70, SUN_E], ['lionbull-3m', 'lion_bull', 0, 3, 0.5, 0.3, 0, 70, SUN_E],
+  ['kingatt-jamb-1.5m', 'king_attendants', 0, 1.5, 0.55, -0.4, 0, 70, [0.2, 0.9, 0.35]], ['bearer-2m', 'bearer', 0, 2, 0.6, 0, 0, 70, [0.2, 0.9, 0.35]],
+];
+for (const [n, kind, k, off, fy, dy, da, fov, sun] of ITEMS) { const v = await p.evaluate(q => window.__itemView(...q), [kind, k, off, fy, dy, da]); if (v) views.push({ n, fov, sun, eye: v.eye, at: v.at }); }
 const rec = { ready, views: [] };
 for (const v of views) { if (ONLY && !ONLY.includes(v.n)) continue;
-  for (const [tag, atlas] of [['legacy', false], ['atlas', true]]) {
+  for (const [tag, atlas, dbg] of (process.env.DBG ? [['legacy', false, ''], ['atlas', true, ''], ...process.env.DBG.split(',').map(d => ['dbg-' + d, true, d])] : [['legacy', false, ''], ['atlas', true, '']])) {
+    await p.evaluate(d => window.__debug(d), dbg);
     const r = await p.evaluate(a => window.__shot(a), { ...v, atlas });
     await p.screenshot({ timeout: 600000, path: `${OUT}/${v.n}-${tag}.png` });
     rec.views.push({ n: v.n, tag, ...r }); console.log(v.n, tag, r.errs.length ? r.errs : '', JSON.stringify({ tris: r.reliefTris, byLod: r.byLod, far: r.far }), (Date.now() - t0) / 1000);
