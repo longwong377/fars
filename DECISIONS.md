@@ -6812,3 +6812,11 @@ moment-*-webgpu.png in the worktree, not committed).**
   (end of January); seeds 2, 7, 11 on two days each. No flagship moment's day changed (tests/weather_visible.test.ts's rain-approach
   day 299 is kept; a looser 7 °C threshold turned it to snow and was rejected for that reason AND because 7 °C is a warm day for
   snow at 1,600 m). Tests: tests/weather.test.ts. Every render of days 288-295 of seed 1 is changed (snow cover).
+
+## D-290 The probe loop by default; share-instancing checked at quality high first (session 10; D-250's A/B)
+- **Measured:** gate-dusk rendered twice at test quality (jobs ab_old, ab_new: without and with `?probeloop=1&shareinst=1`): the
+  frames are identical except at the animated flames, a spear and a few stars/birds (0.14 % of pixels differ by > 8; mean |Δ| 0.05):
+  both changes draw the same picture. The page times (18.5 vs 17.9 min) were taken under load 5-7 and do not measure the gain.
+- **Decision:** the looped probe lookup is on by default (`?probeloop=0` restores the unrolled one; pinned in tests/defaults.test.ts).
+  Share-instancing stays opt-in until a quality-high render passes with it (it failed WebGPU validation at high in session 9 before
+  the attribute-count fix): job tj5b renders at high with `&shareinst=1`; if it passes, it goes default the same way.

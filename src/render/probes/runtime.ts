@@ -81,7 +81,7 @@ export function volumeTable(volumes: ProbeVolume[], pos: [number, number][]): [n
 }
 /** the unrolled lookup (one masked copy of the per-volume terms per volume, sessions 3-8) instead of the loop: ?probeloop=0,
  *  kept for A/B renders of D-250 */
-let UNROLLED = typeof location === 'undefined' || new URLSearchParams(location.search).get('probeloop') !== '1'; // opt-in (?probeloop=1) until verified in a render
+let UNROLLED = typeof location === 'undefined' || new URLSearchParams(location.search).get('probeloop') === '0'; // default on since session 10 (D-290: the A/B render gate-dusk identical but for the flames' flicker); ?probeloop=0 for the old lookup
 /** tests and tools: choose the looped (true) or unrolled lookup for shaders built from now on */
 export function setProbeLoop(on: boolean) { UNROLLED = !on; }
 /** GPU memory of the atlases (bytes) */

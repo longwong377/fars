@@ -34,4 +34,7 @@ describe('decided defaults (T-K10)', () => {
     const main = readFileSync('src/main.ts', 'utf8'); expect(main).toMatch(/newGameStart\(SEED, settings\.courtCalendar === 'seasonal'\)/);
     expect(newGameStart(1, false)).toEqual({ day: 0, hour: 7 }); // (the evidence-strict world keeps the old start)
   });
+  it('D-290: the looped probe lookup is the browser default (?probeloop=0 for the unrolled one)', () => {
+    expect(readFileSync('src/render/probes/runtime.ts', 'utf8')).toMatch(/get\('probeloop'\) === '0'/);
+  });
 });
