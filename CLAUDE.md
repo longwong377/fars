@@ -84,6 +84,9 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   (language models, browser caches) live on T: ("Temporary Storage", ~210 GB, may be wiped when the machine stops) behind
   a junction at their old path; anything that cannot be re-fetched stays on C: or goes to git. Check free space before
   large downloads.
+- **The GPU watchdog:** Windows resets the card when one GPU job runs > ~2 s (DXGI_ERROR_DEVICE_HUNG; session 11: a long
+  language-model prefill, and a portrait run while other agents rendered). Keep at most two heavy renders at once; keep
+  single dispatches short (prompts ≤ ~450 tokens for the in-browser model). Do not change the Windows TDR settings.
 
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
