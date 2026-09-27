@@ -1,9 +1,7 @@
 merged session 12 (b82cd90, a3d2af5; B136 used) |first pass merged session 12 (87d1834, up to d417818); e7290b1 NOT merged (breaks 2 sculpt tests; plan in sessions/s12.md); no Q/B used |merged session 12 (391d995, round 2 5180cad; no Q/B used) |merged session 12 (c1d6516; no Q/B used) |merged session 12 (two passes: 38b2221, ada7346; Q-860, B124 used) |# Reserved record numbers (MASTER_PLAN §6 session loop; T-R6)
-
 Every number reserved for an agent, with its branch and fate. A number cited in MASTER_PLAN.md or CLAUDE.md must exist in its
 record (DECISIONS, OPEN_QUESTIONS, BLOCKERS) or in this table (tests/scope_ledger.test.ts). At session close every row's fate
 is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a session unrecorded.
-
 | number | session | workstream | branch | fate |
 |---|---|---|---|---|
 | D-229 | s8 | Phase 5 review fixes (C1, M4, M3) | worktree-agent-a77ac53305a706d11 | merged c461ebe |
@@ -62,6 +60,14 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-309 | s12 | the lighting at the T4's full quality (Q-860..Q-869, B124..B126) | agent worktree T:/fars-wt/lighting, branch s12-lighting | merged session 12 (two passes: 38b2221, ada7346; Q-860, B124 used) |
 | D-310 | s12 | CC0 3D models in bulk: rocks, flora, jars, baskets, props (Q-870..Q-879, B127..B129) | agent worktree T:/fars-wt/models, branch s12-models | merged session 12 (c1d6516; no Q/B used) |
 | D-311 | s12 | the Blender mudbrick house kit; every house rebuilt (Q-880..Q-889, B130..B132) | agent worktree T:/fars-wt/housekit, branch s12-housekit | merged session 12 (391d995, round 2 5180cad; no Q/B used) |
-| D-312 | s12 | the monuments' forms: protome, colossi, reliefs, block faces (Q-890..Q-899, B133..B135) | agent worktree T:/fars-wt/monuments, branch s12-monuments | first pass merged session 12 (87d1834, up to d417818); e7290b1 NOT merged (breaks 2 sculpt tests; plan in sessions/s12.md); no Q/B used |
+| D-312 | s12 | the monuments' forms: protome, colossi, reliefs, block faces (Q-890..Q-899, B133..B135) | agent worktree T:/fars-wt/monuments, branch s12-monuments | merged session 12 (87d1834; rev 2 dd549b9 in 15edd65; Q-890 used) |
 | D-313 | s12 | the people's forms: garments, belts, hair and beards (Q-900..Q-909, B136..B138) | agent worktree T:/fars-wt/people, branch s12-people | merged session 12 (b82cd90, a3d2af5; B136 used) |
 | D-314..D-319 | s12 | the lead's own decisions (Q-910..Q-919, B139..B141) | claude/amazing-fermi-40ds7j | D-314 used (the CPU bake; tool uncommitted, see sessions/s12.md); D-315..D-319, Q-910..Q-919, B139..B141 unused |
+| D-320 | s12 | Blender, all of it: reliefs (Q-920..Q-929, B142..B144) | agent worktree T:/fars-wt/reliefs, branch s12b-reliefs | in flight |
+| D-321 | s12 | Blender, all of it: blocks (Q-930..Q-939, B145..B147) | agent worktree T:/fars-wt/blocks, branch s12b-blocks | in flight |
+| D-322 | s12 | Blender, all of it: garments (Q-940..Q-949, B148..B150) | agent worktree T:/fars-wt/garments, branch s12b-garments | in flight |
+| D-323 | s12 | Blender, all of it: hairhands (Q-950..Q-959, B151..B153) | agent worktree T:/fars-wt/hairhands, branch s12b-hairhands | in flight |
+| D-324 | s12 | Blender, all of it: houselod (Q-960..Q-969, B154..B156) | agent worktree T:/fars-wt/houselod, branch s12b-houselod | in flight |
+| D-325 | s12 | Blender, all of it: props (Q-970..Q-979, B157..B159) | agent worktree T:/fars-wt/props, branch s12b-props | in flight |
+| D-326 | s12 | Blender, all of it: animals (Q-980..Q-989, B160..B162) | agent worktree T:/fars-wt/animals, branch s12b-animals | in flight |
+| D-327 | s12 | Blender, all of it: trees (Q-990..Q-999, B163..B165) | agent worktree T:/fars-wt/trees, branch s12b-trees | in flight |
