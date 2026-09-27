@@ -739,6 +739,7 @@ export const FIGURE_KINDS: Record<string, KindInfo> = {
   winged_figure: K('B', 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', 'emblem', 1.3, 'the figure rising from the winged ring above the king (Naqsh-e Rustam tombs, B): bust with a raised hand and a ring (C) over the winged disc of the Tripylon panel (form C)'),
   fire_altar: K('B', 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', 'emblem', 0.45, 'stepped fire altar with flames before the king (Naqsh-e Rustam tombs, B); proportions and paint C'),
   moon: K('B', 'NR-ACHAEMENICA;WP-NR', 'emblem', 1.0, 'the moon above the altar, a disc with a crescent (Naqsh-e Rustam tombs, B; form C); unit = diameter'),
+  elamite: K('C', 'ALVAREZMON;RECON', 'person', 0.62, 'worshipper of the Neo-Elamite rock relief at Naqsh-e Rustam (7 x 2.5 m, intact in 467: B; D-320): the relief was overcarved by Bahram II and its figures are NOT SEEN; drawn by analogy with the Elamite rock reliefs of Kurangun and Kul-e Farah (C): a long fringed robe, the hair in a band with a ribbon behind, the hands clasped before the chest; seed % 3 = 2 a woman, beardless, the hair in a fillet (C). Unpainted: a relief two centuries old in 467 (C)'),
   rosette: K('C', 'RECON', 'ornament', 1.0, 'twelve-petalled rosette of the border bands (motif from reconstructions, C); unit = diameter'),
 };
 
@@ -818,6 +819,10 @@ export function figureDef(kind: string, seed: number): FigureDef {
       return { masses: [...b.masses, tail, ...wingedDisc(fr)], incisions: b.incisions };
     }
     case 'fire_altar': return { masses: fireAltar(fr) };
+    case 'elamite': { // D-320: a worshipper of the Neo-Elamite relief (by analogy, C; see FIGURE_KINDS.elamite), unpainted
+      const woman = seed % 3 === 2, clasp = { near: { elbow: [0.05, 0.56], hand: [0.085, 0.64] }, far: { elbow: [0.035, 0.57], hand: [0.075, 0.63] } } as Pick<Human, 'near' | 'far'>;
+      return human(fr, { dress: 'long', head: woman ? 'fillet' : 'band', beard: woman ? 'none' : 'long', garment: STONE, garment2: STONE, headCol: STONE, ...clasp });
+    }
     case 'moon': return { masses: [M([diff(fr.circ(0, 0.5, 0.5), fr.circ(0.16, 0.56, 0.42))], { amp: 0.7, colour: P.yellowOchre, round: 0.03, groove: 0.1 }), M([diff(fr.circ(0, 0.5, 0.5), fr.circ(0, 0.5, 0.44))], { amp: 0.6, colour: STONE, round: 0.02 })] };
     case 'hero': { // the royal hero grasps the rampant beast and stabs it in the belly (composition C); seed % 3: lion, bull,
       // monster (a lion with bull's horns and a wing: the "lion-headed monster / griffin" of the Harem E door, form C)

@@ -38,6 +38,7 @@ import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
+import { loadReliefAtlas } from '../render/reliefAtlas';
 import { loadScanProps } from '../render/scanProps';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
 import { buildWaterworks } from '../arch/waterworks';
@@ -140,6 +141,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const probesP = loadProbes('/'); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
   const propsP = loadScanProps('/'); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
   const modelsP = loadModels('/'); // the Blender-built models (D-305, public/models/): in before the architecture is built
+  const reliefAtlasP = loadReliefAtlas('/'); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
   const fireOccP = loadFireOcc('/'); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
@@ -162,6 +164,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     if (pf && h) try { const d = new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(partsJson))); const now = [...d].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16);
       if (now !== h) console.warn(`[probes] baked for parts ${h}, the architecture is ${now}: rerun npx tsx tools/build_probes.ts`); } catch { /* no SubtleCrypto (insecure context) */ } }
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
+  await reliefAtlasP;
   const reliefs = buildReliefs(manifest); root.add(reliefs);
   wmark('reliefs');
   reliefs.add(buildReliefMarks(manifest, parts)); // the sculptors' marks on the reliefs' background (D-212; still there in the Now view)

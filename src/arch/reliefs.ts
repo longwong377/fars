@@ -9,6 +9,7 @@ import { Rng } from '../core/rng';
 import { FIGURE_KINDS, PIGMENT, DELEGATIONS, SPECIES, defBounds, figureDef, baseKind } from './relief_figures';
 const SPECIES_HALF = (k: string) => (SPECIES[k] ? SPECIES[k].L / 2 : 0.3);
 import { rasterize, rtinErrors, extractLod, LodMesh, Box, FigureDef } from './relief_field';
+import { ATLAS_LODS, ATLAS_INDEX, atlasEntry, atlasUV, type AtlasEntry } from './relief_atlas';
 import { paintedStoneMaterial } from '../render/materials';
 import { planReliefShadow, stampField, type ShadowItem, type ReliefShadowData } from './relief_shadow';
 export { FIGURE_KINDS, PIGMENT, DELEGATIONS } from './relief_figures';
@@ -17,6 +18,11 @@ export type { KindInfo } from './relief_figures';
 /** the carvable figure kinds (see FIGURE_KINDS for tier / source / note of each) */
 export const RELIEF_KINDS = Object.keys(FIGURE_KINDS);
 export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', placeholder: true, note: 'procedural low relief; licensed scans would replace (NEEDS #10). Carved heightfield figures (D-019), cut back in near-vertical steps, no undercut; their sun shadows marched from a height atlas (D-226); layout B/C; hair/beard dark blue B, other paint C' };
+
+/** a set drawn with the carved-relief atlas (D-320). Still a placeholder: the figures' drawing (outlines, poses, folds, curls) is
+ *  the procedural reconstruction of relief_figures.ts, tier C, until licensed scans or measured drawings replace it (NEEDS
+ *  #10); what changed is the carving's surface, baked by Blender from the finest heightfield with undercut outlines */
+export const RELIEF_ATLAS_META = { note: 'carved relief figures baked by Blender (D-320): the finest heightfield of each figure, its outlines undercut, baked by Cycles into a normal and ambient-occlusion atlas (1.6 mm on the stone) with the paint on the same grid, drawn on coarse RTIN levels; the drawing is still the procedural reconstruction (C), licensed scans would replace it (NEEDS #10); their sun shadows marched from a height atlas (D-226); layout B/C; hair/beard dark blue B, other paint C' };
 
 // ---------------- levels of detail ----------------
 /** per LOD: target grid cell on the stone (m), largest grid, RTIN error bound (relief-depth units), normal smoothing (cells),
@@ -62,14 +68,27 @@ export const RELIEF_CHUNK = 12, RELIEF_FAR = RELIEF_LODS[2].dist, RELIEF_SHADOW_
 export const RELIEF_FARTHEST = RELIEF_LODS[3].dist;
 /** the LOD of a far chunk's merged mesh (and the shadow proxy's): L3 in the band RELIEF_FAR–RELIEF_FARTHEST, else coarsest */
 const FAR_LOD = 3;
-/** grid size (2^k + 1) for a figure whose larger extent on the stone is `extentM` metres, at LOD `lod` */
-export function lodGrid(extentM: number, lod: number) {
-  const cells = extentM / RELIEF_LODS[lod].cell;
-  return Math.min(RELIEF_LODS[lod].maxN, Math.max(17, 2 ** Math.ceil(Math.log2(Math.max(16, cells))) + 1));
+type LodTable = typeof RELIEF_LODS;
+/** grid size (2^k + 1) for a figure whose larger extent on the stone is `extentM` metres, at LOD `lod` (of the legacy levels,
+ *  or of the atlas levels, ATLAS_LODS, when `table` is given) */
+export function lodGrid(extentM: number, lod: number, table: LodTable = RELIEF_LODS) {
+  const cells = extentM / table[lod].cell;
+  return Math.min(table[lod].maxN, Math.max(9, 2 ** Math.ceil(Math.log2(Math.max(8, cells))) + 1));
 }
 
+// ---------------- the carved-relief atlas (D-320; relief_atlas.ts) ----------------
+/** atlas mode: relief sets built while it is on draw their figures with the baked atlas (ATLAS_LODS + the atlas material) when
+ *  every figure of the set is in the atlas. The browser turns it on once the atlas textures are in (render/reliefAtlas.ts);
+ *  node tools and tests turn it on to measure the atlas levels (no textures needed for the geometry) */
+let atlasOn = false;
+let atlasMat: (() => THREE.MeshStandardNodeMaterial) | null = null;
+export function setReliefAtlas(on: boolean, material: (() => THREE.MeshStandardNodeMaterial) | null = null) { atlasOn = on && (ATLAS_INDEX.version ?? 0) > 0; atlasMat = material; }
+export const reliefAtlasOn = () => atlasOn;
+/** the mesh-cache key prefix of the atlas levels (their grids and error bounds differ from the legacy ones) */
+const AK = 'A|';
+
 // ---------------- generation: cache, worker pool, synchronous fallback ----------------
-const meshCache = new Map<string, LodMesh>();          // key = kind|seed|n|lod
+const meshCache = new Map<string, LodMesh>();          // key = [A|]kind|seed|n|lod
 const bounds = new Map<string, Box>();
 export const genStats = { generated: 0, ms: 0, workerJobs: 0 };
 const defs = new Map<string, FigureDef>();
@@ -77,10 +96,12 @@ const defs = new Map<string, FigureDef>();
 const defOf = (kind: string, seed: number) => { const k = kind + '|' + seed; let d = defs.get(k); if (!d) { d = figureDef(kind, seed); defs.set(k, d); } return d; };
 const boundsOf = (kind: string, seed: number) => { const k = kind + '|' + seed; let b = bounds.get(k); if (!b) { b = defBounds(defOf(kind, seed)); bounds.set(k, b); } return b; };
 /** synchronous generation of one LOD mesh (node / tests / no-Worker fallback) */
-export function reliefLodMesh(kind: string, seed: number, n: number, lod: number): LodMesh {
-  const key = `${kind}|${seed}|${n}|${lod}`; let m = meshCache.get(key); if (m) return m;
+export function reliefLodMesh(kind: string, seed: number, n: number, lod: number, atlas = false): LodMesh {
+  const key = `${atlas ? AK : ''}${kind}|${seed}|${n}|${lod}`; let m = meshCache.get(key); if (m) return m;
   const t0 = performance.now();
-  const f = rasterize(defOf(kind, seed), n, RELIEF_LODS[lod].pre); m = extractLod(f, rtinErrors(f), RELIEF_LODS[lod].err, RELIEF_LODS[lod].grad, PIGMENT.stone);
+  if (atlas) { // the atlas levels (D-320): no refinement at paint edges, positions and triangles only
+    const L = ATLAS_LODS[lod], f = rasterize(defOf(kind, seed), n, L.pre); m = extractLod(f, rtinErrors(f, 0), L.err, 1, PIGMENT.stone, true);
+  } else { const f = rasterize(defOf(kind, seed), n, RELIEF_LODS[lod].pre); m = extractLod(f, rtinErrors(f), RELIEF_LODS[lod].err, RELIEF_LODS[lod].grad, PIGMENT.stone); }
   genStats.generated++; genStats.ms += performance.now() - t0;
   meshCache.set(key, m); return m;
 }
@@ -99,9 +120,10 @@ class WorkerPool {
       this.workers.push(w); this.idle.push(w);
     }
   }
-  request(key: string, kind: string, seed: number, n: number, lod: number) {
+  request(key: string, kind: string, seed: number, n: number, lod: number, atlas = false) {
     if (this.pending.has(key) || meshCache.has(key)) return;
-    this.pending.add(key); this.queue.push({ key, job: { kind, seed, n, err: RELIEF_LODS[lod].err, grad: RELIEF_LODS[lod].grad, pre: RELIEF_LODS[lod].pre } }); this.pump();
+    const L = (atlas ? ATLAS_LODS : RELIEF_LODS)[lod];
+    this.pending.add(key); this.queue.push({ key, job: { kind, seed, n, err: L.err, grad: L.grad, pre: L.pre, ...(atlas ? { lean: true } : {}) } }); this.pump();
   }
   private onField = new Map<string, (f: { n: number; x0: number; y0: number; cell: number; h: Float32Array }) => void>();
   /** a rasterised field (the relief shadow atlas, D-226), delivered to `done`; queued behind the meshes already asked for */
@@ -143,6 +165,35 @@ export function lodGeometry(m: LodMesh, mirror: boolean): THREE.BufferGeometry {
   return g;
 }
 
+/** an atlas level's geometry (D-320): positions as lodGeometry; the wall's frame as normal (0, 0, 1) and tangent (along the
+ *  figure's own +x: mirrored, the tangent points along −x and w = −1, so the bitangent stays up), which the shader turns the
+ *  baked normal with; `ruv` = the atlas coordinate (u, v from the unmirrored figure frame), the layer, and `ratio` = the
+ *  instance's depth ratio over the one the normals were baked at (the shader scales the baked slopes by it) */
+export function lodGeometryAtlas(m: LodMesh, mirror: boolean, e: AtlasEntry, ratio: number, size = ATLAS_INDEX.size): THREE.BufferGeometry {
+  const nv = m.verts, pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), tan = new Float32Array(nv * 4), ruv = new Float32Array(nv * 4), sx = mirror ? -1 : 1;
+  for (let i = 0; i < nv; i++) {
+    const x = m.pos[i * 3], y = m.pos[i * 3 + 1];
+    pos[i * 3] = x * sx; pos[i * 3 + 1] = y; pos[i * 3 + 2] = m.pos[i * 3 + 2];
+    nor[i * 3 + 2] = 1; tan[i * 4] = sx; tan[i * 4 + 3] = sx;
+    const [u, v] = atlasUV(e, x, y, size); ruv[i * 4] = u; ruv[i * 4 + 1] = v; ruv[i * 4 + 2] = e.layer; ruv[i * 4 + 3] = ratio;
+  }
+  const idx = new Uint32Array(m.index);
+  if (mirror) for (let t = 0; t < idx.length; t += 3) { const q = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = q; }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  g.setAttribute('tangent', new THREE.BufferAttribute(tan, 4)); g.setAttribute('ruv', new THREE.BufferAttribute(ruv, 4));
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
+  return g;
+}
+/** an empty stand-in geometry with a mode's attributes (a batch instance waiting for its mesh) */
+function emptyGeometry(atlas: boolean): THREE.BufferGeometry {
+  const e = new THREE.BufferGeometry(), z3 = [0, 0, 0, 0, 0, 0, 0, 0, 0], one = [0, 0, 0];
+  e.setAttribute('position', new THREE.Float32BufferAttribute(z3, 3)); e.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
+  if (atlas) { e.setAttribute('tangent', new THREE.Float32BufferAttribute([1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1], 4)); e.setAttribute('ruv', new THREE.Float32BufferAttribute(new Array(12).fill(0), 4)); }
+  else { e.setAttribute('color', new THREE.Float32BufferAttribute(z3, 3)); e.setAttribute('paint', new THREE.Float32BufferAttribute(one, 1)); e.setAttribute('gilt', new THREE.Float32BufferAttribute(one, 1)); e.setAttribute('ao', new THREE.Float32BufferAttribute(one, 1)); }
+  e.setIndex([0, 1, 2]); return e;
+}
+
 // ---------------- relief sets ----------------
 /** one carved figure on a wall: origin on the wall face at the figure's ground line, unit along-wall / up / out-of-wall axes */
 export interface ReliefItem { kind: string; seed: number; o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vector3; Z: THREE.Vector3; S: number; D: number; mirror: boolean; meta?: Record<string, unknown>;
@@ -151,11 +202,14 @@ export interface ReliefItem { kind: string; seed: number; o: THREE.Vector3; X: T
 export interface RosetteItem { o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vector3; Z: THREE.Vector3; S: number; D: number }
 const liveSets = new Set<ReliefSet>();
 let reliefMat: THREE.MeshStandardNodeMaterial | null = null;
-/** carved limestone with a matte mineral paint film (D-030): no masonry joints, paint coverage per vertex */
-const paintMaterial = () => reliefOverride ?? (reliefMat ??= paintedStoneMaterial());
+/** carved limestone with a matte mineral paint film (D-030): no masonry joints, paint coverage per vertex; with the atlas
+ *  (D-320) the material render/reliefAtlas.ts made, which reads the carving, the paint and the occlusion from the atlas */
+const paintMaterial = (atlas = false) => reliefOverride ?? (atlas && atlasMat ? atlasMat() : (reliefMat ??= paintedStoneMaterial()));
 /** the Now view (D-201): relief meshes made while it is on (streamed LODs) take this material, bare weathered stone */
 let reliefOverride: THREE.MeshStandardNodeMaterial | null = null;
 export function setReliefMaterialOverride(m: THREE.MeshStandardNodeMaterial | null) { reliefOverride = m; }
+/** the relief paint material of a mode (the Now view puts it back on the meshes it swapped, D-320) */
+export const reliefPaintMaterial = (atlas: boolean) => (atlas && atlasMat ? atlasMat() : (reliefMat ??= paintedStoneMaterial()));
 const carving = () => v<any>('apadana', 'r_relief_carving');
 let proxyMat: THREE.MeshBasicNodeMaterial | null = null;
 /** shadow proxies (D-048) write nothing in the view passes (no colour, no depth) and are drawn into the shadow maps with
@@ -169,6 +223,13 @@ interface Chunk { items: number[]; lo: THREE.Vector3; hi: THREE.Vector3;
 export class ReliefSet extends THREE.Group {
   readonly items: ReliefItem[]; readonly batch: THREE.BatchedMesh | null = null;
   dirty = true;
+  /** drawn with the carved-relief atlas (D-320: every figure of the set, and its rosettes, are in the atlas and atlas mode was
+   *  on when the set was built) or with the legacy vertex-painted levels */
+  readonly atlas: boolean;
+  /** the levels this set draws with: ATLAS_LODS or RELIEF_LODS */
+  private L: LodTable;
+  /** per item: its atlas entry and its depth ratio over the baked one (atlas mode) */
+  private ae: (AtlasEntry | null)[] = []; private ratio: number[] = [];
   private inst: number[] = []; private level: Int8Array; private shown: Int8Array; private grids: number[][] = []; private centres: Float32Array;
   private geoIds = new Map<string, number>(); private geoUse = new Map<string, number>(); private lastCam = new THREE.Vector3(Infinity, 0, 0);
   private rosNear: THREE.InstancedMesh | null = null; readonly rosettes: RosetteItem[]; private rosMats: THREE.Matrix4[] = [];
@@ -183,13 +244,20 @@ export class ReliefSet extends THREE.Group {
    *  for sets seen only from kilometres away, where every figure is under a pixel (Naqsh-e Rustam, D-069) */
   private bounds = new THREE.Box3();
   constructor(items: ReliefItem[], rosettes: RosetteItem[] = [], name = 'reliefs', private hideBeyond = Infinity) {
-    super(); this.name = name; this.userData = { ...RELIEF_META };
+    super(); this.name = name;
+    this.atlas = atlasOn && items.every(it => atlasEntry(it.kind, it.seed)) && (!rosettes.length || !!atlasEntry('rosette', 0));
+    this.L = this.atlas ? ATLAS_LODS : RELIEF_LODS;
+    this.userData = this.atlas ? { ...RELIEF_META, ...RELIEF_ATLAS_META } : { ...RELIEF_META };
+    // atlas mode: every placement right-handed (X × Y = Z), so the shader's bitangent (normal × tangent) is the figure's up: a
+    // left-handed placement is the same figure as its right-handed twin with X reversed and the mirror toggled
+    if (this.atlas) items = items.map(it => it.X.clone().cross(it.Y).dot(it.Z) >= 0 ? it : { ...it, X: it.X.clone().negate(), mirror: !it.mirror });
     this.items = items; this.rosettes = rosettes;
+    for (const it of items) { const e = this.atlas ? atlasEntry(it.kind, it.seed) : null; this.ae.push(e); this.ratio.push(e ? +((it.D / it.S) / e.rho).toFixed(3) : 1); }
     const n = items.length; this.level = new Int8Array(n).fill(-1); this.shown = new Int8Array(n).fill(-1); this.centres = new Float32Array(n * 4); this.chunkOf = new Int32Array(n);
     const byKey = new Map<string, Chunk>();
     items.forEach((it, i) => {
       const b = boundsOf(it.kind, it.seed), ext = Math.max(b[2] - b[0], b[3] - b[1]) * it.S;
-      this.grids.push(RELIEF_LODS.map((_, l) => lodGrid(ext, l)));
+      this.grids.push(this.L.map((_, l) => lodGrid(ext, l, this.L)));
       const cx = ((b[0] + b[2]) / 2) * (it.mirror ? -1 : 1) * it.S, cy = ((b[1] + b[3]) / 2) * it.S;
       const c = it.o.clone().addScaledVector(it.X, cx).addScaledVector(it.Y, cy), r = (Math.hypot(b[2] - b[0], b[3] - b[1]) / 2) * it.S;
       this.centres.set([c.x, c.y, c.z, r], i * 4);
@@ -205,16 +273,16 @@ export class ReliefSet extends THREE.Group {
     const wp = workers(); let nv = 0, ni = 0; const seen = new Set<string>();
     const C = RELIEF_COARSE;
     items.forEach((it, i) => { const k = this.key(i, C, false); if (seen.has(k)) return; seen.add(k);
-      if (wp) { wp.request(k, it.kind, it.seed, this.grids[i][C], C); nv += 600; ni += 3000; }
-      else { const m = reliefLodMesh(it.kind, it.seed, this.grids[i][C], C); nv += m.verts; ni += m.index.length; } });
+      if (wp) { wp.request(k, it.kind, it.seed, this.grids[i][C], C, this.atlas); nv += 600; ni += 3000; }
+      else { const m = reliefLodMesh(it.kind, it.seed, this.grids[i][C], C, this.atlas); nv += m.verts; ni += m.index.length; } });
     if (n) {
-      (this as any).batch = new THREE.BatchedMesh(n, Math.max(4096, nv * 3 + 200_000), Math.max(12288, ni * 3 + 600_000), paintMaterial());
+      (this as any).batch = new THREE.BatchedMesh(n, Math.max(4096, nv * 3 + 200_000), Math.max(12288, ni * 3 + 600_000), paintMaterial(this.atlas));
       // no shadow from the batch (D-048): near chunks cast theirs through a merged coarse proxy
-      const bm = this.batch!; bm.name = 'relief:figures'; bm.userData = { ...RELIEF_META }; bm.castShadow = false; bm.receiveShadow = true; bm.sortObjects = false; bm.perObjectFrustumCulled = true;
+      const bm = this.batch!; bm.name = 'relief:figures'; bm.userData = { ...this.userData }; bm.castShadow = false; bm.receiveShadow = true; bm.sortObjects = false; bm.perObjectFrustumCulled = true;
       let placeholder = -1;
       items.forEach((it, i) => {
         const gid = this.geomId(i, C);
-        if (gid === null && placeholder < 0) { const e = new THREE.BufferGeometry(); e.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); e.setAttribute('color', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('paint', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setAttribute('gilt', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setAttribute('ao', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setIndex([0, 1, 2]); placeholder = bm.addGeometry(e); }
+        if (gid === null && placeholder < 0) placeholder = bm.addGeometry(emptyGeometry(this.atlas));
         const id = bm.addInstance(gid ?? placeholder);
         bm.setMatrixAt(id, this.mats[i]); this.inst.push(id);
         if (gid !== null) { this.level[i] = C; this.shown[i] = C; this.use(this.key(i, C), 1); } else bm.setVisibleAt(id, false);
@@ -225,13 +293,16 @@ export class ReliefSet extends THREE.Group {
     if (rosettes.length) this.buildRosettes();
     this.countTris(); liveSets.add(this);
   }
-  private key(i: number, lod: number, withMirror = true) { const it = this.items[i]; return `${it.kind}|${it.seed}|${this.grids[i][lod]}|${lod}` + (withMirror ? (it.mirror ? '|m' : '|n') : ''); }
+  /** the mesh-cache key of item i at a LOD; withMirror: the batch geometry's (mirror, and in atlas mode the depth-ratio class) */
+  private key(i: number, lod: number, withMirror = true) { const it = this.items[i]; return `${this.atlas ? AK : ''}${it.kind}|${it.seed}|${this.grids[i][lod]}|${lod}` + (withMirror ? (it.mirror ? '|m' : '|n') + (this.atlas ? '|' + this.ratio[i] : '') : ''); }
+  /** item i's batch geometry from its level mesh */
+  private geometry(i: number, m: LodMesh) { return this.atlas ? lodGeometryAtlas(m, this.items[i].mirror, this.ae[i]!, this.ratio[i]) : lodGeometry(m, this.items[i].mirror); }
   private use(k: string, d: number) { this.geoUse.set(k, (this.geoUse.get(k) ?? 0) + d); }
   /** geometry id for item i at a LOD (adds it to the batch if its mesh is ready; null if not generated yet) */
   private geomId(i: number, lod: number): number | null {
     const k = this.key(i, lod); let id = this.geoIds.get(k); if (id !== undefined) return id;
     const m = meshCache.get(this.key(i, lod, false)); if (!m) return null;
-    const g = lodGeometry(m, this.items[i].mirror), bm = this.batch!;
+    const g = this.geometry(i, m), bm = this.batch!;
     const vc = g.getAttribute('position').count, ic = g.index!.count;
     if ((bm as any)._nextVertexStart + vc > (bm as any)._maxVertexCount || (bm as any)._nextIndexStart + ic > (bm as any)._maxIndexCount) this.makeRoom(vc, ic);
     id = bm.addGeometry(g); g.dispose(); this.geoIds.set(k, id); return id;
@@ -245,8 +316,8 @@ export class ReliefSet extends THREE.Group {
       bm.setGeometrySize(Math.ceil((bm._maxVertexCount + vc) * 1.5), Math.ceil((bm._maxIndexCount + ic) * 1.5));
   }
   private wanted(i: number, d: number) {
-    const cur = this.level[i]; let l = Math.max(this.items[i].minLod ?? 0, RELIEF_LODS.findIndex(x => d < x.dist));
-    if (cur >= 0 && l > cur && d < RELIEF_LODS[cur].dist * HYST) l = cur; // hysteresis: keep the finer level a little longer
+    const cur = this.level[i]; let l = Math.max(this.items[i].minLod ?? 0, this.L.findIndex(x => d < x.dist));
+    if (cur >= 0 && l > cur && d < this.L[cur].dist * HYST) l = cur; // hysteresis: keep the finer level a little longer
     return l;
   }
   /** is every figure of a chunk generated at a LOD? If not, and `request`, ask for the missing ones (workers, or synchronously
@@ -255,20 +326,20 @@ export class ReliefSet extends THREE.Group {
     let ok = true; const wp = workers();
     for (const i of ch.items) { const k = this.key(i, lod, false); if (meshCache.has(k)) continue; ok = false; if (!request) break;
       const it = this.items[i];
-      if (wp) wp.request(k, it.kind, it.seed, this.grids[i][lod], lod);
-      else if (performance.now() - t0 < budgetMs) { reliefLodMesh(it.kind, it.seed, this.grids[i][lod], lod); ok = true; }
+      if (wp) wp.request(k, it.kind, it.seed, this.grids[i][lod], lod, this.atlas);
+      else if (performance.now() - t0 < budgetMs) { reliefLodMesh(it.kind, it.seed, this.grids[i][lod], lod, this.atlas); ok = true; }
       else this.dirty = true; }
     if (!ok) for (const i of ch.items) if (!meshCache.has(this.key(i, lod, false))) return false;
     return true;
   }
   /** merge a chunk's figures at a LOD into one mesh (far representation; at FAR_LOD also its shadow proxy) */
   private buildFar(ch: Chunk, lod: number): THREE.Mesh {
-    const geos = ch.items.map(i => lodGeometry(meshCache.get(this.key(i, lod, false))!, this.items[i].mirror).applyMatrix4(this.mats[i]));
+    const geos = ch.items.map(i => this.geometry(i, meshCache.get(this.key(i, lod, false))!).applyMatrix4(this.mats[i]));
     const g = mergeGeometries(geos)!; geos.forEach(q => q.dispose()); g.computeBoundingSphere();
-    const meta = { ...RELIEF_META, note: `far representation: the chunk's figures merged at L${lod} (D-048, D-217); ` + RELIEF_META.note };
-    const m = new THREE.Mesh(g, paintMaterial()); m.name = 'relief:far'; m.userData = meta; m.castShadow = false; m.receiveShadow = true; m.visible = false; this.add(m);
+    const meta = { ...this.userData, note: `far representation: the chunk's figures merged at L${lod} (D-048, D-217); ` + this.userData.note };
+    const m = new THREE.Mesh(g, paintMaterial(this.atlas)); m.name = 'relief:far'; m.userData = meta; m.castShadow = false; m.receiveShadow = true; m.visible = false; this.add(m);
     if (lod === FAR_LOD) { ch.farN = m; ch.trisN = g.index!.count / 3;
-      ch.proxy = new THREE.Mesh(g, shadowProxyMaterial()); ch.proxy.name = 'relief:shadow-proxy'; ch.proxy.userData = { ...meta, note: 'shadow proxy (D-048): drawn into the shadow maps only; ' + RELIEF_META.note }; ch.proxy.castShadow = true; ch.proxy.receiveShadow = false; ch.proxy.visible = false; ch.proxy.raycast = () => {}; // never picked
+      ch.proxy = new THREE.Mesh(g, shadowProxyMaterial()); ch.proxy.name = 'relief:shadow-proxy'; ch.proxy.userData = { ...meta, note: 'shadow proxy (D-048): drawn into the shadow maps only; ' + this.userData.note }; ch.proxy.castShadow = true; ch.proxy.receiveShadow = false; ch.proxy.visible = false; ch.proxy.raycast = () => {}; // never picked
       this.add(ch.proxy); }
     else { ch.farC = m; ch.trisC = g.index!.count / 3; }
     return m;
@@ -298,8 +369,8 @@ export class ReliefSet extends THREE.Group {
     const allFar = farC === this.chunks.length && farC > 0;
     if (allFar && !this.whole) {
       const g = mergeGeometries(this.chunks.map(ch => ch.farC!.geometry))!; g.computeBoundingSphere();
-      this.whole = new THREE.Mesh(g, paintMaterial()); this.whole.name = 'relief:far-set';
-      this.whole.userData = { ...RELIEF_META, note: 'far representation: the whole set merged at the coarsest LOD while every chunk is far (D-048); ' + RELIEF_META.note };
+      this.whole = new THREE.Mesh(g, paintMaterial(this.atlas)); this.whole.name = 'relief:far-set';
+      this.whole.userData = { ...this.userData, note: 'far representation: the whole set merged at the coarsest LOD while every chunk is far (D-048); ' + this.userData.note };
       this.whole.castShadow = false; this.whole.receiveShadow = true; this.add(this.whole);
     }
     if (this.whole) this.whole.visible = allFar;
@@ -328,8 +399,8 @@ export class ReliefSet extends THREE.Group {
       let show = want;
       if (!meshCache.has(this.key(i, want, false))) {
         const it = this.items[i];
-        if (wp) { wp.request(this.key(i, want, false), it.kind, it.seed, this.grids[i][want], want); pending++; if (this.shown[i] < 0 && want !== RELIEF_COARSE) wp.request(this.key(i, RELIEF_COARSE, false), it.kind, it.seed, this.grids[i][RELIEF_COARSE], RELIEF_COARSE); }
-        else if (performance.now() - t0 < budgetMs) reliefLodMesh(it.kind, it.seed, this.grids[i][want], want);
+        if (wp) { wp.request(this.key(i, want, false), it.kind, it.seed, this.grids[i][want], want, this.atlas); pending++; if (this.shown[i] < 0 && want !== RELIEF_COARSE) wp.request(this.key(i, RELIEF_COARSE, false), it.kind, it.seed, this.grids[i][RELIEF_COARSE], RELIEF_COARSE, this.atlas); }
+        else if (performance.now() - t0 < budgetMs) reliefLodMesh(it.kind, it.seed, this.grids[i][want], want, this.atlas);
         else { pending++; this.dirty = true; }
         if (!meshCache.has(this.key(i, want, false))) { // fall back to the nearest generated level (coarser first)
           show = -1; for (let l = want + 1; l < RELIEF_LODS.length && show < 0; l++) if (meshCache.has(this.key(i, l, false))) show = l;
@@ -342,7 +413,8 @@ export class ReliefSet extends THREE.Group {
         this.use(this.key(i, show), 1); this.batch.setGeometryIdAt(this.inst[i], gid); this.shown[i] = show;
       }
     }
-    if (wp) wp.prioritise(k => { let best = Infinity; for (let i = 0; i < this.items.length; i++) if (k.startsWith(this.items[i].kind + '|' + this.items[i].seed + '|')) best = Math.min(best, dist[i]); return best; });
+    const pre = this.atlas ? AK : '';
+    if (wp) wp.prioritise(k => { let best = Infinity; for (let i = 0; i < this.items.length; i++) if (k.startsWith(pre + this.items[i].kind + '|' + this.items[i].seed + '|')) best = Math.min(best, dist[i]); return best; });
     this.stats.pending = pending;
     this.updateRosettes(cam);
     this.countTris();
@@ -361,10 +433,13 @@ export class ReliefSet extends THREE.Group {
   private buildRosettes() {
     const RS = this.rosettes, emb = carving().embed, mtx = new THREE.Matrix4();
     for (const r of RS) this.rosMats.push(mtx.clone().makeBasis(r.X.clone().multiplyScalar(r.S), r.Y.clone().multiplyScalar(r.S), r.Z.clone().multiplyScalar(r.D)).setPosition(r.o.clone().addScaledVector(r.Z, -emb)));
-    const nearMesh = reliefLodMesh('rosette', 0, lodGrid(RS[0].S * 1.04, 1), 2), meta = { ...RELIEF_META, note: 'rosette border bands (motif from reconstructions, C); ' + RELIEF_META.note };
-    const mk = (g: THREE.BufferGeometry, name: string, shadow: boolean) => { const m = new THREE.InstancedMesh(g, paintMaterial(), RS.length); m.count = 0; m.name = name; m.userData = meta; m.castShadow = shadow; m.receiveShadow = true; m.frustumCulled = false; this.add(m); return m; };
-    this.rosNear = mk(lodGeometry(nearMesh, false), 'relief:rosettes-carved', true);
-    this.rosFar = mk(rosetteBoss(), 'relief:rosettes', false);
+    const meta = { ...this.userData, note: 'rosette border bands (motif from reconstructions, C); ' + this.userData.note };
+    // atlas mode (D-320): the carved rosette at the atlas's L1 grid and the boss, both reading the atlas (the rosette's entry)
+    const ae = this.atlas ? atlasEntry('rosette', 0)! : null, ratio = ae ? +((RS[0].D / RS[0].S) / ae.rho).toFixed(3) : 1;
+    const nearMesh = ae ? reliefLodMesh('rosette', 0, lodGrid(RS[0].S * 1.04, 1, ATLAS_LODS), 1, true) : reliefLodMesh('rosette', 0, lodGrid(RS[0].S * 1.04, 1), 2);
+    const mk = (g: THREE.BufferGeometry, name: string, shadow: boolean) => { const m = new THREE.InstancedMesh(g, paintMaterial(this.atlas), RS.length); m.count = 0; m.name = name; m.userData = meta; m.castShadow = shadow; m.receiveShadow = true; m.frustumCulled = false; this.add(m); return m; };
+    this.rosNear = mk(ae ? lodGeometryAtlas(nearMesh, false, ae, ratio) : lodGeometry(nearMesh, false), 'relief:rosettes-carved', true);
+    this.rosFar = mk(rosetteBoss(ae, ratio), 'relief:rosettes', false);
     this.rosTris = [nearMesh.tris, this.rosFar.geometry.index!.count / 3];
   }
   private rosFar: THREE.InstancedMesh | null = null; private rosTris = [0, 0];
@@ -382,7 +457,7 @@ export class ReliefSet extends THREE.Group {
 }
 
 /** the mid-range rosette: an octagonal painted boss (Egyptian blue, yellow-ochre centre), 40 triangles, same frame as the carved one */
-function rosetteBoss(): THREE.BufferGeometry {
+function rosetteBoss(ae: AtlasEntry | null = null, ratio = 1): THREE.BufferGeometry {
   const pos: number[] = [], col: number[] = [], idx: number[] = [], lin = (c: number[]) => c.map(x => (x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4));
   const blue = lin(PIGMENT.egyptianBlue), yel = lin(PIGMENT.yellowOchre), rings: [number, number, number[]][] = [[0.12, 0.9, yel], [0.3, 0.62, blue], [0.49, 0.05, blue]];
   pos.push(0, 0.5, 0.95); col.push(...yel);
@@ -391,7 +466,10 @@ function rosetteBoss(): THREE.BufferGeometry {
   for (let ring = 0; ring < 2; ring++) for (let k = 0; k < 8; k++) { const a = 1 + ring * 8 + k, b = 1 + ring * 8 + ((k + 1) % 8), c = a + 8, d = b + 8; idx.push(a, c, d, a, d, b); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.setAttribute('paint', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(1), 1)); g.setAttribute('gilt', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(0), 1)); g.setAttribute('ao', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(0), 1)); g.setIndex(idx); g.computeVertexNormals();
-  return g;
+  if (!ae) return g;
+  // atlas mode (D-320): the boss's positions and triangles with the atlas frame and coordinates (the carved rosette's paint and
+  // modelling, read from the atlas at the mip its size on screen asks for)
+  const n = pos.length / 3; return lodGeometryAtlas({ pos: Float32Array.from(pos), index: Uint32Array.from(idx), verts: n, tris: idx.length / 3 } as LodMesh, false, ae, ratio);
 }
 // ---------------- the relief shadow atlas (D-226; relief_shadow.ts, render/reliefShadow.ts) ----------------
 /** the figures (and rosettes) of relief sets as the shadow atlas takes them */
