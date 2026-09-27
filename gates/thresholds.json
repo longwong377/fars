@@ -2777,6 +2777,22 @@
    "anti_proxy": "a reply that ignores the person's own life (name, household, work, the day's events) or could be said by anyone counts as a failure; a canned fallback counts as a failure; the heard world stays period by default (English only in the translation layer)",
    "ud": "UD-18",
    "since": "rev 2.4 (s11)"
+  },
+  {
+   "id": "T-R12",
+   "axis": "R",
+   "scope": "session",
+   "metric": "whole asset classes replaced in a GPU session by real modelled (Blender, the D-305 pipeline) or scanned 3D assets across the world (e.g. every rock, every jar, every house wall kit), counted from the session log",
+   "op": ">=",
+   "value": 5,
+   "unit": "asset classes",
+   "sample_min": 1,
+   "sample": "every GPU (Vagon) session",
+   "tool": "sessions/",
+   "status": "to-build",
+   "anti_proxy": "a class counts only when every instance in the world is replaced (not one hero or one room) and one batched render shows it; tuning, verification and records do not count",
+   "ud": "UD-19",
+   "since": "rev 2.5 (s11)"
   }
  ]
 }

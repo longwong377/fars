@@ -58,3 +58,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-305 | s11 | the Blender asset pipeline: inventory, pipeline, a hero asset, the rollout plan (Q-830..Q-839, B115..B117) | agent worktree (blender) | merged session 11 (Q-830, B115 used; B115 resolved by D-306) |
 | D-306 | s11 | the carving: capitals and the Gate colossi from the photographs (Q-840..Q-849, B118..B120) | agent worktree (carving) | merged session 11 (Q-840..Q-843, B118..B120 used) |
 | D-307 | s11 | the people, round 2: garments, hair and beards (Q-850..Q-859, B121..B123) | agent worktree (people2) | merged session 11 (B121..B123, Q-850 used; Q-851..Q-859 unused) |
+| D-308 | s11 | the lead: mass production on the GPU machine (UD-19, T-R12) | claude/amazing-fermi-40ds7j | done (the session 12 plan) |

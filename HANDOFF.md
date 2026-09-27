@@ -1,47 +1,44 @@
 # HANDOFF — end of session 11 (2026-09-27); branch claude/amazing-fermi-40ds7j
 
-## SESSION 12 PLAN (the user's direction): ~2 hours on Vagon, GPU-only work first; everything else moves to the cloud
-The user will run session 12 on the Vagon GPU machine for about two hours, then finish the project in Claude Code on the web
-(cloud: no GPU, no Blender, a proxy that blocks Poly Haven, ambientCG, Wikimedia, ISAC, Hugging Face). So on Vagon do ONLY what
-needs the GPU, Blender, the browser's WebGPU or those hosts, in this order, and push after each step. Do not spend Vagon time
-on node-only work (tests, soaks, records, refactors, merges without renders): the cloud does those.
+## SESSION 12 PLAN (UD-19, D-308): ~2 hours on Vagon — BUILD EN MASSE; verify once at the end; the rest goes to the cloud
+The user's direction: the whole world still reads as CG; stop verifying small details and build in bulk. The next Vagon session
+is about two hours; the project then finishes in Claude Code on the web (no GPU, no Blender, a proxy that blocks Poly Haven,
+ambientCG, Wikimedia, Hugging Face). Measure: T-R12, at least 5 whole asset classes replaced across the world this session.
 
-**Budget:** a world page load is 11-30 min (shader compiles), a warm frame 0.1 s; plan for ~4 full-world loads in 2 hours,
-every view of a load batched (moments.spec `BATCH=1`), through `node tools/dev/gpu_slot.mjs` (2 slots). Iterate on probe pages
-(seconds). Setup: `git pull`, `npm ci`; the tools are installed (CLAUDE.md, the GPU machine). C: is small: keep bulk on T:.
+**Why it still reads as CG (D-308):** almost every shape is a procedural primitive (boxes, lathes, one parametric body, code
+trees), and the real-time lighting was sized for SwiftShader. Session 11 put scanned surfaces on those shapes; the shapes and
+the light are what remain.
 
-1. **(Start first, in the background) the verification batch** of the merged world, with `SAMPLERDBG=1`: the 11 views of
-   sessions/s11.md (calib-24, calib-24-now, terrace-wall-near, gate-w-day, apadana-enter-court, reliefs-raking, tachara-s-stair,
-   stair-foot-ground, breath-dawn, room-treasury-store, room-garrison-night) plus lane-with-child, the colossi (gate-w-day covers
-   them), and one town lane (lane-q_s1). Goal: zero WebGPU validation errors (the propMaterialMulti fix, unverified). If a
-   pipeline is still over 16, SAMPLERDBG names it: cut it (a surface's roughness or second tile), re-render only that view.
-   Save the frames: they are the next reviews' inputs (copy the PNGs into REVIEWS/renders/s12/ and commit them: the cloud cannot
-   render).
-2. **Blender work (Blender exists only here; builds are CPU minutes each):** re-proportion the protome capital and the Gate
-   colossi from the photographs (B118: "a toy cow"; the heads low), then the next BLENDER_PLAN rows that are pure geometry:
-   the Treasury goods and jars, door leaves, the town's ovens and vats. Run `node tools/blender/build.mjs` for each, commit the
-   GLBs (KTX2), render them once in a batched probe/world load. Anything Blender-built is the thing the cloud cannot do.
-3. **The render set for the cloud's reviewers and anchors (T-R1):** one batched load at the player's lens (Q high, FOV game)
-   over the moments the reviews use (handoff/review_briefs.md) plus the calib views at their lens; commit the PNGs under
-   REVIEWS/renders/s12/ with a JSON of view, time, weather and commit. Build REVIEWS/anchors/ from these and the user's photos
-   (the anchor set is what makes blind reviews calibrated). The cloud then reviews and plans from committed frames.
-4. **In-browser AI measurements (WebGPU only):** the T-E9 set with the chosen stack after any prompt changes the cloud cannot
-   test; if time allows, bake the life prose with the best model that loads under the watchdog (tools/dev/bake_lives.mjs) and
-   commit the baked data (src/data/lives_baked_*.json). Models re-fetch with `node tools/dev/fetch_models.mjs` (T: is volatile).
-5. **Measure on the real GPU what the cloud cannot:** T-K6/T-K7 frame times on an idle card (`?bench`), the ~5 fps at 1080p high
-   seen beside other jobs; write gates/budget.json's GPU rows; hear-audio checks cannot be heard by Claude but the master-bus
-   capture (B65) can run here.
-6. **Downloads still missing (the cloud's proxy blocks these hosts):** anything the Blender or review work above needs from Poly
-   Haven, ambientCG, Wikimedia; the Nagel 2010 dissertation needs a browser (the user). Put open-licence files on branch
-   `assets-archive`, textures the game loads in public/textures.
-7. **Before the two hours end:** commit and push everything (`claude/amazing-fermi-40ds7j`, `assets-archive`), update this
-   section with what was done and what is left, and hand the rest to the cloud.
+**Minute 0-10: setup and launch.** `git pull`, `npm ci` (tools are installed: CLAUDE.md, the GPU machine). Launch 5 build agents
+AT ONCE, each in its own worktree (on T: if C: is short), each owning a whole class across the world, iterating on probe pages
+(seconds a load; never a full-world render while iterating), committing as they go:
+1. **The lighting at the T4's full quality** (the biggest single "photograph vs render" lever): shadow maps and cascades up
+   (the stair-stepped shadows, B113), SSR/AO/contact shadows at full resolution, GI or probe light everywhere people walk (not
+   only some halls), the tone curve and exposure against the photographs (#24, the Wikimedia set), atmospheric depth. Frame time
+   measured on the T4 (T-K6).
+2. **CC0 3D models in bulk (Poly Haven models: rocks, boulders, plants, shrubs, trees, pottery, baskets, crates, logs):**
+   download the whole relevant set (commit what the game loads to public/models; everything else to branch assets-archive),
+   and replace EVERY procedural rock, outcrop, shrub, jar, basket and similar prop in the world by instancing them (placement
+   stays the simulation's and SITE_SPEC's). The cloud cannot reach Poly Haven: download everything the project might use.
+3. **A Blender mudbrick building kit** (walls with plaster and repairs, doorways and door leaves, roofs and parapets, eaves,
+   ovens, courtyards) driven by the town's and villages' own plot data: rebuild every house and compound as a kit building
+   (the town's 1,447 houses, the villages), LODs and impostors from the pipeline (research/BLENDER_PLAN.md, D-305).
+4. **The monuments' forms (Blender):** re-proportion the protome capitals and the Gate colossi from the photographs (B118), the
+   relief figures as carved geometry (BLENDER_PLAN row 3), the Terrace's block faces with spalls and arrises.
+5. **The people's forms (Blender):** garment meshes from simulated patterns with fold normals, real belts and sashes, hair
+   from Blender hair curves (B121), posed drapes (B123); every class and the crowd.
 
-**Left for the cloud (node-only; do NOT use Vagon time):** merge `s11-realism-town` (plan below) and re-render later only if a
-Vagon session remains; the soak gates (populationVariety, plansWellFormed) and the third T-F8 seed (`npx tsx tools/soak.ts 354
-60 1 --evidence s11-soak`, slow on a 4-core box: run it in the background early); `npm run areas` and the board; T-E9 prompt and
-fence work in node (converse tests); the anachronism/language lints; the gap hunt (T-J6); records, reviews of the committed
-frames, the town's lamp logic (B111) and the simulation's fixes; Tol-e Ajori, villages, and every node-side task in "Next steps".
+**Minute ~80-110: one verification.** Merge the agents' branches (records as unions; code conflicts resolved in favour of the
+bulk change), ONE batched world render with `SAMPLERDBG=1` over the review views (sessions/s11.md's 11 + a town lane + the plain
++ people), fix any pipeline over 16 samplers, commit the frames under REVIEWS/renders/s12/ (the cloud reviews from committed
+frames; also build REVIEWS/anchors/ from them and the user's photos).
+
+**Minute ~110-120: push everything** (`claude/amazing-fermi-40ds7j`, `assets-archive`, the agent branches) and rewrite this
+section: what was built, what the cloud does next.
+
+**Left for the cloud (no Vagon time):** merge `s11-realism-town` (plan below; it may be superseded by the kit); the soak gates
+and the third T-F8 seed; `npm run areas` and the board; T-E9 prompt and fence work; lints; the gap hunt (T-J6); reviews of the
+committed frames; the simulation's fixes; records.
 
 **Session 11 ran on the GPU machine (Vagon, Windows: NVIDIA T4, 16 cores, 63 GB).** Read first, in this order: `USER_DIRECTIONS.md`
 (UD-17 and UD-18 are new), `MASTER_PLAN.md` (rev 2.4), `gates/thresholds.json` (T-A7, T-E9 new), PROGRESS.md (problems first),

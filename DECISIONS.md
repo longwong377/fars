@@ -7388,3 +7388,14 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Files outside the brief's list, touched on purpose:** humanScans.ts (one array), humans.ts, outfit_worker.ts, humanFormat.ts (PRM_CARD), looks.ts (hair_crown when bareheaded; no draw), drape.ts (the belly's fall), src/data/scans.json (the merge of D-304's rows), tests/people_pieces.test.ts (card-only pieces), tests/e2e/portraits.spec.ts (the nomodels variant, frame time). **s11-realism-people (D-304) is merged into s11-people2.**
 - **Renders:** humanlab (the probe page): 2 probe runs and 4 portrait runs (each before and after in one run); 2 full-world runs (4 moments, BATCH=1, FOV game, Q high; both failed only on B122's check). Screenshots: shots/portraits/run4-{nomodels,scans}-*.png (the final set), shots/moment-*-d307-gpu.png; earlier runs and the review items in T:/fars-blender/people2 (volatile).
 - **Tests:** tests/people_models.test.ts (20: registry, sha256, current, reproduced, budgets, ledger, KTX2 header and mips, anchors, cards outside the head and off the eyes, costume budgets with cards, drape sets, the drape in the costumes, frames, skirts outside the legs and under the belt, the belly's fall); tests/humans_shader.test.ts (cards build; one sampler); people_pieces, humans_runtime, people_look, people_belly, blender_assets pass.
+
+## D-308 Mass production on the GPU machine (session 11 close; UD-19; T-R12)
+- **Direction (UD-19):** the world still reads as CG everywhere; build en masse instead of verifying small details; the next
+  Vagon session is ~2 h and must do only what Vagon can do.
+- **Diagnosis (the lead):** the tells are systemic: almost every shape is a procedural primitive (boxes, lathes, one parametric
+  body), and the real-time lighting was sized for SwiftShader (shadow resolution, AO/SSR at half resolution, probes only in some
+  halls, a conservative tone curve). Session 11 put scanned surfaces on those shapes and verified each change on its own.
+- **Decision:** GPU sessions run 4-5 build agents in parallel, each owning a whole asset class across the world (the lighting
+  at the T4's full quality; CC0 3D models in bulk from Poly Haven for rocks, plants and props; a Blender mudbrick house kit;
+  photogrammetric rock for the mountain and outcrops; the people's garments and hair), iterating on probe pages and verified
+  once, in one batched render and one review at the end. Measured by T-R12 (>= 5 classes a GPU session).
