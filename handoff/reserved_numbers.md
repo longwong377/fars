@@ -49,3 +49,7 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-296 | s11 | speaking with the people (UD-18, T-E9): baked lives, in-browser speech recognition, language model and voices, the translation layer (Q-770..Q-779, B97..B99) | agent worktree (conversation) | in progress |
 | D-297 | s11 | the lead: the fires' light at the eye weighted by the view direction (night views black beside a brazier) | claude/amazing-fermi-40ds7j | in progress |
 | D-298 | s11 | the lead: the sun against JPL Horizons (B2) | claude/amazing-fermi-40ds7j | done |
+| D-299 | s11 | the lead (spare) | claude/amazing-fermi-40ds7j | free |
+| D-300 | s11 | every inch real: the Terrace and the palaces' exteriors (Q-780..Q-789, B100..B102) | agent worktree (realism_terrace) | in progress |
+| D-301 | s11 | every inch real: the interiors (Q-790..Q-799, B103..B105) | agent worktree (realism_interiors) | in progress |
+| D-302 | s11 | every inch real: the plain, the rivers and the mountains (Q-800..Q-809, B106..B108) | agent worktree (realism_land) | in progress |
