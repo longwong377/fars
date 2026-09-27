@@ -7416,7 +7416,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   (ultra) Vogel PCF whose radius is the sun's penumbra at 1 m (0.53°), ≥ 1.25 texels; ultra fades between cascades.
   Measured on the probe: texels 2.6 / 16 / 52 / 193 mm (were 48 / 98 / 163 / 386). Cascade 1 still covers the hall
   air-light's 48 m (airlight.ts); the people cast into cascades 0-2 (SHADOW_CASCADE_REACH 130 m; were 0-1).
-- **Decision (post, high):** the SSR and the sun contact shadows at full resolution at high as at ultra (were half).
+- **Decision (post, high/ultra):** the SSR and the sun contact shadows at full resolution at high as at ultra (were half); the SSGI
+  (GI + AO) at 3 slices × 12 steps at high and 4 × 16 at ultra (were 2 × 8 and 3 × 16).
+- **Frame time (T-K6 context; human lab, 1920×1080, T4, 40 frames, submit + queue done):** high 1.6 ms (session 11) → 2.0 ms,
+  ultra 2.2 ms. The number did not move with the SSGI sample count, so it probably misses most GPU work (the lab is one floor,
+  one wall and four people): it is NOT evidence that the world holds its budget; the world frame is unmeasured (the lead's render).
+- **Low sun (hour 17, the lineup in the wall's shadow):** no acne on the ground, the wall or the people with the smaller biases;
+  the wall's shadow edge is crisper.
 - **Decision (tone, medium and above):** AgX with a fitted look (src/render/toneLook.ts: the ASC-CDL form of the AgX
   reference's looks after the sigmoid): slope 1, power 1.4, saturation 0.9, scene exposure × 2.6. The fit re-tones the
   renders' own pixels (inverted through plain AgX) and minimises the distance to the photographs' percentiles and

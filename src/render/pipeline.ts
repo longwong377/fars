@@ -194,7 +194,7 @@ export class Pipeline {
       // the SSGI's input: the direct light only (D-157; ab.giDirect = 0: the whole scene, as in session 4)
       const colDirect = max(col.rgb.sub(sky.mul(this.ab.giDirect)), vec3(0));
       const node = (V.includes('orig') ? ssgiOrig(col, dep, nrm, camera) : ssgi(vec4(colDirect, 1), dep, nrm, camera)) as any;
-      node.sliceCount.value = quality === 'ultra' ? 3 : 2; node.stepCount.value = quality === 'ultra' ? 16 : 8;
+      node.sliceCount.value = quality === 'ultra' ? 4 : 3; node.stepCount.value = quality === 'ultra' ? 16 : 12; // D-309 (the T4): were 3/16 and 2/8
       node.giIntensity.value = GI_SCALE;
       if (!V.includes('orig')) {
         node.thickness.value = SSGI_THICKNESS; node.useLinearThickness.value = true;
