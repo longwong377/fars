@@ -17,7 +17,7 @@ export function rigWeights(sp: Species, pos: ArrayLike<number>): { leg: Float32A
   const leg = new Float32Array(n * 4), piv = new Float32Array(n * 4), ht = new Float32Array(n * 4);
   const byG = new Map<Group, Prim[]>(); for (const p of F.prims) { const k = p.group === 'gear' ? 'body' : p.group; if (!byG.has(k)) byG.set(k, []); byG.get(k)!.push(p); }
   const dG = (G: Group, x: number, y: number, z: number) => { let d = 1e9; for (const p of byG.get(G) ?? []) { const lb = Math.sqrt((x - p.c[0]) ** 2 + (y - p.c[1]) ** 2 + (z - p.c[2]) ** 2) - p.R; if (lb > d) continue; const v = p.f(x, y, z); if (v < d) d = v; } return d; };
-  const kS = Math.max(0.012, 0.9 * B.headR), kL = Math.max(0.02, 0.14 * g), kH = Math.max(0.015, 0.1 * g), kT = Math.max(0.01, 0.07 * g);
+  const kS = Math.max(0.012, 0.9 * B.headR), kL = Math.max(0.02, 0.16 * g), kH = Math.max(0.02, 0.16 * g), kT = Math.max(0.01, 0.07 * g);
   const nLeg = R.legs.length, nd = R.neckDir;
   for (let i = 0; i < n; i++) {
     const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
@@ -28,7 +28,7 @@ export function rigWeights(sp: Species, pos: ArrayLike<number>): { leg: Float32A
     const wk = smoothstep(R.kneeY + B.leg * 1.4, R.kneeY - B.leg * 1.4, y) * smoothstep(0.2, 0.8, wl);
     leg.set([L.phase, wl, wk, L.fore], i * 4); piv.set([R.hipY, L.z, R.kneeY, L.zk], i * 4);
     const tN = ((x - R.base[0]) * nd[0] + (y - R.base[1]) * nd[1] + (z - R.base[2]) * nd[2]) / R.neck;
-    const wh = smoothstep(-kH, kH, Math.min(db, dl, dt) - dh) * smoothstep(-0.1, 0.6, tN) * (1 - wl);
+    const wh = smoothstep(-kH, kH, Math.min(db, dl, dt) - dh) * smoothstep(-0.25, 0.7, tN) * (1 - wl);
     const wt = smoothstep(-kT, kT, Math.min(db, dl, dh) - dt) * smoothstep(-0.03, 0.06, R.tailRoot[2] - z + 0.03) * (1 - wl);
     // Q-980: the skull's weight on the poll's joint (stored as -aHT.y), where the skull's parts are nearer than the neck's
     const ws = wh * smoothstep(-kS, kS, dn - dsk);

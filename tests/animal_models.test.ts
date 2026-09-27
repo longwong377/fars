@@ -49,7 +49,7 @@ describe.skipIf(!HAVE)('the animals are modelled bodies (D-326)', () => {
       for (const [li, name] of [[0, 'lod0'], [1, 'lod1']] as const) {
         const prim = c[name]; const pos: Float32Array = prim.attributes.POSITION;
         const W = rigWeights(sp, pos), n = pos.length / 3, F = animalForm(sp);
-        let minStand = 9, lowHead = 9, maxLegDz = 0, lowBody = 9, legLow = 9, stretch = 0;
+        let worst = '', minStand = 9, lowHead = 9, maxLegDz = 0, lowBody = 9, legLow = 9, stretch = 0;
         const at = (i: number, st: any) => deformAnimal(sp, [pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]], W.leg.subarray(i * 4, i * 4 + 4), W.piv.subarray(i * 4, i * 4 + 4), W.ht.subarray(i * 4, i * 4 + 4), st, 0);
         for (let i = 0; i < n; i++) {
           minStand = Math.min(minStand, pos[i * 3 + 1]);
@@ -64,8 +64,8 @@ describe.skipIf(!HAVE)('the animals are modelled bodies (D-326)', () => {
         for (const st of poses) { const Q = new Float32Array(n * 3); for (let i = 0; i < n; i++) Q.set(at(i, st), i * 3);
           for (let t = 0; t < idx.length; t += 3) for (let k = 0; k < 3; k++) { const a = idx[t + k], b = idx[t + (k + 1) % 3];
             const l0 = Math.hypot(pos[a * 3] - pos[b * 3], pos[a * 3 + 1] - pos[b * 3 + 1], pos[a * 3 + 2] - pos[b * 3 + 2]), l1 = Math.hypot(Q[a * 3] - Q[b * 3], Q[a * 3 + 1] - Q[b * 3 + 1], Q[a * 3 + 2] - Q[b * 3 + 2]);
-            stretch = Math.max(stretch, l1 - 3 * l0 - st.lim); } }
-        rows.push(`${sp} ${name}: ${n} v, stand ${minStand.toFixed(3)}, graze ${lowHead.toFixed(3)}, stride ${maxLegDz.toFixed(2)}, lie body ${lowBody.toFixed(3)} legs ${legLow.toFixed(3)}, stretch ${stretch.toFixed(3)}`);
+            if (l1 - 3 * l0 - st.lim > stretch) { stretch = l1 - 3 * l0 - st.lim; worst = JSON.stringify({ st, p: [pos[a * 3], pos[a * 3 + 1], pos[a * 3 + 2]].map(v => +v.toFixed(2)), wa: [W.leg[a * 4 + 1], W.leg[a * 4 + 2], W.ht[a * 4], W.ht[a * 4 + 1]].map(v => +v.toFixed(2)), wb: [W.leg[b * 4 + 1], W.leg[b * 4 + 2], W.ht[b * 4], W.ht[b * 4 + 1]].map(v => +v.toFixed(2)) }); } } }
+        if (stretch > 0.025) console.log('WORST', sp, name, worst); rows.push(`${sp} ${name}: ${n} v, stand ${minStand.toFixed(3)}, graze ${lowHead.toFixed(3)}, stride ${maxLegDz.toFixed(2)}, lie body ${lowBody.toFixed(3)} legs ${legLow.toFixed(3)}, stretch ${stretch.toFixed(3)}`);
         expect(minStand, `${sp} ${name} stands on the ground`).toBeGreaterThan(-0.01); expect(minStand).toBeLessThan(0.03);
         expect(lowHead, `${sp} ${name} grazes`).toBeLessThan(0.12); expect(lowHead).toBeGreaterThan(-0.08);
         expect(maxLegDz, `${sp} ${name} walks`).toBeGreaterThan(0.08);
