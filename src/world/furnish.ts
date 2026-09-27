@@ -185,7 +185,8 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   const cloth = new THREE.Mesh(new THREE.SphereGeometry(R.clay_lump * 1.25, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.42).scale(1.2, 0.7, 1), mat([0.72, 0.68, 0.58], 0.95));
   cloth.position.set(lc[0], fl + R.clay_lump * 0.2, -lc[1]); cloth.rotation.y = 0.6; cloth.name = 'scribes:cloth'; group.add(cloth);
   // reed baskets of tablets along the S wall, W of the doorway (C)
-  const bgeo = lathe([[0, 0], [0.16, 0], [0.19, 0.02], [0.2, 0.05], [0.212, 0.2], [0.214, 0.26], [0.222, 0.27], [0.218, 0.285], [0.2, 0.285], [0.19, 0.27], [0.19, 0.03], [0, 0.03]], 36);
+  // session 12 (D-310): the basket is a CC0 scan's wicker basket (render/scanProps.ts) fitted to the reed basket's box, when loaded
+  const bgeo = scanShape('basket', 1, [0.444, 0.285, 0.444]) ?? lathe([[0, 0], [0.16, 0], [0.19, 0.02], [0.2, 0.05], [0.212, 0.2], [0.214, 0.26], [0.222, 0.27], [0.218, 0.285], [0.2, 0.285], [0.19, 0.27], [0.19, 0.03], [0, 0.03]], 36);
   const baskets = new THREE.InstancedMesh(bgeo, mat([0.62, 0.52, 0.33], 0.9), R.baskets);
   for (let i = 0; i < R.baskets; i++) { const e = room[0] - room[2] / 2 + 1.4 + i * 0.55, nn = room[1] - room[3] / 2 + 0.3; baskets.setMatrixAt(i, m4.compose(new THREE.Vector3(e, fl, -nn), q.setFromAxisAngle(up, i), one)); }
   baskets.name = 'scribes:baskets'; baskets.castShadow = true; baskets.receiveShadow = true; baskets.computeBoundingSphere(); group.add(baskets);

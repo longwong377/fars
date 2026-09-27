@@ -7423,6 +7423,7 @@ moment-*-webgpu.png in the worktree, not committed).**
   rooms' jars, through a new Batch.geo (settlement/geom.ts: a prepared geometry into the house batches); two one-line edits in
   the house files (the house-kit agent's area). The lod1 levels of the vessels decimate badly (collapse over UV seams): every
   jar uses lod0 (~1500 triangles), a cost the world render must measure.
-  (4) baskets: props.ts 'basket' and workObjects' basket_meat / basket_fruit / basket_nuts / basket_fish.
-- **Not switched (honest):** the vats and the houses' sacks, the Treasury's baskets of tablets (furnish.ts scribes' baskets), sacks,
+  (4) baskets: props.ts 'basket', workObjects' basket_meat / basket_fruit / basket_nuts / basket_fish, the scribes' reed
+  baskets of tablets (furnish.ts) and the houses' court baskets (houses.ts 'baskets', through Batch.geo).
+- **Not switched (honest):** the vats and the houses' sacks, sacks (no CC0 scan of a period sack),
   sherds on the roads (roadLitter.ts), pots in the hearth/milk/basin performances, bowls, crates.

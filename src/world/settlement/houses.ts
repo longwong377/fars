@@ -664,7 +664,9 @@ export class SiteHouses {
           B.props.quad(q[0], q[1], q[2], q[3], [nx, 0, nz], c, c, sh(c, 0.95), sh(c, 0.95), own); B.props.quad(q[1], q[0], q[3], q[2], [-nx, 0, -nz], sh(c, 0.9), sh(c, 0.9), sh(c, 0.85), sh(c, 0.85), own); } break; }
       case 'baskets': { B.props.set('ao', 0.85); const bc = lin([0.62, 0.52, 0.34]); const n = 1 + (f.alt ?? 0) % 3;
         for (let k = 0; k < n; k++) { const a = (k - (n - 1) / 2) * 0.45, gy = g(a, 0), k2 = 0.8 + 0.5 * hi(f.alt ?? 0, k), [u, v] = at(a, 0); const [e, nn] = s.grid(u, v);
-          B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
+          const sb = scanShape('basket', k + (f.alt ?? 0), [0.42 * k2, 0.3 * k2, 0.42 * k2]); // session 12 (D-310): a CC0 scan's basket, when loaded
+          if (sb) B.props.geo(e, nn, gy - 0.01, sb, hi(k, 11) * 6.283, sh(bc, 0.85 + 0.25 * hi(k, 9)), own);
+          else B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
         // a broom of twigs against the wall-side of the baskets
         const gy = g(0.6, 0.1); this.pole(B.props, W3(0.55, 0.35, gy + 0.02), W3(0.62, 0.05, gy + 1.1), 0.016, 4, sh(tb, 0.9), own); B.props.set('ao', 1); break; }
       case 'mortar': { const gy = g(0, 0), [u, v] = at(0, 0), [e, nn] = s.grid(u, v); B.stone.set('ao', 0.85); B.stone.lathe(e, nn, gy - 0.05, [[0.22, 0], [0.24, 0.2], [0.2, 0.38], [0.13, 0.38]], 9, sh(st, 0.95), own); B.stone.set('ao', 1);
