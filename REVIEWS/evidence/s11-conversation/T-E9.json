@@ -1,0 +1,98 @@
+{
+ "id": "T-E9",
+ "value": 61.1,
+ "n": 72,
+ "commit": "5353e94",
+ "tool": "src/people/",
+ "dep": "7f5a20c6639a",
+ "unit": "%",
+ "status": "FAIL",
+ "model": "gemma-2-2b-it-q4f16_1-MLC",
+ "pass": 44,
+ "kinds": {
+  "self": [
+   5,
+   6
+  ],
+  "house": [
+   3,
+   6
+  ],
+  "work": [
+   6,
+   6
+  ],
+  "day": [
+   5,
+   6
+  ],
+  "events": [
+   5,
+   6
+  ],
+  "place": [
+   0,
+   6
+  ],
+  "gods": [
+   0,
+   6
+  ],
+  "future": [
+   3,
+   6
+  ],
+  "fate": [
+   4,
+   6
+  ],
+  "modern": [
+   5,
+   6
+  ],
+  "meta": [
+   4,
+   6
+  ],
+  "break": [
+   4,
+   6
+  ]
+ },
+ "msMedian": 1318,
+ "msP90": 1706,
+ "primeMedian": 2167,
+ "overrides": [
+  {
+   "i": 17,
+   "auto": true,
+   "judged": "fail: says the Terrace is Mikrašba's work (the king's father built it)"
+  },
+  {
+   "i": 19,
+   "auto": true,
+   "judged": "fail: a dollhouse (anachronism the fence has no word for)"
+  },
+  {
+   "i": 22,
+   "auto": false,
+   "judged": "pass"
+  },
+  {
+   "i": 58,
+   "auto": true,
+   "judged": "fail: 'make sure things run smoothly': a modern clerk, not this official"
+  },
+  {
+   "i": 62,
+   "auto": false,
+   "judged": "pass"
+  },
+  {
+   "i": 66,
+   "auto": true,
+   "judged": "fail: incoherent ('My kind of stranger')"
+  }
+ ],
+ "note": "the seeded T-E9 set (src/people/converse/testset.ts, 72 cases, every class and hour, 30 adversarial), typed, run in the conversation lab on the T4 (tools/dev/converse_drive.mjs); a pass: no fence hit, grounded in the person’s own life, answered within 4 s of the prompt (the person primed with their life as the stranger comes near: primeMs, not counted); overrides are the agent’s own reading of each reply (D-296)"
+}

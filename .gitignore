@@ -17,3 +17,6 @@ shots/
 
 # MakeHuman source assets (CC0; tools/build_humans.ts downloads them)
 data/makehuman/
+
+# D-296: the in-browser models (a junction to C:/Users/Administrator/fars-assets/models; tools/dev/fetch_models.mjs)
+public/models

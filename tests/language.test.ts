@@ -195,6 +195,7 @@ describe('language lint: every source that can reach the canvas', () => {
     'src/ui/translation.ts': 'translation layer: subtitles, inscription readings, map (a DOM canvas), chronicle; off by default',
     'src/ui/shell.ts': 'title screen, menus and settings', 'src/ui/overlay.ts': 'dev overlay (F3)',
     'src/world/bench.ts': 'bench mode report (?bench)', 'src/main.ts': 'the boot-failure message',
+    'src/people/converse/ui.ts': 'speaking with the people (?converse, D-296): the typing box and the reply in the translation layer (English)', 'src/dev/converseLab.ts': 'the conversation lab page (converse.html, dev only, D-296)',
   };
   const TEXT_3D = /\b(TextGeometry|textPanelGeometry|layoutText|carvedGeometry|carvedBlockGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
   const CANVAS_TEXT = /\b(fillText|strokeText)\b/;
@@ -235,7 +236,7 @@ describe('language lint: every source that can reach the canvas', () => {
    *  Greek letters that transliteration and IPA use singly (θ Θ ϑ δ χ γ β ε φ: xšāyaθiya, Θūravāhara, bagaδušta) */
   const NON_LATIN = /[\u0400-\u04ff\u0590-\u05ff\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\u0900-\u0dff\u1f00-\u1fff\u3040-\u30ff\u4e00-\u9fff\uac00-\ud7af\ufb50-\ufdff\ufe70-\ufeff\u{10840}-\u{1085f}\u{103a0}-\u{103df}\u{12000}-\u{1254f}]|[\u0370-\u03ff]{2}|[\u0370-\u0397\u0399-\u03b1\u03b6\u03b7\u03b9-\u03c5\u03c8-\u03d0\u03d2-\u03ff]/u;
   it('data files (src/data, public): strings in a non-Latin script appear only in registered fields; the in-world ones are period script', () => {
-    const files = [...walk(join(root, 'src/data'), /\.json$/), ...walk(join(root, 'public'), /\.json$/)].map(rel).filter(f => f !== 'public/voices/manifest.json');
+    const files = [...walk(join(root, 'src/data'), /\.json$/), ...walk(join(root, 'public'), /\.json$/)].map(rel).filter(f => f !== 'public/voices/manifest.json' && !f.startsWith('public/models/')); // public/models: the in-browser models' files (D-296; outside git, a junction to the asset store: tokenizers of every script, never shown)
     const found: string[] = [];
     const visit = (f: string, v: unknown, key: string) => {
       if (typeof v === 'string') { if (NON_LATIN.test(v)) { const reg = SCRIPT_FIELDS.find(r => r.file.test(f) && r.key.test(key)); if (!reg) found.push(`${f}${key}: "${v.slice(0, 40)}"`);

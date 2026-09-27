@@ -7161,3 +7161,73 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Tests:** tests/blender_assets.test.ts (15: registry, sha256, inputs current, reproduced, budgets, attributes and maps,
   ledger, decoders = three's, axes and extent, triangles = the game's, column split, fitLevel, material nodes).
 - **Plan and inventory:** research/BLENDER_PLAN.md (ranked top 20 with numbers, what Blender cannot help, rollout per area).
+
+## D-296 (continued) Speaking with the people: the stack measured on the T4, the baked lives, the prototype, T-E9 (session 11)
+- **How this could pass its tests while the intent fails (said before starting, measured against):** (a) a keyword check of
+  "grounded" passes a reply that names a word of the record but is nonsense or contradicts the life (a made-up wife, a child
+  of two called a wife); (b) the lab (no renderer) answers in 1-2 s where the world, sharing the card with the renderer,
+  takes 4-10 s; (c) the fence passes a soft anachronism it has no word for ("the king's coin" before `coin` was added, silk,
+  a pet cat); (d) replies scored one by one hide a person who says the same thing to every question; (e) the test set's
+  own prompts are easier than a player's. Answers: the score adds a made-up-name check and I read every reply of the chosen
+  model by hand (the hand verdict is the one reported); the prototype was run in the world and its latency reported there;
+  the fence grew with each miss; the heard line was found repeating in the world run and fixed.
+- **The stack measured (headless Chrome 153 on the T4, WebGPU D3D12, shader-f16; the card shared with other agents'
+  renders at 17-67 % utilisation, so every figure is an upper bound on the time):**
+  | model (WebLLM q4f16) | download | load (local disk) | GPU memory | prefill tok/s | decode tok/s | licence |
+  |---|---|---|---|---|---|---|
+  | Llama-3.2-1B-Instruct | 710 MB | 16 s | +1.36 GB | ~600 | ~48 | Llama 3.2 Community |
+  | Qwen2.5-1.5B-Instruct | 886 MB | 16 s | +1.59 GB | ~470 | ~31 | Apache-2.0 |
+  | gemma-2-2b-it | 1,498 MB | 30 s | +2.85 GB | ~320 | ~26 | Gemma Terms |
+  | Qwen3.5-2B | 1,089 MB | 18 s | +2.11 GB | ~245 | ~25 | Apache-2.0 |
+  | Qwen2.5-3B-Instruct | 1,753 MB | 20 s | +2.58 GB | ~230 | ~21 | Qwen Research (non-commercial) |
+  | Llama-3.2-3B-Instruct | 1,823 MB | 21 s | +2.79 GB | 150-220 | ~25 | Llama 3.2 Community |
+  | Phi-3.5-mini-instruct | 2,158 MB | 22 s | +4.02 GB | 120-170 | ~23 | MIT |
+  | Qwen2.5-7B-Instruct (bake) | 4,301 MB | stalled at its 272 MB shard in the browser | — | — | — | Apache-2.0 |
+  Speech recognition (transformers.js 4.3, WebGPU): Whisper base fp16 loads in 8.8 s, 0.73 s median (1.1 s max) for a
+  1-3 s prompt, 42/44 prompts exact (WER 0.9 %, "Xerxes" → "Zerksies"); Whisper small 1.0 s, 43/44. English voice (Kokoro-82M
+  fp32, kokoro-js on WebGPU): loads in 12.7 s, 0.23-0.41 s per second of speech.
+- **The GPU watchdog (B98):** a prompt read in for more than ~2 s resets the card (DXGI_ERROR_DEVICE_HUNG): the whole prompt
+  stays under ~430 tokens (life.ts lifeBriefShort, tools/dev/converse_tokens.ts: median 361, max 414 over the test set) and
+  3-4 B models are out on the T4. The person's life is read once when the stranger comes within 6 m ("priming": the system
+  prompt and a first turn, kept by WebLLM's multi-round KV cache), so the question costs only its own words.
+- **Chosen stack:** gemma-2-2b-it (q4f16, WebLLM 0.2.85 in a worker) for the person; Whisper base fp16 (transformers.js, a
+  worker) for speech; the period voice (voice.ts: the person's own voice, a line of their language fitting what the reply
+  does, then attested words, 1-3 units, wordless for peoples without a corpus; the heard line is labelled "not a rendering of
+  this English"); Kokoro as the out-of-world English option (`&english`). gemma over Qwen3.5-2B: Qwen3.5 scored higher on the
+  keyword score (55/72 against gemma's 46/72) but read by hand it rambles, loops and contradicts itself ("I often forget my
+  own name", "Oye"), gemma speaks like a person in few words and answers in 1.3 s median; over Llama-1B (fast, 42/72 but
+  flat) and Qwen2.5-1.5B (assistant-speak: "How can I assist you today?").
+- **The baked life (schema, life.ts LifeRecord; any seed, computed in the browser from the simulation, no GPU):** name,
+  sex, age, origin, language(s); work (job and sub, group, rank); home (in words of 467: quarter, bearing and walking time
+  from the Terrace, never a map id or a modern name); household with relations read from the sim (mother, children, spouse
+  inferred where the sim has none: C), kin houses, friends with the sim's affinity (close / on bad terms since a quarrel);
+  the year so far (arrival, marriage, births, deaths, sickness, mourning, a hearing, ration shortfalls: sim facts);
+  quarrels (the sim's disputes, E-74); debts (seeded, C, Q-772); temperament (the sim's trait) and speech habits (seeded:
+  oath by the gods of their people, a manner); today (the date in Old Persian and Babylonian months, season, weather, now,
+  next, earlier: the sim's plan; the day's events); a knowledge fence by work and place (Q-770). A prose layer (bake.ts:
+  backstory, three memories, hope, worry, opinions, saying), baked offline and checked (fence; names only of the record),
+  keyed to (seed, pid): the sample, src/data/lives_baked_s1.json, 50 people of every class baked by gemma-2-2b (the 7B would
+  not load, the 3-4 B hit the watchdog: B99): 30 kept of 50 by the checks. Read by hand: plausible texture, about half
+  usable as it stands; the misses are soft anachronisms (silk, a pet cat, "political climate", "lose my job", wind chimes;
+  the fence now lists them), made-up kin and places, and the opinions left empty. The runtime gives the model the backstory's
+  first sentence, one memory and the saying (~60 tokens), only in world seed 1.
+- **The prototype:** `?converse` (src/people/converse/ui.ts, mounted from main.ts): T to type, hold V to speak (the
+  microphone, Whisper in a worker), to the nearest person within 3 m (detailed agents and the population's drawn people);
+  the answer in the translation layer (English, out of world, with the time and what was heard); heard: the person's own
+  voice and language. Run in the world on the T4 (1920×1080, high, the Terrace, day 150 10:00, the guard Mikrašba at 1.5 m):
+  typed and spoken both answered from his own life ("Yes, my wife Dātabāmā and daughters Farnastūnā and Raučaduxçā. My eldest
+  is six."; to "Do you have a phone I could use?": "I'm with my men. We'll need more water. My wife and girls are
+  thirsty."). Also `converse.html` (the lab: any person, any day and hour, the stacks, the test set, the bake).
+- **GPU budget (T-K8; the world run above):** the renderer alone ran at 204 ms a frame median (5 fps: the T4 at high 1080p,
+  shared) with the model loaded and idle, 198 ms median, 252 ms p95, one 1.25 s hitch while answering; the model adds 2.8 GB
+  (gemma) + 0.8 GB (Whisper) of GPU memory on top of the renderer's. Answers in the world took 4.2-9.5 s (1.3 s in the lab):
+  the renderer and the model share one card, and on the T4 the 4 s of T-E9 is not met beside the renderer. On a card with
+  headroom (the plan's RTX 3070 class) the lab figures are the better guide; not measured.
+- **T-E9 (the seeded set: 72 cases, 26 classes, every hour, 30 adversarial; typed; the lab on the T4):** runs in order of
+  the changes: long prompt, no priming: Qwen2.5-1.5B 25/72, Llama-1B 9/72; short primed prompt: Qwen2.5-1.5B 30, gemma 35,
+  Qwen3.5-2B 47; with the fence on the way in (hear.ts): Qwen3.5-2B 57, gemma 42, Llama-1B 42; prompt v3 (no forbidden
+  lists, "your wife X" phrasing, 64 tokens): Qwen3.5-2B 55/72. Final (gemma-2-2b, this commit's code): automatic 46/72 (63.9 %); **read by hand 44/72 = 61.1 %** (6 verdicts changed, each with its reason: research/converse_te9_judged.json; the rows: research/converse_te9_final.json; evidence REVIEWS/evidence/s11-conversation/T-E9.json). By kind (hand): self 5/6, house 3/6, work 6/6, day 5/6, events 5/6, place 0/6, gods 0/6, future 3/6, fate 4/6, modern 5/6, meta 4/6, break 4/6 (adversarial 20/30: no shown reply spoke of the fate or used a later word the fence knows; the failures answer with nothing of their own life, and questions of place and gods get general answers anyone could give). Time: 1.3 s median, 1.7 s p90, 2.7 s max from the prompt (first token 0.24 s), after the priming on approach (2.2 s median); counting the priming too, 62/72 within 4 s. In the lab, not beside the renderer (the world run: 4.2-9.5 s).
+  **T-E9 is not met (B97).**
+- **Records:** Q-770..Q-773; B97 (T-E9), B98 (the watchdog), B99 (the bake); ASSET_LEDGER rows; the models' manifest in
+  research/MODELS_MANIFEST.json (the files on T:, junction at C:/Users/Administrator/fars-assets/models). Tests:
+  tests/converse.test.ts (11), tests/e2e/converse.spec.ts (GPU only).
