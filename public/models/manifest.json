@@ -53,8 +53,13 @@
    "src": "RECON;IR-COL",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 15.1,
-   "build_s": 68
+   "bake_s": 13.6,
+   "build_s": 57,
+   "reproduced": {
+    "outHash": "bf32300cfa1b0c2f5e90a5aae74a4a4cd2f03fc95edb107cd362b467b8eb1485",
+    "device": "CPU",
+    "blender": "5.0.1"
+   }
   }
  }
 }

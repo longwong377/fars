@@ -4,8 +4,10 @@
 //  1. hashes its inputs (tools/blender/lib/inputs.mjs: the source script, the data and model files it reads, the SITE_SPEC
 //     values, bake.py, the entry's settings);
 //  2. writes its source meshes with the project's own code (npx tsx <source.script> <work> <args>);
-//  3. bakes and exports in Blender, headless (tools/blender/bake.py); on the GPU (Cycles OptiX on the T4) through the shared
-//     GPU slots (C:/Users/Administrator/fars-assets/gpu_slot.mjs), or on the CPU (--device=CPU: no slot needed);
+//  3. bakes and exports in Blender, headless (tools/blender/bake.py); on the CPU by default (byte-reproducible: 3 of 3
+//     --verify runs; the protome bakes in ~15 s on the 16 cores, no GPU slot), or on the T4 with --device=GPU (Cycles OptiX,
+//     through the shared GPU slots, C:/Users/Administrator/fars-assets/gpu_slot.mjs; measured D-305: reproduced 1 of 2
+//     builds, so a GPU-built asset may fail the reproducibility test: use it for bakes too heavy for the CPU);
 //  4. KTX2: if the KTX-Software CLI (`ktx`) is on the PATH, re-encodes each map to KTX2 (UASTC + zstd, mipmaps) inside the
 //     GLB (KHR_texture_basisu); otherwise the maps stay PNG and the manifest says so (textures: "png");
 //  5. measures the GLB (triangles and vertices per level, image sizes, bytes, a GPU-memory estimate), checks the budgets,
@@ -24,7 +26,7 @@ import { readRegistry, inputHash } from './lib/inputs.mjs';
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '../..');
 process.chdir(ROOT);
 const args = process.argv.slice(2), flag = (k, d) => { const a = args.find(x => x.startsWith(`--${k}=`)); return a ? a.split('=')[1] : args.includes(`--${k}`) ? true : d; };
-const DEVICE = flag('device', 'GPU'), NOSLOT = !!flag('no-slot', false), VERIFY = !!flag('verify', false), CHECK = !!flag('check', false);
+const DEVICE = flag('device', 'CPU'), NOSLOT = !!flag('no-slot', false), VERIFY = !!flag('verify', false), CHECK = !!flag('check', false);
 const WORK = flag('work', process.env.FARS_BLENDER_WORK ?? 'T:/fars-blender');
 const BLENDER = process.env.BLENDER ?? 'C:/Program Files/Blender Foundation/Blender 5.0/blender.exe';
 const SLOT = process.env.GPU_SLOT_SCRIPT ?? 'C:/Users/Administrator/fars-assets/gpu_slot.mjs';
