@@ -7399,3 +7399,22 @@ moment-*-webgpu.png in the worktree, not committed).**
   at the T4's full quality; CC0 3D models in bulk from Poly Haven for rocks, plants and props; a Blender mudbrick house kit;
   photogrammetric rock for the mountain and outcrops; the people's garments and hair), iterating on probe pages and verified
   once, in one batched render and one review at the end. Measured by T-R12 (>= 5 classes a GPU session).
+
+## D-311 The mud-brick house kit from Blender, on every house of the town and the villages (session 12; UD-19, UD-17, D-233; T-R12)
+- **Kit (tools/blender/housekit.py, `node tools/blender/housekit.mjs`; src/data/housekit.json, 0.1 MB):** pieces modelled in
+  Blender 5.0.1 from the generator's own measures and eroded with seeded noise, their ambient occlusion baked by Cycles into the
+  vertices (each piece baked against its context: the crest on its wall, the tannur on the ground): crest0-2 (an exposed wall
+  top's slumped mud cap, 2-3 m modules, drooping over both arrises with a ragged lower edge, rain dips along it), log0-1 (a
+  poplar pole, knotty and tapered, end grain), tannur0-1 (clay cone, rolled lip, banked collar, draught hole), leaf0-2 (street
+  door leaves of 3/4/5 planks with gaps and grain warp, battens, pull; flat-shaded). All tier C (HOUSE_PARTS' analogues).
+- **Wired (every instance; one generator serves both the town and the villages, SiteHouses):** houses.ts wallNear's exposed-top
+  cap -> kit crest following the wall's worn top and notches (every parapet, yard and garden wall top near); houses.ts pole()
+  -> kit log for every pole of r >= 3.5 cm and >= 5 sides (roof pole ends, eave, lintel poles, spouts, ladders, porticoes; the
+  battens and the hidden 4-sided roof poles stay prisms); build.ts fittingGeom 'oven' near -> kit tannur (the far level keeps its
+  frustums; the villages call the same function); towndoors.ts leafGeometry -> kit leaf (town and village doors).
+- **Budgets held:** tests/houses.test.ts worst near tile < 60 k and lane spots < 600 k pass (crest cut to 48 triangles a module
+  and 2.6 m modules, the log to 16 triangles: cheaper than the 8-sided prism it replaces). HOUSEKIT=0 (node only) builds the
+  pre-kit generator for A/B.
+- **Not done (honest):** the wall faces themselves are still the procedural generator (bulge, patches, bare brick; the CC0
+  clay_plaster scan over it); no normal-map bake (the Batch meshes carry no UVs, so the kit's detail is geometry + vertex AO
+  only); no rounded vertical arrises at wall ends and jambs, no exposed brick courses at the foot, no tannur on the far level.

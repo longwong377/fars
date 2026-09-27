@@ -10,6 +10,7 @@ import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
 import type { Physics } from '../../player/physics';
 import { Batch, lin, type RGB } from './geom';
+import { KIT, kitFrame } from './kit';
 import { surfaceMaterial } from '../../render/materials';
 import { hashString } from '../../core/rng';
 import { DOOR_H } from './site';
@@ -36,14 +37,13 @@ function leafGeometry(variant: number): THREE.BufferGeometry {
   const tones: RGB[][] = [[[0.47, 0.44, 0.39], [0.5, 0.46, 0.4], [0.44, 0.41, 0.37], [0.49, 0.45, 0.4]], [[0.5, 0.42, 0.33], [0.53, 0.45, 0.35], [0.48, 0.4, 0.31], [0.51, 0.44, 0.34]], [[0.6, 0.49, 0.36], [0.58, 0.47, 0.34], [0.62, 0.51, 0.37], [0.57, 0.46, 0.33]]];
   const n = variant === 0 ? 3 : variant === 1 ? 4 : 5, H = DOOR_H - 0.05, w = (DOOR_W - 0.06) / n;
   const box = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, c: RGB) => b.box((x0 + x1) / 2, -(z0 + z1) / 2, 0, (x1 - x0) / 2, (z1 - z0) / 2, y0, y1, c, c, -1, true);
-  for (let k = 0; k < n; k++) { const c = lin(tones[variant][k % 4]); box(0.05 + k * w + 0.003, 0.05 + (k + 1) * w - 0.003, 0.01 + (k % 2) * 0.012, H - (k % 3) * 0.01, -0.028, 0.028, c); }
-  const bat = lin(tones[variant][1].map(x => x * 0.9) as RGB);
-  for (const y of [0.32, H - 0.36]) box(0.08, DOOR_W - 0.04, y, y + 0.11, 0.028, 0.055, bat);
+  // D-311: planks, battens and pull from the Blender kit (tools/blender/housekit.py leaf0..2: 3/4/5 planks with their gaps,
+  // grain warp and baked AO), scaled to the opening; the pivot post below stays a prism
+  void n; void w; void box; kitFrame(b, KIT[`leaf${variant}`], [0, 0, 0], [DOOR_W, 0, 0], [0, H, 0], [0, 0, 1], lin(tones[variant][1]), -1, 1, 0.25);
   const post = lin(tones[variant][2].map(x => x * 0.85) as RGB);
   const r = 0.045, sides = 8; for (let k = 0; k < sides; k++) { const a0 = (k / sides) * Math.PI * 2, a1 = ((k + 1) / sides) * Math.PI * 2;
     const p = (a: number, y: number) => [0.02 + Math.cos(a) * r, y, Math.sin(a) * r]; b.quadN(p(a0, -0.04), p(a1, -0.04), p(a1, DOOR_H + 0.06), p(a0, DOOR_H + 0.06), [Math.cos(a0), 0, Math.sin(a0)], [Math.cos(a1), 0, Math.sin(a1)], [Math.cos(a1), 0, Math.sin(a1)], [Math.cos(a0), 0, Math.sin(a0)], post, post, post, post, -1); }
   // a wooden pull and the bar's staple on the inside (the bar itself lies in the vestibule by day)
-  box(DOOR_W - 0.2, DOOR_W - 0.14, 1.0, 1.14, 0.055, 0.09, bat);
   return b.toGeometry();
 }
 

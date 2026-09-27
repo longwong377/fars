@@ -27,6 +27,8 @@ export class Batch {
    *  its hook computes from the vertex's world position and normal */
   private X: { name: string; size: number; cur: number[]; g: Grow<Float32Array>; fn?: (x: number, y: number, z: number, nx: number, ny: number, nz: number) => number | number[] }[] = [];
   addAttr(name: string, size: number, init: number[] = new Array(size).fill(0)) { this.X.push({ name, size, cur: init.slice(), g: new Grow(new Float32Array(1024 * size)) }); return this; }
+  /** a channel's current value (1 when the batch has no such channel) */
+  cur(name: string) { const a = this.X.find(q => q.name === name); return a && !a.fn ? a.cur[0] : 1; }
   set(name: string, ...v: number[]) { const a = this.X.find(q => q.name === name); if (a) { a.cur = v; a.fn = undefined; } return this; }
   hook(name: string, fn: ((x: number, y: number, z: number, nx: number, ny: number, nz: number) => number | number[]) | undefined) { const a = this.X.find(q => q.name === name); if (a) a.fn = fn; return this; }
   private v(x: number, y: number, z: number, nx: number, ny: number, nz: number, c: RGB) {
@@ -41,6 +43,15 @@ export class Batch {
     const flip = cr[0] * n[0] + cr[1] * n[1] + cr[2] * n[2] < 0;
     const i0 = this.v(a[0], a[1], a[2], na[0], na[1], na[2], ca), i1 = this.v(b[0], b[1], b[2], nb[0], nb[1], nb[2], cb), i2 = this.v(c[0], c[1], c[2], nc[0], nc[1], nc[2], cc), i3 = this.v(d[0], d[1], d[2], nd[0], nd[1], nd[2], cd);
     if (flip) { this.tri(i0, i2, i1, owner); this.tri(i0, i3, i2, owner); } else { this.tri(i0, i1, i2, owner); this.tri(i0, i2, i3, owner); }
+  }
+  /** a kit piece's mesh (D-311, tools/blender/housekit.py): per-vertex position, normal and colour from the callers'
+   *  transforms, and per-vertex values for named extra channels (the baked AO); the triangles as the piece gives them */
+  mesh(nv: number, pos: (k: number) => number[], nrm: (k: number) => number[], col: (k: number) => RGB, idx: ArrayLike<number>, owner: number, per: Record<string, (k: number) => number> = {}) {
+    const base = this.P.n / 3, keep = this.X.map(a => [a.cur, a.fn] as const);
+    for (let k = 0; k < nv; k++) { for (const a of this.X) { const f = per[a.name]; if (f) { a.cur = [f(k)]; a.fn = undefined; } }
+      const p = pos(k), n = nrm(k); this.v(p[0], p[1], p[2], n[0], n[1], n[2], col(k)); }
+    this.X.forEach((a, i) => { a.cur = keep[i][0]; a.fn = keep[i][1]; });
+    for (let t = 0; t + 2 < idx.length; t += 3) this.tri(base + idx[t], base + idx[t + 1], base + idx[t + 2], owner);
   }
   /** a flat convex polygon (fan) facing n */
   poly(pts: number[][], n: number[], c: RGB | RGB[], owner: number) {

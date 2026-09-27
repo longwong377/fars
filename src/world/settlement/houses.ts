@@ -18,6 +18,7 @@ import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
+import { kitOn, kitLog, kitPiece } from './kit';
 
 /** tile size (m, site-local) and the near radius (m, from the eye to a tile's centre) */
 export const TILE = 32, NEAR_R = 72;
@@ -250,6 +251,8 @@ export class SiteHouses {
   }
   /** a round pole (prism) between two world points */
   pole(b: Batch, A: number[], Bp: number[], r: number, sides: number, c: RGB, owner: number, caps: boolean | 'end' = true) {
+    // D-311: every pole of a house (roof, eave, ceiling, lintel, spout, ladder) from the Blender kit's poplar log; the thinnest (battens) stay prisms
+    if (kitOn && r >= 0.035 && sides >= 5) { kitLog(b, A, Bp, r, c, owner, hi(Math.round(A[0] * 100), Math.round(A[2] * 100), Math.round(Bp[1] * 100))); return; }
     const d = [Bp[0] - A[0], Bp[1] - A[1], Bp[2] - A[2]], L = Math.hypot(d[0], d[1], d[2]); if (L < 1e-4) return; const w = d.map(x => x / L);
     const up = Math.abs(w[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0]; let e1 = [w[1] * up[2] - w[2] * up[1], w[2] * up[0] - w[0] * up[2], w[0] * up[1] - w[1] * up[0]]; const l1 = Math.hypot(e1[0], e1[1], e1[2]); e1 = e1.map(x => x / l1);
     const e2 = [w[1] * e1[2] - w[2] * e1[1], w[2] * e1[0] - w[0] * e1[2], w[0] * e1[1] - w[1] * e1[0]];
@@ -371,8 +374,18 @@ export class SiteHouses {
         for (const h of faceHoles) this.reveal(B, ax, cc, t, sg, h, col0, we.plot);
       }
     }
-    // the cap of an exposed top: worn round, uneven along the wall
-    if (exposedTop) { const c = this.tone(we.plot, 0, add), n = Math.max(1, Math.ceil(len / (notches.length ? 0.35 : 0.8))); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
+    // the cap of an exposed top (D-311): the Blender kit's slumped mud crest, 2-3 m modules (three, mirrored by the hash) laid
+    // along the wall, following its worn top (the undulations and the rain's notches above), drooping over both arrises
+    if (exposedTop && kitOn) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
+      const nm = Math.max(1, Math.round(len / 2.6)), ml = len / nm, wz = t + 0.07, own = this.owner(we.plot, P.wall);
+      const aw = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), cw = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0);
+      for (let m = 0; m < nm; m++) { const q = kitPiece('crest', hi(seed, m, 91)), fl = hi(seed, m, 92) < 0.5 ? -1 : 1, mid = sA + ml * (m + 0.5), hx = ml / 2 / 1.02;
+        // handedness of (along·fl, up, across) in the world: mirror the winding with it
+        const det = fl * (aw[0] * cw[1] - aw[1] * cw[0]); const idx = det < 0 ? q.i.map((_, j) => q.i[j - (j % 3) + [0, 2, 1][j % 3]]) : q.i;
+        B.plaster.mesh(q.nv, k => { const al = mid + fl * q.p[k * 3] * hx; return this.wp(...P2l(Math.max(sA - 0.02, Math.min(sB + 0.02, al)), q.p[k * 3 + 2] * wz), ytopF(Math.max(sA, Math.min(sB, al))) + q.p[k * 3 + 1]); },
+          k => { const nx = q.n[k * 3] * fl / hx, ny = q.n[k * 3 + 1], nz = q.n[k * 3 + 2] / wz; const v = [aw[0] * nx + cw[0] * nz, ny, aw[1] * nx + cw[1] * nz], L = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / L, v[1] / L, v[2] / L]; },
+          k => sh(c, 1.02 * q.k[k]), idx, own, { ao: k => Math.max(0.3, q.ao[k]) }); } }
+    else if (exposedTop) { /* the pre-kit cap: HOUSEKIT=0 only */ const c = this.tone(we.plot, 0, add), n = Math.max(1, Math.ceil(len / (notches.length ? 0.35 : 0.8))); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
       const nf = Math.ceil(len / 1.3); // the faces' own stations (face(): 1.3 m) and the notches': the cap and the faces meet edge to edge
       const CS = [...new Set([...Array.from({ length: nf + 1 }, (_, k) => sA + (len * k) / nf), ...topSt.filter(x => x > sA && x < sB)].map(x => +x.toFixed(4)))].sort((p, q) => p - q); void n;
       for (let k = 0; k + 1 < CS.length; k++) { const a = CS[k], z = CS[k + 1], ya = ytopF(a), yz = ytopF(z);
