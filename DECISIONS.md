@@ -7438,3 +7438,14 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Tests:** tests/sun_shadows.test.ts (texels, breaks vs the air-light and the people's reach, the shared installer),
   tests/tone_look.test.ts (CPU mirror = AgX at the identity look; the fitted look monotonic, brighter at the top, night not
   lifted). Probe renders: shots/sunshadow-{old,new}-high-h10-{face,full,feet}-gpu.png (not committed; T:/fars-wt/lighting).
+- **D-309b (the lead's follow-up, same session): outdoor sky light from the world as built (src/render/skyVis.ts).** A top-down
+  float height map of everything the scene draws (2048² over 480 m round the player, 0.23 m a texel; re-rendered after 90 m of
+  walking and at 3, 12 and 40 s while models stream in; sky, particles, transparent effects and GPU-skinned people left out),
+  marched in the post composite at high/ultra: 8 azimuths × 8 jittered steps to 24 m, the horizon's elevation per azimuth,
+  visibility = mean(1 − sin h) leaning toward the normal, the occluded part replaced by 25 % bounce (C); the skylight the
+  composite removes takes min(SSGI AO, visibility) outside the probe volumes. No hand-placed list: the house kit, the models
+  and anything added later are in the map; no sampler is added to any material (B122). Probe (?post=skyvis-raw): the ground
+  darkens smoothly toward the lab's 6 m wall, open ground 1.0; frame 2.2 ms on the lab. Caveats: overhangs read as walls from
+  above (the probe volumes carry the roofed buildings); the first render of the scene must be the player's camera (CSM keeps
+  the first camera: a top-down first render made every cascade 166 mm a texel; the update runs after the frame); unverified
+  in the world (lanes, courts, village houses: the lead's render, ?post=skyvis-raw and __parsaSurf.skyvis = 0 for the A/B).

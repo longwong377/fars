@@ -44,6 +44,7 @@ import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './
 import { SkyEnvCapture, skyEnv, specularOcclusion } from './envmap';
 import { addAirLight } from './airlight';
 import { agxLook } from './toneLook';
+import { SkyVisField } from './skyVis';
 /** D-309: the fitted AgX look (toneLook.ts) at medium and above; ?tone=agx draws three's plain AgX (the A/B) */
 export const TONE_LOOK_ON = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('tone') === 'agx');
 
@@ -110,7 +111,9 @@ export class Pipeline {
   setDebugView(v: string) { this.debugView = v; this.built = false; this.rp = null; }
   /** A/B switches for measurements (window.__parsaSurf; 1 = on): SSR, sun contact shadows (sss), the direct-only SSGI input with its bounce inside
    *  the probe volumes (0 = the session-4 composite: full scene into the SSGI, bounce × (1 − w)), the contact AO outdoors */
-  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1) };
+  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1), skyvis: uniform(1) };
+  /** the outdoor sky visibility from the built world's height map (D-309b; high/ultra) */
+  private skyVis: SkyVisField | null = null;
   /** the sun as the composite's contact-shadow estimate sees it: direction toward the sun (world) and colour × intensity */
   private sunDirW = uniform(new THREE.Vector3(0, 1, 0)); private sunE = uniform(new THREE.Color(0, 0, 0));
   /** the angle one pixel spans at the centre of the frame (rad; the SSR blur's footprint, D-188) */
@@ -202,7 +205,11 @@ export class Pipeline {
       }
       const aoTex = node.getAONode(), aoFull = aoTex.r, aoNear = V.includes('orig') ? aoTex.r : aoTex.g, bounce = node.getGINode().rgb;
       // sky pixels come out of the SSGI pass with AO 1 and GI 0 (patched node), so the composite leaves them unchanged
-      const ao = mix(mix(aoFull, min(aoFull, aoNear), this.ab.contact), aoNear, w);
+      const ao0 = mix(mix(aoFull, min(aoFull, aoNear), this.ab.contact), aoNear, w);
+      // D-309b: outside the probe volumes, the sky the built world leaves visible (skyVis.ts), with the SSGI's AO (min)
+      this.skyVis = new SkyVisField();
+      const vis = this.skyVis.visibility(pWorld, nOff), visW = mix(vis, float(1), w);
+      const ao = min(ao0, mix(float(1), visW, this.ab.skyvis));
       const bounceW = mix(float(1).sub(w), float(1), this.ab.giDirect);
       const lit = max(col.rgb.sub(sky.mul(float(1).sub(ao))).add(dif.rgb.mul(bounce).mul(bounceW)), vec3(0));
       // ---- SSR (D-157) ----------------------------------------------------------------------------------------------
@@ -265,7 +272,7 @@ export class Pipeline {
       // node build run away and crash the page (session-2 bisect)
       const chosen = V.includes('scene') ? col.rgb : V.includes('aonear') ? vec3(aoNear) : V.includes('ao') ? vec3(ao) : V.includes('gi') ? bounce
         : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : V.includes('direct') ? colDirect
-        : V.includes('ssr') ? ssrRefl : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : litR;
+        : V.includes('ssr') ? ssrRefl : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : V.includes('skyvis') ? vec3(visW) : litR;
       // session 9 (G8, A physics): heat shimmer and the inferior mirage over the hot plain. Only where a line of sight runs within
       // ~1 deg of level to ground more than 300-1500 m off: the scene is resampled with a slowly boiling offset of ~1.5 px
       // (shimmer); the ground within 0.23 deg below the horizon beyond 1.5 km takes the colour of the point mirrored above the
@@ -330,5 +337,8 @@ export class Pipeline {
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)
     if (!this.built) this.build();
     if (this.rp) this.rp.render(); else this.renderer.render(scene, camera);
+    // after the frame: the first render of the scene initialises the sun's cascades with ITS camera (CSMShadowNode keeps the
+    // camera it first sees), so the height map's top-down camera must never render first
+    if (this.skyVis && this.rp) this.skyVis.update(this.renderer, scene as THREE.Scene, this.camera.position);
   }
 }
