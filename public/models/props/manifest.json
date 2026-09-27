@@ -951,6 +951,7 @@
     "bolster"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 109476,
    "sha256": "81d2bd1f69624c27caaf818b0aa8300f83d5b3235eed9502612624aabe27e8e1",
@@ -984,8 +985,7 @@
     0.9041224718093872,
     0.8616153001785278
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_couch_covered": {
    "file": "models/props/m_couch_covered.glb",
@@ -1038,6 +1038,7 @@
     "metal"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 73284,
    "sha256": "b309adc06b3352ec7dd795be94ee4e7d69cb7e23ee84dea19b8b570f4e59c60b",
@@ -1067,8 +1068,7 @@
     0.5958412103354931,
     0.5475372672080994
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_stool": {
    "file": "models/props/m_stool.glb",
@@ -1078,6 +1078,7 @@
     "wood"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 27536,
    "sha256": "07c7351d985c4bf2341aa55ae01c5aed636d7d224cab12e70f017ed12d5ac75e",
@@ -1107,8 +1108,7 @@
     0.44990935921669006,
     0.44999998807907104
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_footstool": {
    "file": "models/props/m_footstool.glb",
@@ -1118,6 +1118,7 @@
     "frame"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 39228,
    "sha256": "579329b51572cbc030cb6a41d034ff225d895171f8c4681a3d7666b2286fcca4",
@@ -1147,8 +1148,7 @@
     0.11628238135017455,
     0.3499999940395355
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_burner": {
    "file": "models/props/m_burner.glb",
@@ -1199,9 +1199,10 @@
     "clay"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 68880,
-   "sha256": "01d73a0d22b605611ddccfb1906a3aad7fd9b7d483b042c97af52408338aa22e",
+   "sha256": "279743395edb7958322b1b168b18351cd15cd20625d450260560979ab2f93084",
    "tris": {
     "lod0": 2168,
     "lod1": 758
@@ -1230,8 +1231,7 @@
     1.3331588252913207,
     0.3254028558731079
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_chest": {
    "file": "models/props/m_chest.glb",
@@ -1243,6 +1243,7 @@
     "bronze"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 106460,
    "sha256": "d03d0d132f636f421c372e1abf191f1825f118bc573f4c5e1ae12fbedfb8b6f2",
@@ -1276,8 +1277,7 @@
     0.5580000281333923,
     0.6019999980926514
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_carpet": {
    "file": "models/props/m_carpet.glb",
@@ -1288,9 +1288,10 @@
     "fringe"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 58616,
-   "sha256": "4dd41ed9b3f8bb2dd209c77fdbcbcf8c342637af34a10a3b7c19cb78c396add0",
+   "sha256": "383e51b091b4a68fc6181d18b0153e815a0737c903942b93d0497e9de7002f62",
    "tris": {
     "lod0": 1948,
     "lod1": 680
@@ -1303,24 +1304,23 @@
    },
    "box": [
     [
-     -0.5623692274093628,
+     -0.5623680353164673,
      0,
      -0.5
     ],
     [
-     0.5622678995132446,
+     0.5622671246528625,
      0.012000000104308128,
      0.5
     ]
    ],
    "ao": false,
    "size_m": [
-    1.1246371269226074,
+    1.1246351599693298,
     0.012000000104308128,
     1
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_roll": {
    "file": "models/props/m_roll.glb",
@@ -1330,6 +1330,7 @@
     "textile"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 81068,
    "sha256": "8fd07ff46126db3fff0c5e7476d15b71fbfd3533f58bb1d9b6a5ae7756581d35",
@@ -1359,8 +1360,7 @@
     0.42255428060889244,
     0.44507670402526855
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_hanging": {
    "file": "models/props/m_hanging.glb",
@@ -1372,25 +1372,26 @@
     "rod"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 161500,
-   "sha256": "b15902c22f8aa44db83a47ecb4c115a6179b4f2b2c49dcf91a791a1260cc1386",
+   "bytes": 161576,
+   "sha256": "67358bd396cf32847c675fd825569f890991807f10c4a31d5c09eaf72d1569d8",
    "tris": {
-    "lod0": 4699,
-    "lod1": 1532
+    "lod0": 4700,
+    "lod1": 1533
    },
    "partTris": {
     "lod0__cloth": 2400,
-    "lod0__band": 1599,
+    "lod0__band": 1600,
     "lod0__rod": 700,
     "lod1__cloth": 800,
-    "lod1__band": 482,
+    "lod1__band": 483,
     "lod1__rod": 250
    },
    "box": [
     [
      -1.1800000667572021,
-     -0.09772374480962753,
+     -0.09760057181119919,
      -0.03999999910593033
     ],
     [
@@ -1402,11 +1403,10 @@
    "ao": true,
    "size_m": [
     2.3600001335144043,
-    3.1677236780524254,
+    3.167600505053997,
     0.07999999821186066
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_canopy": {
    "file": "models/props/m_canopy.glb",
@@ -1418,6 +1418,7 @@
     "band"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 265416,
    "sha256": "a9457b397426c406c2872ce67756de6736962e9d8d4d956d19000ab662a34285",
@@ -1451,8 +1452,7 @@
     3.6199998855590865,
     4.7041778564453125
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_mat": {
    "file": "models/props/m_mat.glb",
@@ -1462,9 +1462,10 @@
     "matting"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 92280,
-   "sha256": "2e6eeb9dcc1977afc88f05ebafd3ca4497f28ea4ad54d9e4d0b48524bd1db315",
+   "sha256": "601a018959643ee55be74b2d2ef825150da765b196abe32ef85fe5907a41ed45",
    "tris": {
     "lod0": 2600,
     "lod1": 895
@@ -1476,7 +1477,7 @@
    "box": [
     [
      -1.0040042400360107,
-     0.0003153514117002487,
+     0.0003153504803776741,
      -0.6000000238418579
     ],
     [
@@ -1488,11 +1489,10 @@
    "ao": true,
    "size_m": [
     2.0080084800720215,
-    0.011384648270905018,
+    0.011384649202227592,
     1.2000000476837158
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_throne": {
    "file": "models/props/m_throne.glb",
@@ -1503,6 +1503,7 @@
     "cushion"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 144772,
    "sha256": "f0220c0514307f44dc0fed628f5e83f199d857bac0a2f6477c9c3b5e0c0f72db",
@@ -1534,8 +1535,7 @@
     1.4049999713897705,
     0.8240947425365448
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_door_leaf": {
    "file": "models/props/m_door_leaf.glb",
@@ -1545,6 +1545,7 @@
     "leaf"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 9636,
    "sha256": "e13ac26178d4d238cb1aeb88fa843e939bce730a123a8112033fd1f2af842e18",
@@ -1574,8 +1575,7 @@
     1,
     1
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_door_band": {
    "file": "models/props/m_door_band.glb",
@@ -1585,6 +1585,7 @@
     "band"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 6052,
    "sha256": "78ddfd04529550bbc66dee0336562aecbd6d30c677b6e33da90f83dad2219e3f",
@@ -1614,8 +1615,7 @@
     1,
     1
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_door_boss": {
    "file": "models/props/m_door_boss.glb",
@@ -1625,6 +1625,7 @@
     "boss"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 6312,
    "sha256": "ee1573a01e210d92750293e9d0ef08153f88738256eb68be37ea9d26d3a5d97a",
@@ -1654,8 +1655,7 @@
     1.9498558044433594,
     1.0000000426154507
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_door_shoe": {
    "file": "models/props/m_door_shoe.glb",
@@ -1665,6 +1665,7 @@
     "shoe"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 14776,
    "sha256": "da5a1a7755bd64e35326c04ec187346142a292337a2dd2ef0a9c36d536fe7e1f",
@@ -1694,8 +1695,7 @@
     1,
     2.1600000858306885
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_door_post": {
    "file": "models/props/m_door_post.glb",
@@ -1705,6 +1705,7 @@
     "post"
    ],
    "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 4004,
    "sha256": "be951c350610b0df515d2c357a1c085a3ddb7f132bd50b2160c3edbfad8e9112",
@@ -1734,8 +1735,7 @@
     1,
     1.95011305809021
    ],
-   "tex": 0,
-   "author": "the project: a script-built model, no third-party source"
+   "tex": 0
   },
   "m_brazier": {
    "file": "models/props/m_brazier.glb",
@@ -1749,7 +1749,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 139316,
-   "sha256": "8bc9e90bb4341555cd116a801f0d27ddff5d4a48be7ba275685a71fcf1acefa1",
+   "sha256": "8a9cb9481e91a6db5969429d4718f813dc77ecffa6bd9a52ffc7c7cfb88c3f3c",
    "tris": {
     "lod0": 4544,
     "lod1": 1588
@@ -1793,7 +1793,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 43964,
-   "sha256": "fcd116d46b3fdab915c7dbafbcef9aeeb10b8c6f2cd4ace778ea8f9ec60917ca",
+   "sha256": "e84098a360f669e8ef0d88dd3151be25be96625be03a7ac0b1635a04ad37a8be",
    "tris": {
     "lod0": 1284,
     "lod1": 446
@@ -2000,7 +2000,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 39992,
-   "sha256": "86b66df8a46cd51d86b6785e6d09f4659cc2afbe80d28b23f6eda6fb5c5f4013",
+   "sha256": "1312319323eae4c4b55016c83b6a74b13e3b4b78266cc3cc1041f864be706b93",
    "tris": {
     "lod0": 1272,
     "lod1": 444
@@ -2280,7 +2280,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 24768,
-   "sha256": "84be29bac75b3bec2e9d7bda9e3b49fe47c02d96a81ffdf7b86fa9039a7c5fae",
+   "sha256": "897a133c1083783273e4a5cabf7fbe63272554f30a4f39f53b91fcd5deaf0305",
    "tris": {
     "lod0": 764,
     "lod1": 266
@@ -2319,8 +2319,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 90564,
-   "sha256": "0a255d99e6b16504203e1a4fcd16a9bf0ef9de5df41613273a1b669600d64984",
+   "bytes": 90560,
+   "sha256": "248a95ef76e41bdb336cb4a16cf6d0f123a5ff3164db4e8d55f3f087b67f819d",
    "tris": {
     "lod0": 3000,
     "lod1": 1000
@@ -2331,21 +2331,21 @@
    },
    "box": [
     [
-     -0.36845043301582336,
+     -0.3684462308883667,
      -0.0003494498669169843,
-     -0.36845043301582336
+     -0.3684462308883667
     ],
     [
-     0.36817365884780884,
+     0.36817440390586853,
      0.7582850456237793,
-     0.36845043301582336
+     0.3684462010860443
     ]
    ],
    "ao": true,
    "size_m": [
-    0.7366240918636322,
+    0.7366206347942352,
     0.7586344954906963,
-    0.7369008660316467
+    0.736892431974411
    ],
    "tex": 0
   },
@@ -2410,7 +2410,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 50228,
-   "sha256": "9a34ebf1030d7ab4a9488110ef466fd5b2cf71308201cb94a898a2a33e7303a0",
+   "sha256": "b697f9ba97a38f17a3141101b93d17ea440e78391c0d8be1630ad94959a9e886",
    "tris": {
     "lod0": 1620,
     "lod1": 490
@@ -2452,8 +2452,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 47380,
-   "sha256": "d0431d31b2d9871901ed531f97c5be2f083a6ce2dfb4c97dcbb4b377a91c29bc",
+   "bytes": 47320,
+   "sha256": "71ece3f53b4d8e0307a75e7c431cfc63cd89d4e72dd7ad81b0e9c7e07372a4c5",
    "tris": {
     "lod0": 1520,
     "lod1": 460
@@ -2497,7 +2497,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 17476,
-   "sha256": "31500961ad08c9a7b9d23a2da254b568bf052b737affb3beb25180850636c95b",
+   "sha256": "dc0eb79cd0c06ab58e7a0a53a9cf6a06a689fbe5e753d75a7f9ca62c33312f04",
    "tris": {
     "lod0": 366,
     "lod1": 118
@@ -2542,8 +2542,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 14572,
-   "sha256": "e0ec8a55c1e254791666a72fd06f5e86d213ff1244d92c8ba5e92e4198dc4400",
+   "bytes": 14568,
+   "sha256": "be5898287b7a839edb67ca380620b5da24a96ec72afe9ebe5b88a8f27e372278",
    "tris": {
     "lod0": 298,
     "lod1": 99
@@ -2589,7 +2589,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 17468,
-   "sha256": "cb4d9e31336644a028617d483ac04b69039002993c27766a89f8593fdb6fd777",
+   "sha256": "d575f87a00ae4254fb8479df317219f9d421ba987c80be6143a605f180b3a7f7",
    "tris": {
     "lod0": 366,
     "lod1": 118
@@ -2677,7 +2677,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 8620,
-   "sha256": "b933818682643b3a0ff414dfcb74544d5e25f6e65f2073a3193226633be1130c",
+   "sha256": "33b8d479c4caf3a453399766893ac5efac21045745e5b1e0c485156dba860147",
    "tris": {
     "lod0": 162,
     "lod1": 56
@@ -2892,7 +2892,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 7396,
-   "sha256": "4cba3bd57416475a8f315ea029ab161a2eff58c6a2426dfbe7e6d78e5d8f1af0",
+   "sha256": "677e47a2a671c788f84fec311171548bea61e710042864848b47e248eb5b9476",
    "tris": {
     "lod0": 122,
     "lod1": 40
@@ -2933,8 +2933,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 5920,
-   "sha256": "9347535dc75ee5322260a69ad06b0473d5a7e7409f27eed96220f5850e454e18",
+   "bytes": 5916,
+   "sha256": "961e68b6b7dde7198284102289c9ef4234e137bad15003d53c58fe6ea81dfef5",
    "tris": {
     "lod0": 120,
     "lod1": 60
@@ -2945,21 +2945,21 @@
    },
    "box": [
     [
-     -0.18653014302253723,
-     -0.04257383942604065,
-     -0.05713794007897377
+     -0.1865299791097641,
+     -0.04211825504899025,
+     -0.05615483596920967
     ],
     [
-     0.18521298468112946,
-     0.04350178688764572,
-     0.050829678773880005
+     0.18518461287021637,
+     0.0436769537627697,
+     0.05070916935801506
     ]
    ],
    "ao": true,
    "size_m": [
-    0.3717431277036667,
-    0.08607562631368637,
-    0.10796761885285378
+    0.37171459197998047,
+    0.08579520881175995,
+    0.10686400532722473
    ],
    "tex": 0
   },
@@ -2974,7 +2974,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 6716,
-   "sha256": "d501ff3e85da9dda74f3cfe7562b844c4089a815d8842f712201e753f8ce8e3c",
+   "sha256": "56859458e5c1e5ea37c746ee04c543a73aa1e643f3cf21b515302aaf582980a7",
    "tris": {
     "lod0": 126,
     "lod1": 42
@@ -2985,21 +2985,21 @@
    },
    "box": [
     [
-     -0.02881629765033722,
-     -0.03137011080980301,
+     -0.02880083955824375,
+     -0.03137485310435295,
      -0.07016894966363907
     ],
     [
-     0.025545617565512657,
-     0.027954507619142532,
-     0.17041493952274323
+     0.025545725598931313,
+     0.02794237993657589,
+     0.17041514813899994
     ]
    ],
    "ao": true,
    "size_m": [
-    0.054361915215849876,
-    0.05932461842894554,
-    0.2405838891863823
+    0.054346565157175064,
+    0.05931723304092884,
+    0.240584097802639
    ],
    "tex": 0
   },
@@ -3095,8 +3095,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 10100,
-   "sha256": "3909dd8a87dd36a2bc994358da13cdb856ab65418547e71a0b5fea76d51e7890",
+   "bytes": 10036,
+   "sha256": "2676cac9f99c021c7e5559c7f8b6852fb645e2d85a3dcdaa0290c99f2e2831ee",
    "tris": {
     "lod0": 136,
     "lod1": 44
@@ -3219,8 +3219,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 3492,
-   "sha256": "6eb1992202b4c6f699f3d707bbfa4efcc69974f01b9287ff8c22d4017657abb6",
+   "bytes": 3496,
+   "sha256": "4151571ef69ede2c1e80df67a37e4699ea8ac21754248ac653a95ad1d18fb6d8",
    "tris": {
     "lod0": 48,
     "lod1": 15
@@ -3231,21 +3231,21 @@
    },
    "box": [
     [
-     -0.01409020647406578,
+     -0.01409043837338686,
      -0.012362155131995678,
      -0.15051959455013275
     ],
     [
      0.052767738699913025,
      0.014461621642112732,
-     0.5504150390625
+     0.5504152178764343
     ]
    ],
    "ao": true,
    "size_m": [
-    0.0668579451739788,
+    0.06685817707329988,
     0.02682377677410841,
-    0.7009346336126328
+    0.7009348124265671
    ],
    "tex": 0
   },
@@ -3261,7 +3261,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 8076,
-   "sha256": "e600260c6be38bee7fd6ec3f9fddc13e549fbe2847aed829b1d7c2e7e6d67d6d",
+   "sha256": "4a81dd8f701c4beeebb82884f73bb427c6f3662d6a2362c10d576a07d2ca1ec0",
    "tris": {
     "lod0": 122,
     "lod1": 42
@@ -3275,20 +3275,20 @@
    "box": [
     [
      -0.00991065800189972,
-     -0.016463322564959526,
+     -0.01646365411579609,
      -0.10007380694150925
     ],
     [
      0.023775732144713402,
-     0.016463322564959526,
-     0.3600972592830658
+     0.016463320702314377,
+     0.36009731888771057
     ]
    ],
    "ao": true,
    "size_m": [
     0.03368639014661312,
-    0.03292664512991905,
-    0.46017106622457504
+    0.032926974818110466,
+    0.4601711258292198
    ],
    "tex": 0
   },
@@ -3343,8 +3343,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 6008,
-   "sha256": "d47c832446530bc1a844d14ff1575b7e8a98e101727d7cea154a7ffc6664e7d6",
+   "bytes": 6004,
+   "sha256": "50664f57654234447d968209b552d196c017f9a03653f965eaf58a01e2f1c893",
    "tris": {
     "lod0": 76,
     "lod1": 24
@@ -3388,7 +3388,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 11216,
-   "sha256": "8ddb75e7c001ae3ae04fea1c75e6fb51dbcd91c82ae18ee251b11541d7cbc178",
+   "sha256": "63f73e4fd391f12ea6e3303c95e4cb831d77937552c66be0ca0543e2c5c78206",
    "tris": {
     "lod0": 180,
     "lod1": 60
@@ -3403,21 +3403,21 @@
    },
    "box": [
     [
-     -0.11125441640615463,
+     -0.1112581118941307,
      -0.022170251235365868,
      -0.5500611662864685
     ],
     [
-     0.11199501156806946,
-     0.048734456300735474,
-     1.4807860851287842
+     0.11199494451284409,
+     0.048736389726400375,
+     1.4807862043380737
     ]
    ],
    "ao": true,
    "size_m": [
-    0.2232494279742241,
-    0.07090470753610134,
-    2.0308472514152527
+    0.2232530564069748,
+    0.07090664096176624,
+    2.0308473706245422
    ],
    "tex": 0
   },
@@ -3433,7 +3433,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 4864,
-   "sha256": "73d38e24f9d7abdac55a07e234dd3b5355e4e59f4570bd25d76c9dd6e74bb6d7",
+   "sha256": "760ca9f06314ded89780f783923eb50a752bf0ecd3de23c5edf411992296926e",
    "tris": {
     "lod0": 38,
     "lod1": 16
@@ -3452,14 +3452,14 @@
     ],
     [
      0.014999999664723873,
-     0.01065725740045309,
+     0.01065744273364544,
      1.159999966621399
     ]
    ],
    "ao": true,
    "size_m": [
     0.023898902349174023,
-    0.021118879318237305,
+    0.021119064651429653,
     1.4100879728794098
    ],
    "tex": 0
@@ -3475,7 +3475,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 3228,
-   "sha256": "0d3e143b82a6184d8948c6aa225fb74ca80f10ed3fea68066807b41822b6783d",
+   "sha256": "51611ceabd43f0ea7a946be923be1cbf595b436072a3ff16f6eec5c0a0588d7a",
    "tris": {
     "lod0": 44,
     "lod1": 14
@@ -3487,20 +3487,20 @@
    "box": [
     [
      -0.022999748587608337,
-     -0.014722425490617752,
+     -0.014722427353262901,
      -0.12032686173915863
     ],
     [
      0.027999740093946457,
      0.020588457584381104,
-     1.500326156616211
+     1.5003262758255005
     ]
    ],
    "ao": true,
    "size_m": [
     0.050999488681554794,
-    0.035310883074998856,
-    1.6206530183553696
+    0.035310884937644005,
+    1.6206531375646591
    ],
    "tex": 0
   },
@@ -3516,7 +3516,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 10848,
-   "sha256": "0cf44451f4a6b67f2ecd8a7cced38ee94339dfb653297e5bd12a98d1483ef401",
+   "sha256": "4cd668920f8af2dd5c5dabe83c5b493dd57d225044ab803a3f342246481d0c99",
    "tris": {
     "lod0": 196,
     "lod1": 63
@@ -3529,21 +3529,21 @@
    },
    "box": [
     [
-     -0.09582596272230148,
+     -0.0958036556839943,
      -0.08014305680990219,
      -0.10003217309713364
     ],
     [
-     0.09702350944280624,
+     0.09702372550964355,
      0.08014305680990219,
-     0.5604797601699829
+     0.5604779124259949
     ]
    ],
    "ao": true,
    "size_m": [
-    0.19284947216510773,
+    0.19282738119363785,
     0.16028611361980438,
-    0.6605119332671165
+    0.6605100855231285
    ],
    "tex": 0
   },
@@ -3558,7 +3558,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 11824,
-   "sha256": "0b507c9ea344b40b7f20b3f79ff4f9d8bbfbd8c6c41f5de3280ffb78c5159509",
+   "sha256": "d4d2f00fd51199be79a0f4ced943d71a512e6fea20b5ae23d8af5563c0870794",
    "tris": {
     "lod0": 300,
     "lod1": 120
@@ -3598,7 +3598,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 8560,
-   "sha256": "640928fdb1ca0c9ff86cc8aab42814663e1782175bfbad973dee9c059aa9dc8a",
+   "sha256": "06361f5bdfde489e0a4c90855518bda4b134479f5318da6258443d4a2b9d87be",
    "tris": {
     "lod0": 200,
     "lod1": 100
@@ -3609,20 +3609,20 @@
    },
    "box": [
     [
-     -0.014037714339792728,
+     -0.014037715271115303,
      -0.5545724630355835,
      -0.6302880048751831
     ],
     [
-     0.014037714339792728,
-     0.010636741295456886,
+     0.014037715271115303,
+     0.010636740364134312,
      4.602095603942871
     ]
    ],
    "ao": true,
    "size_m": [
-    0.028075428679585457,
-    0.5652092043310404,
+    0.028075430542230606,
+    0.5652092033997178,
     5.232383608818054
    ],
    "tex": 0
@@ -3640,7 +3640,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 7656,
-   "sha256": "53df91d2671a2cccb43cc6eaf29d3b4bee4c68efa64d7770e8944ec7edfaaa6d",
+   "sha256": "13c1e592de1eeedce7c654f8d50756616c124a5a60d59ebfd504506ac5ed90c8",
    "tris": {
     "lod0": 76,
     "lod1": 26
@@ -3728,7 +3728,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 9040,
-   "sha256": "1f6064260a9f78570e2ad6e2a187d0833fffeaccc22726ec7dda1cc178bfa8b8",
+   "sha256": "c4ad0e86622b8dca28e83b3d134f5fc8d395d7a0244c0a11afec21e1b56d1d19",
    "tris": {
     "lod0": 164,
     "lod1": 78
@@ -3943,7 +3943,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 9220,
-   "sha256": "a10eac62e78bad3a814f9e6555d4b40157e2c8d06fa0a65af68d6849f88de26d",
+   "sha256": "03e7bb112d3ec05dba1ae2cd1cb0ccce258c114e6a43d17a4b1fce7ab0ec04e5",
    "tris": {
     "lod0": 160,
     "lod1": 56
@@ -3956,21 +3956,21 @@
    },
    "box": [
     [
-     -0.020409200340509415,
-     -0.02270214632153511,
+     -0.020408637821674347,
+     -0.022010989487171173,
      -0.04011423885822296
     ],
     [
      0.022585712373256683,
-     0.02300996519625187,
-     0.27039849758148193
+     0.02264637127518654,
+     0.2704337239265442
     ]
    ],
    "ao": true,
    "size_m": [
-    0.0429949127137661,
-    0.04571211151778698,
-    0.3105127364397049
+    0.04299435019493103,
+    0.04465736076235771,
+    0.31054796278476715
    ],
    "tex": 0
   },
@@ -3985,35 +3985,35 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 10680,
-   "sha256": "8acb6fd14ee9b04937fb71467aaed53507cb4952bc51c3cd217ddba65e209343",
+   "bytes": 10672,
+   "sha256": "580f86bd22740189a1e7276ab8007040b1b11a47c7f4c16e29241af25791f306",
    "tris": {
     "lod0": 198,
-    "lod1": 65
+    "lod1": 64
    },
    "partTris": {
     "lod0__gold": 72,
     "lod0__hair": 126,
     "lod1__gold": 24,
-    "lod1__hair": 41
+    "lod1__hair": 40
    },
    "box": [
     [
-     -0.039103779941797256,
-     -0.0470392070710659,
+     -0.03909870982170105,
+     -0.047040171921253204,
      -0.07999999821186066
     ],
     [
-     0.04297945275902748,
-     0.027065325528383255,
-     0.6204304695129395
+     0.04297947511076927,
+     0.027065645903348923,
+     0.620430588722229
     ]
    ],
    "ao": true,
    "size_m": [
-    0.08208323270082474,
-    0.07410453259944916,
-    0.7004304677248001
+    0.08207818493247032,
+    0.07410581782460213,
+    0.7004305869340897
    ],
    "tex": 0
   },
@@ -4192,7 +4192,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 9232,
-   "sha256": "0d08826086e56f36ab18a96d6c7d1705ad4656dac0e282fe3a7b67d0783dda08",
+   "sha256": "7bfd99c2ccc8c04962ae8421d4f6df1dc87f2570b6a11e4668e48c367dc1d718",
    "tris": {
     "lod0": 180,
     "lod1": 60
@@ -4401,7 +4401,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 6396,
-   "sha256": "ebac2f1d9c60f6c5f3c460ee4b169cfc684af183ccd7f0fd0978f206bc5cedcb",
+   "sha256": "c302de3eddbb8cb9bbe10ce84a8396ee06957f8cc617e584331bb150def5c90a",
    "tris": {
     "lod0": 94,
     "lod1": 36
@@ -4612,7 +4612,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 28060,
-   "sha256": "005f66e95401b8a4dd654d755ca53f25e81c55c7eb96b80c40bac9ffbf4fe287",
+   "sha256": "c872e114867adba6a25a1397f633d21796d288dee38b2242ca6a1b677e0ea03c",
    "tris": {
     "lod0": 668,
     "lod1": 264
@@ -4924,7 +4924,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 105848,
-   "sha256": "62fee116323dd5b143b99cf0e1008fd765fd960ed8d390635b74b05fe0e36bee",
+   "sha256": "a415b788b2510ace6e51c06da843f5fb08af0685e7901ed4907f8389e04c579b",
    "tris": {
     "lod0": 2516,
     "lod1": 1230
@@ -4951,14 +4951,14 @@
     ],
     [
      0.600672721862793,
-     0.2340199053287506,
+     0.23402045667171478,
      2.035216808319092
     ]
    ],
    "ao": true,
    "size_m": [
     1.200672686100006,
-    0.2754325829446316,
+    0.27543313428759575,
     2.9704337120056152
    ],
    "tex": 0
@@ -5099,7 +5099,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 77288,
-   "sha256": "3c19b73d282a8d64a8721a73edf25f3ea3be4dbbcc92a4b686ce35116a42706e",
+   "sha256": "4c392873a7280fb89ad8b245121552ed4875dcfbe2d186fcc446032a7f3f1ab1",
    "tris": {
     "lod0": 2308,
     "lod1": 922
@@ -5347,8 +5347,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 60664,
-   "sha256": "b0e0b7090922dec216e047cc181b1d7713d11ea4c7ddccf2e5462c96a758c597",
+   "bytes": 60660,
+   "sha256": "f638a17e86c8d002b657d9fe2a550f6d53e9795aacb3de85deaf13885b2570d1",
    "tris": {
     "lod0": 1672,
     "lod1": 668
@@ -5369,14 +5369,14 @@
     ],
     [
      3.542114496231079,
-     1.4841969013214111,
+     1.4841973781585693,
      3.5397913455963135
     ]
    ],
    "ao": true,
    "size_m": [
     7.133535385131836,
-    1.4895209595561028,
+    1.489521436393261,
     7.066464424133301
    ],
    "tex": 0
@@ -5393,11 +5393,11 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 88820,
-   "sha256": "1af6f48008e1821e186e2d09dadc26874b8d0cbb4ff5b83b7b9baa22a412931f",
+   "bytes": 88644,
+   "sha256": "45530a5ffcc627a6a2e3351fae3f16c698b7470eec9cb1a8ee20bed3560bb93a",
    "tris": {
     "lod0": 2398,
-    "lod1": 907
+    "lod1": 899
    },
    "partTris": {
     "lod0__straw": 899,
@@ -5405,7 +5405,7 @@
     "lod0__straw_d": 599,
     "lod1__straw": 299,
     "lod1__ears": 299,
-    "lod1__straw_d": 309
+    "lod1__straw_d": 301
    },
    "box": [
     [
@@ -5440,7 +5440,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 48064,
-   "sha256": "553c7ddad9c579a3c7a7d3c0cfb1e54e69555dcb7c53eecaa4de28f0ec2026aa",
+   "sha256": "9acaf014c519dc4747045b73aebd3f0803ca5446d658182974b2a2035d048238",
    "tris": {
     "lod0": 1280,
     "lod1": 509
@@ -5486,7 +5486,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 15816,
-   "sha256": "a76edb4067c8efbca0354815cea913dbe7242db9a090721f289edc8e6c1c73cf",
+   "sha256": "6aec8206fad2dd65f25d28df2e1a95d15159ff87f4803a9f0d5712e90f904c6e",
    "tris": {
     "lod0": 320,
     "lod1": 126
@@ -5655,8 +5655,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 68452,
-   "sha256": "efa07bd88738fcb4acab15385532dcf97e759bb560845ffd670d548301a16d33",
+   "bytes": 68448,
+   "sha256": "69e29bd1cc09580eb340c4edadb292ae0dbd8714dbbe6c3c4eddc54d53b50848",
    "tris": {
     "lod0": 2088,
     "lod1": 834
@@ -5668,19 +5668,19 @@
    "box": [
     [
      -0.38589754700660706,
-     0.02232253924012184,
-     -0.36458107829093933
+     0.022321438416838646,
+     -0.3645811080932617
     ],
     [
      0.37458762526512146,
-     0.13403631746768951,
-     0.3645297884941101
+     0.13403628766536713,
+     0.3645297586917877
     ]
    ],
    "ao": true,
    "size_m": [
     0.7604851722717285,
-    0.11171377822756767,
+    0.11171484924852848,
     0.7291108667850494
    ],
    "tex": 0
@@ -5752,8 +5752,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 77508,
-   "sha256": "b27963f21ac0d0a9cf989dee31fe766c5e534e1e9419b77d3adb5cd577ad8a54",
+   "bytes": 77504,
+   "sha256": "f5a53aa0b0dcee37a96726f3a5552b77fb5e8584c36615e3d6a46ae09578085b",
    "tris": {
     "lod0": 2356,
     "lod1": 860
@@ -5768,21 +5768,21 @@
    },
    "box": [
     [
-     -0.343647837638855,
+     -0.3436477780342102,
      1.350000023841858,
      -1.3190083503723145
     ],
     [
-     0.34526798129081726,
+     0.3452679514884949,
      1.5342650413513184,
-     1.318850040435791
+     1.3188502788543701
     ]
    ],
    "ao": true,
    "size_m": [
-    0.6889158189296722,
+    0.6889157295227051,
     0.18426501750946045,
-    2.6378583908081055
+    2.6378586292266846
    ],
    "tex": 0
   },
@@ -5843,7 +5843,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 71556,
-   "sha256": "4d4268586c8c00d88152257ad7a5f1cf4f8df2958c93f52549009ff1da2ca987",
+   "sha256": "43f246ecc2a6a76934a7041ad39d1f29d3570ba5ef9b16ecffd6f5e86705cb74",
    "tris": {
     "lod0": 2056,
     "lod1": 840
@@ -5861,19 +5861,19 @@
    "box": [
     [
      -1.0233495235443115,
-     0.020337268710136414,
+     0.020337270572781563,
      -0.07076204568147659
     ],
     [
-     1.0226423740386963,
+     1.0226422548294067,
      1.6237983703613281,
      0.07076204568147659
     ]
    ],
    "ao": true,
    "size_m": [
-    2.045991897583008,
-    1.6034611016511917,
+    2.0459917783737183,
+    1.6034610997885466,
     0.14152409136295319
    ],
    "tex": 0
@@ -5892,8 +5892,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 61248,
-   "sha256": "e86b461e0d156441e22ed308a53b99165d4330bc9c14b1ee2bdfbefca62bc7a5",
+   "bytes": 61252,
+   "sha256": "8e067efd083203d6fb155b27a09ad3ce7a24c28b6ca410af1c747649f8f2c0ad",
    "tris": {
     "lod0": 1668,
     "lod1": 664
@@ -5913,20 +5913,20 @@
    "box": [
     [
      -0.43299999833106995,
-     0.013585252687335014,
+     0.013585258275270462,
      -0.13300000131130219
     ],
     [
      0.4329315721988678,
      1.6330000162124634,
-     0.1553557962179184
+     0.16209730505943298
     ]
    ],
    "ao": true,
    "size_m": [
     0.8659315705299377,
-    1.6194147635251284,
-    0.2883557975292206
+    1.619414757937193,
+    0.29509730637073517
    ],
    "tex": 0
   },
@@ -5943,8 +5943,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 83104,
-   "sha256": "d6e3b0a8cf1578b6a4b902eaca6fe076805042ea41cf88d6102e11cb10c1c16f",
+   "bytes": 83108,
+   "sha256": "43633bbeee514fdd62d0059c564fbf52a5569c6ccb1326afe389ac7f992ffd26",
    "tris": {
     "lod0": 2432,
     "lod1": 972
@@ -5993,7 +5993,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 43228,
-   "sha256": "9e8b71721b885be3f6e3af245beb1bb3fd14dc4426993af733f26114a813551f",
+   "sha256": "ce9c40d5dcbbd383dff7b13e2308b36cac492112a728782d3781fa3b221f1b61",
    "tris": {
     "lod0": 1144,
     "lod1": 454
@@ -6016,15 +6016,15 @@
     ],
     [
      0.7623329162597656,
-     1.1627520322799683,
-     4.10061502456665
+     1.1627519130706787,
+     4.100614547729492
     ]
    ],
    "ao": true,
    "size_m": [
     1.5246658325195312,
-    1.2341102287173271,
-    3.639588713645935
+    1.2341101095080376,
+    3.639588236808777
    ],
    "tex": 0
   },
@@ -6039,8 +6039,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 111464,
-   "sha256": "2f570c7df8614b21386ea5b491b3d525dd63f411bddb5fe14a8953dda4558003",
+   "bytes": 111460,
+   "sha256": "afe84b3f405f12354606b3c61fb999c5623eaff3d9006448b39ab69ba4a793cc",
    "tris": {
     "lod0": 2848,
     "lod1": 1136
@@ -6060,14 +6060,14 @@
     [
      0.925000011920929,
      1.1800446510314941,
-     3.5263288021087646
+     3.526326894760132
     ]
    ],
    "ao": true,
    "size_m": [
     1.850000023841858,
     1.1800446510314941,
-    4.631328821182251
+    4.631326913833618
    ],
    "tex": 0
   },
@@ -6084,8 +6084,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 167988,
-   "sha256": "91ec6d9c038dd0a29ed7076372bcde59014e4c3c26ef7ae02684ddcdb604b37f",
+   "bytes": 167984,
+   "sha256": "db0d5f7e4c1476d26b8a0b7da013cfe8c3ece0927649250687a6a336254a0bcc",
    "tris": {
     "lod0": 4528,
     "lod1": 1808
@@ -6109,14 +6109,14 @@
     [
      0.925000011920929,
      1.1800446510314941,
-     3.5263288021087646
+     3.526326894760132
     ]
    ],
    "ao": true,
    "size_m": [
     1.850000023841858,
     1.1800446510314941,
-    8.56531023979187
+    8.565308332443237
    ],
    "tex": 0
   },
@@ -6134,7 +6134,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 88676,
-   "sha256": "acbfb5a412ad0bf9af2bbb015b0a2fd4d7338db1248d74cae1a6114a441509ba",
+   "sha256": "165e580ad449b0b44dc888cc6690b7a7cd83f21803f693eb44605fd14057c49e",
    "tris": {
     "lod0": 2532,
     "lod1": 1011
@@ -6157,15 +6157,15 @@
     ],
     [
      0.8600000143051147,
-     1.3173198699951172,
-     2.944364309310913
+     1.3174275159835815,
+     2.944364547729492
     ]
    ],
    "ao": true,
    "size_m": [
     1.7200000286102295,
-    1.3115685880184174,
-    3.4384962618350983
+    1.3116762340068817,
+    3.4384965002536774
    ],
    "tex": 0
   },
@@ -6183,7 +6183,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 234688,
-   "sha256": "61a1d108396aea4027cea748eecfc52832715d69fef1a6d3d30cd68807b4776c",
+   "sha256": "804c1f830d7c5cf057e30185ce48e0091a45b4c9339d49542c7f5eacd8507db3",
    "tris": {
     "lod0": 6116,
     "lod1": 2443
@@ -6207,14 +6207,14 @@
     [
      0.925000011920929,
      1.8471190929412842,
-     3.9596917629241943
+     3.9596915245056152
     ]
    ],
    "ao": true,
    "size_m": [
     1.850000023841858,
     1.8471190929412842,
-    5.323391675949097
+    5.323391437530518
    ],
    "tex": 0
   },
@@ -6233,7 +6233,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 195772,
-   "sha256": "75f3e965733f7b9995148329c6e4fdfac07c734d5c62897339f5523d2f525d4e",
+   "sha256": "70c198d2104e0836d098fd40d66a5c76312c048af2c0f03783a12f8743691fa3",
    "tris": {
     "lod0": 5304,
     "lod1": 2018
@@ -6253,20 +6253,20 @@
    "box": [
     [
      -9.042000770568848,
-     -0.0016666195588186383,
-     -9.104809761047363
+     -0.0018740254454314709,
+     -9.101719856262207
     ],
     [
-     9.039718627929688,
+     9.041279792785645,
      1.7200000286102295,
-     9.102551460266113
+     9.09993839263916
     ]
    ],
    "ao": true,
    "size_m": [
-    18.081719398498535,
-    1.7216666481690481,
-    18.207361221313477
+    18.083280563354492,
+    1.721874054055661,
+    18.201658248901367
    ],
    "tex": 0
   },
@@ -6323,7 +6323,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 56152,
-   "sha256": "8fd599d363205ac982bc633323dd9526ddffa7de9272d7c4c004fade6cb05434",
+   "sha256": "a6f7e46a9e289cfc719d9ecfa0b0153f3c57f484f30ab37032e908d0da1ea961",
    "tris": {
     "lod0": 1622,
     "lod1": 648
@@ -6369,8 +6369,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 75160,
-   "sha256": "68f33c9ced5ed7e3113879053c7e7d532ebe6ec971ef07c1866b555cd9989a91",
+   "bytes": 75132,
+   "sha256": "c4d906b2747a8d06e5577c31cbc6e038ac3a9f1139e406f3ef47602edb8bdd29",
    "tris": {
     "lod0": 2196,
     "lod1": 876
@@ -6393,14 +6393,14 @@
     ],
     [
      0.28001588582992554,
-     0.067916139960289,
+     0.07999999821186066,
      0.21003933250904083
     ]
    ],
    "ao": true,
    "size_m": [
     0.5600317716598511,
-    0.0683724288828671,
+    0.08045628713443875,
     0.42007866501808167
    ],
    "tex": 0
@@ -6461,7 +6461,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 32672,
-   "sha256": "679634c0dc749615af6f53fdc11b7115ecf886749b7b9701ffc3c2afb132ab6b",
+   "sha256": "1fce7176400268563eb3f0c834b54761f7c59fed2f9bb3c2aff4cc1508040d20",
    "tris": {
     "lod0": 740,
     "lod1": 294
@@ -6476,7 +6476,7 @@
    },
    "box": [
     [
-     -0.1770285815000534,
+     -0.18667234480381012,
      0,
      -0.4450381100177765
     ],
@@ -6488,7 +6488,7 @@
    ],
    "ao": true,
    "size_m": [
-    0.5255755335092545,
+    0.5352192968130112,
     0.6200000047683716,
     0.7058923542499542
    ],
@@ -6599,8 +6599,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 42652,
-   "sha256": "8911a74acb352059d05b93ebb6af08bca785cb835db3bbb9640a39aca496cb0b",
+   "bytes": 42656,
+   "sha256": "0166bceeb822fdf387510dc847e9a8ee34586fe6b4fc6ef676c3a552e246e8af",
    "tris": {
     "lod0": 1144,
     "lod1": 456
@@ -6617,21 +6617,21 @@
    },
    "box": [
     [
-     -0.12739337980747223,
+     -0.13943903148174286,
      0,
      -0.32499998807907104
     ],
     [
      0.5399999618530273,
      0.30000001192092896,
-     0.1278296411037445
+     0.14011026918888092
     ]
    ],
    "ao": true,
    "size_m": [
-    0.6673933416604996,
+    0.6794389933347702,
     0.30000001192092896,
-    0.45282962918281555
+    0.46511025726795197
    ],
    "tex": 0
   },
@@ -6650,7 +6650,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 71460,
-   "sha256": "a984a99f00438c19850934501fe2a983ce0ccaedbe4da8b72322c4b1b33d6ad4",
+   "sha256": "ecc95445c510ac31d05459a7356c51ec8caaf122c79b10ce4b497252d1745cb8",
    "tris": {
     "lod0": 1836,
     "lod1": 730
@@ -6752,8 +6752,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 72812,
-   "sha256": "000f903c8baf58edfd8ef8f314b2bd4a2097f078225f1dcaeb1a75465f3da45c",
+   "bytes": 72808,
+   "sha256": "e1296890fc47d03ac3b4d6d0f9106eb69a173f255a964ed89ea2130a6279d209",
    "tris": {
     "lod0": 2100,
     "lod1": 842
@@ -6776,14 +6776,14 @@
     ],
     [
      0.75,
-     0.8895437717437744,
+     0.889482855796814,
      1.8499999046325684
     ]
    ],
    "ao": true,
    "size_m": [
     1.5,
-    0.8895437717437744,
+    0.889482855796814,
     1.8999999165534973
    ],
    "tex": 0
@@ -6852,8 +6852,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 83236,
-   "sha256": "cdda3d7d9e7b26a0955b942d1dc8a0f00ee58c9a8cb9b821114e88a7ff23d45e",
+   "bytes": 83240,
+   "sha256": "a1da03a9bafa6aa31986acf6f9c02ae9cee4c8f7659c6100205bfbb9e3f811df",
    "tris": {
     "lod0": 2224,
     "lod1": 798
@@ -6995,7 +6995,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 39156,
-   "sha256": "871f98d14219ba932886b170704a15469228ca435f744d39fb66076fddbe06a4",
+   "sha256": "a7c5b505ce6418f2618bc40b660b7654e99980040b538a583942ea3c768393c4",
    "tris": {
     "lod0": 1020,
     "lod1": 402
@@ -7130,8 +7130,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 40092,
-   "sha256": "6da7bee302f521f650021626d5bf19725bc500cda819f6f9c542230c6d1cc7a6",
+   "bytes": 40088,
+   "sha256": "199ef593fd06721687096a0c49b053132dde1b3c70f907839e9cb556765d5bc5",
    "tris": {
     "lod0": 1116,
     "lod1": 430
@@ -7145,8 +7145,8 @@
    "box": [
     [
      -0.28600001335144043,
-     -0.006521797273308039,
-     -0.5298954844474792
+     -0.00899535696953535,
+     -0.5601979494094849
     ],
     [
      0.28588470816612244,
@@ -7157,8 +7157,8 @@
    "ao": true,
    "size_m": [
     0.5718847215175629,
-    0.572521782014519,
-    1.2805349826812744
+    0.5749953417107463,
+    1.31083744764328
    ],
    "tex": 0
   },
@@ -7174,11 +7174,11 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 17900,
-   "sha256": "2ebbaced3329eadf03606ade6bcbe4faff0471ae885b549e226f264b331c0198",
+   "bytes": 18332,
+   "sha256": "582bb5ad2ddd6e023cf0ca7676cbcbb6ea84c725d5180d8c5f87edd85bb7b6e5",
    "tris": {
     "lod0": 346,
-    "lod1": 178
+    "lod1": 212
    },
    "partTris": {
     "lod0__wood": 32,
@@ -7186,7 +7186,7 @@
     "lod0__hair": 300,
     "lod1__wood": 12,
     "lod1__cord": 8,
-    "lod1__hair": 158
+    "lod1__hair": 192
    },
    "box": [
     [
@@ -7345,7 +7345,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 29136,
-   "sha256": "e24237e83c4c912df7e49a66ae77d82c9d1a72a6ec41910bdd2b14ebd8a1036b",
+   "sha256": "c6e89f4bd6b4a0b06ad605a96b94f75d0c45a147719ddd80a75837ed85ad83dd",
    "tris": {
     "lod0": 908,
     "lod1": 314
@@ -7358,19 +7358,19 @@
     [
      -0.036128293722867966,
      0,
-     -0.05925238877534866
+     -0.057999998331069946
     ],
     [
      0.29485976696014404,
-     0.12731550633907318,
-     0.05925238877534866
+     0.12401511520147324,
+     0.057999998331069946
     ]
    ],
    "ao": true,
    "size_m": [
     0.330988060683012,
-    0.12731550633907318,
-    0.11850477755069733
+    0.12401511520147324,
+    0.11599999666213989
    ],
    "tex": 0
   },
@@ -7471,7 +7471,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 9648,
-   "sha256": "ed6d1ab59905ddb4ced42c2147f7da4d38c8a195383dcb80b7b48767d53c458a",
+   "sha256": "a7f1b19a76326912e0b9d46d9dc960cf234f381f4d6a227ba5fa0f66e5ea75b9",
    "tris": {
     "lod0": 260,
     "lod1": 90
@@ -7634,8 +7634,8 @@
    "licence": "CC0 1.0",
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
-   "bytes": 53564,
-   "sha256": "79d828e596e006535d872b73d28d67f2e9bde8ec5049562493884972b5352c02",
+   "bytes": 53436,
+   "sha256": "9b17466a4525e0c9a10c9e63d696f864c62d118ba106d5dbeb4d45b31d390447",
    "tris": {
     "lod0": 1680,
     "lod1": 568
@@ -7679,7 +7679,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 28680,
-   "sha256": "8c584a103cb789d3c6b28feb22c8c29a4fc4da10ef402cb2b5e53ae23e773bd7",
+   "sha256": "a823d586d2db65ea9b57d66e4e9442f5d775494304e72a8ddb34da88c4139b8b",
    "tris": {
     "lod0": 788,
     "lod1": 268
@@ -8019,7 +8019,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 9200,
-   "sha256": "0b4d724e9451715293269701eeaad9020e3b9950c363cf143b9f7e40ee219d11",
+   "sha256": "99d6435bf8076b15d1ae13e433d05e381ece4de1f77406a243818e1ace8752b9",
    "tris": {
     "lod0": 184,
     "lod1": 62
@@ -8151,7 +8151,7 @@
    "author": "the project: a script-built model, no third-party source",
    "source": "tools/blender/model_props.py (D-325)",
    "bytes": 9224,
-   "sha256": "cfa6ef087ffd4d3edf841ba4358af161c022f2bd545c7de3ecbc6a991da818af",
+   "sha256": "efd6fadc8d58947f1f248efea9fece9ea7042fb6c2457cf1b019752a86664ab6",
    "tris": {
     "lod0": 164,
     "lod1": 58
@@ -8169,14 +8169,14 @@
      -0.012000000104308128
     ],
     [
-     0.0786953940987587,
+     0.0786953866481781,
      0.008579365909099579,
      0.3342224955558777
     ]
    ],
    "ao": true,
    "size_m": [
-    0.1566164568066597,
+    0.1566164493560791,
     0.017158731818199158,
     0.3462224956601858
    ],

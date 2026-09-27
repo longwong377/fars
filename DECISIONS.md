@@ -7618,7 +7618,15 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Budgets measured:** palace furnishings 259 k triangles stored (the default), 656 k laid out for the court (were 47 k);
   the Treasury's goods fewer than before (lod1: 56.6 k vs 71.4 k on two test benches); the carried unions above; the work
   objects 0.3-7.6 k per kind (one instanced draw each); the town's near fittings 0.25-2.5 k each (far level unchanged).
-- **Not done (honest):** the houses' court and roof fixtures (ladder, tether, firewood, line, mortar, cradle, roller, roof
-  fuel and mats, fleece), the living rooms' mats, bedding, rugs and ledge lamps (houses.ts: the house agents' file);
-  the instruments' bodies and the carried children (props.ts); the precinct's fire altar (settlement/precinct.ts boxes);
-  crates (no builder draws one); the tablet (writing.ts). No world render; forms judged on contact sheets only.
+- **Later the same session (parts 5-7):** the instruments' bodies (harps, lyre, frame drum, pipes; strings and holes the
+  builder's); the houses' ledge lamps, rolled bedding, stone mortar, roof roller and rolled roof mats (houses.ts, small
+  edits); the precinct's fire altar (a model with the altar's steps and the fire's hollow, drawn in place of its step boxes:
+  plan.ts Prop.model / inModel, the colliders kept); the village storage bins (villagehouses.ts binGeom); the grinders'
+  querns, the guards' mats and the bakers' kneading trough (crowd.ts); and the carried props and work objects under the
+  CC0 scans of what they are made of (materials.ts propScanNodes over a per-vertex kind 'ak': wood, metal, textile, clay,
+  wicker, stone; the parts' names give it, else a guess from colour and metalness). 172 models, 6.7 MB.
+  A probe page renders every class before/after in the game's renderer without the world (tools/blender/probe/props_probe.*,
+  shots in T:/fars-assets-s12/props/probe*): no WebGPU validation error.
+- **Not done (honest):** the houses' tether, firewood, laundry line, cradle, roof fuel and fleece, the living rooms' mats and
+  folded rugs (houses.ts; its ladders and benches are D-324's), the carried children (people, not props), crates (no
+  builder draws one), the tablet (writing.ts). No world render (the lead's batch).

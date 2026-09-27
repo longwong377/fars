@@ -127,12 +127,17 @@ def sweep(points, radius, seg=8, name='sweep', caps=True, scale=None, smooth=Tru
     sy) flattens the section (a blade, a limb); `up` the section's reference direction"""
     pts = [Vector(p) for p in points]; n = len(pts)
     rad = (lambda t: radius) if isinstance(radius, (int, float)) else (lambda t, r=radius: r[min(len(r) - 1, int(round(t * (len(r) - 1))))]) if isinstance(radius, (list, tuple)) else radius
-    bm = bmesh.new(); rings = []; U = Vector(up)
+    bm = bmesh.new(); rings = []; U = Vector(up); xp = None
     for i, p in enumerate(pts):
         d = (pts[min(i + 1, n - 1)] - pts[max(i - 1, 0)]).normalized()
-        x = U.cross(d);
-        if x.length < 1e-6: x = Vector((1, 0, 0)).cross(d)
-        x.normalize(); y = d.cross(x).normalized(); t = i / max(1, n - 1); r = rad(t)
+        if xp is None:  # the first section's frame from `up`; then carried along the path (parallel transport: no twist
+            # where the path runs nearly along `up`, which flipped the sections of straight vertical rods)
+            x = U.cross(d)
+            if x.length < 1e-3: x = (Vector((1, 0, 0)) if abs(d.x) < 0.9 else Vector((0, 1, 0))).cross(d)
+        else:
+            x = xp - d * xp.dot(d)
+            if x.length < 1e-6: x = xp.copy()
+        x.normalize(); xp = x.copy(); y = d.cross(x).normalized(); t = i / max(1, n - 1); r = rad(t)
         sx, sy = (scale if scale else (1, 1)); ring = []
         for k in range(seg):
             a = TAU * k / seg + twist * t

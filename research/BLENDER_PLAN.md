@@ -175,7 +175,7 @@ batched full-world render (tests/e2e/blender_hero.spec.ts is the pattern: A/B in
 
 ## 9. Session 12 (D-325): rows 9-12 and 14 done world-wide
 
-- **Modelled props:** 162 script-built models (tools/blender/model_props.py, lib/mp_lib.py; tools/blender/model_props.mjs)
+- **Modelled props:** 172 script-built models (tools/blender/model_props.py, lib/mp_lib.py; tools/blender/model_props.mjs)
   in public/models/props/m_*.glb (6.9 MB, plain GLBs parsed by src/render/scanProps.ts parseModelGLB in browser and node):
   row 9 (palace furnishings, every kind; the carpets' pile normal map, tools/blender/carpet_pile.py), row 10 (the Treasury's
   goods, the rooms' fittings, the period jar forms, sacks, vats, bowls, pots, sherds), row 11 (the doors' leaves, bands,
