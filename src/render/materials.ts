@@ -18,7 +18,7 @@ import { MASONRY, courseTexels } from './masonry';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
-import { applyScan } from './scans';
+import { applyScan, scanOf } from './scans';
 import { incisionNodes } from './incision';
 import type { Atlas } from '../arch/carving';
 import { roofedNode } from './probes/roofs';
@@ -1026,19 +1026,21 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   const m = new SurfaceNodeMaterial(); // vertex colours are read explicitly below; the vertexColors flag would multiply them in a second time
   const n = normalWorld;
   const base = opts.vertexColors ? attribute('color', 'vec3') : lin(d.albedo);
-  let L = layer(d, base, !!opts.arch);
+  let L = layer(d, base, !!opts.arch), scanned = false;
   if (d.top && SURFACES[d.top]) { // up-facing faces use another surface (sharp transition at the arris)
     const T = layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch); const t = smoothstep(0.7, 0.9, n.y);
     L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
   }
   if (d.under && SURFACES[d.under]) { // down-facing faces use another surface (the ceiling's matting, D-188)
-    const U = layer(SURFACES[d.under], lin(SURFACES[d.under].albedo), !!opts.arch); const t = smoothstep(0.7, 0.9, n.y.negate());
+    // (D-301: the underside takes its own surface's scan, the reed matting's weave, and the main scan is laid on the rest only)
+    const U = applyScan(d.under, layer(SURFACES[d.under], lin(SURFACES[d.under].albedo), !!opts.arch)); const t = smoothstep(0.7, 0.9, n.y.negate());
+    L = applyScan(name, L); scanned = true;
     L = { alb: mix(L.alb, U.alb, t), rough: mix(L.rough, U.rough, t), height: L.height && U.height ? mix(L.height, U.height, t) : (L.height ?? U.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
   }
-  L = applyScan(name, L); // scanned grain over the procedural surface (session 11; identity in node)
+  if (!scanned) L = applyScan(name, L); // scanned grain over the procedural surface (session 11; identity in node)
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
-  m.userData = { tier: d.tier, note: d.note };
+  m.userData = { tier: d.tier, note: d.note, surface: name, scan: scanOf(name) }; // (surface, scan: the T-A7 probe, D-301)
   if (!opts.modify) receiveReliefShadow(m); // the architecture's surfaces carry the reliefs' cast shadows (D-226); the plain's layers do not
   cache.set(key, m);
   return m;
@@ -1201,6 +1203,38 @@ export function paintedShaftMaterial(P: ShaftPaint): THREE.MeshStandardNodeMater
     const tone = L.alb.div(vec3(...plasterLin)).clamp(0.6, 1.4);
     return { alb: paint.mul(tone), rough: L.rough.mul(0.9), height: L.height, tilt: L.tilt };
   } });
-  m.userData = { tier: 'C', note: `the Treasury shafts' paint (D-214, Q-020): painted 'in bright colours' (B); the scheme after the Persepolis and Pasargadae painted plaster (Stein et al. 2016, B) and the red floors: a ground, a lattice of lozenges in the line colour (${P.around} per turn, ${P.lozenge_h} m tall), bands at the foot and the head (all C; treasury.r_shaft_paint)` };
+  m.userData = { surface: 'plaster', scan: scanOf('plaster'), tier: 'C', note: `the Treasury shafts' paint (D-214, Q-020): painted 'in bright colours' (B); the scheme after the Persepolis and Pasargadae painted plaster (Stein et al. 2016, B) and the red floors: a ground, a lattice of lozenges in the line colour (${P.around} per turn, ${P.lozenge_h} m tall), bands at the foot and the head (all C; treasury.r_shaft_paint)` };
   return m;
+}
+
+/** D-301: a furnishing's material (the rooms' mats, bedding, jars, querns, lamps, the Treasury's goods, the fires' hearth
+ *  rings): its written colour and roughness (one, or per vertex: `color` and the merged meshes' `aRough`) under the CC0 scan of
+ *  what it is made of (scans.ts SCAN_USE[`prop_<kind>`]: reed, wicker, felt, textile, clay, stone, leather, metal, wood, mud):
+ *  the scan's grain divides by its own mean, so the colour stays the one written; its luminance bumps the surface. Identity
+ *  in node (no scan loaded): the plain coloured material it replaces */
+const propCache = new Map<string, THREE.MeshStandardNodeMaterial>();
+export function propMaterial(kind: string, o: { color?: [number, number, number]; rough?: number; metal?: number; vertexColors?: boolean; roughAttr?: boolean } = {}): THREE.MeshStandardNodeMaterial {
+  const key = `${kind}|${o.color?.join(',') ?? 'vc'}|${o.rough ?? ''}|${o.metal ?? 0}|${o.roughAttr ? 'ra' : ''}`, hit = propCache.get(key); if (hit) return hit;
+  const m = new THREE.MeshStandardNodeMaterial(), name = `prop_${kind}`;
+  const alb = o.vertexColors || !o.color ? attribute('color', 'vec3') : lin(o.color), rough = o.roughAttr ? attribute('aRough', 'float') : float(o.rough ?? 0.8);
+  const L = applyScan(name, { alb, rough, height: null } as Layer);
+  m.colorNode = L.alb; m.roughnessNode = L.rough; m.metalnessNode = float(o.metal ?? 0);
+  if (L.height) m.normalNode = bumped(L.height);
+  m.userData = { surface: name, scan: scanOf(name), tier: 'C', note: `furnishing of ${kind} (colour written; grain: the CC0 scan, D-301)` };
+  propCache.set(key, m); return m;
+}
+/** D-301: several furnishings merged into one draw, each keeping its own material's scan: the vertices carry the kind's index
+ *  in `kinds` (attribute aKind), colour (color) and roughness (aRough); each kind's scan is laid over the written colour and the
+ *  results blended by the index (one kind per vertex; 2 sampled textures per kind) */
+export function propMaterialMulti(kinds: string[]): THREE.MeshStandardNodeMaterial {
+  const key = `multi:${kinds.join(',')}`, hit = propCache.get(key); if (hit) return hit;
+  if (kinds.length === 1) { const m1 = propMaterial(kinds[0], { vertexColors: true, roughAttr: true }); propCache.set(key, m1); return m1; }
+  const m = new THREE.MeshStandardNodeMaterial(), k = attribute('aKind', 'float'), base = attribute('color', 'vec3'), r0 = attribute('aRough', 'float');
+  let alb: any = vec3(0), rough: any = float(0), h: any = float(0), anyH = false;
+  kinds.forEach((kind, i) => { const w = float(1).sub(step(0.5, abs(k.sub(i)))), L = applyScan(`prop_${kind}`, { alb: base, rough: r0, height: null } as Layer);
+    alb = alb.add(L.alb.mul(w)); rough = rough.add(L.rough.mul(w)); if (L.height) { h = h.add(L.height.mul(w)); anyH = true; } });
+  m.colorNode = alb; m.roughnessNode = rough; m.metalnessNode = float(0); if (anyH) m.normalNode = bumped(h);
+  const scans = kinds.map(q => scanOf(`prop_${q}`));
+  m.userData = { surface: `prop_${kinds.join('+')}`, scan: scans.every(Boolean) ? scans.join('+') : null, tier: 'C', note: `furnishings of ${kinds.join(', ')} merged into one draw (grain: the CC0 scans, D-301)` };
+  propCache.set(key, m); return m;
 }

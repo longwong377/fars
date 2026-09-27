@@ -30,7 +30,8 @@ export interface CovCtx {
   /** unit vector toward the sun (world frame), for excluding the sun's disc from clipped pixels (T-A3c) */
   sunDir?: () => THREE.Vector3;
 }
-export interface CovEntry { id: number; key: string; top: string; label: string; ph: boolean; tier: string | null; sourced?: boolean; tris: number; area: number; density: number; geo: string; mat: string; instances: number }
+export interface CovEntry { id: number; key: string; top: string; label: string; ph: boolean; tier: string | null; sourced?: boolean; tris: number; area: number; density: number; geo: string; mat: string; instances: number;
+  /** the scan on the mesh's (first) material (material.userData.scan: scans.ts scanOf; D-301): a scan id, null when the surface has none (a procedural stand-in), undefined for a material that does not say (T-A7) */ scan?: string | null; surface?: string }
 export const FLAG_W = 512, FLAG_H = 288; // 16:9; W × 4 bytes is a multiple of 256 (WebGPU readback rows)
 const D0 = 0.1, D1 = 20000, LN = Math.log(D1 / D0);
 export const decodeDist = (b: number) => D0 * Math.exp((b / 255) * LN);
@@ -152,7 +153,7 @@ export class CoveragePass {
       else if (r.desc && m.isInstancedMesh) { try { const d = r.desc({ instanceId: 0, object: m }); if (d && typeof d.placeholder === 'boolean') ph = d.placeholder; } catch { /* keep */ } }
       const g = this.geo(m.geometry), inst = m.isInstancedMesh ? m.count : m.isBatchedMesh ? (m.instanceCount ?? 1) : (m.geometry as any).isInstancedBufferGeometry ? ((m.geometry as any).instanceCount ?? 1) : 1;
       const sc = new THREE.Vector3(); ob.matrixWorld.decompose(new THREE.Vector3(), new THREE.Quaternion(), sc); const s2 = Math.abs(sc.x * sc.z) || 1;
-      const base = { key: r.key, top: r.top, label: r.label, tier: r.tier, sourced: r.sourced, tris: g.tris, area: g.area * s2, density: g.area > 0 ? g.tris / (g.area * s2) : 0, geo: m.geometry.uuid, mat: mats[0]?.uuid ?? '', instances: inst };
+      const base = { key: r.key, top: r.top, label: r.label, tier: r.tier, sourced: r.sourced, tris: g.tris, area: g.area * s2, density: g.area > 0 ? g.tris / (g.area * s2) : 0, geo: m.geometry.uuid, mat: mats[0]?.uuid ?? '', instances: inst, scan: mats[0]?.userData?.scan, surface: mats[0]?.userData?.surface };
       const id = this.entries.length; this.entries.push({ id, ...base, ph: ph === true });
       if (ph === 'mixed') this.entries.push({ id: id + 1, ...base, key: r.key + ' [PLACEHOLDER faces]', ph: true });
       this.idOf.set(ob, id);
@@ -274,10 +275,13 @@ export function idShares(ids: Uint16Array, E: CovEntry[], elev: Float32Array, W:
     if (id === 0) { sky++; if (elev[k] < SKY_HOLE_DEG) hole++; continue; }
     if (E[id].ph) ph++; if (!E[id].tier) untiered++; if (E[id].ph || !E[id].tier) phU++; }
   const objects = E.map((e, i) => ({ e, px: count[i] })).filter(q => q.px > 0 && q.e.id > 0).sort((a, b) => b.px - a.px);
+  // T-A7 (D-301): the share of the drawn (non-sky) pixels whose material carries no scan: `scan` null (a surface without one) or not said
+  const geoPx = N - sky - bad, unscanned = objects.filter(q => !q.e.scan);
   const groups: Record<string, number> = {}; for (const q of objects) groups[q.e.top] = (groups[q.e.top] ?? 0) + q.px / N;
   return { shares: { sky: r4(sky / N), placeholder: r4(ph / N), untiered: r4(untiered / N), phOrUntiered: r4(phU / N), skyHole: r4(hole / N), badId: r4(bad / N) },
     visibleMeshes: objects.length, tieredSourced: objects.length ? r4(objects.filter(q => q.e.tier && q.e.sourced).length / objects.length) : 1, untieredKeys: [...new Set(objects.filter(q => !(q.e.tier && q.e.sourced)).map(q => q.e.key))].slice(0, 8), materials: new Set(objects.map(q => q.e.mat)).size, geometries: new Set(objects.map(q => q.e.geo)).size,
-    objects: objects.filter(q => q.px / N >= 0.002).slice(0, top).map(q => ({ key: q.e.key, share: r4(q.px / N), ph: q.e.ph, tier: q.e.tier, tris: q.e.tris, density: +q.e.density.toPrecision(3), inst: q.e.instances })),
+    objects: objects.filter(q => q.px / N >= 0.002).slice(0, top).map(q => ({ key: q.e.key, share: r4(q.px / N), ph: q.e.ph, tier: q.e.tier, tris: q.e.tris, density: +q.e.density.toPrecision(3), inst: q.e.instances, scan: q.e.scan ?? (q.e.scan === null ? null : '?'), surface: q.e.surface })),
+    unscanned: { share: geoPx ? r4(unscanned.reduce((a, q) => a + q.px, 0) / geoPx) : 0, keys: unscanned.filter(q => q.px / N >= 0.0005).slice(0, 40).map(q => ({ key: q.e.key, share: r4(q.px / geoPx), surface: q.e.surface ?? null, said: q.e.scan === null })) },
     phObjects: objects.filter(q => q.e.ph && q.px / N >= 0.0002).slice(0, 20).map(q => ({ key: q.e.key, share: r4(q.px / N), tier: q.e.tier })),
     groups: Object.fromEntries(Object.entries(groups).map(([k, x]) => [k, r4(x)])) };
 }

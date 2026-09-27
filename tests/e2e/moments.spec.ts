@@ -245,6 +245,17 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // D-292 (C-D04): the morning wash at rising in a house's court (q_s1-0079: a woman at the water jar and basin), day 30 06:00,
   // 4 m in front of her (body_find's pose). NOT rendered (the second browser run timed out before it)
   { n: 'morning-wash', day: 30, hour: 6.0, w: 'clear', v: [-453.8, -956.5, 1.6, 167.5, -6] },
+  // D-301 (every inch real: the interiors): the D-276 rooms at the player's lens, one world state per hour (BATCH=1). The
+  // Treasury store w_stores:3 from its doorway (rooms_d276 treasury-store) and at arm's length from its N bench; the Treasury's
+  // columned hall sw_hall_a from its doorway; a Harem apartment (apt_e:1) and a royal kitchen (royal_kitchens:1) from inside
+  // their doorways; the garrison quarters quarters_s:2 at 23:00 (rooms_d276 garrison-quarters-night) and over its mats
+  { n: 'room-treasury-store', day: 20, hour: 11, w: 'clear', v: [151.2, -122.2, 1.6, 239, -12], fov: IN },
+  { n: 'room-treasury-bench', day: 20, hour: 11, w: 'clear', v: [146.0, -121.6, 1.6, 341, -32], fov: IN },
+  { n: 'room-treasury-hall', day: 20, hour: 11, w: 'clear', v: [155.0, -158.8, 1.6, 161, -3], fov: IN },
+  { n: 'room-harem-apt', day: 20, hour: 11, w: 'clear', v: [116.6, -180.6, 1.6, 71, -8], fov: IN },
+  { n: 'room-kitchen', day: 20, hour: 11, w: 'clear', v: [-31.0, -161.3, 1.6, 161, -10], fov: IN },
+  { n: 'room-garrison-night', day: 20, hour: 23, w: 'clear', v: [193.2, -25.2, 1.6, 103, -10], fov: IN },
+  { n: 'room-garrison-mats-night', day: 20, hour: 23, w: 'clear', v: [196.0, -27.0, 1.6, 111, -25], fov: IN },
 ];
 test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES
@@ -302,6 +313,14 @@ test('moments', async ({ page }, info) => {
     mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
     all[`${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), meterEV: +(exp.meterEV ?? 0).toFixed(2), bright: +(exp.meterBright ?? 0).toFixed(2), meterMean: +(exp.meterMean ?? 0).toFixed(2), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game', ...(s.carry ? { carry: s.carry } : {}) }; writeFileSync(f, JSON.stringify(all, null, 1));
     console.log(s.n, JSON.stringify(lum), 'backend', await page.evaluate(() => (window as any).__parsa.backend));
+    // SCANPROBE=1 (D-301, T-A7): the coverage ID render of the view: which meshes draw its pixels and whether their material
+    // carries a scan (material.userData.scan); shots/scanprobe.json, keyed by view and TAG
+    if (process.env.SCANPROBE) {
+      const r = await page.evaluate(async () => { const x = await (window as any).__parsa.flagMask({ top: 40 }); return { shares: x.shares, unscanned: x.unscanned, objects: x.objects, groups: x.groups }; });
+      const pf = 'shots/scanprobe.json', P = existsSync(pf) ? JSON.parse(readFileSync(pf, 'utf8')) : {};
+      P[`${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}`] = r; writeFileSync(pf, JSON.stringify(P, null, 1));
+      console.log(s.n, 'unscanned', r.unscanned?.share, JSON.stringify(r.unscanned?.keys?.slice(0, 8)));
+    }
     if (s.ab) { // the same view with the named objects hidden (D-220: the smoke's own contrast); their state and the draw calls logged
       const nFr = process.env.FRAMES ? +process.env.FRAMES : s.frames ?? 8;
       const st = await page.evaluate((names) => { const P = (window as any).__parsa, W = P.world, r = W.root, S = W.smoke;

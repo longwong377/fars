@@ -10,6 +10,8 @@
 import * as THREE from 'three/webgpu';
 import { float, vec2, ivec2, abs, floor, fract, clamp, length, step, positionWorld, normalWorld, max, min, mix, texture } from 'three/tsl';
 
+/** the share of a fire's direct light that reaches its baked shadows by one bounce off the surfaces round it (D-301, C) */
+export const OCC_BOUNCE = 0.15;
 /** texels along a tile's side (an octahedral map: ~1.4° per texel at 128) */
 export const OCC_TILE = 128;
 /** tiles per atlas row */
@@ -123,6 +125,15 @@ export function fireOccNode(lightPos: any, tile: any) {
     const s = tex.load(ivec2(c.x.add(tx).toInt(), c.y.add(ty).toInt())).r;
     return step(r.sub(bias), s);
   };
-  const v = mix(mix(tap(0, 0), tap(1, 0), w.x), mix(tap(0, 1), tap(1, 1), w.x), w.y);
+  // D-301: a 4 × 4 texel filter (the bilinear footprint widened by a texel each side, ~4° of penumbra): a hearth's or a
+  // brazier's flame is a source a few decimetres across, not a point, and the 2 × 2 filter drew the posts' shadows on the
+  // garrison's walls as hard, stepped black smears (rooms_d276 garrison-quarters-night)
+  const wx = [float(1).sub(w.x), float(1), float(1), w.x], wy = [float(1).sub(w.y), float(1), float(1), w.y];
+  let v: any = float(0);
+  for (let j = 0; j < 4; j++) { let row: any = float(0); for (let i = 0; i < 4; i++) row = row.add(tap(i - 1, j - 1).mul(wx[i])); v = v.add(row.mul(wy[j])); }
+  v = v.div(9);
+  // and the light the fire throws on the room's walls, floor and ceiling comes back into its shadows: one bounce off mud
+  // plaster and earth (albedo ~0.4) over the room's surfaces, OCC_BOUNCE of the direct (C)
+  v = mix(float(OCC_BOUNCE), float(1), v);
   return mix(v, float(1), step(tile, -0.5));
 }

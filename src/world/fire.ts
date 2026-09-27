@@ -3,7 +3,8 @@
 // that drifts with the wind. Fires are lit at dusk and put out after the night (C schedule until NPCs light them, Phase 5).
 import * as THREE from 'three/webgpu';
 import { colourOnly } from '../render/fx';
-import { surfaceMaterial } from '../render/materials';
+import { surfaceMaterial, propMaterial } from '../render/materials';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow, step } from 'three/tsl';
 import { Rng } from '../core/rng';
 import { fireOcc, fireOccNode, tileOf } from './fireOcc';
@@ -208,16 +209,20 @@ export class FireSystem {
   /** simple physical bodies (C forms): brazier = bronze bowl on a stand (after the incense stands on the reliefs), torch = wooden
    *  shaft in a bronze bracket, hearth = ring of stones, oven = clay dome */
   private buildBodies() {
-    const mk = (g: THREE.BufferGeometry, color: number, rough: number, metal = 0) => ({ g, m: new THREE.MeshStandardNodeMaterial({ color: new THREE.Color(color), roughness: rough, metalness: metal }) });
     const brz = new THREE.LatheGeometry([[0.02, 0], [0.18, 0.02], [0.08, 0.1], [0.05, 0.8], [0.12, 0.84], [0.32, 0.9], [0.36, 1.02], [0.3, 1.0], [0.0, 0.92]].map(([x, y]) => new THREE.Vector2(x, y)), 16);
     const torch = new THREE.CylinderGeometry(0.03, 0.025, 0.6, 6).translate(0, 0.05, 0.1).rotateX(-0.25);
-    const hearth = new THREE.TorusGeometry(0.45, 0.12, 5, 10).rotateX(Math.PI / 2).translate(0, 0.1, 0);
-    const oven = new THREE.SphereGeometry(0.6, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    // D-301: the hearth a ring of eleven field stones of their own sizes and tilts (was a 10-sided torus), the oven's dome smooth
+    const hearth = mergeGeometries(Array.from({ length: 11 }, (_, i) => { const a = (i / 11) * Math.PI * 2 + 0.2 * Math.sin(i * 7.1), h = (k: number) => 0.5 + 0.5 * Math.sin(i * 12.9898 + k * 78.233);
+      const st = new THREE.IcosahedronGeometry(0.1, 1); st.deleteAttribute('uv');
+      return st.scale(0.9 + 0.5 * h(1), 0.7 + 0.5 * h(2), 0.8 + 0.4 * h(3)).rotateY(a + h(4)).rotateX(0.3 * (h(5) - 0.5)).translate(Math.cos(a) * (0.45 + 0.04 * h(6)), 0.06 + 0.03 * h(7), Math.sin(a) * (0.45 + 0.04 * h(6))); }))!;
+    const oven = new THREE.SphereGeometry(0.6, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
     const kinds: Record<string, { g: THREE.BufferGeometry; m: THREE.Material }> = {
       // the bronze of the braziers is the fittings' surface (materials.ts SURFACES.bronze), whose specular reads the sky
       // environment (D-157): a plain metal material here reflected nothing but the sun's highlight, and a stand in shade
       // rendered as a pure-black cut-out (session-6 rubric, apadana-enter; D-187)
-      brazier: { g: brz, m: surfaceMaterial('bronze') }, torch: mk(torch, 0x5a4028, 0.8), hearth: mk(hearth, 0x7a7266, 0.9), oven: mk(oven, 0x9a7a58, 0.95),
+      // (D-301: the torch's wood, the hearth's stones and the oven's clay take their scans: materials.ts propMaterial)
+      brazier: { g: brz, m: surfaceMaterial('bronze') }, torch: { g: torch, m: propMaterial('wood', { color: [0x5a / 255, 0x40 / 255, 0x28 / 255], rough: 0.8 }) },
+      hearth: { g: hearth, m: propMaterial('stone', { color: [0x7a / 255, 0x72 / 255, 0x66 / 255], rough: 0.9 }) }, oven: { g: oven, m: propMaterial('mud', { color: [0x9a / 255, 0x7a / 255, 0x58 / 255], rough: 0.95 }) },
     };
     for (const [k, v] of Object.entries(kinds)) {
       const list = this.bodies.filter(b => b.kind === k); if (!list.length) continue;

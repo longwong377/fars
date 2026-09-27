@@ -13,6 +13,8 @@ import { texture, positionWorld, normalWorld, vec3, float, abs, pow, mix, dot, m
 import SCANS from '../data/scans.json';
 
 export interface ScanUse { scan: string; scale: number; alb: number; height: number; rough: number; scale2?: number;
+  /** roughness also follows the scan's luminance detail: × (1 + roughLum·(lum − 1)) (a burnished floor: the trowel's smooth strokes
+   *  darker and glossier than the matte ground between them, where the scan's own roughness map is flat; D-301) */ roughLum?: number;
   /** steep ground takes a rock scan at large scale (the mountain and the outcrops: a 2.5 m tile averages to flat colour at 1 km) */
   rock?: { scan: string; scale: number; scale2: number; alb: number; ny0: number; ny1: number } }
 /** metres per tile (`scale`), blend weights, bump amplitude in metres; `scale2`: a second, larger tile multiplied in (ground) */
@@ -43,6 +45,32 @@ export const SCAN_USE: Record<string, ScanUse> = {
   roof_timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
   house_timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
   scaffold: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
+  // D-301 (every inch real: the interiors). The halls' and rooms' own surfaces: the red lime-plaster floors (a trowelled clay
+  // floor's marks, fine cracks and uneven sheen: the burnished coat was hand-laid, not poured), the Treasury's clay-painted mud
+  // plaster, the carved limestone of the column shafts, bases and capitals (a fine-grained rock face at a rubbed finish's low
+  // weight), the reed matting of the ceilings (a woven reed scan; roof_timber's underside: materials.ts applies each part's
+  // own scan), bronze fittings
+  plaster_red: { scan: 'clay_floor_001', scale: 2.0, alb: 0.6, height: 0.0012, rough: 0.9, roughLum: 1.2 }, // (the 7 m second tile drew dark blotches that read as blood in breath-dawn: the blind review, removed unrendered)
+  mudbrick_painted: { scan: 'grey_plaster_02', scale: 2.5, alb: 0.55, height: 0.003, rough: 0.4 },
+  limestone_carved: { scan: 'rock_surface', scale: 1.5, alb: 0.5, height: 0.0006, rough: 0.4 },
+  matting: { scan: 'Wicker010B', scale: 0.6, alb: 0.75, height: 0.002, rough: 0.4 },
+  bronze: { scan: 'Metal013', scale: 0.6, alb: 0.45, height: 0.0004, rough: 0.6 },
+  // the palaces' furnishings (world/furnish_palaces.ts FURNISH_SURFACES, D-212): textiles as felted wool, clay, the metals
+  furn_textile: { scan: 'Fabric043', scale: 0.5, alb: 0.55, height: 0.0008, rough: 0.4 },
+  furn_clay: { scan: 'clay_floor_001', scale: 0.7, alb: 0.8, height: 0.0008, rough: 0.6 },
+  furn_silver: { scan: 'Metal013', scale: 0.4, alb: 0.25, height: 0.0002, rough: 0.5 },
+  furn_gilt: { scan: 'Metal013', scale: 0.4, alb: 0.2, height: 0.0002, rough: 0.5 },
+  // the rooms' furnishings (world/furnish.ts, fire.ts: materials.ts propMaterial `prop_<kind>`), by what they are made of
+  prop_reed: { scan: 'Tatami001', scale: 0.7, alb: 0.9, height: 0.0015, rough: 0.4 },
+  prop_wicker: { scan: 'Wicker010B', scale: 0.35, alb: 0.85, height: 0.003, rough: 0.4 },
+  prop_felt: { scan: 'Fabric043', scale: 0.5, alb: 0.7, height: 0.001, rough: 0.4 },
+  prop_textile: { scan: 'hessian_230', scale: 0.35, alb: 0.6, height: 0.0008, rough: 0.4 },
+  prop_clay: { scan: 'clay_floor_001', scale: 0.6, alb: 0.9, height: 0.0008, rough: 0.6 },
+  prop_stone: { scan: 'rock_surface', scale: 0.7, alb: 0.8, height: 0.0015, rough: 0.5 },
+  prop_leather: { scan: 'Leather014', scale: 0.5, alb: 0.5, height: 0.0005, rough: 0.5 },
+  prop_metal: { scan: 'Metal013', scale: 0.4, alb: 0.35, height: 0.0003, rough: 0.6 },
+  prop_wood: { scan: 'rough_wood', scale: 0.8, alb: 0.6, height: 0.0015, rough: 0.5 },
+  prop_mud: { scan: 'brown_mud_dry', scale: 1.0, alb: 0.6, height: 0.003, rough: 0.4 },
 };
 
 type ScanMeta = { meanLinear: [number, number, number]; meanRough: number; meanAO: number };
@@ -64,6 +92,10 @@ export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
   }));
 }
 export const scansLoaded = () => TEX.size > 0;
+/** node tests (D-301): stand-in textures for scans, so the scanned material graphs build in node as in the browser */
+export function registerScanTextures(ids: string[], make: () => THREE.Texture) { for (const id of ids) TEX.set(id, { diff: make(), arm: make() }); }
+/** the scan laid over surface `name` (null: none applied, a procedural stand-in; T-A7's probe reads it off material.userData) */
+export const scanOf = (name: string): string | null => { const u = SCAN_USE[name]; return scansOn && u && TEX.has(u.scan) && META[u.scan] ? u.scan : null; };
 
 /** triplanar sample of a texture at `scale` metres per tile (world space, weights from the world normal) */
 function tri(t: THREE.Texture, scale: number) {
@@ -87,7 +119,9 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null }
   const alb = L.alb.mul(mix(vec3(1), det, u.alb));
   // the scan's roughness costs a sampler; a surface with a rock layer (the terrain) is at WebGPU's 16 samplers per stage
   // without it, so there the procedural roughness stands (session 11: 17 samplers failed the terrain's pipeline)
-  const rough = u.rock ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough)).clamp(0.05, 1);
+  let rough = u.rock ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough));
+  if (u.roughLum) rough = rough.mul(float(1).add(lum.sub(1).mul(u.roughLum)));
+  rough = rough.clamp(0.05, 1);
   const bump = lum.sub(1).mul(u.height);
   return { ...L, alb, rough, height: L.height ? L.height.add(bump) : bump };
 }

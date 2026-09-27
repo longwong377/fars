@@ -314,7 +314,7 @@ async function boot() {
     pick: (x: number, y: number, group?: string) => { const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(x, y), camera); rc.far = 20000;
       const g = group ? scene.getObjectByName(group) : null; if (group && !g) return { error: `no object named ${group}` };
       const all = (g ? rc.intersectObject(g, true) : rc.intersectObjects(scene.children, true)).filter(i => (i.object as any).isMesh && i.object.visible);
-      const row = (h: THREE.Intersection) => ({ name: h.object.name || h.object.parent?.name, parent: h.object.parent?.name, d: h.distance, p: [h.point.x, h.point.y, h.point.z], mat: (h.object as any).material?.type, inst: h.instanceId ?? h.batchId, note: (h.object.userData?.note ?? h.object.parent?.userData?.note ?? '').slice(0, 160) });
+      const row = (h: THREE.Intersection) => ({ name: h.object.name || h.object.parent?.name, parent: h.object.parent?.name, d: h.distance, p: [h.point.x, h.point.y, h.point.z], mat: (h.object as any).material?.type, ...(() => { const M = (h.object as any).material, m = Array.isArray(M) ? M[h.face?.materialIndex ?? 0] : M; return { surface: m?.userData?.surface, scan: m?.userData?.scan }; })(), inst: h.instanceId ?? h.batchId, note: (h.object.userData?.note ?? h.object.parent?.userData?.note ?? '').slice(0, 160) });
       const h = all[0]; return h ? { ...row(h), next: all.slice(1, 4).map(row) } : null; },
     save: () => writeSave(state()), load: () => restore(readSave() as any), saveState: () => state(),
     /** autosave status (T-H3) and a forced autosave by reason (e2e: 'hidden' is what visibilitychange does) */
