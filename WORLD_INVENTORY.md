@@ -199,7 +199,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GA44 | kestrels | A133 | birds | C | BUILT (D-287: hovering over the fields); unrendered |
 | GA45 | winter starlings | A137 | birds | C | BUILT (D-286: a dusk murmuration over the Pulvar's reeds, Nov-Feb); render queued |
 | GA46 | ants | A155; C-W23 | insects | C | MISSING/PARTIAL |
-| GA47 | freshwater crab | A162 | invertebrates | C | MISSING/PARTIAL |
+| GA47 | freshwater crab | A162 | invertebrates | C | BUILT (D-291); unrendered |
 | GA48 | snails after rain | A163 | invertebrates | C | BUILT (D-291); unrendered |
 | GA49 | moths at the lamps | A165 | insects | C | MISSING/PARTIAL |
 | GA50 | cicadas and crickets seen (partial) | A166 | insects | C | MISSING/PARTIAL |
@@ -254,7 +254,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB34 | limestone outcrops and scree texture (partial, B57) | N-012 | landscape | A | MISSING/PARTIAL |
 | GB35 | crepuscular rays unverified (partial) | N-007 | sky | C | MISSING/PARTIAL |
 | GB36 | otter | F-002 | fauna | B | MISSING/PARTIAL |
-| GB37 | Caspian turtle | F-003 | reptiles | B | MISSING/PARTIAL |
+| GB37 | Caspian turtle | F-003 | reptiles | B | BUILT (D-291); unrendered |
 | GB38 | kingfisher | F-005 | birds | C | MISSING/PARTIAL |
 | GB39 | reed warblers | F-010 | birds | C | PARTIAL (D-288: heard, not seen) |
 | GB40 | quail | F-015 | birds | C | PARTIAL (D-288: heard, not seen) |

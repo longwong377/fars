@@ -16,7 +16,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { attribute, positionLocal, sin, float, vec3, abs, uniform, mix } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
 
-export type SmallKind = 'fly' | 'dragonfly' | 'butterfly' | 'lizard' | 'frog' | 'tortoise' | 'snake' | 'jird' | 'hedgehog' | 'porcupine' | 'scorpion' | 'snail';
+export type SmallKind = 'fly' | 'dragonfly' | 'butterfly' | 'lizard' | 'frog' | 'tortoise' | 'snake' | 'jird' | 'hedgehog' | 'porcupine' | 'scorpion' | 'snail' | 'turtle' | 'crab';
 export type CellCtx = 'midden' | 'water' | 'rock' | 'field' | 'steppe' | 'none';
 /** a kind of small creature: months (0 = January), hours (and a second window), the cell contexts it lives in, the share of
  *  such cells holding it and how many there, its size and colour; `flee`: it slips away when someone comes within this many
@@ -40,6 +40,10 @@ export const SMALL: Record<SmallKind, SmallSpec> = {
   porcupine: { name: 'Indian crested porcupine at night', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [20.5, 24], hours2: [0, 4], ctx: ['rock', 'steppe'], p: 0.008, per: [1, 1], max: 3, span: 0, length: 0.7, flapHz: 0, colour: [0.3, 0.27, 0.24], windOk: true },
   scorpion: { name: 'scorpion (fat-tailed, yellow) hunting at night', months: [3, 4, 5, 6, 7, 8], hours: [20, 24], hours2: [0, 4], ctx: ['rock', 'steppe'], p: 0.06, per: [1, 2], max: 12, span: 0, length: 0.08, flapHz: 0, colour: [0.62, 0.5, 0.25], windOk: true },
   snail: { name: 'snails out on the wet ground after rain', months: [1, 2, 3, 4, 9, 10], hours: [0, 24], ctx: ['field', 'steppe', 'rock'], p: 0.3, per: [2, 6], max: 120, span: 0, length: 0.03, flapHz: 0, colour: [0.55, 0.48, 0.36], windOk: true, wet: true },
+  // session 10 (WORLD_INVENTORY GB37, GA47): Caspian turtles basking at the water's edge on warm days, slipping in when someone comes
+  // within 6 m; freshwater crabs (Potamon) at the edge in the warm months (C: both of the rivers of southern Iran, recollection)
+  turtle: { name: 'Caspian turtle basking at the edge', months: [3, 4, 5, 6, 7, 8], hours: [9, 17], ctx: ['water'], p: 0.08, per: [1, 3], max: 20, span: 0, length: 0.2, flapHz: 0, colour: [0.25, 0.26, 0.2], flee: 6, hide: 240, windOk: true },
+  crab: { name: 'freshwater crab (Potamon) at the edge', months: [4, 5, 6, 7, 8], hours: [7, 20], ctx: ['water'], p: 0.12, per: [1, 2], max: 24, span: 0, length: 0.07, flapHz: 0, colour: [0.45, 0.38, 0.26], flee: 2, hide: 90, windOk: true },
 };
 const KIND_IDX = Object.fromEntries((Object.keys(SMALL) as SmallKind[]).map((k, i) => [k, i + 1])) as Record<SmallKind, number>;
 const BUTTERFLY_COLOURS: [number, number, number][] = [[0.92, 0.91, 0.86], [0.92, 0.91, 0.86], [0.93, 0.78, 0.25], [0.86, 0.5, 0.2]];
@@ -82,6 +86,8 @@ export function smallAt(kind: SmallKind, seed: number, ix: number, iy: number, i
   if (kind === 'hedgehog') { const d = dartAt(s, t + ph, 12, 3, 0.35); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; } // snuffling about, ~0.3 m/s
   if (kind === 'porcupine') { const d = dartAt(s, t + ph, 25, 4, 0.3); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; }
   if (kind === 'scorpion') { const d = dartAt(s, t + ph, 30, 0.8, 0.8); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.002; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; } // waiting, then a short run
+  if (kind === 'turtle') { const d = dartAt(s, t + ph, 180, 1, 0.9); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; }
+  if (kind === 'crab') { const d = dartAt(s, t + ph, 15, 0.8, 0.7); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy) + Math.PI / 2; out.flap = 0; return; } // sideways
   if (kind === 'snail') { const d = dartAt(s, t + ph, 600, 0.6, 0); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; } // ~1 mm/s
   // lizard: basks through each 25-60 s spell, then dashes up to 3.2 m in 1.3 s (~3.7 m/s at the peak)
   const T = 25 + 35 * u01(s, 8), d = dartAt(s, t + ph, T, 1.6, 1 - 1.3 / T); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.01; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0;
@@ -156,10 +162,10 @@ export class SmallLife {
   private pose: SmallPose = { e: 0, n: 0, up: 0, heading: 0, flap: 0, visible: false };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private e = new THREE.Euler(0, 0, 0, 'YXZ'); private p = new THREE.Vector3(); private c = new THREE.Color();
   private fled = new Map<number, number>();
-  stats: Record<SmallKind | 'cells' | 'flowers', number> = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0, frog: 0, tortoise: 0, snake: 0, jird: 0, hedgehog: 0, porcupine: 0, scorpion: 0, snail: 0, cells: 0, flowers: 0 };
+  stats: Record<SmallKind | 'cells' | 'flowers', number> = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0, frog: 0, tortoise: 0, snake: 0, jird: 0, hedgehog: 0, porcupine: 0, scorpion: 0, snail: 0, turtle: 0, crab: 0, cells: 0, flowers: 0 };
   constructor(private seed: number, private world: SmallWorld) {
     this.group.name = 'wildlife-small';
-    const geos: Record<SmallKind, THREE.BufferGeometry> = { fly: wingedGeometry(SMALL.fly.span, SMALL.fly.length, 0.005, 1), dragonfly: wingedGeometry(SMALL.dragonfly.span, SMALL.dragonfly.length, 0.011, 2), butterfly: wingedGeometry(SMALL.butterfly.span, SMALL.butterfly.length, 0.03, 1), lizard: lizardGeometry(), frog: frogGeometry(), tortoise: tortoiseGeometry(), snake: snakeGeometry(), jird: jirdGeometry(), hedgehog: hedgehogGeometry(), porcupine: porcupineGeometry(), scorpion: scorpionGeometry(), snail: snailGeometry() };
+    const geos: Record<SmallKind, THREE.BufferGeometry> = { fly: wingedGeometry(SMALL.fly.span, SMALL.fly.length, 0.005, 1), dragonfly: wingedGeometry(SMALL.dragonfly.span, SMALL.dragonfly.length, 0.011, 2), butterfly: wingedGeometry(SMALL.butterfly.span, SMALL.butterfly.length, 0.03, 1), lizard: lizardGeometry(), frog: frogGeometry(), tortoise: tortoiseGeometry(), snake: snakeGeometry(), jird: jirdGeometry(), hedgehog: hedgehogGeometry(), porcupine: porcupineGeometry(), scorpion: scorpionGeometry(), snail: snailGeometry(), turtle: tortoiseGeometry().scale(0.95, 0.55, 0.95), crab: boxesGeometry([[0.05, 0.015, 0.04, 0, 0.012, 0], [0.012, 0.01, 0.03, 0.03, 0.008, 0.025], [0.012, 0.01, 0.03, -0.03, 0.008, 0.025], [0.08, 0.006, 0.01, 0, 0.005, -0.005]]) };
     for (const k of Object.keys(SMALL) as SmallKind[]) {
       const sp = SMALL[k], m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: k === 'dragonfly' ? 0.45 : 0.85, side: THREE.DoubleSide });
       if (sp.flapHz) { const wing = attribute('wing', 'float'), phase = attribute('phase', 'float');

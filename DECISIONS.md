@@ -6826,3 +6826,5 @@ moment-*-webgpu.png in the worktree, not committed).**
   steppe and middens by night (Mar-Oct), now and then an Indian crested porcupine on rock and steppe by night, scorpions hunting on
   rock and steppe on warm nights (Apr-Sep), and snails out on wet ground after rain (Feb-May, Oct-Nov; the only small life that
   comes out in the rain). Four more instanced meshes of smallLife.ts (none drawn while empty). Tests: tests/small_life.test.ts.
+- **Addendum (same session):** Caspian turtles basking at the water's edge on warm days (slipping in within 6 m) and freshwater
+  crabs at the edge in the warm months (WORLD_INVENTORY GB37, GA47; C, recollection). Two more smallLife meshes.
