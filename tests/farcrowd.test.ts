@@ -8,7 +8,7 @@ import { AudioEngine } from '../src/audio/engine';
 import type { NearPerson } from '../src/audio/voices';
 import { MockContext } from '../tools/dev/audio_graph';
 
-const crowd = (n: number, cx: number, cz: number, talking = true): NearPerson[] => Array.from({ length: n }, (_, i) => ({ key: `p${cx}:${i}`, x: cx + (i % 20) - 10, y: 0, z: cz + Math.floor(i / 20) - 7, talking, lang: 'Persian', sex: 'm', age: 30, seed: i }));
+const crowd = (n: number, cx: number, cz: number, talking = true): NearPerson[] => Array.from({ length: n }, (_, i) => ({ key: `p${cx}:${i}`, x: cx + (i % 20) - 10, y: 0, z: cz + Math.floor(i / 20) - 7, talking, lang: 'Persian', sex: 'm' as const, age: 30, seed: i, group: null }));
 describe('the far crowd (GB56)', () => {
   const L = { x: 0, y: 1.6, z: 0 };
   it('bins the talkers 60 m to FAR_R by direction; the near and the too-far and the silent are left out', () => {
@@ -25,5 +25,15 @@ describe('the far crowd (GB56)', () => {
     const pans = ctx.nodes.filter((n: any) => n.kind === 'panner'); expect(pans.length).toBe(1);
     const sources = ctx.starts.filter((n: any) => n.kind === 'source'); expect(sources.length).toBeGreaterThan(0); expect(sources.every((n: any) => !n.loop)).toBe(true);
     for (let i = 0; i < 10; i++) { F.update([], L); ctx.currentTime += 1 / 30; } expect(F.stats.talkers).toBe(0);
+  });
+});
+
+import { STRIKE_KINDS, workStrike } from '../src/audio/soundscape';
+import { Rng } from '../src/core/rng';
+describe('the road heard (GB51, GB53, GB54)', () => {
+  it('hooves, wheels, snorts, whinnies and camels are strike kinds the soundscape plays', () => {
+    for (const k of ['hoof', 'wheel', 'snort', 'whinny', 'camel']) expect(STRIKE_KINDS).toContain(k);
+    const ctx = new MockContext(48000), e = new AudioEngine(); e.attach(ctx as unknown as AudioContext);
+    const r = new Rng(1, 't'); for (const k of ['hoof', 'wheel', 'snort', 'whinny', 'camel']) expect(workStrike(e, k, { x: 5, y: 0, z: -5 }, r)).toBe(true);
   });
 });

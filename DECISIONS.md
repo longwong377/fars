@@ -6755,3 +6755,12 @@ moment-*-webgpu.png in the worktree, not committed).**
   distance law, placed at the talkers' centroid and routed through the occlusion (walls between muffle it). Unintelligible by
   construction: no lexicon unit is rendered for it (brief §10 holds). Tests: tests/farcrowd.test.ts. **Unverified:** not heard in
   a browser (B65 still stands for the whole audio engine); the level is calibrated by reasoning, not by listening.
+
+## D-282 The road heard: hooves, wheels, horses and camels (session 10; WORLD_INVENTORY GB51, GB53, GB54; hunter C C-W01, C-W02, C-W12)
+- **Gap:** couriers rode, strings of donkeys and camels and ox carts came and went (world/traffic.ts), silently: no hoof, no wheel,
+  no snort, no camel's grumble (all three gap hunters found it).
+- **Decision (C, procedural designs, rates by reasoning):** the movers within 60 m of the listener sound, on world time: hooves
+  while walking (a string's many hooves every 0.12-0.3 s; a courier's horse every 0.28-0.4 s), an ox cart's wheel knock and dry
+  creak every 0.9-1.6 s, a courier's horse snorting (now and then whinnying) every 15-40 s, a camel string grumbling every
+  12-45 s. New strike kinds `hoof`, `wheel`, `snort`, `whinny`, `camel` (soundscape.ts). Tests: tests/farcrowd.test.ts (the kinds
+  play). **Unverified:** not heard in a browser (B65).

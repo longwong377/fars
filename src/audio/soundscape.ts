@@ -134,6 +134,14 @@ export function swiftScream(e: AudioEngine, out: AudioNode, t: number, r: Rng, g
     g.gain.setValueAtTime(0.0001, at); g.gain.linearRampToValueAtTime(0.02 * gain, at + 0.04); g.gain.setValueAtTime(0.017 * gain, at + d * 0.75); g.gain.exponentialRampToValueAtTime(0.0001, at + d);
     o.connect(f); f.connect(g); g.connect(out); o.start(at); am.start(at); o.stop(at + d + 0.02); am.stop(at + d + 0.02); }
 }
+/** session 10 (GB51, GB53, GB54; C, procedural designs): the road's animals and wheels. A hoof on packed earth (a dull knock
+ *  with a little grit), a horse's snort (a nasal noise blast) and whinny (a falling, whinnying tone with a fast vibrato), a camel's
+ *  grumbling (a gurgling low growl), an ox cart's solid wheel on its axle (a wooden knock and a dry creak) */
+export function hoof(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { tone(e, out, t, 0.06, 'sine', 180 + 60 * r.next(), 90, 0.05 * gain); burst(e, out, t, 0.05, 'brown', 'lowpass', 900, 400, 0.7, 0.03 * gain); }
+export function snort(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { burst(e, out, t, 0.35 + 0.2 * r.next(), 'pink', 'bandpass', 1400, 700, 0.9, 0.05 * gain); burst(e, out, t + 0.02, 0.2, 'brown', 'lowpass', 300, 150, 0.7, 0.03 * gain); }
+export function whinny(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const d = 1.1 + 0.5 * r.next(); voice(e, out, t, d, 950 + 150 * r.next(), 420, [[1500, 2], [2800, 3]], 0.03 * gain, 'sawtooth', 11 + 4 * r.next()); burst(e, out, t + d - 0.15, 0.3, 'pink', 'bandpass', 1200, 600, 0.9, 0.02 * gain); }
+export function camelGrumble(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const d = 0.8 + 0.8 * r.next(); voice(e, out, t, d, 95 + 25 * r.next(), 70, [[350, 1.5], [800, 2]], 0.05 * gain, 'sawtooth', 18 + 8 * r.next()); hiss(e, out, t, d, 500, 1.2, 0.02 * gain, 'brown'); }
+function cartWheel(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { tone(e, out, t, 0.09, 'triangle', 140 + 30 * r.next(), 95, 0.04 * gain); if (r.chance(0.5)) voice(e, out, t + 0.05, 0.35 + 0.3 * r.next(), 520 + 200 * r.next(), 480, [[900, 4]], 0.012 * gain, 'sawtooth'); }
 export function sawCall(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const n = 8 + r.int(0, 6); for (let i = 0; i < n; i++) { const at = t + i * 0.42; voice(e, out, at, 0.2, 150, 120, [[400, 2], [900, 3]], 0.05 * gain, 'sawtooth'); hiss(e, out, at, 0.2, 700, 1.2, 0.03 * gain, 'pink'); } }
 export const BIRDS: Bird[] = [
   { id: 'see-see partridge', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [[5, 8.5], [17, 19.5]], rate: 0.12, tier: 'B species / C call',
@@ -188,7 +196,9 @@ export const STRIKE_KINDS = ['chisel', 'quern', 'dice', 'hoe', 'sickle', 'loom',
   // D-256: the cattle's low and the bees' buzz at the hives (the work on the land)
   'low', 'buzz',
   // session 10 (GB29): the swifts' screaming parties racing round the Terrace's halls at dusk (world/wildlife.ts SWIFTS)
-  'swifts'] as const;
+  'swifts',
+  // session 10 (GB51, GB53, GB54): the road's animals and carts (world/world.ts, the traffic's movers within 60 m)
+  'hoof', 'snort', 'whinny', 'camel', 'wheel'] as const;
 export const LAYER_SOUNDS = ['murmur', 'footsteps', 'fire'] as const;
 /** a lit fire's crackle bed level (C). D-245: 0.08 was −49 dBFS at 8 m (tools/dev/audio_render.ts), below the −40 dB a
  *  visible fire within 10 m must reach (MASTER_PLAN T-G3e) */
@@ -242,6 +252,11 @@ export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: nu
     case 'roar': { const p = at(0.8, 120, 6000, 24); roar(e, p, t, rng); return true; }
     case 'whoop': { const p = at(0.8, 30, 1500, 12); whoop(e, p, t, rng); return true; }
     case 'saw': { const p = at(0.8, 25, 900, 8); sawCall(e, p, t, rng); return true; }
+    case 'hoof': { const p = at(0, 3, 90, 1); hoof(e, p, t, rng); return true; }
+    case 'snort': { const p = at(1.3, 3, 120, 2); snort(e, p, t, rng); return true; }
+    case 'whinny': { const p = at(1.5, 6, 600, 3); whinny(e, p, t, rng); return true; }
+    case 'camel': { const p = at(1.8, 4, 250, 3); camelGrumble(e, p, t, rng); return true; }
+    case 'wheel': { const p = at(0.5, 3, 150, 1.5); cartWheel(e, p, t, rng); return true; }
     case 'swifts': { const p = at(0, 8, 250, 3); swiftScream(e, p, t, rng); return true; }
     case 'bleat': { // a sheep's or goat's bleat: a buzzy tone with vibrato through a vocal formant (C)
       const p = at(0.6, 4, 250), o = c.createOscillator(), v = c.createOscillator(), vg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain(), f0 = 330 + 190 * j, d = 0.45 + 0.35 * rng.next();

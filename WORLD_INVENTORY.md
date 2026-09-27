@@ -251,10 +251,10 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB48 | household cults of the foreign workers (Q-471) | S-009 | religion | C | MISSING/PARTIAL |
 | GB49 | workmen at the Xerxes façade at Naqsh-e Rustam | S-011 | construction | C | MISSING/PARTIAL |
 | GB50 | the Persian washing rule (Hdt 1.138) contradicted by garrison laundry in the river | S-017 | religion / consistency | B claim | MISSING/PARTIAL |
-| GB51 | horses whinnying and snorting | SO-001 | sound | C | MISSING/PARTIAL |
+| GB51 | horses whinnying and snorting | SO-001 | sound | C | BUILT (D-282); not heard in a browser |
 | GB52 | cattle lowing | SO-002 | sound | C | BUILT (D-256: the herds' lowing, a new strike; the compounds' cows at night) |
-| GB53 | camels grumbling | SO-003 | sound | C | MISSING/PARTIAL |
-| GB54 | hooves, cart wheels and harness on the road | SO-004 | sound | C | MISSING/PARTIAL |
+| GB53 | camels grumbling | SO-003 | sound | C | BUILT (D-282); not heard in a browser |
+| GB54 | hooves, cart wheels and harness on the road | SO-004 | sound | C | BUILT (D-282); not heard in a browser |
 | GB55 | door pivots and bolts heard | SO-009 | sound | C | MISSING/PARTIAL |
 | GB56 | a crowd bed beyond 60 m (a court assembly heard from afar) | SO-011 | sound | C | BUILT (D-281: a distant murmur by direction, 60-400 m); not heard in a browser |
 | GB57 | a roof reached: stairs to the Apadana towers | W-058 | architecture | B | MISSING/PARTIAL |

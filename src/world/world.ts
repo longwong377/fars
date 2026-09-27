@@ -293,7 +293,23 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const syncTraffic = (cam: THREE.Vector3) => { traffic.at(sim.t, movers, { e: cam.x, n: -cam.z, r: 750 }); const now = new Set<string>();
     for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
       if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }
-    for (const k of moverKeys) if (!now.has(k)) { crowd.detach(k); moverKeys.delete(k); } };
+    for (const k of moverKeys) if (!now.has(k)) { crowd.detach(k); moverKeys.delete(k); }
+    roadSounds(cam); };
+  // session 10 (GB51, GB53, GB54): the road heard: hooves of the moving strings and riders, an ox cart's wheels, now and then a
+  // horse's snort or whinny and a camel's grumble, from the movers within 60 m (C: rates by reasoning; world time, so a paused
+  // world is silent)
+  const roadNext = new Map<string, number>(), roadRng = new Rng(seed, 'road-sounds'); let roadT = -1;
+  const roadSounds = (cam: THREE.Vector3) => {
+    const t = sim.t * 3600; if (t === roadT) return; roadT = t;
+    for (const m of movers) { if (m.kind === 'quarry' || m.kind === 'drum') continue; const dx = m.e - cam.x, dn = m.n + cam.z; if (dx * dx + dn * dn > 3600) continue;
+      const walking = m.act === 'walk', pos = { x: m.e, y: groundAt(m.e, m.n), z: -m.n }, due = (k: string, gap: [number, number], p = 1) => {
+        const key = `${m.key}:${k}`, at = roadNext.get(key); if (at === undefined) { roadNext.set(key, t + roadRng.range(0, gap[1])); return false; }
+        if (t < at) return false; roadNext.set(key, t + roadRng.range(gap[0], gap[1])); return roadRng.chance(p); };
+      if (walking && m.kind !== 'cart' && due('hoof', m.kind === 'courier' ? [0.28, 0.4] : [0.12, 0.3])) sound.strike('hoof', pos); // (a string of five: many hooves)
+      if (m.kind === 'cart' && walking && due('wheel', [0.9, 1.6])) sound.strike('wheel', pos);
+      if (m.kind === 'courier' && due('snort', [15, 40], 0.8)) sound.strike(roadRng.chance(0.15) ? 'whinny' : 'snort', pos);
+      if (m.kind === 'camel' && due('camel', [12, 45], 0.7)) sound.strike('camel', pos); }
+    if (roadNext.size > 400) roadNext.clear(); };
   // D-220: smoke and dust. The households' hearths and ovens follow the people sim's household day (hearthSmoke.ts); their
   // smoke gathers in a layer over each quarter and each village of the plain (landSmoke.ts); dust rises behind walkers,
   // animals and carts on dry earth and off the masons' and haulers' work (dust.ts)
