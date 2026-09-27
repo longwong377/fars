@@ -9,6 +9,7 @@ import { primeParts, tidy, type Knows, type Turn } from './prompt';
 import { hearAsPerson } from './hear';
 import type { LifeRecord } from './life';
 import { parseIntent, type Intent } from './intent';
+import { judgePrompt } from './ground';
 
 /** D-315: what the person remembers of the stranger (talk.ts recall) and the simulation's word on what was asked */
 export interface AskOpts { memory?: string[]; note?: string; /** a turn that is not the stranger's words (the retelling of a refusal: turn.ts) */ userText?: string; /** D-315: said just before the stranger's words (the memory, near the question) */ before?: string }
@@ -40,6 +41,15 @@ export class Mind {
       const r = await this.engine!.chat.completions.create({ messages: msgs, max_tokens: 24, temperature: 0.7, ...this.extra() } as any) as any;
       msgs.push({ role: 'assistant', content: r.choices[0].message.content ?? '' }); }
     this.conv = msgs; this.primedFor = key; return performance.now() - t0;
+  }
+  /** D-315: the judge: did this reply agree to what was asked? (the loaded model, two tokens, greedy; outside the person's
+   *  talk, which is primed again for the next answer). null: no clear answer */
+  judges = 0;
+  async judge(asked: string, reply: string): Promise<boolean | null> {
+    if (!this.engine) return null; this.judges++;
+    const r = await this.engine.chat.completions.create({ messages: judgePrompt(asked, reply), max_tokens: 3, temperature: 0, ...this.extra() } as any) as any;
+    this.primedFor = ''; const a = String(r.choices?.[0]?.message?.content ?? '').trim().toUpperCase();
+    return /^Y/.test(a) ? true : /^N/.test(a) ? false : null;
   }
   /** forget the primed person (another comes near) */
   forget() { this.conv = []; this.primedFor = ''; }
