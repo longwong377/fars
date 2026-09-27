@@ -1258,7 +1258,9 @@ export function propMaterialMulti(kinds: string[]): THREE.MeshStandardNodeMateri
   if (kinds.length === 1) { const m1 = propMaterial(kinds[0], { vertexColors: true, roughAttr: true }); propCache.set(key, m1); return m1; }
   const m = new THREE.MeshStandardNodeMaterial(), k = attribute('aKind', 'float'), base = attribute('color', 'vec3'), r0 = attribute('aRough', 'float');
   let alb: any = vec3(0), rough: any = float(0), h: any = float(0), anyH = false;
-  kinds.forEach((kind, i) => { const w = float(1).sub(step(0.5, abs(k.sub(i)))), L = applyScan(`prop_${kind}`, { alb: base, rough: r0, height: null } as Layer);
+  // (each kind's scan without its roughness map: the vertices carry the roughness (aRough); a 4-kind merge cost 8 scan samplers
+  // and failed WebGPU's 16 per fragment stage in the merged session-11 world: harem:room_fittings at 17, SAMPLERDBG)
+  kinds.forEach((kind, i) => { const w = float(1).sub(step(0.5, abs(k.sub(i)))), L = applyScan(`prop_${kind}`, { alb: base, rough: r0, height: null } as Layer, true);
     alb = alb.add(L.alb.mul(w)); rough = rough.add(L.rough.mul(w)); if (L.height) { h = h.add(L.height.mul(w)); anyH = true; } });
   m.colorNode = alb; m.roughnessNode = rough; m.metalnessNode = float(0); if (anyH) m.normalNode = bumped(h);
   const scans = kinds.map(q => scanOf(`prop_${q}`));

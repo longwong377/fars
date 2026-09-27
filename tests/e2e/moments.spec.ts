@@ -270,7 +270,7 @@ test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES
   // override it and the per-view frame count (session 5: WebGL2 at high under SwiftShader did not finish 8 frames of one view in 23 min)
   test.setTimeout(+(process.env.TIMEOUT ?? 1380) * 1000);
-  const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') { if (m.text().startsWith('shaftdbg')) console.log(m.text().slice(0, 3000)); else errs.push(m.text().slice(0, 200)); } });
+  const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') { if (m.text().startsWith('shaftdbg') || m.text().startsWith('SAMPLERDBG')) console.log(m.text().slice(0, 3000)); else errs.push(m.text().slice(0, 200)); } });
   const only = process.env.ONLY?.split(',');
   // WEBGL=1 forces the WebGL2 backend inside the webgpu project (the render queue runs one project): shots are suffixed
   // -webgl2-forced and __parsa.backend is logged
@@ -302,6 +302,11 @@ test('moments', async ({ page }, info) => {
       // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
       // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)
       await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
+      // SAMPLERDBG=1 (session 11): name every pipeline whose fragment stage asks for more samplers than WebGPU allows (16)
+      if (process.env.SAMPLERDBG) await page.evaluate(() => { const r = (window as any).__parsa.renderer, be = r.backend, orig = be.createRenderPipeline.bind(be);
+        be.createRenderPipeline = (ro: any, promises: any) => { try { const fsrc: string = r._nodes?.getForRender?.(ro)?.fragmentShader ?? ''; const n = (fsrc.match(/: sampler[;s]|: sampler_comparison/g) ?? []).length; // samplers declared by the compiled fragment shader
+          if (n > 16) console.error('SAMPLERDBG', n, JSON.stringify({ mat: ro.material?.name, type: ro.material?.type, surface: ro.material?.userData?.surface, scan: ro.material?.userData?.scan, obj: ro.object?.name, parent: ro.object?.parent?.name, pass: ro.context?.id ?? null })); } catch (e) { console.error('SAMPLERDBG err', String(e)); }
+          return orig(ro, promises); }; });
       // the scene camera of the last frame (D-300, as dbg_surf.spec): its matrices go into shots/moments-cam.json so world regions
       // can be projected onto the frames offline (tools/dev/surf_regions_d285.ts --moments)
       await page.evaluate(() => { const w = window as any, r = w.__parsa.renderer, orig = r.render.bind(r);
