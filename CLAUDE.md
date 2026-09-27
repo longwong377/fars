@@ -88,6 +88,10 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   language-model prefill, and a portrait run while other agents rendered). Keep at most two heavy renders at once; keep
   single dispatches short (prompts ≤ ~450 tokens for the in-browser model). Do not change the Windows TDR settings.
   Every render goes through `node tools/dev/gpu_slot.mjs <label> -- npx playwright test …` (two slots under T:/gpu-slots).
+- **Iterate on probe pages, verify in the world.** A full-world page load is 11-30 min of shader compiling, and neither
+  compileAsync in the pass's context (D-299) nor a persistent profile's cache (session 11: 412 s vs 532 s first frame) cuts
+  it. Pages that load only what is being worked on load in seconds (tools/dev/ground_probe.* ~10 s; humanlab.html,
+  treelab.html): iterate there, and spend full-world renders (one per task, batched) on final verification only.
 - **Blender 5.0.1** is installed (`C:/Program Files/Blender Foundation/Blender 5.0/blender.exe`; headless: `blender -b
   --factory-startup --python tools/blender/<script>.py`; ~20 s start-up; Cycles bakes on the T4 via OptiX/CUDA; glTF export with
   Draco). Use it for real prop and architecture geometry, normal/AO bakes, LODs and impostors, garment drape (cloth
