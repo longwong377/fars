@@ -7539,3 +7539,18 @@ moment-*-webgpu.png in the worktree, not committed).**
   baskets of tablets (furnish.ts) and the houses' court baskets (houses.ts 'baskets', through Batch.geo).
 - **Not switched (honest):** the vats and the houses' sacks, sacks (no CC0 scan of a period sack),
   sherds on the roads (roadLitter.ts), pots in the hearth/milk/basin performances, bowls, crates.
+- **Second pass (the lead's follow-up: B136 approach 1, the see-through backs), measured, nothing shipped but records:**
+  - *Culling the body under the garments is already done* (outfits.ts `coverage()`, per costume, every LOD). What remains of
+    the body at LOD0 (node count, scratch script): persian 18,000 = head 8,124, hands 6,388 (3,194 each), eyes/lashes/mouth
+    2,068, neck 500, forearms in the bell sleeves 422, calves under the hem 342, feet 96, chest 60; worker 24,694 (the same
+    head and hands, plus bare arms, calves and feet). Under the garments at most ~1,100 more could go (neck, forearms, calves),
+    all of it seen when the arms move or the hem swings: culling frees no real budget. The budget for hair and beard cards is
+    in the hands (6,388 at LOD0: a lower-resolution hand stitched to the forearm) and the head; not done (B136).
+  - *The ragged see-through patches on the women's backs* (humanlab crowd) are the headcloth (second colour) with the dress
+    showing through it: the D-307 drape settled the headcloth on the body alone, 4 mm off it, i.e. inside the dress (1 cm
+    out). Tried: the body with the dress joined as the headcloth's collider (and the robe for the veil), 8 mm off: the
+    headcloth's drape grew from rms 11 mm to 30 mm at LOD0 and 36 mm to 130 mm (max 306 mm: fell off) at LOD1. Reverted; not
+    shipped. Next: collider with the dress at LOD0 only and the headcloth's own start pushed 2.4 cm off the dress (its
+    procedural offset) with a pin gradient, or clamp the settled headcloth outside the dress's placed support in the post-step.
+  - Portraits (humanlab, GPU): d313b--day-09-woman-grinder.png and d313b--day-05-worker-mason.png (T:/fars-assets-s12/people/):
+    the sash reads at the front, knot and two ends on the skirt.
