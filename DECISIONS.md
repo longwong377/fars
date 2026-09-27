@@ -7425,3 +7425,12 @@ moment-*-webgpu.png in the worktree, not committed).**
   only); no rounded vertical arrises at wall ends and jambs, no exposed brick courses at the foot, no tannur on the far level;
   no kit LOD or impostor for the far level (the far houses are still the plain boxes of D-234); the door jamb boards, benches,
   furniture and the hidden 4-sided roof poles are still the generator's boxes and prisms.
+- **Round 2 (the lead's direction, same session):** free wall ends and door jambs worn round (houses.ts wallNear: an
+  elliptical end bowing 6-9 cm, 3 segments, meeting both faces tangentially; ends that abut another wall stay flat; the end
+  census is per generator, so town and villages alike); the eroded foot on every exterior face (face() `foot`: a coved undercut
+  2-3.5 cm deep, 5 cm more on garden and yard walls, dying out by ~0.4 m above the stone footing and at the wall's ends, and a
+  damp, salt-dark, redder band where the brick courses show; one extra row per face); the crest flatter (3.5 cm crown, slumped
+  sides, 3 cm overhang). Paid for: exterior faces' columns 1.3 -> 1.5 m and bulge rows 1.2 -> 1.5 m apart, crest modules ~4 m.
+  q_s3 back under 600 k (601 k failed at crest 3.4 m). Not done: exposed brick courses as geometry (colour only); the foot is
+  near-level only (the far boxes have none). Seen in a Blender render of the exported near tiles: the eave pole ends read as
+  lumpy blobs (5-sided kit log, short and thick) and want more sides or a proper end-grain piece.

@@ -81,7 +81,7 @@ def G(x, y, z):  # game coordinates -> Blender
 
 def crest(seed):
     r = random.Random(seed)
-    prof = [(-0.5, -0.14), (-0.51, -0.05), (-0.42, 0.03), (0.0, 0.06), (0.42, 0.03), (0.51, -0.05), (0.5, -0.14)]
+    prof = [(-0.5, -0.12), (-0.525, -0.055), (-0.455, 0.015), (0.0, 0.035), (0.455, 0.015), (0.525, -0.055), (0.5, -0.12)]  # a flat top, the sides slumped
     NX = 4; X0, X1 = -1.02, 1.02
     verts, faces, shade = [], [], []
     for ix in range(NX):
