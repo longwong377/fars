@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 // D-309 probe (session 12): the sun's cascaded shadows, session 11's (?csm=old) against D-309's, on the human lab (the world's
 // sky, sun, CSM and post pipeline on a floor and a wall; loads in seconds). Close-ups of the chin/beard shadow on the chest
-// (B113) and a full lineup with the wall, and the frame time on the card (GPU work done per frame, 40 frames).
+// (B113) and a full lineup (old = session 11: ?csm=old&tone=agx) with the wall, and the frame time on the card (GPU work done per frame, 40 frames).
 // Env: Q (default high), HOUR (default 10; 16.5 = a low sun), MODES (default old,new). Screenshots → shots/sunshadow-*.png
 const SHOTS: [string, number[], number[]][] = [
   ['face', [-1.2, 1.62, 0.95], [-1.2, 1.45, 0]],
@@ -14,7 +14,8 @@ for (const mode of (process.env.MODES ?? 'old,new').split(',')) {
     test.setTimeout(1_200_000);
     const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
     const Q = process.env.Q ?? 'high', H = process.env.HOUR ?? '10';
-    await page.goto(`/humanlab.html?test&quality=${Q}&hour=${H}${mode === 'old' ? '&csm=old' : ''}`);
+    await page.setViewportSize({ width: 1920, height: 1080 }); // the player's frame size (frame time at 1080p)
+    await page.goto(`/humanlab.html?test&quality=${Q}&hour=${H}${mode === 'old' ? '&csm=old&tone=agx' : ''}`);
     await page.waitForFunction(() => (window as any).__lab?.ready === true || (window as any).__lab?.error, null, { timeout: 900_000 });
     expect(await page.evaluate(() => (window as any).__lab.error ?? null)).toBeNull();
     await page.evaluate(() => (window as any).__lab.view(0, 1.5, 4, 0, 1.2, 0));

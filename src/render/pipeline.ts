@@ -31,7 +31,7 @@
 // re-evaluates that term with the material's own lookup and specular occlusion).
 import './shareInstancing'; // one vertex program per instanced mesh kind (D-250)
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, step, passTexture, log2, length, getScreenPosition, mx_noise_float, cameraPosition, time, abs } from 'three/tsl';
+import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, step, passTexture, log2, length, getScreenPosition, mx_noise_float, cameraPosition, time, abs, renderOutput } from 'three/tsl';
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
@@ -43,6 +43,9 @@ import type { Quality } from '../core/settings';
 import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './probes/runtime';
 import { SkyEnvCapture, skyEnv, specularOcclusion } from './envmap';
 import { addAirLight } from './airlight';
+import { agxLook } from './toneLook';
+/** D-309: the fitted AgX look (toneLook.ts) at medium and above; ?tone=agx draws three's plain AgX (the A/B) */
+export const TONE_LOOK_ON = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('tone') === 'agx');
 
 export const GI_SCALE = Math.PI / 2;
 /** bloom threshold (scene radiance, before exposure) at the outdoor exposures; scaled for interior exposures (D-141) */
@@ -214,7 +217,7 @@ export class Pipeline {
       const fres = float(1).sub(dotNV.mul(dotNV)).max(0.05);
       const S: any = ssr(col, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
       S.maxDistance.value = SSR_MAX_DISTANCE; S.thickness.value = SSR_THICKNESS; S.quality.value = 0.5; // D-188: 0.5 at high too (0.3 stepped ~3 texels and hit the thin column bases only sporadically: dark dots, D-187)
-      S.resolutionScale = quality === 'ultra' ? 1 : 0.5; // half resolution at high: the reflections of these surfaces are blurred anyway
+      S.resolutionScale = 1; // D-309: full resolution at high too (the T4; session 11 and before: half at high, for SwiftShader)
       // the sky environment the material reflected (the same lookup and specular occlusion as SkySpecularNode: the
       // dominant direction, the probe field's visibility through the cone fit), removed where a ray hits, by the node's own
       // falloff (1 − plane distance / max distance)²; alpha = the hit's distance along the ray
@@ -250,7 +253,7 @@ export class Pipeline {
       let sunLoss: any = vec3(0);
       if (this.sun) {
         const C: any = sss(dep, camera, this.sun); C.maxDistance.value = SSS_MAX_DISTANCE; C.thickness.value = SSS_THICKNESS; C.quality.value = 0.5;
-        C.resolutionScale = quality === 'ultra' ? 1 : 0.5;
+        C.resolutionScale = 1; // D-309: full resolution at high too (half before: the contact shadow's 0.6 m rays stepped in 2-pixel blocks)
         const sunEst = dif.rgb.mul(this.sunE).mul(max(dot(nW, this.sunDirW), 0)).mul(1 / Math.PI);
         sunLoss = min(max(col.rgb.sub(sky), vec3(0)), sunEst).mul(float(1).sub(C.r)).mul(notSky).mul(this.ab.sss);
         this.sssDebug = vec3(C.r);
@@ -291,7 +294,12 @@ export class Pipeline {
     // joins the graph at weight 0 so the render-to-texture runs with the pipeline
     const meter = meterNode(out); this.meterTarget = meter.renderTarget;
     out = out.add(b).add(this.flash).add(meter.sample(vec2(0.5, 0.5)).x.mul(this.meterZero));
+    if (TONE_LOOK_ON) { // D-309: the camera exposure, AgX with the fitted look, then the display encoding (the renderer's own AgX is skipped)
+      const X = uniform(1).onRenderUpdate(() => renderer.toneMappingExposure);
+      out = renderOutput((vec4 as any)(agxLook(out.rgb.mul(X)), 1), THREE.NoToneMapping, THREE.SRGBColorSpace);
+    }
     this.rp = new THREE.RenderPipeline(renderer, out);
+    if (TONE_LOOK_ON) (this.rp as any).outputColorTransform = false;
   }
   /** The bloom threshold applies to the scene before exposure. Interior exposures (D-141) run up to hundreds of times the
    *  outdoor range, so a fixed threshold would flood a hall's view with glare from every sunlit doorway. `rel` = exposure /
