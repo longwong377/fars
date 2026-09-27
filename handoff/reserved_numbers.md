@@ -53,3 +53,5 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-300 | s11 | every inch real: the Terrace and the palaces' exteriors (Q-780..Q-789, B100..B102) | agent worktree (realism_terrace) | in progress |
 | D-301 | s11 | every inch real: the interiors (Q-790..Q-799, B103..B105) | agent worktree (realism_interiors) | in progress |
 | D-302 | s11 | every inch real: the plain, the rivers and the mountains (Q-800..Q-809, B106..B108) | agent worktree (realism_land) | in progress |
+| D-303 | s11 | every inch real: the town and the villages (Q-810..Q-819, B109..B111) | agent worktree (realism_town) | in progress |
+| D-304 | s11 | every inch real: the people seen close (Q-820..Q-829, B112..B114) | agent worktree (realism_people) | in progress |
