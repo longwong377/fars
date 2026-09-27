@@ -15,7 +15,7 @@ for (const mode of (process.env.MODES ?? 'old,new').split(',')) {
     const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
     const Q = process.env.Q ?? 'high', H = process.env.HOUR ?? '10';
     await page.setViewportSize({ width: 1920, height: 1080 }); // the player's frame size (frame time at 1080p)
-    await page.goto(`/humanlab.html?test&quality=${Q}&hour=${H}${mode === 'old' ? '&csm=old&tone=agx' : ''}`);
+    await page.goto(`/humanlab.html?test&quality=${Q}&hour=${H}${mode === 'old' ? '&csm=old&tone=agx' : ''}${process.env.POST ? '&post=' + process.env.POST : ''}`);
     await page.waitForFunction(() => (window as any).__lab?.ready === true || (window as any).__lab?.error, null, { timeout: 900_000 });
     expect(await page.evaluate(() => (window as any).__lab.error ?? null)).toBeNull();
     await page.evaluate(() => (window as any).__lab.view(0, 1.5, 4, 0, 1.2, 0));
@@ -31,7 +31,7 @@ for (const mode of (process.env.MODES ?? 'old,new').split(',')) {
           return s?.lights?.map((L: any) => ({ texel_mm: +(1000 * (L.shadow.camera.right - L.shadow.camera.left) / L.shadow.mapSize.width).toFixed(2), bias_m: +(-L.shadow.bias * (L.shadow.camera.far - L.shadow.camera.near)).toFixed(4), nb: +L.shadow.normalBias.toFixed(4), r: +L.shadow.radius.toFixed(2), size: L.shadow.mapSize.width })) ?? null; });
         console.log(`[sunshadow] mode=${mode} q=${Q} hour=${H} frame_ms=${ms.toFixed(2)} cascades=${JSON.stringify(casc)}`);
       }
-      await page.screenshot({ path: `shots/sunshadow-${mode}-${Q}-h${H}-${n}-${info.project.name}.png` });
+      await page.screenshot({ path: `shots/sunshadow-${process.env.POST ?? ''}${mode}-${Q}-h${H}-${n}-${info.project.name}.png` });
     }
     console.log(errs.slice(0, 10).join('\n'));
     expect(errs).toEqual([]);

@@ -7491,3 +7491,18 @@ moment-*-webgpu.png in the worktree, not committed).**
   only); no rounded vertical arrises at wall ends and jambs, no exposed brick courses at the foot, no tannur on the far level;
   no kit LOD or impostor for the far level (the far houses are still the plain boxes of D-234); the door jamb boards, benches,
   furniture and the hidden 4-sided roof poles are still the generator's boxes and prisms.
+- **D-309b (the lead's follow-up, same session): outdoor sky light from the world as built (src/render/skyVis.ts).** A top-down
+  float height map of everything the scene draws (2048² over 480 m round the player, 0.23 m a texel; re-rendered after 90 m of
+  walking and at 3, 12 and 40 s while models stream in; sky, particles, transparent effects and GPU-skinned people left out),
+  marched in the post composite at high/ultra: 8 azimuths × 8 jittered steps to 24 m, the horizon's elevation per azimuth,
+  visibility = mean(1 − sin h) leaning toward the normal, the occluded part replaced by 25 % bounce (C); the skylight the
+  composite removes takes min(SSGI AO, visibility) outside the probe volumes. No hand-placed list: the house kit, the models
+  and anything added later are in the map; no sampler is added to any material (B122). Probe (?post=skyvis-raw): the ground
+  darkens smoothly toward the lab's 6 m wall, open ground 1.0; frame 2.2 ms on the lab. Caveats: overhangs read as walls from
+  above (the probe volumes carry the roofed buildings); the first render of the scene must be the player's camera (CSM keeps
+  the first camera: a top-down first render made every cascade 166 mm a texel; the update runs after the frame); unverified
+  in the world (lanes, courts, village houses: the lead's render, ?post=skyvis-raw and __parsaSurf.skyvis = 0 for the A/B).
+- **D-309 look at dawn and dusk (probe, lower-frame luma p5/p50/p95, plain AgX → look):** hour 6.3: 55/103/129 → 55/117/146;
+  hour 18.6 (twilight): 27/53/70 → 30/59/79. The look lifts the mids by ~6-14 levels at every hour and keeps the darks; the
+  twilight darkening of the exposure law (D-117) survives (twilight median 59 vs 117 at dawn). Not fitted to twilight
+  photographs (none paired by sun altitude in the set); an interior exposure is not in the lab (unchecked; the lead's render).
