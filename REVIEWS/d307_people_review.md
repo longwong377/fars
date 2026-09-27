@@ -110,3 +110,41 @@ aliasing metric); pure-black sleeve interiors (a black-crush check within the fi
 Motion, sound, crowds, people in real settings, any other hour/season/weather, the ultra setting, and every dress class not
 recognisably present (guards, delegations with their own dress). Several items appear to be near-duplicates of one another;
 I did not try to identify which are older renders.
+
+## Unblinding (added by the D-307 agent after the review; the reviewer did not see this)
+Items: shots/portraits run3 (the portrait spec, humanlab, 1920 × 1080, 60°, Q high), "nomodels" = without the Blender assets (?peoplemodels=0: D-304's state), "scans" = with them (the first version of D-307).
+```
+scans 15 skin hair cloth overall 2.13 1.53 1.67 1.80
+nomodels 15 skin hair cloth overall 2.13 1.80 1.80 1.93
+P30 nomodels day-00-persian-official.png 2 2 2 2
+P21 nomodels day-02-guard-guard.png 2 2 2 2
+P14 nomodels day-03-median-official.png 2 2 2 2
+P18 nomodels day-05-worker-mason.png 2 1 2 2
+P19 nomodels day-07-worker-mason-elder.png 2 2 2 2
+P16 nomodels day-09-woman-grinder.png 2 2 1 2
+P08 nomodels day-10-woman-baker-elder.png 2 2 2 2
+P22 nomodels day-12-child-child.png 3 2 2 2
+P12 nomodels day-14-envoy-envoy.png 2 2 2 2
+P09 nomodels day-18-king-king.png 2 2 2 2
+P05 nomodels fire-00-persian-official.png 2 2 2 2
+P15 nomodels fire-05-worker-mason.png 2 1 2 2
+P03 nomodels fire-09-woman-grinder.png 2 2 1 2
+P28 nomodels fire-13-child-child.png 3 2 2 2
+P27 nomodels fire-19-court_woman-court.png 2 1 1 1
+P07 scans day-00-persian-official.png 2 2 2 2
+P20 scans day-02-guard-guard.png 2 2 2 2
+P23 scans day-03-median-official.png 2 2 2 2
+P25 scans day-05-worker-mason.png 2 1 2 2
+P01 scans day-07-worker-mason-elder.png 2 1 2 2
+P06 scans day-09-woman-grinder.png 2 1 1 1
+P10 scans day-10-woman-baker-elder.png 2 2 1 2
+P26 scans day-12-child-child.png 3 2 2 2
+P24 scans day-14-envoy-envoy.png 2 2 1 2
+P29 scans day-18-king-king.png 2 2 2 2
+P11 scans fire-00-persian-official.png 2 1 2 2
+P13 scans fire-05-worker-mason.png 2 1 2 2
+P04 scans fire-09-woman-grinder.png 2 1 1 1
+P17 scans fire-13-child-child.png 3 2 2 2
+P02 scans fire-19-court_woman-court.png 2 1 1 1
+```
+Means: before (nomodels) skin 2.13 hair 1.80 cloth 1.80 overall 1.93; after (scans) skin 2.13 hair 1.53 cloth 1.67 overall 1.80. The first cards made hair worse (speckled edges, the bob's fringe); fixed before review 2 (REVIEWS/d307_people_review2.md).

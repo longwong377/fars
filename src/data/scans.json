@@ -630,7 +630,7 @@
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal), packed from the ambientCG maps (D-301)"
   ],
-  "use": "world (SCAN_USE, D-301) and people (src/people/humanScans.ts), not SCAN_USE"
+  "use": "world (SCAN_USE prop_leather, D-301) and people (src/people/humanScans.ts, D-304)"
  },
  "Metal013": {
   "meanLinear": [

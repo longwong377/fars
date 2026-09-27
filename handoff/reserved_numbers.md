@@ -57,4 +57,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-304 | s11 | every inch real: the people seen close (Q-820..Q-829, B112..B114) | agent worktree (realism_people) | in progress |
 | D-305 | s11 | the Blender asset pipeline: inventory, pipeline, a hero asset, the rollout plan (Q-830..Q-839, B115..B117) | agent worktree (blender) | in progress |
 | D-306 | s11 | the carving: capitals and the Gate colossi from the photographs (Q-840..Q-849, B118..B120) | agent worktree (carving) | in progress |
-| D-307 | s11 | the people, round 2: garments, hair and beards (Q-850..Q-859, B121..B123) | agent worktree (people2) | in progress |
+| D-307 | s11 | the people, round 2: garments, hair and beards (Q-850..Q-859, B121..B123) | agent worktree (people2) | done on s11-people2 (unmerged; s11-realism-people merged into it): D-307, Q-850, B121..B123 used; Q-851..Q-859 unused |
