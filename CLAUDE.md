@@ -87,6 +87,7 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
 - **The GPU watchdog:** Windows resets the card when one GPU job runs > ~2 s (DXGI_ERROR_DEVICE_HUNG; session 11: a long
   language-model prefill, and a portrait run while other agents rendered). Keep at most two heavy renders at once; keep
   single dispatches short (prompts ≤ ~450 tokens for the in-browser model). Do not change the Windows TDR settings.
+  Every render goes through `node tools/dev/gpu_slot.mjs <label> -- npx playwright test …` (two slots under T:/gpu-slots).
 
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
