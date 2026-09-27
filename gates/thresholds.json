@@ -2793,6 +2793,22 @@
    "anti_proxy": "a class counts only when every instance in the world is replaced (not one hero or one room) and one batched render shows it; tuning, verification and records do not count",
    "ud": "UD-19",
    "since": "rev 2.5 (s11)"
+  },
+  {
+   "id": "T-R13",
+   "axis": "R",
+   "scope": "session",
+   "metric": "asset classes of research/BLENDER_PLAN.md §2 inventory (all 15 rows) replaced world-wide by real Blender-modelled or scanned assets, every instance, shown in one batched render",
+   "op": ">=",
+   "value": 15,
+   "unit": "asset classes",
+   "sample_min": 1,
+   "sample": "cumulative over the project",
+   "tool": "research/BLENDER_PLAN.md",
+   "status": "to-build",
+   "anti_proxy": "a class counts only when every instance in the world draws the new asset and a batched render shows it; a hero asset, a probe page or a node test does not count; the present-day ruins view does not count (UD-20)",
+   "ud": "UD-20",
+   "since": "rev 2.6 (s12)"
   }
  ]
 }

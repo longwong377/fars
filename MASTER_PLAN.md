@@ -521,6 +521,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-17 | the GPU machine used in every respect: every surface real at arm's length with CC0 scans and assets over the procedural base (src/render/scans.ts); every limit of the old machine revisited; downloads kept for cloud sessions | §9 (the GPU machine), D-295 | T-A7, T-A4 |
 | UD-18 | speak to the people and they answer: in-browser speech recognition and a language model playing each person (src/people/) from their own baked life, the reply in the translation layer, the heard world period by default | §7 (people), D-296 | T-E9 |
 | UD-19 | build en masse, not verify small details: GPU sessions replace whole asset classes (the lighting, rocks, props, house kits, people) with real modelled or scanned assets, verified once per batch (sessions/) | §6 order (the session 12 plan, HANDOFF.md), D-308 | T-R12 |
+| UD-20 | all the Blender work for everywhere (every class of research/BLENDER_PLAN.md, world-wide) done on the GPU machine; no effort on the present-day ruins view (src/arch/now.ts): the target is the living city | §6 order (sessions/s12.md, the second wave, handoff/briefs/s12) | T-R13 |
 
 ## 13. Revision log
 
