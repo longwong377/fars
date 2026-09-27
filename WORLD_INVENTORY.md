@@ -109,7 +109,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G37 | red fox | A107; F-021 | fauna | B | BUILT (93f56ed: dusk to dawn at the field edges); unrendered |
 | G38 | wild goat and wild sheep on Kuh-e Rahmat | A108; F-026, F-027 | fauna | B | BUILT (93f56ed: bezoar goats high, wild sheep lower on Kuh-e Rahmat); unrendered |
 | G39 | hares | A109; F-012 | fauna | C | BUILT (93f56ed); unrendered |
-| G40 | hedgehog and porcupine | A110; F-025, F-032; C-W19 | fauna | C | MISSING/PARTIAL |
+| G40 | hedgehog and porcupine | A110; F-025, F-032; C-W19 | fauna | C | BUILT (D-291); unrendered |
 | G41 | rats and mice at the stores | A111; B-049, F-042; C-W16 | fauna | B | MISSING/PARTIAL |
 | G42 | bats at dusk | A112; W-025 | fauna | B | BUILT (D-258: pipistrelles over the courts and the water from 20 min after sunset, Mar-Oct); unrendered |
 | G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | PARTIAL (D-263: jirds at their burrows at dawn and dusk; no jerboas); unrendered |
@@ -135,7 +135,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G63 | geckos on the walls at night | A156; F-043 | reptiles | C | MISSING/PARTIAL |
 | G64 | tortoise | A157; F-022 | reptiles | B | BUILT (D-263); unrendered |
 | G65 | snakes | A158; F-023 | reptiles | C | BUILT (D-263: rare); unrendered |
-| G66 | scorpions | A159; F-023; C-W25 | invertebrates | C | MISSING/PARTIAL |
+| G66 | scorpions | A159; F-023; C-W25 | invertebrates | C | BUILT (D-291); unrendered |
 | G67 | frogs seen | A160; F-011 | amphibians | C | BUILT (D-263: seen as well as heard); unrendered |
 | G68 | a locust year | A167; W-047; C-W26 | events | C | MISSING/PARTIAL |
 | G69 | walnut | A171; FL-006; C-W34 | trees | C | MISSING/PARTIAL |
@@ -200,7 +200,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GA45 | winter starlings | A137 | birds | C | BUILT (D-286: a dusk murmuration over the Pulvar's reeds, Nov-Feb); render queued |
 | GA46 | ants | A155; C-W23 | insects | C | MISSING/PARTIAL |
 | GA47 | freshwater crab | A162 | invertebrates | C | MISSING/PARTIAL |
-| GA48 | snails after rain | A163 | invertebrates | C | MISSING/PARTIAL |
+| GA48 | snails after rain | A163 | invertebrates | C | BUILT (D-291); unrendered |
 | GA49 | moths at the lamps | A165 | insects | C | MISSING/PARTIAL |
 | GA50 | cicadas and crickets seen (partial) | A166 | insects | C | MISSING/PARTIAL |
 | GA51 | spiders and webs | A168; C-F28 | invertebrates | C | MISSING/PARTIAL |

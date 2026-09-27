@@ -6820,3 +6820,9 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Decision:** the looped probe lookup is on by default (`?probeloop=0` restores the unrolled one; pinned in tests/defaults.test.ts).
   Share-instancing stays opt-in until a quality-high render passes with it (it failed WebGPU validation at high in session 9 before
   the attribute-count fix): job tj5b renders at high with `&shareinst=1`; if it passes, it goes default the same way.
+
+## D-291 The night's small animals and snails after rain (session 10; WORLD_INVENTORY G40, G66, GA48; hunter C C-W19, C-W25)
+- **Decision (C: recollection of the fauna of southern Iran, SMALL-R):** near the walker, hedgehogs snuffling about the fields,
+  steppe and middens by night (Mar-Oct), now and then an Indian crested porcupine on rock and steppe by night, scorpions hunting on
+  rock and steppe on warm nights (Apr-Sep), and snails out on wet ground after rain (Feb-May, Oct-Nov; the only small life that
+  comes out in the rain). Four more instanced meshes of smallLife.ts (none drawn while empty). Tests: tests/small_life.test.ts.

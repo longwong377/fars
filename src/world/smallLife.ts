@@ -16,13 +16,13 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { attribute, positionLocal, sin, float, vec3, abs, uniform, mix } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
 
-export type SmallKind = 'fly' | 'dragonfly' | 'butterfly' | 'lizard' | 'frog' | 'tortoise' | 'snake' | 'jird';
+export type SmallKind = 'fly' | 'dragonfly' | 'butterfly' | 'lizard' | 'frog' | 'tortoise' | 'snake' | 'jird' | 'hedgehog' | 'porcupine' | 'scorpion' | 'snail';
 export type CellCtx = 'midden' | 'water' | 'rock' | 'field' | 'steppe' | 'none';
 /** a kind of small creature: months (0 = January), hours (and a second window), the cell contexts it lives in, the share of
  *  such cells holding it and how many there, its size and colour; `flee`: it slips away when someone comes within this many
  *  metres and stays hidden `hide` seconds (C) */
 export interface SmallSpec { name: string; months: readonly number[]; hours: [number, number]; hours2?: [number, number]; ctx: readonly CellCtx[]; p: number; per: [number, number]; max: number;
-  span: number; length: number; flapHz: number; colour: [number, number, number]; flee?: number; hide?: number; windOk?: boolean }
+  span: number; length: number; flapHz: number; colour: [number, number, number]; flee?: number; hide?: number; windOk?: boolean; /** out only on wet ground (after rain; rain allowed) */ wet?: boolean }
 export const SMALL: Record<SmallKind, SmallSpec> = {
   fly: { name: 'house fly', months: [3, 4, 5, 6, 7, 8, 9], hours: [8, 18], ctx: ['midden'], p: 1, per: [5, 9], max: 160, span: 0.013, length: 0.008, flapHz: 25, colour: [0.06, 0.06, 0.06] },
   dragonfly: { name: 'dragonfly', months: [4, 5, 6, 7, 8], hours: [9, 17], ctx: ['water'], p: 0.45, per: [1, 2], max: 40, span: 0.09, length: 0.07, flapHz: 6, colour: [0.2, 0.32, 0.45] },
@@ -34,6 +34,12 @@ export const SMALL: Record<SmallKind, SmallSpec> = {
   tortoise: { name: 'spur-thighed tortoise', months: [2, 3, 4, 5], hours: [9, 17], ctx: ['steppe'], p: 0.025, per: [1, 1], max: 6, span: 0, length: 0.2, flapHz: 0, colour: [0.42, 0.37, 0.24], windOk: true },
   snake: { name: 'snake (a whip snake, a viper)', months: [3, 4, 5, 6, 7, 8], hours: [9, 18], ctx: ['rock', 'steppe'], p: 0.012, per: [1, 1], max: 4, span: 0, length: 0.9, flapHz: 0, colour: [0.4, 0.36, 0.28], flee: 3, hide: 300, windOk: true },
   jird: { name: 'jird (Meriones) at its burrows', months: [2, 3, 4, 5, 6, 7, 8, 9, 10], hours: [6, 9], hours2: [17, 19.5], ctx: ['steppe', 'field'], p: 0.06, per: [1, 3], max: 30, span: 0, length: 0.25, flapHz: 0, colour: [0.66, 0.54, 0.38], flee: 5, hide: 120, windOk: true },
+  // session 10 (WORLD_INVENTORY G40, G66, GA48; gap hunter C, C-W19, C-W25): the night's small animals, and snails after rain (C:
+  // the long-eared and Brandt's hedgehogs, the Indian crested porcupine and the scorpions of southern Iran: recollection, SMALL-R)
+  hedgehog: { name: 'hedgehog (long-eared, Brandt\'s) foraging at night', months: [2, 3, 4, 5, 6, 7, 8, 9], hours: [20, 24], hours2: [0, 4.5], ctx: ['field', 'steppe', 'midden'], p: 0.04, per: [1, 1], max: 8, span: 0, length: 0.2, flapHz: 0, colour: [0.42, 0.36, 0.28], windOk: true },
+  porcupine: { name: 'Indian crested porcupine at night', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [20.5, 24], hours2: [0, 4], ctx: ['rock', 'steppe'], p: 0.008, per: [1, 1], max: 3, span: 0, length: 0.7, flapHz: 0, colour: [0.3, 0.27, 0.24], windOk: true },
+  scorpion: { name: 'scorpion (fat-tailed, yellow) hunting at night', months: [3, 4, 5, 6, 7, 8], hours: [20, 24], hours2: [0, 4], ctx: ['rock', 'steppe'], p: 0.06, per: [1, 2], max: 12, span: 0, length: 0.08, flapHz: 0, colour: [0.62, 0.5, 0.25], windOk: true },
+  snail: { name: 'snails out on the wet ground after rain', months: [1, 2, 3, 4, 9, 10], hours: [0, 24], ctx: ['field', 'steppe', 'rock'], p: 0.3, per: [2, 6], max: 120, span: 0, length: 0.03, flapHz: 0, colour: [0.55, 0.48, 0.36], windOk: true, wet: true },
 };
 const KIND_IDX = Object.fromEntries((Object.keys(SMALL) as SmallKind[]).map((k, i) => [k, i + 1])) as Record<SmallKind, number>;
 const BUTTERFLY_COLOURS: [number, number, number][] = [[0.92, 0.91, 0.86], [0.92, 0.91, 0.86], [0.93, 0.78, 0.25], [0.86, 0.5, 0.2]];
@@ -73,6 +79,10 @@ export function smallAt(kind: SmallKind, seed: number, ix: number, iy: number, i
   if (kind === 'snake') { const d = dartAt(s, t + ph, 35, 3, 0.55); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.005; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; }
   if (kind === 'jird') { const T = 4 + 5 * u01(s, 8), d = dartAt(s, t + ph, T, 1.5, 1 - 1.2 / T); // a dash of up to 3 m in 1.2 s (~3.8 m/s at the peak)
     out.e = cx + d.x; out.n = cy + d.y; out.up = 0.005; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; }
+  if (kind === 'hedgehog') { const d = dartAt(s, t + ph, 12, 3, 0.35); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; } // snuffling about, ~0.3 m/s
+  if (kind === 'porcupine') { const d = dartAt(s, t + ph, 25, 4, 0.3); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; }
+  if (kind === 'scorpion') { const d = dartAt(s, t + ph, 30, 0.8, 0.8); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.002; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; } // waiting, then a short run
+  if (kind === 'snail') { const d = dartAt(s, t + ph, 600, 0.6, 0); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; } // ~1 mm/s
   // lizard: basks through each 25-60 s spell, then dashes up to 3.2 m in 1.3 s (~3.7 m/s at the peak)
   const T = 25 + 35 * u01(s, 8), d = dartAt(s, t + ph, T, 1.6, 1 - 1.3 / T); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.01; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0;
 }
@@ -126,6 +136,12 @@ function tortoiseGeometry(): THREE.BufferGeometry {
   return mergeGeometries([d, b.toNonIndexed()])!;
 }
 const snakeGeometry = () => boxesGeometry(Array.from({ length: 24 }, (_, k) => { const t = k / 23, w = 0.028 * (1 - 0.7 * Math.max(0, t - 0.75) / 0.25) * (t < 0.04 ? 0.8 : 1); return [w, 0.018, 0.04, 0, 0.009, 0.45 - k * 0.0375] as [number, number, number, number, number, number]; }), true);
+const hedgehogGeometry = () => boxesGeometry([[0.13, 0.09, 0.19, 0, 0.05, 0], [0.05, 0.04, 0.05, 0, 0.035, 0.11], [0.03, 0.02, 0.03, 0.06, 0.01, 0.06], [0.03, 0.02, 0.03, -0.06, 0.01, 0.06]]);
+const porcupineGeometry = () => boxesGeometry([[0.26, 0.24, 0.5, 0, 0.16, 0], [0.34, 0.3, 0.3, 0, 0.26, -0.12], [0.09, 0.08, 0.12, 0, 0.1, 0.3], [0.04, 0.12, 0.04, 0.1, 0.05, 0.12], [0.04, 0.12, 0.04, -0.1, 0.05, 0.12]]);
+const scorpionGeometry = () => boxesGeometry([[0.022, 0.008, 0.04, 0, 0.005, 0], [0.012, 0.008, 0.012, 0, 0.012, -0.025], [0.009, 0.008, 0.012, 0, 0.022, -0.035], [0.008, 0.012, 0.01, 0, 0.032, -0.03], [0.05, 0.004, 0.006, 0, 0.004, 0.01], [0.012, 0.006, 0.018, 0.018, 0.005, 0.03], [0.012, 0.006, 0.018, -0.018, 0.005, 0.03]]);
+function snailGeometry(): THREE.BufferGeometry { const sh = new THREE.SphereGeometry(0.012, 6, 4); sh.translate(0, 0.012, -0.004); const s = sh.toNonIndexed(); s.deleteAttribute('uv');
+  const n = s.getAttribute('position').count; s.setAttribute('wing', new THREE.Float32BufferAttribute(new Array(n).fill(0), 1)); s.setAttribute('along', new THREE.Float32BufferAttribute(new Array(n).fill(0), 1));
+  return mergeGeometries([s, boxesGeometry([[0.009, 0.005, 0.03, 0, 0.0025, 0.004]]).toNonIndexed()])!; }
 const jirdGeometry = () => boxesGeometry([[0.045, 0.04, 0.09, 0, 0.03, 0], [0.032, 0.03, 0.04, 0, 0.038, 0.06], [0.008, 0.008, 0.12, 0, 0.02, -0.1]]);
 
 export interface SmallWorld {
@@ -140,10 +156,10 @@ export class SmallLife {
   private pose: SmallPose = { e: 0, n: 0, up: 0, heading: 0, flap: 0, visible: false };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private e = new THREE.Euler(0, 0, 0, 'YXZ'); private p = new THREE.Vector3(); private c = new THREE.Color();
   private fled = new Map<number, number>();
-  stats: Record<SmallKind | 'cells' | 'flowers', number> = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0, frog: 0, tortoise: 0, snake: 0, jird: 0, cells: 0, flowers: 0 };
+  stats: Record<SmallKind | 'cells' | 'flowers', number> = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0, frog: 0, tortoise: 0, snake: 0, jird: 0, hedgehog: 0, porcupine: 0, scorpion: 0, snail: 0, cells: 0, flowers: 0 };
   constructor(private seed: number, private world: SmallWorld) {
     this.group.name = 'wildlife-small';
-    const geos: Record<SmallKind, THREE.BufferGeometry> = { fly: wingedGeometry(SMALL.fly.span, SMALL.fly.length, 0.005, 1), dragonfly: wingedGeometry(SMALL.dragonfly.span, SMALL.dragonfly.length, 0.011, 2), butterfly: wingedGeometry(SMALL.butterfly.span, SMALL.butterfly.length, 0.03, 1), lizard: lizardGeometry(), frog: frogGeometry(), tortoise: tortoiseGeometry(), snake: snakeGeometry(), jird: jirdGeometry() };
+    const geos: Record<SmallKind, THREE.BufferGeometry> = { fly: wingedGeometry(SMALL.fly.span, SMALL.fly.length, 0.005, 1), dragonfly: wingedGeometry(SMALL.dragonfly.span, SMALL.dragonfly.length, 0.011, 2), butterfly: wingedGeometry(SMALL.butterfly.span, SMALL.butterfly.length, 0.03, 1), lizard: lizardGeometry(), frog: frogGeometry(), tortoise: tortoiseGeometry(), snake: snakeGeometry(), jird: jirdGeometry(), hedgehog: hedgehogGeometry(), porcupine: porcupineGeometry(), scorpion: scorpionGeometry(), snail: snailGeometry() };
     for (const k of Object.keys(SMALL) as SmallKind[]) {
       const sp = SMALL[k], m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: k === 'dragonfly' ? 0.45 : 0.85, side: THREE.DoubleSide });
       if (sp.flapHz) { const wing = attribute('wing', 'float'), phase = attribute('phase', 'float');
@@ -201,12 +217,12 @@ export class SmallLife {
     return c;
   }
   /** month 0 = January; hour local; t world seconds; the viewer's grid position; rain 0-1; wind m/s */
-  update(month: number, hour: number, t: number, viewer: P2, rain: number, windMs: number, bloom?: { violet: number; yellow: number; red: number }) {
+  update(month: number, hour: number, t: number, viewer: P2, rain: number, windMs: number, bloom?: { violet: number; yellow: number; red: number }, wetness = 0) {
     this.uTime.value = t % 10000;
     this.updateFlowers(viewer, bloom ?? { violet: 0, yellow: 0, red: 0 }, month);
     const counts = Object.fromEntries((Object.keys(SMALL) as SmallKind[]).map(k => [k, 0])) as Record<SmallKind, number>;
     const i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
-    const live = (Object.keys(SMALL) as SmallKind[]).filter(k => { const sp = SMALL[k]; const inH = (w?: [number, number]) => !!w && hour >= w[0] && hour <= w[1]; return sp.months.includes(month) && (inH(sp.hours) || inH(sp.hours2)) && rain < 0.15 && (sp.windOk || windMs < 8); });
+    const live = (Object.keys(SMALL) as SmallKind[]).filter(k => { const sp = SMALL[k]; const inH = (w?: [number, number]) => !!w && hour >= w[0] && hour <= w[1]; return sp.months.includes(month) && (inH(sp.hours) || inH(sp.hours2)) && (sp.wet ? wetness > 0.3 : rain < 0.15) && (sp.windOk || windMs < 8); });
     let cells = 0;
     if (live.length) for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
       if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > R) continue;

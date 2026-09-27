@@ -20,7 +20,10 @@ describe('the small life (session 9)', () => {
   it('in April by day butterflies over field and steppe; rock agamas on rock; nothing by night, in January, in rain', () => {
     const s = mk(); s.update(3, 11, 1000, [0, 0], 0, 2); expect(counts(s).butterfly).toBeGreaterThan(0);
     s.update(3, 11, 1000, [80, 0], 0, 2); expect(counts(s).lizard).toBeGreaterThan(0);
-    for (const [m, h, rain] of [[3, 23, 0], [0, 12, 0], [6, 12, 0.6]] as const) { s.update(m, h, 1000, [0, 20], rain, 2); expect(Object.values(counts(s)).reduce((a, b) => a + b, 0), `${m} ${h} ${rain}`).toBe(0); }
+    // (session 10: by night only the night's animals, hedgehogs, porcupines and scorpions; snails only on wet ground)
+    const NIGHT = new Set(['hedgehog', 'porcupine', 'scorpion']);
+    for (const [m, h, rain] of [[3, 23, 0], [0, 12, 0], [6, 12, 0.6]] as const) { s.update(m, h, 1000, [0, 20], rain, 2); expect(Object.entries(counts(s)).filter(([k]) => !(h === 23 && NIGHT.has(k))).reduce((a, [, b]) => a + (b as number), 0), `${m} ${h} ${rain}`).toBe(0); }
+    s.update(3, 11, 1000, [0, 0], 0.3, 2, undefined, 0.8); expect(counts(s).snail).toBeGreaterThan(0); s.update(3, 11, 1001, [0, 0], 0, 2, undefined, 0); expect(counts(s).snail).toBe(0);
   });
   it('the insects keep to their context: every fly is within 8 m of the midden, every dragonfly over the water strip', () => {
     const s = mk(); s.update(6, 12, 777, [0, 20], 0, 2); const v = new THREE.Vector3(), M = new THREE.Matrix4();
@@ -33,7 +36,7 @@ describe('the small life (session 9)', () => {
     for (const k of Object.keys(SMALL) as (keyof typeof SMALL)[]) for (const i of [0, 1, 2]) for (let t = 100; t < 500; t += 1 / 60) {
       smallAt(k, 3, 2 + i, 5, i, t, a); smallAt(k, 3, 2 + i, 5, i, t + 1 / 60, b);
       // top speeds (C): a fly's dart ~5 m/s, a dragonfly ~10 m/s, a butterfly ~4 m/s, an agama's dash ~3.5 m/s
-      const vmax = { fly: 6, dragonfly: 11, butterfly: 4.5, lizard: 4, frog: 5.5, tortoise: 0.3, snake: 1, jird: 4.5 }[k];
+      const vmax = { fly: 6, dragonfly: 11, butterfly: 4.5, lizard: 4, frog: 5.5, tortoise: 0.3, snake: 1, jird: 4.5, hedgehog: 1.5, porcupine: 1.5, scorpion: 0.5, snail: 0.01 }[k]!;
       expect(Math.hypot(a.e - b.e, a.n - b.n) * 60, `${k} at ${t}`).toBeLessThan(vmax);
     }
     const s1 = mk(), s2 = mk(); s1.update(3, 11, 4321, [0, 0], 0, 2); s2.update(3, 11, 4321, [0, 0], 0, 2);
