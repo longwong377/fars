@@ -7088,3 +7088,12 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Renders (GPU, Q high, FOV game; calib views at their own lens):** shots/moment-<view>-d302a/-d302b-gpu.png for
   stair-foot-ground, small-spring-field, flowers-may, ford-pulvar-sep, drum-road, rainbow-plain, calib-24, calib-24-now,
   ford-kur-apr (+ town-smoke-dusk-rahmat in d302b). Still wrong on screen: B106.
+
+## D-299 compileAsync in the scene pass's own context: tried on the GPU, rejected again (session 11)
+- **Tried:** Pipeline.precompile(): PassNode.compileAsync(renderer) (the scene pass's render target and MRT set, three's own
+  method) with frustum culling off, or renderer.compileAsync at test/low quality (the direct render), before `ready`
+  (branch s11-compile, not merged).
+- **Measured (gate-dusk state, test quality, the T4 with two other GPU jobs running):** precompile 682 s, then frame 0
+  442 s, frame 1 329 s, frame 2 33 s, then 0.2 s: the first frames compiled again (the keys still differ, as D-250 found on
+  SwiftShader), and the load took ~30 min against ~11 min without it (partly the contention). Rejected. The next levers: the
+  browser's shader cache across page loads (measuring), and D-250's single "uber" surface program (fewer pipelines).
