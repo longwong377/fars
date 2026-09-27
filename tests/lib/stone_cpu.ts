@@ -5,7 +5,7 @@
 // SwiftShader render. Not bit-exact where the shader uses Worley noise (the pits: a jittered grid with its own hash here,
 // statistically the same).
 import { mxNoise2, mxNoise3, hash12 } from './mx_noise_cpu';
-import { SURFACES, NOISE_FRAME, TONE_OCTAVES, TONE_NORM, TONE_OFFSETS, LAMINAE, LAM_NORM, STYLO_SPACING, pitMean, styloMean, ARRIS_K, type Joints, type StoneDef, type SurfaceDef } from '../../src/render/materials';
+import { SURFACES, NOISE_FRAME, TONE_OCTAVES, TONE_NORM, TONE_OFFSETS, LAMINAE, LAM_NORM, STYLO_SPACING, pitMean, styloMean, ARRIS_K, SOIL_CELL, type Joints, type StoneDef, type SurfaceDef, type SoilDef } from '../../src/render/materials';
 import { srgbToLinear } from '../../src/core/colour';
 
 const fract = (x: number) => x - Math.floor(x);
@@ -22,7 +22,7 @@ export function ashlarCells(a: number, b: number, J: Joints) {
   const V = J.vary!, H = J.course * 2, k = Math.floor(b / H), f = b - k * H;
   const split = hash12(k, 7.13) * (V.course[1] - V.course[0]) + V.course[0], above = step(split, f), c = 2 * k + above;
   const dBelow = f - above * split, dAbove = (above ? H : split) - f;
-  return { dBed: Math.min(dBelow, dAbove), sBed: dBelow <= dAbove ? 1 : -1, c, ...headCells(a, J.block, V.jitter, c) };
+  return { dBed: Math.min(dBelow, dAbove), sBed: dBelow <= dAbove ? 1 : -1, dAbove, c, ...headCells(a, J.block, V.jitter, c) };
 }
 export function headCells(a: number, L: number, jitter: number, c: number) {
   const u = (a - hash12(c, 3.71) * L) / L, j0 = Math.floor(u);
@@ -96,10 +96,37 @@ export interface WallView {
   outY: number;
   /** patch of wall (m): x0, y0, width, height; the face's out-of-plane coordinate z */
   patch: [number, number, number, number]; z?: number;
+  /** the wall's top (m, same frame as the patch): the run-off streaks below it (materials.ts arch `runoff`, D-157/D-285) */
+  top?: number;
+}
+/** materials.ts run-off below a part's top (vertical face at z; D-285: its reach per surface) as an albedo factor */
+export function runoffAt(d: SurfaceDef, x: number, y: number, z: number, top: number): number {
+  if (!d.runoff) return 1;
+  const below = top - y; if (below < 0) return 1;
+  const q = [x * 2.2, y * 0.2, z * 2.2];
+  const st = smoothstep(0.15, 0.65, mxNoise3(q[0] + 4.1, q[1] + 0.3, q[2] + 7.9) * 0.5 + 0.5 + mxNoise3(q[0] * 2.7, q[1] * 2.7, q[2] * 2.7) * 0.15);
+  const rl = soilOn ? d.runoffLen ?? 3 : 3;
+  return 1 - st * (1 - smoothstep(0.2, rl, below)) * d.runoff;
 }
 /** a stone surface definition in the "session-4" state (D-157), for before/after comparisons */
 export function d157(d: SurfaceDef): SurfaceDef {
   return { ...d, stone: undefined, joints: { ...d.joints!, lip: 0.005, lipDark: 0.25, warmCool: 0.03, tilt: 0.0075, blockSd: undefined } };
+}
+/** D-285 soiling switches for the mirror: off = the surfaces before D-285; wet = the water factor (materials.ts: 1 at a part's
+ *  top … 0.45 10 m below it; 0.8 off the architecture's meshes) */
+let soilOn = true, soilWet = 0.8;
+export function setSoil(on: boolean, wet = 0.8) { soilOn = on; soilWet = wet; }
+/** materials.ts D-285 soil (vertical face): the albedo factor f after the drip stains. t = m along the course, px = the pixel
+ *  footprint, c = the course index, dAbove = m below the bed joint above */
+export function soilAt(So: SoilDef, f: number, t: number, px: number, c: number, dAbove: number, wet: number): number {
+  const ci = Math.floor(t / SOIL_CELL), cc = c + 0.5;
+  const present = step(hash12(ci + 0.7, cc + 3.3), So.share);
+  const x0 = (ci + 0.15 + hash12(ci, cc + 8.1) * 0.7) * SOIL_CELL;
+  const wS = So.w[0] + hash12(ci + 4.4, cc) * (So.w[1] - So.w[0]), lS = So.len[0] + hash12(cc + 1.1, ci + 2.2) * (So.len[1] - So.len[0]);
+  const s01 = dAbove / lS, along = clamp(1 - s01, 0, 1), wz = wS * (1 + Math.min(1, s01) * 0.5), dx = (t - x0) / wz;
+  const res = 1 - smoothstep(0.35, 0.9, px / wz);
+  const across = (1 - res) * (So.share * 1.77 * wz / SOIL_CELL) + res * Math.exp(-dx * dx) * present;
+  return f * (1 - along * along * across * wet * So.drip);
 }
 /** albedo factor (× the surface albedo) and shading normal of the ashlar at a point of a vertical wall, per pixel of size px */
 export function ashlarPixel(d: SurfaceDef, x: number, y: number, z: number, px: number) {
@@ -113,6 +140,7 @@ export function ashlarPixel(d: SurfaceDef, x: number, y: number, z: number, px: 
   if (d.stone) { tx -= ARRIS_K * W.sHead * lipH; ty -= ARRIS_K * W.sBed * lipB; }
   if (J.tilt) { const a = d.stone ? ids.a : hash12(W.blk + 2.3, W.c + 9.1), e = d.stone ? ids.e : hash12(W.c + 4.4, W.blk + 6.6); tx += (2 * a - 1) * J.tilt; ty += (2 * e - 1) * J.tilt; }
   if (d.stone) { const s = stoneDetail(d.stone, x, y, 1, ids, fp); f *= s.f; tx += s.tx; ty += s.ty; }
+  if (d.soil && soilOn) f = soilAt(d.soil, f, x, px, W.c, W.dAbove, soilWet);
   // the procedural bump's base octave (materials.ts layer(): mx_noise(p × freq) × amp, band-limited), as a slope
   if (d.bump) {
     const B = d.bump, k = B.freq, band = 1 - smoothstep(0.15, 0.35, fp * k), e = 1e-3;
@@ -130,7 +158,8 @@ export function renderWall(d: SurfaceDef, V: WallView) {
   const lin: number[] = [];
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const P = ashlarPixel(d, x0 + (i + 0.5) * px, y0 + (j + 0.5) * px, z, px);
-    lin.push(rho * P.f * (Math.max(0, P.n[0] * L[0] + P.n[1] * L[1] + P.n[2] * L[2]) + sky));
+    const ro = V.top !== undefined ? runoffAt(d, x0 + (i + 0.5) * px, y0 + (j + 0.5) * px, z, V.top) : 1;
+    lin.push(rho * P.f * ro * (Math.max(0, P.n[0] * L[0] + P.n[1] * L[1] + P.n[2] * L[2]) + sky));
   }
   // exposure: the mean stone maps to V.outY
   const m = lin.reduce((a, b) => a + b, 0) / lin.length;

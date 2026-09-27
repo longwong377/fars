@@ -37,6 +37,7 @@ import { RAIN_CELL } from './sky/clouds';
 import { roofedAt } from './render/probes/roofs';
 import { seasonAt } from './world/season';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
+import { loadScans } from './render/scans';
 installWebGPUCompat();
 
 const P = urlParams();
@@ -70,8 +71,11 @@ async function boot() {
   let renderer: THREE.WebGPURenderer;
   try {
     // reversed-Z on WebGPU; the WebGL2 fallback needs EXT_clip_control for that, so it uses a logarithmic depth buffer (D-007)
-    const gpuOK = !settings.forceWebGL && !!(navigator as any).gpu && !!(await (navigator as any).gpu.requestAdapter().catch(() => null));
-    renderer = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: !gpuOK, reversedDepthBuffer: gpuOK && !P.has('noreverse'), logarithmicDepthBuffer: !gpuOK, trackTimestamp: P.has('bench') });
+    const adapter = !settings.forceWebGL && (navigator as any).gpu ? await (navigator as any).gpu.requestAdapter().catch(() => null) : null, gpuOK = !!adapter;
+    // session 11: ask for the adapter's own sampled-texture limit (the default 16 blocked fire-light shadows, B24, and the
+    // scanned surfaces; the T4 allows 48). Capped at 48; an adapter at 16 keeps 16.
+    const requiredLimits = adapter ? { maxSampledTexturesPerShaderStage: Math.min(48, adapter.limits.maxSampledTexturesPerShaderStage) } : undefined;
+    renderer = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: !gpuOK, requiredLimits, reversedDepthBuffer: gpuOK && !P.has('noreverse'), logarithmicDepthBuffer: !gpuOK, trackTimestamp: P.has('bench') });
     await renderer.init();
   } catch (e) {
     console.warn('WebGPU init failed, falling back to WebGL2', e);
@@ -97,6 +101,7 @@ async function boot() {
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
   shell.loading('Loading the plain and the mountain…');
+  await loadScans('/'); // scanned surface detail (session 11, B7 lifted): before any surface material is built
   const terrain = await Terrain.load('/');
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
   const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars('/'); sky.meteors.seed = SEED;

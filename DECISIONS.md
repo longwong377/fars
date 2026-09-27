@@ -6949,6 +6949,49 @@ moment-*-webgpu.png in the worktree, not committed).**
   frame from the J2000 obliquity (tests/zodiacal.test.ts: the Sun on it, |β| < 0.8°, at every hour and season). Unrendered:
   moment `zodiacal-mar` queued (day 322, the new moon of early March).
 
+## D-285 Terrace materials against the references (sessions 10-11; UD-01, UD-05, UD-06, UD-16; B40, B91-B93, Q-750, Q-751)
+- **Gap:** the Terrace's surfaces read as CG (gate-dusk: the Gate's walls one flat orange-brown; #24: the Terrace wall "grey
+  concrete"; B40 sunlit ashlar Ystd/Y 0.15-0.25 not met).
+- **Decision (src/render/materials.ts, behind `window.__parsaSurf.d285`; C):** (1) the palaces' mud plaster (every `mudbrick` /
+  `mudbrick_painted` part) gets its plastering campaign, PlasterWeatherDef: lifts 1.1-1.7 m and bays ~3 m, each a batch of its
+  own tone (1σ 5 %) feathered to the mean over the last 0.4 m to its edges; hand strokes 0.6 × 0.25 m in a direction of the bay's
+  own (2.5 mm relief, two octaves), the coat's mottle (4.5 %) on the same two noises (lighter on the ridges); rain-wash lanes
+  over the top 5 m between the run-off streaks (sharing their noise). No overlap ridge (a 2 % ridge read as coursing joints at
+  5 m in the session-11 blind review). Set against the only mud plaster in the references (#21, the modern kahgel coat round
+  the Gate's hall: Ystd/Y 0.036 in 0.5 m windows at 0.032 m/px). (2) Dressed stone: drip stains hanging from the bed joints
+  (SoilDef), the Terrace's run-off reaching 6 m down. (3) The Now view's limestone (src/world/nowview.ts NOW_STONE_TINT):
+  scene-linear × (0.284, 0.212, 0.203), from the lead's GPU measurement of calib-24-now against #24 (display luma wall/ground
+  0.73 photo vs 1.47 render; wall R/B 1.65 vs 1.19), inverting AgX at the render's levels. **The 467 stone stays pale grey:**
+  ~50 years from the quarry it has not the ruin's 2,500 years of crust, dust and iron staining (D-230: near-fresh block tone 13 %
+  from #29); the #24 comparison binds the Now view, not 467.
+- **Evidence (GPU renders, T4, quality test, probes stale: the lead rebakes later):** the Gate's W wall at 24 m, 0.5 m windows
+  0.022 → 0.032 (N of the door) and 0.018 → 0.024 (S), photo 0.036; at 5 m 0.019 → 0.033; gate-dusk (render 1, before the feathering) 0.072 → 0.098 (N). The
+  Terrace's stone: no measurable change (calib-24 region 0.067 both; B40, B92). Fragment ALU (tools/dev/shader_cost_d285.ts,
+  WGSL built in node, noise calls weighted by their bodies): mudbrick +8.3 % (WGSL chars +20.6 %), limestone +1.2 %, terrace
+  +0.6 %. Blind review (REVIEWS/d285_materials_review.md, uncalibrated): materials 1-2/5, 7/7 frames read as CG; no difference
+  seen at 24-150 m (B93).
+- **Rejected:** raising the block tone to the ruin's 23-27 % to meet B40 (weathered-stone amplitudes on 50-year-old stone);
+  a dust band 0.9 m high on the retaining walls (it lies underground: y0 is the foundation, B91).
+- **Reversible:** yes (the d285 switch; NOW_STONE_TINT one constant).
+
+## D-295 Scanned surface detail over the procedural surfaces; the adapter's texture limit (session 11; B7, B24; UD-06, UD-14)
+- **Problem:** every surface was procedural TSL because no texture library was reachable (B7, proxy 403). The renders and
+  the D-285 blind review (7/7 frames "reads as CG") show procedural grain does not reach the photoreal bar at arm's length.
+  The GPU machine reaches Poly Haven and ambientCG (CC0).
+- **Decision:** src/render/scans.ts lays 2K CC0 photo scans (13 at first: weathered rock face, cliff, mud plaster and
+  mudbrick, dry earth, gravel, rocky bank, timber; src/data/scans.json, ASSET_LEDGER.md) over the procedural layer of 26
+  surfaces: albedo × (scan ÷ its own mean) blended per surface, so the measured tint, mean, masonry layout, joints and
+  weathering stay the evidence's; the scan's luminance as a bump (mm to cm); roughness × (scan ÷ its mean). Triplanar in
+  world space; the ground takes a second, larger tile against visible repeats. Loaded before any surface material builds
+  (main.ts); `?noscans` for the A/B; in node applyScan is the identity, so every CPU mirror still holds (surfaces,
+  materials, stone, masonry, polychromy tests 54/54). Tier C (modern stone and earth for 467's grain).
+- **The texture limit:** the scans took a surface's fragment stage to 17 sampled textures (WebGPU default 16). main.ts
+  now requests the adapter's own maxSampledTexturesPerShaderStage (capped at 48; the T4 gives 48, an adapter at 16 keeps
+  16). The same limit blocked fire-light shadows (B24, `?fireshadows=12`): to be re-tried.
+- **Seen (GPU, Q high, session 11):** stair-foot-ground: the plain reads as real cracked dry earth where it read as blotchy
+  camouflage; calib-24-now: grain on the wall and the plain, but the wall stays pale grey (the D-285 Now-view tint is on
+  its branch) and Kuh-e Rahmat stays a smooth dune (the terrain mesh does not use surfaceMaterial): next.
+
 ## D-296 Speaking with the people (session 11; UD-18; T-E9) — the plan
 - **Direction (UD-18):** the user wants to speak to a person and have them answer, in a world anyone runs from a URL on a
   good GPU. It supersedes §10 where they differ; the rest of §10 stands.

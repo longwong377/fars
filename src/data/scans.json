@@ -1,0 +1,266 @@
+{
+ "aerial_ground_rock": {
+  "meanLinear": [
+   0.22157,
+   0.14777,
+   0.10838
+  ],
+  "meanAO": 0.4861,
+  "meanRough": 0.8383,
+  "name": "Aerial Ground Rock",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/aerial_ground_rock",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "brown_mud_dry": {
+  "meanLinear": [
+   0.19405,
+   0.11946,
+   0.05685
+  ],
+  "meanAO": 0.5869,
+  "meanRough": 0.5274,
+  "name": "Brown Mud Dry",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/brown_mud_dry",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "clay_block_wall": {
+  "meanLinear": [
+   0.22836,
+   0.13373,
+   0.06354
+  ],
+  "meanAO": 0.8143,
+  "meanRough": 0.94,
+  "name": "Clay Block Wall",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/clay_block_wall",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "clay_plaster": {
+  "meanLinear": [
+   0.16966,
+   0.10193,
+   0.04511
+  ],
+  "meanAO": 0.9738,
+  "meanRough": 0.9225,
+  "name": "Clay Plaster",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/clay_plaster",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "cliff_side": {
+  "meanLinear": [
+   0.21338,
+   0.09158,
+   0.03418
+  ],
+  "meanAO": 0.9609,
+  "meanRough": 0.8616,
+  "name": "Cliff Side",
+  "authors": [
+   "James Ray Cock",
+   "Jenelle van Heerden",
+   "Dario Barresi"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/cliff_side",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "dry_ground_01": {
+  "meanLinear": [
+   0.24127,
+   0.20075,
+   0.14787
+  ],
+  "meanAO": 0.5127,
+  "meanRough": 0.829,
+  "name": "Dry Ground 01",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/dry_ground_01",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "dry_ground_rocks": {
+  "meanLinear": [
+   0.31686,
+   0.18456,
+   0.08583
+  ],
+  "meanAO": 0.4634,
+  "meanRough": 0.8117,
+  "name": "Dry Ground Rocks",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/dry_ground_rocks",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "dry_mud_field_001": {
+  "meanLinear": [
+   0.13608,
+   0.10216,
+   0.06298
+  ],
+  "meanAO": 0.7858,
+  "meanRough": 0.8276,
+  "name": "Dry Mud Field 001",
+  "authors": [
+   "Rob Tuytel",
+   "Rico Cilliers"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/dry_mud_field_001",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "gravelly_sand": {
+  "meanLinear": [
+   0.29215,
+   0.16122,
+   0.07617
+  ],
+  "meanAO": 0.8895,
+  "meanRough": 0.7884,
+  "name": "Gravelly Sand",
+  "authors": [
+   "Dario Barresi"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/gravelly_sand",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "mud_cracked_dry_03": {
+  "meanLinear": [
+   0.63611,
+   0.40252,
+   0.22603
+  ],
+  "meanAO": 0.7449,
+  "meanRough": 0.7557,
+  "name": "Mud Cracked Dry 03",
+  "authors": [
+   "Dario Barresi",
+   "Dimitrios Savva"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/mud_cracked_dry_03",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "rock_wall_02": {
+  "meanLinear": [
+   0.10534,
+   0.07873,
+   0.04041
+  ],
+  "meanAO": 0.8795,
+  "meanRough": 0.8123,
+  "name": "Rock Wall 02",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rock_wall_02",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "rough_wood": {
+  "meanLinear": [
+   0.15346,
+   0.12808,
+   0.10102
+  ],
+  "meanAO": 0.7811,
+  "meanRough": 0.5095,
+  "name": "Rough Wood",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/rough_wood",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "sandy_gravel_02": {
+  "meanLinear": [
+   0.32548,
+   0.17384,
+   0.08688
+  ],
+  "meanAO": 0.8435,
+  "meanRough": 0.7853,
+  "name": "Sandy Gravel 02",
+  "authors": [
+   "Dario Barresi"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/sandy_gravel_02",
+  "res": "2k",
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ }
+}
