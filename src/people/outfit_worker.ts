@@ -14,7 +14,7 @@ ctx.onmessage = async (e: MessageEvent<{ meta: HumanAssetsMeta; bin: ArrayBuffer
     await MeshoptSimplifier.ready;
     const O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier), models: e.data.models ?? null }); // (D-307: the hair cards and drape)
     const transfer: ArrayBuffer[] = [O.source.buffer as ArrayBuffer];
-    for (const list of Object.values(O.costumes)) for (const C of list) for (const k of ['tid', 'skinIndex', 'skinWeight', 'uv', 'hmat', 'hext', 'refPos', 'refNrm', 'index'] as const) transfer.push((C as any)[k].buffer);
+    for (const list of Object.values(O.costumes)) for (const C of list) for (const k of ['tid', 'skinIndex', 'skinWeight', 'uv', 'hmat', 'hext', 'refPos', 'refNrm', 'index', 'fuv'] as const) transfer.push((C as any)[k].buffer);
     ctx.postMessage({ NV: O.NV, pieceBase: O.pieceBase, source: O.source, costumes: O.costumes, ms: O.ms }, transfer);
   } catch (err) { ctx.postMessage({ error: String((err as Error)?.stack ?? err) }); }
 };

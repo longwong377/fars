@@ -4,16 +4,20 @@
   "people_cloth": {
    "files": {
     "people_cloth.json": {
-     "sha256": "66e5487e71af5f49bed078548aa29bcd6edba6e767c63815a0eb5829a9d5c23d",
-     "bytes": 17257
+     "sha256": "4111dc8e3e4eb447790038b6539331fe28806d117aaf6c0901e16ee3668f15dd",
+     "bytes": 19726
     },
     "people_cloth.bin": {
-     "sha256": "5f09e0af16e681918727ceb1f54f73c40f0732965a1088c2a439a57f30b13f0a",
-     "bytes": 172468
+     "sha256": "49e55187aab309a639880c4008f50360d32abf45457451f066696a2aac35a563",
+     "bytes": 338596
+    },
+    "people_cloth_folds.png": {
+     "sha256": "638a341e92c20cb281759e1ee2a5f4973a500efac14341e1366fd71558522e4d",
+     "bytes": 524735
     }
    },
-   "inHash": "7ff3c9ee5328acdefffd2ac0f7deabbaf0c494094750cef1844c68574fc8e754",
-   "bytes": 189725,
+   "inHash": "b6ec5369182870b025aaa8653d2f17ead07325a9650fd35aec6aaf246233f8b0",
+   "bytes": 883057,
    "gpuBytes": 0,
    "stats": {
     "robe_skirt_men": {
@@ -248,14 +252,14 @@
      "pushed": 0
     },
     "child_upper@0|children": {
-     "rms_mm": 12.4,
-     "max_mm": 67,
+     "rms_mm": 14.1,
+     "max_mm": 67.5,
      "sampled": 987,
      "pushed": 0
     },
     "child_upper@1|children": {
-     "rms_mm": 10.4,
-     "max_mm": 48.9,
+     "rms_mm": 12.9,
+     "max_mm": 69.7,
      "sampled": 321,
      "pushed": 0
     },
@@ -296,14 +300,14 @@
      "pushed": 0
     },
     "dress_upper@0|women": {
-     "rms_mm": 9.3,
-     "max_mm": 39.5,
+     "rms_mm": 11.2,
+     "max_mm": 57.2,
      "sampled": 1078,
      "pushed": 0
     },
     "dress_upper@1|women": {
-     "rms_mm": 8.6,
-     "max_mm": 40.2,
+     "rms_mm": 9.9,
+     "max_mm": 41.5,
      "sampled": 314,
      "pushed": 0
     },
@@ -380,26 +384,26 @@
      "pushed": 0
     },
     "robe_upper@0|men": {
-     "rms_mm": 10,
-     "max_mm": 39.6,
+     "rms_mm": 10.7,
+     "max_mm": 37,
      "sampled": 1024,
      "pushed": 0
     },
     "robe_upper@1|men": {
-     "rms_mm": 10.3,
-     "max_mm": 44.3,
+     "rms_mm": 10.6,
+     "max_mm": 45.6,
      "sampled": 317,
      "pushed": 0
     },
     "robe_upper@0|women": {
-     "rms_mm": 11.3,
-     "max_mm": 46.2,
+     "rms_mm": 12,
+     "max_mm": 45,
      "sampled": 1024,
      "pushed": 0
     },
     "robe_upper@1|women": {
-     "rms_mm": 11.7,
-     "max_mm": 44.7,
+     "rms_mm": 12.5,
+     "max_mm": 47.6,
      "sampled": 317,
      "pushed": 0
     },
@@ -434,14 +438,14 @@
      "pushed": 0
     },
     "tunic_upper@0|men": {
-     "rms_mm": 10.6,
-     "max_mm": 42,
+     "rms_mm": 11.2,
+     "max_mm": 51,
      "sampled": 1066,
      "pushed": 0
     },
     "tunic_upper@1|men": {
-     "rms_mm": 9.7,
-     "max_mm": 36.2,
+     "rms_mm": 10,
+     "max_mm": 48.4,
      "sampled": 299,
      "pushed": 0
     },
@@ -476,14 +480,14 @@
      "pushed": 0
     },
     "work_upper@0|men": {
-     "rms_mm": 10.2,
-     "max_mm": 36,
+     "rms_mm": 12.6,
+     "max_mm": 45.6,
      "sampled": 987,
      "pushed": 0
     },
     "work_upper@1|men": {
-     "rms_mm": 10.2,
-     "max_mm": 41.9,
+     "rms_mm": 13.3,
+     "max_mm": 57.9,
      "sampled": 321,
      "pushed": 0
     },
@@ -524,63 +528,70 @@
      "pushed": 0
     },
     "headcloth@0|women": {
-     "rms_mm": 11.4,
-     "max_mm": 47.3,
+     "rms_mm": 12.2,
+     "max_mm": 55.6,
      "sampled": 772,
-     "pushed": 1
+     "pushed": 4
     },
     "headcloth@1|women": {
-     "rms_mm": 11.8,
-     "max_mm": 37,
+     "rms_mm": 12.6,
+     "max_mm": 43.2,
      "sampled": 221,
      "pushed": 2
     },
     "kandys@0|men": {
-     "rms_mm": 15.6,
-     "max_mm": 113.8,
+     "rms_mm": 15.4,
+     "max_mm": 69.7,
      "sampled": 1232,
-     "pushed": 135
+     "pushed": 149
     },
     "kandys@1|men": {
-     "rms_mm": 18.8,
-     "max_mm": 70.8,
+     "rms_mm": 19.8,
+     "max_mm": 69.8,
      "sampled": 234,
-     "pushed": 26
+     "pushed": 20
     },
     "kandys@2|men": {
-     "rms_mm": 21.6,
-     "max_mm": 70.8,
+     "rms_mm": 22.8,
+     "max_mm": 69.8,
      "sampled": 193,
-     "pushed": 27
+     "pushed": 20
     },
     "veil@0|women": {
-     "rms_mm": 107.8,
-     "max_mm": 210.1,
+     "rms_mm": 78.2,
+     "max_mm": 156,
      "sampled": 221,
-     "pushed": 15
+     "pushed": 0
     },
     "veil@1|women": {
-     "rms_mm": 99.2,
-     "max_mm": 204.3,
+     "rms_mm": 63.4,
+     "max_mm": 125.9,
      "sampled": 54,
-     "pushed": 5
+     "pushed": 0
     },
     "veil@2|women": {
-     "rms_mm": 96.5,
-     "max_mm": 204.4,
+     "rms_mm": 57.7,
+     "max_mm": 107,
      "sampled": 24,
-     "pushed": 2
+     "pushed": 0
+    },
+    "$folds": {
+     "scale_mm": 12,
+     "texelsPerMetre": 158.3,
+     "charts": 25,
+     "samples": 152394
     }
    },
    "tier": "C",
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 544,
+   "build_s": 375,
    "reproduced": {
     "files": {
-     "people_cloth.json": "66e5487e71af5f49bed078548aa29bcd6edba6e767c63815a0eb5829a9d5c23d",
-     "people_cloth.bin": "5f09e0af16e681918727ceb1f54f73c40f0732965a1088c2a439a57f30b13f0a"
+     "people_cloth.json": "4111dc8e3e4eb447790038b6539331fe28806d117aaf6c0901e16ee3668f15dd",
+     "people_cloth.bin": "49e55187aab309a639880c4008f50360d32abf45457451f066696a2aac35a563",
+     "people_cloth_folds.png": "638a341e92c20cb281759e1ee2a5f4973a500efac14341e1366fd71558522e4d"
     },
     "blender": "5.0.1"
    }
@@ -600,7 +611,7 @@
      "bytes": 4201931
     }
    },
-   "inHash": "831207541c8d3bb5bf171bd4332ea53b083eac3cd21fb866a1b042f7c15b1c1d",
+   "inHash": "b11adf97572fd92874ed65681fdbad1e97fa578bc3a583ef608d4c78649aed23",
    "bytes": 4430738,
    "gpuBytes": 5592405,
    "stats": {
@@ -659,7 +670,7 @@
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 283,
+   "build_s": 66,
    "reproduced": {
     "files": {
      "people_hair.json": "a5b59089021dcfe4fcfbf38eeb3fb7f759d23855c22e4550d646d8dc71922be6",

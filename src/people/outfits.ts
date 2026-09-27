@@ -51,6 +51,9 @@ export interface Geo {
   aux: Uint8Array;
   /** 0 at a shell's cut line … 255 a ramp inside it (hair and beard edges are frayed in the shader) */
   edge: Uint8Array;
+  /** D-322: the piece's own parameter per vertex (a tube's column and length, a shell's body UV), before anything rewrites uv:
+   *  the fold atlas's charts are laid out by it; and the fold atlas coordinate itself, from people_cloth (−1: none) */
+  puv?: Float32Array; fuv?: Float32Array;
   /** bind positions for one variant (n × 3) */
   place(c: Ctx): Float32Array;
 }
@@ -178,7 +181,7 @@ function shellGeo(A: HumanAssets, ref: HumanVariant, key: string, o: ShellOpts):
   // turned edges: the weights, uv and slack of the edge they turn under; a cavity (the inside of the hem) and the cut line
   lipOf.forEach((k, j) => { const i = n0 + j; g.si.set(g.si.subarray(k * 4, k * 4 + 4), i * 4); g.sw.set(g.sw.subarray(k * 4, k * 4 + 4), i * 4);
     g.uv[i * 2] = g.uv[k * 2]; g.uv[i * 2 + 1] = g.uv[k * 2 + 1]; g.slack[i] = g.slack[k]; g.ao[i] = Math.round(g.ao[k] * 0.6); g.edge[i] = 0; });
-  setMat(g, o.mat, o.col, o.prm ?? 0);
+  setMat(g, o.mat, o.col, o.prm ?? 0); g.puv = g.uv.slice();
   return g;
 }
 
@@ -275,7 +278,7 @@ function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
     if (o.slack) g.slack[i] = Math.round(255 * clamp(o.slack(t, th))); if (o.aux) g.aux[i] = Math.round(255 * clamp(o.aux(t, th))); if (layer === 1) g.ao[i] = 150; }
   if (pS >= 0) { setW(g, pS, o.weights(tOf(0, R), 0)); g.uv.set([0.5, 0], pS * 2); if (o.aux) g.aux[pS] = Math.round(255 * clamp(o.aux(tOf(0, R), 0))); }
   if (pE >= 0) { setW(g, pE, o.weights(tOf(R, R), 0)); g.uv.set([0.5, 1], pE * 2); if (o.aux) g.aux[pE] = Math.round(255 * clamp(o.aux(tOf(R, R), 0))); }
-  setMat(g, o.mat, o.col, o.prm ?? 0);
+  setMat(g, o.mat, o.col, o.prm ?? 0); g.puv = g.uv.slice();
   return g;
 }
 /** frame along a straight segment a→b with θ = 0 toward `ref` (made perpendicular) */
@@ -550,6 +553,7 @@ function merge(key: string, gs: Geo[]): Geo {
   for (const g of gs) { for (const i of g.index) idx.push(i + off); off += g.n; }
   const out = newGeo(key, n, idx, (c: Ctx) => { const o = new Float32Array(n * 3); let k = 0; for (const g of gs) { o.set(g.place(c), k * 3); k += g.n; } return o; });
   off = 0; for (const g of gs) { out.si.set(g.si, off * 4); out.sw.set(g.sw, off * 4); out.uv.set(g.uv, off * 2); out.mat.set(g.mat, off); out.edge.set(g.edge, off); out.col.set(g.col, off); out.prm.set(g.prm, off); out.slack.set(g.slack, off); out.aux.set(g.aux, off); out.ao.set(g.ao, off); off += g.n; }
+  if (gs.every(g => g.puv)) { out.puv = new Float32Array(n * 2); off = 0; for (const g of gs) { out.puv.set(g.puv!, off * 2); off += g.n; } }
   return out;
 }
 /** band around the body at a height, fitted over whatever is placed there already (belts) */
@@ -1313,6 +1317,8 @@ export interface CostumeLOD {
   dress: Dress; lod: number;
   /** vertex attributes (tid = index into the vertex source; hmat = class, colour slot, piece bit, param; hext = ao, slack, skirt flag (D-189), cut-line ramp) */
   tid: Float32Array; skinIndex: Uint8Array; skinWeight: Uint8Array; uv: Float32Array; hmat: Uint8Array; hext: Uint8Array;
+  /** D-322: the garments' fold atlas coordinate (x + 2 below full detail: the material reads the second fold layer; −1 none) */
+  fuv: Float32Array;
   /** reference-variant bind position and normal (the geometry's position/normal attributes; bounds and raycasts) */
   refPos: Float32Array; refNrm: Float32Array;
   index: Uint32Array; triangles: number; bodyTriangles: number;
@@ -1379,6 +1385,8 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
   const need: { id: string; lod: number }[] = [];
   for (const d of dresses) for (const l of lods) for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) need.push({ id, lod: l });
   for (const { id, lod } of need) { const k = geoKey(id, lod); if (!geos[k]) geos[k] = buildPiece(L, id, geoLod(id, lod)); }
+  // D-322: the fold atlas coordinates of the simulated pieces (people_cloth)
+  const FU = opts.models?.drape?.fuv; if (FU) for (const [k, g] of Object.entries(geos)) { const f = FU[k]; if (f && f.length === g.n * 2) g.fuv = f; }
   if (opts.profile) opts.profile.$construct = performance.now() - t0;
   // vertex source layout
   const pieceBase: Record<string, number> = {}; let NV = A.NO;
@@ -1416,7 +1424,7 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
         for (const i of g.index) index.push(off + i); pieceTris[id] = g.index.length / 3; }
       const n = verts.length;
       const out: CostumeLOD = { dress: d, lod, tid: new Float32Array(n), skinIndex: new Uint8Array(n * 4), skinWeight: new Uint8Array(n * 4), uv: new Float32Array(n * 2), hmat: new Uint8Array(n * 4), hext: new Uint8Array(n * 4),
-        refPos: new Float32Array(n * 3), refNrm: new Float32Array(n * 3), index: Uint32Array.from(index), triangles: index.length / 3, bodyTriangles: bodyIdx.length / 3, pieceTris };
+        refPos: new Float32Array(n * 3), refNrm: new Float32Array(n * 3), index: Uint32Array.from(index), triangles: index.length / 3, bodyTriangles: bodyIdx.length / 3, pieceTris, fuv: new Float32Array(n * 2).fill(-1) };
       for (let k = 0; k < n; k++) { const q = verts[k];
         out.tid[k] = q.tid;
         const s = refBase + q.tid * 4; out.refPos[k * 3] = source[s]; out.refPos[k * 3 + 1] = source[s + 1]; out.refPos[k * 3 + 2] = source[s + 2]; const nn = unpackNormal(source[s + 3]); out.refNrm[k * 3] = nn[0]; out.refNrm[k * 3 + 1] = nn[1]; out.refNrm[k * 3 + 2] = nn[2];
@@ -1425,7 +1433,8 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
           const pt = A.part[i]; const mat = pt === PART.eye ? MAT.eye : pt === PART.teeth ? MAT.teeth : pt === PART.tongue ? MAT.mouth : pt === PART.lash ? MAT.lash : MAT.skin;
           out.hmat[k * 4] = mat; out.hmat[k * 4 + 1] = mat === MAT.lash ? COL.hair : mat === MAT.skin ? COL.skin : COL.fixed; out.hext[k * 4] = Math.round(255 * A.ao[i]); out.hext[k * 4 + 1] = extras.hy[i]; out.hext[k * 4 + 2] = Math.round(255 * beardV[i]); out.hext[k * 4 + 3] = extras.hw[i]; }
         else { const g = q.g!, i = q.i; for (let j = 0; j < 4; j++) { out.skinIndex[k * 4 + j] = g.si[i * 4 + j]; out.skinWeight[k * 4 + j] = g.sw[i * 4 + j]; } out.uv[k * 2] = g.uv[i * 2]; out.uv[k * 2 + 1] = g.uv[i * 2 + 1];
-          out.hmat[k * 4] = g.mat[i]; out.hmat[k * 4 + 1] = g.col[i]; out.hmat[k * 4 + 2] = q.bit; out.hmat[k * 4 + 3] = g.prm[i]; out.hext[k * 4] = g.ao[i]; out.hext[k * 4 + 1] = g.slack[i]; out.hext[k * 4 + 2] = g.aux[i]; out.hext[k * 4 + 3] = g.edge[i]; }
+          out.hmat[k * 4] = g.mat[i]; out.hmat[k * 4 + 1] = g.col[i]; out.hmat[k * 4 + 2] = q.bit; out.hmat[k * 4 + 3] = g.prm[i]; out.hext[k * 4] = g.ao[i]; out.hext[k * 4 + 1] = g.slack[i]; out.hext[k * 4 + 2] = g.aux[i]; out.hext[k * 4 + 3] = g.edge[i];
+          if (g.fuv && g.fuv[i * 2] >= 0) { out.fuv[k * 2] = g.fuv[i * 2] + (lod >= 1 ? 2 : 0); out.fuv[k * 2 + 1] = g.fuv[i * 2 + 1]; } }
       }
       costumes[d].push(out);
       // the farthest costume: the far one simplified (index-only, meshoptimizer), the body and each piece on its own (hidden
@@ -1445,7 +1454,7 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
           const simp = opts.simplify(sub, out.refPos, Math.min(tris, Math.max(4, Math.round(tris * FAR_KEEP))), PIECE_ERR * ext); parts.push(simp.length >= 12 ? simp : sub); }
         const idx = new Uint32Array(parts.reduce((x, q) => x + q.length, 0)); let o = 0; for (const q of parts) { idx.set(q, o); o += q.length; }
         const far: CostumeLOD = { ...out, lod: 3, index: idx, triangles: idx.length / 3, bodyTriangles: -1, pieceTris: {},
-          tid: out.tid.slice(), skinIndex: out.skinIndex.slice(), skinWeight: out.skinWeight.slice(), uv: out.uv.slice(), hmat: out.hmat.slice(), hext: out.hext.slice(), refPos: out.refPos.slice(), refNrm: out.refNrm.slice() };
+          tid: out.tid.slice(), skinIndex: out.skinIndex.slice(), skinWeight: out.skinWeight.slice(), uv: out.uv.slice(), hmat: out.hmat.slice(), hext: out.hext.slice(), refPos: out.refPos.slice(), refNrm: out.refNrm.slice(), fuv: out.fuv.slice() };
         costumes[d].push(far);
       }
     }

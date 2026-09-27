@@ -125,7 +125,10 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
       const up = y > b[1], f = up ? Math.min(1, Math.max(0, (a[1] - y) / (a[1] - b[1]))) : Math.min(1, Math.max(0, (b[1] - y) / (b[1] - c[1])));
       const ax = up ? a[0] + (b[0] - a[0]) * f : b[0] + (c[0] - b[0]) * f, az = up ? a[2] + (b[2] - a[2]) * f : b[2] + (c[2] - b[2]) * f;
       const e = 1 + (P.ease - 1) * (1 - w); start.set([ax + (x - ax) * e, y, az + (z - az) * e], o * 3); continue; }
-    start.set(P.kind === 'skirt' || P.kind === 'upper' ? [x * ease, y, zc + (z - zc) * ease] : [x, y, z], o * 3);
+    // D-322: an upper garment is also cut longer than the body from the shoulder seam to the belt (`blouse`): the pinned
+    // waist band is drawn up to its fitted place over the first frames and the extra length falls over the belt in folds
+    const shY = J(vid, 'upperarm_l')[1], yb = P.kind === 'upper' && P.blouse && !armV && y < shY ? shY - (shY - y) * (1 + P.blouse) : y;
+    start.set(P.kind === 'skirt' || P.kind === 'upper' ? [x * ease, yb, zc + (z - zc) * ease] : [x, y, z], o * 3);
   }
   // a part of the piece with nothing pinned (the kandys's hanging sleeves are tubes of their own) would fall away: such a
   // connected part is pinned whole (it keeps its procedural shape; D-307)
