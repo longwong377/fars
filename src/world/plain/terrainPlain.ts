@@ -41,7 +41,7 @@ export const HILL = {
    *  warm grey-brown, not neutral grey (photos #24, #21, #8 and the satellite view #13: Kuh-e Rahmat buff-tan, its hue near
    *  the plain's; #13 R/G 1.22, B/G 0.73 through the haze): rock 10YR 5/2 (Y 0.19), dark patches 10YR 3.5/2, scree 10YR
    *  5.75/2, colluvium 10YR 5/3 (Munsell renotation, Illuminant C adapted to D65); the luminances kept (were 0.20, 0.10,
-   *  0.27, 0.18). D-302: rock, its dark patches and scree warmer (R/G 1.31 -> 1.46 for the rock, luminance within 3 %): photo #24's
+   *  0.27, 0.18). D-302: rock, its dark patches and scree warmer (R/G 1.31 -> 1.62 for the rock, luminance -7 %): photo #24's
    *  mountain R/G 1.56 against the calib-24 render's 1.23 (tools/dev/calib24_mountain.py; the photo's grade unknown, so half-way) */
   rock: [0.55, 0.44, 0.36], rockDark: [0.40, 0.29, 0.22], scree: [0.62, 0.51, 0.42], slopeSoil: [0.554, 0.462, 0.352],
   /** bedding: packages of beds (m) of which ~45 % form cliffs; beds 0.6-2.2 m; a gentle dip (C) */
