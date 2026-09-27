@@ -40,6 +40,7 @@ import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
 import { loadTreeAssets } from './trees/assets';
 import { loadScanProps } from '../render/scanProps';
+import { loadAnimalModels } from '../people/animalModels';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
 import { buildWaterworks } from '../arch/waterworks';
 import { footGeometry, FOOT_DEPTH } from '../arch/terrace_foot';
@@ -142,6 +143,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const propsP = loadScanProps('/'); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
   const modelsP = loadModels('/'); // the Blender-built models (D-305, public/models/): in before the architecture is built
   const treesP = loadTreeAssets('/'); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
+  const animalsP = loadAnimalModels('/'); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
   const fireOccP = loadFireOcc('/'); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
@@ -152,6 +154,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   await modelsP; await propsP; await treesP;
+  await modelsP; await propsP; await animalsP;
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);

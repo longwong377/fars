@@ -257,7 +257,7 @@ export class Fauna {
   }
   // ---------------------------------------------------------------- per frame
   update(c: FaunaCtx) {
-    const A = this.animals, cam: P2 = [c.cam.x, -c.cam.z], st = this.stats; A.begin(c.t); st.drawn = 0; st.bySpecies = {}; this.drawn.length = 0;
+    const A = this.animals, cam: P2 = [c.cam.x, -c.cam.z], st = this.stats; A.begin(c.t, c.cam); st.drawn = 0; st.bySpecies = {}; this.drawn.length = 0;
     const o = { sp: 'dog', e: 0, n: 0, x: 0, z: 0, yaw: 0, phase: 0, walk: 0, graze: 0, lie: 0, coat: 0 } as AnimalInst & { e: number; n: number }, sc = { s: 1 };
     const push = (s = 1) => { const y = this.ground(o.e, o.n); this.qt.setFromAxisAngle(this.up, Math.PI - o.yaw); /* o.yaw: the compass heading atan2(de, dn); the rig faces +Z */ this.m4.compose(_v.set(o.e, y, -o.n), this.qt, _s.set(s, s, s)); A.push(o, this.m4); st.drawn++; st.bySpecies[o.sp] = (st.bySpecies[o.sp] ?? 0) + 1; this.drawn.push({ e: o.e, n: o.n }); };
     const day = c.hour > c.sun.rise - 0.2 && c.hour < c.sun.set + 0.3, night = !day, dawn = c.hour > c.sun.rise - 1.3 && c.hour < c.sun.rise + 1.0;
