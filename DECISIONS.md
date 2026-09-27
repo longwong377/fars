@@ -7428,3 +7428,11 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Not done (honest):** relief figures as baked carved geometry (row 3) and the block faces' baked chisel/spall detail were
   not started in this agent's window; the reliefs stay flagged PLACEHOLDER (RELIEF_META). The E lamassu's head was not
   re-proportioned beyond the r_colossus height. Reversible: the data rows and one SITE_SPEC value.
+- **Revision (same session, the lead's review):** (1) the colossi's 5.5 -> 6.7 m was a height-only change, which the
+  box fitting (sculpt.ts colossusPlacement: per-axis L/RB.L, H/RB.H) turned into a 1.22 vertical stretch. r_colossus now
+  scales uniformly: 6.1 x 1.95 x 6.7 m (x 1.22 on every axis). The colossus's inner end stays at the inner wall face
+  (terrace.ts: centre at wall + L/2 - tx), so the fore-part projects 1.1 m further from the facade; the plinth takes the same
+  footprint; the width grows outward from the door's edge (door width kept) and the mud-brick ring is cut round both (D-032).
+  r_door_leaves' note (5.0 m) predates this. (2) the protome's ears kept their D-151 size (as the horns) and moved down the
+  head toward the brow and out (protome.head.ear_shift [0.2, 0, 0.06] D, C): the scaled ears stood above the horns like
+  paddles; the photographed capital's ears stand out sideways below the horns.
