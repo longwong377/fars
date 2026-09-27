@@ -129,6 +129,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'stair-foot-ground', day: 30, hour: 10, w: 'clear', v: [-60, 112, 1.6, 250, -18], fov: 60 },
   // session 10 (GA45, D-286): the starlings' winter murmuration over the Pulvar's reeds 3.4 km NNW, from the Terrace's N end at dusk (day 262, early January)
   { n: 'murmuration-jan', day: 262, hour: 17.0, w: 'clear', v: [-36, 135, 1.6, 330, 3], fov: 30 },
+  // session 10 (D-289): the morning after the default year's snow day (day 288), in the world's own weather (no override)
+  { n: 'snow-morning-289', day: 289, hour: 9.5, w: 'auto', v: [-36.4, 135.5, 1.6, 281, -5], fov: 60 },
   { n: 'dust-devils-jun', day: 54, hour: 15, w: 'clear', v: [-36, 125, 1.6, 251, 1], fov: 60 },
   // session 9 (G8): heat shimmer and the inferior mirage over the plain at a hot June noon, looking W along the level (opt-in ?heat=1)
   { n: 'heat-mirage-jun', day: 54, hour: 13.5, w: 'clear', v: [-36, 125, 1.6, 251, -0.5], fov: 20 },
