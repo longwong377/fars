@@ -18,6 +18,7 @@ import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
+import { kitOn, kitLog, kitPiece, kitFrame } from './kit';
 
 /** tile size (m, site-local) and the near radius (m, from the eye to a tile's centre) */
 export const TILE = 32, NEAR_R = 72;
@@ -28,12 +29,12 @@ export interface PartDef { tier: string; src: string; note: string }
 /** what F3 says of each part (D-234; SETTLEMENT.md §8 has the table with its sources) */
 export const HOUSE_PARTS: PartDef[] = [
   { tier: 'C', src: 'RECON', note: '' },
-  { tier: 'C', src: 'IR-BRICK;STEIN2016;RECON', note: 'wall of sun-dried mud brick (Achaemenid bricks ~33 cm square: Iranica, search extract, B), two bricks and a render thick (0.7 m outer, 0.55 m to the court, 0.4 m between rooms; C), faced with straw-tempered mud plaster (earthen plaster at Pasargadae and Persepolis: Stein et al. 2016, B), a renewed skirting coat, damp and salt at the foot (D-218, C); the plaster hand-laid, not flat (±1-2 cm, C)' },
+  { tier: 'C', src: 'IR-BRICK;STEIN2016;RECON', note: 'wall of sun-dried mud brick (Achaemenid bricks ~33 cm square: Iranica, search extract, B), two bricks and a render thick (0.7 m outer, 0.55 m to the court, 0.4 m between rooms; C), faced with straw-tempered mud plaster (earthen plaster at Pasargadae and Persepolis: Stein et al. 2016, B), a renewed skirting coat, damp and salt at the foot (D-218, C); the plaster hand-laid, not flat (±1-2 cm, C); an exposed top capped by a slumped mud crest from the Blender house kit (D-311, tools/blender/housekit.py; C)' },
   { tier: 'C', src: 'HASANLU-SX;BABAJAN-SX;TALLTAKHT-SX;RECON', note: 'footing of rough fieldstones laid in mud under the brick (stone foundations under mud-brick walls at Hasanlu, Baba Jan and Tall-i Takht: search extracts, B analogues; its height above the lane, 0.2-0.6 m by the house, C)' },
-  { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;IR-VERNROOF-SX;RECON', note: 'flat roof: poplar poles spanning the room (the region\'s flat roof: poles of up to ~4 m, cross battens, brush or straw, mud laid to a fall: search extract, C analogy; reed impressions in roof collapse at Hasanlu, B analogue; Babylonian roofs "of mud over layers of matting laid on a framework of wooden rafters": search extract, B analogue), a clay-and-straw finish coat, a 2 % fall to the spout (C)' },
+  { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;IR-VERNROOF-SX;RECON', note: 'flat roof: poplar poles spanning the room (the region\'s flat roof: poles of up to ~4 m, cross battens, brush or straw, mud laid to a fall: search extract, C analogy; reed impressions in roof collapse at Hasanlu, B analogue; Babylonian roofs "of mud over layers of matting laid on a framework of wooden rafters": search extract, B analogue), a clay-and-straw finish coat, a 2 % fall to the spout (C); the pole ends from the poplar log of the Blender house kit (D-311; C)' },
   { tier: 'C', src: 'IR-VERNROOF-SX;HASANLU-SX;RECON', note: 'the eave: the roof oversails the court wall by 0.24-0.38 m on the pole ends, brush and earth over them and a mud lip along the edge (C)' },
   { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;RECON', note: 'ceiling: poplar poles every ~0.5 m with matting over them, seen from below (C)' },
-  { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;RECON', note: 'doorway: a timber lintel over a 1 m opening (wooden doorjambs and lintels at Hasanlu, B analogue), a stone threshold worn in the middle and the pivot stone of the door (Babylonian doors "swung on doorposts set in sockets of brick or stone": search extract, B analogue; C here)' },
+  { tier: 'C', src: 'MESO-HOUSE-SX;HASANLU-SX;RECON', note: 'doorway: a timber lintel over a 1 m opening (wooden doorjambs and lintels at Hasanlu, B analogue), a stone threshold worn in the middle (the lintel an adzed beam from the Blender house kit, D-311) and the pivot stone of the door (Babylonian doors "swung on doorposts set in sockets of brick or stone": search extract, B analogue; C here)' },
   { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'a small high window or vent, unglazed (glazed panes are blocklisted), under a timber lintel; size and number C' },
   { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'a hollowed timber spout throwing the roof water clear of the wall (C; roof drainage by spouts is the region\'s vernacular, RECOLLECTION)' },
   { tier: 'C', src: 'HASANLU-SX;BABAJAN-SX;NUSHIJAN-SX;RECON', note: 'portico: timber posts on rough stone bases carrying a beam and a roof like the rooms\' (paired wooden portico columns at Hasanlu Burned Building II, wooden columns on uncarved stone slab bases: search extracts, B analogues; in a large town house C)' },
@@ -248,8 +249,17 @@ export class SiteHouses {
   private lbox(b: Batch, u: number, v: number, hu: number, hv: number, y0: number, y1: number, cb: RGB, ct: RGB, owner: number, bottom = false, rot = 0) {
     const g = this.s.grid(u, v); b.box(g[0], g[1], this.s.frame.theta + rot, hu, hv, y0, y1, cb, ct, owner, bottom);
   }
+  /** a timber lintel (D-311): the Blender kit's adzed beam, laid along the box's longer horizontal side (HOUSEKIT=0: the box) */
+  private beam(b: Batch, u: number, v: number, hu: number, hv: number, y0: number, y1: number, cb: RGB, ct: RGB, owner: number) {
+    if (!kitOn) return this.lbox(b, u, v, hu, hv, y0, y1, cb, ct, owner);
+    const O = this.wp(u, v, y0), au = this.dirW(1, 0), av = this.dirW(0, 1), q = kitPiece('beam', hi(Math.round(u * 10), Math.round(v * 10), 97));
+    const [L, D, a, c] = hu >= hv ? [2 * hu, 2 * hv, au, av] : [2 * hv, 2 * hu, av, au];
+    kitFrame(b, q, O, [a[0] * L, 0, a[1] * L], [0, y1 - y0, 0], [c[0] * D, 0, c[1] * D], ct, owner);
+  }
   /** a round pole (prism) between two world points */
   pole(b: Batch, A: number[], Bp: number[], r: number, sides: number, c: RGB, owner: number, caps: boolean | 'end' = true) {
+    // D-311: every pole of a house (roof, eave, ceiling, lintel, spout, ladder) from the Blender kit's poplar log; the thinnest (battens) stay prisms
+    if (kitOn && r >= 0.035 && sides >= 5) { kitLog(b, A, Bp, r, c, owner, hi(Math.round(A[0] * 100), Math.round(A[2] * 100), Math.round(Bp[1] * 100))); return; }
     const d = [Bp[0] - A[0], Bp[1] - A[1], Bp[2] - A[2]], L = Math.hypot(d[0], d[1], d[2]); if (L < 1e-4) return; const w = d.map(x => x / L);
     const up = Math.abs(w[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0]; let e1 = [w[1] * up[2] - w[2] * up[1], w[2] * up[0] - w[0] * up[2], w[0] * up[1] - w[1] * up[0]]; const l1 = Math.hypot(e1[0], e1[1], e1[2]); e1 = e1.map(x => x / l1);
     const e2 = [w[1] * e1[2] - w[2] * e1[1], w[2] * e1[0] - w[0] * e1[2], w[0] * e1[1] - w[1] * e1[0]];
@@ -287,7 +297,7 @@ export class SiteHouses {
       const dv = we.street ? doorVar(s.plots[we.plot].id) : { drop: 0.1 * hi(seed, 51), lh: 0.09 + 0.06 * hi(seed, 52), bear: 0.12 + 0.16 * hi(seed, 53), step: 0, niche: 0 };
       const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H - dv.drop, g0 = this.gl(...P2l((sA + sB) / 2, 0)), mu = ax === 0 ? (sA + sB) / 2 : cc, mv = ax === 0 ? cc : (sA + sB) / 2, tb = lin(POLE);
       const aged = sh(tb, 0.85 + 0.25 * L.doorWood);
-      this.lbox(B.timber, mu, mv, ax === 0 ? len / 2 + dv.bear : t / 2 + 0.012, ax === 0 ? t / 2 + 0.012 : len / 2 + dv.bear, yl, yl + dv.lh, sh(aged, 0.9), aged, this.owner(we.plot, P.door));
+      this.beam(B.timber, mu, mv, ax === 0 ? len / 2 + dv.bear : t / 2 + 0.012, ax === 0 ? t / 2 + 0.012 : len / 2 + dv.bear, yl, yl + dv.lh, sh(aged, 0.9), aged, this.owner(we.plot, P.door));
       if (top - (yl + dv.lh) > 0.03) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 0.8);
         this.lbox(B.plaster, mu, mv, ax === 0 ? len / 2 : t / 2, ax === 0 ? t / 2 : len / 2, yl + dv.lh, top, sh(c, 0.95), c, this.owner(we.plot, P.wall)); B.plaster.set('ao', 1); }
       // the doorway's face on the lane: timber jamb boards for the better-off (35 %), a raised plaster surround (30 %), or none
@@ -371,8 +381,18 @@ export class SiteHouses {
         for (const h of faceHoles) this.reveal(B, ax, cc, t, sg, h, col0, we.plot);
       }
     }
-    // the cap of an exposed top: worn round, uneven along the wall
-    if (exposedTop) { const c = this.tone(we.plot, 0, add), n = Math.max(1, Math.ceil(len / (notches.length ? 0.35 : 0.8))); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
+    // the cap of an exposed top (D-311): the Blender kit's slumped mud crest, ~3 m modules (three, mirrored by the hash) laid
+    // along the wall, following its worn top (the undulations and the rain's notches above), drooping over both arrises
+    if (exposedTop && kitOn) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
+      const nm = Math.max(1, Math.round(len / 3)), ml = len / nm, wz = t + 0.05, own = this.owner(we.plot, P.wall);
+      const aw = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), cw = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0);
+      for (let m = 0; m < nm; m++) { const q = kitPiece('crest', hi(seed, m, 91)), fl = hi(seed, m, 92) < 0.5 ? -1 : 1, mid = sA + ml * (m + 0.5), hx = ml / 2 / 1.02;
+        // handedness of (along·fl, up, across) in the world: mirror the winding with it
+        const det = fl * (aw[0] * cw[1] - aw[1] * cw[0]); const idx = det < 0 ? q.i.map((_, j) => q.i[j - (j % 3) + [0, 2, 1][j % 3]]) : q.i;
+        B.plaster.mesh(q.nv, k => { const al = mid + fl * q.p[k * 3] * hx; return this.wp(...P2l(Math.max(sA - 0.01, Math.min(sB + 0.01, al)), q.p[k * 3 + 2] * wz), ytopF(Math.max(sA, Math.min(sB, al))) + q.p[k * 3 + 1]); },
+          k => { const nx = q.n[k * 3] * fl / hx, ny = q.n[k * 3 + 1], nz = q.n[k * 3 + 2] / wz; const v = [aw[0] * nx + cw[0] * nz, ny, aw[1] * nx + cw[1] * nz], L = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / L, v[1] / L, v[2] / L]; },
+          k => sh(c, 1.02 * q.k[k]), idx, own, { ao: k => Math.max(0.3, q.ao[k]) }); } }
+    else if (exposedTop) { /* the pre-kit cap: HOUSEKIT=0 only */ const c = this.tone(we.plot, 0, add), n = Math.max(1, Math.ceil(len / (notches.length ? 0.35 : 0.8))); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
       const nf = Math.ceil(len / 1.3); // the faces' own stations (face(): 1.3 m) and the notches': the cap and the faces meet edge to edge
       const CS = [...new Set([...Array.from({ length: nf + 1 }, (_, k) => sA + (len * k) / nf), ...topSt.filter(x => x > sA && x < sB)].map(x => +x.toFixed(4)))].sort((p, q) => p - q); void n;
       for (let k = 0; k + 1 < CS.length; k++) { const a = CS[k], z = CS[k + 1], ya = ytopF(a), yz = ytopF(z);
@@ -425,7 +445,7 @@ export class SiteHouses {
     b.set('ao', 1);
     // a timber lintel over a window (the court face)
     if (h.through && h.s1 - h.s0 > 0.3) { const tb = lin(POLE), mid = (h.s0 + h.s1) / 2, [u, v] = P2l(mid, sg * (t / 2 - 0.06)); B.timber.set('ao', 0.9);
-      this.lbox(B.timber, u, v, ax === 0 ? (h.s1 - h.s0) / 2 + 0.14 : 0.075, ax === 0 ? 0.075 : (h.s1 - h.s0) / 2 + 0.14, h.y1, h.y1 + 0.09, sh(tb, 0.85), tb, this.owner(plot, P.window)); B.timber.set('ao', 1); }
+      this.beam(B.timber, u, v, ax === 0 ? (h.s1 - h.s0) / 2 + 0.14 : 0.075, ax === 0 ? 0.075 : (h.s1 - h.s0) / 2 + 0.14, h.y1, h.y1 + 0.09, sh(tb, 0.85), tb, this.owner(plot, P.window)); B.timber.set('ao', 1); }
   }
   /** repairs, bare brick, soot above a hearth or an oven, dung cakes, a drain's stain: where they go on one face */
   private faceDecals(we: WallEl, sd: Side, sg: number, floor: number, top: number, holes: Hole[], fx: Fixture[], out: [number, Dec][], seed: number) {

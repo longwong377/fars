@@ -13,6 +13,7 @@ import { TownDoors } from './towndoors';
 import { livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
 import { Batch, RGB, lin } from './geom';
+import { kitFrame, kitPiece } from './kit';
 import { buildTownPlan, TownPlan, ROWS, FEATURES, Prop } from './plan';
 import { Site, Plot, Wall, P2, ROOM } from './site';
 import { HOUSE_BASIS } from './town_rules';
@@ -247,7 +248,7 @@ export class Settlement {
         case 'kiln': addFire('kiln', g[0], g[1], y, 'day'); break;
         default: break; // (the colliders: siteFootprints above)
       }
-      if (FAR_FITTINGS.has(f.kind)) { const t = hs.tileOfPlotEl(f.plot, f.u, f.v); hs.tileInfo(t); cl.far.set('tileId', t + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1); fittingGeom(s, f, cl.far, H, fdesc[fi] * 32); }
+      if (FAR_FITTINGS.has(f.kind)) { const t = hs.tileOfPlotEl(f.plot, f.u, f.v); hs.tileInfo(t); cl.far.set('tileId', t + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1); fittingGeom(s, f, cl.far, H, fdesc[fi] * 32, true); }
     });
   }
   /** a fitting's geometry (hearth ring, oven, kiln, jars, quern, loom ...) into a batch; `d` the owner (description × 32) */
@@ -384,7 +385,7 @@ export type { Wall, Prop };
 
 /** a fitting's geometry (hearth ring, oven, kiln, jars, quern, loom ...) into a batch; `d` the owner (description × 32).
  *  A module function (D-254: the villages draw their fittings with it too); the town's output is unchanged */
-export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: number, n: number) => number, d: number) {
+export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: number, n: number) => number, d: number, far = false) {
   const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
   const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
   const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
@@ -396,7 +397,12 @@ export function fittingGeom(s: Site, f: Site['fittings'][0], mud: Batch, H: (e: 
       for (let k = 0; k < 1 + Math.round(h * 2); k++) { const [be, bn] = at(0.35 + 0.2 * k, -0.5 - 0.1 * k); mud.lathe(be, bn, y, [[0.03, 0], [0.08, 0.02], [0.1, 0.06], [0.1, 0.065]], 8, sh(bw, 0.9 + 0.2 * ((h * 7 + k) % 1)), d); }
       if (h > 0.4) { const [ke, kn] = at(-0.6, 0.4); mud.lathe(ke, kn, y, [[0.14, 0], [0.19, 0.08], [0.2, 0.12]], 9, lin([0.62, 0.52, 0.34]), d); }
       break; }
-    case 'oven': { const oc = lin([0.6, 0.47, 0.34]); mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 10, sh(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 10, oc, sh(oc, 0.25), d, true); break; }
+    case 'oven': { const oc = lin([0.6, 0.47, 0.34]);
+      // near (D-311): the Blender kit's tannur (the clay cone, rolled lip, banked collar and draught hole, its AO baked), turned
+      // by the fitting's rotation; the far level keeps the two frustums
+      if (!far) { const q = kitPiece('tannur', (hashString(`${s.id}:${f.u.toFixed(1)}:${f.v.toFixed(1)}:t`) % 1000) / 1000), c = Math.cos(th), sn = Math.sin(th), k = 0.82;
+        kitFrame(mud, q, [g[0], y - 0.02, -g[1]], [c * k, 0, -sn * k], [0, 1.0, 0], [-sn * k, 0, -c * k], oc, d, 1); break; }
+      mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 10, sh(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 10, oc, sh(oc, 0.25), d, true); break; }
     case 'forge': mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, sh(mc, 0.5), sh(mc, 0.35), d); break;
     case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }
     case 'jar': case 'jar_big': case 'vat': { const k = (f.kind === 'jar' ? 1 : f.kind === 'jar_big' ? 1.5 : 1.7) * f.size, wide = f.kind === 'vat' ? 1.5 : 1;
