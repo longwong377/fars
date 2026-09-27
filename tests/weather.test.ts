@@ -59,3 +59,11 @@ describe('rain cell timeline (distant rain shafts, §1.1 rain moment)', () => {
     W.override = 'rain'; expect(W.rainCell(i, rs - 1)).toBeNull();
   });
 });
+
+describe('snow days (session 10, GB60)', () => {
+  it('the default world and others have snow days in winter, about as many as the climate gives, and none from April to October', () => {
+    for (const seed of [1, 2, 7]) { const y = generateYear(seed, START_JDN, DAYS), snow = y.filter(w => w.snow);
+      expect(snow.length, `seed ${seed}`).toBeGreaterThanOrEqual(1); expect(snow.length, `seed ${seed}`).toBeLessThanOrEqual(10);
+      for (const w of snow) { expect([10, 11, 0, 1, 2]).toContain(w.climMonth); expect(w.wet).toBe(true); expect((w.tmax + w.tmin) / 2).toBeLessThan(5); } }
+  });
+});

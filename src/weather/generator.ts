@@ -85,6 +85,19 @@ export function generateYear(seed: number, startJdn: number, days: number): DayW
       }
     }
   }
+  // snow-day re-centring (session 10, WORLD_INVENTORY GB60: the default world had no snow day although the climate gives ~5 a
+  // year): per month of Nov-Mar the snowfall days (climate.json snowfall_days) are brought to the expectation keeping 35 % of the
+  // sampled anomaly, as the wet days are: the coldest wet days whose daily mean is under 5 °C become snow days, the day held cold (a maximum of 3 °C, a night under 0 °C; the snow falls in the cold hours
+  // at 1,600 m: C). April's climate row (1.0) is left alone: a mean of 5 °C is not reached
+  // there on the plain (C). Never more snow days than cold wet days allow
+  const rng3 = new Rng(seed, 'weather-snowfix');
+  for (const [m, arr] of byMonth) {
+    if (![10, 11, 0, 1, 2].includes(m)) continue;
+    const c = monthly(m), expected = c.snowfallDays / MONTH_DAYS[m] * arr.length; if (expected < 0.3) continue;
+    const actual = arr.filter(w => w.snow).length, desired = Math.round(expected + 0.35 * (actual - expected) + (rng3.next() - 0.5) * 0.6);
+    const cand = arr.filter(w => w.wet && !w.snow && (w.tmax + w.tmin) / 2 < 5).sort((a, b) => (a.tmax + a.tmin) - (b.tmax + b.tmin));
+    for (let k = 0; k < desired - actual && k < cand.length; k++) { const w = cand[k]; w.snow = true; w.tmax = Math.min(w.tmax, 3); w.tmin = Math.min(w.tmin, -0.5); w.thunder = false; }
+  }
   return out;
 }
 

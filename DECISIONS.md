@@ -6802,3 +6802,13 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Decision (C: summer birds of the plateau, expected, not sourced; calls procedural):** the quail's three-note "wet-my-lips" from
   the crops at morning and evening (Apr-Aug), the nightjar's long churring from the slopes after dark (Apr-Aug), the reed warblers'
   chatter at the water (where: water). Ambient species of the soundscape (heard, not seen). Not heard in a browser (B65).
+
+## D-289 Snow days in the default year (session 10; WORLD_INVENTORY GB60)
+- **Gap:** the weather generator never used climate.json's snowfall days: a day snowed only if its mean was under 2 °C, and seed 1
+  (the default world) had no snow day in the year.
+- **Decision (C):** per month of November-March the snow days are re-centred on the climate's snowfall days keeping 35 % of the
+  sampled anomaly (as the wet days are): the coldest wet days with a daily mean under 5 °C become snow days, held cold (maximum
+  ≤ 3 °C, night < 0 °C). April's row (1.0) is left: the plain does not reach such a mean in April (C). Seed 1 now snows on day 288
+  (end of January); seeds 2, 7, 11 on two days each. No flagship moment's day changed (tests/weather_visible.test.ts's rain-approach
+  day 299 is kept; a looser 7 °C threshold turned it to snow and was rejected for that reason AND because 7 °C is a warm day for
+  snow at 1,600 m). Tests: tests/weather.test.ts. Every render of days 288-295 of seed 1 is changed (snow cover).

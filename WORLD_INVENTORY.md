@@ -277,7 +277,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB57 | a roof reached: stairs to the Apadana towers | W-058 | architecture | B | MISSING/PARTIAL |
 | GB58 | goods in the lanes: a place of exchange (partial) | S-002 | exchange | C | MISSING/PARTIAL |
 | GB59 | drainage filth in the lanes (partial) | B-054 | traces | C | MISSING/PARTIAL |
-| GB60 | snow in the default year (seed 1 has no snow day) | B-032 | weather | A climate | MISSING/PARTIAL |
+| GB60 | snow in the default year (seed 1 has no snow day) | B-032 | weather | A climate | BUILT (D-289: snow days from the climate; seed 1 snows on day 288); unrendered |
 
 ## Gaps only hunter C found (session 10) (34)
 
