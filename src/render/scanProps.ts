@@ -60,6 +60,9 @@ export async function loadScanProps(base = '/'): Promise<ReturnType<typeof scanP
     } catch (err) { LOAD.failed.push(id); console.warn(`[props] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
   draco.dispose();
+  // D-325: the props' own maps (the carpets' knotted pile: tools/blender/carpet_pile.py)
+  await Promise.all(['carpet_pile_n'].map(async n => { try { const t = await new THREE.TextureLoader().loadAsync(`${base}models/props/${n}.png`);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; PROP_TEX.set(n, t); } catch { LOAD.failed.push(n); } }));
   LOAD.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__scanProps = { stats: scanPropStats, ids: () => [...PROPS.keys()], models: () => [...MODELS.keys()] };
   return scanPropStats();
@@ -141,6 +144,9 @@ export function modelShape(cls: string, seed: number, size: [number, number, num
 export interface ModelEntry extends PropEntry { of: string; parts: string[]; box: [[number, number, number], [number, number, number]]; partTris: Record<string, number>; ao: boolean }
 export interface Model { id: string; entry: ModelEntry; lods: Record<string, THREE.BufferGeometry>[]; box: THREE.Box3 }
 const MODELS = new Map<string, Model>();
+const PROP_TEX = new Map<string, THREE.Texture>();
+/** a prop map loaded with the props (null in node or when it failed): 'carpet_pile_n' */
+export const propTexture = (n: string): THREE.Texture | null => (modelsOff ? null : PROP_TEX.get(n) ?? null);
 let modelsOff = false;
 /** ?props=0 switches the modelled props off too (every builder then draws its procedural stand-in) */
 export function setModelsOff(off: boolean) { modelsOff = off; }

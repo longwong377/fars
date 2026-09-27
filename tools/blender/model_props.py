@@ -405,6 +405,9 @@ def stone_lump(r, seed, name='stone', flat=0.7):
     displace(ob, r * 0.12, r * 0.6, seed=seed)
     for v in ob.data.vertices:
         if v.co.z < 0: v.co.z *= 0.3
+    # the metaballs' surface lies inside their radii: scaled so the stone's larger footprint side is 2r
+    xs = [v.co.x for v in ob.data.vertices]; ys = [v.co.y for v in ob.data.vertices]; k = 2 * r / max(1e-6, max(max(xs) - min(xs), max(ys) - min(ys)))
+    for v in ob.data.vertices: v.co *= k
     return ob
 
 @asset()
@@ -1073,6 +1076,864 @@ def a_tool_pen():
 def a_tool_plectrum():
     """a plectrum stick (C)"""
     return dict(bone=pathG([(0, 0, -0.03), (0, 0, 0.1), (0, 0, 0.13)], [0.005, 0.004, 0.002], 5, 'p', scale=(1.0, 0.6)))
+
+# ======================================================================================================== work objects (people/workObjects.ts)
+# In the performer's frame (origin on the ground, +Z the performer's forward), at the procedural forms' sizes and places.
+# Parts are named for what they are (workObjects.ts WORK_PAINT colours them): mud, mud_wet, brick, straw, straw_d, ears, wood,
+# wood_d, stone, lime, pot, wool, hide, iron, meat, fat, earth, linen, cord, red, blue, warp, ash, ember, grape, nut, fish,
+# thorn, grass, bone, silver, skin, liquor, stain, water, milk, green, clay_toy, lapis
+def boxG(w, h, d, x=0, y=0, z=0, bevel=0.0, name='box', yaw=0.0, orbit=0.0):
+    """the procedural box(w, h, d, x, y, z) (base at y); `yaw` turns it about its own centre, `orbit` about the origin after
+    it is placed (three's translate-then-rotateY)"""
+    b = box(w, d, h, (0, 0, 0), name, bevel=bevel, segs=2 if bevel else 1)
+    if yaw: xform(b, (0, 0, 0), (0, 0, yaw))
+    q = G((x, y, z)); xform(b, (q.x, q.y, q.z))
+    if orbit: xform(b, (0, 0, 0), (0, 0, orbit))
+    return b
+def log(a, b, r0, r1=None, seg=8, name='log', seed=0, bark=0.004):
+    """a round timber or pole with its bark: a slightly crooked sweep, displaced"""
+    A, B = Vector(a), Vector(b); pts = []
+    rnd = random.Random(seed)
+    for i in range(6):
+        t = i / 5; p = A.lerp(B, t); off = 0.0 if i in (0, 5) else (A - B).length * 0.01
+        pts.append((p.x + rnd.uniform(-off, off), p.y + rnd.uniform(-off, off) * 0.5, p.z + rnd.uniform(-off, off)))
+    ob = pathG(pts, [r0 + ((r0 if r1 is None else r1) - r0) * t for t in [i / 5 for i in range(6)]], seg, name)
+    if bark: subdiv(ob, 1); displace(ob, bark, 0.03, seed=seed + 300)
+    return ob
+def heap(r, h, x=0, z=0, seed=0, lump=0.2, name='heap', res=None, flat=0.0):
+    """a heap (earth, mud, grain, straw, dung): metaball lumps, displaced; its base flat on the ground"""
+    rnd = random.Random(seed); e = [('ELLIPSOID', (0, 0, h * 0.35), r * 0.8, (1.0, 1.0, h / r * 0.9 + 0.1), 2)]
+    for k in range(5):
+        a = rnd.uniform(0, TAU); d = rnd.uniform(0.2, 0.6) * r
+        e.append(('ELLIPSOID', (d * math.cos(a), d * math.sin(a), h * rnd.uniform(0.1, 0.3)), r * rnd.uniform(0.35, 0.55), (1.0, 1.0, h / r * 0.8 + 0.1), 2))
+    ob = meta(e, res=res or max(0.01, r / 7), name=name)
+    displace(ob, r * lump * 0.25, r * 0.5, seed=seed + 400)
+    for v in ob.data.vertices: v.co.z = max(0.0, v.co.z)
+    # the metaballs' surface lies inside their radii: scaled to the heap's footprint (2r across) and height h
+    xs = [v.co.x for v in ob.data.vertices]; ys = [v.co.y for v in ob.data.vertices]; zs = [v.co.z for v in ob.data.vertices]
+    cx, cy = (max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2; kx = 2 * r / max(1e-6, max(xs) - min(xs)); ky = 2 * r / max(1e-6, max(ys) - min(ys)); kz = h / max(1e-6, max(zs))
+    for v in ob.data.vertices: v.co.x = (v.co.x - cx) * kx; v.co.y = (v.co.y - cy) * ky; v.co.z *= kz
+    q = G((x, 0, z)); return xform(ob, (q.x, q.y, 0))
+def brick_piece(seed, w=0.33, h=0.105, d=0.33):
+    b = box(w, d, h, (0, 0, 0), 'brick', bevel=0.01, segs=1); displace(b, 0.004, 0.06, seed=seed); return b
+def sheaf(L=0.9, seed=0):
+    """a sheaf of cut barley along +Y (game) from its butt: the stalks narrowing to the band, the ears flaring beyond it
+    (C): a fluted lathe, the ears roughened"""
+    prof = [(0.0, 0.0), (0.075, 0.01), (0.07, 0.25 * L), (0.05, 0.45 * L), (0.058, 0.52 * L), (0.1, 0.66 * L), (0.12, 0.8 * L), (0.1, 0.9 * L), (0.06, 0.97 * L), (0.0, L)]
+    s = lathe(prof, 14, 'sheaf', wobble=0.05, seed=seed)
+    for v in s.data.vertices:
+        a = math.atan2(v.co.y, v.co.x); k = 1 + 0.08 * math.sin(a * 14 + v.co.z * 30)
+        v.co.x *= k; v.co.y *= k
+    stalks = copy(s, 'stalks'); ears = s
+    # split by height: below the band stalks, above it ears (by deleting faces)
+    import bmesh as _b
+    for ob, keep in ((stalks, lambda z: z < 0.53 * L), (ears, lambda z: z >= 0.5 * L)):
+        bm = _b.new(); bm.from_mesh(ob.data)
+        dels = [f for f in bm.faces if not keep(sum(v.co.z for v in f.verts) / len(f.verts))]
+        _b.ops.delete(bm, geom=dels, context='FACES'); bm.to_mesh(ob.data); bm.free()
+    displace(ears, 0.01, 0.02, seed=seed + 7)
+    band = sweep([(0.058 * math.cos(a), 0.058 * math.sin(a), 0.52 * L) for a in [TAU * i / 12 for i in range(13)]], 0.008, 4, 'band', caps=False)
+    return stalks, ears, band
+def to_game_y(ob):
+    """an object built along Blender z (up) is already along the game's +Y"""
+    return ob
+def lying_along_x(ob):
+    """an object built along Blender z turned to lie along the game's +X (butt at the origin)"""
+    return xform(ob, (0, 0, 0), (0, math.pi / 2, 0))
+def wheel_disc(R, t, name='wheel'):
+    """a solid wheel of three boards with two battens across and a hub (Near Eastern tripartite wheel: B type; C), axis x"""
+    parts = []
+    for i, (y0, y1) in enumerate(((-R, -R / 3), (-R / 3, R / 3), (R / 3, R))):
+        pts = []
+        prof = []
+        # a board: the part of the disc between y0 and y1, extruded along x by t
+        bm_pts = []
+        for k in range(17):
+            yy = y0 + (y1 - y0) * k / 16; zz = math.sqrt(max(0.0, R * R - yy * yy)); bm_pts.append((yy, zz))
+        import bmesh as _b
+        bm = _b.new(); top = [bm.verts.new((-t / 2, yy, zz)) for yy, zz in bm_pts] + [bm.verts.new((-t / 2, yy, -zz)) for yy, zz in reversed(bm_pts)]
+        bot = [bm.verts.new((t / 2, v.co.y, v.co.z)) for v in top]
+        n = len(top); f1 = bm.faces.new(top); f2 = bm.faces.new(list(reversed(bot)))
+        for k in range(n): bm.faces.new((top[k], top[(k + 1) % n], bot[(k + 1) % n], bot[k]))
+        _b.ops.triangulate(bm, faces=[f1, f2]); _b.ops.recalc_face_normals(bm, faces=bm.faces)
+        ob = from_bm(bm, 'board', smooth=False); sharp(ob, 30)
+        for v in ob.data.vertices: v.co.y *= 0.985 if abs(v.co.y) > 0.01 else 1
+        parts.append(ob)
+    for s in (-1, 1):
+        parts.append(box(0.025, R * 1.6, 0.06, (s * (t / 2 + 0.012), 0, -0.03 + s * R * 0.45), bevel=0.004))
+    hub = lathe([(0.0, -t / 2 - 0.06), (R * 0.2, -t / 2 - 0.05), (R * 0.22, -t / 2), (R * 0.22, t / 2), (R * 0.2, t / 2 + 0.05), (0.0, t / 2 + 0.06)], 12, 'hub')
+    xform(hub, (0, 0, 0), (0, math.pi / 2, 0)); parts.append(hub)
+    return join(parts, name)
+def wheel_spoked(R, n=8, name='wheel'):
+    """a spoked chariot wheel: felloe, n spokes, a long hub (the Apadana chariots: B; C), axis x"""
+    fel = sweep([(0, (R - 0.03) * math.cos(a), (R - 0.03) * math.sin(a)) for a in [TAU * i / 32 for i in range(33)]], 0.035, 6, 'felloe', caps=False, scale=(1.0, 0.8))
+    parts = [fel]
+    for k in range(n):
+        a = TAU * k / n; parts.append(sweep([(0, 0.06 * math.cos(a), 0.06 * math.sin(a)), (0, (R - 0.06) * math.cos(a), (R - 0.06) * math.sin(a))], [0.016, 0.012], 5, 'spoke'))
+    hub = lathe([(0.0, -0.16), (0.05, -0.15), (0.07, -0.05), (0.075, 0.0), (0.07, 0.05), (0.05, 0.15), (0.0, 0.16)], 12, 'hub'); xform(hub, (0, 0, 0), (0, math.pi / 2, 0)); parts.append(hub)
+    return join(parts, name)
+
+def woW(fn):
+    """register a work object's model: wo_<kind>"""
+    return asset(ground=True, lod1=0.4)(fn)
+
+@woW
+def a_wo_drum_sledge():
+    """a column drum on a wooden sledge, hauled with ropes (drums dressed on the Terrace: B; sledge C): the drum with its
+    point-dressed face, two runners with upturned fronts, three crosspieces pegged on, the rope forward"""
+    drum = lathe([(0.0, 0.0), (0.62, 0.0), (0.625, 0.05), (0.62, 0.85), (0.61, 0.9), (0.0, 0.9)], 32, 'drum', wobble=0.008, seed=61)
+    displace(drum, 0.006, 0.05, seed=62); atG(drum, (0, 0.27, 0))
+    runners = []
+    for x in (-0.45, 0.45):
+        runners.append(pathG([(x, 0.07, -0.95), (x, 0.07, 0.7), (x, 0.1, 0.88), (x, 0.17, 0.97)], 0.075, 4, 'runner', scale=(1.0, 1.0)))
+    cross = [boxG(1.1, 0.12, 0.2, 0, 0.14, z, bevel=0.01) for z in (-0.7, 0, 0.7)]
+    rope = pathG([(0, 0.2, -0.95), (0, 0.28, -1.3), (0, 0.35, -1.6)], 0.018, 6, 'rope')
+    return dict(lime=drum, wood_d=join(runners, 'wood_d'), wood=join(cross, 'wood'), cord=rope)
+
+@woW
+def a_wo_brick_stack():
+    """a stack of sun-dried mud bricks, five courses of four, each brick its own (C)"""
+    b = []
+    for l in range(5):
+        for i in range(2):
+            for j in range(2):
+                p = brick_piece(70 + l * 4 + i * 2 + j); q = G(((i - 0.5) * 0.35 + (l % 2) * 0.02, l * 0.11, (j - 0.5) * 0.35))
+                b.append(xform(p, (q.x, q.y, q.z), (0, 0, 0.03 * math.sin(l * 3 + i + j))))
+    return dict(brick=join(b, 'brick'))
+
+@woW
+def a_wo_mud_heap():
+    """mud tempered with straw for the moulds (C): a wet heap with straw ends in it"""
+    h = heap(0.4, 0.2, seed=71, lump=0.35, name='mud')
+    st = [pathG([(0.15 * math.cos(k * 1.7), 0.12 + 0.03 * math.sin(k), 0.15 * math.sin(k * 1.7)), (0.15 * math.cos(k * 1.7) + 0.1 * math.cos(k), 0.14, 0.15 * math.sin(k * 1.7) + 0.1 * math.sin(k))], 0.003, 3, 'st') for k in range(8)]
+    return dict(mud_wet=h, straw=join(st, 'straw'))
+
+@woW
+def a_wo_brick_field():
+    """moulded bricks drying in rows on the ground, the newest still dark (C)"""
+    wet, dry = [], []
+    for r in range(3):
+        for c in range(5):
+            p = brick_piece(80 + r * 5 + c, h=0.1); q = G((c * 0.4 - 0.8, 0, r * 0.4 - 0.4)); xform(p, (q.x, q.y, q.z), (0, 0, 0.04 * math.sin(r * 5 + c)))
+            (wet if (r == 0 and c < 2) else dry).append(p)
+    return dict(mud=join(wet, 'mud'), brick=join(dry, 'brick'))
+
+@woW
+def a_wo_mortar_tub():
+    """a basket tub of mud mortar: a coiled-basket tub with a rim, the mortar inside (C)"""
+    tub = vessel([(0.2, 0.0), (0.22, 0.05), (0.25, 0.15), (0.26, 0.2)], 0.012, 20, 'tub', 0.02, seed=81)
+    for v in tub.data.vertices: k = 1 + 0.012 * math.sin(v.co.z * 180); v.co.x *= k; v.co.y *= k
+    mud = lathe([(0.0, 0.17), (0.24, 0.165), (0.25, 0.155)], 16, 'mud'); displace(mud, 0.01, 0.06, seed=82)
+    return dict(wicker=tub, mud_wet=mud)
+
+@woW
+def a_wo_brick_course():
+    """the course being laid: bricks in a bed of mud mortar (C)"""
+    bed = boxG(1.5, 0.014, 0.36, 0, 0, 0, bevel=0.005); displace(bed, 0.003, 0.05, seed=83)
+    br = []; mud = []
+    for i in range(4):
+        p = brick_piece(84 + i); q = G((i * 0.345 - 0.52, 0.012, 0)); xform(p, (q.x, q.y, q.z), (0, 0, 0.02 * math.sin(i)))
+        (mud if i == 3 else br).append(p)
+    return dict(mud_wet=bed, brick=join(br, 'brick'), mud=join(mud, 'mud'))
+
+@woW
+def a_wo_beam():
+    """a squared timber on two stone blocks, being dressed with the adze, chips on the ground (C)"""
+    bm = boxG(3.0, 0.24, 0.26, 0, 0.32, 0, bevel=0.012); subdiv(bm, 1); displace(bm, 0.004, 0.08, seed=91)
+    stones = [xform(stone_lump(0.19, 92 + k, flat=0.9), (x, 0, 0)) for k, x in enumerate((-1.1, 1.1))]
+    chips = [boxG(0.05, 0.012, 0.03, 0.4 * math.sin(i * 12.9) - 0.1, 0, 0.35 + 0.25 * math.sin(i * 4.1), orbit=math.sin(i * 3.3) * 3) for i in range(8)]
+    return dict(wood=bm, stone=join(stones, 'stone'), chips=join(chips, 'chips'))
+
+@woW
+def a_wo_loom():
+    """the horizontal ground loom (the ground loom chosen over the warp-weighted loom: D-142, Q-190; C): the front beam and the
+    back beam pegged to the ground, the warp threads running between, the woven cloth at the front with its stripes, the
+    heddle rod resting on two stones, the shed stick"""
+    wood = []; wd = []
+    for z in (-0.8, 1.9):
+        wood.append(log((-0.55, 0.06, z), (0.55, 0.06, z), 0.032, 0.03, 8, 'beam', seed=int(z * 10) + 100))
+        for x in (-0.58, 0.58): wd.append(pathG([(x, -0.03, z + (0.12 if z > 0 else -0.12)), (x, 0.13, z)], [0.02, 0.016], 5, 'peg'))
+    cloth = boxG(0.9, 0.004, 0.8, 0, 0.03, -0.4); subdiv(cloth, 1); displace(cloth, 0.002, 0.05, seed=101)
+    blue = [boxG(0.9, 0.005, 0.03, 0, 0.0315, -0.7 + i * 0.18) for i in range(4)]
+    warp = []
+    for i in range(44):
+        x = -0.43 + 0.86 * i / 43; warp.append(pathG([(x, 0.034, 0.0), (x, 0.05, 0.9), (x, 0.06, 1.88)], 0.0014, 3, 'w', caps=False))
+    wood.append(log((-0.55, 0.22, 0.28), (0.55, 0.22, 0.28), 0.014, 0.013, 6, 'heddle', seed=102, bark=0))
+    st = [xform(stone_lump(0.08, 103 + k, flat=1.2), G((x, 0, 0.28))) for k, x in enumerate((-0.52, 0.52))]
+    wd.append(boxG(1.0, 0.035, 0.07, 0, 0.065, 0.62, bevel=0.006))
+    return dict(wood=join(wood, 'wood'), wood_d=join(wd, 'wood_d'), red=cloth, blue=join(blue, 'blue'), warp=join(warp, 'warp'), stone=join(st, 'stone'))
+
+@woW
+def a_wo_dung_cakes():
+    """dung cakes set out to dry for fuel: flattened patties, each with the hand's print (C)"""
+    c = []
+    for i in range(7):
+        p = heap(0.1, 0.035, (i % 4) * 0.26 - 0.3, math.floor(i / 4) * 0.26, seed=110 + i, lump=0.4, name='cake', res=0.012)
+        c.append(p)
+    return dict(dung=join(c, 'dung'))
+
+@woW
+def a_wo_fodder():
+    """a heap of fodder, straw and dry herbage (C)"""
+    h = heap(0.34, 0.16, seed=120, lump=0.5, name='fodder')
+    st = [pathG([(0.25 * math.cos(k), 0.05, 0.25 * math.sin(k)), (0.4 * math.cos(k + 0.2), 0.02, 0.4 * math.sin(k + 0.2))], 0.003, 3, 's') for k in range(10)]
+    return dict(straw_d=join([h] + st, 'straw_d'))
+
+@woW
+def a_wo_fleece():
+    """a shorn fleece lying in a heap: the wool in locks (C)"""
+    f = heap(0.26, 0.12, seed=130, lump=0.8, name='f'); f2 = heap(0.16, 0.08, 0.22, 0.12, seed=131, lump=0.8, name='f2')
+    return dict(wool=f, wool_d=f2)
+
+def hide_sheet(w, d, seed, name='hide'):
+    """an animal's hide lying flat: the outline with the legs and the neck, the edges a little curled (C)"""
+    rnd = random.Random(seed); n = 28; pts = []
+    for i in range(n):
+        a = TAU * i / n; r = 1.0 + 0.25 * max(0, math.cos(4 * a)) ** 3 + 0.06 * rnd.uniform(-1, 1)
+        pts.append((w / 2 * r * math.cos(a), d / 2 * r * math.sin(a)))
+    import bmesh as _b
+    bm = _b.new(); vs = [bm.verts.new((x, y, 0.004 + 0.01 * (abs(x) / w + abs(y) / d) ** 2)) for x, y in pts]; f = bm.faces.new(vs)
+    _b.ops.triangulate(bm, faces=[f]); ob = from_bm(bm, name); solidify(ob, 0.006, 1); return ob
+
+@woW
+def a_wo_butchery():
+    """a hide spread on the ground with the joints of a divided carcass (PF 58-60: B; shown without spectacle, C)"""
+    h = hide_sheet(1.05, 0.72, 140); xform(h, (0, 0, 0), (0, 0, 0.1))
+    meat = []; bone = []
+    for (x, z, r, l, a) in ((-0.25, 0.1, 0.07, 0.17, 0.4), (0.02, -0.1, 0.06, 0.15, -0.3), (0.28, 0.12, 0.08, 0.2, 1.2), (0.05, 0.2, 0.05, 0.1, 2)):
+        m = meta([('ELLIPSOID', (0, 0, r * 0.6), r, (l / r, 1.0, 0.7), 2), ('ELLIPSOID', (l * 0.4, 0, r * 0.5), r * 0.7, (1.2, 0.9, 0.7), 2)], res=r / 5, name='j')
+        displace(m, r * 0.08, r * 0.8, seed=int(x * 100) + 150)
+        q = G((x, 0.01, z)); meat.append(xform(m, (q.x, q.y, q.z), (0, 0, a)))
+        b = pathG([(x + math.sin(a) * l * 0.8, r * 0.5, z + math.cos(a) * l * 0.8), (x + math.sin(a) * l * 1.15, r * 0.5, z + math.cos(a) * l * 1.15)], [r * 0.3, r * 0.4], 6, 'bone')
+        bone.append(b)
+    return dict(hide=h, meat=join(meat, 'meat'), fat=join(bone, 'fat'))
+
+@woW
+def a_wo_hides():
+    """folded hides stacked for the Treasury (PF 58-60: A; stack C)"""
+    hs = []; hs2 = []
+    for i in range(4):
+        h = hide_sheet(0.62, 0.46, 160 + i); q = G((0.02 * math.sin(i * 3), i * 0.036, 0.02 * math.sin(i * 5)))
+        xform(h, (q.x, q.y, q.z), (0, 0, 0.15 * math.sin(i * 7)))
+        (hs if i % 2 else hs2).append(h)
+    return dict(hide=join(hs, 'hide'), hide_d=join(hs2, 'hide_d'))
+
+def contents_heap(r, h, y0, seed, name):
+    return xform(heap(r, h, seed=seed, lump=0.3, name=name), G((0, y0, 0)))
+@woW
+def a_wo_meat():
+    """the meat in a basket (C): joints heaped"""
+    return dict(meat=contents_heap(0.17, 0.08, 0.1, 170, 'meat'))
+@woW
+def a_wo_grapes():
+    """grapes or figs heaped in a basket (C): clusters of berries"""
+    b = []; rnd = random.Random(171)
+    for k in range(60):
+        a = rnd.uniform(0, TAU); d = rnd.uniform(0, 0.16); y = 0.12 + 0.08 * (1 - d / 0.16) * rnd.uniform(0.5, 1.0)
+        b.append(xform(lathe([(0.0, -0.011), (0.009, -0.008), (0.011, 0.0), (0.009, 0.008), (0.0, 0.011)], 6, 'g'), G((d * math.cos(a), y, d * math.sin(a)))))
+    return dict(grape=join(b, 'grape'))
+@woW
+def a_wo_nuts():
+    """wild pistachios and almonds in their husks heaped in a basket (C)"""
+    b = []; rnd = random.Random(172)
+    for k in range(70):
+        a = rnd.uniform(0, TAU); d = rnd.uniform(0, 0.17); y = 0.12 + 0.08 * (1 - d / 0.17) * rnd.uniform(0.5, 1.0)
+        n = lathe([(0.0, -0.012), (0.007, -0.008), (0.008, 0.002), (0.004, 0.01), (0.0, 0.013)], 6, 'n')
+        b.append(xform(n, G((d * math.cos(a), y, d * math.sin(a))), (rnd.uniform(0, 3), rnd.uniform(0, 3), 0)))
+    return dict(nut=join(b, 'nut'))
+def fish_body(L, name='fish'):
+    """a barbel or carp: a spindle body, the tail fin, the dorsal fin (C)"""
+    body = lathe([(0.0, 0.0), (L * 0.06, L * 0.05), (L * 0.11, L * 0.25), (L * 0.1, L * 0.55), (L * 0.05, L * 0.8), (L * 0.025, L * 0.88), (0.0, L * 0.9)], 8, name)
+    for v in body.data.vertices: v.co.y *= 0.55
+    import bmesh as _b
+    bm = _b.new(); vs = [bm.verts.new(p) for p in ((0, 0, L * 0.86), (0, L * 0.09, L * 1.0), (0, 0, L * 0.95), (0, -L * 0.09, L * 1.0))]; bm.faces.new(vs); t = from_bm(bm, 'tail'); solidify(t, 0.002, 0)
+    return join([body, t], name)
+@woW
+def a_wo_fish():
+    """the catch: four barbel and carp in the basket (C)"""
+    f = []
+    for i in range(4):
+        b = fish_body(0.3 - 0.02 * i); xform(b, (0, 0, 0), (0, math.pi / 2, i * 0.8))
+        q = G((0.06 * math.sin(i * 3), 0.16 + 0.02 * i, 0.06 * math.cos(i * 2))); f.append(xform(b, (q.x - 0.13 * math.cos(i * 0.8), q.y - 0.13 * math.sin(i * 0.8), q.z)))
+    return dict(fish=join(f, 'fish'))
+
+@woW
+def a_wo_threshing_floor():
+    """the village threshing floor: a beaten circle 7 m across, sheaves and straw spread on it, a post in the middle (C)"""
+    floor = lathe([(0.0, 0.05), (3.5, 0.045), (3.55, 0.0)], 40, 'floor', wobble=0.01, seed=180)
+    straw = lathe([(0.0, 0.1), (2.2, 0.12), (2.9, 0.1), (3.3, 0.06), (3.35, 0.05)], 40, 'straw', wobble=0.02, seed=181); subdiv(straw, 1); displace(straw, 0.03, 0.2, seed=182)
+    post = log((0, 0, 0), (0, 1.5, 0), 0.07, 0.06, 8, 'post', seed=183)
+    return dict(earth=floor, straw=straw, wood_d=post)
+
+@woW
+def a_wo_stooks():
+    """three stooks of five sheaves standing ears up, leaning together (C)"""
+    st, ea, bd = [], [], []
+    for i in range(3):
+        for j in range(5):
+            s, e, b = sheaf(0.82 + 0.06 * math.sin((i * 5 + j) * 2.1), seed=190 + i * 5 + j)
+            for o in (s, e, b):
+                xform(o, (0, 0, 0), (0.24, 0, 0)); xform(o, (0, -0.17, 0)); xform(o, (0, 0, 0), (0, 0, TAU * j / 5 + 0.3 * math.sin(i * 3)))
+                q = G((i * 0.9, 0, 0.15 * math.sin(i))); xform(o, (q.x, q.y, q.z))
+            st.append(s); ea.append(e); bd.append(b)
+    return dict(straw=join(st, 'straw'), ears=join(ea, 'ears'), straw_d=join(bd, 'straw_d'))
+
+def lying_sheaf(L, seed):
+    s, e, b = sheaf(L, seed)
+    for o in (s, e, b):
+        xform(o, (0, 0, 0), (0, math.pi / 2, 0));
+        for v in o.data.vertices: v.co.z *= 0.75
+        xform(o, (0, 0, 0.085))
+    return s, e, b
+@woW
+def a_wo_sheaves():
+    """handfuls and sheaves lying where the reapers laid them (C)"""
+    st, ea, bd = [], [], []
+    for i in range(4):
+        s, e, b = lying_sheaf(0.82 + 0.08 * math.sin(i * 5), 200 + i)
+        for o in (s, e, b):
+            xform(o, (0, 0, 0), (0, 0, -math.pi / 2 + 1.2 + 0.4 * math.sin(i))); q = G((0.35 * i - 0.4, 0, 0.3 * math.sin(i * 4))); xform(o, (q.x, q.y, q.z))
+        st.append(s); ea.append(e); bd.append(b)
+    return dict(straw=join(st, 'straw'), ears=join(ea, 'ears'), straw_d=join(bd, 'straw_d'))
+@woW
+def a_wo_sheaf():
+    """a sheaf being bound (C)"""
+    s, e, b = lying_sheaf(0.9, 210)
+    for o in (s, e, b): xform(o, G((-0.45, 0, 0)))
+    return dict(straw=s, ears=e, straw_d=b)
+
+@woW
+def a_wo_grain_heap():
+    """the heap of threshed grain and the chaff blown beside it (C)"""
+    g = lathe([(0.0, 0.45), (0.15, 0.4), (0.4, 0.22), (0.6, 0.05), (0.66, 0.0)], 24, 'grain', wobble=0.05, seed=220); subdiv(g, 1); displace(g, 0.012, 0.05, seed=221)
+    ch = heap(0.9, 0.08, 0.5, 0.3, seed=222, lump=0.3, name='chaff')
+    return dict(grain=g, chaff=ch)
+
+@woW
+def a_wo_spoil():
+    """earth and silt dug out, in clods (C)"""
+    return dict(earth=heap(0.55, 0.3, seed=230, lump=0.6, name='spoil'))
+
+@woW
+def a_wo_press():
+    """a plastered treading basin full of grapes (C)"""
+    floor = boxG(1.7, 0.02, 1.7, 0, 0, 0, bevel=0.005)
+    walls = [boxG(w, 0.32, d, x, 0, z, bevel=0.03) for (x, z, w, d) in ((0, 0.82, 1.74, 0.1), (0, -0.82, 1.74, 0.1), (0.82, 0, 0.1, 1.54), (-0.82, 0, 0.1, 1.54))]
+    mash = boxG(1.5, 0.03, 1.5, 0, 0.1, 0); subdiv(mash, 2); displace(mash, 0.02, 0.05, seed=240)
+    return dict(lime=join([floor] + walls, 'lime'), grape=mash)
+
+@woW
+def a_wo_brushwood():
+    """brushwood gathered for the fire: crooked branches with side twigs (C)"""
+    b = []
+    for i in range(9):
+        a = math.sin(i * 12.9898) * 3; l = 0.55 + 0.3 * abs(math.sin(i * 4.1))
+        b.append(log((-math.cos(a) * l / 2, 0.03 + 0.03 * (i % 3), -math.sin(a) * l / 2), (math.cos(a) * l / 2, 0.05 + 0.04 * (i % 3), math.sin(a) * l / 2), 0.013, 0.008, 5, 'br', seed=250 + i, bark=0.002))
+        b.append(pathG([(math.cos(a) * l / 4, 0.05, math.sin(a) * l / 4), (math.cos(a + 0.5) * l / 2.2, 0.08, math.sin(a + 0.5) * l / 2.2)], [0.006, 0.003], 4, 'tw'))
+    return dict(wood_d=join(b, 'wood_d'))
+
+@woW
+def a_wo_pigment_slab():
+    """a grinding slab with its muller and heaps of pigment, Egyptian blue among them (PW-PIGMENT2021: B; C)"""
+    slab = boxG(0.36, 0.07, 0.26, 0, 0, 0, bevel=0.012); displace(slab, 0.003, 0.05, seed=260)
+    mul = xform(stone_lump(0.07, 261, flat=0.6), G((0.04, 0.07, 0.02)))
+    pig = {}
+    for i, k in enumerate(('blue', 'green', 'red', 'ochre')):
+        pig[k] = heap(0.035, 0.025, -0.12 + i * 0.08, -0.08, seed=262 + i, lump=0.3, name=k, res=0.006); xform(pig[k], (0, 0, G((0, 0.07, 0)).z))
+    return dict(stone=slab, stone_d=mul, **{'pig_' + k: v for k, v in pig.items()})
+
+@woW
+def a_wo_bier():
+    """a bier of two poles and crossbars with a plank, the dead wrapped in a linen shroud (E-71; HDT 1.140: B claim; C)"""
+    y = 1.4; w = [log((x, y, -1.35), (x, y, 1.35), 0.024, 0.022, 7, 'pole', seed=270 + int(x * 10), bark=0.001) for x in (-0.31, 0.31)]
+    wd = [boxG(0.66, 0.04, 0.09, 0, y - 0.05, z, bevel=0.006) for z in (-0.85, -0.3, 0.3, 0.85)] + [boxG(0.5, 0.02, 1.8, 0, y - 0.01, 0, bevel=0.004)]
+    body = meta([('ELLIPSOID', G((0, y + 0.1, z)), r, (1.0, 1.0, 1.0), 2) for z, r in ((-0.65, 0.12), (-0.35, 0.15), (0.0, 0.16), (0.35, 0.14), (0.62, 0.1), (0.8, 0.1))], res=0.02, name='shroud')
+    for v in body.data.vertices: v.co.x *= 1.05; v.co.z = max(v.co.z, y + 0.005); v.co.z = y + (v.co.z - y) * 0.7
+    displace(body, 0.006, 0.08, seed=272)
+    return dict(wood=join(w + [wd[-1]], 'wood'), wood_d=join(wd[:-1], 'wood_d'), linen=body)
+
+@woW
+def a_wo_wash_stone():
+    """a flat stone at the water's edge for beating cloth, the wet cloth heaped by it (C)"""
+    s = stone_lump(0.3, 280, flat=0.45); xform(s, G((0, -0.02, 0)))
+    c = heap(0.18, 0.08, 0.45, -0.1, seed=281, lump=0.4, name='cloth')
+    return dict(stone=s, cloth=c)
+
+@woW
+def a_wo_drying_rack():
+    """two forked posts and a pole with washed cloth hung over it to dry (the cloths draped by the cloth solver; C)"""
+    posts = []
+    for x in (-0.95, 0.95):
+        posts.append(log((x, 0, 0), (x, 1.5, 0), 0.03, 0.025, 6, 'post', seed=290 + int(x * 10)))
+        for s in (-1, 1): posts.append(pathG([(x, 1.45, 0), (x, 1.62, s * 0.06)], [0.018, 0.012], 5, 'fork'))
+    pole = log((-1.05, 1.58, 0), (1.05, 1.58, 0), 0.022, 0.02, 6, 'pole', seed=293)
+    cloths = {}
+    for k, (x0, w, h, key) in enumerate(((-0.45, 0.7, 1.6, 'linen'), (0.45, 0.6, 1.2, 'red'))):
+        c = grid(w, h, 14, 24, 'c', z=0.0)
+        for v in c.data.vertices:  # hung over the pole: the sheet folded in two over it
+            u, t = v.co.x, v.co.y / h + 0.5
+            side = 1 if t > 0.5 else -1; dd = abs(t - 0.5) * h
+            q = G((x0 + u, 1.6 - dd, side * (0.03 + 0.01 * dd) * (1 if dd > 0.02 else dd / 0.02)))
+            v.co = q
+        solidify(c, 0.003, 0); cloths[key] = c
+    return dict(wood_d=join(posts, 'wood_d'), wood=pole, **cloths)
+
+@woW
+def a_wo_target():
+    """a straw butt bound with cords, a hide face with a dark mark, on a post, for archery practice (C)"""
+    post = log((0, 0, 0.12), (0, 1.1, 0.12), 0.05, 0.045, 7, 'post', seed=300)
+    butt = lathe([(0.0, -0.125), (0.38, -0.125), (0.42, -0.08), (0.43, 0.0), (0.42, 0.08), (0.38, 0.125), (0.0, 0.125)], 20, 'butt', wobble=0.02, seed=301)
+    subdiv(butt, 1); displace(butt, 0.012, 0.04, seed=302); xform(butt, (0, 0, 0), (math.pi / 2, 0, 0)); xform(butt, G((0, 1.2, 0)))
+    cords = [sweep([G((0.425 * math.cos(a), 1.2 + 0.425 * math.sin(a), zz)) for a in [TAU * i / 24 for i in range(25)]], 0.008, 4, 'cord', caps=False) for zz in (-0.06, 0.06)]
+    face = lathe([(0.0, 0.0), (0.36, 0.0), (0.365, 0.004)], 20, 'face'); xform(face, (0, 0, 0), (-math.pi / 2, 0, 0)); xform(face, G((0, 1.2, -0.128)))
+    mark = lathe([(0.0, 0.0), (0.08, 0.0), (0.082, 0.002)], 12, 'mark'); xform(mark, (0, 0, 0), (-math.pi / 2, 0, 0)); xform(mark, G((0, 1.2, -0.131)))
+    return dict(wood_d=post, straw=butt, cord=join(cords, 'cord'), hide=face, dark=mark)
+
+@woW
+def a_wo_hearth_pot():
+    """three hearth stones, ash and embers, a round-bottomed cooking pot on the stones with its sooted belly, sticks feeding
+    the fire (C; the fire is the settlement's own)"""
+    ash = lathe([(0.0, 0.03), (0.2, 0.025), (0.3, 0.01), (0.32, 0.0)], 16, 'ash', wobble=0.06, seed=310); displace(ash, 0.006, 0.05, seed=311)
+    st = []
+    for i in range(3):
+        a = i * 2.1 + 0.3; s = stone_lump(0.08, 312 + i, flat=1.0); st.append(xform(s, G((math.cos(a) * 0.17, 0, math.sin(a) * 0.17)), (0, 0, a)))
+    emb = heap(0.08, 0.03, 0, 0, seed=315, lump=0.5, name='emb', res=0.01); xform(emb, G((0, 0.02, 0)))
+    sticks = [log((-0.3 + 0.05 * i, 0.03, -0.05 + 0.05 * i), (0.05 * i, 0.06, 0.02 * i), 0.015, 0.012, 5, 'st', seed=316 + i, bark=0.002) for i in range(3)]
+    return dict(ash=ash, stone=join(st, 'stone'), ember=emb, wood_d=join(sticks, 'wood_d'))
+
+@woW
+def a_wo_ard():
+    """a wooden ard (the scratch plough of the ancient Near East: B type; C form) in the ploughman's frame: the stilt rising to
+    his left hand, the sole with an iron share running in the soil, the beam forward to the yoke on the oxen's necks, the yoke
+    with its bows"""
+    w = [log((0.12, 0.92, 0.52), (0.06, 0.08, 1.02), 0.028, 0.034, 7, 'stilt', seed=320, bark=0.002), log((0.05, 0.12, 1.05), (0, 1.08, 4.02), 0.04, 0.032, 7, 'beam', seed=321, bark=0.003),
+         log((-0.72, 1.12, 4.05), (0.72, 1.12, 4.05), 0.045, 0.045, 8, 'yoke', seed=322, bark=0.002)]
+    wd = [pathG([(0.12, 0.92, 0.52), (0.24, 0.98, 0.48)], [0.022, 0.02], 6, 'handle'), pathG([(0.06, 0.05, 0.93), (0.04, 0.0, 1.2), (0.02, -0.04, 1.42)], [0.045, 0.04, 0.028], 6, 'sole', scale=(1.0, 0.7))]
+    for x in (-0.55, 0.55):
+        for s in (-0.2, 0.2): wd.append(pathG([(x + s, 1.14, 4.05), (x + s * 0.95, 0.98, 4.02), (x + s * 0.9, 0.86, 4.02)], 0.013, 4, 'bow'))
+    share = pathG([(0.02, -0.03, 1.4), (0.02, -0.055, 1.47), (0.02, -0.07, 1.53)], [0.032, 0.026, 0.004], 4, 'share', scale=(1.0, 0.35))
+    lash = rodG((0.05, 0.1, 1.0), (0.05, 0.15, 1.1), 0.05, 0.05, 7, 'lash')
+    return dict(wood=join(w, 'wood'), wood_d=join(wd, 'wood_d'), iron=share, cord=lash)
+
+def cart_base(R=0.46, bedY=0.62):
+    wd = [xform(wheel_disc(R, 0.09), (x, 0, R)) for x in (-0.82, 0.82)]
+    w = [log((-0.9, R, 0), (0.9, R, 0), 0.045, 0.045, 7, 'axle', seed=330, bark=0.001), boxG(1.44, 0.07, 2.1, 0, bedY - 0.07, -0.05, bevel=0.008),
+         log((0, bedY - 0.04, 0.95), (0, 1.1, 3.45), 0.05, 0.04, 7, 'pole', seed=331, bark=0.002), log((-0.78, 1.14, 3.48), (0.78, 1.14, 3.48), 0.045, 0.045, 8, 'yoke', seed=332, bark=0.001)]
+    for x in (-0.55, 0.55):
+        for d in (-0.2, 0.2): w.append(pathG([(x + d, 1.14, 3.48), (x + d * 0.9, 0.88, 3.45)], 0.012, 4, 'bow'))
+    return wd, w
+@woW
+def a_wo_cart():
+    """an ox cart: a plank bed with side boards on two solid wheels of three boards with battens, a pole to the yoke, loaded
+    with sacks of grain (B analogy, the Assyrian reliefs; C)"""
+    R, bedY = 0.46, 0.62; wd, w = cart_base(R, bedY)
+    sides = [boxG(0.05, 0.28, 2.1, x, bedY, -0.05, bevel=0.006) for x in (-0.7, 0.7)] + [boxG(1.44, 0.28, 0.05, 0, bedY, -1.08, bevel=0.006)]
+    return dict(wood_d=join(wd + sides, 'wood_d'), wood=join(w, 'wood'))
+@woW
+def a_wo_cart_timber():
+    """an ox cart carrying five roof beams of ~6 m lashed on, overhanging behind (C)"""
+    R, bedY = 0.46, 0.62; wd, w = cart_base(R, bedY)
+    beams = []
+    for i in range(5):
+        x = -0.5 + i * 0.25; y = bedY + 0.14 + (i % 2) * 0.22; r = 0.12 + 0.02 * math.sin(i + 7)
+        beams.append(log((x, y, 0.9), (x, y - 0.05, -5.1), r, r * 0.9, 9, 'beam', seed=340 + i, bark=0.006))
+    lash = [boxG(1.3, 0.03, 0.04, 0, bedY + 0.52, z) for z in (0.4, -0.8)]
+    return dict(wood_d=join(wd, 'wood_d'), wood=join(w, 'wood'), beam=join(beams, 'beam'), cord=join(lash, 'cord'))
+@woW
+def a_wo_chariot():
+    """a two-wheeled chariot with eight-spoked wheels, a box of wicker faced with leather for the driver, and a pole curving to
+    the yoke of two horses (the Apadana reliefs and HDT 7.40-41: B; C form); court setting only"""
+    R = 0.5; wd = [xform(wheel_spoked(R, 8), (x, 0, R)) for x in (-0.7, 0.7)]
+    w = [log((-0.8, R, 0), (0.8, R, 0), 0.04, 0.04, 7, 'axle', seed=350, bark=0.001), boxG(1.0, 0.05, 0.8, 0, R + 0.02, -0.05, bevel=0.01),
+         pathG([(0, R + 0.05, 0.36), (0, 0.95, 1.4), (0, 1.12, 2.2), (0, 1.22, 2.9)], [0.04, 0.036, 0.033, 0.03], 7, 'pole'), log((-0.62, 1.24, 2.9), (0.62, 1.24, 2.9), 0.04, 0.04, 8, 'yoke', seed=351, bark=0.001)]
+    box_ = [boxG(1.0, 0.72, 0.04, 0, R + 0.07, 0.34, bevel=0.012)] + [boxG(0.04, 0.6, 0.72, x, R + 0.07, -0.05, bevel=0.012) for x in (-0.5, 0.5)]
+    rail = [pathG([(-0.5, R + 0.79, -0.4), (-0.5, R + 0.8, 0.34), (0.5, R + 0.8, 0.34), (0.5, R + 0.79, -0.4)], 0.02, 6, 'rail')]
+    hubs = [xform(lathe([(0.0, -0.16), (0.075, -0.1), (0.075, 0.1), (0.0, 0.16)], 10, 'h'), (x, 0, R), (0, math.pi / 2, 0)) for x in (-0.7, 0.7)]
+    return dict(wood_d=join(wd, 'wood_d'), wood=join(w, 'wood'), leather=join(box_ + rail, 'leather'), gilt=join(hubs, 'gilt'))
+@woW
+def a_wo_wagon():
+    """a covered four-wheeled wagon (harmamaxa) for the royal women (HDT 7.83: a claim; C form): a box on solid wheels under
+    an arched cloth cover on hoops, a pole to the yoke; court setting only"""
+    R = 0.42; wd = [xform(wheel_disc(R, 0.09), (x, -z, R)) for z in (-0.95, 0.95) for x in (-0.82, 0.82)]
+    w = [log((-0.88, R, z), (0.88, R, z), 0.04, 0.04, 6, 'axle', seed=360 + int(z * 10), bark=0.001) for z in (-0.95, 0.95)]
+    w += [log((0, 0.7, 1.4), (0, 1.08, 3.9), 0.045, 0.04, 7, 'pole', seed=362), log((-0.7, 1.12, 3.92), (0.7, 1.12, 3.92), 0.04, 0.04, 7, 'yoke', seed=363)]
+    body = boxG(1.5, 0.45, 2.7, 0, 0.62, 0, bevel=0.015)
+    cov = grid(math.pi * 0.75, 2.6, 16, 20, 'cover')
+    for v in cov.data.vertices:
+        a = v.co.x / 0.75; zz = v.co.y; sag = 0.02 * math.cos(TAU * 5 * zz / 2.6)
+        v.co = G(((0.75 - sag) * math.sin(a), 1.07 + (0.75 - sag) * math.cos(a), zz))
+    solidify(cov, 0.005, 0)
+    hoops = [sweep([G((0.76 * math.sin(a), 1.07 + 0.76 * math.cos(a), zz)) for a in [-math.pi / 2 + math.pi * i / 16 for i in range(17)]], 0.018, 5, 'hoop', caps=False) for zz in (-1.2, -0.4, 0.4, 1.2)]
+    return dict(wood_d=join(wd, 'wood_d'), wood=join(w + hoops, 'wood'), red=body, cloth=cov)
+
+@woW
+def a_wo_hurdles():
+    """the state poultry yard: a ring of wattle hurdles (stakes woven with withies) with a gate gap, a low mud-brick coop with
+    its door, water and grain dishes (PF 2034: B; C)"""
+    R, n = 9, 26; hur = []; stakes = []
+    for i in range(1, n):
+        a = TAU * i / n; x, z = R * math.cos(a), R * math.sin(a); w = TAU * R / n + 0.05; tx, tz = -math.sin(a), math.cos(a)
+        for k in range(5):
+            y = 0.1 + 0.17 * k
+            hur.append(pathG([(x - tx * w / 2, y, z - tz * w / 2), (x + tx * w * 0.0 + 0.02 * math.cos(a) * (1 if k % 2 else -1), y + 0.02, z + 0.02 * math.sin(a) * (1 if k % 2 else -1)), (x + tx * w / 2, y, z + tz * w / 2)], 0.022, 4, 'withy'))
+        for s in (-0.5, 0.0, 0.5): stakes.append(log((x + tx * w * s, 0, z + tz * w * s), (x + tx * w * s, 1.0, z + tz * w * s), 0.03, 0.025, 5, 'stake', seed=int(i * 10 + s * 4), bark=0))
+    coop = boxG(3.2, 1.6, 2.2, 0, 0, -R + 2.2, bevel=0.04); displace(coop, 0.01, 0.2, seed=370)
+    roof = boxG(3.5, 0.12, 2.5, 0, 1.6, -R + 2.2, bevel=0.03)
+    door = boxG(0.6, 0.7, 0.05, 0, 0, -R + 3.32, bevel=0.01)
+    dishes = [xform(vessel([(0.15, 0.0), (0.2, 0.02), (0.22, 0.08), (0.22, 0.1)], 0.02, 14, 'dish', 0.02, seed=371 + i), G((-2 + i * 2, 0, 2.5 - i))) for i in range(3)]
+    return dict(wattle=join(hur, 'wattle'), wood_d=join(stakes + [door], 'wood_d'), mud=coop, mud_roof=roof, pot=join(dishes, 'pot'))
+
+def astragal(seed):
+    """a knucklebone (a sheep's astragalus): the waisted block with its two rolled ends (C)"""
+    m = meta([('ELLIPSOID', (-0.006, 0, 0), 0.009, (1.0, 0.8, 0.75), 2), ('ELLIPSOID', (0.006, 0, 0), 0.009, (1.0, 0.8, 0.75), 2), ('ELLIPSOID', (0, 0, 0.003), 0.006, (1.4, 0.6, 0.6), 2)], res=0.002, name='astr')
+    return m
+@woW
+def a_wo_knucklebones():
+    """five knucklebones in the dust (astragali: B objects; the game C)"""
+    b = []
+    for i in range(5):
+        a = i * 2.4; r = 0.05 + 0.03 * (i % 3); k = astragal(i)
+        b.append(xform(k, G((math.cos(a) * r, 0.006, math.sin(a) * r)), (0.3 * i, 0, a * 1.7)))
+    return dict(bone=join(b, 'bone'))
+
+@woW
+def a_wo_toy_wheeled():
+    """a fired-clay humped bull on four clay wheels on axles, pulled by a cord (RECOLLECTION: C)"""
+    body = meta([('ELLIPSOID', G((0, 0.07, 0)), 0.05, (1.0, 1.7, 0.75), 2), ('ELLIPSOID', G((0, 0.1, -0.01)), 0.022, (1.0, 1.0, 1.0), 2), ('ELLIPSOID', G((0, 0.095, 0.085)), 0.026, (0.9, 1.2, 0.9), 2),
+                 ('ELLIPSOID', G((0.018, 0.11, 0.1)), 0.008, (0.6, 0.6, 1.5), 2), ('ELLIPSOID', G((-0.018, 0.11, 0.1)), 0.008, (0.6, 0.6, 1.5), 2)], res=0.006, name='bull')
+    wheels = []
+    for z in (-0.05, 0.05):
+        for x in (-0.055, 0.055): wheels.append(xform(lathe([(0.0, -0.006), (0.025, -0.006), (0.025, 0.006), (0.0, 0.006)], 10, 'w'), G((x, 0.025, z)), (0, math.pi / 2, 0)))
+    axles = [rodG((-0.06, 0.025, z), (0.06, 0.025, z), 0.004, 0.004, 4, 'ax') for z in (-0.05, 0.05)]
+    cord = pathG([(0, 0.09, 0.11), (0, 0.3, 0.45), (0, 0.45, 0.7)], 0.0025, 3, 'cord')
+    return dict(clay_toy=join([body] + wheels, 'clay_toy'), wood_d=join(axles, 'wood_d'), cord=cord)
+
+@woW
+def a_wo_offering_set():
+    """the lan set out before the fire: barley heaped on a cloth and wine in a clay bowl beside it (PF 1955: B; C)"""
+    cl = grid(0.56, 0.42, 12, 10, 'cloth')
+    for v in cl.data.vertices: v.co.z = 0.004 + 0.003 * math.sin(v.co.x * 30) * math.cos(v.co.y * 20)
+    solidify(cl, 0.003, 0)
+    barley = heap(0.15, 0.08, -0.1, 0, seed=380, lump=0.15, name='barley', res=0.012)
+    bowl = xform(vessel([(0.03, 0.0), (0.06, 0.004), (0.085, 0.035), (0.09, 0.05)], 0.005, 16, 'bowl', 0.01, seed=381), G((0.15, 0.008, 0.03)))
+    wine = xform(lathe([(0.0, 0.0), (0.074, 0.0)], 16, 'wine'), G((0.15, 0.045, 0.03)))
+    return dict(linen=cl, grain=barley, pot=bowl, wine=wine)
+
+@woW
+def a_wo_grass_bed():
+    """the boiled meat of a sacrifice laid on soft grass (Herodotus 1.132: B; C)"""
+    g = grid(0.95, 0.62, 16, 12, 'grass')
+    for v in g.data.vertices: v.co.z = 0.012 + 0.01 * math.sin(v.co.x * 41 + v.co.y * 13) * math.cos(v.co.y * 37)
+    solidify(g, 0.01, -1)
+    meat = [heap(0.07 + 0.03 * abs(math.sin(i)), 0.05, 0.3 * math.sin(i * 2.3), 0.2 * math.sin(i * 3.1), seed=390 + i, lump=0.3, name='m', res=0.01) for i in range(7)]
+    for m in meat: xform(m, (0, 0, 0.02))
+    return dict(grass=g, meat_boiled=join(meat, 'meat_boiled'))
+
+@woW
+def a_wo_anvil():
+    """the smith's anvil: an iron block with a horn on a wooden stump, a few scales of iron and a spare bar at its foot (C)"""
+    stump = log((0, 0, 0), (0, 0.5, 0), 0.2, 0.19, 12, 'stump', seed=400, bark=0.008)
+    an = boxG(0.16, 0.12, 0.26, 0, 0.5, 0, bevel=0.008)
+    horn = pathG([(0, 0.59, 0.13), (0, 0.585, 0.2), (0, 0.575, 0.26)], [0.03, 0.02, 0.006], 6, 'horn')
+    bar = boxG(0.03, 0.03, 0.5, 0.3, 0, -0.1, orbit=0.4)
+    sc = [boxG(0.03, 0.006, 0.02, 0.25 * math.sin(i * 12.9), 0, 0.25 + 0.1 * math.sin(i * 4.1), orbit=math.sin(i * 7) * 3) for i in range(5)]
+    return dict(wood_d=stump, iron=join([an, horn, bar], 'iron'), scale=join(sc, 'scale'))
+
+def goatskin(sx, sy, sz, seed):
+    """a goatskin bag: the skin whole, the legs tied off (C)"""
+    e = [('ELLIPSOID', (0, 0, 0), 1.0, (sx, sz, sy), 2)]
+    for (dx, dz) in ((0.7, 0.6), (-0.7, 0.6), (0.7, -0.6), (-0.7, -0.6)):
+        e.append(('ELLIPSOID', (dx * sx, dz * sz, -0.2 * sy), 0.25, (sx * 0.4, sz * 0.4, sy * 0.4), 2))
+    m = meta(e, res=0.012, name='skin'); displace(m, 0.006, 0.05, seed=seed); return m
+@woW
+def a_wo_bellows_stand():
+    """a goatskin bag bellows on a low mud stand with a clay nozzle into the forge, worked by hand (B by analogy; C)"""
+    stand = boxG(0.34, 0.5, 0.3, 0, 0, 0, bevel=0.03); displace(stand, 0.008, 0.1, seed=410)
+    sk = goatskin(0.16, 0.08, 0.2, 411); xform(sk, G((0, 0.56, 0)))
+    noz = pathG([(0.02, 0.56, 0), (0.34, 0.5, -0.05)], [0.03, 0.022], 7, 'noz')
+    han = pathG([(0, 0.64, 0.04), (0, 0.66, 0.14)], 0.012, 5, 'h')
+    return dict(mud=stand, skin=sk, pot=noz, wood=han)
+@woW
+def a_wo_bellows():
+    """a pair of goatskin bag bellows on the ground with clay nozzles into the forge (B by analogy; C)"""
+    sk = []; nz = []
+    for x in (-0.15, 0.15):
+        s = goatskin(0.13, 0.12, 0.17, 412 + int(x * 10)); xform(s, G((x, 0.12, 0))); sk.append(s)
+        nz.append(pathG([(x, 0.1, 0.12), (x * 0.3, 0.12, 0.6)], [0.025, 0.02], 7, 'n'))
+    return dict(skin=join(sk, 'skin'), pot=join(nz, 'pot'))
+
+@woW
+def a_wo_stake():
+    """a goldsmith's stake in a wooden block, a silver bowl on it being chased, a tray of finished phialai beside (C)"""
+    block = log((0, 0, 0), (0, 0.2, 0), 0.15, 0.14, 10, 'block', seed=420, bark=0.006)
+    st = rodG((0, 0.2, 0), (0, 0.27, 0), 0.012, 0.01, 6, 'stake')
+    bowl = vessel([(0.0, 0.0), (0.03, 0.002), (0.07, 0.018), (0.085, 0.038)], 0.002, 16, 'b', 0.0)
+    xform(bowl, (0, 0, 0), (math.pi, 0, 0)); xform(bowl, G((0, 0.3, 0)))  # upside down on the stake
+    tray = boxG(0.32, 0.02, 0.22, 0.38, 0, -0.2, bevel=0.005)
+    ph = [xform(vessel([(0.0, 0.0), (0.03, 0.002), (0.07, 0.016), (0.085, 0.036)], 0.002, 16, 'p', 0.0), G((x, 0.02, z))) for x, z in ((0.3, -0.24), (0.44, -0.16))]
+    return dict(wood_d=block, iron=st, silver=join([bowl] + ph, 'silver'), wood=tray)
+
+@woW
+def a_wo_weigh_table():
+    """a low table with graded stone weights (the duck-shaped weights of the period: B; RECOLLECTION), the silver in a bowl and
+    a clay tablet (C)"""
+    top = 0.72; t = [boxG(0.62, 0.035, 0.4, 0, top - 0.035, 0, bevel=0.008)] + [log((x, 0, z), (x, top - 0.035, z), 0.02, 0.02, 6, 'leg', seed=430 + i, bark=0) for i, (x, z) in enumerate(((-0.27, -0.16), (-0.27, 0.16), (0.27, -0.16), (0.27, 0.16)))]
+    ducks = []
+    for i in range(5):
+        r = 0.012 + 0.008 * i
+        d = meta([('ELLIPSOID', (0, 0, 0), r, (1.6, 1.0, 0.8), 2), ('ELLIPSOID', (r * 1.3, 0, r * 0.4), r * 0.45, (1.0, 0.8, 0.8), 2)], res=r / 4, name='duck')
+        ducks.append(xform(d, G((-0.24 + i * 0.07 + r, top + r * 0.6, -0.1))))
+    bowl = xform(vessel([(0.03, 0.0), (0.06, 0.005), (0.09, 0.035), (0.09, 0.04)], 0.004, 14, 'bowl', 0.01, seed=436), G((0.12, top, 0.05)))
+    silver = [boxG(0.018, 0.008, 0.012, 0.12 + 0.04 * math.sin(i * 3), top + 0.02 + 0.004 * i, 0.05 + 0.04 * math.sin(i * 5), yaw=i) for i in range(7)]
+    tab = boxG(0.07, 0.022, 0.05, -0.15, top, 0.1, bevel=0.006)
+    return dict(wood=join(t, 'wood'), diorite=join(ducks, 'diorite'), pot=bowl, silver=join(silver, 'silver'), tablet=tab)
+
+@woW
+def a_wo_seal_bench():
+    """the seal cutter's low block: the bow drill's shaft upright on a stone blank, a bowl of wet abrasive sand, two finished
+    cylinder seals (C)"""
+    bl = boxG(0.36, 0.24, 0.3, 0, 0, 0, bevel=0.02); displace(bl, 0.004, 0.06, seed=440)
+    sh = rodG((0, 0.24, 0), (0, 0.44, 0), 0.006, 0.006, 5, 'shaft')
+    blank = xform(lathe([(0.0, -0.015), (0.012, -0.015), (0.012, 0.015), (0.0, 0.015)], 8, 'blank'), G((0, 0.255, 0)))
+    bowl = xform(vessel([(0.03, 0.0), (0.05, 0.004), (0.07, 0.03), (0.068, 0.032)], 0.004, 12, 'b', 0.01, seed=441), G((0.12, 0.24, 0.06)))
+    sand = xform(lathe([(0.0, 0.0), (0.06, 0.0)], 12, 's'), G((0.12, 0.265, 0.06)))
+    seals = [xform(lathe([(0.0, -0.015), (0.009, -0.015), (0.009, 0.015), (0.0, 0.015)], 8, 'seal'), G((x, 0.25, 0.08)), (0, math.pi / 2, 0)) for x in (-0.1, -0.13)]
+    return dict(stone=bl, wood=sh, lapis=join([blank] + seals, 'lapis'), pot=bowl, sand=sand)
+
+@woW
+def a_wo_tan_beam():
+    """a tanner's beam: a log sloping from the tanner's thighs to the ground on two legs, a hide over it, the scrapings of flesh
+    and hair heaped at its foot and the ground dark round it (hides: PF 58-60, A; tanning C)"""
+    a, b = (0, 0.86, 0.32), (0, 0.05, 1.3)
+    beam = log(a, b, 0.11, 0.13, 10, 'beam', seed=450, bark=0.005)
+    legs = [log((s * 0.2, 0, 0.42), (0, 0.78, 0.4), 0.03, 0.03, 5, 'leg', seed=451 + int(s)) for s in (-1, 1)]
+    hide = grid(0.5, 1.0, 10, 18, 'hide')
+    L = math.hypot(b[1] - a[1], b[2] - a[2]); ang = math.atan2(a[1] - b[1], b[2] - a[2])
+    for v in hide.data.vertices:
+        u, t = v.co.x / 0.25, v.co.y / 1.0 + 0.5  # across and along
+        th = u * 1.6; r = 0.14
+        along = a[2] + (b[2] - a[2]) * (0.1 + 0.8 * t); up = a[1] + (b[1] - a[1]) * (0.1 + 0.8 * t)
+        v.co = G((r * math.sin(th), up + r * math.cos(th) * math.cos(ang), along + r * math.cos(th) * math.sin(ang) * 0.3))
+    solidify(hide, 0.005, 0)
+    stain = boxG(1.5, 0.004, 1.9, 0, 0, 0.9)
+    scr = heap(0.22, 0.09, -0.35, 1.25, seed=452, lump=0.5, name='scr')
+    return dict(wood_d=join([beam] + legs, 'wood_d'), hide_w=hide, stain=stain, scrap=scr)
+
+@woW
+def a_wo_tan_vat():
+    """a tanning vat sunk in the ground with a mud-brick rim, the hides soaking in dark liquor (C)"""
+    vat = vessel([(0.62, 0.0), (0.64, 0.2), (0.66, 0.45)], 0.03, 24, 'vat', 0.01, seed=460)
+    liq = lathe([(0.0, 0.39), (0.62, 0.39)], 24, 'liq')
+    hides = [xform(hide_sheet(0.5, 0.36, 461 + i), G((0.2 * math.sin(i * 3), 0.395, 0.2 * math.sin(i * 5))), (0, 0, math.sin(i * 7) * 2)) for i in range(3)]
+    rim = []
+    for x in (-0.7, 0.7):
+        for c in range(3):
+            for k in range(4): rim.append(xform(brick_piece(465 + c * 4 + k + int(x * 10), 0.14, 0.1, 0.33), G((x, 0.15 * c, -0.52 + 0.345 * k + 0.1 * (c % 2)))))
+    return dict(mud=vat, liquor=liq, hide=join(hides, 'hide'), brick=join(rim, 'brick'))
+
+@woW
+def a_wo_hide_frames():
+    """the tannery's ground: three wooden frames with hides laced in them drying, a heap of lime, the ground stained (C)"""
+    ground = boxG(4.2, 0.004, 2.6, 0, 0, 0)
+    lime = heap(0.45, 0.3, -1.7, -0.8, seed=470, lump=0.3, name='lime')
+    fr, hd, hd2, lace = [], [], [], []
+    for i in range(3):
+        x, z, yaw = -1.2 + i * 1.2, 0.4 + 0.15 * math.sin(i), 0.2 * math.sin(i * 2)
+        parts = [log((sx, 0, 0), (sx, 1.5, 0), 0.03, 0.028, 5, 'p', seed=471 + i * 3 + int(sx * 10), bark=0.002) for sx in (-0.55, 0.55)]
+        parts += [log((-0.58, y, 0), (0.58, y, 0), 0.025, 0.025, 5, 'r', seed=480 + i + int(y * 10), bark=0.002) for y in (0.25, 1.4)]
+        h = hide_sheet(0.95, 1.0, 490 + i); xform(h, (0, 0, 0), (math.pi / 2, 0, 0)); xform(h, G((0, 0.82, 0)))
+        ls = [pathG([(0.47 * s, 0.4 + 0.18 * k, 0), (0.55 * s, 0.45 + 0.18 * k, 0)], 0.003, 3, 'l') for s in (-1, 1) for k in range(5)]
+        grp = parts + [h] + ls
+        for o in grp: xform(o, (0, 0, 0), (0, 0, yaw)); q = G((x, 0, z)); xform(o, (q.x, q.y, q.z))
+        fr += parts; (hd2 if i == 1 else hd).append(h); lace += ls
+    return dict(stain=ground, lime=lime, wood_d=join(fr, 'wood_d'), hide=join(hd, 'hide'), hide_w=join(hd2, 'hide_w'), cord=join(lace, 'cord'))
+
+@woW
+def a_wo_oil_press():
+    """a stone mortar for pounding roasted sesame, the crushed paste in it (the sack and the basket beside it are the builder's)
+    (PF 56: A for the sesame; C for the method)"""
+    mort = vessel([(0.22, 0.0), (0.26, 0.2), (0.26, 0.35)], 0.08, 20, 'mortar', 0.02, seed=500); displace(mort, 0.006, 0.08, seed=501)
+    paste = lathe([(0.0, 0.28), (0.14, 0.27), (0.17, 0.25)], 14, 'paste'); displace(paste, 0.006, 0.05, seed=502)
+    return dict(stone=mort, paste=paste)
+
+@woW
+def a_wo_fold():
+    """a fold for the night: a ring of cut thorn brush about 12 m across, heaped chest-high, the gate closed with a bundle (C)"""
+    R, n = 6, 30; th = []; th2 = []
+    for i in range(n):
+        a = TAU * i / n + math.pi / 2
+        if i in (n // 2, n // 2 + 1): continue
+        x, z = R * math.cos(a), R * math.sin(a); h = 1.0 + 0.3 * abs(math.sin(i * 4))
+        c = meta([('ELLIPSOID', (0, 0, h * 0.4), 0.7, (1.1, 0.85, h * 0.9), 2), ('ELLIPSOID', (0.3, 0.1, h * 0.3), 0.45, (1.0, 1.0, h), 2), ('ELLIPSOID', (-0.3, -0.1, h * 0.35), 0.45, (1.0, 1.0, h), 2)], res=0.12, name='brush')
+        displace(c, 0.12, 0.25, seed=510 + i)
+        for v in c.data.vertices: v.co.z = max(0.0, v.co.z)
+        (th if math.sin(i * 12.9) > 0 else th2).append(xform(c, G((x, 0, z)), (0, 0, -a)))
+    straw = [heap(0.45, 0.25, -1.5 + 1.5 * i, 1.2 * math.sin(i * 7), seed=540 + i, lump=0.5, name='s') for i in range(3)]
+    return dict(thorn=join(th, 'thorn'), thorn_d=join(th2, 'thorn_d'), straw_d=join(straw, 'straw_d'))
+
+def sledge_parts():
+    runners = [pathG([(x, 0.1, -1.55), (x, 0.1, 1.2), (x, 0.14, 1.45), (x, 0.24, 1.58)], 0.1, 4, 'runner') for x in (-0.6, 0.6)]
+    cross = [boxG(1.5, 0.12, 0.24, 0, 0.18, z, bevel=0.012) for z in (-1.0, 0, 1.0)]
+    traces = [pathG([(x, 0.2, 1.55), (x * 0.3, 1.0, 3.0)], 0.025, 5, 'tr') for x in (-0.35, 0.35)]
+    return runners, cross, traces
+@woW
+def a_wo_drum_haul():
+    """a rough-cut column drum lying on a heavy wooden sledge, roped down, the traces forward to the yokes (construction.ts
+    E-61; the stone from Majdabad: B; sledge and haul C)"""
+    drum = lathe([(0.0, -0.65), (0.86, -0.65), (0.87, -0.6), (0.87, 0.6), (0.86, 0.65), (0.0, 0.65)], 28, 'drum', wobble=0.02, seed=550); displace(drum, 0.015, 0.1, seed=551)
+    xform(drum, (0, 0, 0), (0, math.pi / 2, 0)); xform(drum, G((0, 0.28 + 0.86, 0)))
+    r, c, t = sledge_parts()
+    ropes = [sweep([G((x, 0.28 + 0.86 + 0.88 * math.cos(a), 0.88 * math.sin(a))) for a in [TAU * i / 24 for i in range(25)]], 0.02, 4, 'rope', caps=False) for x in (-0.45, 0.45)]
+    return dict(lime=drum, wood_d=join(r, 'wood_d'), wood=join(c, 'wood'), cord=join(t + ropes, 'cord'))
+@woW
+def a_wo_sledge():
+    """the drum sledge going back empty to the quarry (C)"""
+    r, c, t = sledge_parts()
+    return dict(wood_d=join(r, 'wood_d'), wood=join(c, 'wood'), cord=join(t, 'cord'))
+@woW
+def a_wo_drum_rough():
+    """a column drum roughed out at the quarry, over-size, the point marks on it, chips about its foot (C)"""
+    drum = lathe([(0.0, 0.0), (0.88, 0.0), (0.86, 0.65), (0.84, 1.3), (0.0, 1.3)], 24, 'drum', wobble=0.03, seed=560); subdiv(drum, 1); displace(drum, 0.02, 0.06, seed=561)
+    chips = [heap(0.18 + 0.08 * abs(math.sin(i)), 0.07, 1.0 * math.cos(i * 1.1), 1.0 * math.sin(i * 1.1), seed=562 + i, lump=0.8, name='c', res=0.03) for i in range(6)]
+    return dict(lime=drum, chips=join(chips, 'chips'))
+
+@woW
+def a_wo_fish_trap():
+    """a conical wicker fish trap at the water's edge, weighted with a stone (C): the rods, the hoops, the mouth"""
+    rods = []
+    for k in range(14):
+        a = TAU * k / 14; rods.append(pathG([(0.28 * math.cos(a), 0.28 + 0.28 * math.sin(a), -0.35), (0.14 * math.cos(a), 0.28 + 0.14 * math.sin(a), 0.2), (0.02 * math.cos(a), 0.28 + 0.02 * math.sin(a), 0.75)], [0.006, 0.005, 0.003], 3, 'rod'))
+    hoops = [sweep([G((r * math.cos(a), 0.28 + r * math.sin(a), z)) for a in [TAU * i / 16 for i in range(17)]], 0.006, 4, 'hoop', caps=False) for (r, z) in ((0.28, -0.35), (0.22, -0.15), (0.16, 0.1), (0.09, 0.4))]
+    st = xform(stone_lump(0.12, 570, flat=0.7), G((0, 0, -0.45)))
+    return dict(wicker=join(rods + hoops, 'wicker'), stone=st)
+
+@woW
+def a_wo_snare():
+    """a pegged snare line: a cord between two pegs with horsehair nooses along it (C)"""
+    pegs = [pathG([(x, -0.05, 0), (x, 0.2, 0)], [0.012, 0.009], 5, 'peg') for x in (-0.5, 0.5)]
+    cord = pathG([(-0.5, 0.12, 0), (0, 0.11, 0), (0.5, 0.12, 0)], 0.003, 3, 'cord')
+    noose = [sweep([G((-0.36 + 0.18 * i + 0.035 * math.cos(a), 0.08 + 0.035 * math.sin(a), 0)) for a in [TAU * j / 10 for j in range(11)]], 0.0018, 3, 'n', caps=False) for i in range(5)]
+    return dict(wood=join(pegs, 'wood'), cord=cord, hair=join(noose, 'hair'))
+
+@woW
+def a_wo_hives():
+    """clay-pipe hives: a dozen long cylinders laid in rows in a low mud wall, their ends stopped with mud, a flight hole in
+    each (RECOLLECTION, NOT SEEN; C)"""
+    wall = boxG(2.4, 0.9, 0.8, 0, 0, 0, bevel=0.05); displace(wall, 0.015, 0.2, seed=580)
+    pipes = []; caps = []
+    for r in range(2):
+        for c in range(6):
+            x, y = -1.0 + 0.4 * c, 0.25 + 0.36 * r
+            p = vessel([(0.16, 0.0), (0.162, 0.43), (0.16, 0.86)], 0.015, 12, 'pipe', 0.01, seed=581 + r * 6 + c)
+            xform(p, (0, 0, 0), (math.pi / 2, 0, 0)); xform(p, G((x, y, -0.43)))
+            pipes.append(p)
+            cp = lathe([(0.0, 0.0), (0.15, 0.0), (0.15, 0.02), (0.0, 0.02)], 12, 'cap'); xform(cp, (0, 0, 0), (-math.pi / 2, 0, 0)); xform(cp, G((x, y, -0.43)))
+            caps.append(cp)
+    return dict(mud=wall, pot=join(pipes, 'pot'), mud_wet=join(caps, 'mud_wet'))
+
+@woW
+def a_wo_milk():
+    """the milk in the pot (C)"""
+    return dict(milk=lathe([(0.0, 0.0), (0.075, 0.0)], 12, 'milk'))
+
+# ======================================================================================================== the Treasury's goods and the rooms' fittings (world/furnish.ts)
+@asset()
+def a_alabastron():
+    """an alabaster vessel of the alabastron form (stone vessels inscribed for the Achaemenid kings in the Treasury: B; the
+    form C): a tall rounded body, a narrow neck, a broad flat rim, 0.26 m"""
+    o = [(0.045, 0.0), (0.06, 0.008), (0.071, 0.04), (0.075, 0.1), (0.074, 0.15), (0.063, 0.19), (0.04, 0.215), (0.024, 0.235), (0.026, 0.245), (0.04, 0.252), (0.041, 0.258), (0.02, 0.262)]
+    return dict(stone=vessel(o, 0.006, 28, 'alab', 0.004, seed=601))
+
+@asset()
+def a_rhyton():
+    """a gold rhyton: a drinking horn ending in the forepart of a winged animal (Achaemenid rhyta: B type; the forepart here a
+    simple animal head, C), lying on its side as the Treasury's bench holds it"""
+    horn = sweep([(0.0, 0.0, 0.0), (0.05, 0.0, 0.05), (0.08, 0.0, 0.12), (0.09, 0.0, 0.2), (0.085, 0.0, 0.26)], [0.011, 0.02, 0.035, 0.05, 0.058], 18, 'horn', caps=False)
+    solidify(horn, 0.003, -1)
+    head = meta([('ELLIPSOID', (-0.01, 0.0, -0.01), 0.028, (1.3, 0.9, 1.0), 2), ('ELLIPSOID', (-0.035, 0.0, -0.02), 0.015, (1.2, 0.8, 0.8), 2), ('ELLIPSOID', (0.0, 0.012, 0.012), 0.008, (0.6, 0.6, 1.5), 2), ('ELLIPSOID', (0.0, -0.012, 0.012), 0.008, (0.6, 0.6, 1.5), 2)], res=0.004, name='head')
+    ob = join([horn, head], 'gold'); xform(ob, (0, 0, 0), (0, math.pi / 2 - 0.3, 0))
+    zs = [v.co.z for v in ob.data.vertices]; z0 = min(zs)
+    for v in ob.data.vertices: v.co.z -= z0
+    return dict(gold=ob)
+
+@asset()
+def a_mortar_set():
+    """a green chert mortar and pestle of the Treasury's ritual sets (inscribed green chert mortars, pestles and plates of the
+    haoma rite: B; C form): a footed bowl and a pestle lying across it"""
+    m = vessel([(0.06, 0.0), (0.07, 0.008), (0.06, 0.02), (0.075, 0.03), (0.095, 0.05), (0.1, 0.065), (0.098, 0.07)], 0.012, 28, 'mortar', 0.004, seed=602)
+    p = sweep([(0.0, 0.0, 0.0), (0.0, 0.0, 0.08), (0.0, 0.0, 0.16)], [0.022, 0.017, 0.019], 12, 'pestle')
+    xform(p, (-0.05, 0.0, 0.035), (0, 1.2, 0))
+    return dict(stone=join([m, p], 'stone'))
+
+@asset()
+def a_shield():
+    """a round shield leaning on the wall: a convex face of hide over wicker, a bound rim and a bronze boss (the Persian
+    infantry's shields: B for round shields; C form), 0.69 m across"""
+    face = lathe([(0.0, 0.058), (0.05, 0.056), (0.2, 0.04), (0.31, 0.018), (0.335, 0.006), (0.33, -0.004), (0.2, 0.022), (0.05, 0.038), (0.0, 0.04)], 40, 'face', wobble=0.004, seed=603)
+    rim = sweep([(0.338 * math.cos(a), 0.338 * math.sin(a), 0.002) for a in [TAU * i / 48 for i in range(49)]], 0.009, 6, 'rim', caps=False)
+    boss = lathe([(0.0, 0.086), (0.03, 0.083), (0.055, 0.063), (0.062, 0.056), (0.0, 0.056)], 20, 'boss')
+    for o in (face, rim, boss): xform(o, (0, 0, 0), (1.35, 0, 0)); xform(o, (0, -0.1, 0.33))
+    return dict(hide=face, cord=rim, bronze=boss)
+
+@asset()
+def a_tusk():
+    """an elephant's tusk lying on the bench (ivory among the Treasury's goods: B; C): a tapering curve, oval in section"""
+    pts = [(-0.3 + 0.45 * math.cos(a) - 0.45 * math.cos(0), 0.045, -0.15 + 0.45 * math.sin(a)) for a in [1.1 * i / 10 for i in range(11)]]
+    t = sweep([(p[0], -p[2], p[1]) for p in pts], lambda s: 0.045 * (1 - s) ** 0.6 + 0.004, 12, 'tusk', scale=(1.0, 0.85))
+    zs = [v.co.z for v in t.data.vertices]; z0 = min(zs)
+    for v in t.data.vertices: v.co.z -= z0
+    return dict(ivory=t)
+
+@asset()
+def a_glass_bowl():
+    """a cut-glass bowl (Achaemenid cut glass: B; C form): a hemispherical bowl, its wall cut in a zone of almond facets"""
+    o = [(0.0, 0.0), (0.04, 0.002), (0.07, 0.015), (0.088, 0.035), (0.095, 0.06), (0.092, 0.066)]
+    b = vessel(o, 0.004, 48, 'bowl', 0.0, seed=604)
+    for v in b.data.vertices:
+        rr = math.hypot(v.co.x, v.co.y); a = math.atan2(v.co.y, v.co.x)
+        if 0.03 < rr and v.co.z < 0.05: k = 1 - 0.035 * max(0, math.cos(a * 16)) ** 4; v.co.x *= k; v.co.y *= k
+    return dict(glass=b)
+
+@asset()
+def a_beads():
+    """a bowl heaped with beads of glass, carnelian and lapis (C)"""
+    bw = vessel([(0.05, 0.0), (0.07, 0.02), (0.08, 0.04), (0.085, 0.05)], 0.004, 24, 'bowl', 0.008, seed=605)
+    b = []; rnd = random.Random(606)
+    for k in range(90):
+        a = rnd.uniform(0, TAU); d = rnd.uniform(0, 0.07); z = 0.03 + 0.03 * (1 - d / 0.07) * rnd.uniform(0.6, 1.0)
+        b.append(xform(lathe([(0.0, -0.004), (0.004, -0.003), (0.005, 0.0), (0.004, 0.003), (0.0, 0.004)], 5, 'bd'), (d * math.cos(a), d * math.sin(a), z)))
+    return dict(pot=bw, beads=join(b, 'beads'))
+
+@asset()
+def a_quern():
+    """a saddle quern: the lower stone a long slab with rounded ends, its top worn into a hollow along its length, the upper
+    (rubbing) stone lying on it (querns of the period: B type; C), unit size (the builder scales it)"""
+    s = box(1.0, 1.0, 0.12, (0, 0, 0), 'slab', bevel=0.04, segs=3); subdiv(s, 2)
+    for v in s.data.vertices:
+        u, t = v.co.x / 0.5, v.co.y / 0.5
+        if v.co.z > 0.1: v.co.z -= 0.04 * max(0.0, 1 - u * u) * max(0.0, 1 - t * t)
+        v.co.x *= 1 - 0.12 * abs(t) ** 4; v.co.y *= 1 - 0.15 * abs(u) ** 4
+    displace(s, 0.006, 0.2, seed=607)
+    r = meta([('ELLIPSOID', (0.05, 0, 0.11), 0.2, (1.8, 3.1, 0.38), 2)], res=0.02, name='rubber'); displace(r, 0.006, 0.2, seed=608)
+    return dict(stone=join([s, r], 'stone'))
+
+@asset()
+def a_bale():
+    """a bale of folded cloth tied with two cords (textiles among the Treasury's goods: B; C): soft, bulging, creased,
+    unit size (the builder scales it)"""
+    e = [('ELLIPSOID', (x, 0, 0.5), 0.5, (1.0, 1.0, 1.0), 2) for x in (-0.25, 0.0, 0.25)]
+    b = meta(e, res=0.05, name='bale')
+    xs = [v.co.x for v in b.data.vertices]; ys = [v.co.y for v in b.data.vertices]; zs = [v.co.z for v in b.data.vertices]
+    for v in b.data.vertices:
+        v.co.x = (v.co.x - (min(xs) + max(xs)) / 2) / (max(xs) - min(xs)); v.co.y = (v.co.y - (min(ys) + max(ys)) / 2) / (max(ys) - min(ys)); v.co.z = (v.co.z - min(zs)) / (max(zs) - min(zs))
+        # squared off (a folded bale is box-like) and pinched by the cords at a quarter of the length from each end
+        k = 1 - 0.1 * math.exp(-((abs(v.co.x) - 0.25) / 0.035) ** 2)
+        v.co.y = math.copysign(abs(2 * v.co.y) ** 0.55 / 2, v.co.y) * k; v.co.z = 0.5 + math.copysign(abs(2 * (v.co.z - 0.5)) ** 0.55 / 2, v.co.z - 0.5) * k
+        v.co.x = math.copysign(abs(2 * v.co.x) ** 0.7 / 2, v.co.x)
+    tex = bpy.data.textures.new('cr', 'STUCCI'); tex.noise_scale = 0.15
+    m = b.modifiers.new('d', 'DISPLACE'); m.texture = tex; m.strength = 0.02; m.mid_level = 0.5; apply_mods(b)
+    cords = [sweep([(x, 0.5 * 0.92 * math.cos(a), 0.5 + 0.5 * 0.92 * math.sin(a)) for a in [TAU * i / 24 for i in range(25)]], 0.012, 5, 'cord', caps=False) for x in (-0.25, 0.25)]
+    return dict(cloth=b, cord=join(cords, 'cord'))
 
 # ======================================================================================================== driver
 if __name__ == '__main__':

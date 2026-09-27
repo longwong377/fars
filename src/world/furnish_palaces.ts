@@ -25,7 +25,8 @@ import { surfaceMaterial, SURFACES, type SurfaceDef } from '../render/materials'
 import type { Part, Manifest, Doorway, Column, Box } from '../arch/parts';
 import type { Physics } from '../player/physics';
 import courtJson from '../data/court.json';
-import { scanShape, modelParts, modelFit, aoFactor } from '../render/scanProps';
+import { scanShape, modelParts, modelFit, aoFactor, propTexture } from '../render/scanProps';
+import { texture, positionWorld, vec3, normalWorld, smoothstep } from 'three/tsl';
 
 type RGB = [number, number, number];
 export type FurnState = 'stored' | 'use';
@@ -46,7 +47,7 @@ const F = () => v<any>('global', 'r_palace_furnishings');
 const lin = (c: RGB): RGB => { const t = new THREE.Color().setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace); return [t.r, t.g, t.b]; };
 
 // ---------------- local geometry (x = length axis, y up from the floor, z across) ----------------
-type Mat = 'furn_textile' | 'timber' | 'furn_gilt' | 'furn_silver' | 'bronze' | 'furn_clay' | 'matting';
+type Mat = 'furn_textile' | 'furn_carpet' | 'timber' | 'furn_gilt' | 'furn_silver' | 'bronze' | 'furn_clay' | 'matting';
 type Parts = Partial<Record<Mat, THREE.BufferGeometry[]>>;
 // every material is drawn with vertex colours (D-325): the modelled pieces' baked occlusion is multiplied into them; a part of
 // a metal, the timber or the matting is coloured with its surface's own albedo (the material's colour before)
@@ -75,21 +76,21 @@ function carpetGeo(P: Parts, variant: number, L: number, W: number) {
   const C = F().carpet, t = C.thick, b = Math.min(C.border, 0.14 * Math.min(L, W)), col = C.colours;
   const cp = modelParts('carpet', FURNISH_LOD.lod);
   if (cp) { // D-325: the pile slab (unit, scaled to the carpet) and the warp ends' fringe beyond the short ends (at their own length)
-    put(P, 'furn_textile', cp.pile.applyMatrix4(new THREE.Matrix4().makeScale(L, t / 0.012, W)), col.border);
+    put(P, 'furn_carpet', cp.pile.applyMatrix4(new THREE.Matrix4().makeScale(L, t / 0.012, W)), col.border);
     const Fr = cp.fringe, Q = Fr.getAttribute('position'); for (let i = 0; i < Q.count; i++) { const x = Q.getX(i); Q.setXYZ(i, Math.sign(x) * (L / 2 + Math.abs(x) - 0.5), Q.getY(i), Q.getZ(i) * W); }
-    Fr.computeVertexNormals(); put(P, 'furn_textile', Fr, col.undyed ?? col.band);
-  } else put(P, 'furn_textile', box(L, t, W), col.border);
+    Fr.computeVertexNormals(); put(P, 'furn_carpet', Fr, col.undyed ?? col.band);
+  } else put(P, 'furn_carpet', box(L, t, W), col.border);
   // the pattern as colour patches lying on the pile, each 1.5 mm above the one under it (no coplanar faces to fight in the
   // depth buffer within the 90 m a palace's pieces are drawn)
   const s = 0.0015, fx = L / 2 - b, fz = W / 2 - b;
-  put(P, 'furn_textile', patch(-L / 2 + 0.06, L / 2 - 0.06, -W / 2 + 0.06, W / 2 - 0.06, t + s), col.band); // the guard band inside the edge
-  put(P, 'furn_textile', patch(-L / 2 + 0.1, L / 2 - 0.1, -W / 2 + 0.1, W / 2 - 0.1, t + 2 * s), col.border);
-  put(P, 'furn_textile', patch(-fx, fx, -fz, fz, t + 3 * s), col.field);
+  put(P, 'furn_carpet', patch(-L / 2 + 0.06, L / 2 - 0.06, -W / 2 + 0.06, W / 2 - 0.06, t + s), col.band); // the guard band inside the edge
+  put(P, 'furn_carpet', patch(-L / 2 + 0.1, L / 2 - 0.1, -W / 2 + 0.1, W / 2 - 0.1, t + 2 * s), col.border);
+  put(P, 'furn_carpet', patch(-fx, fx, -fz, fz, t + 3 * s), col.field);
   const [nx, nz] = C.squares as number[], sx = (2 * fx) / nx, sz = (2 * fz) / nz; // the field of squares (Pazyryk: 24; C here)
   for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
     const cx = -fx + (i + 0.5) * sx, cz = -fz + (j + 0.5) * sz;
-    if ((i + j + variant) % 2) put(P, 'furn_textile', patch(cx - sx * 0.4, cx + sx * 0.4, cz - sz * 0.4, cz + sz * 0.4, t + 4 * s), col.square);
-    put(P, 'furn_textile', patch(cx - sx * 0.14, cx + sx * 0.14, cz - sz * 0.14, cz + sz * 0.14, t + 5 * s), col.motif);
+    if ((i + j + variant) % 2) put(P, 'furn_carpet', patch(cx - sx * 0.4, cx + sx * 0.4, cz - sz * 0.4, cz + sz * 0.4, t + 4 * s), col.square);
+    put(P, 'furn_carpet', patch(cx - sx * 0.14, cx + sx * 0.14, cz - sz * 0.14, cz + sz * 0.14, t + 5 * s), col.motif);
   }
 }
 function rollsGeo(P: Parts, n: number, r: number, len: number, cols: RGB[]) { // a pile of rolls along x: rows of k, k-1, … (C)
@@ -362,7 +363,17 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
 }
 
 // ---------------- the drawn furnishings ----------------
-const MATS: Mat[] = ['furn_textile', 'timber', 'furn_gilt', 'furn_silver', 'bronze', 'furn_clay', 'matting'];
+const MATS: Mat[] = ['furn_textile', 'furn_carpet', 'timber', 'furn_gilt', 'furn_silver', 'bronze', 'furn_clay', 'matting'];
+/** D-325: the carpets' material: the woven textile's surface with the knotted pile's normal map (tools/blender/carpet_pile.py:
+ *  12 x 12 knots per 2 cm tile, the Pazyryk density) laid in world x-z on the upward faces; the plain textile without it */
+function carpetMaterial(): THREE.Material {
+  const pile = propTexture('carpet_pile_n'); if (!pile) return surfaceMaterial('furn_textile', { vertexColors: true });
+  return surfaceMaterial('furn_textile', { vertexColors: true, variant: 'carpet', modify: L => {
+    const t = texture(pile, positionWorld.xz.div(0.02)).xy.mul(2).sub(1), up = smoothstep(0.6, 0.9, normalWorld.y), k = 0.9;
+    const tilt = vec3(t.x, 0, t.y.negate()).mul(up.mul(k));
+    return { ...L, tilt: L.tilt ? L.tilt.add(tilt) : tilt };
+  } });
+}
 const VC = new Set<Mat>(MATS); // (D-325: all: the occlusion of the modelled pieces rides in the vertex colours)
 /** the palaces' furnishings in both states: one merged mesh per building, state and material; colliders of the current
  *  state; `setCourt` switches between them (the court setting only) */
@@ -387,7 +398,7 @@ export class PalaceFurnishings {
         for (const mat of MATS) for (const geo of P[mat] ?? []) { geo.applyMatrix4(m4); (acc[mat] ??= []).push(geo); const o = (owners[mat] ??= []); for (let t = 0; t < geo.getAttribute('position').count / 3; t++) o.push(idx); } });
       for (const mat of MATS) { const list = acc[mat]; if (!list?.length) continue;
         const geo = mergeGeometries(list)!; for (const x of list) x.dispose(); geo.computeBoundingSphere();
-        const mesh = new THREE.Mesh(geo, surfaceMaterial(mat, VC.has(mat) ? { vertexColors: true } : {})); mesh.name = `${g.name}:${mat}`; mesh.castShadow = true; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false;
+        const mesh = new THREE.Mesh(geo, mat === 'furn_carpet' ? carpetMaterial() : surfaceMaterial(mat, VC.has(mat) ? { vertexColors: true } : {})); mesh.name = `${g.name}:${mat}`; mesh.castShadow = true; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false;
         const own = owners[mat]!;
         mesh.userData = { tier: 'C', src: 'TREAS-AUD;HDT;PAZYRYK;ASB-GARDEN;ESTHER-1.6;RECON', note: `${b} furnishings, ${st === 'use' ? 'laid out for the court (court setting, in residence)' : 'the court away: stored, covered, the steward\'s minimum'} (D-212, C)`,
           describe: (h: any) => { const it = items[own[h?.faceIndex ?? -1]]; return it ? { tier: 'C', src: 'RECON', note: `${it.kind} in the ${b} ${it.room}: ${it.note}` } : null; } };

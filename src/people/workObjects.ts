@@ -11,7 +11,7 @@ import { attribute } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { paintGeometry as paint, rodGeometry as rod, propGeometry } from './props';
 import { nearCascadesOnly } from './humanGPU';
-import { scanShape, modelShape, modelParts } from '../render/scanProps';
+import { scanShape, modelShape, modelParts, modelFit, mergedModel, model } from '../render/scanProps';
 
 export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field' | 'jar' | 'mortar_tub' | 'brick_course' | 'beam' | 'loom' | 'dung_cakes' | 'vat' | 'fodder'
   | 'fleece' | 'butchery' | 'hides' | 'basket_meat' | 'threshing_floor' | 'stooks' | 'sheaves' | 'sheaf' | 'grain_heap' | 'spoil' | 'basket_fruit' | 'press' | 'brushwood'
@@ -37,7 +37,7 @@ const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RG
 const box = (w: number, h: number, d: number, x = 0, y = 0, z = 0) => new THREE.BoxGeometry(w, h, d).translate(x, y + h / 2, z);
 const mound = (r: number, h: number, seg = 9, x = 0, z = 0) => new THREE.LatheGeometry([[r * 1.02, 0], [r, 0.02], [r * 0.8, h * 0.45], [r * 0.45, h * 0.86], [0, h]].map(([a, b]) => new THREE.Vector2(a, b)), seg).translate(x, 0, z);
 const lathe = (pts: number[][], seg: number) => new THREE.LatheGeometry(pts.map(([a, b]) => new THREE.Vector2(a, b)), seg);
-const P = (g: THREE.BufferGeometry, c: RGB, rough = 0.9, metal = 0) => paint(g, c, metal, rough);
+const P = (g: THREE.BufferGeometry, c: RGB, rough = 0.9, metal = 0) => paint(g, c, metal, rough); // (paint multiplies a model's baked occlusion in: D-325)
 const merge = (gs: THREE.BufferGeometry[]) => mergeGeometries(gs)!;
 // session 12 (D-310): jars and baskets from CC0 scans' shapes (Poly Haven; render/scanProps.ts) fitted to the old forms' boxes
 // (radius r, height h, base on y = 0), when loaded; else the procedural form
@@ -122,7 +122,83 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
 };
 
+// ------------------------------------------------------------------------------------------------ D-325: the modelled work objects
+// Every kind below is the project's model (tools/blender/model_props.py `wo_<kind>`), in the performer's frame at the
+// procedural form's sizes and places (the procedural forms stay as the stand-ins when the models are not loaded): bricks with
+// worn arrises, straw in the mud, logs and poles with their bark, stones as field stones, heaps in lumps, sheaves fluted and
+// bound, hides with their outlines, tripartite disc wheels with battens and hubs, spoked chariot wheels, wattle woven on
+// stakes, cloths hung over the drying pole, goatskin bellows with their legs tied off, duck-shaped weights, fish, grapes
+// and nuts in the baskets. Its parts are named for what they are and painted here, the baked occlusion multiplied in. The
+// jars and baskets are the vessel models and the scans (SJ, SB), the pots, the sacks and the lamp the vessel models.
+const WORK_PAINT: Record<string, [RGB, number, number]> = { // colour (sRGB), roughness, metalness
+  mud: [MUD, 0.95, 0], mud_wet: [MUD_WET, 0.7, 0], mud_roof: [[0.55, 0.47, 0.34], 1, 0], brick: [BRICK, 0.95, 0], straw: [STRAW, 1, 0], straw_d: [STRAW_D, 1, 0], ears: [EARS, 1, 0],
+  wood: [WOOD, 0.9, 0], wood_d: [WOOD_D, 0.9, 0], beam: [[0.5, 0.38, 0.26], 0.9, 0], stone: [STONE, 0.8, 0], stone_d: [[0.5, 0.49, 0.47], 0.7, 0], lime: [LIME, 0.85, 0], pot: [POT, 0.85, 0],
+  wool: [WOOL, 1, 0], wool_d: [[0.7, 0.66, 0.56], 1, 0], hide: [HIDE, 0.8, 0], hide_d: [[0.42, 0.3, 0.2], 0.85, 0], hide_w: [[0.62, 0.52, 0.4], 0.7, 0], iron: [IRON, 0.5, 0.7], scale: [[0.18, 0.16, 0.15], 0.3, 0.8],
+  meat: [MEAT, 0.6, 0], fat: [FAT, 0.6, 0], meat_boiled: [[0.74, 0.62, 0.52], 0.7, 0], earth: [EARTH, 0.95, 0], linen: [LINEN, 1, 0], cord: [[0.62, 0.54, 0.38], 0.95, 0], red: [[0.55, 0.16, 0.12], 0.95, 0],
+  blue: [[0.2, 0.24, 0.42], 0.95, 0], warp: [[0.84, 0.8, 0.7], 0.95, 0], ash: [[0.24, 0.22, 0.2], 1, 0], ember: [[0.4, 0.12, 0.05], 0.7, 0], grape: [[0.26, 0.12, 0.2], 0.5, 0], nut: [[0.62, 0.55, 0.36], 0.8, 0],
+  fish: [[0.5, 0.5, 0.44], 0.35, 0.2], thorn: [[0.36, 0.3, 0.22], 1, 0], thorn_d: [[0.42, 0.35, 0.25], 1, 0], grass: [[0.3, 0.44, 0.2], 1, 0], bone: [[0.82, 0.76, 0.64], 0.7, 0], silver: [[0.8, 0.79, 0.76], 0.3, 1],
+  skin: [[0.46, 0.34, 0.24], 0.85, 0], liquor: [[0.2, 0.15, 0.1], 0.15, 0], stain: [[0.3, 0.24, 0.18], 1, 0], scrap: [[0.55, 0.42, 0.34], 0.8, 0], milk: [[0.92, 0.9, 0.84], 0.6, 0], water: [[0.32, 0.36, 0.36], 0.08, 0],
+  clay_toy: [[0.66, 0.47, 0.33], 0.9, 0], lapis: [[0.28, 0.33, 0.52], 0.4, 0], dung: [[0.3, 0.25, 0.18], 0.9, 0], chips: [[0.62, 0.5, 0.34], 0.9, 0], grain: [[0.62, 0.5, 0.3], 1, 0], chaff: [[0.74, 0.66, 0.46], 1, 0],
+  wicker: [[0.6, 0.52, 0.32], 0.9, 0], sand: [[0.52, 0.46, 0.36], 0.4, 0], diorite: [[0.16, 0.17, 0.16], 0.4, 0], tablet: [[0.56, 0.48, 0.37], 0.9, 0], gilt: [[0.62, 0.48, 0.28], 0.6, 0.3],
+  leather: [[0.5, 0.2, 0.12], 0.8, 0], cloth: [[0.66, 0.55, 0.36], 1, 0], wine: [[0.28, 0.07, 0.09], 0.3, 0], wattle: [[0.52, 0.42, 0.28], 1, 0], dark: [[0.2, 0.14, 0.1], 0.9, 0], paste: [[0.66, 0.54, 0.36], 1, 0],
+  pig_blue: [[0.12, 0.28, 0.62], 0.95, 0], pig_green: [[0.22, 0.48, 0.34], 0.95, 0], pig_red: [[0.55, 0.2, 0.13], 0.95, 0], pig_ochre: [[0.76, 0.58, 0.26], 0.95, 0],
+};
+const WORK_OVERRIDE: Partial<Record<WorkKind, Record<string, [RGB, number, number]>>> = {
+  drum_rough: { chips: [[0.7, 0.68, 0.63], 1, 0] }, tan_beam: { stain: [[0.26, 0.2, 0.15], 1, 0] }, hurdles: { wood_d: [[0.2, 0.16, 0.12], 1, 0] }, wagon: { red: [[0.4, 0.2, 0.12], 0.8, 0] },
+};
+/** the kinds drawn from their own models (wo_<kind>) */
+export const MODELLED_WORK: WorkKind[] = ['drum_sledge', 'brick_stack', 'mud_heap', 'brick_field', 'mortar_tub', 'brick_course', 'beam', 'loom', 'dung_cakes', 'fodder', 'fleece', 'butchery', 'hides',
+  'threshing_floor', 'stooks', 'sheaves', 'sheaf', 'grain_heap', 'spoil', 'press', 'brushwood', 'pigment_slab', 'bier', 'wash_stone', 'drying_rack', 'target', 'ard', 'chariot', 'wagon', 'hurdles',
+  'knucklebones', 'toy_wheeled', 'offering_set', 'grass_bed', 'anvil', 'bellows_stand', 'bellows', 'stake', 'weigh_table', 'seal_bench', 'tan_beam', 'tan_vat', 'hide_frames', 'fold', 'drum_haul',
+  'sledge', 'drum_rough', 'fish_trap', 'snare', 'hives', 'cart_timber'];
+/** a work model's parts painted (null when not loaded) */
+function woParts(id: string, kind: WorkKind | '', M?: THREE.Matrix4): THREE.BufferGeometry[] | null {
+  const p = modelParts(id, 0, M); if (!p) return null;
+  return Object.entries(p).map(([k, g]) => { const t = (kind && WORK_OVERRIDE[kind]?.[k]) || WORK_PAINT[k] || [WOOD, 0.9, 0]; return P(g, t[0], t[1], t[2]); });
+}
+/** a vessel model fitted to a box and placed (x, y, z), painted */
+function vesselAt(id: string, size: [number, number, number], at: [number, number, number], c: RGB, rough = 0.85): THREE.BufferGeometry | null {
+  const f = modelFit(id, size, 0, at); if (!f) return null; return P(mergedModel(f), c, rough);
+}
+/** the composites: a model with the vessels, sacks and baskets the builders draw from their own models and scans */
+function composite(kind: WorkKind): THREE.BufferGeometry | null {
+  const has = (id: string) => !!model(id);
+  switch (kind) {
+    case 'vat': { const v = vesselAt('vat', [0.72, 0.75, 0.72], [0, 0, 0], POT); if (!v) return null;
+      return merge([v, P(new THREE.CylinderGeometry(0.25, 0.25, 0.02, 16).translate(0, 0.64, 0), [0.42, 0.33, 0.2], 0.4),
+        P(SJ(3, 0.2, 0.54, () => lathe([[0.1, 0], [0.2, 0.12], [0.2, 0.34], [0.1, 0.5], [0.08, 0.54]], 9)).translate(0.75, 0, 0.1), POT, 0.85), P(SJ(4, 0.18, 0.47, () => lathe([[0.1, 0], [0.18, 0.1], [0.18, 0.3], [0.1, 0.44], [0.08, 0.47]], 9)).translate(-0.72, 0, -0.1), POT, 0.85)]); }
+    case 'basket_meat': case 'basket_fruit': case 'basket_nuts': case 'basket_fish': {
+      const id = { basket_meat: 'wo_meat', basket_fruit: 'wo_grapes', basket_nuts: 'wo_nuts', basket_fish: 'wo_fish' }[kind], c = woParts(id, kind); if (!c) return null;
+      const r = kind === 'basket_fish' ? 0.22 : 0.2, h = kind === 'basket_meat' ? 0.18 : 0.2;
+      return merge([P(SB(kind === 'basket_meat' || kind === 'basket_fish' ? 0 : 1, r, h, () => new THREE.CylinderGeometry(r, r * 0.75, h, 10, 1, true).translate(0, h / 2, 0)), [0.6, 0.52, 0.32]), ...c]); }
+    case 'hearth_pot': { const c = woParts('wo_hearth_pot', kind), pot = vesselAt('cookpot', [0.34, 0.25, 0.34], [0, 0.11, 0], [0.3, 0.22, 0.17], 0.8); if (!c || !pot) return null; return merge([...c, pot]); }
+    case 'milk_pot': { const pot = vesselAt('milkpot', [0.28, 0.29, 0.28], [0, 0, 0], POT), m = woParts('wo_milk', kind, new THREE.Matrix4().makeTranslation(0, 0.25, 0)); if (!pot || !m) return null; return merge([pot, ...m]); }
+    case 'basin': { const b = vesselAt('basin', [0.46, 0.105, 0.46], [0, 0, 0], POT), j = vesselAt('jug', [0.15, 0.17, 0.15], [0.3, 0, 0.05], POT); if (!b || !j) return null;
+      return merge([b, P(new THREE.CylinderGeometry(0.185, 0.185, 0.003, 16).translate(0, 0.055, 0), [0.32, 0.36, 0.36], 0.08), j]); }
+    case 'sealed_jars': { if (!has('sack')) return null; const CLAY: RGB = [0.52, 0.42, 0.3], jarG = (x: number, z: number, sc: number) => [P(SJ(Math.round(x * 10), 0.24, 0.66, () => lathe([[0.001, 0], [0.13, 0.03], [0.24, 0.3], [0.2, 0.55], [0.1, 0.62], [0.11, 0.66]], 12)).scale(sc, sc, sc).translate(x, 0, z), POT, 0.85),
+        P(new THREE.CylinderGeometry(0.1 * sc, 0.1 * sc, 0.03, 10).translate(x, 0.67 * sc, z), CLAY, 0.9), P(new THREE.SphereGeometry(0.045 * sc, 6, 4).scale(1, 0.5, 1).translate(x + 0.02, 0.69 * sc, z), CLAY, 0.9)];
+      return merge([...jarG(0, 0, 0.95), ...jarG(0.62, 0.2, 1.05), vesselAt('sack', [0.44, 0.56, 0.36], [-0.55, 0, 0.15], [0.62, 0.55, 0.42], 1)!, P(new THREE.SphereGeometry(0.03, 5, 3).translate(-0.55, 0.56, 0.1), CLAY, 0.9)]); }
+    case 'oil_press': { const c = woParts('wo_oil_press', kind), sk = vesselAt('sack', [0.4, 0.52, 0.34], [0.55, 0, -0.1], [0.62, 0.55, 0.42], 1); if (!c || !sk) return null;
+      return merge([...c, sk, P(SB(2, 0.18, 0.16, () => new THREE.CylinderGeometry(0.18, 0.14, 0.16, 10, 1, true).translate(0, 0.08, 0)).translate(-0.5, 0, -0.05), [0.6, 0.52, 0.32]), P(mound(0.16, 0.08, 7, -0.5, -0.05).translate(0, 0.08, 0), [0.6, 0.48, 0.3], 0.9)]); }
+    case 'oil_jars': { const lamp = vesselAt('lamp', [0.17, 0.032, 0.14], [-0.3, 0, 0.1], POT, 0.8); if (!lamp) return null; const g: THREE.BufferGeometry[] = [];
+      for (let i = 0; i < 4; i++) g.push(P(SJ(i, 0.14, 0.43, () => lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.18], [0.1, 0.34], [0.05, 0.4], [0.055, 0.43]], 10)).translate(i * 0.32, 0, 0.03 * jit(i)), POT, 0.8), P(new THREE.CylinderGeometry(0.05, 0.05, 0.03, 8).translate(i * 0.32, 0.43, 0.03 * jit(i)), [0.52, 0.42, 0.3], 0.9));
+      return merge([...g, lamp]); }
+    case 'cart': { const c = woParts('wo_cart', kind); if (!c || !has('sack_lying')) return null; const bedY = 0.62;
+      for (let i = 0; i < 5; i++) { const x = (i % 2 ? 0.3 : -0.3) + 0.03 * jit(i), z = -0.75 + i * 0.36;
+        c.push(P(mergedModel(modelFit('sack_lying', [0.62, 0.3, 0.4], 0)!).rotateY(Math.PI / 2 + 0.2 * jit(i, 3)).translate(x, bedY, z), [0.64, 0.58, 0.46], 1)); }
+      return merge(c); }
+  }
+  return null;
+}
+/** a kind's modelled geometry, or null (its procedural form is drawn) */
+export function workModel(kind: WorkKind): THREE.BufferGeometry | null {
+  const c = composite(kind); if (c) return c;
+  if (!MODELLED_WORK.includes(kind)) return null;
+  const p = woParts('wo_' + kind, kind); return p ? merge(p) : null;
+}
+
 export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
+  const wm = workModel(kind); if (wm) return wm;
   switch (kind) {
     case 'drum_sledge': { const g = [P(new THREE.CylinderGeometry(0.62, 0.62, 0.9, 16).translate(0, 0.27 + 0.45, 0), LIME, 0.85)];
       for (const x of [-0.45, 0.45]) g.push(P(box(0.14, 0.14, 1.9, x, 0, 0), WOOD_D));

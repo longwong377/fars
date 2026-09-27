@@ -29,6 +29,10 @@ export const TARGETS = {
   // the carried props (their unions' budgets: tests/model_props.test.ts)
   tool_distaff: { wool: [120, 60] }, tool_brick: { mud: [80, 40] }, tool_rag: { cloth: [60, 30] }, tool_awl: { bone: [60, 30] }, tool_cloth: { cloth: [120, 60] },
   tool_parasol: { cloth: [160, 60], band: [80, 40] }, tool_mould: { wood: [300, 120] }, tool_balance: { bronze: [260, 120] },
+  // the work objects (one instanced draw per kind in view: a few thousand triangles each at most)
+  wo_fold: { thorn: [2400, 800], thorn_d: [2400, 800] }, wo_grass_bed: { grass: [800, 300], meat_boiled: [600, 200] }, wo_dung_cakes: { dung: [800, 300] }, wo_bellows: { skin: [1200, 400] },
+  wo_drum_rough: { lime: [1200, 400] }, wo_hurdles: { wattle: [3000, 1000] }, wo_grapes: { grape: [900, 300] }, wo_nuts: { nut: [900, 300] }, wo_bellows_stand: { skin: [700, 250] },
+  quern: { stone: [1200, 400] }, beads: { beads: [900, 300] }, bale: { cloth: [1200, 400] },
   tool_bow: { wood: [180, 90] }, tool_toy_bow: { wood: [140, 70] }, tool_rope: { cord: [200, 100] }, tool_towel: { linen: [48, 24] }, tool_beater: { wood: [48, 24] },
 };
 const want = process.argv.slice(2).filter(a => !a.startsWith('--'));

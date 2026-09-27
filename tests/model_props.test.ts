@@ -90,4 +90,33 @@ describe('modelled props (D-325): held props', () => {
     expect(tris[0]).toBeLessThanOrEqual(4000); expect(tris[1]).toBeLessThanOrEqual(3000); expect(tris[4]).toBeLessThanOrEqual(1500);
   });
 });
+describe('modelled props (D-325): work objects', () => {
+  it('every work object kind is drawn from its model (or its composite of models and scans) where its procedural form stood', async () => {
+    const { workGeometry, workModel, WORK_NOTES } = await import('../src/people/workObjects');
+    const rows: string[] = []; let modelled = 0;
+    for (const k of Object.keys(WORK_NOTES) as any[]) {
+      setModelsOff(true); const a = workGeometry(k); setModelsOff(false); const m = workModel(k), b = workGeometry(k);
+      if (!m) { rows.push(`${k}: procedural (no model)`); continue; } modelled++;
+      a.computeBoundingBox(); b.computeBoundingBox(); const A = a.boundingBox!, B = b.boundingBox!, ca = A.getCenter(new THREE.Vector3()), cb = B.getCenter(new THREE.Vector3()), sa = A.getSize(new THREE.Vector3()), sb = B.getSize(new THREE.Vector3());
+      const L = Math.max(sa.x, sa.y, sa.z);
+      rows.push(`${k}: ${a.getAttribute('position').count / 3} -> ${b.getAttribute('position').count / 3} tris; centre moved ${ca.distanceTo(cb).toFixed(3)}; size ${sa.toArray().map(x => x.toFixed(2)).join('x')} -> ${sb.toArray().map(x => x.toFixed(2)).join('x')}`);
+      expect.soft(ca.distanceTo(cb), `${k} centre`).toBeLessThan(0.15 * L + 0.03);
+      expect.soft(Math.abs(Math.max(sb.x, sb.y, sb.z) - L), `${k} extent`).toBeLessThan(0.2 * L + 0.03);
+      expect.soft(b.getAttribute('position').count / 3, `${k} triangles`).toBeLessThan(12000);
+    }
+    console.log(rows.join(' | '));
+    expect(modelled).toBeGreaterThanOrEqual(Object.keys(WORK_NOTES).length - 2); // (jar: the carried jar's model; throne: its own)
+  });
+});
+describe('modelled props (D-325): the Treasury goods and the rooms’ fittings', () => {
+  it('the goods, the room ranges’ lamps, querns, mats and bedding and the scribes’ lamp are drawn from their models', async () => {
+    const { buildTreasuryGoods, buildRoomFittings } = await import('../src/world/furnish');
+    const tri = (g: THREE.Object3D) => { let t = 0; g.traverse((o: any) => { if (o.isMesh) t += (o.geometry.index ? o.geometry.index.count : o.geometry.getAttribute('position').count) / 3 * (o.isInstancedMesh ? o.count : 1); }); return t; };
+    const benches = [[0, 0, 12, 0.8, 1.0], [0, 3, 12, 0.8, 1.0]], R = { mats: [[0, 0, 0.9, 2, 0, 0]], jars: [[1, 1, 0]], querns: [[2, 2, 0]], lamps: [[3, 3, 1]] };
+    setModelsOff(true); const g0 = tri(buildTreasuryGoods(benches, 1)), r0 = tri(buildRoomFittings('t', R)); setModelsOff(false);
+    const g1 = tri(buildTreasuryGoods(benches, 1)), r1 = tri(buildRoomFittings('t', R));
+    console.log(`treasury goods: ${g0} -> ${g1} triangles; room fittings: ${r0} -> ${r1}`);
+    expect(g1).not.toBe(g0); expect(r1).not.toBe(r0);
+  });
+});
 void modelParts;
