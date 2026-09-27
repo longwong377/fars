@@ -7578,3 +7578,47 @@ moment-*-webgpu.png in the worktree, not committed).**
   stops the leaf's thickness (r_door_leaves.thickness 0.25 m) short of the inner face and the fore-part projects 2.2 m
   (C; Q-890). The protome's horns are raised ~0.08 D in the head frame (protome.head.horn_shift [-0.07, 0.035, 0] D): with
   the head hung low they no longer rose above the poll; the photographs show them sweeping up and forward (C).
+
+## D-325 Every prop, furnishing, door fitting, fire object and held or worked object modelled in Blender (session 12; UD-19, UD-17, D-233; T-R12)
+- **How it could pass while the intent fails (said first, measured against):** a model registered but never drawn (the tests
+  build every builder with the committed GLBs loaded and count the models' triangles in what they draw); a model at the wrong
+  place or size (every tool and work object is compared with the procedural form it replaces: centre and extent); a level
+  that crumpled (lod1's box within 5 % of lod0's); the carried unions over budget in the game (measured with the models:
+  3.6k / 2.8k / 1.3k / 0.9k / 1.0k triangles per instance). What the tests cannot see: whether the forms read as real at arm's
+  length: only contact sheets (T:/fars-assets-s12/props/*.png) were looked at; NO world render was made (the lead's batch).
+- **The vessels' lod1 (D-310's crumpling):** the glTF import splits corners along UV seams; unwelded, every seam was an open
+  boundary and the collapse decimation tore the vessels. tools/blender/ph_props.py now welds before decimating (the UVs
+  survive: Blender keeps them per face corner); wicker_basket_01 (separate strands) takes a voxel-remeshed lod1. Carried
+  jars, work objects' jars, the Treasury's, the town's and the villages' jars now draw lod1 (400-500 triangles, was 1,500).
+- **The jars:** the D-310 scans are modern forms (a white bottle with a pinched lip, a handled jug, a porcelain baluster
+  vase) whose only contribution was the shape (every builder draws its own clay). scanShape('jar') now draws three modelled
+  period forms first (an ovoid storage jar with a rolled rim, a two-handled water jar, a narrow-necked jar; C, Q-972); the
+  scans stay as the fallback. Sacks and vats (no scan exists) are modelled; scanShape takes 'sack', 'sack_lying', 'vat'.
+- **The pipeline** (tools/blender/model_props.py, lib/mp_lib.py, model_props.mjs; tools/blender/preview_props.py for contact
+  sheets): every asset is a script from the builders' own numbers (SITE_SPEC r_palace_furnishings, r_door_leaf, the
+  procedural forms' sizes and frames), using lathes (hand-thrown wobble), sweeps, bevelled boxes, metaballs (lion's paws,
+  bull's hooves, heaps, goatskins), booleans (the oven's mouth, the kiln's stoke hole, the trough's hollow), voxel remeshing,
+  cloth simulation (the covered couch's cover; the sacks filled by the solver's pressure and settled on the ground), weld +
+  collapse to per-part budgets (model_props.mjs TARGETS), and ambient occlusion baked (Cycles, CPU) into a vertex colour,
+  with the buried vertices of interpenetrating parts filled from their neighbours (mp_lib.unbury). Plain GLBs (no Draco, no
+  UVs, no maps): nodes lod<i>__<part>, parsed by scanProps.parseModelGLB in the browser and in node (tests/lib/models_node.ts),
+  so the builders' tests draw the real models. The builders colour each part (the part names say what it is made of) with
+  their own surfaces and vertex colours and multiply the occlusion in (aoFactor, AO_K 0.55; Batch.geo 0.55).
+- **Classes switched everywhere (162 models):** palace furnishings, every kind (furnish_palaces.ts; all its materials now
+  vertex-coloured to carry the occlusion; carpets get the knotted pile normal map, tools/blender/carpet_pile.py, 12 x 12 knots
+  per 2 cm at the Pazyryk density, in a carpet material); the throne (workObjects); the doors' leaves, bands, bosses, posts
+  and shoes (arch/doors.ts: unit forms the instances scale); the fire bodies (fire.ts: brazier, torch, hearth, oven, each part
+  its own material and colour); the road sherds (roadLitter.ts: four modelled sherds as kinds); every held prop but the
+  tablet, the leather sheet, the instruments and the carried children (props.ts: 50 tools and weapons, the phiale, the jar,
+  the sack); every work object kind (workObjects.ts: 59 models and composites with the vessel models and the baskets'
+  scans); the Treasury's goods, the scribes' room's lamp, ink pot, water bowl and mats, the room ranges' mats, bedding,
+  querns and lamps (furnish.ts); the town's and villages' near fittings (settlement/build.ts fittingGeom: hearth with pot,
+  bowls and basket, forge, kiln, quern, grinding slab, upright loom, timber stack, anvil, bench, knucklebones, toys, trough,
+  manger, jars, vat); the houses' store sacks (houses.ts, one line). The procedural forms stay as the stand-ins (?props=0).
+- **Budgets measured:** palace furnishings 259 k triangles stored (the default), 656 k laid out for the court (were 47 k);
+  the Treasury's goods fewer than before (lod1: 56.6 k vs 71.4 k on two test benches); the carried unions above; the work
+  objects 0.3-7.6 k per kind (one instanced draw each); the town's near fittings 0.25-2.5 k each (far level unchanged).
+- **Not done (honest):** the houses' court and roof fixtures (ladder, tether, firewood, line, mortar, cradle, roller, roof
+  fuel and mats, fleece), the living rooms' mats, bedding, rugs and ledge lamps (houses.ts: the house agents' file);
+  the instruments' bodies and the carried children (props.ts); the precinct's fire altar (settlement/precinct.ts boxes);
+  crates (no builder draws one); the tablet (writing.ts). No world render; forms judged on contact sheets only.
