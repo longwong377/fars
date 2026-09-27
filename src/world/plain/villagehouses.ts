@@ -148,8 +148,10 @@ export class VillageHouses {
 
   // ---- the far level ----------------------------------------------------------------------------------------------
   /** a compound's mass in its cell's far batch: the yard walls (to yard_wall_h_m; along the pen to PEN_WALL) split at the gate,
-   *  the pen's walls to the yard, the room ranges (main range and wing) to the parapet; each piece tagged with the compound's
-   *  tile (its pen shares its rect and tile: villagesite.ts) */
+   *  the pen's walls to the yard, the room ranges (main range and wing); each piece tagged with the compound's tile (its pen
+   *  shares its rect and tile: villagesite.ts). D-324: the ranges' roofs at the roof, the parapet round their outer sides, the
+   *  eave over the yard (its earth front over the dark band of the pole ends), the gateway dark (no longer one box to the
+   *  parapet's top) */
   private farCompound(b: Batch, fr: { frame: Frame }, c: Compound, tile: number, base: number, col: RGB, pd: number, parapet: number, yardH: number) {
     const lay = feature('villages_unlocated').layout, W = c.w / 2, D = c.d / 2, t = Math.min(lay.wall_m, 0.55), tr = lay.wall_m;
     const own = pd * 32 + 1, ownR = pd * 32 + 3, yard = base + yardH, roomTop = base + (c.rooms[0]?.h ?? 2.6) + parapet, pen0 = base + PEN_WALL, y0 = base - 0.4;
@@ -171,10 +173,26 @@ export class VillageHouses {
     // the pen's walls to the yard (PEN_T, to the yard wall's height: the taller side, houses.ts wallSpan)
     box(P.u0, P.v1 - PEN_T / 2, P.u1, P.v1 + PEN_T / 2, yard, col, own); { const xi = penW ? P.u1 : P.u0; box(xi - PEN_T / 2, -D, xi + PEN_T / 2, P.v1, yard, col, own); }
     // the room ranges: the main range across the N side, the wing (its rooms' extent), out to the outer walls' faces
-    const roofC = sh(col, 0.92);
-    box(-W - tr / 2, rv0, W + tr / 2, D + tr / 2, roomTop, roofC, ownR);
+    const roofC = sh(col, 0.92 + 0.1 * hi(c.seed, 7)), roof = roomTop - parapet, pt = 0.35;
+    const L = (u: number, v: number, y: number) => [lu + u * ca - v * sa, y, -(lv + u * sa + v * ca)];
+    const N = (du: number, dv: number) => [du * ca - dv * sa, 0, -(du * sa + dv * ca)];
+    // the eave over the yard along a range's yard face (u or v = const at `at`, from a to b, out toward d): the earth front over the
+    // pole band (4 triangles: the plain's static budget, D-040, has ~30 k left; its top is the roof's edge from afar)
+    const eave = (alongU: boolean, at: number, a: number, bb: number, d: number) => { const o = 0.3, P = (x: number, off: number, y: number) => alongU ? L(x, at + d * off, y) : L(at + d * off, x, y);
+      const n = alongU ? N(0, d) : N(d, 0), yc = roof - 0.19, dk = sh(lin([0.5, 0.43, 0.34]), 0.4);
+      b.set('y0', -1000).set('ytop', 1e4);
+      b.quad(P(a, o, yc), P(bb, o, yc), P(bb, o, roof), P(a, o, roof), n, sh(col, 0.9), sh(col, 0.9), col, col, pd * 32 + 4);
+      b.set('ao', 0.35); b.quad(P(a, o - 0.03, roof - 0.35), P(bb, o - 0.03, roof - 0.35), P(bb, o - 0.03, yc), P(a, o - 0.03, yc), n, sh(dk, 0.7), sh(dk, 0.7), dk, dk, pd * 32 + 4); b.set('ao', 1); };
+    box(-W - tr / 2, rv0, W + tr / 2, D + tr / 2, roof, roofC, ownR);
+    box(-W - tr / 2, D + tr / 2 - pt, W + tr / 2, D + tr / 2, roomTop, col, own); // the parapet on the outer side
+    eave(true, rv0, -W + tr / 2, W - tr / 2, -1);
     const wing = c.rooms.filter(r => !main.includes(r)); if (wing.length) { const u0 = Math.min(...wing.map(r => r.u0)), u1 = Math.max(...wing.map(r => r.u1)), v0 = Math.min(...wing.map(r => r.v0)), v1 = Math.max(...wing.map(r => r.v1));
-      box(u0 - (u0 <= -W + 1e-6 ? tr / 2 : 0), v0 - (v0 <= -D + 1e-6 ? tr / 2 : 0), u1 + (u1 >= W - 1e-6 ? tr / 2 : 0), v1, roomTop, roofC, ownR); }
+      const wu0 = u0 - (u0 <= -W + 1e-6 ? tr / 2 : 0), wv0 = v0 - (v0 <= -D + 1e-6 ? tr / 2 : 0), wu1 = u1 + (u1 >= W - 1e-6 ? tr / 2 : 0);
+      box(wu0, wv0, wu1, v1, roof, roofC, ownR);
+      const west = u0 <= -W + 1e-6;
+      eave(false, west ? u1 : u0, wv0 + 0.3, v1, west ? 1 : -1); }
+    // the gateway: dark behind the opening (the leaf, when shut, stands in front of it)
+    { const dk = sh(col, 0.1), y1 = base + 2.0; b.set('ao', 0.15); b.quad(L(g0, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, y1), L(g0, -D + t / 2 + 0.14, y1), N(0, -1), dk, dk, dk, dk, own); b.set('ao', 1); }
   }
   /** a threshing floor: beaten earth, a kerb of fieldstones (C) */
   private floor(cell: VCell, v: Village, at: P2) {

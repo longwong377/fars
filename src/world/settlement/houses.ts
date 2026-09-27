@@ -186,24 +186,63 @@ export class SiteHouses {
   }
 
   // ---- the far level ---------------------------------------------------------------------------------------------------
-  /** every wall (partitions under the roofs left out), roof and large fitting of the site as plain boxes, each vertex tagged
-   *  with its tile's centre (collapsed while the tile is drawn near) */
+  /** every wall (partitions under the roofs left out), roof and large fitting of the site, each vertex tagged with its tile's
+   *  centre (collapsed while the tile is drawn near). D-324: no longer plain boxes (D-234): an exposed top follows the near
+   *  level's worn line (its undulation and the rain's notches) under a rounded crest; the eave is its earth front over the dark
+   *  band of the pole ends; the windows and the street doorways are dark; each roof its own earth, the household's fuel
+   *  stacked on it */
   buildFar(b: Batch) {
     const s = this.s, th = s.frame.theta;
     for (const we of this.walls) { const w = we.w; if (w.kind === 'partition') continue;
       b.set('tileId', we.tile + 1); // (texel 0 is never near: see build.ts NEAR_STATE)
       const sp = this.wallSpan(w), along = w.v0 === w.v1, len = along ? w.u1 - w.u0 : w.v1 - w.v0, hu = along ? len / 2 : w.thick / 2, hv = along ? w.thick / 2 : len / 2;
       const c = this.tone(we.plot, 0, false); b.set('y0', sp.gmin).set('ytop', sp.top).set('ao', 1);
-      if (w.door) { const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H; if (sp.top - yl > 0.05) b.box(sp.gm[0], sp.gm[1], th, hu, hv, yl, sp.top, sh(c, 0.9), c, this.owner(we.plot, P.door)); continue; }
-      b.box(sp.gm[0], sp.gm[1], th, hu, hv, sp.y0, sp.top, sh(c, 0.8), c, this.owner(we.plot, P.wall));
-      // the eave's shadow line over a court facade (the roof oversailing the wall)
+      const ax = along ? 0 : 1, cc = ax === 0 ? w.v0 : w.u0, sA = ax === 0 ? w.u0 : w.v0, sB = ax === 0 ? w.u1 : w.v1, t = w.thick;
+      const P3 = (x: number, off: number, y: number) => this.wp(...((ax === 0 ? [x, cc + off] : [cc + off, x]) as [number, number]), y);
+      const nrm = (sg: number) => { const d = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0); return [d[0], 0, d[1]]; };
+      if (w.door) { const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H; if (sp.top - yl > 0.05) b.box(sp.gm[0], sp.gm[1], th, hu, hv, yl, sp.top, sh(c, 0.9), c, this.owner(we.plot, P.door));
+        // the street doorway's dark: the vestibule behind the opening (the leaf, when shut, stands in front of it)
+        if (we.street) { const p = s.plots[we.plot], d = s.doorPoints(p); if (d) { const og = Math.sign(ax === 0 ? d.out[1] - d.inside[1] : d.out[0] - d.inside[0]), off = -og * (t / 2 + 0.14), y0 = sp.gmin - 0.05, dk = sh(c, 0.1);
+          b.set('ao', 0.15); b.quad(P3(sA, off, y0), P3(sB, off, y0), P3(sB, off, yl), P3(sA, off, yl), nrm(og), dk, dk, dk, dk, this.owner(we.plot, P.door)); b.set('ao', 1); } }
+        continue; }
+      const T = this.topOf(we);
+      if (T.exposedTop) this.farCrest(b, we, sp, T, c);
+      else b.box(sp.gm[0], sp.gm[1], th, hu, hv, sp.y0, sp.top, sh(c, 0.8), c, this.owner(we.plot, P.wall));
+      // the windows and vents, dark on the faces that are not a room's inside
+      for (const h of this.windowsOf(we, T.sides, T.seed)) for (const [si, sg] of [[0, -1], [1, 1]] as const) { if (T.sides[si].cls === 'room') continue;
+        const off = sg * (t / 2 + 0.006), dk = sh(c, 0.12); b.set('ao', 0.2); b.quad(P3(h.s0, off, h.y0), P3(h.s1, off, h.y0), P3(h.s1, off, h.y1), P3(h.s0, off, h.y1), nrm(sg), dk, dk, dk, dk, this.owner(we.plot, P.window)); b.set('ao', 1); }
+      // the eave over a court facade: the earth and brush front over the dark band of the pole ends, the top (6 triangles)
       if (w.kind === 'facade' && we.room >= 0) { const r = this.rooms[this.roomOf.get(we.room)!]; const sgn = this.courtSign(w); if (r && sgn) { const R = r.R, o = ROOF.over[0] + 0.05;
-        const off = w.thick / 2 + o / 2, cu = (w.u0 + w.u1) / 2 + (along ? 0 : sgn * off), cv = (w.v0 + w.v1) / 2 + (along ? sgn * off : 0), g = s.grid(cu, cv);
-        b.box(g[0], g[1], th, along ? len / 2 : o / 2, along ? o / 2 : len / 2, R - ROOF_T + ROOF.beam, R - r.fall - 0.012, sh(c, 0.7), c, this.owner(we.plot, P.eave)); } }
+        const yT = R - r.fall - 0.012, yc = R - ROOF_T + ROOF.beam, f0 = sgn * (t / 2), f1 = sgn * (t / 2 + o), own = this.owner(we.plot, P.eave), N = nrm(sgn), dk = sh(lin(POLE), 0.4), cd = sh(c, 0.92);
+        b.quad(P3(sA, f0, yT), P3(sB, f0, yT), P3(sB, f1, yT), P3(sA, f1, yT), [0, 1, 0], c, c, c, c, own);
+        b.quad(P3(sA, f1, yc), P3(sB, f1, yc), P3(sB, f1, yT), P3(sA, f1, yT), N, cd, cd, c, c, own);
+        b.set('ao', 0.35); b.quad(P3(sA, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, yc), P3(sA, f1 - sgn * 0.03, yc), N, sh(dk, 0.7), sh(dk, 0.7), dk, dk, own); b.set('ao', 1); } }
     }
     for (const r of this.rooms) { b.set('tileId', r.tile + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
-      const c = this.pcol[r.plot], g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
+      // each roof its own earth (rolled and renewed at its own time: C)
+      const c = sh(this.pcol[r.plot], 0.94 + 0.12 * hi(r.room, this.si, 7)), g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
       b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof)); }
+    // the fuel stacked on the roofs (the near level's roof_fuel fixture: its place and length; brushwood and dung cakes as one stack)
+    for (let fi = 0; fi < this.fixtures.length; fi++) { const f = this.fixtures[fi]; if (f.kind !== 'roof_fuel') continue; const sp = this.roofSpot(f); if (!sp) continue;
+      b.set('tileId', this.tileOfPlotEl(f.plot, sp.u, sp.v) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.9); const g = s.grid(sp.u, sp.v), bc = sh(lin([0.47, 0.41, 0.31]), 0.85 + 0.2 * hi(f.alt ?? 0, 5));
+      b.box(g[0], g[1], th + f.rot, f.len / 2, 0.42, sp.y + 0.02, sp.y + 0.2 + 0.08 * hi(f.alt ?? 0, 6), sh(bc, 0.8), bc, this.fixDesc[fi] * 32 + P.fixture); }
+    b.set('ao', 1);
+  }
+  /** D-324: an exposed wall top on the far level: both faces up to the worn line (stations ~3 m apart and at the rain's deeper
+   *  notches), its top across the wall, the ends closed (6 triangles a station, 4 at the ends) */
+  private farCrest(b: Batch, we: WallEl, sp: ReturnType<SiteHouses['wallSpan']>, T: ReturnType<SiteHouses['topOf']>, c: RGB) {
+    const w = we.w, { ax, cc, sA, sB, len, ytopF } = T, t = w.thick, own = this.owner(we.plot, P.wall);
+    const P3 = (x: number, off: number, y: number) => this.wp(...((ax === 0 ? [x, cc + off] : [cc + off, x]) as [number, number]), y);
+    const dir = (du: number, dv: number) => { const d = this.dirW(du, dv); return [d[0], 0, d[1]]; };
+    const N = (sg: number) => ax === 0 ? dir(0, sg) : dir(sg, 0), A = ax === 0 ? dir(1, 0) : dir(0, 1);
+    const st = [sA, sB]; const n = Math.max(1, Math.round(len / 3)); for (let i = 1; i < n; i++) st.push(sA + (len * i) / n);
+    for (const [cn, wd, dp] of T.notches) if (dp > 0.1) for (const k of [-1, 0, 1]) { const x = cn + k * wd; if (x > sA + 0.05 && x < sB - 0.05) st.push(x); }
+    const S = [...new Set(st.map(x => +x.toFixed(3)))].sort((p, q) => p - q), cT = sh(c, 1.04), cB = sh(c, 0.8);
+    for (let i = 0; i + 1 < S.length; i++) { const x0 = S[i], x1 = S[i + 1], y0 = ytopF(x0), y1 = ytopF(x1);
+      for (const sg of [-1, 1]) { const f = sg * t / 2; b.quad(P3(x0, f, sp.y0), P3(x1, f, sp.y0), P3(x1, f, y1), P3(x0, f, y0), N(sg), cB, cB, c, c, own); }
+      b.quad(P3(x0, -t / 2, y0), P3(x1, -t / 2, y1), P3(x1, t / 2, y1), P3(x0, t / 2, y0), [0, 1, 0], cT, cT, cT, cT, own); }
+    for (const [x, sgn] of [[sA, -1], [sB, 1]] as const) { const y = ytopF(x);
+      b.quad(P3(x, -t / 2, sp.y0), P3(x, t / 2, sp.y0), P3(x, t / 2, y), P3(x, -t / 2, y), [A[0] * sgn, 0, A[2] * sgn], cB, cB, c, c, own); }
   }
   /** +1 / −1: the side of a facade wall its court lies on (across the wall), 0 if none */
   private courtSign(w: Wall) { for (const sg of [1, -1]) { const sd = this.side(w, sg); if (sd.cls === 'court') return sg; } return 0; }
@@ -298,6 +337,38 @@ export class SiteHouses {
     if (caps) { const eg: RGB = [c[0] * 0.78, c[1] * 0.74, c[2] * 0.7]; b.poly(Array.from({ length: sides }, (_, k) => ring(Bp, k)), w, eg, owner); if (caps !== 'end') b.poly(Array.from({ length: sides }, (_, k) => ring(A, k)), w.map(x => -x), eg, owner); } // (end grain: darker, weathered)
   }
 
+  /** a wall's top (the near and far levels, D-324): the plan's, lowered under the roof where the room's eave oversails a court
+   *  facade; an exposed top worn uneven (a fine and a broad undulation, and the odd notch the rain has cut; C: by the age of
+   *  the wall and whether anyone keeps it: yard and garden walls more than a house's parapet) */
+  private topOf(we: WallEl) {
+    const s = this.s, w = we.w, ax = w.v0 === w.v1 ? 0 : 1, sA = ax === 0 ? w.u0 : w.v0, sB = ax === 0 ? w.u1 : w.v1, cc = ax === 0 ? w.v0 : w.u0, len = sB - sA;
+    const sp = this.wallSpan(w), L = this.life(we.plot), seed = hi(Math.round(sA * 10), Math.round(cc * 10), this.si) * 100, house = we.plot >= 0 && HOUSE_KINDS.has(s.plots[we.plot].kind);
+    let top = sp.top, eaveCourt = 0;
+    if (w.kind === 'facade' && we.room >= 0) { const r = this.rooms[this.roomOf.get(we.room)!]; const sg = this.courtSign(w); if (r && sg && this.eaveOn(r, w, sg)) { top = r.R - ROOF_T + ROOF.beam; eaveCourt = sg; /* built up between the pole ends to the brush layer: the poles pass through it */ } }
+    const sides = [this.side(w, -1), this.side(w, 1)];
+    const exposedTop = sides.every(sd => sd.cls !== 'room' || top > sd.roof + 0.05) && !eaveCourt && w.kind !== 'partition';
+    const keep = house ? 1 : 1.8, jit = exposedTop ? (0.015 + 0.035 * (L.age / 50)) * keep : 0, broad = exposedTop ? (0.02 + 0.05 * (L.age / 50)) * keep : 0;
+    const notches: [number, number, number][] = []; if (exposedTop && len > 3) { const nn = Math.floor(len / 6 * keep + hi(seed, 81)); for (let q = 0; q < nn; q++) notches.push([sA + 0.6 + (len - 1.2) * hi(seed, q, 82), 0.25 + 0.35 * hi(seed, q, 83), (0.06 + 0.16 * hi(seed, q, 84)) * keep]); }
+    const topSt: number[] = []; for (const [c, w] of notches) for (const f of [-1, -0.5, -0.2, 0, 0.2, 0.5, 1]) topSt.push(c + f * w);
+    const ytopF = (x: number) => { if (!exposedTop) return top; const end = Math.min(smooth((x - sA) / 0.4), smooth((sB - x) / 0.4));
+      let y = jit * (vn(x * 0.7 + seed, 3.1) * 2 - 1) + broad * (vn(x * 0.22 + seed * 0.37, 7.3) * 2 - 1); for (const [c, w, dpt] of notches) y -= dpt * (1 - smooth(Math.abs(x - c) / w)); return top + y * end; };
+    return { top, eaveCourt, sides, exposedTop, notches, topSt, ytopF, seed, sA, sB, cc, ax, len, house };
+  }
+  /** a wall's windows and vents through it (the near and far levels, D-324): on a court facade by the household's standing,
+   *  a vent high in an outer wall to the open */
+  private windowsOf(we: WallEl, sides: Side[], seed: number): Hole[] {
+    const s = this.s, w = we.w, ax = w.v0 === w.v1 ? 0 : 1, sA = ax === 0 ? w.u0 : w.v0, sB = ax === 0 ? w.u1 : w.v1, len = sB - sA, t = w.thick, L = this.life(we.plot), sp = this.wallSpan(w);
+    const holes: Hole[] = [], house = we.plot >= 0 && HOUSE_KINDS.has(s.plots[we.plot].kind);
+    const floorOf = (sd: Side) => sd.plot >= 0 ? this.base[sd.plot] : sp.gmin;
+    const roomSd = sides.findIndex(sd => sd.cls === 'room'), room = roomSd >= 0 ? sides[roomSd] : null;
+    if (room && house) { const other = sides[1 - roomSd]; const ceil = room.roof - ROOF_T;
+      if (w.kind === 'facade' && other.cls === 'court' && len >= 2.4) { const nW = Math.floor(len / 3.2 * (0.35 + 0.65 * L.standing) + hi(seed, 11));
+        for (let k = 0; k < nW; k++) { const ww = 0.42 + 0.18 * hi(seed, k, 1), wh = 0.4 + 0.2 * hi(seed, k, 2), sc = sA + (len * (k + 1)) / (nW + 1) + (hi(seed, k, 3) - 0.5) * 0.4; const sill = floorOf(room) + 1.35 + 0.35 * hi(seed, k, 4);
+          if (sill + wh + 0.2 < ceil && sc - ww / 2 > sA + 0.5 && sc + ww / 2 < sB - 0.5) holes.push({ s0: sc - ww / 2, s1: sc + ww / 2, y0: sill, y1: sill + wh, through: true, depth: t }); } }
+      if (w.kind === 'outer' && other.cls === 'open' && len >= 3 && hi(seed, 12) < 0.3 + 0.3 * L.standing) { const sc = sA + len * (0.3 + 0.4 * hi(seed, 13)), y = floorOf(room) + 2.15;
+        if (y + 0.4 < ceil) holes.push({ s0: sc - 0.1, s1: sc + 0.1, y0: y, y1: y + 0.34, through: true, depth: t }); } }
+    return holes;
+  }
   /** a wall at full detail: footing, plastered faces (bulge, holes, patches), a worn cap on exposed tops, lintels and
    *  thresholds at doors */
   private wallNear(we: WallEl, B: HB) {
@@ -305,18 +376,7 @@ export class SiteHouses {
     const sp = this.wallSpan(w), L = this.life(we.plot), seed = hi(Math.round(sA * 10), Math.round(cc * 10), this.si) * 100;
     const P2l = (sx: number, off: number): [number, number] => (ax === 0 ? [sx, cc + off] : [cc + off, sx]);
     const house = we.plot >= 0 && HOUSE_KINDS.has(s.plots[we.plot].kind);
-    // the top: the plan's, lowered under the roof where the room's eave oversails a court facade
-    let top = sp.top, eaveCourt = 0;
-    if (w.kind === 'facade' && we.room >= 0) { const r = this.rooms[this.roomOf.get(we.room)!]; const sg = this.courtSign(w); if (r && sg && this.eaveOn(r, w, sg)) { top = r.R - ROOF_T + ROOF.beam; eaveCourt = sg; /* built up between the pole ends to the brush layer: the poles pass through it */ } }
-    const sides = [this.side(w, -1), this.side(w, 1)];
-    const exposedTop = sides.every(sd => sd.cls !== 'room' || top > sd.roof + 0.05) && !eaveCourt && w.kind !== 'partition';
-    // an exposed top wears unevenly: a fine and a broad undulation, and the odd notch the rain has cut (C; by the age of the
-    // wall and whether anyone keeps it: yard and garden walls more than a house's parapet)
-    const keep = house ? 1 : 1.8, jit = exposedTop ? (0.015 + 0.035 * (L.age / 50)) * keep : 0, broad = exposedTop ? (0.02 + 0.05 * (L.age / 50)) * keep : 0;
-    const notches: [number, number, number][] = []; if (exposedTop && len > 3) { const nn = Math.floor(len / 6 * keep + hi(seed, 81)); for (let q = 0; q < nn; q++) notches.push([sA + 0.6 + (len - 1.2) * hi(seed, q, 82), 0.25 + 0.35 * hi(seed, q, 83), (0.06 + 0.16 * hi(seed, q, 84)) * keep]); }
-    const topSt: number[] = []; for (const [c, w] of notches) for (const f of [-1, -0.5, -0.2, 0, 0.2, 0.5, 1]) topSt.push(c + f * w);
-    const ytopF = (x: number) => { if (!exposedTop) return top; const end = Math.min(smooth((x - sA) / 0.4), smooth((sB - x) / 0.4));
-      let y = jit * (vn(x * 0.7 + seed, 3.1) * 2 - 1) + broad * (vn(x * 0.22 + seed * 0.37, 7.3) * 2 - 1); for (const [c, w, dpt] of notches) y -= dpt * (1 - smooth(Math.abs(x - c) / w)); return top + y * end; };
+    const { top, eaveCourt, sides, exposedTop, notches, topSt, ytopF } = this.topOf(we);
     const bev = exposedTop ? Math.min(0.06, t * 0.12) : 0;
     const add = L.addition >= 0 && we.room >= 0 && this.roomSide(this.rooms[this.roomOf.get(we.room)!]) === L.addition;
     // doors: the lintel and the wall over it; a threshold stone (street doors) or a rolled mat (rooms)
@@ -358,15 +418,8 @@ export class SiteHouses {
       return;
     }
     // windows and vents through the wall; the niche by the street door; decals (patches, bare brick, soot, streaks)
-    const holes: Hole[] = [], decs: [number, Dec][] = [];
+    const holes: Hole[] = this.windowsOf(we, sides, seed), decs: [number, Dec][] = [];
     const floorOf = (sd: Side) => sd.plot >= 0 ? this.base[sd.plot] : sp.gmin;
-    const roomSd = sides.findIndex(sd => sd.cls === 'room'), room = roomSd >= 0 ? sides[roomSd] : null;
-    if (room && house) { const other = sides[1 - roomSd]; const ceil = room.roof - ROOF_T;
-      if (w.kind === 'facade' && other.cls === 'court' && len >= 2.4) { const nW = Math.floor(len / 3.2 * (0.35 + 0.65 * L.standing) + hi(seed, 11));
-        for (let k = 0; k < nW; k++) { const ww = 0.42 + 0.18 * hi(seed, k, 1), wh = 0.4 + 0.2 * hi(seed, k, 2), sc = sA + (len * (k + 1)) / (nW + 1) + (hi(seed, k, 3) - 0.5) * 0.4; const sill = floorOf(room) + 1.35 + 0.35 * hi(seed, k, 4);
-          if (sill + wh + 0.2 < ceil && sc - ww / 2 > sA + 0.5 && sc + ww / 2 < sB - 0.5) holes.push({ s0: sc - ww / 2, s1: sc + ww / 2, y0: sill, y1: sill + wh, through: true, depth: t }); } }
-      if (w.kind === 'outer' && other.cls === 'open' && len >= 3 && hi(seed, 12) < 0.3 + 0.3 * L.standing) { const sc = sA + len * (0.3 + 0.4 * hi(seed, 13)), y = floorOf(room) + 2.15;
-        if (y + 0.4 < ceil) holes.push({ s0: sc - 0.1, s1: sc + 0.1, y0: y, y1: y + 0.34, through: true, depth: t }); } }
     // the lamp niche by the street door (on the lane face, the side away from the hinge)
     const pfix = this.fixByPlot.get(we.plot) ?? [];
     const nicheHere = house && w.kind === 'outer' ? pfix.find(f => { if (f.kind !== 'niche' || f.plot !== we.plot || Math.abs((ax === 0 ? f.v : f.u) - cc) > 0.6) return false; const al = ax === 0 ? f.u : f.v;
