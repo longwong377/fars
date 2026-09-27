@@ -10,6 +10,7 @@ import { Rng } from '../core/rng';
 import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
 import { ptTabletGeometry, bullaGeometry, clayMaterial, writtenMeta } from './writing';
 import { propMaterial, propMaterialMulti } from '../render/materials';
+import { scanShape } from '../render/scanProps';
 
 // D-301 (every inch real: the interiors): the furnishings' silhouettes and grain. A storage jar is a smooth, slightly
 // out-of-round hand-built body with a neck and a rolled rim (was a 12-sided lathe: faceted); a bale of cloth is a soft,
@@ -18,6 +19,8 @@ import { propMaterial, propMaterialMulti } from '../render/materials';
 /** a hand-built storage jar of radius r and height h: a round-shouldered body, a short neck and a rolled rim, the wall a
  *  little out of round (a coil-built pot, not a thrown one: C) */
 export function jarGeometry(r: number, h: number, seg = 40, seed = 1): THREE.BufferGeometry {
+  // session 12 (D-310): a CC0 scan's jar (Poly Haven; render/scanProps.ts) fitted to r and h, when loaded; else the lathe below
+  const sj = scanShape('jar', seed, [2 * r, h, 2 * r], 0); if (sj) return sj;
   const P: [number, number][] = [[0, 0], [r * 0.3, 0], [r * 0.55, h * 0.04], [r * 0.82, h * 0.16], [r * 0.97, h * 0.34], [r, h * 0.5], [r * 0.95, h * 0.64],
     [r * 0.8, h * 0.76], [r * 0.56, h * 0.85], [r * 0.42, h * 0.89], [r * 0.4, h * 0.93], [r * 0.45, h * 0.965], [r * 0.47, h * 0.985], [r * 0.43, h], [r * 0.36, h * 0.99], [0, h * 0.975]];
   const g = lathe(P, seg), pos = g.getAttribute('position') as THREE.BufferAttribute;

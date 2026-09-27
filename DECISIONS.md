@@ -7399,3 +7399,27 @@ moment-*-webgpu.png in the worktree, not committed).**
   at the T4's full quality; CC0 3D models in bulk from Poly Haven for rocks, plants and props; a Blender mudbrick house kit;
   photogrammetric rock for the mountain and outcrops; the people's garments and hair), iterating on probe pages and verified
   once, in one batched render and one review at the end. Measured by T-R12 (>= 5 classes a GPU session).
+
+## D-310 CC0 scanned models in bulk: loose rock, ground flora, jars and baskets (session 12; UD-19, UD-17, D-233; T-R12)
+- **Downloads (T: only; the cloud cannot reach Poly Haven):** 111 Poly Haven models (CC0 1.0), glTF at 2k and 4k, 4.3 GB, under
+  T:/fars-assets-s12/models/polyhaven with T:/fars-assets-s12/models/manifest.json (url, licence, sha256 per file): rocks,
+  boulders, cliffs and coast rock, stones, shrubs, grasses, weeds, dead wood and roots, stumps, ceramic vases and pots, jugs,
+  wicker baskets, wooden crates, bowls, buckets, tools, stools, ladders, fruit. For the lead to push to branch assets-archive.
+- **Pipeline:** `node tools/blender/ph_props.mjs [id]` (Blender headless, tools/blender/ph_props.py): join, base on y = 0,
+  split files that lay several variants side by side (overlapping footprints = one variant), decimate (collapse) to lod0/lod1,
+  maps to 512/1024 JPEG, Draco GLB -> public/models/props/<id>.glb + manifest.json (47 GLBs, 22 MB). Runtime:
+  src/render/scanProps.ts (loaded before the world is built; scanProp / propsFor / scanShape / scanMaterial).
+- **Colour:** the scan's luminance relative to its mean times the place's measured colour (the rock palette of terrainPlain.ts,
+  sRGB, linearised; the flora's seasonal tints): the scans' grain and shading, not their Namaqualand hue.
+- **Classes switched:** (1) loose rock: new GroundRocks (src/world/groundRocks.ts): stones on the steppe, fields' edges and
+  the slopes within 40 m, boulders and fallen blocks on the slopes within 110 m, from the 8 m cells' context; the world drew no
+  standing rock before (only the terrain's texture): tier B for the rock, C for number and place. (2) ground flora: all three
+  kinds of groundFlora.ts (cushion, camelthorn, thistle) drawn from scans in the same placements; the procedural forms stay as
+  hidden stand-ins (flagged PLACEHOLDER when the scans fail to load). No CC0 scan of Astragalus or Alhagi exists: the nearest
+  forms are used (C). (3) jars: furnish.ts jarGeometry (the Treasury's sealed and bitumen jars, the scribes' jars, the room
+  fittings' storage jars), furnish_palaces.ts jarGeo, props.ts 'jar' (carried; also workObjects' 'jar'), workObjects'
+  sealed_jars and oil_jars: the scan's body fitted to each builder's own r and h; the builders' materials kept.
+  (4) baskets: props.ts 'basket' and workObjects' basket_meat / basket_fruit / basket_nuts / basket_fish.
+- **Not switched (honest):** the town houses' and village houses' jars and sacks (settlement/build.ts, houses.ts lathes in the
+  house batches: the house-kit agent's files), the Treasury's baskets of tablets (furnish.ts scribes' baskets), sacks,
+  sherds on the roads (roadLitter.ts), pots in the hearth/milk/basin performances, bowls, crates.
