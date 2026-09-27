@@ -3,11 +3,11 @@
  "assets": {
   "capital_protome": {
    "file": "models/capital_protome.glb",
-   "inHash": "3f17c60b44280385849a7060ceab526648ad636c68cc03de5e2a1da972ef8117",
-   "outHash": "bf32300cfa1b0c2f5e90a5aae74a4a4cd2f03fc95edb107cd362b467b8eb1485",
-   "bytes": 2040696,
-   "gpuBytes": 6782531,
-   "textures": "png",
+   "inHash": "95b6a30f63685fbfb68a1287763f09a35395136d40936e5cc0ee265bff222a77",
+   "outHash": "b11b839e90cebf060e9db9169608fca3ad3853a92c6d436a7bdafe7be96e405e",
+   "bytes": 3260104,
+   "gpuBytes": 6520387,
+   "textures": "ktx2",
    "lods": [
     {
      "name": "lod0",
@@ -21,12 +21,12 @@
       "draco"
      ],
      "map": {
-      "w": 1024,
-      "h": 1024,
-      "format": "png",
-      "bytes": 1703675
+      "w": 2048,
+      "h": 2048,
+      "format": "ktx2",
+      "bytes": 2978307
      },
-     "ao_mean": 0.6612
+     "ao_mean": 0.4978
     },
     {
      "name": "lod1",
@@ -42,23 +42,245 @@
      "map": {
       "w": 256,
       "h": 256,
-      "format": "png",
-      "bytes": 132899
+      "format": "ktx2",
+      "bytes": 77553
      },
-     "ao_mean": 0.8734
+     "ao_mean": 0.8603
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
    "tier": "C",
-   "src": "RECON;IR-COL",
+   "src": "RECON;IR-COL;PHOTO-CAP",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 13.6,
-   "build_s": 57,
+   "bake_s": 40.5,
+   "build_s": 128,
    "reproduced": {
-    "outHash": "bf32300cfa1b0c2f5e90a5aae74a4a4cd2f03fc95edb107cd362b467b8eb1485",
+    "outHash": "b11b839e90cebf060e9db9169608fca3ad3853a92c6d436a7bdafe7be96e405e",
     "device": "CPU",
-    "blender": "5.0.1"
+    "blender": "5.0.1",
+    "mode": "bytes"
+   }
+  },
+  "capital_volute": {
+   "file": "models/capital_volute.glb",
+   "inHash": "dfffd2ae400b76322bcf0c784b9c2e3d328c69d9de7600593d83c5f2fd64088d",
+   "outHash": "872b58e0ab86c1c7ecd1f17a8e22b8efbc3e4b601af5d5531287ada522e6de7c",
+   "bytes": 1078152,
+   "gpuBytes": 1749651,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 2538,
+     "verts": 4224,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 1024,
+      "h": 1024,
+      "format": "ktx2",
+      "bytes": 934862
+     },
+     "ao_mean": 0.7166
+    },
+    {
+     "name": "lod1",
+     "tris": 296,
+     "verts": 571,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 256,
+      "h": 256,
+      "format": "ktx2",
+      "bytes": 71427
+     },
+     "ao_mean": 0.7934
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;IR-COL;PHOTO-GATE",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 14.9,
+   "build_s": 39,
+   "reproduced": {
+    "outHash": "872b58e0ab86c1c7ecd1f17a8e22b8efbc3e4b601af5d5531287ada522e6de7c",
+    "device": "CPU",
+    "blender": "5.0.1",
+    "mode": "bytes"
+   }
+  },
+  "colossus_bull": {
+   "file": "models/colossus_bull.glb",
+   "inHash": "49ae6f5443697a155b4c0cc1db96d121d9bb06f659b4151146c33a747262edeb",
+   "outHash": "177a18665306dd62482fdb4bf1c2bcd2fe0f704a0269c83ee32fef87abe30e7d",
+   "bytes": 2930004,
+   "gpuBytes": 9101243,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 49116,
+     "verts": 47857,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 2048,
+      "h": 2048,
+      "format": "ktx2",
+      "bytes": 2193227
+     },
+     "ao_mean": 0.538
+    },
+    {
+     "name": "lod1",
+     "tris": 4860,
+     "verts": 4468,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 512,
+      "h": 512,
+      "format": "ktx2",
+      "bytes": 132261
+     },
+     "ao_mean": 0.5601
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;IR-PERS;PHOTO-GATE",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 48.1,
+   "build_s": 142,
+   "reproduced": {
+    "outHash": "177a18665306dd62482fdb4bf1c2bcd2fe0f704a0269c83ee32fef87abe30e7d",
+    "device": "CPU",
+    "blender": "5.0.1",
+    "mode": "content",
+    "rebuilt": "6a7bb54b81bdd605682d5d4b0f7aa4bc5a134adb72d454deabefdeb3ec562c8c",
+    "geometry": true,
+    "geo": [
+     {
+      "mesh": "lod0",
+      "differ": 1,
+      "frac": 0.0000013857478604053035,
+      "max": 0.0004884004592895508
+     },
+     {
+      "mesh": "lod1",
+      "differ": 0,
+      "frac": 0,
+      "max": 0
+     }
+    ],
+    "maps": [
+     {
+      "differ": 0,
+      "frac": 0,
+      "max": 0
+     },
+     {
+      "differ": 0,
+      "frac": 0,
+      "max": 0
+     }
+    ],
+    "tol": {
+     "maps": {
+      "frac": 0.0001,
+      "max": 8
+     },
+     "geo": {
+      "frac": 0.0001,
+      "max": 0.001
+     }
+    }
+   }
+  },
+  "colossus_lamassu": {
+   "file": "models/colossus_lamassu.glb",
+   "inHash": "f7a97f7c49fa5d91bf979e39b838df3e34c55cb14b772cbfe38a5357d090f6f0",
+   "outHash": "f0750f2904f704eb6ecc8d2ea3be5e8b2d9b97d2105d13bc3f3479de9fad7cca",
+   "bytes": 3400792,
+   "gpuBytes": 9594527,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 49026,
+     "verts": 57794,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 2048,
+      "h": 2048,
+      "format": "ktx2",
+      "bytes": 2472154
+     },
+     "ao_mean": 0.4988
+    },
+    {
+     "name": "lod1",
+     "tris": 4901,
+     "verts": 4820,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 512,
+      "h": 512,
+      "format": "ktx2",
+      "bytes": 188938
+     },
+     "ao_mean": 0.6448
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;IR-PERS;PHOTO-GATE",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 43.1,
+   "build_s": 157,
+   "reproduced": {
+    "outHash": "f0750f2904f704eb6ecc8d2ea3be5e8b2d9b97d2105d13bc3f3479de9fad7cca",
+    "device": "CPU",
+    "blender": "5.0.1",
+    "mode": "bytes"
    }
   }
  }

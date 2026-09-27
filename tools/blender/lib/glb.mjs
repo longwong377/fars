@@ -77,3 +77,77 @@ export function repackGLB(buf, replace) {
   jh.writeUInt32LE(jb.length, 0); jh.writeUInt32LE(0x4e4f534a, 4); bh.writeUInt32LE(bb.length, 0); bh.writeUInt32LE(0x004e4942, 4);
   return Buffer.concat([head, jh, jb, bh, bb]);
 }
+
+// ---- Draco decoding in node (D-306): three's own decoder (node_modules/three/examples/jsm/libs/draco/draco_decoder.js)
+import { createRequire } from 'node:module';
+let DRACO = null;
+async function draco() {
+  if (DRACO) return DRACO;
+  const vm = await import('node:vm'), { dirname, resolve } = await import('node:path');
+  const here = dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+  const src = readFileSync(resolve(here, '../../../node_modules/three/examples/jsm/libs/draco/draco_decoder.js'), 'utf8');
+  const ctx = { console, module: {}, exports: {}, require: createRequire(import.meta.url) }; vm.createContext(ctx);
+  vm.runInContext(src + ';this.DracoDecoderModule = DracoDecoderModule;', ctx);
+  DRACO = await ctx.DracoDecoderModule();
+  return DRACO;
+}
+// ---- content comparison (D-306): --verify's test when the bytes differ. Measured on the colossi: identical inputs gave a
+// different Draco bitstream, decoding to the same geometry but for one tangent component in ~190 k one quantisation step
+// (4.9e-4) apart, and in one build of four one texel of 4.2 M one level apart in the baked map (float noise of the
+// multithreaded tangent and CPU bake passes at a quantisation step). A rebuild counts as a reproduction when its geometry
+// decodes to the same counts and indices with at most GEO_TOL.frac of its attribute values differing, by at most GEO_TOL.max,
+// and its maps, transcoded from KTX2 (three's Basis transcoder), differ in at most MAP_TOL.frac of texels by at most
+// MAP_TOL.max levels. tests/blender_assets.test.ts holds the recorded comparison to them.
+export const MAP_TOL = { frac: 1e-4, max: 8 }, GEO_TOL = { frac: 1e-4, max: 1e-3 };
+let BASIS = null;
+async function basis() {
+  if (BASIS) return BASIS;
+  const vm = await import('node:vm'), { dirname, resolve } = await import('node:path');
+  const here = dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+  const file = resolve(here, '../../../node_modules/three/examples/jsm/libs/basis/basis_transcoder.js');
+  const ctx = { console, process, require: createRequire(file), __filename: file, __dirname: dirname(file), URL, WebAssembly, TextDecoder, setTimeout, clearTimeout, performance }; vm.createContext(ctx);
+  vm.runInContext(readFileSync(file, 'utf8') + ';this.BASIS = BASIS;', ctx);
+  BASIS = await ctx.BASIS(); BASIS.initializeBasis();
+  return BASIS;
+}
+/** the GLB's content: each Draco primitive decoded (attributes as float32, indices) and each KTX2 map's level 0 as RGBA8 */
+export async function glbContent(buf) {
+  const { json, bin } = parseGLB(buf), D = await draco(), BV = json.bufferViews ?? [], view = i => bin.subarray(BV[i].byteOffset ?? 0, (BV[i].byteOffset ?? 0) + BV[i].byteLength);
+  const geo = [], maps = [];
+  for (const m of json.meshes ?? []) for (const p of m.primitives) {
+    const e = p.extensions?.KHR_draco_mesh_compression; if (!e) continue;
+    const data = view(e.bufferView), db = new D.DecoderBuffer(), arr = new Int8Array(data.buffer, data.byteOffset, data.byteLength); db.Init(arr, arr.length);
+    const dec = new D.Decoder(), mesh = new D.Mesh(), st = dec.DecodeBufferToMesh(db, mesh); if (!st.ok()) throw new Error('draco: ' + st.error_msg());
+    const parts = [];
+    for (const [, id] of Object.entries(e.attributes)) { const a = dec.GetAttributeByUniqueId(mesh, id), n = mesh.num_points() * a.num_components(), f = new D.DracoFloat32Array(); dec.GetAttributeFloatForAllPoints(mesh, a, f); const o = new Float32Array(n); for (let k = 0; k < n; k++) o[k] = f.GetValue(k); parts.push(o); D.destroy(f); }
+    const fa = new D.DracoInt32Array(), idx = new Float32Array(mesh.num_faces() * 3);
+    for (let t = 0; t < mesh.num_faces(); t++) { dec.GetFaceFromMesh(mesh, t, fa); idx[t * 3] = fa.GetValue(0); idx[t * 3 + 1] = fa.GetValue(1); idx[t * 3 + 2] = fa.GetValue(2); }
+    parts.push(idx); geo.push({ mesh: m.name, parts }); D.destroy(fa); D.destroy(mesh); D.destroy(dec); D.destroy(db);
+  }
+  for (const im of json.images ?? []) {
+    const data = view(im.bufferView);
+    if (im.mimeType !== 'image/ktx2') { maps.push({ raw: data }); continue; }
+    const B = await basis(), k = new B.KTX2File(new Uint8Array(data)); if (!k.isValid() || !k.startTranscoding()) throw new Error('ktx2 invalid');
+    const w = k.getWidth(), h = k.getHeight(), dst = new Uint8Array(k.getImageTranscodedSizeInBytes(0, 0, 0, 13));
+    if (!k.transcodeImage(dst, 0, 0, 0, 13, 0, -1, -1)) throw new Error('ktx2 transcode failed'); k.close(); k.delete();
+    maps.push({ w, h, rgba: dst });
+  }
+  return { json: JSON.stringify({ ...json, bufferViews: undefined, buffers: undefined }), geo, maps };
+}
+/** compare two GLBs' content (see MAP_TOL) */
+export async function compareContent(a, b) {
+  const A = await glbContent(a), B = await glbContent(b), r = { json: A.json === B.json, geometry: A.geo.length === B.geo.length, geo: [], maps: [] };
+  A.geo.forEach((g, i) => {
+    const h = B.geo[i]; if (!h || g.parts.length !== h.parts.length || g.parts.some((p, j) => p.length !== h.parts[j].length)) { r.geometry = false; return; }
+    const idx = g.parts.length - 1; let n = 0, differ = 0, max = 0;
+    g.parts.forEach((p, j) => { for (let k = 0; k < p.length; k++) { const d = Math.abs(p[k] - h.parts[j][k]); if (j === idx ? d !== 0 : false) r.geometry = false; if (d) { differ++; max = Math.max(max, d); } } n += p.length; });
+    const frac = differ / n; r.geo.push({ mesh: g.mesh, differ, frac, max }); if (frac > GEO_TOL.frac || max > GEO_TOL.max) r.geometry = false;
+  });
+  A.maps.forEach((m, i) => {
+    const n = B.maps[i]; if (m.raw || !n || n.raw) { r.maps.push({ equal: !!n && Buffer.compare(Buffer.from(m.raw ?? []), Buffer.from(n.raw ?? [1])) === 0 }); return; }
+    let differ = 0, max = 0; for (let t = 0; t < m.rgba.length; t += 4) { let d = 0; for (let c = 0; c < 4; c++) d = Math.max(d, Math.abs(m.rgba[t + c] - n.rgba[t + c])); if (d) { differ++; max = Math.max(max, d); } }
+    r.maps.push({ w: m.w, h: m.h, differ, frac: differ / (m.w * m.h), max });
+  });
+  r.ok = r.json && r.geometry && r.maps.every(m => m.equal ?? (m.frac <= MAP_TOL.frac && m.max <= MAP_TOL.max));
+  return r;
+}

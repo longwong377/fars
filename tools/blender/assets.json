@@ -2,23 +2,281 @@
  "about": "The Blender asset pipeline's registry (D-305). One entry per generated asset: the node script that writes its source meshes from the project's own data (numbers before pictures: no geometry is drawn by hand in Blender), the files and values whose hash decides whether the asset is stale, the bake settings, the per-level texture sizes and the budgets tests/blender_assets.test.ts holds it to. `node tools/blender/build.mjs` regenerates every asset; public/models/manifest.json records each build (input hash, output hash, measured counts).",
  "assets": {
   "capital_protome": {
-   "title": "double-bull protome of the bull and composite capitals (Apadana, Gate of All Nations, Tachara, Hadish, Hall of 100 Columns, Harem)",
+   "title": "double-bull protome of the bull and composite capitals (Apadana, Gate of All Nations, Tachara, Hadish, Hall of 100 Columns, Harem), with the carving of the photographed capitals (D-306)",
    "source": {
     "script": "tools/blender/sources/protome.ts",
-    "args": ["0.005", "1500"],
-    "args_note": "cell 0.005 D (half the game's LOD0 marching-cubes cell, sculpture.json protome.mc.cell 0.01: the grooves of eyes, horns' joints and locks span 2-4 cells); lock template 1500 triangles (the game's LOD0 carries 64: the spiral groove needs ~1000 to read as a groove). Technical, C",
-    "inputs": ["src/data/sculpture.json", "src/arch/sdf.ts", "src/arch/sculpt_models.ts", "src/arch/sculpt.ts", "public/generated/sculpt_protome_0.bin", "public/generated/sculpt_protome_1.bin", "tools/blender/lib/ply.ts"],
-    "spec_values": [["global", "r_column_proportions"]]
+    "args": [
+     "0.004",
+     "1500",
+     "1"
+    ],
+    "args_note": "cell 0.004 D (D-306: was 0.005; the carving layer's beads are 0.028-0.036 D across and the rosettes' petals ~0.012 D apart, so 3+ cells per petal); lock template 1500 triangles (the game's LOD0 carries 64: the spiral groove needs ~1000 to read as a groove); carving 1 = the relief of tools/blender/carving.json protome. Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sdf.ts",
+     "src/arch/sculpt_models.ts",
+     "src/arch/sculpt.ts",
+     "public/generated/sculpt_protome_0.bin",
+     "public/generated/sculpt_protome_1.bin",
+     "tools/blender/lib/ply.ts",
+     "tools/blender/carving.json",
+     "tools/blender/lib/carving.ts"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ]
+    ]
    },
-   "lods": [{ "tex": 1024 }, { "tex": 256 }],
-   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m). 1024 px over LOD0: ~1.1 cm per texel on the Apadana's protome (5.6 m wide), below a pixel at 5 m at the player's lens; 256 px for LOD1 (seen beyond 32 m)",
-   "bake": { "cage": 0.03, "ray": 0.06, "margin": 8, "normal_samples": 16, "ao_samples": 256, "ao_distance": 0.2, "uv_angle": 66, "uv_margin": 0.004, "high_normals": "geometry" },
+   "lods": [
+    {
+     "tex": 2048
+    },
+    {
+     "tex": 256
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m). 2048 px over LOD0 (D-306: was 1024): ~0.55 cm per texel on the Apadana's protome (5.6 m wide), so a bead of the carving (0.03 D, 5 cm) spans ~9 texels and a rosette petal 2-3; 256 px for LOD1 (seen beyond 32 m, where a bead is under a pixel)",
+   "bake": {
+    "cage": 0.03,
+    "ray": 0.06,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 256,
+    "ao_distance": 0.2,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
    "bake_note": "units: the source's (D, the column's lower shaft diameter). cage 0.03 D and rays 0.06 D cover the LOD0 simplification error (<= 1 cell); AO rays 0.2 D (32 cm on the Apadana) see the carving's own hollows (eye sockets, the gap under the forelegs, between the locks), not the building",
-   "budget": { "tris": [8900, 1080], "tex": [1024, 256], "glb_bytes": 2600000, "gpu_bytes": 8000000 },
-   "budget_note": "triangles: sculpture.json protome.mc lod0/lod1 (the game's own budget, unchanged: the bake adds maps, not triangles); GLB <= 2.6 MB of the 60 MB first-load budget (T-K7); GPU <= 8 MB of the 3.5 GB (T-K8): PNG maps decode to RGBA8 (5.6 MB + 0.35 MB with mips), KTX2 UASTC would be a quarter",
+   "budget": {
+    "tris": [
+     8900,
+     1080
+    ],
+    "tex": [
+     2048,
+     256
+    ],
+    "glb_bytes": 4000000,
+    "gpu_bytes": 8000000
+   },
+   "budget_note": "triangles: sculpture.json protome.mc lod0/lod1 (the game's own budget, unchanged: the bake adds maps, not triangles); GLB <= 4 MB and GPU <= 8 MB, from the measured KTX2 build (D-306: 3.26 MB, ~6.5 MB: UASTC transcoded to BC7, 1 B/px + mips) with a margin; T-K7 (60 MB first load) and T-K8 (3.5 GB GPU) are the totals they count against",
    "tier": "C",
-   "src": "RECON;IR-COL",
+   "src": "RECON;IR-COL;PHOTO-CAP",
    "ledger": "Baked column capital protome (public/models/capital_protome.glb; D-305)"
+  },
+  "colossus_bull": {
+   "title": "W doorway bulls of the Gate of All Nations (2), with the carving of the photographs (D-306)",
+   "source": {
+    "script": "tools/blender/sources/colossus.ts",
+    "args": [
+     "bull",
+     "0.008",
+     "1000",
+     "1"
+    ],
+    "args_note": "model; cell 0.008 m (the game's LOD0 cell is 0.014 m, sculpture.json colossus.mc.cell: the carving's beads are 4.4-5 cm across, 5-6 cells, and the lamassu's feather barbs 1.8 cm apart, 2 cells: those read through the bake's antialiased normals, not as geometry); lock template 1000 triangles (a colossus lock is 6.4 cm: the groove needs ~1000); carving 1 = tools/blender/carving.json colossus_bull. Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sdf.ts",
+     "src/arch/sculpt_models.ts",
+     "src/arch/sculpt.ts",
+     "public/generated/sculpt.json",
+     "public/generated/sculpt_colossus_bull_0.bin",
+     "public/generated/sculpt_colossus_bull_1.bin",
+     "tools/blender/lib/ply.ts",
+     "tools/blender/carving.json",
+     "tools/blender/lib/carving.ts"
+    ],
+    "spec_values": [
+     [
+      "gate_nations",
+      "r_colossus"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 2048
+    },
+    {
+     "tex": 512
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.colossus 40 m). 2048 px over LOD0 (the figure and its jamb block, ~60 m² of surface): ~5 mm per texel, a bead ~10 texels; 512 px for LOD1 (beyond 40 m)",
+   "bake": {
+    "cage": 0.03,
+    "ray": 0.06,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 256,
+    "ao_distance": 0.3,
+    "uv_angle": 66,
+    "uv_margin": 0.003,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. cage 3 cm and rays 6 cm cover the LOD0 simplification error (about one 0.014 m cell, the locks' templates standing 2 cm proud); AO rays 30 cm see the carving's hollows (between the legs, under the beard and the wing, the relief's cut-back ground), not the gate",
+   "budget": {
+    "tris": [
+     50000,
+     5000
+    ],
+    "tex": [
+     2048,
+     512
+    ],
+    "glb_bytes": 6000000,
+    "gpu_bytes": 10500000
+   },
+   "budget_note": "triangles: sculpture.json colossus.mc lod0/lod1 (the game's own); GLB <= 6 MB and GPU <= 10.5 MB each, from the measured KTX2 build (D-306: ~3 MB and 9.1-9.6 MB, of which ~3.5 MB is the 49 k-triangle level's vertex buffers the procedural piece already cost) with a margin",
+   "tier": "C",
+   "src": "RECON;IR-PERS;PHOTO-GATE",
+   "ledger": "Baked Gate colossus, bull (public/models/colossus_bull.glb; D-306)"
+  },
+  "colossus_lamassu": {
+   "title": "E human-headed winged bulls of the Gate of All Nations (2), with the carving of the photographs (D-306)",
+   "source": {
+    "script": "tools/blender/sources/colossus.ts",
+    "args": [
+     "lamassu",
+     "0.008",
+     "1000",
+     "1"
+    ],
+    "args_note": "model; cell 0.008 m (the game's LOD0 cell is 0.014 m, sculpture.json colossus.mc.cell: the carving's beads are 4.4-5 cm across, 5-6 cells, and the lamassu's feather barbs 1.8 cm apart, 2 cells: those read through the bake's antialiased normals, not as geometry); lock template 1000 triangles (a colossus lock is 6.4 cm: the groove needs ~1000); carving 1 = tools/blender/carving.json colossus_lamassu. Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sdf.ts",
+     "src/arch/sculpt_models.ts",
+     "src/arch/sculpt.ts",
+     "public/generated/sculpt.json",
+     "public/generated/sculpt_colossus_lamassu_0.bin",
+     "public/generated/sculpt_colossus_lamassu_1.bin",
+     "tools/blender/lib/ply.ts",
+     "tools/blender/carving.json",
+     "tools/blender/lib/carving.ts"
+    ],
+    "spec_values": [
+     [
+      "gate_nations",
+      "r_colossus"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 2048
+    },
+    {
+     "tex": 512
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.colossus 40 m). 2048 px over LOD0 (the figure and its jamb block, ~60 m² of surface): ~5 mm per texel, a bead ~10 texels; 512 px for LOD1 (beyond 40 m)",
+   "bake": {
+    "cage": 0.03,
+    "ray": 0.06,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 256,
+    "ao_distance": 0.3,
+    "uv_angle": 66,
+    "uv_margin": 0.003,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. cage 3 cm and rays 6 cm cover the LOD0 simplification error (about one 0.014 m cell, the locks' templates standing 2 cm proud); AO rays 30 cm see the carving's hollows (between the legs, under the beard and the wing, the relief's cut-back ground), not the gate",
+   "budget": {
+    "tris": [
+     50000,
+     5000
+    ],
+    "tex": [
+     2048,
+     512
+    ],
+    "glb_bytes": 6000000,
+    "gpu_bytes": 10500000
+   },
+   "budget_note": "triangles: sculpture.json colossus.mc lod0/lod1 (the game's own); GLB <= 6 MB and GPU <= 10.5 MB each, from the measured KTX2 build (D-306: ~3 MB and 9.1-9.6 MB, of which ~3.5 MB is the 49 k-triangle level's vertex buffers the procedural piece already cost) with a margin",
+   "tier": "C",
+   "src": "RECON;IR-PERS;PHOTO-GATE",
+   "ledger": "Baked Gate colossus, human-headed winged bull (public/models/colossus_lamassu.glb; D-306)"
+  },
+  "capital_volute": {
+   "title": "vertical double-volute member of the composite capital (every composite capital), with the rosette-ended rolls and ringed barrels of the photographed capital (D-306)",
+   "source": {
+    "script": "tools/blender/sources/volute.ts",
+    "args": [
+     "0.004",
+     "1"
+    ],
+    "args_note": "cell 0.004 D (the game's LOD0 cell is 0.007 D, sculpture.json volute.mc.cell: the rosette's 12 petals at 0.72 of the roll radius are ~0.02 D apart, 5 cells); carving 1 = tools/blender/carving.json volute. Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sdf.ts",
+     "src/arch/sculpt_models.ts",
+     "src/arch/sculpt.ts",
+     "src/arch/spec.ts",
+     "public/generated/sculpt.json",
+     "public/generated/sculpt_volute_0.bin",
+     "public/generated/sculpt_volute_1.bin",
+     "tools/blender/lib/ply.ts",
+     "tools/blender/carving.json",
+     "tools/blender/lib/carving.ts"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "apadana",
+      "capital_height"
+     ],
+     [
+      "apadana",
+      "shaft_diameter_base"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 1024
+    },
+    {
+     "tex": 256
+    }
+   ],
+   "lods_note": "the game's two levels (lod.switch.column 32 m). 1024 px over LOD0 (the member is 1.25 x 0.9 x 1.6 D: ~0.5 cm per texel on the Apadana, a petal ~4 texels); 256 px for LOD1",
+   "bake": {
+    "cage": 0.03,
+    "ray": 0.06,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 256,
+    "ao_distance": 0.15,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units D; as the protome (cage 0.03 D, rays 0.06 D cover the LOD0 error and the game piece's spiral channel, 0.027 D deep, that the rosette's disc fills); AO rays 0.15 D see the gaps between the rolls, the reeds and the petals",
+   "budget": {
+    "tris": [
+     2900,
+     300
+    ],
+    "tex": [
+     1024,
+     256
+    ],
+    "glb_bytes": 1500000,
+    "gpu_bytes": 3000000
+   },
+   "budget_note": "triangles: sculpture.json volute.mc lod0/lod1 (the game's own); GLB and GPU from the measured KTX2 build with a margin (D-306)",
+   "tier": "C",
+   "src": "RECON;IR-COL;PHOTO-GATE",
+   "ledger": "Baked composite-capital volute member (public/models/capital_volute.glb; D-306)"
   }
  }
 }

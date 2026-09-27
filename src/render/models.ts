@@ -21,7 +21,7 @@ export interface ModelManifest { about: string; assets: Record<string, ModelEntr
 export interface Model { id: string; entry: ModelEntry; lods: THREE.BufferGeometry[]; maps: THREE.Texture[] }
 
 const MODELS = new Map<string, Model>();
-const LOAD = { ms: 0, loaded: [] as string[], failed: [] as string[], off: false };
+const LOAD = { ms: 0, loaded: [] as string[], failed: [] as string[], off: false, ktx2: null as Record<string, boolean> | null, formats: {} as Record<string, string> };
 export const modelStats = () => ({ ...LOAD, count: MODELS.size });
 
 /** load every model of the manifest (browser). `renderer` is needed only for KTX2 maps (the transcoder picks the GPU's
@@ -36,7 +36,16 @@ export async function loadModels(base = '/', renderer?: THREE.WebGPURenderer): P
   const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco);
   if (Object.values(man.assets).some(a => a.textures === 'ktx2')) {
     const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
-    const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); if (renderer) k.detectSupport(renderer as any); loader.setKTX2Loader(k);
+    // the transcoder's target format needs the GPU's compressed formats: from the renderer when given, else (the world loads
+    // the models before it has one) from the WebGPU adapter, whose features three's WebGPU backend requests in full (D-306);
+    // without either the maps transcode to uncompressed RGBA (correct, 4x the memory)
+    const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/');
+    let gpu: { isWebGPURenderer: true; hasFeature: (f: string) => boolean } | THREE.WebGPURenderer | null = renderer ?? null;
+    if (!gpu) {
+      const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
+      gpu = { isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) };
+    }
+    k.detectSupport(gpu as any); loader.setKTX2Loader(k); LOAD.ktx2 = { ...(k as any).workerConfig };
   }
   await Promise.all(Object.entries(man.assets).map(async ([id, e]) => {
     try {
@@ -48,6 +57,8 @@ export async function loadModels(base = '/', renderer?: THREE.WebGPURenderer): P
         const map = (mesh.material as THREE.MeshStandardMaterial).normalMap; if (!map) throw new Error(`level ${L.name} has no map`);
         map.colorSpace = THREE.NoColorSpace; map.anisotropy = 8; map.needsUpdate = true;
         lods.push(mesh.geometry); maps.push(map);
+        // what the map is on the GPU (a KTX2 map arrives as a CompressedTexture in the transcoder's target format)
+        LOAD.formats[`${id}:${L.name}`] = (map as any).isCompressedTexture ? `compressed:${map.format}` : `rgba8:${e.textures}`;
       }
       MODELS.set(id, { id, entry: e, lods, maps }); LOAD.loaded.push(id);
     } catch (err) { LOAD.failed.push(id); console.warn(`[models] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
@@ -75,6 +86,27 @@ export function fitLevel(g: THREE.BufferGeometry, min: number[], max: number[]):
   return out;
 }
 
+/** a copy of `g` under the affine map M (row-major 3x4, as sculpt.ts transformNorm), which may mirror (the Gate's colossi face
+ *  both ways, D-306): positions; normals by the inverse transpose; tangents by M with their handedness (w) flipped when M
+ *  mirrors, so the baked tangent-space normals still point out of the surface; windings reversed when M mirrors */
+export function placeLevel(g: THREE.BufferGeometry, M: number[]): THREE.BufferGeometry {
+  const out = g.clone(), P = out.getAttribute('position'), N = out.getAttribute('normal'), T = out.getAttribute('tangent');
+  const [a, b, c, tx, d, e, f, ty, gg, h, i, tz] = M;
+  const det = a * (e * i - f * h) - b * (d * i - f * gg) + c * (d * h - e * gg);
+  // inverse transpose (cofactors / det)
+  const it = [(e * i - f * h), -(d * i - f * gg), (d * h - e * gg), -(b * i - c * h), (a * i - c * gg), -(a * h - b * gg), (b * f - c * e), -(a * f - c * d), (a * e - b * d)].map(x => x / det);
+  for (let k = 0; k < P.count; k++) {
+    const x = P.getX(k), y = P.getY(k), z = P.getZ(k);
+    P.setXYZ(k, a * x + b * y + c * z + tx, d * x + e * y + f * z + ty, gg * x + h * y + i * z + tz);
+    if (N) { const nx = N.getX(k), ny = N.getY(k), nz = N.getZ(k), X = it[0] * nx + it[3] * ny + it[6] * nz, Y = it[1] * nx + it[4] * ny + it[7] * nz, Z = it[2] * nx + it[5] * ny + it[8] * nz, l = Math.hypot(X, Y, Z) || 1; N.setXYZ(k, X / l, Y / l, Z / l); }
+    if (T) { const qx = T.getX(k), qy = T.getY(k), qz = T.getZ(k), X = a * qx + b * qy + c * qz, Y = d * qx + e * qy + f * qz, Z = gg * qx + h * qy + i * qz, l = Math.hypot(X, Y, Z) || 1; T.setXYZW(k, X / l, Y / l, Z / l, T.getW(k) * Math.sign(det)); }
+  }
+  if (det < 0 && out.index) { const I = out.index; for (let t = 0; t < I.count; t += 3) { const q = I.getX(t + 1); I.setX(t + 1, I.getX(t + 2)); I.setX(t + 2, q); } I.needsUpdate = true; }
+  P.needsUpdate = true; if (N) N.needsUpdate = true; if (T) T.needsUpdate = true;
+  out.computeBoundingBox(); out.computeBoundingSphere();
+  return out;
+}
+
 const MATS = new Map<string, THREE.MeshStandardNodeMaterial>();
 /** the surface `surface` (materials.ts) with a model level's packed map: normal under the surface's own relief, occlusion
  *  on the indirect light. Cached per surface and map. */
@@ -91,8 +123,8 @@ export function bakedMaterial(surface: string, map: THREE.Texture, key: string):
 }
 
 /** instanced meshes drawn from a model, with their procedural twins (A/B, D-305) */
-const SWAPS: { mesh: THREE.InstancedMesh; model: [THREE.BufferGeometry, THREE.Material]; stand: [THREE.BufferGeometry, THREE.Material] }[] = [];
-export function registerSwap(mesh: THREE.InstancedMesh, stand: [THREE.BufferGeometry, THREE.Material]) { SWAPS.push({ mesh, model: [mesh.geometry, mesh.material as THREE.Material], stand }); }
+const SWAPS: { mesh: THREE.Mesh; model: [THREE.BufferGeometry, THREE.Material]; stand: [THREE.BufferGeometry, THREE.Material] }[] = [];
+export function registerSwap(mesh: THREE.Mesh, stand: [THREE.BufferGeometry, THREE.Material]) { SWAPS.push({ mesh, model: [mesh.geometry, mesh.material as THREE.Material], stand }); }
 /** on = the models (default); off = the procedural stand-ins in the same instances */
 export function ab(on: boolean): number {
   for (const s of SWAPS) { const [g, m] = on ? s.model : s.stand; s.mesh.geometry = g; s.mesh.material = m; }
