@@ -218,7 +218,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 
 | # | gap | found by (row ids) | category | tier of presence in 467 | status |
 |---|---|---|---|---|---|
-| GB1 | zodiacal light | W-005 | sky | A physics | MISSING/PARTIAL |
+| GB1 | zodiacal light | W-005 | sky | A physics | BUILT (D-294); render queued |
 | GB2 | dew on grass and crops | W-016; C-F32 | weather | A physics | MISSING/PARTIAL |
 | GB3 | the comet of 467/466 (Pliny NH 2.149; recollection) | N-005 | sky | C | MISSING/PARTIAL |
 | GB4 | the act of sealing (rolling a seal) | B-009 | records | B | FILLED (D-255) |

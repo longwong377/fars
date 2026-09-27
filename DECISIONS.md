@@ -6890,3 +6890,12 @@ moment-*-webgpu.png in the worktree, not committed).**
   ~80 G cells; the terrain's own triangles are the collider away from architecture); villages and river reaches as a class
   (rejected: the brief and §4.3 list them as unique); near ground as unique tiles (tried in the first run: 192 unique; changed
   to a class, see above).
+
+## D-294 The zodiacal light and the gegenschein (session 10; WORLD_INVENTORY GB1)
+- **Gap:** from a dark site at 30° N the zodiacal light is plainly seen (A physics): a cone leaning along the ecliptic in the west
+  after dusk in late winter and spring, in the east before dawn in autumn; missing.
+- **Decision:** drawn in the Milky Way/airglow dome shader on the same perceptual scale (C): brightness ∝ elongation^-2.3 from 25°
+  out along the ecliptic, its width growing with elongation, fading in by 12-25° from the Sun, plus the faint gegenschein at the
+  anti-solar point; extinction by air mass; visible under the same night, Moon and cloud factor as the Milky Way. The ecliptic
+  frame from the J2000 obliquity (tests/zodiacal.test.ts: the Sun on it, |β| < 0.8°, at every hour and season). Unrendered:
+  moment `zodiacal-mar` queued (day 322, the new moon of early March).

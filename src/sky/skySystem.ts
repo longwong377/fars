@@ -8,7 +8,7 @@
 import * as THREE from 'three/webgpu';
 import { HALO_R } from './halo';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
-import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int, step } from 'three/tsl';
+import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int, step, pow } from 'three/tsl';
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt, earthShadow, UMBRA_RGB, UMBRA_DISPLAY, UMBRA_DISPLAY_CORE } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { Meteors } from './meteors';
@@ -107,6 +107,7 @@ export class SkySystem {
   readonly milkyWay: THREE.Mesh;
   private uGal = uniform(new THREE.Matrix3()); // world direction → galactic (l, b) unit vector, per epoch and sidereal time
   private uMW = uniform(0); // night × moon × cloud visibility of faint diffuse light
+  private uEcl = uniform(new THREE.Matrix3()); // session 10 (GB1): world direction → ecliptic (J2000) unit vector
   // ---- terrain horizon (D-156): the sun and the moon set behind the ranges ---------------------------------------------
   /** the baked skyline map (null until loaded, or when absent: then nothing is shadowed by distant terrain) */
   horizonMap: HorizonMap | null = null;
@@ -157,7 +158,18 @@ export class SkySystem {
       const vanRhijn = float(1).div(sqrt(float(1).sub(float(0.972).mul(float(1).sub(alt.mul(alt)))))); // (R/(R+90 km))² = 0.972
       const airglow = vec3(0.0005, 0.00068, 0.00051).mul(vanRhijn).mul(smoothstep(-0.02, 0.03, d.y));
       const warm = mix(vec3(0.85, 0.88, 1.0), vec3(1.0, 0.93, 0.8), alongC);
-      return vec4(warm.mul(mw).mul(ext).add(airglow).mul(V), 1);
+      // session 10 (WORLD_INVENTORY GB1): the zodiacal light, sunlight scattered by the interplanetary dust along the ecliptic (A
+      // physics): a cone leaning along the ecliptic from the hidden Sun, brightest near it (∝ elongation^-2.3 from 25° out, C fit),
+      // widening and fading with elongation, and the faint gegenschein at the anti-solar point; on the Milky Way's perceptual
+      // scale (C: at 30° from the Sun about as bright as the Milky Way's core, the gegenschein a tenth of that). It shows in the
+      // west after dusk in late winter and spring and in the east before dawn in autumn, where the ecliptic stands steep
+      const e = this.uEcl.mul(d), sE = this.uEcl.mul(this.uSunDirW);
+      const dl = acos(clamp(normalize(vec3(e.x, e.y, 0)).dot(normalize(vec3(sE.x, sE.y, 0))), -1, 1)).mul(180 / Math.PI); // |λ − λ☉| (deg)
+      const beta = asin(clamp(e.z, -1, 1)).mul(180 / Math.PI).abs();
+      const el = max(dl, float(25)), zod = pow(el.div(30), float(-2.3)).mul(exp(beta.div(el.mul(0.18).add(6)).negate())).mul(smoothstep(12, 25, dl)).mul(0.0045);
+      const gegen = exp(sq(float(180).sub(dl).div(9)).add(sq(beta.div(7))).negate()).mul(0.0005);
+      const zl = vec3(1.0, 0.95, 0.86).mul(zod.add(gegen)).mul(ext);
+      return vec4(warm.mul(mw).mul(ext).add(airglow).add(zl).mul(V), 1);
     })();
     this.milkyWay = new THREE.Mesh(new THREE.SphereGeometry(DOME * 0.92, 64, 32), mwMat);
     this.milkyWay.frustumCulled = false; this.milkyWay.renderOrder = -9.5;
@@ -298,7 +310,7 @@ export class SkySystem {
 
   /** world direction → galactic unit vector: galactic = M_gal · H(jd)ᵀ · Gᵀ · world, where H takes J2000 to the horizon
    *  frame (x north, y west, z zenith; precession, nutation, Earth rotation) and G the horizon frame to world axes */
-  private updateGalactic(jdUT: number) { this.uGal.value.copy(worldToGalactic(jdUT)); }
+  private updateGalactic(jdUT: number) { this.uGal.value.copy(worldToGalactic(jdUT)); this.uEcl.value.copy(worldToEcliptic(jdUT)); }
   /** Recompute star directions for this epoch and sidereal time (cheap enough every ~10 s of game time). */
   private updateStars(jdUT: number) {
     if (!this.starData) return;
@@ -492,6 +504,14 @@ export function worldToGalactic(jdUT: number): THREE.Matrix3 {
   // J2000 equatorial → galactic (Hipparcos / IAU rotation matrix)
   const Mgal = new THREE.Matrix3().set(-0.0548755604, -0.8734370902, -0.4838350155, 0.4941094279, -0.44482963, 0.7469822445, -0.867666149, -0.1980763734, 0.4559837762);
   return Mgal.multiply(R.transpose()).multiply(G.transpose());
+}
+/** world direction → ecliptic (J2000) unit vector (session 10, the zodiacal light): the equator tilted by the J2000 obliquity
+ *  (23.44°; the ecliptic's shift since 467 BCE, under half a degree, is below the glow's width) */
+export function worldToEcliptic(jdUT: number): THREE.Matrix3 {
+  const m = j2000ToHorizonMatrix(jdUT), R = new THREE.Matrix3().set(m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]);
+  const th = (341 * Math.PI) / 180, st = Math.sin(th), ct = Math.cos(th), G = new THREE.Matrix3().set(-st, -ct, 0, 0, 0, 1, -ct, st, 0);
+  const ob = (23.4393 * Math.PI) / 180, E = new THREE.Matrix3().set(1, 0, 0, 0, Math.cos(ob), Math.sin(ob), 0, -Math.sin(ob), Math.cos(ob));
+  return E.multiply(R.transpose()).multiply(G.transpose());
 }
 function smoothstepJS(a: number, b: number, x: number) { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 function kelvinToRGB(T: number): [number, number, number] {

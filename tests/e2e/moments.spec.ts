@@ -131,6 +131,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'murmuration-jan', day: 262, hour: 17.0, w: 'clear', v: [-36, 135, 1.6, 330, 3], fov: 30 },
   // session 10 (D-289): the morning after the default year's snow day (day 288), in the world's own weather (no override)
   { n: 'snow-morning-289', day: 289, hour: 9.5, w: 'auto', v: [-36.4, 135.5, 1.6, 281, -5], fov: 60 },
+  // session 10 (GB1, D-294): the zodiacal light, a leaning cone in the west after dusk near the new moon of early March (day 322)
+  { n: 'zodiacal-mar', day: 322, hour: 19.7, w: 'clear', v: [-36, 125, 1.6, 262, 16], fov: 70 },
   { n: 'dust-devils-jun', day: 54, hour: 15, w: 'clear', v: [-36, 125, 1.6, 251, 1], fov: 60 },
   // session 9 (G8): heat shimmer and the inferior mirage over the plain at a hot June noon, looking W along the level (opt-in ?heat=1)
   { n: 'heat-mirage-jun', day: 54, hour: 13.5, w: 'clear', v: [-36, 125, 1.6, 251, -0.5], fov: 20 },
