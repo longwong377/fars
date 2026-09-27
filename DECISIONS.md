@@ -6948,3 +6948,21 @@ moment-*-webgpu.png in the worktree, not committed).**
   anti-solar point; extinction by air mass; visible under the same night, Moon and cloud factor as the Milky Way. The ecliptic
   frame from the J2000 obliquity (tests/zodiacal.test.ts: the Sun on it, |β| < 0.8°, at every hour and season). Unrendered:
   moment `zodiacal-mar` queued (day 322, the new moon of early March).
+
+## D-295 Scanned surface detail over the procedural surfaces; the adapter's texture limit (session 11; B7, B24; UD-06, UD-14)
+- **Problem:** every surface was procedural TSL because no texture library was reachable (B7, proxy 403). The renders and
+  the D-285 blind review (7/7 frames "reads as CG") show procedural grain does not reach the photoreal bar at arm's length.
+  The GPU machine reaches Poly Haven and ambientCG (CC0).
+- **Decision:** src/render/scans.ts lays 2K CC0 photo scans (13 at first: weathered rock face, cliff, mud plaster and
+  mudbrick, dry earth, gravel, rocky bank, timber; src/data/scans.json, ASSET_LEDGER.md) over the procedural layer of 26
+  surfaces: albedo × (scan ÷ its own mean) blended per surface, so the measured tint, mean, masonry layout, joints and
+  weathering stay the evidence's; the scan's luminance as a bump (mm to cm); roughness × (scan ÷ its mean). Triplanar in
+  world space; the ground takes a second, larger tile against visible repeats. Loaded before any surface material builds
+  (main.ts); `?noscans` for the A/B; in node applyScan is the identity, so every CPU mirror still holds (surfaces,
+  materials, stone, masonry, polychromy tests 54/54). Tier C (modern stone and earth for 467's grain).
+- **The texture limit:** the scans took a surface's fragment stage to 17 sampled textures (WebGPU default 16). main.ts
+  now requests the adapter's own maxSampledTexturesPerShaderStage (capped at 48; the T4 gives 48, an adapter at 16 keeps
+  16). The same limit blocked fire-light shadows (B24, `?fireshadows=12`): to be re-tried.
+- **Seen (GPU, Q high, session 11):** stair-foot-ground: the plain reads as real cracked dry earth where it read as blotchy
+  camouflage; calib-24-now: grain on the wall and the plain, but the wall stays pale grey (the D-285 Now-view tint is on
+  its branch) and Kuh-e Rahmat stays a smooth dune (the terrain mesh does not use surfaceMaterial): next.
