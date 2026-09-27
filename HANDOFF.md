@@ -36,9 +36,13 @@ frames; also build REVIEWS/anchors/ from them and the user's photos).
 **Minute ~110-120: push everything** (`claude/amazing-fermi-40ds7j`, `assets-archive`, the agent branches) and rewrite this
 section: what was built, what the cloud does next.
 
-**Left for the cloud (no Vagon time):** merge `s11-realism-town` (plan below; it may be superseded by the kit); the soak gates
-and the third T-F8 seed; `npm run areas` and the board; T-E9 prompt and fence work; lints; the gap hunt (T-J6); reviews of the
-committed frames; the simulation's fixes; records.
+**Then the cloud: DEPTH first (UD-07, UD-08, UD-11, UD-18), in bulk across every person and system, node-only work:**
+(1) the life records for every person (life.ts) and the life prose baked for all of them (the bake needs a model: bake on
+Vagon if a slot remains, else a smaller offline model in node); (2) conversation grounded in each person's own life, the
+fence, turning to face the speaker, T-E9 from 61 % to 95 % measured in node; (3) the simulation's systems: the soak gates
+(populationVariety, plansWellFormed), the court and visitors, events and surprises (T-J5, T-J6 gap hunt), never repetitive;
+(4) the town's night (lamps, B111), the villages' lives; (5) then the rest: merge `s11-realism-town` (plan below; it may be
+superseded by the kit), the third T-F8 seed, `npm run areas` and the board, lints, records, reviews of the committed frames.
 
 **Session 11 ran on the GPU machine (Vagon, Windows: NVIDIA T4, 16 cores, 63 GB).** Read first, in this order: `USER_DIRECTIONS.md`
 (UD-17 and UD-18 are new), `MASTER_PLAN.md` (rev 2.4), `gates/thresholds.json` (T-A7, T-E9 new), PROGRESS.md (problems first),

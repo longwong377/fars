@@ -12,6 +12,10 @@ REPLACEMENT of whatever makes it read as CG — the lighting, and every class of
 plants, props, buildings, people), with real modelled or scanned assets, several agents in parallel — not polishing single
 assets, not per-change reviews, not process. Verification is one batched render at the end. If a plan's next step is a detail
 (one capital's proportions, one room's props) while the world as a whole reads as CG, the plan is wrong: say so and change it.
+**And it must be as deep as it looks (UD-07, UD-08, UD-11):** the second question — walk up to anyone and follow them for a day:
+do they have a home, family, work, history, reasons, a voice, a conversation grounded in their own life, and does the world's
+day and year change around them? Where the answer is thin, the same rule holds: bulk depth (whole systems, every person), not
+one showcase NPC. On the GPU machine, the look first; in the cloud (node-only), the depth first.
 
 ## Intent (§1.1)
 A time capsule: stepping through a door into a place that was real and is gone. Presence through the body
