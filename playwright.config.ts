@@ -15,6 +15,7 @@ export default defineConfig({
     { name: 'webgl2', use: { launchOptions: { args: common } } },
     // session 10 (handoff to a GPU machine): the real graphics card, no SwiftShader. `--project=gpu`; HEADED=1 runs a visible window
     // (headless Chromium may fall back to software on some drivers: check the page's adapter in the log, as every spec records it)
-    { name: 'gpu', use: { headless: !process.env.HEADED, launchOptions: { args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--autoplay-policy=no-user-gesture-required'] } } },
+    // PW_CHANNEL=chrome|msedge drives an installed browser (session 11: Playwright's own chrome.exe would not start on the Windows box)
+    { name: 'gpu', use: { channel: process.env.PW_CHANNEL ?? 'chromium', headless: !process.env.HEADED, launchOptions: { args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--autoplay-policy=no-user-gesture-required'] } } },
   ],
 });
