@@ -1,0 +1,165 @@
+{
+ "run": "T-F8",
+ "commit": "f8d4a87",
+ "tool": "tools/soak.ts",
+ "date": "2026-09-27",
+ "seed": 90412,
+ "court": true,
+ "days": 354,
+ "gates": {
+  "variety": true,
+  "populationVariety": false,
+  "events": true,
+  "stuck": true,
+  "stocks": true,
+  "renderedHonest": true,
+  "plansWellFormed": false,
+  "visibleChange": true
+ },
+ "gatesPassed": 6,
+ "value": 3,
+ "events": [
+  {
+   "kind": "arrival",
+   "days": [
+    14,
+    15
+   ],
+   "roadInDaylight": [
+    2010,
+    200
+   ],
+   "terraceAt14": {
+    "before": 0,
+    "after": 1659
+   },
+   "witnessable": true
+  },
+  {
+   "kind": "arrival",
+   "days": [
+    17,
+    19
+   ],
+   "roadInDaylight": [
+    7800,
+    8977,
+    1900
+   ],
+   "terraceAt14": {
+    "before": 1659,
+    "after": 3409
+   },
+   "witnessable": true
+  },
+  {
+   "kind": "departure",
+   "days": [
+    117,
+    117
+   ],
+   "roadInDaylight": [
+    20887
+   ],
+   "terraceAt14": {
+    "before": 3277,
+    "after": 0
+   },
+   "witnessable": true
+  }
+ ],
+ "year": {
+  "arrive": 18,
+  "kingHour": 12.397052433900535,
+  "first": 14,
+  "last": 19,
+  "heraldDays": [
+   14,
+   17
+  ],
+  "lastDay": 116,
+  "leave": 117
+ },
+ "worldLog": [
+  {
+   "t": 346.577,
+   "id": "E-20",
+   "text": "a courier of the court rides in along the royal road with word that the king is coming"
+  },
+  {
+   "t": 349.199,
+   "id": "E-20",
+   "text": "a courier of the court rides in along the royal road with word that the king is coming"
+  },
+  {
+   "t": 370.247,
+   "id": "E-20",
+   "text": "a courier of the court rides in along the royal road with word that the king is coming"
+  },
+  {
+   "t": 373.269,
+   "id": "E-20",
+   "text": "a courier of the court rides in along the royal road with word that the king is coming"
+  },
+  {
+   "t": 395.405,
+   "id": "E-20",
+   "text": "a courier of the court rides in along the royal road with word that the king is coming"
+  },
+  {
+   "t": 395.659,
+   "id": "E-20",
+   "text": "a courier of the court rides in along the royal road with word that the king is coming"
+  },
+  {
+   "t": 418.753,
+   "id": "E-20",
+   "text": "a courier of the court rides in along the royal road with word that the king is coming"
+  },
+  {
+   "t": 420.883,
+   "id": "E-20",
+   "text": "a courier of the court rides in along the royal road with word that the king is coming"
+  },
+  {
+   "t": 444.3970524339005,
+   "id": "E-25",
+   "text": "the court arrives from Susa"
+  },
+  {
+   "t": 2817,
+   "id": "E-26",
+   "text": "the court leaves"
+  }
+ ],
+ "tf5": {
+  "heraldsBeforeArrival": 8,
+  "heraldsAfterArrival": 0,
+  "heraldsOnTheRoadInDaylight": [
+   2,
+   2,
+   2,
+   2,
+   0
+  ],
+  "ok": true
+ },
+ "terraceAt14": {
+  "11": 0,
+  "12": 0,
+  "13": 0,
+  "14": 650,
+  "15": 1704,
+  "16": 1659,
+  "17": 1664,
+  "18": 2486,
+  "19": 3256,
+  "20": 3409,
+  "21": 3290,
+  "22": 3282,
+  "116": 3277,
+  "117": 0,
+  "118": 0
+ },
+ "rule": "an event: a run of days with >= 200 of the court's column on the road in daylight on their arrival (leave) day, and the court on the Terrace at 14:00 up (down) by >= 500 across it"
+}

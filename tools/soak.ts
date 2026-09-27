@@ -233,6 +233,11 @@ function writeTF8(pass: string, r: ReturnType<typeof runSoak>) {
   let commit = 'unknown'; try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch { /* no git */ }
   const run = { seed: r.seed, court: r.court, days: r.days, gates: r.gates, gatesPassed: Object.values(r.gates).filter(Boolean).length, ...r.tf8 };
   writeFileSync(`${dir}/T-F8.seed-${r.seed}.json`, JSON.stringify({ run: 'T-F8', commit, tool: 'tools/soak.ts', date: new Date().toISOString().slice(0, 10), ...run }, null, 1));
+  aggregateTF8(pass, commit);
+}
+/** T-F8.json over every seed run in the pass (`--aggregate <pass>` redoes it alone, e.g. after moving seed runs in) */
+function aggregateTF8(pass: string, commit: string) {
+  const dir = `REVIEWS/evidence/${pass}`;
   const runs = readdirSync(dir).filter(f => /^T-F8\.seed-\d+\.json$/.test(f)).map(f => JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')));
   writeFileSync(`${dir}/T-F8.json`, JSON.stringify({ id: 'T-F8', value: Math.min(...runs.map(x => x.value)), n: runs.filter(x => x.court && x.days >= 354).length, n_note: 'seeds of the default world soaked a whole year (tools/soak.ts, one run per seed)',
     unit: 'events per year', commit, tool: 'tools/soak.ts', pass, date: new Date().toISOString().slice(0, 10), runs: runs.map(x => ({ seed: x.seed, court: x.court, days: x.days, value: x.value, gatesPassed: x.gatesPassed, commit: x.commit, events: x.events.map((e: any) => ({ kind: e.kind, days: e.days, witnessable: e.witnessable })), tf5: x.tf5.ok })) }, null, 1));
@@ -254,6 +259,11 @@ export function frameCost(seed: number, nav: NavGrid, env: (t: number) => Env, c
 
 if (process.argv[1]?.endsWith('soak.ts')) {
   const args = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && all[i - 1] !== '--sample' && all[i - 1] !== '--evidence'); const flag = (k: string) => process.argv.indexOf(k);
+  // --from-report <bench-reports/soak-….json> --evidence <pass>: the evidence of a finished soak, from its own report
+  if (flag('--from-report') >= 0 && flag('--evidence') >= 0) { writeTF8(process.argv[flag('--evidence') + 1], JSON.parse(readFileSync(process.argv[flag('--from-report') + 1], 'utf8'))); process.exit(0); }
+  if (flag('--aggregate') >= 0) { let c = 'unknown'; try { c = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch { /* no git */ } aggregateTF8(process.argv[flag('--aggregate') + 1], c); process.exit(0); }
+  // --evidence takes a pass NAME (REVIEWS/evidence/<pass>/), not a path (session 11: a path doubled the folders)
+  if (flag('--evidence') >= 0 && /[\\/.]/.test(process.argv[flag('--evidence') + 1] ?? '')) { console.error('--evidence takes a pass name, e.g. s11-soak'); process.exit(2); }
   const [days, dt, seed] = [+(args[0] ?? 354), +(args[1] ?? 60), +(args[2] ?? 1)];
   const sample = flag('--sample') >= 0 ? +process.argv[flag('--sample') + 1] : 0;
   const r = runSoak(days, dt, seed, undefined, { sample, court: flag('--no-court') < 0 }); // (the default world: the court comes and goes, D-236)

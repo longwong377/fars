@@ -1,0 +1,83 @@
+{
+ "id": "T-F8",
+ "value": 3,
+ "n": 2,
+ "n_note": "seeds of the default world soaked a whole year (tools/soak.ts, one run per seed)",
+ "unit": "events per year",
+ "commit": "f8d4a87",
+ "tool": "tools/soak.ts",
+ "pass": "s11-soak",
+ "date": "2026-09-27",
+ "runs": [
+  {
+   "seed": 7,
+   "court": true,
+   "days": 354,
+   "value": 3,
+   "gatesPassed": 6,
+   "commit": "f8d4a87",
+   "events": [
+    {
+     "kind": "arrival",
+     "days": [
+      4,
+      5
+     ],
+     "witnessable": true
+    },
+    {
+     "kind": "arrival",
+     "days": [
+      7,
+      9
+     ],
+     "witnessable": true
+    },
+    {
+     "kind": "departure",
+     "days": [
+      117,
+      117
+     ],
+     "witnessable": true
+    }
+   ],
+   "tf5": true
+  },
+  {
+   "seed": 90412,
+   "court": true,
+   "days": 354,
+   "value": 3,
+   "gatesPassed": 6,
+   "commit": "f8d4a87",
+   "events": [
+    {
+     "kind": "arrival",
+     "days": [
+      14,
+      15
+     ],
+     "witnessable": true
+    },
+    {
+     "kind": "arrival",
+     "days": [
+      17,
+      19
+     ],
+     "witnessable": true
+    },
+    {
+     "kind": "departure",
+     "days": [
+      117,
+      117
+     ],
+     "witnessable": true
+    }
+   ],
+   "tf5": true
+  }
+ ]
+}

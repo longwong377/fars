@@ -385,7 +385,7 @@ Cell: status; the evidence's value and n; its file, commit, session age and depe
 | T-R4 | R | process | <= 0 findings (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | REVIEWS/ |
 | T-R5 | R | process | <= 0 findings (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | REVIEWS/ |
 | T-J7 | J | world | <= 0 rows (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | WORLD_INVENTORY.md |
-| T-F8 | F | world | >= 2 events per year (n ≥ 3) | **STALE** | 3 | 1 | s9-court-arrival/T-F8.json | 953c681 | 2 s | – | no dependency hash | tools/soak.ts |
+| T-F8 | F | world | >= 2 events per year (n ≥ 3) | **STALE** | 3 | 2 | s11-soak/T-F8.json | f8d4a87 | 0 s | – | no dependency hash | tools/soak.ts |
 | T-K10 | K | world | <= 0 defaults (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | tests/defaults.test.ts |
 | T-R6 | R | session | <= 0 branches (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | handoff/reserved_numbers.md |
 | T-R7 | R | process | <= 0 weakenings (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | .github/workflows/guards.yml |
