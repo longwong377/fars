@@ -2,7 +2,7 @@
  "id": "T-E10",
  "value": 100,
  "n": 158,
- "commit": "77914db",
+ "commit": "66f25ae",
  "tool": "tests/talk_world.test.ts",
  "unit": "%",
  "status": "PLUMBING PASS (stand-in model; the real model unmeasured)",
