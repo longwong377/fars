@@ -250,7 +250,30 @@ function simplify(tris: number[], targetTris: number, uvWeight: number) {
   return Array.from(res as Uint32Array) as number[];
 }
 const lod1Body = simplify(triBody, 5200, 0.5), lod2Body = simplify(triBody, 1100, 0.2);
-const LOD0: number[] = [...triBody, ...triLash, ...triMouth, ...triEye], LOD1: number[] = [...lod1Body, ...triEyeLo], LOD2: number[] = [...lod2Body, ...triEyeLo];
+// D-323: the hands at full detail. MakeHuman's hands are 3,194 triangles each, a sixth of what the body shows under a robe;
+// at 1 m a hand spans ~150 px, so they are simplified alone (triangles whose three vertices are hand-weighted), the wrist
+// ring that joins the forearm locked (every vertex also used by a triangle outside the hand keeps its place: the stitch is
+// exact), the skin weights' dominant finger bone and the uv as attributes (the knuckles keep a ring each, the uv islands
+// stay whole). The vertex set is unchanged (the positions, weights and the variants' morphs are the same vertices): the full
+// hand is kept as `hand_hi`, which the loader uses for the normals (humanAssets.smoothNormals: the shading of the full
+// hand at every kept vertex), and its relief between them is baked into the skin's crease channel (skin.ts handRelief).
+const isHandP = (p: number) => part[p] === PART.hand_l || part[p] === PART.hand_r;
+const handHi: number[] = [], bodyRest: number[] = [];
+for (let t = 0; t < triBody.length; t += 3) { const ids = [triBody[t], triBody[t + 1], triBody[t + 2]]; (ids.every(i => isHandP(outOrig[i])) ? handHi : bodyRest).push(...ids); }
+const HAND_TRIS = 2000; // both hands (C: the budget freed for hair; the knuckles and the nail plates still read at 1 m, measured in the previews)
+const handLo = (() => {
+  const lock = new Uint8Array(NO); for (const i of bodyRest) lock[i] = 1;
+  // attributes: uv (the islands) and, per vertex, the weight of each finger's middle and distal bones (a joint's ring is
+  // where these change fastest, so the collapse keeps it)
+  const NA = 4, attr = new Float32Array(NO * NA);
+  for (let i = 0; i < NO; i++) { const p = outOrig[i]; attr[i * NA] = outUV[i * 2]; attr[i * NA + 1] = outUV[i * 2 + 1];
+    let w2 = 0, w3 = 0; for (let k = 0; k < 4; k++) { const b = HBONES[skinIdx[p * 4 + k]] as string, w = skinW[p * 4 + k] / 255; if (/_02_/.test(b)) w2 += w; if (/_03_/.test(b)) w3 += w; }
+    attr[i * NA + 2] = w2; attr[i * NA + 3] = w3; }
+  const [res, err] = MeshoptSimplifier.simplifyWithAttributes(new Uint32Array(handHi), refPosOut, 3, attr, NA, [0.5, 0.5, 0.05, 0.05], lock, HAND_TRIS * 3, 0.01, 0);
+  log(`  hands ${handHi.length / 3} → ${res.length / 3} tris (error ${(err * 100).toFixed(3)} %)`);
+  return Array.from(res as Uint32Array) as number[];
+})();
+const LOD0: number[] = [...bodyRest, ...handLo, ...triLash, ...triMouth, ...triEye], LOD1: number[] = [...lod1Body, ...triEyeLo], LOD2: number[] = [...lod2Body, ...triEyeLo];
 
 // ---------------------------------------------------------------- finger curl axes (bind pose of the reference body)
 const curlAxes: Record<string, number[]> = {};
@@ -288,7 +311,7 @@ for (let i = 0; i < NP; i++) { const l = Math.hypot(refN[i * 3], refN[i * 3 + 1]
 const ao = cavityAO(ref.pos, refN, [...triBody, ...triEye], outOrig, NP); // lashes and mouth helpers are not occluders
 log(`cavity occlusion: mean ${(ao.reduce((a, b) => a + b, 0) / NP).toFixed(3)}, min ${Math.min(...ao).toFixed(3)}`);
 mkdirSync(OUT, { recursive: true });
-const baked = bakeSkin({ W: 1024, H: 1024, pos: ref.pos, orig: outOrig, uv: outUV, tris: triBody, part, joints: ref.joints, tails: ref.tails, landmarks, bone: HB, ao, skinIndex: skinIdx, skinWeight: skinW });
+const baked = bakeSkin({ W: 1024, H: 1024, pos: ref.pos, orig: outOrig, uv: outUV, tris: triBody, handLo, handHi, part, joints: ref.joints, tails: ref.tails, landmarks, bone: HB, ao, skinIndex: skinIdx, skinWeight: skinW });
 writeFileSync(`${OUT}/skin.png`, encodePNG(baked.skinW, baked.skinH, baked.skin, 4));
 writeFileSync(`${OUT}/hair.png`, encodePNG(512, 512, baked.hair, 4));
 const masks = vertexMasks(baked.frame, ref.pos, refN, part, NP);
@@ -307,6 +330,7 @@ add('uv', Uint16Array.from(outUV.map(x => Math.round(Math.min(1, Math.max(0, x))
 add('skinIndex', skinIdx, 'u8', 4); add('skinWeight', skinW, 'u8', 4); add('part', part, 'u8', 1);
 add('ao', Uint8Array.from(ao, x => Math.round(x * 255)), 'u8', 1); add('beard', masks.beard, 'u8', 1); add('scalp', masks.scalp, 'u8', 1);
 add('lod0', Uint16Array.from(LOD0), 'u16', 3); add('lod1', Uint16Array.from(LOD1), 'u16', 3); add('lod2', Uint16Array.from(LOD2), 'u16', 3);
+add('hand_hi', Uint16Array.from(handHi), 'u16', 3); // D-323: the full hands, for the normals only (never drawn)
 const POS_SCALE = 1e-4;
 const variants: HumanVariantMeta[] = V.map(d => {
   const b = built.get(d.id)!; const q = new Int16Array(NP * 3); for (let i = 0; i < NP * 3; i++) q[i] = Math.round(b.pos[i] / POS_SCALE);

@@ -14,6 +14,9 @@ export interface SkinBakeInput {
   joints: number[][]; tails: number[][]; bone: Record<string, number>; landmarks: Record<string, number>; ao: Float32Array;
   /** per position vertex skin indices/weights (4 each, bytes): when given, the mouth line is the upper/lower-lip weight split */
   skinIndex?: Uint8Array; skinWeight?: Uint8Array;
+  /** D-323: the hands' full and simplified triangles (render-vertex indices): when given, the full hand's relief over the
+   *  simplified one is baked into the crease channel, with the finger joints' skin creases (handRelief) */
+  handHi?: number[]; handLo?: number[];
 }
 /** reference skin tone the albedo map is authored for (sRGB 0..1); the renderer multiplies by tone / REF_TONE (linear) */
 export const REF_TONE: [number, number, number] = [0.72, 0.53, 0.42];
@@ -251,6 +254,7 @@ export function bakeSkin(inp: SkinBakeInput) {
     return { rgb: [srgb(r), srgb(g), srgb(b)], a: brow, beard: m.beard, scalp: m.scalp, det: d };
   };
   const hw = W / 2, hh = H / 2;
+  const relief = inp.handHi && inp.handLo ? handRelief(inp, W, H, nrm, palmN) : null;
   for (let t = 0; t < tris.length; t += 3) {
     const ids = [tris[t], tris[t + 1], tris[t + 2]], ps = ids.map(i => orig[i]);
     const pt = [part[ps[0]], part[ps[1]], part[ps[2]]].sort((a, b) => a - b)[1];
@@ -263,7 +267,7 @@ export function bakeSkin(inp: SkinBakeInput) {
     each(W, H, 1, (x, y, pp, nn, ao, th) => { const s = shade(pp, nn, pt, ao); const k = y * W + x; if (filled[k] === 2) return; filled[k] = 2;
       img[k * 4] = Math.round(s.rgb[0] * 255); img[k * 4 + 1] = Math.round(s.rgb[1] * 255); img[k * 4 + 2] = Math.round(s.rgb[2] * 255); img[k * 4 + 3] = Math.round(s.a * 255);
       // detail: data stored sRGB-encoded in RGB (the texture is decoded as sRGB, so the shader reads the linear value)
-      det[k * 4] = Math.round(255 * srgb(Math.max(0, Math.min(1, 0.5 + s.det.crease / (2 * DETAIL_SCALE.crease)))));
+      det[k * 4] = Math.round(255 * srgb(Math.max(0, Math.min(1, 0.5 + (s.det.crease + (relief && (pt === 7 || pt === 10) ? relief[k] : 0)) / (2 * DETAIL_SCALE.crease)))));
       det[k * 4 + 1] = Math.round(255 * srgb(Math.max(0, Math.min(1, s.det.oil))));
       det[k * 4 + 2] = Math.round(255 * srgb(Math.max(0, Math.min(1, 0.5 + s.det.age / (2 * DETAIL_SCALE.age)))));
       det[k * 4 + 3] = Math.round(255 * translucency(th)); });
@@ -330,5 +334,54 @@ export function cavityAO(P: Float64Array, nrm: Float64Array, tris: number[], ori
       if (hitAny) blocked += w; }
     out[p] = 1 - blocked / wsum;
   }
+  return out;
+}
+
+/** D-323: the hands' relief, baked for the simplified hand of the full-detail body (build_humans.ts HAND_TRIS). Per texel of
+ *  the hands' uv islands: (1) the full hand's surface over the simplified one along the simplified surface's (interpolated,
+ *  full-hand) normal, soft-clamped into the crease channel's range: the knuckles, the nail plates and the tendons that the
+ *  collapse flattened come back as shading; (2) the skin creases of the finger joints (C: after standard hand anatomy, not
+ *  measured): on the back of each middle and end joint three shallow transverse wrinkles 2.2 mm apart, on the palm side one
+ *  deeper flexion crease just past the joint. Returns crease heights (m) per texel of the W x H albedo half (0 elsewhere). */
+function handRelief(inp: SkinBakeInput, W: number, H: number, nrm: Float64Array, palmN: Record<string, number[]>): Float32Array {
+  const { pos: P, orig, uv } = inp; const hi = inp.handHi!, lo = inp.handLo!;
+  const hp = new Float32Array(W * H * 3), hn = new Float32Array(W * H * 3), set = new Uint8Array(W * H), out = new Float32Array(W * H);
+  const U = (i: number) => [uv[i * 2] * W, (1 - uv[i * 2 + 1]) * H];
+  const each = (T: number[], fn: (k: number, pp: number[], nn: number[]) => void) => { for (let t = 0; t < T.length; t += 3) {
+    const ids = [T[t], T[t + 1], T[t + 2]], ps = ids.map(i => orig[i]), u = ids.map(U);
+    rasterTri(W, H, u[0][0], u[0][1], u[1][0], u[1][1], u[2][0], u[2][1], (x, y, b0, b1, b2) => { const bw = [b0, b1, b2], pp = [0, 0, 0], nn = [0, 0, 0];
+      for (let j = 0; j < 3; j++) for (let k = 0; k < 3; k++) { pp[k] += bw[j] * P[ps[j] * 3 + k]; nn[k] += bw[j] * nrm[ps[j] * 3 + k]; }
+      const l = Math.hypot(nn[0], nn[1], nn[2]) || 1; fn(y * W + x, pp, nn.map(v => v / l)); }, 1.2); } };
+  each(hi, (k, pp, nn) => { if (set[k]) return; set[k] = 1; hp.set(pp, k * 3); hn.set(nn, k * 3); });
+  const S = 0.8 * DETAIL_SCALE.crease; let n = 0, sum = 0, mx = 0;
+  each(lo, (k, pp, nn) => { if (set[k] !== 1) return; set[k] = 2;
+    const d = (hp[k * 3] - pp[0]) * nn[0] + (hp[k * 3 + 1] - pp[1]) * nn[1] + (hp[k * 3 + 2] - pp[2]) * nn[2];
+    void S; n++; sum += Math.abs(d); mx = Math.max(mx, Math.abs(d)); });
+  // (the full hand's displacement over the simplified one is measured, not baked: its gradient repeats the curvature the
+  // full-hand normals already give each kept vertex, and as a bump it hammered every simplified triangle into a dome, seen
+  // in the first preview. What the normals cannot carry is finer than the kept vertices: the joints' creases and the nails.)
+  // the joints' creases
+  const J = (b: string) => inp.joints[inp.bone[b]], T = (b: string) => inp.tails[inp.bone[b]];
+  const groove = (d: number, w: number) => Math.exp(-((d / w) ** 2));
+  const joints: { j: number[]; a: number[]; s: string; r: number }[] = [];
+  for (const s of ['l', 'r']) for (const f of ['thumb', 'index', 'middle', 'ring', 'pinky']) for (const k of ['02', '03']) {
+    const b = `${f}_${k}_${s}`, j = J(b), t = T(b), a = [t[0] - j[0], t[1] - j[1], t[2] - j[2]], l = Math.hypot(a[0], a[1], a[2]) || 1;
+    joints.push({ j, a: a.map(x => x / l), s, r: f === 'thumb' ? 0.014 : 0.012 }); }
+  for (let k = 0; k < W * H; k++) { if (!set[k]) continue; const p = [hp[k * 3], hp[k * 3 + 1], hp[k * 3 + 2]], nv = [hn[k * 3], hn[k * 3 + 1], hn[k * 3 + 2]];
+    for (const q of joints) { if ((p[0] > 0 ? 'l' : 'r') !== q.s) continue;
+      const v = [p[0] - q.j[0], p[1] - q.j[1], p[2] - q.j[2]], along = v[0] * q.a[0] + v[1] * q.a[1] + v[2] * q.a[2];
+      if (Math.abs(along) > 0.007) continue; const rad = Math.hypot(v[0] - q.a[0] * along, v[1] - q.a[1] * along, v[2] - q.a[2] * along); if (rad > q.r) continue;
+      const pn = palmN[q.s], back = -(nv[0] * pn[0] + nv[1] * pn[1] + nv[2] * pn[2]), wob = 0.0004 * Math.sin(p[0] * 2100 + p[2] * 1700);
+      let c = 0; for (const o of [-0.0022, 0, 0.0022]) c -= groove(along - o + wob, 0.00045) * (o === 0 ? 0.7 : 0.45);
+      out[k] += (c * smooth(0.1, 0.45, back) - 0.9 * groove(along - 0.0012 + wob * 0.5, 0.0006) * smooth(0.1, 0.45, -back)) * DETAIL_SCALE.crease * (1 - smooth(0.7, 1, rad / q.r)); } }
+  // the nails: a groove round each nail plate (its fold and free edge, ~8.5 mm from the finger's tip along the back) and the
+  // plate a little proud of the skin (C)
+  for (const s of ['l', 'r']) for (const f of ['thumb', 'index', 'middle', 'ring', 'pinky']) {
+    const tp = T(`${f}_03_${s}`), R0 = f === 'thumb' ? 0.0095 : f === 'pinky' ? 0.0072 : 0.0085, pn = palmN[s];
+    for (let k = 0; k < W * H; k++) { if (!set[k]) continue; const px = hp[k * 3]; if ((px > 0 ? 'l' : 'r') !== s) continue;
+      const dd = Math.hypot(px - tp[0], hp[k * 3 + 1] - tp[1], hp[k * 3 + 2] - tp[2]); if (dd > R0 + 0.003) continue;
+      const back = -(hn[k * 3] * pn[0] + hn[k * 3 + 1] * pn[1] + hn[k * 3 + 2] * pn[2]);
+      out[k] += (0.35 * (1 - smooth(R0 - 0.0015, R0, dd)) - 0.8 * groove(dd - R0, 0.0005)) * smooth(0.25, 0.55, back) * DETAIL_SCALE.crease; } }
+  console.log(`[skin] hand relief (creases, nails; the displacement measured only): ${n} texels, mean |d| ${(sum / Math.max(1, n) * 1000).toFixed(3)} mm, max ${(mx * 1000).toFixed(2)} mm`);
   return out;
 }
