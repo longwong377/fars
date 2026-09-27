@@ -11,7 +11,7 @@ import type { LifeRecord } from './life';
 import { parseIntent, type Intent } from './intent';
 
 /** D-315: what the person remembers of the stranger (talk.ts recall) and the simulation's word on what was asked */
-export interface AskOpts { memory?: string[]; note?: string; /** a turn that is not the stranger's words (the retelling of a refusal: turn.ts) */ userText?: string }
+export interface AskOpts { memory?: string[]; note?: string; /** a turn that is not the stranger's words (the retelling of a refusal: turn.ts) */ userText?: string; /** D-315: said just before the stranger's words (the memory, near the question) */ before?: string }
 export interface Answer { /** D-315: the tag the model ended with (intent.ts; null: none) */ intent?: Intent | null; heard?: string; recovered?: boolean; text: string; raw: string; ok: boolean; hits: FenceHit[]; tries: number; ttftMs: number; totalMs: number; primeMs: number; tokens: number; prefillTps: number; decodeTps: number }
 export interface LoadInfo { ms: number; model: string }
 type Msg = { role: 'system' | 'user' | 'assistant'; content: string };
@@ -52,7 +52,7 @@ export class Mind {
   async answer(L: LifeRecord, knows: Knows, history: Turn[], said: string, prose?: string | null, maxTokens = 64, opts: AskOpts = {}): Promise<Answer> {
     const t0 = performance.now();
     try { return await this.answerOnce(L, knows, history, said, prose, maxTokens, opts); }
-    catch (e) { if (!/disposed|device|lost|mapAsync|unmapped/i.test(String(e))) throw e;
+    catch (e) { if (!/disposed|device|lost|mapAsync|unmapped|GPUPipelineError|Invalid ShaderModule|is invalid/i.test(String(e))) throw e; // (run 2 of D-315: an invalid shader module on a busy card)
       this.recoveries++; console.warn('[converse] GPU device lost; reloading the model', String(e).slice(0, 200)); await this.unload().catch(() => {}); await this.load(this.model);
       const a = await this.answerOnce(L, knows, history, said, prose, maxTokens, opts); return { ...a, totalMs: performance.now() - t0, recovered: true } as Answer; }
   }
@@ -62,7 +62,7 @@ export class Mind {
     const h = hearAsPerson(said); // the fence on the way in (hear.ts): later words reach the person as "…"
     // (D-315: the simulation's word on what was asked, when the stranger asked for something: "(You can do it.)" / "(You
     // cannot: on watch ...)"; the person's own words and tag follow)
-    let msgs: Msg[] = [...this.conv, { role: 'user', content: opts.userText ?? `The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''}${opts.note ? ` (${opts.note})` : ''} (Answer as ${L.name}, from your own life.)` }];
+    let msgs: Msg[] = [...this.conv, { role: 'user', content: opts.userText ?? `${opts.before ? opts.before + '\n' : ''}The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''}${opts.note ? ` (${opts.note})` : ''} (Answer as ${L.name}, from your own life.)` }];
     while (tries < 2) {
       tries++; raw = '';
       const stream = await e.chat.completions.create({ messages: msgs, stream: true, stream_options: { include_usage: true }, max_tokens: maxTokens, temperature: 0.7, top_p: 0.9, frequency_penalty: 0.3, presence_penalty: 0.1, ...this.extra() } as any) as any;

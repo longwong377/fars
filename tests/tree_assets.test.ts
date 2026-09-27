@@ -21,7 +21,7 @@ import { groupIndex } from '../src/world/trees/species';
 
 const DIR = 'public/models/trees';
 let A: TreeAssets;
-beforeAll(() => { A = loadTreeAssetsNode('.')!; }, 60_000);
+beforeAll(async () => { A = (await loadTreeAssetsNode('.'))!; }, 60_000);
 
 describe('the Blender tree assets are built, current and within budget', () => {
   it('the manifest lists every file with its hash, and its inputs hash as at the build', () => {
@@ -30,7 +30,9 @@ describe('the Blender tree assets are built, current and within budget', () => {
     for (const [f, e] of Object.entries(man.files) as [string, any][]) {
       const b = readFileSync(`${DIR}/${f}`); expect(createHash('sha256').update(b).digest('hex'), f).toBe(e.sha256);
     }
-    expect(man.bytes).toBeLessThan(25e6); // the class's download (T-K7 counts it)
+    // reproduced by `node tools/blender/trees.mjs --verify` from these very inputs (Cycles on the GPU: decoded texels compared)
+    expect(man.verify?.ok, 'run node tools/blender/trees.mjs --verify').toBe(true); expect(man.verify.inHash).toBe(man.inHash);
+    expect(man.bytes).toBeLessThan(11e6); // the class's download (T-K7 counts it; D-327 rev 2 cut it from 17.8 MB)
   });
   it('the leaf atlas: every tile rendered, covering what the procedural tile covers (+-15 %; the cards are calibrated on it)', () => {
     const man = JSON.parse(readFileSync(`${DIR}/manifest.json`, 'utf8'));
@@ -79,7 +81,7 @@ describe('the kit draws them (world-wide: every tree layer shares the kit)', () 
   });
   it('with the rendered tiles, LOD1 keeps LOD0\'s silhouette and colour and the impostor keeps LOD1\'s (summer and April)', () => {
     const models = calibrateCards(allModels());
-    const bake = (lod: 0 | 1, px: number, doy: number) => { const b = new ImpostorBaker(models, A.atlas, px, lod), st = groupStates(foliageTable(doy));
+    const bake = (lod: 0 | 1, px: number, doy: number) => { const b = new ImpostorBaker(models, A.atlas, px, lod, A.wood), st = groupStates(foliageTable(doy));
       models.forEach((m, r) => b.bakeRow(r, st[groupIndex(m.species.group)])); const lv = b.levels().col[0].data;
       return models.map((m, r) => { let n = 0; const c = [0, 0, 0]; for (let j = 0; j < px; j++) for (let i = 0; i < NV * px; i++) { const o = ((r * px + j) * b.width + i) * 4; if (lv[o + 3] < 128) continue; n++; for (let k = 0; k < 3; k++) c[k] += srgbToLinear(lv[o + k] / 255); }
         const t = m.T / px; return { area: n * t * t / NV, lum: (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / Math.max(1, n) }; }); };

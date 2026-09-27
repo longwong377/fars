@@ -21,8 +21,9 @@ import { WorldClock } from '../src/core/clock';
 import { sunHorizon, azAltToWorld } from '../src/sky/ephemeris';
 import { widenedFrustum, treeViewClass, shadowSunDir, VIEW_CULL } from '../src/world/trees/render';
 import { registerScanStandIns, VESSEL_IDS } from './lib/scanStandIns';
+import { loadModelsNode } from './lib/models_node';
 // Q-960: the houses' scan vessels at the triangles the browser draws (node cannot load the GLBs)
-registerScanStandIns(VESSEL_IDS);
+registerScanStandIns(VESSEL_IDS); loadModelsNode(); // (and the modelled props, D-325, as the page draws them)
 
 const T = loadTerrain(), R = loadRiversFile();
 

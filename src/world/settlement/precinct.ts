@@ -78,10 +78,11 @@ export function precinctProps(props: Prop[], groups: Map<string, P2[]>) {
     box('precinct_king', south - run / 2, 0, run / 2, S.half, k === 0 ? -0.3 : P.border.h + k * S.rise - 0.02, P.border.h + (k + 1) * S.rise, WHITE, `${PL}: the stair, one monolithic flight (eight steps: one extract says nine, Q-470; B); rise ${S.rise} m and tread ${S.tread} m C`); }
   // the altar: a three-stepped foot (the lowest set 0.25 m into the ground), the shaft, a three-stepped top
   const A = P.altar, g = 'precinct_altar'; sq(g, A.u, A.e, 0.7); let y = 0;
-  const step = (half: number, h: number, what: string) => { box(g, A.u, A.e, half, half, y === 0 ? -0.25 : y, y + h, ALTAR_STONE, `${AL}: ${what}`, 'precinct_altar'); y += h; };
+  const step = (half: number, h: number, what: string) => { box(g, A.u, A.e, half, half, y === 0 ? -0.25 : y, y + h, ALTAR_STONE, `${AL}: ${what}`, 'precinct_altar'); props[props.length - 1][y === 0 ? 'model' : 'inModel'] = 'fire_altar'; y += h; };
+  // (D-325: the altar drawn from its model when loaded: the same steps with worn arrises and the fire's hollow, tools/blender/model_props.py)
   for (const [hh, h] of A.foot) step(hh, h, 'a step of the foot'); step(A.shaft[0], A.shaft[1], 'the square shaft'); for (const [hh, h] of A.top) step(hh, h, 'a step of the top, the fire kept on it');
   props.push({ shape: 'cyl', mat: 'stone', c: precinctAt(A.u, A.e), theta: th, hu: 0.34, hv: 0.34, y0: y - 0.01, y1: y + 0.04, group: g, collide: false, row: 'precinct_altar', feature, colour: [0.16, 0.15, 0.14],
-    note: 'the embers and ash of the kept fire on the altar\'s top (C: the fire fed by the magi at dawn and at dusk; Herodotus 3.16 "the Persians hold fire to be a god", read, FT: B claim)' });
+    inModel: 'fire_altar', note: 'the embers and ash of the kept fire on the altar\'s top (C: the fire fed by the magi at dawn and at dusk; Herodotus 3.16 "the Persians hold fire to be a god", read, FT: B claim)' });
   // the wood for the fire, stacked by the altar (C: brushwood and split wood, the fuel of the plain)
   const wg = 'precinct_wood'; sq(wg, 2.6, A.e + 1.4, 1.2);
   for (let k = 0; k < 5; k++) props.push({ shape: 'box', mat: 'timber', c: precinctAt(2.6 - 0.35 + (k % 3) * 0.35, A.e + 1.4), theta: th + 0.04 * (k - 2), hu: 0.12, hv: 0.8, y0: k > 2 ? 0.24 : 0, y1: k > 2 ? 0.46 : 0.24, group: wg, collide: false, row: 'precinct_altar', feature,

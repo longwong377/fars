@@ -12,14 +12,14 @@ import { INTENT_LINE } from './intent';
 import { approxTokens } from './tokens';
 
 export interface Turn { role: 'user' | 'assistant'; content: string }
-export type Knows = 'none' | 'nod' | 'recognise';
+export type Knows = 'none' | 'nod' | 'recognise' | 'heard';
 /** the prompt's ceiling (tokens): one read-in well under the Windows GPU watchdog's ~2 s on a 1-2 B model (B98) */
 export const PROMPT_TOKENS = 450;
 export { approxTokens };
 
 export interface Remembered { lines: string[] }
 export function systemPrompt(L: LifeRecord, knows: Knows, prose?: string | null, memory?: string[] | null, withIntents = true): string {
-  const met = knows === 'recognise' ? 'You know this stranger’s face.' : knows === 'nod' ? 'You have seen this stranger about.' : 'You have never seen this stranger.';
+  const met = knows === 'recognise' ? 'You know this stranger’s face.' : knows === 'heard' ? 'You have not met this stranger yourself, but you have heard of him.' : knows === 'nod' ? 'You have seen this stranger about.' : 'You have never seen this stranger.';
   const mem = (memory ?? []).filter(Boolean);
   const head = 'You are a person of Parsa, the king’s seat, in year 19 of King Xerxes.';
   const tail = [`A plainly dressed stranger with a foreign accent comes up to you. ${met}`, ...(mem.length ? [`What you remember of the stranger: ${mem.join(' ')}`] : []), FENCE_SHORT, ...(withIntents ? [INTENT_LINE] : [])];

@@ -1,5 +1,5 @@
 // The Blender-built tree assets (D-327; tools/blender/trees.mjs, public/models/trees/): every species' leaf, blossom and
-// twig tiles rendered in Cycles from modelled leaves (leaf_col.png, leaf_tilt.png), every variant's branches as one
+// twig tiles rendered in Cycles from modelled leaves (leaf_col.webp, leaf_tilt.webp at half size), every variant's branches as one
 // continuous bark-mapped mesh per level of detail with baked occlusion (wood.json + wood.bin), and the species' CC0 bark
 // scans (bark/<scan>_diff.jpg, _nor.jpg; src/data/tree_bark.json). Loaded once before the tree kit is built (world.ts,
 // treeLab.ts); the kit (render.ts TreeKit) draws them when present and its procedural stand-ins otherwise (the dev overlay
@@ -65,9 +65,9 @@ export async function loadTreeAssets(base = '/', rows = SPECIES.length * 3): Pro
     };
     /** PNG rows are top-down; the atlas's row 0 is v = 0 */
     const flip = (p: { d: Uint8ClampedArray; W: number; H: number }) => { const o = new Uint8Array(p.W * p.H * 4); for (let j = 0; j < p.H; j++) o.set(p.d.subarray((p.H - 1 - j) * p.W * 4, (p.H - j) * p.W * 4), j * p.W * 4); return o; };
-    const [col, tilt, wj, wb] = await Promise.all([pixels('leaf_col.png'), pixels('leaf_tilt.png'), fetch(url('wood.json')).then(q => q.json()), fetch(url('wood.bin')).then(q => q.arrayBuffer())]);
+    const [col, tilt, wj, wb] = await Promise.all([pixels('leaf_col.webp'), pixels('leaf_tilt.webp'), fetch(url('wood.json')).then(q => q.json()), fetch(url('wood.bin')).then(q => q.arrayBuffer())]);
     STATS.bytes += wb.byteLength;
-    const atlas = atlasFromImages(flip(col), flip(tilt), col.W, col.H, [0, manifest.shadeB]);
+    const atlas = atlasFromImages(flip(col), flip(tilt), col.W, col.H, [0, manifest.shadeB], tilt.W, tilt.H);
     const wood = woodLevels(wj, wb, rows);
     const bark = await loadBark(base, pixels).catch(e => { console.warn(`[trees] bark scans: ${(e as Error).message}`); return null; });
     ASSETS = { manifest, atlas, wood, bark }; STATS.loaded = true;

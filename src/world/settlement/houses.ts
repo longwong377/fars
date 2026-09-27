@@ -25,6 +25,10 @@ import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from '
 import { kitOn, kitLog, kitPiece, kitFrame, KIT, scanVessel } from './kit';
 /** D-324: the kit's brick losses (tools/blender/housekit.py brick_patch: 0.9 x 0.38 m, bricks ~33 cm, courses 11.5 cm) */
 const BRICK_W = 0.9, BRICK_H = 0.38;
+import { scanShape, modelFit, mergedModel } from '../../render/scanProps';
+/** D-325: a modelled prop (tools/blender/model_props.py) fitted to a box, its parts merged (position, normal, the baked occlusion
+ *  Batch.geo multiplies in), or null (the procedural form is drawn) */
+const modelGeo = (id: string, size: [number, number, number], lod = 1) => { const p = modelFit(id, size, lod); return p ? mergedModel(p) : null; };
 
 /** tile size (m, site-local) and the near radius (m, from the eye to a tile's centre) */
 export const TILE = 32, NEAR_R = 72;
@@ -756,8 +760,11 @@ export class SiteHouses {
     B.plaster.set('y0', -1000).set('ytop', 1e4).set('ao', 0.2); B.timber.set('ao', 0.2);
     if (vest) { // the water jar on its stand by the street door, a cup on its lid (C); a bench in some
       { const [u, v] = atBack(along[0] + 0.15, 0.12), y = gy(u, v), g = s.grid(u, v); this.lbox(B.plaster, u, v, 0.2, 0.2, y - 0.05, y + 0.28, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own);
-        B.plaster.lathe(g[0], g[1], y + 0.28, [[0.1, 0], [0.22, 0.2], [0.21, 0.42], [0.1, 0.58], [0.12, 0.62]], 9, lin([0.66, 0.5, 0.37]), own);
-        B.plaster.lathe(g[0] + 0.03, g[1], y + 0.9, [[0.03, 0], [0.045, 0.05], [0.05, 0.08]], 6, lin([0.6, 0.42, 0.3]), own); }
+        // (D-325: the modelled water jar and a bowl for a cup on its mouth, when loaded)
+        const wj = scanShape('jar', r.room, [0.44, 0.62, 0.44], 1), cup = modelGeo('bowl', [0.1, 0.05, 0.1]);
+        if (wj && cup) { B.plaster.geo(g[0], g[1], y + 0.28, wj, hi(r.room, 12) * 6.283, lin([0.66, 0.5, 0.37]), own); B.plaster.geo(g[0] + 0.03, g[1], y + 0.9, cup, 0, lin([0.6, 0.42, 0.3]), own); }
+        else { B.plaster.lathe(g[0], g[1], y + 0.28, [[0.1, 0], [0.22, 0.2], [0.21, 0.42], [0.1, 0.58], [0.12, 0.62]], 9, lin([0.66, 0.5, 0.37]), own);
+          B.plaster.lathe(g[0] + 0.03, g[1], y + 0.9, [[0.03, 0], [0.045, 0.05], [0.05, 0.08]], 6, lin([0.6, 0.42, 0.3]), own); } }
       if (h < 0.6) { const [u, v] = atBack((along[0] + along[1]) / 2, 0.2), y = gy(u, v), hl = Math.min(0.9, (along[1] - along[0]) / 2);
         if (kitOn) { const inn = this.dirW(...([[0, 1], [0, -1], [1, 0], [-1, 0]][back] as [number, number])), al = this.dirW(...([[1, 0], [1, 0], [0, 1], [0, 1]][back] as [number, number])); // D-324: the kit's bench
           kitFrame(B.plaster, kitPiece('bench', hi(r.room, 54)), this.wp(u, v, y - 0.05), [al[0] * 2 * hl, 0, al[1] * 2 * hl], [0, 0.45, 0], [inn[0] * 0.44, 0, inn[1] * 0.44], this.tone(r.plot, 1, false), own); }
@@ -766,8 +773,9 @@ export class SiteHouses {
       const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
       for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
         // session 12 (D-310): the store's jars are a CC0 scan's shape (render/scanProps.ts) fitted to the lathe's box, when loaded
-        // (Q-960: the scan's silhouette as a lathe, kit.ts scanVessel: the scan's own 1,500 triangles bought only its outline here)
-        if (hi(r.room, k, 2) < 0.65 && scanVessel(B.plaster, 'jar', Math.floor(hi(r.room, k, 5) * 3), g[0], g[1], y - 0.05, [0.52 * kk, 0.82 * kk, 0.52 * kk], sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own, 1)) { /* drawn */ }
+        // (Q-960 with D-325: the store's many jars and sacks as lathes of the modelled forms' own silhouettes, kit.ts scanVessel:
+        // 72 triangles for the models' 300-500 at lod1, many to a room; the court's own jars and the fittings draw the models)
+        if (scanVessel(B.plaster, hi(r.room, k, 2) < 0.65 ? 'jar' : 'sack', hi(r.room, k, 2) < 0.65 ? Math.floor(hi(r.room, k, 5) * 3) : k, g[0], g[1], y - (hi(r.room, k, 2) < 0.65 ? 0.05 : 0.02), hi(r.room, k, 2) < 0.65 ? [0.52 * kk, 0.82 * kk, 0.52 * kk] : [0.44 * (0.85 + 0.25 * hi(r.room, k, 4)), 0.58, 0.42], hi(r.room, k, 2) < 0.65 ? sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)) : sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own, 1)) { /* drawn */ }
         else if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
         else B.plaster.lathe(g[0], g[1], y - 0.02, [[0.16, 0], [0.22, 0.15], [0.2, 0.42], [0.1, 0.55], [0.03, 0.58]], 6, sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own); } }
     else { // a living room: the reed mat, bedding rolled against the back wall, folded rugs, a low platform in larger rooms
@@ -775,10 +783,15 @@ export class SiteHouses {
       B.timber.poly([this.wp(mu0, mv0, gy(mu0, mv0) + 0.13), this.wp(mu1, mv0, gy(mu1, mv0) + 0.13), this.wp(mu1, mv1, gy(mu1, mv1) + 0.13), this.wp(mu0, mv1, gy(mu0, mv1) + 0.13)], [0, 1, 0], mat, own);
       const bed: RGB[] = [[0.7, 0.64, 0.52], [0.52, 0.28, 0.2], [0.42, 0.36, 0.3], [0.66, 0.5, 0.3]]; const nb = 1 + Math.floor(hi(r.room, 7) * 3);
       for (let k = 0; k < nb; k++) { const a = along[0] + 0.3 + k * 0.75; if (a + 0.6 > along[1]) break; const [ua, va] = atBack(a, 0.16), [ub, vb] = atBack(a + 0.6, 0.16), y = gy(ua, va) + 0.13 + 0.14;
-        this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own, true, false); }
+        // D-325: the bedding a modelled roll (the spiral of the rolled felt at its ends), along the back wall
+        // (Q-960: the modelled roll is 752 triangles at lod1, up to three a room and twenty rooms a tile: over the 60 k tile; the rolled prism stands)
+        const rg = null as ReturnType<typeof modelGeo>, pa = s.grid(ua, va), pb = s.grid(ub, vb);
+        if (rg) B.timber.geo((pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2, y - 0.14, rg, Math.atan2(pb[1] - pa[1], pb[0] - pa[0]), lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own);
+        else this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own, true, false); }
       const L = this.lampSpot(r.plot); if (L) { const [lu, lv] = this.backPoint(r, 0.5, 0.2); const lg = s.grid(lu, lv); if (Math.hypot(lg[0] - L[0], lg[1] - L[1]) < 0.01) { const [bu, bv] = this.backPoint(r, 0.5, 0.08);
         this.lbox(B.plaster, bu, bv, 0.18, 0.18, L[2] - 0.1, L[2] - 0.02, sh(this.tone(r.plot, 1, false), 0.7), sh(this.tone(r.plot, 1, false), 0.8), own); // a ledge of mud
-        B.plaster.lathe(lg[0], lg[1], L[2] - 0.02, [[0.03, 0], [0.07, 0.02], [0.075, 0.035], [0.06, 0.035]], 7, lin([0.6, 0.42, 0.3]), own);
+        const lm = modelGeo('lamp', [0.17, 0.035, 0.14]); // D-325: the modelled saucer lamp with its pinched spout
+        if (lm) B.plaster.geo(lg[0], lg[1], L[2] - 0.02, lm, hi(r.room, 9) * 6.283, lin([0.6, 0.42, 0.3]), own); else B.plaster.lathe(lg[0], lg[1], L[2] - 0.02, [[0.03, 0], [0.07, 0.02], [0.075, 0.035], [0.06, 0.035]], 7, lin([0.6, 0.42, 0.3]), own);
         } }
       const [fu, fv] = atBack(along[1] - 0.35, 0.2), fy = gy(fu, fv) + 0.13; for (let k = 0; k < 3 + Math.floor(h * 4); k++) { const c = lin(bed[(k + Math.floor(h * 4)) % bed.length]); this.lbox(B.timber, fu, fv, 0.28 - 0.01 * k, 0.22, fy + k * 0.05, fy + k * 0.05 + 0.045, sh(c, 0.85), c, own, false, 0.05 * k); } }
     B.plaster.set('ao', 1); B.timber.set('ao', 1);
@@ -847,12 +860,14 @@ export class SiteHouses {
           if (!scanVessel(B.props, 'basket', k + (f.alt ?? 0), e, nn, gy - 0.01, [0.42 * k2, 0.3 * k2, 0.42 * k2], sh(bc, 0.85 + 0.25 * hi(k, 9)), own, 1)) B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
         // a broom of twigs against the wall-side of the baskets
         const gy = g(0.6, 0.1); this.pole(B.props, W3(0.55, 0.35, gy + 0.02), W3(0.62, 0.05, gy + 1.1), 0.016, 4, sh(tb, 0.9), own); B.props.set('ao', 1); break; }
-      case 'mortar': { const gy = g(0, 0), [u, v] = at(0, 0), [e, nn] = s.grid(u, v); B.stone.set('ao', 0.85); B.stone.lathe(e, nn, gy - 0.05, [[0.22, 0], [0.24, 0.2], [0.2, 0.38], [0.13, 0.38]], 9, sh(st, 0.95), own); B.stone.set('ao', 1);
+      case 'mortar': { const gy = g(0, 0), [u, v] = at(0, 0), [e, nn] = s.grid(u, v); B.stone.set('ao', 0.85); const mg = modelGeo('wo_oil_press', [0.48, 0.38, 0.48]); // (D-325: the modelled stone mortar)
+        if (mg) B.stone.geo(e, nn, gy - 0.05, mg, hi(f.plot, 31) * 6.283, sh(st, 0.95), own); else B.stone.lathe(e, nn, gy - 0.05, [[0.22, 0], [0.24, 0.2], [0.2, 0.38], [0.13, 0.38]], 9, sh(st, 0.95), own); B.stone.set('ao', 1);
         B.props.set('ao', 0.9); this.pole(B.props, W3(0.05, 0, gy + 0.3), W3(0.25, 0.3, gy + 1.1), 0.035, 5, sh(tb, 0.95), own); B.props.set('ao', 1); break; }
       case 'cradle': { const gy = g(0, 0), [u, v] = at(0, 0), c = sh(tb, 1.05); B.props.set('ao', 0.85); this.lbox(B.props, u, v, 0.28, 0.45, gy + 0.08, gy + 0.36, sh(c, 0.8), c, own, false, yaw);
         for (const e of [-0.38, 0.38]) { const [u2, v2] = at(e, 0); this.lbox(B.props, u2, v2, 0.3, 0.03, gy, gy + 0.1, c, c, own, false, yaw + Math.PI / 2); } const cl = lin([0.75, 0.7, 0.6]); this.lbox(B.props, u, v, 0.25, 0.4, gy + 0.36, gy + 0.4, cl, cl, own, false, yaw); B.props.set('ao', 1); break; }
       case 'roller': { const sp = this.roofSpot(f); if (!sp) break; const a = f.rot, A = this.wp(sp.u - Math.cos(a) * 0.3, sp.v - Math.sin(a) * 0.3, sp.y + 0.14), Bq = this.wp(sp.u + Math.cos(a) * 0.3, sp.v + Math.sin(a) * 0.3, sp.y + 0.14);
-        B.stone.set('ao', 1); this.pole(B.stone, A, Bq, 0.14, 9, sh(st, 1.0), own, true, false); break; }
+        B.stone.set('ao', 1); const rg = modelGeo('roller', [0.6, 0.28, 0.28], 0), c0 = s.grid(sp.u, sp.v); // (D-325: the modelled limestone roller)
+        if (rg) B.stone.geo(c0[0], c0[1], sp.y, rg, Math.atan2(s.grid(sp.u + Math.cos(a), sp.v + Math.sin(a))[1] - c0[1], s.grid(sp.u + Math.cos(a), sp.v + Math.sin(a))[0] - c0[0]), sh(st, 1.0), own); else this.pole(B.stone, A, Bq, 0.14, 9, sh(st, 1.0), own, true, false); break; }
       case 'roof_fuel': { const sp = this.roofSpot(f); if (!sp) break;
         // after the harvest: the household's grain share spread on a mat on the roof to dry (C)
         if (seasonOf(this.day) === 'harvest' && hi(f.plot, 91) < 0.5) { const g = lin([0.74, 0.64, 0.42]), a = f.rot + 1.2; B.props.set('ao', 1);
@@ -865,7 +880,8 @@ export class SiteHouses {
         B.props.set('ao', 1); break; }
       case 'roof_mats': { const sp = this.roofSpot(f); if (!sp || seasonOf(this.day) !== 'warm' && seasonOf(this.day) !== 'harvest') break; const n = 1 + (f.alt ?? 0) % 3; B.props.set('ao', 0.95); // rolled on the roof only while the nights are slept there
         for (let k = 0; k < n; k++) { const a = f.rot, o = (k - (n - 1) / 2) * 0.3, cu = sp.u - Math.sin(a) * o, cv = sp.v + Math.cos(a) * o; const c = k === 1 ? lin([0.55, 0.3, 0.22]) : sh(lin([0.63, 0.56, 0.4]), 0.9 + 0.15 * hi(k, f.plot));
-          this.pole(B.props, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own, true, false); }
+          const rg = modelGeo('roll', [1.8, 0.24, 0.24]), c0 = s.grid(cu, cv), c1 = s.grid(cu + Math.cos(a), cv + Math.sin(a)); // (D-325: the modelled roll)
+          if (rg) B.props.geo(c0[0], c0[1], sp.y, rg, Math.atan2(c1[1] - c0[1], c1[0] - c0[0]), c, own); else this.pole(B.props, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own, true, false); }
         B.props.set('ao', 1); break; }
       case 'fleece': { // over a lane-facing parapet of the house
         const cand = this.walls.filter(w => w.plot === f.plot && w.w.kind === 'outer' && !w.w.door && Math.hypot(w.w.u1 - w.w.u0, w.w.v1 - w.w.v0) > 1.5); if (!cand.length) break;

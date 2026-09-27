@@ -14,16 +14,32 @@ import { HB } from './humanFormat';
 import type { Pose } from './anim';
 import { ptTabletGeometry } from '../world/writing';
 import { HARP_V, HARP_H, LYRE, FRAME_DRUM, DOUBLE_PIPE, REED_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
-import { scanShape } from '../render/scanProps';
+import { scanShape, modelShape, aoFactor, modelParts, modelFit, mergedModel } from '../render/scanProps';
 
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 type RGB = [number, number, number];
 /** vertex colour (linear), metalness/roughness and the per-vertex displacement direction for the instance parameter
  *  (`sv`: the bowstring's middle, the spindle below the hand) */
+/** D-325: the scan kind of a painted piece (materials.ts PROP_SCAN_KINDS: 0 wood, 1 metal, 2 textile, 3 clay, 4 wicker, 5
+ *  stone): given, or guessed from its metalness and colour (a warm mid brown wood, a grey stone, a pale warm straw) */
+export const SCAN_KIND: Record<string, number> = { wood: 0, wood_d: 0, beam: 0, chips: 0, stick: 0, iron: 1, bronze: 1, silver: 1, gold: 1, gilt: 1, scale: 1, hot: 1, cloth: 2, linen: 2, wool: 2, wool_d: 2, red: 2, blue: 2,
+  warp: 2, band: 2, hair: 2, cord: 2, skin: 2, leather: 2, hide: 2, hide_d: 2, hide_w: 2, feather: 2, petal: 2, fish: 2, meat: 2, fat: 2, meat_boiled: 2, clay: 3, pot: 3, mud: 3, mud_wet: 3, mud_roof: 3, brick: 3, clay_toy: 3,
+  earth: 3, dung: 3, ash: 3, ember: 3, paste: 3, stain: 3, scrap: 3, tablet: 3, straw: 4, straw_d: 4, ears: 4, wicker: 4, reed: 4, cane: 4, grass: 4, wattle: 4, thorn: 4, thorn_d: 4, grain: 4, chaff: 4, nut: 4, green: 4,
+  stone: 5, stone_d: 5, lime: 5, lapis: 5, diorite: 5, bone: 5 };
+let paintKind = -1;
+/** paint with a given scan kind (the modelled parts' names: SCAN_KIND) */
+export function paintAs(kind: string, g: THREE.BufferGeometry, rgb: RGB, metal = 0, rough = 0.8, sv?: (x: number, y: number, z: number) => [number, number, number]) { paintKind = SCAN_KIND[kind] ?? -1; try { return paint(g, rgb, metal, rough, sv); } finally { paintKind = -1; } }
+function guessKind(rgb: RGB, metal: number): number {
+  if (metal >= 0.3) return 1; const [r, g, b] = rgb, sat = Math.max(r, g, b) - Math.min(r, g, b), l = (r + g + b) / 3;
+  if (sat < 0.06) return l > 0.5 ? 2 : 5; if (r > 0.55 && g > 0.45 && b < 0.45 && g / r > 0.8) return 4; if (r > 0.5 && g / r < 0.78) return 3; return l < 0.5 ? 0 : 2;
+}
 function paint(g: THREE.BufferGeometry, rgb: RGB, metal = 0, rough = 0.8, sv?: (x: number, y: number, z: number) => [number, number, number]): THREE.BufferGeometry {
   const gg = g.index ? g.toNonIndexed() : g; if (gg.getAttribute('uv')) gg.deleteAttribute('uv');
-  const n = gg.getAttribute('position').count, c = new Float32Array(n * 3), m = new Float32Array(n * 2), d = new Float32Array(n * 3); const P = gg.getAttribute('position');
-  for (let i = 0; i < n; i++) { c.set(rgb.map(lin), i * 3); m.set([metal, rough], i * 2); if (sv) d.set(sv(P.getX(i), P.getY(i), P.getZ(i)), i * 3); }
+  const n = gg.getAttribute('position').count, c = new Float32Array(n * 3), m = new Float32Array(n * 2), d = new Float32Array(n * 3); const P = gg.getAttribute('position'), L = rgb.map(lin);
+  // (D-325: a modelled prop's baked occlusion multiplied into its colour)
+  for (let i = 0; i < n; i++) { const k = aoFactor(gg, i); c[i * 3] = L[0] * k; c[i * 3 + 1] = L[1] * k; c[i * 3 + 2] = L[2] * k; m.set([metal, rough], i * 2); if (sv) d.set(sv(P.getX(i), P.getY(i), P.getZ(i)), i * 3); }
+  if (gg.getAttribute('ao')) gg.deleteAttribute('ao');
+  gg.setAttribute('ak', new THREE.BufferAttribute(new Float32Array(n).fill(paintKind >= 0 ? paintKind : guessKind(rgb, metal)), 1)); // (D-325: its scan kind)
   gg.setAttribute('color', new THREE.BufferAttribute(c, 3)); gg.setAttribute('mr', new THREE.BufferAttribute(m, 2)); gg.setAttribute('sv', new THREE.BufferAttribute(d, 3)); return gg;
 }
 /** a cylinder from a to b (open ends unless `caps`) */
@@ -114,8 +130,59 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   babe_cradle: { tier: 'C', note: 'a baby asleep in a shallow oval basket cradle on the ground at home (gap audit item 4; basketry is attested in the period, the cradle C)' },
 };
 
+// ------------------------------------------------------------------------------------------------ D-325: the modelled tools
+// Every tool, weapon and held thing of the lists below is the project's model (tools/blender/model_props.py `tool_<kind>`:
+// the spear's leaf blade with its midrib, socket and ring and the pomegranate or apple butt; the recurved bow's tapering
+// limbs and wrapped grip; the sickle's toothed crescent; the hoe's socket eye; the fork's lashed crosspiece and curving
+// tines; the spindle's domed whorl and cop; the balance's pans on their cords; ...), in the same frame and at the same size
+// as the procedural form it replaces (which stays as the stand-in when the models are not loaded). Its parts are named for
+// what they are made of and painted here; the baked occlusion is multiplied into the colour (paint).
+const TOOL_PAINT: Record<string, [RGB, number, number]> = {
+  wood: [WOOD, 0, 0.7], wood_d: [WOOD_D, 0, 0.7], iron: [IRON, 0.6, 0.5], bronze: [BRONZE, 0.8, 0.4], silver: [[0.8, 0.8, 0.78], 1, 0.3], gold: [[0.9, 0.72, 0.36], 1, 0.3],
+  straw: [STRAW, 0, 1], cloth: [[0.62, 0.58, 0.5], 0, 1], wool: [[0.8, 0.76, 0.66], 0, 1], bone: [[0.8, 0.76, 0.66], 0, 0.7], clay: [[0.66, 0.46, 0.32], 0, 0.9], cord: [[0.62, 0.54, 0.38], 0, 0.95],
+  leather: [[0.5, 0.36, 0.23], 0, 0.8], reed: [[0.7, 0.62, 0.43], 0, 0.7], cane: [CANE, 0, 0.55], linen: [[0.8, 0.77, 0.7], 0, 1], hair: [[0.82, 0.8, 0.74], 0, 1], feather: [[0.3, 0.28, 0.25], 0, 0.9],
+  stone: [[0.55, 0.5, 0.45], 0, 0.8], mud: [[0.62, 0.53, 0.4], 0, 0.95], green: [[0.3, 0.42, 0.2], 0, 0.8], petal: [[0.82, 0.8, 0.72], 0, 0.8], band: [[0.75, 0.62, 0.36], 0, 0.9],
+  hot: [[1.0, 0.42, 0.12], 0.2, 0.6], ink: [[0.08, 0.07, 0.06], 0, 0.5], skin: [[0.78, 0.7, 0.55], 0, 0.8],
+};
+const TOOL_OVERRIDE: Record<string, Record<string, [RGB, number, number]>> = {
+  bow: { wood: [[0.3, 0.2, 0.12], 0, 0.6] }, toy_bow: { wood: [[0.42, 0.3, 0.18], 0, 0.6] }, parasol: { cloth: [[0.62, 0.2, 0.2], 0, 0.9], wood: [[0.45, 0.33, 0.21], 0, 0.7] },
+  seal_cyl: { stone: [[0.28, 0.33, 0.52], 0.1, 0.35] }, whisk: { gold: [[0.62, 0.48, 0.26], 0.7, 0.4] }, sceptre: { gold: [[0.62, 0.48, 0.26], 0.7, 0.4] }, mallet: { wood: [[0.42, 0.31, 0.2], 0, 0.7], wood_d: [[0.4, 0.29, 0.18], 0, 0.7] },
+  rattle: { clay: [[0.66, 0.46, 0.32], 0, 0.9] }, ball: { leather: [[0.55, 0.4, 0.26], 0, 0.85] }, brick: { mud: [[0.62, 0.53, 0.4], 0, 0.95] }, stick: { wood_d: [[0.4, 0.3, 0.2], 0, 0.9] },
+  lead: { cord: [[0.6, 0.52, 0.36], 0, 0.95] }, drill_bow: { leather: [[0.5, 0.36, 0.22], 0, 0.9] }, barsom: { wood: [[0.5, 0.42, 0.26], 0, 0.9] }, cloth: { cloth: [[0.62, 0.58, 0.5], 0, 1] },
+};
+/** the kinds drawn from their models (the rest keep their procedural forms: the tablet (writing.ts), the leather sheet, the
+ *  instruments, the carried children) */
+export const MODELLED_TOOLS = ['spear', 'spear_apple', 'spear_gpom', 'mallet', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick',
+  'barsom', 'stylus', 'hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'toy_bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel', 'ball', 'rattle',
+  'hammer', 'tongs', 'hammer_s', 'punch', 'balance', 'seal_cyl', 'drill_bow', 'scraper', 'pestle', 'pen', 'plectrum',
+  // the instruments' bodies (their strings and finger-holes stay the builder's: placed by instrumentForms.ts)
+  'harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe'];
+const TOOL_SV: Record<string, (x: number, y: number, z: number) => [number, number, number]> = {
+  spindle: (_x, y) => [0, y < -0.005 ? -1 : 0, 0], // (below the hand: lowered by the yarn's length)
+  balance: (x, y) => [0, y < -0.13 ? (x > 0 ? 1 : -1) : 0, 0], // (the pans rock: the right one up, the left one down)
+};
+function toolModel(kind: string): THREE.BufferGeometry | null {
+  if (!MODELLED_TOOLS.includes(kind)) return null;
+  const p = modelParts('tool_' + kind, 0); if (!p) return null;
+  const gs = Object.entries(p).map(([k, g]) => { const t = TOOL_OVERRIDE[kind]?.[k] ?? TOOL_PAINT[k] ?? [WOOD, 0, 0.8]; return paintAs(k, g, t[0], t[1], t[2], TOOL_SV[kind]); });
+  if (kind === 'bow' || kind === 'toy_bow') gs.push(...bowString(kind === 'toy_bow' ? 0.3 : 0.52));
+  if (kind === 'harp_v') for (let i = 0; i < HARP_V.strings; i++) { const s = harpVString(i); gs.push(paint(rod(s.foot, s.head, 0.0012, 0.0012, 3), GUT, 0, 0.5)); }
+  if (kind === 'harp_h') for (let i = 0; i < HARP_H.strings; i++) { const s = harpHString(i); gs.push(paint(rod(s.foot, s.head, 0.0012, 0.0012, 3), GUT, 0, 0.5)); }
+  if (kind === 'lyre') for (let i = 0; i < LYRE.strings; i++) { const s = lyreString(i); gs.push(paint(rod(s.foot, s.head, 0.0011, 0.0011, 3), GUT, 0, 0.5)); }
+  if (kind === 'reed_pipe') for (let i = 0; i < REED_PIPE.holes; i++) gs.push(paint(box(0.007, 0.002, 0.007, 0, REED_PIPE.r + 0.0005, REED_PIPE.hole0 + i * REED_PIPE.holeStep), [0.2, 0.16, 0.1], 0, 0.9));
+  return merge(gs);
+}
+/** the bowstring (its middle drawn back by the instance parameter), from the limbs' tips to z −0.14 */
+function bowString(half: number): THREE.BufferGeometry[] {
+  const P = (u: number): [number, number, number] => { const y = half * u, a = Math.abs(u); return [0, y, 0.06 * a * a - 0.1 * a + (a > 0.8 ? 0.35 * (a - 0.8) : 0)]; };
+  const tip = P(1), bot = P(-1), mid: [number, number, number] = [0, 0, -0.14], sv = (_x: number, y: number): [number, number, number] => [0, 0, Math.abs(y) < 0.02 ? -1 : 0];
+  return [paint(rod(tip, mid, 0.0025, 0.0025, 3), [0.82, 0.78, 0.66], 0, 0.8, sv), paint(rod(mid, bot, 0.0025, 0.0025, 3), [0.82, 0.78, 0.66], 0, 0.8, sv)];
+}
+
 /** geometry of a kind; the Phase 3 kinds keep their old origins (spear: at the butt; others: at the grip) */
 export function propGeometry(kind: string): THREE.BufferGeometry | null {
+  const tm = toolModel(kind); if (tm) return tm;
+  if (kind === 'bowl') { const ph = modelParts('phiale', 1); if (ph) return paint(ph.metal, [0.82, 0.8, 0.76], 1, 0.28); } // (D-325: the lobed phiale, modelled)
   switch (kind) {
     case 'spear': { // shaft 2.1 m, bronze blade, silver pomegranate butt (sphere with a small crown), C proportions
       const shaft = paint(new THREE.CylinderGeometry(0.014, 0.016, 2.1, 6).translate(0, 1.13, 0), [0.45, 0.33, 0.21], 0, 0.7);
@@ -125,13 +192,15 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
       const crown = paint(new THREE.CylinderGeometry(0.012, 0.022, 0.03, 6).translate(0, 0.1, 0), [0.8, 0.8, 0.78], 1, 0.3);
       return merge([shaft, socket, blade, butt, crown]);
     }
-    case 'sack': return paint(new THREE.SphereGeometry(0.22, 8, 5).scale(1, 0.75, 0.7), [0.62, 0.55, 0.42], 0, 0.95);
+    case 'sack': { // D-325: the modelled filled sack lying (the cloth solver's settle; tools/blender/model_props.py), at lod1, in the old form's box
+      const sk = modelShape('sack_lying', 0, [0.44, 0.33, 0.31], 1); if (sk) return paint(sk.translate(0, -0.165, 0), [0.62, 0.55, 0.42], 0, 0.95); }
+      return paint(new THREE.SphereGeometry(0.22, 8, 5).scale(1, 0.75, 0.7), [0.62, 0.55, 0.42], 0, 0.95);
     // session 12 (D-310): the jar and the basket are CC0 scans' shapes (Poly Haven; render/scanProps.ts) fitted to the old forms' boxes, when loaded
-    case 'jar': { const sj = scanShape('jar', 1, [0.32, 0.46, 0.32], 0); if (sj) return paint(sj, [0.66, 0.46, 0.3], 0, 0.85); }
+    case 'jar': { const sj = modelShape('jar', 1, [0.32, 0.46, 0.32], 1) ?? scanShape('jar', 1, [0.32, 0.46, 0.32], 1); if (sj) return paint(sj, [0.66, 0.46, 0.3], 0, 0.85); } // (D-325: the period's water jar, modelled, at lod1)
       return paint(new THREE.LatheGeometry([[0, 0], [0.1, 0.02], [0.16, 0.18], [0.12, 0.36], [0.06, 0.42], [0.07, 0.46]].map(([x, y]) => new THREE.Vector2(x, y)), 14), [0.66, 0.46, 0.3], 0, 0.85);
     case 'tablet': return paint(ptTabletGeometry('full', 2), [0.56, 0.48, 0.37], 0, 0.9); // the written tablet's form at its LOD (writing.ts)
     case 'mallet': return merge([paint(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 6).translate(0, -0.15, 0), [0.42, 0.31, 0.2], 0, 0.7), paint(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 8).rotateZ(Math.PI / 2).translate(0, -0.3, 0), [0.4, 0.29, 0.18], 0, 0.7)]);
-    case 'basket': { const sb = scanShape('basket', 0, [0.36, 0.18, 0.36], 0); if (sb) return paint(sb.translate(0, -0.09, 0), [0.6, 0.52, 0.32], 0, 0.9); }
+    case 'basket': { const sb = scanShape('basket', 0, [0.36, 0.18, 0.36], 1); /* (D-325: lod1, since the weld fixed the scans' lod1) */ if (sb) return paint(sb.translate(0, -0.09, 0), [0.6, 0.52, 0.32], 0, 0.9); }
       return paint(new THREE.CylinderGeometry(0.18, 0.13, 0.18, 12, 1, true), [0.6, 0.52, 0.32], 0, 0.9);
     // ------------------------------------------------ work tools (grip frame: +Z toward the working end)
     case 'hoe': return merge([paint(rod([0, 0, -0.45], [0, 0, 0.8], 0.016, 0.018, 5), WOOD, 0, 0.7),
@@ -373,7 +442,7 @@ export function propSlot(kind: string): [number, number] | null {
 export function propUnionGeometry(cls = 0): THREE.BufferGeometry {
   const g = mergeGeometries(PROP_CLASSES[cls].map((k, i) => { let g = propGeometry(k)!.clone(); if (!g.getAttribute('sv')) g = withSv(g); const n = g.getAttribute('position').count;
     g.setAttribute('pk', new THREE.BufferAttribute(new Float32Array(n).fill(i), 1)); return g; }))!;
-  interleave(g, ['color', 'mr', 'sv', 'pk']); return g;
+  interleave(g, ['color', 'mr', 'sv', 'pk', 'ak']); return g;
 }
 /** packs named float attributes into one interleaved buffer under the same names. WebGPU allows 8 vertex buffers per
  *  pipeline; an instanced mesh with one buffer per attribute (the carried props, the animals) exceeds it and its
@@ -389,6 +458,11 @@ export function interleave(g: THREE.BufferGeometry, names: string[], instanced?:
   return buf;
 }
 function withSv(g: THREE.BufferGeometry) { g.setAttribute('sv', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 3), 3)); return g; }
+/** D-325: a modelled prop fitted to a box (w, h, d; base on y = 0), all its parts painted in one colour as `kind`; null when
+ *  the model is not loaded */
+export function paintedModel(id: string, w: number, h: number, d: number, rgb: [number, number, number], rough: number, kind: string, lod = 1): THREE.BufferGeometry | null {
+  const p = modelFit(id, [w, h, d], lod); return p ? paintAs(kind, mergedModel(p), rgb, 0, rough) : null;
+}
 /** a box painted for the prop material (work objects) */
 export function paintedBox(w: number, h: number, d: number, rgb: [number, number, number], rough: number) { return paint(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0), rgb, 0, rough); }
 export { paint as paintGeometry, rod as rodGeometry };

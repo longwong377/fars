@@ -7,7 +7,7 @@ import { MeshoptSimplifier } from 'three/addons/libs/meshopt_simplifier.module.j
 import { buildOutfits, type OutfitBuild } from './outfits';
 import { HumanGPU } from './humanGPU';
 import { loadHumanScans } from './humanScans';
-import { loadPeopleModels, loadHairAtlas, type PeopleModels } from './peopleModels';
+import { loadPeopleModels, loadHairAtlas, PEOPLE_DIR, type PeopleModels } from './peopleModels';
 
 export interface HumanSystem { A: HumanAssets; O: OutfitBuild; gpu: HumanGPU; ms: { load: number; outfits: number; gpu: number; worker: boolean } }
 
@@ -26,7 +26,9 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   const get = async (f: string) => { const r = await fetch(base + f); if (!r.ok) throw new Error(`${f}: ${r.status}`); return r; };
   const loader = new THREE.TextureLoader();
   // D-307: the Blender-built hair cards and garment drape (public/models/people; null each when absent: the procedural pieces)
-  const [meta, bin, skin, eye, scans, pm] = await Promise.all([get('humans.json').then(r => r.json()), get('humans.bin').then(r => r.arrayBuffer()), loader.loadAsync(base + 'skin.png'), loader.loadAsync(base + 'eye.png'), loadHumanScans(opts.base ?? '/'), loadPeopleModels(opts.base ?? '/')]);
+  // (D-322: the scans' array takes the garments' fold layers, so it waits for the people's models)
+  const pmP = loadPeopleModels(opts.base ?? '/'), scansP = pmP.then(pm => { const F = pm.drape?.meta.folds; return loadHumanScans(opts.base ?? '/', F ? { url: `${opts.base ?? '/'}${PEOPLE_DIR}/${F.file}`, layers: F.layers, scale: F.scale } : null); });
+  const [meta, bin, skin, eye, scans, pm] = await Promise.all([get('humans.json').then(r => r.json()), get('humans.bin').then(r => r.arrayBuffer()), loader.loadAsync(base + 'skin.png'), loader.loadAsync(base + 'eye.png'), scansP, pmP]);
   const hairAtlas = pm.atlasUrl ? await loadHairAtlas(pm.atlasUrl) : null;
   const models: PeopleModels = { cards: hairAtlas ? pm.cards : null, drape: pm.drape }; // (no atlas, no cards: they would draw untextured)
   for (const t of [skin, eye]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
@@ -38,6 +40,6 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   try { O = outfits ? await outfits : (await MeshoptSimplifier.ready, buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier), models })); }
   catch (e) { console.warn('outfit worker failed, building on the main thread', e); await MeshoptSimplifier.ready; O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier), models }); }
   const t2 = performance.now();
-  const gpu = new HumanGPU(A, O, { skin, eye, scans, hairAtlas, cards: models.cards?.meta ?? null }, { capacity: opts.capacity, velocity: opts.velocity });
+  const gpu = new HumanGPU(A, O, { skin, eye, scans, hairAtlas, cards: models.cards?.meta ?? null, simCloth: !!models.drape && models.drape.meta.version >= 2 }, { capacity: opts.capacity, velocity: opts.velocity });
   return { A, O, gpu, ms: { load: t1 - t0, outfits: t2 - t1, gpu: performance.now() - t2, worker: !!outfits } };
 }

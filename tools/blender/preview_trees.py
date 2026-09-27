@@ -6,7 +6,7 @@ import bpy, sys, json, math, os
 import numpy as np
 a = sys.argv[sys.argv.index('--') + 1:]
 wdir, bdir, bj, srcj, out = a[:5]; rows = [int(x) for x in (a[5] if len(a) > 5 else '0,3,6,9,12,15,18,21,24,27,30,33,36,39,42').split(',')]
-lod = int(a[6]) if len(a) > 6 else 0; PX = int(a[7]) if len(a) > 7 else 512; close = len(a) > 8 and a[8] == 'close'
+lod = int(a[6]) if len(a) > 6 else 0; PX = int(a[7]) if len(a) > 7 else 512; mode = a[8] if len(a) > 8 else ''; close = mode == 'close'
 meta = json.load(open(os.path.join(wdir, 'wood.json'))); BARK = json.load(open(bj))['species']; SRC = json.load(open(srcj))
 raw = open(os.path.join(wdir, 'wood.bin'), 'rb').read(); VB = np.frombuffer(raw, np.float32, meta['vertex_floats']).reshape(-1, 12); IB = np.frombuffer(raw, np.uint16, meta['indices'], meta['vertex_floats'] * 4)
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -44,7 +44,8 @@ for r in rows:
     me.materials.append(mat)
     ob = bpy.data.objects.new(f'm{r}', me); sc.collection.objects.link(ob)
     H = m['H']
-    if close: cam.location = (0, -max(1.5, H * 0.18), H * 0.12); cam.rotation_euler = (math.radians(85), 0, 0)
+    if mode == 'fork': cam.location = (0, -max(2.5, H * 0.3), m['CB'] * 0.95); cam.rotation_euler = (math.radians(88), 0, 0)
+    elif close: cam.location = (0, -max(1.5, H * 0.18), H * 0.12); cam.rotation_euler = (math.radians(85), 0, 0)
     else: cam.location = (0, -H * 1.7, H * 0.45); cam.rotation_euler = (math.radians(83), 0, 0)
     for o in sc.objects:
         if o.name.startswith('m') and o is not ob: o.hide_render = True

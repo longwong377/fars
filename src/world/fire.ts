@@ -5,6 +5,7 @@ import * as THREE from 'three/webgpu';
 import { colourOnly } from '../render/fx';
 import { surfaceMaterial, propMaterial } from '../render/materials';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { modelParts, colourByAO } from '../render/scanProps';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow, step } from 'three/tsl';
 import { Rng } from '../core/rng';
 import { fireOcc, fireOccNode, tileOf } from './fireOcc';
@@ -216,7 +217,7 @@ export class FireSystem {
       const st = new THREE.IcosahedronGeometry(0.1, 1); st.deleteAttribute('uv');
       return st.scale(0.9 + 0.5 * h(1), 0.7 + 0.5 * h(2), 0.8 + 0.4 * h(3)).rotateY(a + h(4)).rotateX(0.3 * (h(5) - 0.5)).translate(Math.cos(a) * (0.45 + 0.04 * h(6)), 0.06 + 0.03 * h(7), Math.sin(a) * (0.45 + 0.04 * h(6))); }))!;
     const oven = new THREE.SphereGeometry(0.6, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
-    const kinds: Record<string, { g: THREE.BufferGeometry; m: THREE.Material }> = {
+    const kinds: Record<string, { g: THREE.BufferGeometry; m: THREE.Material }[] | { g: THREE.BufferGeometry; m: THREE.Material }> = {
       // the bronze of the braziers is the fittings' surface (materials.ts SURFACES.bronze), whose specular reads the sky
       // environment (D-157): a plain metal material here reflected nothing but the sun's highlight, and a stand in shade
       // rendered as a pure-black cut-out (session-6 rubric, apadana-enter; D-187)
@@ -224,12 +225,28 @@ export class FireSystem {
       brazier: { g: brz, m: surfaceMaterial('bronze') }, torch: { g: torch, m: propMaterial('wood', { color: [0x5a / 255, 0x40 / 255, 0x28 / 255], rough: 0.8 }) },
       hearth: { g: hearth, m: propMaterial('stone', { color: [0x7a / 255, 0x72 / 255, 0x66 / 255], rough: 0.9 }) }, oven: { g: oven, m: propMaterial('mud', { color: [0x9a / 255, 0x7a / 255, 0x58 / 255], rough: 0.95 }) },
     };
-    for (const [k, v] of Object.entries(kinds)) {
+    // D-325: the bodies are the project's models (tools/blender/model_props.py), each part under its own material with the
+    // baked occlusion in its vertex colour: the brazier a bronze tripod on lion's paws with its bowl and charcoal; the torch a
+    // shaft with a head of tow in an iron bracket and wall plate; the hearth eleven field stones round a bed of ash; the oven a
+    // coil-built dome with its arched mouth. The procedural forms above stay as the stand-ins when the models are not loaded
+    const lin = (c: [number, number, number]): [number, number, number] => { const t = new THREE.Color().setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace); return [t.r, t.g, t.b]; };
+    const MODELLED: Record<string, { id: string; parts: Record<string, [THREE.Material, [number, number, number]]> }> = {
+      brazier: { id: 'brazier', parts: { bronze: [surfaceMaterial('bronze', { vertexColors: true }), [0.62, 0.45, 0.26]], coal: [propMaterial('stone', { vertexColors: true, rough: 0.95 }), [0.09, 0.08, 0.07]] } },
+      torch: { id: 'torch', parts: { wood: [propMaterial('wood', { vertexColors: true, rough: 0.8 }), [0x5a / 255, 0x40 / 255, 0x28 / 255]], head: [propMaterial('textile', { vertexColors: true, rough: 0.95 }), [0.14, 0.11, 0.08]], bracket: [propMaterial('metal', { vertexColors: true, rough: 0.6, metal: 0.4 }), [0.28, 0.27, 0.26]] } },
+      hearth: { id: 'hearth', parts: { stone: [propMaterial('stone', { vertexColors: true, rough: 0.9 }), [0x7a / 255, 0x72 / 255, 0x66 / 255]], ash: [propMaterial('mud', { vertexColors: true, rough: 1 }), [0.46, 0.44, 0.41]] } },
+      oven: { id: 'oven', parts: { mud: [propMaterial('mud', { vertexColors: true, rough: 0.95 }), [0x9a / 255, 0x7a / 255, 0x58 / 255]] } },
+    };
+    for (const [k, v0] of Object.entries(kinds)) {
       const list = this.bodies.filter(b => b.kind === k); if (!list.length) continue;
-      const im = new THREE.InstancedMesh(v.g, v.m, list.length); const m4 = new THREE.Matrix4();
-      list.forEach((b, i) => { m4.makeTranslation(b.base.x, b.base.y, b.base.z); im.setMatrixAt(i, m4); });
-      im.castShadow = true; im.receiveShadow = true; im.name = `fire-body:${k}`; im.userData = { tier: 'C', src: 'RECON', note: `${k} (form C; brazier after the incense stands on the audience relief, B type)` };
-      this.group.add(im);
+      const M = MODELLED[k], mp = M ? modelParts(M.id, 0) : null;
+      const pieces = mp ? Object.entries(mp).filter(([p]) => M!.parts[p]).map(([p, g]) => ({ g: colourByAO(g, lin(M!.parts[p][1])), m: M!.parts[p][0], part: p })) : (Array.isArray(v0) ? v0 : [v0]).map(x => ({ ...x, part: '' }));
+      for (const v of pieces) {
+        const im = new THREE.InstancedMesh(v.g, v.m, list.length); const m4 = new THREE.Matrix4();
+        list.forEach((b, i) => { m4.makeTranslation(b.base.x, b.base.y, b.base.z); im.setMatrixAt(i, m4); });
+        im.castShadow = true; im.receiveShadow = true; im.name = `fire-body:${k}${v.part ? ':' + v.part : ''}`;
+        im.userData = { tier: 'C', src: 'RECON', placeholder: !mp, note: `${k} (form C; brazier after the incense stands on the audience relief, B type)${mp ? ' — modelled (D-325)' : ' — procedural stand-in'}` };
+        this.group.add(im);
+      }
     }
   }
   /** build GPU objects once all fires are registered */

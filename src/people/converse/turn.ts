@@ -25,6 +25,10 @@ export interface TurnOut {
   saidNo: boolean; retold: boolean;
 }
 /** the simulation's word on an ask, as the person is told it (the model's brief: out of world) */
+/** D-315 (the GPU runs): where the memory of the stranger goes. 'near' (the default after run 2): in the turn, just before
+ *  the stranger's words, framed "You remember:", every time there is one; 'top': in the system brief, and with the words only on
+ *  a talk's first turn or when asked about earlier meetings (run 1's layout) */
+export const talkOpts = { memory: 'near' as 'near' | 'top' };
 export function verdictNote(d: Decision): string {
   if (d.noop) return `You may say yes: ${d.reason}.`;
   return d.ok ? 'You can do this, if you are willing.' : `You cannot do this: ${d.reason}.`;
@@ -36,16 +40,22 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   const L = lifeRecord(sim.pop, sim.cal, pid, day, hour);
   const memory = sim.talk.recall(pid, t, 2);
   const agent = sim.pop.persons[pid]?.agent ?? -1;
-  const knows: Knows = (sim.talk.rows.get(pid)?.length ?? 0) > 0 ? 'recognise' : agent >= 0 ? sim.memory.greeting(agent, t) : memory.length ? 'nod' : 'none';
+  // (run 2: one who had only heard of the stranger was told "You have never seen this stranger" and denied all of it)
+  const g0: Knows = agent >= 0 ? sim.memory.greeting(agent, t) : 'none';
+  const knows: Knows = (sim.talk.rows.get(pid)?.length ?? 0) > 0 ? 'recognise' : g0 !== 'none' ? g0 : memory.length ? 'heard' : 'none';
   // the ask: the grammar's, else a paraphrase by its one cued family (the simulation's word goes with the words either way)
   const request = requestOf(said) ?? looseRequest(said);
   const pre = request ? sim.talk.consider(pid, t, request) : null;
   // (the first GPU run: a 2 B model ignores the memory at the head of a long brief: on the first turn of a talk, or asked
   // about earlier meetings, the memory that matters most goes with the stranger's words too)
+  const near = talkOpts.memory === 'near';
   const first = !(sim.talk.rows.get(pid) ?? []).some(r => r.conv === o.conv); const top = sim.talk.recall(pid, t, 1)[0];
-  const remind = top && (first || /\b(remember|before|met|heard|know me|say of|spoken)\b/i.test(said)) ? `What you remember of the stranger: ${top}` : '';
+  const remind = !near && top && (first || /\b(remember|before|met|heard|know me|say of|spoken)\b/i.test(said)) ? `What you remember of the stranger: ${top}` : '';
   const note = [pre ? verdictNote(pre) : '', remind].filter(Boolean).join(' ') || undefined;
-  let answer = await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory, note });
+  // (run 2: the simulation's "no" after the stranger's words was often not kept; said first, plainly, it goes with the memory)
+  const before = [near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
+    near && pre && !pre.ok && !pre.noop ? `(Whatever he asks, you must say no: ${pre.reason}.)` : ''].filter(Boolean).join('\n') || undefined;
+  let answer = await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: near ? [] : memory, note, before });
   const tag = answer.intent ?? null;
   const ask = request ?? (tagAsked(tag, said) ? tag : null); // (a tag the stranger's words give no cue for is the model's, not an ask)
   const saidNo = answer.ok && (tag?.kind === 'refuse' || ((!tag || tag.kind === 'none') && wordsRefuse(answer.text)));

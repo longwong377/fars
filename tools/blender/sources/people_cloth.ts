@@ -1,20 +1,28 @@
-// Source of the people's garment drape (D-307): the procedural garment pieces of src/people/outfits.ts, fitted to a
-// reference body of each group (men m03, women f02, children c01), written for Blender's cloth solver
-// (tools/blender/cloth.py) with the body as the collider, and the pins and the cut that make the folds:
+// Source of the people's garments (D-307, re-cut D-322): each garment piece of src/people/outfits.ts is cut as a pattern
+// on a reference body of each group (men m03, women f02, children c01) and written for Blender's cloth solver
+// (tools/blender/cloth.py), refined to the resolution cloth folds at (Loop subdivision to a 1.5-2.6 cm mesh: the game's
+// pieces, 3-8 cm, cannot fold), with the body (and, for the outer layers, the garments already settled under them) as
+// the collider, and the pins and the cut that make the folds:
 //  - a skirt is cut wider than the body it hangs on (the registry's `ease`: the many-folded dress 1.3, the tunics 1.15, the
-//    court robe, whose pleats are the reliefs' and baked, 1.05) and gathered at the waist: the solver starts from the wide cut
-//    and draws the pinned waist in to the fitted one while gravity and the legs shape the rest;
-//  - an upper garment (tunic, dress, robe body) is pinned over the shoulders and under the belt and free between them: it
-//    settles and blouses over the belt;
-//  - sleeves, the kandys, the headcloth and the veil hang from where they are pinned (shoulders, head).
-// Nothing is shaped by hand; what Blender returns (the settled vertices) becomes a displacement per vertex in the piece's
-// local frame (tools/blender/sources/people_cloth_post.ts), applied to every variant of the group (outfits.ts).
+//    court robe, whose pleats are the reliefs' and pressed into its rest shape, 1.06) and gathered at the waist: the solver
+//    starts from the wide cut and draws the pinned waist in to the fitted one while gravity and the legs shape the rest;
+//  - an upper garment (tunic, dress, robe body) is pinned over the shoulders and under the belt and free between them, cut
+//    fuller than the fitted shell (`ease`): it settles in folds and blouses over the belt;
+//  - trousers are pinned at the waist and fall over the legs in their own ease (they bunch at the knee and the boot);
+//  - sleeves, the kandys, the headcloth and the veil hang from where they are pinned (shoulders, head);
+//  - stage 2 (the registry's `over`): the belt's sash, the headcloth, the veil and the kandys settle over the stage-1
+//    garments of their group as Blender settled them (D-313's see-through headcloth settled on the body alone, inside the
+//    dress).
+// One simulation per piece and group, from the piece's full-detail cut; the post-step (people_cloth_post.ts) samples the
+// settled cloth at every level of detail's vertices, low-passed to what each can carry, as a displacement per vertex in the
+// piece's local frame, applied to every variant of the group (outfits.ts). Nothing is shaped by hand.
 // Usage: npx tsx tools/blender/sources/people_cloth.ts <srcDir> <outDir> <argsJson>
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { decodeHumanAssets, type HumanAssets } from '../../../src/people/humanAssets';
 import { HB, PART, type HBone } from '../../../src/people/humanFormat';
 import { buildOutfits, type Geo } from '../../../src/people/outfits';
 import { writePLY } from '../lib/ply';
+import { loopSubdivide } from '../lib/subdiv';
 
 const [srcDir, outDir, argJson] = process.argv.slice(2);
 if (!srcDir || !outDir || !argJson) { console.error('usage: people_cloth.ts <srcDir> <outDir> <argsJson>'); process.exit(2); }
@@ -26,33 +34,19 @@ const sstep = (e0: number, e1: number, x: number) => { const t = Math.max(0, Mat
 const HD = 'public/generated/humans';
 const bin = readFileSync(`${HD}/humans.bin`);
 const A: HumanAssets = decodeHumanAssets(JSON.parse(readFileSync(`${HD}/humans.json`, 'utf8')), bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) as ArrayBuffer);
-const LODS: number[] = ARGS.lods ?? [0, 1];
-const O = buildOutfits(A, { lods: LODS }); // the procedural pieces (no drape) on every variant
+const O = buildOutfits(A, { lods: [0] }); // the procedural pieces (no drape) at full detail on every variant: the cut
 const geos = O.geos!;
 
-interface Sim { key: string; piece: string; lod: number; group: string; variant: string; kind: string; body: string; cloth: string; target: string; pin: string; n: number; outer: number; frames: number; cloth_params: any }
+interface Sim { name: string; key: string; piece: string; group: string; variant: string; kind: string; stage: number; over: string[]; body: string; cloth: string; target: string; pin: string; fitted: string; outer: number; levels: number; frames: number; cloth_params: any }
 const sims: Sim[] = []; const stats: Record<string, any> = {};
 const bodyCache = new Map<string, string>();
-/** the body as the collider: the full-detail triangles, without the arms for skirts and upper garments (the arms swing in
- *  the game: folds pressed by a hanging hand would stay when the hand moves), with them for sleeves and coats */
+/** the body as the collider: the full-detail triangles, without the arms for skirts, upper garments and trousers (the arms
+ *  swing in the game: folds pressed by a hanging hand would stay when the hand moves), with them for sleeves and coats */
 function bodyPLY(vid: string, arms: boolean) {
   const k = `${vid}_${arms ? 'arms' : 'noarms'}`; let f = bodyCache.get(k); if (f) return f;
   const v = A.byId[vid], T = A.lods[0], drop = new Set<number>(arms ? [] : [PART.uarm_l, PART.farm_l, PART.hand_l, PART.uarm_r, PART.farm_r, PART.hand_r]);
   const idx: number[] = []; for (let t = 0; t < T.length; t += 3) { const tri = [T[t], T[t + 1], T[t + 2]]; if (tri.some(i => A.part[i] >= PART.eye || drop.has(A.part[i]))) continue; idx.push(...tri); }
   f = `${srcDir}/body_${k}.ply`; writePLY(f, { pos: v.pos, nrm: v.nrm, idx: Uint32Array.from(idx) } as any); bodyCache.set(k, f); return f;
-}
-/** D-313: the body (with its arms) and a garment already on it (the group's skirt, as placed procedurally) as one collider:
- *  the sash's ends hang on the skirt, not through it onto the thighs */
-function bodyWith(vid: string, pieceKey: string) {
-  const k = `${vid}_with_${pieceKey.replace(/@/g, '_')}`; let f = bodyCache.get(k); if (f) return f;
-  const v = A.byId[vid], T = A.lods[0], g = geos[pieceKey]; if (!g) throw new Error(`collider ${pieceKey}: no geometry`);
-  const idx: number[] = []; for (let t = 0; t < T.length; t += 3) { const tri = [T[t], T[t + 1], T[t + 2]]; if (tri.some(i => A.part[i] >= PART.eye)) continue; idx.push(...tri); }
-  const nb = v.pos.length / 3, base = v.index * O.NV * 4 + O.pieceBase[pieceKey] * 4, pos = new Float32Array((nb + g.n) * 3), nrm = new Float32Array((nb + g.n) * 3);
-  pos.set(v.pos.subarray(0, nb * 3)); nrm.set(v.nrm.subarray(0, nb * 3));
-  for (let i = 0; i < g.n; i++) for (let e = 0; e < 3; e++) pos[(nb + i) * 3 + e] = O.source[base + i * 4 + e];
-  // (its outer layer only: the lining faces inward, 4 mm under it, and pushed the sash's ends through the skirt in the first run)
-  for (let t = 0; t < g.index.length; t += 3) { const q = [g.index[t], g.index[t + 1], g.index[t + 2]]; if (q.some(i => g.ao[i] === 150)) continue; for (const i of q) idx.push(nb + i); }
-  f = `${srcDir}/body_${k}.ply`; writePLY(f, { pos, nrm, idx: Uint32Array.from(idx) } as any); bodyCache.set(k, f); return f;
 }
 const J = (vid: string, b: HBone): [number, number, number] => { const v = A.byId[vid]; return [v.joints[HB[b] * 3], v.joints[HB[b] * 3 + 1], v.joints[HB[b] * 3 + 2]]; };
 
@@ -70,20 +64,31 @@ function torsoSupport(vid: string, y: number, zc: number): Float32Array {
 const ARM_BONES = new Set(Object.entries(HB).filter(([b]) => /^(upperarm|lowerarm|hand|thumb|index|middle|ring|pinky)_/.test(b)).map(([, i]) => i));
 const onArm = (g: Geo, i: number) => ARM_BONES.has(g.si[i * 4]) && g.sw[i * 4] > 127;
 const supAt = (r: Float32Array, th: number) => { const f = ((((th / (2 * Math.PI)) % 1) + 1) % 1) * 64, b0 = Math.floor(f) % 64, a = f - Math.floor(f); return r[b0] * (1 - a) + r[(b0 + 1) % 64] * a; };
+/** how far down the arm (0 the shoulder joint, 1 the elbow, 2 the wrist) a point on the arm's side x lies */
+function alongArm(vid: string, x: number, y: number, z: number) { const s = x >= 0 ? 'l' : 'r', a = J(vid, `upperarm_${s}` as HBone), b = J(vid, `lowerarm_${s}` as HBone), c = J(vid, `hand_${s}` as HBone);
+  const t = (p: number[], q: number[]) => { const u = [q[0] - p[0], q[1] - p[1], q[2] - p[2]], L2 = u[0] ** 2 + u[1] ** 2 + u[2] ** 2; return ((x - p[0]) * u[0] + (y - p[1]) * u[1] + (z - p[2]) * u[2]) / L2; };
+  const tu = t(a, b); return tu <= 1 ? Math.max(0, tu) : 1 + Math.max(0, t(b, c)); }
+const toBlender = (p: Float32Array) => { const o = new Float32Array(p.length); for (let i = 0; i < p.length; i += 3) { o[i] = p[i]; o[i + 1] = -p[i + 2]; o[i + 2] = p[i + 1]; } return o; };
 
-for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for (const lod of LODS) for (const group of P.groups as string[]) {
-  const key = `${piece}@${lod}`, g: Geo | undefined = geos[key]; if (!g) { log('no geometry', key); continue; }
+const EDGE = ARGS.edge ?? 0.026; // the simulation's mesh: refined until the mean edge is at most this (m)
+for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for (const group of P.groups as string[]) {
+  const key = `${piece}@0`, g: Geo | undefined = geos[key]; if (!g) { log('no geometry', key); continue; }
   const vid = ARGS.groups[group], v = A.byId[vid];
   const base = v.index * O.NV * 4 + O.pieceBase[key] * 4;
-  const pos = new Float32Array(g.n * 3); for (let i = 0; i < g.n; i++) for (let e = 0; e < 3; e++) pos[i * 3 + e] = O.source[base + i * 4 + e];
-  // outer layer only (a tube's lining, cavity 150, follows its outer vertex afterwards: people_cloth_post.ts)
-  const outer = new Int32Array(g.n).fill(-1); let no = 0; for (let i = 0; i < g.n; i++) if (P.kind === 'upper' || g.ao[i] !== 150) outer[i] = no++; // (a shell has no lining: its cavity byte can be 150 by chance)
+  // the outer layer (a tube's lining, cavity 150, is not simulated: it follows its outer layer, people_cloth_post.ts)
+  const outer = new Int32Array(g.n).fill(-1); let no = 0; for (let i = 0; i < g.n; i++) if (P.kind === 'upper' || P.kind === 'legs' || g.ao[i] !== 150) outer[i] = no++; // (a shell has no lining: its cavity byte can be 150 by chance)
   const tri: number[] = []; for (let t = 0; t < g.index.length; t += 3) { const a = outer[g.index[t]], b = outer[g.index[t + 1]], c = outer[g.index[t + 2]]; if (a >= 0 && b >= 0 && c >= 0) tri.push(a, b, c); }
-  const tgt = new Float32Array(no * 3), start = new Float32Array(no * 3), pin = new Float32Array(no);
+  const p0 = new Float32Array(no * 3), t0v = new Float32Array(no), arm0 = new Float32Array(no);
+  for (let i = 0; i < g.n; i++) { const o = outer[i]; if (o < 0) continue; for (let e = 0; e < 3; e++) p0[o * 3 + e] = O.source[base + i * 4 + e]; t0v[o] = g.uv[i * 2 + 1]; arm0[o] = onArm(g, i) ? 1 : 0; }
+  // refine to the simulation's resolution (Loop: smooth, the rims kept)
+  let se = 0, ne = 0; for (let t = 0; t < tri.length; t += 3) for (let e = 0; e < 3; e++) { const a = tri[t + e], b = tri[t + (e + 1) % 3]; se += Math.hypot(p0[a * 3] - p0[b * 3], p0[a * 3 + 1] - p0[b * 3 + 1], p0[a * 3 + 2] - p0[b * 3 + 2]); ne++; }
+  const edge0 = se / ne, levels = P.levels ?? Math.max(0, Math.ceil(Math.log2(edge0 / EDGE) - 1e-9));
+  const S = loopSubdivide({ pos: p0, idx: Uint32Array.from(tri), attrs: { t: t0v, arm: arm0 } }, levels);
+  const n = S.pos.length / 3, pos = S.pos, idx = S.idx;
+  const tgt = new Float32Array(n * 3), start = new Float32Array(n * 3), pin = new Float32Array(n);
   const waist = J(vid, 'spine_01')[1], chest = J(vid, 'spine_03')[1], neck = J(vid, 'neck_01')[1];
-  // the skirt's axis for the wide cut: the body's midline at the vertex height (x 0, z of the pelvis joint)
-  const zc = J(vid, 'pelvis')[2];
-  for (let i = 0; i < g.n; i++) { const o = outer[i]; if (o < 0) continue; const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2], t = g.uv[i * 2 + 1];
+  const zc = J(vid, 'pelvis')[2]; // the skirt's axis for the wide cut: the body's midline (x 0, z of the pelvis joint)
+  for (let o = 0; o < n; o++) { const x = pos[o * 3], y = pos[o * 3 + 1], z = pos[o * 3 + 2], t = S.attrs.t[o], armV = S.attrs.arm[o] > 0.5;
     // a gathered waist: the pinned band is drawn in along a wave of `gathers` folds round the waist whose length is the wide
     // cut's (so the cloth below buckles into folds instead of shrinking); amplitude from the ease: L ≈ 2π √(r² + N²A²/2)
     const th = Math.atan2(x, z - zc), r = Math.hypot(x, z - zc);
@@ -96,36 +101,53 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
     let rc = r;
     if (P.cinch != null) { const sup0 = supAt(torsoSupport(vid, y, zc), th), sup = sup0 + P.cinch;
       const k = P.kind === 'skirt' ? 1 - sstep(P.pinTop, P.pinTop + gBand, t) : sstep(waist - 0.05, waist - 0.02, y) * (1 - sstep(waist + 0.02, waist + 0.04, y));
-      rc = r + (Math.min(r, sup) - r) * k * (r < sup0 + 0.035 && !onArm(g, i) ? 1 : 0); } // (the torso's cloth only: a sleeve hanging beside the waist is not drawn in: it tore the cuffs open in the second render)
+      rc = r + (Math.min(r, sup) - r) * k * (r < sup0 + 0.035 && !armV ? 1 : 0); } // (the torso's cloth only: a sleeve hanging beside the waist is not drawn in)
     const rg = rc + (gA ? gA * Math.sin(P.gathers * th + 0.7) : 0);
     tgt.set(gA || rc !== r ? [x / (r || 1) * rg, y, zc + (z - zc) / (r || 1) * rg] : [x, y, z], o * 3);
     let w = 0, ease = 1;
     switch (P.kind) {
       case 'skirt': w = t < P.pinTop + (P.gathers ? gBand : 0) ? 1 : 0; ease = 1 + (P.ease - 1) * sstep(0, 0.25, t); break; // the waist is gathered in; the cut is wide below
-      case 'upper': w = Math.max(sstep(chest - 0.02, chest + 0.04, y), sstep(waist + 0.06, waist + 0.01, y), Math.abs(x) > P.armX ? P.armPin : 0); break;
+      // D-322: an upper garment hangs from its shoulder seams (above the shoulder joints) and is held under the belt and at the
+      // cuffs; the chest, back, sides and sleeves are free (they fold over the body and the arms; D-307 pinned all but a band
+      // above the belt, and the tunics read as shrink-wrapped)
+      case 'upper': { const sh = J(vid, 'upperarm_l')[1], cuff = armV ? sstep(P.cuff[0], P.cuff[1], alongArm(vid, x, y, z)) : 0;
+        w = Math.max(sstep(sh - 0.005, sh + 0.035, y), sstep(waist + 0.05, waist + 0.01, y), cuff); break; }
+      case 'legs': w = sstep(waist - 0.12, waist - 0.06, y); break; // D-322: trousers hang from the waist band
       case 'sleeve': w = t < P.pinTop ? 1 : 0; break;
       case 'hang': w = sstep(P.pinY[0], P.pinY[1], y - neck); break; // coats and cloths hang from the shoulders or the head
       case 'sash': w = sstep(P.pinY[0], P.pinY[1], y - (waist + P.dy)); break; // D-313: the belt's band and knot pinned, the ends free below the knot
     }
     pin[o] = w;
-    // an upper garment is cut fuller than its fitted shell between the pins (`ease` about the torso's axis): it settles in folds
+    // an upper garment is cut fuller than its fitted shell between the pins (`ease` about the torso's axis): it settles in folds;
+    // trousers fuller about each leg's axis below the pinned band
     if (P.kind === 'upper' && P.ease) ease = 1 + (P.ease - 1) * (1 - w);
-    start.set(P.kind === 'skirt' || P.kind === 'upper' ? [x * ease, y, zc + (z - zc) * ease] : [x, y, z], o * 3);
+    if (P.kind === 'legs' && P.ease) { const s = x >= 0 ? 'l' : 'r', a = J(vid, `thigh_${s}` as HBone), b = J(vid, `calf_${s}` as HBone), c = J(vid, `foot_${s}` as HBone);
+      const up = y > b[1], f = up ? Math.min(1, Math.max(0, (a[1] - y) / (a[1] - b[1]))) : Math.min(1, Math.max(0, (b[1] - y) / (b[1] - c[1])));
+      const ax = up ? a[0] + (b[0] - a[0]) * f : b[0] + (c[0] - b[0]) * f, az = up ? a[2] + (b[2] - a[2]) * f : b[2] + (c[2] - b[2]) * f;
+      const e = 1 + (P.ease - 1) * (1 - w); start.set([ax + (x - ax) * e, y, az + (z - az) * e], o * 3); continue; }
+    // D-322: an upper garment is also cut longer than the body from the shoulder seam to the belt (`blouse`): the pinned
+    // waist band is drawn up to its fitted place over the first frames and the extra length falls over the belt in folds
+    const shY = J(vid, 'upperarm_l')[1], yb = P.kind === 'upper' && P.blouse && !armV && y < shY ? shY - (shY - y) * (1 + P.blouse) : y;
+    start.set(P.kind === 'skirt' || P.kind === 'upper' ? [x * ease, yb, zc + (z - zc) * ease] : [x, y, z], o * 3);
   }
   // a part of the piece with nothing pinned (the kandys's hanging sleeves are tubes of their own) would fall away: such a
   // connected part is pinned whole (it keeps its procedural shape; D-307)
-  { const par = Int32Array.from({ length: no }, (_, i) => i); const find = (a: number): number => { while (par[a] !== a) { par[a] = par[par[a]]; a = par[a]; } return a; };
-    for (let t = 0; t < tri.length; t += 3) { const a = find(tri[t]), b = find(tri[t + 1]), c = find(tri[t + 2]); par[b] = a; par[find(c)] = a; }
-    const has = new Set<number>(); for (let o = 0; o < no; o++) if (pin[o] > 0.5) has.add(find(o));
-    for (let o = 0; o < no; o++) if (!has.has(find(o))) pin[o] = 1; }
-  const cloth = `${srcDir}/${key}_${group}.ply`, target = `${srcDir}/${key}_${group}.target.f32`, pinF = `${srcDir}/${key}_${group}.pin.f32`;
-  writePLY(cloth, { pos: start, nrm: new Float32Array(no * 3), idx: Uint32Array.from(tri) } as any);
-  // the fitted positions (Blender axes: x, -z, y) the pinned vertices are drawn to
-  const tb = new Float32Array(no * 3); for (let o = 0; o < no; o++) { tb[o * 3] = tgt[o * 3]; tb[o * 3 + 1] = -tgt[o * 3 + 2]; tb[o * 3 + 2] = tgt[o * 3 + 1]; }
-  writeFileSync(target, Buffer.from(tb.buffer)); writeFileSync(pinF, Buffer.from(pin.buffer));
-  sims.push({ key, piece, lod, group, variant: vid, kind: P.kind, body: P.collider ? bodyWith(vid, P.collider[group] + "@" + lod) : bodyPLY(vid, P.kind === "sleeve" || P.kind === "hang"), cloth, target, pin: pinF, n: g.n, outer: no, frames: ARGS.frames, cloth_params: { ...ARGS.cloth, ...(P.cloth ?? {}) } });
-  stats[`${key}|${group}`] = { verts: g.n, outer: no, tris: tri.length / 3, pinned: +(pin.reduce((a, b) => a + (b > 0.5 ? 1 : 0), 0) / no).toFixed(3) };
+  { const par = Int32Array.from({ length: n }, (_, i) => i); const find = (a: number): number => { while (par[a] !== a) { par[a] = par[par[a]]; a = par[a]; } return a; };
+    for (let t = 0; t < idx.length; t += 3) { const a = find(idx[t]), b = find(idx[t + 1]), c = find(idx[t + 2]); par[b] = a; par[find(c)] = a; }
+    const has = new Set<number>(); for (let o = 0; o < n; o++) if (pin[o] > 0.5) has.add(find(o));
+    for (let o = 0; o < n; o++) if (!has.has(find(o))) pin[o] = 1; }
+  const name = `${piece}_${group}`, cloth = `${srcDir}/${name}.ply`, target = `${srcDir}/${name}.target.f32`, pinF = `${srcDir}/${name}.pin.f32`, fitted = `${srcDir}/${name}.fitted.f32`;
+  writePLY(cloth, { pos: start, nrm: new Float32Array(n * 3), idx } as any);
+  // the fitted positions (Blender axes) the pinned vertices are drawn to; and the fitted refinement itself (game axes) for
+  // the post-step, which measures the settled cloth against it
+  writeFileSync(target, Buffer.from(toBlender(tgt).buffer)); writeFileSync(pinF, Buffer.from(pin.buffer)); writeFileSync(fitted, Buffer.from(pos.buffer));
+  const over = (P.over?.[group] ?? []).map((p: string) => `${p}_${group}`);
+  const arms = P.kind === 'sleeve' || P.kind === 'hang' || P.kind === 'sash' || P.kind === 'upper'; // (D-322: the sleeves of an upper garment rest on the arms)
+  sims.push({ name, key, piece, group, variant: vid, kind: P.kind, stage: over.length ? 2 : 1, over, body: bodyPLY(vid, arms), cloth, target, pin: pinF, fitted, outer: n, levels,
+    frames: P.frames ?? ARGS.frames, cloth_params: { ...ARGS.cloth, ...(P.cloth ?? {}) } });
+  stats[name] = { verts: n, tris: idx.length / 3, levels, edge0_cm: +(edge0 * 100).toFixed(2), edge_cm: +(edge0 * 100 / 2 ** levels).toFixed(2), pinned: +(pin.reduce((a, b) => a + (b > 0.5 ? 1 : 0), 0) / n).toFixed(3), over };
 }
-writeFileSync(`${srcDir}/job.json`, JSON.stringify({ sims, out_dir: srcDir, seed: 0, substeps: ARGS.substeps }, null, 1));
+for (const s of sims) for (const o of s.over) if (!sims.find(x => x.name === o)) throw new Error(`${s.name}: collider ${o} is not simulated`);
+writeFileSync(`${srcDir}/job.json`, JSON.stringify({ sims, out_dir: srcDir, seed: 0, parallel: ARGS.parallel ?? 8, threads: ARGS.threads ?? 2 }, null, 1));
 writeFileSync(`${srcDir}/source_stats.json`, JSON.stringify(stats, null, 1));
-log(`${sims.length} simulations written`);
+log(`${sims.length} simulations written (${sims.filter(s => s.stage === 2).length} over settled garments)`);

@@ -32,21 +32,21 @@ export const PROPS = {
   nettle_plant: { split: true, role: 'thistle', lod0: 1500, lod1: 300, tex: 512 },
   dry_branches_medium_01: { split: true, role: 'deadwood', lod0: 1200, lod1: 250, tex: 512 },
   // vessels and containers
-  ceramic_vase_01: { role: 'jar', lod0: 1500, lod1: 700, tex: 1024 },
-  ceramic_vase_04: { role: 'jar', lod0: 1500, lod1: 700, tex: 1024 },
-  antique_ceramic_vase_01: { role: 'jar', lod0: 1500, lod1: 700, tex: 1024 },
-  ceramic_pot: { role: 'pot', lod0: 1200, lod1: 250, tex: 1024 },
-  planter_pot_clay: { role: 'pot', lod0: 1000, lod1: 200, tex: 512 },
-  wicker_basket_01: { role: 'basket', lod0: 1500, lod1: 300, tex: 1024 },
-  wicker_basket_02: { role: 'basket', lod0: 1500, lod1: 300, tex: 1024 },
-  wooden_crate_02: { role: 'crate', lod0: 1200, lod1: 250, tex: 1024 },
-  wooden_bowl_01: { role: 'bowl', lod0: 800, lod1: 160, tex: 512 },
+  ceramic_vase_01: { weld: true, role: 'jar', lod0: 1500, lod1: 400, tex: 1024 },
+  ceramic_vase_04: { weld: true, role: 'jar', lod0: 1500, lod1: 400, tex: 1024 },
+  antique_ceramic_vase_01: { weld: true, role: 'jar', lod0: 1500, lod1: 400, tex: 1024 },
+  ceramic_pot: { weld: true, role: 'pot', lod0: 1200, lod1: 250, tex: 1024 },
+  planter_pot_clay: { weld: true, role: 'pot', lod0: 1000, lod1: 200, tex: 512 },
+  wicker_basket_01: { weld: true, remesh1: true, role: 'basket', lod0: 1500, lod1: 300, tex: 1024 },
+  wicker_basket_02: { weld: true, role: 'basket', lod0: 1500, lod1: 300, tex: 1024 },
+  wooden_crate_02: { weld: true, role: 'crate', lod0: 1200, lod1: 250, tex: 1024 },
+  wooden_bowl_01: { weld: true, role: 'bowl', lod0: 800, lod1: 160, tex: 512 },
 };
 const want = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const ids = want.length ? want : Object.keys(PROPS);
 mkdirSync(OUT, { recursive: true });
-const WORK = 'T:/fars-assets-s12/models/work'; mkdirSync(WORK, { recursive: true });
-const jobs = ids.map(id => ({ id, src: `${SRC}/${id}/2k/${id}.gltf`, out: `${WORK}/${id}.glb`, lod0: PROPS[id].lod0, lod1: PROPS[id].lod1, tex: PROPS[id].tex, split: !!PROPS[id].split }));
+const WORK = process.env.WORK ?? 'T:/fars-assets-s12/models/work'; mkdirSync(WORK, { recursive: true });
+const jobs = ids.map(id => ({ id, src: `${SRC}/${id}/2k/${id}.gltf`, out: `${WORK}/${id}.glb`, lod0: PROPS[id].lod0, lod1: PROPS[id].lod1, tex: PROPS[id].tex, split: !!PROPS[id].split, weld: !!PROPS[id].weld, remesh1: !!PROPS[id].remesh1 }));
 for (const j of jobs) if (!existsSync(j.src)) throw new Error(`missing download ${j.src}`);
 writeFileSync(`${WORK}/jobs.json`, JSON.stringify(jobs));
 const r = spawnSync(BLENDER, ['-b', '--factory-startup', '--python', 'tools/blender/ph_props.py', '--', `${WORK}/jobs.json`], { stdio: 'inherit' });

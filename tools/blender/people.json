@@ -301,7 +301,7 @@
    }
   },
   "people_cloth": {
-   "title": "garment drape: Blender's cloth solver settles the procedural skirts, upper garments, sleeves, the kandys, the headcloth and the veil on a reference body of each group (men, women, children)",
+   "title": "garments re-cut from simulated patterns (D-322): Blender's cloth solver settles every garment piece's cut, refined to a 1.5-2.6 cm mesh, on a reference body of each group (men, women, children), outer layers over the settled garments under them; every level of detail samples the settled cloth, low-passed to what it can carry",
    "source": {
     "script": "tools/blender/sources/people_cloth.ts",
     "inputs": [
@@ -311,7 +311,10 @@
      "src/people/outfits.ts",
      "src/people/drape.ts",
      "src/people/peopleModels.ts",
-     "tools/blender/lib/ply.ts"
+     "tools/blender/lib/ply.ts",
+     "tools/blender/lib/subdiv.ts",
+     "tools/blender/lib/folds.ts",
+     "tools/humans/png.ts"
     ],
     "args": {
      "lods": [
@@ -324,9 +327,9 @@
       "women": "f02",
       "children": "c01"
      },
-     "frames": 60,
+     "frames": 72,
      "cloth": {
-      "quality": 6,
+      "quality": 7,
       "mass": 0.2,
       "air_damping": 1,
       "tension": 15,
@@ -371,18 +374,32 @@
         "men",
         "women"
        ],
-       "armX": 0.16,
-       "armPin": 0.7,
-       "cinch": 0.006
+       "cinch": 0.006,
+       "ease": 1.14,
+       "cuff": [
+        0.42,
+        0.52
+       ],
+       "cloth": {
+        "bending": 4
+       },
+       "blouse": 0.035
       },
       "tunic_upper": {
        "kind": "upper",
        "groups": [
         "men"
        ],
-       "armX": 0.16,
-       "armPin": 1,
-       "cinch": 0.006
+       "cinch": 0.006,
+       "ease": 1.14,
+       "cuff": [
+        1.78,
+        1.88
+       ],
+       "cloth": {
+        "bending": 4
+       },
+       "blouse": 0.08
       },
       "tunic_skirt": {
        "kind": "skirt",
@@ -399,9 +416,16 @@
        "groups": [
         "men"
        ],
-       "armX": 0.16,
-       "armPin": 1,
-       "cinch": 0.006
+       "cinch": 0.006,
+       "ease": 1.14,
+       "cuff": [
+        0.32,
+        0.4
+       ],
+       "cloth": {
+        "bending": 4
+       },
+       "blouse": 0.08
       },
       "work_skirt": {
        "kind": "skirt",
@@ -418,9 +442,16 @@
        "groups": [
         "women"
        ],
-       "armX": 0.16,
-       "armPin": 1,
-       "cinch": 0.006
+       "cinch": 0.006,
+       "ease": 1.14,
+       "cuff": [
+        1.76,
+        1.86
+       ],
+       "cloth": {
+        "bending": 4
+       },
+       "blouse": 0.035
       },
       "dress_skirt": {
        "kind": "skirt",
@@ -441,9 +472,16 @@
        "groups": [
         "children"
        ],
-       "armX": 0.12,
-       "armPin": 1,
-       "cinch": 0.006
+       "cinch": 0.006,
+       "ease": 1.14,
+       "cuff": [
+        0.32,
+        0.4
+       ],
+       "cloth": {
+        "bending": 4
+       },
+       "blouse": 0.08
       },
       "child_skirt": {
        "kind": "skirt",
@@ -463,7 +501,13 @@
        "pinY": [
         -0.16,
         -0.11
-       ]
+       ],
+       "over": {
+        "men": [
+         "tunic_upper",
+         "tunic_skirt"
+        ]
+       }
       },
       "headcloth": {
        "kind": "hang",
@@ -473,7 +517,12 @@
        "pinY": [
         0.06,
         0.11
-       ]
+       ],
+       "over": {
+        "women": [
+         "dress_upper"
+        ]
+       }
       },
       "veil": {
        "kind": "hang",
@@ -483,7 +532,14 @@
        "pinY": [
         0.05,
         0.12
-       ]
+       ],
+       "over": {
+        "women": [
+         "robe_upper",
+         "robe_sleeves",
+         "robe_skirt"
+        ]
+       }
       },
       "belt": {
        "kind": "sash",
@@ -491,10 +547,6 @@
         "men",
         "women"
        ],
-       "collider": {
-        "men": "tunic_skirt",
-        "women": "dress_skirt"
-       },
        "dy": -0.005,
        "pinY": [
         -0.055,
@@ -503,11 +555,40 @@
        "cloth": {
         "bending": 0.15,
         "body_thickness": 0.006
+       },
+       "over": {
+        "men": [
+         "tunic_skirt"
+        ],
+        "women": [
+         "dress_skirt"
+        ]
        }
+      },
+      "trousers": {
+       "kind": "legs",
+       "groups": [
+        "men"
+       ],
+       "ease": 1.08
+      },
+      "work_trousers": {
+       "kind": "legs",
+       "groups": [
+        "men"
+       ],
+       "ease": 1.1
       }
+     },
+     "edge": 0.026,
+     "lowpass": 0.5,
+     "parallel": 8,
+     "threads": 2,
+     "folds": {
+      "size": 1024
      }
     },
-    "args_note": "C throughout. The cut's ease (wide cut / fitted) after the dress research: the women's many-folded dress (IR-WOMEN, B for 'many-folded') 1.3; the knee-length tunics 1.15; the court robe 1.06 (its pleats are the reliefs' and baked in the mesh: drape.ts ROBE; more ease would undo them). Cloth: Blender's cloth settings for a medium wool or linen (vertex mass 0.2 kg, tension 15, shear 5, bending 0.5, the robe's stiffer 1.0, the dress's softer 0.3), collision 4 mm off the body, 60 frames at 24 fps (2.5 s: the drape settles), the gathered waist drawn in over the first 20. Groups' reference bodies: m03 (the outfits' reference), f02, c01. Arms are not colliders for skirts and upper garments (they swing in the game). Gathers: the waist of a gathered skirt is drawn in along a wave of 10 folds (the full-detail tube has 40 columns: 4 a fold) whose length is the wide cut's, so the cloth below buckles into folds; the court robe is not gathered (its pleats are baked). LODs 0-2: the far body (and the impostors baked from it) takes the drape too (shells share the mid LOD's geometry). The belt cinches: under it the upper garment is drawn in to 6 mm off the torso, the skirt's top band to 12 mm (a fuller cut of the upper garments settled as a pot belly in the first render, so they keep their fitted cut). The band under the belt is drawn in tight (the belt cinches it); the gathers start just below it. D-313: the belt is a tied sash (outfits.ts sashGeo): its band and knot pinned (from 3.5 cm below the belt's centre up), the two hanging ends free below, softer (bending 0.15: a narrow cloth strip), with the group's skirt as placed (men the tunic skirt, women the dress) joined to the body as the collider so the ends lie on the skirt, not through it. One drape set per group serves every costume of the group (the court robe takes the tunic's)."
+    "args_note": "C throughout. The cut's ease (wide cut / fitted) after the dress research: the women's many-folded dress (IR-WOMEN, B for 'many-folded') 1.3; the knee-length tunics 1.15; the court robe 1.06 (its pleats are the reliefs' and pressed into the cut's rest shape: drape.ts ROBE; more ease would undo them). D-322: the upper garments are cut 4 % fuller than their fitted shells between the pins (over the shoulders, under the belt: they blouse and fold instead of hugging the torso), the trousers 8-10 % about each leg below the waist band. Cloth: Blender's cloth settings for a medium wool or linen (vertex mass 0.2 kg, tension 15, shear 5, bending 0.5, the robe's stiffer 1.0, the dress's softer 0.3), quality 7, collision 4 mm off the body, 72 frames at 24 fps (3 s: the drape settles), the gathered waist drawn in over the first 20. Resolution (D-322): each piece's full-detail cut is Loop-subdivided until its mean edge is at most `edge` (2.6 cm): the simulations run at 1.3-2.6 cm; every level of detail samples the settled cloth at its own vertices through a Gaussian of `lowpass` × its edge length (what the level can carry without aliasing). Groups' reference bodies: m03 (the outfits' reference), f02, c01. Arms are not colliders for skirts, upper garments and trousers (they swing in the game). Gathers: the waist of a gathered skirt is drawn in along a wave of 10 folds whose length is the wide cut's, so the cloth below buckles into folds; the court robe is not gathered (its pleats are pressed). The belt cinches: under it the upper garment is drawn in to 6 mm off the torso, the skirt's top band to 12 mm. D-313: the belt is a tied sash (outfits.ts sashGeo): its band and knot pinned (from 3.5 cm below the belt's centre up), the two hanging ends free below, softer (bending 0.15). D-322 stage 2 (`over`): the sash settles over the group's settled skirt (men the tunic skirt, women the dress), the headcloth over the settled dress (D-313's see-through: it had settled on the body alone, inside the dress), the veil over the settled robe, the kandys over the settled tunic; each is kept `gap` (4 mm) outside them as drawn at each level. One drape set per group serves every costume of the group (the court robe takes the tunic's sash)."
    },
    "blender": {
     "script": "tools/blender/cloth.py"
@@ -517,12 +598,13 @@
    },
    "outputs": [
     "people_cloth.json",
-    "people_cloth.bin"
+    "people_cloth.bin",
+    "people_cloth_folds.png"
    ],
    "budget": {
-    "bytes": 3000000
+    "bytes": 6000000
    },
-   "budget_note": "download <= 3 MB (T-K7); no triangles or maps: the drape moves the pieces' own vertices (the costumes keep their budgets)",
+   "budget_note": "download <= 6 MB (T-K7; D-322: the fold layers, a 1024 x 2048 PNG, and the drape); no triangles of its own: the drape moves the pieces' own vertices (the costumes keep their budgets); GPU: the fold layers join the people's scan array (2 layers of 1024^2 RGBA, ~11 MB with mips)",
    "tier": "C",
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "ledger": "People's garment drape from Blender's cloth solver (public/models/people/people_cloth.*; D-307)"

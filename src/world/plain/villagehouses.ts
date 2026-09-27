@@ -27,6 +27,7 @@ import { TownDoors } from '../settlement/towndoors';
 import { fittingGeom, partDesc, farPoleEnds, type Desc } from '../settlement/build';
 import { siteFootprints } from '../settlement/footprints';
 import { Batch, lin, type RGB } from '../settlement/geom';
+import { modelFit } from '../../render/scanProps';
 import { lifeOf, parapetOf } from '../settlement/houseplan';
 import { hashString, Rng } from '../../core/rng';
 import { DOOR_H, toGrid, type P2, type Site, type Frame, type Plot } from '../settlement/site';
@@ -351,6 +352,9 @@ const emptyGeometry = () => new THREE.BufferGeometry().setAttribute('position', 
 export function binBox(f: Site['fittings'][0]) { const k = f.size; return { hu: 0.32 * k, hv: 0.5 * k, hy: 0.55 * k }; }
 function binGeom(s: Site, f: Site['fittings'][0], b: Batch, H: (e: number, n: number) => number, d: number) {
   const { hu, hv, hy } = binBox(f), g = s.grid(f.u, f.v), y = H(g[0], g[1]), c = lin([0.58, 0.49, 0.37]), th = s.frame.theta + f.rot;
+  // D-325: the modelled bin (rounded plastered corners, the lid over sticks, the outlet's plug), fitted to the bin's box
+  const mp = modelFit('bin', [2 * hu + 0.06, hy * 2 + 0.11, 2 * hv + 0.06], 1);
+  if (mp) { for (const [k, gg] of Object.entries(mp)) b.geo(g[0], g[1], y - 0.05, gg, th, k === 'lid' ? sh(c, 1.05) : k === 'dark' ? lin([0.25, 0.21, 0.17]) : c, d); return; }
   b.box(g[0], g[1], th, hu, hv, y - 0.05, y + hy * 2, sh(c, 0.75), c, d);
   b.box(g[0], g[1], th, hu + 0.03, hv + 0.03, y + hy * 2, y + hy * 2 + 0.06, sh(c, 0.9), sh(c, 1.05), d); // the lid
   const ca = Math.cos(th), sa = Math.sin(th), hole = lin([0.25, 0.21, 0.17]); // the outlet stopper low on the front (away from the wall)

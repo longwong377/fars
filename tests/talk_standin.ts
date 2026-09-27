@@ -24,7 +24,7 @@ const ASKS: [string, RegExp, (m: RegExpExecArray) => string | undefined][] = [
 const RECALL = /\b(remember|heard (?:anything )?(?:of|about) me|know me|met me before|seen me before|we met|what passed between us|what did i (?:ask|say)|who told you|spoken to you of me|(?:speak|talk|say) of (?:me|the stranger))\b/i;
 
 function swapPerson(s: string): string {
-  return s.replace(/\bthe foreign stranger spoke with you\b/gi, 'you spoke with me').replace(/\bHe said\b/g, 'You said').replace(/\bHe asked you\b/g, 'You asked me')
+  return s.replace(/\bthis same stranger spoke with you\b/gi, 'you spoke with me').replace(/\bHe said\b/g, 'You said').replace(/\bHe asked you\b/g, 'You asked me')
     .replace(/\bYou told him\b/g, 'I told you').replace(/\byou told him\b/g, 'I told you').replace(/\bYou would not\b/g, 'I would not').replace(/\byou would not\b/g, 'I would not')
     .replace(/\bYou (showed|walked|gave|fetched|traded|stopped|waited|went|heard)\b/g, 'I $1').replace(/\bshowed him\b/g, 'showed you').replace(/\bgave him\b/g, 'gave you').replace(/\btraded him\b/g, 'traded you')
     .replace(/\bwith him\b/g, 'with you').replace(/\bfor him\b/g, 'for you').replace(/\bas he urged\b/g, 'as you urged').replace(/\btold you\b/g, 'told me').replace(/\byour (wife|husband|mother|son|daughter|brother|sister|friend|neighbour|kinsman|kinswoman)\b/g, 'my $1')
@@ -34,7 +34,7 @@ function reply(msgs: Msg[]): string {
   const sys = msgs[0]?.content ?? ''; const last = msgs[msgs.length - 1]?.content ?? '';
   const name = /\nYou are ([^,]+),/.exec(sys)?.[1] ?? 'a man of the town';
   const now = /Right now: ([^;.\n]+)/.exec(sys)?.[1]?.trim(); const work = /Work: ([^.,\n]+)/.exec(sys)?.[1]?.trim();
-  const mem = /What you remember of the stranger: (.*)$/m.exec(sys)?.[1] ?? '';
+  const mem = /What you remember of the stranger: (.*)$/m.exec(sys)?.[1] ?? /^\(You remember: (.*?) If the stranger asks about it/m.exec(last)?.[1] ?? '';
   const ground = now ? `Just now I am ${now.replace(/^[a-z_ ]+: /, '')}.` : work ? `I am ${work}.` : '';
   if (/^\(The stranger comes up to you\.\)/.test(last)) return `Greetings, stranger. I am ${name}.`;
   const retell = /^\(You cannot do it: ([^.]*(?:\.[^.)]*)*?)\. Say so/.exec(last); if (retell) return `No, stranger, I cannot: ${retell[1]}. [refuse: ${retell[1]}]`;
