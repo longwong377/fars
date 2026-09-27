@@ -9,7 +9,7 @@
 // species whose model is absent, failed or switched off (?animals=0, ?models=0) draws its procedural stand-in.
 import * as THREE from 'three/webgpu';
 import type { Species } from './animals';
-import { rigWeights } from './animalForm';
+import { rigWeights } from './animalRig';
 
 export interface AnimalAsset { inHash: string; class: string; files: Record<string, { bytes: number; sha256: string }>; tris: [number, number]; tex: number; lod1At: number; tier: string; src: string }
 export interface AnimalModel { sp: Species; lods: THREE.BufferGeometry[]; albedo: THREE.Texture; nrm: THREE.Texture; lod1At: number; tris: number[] }

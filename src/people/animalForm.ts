@@ -648,33 +648,3 @@ export function coat(F: Form, p: V3, part: Part, group: Group, tag?: string): RG
   return [k, k, k, a];
 }
 
-// ------------------------------------------------------------------------------------------------------- rig weights
-/** the rig attributes of a loaded level's vertices (animals.ts: aLeg = (gait phase, leg weight, knee weight, fore/hind),
- *  aPiv = (hip y, z, knee y, z), aHT = (head weight, tail weight, pivot y, z)), from the anatomy: each vertex follows the
- *  group whose parts are nearest, blended where the smooth unions blend (the part distances), the legs' weight fading in
- *  over the hip and their lower weight over the knee. The weights are the procedural rig's (the same pivots and angles), so
- *  every gait, graze and lie cycle of the vertex shader drives the modelled body unchanged. */
-export function rigWeights(sp: Species, pos: ArrayLike<number>): { leg: Float32Array; piv: Float32Array; ht: Float32Array } {
-  const F = animalForm(sp), R = F.rig, B = ANIMAL_BUILD[sp], n = pos.length / 3, g = B.girth;
-  const leg = new Float32Array(n * 4), piv = new Float32Array(n * 4), ht = new Float32Array(n * 4);
-  const byG = new Map<Group, Prim[]>(); for (const p of F.prims) { const k = p.group === 'gear' ? 'body' : p.group; if (!byG.has(k)) byG.set(k, []); byG.get(k)!.push(p); }
-  const dG = (G: Group, x: number, y: number, z: number) => { let d = 1e9; for (const p of byG.get(G) ?? []) { const lb = Math.sqrt((x - p.c[0]) ** 2 + (y - p.c[1]) ** 2 + (z - p.c[2]) ** 2) - p.R; if (lb > d) continue; const v = p.f(x, y, z); if (v < d) d = v; } return d; };
-  const kL = Math.max(0.012, 0.07 * g), kH = Math.max(0.01, 0.06 * g), kT = Math.max(0.008, 0.04 * g);
-  const nLeg = R.legs.length;
-  for (let i = 0; i < n; i++) {
-    const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
-    const db = dG('body', x, y, z);
-    // legs: the nearest leg; its weight = (the leg nearer than the torso) x (below the hip)
-    let li = 0, dl = 1e9; for (let j = 0; j < nLeg; j++) { const d = dG(`leg${j}` as Group, x, y, z); if (d < dl) { dl = d; li = j; } }
-    const L = R.legs[li], wl = smoothstep(-kL, kL, db - dl) * smoothstep(R.hipY + 0.08 * g, R.hipY - 0.3 * g, y);
-    const wk = wl > 0 ? smoothstep(R.kneeY + B.leg * 1.4, R.kneeY - B.leg * 1.4, y) : 0;
-    leg.set([L.phase, wl, wk, L.fore], i * 4); piv.set([R.hipY, L.z, R.kneeY, L.zk], i * 4);
-    // head and tail
-    const dh = dG('head', x, y, z), dt = dG('tail', x, y, z);
-    const tN = dot(sub([x, y, z], R.base), R.neckDir) / R.neck;
-    const wh = Math.max(0, Math.min(1, smoothstep(-kH, kH, Math.min(db, dl) - dh) * smoothstep(-0.25, 0.2, tN) - wl));
-    const wt = smoothstep(-kT, kT, Math.min(db, dl) - dt) * (1 - wl);
-    if (wh >= wt) ht.set([wh, 0, R.base[1], R.base[2]], i * 4); else ht.set([0, wt, R.tailRoot[1], R.tailRoot[2]], i * 4);
-  }
-  return { leg, piv, ht };
-}

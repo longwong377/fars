@@ -22,7 +22,7 @@ import { loadAnimalModels } from '../../src/people/animalModels';
   const list: Species[] = (P.get('sp')?.split(',') as Species[]) ?? SPECIES;
   // the layout: species along x (spaced by their length), states along z
   const xs: number[] = []; { let x = 0; for (const sp of list) { const L = ANIMAL_BUILD[sp].len; xs.push(x + L * 0.5); x += Math.max(L, 0.9) * 0.9 + 0.6; } }
-  (window as any).__layout = list.map((sp, i) => ({ sp, x: xs[i] }));
+  (window as any).__layout = list.map((sp, i) => ({ sp, x: xs[i] })); (window as any).__len = (sp: Species) => ANIMAL_BUILD[sp].len;
   const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), S1 = new THREE.Vector3(1, 1, 1);
   (window as any).__shot = async (v: { az: number; el: number; dist: number; target: [number, number, number]; t: number; states?: string[]; yaw?: number; only?: string[]; fov?: number; sunAz?: number; sunEl?: number }) => {
     const states = v.states ?? ['stand', 'walk', 'graze', 'lie'];

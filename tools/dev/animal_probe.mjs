@@ -14,6 +14,7 @@ console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) /
 const layout = await p.evaluate(() => window.__layout);
 const shots = SHOTS ?? layout.map(l => ({ name: l.sp, az: 55, el: 14, dist: 3 + 2.2 * (l.len ?? 1), target: [l.x, 0.7, 4.8], t: 3.1 }));
 for (const v of shots) {
+  if (v.sp) { const l = layout.find(q => q.sp === v.sp); const B = await p.evaluate(sp => window.__len(sp), v.sp); v.target = [l.x, B * 0.45, 4.8]; v.dist = 4.5 + 5.5 * B; }
   const res = await p.evaluate(v => window.__shot(v), v);
   await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/animal-${v.name}-${TAG}.png` }); console.log(v.name, JSON.stringify(res), (Date.now() - t0) / 1000);
 }
