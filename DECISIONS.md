@@ -6961,3 +6961,15 @@ moment-*-webgpu.png in the worktree, not committed).**
   layer** (English, out of world); heard, the person speaks in their own voice with attested words where they exist and
   period prosody otherwise; an English voice is an out-of-world option. (5) Without a capable GPU the people live as now.
 - **Measure:** T-E9 (≥ 95 % of the conversation test set answered in character within 4 s, nothing anachronistic).
+
+## D-297 The fires' light at the eye weighted by the view direction (session 11)
+- **Problem:** every night-sky view from the Terrace rendered black (zodiacal-mar, meteor-terrace, eclipse-terrace,
+  eclipse-moon-tele: frame means 0.4-0.7, exposure pinned at X_MIN 0.35), batched or on a fresh load. On the open plain the
+  same night exposed at X_MAX 6. The eye's adaptation summed each fire's illuminance "on a surface facing each fire"
+  (fire.ts localIlluminance), so a brazier behind the head closed the eye as if the player stared into it.
+- **Decision (C):** with a view direction the fire's light at the eye is that on a surface facing the view: the cosine
+  term, with a floor FIRE_SCATTER 0.15 of the facing value for the light the fire returns off the ground and walls round the
+  eye. main.ts passes the camera's view direction; the coverage harness's fireLux keeps the facing-every-fire value.
+- **Measured (?norender probe, day 322, the Terrace at [-36, 125] looking W at 16°):** 19:42 and 23:00 exposure 0.35 → 1.84;
+  the open plain at 23:00 stays 6; noon stays 0.99. Tests: the fire and exposure tests 32/32. Renders: the four night views
+  re-rendered after this entry (sessions/s11.md).
