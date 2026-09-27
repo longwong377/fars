@@ -48,3 +48,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-295 | s11 | the lead: CC0 scanned surface detail over the procedural surfaces; the adapter's texture limit (B7, B24) | s11-scans | in progress (branch s11-scans, merges into claude/amazing-fermi-40ds7j) |
 | D-296 | s11 | speaking with the people (UD-18, T-E9): baked lives, in-browser speech recognition, language model and voices, the translation layer (Q-770..Q-779, B97..B99) | agent worktree (conversation) | in progress |
 | D-297 | s11 | the lead: the fires' light at the eye weighted by the view direction (night views black beside a brazier) | claude/amazing-fermi-40ds7j | in progress |
+| D-298 | s11 | the lead: the sun against JPL Horizons (B2) | claude/amazing-fermi-40ds7j | done |

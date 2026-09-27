@@ -7002,3 +7002,11 @@ moment-*-webgpu.png in the worktree, not committed).**
   loose dress hide it). `morning-wash` is posed, NOT rendered. The impostors (people at distance) draw no belly.
 - **Not done:** the quarrel that comes to blows (GC25); a cut hand bound (GC23's other half); lament (GA29's other half);
   scratching (GB43).
+
+## D-298 The sun checked against JPL Horizons (session 11; B2, §13.6)
+- **Data:** the Horizons API (reachable from the GPU machine) queried exactly as tests/sky/horizons_request.txt asks, twice:
+  airless and refracted apparent positions (data/horizons/sun.csv = refracted, sun_airless.csv kept; public domain).
+- **Result:** src/sky/ephemeris.ts sunHorizon returns the refracted (apparent) altitude. Against Horizons' refracted
+  output the worst of 32 rows above 2° is **0.040°** (tests/sky.horizons.test.ts, threshold 0.1°: passes). Against the
+  airless output it read 0.129° worst, all of it refraction (mean Δalt 0.112° below 10° elevation, 0.015° above 20°): the
+  test compares like with like now. B2 resolved.
