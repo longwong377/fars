@@ -6,6 +6,13 @@ achieved and measured; it governs over older task lists and handoffs), with its 
 then read `PROGRESS.md`, `TASKS.md`, `DECISIONS.md`, `BLOCKERS.md` and resume from the first unfinished task.
 If the user types only "continue", that is what it means.
 
+**The first question of every session, before any task list (UD-19, session 11's failure):** look at the whole world in a few
+renders and ask "does this read as a photograph of a real place?" While the answer is no, the session's work is BULK
+REPLACEMENT of whatever makes it read as CG — the lighting, and every class of placeholder shape across the whole world (rocks,
+plants, props, buildings, people), with real modelled or scanned assets, several agents in parallel — not polishing single
+assets, not per-change reviews, not process. Verification is one batched render at the end. If a plan's next step is a detail
+(one capital's proportions, one room's props) while the world as a whole reads as CG, the plan is wrong: say so and change it.
+
 ## Intent (§1.1)
 A time capsule: stepping through a door into a place that was real and is gone. Presence through the body
 (true scale, walking pace, no fast travel). Restraint: no narrator, tutorial, score, waypoints, minimap or in-world HUD.
