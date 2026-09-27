@@ -28,7 +28,7 @@ import { loadAnimalModels } from '../../src/people/animalModels';
     const states = v.states ?? ['stand', 'walk', 'graze', 'lie'];
     A.begin(v.t, null);
     list.forEach((sp, i) => { if (v.only && !v.only.includes(sp)) return; states.forEach((s, j) => {
-      const a: AnimalInst = { sp, x: 0, z: 0, yaw: 0, phase: v.t * 2.4 + i, walk: s === 'walk' ? 1 : 0, graze: s === 'graze' ? 1 : 0, lie: s === 'lie' ? 1 : 0, coat: ((i * 7 + j * 3) % 10) / 10 };
+      const a: AnimalInst = { sp, x: 0, z: 0, yaw: 0, phase: v.t * 2.4 + i, gait: s === 'trot' ? 1 : s === 'hop' ? 2 : undefined, walk: s === 'walk' || s === 'trot' || s === 'hop' ? 1 : 0, graze: s === 'graze' ? 1 : 0, lie: s === 'lie' ? 1 : 0, coat: ((i * 7 + j * 3) % 10) / 10 };
       Q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), v.yaw ?? Math.PI / 2); M.compose(new THREE.Vector3(xs[i], 0, j * 3.2), Q, S1); A.push(a, M); }); });
     A.end();
     cam.fov = v.fov ?? 40; cam.updateProjectionMatrix();

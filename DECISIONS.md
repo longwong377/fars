@@ -7953,3 +7953,18 @@ T-E10-gpu-run3.json, T-E9-gpu-run3.json.
 - **Still placeholder (flag kept):** the drawing of the figures is the procedural reconstruction (relief_figures.ts, C) until
   licensed scans or measured drawings replace it (NEEDS #10); the undercut depth and the AO reach are C. The wall around a
   figure gets no baked contour occlusion (the relief mesh ends one level-cell past the outline; the sun shadows are D-226's).
+- **Round 2 (the lead's review, same session).** Measured against photographs of each species (C): the canids' and the
+  cats' heads rebuilt as a cranium, cheek arches, a stop and a short tapering muzzle (the canids' about 40% of the head, the
+  cats' about 30%, with whisker pads), nose leather and triangular ears; the carnivores' necks lengthened and raised so the
+  head stands above the withers (it was level with the back: the "anteater" read); the lion's mane shaped (a shell over
+  the neck's crest, behind the ears, the cheeks' frame, the throat and the chest; the Asiatic lion's shorter mane) and its
+  head broader (headR 0.145); the stag's antlers a burr, a long beam curving out and back with brow and trez tines and a
+  small crowned palm (the Mesopotamian fallow buck's weak palmation); the fowl rebuilt (a keel, a back rising to the tail,
+  folded wings, the hen's narrow upright fan, the cock's arched sickles and saddle hackles, a short hackled neck, a blade
+  comb with points, wattles, spurs); the camels' sternal pad a flat bare callus. The rig: a second head joint at the poll
+  (Q-980: the skull's weight stored as -aHT.y; at rest the equids carry their heads at 0.95 rad, the cattle 0.8, the small
+  stock 0.75, and grazing the poll straightens that to 0.55 before the neck brings the muzzle down); gaits in the vertex
+  shader (gaitW / gaitOffset: 0 the lateral walk, 1 the trot with the diagonal pairs together and a larger swing and bounce,
+  2 the hare's bound with the fore pair and then the hind pair); every hare bounds, and a wild animal pushed off by the
+  player trots or runs (beasts.ts keepAway gait 1). Not done: a mid-neck joint (the neck pivots at its root), a canter or
+  gallop, per-species proportion tables within a family.
