@@ -3,16 +3,16 @@
  "assets": {
   "capital_protome": {
    "file": "models/capital_protome.glb",
-   "inHash": "b3a237016d1986dc0821f69e7f693a0dd57c69f9c4f6637ac1c318c78688e9d4",
-   "outHash": "b11b839e90cebf060e9db9169608fca3ad3853a92c6d436a7bdafe7be96e405e",
-   "bytes": 3260104,
-   "gpuBytes": 6520387,
+   "inHash": "1f4476abdff359b2ebc8212b8d35226595551aaae26c97fd917afae650b21c7c",
+   "outHash": "1d49a9217813c5b5e5d8aa3f52e8d278d7ce4e68a286f7e31c6218c2eeb972fa",
+   "bytes": 3246044,
+   "gpuBytes": 6488779,
    "textures": "ktx2",
    "lods": [
     {
      "name": "lod0",
-     "tris": 8816,
-     "verts": 13134,
+     "tris": 8790,
+     "verts": 12632,
      "attrs": [
       "NORMAL",
       "POSITION",
@@ -24,14 +24,14 @@
       "w": 2048,
       "h": 2048,
       "format": "ktx2",
-      "bytes": 2978307
+      "bytes": 2972647
      },
-     "ao_mean": 0.4978
+     "ao_mean": 0.5147
     },
     {
      "name": "lod1",
      "tris": 1074,
-     "verts": 1906,
+     "verts": 1756,
      "attrs": [
       "NORMAL",
       "POSITION",
@@ -43,9 +43,9 @@
       "w": 256,
       "h": 256,
       "format": "ktx2",
-      "bytes": 77553
+      "bytes": 77946
      },
-     "ao_mean": 0.8603
+     "ao_mean": 0.8514
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
@@ -53,18 +53,17 @@
    "src": "RECON;IR-COL;PHOTO-CAP",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 38.9,
-   "build_s": 117,
+   "bake_s": 71.5,
+   "build_s": 355,
    "reproduced": {
-    "outHash": "b11b839e90cebf060e9db9169608fca3ad3853a92c6d436a7bdafe7be96e405e",
+    "outHash": "1d49a9217813c5b5e5d8aa3f52e8d278d7ce4e68a286f7e31c6218c2eeb972fa",
     "device": "CPU",
-    "blender": "5.0.1",
-    "mode": "bytes"
+    "blender": "5.0.1"
    }
   },
   "capital_volute": {
    "file": "models/capital_volute.glb",
-   "inHash": "3490dddf130588e7694f53ea5de824e15e3069f73ac28e8f2e50e44b408d3fbc",
+   "inHash": "b4375779a316b8e36c2521814ac36e8830d5a2ab2b09916c646cce7d16675f70",
    "outHash": "2b825689226bd66551eec33279c55377fdd0a1d3ce964ac1d6ec9ba5515bd398",
    "bytes": 915616,
    "gpuBytes": 1690851,
@@ -114,27 +113,26 @@
    "src": "RECON;IR-COL;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 15,
-   "build_s": 33,
+   "bake_s": 26.3,
+   "build_s": 67,
    "reproduced": {
     "outHash": "2b825689226bd66551eec33279c55377fdd0a1d3ce964ac1d6ec9ba5515bd398",
     "device": "CPU",
-    "blender": "5.0.1",
-    "mode": "bytes"
+    "blender": "5.0.1"
    }
   },
   "colossus_bull": {
    "file": "models/colossus_bull.glb",
-   "inHash": "d8820c985627e33c700909dd014bd3338311c1fa98c5f3e925fc542c853d205f",
-   "outHash": "4ac952c6037118cb7375d31a7d90744159709c47dc87a2293d450cb51159e2aa",
-   "bytes": 2930000,
-   "gpuBytes": 9101243,
+   "inHash": "9b819edffd6d50c2e8dad7aeb38bb3abb1533add42e0c7c3840cfe07383b3b6d",
+   "outHash": "58138eed5cdd4e02c349be51d537062db37a2493c76fef3b3b426f701c5a7a6a",
+   "bytes": 2933940,
+   "gpuBytes": 9079691,
    "textures": "ktx2",
    "lods": [
     {
      "name": "lod0",
-     "tris": 49116,
-     "verts": 47857,
+     "tris": 49162,
+     "verts": 47443,
      "attrs": [
       "NORMAL",
       "POSITION",
@@ -146,14 +144,14 @@
       "w": 2048,
       "h": 2048,
       "format": "ktx2",
-      "bytes": 2193224
+      "bytes": 2198701
      },
-     "ao_mean": 0.538
+     "ao_mean": 0.5377
     },
     {
      "name": "lod1",
-     "tris": 4860,
-     "verts": 4468,
+     "tris": 4874,
+     "verts": 4418,
      "attrs": [
       "NORMAL",
       "POSITION",
@@ -165,9 +163,9 @@
       "w": 512,
       "h": 512,
       "format": "ktx2",
-      "bytes": 132261
+      "bytes": 135889
      },
-     "ao_mean": 0.5601
+     "ao_mean": 0.5692
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
@@ -175,19 +173,18 @@
    "src": "RECON;IR-PERS;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 42.9,
-   "build_s": 113,
+   "bake_s": 69.3,
+   "build_s": 221,
    "reproduced": {
-    "outHash": "4ac952c6037118cb7375d31a7d90744159709c47dc87a2293d450cb51159e2aa",
+    "outHash": "58138eed5cdd4e02c349be51d537062db37a2493c76fef3b3b426f701c5a7a6a",
     "device": "CPU",
-    "blender": "5.0.1",
-    "mode": "bytes"
+    "blender": "5.0.1"
    }
   },
   "colossus_lamassu": {
    "file": "models/colossus_lamassu.glb",
-   "inHash": "40360842aad73089d06c5ce05a3cc8aade152761407386e4d6d9b093fc59a50d",
-   "outHash": "5f8fe6435a5e07fdde0e5d8f053b839c808d0932a8f052f1bac4fdf8ecd3034a",
+   "inHash": "c61869898af1104448c640233d8a9c4e43e963632294c883e8fde15942874144",
+   "outHash": "f0750f2904f704eb6ecc8d2ea3be5e8b2d9b97d2105d13bc3f3479de9fad7cca",
    "bytes": 3400792,
    "gpuBytes": 9594527,
    "textures": "ktx2",
@@ -236,51 +233,12 @@
    "src": "RECON;IR-PERS;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 41.2,
-   "build_s": 134,
+   "bake_s": 53.9,
+   "build_s": 264,
    "reproduced": {
-    "outHash": "5f8fe6435a5e07fdde0e5d8f053b839c808d0932a8f052f1bac4fdf8ecd3034a",
+    "outHash": "f0750f2904f704eb6ecc8d2ea3be5e8b2d9b97d2105d13bc3f3479de9fad7cca",
     "device": "CPU",
-    "blender": "5.0.1",
-    "mode": "content",
-    "rebuilt": "f0750f2904f704eb6ecc8d2ea3be5e8b2d9b97d2105d13bc3f3479de9fad7cca",
-    "geometry": true,
-    "geo": [
-     {
-      "mesh": "lod0",
-      "differ": 1,
-      "frac": 0.000001189617966086371,
-      "max": 0.0004884004592895508
-     },
-     {
-      "mesh": "lod1",
-      "differ": 0,
-      "frac": 0,
-      "max": 0
-     }
-    ],
-    "maps": [
-     {
-      "differ": 0,
-      "frac": 0,
-      "max": 0
-     },
-     {
-      "differ": 0,
-      "frac": 0,
-      "max": 0
-     }
-    ],
-    "tol": {
-     "maps": {
-      "frac": 0.0001,
-      "max": 8
-     },
-     "geo": {
-      "frac": 0.0001,
-      "max": 0.001
-     }
-    }
+    "blender": "5.0.1"
    }
   }
  }
