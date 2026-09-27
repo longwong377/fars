@@ -14,7 +14,7 @@ import type { Decision, TalkEvent } from '../talk';
 import type { Mind, Answer } from './mind';
 import type { Turn, Knows } from './prompt';
 import { lifeRecord } from './life';
-import { groundLine, isRecallQuestion } from './ground';
+import { groundFact, isRecallQuestion } from './ground';
 import { hearAsPerson } from './hear';
 import { requestOf, looseRequest, tagAsked, wordsRefuse, type Intent, type Deed } from './intent';
 
@@ -61,9 +61,10 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   // (after run 3: asked about earlier meetings, the simulation picks the ONE remembered fact and the model only says it in
   // its own words; otherwise the one life fact most relevant to the words goes next to them: ground.ts)
   const recallQ = talkOpts.pick && isRecallQuestion(said) && !request; const fact = recallQ ? sim.talk.recallFact(pid, t).fact : undefined;
-  const ground = talkOpts.pick && !recallQ ? groundLine(L, said) : '';
-  let answer = fact ? await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: [], userText: `The stranger says: “${hearAsPerson(said).text}”\n(Tell him this, in your own words, as yourself, in one or two sentences: “${fact}”)` })
-    : await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: near ? [] : memory, note, before: [before, ground].filter(Boolean).join('\n') || undefined });
+  // (run 4: the fact BEFORE the stranger's words took T-E9 from 62.5 % to 52.8 %: run 5 puts it in the closing note, last)
+  const ground = talkOpts.pick && !recallQ ? groundFact(L, said) : undefined;
+  let answer = fact ? await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: [], userText: `The stranger says: “${hearAsPerson(said).text}” (Answer as ${L.name}. What you remember: ${fact} Tell him that, in your own words, keeping what happened and who it was.)` })
+    : await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: near ? [] : memory, note, before, ground });
   const tag = answer.intent ?? null;
   const ask = request ?? (tagAsked(tag, said) ? tag : null); // (a tag the stranger's words give no cue for is the model's, not an ask)
   // (a "no" in the words: the refuse tag; else, when something was asked, the judge (the loaded model: YES or NO), and the

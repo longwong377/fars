@@ -79,7 +79,10 @@ export function requestOf(said: string): Intent | null {
 /** a reply's words refuse (the person's own "no"), for words and deeds to agree (the sim never makes a "no" do it) */
 export function wordsRefuse(words: string): boolean {
   words = words.replace(/[’‘]/g, "'"); // (run 3: "Can’t leave work." was missed: the model's curly apostrophe)
-  return /\b(no[,.! ]|not now|i'm tied|i am tied|tied to|i am ill|i'm ill|i am sick|i'm sick|must stay|have to stay|can't leave|cannot leave|must not leave|not going to|can't just|cannot just|no time|i am busy|i'm busy|not mine to|not for strangers|sorry|i cannot|i can't|i can not|i will not|i won't|i must not|i may not|i dare not|not allowed|forbidden|go away|leave me|find someone else|ask someone else|another time|not today)\b/i.test(` ${words} `);
+  // (a bare "No," / "No." never matched here before session 12's fourth GPU run: the closing \b cannot follow a comma and a
+  // space; it is tested on its own now)
+  if (/(^|[^a-z'])no(?=[\s,.!;:]|$)(?! one\b| doubt\b| matter\b)/i.test(words)) return true;
+  return /\b(not now|i'm tied|i am tied|tied to|i am ill|i'm ill|i am sick|i'm sick|must stay|have to stay|can't leave|cannot leave|must not leave|not going to|can't just|cannot just|no time|i am busy|i'm busy|not mine to|not for strangers|sorry|i cannot|i can't|i can not|i will not|i won't|i must not|i may not|i dare not|not allowed|forbidden|go away|leave me|find someone else|ask someone else|another time|not today)\b/i.test(` ${words} `);
 }
 
 // D-315 (the first GPU run, session 12): a real 1-2 B model writes tags the stranger never asked for ("[go_home]" to "I am

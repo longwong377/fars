@@ -13,7 +13,7 @@ import { systemPrompt } from '../people/converse/prompt';
 import { bakeMessages, parseBake, checkBake, type Baked } from '../people/converse/bake';
 import { buildTalkSet, runTalkSet } from '../people/converse/talkset';
 import { talkOpts } from '../people/converse/turn';
-import { groundLine } from '../people/converse/ground';
+import { groundFact } from '../people/converse/ground';
 
 const $ = (id: string) => document.getElementById(id)!;
 const P = new URLSearchParams(location.search);
@@ -53,7 +53,7 @@ const lab = {
   /** T-E9: the whole seeded set, typed (or through speech recognition when `spoken` gives each case's 16 kHz samples) */
   testSet: async (n = 72, from = 0, to = 1e9) => {
     const S = await world(); const T = buildTestSet(S.pop, SEED, n).slice(from, to); const out: Scored[] = [];
-    for (const c of T) { const L = lifeRecord(S.pop, S.cal, c.pid, c.day, c.hour); const a = await mind.answer(L, 'none', [], c.prompt, null, 64, talkOpts.pick ? { before: groundLine(L, c.prompt) } : {}); out.push({ ...score(c, L, a.text, a.totalMs, a.ttftMs, a.tries, a.ok), primeMs: a.primeMs, raw: a.raw, tokens: a.tokens } as any); }
+    for (const c of T) { const L = lifeRecord(S.pop, S.cal, c.pid, c.day, c.hour); const a = await mind.answer(L, 'none', [], c.prompt, null, 64, talkOpts.pick ? { ground: groundFact(L, c.prompt) } : {}); out.push({ ...score(c, L, a.text, a.totalMs, a.ttftMs, a.tries, a.ok), primeMs: a.primeMs, raw: a.raw, tokens: a.tokens } as any); }
     return out;
   },
   /** D-315 (T-E10): the request-and-recall set with the loaded model: requests [from, to) of the seeded set and their recalls,

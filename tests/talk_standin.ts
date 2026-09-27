@@ -40,7 +40,7 @@ function reply(msgs: Msg[]): string {
   // the judge (ground.ts judgePrompt): a small model asked YES or NO
   if (/^You judge short replies/.test(sys)) { const r = /They replied: “([^”]*)”/.exec(last)?.[1] ?? ''; return /\b(no|cannot|can't|would not)\b/i.test(r) ? 'NO' : /\b(yes|i will|come|this way|here)\b/i.test(r) ? 'YES' : 'UNSURE'; }
   // a fact the simulation picked, to be said in its own words (turn.ts): a small model keeps most of it
-  const told = /\(Tell him this, in your own words, as yourself, in one or two sentences: “([^”]*)”\)/.exec(last)?.[1]; if (told) return `${/^I have never/.test(told) ? 'No, stranger.' : 'Yes, stranger.'} ${told} [none]`;
+  const told = /What you remember: (.*?) Tell him that, in your own words/.exec(last)?.[1]; if (told) return `${/^I have never/.test(told) ? 'No, stranger.' : 'Yes, stranger.'} ${told} [none]`;
   const retell = /^\(You cannot do it: ([^.]*(?:\.[^.)]*)*?)\. Say so/.exec(last); if (retell) return `No, stranger, I cannot: ${retell[1]}. [refuse: ${retell[1]}]`;
   const said = /The stranger says: “([^”]*)”/.exec(last)?.[1] ?? '';
   const cannot = /\(You cannot do this: (.*?)\.\)/.exec(last)?.[1]; const can = /\((You can do this|You may say yes)/.test(last);
