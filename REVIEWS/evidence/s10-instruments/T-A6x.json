@@ -1,0 +1,17 @@
+{
+ "id": "T-A6x",
+ "value": 0.6988,
+ "n": 167,
+ "commit": "cb24406",
+ "tool": "tools/dev/areas.ts",
+ "dep": "fd46f382b625",
+ "unit": "km2",
+ "status": "PASS",
+ "largest": "zone:zone_bagh_e_firuzi:5",
+ "interior_largest": {
+  "id": "terrace:apadana:interior:7",
+  "ha": 0.2258
+ },
+ "over_limit": [],
+ "note": "polygon area of each unique area (≥ its walkable ground); interiors: roof parts or ≥ 50 % roofed by the envelope's up-ray, limit 0.25 ha"
+}

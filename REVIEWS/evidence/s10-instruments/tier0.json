@@ -1,0 +1,11987 @@
+{
+ "tool": "tools/dev/tier0.ts",
+ "commit": "cb24406",
+ "dep": "3bc32392c471",
+ "registry_dep": "fd46f382b625",
+ "spacing_m": 5,
+ "spacing_transect_m": 4,
+ "view_r_m": 200,
+ "repetition_r_m": 30,
+ "note": "Tier 0 per-area summary (MASTER_PLAN §4.2). No row of gates/thresholds.json names tools/dev/tier0.ts, so this file carries no id and moves no board cell. Near-level meshes the game builds only round the camera are read at the offline world's level; drawn-vs-collider covers the terrain and the Terrace only.",
+ "meta": {
+  "areas": 167,
+  "cells_planned": 813966,
+  "cells_run": 813966,
+  "sampled_areas": 0,
+  "budget_min": 30,
+  "run_s": 53,
+  "objects": {
+   "meshes": 468,
+   "instances": 3575,
+   "flaggedRecords": 87,
+   "faceSampled": 112356
+  }
+ },
+ "areas": {
+  "transect": {
+   "kind": "transect",
+   "spacing_m": 4,
+   "stride": 1,
+   "cells": 15958,
+   "standable": 15564,
+   "reached_pct": 99.51,
+   "unreached_standable": 77,
+   "unreached_examples": [
+    [
+     -994,
+     3522,
+     -8.58
+    ],
+    [
+     -986,
+     3486,
+     -8.76
+    ],
+    [
+     -986,
+     3514,
+     -8.59
+    ],
+    [
+     -982,
+     3446,
+     -9.09
+    ],
+    [
+     -982,
+     3462,
+     -8.95
+    ],
+    [
+     -982,
+     3474,
+     -8.84
+    ],
+    [
+     -974,
+     3490,
+     -8.72
+    ],
+    [
+     -974,
+     3498,
+     -8.66
+    ],
+    [
+     -974,
+     3538,
+     -7.7
+    ],
+    [
+     -966,
+     3466,
+     -8.91
+    ],
+    [
+     -966,
+     3474,
+     -8.84
+    ],
+    [
+     -962,
+     3466,
+     -7.48
+    ]
+   ],
+   "unreached_tops": 394,
+   "collider_vs_drawn": {
+    "n": 13546,
+    "over_5cm_pct": 0.44,
+    "worst_m": 0.108,
+    "worst_at": [
+     -34,
+     142
+    ],
+    "undrawn_floor": 43,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 15.49,
+    "max_records": 82,
+    "top": [
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 2464
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op:pick",
+      "cells": 2459
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 2458
+     },
+     {
+      "key": "inscriptions/inscription:XPa:bab",
+      "cells": 2454
+     },
+     {
+      "key": "inscriptions/inscription:XPa:bab:pick",
+      "cells": 2454
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 7,
+    "max": 2528,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 591
+     },
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 582
+     },
+     {
+      "key": "doors/doors:bosses",
+      "cells": 172
+     },
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 24
+     },
+     {
+      "key": "architecture/tachara:columns:lod1",
+      "cells": 13
+     }
+    ]
+   },
+   "ms": 1133
+  },
+  "terrace:apadana:interior:1": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 16,
+   "standable": 16,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 16,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -52.5,
+     -37.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 70,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 16
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 16
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 16
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 16
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 16
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 5,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 10
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 6
+     }
+    ]
+   },
+   "ms": 10
+  },
+  "terrace:apadana:interior:10": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 18,
+   "standable": 18,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 18,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     62.5,
+     27.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 72,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 18
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 18
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 18
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 18
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 18
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 5,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 13
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 5
+     }
+    ]
+   },
+   "ms": 7
+  },
+  "terrace:apadana:interior:2": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12,
+   "standable": 12,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 12,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -57.5,
+     2.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 70,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 12
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 12
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 5,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 10
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 2
+     }
+    ]
+   },
+   "ms": 1
+  },
+  "terrace:apadana:interior:3": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 80,
+   "standable": 62,
+   "reached_pct": 96.77,
+   "unreached_standable": 2,
+   "unreached_examples": [
+    [
+     -12.5,
+     -27.5,
+     3
+    ],
+    [
+     -12.5,
+     -17.5,
+     3
+    ]
+   ],
+   "unreached_tops": 18,
+   "collider_vs_drawn": {
+    "n": 60,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -42.5,
+     -32.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 72,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 80
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 2528,
+    "max": 2528,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 31
+     },
+     {
+      "key": "doors/doors:bosses",
+      "cells": 28
+     },
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 21
+     }
+    ]
+   },
+   "ms": 32
+  },
+  "terrace:apadana:interior:4": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 88,
+   "standable": 71,
+   "reached_pct": 95.77,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     -12.5,
+     7.5,
+     3
+    ],
+    [
+     -12.5,
+     17.5,
+     3
+    ],
+    [
+     -12.5,
+     47.5,
+     3
+    ]
+   ],
+   "unreached_tops": 17,
+   "collider_vs_drawn": {
+    "n": 68,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -17.5,
+     47.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 70,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 88
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 88
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 88
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 88
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 88
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 2528,
+    "max": 2528,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 33
+     },
+     {
+      "key": "doors/doors:bosses",
+      "cells": 28
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 27
+     }
+    ]
+   },
+   "ms": 40
+  },
+  "terrace:apadana:interior:5": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 0,
+   "standable": 0,
+   "reached_pct": null,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 1
+  },
+  "terrace:apadana:interior:6": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 80,
+   "standable": 65,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 15,
+   "collider_vs_drawn": {
+    "n": 65,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     47.5,
+     -2.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 74,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 80
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 2528,
+    "max": 2528,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 29
+     },
+     {
+      "key": "doors/doors:bosses",
+      "cells": 28
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 23
+     }
+    ]
+   },
+   "ms": 41
+  },
+  "terrace:apadana:interior:7": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 88,
+   "standable": 74,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 14,
+   "collider_vs_drawn": {
+    "n": 74,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     42.5,
+     22.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 72,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 88
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 88
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 88
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 88
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 88
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 2528,
+    "max": 2528,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 37
+     },
+     {
+      "key": "doors/doors:bosses",
+      "cells": 28
+     },
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 23
+     }
+    ]
+   },
+   "ms": 45
+  },
+  "terrace:apadana:interior:8": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 0,
+   "standable": 0,
+   "reached_pct": null,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 0
+  },
+  "terrace:apadana:interior:9": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 24,
+   "standable": 24,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 24,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     57.5,
+     -32.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 81,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 24
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 24
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 24
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 24
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 24
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 6,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 16
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 8
+     }
+    ]
+   },
+   "ms": 5
+  },
+  "terrace:gate_nations:interior": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 36,
+   "standable": 24,
+   "reached_pct": 87.5,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     12.5,
+     112.5,
+     0
+    ],
+    [
+     12.5,
+     117.5,
+     0
+    ],
+    [
+     12.5,
+     132.5,
+     0
+    ]
+   ],
+   "unreached_tops": 10,
+   "collider_vs_drawn": {
+    "n": 22,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     12.5,
+     122.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 16,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 36
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 36
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 36
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 36
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 36
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 12,
+    "p95": 20,
+    "max": 20,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 36
+     }
+    ]
+   },
+   "ms": 3
+  },
+  "terrace:hadish:interior": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 48,
+   "standable": 39,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 9,
+   "collider_vs_drawn": {
+    "n": 39,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     32.5,
+     -142.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 48
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 48
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 48
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 48
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 48
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 24,
+    "p95": 34,
+    "max": 35,
+    "top": [
+     {
+      "key": "architecture/hadish:columns:lod1",
+      "cells": 44
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 4
+     }
+    ]
+   },
+   "ms": 11
+  },
+  "terrace:harem:interior": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 20,
+   "standable": 20,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 20,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     122.5,
+     -127.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 2
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 20
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 20
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 20
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 20
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 20
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 16,
+    "p95": 32,
+    "max": 32,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 17
+     },
+     {
+      "key": "architecture/harem:columns:lod1",
+      "cells": 3
+     }
+    ]
+   },
+   "ms": 4
+  },
+  "terrace:tachara:interior": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 42,
+   "standable": 26,
+   "reached_pct": 96.15,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     -32.5,
+     -67.5,
+     3.26
+    ]
+   ],
+   "unreached_tops": 16,
+   "collider_vs_drawn": {
+    "n": 25,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -12.5,
+     -62.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 80,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 42
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 42
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 42
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 42
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 42
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 36,
+    "p95": 56,
+    "max": 60,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 42
+     }
+    ]
+   },
+   "ms": 8
+  },
+  "terrace:treasury:interior:1": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1,
+   "standable": 1,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     147.5,
+     -82.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 1
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 1
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 1
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 1
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 1
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 3,
+    "p95": 3,
+    "max": 3,
+    "top": [
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 8
+  },
+  "terrace:treasury:interior:2": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 72,
+   "standable": 68,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 4,
+   "collider_vs_drawn": {
+    "n": 68,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     197.5,
+     -102.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 73,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 72
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op",
+      "cells": 72
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op:pick",
+      "cells": 72
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el",
+      "cells": 72
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el:pick",
+      "cells": 72
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 37,
+    "p95": 41,
+    "max": 43,
+    "top": [
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 72
+     }
+    ]
+   },
+   "ms": 17
+  },
+  "terrace:treasury:interior:3": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 19,
+   "standable": 16,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 3,
+   "collider_vs_drawn": {
+    "n": 16,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     197.5,
+     -82.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 19
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op",
+      "cells": 19
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op:pick",
+      "cells": 19
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el",
+      "cells": 19
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el:pick",
+      "cells": 19
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 23,
+    "p95": 38,
+    "max": 38,
+    "top": [
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 19
+     }
+    ]
+   },
+   "ms": 5
+  },
+  "terrace:treasury:interior:4": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 9,
+   "standable": 0,
+   "reached_pct": null,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 9,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 55,
+    "top": [
+     {
+      "key": "inscriptions/inscription:XPe:op",
+      "cells": 9
+     },
+     {
+      "key": "inscriptions/inscription:XPe:op:pick",
+      "cells": 9
+     },
+     {
+      "key": "inscriptions/inscription:XPe:el",
+      "cells": 9
+     },
+     {
+      "key": "inscriptions/inscription:XPe:el:pick",
+      "cells": 9
+     },
+     {
+      "key": "inscriptions/inscription:XPe:bab",
+      "cells": 9
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 34,
+    "p95": 41,
+    "max": 41,
+    "top": [
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 9
+     }
+    ]
+   },
+   "ms": 3
+  },
+  "terrace:treasury:interior:5": {
+   "kind": "terrace-interior",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4,
+   "standable": 3,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 1,
+   "collider_vs_drawn": {
+    "n": 3,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     212.5,
+     -82.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 55,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op:pick",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el",
+      "cells": 4
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el:pick",
+      "cells": 4
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 10,
+    "p95": 18,
+    "max": 18,
+    "top": [
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 2
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 2
+     }
+    ]
+   },
+   "ms": 1
+  },
+  "terrace:apadana:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 175,
+   "standable": 56,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 119,
+   "collider_vs_drawn": {
+    "n": 56,
+    "over_5cm_pct": 28.57,
+    "worst_m": 0.1,
+    "worst_at": [
+     67.5,
+     32.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 82,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 175
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 175
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 175
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 175
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 175
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 4,
+    "p95": 24,
+    "max": 28,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 116
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 42
+     },
+     {
+      "key": "architecture/tachara:columns:lod1",
+      "cells": 6
+     },
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 3
+     }
+    ]
+   },
+   "ms": 41
+  },
+  "terrace:fortification_e:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 181,
+   "standable": 62,
+   "reached_pct": 58.06,
+   "unreached_standable": 26,
+   "unreached_examples": [
+    [
+     212.5,
+     157.5,
+     7
+    ],
+    [
+     217.5,
+     147.5,
+     7
+    ],
+    [
+     217.5,
+     152.5,
+     7
+    ],
+    [
+     217.5,
+     157.5,
+     7
+    ],
+    [
+     222.5,
+     -12.5,
+     7
+    ],
+    [
+     222.5,
+     2.5,
+     7
+    ],
+    [
+     222.5,
+     7.5,
+     7
+    ],
+    [
+     222.5,
+     22.5,
+     7
+    ],
+    [
+     222.5,
+     27.5,
+     7
+    ],
+    [
+     222.5,
+     72.5,
+     12
+    ],
+    [
+     222.5,
+     77.5,
+     12
+    ],
+    [
+     227.5,
+     -37.5,
+     7
+    ]
+   ],
+   "unreached_tops": 118,
+   "collider_vs_drawn": {
+    "n": 36,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     252.5,
+     147.5
+    ],
+    "undrawn_floor": 1,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 82.32,
+    "max_records": 41,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 146
+     },
+     {
+      "key": "doors/door-sealing:treasury:hall99|door treasury:hall99: clay sealing over the cord between the",
+      "cells": 138
+     },
+     {
+      "key": "doors/writing:door_sealing:treasury:hall99:pick|clay sealing over the cord between the knobs of a sealed Tre",
+      "cells": 138
+     },
+     {
+      "key": "doors/door-sealing:treasury:E|door treasury:E: clay sealing over the cord between the knob",
+      "cells": 123
+     },
+     {
+      "key": "doors/writing:door_sealing:treasury:E:pick|clay sealing over the cord between the knobs of a sealed Tre",
+      "cells": 123
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 40
+     },
+     {
+      "key": "doors/doors:posts",
+      "cells": 2
+     }
+    ]
+   },
+   "ms": 18
+  },
+  "terrace:garrison:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 245,
+   "standable": 245,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 245,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     217.5,
+     117.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 49,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 245
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 245
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 245
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 245
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 245
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 65
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 18
+     }
+    ]
+   },
+   "ms": 30
+  },
+  "terrace:gate_nations:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2,
+   "standable": 2,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 2,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     17.5,
+     127.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 16,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 2
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 2
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 20,
+    "p95": 20,
+    "max": 20,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 2
+     }
+    ]
+   },
+   "ms": 2
+  },
+  "terrace:grand_stair:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 46,
+   "standable": 46,
+   "reached_pct": 93.48,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     -32.5,
+     97.5,
+     -2.68
+    ],
+    [
+     -32.5,
+     107.5,
+     1
+    ],
+    [
+     -32.5,
+     137.5,
+     1
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 43,
+    "over_5cm_pct": 32.56,
+    "worst_m": -0.757,
+    "worst_at": [
+     -32.5,
+     102.5
+    ],
+    "undrawn_floor": 4,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 36,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 46
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 46
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 46
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 46
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 46
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 8,
+    "max": 12,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 18
+     }
+    ]
+   },
+   "ms": 3
+  },
+  "terrace:hadish:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 104,
+   "standable": 104,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 104,
+    "over_5cm_pct": 6.73,
+    "worst_m": 0.12,
+    "worst_at": [
+     52.5,
+     -117.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 104
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 104
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 104
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 104
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 104
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 16,
+    "p95": 32,
+    "max": 35,
+    "top": [
+     {
+      "key": "architecture/hadish:columns:lod1",
+      "cells": 92
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 11
+     }
+    ]
+   },
+   "ms": 18
+  },
+  "terrace:hall100:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 285,
+   "standable": 240,
+   "reached_pct": 95,
+   "unreached_standable": 12,
+   "unreached_examples": [
+    [
+     137.5,
+     -57.5,
+     1.55
+    ],
+    [
+     137.5,
+     -32.5,
+     1.55
+    ],
+    [
+     137.5,
+     12.5,
+     1.55
+    ],
+    [
+     137.5,
+     22.5,
+     1.55
+    ],
+    [
+     142.5,
+     12.5,
+     1.55
+    ],
+    [
+     142.5,
+     22.5,
+     1.55
+    ],
+    [
+     162.5,
+     12.5,
+     1.55
+    ],
+    [
+     162.5,
+     22.5,
+     1.55
+    ],
+    [
+     167.5,
+     -32.5,
+     1.55
+    ],
+    [
+     167.5,
+     -7.5,
+     1.55
+    ],
+    [
+     167.5,
+     12.5,
+     1.55
+    ],
+    [
+     167.5,
+     22.5,
+     1.55
+    ]
+   ],
+   "unreached_tops": 45,
+   "collider_vs_drawn": {
+    "n": 228,
+    "over_5cm_pct": 5.26,
+    "worst_m": -0.167,
+    "worst_at": [
+     117.5,
+     27.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 82,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 285
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 285
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 285
+     },
+     {
+      "key": "inscriptions/inscription:XPg:op",
+      "cells": 285
+     },
+     {
+      "key": "inscriptions/inscription:XPg:op:pick",
+      "cells": 285
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 11,
+    "max": 12,
+    "top": [
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 284
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 48
+  },
+  "terrace:harem:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 313,
+   "standable": 266,
+   "reached_pct": 97.74,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     107.5,
+     -152.5,
+     1
+    ],
+    [
+     117.5,
+     -152.5,
+     1
+    ],
+    [
+     122.5,
+     -152.5,
+     1
+    ],
+    [
+     132.5,
+     -137.5,
+     1
+    ],
+    [
+     132.5,
+     -132.5,
+     1
+    ],
+    [
+     132.5,
+     -127.5,
+     1
+    ]
+   ],
+   "unreached_tops": 47,
+   "collider_vs_drawn": {
+    "n": 260,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     127.5,
+     -82.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 313
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 313
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 313
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 313
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 313
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 1,
+    "p95": 28,
+    "max": 32,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 90
+     },
+     {
+      "key": "architecture/hadish:columns:lod1",
+      "cells": 24
+     },
+     {
+      "key": "architecture/harem:columns:lod1",
+      "cells": 24
+     },
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 13
+     },
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 10
+     }
+    ]
+   },
+   "ms": 43
+  },
+  "terrace:tachara:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6,
+   "standable": 6,
+   "reached_pct": 16.67,
+   "unreached_standable": 5,
+   "unreached_examples": [
+    [
+     -32.5,
+     -57.5,
+     2.6
+    ],
+    [
+     -27.5,
+     -57.5,
+     2.6
+    ],
+    [
+     -22.5,
+     -57.5,
+     2.6
+    ],
+    [
+     -17.5,
+     -57.5,
+     2.6
+    ],
+    [
+     -12.5,
+     -57.5,
+     2.6
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -7.5,
+     -57.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 80,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 6
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 6
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 40,
+    "p95": 40,
+    "max": 40,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 6
+     }
+    ]
+   },
+   "ms": 1
+  },
+  "terrace:treasury:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 281,
+   "standable": 281,
+   "reached_pct": 99.64,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     217.5,
+     -212.5,
+     0.3
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 280,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     217.5,
+     -82.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 281
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op",
+      "cells": 281
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op:pick",
+      "cells": 281
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el",
+      "cells": 281
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el:pick",
+      "cells": 281
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 3,
+    "p95": 33,
+    "max": 40,
+    "top": [
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 130
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 13
+     }
+    ]
+   },
+   "ms": 44
+  },
+  "terrace:tripylon:open": {
+   "kind": "terrace-open",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 49,
+   "standable": 43,
+   "reached_pct": 97.67,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     102.5,
+     -62.5,
+     2.59
+    ]
+   ],
+   "unreached_tops": 6,
+   "collider_vs_drawn": {
+    "n": 42,
+    "over_5cm_pct": 2.38,
+    "worst_m": -0.1,
+    "worst_at": [
+     82.5,
+     -102.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 82,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 49
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 49
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 49
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 49
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 49
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 5,
+    "p95": 6,
+    "max": 6,
+    "top": [
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 49
+     }
+    ]
+   },
+   "ms": 7
+  },
+  "terrace:court:apadana": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 358,
+   "standable": 358,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 358,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     112.5,
+     97.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 82,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 358
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 358
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 358
+     },
+     {
+      "key": "inscriptions/inscription:XPg:op",
+      "cells": 358
+     },
+     {
+      "key": "inscriptions/inscription:XPg:op:pick",
+      "cells": 358
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 8,
+    "max": 24,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 109
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 20
+     },
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 10
+     },
+     {
+      "key": "architecture/tachara:columns:lod1",
+      "cells": 3
+     }
+    ]
+   },
+   "ms": 36
+  },
+  "terrace:court:fortification_e": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 88,
+   "standable": 87,
+   "reached_pct": 96.55,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     202.5,
+     167.5,
+     0
+    ],
+    [
+     227.5,
+     -112.5,
+     0
+    ],
+    [
+     227.5,
+     -77.5,
+     0
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 84,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     237.5,
+     142.5
+    ],
+    "undrawn_floor": 1,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 92.05,
+    "max_records": 49,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 76
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 47
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 47
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 41
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 41
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 8,
+    "max": 8,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 14
+     },
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 1
+     }
+    ]
+   },
+   "ms": 6
+  },
+  "terrace:court:garrison": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 357,
+   "standable": 356,
+   "reached_pct": 97.19,
+   "unreached_standable": 10,
+   "unreached_examples": [
+    [
+     182.5,
+     72.5,
+     0
+    ],
+    [
+     182.5,
+     77.5,
+     0
+    ],
+    [
+     182.5,
+     82.5,
+     0
+    ],
+    [
+     182.5,
+     87.5,
+     0
+    ],
+    [
+     182.5,
+     92.5,
+     0
+    ],
+    [
+     182.5,
+     97.5,
+     0
+    ],
+    [
+     182.5,
+     102.5,
+     0
+    ],
+    [
+     182.5,
+     107.5,
+     0
+    ],
+    [
+     182.5,
+     112.5,
+     0
+    ],
+    [
+     182.5,
+     117.5,
+     0
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 346,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     222.5,
+     127.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 47,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 357
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 357
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 357
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 354
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 354
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 1,
+    "max": 12,
+    "top": [
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 13
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 7
+     }
+    ]
+   },
+   "ms": 35
+  },
+  "terrace:court:gate_nations": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 463,
+   "standable": 463,
+   "reached_pct": 99.14,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     17.5,
+     222.5,
+     0
+    ],
+    [
+     62.5,
+     207.5,
+     1
+    ],
+    [
+     62.5,
+     212.5,
+     0
+    ],
+    [
+     92.5,
+     187.5,
+     0
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 459,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     102.5,
+     182.5
+    ],
+    "undrawn_floor": 2,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 36,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 463
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 463
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 463
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 463
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 463
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 12,
+    "max": 24,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 109
+     },
+     {
+      "key": "architecture/gate_nations:columns:lod1",
+      "cells": 5
+     }
+    ]
+   },
+   "ms": 19
+  },
+  "terrace:court:grand_stair": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 167,
+   "standable": 167,
+   "reached_pct": 97.6,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     -42.5,
+     187.5,
+     1
+    ],
+    [
+     -42.5,
+     222.5,
+     1
+    ],
+    [
+     -37.5,
+     227.5,
+     0
+    ],
+    [
+     -2.5,
+     227.5,
+     1
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 163,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     12.5,
+     222.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 42,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 167
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 167
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 167
+     },
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 167
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 167
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 8,
+    "max": 12,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 17
+     },
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 2
+     }
+    ]
+   },
+   "ms": 5
+  },
+  "terrace:court:hadish": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 211,
+   "standable": 211,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 211,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     77.5,
+     -127.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 211
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 211
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 211
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 211
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 211
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 19,
+    "max": 28,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 43
+     },
+     {
+      "key": "architecture/hadish:columns:lod1",
+      "cells": 35
+     },
+     {
+      "key": "architecture/tachara:columns:lod1",
+      "cells": 8
+     },
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 8
+     },
+     {
+      "key": "architecture/harem:columns:lod1",
+      "cells": 2
+     }
+    ]
+   },
+   "ms": 25
+  },
+  "terrace:court:hall100": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 207,
+   "standable": 207,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 207,
+    "over_5cm_pct": 0.97,
+    "worst_m": -0.167,
+    "worst_at": [
+     132.5,
+     -67.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 82,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 207
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op",
+      "cells": 207
+     },
+     {
+      "key": "inscriptions/inscription:XPb:op:pick",
+      "cells": 207
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab",
+      "cells": 207
+     },
+     {
+      "key": "inscriptions/inscription:XPb:bab:pick",
+      "cells": 207
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 3,
+    "p95": 9,
+    "max": 12,
+    "top": [
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 124
+     },
+     {
+      "key": "doors/doors:bands",
+      "cells": 4
+     },
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 2
+     }
+    ]
+   },
+   "ms": 23
+  },
+  "terrace:court:harem": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 257,
+   "standable": 257,
+   "reached_pct": 97.67,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     -22.5,
+     -212.5,
+     1
+    ],
+    [
+     -22.5,
+     -207.5,
+     1
+    ],
+    [
+     -22.5,
+     -202.5,
+     1
+    ],
+    [
+     82.5,
+     -222.5,
+     0
+    ],
+    [
+     87.5,
+     -222.5,
+     0
+    ],
+    [
+     117.5,
+     -232.5,
+     1
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 251,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     137.5,
+     -72.5
+    ],
+    "undrawn_floor": 1,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 257
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 257
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 257
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 257
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 257
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 24,
+    "max": 32,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 52
+     },
+     {
+      "key": "architecture/harem:columns:lod1",
+      "cells": 11
+     },
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 8
+     },
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 8
+     },
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 6
+     }
+    ]
+   },
+   "ms": 29
+  },
+  "terrace:court:tachara": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 82,
+   "standable": 82,
+   "reached_pct": 98.78,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     -37.5,
+     -57.5,
+     0
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 81,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     17.5,
+     -82.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 80,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 82
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 82
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 82
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 82
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 82
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 24,
+    "p95": 56,
+    "max": 64,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 67
+     },
+     {
+      "key": "architecture/tachara:columns:lod1",
+      "cells": 5
+     }
+    ]
+   },
+   "ms": 8
+  },
+  "terrace:court:treasury": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 80,
+   "standable": 80,
+   "reached_pct": 92.5,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     162.5,
+     -217.5,
+     1
+    ],
+    [
+     167.5,
+     -217.5,
+     1
+    ],
+    [
+     172.5,
+     -217.5,
+     1
+    ],
+    [
+     177.5,
+     -217.5,
+     1
+    ],
+    [
+     182.5,
+     -217.5,
+     1
+    ],
+    [
+     187.5,
+     -217.5,
+     1
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 74,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     227.5,
+     -132.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 4
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 75,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPd:op:pick",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el",
+      "cells": 80
+     },
+     {
+      "key": "inscriptions/inscription:XPd:el:pick",
+      "cells": 80
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 8,
+    "p95": 13,
+    "max": 16,
+    "top": [
+     {
+      "key": "doors/doors:bands",
+      "cells": 32
+     },
+     {
+      "key": "architecture/treasury:columns:limestone:lod1",
+      "cells": 15
+     },
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 7
+     }
+    ]
+   },
+   "ms": 11
+  },
+  "terrace:court:tripylon": {
+   "kind": "terrace-court",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 77,
+   "standable": 77,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 77,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     102.5,
+     -52.5
+    ],
+    "undrawn_floor": 2,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 82,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 77
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 77
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 77
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 77
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 77
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 4,
+    "p95": 6,
+    "max": 7,
+    "top": [
+     {
+      "key": "architecture/tripylon:columns:lod1",
+      "cells": 63
+     },
+     {
+      "key": "architecture/hall100:columns:lod1",
+      "cells": 8
+     },
+     {
+      "key": "architecture/harem:columns:lod1",
+      "cells": 5
+     }
+    ]
+   },
+   "ms": 12
+  },
+  "town:area_c_garden": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 938,
+   "standable": 930,
+   "reached_pct": 99.14,
+   "unreached_standable": 8,
+   "unreached_examples": [
+    [
+     -1387.5,
+     162.5,
+     -15.48
+    ],
+    [
+     -1382.5,
+     257.5,
+     -15.37
+    ],
+    [
+     -1357.5,
+     137.5,
+     -15.52
+    ],
+    [
+     -1352.5,
+     267.5,
+     -15.34
+    ],
+    [
+     -1262.5,
+     132.5,
+     -15.53
+    ],
+    [
+     -1257.5,
+     262.5,
+     -15.36
+    ],
+    [
+     -1217.5,
+     157.5,
+     -15.51
+    ],
+    [
+     -1212.5,
+     252.5,
+     -15.39
+    ]
+   ],
+   "unreached_tops": 8,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 23
+  },
+  "town:estate_1": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 276,
+   "standable": 267,
+   "reached_pct": 96.63,
+   "unreached_standable": 9,
+   "unreached_examples": [
+    [
+     -2092.5,
+     1722.5,
+     -12.75
+    ],
+    [
+     -2087.5,
+     1712.5,
+     -12.76
+    ],
+    [
+     -2087.5,
+     1737.5,
+     -12.7
+    ],
+    [
+     -2077.5,
+     1717.5,
+     -12.72
+    ],
+    [
+     -2072.5,
+     1712.5,
+     -12.72
+    ],
+    [
+     -2062.5,
+     1722.5,
+     -12.67
+    ],
+    [
+     -2062.5,
+     1752.5,
+     -12.6
+    ],
+    [
+     -2012.5,
+     1752.5,
+     -12.38
+    ],
+    [
+     -1997.5,
+     1697.5,
+     -12.51
+    ]
+   ],
+   "unreached_tops": 9,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 14
+  },
+  "town:estate_2": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 280,
+   "standable": 267,
+   "reached_pct": 88.01,
+   "unreached_standable": 32,
+   "unreached_examples": [
+    [
+     -2747.5,
+     1827.5,
+     -14.14
+    ],
+    [
+     -2737.5,
+     1862.5,
+     -14.01
+    ],
+    [
+     -2737.5,
+     1872.5,
+     -13.99
+    ],
+    [
+     -2737.5,
+     1877.5,
+     -13.98
+    ],
+    [
+     -2732.5,
+     1852.5,
+     -14.03
+    ],
+    [
+     -2732.5,
+     1857.5,
+     -14.01
+    ],
+    [
+     -2732.5,
+     1862.5,
+     -14
+    ],
+    [
+     -2732.5,
+     1867.5,
+     -13.99
+    ],
+    [
+     -2732.5,
+     1872.5,
+     -13.98
+    ],
+    [
+     -2732.5,
+     1877.5,
+     -13.97
+    ],
+    [
+     -2732.5,
+     1882.5,
+     -13.96
+    ],
+    [
+     -2732.5,
+     1887.5,
+     -13.94
+    ]
+   ],
+   "unreached_tops": 13,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 11
+  },
+  "town:estate_3": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 277,
+   "standable": 271,
+   "reached_pct": 97.79,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     -2992.5,
+     2247.5,
+     -14.48
+    ],
+    [
+     -2987.5,
+     2237.5,
+     -14.45
+    ],
+    [
+     -2982.5,
+     2212.5,
+     -14.39
+    ],
+    [
+     -2982.5,
+     2252.5,
+     -13.72
+    ],
+    [
+     -2957.5,
+     2207.5,
+     -14.32
+    ],
+    [
+     -2897.5,
+     2242.5,
+     -14.25
+    ]
+   ],
+   "unreached_tops": 6,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 4
+  },
+  "town:estate_4": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 277,
+   "standable": 272,
+   "reached_pct": 98.16,
+   "unreached_standable": 5,
+   "unreached_examples": [
+    [
+     -1927.5,
+     2377.5,
+     -11.84
+    ],
+    [
+     -1922.5,
+     2332.5,
+     -11.92
+    ],
+    [
+     -1907.5,
+     2397.5,
+     -11.8
+    ],
+    [
+     -1907.5,
+     2407.5,
+     -11.78
+    ],
+    [
+     -1857.5,
+     2372.5,
+     -11.76
+    ]
+   ],
+   "unreached_tops": 5,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 12
+  },
+  "town:garden_gohar": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1290,
+   "standable": 1290,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 24
+  },
+  "town:official": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 400,
+   "standable": 400,
+   "reached_pct": 95.5,
+   "unreached_standable": 18,
+   "unreached_examples": [
+    [
+     -92.5,
+     612.5,
+     -10.14
+    ],
+    [
+     -92.5,
+     617.5,
+     -10.18
+    ],
+    [
+     -92.5,
+     627.5,
+     -10.26
+    ],
+    [
+     -92.5,
+     632.5,
+     -10.3
+    ],
+    [
+     -92.5,
+     637.5,
+     -10.35
+    ],
+    [
+     -92.5,
+     642.5,
+     -10.39
+    ],
+    [
+     -92.5,
+     652.5,
+     -10.47
+    ],
+    [
+     -92.5,
+     657.5,
+     -10.52
+    ],
+    [
+     -92.5,
+     662.5,
+     -10.58
+    ],
+    [
+     -92.5,
+     672.5,
+     -10.68
+    ],
+    [
+     -92.5,
+     677.5,
+     -10.72
+    ],
+    [
+     -92.5,
+     682.5,
+     -10.74
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 12
+  },
+  "town:orchard_1": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 379,
+   "standable": 375,
+   "reached_pct": 99.2,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     -712.5,
+     -782.5,
+     -18.38
+    ],
+    [
+     -702.5,
+     -827.5,
+     -18.43
+    ],
+    [
+     -647.5,
+     -847.5,
+     -18.37
+    ]
+   ],
+   "unreached_tops": 4,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 11
+  },
+  "town:orchard_2": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 465,
+   "standable": 461,
+   "reached_pct": 99.13,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     -1062.5,
+     -1232.5,
+     -18.96
+    ],
+    [
+     -1022.5,
+     -1207.5,
+     -18.91
+    ],
+    [
+     -1017.5,
+     -1297.5,
+     -19.11
+    ],
+    [
+     -942.5,
+     -1227.5,
+     -18.97
+    ]
+   ],
+   "unreached_tops": 4,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 18
+  },
+  "town:orchard_3": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 518,
+   "standable": 510,
+   "reached_pct": 99.41,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     -1452.5,
+     -1072.5,
+     -18.74
+    ],
+    [
+     -1417.5,
+     -1022.5,
+     -18.68
+    ],
+    [
+     -1347.5,
+     -1092.5,
+     -18.78
+    ]
+   ],
+   "unreached_tops": 8,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 13
+  },
+  "town:orchard_4": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 447,
+   "standable": 447,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 12
+  },
+  "town:orchard_5": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 478,
+   "standable": 470,
+   "reached_pct": 98.72,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     -1357.5,
+     697.5,
+     -13.97
+    ],
+    [
+     -1352.5,
+     767.5,
+     -13.67
+    ],
+    [
+     -1342.5,
+     677.5,
+     -14.07
+    ],
+    [
+     -1272.5,
+     672.5,
+     -14.13
+    ],
+    [
+     -1267.5,
+     772.5,
+     -13.65
+    ],
+    [
+     -1247.5,
+     692.5,
+     -14.05
+    ]
+   ],
+   "unreached_tops": 8,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 13
+  },
+  "town:orchard_6": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 224,
+   "standable": 224,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 10
+  },
+  "town:orchard_7": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 472,
+   "standable": 468,
+   "reached_pct": 98.5,
+   "unreached_standable": 7,
+   "unreached_examples": [
+    [
+     -1237.5,
+     -272.5,
+     -16.98
+    ],
+    [
+     -1222.5,
+     -342.5,
+     -17.37
+    ],
+    [
+     -1207.5,
+     -362.5,
+     -17.47
+    ],
+    [
+     -1172.5,
+     -242.5,
+     -16.76
+    ],
+    [
+     -1142.5,
+     -237.5,
+     -16.69
+    ],
+    [
+     -1137.5,
+     -347.5,
+     -17.4
+    ],
+    [
+     -1122.5,
+     -332.5,
+     -17.31
+    ]
+   ],
+   "unreached_tops": 4,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 13
+  },
+  "town:orchard_8": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 517,
+   "standable": 512,
+   "reached_pct": 99.41,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     -432.5,
+     -1287.5,
+     -18.45
+    ],
+    [
+     -357.5,
+     -1322.5,
+     -18.42
+    ],
+    [
+     -352.5,
+     -1192.5,
+     -18.19
+    ]
+   ],
+   "unreached_tops": 5,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 13
+  },
+  "town:paradise": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3526,
+   "standable": 3490,
+   "reached_pct": 99.66,
+   "unreached_standable": 12,
+   "unreached_examples": [
+    [
+     -2702.5,
+     2382.5,
+     -14.13
+    ],
+    [
+     -2682.5,
+     2442.5,
+     -14.06
+    ],
+    [
+     -2622.5,
+     2317.5,
+     -13.51
+    ],
+    [
+     -2597.5,
+     2297.5,
+     -13.34
+    ],
+    [
+     -2597.5,
+     2547.5,
+     -13.42
+    ],
+    [
+     -2542.5,
+     2587.5,
+     -13.06
+    ],
+    [
+     -2517.5,
+     2232.5,
+     -12.92
+    ],
+    [
+     -2492.5,
+     2212.5,
+     -12.85
+    ],
+    [
+     -2462.5,
+     2522.5,
+     -12.64
+    ],
+    [
+     -2437.5,
+     2502.5,
+     -12.55
+    ],
+    [
+     -2357.5,
+     2437.5,
+     -12.3
+    ],
+    [
+     -2332.5,
+     2417.5,
+     -12.25
+    ]
+   ],
+   "unreached_tops": 36,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 66.76,
+    "max_records": 2,
+    "top": [
+     {
+      "key": "settlement/settlement:tol_ajori:body",
+      "cells": 2354
+     },
+     {
+      "key": "settlement/settlement:tol_ajori:glaze",
+      "cells": 2340
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 56
+  },
+  "town:q_f1": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 358,
+   "standable": 326,
+   "reached_pct": 95.4,
+   "unreached_standable": 15,
+   "unreached_examples": [
+    [
+     -2182.5,
+     2082.5,
+     -12.52
+    ],
+    [
+     -2167.5,
+     2087.5,
+     -12.49
+    ],
+    [
+     -2162.5,
+     2082.5,
+     -12.49
+    ],
+    [
+     -2157.5,
+     2117.5,
+     -12.42
+    ],
+    [
+     -2142.5,
+     2052.5,
+     -12.49
+    ],
+    [
+     -2142.5,
+     2057.5,
+     -12.49
+    ],
+    [
+     -2142.5,
+     2097.5,
+     -12.44
+    ],
+    [
+     -2137.5,
+     2047.5,
+     -11.08
+    ],
+    [
+     -2137.5,
+     2082.5,
+     -12.45
+    ],
+    [
+     -2137.5,
+     2122.5,
+     -12.39
+    ],
+    [
+     -2127.5,
+     2057.5,
+     -12.45
+    ],
+    [
+     -2122.5,
+     2097.5,
+     -12.41
+    ]
+   ],
+   "unreached_tops": 32,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 6
+  },
+  "town:q_g1": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 288,
+   "standable": 267,
+   "reached_pct": 94.76,
+   "unreached_standable": 14,
+   "unreached_examples": [
+    [
+     617.5,
+     3762.5,
+     -9.24
+    ],
+    [
+     617.5,
+     3797.5,
+     -8.68
+    ],
+    [
+     617.5,
+     3812.5,
+     -7.59
+    ],
+    [
+     617.5,
+     3827.5,
+     -7.55
+    ],
+    [
+     627.5,
+     3762.5,
+     -7.84
+    ],
+    [
+     627.5,
+     3812.5,
+     -7.58
+    ],
+    [
+     632.5,
+     3777.5,
+     -9.25
+    ],
+    [
+     642.5,
+     3792.5,
+     -9.25
+    ],
+    [
+     647.5,
+     3777.5,
+     -9.25
+    ],
+    [
+     657.5,
+     3782.5,
+     -9.25
+    ],
+    [
+     657.5,
+     3822.5,
+     -7.68
+    ],
+    [
+     662.5,
+     3812.5,
+     -8.76
+    ]
+   ],
+   "unreached_tops": 21,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 12
+  },
+  "town:q_n1": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 780,
+   "standable": 780,
+   "reached_pct": 77.95,
+   "unreached_standable": 172,
+   "unreached_examples": [
+    [
+     -337.5,
+     747.5,
+     -12.52
+    ],
+    [
+     -332.5,
+     697.5,
+     -12.53
+    ],
+    [
+     -332.5,
+     702.5,
+     -12.52
+    ],
+    [
+     -332.5,
+     717.5,
+     -12.52
+    ],
+    [
+     -332.5,
+     737.5,
+     -12.51
+    ],
+    [
+     -332.5,
+     762.5,
+     -12.49
+    ],
+    [
+     -327.5,
+     697.5,
+     -12.51
+    ],
+    [
+     -327.5,
+     702.5,
+     -12.51
+    ],
+    [
+     -327.5,
+     707.5,
+     -12.5
+    ],
+    [
+     -327.5,
+     712.5,
+     -12.5
+    ],
+    [
+     -322.5,
+     687.5,
+     -12.49
+    ],
+    [
+     -322.5,
+     717.5,
+     -12.48
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 16
+  },
+  "town:q_s1": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2482,
+   "standable": 2264,
+   "reached_pct": 94.26,
+   "unreached_standable": 130,
+   "unreached_examples": [
+    [
+     -537.5,
+     -947.5,
+     -18.31
+    ],
+    [
+     -527.5,
+     -952.5,
+     -18.29
+    ],
+    [
+     -522.5,
+     -972.5,
+     -18.3
+    ],
+    [
+     -517.5,
+     -937.5,
+     -18.24
+    ],
+    [
+     -512.5,
+     -952.5,
+     -18.25
+    ],
+    [
+     -512.5,
+     -932.5,
+     -18.22
+    ],
+    [
+     -507.5,
+     -1032.5,
+     -18.31
+    ],
+    [
+     -507.5,
+     -1017.5,
+     -18.3
+    ],
+    [
+     -502.5,
+     -1032.5,
+     -18.29
+    ],
+    [
+     -502.5,
+     -1007.5,
+     -18.27
+    ],
+    [
+     -502.5,
+     -902.5,
+     -18.13
+    ],
+    [
+     -502.5,
+     -872.5,
+     -18.04
+    ]
+   ],
+   "unreached_tops": 218,
+   "collider_vs_drawn": {
+    "n": 6,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -577.5,
+     -992.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 50
+  },
+  "town:q_s2": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1930,
+   "standable": 1755,
+   "reached_pct": 94.81,
+   "unreached_standable": 91,
+   "unreached_examples": [
+    [
+     -912.5,
+     -1167.5,
+     -18.85
+    ],
+    [
+     -907.5,
+     -1132.5,
+     -18.77
+    ],
+    [
+     -902.5,
+     -1132.5,
+     -18.77
+    ],
+    [
+     -902.5,
+     -1107.5,
+     -18.72
+    ],
+    [
+     -897.5,
+     -1147.5,
+     -18.8
+    ],
+    [
+     -897.5,
+     -1142.5,
+     -18.79
+    ],
+    [
+     -892.5,
+     -1132.5,
+     -18.77
+    ],
+    [
+     -887.5,
+     -1097.5,
+     -18.71
+    ],
+    [
+     -882.5,
+     -1062.5,
+     -18.65
+    ],
+    [
+     -877.5,
+     -1097.5,
+     -18.71
+    ],
+    [
+     -877.5,
+     -1077.5,
+     -18.68
+    ],
+    [
+     -877.5,
+     -1057.5,
+     -18.65
+    ]
+   ],
+   "unreached_tops": 175,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 33
+  },
+  "town:q_s3": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1930,
+   "standable": 1774,
+   "reached_pct": 93.46,
+   "unreached_standable": 116,
+   "unreached_examples": [
+    [
+     -1297.5,
+     -797.5,
+     -16.79
+    ],
+    [
+     -1297.5,
+     -792.5,
+     -16.79
+    ],
+    [
+     -1292.5,
+     -837.5,
+     -18.3
+    ],
+    [
+     -1292.5,
+     -827.5,
+     -18.27
+    ],
+    [
+     -1287.5,
+     -837.5,
+     -18.29
+    ],
+    [
+     -1287.5,
+     -822.5,
+     -18.26
+    ],
+    [
+     -1287.5,
+     -797.5,
+     -18.19
+    ],
+    [
+     -1282.5,
+     -827.5,
+     -18.27
+    ],
+    [
+     -1282.5,
+     -802.5,
+     -18.2
+    ],
+    [
+     -1277.5,
+     -917.5,
+     -18.52
+    ],
+    [
+     -1277.5,
+     -807.5,
+     -18.21
+    ],
+    [
+     -1277.5,
+     -797.5,
+     -18.19
+    ]
+   ],
+   "unreached_tops": 156,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 42
+  },
+  "town:q_s4": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1749,
+   "standable": 1610,
+   "reached_pct": 93.29,
+   "unreached_standable": 108,
+   "unreached_examples": [
+    [
+     -1067.5,
+     -1432.5,
+     -18.06
+    ],
+    [
+     -1062.5,
+     -1432.5,
+     -19.47
+    ],
+    [
+     -1062.5,
+     -1427.5,
+     -19.45
+    ],
+    [
+     -1062.5,
+     -1417.5,
+     -19.43
+    ],
+    [
+     -1057.5,
+     -1427.5,
+     -19.45
+    ],
+    [
+     -1052.5,
+     -1387.5,
+     -19.34
+    ],
+    [
+     -1047.5,
+     -1437.5,
+     -19.48
+    ],
+    [
+     -1047.5,
+     -1427.5,
+     -19.45
+    ],
+    [
+     -1042.5,
+     -1412.5,
+     -19.4
+    ],
+    [
+     -1037.5,
+     -1442.5,
+     -19.49
+    ],
+    [
+     -1032.5,
+     -1482.5,
+     -19.61
+    ],
+    [
+     -1032.5,
+     -1432.5,
+     -19.46
+    ]
+   ],
+   "unreached_tops": 139,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 31
+  },
+  "town:q_w1": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1442,
+   "standable": 1312,
+   "reached_pct": 94.36,
+   "unreached_standable": 74,
+   "unreached_examples": [
+    [
+     -652.5,
+     417.5,
+     -13.85
+    ],
+    [
+     -652.5,
+     457.5,
+     -13.87
+    ],
+    [
+     -647.5,
+     427.5,
+     -13.86
+    ],
+    [
+     -632.5,
+     392.5,
+     -13.78
+    ],
+    [
+     -632.5,
+     407.5,
+     -13.81
+    ],
+    [
+     -632.5,
+     412.5,
+     -13.81
+    ],
+    [
+     -632.5,
+     452.5,
+     -13.84
+    ],
+    [
+     -632.5,
+     457.5,
+     -13.84
+    ],
+    [
+     -627.5,
+     442.5,
+     -13.83
+    ],
+    [
+     -622.5,
+     417.5,
+     -13.8
+    ],
+    [
+     -622.5,
+     427.5,
+     -13.81
+    ],
+    [
+     -622.5,
+     462.5,
+     -13.82
+    ]
+   ],
+   "unreached_tops": 130,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 28
+  },
+  "town:q_w2": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1675,
+   "standable": 1536,
+   "reached_pct": 93.49,
+   "unreached_standable": 100,
+   "unreached_examples": [
+    [
+     -1162.5,
+     522.5,
+     -14.57
+    ],
+    [
+     -1162.5,
+     527.5,
+     -14.56
+    ],
+    [
+     -1157.5,
+     552.5,
+     -14.53
+    ],
+    [
+     -1157.5,
+     582.5,
+     -14.49
+    ],
+    [
+     -1157.5,
+     592.5,
+     -14.48
+    ],
+    [
+     -1152.5,
+     542.5,
+     -14.54
+    ],
+    [
+     -1152.5,
+     602.5,
+     -14.46
+    ],
+    [
+     -1147.5,
+     552.5,
+     -14.53
+    ],
+    [
+     -1142.5,
+     527.5,
+     -14.56
+    ],
+    [
+     -1142.5,
+     542.5,
+     -14.54
+    ],
+    [
+     -1132.5,
+     542.5,
+     -14.54
+    ],
+    [
+     -1127.5,
+     617.5,
+     -14.44
+    ]
+   ],
+   "unreached_tops": 139,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 30
+  },
+  "town:q_w3": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1764,
+   "standable": 1629,
+   "reached_pct": 94.54,
+   "unreached_standable": 89,
+   "unreached_examples": [
+    [
+     -1032.5,
+     -77.5,
+     -15.65
+    ],
+    [
+     -1027.5,
+     -62.5,
+     -15.56
+    ],
+    [
+     -1017.5,
+     -77.5,
+     -15.6
+    ],
+    [
+     -1007.5,
+     -32.5,
+     -15.33
+    ],
+    [
+     -1002.5,
+     -147.5,
+     -15.94
+    ],
+    [
+     -1002.5,
+     -122.5,
+     -15.8
+    ],
+    [
+     -1002.5,
+     -82.5,
+     -15.57
+    ],
+    [
+     -997.5,
+     -102.5,
+     -15.67
+    ],
+    [
+     -997.5,
+     -42.5,
+     -15.32
+    ],
+    [
+     -992.5,
+     -112.5,
+     -15.71
+    ],
+    [
+     -992.5,
+     -37.5,
+     -14.64
+    ],
+    [
+     -987.5,
+     -92.5,
+     -15.57
+    ]
+   ],
+   "unreached_tops": 135,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 27
+  },
+  "town:stables": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 129,
+   "standable": 121,
+   "reached_pct": 99.17,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     -1467.5,
+     377.5,
+     -15.15
+    ]
+   ],
+   "unreached_tops": 8,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 7
+  },
+  "town:stores": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 160,
+   "standable": 146,
+   "reached_pct": 97.26,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     -292.5,
+     -522.5,
+     -15.58
+    ],
+    [
+     -277.5,
+     -542.5,
+     -15.62
+    ],
+    [
+     -267.5,
+     -547.5,
+     -15.59
+    ],
+    [
+     -237.5,
+     -522.5,
+     -15.26
+    ]
+   ],
+   "unreached_tops": 14,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 11
+  },
+  "town:waystation": {
+   "kind": "town-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 93,
+   "standable": 85,
+   "reached_pct": 95.29,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     -11027.5,
+     507.5,
+     -36.24
+    ],
+    [
+     -11022.5,
+     527.5,
+     -36.2
+    ],
+    [
+     -10997.5,
+     537.5,
+     -36.17
+    ],
+    [
+     -10992.5,
+     522.5,
+     -36.19
+    ]
+   ],
+   "unreached_tops": 8,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 9
+  },
+  "site:akhor_rostam_niches": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1252,
+   "standable": 1252,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1252,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     2987.5,
+     -9137.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 20
+  },
+  "site:bard_burideh": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1248,
+   "standable": 1248,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1248,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -27062.5,
+     35782.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 30
+  },
+  "site:burial_ground_town": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1248,
+   "standable": 1248,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1248,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     157.5,
+     -1352.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 34
+  },
+  "site:confluence": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1248,
+   "standable": 1248,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1248,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -13402.5,
+     -4282.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 33
+  },
+  "site:dam_sang_e_dokhtar": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1246,
+   "standable": 1246,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1246,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -32597.5,
+     39197.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 31
+  },
+  "site:naqsh_e_rustam": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 9594,
+   "standable": 9511,
+   "reached_pct": 99.94,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     542.5,
+     6012.5,
+     -5.77
+    ],
+    [
+     542.5,
+     6027.5,
+     -5.02
+    ],
+    [
+     642.5,
+     6122.5,
+     -5.1
+    ],
+    [
+     787.5,
+     6152.5,
+     52.66
+    ],
+    [
+     887.5,
+     6122.5,
+     -5.12
+    ],
+    [
+     917.5,
+     6162.5,
+     56.76
+    ]
+   ],
+   "unreached_tops": 2,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 42.93,
+    "max_records": 3,
+    "top": [
+     {
+      "key": "plain/relief:figures",
+      "cells": 3906
+     },
+     {
+      "key": "plain/nr-elamite-relief",
+      "cells": 3251
+     },
+     {
+      "key": "plain/nr-inscriptions-carved",
+      "cells": 3166
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 38,
+    "top": [
+     {
+      "key": "plain/relief:figures",
+      "cells": 261
+     }
+    ]
+   },
+   "ms": 132
+  },
+  "site:qadamgah": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1239,
+   "standable": 1239,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1239,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     13347.5,
+     -33447.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 30
+  },
+  "site:quarry_majdabad": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1245,
+   "standable": 1245,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1245,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -20482.5,
+     -1237.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 24
+  },
+  "site:quarry_sivand": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1252,
+   "standable": 1252,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1252,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     8157.5,
+     14137.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 27
+  },
+  "site:sacred_precinct": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1248,
+   "standable": 1248,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 572,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     352.5,
+     -397.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 16.91,
+    "max_records": 10,
+    "top": [
+     {
+      "key": "inscriptions/inscription:DPg:bab",
+      "cells": 191
+     },
+     {
+      "key": "inscriptions/inscription:DPg:bab:pick",
+      "cells": 191
+     },
+     {
+      "key": "inscriptions/inscription:DPf:el:pick",
+      "cells": 175
+     },
+     {
+      "key": "inscriptions/inscription:DPf:el",
+      "cells": 174
+     },
+     {
+      "key": "inscriptions/inscription:DPe:op",
+      "cells": 163
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 34
+  },
+  "site:takht_e_rustam": {
+   "kind": "named-site",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 266,
+   "standable": 261,
+   "reached_pct": 99.62,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     842.5,
+     4102.5,
+     -3.31
+    ]
+   ],
+   "unreached_tops": 5,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 10
+  },
+  "village:village_masumabad_west": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 5276,
+   "standable": 5192,
+   "reached_pct": 98.67,
+   "unreached_standable": 69,
+   "unreached_examples": [
+    [
+     -10362.5,
+     6727.5,
+     -37.5
+    ],
+    [
+     -10352.5,
+     6757.5,
+     -37.52
+    ],
+    [
+     -10342.5,
+     6707.5,
+     -37.44
+    ],
+    [
+     -10322.5,
+     6547.5,
+     -37.05
+    ],
+    [
+     -10322.5,
+     6572.5,
+     -35.77
+    ],
+    [
+     -10317.5,
+     6587.5,
+     -37.18
+    ],
+    [
+     -10312.5,
+     6577.5,
+     -37.13
+    ],
+    [
+     -10312.5,
+     6682.5,
+     -37.38
+    ],
+    [
+     -10312.5,
+     6712.5,
+     -37.38
+    ],
+    [
+     -10307.5,
+     6612.5,
+     -36.4
+    ],
+    [
+     -10307.5,
+     6672.5,
+     -37.37
+    ],
+    [
+     -10287.5,
+     6502.5,
+     -36.88
+    ]
+   ],
+   "unreached_tops": 84,
+   "collider_vs_drawn": {
+    "n": 443,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -10047.5,
+     6557.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 53
+  },
+  "village:village_p01": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 18511,
+   "standable": 18230,
+   "reached_pct": 98.28,
+   "unreached_standable": 313,
+   "unreached_examples": [
+    [
+     6852.5,
+     2472.5,
+     11.39
+    ],
+    [
+     6852.5,
+     2477.5,
+     11.39
+    ],
+    [
+     6857.5,
+     2472.5,
+     11.39
+    ],
+    [
+     6857.5,
+     2477.5,
+     11.4
+    ],
+    [
+     6862.5,
+     2477.5,
+     11.4
+    ],
+    [
+     6867.5,
+     2467.5,
+     11.39
+    ],
+    [
+     6867.5,
+     2472.5,
+     11.4
+    ],
+    [
+     6867.5,
+     2477.5,
+     11.41
+    ],
+    [
+     6877.5,
+     2467.5,
+     11.41
+    ],
+    [
+     6877.5,
+     2472.5,
+     11.42
+    ],
+    [
+     6877.5,
+     2477.5,
+     11.42
+    ],
+    [
+     6877.5,
+     2492.5,
+     11.45
+    ]
+   ],
+   "unreached_tops": 281,
+   "collider_vs_drawn": {
+    "n": 3889,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     7502.5,
+     2267.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 185
+  },
+  "village:village_p02": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 15915,
+   "standable": 15620,
+   "reached_pct": 98.36,
+   "unreached_standable": 256,
+   "unreached_examples": [
+    [
+     -14347.5,
+     6192.5,
+     -45.56
+    ],
+    [
+     -14342.5,
+     6217.5,
+     -45.58
+    ],
+    [
+     -14332.5,
+     6137.5,
+     -44.81
+    ],
+    [
+     -14332.5,
+     6202.5,
+     -45.52
+    ],
+    [
+     -14317.5,
+     6057.5,
+     -45.34
+    ],
+    [
+     -14312.5,
+     6152.5,
+     -44
+    ],
+    [
+     -14307.5,
+     6092.5,
+     -45.32
+    ],
+    [
+     -14302.5,
+     6097.5,
+     -45.31
+    ],
+    [
+     -14297.5,
+     6087.5,
+     -45.29
+    ],
+    [
+     -14292.5,
+     6242.5,
+     -45.46
+    ],
+    [
+     -14287.5,
+     6087.5,
+     -45.26
+    ],
+    [
+     -14287.5,
+     6217.5,
+     -45.41
+    ]
+   ],
+   "unreached_tops": 295,
+   "collider_vs_drawn": {
+    "n": 3471,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -13757.5,
+     5887.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 151
+  },
+  "village:village_p03": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 14766,
+   "standable": 14462,
+   "reached_pct": 98.51,
+   "unreached_standable": 215,
+   "unreached_examples": [
+    [
+     -15847.5,
+     1942.5,
+     -47.04
+    ],
+    [
+     -15837.5,
+     1922.5,
+     -47.22
+    ],
+    [
+     -15837.5,
+     1947.5,
+     -47.04
+    ],
+    [
+     -15832.5,
+     1997.5,
+     -48.35
+    ],
+    [
+     -15822.5,
+     2282.5,
+     -48.32
+    ],
+    [
+     -15817.5,
+     1997.5,
+     -48.33
+    ],
+    [
+     -15817.5,
+     2007.5,
+     -48.32
+    ],
+    [
+     -15817.5,
+     2272.5,
+     -48.31
+    ],
+    [
+     -15812.5,
+     2282.5,
+     -48.31
+    ],
+    [
+     -15812.5,
+     2292.5,
+     -48.31
+    ],
+    [
+     -15807.5,
+     2012.5,
+     -48.3
+    ],
+    [
+     -15807.5,
+     2297.5,
+     -48.31
+    ]
+   ],
+   "unreached_tops": 304,
+   "collider_vs_drawn": {
+    "n": 2918,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -15307.5,
+     2242.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 140
+  },
+  "village:village_p04": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 14550,
+   "standable": 14310,
+   "reached_pct": 98.3,
+   "unreached_standable": 243,
+   "unreached_examples": [
+    [
+     -11362.5,
+     -12282.5,
+     -58.5
+    ],
+    [
+     -11357.5,
+     -12277.5,
+     -58.18
+    ],
+    [
+     -11352.5,
+     -12292.5,
+     -59.12
+    ],
+    [
+     -11347.5,
+     -12317.5,
+     -60.08
+    ],
+    [
+     -11347.5,
+     -12302.5,
+     -59.75
+    ],
+    [
+     -11342.5,
+     -12237.5,
+     -55.79
+    ],
+    [
+     -11342.5,
+     -12207.5,
+     -55.71
+    ],
+    [
+     -11337.5,
+     -12347.5,
+     -59.52
+    ],
+    [
+     -11337.5,
+     -12332.5,
+     -59.48
+    ],
+    [
+     -11322.5,
+     -12337.5,
+     -58.55
+    ],
+    [
+     -11322.5,
+     -12227.5,
+     -55.75
+    ],
+    [
+     -11312.5,
+     -12267.5,
+     -57.51
+    ]
+   ],
+   "unreached_tops": 240,
+   "collider_vs_drawn": {
+    "n": 2843,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -10722.5,
+     -12172.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 142
+  },
+  "village:village_p05": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12707,
+   "standable": 12457,
+   "reached_pct": 98.63,
+   "unreached_standable": 171,
+   "unreached_examples": [
+    [
+     11357.5,
+     3892.5,
+     17.21
+    ],
+    [
+     11362.5,
+     3892.5,
+     17.48
+    ],
+    [
+     11367.5,
+     3907.5,
+     17.54
+    ],
+    [
+     11372.5,
+     3897.5,
+     17.56
+    ],
+    [
+     11387.5,
+     3847.5,
+     17.57
+    ],
+    [
+     11387.5,
+     3912.5,
+     17.69
+    ],
+    [
+     11392.5,
+     3897.5,
+     17.71
+    ],
+    [
+     11402.5,
+     3892.5,
+     17.78
+    ],
+    [
+     11407.5,
+     3857.5,
+     17.71
+    ],
+    [
+     11412.5,
+     3877.5,
+     17.8
+    ],
+    [
+     11417.5,
+     3842.5,
+     17.71
+    ],
+    [
+     11417.5,
+     3927.5,
+     17.93
+    ]
+   ],
+   "unreached_tops": 250,
+   "collider_vs_drawn": {
+    "n": 2604,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     11952.5,
+     4007.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 146
+  },
+  "village:village_p06": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12545,
+   "standable": 12323,
+   "reached_pct": 98.46,
+   "unreached_standable": 190,
+   "unreached_examples": [
+    [
+     -11827.5,
+     10422.5,
+     -43.52
+    ],
+    [
+     -11827.5,
+     10477.5,
+     -44.95
+    ],
+    [
+     -11822.5,
+     10532.5,
+     -44.45
+    ],
+    [
+     -11817.5,
+     10472.5,
+     -44.87
+    ],
+    [
+     -11807.5,
+     10527.5,
+     -43.13
+    ],
+    [
+     -11797.5,
+     10497.5,
+     -44.6
+    ],
+    [
+     -11797.5,
+     10517.5,
+     -44.42
+    ],
+    [
+     -11792.5,
+     10522.5,
+     -44.34
+    ],
+    [
+     -11792.5,
+     10557.5,
+     -44.03
+    ],
+    [
+     -11787.5,
+     10482.5,
+     -44.68
+    ],
+    [
+     -11782.5,
+     10377.5,
+     -44.94
+    ],
+    [
+     -11782.5,
+     10532.5,
+     -44.19
+    ]
+   ],
+   "unreached_tops": 222,
+   "collider_vs_drawn": {
+    "n": 2386,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -11252.5,
+     10617.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 125
+  },
+  "village:village_p07": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12419,
+   "standable": 12208,
+   "reached_pct": 98.26,
+   "unreached_standable": 213,
+   "unreached_examples": [
+    [
+     -14032.5,
+     -5452.5,
+     -49.01
+    ],
+    [
+     -14027.5,
+     -5497.5,
+     -47.59
+    ],
+    [
+     -14017.5,
+     -5492.5,
+     -48.95
+    ],
+    [
+     -14017.5,
+     -5467.5,
+     -48.97
+    ],
+    [
+     -14017.5,
+     -5452.5,
+     -48.98
+    ],
+    [
+     -13997.5,
+     -5577.5,
+     -47.58
+    ],
+    [
+     -13997.5,
+     -5542.5,
+     -48.89
+    ],
+    [
+     -13997.5,
+     -5472.5,
+     -48.9
+    ],
+    [
+     -13992.5,
+     -5547.5,
+     -48.89
+    ],
+    [
+     -13987.5,
+     -5612.5,
+     -49.03
+    ],
+    [
+     -13982.5,
+     -5532.5,
+     -48.85
+    ],
+    [
+     -13977.5,
+     -5562.5,
+     -48.89
+    ]
+   ],
+   "unreached_tops": 211,
+   "collider_vs_drawn": {
+    "n": 2388,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -13492.5,
+     -5697.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 121
+  },
+  "village:village_p08": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12362,
+   "standable": 12145,
+   "reached_pct": 98.6,
+   "unreached_standable": 170,
+   "unreached_examples": [
+    [
+     9747.5,
+     2452.5,
+     14.37
+    ],
+    [
+     9762.5,
+     2367.5,
+     13.72
+    ],
+    [
+     9767.5,
+     2382.5,
+     13.91
+    ],
+    [
+     9767.5,
+     2447.5,
+     14.31
+    ],
+    [
+     9772.5,
+     2352.5,
+     13.61
+    ],
+    [
+     9777.5,
+     2407.5,
+     15.57
+    ],
+    [
+     9787.5,
+     2422.5,
+     14.16
+    ],
+    [
+     9787.5,
+     2432.5,
+     14.2
+    ],
+    [
+     9792.5,
+     2307.5,
+     13.14
+    ],
+    [
+     9797.5,
+     2522.5,
+     15.42
+    ],
+    [
+     9802.5,
+     2712.5,
+     15.16
+    ],
+    [
+     9807.5,
+     2317.5,
+     14.23
+    ]
+   ],
+   "unreached_tops": 217,
+   "collider_vs_drawn": {
+    "n": 2365,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     10267.5,
+     2657.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 137
+  },
+  "village:village_p09": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12289,
+   "standable": 12053,
+   "reached_pct": 98.51,
+   "unreached_standable": 179,
+   "unreached_examples": [
+    [
+     -11257.5,
+     15697.5,
+     -47.84
+    ],
+    [
+     -11242.5,
+     15592.5,
+     -49.89
+    ],
+    [
+     -11232.5,
+     15732.5,
+     -48.97
+    ],
+    [
+     -11227.5,
+     15602.5,
+     -49.38
+    ],
+    [
+     -11227.5,
+     15637.5,
+     -49.33
+    ],
+    [
+     -11222.5,
+     15657.5,
+     -48.19
+    ],
+    [
+     -11212.5,
+     15597.5,
+     -49.09
+    ],
+    [
+     -11212.5,
+     15622.5,
+     -49.01
+    ],
+    [
+     -11197.5,
+     15577.5,
+     -49.08
+    ],
+    [
+     -11197.5,
+     15627.5,
+     -48.71
+    ],
+    [
+     -11192.5,
+     15672.5,
+     -48.63
+    ],
+    [
+     -11182.5,
+     15702.5,
+     -48.6
+    ]
+   ],
+   "unreached_tops": 236,
+   "collider_vs_drawn": {
+    "n": 2201,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -10667.5,
+     15697.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 128
+  },
+  "village:village_p10": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11054,
+   "standable": 10860,
+   "reached_pct": 98.3,
+   "unreached_standable": 185,
+   "unreached_examples": [
+    [
+     -15382.5,
+     3972.5,
+     -46.84
+    ],
+    [
+     -15382.5,
+     4032.5,
+     -46.83
+    ],
+    [
+     -15377.5,
+     3892.5,
+     -46.97
+    ],
+    [
+     -15377.5,
+     3932.5,
+     -46.89
+    ],
+    [
+     -15372.5,
+     4002.5,
+     -46.77
+    ],
+    [
+     -15362.5,
+     3892.5,
+     -46.83
+    ],
+    [
+     -15362.5,
+     3987.5,
+     -46.7
+    ],
+    [
+     -15362.5,
+     3997.5,
+     -46.68
+    ],
+    [
+     -15362.5,
+     4042.5,
+     -46.65
+    ],
+    [
+     -15357.5,
+     3897.5,
+     -46.81
+    ],
+    [
+     -15347.5,
+     3942.5,
+     -46.77
+    ],
+    [
+     -15347.5,
+     3947.5,
+     -46.76
+    ]
+   ],
+   "unreached_tops": 194,
+   "collider_vs_drawn": {
+    "n": 1810,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -14857.5,
+     4112.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 120
+  },
+  "village:village_p11": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 10728,
+   "standable": 10520,
+   "reached_pct": 98.29,
+   "unreached_standable": 180,
+   "unreached_examples": [
+    [
+     -9632.5,
+     -21562.5,
+     -82.17
+    ],
+    [
+     -9627.5,
+     -21557.5,
+     -82.15
+    ],
+    [
+     -9622.5,
+     -21582.5,
+     -82.23
+    ],
+    [
+     -9617.5,
+     -21552.5,
+     -82.12
+    ],
+    [
+     -9612.5,
+     -21622.5,
+     -82.39
+    ],
+    [
+     -9607.5,
+     -21612.5,
+     -82.33
+    ],
+    [
+     -9607.5,
+     -21547.5,
+     -82.09
+    ],
+    [
+     -9602.5,
+     -21617.5,
+     -82.35
+    ],
+    [
+     -9597.5,
+     -21587.5,
+     -82.21
+    ],
+    [
+     -9597.5,
+     -21517.5,
+     -81.97
+    ],
+    [
+     -9592.5,
+     -21557.5,
+     -82.11
+    ],
+    [
+     -9587.5,
+     -21612.5,
+     -81.15
+    ]
+   ],
+   "unreached_tops": 208,
+   "collider_vs_drawn": {
+    "n": 1708,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -9132.5,
+     -21337.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 115
+  },
+  "village:village_p12": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 10082,
+   "standable": 9924,
+   "reached_pct": 98.44,
+   "unreached_standable": 155,
+   "unreached_examples": [
+    [
+     -14477.5,
+     18142.5,
+     -56.05
+    ],
+    [
+     -14467.5,
+     18162.5,
+     -56.05
+    ],
+    [
+     -14437.5,
+     18087.5,
+     -55.86
+    ],
+    [
+     -14427.5,
+     18067.5,
+     -55.81
+    ],
+    [
+     -14427.5,
+     18212.5,
+     -55.89
+    ],
+    [
+     -14422.5,
+     18212.5,
+     -55.88
+    ],
+    [
+     -14407.5,
+     18107.5,
+     -55.81
+    ],
+    [
+     -14392.5,
+     18127.5,
+     -54.4
+    ],
+    [
+     -14392.5,
+     18177.5,
+     -55.8
+    ],
+    [
+     -14392.5,
+     18197.5,
+     -55.79
+    ],
+    [
+     -14377.5,
+     18007.5,
+     -55.52
+    ],
+    [
+     -14377.5,
+     18117.5,
+     -55.58
+    ]
+   ],
+   "unreached_tops": 158,
+   "collider_vs_drawn": {
+    "n": 1611,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -13952.5,
+     17982.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 103
+  },
+  "village:village_p13": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 9684,
+   "standable": 9520,
+   "reached_pct": 98.4,
+   "unreached_standable": 152,
+   "unreached_examples": [
+    [
+     -14162.5,
+     -2867.5,
+     -47.11
+    ],
+    [
+     -14162.5,
+     -2817.5,
+     -46.67
+    ],
+    [
+     -14162.5,
+     -2812.5,
+     -47.09
+    ],
+    [
+     -14157.5,
+     -2752.5,
+     -47.02
+    ],
+    [
+     -14147.5,
+     -2862.5,
+     -47.1
+    ],
+    [
+     -14147.5,
+     -2827.5,
+     -45.69
+    ],
+    [
+     -14147.5,
+     -2817.5,
+     -47.08
+    ],
+    [
+     -14147.5,
+     -2797.5,
+     -47.07
+    ],
+    [
+     -14142.5,
+     -2907.5,
+     -47.13
+    ],
+    [
+     -14142.5,
+     -2752.5,
+     -47.01
+    ],
+    [
+     -14127.5,
+     -2732.5,
+     -46.98
+    ],
+    [
+     -14117.5,
+     -2862.5,
+     -47.07
+    ]
+   ],
+   "unreached_tops": 164,
+   "collider_vs_drawn": {
+    "n": 1597,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -13682.5,
+     -2977.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 103
+  },
+  "village:village_p14": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 9687,
+   "standable": 9500,
+   "reached_pct": 98.59,
+   "unreached_standable": 134,
+   "unreached_examples": [
+    [
+     -13317.5,
+     7717.5,
+     -44.14
+    ],
+    [
+     -13282.5,
+     7767.5,
+     -44.18
+    ],
+    [
+     -13272.5,
+     7697.5,
+     -43.74
+    ],
+    [
+     -13262.5,
+     7702.5,
+     -43.74
+    ],
+    [
+     -13257.5,
+     7702.5,
+     -42.43
+    ],
+    [
+     -13252.5,
+     7767.5,
+     -44.09
+    ],
+    [
+     -13222.5,
+     7667.5,
+     -42.73
+    ],
+    [
+     -13222.5,
+     7757.5,
+     -43.95
+    ],
+    [
+     -13222.5,
+     7767.5,
+     -43.99
+    ],
+    [
+     -13217.5,
+     7677.5,
+     -43.57
+    ],
+    [
+     -13212.5,
+     7677.5,
+     -43.56
+    ],
+    [
+     -13212.5,
+     7712.5,
+     -43.71
+    ]
+   ],
+   "unreached_tops": 187,
+   "collider_vs_drawn": {
+    "n": 1598,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -12782.5,
+     7822.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 120
+  },
+  "village:village_p15": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 8465,
+   "standable": 8310,
+   "reached_pct": 98.34,
+   "unreached_standable": 138,
+   "unreached_examples": [
+    [
+     -7262.5,
+     -22757.5,
+     -82.1
+    ],
+    [
+     -7257.5,
+     -22757.5,
+     -83.53
+    ],
+    [
+     -7257.5,
+     -22717.5,
+     -83.44
+    ],
+    [
+     -7237.5,
+     -22807.5,
+     -82.2
+    ],
+    [
+     -7237.5,
+     -22732.5,
+     -83.47
+    ],
+    [
+     -7237.5,
+     -22662.5,
+     -83.31
+    ],
+    [
+     -7237.5,
+     -22647.5,
+     -83.27
+    ],
+    [
+     -7232.5,
+     -22807.5,
+     -83.62
+    ],
+    [
+     -7232.5,
+     -22792.5,
+     -83.59
+    ],
+    [
+     -7232.5,
+     -22752.5,
+     -83.52
+    ],
+    [
+     -7222.5,
+     -22732.5,
+     -83.47
+    ],
+    [
+     -7217.5,
+     -22687.5,
+     -83.37
+    ]
+   ],
+   "unreached_tops": 155,
+   "collider_vs_drawn": {
+    "n": 1084,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -6787.5,
+     -22752.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 85
+  },
+  "village:village_p16": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 7326,
+   "standable": 7170,
+   "reached_pct": 98.8,
+   "unreached_standable": 86,
+   "unreached_examples": [
+    [
+     -9727.5,
+     -14112.5,
+     -58.34
+    ],
+    [
+     -9722.5,
+     -14017.5,
+     -57.31
+    ],
+    [
+     -9717.5,
+     -14117.5,
+     -58.34
+    ],
+    [
+     -9712.5,
+     -14012.5,
+     -58.14
+    ],
+    [
+     -9707.5,
+     -13992.5,
+     -58.1
+    ],
+    [
+     -9692.5,
+     -14292.5,
+     -58.63
+    ],
+    [
+     -9692.5,
+     -14107.5,
+     -58.29
+    ],
+    [
+     -9692.5,
+     -14022.5,
+     -58.14
+    ],
+    [
+     -9687.5,
+     -14287.5,
+     -58.59
+    ],
+    [
+     -9687.5,
+     -13962.5,
+     -58.03
+    ],
+    [
+     -9682.5,
+     -14312.5,
+     -58.67
+    ],
+    [
+     -9682.5,
+     -13972.5,
+     -56.9
+    ]
+   ],
+   "unreached_tops": 156,
+   "collider_vs_drawn": {
+    "n": 753,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -9342.5,
+     -14212.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 83
+  },
+  "village:village_p17": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 7305,
+   "standable": 7174,
+   "reached_pct": 98.2,
+   "unreached_standable": 129,
+   "unreached_examples": [
+    [
+     -12037.5,
+     -8847.5,
+     -50.68
+    ],
+    [
+     -12032.5,
+     -8857.5,
+     -50.7
+    ],
+    [
+     -11997.5,
+     -8832.5,
+     -50.69
+    ],
+    [
+     -11987.5,
+     -8882.5,
+     -50.79
+    ],
+    [
+     -11977.5,
+     -8897.5,
+     -50.8
+    ],
+    [
+     -11972.5,
+     -8822.5,
+     -50.68
+    ],
+    [
+     -11967.5,
+     -8752.5,
+     -50.53
+    ],
+    [
+     -11957.5,
+     -8947.5,
+     -50.87
+    ],
+    [
+     -11957.5,
+     -8932.5,
+     -50.85
+    ],
+    [
+     -11947.5,
+     -8807.5,
+     -50.65
+    ],
+    [
+     -11942.5,
+     -8877.5,
+     -50.74
+    ],
+    [
+     -11937.5,
+     -8802.5,
+     -50.64
+    ]
+   ],
+   "unreached_tops": 131,
+   "collider_vs_drawn": {
+    "n": 977,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -11597.5,
+     -8962.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 85
+  },
+  "village:village_p18": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6938,
+   "standable": 6802,
+   "reached_pct": 98.57,
+   "unreached_standable": 97,
+   "unreached_examples": [
+    [
+     4482.5,
+     4257.5,
+     4.17
+    ],
+    [
+     4492.5,
+     4222.5,
+     5.61
+    ],
+    [
+     4492.5,
+     4332.5,
+     4.12
+    ],
+    [
+     4492.5,
+     4342.5,
+     4.09
+    ],
+    [
+     4497.5,
+     4267.5,
+     5.62
+    ],
+    [
+     4497.5,
+     4272.5,
+     4.23
+    ],
+    [
+     4502.5,
+     4547.5,
+     3.78
+    ],
+    [
+     4507.5,
+     4217.5,
+     4.25
+    ],
+    [
+     4512.5,
+     4537.5,
+     3.84
+    ],
+    [
+     4517.5,
+     4442.5,
+     5.41
+    ],
+    [
+     4517.5,
+     4492.5,
+     3.95
+    ],
+    [
+     4522.5,
+     4472.5,
+     4.02
+    ]
+   ],
+   "unreached_tops": 136,
+   "collider_vs_drawn": {
+    "n": 859,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     4832.5,
+     4517.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 87
+  },
+  "village:village_p19": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6758,
+   "standable": 6609,
+   "reached_pct": 98.52,
+   "unreached_standable": 98,
+   "unreached_examples": [
+    [
+     -8417.5,
+     3152.5,
+     -28.2
+    ],
+    [
+     -8417.5,
+     3182.5,
+     -28.22
+    ],
+    [
+     -8417.5,
+     3237.5,
+     -28.22
+    ],
+    [
+     -8407.5,
+     3257.5,
+     -28.13
+    ],
+    [
+     -8402.5,
+     3417.5,
+     -28.21
+    ],
+    [
+     -8397.5,
+     3092.5,
+     -27.15
+    ],
+    [
+     -8397.5,
+     3267.5,
+     -28.05
+    ],
+    [
+     -8397.5,
+     3407.5,
+     -28.14
+    ],
+    [
+     -8392.5,
+     3172.5,
+     -27.99
+    ],
+    [
+     -8392.5,
+     3427.5,
+     -28.13
+    ],
+    [
+     -8387.5,
+     3377.5,
+     -26.71
+    ],
+    [
+     -8387.5,
+     3387.5,
+     -28.02
+    ]
+   ],
+   "unreached_tops": 149,
+   "collider_vs_drawn": {
+    "n": 877,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -8077.5,
+     3397.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 83
+  },
+  "village:village_p20": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6656,
+   "standable": 6513,
+   "reached_pct": 98.5,
+   "unreached_standable": 98,
+   "unreached_examples": [
+    [
+     -10857.5,
+     2307.5,
+     -34.61
+    ],
+    [
+     -10822.5,
+     2272.5,
+     -34.44
+    ],
+    [
+     -10822.5,
+     2317.5,
+     -34.48
+    ],
+    [
+     -10817.5,
+     2267.5,
+     -34.42
+    ],
+    [
+     -10817.5,
+     2312.5,
+     -34.45
+    ],
+    [
+     -10812.5,
+     2262.5,
+     -34.4
+    ],
+    [
+     -10807.5,
+     2212.5,
+     -34.35
+    ],
+    [
+     -10807.5,
+     2322.5,
+     -33.8
+    ],
+    [
+     -10802.5,
+     2207.5,
+     -34.33
+    ],
+    [
+     -10797.5,
+     2202.5,
+     -34.31
+    ],
+    [
+     -10777.5,
+     2352.5,
+     -32.89
+    ],
+    [
+     -10777.5,
+     2357.5,
+     -34.31
+    ]
+   ],
+   "unreached_tops": 143,
+   "collider_vs_drawn": {
+    "n": 802,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -10437.5,
+     2237.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 84
+  },
+  "village:village_p21": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6548,
+   "standable": 6425,
+   "reached_pct": 98.32,
+   "unreached_standable": 108,
+   "unreached_examples": [
+    [
+     -4552.5,
+     1957.5,
+     -18.1
+    ],
+    [
+     -4547.5,
+     1957.5,
+     -18.09
+    ],
+    [
+     -4542.5,
+     1962.5,
+     -18.08
+    ],
+    [
+     -4537.5,
+     1952.5,
+     -18.06
+    ],
+    [
+     -4527.5,
+     1952.5,
+     -16.64
+    ],
+    [
+     -4527.5,
+     1957.5,
+     -16.94
+    ],
+    [
+     -4527.5,
+     1992.5,
+     -18.07
+    ],
+    [
+     -4517.5,
+     2007.5,
+     -17.63
+    ],
+    [
+     -4512.5,
+     1967.5,
+     -18.03
+    ],
+    [
+     -4507.5,
+     1892.5,
+     -17.96
+    ],
+    [
+     -4507.5,
+     1927.5,
+     -17.98
+    ],
+    [
+     -4502.5,
+     1907.5,
+     -17.95
+    ]
+   ],
+   "unreached_tops": 123,
+   "collider_vs_drawn": {
+    "n": 641,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -4147.5,
+     1822.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 83
+  },
+  "village:village_p22": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6001,
+   "standable": 5887,
+   "reached_pct": 98.28,
+   "unreached_standable": 101,
+   "unreached_examples": [
+    [
+     -1167.5,
+     3487.5,
+     -9.05
+    ],
+    [
+     -1147.5,
+     3492.5,
+     -7.62
+    ],
+    [
+     -1147.5,
+     3532.5,
+     -8.94
+    ],
+    [
+     -1142.5,
+     3462.5,
+     -9.04
+    ],
+    [
+     -1142.5,
+     3547.5,
+     -8.92
+    ],
+    [
+     -1137.5,
+     3477.5,
+     -9
+    ],
+    [
+     -1137.5,
+     3517.5,
+     -8.93
+    ],
+    [
+     -1132.5,
+     3497.5,
+     -8.95
+    ],
+    [
+     -1132.5,
+     3502.5,
+     -8.94
+    ],
+    [
+     -1132.5,
+     3517.5,
+     -8.92
+    ],
+    [
+     -1122.5,
+     3412.5,
+     -8.34
+    ],
+    [
+     -1117.5,
+     3522.5,
+     -8.88
+    ]
+   ],
+   "unreached_tops": 114,
+   "collider_vs_drawn": {
+    "n": 678,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -757.5,
+     3562.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 74
+  },
+  "village:village_p23": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 5692,
+   "standable": 5585,
+   "reached_pct": 98.5,
+   "unreached_standable": 84,
+   "unreached_examples": [
+    [
+     -11887.5,
+     -5882.5,
+     -45.64
+    ],
+    [
+     -11882.5,
+     -5892.5,
+     -45.64
+    ],
+    [
+     -11882.5,
+     -5862.5,
+     -45.59
+    ],
+    [
+     -11867.5,
+     -5947.5,
+     -45.68
+    ],
+    [
+     -11862.5,
+     -5877.5,
+     -45.57
+    ],
+    [
+     -11857.5,
+     -5867.5,
+     -45.55
+    ],
+    [
+     -11847.5,
+     -5947.5,
+     -45.64
+    ],
+    [
+     -11842.5,
+     -5907.5,
+     -44.12
+    ],
+    [
+     -11837.5,
+     -5857.5,
+     -45.48
+    ],
+    [
+     -11802.5,
+     -5822.5,
+     -45.36
+    ],
+    [
+     -11797.5,
+     -5977.5,
+     -45.53
+    ],
+    [
+     -11792.5,
+     -5897.5,
+     -45.36
+    ]
+   ],
+   "unreached_tops": 107,
+   "collider_vs_drawn": {
+    "n": 554,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -11507.5,
+     -5897.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 67
+  },
+  "village:village_p24": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4185,
+   "standable": 4106,
+   "reached_pct": 98.27,
+   "unreached_standable": 71,
+   "unreached_examples": [
+    [
+     -9482.5,
+     752.5,
+     -31.93
+    ],
+    [
+     -9467.5,
+     802.5,
+     -31.84
+    ],
+    [
+     -9462.5,
+     747.5,
+     -31.89
+    ],
+    [
+     -9462.5,
+     762.5,
+     -31.87
+    ],
+    [
+     -9452.5,
+     787.5,
+     -31.82
+    ],
+    [
+     -9442.5,
+     812.5,
+     -31.77
+    ],
+    [
+     -9442.5,
+     837.5,
+     -31.76
+    ],
+    [
+     -9427.5,
+     782.5,
+     -31.77
+    ],
+    [
+     -9422.5,
+     732.5,
+     -31.82
+    ],
+    [
+     -9412.5,
+     782.5,
+     -31.73
+    ],
+    [
+     -9407.5,
+     757.5,
+     -31.76
+    ],
+    [
+     -9407.5,
+     792.5,
+     -30.34
+    ]
+   ],
+   "unreached_tops": 79,
+   "collider_vs_drawn": {
+    "n": 302,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -9147.5,
+     802.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 60
+  },
+  "village:village_p25": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3480,
+   "standable": 3420,
+   "reached_pct": 98.42,
+   "unreached_standable": 54,
+   "unreached_examples": [
+    [
+     -12092.5,
+     13212.5,
+     -45.82
+    ],
+    [
+     -12077.5,
+     13172.5,
+     -45.75
+    ],
+    [
+     -12077.5,
+     13262.5,
+     -45.89
+    ],
+    [
+     -12067.5,
+     13182.5,
+     -45.76
+    ],
+    [
+     -12067.5,
+     13252.5,
+     -45.86
+    ],
+    [
+     -12052.5,
+     13172.5,
+     -45.76
+    ],
+    [
+     -12032.5,
+     13172.5,
+     -45.77
+    ],
+    [
+     -12032.5,
+     13197.5,
+     -44.4
+    ],
+    [
+     -12022.5,
+     13287.5,
+     -45.89
+    ],
+    [
+     -11997.5,
+     13212.5,
+     -45.82
+    ],
+    [
+     -11997.5,
+     13277.5,
+     -45.85
+    ],
+    [
+     -11992.5,
+     13312.5,
+     -45.92
+    ]
+   ],
+   "unreached_tops": 60,
+   "collider_vs_drawn": {
+    "n": 138,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -11787.5,
+     13317.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 44
+  },
+  "village:village_p26": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3423,
+   "standable": 3356,
+   "reached_pct": 98.18,
+   "unreached_standable": 61,
+   "unreached_examples": [
+    [
+     -11262.5,
+     -3072.5,
+     -37.6
+    ],
+    [
+     -11262.5,
+     -3032.5,
+     -37.55
+    ],
+    [
+     -11257.5,
+     -3072.5,
+     -37.58
+    ],
+    [
+     -11252.5,
+     -3057.5,
+     -36.68
+    ],
+    [
+     -11237.5,
+     -3097.5,
+     -37.53
+    ],
+    [
+     -11232.5,
+     -3062.5,
+     -37.46
+    ],
+    [
+     -11212.5,
+     -3052.5,
+     -35.97
+    ],
+    [
+     -11212.5,
+     -3032.5,
+     -37.34
+    ],
+    [
+     -11207.5,
+     -3072.5,
+     -37.37
+    ],
+    [
+     -11207.5,
+     -3027.5,
+     -37.32
+    ],
+    [
+     -11202.5,
+     -3047.5,
+     -37.31
+    ],
+    [
+     -11202.5,
+     -3012.5,
+     -37.3
+    ]
+   ],
+   "unreached_tops": 67,
+   "collider_vs_drawn": {
+    "n": 148,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -10962.5,
+     -3012.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 42
+  },
+  "village:village_p27": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3098,
+   "standable": 3038,
+   "reached_pct": 98.29,
+   "unreached_standable": 52,
+   "unreached_examples": [
+    [
+     -9442.5,
+     11222.5,
+     -40.45
+    ],
+    [
+     -9407.5,
+     11187.5,
+     -40.45
+    ],
+    [
+     -9407.5,
+     11307.5,
+     -40.41
+    ],
+    [
+     -9407.5,
+     11347.5,
+     -40.49
+    ],
+    [
+     -9407.5,
+     11432.5,
+     -40.54
+    ],
+    [
+     -9402.5,
+     11207.5,
+     -40.39
+    ],
+    [
+     -9397.5,
+     11347.5,
+     -40.46
+    ],
+    [
+     -9392.5,
+     11282.5,
+     -40.28
+    ],
+    [
+     -9387.5,
+     11192.5,
+     -40.43
+    ],
+    [
+     -9387.5,
+     11272.5,
+     -40.25
+    ],
+    [
+     -9387.5,
+     11297.5,
+     -40.3
+    ],
+    [
+     -9382.5,
+     11202.5,
+     -40.4
+    ]
+   ],
+   "unreached_tops": 60,
+   "collider_vs_drawn": {
+    "n": 87,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -9207.5,
+     11367.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 40
+  },
+  "village:village_p28": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2564,
+   "standable": 2507,
+   "reached_pct": 98.56,
+   "unreached_standable": 36,
+   "unreached_examples": [
+    [
+     -10222.5,
+     8857.5,
+     -39.86
+    ],
+    [
+     -10212.5,
+     8822.5,
+     -39.72
+    ],
+    [
+     -10207.5,
+     8817.5,
+     -39.69
+    ],
+    [
+     -10207.5,
+     8837.5,
+     -39.74
+    ],
+    [
+     -10202.5,
+     8727.5,
+     -39.59
+    ],
+    [
+     -10197.5,
+     8722.5,
+     -39.58
+    ],
+    [
+     -10197.5,
+     8847.5,
+     -38.6
+    ],
+    [
+     -10192.5,
+     8717.5,
+     -39.57
+    ],
+    [
+     -10187.5,
+     8712.5,
+     -39.57
+    ],
+    [
+     -10187.5,
+     8817.5,
+     -39.64
+    ],
+    [
+     -10182.5,
+     8822.5,
+     -39.64
+    ],
+    [
+     -10177.5,
+     8682.5,
+     -38.18
+    ]
+   ],
+   "unreached_tops": 57,
+   "collider_vs_drawn": {
+    "n": 26,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -10042.5,
+     8667.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 34
+  },
+  "village:village_p29": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2093,
+   "standable": 2057,
+   "reached_pct": 98.59,
+   "unreached_standable": 29,
+   "unreached_examples": [
+    [
+     -13522.5,
+     1792.5,
+     -42.77
+    ],
+    [
+     -13522.5,
+     1807.5,
+     -42.71
+    ],
+    [
+     -13507.5,
+     1792.5,
+     -41.9
+    ],
+    [
+     -13487.5,
+     1782.5,
+     -42.81
+    ],
+    [
+     -13477.5,
+     1877.5,
+     -42.54
+    ],
+    [
+     -13472.5,
+     1802.5,
+     -42.76
+    ],
+    [
+     -13467.5,
+     1687.5,
+     -42.88
+    ],
+    [
+     -13467.5,
+     1707.5,
+     -42.85
+    ],
+    [
+     -13467.5,
+     1727.5,
+     -42.82
+    ],
+    [
+     -13452.5,
+     1667.5,
+     -42.87
+    ],
+    [
+     -13447.5,
+     1822.5,
+     -42.69
+    ],
+    [
+     -13447.5,
+     1842.5,
+     -41.8
+    ]
+   ],
+   "unreached_tops": 36,
+   "collider_vs_drawn": {
+    "n": 14,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -13357.5,
+     1662.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 30
+  },
+  "village:village_p30": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2088,
+   "standable": 2034,
+   "reached_pct": 98.53,
+   "unreached_standable": 30,
+   "unreached_examples": [
+    [
+     -7007.5,
+     1682.5,
+     -24.59
+    ],
+    [
+     -6997.5,
+     1667.5,
+     -24.57
+    ],
+    [
+     -6987.5,
+     1677.5,
+     -24.55
+    ],
+    [
+     -6987.5,
+     1682.5,
+     -24.55
+    ],
+    [
+     -6952.5,
+     1757.5,
+     -24.53
+    ],
+    [
+     -6937.5,
+     1687.5,
+     -24.47
+    ],
+    [
+     -6932.5,
+     1692.5,
+     -24.46
+    ],
+    [
+     -6932.5,
+     1782.5,
+     -24.51
+    ],
+    [
+     -6927.5,
+     1737.5,
+     -24.48
+    ],
+    [
+     -6922.5,
+     1702.5,
+     -24.44
+    ],
+    [
+     -6922.5,
+     1757.5,
+     -24.48
+    ],
+    [
+     -6922.5,
+     1797.5,
+     -24.5
+    ]
+   ],
+   "unreached_tops": 54,
+   "collider_vs_drawn": {
+    "n": 15,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -6802.5,
+     1802.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 44
+  },
+  "village:village_p31": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1817,
+   "standable": 1788,
+   "reached_pct": 98.38,
+   "unreached_standable": 29,
+   "unreached_examples": [
+    [
+     8892.5,
+     207.5,
+     11.44
+    ],
+    [
+     8907.5,
+     237.5,
+     12.34
+    ],
+    [
+     8907.5,
+     257.5,
+     11.49
+    ],
+    [
+     8907.5,
+     312.5,
+     11.68
+    ],
+    [
+     8912.5,
+     352.5,
+     11.65
+    ],
+    [
+     8917.5,
+     257.5,
+     11.49
+    ],
+    [
+     8922.5,
+     362.5,
+     11.62
+    ],
+    [
+     8927.5,
+     212.5,
+     11.37
+    ],
+    [
+     8927.5,
+     247.5,
+     11.48
+    ],
+    [
+     8942.5,
+     197.5,
+     11.36
+    ],
+    [
+     8942.5,
+     252.5,
+     11.52
+    ],
+    [
+     8942.5,
+     267.5,
+     11.55
+    ]
+   ],
+   "unreached_tops": 29,
+   "collider_vs_drawn": {
+    "n": 14,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     8862.5,
+     287.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 27
+  },
+  "village:village_p32": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1328,
+   "standable": 1303,
+   "reached_pct": 98,
+   "unreached_standable": 26,
+   "unreached_examples": [
+    [
+     -13182.5,
+     15317.5,
+     -49.2
+    ],
+    [
+     -13177.5,
+     15202.5,
+     -47.97
+    ],
+    [
+     -13177.5,
+     15227.5,
+     -49.35
+    ],
+    [
+     -13172.5,
+     15217.5,
+     -49.35
+    ],
+    [
+     -13167.5,
+     15227.5,
+     -49.34
+    ],
+    [
+     -13167.5,
+     15302.5,
+     -49.21
+    ],
+    [
+     -13162.5,
+     15237.5,
+     -47.93
+    ],
+    [
+     -13157.5,
+     15252.5,
+     -49.3
+    ],
+    [
+     -13157.5,
+     15342.5,
+     -49.06
+    ],
+    [
+     -13152.5,
+     15227.5,
+     -49.31
+    ],
+    [
+     -13147.5,
+     15337.5,
+     -49.05
+    ],
+    [
+     -13142.5,
+     15227.5,
+     -49.29
+    ]
+   ],
+   "unreached_tops": 25,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 24
+  },
+  "village:village_p33": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1326,
+   "standable": 1290,
+   "reached_pct": 98.68,
+   "unreached_standable": 17,
+   "unreached_examples": [
+    [
+     -5457.5,
+     4172.5,
+     -20.21
+    ],
+    [
+     -5437.5,
+     4182.5,
+     -20.12
+    ],
+    [
+     -5432.5,
+     4147.5,
+     -20.11
+    ],
+    [
+     -5432.5,
+     4177.5,
+     -18.91
+    ],
+    [
+     -5417.5,
+     4152.5,
+     -20.03
+    ],
+    [
+     -5402.5,
+     4122.5,
+     -19.99
+    ],
+    [
+     -5402.5,
+     4177.5,
+     -19.98
+    ],
+    [
+     -5397.5,
+     4177.5,
+     -19.96
+    ],
+    [
+     -5372.5,
+     4092.5,
+     -19.88
+    ],
+    [
+     -5352.5,
+     4127.5,
+     -18.74
+    ],
+    [
+     -5352.5,
+     4212.5,
+     -19.17
+    ],
+    [
+     -5347.5,
+     4232.5,
+     -19.78
+    ]
+   ],
+   "unreached_tops": 36,
+   "collider_vs_drawn": {
+    "n": 12,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -5277.5,
+     4177.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 19
+  },
+  "village:village_rakkan": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 8803,
+   "standable": 8663,
+   "reached_pct": 98.46,
+   "unreached_standable": 133,
+   "unreached_examples": [
+    [
+     -22537.5,
+     3197.5,
+     -67.95
+    ],
+    [
+     -22527.5,
+     3127.5,
+     -67.48
+    ],
+    [
+     -22522.5,
+     3132.5,
+     -67.59
+    ],
+    [
+     -22517.5,
+     3167.5,
+     -67.93
+    ],
+    [
+     -22502.5,
+     3227.5,
+     -68.5
+    ],
+    [
+     -22492.5,
+     3072.5,
+     -66.57
+    ],
+    [
+     -22492.5,
+     3237.5,
+     -68.66
+    ],
+    [
+     -22492.5,
+     3262.5,
+     -68.73
+    ],
+    [
+     -22487.5,
+     3087.5,
+     -67.09
+    ],
+    [
+     -22487.5,
+     3122.5,
+     -68.03
+    ],
+    [
+     -22482.5,
+     2847.5,
+     -55.68
+    ],
+    [
+     -22482.5,
+     3087.5,
+     -67.23
+    ]
+   ],
+   "unreached_tops": 140,
+   "collider_vs_drawn": {
+    "n": 1246,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -22102.5,
+     3007.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 106
+  },
+  "village:village_saidun": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 5286,
+   "standable": 5194,
+   "reached_pct": 98.65,
+   "unreached_standable": 70,
+   "unreached_examples": [
+    [
+     12672.5,
+     -307.5,
+     4.19
+    ],
+    [
+     12692.5,
+     -367.5,
+     4.79
+    ],
+    [
+     12707.5,
+     -317.5,
+     4.12
+    ],
+    [
+     12717.5,
+     -302.5,
+     4.12
+    ],
+    [
+     12727.5,
+     -327.5,
+     4.08
+    ],
+    [
+     12742.5,
+     -367.5,
+     5.47
+    ],
+    [
+     12747.5,
+     -352.5,
+     4.03
+    ],
+    [
+     12757.5,
+     -327.5,
+     3.97
+    ],
+    [
+     12757.5,
+     -262.5,
+     5.47
+    ],
+    [
+     12757.5,
+     -237.5,
+     4.09
+    ],
+    [
+     12772.5,
+     -222.5,
+     4.13
+    ],
+    [
+     12787.5,
+     -362.5,
+     3.96
+    ]
+   ],
+   "unreached_tops": 92,
+   "collider_vs_drawn": {
+    "n": 468,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     13047.5,
+     -242.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 68
+  },
+  "village:village_tukrash": {
+   "kind": "village",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 13207,
+   "standable": 12977,
+   "reached_pct": 98.29,
+   "unreached_standable": 222,
+   "unreached_examples": [
+    [
+     -11067.5,
+     -17127.5,
+     -70.22
+    ],
+    [
+     -11062.5,
+     -17127.5,
+     -70.22
+    ],
+    [
+     -11062.5,
+     -17087.5,
+     -70.09
+    ],
+    [
+     -11057.5,
+     -17147.5,
+     -68.84
+    ],
+    [
+     -11057.5,
+     -17087.5,
+     -70.09
+    ],
+    [
+     -11032.5,
+     -17037.5,
+     -69.93
+    ],
+    [
+     -11027.5,
+     -17137.5,
+     -70.22
+    ],
+    [
+     -11022.5,
+     -17187.5,
+     -70.33
+    ],
+    [
+     -11022.5,
+     -17097.5,
+     -70.11
+    ],
+    [
+     -11017.5,
+     -17172.5,
+     -70.29
+    ],
+    [
+     -11017.5,
+     -17087.5,
+     -70.07
+    ],
+    [
+     -11017.5,
+     -17082.5,
+     -70.06
+    ]
+   ],
+   "unreached_tops": 230,
+   "collider_vs_drawn": {
+    "n": 2328,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -10442.5,
+     -17042.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 130
+  },
+  "camp:court": {
+   "kind": "camp",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2119,
+   "standable": 2119,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1730,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -172.5,
+     402.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 30
+  },
+  "camp:p_horse": {
+   "kind": "camp",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6524,
+   "standable": 6524,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 5726,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1572.5,
+     1742.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 89
+  },
+  "camp:p_road": {
+   "kind": "camp",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 5000,
+   "standable": 5000,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 5000,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1622.5,
+     317.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 67
+  },
+  "camp:p_south": {
+   "kind": "camp",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6052,
+   "standable": 6052,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 6028,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1282.5,
+     -1432.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 73
+  },
+  "camp:t_north": {
+   "kind": "camp",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4508,
+   "standable": 4508,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 4508,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -272.5,
+     1147.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 56
+  },
+  "camp:t_northwest": {
+   "kind": "camp",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4402,
+   "standable": 4402,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 3563,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1232.5,
+     922.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 47
+  },
+  "camp:t_southwest": {
+   "kind": "camp",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4052,
+   "standable": 4052,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 4052,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1342.5,
+     -462.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 52
+  },
+  "camp:t_west": {
+   "kind": "camp",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4052,
+   "standable": 4052,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 3985,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -422.5,
+     -497.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 50
+  },
+  "zone:zone_bagh_e_firuzi:1": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 9396,
+   "standable": 9396,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 9110,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -2702.5,
+     1727.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 100
+  },
+  "zone:zone_bagh_e_firuzi:2": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 20443,
+   "standable": 20442,
+   "reached_pct": 99.99,
+   "unreached_standable": 2,
+   "unreached_examples": [
+    [
+     -2847.5,
+     2627.5,
+     -16.32
+    ],
+    [
+     -2847.5,
+     2632.5,
+     -15.36
+    ]
+   ],
+   "unreached_tops": 1,
+   "collider_vs_drawn": {
+    "n": 15125,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -2702.5,
+     2687.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 213
+  },
+  "zone:zone_bagh_e_firuzi:3": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2658,
+   "standable": 2658,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 2658,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -2702.5,
+     2837.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 40
+  },
+  "zone:zone_bagh_e_firuzi:4": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12007,
+   "standable": 12007,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 10796,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1802.5,
+     1487.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 146
+  },
+  "zone:zone_bagh_e_firuzi:5": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 27014,
+   "standable": 26998,
+   "reached_pct": 100,
+   "unreached_standable": 1,
+   "unreached_examples": [
+    [
+     -2382.5,
+     2272.5,
+     -12.48
+    ]
+   ],
+   "unreached_tops": 16,
+   "collider_vs_drawn": {
+    "n": 15393,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1802.5,
+     2607.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 16.75,
+    "max_records": 2,
+    "top": [
+     {
+      "key": "settlement/settlement:tol_ajori:body",
+      "cells": 4525
+     },
+     {
+      "key": "settlement/settlement:tol_ajori:glaze",
+      "cells": 4477
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 308
+  },
+  "zone:zone_bagh_e_firuzi:6": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4785,
+   "standable": 4785,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 4429,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1897.5,
+     2702.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 87
+  },
+  "zone:zone_bagh_e_firuzi:7": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 546,
+   "standable": 546,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 546,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1667.5,
+     1532.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 25
+  },
+  "zone:zone_bagh_e_firuzi:8": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4582,
+   "standable": 4582,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 4480,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1582.5,
+     2387.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 79
+  },
+  "zone:zone_dasht_e_gohar:1": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3120,
+   "standable": 3120,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 54
+  },
+  "zone:zone_dasht_e_gohar:2": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 27403,
+   "standable": 27401,
+   "reached_pct": 99.97,
+   "unreached_standable": 8,
+   "unreached_examples": [
+    [
+     717.5,
+     3797.5,
+     -9.26
+    ],
+    [
+     722.5,
+     3772.5,
+     -7.2
+    ],
+    [
+     722.5,
+     3777.5,
+     -7.4
+    ],
+    [
+     852.5,
+     3807.5,
+     -8.32
+    ],
+    [
+     857.5,
+     3792.5,
+     -7.42
+    ],
+    [
+     857.5,
+     3797.5,
+     -8.22
+    ],
+    [
+     857.5,
+     3802.5,
+     -8.61
+    ],
+    [
+     857.5,
+     3807.5,
+     -8.32
+    ]
+   ],
+   "unreached_tops": 2,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 303
+  },
+  "zone:zone_dasht_e_gohar:3": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3120,
+   "standable": 3120,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 0,
+    "over_5cm_pct": null,
+    "worst_m": 0,
+    "worst_at": null,
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 33
+  },
+  "zone:zone_dasht_e_gohar:4": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2480,
+   "standable": 2480,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 2120,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     1517.5,
+     3557.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 36
+  },
+  "zone:zone_dasht_e_gohar:5": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 21150,
+   "standable": 21150,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 15537,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     1517.5,
+     4472.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 226
+  },
+  "zone:zone_dasht_e_gohar:6": {
+   "kind": "garden-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2480,
+   "standable": 2480,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 2120,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     1517.5,
+     4597.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 38
+  },
+  "zone:zone_lower_town_south:1": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 13734,
+   "standable": 13734,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 7484,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -902.5,
+     -902.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 165
+  },
+  "zone:zone_lower_town_south:2": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 5262,
+   "standable": 5262,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 4451,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -902.5,
+     -702.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 63
+  },
+  "zone:zone_lower_town_south:3": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 18074,
+   "standable": 18074,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 12604,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -102.5,
+     -902.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 227
+  },
+  "zone:zone_lower_town_south:4": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 5205,
+   "standable": 5205,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 2949,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -102.5,
+     -702.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 76
+  },
+  "zone:zone_persepolis_west:1": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 16731,
+   "standable": 16731,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 13426,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -902.5,
+     -257.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 233
+  },
+  "zone:zone_persepolis_west:2": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 22683,
+   "standable": 22683,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 13990,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -902.5,
+     892.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 266
+  },
+  "zone:zone_persepolis_west:3": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 2678,
+   "standable": 2678,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 2678,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -902.5,
+     997.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 38
+  },
+  "zone:zone_persepolis_west:4": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 17652,
+   "standable": 17652,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 15619,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -102.5,
+     -17.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 10.7,
+    "max_records": 70,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 1874
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 1195
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 1193
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el",
+      "cells": 1193
+     },
+     {
+      "key": "inscriptions/inscription:XPc:el:pick",
+      "cells": 1193
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 250
+  },
+  "zone:zone_persepolis_west:5": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 23725,
+   "standable": 23725,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 17581,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -102.5,
+     882.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 6.02,
+    "max_records": 64,
+    "top": [
+     {
+      "key": "inscriptions/inscription-slab:XPa",
+      "cells": 1146
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op",
+      "cells": 1136
+     },
+     {
+      "key": "inscriptions/inscription:XPa:op:pick",
+      "cells": 1136
+     },
+     {
+      "key": "inscriptions/inscription:XPa:bab",
+      "cells": 1123
+     },
+     {
+      "key": "inscriptions/inscription:XPa:bab:pick",
+      "cells": 1123
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 271
+  },
+  "zone:zone_persepolis_west:6": {
+   "kind": "town-zone",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1584,
+   "standable": 1584,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1584,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -142.5,
+     902.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 26
+  },
+  "river:river_pulvar:1": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12149,
+   "standable": 12149,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 12149,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     9232.5,
+     8747.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 141
+  },
+  "river:river_pulvar:10": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 10809,
+   "standable": 10809,
+   "reached_pct": 99.96,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     -317.5,
+     3627.5,
+     -9.43
+    ],
+    [
+     -312.5,
+     3622.5,
+     -8.98
+    ],
+    [
+     -272.5,
+     3647.5,
+     -9.43
+    ],
+    [
+     -267.5,
+     3637.5,
+     -8.11
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 8968,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -32.5,
+     3812.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 119
+  },
+  "river:river_pulvar:11": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 3888,
+   "standable": 3888,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 3888,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -1487.5,
+     2952.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 49
+  },
+  "river:river_pulvar:12": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11548,
+   "standable": 11548,
+   "reached_pct": 99.95,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     -5237.5,
+     2812.5,
+     -20.58
+    ],
+    [
+     -5232.5,
+     2822.5,
+     -21.8
+    ],
+    [
+     -5232.5,
+     2827.5,
+     -21.92
+    ],
+    [
+     -5232.5,
+     2832.5,
+     -21.47
+    ],
+    [
+     -4667.5,
+     2542.5,
+     -20.28
+    ],
+    [
+     -4662.5,
+     2552.5,
+     -19.5
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 10494,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -3397.5,
+     2342.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 142
+  },
+  "river:river_pulvar:13": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11549,
+   "standable": 11549,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 11549,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -5292.5,
+     2912.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 136
+  },
+  "river:river_pulvar:14": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11538,
+   "standable": 11537,
+   "reached_pct": 99.93,
+   "unreached_standable": 8,
+   "unreached_examples": [
+    [
+     -8172.5,
+     2287.5,
+     -28.81
+    ],
+    [
+     -8172.5,
+     2292.5,
+     -29.03
+    ],
+    [
+     -8167.5,
+     2307.5,
+     -27.65
+    ],
+    [
+     -7457.5,
+     2322.5,
+     -25.98
+    ],
+    [
+     -7457.5,
+     2327.5,
+     -26.66
+    ],
+    [
+     -7457.5,
+     2332.5,
+     -27.38
+    ],
+    [
+     -7457.5,
+     2337.5,
+     -27.37
+    ],
+    [
+     -7457.5,
+     2342.5,
+     -26.59
+    ]
+   ],
+   "unreached_tops": 1,
+   "collider_vs_drawn": {
+    "n": 10396,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -7162.5,
+     2302.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 130
+  },
+  "river:river_pulvar:15": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 6755,
+   "standable": 6755,
+   "reached_pct": 99.97,
+   "unreached_standable": 2,
+   "unreached_examples": [
+    [
+     -9237.5,
+     2322.5,
+     -30.78
+    ],
+    [
+     -9237.5,
+     2327.5,
+     -31.59
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 6261,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -9092.5,
+     2297.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 91
+  },
+  "river:river_pulvar:2": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11542,
+   "standable": 11542,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 11542,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     10187.5,
+     7087.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 136
+  },
+  "river:river_pulvar:3": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 1600,
+   "standable": 1600,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 1600,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     10307.5,
+     6817.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 27
+  },
+  "river:river_pulvar:4": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 12127,
+   "standable": 12127,
+   "reached_pct": 99.95,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     9722.5,
+     1977.5,
+     7.09
+    ],
+    [
+     9727.5,
+     1987.5,
+     5.84
+    ],
+    [
+     9732.5,
+     1997.5,
+     6.49
+    ],
+    [
+     9732.5,
+     2002.5,
+     7.1
+    ],
+    [
+     10072.5,
+     2027.5,
+     6.31
+    ],
+    [
+     10072.5,
+     2032.5,
+     5.99
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 10949,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     10302.5,
+     2122.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 150
+  },
+  "river:river_pulvar:5": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11247,
+   "standable": 11247,
+   "reached_pct": 99.95,
+   "unreached_standable": 6,
+   "unreached_examples": [
+    [
+     7122.5,
+     1917.5,
+     4.94
+    ],
+    [
+     7122.5,
+     1922.5,
+     4.29
+    ],
+    [
+     7122.5,
+     1927.5,
+     3.58
+    ],
+    [
+     7652.5,
+     1772.5,
+     4.65
+    ],
+    [
+     7657.5,
+     1762.5,
+     4.91
+    ],
+    [
+     7657.5,
+     1767.5,
+     4.35
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 9881,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     8327.5,
+     1942.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 130
+  },
+  "river:river_pulvar:6": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11549,
+   "standable": 11549,
+   "reached_pct": 99.97,
+   "unreached_standable": 3,
+   "unreached_examples": [
+    [
+     5042.5,
+     2847.5,
+     1.32
+    ],
+    [
+     5047.5,
+     2852.5,
+     0.26
+    ],
+    [
+     5057.5,
+     2867.5,
+     1.36
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 10964,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     6422.5,
+     1837.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 130
+  },
+  "river:river_pulvar:7": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11538,
+   "standable": 11538,
+   "reached_pct": 99.97,
+   "unreached_standable": 4,
+   "unreached_examples": [
+    [
+     3947.5,
+     4287.5,
+     -1.21
+    ],
+    [
+     3952.5,
+     4292.5,
+     -1.66
+    ],
+    [
+     3957.5,
+     4297.5,
+     -2.57
+    ],
+    [
+     3962.5,
+     4307.5,
+     -1.51
+    ]
+   ],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 10971,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     4922.5,
+     3067.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 130
+  },
+  "river:river_pulvar:8": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 11483,
+   "standable": 11482,
+   "reached_pct": 99.98,
+   "unreached_standable": 2,
+   "unreached_examples": [
+    [
+     2547.5,
+     4082.5,
+     -6.45
+    ],
+    [
+     2552.5,
+     4082.5,
+     -6.17
+    ]
+   ],
+   "unreached_tops": 1,
+   "collider_vs_drawn": {
+    "n": 10981,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     3682.5,
+     4582.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 145
+  },
+  "river:river_pulvar:9": {
+   "kind": "river-reach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 4238,
+   "standable": 4238,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 4238,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     2267.5,
+     3932.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 0,
+    "max": 0,
+    "top": []
+   },
+   "ms": 48
+  },
+  "approach": {
+   "kind": "approach",
+   "spacing_m": 5,
+   "stride": 1,
+   "cells": 944,
+   "standable": 944,
+   "reached_pct": 100,
+   "unreached_standable": 0,
+   "unreached_examples": [],
+   "unreached_tops": 0,
+   "collider_vs_drawn": {
+    "n": 132,
+    "over_5cm_pct": 0,
+    "worst_m": 0,
+    "worst_at": [
+     -62.5,
+     -292.5
+    ],
+    "undrawn_floor": 0,
+    "drawn_over_30cm": 0
+   },
+   "placeholder": {
+    "cells_pct": 100,
+    "max_records": 71,
+    "top": [
+     {
+      "key": "inscriptions/inscription-stones:limestone_dark",
+      "cells": 832
+     },
+     {
+      "key": "inscriptions/inscription:DPb:op",
+      "cells": 635
+     },
+     {
+      "key": "inscriptions/inscription:DPb:op:pick",
+      "cells": 635
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op",
+      "cells": 622
+     },
+     {
+      "key": "inscriptions/inscription:XPc:op:pick",
+      "cells": 622
+     }
+    ]
+   },
+   "untiered": {
+    "cells_pct": 0,
+    "max_records": 0,
+    "top": []
+   },
+   "repetition": {
+    "median": 0,
+    "p95": 2,
+    "max": 8,
+    "top": [
+     {
+      "key": "architecture/apadana:columns:lod1",
+      "cells": 69
+     }
+    ]
+   },
+   "ms": 29
+  }
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "id": "T-A6",
+ "value": 100,
+ "n": 71368900,
+ "commit": "cb24406",
+ "tool": "tools/dev/areas.ts",
+ "dep": "fd46f382b625",
+ "unit": "%",
+ "status": "PASS",
+ "envelope_m2": 20458910121,
+ "covered_m2": 20458910121,
+ "unique_primary_pct": 0.0957,
+ "within_7km_unique_pct": 7.21,
+ "edge_exits": 7146,
+ "uncovered_examples": [],
+ "note": "union cover of the physically walkable envelope (tools/dev/lib/envelope.ts). The classes tile the whole terrain, so the union is ~100 % by construction; unique_primary_pct is the share judged area by area."
+}
