@@ -214,3 +214,36 @@ export const BEARD = { rows: 6, rowAmp: 0.0045, around: 14, cheekRow: 0.012, tur
 /** a court beard's row profile at the mass tube's parameter t and θ from the front (−0.6 … 0.4; × BEARD.rowAmp m along the
  *  normal, laid out by the material's vertex stage: outfits.ts stores 0.6 + this in the spare byte) */
 export const beardRow = (t: number, thFront: number) => (Math.pow(Math.sin(Math.PI * ((t * BEARD.rows) % 1)), 0.6) - 0.6) * sstep(0.04, 0.12, t) * sstep(-0.6, 0.2, Math.cos(thFront));
+
+/** D-292 (gap hunter C, C-D09): a woman with child — the belly as a dome in front of the abdomen, applied in bind space to
+ *  every vertex of the body and of what she wears (humanMaterial's vertex stage mirrors `bellyOffset`), so it bends with the
+ *  spine and the hips when she kneels at the quern. `a` 0..1 is Population.gravid (the months to the birth); at term the
+ *  dome stands BELLY.term m proud of the abdomen at its centre. Half-widths grow with the months; the centre rises from low
+ *  in the belly toward the navel. The dome acts only on the front (z within `front` of the abdomen's surface z0 or ahead
+ *  of it) and fades over its rim, so the back, the arms (hanging at the sides in the bind pose), the head and the legs never
+ *  move. Cloth that hangs clear of the abdomen (the woman's dress falls from the bust) is taken up by the belly first: a
+ *  vertex `standoff` m ahead of z0 moves `take` × its standoff less, so the displacement never reorders layers (the map
+ *  z → z + dz has slope ≥ 1 − take > 0 along z) and the clothes never pass into the body. Tier C (the shape; the biology A). */
+export const BELLY = { term: 0.15, rx: [0.1, 0.07] as [number, number], ryUp: [0.09, 0.08] as [number, number], ryLow: [0.07, 0.06] as [number, number], rise: [0, 0.05] as [number, number],
+  front: [0.1, 0.03] as [number, number], skin: 0.012, take: 0.5, drop: 0.12, exp: 1.5 };
+export interface BellyFrame { yc: number; z0: number }
+const bellyCache = new WeakMap<HumanVariant, BellyFrame>();
+/** the abdomen's frame in a body variant's bind space: yc, halfway between spine_01 and spine_02 (the navel's height, near
+ *  enough), and z0, the abdomen's front surface there (the foremost belly vertex within 4 cm of the midline and 3 cm of yc) */
+export function bellyFrame(A: HumanAssets, v: HumanVariant): BellyFrame {
+  const hit = bellyCache.get(v); if (hit) return hit;
+  const s1 = HB.spine_01 * 3, s2 = HB.spine_02 * 3, yc = (v.joints[s1 + 1] + v.joints[s2 + 1]) / 2; let z0 = -1;
+  for (let i = 0; i < A.NO; i++) { if (A.part[i] !== PART.belly) continue; const x = v.pos[i * 3], y = v.pos[i * 3 + 1], z = v.pos[i * 3 + 2]; if (Math.abs(x) < 0.04 && Math.abs(y - yc) < 0.03 && z > z0) z0 = z; }
+  if (z0 < 0) z0 = 0.12; const f = { yc, z0 }; bellyCache.set(v, f); return f;
+}
+/** the belly's displacement of a bind-space point (x, y, z) for amount a (0..1) in frame F: [dy, dz], and the dome's slope
+ *  [∂h/∂x, ∂h/∂y] there (for the normal: n' ∝ n − n_z·(hx, hy, 0) where the vertex moves) */
+export function bellyOffset(x: number, y: number, z: number, a: number, F: BellyFrame): { dy: number; dz: number; hx: number; hy: number } {
+  if (a <= 0) return { dy: 0, dz: 0, hx: 0, hy: 0 };
+  const B = BELLY, rx = B.rx[0] + B.rx[1] * a, c = F.yc + B.rise[0] + B.rise[1] * a, dy0 = y - c, ry = dy0 > 0 ? B.ryUp[0] + B.ryUp[1] * a : B.ryLow[0] + B.ryLow[1] * a;
+  const r2 = (x / rx) ** 2 + (dy0 / ry) ** 2; if (r2 >= 1) return { dy: 0, dz: 0, hx: 0, hy: 0 };
+  const h = B.term * a * Math.pow(1 - r2, B.exp), s = sstep(F.z0 - B.front[0], F.z0 - B.front[1], z), stand = Math.max(0, z - F.z0 - B.skin);
+  const dz = Math.max(0, h - B.take * stand) * s; if (dz <= 0) return { dy: 0, dz: 0, hx: 0, hy: 0 };
+  const dh = -B.term * a * B.exp * Math.pow(1 - r2, B.exp - 1) * 2 * s;
+  return { dy: -B.drop * dz, dz, hx: dh * x / (rx * rx), hy: dh * dy0 / (ry * ry) };
+}

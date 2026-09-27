@@ -23,7 +23,11 @@ export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive',
   'barsom', 'feed_fire', 'mourn',
   // D-255: the crafts and the records: the smith at his anvil and his bellows, the goldsmith chasing, silver weighed on a
   // balance, a seal rolled on a tablet or a jar's sealing, the seal cutter's bow drill, the tanner's scraper, the oil pounder
-  'smith', 'bellows', 'chasing', 'weigh', 'seal', 'seal_jar', 'drill', 'scrape', 'pound'] as const;
+  'smith', 'bellows', 'chasing', 'weigh', 'seal', 'seal_jar', 'drill', 'scrape', 'pound',
+  // D-292: the body's care: the face washed over a basin, a child's hair gone through for lice, a man shaved
+  'wash_face', 'delouse', 'shave',
+  // D-292 (GC27): the herd boy's sling
+  'sling'] as const;
 export type WorkAnim = typeof WORK_ANIMS[number];
 /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
@@ -42,6 +46,8 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
   barsom: { ground: 'feet' }, feed_fire: { ground: 'feet' }, mourn: { ground: 'feet' },
   smith: { ground: 'feet' }, bellows: { ground: 'feet', aside: true }, chasing: { ground: 'seat', aside: true }, weigh: { ground: 'feet' }, seal: { ground: 'seat', aside: true },
   seal_jar: { ground: 'feet' }, drill: { ground: 'seat', aside: true }, scrape: { ground: 'feet' }, pound: { ground: 'feet' },
+  wash_face: { ground: 'seat', aside: true }, delouse: { ground: 'seat', aside: true }, shave: { ground: 'seat', aside: true },
+  sling: { ground: 'feet' },
 };
 /** D-215: the children's paths (C): running round after one another on a circle of 2.2 m at 2 m/s; walking round pulling
  *  a toy on a circle of 1.5 m at 0.5 m/s. Both start at the view's spot and come back to it */
@@ -847,6 +853,55 @@ function pound(t: number, k: number): Pose {
 }
 
 /** a work cycle's pose. `ph`: the gait phase for walking cycles (bearers); `k`: per-person seed */
+// ================================================================================================= the body's care (D-292)
+/** washing the face and hands at rising, kneeling over the basin (work object 'basin' 0.42 m ahead, its water 0.06 m up):
+ *  both hands cupped into the water, raised and the face bent into them, rubbed, again; then the hands rubbed together over
+ *  the basin. A splash as the water meets the face (C) */
+function washFace(t: number, k: number): Pose {
+  const P = 5.2, q = fr(t / P + k * 0.31), p = blank();
+  const up = ramp(q, 0.12, 0.3) * (1 - ramp(q, 0.46, 0.6)), rub = win(q, 0.3, 0.46, 0.03), hands = win(q, 0.66, 0.95, 0.04);
+  const T = kneelBody(p, t, k, 0.95 + 0.15 * up);
+  const face = v3.add(T.chestT, app(T.chestR, [0, 0.33, 0.14])), low: V3 = [0, 0.2, 0.45], mid: V3 = [0, 0.34, 0.4];
+  const c = mixV(low, face, up), w = 0.04 * S(2 * PI * t * 2.2) * rub, hr = 0.05 * S(2 * PI * t * 2.6) * hands;
+  const at = hands > 0.05 ? mid : c;
+  grip(p, T, 'r', [at[0] - 0.045 + w + hr, at[1] + 0.02 * rub, at[2] - 0.02 * up], [-0.9, -0.6, -0.3], 1.1);
+  grip(p, T, 'l', [at[0] + 0.045 + w - hr, at[1] + 0.02 * rub, at[2] - 0.02 * up], [0.9, -0.6, -0.3], -1.1);
+  look(p, T, up > 0.4 ? [0, 0.2, 0.5] : [0, 0.05, 0.42], 0.25 * up);
+  p.hit = q >= 0.28 && q < 0.31; p.grip = [0.35, 0.35]; return p;
+}
+/** a woman sitting on the doorstep going through a child's hair for lice: the child sits in front of her (popview pairs
+ *  them: 0.42 m ahead, facing the same way), its head at ~0.6 m; her fingers part the hair, pick, and wipe on the thumbnail (C) */
+function delouse(t: number, k: number): Pose {
+  const P = 4.4, q = fr(t / P + k * 0.23), p = blank(), T = sitBody(p, t, k, 0.35);
+  const hx = 0.03 * S(t * 0.4 + k), part = win(q, 0.1, 0.6, 0.05), pick = win(q, 0.64, 0.86, 0.03);
+  grip(p, T, 'l', [0.05 + hx, 0.63 + 0.015 * part, 0.37], [0.9, -0.6, -0.3], -0.6);
+  grip(p, T, 'r', [-0.04 + hx + 0.02 * S(2 * PI * t * 1.3) * part, 0.64 + 0.02 * pick, 0.35 - 0.04 * pick], [-0.9, -0.6, -0.3], 0.6);
+  look(p, T, [hx, 0.6, 0.38], 0.2); p.grip = [0.6, 0.7 + 0.3 * pick]; return p;
+}
+/** the barber kneeling up in front of a man sitting on the ground (popview pairs them: 0.55 m apart, face to face): the
+ *  left hand steadies the man's head, the right draws the razor down the cheek in short strokes and rinses it now and then
+ *  in the water jar at his right (C) */
+function shave(t: number, k: number): Pose {
+  const P = 6, q = fr(t / P + k * 0.17), p = blank(), T = kneelBody(p, t, k, 0.22);
+  const rinse = win(q, 0.8, 0.95, 0.03), st = fr(t / 1.1 + k), down = st < 0.7 ? st / 0.7 : 1 - (st - 0.7) / 0.3, side = fr(t / (2 * P) + k) < 0.5 ? 1 : -1;
+  const razor: V3 = mixV([-0.02 + 0.06 * side, 0.9 - 0.1 * down, 0.4], [-0.3, 0.45, 0.36], rinse);
+  grip(p, T, 'r', razor, [-0.9, -0.6, -0.3], 0.5); grip(p, T, 'l', [0.06 - 0.06 * side, 0.9, 0.42], [0.9, -0.6, -0.3], -0.9);
+  look(p, T, rinse > 0.5 ? [-0.3, 0.2, 0.35] : [0.02 * side, 0.86, 0.45]); p.grip = [0.3, 1]; return p;
+}
+/** D-292 (GC27): a herd boy with his sling, watching the flock: now and then (every SLING_P s) the stone is put in the pouch,
+ *  the sling whirled twice about the head with the right arm and let go toward a stray at the flock's edge, with a step into
+ *  the throw; the rest of the time he stands with the cord hanging from his right hand (C) */
+export const SLING_P = 34;
+function sling(t: number, k: number): Pose {
+  const u = fr(t / SLING_P + k * 0.21) * SLING_P, load = win(u, 24, 25.5, 0.3), whirl = win(u, 25.5, 28, 0.2), cast = win(u, 28, 28.8, 0.1), p = blank();
+  const turn = whirl * 2 * PI * 1.6 * (u - 25.5);
+  const T = body(p, { hp: 0.04 + 0.1 * cast, sp: 0.05 + 0.12 * cast, drop: -0.015, hy: 0.05 * wob(t * 0.2, k) - 0.25 * whirl + 0.35 * cast }, t, k);
+  stance(p, T, { w: 0.14, zl: 0.12 * (whirl + cast), zr: -0.05 - 0.08 * cast, out: 0.22 });
+  const rest: V3 = [-0.19, 0.92, 0.14], head: V3 = [-0.1 + 0.26 * C(turn), 1.66 + 0.05 * S(turn), 0.08 + 0.26 * S(turn)], throw_: V3 = [-0.08, 1.35, 0.62], pouch: V3 = [0.02, 1.02, 0.3];
+  const R = cast > 0.05 ? mixV(head, throw_, cast) : whirl > 0.05 ? mixV(pouch, head, whirl) : mixV(rest, pouch, load);
+  grip(p, T, 'r', R, [-0.8, -0.9, -0.3], 0.4); grip(p, T, 'l', load > 0.05 ? [pouch[0] + 0.06, pouch[1], pouch[2]] : [0.19, 0.92, 0.12 + 0.25 * cast], [0.8, -1, -0.2]);
+  look(p, T, [6 * S(t * 0.11 + k), 0.3, 8 + 4 * C(t * 0.07 + k)]); p.grip = [load > 0.05 ? 0.8 : 0.2, 1]; return p;
+}
 export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
   switch (id) {
     case 'hoe': return hoe(t, k);
@@ -910,6 +965,10 @@ export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
     case 'drill': return drill(t, k);
     case 'scrape': return scrape(t, k);
     case 'pound': return pound(t, k);
+    case 'wash_face': return washFace(t, k);
+    case 'delouse': return delouse(t, k);
+    case 'shave': return shave(t, k);
+    case 'sling': return sling(t, k);
   }
 }
 /** the root path of a path cycle at time t (called every frame by the crowd, also between pose refreshes) */

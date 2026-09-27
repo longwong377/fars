@@ -99,6 +99,11 @@ const S = { pace: salt('popview-pace'), sep: salt('popview-sep'), impair: salt('
  *  to the carer's side when within HAND_SNAP m of them (their plans walk them together), at handReach's distance; a child
  *  of the house leads a blind elder walking within GUIDE_SNAP m (C) */
 export const TODDLER_HAND = 4, HAND_SNAP = 4, GUIDE_SNAP = HAND_SNAP;
+/** D-292: the one of a pair of the body's care who is placed by the other (population.ts care): the child whose hair is gone
+ *  through for lice sits PAIR_GAP.comb m in front of the woman, facing the same way; the man being shaved sits
+ *  PAIR_GAP.shave m in front of the barber, face to face (C) */
+export const PAIR_FOLLOW = /^having (his|her) hair gone through|^being shaved by the barber|^at the well: a word and a look/;
+export const PAIR_GAP = { comb: 0.42, shave: 0.55, well: 1.3 } as const;
 /** where the smaller of two walkers hand in hand walks and how it raises its arm (C, proportions of a body of height h m:
  *  shoulder at 0.8 h, 0.15 h out from the body axis, arm with hand 0.4 h; the grown walker's hand held out about 0.3 m
  *  from the axis at 0.75 m, the smaller one's palm meeting it 0.19 m out: measured on the rig, the palms 5-10 cm apart,
@@ -334,7 +339,7 @@ export class PopView {
   private collect(t: number) {
     this.nOut = 0; this.nAgentVps = 0; let walking = 0, carried = 0; const day = Math.floor(t / 24);
     this.agentOcc.clear(); for (const a of this.sim.agents) if (!a.offmap) { const k = this.occKey(a.pos[0], a.pos[1]); const L = this.agentOcc.get(k); if (L) L.push(a); else this.agentOcc.set(k, [a]); }
-    const upd = this.stats.updates; this.youngBuf.length = 0; this.handBuf.length = 0; this.blindBuf.length = 0;
+    const upd = this.stats.updates; this.youngBuf.length = 0; this.handBuf.length = 0; this.blindBuf.length = 0; this.pairBuf.length = 0;
     for (const s of this.list) {
       const last = this.jumpedNow ? 0 : s.lastMode; s.lastMode = s.mode;
       if (s.occ >= 0 && (s.mode !== 1 || s.sepFor !== s.spot)) this.release(s);
@@ -349,7 +354,7 @@ export class PopView {
       // standing at their place, unchanged since the last update: the same ViewPerson (session 6: refilling ~8,000 people
       // every update cost the view 3-5 ms at 1× under load; only walkers, people stepping aside and changed states refill)
       let o = s.view;
-      if (o && s.viewV === s.ver && s.mode === 1 && !s.viewMoving && s.sepFor === s.spot) { this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; continue; }
+      if (o && s.viewV === s.ver && s.mode === 1 && !s.viewMoving && s.sepFor === s.spot) { this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; if (s.wp >= 0 && PAIR_FOLLOW.test(o.why)) this.pairBuf.push(s); continue; }
       if (!o) s.view = o = PopView.blank(); this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; o.impair = this.impairOf(s.pid, day);
       if (s.mode === 2 && s.wp >= 0 && this.pop.ageOn(s.pid, day) < TODDLER_HAND) this.handBuf.push(s); // D-215: a small child walking with someone
       if (s.mode === 2 && o.impair === 2) this.blindBuf.push(s);
@@ -364,7 +369,8 @@ export class PopView {
           o.e = sp.e + (s.sepE - sp.e) * k; o.n = sp.n + (s.sepN - sp.n) * k; o.heading = headingOf(s.sepE - sp.e, s.sepN - sp.n); o.moving = true; o.speed = Math.hypot(s.sepE - sp.e, s.sepN - sp.n) / STEP_S;
           o.y = this.geo.y(o.e, o.n, sp.net); o.prop = propOf(o.act, o.carryNote); walking++; s.viewV = s.ver; s.viewMoving = true; continue; }
         o.e = s.sepE; o.n = s.sepN; o.heading = sp.heading; o.moving = false; o.speed = 0;
-        if (!s.yOk) { s.y = this.geo.y(o.e, o.n, sp.net); s.prop = propOf(o.act, o.carryNote); s.yOk = true; } o.y = s.y; o.prop = s.prop; }
+        if (!s.yOk) { s.y = this.geo.y(o.e, o.n, sp.net); s.prop = propOf(o.act, o.carryNote); s.yOk = true; } o.y = s.y; o.prop = s.prop;
+        if (s.wp >= 0 && PAIR_FOLLOW.test(o.why)) this.pairBuf.push(s); }
       s.viewV = s.ver; s.viewMoving = o.moving;
     }
     this.agentsOff(t);
@@ -409,7 +415,9 @@ export class PopView {
     return !(s.act === 'play' || (s.mode === 2 && s.act === 'walk'));
   }
   // ------------------------------------------------------------------------------------------------ D-215: children, impairment
-  private youngBuf: PS[] = []; private handBuf: PS[] = []; private blindBuf: PS[] = [];
+  private youngBuf: PS[] = []; private handBuf: PS[] = []; private blindBuf: PS[] = []; private pairBuf: PS[] = [];
+  /** D-292: the pairs of the body's care placed this update (the follower moved to its partner), and those whose partner was not drawn */
+  readonly pairs = { placed: 0, alone: 0, jumpMax: 0 };
   /** D-215 counts this update: children held or put down by a carer drawn now, by way of holding; children whose carer is
    *  not drawn (indoors, a detailed agent, out of range) or who have none; hands held; blind elders led */
   readonly kids = { held: 0, unseen: 0, noCarer: 0, second: 0, byMode: {} as Record<string, number>, hands: 0, handJumpMax: 0, led: 0, lame: 0, blind: 0 };
@@ -438,6 +446,14 @@ export class PopView {
       for (const m of this.pop.membersOn(this.pop.home(b.pid, day), day)) { const a = this.pop.ageOn(m, day); if (a < 6 || a > 12) continue;
         const g = this.ps.get(m); if (!g?.view || g.stamp !== upd || g.mode !== 2 || g.view.hand || Math.hypot(g.view.e - o.e, g.view.n - o.n) > GUIDE_SNAP) continue;
         this.hold(o, g.view, m, CHILD_H[a]); K.led++; break; } }
+    // D-292: the child in front of the woman going through its hair, the man in front of the barber
+    const PR = this.pairs; PR.placed = 0; PR.alone = 0; PR.jumpMax = 0;
+    for (const f of this.pairBuf) { const L = this.ps.get(f.wp), o = f.view, q = L?.view; if (!o) continue;
+      if (!L || !q || L.stamp !== upd || L.mode !== 1) { PR.alone++; continue; }
+      const shave = /^being shaved/.test(o.why), well = /^at the well/.test(o.why), face = shave || well, gap = shave ? PAIR_GAP.shave : well ? PAIR_GAP.well : PAIR_GAP.comb;
+      // (at the well he stands off to her side and a little ahead, turned to her: she is at the water)
+      const hd = (q.heading + (well ? 55 : 0)) * Math.PI / 180, e = q.e + Math.sin(hd) * gap, n = q.n + Math.cos(hd) * gap;
+      PR.jumpMax = Math.max(PR.jumpMax, Math.hypot(e - o.e, n - o.n)); o.e = e; o.n = n; o.heading = face ? (q.heading + (well ? 55 : 0) + 180) % 360 : q.heading; o.moving = false; o.speed = 0; o.y = this.geo.y(e, n); PR.placed++; }
   }
   /** D-244: who a small child asleep indoors with nobody named sleeps beside: its mother when she is drawn in the same house,
    *  else the first grown member of the household drawn there (-1: none) */
@@ -461,6 +477,7 @@ export class PopView {
    *  no begging is shown */
   impairOf(pid: number, day: number): 0 | 1 | 2 {
     const p = this.pop.persons[pid]; if (p.agent >= 0 || p.job === 'guard' || p.job === 'messenger') return 0;
+    if (this.pop.injuryOn?.(pid, day)) return 1; // D-292 (GC23): a limp for some days after a hurt at work (C)
     const u = h32(this.seed, S.impair, pid) / 4294967296, age = this.pop.ageOn(pid, day);
     if (p.sex === 'm' && age >= IMPAIR.lame.ages[0] && age <= IMPAIR.lame.ages[1] && u < IMPAIR.lame.share) return 1;
     if (age >= IMPAIR.blind.from && u < IMPAIR.blind.share) return 2;

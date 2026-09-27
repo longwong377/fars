@@ -31,6 +31,10 @@ import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput, type FaceState } fro
 import { lookFor, wearTexel, type PersonLook, type LookInput } from './looks';
 import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
+import { bellyFrame } from './drape';
+import { sunTimes } from './calendar';
+/** D-292: the ways of holding or laying down a small child that go with humming it to sleep */
+const LULL_MODES = new Set(['arms', 'lap', 'cradle', 'mat', 'nurse']);
 import { nearCascadesOnly } from './humanGPU';
 import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave, BABE_CLASS } from './props';
 import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTES, type BabeMode } from './babes';
@@ -138,6 +142,8 @@ export interface Person {
   /** the population person (D-143; -1 for extras), the view's data for them this frame (population people, and detailed
    *  agents off the Terrace), and their walking phase */
   pid: number; vp: ViewPerson | null; vpFrame: number; gaitPh: number;
+  /** D-292: the belly drawn (Population.gravid on the day it was written) */
+  belly?: number;
   /** the LOD drawn with in the last frame */
   lod?: number;
   /** D-215: the children carried or put down beside this person now (prop kind, transform in character space, skin tint) */
@@ -305,8 +311,20 @@ export class Crowd {
     D.set([...c.skin, look.stubble], o + 4); D.set([...c.main, w?.k[0] ?? 0], o + 8); D.set([...c.second, w?.k[1] ?? 0], o + 12); D.set([...c.trim, w?.k[2] ?? 0], o + 16);
     D.set([...c.hair, 0], o + 20); D.set([...c.leather, 0], o + 24); D.set([look.grimeLevel, look.scale, w?.hat ?? 0, flags], o + 28); D.set([...c.felt, 0], o + 32);
     D.set(w ? wearTexel(w) : [0, 0, 0, 0], o + 36);
+    // D-292: the abdomen's frame of the body variant (the belly's displacement, humanMaterial); the amount is set by setBelly
+    const bf = bellyFrame(this.humans.A, this.humans.A.variants[look.variant]); D[o + 27] = bf.yc; D[o + 35] = bf.z0;
     this.humans.gpu.markPersonDirty();
   }
+  /** D-292 (C-D09): a woman with child carries the belly of her months (Population.gravid: 0 for everyone else) */
+  private setBelly(p: Person, a: number) {
+    if ((p.belly ?? 0) === a) return; p.belly = a; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 23] = a; this.humans.gpu.markPersonDirty(); }
+  /** the population person behind a drawn person (a detailed agent's seat, or the view's pid), or -1 */
+  private popPid(p: Person) { return p.pid >= 0 ? p.pid : p.agent && p.agent.pid >= 0 ? p.agent.pid : -1; }
+  private bellyDay = -1;
+  /** the day's bellies for everyone attached (each day's refresh: the months go on) */
+  private bellies(day: number, force = false) {
+    const pop = this.view?.pop ?? this.sim?.pop; if (!pop || (!force && day === this.bellyDay)) return; this.bellyDay = day;
+    for (const p of this.persons.values()) { if (p.extra) continue; const pid = this.popPid(p); if (pid >= 0) this.setBelly(p, pop.gravid?.(pid, day) ?? 0); } }
   private newPerson(key: string, agent: Agent | null, look: PersonLook, seed: number): Person {
     const slot = this.allocSlot(); this.writePerson(slot, look);
     const v = this.humans.A.variants[look.variant];
@@ -324,7 +342,7 @@ export class Crowd {
   attach(a: Agent): Person {
     const hit = this.byAgent.get(a.id); if (hit) return hit; const key = `a${a.id}`;
     const look = lookFor(this.humans.A, { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } as LookInput, this.seed);
-    return this.newPerson(key, a, look, a.seed);
+    const p = this.newPerson(key, a, look, a.seed); if (a.pid >= 0 && this.sim) this.setBelly(p, this.sim.pop.gravid?.(a.pid, Math.floor(this.sim.t / 24)) ?? 0); return p;
   }
   detach(a: Agent | string) { const p = typeof a === 'string' ? this.persons.get(a) : this.byAgent.get(a.id); if (!p) return; this.freeSlot(p.slot); this.persons.delete(p.key); if (p.agent) this.byAgent.delete(p.agent.id); else if (p.pid >= 0) this.byPid.delete(p.pid); }
   /** attach a person of the population (D-143): their look from the view (a detailed agent keeps its own); idempotent */
@@ -332,7 +350,8 @@ export class Crowd {
     const hit = this.byPid.get(pid); if (hit) return hit;
     const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
     if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
-    const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p); return p;
+    const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p);
+    const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid?.(pid, day) ?? 0); return p; // (gravid?.: a view built on a partial population, as the tests' stand-ins, draws no belly)
   }
   /** an extra person not driven by the simulation (test lineups, the performance sheet): fixed place, yaw and animation,
    *  or an activity (`act`, with the plan's reason `why`) performed with its props, work objects and animals */
@@ -358,6 +377,8 @@ export class Crowd {
     v = voiceIdentity(a, pid, this.view?.pop ?? null, Math.floor((this.sim?.t ?? 0) / 24), this.seed);
     if (this.voiceIds.size > 20000) this.voiceIds.clear(); this.voiceIds.set(key, v); return v;
   }
+  /** D-292: a small child's bedtime: from half an hour before sunset to three hours after it (C) */
+  private bedtime() { const t = this.sim?.t ?? 0, d = Math.floor(t / 24), h = t - d * 24, sun = sunTimes(d); return h > sun.set - 0.5 && h < sun.set + 3; }
   /** D-245: everyone the crowd placed within `radius` of the listener in the last update, skinned or impostor, in view or
    *  not (people behind the listener talk too), detailed agents and the population alike; extras (performers, drivers)
    *  are left out (the music and the traffic sound them) */
@@ -369,7 +390,9 @@ export class Crowd {
     };
     for (const p of this.persons.values()) { if (p.extra || !p.shown) continue; const a = p.agent, vp = p.vpFrame === this.frame ? p.vp : null;
       const moving = a && !a.offmap ? a.walking : !!vp?.moving; push(p.key, a, p.pid, p.act, moving, p.base[0], p.base[1], p.base[2], a && !a.offmap ? a.task?.place ?? null : vp?.place || null);
-      if (out.length && out[out.length - 1].key === p.key) out[out.length - 1].yaw = p.base[3]; // session 9: which way they face (their breath)
+      if (out.length && out[out.length - 1].key === p.key) { const q = out[out.length - 1]; q.yaw = p.base[3]; // session 9: which way they face (their breath)
+        // D-292 (C-D30): a woman with a small child in her arms, lap or cradle, or on the mat by her, at its bedtime hums it to sleep
+        if (vp?.babes?.length && q.sex === 'f' && q.age >= 12 && this.bedtime() && vp.babes.some(b => b.months < 30 && LULL_MODES.has(b.mode))) q.lull = true; }
       // session 9 (G33): the small children carried or put down beside them (D-215) are there to be heard (a baby's cry:
       // audio/voices.ts), with their own identity and age from the population
       if (vp?.babes) for (const b of vp.babes) push(`p${b.pid}`, null, b.pid, 'rest', false, p.base[0] + 0.25, p.base[1], p.base[2], null); }
@@ -410,6 +433,7 @@ export class Crowd {
   private feedPool(cam: THREE.Vector3, camera?: THREE.Camera) {
     const sim = this.sim!, view = this.view!, cx = cam.x, cn = -cam.z; let nc = 0;
     if (view.jumps !== this.viewJumps) { this.viewJumps = view.jumps; this.resetPopinProbe(); } // a jump in time
+    this.bellies(Math.floor(sim.t / 24));
     const cand = (d: number, a: Agent | null, vp: ViewPerson | null, id: number) => { let c = this.cands[nc]; if (!c) this.cands[nc] = c = { d, a, vp, id, rank: d }; else { c.d = d; c.a = a; c.vp = vp; c.id = id; c.rank = d; } nc++; };
     // every detailed agent on the map within the impostor range (beyond ATTACH_R they are impostors: the Terrace seen
     // from the town)
@@ -452,7 +476,7 @@ export class Crowd {
   /** the pool, fed by the simulation's visible set: attach newcomers, detach the pooled who left (offmap, or beyond
    *  DETACH_R). A newcomer within 50 m in view is a pop-in (it came on the map there: ATTACH_R ≫ 50 m) */
   private autoPoolStep(cam: THREE.Vector3, camera?: THREE.Camera) {
-    const vis = this.sim!.visibleAgents([cam.x, -cam.z], ATTACH_R, POOL_MAX), now = this.visNow; now.clear();
+    const vis = this.sim!.visibleAgents([cam.x, -cam.z], ATTACH_R, POOL_MAX), now = this.visNow; now.clear(); this.bellies(Math.floor(this.sim!.t / 24));
     for (const a of vis) {
       now.add(a.id); if (!this.byAgent.has(a.id)) this.attach(a);
       if (this.poolPrimed && camera && !this.visPrev.has(a.id)) { const d = Math.hypot(a.pos[0] - cam.x, a.y + 1 - cam.y, -a.pos[1] - cam.z);
@@ -482,7 +506,8 @@ export class Crowd {
     if (act !== p.act || why !== p.why) { // the performance changes only with the activity or the plan's reason
       p.act = act ?? ''; p.why = why; p.perf = act ? performanceFor(act, why, a ? a.seed : Math.round(p.animK * 159), e?.variant, vp ? this.who(p.pid) : undefined) : null; p.actPlaceholder = !!p.perf?.placeholder;
       // D-215 (gap audit item 37): the lame walk with a staff, the blind feel their way with one
-      if (vp?.impair && p.perf && act === 'walk' && !p.perf.animals) p.perf = { ...p.perf, anim: vp.impair === 1 ? 'limp' : 'feel', prop: 'staff', note: vp.impair === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; }
+      if (vp?.impair && p.perf && act === 'walk' && !p.perf.animals) { const hurt = vp.impair === 1 && p.pid >= 0 ? this.view?.pop.injuryOn?.(p.pid, Math.floor((this.sim?.t ?? 0) / 24)) : null;
+        p.perf = { ...p.perf, anim: vp.impair === 1 ? 'limp' : 'feel', prop: 'staff', note: hurt ? `limping on a staff, ${hurt.how} some days ago (gap hunter C, C-D19: hurts of the heavy work; C: D-292)` : vp.impair === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; } }
     p.anim = p.perf ? p.perf.anim : e?.anim ?? 'idle';
   }
   private lastTime = 0;
@@ -900,7 +925,9 @@ export class Crowd {
         const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : pp ? `${this.view!.pop.nameOf(p.pid) ?? 'unnamed'} (${courtRole ?? pp.job}, ${pp.origin}; population person ${p.pid}: ${p.vp?.what ?? ''})` : `extra ${p.key}`;
         const act = p.act ? `; doing ${p.act}${p.actPlaceholder ? ' — PLACEHOLDER: no performance for this activity (abstract-only), a standing pose is shown' : p.perf ? ` (${p.perf.tier}: ${p.perf.note})` : ''}` : '';
         const kids = p.babeProps?.length ? `; with a small child: ${p.babeProps.map(b => BABE_NOTES[b.mode as BabeMode]).join('; ')} (D-215)` : '', hand = p.vp?.hand ? `; hand in hand with p${p.vp.handWith} (D-215, C)` : '';
-        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder || !!court?.placeholder(p.pid), note: `${who}; ${p.look.dress} dress${act}${kids}${hand}; ${p.look.note}` };
+        const ppid = this.popPid(p), due = ppid >= 0 && p.belly ? (this.view?.pop ?? this.sim?.pop)?.dueIn(ppid, Math.floor((this.sim?.t ?? 0) / 24)) ?? null : null;
+        const gravid = due === null ? '' : due >= 0 ? `; with child, the birth in ${due} days (E-70 births: B for the rate; the belly drawn by the months, C: D-292)` : `; gave birth ${-due} days ago, the belly going down (C: D-292)`;
+        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder || !!court?.placeholder(p.pid), note: `${who}; ${p.look.dress} dress${act}${kids}${hand}${gravid}; ${p.look.note}` };
         out.push({ distance: best, point: ray.at(best, new THREE.Vector3()), object: proxy } as THREE.Intersection);
       }
     }

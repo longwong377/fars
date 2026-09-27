@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { AudioEngine, LIMITER, ceilingCurve } from '../src/audio/engine';
 import { Soundscape } from '../src/audio/soundscape';
 import { NoiseStream } from '../src/audio/beds';
-import { PopulationVoices, personVoice, voiceDist, voiceLang, WORDLESS, LAUGH, CHILD_CALL, CRY, COUGH, unitsFor, type NearPerson } from '../src/audio/voices';
+import { PopulationVoices, personVoice, voiceDist, voiceLang, WORDLESS, LAUGH, CHILD_CALL, CRY, COUGH, LULL, unitsFor, type NearPerson } from '../src/audio/voices';
 import { WaterSound, FLOW } from '../src/audio/water';
 import { planUtterance, renderPlan } from '../src/audio/speech';
 import { LEXICON, murmurEligible, type LangId } from '../src/lang/lexicon';
@@ -58,13 +58,13 @@ describe('voices from the population (T-G3, D-241, T-K1a2)', () => {
       for (const u of mine.slice(0, 3)) expect(sourceLevel(u.src as any, u.t0, lis).db, `${p.key} ${u.unit}`).toBeGreaterThan(-40); }
     const published = new Set<string>([...LINES.map(l => l.id), ...(Object.keys(LEXICON) as LangId[]).flatMap(l => LEXICON[l].filter(murmurEligible).map(e => e.id))]);
     // (the human sounds that are not words, session 9: laughter, children's calls, babies' cries, are wordless too)
-    for (const u of log) if (u.lang === 'wordless') expect(/^(wordless|laugh|call|cry|cough):/.test(u.unit), u.unit).toBe(true); else expect(published.has(u.unit), u.unit).toBe(true);
+    for (const u of log) if (u.lang === 'wordless') expect(/^(wordless|laugh|call|cry|cough|lull):/.test(u.unit), u.unit).toBe(true); else expect(published.has(u.unit), u.unit).toBe(true);
     // the Egyptians and Lydians of the scene hum; nobody of theirs speaks another people's words
     const wordlessKeys = new Set(S.people.filter(p => voiceLang(p.lang, p.langs).lang === null).map(p => p.key));
     expect(wordlessKeys.size).toBeGreaterThan(0);
     for (const u of log) if (wordlessKeys.has(u.key)) expect(u.lang).toBe('wordless');
     expect(log.some(u => u.kind === 'bed')).toBe(true); // the talkers beyond the clear voices are heard as the grain bed
-    for (const w of [...WORDLESS, ...LAUGH, ...CHILD_CALL, ...CRY, ...COUGH]) expect(findModernWords(w.ipa, { ipa: true }), w.ipa).toEqual([]);
+    for (const w of [...WORDLESS, ...LAUGH, ...CHILD_CALL, ...CRY, ...COUGH, ...LULL]) expect(findModernWords(w.ipa, { ipa: true }), w.ipa).toEqual([]);
     for (const l of ['op', 'el', 'arc', 'bab', 'grc'] as LangId[]) expect(unitsFor(l).words.length).toBeGreaterThan(40);
   });
   it('a voice claims the jaw only while it plays (a visible speaker is a heard speaker)', () => {
@@ -138,5 +138,14 @@ describe('the human sounds that are not words (session 9, G33)', () => {
     // the cry is high: the baby's voice pitch well above the adults'
     expect(cries[0].voice.age).toBeLessThan(2);
     const coughs = L.filter(u => u.unit.startsWith('cough:')); expect(coughs.every(u => u.key !== 'b0')).toBe(true);
+  });
+  it('D-292 (C-D30): a woman with a small child at its bedtime hums it a wordless lullaby, in phrases with a breath between; nobody else does', () => {
+    const { ctx, e } = engineOn(), v = new PopulationVoices(e, { seed: 7 }), L = log(v); v.coughEvery = 1e9;
+    const mother: NearPerson = { key: 'm0', x: 2, y: 0, z: 2, talking: false, lang: 'Old Persian', sex: 'f', age: 24, seed: 11, group: null, lull: true };
+    const other: NearPerson = { key: 'w1', x: -2, y: 0, z: 2, talking: false, lang: 'Old Persian', sex: 'f', age: 30, seed: 12, group: null };
+    drive(ctx, 90, dt => v.update(dt, [mother, other], { x: 0, y: 1.6, z: 0 }));
+    const hums = L.filter(u => u.unit.startsWith('lull:')); expect(hums.length).toBeGreaterThan(12);
+    expect(hums.every(u => u.key === 'm0' && u.lang === 'wordless')).toBe(true);
+    let breaths = 0; for (let i = 1; i < hums.length; i++) if (hums[i].t0 - hums[i - 1].t1 > 1) breaths++; expect(breaths).toBeGreaterThan(2);
   });
 });

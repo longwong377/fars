@@ -61,6 +61,9 @@ export const FRAMES: Frame[] = [
   // D-255: the crafts' cycles, each its medoid (tools/dev/imp_keys.ts smith chasing seal_jar scrape pound; the bow drill shares the chasing frame at 0.046 m)
   { id: 'smith@28.5', anim: 'smith', ph: 0, t: 28.5 }, { id: 'chasing@54.2', anim: 'chasing', ph: 0, t: 54.2 }, { id: 'seal_jar@41.6', anim: 'seal_jar', ph: 0, t: 41.6 },
   { id: 'scrape@31.3', anim: 'scrape', ph: 0, t: 31.3 }, { id: 'pound@41.8', anim: 'pound', ph: 0, t: 41.8 },
+  // D-292: the body's care, each its medoid (tools/dev/imp_keys.ts wash_face delouse shave: no frame within 0.09 m before)
+  { id: 'wash_face@13.1', anim: 'wash_face', ph: 0, t: 13.1 }, { id: 'delouse@6.6', anim: 'delouse', ph: 0, t: 6.6 }, { id: 'shave@30.9', anim: 'shave', ph: 0, t: 30.9 },
+  { id: 'sling@27', anim: 'sling', ph: 0, t: 27 },
 ];
 export const ROWS = IMP_DRESSES.length * FRAMES.length;
 /** rows per column of blocks */
@@ -87,6 +90,8 @@ export const IMP_MAP: Partial<Record<AnimId, [string] | [string, string, string]
   // D-255
   smith: ['smith@28.5'], bellows: ['pat@52.2'], chasing: ['chasing@54.2'], weigh: ['harp_h@30.9'], seal: ['reed_pipe@16.5'], seal_jar: ['seal_jar@41.6'],
   drill: ['chasing@54.2'], scrape: ['scrape@31.3'], pound: ['pound@41.8'],
+  // D-292 (the nearest frames by tools/dev/imp_keys.ts)
+  wash_face: ['wash_face@13.1'], delouse: ['delouse@6.6'], shave: ['shave@30.9'], sling: ['sling@27'],
   hoe: ['hoe@44.5', 'hoe@5.8', '3e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f'],
   winnow: ['winnow@36.4', 'winnow@16.4', '000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fff'],
   plough: ['plough@6.4', 'plough@31', 'ff803fe00ff807fc01ff007fc01fe00ff803fe00ff807fc01ff007fc01ff000007fffff000003ff803fe00ff803fe01ff007fc01ff007f803fe00ff803fe01ff007fc01ff007fc0000ffff'],
