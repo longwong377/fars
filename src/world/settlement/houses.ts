@@ -18,7 +18,7 @@ import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
-import { kitOn, kitLog, kitPiece } from './kit';
+import { kitOn, kitLog, kitPiece, kitFrame } from './kit';
 
 /** tile size (m, site-local) and the near radius (m, from the eye to a tile's centre) */
 export const TILE = 32, NEAR_R = 72;
@@ -249,6 +249,13 @@ export class SiteHouses {
   private lbox(b: Batch, u: number, v: number, hu: number, hv: number, y0: number, y1: number, cb: RGB, ct: RGB, owner: number, bottom = false, rot = 0) {
     const g = this.s.grid(u, v); b.box(g[0], g[1], this.s.frame.theta + rot, hu, hv, y0, y1, cb, ct, owner, bottom);
   }
+  /** a timber lintel (D-311): the Blender kit's adzed beam, laid along the box's longer horizontal side (HOUSEKIT=0: the box) */
+  private beam(b: Batch, u: number, v: number, hu: number, hv: number, y0: number, y1: number, cb: RGB, ct: RGB, owner: number) {
+    if (!kitOn) return this.lbox(b, u, v, hu, hv, y0, y1, cb, ct, owner);
+    const O = this.wp(u, v, y0), au = this.dirW(1, 0), av = this.dirW(0, 1), q = kitPiece('beam', hi(Math.round(u * 10), Math.round(v * 10), 97));
+    const [L, D, a, c] = hu >= hv ? [2 * hu, 2 * hv, au, av] : [2 * hv, 2 * hu, av, au];
+    kitFrame(b, q, O, [a[0] * L, 0, a[1] * L], [0, y1 - y0, 0], [c[0] * D, 0, c[1] * D], ct, owner);
+  }
   /** a round pole (prism) between two world points */
   pole(b: Batch, A: number[], Bp: number[], r: number, sides: number, c: RGB, owner: number, caps: boolean | 'end' = true) {
     // D-311: every pole of a house (roof, eave, ceiling, lintel, spout, ladder) from the Blender kit's poplar log; the thinnest (battens) stay prisms
@@ -290,7 +297,7 @@ export class SiteHouses {
       const dv = we.street ? doorVar(s.plots[we.plot].id) : { drop: 0.1 * hi(seed, 51), lh: 0.09 + 0.06 * hi(seed, 52), bear: 0.12 + 0.16 * hi(seed, 53), step: 0, niche: 0 };
       const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H - dv.drop, g0 = this.gl(...P2l((sA + sB) / 2, 0)), mu = ax === 0 ? (sA + sB) / 2 : cc, mv = ax === 0 ? cc : (sA + sB) / 2, tb = lin(POLE);
       const aged = sh(tb, 0.85 + 0.25 * L.doorWood);
-      this.lbox(B.timber, mu, mv, ax === 0 ? len / 2 + dv.bear : t / 2 + 0.012, ax === 0 ? t / 2 + 0.012 : len / 2 + dv.bear, yl, yl + dv.lh, sh(aged, 0.9), aged, this.owner(we.plot, P.door));
+      this.beam(B.timber, mu, mv, ax === 0 ? len / 2 + dv.bear : t / 2 + 0.012, ax === 0 ? t / 2 + 0.012 : len / 2 + dv.bear, yl, yl + dv.lh, sh(aged, 0.9), aged, this.owner(we.plot, P.door));
       if (top - (yl + dv.lh) > 0.03) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 0.8);
         this.lbox(B.plaster, mu, mv, ax === 0 ? len / 2 : t / 2, ax === 0 ? t / 2 : len / 2, yl + dv.lh, top, sh(c, 0.95), c, this.owner(we.plot, P.wall)); B.plaster.set('ao', 1); }
       // the doorway's face on the lane: timber jamb boards for the better-off (35 %), a raised plaster surround (30 %), or none
@@ -374,10 +381,10 @@ export class SiteHouses {
         for (const h of faceHoles) this.reveal(B, ax, cc, t, sg, h, col0, we.plot);
       }
     }
-    // the cap of an exposed top (D-311): the Blender kit's slumped mud crest, 2-3 m modules (three, mirrored by the hash) laid
+    // the cap of an exposed top (D-311): the Blender kit's slumped mud crest, ~3 m modules (three, mirrored by the hash) laid
     // along the wall, following its worn top (the undulations and the rain's notches above), drooping over both arrises
     if (exposedTop && kitOn) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
-      const nm = Math.max(1, Math.round(len / 2.6)), ml = len / nm, wz = t + 0.07, own = this.owner(we.plot, P.wall);
+      const nm = Math.max(1, Math.round(len / 3)), ml = len / nm, wz = t + 0.07, own = this.owner(we.plot, P.wall);
       const aw = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), cw = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0);
       for (let m = 0; m < nm; m++) { const q = kitPiece('crest', hi(seed, m, 91)), fl = hi(seed, m, 92) < 0.5 ? -1 : 1, mid = sA + ml * (m + 0.5), hx = ml / 2 / 1.02;
         // handedness of (along·fl, up, across) in the world: mirror the winding with it
@@ -438,7 +445,7 @@ export class SiteHouses {
     b.set('ao', 1);
     // a timber lintel over a window (the court face)
     if (h.through && h.s1 - h.s0 > 0.3) { const tb = lin(POLE), mid = (h.s0 + h.s1) / 2, [u, v] = P2l(mid, sg * (t / 2 - 0.06)); B.timber.set('ao', 0.9);
-      this.lbox(B.timber, u, v, ax === 0 ? (h.s1 - h.s0) / 2 + 0.14 : 0.075, ax === 0 ? 0.075 : (h.s1 - h.s0) / 2 + 0.14, h.y1, h.y1 + 0.09, sh(tb, 0.85), tb, this.owner(plot, P.window)); B.timber.set('ao', 1); }
+      this.beam(B.timber, u, v, ax === 0 ? (h.s1 - h.s0) / 2 + 0.14 : 0.075, ax === 0 ? 0.075 : (h.s1 - h.s0) / 2 + 0.14, h.y1, h.y1 + 0.09, sh(tb, 0.85), tb, this.owner(plot, P.window)); B.timber.set('ao', 1); }
   }
   /** repairs, bare brick, soot above a hearth or an oven, dung cakes, a drain's stain: where they go on one face */
   private faceDecals(we: WallEl, sd: Side, sg: number, floor: number, top: number, holes: Hole[], fx: Fixture[], out: [number, Dec][], seed: number) {

@@ -10,6 +10,7 @@
 #  log0..1    a poplar pole, unit radius and length along +y, knotty, slightly bent and tapered, checked end grain
 #  tannur0..1 a bread oven: a clay cone 0.84 m across at the foot, 0.8 m high, a rolled lip round a 0.36 m mouth, the
 #             mud collar banked round its foot and a draught hole at the base
+#  beam0..1   an adzed timber lintel: unit box (x along, y up from 0, z across), faceted, sagging, knots
 #  leaf0..2   a street door leaf of 3/4/5 poplar planks (unit width 1 across the opening, height 1), two battens behind,
 #             the pivot post at x = 0 (its own piece post: unit length), a wooden pull
 import bpy, bmesh, json, math, sys, random
@@ -129,9 +130,9 @@ def log(seed):
     ob = mesh_from(verts, faces, shade, f'log{seed}'); smooth(ob); return ob
 
 def tannur(seed):
-    SIDES = 16
+    SIDES = 12
     # (radius, height) from the banked foot to the lip and down into the mouth
-    prof = [(0.62, -0.08), (0.56, 0.02), (0.47, 0.1), (0.43, 0.22), (0.39, 0.4), (0.33, 0.58), (0.26, 0.72), (0.215, 0.79), (0.19, 0.8), (0.175, 0.78), (0.17, 0.62)]
+    prof = [(0.62, -0.08), (0.5, 0.06), (0.43, 0.22), (0.36, 0.5), (0.26, 0.72), (0.2, 0.8), (0.175, 0.78), (0.17, 0.62)]
     verts, faces, shade = [], [], []
     for j, (r0, y) in enumerate(prof):
         for s in range(SIDES):
@@ -141,7 +142,7 @@ def tannur(seed):
             # the draught hole at the foot (a dent, darker)
             dh = math.exp(-((a - 0.4) ** 2) / 0.04 - ((y - 0.12) ** 2) / 0.004)
             rr -= 0.06 * dh
-            verts.append(G(math.cos(a) * rr, y, math.sin(a) * rr)); shade.append((0.62 if j >= 9 else 0.96 + 0.1 * nz(p, 3.0, seed + 2)) * (1 - 0.6 * dh))
+            verts.append(G(math.cos(a) * rr, y, math.sin(a) * rr)); shade.append((0.62 if j >= 6 else 0.96 + 0.1 * nz(p, 3.0, seed + 2)) * (1 - 0.6 * dh))
     for j in range(len(prof) - 1):
         for s in range(SIDES):
             a = j * SIDES + s; b = j * SIDES + (s + 1) % SIDES
@@ -184,6 +185,27 @@ def leaf(variant):
     plank_box(verts, faces, shade, W - 0.2, W - 0.14, 0.5, 0.57, 0.055, 0.09, variant * 10 + 9, 0.86, NY=2)
     ob = mesh_from(verts, faces, shade, f'leaf{variant}'); return ob
 
+def beam(seed):
+    # an adzed timber lintel: a rounded-rectangle section (unit box, x along), sagging a little, the arrises eased and the
+    # faces faceted by the adze (flat-shaded), knots as dents
+    prof = [(-0.5, 0.1), (-0.42, 0.97), (0.42, 0.97), (0.5, 0.1), (0.4, 0.0), (-0.4, 0.0)]  # (z, y)
+    NX = 2
+    verts, faces, shade = [], [], []
+    for ix in range(NX):
+        x = -0.5 + ix / (NX - 1)
+        sag = -0.04 * (1 - (2 * x) ** 2)
+        for (z, y) in prof:
+            p = (x * 4, y, z)
+            d = 0.05 * nz(p, 1.2, seed) + 0.025 * nz(p, 3.0, seed + 1)
+            verts.append(G(x, y + sag + d * 0.5, z * (1 + d))); shade.append(0.88 + 0.2 * (0.5 + nz((x * 9, y, z), 1.0, seed + 2)))
+    n = len(prof)
+    for ix in range(NX - 1):
+        for k in range(n):
+            a = ix * n + k; b = ix * n + (k + 1) % n
+            faces.append((a, b, b + n, a + n))
+    faces.append(tuple(range(n))[::-1]); faces.append(tuple((NX - 1) * n + k for k in range(n)))
+    ob = mesh_from(verts, faces, shade, f'beam{seed}'); return ob
+
 def main():
     clear()
     obs = {}
@@ -191,6 +213,7 @@ def main():
     for s in range(2): obs[f'log{s}'] = log(s + 11)
     for s in range(2): obs[f'tannur{s}'] = tannur(s + 21)
     for v in range(3): obs[f'leaf{v}'] = leaf(v)
+    for v in range(2): obs[f'beam{v}'] = beam(31 + v)
     # AO baked with each piece alone, on a ground plane where it stands on the ground (tannur) or against its wall (crest)
     for name, ob in obs.items():
         others = []
@@ -203,7 +226,7 @@ def main():
         bake_ao([ob])
         for o in others: bpy.data.objects.remove(o)
     out = {'about': 'D-311 house kit (tools/blender/housekit.py): pieces modelled and AO-baked in Blender 5 (Cycles, vertex AO), game axes y-up; tier C', 'pieces': {}}
-    for name, ob in obs.items(): out['pieces'][name] = export(ob, name.startswith('leaf'))
+    for name, ob in obs.items(): out['pieces'][name] = export(ob, name.startswith('leaf') or name.startswith('beam'))
     with open(OUT, 'w') as f: json.dump(out, f, separators=(',', ':'))
     print('[housekit] wrote', OUT, {k: v['tris'] for k, v in out['pieces'].items()})
 
