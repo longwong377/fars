@@ -11,6 +11,9 @@ import { loadHumans } from '../people/humans';
 import { Crowd } from '../people/crowd';
 import { shadowsSeePeople } from '../people/humanGPU';
 import { surfaceMaterial } from '../render/materials';
+import { loadScans } from '../render/scans';
+import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
+import { FIRE_RGB, FIRE_FLICKER_MEAN, fireLight } from '../world/fire';
 import type { AnimId } from '../people/anim';
 installWebGPUCompat();
 
@@ -27,8 +30,13 @@ async function boot() {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(+(P.get('fov') ?? 50), innerWidth / innerHeight, 0.05, 20000);
   const sky = new SkySystem(scene, QUALITY[quality].shadowMapSize, quality); await sky.loadStars('/');
+  // the world's cascaded shadows at high and ultra (main.ts; D-304: the lab's single 240 m map, 6 cm a texel, drew the chin's
+  // shadow on the chest in stairs, which the world does not)
+  if (quality === 'high' || quality === 'ultra') { const csm = new CSMShadowNode(sky.sun, { cascades: 4, maxFar: 600, mode: 'practical', lightMargin: 200 });
+    (sky.sun.shadow as any).shadowNode = csm; sky.sun.shadow.mapSize.set(QUALITY[quality].shadowMapSize / 2, QUALITY[quality].shadowMapSize / 2); }
   shadowsSeePeople(sky.sun);
   const clock = new WorldClock(+(P.get('day') ?? 25), +(P.get('hour') ?? 10));
+  await loadScans('/'); // the floor's and the wall's scanned grain, as in the world (D-295)
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), surfaceMaterial('court_fill')); floor.receiveShadow = true; scene.add(floor);
   // a wall behind the lineup (a backdrop for judging silhouettes and bounce light)
   const wall = new THREE.Mesh(new THREE.BoxGeometry(30, 6, 1).translate(0, 3, -6), surfaceMaterial('mudbrick')); wall.receiveShadow = wall.castShadow = true; scene.add(wall);
@@ -37,11 +45,19 @@ async function boot() {
   const crowd = new Crowd(null, 1, humans); scene.add(crowd.group);
   const pipeline = new Pipeline(renderer, scene, camera, quality, sky.hemi);
   let time = 0;
+  // a brazier's light (D-304: the portraits by fire light): the world's light model for a brazier (fire.ts fireLight: renderer
+  // candela, inverse-square decay, cut-off window) at its mean flicker, no shadow (the world's fires cast none by default, B24)
+  const B = fireLight('brazier'), fire = new THREE.PointLight(FIRE_RGB, B.candela * FIRE_FLICKER_MEAN, B.cutoff, B.decay);
+  fire.visible = false; scene.add(fire);
   const frame = async (dt: number) => {
     time += dt;
     sky.update(clock.jdUT, camera.position, 0, 0.1);
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
-    renderer.toneMappingExposure = Math.min(6, Math.max(0.35, 2.3 / (sunE + sky.hemi.intensity * 0.8 + 0.004)));
+    // the fire's light at the eye on a surface facing the view, with the world's floor of 0.15 for the light round the eye (D-297)
+    let fireE = 0;
+    if (fire.visible) { const d = fire.position.distanceTo(camera.position), to = fire.position.clone().sub(camera.position).normalize(), fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
+      fireE = (fire.intensity / Math.max(d * d, 0.01)) * Math.max(0.15, to.dot(fwd)); }
+    renderer.toneMappingExposure = Math.min(6, Math.max(0.35, 2.3 / (sunE + sky.hemi.intensity * 0.8 + fireE + 0.004)));
     crowd.update(time, camera.position, null, camera);
     renderer.info.reset(); pipeline.render(scene, camera);
   };
@@ -66,6 +82,8 @@ async function boot() {
     /** the crowd's clock (s): poses every performance at that moment of its cycle */
     at: (t: number) => { time = t; },
     setTime: (day: number, hour: number) => clock.set(day, hour),
+    /** a brazier's flame centre at (x, y, z), or none (null) */
+    fire: (p: [number, number, number] | null) => { fire.visible = !!p; if (p) fire.position.set(p[0], p[1], p[2]); },
     /** frame lineup person i's face from `dist` m in front (and `side` m to their left) */
     frameFace: (i: number, dist = 0.6, side = 0) => { const p = crowd.persons.get(`lab${i}`); if (!p) return null; const v = humans.A.variants[p.look.variant];
       const ey = v.eyeY * p.look.scale, x = p.extra!.x, fz = 0.1 * p.look.scale; api.view(x + side, ey + 0.01, fz + dist, x, ey - 0.03, fz); p.extra!.look = [camera.position.x, camera.position.y, camera.position.z]; return { eyeY: +ey.toFixed(3) }; },

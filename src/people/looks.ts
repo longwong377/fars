@@ -226,6 +226,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   // D-199: a delegate wears his people's pieces (delegations.json; B form) and its beard; nothing else of the dress's
   if (del) { on.clear(); for (const id of del.pieces) on.add(id); on.add('hair');
     if (man && del.beard !== 'none') on.add(del.beard === 'short' ? (beardRoll < 0.8 ? 'beard_short' : 'beard_long') : (beardRoll < 0.85 ? 'beard_long' : 'beard_short')); }
+  // D-307: the scalp's strand cards above the hat line only when nothing covers the crown (no draw: the seeds are unchanged)
+  if (on.has('hair') && !['hat_fluted', 'cap_soft', 'crown', 'cap_pointed', 'cap_low', 'crown_w', 'headcloth'].some(h => on.has(h))) on.add('hair_crown');
   let mask = 1; const pieces: string[] = [...COSTUMES[dress].always];
   for (const id of COSTUMES[dress].always) mask |= (1 << pieceBit(dress, id)) & ~1; // always worn, but a bit of the shared costume (guards' bow and quiver)
   for (const id of COSTUMES[dress].opt) if (on.has(id)) { mask |= 1 << pieceBit(dress, id); pieces.push(id); }

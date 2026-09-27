@@ -1,0 +1,323 @@
+{
+ "version": 1,
+ "ref": "m03",
+ "headH": 0.2242,
+ "atlas": {
+  "file": "people_hair_atlas.ktx2",
+  "w": 2048,
+  "h": 2048,
+  "cols": 8,
+  "rows": [
+   "straight",
+   "curly",
+   "ringlet",
+   "fine"
+  ]
+ },
+ "classRows": [
+  [
+   1,
+   2,
+   0
+  ],
+  [
+   1,
+   1,
+   0
+  ],
+  [
+   3,
+   3,
+   3
+  ]
+ ],
+ "sets": {
+  "hair_crown": {
+   "n": 678,
+   "tris": 494,
+   "cards": 92,
+   "note": "scalp hair above the hat line: worn bareheaded only",
+   "anchor": {
+    "o": 0,
+    "n": 2034,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 4068,
+    "n": 1356,
+    "t": "f32"
+   },
+   "off": {
+    "o": 9492,
+    "n": 2034,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 17628,
+    "n": 1356,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 23052,
+    "n": 678,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 23732,
+    "n": 678,
+    "t": "u8"
+   },
+   "index": {
+    "o": 24412,
+    "n": 1482,
+    "t": "u16"
+   }
+  },
+  "hair": {
+   "n": 412,
+   "tris": 300,
+   "cards": 56,
+   "note": "scalp hair: two layers of cards away from the crown and down, the outer shorter (volume, a broken outline) (below the hat line; above it: hair_crown)",
+   "anchor": {
+    "o": 27376,
+    "n": 1236,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 29848,
+    "n": 824,
+    "t": "f32"
+   },
+   "off": {
+    "o": 33144,
+    "n": 1236,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 38088,
+    "n": 824,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 41384,
+    "n": 412,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 41796,
+    "n": 412,
+    "t": "u8"
+   },
+   "index": {
+    "o": 42208,
+    "n": 900,
+    "t": "u16"
+   }
+  },
+  "hair_bob": {
+   "n": 1448,
+   "tris": 1116,
+   "cards": 166,
+   "note": "the bob: cards from the scalp falling to the jaw, cut level",
+   "anchor": {
+    "o": 44008,
+    "n": 4344,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 52696,
+    "n": 2896,
+    "t": "f32"
+   },
+   "off": {
+    "o": 64280,
+    "n": 4344,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 81656,
+    "n": 2896,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 93240,
+    "n": 1448,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 94688,
+    "n": 1448,
+    "t": "u8"
+   },
+   "index": {
+    "o": 96136,
+    "n": 3348,
+    "t": "u16"
+   }
+  },
+  "bun": {
+   "n": 440,
+   "tris": 352,
+   "cards": 44,
+   "note": "the bunch at the nape: cards from the back of the skull over the bun",
+   "anchor": {
+    "o": 102832,
+    "n": 1320,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 105472,
+    "n": 880,
+    "t": "f32"
+   },
+   "off": {
+    "o": 108992,
+    "n": 1320,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 114272,
+    "n": 880,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 117792,
+    "n": 440,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 118232,
+    "n": 440,
+    "t": "u8"
+   },
+   "index": {
+    "o": 118672,
+    "n": 1056,
+    "t": "u16"
+   }
+  },
+  "beard_long": {
+   "n": 1494,
+   "tris": 1152,
+   "cards": 171,
+   "note": "the long beard: cards down from the cheeks, chin and upper lip, hanging below the jaw to a square cut",
+   "anchor": {
+    "o": 120784,
+    "n": 4482,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 129748,
+    "n": 2988,
+    "t": "f32"
+   },
+   "off": {
+    "o": 141700,
+    "n": 4482,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 159628,
+    "n": 2988,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 171580,
+    "n": 1494,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 173076,
+    "n": 1494,
+    "t": "u8"
+   },
+   "index": {
+    "o": 174572,
+    "n": 3456,
+    "t": "u16"
+   }
+  },
+  "beard_short": {
+   "n": 840,
+   "tris": 560,
+   "cards": 140,
+   "note": "the short beard: short cards lying close, down and out",
+   "anchor": {
+    "o": 181484,
+    "n": 2520,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 186524,
+    "n": 1680,
+    "t": "f32"
+   },
+   "off": {
+    "o": 193244,
+    "n": 2520,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 203324,
+    "n": 1680,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 210044,
+    "n": 840,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 210884,
+    "n": 840,
+    "t": "u8"
+   },
+   "index": {
+    "o": 211724,
+    "n": 1680,
+    "t": "u16"
+   }
+  },
+  "brows": {
+   "n": 228,
+   "tris": 152,
+   "cards": 38,
+   "note": "the brows: short cards along the brow, out from the nose and up at the inner end",
+   "anchor": {
+    "o": 215084,
+    "n": 684,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 216452,
+    "n": 456,
+    "t": "f32"
+   },
+   "off": {
+    "o": 218276,
+    "n": 684,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 221012,
+    "n": 456,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 222836,
+    "n": 228,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 223064,
+    "n": 228,
+    "t": "u8"
+   },
+   "index": {
+    "o": 223292,
+    "n": 456,
+    "t": "u16"
+   }
+  }
+ }
+}

@@ -54,7 +54,7 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-301 | s11 | every inch real: the interiors (Q-790..Q-799, B103..B105) | agent worktree (realism_interiors) | merged session 11 (Q-790, B103, B104 used) |
 | D-302 | s11 | every inch real: the plain, the rivers and the mountains (Q-800..Q-809, B106..B108) | agent worktree (realism_land) | merged session 11 (B106 used; Q-800..809, B107, B108 unused) |
 | D-303 | s11 | every inch real: the town and the villages (Q-810..Q-819, B109..B111) | agent worktree (realism_town) | NOT merged at session 11 close: branch s11-realism-town pushed; its scans.ts normal maps conflict with D-300's (merge plan in HANDOFF.md) (Q-810..Q-812, B109..B111 used) |
-| D-304 | s11 | every inch real: the people seen close (Q-820..Q-829, B112..B114) | agent worktree (realism_people) | NOT merged at session 11 close: branch s11-realism-people pushed (skin layers, cloth scans; a device hang in its last run, B114); see D-307 |
+| D-304 | s11 | every inch real: the people seen close (Q-820..Q-829, B112..B114) | agent worktree (realism_people) | merged session 11 through s11-people2 (D-307 merged it in; Q-820..829 unused, B112..B114 used) |
 | D-305 | s11 | the Blender asset pipeline: inventory, pipeline, a hero asset, the rollout plan (Q-830..Q-839, B115..B117) | agent worktree (blender) | merged session 11 (Q-830, B115 used; B115 resolved by D-306) |
 | D-306 | s11 | the carving: capitals and the Gate colossi from the photographs (Q-840..Q-849, B118..B120) | agent worktree (carving) | merged session 11 (Q-840..Q-843, B118..B120 used) |
-| D-307 | s11 | the people, round 2: garments, hair and beards (Q-850..Q-859, B121..B123) | agent worktree (people2) | in progress |
+| D-307 | s11 | the people, round 2: garments, hair and beards (Q-850..Q-859, B121..B123) | agent worktree (people2) | merged session 11 (B121..B123, Q-850 used; Q-851..Q-859 unused) |

@@ -44,6 +44,9 @@ export const PRM_UPPER = 5;
 /** D-225: cloth class parameter of the Persian court robe's skirt (its baked pleats: drape.ts ROBE; the material sharpens
  *  their valleys and adds the fine creases the mesh cannot carry) */
 export const PRM_ROBE = 6;
+/** D-307: hair class parameter of the strand cards (tools/blender people_hair): uv = (across, root → tip), the spare byte
+ *  (hext.z) = card class × 8 + atlas column; the material samples the strand atlas (peopleModels.ts) */
+export const PRM_CARD = 8;
 
 /** Per-vertex extras of BODY render vertices (D-155), in the bytes that garments use for other things (the material
  *  reads them by class): skin: hext.y = scalp-hair mask, hext.w = surface curvature (0..1 → 0..SKIN_CURV_MAX 1/m);

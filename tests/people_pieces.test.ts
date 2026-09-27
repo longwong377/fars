@@ -8,7 +8,8 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { decodeHumanAssets, meshoptSimplify, type HumanAssets } from '../src/people/humanAssets';
-import { buildOutfits, BUILT, COSTUMES, COSTUME_OF, DRESSES, pieceBit, weatherMask, type Dress, type OutfitBuild, type CostumeLOD } from '../src/people/outfits';
+import { buildOutfits, BUILT, COSTUMES, COSTUME_OF, DRESSES, pieceBit, weatherMask, CARD_PIECES, type Dress, type OutfitBuild, type CostumeLOD } from '../src/people/outfits';
+import { readPeopleModels } from '../src/people/peopleModels';
 import { lookFor, DELEGATIONS, type PersonLook } from '../src/people/looks';
 import { PART } from '../src/people/humanFormat';
 import { PERSON_TEXELS } from '../src/people/humanMaterial';
@@ -33,7 +34,7 @@ beforeAll(async () => {
   const b = readFileSync('public/generated/humans/humans.bin');
   A = decodeHumanAssets(JSON.parse(readFileSync('public/generated/humans/humans.json', 'utf8')), b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
   const { MeshoptSimplifier } = await import('three/addons/libs/meshopt_simplifier.module.js'); await MeshoptSimplifier.ready;
-  O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier) });
+  O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier), models: readPeopleModels(p => { try { return readFileSync('public/' + p); } catch { return null; } }) }); // (D-307: as the game builds it, with the hair cards and drape)
 }, 300_000);
 
 /** the material's hide test (humanMaterial positionNode: shown = mod(floor(mask / exp2(bit)), 2)), in float32 */
@@ -54,7 +55,7 @@ function drawnPieces(C: CostumeLOD, mask: number): Set<string> {
 /** laid aside while seated or crouched, and the headgear while asleep (crowd.ts asideBits) */
 const ASIDE = ['kandys', 'quiver', 'bow', 'gorytos', 'akinaka'], ASIDE_SLEEP = ['hat_fluted', 'fillet', 'cap_soft', 'headband', 'cap_pointed', 'cap_low', 'crown'];
 /** the dress of the cold (outfits.coldBits: brief §9.2), as piece ids */
-const COLD_ON: Partial<Record<Dress, string[]>> = { median: ['kandys'], worker: ['work_trousers', 'cap_soft'], woman: ['headcloth'], child: ['shoes'] }, COLD_OFF: Partial<Record<Dress, string[]>> = { woman: ['hair', 'hair_bob'] };
+const COLD_ON: Partial<Record<Dress, string[]>> = { median: ['kandys'], worker: ['work_trousers', 'cap_soft'], woman: ['headcloth'], child: ['shoes'] }, COLD_OFF: Partial<Record<Dress, string[]>> = { woman: ['hair', 'hair_bob', 'hair_crown'], worker: ['hair_crown'] }; // (D-307: the cap or mantle put on covers the crown's cards)
 const bitsOf = (dress: Dress, ids: Iterable<string>) => { let m = 0; for (const id of ids) { const b = pieceBit(dress, id); if (b) m |= 1 << b; } return m; };
 
 // ------------------------------------------------------------------------------------------------ CPU id raster
@@ -143,7 +144,7 @@ describe('the class: every dress × LOD × look × mask draws exactly the pieces
       for (let k = 0; k < C.tid.length; k++) { const want = pc[k] === 'body' ? 0 : pieceBit(d, pc[k]); expect(C.hmat[k * 4 + 2], `${d}@${C.lod} ${pc[k]}`).toBe(want); verts++; }
       for (let t = 0; t < C.index.length; t += 3) { const a = C.index[t]; expect(C.hmat[C.index[t + 1] * 4 + 2]).toBe(C.hmat[a * 4 + 2]); expect(C.hmat[C.index[t + 2] * 4 + 2]).toBe(C.hmat[a * 4 + 2]); }
       const have = new Set<string>(); for (let t = 0; t < C.index.length; t += 3) have.add(pc[C.index[t]]);
-      for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) expect(have.has(id), `${d}@${C.lod}: ${id} has triangles`).toBe(true); }
+      for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) if (C.lod === 0 || !CARD_PIECES.has(id)) expect(have.has(id), `${d}@${C.lod}: ${id} has triangles`).toBe(true); } // (D-307: the card-only pieces at full detail only)
     OUT.vertexBits = { costumes: BUILT.length, lods: O.costumes.median.length, vertices: verts }; save();
   });
   it('for every dress, LOD and a sample of looks: the pieces drawn (the hide test on the costume) are the pieces worn — plain, in the cold, seated and asleep', () => {
@@ -160,7 +161,7 @@ describe('the class: every dress × LOD × look × mask draws exactly the pieces
       for (const [nm, ids] of [['seated', ASIDE], ['asleep', [...ASIDE, ...ASIDE_SLEEP]]] as const) { const off = bitsOf(d, ids.filter(id => COSTUMES[costume].opt.includes(id)));
         cases.push([nm, look.mask & ~off, new Set([...worn].filter(id => !(ids as readonly string[]).includes(id) || !COSTUMES[costume].opt.includes(id)))]); }
       for (const C of O.costumes[costume]) for (const [nm, mask, want] of cases) { combos++;
-        const got = drawnPieces(C, mask), miss = [...want].filter(id => !got.has(id)), extra = [...got].filter(id => !want.has(id));
+        const got = drawnPieces(C, mask), miss = [...want].filter(id => !got.has(id) && (C.lod === 0 || !CARD_PIECES.has(id))), extra = [...got].filter(id => !want.has(id));
         if (miss.length || extra.length) bad.push(`${why} ${costume}@${C.lod} ${nm}: missing [${miss}] extra [${extra}]`); } }
     OUT.sweep = { looks: looks.length, dresses: [...dresses], combos, mismatches: bad.length, first: bad.slice(0, 10) }; save();
     expect(dresses.size).toBe(DRESSES.length); expect(combos).toBeGreaterThan(2000);

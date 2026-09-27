@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { decodeHumanAssets, type HumanAssets } from '../src/people/humanAssets';
 import { buildOutfits, type OutfitBuild } from '../src/people/outfits';
+import { readPeopleModels, type PeopleModels } from '../src/people/peopleModels';
 import { HumanGPU } from '../src/people/humanGPU';
 
 let A: HumanAssets, O: OutfitBuild;
@@ -15,11 +16,20 @@ beforeAll(() => {
   const b = readFileSync('public/generated/humans/humans.bin');
   A = decodeHumanAssets(JSON.parse(readFileSync('public/generated/humans/humans.json', 'utf8')), b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
   O = buildOutfits(A, { dresses: ['persian'], lods: [0, 2] });
+  // D-307: the costume with the Blender-groomed strand cards (public/models/people), when built
+  PM = readPeopleModels(p => { try { return readFileSync('public/' + p); } catch { return null; } });
+  if (PM.cards) OC = buildOutfits(A, { dresses: ['persian'], lods: [0, 2], models: PM });
 }, 60_000);
 
-function build(kind: 'wgsl' | 'glsl', which: 'main' | 'shadow', velocity = false) {
+let PM: PeopleModels, OC: OutfitBuild | null = null;
+function build(kind: 'wgsl' | 'glsl', which: 'main' | 'shadow', velocity = false, scans = false, cards = false) {
   const tex = () => { const t = new THREE.Texture(); t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.colorSpace = THREE.SRGBColorSpace; return t; };
-  const gpu = new HumanGPU(A, O, { skin: tex(), eye: tex() }, { capacity: 16 });
+  // D-304: the scanned skin and cloth layers (array textures; humanScans.ts), stand-ins of the loaded shape
+  const arr = (n: number) => { const t = new THREE.DataArrayTexture(new Uint8Array(4 * 4 * 4 * n), 4, 4, n); t.colorSpace = THREE.SRGBColorSpace; t.minFilter = THREE.LinearMipmapLinearFilter; return t; };
+  const all = arr(16), sc = scans ? { skin: all, cloth: all, clothBase: 12, skinIds: ['m_young_a', 'm_young_b', 'm_mid', 'm_old', 'f_young_a', 'f_young_b', 'f_mid', 'f_old', 'm_young_d', 'm_old_d', 'f_young_d', 'f_old_d'],
+    cloth_: [{ id: 'linen', layer: 0, tile: 0.245 }, { id: 'wool', layer: 1, tile: 0.43 }, { id: 'felt', layer: 2, tile: 0.2 }, { id: 'leather', layer: 3, tile: 0.25 }], clothK: 0.4 } : null;
+  const atlas = cards ? (() => { const t = tex(); t.colorSpace = THREE.NoColorSpace; return t; })() : null;
+  const gpu = new HumanGPU(A, cards ? OC! : O, { skin: tex(), eye: tex(), scans: sc as any, hairAtlas: atlas, cards: cards ? PM.cards!.meta : null }, { capacity: 16 });
   const cm = [...gpu.costumes.values()][0]; const mesh = which === 'main' ? cm.mesh : cm.shadow!.mesh;
   const canvas: any = { style: {}, width: 4, height: 4, addEventListener() {}, removeEventListener() {}, getContext() { return null; }, getRootNode() { return null; } };
   const renderer: any = new (THREE as any).WebGPURenderer({ canvas, forceWebGL: kind === 'glsl' });
@@ -43,6 +53,21 @@ describe('the human material builds (D-155)', () => {
       expect(m.frag).toMatch(/0\.0078125/); expect(m.frag).toMatch(/80\.0/); expect(m.frag).toMatch(/14\.0/);
       const v = build(kind, 'main', true); expect(v.vert.length).toBeGreaterThan(m.vert.length); // previous-frame skinning
       const s = build(kind, 'shadow'); expect(s.vert.length).toBeGreaterThan(5000);
+    }, 60_000);
+    it(`${kind}: with the scanned skin and cloth layers (D-304)`, () => {
+      const m = build(kind, 'main', false, true), p = build(kind, 'main');
+      expect(m.frag.length).toBeGreaterThan(p.frag.length); expect(m.vert).toMatch(/vHumanSkinL/);
+      const v = build(kind, 'main', true, true); expect(v.vert.length).toBeGreaterThan(m.vert.length);
+    }, 60_000);
+    it(`${kind}: with the strand cards and their atlas (D-307)`, () => {
+      expect(PM.cards, 'public/models/people/people_hair.* (node tools/blender/build.mjs people_hair)').toBeTruthy();
+      const m = build(kind, 'main', false, true, true), p = build(kind, 'main', false, true);
+      expect(m.frag.length).toBeGreaterThan(p.frag.length + 500); // the atlas sample, the strand tangent, the hashed cut
+      expect(build(kind, 'shadow', false, true, true).vert.length).toBeGreaterThan(5000);
+    }, 60_000);
+    if (kind === 'wgsl') it('wgsl: the material samples through one sampler (the scans array) with every layer and the strand atlas loaded (D-307: the world lights fill the rest of the 16)', () => {
+      const m = build('wgsl', 'main', false, true, true), n = (m.frag.match(/var w+ : sampler;/g) ?? []).length;
+      expect(n).toBeLessThanOrEqual(1);
     }, 60_000);
   }
 });
