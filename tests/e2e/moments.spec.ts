@@ -127,6 +127,15 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'swifts-dusk', day: 59, hour: 18.1, w: 'clear', v: [-36, 125, 1.6, 150, 14], fov: 60 },
   // session 10 (D-284): the ground at the stair foot's halt, where the caravans unload: droppings and sherds (roadLitter.ts)
   { n: 'stair-foot-ground', day: 30, hour: 10, w: 'clear', v: [-60, 112, 1.6, 250, -18], fov: 60 },
+  // session 11 (D-300): the Terrace's exteriors at the player's lens (FOV=game), in the #24 late-winter afternoon (calib-24's
+  // world state: one page load with it): the salient's W face from 12 m and 4.5 m on the plain (its polygonal foot), the Gate's
+  // W wall from the stair's top landing (24 m) and 5 m from it N of its door (the mud plaster), and the Apadana's NW corner from
+  // 36 m in the court (tools/dev/surf_regions_d285.ts --moments measures their regions on these frames)
+  { n: 'terrace-wall-near', day: 303, hour: 16.087, w: 'clear', v: [-73.5, 22, 1.6, 71, 18], fov: 40 },
+  { n: 'terrace-wall-lens', day: 303, hour: 16.087, w: 'clear', v: [-66, 22, 1.6, 71, 12], fov: IN },
+  { n: 'gate-w-day', day: 303, hour: 16.087, w: 'clear', v: [-40, 124.6, 1.6, 90, 15], fov: 40 },
+  { n: 'gate-w-lens', day: 303, hour: 16.087, w: 'clear', v: [-21.5, 133, 1.6, 71, 10], fov: IN },
+  { n: 'apadana-nw-court', day: 303, hour: 16.087, w: 'clear', v: [-50, 70, 1.6, 127, 6], fov: 40 },
   // session 10 (GA45, D-286): the starlings' winter murmuration over the Pulvar's reeds 3.4 km NNW, from the Terrace's N end at dusk (day 262, early January)
   { n: 'murmuration-jan', day: 262, hour: 17.0, w: 'clear', v: [-36, 135, 1.6, 330, 3], fov: 30 },
   // session 10 (D-289): the morning after the default year's snow day (day 288), in the world's own weather (no override)
@@ -293,10 +302,16 @@ test('moments', async ({ page }, info) => {
       // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
       // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)
       await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
+      // the scene camera of the last frame (D-300, as dbg_surf.spec): its matrices go into shots/moments-cam.json so world regions
+      // can be projected onto the frames offline (tools/dev/surf_regions_d285.ts --moments)
+      await page.evaluate(() => { const w = window as any, r = w.__parsa.renderer, orig = r.render.bind(r);
+        r.render = (sc: any, cam: any, ...a: any[]) => { if (cam?.isPerspectiveCamera && cam.far > 1e4) w.__cam = cam; return orig(sc, cam, ...a); }; });
       loaded = state;
     }
-    // KEEPFOV=<view,...>: those views keep their own lens under FOV=game (session 11, D-302: the calib views' photo comparison in the same load)
-    const fov = process.env.FOV === 'game' && !process.env.KEEPFOV?.split(',').includes(s.n) ? undefined : s.fov ?? OUT;
+    // KEEPFOV (D-302) or FOVKEEP (D-300) =view,…: those views keep their own lens under FOV=game (the calibration frames,
+    // compared with a photograph in the same load; both names kept, session 11)
+    const keep = [process.env.KEEPFOV, process.env.FOVKEEP].flatMap(v => (v ?? '').split(',')).includes(s.n);
+    const fov = process.env.FOV === 'game' && !keep ? undefined : s.fov ?? OUT;
     if (s.carry) { // the eye of an earlier view of this state; rendered here (2 frames, no capture) if it was not
       const [fromN, secs] = s.carry, from = SHOTS.find(q => q.n === fromN)!;
       if (stateOf(from) !== state) throw new Error(`${s.n} carries the eye of ${fromN}, another world state`);
@@ -313,6 +328,9 @@ test('moments', async ({ page }, info) => {
     const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo()); eyeAt.set(s.n, exp.exposure);
     mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
     all[`${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), meterEV: +(exp.meterEV ?? 0).toFixed(2), bright: +(exp.meterBright ?? 0).toFixed(2), meterMean: +(exp.meterMean ?? 0).toFixed(2), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game', ...(s.carry ? { carry: s.carry } : {}) }; writeFileSync(f, JSON.stringify(all, null, 1));
+    { const cam = await page.evaluate(() => { const c = (window as any).__cam; return c ? { view: Array.from(c.matrixWorldInverse.elements), proj: Array.from(c.projectionMatrix.elements), pos: c.position.toArray() } : null; });
+      const cf = 'shots/moments-cam.json', allc = existsSync(cf) ? JSON.parse(readFileSync(cf, 'utf8')) : {};
+      allc[`${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}`] = { cam }; writeFileSync(cf, JSON.stringify(allc)); }
     console.log(s.n, JSON.stringify(lum), 'backend', await page.evaluate(() => (window as any).__parsa.backend));
     // SCANPROBE=1 (D-301, T-A7): the coverage ID render of the view: which meshes draw its pixels and whether their material
     // carries a scan (material.userData.scan); shots/scanprobe.json, keyed by view and TAG

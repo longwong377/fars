@@ -7231,3 +7231,54 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Records:** Q-770..Q-773; B97 (T-E9), B98 (the watchdog), B99 (the bake); ASSET_LEDGER rows; the models' manifest in
   research/MODELS_MANIFEST.json (the files on T:, junction at C:/Users/Administrator/fars-assets/models). Tests:
   tests/converse.test.ts (11), tests/e2e/converse.spec.ts (GPU only).
+
+## D-300 Every inch real: the Terrace's exteriors (session 11; UD-17, UD-06, UD-01, UD-05; T-A7, T-A4, T-A4cg, T-A5; Q-600, Q-780..Q-785, B100..B102)
+- **How it could pass while the intent fails (said first):** T-A7 is met by a SCAN_USE entry on every surface even if the scan
+  reads as the wrong material (mossy rock on fresh ashlar) or tiles to flat colour; the #24 ratios are met by a global tint or
+  exposure shift, or by browning the 467 stone like the ruin. Measured against: region Ystd/Y in 0.5 m windows against the
+  photographs, the 467 hue checked against the evidence, and a blind reviewer on before/after frames shuffled together.
+- **Decision (C unless stated):**
+  1. **Scans (src/render/scans.ts, scans.json, ASSET_LEDGER):** the dressed, carved and merlon limestone and the retaining walls
+     take Poly Haven *Rock Boulder Dry* (chroma spread R/B 1σ 0.07 over 10 cm, against 0.18 for Rock Wall 02, whose green lichen
+     and orange patches drew camouflage over fresh ashlar and whose 1.6-2 m tile repeated its smudges block after block: the
+     reviewer's "crescent stamp" in 5 of the 5 before-frames that showed stone close), with a second 6-9 m tile multiplied in;
+     the polished dark stone *Rock Surface*; the palaces' mud plaster *Clay Floor 001* (a floated clay coat; 0.5 m windows Ystd/Y
+     0.062 at 1 cm/px) in place of *Brown Mud Dry* (a gravelly soil, 0.31: the walls read as sandpaper). New entries for
+     `limestone_carved` (columns, colossi), `mudbrick_painted` and `terrace_foot`; the painted reliefs' bare stone and the incised
+     signs take their host stone's scan; a surface's up-facing `top` layer (the court on the platform) takes its own scan (it took
+     the wall's rock). Triplanar **normal maps** from the scans (a world-space tilt added to the shading normal; stone 1.5-2.2×,
+     plaster 2×). T-A7's CPU mirror (tools/dev/scan_coverage_d300.ts, tests/scan_coverage_d300.test.ts): **0.000 %** of the
+     Terrace's surface area drawn by a scannable surface without a scan (materials tag `userData.surface/scan`).
+  2. **The polygonal foot as geometry (Q-600; src/arch/terrace_foot.ts, world.ts):** every foot cell of terrace.r_masonry.foot's
+     Voronoi (the shader's own cells) on the W- and S-facing retaining walls is a block proud of the wall by 0.3-0.8 m (C, Q-600's
+     reading of #24), its face tilted ±1.5°, chamfered 3.5 cm, buried 1.5 m under the plain; 314 blocks, a trimesh collider, kept
+     in the Now view in the ruin's surface.
+  3. **The 467 limestone warmer (Q-780):** photograph #5 shows the fresh stone under the Gate lintel's spalled skin at R/B 1.49
+     against the skin's 1.30 (same photo and light; as light as the skin): LIMESTONE's hue from linear R/B 1.22 to 1.39, Y kept N7.
+  4. **Mud plaster:** bays 1σ 7 % and the wash 13 % (from 5 % / 10 %), shrinkage cracks 0.3 and the salt line 0.08 of their old
+     strength (review: Voronoi craze patches, decal base line), the hand-laid undulation ±12 mm at ~0.9 m (review: flat planes).
+  5. **The Now view against #24:** the stone tint re-set twice from the GPU renders (0.347/0.156/0.113), the ruin's block tone
+     1σ 0.27 (#24, D-230) on its Terrace walls, and the modern **gravel forecourt** W of the Terrace (NOW_GROUND, materials.ts:
+     the earth × per-channel factors inside grid e −330…−63, n −120…240; the photo shows pale gravel from the camera to the wall).
+- **Measured (GPU T4, Q high, the player's lens except the calibration frames; shots/moment-*-{before,final}-gpu.png):**
+  calib-24-now display ratios (tools: shots/d300/calib_ratios.py on calib24_compare.py's regions): wall/ground **1.072 → 0.813
+  → 0.728** (photo 0.73 brief / 0.691 our regions), wall R/B **1.334 → 1.482 → 1.589** (photo 1.65 / 1.741), wall luma 92.7 →
+  88.4 (photo 86.3), ground 86.4 → 121.5 (photo 124.9): **within 15 %**. calib-24 (467): 1.753 → 1.727 and 1.169 → 1.175: NOT
+  within 15 %, by the evidence (B101). Region spread (tools/dev/surf_regions_d285.ts --moments): Gate W wall 0.5 m windows at
+  24 m 0.058 → 0.040 (photo #21 kahgel 0.036), at 5 m 0.097 → 0.058; Terrace W face at 4.5 m 0.079 → 0.163, at 12 m 0.063 →
+  0.101, at 150 m 0.035 → 0.044 (the ruin #24 region 0.366 at the Now view: 0.092 → 0.120).
+- **Blind review (REVIEWS/d300_terrace_review.md; uncalibrated, frames shuffled before/after):** materials before 1.62 (13
+  frames), after render 3 1.86 (14); gate-w-lens 1 → 3, terrace-wall-near 1 → 2, the rest unchanged; 27/27 read as CG; T-A5
+  pairs picked 2/2 at 100 % (B100). The tiling "stamp" and the plaster's lattice were named on before-frames only.
+- **Render v4 (the final full-world run: normal maps, the warmer stone) failed a pipeline: "The number of samplers (17) in the
+  Fragment stage exceeds the maximum per-stage limit (16)".** The court surfaces on the platform are missing in its frames
+  (apadana-enter-court, reliefs-raking, tachara-s-stair show the void under the court): those frames are INVALID. Diagnosis (node,
+  tests/samplers_d300.test.ts with stand-in scan textures): the Terrace platform's material (the wall's scan with its normal map
+  plus the court's scan as its top layer) declares 8 samplers in node, render 3's 7 (passed): the page adds 9. Fixed by dropping
+  the top layer's roughness map (7 again) and pinning every surface at <= 7 in node; **the fix is NOT rendered** (the render
+  budget is spent). Valid v4 frames (no platform top in view): calib-24-now wall/ground 0.723, R/B 1.625 (photo 0.73 / 1.65:
+  within 1 %); the Gate's plaster as render 3.
+- **Not done / next:** carved geometry of the reliefs and colossi (review: "flat painted cards", "white blobs"), chipped arrises
+  and open joints of the ruin, sculpted foot blocks (Blender, baked normal/AO: the lead's offer, not started), the court fill's
+  and plain's gravel (land), the Now view's skyline (Q-783).
+- **Reversible:** yes (SCAN_USE entries, LIMESTONE hue, NOW_GROUND, the foot mesh one call in world.ts).

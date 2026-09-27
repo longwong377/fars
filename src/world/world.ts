@@ -33,13 +33,14 @@ export interface WorldBuild {
 import { buildTerrace } from '../arch/terrace';
 import { partsKey } from '../arch/partsKey';
 import type { Doorway } from '../arch/parts';
-import { setTraffic } from '../render/materials';
+import { setTraffic, surfaceMaterial } from '../render/materials';
 import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
 import { buildWaterworks } from '../arch/waterworks';
+import { footGeometry, FOOT_DEPTH } from '../arch/terrace_foot';
 import { buildGlazedFrieze } from '../arch/glazed';
 import { updateReliefs, settleReliefs, buildReliefShadow, ReliefSet } from '../arch/reliefs';
 import { setReliefShadow, refreshReliefShadow } from '../render/reliefShadow';
@@ -167,6 +168,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // by the sun's light in every lit material; filled by the relief workers as the fields come in
   setReliefShadow(buildReliefShadow([...reliefs.children, ...p4.group.children].filter((c): c is ReliefSet => c instanceof ReliefSet)));
   const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
+  // D-300 (Q-600): the Terrace's polygonal foot as proud blocks on the W- and S-facing retaining walls; solid, and kept in the Now view
+  const footG = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n)), foot = new THREE.Group(); foot.name = 'terrace-foot';
+  if (footG.geo) { const fm = new THREE.Mesh(footG.geo, surfaceMaterial('terrace_foot')); fm.castShadow = fm.receiveShadow = true; fm.name = 'terrace-foot:blocks';
+    fm.userData = { tier: 'C', src: 'REF-PHOTO-24;IR-PERS;RECON', note: `the polygonal foot of the retaining walls as ${footG.blocks} proud blocks (terrace.r_masonry.foot, D-232; their depth ${FOOT_DEPTH.join('-')} m C, Q-600; D-300)` };
+    foot.add(fm); root.add(foot);
+    const pa = footG.geo.attributes.position.array as Float32Array; phys.addTrimesh(new Float32Array(pa), Uint32Array.from({ length: pa.length / 3 }, (_, i) => i)); }
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
   wmark('insc');
   // D-214: the stones carrying texts that are solid and not architecture parts (the Hadish N portico's antae): a collider each
@@ -371,7 +378,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
   const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
   // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467
-  const nowView = new NowView({ root, parts, phys, keep: [reliefs, p4.group, insc, wvfx.group, shafts.group, birds.group],
+  const nowView = new NowView({ root, parts, phys, keep: [reliefs, p4.group, insc, wvfx.group, shafts.group, birds.group, foot],
     hideWithin: [reliefs.getObjectByName('crenellations'), insc.getObjectByName('apadana-foundation-deposits')] });
   wmark('nowView');
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)

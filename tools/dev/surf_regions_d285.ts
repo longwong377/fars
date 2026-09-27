@@ -84,14 +84,19 @@ function stats(img: ReturnType<typeof decodePng>, mask: Uint8Array, win: number)
 }
 if ((process.argv[1] ?? '').replace(/\\/g, '/').endsWith('surf_regions_d285.ts')) main();
 function main() {
-const statsFile = process.argv[2] ?? 'shots/surf-stats.json', TAG = process.argv[3] ?? '';
-const S: Record<string, { cam: Cam | null }> = JSON.parse(readFileSync(statsFile, 'utf8'));
+// D-300: `--moments TAG1,TAG2`: the moments.spec frames (shots/moment-<view>-<TAG>-gpu.png, cameras in shots/moments-cam.json)
+// in place of the dbg_surf variants B and D0; the last column then compares the first tag with each later one
+const mom = process.argv[2] === '--moments', mtags = mom ? (process.argv[3] ?? 'before,after').split(',') : [];
+const statsFile = mom ? 'shots/moments-cam.json' : process.argv[2] ?? 'shots/surf-stats.json', TAG = mom ? '' : process.argv[3] ?? '';
+const S0: Record<string, { cam: Cam | null }> = JSON.parse(readFileSync(statsFile, 'utf8'));
+const S: Record<string, { cam: Cam | null }> = mom ? Object.fromEntries(Object.entries(REGIONS).flatMap(([v]) => mtags.map(t => [`${v}|${t}`, S0[`${v}-${t}`] ?? { cam: null }]))) : S0;
+const fileOf = (view: string, vn: string) => mom ? `shots/moment-${view}-${vn}-gpu.png` : `shots/surf-${view}-${vn}${TAG}.png`;
 console.log('| view | region | variant | px | luma 8-bit | Ystd/Y region | 0.5 m windows (mean / median, n) | 1.5 m windows (mean) | mean abs B-D0 (8-bit) |');
 console.log('|---|---|---|---|---|---|---|---|---|');
 for (const [view, quads] of Object.entries(REGIONS)) for (const Q of quads) {
   const res: Record<string, ReturnType<typeof stats>> = {};
-  for (const vn of ['B', 'D0']) {
-    const k = `${view}|${vn}`, f = `shots/surf-${view}-${vn}${TAG}.png`; if (!S[k]?.cam || !existsSync(f)) continue;
+  for (const vn of mom ? mtags : ['B', 'D0']) {
+    const k = `${view}|${vn}`, f = fileOf(view, vn); if (!S[k]?.cam || !existsSync(f)) continue;
     const img = decodePng(readFileSync(f)), c = S[k].cam!, ground = c.pos[1] - 1.6;
     const [ya, yb] = typeof Q.y === 'function' ? Q.y(ground) : Q.y;
     const pts = [project(c, img.w, img.h, Q.a[0], Q.a[1], ya), project(c, img.w, img.h, Q.b[0], Q.b[1], ya), project(c, img.w, img.h, Q.b[0], Q.b[1], yb), project(c, img.w, img.h, Q.a[0], Q.a[1], yb)];
@@ -103,7 +108,8 @@ for (const [view, quads] of Object.entries(REGIONS)) for (const Q of quads) {
     const pxPerM = Math.sqrt(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) * Math.hypot(p2[0] - p0[0], p2[1] - p0[1]));
     const a = stats(img, m, 0.5 * pxPerM), b = stats(img, m, 1.5 * pxPerM); res[vn] = a;
     let diff = '';
-    if (vn === 'D0' && res.B) { let s = 0; for (let i = 0; i < m.length; i++) if (m[i]) s += Math.abs(res.B.L8[i] - a.L8[i]); diff = (s / n).toFixed(2); }
+    const ref = mom ? res[mtags[0]] : res.B;
+    if ((mom ? vn !== mtags[0] : vn === 'D0') && ref) { let s = 0; for (let i = 0; i < m.length; i++) if (m[i]) s += Math.abs(ref.L8[i] - a.L8[i]); diff = (s / n).toFixed(2); }
     console.log(`| ${view} | ${Q.name} | ${vn} | ${n} (${(1 / pxPerM * 100).toFixed(1)} cm/px) | ${a.luma8.toFixed(1)} | ${a.region.toFixed(3)} | ${a.win.toFixed(3)} / ${a.winMed.toFixed(3)} (${a.nWin}) | ${b.win.toFixed(3)} | ${diff} |`);
   }
 }
