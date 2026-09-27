@@ -341,7 +341,19 @@ function fitTo(m: NormMesh, min: number[], max: number[]): NormMesh {
 }
 
 // =============================================================== column assembly
-function capitalMesh(o: ColumnOrder, lod: Lod): NormMesh | null {
+/** the box a capital's double-bull protome is fitted to (column-local, base at y = 0), or null for a capital without one:
+ *  the Blender-baked protome (D-305, src/render/models.ts) is fitted to the same box as the procedural piece */
+export function protomeBox(o: ColumnOrder): [number[], number[]] | null {
+  if (o.capital !== 'bull' && o.capital !== 'composite') return null;
+  const D = o.shaftD, H = o.capitalH, y0 = o.height - H, [pw, pd] = P().capital_boxes.protome as number[];
+  const s = srow('capital', 'composite_split'), B = srow('capital', 'bull');
+  const yb = o.capital === 'composite' ? y0 + (s.palm + s.calyx + s.volute) * H : y0 + B.collar_h * H;
+  return [[(-pw * D) / 2, yb, (-pd * D) / 2], [(pw * D) / 2, o.height, (pd * D) / 2]];
+}
+/** the procedural protome of an order alone, fitted to protomeBox (the stand-in the Blender-built one replaces, D-305) */
+export function protomeMesh(o: ColumnOrder, lod: Lod): NormMesh | null { const b = protomeBox(o); return b ? fitTo(piece('protome', lod), b[0], b[1]) : null; }
+/** protome = false: the capital without its protome (drawn by the Blender-built model instead, D-305) */
+function capitalMesh(o: ColumnOrder, lod: Lod, protome = true): NormMesh | null {
   if (o.capital === 'none') return null;
   const D = o.shaftD, H = o.capitalH, y0 = o.height - H, top = o.height, parts: NormMesh[] = [];
   const [pw, pd] = P().capital_boxes.protome as number[];
@@ -350,11 +362,11 @@ function capitalMesh(o: ColumnOrder, lod: Lod): NormMesh | null {
     const h1 = s.palm * H, h2 = s.calyx * H, h3 = s.volute * H;
     parts.push(palmMesh(y0, h1, D, lod), calyxMesh(y0 + h1, h2, D, lod));
     parts.push(fitTo(piece('volute', lod), [(-vw * D) / 2, y0 + h1 + h2, (-vd * D) / 2], [(vw * D) / 2, y0 + h1 + h2 + h3, (vd * D) / 2]));
-    parts.push(fitTo(piece('protome', lod), [(-pw * D) / 2, y0 + h1 + h2 + h3, (-pd * D) / 2], [(pw * D) / 2, top, (pd * D) / 2]));
+    if (protome) parts.push(fitTo(piece('protome', lod), [(-pw * D) / 2, y0 + h1 + h2 + h3, (-pd * D) / 2], [(pw * D) / 2, top, (pd * D) / 2]));
   } else if (o.capital === 'bull') {
     const B = srow('capital', 'bull'), hc = B.collar_h * H, rc = B.collar_r * D, rs = (D / 2) * P().shaft_top_ratio;
     parts.push(norm(revolve(TESS().collar[lod], [y0, y0 + hc * B.collar_flare, y0 + hc], [rs, rc, rc]), CR().lathe));
-    parts.push(fitTo(piece('protome', lod), [(-pw * D) / 2, y0 + hc, (-pd * D) / 2], [(pw * D) / 2, top, (pd * D) / 2]));
+    if (protome) parts.push(fitTo(piece('protome', lod), [(-pw * D) / 2, y0 + hc, (-pd * D) / 2], [(pw * D) / 2, top, (pd * D) / 2]));
   } else {
     const Pl = srow('capital', 'plain'), wA = P().capital_boxes.plain * D, ha = Pl.abacus_h * H, hb = H - ha;
     parts.push(norm(boxRaw(0, y0 + hb / 2, 0, (Pl.bolster_bottom * D) / 2, hb / 2, (Pl.bolster_bottom * D) / 2, wA / (Pl.bolster_bottom * D)), CR().box));
@@ -373,14 +385,14 @@ export function capitalAlone(o: ColumnOrder, lod: Lod = 1): NormMesh | null {
  *  Bases and capitals are cached per order (the Hall of 100 Columns' many construction states share them). */
 /** construction state of one column beyond its built fraction (the Hall of 100 Columns, src/world/construction.ts):
  *  whether the shaft is fluted and the capital set; unset = the default (fluted and capped only when complete) */
-export interface ColumnState { fluted?: boolean; capital?: boolean }
+export interface ColumnState { fluted?: boolean; capital?: boolean; /** false: the capital without its protome (D-305) */ protome?: boolean }
 export function columnMesh(o: ColumnOrder, built = 1, lod: Lod = 0, st: ColumnState = {}): NormMesh {
-  const ok = JSON.stringify(o), key = `${ok}|${built.toFixed(4)}|${lod}|${st.fluted ?? '-'}|${st.capital ?? '-'}`;
+  const ok = JSON.stringify(o), key = `${ok}|${built.toFixed(4)}|${lod}|${st.fluted ?? '-'}|${st.capital ?? '-'}${st.protome === false ? '|np' : ''}`, np = st.protome === false;
   let m = COL_CACHE.get(key);
   if (!m) {
     const parts = [cached(`base|${ok}|${lod}`, () => baseMesh(o, lod))!];
     const sh = shaftMesh(o, built, lod, st.fluted); if (sh) parts.push(sh);
-    if (st.capital ?? built >= 1) { const c = cached(`cap|${ok}|${lod}`, () => capitalMesh(o, lod)); if (c) parts.push(c); }
+    if (st.capital ?? built >= 1) { const c = cached(`cap|${ok}|${lod}${np ? '|np' : ''}`, () => capitalMesh(o, lod, !np)); if (c) parts.push(c); }
     m = mergeNorm(parts); COL_CACHE.set(key, m);
   }
   return m;
@@ -396,10 +408,10 @@ export function memberMaterials(o: ColumnOrder): { base: Material; shaft: Materi
 export function columnMeshesByMaterial(o: ColumnOrder, built = 1, lod: Lod = 0, st: ColumnState = {}): { material: Material; mesh: NormMesh }[] {
   const M = memberMaterials(o);
   if (M.base === M.shaft && M.shaft === M.capital) return [{ material: M.base, mesh: columnMesh(o, built, lod, st) }];
-  const ok = JSON.stringify(o), by = new Map<Material, NormMesh[]>(), add = (mat: Material, m: NormMesh | null) => { if (m) { if (!by.has(mat)) by.set(mat, []); by.get(mat)!.push(m); } };
+  const ok = JSON.stringify(o), np = st.protome === false, by = new Map<Material, NormMesh[]>(), add = (mat: Material, m: NormMesh | null) => { if (m) { if (!by.has(mat)) by.set(mat, []); by.get(mat)!.push(m); } };
   add(M.base, cached(`base|${ok}|${lod}`, () => baseMesh(o, lod)));
   add(M.shaft, shaftMesh(o, built, lod, st.fluted));
-  if (st.capital ?? built >= 1) add(M.capital, cached(`cap|${ok}|${lod}`, () => capitalMesh(o, lod)));
+  if (st.capital ?? built >= 1) add(M.capital, cached(`cap|${ok}|${lod}${np ? '|np' : ''}`, () => capitalMesh(o, lod, !np)));
   return [...by].map(([material, ms]) => ({ material, mesh: mergeNorm(ms) }));
 }
 export function toGeometry(m: NormMesh): THREE.BufferGeometry {

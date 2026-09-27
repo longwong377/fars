@@ -7129,3 +7129,35 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Named faults:** the Treasury store's faceted jars (fixed), untextured goods (scanned; still primitives at the bench: B103),
   flat red floor (scan grain; the gloss still reads uniform in the Gate hall: B104), jars in the walking line (fixed); the garrison's
   black smears (fixed: the baked fire shadows), sleepers sharing mats (logged: Q-790); breath-dawn's glossy uniform red (B104).
+
+## D-305 The Blender asset pipeline; the capital protome baked (session 11; UD-17, UD-06, UD-01; T-A7, T-A4, T-A4cg; Q-830, B115)
+- **Decision:** generated assets are built by one command, `node tools/blender/build.mjs`, from a registry
+  (tools/blender/assets.json): a node script writes the source meshes from the project's own model code (numbers before
+  pictures: nothing is shaped by hand in Blender), Blender 5.0.1 headless (tools/blender/bake.py) unwraps, bakes normal and
+  occlusion maps (Cycles, selected-to-active) and exports a Draco GLB with tangents; the build measures, checks budgets and
+  records input and output hashes in public/models/manifest.json; `--verify` rebuilds and compares bytes. The game loads the
+  manifest's models at startup (src/render/models.ts: GLTFLoader + Draco/KTX2 decoders served from public/models/lib) and
+  every builder keeps its procedural stand-in when a model is absent, failed or switched off (`?models=0`).
+- **Hero asset:** the double-bull protome of the bull and composite capitals (210 instances: Gate, Apadana, Tachara, Hadish,
+  Hall of 100 Columns' finished columns, Harem). The game's own LOD0/LOD1 (8,816 / 1,074 triangles) carry one packed map each
+  (RGB tangent normal, A occlusion; 1024 / 256 px; one sampler, D-295) baked from the protome SDF at half the game's cell
+  (1.84 M triangles, locks at 1,500 triangles). sculpt.ts builds capitals without their protome when the model draws it
+  (ColumnState.protome, protomeBox, protomeMesh); the maps sit under the carved limestone's own relief (normal) and on its
+  indirect light (aoNode). The Treasury's goods were left to the interiors agent (D-301) as the brief asked; the lead freed
+  them late in the session: they are row 10 of research/BLENDER_PLAN.md.
+- **How the test could pass while the intent failed (said before, measured after):** a model that loads but stands wrong,
+  maps that load but do nothing, a change too small to see. The first full-world render caught the first: the protome lay
+  on its side (y and z swapped by Blender's PLY import) with every node test green; fixed (the PLY written in Blender's axes)
+  and now tested (GLB bounds = the game's pieces). Maps: 0.6-4.1 % of each frame changes by 8-13 luma levels, darker in the
+  carving's hollows. Visible, but small: see the read below.
+- **Measured:** build ~60 s (bake 12 s CPU, 5 s OptiX); GLB 2.04 MB, GPU ~6.8 MB (PNG: KTX2 needs KTX-Software, B115);
+  +16 instanced meshes (8 order groups × 2 levels), 0 triangles; byte reproduction CPU 3/3, GPU OptiX 1/2 (so CPU is the
+  default; the GPU for bakes too heavy for it); load 0.5 s in the page; no WebGPU validation error. Renders: 2 of 3 used
+  (tests/e2e/blender_hero.spec.ts, one load each, 12 views A/B at the player's lens, Q=high).
+- **Reviewer's read (the agent's own, against the fallen bull capitals of fars-assets/photos/columns_capitals):** more
+  carved at 5-15 m (eye sockets, chest locks, the folded legs), still not real: the real capitals carry bead rows, harness
+  bands, rosettes and ridged locks the model lacks (Q-830). T-A4cg is not moved by this asset alone; T-A7 is untouched
+  (no scan decision changed).
+- **Tests:** tests/blender_assets.test.ts (15: registry, sha256, inputs current, reproduced, budgets, attributes and maps,
+  ledger, decoders = three's, axes and extent, triangles = the game's, column split, fitLevel, material nodes).
+- **Plan and inventory:** research/BLENDER_PLAN.md (ranked top 20 with numbers, what Blender cannot help, rollout per area).

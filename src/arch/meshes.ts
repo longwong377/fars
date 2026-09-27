@@ -4,7 +4,8 @@ import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
-import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod } from './sculpt';
+import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod, protomeBox, protomeMesh } from './sculpt';
+import { model, fitLevel, bakedMaterial, registerSwap } from '../render/models';
 export { cutWall } from './parts';
 
 /** Greybox materials (Phase 2): flat albedos from pigment/stone references are Phase 3; these are neutral and tagged C. */
@@ -446,7 +447,10 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   for (const [, c] of cols) {
     // one InstancedLOD per member surface (a stone order is one; the Treasury's stone base, plastered shaft and timber
     // capital are three, sculpture.json shaft.members)
-    const L0 = columnMeshesByMaterial(c.order, c.built, 0), L1 = columnMeshesByMaterial(c.order, c.built, 1), M = memberMaterials(c.order);
+    // D-305: the double-bull protome from the Blender pipeline (public/models/capital_protome.glb) when it is loaded: the
+    // capitals are then built without their procedural protome, which is drawn as its own instanced pair of levels below
+    const PM = !flatMode && c.built >= 1 && protomeBox(c.order) ? model('capital_protome') : null, st = PM ? { protome: false } : {};
+    const L0 = columnMeshesByMaterial(c.order, c.built, 0, st), L1 = columnMeshesByMaterial(c.order, c.built, 1, st), M = memberMaterials(c.order);
     const at = new Float32Array(c.parts.length * 4); c.parts.forEach((p, i) => at.set([p.c[0], p.y0, -p.c[1], c.order.baseH + (c.order.height - c.order.baseH) * c.built], i * 4));
     const b = c.parts[0].building, split = L0.length > 1;
     for (const { material: mat, mesh } of L0) {
@@ -460,6 +464,18 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
         note: `column order ${c.order.id} (${c.order.base} base, ${c.order.capital} capital)${split ? `, ${members} in ${mat}` : ''}: dimensions SITE_SPEC; carving procedural sculpture, form C (D-018; scans would replace it, NEEDS #10)${c.built < 1 ? '; under construction: unfluted drums' : ''}${painted ? '; the shafts painted in bright colours (B): colours and pattern not found, drawn in the most probable scheme after the Persepolis and Pasargadae painted plaster (red-ochre ground, white lozenge lattice, Egyptian-blue bands at foot and head: C; D-214, treasury.r_shaft_paint, Q-020)' : ''}` };
       lod.levels.forEach((im, k) => { im.name = `${lod.name}:lod${k}`; im.userData = lod.userData; });
       tris += (g0.index!.count / 3) * c.parts.length;
+      group.add(lod);
+    }
+    if (PM) {
+      const [lo, hi] = protomeBox(c.order)!, mat = M.capital, surf = CARVED[mat] ?? mat, b = c.parts[0].building;
+      const geos = PM.lods.map(g => fitLevel(g, lo, hi)), mats = PM.maps.map((map, k) => bakedMaterial(surf, map, `capital_protome:${k}`));
+      const lod = new InstancedLOD(geos, mats[0], at, SW.column, SW.hysteresis);
+      lod.name = `${b}:columns:protome`;
+      lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON`, placeholder: false, building: b, model: 'capital_protome',
+        note: `double-bull protome of the ${c.order.capital} capital, ${mat}: the project's own model (sculpture.json, form C, D-151) baked in Blender (D-305): normal and occlusion maps from a surface twice as fine as LOD0, on the same triangles` };
+      lod.levels.forEach((im, k) => { im.material = mats[k] ?? mats[0]; im.name = `${lod.name}:lod${k}`; im.userData = lod.userData;
+        const pm = protomeMesh(c.order, k as Lod); if (pm) registerSwap(im, [toGeometry(pm), carvedMaterial(mat)]); });
+      tris += (geos[0].index!.count / 3) * c.parts.length;
       group.add(lod);
     }
   }

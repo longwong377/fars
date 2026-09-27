@@ -1,0 +1,24 @@
+{
+ "about": "The Blender asset pipeline's registry (D-305). One entry per generated asset: the node script that writes its source meshes from the project's own data (numbers before pictures: no geometry is drawn by hand in Blender), the files and values whose hash decides whether the asset is stale, the bake settings, the per-level texture sizes and the budgets tests/blender_assets.test.ts holds it to. `node tools/blender/build.mjs` regenerates every asset; public/models/manifest.json records each build (input hash, output hash, measured counts).",
+ "assets": {
+  "capital_protome": {
+   "title": "double-bull protome of the bull and composite capitals (Apadana, Gate of All Nations, Tachara, Hadish, Hall of 100 Columns, Harem)",
+   "source": {
+    "script": "tools/blender/sources/protome.ts",
+    "args": ["0.005", "1500"],
+    "args_note": "cell 0.005 D (half the game's LOD0 marching-cubes cell, sculpture.json protome.mc.cell 0.01: the grooves of eyes, horns' joints and locks span 2-4 cells); lock template 1500 triangles (the game's LOD0 carries 64: the spiral groove needs ~1000 to read as a groove). Technical, C",
+    "inputs": ["src/data/sculpture.json", "src/arch/sdf.ts", "src/arch/sculpt_models.ts", "src/arch/sculpt.ts", "public/generated/sculpt_protome_0.bin", "public/generated/sculpt_protome_1.bin", "tools/blender/lib/ply.ts"],
+    "spec_values": [["global", "r_column_proportions"]]
+   },
+   "lods": [{ "tex": 1024 }, { "tex": 256 }],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m). 1024 px over LOD0: ~1.1 cm per texel on the Apadana's protome (5.6 m wide), below a pixel at 5 m at the player's lens; 256 px for LOD1 (seen beyond 32 m)",
+   "bake": { "cage": 0.03, "ray": 0.06, "margin": 8, "normal_samples": 16, "ao_samples": 256, "ao_distance": 0.2, "uv_angle": 66, "uv_margin": 0.004, "high_normals": "geometry" },
+   "bake_note": "units: the source's (D, the column's lower shaft diameter). cage 0.03 D and rays 0.06 D cover the LOD0 simplification error (<= 1 cell); AO rays 0.2 D (32 cm on the Apadana) see the carving's own hollows (eye sockets, the gap under the forelegs, between the locks), not the building",
+   "budget": { "tris": [8900, 1080], "tex": [1024, 256], "glb_bytes": 2600000, "gpu_bytes": 8000000 },
+   "budget_note": "triangles: sculpture.json protome.mc lod0/lod1 (the game's own budget, unchanged: the bake adds maps, not triangles); GLB <= 2.6 MB of the 60 MB first-load budget (T-K7); GPU <= 8 MB of the 3.5 GB (T-K8): PNG maps decode to RGBA8 (5.6 MB + 0.35 MB with mips), KTX2 UASTC would be a quarter",
+   "tier": "C",
+   "src": "RECON;IR-COL",
+   "ledger": "Baked column capital protome (public/models/capital_protome.glb; D-305)"
+  }
+ }
+}

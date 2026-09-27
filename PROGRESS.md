@@ -1,6 +1,11 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **D-305 (session 11, the Blender pipeline):** the pipeline runs (`node tools/blender/build.mjs`, byte-reproducible on the CPU);
+  one asset in the game, the capitals' double-bull protome with baked normal + occlusion maps, rendered A/B at the player's
+  lens: a small visible gain, still CG (the model lacks the real capitals' carving, Q-830). Maps are PNG, not KTX2 (B115:
+  KTX-Software not installed). Impostor tool built (tools/blender/impostor.py), not wired. The Hall of 100 Columns' columns
+  under construction and the masons' yard capitals still draw the procedural protome (src/world/construction.ts).
 - **Session 10 (read HANDOFF.md's first section): almost nothing of session 10 is seen on screen yet.** Rendered and judged: the
   shader A/B (identical: D-290), planets-dusk at the player's lens (T-J5 candidate; a thistle grew out of the Terrace's paving: fixed,
   unrendered). Every other session-10 addition (D-278..D-294) is node-tested only; sounds unheard (B65). The board (COVERAGE.md,
