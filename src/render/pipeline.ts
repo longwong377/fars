@@ -44,7 +44,7 @@ import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './
 import { SkyEnvCapture, skyEnv, specularOcclusion } from './envmap';
 import { addAirLight } from './airlight';
 import { agxLook } from './toneLook';
-import { SkyVisField } from './skyVis';
+import { SkyVisField, SKYVIS } from './skyVis';
 /** D-309: the fitted AgX look (toneLook.ts) at medium and above; ?tone=agx draws three's plain AgX (the A/B) */
 export const TONE_LOOK_ON = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('tone') === 'agx');
 
@@ -208,10 +208,19 @@ export class Pipeline {
       const ao0 = mix(mix(aoFull, min(aoFull, aoNear), this.ab.contact), aoNear, w);
       // D-309b: outside the probe volumes, the sky the built world leaves visible (skyVis.ts), with the SSGI's AO (min)
       this.skyVis = new SkyVisField();
-      const vis = this.skyVis.visibility(pWorld, nOff), visW = mix(vis, float(1), w);
-      const ao = min(ao0, mix(float(1), visW, this.ab.skyvis));
+      // D-309c (the lead's world render: black shade in the lanes): the hidden sky is replaced by the occluders' light, B × the
+      // open sky's (skyVis.bounceRatio: walls in the sun outshine the sky they hide at midday), and it MULTIPLIES the SSGI's AO
+      // (min() stacked the two to ~0 in a lane)
+      const { OCC_ALBEDO: oa, SUNLIT: sf, B_MIN: bmin, B_MAX: bmax } = SKYVIS;
+      const ratio = luminance(this.sunE).mul(max(dot(this.sunDirW, vec3(0, 1, 0)), 0)).div(luminance(this.hemiSky).max(1e-6));
+      const Bn = clamp(ratio.mul(sf).add(1 - sf).mul(oa), bmin, bmax);
+      const vis = this.skyVis.visibility(pWorld, nOff), visE = vis.add(float(1).sub(vis).mul(Bn)), visW = mix(visE, float(1), w);
+      const ao = ao0.mul(mix(float(1), visW, this.ab.skyvis));
       const bounceW = mix(float(1).sub(w), float(1), this.ab.giDirect);
-      const lit = max(col.rgb.sub(sky.mul(float(1).sub(ao))).add(dif.rgb.mul(bounce).mul(bounceW)), vec3(0));
+      // the occlusion never removes more than its share of the pixel's whole light (D-309c: where the recomputed skylight
+      // exceeded what the material actually received, col − sky·(1 − ao) went negative: pure black); ao > 1 adds skylight
+      const aoL = min(ao, float(1)), aoX = max(ao.sub(1), float(0));
+      const lit = max(col.rgb.sub(min(sky.mul(float(1).sub(aoL)), col.rgb.mul(float(1).sub(aoL)))).add(sky.mul(aoX)).add(dif.rgb.mul(bounce).mul(bounceW)), vec3(0));
       // ---- SSR (D-157) ----------------------------------------------------------------------------------------------
       const vV = normalize(pView.negate()), dotNV = clamp(dot(nV, vV), 0, 1);
       const rough = nrmTex.a, metal = dif.a, F0 = mix(vec3(0.04, 0.04, 0.04), dif.rgb, metal);
@@ -272,7 +281,7 @@ export class Pipeline {
       // node build run away and crash the page (session-2 bisect)
       const chosen = V.includes('scene') ? col.rgb : V.includes('aonear') ? vec3(aoNear) : V.includes('ao') ? vec3(ao) : V.includes('gi') ? bounce
         : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : V.includes('direct') ? colDirect
-        : V.includes('ssr') ? ssrRefl : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : V.includes('skyvis') ? vec3(visW) : litR;
+        : V.includes('ssr') ? ssrRefl : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : V.includes('skyvis') ? vec3(visW.mul(0.5)) : litR;
       // session 9 (G8, A physics): heat shimmer and the inferior mirage over the hot plain. Only where a line of sight runs within
       // ~1 deg of level to ground more than 300-1500 m off: the scene is resampled with a slowly boiling offset of ~1.5 px
       // (shimmer); the ground within 0.23 deg below the horizon beyond 1.5 km takes the colour of the point mirrored above the

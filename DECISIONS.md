@@ -7578,3 +7578,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   stops the leaf's thickness (r_door_leaves.thickness 0.25 m) short of the inner face and the fore-part projects 2.2 m
   (C; Q-890). The protome's horns are raised ~0.08 D in the head frame (protome.head.horn_shift [-0.07, 0.035, 0] D): with
   the head hung low they no longer rose above the poll; the photographs show them sweeping up and forward (C).
+- **D-309c (the lead's batched world render c1d6516: pure-black shade in lane-with-child).** Causes fixed world-wide in the
+  composite: (1) min(SSGI AO, sky visibility) stacked to ~0 in a lane → the two now multiply; (2) the hidden sky was replaced by
+  a fixed 25 % → by the occluders' own light, B = 0.35 · (0.5 · E_sun/E_sky + 0.5) × the open sky's, 0.3-1.6 (skyVis.bounceRatio:
+  at midday sunlit walls outshine the sky they hide); (3) the skylight removal could exceed what the material actually received
+  (col − sky·(1 − ao) < 0: black) → it is capped at col·(1 − ao); (4) the lookup stands 0.6 m off the surface (was 0.25: a wall
+  read its own 0.23 m texels as occluders). Probe lane (humanLab ?lane=1: two mudbrick walls 2 m apart; LANE=1 in
+  sunshadow_probe.spec.ts), shaded/sunlit wall in linear luma: hour 12 0.33 (session 11's composite 0.36), no pixel black;
+  hour 17 both walls shaded, 50/51 sRGB (was 45/46). The lab's closed room (1 × 2 m door): mean 43 (was 39). The world's dark
+  interiors are NOT from D-309: room-treasury-store's lower-frame luma p50 25 in the verify render vs 24 in session 11
+  (merged2); the tone look leaves darks unchanged (tests/tone_look.test.ts). World not re-rendered.

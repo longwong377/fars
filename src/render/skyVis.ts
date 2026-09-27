@@ -10,14 +10,14 @@
 // and a few times while the world streams in. The post composite (pipeline.ts, high/ultra; no material gains a sampler,
 // B122) marches it: for DIRS azimuths the highest elevation of the height map within 24 m (steps at 0.4 … 24 m), the sky
 // visible in that azimuth ≈ 1 − sin(horizon), weighted by the surface normal's horizontal lean toward it; the occluded
-// part of the sky is replaced by the occluders' own light (BOUNCE_FLOOR of the open sky's). It multiplies the skylight
+// part of the sky is replaced by the occluders' own light (D-309c: B × the open sky's, bounceRatio). It multiplies the skylight
 // the composite already removes where the SSGI's AO says occluded (min of the two), outside the probe volumes only.
 // Overhangs (a portico's roof over its floor) read as walls from above: the probe volumes cover the roofed buildings.
 import * as THREE from 'three/webgpu';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
 import { vec4, vec3, vec2, float, positionWorld, uniform, texture, max, min, clamp, dot, normalize, Fn, interleavedGradientNoise, screenCoordinate } from 'three/tsl';
 
-export const SKYVIS = { SIZE: 2048, EXTENT: 480, RECENTRE: 90, DIRS: 8, STEPS: [0.4, 1, 2, 3.5, 6, 10, 16, 24], BOUNCE_FLOOR: 0.25, EMPTY: -1e5 };
+export const SKYVIS = { SIZE: 2048, EXTENT: 480, RECENTRE: 90, DIRS: 8, STEPS: [0.4, 1, 2, 3.5, 6, 10, 16, 24], OCC_ALBEDO: 0.35, SUNLIT: 0.5, B_MIN: 0.3, B_MAX: 1.6, EMPTY: -1e5 };
 const _hide: THREE.Object3D[] = [];
 
 export class SkyVisField {
@@ -68,7 +68,7 @@ export class SkyVisField {
     const self = this;
     return Fn(() => {
       const hn = vec2(n.x, n.z), up = clamp(n.y, 0, 1);
-      const p0 = p.add(n.mul(0.25));
+      const p0 = p.add(n.mul(0.6)); // (0.6 m: past the surface's own texels, 0.23 m, so a wall never occludes itself: D-309c)
       let acc: any = float(0), wsum: any = float(0);
       const jit = interleavedGradientNoise(screenCoordinate.xy).mul(0.6).add(0.7); // step distances jittered per pixel (TRAA averages the bands away)
       for (let i = 0; i < SKYVIS.DIRS; i++) {
@@ -86,8 +86,13 @@ export class SkyVisField {
       }
       const c = self.uVP.mul(vec4(p0.x, 0, p0.z, 1)), inside = float(1).sub(max(c.x.abs(), c.y.abs()).sub(0.8).div(0.2).clamp(0, 1)); // fades to open sky at the map's edge
       const v = clamp(acc.div(wsum), 0, 1).mul(inside).add(float(1).sub(inside));
-      return v.add(float(1).sub(v).mul(SKYVIS.BOUNCE_FLOOR));
+      return v;
     })();
   }
 }
+/** D-309c: the occluders' radiance relative to the open sky's (C): walls and ground of albedo OCC_ALBEDO, SUNLIT of them in
+ *  the sun, the rest under the sky: B = a · (SUNLIT · E_sun/E_sky + (1 − SUNLIT)), in [B_MIN, B_MAX]. At midday (E_sun/E_sky
+ *  ~ 5-8) the walls of a lane are brighter than the sky they hide (B > 1: the shade gains light, as a sunlit lane's does);
+ *  under overcast or at dusk (ratio ~ 0) they are darker (B = 0.3). CPU mirror for the tests */
+export function bounceRatio(sunOverSky: number) { const { OCC_ALBEDO: a, SUNLIT: f, B_MIN, B_MAX } = SKYVIS; return Math.min(B_MAX, Math.max(B_MIN, a * (f * sunOverSky + (1 - f)))); }
 void vec3; void min; void normalize;
