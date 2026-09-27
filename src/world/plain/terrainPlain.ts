@@ -43,7 +43,7 @@ export const HILL = {
    *  5.75/2, colluvium 10YR 5/3 (Munsell renotation, Illuminant C adapted to D65); the luminances kept (were 0.20, 0.10,
    *  0.27, 0.18). D-302: rock, its dark patches and scree warmer (R/G 1.31 -> 1.46 for the rock, luminance within 3 %): photo #24's
    *  mountain R/G 1.56 against the calib-24 render's 1.23 (tools/dev/calib24_mountain.py; the photo's grade unknown, so half-way) */
-  rock: [0.55, 0.46, 0.38], rockDark: [0.40, 0.31, 0.24], scree: [0.62, 0.53, 0.44], slopeSoil: [0.554, 0.462, 0.352],
+  rock: [0.55, 0.44, 0.36], rockDark: [0.40, 0.29, 0.22], scree: [0.62, 0.51, 0.42], slopeSoil: [0.554, 0.462, 0.352],
   /** bedding: packages of beds (m) of which ~45 % form cliffs; beds 0.6-2.2 m; a gentle dip (C) */
   pkg: 12, cliffShare: 0.45, bed: [0.6, 1.6], dip: 0.05, dipDir: 0.52,
   /** D-223: a cliff package's riser (its top third: the resistant bed standing as a low cliff) over its bench; the riser
@@ -51,9 +51,9 @@ export const HILL = {
   riser: 0.35, riserSteep: 2.4, riserMaxSlope: 4,
   /** D-232: the riser's face albedo factor and the bench's (were 1.12 and 0.88), the rock's weathered-patch share toward
    *  rockDark (was 0.5), and the rock-soil-scrub mosaic: ±mosaic of the albedo in patches of mosaicL m, octave weights mosaicW (C) */
-  riserK: 1.22, benchK: 0.84, weatherK: 0.75, mosaic: 0.28, mosaicL: [6, 16, 40], mosaicW: [0.3, 0.45, 0.45],
+  riserK: 1.1, benchK: 0.92, weatherK: 0.75, mosaic: 0.34, mosaicL: [6, 16, 40], mosaicW: [0.3, 0.45, 0.45],
   /** shrubs: 5 m cells, crowns 0.6-1.6 m radius; cover on open slopes, in gullies, on shaded (north-facing) slopes (C) */
-  shrubCell: 5, shrubCover: { slope: 0.08, gully: 0.12, north: 0.04 },
+  shrubCell: 5, shrubCover: { slope: 0.11, gully: 0.09, north: 0.04 },
   /** D-223: the crowns as spheres in a 3-D jittered grid of 3 m cubes (no stretching on steep ground), radius 0.6-1.6 m */
   shrubCell3: 3, shrubR: [0.6, 1.6],
   /** within 2 km of the Terrace half the cover (fuel cutting; the woodland rule keeps 10 % of its trees there: the scrub
@@ -425,7 +425,7 @@ export class PlainGround {
       // kilometre off is the mountain's texture (the calib-24 view read Ystd/Y 0.12 in 12 px windows against photo #24's 0.29,
       // and every render drew Kuh-e Rahmat as a smooth dune); as relief, a bump of ~1.5 m over its tiles where the DEM is silent
       const hillAll = max(hillOn, rock).mul(Hb.has.max(smoothstep(0.15, 0.3, slope)));
-      alb = alb.mul(det(G.rockFar, hillAll.mul(0.8))); hS = hS.add(G.rockRelief.h.mul(1.0).mul(hillAll));
+      alb = alb.mul(det(G.rockFar.c.min(1.5), hillAll.mul(0.7))); // (its pale salt-white patches clipped: the render drew them as snow) hS = hS.add(G.rockRelief.h.mul(1.0).mul(hillAll));
       alb = alb.mul(float(1).sub(gully.mul(0.28).mul(hillOn))).mul(float(1).add(cvx.mul(0.05).mul(hillOn))); // gullies hold shade and moisture
       // D-232: the rock-soil-scrub mosaic between the metre and the DEM's 30 m (C): bare slabs and outcrops lighter, soil- and
       // scrub-filled hollows and the unresolved cast shadows of the rough ground darker, in patches of ~6, 16 and 40 m (three
