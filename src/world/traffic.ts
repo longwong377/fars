@@ -33,6 +33,7 @@ import places from '../data/people_places.json';
 import type { ActivityId } from '../people/activities';
 import { h01 } from './fauna';
 import type { QuarrySite } from './plain/quarries';
+import { hutSleepSpot } from './plain/quarry_camp';
 
 const FEAT = Object.fromEntries((settlement as any).features.map((f: any) => [f.id, f])) as Record<string, any>;
 const PLACE = Object.fromEntries(((places as any).places ?? (places as any)).map((p: any) => [p.id, p])) as Record<string, any>;
@@ -154,11 +155,12 @@ export class Traffic {
       else if (work && h >= 12 && h < 12.6) { at = camp(i); act = 'eat'; why = 'the midday meal of bread and onions at the quarry camp'; }
       else if (work && C.heatRest && h >= 12.6 && h < 15) { at = camp(i); act = 'rest'; why = 'resting in the shade of the rock through the heat'; }
       else if (h >= sun.set - 0.3 && h < sun.set + 0.6) { at = camp(i); act = 'eat'; why = 'the evening meal at the quarry camp by the fire'; }
-      else if (!work && h >= w0 && h < w1) { if (wx?.wet) continue; at = camp(i); act = 'rest'; why = 'at the quarry camp: no cutting today'; }
-      else if (warm) { at = camp(i); act = 'sleep'; why = 'asleep at the quarry camp in the open, in a cloak'; }
-      else continue; // (the cold months' nights: in the camp's huts, not built: B80)
+      else if (!work && h >= w0 && h < w1) { if (wx?.wet) { at = Q.at(...hutSleepSpot(i)); act = 'rest'; why = 'sheltering from the rain in the quarry camp\'s hut'; head = Q.rot + (i % 2 ? Math.PI / 2 : -Math.PI / 2); } else { at = camp(i); act = 'rest'; why = 'at the quarry camp: no cutting today'; } }
+      else if (warm && !wx?.wet) { at = camp(i); act = 'sleep'; why = 'asleep at the quarry camp in the open, in a cloak'; }
+      else { at = Q.at(...hutSleepSpot(i)); act = 'sleep'; why = warm ? 'asleep in the quarry camp\'s hut out of the rain' : 'asleep in the quarry camp\'s stone hut, out of the cold'; head = Q.rot + (i % 2 ? Math.PI / 2 : -Math.PI / 2); } // (B80: the huts, quarries.ts QUARRY_HUTS)
       // (the men face the face (uphill, −v) at their work; at the camp they sit round it)
-      out.push({ key: `qm:${i}`, kind: 'quarry', e: at[0], n: at[1], heading: act === 'quarry' ? head : Q.rot + 2 * Math.PI * (i / DRUM.quarrymen), act, why, look });
+      const inHut = /hut/.test(why);
+      out.push({ key: `qm:${i}`, kind: 'quarry', e: at[0], n: at[1], heading: act === 'quarry' || inHut ? head : Q.rot + 2 * Math.PI * (i / DRUM.quarrymen), act, why, look });
     }
   }
   constructor(private seed: number, private src: TrafficSource, plan: TownPlan | null) {

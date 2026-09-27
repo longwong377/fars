@@ -22,6 +22,7 @@ import { checkPlan } from '../src/people/planCheck';
 import { COW_SHARE, MILK_MONTHS, GRAZE_MONTHS, type Seg } from '../src/people/population';
 import { Traffic, DRUM, DRUM_GROUND, along } from '../src/world/traffic';
 import { quarrySites } from '../src/world/plain/quarries';
+import { QUARRY_HUTS, hutSleepSpot } from '../src/world/plain/quarry_camp';
 import { roadRiverCrossings } from '../src/world/plain/crossings';
 import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
 import { toLocal } from '../src/world/settlement/site';
@@ -141,7 +142,19 @@ describe('the drums from the quarry and the quarrymen (world/traffic.ts)', () =>
     const at = (h: number) => traffic.at(d * 24 + h).filter(m => m.kind === 'quarry');
     const work = at(C.sun.rise + 2); expect(work.length).toBe(DRUM.quarrymen); expect(work.every(m => m.act === 'quarry')).toBe(true);
     expect(at(12.3).every(m => m.act === 'eat')).toBe(true);
-    const night = at(1); expect(night.every(m => m.act === 'sleep')).toBe(true); // (month 1 is warm: asleep in the open; the cold months' huts are not built: B80)
+    const night = at(1); expect(night.every(m => m.act === 'sleep')).toBe(true); // (month 1 is warm: asleep in the open)
+  });
+  it('in the cold months they sleep in the camp\'s huts, every man on his own place inside the walls (B80)', () => {
+    const H = QUARRY_HUTS; expect(H.door).toBeGreaterThanOrEqual(0.8); expect(H.h).toBeGreaterThanOrEqual(1.9);
+    const spots = Array.from({ length: DRUM.quarrymen }, (_, i) => hutSleepSpot(i));
+    for (const [u, v] of spots) expect(H.at.some(([cu, cv]) => Math.abs(u - cu) < H.w / 2 - H.wall - 0.2 && Math.abs(v - cv) < H.d / 2 - H.wall - 0.2), `spot (${u}, ${v}) inside a hut`).toBe(true);
+    for (let i = 0; i < spots.length; i++) for (let j = i + 1; j < spots.length; j++) expect(Math.hypot(spots[i][0] - spots[j][0], spots[i][1] - spots[j][1])).toBeGreaterThan(0.6);
+    const d = Array.from({ length: 120 }, (_, k) => 200 + k).find(x => ![2, 3, 4, 5, 6].includes(sim.pop.cal!.ctx(x).month))!;
+    const night = traffic.at(d * 24 + 1).filter(m => m.kind === 'quarry'); expect(night.length).toBe(DRUM.quarrymen);
+    expect(night.every(m => m.act === 'sleep' && /hut/.test(m.why))).toBe(true);
+    // the drum sledge's way out of the camp keeps clear of the huts (2 m margin)
+    const Q = traffic.quarry!, R = traffic.drumRoute!;
+    for (let s = 0; s < 40; s += 0.5) { const p = along(R, s); for (const [cu, cv] of H.at) { const [hx, hy] = Q.at(cu, cv); expect(Math.hypot(p.e - hx, p.n - hy), `route at ${s} m`).toBeGreaterThan(Math.hypot(H.w, H.d) / 2 + 2); } }
   });
 });
 

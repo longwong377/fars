@@ -6723,3 +6723,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   the penumbra easing in (squared) so the edge is not a step (C; reasoning in ephemeris.ts). The Moon's light on the LAND keeps
   the photometric `light` (`earthShadow`), so the landscape darkens at the eclipse as it does. Pinned in tests/eclipse.test.ts.
 - **Verification:** eclipse-terrace and eclipse-moon-tele re-queued (render lane, session 10).
+
+## D-279 The quarry camp's huts (session 10; B80)
+- **Problem (B80):** from October to April the fourteen quarrymen of Majdabad slept "in the camp's huts", which were not built,
+  so the camp was empty from dusk to dawn for seven months, and on a wet day off they vanished.
+- **Decision:** three dry-stone huts below the camp, E of the drum sledge's way out (the quarry's own spoil laid dry, a slab roof
+  under earth, a 0.9 m doorway facing the camp, 1.95 m inside: C, the quarry and shepherd shelters of the Zagros), merged into
+  the quarries' stone mesh (no new mesh: the plain stays at 39 of 40), with colliders. The men sleep in them on cold nights and
+  on any wet night, and shelter in them on a wet day off, each on his own place along the inner walls (`quarry_camp.ts`).
+  Tests: tests/land_work.test.ts (every place inside a hut and apart; cold-month nights all in the huts; the sledge's route
+  2 m clear of them). Unrendered: the huts join the quarry view in the render lane.

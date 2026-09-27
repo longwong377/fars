@@ -8,6 +8,7 @@ import type { Terrain } from '../../terrain/heightfield';
 import { surfaceMaterial } from '../../render/materials';
 import { feature, tag } from './data';
 import { Rng } from '../../core/rng';
+import { QUARRY_HUTS } from './quarry_camp';
 
 /** D-256: a quarry's working frame (grid m): its point on the rock, the move from the gazetteer point, and the face's frame
  *  (local u along the face, v downhill: `at(u, v)` gives the grid point). The quarrymen and the drum hauls
@@ -45,13 +46,25 @@ export function buildQuarries(terrain: Terrain, seed = 1): QuarryBuild {
     for (let k = 0; k < 3; k++) put(0, -4 * k, 26 - 5 * k, 4, 2.2 + k * 0.6); // stepped benches of freshly cut stone
     for (let k = 0; k < 7; k++) put(rng.range(-12, 12), rng.range(4, 14), rng.range(1.2, 2.6), rng.range(0.8, 1.4), rng.range(0.7, 1.1)); // cut blocks waiting to be hauled
     for (let k = 0; k < 10; k++) put(rng.range(14, 24) * (rng.chance(0.5) ? 1 : -1), rng.range(0, 10), rng.range(2, 5), rng.range(2, 5), rng.range(0.3, 1.0)); // spoil (chips)
+    if (id === QUARRY_HUTS.site) { const H = QUARRY_HUTS, sw = (H.w - H.door) / 2; // B80: the camp's huts (walls, a doorway, a slab roof)
+      for (const [cu, cv] of H.at) {
+        const [hx, hy] = S.at(cu, cv), g0 = terrain.heightAt(hx, -hy), top = H.h + 0.25; // walls rise from the hut's centre ground
+        const wall = (u: number, v: number, w: number, d: number) => { const [px, py] = S.at(u, v), g = terrain.heightAt(px, -py), hh = g0 + top - g;
+          const b = new THREE.BoxGeometry(w, hh + 1, d).toNonIndexed(); b.deleteAttribute('uv'); b.rotateY(rot); b.translate(px, g + (hh - 1) / 2, -py); geos.push(b);
+          boxes.push({ c: new THREE.Vector3(px, g + (hh - 1) / 2, -py), h: new THREE.Vector3(w / 2, (hh + 1) / 2, d / 2), rot }); };
+        wall(cu, cv + H.d / 2 - H.wall / 2, H.w, H.wall); // back (downhill)
+        wall(cu - H.w / 2 + H.wall / 2, cv, H.wall, H.d - 2 * H.wall); wall(cu + H.w / 2 - H.wall / 2, cv, H.wall, H.d - 2 * H.wall); // sides
+        wall(cu - H.w / 2 + sw / 2, cv - H.d / 2 + H.wall / 2, sw, H.wall); wall(cu + H.w / 2 - sw / 2, cv - H.d / 2 + H.wall / 2, sw, H.wall); // front, the doorway between
+        const r = new THREE.BoxGeometry(H.w + 0.3, 0.3, H.d + 0.3).toNonIndexed(); r.deleteAttribute('uv'); r.rotateY(rot); r.translate(hx, g0 + top + 0.15, -hy); geos.push(r); // slabs under earth
+        boxes.push({ c: new THREE.Vector3(hx, g0 + top + 0.15, -hy), h: new THREE.Vector3((H.w + 0.3) / 2, 0.15, (H.d + 0.3) / 2), rot });
+      } }
     ranges.push({ id, moved, geos: geos.length - first });
   }
   if (geos.length) {
     const m = new THREE.Mesh(mergeGeometries(geos)!, surfaceMaterial('limestone')); m.name = 'plain-quarries'; m.castShadow = m.receiveShadow = true;
     // one merged mesh for both sites; F3 describes the site whose faces were hit (Sivand B, Majdabad C: D-228), and the mesh
     // as a whole carries the lower tier
-    const siteTag = (id: string, moved: number) => tag(feature(id), `${feature(id).name ?? id}: ${feature(id).note} Moved ${moved} m to rock (regional slope > 25 %); the workings (cut benches, blocks, spoil) are reconstruction (C)`);
+    const siteTag = (id: string, moved: number) => tag(feature(id), `${feature(id).name ?? id}: ${feature(id).note} Moved ${moved} m to rock (regional slope > 25 %); the workings (cut benches, blocks, spoil) and the camp's dry-stone huts are reconstruction (C)`);
     const ends: { end: number; id: string; moved: number }[] = []; let v = 0, k = 0;
     for (const r of ranges) { for (let i = 0; i < r.geos; i++) v += geos[k++].getAttribute('position').count; ends.push({ end: v / 3, id: r.id, moved: r.moved }); }
     m.userData = { ...tag({ tier: 'C', src: ranges.map(r => feature(r.id).src).join(';') }, `quarries: ${sites.map(s => `${s.id} (${feature(s.id).tier}, +-${feature(s.id).unc_m} m, moved ${s.moved} m to rock)`).join(', ')}; workings reconstructed (C)`),
