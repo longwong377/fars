@@ -19,6 +19,8 @@ export const DOOR_R = 220, DOOR_W = 1.0;
 const MAXI = 700;
 const h01 = (s: string) => hashString(s) / 4294967296;
 /** how far open a street door stands (0 shut … 1 wide open against the vestibule wall) at a day, hour and sun altitude */
+/** session 10: doors heard within this range (m) */
+export const SOUND_R = 30;
 export function doorOpenness(id: string, kind: string, day: number, sunAlt: number): number {
   const dusk = -3 - 6 * h01(id + ':dusk');
   if (sunAlt < dusk) return 0;
@@ -52,10 +54,14 @@ export class TownDoors {
   private cols = new Map<number, any>(); private shown: number[][] = [[], [], []];
   private lastEye = new THREE.Vector3(1e9, 0, 0); private lastKey = '';
   readonly stats = { drawn: 0, shut: 0, colliders: 0 };
+  /** session 10 (WORLD_INVENTORY GB55): a door within SOUND_R of the eye begins to swing ('door': the pivot turning in its stone
+   *  socket) or comes shut ('door_shut'; `barred` at night: the bar dropped into its brackets); the world plays them (soundscape) */
+  onSound: ((kind: 'door' | 'door_shut', pos: { x: number; y: number; z: number }, barred: boolean) => void) | null = null;
+  private eye = new THREE.Vector3(); private night = false; private moving: Uint8Array;
   /** `variants`: how many leaf meshes (by the wood's age); the villages use one (D-254: a single draw, the plain's mesh budget) */
   constructor(readonly doors: StreetDoor[], private phys: Physics | null, private variants = 3, name = 'settlement:doors') {
     this.group.name = name;
-    this.open = new Float32Array(doors.length).fill(-1); this.target = new Float32Array(doors.length); this.sched = new Float32Array(doors.length);
+    this.moving = new Uint8Array(doors.length); this.open = new Float32Array(doors.length).fill(-1); this.target = new Float32Array(doors.length); this.sched = new Float32Array(doors.length);
     const mat = surfaceMaterial('house_timber', { vertexColors: true }) as any; mat.aoNode = attribute('ao', 'float');
     for (let v = 0; v < variants; v++) { const m = new THREE.InstancedMesh(leafGeometry(variants === 1 ? 1 : v), mat, MAXI); m.name = `${name === 'settlement:doors' ? 'settlement-doors' : name}:${v}`; m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true;
       m.userData = { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door leaves (D-234)', describe: () => ({ tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door: a leaf of poplar planks on battens, turning on a pivot post in a stone socket (B analogue: Babylonian doors on doorposts in sockets of brick or stone, search extract); shut and barred at night, open, ajar or shut by day by the household (C)' }) };
@@ -65,6 +71,7 @@ export class TownDoors {
   /** the leaf's yaw at openness f */
   private yaw(d: StreetDoor, f: number) { let da = d.openYaw - d.closedYaw; da = ((da + Math.PI * 3) % (Math.PI * 2)) - Math.PI; return d.closedYaw + da * f; }
   update(dt: number, eye: THREE.Vector3, day: number, sunAlt: number, nearTile: (t: number) => boolean) {
+    this.eye.copy(eye); this.night = sunAlt < -6;
     const key = `${day}|${Math.round(sunAlt * 2)}`;
     const moved = eye.distanceTo(this.lastEye) > 8, rescan = moved || key !== this.lastKey;
     if (rescan) { this.lastEye.copy(eye); this.lastKey = key; this.shown = [[], [], []];
@@ -75,7 +82,11 @@ export class TownDoors {
     let shut = 0, drawn = 0;
     for (let v = 0; v < this.meshes.length; v++) { const m = this.meshes[v], list = this.shown[v]; let n = 0;
       for (const i of list) { if (n >= MAXI) break; const d = this.doors[i];
-        const t = this.target[i], o = this.open[i]; if (o !== t) this.open[i] = Math.abs(t - o) < dt / 1.5 ? t : o + Math.sign(t - o) * dt / 1.5; // 1.5 s to swing
+        const t = this.target[i], o = this.open[i]; if (o !== t) { this.open[i] = Math.abs(t - o) < dt / 1.5 ? t : o + Math.sign(t - o) * dt / 1.5; // 1.5 s to swing
+          if (this.onSound) { const px = d.hinge[0], pz = -d.hinge[1], near = (px - this.eye.x) ** 2 + (pz - this.eye.z) ** 2 < SOUND_R * SOUND_R;
+            if (near && !this.moving[i]) this.onSound('door', { x: px, y: d.y + 1, z: pz }, false); // (it starts from rest)
+            if (near && t < 0.02 && this.open[i] < 0.02) this.onSound('door_shut', { x: px, y: d.y + 1, z: pz }, this.night); }
+          this.moving[i] = this.open[i] !== t ? 1 : 0; } else this.moving[i] = 0;
         q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); // the leaf cut to its doorway's lintel m.setMatrixAt(n++, M);
         if (this.open[i] < 0.02) shut++;
         this.collider(i, d, this.open[i] < 0.05 && nearTile(d.tile)); }

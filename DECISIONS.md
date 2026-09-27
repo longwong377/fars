@@ -6828,3 +6828,9 @@ moment-*-webgpu.png in the worktree, not committed).**
   comes out in the rain). Four more instanced meshes of smallLife.ts (none drawn while empty). Tests: tests/small_life.test.ts.
 - **Addendum (same session):** Caspian turtles basking at the water's edge on warm days (slipping in within 6 m) and freshwater
   crabs at the edge in the warm months (WORLD_INVENTORY GB37, GA47; C, recollection). Two more smallLife meshes.
+
+## D-293 The doors heard (session 10; WORLD_INVENTORY GB55)
+- **Decision (C, procedural):** a street door or village gate within 30 m that starts to swing (the household's hours, or the walker
+  working it) groans on its pivot in the stone socket; when it comes shut, a hollow thud, and at night the bar dropped into its
+  brackets. TownDoors.onSound, strike kinds `door`, `door_shut`, `door_bar`. Tests: tests/door_sounds.test.ts. Not heard in a
+  browser (B65). The town's drawn people still do not work the doors as they pass (D-234's note stands).

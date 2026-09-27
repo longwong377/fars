@@ -272,7 +272,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB52 | cattle lowing | SO-002 | sound | C | BUILT (D-256: the herds' lowing, a new strike; the compounds' cows at night) |
 | GB53 | camels grumbling | SO-003; C-W02 | sound | C | BUILT (D-282); not heard in a browser |
 | GB54 | hooves, cart wheels and harness on the road | SO-004; C-W01, C-W12 | sound | C | BUILT (D-282); not heard in a browser |
-| GB55 | door pivots and bolts heard | SO-009 | sound | C | MISSING/PARTIAL |
+| GB55 | door pivots and bolts heard | SO-009 | sound | C | BUILT (D-293); not heard in a browser |
 | GB56 | a crowd bed beyond 60 m (a court assembly heard from afar) | SO-011 | sound | C | BUILT (D-281: a distant murmur by direction, 60-400 m); not heard in a browser |
 | GB57 | a roof reached: stairs to the Apadana towers | W-058 | architecture | B | MISSING/PARTIAL |
 | GB58 | goods in the lanes: a place of exchange (partial) | S-002 | exchange | C | MISSING/PARTIAL |

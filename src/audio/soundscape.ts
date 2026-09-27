@@ -207,7 +207,9 @@ export const STRIKE_KINDS = ['chisel', 'quern', 'dice', 'hoe', 'sickle', 'loom',
   // session 10 (GB29): the swifts' screaming parties racing round the Terrace's halls at dusk (world/wildlife.ts SWIFTS)
   'swifts',
   // session 10 (GB51, GB53, GB54): the road's animals and carts (world/world.ts, the traffic's movers within 60 m)
-  'hoof', 'snort', 'whinny', 'camel', 'wheel'] as const;
+  'hoof', 'snort', 'whinny', 'camel', 'wheel',
+  // session 10 (GB55): the town's and villages' doors (settlement/towndoors.ts onSound)
+  'door', 'door_shut', 'door_bar'] as const;
 export const LAYER_SOUNDS = ['murmur', 'footsteps', 'fire'] as const;
 /** a lit fire's crackle bed level (C). D-245: 0.08 was −49 dBFS at 8 m (tools/dev/audio_render.ts), below the −40 dB a
  *  visible fire within 10 m must reach (MASTER_PLAN T-G3e) */
@@ -266,6 +268,11 @@ export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: nu
     case 'whinny': { const p = at(1.5, 6, 600, 3); whinny(e, p, t, rng); return true; }
     case 'camel': { const p = at(1.8, 4, 250, 3); camelGrumble(e, p, t, rng); return true; }
     case 'wheel': { const p = at(0.5, 3, 150, 1.5); cartWheel(e, p, t, rng); return true; }
+    // session 10 (GB55): a street door's leaf turning on its pivot in the stone socket (a dry wooden groan), and coming shut (a
+    // hollow thud; at night the bar dropped into its brackets); C
+    case 'door': { const p = at(1, 2, 60, 2); voice(e, p, t, 0.6 + 0.5 * j, 160 + 90 * j, 120 + 60 * j, [[700, 3], [1500, 4]], 0.02, 'sawtooth', 23 + 9 * j); burst(e, p, t, 0.5, 'brown', 'bandpass', 500, 300, 2, 0.015); return true; }
+    case 'door_shut': { const p = at(1, 3, 80, 1); tone(e, p, t, 0.14, 'sine', 90 + 20 * j, 55, 0.07); burst(e, p, t, 0.1, 'brown', 'lowpass', 700, 250, 0.7, 0.05); return true; }
+    case 'door_bar': { const p = at(1, 3, 80, 1); tone(e, p, t + 0.35, 0.08, 'triangle', 420 + 80 * j, 300, 0.035); burst(e, p, t + 0.35, 0.06, 'white', 'bandpass', 1500, 1100, 1.5, 0.02); return true; }
     case 'swifts': { const p = at(0, 8, 250, 3); swiftScream(e, p, t, rng); return true; }
     case 'bleat': { // a sheep's or goat's bleat: a buzzy tone with vibrato through a vocal formant (C)
       const p = at(0.6, 4, 250), o = c.createOscillator(), v = c.createOscillator(), vg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain(), f0 = 330 + 190 * j, d = 0.45 + 0.35 * rng.next();
