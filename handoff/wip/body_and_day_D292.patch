@@ -1,0 +1,1101 @@
+diff --git a/src/audio/voices.ts b/src/audio/voices.ts
+index b4a812a..c3283cd 100644
+--- a/src/audio/voices.ts
++++ b/src/audio/voices.ts
+@@ -52,6 +52,9 @@ export interface NearPerson {
+   group: string | null;
+   /** session 9: the way they face (world yaw, the rig's +Z forward: crowd.ts yawOf), when the crowd knows it (their breath) */
+   yaw?: number;
++  /** D-292 (C-D30, GA29): a woman with a small child in her arms, lap, cradle or on the mat beside her at its bedtime: she hums it
++   *  to sleep (crowd.ts nearPeople) */
++  lull?: boolean;
+ }
+ /** a published unit: a whole speech line or one attested lexicon entry; or, for a people without a corpus, a wordless voice */
+ export interface Unit { id: string; ipa: string; intonation: Intonation; kind: 'line' | 'word' | 'wordless'; parts: string[]; tier: string; gloss: string; translit: string }
+@@ -74,6 +77,12 @@ export const COUGH = nonverbal('cough', 'a cough', [['ʔhəʔhə', 'fall'], ['ʔ
+ /** how often (C): a listener laughs after one turn in LAUGH_P; a child's unit is a call in CHILD_CALL_P; a baby near the
+  *  listener starts a bout of crying once in CRY_EVERY_S seconds on average, 3-10 cries with a gasp between */
+ export const LAUGH_P = 0.12, CHILD_CALL_P = 0.25, CRY_EVERY_S = 900;
++/** D-292 (gap hunter C, C-D30; WORLD_INVENTORY GA29): a lullaby hummed to a small child at its bedtime, wordless (no song text
++ *  of the period survives for it, and none is invented: brief §10, C): a slow tune of LULL_NOTES hummed notes on the steps of
++ *  a narrow scale (semitones from her own pitch), falling to the end of each phrase, a breath between phrases; phrases for as
++ *  long as she sits with it, with a rest now and then. The notes are the hums of WORDLESS */
++export const LULL = nonverbal('lull', 'a lullaby hummed to a small child, without words', [['m̩ː', 'level'], ['mː', 'fall'], ['m̩ː', 'rise'], ['mː', 'level']]);
++export const LULL_STEPS = [0, 2, 3, 5, 7] as const, LULL_NOTES: [number, number] = [4, 7], LULL_REST_P = 0.25;
+ /** a person near the listener coughs once in this many seconds on average (world.ts sets it by season: winter colds; C) */
+ export const COUGH_EVERY_S = 1200;
+ 
+@@ -118,7 +127,7 @@ export const voiceDist = (a: VoiceParams, b: VoiceParams) => { const A = voiceBa
+   return Math.hypot(dp / VOICE_MIN.pitch, (Math.log(A.formantScale / B.formantScale) - dp) / VOICE_MIN.formant, (a.rate - b.rate) / VOICE_MIN.rate,
+     ((a.glottis ?? 0.5) - (b.glottis ?? 0.5)) / VOICE_MIN.glottis, ((a.f2 ?? 1) - (b.f2 ?? 1)) / VOICE_MIN.f2); };
+ const wrap = (v: number, lo: number, w: number) => lo + ((((v - lo) % w) + w) % w);
+-interface Slot { key: string; p: NearPerson; voice: VoiceParams; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number }
++interface Slot { key: string; p: NearPerson; voice: VoiceParams; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number; /** D-292: the lullaby's phrase: notes left, its length, the scale step */ lull?: { left: number; n: number; step: number } }
+ interface Group { busyUntil: number; nextAt: number; speaker: string | null; turnLeft: number; last: string | null; /** a listener's laugh after the turn */ laughAt?: number; laughBy?: string }
+ /** one utterance or grain started (the offline measurement reads these: tools/dev/audio_render.ts) */
+ export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: LangId | 'wordless'; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
+@@ -268,6 +277,15 @@ export class PopulationVoices {
+       if (!s.bout) { if (!s.rng.chance(Math.min(1, Math.max(0, dt)) / this.cryEvery)) continue; s.bout = 3 + s.rng.int(0, 7); }
+       const end = this.utter(s, null, now, 'voice', false, d, { unit: s.rng.pick(CRY), loud: 1.5, pitch: 1.9 }); if (end == null) continue;
+       s.bout--; s.nextAt = end + 0.25 + 0.5 * s.rng.next() + (s.bout ? 0 : 2); }
++    // lullabies (D-292): a woman with a small child at its bedtime hums it to sleep, a phrase of notes stepping down, a breath,
++    // another; nothing else interrupts her in those hours but the child's own cry (C)
++    for (const p of people) { if (!p.lull) continue; const d = Math.hypot(p.x - listener.x, p.y + 1.5 - listener.y, p.z - listener.z); if (d > this.clearR) continue;
++      const s = this.slot(p, now); s.seen = now; s.p = p; this.claimed.add(p.key); if (now < s.busyUntil || now < s.nextAt) continue;
++      if (!s.lull || s.lull.left <= 0) { if (s.lull && s.rng.chance(LULL_REST_P)) { s.lull = undefined; s.nextAt = now + 4 + 8 * s.rng.next(); continue; }
++        const n = LULL_NOTES[0] + s.rng.int(0, LULL_NOTES[1] - LULL_NOTES[0]), top = 2 + s.rng.int(0, 2); s.lull = { left: n, n, step: top }; }
++      const L = s.lull, k = L.n - L.left, semis = LULL_STEPS[Math.max(0, Math.min(LULL_STEPS.length - 1, L.step))], pitch = Math.pow(2, (semis - 2) / 12) * 0.92;
++      const end = this.utter(s, null, now, 'voice', false, d, { unit: LULL[(k + (L.left === 1 ? 1 : 0)) % LULL.length], loud: 0.55, pitch }); if (end == null) continue;
++      L.left--; L.step = Math.max(0, L.step + (s.rng.chance(0.65) ? -1 : 1)); s.nextAt = end + (L.left ? 0.05 + 0.12 * s.rng.next() : 1.2 + 1.3 * s.rng.next()); }
+     // coughs (G34): anyone past infancy within clearR now and then, not while they speak (C)
+     for (const p of people) { if (p.age < 2) continue; const d = Math.hypot(p.x - listener.x, p.y + 1.5 - listener.y, p.z - listener.z); if (d > this.clearR) continue;
+       if (!this.rng.chance(Math.min(1, Math.max(0, dt)) / this.coughEvery)) continue;
+diff --git a/src/data/lives.json b/src/data/lives.json
+index a8e0c0e..007b6bc 100644
+--- a/src/data/lives.json
++++ b/src/data/lives.json
+@@ -9,6 +9,8 @@
+   "age_structure": { "v": [[0, 4, 0.14], [5, 14, 0.23], [15, 44, 0.45], [45, 59, 0.12], [60, 75, 0.06]], "tier": "C", "src": "BF1994", "note": "a stationary population at e0 22-25 (Roman Egypt analogue, SX); the proportions are RECOLLECTION, NOT SEEN (Coale-Demeny West levels 2-4), verify" },
+   "death_p_year_by_age": { "v": [[0, 4, 0.08], [5, 14, 0.01], [15, 44, 0.015], [45, 59, 0.03], [60, 99, 0.08]], "tier": "C", "src": "BF1994;EVENTS-R", "note": "chosen so the crude death rate with infant deaths lands at E-71's ~40 per 1,000 (C)" },
+   "birth_p_year_women_15_44": { "v": 0.3, "eligible": "a married woman (or a woman of a work group with her own household) aged 15-44 whose youngest child is at least a year old; with a child of one, not before the second half of the year", "tier": "C", "src": "BF1994;EVENTS-R;KONNER1980", "note": "the chance per eligible woman per year, set so the crude birth rate lands at E-70's ~40 per 1,000 once birth spacing removes the women still nursing an infant (C)" },
++  "pregnancy": { "show_days": 180, "visible_days": 100, "shape_power": 1.2, "term_m": 0.15, "postpartum_days": 21, "postpartum": 0.3, "after_wedding_days": 300, "tier": "C", "src": "EVENTS-R;RECON", "note": "D-292 (gap hunter C, C-D09): the belly rounds from about the 14th week (180 days before the birth: a few cm by the 20th week) and grows to about 15 cm at term (term_m, the drawn protrusion); it reads plainly under the clothes in the last 100 days, and those woman-days are the ones counted as visibly with child (A for the biology: the fundus height grows about 1 cm a week from the 20th; the curve and the drawn shape C); after the birth the belly goes down over three weeks. The women who give birth in the first months after the year are drawn at the year's birth rate so the year's last months hold them too" },
++  "body_care": { "wash_h": [0.05, 0.1], "comb_p_day": 0.22, "comb_ages": [2, 10], "comb_h": [0.3, 0.6], "shave_p_day": 0.12, "shave_h": 0.3, "shaves_max": 8, "men_per_barber": 90, "court_days": 40, "court_p_day": 0.15, "injury_p_day": 0.0025, "injury_days": [3, 12], "barber_from_h": 7, "tier": "C", "src": "RECON", "note": "D-292 (gap hunter C, C-D04..C-D07): the morning wash at the house's water jar (3-6 min, from the end of the night's sleep); a child's hair gone through for lice on the doorstep in about one household-day in five (lice combs are ordinary finds of the period: B analogy); each man of a town quarter wanting a shave or his beard trimmed about every eighth day and served in the lane when he and a barber are free at the same time (about monthly, measured: tools/dev/body_trace.ts) by one of the quarter's barbers (one for about 90 grown men), men who shave and trim in their free hours (barbers, gallabu, in the Neo-Babylonian texts: B analogy; the rest C). Before a wedding a word and a look at the well on some of the 40 days before it (C-D23, C). A man of the heavy work hurt about once a year and more (a kick, a stone on the foot, a turned ankle), limping on a staff for 3-12 days (C-D19, C)" },
+   "infant_death_first_year": { "v": 0.15, "tier": "C", "src": "EVENTS-R", "note": "about half of E-71's 250-350 infant deaths per 1,000 births fall within this (partial) year (C)" },
+   "marriage": { "bride_age": [14, 20], "groom_age": [24, 40], "per_1000_year": 9, "season": { "share": 0.5, "from": 325, "to": 20, "tier": "C", "src": "RECON", "note": "about half the weddings in the fifty days round the turn of the year and the spring equinox (1 Addaru to 21 Nisannu), the rest through the year, never on a festival day; Strabo 15.3.17 has Persians marry at the spring equinox (RECOLLECTION, NOT SEEN, a late claim: D-211)" }, "residence": "the bride moves to the groom's household (virilocal); a groom who lodges with other workers or in an estate sets up a new house with her in his quarter", "never": "a woman with a child, a woman expecting a child, or a man or woman already married", "tier": "C", "src": "ROTH1987;EVENTS-R", "note": "Babylonian marriage agreements (ROTH1987, search extract): women first married at about 14-20, men at about 26-32, and the bride moved to her husband's household with her dowry. B for Babylonia, C for Persepolis. The rate is E-73's 8-10 per 1,000 (no source); no rite is shown (E-73). Q-063" },
+   "family": { "first_birth_age": [16, 21], "birth_interval_y": [2.5, 4.5], "twins": 0.015, "last_birth_age": 40, "survival_to_age": [[0, 1.0], [1, 0.8], [5, 0.65], [10, 0.6], [15, 0.57]], "daughter_married_by_age": [[14, 0.1], [15, 0.2], [16, 0.35], [17, 0.5], [18, 0.65], [19, 0.8]], "home_until_age": { "son": 29, "daughter": 19 }, "tier": "C", "src": "ROTH1987;KONNER1980;BF1994;RECON", "note": "the children at home are the surviving ones of the mother's own births: first at 16-21 (after marriage at 14-20, ROTH1987), then every 2.5-4.5 years (frequent on-demand nursing spaces births, KONNER1980, an analogy), none after 40; twins in about 1.5 % of maternities; about 43 % of children die before 15 (the E-71 rates, BF1994 analogue); daughters leave at marriage (14-20) and sons stay until they marry (26-32, ROTH1987), so sons up to 29 and daughters up to 19 live at home. All C" },
+diff --git a/src/people/activities.ts b/src/people/activities.ts
+index 15e89e6..e5afd93 100644
+--- a/src/people/activities.ts
++++ b/src/people/activities.ts
+@@ -30,7 +30,9 @@ export type ActivityId =
+   | 'smith' | 'goldsmith' | 'weigh' | 'seal' | 'cut_seal' | 'tan' | 'press_oil'
+   // D-256: the work on the land the gap hunters found missing (WORLD_INVENTORY G12-G17, G30): milking, fishing, fowling and
+   // snaring, the quarry, the bees
+-  | 'milk' | 'fish' | 'fowl' | 'quarry' | 'bees';
++  | 'milk' | 'fish' | 'fowl' | 'quarry' | 'bees'
++  // D-292: the body's care (gap hunter C, C-D04..C-D07)
++  | 'tend_body';
+ 
+ /** props an activity can put in the hands (props.ts PROPS) */
+ export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'mallet' | 'basket' | 'bread'
+@@ -240,7 +242,10 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
+         note: 'herding the village cows and calves on the river meadow and the fallow, a dog with them (cattle breed the plough oxen of the plain, E-40; the herd, its size and its grounds C: D-256). Their lowing is theirs (crowd.ts: a low now and then, the strike low)' },
+       // D-256: the flock watched at night in its fold (the bands' watch by turns: E-49; the fold C)
+       { when: /in the night|by turns/, animals: { kind: 'fold', species: SHEEP, n: 24, pace: 1, dogs: 2 }, work: [FOLD],
+-        note: 'watching the flock penned in its thorn fold through the night, by turns, with the dogs, against the wolves (the watch: E-49 herders and dogs, C; the fold C: D-256)' }],
++        note: 'watching the flock penned in its thorn fold through the night, by turns, with the dogs, against the wolves (the watch: E-49 herders and dogs, C; the fold C: D-256)' },
++      // D-292 (GC27, C-D38): a herd boy turns a stray back or scares off a dog or a wolf with a stone from his sling
++      { when: 0.45, anim: 'sling', prop: 'lead', sex: 'm', ages: [8, 17],
++        note: 'a herd boy with his sling, now and then whirling a stone about his head and letting it go at a stray at the flock\'s edge (slings and sling stones are common finds of the Near East, and slingers are named among the Achaemenid troops: B analogy; the herd boy\'s use C: D-292)' }],
+     note: 'herding sheep and goats (state flocks attested, PF 58-60: A; the herder leaning on his staff, the flock grazing about him: C). The bleats are the flock’s. Two dogs with every flock (D-210: E-49’s participants “herders, dogs and donkeys”; the herders’ plans “with the dogs”; dogs spared by the magi, HDT 1.140, a claim; C), lying by the herdsman or at the flock’s edge and going round it; they bark at a stranger who comes close' },
+   shear: { anim: 'shear', prop: 'knife', tier: 'C', animals: { kind: 'lying', species: ['sheep'] }, work: [{ kind: 'fleece', at: [0.55, 0, 0.3] }],
+     note: 'shearing the state flock (E-47, season C): kneeling at a sheep laid on its side, the fleece cut with a knife (shears are not attested in the research files: Q-192; plucking, recalled for Babylonian temple flocks in E-47, is NOT SEEN)' },
+@@ -305,7 +310,10 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
+     note: 'carrying the dead out of the settlement on a bier, four bearers (E-71; HDT 1.140 for burial in the earth: B claim). Exposure is never shown',
+     variants: [{ when: 0.5, anim: 'bier_l', work: [{ kind: 'bier', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer with the bier’s pole on the left shoulder (C)' }] },
+   wash: { anim: 'wash', prop: 'cloth', sound: 'wash', tier: 'C', work: [{ kind: 'wash_stone', at: [0, 0, 0.55] }, { kind: 'drying_rack', at: [1.7, 0, -0.6] }],
+-    note: 'washing clothes and wool at the water: rinsed, beaten on a stone, wrung, hung to dry (C)' },
++    note: 'washing clothes and wool at the water: rinsed, beaten on a stone, wrung, hung to dry (C)',
++    // D-292 (gap hunter C, C-D46): a Persian or a guard does it on the bank from a jar, never in the stream
++    variants: [{ when: /on the bank, with water drawn up in a jar/, work: [{ kind: 'wash_stone', at: [0, 0, 0.55] }, { kind: 'jar', at: [0.62, 0, 0.3] }, { kind: 'drying_rack', at: [1.7, 0, -0.6] }],
++      note: 'washing clothes on the bank with water drawn up from the stream in a jar, rinsed and beaten on a stone well back from the water, wrung, hung to dry: the Persians neither wash in a river nor let others do so (Herodotus 1.138, a Greek claim: B; the jar and the place C: D-292)' }] },
+   train: { anim: 'archery', prop: 'bow', prop2: 'arrow', sound: 'bow', tier: 'B', work: [{ kind: 'target', at: [0, 0, 22] }],
+     note: 'boys of households of standing learning to shoot with the bow (HDT 1.136, a Greek claim: B; XEN-CYR 1.2.15; Q-146): shooting at a straw target at 22 m (C)',
+     variants: [{ when: 0.35, anim: 'ride', prop: undefined, prop2: undefined, sound: undefined, work: [], animals: { kind: 'mount', species: ['horse_saddle'], pace: 0 },
+@@ -362,6 +370,16 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
+   bees: { anim: 'pick', tier: 'C', work: [{ kind: 'hives', at: [0, 0, 0.9] }],
+     note: 'seeing to the hives: clay-pipe hives stacked in a low wall in the garden, the ends opened and looked into; the buzz of the bees comes from the hives (crowd.ts, the strike buzz) (honey in the PF texts: RECOLLECTION NOT SEEN; the clay-pipe hive of Iran and the Near East, recollection; C: D-256)',
+     variants: [{ when: /honey|comb/, prop: 'knife', work: [{ kind: 'hives', at: [0, 0, 0.9] }, { kind: 'jar', at: [0.6, 0, 0.1] }], note: 'taking the honey: the combs cut from the back of the pipe hives with a knife into a jar, some left for the bees for the winter (C: D-256)' }] },
++  // ============================================ D-292: the body's care (gap hunter C, C-D04..C-D07; population.ts care; every motion C)
++  tend_body: { anim: 'wash_face', sound: 'water', tier: 'C', work: [{ kind: 'basin', at: [0, 0, 0.42] }],
++    note: 'washing the face and hands at rising, kneeling over a clay basin by the house\'s water jar, the water scooped up in both hands and poured from a small jug; never in running water (the Persians\' care for water, Herodotus 1.138, a Greek claim: B; the daily custom and the basin C: D-292)',
++    variants: [
++      { when: /^picking the lice/, anim: 'delouse', sound: undefined, work: [],
++        note: 'going through a child\'s hair for lice on the doorstep, the child sitting in front of her; the fingers part the hair and pick (lice combs of wood and bone are ordinary finds of the period: B analogy; a comb is not drawn; the doorstep and the hour C: D-292)' },
++      { when: /^having (his|her) hair gone through/, anim: 'sit', sound: undefined, work: [], note: 'a child sitting still on the doorstep while its hair is gone through for lice (C: D-292)' },
++      { when: /^shaving men/, anim: 'shave', prop: 'knife', sound: undefined, work: [{ kind: 'jar', at: [-0.42, 0, 0.3] }],
++        note: 'the quarter\'s barber kneeling up in the lane in front of a man sitting on the ground, a bronze razor in his right hand, his left steadying the head, the razor rinsed in a water jar (barbers, gallabu, in the Neo-Babylonian texts: B analogy; bronze razors are known finds of the region: RECOLLECTION, NOT SEEN; the man, the lane and the hour C: D-292)' },
++      { when: /^being shaved/, anim: 'sit', sound: undefined, work: [], note: 'a man sitting on the ground in the lane, his beard trimmed or his cheeks shaved by the quarter\'s barber (C: D-292)' }] },
+   // D-199 (court setting only): the king as the door-jamb and audience reliefs show him, and the two attendants behind him
+   royal_walk: { anim: 'walk', moving: true, prop: 'sceptre', prop2: 'lotus', sound: 'footsteps', tier: 'B', note: 'the king walking, the long staff in his right hand and a lotus in his left (door-jamb reliefs of the Tachara and the Hadish, HADISH-JAMB: B); the gait and the pace C' },
+   enthroned: { anim: 'enthroned', prop: 'sceptre', prop2: 'lotus', tier: 'B', work: [{ kind: 'throne', at: [0, 0, 0] }], note: 'the king enthroned at an audience, staff and lotus in his hands, his feet on the footstool (the Treasury audience relief, TREAS-AUD: B); where the throne stood in the Apadana and the hours C; the king does not move or speak (brief §1.1 restraint)' },
+diff --git a/src/people/crowd.ts b/src/people/crowd.ts
+index 774e03b..03e0e03 100644
+--- a/src/people/crowd.ts
++++ b/src/people/crowd.ts
+@@ -31,6 +31,10 @@ import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput, type FaceState } fro
+ import { lookFor, wearTexel, type PersonLook, type LookInput } from './looks';
+ import { HB } from './humanFormat';
+ import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
++import { bellyFrame } from './drape';
++import { sunTimes } from './calendar';
++/** D-292: the ways of holding or laying down a small child that go with humming it to sleep */
++const LULL_MODES = new Set(['arms', 'lap', 'cradle', 'mat', 'nurse']);
+ import { nearCascadesOnly } from './humanGPU';
+ import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave, BABE_CLASS } from './props';
+ import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTES, type BabeMode } from './babes';
+@@ -138,6 +142,8 @@ export interface Person {
+   /** the population person (D-143; -1 for extras), the view's data for them this frame (population people, and detailed
+    *  agents off the Terrace), and their walking phase */
+   pid: number; vp: ViewPerson | null; vpFrame: number; gaitPh: number;
++  /** D-292: the belly drawn (Population.gravid on the day it was written) */
++  belly?: number;
+   /** the LOD drawn with in the last frame */
+   lod?: number;
+   /** D-215: the children carried or put down beside this person now (prop kind, transform in character space, skin tint) */
+@@ -305,8 +311,20 @@ export class Crowd {
+     D.set([...c.skin, look.stubble], o + 4); D.set([...c.main, w?.k[0] ?? 0], o + 8); D.set([...c.second, w?.k[1] ?? 0], o + 12); D.set([...c.trim, w?.k[2] ?? 0], o + 16);
+     D.set([...c.hair, 0], o + 20); D.set([...c.leather, 0], o + 24); D.set([look.grimeLevel, look.scale, w?.hat ?? 0, flags], o + 28); D.set([...c.felt, 0], o + 32);
+     D.set(w ? wearTexel(w) : [0, 0, 0, 0], o + 36);
++    // D-292: the abdomen's frame of the body variant (the belly's displacement, humanMaterial); the amount is set by setBelly
++    const bf = bellyFrame(this.humans.A, this.humans.A.variants[look.variant]); D[o + 27] = bf.yc; D[o + 35] = bf.z0;
+     this.humans.gpu.markPersonDirty();
+   }
++  /** D-292 (C-D09): a woman with child carries the belly of her months (Population.gravid: 0 for everyone else) */
++  private setBelly(p: Person, a: number) {
++    if ((p.belly ?? 0) === a) return; p.belly = a; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 23] = a; this.humans.gpu.markPersonDirty(); }
++  /** the population person behind a drawn person (a detailed agent's seat, or the view's pid), or -1 */
++  private popPid(p: Person) { return p.pid >= 0 ? p.pid : p.agent && p.agent.pid >= 0 ? p.agent.pid : -1; }
++  private bellyDay = -1;
++  /** the day's bellies for everyone attached (each day's refresh: the months go on) */
++  private bellies(day: number, force = false) {
++    const pop = this.view?.pop ?? this.sim?.pop; if (!pop || (!force && day === this.bellyDay)) return; this.bellyDay = day;
++    for (const p of this.persons.values()) { if (p.extra) continue; const pid = this.popPid(p); if (pid >= 0) this.setBelly(p, pop.gravid(pid, day)); } }
+   private newPerson(key: string, agent: Agent | null, look: PersonLook, seed: number): Person {
+     const slot = this.allocSlot(); this.writePerson(slot, look);
+     const v = this.humans.A.variants[look.variant];
+@@ -324,7 +342,7 @@ export class Crowd {
+   attach(a: Agent): Person {
+     const hit = this.byAgent.get(a.id); if (hit) return hit; const key = `a${a.id}`;
+     const look = lookFor(this.humans.A, { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } as LookInput, this.seed);
+-    return this.newPerson(key, a, look, a.seed);
++    const p = this.newPerson(key, a, look, a.seed); if (a.pid >= 0 && this.sim) this.setBelly(p, this.sim.pop.gravid(a.pid, Math.floor(this.sim.t / 24))); return p;
+   }
+   detach(a: Agent | string) { const p = typeof a === 'string' ? this.persons.get(a) : this.byAgent.get(a.id); if (!p) return; this.freeSlot(p.slot); this.persons.delete(p.key); if (p.agent) this.byAgent.delete(p.agent.id); else if (p.pid >= 0) this.byPid.delete(p.pid); }
+   /** attach a person of the population (D-143): their look from the view (a detailed agent keeps its own); idempotent */
+@@ -332,7 +350,8 @@ export class Crowd {
+     const hit = this.byPid.get(pid); if (hit) return hit;
+     const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
+     if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
+-    const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p); return p;
++    const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p);
++    const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid(pid, day)); return p;
+   }
+   /** an extra person not driven by the simulation (test lineups, the performance sheet): fixed place, yaw and animation,
+    *  or an activity (`act`, with the plan's reason `why`) performed with its props, work objects and animals */
+@@ -358,6 +377,8 @@ export class Crowd {
+     v = voiceIdentity(a, pid, this.view?.pop ?? null, Math.floor((this.sim?.t ?? 0) / 24), this.seed);
+     if (this.voiceIds.size > 20000) this.voiceIds.clear(); this.voiceIds.set(key, v); return v;
+   }
++  /** D-292: a small child's bedtime: from half an hour before sunset to three hours after it (C) */
++  private bedtime() { const t = this.sim?.t ?? 0, d = Math.floor(t / 24), h = t - d * 24, sun = sunTimes(d); return h > sun.set - 0.5 && h < sun.set + 3; }
+   /** D-245: everyone the crowd placed within `radius` of the listener in the last update, skinned or impostor, in view or
+    *  not (people behind the listener talk too), detailed agents and the population alike; extras (performers, drivers)
+    *  are left out (the music and the traffic sound them) */
+@@ -369,7 +390,9 @@ export class Crowd {
+     };
+     for (const p of this.persons.values()) { if (p.extra || !p.shown) continue; const a = p.agent, vp = p.vpFrame === this.frame ? p.vp : null;
+       const moving = a && !a.offmap ? a.walking : !!vp?.moving; push(p.key, a, p.pid, p.act, moving, p.base[0], p.base[1], p.base[2], a && !a.offmap ? a.task?.place ?? null : vp?.place || null);
+-      if (out.length && out[out.length - 1].key === p.key) out[out.length - 1].yaw = p.base[3]; // session 9: which way they face (their breath)
++      if (out.length && out[out.length - 1].key === p.key) { const q = out[out.length - 1]; q.yaw = p.base[3]; // session 9: which way they face (their breath)
++        // D-292 (C-D30): a woman with a small child in her arms, lap or cradle, or on the mat by her, at its bedtime hums it to sleep
++        if (vp?.babes?.length && q.sex === 'f' && q.age >= 12 && this.bedtime() && vp.babes.some(b => b.months < 30 && LULL_MODES.has(b.mode))) q.lull = true; }
+       // session 9 (G33): the small children carried or put down beside them (D-215) are there to be heard (a baby's cry:
+       // audio/voices.ts), with their own identity and age from the population
+       if (vp?.babes) for (const b of vp.babes) push(`p${b.pid}`, null, b.pid, 'rest', false, p.base[0] + 0.25, p.base[1], p.base[2], null); }
+@@ -410,6 +433,7 @@ export class Crowd {
+   private feedPool(cam: THREE.Vector3, camera?: THREE.Camera) {
+     const sim = this.sim!, view = this.view!, cx = cam.x, cn = -cam.z; let nc = 0;
+     if (view.jumps !== this.viewJumps) { this.viewJumps = view.jumps; this.resetPopinProbe(); } // a jump in time
++    this.bellies(Math.floor(sim.t / 24));
+     const cand = (d: number, a: Agent | null, vp: ViewPerson | null, id: number) => { let c = this.cands[nc]; if (!c) this.cands[nc] = c = { d, a, vp, id, rank: d }; else { c.d = d; c.a = a; c.vp = vp; c.id = id; c.rank = d; } nc++; };
+     // every detailed agent on the map within the impostor range (beyond ATTACH_R they are impostors: the Terrace seen
+     // from the town)
+@@ -452,7 +476,7 @@ export class Crowd {
+   /** the pool, fed by the simulation's visible set: attach newcomers, detach the pooled who left (offmap, or beyond
+    *  DETACH_R). A newcomer within 50 m in view is a pop-in (it came on the map there: ATTACH_R ≫ 50 m) */
+   private autoPoolStep(cam: THREE.Vector3, camera?: THREE.Camera) {
+-    const vis = this.sim!.visibleAgents([cam.x, -cam.z], ATTACH_R, POOL_MAX), now = this.visNow; now.clear();
++    const vis = this.sim!.visibleAgents([cam.x, -cam.z], ATTACH_R, POOL_MAX), now = this.visNow; now.clear(); this.bellies(Math.floor(this.sim!.t / 24));
+     for (const a of vis) {
+       now.add(a.id); if (!this.byAgent.has(a.id)) this.attach(a);
+       if (this.poolPrimed && camera && !this.visPrev.has(a.id)) { const d = Math.hypot(a.pos[0] - cam.x, a.y + 1 - cam.y, -a.pos[1] - cam.z);
+@@ -482,7 +506,8 @@ export class Crowd {
+     if (act !== p.act || why !== p.why) { // the performance changes only with the activity or the plan's reason
+       p.act = act ?? ''; p.why = why; p.perf = act ? performanceFor(act, why, a ? a.seed : Math.round(p.animK * 159), e?.variant, vp ? this.who(p.pid) : undefined) : null; p.actPlaceholder = !!p.perf?.placeholder;
+       // D-215 (gap audit item 37): the lame walk with a staff, the blind feel their way with one
+-      if (vp?.impair && p.perf && act === 'walk' && !p.perf.animals) p.perf = { ...p.perf, anim: vp.impair === 1 ? 'limp' : 'feel', prop: 'staff', note: vp.impair === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; }
++      if (vp?.impair && p.perf && act === 'walk' && !p.perf.animals) { const hurt = vp.impair === 1 && p.pid >= 0 ? this.view?.pop.injuryOn(p.pid, Math.floor((this.sim?.t ?? 0) / 24)) : null;
++        p.perf = { ...p.perf, anim: vp.impair === 1 ? 'limp' : 'feel', prop: 'staff', note: hurt ? `limping on a staff, ${hurt.how} some days ago (gap hunter C, C-D19: hurts of the heavy work; C: D-292)` : vp.impair === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; } }
+     p.anim = p.perf ? p.perf.anim : e?.anim ?? 'idle';
+   }
+   private lastTime = 0;
+@@ -900,7 +925,9 @@ export class Crowd {
+         const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : pp ? `${this.view!.pop.nameOf(p.pid) ?? 'unnamed'} (${courtRole ?? pp.job}, ${pp.origin}; population person ${p.pid}: ${p.vp?.what ?? ''})` : `extra ${p.key}`;
+         const act = p.act ? `; doing ${p.act}${p.actPlaceholder ? ' — PLACEHOLDER: no performance for this activity (abstract-only), a standing pose is shown' : p.perf ? ` (${p.perf.tier}: ${p.perf.note})` : ''}` : '';
+         const kids = p.babeProps?.length ? `; with a small child: ${p.babeProps.map(b => BABE_NOTES[b.mode as BabeMode]).join('; ')} (D-215)` : '', hand = p.vp?.hand ? `; hand in hand with p${p.vp.handWith} (D-215, C)` : '';
+-        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder || !!court?.placeholder(p.pid), note: `${who}; ${p.look.dress} dress${act}${kids}${hand}; ${p.look.note}` };
++        const ppid = this.popPid(p), due = ppid >= 0 && p.belly ? (this.view?.pop ?? this.sim?.pop)?.dueIn(ppid, Math.floor((this.sim?.t ?? 0) / 24)) ?? null : null;
++        const gravid = due === null ? '' : due >= 0 ? `; with child, the birth in ${due} days (E-70 births: B for the rate; the belly drawn by the months, C: D-292)` : `; gave birth ${-due} days ago, the belly going down (C: D-292)`;
++        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder || !!court?.placeholder(p.pid), note: `${who}; ${p.look.dress} dress${act}${kids}${hand}${gravid}; ${p.look.note}` };
+         out.push({ distance: best, point: ray.at(best, new THREE.Vector3()), object: proxy } as THREE.Intersection);
+       }
+     }
+diff --git a/src/people/drape.ts b/src/people/drape.ts
+index 6d40ecb..7adec5f 100644
+--- a/src/people/drape.ts
++++ b/src/people/drape.ts
+@@ -214,3 +214,36 @@ export const BEARD = { rows: 6, rowAmp: 0.0045, around: 14, cheekRow: 0.012, tur
+ /** a court beard's row profile at the mass tube's parameter t and θ from the front (−0.6 … 0.4; × BEARD.rowAmp m along the
+  *  normal, laid out by the material's vertex stage: outfits.ts stores 0.6 + this in the spare byte) */
+ export const beardRow = (t: number, thFront: number) => (Math.pow(Math.sin(Math.PI * ((t * BEARD.rows) % 1)), 0.6) - 0.6) * sstep(0.04, 0.12, t) * sstep(-0.6, 0.2, Math.cos(thFront));
++
++/** D-292 (gap hunter C, C-D09): a woman with child — the belly as a dome in front of the abdomen, applied in bind space to
++ *  every vertex of the body and of what she wears (humanMaterial's vertex stage mirrors `bellyOffset`), so it bends with the
++ *  spine and the hips when she kneels at the quern. `a` 0..1 is Population.gravid (the months to the birth); at term the
++ *  dome stands BELLY.term m proud of the abdomen at its centre. Half-widths grow with the months; the centre rises from low
++ *  in the belly toward the navel. The dome acts only on the front (z within `front` of the abdomen's surface z0 or ahead
++ *  of it) and fades over its rim, so the back, the arms (hanging at the sides in the bind pose), the head and the legs never
++ *  move. Cloth that hangs clear of the abdomen (the woman's dress falls from the bust) is taken up by the belly first: a
++ *  vertex `standoff` m ahead of z0 moves `take` × its standoff less, so the displacement never reorders layers (the map
++ *  z → z + dz has slope ≥ 1 − take > 0 along z) and the clothes never pass into the body. Tier C (the shape; the biology A). */
++export const BELLY = { term: 0.15, rx: [0.1, 0.07] as [number, number], ryUp: [0.09, 0.08] as [number, number], ryLow: [0.07, 0.06] as [number, number], rise: [0, 0.05] as [number, number],
++  front: [0.1, 0.03] as [number, number], skin: 0.012, take: 0.5, drop: 0.12, exp: 1.5 };
++export interface BellyFrame { yc: number; z0: number }
++const bellyCache = new WeakMap<HumanVariant, BellyFrame>();
++/** the abdomen's frame in a body variant's bind space: yc, halfway between spine_01 and spine_02 (the navel's height, near
++ *  enough), and z0, the abdomen's front surface there (the foremost belly vertex within 4 cm of the midline and 3 cm of yc) */
++export function bellyFrame(A: HumanAssets, v: HumanVariant): BellyFrame {
++  const hit = bellyCache.get(v); if (hit) return hit;
++  const s1 = HB.spine_01 * 3, s2 = HB.spine_02 * 3, yc = (v.joints[s1 + 1] + v.joints[s2 + 1]) / 2; let z0 = -1;
++  for (let i = 0; i < A.NO; i++) { if (A.part[i] !== PART.belly) continue; const x = v.pos[i * 3], y = v.pos[i * 3 + 1], z = v.pos[i * 3 + 2]; if (Math.abs(x) < 0.04 && Math.abs(y - yc) < 0.03 && z > z0) z0 = z; }
++  if (z0 < 0) z0 = 0.12; const f = { yc, z0 }; bellyCache.set(v, f); return f;
++}
++/** the belly's displacement of a bind-space point (x, y, z) for amount a (0..1) in frame F: [dy, dz], and the dome's slope
++ *  [∂h/∂x, ∂h/∂y] there (for the normal: n' ∝ n − n_z·(hx, hy, 0) where the vertex moves) */
++export function bellyOffset(x: number, y: number, z: number, a: number, F: BellyFrame): { dy: number; dz: number; hx: number; hy: number } {
++  if (a <= 0) return { dy: 0, dz: 0, hx: 0, hy: 0 };
++  const B = BELLY, rx = B.rx[0] + B.rx[1] * a, c = F.yc + B.rise[0] + B.rise[1] * a, dy0 = y - c, ry = dy0 > 0 ? B.ryUp[0] + B.ryUp[1] * a : B.ryLow[0] + B.ryLow[1] * a;
++  const r2 = (x / rx) ** 2 + (dy0 / ry) ** 2; if (r2 >= 1) return { dy: 0, dz: 0, hx: 0, hy: 0 };
++  const h = B.term * a * Math.pow(1 - r2, B.exp), s = sstep(F.z0 - B.front[0], F.z0 - B.front[1], z), stand = Math.max(0, z - F.z0 - B.skin);
++  const dz = Math.max(0, h - B.take * stand) * s; if (dz <= 0) return { dy: 0, dz: 0, hx: 0, hy: 0 };
++  const dh = -B.term * a * B.exp * Math.pow(1 - r2, B.exp - 1) * 2 * s;
++  return { dy: -B.drop * dz, dz, hx: dh * x / (rx * rx), hy: dh * dy0 / (ry * ry) };
++}
+diff --git a/src/people/humanMaterial.ts b/src/people/humanMaterial.ts
+index 643e97e..22923d1 100644
+--- a/src/people/humanMaterial.ts
++++ b/src/people/humanMaterial.ts
+@@ -34,7 +34,7 @@ const {
+   cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition,
+ } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
+ import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE } from './humanFormat';
+-import { ROBE, BEARD } from './drape';
++import { ROBE, BEARD, BELLY } from './drape';
+ 
+ /** height field → shading normal (view space; surface gradient from screen-space derivatives, Mikkelsen 2010) */
+ function bumped(h: any) {
+@@ -59,8 +59,9 @@ export interface HumanTextures {
+   skin: THREE.Texture; eye: THREE.Texture;
+ }
+ /** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
+- *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair, 6 leather, 7 [grime brightness, scale, hat height (D-189), flags],
+- *  8 felt/headgear, 9 wear [garment age, fit (m), fold amplitude (mm) + phase, hem soil] (looks.wearTexel, D-189).
++ *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair (w: the belly of a woman with child, 0..1, D-292), 6 leather
++ *  (w: the abdomen's height in bind space, m), 7 [grime brightness, scale, hat height (D-189), flags], 8 felt/headgear (w: the
++ *  abdomen's front z in bind space, m), 9 wear [garment age, fit (m), fold amplitude (mm) + phase, hem soil] (looks.wearTexel, D-189).
+  *  stubble (1.w): 0 none, 0..1 shaven stubble, 2 = bearded (the skin under the beard reads as roots) */
+ export const PERSON_TEXELS = 10;
+ /** reference skin tone the baked albedo was authored for (sRGB; tools/humans/skin.ts REF_TONE) */
+@@ -232,10 +233,20 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
+       // for the court dressing (look flags' hairStyle 1); a working man's long beard keeps the plain mass
+       const courtV = is(mod(floor(person0.z.add(0.5).div(2 ** LOOK_BITS.hairStyle[0])), 2 ** LOOK_BITS.hairStyle[1]), 1);
+       const rowV = hext.z.sub(0.6).mul(BEARD.rowAmp).mul(is(hmat.x, MAT.hair)).mul(is(hmat.w, 3)).mul(courtV);
+-      const bind = s.xyz.add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS))).add(nB.mul(rowV));
++      // D-292: the belly of a woman with child (drape.ts bellyOffset, mirrored term for term): amount in texel 5 w, the
++      // abdomen's frame (navel height, front surface z) in texels 6 w and 8 w; zero amount leaves every vertex where it was
++      const bAmt = row(5).w, bYc = row(6).w, bZ0 = row(8).w;
++      const bRx = float(BELLY.rx[0]).add(bAmt.mul(BELLY.rx[1])), bDy = s.y.sub(bYc.add(BELLY.rise[0]).add(bAmt.mul(BELLY.rise[1])));
++      const bRy = mix(float(BELLY.ryLow[0]).add(bAmt.mul(BELLY.ryLow[1])), float(BELLY.ryUp[0]).add(bAmt.mul(BELLY.ryUp[1])), step(0, bDy));
++      const bUx = s.x.div(bRx), bUy = bDy.div(bRy), bQ = max(float(1).sub(bUx.mul(bUx)).sub(bUy.mul(bUy)), 0), bSq = sqrt(bQ);
++      const bS = smoothstep(bZ0.sub(BELLY.front[0]), bZ0.sub(BELLY.front[1]), s.z), bStand = max(s.z.sub(bZ0).sub(BELLY.skin), 0);
++      const bDz = max(bAmt.mul(BELLY.term).mul(bQ).mul(bSq).sub(bStand.mul(BELLY.take)), 0).mul(bS), bMoved = step(1e-6, bDz);
++      const bDh = bAmt.mul(-BELLY.term * BELLY.exp * 2).mul(bSq).mul(bS);
++      const nBb = normalize(nB.sub(vec3(bDh.mul(s.x).div(bRx.mul(bRx)), bDh.mul(bDy).div(bRy.mul(bRy)), 0).mul(nB.z.mul(bMoved))));
++      const bind = s.xyz.add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS))).add(nB.mul(rowV)).add(vec3(0, bDz.mul(-BELLY.drop), bDz));
+       const R = skinned(boneTex);
+       const p = toWorld(vec3(dot(R[0], vec4(bind, 1)), dot(R[1], vec4(bind, 1)), dot(R[2], vec4(bind, 1))), root).toVar();
+-      const n = rotN(normalize(vec3(dot(R[0].xyz, nB), dot(R[1].xyz, nB), dot(R[2].xyz, nB))), root);
++      const n = rotN(normalize(vec3(dot(R[0].xyz, nBb), dot(R[1].xyz, nBb), dot(R[2].xyz, nBb))), root);
+       // drape sag (cloth only: body vertices use the slack byte for other data): slack × SAG_MAX × horizontality of the
+       // vertex's main bone (its −Y axis in world is −column 1)
+       const b0 = int(si.x).mul(3);
+@@ -268,7 +279,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
+       vMat.assign(vec4(hmat.x, hmat.w, person0.z, person0.w));
+       vBind.assign(s.xyz);
+       // the garment's fading susceptibility (its colour texel's w) and the bind normal's up component (D-189)
+-      const kFade = colT.w.mul(clothC);
++      const kFade = colT.w.mul(clothC).mul(step(colSlot, 4.5)); // (texels 5, 6 and 8 carry other data in w: D-292)
+       vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x)); vExt.assign(vec4(hext.y, hext.w, nB.y, kFade));
+       // joint wrinkles: how much the two main bones of a mixed-weight cloth vertex are turned against each other
+       const bA = int(si.x).mul(3), bB = int(si.y).mul(3);
+diff --git a/src/people/impostors.ts b/src/people/impostors.ts
+index 4c21a27..71ecfe8 100644
+--- a/src/people/impostors.ts
++++ b/src/people/impostors.ts
+@@ -61,6 +61,9 @@ export const FRAMES: Frame[] = [
+   // D-255: the crafts' cycles, each its medoid (tools/dev/imp_keys.ts smith chasing seal_jar scrape pound; the bow drill shares the chasing frame at 0.046 m)
+   { id: 'smith@28.5', anim: 'smith', ph: 0, t: 28.5 }, { id: 'chasing@54.2', anim: 'chasing', ph: 0, t: 54.2 }, { id: 'seal_jar@41.6', anim: 'seal_jar', ph: 0, t: 41.6 },
+   { id: 'scrape@31.3', anim: 'scrape', ph: 0, t: 31.3 }, { id: 'pound@41.8', anim: 'pound', ph: 0, t: 41.8 },
++  // D-292: the body's care, each its medoid (tools/dev/imp_keys.ts wash_face delouse shave: no frame within 0.09 m before)
++  { id: 'wash_face@13.1', anim: 'wash_face', ph: 0, t: 13.1 }, { id: 'delouse@6.6', anim: 'delouse', ph: 0, t: 6.6 }, { id: 'shave@30.9', anim: 'shave', ph: 0, t: 30.9 },
++  { id: 'sling@27', anim: 'sling', ph: 0, t: 27 },
+ ];
+ export const ROWS = IMP_DRESSES.length * FRAMES.length;
+ /** rows per column of blocks */
+@@ -87,6 +90,8 @@ export const IMP_MAP: Partial<Record<AnimId, [string] | [string, string, string]
+   // D-255
+   smith: ['smith@28.5'], bellows: ['pat@52.2'], chasing: ['chasing@54.2'], weigh: ['harp_h@30.9'], seal: ['reed_pipe@16.5'], seal_jar: ['seal_jar@41.6'],
+   drill: ['chasing@54.2'], scrape: ['scrape@31.3'], pound: ['pound@41.8'],
++  // D-292 (the nearest frames by tools/dev/imp_keys.ts)
++  wash_face: ['wash_face@13.1'], delouse: ['delouse@6.6'], shave: ['shave@30.9'], sling: ['sling@27'],
+   hoe: ['hoe@44.5', 'hoe@5.8', '3e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f'],
+   winnow: ['winnow@36.4', 'winnow@16.4', '000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fff'],
+   plough: ['plough@6.4', 'plough@31', 'ff803fe00ff807fc01ff007fc01fe00ff803fe00ff807fc01ff007fc01ff000007fffff000003ff803fe00ff803fe01ff007fc01ff007f803fe00ff803fe01ff007fc01ff007fc0000ffff'],
+diff --git a/src/people/population.ts b/src/people/population.ts
+index 06f6725..12f0884 100644
+--- a/src/people/population.ts
++++ b/src/people/population.ts
+@@ -133,7 +133,7 @@ const TERRACE_XY: [number, number] = [-52, 118.5];
+  *  carries his work to the royal stores on this share of days (C) */
+ const TANNERS_GROUP = 7, OIL_EVERY = 25, SMITH_DELIVER = 0.15;
+ const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
+-  dispo: salt('dispo'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral') };
++  dispo: salt('dispo'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral'), birthNext: salt('birth-next'), care: salt('body-care') };
+ const AGE: [number, number, number][] = L.age_structure.v;
+ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+ /** a feed or a spell while the household sleeps (Planner.nightWords): in the night, or at first light before getting up, or
+@@ -353,6 +353,8 @@ export class Population {
+   court: CourtResidents | null = null;
+   cal!: EventCalendar;
+   private lifeByDay: { births: number[]; deaths: number[]; marriages: number[] }[] = [];
++  /** D-292 (C-D09): the day each woman gives birth (this year's births, and a draw of the next year's for the months after it) */
++  private due = new Map<number, number>();
+   private bdayByDay: number[][] = [];
+   private shepherds: number[] = [];
+   /** the road station's messengers, in their order (idx: the day's duty alternates, messenger()) */
+@@ -792,8 +794,20 @@ export class Population {
+       (this.kidsOf.get(i) ?? this.kidsOf.set(i, []).get(i)!).push(c);
+       if (u01(this.seed, S.birth, i, 2) < L.infant_death_first_year.v) { const dd = Math.min(REGNAL_DAYS - 1, day + 1 + Math.floor(u01(this.seed, S.birth, i, 3) * 120)); this.persons[c].dies = dd; this.lifeByDay[dd].deaths.push(c); this.households[home].deaths.push(dd); }
+       if (p.group >= 0) this.join(p.group, c);
+-      this.lifeByDay[day].births.push(c); this.households[home].births.push(day);
++      this.lifeByDay[day].births.push(c); this.households[home].births.push(day); this.due.set(i, day);
+     }
++    // D-292 (C-D09): the women who give birth in the first months after the year carry the child in its last months: the
++    // next year's births drawn at the same rate among the women who could have conceived by then (married, or married this
++    // year at least ten months before the birth; 15-44 then; no birth this year; her youngest past one), from their own
++    // stream so no other draw moves (C)
++    { const PG = L.pregnancy, pbN = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365;
++      for (let i = 0; i < n0; i++) {
++        const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || this.due.has(i) || p.age + 1 < 15 || p.age + 1 > 44 || p.dies < REGNAL_DAYS || p.leave < REGNAL_DAYS) continue;
++        const bride = !p.wife && p.marry < REGNAL_DAYS; if (!p.wife && !bride) continue;
++        if ((this.kidsOf.get(i) ?? []).some(c => this.persons[c].age === 0)) continue;
++        const ub = u01(this.seed, S.birthNext, i); if (ub >= pbN) continue;
++        const day = REGNAL_DAYS + Math.floor(ub / pbN * REGNAL_DAYS); if (day - REGNAL_DAYS >= PG.show_days || (bride && day < p.marry + PG.after_wedding_days)) continue;
++        this.due.set(i, day); } }
+     for (let i = 0; i < n0; i++) { const p = this.persons[i]; if (p.persian && p.age >= 16 && p.bday >= 0 && (p.zone === 'town' || p.zone === 'plain' || p.job === 'guard')) this.bdayByDay[p.bday].push(i); }
+     this.foster();
+     this.bereaved();
+@@ -1485,6 +1499,18 @@ export class Population {
+   jarsOf(pid: number, d: number) { const h = this.home(pid, d), H = this.households[h]; if (H.zone !== 'town' && H.zone !== 'plain') return 0; const x = this.hday(h, d); return pid === x.waterer ? x.jars - (x.helper >= 0 ? 1 : 0) : pid === x.helper ? 1 : 0; }
+   /** a woman's baby born in the last 45 days lives today (A S2 of shadow review r9: 705 mother-days "with the baby" after it had
+    *  died) */
++  /** D-292 (C-D09; E-70): how far a woman is carrying a child on day d, as the belly the renderer draws: 0 when she is not
++   *  (never for a woman who gives no birth), rising with the months from `show_days` before the birth to 1 on its day; for
++   *  `postpartum_days` after it, the soft belly going down (lives.json pregnancy; the curve C) */
++  gravid(pid: number, d: number): number {
++    const B = this.due.get(pid); if (B === undefined || !this.present(pid, d)) return 0; const G = L.pregnancy, x = B - d;
++    if (x >= G.show_days) return 0; if (x >= 0) return Math.pow(1 - x / G.show_days, G.shape_power);
++    return -x <= G.postpartum_days ? G.postpartum * (1 - -x / G.postpartum_days) : 0;
++  }
++  /** D-292: the days until a woman gives birth (negative after it), or null when she gives no birth this year or early the next */
++  dueIn(pid: number, d: number): number | null { const B = this.due.get(pid); return B === undefined ? null : B - d; }
++  /** D-292: visibly with child on day d (the months when the belly reads under the clothes: lives.json pregnancy.visible_days) */
++  expecting(pid: number, d: number): boolean { const x = this.dueIn(pid, d); return x !== null && x >= 0 && x < L.pregnancy.visible_days && this.present(pid, d); }
+   babyLives(pid: number, d: number) { const H = this.households[this.home(pid, d)]; for (const x of H.births) if (x <= d && d - x < 45) for (const c of this.lifeByDay[x].births) if (this.persons[c].mother === pid && this.present(c, d)) return true; return false; }
+   /** the day's caravan of goods for the Treasury at the stair foot (PeopleSim.events$ unloads it; C): its hour, the first from
+    *  09:00 out of the rain's and the storm's spans (none when the weather holds the road until 15:00), and its sacks. The
+@@ -1641,7 +1667,7 @@ export class Population {
+    *  returned segments as read-only */
+   plan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
+     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }
+-    const v = this.relabel(pid, day, this.rawPlan(pid, day)); let m = this.planCache.get(day); if (!m) { m = new Map(); this.planCache.set(day, m); } m.set(pid, v); this.planCount++; return v; }
++    const v = this.care(pid, day, this.relabel(pid, day, this.rawPlan(pid, day))); let m = this.planCache.get(day); if (!m) { m = new Map(); this.planCache.set(day, m); } m.set(pid, v); this.planCount++; return v; }
+   /** a person's day as the planner builds it, before the words that name the household are checked against the household's
+    *  own plans (relabel). The planners read each other's days from here, so that no plan waits on its own household */
+   rawPlan(pid: number, day: number): Seg[] { const c = this.rawCache.get(day)?.get(pid); if (c) return c;
+@@ -1686,6 +1712,137 @@ export class Population {
+     for (let i = o.length - 1; i > 0; i--) { const a = o[i - 1], b = o[i]; if (a.place === b.place && a.act === b.act && a.why === b.why && a.where === b.where && (a.with ?? -1) === (b.with ?? -1) && a.wear === b.wear && a.carry === b.carry && a.ev === b.ev && Math.abs(a.t1 - b.t0) < 1e-9) { a.t1 = b.t1; o.splice(i, 1); } }
+     return o;
+   }
++
++  // ------------------------------------------------------------------ D-292: the body's care (gap hunter C, C-D04..C-D07)
++  /** The body's care, laid over the day plans after the planner (plan = care(relabel(raw))): it reads the others' days from
++   *  rawPlan only, so no plan waits on another's care. Tier C throughout (lives.json body_care):
++   *  - at rising, face and hands washed at the house's water jar in the courtyard (inside when it rains), everyone of three
++   *    and over in a house of the town or the plain: the minutes come off the end of the night's sleep, so no morning work
++   *    moves (the Persians' care for water and purity, Herodotus 1.138, a Greek claim: B; the daily custom C);
++   *  - now and then a woman of the house goes through a child's hair for lice on the doorstep, parting it with her fingers
++   *    (lice combs are ordinary finds of the period: B analogy; the hour and the doorstep C): both at home and at leisure;
++   *  - in each town quarter a man who shaves and trims for the quarter in his free hours (Babylonian barbers, gallabu, are
++   *    attested in the Neo-Babylonian texts: B analogy; the man and his hours C) sees men of the quarter in the lane in
++   *    their free hours (about one barber to 90 grown men; a man about monthly), where the two are free at the same time */
++  private careCache = new Map<string, unknown>();
++  private careGet<T>(k: string, f: () => T): T { if (this.careCache.has(k)) return this.careCache.get(k) as T; if (this.careCache.size > 60000) this.careCache.clear(); const v = f(); this.careCache.set(k, v); return v; }
++  /** a spell of the planner's day that care may take: at one of the places, at leisure or at light work, awake, not carried */
++  private static careFree(s: Seg, places: string[], child = false) {
++    return places.includes(s.place) && s.where !== 'road' && (child ? /^(play|rest|talk)$/ : /^(rest|talk|spin|craft|gamble|exchange)$/).test(s.act) && !/nurs|asleep|\bill\b|mourn|feed|in labour|birth|the dead|minding|carried|keeping|guarding|the heat/.test(s.why); }
++  /** [a, b] of `segs` lies wholly in spells that care may take */
++  private static careSpan(segs: Seg[], a: number, b: number, places: string[], child = false) {
++    if (a < 0 || b > 24) return false; for (const s of segs) { if (s.t1 <= a + 1e-9 || s.t0 >= b - 1e-9) continue; if (!Population.careFree(s, places, child)) return false; } return true; }
++  /** nobody of the person's house is with them (a little one following, a child minded) over [a, b] */
++  private careAlone(pid: number, d: number, a: number, b: number) { for (const x of this.membersOn(this.home(pid, d), d)) if (x !== pid) for (const s of this.rawPlan(x, d)) if (s.with === pid && s.t1 > a && s.t0 < b) return false; return true; }
++  /** leaving the house over [a, b] leaves no one of it "with the household" there without the household (planCheck (d)) */
++  private careLeave(pid: number, d: number, a: number, b: number) { for (const x of this.membersOn(this.home(pid, d), d)) if (x !== pid) for (const s of this.rawPlan(x, d)) if (s.t1 > a && s.t0 < b && /with the household|kept for the late-comer|the others of the house/.test(s.why)) return false; return true; }
++  /** the town quarters' households (lazy) */
++  private qHouses: Map<string, number[]> | null = null;
++  private housesOfQ(q: string) { if (!this.qHouses) { this.qHouses = new Map(); for (const H of this.households) if (H.zone === 'town') (this.qHouses.get(H.q) ?? this.qHouses.set(H.q, []).get(H.q)!).push(H.id); } return this.qHouses.get(q) ?? []; }
++  /** the quarter's barbers on day d: the first ceil(men / body_care.men_per_barber), by the quarter's own draw, of its
++   *  working men of 28-60 (the builders, porters, craftsmen and servants of its houses) who are there, not ill and at home */
++  barbersOf(q: string, d: number): number[] {
++    const all = this.careGet(`bq${q}`, () => { const men: number[] = []; let grown = 0; for (const h of this.housesOfQ(q)) for (const x of this.households[h].members) { const p = this.persons[x]; if (p.sex === 'm' && p.age >= 16) grown++; if (p.sex === 'm' && p.age >= 28 && p.age <= 60 && p.agent < 0 && ['builder', 'porter', 'craftsman', 'servant'].includes(p.job)) men.push(x); }
++      return { k: Math.max(1, Math.ceil(grown / L.body_care.men_per_barber)), men: men.sort((a, b) => u01(this.seed, S.care, a, 1) - u01(this.seed, S.care, b, 1)) }; });
++    return all.men.slice(0, all.k + 2).filter(x => this.present(x, d) && !this.sick(x, d) && this.persons[x].hh === this.home(x, d) && !this.mourning(x, d) && !this.festDay(x, d) && !this.weddingOf(x, d)).slice(0, all.k); }
++  /** the day's shaves in a town quarter: [barber, man, t0, t1] (the session in the lane; the walks to it lie outside it) */
++  shavesOn(q: string, d: number): [number, number, number, number][] {
++    return this.careGet(`sq${q}:${d}`, () => {
++      const out: [number, number, number, number][] = [], BB = this.barbersOf(q, d); if (!BB.length) return out; const BC = L.body_care, C = this.cal.ctx(d), lane = `lane:${q}`;
++      if (C.wx.dust) return out;
++      const bar = BB.map(B => { const bh = this.households[this.home(B, d)].home; return { B, bh, bs: this.rawPlan(B, d), wk: Math.max(0.05, this.walkH(bh, lane, d, 'town', 'town')), t: Math.max(BC.barber_from_h, C.sun.rise + 1), n: 0 }; });
++      const isB = new Set(BB), men: number[] = []; for (const h of this.housesOfQ(q)) for (const x of this.membersOn(h, d)) { const p = this.persons[x]; if (!isB.has(x) && p.sex === 'm' && this.ageOn(x, d) >= 16 && p.agent < 0 && !this.sick(x, d) && u01(this.seed, S.care, x, d, 2) < BC.shave_p_day) men.push(x); }
++      men.sort((a, b) => u01(this.seed, S.care, a, d, 3) - u01(this.seed, S.care, b, d, 3));
++      const end = C.sun.set - 0.3, len = BC.shave_h;
++      for (const x of men) { const xh = this.households[this.home(x, d)].home, xs = this.rawPlan(x, d), wk = Math.max(0.05, this.walkH(xh, lane, d, 'town', 'town'));
++        let done = false; for (const b0 of bar) { if (b0.n >= BC.shaves_max) continue;
++          for (let a = b0.t; a + len <= end; a += 0.25) { const b = a + len; if (wetHours(C.wx, a - 0.3, b + 0.3) > 0) continue;
++            if (Population.careSpan(b0.bs, a - b0.wk, b + b0.wk, [b0.bh, lane]) && Population.careSpan(xs, a - wk, b + wk, [xh, lane]) && this.careAlone(b0.B, d, a - b0.wk, b + b0.wk) && this.careAlone(x, d, a - wk, b + wk) && this.careLeave(b0.B, d, a - b0.wk, b + b0.wk) && this.careLeave(x, d, a - wk, b + wk)) { out.push([b0.B, x, a, b]); b0.t = b + 0.05; b0.n++; done = true; break; } }
++          if (done) break; } }
++      return out; }); }
++  /** the day's delousing in a household: [the woman, the child, t0, t1] on the doorstep, or null */
++  combOf(h: number, d: number): [number, number, number, number] | null {
++    return this.careGet(`ch${h}:${d}`, () => {
++      const H = this.households[h], BC = L.body_care; if ((H.zone !== 'town' && H.zone !== 'plain') || u01(this.seed, S.care, h, d, 4) >= BC.comb_p_day) return null;
++      const C = this.cal.ctx(d); if (C.wx.dust || C.festival) return null; const mem = this.membersOn(h, d).filter(x => this.persons[x].agent < 0 && !this.sick(x, d) && !this.mourning(x, d));
++      const kids = mem.filter(x => { const a = this.ageOn(x, d); return a >= BC.comb_ages[0] && a <= BC.comb_ages[1]; }); if (!kids.length) return null;
++      const child = kids[Math.floor(u01(this.seed, S.care, h, d, 5) * kids.length)], mo = this.persons[child].mother;
++      const women = mem.filter(x => x !== child && this.persons[x].sex === 'f' && this.ageOn(x, d) >= 12 && !this.gaveBirthSoon(x, d)).sort((a, b) => (a === mo ? -1 : 0) - (b === mo ? -1 : 0));
++      const home = H.home, W: Where = H.zone === 'plain' ? 'plain' : 'town', lane = `lane:${H.q}`, wk = Math.max(0.05, this.walkH(home, lane, d, W, W)), len = BC.comb_h[0] + (BC.comb_h[1] - BC.comb_h[0]) * u01(this.seed, S.care, h, d, 6);
++      const a0 = Math.max(C.sun.rise + 1.5, 7), a1 = C.sun.set - 0.6 - len, span = Math.max(0.25, a1 - a0 + 0.25), off = u01(this.seed, S.care, h, d, 7) * span;
++      if (a1 < a0) return null;
++      for (const w of women) { const ws = this.rawPlan(w, d), cs = this.rawPlan(child, d);
++        for (let k = 0; k * 0.25 < span; k++) { const a = a0 + ((off + k * 0.25) % span), b = a + len; if (a > a1 || wetHours(C.wx, a - 0.2, b + 0.2) > 0) continue;
++          if (Population.careSpan(ws, a, b, [home]) && Population.careSpan(cs, a - wk, b + wk, [home, lane], true) && this.careAlone(child, d, a - wk, b + wk) && cs.every(x => x.t1 <= a - wk || x.t0 >= b + wk || x.with === undefined || x.with === w)) return [w, child, a, b] as [number, number, number, number]; } }
++      return null; }); }
++  /** D-292 (gap hunter C, C-D23; GC24): before a wedding, a word and a look at the well: on some of the days before it, when
++   *  the bride draws water at her quarter's well and her husband-to-be is free at the time, he is there too, for a few minutes
++   *  (courtship customs of the period are not recorded: the restraint of a word and a look is C). [bride, groom, t0, t1] */
++  courtingOn(bride: number, d: number): [number, number, number, number] | null {
++    return this.careGet(`w${bride}:${d}`, () => {
++      const B = this.persons[bride], g = B.spouse, BC = L.body_care; if (g === undefined || B.marry >= 1e9 || d >= B.marry || d < B.marry - BC.court_days || !this.present(g, d) || !this.present(bride, d)) return null;
++      if (u01(this.seed, S.care, bride, d, 9) >= BC.court_p_day || this.sick(bride, d) || this.sick(g, d)) return null;
++      const H = this.households[this.home(bride, d)], GH = this.households[this.home(g, d)]; if (!H || !GH || (GH.zone !== 'town' && GH.zone !== 'plain')) return null;
++      const well = `well:${H.q}`, W: Where = GH.zone === 'plain' ? 'plain' : 'town', gs = this.rawPlan(g, d), wk = Math.max(0.05, this.walkH(GH.home, well, d, W, W)), lane = `lane:${GH.q}`;
++      for (const s of this.rawPlan(bride, d)) { if (s.act !== 'draw_water' || s.place !== well || s.t1 - s.t0 < 0.12 || s.with !== undefined) continue;
++        const a = s.t0, b = Math.min(s.t1, a + 0.2); if (Population.careSpan(gs, a - wk, b + wk, [GH.home, lane]) && this.careAlone(g, d, a - wk, b + wk) && this.careLeave(g, d, a - wk, b + wk)) return [bride, g, a, b] as [number, number, number, number]; }
++      return null; }); }
++  /** D-292 (gap hunter C, C-D19; GC23): a man of the heavy work (the building sites, the porters, the fields, the herds) hurt
++   *  now and then: a kick from an animal, a stone on the foot, a fall on the scaffolding: he limps for some days after it,
++   *  leaning on a staff (popview impairOf), and goes on with what work he can (C). The day of the hurt and its days, or null */
++  injuryOn(pid: number, d: number): { day: number; days: number; how: string } | null {
++    const p = this.persons[pid], BC = L.body_care; if (p.sex !== 'm' || p.agent >= 0 || !INJURY_JOBS.has(p.job)) return null; const a = this.ageOn(pid, d); if (a < 14 || a > 60) return null;
++    for (let x = d; x > d - BC.injury_days[1] && x >= 0; x--) { if (u01(this.seed, S.care, pid, x, 10) >= BC.injury_p_day) continue; const days = BC.injury_days[0] + Math.floor(u01(this.seed, S.care, pid, x, 11) * (BC.injury_days[1] - BC.injury_days[0]));
++      if (d - x < days) return { day: x, days, how: INJURY_HOW[p.job === 'herder' || p.job === 'groom' || p.job === 'farmer' ? 0 : p.job === 'builder' ? 1 : 2] }; }
++    return null; }
++  /** a woman in the last weeks before a birth or the first after it (no stooping over a child's head then: C) */
++  private gaveBirthSoon(x: number, d: number) { const k = this.dueIn(x, d); return k !== null && k > -30 && k < 20; }
++  /** the day plan with the body's care laid over it (see careCache) */
++  private care(pid: number, d: number, base: Seg[]): Seg[] {
++    const p = this.persons[pid]; if (p.agent >= 0 || p.zone === 'transient' || !this.present(pid, d) || !base.length) return base;
++    const hid = this.home(pid, d), H = this.households[hid]; if (!H || (H.zone !== 'town' && H.zone !== 'plain')) return base;
++    const C = this.cal.ctx(d), home = H.home, age = this.ageOn(pid, d), his = p.sex === 'f' ? 'her' : 'his', BC = L.body_care, W: Where = H.zone === 'plain' ? 'plain' : 'town';
++    let out: Seg[] | null = null;
++    const put = (a: number, b: number, parts: Seg[]) => { const segs = out ?? base.map(x => ({ ...x })); const r: Seg[] = [];
++      for (const s of segs) { if (s.t1 <= a + 1e-9 || s.t0 >= b - 1e-9) { r.push(s); continue; } if (s.t0 < a - 1e-9) r.push({ ...s, t1: a }); if (s.t1 > b + 1e-9) r.push({ ...s, t0: b }); }
++      const i = r.findIndex(s => s.t0 >= b - 1e-9); r.splice(i < 0 ? r.length : i, 0, ...parts); out = r; };
++    const at = (h: number) => segAt(out ?? base, h);
++    /** the care spell at `place` over [a, b], with the walks there and back when the person is elsewhere (lane and house) */
++    const visit = (a: number, b: number, place: string, why: string, withP?: number, act: ActivityId = 'tend_body') => {
++      // (where the person is before and after: the place of the spell there, or, on a walk, the place it comes from or goes to)
++      const cur = out ?? base, s0r = at(a - 1e-3), s1r = at(b + 1e-3);
++      const s0 = s0r.where !== 'road' ? s0r : [...cur].reverse().find(x => x.t0 < a && x.where !== 'road') ?? s0r, s1 = s1r.where !== 'road' ? s1r : cur.find(x => x.t0 > b && x.where !== 'road') ?? s1r;
++      const wk0 = s0.place === place ? 0 : Math.max(0.05, this.walkH(s0.place, place, d, W, W)), wk1 = s1.place === place ? 0 : Math.max(0.05, this.walkH(place, s1.place, d, W, W));
++      const parts: Seg[] = [];
++      if (wk0) parts.push({ t0: a - wk0, t1: a, place: `road:${W}`, act: 'walk', why: place.startsWith('lane:') ? 'out to the lane' : 'to the doorstep', where: 'road' });
++      parts.push({ t0: a, t1: b, place, act, why, where: W, ...(withP !== undefined ? { with: withP } : {}), ev: 'D-292', ...(s0.wear ? { wear: s0.wear } : {}) });
++      if (wk1) parts.push({ t0: b, t1: b + wk1, place: `road:${W}`, act: 'walk', why: s1.place.startsWith('lane:') ? 'back out to the lane' : 'back into the house', where: 'road' });
++      put(a - wk0, b + wk1, parts); };
++    // the morning wash at rising: the end of the night's sleep at home, then awake at home
++    const wi = wakeIndex(base, home), s0 = base[wi], s1 = base[wi + 1];
++    if (age >= 3 && wi >= 0 && !this.sick(pid, d)) {
++      const len = BC.wash_h[0] + (BC.wash_h[1] - BC.wash_h[0]) * u01(this.seed, S.care, pid, d, 8), a = s0.t1 - len, wet = wetHours(C.wx, a, s0.t1) > 0, where = wet ? 'inside the house' : 'in the courtyard';
++      const why = age < 7 ? `washing ${his} face and hands at the water jar ${where} at rising, with a splash` : `washing ${his} face and hands at the water jar ${where} at rising, the water poured into a basin`;
++      put(a, s0.t1, [{ t0: a, t1: s0.t1, place: home, act: 'tend_body', why, where: s1.where, ev: 'D-292', ...(s1.wear ? { wear: s1.wear } : {}) }]); }
++    // a child's hair gone through for lice on the doorstep
++    const cb = this.combOf(hid, d);
++    if (cb && (cb[0] === pid || cb[1] === pid)) { const [w, c, a, b] = cb, cn = nameFor(this.seed, this.persons[c]), cs = this.persons[c].sex === 'f' ? 'her' : 'his';
++      if (w === pid) visit(a, b, home, `picking the lice from ${cn ?? (this.persons[c].sex === 'f' ? 'the girl' : 'the boy')}’s hair on the doorstep, parting it with ${his} fingers`);
++      else visit(a, b, home, `having ${cs} hair gone through for lice on the doorstep, sitting still in front of ${nameFor(this.seed, this.persons[w]) ?? 'her'}`, w); }
++    // the barber in the lane
++    if (H.zone === 'town' && p.sex === 'm' && age >= 16) { const mine: [number, number][] = [];
++      for (const [B, x, a, b] of this.shavesOn(H.q, d)) {
++        if (B === pid) { const l = mine[mine.length - 1]; if (l && a - l[1] < 0.4) l[1] = b; else mine.push([a, b]); } // (one spell in the lane for sessions close together)
++        else if (x === pid) visit(a, b, `lane:${H.q}`, 'being shaved by the barber in the lane, sitting on the ground: his beard trimmed or his cheeks shaved', B); }
++      for (const [a, b] of mine) visit(a, b, `lane:${H.q}`, 'shaving men of the quarter in the lane: a beard trimmed or the cheeks shaved with a bronze razor, water from a jar'); }
++    // before the wedding, a word and a look at the well (the groom comes; the bride's own words gain it)
++    if (p.spouse !== undefined && p.marry < 1e9 && d < p.marry) { const bride = p.sex === 'f' ? pid : p.spouse, cw = this.courtingOn(bride, d);
++      if (cw) { const [bb, g, a, b] = cw, bn = nameFor(this.seed, this.persons[bb]), gn = nameFor(this.seed, this.persons[g]);
++        if (pid === g) visit(a, b, `well:${this.households[this.home(bb, d)].q}`, `at the well: a word and a look with ${bn ?? 'the girl'} while she draws water (they are to marry)`, bb, 'talk');
++        else if (pid === bb) { const segs = out ?? base.map(x => ({ ...x })); for (const x of segs) if (x.act === 'draw_water' && Math.abs(x.t0 - a) < 1e-6) x.why = `${x.why}, a word and a look exchanged with ${gn ?? 'the man'} she is to marry`; out = segs; } } }
++    if (!out) return base; const o: Seg[] = this.relabel(pid, d, out); // (the words of the pieces cut from a spell "with the household" are checked again)
++    dustWear(o, C.wx); coldWear(o, C.wx, false); return o;
++  }
+ }
+ 
+ // ------------------------------------------------------------------ names (attested only, matched to origin; brief §9.1)
+@@ -1894,7 +2051,7 @@ class Planner {
+     this.fieldBite(segs); this.water(segs); this.homeStops(segs); this.fire(segs);
+     if (this.age >= 2) this.meals(segs);
+     if (this.p.sex === 'f' && this.age >= 14) { this.feedGaps(segs); this.littleFeeds(segs); }
+-    this.joinSlivers(segs); this.tidy(segs); this.shelterHome(segs); this.words(segs); this.carries(segs); this.dustVeil(segs); this.coldWear(segs);
++    this.joinSlivers(segs); this.tidy(segs); this.shelterHome(segs); this.words(segs); this.bankWash(segs); this.carries(segs); this.dustVeil(segs); this.coldWear(segs);
+     const mo = this.p.mother, festive = this.festive || (this.p.job === 'child' && this.age < 5 && mo >= 0 && P.present(mo, this.d) && (P.festDay(mo, this.d) || !!P.weddingOf(mo, this.d)));
+     if (festive) for (const s of segs) if (s.where !== 'away' && s.act !== 'sleep' && s.act !== 'lie_ill' && !/best clothes/.test(s.wear ?? '')) s.wear = s.wear ? `${s.wear}, and in the best clothes` : 'in the best clothes';
+     return segs;
+@@ -2054,6 +2211,15 @@ class Planner {
+   /** words that assert what the plan does not hold are put right (D-191, planCheck (d)): "through the heat" for a stretch
+    *  of under 45 min (S9 of reviewer B, r7: "sleeping through the heat of the day" for 40 min) is a short sleep or a rest
+    *  in the heat; "before leaving" for bread eaten an hour or more before the person leaves is bread and water */
++  /** D-292 (gap hunter C, C-D46): the Persians do not wash in a river nor let others do so (Herodotus 1.138, a Greek claim: B;
++   *  the project applies it to the river offerings too, events_calendar.json): a Persian's washing, and every guard's, at the
++   *  river or a canal is done on the bank with water drawn up in a jar, away from the stream (the jar and the place C) */
++  private bankWash(segs: Seg[]) {
++    if (!this.p.persian && this.p.job !== 'guard') return;
++    for (const s of segs) if (s.act === 'wash' && STREAM.test(s.place) && !ON_BANK.test(s.why)) {
++      const w = s.why.replace(/ at the (river|water)\b/, '').replace(/ to the water\b/, '');
++      s.why = `${w} on the bank, with water drawn up in a jar, away from the stream (the Persians' rule: HDT 1.138)`; }
++  }
+   private words(segs: Seg[]) {
+     // (words of the heat on a spell outside the day's hot hours, 10:30-18:00: a rest after six in the evening, 8 in the soak of
+     // 302ed5f); then "through the heat" by its stretch, decided for all spells at once (one short stretch in the soak of 3a823c4)
+@@ -4599,5 +4765,18 @@ class Planner {
+ }
+ /** the plan segment in force at hour h */
+ /** a funeral is over, and its people home, this long before sunset at the latest (h; D-209 addendum, soak s8; C) */
++/** D-292: the spell of the night's sleep at home that ends at rising (between 03:00 and 12:00, the night's feeds between),
++ *  followed by the day awake at home (not a feed before getting up, not lying ill, not the road), or -1 */
++export function wakeIndex(segs: Seg[], home: string): number {
++  for (let i = 0; i + 1 < segs.length; i++) { const s = segs[i], n = segs[i + 1]; if (s.t1 <= 3) continue; if (s.t1 >= 12) return -1;
++    if (s.act !== 'sleep') { if (NIGHT_FEED.test(s.why) && s.place === home) continue; return -1; }
++    return s.place === home && n.place === home && n.where !== 'road' && n.act !== 'lie_ill' && n.act !== 'sleep' && !NIGHT_FEED.test(n.why) && s.t1 - s.t0 > 0.2 ? i : -1; }
++  return -1; }
++/** D-292: who is hurt at work now and then (Population.injuryOn), and how (C) */
++const INJURY_JOBS = new Set(['builder', 'porter', 'farmer', 'herder', 'groom', 'camp']);
++const INJURY_HOW = ['kicked in the shin by one of the animals', 'a stone dropped on his foot at the building works', 'turned his ankle under a load'];
++/** D-292: the running water of the plain (the river, the canals, their banks), and a washing done on the bank from a jar */
++export const STREAM = /^(river|canal:|bank:)/;
++export const ON_BANK = /on the bank, with water drawn up in a jar/;
+ export const FUNERAL_BEFORE_SET_H = 2.5;
+ export function segAt(segs: Seg[], h: number): Seg { for (const s of segs) if (h < s.t1) return s; return segs[segs.length - 1]; }
+diff --git a/src/people/popview.ts b/src/people/popview.ts
+index deb4962..c3993f8 100644
+--- a/src/people/popview.ts
++++ b/src/people/popview.ts
+@@ -99,6 +99,11 @@ const S = { pace: salt('popview-pace'), sep: salt('popview-sep'), impair: salt('
+  *  to the carer's side when within HAND_SNAP m of them (their plans walk them together), at handReach's distance; a child
+  *  of the house leads a blind elder walking within GUIDE_SNAP m (C) */
+ export const TODDLER_HAND = 4, HAND_SNAP = 4, GUIDE_SNAP = HAND_SNAP;
++/** D-292: the one of a pair of the body's care who is placed by the other (population.ts care): the child whose hair is gone
++ *  through for lice sits PAIR_GAP.comb m in front of the woman, facing the same way; the man being shaved sits
++ *  PAIR_GAP.shave m in front of the barber, face to face (C) */
++export const PAIR_FOLLOW = /^having (his|her) hair gone through|^being shaved by the barber|^at the well: a word and a look/;
++export const PAIR_GAP = { comb: 0.42, shave: 0.55, well: 1.3 } as const;
+ /** where the smaller of two walkers hand in hand walks and how it raises its arm (C, proportions of a body of height h m:
+  *  shoulder at 0.8 h, 0.15 h out from the body axis, arm with hand 0.4 h; the grown walker's hand held out about 0.3 m
+  *  from the axis at 0.75 m, the smaller one's palm meeting it 0.19 m out: measured on the rig, the palms 5-10 cm apart,
+@@ -334,7 +339,7 @@ export class PopView {
+   private collect(t: number) {
+     this.nOut = 0; this.nAgentVps = 0; let walking = 0, carried = 0; const day = Math.floor(t / 24);
+     this.agentOcc.clear(); for (const a of this.sim.agents) if (!a.offmap) { const k = this.occKey(a.pos[0], a.pos[1]); const L = this.agentOcc.get(k); if (L) L.push(a); else this.agentOcc.set(k, [a]); }
+-    const upd = this.stats.updates; this.youngBuf.length = 0; this.handBuf.length = 0; this.blindBuf.length = 0;
++    const upd = this.stats.updates; this.youngBuf.length = 0; this.handBuf.length = 0; this.blindBuf.length = 0; this.pairBuf.length = 0;
+     for (const s of this.list) {
+       const last = this.jumpedNow ? 0 : s.lastMode; s.lastMode = s.mode;
+       if (s.occ >= 0 && (s.mode !== 1 || s.sepFor !== s.spot)) this.release(s);
+@@ -349,7 +354,7 @@ export class PopView {
+       // standing at their place, unchanged since the last update: the same ViewPerson (session 6: refilling ~8,000 people
+       // every update cost the view 3-5 ms at 1× under load; only walkers, people stepping aside and changed states refill)
+       let o = s.view;
+-      if (o && s.viewV === s.ver && s.mode === 1 && !s.viewMoving && s.sepFor === s.spot) { this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; continue; }
++      if (o && s.viewV === s.ver && s.mode === 1 && !s.viewMoving && s.sepFor === s.spot) { this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; if (s.wp >= 0 && PAIR_FOLLOW.test(o.why)) this.pairBuf.push(s); continue; }
+       if (!o) s.view = o = PopView.blank(); this.out[this.nOut++] = o; s.stamp = upd; o.babes!.length = 0; o.hand = 0; o.impair = this.impairOf(s.pid, day);
+       if (s.mode === 2 && s.wp >= 0 && this.pop.ageOn(s.pid, day) < TODDLER_HAND) this.handBuf.push(s); // D-215: a small child walking with someone
+       if (s.mode === 2 && o.impair === 2) this.blindBuf.push(s);
+@@ -364,7 +369,8 @@ export class PopView {
+           o.e = sp.e + (s.sepE - sp.e) * k; o.n = sp.n + (s.sepN - sp.n) * k; o.heading = headingOf(s.sepE - sp.e, s.sepN - sp.n); o.moving = true; o.speed = Math.hypot(s.sepE - sp.e, s.sepN - sp.n) / STEP_S;
+           o.y = this.geo.y(o.e, o.n, sp.net); o.prop = propOf(o.act, o.carryNote); walking++; s.viewV = s.ver; s.viewMoving = true; continue; }
+         o.e = s.sepE; o.n = s.sepN; o.heading = sp.heading; o.moving = false; o.speed = 0;
+-        if (!s.yOk) { s.y = this.geo.y(o.e, o.n, sp.net); s.prop = propOf(o.act, o.carryNote); s.yOk = true; } o.y = s.y; o.prop = s.prop; }
++        if (!s.yOk) { s.y = this.geo.y(o.e, o.n, sp.net); s.prop = propOf(o.act, o.carryNote); s.yOk = true; } o.y = s.y; o.prop = s.prop;
++        if (s.wp >= 0 && PAIR_FOLLOW.test(o.why)) this.pairBuf.push(s); }
+       s.viewV = s.ver; s.viewMoving = o.moving;
+     }
+     this.agentsOff(t);
+@@ -409,7 +415,9 @@ export class PopView {
+     return !(s.act === 'play' || (s.mode === 2 && s.act === 'walk'));
+   }
+   // ------------------------------------------------------------------------------------------------ D-215: children, impairment
+-  private youngBuf: PS[] = []; private handBuf: PS[] = []; private blindBuf: PS[] = [];
++  private youngBuf: PS[] = []; private handBuf: PS[] = []; private blindBuf: PS[] = []; private pairBuf: PS[] = [];
++  /** D-292: the pairs of the body's care placed this update (the follower moved to its partner), and those whose partner was not drawn */
++  readonly pairs = { placed: 0, alone: 0, jumpMax: 0 };
+   /** D-215 counts this update: children held or put down by a carer drawn now, by way of holding; children whose carer is
+    *  not drawn (indoors, a detailed agent, out of range) or who have none; hands held; blind elders led */
+   readonly kids = { held: 0, unseen: 0, noCarer: 0, second: 0, byMode: {} as Record<string, number>, hands: 0, handJumpMax: 0, led: 0, lame: 0, blind: 0 };
+@@ -438,6 +446,14 @@ export class PopView {
+       for (const m of this.pop.membersOn(this.pop.home(b.pid, day), day)) { const a = this.pop.ageOn(m, day); if (a < 6 || a > 12) continue;
+         const g = this.ps.get(m); if (!g?.view || g.stamp !== upd || g.mode !== 2 || g.view.hand || Math.hypot(g.view.e - o.e, g.view.n - o.n) > GUIDE_SNAP) continue;
+         this.hold(o, g.view, m, CHILD_H[a]); K.led++; break; } }
++    // D-292: the child in front of the woman going through its hair, the man in front of the barber
++    const PR = this.pairs; PR.placed = 0; PR.alone = 0; PR.jumpMax = 0;
++    for (const f of this.pairBuf) { const L = this.ps.get(f.wp), o = f.view, q = L?.view; if (!o) continue;
++      if (!L || !q || L.stamp !== upd || L.mode !== 1) { PR.alone++; continue; }
++      const shave = /^being shaved/.test(o.why), well = /^at the well/.test(o.why), face = shave || well, gap = shave ? PAIR_GAP.shave : well ? PAIR_GAP.well : PAIR_GAP.comb;
++      // (at the well he stands off to her side and a little ahead, turned to her: she is at the water)
++      const hd = (q.heading + (well ? 55 : 0)) * Math.PI / 180, e = q.e + Math.sin(hd) * gap, n = q.n + Math.cos(hd) * gap;
++      PR.jumpMax = Math.max(PR.jumpMax, Math.hypot(e - o.e, n - o.n)); o.e = e; o.n = n; o.heading = face ? (q.heading + (well ? 55 : 0) + 180) % 360 : q.heading; o.moving = false; o.speed = 0; o.y = this.geo.y(e, n); PR.placed++; }
+   }
+   /** D-244: who a small child asleep indoors with nobody named sleeps beside: its mother when she is drawn in the same house,
+    *  else the first grown member of the household drawn there (-1: none) */
+@@ -461,6 +477,7 @@ export class PopView {
+    *  no begging is shown */
+   impairOf(pid: number, day: number): 0 | 1 | 2 {
+     const p = this.pop.persons[pid]; if (p.agent >= 0 || p.job === 'guard' || p.job === 'messenger') return 0;
++    if (this.pop.injuryOn(pid, day)) return 1; // D-292 (GC23): a limp for some days after a hurt at work (C)
+     const u = h32(this.seed, S.impair, pid) / 4294967296, age = this.pop.ageOn(pid, day);
+     if (p.sex === 'm' && age >= IMPAIR.lame.ages[0] && age <= IMPAIR.lame.ages[1] && u < IMPAIR.lame.share) return 1;
+     if (age >= IMPAIR.blind.from && u < IMPAIR.blind.share) return 2;
+diff --git a/src/people/workAnims.ts b/src/people/workAnims.ts
+index bff8efe..6da5ddf 100644
+--- a/src/people/workAnims.ts
++++ b/src/people/workAnims.ts
+@@ -23,7 +23,11 @@ export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive',
+   'barsom', 'feed_fire', 'mourn',
+   // D-255: the crafts and the records: the smith at his anvil and his bellows, the goldsmith chasing, silver weighed on a
+   // balance, a seal rolled on a tablet or a jar's sealing, the seal cutter's bow drill, the tanner's scraper, the oil pounder
+-  'smith', 'bellows', 'chasing', 'weigh', 'seal', 'seal_jar', 'drill', 'scrape', 'pound'] as const;
++  'smith', 'bellows', 'chasing', 'weigh', 'seal', 'seal_jar', 'drill', 'scrape', 'pound',
++  // D-292: the body's care: the face washed over a basin, a child's hair gone through for lice, a man shaved
++  'wash_face', 'delouse', 'shave',
++  // D-292 (GC27): the herd boy's sling
++  'sling'] as const;
+ export type WorkAnim = typeof WORK_ANIMS[number];
+ /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
+  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
+@@ -42,6 +46,8 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
+   barsom: { ground: 'feet' }, feed_fire: { ground: 'feet' }, mourn: { ground: 'feet' },
+   smith: { ground: 'feet' }, bellows: { ground: 'feet', aside: true }, chasing: { ground: 'seat', aside: true }, weigh: { ground: 'feet' }, seal: { ground: 'seat', aside: true },
+   seal_jar: { ground: 'feet' }, drill: { ground: 'seat', aside: true }, scrape: { ground: 'feet' }, pound: { ground: 'feet' },
++  wash_face: { ground: 'seat', aside: true }, delouse: { ground: 'seat', aside: true }, shave: { ground: 'seat', aside: true },
++  sling: { ground: 'feet' },
+ };
+ /** D-215: the children's paths (C): running round after one another on a circle of 2.2 m at 2 m/s; walking round pulling
+  *  a toy on a circle of 1.5 m at 0.5 m/s. Both start at the view's spot and come back to it */
+@@ -847,6 +853,55 @@ function pound(t: number, k: number): Pose {
+ }
+ 
+ /** a work cycle's pose. `ph`: the gait phase for walking cycles (bearers); `k`: per-person seed */
++// ================================================================================================= the body's care (D-292)
++/** washing the face and hands at rising, kneeling over the basin (work object 'basin' 0.42 m ahead, its water 0.06 m up):
++ *  both hands cupped into the water, raised and the face bent into them, rubbed, again; then the hands rubbed together over
++ *  the basin. A splash as the water meets the face (C) */
++function washFace(t: number, k: number): Pose {
++  const P = 5.2, q = fr(t / P + k * 0.31), p = blank();
++  const up = ramp(q, 0.12, 0.3) * (1 - ramp(q, 0.46, 0.6)), rub = win(q, 0.3, 0.46, 0.03), hands = win(q, 0.66, 0.95, 0.04);
++  const T = kneelBody(p, t, k, 0.75 + 0.35 * up);
++  const face = v3.add(T.chestT, app(T.chestR, [0, 0.33, 0.14])), low: V3 = [0, 0.14, 0.42], mid: V3 = [0, 0.3, 0.36];
++  const c = mixV(low, face, up), w = 0.04 * S(2 * PI * t * 2.2) * rub, hr = 0.05 * S(2 * PI * t * 2.6) * hands;
++  const at = hands > 0.05 ? mid : c;
++  grip(p, T, 'r', [at[0] - 0.045 + w + hr, at[1] + 0.02 * rub, at[2] - 0.02 * up], [-0.9, -0.6, -0.3], 1.1);
++  grip(p, T, 'l', [at[0] + 0.045 + w - hr, at[1] + 0.02 * rub, at[2] - 0.02 * up], [0.9, -0.6, -0.3], -1.1);
++  look(p, T, up > 0.4 ? [0, 0.2, 0.5] : [0, 0.05, 0.42], 0.25 * up);
++  p.hit = q >= 0.28 && q < 0.31; p.grip = [0.35, 0.35]; return p;
++}
++/** a woman sitting on the doorstep going through a child's hair for lice: the child sits in front of her (popview pairs
++ *  them: 0.42 m ahead, facing the same way), its head at ~0.6 m; her fingers part the hair, pick, and wipe on the thumbnail (C) */
++function delouse(t: number, k: number): Pose {
++  const P = 4.4, q = fr(t / P + k * 0.23), p = blank(), T = sitBody(p, t, k, 0.35);
++  const hx = 0.03 * S(t * 0.4 + k), part = win(q, 0.1, 0.6, 0.05), pick = win(q, 0.64, 0.86, 0.03);
++  grip(p, T, 'l', [0.05 + hx, 0.63 + 0.015 * part, 0.37], [0.9, -0.6, -0.3], -0.6);
++  grip(p, T, 'r', [-0.04 + hx + 0.02 * S(2 * PI * t * 1.3) * part, 0.64 + 0.02 * pick, 0.35 - 0.04 * pick], [-0.9, -0.6, -0.3], 0.6);
++  look(p, T, [hx, 0.6, 0.38], 0.2); p.grip = [0.6, 0.7 + 0.3 * pick]; return p;
++}
++/** the barber kneeling up in front of a man sitting on the ground (popview pairs them: 0.55 m apart, face to face): the
++ *  left hand steadies the man's head, the right draws the razor down the cheek in short strokes and rinses it now and then
++ *  in the water jar at his right (C) */
++function shave(t: number, k: number): Pose {
++  const P = 6, q = fr(t / P + k * 0.17), p = blank(), T = kneelBody(p, t, k, 0.22);
++  const rinse = win(q, 0.8, 0.95, 0.03), st = fr(t / 1.1 + k), down = st < 0.7 ? st / 0.7 : 1 - (st - 0.7) / 0.3, side = fr(t / (2 * P) + k) < 0.5 ? 1 : -1;
++  const razor: V3 = mixV([-0.02 + 0.06 * side, 0.9 - 0.1 * down, 0.4], [-0.32, 0.2, 0.34], rinse);
++  grip(p, T, 'r', razor, [-0.9, -0.6, -0.3], 0.5); grip(p, T, 'l', [0.06 - 0.06 * side, 0.9, 0.42], [0.9, -0.6, -0.3], -0.9);
++  look(p, T, rinse > 0.5 ? [-0.3, 0.2, 0.35] : [0.02 * side, 0.86, 0.45]); p.grip = [0.3, 1]; return p;
++}
++/** D-292 (GC27): a herd boy with his sling, watching the flock: now and then (every SLING_P s) the stone is put in the pouch,
++ *  the sling whirled twice about the head with the right arm and let go toward a stray at the flock's edge, with a step into
++ *  the throw; the rest of the time he stands with the cord hanging from his right hand (C) */
++export const SLING_P = 34;
++function sling(t: number, k: number): Pose {
++  const u = fr(t / SLING_P + k * 0.21) * SLING_P, load = win(u, 24, 25.5, 0.3), whirl = win(u, 25.5, 28, 0.2), cast = win(u, 28, 28.8, 0.1), p = blank();
++  const turn = whirl * 2 * PI * 1.6 * (u - 25.5);
++  const T = body(p, { hp: 0.04 + 0.1 * cast, sp: 0.05 + 0.12 * cast, drop: -0.015, hy: 0.05 * wob(t * 0.2, k) - 0.25 * whirl + 0.35 * cast }, t, k);
++  stance(p, T, { w: 0.14, zl: 0.12 * (whirl + cast), zr: -0.05 - 0.08 * cast, out: 0.22 });
++  const rest: V3 = [-0.2, 0.86, 0.08], head: V3 = [-0.1 + 0.28 * C(turn), 1.75 + 0.06 * S(turn), 0.05 + 0.28 * S(turn)], throw_: V3 = [-0.08, 1.35, 0.62], pouch: V3 = [0.02, 1.02, 0.3];
++  const R = cast > 0.05 ? mixV(head, throw_, cast) : whirl > 0.05 ? mixV(pouch, head, whirl) : mixV(rest, pouch, load);
++  grip(p, T, 'r', R, [-0.8, -0.9, -0.3], 0.4); grip(p, T, 'l', load > 0.05 ? [pouch[0] + 0.06, pouch[1], pouch[2]] : [0.2, 0.86, 0.06 + 0.25 * cast], [0.8, -1, -0.2]);
++  look(p, T, [6 * S(t * 0.11 + k), 0.3, 8 + 4 * C(t * 0.07 + k)]); p.grip = [load > 0.05 ? 0.8 : 0.2, 1]; return p;
++}
+ export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
+   switch (id) {
+     case 'hoe': return hoe(t, k);
+@@ -910,6 +965,10 @@ export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
+     case 'drill': return drill(t, k);
+     case 'scrape': return scrape(t, k);
+     case 'pound': return pound(t, k);
++    case 'wash_face': return washFace(t, k);
++    case 'delouse': return delouse(t, k);
++    case 'shave': return shave(t, k);
++    case 'sling': return sling(t, k);
+   }
+ }
+ /** the root path of a path cycle at time t (called every frame by the crowd, also between pose refreshes) */
+diff --git a/src/people/workObjects.ts b/src/people/workObjects.ts
+index 92ea85c..1374031 100644
+--- a/src/people/workObjects.ts
++++ b/src/people/workObjects.ts
+@@ -26,7 +26,9 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
+   // D-255: the crafts and the records
+   | 'anvil' | 'bellows_stand' | 'bellows' | 'stake' | 'weigh_table' | 'sealed_jars' | 'seal_bench' | 'tan_beam' | 'tan_vat' | 'hide_frames' | 'oil_press' | 'oil_jars'
+   // D-256: the work on the land (the fold against the wolves, the drums from the quarry, milking, fishing, snaring, bees, nuts)
+-  | 'fold' | 'drum_haul' | 'sledge' | 'drum_rough' | 'milk_pot' | 'basket_fish' | 'fish_trap' | 'snare' | 'hives' | 'basket_nuts';
++  | 'fold' | 'drum_haul' | 'sledge' | 'drum_rough' | 'milk_pot' | 'basket_fish' | 'fish_trap' | 'snare' | 'hives' | 'basket_nuts'
++  // D-292: the body's care (the basin the face is washed over, the barber's jar)
++  | 'basin';
+ type RGB = [number, number, number];
+ const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
+   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
+@@ -105,6 +107,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string
+   sledge: { tier: 'C', note: 'the drum sledge going back empty to the quarry: two heavy runners and cross-pieces, the traces forward to the yokes (C: D-256)' },
+   drum_rough: { tier: 'C', note: 'a column drum roughed out at the quarry, over-size, the point marks on it, chips about its foot (C: D-256)' },
+   milk_pot: { tier: 'C', note: 'a round-bellied clay pot for the milk (C: D-256)' },
++  basin: { tier: 'C', note: 'a wide shallow clay basin with a little water in it, the water jar beside: the face and hands washed over it, the water poured from a small jug (plain wide bowls and basins are ordinary finds: B; the use C: D-292)' },
+   basket_fish: { tier: 'C', note: 'a basket with the catch, barbel and carp of the river (C: D-256)' },
+   fish_trap: { tier: 'C', note: 'a conical wicker fish trap at the water\'s edge, weighted with a stone (C: D-256)' },
+   snare: { tier: 'C', note: 'a pegged snare line: a cord between two pegs with horsehair nooses along it (C: D-256)' },
+@@ -336,6 +339,9 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
+     case 'drum_rough': { const g = [P(new THREE.CylinderGeometry(0.84, 0.88, 1.3, 9).translate(0, 0.65, 0), LIME, 1)];
+       for (let i = 0; i < 6; i++) g.push(P(mound(0.18 + 0.08 * Math.abs(jit(i)), 0.07, 5, 1.0 * Math.cos(i * 1.1), 1.0 * Math.sin(i * 1.1)), [0.7, 0.68, 0.63], 1));
+       return merge(g); }
++    case 'basin': return merge([P(lathe([[0.001, 0], [0.12, 0.005], [0.2, 0.05], [0.23, 0.1], [0.215, 0.105], [0.19, 0.06], [0.001, 0.02]], 12), POT, 0.85),
++      P(new THREE.CylinderGeometry(0.185, 0.185, 0.003, 12).translate(0, 0.055, 0), [0.32, 0.36, 0.36], 0.08),
++      P(lathe([[0.001, 0], [0.06, 0.01], [0.075, 0.07], [0.05, 0.13], [0.032, 0.15], [0.038, 0.17], [0.001, 0.16]], 8).translate(0.3, 0, 0.05), POT, 0.85)]);
+     case 'milk_pot': return merge([P(lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.12], [0.12, 0.22], [0.08, 0.26], [0.09, 0.29], [0.07, 0.29], [0.001, 0.2]], 10), POT, 0.85),
+       P(new THREE.CylinderGeometry(0.075, 0.075, 0.004, 10).translate(0, 0.24, 0), [0.92, 0.9, 0.84], 0.6)]);
+     case 'basket_fish': { const g = [P(new THREE.CylinderGeometry(0.22, 0.17, 0.2, 10, 1, true).translate(0, 0.1, 0), [0.6, 0.52, 0.32])];
+diff --git a/tests/audio_population.test.ts b/tests/audio_population.test.ts
+index 3539e0a..ec58843 100644
+--- a/tests/audio_population.test.ts
++++ b/tests/audio_population.test.ts
+@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
+ import { AudioEngine, LIMITER, ceilingCurve } from '../src/audio/engine';
+ import { Soundscape } from '../src/audio/soundscape';
+ import { NoiseStream } from '../src/audio/beds';
+-import { PopulationVoices, personVoice, voiceDist, voiceLang, WORDLESS, LAUGH, CHILD_CALL, CRY, COUGH, unitsFor, type NearPerson } from '../src/audio/voices';
++import { PopulationVoices, personVoice, voiceDist, voiceLang, WORDLESS, LAUGH, CHILD_CALL, CRY, COUGH, LULL, unitsFor, type NearPerson } from '../src/audio/voices';
+ import { WaterSound, FLOW } from '../src/audio/water';
+ import { planUtterance, renderPlan } from '../src/audio/speech';
+ import { LEXICON, murmurEligible, type LangId } from '../src/lang/lexicon';
+@@ -58,13 +58,13 @@ describe('voices from the population (T-G3, D-241, T-K1a2)', () => {
+       for (const u of mine.slice(0, 3)) expect(sourceLevel(u.src as any, u.t0, lis).db, `${p.key} ${u.unit}`).toBeGreaterThan(-40); }
+     const published = new Set<string>([...LINES.map(l => l.id), ...(Object.keys(LEXICON) as LangId[]).flatMap(l => LEXICON[l].filter(murmurEligible).map(e => e.id))]);
+     // (the human sounds that are not words, session 9: laughter, children's calls, babies' cries, are wordless too)
+-    for (const u of log) if (u.lang === 'wordless') expect(/^(wordless|laugh|call|cry|cough):/.test(u.unit), u.unit).toBe(true); else expect(published.has(u.unit), u.unit).toBe(true);
++    for (const u of log) if (u.lang === 'wordless') expect(/^(wordless|laugh|call|cry|cough|lull):/.test(u.unit), u.unit).toBe(true); else expect(published.has(u.unit), u.unit).toBe(true);
+     // the Egyptians and Lydians of the scene hum; nobody of theirs speaks another people's words
+     const wordlessKeys = new Set(S.people.filter(p => voiceLang(p.lang, p.langs).lang === null).map(p => p.key));
+     expect(wordlessKeys.size).toBeGreaterThan(0);
+     for (const u of log) if (wordlessKeys.has(u.key)) expect(u.lang).toBe('wordless');
+     expect(log.some(u => u.kind === 'bed')).toBe(true); // the talkers beyond the clear voices are heard as the grain bed
+-    for (const w of [...WORDLESS, ...LAUGH, ...CHILD_CALL, ...CRY, ...COUGH]) expect(findModernWords(w.ipa, { ipa: true }), w.ipa).toEqual([]);
++    for (const w of [...WORDLESS, ...LAUGH, ...CHILD_CALL, ...CRY, ...COUGH, ...LULL]) expect(findModernWords(w.ipa, { ipa: true }), w.ipa).toEqual([]);
+     for (const l of ['op', 'el', 'arc', 'bab', 'grc'] as LangId[]) expect(unitsFor(l).words.length).toBeGreaterThan(40);
+   });
+   it('a voice claims the jaw only while it plays (a visible speaker is a heard speaker)', () => {
+@@ -139,4 +139,13 @@ describe('the human sounds that are not words (session 9, G33)', () => {
+     expect(cries[0].voice.age).toBeLessThan(2);
+     const coughs = L.filter(u => u.unit.startsWith('cough:')); expect(coughs.every(u => u.key !== 'b0')).toBe(true);
+   });
++  it('D-292 (C-D30): a woman with a small child at its bedtime hums it a wordless lullaby, in phrases with a breath between; nobody else does', () => {
++    const { ctx, e } = engineOn(), v = new PopulationVoices(e, { seed: 7 }), L = log(v); v.coughEvery = 1e9;
++    const mother: NearPerson = { key: 'm0', x: 2, y: 0, z: 2, talking: false, lang: 'Old Persian', sex: 'f', age: 24, seed: 11, group: null, lull: true };
++    const other: NearPerson = { key: 'w1', x: -2, y: 0, z: 2, talking: false, lang: 'Old Persian', sex: 'f', age: 30, seed: 12, group: null };
++    drive(ctx, 90, dt => v.update(dt, [mother, other], { x: 0, y: 1.6, z: 0 }));
++    const hums = L.filter(u => u.unit.startsWith('lull:')); expect(hums.length).toBeGreaterThan(12);
++    expect(hums.every(u => u.key === 'm0' && u.lang === 'wordless')).toBe(true);
++    let breaths = 0; for (let i = 1; i < hums.length; i++) if (hums[i].t0 - hums[i - 1].t1 > 1) breaths++; expect(breaths).toBeGreaterThan(2);
++  });
+ });
+diff --git a/tests/people_belly.test.ts b/tests/people_belly.test.ts
+new file mode 100644
+index 0000000..145ea38
+--- /dev/null
++++ b/tests/people_belly.test.ts
+@@ -0,0 +1,65 @@
++// D-292 (gap hunter C, C-D09): a woman with child carries a belly that grows with the months, drawn on the body and on what
++// she wears by a per-instance displacement in the humans' vertex stage (humanMaterial mirrors drape.ts bellyOffset), and
++// only a woman who gives birth carries one (Population.gravid from the year's births and the next year's first months).
++// Measured in node: on the fitted geometry of the women's dresses for every adult woman's body, and on the population's plans.
++import { describe, it, expect, beforeAll } from 'vitest';
++import { readFileSync } from 'node:fs';
++import { decodeHumanAssets, type HumanAssets } from '../src/people/humanAssets';
++import { buildOutfits, COSTUME_OF, type OutfitBuild } from '../src/people/outfits';
++import { MAT, PART } from '../src/people/humanFormat';
++import { bellyFrame, bellyOffset, BELLY } from '../src/people/drape';
++import { buildPop, sampleDays, bodyTrace } from '../tools/dev/body_trace';
++import { REGNAL_DAYS } from '../src/people/calendar';
++import type { Population } from '../src/people/population';
++
++let A: HumanAssets, O: OutfitBuild;
++beforeAll(() => {
++  const b = readFileSync('public/generated/humans/humans.bin');
++  A = decodeHumanAssets(JSON.parse(readFileSync('public/generated/humans/humans.json', 'utf8')), b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
++  O = buildOutfits(A, { dresses: ['woman', 'persian'], lods: [0] });
++}, 180_000);
++const women = () => A.variants.filter(v => (v.meta as any).sex === 'f' && (v.meta as any).group !== 'child');
++
++describe('the belly on the body and the clothes (D-292)', () => {
++  it('stands about 15 cm proud at term at the abdomen, grows with the months, and leaves the head, hands, feet and back alone', () => {
++    for (const v of women()) { const F = bellyFrame(A, v); let best = 0, far = 0; const at: number[] = [];
++      for (const a of [0.25, 0.5, 1]) { let m = 0; for (let i = 0; i < A.NO; i++) { const o = bellyOffset(v.pos[i * 3], v.pos[i * 3 + 1], v.pos[i * 3 + 2], a, F); m = Math.max(m, o.dz); } at.push(m); }
++      for (let i = 0; i < A.NO; i++) { const o = bellyOffset(v.pos[i * 3], v.pos[i * 3 + 1], v.pos[i * 3 + 2], 1, F); const part = A.part[i];
++        if (part === PART.belly) best = Math.max(best, o.dz);
++        if (part === PART.head || part === PART.hand_l || part === PART.hand_r || part === PART.foot_l || part === PART.foot_r || part >= PART.eye || v.pos[i * 3 + 2] < F.z0 - BELLY.front[0]) far = Math.max(far, Math.abs(o.dz) + Math.abs(o.dy)); }
++      expect(best, v.meta.id).toBeGreaterThan(0.13); expect(best, v.meta.id).toBeLessThan(0.17);
++      expect(far, `${v.meta.id}: displaced where no belly is`).toBeLessThan(1e-6);
++      expect(at[0]).toBeLessThan(at[1]); expect(at[1]).toBeLessThan(at[2]);
++      for (let i = 0; i < A.NO; i++) expect(bellyOffset(v.pos[i * 3], v.pos[i * 3 + 1], v.pos[i * 3 + 2], 0, F).dz).toBe(0); }
++  });
++  it('the clothes stay outside the body: every garment vertex ahead of the skin before is ahead of it after, at every month', () => {
++    for (const dress of ['woman', 'persian'] as const) { const C = O.costumes[COSTUME_OF[dress]].find(c => c.lod === 0)!;
++      for (const v of women()) { const F = bellyFrame(A, v); let moved = 0, worst = 0;
++        // the body's front, binned by (x, y) at 1.5 cm, before and after
++        const key = (x: number, y: number) => `${Math.round(x / 0.015)},${Math.round(y / 0.015)}`;
++        for (const a of [0.3, 0.7, 1]) { const b0 = new Map<string, number>(), b1 = new Map<string, number>();
++          for (let i = 0; i < A.NO; i++) { if (A.part[i] >= PART.eye) continue; const x = v.pos[i * 3], y = v.pos[i * 3 + 1], z = v.pos[i * 3 + 2]; if (z < F.z0 - 0.12) continue; const o = bellyOffset(x, y, z, a, F), k = key(x, y);
++            b0.set(k, Math.max(b0.get(k) ?? -9, z)); b1.set(k, Math.max(b1.get(k) ?? -9, z + o.dz)); }
++          for (let i = 0; i < C.tid.length; i++) { const m = C.hmat[i * 4]; if (m === MAT.skin || m === MAT.eye || m === MAT.lash || m === MAT.teeth || m === MAT.mouth) continue;
++            const o4 = (v.index * O.NV + C.tid[i]) * 4, x = O.source[o4], y = O.source[o4 + 1], z = O.source[o4 + 2]; const k = key(x, y), z0 = b0.get(k), z1 = b1.get(k); if (z0 === undefined || z < z0 - 1e-4) continue;
++            // (the skin under the cloth vertex: the cell's foremost skin before, moved by the belly at the cloth vertex's own x, y)
++            const o = bellyOffset(x, y, z, a, F), under = z0 + bellyOffset(x, y, z0, a, F).dz; if (o.dz > 0) moved++; worst = Math.max(worst, under - (z + o.dz)); void z1; } }
++        expect(moved, `${dress} on ${v.meta.id}: the clothes move with the belly`).toBeGreaterThan(50);
++        expect(worst, `${dress} on ${v.meta.id}: the body comes through the clothes by`).toBeLessThan(1e-4); } }
++  }, 120_000);
++});
++
++describe('who carries a child (D-292)', () => {
++  let P: Population;
++  beforeAll(() => { P = buildPop(1); }, 180_000);
++  it('only the women who give birth, 3-6 % of women 15-44 visibly on the sampled days, the belly continuous with the months', () => {
++    const r = bodyTrace(P, 1, sampleDays(1, 6), 3);
++    expect(r.bellyNoBirth).toBe(0); expect(r.share).toBeGreaterThan(0.03); expect(r.share).toBeLessThan(0.06);
++    let jumps = 0, n = 0, late = 0;
++    for (let pid = 0; pid < P.persons.length; pid += 2) { const x = P.dueIn(pid, 0); if (x === null) continue; n++;
++      for (let d = 1; d < REGNAL_DAYS; d++) { const g0 = P.gravid(pid, d - 1), g1 = P.gravid(pid, d); if (P.present(pid, d - 1) && P.present(pid, d) && g1 - g0 > 1 / 60 + 1e-9) jumps++; }
++      if (x >= REGNAL_DAYS && P.gravid(pid, REGNAL_DAYS - 1) > 0.2) late++; }
++    expect(n).toBeGreaterThan(200); expect(jumps, 'a belly that jumps from one day to the next').toBe(0);
++    expect(late, 'women who give birth early in the next year are with child in the last months').toBeGreaterThan(10);
++  }, 240_000);
++});
+diff --git a/tests/people_care.test.ts b/tests/people_care.test.ts
+new file mode 100644
+index 0000000..33989dd
+--- /dev/null
++++ b/tests/people_care.test.ts
+@@ -0,0 +1,59 @@
++// D-292 (gap hunter C, C-D04..C-D07, C-D46; WORLD_INVENTORY GC6, GC20, GB50): the body's care laid over the day plans
++// (population.ts care): the morning wash at the house's jar, a child's hair gone through for lice on the doorstep, the
++// quarter's barbers in the lane; and the Persians' washing on the bank from a jar, never in the stream (Herodotus 1.138).
++// How this could pass while the intent fails (said before building): care spells that exist in the plans but move the
++// morning's work (so the morning's timings change), pairs whose two halves are at different places or hours (a woman
++// picking lice from nobody; a man shaved by no barber), spells the crowd draws with a pose that is not theirs, a washing
++// rule that renames the reason while the performance still kneels in the stream. Each is measured below.
++import { describe, it, expect, beforeAll } from 'vitest';
++import { buildPop, sampleDays, bodyTrace, WASH_FACE } from '../tools/dev/body_trace';
++import { segAt, wakeIndex, type Population, type Seg } from '../src/people/population';
++import { checkPlan, checkDay } from '../src/people/planCheck';
++import { performanceFor } from '../src/people/activities';
++import { PAIR_FOLLOW } from '../src/people/popview';
++
++let P: Population; const days = sampleDays(1, 3);
++beforeAll(() => { P = buildPop(1); }, 240_000);
++const base = (pid: number, d: number): Seg[] => (P as any).relabel(pid, d, P.rawPlan(pid, d));
++
++describe('the body\'s care (D-292)', () => {
++  it('everyone of three and over in the town and the plain washes at rising, and no morning work moves for it', () => {
++    let n = 0, washed = 0, moved = 0;
++    for (const d of days) for (let pid = 0; pid < P.persons.length; pid += 7) { const p = P.persons[pid]; if (!P.present(pid, d) || p.agent >= 0 || P.ageOn(pid, d) < 3) continue;
++      const H = P.households[P.home(pid, d)]; if (H.zone !== 'town' && H.zone !== 'plain') continue; const b = base(pid, d), wi = wakeIndex(b, H.home); if (wi < 0 || P.sick(pid, d)) continue; n++;
++      const s = P.plan(pid, d), w = s.findIndex(x => WASH_FACE.test(x.why)); if (w < 0) continue; washed++;
++      // (the wash ends where the night's sleep ended; what follows is the planner's day)
++      if (Math.abs(s[w].t1 - b[wi].t1) > 1e-6 || s[w + 1].act !== b[wi + 1].act || Math.abs(s[w + 1].t0 - b[wi + 1].t0) > 1e-6) moved++; }
++    expect(n).toBeGreaterThan(500); expect(washed / n).toBeGreaterThan(0.97); expect(moved).toBe(0);
++  }, 240_000);
++  it('the pairs are together: the woman and the child on the doorstep, the barber and the man in the lane, at the same hours', () => {
++    let combs = 0, shaves = 0, bad: string[] = [];
++    for (const d of days) {
++      for (let h = 0; h < P.households.length; h += 2) { const c = P.combOf(h, d); if (!c) continue; combs++; const [w, k, a, b] = c, m = (a + b) / 2, sw = segAt(P.plan(w, d), m), sk = segAt(P.plan(k, d), m);
++        if (sw.act !== 'tend_body' || sk.act !== 'tend_body' || sw.place !== sk.place || sk.with !== w || !PAIR_FOLLOW.test(sk.why)) bad.push(`comb d${d} h${h}: ${sw.act} ${sw.place} / ${sk.act} ${sk.place} ${sk.why}`); }
++      for (const q of ['q_pw_n', 'q_pw_s', 'q_lt_e', 'q_lt_w', 'q_north', 'q_firuzi', 'q_gohar']) for (const [B, x, a, b] of P.shavesOn(q, d)) { shaves++; const m = (a + b) / 2, sb = segAt(P.plan(B, d), m), sx = segAt(P.plan(x, d), m);
++        if (sb.act !== 'tend_body' || sx.act !== 'tend_body' || sb.place !== `lane:${q}` || sx.place !== sb.place || sx.with !== B || !PAIR_FOLLOW.test(sx.why)) bad.push(`shave d${d} ${q}: ${sb.act} ${sb.place} / ${sx.act} ${sx.place}`); } }
++    expect(bad.slice(0, 5)).toEqual([]); expect(combs).toBeGreaterThan(100); expect(shaves).toBeGreaterThan(60);
++  }, 240_000);
++  it('the care spells add no fault to the plans (checkPlan) and none to the day (checkDay: with, alone, minding)', () => {
++    const d = days[1]; let added = 0, checked = 0; const notes: string[] = [];
++    for (let pid = 0; pid < P.persons.length; pid += 3) { if (!P.present(pid, d)) continue; const s = P.plan(pid, d); if (!s.some(x => x.ev === 'D-292' && !WASH_FACE.test(x.why))) continue; checked++;
++      const prev = P.present(pid, d - 1) ? P.plan(pid, d - 1).slice(-1)[0].place : null, k0 = new Set(checkPlan(P, pid, d, base(pid, d), prev).map(x => x.kind));
++      for (const i of checkPlan(P, pid, d, s, prev)) if (!k0.has(i.kind)) { added++; if (notes.length < 5) notes.push(`${pid}: ${i.kind} ${i.note}`); } }
++    expect(checked).toBeGreaterThan(50); expect(notes).toEqual([]); expect(added).toBe(0);
++    const care = checkDay(P, d, pid => P.plan(pid, d)).filter(x => P.plan(x.pid, d).some(s => s.ev === 'D-292' && !WASH_FACE.test(s.why)));
++    expect(care.slice(0, 5)).toEqual([]);
++  }, 600_000);
++  it('the crowd draws each spell with its own pose: the wash over the basin, the woman at the child\'s head, the barber\'s razor, the sitters', () => {
++    const pf = (why: string) => performanceFor('tend_body', why);
++    expect(pf('washing her face and hands at the water jar in the courtyard at rising, the water poured into a basin').anim).toBe('wash_face');
++    expect(pf('picking the lice from Irdabama’s hair on the doorstep, parting it with her fingers').anim).toBe('delouse');
++    expect(pf('having his hair gone through for lice on the doorstep, sitting still in front of her').anim).toBe('sit');
++    const b = pf('shaving men of the quarter in the lane: a beard trimmed or the cheeks shaved with a bronze razor, water from a jar'); expect(b.anim).toBe('shave'); expect(b.prop).toBe('knife');
++    expect(pf('being shaved by the barber in the lane, sitting on the ground: his beard trimmed or his cheeks shaved').anim).toBe('sit');
++    const w = performanceFor('wash', 'washing his clothes on the bank, with water drawn up in a jar, away from the stream (the Persians\' rule: HDT 1.138)'); expect(w.work?.some(x => x.kind === 'jar')).toBe(true);
++  });
++  it('no Persian and no guard washes in the stream: at the river and the canals it is done on the bank from a jar (Herodotus 1.138)', () => {
++    const r = bodyTrace(P, 1, days, 5); expect(r.persianLaundry).toBeGreaterThan(20); expect(r.persianInStream).toBe(0);
++  }, 240_000);
++});
+diff --git a/tools/dev/body_find.ts b/tools/dev/body_find.ts
+new file mode 100644
+index 0000000..1850a17
+--- /dev/null
++++ b/tools/dev/body_find.ts
+@@ -0,0 +1,19 @@
++// D-292: find a moment for the body and the day, from the renderless view (people_trace's world, as world.ts builds it):
++// women far on with child standing out of doors in the town at an hour, and the care pairs drawn then (the delousing on a
++// doorstep, the barber in the lane), with a camera pose 4 m off each (moments.spec.ts v: grid e, n, eye height, TRUE
++// azimuth, pitch; grid north is 341° true, so true = grid − 19°).
++//   npx tsx tools/dev/body_find.ts [--seed 1] [--day 30] [--hour 8.5] [--radius 700]
++import { buildTraceWorld } from './people_trace';
++
++const arg = (k: string, v: string) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : v; };
++const seed = +arg('seed', '1'), day = +arg('day', '30'), hour = +arg('hour', '8.5'), radius = +arg('radius', '700');
++const W = buildTraceWorld(seed, 1, true); W.view.radius = radius;
++const centre: [number, number] = [-422, -941], t = day * 24 + hour; W.sim.jumpTo(t); W.view.settle(t, centre);
++const P = W.pop, pose = (e: number, n: number, headingDeg: number, dist = 4) => { const h = headingDeg * Math.PI / 180, ce = e + Math.sin(h) * dist, cn = n + Math.cos(h) * dist, g = (Math.atan2(e - ce, n - cn) * 180 / Math.PI + 360) % 360;
++  return `[${ce.toFixed(1)}, ${cn.toFixed(1)}, 1.6, ${((g - 19 + 360) % 360).toFixed(1)}, -6]`; };
++const rows: string[] = [];
++for (const vp of W.view.visible) { if (vp.agent >= 0) continue; const x = P.dueIn(vp.pid, day);
++  if (x !== null && x >= 0 && x < 70 && P.expecting(vp.pid, day)) rows.push(`WITH CHILD p${vp.pid} due ${x} d, belly ${P.gravid(vp.pid, day).toFixed(2)}, ${vp.moving ? 'walking' : 'standing'} ${vp.act} "${vp.why}" at (${vp.e.toFixed(1)}, ${vp.n.toFixed(1)}) h ${vp.heading.toFixed(0)}: ${vp.what}; camera ${pose(vp.e, vp.n, vp.heading)}`);
++  if (vp.act === 'tend_body') rows.push(`CARE p${vp.pid} "${vp.why}" at (${vp.e.toFixed(1)}, ${vp.n.toFixed(1)}) h ${vp.heading.toFixed(0)}: ${vp.what}; camera ${pose(vp.e, vp.n, vp.heading)}`); }
++console.log(`seed ${seed} day ${day} ${hour} h: ${W.view.visible.length} out of doors within ${radius} m; pairs placed ${W.view.pairs.placed}, alone ${W.view.pairs.alone}`);
++for (const r of rows) console.log(r);
+diff --git a/tools/dev/body_trace.ts b/tools/dev/body_trace.ts
+new file mode 100644
+index 0000000..7100f18
+--- /dev/null
++++ b/tools/dev/body_trace.ts
+@@ -0,0 +1,69 @@
++// D-292: the body and the day, traced in node (gap hunter C's people gaps: C-D09, C-D04..C-D07, C-D46; GC6, GC20).
++// For a seed over sampled days, from the population's own plans (population.ts; what the crowd draws follows the plan's act
++// and reason, activities.ts performanceFor):
++//  - the share of women 15-44 visibly with child (Population.expecting; target 3-6 %, the rate E-70's births imply), and
++//    that no woman carries a belly who gives no birth (gravid > 0 only with a due day);
++//  - morning washes per household (face and hands at the water jar in the court at rising: the plans' reasons);
++//  - shaves per man per month (a man shaved or his beard trimmed by the barber in the lane);
++//  - combing and delousing a child on the doorstep, per household per day;
++//  - no Persian washing in a stream: every laundry block of a Persian at the river or the canal is on the bank with water
++//    drawn up in a jar (Herodotus 1.138, a Greek claim: B).
++//
++//   npx tsx tools/dev/body_trace.ts [--seed 1] [--days 6] [--json]
++import { readFileSync } from 'node:fs';
++import { NavGrid } from '../../src/people/navgrid';
++import { PeopleSim, type Env } from '../../src/people/sim';
++import { WeatherSystem } from '../../src/weather/weatherState';
++import { REGNAL_DAYS } from '../../src/people/calendar';
++import { STREAM as LAUNDRY_WATER, ON_BANK, type Population, type Seg } from '../../src/people/population';
++import { h32, salt } from '../../src/people/hash';
++
++export const WASH_FACE = /washing (his|her|the child['’]s) face and hands/;
++export const SHAVE = /^(being shaved|having his beard trimmed) by the barber/;
++export const BARBER = /^shaving men of the quarter/;
++export const COMB = /combing|delousing|lice/;
++
++export function buildPop(seed: number): Population {
++  const W = new WeatherSystem(seed);
++  const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
++  const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
++  return (new PeopleSim(seed, nav, env) as any).pop as Population;
++}
++/** the sampled days: spread over the year, drawn from the seed (never chosen) */
++export function sampleDays(seed: number, n: number): number[] { const out: number[] = []; for (let k = 0; k < n; k++) out.push(Math.floor((k + h32(seed, salt('body-days'), k) / 4294967296) * REGNAL_DAYS / n)); return out; }
++
++export interface BodyTrace { seed: number; days: number[]; women: number; expecting: number; share: number; bellyNoBirth: number; bellyWomen: number; households: number; washes: number; washPerHH: number;
++  washHH: number; men: number; shaves: number; shavesPerManMonth: number; barbers: number; combs: number; combPerHH: number; persianLaundry: number; persianInStream: number; laundryAll: number; examples: string[] }
++export function bodyTrace(P: Population, seed: number, days: number[], sample = 1): BodyTrace {
++  let women = 0, expecting = 0, bellyNoBirth = 0, bellyWomen = 0, hhN = 0, washes = 0, washHH = 0, men = 0, shaves = 0, barbers = 0, combs = 0, pLaundry = 0, pStream = 0, laundry = 0; const ex: string[] = [];
++  for (const d of days) {
++    for (let pid = 0; pid < P.persons.length; pid += sample) { const p = P.persons[pid]; if (!P.present(pid, d)) continue; const age = P.ageOn(pid, d);
++      if (p.sex === 'f' && age >= 15 && age <= 44 && p.zone !== 'transient') { women++; if (P.expecting(pid, d)) expecting++; }
++      const g = P.gravid(pid, d); if (g > 0) { bellyWomen++; if (P.dueIn(pid, d) === null || p.sex !== 'f') bellyNoBirth++; } }
++    for (let h = 0; h < P.households.length; h += sample) { const H = P.households[h]; if (H.zone !== 'town' && H.zone !== 'plain') continue; const mem = P.membersOn(h, d); if (!mem.length) continue; hhN++;
++      let w = 0; for (const x of mem) { const segs: Seg[] = P.plan(x, d);
++        for (const s of segs) { if (WASH_FACE.test(s.why)) { w++; if (ex.length < 6 && w === 1) ex.push(`d${d} p${x}: ${s.t0.toFixed(2)}-${s.t1.toFixed(2)} ${s.act} @ ${s.place}: ${s.why}`); }
++          if (COMB.test(s.why) && s.with === undefined) combs++; } }
++      washes += w; if (w) washHH++; }
++    for (let pid = 0; pid < P.persons.length; pid += sample) { const p = P.persons[pid]; if (!P.present(pid, d)) continue; const age = P.ageOn(pid, d); const segs: Seg[] = P.plan(pid, d);
++      if (p.sex === 'm' && age >= 16 && P.households[P.home(pid, d)]?.zone === 'town' && p.agent < 0) men++; // (the town's men: the quarters' barbers serve them)
++      for (const s of segs) { if (SHAVE.test(s.why)) shaves++; if (BARBER.test(s.why)) barbers++;
++        if (s.act === 'wash' && LAUNDRY_WATER.test(s.place)) { laundry++; if (p.persian || p.job === 'guard') { pLaundry++; if (!ON_BANK.test(s.why)) { pStream++; if (ex.length < 12) ex.push(`IN STREAM d${d} p${pid} ${p.job}: ${s.place}: ${s.why}`); } } } } }
++  }
++  const nd = days.length;
++  return { seed, days, women, expecting, share: expecting / Math.max(1, women), bellyNoBirth, bellyWomen, households: hhN, washes, washPerHH: washes / Math.max(1, hhN), washHH: washHH / Math.max(1, hhN), men, shaves,
++    shavesPerManMonth: shaves / Math.max(1, men) * 29.5, barbers, combs, combPerHH: combs / Math.max(1, hhN), persianLaundry: pLaundry, persianInStream: pStream, laundryAll: laundry, examples: ex, ...(nd ? {} : {}) };
++}
++
++if (process.argv[1]?.endsWith('body_trace.ts')) {
++  const arg = (k: string, v: string) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : v; };
++  const seed = +arg('seed', '1'), n = +arg('days', '6'), sample = +arg('sample', '1');
++  const P = buildPop(seed), days = sampleDays(seed, n), r = bodyTrace(P, seed, days, sample);
++  if (process.argv.includes('--json')) console.log(JSON.stringify(r, null, 1));
++  else { console.log(`seed ${seed}, days ${days.join(', ')}${sample > 1 ? `, every ${sample}th` : ''}`);
++    console.log(`women 15-44 visibly with child: ${r.expecting} of ${r.women} woman-days = ${(100 * r.share).toFixed(2)} % (target 3-6 %); belly drawn on ${r.bellyWomen} person-days, ${r.bellyNoBirth} without a birth`);
++    console.log(`morning washes: ${r.washPerHH.toFixed(2)} per household-day (${(100 * r.washHH).toFixed(1)} % of households wash); combing/delousing ${r.combPerHH.toFixed(3)} per household-day`);
++    console.log(`shaves: ${r.shaves} over ${r.men} man-days = ${r.shavesPerManMonth.toFixed(2)} per man per month; barber blocks ${r.barbers}`);
++    console.log(`laundry at water: ${r.laundryAll}; by Persians or guards ${r.persianLaundry}, in the stream ${r.persianInStream}`);
++    for (const e of r.examples) console.log('  ' + e); }
++}

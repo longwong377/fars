@@ -1,3 +1,82 @@
+# HANDOFF — end of session 10 (2026-09-27); branch claude/amazing-fermi-40ds7j
+
+**Session 11 moves to a GPU machine (Vagon, the user's choice).** Read first, in this order: `USER_DIRECTIONS.md`, `MASTER_PLAN.md`,
+`gates/thresholds.json`, PROGRESS.md (problems first), this section, `sessions/s10.md`, BLOCKERS.md, `COVERAGE.md` (the generated
+board), `WORLD_INVENTORY.md`. Decide, log in DECISIONS, proceed; every report leads with what is broken.
+
+## First: setting up on the GPU machine (the whole point of the move)
+- **What changes:** every render so far ran in SwiftShader on 4 CPU cores (a test-quality view ~285 s, a high frame 2.5-4 min,
+  a page load 5-45 min of shader compiling). On a real GPU expect seconds. The render lane stops being the bottleneck: render at
+  the player's lens and quality (FOV=game, Q=high/ultra) by default, run the coverage passes (tests/e2e/coverage.spec.ts), and
+  measure real frame rates (REAL_HARDWARE_TODO.md, T-K7).
+- **Setup:** `git clone`, `git checkout claude/amazing-fermi-40ds7j`, `git fetch --unshallow --tags` if shallow, `npm ci` (installs
+  the pre-commit guards), `npx playwright install chromium` (the container used a preinstalled browser; Vagon will not have it),
+  `npm run guards`, `npx tsc --noEmit -p .`. Terrain: public/generated/ is committed; the DEM tifs are not needed to run.
+- **The GPU project:** `playwright.config.ts` now has `--project=gpu` (no SwiftShader flags; `HEADED=1` for a visible window if
+  headless falls back to software). FIRST check which adapter the page gets (every spec logs `backend`; `__parsa` reports the
+  adapter): if it says SwiftShader or software, run headed. Then re-time one moment (e.g. `ONLY=gate-dusk`) to learn the new cost.
+- **Windows (Vagon is a Windows desktop):** the tools under tools/dev/*.sh (render_runner.sh, queue_e2e.sh, cpu_slot.sh,
+  e2e_watchdog.sh, e2e_snapshot.sh) are bash with flock/pgrep: run them in WSL or Git Bash, or call Playwright directly
+  (`npx playwright test tests/e2e/moments.spec.ts --project=gpu` with the env vars). The cpu_slot / render-queue rules in CLAUDE.md
+  were written for the 4-core SwiftShader box: re-measure and relax them in DECISIONS once the new machine's load is known (they are
+  working rules, not gates).
+- **Pushing:** the session designates the branch; keep pushing to claude/amazing-fermi-40ds7j. Tag pushes were refused here; try
+  `git push origin ratchet/s10` from the new machine (the tag is created locally below only if the push works there).
+
+## What is broken, unverified or placeholder (read first)
+- **Three agent branches were stopped mid-work at the move and are NOT merged.** Their work is saved as patches in
+  `handoff/wip/` (one per agent, with each agent's own stop report in `handoff/wip/*_report.md` where it arrived in time):
+  D-276 Terrace rooms (Treasury, Harem, garrison, guards' sleeping: B63), D-285 Terrace materials (against the photos: B40, B57),
+  D-292 the body and the day (pregnancy, washing, shaving, the Persian washing rule). Resume: create a branch from the current
+  head, `git apply --3way handoff/wip/<name>.patch` (plain `git apply` fails only on their appended OPEN_QUESTIONS rows: --3way or append by hand), read the brief in handoff/briefs/s10/, finish, test, merge. Their reserved
+  numbers stay reserved (handoff/reserved_numbers.md). Known state: D-276 has three gate-tier failures its last WIP commit is meant to fix (popview, court, coverage sample: regenerate with its tool) and no render; D-285 did not move B40 (the tone curve and a 199/255 overexposed Terrace wall are the likelier culprits: pipeline, outside its files); D-292's pregnancy is done and tested, its care layer breaks one people_days test (the barber sits in the lane in dust: check wx.dustH).
+- **Almost nothing of session 10 has been seen on screen.** Judged: the shader A/B (identical; probe loop default on, D-290) and
+  planets-dusk at the player's lens (a thistle on the Terrace paving: fixed, unrendered). halo-sundogs timed out. Never rendered:
+  every session-10 addition (list in sessions/s10.md) and session 9's backlog. **Sounds added this session were never heard (B65).**
+- **The board:** COVERAGE.md reads 0 of 171 PASS (143 NOT-MEASURED, 19 STALE, 9 SUPERSEDED). T-A6/T-A6x passed when written and are
+  STALE since (re-run `npm run areas` after the D-276 rooms land, then `npm run board`).
+- **B88: the world's edge is walkable** (the far ring's edge at ±71.7 km; D-240 wants real terrain there). Q-741/Q-742 (unreached
+  floors; roofs have no collider; the Hall of 100 Columns unroofed?). Tier 0: the Grand Stair's collider floor off the drawn
+  surface in 33 % of cells (worst 0.76 m).
+- **T-J6 fails:** three gap hunters: 16-28 % of gaps estimated unfound (the two-list 19 % was low). WORLD_INVENTORY.md holds 34 new
+  rows (GC1-GC34) from hunter C.
+- **T-B3 (Tier-1 rotation) reads FAIL by budget on SwiftShader** (205 lane-hours a rotation): the GPU machine is the fix.
+- Still open from session 9: B67 town walk, B74-B76 villages (hitches, fires, unrendered), B81 wild garlic, B83 raised river corridor.
+
+## The render queue at close (not run: re-run these on the GPU first, they are the unverified backlog)
+    104a_tj5b1.job: E2E_PORT=5204 Q=high FOV=game ONLY=dust-devils-jun TAG=tj5 TIMEOUT=3500 PW_TIMEOUT=3550 URLX=&shareinst=1
+    104b_tj5b2.job: E2E_PORT=5218 Q=high FOV=game ONLY=meteor-terrace TAG=tj5 TIMEOUT=3500 PW_TIMEOUT=3550
+    106_ford.job: E2E_PORT=5206 Q=test ONLY=ford-pulvar-sep,ford-kur-apr TIMEOUT=2000
+    107_frost.job: E2E_PORT=5207 Q=test ONLY=frost-dawn,breath-dawn TIMEOUT=2000
+    108_quarry.job: E2E_PORT=5208 Q=test ONLY=quarry-work,tannery-work TIMEOUT=2000
+    109_press.job: E2E_PORT=5209 Q=test ONLY=press-work,drum-road TIMEOUT=2000
+    110_village.job: E2E_PORT=5210 Q=test ONLY=village-p22-dusk,village-p22-lane TIMEOUT=2000
+    111_small.job: E2E_PORT=5211 Q=test ONLY=small-spring-field,flowers-may TIMEOUT=2000
+    112_eclipse.job: E2E_PORT=5212 Q=test ONLY=eclipse-terrace,eclipse-moon-tele TIMEOUT=1500
+    113_swifts.job: E2E_PORT=5213 Q=test FOV=game ONLY=swifts-dusk TIMEOUT=1500
+    114_ground.job: E2E_PORT=5214 Q=test FOV=game ONLY=stair-foot-ground TIMEOUT=1500
+    115_murmur.job: E2E_PORT=5215 Q=test ONLY=murmuration-jan TIMEOUT=1500
+    116_snow289.job: E2E_PORT=5216 Q=test FOV=game ONLY=snow-morning-289 TIMEOUT=1500
+    117_halo.job: E2E_PORT=5217 Q=high FOV=game ONLY=halo-sundogs TAG=tj5 TIMEOUT=3500 PW_TIMEOUT=3550
+    118_zodiacal.job: E2E_PORT=5219 Q=test ONLY=zodiacal-mar TIMEOUT=1500
+    plus: planets-dusk again (the thistle fix), and share-instancing at high (`URLX=&shareinst=1` on one high view; if it renders
+    without validation errors, make it default like D-290).
+
+## Next steps, in order
+1. Set up the GPU machine (above); re-time a render; write the new costs into gates/budget.json and DECISIONS.
+2. Render the whole backlog above at the player's lens and quality; judge each in sessions/s11.md; fix what they show.
+3. Resume the three stopped agents from handoff/wip/ (at most 2-3 at once), D-276 first (ring 1).
+4. With renders cheap: the coverage pass (tests/e2e/coverage.spec.ts; now over data/areas.json once the sampler is moved onto the
+   registry: MASTER_PLAN §4.2), then the board; T-J5 three surprises verified (planets-dusk counts; halo, dust devils, meteors,
+   rainbow, murmuration, zodiacal light are candidates).
+5. Listen: a browser with speakers can finally hear the audio (B65): the lanes, the Terrace forecourt, a village, the road (hooves,
+   doors, far crowd), rain on a roof.
+6. B88 the world's edge; the next gap hunter (T-J6); ring 2 (town) after ring 1 passes coverage.
+7. At close: sessions/s11.md, reserved-number fates, tag ratchet/s11.
+
+---
+
+# Previous: end of session 9
 # HANDOFF — end of session 9 (2026-09-27); branch claude/amazing-fermi-40ds7j
 
 **Read first, in this order:** `USER_DIRECTIONS.md`, `MASTER_PLAN.md` (rev 2.1), `gates/thresholds.json`, then PROGRESS.md

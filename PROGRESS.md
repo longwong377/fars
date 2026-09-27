@@ -1,6 +1,12 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 10 (read HANDOFF.md's first section): almost nothing of session 10 is seen on screen yet.** Rendered and judged: the
+  shader A/B (identical: D-290), planets-dusk at the player's lens (T-J5 candidate; a thistle grew out of the Terrace's paving: fixed,
+  unrendered). Every other session-10 addition (D-278..D-294) is node-tested only; sounds unheard (B65). The board (COVERAGE.md,
+  now generated) reads 0 of 171 PASS. The world's edge is walkable (B88). T-J6 fails harder than thought (16-28 % of gaps unfound).
+  Three agent branches (D-276 Terrace rooms, D-285 materials, D-292 the body and the day) were stopped mid-work: their work is in
+  handoff/wip/*.patch, NOT merged.
 - **Session 9 (read HANDOFF.md's first section): most additions are unseen on screen.** Judged in renders: the crescent Moon and
   the winter snowline VERIFIED; the fords (a pale staircase), frost (read as snow), the Kur ford (floating reeds, raised corridor
   B83), the May flowers (pink blotches) BROKEN or weak, fixes queued; the eclipse's totality nearly black (B84); the heat pass

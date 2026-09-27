@@ -13,5 +13,8 @@ export default defineConfig({
   projects: [
     { name: 'webgpu', use: { launchOptions: { args: [...common, '--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader'] } } },
     { name: 'webgl2', use: { launchOptions: { args: common } } },
+    // session 10 (handoff to a GPU machine): the real graphics card, no SwiftShader. `--project=gpu`; HEADED=1 runs a visible window
+    // (headless Chromium may fall back to software on some drivers: check the page's adapter in the log, as every spec records it)
+    { name: 'gpu', use: { headless: !process.env.HEADED, launchOptions: { args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--autoplay-policy=no-user-gesture-required'] } } },
   ],
 });
