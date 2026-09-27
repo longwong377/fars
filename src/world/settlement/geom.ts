@@ -85,6 +85,15 @@ export class Batch {
     if (cap && r1 > 0) { const c = this.v(x, y1, z, 0, 1, 0, cTop); for (let s = 0; s < sides; s++) { const a0 = (s / sides) * Math.PI * 2, a1 = ((s + 1) / sides) * Math.PI * 2;
       const i1 = this.v(x + Math.cos(a0) * r1, y1, z + Math.sin(a0) * r1, 0, 1, 0, cTop), i2 = this.v(x + Math.cos(a1) * r1, y1, z + Math.sin(a1) * r1, 0, 1, 0, cTop); this.tri(c, i2, i1, owner); } }
   }
+  /** a prepared geometry (base on y = 0, footprint centred: a CC0 scan's shape, D-310) at grid (e, n), its base at y0, turned by
+   *  theta about the vertical, in one colour */
+  geo(e: number, n: number, y0: number, g: THREE.BufferGeometry, theta: number, c: RGB, owner = -1) {
+    const P = g.getAttribute('position'), N = g.getAttribute('normal'), cs = Math.cos(theta), sn = Math.sin(theta), base: number[] = [];
+    for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i), nx = N ? N.getX(i) : 0, ny = N ? N.getY(i) : 1, nz = N ? N.getZ(i) : 0;
+      base.push(this.v(e + x * cs + z * sn, y0 + P.getY(i), -n - x * sn + z * cs, nx * cs + nz * sn, ny, -nx * sn + nz * cs, c)); }
+    const I = g.index; if (I) for (let t = 0; t + 2 < I.count; t += 3) this.tri(base[I.getX(t)], base[I.getX(t + 1)], base[I.getX(t + 2)], owner);
+    else for (let t = 0; t + 2 < P.count; t += 3) this.tri(base[t], base[t + 1], base[t + 2], owner);
+  }
   /** lathe from (radius, height) pairs, bottom to top */
   lathe(e: number, n: number, y0: number, prof: [number, number][], sides: number, c: RGB, owner = -1) {
     for (let k = 0; k + 1 < prof.length; k++) { const [ra, ya] = prof[k], [rb, yb] = prof[k + 1]; if (ra === 0 && rb === 0) continue; this.cyl(e, n, ra, rb, y0 + ya, y0 + yb, sides, c, c, owner, false); }

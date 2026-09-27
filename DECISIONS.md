@@ -7419,7 +7419,10 @@ moment-*-webgpu.png in the worktree, not committed).**
   forms are used (C). (3) jars: furnish.ts jarGeometry (the Treasury's sealed and bitumen jars, the scribes' jars, the room
   fittings' storage jars), furnish_palaces.ts jarGeo, props.ts 'jar' (carried; also workObjects' 'jar'), workObjects'
   sealed_jars and oil_jars: the scan's body fitted to each builder's own r and h; the builders' materials kept.
+  Also the town's and villages' jars: settlement/build.ts fittings 'jar' / 'jar_big' (courts, village yards) and houses.ts store
+  rooms' jars, through a new Batch.geo (settlement/geom.ts: a prepared geometry into the house batches); two one-line edits in
+  the house files (the house-kit agent's area). The lod1 levels of the vessels decimate badly (collapse over UV seams): every
+  jar uses lod0 (~1500 triangles), a cost the world render must measure.
   (4) baskets: props.ts 'basket' and workObjects' basket_meat / basket_fruit / basket_nuts / basket_fish.
-- **Not switched (honest):** the town houses' and village houses' jars and sacks (settlement/build.ts, houses.ts lathes in the
-  house batches: the house-kit agent's files), the Treasury's baskets of tablets (furnish.ts scribes' baskets), sacks,
+- **Not switched (honest):** the vats and the houses' sacks, the Treasury's baskets of tablets (furnish.ts scribes' baskets), sacks,
   sherds on the roads (roadLitter.ts), pots in the hearth/milk/basin performances, bowls, crates.

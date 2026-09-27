@@ -18,6 +18,7 @@ import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
+import { scanShape } from '../../render/scanProps';
 
 /** tile size (m, site-local) and the near radius (m, from the eye to a tile's centre) */
 export const TILE = 32, NEAR_R = 72;
@@ -590,7 +591,10 @@ export class SiteHouses {
     else if (use === 'store') { // a store: jars and sacks along the back wall
       const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
       for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
-        if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
+        // session 12 (D-310): the store's jars are a CC0 scan's shape (render/scanProps.ts) fitted to the lathe's box, when loaded
+        const sj = hi(r.room, k, 2) < 0.65 ? scanShape('jar', Math.floor(hi(r.room, k, 5) * 3), [0.52 * kk, 0.82 * kk, 0.52 * kk], 0) : null;
+        if (sj) B.plaster.geo(g[0], g[1], y - 0.05, sj, hi(r.room, k, 6) * 6.283, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
+        else if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
         else B.plaster.lathe(g[0], g[1], y - 0.02, [[0.16, 0], [0.22, 0.15], [0.2, 0.42], [0.1, 0.55], [0.03, 0.58]], 6, sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own); } }
     else { // a living room: the reed mat, bedding rolled against the back wall, folded rugs, a low platform in larger rooms
       const inset = 0.45, mu0 = u0 + inset, mu1 = u1 - inset, mv0 = v0 + inset, mv1 = v1 - inset, mat = sh(lin(MAT), 0.95 + 0.1 * h);

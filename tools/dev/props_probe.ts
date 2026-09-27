@@ -21,6 +21,8 @@ import { GroundFlora } from '../../src/world/groundFlora';
 import { jarGeometry } from '../../src/world/furnish';
 import { propGeometry } from '../../src/people/props';
 import type { CellCtx } from '../../src/world/smallLife';
+import { Batch } from '../../src/world/settlement/geom';
+import { scanShape } from '../../src/render/scanProps';
 (async () => {
   const P = new URLSearchParams(location.search);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
@@ -44,6 +46,7 @@ import type { CellCtx } from '../../src/world/smallLife';
   const row = new THREE.Group(); scene.add(row);
   const clay = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color(0.62, 0.44, 0.31), roughness: 0.85 }), vc = new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.85 });
   const pieces = [new THREE.Mesh(jarGeometry(0.17, 0.55, 40, 1), clay), new THREE.Mesh(jarGeometry(0.2, 0.6, 40, 2), clay), new THREE.Mesh(jarGeometry(0.13, 0.4, 32, 3), clay), new THREE.Mesh(propGeometry('jar')!, vc), new THREE.Mesh(propGeometry('basket')!, vc)];
+  { const B = new Batch(); const sj = scanShape('jar', 0, [0.5, 0.72, 0.5], 0)!; B.geo(0, 0, 0, sj, 0.7, [0.4, 0.2, 0.12] as any); pieces.push(new THREE.Mesh(B.toGeometry(), vc)); }
   (window as any).__rowTris = pieces.map(m => (m.geometry.index ? m.geometry.index.count : m.geometry.getAttribute('position').count) / 3);
   const sun = new THREE.DirectionalLight(0xfff4e6, 3.2), hemi = new THREE.HemisphereLight(0xbfd6ff, 0x8a7458, 0.9);
   scene.add(sun, sun.target, hemi);

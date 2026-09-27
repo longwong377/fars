@@ -32,9 +32,9 @@ export const PROPS = {
   nettle_plant: { split: true, role: 'thistle', lod0: 1500, lod1: 300, tex: 512 },
   dry_branches_medium_01: { split: true, role: 'deadwood', lod0: 1200, lod1: 250, tex: 512 },
   // vessels and containers
-  ceramic_vase_01: { role: 'jar', lod0: 1500, lod1: 300, tex: 1024 },
-  ceramic_vase_04: { role: 'jar', lod0: 1500, lod1: 300, tex: 1024 },
-  antique_ceramic_vase_01: { role: 'jar', lod0: 1500, lod1: 300, tex: 1024 },
+  ceramic_vase_01: { role: 'jar', lod0: 1500, lod1: 700, tex: 1024 },
+  ceramic_vase_04: { role: 'jar', lod0: 1500, lod1: 700, tex: 1024 },
+  antique_ceramic_vase_01: { role: 'jar', lod0: 1500, lod1: 700, tex: 1024 },
   ceramic_pot: { role: 'pot', lod0: 1200, lod1: 250, tex: 1024 },
   planter_pot_clay: { role: 'pot', lod0: 1000, lod1: 200, tex: 512 },
   wicker_basket_01: { role: 'basket', lod0: 1500, lod1: 300, tex: 1024 },

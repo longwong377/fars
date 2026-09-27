@@ -761,66 +761,6 @@
    ],
    "tex": 512
   },
-  "ceramic_vase_01": {
-   "file": "models/props/ceramic_vase_01.glb",
-   "of": "ceramic_vase_01",
-   "role": "jar",
-   "licence": "CC0 1.0",
-   "source": "https://polyhaven.com/a/ceramic_vase_01",
-   "bytes": 133932,
-   "sha256": "1c791b13df8d22d78486f936b0f506345d3c41a2703fc59c0bb80a530a10f25c",
-   "srcTris": 10296,
-   "tris": {
-    "lod0": 1498,
-    "lod1": 570
-   },
-   "size_m": [
-    0.20363447070121765,
-    0.40026828937698156,
-    0.20363633334636688
-   ],
-   "tex": 1024
-  },
-  "ceramic_vase_04": {
-   "file": "models/props/ceramic_vase_04.glb",
-   "of": "ceramic_vase_04",
-   "role": "jar",
-   "licence": "CC0 1.0",
-   "source": "https://polyhaven.com/a/ceramic_vase_04",
-   "bytes": 262784,
-   "sha256": "4751bc688595beedc3852880f4f58843bf619aeec29a3e72b763af5b8d5a53d8",
-   "srcTris": 9000,
-   "tris": {
-    "lod0": 1499,
-    "lod1": 302
-   },
-   "size_m": [
-    0.18112153559923172,
-    0.3419442092999816,
-    0.1811198815703392
-   ],
-   "tex": 1024
-  },
-  "antique_ceramic_vase_01": {
-   "file": "models/props/antique_ceramic_vase_01.glb",
-   "of": "antique_ceramic_vase_01",
-   "role": "jar",
-   "licence": "CC0 1.0",
-   "source": "https://polyhaven.com/a/antique_ceramic_vase_01",
-   "bytes": 236316,
-   "sha256": "b53537163cc52621ea663bc9210417f4d1b6b41d016743d48560527adf0d2094",
-   "srcTris": 9408,
-   "tris": {
-    "lod0": 1500,
-    "lod1": 300
-   },
-   "size_m": [
-    0.25502996146678925,
-    0.439553053722193,
-    0.25502994656562805
-   ],
-   "tex": 1024
-  },
   "ceramic_pot": {
    "file": "models/props/ceramic_pot.glb",
    "of": "ceramic_pot",
@@ -940,6 +880,66 @@
     0.3091423809528351
    ],
    "tex": 512
+  },
+  "ceramic_vase_01": {
+   "file": "models/props/ceramic_vase_01.glb",
+   "of": "ceramic_vase_01",
+   "role": "jar",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/ceramic_vase_01",
+   "bytes": 134708,
+   "sha256": "e6365940edadbfe39ab842508b376266a7cbf26d86f4e5620cb4fc42aacfef7a",
+   "srcTris": 10296,
+   "tris": {
+    "lod0": 1498,
+    "lod1": 699
+   },
+   "size_m": [
+    0.20363447070121765,
+    0.40026828937698156,
+    0.20363633334636688
+   ],
+   "tex": 1024
+  },
+  "ceramic_vase_04": {
+   "file": "models/props/ceramic_vase_04.glb",
+   "of": "ceramic_vase_04",
+   "role": "jar",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/ceramic_vase_04",
+   "bytes": 266300,
+   "sha256": "8ef4a509aae28c43475984f44bf8fa0db8732d534161f956261962cfbc9686a7",
+   "srcTris": 9000,
+   "tris": {
+    "lod0": 1499,
+    "lod1": 699
+   },
+   "size_m": [
+    0.18112153559923172,
+    0.3419442092999816,
+    0.1811198815703392
+   ],
+   "tex": 1024
+  },
+  "antique_ceramic_vase_01": {
+   "file": "models/props/antique_ceramic_vase_01.glb",
+   "of": "antique_ceramic_vase_01",
+   "role": "jar",
+   "licence": "CC0 1.0",
+   "source": "https://polyhaven.com/a/antique_ceramic_vase_01",
+   "bytes": 238420,
+   "sha256": "0e608d9b5eaab054b9e575a1d54740c86e115599b6b514e682b717255dca3e33",
+   "srcTris": 9408,
+   "tris": {
+    "lod0": 1500,
+    "lod1": 699
+   },
+   "size_m": [
+    0.25502996146678925,
+    0.439553053722193,
+    0.25502994656562805
+   ],
+   "tex": 1024
   }
  }
 }
