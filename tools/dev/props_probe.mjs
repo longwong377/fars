@@ -3,6 +3,7 @@
 import { chromium } from 'playwright';
 const TAG = process.argv[2] ?? 'a', ONLYV = process.argv[3]?.split(','), URLX = process.argv[4] ?? '';
 const V = [
+  { n: 'flora-feet', e: 380, n2: 120, eye: 1.6, az: 150, pitch: -35, fov: 55, day: 120, sunAz: 200, sunAlt: 45 },
   { n: 'rock-feet', e: 420, n2: 150, eye: 1.6, az: 80, pitch: -40, fov: 60, day: 150, sunAz: 200, sunAlt: 45 },
   { n: 'rock-feet2', e: 440, n2: 170, eye: 1.6, az: 20, pitch: -25, fov: 60, day: 150, sunAz: 200, sunAlt: 45 },
   { n: 'slope-close', e: 400, n2: 140, eye: 1.6, az: 60, pitch: -20, fov: 70, day: 150, sunAz: 200, sunAlt: 45 },
@@ -29,5 +30,6 @@ console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) /
 for (const v of V) { if (ONLYV && !ONLYV.includes(v.n)) continue;
   const errs = await p.evaluate(v => window.__shot({ ...v, n: v.n2 }), v);
   await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/props-${v.n}-${TAG}.png` }); console.log(v.n, errs.length ? errs : '', JSON.stringify(await p.evaluate(() => [window.__stats, window.__rowTris])), (Date.now() - t0) / 1000); }
+console.log('dbg', JSON.stringify(await p.evaluate(() => window.__dbg())));
 console.log('props', JSON.stringify(await p.evaluate(() => window.__props)));
 console.log(logs.slice(0, 12).join('\n')); await b.close();

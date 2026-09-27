@@ -18,7 +18,7 @@ export const LOD_NEAR = 14;
 /** per kind: the contexts and, for each, the share of cells holding it and how many there; the size (m, the largest
  *  horizontal extent) range; the roles of the scans it draws from; the most instances */
 export const ROCKS: Record<RockKind, { where: Partial<Record<CellCtx, [number, number, number]>>; size: [number, number]; roles: string[]; max: number }> = {
-  stone: { where: { rock: [0.9, 3, 9], steppe: [0.55, 1, 5], field: [0.12, 1, 2] }, size: [0.14, 0.7], roles: ['stone'], max: 3000 },
+  stone: { where: { rock: [1, 8, 20], steppe: [0.8, 3, 8], field: [0.2, 1, 3] }, size: [0.14, 0.7], roles: ['stone'], max: 7000 },
   boulder: { where: { rock: [0.35, 1, 3], steppe: [0.03, 1, 1] }, size: [0.7, 3.2], roles: ['boulder', 'outcrop'], max: 1400 },
 };
 // the measured limestone palette (terrainPlain.ts PAL, D-190): rock, rockDark, scree
