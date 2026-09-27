@@ -44,4 +44,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-278..D-284, D-286..D-291, D-293..D-299 | s10 | the lead's own decisions (D-285, D-292 are agents') | claude/amazing-fermi-40ds7j | in use |
 | (none) | s10 | gap hunter C (research only; brief handoff/briefs/s10/gap_hunter_C.md) | read-only | launched session 10 |
 | D-285 | s10 | Terrace materials against the references (Q-750..Q-759, B91..B93) | agent worktree (terrace_materials) | launched session 10 |
-| D-292 | s10 | the body and the day: pregnancy, bodily care, the washing rule, small lives (Q-760..Q-769, B94..B96) | agent worktree (body_and_day) | reserved; launches when a build slot frees |
+| D-292 | s10 | the body and the day: pregnancy, bodily care, the washing rule, small lives (Q-760..Q-769, B94..B96) | agent worktree (body_and_day) | launched session 10 |
