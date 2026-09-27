@@ -8,7 +8,7 @@
 // lighting normal in the view's frame (x right, y up, z toward the viewer), encoded 0..1. Re-baked per model row when
 // its foliage group's state changes (render.ts). Pure JS (unit-tested: tests/trees.test.ts).
 import { cardState, variantLeaf, cardHalf, M0, M1, K0, K1, lod1Size, lod1Twigs, type TreeModel, type V3 } from './model';
-import { tileIndex, TILE, COLS, ROWS, TILT, mipChain, type Atlas } from './atlas';
+import { tileIndex, COLS, ROWS, TILT, mipChain, type Atlas } from './atlas';
 import { TREE_GROUPS } from '../plain/seasonal';
 import { crownOf, leafShadeTo, crownAO, SHADE } from './shade';
 
@@ -20,8 +20,8 @@ export const linearToSrgb = (c: number) => (c <= 0.0031308 ? c * 12.92 : 1.055 *
 export const barkLinear = (m: TreeModel): V3 => [srgbToLinear(m.species.bark[0]), srgbToLinear(m.species.bark[1]), srgbToLinear(m.species.bark[2])];
 
 /** the near leaf shader's albedo for one texel of the atlas (render.ts mirrors this) */
-export function leafAlbedo(tex: { r: number; g: number; b: number }, leafCol: number[], blCol: number[], bark: number[], tint: number, ao: number): V3 {
-  const shade = 0.55 + 0.6 * tex.r, petal = tex.g, bk = tex.b, lm = Math.max(0, 1 - petal - bk), ps = 0.85 + 0.15 * tex.r;
+export function leafAlbedo(tex: { r: number; g: number; b: number }, leafCol: number[], blCol: number[], bark: number[], tint: number, ao: number, at: Pick<Atlas, 'shade' | 'petal'> = { shade: [0.55, 0.6], petal: [0.85, 0.15] }): V3 {
+  const shade = at.shade[0] + at.shade[1] * tex.r, petal = tex.g, bk = tex.b, lm = Math.max(0, 1 - petal - bk), ps = at.petal[0] + at.petal[1] * tex.r;
   return [0, 1, 2].map(k => (leafCol[k] * shade * lm + blCol[k] * ps * petal + bark[k] * shade * bk) * tint * ao) as V3;
 }
 
@@ -46,7 +46,7 @@ export class ImpostorBaker {
   bakeRow(r: number, st: GroupState) {
     const m = this.models[r], N = this.px, W = this.width, s = m.species;
     const leafT = tileIndex(s.leaf.tile), twigT = tileIndex(s.twig_tile), blT = s.blossom_tile ? tileIndex(s.blossom_tile) : leafT;
-    const bark = barkLinear(m), lc = st.leaf, bc = st.blossom, AL = this.atlas.levels, nL = AL.length, cr = crownOf(m);
+    const bark = barkLinear(m), lc = st.leaf, bc = st.blossom, AL = this.atlas.levels, nL = AL.length, cr = crownOf(m), TT = this.atlas.tile, [SA, SB] = this.atlas.shade, [PA, PB] = this.atlas.petal;
     const z = new Float32Array(N * N);
     const kc = this.lod ? K1 : K0, km = this.lod ? M1 : M0;
     const leaf = variantLeaf(lc[3], m.variant); // this variant's leaf amount (model.ts)
@@ -73,7 +73,7 @@ export class ImpostorBaker {
         const Sz = (cd.side[0] * dx + cd.side[2] * dz) * hs, Uz = (cd.up[0] * dx + cd.up[2] * dz) * hu;
         const det = Sx * Uy - Sy * Ux; if (Math.abs(det) < 1e-3) continue; // edge-on
         const ext = Math.abs(Sx) + Math.abs(Ux), eyt = Math.abs(Sy) + Math.abs(Uy);
-        const lvl = Math.min(nL - 1, Math.max(0, Math.floor(Math.log2(TILE / Math.max(1, 2 * h * k))))), L = AL[lvl], ts = TILE >> lvl, d = L.data, lw = L.width, td = this.atlas.tilt[lvl].data;
+        const lvl = Math.min(nL - 1, Math.max(0, Math.floor(Math.log2(TT / Math.max(1, 2 * h * k))))), L = AL[lvl], ts = TT >> lvl, d = L.data, lw = L.width, td = this.atlas.tilt[lvl].data;
         const tx0 = (tile % COLS) * ts, ty0 = Math.floor(tile / COLS) * ts;
         const tint = cd.tint, Sv = cd.side, Uv = cd.up, P0 = cs.pos, size = 2 * hu, kb = SHADE.clumpBack * size * 0.5;
         const ccx = P0[0] - Uv[0] * kb, ccy = P0[1] - Uv[1] * kb, ccz = P0[2] - Uv[2] * kb; // the clump's centre (shade.ts)
@@ -85,7 +85,7 @@ export class ImpostorBaker {
             const ti = Math.min(ts - 1, ((a * 0.5 + 0.5) * ts) | 0), tj = Math.min(ts - 1, ((b * 0.5 + 0.5) * ts) | 0), o = ((ty0 + tj) * lw + tx0 + ti) * 4;
             if (d[o + 3] < 128) continue;
             // impostor.ts leafAlbedo, inlined
-            const tr = d[o] / 255, petal = d[o + 1] / 255, bk = d[o + 2] / 255, shade = 0.55 + 0.6 * tr, lm = Math.max(0, 1 - petal - bk), ps = (0.85 + 0.15 * tr) * petal;
+            const tr = d[o] / 255, petal = d[o + 1] / 255, bk = d[o + 2] / 255, shade = SA + SB * tr, lm = Math.max(0, 1 - petal - bk), ps = (PA + PB * tr) * petal;
             // the crown's and the clump's normal and occlusion at this texel (shade.ts; render.ts leaf shader)
             const as = a * hs, bu = b * hu;
             leafShadeTo(SH, cr, P0[0] + Sv[0] * as + Uv[0] * bu, P0[1] + Sv[1] * as + Uv[1] * bu, P0[2] + Sv[2] * as + Uv[2] * bu, ccx, ccy, ccz, Uv[0], Uv[1], Uv[2], size, this.lod, clumpS);

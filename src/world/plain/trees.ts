@@ -193,5 +193,5 @@ export function orchardRows(kit: TreeKit, plots: RowPlot[], terrain: Terrain, mi
   const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-orchards-far'; mesh.frustumCulled = false; mesh.userData = { ...TREE_TAG(), rows }; mesh.onBeforeRender = () => kit.syncSun();
   return mesh;
 }
-export const TREE_TAG = () => tag(feature('orchards_gardens'), 'trees of the plain: riparian (river_*.riparian), canal lines, orchards (orchards_gardens), woodland (woodland rule); species presence B, form C (src/data/trees.json), placement C; far trees are impostors baked from the same models');
+export const TREE_TAG = () => tag(feature('orchards_gardens'), 'trees of the plain: riparian (river_*.riparian), canal lines, orchards (orchards_gardens), woodland (woodland rule); species presence B, form C (src/data/trees.json), placement C; far trees are impostors baked from the same models' + (TreeKit.peek() ? '; ' + TreeKit.peek()!.assetNote() : ''));
 export { VARIANTS };

@@ -7,6 +7,7 @@ import { TILE_NAMES, tileIndex, atlasFill, buildAtlas, type TileName, type Atlas
 import { TILE_FILL } from './model';
 import { barkLinear } from './impostor';
 import { groupIndex } from './species';
+import { BARK_SPECIES } from './assets';
 
 /** leaf length on each tile (tile units): the species' leaf size over its mean card size, averaged over the species
  *  that use the tile; twig tiles use the leaf scale of their species too (their twigs are drawn at a fixed scale) */
@@ -20,7 +21,7 @@ export function leafFractions(models: TreeModel[] = allModels()): Partial<Record
 }
 
 /** texels per record */
-export const SEG_TEX = 3, CARD_TEX = 5, SP_TEX = 6;
+export const SEG_TEX = 3, CARD_TEX = 5, SP_TEX = 7;
 /** segment texture (width M0 x 3, one row per model): (a, ra), (b, rb), (u, level) */
 export function packSegments(models: TreeModel[] = allModels()) {
   const w = M0 * SEG_TEX, out = new Float32Array(w * models.length * 4);
@@ -39,12 +40,14 @@ export function packCards(models: TreeModel[] = allModels()) {
 /** species texture (width 6, one row per model): (group, leaf tile, twig tile, blossom tile or -1), (bark rgb linear, H),
  *  (impostor tile side T, y0, W, CB), (crown ellipsoid: centre height, horizontal radius, radii above and below: shade.ts
  *  crownOf), (transmission attenuation kappa, twig_cards, the variant's leaf-out spread VARIANT_SPREAD, -), (card aspect,
- *  clump shading weight, -, -) (trees.json card) */
-export function packSpecies(models: TreeModel[] = allModels()) {
+ *  clump shading weight, -, -) (trees.json card), (bark scan layer or -1, its detail, warm and relief weights: tree_bark.json,
+ *  D-327) */
+export function packSpecies(models: TreeModel[] = allModels(), barkLayer: Record<string, number> | null = null) {
   const out = new Float32Array(SP_TEX * models.length * 4);
   models.forEach((m, r) => { const s = m.species, o = r * SP_TEX * 4, c = crownOf(m);
     const bk = barkLinear(m); out.set([groupIndex(s.group), tileIndex(s.leaf.tile), tileIndex(s.twig_tile), s.blossom_tile ? tileIndex(s.blossom_tile) : -1, bk[0], bk[1], bk[2], m.H, m.T, m.y0, m.W, m.CB,
-      c.yc, c.rx, c.ryT, c.ryB, c.kappa, s.twig_cards, VARIANT_SPREAD[m.variant % VARIANTS], 0, s.card.aspect, s.card.clump, 0, 0], o); });
+      c.yc, c.rx, c.ryT, c.ryB, c.kappa, s.twig_cards, VARIANT_SPREAD[m.variant % VARIANTS], 0, s.card.aspect, s.card.clump, 0, 0,
+      barkLayer?.[s.id] ?? -1, BARK_SPECIES[s.id]?.detail ?? 0, BARK_SPECIES[s.id]?.warm ?? 0, BARK_SPECIES[s.id]?.relief ?? 0], o); });
   return { data: out, width: SP_TEX, height: models.length };
 }
 export const MODEL_ROWS = SPECIES.length * VARIANTS;
@@ -54,11 +57,15 @@ export const MODEL_ROWS = SPECIES.length * VARIANTS;
  *  the calibrated leaf scale. */
 const calibrated = new WeakSet<TreeModel[]>();
 export function calibrateAndDrawAtlas(models: TreeModel[] = allModels()): Atlas {
-  if (!calibrated.has(models)) {
-    const fill = atlasFill(leafFractions(models));
-    for (const m of models) { const f = fill[tileIndex(m.species.leaf.tile)], k = Math.min(1.5, Math.max(0.8, Math.sqrt(TILE_FILL / Math.max(0.05, f))));
-      for (const c of m.cards) c.size *= k; }
-    calibrated.add(models);
-  }
+  calibrateCards(models);
   return buildAtlas(leafFractions(models));
+}
+/** the card-size calibration alone (idempotent per model set): the Blender atlas is drawn at the leaf fractions it gives */
+export function calibrateCards(models: TreeModel[] = allModels()) {
+  if (calibrated.has(models)) return models;
+  const fill = atlasFill(leafFractions(models));
+  for (const m of models) { const f = fill[tileIndex(m.species.leaf.tile)], k = Math.min(1.5, Math.max(0.8, Math.sqrt(TILE_FILL / Math.max(0.05, f))));
+    for (const c of m.cards) c.size *= k; }
+  calibrated.add(models);
+  return models;
 }
