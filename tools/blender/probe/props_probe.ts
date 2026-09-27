@@ -14,7 +14,7 @@ import { buildTreasuryGoods, buildRoomFittings } from '../../../src/world/furnis
 import { fittingGeom } from '../../../src/world/settlement/build';
 import { Batch } from '../../../src/world/settlement/geom';
 import { FireSystem } from '../../../src/world/fire';
-import { surfaceMaterial } from '../../../src/render/materials';
+import { surfaceMaterial, propScanNodes } from '../../../src/render/materials';
 (async () => {
   const P = new URLSearchParams(location.search);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
@@ -25,7 +25,9 @@ import { surfaceMaterial } from '../../../src/render/materials';
   await loadScans('/');
   const stats = await loadScanProps('/');
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0.55, 0.68, 0.85);
-  const propMat = new THREE.MeshStandardNodeMaterial(); { const mr = attribute('mr', 'vec2'); propMat.colorNode = attribute('color', 'vec3'); propMat.metalnessNode = mr.x; propMat.roughnessNode = mr.y; propMat.side = THREE.DoubleSide; }
+  // (the crowd's prop material: each vertex under the scan of what it is made of, crowd.ts propMaterial; ?noscan=1 without)
+  const propMat = new THREE.MeshStandardNodeMaterial(); { const mr = attribute('mr', 'vec2'); const S = P.get('noscan') ? { color: attribute('color', 'vec3'), rough: mr.y, normal: null } : propScanNodes(attribute('color', 'vec3'), mr.y);
+    propMat.colorNode = S.color; propMat.metalnessNode = mr.x; propMat.roughnessNode = S.rough; if (S.normal) propMat.normalNode = S.normal; propMat.side = THREE.DoubleSide; }
   const vcMat = new THREE.MeshStandardNodeMaterial(); vcMat.colorNode = attribute('color', 'vec3'); vcMat.roughness = 0.85;
   const add = (o: THREE.Object3D) => { o.traverse(m => { if ((m as THREE.Mesh).isMesh) { m.castShadow = m.receiveShadow = true; } }); scene.add(o); };
   const layout = (ox: number) => {

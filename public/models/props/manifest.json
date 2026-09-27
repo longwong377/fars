@@ -8304,6 +8304,92 @@
     0.900987058877945
    ],
    "tex": 0
+  },
+  "m_bin": {
+   "file": "models/props/m_bin.glb",
+   "of": "bin",
+   "role": "model",
+   "parts": [
+    "mud",
+    "lid",
+    "dark"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 33060,
+   "sha256": "4fb82e9476024fd1cd7682f82c4da8bf1ded6d9e1286357b4785418a23b6258c",
+   "tris": {
+    "lod0": 908,
+    "lod1": 314
+   },
+   "partTris": {
+    "lod0__mud": 768,
+    "lod0__lid": 108,
+    "lod0__dark": 32,
+    "lod1__mud": 268,
+    "lod1__lid": 36,
+    "lod1__dark": 10
+   },
+   "box": [
+    [
+     -0.5400000214576721,
+     0.0012632731813937426,
+     -0.5311390161514282
+    ],
+    [
+     0.5294281840324402,
+     1.0615410804748535,
+     0.5296056866645813
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.0694282054901123,
+    1.0602778072934598,
+    1.0607447028160095
+   ],
+   "tex": 0
+  },
+  "m_kneading_trough": {
+   "file": "models/props/m_kneading_trough.glb",
+   "of": "kneading_trough",
+   "role": "model",
+   "parts": [
+    "clay"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/model_props.py (D-325)",
+   "bytes": 13584,
+   "sha256": "651b660530f76938dacf0fabd2e55651a5a0882a505530afafd49bb88c1af125",
+   "tris": {
+    "lod0": 392,
+    "lod1": 136
+   },
+   "partTris": {
+    "lod0__clay": 392,
+    "lod1__clay": 136
+   },
+   "box": [
+    [
+     -0.4774710536003113,
+     -0.0004480148199945688,
+     -0.2477577179670334
+    ],
+    [
+     0.48308464884757996,
+     0.20944815874099731,
+     0.2511533200740814
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.9605557024478912,
+    0.20989617356099188,
+    0.4989110380411148
+   ],
+   "tex": 0
   }
  }
 }

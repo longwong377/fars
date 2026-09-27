@@ -14,18 +14,32 @@ import { HB } from './humanFormat';
 import type { Pose } from './anim';
 import { ptTabletGeometry } from '../world/writing';
 import { HARP_V, HARP_H, LYRE, FRAME_DRUM, DOUBLE_PIPE, REED_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
-import { scanShape, modelShape, aoFactor, modelParts } from '../render/scanProps';
+import { scanShape, modelShape, aoFactor, modelParts, modelFit, mergedModel } from '../render/scanProps';
 
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 type RGB = [number, number, number];
 /** vertex colour (linear), metalness/roughness and the per-vertex displacement direction for the instance parameter
  *  (`sv`: the bowstring's middle, the spindle below the hand) */
+/** D-325: the scan kind of a painted piece (materials.ts PROP_SCAN_KINDS: 0 wood, 1 metal, 2 textile, 3 clay, 4 wicker, 5
+ *  stone): given, or guessed from its metalness and colour (a warm mid brown wood, a grey stone, a pale warm straw) */
+export const SCAN_KIND: Record<string, number> = { wood: 0, wood_d: 0, beam: 0, chips: 0, stick: 0, iron: 1, bronze: 1, silver: 1, gold: 1, gilt: 1, scale: 1, hot: 1, cloth: 2, linen: 2, wool: 2, wool_d: 2, red: 2, blue: 2,
+  warp: 2, band: 2, hair: 2, cord: 2, skin: 2, leather: 2, hide: 2, hide_d: 2, hide_w: 2, feather: 2, petal: 2, fish: 2, meat: 2, fat: 2, meat_boiled: 2, clay: 3, pot: 3, mud: 3, mud_wet: 3, mud_roof: 3, brick: 3, clay_toy: 3,
+  earth: 3, dung: 3, ash: 3, ember: 3, paste: 3, stain: 3, scrap: 3, tablet: 3, straw: 4, straw_d: 4, ears: 4, wicker: 4, reed: 4, cane: 4, grass: 4, wattle: 4, thorn: 4, thorn_d: 4, grain: 4, chaff: 4, nut: 4, green: 4,
+  stone: 5, stone_d: 5, lime: 5, lapis: 5, diorite: 5, bone: 5 };
+let paintKind = -1;
+/** paint with a given scan kind (the modelled parts' names: SCAN_KIND) */
+export function paintAs(kind: string, g: THREE.BufferGeometry, rgb: RGB, metal = 0, rough = 0.8, sv?: (x: number, y: number, z: number) => [number, number, number]) { paintKind = SCAN_KIND[kind] ?? -1; try { return paint(g, rgb, metal, rough, sv); } finally { paintKind = -1; } }
+function guessKind(rgb: RGB, metal: number): number {
+  if (metal >= 0.3) return 1; const [r, g, b] = rgb, sat = Math.max(r, g, b) - Math.min(r, g, b), l = (r + g + b) / 3;
+  if (sat < 0.06) return l > 0.5 ? 2 : 5; if (r > 0.55 && g > 0.45 && b < 0.45 && g / r > 0.8) return 4; if (r > 0.5 && g / r < 0.78) return 3; return l < 0.5 ? 0 : 2;
+}
 function paint(g: THREE.BufferGeometry, rgb: RGB, metal = 0, rough = 0.8, sv?: (x: number, y: number, z: number) => [number, number, number]): THREE.BufferGeometry {
   const gg = g.index ? g.toNonIndexed() : g; if (gg.getAttribute('uv')) gg.deleteAttribute('uv');
   const n = gg.getAttribute('position').count, c = new Float32Array(n * 3), m = new Float32Array(n * 2), d = new Float32Array(n * 3); const P = gg.getAttribute('position'), L = rgb.map(lin);
   // (D-325: a modelled prop's baked occlusion multiplied into its colour)
   for (let i = 0; i < n; i++) { const k = aoFactor(gg, i); c[i * 3] = L[0] * k; c[i * 3 + 1] = L[1] * k; c[i * 3 + 2] = L[2] * k; m.set([metal, rough], i * 2); if (sv) d.set(sv(P.getX(i), P.getY(i), P.getZ(i)), i * 3); }
   if (gg.getAttribute('ao')) gg.deleteAttribute('ao');
+  gg.setAttribute('ak', new THREE.BufferAttribute(new Float32Array(n).fill(paintKind >= 0 ? paintKind : guessKind(rgb, metal)), 1)); // (D-325: its scan kind)
   gg.setAttribute('color', new THREE.BufferAttribute(c, 3)); gg.setAttribute('mr', new THREE.BufferAttribute(m, 2)); gg.setAttribute('sv', new THREE.BufferAttribute(d, 3)); return gg;
 }
 /** a cylinder from a to b (open ends unless `caps`) */
@@ -150,7 +164,7 @@ const TOOL_SV: Record<string, (x: number, y: number, z: number) => [number, numb
 function toolModel(kind: string): THREE.BufferGeometry | null {
   if (!MODELLED_TOOLS.includes(kind)) return null;
   const p = modelParts('tool_' + kind, 0); if (!p) return null;
-  const gs = Object.entries(p).map(([k, g]) => { const t = TOOL_OVERRIDE[kind]?.[k] ?? TOOL_PAINT[k] ?? [WOOD, 0, 0.8]; return paint(g, t[0], t[1], t[2], TOOL_SV[kind]); });
+  const gs = Object.entries(p).map(([k, g]) => { const t = TOOL_OVERRIDE[kind]?.[k] ?? TOOL_PAINT[k] ?? [WOOD, 0, 0.8]; return paintAs(k, g, t[0], t[1], t[2], TOOL_SV[kind]); });
   if (kind === 'bow' || kind === 'toy_bow') gs.push(...bowString(kind === 'toy_bow' ? 0.3 : 0.52));
   if (kind === 'harp_v') for (let i = 0; i < HARP_V.strings; i++) { const s = harpVString(i); gs.push(paint(rod(s.foot, s.head, 0.0012, 0.0012, 3), GUT, 0, 0.5)); }
   if (kind === 'harp_h') for (let i = 0; i < HARP_H.strings; i++) { const s = harpHString(i); gs.push(paint(rod(s.foot, s.head, 0.0012, 0.0012, 3), GUT, 0, 0.5)); }
@@ -428,7 +442,7 @@ export function propSlot(kind: string): [number, number] | null {
 export function propUnionGeometry(cls = 0): THREE.BufferGeometry {
   const g = mergeGeometries(PROP_CLASSES[cls].map((k, i) => { let g = propGeometry(k)!.clone(); if (!g.getAttribute('sv')) g = withSv(g); const n = g.getAttribute('position').count;
     g.setAttribute('pk', new THREE.BufferAttribute(new Float32Array(n).fill(i), 1)); return g; }))!;
-  interleave(g, ['color', 'mr', 'sv', 'pk']); return g;
+  interleave(g, ['color', 'mr', 'sv', 'pk', 'ak']); return g;
 }
 /** packs named float attributes into one interleaved buffer under the same names. WebGPU allows 8 vertex buffers per
  *  pipeline; an instanced mesh with one buffer per attribute (the carried props, the animals) exceeds it and its
@@ -444,6 +458,11 @@ export function interleave(g: THREE.BufferGeometry, names: string[], instanced?:
   return buf;
 }
 function withSv(g: THREE.BufferGeometry) { g.setAttribute('sv', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 3), 3)); return g; }
+/** D-325: a modelled prop fitted to a box (w, h, d; base on y = 0), all its parts painted in one colour as `kind`; null when
+ *  the model is not loaded */
+export function paintedModel(id: string, w: number, h: number, d: number, rgb: [number, number, number], rough: number, kind: string, lod = 1): THREE.BufferGeometry | null {
+  const p = modelFit(id, [w, h, d], lod); return p ? paintAs(kind, mergedModel(p), rgb, 0, rough) : null;
+}
 /** a box painted for the prop material (work objects) */
 export function paintedBox(w: number, h: number, d: number, rgb: [number, number, number], rough: number) { return paint(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0), rgb, 0, rough); }
 export { paint as paintGeometry, rod as rodGeometry };

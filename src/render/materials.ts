@@ -1267,3 +1267,15 @@ export function propMaterialMulti(kinds: string[]): THREE.MeshStandardNodeMateri
   m.userData = { surface: `prop_${kinds.join('+')}`, scan: scans.every(Boolean) ? scans.join('+') : null, tier: 'C', note: `furnishings of ${kinds.join(', ')} merged into one draw (grain: the CC0 scans, D-301)` };
   propCache.set(key, m); return m;
 }
+
+/** D-325: what the carried props' and the work objects' vertices are made of (their 'ak' attribute: an index here); each kind
+ *  lays its CC0 scan (scans.ts SCAN_USE prop_<kind>) over the written colour, as propMaterialMulti does for the rooms' pieces */
+export const PROP_SCAN_KINDS = ['wood', 'metal', 'textile', 'clay', 'wicker', 'stone'] as const;
+/** the colour, roughness and normal nodes of per-vertex coloured props under their scans (by the vertex's kind attribute),
+ *  for materials built elsewhere (the crowd's instanced props: people/crowd.ts). Identity in node (no scans): the plain colour */
+export function propScanNodes(base: any, rough: any, kindAttr = 'ak'): { color: any; rough: any; normal: any | null } {
+  const k = attribute(kindAttr, 'float'); let alb: any = vec3(0), r: any = float(0), h: any = float(0), anyH = false;
+  PROP_SCAN_KINDS.forEach((kind, i) => { const w = float(1).sub(step(0.5, abs(k.sub(i)))), L = applyScan(`prop_${kind}`, { alb: base, rough, height: null } as Layer, true);
+    alb = alb.add(L.alb.mul(w)); r = r.add(L.rough.mul(w)); if (L.height) { h = h.add(L.height.mul(w)); anyH = true; } });
+  return { color: alb, rough: r, normal: anyH ? bumped(h) : null };
+}

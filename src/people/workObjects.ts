@@ -9,7 +9,7 @@
 import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { paintGeometry as paint, rodGeometry as rod, propGeometry } from './props';
+import { paintGeometry as paint, rodGeometry as rod, propGeometry, paintAs } from './props';
 import { nearCascadesOnly } from './humanGPU';
 import { scanShape, modelShape, modelParts, modelFit, mergedModel, model } from '../render/scanProps';
 
@@ -154,7 +154,7 @@ export const MODELLED_WORK: WorkKind[] = ['drum_sledge', 'brick_stack', 'mud_hea
 /** a work model's parts painted (null when not loaded) */
 function woParts(id: string, kind: WorkKind | '', M?: THREE.Matrix4): THREE.BufferGeometry[] | null {
   const p = modelParts(id, 0, M); if (!p) return null;
-  return Object.entries(p).map(([k, g]) => { const t = (kind && WORK_OVERRIDE[kind]?.[k]) || WORK_PAINT[k] || [WOOD, 0.9, 0]; return P(g, t[0], t[1], t[2]); });
+  return Object.entries(p).map(([k, g]) => { const t = (kind && WORK_OVERRIDE[kind]?.[k]) || WORK_PAINT[k] || [WOOD, 0.9, 0]; return paintAs(k, g, t[0], t[2], t[1]); });
 }
 /** a vessel model fitted to a box and placed (x, y, z), painted */
 function vesselAt(id: string, size: [number, number, number], at: [number, number, number], c: RGB, rough = 0.85): THREE.BufferGeometry | null {

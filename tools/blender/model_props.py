@@ -2102,6 +2102,22 @@ def a_fire_altar():
     ash = heap(0.3, 0.05, 0, 0, seed=910, lump=0.4, name='ash', res=0.02); xform(ash, (0, 0, y - 0.045))
     return dict(stone=stone, ash=ash)
 
+@asset(ground=True)
+def a_bin():
+    """a village storage bin of mud, plastered, its corners rounded, a lid of mud over sticks, the outlet stopped with a plug
+    low on its front (at -x) (C), unit box (the builder fits it to the bin's size)"""
+    b = box(1.0, 1.0, 1.0, (0, 0, 0), 'bin', bevel=0.12, segs=3); subdiv(b, 1); displace(b, 0.012, 0.3, seed=820)
+    lid = box(1.06, 1.06, 0.06, (0, 0, 1.0), 'lid', bevel=0.03, segs=2); displace(lid, 0.006, 0.2, seed=821)
+    plug = lathe([(0.0, 0.0), (0.05, 0.0), (0.055, 0.03), (0.0, 0.04)], 8, 'plug'); xform(plug, (-0.5, 0, 0.18), (0, -math.pi / 2, 0))
+    return dict(mud=b, lid=lid, dark=plug)
+
+@asset(ground=True)
+def a_kneading_trough():
+    """a kneading trough of fired clay, long and shallow, its rim thickened (C), 0.9 x 0.2 x 0.5 m"""
+    t = vessel([(0.3, 0.0), (0.4, 0.06), (0.46, 0.16), (0.48, 0.2)], 0.025, 28, 'trough', 0.01, seed=822)
+    for v in t.data.vertices: v.co.y *= 0.52
+    return dict(clay=t)
+
 # ======================================================================================================== driver
 if __name__ == '__main__':
     job = json.load(open(sys.argv[sys.argv.index('--') + 1]))
