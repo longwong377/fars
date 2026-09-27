@@ -33,7 +33,7 @@ const {
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
   cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
-import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE } from './humanFormat';
+import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE, PRM_CARD } from './humanFormat';
 import { ROBE, BEARD, BELLY } from './drape';
 import type { HumanScans } from './humanScans';
 
@@ -61,6 +61,9 @@ export interface HumanTextures {
   /** D-304: the scanned skin and cloth layers (humanScans.ts; null in node and with ?noscans: the procedural path) and each
    *  body variant's [light, dark] skin layer */
   scans?: HumanScans | null; skinLayers?: [number, number][];
+  /** D-307: the strand atlas of the hair cards (peopleModels.loadHairAtlas; R shade, G depth, B strand direction, A coverage)
+   *  and its layout: columns, rows, card class → row per hair style (null: no cards in the costumes) */
+  hairAtlas?: THREE.Texture | null; cards?: { cols: number; rows: number; classRows: number[][] } | null;
 }
 /** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
  *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair (w: the belly of a woman with child, 0..1, D-292), 6 leather
@@ -136,6 +139,10 @@ export const LASH = { u0: 0.704, u1: 0.762, clumps: 72 };
 export const SCAN = { darkY: [0.17, 0.075] as [number, number],
   cloth: { alb: [0.9, 1, 0.9, 0.9], h: [0.00045, 0.0007, 0.0006, 0.0004] } };
 export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, bumpMass: 0.002, kk: [0.09, 0.06] as [number, number] };
+/** D-307 (C): the strand cards. Albedo = hair colour × the atlas' shade × 2 (its mean is 0.5) × a back strand's darkening
+ *  (depth 0 → back); the coverage is tested against a threshold hashed per bind-space point between thr[0] and thr[1] (TRAA's
+ *  jitter averages the dither into partial coverage); the strand's direction across the card tilts the highlight's tangent */
+export const CARD = { back: 0.55, thr: [0.22, 0.62] as [number, number], tilt: 0.9 };
 
 class HumanLightingModel extends THREE.PhysicalLightingModel {
   constructor(private S: Record<string, any>) { super(); }
@@ -160,7 +167,7 @@ class HumanLightingModel extends THREE.PhysicalLightingModel {
     // hair: two shifted Kajiya–Kay lobes along the strand tangent (world down on the surface, swirled by the curls)
     const down = cameraViewMatrix.mul(vec4(0, -1, 0, 0)).xyz;
     const t0 = down.sub(N.mul(N.dot(down))).add(cameraViewMatrix.mul(vec4(0.001, 0, 0, 0)).xyz).normalize(), b0 = N.cross(t0);
-    const T = t0.add(b0.mul(S.hairTilt)).normalize();
+    const T = mix(t0.add(b0.mul(S.hairTilt)).normalize(), S.cardT, S.kCard).normalize(); // (D-307: a card's strands give it)
     const kk = (shift: number, e: number) => { const ts = T.add(N.mul(shift)).normalize(), th = ts.dot(H); return smoothstep(-1, 0, th).mul(pow(float(1).sub(th.mul(th)).clamp(0, 1).sqrt(), e)); };
     const kkSpec = vec3(kk(-0.08, 80).mul(HAIR.kk[0]).mul(S.kkEdge)).add(diffuseColor.rgb.mul(6).clamp(0, 1).mul(kk(0.1, 14).mul(HAIR.kk[1])));
     spec = mix(spec, kkSpec, S.kHair);
@@ -403,6 +410,26 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // (D-225: the court beard's rows as shading too: the vertex stage moved them, the vertex normal does not follow)
     const rowH = sin(fract(U.y.mul(BEARD.rows)).mul(Math.PI)).pow(0.6).sub(0.6).mul(smoothstep(0.04, 0.12, U.y)).mul(BEARD.rowAmp * 0.6).mul(massC).mul(band(BEARD.rows / 0.14 * 2));
     const hairH = curls.mul(mix(mix(HAIR.bump, HAIR.bumpStraight, kStraight), HAIR.bumpMass, massC)).mul(band(mix(200, 120, kCourt))).add(rowH);
+    // ---- D-307: strand cards (hair class, PRM_CARD): the atlas cell of the card's class, the person's hair style and the
+    // card's column; shade, depth, strand direction and coverage from it
+    const CA = T.hairAtlas && T.cards ? T.cards : null;
+    let kCard: any = float(0), cardAlb: any = vec3(0), cardCov: any = float(1), cardDepth: any = float(1), cardT: any = vec3(0, -1, 0);
+    if (CA) {
+      kCard = step(PRM_CARD - 0.5, prm).mul(kHair);
+      const cellV = floor(vAux.y.mul(255).add(0.5)), cls = floor(cellV.div(8)), colC = cellV.sub(cls.mul(8));
+      let rowC: any = float(0); CA.classRows.forEach((rs, c) => rs.forEach((r, st) => { if (r) rowC = rowC.add(is(cls, c).mul(is(hairStyle, st)).mul(r)); }));
+      const auv = vec2(colC.add(U.x.clamp(0.004, 0.996)).div(CA.cols), rowC.add(U.y.clamp(0.004, 0.996)).div(CA.rows));
+      const at = texture(T.hairAtlas!, auv);
+      cardDepth = at.g; cardCov = at.a;
+      cardAlb = vColor.mul(at.r.mul(2)).mul(mix(float(CARD.back), float(1), at.g));
+      // the strand direction: dp/dv (root → tip) and dp/du (across) from the screen derivatives, turned by the atlas' B
+      const dpx = positionView.dFdx(), dpy = positionView.dFdy(), dux = U.dFdx(), duy = U.dFdy();
+      const det = dux.x.mul(duy.y).sub(dux.y.mul(duy.x)).add(1e-12);
+      const pV = normalize(dpy.mul(dux.x).sub(dpx.mul(duy.x)).div(det).add(vec3(0, 1e-9, 0))), pU = normalize(dpx.mul(duy.y).sub(dpy.mul(dux.y)).div(det).add(vec3(1e-9, 0, 0)));
+      const tx = at.b.mul(2).sub(1).mul(CARD.tilt).clamp(-0.95, 0.95);
+      cardT = normalize(pV.mul(sqrt(float(1).sub(tx.mul(tx)))).add(pU.mul(tx)));
+    }
+    const kShell = kHair.mul(float(1).sub(kCard));
     const kohlK = bits('kohl').mul(float(1).sub(smoothstep(KOHL.band * 0.7, KOHL.band * 1.3, e1))); // D-215
     const lashAlb = mix(vHair.mul(0.45), vec3(...KOHL.alb), kohlK);
 
@@ -496,7 +523,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const woodAlb = vec3(0.36, 0.25, 0.15).mul(float(1).add(sin(P.y.mul(900).add(n3.mul(3))).mul(0.06)));
     const wickerAlb = vec3(0.6, 0.5, 0.3).mul(float(0.85).add(abs(sin(P.x.mul(300))).mul(0.15)));
 
-    let alb: any = skinAlb.mul(kSkin).add(eyeAlb.mul(kEye)).add(hairAlb.mul(kHair)).add(vec3(0.7, 0.66, 0.58).mul(kTeeth)).add(vec3(0.32, 0.1, 0.09).mul(kMouth))
+    let alb: any = skinAlb.mul(kSkin).add(eyeAlb.mul(kEye)).add(mix(hairAlb, cardAlb, kCard).mul(kHair)).add(vec3(0.7, 0.66, 0.58).mul(kTeeth)).add(vec3(0.32, 0.1, 0.09).mul(kMouth))
       .add(leatherAlb.mul(kLeather)).add(feltAlb.mul(kFelt)).add(metalAlb.mul(kMetal)).add(lashAlb.mul(kLash)).add(woodAlb.mul(kWood)).add(wickerAlb.mul(kWicker)).add(clothAlb.mul(kCloth));
     // grime by work (C): dust toward the hem and the feet, patchy; court dress stays clean (grime ≈ 0)
     const grime = vMat.w, grimeCol = vec3(vAux.w, vAux.w, vAux.w).mul(vec3(1, 0.97, 0.9));
@@ -523,9 +550,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // specular F0 (dielectrics): skin 0.028, cornea 0.025, hair cuticle 0.046, others 0.04 (setupSpecular)
     this.f0Node = float(0.04).sub(kSkin.mul(0.04 - SKIN.f0)).sub(kEye.mul(0.04 - EYE.f0)).add(kHair.mul(0.006));
     // cavity occlusion (indirect light), weaker on the eyeball (the socket's ray-cast cavity greyed the whites); curl valleys
-    this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45))).mul(mix(float(1), curls.mul(0.45).add(0.55), kHair));
+    this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45))).mul(mix(float(1), curls.mul(0.45).add(0.55), kShell)).mul(mix(float(1), cardDepth.mul(0.35).add(0.65), kCard));
     // shading normal: curls on hair, creases and pores on skin, folds and weave on cloth, fibres on felt, grain on leather
-    const h = hairH.mul(kHair).add(skinH.mul(kSkin)).add(clothH.mul(kCloth)).add(feltH.mul(kFelt)).add(leatherH.mul(kLeather));
+    const h = hairH.mul(kShell).add(skinH.mul(kSkin)).add(clothH.mul(kCloth)).add(feltH.mul(kFelt)).add(leatherH.mul(kLeather));
     this.normalNode = bumped(h);
     // lighting-model inputs
     const curv = e2.mul(SKIN_CURV_MAX);
@@ -540,7 +567,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       kkEdge: smoothstep(0.3, 1, e2).mul(band(260).mul(0.6).add(0.4)), /* (D-304: a sharp strand highlight on sub-pixel curls sparkles: dimmed where they are unresolved) */ kHair, hairTilt: curls.sub(0.5).mul(1.6),
       sheenCol: mix(vec3(1), clothAlb.mul(2).min(1), 0.5).mul(kCloth.mul(mix(0.22, 0.14, isLinen)).add(kFelt.mul(0.25))),
       sheenRough: kCloth.mul(mix(0.55, 0.35, isLinen)).add(kFelt.mul(0.7)).add(float(1).sub(kCloth).sub(kFelt).mul(0.5)),
-      specOcc: mix(float(1), vAux.x, kSkin.mul(0.5)).mul(mix(float(1), curls.mul(0.6).add(0.4), kHair)),
+      specOcc: mix(float(1), vAux.x, kSkin.mul(0.5)).mul(mix(float(1), curls.mul(0.6).add(0.4), kShell)).mul(mix(float(1), cardDepth.mul(0.6).add(0.4), kCard)),
+      kCard, cardT,
       roughEnv: kSkin.mul(0.45).add(kEye.mul(0.04)).add(kHair.mul(0.5)).add(kTeeth.mul(0.3)).add(kMouth.mul(0.3)).add(kLeather.mul(0.55)).add(kMetal.mul(0.32)).add(kWood.mul(0.6)).add(kWicker.mul(0.8)).add(kCloth.add(kFelt).add(kLash).mul(0.9)),
       envMask: kSkin.add(kEye.mul(1.2)).add(kHair.mul(0.2)).add(kTeeth.mul(0.6)).add(kMouth.mul(0.4)).add(kLeather.mul(0.6)).add(kMetal).add(kWood.mul(0.3)).add(kWicker.mul(0.2)),
     };
@@ -561,7 +589,11 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const clumpC = abs(fract(along.mul(mix(LASH.clumps, LASH.clumps * 0.6, e2)).add(n1.mul(0.35))).sub(0.5)).mul(2);
     const lashW = float(1).sub(tl).mul(float(1).sub(tl).max(0).sqrt()).mul(0.8).add(0.1).mul(mix(1, 0.7, e2));
     const lashCut = max(step(lashW, clumpC), step(0.9, tl)).mul(float(1).sub(bits('kohl').mul(step(tl, KOHL.band)))); // (kohl: the root band solid)
-    this.maskNode = float(1).sub(kHair.mul(max(edgeCut, silCut))).sub(kLash.mul(lashCut)).greaterThan(0.5);
+    // D-307: a card is cut where the atlas' coverage is under a threshold hashed per bind-space point (a stable dither that
+    // TRAA's jitter averages into the strands' partial coverage)
+    const hashC = fract(sin(dot(floor(P.mul(4000)), vec3(12.9898, 78.233, 37.719))).mul(43758.5453));
+    const cardCut = step(cardCov, mix(float(CARD.thr[0]), float(CARD.thr[1]), hashC));
+    this.maskNode = float(1).sub(kShell.mul(max(edgeCut, silCut))).sub(kCard.mul(cardCut)).sub(kLash.mul(lashCut)).greaterThan(0.5);
     // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and
     // a constant fragment so the main pass only pays for vertices; the shadow pass uses this positionNode
     if (opts.shadowOnly) { this.colorWrite = false; this.depthWrite = false; this.fragmentNode = vec4(0, 0, 0, 1); }

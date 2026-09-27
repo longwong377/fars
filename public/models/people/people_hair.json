@@ -1,0 +1,282 @@
+{
+ "version": 1,
+ "ref": "m03",
+ "headH": 0.2242,
+ "atlas": {
+  "file": "people_hair_atlas.ktx2",
+  "w": 2048,
+  "h": 2048,
+  "cols": 8,
+  "rows": [
+   "straight",
+   "curly",
+   "ringlet",
+   "fine"
+  ]
+ },
+ "classRows": [
+  [
+   1,
+   2,
+   0
+  ],
+  [
+   1,
+   2,
+   0
+  ],
+  [
+   3,
+   3,
+   3
+  ]
+ ],
+ "sets": {
+  "hair": {
+   "n": 1090,
+   "tris": 794,
+   "cards": 148,
+   "note": "scalp hair: two layers of cards away from the crown and down, the outer shorter (volume, a broken outline)",
+   "anchor": {
+    "o": 0,
+    "n": 3270,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 6540,
+    "n": 2180,
+    "t": "f32"
+   },
+   "off": {
+    "o": 15260,
+    "n": 3270,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 28340,
+    "n": 2180,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 37060,
+    "n": 1090,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 38152,
+    "n": 1090,
+    "t": "u8"
+   },
+   "index": {
+    "o": 39244,
+    "n": 2382,
+    "t": "u16"
+   }
+  },
+  "hair_bob": {
+   "n": 1290,
+   "tris": 958,
+   "cards": 166,
+   "note": "the bob: cards from the scalp falling to the jaw, cut level",
+   "anchor": {
+    "o": 44008,
+    "n": 3870,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 51748,
+    "n": 2580,
+    "t": "f32"
+   },
+   "off": {
+    "o": 62068,
+    "n": 3870,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 77548,
+    "n": 2580,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 87868,
+    "n": 1290,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 89160,
+    "n": 1290,
+    "t": "u8"
+   },
+   "index": {
+    "o": 90452,
+    "n": 2874,
+    "t": "u16"
+   }
+  },
+  "bun": {
+   "n": 440,
+   "tris": 352,
+   "cards": 44,
+   "note": "the bunch at the nape: cards from the back of the skull over the bun",
+   "anchor": {
+    "o": 96200,
+    "n": 1320,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 98840,
+    "n": 880,
+    "t": "f32"
+   },
+   "off": {
+    "o": 102360,
+    "n": 1320,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 107640,
+    "n": 880,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 111160,
+    "n": 440,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 111600,
+    "n": 440,
+    "t": "u8"
+   },
+   "index": {
+    "o": 112040,
+    "n": 1056,
+    "t": "u16"
+   }
+  },
+  "beard_long": {
+   "n": 1494,
+   "tris": 1152,
+   "cards": 171,
+   "note": "the long beard: cards down from the cheeks, chin and upper lip, hanging below the jaw to a square cut",
+   "anchor": {
+    "o": 114152,
+    "n": 4482,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 123116,
+    "n": 2988,
+    "t": "f32"
+   },
+   "off": {
+    "o": 135068,
+    "n": 4482,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 152996,
+    "n": 2988,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 164948,
+    "n": 1494,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 166444,
+    "n": 1494,
+    "t": "u8"
+   },
+   "index": {
+    "o": 167940,
+    "n": 3456,
+    "t": "u16"
+   }
+  },
+  "beard_short": {
+   "n": 840,
+   "tris": 560,
+   "cards": 140,
+   "note": "the short beard: short cards lying close, down and out",
+   "anchor": {
+    "o": 174852,
+    "n": 2520,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 179892,
+    "n": 1680,
+    "t": "f32"
+   },
+   "off": {
+    "o": 186612,
+    "n": 2520,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 196692,
+    "n": 1680,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 203412,
+    "n": 840,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 204252,
+    "n": 840,
+    "t": "u8"
+   },
+   "index": {
+    "o": 205092,
+    "n": 1680,
+    "t": "u16"
+   }
+  },
+  "brows": {
+   "n": 228,
+   "tris": 152,
+   "cards": 38,
+   "note": "the brows: short cards along the brow, out from the nose and up at the inner end",
+   "anchor": {
+    "o": 208452,
+    "n": 684,
+    "t": "u16"
+   },
+   "bary": {
+    "o": 209820,
+    "n": 456,
+    "t": "f32"
+   },
+   "off": {
+    "o": 211644,
+    "n": 684,
+    "t": "f32"
+   },
+   "uv": {
+    "o": 214380,
+    "n": 456,
+    "t": "f32"
+   },
+   "cell": {
+    "o": 216204,
+    "n": 228,
+    "t": "u8"
+   },
+   "ao": {
+    "o": 216432,
+    "n": 228,
+    "t": "u8"
+   },
+   "index": {
+    "o": 216660,
+    "n": 456,
+    "t": "u16"
+   }
+  }
+ }
+}

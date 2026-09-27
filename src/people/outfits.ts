@@ -16,7 +16,8 @@
 // positions are generated per variant (23), so each body wears its own fitted copy.
 // Every piece carries an evidence tier and source key for the dev overlay (F3). Colours are per person (crowd.ts).
 import type { HumanAssets, HumanVariant } from './humanAssets';
-import { HB, PART, MAT, EYE_UNIT, SKIN_CURV_MAX, PRM_UPPER, PRM_ROBE, type HBone } from './humanFormat';
+import { HB, PART, MAT, EYE_UNIT, SKIN_CURV_MAX, PRM_UPPER, PRM_ROBE, PRM_CARD, type HBone } from './humanFormat';
+import { placeCards, headHeight, applyDrape, type PeopleModels, type CardSet } from './peopleModels';
 import { clothHull, headHull, hull2, rayToHull, BELT_TOP, ROBE, SLEEVE, BEARD, robePleat, robeTheta, beardRow } from './drape';
 
 export type Dress = 'persian' | 'guard' | 'median' | 'worker' | 'woman' | 'child' | 'envoy' | 'envoy_short' | 'envoy_bare' | 'king' | 'court_woman';
@@ -341,6 +342,7 @@ export const PIECES: Record<string, PieceMeta> = {
   cap_pointed: { id: 'cap_pointed', label: 'tall pointed felt cap', tier: 'B', src: 'APA-RELIEF;DB-SKUNXA', note: 'the “pointed-cap Saka” (Old Persian Sakā tigraxaudā, the royal lists: A for the name) on the Apadana E stair and the Bisitun relief (B for the form); height 0.26 m, lean and felt C; ear flaps not modelled' },
   cap_low: { id: 'cap_low', label: 'low rounded cap / wrapped headcloth', tier: 'C', src: 'APA-RELIEF;WALSER1966', note: 'the rounded or conical caps of the lowland delegations (Babylonians, Assyrians/Syrians, Lydians, Cilicians) on the Apadana reliefs (B for “a cap”; recollection of the plates, NOT SEEN: the tassels and lappets are not modelled; C form)' },
   crown: { id: 'crown', label: 'the king’s tall crown with a dentate rim', tier: 'B', src: 'APA-RELIEF;TREAS-AUD;HADISH-JAMB', note: 'the king’s tall cylindrical headdress on the Treasury audience relief and the palace door jambs (B); the dentate (crenellated) rim, height 0.2 m, the gold band and the cloth under it C' },
+  brows: { id: 'brows', label: 'eyebrows (strand cards)', tier: 'C', src: 'MH-CC0', note: 'D-307: short strand cards along the brow (tools/blender people_hair), textured from the strand atlas (MakeHuman CC0 hair); at full detail only (beyond it, the skin map\'s brows)' },
   body: { id: 'body', label: 'MakeHuman body (variant)', tier: 'C', src: 'RECON', note: 'MakeHuman CC0 base mesh with macro/face morphs; skin albedo procedural (D-020)' },
   // D-215 (gap audit items 21, 22; D-207): jewellery by rank, the wicker shield, the court women's crown and veil
   earrings: { id: 'earrings', label: 'gold ring earrings', tier: 'C', src: 'MATCULT-R;XEN-CYR-EYES', note: 'a plain gold hoop through each lobe (ring earrings on guards and nobles: MATERIAL_CULTURE, NOT SEEN, C; Xenophon, Cyr. 1.3.2, read: the Median court wears ornaments, a claim, B). Worn by rank (C): nobles, the king, the court women, many of the guards; the ring 18 mm across and its wire C' },
@@ -356,28 +358,28 @@ export const PIECES: Record<string, PieceMeta> = {
 // costume composition: pieces per dress; `opt` = optional per person (a bit in the person's piece mask)
 export interface CostumeDef { dress: Dress; always: string[]; opt: string[] }
 export const COSTUMES: Record<Dress, CostumeDef> = {
-  persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow', 'crown', 'earrings', 'bracelets', 'shield', 'crown_w', 'veil'] },
+  persian: { dress: 'persian', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow', 'crown', 'earrings', 'bracelets', 'shield', 'crown_w', 'veil'] },
   // guards wear the Persian costume (the same mesh) with the bow and quiver bits always set: one draw fewer per LOD and cascade
-  guard: { dress: 'guard', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'earrings', 'bracelets', 'shield'] },
+  guard: { dress: 'guard', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'earrings', 'bracelets', 'shield'] },
   // D-199, court setting only: the king wears the Persian costume's mesh with the crown bit set (as the guards, above)
-  king: { dress: 'king', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown'], opt: ['hair', 'bun', 'beard_long', 'earrings', 'bracelets'] },
+  king: { dress: 'king', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown'], opt: ['hair', 'bun', 'beard_long', 'earrings', 'bracelets'] },
   // D-215 (gap audit item 22, BLOCKERS B20c): the women of the court on the Persian costume's mesh (as the guards and the
   // king): the many-folded robe belted at the front (IR-WOMEN: the elite woman's dress, B), the crenellated crown and the
   // long veil down the back (the Pazyryk women, B), gold at the ears and wrists; no new mesh and no new draw
-  court_woman: { dress: 'court_woman', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown_w', 'veil'], opt: ['hair', 'earrings', 'bracelets'] },
+  court_woman: { dress: 'court_woman', always: ['brows', 'robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown_w', 'veil'], opt: ['hair', 'earrings', 'bracelets'] },
   // D-199, court setting only: the delegations' own dress (the Apadana reliefs, research/COURT.md, src/data/delegations.json)
   // in three costumes: the long sleeved garment of the lowland peoples, the knee-length tunic of the others (trousers and
   // boots optional) and the bare-chested wrap to the knee (the Indians), each people with its own headgear and footwear
   // from the optional pieces. Their meshes are drawn only when delegates are in view (a costume with no instances is not
   // drawn). Not one costume with every piece optional: that one kept the whole body under its garments (52,444
   // triangles at full detail against the 42,000 budget; the knee-length one with an optional tunic 43,049)
-  envoy: { dress: 'envoy', always: ['tunic_upper', 'dress_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_low', 'headband', 'fillet', 'torque'] },
-  envoy_short: { dress: 'envoy_short', always: ['tunic_upper', 'tunic_skirt', 'belt'], opt: ['trousers', 'shoes', 'boots', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_pointed', 'cap_low', 'headband', 'akinaka'] },
-  envoy_bare: { dress: 'envoy_bare', always: ['tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband'] },
-  median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets', 'mouth_cover'] },
-  worker: { dress: 'worker', always: ['work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
-  woman: { dress: 'woman', always: ['dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b'] },
-  child: { dress: 'child', always: ['child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
+  envoy: { dress: 'envoy', always: ['brows', 'tunic_upper', 'dress_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_low', 'headband', 'fillet', 'torque'] },
+  envoy_short: { dress: 'envoy_short', always: ['brows', 'tunic_upper', 'tunic_skirt', 'belt'], opt: ['trousers', 'shoes', 'boots', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_pointed', 'cap_low', 'headband', 'akinaka'] },
+  envoy_bare: { dress: 'envoy_bare', always: ['brows', 'tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband'] },
+  median: { dress: 'median', always: ['brows', 'tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets', 'mouth_cover'] },
+  worker: { dress: 'worker', always: ['brows', 'work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
+  woman: { dress: 'woman', always: ['brows', 'dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b'] },
+  child: { dress: 'child', always: ['brows', 'child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
 };
 /** the built costume (one instanced mesh per LOD) a dress is drawn with */
 export const COSTUME_OF: Record<Dress, Dress> = { persian: 'persian', guard: 'persian', median: 'median', worker: 'worker', woman: 'woman', child: 'child', envoy: 'envoy', envoy_short: 'envoy_short', envoy_bare: 'envoy_bare', king: 'persian', court_woman: 'persian' };
@@ -419,7 +421,7 @@ export function weatherMask(dress: Dress, mask: number, tempC: number, rain = 0)
 
 // ------------------------------------------------------------------------------------------------ piece builders
 const W = (b: HBone, w = 1): [number, number] => [HB[b], w];
-interface Lib { A: HumanAssets; ref: HumanVariant; J: (b: HBone) => V3 }
+interface Lib { A: HumanAssets; ref: HumanVariant; J: (b: HBone) => V3; /** D-307: the Blender-built hair cards and drape (null: the procedural pieces alone) */ models?: PeopleModels | null }
 /** per-LOD tessellation */
 const TESS = [{ tris: 1, seg: 40, ring: 18, hs: 48 }, { tris: 2, seg: 14, ring: 7, hs: 14 }, { tris: 2, seg: 8, ring: 4, hs: 8 }];
 
@@ -745,12 +747,12 @@ export function bodyExtras(L: Lib) {
   const out = { hy, hw }; EXTRA_CACHE.set(A, out); return out;
 }
 /** beard: a shell over the beard region plus (long) a squared mass hanging from the chin to the upper chest */
-function beardGeo(L: Lib, key: string, lod: number, long: boolean) {
+function beardGeo(L: Lib, key: string, lod: number, long: boolean, noMass = false) {
   const { A, ref } = L; const bm = beardMask(L);
   const d = regionOf(A, ref, [P.head, P.neck], (p, i) => (bm[i] - 0.4) * 0.05);
   const shell = shellGeo(A, ref, `${key}_shell`, { tris: A.lods[lod === 0 ? 0 : TESS[lod].tris], d, ramp: long ? 0.008 : 0.011, smooth: lod === 0 ? 4 : 2, minOff: 0.003, // a wider ramp: the short beard thins over ~1 cm at its edge (D-155)
     thick: p => (long ? 0.01 : 0.0035) + (long ? 0.012 : 0.002) * sstep(ref.eyeY - 0.06, ref.eyeY - 0.12, p[1]), mat: MAT.hair, col: COL.hair, prm: 2 }); // short: 3.5 mm (was 5: its cut edges read as blobs)
-  if (!long) return shell;
+  if (!long || noMass) return shell; // (D-307: the strand cards hang below the chin at full detail: no mass under them)
   // D-225: the long beard's hanging mass carved as the reliefs carve it, in stacked rows of curls: at full detail three
   // rings a row, each row a rounded roll (the curls across a row are the material's, BEARD.around a ring); θ 0 lies
   // at the back (against the neck), so the tube's uv seam is hidden there and the material's curl columns run round
@@ -840,7 +842,7 @@ function lowCap(L: Lib, key: string, lod: number) {
 /** D-199: the king's crown: a tall cylinder fitted to the head, flaring a little, its rim cut into steps (the dentate
  *  top: C) with a gold band at the brow (the band C) */
 function crownGeo(L: Lib, key: string, lod: number) {
-  const segs = lod === 0 ? 36 : lod === 1 ? 12 : 6, rings = lod === 0 ? 5 : 2, H = 0.2, teeth = 12; // (the court setting's king only: lean at the far LODs, which every Persian-dress person carries collapsed)
+  const segs = lod === 0 ? 24 : lod === 1 ? 12 : 6, rings = lod === 0 ? 5 : 2, H = 0.2, teeth = 12; // (D-307: 24 columns at full detail, was 36: two per tooth still cut the notches, and the costume's budget took the strand cards) // (the court setting's king only: lean at the far LODs, which every Persian-dress person carries collapsed)
   const cache = { v: null as HumanVariant | null, r: [] as number[] };
   const F0 = (c: Ctx) => headRingFrame(c, 0.045, 0.1);
   const body = tubeGeo(L.A, `${key}_body`, { segs, rings, lining: 0.004, capEnd: true,
@@ -1149,6 +1151,34 @@ function mouthCover(L: Lib, key: string, lod: number) {
 }
 
 // ------------------------------------------------------------------------------------------------ piece factory
+// ------------------------------------------------------------------------------------------------ strand cards (D-307)
+/** landmark render vertices (head top, chin): the cards' offsets scale with the head's height */
+const LM = new WeakMap<HumanAssets, [number, number]>();
+function landmarks(A: HumanAssets): [number, number] {
+  let r = LM.get(A); if (r) return r; let t = 0, c = 0;
+  for (let i = 0; i < A.NO; i++) { if (A.orig[i] === A.meta.landmarks.head_top) t = i; if (A.orig[i] === A.meta.landmarks.chin) c = i; }
+  r = [t, c]; LM.set(A, r); return r;
+}
+/** a Blender-groomed card set as a piece: placed on each variant by its anchors (peopleModels.placeCards), the offsets
+ *  scaled by the head's height; skin weights blended from the anchor triangle's; hair class with PRM_CARD; the spare byte
+ *  carries the card's class and atlas column, the cavity byte its root-to-tip occlusion */
+function cardGeo(L: Lib, key: string, S: CardSet, headH: number): Geo {
+  const { A } = L, n = S.meta.n; const [topRV, chinRV] = landmarks(A);
+  const g = newGeo(key, n, Array.from(S.index), (c: Ctx) => placeCards(S, c.v.pos, headHeight(c.v.pos, topRV, chinRV) / headH));
+  for (let v = 0; v < n; v++) {
+    const u = S.bary[v * 2], w = S.bary[v * 2 + 1], bw = [u, w, 1 - u - w]; const m = new Map<number, number>();
+    for (let e = 0; e < 3; e++) { const a = S.anchor[v * 3 + e]; for (let q = 0; q < 4; q++) { const bi = A.skinIndex[a * 4 + q], wt = A.skinWeight[a * 4 + q] / 255; if (wt) m.set(bi, (m.get(bi) ?? 0) + wt * bw[e]); } }
+    setW(g, v, [...m.entries()]); g.uv[v * 2] = S.uv[v * 2]; g.uv[v * 2 + 1] = S.uv[v * 2 + 1]; g.aux[v] = S.cell[v]; g.ao[v] = S.ao[v]; g.edge[v] = 255;
+  }
+  setMat(g, MAT.hair, COL.hair, PRM_CARD);
+  return g;
+}
+/** the piece with its cards at full detail, when the cards are loaded */
+function withCards(L: Lib, id: string, lod: number, base: Geo): Geo {
+  const C = L.models?.cards, S = C?.sets[id]; if (lod !== 0 || !S || !C) return base;
+  return base.n ? merge(base.key, [base, cardGeo(L, `${id}@${lod}_cards`, S, C.meta.headH)]) : cardGeo(L, base.key, S, C.meta.headH);
+}
+
 function buildPiece(L: Lib, id: string, lod: number): Geo {
   const J = L.J;
   switch (id) {
@@ -1172,11 +1202,14 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
       return beltTube(L, `${id}@${lod}`, lod, over, { dy: -0.005, h: 0.045, col: COL.trim, mat: MAT.cloth_trim }); }
     case 'shoes': return footShell(L, `${id}@${lod}`, lod, 0.035);
     case 'boots': return footShell(L, `${id}@${lod}`, lod, 0.11);
-    case 'hair': return hairShell(L, `${id}@${lod}`, lod, false);
-    case 'hair_bob': return merge(`${id}@${lod}`, [hairShell(L, `${id}@${lod}_top`, lod, false), bobCurtain(L, `${id}@${lod}_curtain`, lod)]);
-    case 'bun': return bunGeo(L, `${id}@${lod}`, lod);
-    case 'beard_long': return beardGeo(L, `${id}@${lod}`, lod, true);
-    case 'beard_short': return beardGeo(L, `${id}@${lod}`, lod, false);
+    // D-307: at full detail the hair, the bunch, the beards and the brows take the Blender-groomed strand cards over the
+    // shells, which stay under them as the roots' dark base (and are all there is beyond LOD_DIST[0])
+    case 'hair': return withCards(L, id, lod, hairShell(L, `${id}@${lod}`, lod, false));
+    case 'hair_bob': return withCards(L, id, lod, merge(`${id}@${lod}`, [hairShell(L, `${id}@${lod}_top`, lod, false), bobCurtain(L, `${id}@${lod}_curtain`, lod)]));
+    case 'bun': return withCards(L, id, lod, bunGeo(L, `${id}@${lod}`, lod === 0 && L.models?.cards?.sets.bun ? 1 : lod)); // (under the cards the core takes the mid tessellation)
+    case 'beard_long': return withCards(L, id, lod, beardGeo(L, `${id}@${lod}`, lod, true, lod === 0 && !!L.models?.cards?.sets.beard_long));
+    case 'beard_short': return withCards(L, id, lod, beardGeo(L, `${id}@${lod}`, lod, false));
+    case 'brows': return withCards(L, id, lod, newGeo(`${id}@${lod}`, 0, [], () => new Float32Array(0)));
     case 'hat_fluted': return flutedHatFitted(L, `${id}@${lod}`, lod);
     case 'fillet': return headBand(L, `${id}@${lod}`, lod, { dy: 0.04, w: 0.022, t: 0.006, twisted: true, col: COL.trim });
     case 'headband': return headBand(L, `${id}@${lod}`, lod, { dy: 0.045, w: 0.02, t: 0.002, twisted: false, col: COL.second, gap: 0.0045 });
@@ -1282,12 +1315,14 @@ export const FAR_KEEP = 0.2;
 /** the farthest LOD's error bound for a piece, as a share of its own extent (D-205; C) */
 export const PIECE_ERR = 0.12;
 export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: number[]; variants?: string[]; profile?: Record<string, number>;
+  /** D-307: the Blender-built people's assets (peopleModels.ts); without them the procedural pieces alone */
+  models?: PeopleModels | null;
   /** index-only simplifier (meshoptimizer) for the farthest LOD; without it there are three LODs */
   simplify?: (index: Uint32Array, pos: Float32Array, targetTris: number, absError?: number) => Uint32Array } = {}): OutfitBuild {
   const t0 = performance.now();
   const ref = A.byId.m03 ?? A.variants[0];
   const J = (b: HBone): V3 => [ref.joints[HB[b] * 3], ref.joints[HB[b] * 3 + 1], ref.joints[HB[b] * 3 + 2]];
-  const L: Lib = { A, ref, J };
+  const L: Lib = { A, ref, J, models: opts.models ?? null };
   const dresses = (opts.dresses ?? BUILT).map(d => COSTUME_OF[d]).filter((d, i, a) => a.indexOf(d) === i), lods = opts.lods ?? [0, 1, 2];
   // distinct piece geometries (LOD1 and LOD2 shells share a tessellation → same key)
   const geos: Record<string, Geo> = {};
@@ -1305,7 +1340,10 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
     const base = v.index * NV * 4;
     for (let i = 0; i < A.NO; i++) { source[base + i * 4] = v.pos[i * 3]; source[base + i * 4 + 1] = v.pos[i * 3 + 1]; source[base + i * 4 + 2] = v.pos[i * 3 + 2]; source[base + i * 4 + 3] = packNormal(v.nrm[i * 3], v.nrm[i * 3 + 1], v.nrm[i * 3 + 2]); }
     const c: Ctx = { A, v, J: (b: HBone) => [v.joints[HB[b] * 3], v.joints[HB[b] * 3 + 1], v.joints[HB[b] * 3 + 2]], placed: new Map() };
-    for (const k of keys) { const g = geos[k]; const t1 = opts.profile ? performance.now() : 0; const pos = g.place(c); if (opts.profile) opts.profile[k] = (opts.profile[k] ?? 0) + performance.now() - t1; c.placed.set(k, pos); const nr = geoNormals(pos, g.index, g.n); const o = base + pieceBase[k] * 4;
+    // D-307: the drape Blender's cloth solver gave the piece on the group's reference body (people_cloth), added in the
+    // piece's local frame to its placement on this body (before anything is fitted over it: the belt goes over the settled skirt)
+    const group = v.meta.group === 'child' ? 'children' : v.meta.sex === 'f' ? 'women' : 'men', drape = opts.models?.drape?.sets;
+    for (const k of keys) { const g = geos[k]; const t1 = opts.profile ? performance.now() : 0; const pos = g.place(c); const dr = drape?.[`${k}|${group}`]; if (dr && dr.meta.n === g.n) applyDrape(pos, g.index, dr.d); if (opts.profile) opts.profile[k] = (opts.profile[k] ?? 0) + performance.now() - t1; c.placed.set(k, pos); const nr = geoNormals(pos, g.index, g.n); const o = base + pieceBase[k] * 4;
       for (let i = 0; i < g.n; i++) { source[o + i * 4] = pos[i * 3]; source[o + i * 4 + 1] = pos[i * 3 + 1]; source[o + i * 4 + 2] = pos[i * 3 + 2]; source[o + i * 4 + 3] = packNormal(nr[i * 3], nr[i * 3 + 1], nr[i * 3 + 2]); } }
   }
   if (opts.profile) opts.profile.$source = performance.now() - t0;
