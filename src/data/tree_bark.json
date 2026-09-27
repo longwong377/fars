@@ -2,9 +2,9 @@
  "_meta": {
   "what": "The bark of each tree species (src/data/trees.json) as a CC0 photo scan (Poly Haven, polyhaven.com, CC0 1.0; ASSET_LEDGER.md), laid on the Blender-built branch meshes (D-327: tools/blender/trees_wood.py gives every branch UVs in bark tiles of the scan's own size; src/world/trees/render.ts). The species' measured albedo (trees.json bark) is kept: the scan adds only its luminance detail, a warm-cool colour axis and its relief (normal map), never its own mean colour.",
   "tiers": "C for every row: a modern scan of the same genus or family where one exists (plane: a Platanus; cypress: a Cupressaceae; almond: a Prunus), otherwise of a bark of the same kind (flaking mosaic, coarse interlaced ridges, fibrous strips, fine checks, smooth grey), judged from the scans against the species' bark as the notes in trees.json describe it.",
-  "fields": "scan: the Poly Haven id (public/models/trees/bark/<scan>_diff.jpg, _nor.jpg at `px`); size_m: the scan's width and height on the tree (Poly Haven's stated dimensions); detail: how much of the scan's luminance detail is kept (1 = all); warm: weight of its warm-cool colour axis; relief: the normal map's strength; note: why this scan."
+  "fields": "scan: the Poly Haven id (public/models/trees/bark/<scan>_diff.jpg, _nor.jpg at `px`: 768 since D-327 rev 2, 1.3-2.9 mm a texel on the tree, for T-K7); size_m: the scan's width and height on the tree (Poly Haven's stated dimensions); detail: how much of the scan's luminance detail is kept (1 = all); warm: weight of its warm-cool colour axis; relief: the normal map's strength; note: why this scan."
  },
- "px": 1024,
+ "px": 768,
  "species": {
   "plane": { "scan": "japanese_sycamore", "size_m": [1.1, 2.2], "detail": 1.0, "warm": 1.0, "relief": 1.0, "note": "Platanus: bark shed in plates, a mosaic of grey, cream and olive patches (trees.json note); the scan is a Platanus bark ('sycamore' in Japanese and American use)" },
   "willow": { "scan": "bark_willow_02", "size_m": [2.15, 2.15], "detail": 1.0, "warm": 0.5, "relief": 1.2, "note": "old Salix alba: grey, deeply fissured into coarse interlacing ridges" },

@@ -321,10 +321,16 @@ export function buildAtlas(leafFrac: Partial<Record<TileName, number>>): Atlas {
  *  layout with row 0 at v = 0 (the loader flips the PNG's top-down rows): colour = (shade R, petal share G, bark share B,
  *  coverage A), tilt = (tilt along u, tilt along v, -, coverage). The mips are built here as for the procedural tiles
  *  (coverage kept per tile), so the near shaders, the impostor baker and the tests read either the same way. */
-export function atlasFromImages(col: Uint8Array | Uint8ClampedArray, tilt: Uint8Array | Uint8ClampedArray, W: number, H: number, shade: [number, number]): Atlas {
+export function atlasFromImages(col: Uint8Array | Uint8ClampedArray, tilt: Uint8Array | Uint8ClampedArray, W: number, H: number, shade: [number, number], tiltW?: number, tiltH?: number): Atlas {
   const tile = W / COLS; if (tile !== H / ROWS || tile !== Math.round(tile)) throw new Error(`atlas image ${W}x${H} is not ${COLS}x${ROWS} square tiles`);
   const base = new Float32Array(W * H * 4), tb = new Float32Array(W * H * 4);
-  for (let i = 0; i < W * H * 4; i++) { base[i] = col[i] / 255; tb[i] = tilt[i] / 255; }
+  for (let i = 0; i < W * H * 4; i++) base[i] = col[i] / 255;
+  // the tilt may come at half size (trees.mjs): bilinear up to the colour's
+  const tw = tiltW ?? W, th = tiltH ?? H, fx = tw / W, fy = th / H;
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const x = Math.max(0, Math.min(tw - 1, (i + 0.5) * fx - 0.5)), y = Math.max(0, Math.min(th - 1, (j + 0.5) * fy - 0.5)), x0 = Math.floor(x), y0 = Math.floor(y), x1 = Math.min(tw - 1, x0 + 1), y1 = Math.min(th - 1, y0 + 1), ax = x - x0, ay = y - y0, o = (j * W + i) * 4;
+    for (let k = 0; k < 3; k++) tb[o + k] = ((tilt[(y0 * tw + x0) * 4 + k] * (1 - ax) + tilt[(y0 * tw + x1) * 4 + k] * ax) * (1 - ay) + (tilt[(y1 * tw + x0) * 4 + k] * (1 - ax) + tilt[(y1 * tw + x1) * 4 + k] * ax) * ay) / 255;
+  }
   // the tilt's coverage is the colour's (one outline)
   for (let i = 3; i < W * H * 4; i += 4) tb[i] = base[i];
   const fill: number[] = [];
@@ -338,7 +344,9 @@ export function atlasFromImages(col: Uint8Array | Uint8ClampedArray, tilt: Uint8
 /** RGBA float (0..1) -> mip levels as RGBA8, per tile: colour averaged by coverage (transparent texels take the colour of
  *  their covered neighbours, so bilinear edges do not darken), alpha scaled so the texels passing 0.5 keep the tile's
  *  full-size share (found per tile and level from an alpha histogram) */
-export function mipChain(base: Float32Array, W: number, H: number, tile: number, cols: number, rows: number, nLevels: number, srgb = false) {
+/** keep = false: the plain average of coverage (for a dithered alpha test under temporal AA, which then shows the true
+ *  share: the see-through gaps of a sparse crown at a distance, D-327) */
+export function mipChain(base: Float32Array, W: number, H: number, tile: number, cols: number, rows: number, nLevels: number, srgb = false, keep = true) {
   const levels: { data: Uint8Array; width: number; height: number }[] = [];
   const nt = cols * rows, cover0 = new Float64Array(nt);
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (base[(j * W + i) * 4 + 3] >= 0.5) cover0[Math.floor(j / tile) * cols + Math.floor(i / tile)]++;
@@ -366,7 +374,7 @@ export function mipChain(base: Float32Array, W: number, H: number, tile: number,
       for (let q = 0; q < 4; q++) { const o = ((2 * j + (q >> 1)) * w + 2 * i + (q & 1)) * 4, ww = cur[o + 3] + 1e-4; r += cur[o] * ww; g += cur[o + 1] * ww; b += cur[o + 2] * ww; a += cur[o + 3]; ws += ww; }
       const o = (j * nw + i) * 4; nx[o] = r / ws; nx[o + 1] = g / ws; nx[o + 2] = b / ws; nx[o + 3] = a / 4; }
     // coverage preservation per tile: the smallest scale k with share(alpha * k >= 0.5) >= the full-size share
-    for (let t = 0; t < nt; t++) { if (cover0[t] <= 0) continue; const ox = (t % cols) * ts, oy = Math.floor(t / cols) * ts;
+    for (let t = 0; t < nt && keep; t++) { if (cover0[t] <= 0) continue; const ox = (t % cols) * ts, oy = Math.floor(t / cols) * ts;
       const hist = new Uint32Array(1025); for (let j = 0; j < ts; j++) for (let i = 0; i < ts; i++) hist[Math.min(1024, Math.round(nx[((oy + j) * nw + ox + i) * 4 + 3] * 1024))]++;
       const need = cover0[t] * ts * ts; let acc = 0, amin = 1; for (let v = 1024; v >= 1; v--) { acc += hist[v]; amin = v / 1024; if (acc >= need) break; }
       const k = Math.min(6, Math.max(1, 0.5 / amin));
