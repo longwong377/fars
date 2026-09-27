@@ -1,0 +1,50 @@
+Clifford's Tower, York &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ Clifford's Tower, York
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ Impulse responses recorded in Clifford’s Tower, York. The tower is formed of four round bastions with a quadrilobate’ plan. Sandstones were used to construct the walls, and timber was used to construct the roof. The tower is not an enclosed space, which has windows and an open roof deck. Impulse responses recorded with S1R1, S1R2, S1R3, S2R4: Source 1 and Receiver 4 were positioned at the centre of the ground floor; Receiver 1 was positioned at the entrance; Receiver 2 was positioned at the corner of the first floor walkways; Source 2 and Receiver 3 were positioned at the centre of first floor walkways (right at the top of the Source 1). Measurement Team:  
+ Roger Chen Tarry Tian Aktera Teranontamongkol Capture Date:  
+ Wed, 22/02/2023 Source Sound:  
+ Swept Sine; 20 Hz &#8211; 20 kHz ; 15 seconds Source Sound Category:  
+ Swept sine (logarithmic) Input:  
+ Genelec 8030 loudspeaker
+ Microphone(s):  
+ Zoom H3-VR Ambisonic Handy Recorder
+ Space Category: 
+ Other Generation Type:  
+ Real World 
+ Images 
+ Impulse Responses 
+ Waveform Example
+ This is the W channel of the B-format impulse response measured at position S1R1. 
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/RIR_1_w_channel.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/clifford_tower_singing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/clifford_tower_drums.mp3 Anechoic burps
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/burp-1.mp3 Convolved burps
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/clifford_tower_burp.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+  www.openairlib.net 
+ This work is licensed under a Creative Commons Attribution 4.0 International License . 
+ Icons by Icons8 
+ Powered by WordPress and Momentous .

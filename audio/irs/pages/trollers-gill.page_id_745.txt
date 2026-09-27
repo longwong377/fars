@@ -1,0 +1,47 @@
+Troller's Gill &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ Troller's Gill
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ Impulse responses measured around the limestone gorge known as Troller's Gill in the Yorkshire Dales. Site 1 is a wide V-shape valley with hills either side, found at the co-ordinates: 54.054264, -1.900317. Site 2 is a small U-shape valley (the limestone gauge itself) with steep cliffs either side, found at the co-ordinates: 54.052596, -1.896829. Finally, site 3 is the open area at the bottom of Troller's Gill, found at the co-ordinates: 54.051784, -1.896455. Diagramas describing each site can be found under the Images tab. For each site there are two sets of impulse responses: One is made with a single directional sound source (IR-1), and the other is made with an array of four directional sound sources pointing in different directions in an attempt to better approximate an omni-directional source (IR-2). In each case the soundfield microphone is pointed directly at the loudspeaker. Measurement Team:  
+ Andrew Chadwick Simon Shelley Capture Date:  
+ Tue, 09/07/2013 Source Sound:  
+ Swept Sine; 22 Hz &#8211; 22 kHz ; 30-60 Seconds Source Sound Category:  
+ Swept sine (logarithmic) Input:  
+ Genelec 8130A Microphone(s):  
+ Soundfield ST450 kit Space Category:  
+ Open Air Generation Type:  
+ Real World Related Links: 
+ Information about Troller's Gill Wikipedia entry 
+ Images 
+ Tab Content 
+ Impulse Responses 
+ Waveform Example
+ This is the W-channel of the B-format impulse response measured at Site 2 using the four-way loudspeaker array. The file has been truncated and processed by fading out the signal when the reverb tail reaches the noise floor. https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/examples/dales_site2_4way_mono_processed.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/examples/dales_site2_4way_mono_processed_sing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/examples/dales_site2_4way_mono_processed_drum.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+ www.openairlib.net   
+This work is licensed under a Creative Commons Attribution 4.0 International License .
+ Icons by Icons8 
+ Powered by WordPress and Momentous .

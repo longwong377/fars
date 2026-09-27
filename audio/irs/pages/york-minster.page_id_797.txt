@@ -1,0 +1,44 @@
+York Minster &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ York Minster
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ York Minster is the largest medieval gothic cathedral in the UK and one of the finest in Europe, built between the 12th and 15th centuries on the foundations of the previous Norman church that was in turn constructed on the foundations of the original Roman fortress. It is approximately 160m long, 76m wide and 27m high to the vaulted ceiling, constructed predominantly of stone with extensive, large panels of stained glass windows. Its beautiful acoustic and setting make it a sought after and highly popular music performance venue. Measurement Team:  
+ Damian T. Murphy Capture Date:  
+ Fri, 13/01/2006 Size:
+ 140000 m³ Source Sound:  
+ Log. Swept Sine; 20-22k Hz; 15s long Source Sound Category:  
+ Swept sine (logarithmic) Space Category:  
+ Cathedral Generation Type:  
+ Real World 
+ Images 
+ Impulse Responses 
+ Waveform Example
+ https://webfiles.york.ac.uk/OPENAIR/IRs/york-minster/examples/minster1_omni_48k.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://webfiles.york.ac.uk/OPENAIR/IRs/york-minster/examples/minster1_omni_48k_sing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://webfiles.york.ac.uk/OPENAIR/IRs/york-minster/examples/minster1_omni_48k_drum.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+ www.openairlib.net Audiolab, University of York Damian T. Murphy   
+ This work is licensed under a Creative Commons Attribution 4.0 International License .
+ Icons by Icons8 
+ Powered by WordPress and Momentous .

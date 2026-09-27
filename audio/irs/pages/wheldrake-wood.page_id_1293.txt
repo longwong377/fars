@@ -1,0 +1,49 @@
+Abies Grandis Forest, Wheldrake Wood &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ Abies Grandis Forest, Wheldrake Wood
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ Impulse responses recorded in an Abies Grandis forest in Wheldrake Wood, York. This forest environment is dominated by tree trunks, with over 100 trees within this area. The tree trunks are relatively tall, straight and cylindrical with different diameters. Most branches and leaves are located above the height of the ear. The ground surface is relatively flat with no additional low plantations. There were 2 sources and 2 receivers selected within a 20-metre-square measurement range. Source 1 was selected with clear sight to Receiver 1 and Receiver 2. Source 2 was selected with a tree obstructed to both receivers. The sine sweeps were recorded with an array of four directional sound sources pointing in different directions.  Measurement Team:  
+ Sinuo Feng Frank Stevens Andrew Chadwick Richie Cully Capture Date:  
+ Thu, 22/06/2023 Source Sound:  
+ Swept Sine; 60 Hz &#8211; 20 kHz ; 15 seconds Source Sound Category:  
+ Swept sine (logarithmic) Input:  
+ Genelec 8130A digital loudspeaker Microphone(s):  
+ Soundfield ST450 MkII microphone, Earthworks M30 microphone Space Category: 
+ Open Air Generation Type:  
+ Real World Related Links: 
+ Link to a full report on the MSc research project 
+ Images 
+ Impulse Responses 
+ Waveform Example
+ This is the impulse response measured with the M30 microphone at position S1R2 using the combination of four loudspeaker orientations. 
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/Forest_M30_S1R2.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/Forest_singing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/Forest_drums.mp3 Anechoic burps
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/burp-1.mp3 Convolved burps
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2023/11/Forest_burp.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+  www.openairlib.net 
+ This work is licensed under a Creative Commons Attribution 4.0 International License . 
+ Icons by Icons8 
+ Powered by WordPress and Momentous .

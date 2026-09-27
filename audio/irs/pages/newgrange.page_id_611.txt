@@ -1,0 +1,51 @@
+Newgrange &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ Newgrange
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ IR recorded using the ESS method at Newgrange, a neolithic passage tomb in County Meath Ireland. Measurement Team:  
+ Francis Stevens Capture Date:  
+ Mon, 06/05/2019 Source Sound:  
+ Exponential Swept Sine, 22 Hz &#8211; 22 kHz; 15 seconds Source Sound Category:  
+ Swept sine (logarithmic) Microphone(s):  
+ Soundfield STM450 Microphone Space Category:  
+ Chamber Generation Type:  
+ Real World Related Links: 
+ Original site plan image 
+ Images 
+ Shows a + representing source position one, and a series of x's marking the receiver positions for that source. These therefore correspond to these IR files: newgrange_s1r1.wav newgrange_s1r1_2.wav newgrange_s1r2.wav newgrange_s1r3.wav newgrange_s1r4.wav newgrange_s1r5.wav newgrange_s1r5_2.wav newgrange_s1r6.wav The _2 suffix indicates a second IR recorded with that same source/receiver combination.
+ Shows three +'s, marking source positions 2, 3, and 4. For each of these source positions the receiver was at the x mark. The IR files this corresponds to are therefore: newgrange_s2r1.wav newgrange_s3r1.wav newgrange_s4r1.wav
+ Shows one + and one x. For one recording the + was the source position (i.e. source position 4 as above) and the x was the receiver position (i.e. receiver position 2 for source position 4). The receiver and source were then swapped with one another to give source position 5 with the source at x and a receiver at the +. This then corresponds to the two IR recordings: newgrange_s4r2.wav newgrange_s5r1.wav
+ Shows source position 6 (+) and its corresponding receiver position (x) &#8211; this is recording newgrange_s6r1.wav
+ Impulse Responses 
+ Waveform Example
+ IR recording for source position 1 with its receiver in the first position &#8211; here the source is just about central in the main chamber, and the receiver is at 1.1m distance towards the mouth of the chamber. See images for details.
+ https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/examples/newgrange_s1r1.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/examples/newgrange_s1r1_sing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/examples/newgrange_s1r1_drum.mp3 Download
+ Download
+ Read Me
+ Rotated IRs
+ After these measurements were made, it was discovered that the microphone used had been assembled incorrectly. This has resulted in a Z-axis rotation of 120 degrees in the original IRs. This link provides access to rotated versions of the IRs, along with the MATLAB scripts used to perform this fix.
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+ www.openairlib.net   
+This work is licensed under a Creative Commons Attribution 4.0 International License . Icons by Icons8 
+ Powered by WordPress and Momentous .

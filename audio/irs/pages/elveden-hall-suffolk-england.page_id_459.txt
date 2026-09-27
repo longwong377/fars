@@ -1,0 +1,44 @@
+Elveden Hall (Suffolk England) &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ Elveden Hall (Suffolk England)
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ Various rooms of Elveden Hall, captured in 2001 on Sony D10 DAT using pair of AKG 451s in XY, and starter's pistol. The Hall, formerly the private residence of the Maharajah Duleep Singh and then the first Lord Iveagh, had at the time of these recordings not been lived in for decades. Elveden Hall, which was enlarged to its present size by Lord Iveagh at the end of the 19th century, consists of three floors in two enormous wings flanking a dramatic Marble Hall (which has featured as a location in films such as Eyes Wide Shut and Tomb Raider). The IRs offered here are a small subset of dozens made throughout the entire building, attempting to document every accessible room and closet, as part of research in a collaboration between artists Matt Rogalsky and Chlöe Steele entitled PERFECT IMPERFECT. Measurement Team:  
+ Matt Rogalsky Capture Date:  
+ Mon, 01/01/2001 Source Sound:  
+ Starter's pistol Source Sound Category:  
+ Other Microphone(s):  
+ AKG451 pair, XY Space Category:  
+ Hall Generation Type:  
+ Real World 
+ Images 
+ Impulse Responses 
+ Waveform Example
+ https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/examples/1a_marble_hall.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/examples/1a_marble_hall_sing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/examples/1a_marble_hall_drum.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+ Matt Rogalsky 
+ This work is licensed under a Creative Commons Attribution 4.0 International License .
+ Icons by Icons8 
+ Powered by WordPress and Momentous .

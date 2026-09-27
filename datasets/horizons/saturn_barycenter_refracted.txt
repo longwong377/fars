@@ -1,0 +1,240 @@
+API VERSION: 1.2
+API SOURCE: NASA/JPL Horizons API
+
+*******************************************************************************
+ Revised: April 12, 2021         Saturn Barycenter                            6
+ 
+ Dynamical point:
+ ---------------
+ The location of the center-of-mass of the Saturn system. The point about which
+ Saturn and its satellites revolve. See 699 for Saturn center.
+*******************************************************************************
+
+
+*******************************************************************************
+Ephemeris / API_USER Sun Sep 27 00:55:34 2026 Pasadena, USA      / Horizons    
+*******************************************************************************
+Target body name: Saturn Barycenter (6)           {source: DE441}
+Center body name: Earth (399)                     {source: DE441}
+Center-site name: (user defined site below)
+*******************************************************************************
+Start time      : B.C. 0467-Apr-17 00:00:00.0000 UT      
+Stop  time      : B.C. 0466-Apr-06 00:00:00.0000 UT      
+Step-size       : 7500 minutes
+*******************************************************************************
+Target pole/equ : undefined
+Target radii    : undefined                                                    
+Center geodetic : 52.8894969, 29.9351174, 1.625   {E-lon(deg),Lat(deg),Alt(km)}
+Center cylindric: 52.8894969,5533.2575,3164.95384 {E-lon(deg),Dxy(km),Dz(km)}
+Center pole/equ : ITRF93                          {East-longitude positive}
+Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       
+Target primary  : Sun
+Vis. interferer : MOON (R_eq= 1737.400) km        {source: DE441}
+Rel. light bend : Sun                             {source: DE441}
+Rel. lght bnd GM: 1.3271E+11 km^3/s^2                                          
+Atmos refraction: YES (Earth refraction model)
+RA format       : HMS
+Time format     : CAL 
+Calendar mode   : Mixed Julian/Gregorian
+EOP file        : eop.260925.p261222                                           
+EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-SEP-25. PREDICTS-> 2026-DEC-21
+Units conversion: 1 au= 149597870.700 km, c= 299792.458 km/s, 1 day= 86400.0 s 
+Table cut-offs 1: Elevation (-90.0deg=NO ),Airmass (>38.000=NO), Daylight (NO )
+Table cut-offs 2: Solar elongation (  0.0,180.0=NO ),Local Hour Angle( 0.0=NO )
+Table cut-offs 3: RA/DEC angular rate (     0.0=NO )                           
+Table format    : Comma Separated Values (spreadsheet)
+*************************************************************************************************************************************************************
+ Date__(UT)__HR:MN, , , R.A._____(ICRF), DEC______(ICRF), R.A._(rfct-app),  DEC_(rfct-app), Azimuth_(r-app), Elevation_(r-app),    APmag,  S-brt,      Illu%,
+*************************************************************************************************************************************************************
+$$SOE
+b0467-Apr-17 00:00, , , 10 44 49.145307, +09 52 23.45595, 08 32 03.778301, +21 23 12.74227,   306.642293069,     -15.533854387,     n.a.,   n.a.,       n.a.,
+b0467-Apr-22 05:00,*, , 10 45 02.932820, +09 50 25.91782, 08 29 03.051964, +21 30 52.20913,    27.791542897,     -33.303086716,     n.a.,   n.a.,       n.a.,
+b0467-Apr-27 10:00,*, , 10 45 27.048047, +09 47 25.30412, 08 30 32.708575, +20 54 48.34297,    77.986054834,      22.403694485,     n.a.,   n.a.,       n.a.,
+b0467-May-02 15:00,*, , 10 46 01.178676, +09 43 23.10723, 08 31 20.497286, +20 51 08.92807,   204.903700910,      80.067579988,     n.a.,   n.a.,       n.a.,
+b0467-May-07 20:00, , , 10 46 45.152807, +09 38 20.53238, 08 32 23.276852, +20 49 12.50662,   285.727730993,      14.915772714,     n.a.,   n.a.,       n.a.,
+b0467-May-13 01:00,N,m, 10 47 38.788774, +09 32 19.48048, 08 33 57.678928, +21 20 30.56074,   341.461423516,     -36.481236011,     n.a.,   n.a.,       n.a.,
+b0467-May-18 06:00,*,m, 10 48 41.686979, +09 25 22.66826, 08 32 06.630243, +21 02 20.92222,    58.824193390,      -9.609685634,     n.a.,   n.a.,       n.a.,
+b0467-May-23 11:00,*,m, 10 49 53.314959, +09 17 32.73006, 08 35 35.103028, +20 33 42.15661,    97.574808514,      56.213406730,     n.a.,   n.a.,       n.a.,
+b0467-May-28 16:00,N,m, 10 51 13.194927, +09 08 52.15072, 08 37 09.583471, +20 27 53.07758,   266.887305365,      49.617029950,     n.a.,   n.a.,       n.a.,
+b0467-Jun-02 21:00, ,m, 10 52 40.944850, +08 59 23.66356, 08 40 48.080692, +20 46 38.38225,   305.539607705,     -15.248848391,     n.a.,   n.a.,       n.a.,
+b0467-Jun-08 02:00,*,m, 10 54 16.139511, +08 49 10.29580, 08 39 19.367836, +20 49 25.61942,    26.757823960,     -34.470436834,     n.a.,   n.a.,       n.a.,
+b0467-Jun-13 07:00,*,m, 10 55 58.214656, +08 38 15.07831, 08 42 10.879392, +20 07 50.04518,    78.017261646,      20.624137143,     n.a.,   n.a.,       n.a.,
+b0467-Jun-18 12:00,*,m, 10 57 46.601400, +08 26 40.72358, 08 44 20.875728, +19 58 55.10833,   192.901737980,      79.811093609,     n.a.,   n.a.,       n.a.,
+b0467-Jun-23 17:00,A,m, 10 59 40.810726, +08 14 30.26416, 08 46 39.322101, +19 51 49.84239,   283.806648640,      16.467916164,     n.a.,   n.a.,       n.a.,
+b0467-Jun-28 22:00, ,m, 11 01 40.356637, +08 01 47.35766, 08 49 35.043556, +20 17 54.60036,   338.065058982,     -36.659379468,     n.a.,   n.a.,       n.a.,
+b0467-Jul-04 03:00,*,m, 11 03 44.686699, +07 48 35.49282, 08 48 46.200347, +19 56 30.88682,    57.964322548,     -12.471653068,     n.a.,   n.a.,       n.a.,
+b0467-Jul-09 08:00,*,m, 11 05 53.218046, +07 34 57.55878, 08 53 13.125791, +19 22 58.67345,    97.328652609,      52.981244507,     n.a.,   n.a.,       n.a.,
+b0467-Jul-14 13:00,*,m, 11 08 05.444163, +07 20 56.29811, 08 55 44.270482, +19 13 02.66266,   263.034175266,      52.092002227,     n.a.,   n.a.,       n.a.,
+b0467-Jul-19 18:00, ,m, 11 10 20.894386, +07 06 35.26284, 09 00 17.297008, +19 26 54.38453,   302.203274741,     -13.462823270,     n.a.,   n.a.,       n.a.,
+b0467-Jul-24 23:00, ,m, 11 12 39.002916, +06 51 58.73055, 08 59 41.284065, +19 28 06.66201,    23.265872568,     -37.143873104,     n.a.,   n.a.,       n.a.,
+b0467-Jul-30 04:00,*,m, 11 14 59.147101, +06 37 10.38729, 09 03 01.495682, +18 42 42.96747,    77.608895577,      16.605425997,     n.a.,   n.a.,       n.a.,
+b0467-Aug-04 09:00,*,m, 11 17 20.780106, +06 22 13.04986, 09 05 48.587028, +18 30 30.18768,   171.654745996,      78.462414317,     n.a.,   n.a.,       n.a.,
+b0467-Aug-09 14:00,*, , 11 19 43.457395, +06 07 09.73317, 09 08 35.021115, +18 20 27.74203,   280.487854933,      19.417930906,     n.a.,   n.a.,       n.a.,
+b0467-Aug-14 19:00, , , 11 22 06.691825, +05 52 04.51828, 09 12 09.219041, +18 43 12.32412,   332.497681338,     -36.507957990,     n.a.,   n.a.,       n.a.,
+b0467-Aug-20 00:00, , , 11 24 29.833072, +05 37 02.07882, 09 11 31.752649, +18 22 00.29106,    56.431116886,     -16.743281306,     n.a.,   n.a.,       n.a.,
+b0467-Aug-25 05:00,*, , 11 26 52.217597, +05 22 06.23351, 09 16 07.081259, +17 45 56.14935,    96.800390172,      48.412079508,     n.a.,   n.a.,       n.a.,
+b0467-Aug-30 10:00,*, , 11 29 13.336177, +05 07 19.97786, 09 18 46.093341, +17 34 40.94067,   257.354264900,      55.266216097,     n.a.,   n.a.,       n.a.,
+b0467-Sep-04 15:00,*, , 11 31 32.758568, +04 52 46.79807, 09 23 24.896516, +17 46 26.18693,   298.128679502,     -11.057641772,     n.a.,   n.a.,       n.a.,
+b0467-Sep-09 20:00, , , 11 33 49.934720, +04 38 31.17847, 09 22 55.318008, +17 49 24.43049,    18.675939422,     -40.128652607,     n.a.,   n.a.,       n.a.,
+b0467-Sep-15 01:00,A, , 11 36 04.141858, +04 24 37.89161, 09 25 50.604625, +17 03 41.67574,    77.093936345,      12.041090502,     n.a.,   n.a.,       n.a.,
+b0467-Sep-20 06:00,*, , 11 38 14.701273, +04 11 10.87384, 09 28 27.869924, +16 51 19.58000,   155.126090184,      75.738320358,     n.a.,   n.a.,       n.a.,
+b0467-Sep-25 11:00,*, , 11 40 21.127171, +03 58 13.43514, 09 30 53.417270, +16 42 01.40511,   276.945720262,      22.443106877,     n.a.,   n.a.,       n.a.,
+b0467-Sep-30 16:00, , , 11 42 22.958289, +03 45 49.45110, 09 34 15.048026, +17 04 57.82684,   327.030724117,     -36.077019124,     n.a.,   n.a.,       n.a.,
+b0467-Oct-05 21:00, , , 11 44 19.571772, +03 34 03.42583, 09 33 00.566209, +16 48 00.48801,    54.901354120,     -20.761131321,     n.a.,   n.a.,       n.a.,
+b0467-Oct-11 02:00,N, , 11 46 10.230939, +03 22 59.76593, 09 36 55.045850, +16 13 35.57151,    96.395583482,      44.300067656,     n.a.,   n.a.,       n.a.,
+b0467-Oct-16 07:00,*, , 11 47 54.296914, +03 12 42.30699, 09 38 52.627026, +16 05 16.28412,   251.754242368,      57.733730513,     n.a.,   n.a.,       n.a.,
+b0467-Oct-21 12:00,*, , 11 49 31.314874, +03 03 14.44431, 09 42 46.225197, +16 19 40.88163,   294.872025332,      -9.082782488,     n.a.,   n.a.,       n.a.,
+b0467-Oct-26 17:00, ,m, 11 51 00.805357, +02 54 39.85577, 09 41 31.959652, +16 28 16.47052,    14.916714440,     -42.298648765,     n.a.,   n.a.,       n.a.,
+b0467-Oct-31 22:00, ,m, 11 52 22.151567, +02 47 02.25163, 09 43 13.859111, +15 47 24.06057,    76.775685743,       8.782493551,     n.a.,   n.a.,       n.a.,
+b0467-Nov-06 03:00,*,m, 11 53 34.736375, +02 40 24.90130, 09 44 52.929524, +15 39 25.90581,   147.610976183,      73.448887083,     n.a.,   n.a.,       n.a.,
+b0467-Nov-11 08:00,*,m, 11 54 38.084763, +02 34 50.79508, 09 46 09.247560, +15 35 44.08908,   274.659936877,      24.209398989,     n.a.,   n.a.,       n.a.,
+b0467-Nov-16 13:00,*,m, 11 55 31.851627, +02 30 22.56305, 09 48 23.340593, +16 04 09.17124,   324.017782705,     -35.803589157,     n.a.,   n.a.,       n.a.,
+b0467-Nov-21 18:00, ,m, 11 56 15.667999, +02 27 02.40052, 09 45 46.739961, +15 55 10.32059,    54.206389051,     -22.762730157,     n.a.,   n.a.,       n.a.,
+b0467-Nov-26 23:00, ,m, 11 56 49.134146, +02 24 51.82373, 09 48 15.799207, +15 27 33.33945,    96.376786281,      42.550706957,     n.a.,   n.a.,       n.a.,
+b0467-Dec-02 04:00,*,m, 11 57 11.986243, +02 23 51.68945, 09 48 46.173602, +15 26 46.88653,   249.502578220,      58.434355865,     n.a.,   n.a.,       n.a.,
+b0467-Dec-07 09:00,*,m, 11 57 24.118912, +02 24 02.74546, 09 51 09.160057, +15 48 53.54216,   293.949764132,      -8.670684928,     n.a.,   n.a.,       n.a.,
+b0467-Dec-12 14:00,C,m, 11 57 25.486529, +02 25 25.24678, 09 48 21.748282, +16 06 00.58011,    14.391380379,     -42.770621274,     n.a.,   n.a.,       n.a.,
+b0467-Dec-17 19:00, ,m, 11 57 16.086915, +02 27 58.05582, 09 48 24.755568, +15 33 34.92234,    76.936287135,       8.593127119,     n.a.,   n.a.,       n.a.,
+b0467-Dec-23 00:00, ,m, 11 56 56.055203, +02 31 38.72596, 09 48 25.387543, +15 34 07.91704,   148.704727791,      73.516247820,     n.a.,   n.a.,       n.a.,
+b0467-Dec-28 05:00,*,m, 11 56 25.759341, +02 36 24.19135, 09 48 01.974141, +15 39 05.41147,   275.056683316,      23.601307136,     n.a.,   n.a.,       n.a.,
+b0466-Jan-02 10:00,*,m, 11 55 45.676645, +02 42 11.42874, 09 48 33.137017, +16 16 25.68326,   325.326442978,     -36.211236978,     n.a.,   n.a.,       n.a.,
+b0466-Jan-07 15:00,A,m, 11 54 56.283410, +02 48 56.66191, 09 44 18.066286, +16 15 05.82812,    55.047681470,     -21.426642494,     n.a.,   n.a.,       n.a.,
+b0466-Jan-12 20:00, ,m, 11 53 58.195354, +02 56 34.08594, 09 45 11.241905, +15 55 58.16697,    96.965379269,      44.459918816,     n.a.,   n.a.,       n.a.,
+b0466-Jan-18 01:00, ,m, 11 52 52.303112, +03 04 56.48022, 09 44 06.784070, +16 02 58.66996,   252.691576788,      56.809796361,     n.a.,   n.a.,       n.a.,
+b0466-Jan-23 06:00,*, , 11 51 39.696944, +03 13 56.58900, 09 44 57.647559, +16 32 56.94129,   296.100982963,     -10.407874572,     n.a.,   n.a.,       n.a.,
+b0466-Jan-28 11:00,*, , 11 50 21.434732, +03 23 27.59240, 09 40 37.051536, +16 55 29.87571,    18.029451712,     -41.212593730,     n.a.,   n.a.,       n.a.,
+b0466-Feb-02 16:00, , , 11 48 58.509422, +03 33 21.98024, 09 39 36.279935, +16 28 41.30290,    77.697261981,      11.908570386,     n.a.,   n.a.,       n.a.,
+b0466-Feb-07 21:00, , , 11 47 32.103855, +03 43 30.47449, 09 38 20.064899, +16 35 10.06271,   159.680694524,      75.865310989,     n.a.,   n.a.,       n.a.,
+b0466-Feb-13 02:00,A, , 11 46 03.662401, +03 53 43.20713, 09 36 55.136576, +16 44 30.32622,   277.940505802,      20.656974424,     n.a.,   n.a.,       n.a.,
+b0466-Feb-18 07:00,*, , 11 44 34.637093, +04 03 51.35297, 09 36 21.906376, +17 26 18.53494,   330.470984042,     -37.147380876,     n.a.,   n.a.,       n.a.,
+b0466-Feb-23 12:00,*, , 11 43 06.262189, +04 13 47.08312, 09 31 30.343363, +17 24 48.38964,    57.071294151,     -17.495294547,     n.a.,   n.a.,       n.a.,
+b0466-Feb-28 17:00, , , 11 41 39.650637, +04 23 22.41023, 09 31 57.340683, +17 07 45.75377,    98.200598174,      48.865453844,     n.a.,   n.a.,       n.a.,
+b0466-Mar-05 22:00, , , 11 40 16.075062, +04 32 28.60128, 09 30 33.292417, +17 14 59.20348,   258.259259509,      53.537544419,     n.a.,   n.a.,       n.a.,
+b0466-Mar-11 03:00,*, , 11 38 56.913910, +04 40 57.53832, 09 31 13.367005, +17 45 12.46543,   299.795978877,     -13.236252115,     n.a.,   n.a.,       n.a.,
+b0466-Mar-16 08:00,*, , 11 37 43.332594, +04 48 42.84620, 09 26 47.461634, +18 03 41.76478,    23.051680814,     -38.717060045,     n.a.,   n.a.,       n.a.,
+b0466-Mar-21 13:00,*, , 11 36 36.188597, +04 55 39.26332, 09 26 20.258143, +17 34 23.53232,    78.750238663,      16.247088088,     n.a.,   n.a.,       n.a.,
+b0466-Mar-26 18:00, , , 11 35 36.230498, +05 01 41.84679, 09 25 28.207398, +17 37 43.36853,   177.058739535,      77.678951482,     n.a.,   n.a.,       n.a.,
+b0466-Mar-31 23:00, , , 11 34 44.295277, +05 06 45.90058, 09 24 44.060780, +17 42 46.54913,   280.774338457,      17.457948710,     n.a.,   n.a.,       n.a.,
+$$EOE
+*************************************************************************************************************************************************************
+Column meaning:
+ 
+TIME
+
+  Times PRIOR to 1962 are UT1, a mean-solar time closely related to the
+prior but now-deprecated GMT. Times AFTER 1962 are in UTC, the current
+civil or "wall-clock" time-scale. UTC is kept within 0.9 seconds of UT1
+using integer leap-seconds for 1972 and later years.
+
+  Conversion from the internal Barycentric Dynamical Time (TDB) of solar
+system dynamics to the non-uniform civil UT time-scale requested for output
+has not been determined for UTC times after the next July or January 1st.
+Therefore, the last known leap-second is used as a constant over future
+intervals.
+
+  Time tags refer to the UT time-scale conversion from TDB on Earth
+regardless of observer location within the solar system, although clock
+rates may differ due to the local gravity field and no analog to "UT"
+may be defined for that location.
+
+  Any 'b' symbol in the 1st-column denotes a B.C. date. First-column blank
+(" ") denotes an A.D. date.
+ 
+CALENDAR SYSTEM
+
+  Mixed calendar mode was active such that calendar dates after AD 1582-Oct-15
+(if any) are in the modern Gregorian system. Dates prior to 1582-Oct-5 (if any)
+are in the Julian calendar system, which is automatically extended for dates
+prior to its adoption on 45-Jan-1 BC.  The Julian calendar is useful for
+matching historical dates. The Gregorian calendar more accurately corresponds
+to the Earth's orbital motion and seasons. A "Gregorian-only" calendar mode is
+available if such physical events are the primary interest.
+
+  NOTE: "n.a." in output means quantity "not available" at the print-time.
+ 
+SOLAR PRESENCE (OBSERVING SITE)
+  Time tag is followed by a blank, then a solar-presence symbol:
+
+       '*'  Daylight (refracted solar upper-limb on or above apparent horizon)
+       'C'  Civil twilight/dawn
+       'N'  Nautical twilight/dawn
+       'A'  Astronomical twilight/dawn
+       ' '  Night OR geocentric ephemeris
+
+LUNAR PRESENCE (OBSERVING SITE)
+  The solar-presence symbol is immediately followed by a lunar-presence symbol:
+
+       'm'  Refracted upper-limb of Moon on or above apparent horizon
+       ' '  Refracted upper-limb of Moon below apparent horizon OR geocentric
+            ephemeris
+ 
+ 'R.A._____(ICRF), DEC______(ICRF),' =
+  Astrometric right ascension and declination of the target center with
+respect to the observing site (coordinate origin) in the reference frame of
+the planetary ephemeris (ICRF). Compensated for down-leg light-time delay
+aberration.
+
+  Units: RA  in hours-minutes-seconds of time,    HH MM SS.ff{ffff}
+         DEC in degrees-minutes-seconds of arc,  sDD MN SC.f{ffff}
+ 
+ 'R.A._(rfct-app),  DEC_(rfct-app),' =
+  Refracted apparent right ascension and declination of the target center
+with respect to an instantaneous reference frame defined by the Earth equator
+of-date (z-axis) and meridian containing the Earth equinox of-date (x-axis,
+EOP-corrected IAU76/80). Compensated for down-leg light-time delay,
+gravitational deflection of light, stellar aberration, precession & nutation,
+and approximate atmospheric yellow-light refraction. Note: equinox (RA origin)
+is offset -53 mas from the of-date frame defined by the IAU06/00a P & N system.
+
+  Units: RA  in hours-minutes-seconds of time,    HH MM SS.ff{ffff}
+         DEC in degrees-minutes-seconds of arc,  sDD MN SC.f{ffff}
+ 
+ 'Azimuth_(r-app), Elevation_(r-app),' =
+  Refracted apparent azimuth and elevation of target center. Compensated
+for light-time, the gravitational deflection of light, stellar aberration,
+approximate atmospheric yellow-light refraction, precession and nutation.
+Azimuth is measured clockwise from north:
+
+  North(0) -> East(90) -> South(180) -> West(270) -> North (360)
+
+Elevation angle is with respect to a plane perpendicular to the reference
+surface local zenith direction. TOPOCENTRIC ONLY.  Units: DEGREES
+
+ 
+ 'APmag,  S-brt,' =
+  The targets' approximate apparent visual magnitude and surface brightness.
+For planets and natural satellites, output is restricted to solar phase angles
+covered by observational data. Outside the observed phase angle range, "n.a."
+may be output to avoid extrapolation beyond the limit of model validity.
+
+   For Earth-based observers, the estimated dimming due to atmospheric
+absorption (extinction) is available as a separate, requestable quantity.
+
+   Surface brightness is the average airless visual magnitude of a
+square-arcsecond of the illuminated portion of the apparent disk. It is
+computed only if the target radius is known.
+
+   Units: MAGNITUDES & MAGNITUDES PER SQUARE ARCSECOND
+ 
+ 'Illu%,' =
+   Fraction of the target objects' assumed circular disk illuminated by Sun
+(phase), as seen by the observer.  Units: PERCENT
+
+Computations by ...
+
+    Solar System Dynamics Group, Horizons On-Line Ephemeris System
+    4800 Oak Grove Drive, Jet Propulsion Laboratory
+    Pasadena, CA  91109   USA
+
+    General site: https://ssd.jpl.nasa.gov/
+    Mailing list: https://ssd.jpl.nasa.gov/email_list.html
+    System news : https://ssd.jpl.nasa.gov/horizons/news.html
+    User Guide  : https://ssd.jpl.nasa.gov/horizons/manual.html
+    Connect     : browser        https://ssd.jpl.nasa.gov/horizons/app.html#/x
+                  API            https://ssd-api.jpl.nasa.gov/doc/horizons.html
+                  command-line   telnet ssd.jpl.nasa.gov 6775
+                  e-mail/batch   https://ssd.jpl.nasa.gov/ftp/ssd/horizons_batch.txt
+                  scripts        https://ssd.jpl.nasa.gov/ftp/ssd/SCRIPTS
+    Inquiries   : Jon.D.Giorgini@jpl.nasa.gov
+
+*************************************************************************************************************************************************************

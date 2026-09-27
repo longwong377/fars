@@ -1,0 +1,48 @@
+Tyndall Bruce Monument &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ Tyndall Bruce Monument
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ This monument was created for Onesipherous Tyndall Bruce in Falkland. Measurement Team:  
+ Dr. Damian T. Murphy Capture Date:  
+ Tue, 24/03/2009 Size:
+ 40 m³ Source Sound:  
+ Log. Swept Sine; 20-22k Hz; 15s long Source Sound Category:  
+ Swept sine (logarithmic) Input:  
+ Genelec S30D Microphone(s):  
+ Neumann KM 140 Cardioid Soundfield SPS422B Microphone Space Category:  
+ Chamber Generation Type:  
+ Real World Related Links: 
+ Photograph of the monument on Geograph 
+ Images 
+ Impulse Responses 
+ Waveform Example
+ This is an omnidirectional impulse response recorded using a Soundfield SPS422B Microphone. 
+ https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/examples/tyndall_bruce_omni.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/examples/tyndall_bruce_omni_sing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/examples/tyndall_bruce_omni_drum.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+ www.openairlib.net Audiolab, University of York Dr. Damian T. Murphy   
+This work is licensed under a Creative Commons Attribution 4.0 International License .
+ Icons by Icons8 
+ Powered by WordPress and Momentous .

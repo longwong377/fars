@@ -1,0 +1,48 @@
+York Guildhall Council Chamber &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ York Guildhall Council Chamber
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ Situated behind the Mansion House, the Guildhall was constructed in the 15th century as a meeting place for the guilds of York. The council chamber in its current form was built much later, completed in 1891. It is constructed predominantly of wood, including wooden panelling that borders all four walls from the floor to approximately 2.5 in height. Victorian wallpapered plaster walls forms 3 meters of walling above the wooden panelling. The ceiling is arched perpendicular to the length of the room and is constructed of timber, in a combination of beams and panelling. The room measures 15.23m in length, 10.04m in width, and 8.68m in height (at arch apex). Leather lined wooden seating forms a large proportion of the room, with a large heavy oak table located at the room's centre. Three source positions were selected based on the positions from which the city mayor and primary members of the council would typically address the public or other council members. Similarly, four receiver positions were chosen based on the positions the public and other council members would listen from. Source position 1 was from the mayor's chair. Sources 2 and 3 on either side of the council pews where primary members of the council would usually address from. Receiver 1 was located at the centre point of the public pews to assess speech intelligibility for a typical listener. Receivers 2, 3 and 4 were spread across the council seating that faces directly opposite but furthest from the mayor. The reasons for this were twofold. Firstly to give a general acoustic impression for a listener located in the main body of the room. Secondly to assess the difference, if any, in intelligibility between a council listener and those located in the public pews (Please see images for more precise source/receiver positions). The composition and materials used in an original victorian council chamber are in themselves quite unusual, and a room with these types of dense wooden structures has seen less in the way of acoustic response measurements. We aimed to explore how these uncommon structures, as well as the variety of other materials used (leather, stain glass, large curtains and wallpaper), influenced the acoustical characteristics of the space. Measurement Team:  
+ Oliver McIntyre Benjamin Tsui Elizabeth Wilson Capture Date:  
+ Fri, 17/02/2017 Size:
+ 1140 m³ Source Sound:  
+ Swept Sine; 20 Hz &#8211; 22 kHz; 30 Seconds, 96kHz Source Sound Category:  
+ Swept sine (logarithmic) Input:  
+ Genelec 8130A Microphone(s):  
+ Soundfield ST450 MkII Space Category:  
+ Chamber Generation Type:  
+ Real World Related Links: 
+ York Guildhall 
+ Images 
+ Impulse Responses 
+ Waveform Example
+ Source Position 1 &#8211; Mayor's Chair, Receiver Position 1 &#8211; Public Pews Central. Distance between source and receiver: 12 m. Receiver position: 1.75 m from NW wall, 13.75 m from SE wall. Temperature: 16°C. Humidity: 82%
+ https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/examples/councilchamber_s1_r1_ir_1_96000.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/examples/councilchamber_s1_r1_ir_1_96000_sing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/examples/councilchamber_s1_r1_ir_1_96000_drum.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+ www.openairlib.net Audiolab, University of York Benjamin Tsui Oliver McIntyre Elizabeth Wilson &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; &#8211; Image 2 by Kaly99. Available: https://commons.wikimedia.org/wiki/File:Guildhall,_York.jpg Image 8 Floor Plan, City of York Council. Available: https://www.york.gov.uk/downloads/file/11337/guildhall_drawings     
+This work is licensed under a Creative Commons Attribution 4.0 International License .
+ Icons by Icons8 
+ Powered by WordPress and Momentous .

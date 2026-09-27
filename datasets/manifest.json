@@ -1,0 +1,2415 @@
+{
+ "folder": "datasets",
+ "retrieved": "2026-09-27",
+ "total_files": 181,
+ "total_bytes": 68097345,
+ "files": [
+  {
+   "file": "ghcn/ghcnd-inventory_IR.txt",
+   "bytes": 7728,
+   "sha256": "c8e7fc93dc4e59a04729573226870c05695b591cdcea140be896ad639bc93683",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt (Iran rows IR* only)",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "GHCN-Daily documentation / station metadata"
+  },
+  {
+   "file": "ghcn/ghcnd-stations_IR.txt",
+   "bytes": 3010,
+   "sha256": "63f73d2d4bba0938e00c637921ee24b3ec8a03cd24eaa71549e9f13e3785bd8b",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt (Iran rows IR* only)",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "GHCN-Daily documentation / station metadata"
+  },
+  {
+   "file": "ghcn/IR000040848.csv",
+   "bytes": 3046329,
+   "sha256": "053e3252b0e34cf5eab6969ef724e2001ffc60bf72e11a74e22534b7204e2aaf",
+   "url": "https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/IR000040848.csv",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6 (the exact file requested -> data/climate/IR000040848.csv)"
+   ],
+   "note": "Shiraz 29.533N 52.533E 1481 m (GSN): TMAX/TMIN 1951-2025, TAVG 1957-, PRCP 1989-, SNWD 1990-2014"
+  },
+  {
+   "file": "ghcn/IR000040848.csv.gz",
+   "bytes": 324906,
+   "sha256": "60085a6e042ea8466edb972977e6880d14cbddb0278846f8a1892f3d3463ad24",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_station/IR000040848.csv.gz",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Shiraz 29.533N 52.533E 1481 m (GSN): TMAX/TMIN 1951-2025, TAVG 1957-, PRCP 1989-, SNWD 1990-2014"
+  },
+  {
+   "file": "ghcn/IR000040848.dly",
+   "bytes": 761670,
+   "sha256": "494729636f5638e089648f9c6dda373d89b15516702e37279e3dc09c47e6a111",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/all/IR000040848.dly",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Shiraz 29.533N 52.533E 1481 m (GSN): TMAX/TMIN 1951-2025, TAVG 1957-, PRCP 1989-, SNWD 1990-2014"
+  },
+  {
+   "file": "ghcn/IR000408570.csv",
+   "bytes": 766494,
+   "sha256": "9cd65da0919f2c91300b01225acb741ede47b1c6f687215814a94f4c5ce605b7",
+   "url": "https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/IR000408570.csv",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Bushehr 28.95N 50.85E 8 m"
+  },
+  {
+   "file": "ghcn/IR000408570.csv.gz",
+   "bytes": 97027,
+   "sha256": "8261eebd33264e994f89f864ae6b515830f4e8b54488f72ce36e99adc86b0a02",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_station/IR000408570.csv.gz",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Bushehr 28.95N 50.85E 8 m"
+  },
+  {
+   "file": "ghcn/IR000408570.dly",
+   "bytes": 245430,
+   "sha256": "8112526242a3e7867f07956cae2fb28a304841fa59ed18aac9b92491df14305a",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/all/IR000408570.dly",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Bushehr 28.95N 50.85E 8 m"
+  },
+  {
+   "file": "ghcn/IRM00040836.csv",
+   "bytes": 323270,
+   "sha256": "1123171eb5f49d2cc7174cee69d1ef9e2804e2728a7b9fddadc7db2be3e19c9a",
+   "url": "https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/IRM00040836.csv",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Yasuj 30.667N 51.583E 1837 m"
+  },
+  {
+   "file": "ghcn/IRM00040836.csv.gz",
+   "bytes": 30427,
+   "sha256": "2efd1772135014bb4aacfa534cdbacd787a42449a00b139fb253e5f04b45c686",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_station/IRM00040836.csv.gz",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Yasuj 30.667N 51.583E 1837 m"
+  },
+  {
+   "file": "ghcn/IRM00040836.dly",
+   "bytes": 113400,
+   "sha256": "aec4225d09c467486cca12640f7e6311819843186fed1ab98c55fe2a62e0a704",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/all/IRM00040836.dly",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Yasuj 30.667N 51.583E 1837 m"
+  },
+  {
+   "file": "ghcn/IRM00040845.csv",
+   "bytes": 821217,
+   "sha256": "3b1ad8af757a2c6bd27adfae2e3fd507aad93835d5c03e50639d72addf2a5cd6",
+   "url": "https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/IRM00040845.csv",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Kharg island 29.267N 50.267E 3 m"
+  },
+  {
+   "file": "ghcn/IRM00040845.csv.gz",
+   "bytes": 108227,
+   "sha256": "56ff117f7ac57bc858564cb76da1d8a1453bdd742b69b936e3817a50e9ad7a59",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_station/IRM00040845.csv.gz",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Kharg island 29.267N 50.267E 3 m"
+  },
+  {
+   "file": "ghcn/IRM00040845.dly",
+   "bytes": 301860,
+   "sha256": "93384ed8fb8f0e0f6074b5af392e849d3a2c5703e56517d5778594356fb41535",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/all/IRM00040845.dly",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Kharg island 29.267N 50.267E 3 m"
+  },
+  {
+   "file": "ghcn/IRM00040858.csv",
+   "bytes": 938639,
+   "sha256": "ccc5e513b38088ea78546de2925b4d1993aa539d12c8ed37512e373bad68f11a",
+   "url": "https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/IRM00040858.csv",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Bushehr airport 28.945N 50.835E 21 m"
+  },
+  {
+   "file": "ghcn/IRM00040858.csv.gz",
+   "bytes": 103592,
+   "sha256": "3a98d6b398dc5ffb8f99c83bee4c81bb6d962ef44537727665b662216214b6b8",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/by_station/IRM00040858.csv.gz",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Bushehr airport 28.945N 50.835E 21 m"
+  },
+  {
+   "file": "ghcn/IRM00040858.dly",
+   "bytes": 312120,
+   "sha256": "e324f71e3953d8328d896932ecaabbb8bd069d349e389bc60a4a8ab568e4776b",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/all/IRM00040858.dly",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "Bushehr airport 28.945N 50.835E 21 m"
+  },
+  {
+   "file": "ghcn/readme-by_station.txt",
+   "bytes": 1210,
+   "sha256": "5b5bbbe20b24d54448a69a521e86b684004f8bf29b412f08c20fb1149bac725a",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/readme-by_station.txt",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "GHCN-Daily documentation / station metadata"
+  },
+  {
+   "file": "ghcn/readme.txt",
+   "bytes": 28567,
+   "sha256": "3a71ae355252a6693a56a473ed7182b500ae7816c2cb2b2ce708c1e9ea9dcfde",
+   "url": "https://www.ncei.noaa.gov/pub/data/ghcn/daily/readme.txt",
+   "licence": "NOAA/NCEI GHCN-Daily: U.S. Government data, no use restrictions (non-US station data may carry WMO Resolution 40 terms); cite Menne et al. 2012, doi:10.7289/V5D21VHZ",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6"
+   ],
+   "note": "GHCN-Daily documentation / station metadata"
+  },
+  {
+   "file": "horizons/jupiter_barycenter_airless.json",
+   "bytes": 19793,
+   "sha256": "668ea6747480255627cec503859f774d1f799bd68dc382c9ec7fedfc0dc4ee53",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='5'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/jupiter_barycenter_airless.txt",
+   "bytes": 19519,
+   "sha256": "722e6e7acd0eccf69f26ac26468ace467394db19483d6592f8ae38430ce87e8b",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='5'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/jupiter_barycenter_refracted.json",
+   "bytes": 19847,
+   "sha256": "90ac7e0718107dc4c7584364b58ebc0b8b4fb9ef4cb007ad893096c689d91cd3",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='5'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/jupiter_barycenter_refracted.txt",
+   "bytes": 19571,
+   "sha256": "2386407250db964f7669bf9fef8df8827edb577e9288db42cc73b6570d69cf40",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='5'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/mars_barycenter_airless.json",
+   "bytes": 19756,
+   "sha256": "b7c171654f3ef920429d7f8f7574e811ccb97f02a0c9be28de0735d36a2d2e1a",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='4'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/mars_barycenter_airless.txt",
+   "bytes": 19482,
+   "sha256": "20af72dadfb686803c08223e7a4a0524475e2bcf20624bd056ac5532bc995efc",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='4'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/mars_barycenter_refracted.json",
+   "bytes": 19810,
+   "sha256": "36b033a4967cfd89b5fe9894086eff25f462a717d604a92983d266cc47ae9bc4",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='4'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/mars_barycenter_refracted.txt",
+   "bytes": 19534,
+   "sha256": "2953c218a7e8dbd810bad1749d146170b729f200d7551907858c3abf13197e43",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='4'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/mercury_airless.json",
+   "bytes": 20927,
+   "sha256": "b32b4d5c053eb3dbc5f78343ef035724d393f1a3f56075827b9c23162390c1a8",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='199'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/mercury_airless.txt",
+   "bytes": 20638,
+   "sha256": "e84d36763ee53b97a5e548332383bf5c6acd5987bf812e065b733aaaf280af63",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='199'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/mercury_refracted.json",
+   "bytes": 20981,
+   "sha256": "f36a1f5c7bd463fd2b97b376de4e0a0d2c9a127117481538a031ced65b2cff44",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='199'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/mercury_refracted.txt",
+   "bytes": 20690,
+   "sha256": "ea3d701593a3a299f7b9f758b3ba3a34f613d10a345534c5283adf6b1c3d09d1",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='199'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/moon_airless.json",
+   "bytes": 20871,
+   "sha256": "4fe1fe762f89f95dbbc23f4010695816cee2a14fa94946db02ea5b9831ffe224",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='301'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/moon_airless.txt",
+   "bytes": 20585,
+   "sha256": "4f401f1a7e3ad9b7befe08d4d423e197623f70eac8f2681cf9e9d2439485504e",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='301'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/moon_hourly_refracted.json",
+   "bytes": 909557,
+   "sha256": "a33bf10c3a1b888506cb51eee42207857b09e20ac0c342f0dfc8951309ef291b",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='301'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='60 m'&QUANTITIES='2,4,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 1 h; refracted (standard atmosphere); quantities 2,4,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/moon_hourly_refracted.txt",
+   "bytes": 900862,
+   "sha256": "0854172107f9624045b14c2b09e83bc4a1d420ce193254d64051cb3fc264d1d7",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='301'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='60 m'&QUANTITIES='2,4,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 1 h; refracted (standard atmosphere); quantities 2,4,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/moon_refracted.json",
+   "bytes": 20925,
+   "sha256": "42b48ea90cbf786f72e7a548cc9c7b6d275cbc5c42dbca15ab465d0976bf0424",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='301'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/moon_refracted.txt",
+   "bytes": 20637,
+   "sha256": "b6c2f9a110a36ea1052ab7eb4775eb79c0f138e9271b67125d222ea73701da23",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='301'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/saturn_barycenter_airless.json",
+   "bytes": 19789,
+   "sha256": "68f3704e054b7a8123612df65169f66a15caff011f19693fbc078195d987c3d5",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='6'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/saturn_barycenter_airless.txt",
+   "bytes": 19515,
+   "sha256": "c199aee8d1aaa78a6abe8cb58a2140c94a7b270530720aebf440bf0fa6a41459",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='6'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/saturn_barycenter_refracted.json",
+   "bytes": 19843,
+   "sha256": "2f56fc97fc6e32afe7b7c08a309244a7f1c33672fb49ce1ae13e48e8d2c6aa26",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='6'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/saturn_barycenter_refracted.txt",
+   "bytes": 19567,
+   "sha256": "505f23f934b8be775504ac38b4292b44ab0bc0d17f1944ac73ff84b6fc26db42",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='6'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Horizons has no planet-centre ephemeris before 1600 AD, so the planetary-system barycentre is used (difference from the planet centre is < 0.001 deg for Mars and < 0.01 deg for Jupiter/Saturn as seen from Earth); magnitudes are n.a. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/sun_airless.json",
+   "bytes": 11735,
+   "sha256": "33f25539bc66a5bc7b8f5f360850d7d282e87a50c627bda71d28837ad7ef359b",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='10'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='4'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "§13.6 sun check (tests/sky/horizons_request.txt -> data/horizons/sun.csv; tests/sky.horizons.test.ts)"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 4. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/sun_airless.txt",
+   "bytes": 11488,
+   "sha256": "b3870dd1bfc6bca9a40f6d87e6af4ec8f2583040af203abd40afd271b2d2f083",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='10'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='4'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "§13.6 sun check (tests/sky/horizons_request.txt -> data/horizons/sun.csv; tests/sky.horizons.test.ts)"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 4. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/sun_hourly_refracted.json",
+   "bytes": 807270,
+   "sha256": "f278639696452d52c348e5aaa918f1882f0d58c20bb87d5444dc9df8602b503b",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='10'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='60 m'&QUANTITIES='2,4'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 1 h; refracted (standard atmosphere); quantities 2,4. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/sun_hourly_refracted.txt",
+   "bytes": 798580,
+   "sha256": "985cc74a35d768b94e24a84f5068173d6a13d2489e600f32b4adebf55c06f0cc",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='10'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='60 m'&QUANTITIES='2,4'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 1 h; refracted (standard atmosphere); quantities 2,4. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/sun_refracted.csv",
+   "bytes": 11384,
+   "sha256": "ef706c5111ffb4ab86cb6ead4de111e7d3d399af62029d8b0a43d78ae1c923a3",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='10'&OBJ_DATA='NO'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='4'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'&CAL_FORMAT='BOTH'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5 (drop-in: copy as an alternative, refracted)",
+    "§13.6 tests/sky.horizons.test.ts"
+   ],
+   "note": "Exactly the tests/sky/horizons_request.txt spec with the Julian Day column the test parses (f[1]); refracted. Checked here against astronomy-engine 2.x (Equator of date + Horizon normal refraction): worst 0.040 deg over 32 rows with el > 2 deg (test threshold 0.1)."
+  },
+  {
+   "file": "horizons/sun_refracted.json",
+   "bytes": 11805,
+   "sha256": "a99f542add3b199e01f66cdf6d76132e093cb184d2ce56a6d1366a7b4446b0b3",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='10'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='4'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "§13.6 sun check (tests/sky/horizons_request.txt -> data/horizons/sun.csv; tests/sky.horizons.test.ts)"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 4. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/sun_refracted.txt",
+   "bytes": 11556,
+   "sha256": "4f4a2189ba9ee22949e02bec79d89cd548cacb2c4fa15f76d1a7a004898398ce",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='10'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='4'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "§13.6 sun check (tests/sky/horizons_request.txt -> data/horizons/sun.csv; tests/sky.horizons.test.ts)"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 4. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/sun.csv",
+   "bytes": 11316,
+   "sha256": "491be2ff7a32030a6786a77ddf15b634652c2f2c105a9655c99bc1c59bdd74b0",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='10'&OBJ_DATA='NO'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='4'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'&CAL_FORMAT='BOTH'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5 (drop-in: copy this file to data/horizons/sun.csv)",
+    "§13.6 tests/sky.horizons.test.ts"
+   ],
+   "note": "Exactly the tests/sky/horizons_request.txt spec with the Julian Day column the test parses (f[1]); airless. Checked here against astronomy-engine 2.x (Equator of date + Horizon): worst 0.040 deg over 31 rows with el > 2 deg (test threshold 0.1)."
+  },
+  {
+   "file": "horizons/venus_airless.json",
+   "bytes": 20916,
+   "sha256": "4a1d23cc7c04ea3b3d02930fa20e2f13004cbc171ac974662b6b69d3cee81b55",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='299'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/venus_airless.txt",
+   "bytes": 20627,
+   "sha256": "1a04f5da6a0a8673aff1fdad58e83ff8fc53967f8581f1dd286398e091eca824",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='299'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='AIRLESS'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); airless; quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/venus_refracted.json",
+   "bytes": 20970,
+   "sha256": "cd0beb3ee1978085f818b39a679a34f85569e151fe3356843c5d5334d35e180f",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='299'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "horizons/venus_refracted.txt",
+   "bytes": 20679,
+   "sha256": "6b9db964d73a8490805c4c7e49c99e871b232cbe42b8aa9874da9b078fa72b44",
+   "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='299'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='coord@399'&COORD_TYPE='GEODETIC'&SITE_COORD='52.8894969,29.9351174,1.625'&START_TIME='BC 0467-Apr-17 00:00'&STOP_TIME='BC 0466-Apr-06 00:00'&STEP_SIZE='7500 m'&QUANTITIES='1,2,4,9,10'&APPARENT='REFRACTED'&CSV_FORMAT='YES'&TIME_DIGITS='MINUTES'&EXTRA_PREC='YES'",
+   "licence": "NASA/JPL Horizons output: U.S. Government work, public domain (cite JPL Horizons, ephemeris DE441)",
+   "serves": [
+    "B2",
+    "NEEDS #5",
+    "sky: sun/moon/planet cross-check vs astronomy-engine"
+   ],
+   "note": "Observer E-long 52.8894969, lat 29.9351174, 1.625 km; 467 BC Apr 17 00:00 UT to 466 BC Apr 06 (Julian calendar; Horizons \"b0467\" = 467 BCE = astronomical -466), step 5 d 5 h (7500 min); refracted (standard atmosphere); quantities 1,2,4,9,10. Rows between $$SOE and $$EOE are CSV."
+  },
+  {
+   "file": "isd_shiraz/40848099999_1957.csv.gz",
+   "bytes": 14581,
+   "sha256": "8d016eee0f6267e38af295105ee6af1b2d668ae7f6da551f9575a0a1edfc1024",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1957/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1958.csv.gz",
+   "bytes": 28386,
+   "sha256": "41ca923eace0114683600bc88d0a589d2fdda7e49f606edecf6551a90b2bca68",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1958/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1963.csv.gz",
+   "bytes": 9081,
+   "sha256": "be1c1533a15e9e3a163ac4bd571c653627c8aeebbbfd6cad078c01abb759870f",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1963/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1964.csv.gz",
+   "bytes": 9004,
+   "sha256": "44f757eadeace04bc1164154d2bd7e51236d49a0e86150cb2a8a5c4b8dcb4c18",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1964/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1965.csv.gz",
+   "bytes": 16419,
+   "sha256": "c8da905b32a2712d83d464edfc8e75b4967c041eaafd02c5b2128e72d8ebbab1",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1965/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1966.csv.gz",
+   "bytes": 22172,
+   "sha256": "aad5ce830f8981697f6c3c8d68958080a1ae10fce6c689dac8e9a72ee49c765e",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1966/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1967.csv.gz",
+   "bytes": 25974,
+   "sha256": "6b49bb4f4534b1458723eaf204afa66fe6a4ad548a89df215cc02cad77f8c5b8",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1967/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1968.csv.gz",
+   "bytes": 39507,
+   "sha256": "4c0152fcecebdaabbc7a54a6cd21b8273e3b085202617bc7fd9b9f98549669eb",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1968/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1973.csv.gz",
+   "bytes": 40012,
+   "sha256": "47d77e6b8daed347d25938dda3bb187e02d7ebade667dde9d424f2791bf23f34",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1973/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1974.csv.gz",
+   "bytes": 31273,
+   "sha256": "7f7f9e5854c9ec1b3ae7a9f9956f9008bb1935939f44644994359a3ae79e9352",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1974/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1975.csv.gz",
+   "bytes": 33792,
+   "sha256": "c79b1e209717d34f1cc9bdfacb1afd1e2125ab19dbf5e4503918f65a80d1472c",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1975/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1976.csv.gz",
+   "bytes": 36536,
+   "sha256": "5a6634419d0093f90bdd98a85c5745aa443bb43ff3074e41b57a22dc74577b69",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1976/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1977.csv.gz",
+   "bytes": 36183,
+   "sha256": "3372b7b5216e2dd294c4bcfb4dc282b5a2c276984fd312b18b7fafaa13cd0a4e",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1977/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1978.csv.gz",
+   "bytes": 48255,
+   "sha256": "17cc35bad70b97498486a08392978036043c773f4158e97dd72f354107190557",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1978/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1979.csv.gz",
+   "bytes": 24141,
+   "sha256": "04f3401c48dfd6da436cc3624440b4b0ac5ed5301f3b476e45d12632f3cb2f6b",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1979/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1980.csv.gz",
+   "bytes": 32745,
+   "sha256": "7f1e39594f81ae428b205501d1bfaa7a77667c58ac082d74490349723a593777",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1980/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1981.csv.gz",
+   "bytes": 306,
+   "sha256": "eec33d79c0e8d96c51dc816ace225d333358104a7ad8a02536d84e38d930cb25",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1981/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1989.csv.gz",
+   "bytes": 33487,
+   "sha256": "17f774fb106d9a833ad980b45ea6886134f218c313e54a3df12252763f28bd2e",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1989/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1990.csv.gz",
+   "bytes": 51867,
+   "sha256": "617464457ad6b22072851417cb8b98a20613be2e6a0d23e0eb91ea1d6c609097",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1990/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1991.csv.gz",
+   "bytes": 67624,
+   "sha256": "7108d7b5bb4858a103f80b17e5bd8184880f28ca7c06a7300a676c6f0fb4e51a",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1991/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1992.csv.gz",
+   "bytes": 70757,
+   "sha256": "5f5a241f6d28a076dcac476859e40d9a75ecff8ef1c5feadb90deaeb4d11b3ac",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1992/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1993.csv.gz",
+   "bytes": 48008,
+   "sha256": "95fc8c23913aa0f885e01dc4cded5cd575708fec66035cae9f079c69f9efe69c",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1993/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1994.csv.gz",
+   "bytes": 57987,
+   "sha256": "e77c5ddbcd4851ed17733b2f7d129e3c81a3a0a7a69df9990c0aff389a6523b8",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1994/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1995.csv.gz",
+   "bytes": 56777,
+   "sha256": "0e0cf3f1ef307f20013681485a8002fbd3b810abdc5170e14a07a54a658c3b60",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1995/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1996.csv.gz",
+   "bytes": 61447,
+   "sha256": "7dcc3dbeb1ff2ebfe397dca84a45d1bd397c6d92ecf9f34160851ce33b090ba0",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1996/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1997.csv.gz",
+   "bytes": 59071,
+   "sha256": "b78389ad86ff8cb20a38409d477edd21d898921bba98f4174b44c4b5de06f798",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1997/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1998.csv.gz",
+   "bytes": 39555,
+   "sha256": "4a6ca783997d923a7e04de67851906c361adc0227e888ece3588207609763109",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1998/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_1999.csv.gz",
+   "bytes": 203512,
+   "sha256": "704641fcc9f448d87892a0e87962730239752f6bd25d467fccd73af33e597697",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/1999/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2000.csv.gz",
+   "bytes": 322058,
+   "sha256": "0cb35b1b922e1d9d0e12b748ea000cc13225cecfaaf757bc4337f49c14c36769",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2000/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2001.csv.gz",
+   "bytes": 332527,
+   "sha256": "ad191d8c32fb7c94692da23da39921a141c383898a35f8833a13fc31c2310496",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2001/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2002.csv.gz",
+   "bytes": 337700,
+   "sha256": "3deaa55d2ba502301f95a656a582e04b97a4b1c18217c44fb916c42622e515ab",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2002/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2003.csv.gz",
+   "bytes": 294977,
+   "sha256": "0f1977868ec4bdab403ba598c04f1d7a50c1d1e167db517467789060bdb2fb75",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2003/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2004.csv.gz",
+   "bytes": 314422,
+   "sha256": "2ef5947f4ff052d77fa2d9c7da4dd29955581ea74791c1c468b519cbfd49e67f",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2004/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2005.csv.gz",
+   "bytes": 345226,
+   "sha256": "63cd14a52a172469f8c19f02c6e29ed5257f33bb5af503b679ab1a68f72046be",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2005/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2006.csv.gz",
+   "bytes": 382363,
+   "sha256": "9625dcda9871b69157ef826dd942245da9f60fc6878060509a4118b212909c90",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2006/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2007.csv.gz",
+   "bytes": 450033,
+   "sha256": "94731e18b405ee8226f3ea43e44ef78e87fc619974f2c84f73b35cd4521bc36f",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2007/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2008.csv.gz",
+   "bytes": 420088,
+   "sha256": "8c78d3b8f0554c7240dc2b7d1cbd43f968aa38967e6df5504d89fb619ae1dcfe",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2008/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2009.csv.gz",
+   "bytes": 444546,
+   "sha256": "08038ed185062be43c7892912be9d00b57cbd0fc084467c9f3f547c88f2f92ac",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2009/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2010.csv.gz",
+   "bytes": 436882,
+   "sha256": "aa06c5275f08b9c705d4fb44b78396b88c9fcdcf16e3cdea16555dd941a32827",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2010/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2011.csv.gz",
+   "bytes": 524164,
+   "sha256": "1d54d8eecb8a10c31469255c831f3286ff6fc680af0277a4c3288fb9dae95ec0",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2011/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2012.csv.gz",
+   "bytes": 493892,
+   "sha256": "059fb128269eaf7bb0c485ed9f607fca53c504adb170964fea28825fcbff2f57",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2012/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2013.csv.gz",
+   "bytes": 568796,
+   "sha256": "3efe9b33a9e5a8c954901140da0c37823f02736dd44c73d4540323c705dd776b",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2013/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2014.csv.gz",
+   "bytes": 655660,
+   "sha256": "dbe8924d161972bece457efe183d86fe3c4a291a4e712d658345dc3159af9757",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2014/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2015.csv.gz",
+   "bytes": 695659,
+   "sha256": "98c90d61b410375039bfd5c400ce67cba72effb9e621b250933b68cfcbcd3adb",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2015/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2016.csv.gz",
+   "bytes": 703524,
+   "sha256": "216d3a343a02b715711237fde5ba1bc6d19fdf4390e4a0bb8d001d1c3d070387",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2016/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2017.csv.gz",
+   "bytes": 704836,
+   "sha256": "e53d07c0d41938c1a9540b3a335c4a1c2b6e983bd9814cfedb4684beea74d677",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2017/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2018.csv.gz",
+   "bytes": 663437,
+   "sha256": "16d5428610ec38003b1e917dd2888fae80d919149d1886cca0d0df4349f301d8",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2018/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2019.csv.gz",
+   "bytes": 745992,
+   "sha256": "665095a496ab9d3e65a823bbce37abb176bf7147d9f1aeac81713c22a9f1ba25",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2019/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2020.csv.gz",
+   "bytes": 546427,
+   "sha256": "ffba4d068aa49e26cf084d2288045a023a23a64bb3c656279b61d9f866ba5b01",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2020/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2021.csv.gz",
+   "bytes": 494528,
+   "sha256": "5844d8c4ab90ff6e008263d3694a1040d1f0580e04b64f6b054a036beba98172",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2021/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2022.csv.gz",
+   "bytes": 523094,
+   "sha256": "2e8204eb1c690dca2370d5823ef727c87d6fbf9b74ff4b5d0b0f52eeb208315b",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2022/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2023.csv.gz",
+   "bytes": 543386,
+   "sha256": "17bf0496fa4e1b8d2c28c9ee407fee043faeb6d40da60bd9d41b8365963027e5",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2023/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2024.csv.gz",
+   "bytes": 531868,
+   "sha256": "ecc3e57036fe46442ce967df224910b31676e9fdad74401662759e512d172d91",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2024/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "isd_shiraz/40848099999_2025.csv.gz",
+   "bytes": 317914,
+   "sha256": "6c650bb336cbdf2a3e6d8fa389ea577e9fd0415e4d10bf5f9fcba5600087a471",
+   "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2025/40848099999.csv (gzipped here)",
+   "licence": "NOAA/NCEI Integrated Surface Database (Global Hourly): U.S. Government, free use; non-US station data may be subject to WMO Resolution 40 (non-commercial redistribution)",
+   "serves": [
+    "B3",
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (hourly wind/cloud statistics without ERA5)"
+   ],
+   "note": "Shiraz WMO 40848 hourly/synoptic obs (wind, cloud, visibility, present weather, T, dew point, pressure); ISD CSV format, doc https://www.ncei.noaa.gov/data/global-hourly/doc/isd-format-document.pdf"
+  },
+  {
+   "file": "nasa_power/climatology_set1.json",
+   "bytes": 5124,
+   "sha256": "4c4e5b3497ba08356bdfd0ffc7a505765610120163792661d1e762cbb1d12507",
+   "url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=T2M,T2M_MAX,T2M_MIN,T2MDEW,T2MWET,TS,QV2M,RH2M,PRECTOTCORR,PS,WS2M,WS2M_MAX,WS2M_MIN,WD2M,WS10M,WS10M_MAX,WS10M_MIN,WD10M,WS50M,WD50M&community=RE&longitude=52.891&latitude=29.935&start=1981&end=2024&format=JSON",
+   "note": "Monthly climatology Jan 1981 - Dec 2024",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/climatology_set2.json",
+   "bytes": 3415,
+   "sha256": "e6ccad13b4a5d3dd7c1ba99304b3a83bbd9dcb8453b25748937f32d5151aed61",
+   "url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_KT,ALLSKY_SFC_LW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_SW_DNI,ALLSKY_SFC_PAR_TOT,CLRSKY_SFC_PAR_TOT,ALLSKY_SFC_UV_INDEX,ALLSKY_SFC_UVA&community=RE&longitude=52.891&latitude=29.935&start=1981&end=2024&format=JSON",
+   "note": "Monthly climatology Jan 1981 - Dec 2024",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/climatology_set3.json",
+   "bytes": 3022,
+   "sha256": "fb16f964765ac15bceea255204539fdaaae82913ce07bf7d20faf20f2ab757cf",
+   "url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=SNODP,PRECSNOLAND,EVLAND,GWETTOP,GWETROOT,GWETPROF,TSOIL1,Z0M,PBLTOP,T10M,T10M_MAX,T10M_MIN,RHOA,U2M,V2M,U10M,V10M,U50M,V50M,QV10M&community=RE&longitude=52.891&latitude=29.935&start=1981&end=2024&format=JSON",
+   "note": "Monthly climatology Jan 1981 - Dec 2024",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/climatology_set4.json",
+   "bytes": 4980,
+   "sha256": "55a2d4c3ab78427f89ccecc83d4ecf04d7a4d4d2423421590a7589cb97a37e99",
+   "url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_UVB,CLOUD_AMT,CLOUD_AMT_DAY,CLOUD_AMT_NIGHT,TOA_SW_DWN,ALLSKY_SRF_ALB,AOD_55,AOD_84,PW,T2M_RANGE&community=RE&longitude=52.891&latitude=29.935&start=1981&end=2024&format=JSON",
+   "note": "Monthly climatology Jan 1981 - Dec 2024",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/climatology_set5.json",
+   "bytes": 812,
+   "sha256": "19aeee343213bdbc28496f44ba3fae0cabddb5ef6d77e5e946d5f5c5697bc520",
+   "url": "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=FROST_DAYS&community=AG&longitude=52.891&latitude=29.935&start=1981&end=2024&format=JSON",
+   "note": "Monthly climatology Jan 1981 - Dec 2024",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/daily_set1.json",
+   "bytes": 5478998,
+   "sha256": "4a6b366c4de08fb93a53df2dcab499813f4caab0a78eaf99349bcb996652cc96",
+   "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,T2M_MAX,T2M_MIN,T2MDEW,T2MWET,TS,QV2M,RH2M,PRECTOTCORR,PS,WS2M,WS2M_MAX,WS2M_MIN,WD2M,WS10M,WS10M_MAX,WS10M_MIN,WD10M,WS50M,WD50M&community=RE&longitude=52.891&latitude=29.935&start=19810101&end=20260920&format=JSON&time-standard=UTC",
+   "note": "Daily 1981-01-01..2026-09-20 (radiation/cloud valid from 1984-01-01 to ~2026-06; -999 = missing). POWER grid elevation 1947 m.",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/daily_set2.json",
+   "bytes": 2953443,
+   "sha256": "8d4caa30823209c2e0a80aa1597b8fc013b13424e97d3bf904349350cf18c0b8",
+   "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_KT,ALLSKY_SFC_LW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_SW_DNI,ALLSKY_SFC_PAR_TOT,CLRSKY_SFC_PAR_TOT,ALLSKY_SFC_UV_INDEX,ALLSKY_SFC_UVA&community=RE&longitude=52.891&latitude=29.935&start=19810101&end=20260920&format=JSON&time-standard=UTC",
+   "note": "Daily 1981-01-01..2026-09-20 (radiation/cloud valid from 1984-01-01 to ~2026-06; -999 = missing). POWER grid elevation 1947 m.",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/daily_set3.json",
+   "bytes": 5419590,
+   "sha256": "df6dbd14e38c1c32220b5c99860ae8235f06563a20b3187f7a59264a2e291454",
+   "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=SNODP,PRECSNOLAND,EVLAND,GWETTOP,GWETROOT,GWETPROF,TSOIL1,Z0M,PBLTOP,T10M,T10M_MAX,T10M_MIN,RHOA,U2M,V2M,U10M,V10M,U50M,V50M,QV10M&community=RE&longitude=52.891&latitude=29.935&start=19810101&end=20260920&format=JSON&time-standard=UTC",
+   "note": "Daily 1981-01-01..2026-09-20 (radiation/cloud valid from 1984-01-01 to ~2026-06; -999 = missing). POWER grid elevation 1947 m.",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/daily_set4.json",
+   "bytes": 2862593,
+   "sha256": "a76f93a0d7c14c6bca7fbba968dd31f9d9128c6bed17e4fbffdd30002789cb65",
+   "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_UVB,CLOUD_AMT,CLOUD_AMT_DAY,CLOUD_AMT_NIGHT,TOA_SW_DWN,ALLSKY_SRF_ALB,AOD_55,AOD_84,PW,T2M_RANGE&community=RE&longitude=52.891&latitude=29.935&start=19810101&end=20260920&format=JSON&time-standard=UTC",
+   "note": "Daily 1981-01-01..2026-09-20 (radiation/cloud valid from 1984-01-01 to ~2026-06; -999 = missing). POWER grid elevation 1947 m.",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2001.csv.gz",
+   "bytes": 268233,
+   "sha256": "1665ad033dd7523d2f53fa7d8c6d7d2d300fec5086d603c466349f06e93f0c79",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20010101&end=20011231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2002.csv.gz",
+   "bytes": 268227,
+   "sha256": "f7f58c665e36d308947010d1003c450c708170d814892b71c45f0563c066dd8e",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20020101&end=20021231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2003.csv.gz",
+   "bytes": 268773,
+   "sha256": "3999f8b50b7ba60cf28884b24a2165707c0f59a4e278da1d37a728473f05ac39",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20030101&end=20031231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2004.csv.gz",
+   "bytes": 269047,
+   "sha256": "5bd3e1caed5ec0624b0a155001ac8def2c500c1d65b264974fc6b09b845aa596",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20040101&end=20041231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2005.csv.gz",
+   "bytes": 267957,
+   "sha256": "ce1e91f96be5419beb019a35c5f8241c94968c74db41c69313ea3e0a11feb37a",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20050101&end=20051231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2006.csv.gz",
+   "bytes": 267882,
+   "sha256": "3f1560faee8af8cef6b73e7eca79396b8451db80b8bebf15457f85a261af7bcc",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20060101&end=20061231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2007.csv.gz",
+   "bytes": 267603,
+   "sha256": "12a40b11fa025fbe4bb64214e90eb5599eaf3090b91f00e13c983e501ab14c89",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20070101&end=20071231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2008.csv.gz",
+   "bytes": 268644,
+   "sha256": "feacbf1d73584485dfc6da76d39848005603ac8d7e234880c32a2c49dba7e35a",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20080101&end=20081231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2009.csv.gz",
+   "bytes": 268687,
+   "sha256": "085ec834b1d0e475664b71699b91ace55c140298a717ae233fb809c0944e1917",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20090101&end=20091231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2010.csv.gz",
+   "bytes": 267588,
+   "sha256": "24d38f1c74c411750d5252693a419022146a066bec31c9b9395c542b164356b1",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20100101&end=20101231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2011.csv.gz",
+   "bytes": 269508,
+   "sha256": "dfac53691fc9f579bfee9fd7edcda1ff824923fa8c11116d0878ef0b8a5057c6",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20110101&end=20111231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2012.csv.gz",
+   "bytes": 269366,
+   "sha256": "228dc8974699e350b885f781b02203edcb380779ac0b4d422ba8e25af187d178",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20120101&end=20121231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2013.csv.gz",
+   "bytes": 268777,
+   "sha256": "7f8ab492d62dfeb141d58fd5a41ac0f726f2d9d480e9a587a57a379856f2d821",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20130101&end=20131231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2014.csv.gz",
+   "bytes": 268379,
+   "sha256": "dff0e5b2f757c0f70cd1776baa7508505c2d63a5d6ccdbc603127f9f33455a74",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20140101&end=20141231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2015.csv.gz",
+   "bytes": 268638,
+   "sha256": "0f94bb87e03f4f2c8346700db3f4edf2e47a7e6eda73f7761f01c85f70f933c6",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20150101&end=20151231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2016.csv.gz",
+   "bytes": 269452,
+   "sha256": "43584ef67a2d37e5fb4afe1d1778e1bd5eac3f15ca683a808e4e38426d5d31e4",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20160101&end=20161231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2017.csv.gz",
+   "bytes": 267906,
+   "sha256": "50a568522fc321a7f7515db479bf6c125d48ca4d393034ae0b8081512d02deaa",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20170101&end=20171231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2018.csv.gz",
+   "bytes": 268724,
+   "sha256": "611cc228e7d1580c645a8cd68afd6195615fdca180367dff37c9b3bbd32fe723",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20180101&end=20181231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2019.csv.gz",
+   "bytes": 269256,
+   "sha256": "182f13538ec401d3dcac6ce92699ba2cedd655e932f88cb714d08428e5facbac",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20190101&end=20191231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2020.csv.gz",
+   "bytes": 269727,
+   "sha256": "173b626489093c2968c3c8992b36d6675cede274f02cb397d8184187b867a381",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20200101&end=20201231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2021.csv.gz",
+   "bytes": 268079,
+   "sha256": "8dc672f308c0a67f73139853fb5e8df0fa0bb50bacbbd17861400ac5ccaba031",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20210101&end=20211231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2022.csv.gz",
+   "bytes": 269082,
+   "sha256": "ab075481492d6387a3dcc2ac1ed12790f86d0b0ffa554d8ee9e76f2648b22512",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20220101&end=20221231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2023.csv.gz",
+   "bytes": 268612,
+   "sha256": "5da1769c99ce06ff381a3551d873c42fc5ca9e70a2e5d53e1b21d3e73395e595",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20230101&end=20231231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2024.csv.gz",
+   "bytes": 270293,
+   "sha256": "6e6c43122f86f00270f1b699a25f6fbef0f2ed8a9c70363fb42acbe832696a81",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20240101&end=20241231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/hourly/power_hourly_2025.csv.gz",
+   "bytes": 268479,
+   "sha256": "9675d7e849667c752faf21b4bba9b0b0153cf75a2ba9b47f91f1540348fd1bf0",
+   "url": "https://power.larc.nasa.gov/api/temporal/hourly/point?parameters=T2M,T2MDEW,RH2M,QV2M,PS,PRECTOTCORR,WS2M,WD2M,WS10M,WD10M,ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_LW_DWN&community=RE&longitude=52.891&latitude=29.935&start=20250101&end=20251231&format=CSV&time-standard=UTC (gzipped here)",
+   "note": "Hourly, UTC",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/monthly_set1.json",
+   "bytes": 170039,
+   "sha256": "3c6931319909cd3349ef9629c3abab40d7868f195e07733a767a0648b3b7585e",
+   "url": "https://power.larc.nasa.gov/api/temporal/monthly/point?parameters=T2M,T2M_MAX,T2M_MIN,T2MDEW,T2MWET,TS,QV2M,RH2M,PRECTOTCORR,PS,WS2M,WS2M_MAX,WS2M_MIN,WD2M,WS10M,WS10M_MAX,WS10M_MIN,WD10M,WS50M,WD50M&community=RE&longitude=52.891&latitude=29.935&start=1981&end=2025&format=JSON",
+   "note": "Monthly means per year 1981-2025 plus annual",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/monthly_set2.json",
+   "bytes": 93400,
+   "sha256": "6587aa5255464e49460bbf6fb0241930d3f4a1c6f256ee2ac3d2353139056537",
+   "url": "https://power.larc.nasa.gov/api/temporal/monthly/point?parameters=ALLSKY_SFC_SW_DWN,CLRSKY_SFC_SW_DWN,ALLSKY_KT,ALLSKY_SFC_LW_DWN,ALLSKY_SFC_SW_DIFF,ALLSKY_SFC_SW_DNI,ALLSKY_SFC_PAR_TOT,CLRSKY_SFC_PAR_TOT,ALLSKY_SFC_UV_INDEX,ALLSKY_SFC_UVA&community=RE&longitude=52.891&latitude=29.935&start=1981&end=2025&format=JSON",
+   "note": "Monthly means per year 1981-2025 plus annual",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/monthly_set3.json",
+   "bytes": 90270,
+   "sha256": "00789c4815905fadc24e555218b431a530075dce94ce21524da7f958dc0e98f9",
+   "url": "https://power.larc.nasa.gov/api/temporal/monthly/point?parameters=SNODP,PRECSNOLAND,EVLAND,GWETTOP,GWETROOT,GWETPROF,TSOIL1,Z0M,PBLTOP,T10M,T10M_MAX,T10M_MIN,RHOA,U2M,V2M,U10M,V10M,U50M,V50M,QV10M&community=RE&longitude=52.891&latitude=29.935&start=1981&end=2025&format=JSON",
+   "note": "Monthly means per year 1981-2025 plus annual",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "nasa_power/monthly_set4.json",
+   "bytes": 167869,
+   "sha256": "e6c7828e8516674e2ff59db2ebc2723a1e1aacde4fa288db86290f0d0d2cd1b0",
+   "url": "https://power.larc.nasa.gov/api/temporal/monthly/point?parameters=ALLSKY_SFC_UVB,CLOUD_AMT,CLOUD_AMT_DAY,CLOUD_AMT_NIGHT,TOA_SW_DWN,ALLSKY_SRF_ALB,AOD_55,AOD_84,PW,T2M_RANGE&community=RE&longitude=52.891&latitude=29.935&start=1981&end=2025&format=JSON",
+   "note": "Monthly means per year 1981-2025 plus annual",
+   "licence": "NASA POWER: public data, no use restrictions; cite \"These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program.\"",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (diurnal wind/radiation)"
+   ]
+  },
+  {
+   "file": "open_meteo/open_meteo_daily_persepolis_1940_2026.csv",
+   "bytes": 3099391,
+   "sha256": "63d3a814da14849e264a14044968e3f6c7a566e07bd7511bee2de8ad995a761b",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1940-01-01&end_date=2026-09-20&daily=<23 variables> (merged locally from raw/om_daily_g*.json)",
+   "note": "Merged daily CSV 1940-01-01..2026-09-20, 31675 days x 23 variables, local dates (Asia/Tehran); model grid point 29.912N 52.910E 1625 m",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/open_meteo_hourly_persepolis_1991_2025.csv.gz",
+   "bytes": 5227490,
+   "sha256": "ea863011896f5be3d86e66f3278190605b5dd10e345bf4efd7f58773470c745a",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1991-01-01&end_date=2025-12-31&hourly=<14 variables> (merged locally from raw_hourly)",
+   "note": "Merged hourly CSV (gzip) 1991-2025, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g1_1991_1995.json.gz",
+   "bytes": 346891,
+   "sha256": "12f45691c86e336645a1daf046205161bfafe747f291c46cc83398265a82702e",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1991-01-01&end_date=1995-12-31&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,surface_pressure,precipitation,weather_code,shortwave_radiation&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g1_1996_2000.json.gz",
+   "bytes": 347234,
+   "sha256": "baebee1d95008df75979133de88544b028cee0c2a9a935dec54b05383e4a2a41",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1996-01-01&end_date=2000-12-31&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,surface_pressure,precipitation,weather_code,shortwave_radiation&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g1_2001_2005.json.gz",
+   "bytes": 346705,
+   "sha256": "0aeb5714c9e000c373911abccd4494ba0dad8844e292ed6404eb3b21129f9503",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2001-01-01&end_date=2005-12-31&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,surface_pressure,precipitation,weather_code,shortwave_radiation&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g1_2006_2010.json.gz",
+   "bytes": 345519,
+   "sha256": "3cb44e12856be8243a33ac30b96a665da407a6fe4a4a3d62d7d98115fafc614e",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2006-01-01&end_date=2010-12-31&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,surface_pressure,precipitation,weather_code,shortwave_radiation&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g1_2011_2015.json.gz",
+   "bytes": 346831,
+   "sha256": "cf48fa857002fed35f440d14c123498242f67700b971fdbb08cb13b7ff3c89cf",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2011-01-01&end_date=2015-12-31&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,surface_pressure,precipitation,weather_code,shortwave_radiation&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g1_2016_2020.json.gz",
+   "bytes": 353727,
+   "sha256": "a3196d79b58d85fae83bb9a4bc16bf3b844b3932d08e45023f4888ddc21834df",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2016-01-01&end_date=2020-12-31&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,surface_pressure,precipitation,weather_code,shortwave_radiation&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g1_2021_2025.json.gz",
+   "bytes": 352139,
+   "sha256": "0c762cc0ad0f0ae875968c6150ae27361128519cb9669841f2b04383292a0421",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2021-01-01&end_date=2025-12-31&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,surface_pressure,precipitation,weather_code,shortwave_radiation&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g2_1991_1995.json.gz",
+   "bytes": 320894,
+   "sha256": "2065d31d98c5875d36200c13e81ac6689a25db447f8ee4dbe2221add82cb2fbf",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1991-01-01&end_date=1995-12-31&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g2_1996_2000.json.gz",
+   "bytes": 319930,
+   "sha256": "e6a57d665ac060ce1f03947ba8cbbb6e8d69cd9500c930f4596059b575f08f79",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1996-01-01&end_date=2000-12-31&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g2_2001_2005.json.gz",
+   "bytes": 315462,
+   "sha256": "04aab7bfc1143bb09c7104d25a7ac6cace6ee7880645496742dd4dc403d6ee33",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2001-01-01&end_date=2005-12-31&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g2_2006_2010.json.gz",
+   "bytes": 317995,
+   "sha256": "ac79f1dea3fc890aec0776812f9af12ced73ce23634762f38548de714e3a6db9",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2006-01-01&end_date=2010-12-31&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g2_2011_2015.json.gz",
+   "bytes": 322876,
+   "sha256": "3fd67543fb55197042b3ccf303ce5ec6b8934d072288ba3ba9cd2c510b769327",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2011-01-01&end_date=2015-12-31&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g2_2016_2020.json.gz",
+   "bytes": 326145,
+   "sha256": "0ea229238093b4c895df772ac26eca068fa26d5ce4dacafda54f8c7cffe2d3af",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2016-01-01&end_date=2020-12-31&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw_hourly/om_hourly_g2_2021_2025.json.gz",
+   "bytes": 320779,
+   "sha256": "6c1c11c09cf8e9fb8178c176c0c62d83fbd6a3af2056d1b0f5e219259cc7b3f0",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2021-01-01&end_date=2025-12-31&hourly=cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=GMT (gzipped JSON here)",
+   "note": "ERA5 hourly via Open-Meteo, UTC",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5 hourly wind/cloud statistics without a CDS key)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g1_1940_1959.json",
+   "bytes": 289145,
+   "sha256": "df0f85c53822fc1051ad6ace829f0a04d426cc7f5b485df6b232530f5a11a89e",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1940-01-01&end_date=1959-12-31&daily=weather_code,temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,rain_sum&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g1_1960_1979.json",
+   "bytes": 289161,
+   "sha256": "2b0939c4903365009add913ec0123819a74e93d7d21df193bca39c6b20adf6f2",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1960-01-01&end_date=1979-12-31&daily=weather_code,temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,rain_sum&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g1_1980_1999.json",
+   "bytes": 288845,
+   "sha256": "5fa6e800b6861a8580b1a8c559eb0de2e1ab031c17e828aa96e6e621207e92ba",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1980-01-01&end_date=1999-12-31&daily=weather_code,temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,rain_sum&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g1_2000_2019.json",
+   "bytes": 289272,
+   "sha256": "4bf2997b7d738292f5c057b2eba8f970b7799fdb3989895624eca708d64953a1",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2000-01-01&end_date=2019-12-31&daily=weather_code,temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,rain_sum&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g1_2020_2026.json",
+   "bytes": 97674,
+   "sha256": "5ccdadbd6f7da5e91ec1c3a80da00fedbc640395ce3402ed632802ec6bb52836",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2020-01-01&end_date=2026-09-20&daily=weather_code,temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,rain_sum&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g2_1940_1959.json",
+   "bytes": 351219,
+   "sha256": "698e1a51197b2cbcaa409f8d237e12201f8b769a31a61b5d275e3c860ffe7c7c",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1940-01-01&end_date=1959-12-31&daily=snowfall_sum,precipitation_hours,sunshine_duration,shortwave_radiation_sum,et0_fao_evapotranspiration,surface_pressure_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g2_1960_1979.json",
+   "bytes": 351244,
+   "sha256": "00cd31c275539ded3af2efca285487cd92cc55d7f5ac921f28567203ed0a8fc7",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1960-01-01&end_date=1979-12-31&daily=snowfall_sum,precipitation_hours,sunshine_duration,shortwave_radiation_sum,et0_fao_evapotranspiration,surface_pressure_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g2_1980_1999.json",
+   "bytes": 351115,
+   "sha256": "d3b6ce488f788cb85d5f4c038b6dde8e49aa0fe3aa383f51d3d62cd4ff2a0763",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1980-01-01&end_date=1999-12-31&daily=snowfall_sum,precipitation_hours,sunshine_duration,shortwave_radiation_sum,et0_fao_evapotranspiration,surface_pressure_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g2_2000_2019.json",
+   "bytes": 351093,
+   "sha256": "4316b5a2147a7b1deb03c147d78ff00b5bba7a91a13c6ed3ddb5f99486ee7b0e",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2000-01-01&end_date=2019-12-31&daily=snowfall_sum,precipitation_hours,sunshine_duration,shortwave_radiation_sum,et0_fao_evapotranspiration,surface_pressure_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g2_2020_2026.json",
+   "bytes": 118322,
+   "sha256": "84a3a957ba985733b92bf64ac18ae9aef028871e8673a5ac4f9288309597693e",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2020-01-01&end_date=2026-09-20&daily=snowfall_sum,precipitation_hours,sunshine_duration,shortwave_radiation_sum,et0_fao_evapotranspiration,surface_pressure_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g3_1940_1959.json",
+   "bytes": 262095,
+   "sha256": "2c209b4c21777617ab9201caad1abf38aa8b4be789fbb3464156ef1e96d7c824",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1940-01-01&end_date=1959-12-31&daily=wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,wind_speed_10m_mean,cloud_cover_mean,cloud_cover_max&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g3_1960_1979.json",
+   "bytes": 261912,
+   "sha256": "2843d7616e039763f814523b867f4d2050539f6658d24e76b15020c21a3cfec9",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1960-01-01&end_date=1979-12-31&daily=wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,wind_speed_10m_mean,cloud_cover_mean,cloud_cover_max&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g3_1980_1999.json",
+   "bytes": 262123,
+   "sha256": "f23e5b69fc4f9e2eba503df8c5e174a1e6f03da076d1813966b5ed099bc37ca4",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1980-01-01&end_date=1999-12-31&daily=wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,wind_speed_10m_mean,cloud_cover_mean,cloud_cover_max&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g3_2000_2019.json",
+   "bytes": 262390,
+   "sha256": "5e564206468ceb97b0155a4520a39f63825ae1ba280f32462c40decbdd6c5121",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2000-01-01&end_date=2019-12-31&daily=wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,wind_speed_10m_mean,cloud_cover_mean,cloud_cover_max&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g3_2020_2026.json",
+   "bytes": 88823,
+   "sha256": "1cdeea36937b98067ce34c12c9c9c97d498e73e9149cd90db4ad523dc5c28fbd",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2020-01-01&end_date=2026-09-20&daily=wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,wind_speed_10m_mean,cloud_cover_mean,cloud_cover_max&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g4_1940_1959.json",
+   "bytes": 208657,
+   "sha256": "ef7f51323aff8f5004dd22a267beb76f13a4564c1c4807f339349a024de1d5bd",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1940-01-01&end_date=1959-12-31&daily=cloud_cover_min,relative_humidity_2m_mean,relative_humidity_2m_max,relative_humidity_2m_min,dew_point_2m_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g4_1960_1979.json",
+   "bytes": 208528,
+   "sha256": "9a7ce221a26df02687db7be77efbe2a061b26ec4d60604361ca819dbd8c41571",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1960-01-01&end_date=1979-12-31&daily=cloud_cover_min,relative_humidity_2m_mean,relative_humidity_2m_max,relative_humidity_2m_min,dew_point_2m_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g4_1980_1999.json",
+   "bytes": 208239,
+   "sha256": "4bcd07b03e79677160ea023990480f7a798d78f093e925962a11964a25bd2695",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=1980-01-01&end_date=1999-12-31&daily=cloud_cover_min,relative_humidity_2m_mean,relative_humidity_2m_max,relative_humidity_2m_min,dew_point_2m_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g4_2000_2019.json",
+   "bytes": 208154,
+   "sha256": "85640a487621197b64b544f412d3bea99639db17413a070c8c3e1d21b4c1a36c",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2000-01-01&end_date=2019-12-31&daily=cloud_cover_min,relative_humidity_2m_mean,relative_humidity_2m_max,relative_humidity_2m_min,dew_point_2m_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  },
+  {
+   "file": "open_meteo/raw/om_daily_g4_2020_2026.json",
+   "bytes": 70246,
+   "sha256": "def4096f8799fa05aa76d7fb288eeaf81c73c9f67232367f05999d7efb65bc17",
+   "url": "https://archive-api.open-meteo.com/v1/archive?latitude=29.935&longitude=52.891&start_date=2020-01-01&end_date=2026-09-20&daily=cloud_cover_min,relative_humidity_2m_mean,relative_humidity_2m_max,relative_humidity_2m_min,dew_point_2m_mean&timezone=Asia%2FTehran",
+   "note": "raw API chunk (the API refuses the whole span as too large)",
+   "licence": "Open-Meteo API data CC BY 4.0 (attribution \"Weather data by Open-Meteo.com\"); underlying ERA5/ERA5-Land reanalysis: Copernicus (C3S) licence, attribution required",
+   "serves": [
+    "B8",
+    "NEEDS #6",
+    "NEEDS #7 (ERA5-derived daily)"
+   ]
+  }
+ ]
+}

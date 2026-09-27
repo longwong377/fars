@@ -1,0 +1,55 @@
+Creswell Crags &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ Creswell Crags
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description: 
+ A series of IRs recorded at Creswell Crags &#8211; including some recorded inside one of the caves using a sine sweep, and in the main gorge using a starter pistol. See link below for a full report on the recordings. 
+ Measurement Team: 
+ Francis Stevens 
+ Joe Rees-Jones 
+ Capture Date: 
+ Wed, 14/09/2016 
+ Source Sound: 
+ Swept Sine: 22 Hz &#8211; 22 kHz 30s; Starter pistol 
+ Source Sound Category: 
+ Swept sine (logarithmic) 
+ Microphone(s): 
+ Soundfield STM 450 B-format microphone 
+ Space Category: 
+ Open Air 
+ Generation Type: 
+ Real World 
+ Related Links: 
+ Link to a full report on the recording work 
+ Images 
+ Impulse Responses 
+ Waveform Example
+ One of the IRs recorded inside a cave 
+ https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/examples/1_s_mainlevel_r_mainlevel_0.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/examples/1_s_mainlevel_r_mainlevel_0_sing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/examples/1_s_mainlevel_r_mainlevel_0_drum.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+ www.openairlib.net 
+This work is licensed under a Creative Commons Attribution 4.0 International License .
+ Icons by Icons8 
+ Powered by WordPress and Momentous .

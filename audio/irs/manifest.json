@@ -1,0 +1,2078 @@
+{
+ "folder": "audio/irs",
+ "retrieved": "2026-09-27",
+ "total_files": 143,
+ "total_bytes": 327324215,
+ "files": [
+  {
+   "file": "openair_index.tsv",
+   "bytes": 143150,
+   "sha256": "ea4cb2f20374a22aa2bbe6ee4a71e4a8a2c9a0df310f85888913c608bf747256",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/ (full directory crawl: path, size, date)",
+   "licence": "index (metadata)",
+   "serves": [
+    "B65 (catalogue of all 60 OpenAIR venues for later picks)"
+   ]
+  },
+  {
+   "file": "openair/cliffords-tower/clifford-tower-IR-Bformat/clifford_tower_S1R1_Bformat.wav",
+   "bytes": 768044,
+   "sha256": "63595813718e78258f1aa8483dc0e02f3ad2319e472d87a90ed913e09fe92826",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/cliffords-tower/clifford-tower-IR-Bformat/clifford_tower_S1R1_Bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1413 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/cliffords-tower.page_id_1413.txt)",
+   "space": "roofless stone keep: walled open-air stone enclosure (courtyard analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/cliffords-tower/clifford-tower-IR-Bformat/clifford_tower_S1R2_Bformat.wav",
+   "bytes": 768044,
+   "sha256": "4243ae62002f9ce22611a07831aae19ff3386b4be4d9940d64a03c10963ec688",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/cliffords-tower/clifford-tower-IR-Bformat/clifford_tower_S1R2_Bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1413 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/cliffords-tower.page_id_1413.txt)",
+   "space": "roofless stone keep: walled open-air stone enclosure (courtyard analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/cliffords-tower/clifford-tower-IR-Bformat/clifford_tower_S1R3_Bformat.wav",
+   "bytes": 768044,
+   "sha256": "05a332dc2542f7c471542b8a99644e606d83eb4b798e782b8a9ff1389bc3162f",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/cliffords-tower/clifford-tower-IR-Bformat/clifford_tower_S1R3_Bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1413 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/cliffords-tower.page_id_1413.txt)",
+   "space": "roofless stone keep: walled open-air stone enclosure (courtyard analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/cliffords-tower/clifford-tower-IR-Bformat/clifford_tower_S2R4_Bformat.wav",
+   "bytes": 768044,
+   "sha256": "a80a2301e2f9b78be5833ea31d5c9cb429834f1c1f890e5a661a30abbc9c1cf4",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/cliffords-tower/clifford-tower-IR-Bformat/clifford_tower_S2R4_Bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1413 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/cliffords-tower.page_id_1413.txt)",
+   "space": "roofless stone keep: walled open-air stone enclosure (courtyard analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/cliffords-tower/examples/RIR_1_w_channel.wav",
+   "bytes": 384044,
+   "sha256": "111eac22d676bfa79aecaff701f26077bd5167491608816deb5c27d111f88e3b",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/cliffords-tower/examples/RIR_1_w_channel.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1413 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/cliffords-tower.page_id_1413.txt)",
+   "space": "roofless stone keep: walled open-air stone enclosure (courtyard analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/cliffords-tower/Read_Me.txt",
+   "bytes": 709,
+   "sha256": "60aaf66dbb7e2fb63dcd1c878296bc76488a1b71f74291f295ab178bd97496a3",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/cliffords-tower/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1413 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/cliffords-tower.page_id_1413.txt)",
+   "space": "roofless stone keep: walled open-air stone enclosure (courtyard analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/1_r_rhcbottom_s_rhc_bottom.wav",
+   "bytes": 1157316,
+   "sha256": "e0cb5f1f278b0cc00fac1c5abb3d43987012d09d4a5f922648a5530893d340fe",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/1_r_rhcbottom_s_rhc_bottom.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/1_s_mainlevel_r_mainlevel.wav",
+   "bytes": 770236,
+   "sha256": "8c1994c758d1b7f9bb658d1a1c32e56dced39ff545197ada84909e2cf2e8e3eb",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/1_s_mainlevel_r_mainlevel.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/1_s_mainlevel_r_mainlevel2.wav",
+   "bytes": 768052,
+   "sha256": "1ac38337fcfa98a9c5bc35a93821f8c60e66e0fffa3b9ccb8e1665713268dda9",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/1_s_mainlevel_r_mainlevel2.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/2_r_rhcbottom_s_rhc_mouth.wav",
+   "bytes": 948324,
+   "sha256": "5475f39b3d2f6b36d7a67af8cf9dc3b1d95995feaad38b7aaedfdcf40065fbef",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/2_r_rhcbottom_s_rhc_mouth.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/2_s_mainlevel_r_mouth.wav",
+   "bytes": 768044,
+   "sha256": "f94c081ff4384e974c809a41192d8a6bc1421e3212490d03451d6da373e5e8bf",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/2_s_mainlevel_r_mouth.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/3_r_rhcbottom_s_acrosswater.wav",
+   "bytes": 1138404,
+   "sha256": "710b4f815a95d5f185412507b35d5613398cf671c6bbcb99663818c7ae90e983",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/3_r_rhcbottom_s_acrosswater.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/3_s_mainlevel_r_furtherin.wav",
+   "bytes": 768044,
+   "sha256": "e9ea8a21066d3036d800259cd18457e7f240f77aaefe09376d5a5176cb159412",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/3_s_mainlevel_r_furtherin.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/4_r_cragent_s_boathouse.wav",
+   "bytes": 1164060,
+   "sha256": "d28345dd64fa5a7cae080cc040fbef8e1c87c9b25e7aa4ac5bdd93f501c770eb",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/4_r_cragent_s_boathouse.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/4_r_cragent_s_boathouse2.wav",
+   "bytes": 2042924,
+   "sha256": "f0dac9bc18add982bd09f548d97658e6459c373a22e0d8c69b0635a13d4fb56b",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/4_r_cragent_s_boathouse2.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/5_r_rhcmouth_s_rhcpath.wav",
+   "bytes": 1077324,
+   "sha256": "28837e15e90ba608deef71e37b83d4dd2f617b5fd4fff635c88f325e37cb9432",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/5_r_rhcmouth_s_rhcpath.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/6_r_pinholemouth_s_pinholepath.wav",
+   "bytes": 766780,
+   "sha256": "cf7fd03bd2f2d62c93453930bcbfb5d3d2815e3bc224921a31cff2852f4af676",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/6_r_pinholemouth_s_pinholepath.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/7_r_churchmouth_s_churchpath.wav",
+   "bytes": 1698308,
+   "sha256": "bd3159361b66beb6fa9405aa9c6664e2595a4086c55f7f4b41886957ac8e3fe0",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/7_r_churchmouth_s_churchpath.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/b-format/8_r_grundymouth_s_grundypath.wav",
+   "bytes": 1048220,
+   "sha256": "37c58d985c869d0abb037e5c61fda54ca2d0b1c93bd4244e79ce4007dd9c3f7b",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/b-format/8_r_grundymouth_s_grundypath.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/examples/1_s_mainlevel_r_mainlevel_0.wav",
+   "bytes": 770236,
+   "sha256": "8c1994c758d1b7f9bb658d1a1c32e56dced39ff545197ada84909e2cf2e8e3eb",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/examples/1_s_mainlevel_r_mainlevel_0.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/creswell-crags/Read_Me.txt",
+   "bytes": 2179,
+   "sha256": "5580006c7475bce619153e9076937517ae8e8ac0bf57f054ad547c50ec0ead70",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/creswell-crags/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=441 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/creswell-crags.page_id_441.txt)",
+   "space": "open-air limestone gorge (cliff reflections; Terrace against Kuh-e Rahmat)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/elveden-hall-suffolk-england/examples/1a_marble_hall.wav",
+   "bytes": 1416536,
+   "sha256": "951b9c4dcac29421787211cb99ba75c8e792d7727f63dc4579755f70f5bad000",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/examples/1a_marble_hall.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "Matt Rogalsky",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=459 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/elveden-hall-suffolk-england.page_id_459.txt)",
+   "space": "marble hall with columns (columned stone hall)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/elveden-hall-suffolk-england/Read_Me.txt",
+   "bytes": 1176,
+   "sha256": "6c749b9bbfa7f576c92de1852cda939a1caf36539e64d38f6d8990b0a4d71d4a",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "Matt Rogalsky",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=459 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/elveden-hall-suffolk-england.page_id_459.txt)",
+   "space": "marble hall with columns (columned stone hall)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/elveden-hall-suffolk-england/stereo/18a_smoking_room.wav",
+   "bytes": 1400660,
+   "sha256": "90de9e72cbfc796bf91e5662d44b6a5124a261d2ff260926160007faebdde9e9",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/stereo/18a_smoking_room.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "Matt Rogalsky",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=459 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/elveden-hall-suffolk-england.page_id_459.txt)",
+   "space": "marble hall with columns (columned stone hall)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/elveden-hall-suffolk-england/stereo/1a_marble_hall.wav",
+   "bytes": 1416536,
+   "sha256": "951b9c4dcac29421787211cb99ba75c8e792d7727f63dc4579755f70f5bad000",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/stereo/1a_marble_hall.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "Matt Rogalsky",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=459 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/elveden-hall-suffolk-england.page_id_459.txt)",
+   "space": "marble hall with columns (columned stone hall)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/elveden-hall-suffolk-england/stereo/3a_hats_cloaks_the_lord.wav",
+   "bytes": 1412128,
+   "sha256": "30c9b780a6e01910da7c49622f6fca5541fc6420122a5f17de68c29f8a6e62f0",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/stereo/3a_hats_cloaks_the_lord.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "Matt Rogalsky",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=459 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/elveden-hall-suffolk-england.page_id_459.txt)",
+   "space": "marble hall with columns (columned stone hall)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/elveden-hall-suffolk-england/stereo/4a_hats_cloaks_visitors.wav",
+   "bytes": 1411540,
+   "sha256": "365a46dbaaa7ce71e493b153561ae9bbff5e27882636c8c2e1a4e4e0aab061ea",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/stereo/4a_hats_cloaks_visitors.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "Matt Rogalsky",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=459 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/elveden-hall-suffolk-england.page_id_459.txt)",
+   "space": "marble hall with columns (columned stone hall)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/falkland-palace-royal-tennis-court/b-format/falkland_tennis_court_b_format.wav",
+   "bytes": 2765072,
+   "sha256": "9b27aca70fbedd328f8c6a9ecd81efaebad5b4d45176b6517186c1d6672a17de",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/falkland-palace-royal-tennis-court/b-format/falkland_tennis_court_b_format.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=476 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/falkland-palace-royal-tennis-court.page_id_476.txt)",
+   "space": "walled, part-roofed stone court (courtyard / portico analogue), 2300 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/falkland-palace-royal-tennis-court/examples/falkland_tennis_court_omni.wav",
+   "bytes": 691474,
+   "sha256": "53ff0e942738e23fc3ceadf6ccf42e03b1ac66b12c134cd25b35e6ccacd031df",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/falkland-palace-royal-tennis-court/examples/falkland_tennis_court_omni.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=476 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/falkland-palace-royal-tennis-court.page_id_476.txt)",
+   "space": "walled, part-roofed stone court (courtyard / portico analogue), 2300 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/falkland-palace-royal-tennis-court/mono/falkland_tennis_court_omni.wav",
+   "bytes": 691474,
+   "sha256": "53ff0e942738e23fc3ceadf6ccf42e03b1ac66b12c134cd25b35e6ccacd031df",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/falkland-palace-royal-tennis-court/mono/falkland_tennis_court_omni.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=476 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/falkland-palace-royal-tennis-court.page_id_476.txt)",
+   "space": "walled, part-roofed stone court (courtyard / portico analogue), 2300 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/falkland-palace-royal-tennis-court/Read_Me.txt",
+   "bytes": 1558,
+   "sha256": "9fd67c6ec2b9a5f673b5c597c92995183eab3ff88d3759a0a4640e42bc02f57c",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/falkland-palace-royal-tennis-court/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=476 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/falkland-palace-royal-tennis-court.page_id_476.txt)",
+   "space": "walled, part-roofed stone court (courtyard / portico analogue), 2300 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/falkland-palace-royal-tennis-court/stereo/falkland_tennis_court_ortf.wav",
+   "bytes": 1382674,
+   "sha256": "d4c92ec297ffbaaa5da165edc7449052af819433c26d6592504cb517a6f1681b",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/falkland-palace-royal-tennis-court/stereo/falkland_tennis_court_ortf.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=476 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/falkland-palace-royal-tennis-court.page_id_476.txt)",
+   "space": "walled, part-roofed stone court (courtyard / portico analogue), 2300 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/falkland-palace-royal-tennis-court/surround-5-1/falkland_tennis_court_5-0.wav",
+   "bytes": 4147474,
+   "sha256": "5f4817a51a08f272c1824ea3a01f5180283e5003fcc8477a1153edc07c5acd66",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/falkland-palace-royal-tennis-court/surround-5-1/falkland_tennis_court_5-0.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=476 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/falkland-palace-royal-tennis-court.page_id_476.txt)",
+   "space": "walled, part-roofed stone court (courtyard / portico analogue), 2300 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/hamilton-mausoleum/b-format/hm2_000_bformat_48k.wav",
+   "bytes": 8640120,
+   "sha256": "e58665dfd8a848e6ebcd8f1e982289aca187781502eeba6d5d8cd581bffb96c5",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/hamilton-mausoleum/b-format/hm2_000_bformat_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=502 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/hamilton-mausoleum.page_id_502.txt)",
+   "space": "stone chamber, very long decay (upper bound for stone rooms), 9000 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/hamilton-mausoleum/examples/hm2_000_wx_48k.wav",
+   "bytes": 4320044,
+   "sha256": "9a71568785f54f24e020a59c56e9789dc98a387235e182f63fdc8ba91400b1aa",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/hamilton-mausoleum/examples/hm2_000_wx_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=502 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/hamilton-mausoleum.page_id_502.txt)",
+   "space": "stone chamber, very long decay (upper bound for stone rooms), 9000 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/hamilton-mausoleum/Read_Me.txt",
+   "bytes": 1237,
+   "sha256": "aec74598090d14aca60cc1bc56359505a920c70d3e5c0a09a113e3e425454dc8",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/hamilton-mausoleum/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=502 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/hamilton-mausoleum.page_id_502.txt)",
+   "space": "stone chamber, very long decay (upper bound for stone rooms), 9000 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/hamilton-mausoleum/stereo/hm2_000_ortf_48k.wav",
+   "bytes": 4320044,
+   "sha256": "395dc0ba9003aeaaa52a66f425c5d0316748805ab9fc1af4f9936503f1e22a92",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/hamilton-mausoleum/stereo/hm2_000_ortf_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=502 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/hamilton-mausoleum.page_id_502.txt)",
+   "space": "stone chamber, very long decay (upper bound for stone rooms), 9000 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/hamilton-mausoleum/surround-5-1/hm_williams.wav",
+   "bytes": 12787470,
+   "sha256": "9580015c88952c75d0687a14d8a3278842e586e5359a71aad04978b1d00657d5",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/hamilton-mausoleum/surround-5-1/hm_williams.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=502 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/hamilton-mausoleum.page_id_502.txt)",
+   "space": "stone chamber, very long decay (upper bound for stone rooms), 9000 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/b-format/koli_summer_site1_1way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "57d7d9b8c9c8c0044491052549c09cf4720eb04314fb00bbee0c02accbc1bccc",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/b-format/koli_summer_site1_1way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/b-format/koli_summer_site1_4way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "5f137751ecadcdc5fa1680c259c19c97a698ba51373e75a11ed65ea563090fc2",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/b-format/koli_summer_site1_4way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/b-format/koli_summer_site2_1way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "c642c39e43c01eb6e257d41f8beec27a2b2abff3da50c11e95c5e21269ec4564",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/b-format/koli_summer_site2_1way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/b-format/koli_summer_site2_4way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "e1962a99756952b80b8b6d51d76563676f65d8e05c4e109edd5b199b5473baaf",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/b-format/koli_summer_site2_4way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/b-format/koli_summer_site3_1way_bformat.wav",
+   "bytes": 5760132,
+   "sha256": "a3c163c10fc077bfe56de51eb5fb7803c746aa94b576332da420acebd8c0b7d5",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/b-format/koli_summer_site3_1way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/b-format/koli_summer_site3_4way_bformat.wav",
+   "bytes": 5760132,
+   "sha256": "0d365ac91075b85204dd60e8b712f738dd9c626aec5b4d4bfaa194c199a27876",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/b-format/koli_summer_site3_4way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/b-format/koli_summer_site4_1way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "b4a1bca011528dcacdfbed57f10d7df2ffb0b4141d56f3f491764bcfba837f4a",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/b-format/koli_summer_site4_1way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/b-format/koli_summer_site4_4way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "3d608b43651df208abd8544b567f80ed3e19ce5aa94c1f41bab01a39d00ab318",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/b-format/koli_summer_site4_4way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/examples/koli_summer_site1_4way_mono_processed.wav",
+   "bytes": 1440048,
+   "sha256": "3187fcccb316ece99e23f404e47cdd5c10299c2cc69efa9b289eb65d987af954",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/examples/koli_summer_site1_4way_mono_processed.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/mono/koli_summer_site1_1way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "e86b059a44ccdb66cf90bbc1f32389f0691baf6c93af19ba06456617fdc9dfdc",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site1_1way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/mono/koli_summer_site1_4way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "d68ed8157f800884a7f67c8872603e425a6aa13d5f6a5ebabee5a3a45a2a9395",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site1_4way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/mono/koli_summer_site2_1way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "8355857812df39819e9037a5b7f1d1c7b24d0709f2ba7e1f5b82f000eb997b2e",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site2_1way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/mono/koli_summer_site2_4way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "a0322ba981ec320c97a3a091be8f372d578d9ed286fbe749bb8bcf0c47391621",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site2_4way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/mono/koli_summer_site3_1way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "d58972db9bb4dd00eb4c6ecc1505dcb205e065d6eee60082ae7005ac88d839cc",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site3_1way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/mono/koli_summer_site3_4way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "82beb5b7d2b00b8921ba553b3ec9d2b8758073988027a3e0d29597f7fd690baa",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site3_4way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/mono/koli_summer_site4_1way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "08672e0e795bd5419080bd7463427b3d06d963e2706eb15f1191d4acae7cbbec",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site4_1way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/mono/koli_summer_site4_4way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "8d6109f1ac02812fd86233cb11e766c7a452b6d71658349b8271b1094570ff12",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site4_4way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/koli-national-park-summer/Read_Me.txt",
+   "bytes": 5021,
+   "sha256": "27da828b051a6b09a86d5499cc18b266d62837c78744f5a97179237d68c41454",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=577 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/koli-national-park-summer.page_id_577.txt)",
+   "space": "open air: hillside / field outdoor IR",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/maes-howe/b-format/mh3_000_bformat_48k.wav",
+   "bytes": 576120,
+   "sha256": "0b68eb5ae862a7f0e45c97a1eeb4c332e9dc98dfd10f3444d7812254a94cdbb0",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/maes-howe/b-format/mh3_000_bformat_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=602 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/maes-howe.page_id_602.txt)",
+   "space": "small stone chamber, 100 m3 (tomb chamber analogue: Naqsh-e Rustam)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/maes-howe/examples/mh3_000_wx_48k.wav",
+   "bytes": 288044,
+   "sha256": "6e703035816f007a12bd7da6134faf7de5b61549ec0dc2f8791614269873d135",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/maes-howe/examples/mh3_000_wx_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=602 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/maes-howe.page_id_602.txt)",
+   "space": "small stone chamber, 100 m3 (tomb chamber analogue: Naqsh-e Rustam)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/maes-howe/Read_Me.txt",
+   "bytes": 970,
+   "sha256": "80662422e484b092fa3404016749a9e4640d399d663a662710ed92a5df8eb67d",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/maes-howe/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=602 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/maes-howe.page_id_602.txt)",
+   "space": "small stone chamber, 100 m3 (tomb chamber analogue: Naqsh-e Rustam)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/maes-howe/stereo/mh3_000_ortf_48k.wav",
+   "bytes": 288044,
+   "sha256": "fd6deac6908be57098f8252c9b40ee2169fecb5da110e53159d94577edb371b3",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/maes-howe/stereo/mh3_000_ortf_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=602 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/maes-howe.page_id_602.txt)",
+   "space": "small stone chamber, 100 m3 (tomb chamber analogue: Naqsh-e Rustam)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s1r1_2.wav",
+   "bytes": 3840052,
+   "sha256": "87cf575286ababf2bfda5ae781c886e98751cb4121c5e809c31b05d6caccfa6f",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s1r1_2.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s1r1.wav",
+   "bytes": 3840052,
+   "sha256": "94be954617009e8678a425df907c819dd33f9f7ca3047b09b9ab6d3ee71c0180",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s1r1.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s1r2.wav",
+   "bytes": 3840052,
+   "sha256": "da565ec27f6091ec454898875e1c34e56f3ab0b0213fe1d4e025331acd847268",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s1r2.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s1r3.wav",
+   "bytes": 3840052,
+   "sha256": "e158b343369aebec0fa3d3690c9602e573cb1a9deed697f96cc0e40fcca9ddd0",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s1r3.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s1r4.wav",
+   "bytes": 3840052,
+   "sha256": "577bcb7f08e1b8000f54373aaf00181c7242bf7697e3f1d1decd49ec4aeba6d8",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s1r4.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s1r5_2.wav",
+   "bytes": 3840052,
+   "sha256": "55bed0210adaef2510d3e8e5e3994f9f8af52860b8cc578c9c6e635157ccf302",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s1r5_2.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s1r5.wav",
+   "bytes": 3840052,
+   "sha256": "b049f411003db63889b00245a975e4d7c89836ab35a8b7f3777879df36da0db4",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s1r5.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s1r6.wav",
+   "bytes": 3840052,
+   "sha256": "9d6ad8046313ae1cb8cd30fbb68901a6ac246fef8cb4fbbc6275d820a43829f9",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s1r6.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s2r1.wav",
+   "bytes": 3840052,
+   "sha256": "464629b64dfd14c91ac61d5da856fb05d9435a6bdb4feca48048fb0c0174f6fd",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s2r1.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s3r1.wav",
+   "bytes": 3840052,
+   "sha256": "8f016d683fa9152154903d414001f7e9658734cbb3a75d40a1f4011e6795f5d0",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s3r1.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s4r1.wav",
+   "bytes": 3840052,
+   "sha256": "8a8bf8021de378cb1fb68b289daee615e9f2e60aad6c54dfd7387803d833c5bd",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s4r1.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s4r2.wav",
+   "bytes": 3840052,
+   "sha256": "dfd362399d05e6fbb48ff336b2693fb47c50af6b88d078c96364574c29b406e6",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s4r2.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s5r1.wav",
+   "bytes": 3840052,
+   "sha256": "30ee0794e85c274a43ceb99e6535fd6e5e6a41fa0db5e531bdd680d9ed44501e",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s5r1.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/b-format/newgrange_s6r1.wav",
+   "bytes": 3840052,
+   "sha256": "7f0e5c037bc7119babc922163bc696c198febb543846bd9601ee5ad55fa6cc6d",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/b-format/newgrange_s6r1.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/examples/newgrange_s1r1.wav",
+   "bytes": 3840052,
+   "sha256": "94be954617009e8678a425df907c819dd33f9f7ca3047b09b9ab6d3ee71c0180",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/examples/newgrange_s1r1.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/newgrange/Read_Me.txt",
+   "bytes": 2148,
+   "sha256": "b90bcd9db796ee9d796aeec5edee14e00467ed3e20411202bbb088aaa87e57e9",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/newgrange/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=611 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/newgrange.page_id_611.txt)",
+   "space": "stone passage tomb (stone chamber)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/b-format/dales_site1_1way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "5064a4a73a976a704f9a05b4fd434ba831f340cad796796e14723bd60a9edc41",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/b-format/dales_site1_1way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/b-format/dales_site1_4way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "1c1f65ca4ed30d5304f4e7473ff7513d26425b5c9897afbd51dfa3dcc9a1d855",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/b-format/dales_site1_4way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/b-format/dales_site2_1way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "5bc4731ce1c8b48cde698d8c355cac6d71d64096a9adea1759802a700ce3ce64",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/b-format/dales_site2_1way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/b-format/dales_site2_4way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "32b7960e98e3ae5f7f67f29e2e493029374b94da77fc8e6100570c9fa7157de0",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/b-format/dales_site2_4way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/b-format/dales_site3_1way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "636092dc0b1da9f61e899887c91bacad8d3b0eba0dda77e5acda343a6cfeb3d8",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/b-format/dales_site3_1way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/b-format/dales_site3_4way_bformat.wav",
+   "bytes": 5760056,
+   "sha256": "8fe5d3ba54f7287adfd761af10153e0a7ed9cec8c6baedbb44d20fbd730debd2",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/b-format/dales_site3_4way_bformat.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/examples/dales_site2_4way_mono_processed.wav",
+   "bytes": 285956,
+   "sha256": "dc63e5b8ad7092e734e371a8859aee827c778a7b24034c1091b61c1bb9944082",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/examples/dales_site2_4way_mono_processed.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/mono/dales_site1_1way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "845e24739db44b0d683aa710bae3411502d4ec4028dff62e35b23be5e24b5580",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/mono/dales_site1_1way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/mono/dales_site1_4way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "2d3bb90a5c2471b03b054f15f75da1ac62281dde0656e689f0db4affcfb0da01",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/mono/dales_site1_4way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/mono/dales_site2_1way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "b7d35f7e0c764e15e365e0424d8bf60b56415998cb0dfaeb6c97d4e1da254294",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/mono/dales_site2_1way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/mono/dales_site2_4way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "3249f4e6752a2464b5e12fbcd4a504a7f49079535421afeb4bda5b8147ede5ca",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/mono/dales_site2_4way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/mono/dales_site3_1way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "e07e41783373606872b689ec7880d4576b603bfde781c3c4cd3dca2c7aa69c67",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/mono/dales_site3_1way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/mono/dales_site3_4way_mono.wav",
+   "bytes": 1440048,
+   "sha256": "597c5fe2c3535545397f8a93d20b5639c68332bbcb80789d8216249d48c588ab",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/mono/dales_site3_4way_mono.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/trollers-gill/Read_Me.txt",
+   "bytes": 2083,
+   "sha256": "838ad18a745b794eb301193f511bd77d5be255b689cebf1eafbf73a6257f254c",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=745 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/trollers-gill.page_id_745.txt)",
+   "space": "open-air limestone gorge",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/tyndall-bruce-monument/b-format/tyndall_bruce_b_format.wav",
+   "bytes": 2765072,
+   "sha256": "7466e3792792dad698bf840285a69cea11cdf8aeefb6b02db63541e1d6bb200b",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/b-format/tyndall_bruce_b_format.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=764 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/tyndall-bruce-monument.page_id_764.txt)",
+   "space": "open colonnaded stone monument (columned open structure), 40 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/tyndall-bruce-monument/examples/tyndall_bruce_omni.wav",
+   "bytes": 691474,
+   "sha256": "d578cb1c6a81a6af914034212ae43511eb09c08fbda2eeebfd9875a66d5398ea",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/examples/tyndall_bruce_omni.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=764 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/tyndall-bruce-monument.page_id_764.txt)",
+   "space": "open colonnaded stone monument (columned open structure), 40 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/tyndall-bruce-monument/mono/tyndall_bruce_omni.wav",
+   "bytes": 691474,
+   "sha256": "d578cb1c6a81a6af914034212ae43511eb09c08fbda2eeebfd9875a66d5398ea",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/mono/tyndall_bruce_omni.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=764 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/tyndall-bruce-monument.page_id_764.txt)",
+   "space": "open colonnaded stone monument (columned open structure), 40 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/tyndall-bruce-monument/Read_Me.txt",
+   "bytes": 1516,
+   "sha256": "e41cb690b1f2b591c6f11fe8944e536291a58c40f6848b7ad15640d64e7e0ca0",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=764 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/tyndall-bruce-monument.page_id_764.txt)",
+   "space": "open colonnaded stone monument (columned open structure), 40 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/tyndall-bruce-monument/stereo/tyndall_bruce_ortf.wav",
+   "bytes": 1382674,
+   "sha256": "af678607c26d6401e3b9a7616d0afcd0b371e617b1ee211e5cb963c28a0e325a",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/stereo/tyndall_bruce_ortf.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=764 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/tyndall-bruce-monument.page_id_764.txt)",
+   "space": "open colonnaded stone monument (columned open structure), 40 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/tyndall-bruce-monument/surround-5-1/tyndall_bruce_5-0.wav",
+   "bytes": 4147474,
+   "sha256": "f300924a009650c77b44978eddb4e5461db4e32c840f17858ff9aaf62f4b1d23",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/tyndall-bruce-monument/surround-5-1/tyndall_bruce_5-0.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Dr. Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=764 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/tyndall-bruce-monument.page_id_764.txt)",
+   "space": "open colonnaded stone monument (columned open structure), 40 m3",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/examples/Forest_IR_M30_S1R2.wav",
+   "bytes": 288044,
+   "sha256": "aa7a8c86f3838ad030a5a050b279fa8a2882217153727bc3cb334776f3bfcc81",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/examples/Forest_IR_M30_S1R2.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_M30/S1R1_M30.wav",
+   "bytes": 288044,
+   "sha256": "4616f9f60d500a9aed57bae95392d837233c20a0c0ea6356d5b4c6ccc6357eaa",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_M30/S1R1_M30.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_M30/S1R2_M30.wav",
+   "bytes": 288044,
+   "sha256": "aa7a8c86f3838ad030a5a050b279fa8a2882217153727bc3cb334776f3bfcc81",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_M30/S1R2_M30.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_M30/S2R1_M30.wav",
+   "bytes": 288044,
+   "sha256": "448b321ecfc6098c5dc48032639b4fe69f351face224b2c768ca6f3ffdf044bc",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_M30/S2R1_M30.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_M30/S2R2_M30.wav",
+   "bytes": 288044,
+   "sha256": "23f1221cc95fb6aec2bb482c5477222b13fa1a8e783be36073245d5679a33d9b",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_M30/S2R2_M30.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_SF/S1R1_MS.wav",
+   "bytes": 576044,
+   "sha256": "b7b4c970877f697c19525780abf72f38d6e77761856fe4f541bd185db4e553b7",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_SF/S1R1_MS.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_SF/S1R1_SF.wav",
+   "bytes": 1152044,
+   "sha256": "e32694d665659a3e178711d37a46b67516484fc35248d02c477e329aeeafa57d",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_SF/S1R1_SF.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_SF/S1R2_MS.wav",
+   "bytes": 576044,
+   "sha256": "3cdf1c68e3fddf72a5e887f84429688ef69372ba30ef0d95b5dfd622d5fe5a38",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_SF/S1R2_MS.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_SF/S1R2_SF.wav",
+   "bytes": 1152044,
+   "sha256": "645845ff3c832bce1dbdfc3b0bed9cb49b5d3c9d5a002741e62b8cc57de080cd",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_SF/S1R2_SF.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_SF/S2R1_MS.wav",
+   "bytes": 576044,
+   "sha256": "b158f3b1fe46bc99a71245f937089602fac0845dd0ae620e652132e541aaf740",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_SF/S2R1_MS.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_SF/S2R1_SF.wav",
+   "bytes": 1152044,
+   "sha256": "6221cbff12ca9dc816279bc4da959f68d41725ef06893c8805c285ca91efba5b",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_SF/S2R1_SF.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_SF/S2R2_MS.wav",
+   "bytes": 576044,
+   "sha256": "6c5c87da6110f6e2f01247c70ba651493801c395b08f984fcff3ef4943eea4f5",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_SF/S2R2_MS.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/IR_SF/S2R2_SF.wav",
+   "bytes": 1152044,
+   "sha256": "c530f5645ae0db253fc9d5988f0a3d7ef4474f47bda3bb3b5e984583069bfb4a",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/IR_SF/S2R2_SF.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/wheldrake-wood/Read_Me.txt",
+   "bytes": 1756,
+   "sha256": "89cf7f6c18d827adaec6daa6a00d0203e5d24550810f2632201a6453b0ffbb13",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=1293 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/wheldrake-wood.page_id_1293.txt)",
+   "space": "open air (forest): outdoor decay reference",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s1_r1_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "c2843a4c83adbb65d0ae6d8b1f2dbd55b0f2763fec05cd98190b9ad429d6b5f6",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s1_r1_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s1_r2_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "dea34125dacfd9b11b4056ce22cca1fb3d1ee1d467176e365a8fbe4ac256c55a",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s1_r2_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s1_r3_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "356279494e7567498899611023ef1158315ce20ad35a7823db8219b4f8226ba8",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s1_r3_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s1_r4_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "19b8c72f62d076b3ed5e82371c239bec39cf4ba57ef10c01339fb8380dac4c77",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s1_r4_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s2_r1_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "7ad8aeee88a1ab431bd7dbac3b9769f88799deb2f287187a800eb0f9d5e8e35a",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s2_r1_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s2_r2_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "cacd6c1c692b33971bc9758388f3321282606c33d17902fcc92d7baaf51eb227",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s2_r2_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s2_r3_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "ad7823a23719cfb4539a979a192c96cd2e7f03afe8bf1ca89b27bc3ac8ac8f8f",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s2_r3_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s2_r4_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "f833d33555b1497365538bfb72b773df2cf85e432000acc635f36b05196c3422",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s2_r4_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s3_r1_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "e3cc073981bba52e446bd0b4405759281ee70592be708256d22123634f7bfc12",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s3_r1_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s3_r2_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "01894ae3d96fd7182ed19036af597f2817de408ebeea1bdcde733f92ea0a690e",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s3_r2_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s3_r3_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "2f70c2f601dc85ee05bff4268f3af45714d0ca7c06bfd346bbc43381031c6a58",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s3_r3_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/b-format/councilchamber_s3_r4_ir_1_96000.wav",
+   "bytes": 5760044,
+   "sha256": "a6bf9938687001476f6c74ff36e73f4cd6603fcfc5dab93889d5109e02c59670",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/b-format/councilchamber_s3_r4_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/examples/councilchamber_s1_r1_ir_1_96000.wav",
+   "bytes": 3456044,
+   "sha256": "fd0234177577feb7fb5550d2d94d1b080f0abd7c29811e8d6f91f6eb3b538273",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/examples/councilchamber_s1_r1_ir_1_96000.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-guildhall-council-chamber/Read_Me.txt",
+   "bytes": 6302,
+   "sha256": "4808f381825371ba15ad92e007745afc2020ca41a2d877bb1ff910f356840aa1",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-guildhall-council-chamber/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Benjamin Tsui, Oliver McIntyre, Elizabeth Wilson",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=790 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-guildhall-council-chamber.page_id_790.txt)",
+   "space": "stone-walled hall with timber roof, 1140 m3 (stone + timber hall analogue)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-minster/b-format/minster1_bformat_48k.wav",
+   "bytes": 5760120,
+   "sha256": "3c5b080d2bbbb37432ebc41de851af76f720e0df2e4707f9c6664fc9d53542b3",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-minster/b-format/minster1_bformat_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=797 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-minster.page_id_797.txt)",
+   "space": "large stone hall, 140000 m3 (Apadana-scale volume reference)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-minster/examples/minster1_omni_48k.wav",
+   "bytes": 1440198,
+   "sha256": "c93fd3441b79492224f2c884be06d32a2f515d48f1c4a5e42378c22954d858ca",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-minster/examples/minster1_omni_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=797 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-minster.page_id_797.txt)",
+   "space": "large stone hall, 140000 m3 (Apadana-scale volume reference)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-minster/Read_Me.txt",
+   "bytes": 989,
+   "sha256": "3153bbd815d6ff983a7c56c765d8fe26977fe53efccb73b0a730e1a0bd4376a4",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-minster/Read%20Me.txt",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=797 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-minster.page_id_797.txt)",
+   "space": "large stone hall, 140000 m3 (Apadana-scale volume reference)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "openair/york-minster/stereo/minster1_000_ortf_48k.wav",
+   "bytes": 2880044,
+   "sha256": "2fbf0285a8d4bb083b32d052d2e0359e1bc59cc426ec93098ad4e322862afb63",
+   "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/york-minster/stereo/minster1_000_ortf_48k.wav",
+   "licence": "CC BY 4.0",
+   "attribution": "www.openairlib.net, Audiolab, University of York, Damian T. Murphy",
+   "licence_evidence": "https://www.openair.hosted.york.ac.uk/?page_id=797 (site suspended Sept 2026; read from web.archive.org snapshot; text in pages/york-minster.page_id_797.txt)",
+   "space": "large stone hall, 140000 m3 (Apadana-scale volume reference)",
+   "serves": [
+    "B65 (convolver not measured; T-G6)",
+    "ASSET_LEDGER \"Reverb impulse responses: generated from room dimensions (Sabine RT60), C\" -> measured reference",
+    "D-015 Sabine spaces calibration"
+   ]
+  },
+  {
+   "file": "pages/cliffords-tower.page_id_1413.txt",
+   "bytes": 2422,
+   "sha256": "fac3c5340b73e77751ea48b17f80c5dfdffba713c692019b38191498b60ac783",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=1413",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/creswell-crags.page_id_441.txt",
+   "bytes": 1782,
+   "sha256": "c6eaa31dcb0c92c09e9d8f0fc58e446662de90d14e2be675e9f7827a3da5125e",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=441",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/elveden-hall-suffolk-england.page_id_459.txt",
+   "bytes": 2202,
+   "sha256": "1b4d741033dadb2d361d7da8bd1c931096ee83016b27dad997b577d75b8bbdb1",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=459",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/falkland-palace-royal-tennis-court.page_id_476.txt",
+   "bytes": 2065,
+   "sha256": "3ca4ad8fd018bed5afd4950d88e9cc010fecd762f8272903dabd1525f7f538ca",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=476",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/hamilton-mausoleum.page_id_502.txt",
+   "bytes": 2651,
+   "sha256": "042c8f63a60b13911f2406017cecc497248fbdcd062440da59e1386647f488f8",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=502",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/koli-national-park-summer.page_id_577.txt",
+   "bytes": 2395,
+   "sha256": "91bd7f56a07b25d2e389a762ea3d51068285222e992ddaeebc76d3dce5e5b2d7",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=577",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/maes-howe.page_id_602.txt",
+   "bytes": 2299,
+   "sha256": "cb3574b5730ca978e6d4ef7bb1e98dfcd5df8ad0b8cd468fa391bdaabe815e30",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=602",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/newgrange.page_id_611.txt",
+   "bytes": 3229,
+   "sha256": "f09847204b99dd7519d74d355a19f832f3f7f1174b47ad04cd9bce8aa3097054",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=611",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/trollers-gill.page_id_745.txt",
+   "bytes": 2679,
+   "sha256": "9504b68bcddef67b9030baa22e99fbf4e4f3875642dc8dc8eb4a8abdc02723c5",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=745",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/tyndall-bruce-monument.page_id_764.txt",
+   "bytes": 1775,
+   "sha256": "bcd0eb249e3a75e033c6de0528d68991ea7a3f49ffcd4c229db7ac2e44aab323",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=764",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/wheldrake-wood.page_id_1293.txt",
+   "bytes": 2676,
+   "sha256": "ef24820775791ca595ed6072e51f42822a0c3f82ba4c7ac3fbd675360a7058b6",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=1293",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/york-guildhall-council-chamber.page_id_790.txt",
+   "bytes": 4558,
+   "sha256": "62177b44eb2915a46b20c06bd295567d7a680c5f9102c32158e063f166488391",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=790",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "pages/york-minster.page_id_797.txt",
+   "bytes": 1940,
+   "sha256": "c980291c5b1dffeef994f6398905346d5857a9148e56396932235fa7b654b2d4",
+   "url": "https://web.archive.org/web/2025/https://www.openair.hosted.york.ac.uk/?page_id=797",
+   "licence": "OpenAIR venue page text (CC BY 4.0 notice), kept as licence/attribution evidence",
+   "serves": [
+    "licence record for the IRs"
+   ]
+  },
+  {
+   "file": "selected.txt",
+   "bytes": 6736,
+   "sha256": "7881fc914da942fbec03562a60d3ee2be59b7f0f3dd49721cdea9c70ed11be12",
+   "url": "",
+   "licence": "local list",
+   "serves": [
+    "files downloaded from the index"
+   ]
+  }
+ ]
+}

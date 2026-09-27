@@ -1,0 +1,251 @@
+API VERSION: 1.2
+API SOURCE: NASA/JPL Horizons API
+
+*******************************************************************************
+ Revised: July 31, 2013             Moon / (Earth)                          301
+ 
+ GEOPHYSICAL DATA (updated 2018-Aug-15):
+  Vol. mean radius, km  = 1737.53+-0.03    Mass, x10^22 kg       =    7.349
+  Radius (gravity), km  = 1738.0           Surface emissivity    =    0.92
+  Radius (IAU), km      = 1737.4           GM, km^3/s^2          = 4902.800066
+  Density, g/cm^3       =    3.3437        GM 1-sigma, km^3/s^2  =  +-0.0001  
+  V(1,0)                =   +0.21          Surface accel., m/s^2 =    1.62
+  Earth/Moon mass ratio = 81.3005690769    Farside crust. thick. = ~80 - 90 km
+  Mean crustal density  = 2.97+-.07 g/cm^3 Nearside crust. thick.= 58+-8 km 
+  Heat flow, Apollo 15  = 3.1+-.6 mW/m^2   Mean angular diameter = 31'05.2"
+  Heat flow, Apollo 17  = 2.2+-.5 mW/m^2   Sid. rot. rate, rad/s = 0.0000026617
+  Geometric Albedo      = 0.12             Mean solar day        = 29.5306 d
+  Obliquity to orbit    = 6.67 deg         Orbit period          = 27.321582 d
+  Semi-major axis, a    = 384400 km        Eccentricity          = 0.05490
+  Mean motion, rad/s    = 2.6616995x10^-6  Inclination           = 5.145 deg
+  Apsidal period        = 3231.50 d        Nodal period          = 6798.38 d
+                                 Perihelion  Aphelion    Mean
+  Solar Constant (W/m^2)         1414+-7     1323+-7     1368+-7
+  Maximum Planetary IR (W/m^2)   1314        1226        1268
+  Minimum Planetary IR (W/m^2)      5.2         5.2         5.2
+********************************************************************************
+
+
+*******************************************************************************
+Ephemeris / API_USER Sun Sep 27 00:54:29 2026 Pasadena, USA      / Horizons    
+*******************************************************************************
+Target body name: Moon (301)                      {source: DE441}
+Center body name: Earth (399)                     {source: DE441}
+Center-site name: (user defined site below)
+*******************************************************************************
+Start time      : B.C. 0467-Apr-17 00:00:00.0000 UT      
+Stop  time      : B.C. 0466-Apr-06 00:00:00.0000 UT      
+Step-size       : 7500 minutes
+*******************************************************************************
+Target pole/equ : MOON_ME                         {East-longitude positive}
+Target radii    : 1737.4, 1737.4, 1737.4 km       {Equator_a, b, pole_c}       
+Center geodetic : 52.8894969, 29.9351174, 1.625   {E-lon(deg),Lat(deg),Alt(km)}
+Center cylindric: 52.8894969,5533.2575,3164.95384 {E-lon(deg),Dxy(km),Dz(km)}
+Center pole/equ : ITRF93                          {East-longitude positive}
+Center radii    : 6378.137, 6378.137, 6356.752 km {Equator_a, b, pole_c}       
+Target primary  : Earth
+Vis. interferer : MOON (R_eq= 1737.400) km        {source: DE441}
+Rel. light bend : Sun                             {source: DE441}
+Rel. lght bnd GM: 1.3271E+11 km^3/s^2                                          
+Atmos refraction: NO (AIRLESS)
+RA format       : HMS
+Time format     : CAL 
+Calendar mode   : Mixed Julian/Gregorian
+EOP file        : eop.260925.p261222                                           
+EOP coverage    : DATA-BASED 1962-JAN-20 TO 2026-SEP-25. PREDICTS-> 2026-DEC-21
+Units conversion: 1 au= 149597870.700 km, c= 299792.458 km/s, 1 day= 86400.0 s 
+Table cut-offs 1: Elevation (-90.0deg=NO ),Airmass (>38.000=NO), Daylight (NO )
+Table cut-offs 2: Solar elongation (  0.0,180.0=NO ),Local Hour Angle( 0.0=NO )
+Table cut-offs 3: RA/DEC angular rate (     0.0=NO )                           
+Table format    : Comma Separated Values (spreadsheet)
+**************************************************************************************************************************************************************
+ Date__(UT)__HR:MN, , , R.A._____(ICRF), DEC______(ICRF),  R.A.____(a-app), DEC_____(a-app), Azimuth_(a-app), Elevation_(a-app),    APmag,  S-brt,      Illu%,
+**************************************************************************************************************************************************************
+$$SOE
+b0467-Apr-17 00:00, , , 04 44 36.871659, +26 46 52.84758,  02 20 17.389752, +18 33 33.72255,    40.958359341,     -29.921734849,   -5.694,  6.354,    2.71266,
+b0467-Apr-22 05:00,*, , 09 22 47.906620, +16 04 55.38265,  07 00 12.950774, +23 29 44.40597,    45.545435796,     -20.080920803,   -9.605,  5.470,   39.99922,
+b0467-Apr-27 10:00,*, , 13 48 52.002368, -16 13 59.54064,  11 41 04.867261, -02 52 00.37404,    74.696731736,     -29.851103659,  -11.920,  4.195,   91.54078,
+b0467-May-02 15:00,*, , 19 24 45.200401, -25 45 56.78712,  16 52 02.456375, -26 15 11.60668,   101.346938886,     -38.150476067,  -11.714,  4.311,   88.64155,
+b0467-May-07 20:00, , , 23 46 01.479530, +00 24 16.60738,  21 38 04.439051, -12 26 31.19661,    90.217816206,     -25.199790184,   -9.502,  5.487,   39.46301,
+b0467-May-13 01:00,N,m, 03 42 39.559930, +24 25 50.91046,  01 24 51.890644, +13 43 32.61236,    78.689274137,       7.940851557,   -5.898,  6.396,    3.35142,
+b0467-May-18 06:00,*,m, 08 23 08.678490, +21 29 34.52634,  05 54 20.336462, +25 31 38.72818,    73.232693163,      23.933457426,   -7.379,  6.275,   10.88717,
+b0467-May-23 11:00,*,m, 12 39 20.536886, -08 20 51.74934,  10 33 29.407411, +05 12 10.14236,    97.984055125,      23.736042256,  -10.630,  5.021,   61.17293,
+b0467-May-28 16:00,N,m, 17 54 57.302343, -28 32 17.22654,  15 23 42.489364, -23 48 04.65535,   127.348159611,      12.660797625,  -12.618,  3.599,   99.59070,
+b0467-Jun-02 21:00, ,m, 22 48 28.125513, -07 07 52.03971,  20 35 26.330052, -18 21 59.88940,   124.512196728,      17.785903756,  -11.021,  4.733,   74.06454,
+b0467-Jun-08 02:00,*,m, 02 39 31.462278, +20 32 07.57540,  00 27 58.581545, +08 01 05.59256,   117.778280703,      51.533857432,   -8.691,  5.833,   25.57651,
+b0467-Jun-13 07:00,*,m, 07 15 50.273972, +25 45 46.91796,  04 43 23.196262, +25 43 29.92240,   101.006162572,      73.993592091,   -4.243,  4.486,    0.11590,
+b0467-Jun-18 12:00,*,m, 11 37 56.467836, -00 39 08.61680,  09 29 55.059291, +12 01 31.21805,   153.137491590,      70.244646427,   -8.872,  5.826,   25.79746,
+b0467-Jun-23 17:00,A,m, 16 24 32.600819, -27 48 25.02739,  14 01 01.874902, -18 41 08.62551,   184.250596011,      41.270759221,  -11.471,  4.529,   81.79743,
+b0467-Jun-28 22:00, ,m, 21 40 30.373615, -15 11 22.36727,  19 19 15.253325, -23 29 36.78878,   184.503180517,      36.436802206,  -12.262,  3.851,   97.53234,
+b0467-Jul-04 03:00,*,m, 01 36 48.735262, +14 58 48.88748,  23 29 40.509937, +01 29 47.43877,   219.654720879,      55.002014117,  -10.425,  5.041,   59.93230,
+b0467-Jul-09 08:00,*,m, 06 01 07.779146, +28 00 21.31972,  03 30 00.385476, +23 37 08.23586,   270.463818369,      52.592947300,   -7.761,  6.162,   14.18877,
+b0467-Jul-14 13:00,*,m, 10 35 37.161173, +07 14 34.49423,  08 22 03.934801, +18 01 19.08739,   266.359728044,      44.334437919,   -5.860,  6.347,    2.63376,
+b0467-Jul-19 18:00, ,m, 15 06 54.891065, -24 06 31.49511,  12 51 58.151611, -12 16 16.91987,   243.986173751,      17.488872403,  -10.072,  5.302,   47.30487,
+b0467-Jul-24 23:00, ,m, 20 27 37.455816, -21 55 04.57451,  17 58 24.996390, -26 11 39.97906,   234.793885628,       6.342763866,  -12.076,  4.006,   95.15222,
+b0467-Jul-30 04:00,*,m, 00 36 22.711881, +08 02 48.68976,  22 30 32.313221, -05 28 56.60242,   258.622009898,       8.476185463,  -11.655,  4.254,   89.77721,
+b0467-Aug-04 09:00,*,m, 04 48 11.516575, +27 31 59.50437,  02 22 58.157347, +19 27 41.39782,   291.238276918,       2.238653888,   -9.828,  5.321,   46.03426,
+b0467-Aug-09 14:00,*, , 09 28 25.868439, +14 55 50.32186,  07 07 01.938368, +22 39 05.73694,   298.513715231,      -3.206185764,   -6.377,  6.393,    4.61211,
+b0467-Aug-14 19:00, , , 13 57 02.035046, -18 08 23.99895,  11 48 29.306233, -04 52 07.53486,   280.209716085,     -26.464252257,   -7.929,  6.139,   14.31080,
+b0467-Aug-20 00:00, , , 19 17 37.623699, -26 02 02.33197,  16 44 50.762987, -26 05 36.61475,   260.012943306,     -40.799983121,  -10.908,  4.809,   69.44408,
+b0467-Aug-25 05:00,*, , 23 40 07.232368, +00 38 18.89605,  21 32 10.638856, -12 04 57.99265,   281.416171228,     -42.340911112,  -12.513,  3.500,   99.82745,
+b0467-Aug-30 10:00,*, , 03 43 03.168843, +24 49 34.06506,  01 25 01.631788, +14 08 06.11335,   326.795600763,     -39.356339446,  -11.134,  4.567,   79.14181,
+b0467-Sep-04 15:00,*, , 08 20 35.673027, +20 58 21.35898,  05 52 23.239410, +24 52 37.55072,   346.213777460,     -33.871548767,   -9.114,  5.651,   30.94884,
+b0467-Sep-09 20:00, , , 12 46 22.762260, -09 55 31.60055,  10 40 34.933919, +03 39 46.87556,   351.902418225,     -56.125322743,   -4.469,  4.693,    0.15575,
+b0467-Sep-15 01:00,A, , 18 06 40.129831, -27 52 07.41171,  15 35 21.056892, -23 47 31.93639,    16.094411417,     -83.621003851,   -9.400,  5.569,   34.00197,
+b0467-Sep-20 06:00,*, , 22 48 10.101967, -06 18 05.15896,  20 35 37.890039, -17 31 58.60245,    28.791226987,     -76.052718873,  -11.488,  4.362,   85.73763,
+b0467-Sep-25 11:00,*, , 02 44 17.077812, +20 40 46.31630,  00 32 26.636669, +08 16 39.48088,    39.553141778,     -43.304929411,  -12.210,  3.726,   98.32956,
+b0467-Sep-30 16:00, , , 07 16 27.621408, +24 47 26.39604,  04 45 09.487663, +24 49 26.72560,    43.082657122,     -20.354817294,  -10.685,  4.857,   66.08406,
+b0467-Oct-05 21:00, , , 11 36 24.966447, -00 42 40.99115,  09 28 23.910342, +11 55 56.49190,    59.643629474,     -23.127246574,   -8.065,  6.067,   15.56516,
+b0467-Oct-11 02:00,N, , 16 42 25.392299, -27 19 53.39181,  14 17 49.589205, -19 00 02.42366,    94.143832720,     -33.190492359,   -6.694,  6.351,    5.37294,
+b0467-Oct-16 07:00,*, , 21 54 35.218576, -12 51 38.00417,  19 35 43.321759, -21 51 55.07972,    97.593632787,     -33.744863045,  -10.305,  5.102,   54.19919,
+b0467-Oct-21 12:00,*, , 01 48 42.672770, +15 37 42.37031,  23 41 04.309467, +02 15 50.07773,    83.733097682,      -6.273295833,  -11.949,  3.974,   94.80383,
+b0467-Oct-26 17:00, ,m, 06 13 10.755461, +26 51 40.93483,  03 42 35.287753, +23 10 44.99043,    74.382351889,      20.547751762,  -11.845,  4.066,   92.96616,
+b0467-Oct-31 22:00, ,m, 10 32 55.060048, +07 26 08.52865,  08 19 11.705917, +18 06 36.45772,    84.136206516,      27.770341787,  -10.186,  5.175,   50.50487,
+b0467-Nov-06 03:00,*,m, 15 07 34.755944, -23 20 06.08047,  12 52 58.483621, -11 31 16.32302,   118.701529489,      21.926525522,   -6.377,  6.337,    3.82683,
+b0467-Nov-11 08:00,*,m, 20 46 51.824748, -19 45 22.93752,  18 20 03.827326, -25 10 21.83542,   128.516544688,      11.882332186,   -8.374,  5.966,   18.37339,
+b0467-Nov-16 13:00,*,m, 00 53 08.530082, +09 46 10.09590,  22 47 17.244170, -03 50 16.19014,   120.611068183,      35.719120372,  -10.861,  4.768,   69.26394,
+b0467-Nov-21 18:00, ,m, 05 06 16.423153, +27 19 36.04320,  02 39 51.524139, +20 07 08.93759,   110.612494088,      67.462330685,  -12.370,  3.624,   99.00515,
+b0467-Nov-26 23:00, ,m, 09 33 47.730412, +14 08 22.10215,  07 13 16.946899, +22 08 21.69799,   126.620589795,      77.645552628,  -11.498,  4.388,   84.12487,
+b0467-Dec-02 04:00,*,m, 13 44 19.522893, -16 51 05.49687,  11 36 37.441047, -03 26 10.83057,   186.537535087,      56.449766270,   -9.402,  5.581,   32.38680,
+b0467-Dec-07 09:00,*,m, 19 17 47.046845, -25 54 52.83039,  16 45 07.153604, -25 59 10.86624,   187.161301388,      33.719578994,   -4.540,  4.581,    0.14125,
+b0467-Dec-12 14:00,C,m, 23 52 57.212857, +02 37 35.87487,  21 45 50.317319, -10 21 16.43196,   197.228757978,      48.196849069,   -9.295,  5.578,   32.54420,
+b0467-Dec-17 19:00, ,m, 03 57 29.584396, +25 47 29.22407,  01 37 43.330362, +15 37 08.73778,   252.728272027,      55.931635295,  -11.261,  4.502,   80.22108,
+b0467-Dec-23 00:00, ,m, 08 31 41.068255, +19 53 12.44679,  06 04 41.592682, +24 27 10.52460,   274.258670846,      48.008375689,  -12.590,  3.460,   99.83327,
+b0467-Dec-28 05:00,*,m, 12 39 06.098227, -09 53 30.07136,  10 33 26.569218, +03 39 16.77852,   257.410010282,      27.594262463,  -10.983,  4.765,   69.61800,
+b0466-Jan-02 10:00,*,m, 17 44 21.262461, -28 27 31.88229,  15 13 56.349340, -23 09 21.89758,   240.102265336,       4.309332675,   -8.033,  6.088,   14.64287,
+b0466-Jan-07 15:00,A,m, 22 46 09.933865, -05 47 17.43673,  20 33 50.569182, -16 57 24.21234,   245.299177646,       7.737439851,   -6.406,  6.351,    4.46305,
+b0466-Jan-12 20:00, ,m, 02 51 11.984225, +22 05 17.29385,  00 38 19.390175, +09 50 50.60401,   278.193056855,       5.531573140,   -9.870,  5.281,   45.92416,
+b0466-Jan-18 01:00, ,m, 07 24 44.527279, +24 13 48.94384,  04 53 50.841628, +24 46 14.72342,   298.964239192,      -0.076864918,  -11.671,  4.220,   89.53630,
+b0466-Jan-23 06:00,*, , 11 40 25.658787, -02 27 27.45926,  09 33 08.437239, +10 16 29.85064,   292.586600488,     -16.403193372,  -12.115,  3.942,   95.49786,
+b0466-Jan-28 11:00,*, , 16 25 50.079917, -27 21 42.69727,  14 02 35.832125, -18 18 15.98707,   271.802167885,     -42.060422528,  -10.139,  5.229,   48.72365,
+b0466-Feb-02 16:00, , , 21 38 44.004686, -13 43 56.66949,  19 18 40.440697, -21 58 48.77977,   267.693704551,     -44.438887724,   -6.020,  6.335,    3.12071,
+b0466-Feb-07 21:00, , , 01 48 36.645162, +16 29 16.36375,  23 40 47.955092, +03 07 11.12551,   307.797437216,     -42.501519006,   -7.711,  6.136,   13.72995,
+b0466-Feb-13 02:00,A, , 06 17 30.952459, +26 28 04.17664,  03 47 06.025914, +23 02 28.54117,   340.788342732,     -34.523963051,  -10.395,  5.010,   59.49900,
+b0466-Feb-18 07:00,*, , 10 39 56.317859, +05 32 09.06116,  08 27 38.178180, +16 29 06.69636,   350.616952554,     -43.072938864,  -12.215,  3.834,   97.28079,
+b0466-Feb-23 12:00,*, , 15 15 04.483739, -23 50 21.53701,  12 59 43.588440, -12 14 44.73601,    15.678589812,     -71.718290223,  -11.470,  4.472,   82.52528,
+b0466-Feb-28 17:00, , , 20 35 54.865959, -19 45 36.55418,  18 09 02.900584, -24 34 03.48639,    54.023423570,     -81.249937325,   -8.914,  5.764,   26.82161,
+b0466-Mar-05 22:00, , , 00 50 13.159619, +09 46 16.74150,  22 44 23.379219, -03 49 43.70742,    38.316947363,     -58.264837433,   -4.272,  4.629,    0.14215,
+b0466-Mar-11 03:00,*, , 05 12 07.280171, +26 40 53.04890,  02 45 51.269383, +19 46 31.75603,    41.851622561,     -27.794426486,   -8.676,  5.805,   25.54447,
+b0466-Mar-16 08:00,*, , 09 38 01.182789, +12 58 30.85238,  07 18 37.538061, +21 12 08.27041,    49.933482875,     -19.287875275,  -11.012,  4.706,   74.07635,
+b0466-Mar-21 13:00,*, , 14 00 23.329783, -17 51 14.31120,  11 51 49.020525, -04 38 07.08014,    79.834592875,     -25.947063797,  -12.606,  3.576,   99.59286,
+b0466-Mar-26 18:00, , , 19 30 14.635891, -24 16 52.14081,  16 59 07.813595, -25 08 36.23094,   102.546440650,     -32.141966849,  -10.645,  4.988,   61.77573,
+b0466-Mar-31 23:00, , , 23 55 45.438653, +02 52 36.13833,  21 48 45.431294, -10 09 16.29151,    90.881725594,     -19.150816142,   -7.417,  6.250,   11.15884,
+$$EOE
+**************************************************************************************************************************************************************
+Column meaning:
+ 
+TIME
+
+  Times PRIOR to 1962 are UT1, a mean-solar time closely related to the
+prior but now-deprecated GMT. Times AFTER 1962 are in UTC, the current
+civil or "wall-clock" time-scale. UTC is kept within 0.9 seconds of UT1
+using integer leap-seconds for 1972 and later years.
+
+  Conversion from the internal Barycentric Dynamical Time (TDB) of solar
+system dynamics to the non-uniform civil UT time-scale requested for output
+has not been determined for UTC times after the next July or January 1st.
+Therefore, the last known leap-second is used as a constant over future
+intervals.
+
+  Time tags refer to the UT time-scale conversion from TDB on Earth
+regardless of observer location within the solar system, although clock
+rates may differ due to the local gravity field and no analog to "UT"
+may be defined for that location.
+
+  Any 'b' symbol in the 1st-column denotes a B.C. date. First-column blank
+(" ") denotes an A.D. date.
+ 
+CALENDAR SYSTEM
+
+  Mixed calendar mode was active such that calendar dates after AD 1582-Oct-15
+(if any) are in the modern Gregorian system. Dates prior to 1582-Oct-5 (if any)
+are in the Julian calendar system, which is automatically extended for dates
+prior to its adoption on 45-Jan-1 BC.  The Julian calendar is useful for
+matching historical dates. The Gregorian calendar more accurately corresponds
+to the Earth's orbital motion and seasons. A "Gregorian-only" calendar mode is
+available if such physical events are the primary interest.
+
+  NOTE: "n.a." in output means quantity "not available" at the print-time.
+ 
+SOLAR PRESENCE (OBSERVING SITE)
+  Time tag is followed by a blank, then a solar-presence symbol:
+
+       '*'  Daylight (refracted solar upper-limb on or above apparent horizon)
+       'C'  Civil twilight/dawn
+       'N'  Nautical twilight/dawn
+       'A'  Astronomical twilight/dawn
+       ' '  Night OR geocentric ephemeris
+
+LUNAR PRESENCE (OBSERVING SITE)
+  The solar-presence symbol is immediately followed by a lunar-presence symbol:
+
+       'm'  Refracted upper-limb of Moon on or above apparent horizon
+       ' '  Refracted upper-limb of Moon below apparent horizon OR geocentric
+            ephemeris
+ 
+ 'R.A._____(ICRF), DEC______(ICRF),' =
+  Astrometric right ascension and declination of the target center with
+respect to the observing site (coordinate origin) in the reference frame of
+the planetary ephemeris (ICRF). Compensated for down-leg light-time delay
+aberration.
+
+  Units: RA  in hours-minutes-seconds of time,    HH MM SS.ff{ffff}
+         DEC in degrees-minutes-seconds of arc,  sDD MN SC.f{ffff}
+ 
+ 'R.A.____(a-app), DEC_____(a-app),' =
+  Airless apparent right ascension and declination of the target center
+with respect to an instantaneous reference frame defined by the Earth equator
+of-date (z-axis) and meridian containing the Earth equinox of-date (x-axis,
+EOP-corrected IAU76/80). Compensated for down-leg light-time delay,
+gravitational deflection of light, stellar aberration, precession & nutation.
+Note: equinox (RA origin) is offset -53 mas from the of-date frame defined
+by the IAU06/00a P & N system.
+
+  Units: RA  in hours-minutes-seconds of time,   HH MM SS.ff{ffff}
+         DEC in degrees-minutes-seconds of arc, sDD MN SC.f{ffff}
+ 
+ 'Azimuth_(a-app), Elevation_(a-app),' =
+  Airless apparent azimuth and elevation of target center. Compensated
+for light-time, the gravitational deflection of light, stellar aberration,
+precession and nutation. Azimuth is measured clockwise from north:
+
+  North(0) -> East(90) -> South(180) -> West(270) -> North (360)
+
+Elevation angle is with respect to a plane perpendicular to the reference
+surface local zenith direction. TOPOCENTRIC ONLY.  Units: DEGREES
+ 
+ 'APmag,  S-brt,' =
+   Moon's approximate apparent visual magnitude and surface brightness. When
+phase angle < 7 deg (within ~1 day of full Moon), computed magnitude tends to
+be about 0.12 too small.
+
+   For Earth-based observers, the estimated dimming due to atmospheric
+absorption (extinction) is available as a separate, requestable quantity.
+
+   Surface brightness is the average airless visual magnitude of a
+square-arcsecond of the illuminated portion of the apparent disk.
+
+   Units: MAGNITUDES & MAGNITUDES PER SQUARE ARCSECOND
+ 
+ 'Illu%,' =
+   Fraction of the target objects' assumed circular disk illuminated by Sun
+(phase), as seen by the observer.  Units: PERCENT
+
+Computations by ...
+
+    Solar System Dynamics Group, Horizons On-Line Ephemeris System
+    4800 Oak Grove Drive, Jet Propulsion Laboratory
+    Pasadena, CA  91109   USA
+
+    General site: https://ssd.jpl.nasa.gov/
+    Mailing list: https://ssd.jpl.nasa.gov/email_list.html
+    System news : https://ssd.jpl.nasa.gov/horizons/news.html
+    User Guide  : https://ssd.jpl.nasa.gov/horizons/manual.html
+    Connect     : browser        https://ssd.jpl.nasa.gov/horizons/app.html#/x
+                  API            https://ssd-api.jpl.nasa.gov/doc/horizons.html
+                  command-line   telnet ssd.jpl.nasa.gov 6775
+                  e-mail/batch   https://ssd.jpl.nasa.gov/ftp/ssd/horizons_batch.txt
+                  scripts        https://ssd.jpl.nasa.gov/ftp/ssd/SCRIPTS
+    Inquiries   : Jon.D.Giorgini@jpl.nasa.gov
+
+**************************************************************************************************************************************************************

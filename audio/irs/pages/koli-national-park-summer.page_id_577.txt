@@ -1,0 +1,47 @@
+Koli National Park &#8211; Summer &#8211; OpenAIR 
+ Skip to content 
+ OpenAIR 
+ Open Air Library
+ Disclaimer 
+ Privacy Policy 
+ Acknowledgments 
+ IR Data 
+ Anechoic Data 
+ Resources 
+ About 
+ Koli National Park &#8211; Summer
+ Information 
+ Images 
+ Impulse Responses 
+ Acoustic Parameters 
+ Attribution 
+ Information 
+ Description:  
+ Impulse Responses measured in the forest of Koli National Park in Finland during mid-summer. There was no snow on the ground at this time. Impulse responses were captured at four sites and were measured using a B-format Soundfield microphone. For each site there are two sets of impulse responses: One is made with a single directional sound source (IR-1), and the other is made with an array of four directional sound sources pointing in different directions in an attempt to better approximate an omni-directional source (IR-2). Measurement Team:  
+ Andrew Chadwick Simon Shelley Capture Date:  
+ Wed, 17/07/2013 Source Sound:  
+ Swept Sine; 22 Hz &#8211; 22 kHz ; 120 Seconds Source Sound Category:  
+ Swept sine (logarithmic) Input:  
+ Genelec 8130A Microphone(s):  
+ Soundfield ST450 kit Space Category:  
+ Open Air Generation Type:  
+ Real World Related Links: 
+ Measurements at the same sites in winter with snow 
+ Images 
+ Impulse Responses 
+ Waveform Example
+ This is the W-channel of the B-format impulse response measured at Site 1 using the four-way loudspeaker array. The file has been truncated and processed by fading out the signal when the reverb tail reaches the noise floor.
+   https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/examples/koli_summer_site1_4way_mono_processed.mp3 Audio Examples
+ Anechoic voice https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/singing.mp3 Convolved voice
+ https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/examples/koli_summer_site1_4way_mono_processed_sing.mp3 Anechoic drums
+ https://www.openair.hosted.york.ac.uk/wp-content/uploads/2019/07/drums.mp3 Convolved drums
+ https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/examples/koli_summer_site1_4way_mono_processed_drum.mp3 Download
+ Download
+ Read Me
+ Acoustic Parameters 
+ Attribution 
+ Attribute this work to: 
+ www.openairlib.net   
+This work is licensed under a Creative Commons Attribution 4.0 International License .
+ Icons by Icons8 
+ Powered by WordPress and Momentous .
