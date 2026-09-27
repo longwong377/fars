@@ -1,3 +1,79 @@
+# HANDOFF — end of session 11 (2026-09-27); branch claude/amazing-fermi-40ds7j
+
+**Session 11 ran on the GPU machine (Vagon, Windows: NVIDIA T4, 16 cores, 63 GB).** Read first, in this order: `USER_DIRECTIONS.md`
+(UD-17 and UD-18 are new), `MASTER_PLAN.md` (rev 2.4), `gates/thresholds.json` (T-A7, T-E9 new), PROGRESS.md (problems first),
+this section, `sessions/s11.md`, BLOCKERS.md, `COVERAGE.md`, and **CLAUDE.md's new "GPU machine" section** (every rule below is there).
+
+## What is broken, unverified or placeholder (read first)
+- **Every area still reads as CG in blind review** (uncalibrated: REVIEWS/anchors/ does not exist). Scores after this session's
+  work: land 2.75 (from 1.9), Terrace materials 1.86 (from 1.62), interiors 1-2, town 2, people 2-2.5, capitals 2, colossi 1.
+  The tells now are FORM, not surface: the protome "a toy cow", colossi heads low, reliefs flat painted cards, props simple
+  forms, joints drawn not built, block faces flat, people's hair helmets and boxy dress, straight box lanes. Surface scans are in
+  everywhere (T-A7 ~0 in the measured views).
+- **Three WebGPU pipelines exceed 16 samplers in the merged world (17, 17, 19)** in the verification batch (calib-24, calib-24-now,
+  terrace-wall-near, gate-w-day, apadana-enter-court, reliefs-raking, tachara-s-stair, stair-foot-ground, breath-dawn,
+  room-treasury-store, room-garrison-night): those pipelines are invalid (not drawn). All 11 frames render otherwise. The
+  node counter (tests/samplers_d300.test.ts, now NODE_MAX 6) passes every surfaceMaterial, prop, incised and baked material, so
+  the culprits are outside it; `SAMPLERDBG=1` in moments.spec names pipelines from their compiled fragment shader (see
+  sessions/s11.md for the last run's result). First job of the next session: name them and cut their samplers.
+- **Two branches NOT merged (pushed):** `s11-realism-town` (D-303) and `s11-realism-people` (D-304); see "Unmerged" below.
+- **Night lanes in the town are black** (lamps light only their rooms, B111); the zodiacal light does not show; night clouds
+  are black blobs. The belly (D-292) is not seen on screen (GB12 PARTIAL).
+- **Speaking with the people (D-296) works behind `?converse` but fails T-E9 (61 %; target 95)** and replies take 4-10 s in the
+  world on the T4 (1.3 s in the lab); the T4's Windows watchdog caps the model at ~2 B parameters (B98). Baked prose weak (B99).
+- **The renderer ran ~5 fps at 1080p high on the shared T4 in the conversation run**: T-K6 not measured on an idle card.
+- **Soak gates fail on seeds 7 and 90412:** populationVariety and plansWellFormed (children, porters, Treasury staff, a weaver).
+  T-F8 = 3 events on both, n = 2 of the 3 seeds it needs (seed 1's re-run was stopped: re-run in its own worktree).
+- The board reads 0 of 173 PASS: T-A6/T-A6x STALE after this session's source changes (re-run `npm run areas`, then `npm run board`);
+  T-F8 STALE (no dependency hash in soak.ts, n = 2).
+
+## The machine and its rules (details: CLAUDE.md, "The GPU machine")
+- Renders: `PW_CHANNEL=chrome` + `--project=gpu` through `node tools/dev/gpu_slot.mjs <label> -- …` (two GPU slots; more trips the
+  Windows watchdog, DXGI_ERROR_DEVICE_HUNG). A world page load is 11-30 min of shader compiles (neither compileAsync, D-299, nor a
+  warm profile cache helps); a warm frame 0.1 s. Batch views in one load (moments.spec `BATCH=1`, validated against a fresh load).
+  **Iterate on probe pages** (tools/dev/ground_probe.*, tools/dev/terrace_probe.*, townlab.html, humanlab.html,
+  tools/blender/probe/*): seconds to a minute or two a load.
+- Never edit a tree whose dev server serves a render; never run `npm ci` in a tree a running job uses (session 11 half-deleted
+  node_modules under a soak); agents work in worktrees (`../fars-wt/*`, or on T: when C: is short).
+- **Disk:** C: is 75 GB with a 9 GB page file; it filled twice. Re-downloadable bulk lives on T: (volatile) behind junctions.
+- Tools installed: Python 3.12 (numpy, scipy, pillow, rasterio, shapely, pyproj, parselmouth, espeakng-loader, soundfile,
+  allosaurus), Blender 5.0.1 (headless; Cycles on the T4), KTX-Software 4.4.2. The Blender MCP is not connected.
+
+## Downloads (fars-assets; NOT all in git)
+- On GitHub: branch `assets-archive` = 103 CC0 texture sets (Poly Haven, ambientCG) with manifests; the textures the game loads
+  are in the code branch (public/textures/, src/data/scans.json, ASSET_LEDGER.md).
+- **Only on this machine** (C:\Users\Administrator\fars-assets, each folder with a manifest.json of URL, licence, sha256): 54
+  sources (ISAC OIP 65/68/69/70/91/92, Flights, Tolman, Iranica, open papers; the archive push of the papers was refused by the
+  permission classifier), 366 Wikimedia photos (photos/, CC-BY-SA reference-only), datasets (Horizons, GHCN Shiraz, ISD, NASA
+  POWER, Open-Meteo/ERA5), 13 OpenAIR impulse responses (CC-BY), MakeHuman CC0 pack, 11 Piper voices, and the language/speech
+  models on T: (research/MODELS_MANIFEST.json; `node tools/dev/fetch_models.mjs` re-fetches them). A cloud session re-fetches
+  from the manifests where its proxy allows.
+
+## Unmerged branches and how to merge them
+- `s11-realism-town` (D-303): real scans for the town, lane litter, the town lab. Conflicts with the main branch in
+  src/render/scans.ts (it has its own normal-map path: a `Nor` type, a `top` scan for up-facing faces, a texture loader with
+  optional maps), materials.ts, scans.json and three textures. Merge by keeping the main branch's D-300 normal maps
+  (`nor` number, triNormal) and porting D-303's `top` scans and its SCAN_USE entries onto them; then the town lab and one world
+  render (town_real.spec.ts) and the sampler counter.
+- `s11-realism-people` (D-304): MakeHuman skin layers in array textures, cloth scans; its last world run hung the GPU (B114):
+  render its portrait spec alone before merging. D-307 (people round 2, below) may have merged it.
+- `s11-people2` (D-307): see sessions/s11.md for its final state.
+
+## Next steps, in order
+1. The sampler bug (above); then one full verification batch with zero validation errors.
+2. Merge s11-realism-town (plan above) and the people branches.
+3. FORM, through the Blender pipeline (research/BLENDER_PLAN.md): re-proportion the protome and colossi from the photographs
+   (B118); relief figures as carved geometry; props (jars, baskets, goods) and doors; the polygonal foot's spalls; lane geometry
+   (doors, spouts, ruts); garments and hair (D-307's route); Kuh-e Rahmat outcrops and scree.
+4. Town lamps reaching doorways and courts at night (B111); the zodiacal light; night clouds.
+5. Speaking with the people: T-E9 from 61 % (grounding in the life record, fence words, turn to face the speaker, spatial
+   audio); the bake prose with a larger model where the watchdog allows (a CPU/offline bake).
+6. `npm run areas` and the board; the third T-F8 seed; the soak gates (populationVariety, plansWellFormed).
+7. At close: sessions/s12.md, reserved-number fates, tag ratchet/s12.
+
+---
+
+# Previous: end of session 10
 # HANDOFF — end of session 10 (2026-09-27); branch claude/amazing-fermi-40ds7j
 
 **Session 11 moves to a GPU machine (Vagon, the user's choice).** Read first, in this order: `USER_DIRECTIONS.md`, `MASTER_PLAN.md`,

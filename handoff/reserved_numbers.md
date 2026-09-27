@@ -45,16 +45,16 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | (none) | s10 | gap hunter C (research only; brief handoff/briefs/s10/gap_hunter_C.md) | read-only | done: REVIEWS/gap_hunt_s10_C.md, merged into WORLD_INVENTORY.md |
 | D-285 | s10 | Terrace materials against the references (Q-750..Q-759, B91..B93) | agent worktree (terrace_materials) | stopped at session 10's close: WIP saved as handoff/wip/terrace_materials_D285.patch (+ _report.md), NOT merged; Q-750, Q-751 in the patch; no D-285 row yet |
 | D-292 | s10 | the body and the day: pregnancy, bodily care, the washing rule, small lives (Q-760..Q-769, B94..B96) | agent worktree (body_and_day) | stopped at session 10's close: WIP saved as handoff/wip/body_and_day_D292.patch (+ _report.md), NOT merged; no D-292 row yet; no Q/B used |
-| D-295 | s11 | the lead: CC0 scanned surface detail over the procedural surfaces; the adapter's texture limit (B7, B24) | s11-scans | in progress (branch s11-scans, merges into claude/amazing-fermi-40ds7j) |
-| D-296 | s11 | speaking with the people (UD-18, T-E9): baked lives, in-browser speech recognition, language model and voices, the translation layer (Q-770..Q-779, B97..B99) | agent worktree (conversation), branch s11-conversation | done, not merged: used Q-770..Q-773, B97..B99 (Q-774..Q-779 unused) |
-| D-297 | s11 | the lead: the fires' light at the eye weighted by the view direction (night views black beside a brazier) | claude/amazing-fermi-40ds7j | in progress |
+| D-295 | s11 | the lead: CC0 scanned surface detail over the procedural surfaces; the adapter's texture limit (B7, B24) | s11-scans | merged session 11 (claude/amazing-fermi-40ds7j) |
+| D-296 | s11 | speaking with the people (UD-18, T-E9): baked lives, in-browser speech recognition, language model and voices, the translation layer (Q-770..Q-779, B97..B99) | agent worktree (conversation), branch s11-conversation | merged session 11 (behind ?converse; T-E9 61 %, B97-B99) |
+| D-297 | s11 | the lead: the fires' light at the eye weighted by the view direction (night views black beside a brazier) | claude/amazing-fermi-40ds7j | merged session 11 |
 | D-298 | s11 | the lead: the sun against JPL Horizons (B2) | claude/amazing-fermi-40ds7j | done |
 | D-299 | s11 | the lead: compileAsync in the scene pass context (rejected) | claude/amazing-fermi-40ds7j | done (branch s11-compile not merged) |
-| D-300 | s11 | every inch real: the Terrace and the palaces' exteriors (Q-780..Q-789, B100..B102) | agent worktree (realism_terrace) | in progress |
-| D-301 | s11 | every inch real: the interiors (Q-790..Q-799, B103..B105) | agent worktree (realism_interiors) | in progress |
-| D-302 | s11 | every inch real: the plain, the rivers and the mountains (Q-800..Q-809, B106..B108) | agent worktree (realism_land) | in progress |
-| D-303 | s11 | every inch real: the town and the villages (Q-810..Q-819, B109..B111) | agent worktree (realism_town) | in progress |
-| D-304 | s11 | every inch real: the people seen close (Q-820..Q-829, B112..B114) | agent worktree (realism_people) | in progress |
-| D-305 | s11 | the Blender asset pipeline: inventory, pipeline, a hero asset, the rollout plan (Q-830..Q-839, B115..B117) | agent worktree (blender) | in progress |
-| D-306 | s11 | the carving: capitals and the Gate colossi from the photographs (Q-840..Q-849, B118..B120) | agent worktree (carving) | in progress |
+| D-300 | s11 | every inch real: the Terrace and the palaces' exteriors (Q-780..Q-789, B100..B102) | agent worktree (realism_terrace) | merged session 11 (Q-780..Q-785, B100..B102 used) |
+| D-301 | s11 | every inch real: the interiors (Q-790..Q-799, B103..B105) | agent worktree (realism_interiors) | merged session 11 (Q-790, B103, B104 used) |
+| D-302 | s11 | every inch real: the plain, the rivers and the mountains (Q-800..Q-809, B106..B108) | agent worktree (realism_land) | merged session 11 (B106 used; Q-800..809, B107, B108 unused) |
+| D-303 | s11 | every inch real: the town and the villages (Q-810..Q-819, B109..B111) | agent worktree (realism_town) | NOT merged at session 11 close: branch s11-realism-town pushed; its scans.ts normal maps conflict with D-300's (merge plan in HANDOFF.md) (Q-810..Q-812, B109..B111 used) |
+| D-304 | s11 | every inch real: the people seen close (Q-820..Q-829, B112..B114) | agent worktree (realism_people) | NOT merged at session 11 close: branch s11-realism-people pushed (skin layers, cloth scans; a device hang in its last run, B114); see D-307 |
+| D-305 | s11 | the Blender asset pipeline: inventory, pipeline, a hero asset, the rollout plan (Q-830..Q-839, B115..B117) | agent worktree (blender) | merged session 11 (Q-830, B115 used; B115 resolved by D-306) |
+| D-306 | s11 | the carving: capitals and the Gate colossi from the photographs (Q-840..Q-849, B118..B120) | agent worktree (carving) | merged session 11 (Q-840..Q-843, B118..B120 used) |
 | D-307 | s11 | the people, round 2: garments, hair and beards (Q-850..Q-859, B121..B123) | agent worktree (people2) | in progress |
