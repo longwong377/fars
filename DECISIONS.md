@@ -7053,3 +7053,43 @@ moment-*-webgpu.png in the worktree, not committed).**
   output the worst of 32 rows above 2° is **0.040°** (tests/sky.horizons.test.ts, threshold 0.1°: passes). Against the
   airless output it read 0.129° worst, all of it refraction (mean Δalt 0.112° below 10° elevation, 0.015° above 20°): the
   test compares like with like now. B2 resolved.
+
+## D-304 The people seen close: MakeHuman CC0 skins and CC0 textile scans (session 11; UD-17, UD-08; T-A7, T-A4, T-E1d)
+- **Still broken or placeholder (lead):** every portrait still reads as CG in a blind review (B112: skin 2.5, hair 1.5,
+  cloth 2.5, overall 2 of 5; the brief's bar is 3). Hair, beards and brows are unchanged shells and painted strokes. Sun
+  shadows at 1.5 m step in ~1 cm stairs (B113, not the people's files). The final run's scans page lost its GPU device at
+  the first crowd view (B114): the scans' fire portraits and crowds with the new lab shadows are unrendered (run 2 rendered
+  them with the old single map). The impostors (beyond 600 m, 2-3 px) were not touched: no belly, flat. The beard
+  band-limit and the rosettes' petals are rendered by day only.
+- **How it could pass its tests while the intent fails (said before starting):** a node build and a mean-colour check
+  would pass with scans that are invisible at 1.5 m (sub-pixel threads, a skin texture swamped by the tone), or that bring
+  a modern person's painted hair, logo or stubble onto every face. Measured against that: the portraits at the player's
+  lens (1920 × 1080, 60°, Q high) before and after, a blind reviewer on anonymised sheets, and the layers checked for
+  painted hair (share per layer in scans.json) and logos (UV-island mask).
+- **Skin (humanMaterial.ts, humanScans.ts; C):** tools/build_humans_scans.py takes 12 of MakeHuman's 20 CC0 skins (young,
+  middle-aged and old; men and women; light- and dark-toned sources: ASSET_LEDGER), which are in the body UV our bodies
+  keep; limits them to the UV islands (the logo margins filled); replaces the painted hair (pixels darker than 0.55 of the
+  head's median joined to the scalp: 25-38 % of the tone region, most of it scalp) and the scalp by the surrounding skin;
+  and rescales each to REF_TONE, so looks.ts's tone still sets the colour. Each of the 23 body variants takes a light and a
+  dark layer by sex and age (children: the young women's), blended by the person's tone (linear luminance 0.17 → 0.075:
+  a Persian stays on the light source, a Kushite on the dark). Measured: MakeHuman's light sources average sRGB
+  (0.76-0.84, 0.57-0.63, 0.47-0.54), within 0.12 of REF_TONE (0.72, 0.53, 0.42) with the same hue (B/R 0.62 vs 0.58), so
+  the procedural ramp is confirmed, not replaced; the high-pass contrast (sd of log luminance, 16 px) is 0.07-0.11 light,
+  0.13-0.18 dark (the procedural atlas had ~0 at that scale outside brows and creases). The brows stay the atlas's.
+- **Cloth (C):** linen (Poly Haven rough_linen), wool (ambientCG Fabric031), felt (Fabric034) and leather (Leather014) as
+  one 4-layer array (RGB the scan over its mean × 0.4, A its height), triplanar in bind space so the weave moves with the
+  cloth; tiles from the scans' FFT thread counts to D-225's threads per metre (linen 368 threads a tile → 0.245 m for
+  1500/m; wool 298 → 0.43 m for 700/m). It replaces the procedural tabby where loaded; dye, streaks, uneven dyeing, folds,
+  pleats, hems, fading, soil and grime stay. The reviewer on the crowd: a fine regular weave on the tunics that "starts to
+  moiré at a distance" (run 2, at the first weights: alb 0.75-0.85; now 0.9-1).
+- **Samplers and memory:** two array textures (one sampler each, D-295's budget): skin 12 × 1024² (≈ 64 MB with mips),
+  cloth 4 × 1024² (≈ 21 MB); download 1.4 MB skin + 3.2 MB cloth. Node and `?noscans` keep the procedural path (identity).
+- **Also:** beard speckle and the strand highlight band-limited (sub-pixel holes read as salt under fire light: rendered by
+  day only); the Susa rosettes drawn as 8 petals round an eye (a disc read as polka dots in the crowd).
+- **The lab (src/dev/humanLab.ts):** a brazier's light (fire.ts's model, mean flicker, no shadow as in the world), the
+  scans loaded, the world's cascaded shadows at high. tests/e2e/portraits.spec.ts: 20 people of every dress and class at
+  1.5 m by day and by the brazier, three crowd views, one load per variant (VARIANTS=noscans,scans).
+- **T-E1d:** no face or body parameter changed (textures only): not regressed. The spec now passes the envoys' origin (the
+  world's population does); their tone had been the Persian default in the first run.
+- **Runs (3 of 3, GPU, Q high, 60°, 1920 × 1080):** before (shots/portraits/before-*), mid (mid-*: scans, old lab shadows),
+  final (after-noscans-*, after-scans-*: device lost after the day portraits, B114).
