@@ -127,6 +127,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'swifts-dusk', day: 59, hour: 18.1, w: 'clear', v: [-36, 125, 1.6, 150, 14], fov: 60 },
   // session 10 (D-284): the ground at the stair foot's halt, where the caravans unload: droppings and sherds (roadLitter.ts)
   { n: 'stair-foot-ground', day: 30, hour: 10, w: 'clear', v: [-60, 112, 1.6, 250, -18], fov: 60 },
+  // session 10 (GA45, D-286): the starlings' winter murmuration over the Pulvar's reeds 3.4 km NNW, from the Terrace's N end at dusk (day 262, early January)
+  { n: 'murmuration-jan', day: 262, hour: 17.0, w: 'clear', v: [-36, 135, 1.6, 330, 3], fov: 30 },
   { n: 'dust-devils-jun', day: 54, hour: 15, w: 'clear', v: [-36, 125, 1.6, 251, 1], fov: 60 },
   // session 9 (G8): heat shimmer and the inferior mirage over the plain at a hot June noon, looking W along the level (opt-in ?heat=1)
   { n: 'heat-mirage-jun', day: 54, hour: 13.5, w: 'clear', v: [-36, 125, 1.6, 251, -0.5], fov: 20 },

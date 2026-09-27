@@ -6781,3 +6781,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   dry-pale) and now and then a sherd of a broken jar; more of both in a 25 m ring at the stair foot's halt and the road station.
   One instanced mesh (instance colour), no shadows cast, grown in at the edge of its radius; positions hashed (never random).
   Tests: tests/road_litter.test.ts. Moment `stair-foot-ground` queued.
+
+## D-286 A winter murmuration over the Pulvar's reeds (session 10; WORLD_INVENTORY GA45; a T-J5 candidate)
+- **Gap:** no winter starlings; the winter plain's dusk had no flock.
+- **Decision (C: common starlings winter in great flocks on the plains of Fars and roost in reedbeds; expected, not sourced):**
+  from 50 min before sunset to 12 min after, November-February, a murmuration over the bank of the Pulvar's reach nearest the
+  Terrace (3.4 km NNW): a flattened, turning cloud 40-120 m up drifting on slow loops round the roost, pulsing dense and spread,
+  rippled by two travelling waves, funnelling down into the reeds at the end. 1,500 birds drawn (one instanced mesh, no shadows);
+  each stands for ~15 of a real flock's tens of thousands, so far off a bird is drawn no smaller than ~1.2 mrad (the flock's
+  darkness from the birds not drawn). Closed-form in time like every bird. Tests: tests/swifts.test.ts (season and hours; the cloud
+  holds together, 10-160 m up, < 40 m/s; drops into the reeds). Moment `murmuration-jan` queued.

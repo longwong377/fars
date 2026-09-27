@@ -18,7 +18,7 @@ import type { NavGrid, P2 } from '../people/navgrid';
 import type { Terrain } from '../terrain/heightfield';
 
 export interface BirdSpecies { id: string; name: string; tier: string; months: number[]; hours: [number, number]; span: number; length: number; colour: [number, number, number]; flapHz: number; count: number }
-export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane' | 'bat' | 'chukar' | 'hoopoe' | 'beeeater' | 'heron' | 'egret' | 'jackdaw' | 'magpie' | 'sandgrouse' | 'wheatear' | 'owl' | 'bulbul' | 'roller' | 'duck', BirdSpecies> = {
+export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane' | 'bat' | 'chukar' | 'hoopoe' | 'beeeater' | 'heron' | 'egret' | 'jackdaw' | 'magpie' | 'sandgrouse' | 'wheatear' | 'owl' | 'bulbul' | 'roller' | 'duck' | 'starling', BirdSpecies> = {
   // (session 10, GB29: instances SWIFTS.first.. of the swallows' mesh are the swifts' screaming parties: one draw call for both)
   swallow: { id: 'swallow', name: 'barn swallow; common and pallid swifts', tier: 'C (expected, not sourced; summer migrants)', months: [2, 3, 4, 5, 6, 7, 8], hours: [4.8, 20.2], span: 0.36, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 60 },
   raptor: { id: 'raptor', name: 'buzzard / golden eagle', tier: 'B (Zagros raptors, extract) / C on-site', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [8.5, 17.5], span: 1.9, length: 0.85, colour: [0.28, 0.21, 0.14], flapHz: 2.2, count: 2 },
@@ -48,6 +48,9 @@ export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 
   bulbul: { id: 'bulbul', name: 'white-eared bulbul', tier: 'C (gardens of southern Iran: recollection)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.28, length: 0.18, colour: [0.38, 0.35, 0.3], flapHz: 12, count: 8 },
   roller: { id: 'roller', name: 'European roller', tier: 'C (summer visitor of open country with posts and trees)', months: [3, 4, 5, 6, 7], hours: [7, 18], span: 0.66, length: 0.31, colour: [0.3, 0.55, 0.7], flapHz: 5, count: 4 },
   duck: { id: 'duck', name: 'wintering ducks (mallard, teal)', tier: 'B (ducks winter on the Fars wetlands: SOUNDSCAPE.md section 4) / C here', months: [10, 11, 0, 1, 2], hours: [6.5, 17.5], span: 0.85, length: 0.55, colour: [0.35, 0.33, 0.28], flapHz: 8, count: 12 },
+  // session 10 (WORLD_INVENTORY GA45): common starlings wintering on the plain, gathering at dusk over the river's reeds in a
+  // murmuration before they drop in to roost (Nov-Feb; hours replaced by swiftScreaming's sun: murmurationOn)
+  starling: { id: 'starling', name: 'common starlings: a winter murmuration over the reeds', tier: 'C (starlings winter in huge flocks on the plains of Fars and roost in reedbeds: expected, not sourced)', months: [10, 11, 0, 1], hours: [15, 19], span: 0.38, length: 0.2, colour: [0.09, 0.09, 0.1], flapHz: 12, count: 1500 },
   crane: { id: 'crane', name: 'common crane (winter flocks)', tier: 'B (winter cranes, geese and ducks at the Fars lakes: SOUNDSCAPE.md section 4, Bakhtegan) / C passage', months: [10, 11, 0, 1, 2], hours: [7.5, 16.5], span: 2.1, length: 1.1, colour: [0.55, 0.57, 0.6], flapHz: 1.6, count: 18 },
 };
 /** a crow's place (closed form): three quarters of each spell on the ground at its midden, walking and pecking between
@@ -177,6 +180,24 @@ export function sunHoursOfMonth(m: number): [number, number] {
   const H = Math.acos(Math.max(-1, Math.min(1, (Math.sin(-0.0145) - Math.sin(lat) * Math.sin(dec)) / (Math.cos(lat) * Math.cos(dec))))) * 12 / Math.PI;
   return [12 - H, 12 + H];
 }
+/** session 10 (GA45): the starlings' murmuration: from 50 min before sunset to 12 min after it, in the winter months (C) */
+export function murmurationOn(month: number, hour: number) { if (![10, 11, 0, 1].includes(month)) return false; const set = sunHoursOfMonth(month)[1]; return hour >= set - 0.83 && hour <= set + 0.2; }
+/** closed-form murmuration: bird k of n over a roost at `roost` (grid), ground height `g`. The flock's centre drifts on slow
+ *  loops 150-400 m round the roost, 40-110 m up; each bird keeps a place in a flattened, turning cloud whose shape is bent by two
+ *  travelling waves (the ripples that run through a murmuration) and pulses between dense and spread; in the last 12 minutes the
+ *  cloud funnels down into the reeds (C: the form, not the mechanics of the flock) */
+export function starlingAt(k: number, n: number, seed: number, t: number, roost: P2, g: number, dropIn: number, out: BirdPose) {
+  const r = new Rng(seed, `starling:${k}`), u = r.next(), v = r.next(), w = r.next();
+  const cx = roost[0] + 220 * Math.sin(t * 0.021) + 90 * Math.sin(t * 0.057 + 1.3), cn = roost[1] + 160 * Math.sin(t * 0.017 + 0.7) + 80 * Math.cos(t * 0.049);
+  const cy = g + (75 + 30 * Math.sin(t * 0.031)) * (1 - dropIn) + 3;
+  const pulse = 0.65 + 0.35 * Math.sin(t * 0.23 + 2 * Math.sin(t * 0.07)), R = (35 + 25 * pulse) * (1 - 0.8 * dropIn);
+  // a point in an ellipsoid (cube-root radius for an even fill), flattened and turned with the flock's heading
+  const rad = Math.cbrt(u), th = 2 * Math.PI * v, ph = Math.acos(2 * w - 1), lx = rad * Math.sin(ph) * Math.cos(th), ly = rad * Math.cos(ph) * 0.35, lz = rad * Math.sin(ph) * Math.sin(th) * 0.6;
+  const hd = Math.atan2(Math.cos(t * 0.021) * 0.021 * 220 + Math.cos(t * 0.057 + 1.3) * 0.057 * 90, Math.cos(t * 0.017 + 0.7) * 0.017 * 160 - Math.sin(t * 0.049) * 0.049 * 80);
+  const wave = 0.28 * Math.sin(lx * 3 + t * 1.1) + 0.18 * Math.sin(lz * 4 - t * 0.8), ch = Math.cos(hd), sh = Math.sin(hd);
+  const ex = (lx * ch + lz * sh) * R * 1.6, en = (-lx * sh + lz * ch) * R, ey = (ly + wave) * R * 0.6;
+  out.pos.set(cx + ex, cy + ey, -(cn + en)); out.heading = hd + 0.3 * Math.sin(t * 0.9 + k); out.bank = 0.4 * Math.sin(t * 0.6 + lx * 2); out.flap = Math.sin(t * 3 + k) > -0.3 ? 1 : 0.2; out.visible = true;
+}
 /** is it the swifts' screaming time (evening parties, and a shorter bout after sunrise)? */
 export function swiftScreaming(month: number, hour: number): boolean {
   if (!SWIFTS.months.includes(month as never)) return false; const [rise, set] = sunHoursOfMonth(month);
@@ -212,6 +233,9 @@ export function swiftAt(k: number, seed: number, t: number, screaming: boolean, 
 export class Birds {
   /** session 10: a screaming party of swifts close enough to be heard (grid position of its leader, m); set by the world */
   onScream?: (pos: THREE.Vector3) => void;
+  /** session 10: the starlings' winter roost: the bank of the Pulvar's reach nearest the Terrace (3.4 km NNW, grid (-1658, 2919):
+   *  seen from the Terrace's N edge at dusk) */
+  private roost: P2 | null = null;
   private nextScream = new Map<number, number>(); private floors = new Map<number, number>();
   private swiftFloor(k: number) { const c = Math.floor(k / SWIFTS.party) % SWIFTS.circuits.length; let y = this.floors.get(c);
     if (y === undefined) { const [e, n] = SWIFTS.circuits[c][0], h = this.nav.heightAt(e, n); y = Number.isFinite(h) ? h : this.terrain.heightAt(e, -n); this.floors.set(c, y); } return y; }
@@ -284,10 +308,16 @@ export class Birds {
         else if (sp.id === 'roller') { if (!this.fields.length) continue; const b = this.fields[(i * 17 + 1) % this.fields.length]; kiteAt(b, this.terrain.heightAt(b[0], -b[1]) - 25, sd, t * 1.3, p); } // low hunting circles, 10-95 m
         else if (sp.id === 'duck') { const pool = this.banks.length ? this.banks : this.waters; if (!pool.length) continue; const b = pool[(Math.floor(i / 4) * 29 + 11) % pool.length]; // small parties resting at the water's edge, flushing at 25 m
           if (!this.groundBird('duck', i, b, t, player, p, 4, 25, 120, 6, Math.floor(i / 4))) continue; }
+        else if (sp.id === 'starling') { const pool = this.banks.length ? this.banks : this.waters; if (!pool.length || !murmurationOn(month, hour)) continue;
+          const near = (q: P2) => Math.hypot(q[0] + 1658, q[1] - 2919), roost = this.roost ??= pool.reduce((b, q) => (near(q) < near(b) ? q : b), pool[0]), set = sunHoursOfMonth(month)[1], drop = Math.max(0, Math.min(1, (hour - set) / 0.2));
+          starlingAt(i, sp.count, this.seed, t, roost, this.terrain.heightAt(roost[0], -roost[1]), drop, p); }
         else if (sp.id === 'bat') { const pool = i % 2 && this.waters.length ? this.waters : this.anchors, a = pool[(i * 5) % pool.length]; batAt(a, i % 2 && this.waters.length ? this.terrain.heightAt(a[0], -a[1]) : (this.nav.heightAt(a[0], a[1]) || 0), sd, t, p); }
         else { if (!this.sparrowAt(i, t, player, p)) continue; }
         this.e.set(0, p.heading, 0); this.q.setFromEuler(this.e); if (p.bank) this.q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), p.bank));
-        this.m4.compose(p.pos, this.q, ONE); mesh.setMatrixAt(n, this.m4); flapAttr.setX(n, p.flap); n++;
+        // (the starlings: each drawn bird stands for ~15 of a real murmuration's tens of thousands, so far off it is drawn no smaller
+        // than ~1.2 mrad, the flock's darkness from the many not drawn: C)
+        if (sp.id === 'starling' && player) { const d = Math.hypot(p.pos.x - player[0], -p.pos.z - player[1]), k = Math.max(1, (d * 0.0012) / sp.span); this.m4.compose(p.pos, this.q, SCL.set(k, k, k)); }
+        else this.m4.compose(p.pos, this.q, ONE); mesh.setMatrixAt(n, this.m4); flapAttr.setX(n, p.flap); n++;
       }
       mesh.count = n; mesh.instanceMatrix.needsUpdate = n > 0; flapAttr.needsUpdate = n > 0;
     }
@@ -335,7 +365,7 @@ export class Birds {
     out.pos.set(at[0], y + 0.02, -at[1]); out.heading = r.range(0, 6.28); out.bank = 0; out.flap = 0; return true;
   }
 }
-const ONE = new THREE.Vector3(1, 1, 1);
+const ONE = new THREE.Vector3(1, 1, 1), SCL = new THREE.Vector3();
 function hashSeed(seed: number, id: string, i: number) { let h = seed * 2654435761 >>> 0; for (const c of `${id}:${i}`) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; return h; }
 
 // ---------------------------------------------------------------------------------------------- part 2: jackals

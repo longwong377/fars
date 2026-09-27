@@ -32,3 +32,17 @@ describe('swifts (GB29)', () => {
   });
   it('the scream is a strike kind', () => { expect(STRIKE_KINDS).toContain('swifts'); });
 });
+
+import { starlingAt, murmurationOn } from '../src/world/wildlife';
+describe('the winter murmuration (GA45)', () => {
+  it('only in Nov-Feb about sunset; a cloud 40-120 m up that holds together and moves at a starling\'s pace, then drops into the reeds', () => {
+    const [, set] = sunHoursOfMonth(0); expect(murmurationOn(0, set - 0.4)).toBe(true); expect(murmurationOn(0, 12)).toBe(false); expect(murmurationOn(5, set - 0.4)).toBe(false);
+    const a = pose(), b = pose(); let ymin = Infinity, ymax = -Infinity, spread = 0, vmax = 0;
+    for (let t = 0; t < 600; t += 13) { let sx = 0, sz = 0; const P: THREE.Vector3[] = [];
+      for (let k = 0; k < 200; k++) { starlingAt(k, 200, 1, t, [0, 0], 0, 0, a); P.push(a.pos.clone()); sx += a.pos.x; sz += a.pos.z; ymin = Math.min(ymin, a.pos.y); ymax = Math.max(ymax, a.pos.y);
+        starlingAt(k, 200, 1, t + 0.1, [0, 0], 0, 0, b); vmax = Math.max(vmax, a.pos.distanceTo(b.pos) / 0.1); }
+      const c = new THREE.Vector3(sx / 200, 0, sz / 200); for (const q of P) spread = Math.max(spread, Math.hypot(q.x - c.x, q.z - c.z)); }
+    expect(ymin).toBeGreaterThan(10); expect(ymax).toBeLessThan(160); expect(spread).toBeLessThan(170); expect(vmax).toBeLessThan(40);
+    starlingAt(3, 200, 1, 100, [0, 0], 0, 1, a); expect(a.pos.y).toBeLessThan(25);
+  });
+});
