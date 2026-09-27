@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="icon" href="data:," />
+<title>Pārsa — conversation lab (dev)</title>
+<style>
+html, body { margin: 0; background: #14110d; color: #e8dcc6; font: 14px/1.45 system-ui, sans-serif }
+main { max-width: 900px; margin: 0 auto; padding: 16px }
+pre { white-space: pre-wrap; background: #1f1a14; padding: 8px; border-radius: 4px; font-size: 12px }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 6px 0 }
+input[type=text] { flex: 1; min-width: 200px; background: #221c15; color: inherit; border: 1px solid #5a4a36; padding: 6px }
+button, select { background: #3a2f22; color: inherit; border: 1px solid #5a4a36; padding: 5px 10px }
+.reply { font-style: italic }
+</style>
+</head>
+<body>
+<main>
+<h3>Conversation lab (D-296, out of world)</h3>
+<div class="row"><select id="model"></select><button id="load">load model</button><span id="status">no model</span></div>
+<div class="row">person <input id="pid" type="text" value="0" style="max-width:90px" /> day <input id="day" type="text" value="150" style="max-width:60px" /> hour <input id="hour" type="text" value="10.5" style="max-width:60px" /><button id="who">show life</button></div>
+<div class="row"><input id="said" type="text" placeholder="say something" /><button id="ask">ask</button><button id="mic">hold to speak</button></div>
+<div id="out"></div>
+<pre id="life"></pre>
+</main>
+<script type="module" src="/src/dev/converseLab.ts"></script>
+</body>
+</html>

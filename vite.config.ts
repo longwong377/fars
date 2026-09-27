@@ -4,7 +4,7 @@ const headers = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Emb
 export default defineConfig({
   // agents' worktrees (.claude/worktrees) are never watched: their edits reloaded the lead's pages mid-measurement (session 9);
   // NOHMR=1 (load probes, D-250): no reloads at all while a measurement runs
-  server: { headers, port: 5173, watch: { ignored: ['**/.claude/**', '**/shots/**', '**/REVIEWS/**'] }, hmr: process.env.NOHMR ? false : undefined },
+  server: { headers, port: 5173, watch: { ignored: ['**/.claude/**', '**/shots/**', '**/REVIEWS/**', '**/public/models/**'] }, hmr: process.env.NOHMR ? false : undefined },
   preview: { headers, port: 4173 },
   build: { target: 'es2022', chunkSizeWarningLimit: 4000 },
   worker: { format: 'es' },
