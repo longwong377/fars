@@ -15,8 +15,8 @@
     "n": 4968,
     "t": "i16"
    },
-   "rms": 0.01953,
-   "max": 0.06879,
+   "rms": 0.02175,
+   "max": 0.07986,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "robe_skirt@0|women": {
@@ -28,8 +28,8 @@
     "n": 4968,
     "t": "i16"
    },
-   "rms": 0.02126,
-   "max": 0.06932,
+   "rms": 0.02455,
+   "max": 0.07819,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
   "robe_skirt@1|men": {
@@ -41,8 +41,8 @@
     "n": 1008,
     "t": "i16"
    },
-   "rms": 0.01028,
-   "max": 0.02152,
+   "rms": 0.01077,
+   "max": 0.02697,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "robe_skirt@1|women": {
@@ -54,8 +54,8 @@
     "n": 1008,
     "t": "i16"
    },
-   "rms": 0.01153,
-   "max": 0.02452,
+   "rms": 0.01624,
+   "max": 0.03508,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
   "robe_skirt@2|men": {
@@ -67,8 +67,8 @@
     "n": 240,
     "t": "i16"
    },
-   "rms": 0.01021,
-   "max": 0.01872,
+   "rms": 0.01096,
+   "max": 0.01947,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "robe_skirt@2|women": {
@@ -80,8 +80,8 @@
     "n": 240,
     "t": "i16"
    },
-   "rms": 0.00999,
-   "max": 0.01758,
+   "rms": 0.01111,
+   "max": 0.02176,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
   "robe_sleeves@0|men": {
@@ -171,8 +171,8 @@
     "n": 3072,
     "t": "i16"
    },
-   "rms": 0.0039,
-   "max": 0.03223,
+   "rms": 0.00203,
+   "max": 0.01823,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "robe_upper@0|women": {
@@ -184,8 +184,8 @@
     "n": 3072,
     "t": "i16"
    },
-   "rms": 0.00349,
-   "max": 0.02015,
+   "rms": 0.00172,
+   "max": 0.01665,
    "note": "upper: settled by Blender's cloth solver on f02"
   },
   "robe_upper@1|men": {
@@ -197,8 +197,8 @@
     "n": 951,
     "t": "i16"
    },
-   "rms": 0.00389,
-   "max": 0.01832,
+   "rms": 0.00311,
+   "max": 0.03065,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "robe_upper@1|women": {
@@ -210,8 +210,8 @@
     "n": 951,
     "t": "i16"
    },
-   "rms": 0.00554,
-   "max": 0.04831,
+   "rms": 0.00356,
+   "max": 0.02415,
    "note": "upper: settled by Blender's cloth solver on f02"
   },
   "tunic_upper@0|men": {
@@ -223,8 +223,8 @@
     "n": 3198,
     "t": "i16"
    },
-   "rms": 0.0027,
-   "max": 0.01429,
+   "rms": 0.00766,
+   "max": 0.08563,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "tunic_upper@1|men": {
@@ -236,8 +236,8 @@
     "n": 897,
     "t": "i16"
    },
-   "rms": 0.00286,
-   "max": 0.01554,
+   "rms": 0.00836,
+   "max": 0.08563,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "tunic_skirt@0|men": {
@@ -249,8 +249,8 @@
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.01717,
-   "max": 0.04391,
+   "rms": 0.01814,
+   "max": 0.04108,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "tunic_skirt@1|men": {
@@ -262,8 +262,8 @@
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.0234,
-   "max": 0.03715,
+   "rms": 0.02239,
+   "max": 0.04292,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "tunic_skirt@2|men": {
@@ -275,8 +275,8 @@
     "n": 240,
     "t": "i16"
    },
-   "rms": 0.02445,
-   "max": 0.0362,
+   "rms": 0.02596,
+   "max": 0.04785,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "work_upper@0|men": {
@@ -288,8 +288,8 @@
     "n": 2961,
     "t": "i16"
    },
-   "rms": 0.00377,
-   "max": 0.02218,
+   "rms": 0.00186,
+   "max": 0.01733,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "work_upper@1|men": {
@@ -301,8 +301,8 @@
     "n": 963,
     "t": "i16"
    },
-   "rms": 0.00475,
-   "max": 0.03293,
+   "rms": 0.003,
+   "max": 0.02502,
    "note": "upper: settled by Blender's cloth solver on m03"
   },
   "work_skirt@0|men": {
@@ -314,8 +314,8 @@
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.01895,
-   "max": 0.04751,
+   "rms": 0.01997,
+   "max": 0.05141,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "work_skirt@1|men": {
@@ -327,8 +327,8 @@
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.02331,
-   "max": 0.03711,
+   "rms": 0.0223,
+   "max": 0.04379,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "work_skirt@2|men": {
@@ -340,8 +340,8 @@
     "n": 240,
     "t": "i16"
    },
-   "rms": 0.02441,
-   "max": 0.03651,
+   "rms": 0.02605,
+   "max": 0.05143,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "dress_upper@0|women": {
@@ -353,8 +353,8 @@
     "n": 3234,
     "t": "i16"
    },
-   "rms": 0.00491,
-   "max": 0.02407,
+   "rms": 0.00685,
+   "max": 0.06155,
    "note": "upper: settled by Blender's cloth solver on f02"
   },
   "dress_upper@1|women": {
@@ -366,8 +366,8 @@
     "n": 942,
     "t": "i16"
    },
-   "rms": 0.00516,
-   "max": 0.02013,
+   "rms": 0.00584,
+   "max": 0.05815,
    "note": "upper: settled by Blender's cloth solver on f02"
   },
   "dress_skirt@0|women": {
@@ -379,8 +379,8 @@
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.03336,
-   "max": 0.0959,
+   "rms": 0.03289,
+   "max": 0.09642,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
   "dress_skirt@0|men": {
@@ -392,8 +392,8 @@
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.03467,
-   "max": 0.08587,
+   "rms": 0.03511,
+   "max": 0.08534,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "dress_skirt@1|women": {
@@ -405,8 +405,8 @@
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.05255,
-   "max": 0.08835,
+   "rms": 0.05173,
+   "max": 0.1052,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
   "dress_skirt@1|men": {
@@ -418,8 +418,8 @@
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.05179,
-   "max": 0.08689,
+   "rms": 0.05051,
+   "max": 0.09689,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "dress_skirt@2|women": {
@@ -431,8 +431,8 @@
     "n": 240,
     "t": "i16"
    },
-   "rms": 0.05371,
-   "max": 0.07891,
+   "rms": 0.05481,
+   "max": 0.07724,
    "note": "skirt: settled by Blender's cloth solver on f02"
   },
   "dress_skirt@2|men": {
@@ -444,8 +444,8 @@
     "n": 240,
     "t": "i16"
    },
-   "rms": 0.05411,
-   "max": 0.0773,
+   "rms": 0.05549,
+   "max": 0.08189,
    "note": "skirt: settled by Blender's cloth solver on m03"
   },
   "child_upper@0|children": {
@@ -457,8 +457,8 @@
     "n": 2961,
     "t": "i16"
    },
-   "rms": 0.0026,
-   "max": 0.0185,
+   "rms": 0.00241,
+   "max": 0.02646,
    "note": "upper: settled by Blender's cloth solver on c01"
   },
   "child_upper@1|children": {
@@ -470,8 +470,8 @@
     "n": 963,
     "t": "i16"
    },
-   "rms": 0.0037,
-   "max": 0.01763,
+   "rms": 0.00301,
+   "max": 0.02193,
    "note": "upper: settled by Blender's cloth solver on c01"
   },
   "child_skirt@0|children": {
@@ -483,8 +483,8 @@
     "n": 2640,
     "t": "i16"
    },
-   "rms": 0.01341,
-   "max": 0.04795,
+   "rms": 0.01368,
+   "max": 0.0456,
    "note": "skirt: settled by Blender's cloth solver on c01"
   },
   "child_skirt@1|children": {
@@ -496,8 +496,8 @@
     "n": 588,
     "t": "i16"
    },
-   "rms": 0.01736,
-   "max": 0.02694,
+   "rms": 0.01639,
+   "max": 0.03205,
    "note": "skirt: settled by Blender's cloth solver on c01"
   },
   "child_skirt@2|children": {
@@ -509,8 +509,8 @@
     "n": 240,
     "t": "i16"
    },
-   "rms": 0.01775,
-   "max": 0.02476,
+   "rms": 0.0183,
+   "max": 0.03519,
    "note": "skirt: settled by Blender's cloth solver on c01"
   },
   "kandys@0|men": {

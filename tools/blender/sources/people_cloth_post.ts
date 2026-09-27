@@ -25,6 +25,7 @@ for (const S of job.sims) {
   const dw = new Float32Array(g.n * 3), isOuter = new Uint8Array(g.n); let o = 0;
   for (let i = 0; i < g.n; i++) { if (g.ao[i] === 150) continue; isOuter[i] = 1;
     const x = settled[o * 3], y = settled[o * 3 + 2], z = -settled[o * 3 + 1]; dw[i * 3] = x - pos[i * 3]; dw[i * 3 + 1] = y - pos[i * 3 + 1]; dw[i * 3 + 2] = z - pos[i * 3 + 2]; o++; }
+  for (const q of settled) if (!Number.isFinite(q)) throw new Error(`${S.key}|${S.group}: the solver returned a non-finite position`);
   if (o !== S.outer) throw new Error(`${S.key}|${S.group}: ${o} outer vertices, the solver had ${S.outer}`);
   // linings: the nearest outer vertex's displacement
   for (let i = 0; i < g.n; i++) { if (isOuter[i]) continue; let best = -1, bd = 1e9;

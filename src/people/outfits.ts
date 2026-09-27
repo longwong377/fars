@@ -562,7 +562,7 @@ function beltTube(L: Lib, key: string, lod: number, over: string[], o: { dy: num
   return tubeGeo(L.A, key, { segs, rings: 2, lining: 0.004, closeTop: true,
     frame: (c, t) => vertFrame([0, c.J('spine_01')[1] + o.dy + o.h / 2 - t * o.h, c.J('pelvis')[2] + 0.02]),
     support: { parts: [P.belly, P.pelvis, P.chest], slab: 0.03 },
-    radius: (c, t, th, sup) => Math.max(sup(th) + 0.016, rimAt(overSupport(c), th) + 0.004), // over the upper shell (≤ 1.3 cm) and the skirt top (D-307: cinched 3 mm closer)
+    radius: (c, t, th, sup) => Math.max(sup(th) + 0.012, rimAt(overSupport(c), th) + 0.004), // over the upper shell and the skirt top (D-307: the drape cinches both under the belt, to 6 and 12 mm off the torso: the belt 4 mm over them)
     weights: () => [W('spine_01', 0.6), W('pelvis', 0.4)], mat: o.mat, col: o.col });
 }
 /** feet: shoes (low) or boots (to above the ankle). D-206: built as leather over a last, not as a shell of the foot: the

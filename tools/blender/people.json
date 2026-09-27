@@ -147,7 +147,7 @@
       ],
       [
        1,
-       2,
+       1,
        0
       ],
       [
@@ -262,9 +262,10 @@
         }
        }
       ]
-     }
+     },
+     "args_note": "C throughout, after the reliefs (hair to the nape bunched behind, the long beard to the upper chest cut square: outfits.ts LEN 0.12 m below the chin) and MATERIAL_CULTURE 'Hair and beards'. Spacing (m) between card roots on the surface; len, width, lift [root, tip] (m); the second layer of scalp hair shorter and lifted (volume, a broken outline). Atlas: 2048 px, 8 columns x 4 rows (cells 256 x 512 px: ~80 um a pixel across a 2 cm card, so a strand is about one pixel wide); rows straight/wavy, natural curls, ringlets (the rolled curls of the court dressing), fine (brows, short hairs); curl radius and pitch as shares of the cell (natural curl ~4 mm across, ringlets ~3 mm: C). classRows: card class (0 scalp and nape, 1 beards, 2 brows) -> atlas row per hair style (0 natural, 1 court, 2 straight). The MakeHuman CC0 hair textures give each strand its shade (their luminance along the strand)."
     },
-    "args_note": "C throughout, after the reliefs (hair to the nape bunched behind, the long beard to the upper chest cut square: outfits.ts LEN 0.12 m below the chin) and MATERIAL_CULTURE 'Hair and beards'. Spacing (m) between card roots on the surface; len, width, lift [root, tip] (m); the second layer of scalp hair shorter and lifted (volume, a broken outline). Atlas: 2048 px, 8 columns x 4 rows (cells 256 x 512 px: ~80 um a pixel across a 2 cm card, so a strand is about one pixel wide); rows straight/wavy, natural curls, ringlets (the rolled curls of the court dressing), fine (brows, short hairs); curl radius and pitch as shares of the cell (natural curl ~4 mm across, ringlets ~3 mm: C). classRows: card class (0 scalp and nape, 1 beards, 2 brows) -> atlas row per hair style (0 natural, 1 court, 2 straight). The MakeHuman CC0 hair textures give each strand its shade (their luminance along the strand)."
+    "args_note": "C throughout, after the reliefs (hair to the nape bunched behind, the long beard to the upper chest cut square: outfits.ts LEN 0.12 m below the chin) and MATERIAL_CULTURE 'Hair and beards'. Spacing (m) between card roots on the surface; len, width, lift [root, tip] (m); the second layer of scalp hair shorter and lifted (volume, a broken outline). Atlas: 2048 px, 8 columns x 4 rows (cells 256 x 512 px: ~80 um a pixel across a 2 cm card, so a strand is about one pixel wide); rows straight/wavy, natural curls, ringlets (the rolled curls of the court dressing), fine (brows, short hairs); curl radius and pitch as shares of the cell (natural curl ~4 mm across, ringlets ~3 mm: C). classRows: card class (0 scalp and nape, 1 beards, 2 brows) -> atlas row per hair style (0 natural, 1 court, 2 straight). The MakeHuman CC0 hair textures give each strand its shade (their luminance along the strand). Beards in the court dressing take the natural curls row (classRows [1,1,0]): the ringlets read as strings in the first render."
    },
    "blender": {
     "script": "tools/blender/hair_atlas.py"
@@ -349,7 +350,8 @@
        "pinTop": 0.04,
        "cloth": {
         "bending": 1
-       }
+       },
+       "cinch": 0.012
       },
       "robe_sleeves": {
        "kind": "sleeve",
@@ -367,7 +369,7 @@
        ],
        "armX": 0.16,
        "armPin": 0.7,
-       "ease": 1.08
+       "cinch": 0.006
       },
       "tunic_upper": {
        "kind": "upper",
@@ -376,7 +378,7 @@
        ],
        "armX": 0.16,
        "armPin": 1,
-       "ease": 1.08
+       "cinch": 0.006
       },
       "tunic_skirt": {
        "kind": "skirt",
@@ -385,7 +387,8 @@
        ],
        "ease": 1.15,
        "pinTop": 0.05,
-       "gathers": 10
+       "gathers": 10,
+       "cinch": 0.012
       },
       "work_upper": {
        "kind": "upper",
@@ -394,7 +397,7 @@
        ],
        "armX": 0.16,
        "armPin": 1,
-       "ease": 1.08
+       "cinch": 0.006
       },
       "work_skirt": {
        "kind": "skirt",
@@ -403,7 +406,8 @@
        ],
        "ease": 1.15,
        "pinTop": 0.05,
-       "gathers": 10
+       "gathers": 10,
+       "cinch": 0.012
       },
       "dress_upper": {
        "kind": "upper",
@@ -412,7 +416,7 @@
        ],
        "armX": 0.16,
        "armPin": 1,
-       "ease": 1.12
+       "cinch": 0.006
       },
       "dress_skirt": {
        "kind": "skirt",
@@ -425,7 +429,8 @@
        "cloth": {
         "bending": 0.3
        },
-       "gathers": 10
+       "gathers": 10,
+       "cinch": 0.012
       },
       "child_upper": {
        "kind": "upper",
@@ -434,7 +439,7 @@
        ],
        "armX": 0.12,
        "armPin": 1,
-       "ease": 1.08
+       "cinch": 0.006
       },
       "child_skirt": {
        "kind": "skirt",
@@ -443,7 +448,8 @@
        ],
        "ease": 1.15,
        "pinTop": 0.05,
-       "gathers": 10
+       "gathers": 10,
+       "cinch": 0.012
       },
       "kandys": {
        "kind": "hang",
@@ -477,7 +483,7 @@
       }
      }
     },
-    "args_note": "C throughout. The cut's ease (wide cut / fitted) after the dress research: the women's many-folded dress (IR-WOMEN, B for 'many-folded') 1.3; the knee-length tunics 1.15; the court robe 1.06 (its pleats are the reliefs' and baked in the mesh: drape.ts ROBE; more ease would undo them). Cloth: Blender's cloth settings for a medium wool or linen (vertex mass 0.2 kg, tension 15, shear 5, bending 0.5, the robe's stiffer 1.0, the dress's softer 0.3), collision 4 mm off the body, 60 frames at 24 fps (2.5 s: the drape settles), the gathered waist drawn in over the first 20. Groups' reference bodies: m03 (the outfits' reference), f02, c01. Arms are not colliders for skirts and upper garments (they swing in the game). Gathers: the waist of a gathered skirt is drawn in along a wave of 10 folds (the full-detail tube has 40 columns: 4 a fold) whose length is the wide cut's, so the cloth below buckles into folds; the court robe is not gathered (its pleats are baked). LODs 0-2: the far body (and the impostors baked from it) takes the drape too (shells share the mid LOD's geometry). Upper garments are cut 8 % fuller (the dress 12 %) than their fitted shell between the pins over the shoulders and under the belt, so they settle in folds. The band under the belt is drawn in tight (the belt cinches it); the gathers start just below it."
+    "args_note": "C throughout. The cut's ease (wide cut / fitted) after the dress research: the women's many-folded dress (IR-WOMEN, B for 'many-folded') 1.3; the knee-length tunics 1.15; the court robe 1.06 (its pleats are the reliefs' and baked in the mesh: drape.ts ROBE; more ease would undo them). Cloth: Blender's cloth settings for a medium wool or linen (vertex mass 0.2 kg, tension 15, shear 5, bending 0.5, the robe's stiffer 1.0, the dress's softer 0.3), collision 4 mm off the body, 60 frames at 24 fps (2.5 s: the drape settles), the gathered waist drawn in over the first 20. Groups' reference bodies: m03 (the outfits' reference), f02, c01. Arms are not colliders for skirts and upper garments (they swing in the game). Gathers: the waist of a gathered skirt is drawn in along a wave of 10 folds (the full-detail tube has 40 columns: 4 a fold) whose length is the wide cut's, so the cloth below buckles into folds; the court robe is not gathered (its pleats are baked). LODs 0-2: the far body (and the impostors baked from it) takes the drape too (shells share the mid LOD's geometry). The belt cinches: under it the upper garment is drawn in to 6 mm off the torso, the skirt's top band to 12 mm (a fuller cut of the upper garments settled as a pot belly in the first render, so they keep their fitted cut). The band under the belt is drawn in tight (the belt cinches it); the gathers start just below it."
    },
    "blender": {
     "script": "tools/blender/cloth.py"

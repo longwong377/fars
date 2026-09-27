@@ -43,6 +43,17 @@ function bodyPLY(vid: string, arms: boolean) {
 }
 const J = (vid: string, b: HBone): [number, number, number] => { const v = A.byId[vid]; return [v.joints[HB[b] * 3], v.joints[HB[b] * 3 + 1], v.joints[HB[b] * 3 + 2]]; };
 
+/** the torso's support at a height (the farthest body point in direction θ about the axis (0, zc), from the torso's vertices
+ *  within 1.2 cm of y): what a belt cinches the cloth to */
+const supCache = new Map<string, Float32Array>();
+function torsoSupport(vid: string, y: number, zc: number): Float32Array {
+  const k = `${vid}|${Math.round(y * 1000)}`; let r = supCache.get(k); if (r) return r; r = new Float32Array(64); const v = A.byId[vid];
+  for (let i = 0; i < A.NO; i++) { const pt = A.part[i]; if (pt !== PART.belly && pt !== PART.pelvis && pt !== PART.chest) continue; const vy = v.pos[i * 3 + 1]; if (Math.abs(vy - y) > 0.012) continue;
+    const x = v.pos[i * 3], z = v.pos[i * 3 + 2] - zc; for (let b = 0; b < 64; b++) { const th = (b / 64) * 2 * Math.PI, h = x * Math.sin(th) + z * Math.cos(th); if (h > r[b]) r[b] = h; } }
+  supCache.set(k, r); return r;
+}
+const supAt = (r: Float32Array, th: number) => { const f = ((((th / (2 * Math.PI)) % 1) + 1) % 1) * 64, b0 = Math.floor(f) % 64, a = f - Math.floor(f); return r[b0] * (1 - a) + r[(b0 + 1) % 64] * a; };
+
 for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for (const lod of LODS) for (const group of P.groups as string[]) {
   const key = `${piece}@${lod}`, g: Geo | undefined = geos[key]; if (!g) { log('no geometry', key); continue; }
   const vid = ARGS.groups[group], v = A.byId[vid];
@@ -63,12 +74,18 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
     // `gatherBand`: the folds come out from under the belt)
     const gBand = P.gatherBand ?? 0.04, inG = P.kind === 'skirt' && P.gathers && t >= P.pinTop && t < P.pinTop + gBand;
     const gA = inG ? r * Math.sqrt(2 * (P.ease * P.ease - 1)) / P.gathers * sstep(P.pinTop, P.pinTop + gBand * 0.5, t) : 0;
-    const rg = r + gA * Math.sin(P.gathers * th + 0.7);
-    tgt.set(gA ? [x / (r || 1) * rg, y, zc + (z - zc) / (r || 1) * rg] : [x, y, z], o * 3);
+    // the belt cinches: under it (a skirt's top band, an upper garment's band at the waist) the cloth is drawn in to the
+    // torso's support + `cinch` (the layers: upper garment, skirt, belt, each a few mm over the one below)
+    let rc = r;
+    if (P.cinch != null) { const sup = supAt(torsoSupport(vid, y, zc), th) + P.cinch;
+      const k = P.kind === 'skirt' ? 1 - sstep(P.pinTop, P.pinTop + gBand, t) : sstep(waist - 0.05, waist - 0.02, y) * (1 - sstep(waist + 0.02, waist + 0.04, y));
+      rc = r + (Math.min(r, sup) - r) * k; }
+    const rg = rc + (gA ? gA * Math.sin(P.gathers * th + 0.7) : 0);
+    tgt.set(gA || rc !== r ? [x / (r || 1) * rg, y, zc + (z - zc) / (r || 1) * rg] : [x, y, z], o * 3);
     let w = 0, ease = 1;
     switch (P.kind) {
       case 'skirt': w = t < P.pinTop + (P.gathers ? gBand : 0) ? 1 : 0; ease = 1 + (P.ease - 1) * sstep(0, 0.25, t); break; // the waist is gathered in; the cut is wide below
-      case 'upper': w = Math.max(sstep(chest - 0.02, chest + 0.04, y), sstep(waist + 0.06, waist - 0.01, y), Math.abs(x) > P.armX ? P.armPin : 0); break;
+      case 'upper': w = Math.max(sstep(chest - 0.02, chest + 0.04, y), sstep(waist + 0.06, waist + 0.01, y), Math.abs(x) > P.armX ? P.armPin : 0); break;
       case 'sleeve': w = t < P.pinTop ? 1 : 0; break;
       case 'hang': w = sstep(P.pinY[0], P.pinY[1], y - neck); break; // coats and cloths hang from the shoulders or the head
     }
