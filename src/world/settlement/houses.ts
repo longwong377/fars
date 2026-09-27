@@ -18,11 +18,15 @@ import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
-import { kitOn, kitLog, kitPiece, kitFrame } from './kit';
+import { kitOn, kitLog, kitPiece, kitFrame, KIT } from './kit';
+/** D-324: the kit's brick losses (tools/blender/housekit.py brick_patch: 0.9 x 0.38 m, bricks ~33 cm, courses 11.5 cm) */
+const BRICK_W = 0.9, BRICK_H = 0.38;
 import { scanShape } from '../../render/scanProps';
 
 /** tile size (m, site-local) and the near radius (m, from the eye to a tile's centre) */
 export const TILE = 32, NEAR_R = 72;
+/** D-324: the full near level within NEAR0 (m, eye to a tile's centre; kept to NEAR0 + NEAR0_HYST), the middle ring beyond */
+export const NEAR0 = 40, NEAR0_HYST = 10;
 /** the roof build-up (m): poplar poles, battens and brush, packed earth with a clay-and-straw coat (ROOF_T = 0.35, C) */
 export const ROOF = { beam: 0.16, brush: 0.07, fall: 0.02, over: [0.24, 0.38] as [number, number], lip: 0.09, gap: [0.42, 0.58] as [number, number] };
 
@@ -78,7 +82,8 @@ export const newHB = (): HB => ({ plaster: plasterBatch(), stone: plainBatch(), 
 interface Side { cls: 'room' | 'court' | 'open'; plot: number; roof: number }
 interface RoomEl { plot: number; room: number; i0: number; j0: number; i1: number; j1: number; full: boolean; drain: number; eave: number; tile: number; R: number; fall: number }
 interface WallEl { w: Wall; tile: number; plot: number; room: number; street: boolean }
-interface Hole { s0: number; s1: number; y0: number; y1: number; through: boolean; depth: number; col?: RGB }
+/** `brick` (D-324): a loss of the plaster over the brick (the kit's variant, drawn by brickLoss, no reveal); `fl` its mirror */
+interface Hole { s0: number; s1: number; y0: number; y1: number; through: boolean; depth: number; col?: RGB; brick?: number; fl?: number }
 interface Dec { s0: number; s1: number; y0: number; y1: number; kind: 'patch' | 'bare' | 'soot' | 'streak' | 'dung' | 'stain'; seed: number; k?: number }
 /** a street door as the door system needs it (grid e, n; world y) */
 export interface StreetDoor { id: string; plot: number; tile: number; hinge: P2; theta: number; closedYaw: number; openYaw: number; y: number; h: number; wood: number; kind: string; site: string }
@@ -207,13 +212,18 @@ export class SiteHouses {
 
   // ---- the near level --------------------------------------------------------------------------------------------------
   /** everything of one tile at full detail */
-  buildTile(tile: number, B: HB, day = 0) { const g = this.tileSteps(tile, B, day); while (!g.next().done) { /* all at once */ } }
-  /** the same, a wall, a room or the fixtures at a time (the prefetch ring is built across frames, B59) */
-  *tileSteps(tile: number, B: HB, day = 0): Generator<void, void, void> {
-    for (const we of this.wallsByTile.get(tile) ?? []) { this.day = day; this.wallNear(we, B); yield; }
-    for (const r of this.roomsByTile.get(tile) ?? []) { this.day = day; this.roomNear(r, B); yield; }
-    this.day = day; this.fixturesNear(tile, B);
+  buildTile(tile: number, B: HB, day = 0, lod: 0 | 1 = 0) { const g = this.tileSteps(tile, B, day, lod); while (!g.next().done) { /* all at once */ } }
+  /** the same, a wall, a room or the fixtures at a time (the prefetch ring is built across frames, B59). `lod` (D-324): 0 the
+   *  full near level (within NEAR0 of the eye: the kit's pole ends, brick courses, furniture, the rooms' things), 1 the middle
+   *  ring (NEAR0..NEAR_R: the same walls, roofs, eaves and court things on a coarser plaster grid, the rooms left empty,
+   *  the roof poles cut to the stubs that show outside) */
+  *tileSteps(tile: number, B: HB, day = 0, lod: 0 | 1 = 0): Generator<void, void, void> {
+    for (const we of this.wallsByTile.get(tile) ?? []) { this.day = day; this.lod = lod; this.wallNear(we, B); yield; }
+    for (const r of this.roomsByTile.get(tile) ?? []) { this.day = day; this.lod = lod; this.roomNear(r, B); yield; }
+    this.day = day; this.lod = lod; this.fixturesNear(tile, B);
   }
+  /** the level of detail the near tile being built takes (D-324) */
+  private lod: 0 | 1 = 0;
   /** the day of the year the near tiles show (seasonal things on the roofs) */
   private day = 0;
   /** face plane geometry of a wall: axis 0 = along u, 1 = along v; `cc` = the wall's centre line across; the face at
@@ -223,11 +233,11 @@ export class SiteHouses {
     const { ax, sA, sB, cc, t, sg } = o, off = o.off ?? 0;
     if (sB - sA < 0.01) return;
     const st = [sA, sB]; for (const h of o.holes) st.push(Math.max(sA, Math.min(sB, h.s0)), Math.max(sA, Math.min(sB, h.s1)));
-    const step = o.bulge ? (o.foot ? 1.5 : 1.3) : 3.0, n = Math.ceil((sB - sA) / step); for (let i = 1; i < n; i++) st.push(sA + ((sB - sA) * i) / n);
+    const lk = this.lod ? 2 : 1, step = (o.bulge ? (o.foot ? 1.5 : 1.3) : 3.0) * lk, n = Math.ceil((sB - sA) / step); for (let i = 1; i < n; i++) st.push(sA + ((sB - sA) * i) / n); // (D-324: the middle ring on a grid twice as coarse)
     for (const x of o.st2 ?? []) if (x > sA && x < sB) st.push(x);
     const S = [...new Set(st.map(x => +x.toFixed(4)))].sort((a, b2) => a - b2);
     const yLo = Math.min(o.yb(sA), o.yb(sB)), yHi = Math.max(o.yt(sA), o.yt(sB));
-    const brk: number[] = []; for (const h of o.holes) brk.push(h.y0, h.y1); if (o.bulge) for (let y = Math.ceil(yLo) + (o.foot ? 1.0 : 0.2); y < yHi; y += (o.foot ? 1.5 : 1.2)) brk.push(y); // (D-311: the foot row carries the low bulge; rows 1.5 m apart pay for it)
+    const brk: number[] = []; for (const h of o.holes) brk.push(h.y0, h.y1); if (o.bulge) for (let y = Math.ceil(yLo) + (o.foot ? 1.0 : 0.2); y < yHi; y += (o.foot ? 1.5 : 1.2) * lk) brk.push(y); // (D-311: the foot row carries the low bulge; rows 1.5 m apart pay for it)
     if (o.foot) brk.push(yLo + 0.3); // D-311: the eroded foot's rows
     const BR = [...new Set(brk.map(x => +x.toFixed(4)))].sort((a, b2) => a - b2);
     const inHole = (sm: number, ym: number) => o.holes.some(h => sm > h.s0 && sm < h.s1 && ym > h.y0 && ym < h.y1);
@@ -266,10 +276,18 @@ export class SiteHouses {
     const [L, D, a, c] = hu >= hv ? [2 * hu, 2 * hv, au, av] : [2 * hv, 2 * hu, av, au];
     kitFrame(b, q, O, [a[0] * L, 0, a[1] * L], [0, y1 - y0, 0], [c[0] * D, 0, c[1] * D], ct, owner);
   }
-  /** a round pole (prism) between two world points */
-  pole(b: Batch, A: number[], Bp: number[], r: number, sides: number, c: RGB, owner: number, caps: boolean | 'end' = true) {
-    // D-311: every pole of a house (roof, eave, ceiling, lintel, spout, ladder) from the Blender kit's poplar log; the thinnest (battens) stay prisms
-    if (kitOn && r >= 0.035 && sides >= 5) { kitLog(b, A, Bp, r, c, owner, hi(Math.round(A[0] * 100), Math.round(A[2] * 100), Math.round(Bp[1] * 100))); return; }
+  /** D-324: a fieldstone from the kit (a doorstep, a pivot stone, a post base, a drip stone; `sill` the threshold slab worn
+   *  hollow) in the box an lbox would draw (site-local centre and half sizes, turned by rot), the middle ring's box beyond NEAR0 */
+  private stone(b: Batch, u: number, v: number, hu: number, hv: number, y0: number, y1: number, cb: RGB, ct: RGB, owner: number, rot = 0, sill = false) {
+    if (!kitOn || this.lod) return this.lbox(b, u, v, hu, hv, y0, y1, cb, ct, owner, false, rot);
+    const q = kitPiece(sill ? 'sill' : hu * hv < 0.035 ? 'pebble' : 'stone', hi(Math.round(u * 20), Math.round(v * 20), 83)), a = this.dirW(Math.cos(rot), Math.sin(rot)), c = this.dirW(-Math.sin(rot), Math.cos(rot));
+    kitFrame(b, q, this.wp(u, v, y0), [a[0] * 2 * hu, 0, a[1] * 2 * hu], [0, y1 - y0, 0], [c[0] * 2 * hv, 0, c[1] * 2 * hv], mixc(cb, ct, 0.6), owner);
+  }
+  /** a round pole (prism) between two world points; `wood` false: not from the kit's log (cloth, stone) */
+  pole(b: Batch, A: number[], Bp: number[], r: number, sides: number, c: RGB, owner: number, caps: boolean | 'end' = true, wood = true) {
+    // D-311: every pole of a house (roof, eave, ceiling, lintel, spout, ladder) from the Blender kit's poplar log; the thinnest
+    // (battens) stay prisms, and so do the round things that are not wood (D-324: bedding and mats rolled, the stone roller)
+    if (kitOn && wood && r >= 0.035 && sides >= 5) { kitLog(b, A, Bp, r, c, owner, hi(Math.round(A[0] * 100), Math.round(A[2] * 100), Math.round(Bp[1] * 100))); return; }
     const d = [Bp[0] - A[0], Bp[1] - A[1], Bp[2] - A[2]], L = Math.hypot(d[0], d[1], d[2]); if (L < 1e-4) return; const w = d.map(x => x / L);
     const up = Math.abs(w[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0]; let e1 = [w[1] * up[2] - w[2] * up[1], w[2] * up[0] - w[0] * up[2], w[0] * up[1] - w[1] * up[0]]; const l1 = Math.hypot(e1[0], e1[1], e1[2]); e1 = e1.map(x => x / l1);
     const e2 = [w[1] * e1[2] - w[2] * e1[1], w[2] * e1[0] - w[0] * e1[2], w[0] * e1[1] - w[1] * e1[0]];
@@ -313,24 +331,30 @@ export class SiteHouses {
       // the doorway's face on the lane: timber jamb boards for the better-off (35 %), a raised plaster surround (30 %), or none
       if (we.street) { const hv = hashString(s.plots[we.plot].id + ':frame') / 4294967296, p = s.plots[we.plot], d = s.doorPoints(p)!; const og = Math.sign(ax === 0 ? d.out[1] - d.inside[1] : d.out[0] - d.inside[0]);
         const fo = og * (t / 2 + 0.018), yb2 = g0 - 0.02;
-        if (hv < 0.35 * (0.5 + L.standing)) { B.timber.set('ao', 0.85); for (const e of [sA - 0.06, sB + 0.06]) { const [u, v] = P2l(e, fo); this.lbox(B.timber, u, v, ax === 0 ? 0.06 : 0.025, ax === 0 ? 0.025 : 0.06, yb2, yl, sh(aged, 0.85), aged, this.owner(we.plot, P.door)); } B.timber.set('ao', 1); }
+        if (hv < 0.35 * (0.5 + L.standing)) { B.timber.set('ao', 0.85); for (const e of [sA - 0.06, sB + 0.06]) { const [u, v] = P2l(e, fo);
+          // D-324: the kit's adzed board (its face to the lane, the foot rotted, a split at the head) near; the box beyond NEAR0
+          if (kitOn && !this.lod) { const al = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), ou = ax === 0 ? this.dirW(0, og) : this.dirW(og, 0), q = kitPiece('jamb', hi(seed, e > sA ? 73 : 74));
+            kitFrame(B.timber, q, this.wp(u, v, yb2), [al[0] * 0.12, 0, al[1] * 0.12], [0, yl - yb2, 0], [ou[0] * 0.05, 0, ou[1] * 0.05], aged, this.owner(we.plot, P.door)); }
+          else this.lbox(B.timber, u, v, ax === 0 ? 0.06 : 0.025, ax === 0 ? 0.025 : 0.06, yb2, yl, sh(aged, 0.85), aged, this.owner(we.plot, P.door)); } B.timber.set('ao', 1); }
         else if (hv > 0.7) { const c = sh(this.tone(we.plot, 0, add), 1.06 + 0.04 * hi(seed, 71)); B.plaster.set('y0', -1000).set('ytop', 1e4).set('ao', 0.9); const w2 = 0.09 + 0.05 * hi(seed, 72);
           for (const e of [sA - w2, sB + w2]) { const [u, v] = P2l(e, fo); this.lbox(B.plaster, u, v, ax === 0 ? w2 : 0.02, ax === 0 ? 0.02 : w2, yb2 + 0.15, yl + dv.lh + w2, sh(c, 0.97), c, this.owner(we.plot, P.door)); }
           const [u, v] = P2l((sA + sB) / 2, fo); this.lbox(B.plaster, u, v, ax === 0 ? len / 2 + 2 * w2 : 0.02, ax === 0 ? 0.02 : len / 2 + 2 * w2, yl + dv.lh, yl + dv.lh + w2, c, c, this.owner(we.plot, P.door)); B.plaster.set('ao', 1); } }
       // a doorstep of two flat stones outside some street doors (the lane side)
       if (we.street && dv.step) { const p = s.plots[we.plot], d = s.doorPoints(p)!; const ou = Math.sign(d.out[0] - d.inside[0]), ov = Math.sign(d.out[1] - d.inside[1]); const st = lin(STONE);
         for (const e of [-0.24, 0.24]) { const su = d.mid[0] + ou * (t / 2 + 0.22) + (ax === 0 ? e : 0), sv = d.mid[1] + ov * (t / 2 + 0.22) + (ax === 0 ? 0 : e), gy = this.gl(su, sv);
-          B.stone.set('ao', 0.9); this.lbox(B.stone, su, sv, ax === 0 ? 0.23 : 0.2, ax === 0 ? 0.2 : 0.23, gy - 0.06, gy + 0.08 + 0.03 * hi(seed, e > 0 ? 55 : 56), sh(st, 0.85), sh(st, 1.08), this.owner(we.plot, P.door), false, (hi(seed, e > 0 ? 57 : 58) - 0.5) * 0.25); B.stone.set('ao', 1); } }
+          B.stone.set('ao', 0.9); this.stone(B.stone, su, sv, ax === 0 ? 0.23 : 0.2, ax === 0 ? 0.2 : 0.23, gy - 0.06, gy + 0.08 + 0.03 * hi(seed, e > 0 ? 55 : 56), sh(st, 0.85), sh(st, 1.08), this.owner(we.plot, P.door), (hi(seed, e > 0 ? 57 : 58) - 0.5) * 0.25); B.stone.set('ao', 1); } }
       if (we.street) { const st = lin(STONE); B.stone.set('ao', 0.9);
         // a threshold slab, worn hollow in the middle by feet (two lower strips at the edges: its middle stands 1 cm lower)
-        this.lbox(B.stone, mu, mv, ax === 0 ? len / 2 : t / 2 + 0.05, ax === 0 ? t / 2 + 0.05 : len / 2, g0 - 0.1, g0 + 0.035, sh(st, 0.85), sh(st, 1.12), this.owner(we.plot, P.door));
-        for (const e of [-1, 1]) this.lbox(B.stone, mu + (ax === 0 ? e * (len / 2 - 0.1) : 0), mv + (ax === 0 ? 0 : e * (len / 2 - 0.1)), ax === 0 ? 0.1 : t / 2 + 0.05, ax === 0 ? t / 2 + 0.05 : 0.1, g0, g0 + 0.05, st, sh(st, 0.95), this.owner(we.plot, P.door));
+        // (D-324: near, the kit's slab, its middle worn 3 cm hollow; beyond NEAR0 the slab and its two edge strips)
+        if (kitOn && !this.lod) this.stone(B.stone, mu, mv, ax === 0 ? len / 2 : t / 2 + 0.05, ax === 0 ? t / 2 + 0.05 : len / 2, g0 - 0.1, g0 + 0.05, sh(st, 0.85), sh(st, 1.12), this.owner(we.plot, P.door), 0, true);
+        else { this.lbox(B.stone, mu, mv, ax === 0 ? len / 2 : t / 2 + 0.05, ax === 0 ? t / 2 + 0.05 : len / 2, g0 - 0.1, g0 + 0.035, sh(st, 0.85), sh(st, 1.12), this.owner(we.plot, P.door));
+        for (const e of [-1, 1]) this.lbox(B.stone, mu + (ax === 0 ? e * (len / 2 - 0.1) : 0), mv + (ax === 0 ? 0 : e * (len / 2 - 0.1)), ax === 0 ? 0.1 : t / 2 + 0.05, ax === 0 ? t / 2 + 0.05 : 0.1, g0, g0 + 0.05, st, sh(st, 0.95), this.owner(we.plot, P.door)); }
         // the pivot stone inside the hinge jamb (its socket takes the door's post)
         const p = s.plots[we.plot], d = p?.door ? s.doorPoints(p) : null; if (d) { const nu = Math.sign(d.inside[0] - d.out[0]), nv = Math.sign(d.inside[1] - d.out[1]), hs = L.hinge;
-          const pu = d.mid[0] + nu * (t / 2 + 0.16) + (-nv * hs) * 0.42, pv = d.mid[1] + nv * (t / 2 + 0.16) + (nu * hs) * 0.42; this.lbox(B.stone, pu, pv, 0.16, 0.15, g0 - 0.05, g0 + 0.07, sh(st, 0.8), sh(st, 1.05), this.owner(we.plot, P.door), false, 0.3); }
+          const pu = d.mid[0] + nu * (t / 2 + 0.16) + (-nv * hs) * 0.42, pv = d.mid[1] + nv * (t / 2 + 0.16) + (nu * hs) * 0.42; this.stone(B.stone, pu, pv, 0.16, 0.15, g0 - 0.05, g0 + 0.07, sh(st, 0.8), sh(st, 1.05), this.owner(we.plot, P.door), 0.3); }
         B.stone.set('ao', 1);
       } else if (hi(seed, 7) < 0.45) { const room = sides.find(sd => sd.cls === 'room'); if (room) { const sg = sides[0] === room ? -1 : 1; const off = sg * (t / 2 + 0.08);
-        const A = this.wp(...P2l(sA + 0.04, off), yl - 0.09), Bq = this.wp(...P2l(sB - 0.04, off), yl - 0.09); B.timber.set('ao', 0.5); this.pole(B.timber, A, Bq, 0.075, 6, lin([0.55, 0.47, 0.33]), this.owner(we.plot, P.door)); B.timber.set('ao', 1); } }
+        const A = this.wp(...P2l(sA + 0.04, off), yl - 0.09), Bq = this.wp(...P2l(sB - 0.04, off), yl - 0.09); B.timber.set('ao', 0.5); this.pole(B.timber, A, Bq, 0.075, 6, lin([0.55, 0.47, 0.33]), this.owner(we.plot, P.door), true, false); B.timber.set('ao', 1); } } // (a rolled reed mat over the room's doorway)
       return;
     }
     // windows and vents through the wall; the niche by the street door; decals (patches, bare brick, soot, streaks)
@@ -380,16 +404,25 @@ export class SiteHouses {
             const np = Math.floor(hi(seed, 41) * 3); for (let q = 0; q < np; q++) { const ps = nicheHere.len > 0 ? sB - 0.9 - 0.5 * q - 0.3 * hi(seed, q, 42) : sA + 0.9 + 0.5 * q + 0.3 * hi(seed, q, 42), py = floor + 1.35 + 0.35 * hi(seed, q, 43);
               if (ps < sA + 0.2 || ps > sB - 0.2) continue; B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(...P2l(ps, sg * (t / 2 - 0.05)), py), this.wp(...P2l(ps, sg * (t / 2 + 0.17)), py + 0.03), 0.025, 5, sh(lin(POLE), 0.75 + 0.3 * hi(seed, q, 44)), this.owner(we.plot, P.fixture), 'end'); B.timber.set('ao', 1); } } }
         const bulge = (0.007 + 0.012 * (1 - L.standing) + 0.006 * (L.age / 50)) * (house ? 1 : 0.7);
+        const colF = (x: number, y: number): RGB => { const yr = y - floor, yf = y - ysoc(x), f = kitOn ? 1 - smooth(yf / 0.38) : 0; // D-311: the foot's band: damp, salt-dark, the brick courses showing through (redder)
+          const c0 = sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); return mixc(c0, [c0[0] * 0.78, c0[1] * 0.7, c0[2] * 0.64], f * (sd.cls === 'open' ? 0.85 : 0.6)); };
+        // D-324: where the plaster has fallen off in the damp band over the footing, the brick courses show (the kit's losses,
+        // near; the middle ring draws them flat, as the bare-brick decal): more on old walls and poor houses' (the household's bare
+        // share), on the lane more than in the court, mostly low (they replace D-234's random bare-brick decals)
+        if (kitOn && we.plot >= 0 && len >= BRICK_W + 0.8) { const rate = (0.025 + 0.09 * L.bare + 0.03 * (L.age / 50)) * (sd.cls === 'open' ? 1 : 0.6) * (house ? 1 : 1.4), n = Math.floor(len * rate + hi(seed, si, 95));
+          for (let q = 0; q < Math.min(n, 3); q++) { const s0 = sA + 0.4 + (len - 0.8 - BRICK_W) * hi(seed, si, q, 96), s1 = s0 + BRICK_W, y0 = Math.max(ysoc(s0), ysoc(s1)) + 0.42 + 1.1 * hi(seed, si, q, 97) ** 2, y1 = y0 + BRICK_H;
+            if (y1 > Math.min(ytopF(s0), ytopF(s1)) - 0.35 || faceHoles.some(h => s0 < h.s1 + 0.3 && s1 > h.s0 - 0.3 && y0 < h.y1 + 0.3 && y1 > h.y0 - 0.3)) continue;
+            if (this.lod) decs.push([sg, { s0: s0 + 0.08, s1: s1 - 0.08, y0: y0 + 0.05, y1: y1 - 0.05, kind: 'bare', seed: seed * 7 + q }]);
+            else faceHoles.push({ s0, s1, y0, y1, through: false, depth: 0, brick: Math.floor(hi(seed, si, q, 98) * 3), fl: hi(seed, si, q, 99) < 0.5 ? -1 : 1 }); } }
         this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: ysoc, yt: x => ytopF(x) - bev, holes: faceHoles, bulge, seed: seed + si * 13, st2: topSt,
-          col: (x, y) => { const yr = y - floor, yf = y - ysoc(x), f = kitOn ? 1 - smooth(yf / 0.38) : 0; // D-311: the foot's band: damp, salt-dark, the brick courses showing through (redder)
-            const c0 = sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); return mixc(c0, [c0[0] * 0.78, c0[1] * 0.7, c0[2] * 0.64], f * (sd.cls === 'open' ? 0.85 : 0.6)); },
-          owner: this.owner(we.plot, P.wall), ao: aoF, y0: ysoc, ytop: top, foot: kitOn ? (sd.cls === 'open' ? 0.035 : 0.02) * (house ? 1 : 1.5) : 0 });
+          col: colF, owner: this.owner(we.plot, P.wall), ao: aoF, y0: ysoc, ytop: top, foot: kitOn ? (sd.cls === 'open' ? 0.035 : 0.02) * (house ? 1 : 1.5) : 0 });
+        for (const h of faceHoles) if (h.brick !== undefined) this.brickLoss(B, ax, cc, t, sg, h, colF, aoF, ysoc, top, we.plot, seed);
         // decals on this face: repairs, bare brick, soot, the household's dung cakes, the drain's stain
         if (we.plot >= 0) this.faceDecals(we, sd, sg, floor, top, faceHoles, courtFix, decs, seed + si); // (yard and garden walls weather too)
         for (const [sgd, d] of decs) if (sgd === sg) this.decal(B, ax, cc, t, sg, d, col0, floor, we.plot);
         decs.length = 0;
         // hole reveals and backs
-        for (const h of faceHoles) this.reveal(B, ax, cc, t, sg, h, col0, we.plot);
+        for (const h of faceHoles) if (h.brick === undefined) this.reveal(B, ax, cc, t, sg, h, col0, we.plot);
       }
     }
     // the cap of an exposed top (D-311): the Blender kit's slumped mud crest, ~4 m modules (three, mirrored by the hash) laid
@@ -397,7 +430,7 @@ export class SiteHouses {
     if (exposedTop && kitOn) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
       const nm = Math.max(1, Math.round(len / 3.9)), ml = len / nm, wz = t + 0.03, own = this.owner(we.plot, P.wall);
       const aw = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), cw = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0);
-      for (let m = 0; m < nm; m++) { const q = kitPiece('crest', hi(seed, m, 91)), fl = hi(seed, m, 92) < 0.5 ? -1 : 1, mid = sA + ml * (m + 0.5), hx = ml / 2 / 1.02;
+      for (let m = 0; m < nm; m++) { const q = kitPiece(this.lod ? 'crestL' : 'crest', hi(seed, m, 91)), fl = hi(seed, m, 92) < 0.5 ? -1 : 1, mid = sA + ml * (m + 0.5), hx = ml / 2 / 1.02;
         // handedness of (along·fl, up, across) in the world: mirror the winding with it
         const det = fl * (aw[0] * cw[1] - aw[1] * cw[0]); const idx = det < 0 ? q.i.map((_, j) => q.i[j - (j % 3) + [0, 2, 1][j % 3]]) : q.i;
         B.plaster.mesh(q.nv, k => { const al = mid + fl * q.p[k * 3] * hx; return this.wp(...P2l(Math.max(sA - 0.01, Math.min(sB + 0.01, al)), q.p[k * 3 + 2] * wz), ytopF(Math.max(sA, Math.min(sB, al))) + q.p[k * 3 + 1]); },
@@ -449,6 +482,19 @@ export class SiteHouses {
       const p = s.plots[c], top = s.sub[k] === ROOM ? p.height + p.parapet : s.sub[k] === COURT ? p.height : p.yardWall; return [d, this.base[c] + top - floor]; }
     return null;
   }
+  /** D-324: a loss of the plaster over the brick (the kit's 'bpl' ring, flush with the face on the hole's edge and coloured
+   *  as the wall there, broken back to the brick; the 'bbr' courses behind it in the brick material) */
+  private brickLoss(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, colF: (x: number, y: number) => RGB, aoF: (y: number) => number, ysoc: (x: number) => number, top: number, plot: number, seed: number) {
+    const P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]);
+    const al = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), nA = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0), fl = h.fl ?? 1, x0 = fl > 0 ? h.s0 : h.s1;
+    const O = this.wp(...P2l(x0, sg * (t / 2)), h.y0), X = [al[0] * fl, 0, al[1] * fl], Y = [0, 1, 0], Z = [nA[0], 0, nA[1]], own = this.owner(plot, P.repair);
+    const ring = KIT[`bpl${h.brick}`], br = KIT[`bbr${h.brick}`]; if (!ring || !br) return;
+    B.plaster.set('y0', ysoc((h.s0 + h.s1) / 2)).set('ytop', top).set('ao', aoF(h.y0 + BRICK_H / 2));
+    kitFrame(B.plaster, ring, O, X, Y, Z, [1, 1, 1], own, B.plaster.cur('ao'), 0.3, k => sh(colF(x0 + fl * ring.p[k * 3], h.y0 + ring.p[k * 3 + 1]), ring.k[k]));
+    const bc = sh(lin([0.62, 0.53, 0.41]), 0.88 + 0.15 * hi(seed, 131)); B.brick.set('ao', aoF(h.y0 + BRICK_H / 2));
+    kitFrame(B.brick, br, O, X, Y, Z, bc, own, B.brick.cur('ao'), 0.2, k => { const y = h.y0 + br.p[k * 3 + 1], d = 0.8 + 0.2 * smooth((y - ysoc(x0 + fl * br.p[k * 3])) / 0.9); return sh(bc, br.k[k] * d); });
+    B.plaster.set('ao', 1); B.brick.set('ao', 1);
+  }
   /** a hole's reveals (and, for a niche, its back); a window's back opens into the dark room */
   private reveal(B: HB, ax: number, cc: number, t: number, sg: number, h: Hole, col: RGB, plot: number) {
     const b = B.plaster, P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]);
@@ -470,7 +516,7 @@ export class SiteHouses {
   private faceDecals(we: WallEl, sd: Side, sg: number, floor: number, top: number, holes: Hole[], fx: Fixture[], out: [number, Dec][], seed: number) {
     const w = we.w, ax = w.v0 === w.v1 ? 0 : 1, sA = ax === 0 ? w.u0 : w.v0, sB = ax === 0 ? w.u1 : w.v1, cc = ax === 0 ? w.v0 : w.u0, len = sB - sA, L = this.life(we.plot);
     const clear = (a: number, b: number, y0: number, y1: number) => a > sA + 0.15 && b < sB - 0.15 && y0 > floor + 0.05 && y1 < top - 0.12 && !holes.some(h => a < h.s1 + 0.1 && b > h.s0 - 0.1 && y0 < h.y1 + 0.1 && y1 > h.y0 - 0.1);
-    const nP = Math.floor((len * L.patches) / 10 + hi(seed, 21)), nB = Math.floor((len * L.bare) / 10 + hi(seed, 22) * (sd.cls === 'open' ? 1 : 0.5));
+    const nP = Math.floor((len * L.patches) / 10 + hi(seed, 21)), nB = kitOn ? 0 : Math.floor((len * L.bare) / 10 + hi(seed, 22) * (sd.cls === 'open' ? 1 : 0.5)); // (D-324: the kit's brick losses stand for the bare brick)
     for (let k = 0; k < nP + nB; k++) { const bare = k >= nP; const wd = 0.3 + 0.9 * hi(seed, k, 31), ht = 0.25 + 0.6 * hi(seed, k, 32); const a = sA + (len - wd) * hi(seed, k, 33);
       const y0 = floor + (bare ? 0.35 + 1.4 * hi(seed, k, 34) ** 1.5 : 0.4 + (top - floor - 1) * hi(seed, k, 34)); if (clear(a, a + wd, y0, y0 + ht)) out.push([sg, { s0: a, s1: a + wd, y0, y1: y0 + ht, kind: bare ? 'bare' : 'patch', seed: seed * 7 + k }]); }
     // soot above the court's hearths, ovens and forges within 1.2 m of this face
@@ -544,9 +590,21 @@ export class SiteHouses {
       const A0 = acrossU ? this.wp(e0, a, y) : this.wp(a, e0, y), B0 = acrossU ? this.wp(e1, a, y) : this.wp(a, e1, y);
       // the pole's end that oversails the court is capped (seen); the one buried in the wall is not
       const [A, Bq] = out0 && !out1 ? [B0, A0] : [A0, B0];
-      B.timber.set("ao", 0.2); const pc = sh(pole, 0.88 + 0.22 * hi(seed, k, 5)); this.pole(B.timber, A, Bq, rr, out0 || out1 ? 8 : 4, pc, this.owner(r.plot, P.eave), out0 || out1 ? 'end' : false); }
+      B.timber.set("ao", 0.2); const pc = sh(pole, 0.88 + 0.22 * hi(seed, k, 5));
+      if (this.lod) { // D-324, the middle ring: the stubs that show over the eaves (from the wall's inner face out); the rest is indoors
+        const inner = (lo: boolean) => acrossU ? (lo ? u0 + tf / 2 : u1 - tf / 2) : (lo ? v0 + tf / 2 : v1 - tf / 2);
+        const stub = (I: number[], E: number[], h: number) => kitOn ? kitLog(B.timber, I, E, rr, pc, this.owner(r.plot, P.eave), h, 0.6, 'plog') : this.pole(B.timber, I, E, rr, 8, pc, this.owner(r.plot, P.eave), 'end');
+        if (out0) stub(acrossU ? this.wp(inner(true), a, y) : this.wp(a, inner(true), y), A0, hi(seed, k, 6));
+        if (out1) stub(acrossU ? this.wp(inner(false), a, y) : this.wp(a, inner(false), y), B0, out0 ? (hi(seed, k, 6) + 0.5) % 1 : hi(seed, k, 6)); // (the variant and turn the near level gives the same end)
+        continue; }
+      if (kitOn && (out0 || out1)) { // D-324, near: the kit's eave pole, its chopped end over the court (both ends out: two, from the middle)
+        const at = (c: number) => acrossU ? this.wp(c, a, y) : this.wp(a, c, y), h = hi(seed, k, 6), own = this.owner(r.plot, P.eave);
+        if (out0 && out1) { const m = at((e0 + e1) / 2); kitLog(B.timber, m, A0, rr, pc, own, h, 0.6, 'plog'); kitLog(B.timber, m, B0, rr, pc, own, (h + 0.5) % 1, 0.6, 'plog'); }
+        else kitLog(B.timber, A, Bq, rr, pc, own, h, 0.6, 'plog');
+        continue; }
+      this.pole(B.timber, A, Bq, rr, out0 || out1 ? 8 : 4, pc, this.owner(r.plot, P.eave), out0 || out1 ? 'end' : false); }
     B.timber.set('ao', 1);
-    this.furnish(r, B);
+    if (!this.lod) this.furnish(r, B);
     // eaves: the brush layer's underside and front, the earth front, the lip (broken at the spout), the spout
     for (let sd = 0; sd < 4; sd++) { if (!ext[sd]) continue;
       const isU = sd >= 2, edge = sd === 0 ? v0 : sd === 1 ? v1 : sd === 2 ? u0 : u1, dir = sd % 2 === 0 ? -1 : 1, outE = edge + dir * ext[sd], faceE = edge + dir * tf / 2;
@@ -572,7 +630,7 @@ export class SiteHouses {
       if (drainHere) { const y0s = (isU ? yRoof(outE, sp) : yRoof(sp, outE)) - 0.02, L2 = 0.5; const A = P3(sp, faceE, y0s + 0.02), Bq = P3(sp, outE + dir * L2, y0s - 0.07);
         B.timber.set('ao', 0.9); this.pole(B.timber, A, Bq, 0.06, 5, sh(lin(POLE), 0.8), this.owner(r.plot, P.spout)); B.timber.set('ao', 1);
         // a flat stone where the water falls
-        const g2 = isU ? [outE + dir * (L2 + 0.25), sp] : [sp, outE + dir * (L2 + 0.25)]; const gy = this.gl(g2[0], g2[1]); B.stone.set('ao', 0.9); this.lbox(B.stone, g2[0], g2[1], 0.2, 0.16, gy - 0.05, gy + 0.03, lin(STONE), sh(lin(STONE), 1.05), this.owner(r.plot, P.spout), false, hi(seed, 8)); B.stone.set('ao', 1); }
+        const g2 = isU ? [outE + dir * (L2 + 0.25), sp] : [sp, outE + dir * (L2 + 0.25)]; const gy = this.gl(g2[0], g2[1]); B.stone.set('ao', 0.9); this.stone(B.stone, g2[0], g2[1], 0.2, 0.16, gy - 0.05, gy + 0.03, lin(STONE), sh(lin(STONE), 1.05), this.owner(r.plot, P.spout), hi(seed, 8)); B.stone.set('ao', 1); }
     }
     B.plaster.set('ao', 1); B.timber.set('ao', 1);
     // a room draining to the lane: a spout through the outer parapet and the streak it leaves down the wall
@@ -625,7 +683,10 @@ export class SiteHouses {
       { const [u, v] = atBack(along[0] + 0.15, 0.12), y = gy(u, v), g = s.grid(u, v); this.lbox(B.plaster, u, v, 0.2, 0.2, y - 0.05, y + 0.28, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own);
         B.plaster.lathe(g[0], g[1], y + 0.28, [[0.1, 0], [0.22, 0.2], [0.21, 0.42], [0.1, 0.58], [0.12, 0.62]], 9, lin([0.66, 0.5, 0.37]), own);
         B.plaster.lathe(g[0] + 0.03, g[1], y + 0.9, [[0.03, 0], [0.045, 0.05], [0.05, 0.08]], 6, lin([0.6, 0.42, 0.3]), own); }
-      if (h < 0.6) { const [u, v] = atBack((along[0] + along[1]) / 2, 0.2), y = gy(u, v); this.lbox(B.plaster, u, v, back < 2 ? Math.min(0.9, (along[1] - along[0]) / 2) : 0.22, back < 2 ? 0.22 : Math.min(0.9, (along[1] - along[0]) / 2), y - 0.05, y + 0.4, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own); } }
+      if (h < 0.6) { const [u, v] = atBack((along[0] + along[1]) / 2, 0.2), y = gy(u, v), hl = Math.min(0.9, (along[1] - along[0]) / 2);
+        if (kitOn) { const inn = this.dirW(...([[0, 1], [0, -1], [1, 0], [-1, 0]][back] as [number, number])), al = this.dirW(...([[1, 0], [1, 0], [0, 1], [0, 1]][back] as [number, number])); // D-324: the kit's bench
+          kitFrame(B.plaster, kitPiece('bench', hi(r.room, 54)), this.wp(u, v, y - 0.05), [al[0] * 2 * hl, 0, al[1] * 2 * hl], [0, 0.45, 0], [inn[0] * 0.44, 0, inn[1] * 0.44], this.tone(r.plot, 1, false), own); }
+        else this.lbox(B.plaster, u, v, back < 2 ? hl : 0.22, back < 2 ? 0.22 : hl, y - 0.05, y + 0.4, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own); } }
     else if (use === 'store') { // a store: jars and sacks along the back wall
       const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
       for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
@@ -639,7 +700,7 @@ export class SiteHouses {
       B.timber.poly([this.wp(mu0, mv0, gy(mu0, mv0) + 0.13), this.wp(mu1, mv0, gy(mu1, mv0) + 0.13), this.wp(mu1, mv1, gy(mu1, mv1) + 0.13), this.wp(mu0, mv1, gy(mu0, mv1) + 0.13)], [0, 1, 0], mat, own);
       const bed: RGB[] = [[0.7, 0.64, 0.52], [0.52, 0.28, 0.2], [0.42, 0.36, 0.3], [0.66, 0.5, 0.3]]; const nb = 1 + Math.floor(hi(r.room, 7) * 3);
       for (let k = 0; k < nb; k++) { const a = along[0] + 0.3 + k * 0.75; if (a + 0.6 > along[1]) break; const [ua, va] = atBack(a, 0.16), [ub, vb] = atBack(a + 0.6, 0.16), y = gy(ua, va) + 0.13 + 0.14;
-        this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own); }
+        this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own, true, false); }
       const L = this.lampSpot(r.plot); if (L) { const [lu, lv] = this.backPoint(r, 0.5, 0.2); const lg = s.grid(lu, lv); if (Math.hypot(lg[0] - L[0], lg[1] - L[1]) < 0.01) { const [bu, bv] = this.backPoint(r, 0.5, 0.08);
         this.lbox(B.plaster, bu, bv, 0.18, 0.18, L[2] - 0.1, L[2] - 0.02, sh(this.tone(r.plot, 1, false), 0.7), sh(this.tone(r.plot, 1, false), 0.8), own); // a ledge of mud
         B.plaster.lathe(lg[0], lg[1], L[2] - 0.02, [[0.03, 0], [0.07, 0.02], [0.075, 0.035], [0.06, 0.035]], 7, lin([0.6, 0.42, 0.3]), own);
@@ -669,12 +730,17 @@ export class SiteHouses {
       case 'ladder': { const faceD = 0.275, top = R + 0.45, eaveD = faceD + 0.3, gy = g(0, 1.1), foot = eaveD + (top - gy) * 0.2, c = sh(tb, 0.9 + 0.2 * hi(f.plot, 1));
         B.props.set('ao', 0.9);
         for (const e of [-0.22, 0.22]) this.pole(B.props, W3(e, foot, gy - 0.05), W3(e * 0.95, eaveD - 0.04, top), 0.035, 5, c, own);
-        for (let y = gy + 0.3; y < top - 0.1; y += 0.31) { const k = (y - gy) / (top - gy), d = foot + (eaveD - 0.04 - foot) * k; this.pole(B.props, W3(-0.22, d, y), W3(0.22, d, y), 0.02, 4, sh(c, 0.95), own, false); }
+        for (let y = gy + 0.3; y < top - 0.1; y += 0.31) { const k = (y - gy) / (top - gy), d = foot + (eaveD - 0.04 - foot) * k;
+          // D-324, near: the kit's rung, bound to the rails with rawhide at both ends; beyond NEAR0 the stick
+          if (kitOn && !this.lod) kitLog(B.props, W3(-0.235, d, y), W3(0.235, d, y), 0.02, sh(c, 0.95), own, hi(f.plot, Math.round(y * 10), 7)); else this.pole(B.props, W3(-0.22, d, y), W3(0.22, d, y), 0.02, 4, sh(c, 0.95), own, false); }
         B.props.set('ao', 1); break; }
       case 'bench': { const d0 = 0.27, dep = 0.45, h = f.h ?? 0.42, [u, v] = at(0, d0 + dep / 2), gy = g(0, d0 + dep / 2), c = this.tone(f.plot, 1, false);
-        B.items.set('y0', gy).set('ytop', gy + h).set('ao', 0.8); this.lbox(B.items, u, v, dep / 2, f.len / 2, gy - 0.1, gy + h, sh(c, 0.9), sh(c, 1.03), own, false, yaw); B.items.set('ao', 1); break; }
+        B.items.set('y0', gy).set('ytop', gy + h).set('ao', 0.8);
+        // D-324, near: the kit's bench (slumped front arris, rounded ends, the seats worn hollow, the foot splashed); beyond NEAR0 the box
+        if (kitOn && !this.lod) { const al = this.dirW(tu, tv), inn = this.dirW(nu, nv); kitFrame(B.items, kitPiece('bench', hi(f.plot, f.alt ?? 3, 53)), this.wp(u, v, gy - 0.1), [al[0] * f.len, 0, al[1] * f.len], [0, h + 0.1, 0], [inn[0] * dep, 0, inn[1] * dep], sh(c, 1.0), own); }
+        else this.lbox(B.items, u, v, dep / 2, f.len / 2, gy - 0.1, gy + h, sh(c, 0.9), sh(c, 1.03), own, false, yaw); B.items.set('ao', 1); break; }
       case 'portico': { const [p1, p2] = f.posts!, ph = R - 0.42; const c = sh(tb, 0.95);
-        for (const [u, v] of [p1, p2]) { const gy = this.gl(u, v); B.stone.set('ao', 0.9); this.lbox(B.stone, u, v, 0.24, 0.24, gy - 0.1, gy + 0.14, sh(st, 0.85), st, this.owner(f.plot, P.portico), false, 0.2 + hi(u, v));
+        for (const [u, v] of [p1, p2]) { const gy = this.gl(u, v); B.stone.set('ao', 0.9); this.stone(B.stone, u, v, 0.24, 0.24, gy - 0.1, gy + 0.14, sh(st, 0.85), st, this.owner(f.plot, P.portico), 0.2 + hi(u, v));
           B.props.set('ao', 0.9); this.pole(B.props, this.wp(u, v, gy + 0.14), this.wp(u, v, ph - 0.2), 0.1, 8, c, this.owner(f.plot, P.portico)); }
         // the beam on the posts, the poles from the facade to it, matting and earth over them
         const [a0, b0] = [p1[0] - (p2[0] - p1[0]) * 0.35, p1[1] - (p2[1] - p1[1]) * 0.35], [a1, b1] = [p2[0] + (p2[0] - p1[0]) * 0.35, p2[1] + (p2[1] - p1[1]) * 0.35];
@@ -689,7 +755,7 @@ export class SiteHouses {
         B.items.set('ao', 1); B.items.set('y0', -1000); B.plaster.set('y0', -1000); const dung = lin([0.31, 0.26, 0.19]); const [u3, v3] = at(0.2, 1.1); B.plaster.mound(...s.grid(u3, v3), 0.75, 0.025, dung, (e, n) => this.H(e, n), own, 2, 9);
         const [u4, v4] = at(-0.45, 1.25); const py = this.gl(u4, v4); B.props.set('ao', 0.9); this.pole(B.props, this.wp(u4, v4, py - 0.1), this.wp(u4, v4, py + 0.35), 0.03, 5, sh(tb, 0.7), own); B.props.set('ao', 1); break; }
       case 'fodder': { const straw = lin([0.66, 0.58, 0.39]); const [u, v] = at(0, 0.27 + (f.len) / 2 * 0.7); B.props.set('ao', 0.85); B.props.mound(...s.grid(u, v), f.len / 2 + 0.1, f.h ?? 0.8, straw, (e, n) => this.H(e, n), own, 4, 12); B.props.set('ao', 1); break; }
-      case 'firewood': { B.props.set('ao', 0.8); const n = 14 + Math.floor(hi(f.plot, 3) * 10);
+      case 'firewood': { B.props.set('ao', 0.8); const n = Math.ceil((14 + Math.floor(hi(f.plot, 3) * 10)) / (this.lod ? 2 : 1)); // (D-324: the middle ring half the sticks)
         for (let k = 0; k < n; k++) { const a = (hi(f.plot, k, 1) - 0.5) * f.len, h = (f.h ?? 0.8) * (0.7 + 0.5 * hi(f.plot, k, 2)), lean = 0.18 + 0.2 * hi(f.plot, k, 3), gy = g(a, 0.3 + lean);
           const c = f.alt === 2 ? sh(lin([0.42, 0.37, 0.3]), 0.8 + 0.3 * hi(k, 7)) : sh(lin([0.5, 0.43, 0.33]), 0.75 + 0.35 * hi(k, 7));
           this.pole(B.props, W3(a, 0.3 + lean, gy - 0.02), W3(a + (hi(f.plot, k, 4) - 0.5) * 0.3, 0.3, gy + h), 0.012 + 0.018 * hi(f.plot, k, 5), 4, c, own, false); }
@@ -712,12 +778,12 @@ export class SiteHouses {
       case 'cradle': { const gy = g(0, 0), [u, v] = at(0, 0), c = sh(tb, 1.05); B.props.set('ao', 0.85); this.lbox(B.props, u, v, 0.28, 0.45, gy + 0.08, gy + 0.36, sh(c, 0.8), c, own, false, yaw);
         for (const e of [-0.38, 0.38]) { const [u2, v2] = at(e, 0); this.lbox(B.props, u2, v2, 0.3, 0.03, gy, gy + 0.1, c, c, own, false, yaw + Math.PI / 2); } const cl = lin([0.75, 0.7, 0.6]); this.lbox(B.props, u, v, 0.25, 0.4, gy + 0.36, gy + 0.4, cl, cl, own, false, yaw); B.props.set('ao', 1); break; }
       case 'roller': { const sp = this.roofSpot(f); if (!sp) break; const a = f.rot, A = this.wp(sp.u - Math.cos(a) * 0.3, sp.v - Math.sin(a) * 0.3, sp.y + 0.14), Bq = this.wp(sp.u + Math.cos(a) * 0.3, sp.v + Math.sin(a) * 0.3, sp.y + 0.14);
-        B.stone.set('ao', 1); this.pole(B.stone, A, Bq, 0.14, 9, sh(st, 1.0), own); break; }
+        B.stone.set('ao', 1); this.pole(B.stone, A, Bq, 0.14, 9, sh(st, 1.0), own, true, false); break; }
       case 'roof_fuel': { const sp = this.roofSpot(f); if (!sp) break;
         // after the harvest: the household's grain share spread on a mat on the roof to dry (C)
         if (seasonOf(this.day) === 'harvest' && hi(f.plot, 91) < 0.5) { const g = lin([0.74, 0.64, 0.42]), a = f.rot + 1.2; B.props.set('ao', 1);
           const c0 = [sp.u - Math.cos(a) * 1.0 - 0.9, sp.v - Math.sin(a) * 1.0], pts = [[-0.8, -0.6], [0.8, -0.6], [0.8, 0.6], [-0.8, 0.6]].map(([x, z]) => this.wp(c0[0] + x * Math.cos(a) - z * Math.sin(a), c0[1] + x * Math.sin(a) + z * Math.cos(a), sp.y + 0.05));
-          B.props.poly(pts, [0, 1, 0], [g, sh(g, 0.95), g, sh(g, 1.04)], own); } B.props.set('ao', 0.95); const n = 18;
+          B.props.poly(pts, [0, 1, 0], [g, sh(g, 0.95), g, sh(g, 1.04)], own); } B.props.set('ao', 0.95); const n = this.lod ? 9 : 18;
         for (let k = 0; k < n; k++) { const a = f.rot + (hi(f.alt ?? 0, k) - 0.5) * 0.6, x = (hi(f.alt ?? 0, k, 1) - 0.5) * 0.9, z = (hi(f.alt ?? 0, k, 2) - 0.5) * 0.8, y = sp.y + 0.05 + 0.08 * Math.floor(k / 6);
           const c = sh(lin([0.47, 0.41, 0.31]), 0.75 + 0.4 * hi(f.alt ?? 0, k, 3)); const L2 = f.len * (0.7 + 0.3 * hi(k, 1)); this.pole(B.props, this.wp(sp.u + x - Math.cos(a) * L2 / 2, sp.v + z - Math.sin(a) * L2 / 2, y), this.wp(sp.u + x + Math.cos(a) * L2 / 2, sp.v + z + Math.sin(a) * L2 / 2, y + 0.03), 0.018, 4, c, own, false); }
         // a stack of dried dung cakes beside it
@@ -725,7 +791,7 @@ export class SiteHouses {
         B.props.set('ao', 1); break; }
       case 'roof_mats': { const sp = this.roofSpot(f); if (!sp || seasonOf(this.day) !== 'warm' && seasonOf(this.day) !== 'harvest') break; const n = 1 + (f.alt ?? 0) % 3; B.props.set('ao', 0.95); // rolled on the roof only while the nights are slept there
         for (let k = 0; k < n; k++) { const a = f.rot, o = (k - (n - 1) / 2) * 0.3, cu = sp.u - Math.sin(a) * o, cv = sp.v + Math.cos(a) * o; const c = k === 1 ? lin([0.55, 0.3, 0.22]) : sh(lin([0.63, 0.56, 0.4]), 0.9 + 0.15 * hi(k, f.plot));
-          this.pole(B.props, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own); }
+          this.pole(B.props, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own, true, false); }
         B.props.set('ao', 1); break; }
       case 'fleece': { // over a lane-facing parapet of the house
         const cand = this.walls.filter(w => w.plot === f.plot && w.w.kind === 'outer' && !w.w.door && Math.hypot(w.w.u1 - w.w.u0, w.w.v1 - w.w.v0) > 1.5); if (!cand.length) break;

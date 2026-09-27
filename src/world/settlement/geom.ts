@@ -108,7 +108,9 @@ export class Batch {
   /** lathe from (radius, height) pairs, bottom to top */
   lathe(e: number, n: number, y0: number, prof: [number, number][], sides: number, c: RGB, owner = -1) {
     for (let k = 0; k + 1 < prof.length; k++) { const [ra, ya] = prof[k], [rb, yb] = prof[k + 1]; if (ra === 0 && rb === 0) continue; this.cyl(e, n, ra, rb, y0 + ya, y0 + yb, sides, c, c, owner, false); }
-    const [rt, yt] = prof[prof.length - 1]; if (rt > 0) this.cyl(e, n, rt, rt, y0 + yt, y0 + yt, sides, c, c, owner, true);
+    // the top cap (D-324: the cap alone; a zero-height band under it was a third of a small pot's triangles, all degenerate)
+    const [rt, yt] = prof[prof.length - 1]; if (rt > 0) { const x = e, z = -n, y = y0 + yt, ci = this.v(x, y, z, 0, 1, 0, c);
+      for (let s = 0; s < sides; s++) { const a0 = (s / sides) * Math.PI * 2, a1 = ((s + 1) / sides) * Math.PI * 2; const i1 = this.v(x + Math.cos(a0) * rt, y, z + Math.sin(a0) * rt, 0, 1, 0, c), i2 = this.v(x + Math.cos(a1) * rt, y, z + Math.sin(a1) * rt, 0, 1, 0, c); this.tri(ci, i2, i1, owner); } }
   }
   /** a low mound (flattened dome) of radius r and height h, rings following the ground via groundAt */
   mound(e: number, n: number, r: number, h: number, c: RGB, groundAt: (e: number, n: number) => number, owner = -1, rings = 4, sides = 12) {
