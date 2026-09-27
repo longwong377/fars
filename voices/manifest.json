@@ -1,0 +1,117 @@
+{
+ "note": "CC0 and MIT Piper voices only; the non-commercial and GPL ones stay local",
+ "files": [
+  {
+   "file": "models/ur_PK-aegis_female-medium.MODEL_CARD",
+   "bytes": 611,
+   "sha256": "f9f16fbcfeec2c233be21c734125d6c1ada7ac0037c6ffd7751065f566b53b6e",
+   "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ur/ur_PK/aegis_female/medium/MODEL_CARD",
+   "licence": "MIT (model card)",
+   "md5_voices_json": "bdfc7cbc31734116416a30f3c0a835c6",
+   "espeak_voice": "ur_PK",
+   "why": "Urdu: aspirated stops, retroflexes, q, x, ɣ, ʃ, ʒ",
+   "serves": [
+    "B66 (better voice backend)",
+    "B17b (voice acceptance)",
+    "D-055 alternative \"neural phoneme-input TTS (Piper/VITS)\"",
+    "REAL_HARDWARE_TODO H8",
+    "Q-138"
+   ]
+  },
+  {
+   "file": "models/ur_PK-aegis_female-medium.onnx",
+   "bytes": 63515589,
+   "sha256": "3ec306035cfd0bbc22342fee5890450708a16dd231809522731678aa583c961f",
+   "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ur/ur_PK/aegis_female/medium/ur_PK-aegis_female-medium.onnx",
+   "licence": "MIT (model card)",
+   "md5_voices_json": "81f9f9772025785f548e1aa0de3361b7",
+   "espeak_voice": "ur_PK",
+   "why": "Urdu: aspirated stops, retroflexes, q, x, ɣ, ʃ, ʒ",
+   "serves": [
+    "B66 (better voice backend)",
+    "B17b (voice acceptance)",
+    "D-055 alternative \"neural phoneme-input TTS (Piper/VITS)\"",
+    "REAL_HARDWARE_TODO H8",
+    "Q-138"
+   ]
+  },
+  {
+   "file": "models/ur_PK-aegis_female-medium.onnx.json",
+   "bytes": 5236,
+   "sha256": "a8385c217a7e276acf5234bf01dbd0adb007a57c32ffbcc57d2db7eac3979bb6",
+   "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ur/ur_PK/aegis_female/medium/ur_PK-aegis_female-medium.onnx.json",
+   "licence": "MIT (model card)",
+   "md5_voices_json": "6ee1b0405998a314c51c6744b714becd",
+   "espeak_voice": "ur_PK",
+   "why": "Urdu: aspirated stops, retroflexes, q, x, ɣ, ʃ, ʒ",
+   "serves": [
+    "B66 (better voice backend)",
+    "B17b (voice acceptance)",
+    "D-055 alternative \"neural phoneme-input TTS (Piper/VITS)\"",
+    "REAL_HARDWARE_TODO H8",
+    "Q-138"
+   ]
+  },
+  {
+   "file": "models/ur_PK-fasih-medium.MODEL_CARD",
+   "bytes": 3017,
+   "sha256": "0d6419e74f99fdb0240180fc26067e2f71cff465c61b59e218a7cf53351cf91f",
+   "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ur/ur_PK/fasih/medium/MODEL_CARD",
+   "licence": "MIT (model card)",
+   "md5_voices_json": "b09bc06b80112279015035852c291a64",
+   "espeak_voice": "ur_PK",
+   "why": "Urdu: aspirated stops, retroflexes, q, x, ɣ, ʃ, ʒ",
+   "serves": [
+    "B66 (better voice backend)",
+    "B17b (voice acceptance)",
+    "D-055 alternative \"neural phoneme-input TTS (Piper/VITS)\"",
+    "REAL_HARDWARE_TODO H8",
+    "Q-138"
+   ]
+  },
+  {
+   "file": "models/ur_PK-fasih-medium.onnx",
+   "bytes": 63532015,
+   "sha256": "46d590b90fbb41e4d4f2c54ded44874917f8b11b6e0500de2a89e5d3731b5917",
+   "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ur/ur_PK/fasih/medium/ur_PK-fasih-medium.onnx",
+   "licence": "MIT (model card)",
+   "md5_voices_json": "275113cbb8ffb29e3f8d51d53d266318",
+   "espeak_voice": "ur_PK",
+   "why": "Urdu: aspirated stops, retroflexes, q, x, ɣ, ʃ, ʒ",
+   "serves": [
+    "B66 (better voice backend)",
+    "B17b (voice acceptance)",
+    "D-055 alternative \"neural phoneme-input TTS (Piper/VITS)\"",
+    "REAL_HARDWARE_TODO H8",
+    "Q-138"
+   ]
+  },
+  {
+   "file": "models/ur_PK-fasih-medium.onnx.json",
+   "bytes": 3146,
+   "sha256": "cfcf484a50b4036cb55675b6bbcdb9ddb9061ac10a51cfb2b3ce8391213205ec",
+   "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ur/ur_PK/fasih/medium/ur_PK-fasih-medium.onnx.json",
+   "licence": "MIT (model card)",
+   "md5_voices_json": "e9d386b28cc8da844e6342325e04608b",
+   "espeak_voice": "ur_PK",
+   "why": "Urdu: aspirated stops, retroflexes, q, x, ɣ, ʃ, ʒ",
+   "serves": [
+    "B66 (better voice backend)",
+    "B17b (voice acceptance)",
+    "D-055 alternative \"neural phoneme-input TTS (Piper/VITS)\"",
+    "REAL_HARDWARE_TODO H8",
+    "Q-138"
+   ]
+  },
+  {
+   "file": "piper_bin/piper-LICENSE.md",
+   "bytes": 1071,
+   "sha256": "4cd71dece7037f1d6d93cce7570c57ab75ea9ac566fd4990be2f3ab08d15b47f",
+   "url": "https://raw.githubusercontent.com/rhasspy/piper/master/LICENSE.md",
+   "licence": "MIT",
+   "serves": [
+    "B66"
+   ]
+  }
+ ]
+}

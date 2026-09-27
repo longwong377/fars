@@ -22,3 +22,4 @@ This branch shares no history with the code branches. To use it from a code chec
 - `photos/`: 158 Wikimedia Commons photographs of Persepolis, Naqsh-e Rustam, the plain and Fars villages under CC0, CC BY or
   public domain (the 208 CC BY-SA ones stay on the GPU machine as reference-only); photos/manifest.json has author, licence
   and EXIF for each.
+- `voices/`: Piper TTS voices under CC0 or MIT (fa_IR amir, ganji, ganji_adabi, reza_ibrahim; el_GR rapunzelina; ur_PK fasih, aegis_female).
