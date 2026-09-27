@@ -71,7 +71,7 @@ the placeholder flags first. Counts from `buildTerrace()`, `public/generated/*.j
 | `assets.json` | the registry: per asset the source script and its arguments (with the reasoning for each technical number, tier C), the files and SITE_SPEC values it reads, the levels' map sizes, the bake settings, the budgets, tier, sources, ledger row |
 | `sources/<asset>.ts` | node, the project's own model code: writes `high.ply` (the dense surface) and `lod<i>.ply` (the game's levels) with their normals (lib/ply.ts) |
 | `bake.py` | Blender 5.0.1 headless: import (y-up → z-up), weld crease-split corners, Smart UV Project, Cycles selected-to-active normal (tangent) and AO bakes with the levels invisible to rays, pack normal RGB + AO A into one PNG per level (one sampler, D-295), export GLB (Draco 14/10/12/12 bits, MikkTSpace tangents) |
-| `build.mjs` | the one command: hash inputs, write sources, bake (GPU through `gpu_slot.mjs`, or `--device=CPU`), KTX2 when `ktx` exists, measure, check budgets, write `public/models/<id>.glb` + `manifest.json`, copy three's Draco and Basis decoders to `public/models/lib/`; `--verify` rebuilds and compares bytes; `--check` lists stale assets |
+| `build.mjs` | the one command: hash inputs, write sources, bake (CPU by default: byte-reproducible; `--device=GPU` through `gpu_slot.mjs` for heavy bakes, reproduced 1 of 2 times), KTX2 when `ktx` exists, measure, check budgets, write `public/models/<id>.glb` + `manifest.json`, copy three's Draco and Basis decoders to `public/models/lib/`; `--verify` rebuilds and compares bytes; `--check` lists stale assets |
 | `lib/glb.mjs`, `lib/inputs.mjs` | GLB measuring and repacking; the input hash (shared with the test) |
 | `preview.py` | a node-side contact sheet: the level plain, baked, and its occlusion, from a 3/4 view (Cycles, CPU) |
 
@@ -92,7 +92,7 @@ protome: the levels keep the game's triangles, column-without-protome + protome 
 **Budgets (T-K rows).** T-K7 first-load download <= 60 MB (public/ already holds ~91 MB: textures 58, generated 30, so the
 first load is not yet measured against it; every model adds its GLB); T-K8 GPU memory <= 3.5 GB in the heaviest view
 (a 1024 px PNG map costs 5.6 MB decoded, a KTX2 UASTC one 1.4 MB); T-K6 frame time: each model adds one instanced draw
-per level per order group (the protome: <= 16 draws incl. none for shadows beyond the caster's LOD), no triangles.
+per level per order group (the protome: 16 instanced meshes, 8 order groups × 2 levels, of which the visible ones draw; plus their shadow passes), no triangles.
 
 ## 4. The rollout: order, sources, budgets, who uses it
 
@@ -113,8 +113,10 @@ How an area agent uses it: write `tools/blender/sources/<asset>.ts` from the pro
 reasoning for each technical value in the script), add the entry to `tools/blender/assets.json` with budgets, run
 `node tools/blender/build.mjs <id>` then `--verify <id>`, add the ASSET_LEDGER row, and in the builder draw
 `model(id)` with `bakedMaterial` when it is loaded (the procedural stand-in otherwise); render before/after with
-`window.__models.ab`. Heavy bakes go through the GPU slots (the default); `--device=CPU` needs none (the protome bakes in
-~15 s on the 16 cores).
+`window.__models.ab`. Bakes run on the CPU by default (the protome in ~15 s on the 16 cores, no GPU slot, byte-reproducible);
+`--device=GPU` (OptiX on the T4, through the GPU slots) for bakes too heavy for the CPU, accepting that its output may
+not reproduce byte for byte. Iterate on node previews (`tools/blender/preview.py`, a contact sheet in ~15 s) and spend one
+batched full-world render (tests/e2e/blender_hero.spec.ts is the pattern: A/B in one page load) as the final check.
 
 ## 5. What to install (asks for the lead)
 
@@ -125,4 +127,20 @@ reasoning for each technical value in the script), add the entry to `tools/blend
 
 ## 6. Measured on the hero (capital protome)
 
-See DECISIONS D-305 for the before/after renders, draw counts and the reviewer's read.
+- **Build:** sources 60 s (node: marching cubes of the protome SDF at 0.005 D, 1.84 M triangles, locks at 1,500 triangles),
+  bake 12 s CPU / 5 s OptiX, whole build ~60 s. GLB 2.04 MB (maps 1.68 + 0.13 MB PNG, Draco geometry 0.2 MB), GPU ~6.8 MB
+  estimated (maps decoded RGBA8 + mips); LOD0 8,816 / LOD1 1,074 triangles = the game's own; +16 instanced meshes. Byte
+  reproduction: CPU 3 of 3, GPU 1 of 2 (default made CPU).
+- **Renders** (tests/e2e/blender_hero.spec.ts, one page load, Q=high, the player's 70° lens, 1600×900, 6 views × 2 hours,
+  shots/blender/*-{before,after}.png, sheets shots/blender/sheet-*.png): the model loads in ~0.5 s; the frames differ on
+  0.6-4.1 % of pixels (the capitals) by a mean 8-13 luma levels, almost all darker (the occlusion in the eye sockets, the
+  lock grooves, under the folded forelegs and the horns' roots); draw calls and triangles equal between A and B (the swap
+  keeps the instances); no WebGPU validation error (the extra sampler fits).
+- **Reviewer's read (the agent's own, against fars-assets/photos/columns_capitals "Broken Bull Capital" and the Gate's
+  capitals):** the bake does what it can: the heads gain eye sockets and a shadowed chest apron, the forms read more carved
+  at 5-15 m. It does not make the capitals read as real stone carving: the model has none of the bead rows, harness bands,
+  rosettes and ridged locks of the real capitals (Q-830), and the surface is uniformly clean. T-A4cg is not moved by this
+  asset alone.
+- **Found by the first render and fixed:** the model came out lying on its side (Blender's PLY importer ignored the axis
+  options; every node test passed): the PLY is now written in Blender's axes and a test compares the GLB's bounds with the
+  game's pieces.
