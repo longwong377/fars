@@ -254,10 +254,19 @@ test('moments', async ({ page }, info) => {
   // state costs one page load however the list is ordered (D-187)
   const firstAt = new Map<string, number>(); SHOTS.forEach((s, i) => { if (!firstAt.has(stateOf(s))) firstAt.set(stateOf(s), i); });
   const ordered = SHOTS.map((s, i) => ({ s, i })).sort((a, b) => firstAt.get(stateOf(a.s))! - firstAt.get(stateOf(b.s))! || a.i - b.i).map(q => q.s);
+  // LAST=<view>: that view's state goes last (session 11: a BATCH run reaches it by setTime/setWeather, to compare with a fresh load)
+  if (process.env.LAST) { const st = stateOf(SHOTS.find(q => q.n === process.env.LAST)!); ordered.sort((a, b) => +(stateOf(a) === st) - +(stateOf(b) === st)); }
   const eyeAt = new Map<string, number>(); // exposure of each view rendered on the current page load (carried eyes)
   for (const s of ordered) {
     if (only && !only.includes(s.n)) continue;
     const state = stateOf(s);
+    // BATCH=1 (session 11, the GPU box: a page load is ~11 min of shader compiles, a frame 0.1 s): a new day, hour or weather
+    // is set on the loaded world (setTime/setWeather) instead of reloading; a change of the court setting still reloads
+    const court = (st: string) => st.split('|')[3];
+    if (state !== loaded && process.env.BATCH && loaded && court(loaded) === court(state)) { eyeAt.clear();
+      await page.evaluate(([d, h, w]) => { const p = (window as any).__parsa; p.setWeather(w); p.setTime(d, h); }, [s.day, s.hour, s.w] as const);
+      loaded = state;
+    }
     if (state !== loaded) { eyeAt.clear();
       await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}${s.court ? '&court=seasonal' : ''}${WEBGL ? '&webgl=1' : ''}${process.env.URLX ?? ''}`); // URLX: extra query for debug runs (e.g. &shaftdbg=1)
       await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
