@@ -121,7 +121,7 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // session 9 (G5): breath in the cold at the same dawn, among the people of the Terrace's gate (the Gate of All Lands)
   { n: 'breath-dawn', day: 269, hour: 7.5, w: 'clear', v: [-12, 118, 1.6, 71, -4], fov: 45 },
   // session 9 (G10): the 22 deg halo and sun dogs under the day's own thin cover (day 220, 09:00, sun 26 deg up at az 135)
-  { n: 'halo-sundogs', day: 220, hour: 9, w: 'auto', v: [0, 0, 1.6, 135, 24], fov: 75 },
+  { n: 'halo-sundogs', day: 220, hour: 9, w: 'auto', v: [-36, 125, 1.6, 135, 24], fov: 75 }, // (was [0, 0]: inside the Apadana's hall)
   // session 9 (G7): dust devils over the plain W of the Terrace on a hot June afternoon (day 54, 15:00, 37 C)
   { n: 'dust-devils-jun', day: 54, hour: 15, w: 'clear', v: [-36, 125, 1.6, 251, 1], fov: 60 },
   // session 9 (G8): heat shimmer and the inferior mirage over the plain at a hot June noon, looking W along the level (opt-in ?heat=1)

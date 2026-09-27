@@ -1,6 +1,12 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 9 (read HANDOFF.md's first section): most additions are unseen on screen.** Judged in renders: the crescent Moon and
+  the winter snowline VERIFIED; the fords (a pale staircase), frost (read as snow), the Kur ford (floating reeds, raised corridor
+  B83), the May flowers (pink blotches) BROKEN or weak, fixes queued; the eclipse's totality nearly black (B84); the heat pass
+  compiles but its effect was not seen. Never rendered: villages at dusk (B76), the crafts in the town, cattle/fishing/bees, the
+  quarry, the small life, birds, dust devils, hail, breath, roses, the new crops, timber carts. T-J5 not met (renders at the
+  player's lens queued). T-J6 fails (~19 % of gaps unfound). Timing tests failed only under load (re-run idle). T-F8: one seed.
 - **D-245 the town is not mute — UNHEARD: no browser has played any of it (B65).** Voices now come from everyone the crowd places
   near the listener (skinned and impostor, detailed agents and the population), in their own language and their own voice,
   published words only; peoples without a corpus (Egyptian, Lydian, Carian, Lycian, Cappadocian, Bactrian, Sogdian, Thracian, West

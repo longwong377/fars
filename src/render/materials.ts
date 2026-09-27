@@ -964,9 +964,9 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const snowMask = clamp(up.mul(max(WEATHER.snow, elev)).mul(open).mul(float(1.6).sub(mx_noise_float(p.mul(0.8)).add(1).mul(0.3))), 0, 1);
   // hoarfrost (session 9, G4): a speckled white rime on open, up-facing surfaces (patchy at ~2 m, fine at ~5 cm, fading past a few
   // pixels to its mean), under what snow would cover; it does not settle on wet ground (C)
-  const rime = up.mul(WEATHER.frost).mul(open).mul(float(1).sub(wet)).mul(smoothstep(0.25, 0.75, mx_noise_float(p.mul(0.5)).mul(0.5).add(0.5)).mul(0.5).add(0.5))
+  const rime = up.mul(WEATHER.frost).mul(open).mul(float(1).sub(wet)).mul(smoothstep(0.35, 0.7, mx_noise_float(p.mul(0.35)).mul(0.5).add(0.5))) // (patchy: the frost-dawn render read as snow: session 9)
     .mul(mx_noise_float(p.mul(18)).mul(0.25).add(0.75));
-  alb = mix(alb, vec3(0.78, 0.8, 0.84), rime.mul(0.7));
+  alb = mix(alb, vec3(0.72, 0.74, 0.78), rime.mul(0.45));
   m.colorNode = mix(alb, vec3(0.92, 0.93, 0.96), snowMask);
   m.roughnessNode = mix(mix(L.rough, L.rough.mul(0.45), wet), float(0.05), puddle).max(float(0.04)).mul(float(1).sub(snowMask.mul(0.1))).add(snowMask.mul(0.1));
   m.metalnessNode = float(d.metal ?? 0);

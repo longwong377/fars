@@ -1,3 +1,55 @@
+# HANDOFF — end of session 9 (2026-09-27); branch claude/amazing-fermi-40ds7j
+
+**Read first, in this order:** `USER_DIRECTIONS.md`, `MASTER_PLAN.md` (rev 2.1), `gates/thresholds.json`, then PROGRESS.md
+(problems first), this file, BLOCKERS.md, `sessions/s09.md`, `WORLD_INVENTORY.md`. Decide, log in DECISIONS, proceed; every
+report leads with what is broken. **Do not end a turn with close-out steps "still ahead": nothing wakes the lead (s09 log).**
+
+## What is broken, unverified or placeholder (read first)
+- **Most of session 9's additions have never been seen on screen.** Rendered and judged (test quality, chosen lens): fords (a
+  pale staircase: fixed, re-render queued), the crescent Moon (VERIFIED after D-274), the winter snowline (VERIFIED on the N ranges),
+  frost (read as snow: toned down, re-render queued), the heat pass (compiles; effect not seen), the Kur ford (floating reeds:
+  snapshot predates the B83 tuft fix; raised corridor remains), the May flowers (pink blotches, no heads seen near), the beasts
+  (onagers read; lions specks; cheetahs hidden by a rise). Unrendered: villages at dusk, the crafts in the town (the smith only in
+  a forgeless lab), cattle/fishing/bees, the small life, birds, dust devils, hail (no hail day in the test seed), breath, roses,
+  alfalfa/flax, timber carts.
+- **T-J5 (three surprises at the player's lens) is not met;** jobs 413_tj5a / 414_tj5b in the queue render them at FOV=game, Q=high.
+  halo-sundogs' camera was inside the Apadana: moved to [-36, 125] (the tj5a job reads the fixed spec).
+- **B84:** the eclipse's totality renders nearly black. **B83:** the far ring's river corridor stands up to 6.5 m above the
+  ground. **B74-B76:** village build hitches (up to 681 ms), village fires 5.4 ms at dusk, villages unrendered. **B80/B81:**
+  quarrymen vanish on cold nights; nobody collects the month's wild garlic. **B67:** the town walk still fails (93.5 % / 16.4 %).
+- **Budgets near their limits:** the plain at 39 of 40 meshes; the village-p22 fov-70 frame at 1.93 M of 2.0 M triangles
+  (mostly the fords' stone mesh in the shadow passes).
+- **Timing tests** (performances, humans_runtime, solids, cloudnoise) failed only under load 7-9: re-run alone, idle, before
+  judging. T-F8 has one seed (1); seeds 7 and a fresh one still to soak.
+- Opt-in, pending A/B: `?probeloop=1`, `?shareinst=1` (jobs 415/416), `?heat=1` (D-268).
+
+## Merged this session (all on claude/amazing-fermi-40ds7j)
+- Lead: D-250 load anatomy + smaller shaders (opt-in), D-251 tiered tests, D-253 `?norender`, the eclipse, meteors, rainbow,
+  planets, snowline, predators and wild animals (beasts.ts), birds; after the gap hunt D-257..D-274 (fords, small life, flowers,
+  crops, human sounds, frost, halo, birds, flora, dust devils, hail, breath, heat, coughs, alfalfa/flax, roses, timber, the Moon).
+- Agents: D-249 town walk, D-252 court arrival, D-254 villages, D-255 crafts and records, D-256 land work. Worktrees under
+  .claude/worktrees/ can be removed.
+- The gap hunt: two hunters' reports (REVIEWS/gap_hunt_s9_A.md, _B.md) merged into WORLD_INVENTORY.md (capture-recapture: N ≈ 244,
+  ~46 unfound: T-J6 fails); 63 rows filled, 135 open. The fill order is at its top.
+
+## The render queue at close (tools/dev/render_runner.sh; work dir in the lead's scratchpad, not in the repo)
+Running: moontele (planets-moon-tele done, eclipse-moon-tele done, frost/breath/halo/dust at test quality). Queued: quarry
+(+tannery, press), tj5a, village (dusk, lane), ford2 (both fords + frost after fixes), tj5b, ab_old, ab_new. The queue dies with
+the container: a new session re-queues from tests/e2e/moments.spec.ts and plain.spec.ts (the views are all in the specs).
+
+## Next steps, in order
+1. Session start as usual (guards, fetch). Re-queue: the T-J5 views at FOV=game Q=high; the fords, frost, village dusk, crafts,
+   quarry; judge each and log in sessions/s10.md. Fix B84 (eclipse brightness) and whatever the renders show.
+2. Idle-box re-run of the four timing tests; T-F8 soaks for seeds 7 and a fresh seed (via cpu_slot).
+3. The pixel A/B for probeloop/shareinst; default them on if identical; heat on by default once its effect is seen.
+4. A third gap hunter with a different checklist (T-J6); then the people-side gaps: garrison rooms (G22), roof sleeping (G23),
+   latrines (G24), plastering at work (G25), board games (G32), tomb guardians (G35), the royal hunt (G11).
+5. B83 (a finer terrain ring over the rivers) and B74 (village build in a worker).
+6. At close: sessions/s10.md, fates in reserved_numbers.md, tag ratchet/s10.
+
+---
+
+# Previous: end of session 8
 # HANDOFF — end of session 8 (2026-09-26); branch claude/amazing-fermi-40ds7j (tag ratchet/s08 exists locally only: the git proxy dropped every tag push)
 
 **Read first, in this order:** `USER_DIRECTIONS.md` (the user's own words, UD-01..UD-14, append-only), `MASTER_PLAN.md` (rev 2.1,

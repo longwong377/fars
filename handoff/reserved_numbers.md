@@ -13,28 +13,28 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-244 | s8 | indoor truth on screen (Q-650..Q-659, B63..B64) | worktree-agent-af7d905287e998e62 | merged (session 8, 78f2a3b) |
 | D-245 | s8 | the town is not mute (Q-660..Q-669, B65..B66) | worktree-agent-af46721eb7f032c30 | merged (session 8, after 22956d7) |
 | D-249 | s9 | town walkability: doors and lane clearance (Q-670..Q-679, B67..B69) | worktree-agent-a9436d235d3ab7e79 | merged 8e78687 (agent stopped by an interruption; its uncommitted work kept as WIP c8a1e13; T-H1r/T-H1s not met, B67) |
-| D-250 | s9 | cached world (lead; speed plan D-248 step 1) | claude/amazing-fermi-40ds7j | in flight |
-| D-251 | s9 | tiered tests (lead; speed plan D-248 step 2) | claude/amazing-fermi-40ds7j | in flight |
+| D-250 | s9 | cached world (lead; speed plan D-248 step 1) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-251 | s9 | tiered tests (lead; speed plan D-248 step 2) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
 | D-252 | s9 | the court's arrival simulated; a new game starts before it (Q-680..Q-689, B70..B72) | worktree-agent-a05470624036dba65 | merged 8d7f15c (agent stopped by an interruption before its soak: unverified) |
-| D-253 | s9 | the renderless world (?norender) and its throughput (lead) | claude/amazing-fermi-40ds7j | in flight |
+| D-253 | s9 | the renderless world (?norender) and its throughput (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
 | D-254 | s9 | villages as real places (Q-690..Q-699, B74..B76) | worktree-agent-a40a663d397a906e6 | merged (session 9; Q-693..Q-699 unused) |
 | D-255 | s9 | crafts and records in action (Q-700..Q-709, B77..B79) | worktree-agent-a6b224ab6a23fe3b1 | merged (session 9; Q-704..Q-709 and B77..B79 unused) |
 | D-256 | s9 | work on the land (Q-710..Q-719, B80..B82) | worktree-agent-ab76e505f3151e55f | merged (session 9; Q-715..Q-719 and B82 unused) |
-| D-257 | s9 | the fords; the Pasargadae road redrawn (lead; Q-720..Q-721) | claude/amazing-fermi-40ds7j | in flight |
-| D-258 | s9 | the small life and the bats; puddles only on level ground (lead; B83) | claude/amazing-fermi-40ds7j | in flight |
-| D-259 | s9 | pulses and garden plots (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-260 | s9 | laughter, children's calls, babies crying (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-261 | s9 | hoarfrost; the 22 deg halo and sun dogs (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-262 | s9 | more birds seen (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-263 | s9 | frogs, tortoises, snakes, jirds (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-264 | s9 | thorn cushions, camelthorn, thistles (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-265 | s9 | dust devils (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-266 | s9 | hail (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-267 | s9 | breath in the cold (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-268 | s9 | heat shimmer and mirage (lead; opt-in) | claude/amazing-fermi-40ds7j | in flight |
-| D-269 | s9 | owl, bulbul, roller, ducks; water birds off the river beds (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-270 | s9 | coughs (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-271 | s9 | alfalfa and flax (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-272 | s9 | roses in the paradise (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-273 | s9 | roof timber arriving (lead) | claude/amazing-fermi-40ds7j | in flight |
-| D-274 | s9 | the Moon drawn additively; earthshine (lead) | claude/amazing-fermi-40ds7j | in flight |
+| D-257 | s9 | the fords; the Pasargadae road redrawn (lead; Q-720..Q-721) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-258 | s9 | the small life and the bats; puddles only on level ground (lead; B83) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-259 | s9 | pulses and garden plots (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-260 | s9 | laughter, children's calls, babies crying (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-261 | s9 | hoarfrost; the 22 deg halo and sun dogs (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-262 | s9 | more birds seen (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-263 | s9 | frogs, tortoises, snakes, jirds (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-264 | s9 | thorn cushions, camelthorn, thistles (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-265 | s9 | dust devils (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-266 | s9 | hail (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-267 | s9 | breath in the cold (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-268 | s9 | heat shimmer and mirage (lead; opt-in) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-269 | s9 | owl, bulbul, roller, ducks; water birds off the river beds (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-270 | s9 | coughs (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-271 | s9 | alfalfa and flax (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-272 | s9 | roses in the paradise (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-273 | s9 | roof timber arriving (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
+| D-274 | s9 | the Moon drawn additively; earthshine (lead) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commits on the branch) |
