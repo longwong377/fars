@@ -4,8 +4,8 @@ import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
-import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod, protomeBox, protomeMesh } from './sculpt';
-import { model, fitLevel, bakedMaterial, registerSwap } from '../render/models';
+import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod, protomeBox, protomeMesh, voluteBox, voluteMesh } from './sculpt';
+import { model, fitLevel, placeLevel, bakedMaterial, registerSwap } from '../render/models';
 export { cutWall } from './parts';
 
 /** Greybox materials (Phase 2): flat albedos from pigment/stone references are Phase 3; these are neutral and tagged C. */
@@ -370,6 +370,13 @@ export class InstancedLOD extends THREE.Object3D {
   }
 }
 /** Two-level distance LOD for one mesh (colossi); same camera rule as InstancedLOD */
+/** the affine map (row-major 3x4) that places a colossus piece (reference box, sculpture.json colossus) in its part's box, as
+ *  sculpt.ts colossusMesh does (a test holds them equal): scaled to the box, mirrored so the head faces `facing` and the relief
+ *  the passage */
+export function colossusPlacement(p: Box): number[] {
+  const RB = srow('colossus', 'reference_box'), L = p.size[0], W = p.size[1], H = p.y1 - p.y0, f = p.sculpt!.facing, s = p.sculpt!.passage;
+  return [(L / RB.L) * f, 0, 0, p.c[0], 0, H / RB.H, 0, p.y0, 0, 0, -(W / RB.W) * s, -p.c[1]];
+}
 export class MeshLOD extends THREE.Object3D {
   readonly isLOD = true; autoUpdate = true;
   constructor(readonly levels: THREE.Mesh[], private centre: THREE.Vector3, private switchAt: number, private hyst: number) {
@@ -449,7 +456,10 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     // capital are three, sculpture.json shaft.members)
     // D-305: the double-bull protome from the Blender pipeline (public/models/capital_protome.glb) when it is loaded: the
     // capitals are then built without their procedural protome, which is drawn as its own instanced pair of levels below
-    const PM = !flatMode && c.built >= 1 && protomeBox(c.order) ? model('capital_protome') : null, st = PM ? { protome: false } : {};
+    // D-306: likewise the composite capital's volute member (public/models/capital_volute.glb)
+    const PM = !flatMode && c.built >= 1 && protomeBox(c.order) ? model('capital_protome') : null;
+    const VM = !flatMode && c.built >= 1 && voluteBox(c.order) ? model('capital_volute') : null;
+    const st = { ...(PM ? { protome: false } : {}), ...(VM ? { volute: false } : {}) };
     const L0 = columnMeshesByMaterial(c.order, c.built, 0, st), L1 = columnMeshesByMaterial(c.order, c.built, 1, st), M = memberMaterials(c.order);
     const at = new Float32Array(c.parts.length * 4); c.parts.forEach((p, i) => at.set([p.c[0], p.y0, -p.c[1], c.order.baseH + (c.order.height - c.order.baseH) * c.built], i * 4));
     const b = c.parts[0].building, split = L0.length > 1;
@@ -466,15 +476,20 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       tris += (g0.index!.count / 3) * c.parts.length;
       group.add(lod);
     }
-    if (PM) {
-      const [lo, hi] = protomeBox(c.order)!, mat = M.capital, surf = CARVED[mat] ?? mat, b = c.parts[0].building;
-      const geos = PM.lods.map(g => fitLevel(g, lo, hi)), mats = PM.maps.map((map, k) => bakedMaterial(surf, map, `capital_protome:${k}`));
+    const members: [ReturnType<typeof model>, typeof protomeBox, typeof protomeMesh, string, string][] = [
+      [PM, protomeBox, protomeMesh, 'protome', `double-bull protome of the ${c.order.capital} capital`],
+      [VM, voluteBox, voluteMesh, 'volute', 'vertical double-volute member of the composite capital'],
+    ];
+    for (const [MM, boxOf, meshOf, part, what] of members) {
+      if (!MM) continue;
+      const [lo, hi] = boxOf(c.order)!, mat = M.capital, surf = CARVED[mat] ?? mat, b = c.parts[0].building;
+      const geos = MM.lods.map(g => fitLevel(g, lo, hi)), mats = MM.maps.map((map, k) => bakedMaterial(surf, map, `${MM.id}:${k}`));
       const lod = new InstancedLOD(geos, mats[0], at, SW.column, SW.hysteresis);
-      lod.name = `${b}:columns:protome`;
-      lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON`, placeholder: false, building: b, model: 'capital_protome',
-        note: `double-bull protome of the ${c.order.capital} capital, ${mat}: the project's own model (sculpture.json, form C, D-151) baked in Blender (D-305): normal and occlusion maps from a surface twice as fine as LOD0, on the same triangles` };
+      lod.name = `${b}:columns:${part}`;
+      lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON;PHOTO`, placeholder: false, building: b, model: MM.id,
+        note: `${what}, ${mat}: the project's own model (sculpture.json, form C, D-151) baked in Blender (D-305) with the carving of the photographed capitals (D-306: bead rows, collar with rosettes, pendant, ridged mane / rosette-ended rolls with ringed barrels; layout C): normal and occlusion maps on the same triangles` };
       lod.levels.forEach((im, k) => { im.material = mats[k] ?? mats[0]; im.name = `${lod.name}:lod${k}`; im.userData = lod.userData;
-        const pm = protomeMesh(c.order, k as Lod); if (pm) registerSwap(im, [toGeometry(pm), carvedMaterial(mat)]); });
+        const pm = meshOf(c.order, k as Lod); if (pm) registerSwap(im, [toGeometry(pm), carvedMaterial(mat)]); });
       tris += (geos[0].index!.count / 3) * c.parts.length;
       group.add(lod);
     }
@@ -484,10 +499,18 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     setColossusFront(front);
     const idx = sculptIndex(); if (idx && Math.abs(idx.params.colossusFront - front) > 0.05) console.warn(`sculpt: colossi were generated for a ${idx.params.colossusFront.toFixed(2)} m fore-part, the layout gives ${front.toFixed(2)} m (rerun npx tsx tools/build_sculpt.ts)`);
     for (const p of colossi) {
-      const meshes = ([0, 1] as Lod[]).map(l => { const m = new THREE.Mesh(toGeometry(colossusMesh(p, l)), carvedMaterial(p.material)); m.castShadow = m.receiveShadow = true; return m; });
+      // D-306: the colossus from the Blender pipeline (public/models/colossus_<model>.glb: the game's own levels with baked
+      // normal + occlusion maps of the carving, bead rows, collar, mane, feathers) when it is loaded; the procedural piece otherwise
+      const CM = flatMode ? null : model(`colossus_${p.sculpt!.model}`), surf = CARVED[p.material] ?? p.material;
+      const meshes = ([0, 1] as Lod[]).map(l => {
+        const stand = toGeometry(colossusMesh(p, l));
+        const m = CM && CM.lods[l] ? new THREE.Mesh(placeLevel(CM.lods[l], colossusPlacement(p)), bakedMaterial(surf, CM.maps[l], `${CM.id}:${l}`)) : new THREE.Mesh(stand, carvedMaterial(p.material));
+        if (CM && CM.lods[l]) registerSwap(m, [stand, carvedMaterial(p.material)]);
+        m.castShadow = m.receiveShadow = true; return m;
+      });
       const centre = new THREE.Vector3(p.c[0], (p.y0 + p.y1) / 2, -p.c[1]);
       const lod = new MeshLOD(meshes, centre, SW.colossus, SW.hysteresis); lod.name = `${p.building}:colossus:${p.sculpt!.model}`;
-      lod.userData = { tier: p.tier, src: p.src, placeholder: false, building: p.building, note: `${p.note ?? 'colossus'}; carved form reconstructed from the type (RECOLLECTION), not measured; licensed scans would replace it (NEEDS #10)` };
+      lod.userData = { tier: p.tier, src: p.src, placeholder: false, building: p.building, ...(CM ? { model: CM.id } : {}), note: `${p.note ?? 'colossus'}; carved form reconstructed from the type (RECOLLECTION), not measured; licensed scans would replace it (NEEDS #10)${CM ? '; its carving (bead rows, collar, mane, feathers after the photographs: layout C) baked in Blender as normal and occlusion maps (D-306)' : ''}` };
       meshes.forEach((m, k) => { m.name = `${lod.name}:lod${k}`; m.userData = lod.userData; });
       tris += meshes[0].geometry.index!.count / 3;
       group.add(lod);

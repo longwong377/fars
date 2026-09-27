@@ -5,12 +5,16 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 // @ts-ignore plain node module shared with the build
-import { measureGLB, sha256, parseGLB } from '../tools/blender/lib/glb.mjs';
+import { measureGLB, sha256, parseGLB, MAP_TOL, GEO_TOL } from '../tools/blender/lib/glb.mjs';
 // @ts-ignore plain node module shared with the build
 import { readRegistry, inputHash } from '../tools/blender/lib/inputs.mjs';
 import { order } from '../src/arch/orders';
-import { protomeBox, protomeMesh, columnMesh, piece } from '../src/arch/sculpt';
-import { fitLevel, bakedMaterial } from '../src/render/models';
+import { protomeBox, protomeMesh, columnMesh, piece, voluteBox, voluteMesh, colossusMesh, toGeometry, pieceModel, sculptParams } from '../src/arch/sculpt';
+import { buildTerrace } from '../src/arch/terrace';
+import { colossusPlacement } from '../src/arch/meshes';
+import type { Box } from '../src/arch/parts';
+import { buildRelief, march } from '../tools/blender/lib/carving';
+import { fitLevel, placeLevel, bakedMaterial } from '../src/render/models';
 
 const REG = readRegistry(), MAN = JSON.parse(readFileSync('public/models/manifest.json', 'utf8'));
 const ids = Object.keys(REG.assets);
@@ -26,9 +30,14 @@ describe('Blender-built assets (D-305)', () => {
     it('the file is the one the build recorded (sha256)', () => expect(sha256(buf)).toBe(M.outHash));
     it('current: its inputs (data, model code, bake settings) hash as when it was built (else: node tools/blender/build.mjs ' + id + ')', () =>
       expect(inputHash(id, E)).toBe(M.inHash));
-    it('reproducible: a second build from the same inputs gave the same bytes (build.mjs --verify)', () => {
+    it('reproducible: a second build from the same inputs gave the same bytes, or (D-306) the same decoded geometry and maps within tolerance (build.mjs --verify)', () => {
       expect(M.reproduced, 'not yet reproduced: run node tools/blender/build.mjs --verify ' + id).toBeTruthy();
       expect(M.reproduced.outHash).toBe(M.outHash);
+      if (M.reproduced.mode === 'content') {
+        expect(M.reproduced.geometry).toBe(true);
+        for (const g of M.reproduced.geo) { expect(g.frac).toBeLessThanOrEqual(GEO_TOL.frac); expect(g.max).toBeLessThanOrEqual(GEO_TOL.max); }
+        for (const m of M.reproduced.maps) { expect(m.frac).toBeLessThanOrEqual(MAP_TOL.frac); expect(m.max).toBeLessThanOrEqual(MAP_TOL.max); }
+      }
     });
     it('within budget: triangles per level, map sizes, download, GPU memory', () => {
       E.lods.forEach((_: unknown, i: number) => {
@@ -108,5 +117,85 @@ describe('the capital protome in the game (D-305)', () => {
     const tex = new THREE.Texture(); const m = bakedMaterial('limestone_carved', tex, 'test:0');
     expect(m.normalNode).toBeTruthy(); expect(m.aoNode).toBeTruthy(); expect(m.colorNode).toBeTruthy();
     expect(bakedMaterial('limestone_carved', tex, 'test:0')).toBe(m); // cached
+  });
+});
+
+describe('KTX2 maps (D-306: KTX-Software 4.4.2)', () => {
+  for (const id of ids) it(`${id}: every map is KTX2 (UASTC, zstd, mipmapped) routed through KHR_texture_basisu`, () => {
+    const M = MAN.assets[id], { json } = parseGLB(readFileSync(`public/${M.file}`)), G = measureGLB(readFileSync(`public/${M.file}`));
+    expect(M.textures).toBe('ktx2');
+    expect(json.extensionsUsed).toContain('KHR_texture_basisu');
+    for (const im of G.images) { expect(im.mimeType).toBe('image/ktx2'); expect(im.format).toBe('ktx2'); expect(im.levels, 'mip levels').toBe(Math.log2(im.w) + 1); }
+    for (const t of json.textures) { expect(t.extensions?.KHR_texture_basisu?.source).toBeTypeOf('number'); expect(t.source).toBeUndefined(); }
+  });
+});
+
+describe('the volute member and the colossi in the game (D-306)', () => {
+  for (const [id, name] of [['capital_volute', 'volute'], ['colossus_bull', 'colossus_bull'], ['colossus_lamassu', 'colossus_lamassu']] as const) {
+    it(`${id}: the levels keep the game's triangles and stand where the game's pieces do (bounds within the Draco quantisation)`, () => {
+      const { json } = parseGLB(readFileSync(`public/${MAN.assets[id].file}`));
+      for (const lod of [0, 1] as const) {
+        // Blender's weld (bake.py) drops a triangle whose corners coincide, or that repeats another's three corners (the
+        // lamassu's LOD1 has one, left by the simplifier): the rest are the game's own
+        const pc = piece(name, lod), key = (i: number) => [0, 1, 2].map(k => pc.pos[i * 3 + k].toFixed(6)).join(','), seen = new Set<string>();
+        let dropped = 0; for (let t = 0; t < pc.idx.length; t += 3) { const ks = [key(pc.idx[t]), key(pc.idx[t + 1]), key(pc.idx[t + 2])], k = [...ks].sort().join('|'); if (new Set(ks).size < 3 || seen.has(k)) dropped++; seen.add(k); }
+        expect(dropped, `lod${lod}`).toBeLessThanOrEqual(2);
+        expect(MAN.assets[id].lods[lod].tris, `lod${lod}: ${dropped} degenerate or repeated`).toBe(pc.idx.length / 3 - dropped);
+        const mesh = json.meshes.find((m: any) => m.name === `lod${lod}`), a = json.accessors[mesh.primitives[0].attributes.POSITION];
+        const bb = new THREE.Box3().setFromArray(piece(name, lod).pos), tol = name === 'volute' ? 2e-3 : 5e-3;
+        for (let k = 0; k < 3; k++) { expect(Math.abs(a.min[k] - bb.min.getComponent(k)), `lod${lod} min[${k}]`).toBeLessThan(tol); expect(Math.abs(a.max[k] - bb.max.getComponent(k)), `lod${lod} max[${k}]`).toBeLessThan(tol); }
+      }
+    });
+  }
+  for (const b of ['apadana', 'gate_nations']) it(`${b}: the composite column without its volute and protome plus both is the whole column; the boxes agree`, () => {
+    const o = order(b, { capital: 'composite' }), vb = voluteBox(o)!;
+    for (const lod of [0, 1] as const) {
+      const whole = columnMesh(o, 1, lod).idx.length / 3, without = columnMesh(o, 1, lod, { protome: false, volute: false }).idx.length / 3;
+      expect(without + voluteMesh(o, lod)!.idx.length / 3 + protomeMesh(o, lod)!.idx.length / 3).toBe(whole);
+      const bb = new THREE.Box3().setFromArray(voluteMesh(o, lod)!.pos);
+      expect(bb.min.toArray().map(x => +x.toFixed(4))).toEqual(vb[0].map(x => +x.toFixed(4)));
+      expect(bb.max.toArray().map(x => +x.toFixed(4))).toEqual(vb[1].map(x => +x.toFixed(4)));
+    }
+  });
+  it('colossusPlacement places a level exactly as colossusMesh places the procedural piece, mirrored ones included', () => {
+    const { parts } = buildTerrace(), cols = parts.filter((p: any) => p.type === 'box' && p.sculpt) as Box[];
+    expect(cols.length).toBe(4);
+    expect(new Set(cols.map(p => `${p.sculpt!.facing}|${p.sculpt!.passage}`)).size, 'the four face both ways').toBeGreaterThan(1);
+    for (const p of cols) {
+      const want = colossusMesh(p, 1), g = placeLevel(toGeometry(piece(`colossus_${p.sculpt!.model}` as any, 1)), colossusPlacement(p));
+      const P = g.getAttribute('position').array as Float32Array, N = g.getAttribute('normal').array as Float32Array;
+      let dp = 0, dn = 0; for (let i = 0; i < P.length; i++) { dp = Math.max(dp, Math.abs(P[i] - want.pos[i])); dn = Math.max(dn, Math.abs(N[i] - want.nrm[i])); }
+      expect(dp).toBeLessThan(1e-4); expect(dn).toBeLessThan(2e-3);
+      // the winding follows the mirror, as transformNorm's does
+      const I = g.index!.array; for (let t = 0; t < 30; t += 3) expect([I[t], I[t + 1], I[t + 2]]).toEqual([want.idx[t], want.idx[t + 1], want.idx[t + 2]]);
+    }
+  });
+  it('placeLevel under a mirror flips the tangents\' handedness (the baked normals keep pointing out of the surface)', () => {
+    const g = new THREE.PlaneGeometry(1, 1); g.computeTangents();
+    const m = placeLevel(g, [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]), T = m.getAttribute('tangent'), N = m.getAttribute('normal');
+    expect(T.getW(0)).toBe(-g.getAttribute('tangent').getW(0));
+    expect(T.getX(0)).toBeCloseTo(-g.getAttribute('tangent').getX(0)); expect(N.getZ(0)).toBeCloseTo(1);
+  });
+});
+
+describe('the carving layer (D-306: map-only relief after the photographs)', () => {
+  const C = JSON.parse(readFileSync('tools/blender/carving.json', 'utf8'));
+  it('every motif is data with a tier, a photograph and a note', () => {
+    for (const k of ['protome', 'colossus_bull', 'colossus_lamassu']) for (const m of [...C[k].motifs, ...(C[k].fields ?? [])]) {
+      expect(m.tier, `${k}.${m.name}`).toMatch(/^[ABC]$/); expect(m.note?.length).toBeGreaterThan(20);
+      for (const s of String(m.src).split(';')) expect(C.photos[s], `${k}.${m.name} photo ${s}`).toBeTruthy();
+    }
+  });
+  it('the protome\'s motifs land on its surface: every path projects, the relief is zero away from them and within the bake\'s cage', () => {
+    const M = pieceModel('protome', sculptParams(0), 0), { R, log } = buildRelief(M.f, C.protome.motifs, 0.06, 0.01);
+    expect(log.counts.beads).toBeGreaterThan(150); expect(log.counts.rosettes).toBeGreaterThan(5); expect(log.counts.strips).toBe(2);
+    for (const m of C.protome.motifs) expect(log[m.name], m.name).toBeTruthy();
+    const cage = REG.assets.capital_protome.bake.cage;
+    expect(R.hmax).toBeLessThan(cage); // the bake's rays reach every carved point from the game's level
+    expect(R.at(-1.5, 0.1, 0)).toBe(0); // the back of the far bull's base: no motif there
+    // a bead's crown: its centre stands out of the model by its height
+    const B = C.protome.motifs.find((m: any) => m.name === 'belly'), { R: R2 } = buildRelief(M.f, [B], 0.06, 0.01);
+    let top = 0; for (let x = 0.2; x < 0.9; x += 0.004) { const h = march(M.f, [x, B.path.pts[1][1], 2], [0, 0, -1]); if (h) top = Math.max(top, R2.at(h.p[0], h.p[1], h.p[2])); }
+    expect(top).toBeGreaterThan(B.h * 0.9); expect(top).toBeLessThanOrEqual(B.h + 1e-9);
   });
 });

@@ -1,0 +1,497 @@
+{
+ "about": "The carving layer of the Blender sources (D-306; tools/blender/lib/carving.ts): relief the photographs show on the capitals and the Gate's colossi that the project's SDF models lack. Map-only: added to the dense surface Blender bakes from, never to the game's triangles. Units: the model's (protome: D, the lower shaft diameter; colossus: metres in sculpture.json colossus.reference_box). Paths: [x, y] points are projected onto the flank from +z, [x, y, z] points snapped onto the surface. Tiers: the motifs (bead rows, collar band with rosettes, ridged mane, harness pendant) are photographed on the surviving capitals and doorway bulls, so their presence on these pieces is B; their layout and sizes are matched by eye on the photographs listed with each motif (C: no measured drawing of the carving was read; the ISAC Schmidt volumes' plates are the next source, Q-840). Sizes read by proportion to the model's own head and neck in the same photograph.",
+ "photos": {
+  "cap_side": "fars-assets/photos/columns_capitals/130306670_Top_of_column_in_Persepolis_Iran_463164308.jpg (fallen double-bull capital, side and three-quarter)",
+  "cap_head": "fars-assets/photos/columns_capitals/57159196_Broken_Bull_Capital_Persepolis_panoramio.jpg (bull capital head and neck, side)",
+  "gate_bull": "fars-assets/photos/gate_of_all_nations/64143388_Statuary_of_Bulls_Gate_of_All_Nations_Persepolis_Central_Ira.jpg (W doorway bull, passage side)",
+  "gate_front": "fars-assets/photos/gate_of_all_nations/81527995_GateOfAllNations_Frontview.jpg (E human-headed bulls, front)"
+ },
+ "protome": {
+  "unit": "D",
+  "motifs": [
+   {
+    "name": "mane",
+    "kind": "ridges",
+    "tier": "C",
+    "src": "cap_side;cap_head",
+    "note": "the neck crest carved as rows of short tongue-shaped locks across the crest, from behind the ears to the withers (photographed on both capitals: B for the motif); band 0.26 D each side of the crest in 4 rows, locks 0.036 D apart, 0.016 D high (C, by proportion to the neck's height in cap_side: about a fifth of it)",
+    "path": {
+     "pts": [
+      [
+       0.93,
+       1.78,
+       0
+      ],
+      [
+       0.82,
+       1.72,
+       0
+      ],
+      [
+       0.7,
+       1.62,
+       0
+      ],
+      [
+       0.58,
+       1.52,
+       0
+      ],
+      [
+       0.45,
+       1.42,
+       0
+      ],
+      [
+       0.3,
+       1.33,
+       0
+      ]
+     ]
+    },
+    "w": 0.26,
+    "rows": 4,
+    "pitch": 0.036,
+    "h": 0.016,
+    "groove": 0.55,
+    "border": {
+     "r": 0.018,
+     "h": 0.011,
+     "pitch": 0.044
+    }
+   },
+   {
+    "name": "halter",
+    "kind": "beads",
+    "tier": "C",
+    "src": "cap_head;cap_side",
+    "note": "a double row of beads arching round the back of the head from behind the ear down to the throat (both photographs); beads 0.036 D across, rows 0.04 D apart (C)",
+    "path": {
+     "pts": [
+      [
+       1,
+       1.73
+      ],
+      [
+       1.05,
+       1.62
+      ],
+      [
+       1.12,
+       1.52
+      ],
+      [
+       1.2,
+       1.44
+      ],
+      [
+       1.26,
+       1.36
+      ]
+     ]
+    },
+    "pitch": 0.042,
+    "r": 0.017,
+    "h": 0.011,
+    "offsets": [
+     0,
+     0.04
+    ]
+   },
+   {
+    "name": "collar",
+    "kind": "band",
+    "tier": "C",
+    "src": "cap_side",
+    "note": "the collar: a flat strap with a bead row along each edge and twelve-petalled rosettes along its middle, from the chest (where the curl apron ends) round the neck base, rising back toward the withers (cap_side: the band of rosettes between bead rows on the lower neck); strap 0.12 D wide, rosettes 0.09 D across at 0.1 D (C)",
+    "path": {
+     "pts": [
+      [
+       1.22,
+       1.24
+      ],
+      [
+       1.1,
+       1.25
+      ],
+      [
+       0.95,
+       1.25
+      ],
+      [
+       0.78,
+       1.22
+      ],
+      [
+       0.6,
+       1.17
+      ],
+      [
+       0.42,
+       1.12
+      ]
+     ]
+    },
+    "w": 0.06,
+    "h": 0.006,
+    "bevel": 0.008,
+    "bead_r": 0.014,
+    "bead_h": 0.004,
+    "bead_pitch": 0.034,
+    "rosette": {
+     "pitch": 0.1,
+     "R": 0.044,
+     "h": 0.01,
+     "petals": 12
+    }
+   },
+   {
+    "name": "pendant",
+    "kind": "fringe",
+    "tier": "C",
+    "src": "cap_side",
+    "note": "the harness pendant: short bead rows hanging from the collar over the shoulder, longest in the middle (cap_side: the trapezoid of bead rows on the shoulder); 6 rows 0.036 D apart (C)",
+    "top": {
+     "pts": [
+      [
+       0.98,
+       1.18
+      ],
+      [
+       0.72,
+       1.12
+      ]
+     ]
+    },
+    "rows": [
+     4,
+     5,
+     6,
+     6,
+     5,
+     4
+    ],
+    "pitch": 0.034,
+    "spacing": 0.038,
+    "r": 0.014,
+    "h": 0.009
+   },
+   {
+    "name": "strap",
+    "kind": "beads",
+    "tier": "C",
+    "src": "cap_side",
+    "note": "a double bead row along the back from the collar to the middle of the block (cap_side: the beaded strap along each bull's back) (C)",
+    "path": {
+     "pts": [
+      [
+       0.5,
+       1.06
+      ],
+      [
+       0.25,
+       1.05
+      ],
+      [
+       -0.1,
+       1.04
+      ]
+     ]
+    },
+    "pitch": 0.042,
+    "r": 0.016,
+    "h": 0.01,
+    "offsets": [
+     0,
+     0.038
+    ]
+   },
+   {
+    "name": "belly",
+    "kind": "beads",
+    "tier": "C",
+    "src": "cap_side",
+    "note": "a double bead row along the lower edge of the body over the folded forelegs (cap_side: the beaded band above the legs, running the length of the body) (C)",
+    "path": {
+     "pts": [
+      [
+       1.15,
+       0.54
+      ],
+      [
+       0.8,
+       0.52
+      ],
+      [
+       0.4,
+       0.51
+      ],
+      [
+       -0.1,
+       0.5
+      ]
+     ]
+    },
+    "pitch": 0.042,
+    "r": 0.016,
+    "h": 0.01,
+    "offsets": [
+     0,
+     0.038
+    ]
+   }
+  ]
+ },
+ "colossus_bull": {
+  "unit": "m",
+  "mirror": {
+   "zc": 0.23,
+   "note": "the fore-part stands in the round: its far side carries the same carving, mirrored about the body plane z = colossus.body.zc"
+  },
+  "motifs": [
+   {
+    "name": "collar",
+    "kind": "band",
+    "tier": "C",
+    "src": "gate_bull",
+    "note": "a collar band of rosettes between bead rows round the top of the neck under the (lost) head (gate_bull: the ornamented band where the neck meets the head); 18 cm wide, rosettes 12 cm across (C)",
+    "path": {
+     "pts": [
+      [
+       2.36,
+       4.3
+      ],
+      [
+       2.12,
+       4.42
+      ],
+      [
+       1.88,
+       4.57
+      ],
+      [
+       1.66,
+       4.75
+      ]
+     ]
+    },
+    "w": 0.09,
+    "h": 0.01,
+    "bevel": 0.012,
+    "bead_r": 0.022,
+    "bead_h": 0.006,
+    "bead_pitch": 0.054,
+    "rosette": {
+     "pitch": 0.15,
+     "R": 0.058,
+     "h": 0.009,
+     "petals": 12
+    }
+   },
+   {
+    "name": "mane",
+    "kind": "ridges",
+    "tier": "C",
+    "src": "gate_bull;cap_side",
+    "note": "the neck crest as rows of short ridged locks, as on the bull capitals (gate_bull: the ribbed band along the top of the neck; worn) (C)",
+    "path": {
+     "pts": [
+      [
+       1.56,
+       4.68
+      ],
+      [
+       1.35,
+       4.47
+      ],
+      [
+       1.1,
+       4.33
+      ],
+      [
+       0.8,
+       4.26
+      ],
+      [
+       0.55,
+       4.24
+      ]
+     ]
+    },
+    "w": 0.16,
+    "rows": 3,
+    "pitch": 0.055,
+    "h": 0.016,
+    "groove": 0.55,
+    "border": {
+     "r": 0.022,
+     "h": 0.014,
+     "pitch": 0.056
+    }
+   },
+   {
+    "name": "chest_edge",
+    "kind": "beads",
+    "tier": "C",
+    "src": "gate_bull;gate_front",
+    "note": "a double bead row along the back edge of the chest curl field, from the belly to the neck (gate_bull: the beaded rows framing the chest; gate_front: the same on the human-headed bulls); beads 5 cm across, rows 5 cm apart (C, by proportion to the 5.5 m figure)",
+    "path": {
+     "pts": [
+      [
+       1.88,
+       2.25
+      ],
+      [
+       1.88,
+       3.2
+      ],
+      [
+       1.95,
+       3.9
+      ]
+     ]
+    },
+    "pitch": 0.056,
+    "r": 0.024,
+    "h": 0.016,
+    "offsets": [
+     0,
+     -0.055
+    ]
+   },
+   {
+    "name": "belly_band",
+    "kind": "beads",
+    "tier": "C",
+    "src": "gate_bull",
+    "note": "a bead row along the belly above the fringe of curls (gate_bull) (C)",
+    "path": {
+     "pts": [
+      [
+       1.3,
+       2.2
+      ],
+      [
+       0.2,
+       2.22
+      ],
+      [
+       -1.05,
+       2.22
+      ]
+     ]
+    },
+    "pitch": 0.056,
+    "r": 0.024,
+    "h": 0.016
+   }
+  ]
+ },
+ "colossus_lamassu": {
+  "unit": "m",
+  "mirror": {
+   "zc": 0.23,
+   "note": "as the bulls"
+  },
+  "motifs": [
+   {
+    "name": "chest_edge",
+    "kind": "beads",
+    "tier": "C",
+    "src": "gate_bull;gate_front",
+    "note": "a double bead row along the back edge of the chest curl field, from the belly to the neck (gate_bull: the beaded rows framing the chest; gate_front: the same on the human-headed bulls); beads 5 cm across, rows 5 cm apart (C, by proportion to the 5.5 m figure)",
+    "path": {
+     "pts": [
+      [
+       1.88,
+       2.25
+      ],
+      [
+       1.88,
+       3.2
+      ],
+      [
+       1.95,
+       3.9
+      ]
+     ]
+    },
+    "pitch": 0.056,
+    "r": 0.024,
+    "h": 0.016,
+    "offsets": [
+     0,
+     -0.055
+    ]
+   },
+   {
+    "name": "belly_band",
+    "kind": "beads",
+    "tier": "C",
+    "src": "gate_bull",
+    "note": "a bead row along the belly above the fringe of curls (gate_bull) (C)",
+    "path": {
+     "pts": [
+      [
+       1.3,
+       2.2
+      ],
+      [
+       0.2,
+       2.22
+      ],
+      [
+       -1.05,
+       2.22
+      ]
+     ]
+    },
+    "pitch": 0.056,
+    "r": 0.024,
+    "h": 0.016
+   }
+  ],
+  "fields": [
+   {
+    "name": "barbs",
+    "kind": "barbs",
+    "tier": "C",
+    "src": "gate_front",
+    "note": "the barbs of the wing primaries: fine grooves along each feather (gate_front; the Assyrian and Achaemenid wing convention); 1.8 cm apart, 4 mm deep (C)",
+    "pitch": 0.018,
+    "h": 0.004
+   },
+   {
+    "name": "crown_rosettes",
+    "kind": "crown_rosettes",
+    "tier": "C",
+    "src": "gate_front",
+    "note": "the petals of the rosettes on the tiara band (gate_front: rosettes on the crown) cut into the bosses of the model (C)",
+    "petals": 8,
+    "scale": 1,
+    "h": 0.006
+   }
+  ]
+ },
+ "volute": {
+  "unit": "D",
+  "photo": "fars-assets/photos/gate_of_all_nations/90454591_The_stone_columns_of_the_Gate_of_All_Nations_they_were_1612_.jpg (standing composite column of the Gate: the volute member)",
+  "fill_note": "the roll ends are photographed as rosettes in a plain disc (B for the motif on this member), not the spiral channel of the D-151 model: since D-306 the model's channel is 0 deep (sculpture.json volute.member.carve, Q-841) and the rosette is carved in the baked map",
+  "rosette": {
+   "R": 0.72,
+   "h": 0.1,
+   "petals": 12,
+   "rim": 0.12,
+   "rim_h": 0.07,
+   "tier": "C",
+   "note": "rosette across 72 % of the roll's radius, 12 petals, 0.1 of the radius high; a rim at the disc's edge 12 % of the radius wide (by eye from the photograph)"
+  },
+  "rings": {
+   "n": 4,
+   "w": 0.022,
+   "h": 0.06,
+   "tier": "C",
+   "note": "four raised rings round each roll's barrel, 4.4 cm·D wide (by eye: the photograph's barrels show 3-4 ribs)"
+  }
+ }
+}

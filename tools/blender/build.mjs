@@ -8,19 +8,20 @@
 //     --verify runs; the protome bakes in ~15 s on the 16 cores, no GPU slot), or on the T4 with --device=GPU (Cycles OptiX,
 //     through the shared GPU slots, C:/Users/Administrator/fars-assets/gpu_slot.mjs; measured D-305: reproduced 1 of 2
 //     builds, so a GPU-built asset may fail the reproducibility test: use it for bakes too heavy for the CPU);
-//  4. KTX2: if the KTX-Software CLI (`ktx`) is on the PATH, re-encodes each map to KTX2 (UASTC + zstd, mipmaps) inside the
+//  4. KTX2: if the KTX-Software CLI ($KTX, its installer's default path, or `ktx` on the PATH) is found, re-encodes each map to KTX2 (UASTC + zstd, mipmaps) inside the
 //     GLB (KHR_texture_basisu); otherwise the maps stay PNG and the manifest says so (textures: "png");
 //  5. measures the GLB (triangles and vertices per level, image sizes, bytes, a GPU-memory estimate), checks the budgets,
 //     copies it to public/models/<id>.glb and records the build in public/models/manifest.json;
 //  6. copies three's Draco and Basis decoders into public/models/lib/ (the game serves them itself: src/render/models.ts).
-// --verify: rebuild into the work dir only and compare the output hash with the manifest's (reproducibility).
+// --verify: rebuild into the work dir only and compare the output hash with the manifest's (reproducibility); when the bytes
+//   differ, compare the content (lib/glb.mjs compareContent: Draco geometry decoded, KTX2 maps transcoded; D-306).
 // --check: only report which assets are stale (input hash differs from the manifest), exit 1 if any.
 // Large intermediates live under the work dir (default T:/fars-blender, volatile; C: is small): nothing there is needed
 // once public/models/ is written.
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
-import { measureGLB, repackGLB, sha256 } from './lib/glb.mjs';
+import { measureGLB, repackGLB, sha256, compareContent, MAP_TOL, GEO_TOL } from './lib/glb.mjs';
 import { readRegistry, inputHash } from './lib/inputs.mjs';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '../..');
@@ -44,7 +45,9 @@ if (CHECK) {
 }
 
 const blenderVersion = (() => { try { return /Blender (\S+)/.exec(execFileSync(BLENDER, ['--version'], { encoding: 'utf8' }))?.[1] ?? '?'; } catch { throw new Error(`Blender not found at ${BLENDER} (set BLENDER=...)`); } })();
-const ktx = (() => { const r = spawnSync('ktx', ['--version'], { encoding: 'utf8', shell: false }); return r.status === 0 ? r.stdout.trim() : null; })();
+// the KTX-Software CLI: $KTX, else its installer's default path (the installer did not put it on the PATH here, D-306), else 'ktx'
+const KTX = process.env.KTX ?? ['C:/Program Files/KTX-Software/bin/ktx.exe'].find(p => existsSync(p)) ?? 'ktx';
+const ktx = (() => { const r = spawnSync(KTX, ['--version'], { encoding: 'utf8', shell: false }); return r.status === 0 ? r.stdout.trim() : null; })();
 log(`Blender ${blenderVersion}; device ${DEVICE}${DEVICE === 'GPU' && !NOSLOT ? ' (through the GPU slots)' : ''}; KTX2 ${ktx ? ktx : 'unavailable (maps stay PNG)'}`);
 
 function run(cmd, argv, opts = {}) {
@@ -75,7 +78,7 @@ for (const id of want) {
     const M0 = measureGLB(glb), rep = {};
     for (const im of M0.images) {
       const png = `${out}/${id}_lod${im.index}.png`, k2 = png.replace(/\.png$/, '.ktx2');
-      run('ktx', ['create', '--format', 'R8G8B8A8_UNORM', '--assign-tf', 'linear', '--encode', 'uastc', '--uastc-quality', '2', '--zstd', '18', '--generate-mipmap', png, k2]);
+      run(KTX, ['create', '--format', 'R8G8B8A8_UNORM', '--assign-tf', 'linear', '--encode', 'uastc', '--uastc-quality', '2', '--zstd', '18', '--generate-mipmap', png, k2]);
       rep[im.index] = { data: readFileSync(k2), mimeType: 'image/ktx2' };
     }
     glb = repackGLB(glb, rep); textures = 'ktx2';
@@ -91,9 +94,19 @@ for (const id of want) {
   if (over.length) { console.error(`[blender] ${id} OVER BUDGET: ${over.join('; ')}`); failed++; continue; }
   if (VERIFY) {
     const prev = manifest.assets[id]; const same = prev?.outHash === outHash;
-    log(id, same ? `REPRODUCED: ${outHash.slice(0, 16)} equals the manifest's` : `DIFFERS: rebuilt ${outHash.slice(0, 16)}, manifest ${prev?.outHash?.slice(0, 16) ?? 'none'} (inputs ${prev?.inHash === inHash ? 'unchanged' : 'changed'})`);
-    if (!same) failed++;
-    else manifest.assets[id].reproduced = { outHash, device: stats.device, blender: blenderVersion }; // earned by this run, read by tests/blender_assets.test.ts
+    writeFileSync(`${out}/${id}.rebuilt.glb`, glb);
+    // bytes differ: the content test (lib/glb.mjs compareContent: the geometry decodes identically, the maps agree within
+    // MAP_TOL), against the published file the manifest names. D-306: Blender's Draco encoder wrote the colossi's levels as a
+    // different bitstream from identical meshes, and one build in four had one texel of 4.2 M one level apart
+    let cmp = null;
+    if (!same && prev?.inHash === inHash && existsSync(`public/${prev.file}`) && sha256(readFileSync(`public/${prev.file}`)) === prev.outHash) cmp = await compareContent(readFileSync(`public/${prev.file}`), glb);
+    const ok = same || !!cmp?.ok;
+    log(id, same ? `REPRODUCED: ${outHash.slice(0, 16)} equals the manifest's`
+      : cmp?.ok ? `REPRODUCED (content): rebuilt ${outHash.slice(0, 16)} decodes to the published geometry; maps ${cmp.maps.map(x => `${x.differ} texels differ (max ${x.max})`).join(', ')}`
+      : `DIFFERS: rebuilt ${outHash.slice(0, 16)}, manifest ${prev?.outHash?.slice(0, 16) ?? 'none'} (inputs ${prev?.inHash === inHash ? 'unchanged' : 'changed'})${cmp ? ' ' + JSON.stringify(cmp) : ''}`);
+    if (!ok) failed++;
+    else manifest.assets[id].reproduced = { outHash: prev.outHash, device: stats.device, blender: blenderVersion, mode: same ? 'bytes' : 'content', // earned by this run, read by tests/blender_assets.test.ts
+      ...(cmp ? { rebuilt: outHash, geometry: cmp.geometry, geo: cmp.geo, maps: cmp.maps.map(x => ({ differ: x.differ, frac: x.frac, max: x.max })), tol: { maps: MAP_TOL, geo: GEO_TOL } } : {}) };
     continue;
   }
   mkdirSync('public/models', { recursive: true }); writeFileSync(`public/models/${id}.glb`, glb);

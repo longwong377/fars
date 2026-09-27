@@ -317,7 +317,7 @@ describe('carving details (D-151)', () => {
       expect(bad / tot, `${n} ${lod}: corner normals more than 60° off their face`).toBeLessThan(0.01);
     }
   });
-  it('the composite volute is four rolls along the beam-crossing axis, their ends carved with the spiral round a raised eye', () => {
+  it('the composite volute is four rolls along the beam-crossing axis, their ends plain discs round a raised eye (D-306: the rosette is in the baked map)', () => {
     const { voluteH } = sculptParams(0.845), [vw, vd] = [1.25, 0.9], M = pieceModel('volute', sculptParams(0.845), 0), V = srow('volute', 'member');
     const rs = Math.min(vw * V.scroll_r, voluteH * V.scroll_r_max), rcx = vw / 2 - rs;
     // through the roll's axis the member is solid from face to face; the eye stands proud of the end face
@@ -325,9 +325,10 @@ describe('carving details (D-151)', () => {
       const cy = top ? voluteH - rs : rs;
       expect(M.f(sx * rcx, cy, 0)).toBeLessThan(0); expect(M.f(sx * rcx, cy, vd / 2 - 0.005)).toBeLessThan(0);
       expect(M.f(sx * rcx, cy, vd / 2 + V.eye_h * V.relief * vw * 0.5)).toBeLessThan(0); // the eye
-      // the channel between the coils is cut into the end: somewhere on a circle of half the roll radius the end face is carved back
+      // D-306: the roll's end is a plain disc (the photographed ends carry a rosette, carved in the Blender-baked map, not a
+      // spiral channel: sculpture.json volute.member.carve 0, Q-841): on a circle of half the roll radius the end face is whole
       let deepest = -Infinity; for (let k = 0; k < 72; k++) { const a = (k / 72) * 2 * Math.PI, x = sx * rcx + 0.5 * rs * Math.cos(a), y = cy + 0.5 * rs * Math.sin(a); deepest = Math.max(deepest, M.f(x, y, vd / 2 - 0.002)); }
-      expect(deepest, 'a spiral channel at the end of the roll').toBeGreaterThan(0);
+      expect(deepest, 'a plain disc at the end of the roll (D-306)').toBeLessThan(0);
     }
   });
 });

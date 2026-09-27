@@ -1,13 +1,16 @@
 # The Blender asset pipeline: inventory, pipeline, rollout (D-305, session 11)
 
-**Status (read first).** The pipeline runs from a clean checkout (`node tools/blender/build.mjs`: every asset; `--verify`
-reproduces byte for byte; `--check` lists stale assets). One hero asset is in the game: the double-bull protome of the bull
-and composite capitals (210 instances on six buildings), baked normal + occlusion maps on the game's own triangles.
-**Not done / placeholder:** the maps are PNG, not KTX2 (the KTX-Software CLI is not installed: see "What to install");
-impostors are designed here but not built; the protome's *form* is still the project's tier-C model (the photographs show
-bead rows, harness bands and rosettes the model does not have: the bake carries detail, it does not invent it). The Hall of
-100 Columns' columns under construction (src/world/construction.ts) and the capitals waiting in the masons' yard still draw
-the procedural protome (not my files).
+**Status (read first; D-306).** The pipeline runs from a clean checkout (`node tools/blender/build.mjs`: every asset; `--verify`
+reproduces byte for byte, or where Blender's Draco bitstream varies, in decoded content within tolerance; `--check` lists
+stale assets). Four assets are in the game, all with KTX2 maps (UASTC + zstd, BC7 on the T4): the double-bull protome (210
+capitals) and the composite capitals' volute member, both carved with the motifs of the photographed capitals (bead rows,
+collar and rosettes, pendant, mane; rosette-ended rolls), and the Gate's four colossi (bulls, human-headed bulls) with
+their collar, bead rows, mane, feather barbs. The carving is map-only relief on the bake's source (tools/blender/carving.json,
+lib/carving.ts). **Not done / placeholder:** the capitals and colossi still read as CG to a blind reviewer (capitals 2/5,
+colossi 1/5; B118): the FORM of the tier-C models is what fails (Q-842, B120), and the carving's sizes are by eye (Q-840);
+the palm and calyx bells are not baked (row 1); the volute member's reeded panel shows seam streaks in its map; the other
+protome types of Persepolis (griffin, lion) are not modelled (Q-843); impostors are designed here but not built; the Hall of
+100 Columns' columns under construction and the masons' yard capitals still draw the procedural protome (not my files).
 
 ## 1. What Blender adds, and what it cannot
 
@@ -120,6 +123,8 @@ batched full-world render (tests/e2e/blender_hero.spec.ts is the pattern: A/B in
 
 ## 5. What to install (asks for the lead)
 
+- **Done (D-306):** KTX-Software 4.4.2 is installed and used (build.mjs finds it at its installer's path); the text below is D-305's.
+
 - **KTX-Software 4.4.2** (installer already in C:\Users\Administrator\fars-assets\tools, Apache-2.0): puts `ktx` on the
   PATH; build.mjs then writes UASTC + zstd KTX2 maps with mipmaps (the protome: GPU 6.8 → ~1.7 MB; download about the same
   or smaller). Needed before the relief atlases (row 3). The KTX2 path in build.mjs (repackGLB + KTX2Loader) is written but
@@ -144,3 +149,17 @@ batched full-world render (tests/e2e/blender_hero.spec.ts is the pattern: A/B in
 - **Found by the first render and fixed:** the model came out lying on its side (Blender's PLY importer ignored the axis
   options; every node test passed): the PLY is now written in Blender's axes and a test compares the GLB's bounds with the
   game's pieces.
+
+## 7. Measured on the carving (D-306)
+
+- **Build** (CPU, 16 cores): protome 117-191 s (source 86 s: 1.9 M triangles at 0.004 D), bull 113-157 s, lamassu 134-157 s
+  (sources ~70 s: 3.3 M triangles at 0.008 m), volute 33-39 s. GLB 3.26 / 2.93 / 3.40 / 0.92 MB; GPU ~6.5 / 9.1 / 9.6 / 1.7 MB.
+- **The relief lookup** (Relief.at: a spatial hash with each motif filed under every cell its reach touches): 0.4 us a call
+  (18 us with string keys and 27-cell lookups: the protome source took over 5 min).
+- **Reproduction:** protome, bull, volute byte-identical; the lamassu by content (Draco bitstream differs, decoded equal, 0
+  texels differ). Earlier builds: one tangent component in ~190 k one step apart, one texel in 4.2 M one level apart.
+- **In the game:** KTX2 maps transcode to BC7 (models.formats); frames change on 1.4-15 % of pixels by 7-13 luma levels,
+  darker in the carving's hollows; triangles and draws unchanged between A and B. Blind review: REVIEWS/review_carving_s11.md.
+- **Iterating:** tools/blender/preview_high.py renders a SOURCE surface (the carving before any bake) in ~20 s;
+  tools/blender/probe/carving_probe.{html,ts,mjs} renders the carved pieces in the game's renderer without the world (load
+  6 s + ~100 s of shader compiling), before/after per view, with calibration pieces on the ground for the photographs.

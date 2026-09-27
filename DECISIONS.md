@@ -7282,3 +7282,55 @@ moment-*-webgpu.png in the worktree, not committed).**
   and open joints of the ruin, sculpted foot blocks (Blender, baked normal/AO: the lead's offer, not started), the court fill's
   and plain's gravel (land), the Now view's skyline (Q-783).
 - **Reversible:** yes (SCAN_USE entries, LIMESTONE hue, NOW_GROUND, the foot mesh one call in world.ts).
+
+## D-306 The carving: capitals and the Gate colossi from the photographs, baked in Blender; KTX2 on (session 11; UD-17, UD-06, UD-01, UD-05; T-A4, T-A4cg, T-A5; Q-830, Q-840..Q-843, B115, B118..B120)
+- **Decision:** the carving the photographs show and the project's SDF models lack is added as MAP-ONLY relief on the dense
+  surface Blender bakes from (tools/blender/lib/carving.ts; every motif a row of tools/blender/carving.json with its tier,
+  photograph and reasoning): on the double-bull protome a ridged mane in 4 rows with a bead border, a double bead halter
+  round the back of the head, a collar strap with bead-row edges and twelve-petalled rosettes, a harness pendant of bead
+  rows on the shoulder, bead straps along the back and the belly (fars-assets/photos/columns_capitals 130306670, 57159196);
+  on the Gate's W bulls a collar band with rosettes, double bead rows along the chest field and the belly, a ridged mane;
+  on the E human-headed bulls the chest and belly beads, the wing primaries' barbs and the tiara rosettes' petals
+  (gate_of_all_nations 64143388, 81527995); on the composite volute member rosettes in rimmed discs on the roll ends and
+  raised rings on the barrels (90454591). Motifs B (photographed on the monument), layout and sizes C (by eye; no
+  measured drawing read, Q-840). The game's triangles are unchanged: the maps carry the carving.
+- **Assets** (tools/blender/assets.json; `node tools/blender/build.mjs`): capital_protome (rebuilt: cell 0.004 D, 2048 px),
+  colossus_bull and colossus_lamassu (new: the game's levels, 49 k / 4.9 k triangles, 2048 / 512 px, source cell 0.008 m),
+  capital_volute (new: 2,258 / 296 triangles, 1024 / 256 px). Game hooks: the colossi draw their baked levels placed by
+  colossusPlacement (meshes.ts; mirrored ones reverse winding and tangent handedness, src/render/models.ts placeLevel; a test
+  holds it equal to colossusMesh); the composite capitals draw the volute member as its own instanced model
+  (sculpt.ts voluteBox / voluteMesh, ColumnState.volute) as D-305 drew the protome.
+- **The volute's spiral removed from the model (sculpture.json volute.member.carve 0.12 -> 0):** the photographed ends are
+  plain discs with a rosette (B for the Gate's column, Q-841). The first bake filled the spiral only in the high source and
+  the game's stepped channel tore the baked map (the reviewer: 'right motif, mesh visibly torn'); with the channel gone from
+  the geometry the rosettes bake clean. tests/sculpt.test.ts's D-151 assertion of a carved channel now asserts the plain disc.
+  (The reeded panel between the rolls still shows streaks in the map: seams of the low level's reeds; left, noted.)
+- **KTX2 on (B115 resolved):** build.mjs finds ktx.exe at its installer's path; every map is UASTC + zstd with mipmaps inside
+  the GLB (KHR_texture_basisu). The game's loader detects the GPU's compressed formats from the WebGPU adapter when it has no
+  renderer (the world loads the models before it makes one): on the T4 every map arrives as BC7 (format 36492; probe and
+  world runs record models.formats).
+- **Reproducibility:** Blender's Draco encoder wrote the colossi's 49 k-triangle levels as different bitstreams from
+  identical meshes (decoded: equal but for one tangent component in ~190 k one quantisation step apart), and one CPU bake in
+  four had one texel of 4.2 M one level apart. --verify now compares bytes, and when they differ the CONTENT (lib/glb.mjs
+  compareContent: Draco decoded with three's decoder, KTX2 transcoded with three's Basis transcoder; tolerances GEO_TOL,
+  MAP_TOL); the manifest records which (bytes: protome, bull, volute; content: lamassu, 0 texels different).
+- **How the test could pass while the intent failed (said before, measured after):** relief too small to read at the
+  player's distance; motifs misplaced (floating, on the wrong part); KTX2 'on' but silently decoded to RGBA or failing to
+  load; the mirrored colossi lit inside out. Measured: previews of the source surfaces and bakes beside the photographs
+  (shots/carving/compare); the probe and world frames change on 1.4-15 % of pixels by 7-13 luma levels (darker in the
+  carving's hollows); models.formats = compressed BC7 for all 8 maps; the mirrored and unmirrored colossi light alike
+  (world frames gate-*); the reviewer's read below.
+- **Measured:** build 33-157 s per asset on the CPU (sources 45-90 s in node, bakes 30-55 s); GLB protome 3.26 MB, bull
+  2.93 MB, lamassu 3.40 MB, volute 0.92 MB (10.5 MB added to the first load, T-K7 60 MB, already exceeded by public/, BLENDER_PLAN §3);
+  GPU ~6.5 / 9.1 / 9.6 / 1.7 MB estimated; 0 triangles added; the probe page (tools/blender/probe/carving_probe.html, the
+  Gate, Apadana, Tachara and Harem without the world) loads in 6 s + ~100 s of first-frame shader compiling. Renders: the
+  probe 3 times, one full-world run (tests/e2e/blender_carving.spec.ts, 7 views x 2 hours x before/after) and one debug run
+  (tests/e2e/dbg_samplers.spec.ts).
+- **The blind review (REVIEWS/review_carving_s11.md; brief handoff/briefs/s11/review_carving.md; 22 shuffled frames, 5
+  photographs, 4 pairs; no anchors exist): capitals 2/5, colossi 1/5, lowest category 1, 22 of 22 frames CG (T-A4 and
+  T-A4cg fail; the brief's >= 3 is NOT met); photo picked in 4 of 4 pairs (T-A5 100 %, and the renders were not from the
+  photographs' solved cameras).** The carved frame won every calibration pair and the colossi's flanks; at the player's
+  distances below the hall capitals there was no visible difference. What fails is the form (the protome 'a toy cow': no
+  carved eye, bulbous body, block legs; the W bulls' heads low and hidden under the wall over the jamb) and the uniform
+  clean stone: B118, B120, Q-842. The full-world run failed its own assertion on two sampler-limit validation errors that
+  the debug run traces to D-301's interior materials, not these (B119).
