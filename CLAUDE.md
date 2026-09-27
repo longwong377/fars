@@ -96,7 +96,9 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   --factory-startup --python tools/blender/<script>.py`; ~20 s start-up; Cycles bakes on the T4 via OptiX/CUDA; glTF export with
   Draco). Use it for real prop and architecture geometry, normal/AO bakes, LODs and impostors, garment drape (cloth
   simulation baked into meshes) and hair cards; scripts live in tools/blender/ so every asset is reproducible. Heavy Cycles
-  bakes take a GPU slot. (The Blender MCP is not connected to Claude Code; the scripted route is the project's.)
+  bakes take a GPU slot. (The Blender MCP is not connected to Claude Code; the scripted route is the project's.) The pipeline
+  is `node tools/blender/build.mjs [id]` (D-305; research/BLENDER_PLAN.md); KTX-Software 4.4.2 is installed
+  (`C:/Program Files/KTX-Software/bin/ktx.exe`) for its KTX2 textures.
 
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
