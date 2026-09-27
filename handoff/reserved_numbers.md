@@ -41,6 +41,6 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-275 | s9 | two lanes at full rate, ring by ring (lead; UD-16) | claude/amazing-fermi-40ds7j | merged (session 9, lead's own commit) |
 | D-276 | s9 | Terrace rooms: Treasury, Harem, garrison, guard quarters (Q-730..Q-739, B85..B87) | agent worktree (terrace_rooms) | launched session 10 |
 | D-277 | s10 | the instruments: area registry, generated board, Tier 0 (Q-740..Q-749, B88..B90) | agent worktree (instruments) | launched session 10 |
-| D-278..D-289 | s10 | the lead's own decisions (D-278 eclipse display, B84) | claude/amazing-fermi-40ds7j | in use |
+| D-278..D-284, D-286..D-299 | s10 | the lead's own decisions (D-285 is the materials agent's) | claude/amazing-fermi-40ds7j | in use |
 | (none) | s10 | gap hunter C (research only; brief handoff/briefs/s10/gap_hunter_C.md) | read-only | launched session 10 |
 | D-285 | s10 | Terrace materials against the references (Q-750..Q-759, B91..B93) | agent worktree (terrace_materials) | reserved; launches when a build slot frees |
