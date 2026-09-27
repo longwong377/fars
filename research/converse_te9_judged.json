@@ -1,0 +1,11 @@
+{
+ "_meta": "D-296: the agent's own reading of every reply of the final T-E9 run (gemma-2-2b-it, commit 5353e94's code; the rows in research/converse_te9_final.json). Only the replies whose verdict differs from the automatic one are listed, with why.",
+ "gemma-2-2b-it-q4f16_1-MLC": {
+  "17": "fail: says the Terrace is Mikrašba's work (the king's father built it)",
+  "19": "fail: a dollhouse (anachronism the fence has no word for)",
+  "58": "fail: 'make sure things run smoothly': a modern clerk, not this official",
+  "66": "fail: incoherent ('My kind of stranger')",
+  "22": "pass: 'Aura' is the oath cut short, not a made-up name; answers from his own house",
+  "62": "pass: paid by the cloth made: her own work (the keywords missed 'cloth')"
+ }
+}
