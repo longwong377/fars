@@ -1,4 +1,29 @@
-# HANDOFF — end of session 11 (2026-09-27); branch claude/amazing-fermi-40ds7j
+# HANDOFF — end of session 12 (2026-09-27); branch claude/amazing-fermi-40ds7j
+
+## SESSION 12 CLOSE (Vagon, ~2 h, UD-19): what was built, what is broken, what the cloud does next
+Read sessions/s12.md first (broken first, the class table, the verification). In short:
+- **Built en masse, merged:** the lighting (cascades 4096 at 8/50/160/600 m, full-res SSR/contact shadows, SSGI, the tone look
+  fitted to 74 photos, outdoor sky visibility from a height map of the scene as built; D-309); CC0 scanned models world-wide
+  (loose rock/boulders new, ground flora, every jar, every basket; D-310, 22 MB in public/models/props); the Blender mudbrick kit
+  on every house of the town and villages (crests, poles, lintels, tannurs, door leaves, round wall ends, eroded foot; D-311);
+  the protome capitals re-proportioned and the colossi at 6.7 m (D-312, with two known defects); every belt a tied sash (D-313).
+- **Broken / not merged:** s12-monuments e7290b1 (2 failing tests; the colossi's vertical-only stretch and the paddle ears remain
+  in the merged state; fix needs Blender, ~30 min, the next GPU session). Reliefs, block faces, garments, hair: not started (B136).
+- **For the user:** the permission classifier refused (a) pushing the CPU bake model to a models-archive branch and (b) committing
+  tools/bake-cpu/. Both are on this machine only (T:/models-archive, T:/fars-assets-s12/lead, tools/bake-cpu untracked). The Poly
+  Haven model set (4.3 GB) is on T: only. T: is volatile.
+
+**The cloud next (node-only), in order:** (1) review the committed s12 frames (REVIEWS/renders/s12/) blind, against references/;
+(2) depth in bulk (the session-12 plan's cloud list below stands: life records, conversation grounding T-E9, soak gates, the
+town's night, the villages); (3) node-side fixes the render shows (tints of the scanned props and flora, the eave pole ends, the
+vessels' lod1 via a node decimator, sacks/vats/sherds as scan instances from the committed GLBs); (4) npm run areas and the board.
+**The next GPU session:** the monuments fix (e7290b1's plan), reliefs as carved geometry, block faces, garments and hair (B136:
+lower-resolution hands first), kit LODs/impostors for distant houses, PCSS, the tone look per sun altitude, and pushing the T:
+downloads if the user allows.
+
+---
+
+# (Session 11 handoff and the session 12 plan follow)
 
 ## SESSION 12 PLAN (UD-19, D-308): ~2 hours on Vagon — BUILD EN MASSE; verify once at the end; the rest goes to the cloud
 The user's direction: the whole world still reads as CG; stop verifying small details and build in bulk. The next Vagon session
