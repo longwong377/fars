@@ -102,7 +102,12 @@ export class TreeKit {
    *  15/255 darker than its LOD1 at r3: the coverage-kept mips had closed its sky gaps; D-327). Off under MSAA (test, low) */
   readonly dither: boolean;
   /** the alpha threshold of the impostor materials (TSL) */
-  impAlphaTest() { return this.dither ? hash(screenCoordinate.xy.add(vec2(float(frameId).mul(7.13), float(frameId).mul(3.71)))).mul(0.6).add(0.2) : float(0.5); } readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
+  impAlphaTest() { return this.dither ? hash(screenCoordinate.xy.add(vec2(float(frameId).mul(7.13), float(frameId).mul(3.71)))).sub(0.5).mul(this.ditherAmp).add(this.ditherMid) : float(0.5); }
+  /** the dithered threshold's centre */
+  readonly ditherMid: any = uniform(0.58);
+  /** the dithered threshold's spread about 0.5 (1: 0..1, the plain coverage share) */
+  readonly ditherAmp: any = uniform(0.8); // with ditherMid 0.58: thresholds 0.18..0.98 (tree lab, D-327 rev 2)
+  readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
   /** the sun as the leaves' transmission sees it (world direction toward the sun, irradiance = colour x intensity);
    *  synced from the scene's shadow-casting sun before each tree draw (syncSun) */
   readonly sunDir: any = uniform(new THREE.Vector3(0, 1, 0)); readonly sunIrr: any = uniform(new THREE.Color(0, 0, 0));

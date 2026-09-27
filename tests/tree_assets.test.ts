@@ -30,6 +30,8 @@ describe('the Blender tree assets are built, current and within budget', () => {
     for (const [f, e] of Object.entries(man.files) as [string, any][]) {
       const b = readFileSync(`${DIR}/${f}`); expect(createHash('sha256').update(b).digest('hex'), f).toBe(e.sha256);
     }
+    // reproduced by `node tools/blender/trees.mjs --verify` from these very inputs (Cycles on the GPU: decoded texels compared)
+    expect(man.verify?.ok, 'run node tools/blender/trees.mjs --verify').toBe(true); expect(man.verify.inHash).toBe(man.inHash);
     expect(man.bytes).toBeLessThan(11e6); // the class's download (T-K7 counts it; D-327 rev 2 cut it from 17.8 MB)
   });
   it('the leaf atlas: every tile rendered, covering what the procedural tile covers (+-15 %; the cards are calibrated on it)', () => {

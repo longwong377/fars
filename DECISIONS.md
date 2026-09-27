@@ -7616,3 +7616,17 @@ moment-*-webgpu.png in the worktree, not committed).**
   download, against today's 26 MB baked in place); they now bake from the Cycles-rendered tiles.
 - Download +17.8 MB (atlas PNGs 7.5, wood 1.7, bark JPEGs 8.1 at 1024 px); GPU: atlas 4096x1536 x2 RGBA8 + mips (~67 MB),
   bark array 15 x 1024² RGBA8 + mips (~84 MB), wood data textures ~5 MB.
+- **Rev 2 (session 12, after the lead's merge eb4c45a):** (1) forks are continuous: a chain that leaves another rises inside
+  it (from a parent's radius below the joint, on its axis, at 0.78 x its radius) and bends out through the joint, and a
+  parent ending at a fork narrows (0.68 x) into its children's bases with a low dome: no stump with sticks, no step where a
+  multi-stem's stem becomes a limb (a continued child's radius steps half-way at the joint). A chain continues into a child
+  only within ~35 deg; sharper turns are forks. (2) The far impostors draw the Blender wood's triangles (per corner normal
+  and baked occlusion, x the crown occlusion), not the skeleton's tubes; the bake worker gets the wood with the atlas.
+  (3) Under temporal AA (medium and above) the impostors' alpha test is dithered (threshold 0.18..0.98 hashed per pixel and
+  frame) and their mips keep the plain coverage share: a sparse crown's sub-pixel sky gaps survive at a distance, as they
+  do on the near cards (the oak's impostor read a steady 15/255 darker than its LOD1 at r3; now 3-15/255 across runs,
+  measurement noise of 8-frame TRAA included). The orchard row impostors share the threshold. (4) Download 17.8 -> 10.4 MB:
+  the atlas as lossless WebP (2.6 MB), the tilt at half size (1.3 MB, bilinear on load), the bark scans at 768 px
+  (4.6 MB; GPU array ~47 MB). (5) `node tools/blender/trees.mjs --verify` rebuilds every step into the work folder and
+  compares (WebP by decoded texels, wood by value): reproduced (Cycles OptiX, same seed); the record sits in the manifest
+  and tests/tree_assets.test.ts checks it.

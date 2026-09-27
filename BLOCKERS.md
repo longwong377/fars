@@ -83,6 +83,6 @@ the CPU baker does by re-baking a model row when its group's state changes. Appr
 foliage state: 45 rows x 5 leaf states x 8 views x 96 px, colour weights + normal/depth = ~60 MB GPU and ~15 MB download,
 and cross-fading two leaf states blurs leaf-out; (2) octahedral hemisphere 8x8 views at 64 px: 214 MB for the same states;
 (3) Cycles impostors for full leaf only: wrong in 5 months of the year. Shipped: the CPU baker kept, fed with the
-Cycles-rendered tiles (the impostors show the rendered leaves' own occlusion and tilt); the branches in the impostor are
-still the skeleton's tubes (at >= 145 m a tube and the skinned mesh differ by under a pixel). Open for a session that
+Cycles-rendered tiles (the impostors show the rendered leaves' own occlusion and tilt) and, since D-327 rev 2, drawing
+the Blender wood's own triangles. Open for a session that
 can afford per-state atlases or a deferred (card-id) impostor.
