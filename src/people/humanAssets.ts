@@ -47,11 +47,13 @@ export function decodeHumanAssets(meta: HumanAssetsMeta, bin: ArrayBuffer): Huma
     for (let k = 0; k < 4; k++) { skinIndex[i * 4 + k] = siP[p * 4 + k]; skinWeight[i * 4 + k] = swP[p * 4 + k]; }
     part[i] = partP[p]; ao[i] = aoP[p] / 255; beard[i] = beardP[p] / 255; scalp[i] = scalpP[p] / 255; }
   const lods = meta.lods.map(l => view(meta, bin, l.indexKey) as Uint16Array);
+  // D-323: the full-detail hands are simplified; their normals come from the full hands (layout hand_hi, never drawn)
+  const nrmLods = meta.layout.hand_hi ? [handNormalSource(lods[0], view(meta, bin, 'hand_hi') as Uint16Array, part), ...lods.slice(1)] : lods;
   const variants: HumanVariant[] = meta.variants.map((vm, index) => {
     const q = new Int16Array(bin.slice(vm.posOffset, vm.posOffset + NP * 3 * 2)); const s = meta.posScale;
     const pos = new Float32Array(NO * 3);
     for (let i = 0; i < NO; i++) { const p = orig[i]; pos[i * 3] = q[p * 3] * s; pos[i * 3 + 1] = q[p * 3 + 1] * s; pos[i * 3 + 2] = q[p * 3 + 2] * s; }
-    const nrm = smoothNormals(pos, orig, NP, lods);
+    const nrm = smoothNormals(pos, orig, NP, nrmLods);
     const joints = new Float32Array(HBONES.length * 3); vm.joints.forEach((j, b) => joints.set(j, b * 3));
     eyeNormals(pos, nrm, part, uv, joints);
     const eyeY = (joints[HB.eye_l * 3 + 1] + joints[HB.eye_r * 3 + 1]) / 2;
@@ -83,6 +85,14 @@ export function eyeNormals(pos: Float32Array, nrm: Float32Array, part: Uint8Arra
   }
 }
 
+/** D-323: the full-detail triangle list the normals are taken from: lod0 without its simplified hands (triangles whose three
+ *  vertices are hand vertices), with the full hands in their place (the shading of the full hand at every kept vertex) */
+export function handNormalSource(lod0: Uint16Array, handHi: Uint16Array, part: Uint8Array): Uint16Array {
+  const isH = (i: number) => part[i] === PART.hand_l || part[i] === PART.hand_r; const out: number[] = [];
+  for (let t = 0; t < lod0.length; t += 3) if (!(isH(lod0[t]) && isH(lod0[t + 1]) && isH(lod0[t + 2]))) out.push(lod0[t], lod0[t + 1], lod0[t + 2]);
+  for (let i = 0; i < handHi.length; i++) out.push(handHi[i]);
+  return Uint16Array.from(out);
+}
 /** area-weighted vertex normals, accumulated per position vertex (seams share a normal); vertices only used by the
  *  mid/far LODs (the low-poly eyes) take their normals from those triangle lists */
 export function smoothNormals(pos: Float32Array, orig: Uint16Array, NP: number, lods: Uint16Array[]): Float32Array {

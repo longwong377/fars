@@ -67,7 +67,7 @@ export class HumanGPU {
   palette: Float32Array; prevPalette: Float32Array; person: Float32Array;
   capacity: number;
   private personDirty = true;
-  constructor(readonly A: HumanAssets, readonly O: OutfitBuild, images: { skin: THREE.Texture; eye: THREE.Texture; scans?: HumanScans | null; hairAtlas?: THREE.Texture | null; cards?: CardsMeta | null; simCloth?: boolean }, opts: { capacity?: number; velocity?: boolean; castShadow?: boolean } = {}) {
+  constructor(readonly A: HumanAssets, readonly O: OutfitBuild, images: { skin: THREE.Texture; eye: THREE.Texture; scans?: HumanScans | null; hairAtlas?: THREE.Texture | null; hairNormal?: THREE.Texture | null; cards?: CardsMeta | null; simCloth?: boolean }, opts: { capacity?: number; velocity?: boolean; castShadow?: boolean } = {}) {
     this.group.name = 'people:humans';
     this.capacity = Math.max(16, opts.capacity ?? 256);
     const rows = Math.ceil(O.source.length / 4 / SOURCE_WIDTH);
@@ -82,7 +82,10 @@ export class HumanGPU {
       // D-307: the strand atlas of the hair cards and its layout (null: no cards were built into the costumes)
       simCloth: !!images.simCloth, // D-322: the garments' simulated folds are in their geometry
       groups: A.variants.map(v => (v.meta.group === 'child' ? 2 : v.meta.sex === 'f' ? 1 : 0)), // (D-322: the fold layers' channel per body variant)
-      hairAtlas: images.hairAtlas && images.cards ? images.hairAtlas : null, cards: images.hairAtlas && images.cards ? { cols: images.cards.atlas.cols, rows: images.cards.atlas.rows.length, classRows: images.cards.classRows, w: images.cards.atlas.w, h: images.cards.atlas.h, levels: Math.floor(Math.log2(Math.max(images.cards.atlas.w, images.cards.atlas.h))) + 1 } : null,
+      hairAtlas: images.hairAtlas && images.cards ? images.hairAtlas : null, cards: images.hairAtlas && images.cards ? { cols: images.cards.atlas.cols, rows: images.cards.atlas.rows.length, classRows: images.cards.classRows, w: images.cards.atlas.w, h: images.cards.atlas.h, levels: Math.floor(Math.log2(Math.max(images.cards.atlas.w, images.cards.atlas.h))) + 1,
+        // D-323: the normal atlas (same cells, its own size)
+        normal: images.hairNormal && images.cards.normal ? { w: images.cards.normal.w, h: images.cards.normal.h, levels: Math.floor(Math.log2(Math.max(images.cards.normal.w, images.cards.normal.h))) + 1 } : null } : null,
+      hairNormal: images.hairAtlas && images.cards && images.hairNormal && images.cards.normal ? images.hairNormal : null,
     };
     this.material = new HumanMaterial(this.textures); this.materials.push(this.material);
     const shadowMat = new HumanMaterial(this.textures, { shadowOnly: true }); this.materials.push(shadowMat);

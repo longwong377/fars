@@ -4,20 +4,20 @@
   "people_cloth": {
    "files": {
     "people_cloth.json": {
-     "sha256": "4111dc8e3e4eb447790038b6539331fe28806d117aaf6c0901e16ee3668f15dd",
+     "sha256": "a4bf721773440c5c572bbb6620da25215ff64824364749f80a890e5b22aabc64",
      "bytes": 19726
     },
     "people_cloth.bin": {
-     "sha256": "49e55187aab309a639880c4008f50360d32abf45457451f066696a2aac35a563",
+     "sha256": "6481ace63426329f8ec962878921aa4cd03cc7b8c2e17e6daebf9acdec99dc97",
      "bytes": 338596
     },
     "people_cloth_folds.png": {
-     "sha256": "638a341e92c20cb281759e1ee2a5f4973a500efac14341e1366fd71558522e4d",
-     "bytes": 524735
+     "sha256": "b22a674b9ad624f6ed9eb1352fab73888aef95d024c169f7402486755e5f3b5b",
+     "bytes": 524508
     }
    },
-   "inHash": "b6ec5369182870b025aaa8653d2f17ead07325a9650fd35aec6aaf246233f8b0",
-   "bytes": 883057,
+   "inHash": "4680711fa85e3150919a7741945a1055328f9793e33e6c0e0b33c6dbf766cc20",
+   "bytes": 882830,
    "gpuBytes": 0,
    "stats": {
     "robe_skirt_men": {
@@ -480,14 +480,14 @@
      "pushed": 0
     },
     "work_upper@0|men": {
-     "rms_mm": 12.6,
-     "max_mm": 45.6,
+     "rms_mm": 12.1,
+     "max_mm": 46.3,
      "sampled": 987,
      "pushed": 0
     },
     "work_upper@1|men": {
-     "rms_mm": 13.3,
-     "max_mm": 57.9,
+     "rms_mm": 13,
+     "max_mm": 61.2,
      "sampled": 321,
      "pushed": 0
     },
@@ -586,12 +586,12 @@
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 375,
+   "build_s": 328,
    "reproduced": {
     "files": {
-     "people_cloth.json": "4111dc8e3e4eb447790038b6539331fe28806d117aaf6c0901e16ee3668f15dd",
-     "people_cloth.bin": "49e55187aab309a639880c4008f50360d32abf45457451f066696a2aac35a563",
-     "people_cloth_folds.png": "638a341e92c20cb281759e1ee2a5f4973a500efac14341e1366fd71558522e4d"
+     "people_cloth.json": "a4bf721773440c5c572bbb6620da25215ff64824364749f80a890e5b22aabc64",
+     "people_cloth.bin": "6481ace63426329f8ec962878921aa4cd03cc7b8c2e17e6daebf9acdec99dc97",
+     "people_cloth_folds.png": "b22a674b9ad624f6ed9eb1352fab73888aef95d024c169f7402486755e5f3b5b"
     },
     "blender": "5.0.1"
    }
@@ -599,70 +599,85 @@
   "people_hair": {
    "files": {
     "people_hair.json": {
-     "sha256": "a5b59089021dcfe4fcfbf38eeb3fb7f759d23855c22e4550d646d8dc71922be6",
-     "bytes": 4603
+     "sha256": "452908a9c04dd4fcfd9561c07420da024379dfdba837b37c8103cf59e64034fd",
+     "bytes": 5808
     },
     "people_hair.bin": {
-     "sha256": "702393edcc5f3efb07fed5434e82457c743eeeae8f1f18f4bdc5c7a071b0bf34",
-     "bytes": 224204
+     "sha256": "126daec552994bda7025cd40e03e362f863771ffc1001e21c2bcd01be28cec77",
+     "bytes": 508928
     },
     "people_hair_atlas.ktx2": {
-     "sha256": "282a10444a96dcd0a1097896c2ec7d2886bed92458c1fa107a30a1501139cc3e",
-     "bytes": 4201931
+     "sha256": "cd527ee5909be611b5a914c0a5af6a4963016928e171deb871ce82a68de73f7d",
+     "bytes": 6912654
+    },
+    "people_hair_normal.ktx2": {
+     "sha256": "66e0fcc1f07056787ef82fc2ff699f4d3e27434c0690d8d315b65bd8a4672366",
+     "bytes": 1815142
     }
    },
-   "inHash": "b11adf97572fd92874ed65681fdbad1e97fa578bc3a583ef608d4c78649aed23",
-   "bytes": 4430738,
-   "gpuBytes": 5592405,
+   "inHash": "064e7c47c53c2ad6e2d17f9cf92269e06dce1cd1dc34a37ff0779e2e2d468935",
+   "bytes": 9242532,
+   "gpuBytes": 13981014,
    "stats": {
+    "head": {
+     "vertices": 5464,
+     "triangles": 10360
+    },
     "hair_crown": {
-     "cards": 92,
-     "tris": 494,
-     "verts": 678,
-     "meanLen": 0.0496,
-     "maxOff": 0.0482
+     "cards": 273,
+     "tris": 1532,
+     "backTris": 0,
+     "verts": 2078,
+     "meanLen": 0.0075,
+     "maxOff": 0.052
     },
     "hair": {
-     "cards": 56,
-     "tris": 300,
-     "verts": 412,
-     "meanLen": 0.0506,
-     "maxOff": 0.0274
+     "cards": 178,
+     "tris": 954,
+     "backTris": 0,
+     "verts": 1310,
+     "meanLen": 0.0071,
+     "maxOff": 0.0488
     },
     "hair_bob": {
-     "cards": 166,
-     "tris": 1116,
-     "verts": 1448,
-     "meanLen": 0.1162,
-     "maxOff": 0.1955
+     "cards": 339,
+     "tris": 3078,
+     "backTris": 600,
+     "verts": 4062,
+     "meanLen": 0.0454,
+     "maxOff": 0.1732
     },
     "bun": {
-     "cards": 44,
-     "tris": 352,
-     "verts": 440,
-     "meanLen": 0.0721,
-     "maxOff": 0.0867
+     "cards": 75,
+     "tris": 708,
+     "backTris": 108,
+     "verts": 912,
+     "meanLen": 0.0379,
+     "maxOff": 0.0432
     },
     "beard_long": {
-     "cards": 171,
-     "tris": 1152,
-     "verts": 1494,
-     "meanLen": 0.1559,
-     "maxOff": 0.2149
+     "cards": 172,
+     "tris": 2282,
+     "backTris": 972,
+     "verts": 2942,
+     "meanLen": 0.1852,
+     "maxOff": 0.2042
     },
     "beard_short": {
-     "cards": 140,
-     "tris": 560,
-     "verts": 840,
-     "meanLen": 0.0175,
-     "maxOff": 0.0127
+     "cards": 176,
+     "tris": 704,
+     "backTris": 0,
+     "verts": 1056,
+     "meanLen": 0.0036,
+     "maxOff": 0.0076
     },
     "brows": {
-     "cards": 38,
-     "tris": 152,
-     "verts": 228,
-     "meanLen": 0.0113,
-     "maxOff": 0.0031
+     "cards": 35,
+     "tris": 140,
+     "backTris": 0,
+     "verts": 210,
+     "meanLen": 0.0013,
+     "maxOff": 0.0034
     }
    },
    "post": null,
@@ -670,12 +685,13 @@
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 66,
+   "build_s": 225,
    "reproduced": {
     "files": {
-     "people_hair.json": "a5b59089021dcfe4fcfbf38eeb3fb7f759d23855c22e4550d646d8dc71922be6",
-     "people_hair.bin": "702393edcc5f3efb07fed5434e82457c743eeeae8f1f18f4bdc5c7a071b0bf34",
-     "people_hair_atlas.ktx2": "282a10444a96dcd0a1097896c2ec7d2886bed92458c1fa107a30a1501139cc3e"
+     "people_hair.json": "452908a9c04dd4fcfd9561c07420da024379dfdba837b37c8103cf59e64034fd",
+     "people_hair.bin": "126daec552994bda7025cd40e03e362f863771ffc1001e21c2bcd01be28cec77",
+     "people_hair_atlas.ktx2": "cd527ee5909be611b5a914c0a5af6a4963016928e171deb871ce82a68de73f7d",
+     "people_hair_normal.ktx2": "66e0fcc1f07056787ef82fc2ff699f4d3e27434c0690d8d315b65bd8a4672366"
     },
     "blender": "5.0.1"
    }

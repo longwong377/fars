@@ -5,317 +5,346 @@
  "atlas": {
   "file": "people_hair_atlas.ktx2",
   "w": 2048,
-  "h": 2048,
+  "h": 4096,
   "cols": 8,
   "rows": [
-   "straight",
-   "curly",
+   "straight_dense",
+   "straight_clump",
+   "curly_dense",
+   "curly_clump",
    "ringlet",
-   "fine"
+   "beard_court",
+   "fine",
+   "court_dense"
   ]
+ },
+ "normal": {
+  "file": "people_hair_normal.ktx2",
+  "w": 1024,
+  "h": 2048
  },
  "classRows": [
   [
-   1,
    2,
-   0
-  ],
-  [
-   1,
-   1,
+   7,
    0
   ],
   [
    3,
+   4,
+   1
+  ],
+  [
+   2,
+   7,
+   0
+  ],
+  [
    3,
-   3
+   5,
+   1
+  ],
+  [
+   6,
+   6,
+   6
+  ],
+  [
+   3,
+   7,
+   1
+  ],
+  [
+   6,
+   7,
+   6
   ]
  ],
  "sets": {
   "hair_crown": {
-   "n": 678,
-   "tris": 494,
-   "cards": 92,
-   "note": "scalp hair above the hat line: worn bareheaded only",
+   "n": 2078,
+   "tris": 1532,
+   "cards": 273,
+   "note": "scalp hair: guide curves combed back from the brow and down behind the ears to the nape, three layers of cards (a dense inner layer on the scalp, a middle one, an outer one of narrower locks lifted and jittered: a broken outline) (above the hat line: worn bareheaded only)",
    "anchor": {
     "o": 0,
-    "n": 2034,
+    "n": 6234,
     "t": "u16"
    },
    "bary": {
-    "o": 4068,
-    "n": 1356,
+    "o": 12468,
+    "n": 4156,
     "t": "f32"
    },
    "off": {
-    "o": 9492,
-    "n": 2034,
+    "o": 29092,
+    "n": 6234,
     "t": "f32"
    },
    "uv": {
-    "o": 17628,
-    "n": 1356,
+    "o": 54028,
+    "n": 4156,
     "t": "f32"
    },
    "cell": {
-    "o": 23052,
-    "n": 678,
+    "o": 70652,
+    "n": 2078,
     "t": "u8"
    },
    "ao": {
-    "o": 23732,
-    "n": 678,
+    "o": 72732,
+    "n": 2078,
     "t": "u8"
    },
    "index": {
-    "o": 24412,
-    "n": 1482,
+    "o": 74812,
+    "n": 4596,
     "t": "u16"
    }
   },
   "hair": {
-   "n": 412,
-   "tris": 300,
-   "cards": 56,
-   "note": "scalp hair: two layers of cards away from the crown and down, the outer shorter (volume, a broken outline) (below the hat line; above it: hair_crown)",
+   "n": 1310,
+   "tris": 954,
+   "cards": 178,
+   "note": "scalp hair: guide curves combed back from the brow and down behind the ears to the nape, three layers of cards (a dense inner layer on the scalp, a middle one, an outer one of narrower locks lifted and jittered: a broken outline) (below the hat line; above it: hair_crown)",
    "anchor": {
-    "o": 27376,
-    "n": 1236,
+    "o": 84004,
+    "n": 3930,
     "t": "u16"
    },
    "bary": {
-    "o": 29848,
-    "n": 824,
+    "o": 91864,
+    "n": 2620,
     "t": "f32"
    },
    "off": {
-    "o": 33144,
-    "n": 1236,
+    "o": 102344,
+    "n": 3930,
     "t": "f32"
    },
    "uv": {
-    "o": 38088,
-    "n": 824,
+    "o": 118064,
+    "n": 2620,
     "t": "f32"
    },
    "cell": {
-    "o": 41384,
-    "n": 412,
+    "o": 128544,
+    "n": 1310,
     "t": "u8"
    },
    "ao": {
-    "o": 41796,
-    "n": 412,
+    "o": 129856,
+    "n": 1310,
     "t": "u8"
    },
    "index": {
-    "o": 42208,
-    "n": 900,
+    "o": 131168,
+    "n": 2862,
     "t": "u16"
    }
   },
   "hair_bob": {
-   "n": 1448,
-   "tris": 1116,
-   "cards": 166,
-   "note": "the bob: cards from the scalp falling to the jaw, cut level",
+   "n": 4062,
+   "tris": 3078,
+   "cards": 339,
+   "note": "the bob (the elite woman of the Egyptian statuette: B): guide curves combed back from the brow and falling to the jaw, cut level; an inner layer close on the head, a middle one and an outer one of looser locks that stand off it as they fall (volume) and hang two-sided below the ears",
    "anchor": {
-    "o": 44008,
-    "n": 4344,
+    "o": 136892,
+    "n": 12186,
     "t": "u16"
    },
    "bary": {
-    "o": 52696,
-    "n": 2896,
+    "o": 161264,
+    "n": 8124,
     "t": "f32"
    },
    "off": {
-    "o": 64280,
-    "n": 4344,
+    "o": 193760,
+    "n": 12186,
     "t": "f32"
    },
    "uv": {
-    "o": 81656,
-    "n": 2896,
+    "o": 242504,
+    "n": 8124,
     "t": "f32"
    },
    "cell": {
-    "o": 93240,
-    "n": 1448,
+    "o": 275000,
+    "n": 4062,
     "t": "u8"
    },
    "ao": {
-    "o": 94688,
-    "n": 1448,
+    "o": 279064,
+    "n": 4062,
     "t": "u8"
    },
    "index": {
-    "o": 96136,
-    "n": 3348,
+    "o": 283128,
+    "n": 9234,
     "t": "u16"
    }
   },
   "bun": {
-   "n": 440,
-   "tris": 352,
-   "cards": 44,
-   "note": "the bunch at the nape: cards from the back of the skull over the bun",
+   "n": 912,
+   "tris": 708,
+   "cards": 75,
+   "note": "the bunch at the nape (the reliefs: the hair gathered in a bushy mass of curls behind the neck): strips over the bun's ellipsoid from its top down its back, an outer layer of corkscrew locks whose ends hang free",
    "anchor": {
-    "o": 102832,
-    "n": 1320,
+    "o": 301596,
+    "n": 2736,
     "t": "u16"
    },
    "bary": {
-    "o": 105472,
-    "n": 880,
+    "o": 307068,
+    "n": 1824,
     "t": "f32"
    },
    "off": {
-    "o": 108992,
-    "n": 1320,
+    "o": 314364,
+    "n": 2736,
     "t": "f32"
    },
    "uv": {
-    "o": 114272,
-    "n": 880,
+    "o": 325308,
+    "n": 1824,
     "t": "f32"
    },
    "cell": {
-    "o": 117792,
-    "n": 440,
+    "o": 332604,
+    "n": 912,
     "t": "u8"
    },
    "ao": {
-    "o": 118232,
-    "n": 440,
+    "o": 333516,
+    "n": 912,
     "t": "u8"
    },
    "index": {
-    "o": 118672,
-    "n": 1056,
+    "o": 334428,
+    "n": 2124,
     "t": "u16"
    }
   },
   "beard_long": {
-   "n": 1494,
-   "tris": 1152,
-   "cards": 171,
-   "note": "the long beard: cards down from the cheeks, chin and upper lip, hanging below the jaw to a square cut",
+   "n": 2942,
+   "tris": 2282,
+   "cards": 172,
+   "note": "the long beard (the reliefs: long and squared, in rows of curls): guide curves down from the cheeks, chin and upper lip, the moustache out to the mouth's corners, hanging below the jaw to a square cut 12 cm below the chin; inner, middle and outer layers, two-sided where they hang",
    "anchor": {
-    "o": 120784,
-    "n": 4482,
+    "o": 338676,
+    "n": 8826,
     "t": "u16"
    },
    "bary": {
-    "o": 129748,
-    "n": 2988,
+    "o": 356328,
+    "n": 5884,
     "t": "f32"
    },
    "off": {
-    "o": 141700,
-    "n": 4482,
+    "o": 379864,
+    "n": 8826,
     "t": "f32"
    },
    "uv": {
-    "o": 159628,
-    "n": 2988,
+    "o": 415168,
+    "n": 5884,
     "t": "f32"
    },
    "cell": {
-    "o": 171580,
-    "n": 1494,
+    "o": 438704,
+    "n": 2942,
     "t": "u8"
    },
    "ao": {
-    "o": 173076,
-    "n": 1494,
+    "o": 441648,
+    "n": 2942,
     "t": "u8"
    },
    "index": {
-    "o": 174572,
-    "n": 3456,
+    "o": 444592,
+    "n": 6846,
     "t": "u16"
    }
   },
   "beard_short": {
-   "n": 840,
-   "tris": 560,
-   "cards": 140,
-   "note": "the short beard: short cards lying close, down and out",
+   "n": 1056,
+   "tris": 704,
+   "cards": 176,
+   "note": "the short beard: short cards lying close, down and out, two layers",
    "anchor": {
-    "o": 181484,
-    "n": 2520,
+    "o": 458284,
+    "n": 3168,
     "t": "u16"
    },
    "bary": {
-    "o": 186524,
-    "n": 1680,
+    "o": 464620,
+    "n": 2112,
     "t": "f32"
    },
    "off": {
-    "o": 193244,
-    "n": 2520,
+    "o": 473068,
+    "n": 3168,
     "t": "f32"
    },
    "uv": {
-    "o": 203324,
-    "n": 1680,
+    "o": 485740,
+    "n": 2112,
     "t": "f32"
    },
    "cell": {
-    "o": 210044,
-    "n": 840,
+    "o": 494188,
+    "n": 1056,
     "t": "u8"
    },
    "ao": {
-    "o": 210884,
-    "n": 840,
+    "o": 495244,
+    "n": 1056,
     "t": "u8"
    },
    "index": {
-    "o": 211724,
-    "n": 1680,
+    "o": 496300,
+    "n": 2112,
     "t": "u16"
    }
   },
   "brows": {
-   "n": 228,
-   "tris": 152,
-   "cards": 38,
+   "n": 210,
+   "tris": 140,
+   "cards": 35,
    "note": "the brows: short cards along the brow, out from the nose and up at the inner end",
    "anchor": {
-    "o": 215084,
-    "n": 684,
+    "o": 500524,
+    "n": 630,
     "t": "u16"
    },
    "bary": {
-    "o": 216452,
-    "n": 456,
+    "o": 501784,
+    "n": 420,
     "t": "f32"
    },
    "off": {
-    "o": 218276,
-    "n": 684,
+    "o": 503464,
+    "n": 630,
     "t": "f32"
    },
    "uv": {
-    "o": 221012,
-    "n": 456,
+    "o": 505984,
+    "n": 420,
     "t": "f32"
    },
    "cell": {
-    "o": 222836,
-    "n": 228,
+    "o": 507664,
+    "n": 210,
     "t": "u8"
    },
    "ao": {
-    "o": 223064,
-    "n": 228,
+    "o": 507876,
+    "n": 210,
     "t": "u8"
    },
    "index": {
-    "o": 223292,
-    "n": 456,
+    "o": 508088,
+    "n": 420,
     "t": "u16"
    }
   }
