@@ -398,4 +398,4 @@ Cell: status; the evidence's value and n; its file, commit, session age and depe
 | T-R12 | R | session | >= 5 asset classes (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | sessions/ |
 | T-R13 | R | session | >= 15 asset classes (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | research/BLENDER_PLAN.md |
 | T-E10 | E | world | >= 90 % (n ≥ 60) | **STALE** | 99.4 | 158 | s12-talk/T-E10.json | c26daf9d | 0 s | – | no dependency hash; also 5 file(s) from other tools | tests/talk_world.test.ts |
-| T-E11 | E | world | >= 95 % (n ≥ 60) | **NOT-MEASURED** | – | – | – | – | – | – |  | tests/voices_unique.test.ts |
+| T-E11 | E | world | >= 95 % (n ≥ 60) | **NOT-MEASURED** | – | – | – | – | – | – | evidence from another tool (tools/dev/voices_eval.ts (tests/voices_unique.test.ts reads it)) does not count | tests/voices_unique.test.ts |
