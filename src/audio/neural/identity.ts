@@ -18,19 +18,24 @@ export interface NeuralVoice {
   /** a small offset in style space, the person's own (optional) */ offset?: Float32Array;
   /** the person's own step off the blend, in units of the voices' spread per dimension (runner.ts), and its direction's seed */ jitter?: number; jitterSeed?: number;
 }
-/** the style voices a person may be blended from (D-336: measured on the lexicon's lines, tools/dev/voices_eval.ts
- *  --bases: the ones below the naturalness floor are left out) */
+/** the style voices left out of the blends: below the naturalness floor on the period languages' lines (UTMOS22 mean of two
+ *  sets of lines < 3.6, or English < 4.0, or Farsi < 3.7; tools/dev/voices_calib.ts, REVIEWS/evidence/s12-voices/calib.json).
+ *  Mostly the voices trained on little data (the Spanish, French, Portuguese and Japanese ones) and the breathy or caricatured
+ *  ones (af_nicole's whisper, the 'santa' voices) */
+export const EXCLUDED = new Set(['af_bella', 'af_jessica', 'af_nicole', 'am_santa', 'bf_alice', 'bf_lily', 'bm_george', 'bm_lewis', 'ef_dora', 'em_alex', 'em_santa', 'ff_siwis',
+  'hm_omega', 'if_sara', 'jf_alpha', 'jf_gongitsune', 'jf_nezumi', 'jf_tebukuro', 'pf_dora', 'pm_alex', 'pm_santa', 'zf_xiaobei', 'zf_xiaoni', 'zf_xiaoxiao', 'zf_xiaoyi', 'zm_yunjian', 'zm_yunxi', 'zm_yunxia', 'zm_yunyang']);
+/** the style voices a person may be blended from */
 export const VOICE_POOL: { m: string[]; f: string[] } = {
-  m: BASE_VOICES.filter(v => v[1] === 'm').map(v => v[0]),
-  f: BASE_VOICES.filter(v => v[1] === 'f').map(v => v[0]),
+  m: BASE_VOICES.filter(v => v[1] === 'm' && !EXCLUDED.has(v[0])).map(v => v[0]),
+  f: BASE_VOICES.filter(v => v[1] === 'f' && !EXCLUDED.has(v[0])).map(v => v[0]),
 };
-/** voices that read as older (C, by ear and by the measured pitch: the "santa" voices, the deep British and American men) */
-export const OLDER = new Set(['am_santa', 'em_santa', 'pm_santa', 'bm_george', 'bm_lewis', 'am_onyx', 'hm_omega', 'bf_isabella', 'af_nicole']);
+/** voices that read as older (C: the deep British and American voices of the pool; with the older tract and pace) */
+export const OLDER = new Set(['am_onyx', 'bm_daniel', 'bm_fable', 'bf_isabella', 'af_river']);
 /** the regional colour: the trained languages whose voices a people's blend draws one voice from (C) */
 export const COLOUR: Record<string, string[]> = {
-  Persian: ['hi', 'en-gb'], Median: ['hi', 'en-gb'], Iranian: ['hi', 'en-gb'], Bactrian: ['hi'], Sogdian: ['hi'], Elamite: ['hi', 'pt'],
-  Babylonian: ['es', 'pt', 'hi'], Syrian: ['es', 'pt'], Aramaic: ['es', 'pt'], Egyptian: ['pt', 'es', 'fr'],
-  Ionian: ['it', 'es', 'fr'], Greek: ['it', 'es', 'fr'], Lydian: ['it', 'fr'], Carian: ['it', 'pt'], Lycian: ['it', 'pt'], Thracian: ['fr', 'it'], Cappadocian: ['pt', 'hi'],
+  Persian: ['hi', 'en-gb'], Median: ['hi', 'en-gb'], Iranian: ['hi', 'en-gb'], Bactrian: ['hi'], Sogdian: ['hi'], Elamite: ['hi', 'it'],
+  Babylonian: ['it', 'hi'], Syrian: ['it', 'hi'], Aramaic: ['it', 'hi'], Egyptian: ['hi', 'it'],
+  Ionian: ['it', 'en-gb'], Greek: ['it', 'en-gb'], Lydian: ['it', 'en-gb'], Carian: ['it', 'en-gb'], Lycian: ['it', 'en-gb'], Thracian: ['en-gb', 'it'], Cappadocian: ['hi', 'it'],
 };
 const LANG_OF = new Map(BASE_VOICES.map(v => [v[0], v[2]]));
 

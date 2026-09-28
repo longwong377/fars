@@ -8,7 +8,7 @@
 // naturalness (UTMOS22 strong, a MOS predictor trained on listeners' ratings; >= 3.5), and whether the opt-in voice is the
 // same person (their English and Farsi embeddings nearer their own-language voice than any other person's).
 //   npx tsx tools/dev/voices_eval.ts [--n 72] [--out REVIEWS/evidence/s12-voices/T-E11.json]
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { execSync } from 'node:child_process';
 import { NavGrid } from '../../src/people/navgrid';
@@ -29,8 +29,10 @@ const N = +arg('--n', '72'), OUT = arg('--out', 'REVIEWS/evidence/s12-voices/T-E
 // the same-speaker thresholds: each embedding's equal-error threshold calibrated on this synthesiser's 54 speakers
 // (tools/dev/voices_calib.ts; WavLM-SV's published 0.86 is VoxCeleb's and does not hold here: every Kokoro voice scores
 // above it against every other, the first run of this tool)
-const CAL = JSON.parse(readFileSync('REVIEWS/evidence/s12-voices/calib.json', 'utf8'));
-export const SAME = CAL.models.ecapa.eer.t as number, SAME_W = CAL.models.wavlm.eer.t as number;
+// (read when the scores are made: the calibration may still be running when the renders start)
+let CAL: any = null, SAME = 0, SAME_W = 0;
+const calib = async () => { const f = 'REVIEWS/evidence/s12-voices/calib.json'; while (!existsSync(f)) await new Promise(r => setTimeout(r, 30000));
+  CAL = JSON.parse(readFileSync(f, 'utf8')); SAME = CAL.models.ecapa.eer.t; SAME_W = CAL.models.wavlm.eer.t; };
 mkdirSync(WAVS, { recursive: true });
 const t0 = performance.now(); const log = (...a: any[]) => console.log(((performance.now() - t0) / 1000).toFixed(0).padStart(5), 's', ...a);
 
@@ -83,6 +85,7 @@ for (const [i, row] of rows.entries()) {
   log(i, row.pid, row.job, p.origin, p.sex, row.age, row.lang, 'mos', row.mos, row.mosEn, row.mosFa);
 }
 // ---- scores
+await calib(); log('calibrated thresholds: ecapa', SAME, 'wavlm', SAME_W);
 const F = (a: number[]) => Float32Array.from(a);
 for (const a of rows) {
   let best = -1, who = -1, bestW = -1; for (const b of rows) if (b !== a) { const c = cos(F(a.ecapa), F(b.ecapa)); if (c > best) { best = c; who = b.pid; } bestW = Math.max(bestW, cos(F(a.emb), F(b.emb))); }
