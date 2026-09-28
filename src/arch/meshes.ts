@@ -2,7 +2,7 @@
 // colossi as sculpture) and Rapier colliders (always the parts' own boxes/prisms).
 import * as THREE from 'three/webgpu';
 import { ADIST_OFF } from '../render/blockface';
-import { arrisEdgesOfBox, type ArrisEdge } from './arris';
+import { arrisEdgesOfBox, edgeSeed, aseedOf, ARRIS_MATS, type ArrisEdge } from './arris';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
@@ -134,14 +134,14 @@ function clipFace(P: Plane, planes: Plane[], S: number): V3[] {
  *  of the 6 face planes and one 45° plane per bevelled edge, each face clipped by all the others. `round`: a chamfer's
  *  vertices take the normals of the box faces they lie on (a rounded arris in shading); else the chamfer's own normal.
  *  Returns non-indexed positions and normals. */
-export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean): { pos: number[]; nrm: number[]; adist: number[] } {
+export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean, seeds: number[] = []): { pos: number[]; nrm: number[]; adist: number[]; aseed: number[] } {
   const planes: Plane[] = FACE_N.map((n, i) => ({ n, d: Math.abs(dot3(n, h)), box: i }));
   BOX_EDGES.forEach(([a, b], k) => {
     if (!edges[k]) return;
     const na = FACE_N[a], nb = FACE_N[b], s = Math.SQRT1_2, n: V3 = [(na[0] + nb[0]) * s, (na[1] + nb[1]) * s, (na[2] + nb[2]) * s];
     planes.push({ n, d: (planes[a].d + planes[b].d - r) * s, box: -1, parents: [a, b] });
   });
-  const S = 4 * Math.max(h[0], h[1], h[2]) + 1, pos: number[] = [], nrm: number[] = [], adist: number[] = [];
+  const S = 4 * Math.max(h[0], h[1], h[2]) + 1, pos: number[] = [], nrm: number[] = [], adist: number[] = [], aseed: number[] = [];
   // D-321: per vertex, the distance (m) to each of the face's four bevelled arrises (the box faces round it, in FACE_N order),
   // stored as d − ADIST_OFF so a geometry without the attribute (read as 0) has none; affine over the planar face, so the
   // interpolated value is the exact distance at every fragment (materials.ts: chips and margins along the free arrises)
@@ -162,9 +162,11 @@ export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean):
     const snap = (q: V3) => q.map(x => Math.round(x * 1e6) / 1e6);
     const ad = poly.map(q => P.box < 0 ? [0, ADIST_OFF, ADIST_OFF, ADIST_OFF].map(x => x - ADIST_OFF) // (the chamfer lies on its arris)
       : around(P.box).map(b => edges[edgeOf(P.box, b)] ? planes[b].d - dot3(FACE_N[b], q) - ADIST_OFF : 0));
-    for (let i = 1; i + 1 < poly.length; i++) for (const j of [0, i, i + 1]) { pos.push(...snap(poly[j])); nrm.push(...vn[j]); adist.push(...ad[j]); }
+    // rev 3: per arris, its strip row and offset (arris.ts aseedOf), in the same order as 'adist'
+    const sd = P.box < 0 ? [aseedOf(seeds[edgeOf(P.parents![0], P.parents![1])] ?? 0), 0, 0, 0] : around(P.box).map(b => edges[edgeOf(P.box, b)] ? aseedOf(seeds[edgeOf(P.box, b)] ?? 0) : 0);
+    for (let i = 1; i + 1 < poly.length; i++) for (const j of [0, i, i + 1]) { pos.push(...snap(poly[j])); nrm.push(...vn[j]); adist.push(...ad[j]); aseed.push(...sd); }
   }
-  return { pos, nrm, adist };
+  return { pos, nrm, adist, aseed };
 }
 /** "is this world point inside a part?" over all parts except door leaves, on a 4 m grid of the parts' plan bounds */
 export class PartIndex {
@@ -238,10 +240,13 @@ function bevelledBoxGeometry(b: Box, index: PartIndex, stats: BevelStats): THREE
   if (r < 0.002) return null;
   const edges = freeArrises(b, index); const k = edges.filter(Boolean).length; stats.edges += 12; stats.bevelled += k;
   if (!k) return null;
-  const { pos, nrm, adist } = bevelledBox(h, r, edges, B.round);
+  // rev 3: each edge's seed from its world midpoint (arris.ts edgeSeed: the band and the maps read the same chips)
+  const M = new THREE.Matrix4().makeRotationY(b.rot ?? 0).setPosition(b.c[0], (b.y0 + b.y1) / 2, -b.c[1]);
+  const seeds = BOX_EDGES.map(([i, j]) => edgeSeed(new THREE.Vector3(...FACE_N[i].map((x, c) => (x + FACE_N[j][c]) * h[c]) as V3).applyMatrix4(M)));
+  const { pos, nrm, adist, aseed } = bevelledBox(h, r, edges, B.round, seeds);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  g.setAttribute('adist', new THREE.Float32BufferAttribute(adist, 4)); g.userData.arris = { edges, r }; // (D-321 rev 2: the near-field arris bands)
+  g.setAttribute('adist', new THREE.Float32BufferAttribute(adist, 4)); g.setAttribute('aseed', new THREE.Float32BufferAttribute(aseed, 4)); g.userData.arris = { edges, r }; // (D-321 rev 2: the near-field arris bands)
   g.rotateY(b.rot ?? 0); g.translate(b.c[0], (b.y0 + b.y1) / 2, -b.c[1]);
   return g;
 }
@@ -327,6 +332,7 @@ function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartInde
   const st = new Float32Array(n * 4); if (stair) for (let i = 0; i < n; i++) st.set(stair, i * 4);
   g.setAttribute('stair', new THREE.BufferAttribute(st, 4));
   if (!g.getAttribute('adist')) g.setAttribute('adist', new THREE.BufferAttribute(new Float32Array(n * 4), 4)); // D-321: no free arris
+  if (!g.getAttribute('aseed')) g.setAttribute('aseed', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
 }
 /** A/B for measurements (window.__parsaSurf.bevels(on)): swap the merged part meshes between their bevelled and their
  *  plain geometry */
@@ -406,8 +412,6 @@ export class MeshLOD extends THREE.Object3D {
 }
 
 export interface BuiltArch { /** D-330: the carved stone frames (frames.ts; null: drawn as boxes: flat mode or no trim) */ frames: FrameGeoStats | null; group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[] }
-/** D-321 rev 2: the surfaces whose free arrises become geometry near the eye (the dressed stone of the block-face class, D-321) */
-export const ARRIS_MATS = new Set(['limestone', 'terrace']);
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */

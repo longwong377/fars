@@ -15,6 +15,8 @@ import { loadScans } from '../render/scans';
 import { installSunCascades } from '../render/sunShadows';
 import { FIRE_RGB, FIRE_FLICKER_MEAN, fireLight } from '../world/fire';
 import type { AnimId } from '../people/anim';
+import { CrowdImpostors, loadImpostorAtlas, bakeImpostors, rowOf, frameOf } from '../people/impostors';
+import { propGeometry } from '../people/props';
 installWebGPUCompat();
 
 const P = new URLSearchParams(location.search);
@@ -48,6 +50,13 @@ async function boot() {
   const t0 = performance.now();
   const humans = await loadHumans({ velocity: quality !== 'test' && quality !== 'low' });
   const crowd = new Crowd(null, 1, humans); scene.add(crowd.group);
+  // D-331 (?imp=1): the far people's impostors beside the skinned lineup, both the Cycles atlas and the CPU bake of the far
+  // bodies, for side-by-side judgement at the distances the crowd hands over (api.impRow)
+  const imps: Record<string, CrowdImpostors> = {};
+  if (P.has('imp')) { const pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
+    const cyc = await loadImpostorAtlas(humans.A, humans.O); if (cyc) imps.cycles = new CrowdImpostors(cyc);
+    imps.cpu = new CrowdImpostors(bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') }));
+    for (const m of Object.values(imps)) scene.add(m.mesh); }
   const pipeline = new Pipeline(renderer, scene, camera, quality, sky.hemi);
   let time = 0;
   // a brazier's light (D-304: the portraits by fire light): the world's light model for a brazier (fire.ts fireLight: renderer
@@ -97,6 +106,13 @@ async function boot() {
       const ey = v.eyeY * p.look.scale, x = p.extra!.x, fz = 0.1 * p.look.scale; api.view(x + side, ey + 0.01, fz + dist, x, ey - 0.03, fz); p.extra!.look = [camera.position.x, camera.position.y, camera.position.z]; return { eyeY: +ey.toFixed(3) }; },
     render: async (frames = 1, dt = 1 / 30) => { for (let i = 0; i < frames; i++) await frame(dt); },
     stats: () => ({ drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, crowd: crowd.stats(), backend: (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2' }),
+    /** D-331: impostors of the lineup's people (same looks) in a row at z, x offset dx, from atlas 'cycles' | 'cpu', each in
+     *  animation anim at phase ph (s for the swing cycles); none: cleared */
+    impRow: (which: string, dx: number, z: number, anim = 'idle', ph = 0) => { const I = imps[which]; if (!I) return null; 
+      I.begin(); let n = 0; for (const p of crowd.persons.values()) { if (!p.extra || !p.key.startsWith('lab')) continue; const L = p.look, d = (L.far ?? L.dress) as import("../people/outfits").Dress;
+        I.push(p.extra.x + dx, 0, p.extra.z + z, p.extra.yaw ?? 0, rowOf(d, frameOf(anim as AnimId, ph, ph)), L.stature / (I.atlas.refStature[d] || 1.65), null, I.packLook(L)); n++; }
+      I.end(); return { n, source: I.atlas.layout?.source ?? 'cpu' }; },
+    impClear: () => { for (const I of Object.values(imps)) { I.begin(); I.end(); } },
     crowd, humans, renderer, camera, scene,
   };
   (window as any).__lab = api;

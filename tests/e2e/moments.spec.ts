@@ -251,6 +251,7 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // Rendered on the GPU at high (FOV game) before the probes' rebake: shots/body-lane-p4537-r-gpu.png. The belly does not read
   // at this distance: her arms and the loose dress hide it (D-292)
   { n: 'lane-with-child', day: 30, hour: 8.5, w: 'clear', v: [-333.2, -901.5, 1.6, 334.7, -10.6] },
+  { n: 'lane-night', day: 30, hour: 21.5, w: 'clear', v: [-333.2, -901.5, 1.6, 334.7, -10.6] }, // D-309e (B111): the same lane at night: hearths, lamps, moon and sky
   // D-292 (C-D04): the morning wash at rising in a house's court (q_s1-0079: a woman at the water jar and basin), day 30 06:00,
   // 4 m in front of her (body_find's pose). NOT rendered (the second browser run timed out before it)
   { n: 'morning-wash', day: 30, hour: 6.0, w: 'clear', v: [-453.8, -956.5, 1.6, 167.5, -6] },
@@ -328,6 +329,10 @@ test('moments', async ({ page }, info) => {
     await page.evaluate((on) => (window as any).__parsa.nowView?.(on), !!s.now); // the Now view (D-201): the ruin today
     await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, fov] as const);
     for (let i = 0; i < (process.env.FRAMES ? +process.env.FRAMES : s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+    if (process.env.FRAMETIME) { // D-309e (T-K6 context): GPU-complete frame time at this view, 30 frames after the shot's own
+      const ms = await page.evaluate(async () => { const P = (window as any).__parsa, dev = P.renderer?.backend?.device; const done = () => dev ? dev.queue.onSubmittedWorkDone() : Promise.resolve();
+        await done(); const t0 = performance.now(); for (let i = 0; i < 30; i++) await P.renderOnce(); await done(); return (performance.now() - t0) / 30; });
+      console.log(`[frametime] ${s.n} ${ms.toFixed(1)} ms`, JSON.stringify(await page.evaluate(() => (window as any).__parsa.stats()))); }
     const png = await page.screenshot({ path: `shots/moment-${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}-${proj}.png` }); // TAG: debug runs keep the moment's own image
     // §8.3 luminance (display-referred sRGB luma): whole frame; appended to shots/moments-lum.json
     const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo()); eyeAt.set(s.n, exp.exposure);

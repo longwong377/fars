@@ -184,7 +184,7 @@ export const ROBE = {
   warp: 0.35,
   /** the material's crease sharpening in each fold's valley (m) and the fine creases in the pleat stack (per pleat) */
   crease: 0.0016, fine: 2,
-  segs: [72, 24, 10], rings: [14, 8, 4],
+  segs: [88, 28, 10], rings: [14, 8, 4], // (D-322 rev 3: 72 -> 88 and 24 -> 28 columns: the triangles the lighter hands freed, D-323)
 };
 /** the robe skirt's baked pleat offset (m, radial) at the skirt parameter t (0 belt … 1 hem) and |θ| from the front
  *  (0 front … π back), for a LOD (1 keeps the stack and the broad folds, 2 the stack's bulge only) */
@@ -205,7 +205,8 @@ export const robeTheta = (j: number, S: number) => { const u = j / S; return 2 *
 /** the robe's sleeves per LOD (outfits.ts robeSleeves; C): columns, rings (even: the lining takes every second), how far
  *  up the front of the forearm the slanted opening is cut (share of the sleeve's length), the folds (count round, turn
  *  over the length in rad, amplitude on the front and extra on the hanging back, m) */
-export const SLEEVE = { segs: [32, 10, 8], rings: [12, 4, 4], cut: 0.28, folds: 6, twist: 3.0, foldAmp: [0.004, 0.012] as [number, number] };
+export const SLEEVE = { segs: [36, 12, 8], // (D-322 rev 3: 32 -> 36, 10 -> 12)
+  rings: [12, 4, 4], cut: 0.28, folds: 6, twist: 3.0, foldAmp: [0.004, 0.012] as [number, number] };
 /** the long beard of the court as the reliefs carve it (outfits.ts beardGeo, humanMaterial hair): stacked rows of spiral
  *  curls down the hanging mass (B for the carved convention, MATERIAL_CULTURE "Court dressing of hair and beard"; real hair
  *  C, Q-241), each row a roll (rowAmp m, geometry at full detail) with `around` curls round the mass (the material's

@@ -7937,6 +7937,7 @@ T-E10-gpu-run3.json, T-E9-gpu-run3.json.
 - **Game:** the drape sets are version 2 with per-piece fold atlas coordinates (peopleModels DrapeMeta.fuv, .folds); outfits.ts carries each piece's parameter (Geo.puv) and each costume vertex's fold coordinate (CostumeLOD.fuv, + 2 below full detail); humanGPU adds the `fuv` attribute; humanScans appends the fold layers to the people's one array texture (no new binding or sampler: B122); humanMaterial reads them by the person's group (a per-variant sum, as the skin layers) and adds them to the cloth's height field, faded where a triangle spans a chart seam; with the simulated drape loaded the shading stand-ins for folds (the pleat field of the dress, the robe's creases, the upper garments' gathers and hanging folds: "pleats as a shading stripe") are off. Skirts: the tunics' columns 40 -> 52, the child's 64, the dress 80 at full detail, every lining on every second ring (the tunics' 1,680 triangles kept).
 - **Class replaced everywhere (T-R12 anti-proxy):** every garment piece of every built costume (persian with the guard, king and court-woman dresses; median; worker; woman; child; envoy, envoy_short, envoy_bare): robe body, skirt and sleeves, tunic, tunic skirt, trousers, working tunic, skirt and trousers, dress body and skirt, child's tunic and skirt, kandys, headcloth, veil, sash; at LOD 0, 1, 2 and the farthest (simplified from 2), on all 23 body variants (the group's drape in each piece's local frame) and in the impostors baked from the far bodies. Code paths: src/people/outfits.ts buildOutfits (applyDrape, fuv), humans.ts, humanGPU.ts makeMesh, humanMaterial.ts, humanScans.ts; the crowd, the court, the camps, the player's body all draw through them.
 - **Measured:** settled displacement rms (full detail): skirts 18-36 mm, upper garments 7-12 mm, trousers 5-8, headcloth 12, kandys 15, veil 78, sash 5; the lower skirt's deviation from its own smooth outline above the procedural tube's (test). Budgets: every costume within [42,000, 7,000, 3,200, 800] (persian 41,978 / 6,139 / 3,050 / 772). Download: people_cloth 0.88 MB (was 0.16), the fold PNG 0.52 MB of it; GPU: two 1024² RGBA layers in the scans array (~11 MB with mips). Portraits (humanlab, GPU, TAG g1/g2: shots/portraits/g2-*.png; copies T:/fars-assets-s12/garments/): folds on bodices, sleeves and skirts; the headcloth over the dress on the women's backs.
+- **Revision 2 (the lead's review, same session):** (1) the robe's shoulders: its sleeves and body settled apart interpenetrated (patches of one through the other); the sleeves are now kept 4 mm outside the drawn body (`keepOver`, post-step only: settled over it as a collider, the body's shoulders enclosing the sleeves' pinned tops crumpled them to the elbow, tried and reverted). (2) The kandys's cape: its cut line smoothed along itself (the body triangles' zigzag read as a ragged edge). (3) The veil: cut ±75° from the back (was ±60°), resting on the shoulders' tops as well as the crown (`pinShoulder`), 6 % fuller, its flare 1.2 cm (was 2.8): it falls over the shoulder blades instead of drawing in to a band (max displacement 0.11 m; the 0.20 m test limit restored). (4) Per-person variation: two cuts per piece and group (`seeds` 2: the seed turns the gathers' phase, varies ease and blouse by a quarter and ripples the cut by 5 mm; 44 simulations, ~8 min), body variant v wears seed v mod 2, and the fold layers are per seed (4 layers, 1024 x 4096 PNG; the material picks the pair from the variant table). people_cloth 1.6 MB; rebuilt and reproduced, people_hair rebuilt and reproduced. B149's "same folds for everyone" is reduced to two cuts per group.
 
 ## D-320 The relief figures as carved stone, every one: a Blender-baked carved-relief atlas (session 12, agent reliefs; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN row 3)
 - **What:** every relief figure definition the world draws (221: the Apadana registers, audience panels, spandrels and rosette
@@ -8055,6 +8056,119 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
   B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
   platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.
+- **Rev 3 (same session, the lead):** (1) the 12 m hand-over is a crossfade: from 9.5 to 12 m the band/maps threshold is
+  dithered per pixel and per frame (interleaved gradient noise; TRAA resolves it to a blend), the two masks exact complements;
+  (2) the geometry's chips are the maps' own: tools/blender/blockface.py records every chip it carves (the carving unchanged:
+  the strip PNGs byte-identical, the KTX2 untouched; src/data/blockface_chips.json), and each free arris reads one strip row and
+  offset from its edge's seed ('aseed', arris.ts edgeSeed) along one canonical direction in both the shader and the band
+  builder: on the probe at gain 4 a nosing's chip lies at the same place drawn as geometry and as map; (3) the bands are built
+  round the spawn in the load (world.prebuild, settle) and then at 3 ms a frame, a cell's assembly included (1.5 m pieces; a
+  walk <= 3 ms in node); the bands take over only when every cell within 12 m is drawn, so a teleport never shows a hole (the
+  maps draw the arrises meanwhile). Open (B145): the painted joints inside a wall, the platform's prisms and the foot blocks.
+## D-320 (continued) Round 2: the Neo-Elamite relief unpainted, the wall's sky past the figures, the mip spread, 4 layers (session 12, agent reliefs)
+- **Rev 2 (the lead's four follow-ups, same session):** (1) the Neo-Elamite worshippers rendered on the probe (a wall at CALIB):
+  they read, but their hair and beards were painted the Persepolis dark blue; the relief is unpainted, so `Human.hair` carries
+  the stone (relief_figures.ts). (2) The wall beside each figure now loses sky past the carving (render/reliefShadow.ts
+  reliefSkyNode, multiplied into the aoNode of every material that receives the relief shadows): at a wall-face point inside a
+  relief panel, the horizon the carving raises in 8 directions at 1.2, 3 and 6.5 cm in the D-226 height atlas, the sky lost
+  per direction sin² of its angle; the figures sit in the stone with a soft dark line along their contours (C). (3) The
+  softer look beyond ~6 m: the atlas's `nao` now holds the normal's three components (the gilding moved to the paint, as its
+  gilt key colour), so the mip chain keeps the averaged normal's length k; the albedo takes k (Lambert is linear in the
+  normal: the mean shading of fine carving is k × the shading of its mean direction) and the roughness takes Toksvig's spread
+  (1 − k)/k. Probe at 6 m: the atlas figures read crisper than the legacy ones. (4) Skyline packing: 4 layers (84 % fill) where
+  the shelves took 5; nao 26.5 MB (three normal components compress less), paint 3.9 MB.
+- **Revision 3 (after the hairhands merge, D-323):** the lighter hands left 1,044 triangles free in the persian costume at full detail (40,956 with the new hair cards), 1,107 in envoy_short, 1,806 in the worker's; spent on the fold-carrying columns: ROBE.segs 72 -> 88 (LOD 1 24 -> 28), SLEEVE.segs 32 -> 36 (10 -> 12), SKIRT_SEGS tunic and working skirts 52 -> 80 (LOD 1 14 -> 18), the child's 64 -> 96, the dress 80 -> 112 (18 -> 22). Every costume within [42,000, 7,000, 3,200, 800] (persian 41,964 / 6,299 / 3,050 / 736; envoy_short 41,789; worker 41,090). The kandys's empty sleeves (flat planks): gathered narrow at the shoulder, a rounder section widening to the cuff, bowed back and out, lumpy with folds, 14 x 12 at full detail (was 12 x 9). The court woman's sash crossed over her veil at the back (measured: 13-18 of 16-20 veil vertices at the sash's height inside its outline): the veil is now kept 6 mm outside the sash where it passes over it (outfits.ts VEIL_OVER_BELT, at placement on every body: the sash is fitted to the robe there, not to the dress the sash was simulated over), 0 inside on f01, f02, f05 (test). The veil's 0.20 m displacement limit restored in the test (rev 2's report said so; it had been edited in the main tree by a mistaken relative path, which the lead reverted). people_cloth and people_hair rebuilt on the merged tree and reproduced (--verify).
+- **D-309d (the lead's gap audit: interiors far too dark — room-treasury-store mean 31, scribe-room-ne 19 of 255).** Cause
+  (measured, src/sky/exposure.ts): interiorExposureTarget capped the eye at KEY / (v·E + fireE + 0.004); by day 0.004 is
+  ~150 lx in renderer units, so every room below ~150 lx at the eye was exposed at X ≈ 575 whatever its own light (the verify
+  render's exposures: 255, 338, 505). The floor is now 1e-6 (Xsky, the adaptation model, bounds the eye). And an adapted-eye
+  floor on the displayed grey indoors (interiorGreyFloor, C): 0.30 at 1 lx rising to 0.55 by 1000 lx, none below 0.1 lx (a
+  fireless hall at night stays black); the Meybod caravanserai vault (fars-assets/photos/fars_villages_mudbrick; reference
+  only) sits at lower-frame p50 53, the renders at 25. Probe re-bake: not needed — tests/probes.test.ts's parts hash matches
+  the current architecture (26 pass); the palaces' new mud-brick walls (D-334) are meshes over the same parts.
+- **D-309e (B111, night): the clouds' light march pointed at the set sun** (through the whole deck, so the moonlight added to
+  their light never reached them: dark smudges on the starry sky, night-moon-fire). With the sun below −4° it points at the
+  moon (blended over 4°). Not done: the town's lamps and hearths lighting the lanes beyond the 12 nearest point lights (high).
+- **T-K6 context (world, Q high, 1920×1080, T4, everything merged at 18bce96+; tests/e2e/moments.spec.ts FRAMETIME=1: 30
+  renderOnce() calls, GPU queue drained):** town-smoke-dusk 287 ms, night-moon-fire 209 ms a frame (204 draws, 4.0 M
+  triangles). renderOnce includes the frozen test world's per-frame CPU work (the eye's upward rays, the world update), so
+  this is an upper bound on the GPU frame; far over any playable budget either way (B-row below).
+
+## D-320 (continued) Round 3: the human relief figures redrawn from measured photographs (session 12, agent reliefs)
+- **Measured** (tools/dev/photo_crop.mjs: a photograph's region with a ruler in source pixels; fars-assets/photos, Wikimedia
+  Commons): on the Apadana E stair nobles (apadana/13502746…jpg), two Persian nobles 717 and 860 px tall from the fluted hat's
+  top to the feet: hat 0.096 / 0.084 of the figure, eye 0.872 / 0.863, beard's foot 0.774 / 0.749, head to the beard's foot
+  0.226 / 0.251, shoulders ~0.74. The relief figures drew the head 0.335 of the figure (1.4x too large: the "doll" read). On
+  the guards' heads photographed square to the wall (reliefs/94473576_AKS_0720.jpg) and reliefs/73117298_King_guard.jpg: the
+  fluted hat's flutes end in rounded tips along a straight edge rising a little to the front; a row of snail curls frames the
+  brow under the hat's band; the bunch at the nape is a mass of large snail curls (0.06 of the head's height, the beard's 0.05)
+  reaching 0.57 of the way from the eye to the beard's foot; the beard is square-cut in horizontal rows.
+- **Redrawn** (relief_figures.ts): the head in a frame scaled HEAD_SCALE 0.75 about the hat's top (head 0.251, hat 0.095, eye
+  0.863, beard's foot 0.739); a bare-stone neck under it; the shoulders at 0.74; the hair bunch fuller and lower; curl sizes
+  from the photographs; the fluted hat's tips and brow curls; the Persian sleeve hanging 0.17 under the forearm (was 0.13;
+  B/C); the Median official's hand at his mouth moved with the head. Every kind drawn with the human figure takes it (17
+  kinds, ~800 of the 927 figures): their KindInfo carries drawing 'B' and the photographs; animals, plants, emblems,
+  ornaments and the Neo-Elamite worshippers stay drawing 'C' (PLACEHOLDER). Not redrawn, though photographed: the
+  lion-and-bull (hadish/30320472…jpg shows the bull's neck in bead rows, a rosette collar and the lion's flame mane: the
+  composition matches, those details do not), the king's audience scene, the jambs' heroes and the throne-bearers (next).
+- The atlas rebuilt (all definitions rebaked).
+- **Revision 4 (the lead's review of the g5 portraits):** (1) the kandys's empty sleeves hang behind the shoulders down the coat's back to the hip, as the Median courtiers' and guards' on the Persepolis reliefs (C for the length and cut), flattened across the back, gathered at the top and widening to the cuff; the kandys simulated with self-collision so the sleeves lie on the coat (its simulation ~6 min of the build). (2) The upper garments' blouse over the belt, which read as a pot belly on the short tunics: working tunic 8 -> 4 %, riding and child's tunics 8 -> 5 % (the dress and robe keep 3.5 %). (3) B123, a cloth response in motion: in the vertex stage, a skirt's lower part (t²), the hems, the sash's ends and slack sleeves lag behind their bones' move since the last frame (humanMaterial CLOTH_LAG: 3 frames' worth at 60 fps, a third of it vertical, at most 7 cm, faded from 22 to 30 m where crowd.ts stops posing every frame), from the previous palette the velocity buffer already keeps (12 more texel loads a vertex), the frame's length from humanGPU.begin so the lag keeps its time; no state (a lag, not a swing that outlasts the motion; posed drape sets for sitting and kneeling are still not built: B123 narrowed). Seen: not yet in motion on screen (the portrait harness renders stills); the humanlab crowd's walkers are the check.
+
+## D-332 The birds, the small creatures and the ground flora modelled in Blender, every species (session 12, agent smalllife; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN rows 13 and 20; B178-B180)
+- **What changed, world-wide.** Every code path that draws the class now draws modelled forms (public/models/life/, loaded
+  at startup by src/world/lifeModels.ts, awaited by world.ts with the other models): wildlife.ts `Birds` (all 26 species of
+  BIRDS; the swifts among the swallows' instances, the hen sparrows and ducks every other bird) and `Jackals`; smallLife.ts
+  `SmallLife` (all 14 kinds of SMALL, and the spring flowers near the walker: grape hyacinth, buttercup, poppy, crown
+  imperial by bloom colour); groundFlora.ts `GroundFlora` (tragacanth cushion, camelthorn, thistle: over the D-310 scans,
+  which remain the second fallback) and `RoseBeds` (the paradise's roses). The procedural diamonds, boxes, domes and crossed
+  quads remain only as stand-ins when a model is absent or `?life=0` / `?models=0`, flagged PLACEHOLDER in the dev overlay.
+  Placement, counts, sizes, seasons, hours and tiers are the simulation's own, unchanged.
+- **The birds (C: field-guide proportions and plumage by recollection; tools/blender/life_birds.json).** A parametric bird
+  per species (tools/blender/life_birds.py): a lofted body along a spine (tail root, body, neck, head, bill of the species'
+  shape: cone, fine, hook, dagger, flat, decurved, gape, short), two-sheet wings (upper and under surfaces with their own
+  plumage) of the species' planform (pointed, sickle, rounded, fingered with 4-7 fingers, a bat's membrane), a two-sheet tail
+  (fork, streamers, notch, wedge, round, square, pins, membrane), legs with toes, crests (hoopoe, lark, heron) and ears
+  (bat). Two poses from the same numbers: in flight (legs tucked or, for storks, herons, cranes and egrets, trailing; the
+  herons' and egret's neck folded) and, for the 14 ground species, standing (body pitched, neck and head raised, wings
+  folded on the flanks with the trailing edge along the back, legs to the ground). Levels: fly0 684-748, fly1 164-180, fly2
+  52-64 triangles (drawn beyond 60 x and 400 x the bird's length); stand0/stand1 as fly0/fly1. The maps are Cycles bakes
+  (normal, occlusion, albedo, coverage) from a dense source ~100x the rings with the feathers as relief (the body's
+  overlapping tips, the coverts' rows, the flight feathers' vanes and shafts) and the flight and tail feathers' tips cut from
+  the planform: the coverage is the alpha test (the eagles' and storks' fingers, the swallows' streamers, the bat's scallops).
+  The wingbeat: each wing turns about its shoulder by the instance's beat x (0.55 + 0.45 x the wing weight in COLOR_0), the
+  hand sweeping further than the arm; gliders hold a slight dihedral.
+- **A bug fixed on the way (visible):** heading is atan2(east, north) while the world's z is south, so the old meshes (nose
+  +z, yaw = heading) flew, crawled and trotted tail-first whenever they moved along north-south. Every bird, creature and
+  jackal now yaws by pi - heading (tests/life_models.test.ts: the nose follows the path).
+- **The small creatures and the jackal (C; tools/blender/life_small.py).** Anatomies of blended ellipsoids (Blender
+  metaballs, built at unit length: Blender clamps a metaball's resolution) per kind, with the relief of the kind (the agama's
+  and the viper's scales, the tortoises' scutes with growth rings, the hedgehog's spines, the porcupine's quills, fur,
+  segments) and colour marks per part, decimated to two levels (lod1 beyond 40 x the length, never nearer than 2 m), baked;
+  the insects' wings as sheets with their veins and the clear membrane as a stipple; the butterflies' three species (whites,
+  clouded yellow, painted lady) side by side in one map (an instance offset); the snake waves along its length, the insects'
+  wings beat from their weights, the jackal's legs are weighted from its model (below the elbows and hocks, diagonal pairs).
+- **The ground flora as the real species (C; tools/blender/life_flora.py).** No CC0 scan of Astragalus, Alhagi, Onopordum or
+  the others exists (D-310's search): each is modelled. Stems and branches are tubes; the foliage is cards whose maps are
+  orthographic Cycles renders (albedo with coverage, normal, occlusion) of modelled sprigs in 4 x 4 atlases: the tragacanth's
+  spine-tipped pinnate tufts standing out of a lumpy grey-green dome, its pale flowers in April-June; camelthorn's green
+  twigs with rigid yellow-tipped spines and small leaves, pink flowers in June-August, browning in autumn; the thistles'
+  winged stems, lobed spiny woolly rosettes and stem leaves bent in two, globose heads of spiny bracts under purple florets
+  (dry pale heads after); the damask rose's canes, pinnate serrate leaves and semi-double pink blooms; the spring flowers'
+  stalks, leaves and blooms. The seasons tint the modelled colours (spring = 1); the flowers (COLOR_0.r = 1) are cut out
+  of season by the alpha test. Levels within the D-310 scans' budget (lod0 <= 1500, lod1 <= 300).
+- **Budgets (tests/life_models.test.ts, counting what the page draws):** every bird species at its full count at its
+  nearest level (the murmuration at its far level) < 400 k triangles; the small creatures at their caps at lod1 < 400 k;
+  the flora at their caps with the near share at lod0 < 1 M (the scans were the same levels). Draws: one per species,
+  variant and level holding birds or creatures this frame (none while empty).
+- **How this could pass its tests while the intent fails (clause 1), and what was measured against it:** (a) the tests read
+  the GLBs in node without their KTX2 maps: a map failing in the browser leaves the fallback colour, untested; measured on
+  Blender contact sheets of every model with its shipped maps (T:/fars-assets-s12/smalllife/{birds,small,flora}/sheet*.png),
+  NOT yet in the game's renderer (B178); (b) a code path still drawing a stand-in: every drawer of the class was switched
+  and each test asserts no PLACEHOLDER mesh with the models registered; (c) birds unreadable at distance (alpha thinning in
+  the mips, the far level): unverified in the browser (B178).
+- Files: tools/blender/life.mjs, life_lib.py, life_birds.py/.json, life_small.py/.json, life_flora.py/.json, life_preview.py,
+  tools/blender/probe/life_probe.*; src/world/lifeModels.ts, wildlife.ts, smallLife.ts, groundFlora.ts, world.ts (the
+  loader, the eye for the birds' levels, the roses' viewer); tests/life_models.test.ts, wildlife.test.ts (countOf/posOf).
 
 ## D-330 The stone frames of every door, window and niche carved, every merlon modelled, every court tent pitched as simulated cloth (session 12, agent decor_tents; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN rows 17-18; Q-916, Q-917)
 - **How this could pass its tests while the intent fails (clause 1), and what was measured against it:** (a) the frame

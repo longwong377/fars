@@ -79,3 +79,8 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-330 | s12 | Blender, all of it (wave 3): decor_tents (Q-916..Q-917, B172..B174) | agent worktree T:/fars-wt/decor_tents, branch s12c-decor_tents | in flight |
 | D-331 | s12 | Blender, all of it (wave 3): impostors (Q-918..Q-919, B175..B177) | agent worktree T:/fars-wt/impostors, branch s12c-impostors | in flight |
 | D-332 | s12 | Blender, all of it (wave 3): smalllife (Q-920, B178..B180) | agent worktree T:/fars-wt/smalllife, branch s12c-smalllife | in flight |
+| D-333 | s12 | wave 4: mocap (Q-921, B181..B183) | agent worktree T:/fars-wt/mocap, branch s12d-mocap | in flight |
+| D-334 | s12 | wave 4: palacewalls (Q-922, B184..B186) | agent worktree T:/fars-wt/palacewalls, branch s12d-palacewalls | in flight |
+| D-335 | s12 | wave 4: land (Q-923, B187..B189) | agent worktree T:/fars-wt/land, branch s12d-land | in flight |
+| D-336 | s12 | voices: a unique natural voice per person, period languages, the Farsi/English opt-in (UD-22; Q-924, B190..B192) | agent worktree T:/fars-wt/voices, branch s12d-voices | in flight |
+| D-337 | s12 | performance: the world playable at high on the T4 (Q-925, B193..B195) | agent worktree T:/fars-wt/perf, branch s12d-perf | in flight |

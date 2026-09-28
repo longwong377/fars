@@ -29,8 +29,8 @@ for it in job['items']:
     gm = bpy.data.materials.new('g'); gm.use_nodes = True; gm.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (0.35, 0.3, 0.25, 1); gp.materials.append(gm)
     tiles = []
     for k, ang in enumerate((0, 35, 90, 180)):
-        a = math.radians(ang); d = 4.4; tz = 0.92
-        co.location = (d * math.sin(a), -d * math.cos(a), 1.05)
+        a = math.radians(ang); d = float(job.get('d', 4.4)); tz = float(job.get('tz', 0.92))
+        co.location = (d * math.sin(a), -d * math.cos(a), tz + 0.13)
         dv = np.array((0, 0, tz)) - np.array(co.location); yaw = math.atan2(dv[0], dv[1]); pitch = math.atan2(dv[2], math.hypot(dv[0], dv[1]))
         co.rotation_euler = (math.pi / 2 + pitch, 0, -yaw)
         f = os.path.join(os.path.dirname(out_png), '_' + os.path.basename(out_png)[:-4] + f'_{len(rows)}_{k}.png'); sc.render.filepath = f; bpy.ops.render.render(write_still=True)

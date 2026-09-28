@@ -1,0 +1,7 @@
+{
+  "name": "parsa-bake-cpu",
+  "private": true,
+  "description": "D-314: the lives' prose bake on the CPU (node-llama-cpp, a GGUF model), kept out of the game's dependencies",
+  "type": "module",
+  "dependencies": { "node-llama-cpp": "^3.0.0" }
+}

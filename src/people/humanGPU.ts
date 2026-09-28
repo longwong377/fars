@@ -9,7 +9,7 @@ import * as THREE from 'three/webgpu';
 import type { HumanAssets } from './humanAssets';
 import type { OutfitBuild, CostumeLOD, Dress } from './outfits';
 import { BUILT } from './outfits';
-import { HumanMaterial, PERSON_TEXELS, type HumanTextures } from './humanMaterial';
+import { HumanMaterial, PERSON_TEXELS, CLOTH_LAG, type HumanTextures } from './humanMaterial';
 import type { CardsMeta } from './peopleModels';
 import { skinLayersOf, type HumanScans } from './humanScans';
 import { NBONES, PALETTE_STRIDE } from './humanRig';
@@ -67,7 +67,7 @@ export class HumanGPU {
   palette: Float32Array; prevPalette: Float32Array; person: Float32Array;
   capacity: number;
   private personDirty = true;
-  constructor(readonly A: HumanAssets, readonly O: OutfitBuild, images: { skin: THREE.Texture; eye: THREE.Texture; scans?: HumanScans | null; hairAtlas?: THREE.Texture | null; hairNormal?: THREE.Texture | null; cards?: CardsMeta | null; simCloth?: boolean }, opts: { capacity?: number; velocity?: boolean; castShadow?: boolean } = {}) {
+  constructor(readonly A: HumanAssets, readonly O: OutfitBuild, images: { skin: THREE.Texture; eye: THREE.Texture; scans?: HumanScans | null; hairAtlas?: THREE.Texture | null; hairNormal?: THREE.Texture | null; cards?: CardsMeta | null; simCloth?: boolean; drapeSeeds?: number }, opts: { capacity?: number; velocity?: boolean; castShadow?: boolean } = {}) {
     this.group.name = 'people:humans';
     this.capacity = Math.max(16, opts.capacity ?? 256);
     const rows = Math.ceil(O.source.length / 4 / SOURCE_WIDTH);
@@ -81,7 +81,7 @@ export class HumanGPU {
       scans: images.scans ?? null, skinLayers: images.scans ? A.variants.map((v, i) => skinLayersOf(v.meta, i, images.scans!.skinIds)) : [],
       // D-307: the strand atlas of the hair cards and its layout (null: no cards were built into the costumes)
       simCloth: !!images.simCloth, // D-322: the garments' simulated folds are in their geometry
-      groups: A.variants.map(v => (v.meta.group === 'child' ? 2 : v.meta.sex === 'f' ? 1 : 0)), // (D-322: the fold layers' channel per body variant)
+      groups: A.variants.map(v => (v.meta.group === 'child' ? 2 : v.meta.sex === 'f' ? 1 : 0) + 3 * (v.index % (images.drapeSeeds ?? 1))), // (D-322: the fold layers' channel per body variant, + 3 × its cut's seed)
       hairAtlas: images.hairAtlas && images.cards ? images.hairAtlas : null, cards: images.hairAtlas && images.cards ? { cols: images.cards.atlas.cols, rows: images.cards.atlas.rows.length, classRows: images.cards.classRows, w: images.cards.atlas.w, h: images.cards.atlas.h, levels: Math.floor(Math.log2(Math.max(images.cards.atlas.w, images.cards.atlas.h))) + 1,
         // D-323: the normal atlas (same cells, its own size)
         normal: images.hairNormal && images.cards.normal ? { w: images.cards.normal.w, h: images.cards.normal.h, levels: Math.floor(Math.log2(Math.max(images.cards.normal.w, images.cards.normal.h))) + 1 } : null } : null,
@@ -135,7 +135,10 @@ export class HumanGPU {
   /** set one instance directly (the player's body) */
   setInstance(c: CostumeMesh, i: number, slot: number, root: number[], prev: number[]) { const a = c.inst.array as Float32Array; a[i * INST_STRIDE] = slot; a.set(root, i * INST_STRIDE + 1); a.set(prev, i * INST_STRIDE + 5); c.inst.needsUpdate = true; }
   /** start filling the instance lists for a frame */
-  begin() { for (const c of this.all()) { c.count = 0; c.box.makeEmpty(); } }
+  begin() { for (const c of this.all()) { c.count = 0; c.box.makeEmpty(); }
+    // D-322 rev 4: the frame's length for the cloth's lag (CLOTH_LAG.frame, in 60ths of a second; a pause does not fling it)
+    const now = performance.now(), dt = this.lastBegin ? now - this.lastBegin : 1000 / 60; this.lastBegin = now; CLOTH_LAG.frame.value = Math.min(4, Math.max(0.25, dt / (1000 / 60))); }
+  private lastBegin = 0;
   private *all() { yield* this.costumes.values(); yield* this.shadows; }
   /** add an instance; `cast`: also to the costume's near (1) or far (2) shadow caster, or none (0) */
   push(c: CostumeMesh, slot: number, x: number, y: number, z: number, yaw: number, px: number, py: number, pz: number, pyaw: number, cast = 1) {

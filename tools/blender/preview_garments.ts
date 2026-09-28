@@ -37,4 +37,4 @@ for (const spec of specs) {
   const f = `${out}/${spec.replace(/[:+]/g, '_')}.ply`; writeFileSync(f, Buffer.concat([Buffer.from(head, 'ascii'), body]));
   list.push({ file: f, label: spec, tris: idx.length / 3 }); console.log('[preview_garments]', spec, idx.length / 3, 'triangles drawn');
 }
-writeFileSync(`${out}/job.json`, JSON.stringify({ items: list, res: 420, samples: 24 }, null, 1));
+writeFileSync(`${out}/job.json`, JSON.stringify({ items: list, res: 420, samples: 24, d: +(process.env.PREV_D ?? 4.4), tz: +(process.env.PREV_TZ ?? 0.92) }, null, 1));

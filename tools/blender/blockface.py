@@ -178,7 +178,7 @@ def layer_strip(L, rng):
     St, rows, spx = L['strip'], spec['strip_rows'], spec['strip_px']
     h = np.zeros((R, R))
     V = (np.arange(R) % spx + 0.5)[:, None] * PX_MM * np.ones((1, R))  # mm from the arris
-    info = {'chips': 0, 'margin_strokes': 0}
+    info = {'chips': 0, 'margin_strokes': 0, 'list': [[] for _ in range(rows)]}
     for r in range(rows):
         r0, r1 = r * spx, (r + 1) * spx
         if 'margin' in St:  # the margin: flat/claw strokes along the arris, cut from a pre-dressed band down to the face's plane
@@ -208,8 +208,9 @@ def layer_strip(L, rng):
         while x < R:
             a = min(Ch['aMax'], Ch['a0'] + rng.exponential(Ch['aMean'])) / 2.0
             b = 2 * a * rng.uniform(*Ch['b']); D = b * rng.uniform(*Ch['d'])
-            carve(h, x / PX_MM, r0, rng.normal(0, 0.15), 2 * a / PX_MM + 2, 2 * b / PX_MM + 2, chip_cut(a / PX_MM, b / PX_MM, D, rng.uniform()), rows=(r0, r1))
-            info['chips'] += 1
+            th = rng.normal(0, 0.15); ph = rng.uniform()  # (drawn in the order the call drew them: the carving is unchanged)
+            carve(h, x / PX_MM, r0, th, 2 * a / PX_MM + 2, 2 * b / PX_MM + 2, chip_cut(a / PX_MM, b / PX_MM, D, ph), rows=(r0, r1))
+            info['chips'] += 1; info['list'][r].append([round(x, 3), round(a, 3), round(b, 3), round(D, 4), round(th, 4)])  # (mm; the game's geometry chips, D-321 rev 3)
             x += rng.exponential(1000.0 / Ch['rate'])
     # the far end of each strip is the plain face (h 0): the shader hands over to the face layer before it
     return h, info

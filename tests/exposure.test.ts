@@ -169,3 +169,13 @@ describe('frame meter', () => {
     expect(Math.abs(meterEV(meterLogMean(frame(() => grey / 8)), X, KEY, 30))).toBeLessThan(1.5);
   });
 });
+// D-309d: the adapted eye's floor indoors by day (the lead's world render: the rooms at mean 19-31 of 255)
+import { interiorGreyFloor } from '../src/sky/exposure';
+describe('interior grey floor (D-309d)', () => {
+  it('a daylit room at ~10 lx shows grey at >= 0.35 of daylight grey; no floor at night (below 0.1 lx)', () => {
+    const L = { sunE: 3, skyE: 0.5, moonE: 0, lux: 110000, skyLux: 15000 };
+    const b = (v: number) => (interiorExposureTarget(L.sunE, L.skyE, L.moonE, 0, v, L.lux, L.skyLux) * v * (L.sunE + L.skyE)) / KEY;
+    expect(b(0.0001)).toBeGreaterThan(0.35); expect(interiorGreyFloor(0.05)).toBe(0); expect(interiorGreyFloor(1e4)).toBeCloseTo(0.55, 2);
+    for (let l = -2; l < 5; l += 0.25) expect(interiorGreyFloor(10 ** (l + 0.25))).toBeGreaterThanOrEqual(interiorGreyFloor(10 ** l));
+  });
+});
