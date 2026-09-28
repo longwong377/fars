@@ -27,6 +27,13 @@ const V = [
   { n: 'samples-4m', court: true, e: -24, n2: 94, eye: 1.6, az: 341 + 0, pitch: -2, fov: 60, ...S25pm },
   { n: 'samples-arm', court: true, e: -30, n2: 98.2, eye: 1.4, az: 341, pitch: -5, fov: 60, ...S25pm },
   { n: 'merlon-arm', court: true, e: -15, n2: 98.9, eye: 0.5, az: 341, pitch: 0, fov: 60, sunAz: 300, sunAlt: 25 },
+  { n: 'merlon-side', court: true, e: -14.1, n2: 99.2, eye: 1.1, az: 290, pitch: -20, fov: 50, sunAz: 150, sunAlt: 20 },
+  // D-321 rev 2: the arrises at arm's length in a low sun: a stair's nosings, a parapet's coping, a wall's corner
+  { n: 'nosing-arm', e: -43.9, n2: 131.5, eye: 1.6, az: 341, pitch: -32, fov: 35, sunAz: 250, sunAlt: 18 },
+  { n: 'block-corner', court: true, e: -10.2, n2: 98.3, eye: 1.25, az: 315, pitch: -12, fov: 40, sunAz: 200, sunAlt: 15 },
+  { n: 'block-edge-rake', court: true, e: -9.9, n2: 99.0, eye: 1.3, az: 250, pitch: -14, fov: 30, sunAz: 160, sunAlt: 8 },
+  { n: 'block-top', court: true, e: -12, n2: 98.6, eye: 1.5, az: 341, pitch: -40, fov: 40, sunAz: 250, sunAlt: 12 },
+  { n: 'corner-arm', court: true, e: 80, n2: -14, eye: 1.6, az: 300, pitch: -10, fov: 45, dist: 1.2, sunAz: 20, sunAlt: 18 },
 ];
 const b = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'] });
 const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const logs = [];
@@ -38,9 +45,10 @@ console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) /
 const BFS = (process.env.BF ?? '1,0').split(',').map(Number); // (a gain > 1 exaggerates the detail: its placement)
 for (const v of V) { if (ONLYV && !ONLYV.includes(v.n)) continue;
   for (const bf of BFS) {
-    const errs = await p.evaluate(v => window.__shot({ ...v, n: v.n2 }), { ...v, bf });
+    const ar = +(process.env.AR ?? 1); // D-321 rev 2: the arris bands on (1) or off (0)
+    const errs = await p.evaluate(v => window.__shot({ ...v, n: v.n2 }), { ...v, bf, ar });
     const hit = await p.evaluate(() => window.__hit ?? null);
-    await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/bfprobe-${v.n}-${TAG}-bf${bf}.png` });
-    console.log(v.n, 'bf', bf, hit ? JSON.stringify(hit) : '', errs.length ? errs : '', (Date.now() - t0) / 1000);
+    await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/bfprobe-${v.n}-${TAG}-bf${bf}${process.env.AR === '0' ? '-ar0' : ''}.png` });
+    console.log(v.n, 'bf', bf, JSON.stringify(await p.evaluate(() => window.__arris)), hit ? JSON.stringify(hit) : '', errs.length ? errs : '', (Date.now() - t0) / 1000);
   } }
 console.log(logs.slice(0, 12).join('\n')); await b.close();

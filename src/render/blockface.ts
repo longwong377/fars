@@ -98,7 +98,7 @@ export interface BlockFrame {
   isFlat: any; isPoint: any;
   /** the nearest arris of each joint family: d (m from it), along (m along it, continuous), the world directions along it and
    *  away from it into this block, a 0/1 mask (joints drawn here), a 0/1 side (which of the block's two arrises of the family) */
-  bed?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any };
+  bed?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any; /** 0..1: the chips kept (D-321 rev 2: none where the arris is geometry) */ chip?: any };
   head?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any };
 }
 const MARGIN: [number, number] = [0.03, 0.04]; // the margin band's hand-over to the face (m from the arris; the strips' margin ends at 37 mm)
@@ -133,7 +133,7 @@ export function blockFaceDetail(F: BlockFrame): { tilt: any; alb: any; ao: any; 
     const S = stripDetail(J.along, o.mul(BLOCKFACE.size_m * 3.1), J.d, row, stripL);
     const inStrip = float(1).sub(step(0.125, J.d)).mul(J.mask);
     const wM = float(1).sub(smoothstep(MARGIN[0], MARGIN[1], J.d)).mul(float(1).sub(iP)).mul(inStrip); // the margin band (fine strips)
-    const wC = smoothstep(CHIP[0], CHIP[1], S.h.negate()).mul(inStrip); // a chip
+    const wC = smoothstep(CHIP[0], CHIP[1], S.h.negate()).mul(inStrip).mul(J.chip ?? float(1)); // a chip
     return { S, wM, wC, t: J.Talong.mul(S.slope.x).add(J.Taway.mul(S.slope.y)).mul(RELIEF_GAIN) };
   };
   if (F.bed && F.head) {

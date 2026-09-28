@@ -8038,3 +8038,20 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   NOT mine and failing on claude/amazing-fermi-40ds7j itself (checked in a clean worktree of its tip): tests/plain.test.ts
   static plain triangles 2.11 M (< 2.0 M): relief:figures 283 + 283 + 211 k and plain-stone 84 k; the village far cells are
   31-83 k each (unchanged by this merge).
+- **Rev 2 (same session, the lead: B145 approach 1; UD-20 fresh-dressed, lightly handled):** (1) **the free arrises as
+  geometry near the eye** (src/arch/arris.ts ArrisField, world.ts): every bevelled free arris of a limestone or terrace box
+  part (3,550 edges, 7.9 km over the Terrace) is recorded by buildMeshes; within 12 m of the eye each carries a band of real
+  geometry 4.6 cm onto both faces: the arris worn round (radius 18 mm, inside D-157's 10 mm chamfer) and chipped in handling
+  and setting (conchoidal scoops, Poisson ~1 per metre, half-length 3.5 mm + exp(6 mm) <= 24 mm, the struck face 0.9-1.9 x
+  that across and 0.22-0.45 of it deep, the other face 0.4 of both: the fine strips' rates and sizes), every vertex clamped
+  inside the part's own chamfered box (the band only removes stone). The base mesh discards its arris zone (the 'adist' < 4 cm)
+  within 12 m and the band keeps only what lies within 12 m (maskNode, which the shadow pass also runs: the chips cast shadows
+  and break the silhouette); the band laps 6 mm over the faces (the crack the first probe showed). Built in 8 m cells of 3 m
+  pieces, 6 ms a frame (a test render builds all at once), a 1.6 m step 0-7 ms; 50-170 k triangles and 5-11 draws at the
+  stairs (tests/arris.test.ts, bench-reports/arris-d321.txt; the texture chips of those arrises are left out in the band).
+  Off in the Now view. (2) **the merlons' sides, ledges and tops** take the arris strips too (the front/back distance through
+  the instance's depth scale from screen derivatives; decor.ts crenellationGeometry writes 'mzd'). (3) the fossil pits under
+  the carved faces 0.15 as dark (the merlons' sides at 1 m still read as pepper). Seen (probe, T4): the arrises of a block and
+  the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
+  B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
+  platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.

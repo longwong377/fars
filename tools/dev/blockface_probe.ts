@@ -3,7 +3,8 @@
 // Driven by tools/dev/blockface_probe.mjs
 import * as THREE from 'three/webgpu';
 import { loadScans } from '../../src/render/scans';
-import { blockFaceStats, blockFaceLoaded } from '../../src/render/blockface';
+import { blockFaceStats, blockFaceLoaded, ADIST_OFF } from '../../src/render/blockface';
+import { ArrisField } from '../../src/arch/arris';
 import '../../src/world/plain/naqsh'; // (kaba_white)
 import { registerSettlementSurfaces } from '../../src/world/settlement/surfaces';
 import { Terrain } from '../../src/terrain/heightfield';
@@ -11,7 +12,7 @@ import { TerrainMesh } from '../../src/terrain/terrainMesh';
 import { buildTerrace } from '../../src/arch/terrace';
 import { buildMeshes } from '../../src/arch/meshes';
 import { loadSculpt } from '../../src/arch/sculpt';
-import { buildStairCrenellations } from '../../src/arch/decor';
+import { buildStairCrenellations, crenellationGeometry } from '../../src/arch/decor';
 import { footGeometry } from '../../src/arch/terrace_foot';
 import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materials';
 (async () => {
@@ -28,7 +29,10 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   const tm = new TerrainMesh(terrain, 1); scene.add(tm.group);
   await loadSculpt(async p => { const q = await fetch('/' + p); if (!q.ok) throw new Error(`${p}: ${q.status}`); return q.arrayBuffer(); });
   const { parts, doorways } = buildTerrace(); setTraffic(doorways);
-  scene.add(buildMeshes(parts).group);
+  // D-321 rev 2: a free-standing dressed block on the court (grid e -12, n 100: 2.4 x 1.2 x 1.1 m) for the arrises at arm's length
+  parts.push({ type: 'box', building: 'probe', kind: 'wall', material: 'limestone', tier: 'C', src: 'RECON', c: [-12, 100], size: [2.4, 1.2], y0: 0, y1: 1.1, rot: 0 } as any);
+  const built = buildMeshes(parts); scene.add(built.group);
+  const arris = new ArrisField(built.arris, m => P.has('arrisdbg') ? new THREE.MeshBasicNodeMaterial({ color: 0xff0000 }) : surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); scene.add(arris.group); // D-321 rev 2 (?arrisdbg: the bands red)
   const cren = buildStairCrenellations(parts); if (cren) scene.add(cren);
   const fg = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n));
   if (fg.geo) { const m = new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot')); m.castShadow = m.receiveShadow = true; scene.add(m); }
@@ -39,7 +43,7 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   const cam = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 60000);
   const dirOf = (az: number, alt: number) => { const psi = -((az - 341) * Math.PI) / 180, c = Math.cos(alt * Math.PI / 180); return new THREE.Vector3(-Math.sin(psi) * c, Math.sin(alt * Math.PI / 180), -Math.cos(psi) * c); };
   const ray = new THREE.Raycaster();
-  (window as any).__shot = async (v: { e: number; n: number; eye: number; az: number; pitch: number; fov: number; sunAz: number; sunAlt: number; now?: number; court?: boolean; dist?: number; bf?: number }) => {
+  (window as any).__shot = async (v: { e: number; n: number; eye: number; az: number; pitch: number; fov: number; sunAz: number; sunAlt: number; now?: number; court?: boolean; dist?: number; bf?: number; ar?: number }) => {
     (globalThis as any).__parsaSurf?.blockface?.(v.bf ?? 1);
     NOW_GROUND.value = v.now ?? 0;
     const x = v.e, z = -v.n, g = v.court ? 0 : terrain.heightAt(x, z); // (court: on the Terrace's top, the court datum)
@@ -52,6 +56,7 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
     const d = dirOf(v.sunAz, v.sunAlt), look = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion).multiplyScalar(25).add(cam.position);
     sun.position.copy(look).addScaledVector(d, 1000); sun.target.position.copy(look); sun.target.updateMatrixWorld();
     tm.update(cam.position);
+    arris.update(v.ar === 0 ? null : cam.position, 1e9); (window as any).__arris = arris.stats;
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     return errs.slice();
   };
@@ -59,6 +64,6 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   // here: the Ka'ba's and Takht-e Rustam's hairline ashlar, the town's kerb stone, the masons' rough blocks, a merlon (instanced)
   registerSettlementSurfaces();
   ['kaba_white', 'takht_stone', 'stone_plain', 'stone_rough', 'limestone'].forEach((k, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 1.2), surfaceMaterial(k)); m.position.set(-30 + i * 3, 1.1, -100); m.castShadow = m.receiveShadow = true; scene.add(m); });
-  { const im = new THREE.InstancedMesh(new THREE.BoxGeometry(0.9, 0.9, 0.9).translate(0, 0.45, 0), surfaceMaterial('limestone_merlon'), 1); im.setMatrixAt(0, new THREE.Matrix4().makeTranslation(-15, 0, -100)); scene.add(im); }
+  { const im = new THREE.InstancedMesh(crenellationGeometry(0.9, 0.9, 4, 1), surfaceMaterial('limestone_merlon'), 1); im.setMatrixAt(0, new THREE.Matrix4().makeTranslation(-15, 0, -100).multiply(new THREE.Matrix4().makeScale(1, 1, 0.45))); scene.add(im); }
   (window as any).__bf = { ...blockFaceStats, loaded: blockFaceLoaded() }; (window as any).__ready = true;
 })().catch(e => { (window as any).__ready = String(e); console.error(e); });

@@ -2,6 +2,7 @@
 // colossi as sculpture) and Rapier colliders (always the parts' own boxes/prisms).
 import * as THREE from 'three/webgpu';
 import { ADIST_OFF } from '../render/blockface';
+import { arrisEdgesOfBox, type ArrisEdge } from './arris';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
@@ -238,7 +239,7 @@ function bevelledBoxGeometry(b: Box, index: PartIndex, stats: BevelStats): THREE
   const { pos, nrm, adist } = bevelledBox(h, r, edges, B.round);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  g.setAttribute('adist', new THREE.Float32BufferAttribute(adist, 4));
+  g.setAttribute('adist', new THREE.Float32BufferAttribute(adist, 4)); g.userData.arris = { edges, r }; // (D-321 rev 2: the near-field arris bands)
   g.rotateY(b.rot ?? 0); g.translate(b.c[0], (b.y0 + b.y1) / 2, -b.c[1]);
   return g;
 }
@@ -402,7 +403,9 @@ export class MeshLOD extends THREE.Object3D {
   private show(k: number) { this.cur = k; this.levels.forEach((m, i) => { m.visible = i === k; }); }
 }
 
-export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats }
+export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[] }
+/** D-321 rev 2: the surfaces whose free arrises become geometry near the eye (the dressed stone of the block-face class, D-321) */
+export const ARRIS_MATS = new Set(['limestone', 'terrace']);
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
@@ -412,7 +415,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; plain: THREE.BufferGeometry[]; parts: Part[] }>();
   const index = new PartIndex(parts), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
-  const stairs = stairRows(parts);
+  const stairs = stairRows(parts), arris: ArrisEdge[] = [];
   if (opts.dynamicDoors) bevelSwap.length = 0;
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
   const colossi = parts.filter(p => p.type === 'box' && p.sculpt) as Box[];
@@ -438,6 +441,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     // own, with its free arrises bevelled (D-157); the collider above stays the plain box
     const plain = g.clone(), rg = (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : null) ?? g.clone();
     partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p));
+    if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
@@ -526,5 +530,5 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       group.add(lod);
     }
   }
-  return { group, triangles: tris, colliders, bevel: bstats };
+  return { group, triangles: tris, colliders, bevel: bstats, arris };
 }
