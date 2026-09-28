@@ -1,0 +1,14 @@
+seed 1 day 150: 27140 adults, 0 baked, 27140 to bake now
+[node-llama-cpp] load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+1222 Raučaduxçā 379.2 s ok (1 ok)
+file:///C:/Users/Administrator/fars/tools/bake-cpu/node_modules/node-llama-cpp/dist/evaluator/LlamaContext/LlamaContext.js:286
+            throw new Error("No sequences left");
+                  ^
+
+Error: No sequences left
+    at LlamaContext.getSequence (C:\Users\Administrator\fars\tools\bake-cpu\node_modules\node-llama-cpp\src\evaluator\LlamaContext\LlamaContext.ts:401:19)
+    at worker (C:\Users\Administrator\fars\tools\bake-cpu\bake.mts:54:25)
+    at async Promise.all (index 3)
+    at async <anonymous> (C:\Users\Administrator\fars\tools\bake-cpu\bake.mts:62:1)
+
+Node.js v24.19.0

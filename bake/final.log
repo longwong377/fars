@@ -1,0 +1,37 @@
+[gpu_slot] lead-final: got T:/gpu-slots/slot0
+(node:29268) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+[2m[WebServer] [22m[2m4:55:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.
+[2m[WebServer] [22m[2m4:55:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.
+[2m[WebServer] [22m[2m4:55:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.
+[2m[WebServer] [22m[2m4:55:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.
+[2m[WebServer] [22m[2m4:55:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.
+[2m[WebServer] [22m[2m4:55:49 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.
+[2m[WebServer] [22m[2m4:55:50 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.
+[2m[WebServer] [22m[2m4:56:13 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[impostors] the Cycles atlas: laid out for other frames or dresses than this build (rebuild: node tools/blender/impostors.mjs); baking the far bodies on the CPU
+[2m[WebServer] [22m[2m4:56:21 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGPURenderer: PCFSoftShadowMap has been removed. Using PCFShadowMap instead.
+[2m[WebServer] [22m[2m4:56:45 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.AttributeNode: Vertex attribute "ytop" not found on geometry.
+[2m[WebServer] [22m[2m5:03:18 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.AttributeNode: Vertex attribute "ytop" not found on geometry.
+  x  1 [gpu] › tests\e2e\moments.spec.ts:879:1 › moments (12.7m)
+
+
+  1) [gpu] › tests\e2e\moments.spec.ts:879:1 › moments ─────────────────────────────────────────────
+
+    Error: page.evaluate: Execution context was destroyed, most likely because of a navigation
+
+      311 |       // the scene camera of the last frame (D-300, as dbg_surf.spec): its matrices go into shots/moments-cam.json so world regions
+      312 |       // can be projected onto the frames offline (tools/dev/surf_regions_d285.ts --moments)
+    > 313 |       await page.evaluate(() => { const w = window as any, r = w.__parsa.renderer, orig = r.render.bind(r);
+          |                  ^
+      314 |         r.render = (sc: any, cam: any, ...a: any[]) => { if (cam?.isPerspectiveCamera && cam.far > 1e4) w.__cam = cam; return orig(sc, cam, ...a); }; });
+      315 |       loaded = state;
+      316 |     }
+        at T:\fars-wt\verify\tests\e2e\moments.spec.ts:313:18
+
+  Slow test file: [gpu] › tests\e2e\moments.spec.ts (12.7m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    [gpu] › tests\e2e\moments.spec.ts:879:1 › moments ──────────────────────────────────────────────

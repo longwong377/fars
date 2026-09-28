@@ -1,0 +1,16 @@
+[gpu_slot] lead-lane: got T:/gpu-slots/slot0
+(node:16604) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+[2m[WebServer] [22m[2m9:45:32 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.KTX2Loader: Multiple active KTX2 loaders may cause performance issues. Use a single KTX2Loader instance, or call .dispose() on old instances.
+[2m[WebServer] [22m[2m9:46:25 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mTHREE.WebGPURenderer: PCFSoftShadowMap has been removed. Using PCFShadowMap instead.
+lane-with-child {"mean":57.5,"min":0,"p01":4.6,"p50":43.8,"p99":171.2,"max":199.1,"clipped":0} backend WebGPU
+morning-wash {"mean":74.1,"min":0,"p01":0,"p50":42.9,"p99":216,"max":221.1,"clipped":0} backend WebGPU
+
+  ok 1 [gpu] › tests\e2e\moments.spec.ts:872:1 › moments (34.0m)
+
+  Slow test file: [gpu] › tests\e2e\moments.spec.ts (34.0m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 passed (34.5m)

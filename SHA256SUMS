@@ -328,3 +328,16 @@ e96c7b30a24f581df1ee5758e1697a214187a89e9e9bc93529950e2f16beecbf  models/mlc-ai/
 9eb581bc89582d23c43f66197a63ca2e80291c32eefd66695f6b6eaedf3e24ab  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_7.bin
 f8d5dfd8eaf86d361d20310d1d9aa7ba661156112d8524874aae78410cb3b663  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_8.bin
 ace7a4a00e819481571e08ead14f031e3b014f6f8cef665142b6b6463045b493  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_9.bin
+6d16a8936b1c9f372305064c4688eae17a609b62693f6782454d4fa2055c6e94  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/tensor-cache.json
+c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/tokenizer.json
+5214600ee45ca2f887ce2eede8910378a0111ea99d657428bcbce94778e65a92  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/tokenizer_config.json
+ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/vocab.json
+9a5cecc71f8ecfc488e4d9ccac81d2ba45fcde7b0c4608743adf850006ab41fd  bake/bake_s1.jsonl
+9e939587d7f5d894b19e143d0928f3bd90cd3ecd55215501876eda4f67dbd209  bake/bake_s1.out
+5d7692b826d88df276c8e5771d73bf8ec7608d7041adec1c23cff82b4bf7cc81  bake/bake_s1b.out
+42f2bd0f55ca342daeeaf2fec9363b6d96e7ca4890996f300b42ae0d4bc05263  bake/bake_test.jsonl
+6f8e2cdc055cb3bd9f8ec1f83ee8341f55fad7cf2cc0a33344c2f437c412f58b  bake/final.log
+2790a60083bb6e1017922a22fad718cb49ee6f7666cc294231440aaf431c1164  bake/final2.log
+ffb4cc06ff5e885c0cc670f77cb062533fa0e58639572429deca5fa60e46c79e  bake/lane.log
+832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e  bake/LICENSE.qwen3
+3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597  bake/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
