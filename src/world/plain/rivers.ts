@@ -139,8 +139,11 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
     const a = attribute('river', 'vec4'), hrel = a.x, t = a.y, ri = a.z;
     const depth = pick(depthU, ri), above = hrel.sub(depth), flood = mix(float(1.2), float(1.8), ri); // today's water; the April (table peak) level
     // wet mud film at the waterline, a damp darker band above it
-    const wet = float(1).sub(smoothstep(0.0, 0.14, above));
-    const damp = float(1).sub(smoothstep(0.1, 0.5, above)).mul(float(1).sub(wet));
+    // D-335 (B188): the waterline and its wet band ragged along the bank (mud tongues, drying patches: ±6 cm of height over ~3 m
+    // and ±2 cm over ~0.5 m), not a ruled line at one height
+    const aboveR = above.add(mx_noise_float(vec3(positionWorld.x.mul(0.35), 3.7, positionWorld.z.mul(0.35))).mul(0.06)).add(mx_noise_float(positionWorld.mul(2.1)).mul(0.02));
+    const wet = float(1).sub(smoothstep(0.0, 0.14, aboveR));
+    const damp = float(1).sub(smoothstep(0.1, 0.5, aboveR)).mul(float(1).sub(wet));
     // the band between today's water and the spring high water: bare silt and mud (none in April, widest in September).
     // It was 'everything below 2.4 m above the bed', which took in the whole apron: the bare-sand banks of session 4
     const band = step(0.14, above).mul(float(1).sub(smoothstep(flood.sub(0.05), flood.add(0.12), hrel)));
@@ -212,6 +215,17 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const trees = smoothstep(-0.2, 0.4, mx_noise_float(vec3(sHit.div(16), side.mul(5.3).add(riW.mul(11.7)), 0.5))).mul(mix(float(0.85), float(0.5), isCanal));
   wm.emissiveNode = skyReflection(nW, riffle, { sin: sinB, trees, treeSin: sinT, blur: rip.lost.mul(1.1) }); // blur: ~2x the RMS of the slope lost below the pixel (lost adds amplitudes linearly)
   wm.roughnessNode = waterRoughness(rip.lost, riffle); wm.metalnessNode = float(0);
+  // D-335 (B188): the shoreline. The water plane met the bank in the smooth line of the plane through the bank's trapezoid,
+  // straight for kilometres. Now its edge is pulled in by 0-0.45 m (rivers) / 0-0.25 m (canals) along a noise of ~2.5 m and
+  // ~0.6 m, uncovering the wet mud below it in tongues and bays; within ~0.5 m of the edge the water is a thin sheet over the
+  // mud (its body the bed's, rougher: the ripples break on the shallows)
+  const latAct = ac.z.mul(width.mul(0.5).add(mix(float(0.35), float(0.05), isCanal))).abs();
+  const rag = mx_noise_float(vec3(positionWorld.x.mul(0.4), 1.3, positionWorld.z.mul(0.4))).mul(0.5).add(0.5).add(mx_noise_float(vec3(positionWorld.x.mul(1.7), 6.1, positionWorld.z.mul(1.7))).mul(0.18));
+  const edgeIn = halfW.sub(latAct), pull = rag.mul(mix(float(0.45), float(0.25), isCanal));
+  wm.opacityNode = step(pull, edgeIn); wm.alphaTest = 0.5;
+  const sheet = float(1).sub(smoothstep(0.0, 0.5, edgeIn.sub(pull)));
+  wm.colorNode = mix(wm.colorNode as any, waterBody(float(0.03), float(0)), sheet.mul(0.7));
+  wm.roughnessNode = mix(wm.roughnessNode as any, float(0.3), sheet.mul(0.6));
   wm.userData.ssr = false; // the reflection above is the water's own: no screen-space reflection on top (the SSR composite, D-216)
   const water = new THREE.Mesh(wg, wm); water.name = 'river-water'; water.frustumCulled = false; water.receiveShadow = true;
   water.userData = tag(pul, 'river water: level and width from flow_by_month for the date (C); turbid Mar-May, clear in summer (C)');

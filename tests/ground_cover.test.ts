@@ -89,3 +89,17 @@ describe('the fords as cobbles, boulders and a hide boat near the eye (D-335; pl
     expect(FORD_R.lod[0]).toBeLessThan(FORD_R.lod[1]);
   }, 120_000);
 });
+
+describe('the rivers\' and canals\' shoreline (D-335, B188)', () => {
+  it('the water material builds with its ragged edge (a discard by the noise) and the bank\'s ragged wet band', async () => {
+    const { buildRivers } = await import('../src/world/plain/rivers');
+    const { buildCanals } = await import('../src/world/plain/canals');
+    const rv = buildRivers(T, R.rivers, buildCanals(T, R.rivers, 1));
+    const canvas: any = { style: {}, width: 960, height: 540, getContext: () => null, addEventListener() {}, removeEventListener() {} };
+    const r: any = new (THREE as any).WebGPURenderer({ canvas, antialias: false }); r.hasFeature = () => true;
+    const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(46, 16 / 9, 0.05, 110000);
+    scene.add(new THREE.HemisphereLight(0xbfd6ff, 0x6b5a45, 0.6), new THREE.DirectionalLight(0xffffff, 3));
+    for (const m of [rv.water, rv.banks]) { const b = new (THREE as any).WGSLNodeBuilder(m, r); b.scene = scene; b.camera = camera; b.material = m.material; b.lightsNode = r.lighting.getNode(scene, camera); b.build();
+      if (m === rv.water) { expect(String(b.fragmentShader)).toContain('discard'); expect((m.material as any).alphaTest).toBe(0.5); } }
+  }, 300_000);
+});
