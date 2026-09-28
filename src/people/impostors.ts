@@ -144,6 +144,12 @@ export function poseDist(a: Float64Array, b: Float64Array) { let s = 0; for (let
 export const FIXED: [number, number, number] = [0.25, 0.16, 0.1];
 /** weights: texture A (main, second, trim, coverage), B (skin, hair, leather + felt, fixed), N (normal, cavity AO) */
 export interface ImpostorAtlas { W: number; H: number; A: Level[]; B: Level[]; N: Level[]; refStature: Record<Dress, number>; ms: number; coverage: Float32Array;
+  /** D-331: the layout (texels a cell, columns of blocks, rows a column) and where the atlas came from: 'cpu' this file's
+   *  bake of the far bodies (B.a the fixed colour's weight, N.a the cavity), 'cycles' the Blender/Cycles render of the
+   *  full-detail people (public/models/impostors: B.a ambient occlusion, the fixed weight 1 - the six others, N.a depth) */
+  layout?: { cell: number; cols: number; rpc: number; source: 'cpu' | 'cycles' };
+  /** D-331: the Cycles atlas's GPU textures (KTX2); the CPU bake's are made from A, B, N */
+  tex?: { A: THREE.Texture; B: THREE.Texture; N: THREE.Texture };
   /** per dress, per garment colour (main, second, trim): the far body's area-weighted means of the material's per-fragment
    *  weights (D-189), so an impostor's colour is the mean albedo the skinned person shows at the switch */
   cloth: Record<Dress, ClothStats[]> }
@@ -195,7 +201,7 @@ export function farColours(look: PersonLook, st: ClothStats[] | undefined): [num
     const sm = Math.min(0.75, (w?.soil ?? 0) * S.hem * DRAPE.soil); c = c.map((x, k) => x + (DRAPE.dust[k] - x) * sm);
     return c as [number, number, number]; });
 }
-type Level = { data: Uint8Array; width: number; height: number };
+export type Level = { data: Uint8Array; width: number; height: number };
 
 /** a person's colour slot for a costume vertex: 0 main, 1 second, 2 trim, 3 skin, 4 hair, 5 leather/felt, 6 fixed */
 export function slotOf(cls: number, col: number): number {
@@ -205,11 +211,12 @@ export function slotOf(cls: number, col: number): number {
 }
 /** the most common pieces of each dress (looks.ts rates: the look that stands for all at impostor distance, C) */
 export function typicalMask(dress: Dress): number {
-  const on: Partial<Record<Dress, string[]>> = { persian: ['bun', 'beard_long', 'hat_fluted'], guard: ['bun', 'beard_long', 'hat_fluted'], median: ['bun', 'beard_long', 'cap_soft'], worker: ['beard_short', 'shoes'], woman: ['headcloth', 'shoes'], child: ['hair'] }; // (the court setting's dresses have none: they use their far row's, D-199)
+  // (D-331: everyone wears 'hair', and 'hair_crown' under no hat, looks.ts: the workers and children were drawn bald at distance)
+  const on: Partial<Record<Dress, string[]>> = { persian: ['hair', 'bun', 'beard_long', 'hat_fluted'], guard: ['hair', 'bun', 'beard_long', 'hat_fluted'], median: ['hair', 'bun', 'beard_long', 'cap_soft'], worker: ['hair', 'hair_crown', 'beard_short', 'shoes'], woman: ['headcloth', 'shoes'], child: ['hair', 'hair_crown'] }; // (the court setting's dresses have none: they use their far row's, D-199)
   let m = 1; for (const id of COSTUMES[dress].always) m |= (1 << pieceBit(dress, id)) & ~1; for (const id of on[dress] ?? []) m |= 1 << pieceBit(dress, id); return m;
 }
 /** a reference body per dress: the variant nearest the mean stature of its sex and age (looks.ts STATURE) */
-function refVariant(A: HumanAssets, dress: Dress) {
+export function refVariant(A: HumanAssets, dress: Dress) {
   const child = dress === 'child', sex = dress === 'woman' ? 'f' : 'm', target = child ? 1.2 : sex === 'f' ? 1.54 : 1.66;
   const cand = A.variants.filter(v => child ? v.meta.group === 'child' : v.meta.sex === sex && v.meta.group === 'adult');
   return cand.reduce((b, v) => Math.abs(v.height - target) < Math.abs(b.height - target) ? v : b);
@@ -267,25 +274,50 @@ export function bakeImpostors(A: HumanAssets, O: OutfitBuild, props?: { jar?: { 
       }
     });
   });
-  const cloth = {} as Record<Dress, ClothStats[]>;
-  for (const dress of IMP_DRESSES) { const L = farLod(O, dress); if (L) cloth[dress] = clothStatsOf(O, L, refVariant(A, dress).index, typicalMask(dress)); }
+  const { cloth } = impostorLooks(A, O);
   // coverage per cell of the texture (the mips' grid: W / C columns) and per row and view (`coverage`)
   const PC = W / C, covP = new Float32Array(PC * RPC); for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (wA[(j * W + i) * 4 + 3] >= 0.5) covP[Math.floor(j / C) * PC + Math.floor(i / C)]++;
   for (let k = 0; k < covP.length; k++) covP[k] /= C * C;
   const cover = new Float32Array(ROWS * V); for (let r = 0; r < ROWS; r++) for (let vw = 0; vw < V; vw++) { const [x, y] = cellAt(r, vw); cover[r * V + vw] = covP[(y / C) * PC + x / C]; }
   const { A: LA, B: LB, N: LN } = mips(wA, wB, nN, W, H, covP);
-  return { W, H, A: LA, B: LB, N: LN, refStature, ms: performance.now() - t0, coverage: cover, cloth };
+  return { W, H, A: LA, B: LB, N: LN, refStature, ms: performance.now() - t0, coverage: cover, cloth, layout: { cell: C, cols: IMP.cols, rpc: RPC, source: 'cpu' } };
+}
+/** the per-dress data the draw needs besides the textures: the reference stature (a person's scale) and the far body's
+ *  garment weights (farColours, D-189) */
+export function impostorLooks(A: HumanAssets, O: OutfitBuild) {
+  const cloth = {} as Record<Dress, ClothStats[]>, refStature = {} as Record<Dress, number>;
+  for (const dress of IMP_DRESSES) { const L = farLod(O, dress); if (!L) continue; const v = refVariant(A, dress); refStature[dress] = v.height; cloth[dress] = clothStatsOf(O, L, v.index, typicalMask(dress)); }
+  return { cloth, refStature };
+}
+/** D-331: the atlas rendered in Cycles from the full-detail people (tools/blender/impostors.mjs, public/models/impostors),
+ *  or null (absent, laid out for other frames or dresses than this build's, or a texture failed: the caller bakes on the
+ *  CPU). `?impostors=cpu` forces the CPU bake. */
+export const IMP_DIR = 'models/impostors';
+export async function loadImpostorAtlas(A: HumanAssets, O: OutfitBuild, base = '/'): Promise<ImpostorAtlas | null> {
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('impostors') === 'cpu') return null;
+  const t0 = performance.now();
+  try {
+    const r = await fetch(`${base}${IMP_DIR}/people_impostors.json`); if (!r.ok) throw new Error(`people_impostors.json: ${r.status}`); const J = await r.json();
+    if (JSON.stringify(J.frames) !== JSON.stringify(FRAMES.map(f => f.id)) || JSON.stringify(J.dresses) !== JSON.stringify(IMP_DRESSES) || J.views !== IMP.views || J.width !== IMP.width || J.height !== IMP.height || J.y0 !== IMP.y0)
+      throw new Error('laid out for other frames or dresses than this build (rebuild: node tools/blender/impostors.mjs)');
+    const { loadHairAtlas } = await import('./peopleModels');
+    const [tA, tB, tN] = await Promise.all(['A', 'B', 'N'].map(k => loadHairAtlas(`${base}${IMP_DIR}/${J.files[k].file}`, base)));
+    if (!tA || !tB || !tN) throw new Error('a texture failed to load');
+    for (const t of [tA, tB, tN]) t.anisotropy = 1;
+    const { cloth, refStature } = impostorLooks(A, O);
+    return { W: J.W, H: J.H, A: [], B: [], N: [], refStature, cloth, ms: performance.now() - t0, coverage: Float32Array.from(J.coverage), layout: { cell: J.cell, cols: J.cols, rpc: J.rpc, source: 'cycles' }, tex: { A: tA, B: tB, N: tN } };
+  } catch (e) { console.warn(`[impostors] the Cycles atlas: ${(e as Error).message}; baking the far bodies on the CPU`); return null; }
 }
 /** prop geometry placed at a bone head (character space) with an offset and scale (no rotation: jar and sack are near round) */
-function xform(g: { pos: Float32Array; idx: ArrayLike<number> }, wt: Float64Array, bone: number, off: number[], s: number) {
+export function xform(g: { pos: Float32Array; idx: ArrayLike<number> }, wt: Float64Array, bone: number, off: number[], s: number) {
   const o = new Float32Array(g.pos.length), bx = wt[bone * 3] + off[0], by = wt[bone * 3 + 1] + off[1], bz = wt[bone * 3 + 2] + off[2];
   for (let i = 0; i < g.pos.length; i += 3) { o[i] = bx + g.pos[i] * s; o[i + 1] = by + g.pos[i + 1] * s; o[i + 2] = bz + g.pos[i + 2] * s; }
   return { pos: o, idx: g.idx };
 }
 /** mip levels: weights and normals averaged by coverage; coverage scaled per cell so the texels passing 0.5 keep the
  *  cell's full-size share (coverage-preserving, trees/atlas.ts mipChain) */
-function mips(a0: Float32Array, b0: Float32Array, n0: Float32Array, W: number, H: number, cover0: Float32Array) {
-  const C = IMP.cell, cols = W / C, rows = H / C; const out = { A: [] as Level[], B: [] as Level[], N: [] as Level[] };
+export function mips(a0: Float32Array, b0: Float32Array, n0: Float32Array, W: number, H: number, cover0: Float32Array, C: number = IMP.cell) {
+  const cols = W / C, rows = H / C; const out = { A: [] as Level[], B: [] as Level[], N: [] as Level[] };
   const u8 = (f: Float32Array) => { const u = new Uint8Array(f.length); for (let i = 0; i < f.length; i++) { const v = f[i] * 255 + 0.5; u[i] = v <= 0 ? 0 : v >= 255 ? 255 : v; } return u; };
   let A = a0, B = b0, N = n0, w = W, h = H, ts = C;
   const push = () => { out.A.push({ data: u8(A), width: w, height: h }); out.B.push({ data: u8(B), width: w, height: h }); out.N.push({ data: u8(N), width: w, height: h }); };
@@ -322,7 +354,8 @@ export class CrowdImpostors {
   constructor(readonly atlas: ImpostorAtlas, cap = 4096) {
     const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([-1, 0, 0, 1, 0, 0, -1, 1, 0, 1, 1, 0], 3)); g.setIndex([0, 1, 2, 2, 1, 3]);
     this.geo = g; this.buf = this.alloc(cap); g.instanceCount = 0; g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e7);
-    const texA = mipTex(atlas.A), texB = mipTex(atlas.B), texN = mipTex(atlas.N);
+    const texA = atlas.tex?.A ?? mipTex(atlas.A), texB = atlas.tex?.B ?? mipTex(atlas.B), texN = atlas.tex?.N ?? mipTex(atlas.N);
+    const LY = atlas.layout ?? { cell: IMP.cell, cols: IMP.cols, rpc: RPC, source: 'cpu' as const }, cyc = LY.source === 'cycles';
     const ipos = attribute('ipos', 'vec4'), iinfo = attribute('iinfo', 'vec4'), icol = attribute('icol', 'vec4'), P = positionGeometry;
     const toCam = cameraPosition.xz.sub(ipos.xz), dir = toCam.div(max(length(toCam), 1e-3)), right = vec3(dir.y, 0, dir.x.negate()), sc = iinfo.y;
     const m = new THREE.MeshStandardNodeMaterial();
@@ -333,23 +366,25 @@ export class CrowdImpostors {
     // the view: the direction to the camera in the person's own frame (inverse of the crowd's yaw: humanMaterial rotN)
     const c = cos(ipos.w), s = sin(ipos.w), lx = dir.x.mul(c).sub(dir.y.mul(s)), lz = dir.x.mul(s).add(dir.y.mul(c));
     const view = mod(floor(atan(lx, lz).div(Math.PI * 2).mul(IMP.views).add(0.5).add(IMP.views)), IMP.views);
-    const half = 0.5 / IMP.cell; // half a texel inset: no bleeding between cells at level 0
-    // the row's cell (D-229: rows in IMP.cols columns of blocks, cellAt)
-    const blk = floor(iinfo.x.div(RPC)), rr = iinfo.x.sub(blk.mul(RPC));
-    const vUV = varying(vec2(blk.mul(IMP.views).add(view).add(P.x.mul(0.5 - half).add(0.5)).div(IMP.views * IMP.cols), rr.add(P.y.mul(1 - 2 * half).add(half)).div(RPC)));
+    const half = 0.5 / LY.cell; // half a texel inset: no bleeding between cells at level 0
+    // the row's cell (D-229: rows in the layout's columns of blocks, cellAt)
+    const blk = floor(iinfo.x.div(LY.rpc)), rr = iinfo.x.sub(blk.mul(LY.rpc));
+    const vUV = varying(vec2(blk.mul(IMP.views).add(view).add(P.x.mul(0.5 - half).add(0.5)).div(IMP.views * LY.cols), rr.add(P.y.mul(1 - 2 * half).add(half)).div(LY.rpc)));
     const unpack = (p: any) => { const r = floor(p.div(65536)), g2 = floor(mod(p, 65536).div(256)), b = mod(p, 256); const v = vec3(r, g2, b).div(255); return v.mul(v); };
     const cMain = varying(unpack(iinfo.z)), cSecond = varying(unpack(iinfo.w)), cTrim = varying(unpack(icol.x)), cSkin = varying(unpack(icol.y)), cHair = varying(unpack(icol.z)), cLeather = varying(unpack(icol.w));
     const vRight = varying(right), vDir = varying(vec3(dir.x, 0, dir.y));
     const a = texture(texA, vUV), b = texture(texB, vUV), n = texture(texN, vUV);
     // weights over their sum: a silhouette edge blended with empty texels keeps its colour (no dark fringe)
-    const wsum = max(a.r.add(a.g).add(a.b).add(b.r).add(b.g).add(b.b).add(b.a), 1e-3);
-    m.colorNode = vec4(cMain.mul(a.r).add(cSecond.mul(a.g)).add(cTrim.mul(a.b)).add(cSkin.mul(b.r)).add(cHair.mul(b.g)).add(cLeather.mul(b.b)).add(vec3(...FIXED).mul(b.a)).div(wsum), a.a);
+    // (D-331: the Cycles atlas stores no fixed weight: it is what the six leave of 1; its B.a is the occlusion)
+    const six = a.r.add(a.g).add(a.b).add(b.r).add(b.g).add(b.b), wFixed = cyc ? max(float(1).sub(six), 0) : b.a;
+    const wsum = max(six.add(wFixed), 1e-3);
+    m.colorNode = vec4(cMain.mul(a.r).add(cSecond.mul(a.g)).add(cTrim.mul(a.b)).add(cSkin.mul(b.r)).add(cHair.mul(b.g)).add(cLeather.mul(b.b)).add(vec3(...FIXED).mul(wFixed)).div(wsum), a.a);
     const nb = n.xyz.mul(2).sub(1), nW = vRight.mul(nb.x).add(vec3(0, 1, 0).mul(nb.y)).add(vDir.mul(nb.z));
     m.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
-    m.aoNode = float(0.55).add(n.a.mul(0.45)); m.roughnessNode = float(0.85); m.metalnessNode = float(0);
+    m.aoNode = float(0.55).add((cyc ? b.a : n.a).mul(0.45)); m.roughnessNode = float(0.85); m.metalnessNode = float(0);
     m.alphaTest = 0.5;
     const mesh = new THREE.Mesh(g, m); mesh.name = 'people:impostors'; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.visible = false;
-    mesh.userData = { tier: 'C', src: 'RECON', note: `distant people: impostors baked from the far body of each dress in ${FRAMES.length} activity frames (D-143, D-229); colours per person (looks.ts)` };
+    mesh.userData = { tier: 'C', src: 'RECON', note: cyc ? `distant people: impostors rendered in Blender/Cycles from the full-detail people (the simulated garments, the strand cards; D-322, D-323) of each dress in ${FRAMES.length} activity frames, ${LY.cell} texels a cell (D-331); colours per person (looks.ts)` : `distant people: impostors baked on the CPU from the far body of each dress in ${FRAMES.length} activity frames (D-143, D-229; the Cycles atlas absent: D-331 fallback); colours per person (looks.ts)`, source: LY.source };
     mesh.raycast = () => {};
     this.mesh = mesh;
   }
