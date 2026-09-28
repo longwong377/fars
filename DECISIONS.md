@@ -8055,3 +8055,56 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
   B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
   platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.
+
+## D-335 The land at arm's length and at a distance: the hills' bedrock, the water's edges, the stair-foot line, the ground cover (session 12, agent land; UD-19, UD-20, UD-17, D-233; T-R12)
+- **How it could pass while the intent fails (clause 1):** ledges that exist but not where the texture draws the risers, or
+  as unbroken contour lines; rock on the Terrace or trodden ground; cover that ignores the season or the plots; a budget blown
+  by the whole mountain; a "fix" of the stair-foot line proved on a probe that has no screen-space passes. Measured against
+  each (tests/hills.test.ts, tests/ground_cover.test.ts; probe renders b1-b5 on the T4); the last one is flagged unverified.
+- **(1) The hills' bedrock as geometry, world-wide** (src/world/hills/):
+  - *Ledges* (ledges.ts): along every riser the terrain shader draws (terrainPlain.ts: the top HILL.riser of each cliff-forming
+    package), found by marching squares on a 4 m grid of the CPU mirror of the shader's stratigraphic height (stratY: the same
+    dip, warp noise and package hash; mx_noise_cpu.ts), a continuous strip of rock runs with the contour: a face 1.6-4.2 m high
+    by package leaning back 0.14 m/m, a rounded lip, a tread back into the slope, the foot buried. Its height follows the
+    shader's strike noise (pinched out and resumed: ~60 % of the riser length stands on Kuh-e Rahmat's W face, ~150 separate
+    ledges averaging ~32 m there), dies into the gullies and off trodden ground, and keeps off the Terrace, its fortification and
+    its approach; only on slopes over ~15 deg (full from ~27 deg). Every run point lies on its package's riser foot to 2 mm
+    (test). Faced with a scanned bedded cliff (Poly Haven coastal_cliff_04, CC0) baked in Cycles (tools/blender/land_ledgeface.*:
+    selected-to-active onto a strip plane: albedo, tangent normal, relief as a high-pass in metres); within 70 m the strip is
+    resampled at 0.5 m with eight face rows and the relief moves its vertices (the beds' overhangs and recesses as geometry,
+    casting shadow); beyond, the normal map carries it. Streamed in 64 m tiles to 1.6 km (cached; 6 ms a frame, a test render
+    all at once); three meshes (near and mid cast, far beyond the cascades does not): 69-130 k triangles in view at the mountain
+    views, <= 0.4 M in the shadow passes (test). Within 45 m the near strips are the player's colliders (a ledge is a wall: the
+    walker goes round by the gaps). Round 1 (dropped): scanned cliff pieces placed along the risers stood on the probe's slope
+    as isolated boxes and tombstones.
+  - *Ground rock* (bedrock.ts): CC0 scans (coast_rocks_05 an outcrop on its bedrock; coast_land_rocks_03 talus blocks in scree)
+    as outcrops on the convex hill ground (landform map curvature), talus on the bench under each riser (the shader's
+    talusBench), scree in gullies and on concave middle slopes, tilted to the slope, re-tinted to the limestone palette (each
+    atlas cell's brightness normalised), within 260 m, three levels. Two flat scans (coast_land_rocks_02, _04) are in the atlas
+    but not placed (on the slope they read as grey-green stains, probe b3). The D-310 stones and boulders stay.
+  - The shader's bed recess and ledge bump now fade before they span under ~2 px (probe: every bed drawn as a dashed line).
+- **(2) Water:** standing water (materials.ts finish(), every surface): the level no longer multiplies the noise's low spots
+  (on the plain's 4 m DEM facets its contours were the facets' square outlines: small-spring-field's square pools) but lowers
+  the noise's threshold, so every edge is a contour of the noise, ragged at ~0.8 m, with a rim of saturated dark mud; the
+  terrain supplies the level from its landform map's slope as a soft limit only (level under 5 %, none from 12 %: the 30 m DEM's
+  gradient is constant over each of its cells, so any sharper test draws 30 m squares, probe p1). The fords
+  (plain/fordDetail.ts): near a ford the causeway is paved with modelled river-cobble tiles (tools/blender/land_ford.*: 2 x 2 m
+  of ~110 packed cobbles, Cycles AO baked into the vertex colour, three variants, three levels), each stepping stone is a CC0
+  boulder scan fitted to its box, and the Kur's hide boat is modelled (ribs under the sagging hide, the bound rim); the boxes
+  stay as the colliders and the far ford. Rivers' and canals' ripples, wet banks and shorelines: unchanged (B188).
+- **(3) The stair-foot-ground line:** found by picking the world (?norender) along it: every hit lies on the terrain at grid
+  n = 114.5, the south edge of the approach to the Grand Stair (settlement/water.ts: a ribbon 8 m wide, 6 cm over the ground,
+  its edge free: a depth step for the screen-space shadow and occlusion). Every road ribbon and the approach now carry a 0.6 m
+  feather sunk 5 cm under the ground (FEATHER_DROP), so no ribbon edge stands over the terrain (test: 0 of 4,150 outline
+  vertices within 4 km above the ground). NOT verified in a world render (the probe has no screen-space passes): B187.
+- **(4) The ground cover at the feet** (plain/groundCover.ts): within 34 m, per 2 m cell, by the shader's own rules: bunch
+  grasses and fine tufts (CC0: grass_medium_02, grass_medium_01) at the herb layer's density (its two noise octaves mirrored)
+  and the season's amount, green to straw; a short sward (grass_bermuda_01) on the plot bunds; cereal stubble (modelled in
+  Blender: sickle-cut stalks in sown rows along the plot's strip, fallen straw; the far levels thin the stalks) on every
+  harvested plot until the ploughing (seasonal.ts cropState), greying as it is grazed; dung (modelled: cattle pats, donkey and
+  horse droppings, sheep pellets) on the trodden ground by the trample (stair foot 138 against the steppe's 7 in 60 x 60 m).
+  <= 0.35 M triangles, <= 36 draws, no shadow casters (test).
+- **Classes replaced everywhere (T-R12, pending the lead's render):** hill ledges (every riser of every hill within 1.6 km of
+  the eye), hill ground rock (outcrops, talus), the fords' causeways, stepping stones and boat (all 7 fords), the plain's ground
+  cover (every natural, fallow, harvested and trodden cell near the eye).
+- **Assets** (ASSET_LEDGER.md): public/models/land/ (ground 4.5 MB, cover 2.0 MB, ford 1.0 MB, ledge face 0.6 MB; manifest.json).
