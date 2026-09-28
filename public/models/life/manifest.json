@@ -5,7 +5,7 @@
    "class": "birds",
    "name": "Kuhl's pipistrelle",
    "of": "bat",
-   "inHash": "925305df44f6b6fcb9f7147b7e9ff6aefca3272583fa4006f4ca382f551e0ff9",
+   "inHash": "eb494f7741a5974128b1fc24c3e533293eca6fe1dfa30cd78e4cff0abe5eb96f",
    "files": {
     "bat.glb": {
      "bytes": 39304,
@@ -55,7 +55,7 @@
    "class": "birds",
    "name": "European bee-eater",
    "of": "beeeater",
-   "inHash": "a7a86f5570d3041e78d979d4443489d85d1cfccf33e5c96f2b8ba3c939015498",
+   "inHash": "1ae6c363baee9ba3e09e4a8e49395de59005c245c49445ed72f8c8c1b72dccc8",
    "files": {
     "beeeater.glb": {
      "bytes": 36296,
@@ -105,7 +105,7 @@
    "class": "birds",
    "name": "white-eared bulbul",
    "of": "bulbul",
-   "inHash": "b75702cccff1fa68487c2fe0317e0c0a980df5e7168c2d61537b3dc4c937c64d",
+   "inHash": "1612901c9729a9bf3b1769d7b6f3aeca01d8be26c5b158b5223cedf84f07fd6a",
    "files": {
     "bulbul.glb": {
      "bytes": 66748,
@@ -157,7 +157,7 @@
    "class": "small",
    "name": "butterflies (whites, clouded yellow, painted lady)",
    "of": "butterfly",
-   "inHash": "ab2466e7c9067859b0005bc354f9f27de3d3e52cb6512235a21e5fa9d88df861",
+   "inHash": "0649c90dd467bc188fd141bfc4fb2b512907d6117e211b85ac213e5a7c0cee69",
    "files": {
     "butterfly.glb": {
      "bytes": 20276,
@@ -256,7 +256,7 @@
    "class": "birds",
    "name": "chukar partridge",
    "of": "chukar",
-   "inHash": "a4cb88fddb552fa68fa1494b072eafe8cd7196095ed14c0b3250aa21416dd594",
+   "inHash": "5650d66bd610c76afb81790baeb7a11d220be5aee66b141dc0e30860cf0ab572",
    "files": {
     "chukar.glb": {
      "bytes": 68724,
@@ -308,7 +308,7 @@
    "class": "small",
    "name": "freshwater crab (Potamon)",
    "of": "crab",
-   "inHash": "bf91772a2a2154366a7ff65f55e55d3f75942cbfa78a7a4fd4a27c82b07f1ada",
+   "inHash": "0a9973231be7a023e3daedf03f6caf6e6db1a529421681b9a7a16ad4db1f21e1",
    "files": {
     "crab.glb": {
      "bytes": 78572,
@@ -356,7 +356,7 @@
    "class": "birds",
    "name": "common crane",
    "of": "crane",
-   "inHash": "18eb8815eb88902a794565c7224bde7cb7dac44952ec14d15df4a3431214c4e4",
+   "inHash": "f176193c62b5fa8c82afef6a0b5b5f738c8aee001a465d3ea5012a237ca191fe",
    "files": {
     "crane.glb": {
      "bytes": 36288,
@@ -406,7 +406,7 @@
    "class": "birds",
    "name": "hooded crow",
    "of": "crow",
-   "inHash": "befb32e92557de34c1928f85d06875cb31d274ced978af2f88dd9fbac8a79baf",
+   "inHash": "cabb4bc7738b4b843e23c006dd8b4acd5e06960b77305e0d0fdd33ed073bbc36",
    "files": {
     "crow.glb": {
      "bytes": 68804,
@@ -458,7 +458,7 @@
    "class": "flora",
    "name": "tragacanth cushion (Astragalus)",
    "of": "cushion",
-   "inHash": "b2eb5b8b34217fb7b126af0ad1b5eb5192530d10e880f24ddf2a0d2839c31a07",
+   "inHash": "bb6d987f69a7a5826ff03e2961365439feec1c6c6938093df2ebcaaba7c56cc0",
    "files": {
     "cushion.glb": {
      "bytes": 77536,
@@ -506,7 +506,7 @@
    "class": "birds",
    "name": "rock dove",
    "of": "dove",
-   "inHash": "5b1f95b2e51f8980b44dedb915c5801487fbc1838c8736452dae6ad4b5f7011e",
+   "inHash": "31b883a527b130dd6a74ce52f325e976b8eadecfafc5b83f0ef5e490b7171232",
    "files": {
     "dove.glb": {
      "bytes": 68816,
@@ -558,7 +558,7 @@
    "class": "small",
    "name": "dragonfly (Orthetrum)",
    "of": "dragonfly",
-   "inHash": "a1311dfffa1c7e2274e0994b7c3bc7e6e9d126fafa13ebaf7fdb4c7306d75197",
+   "inHash": "c809b118bd2e6da684ca2c1e574e490f02e20f08f4996eaa61b2c8c912321f9c",
    "files": {
     "dragonfly.glb": {
      "bytes": 30888,
@@ -606,7 +606,7 @@
    "class": "birds",
    "name": "mallard (drake)",
    "of": "duck",
-   "inHash": "2ab365092b411b21fb5de1b1a60c856665e80a29d57b42df02a28f1043ea3b9e",
+   "inHash": "acf8d6cf2ccd825107f7f73c7b3f158bed5c73ca355d0ae93ffc8b68c96857b2",
    "files": {
     "duck.glb": {
      "bytes": 68808,
@@ -710,7 +710,7 @@
    "class": "birds",
    "name": "little egret",
    "of": "egret",
-   "inHash": "056fc805f6005436b52188962d0488f0753484c1a9b64a3e9a5eaa2348eac094",
+   "inHash": "6f0a07e94f3d196cece30c5cd4851a60638a31b8908711f594f72394e5909d5f",
    "files": {
     "egret.glb": {
      "bytes": 68804,
@@ -762,7 +762,7 @@
    "class": "flora",
    "name": "crown imperial (Fritillaria imperialis)",
    "of": "flower_crown",
-   "inHash": "bc3310e2412029f18a94696a019b203e9a73fef6b4ce46911546315757aa9dd1",
+   "inHash": "9b22c6d77288d60890f08f55a006f76e1195411cb7d75f79fa254e39c9890526",
    "files": {
     "flower_crown.glb": {
      "bytes": 7948,
@@ -810,7 +810,7 @@
    "class": "flora",
    "name": "corn poppy (Papaver rhoeas)",
    "of": "flower_red",
-   "inHash": "636d53bc6d96897c769b87726f45103d19dd038b918630d8f15f0802b70a211b",
+   "inHash": "6a95bb53551d1edf41bbe603b4b5c41fcfd6bebe6d88ae41c77741c5fbad5f1c",
    "files": {
     "flower_red.glb": {
      "bytes": 5016,
@@ -858,7 +858,7 @@
    "class": "flora",
    "name": "grape hyacinth (Muscari)",
    "of": "flower_violet",
-   "inHash": "5f6f5d4749b27b562c42ad5caeea479e8d049feddb9c2f3d12555ea8f2ac3ccc",
+   "inHash": "1530e98d8c6da48498f0bbcc41c3d798dc2b78c9a5fe94136c1bc90e96dc3aab",
    "files": {
     "flower_violet.glb": {
      "bytes": 4544,
@@ -906,7 +906,7 @@
    "class": "flora",
    "name": "buttercup (Ranunculus)",
    "of": "flower_yellow",
-   "inHash": "d74ec116750509aa43fa2389754719800cce471343d91bf1133320f1f36a7d9c",
+   "inHash": "f58e88145c9a78b9cb3d6804603917b27328c4609b3d9493d12351d3a42d5354",
    "files": {
     "flower_yellow.glb": {
      "bytes": 6808,
@@ -954,7 +954,7 @@
    "class": "small",
    "name": "house fly",
    "of": "fly",
-   "inHash": "c0047fdfa0728fe3659297010ee84f5c64043a577f8369fcdd4af4f2f17d44c1",
+   "inHash": "6ba83ee6e78491380425e1aba2f2ecf9e432fa8aefbfa550d7b5ca60bb8428b8",
    "files": {
     "fly.glb": {
      "bytes": 19376,
@@ -1002,7 +1002,7 @@
    "class": "small",
    "name": "marsh frog",
    "of": "frog",
-   "inHash": "7234fff27e01831f38381f4496b3ee29a98ea01de6bb84a20bfbb78d7f3ef7d5",
+   "inHash": "2241167adb5b24a9668032ae7184b7198aec60aef92d337cd0c841fb14f060c7",
    "files": {
     "frog.glb": {
      "bytes": 47564,
@@ -1050,7 +1050,7 @@
    "class": "small",
    "name": "long-eared hedgehog",
    "of": "hedgehog",
-   "inHash": "244b1fa236fc0a9ef00e87fdeff64bf19ae4f3822d4623cf86a38de2844284f3",
+   "inHash": "fe9e04dd9434282436dece0694e4b2a233bc8c9b528d4b283cdd4e9761e2eaa1",
    "files": {
     "hedgehog.glb": {
      "bytes": 50840,
@@ -1098,7 +1098,7 @@
    "class": "birds",
    "name": "grey heron",
    "of": "heron",
-   "inHash": "566941217175c455336f548008c0783b1f2c541d509e5f57482572919884e163",
+   "inHash": "77446325ea6668530c3a9d1e79c0034fd67afb0edb7c79863c1f4d58d3fc331a",
    "files": {
     "heron.glb": {
      "bytes": 72612,
@@ -1150,7 +1150,7 @@
    "class": "birds",
    "name": "hoopoe",
    "of": "hoopoe",
-   "inHash": "97d7fde7c6b605cc861e735e1f8d23f3167b459b8a3cc37629fecd0ff8b961d0",
+   "inHash": "0eea6a4180aeb0386fecca80cb10a4bd315b8f3d1ba73cfde3551cee87f3d76d",
    "files": {
     "hoopoe.glb": {
      "bytes": 72628,
@@ -1250,7 +1250,7 @@
    "class": "birds",
    "name": "western jackdaw",
    "of": "jackdaw",
-   "inHash": "a54e4d63a01cc2181a2c5ceed844a3d2fc4b01c0ef0a29f8d6c9ea970ffe3644",
+   "inHash": "6f532764f986c7211214034f0f22a62ad924bed64f3774ffd18a14a353e9d9c4",
    "files": {
     "jackdaw.glb": {
      "bytes": 36292,
@@ -1300,7 +1300,7 @@
    "class": "small",
    "name": "jird (Meriones)",
    "of": "jird",
-   "inHash": "024c7b43a75389dd736535a9c5a1432951b587327371813bccb32e8bfba7bf81",
+   "inHash": "3fd0d8303d3e6498b24e499066c222afaf88107eaa03bdeff919adc9dc757e56",
    "files": {
     "jird.glb": {
      "bytes": 59604,
@@ -1348,7 +1348,7 @@
    "class": "birds",
    "name": "common kestrel (male)",
    "of": "kestrel",
-   "inHash": "81edac7f178cd1ae5bf85c698eb4901da92c6622e2718982ff28b77aa732a190",
+   "inHash": "d8479310fd224dd825fe3880356e8c6855f532e10280aa41f55f6c51721037a7",
    "files": {
     "kestrel.glb": {
      "bytes": 36212,
@@ -1398,7 +1398,7 @@
    "class": "birds",
    "name": "black kite",
    "of": "kite",
-   "inHash": "4191e8de000392eaac2c0414ded555599f694669bc3587bb728e36143b763f8e",
+   "inHash": "a28fcad9002b95fe486ffb1ee00a186ea09ab922a1e691b46f01ebb07807d077",
    "files": {
     "kite.glb": {
      "bytes": 36204,
@@ -1448,7 +1448,7 @@
    "class": "birds",
    "name": "crested lark",
    "of": "lark",
-   "inHash": "f3cdcc446c1b84b4e24d9db12ba539233c022f86ca0ea8597261f605b196a7f7",
+   "inHash": "27460c4cd674334a4d0e93e016414d7ada1949ec09c39eccf5354a47f65df0d8",
    "files": {
     "lark.glb": {
      "bytes": 37208,
@@ -1498,7 +1498,7 @@
    "class": "small",
    "name": "rock agama (Paralaudakia)",
    "of": "lizard",
-   "inHash": "ab0edcf9fe478e1366f4d9daef3eeab42e9bf7f2fb590499ba1929f5e6258827",
+   "inHash": "5ce7924c68a10adb1cbf417bb48affe26b678a1f2440f8ae4a2f4a00925e885f",
    "files": {
     "lizard.glb": {
      "bytes": 82848,
@@ -1546,7 +1546,7 @@
    "class": "birds",
    "name": "Eurasian magpie",
    "of": "magpie",
-   "inHash": "49a90efab67152af820cb649c623ebdf1fffbc0fd16ae9a5102208fd5cac46b7",
+   "inHash": "56e5ccf363e1a55fa3cf4e0ec51c7d82487c9c2584bd0d0e23fb8e9daf188104",
    "files": {
     "magpie.glb": {
      "bytes": 68808,
@@ -1650,7 +1650,7 @@
    "class": "small",
    "name": "Indian crested porcupine",
    "of": "porcupine",
-   "inHash": "e7f82844f2f6e5476611e030654b9619dfd902c886c78ff7310132b5c7ca46d8",
+   "inHash": "0b343d566d5e8056b286996276640c5998c29da04dc6382981f7fb35a99ce029",
    "files": {
     "porcupine.glb": {
      "bytes": 74832,
@@ -1698,7 +1698,7 @@
    "class": "birds",
    "name": "golden eagle",
    "of": "raptor",
-   "inHash": "06a3a66eb3e353eca3e8bf265cb791de4dceb66d6fe61a21898d011b4eb2757d",
+   "inHash": "bfcd1224cb149529e47533d9d3643969d0c82b3ac49026494cce20e388a8ecf9",
    "files": {
     "raptor.glb": {
      "bytes": 36284,
@@ -1748,7 +1748,7 @@
    "class": "birds",
    "name": "European roller",
    "of": "roller",
-   "inHash": "213b6dfc1a9a181741f20f5d071344c00e0e7616ba8d1d403dbe3cc483165de3",
+   "inHash": "e008382f703c12e64b17263d5a0afa03582464cae7b7bbe002b9501cc5c2396f",
    "files": {
     "roller.glb": {
      "bytes": 36296,
@@ -1798,7 +1798,7 @@
    "class": "flora",
    "name": "damask rose bush",
    "of": "rose",
-   "inHash": "bba3199fe59b42721e7e67f0581a38bfa408e8b94a89501cd9d0a7f920d01b05",
+   "inHash": "4549f52b0d411a6825162a69ebb5a2f9552a32d36f4b0a1944c3062c171a2ce9",
    "files": {
     "rose.glb": {
      "bytes": 37940,
@@ -1846,7 +1846,7 @@
    "class": "birds",
    "name": "black-bellied sandgrouse",
    "of": "sandgrouse",
-   "inHash": "1ec4584245783b30c93ea6c3359f8640d8d10aa09c18c3459b2fd6f82c4d0ffe",
+   "inHash": "b70d7697444fe29f9b17f836033e6f5352c0e5ef4a2a383d48d7661cf0e37abe",
    "files": {
     "sandgrouse.glb": {
      "bytes": 36292,
@@ -1896,7 +1896,7 @@
    "class": "small",
    "name": "scorpion (a yellow buthid)",
    "of": "scorpion",
-   "inHash": "92846b04deb8bc8513e6ce1103ea0ab0d5d5086ff224ad6059e62fef50e1d1f0",
+   "inHash": "4de4728b3d57d6ac97a81a5c52cc14f5e75e45a818e299c3f82a30fb76a06972",
    "files": {
     "scorpion.glb": {
      "bytes": 82168,
@@ -1944,7 +1944,7 @@
    "class": "small",
    "name": "land snail (banded)",
    "of": "snail",
-   "inHash": "c77cf504d93caa52d600e63aa16259ce5a0158dbfadfbee9d1cf57999634adbf",
+   "inHash": "b39b7d47209d226a1e07c400a60b0259bc0750f6446630131b485bc808666c5c",
    "files": {
     "snail.glb": {
      "bytes": 35068,
@@ -1992,7 +1992,7 @@
    "class": "small",
    "name": "snake (a blunt-nosed viper)",
    "of": "snake",
-   "inHash": "05a631d079a912ffc581d841cf6de0acda949d09e2649bf0d8e38dc0ebe18893",
+   "inHash": "20f4aaacd031216742c0598e8661b95171a9b3ff06c5f7881eaae0b6b06a7b0c",
    "files": {
     "snake.glb": {
      "bytes": 48860,
@@ -2040,7 +2040,7 @@
    "class": "birds",
    "name": "house sparrow (male)",
    "of": "sparrow",
-   "inHash": "22c8dbb0b7b938612bcea24969c91f0cbd57a0d7730994f3bea975ee578fff67",
+   "inHash": "aaa4527e12457aef8bbdf9ff34e3d989efcecceb11b9b5e9530f06e05722d558",
    "files": {
     "sparrow.glb": {
      "bytes": 66744,
@@ -2092,7 +2092,7 @@
    "class": "birds",
    "name": "house sparrow (female)",
    "of": "sparrow",
-   "inHash": "3d3b1dd5ca60a3a8ba587ed6d31cb122452bcc57ab5927a3762390c011f36c7b",
+   "inHash": "fb392ccf925ee4cfb9b31a525ec313f1b4c2030cdec71bb8b3fff93027dd9e80",
    "files": {
     "sparrow_f.glb": {
      "bytes": 66744,
@@ -2144,7 +2144,7 @@
    "class": "birds",
    "name": "common starling (winter)",
    "of": "starling",
-   "inHash": "f9833bd99286c14cfd648fa8f41b60b3e7884349854a93067fb72d7920b39383",
+   "inHash": "d7de467d4a230143bf22435c73fa0f69b837c43c307621a70dcde6dc3fd8844d",
    "files": {
     "starling.glb": {
      "bytes": 36296,
@@ -2194,7 +2194,7 @@
    "class": "birds",
    "name": "white stork",
    "of": "stork",
-   "inHash": "0dd63aff68353bbe9528cf91e404bb22294817eb5998e4b5033bc02906a822c0",
+   "inHash": "0291aa4c5936d50fd7f381ff39e801469ef20eaf7b7789f3192d41109daacf73",
    "files": {
     "stork.glb": {
      "bytes": 68696,
@@ -2246,7 +2246,7 @@
    "class": "birds",
    "name": "barn swallow",
    "of": "swallow",
-   "inHash": "35ffc9a2a4a3f363809d8633fa5f449ddfae710e191883a1eaaa7444ba9bb1dd",
+   "inHash": "01bbc0990186db8fede6b7a4562564f1643641145a4a871ad5274ddfb1858f70",
    "files": {
     "swallow.glb": {
      "bytes": 35144,
@@ -2296,7 +2296,7 @@
    "class": "birds",
    "name": "common and pallid swifts",
    "of": "swift",
-   "inHash": "e58dbdc761243ce96195744fcce20a8d7e4bb9731fcbefea9de30785d0d92d90",
+   "inHash": "0db09efd59d971cfb727b2dab95739051100615551512312f721cd5dfc7c02b8",
    "files": {
     "swift.glb": {
      "bytes": 35140,
@@ -2346,7 +2346,7 @@
    "class": "flora",
    "name": "thistle (Onopordum, Cousinia)",
    "of": "thistle",
-   "inHash": "b573fa39265582fd293a9771ee06181f6a4d56f381d8be106cb46765f2789d32",
+   "inHash": "9f22030ddc0ac1ad2df85c4b6202948a07ddef03f85b626cabf1d7a6c658d68c",
    "files": {
     "thistle.glb": {
      "bytes": 18308,
@@ -2394,7 +2394,7 @@
    "class": "small",
    "name": "spur-thighed tortoise",
    "of": "tortoise",
-   "inHash": "57f29300043ee058abb98eb2c379efc1a1e1014e539200da2eeaebfef9fcd488",
+   "inHash": "5e82b038ed8979064d22503338d519714d0b3d9233d4768c185754183825f02d",
    "files": {
     "tortoise.glb": {
      "bytes": 57756,
@@ -2442,7 +2442,7 @@
    "class": "small",
    "name": "Caspian turtle",
    "of": "turtle",
-   "inHash": "6dcf9fb2fc6a9437106de2509bd5cfd7f145bc4cb5b87bd412f6cf4d3f25b89a",
+   "inHash": "f95e723693e4b5d3bbc1f35fccc9c8eaada69a7eb0d7024fb1bf1c6196aac8a3",
    "files": {
     "turtle.glb": {
      "bytes": 55440,
@@ -2490,7 +2490,7 @@
    "class": "birds",
    "name": "griffon vulture",
    "of": "vulture",
-   "inHash": "3ca30311ef4e8f0a6164d49463546622f23371713b0fed9f28f24c445848f6b2",
+   "inHash": "143429914939f8e90be60a6cd8dff458edd3679f5fdf351ed2e415f961ad7c4a",
    "files": {
     "vulture.glb": {
      "bytes": 36284,
@@ -2540,7 +2540,7 @@
    "class": "birds",
    "name": "northern wheatear (male)",
    "of": "wheatear",
-   "inHash": "669c7021ea383d4f90f8672dbf8648516b7617b2969efa95f9619bed810dd91f",
+   "inHash": "ee45b862084dbe182e2ad78862905722ee3de23c572374053f711dacf40aa03e",
    "files": {
     "wheatear.glb": {
      "bytes": 66748,

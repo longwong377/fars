@@ -16,7 +16,8 @@ await p.waitForFunction(() => window.__ready, null, { timeout: 600000 });
 const ready = await p.evaluate(() => window.__ready); console.log('ready', JSON.stringify(ready.stats ?? ready).slice(0, 300), (Date.now() - t0) / 1000, 's');
 if (typeof ready === 'string') { console.log(ready); process.exit(1); }
 const views = [], ex = ready.extent;
-if (!CLS || CLS === 'birds') for (let x = 0; x < ex.birds; x += 3.2) { views.push({ n: `birds-stand-${x.toFixed(0)}`, eye: [x + 1.6, 0.55, 2.4], at: [x + 1.6, 0.2, 0], fov: 55 }); views.push({ n: `birds-fly-${x.toFixed(0)}`, eye: [x + 1.6, 0.6, 0.2], at: [x + 1.6, 2.5, -3], fov: 60, t: x }); }
+if (!CLS || CLS === 'birds') { for (let x = 0; x < ex.stand; x += 1.6) views.push({ n: `birds-stand-${x.toFixed(1)}`, eye: [x + 0.8, 0.45, 1.3], at: [x + 0.8, 0.15, 0], fov: 55 });
+  for (let x = 0; x < ex.birds; x += 3.2) views.push({ n: `birds-fly-${x.toFixed(0)}`, eye: [x + 1.6, 2.9, 0.4], at: [x + 1.6, 2.5, -3], fov: 60, t: x * 0.37 }); }
 if (!CLS || CLS === 'small') for (let x = 0; x < ex.small; x += 1.4) views.push({ n: `small-${x.toFixed(1)}`, eye: [x + 0.7, 0.45, 5.0], at: [x + 0.7, 0.02, 4], fov: 55, t: x });
 if (!CLS || CLS === 'flora') for (let x = 0; x < ex.flora; x += 3) { views.push({ n: `flora-${x.toFixed(0)}`, eye: [x + 1.5, 1.4, 10.3], at: [x + 1.5, 0.3, 8], fov: 55 }); views.push({ n: `flora-lod1-${x.toFixed(0)}`, eye: [x + 1.5, 1.4, 13.3], at: [x + 1.5, 0.3, 11], fov: 55 }); }
 const rec = { ready, views: [] };

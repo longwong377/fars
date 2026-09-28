@@ -19,13 +19,13 @@ import { birdFlapNode } from '../../../src/world/wildlife';
     const gg = g.clone(); gg.setAttribute('phase', new THREE.InstancedBufferAttribute(new Float32Array([Math.random() * 6]), 1)); gg.setAttribute('flapAmt', new THREE.InstancedBufferAttribute(new Float32Array([1]), 1));
     const im = new THREE.InstancedMesh(gg, m, 1); im.setMatrixAt(0, new THREE.Matrix4().compose(pos, new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0)), new THREE.Vector3(1, 1, 1))); im.castShadow = shadow; im.receiveShadow = true; im.frustumCulled = false; scene.add(im);
   };
-  let bx = 0, sx = 0, fx = 0;
+  let bx = 0, sx = 0, fx = 0, sbx = 0;
   for (const id of lifeIds().sort()) {
     const m = lifeModel(id)!, e = m.entry; if (CLS && e.class !== CLS) continue;
     if (e.class === 'birds') {
       const w = Math.max(0.3, (e.S ?? 0.5) * 1.1), fly = lifeMaterial(m, { fallback: [1, 0, 1] }); fly.positionNode = birdFlapNode(uTime, 3, e.sx ?? 0.01);
       const st = lifeMaterial(m, { fallback: [1, 0, 1] });
-      if (m.levels.stand0) inst(m.levels.stand0, st, new THREE.Vector3(bx + w / 2, 0, 0), 2.2);
+      if (m.levels.stand0) { const ws = Math.max(0.25, (e.L ?? 0.3) * 1.3); inst(m.levels.stand0, st, new THREE.Vector3(sbx + ws / 2, 0, 0), 2.2); sbx += ws; }
       inst(m.levels.fly0, fly, new THREE.Vector3(bx + w / 2, 2.5, -3), 0.3);
       layout[id] = [bx + w / 2, 0, 0]; bx += w;
     } else if (e.class === 'small') {
@@ -51,5 +51,5 @@ import { birdFlapNode } from '../../../src/world/wildlife';
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     return { errs: errs.slice(), info: { draws: (r.info as any).render?.drawCalls, tris: (r.info as any).render?.triangles } };
   };
-  (window as any).__ready = { stats, layout, extent: { birds: bx, small: sx, flora: fx } };
+  (window as any).__ready = { stats, layout, extent: { birds: bx, stand: sbx, small: sx, flora: fx } };
 })().catch(e => { (window as any).__ready = 'ERROR ' + String(e?.stack ?? e); console.error(e); });
