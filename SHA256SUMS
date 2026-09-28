@@ -307,3 +307,7 @@ f99e7bfc14e17d88d905360dd1f0ecbaab98d5778acdd762e397254c293a2b42  models/mlc-ai/
 e1a10d9e18641e9eab280e7c9cb4c7ee05b6dc3ab35b244ffe559da00b1fc950  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_14.bin
 fe24b3ddc07e311556e6968bb62506ae8980ca1ec55393f12ae41de468d93067  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_15.bin
 f86a010144bfae8748ac0abdd705d3d9c54bcb864bc51a4b7d3da8dab7d6c379  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_16.bin
+b473e5c8b5c226c751a393d666066cb6e8b1bf7e61604691a31fea2f82abef66  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_17.bin
+e36912a08ea82dfdcad4ebc288a6541d2112038e987d98f7f2f5cd8f8957cf2d  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_18.bin
+795125e8c8eb20e28733df956ab32bb57ea2376ec99cd84b4d36f8f6f32b1f42  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_19.bin
+c67f6aff8524441396efaa09488ea4536437e35389e0843d87fda796be9d3412  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_2.bin
