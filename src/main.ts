@@ -30,6 +30,7 @@ import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
 import { PROF, pt, pa, takeSections, PassLog } from './core/prof';
+import { rayHitsAny } from './render/eyeRays';
 import { probeEyeVisibility, probeVolumeExtent } from './render/probes/runtime';
 import { WEATHER, SEASON, BLOOM } from './render/materials';
 import { haloAmount } from './sky/halo';
@@ -234,14 +235,14 @@ async function boot() {
           const sec = takeSections(), g = await passLog.resolve(); rows.push({ cpu: t1 - t0, wall: t2 - t0, sec, gpu: g?.gpuMs ?? null, passes: g?.passes ?? [] }); }
         PROF.on = false; await done(); const tp0 = performance.now(); for (let i = 0; i < n; i++) await frame(dt); await done(); const pipelined = (performance.now() - tp0) / n;
         const med = (a: number[]) => { const b = a.filter(Number.isFinite).sort((x, y) => x - y); return b.length ? +b[Math.floor(b.length / 2)].toFixed(2) : null; };
-        const secs: Record<string, number | null> = {}; for (const k of new Set(rows.flatMap(r => Object.keys(r.sec)))) secs[k] = med(rows.map(r => r.sec[k] ?? 0));
+        const secs: Record<string, number | null> = {}; const secMax: Record<string, number> = {}; for (const k of new Set(rows.flatMap(r => Object.keys(r.sec)))) { secs[k] = med(rows.map(r => r.sec[k] ?? 0)); secMax[k] = +Math.max(...rows.map(r => r.sec[k] ?? 0)).toFixed(2); }
         const byLabel = new Map<string, { gpu: number[]; cpu: number[]; draws: number; tris: number; n: number }>();
         for (const r of rows) { const seen = new Map<string, { gpu: number; cpu: number; draws: number; tris: number }>(); for (const p of r.passes) { const q = seen.get(p.label) ?? { gpu: 0, cpu: 0, draws: 0, tris: 0 }; q.gpu += p.gpu; q.cpu += p.cpu; q.draws += p.draws; q.tris += p.tris; seen.set(p.label, q); }
           for (const [k, q] of seen) { const b = byLabel.get(k) ?? { gpu: [], cpu: [], draws: 0, tris: 0, n: 0 }; b.gpu.push(q.gpu); b.cpu.push(q.cpu); b.draws = q.draws; b.tris = q.tris; b.n = r.passes.filter((p: any) => p.label === k).length; byLabel.set(k, b); } }
         const lastCls = new Map<string, Record<string, [number, number]>>(); for (const p of rows[rows.length - 1]?.passes ?? []) { const m = lastCls.get(p.label) ?? {}; for (const [k, v] of Object.entries(p.cls as Record<string, [number, number]>)) { const q = m[k] ?? [0, 0]; q[0] += v[0]; q[1] += v[1]; m[k] = q; } lastCls.set(p.label, m); }
         const topCls = (m: Record<string, [number, number]> = {}) => Object.fromEntries(Object.entries(m).sort((x, y) => y[1][1] - x[1][1]).slice(0, 14).map(([k, v]) => [k, [v[0], Math.round(v[1])]]));
         const passes = [...byLabel].map(([label, b]) => ({ label, n: b.n, gpu: med(b.gpu), cpu: med(b.cpu), draws: b.draws, tris: b.tris, cls: topCls(lastCls.get(label)) })).sort((a, b) => (b.gpu ?? 0) - (a.gpu ?? 0));
-        return { frames: n, cpuMs: med(rows.map(r => r.cpu)), serialMs: med(rows.map(r => r.wall)), gpuMs: med(rows.map(r => r.gpu)), pipelinedMs: +pipelined.toFixed(2), sections: secs, passes, draws: renderer.info.render.drawCalls, tris: renderer.info.render.triangles };
+        return { frames: n, cpuMs: med(rows.map(r => r.cpu)), serialMs: med(rows.map(r => r.wall)), gpuMs: med(rows.map(r => r.gpu)), pipelinedMs: +pipelined.toFixed(2), cpuMaxMs: +Math.max(...rows.map(r => r.cpu)).toFixed(2), sections: secs, secMax, passes, draws: renderer.info.render.drawCalls, tris: renderer.info.render.triangles };
       } finally { PROF.on = false; PLAYLIKE = false; } },
     renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
     /** a frame without rendering: the camera placed (view), the world updated (picks after a view or setTime; D-187) */
@@ -411,11 +412,11 @@ async function boot() {
   /** frozen test renders adapt fully every frame; a camera-rig sequence may instead carry the eye over from an earlier view:
    *  `from` = the exposure the eye had there, `seconds` since (adaptExposure's time constants), D-187 */
   let adaptHold: { from: number; seconds: number } | null = null;
-  const upRay = new THREE.Raycaster(); const archGroup = world.root.getObjectByName('architecture');
+  const upDir = new THREE.Vector3(); const archGroup = world.root.getObjectByName('architecture');
   function skyVisibility() {
     if (!archGroup) return 1; let open = 0; const dirs = [[0, 1, 0], [0.5, 0.85, 0], [-0.5, 0.85, 0], [0, 0.85, 0.5], [0, 0.85, -0.5], [0.35, 0.6, 0.35], [-0.35, 0.6, -0.35], [0.35, 0.6, -0.35], [-0.35, 0.6, 0.35]];
     const arch = settings.nowView ? (world.nowView?.group ?? archGroup) : archGroup; // the Now view: its own stone, no roofs (D-201)
-    for (const d of dirs) { upRay.set(camera.position, new THREE.Vector3(d[0], d[1], d[2]).normalize()); upRay.far = 60; if (upRay.intersectObject(arch, true).length === 0) open++; }
+    for (const d of dirs) if (!rayHitsAny(arch, camera.position, upDir.set(d[0], d[1], d[2]).normalize(), 60)) open++; // D-337: a BVH per geometry (eyeRays.ts), was three's Raycaster: 11-61 ms a call
     return open / dirs.length;
   }
   let prev = performance.now();
@@ -509,7 +510,7 @@ async function boot() {
       tl.update({ camera, inscriptions: inscGroup, subtitle: settings.nowView ? null : sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
         events: settings.playerMode === 'visitor' ? [...(P?.sim.events ?? []), ...(((world as any).visitor?.log() ?? []) as any[]).map(l => ({ t: l.t, kind: 'visitor', text: 'You: ' + l.text, place: '' }))].sort((a, b) => a.t - b.t) : (P?.sim.events ?? []),
         timeLabel: hm, places: PLACES as any, mapLayers: (world as any).mapLayers }); }
-    overlay.update(renderer, scene, camera, [
+    if (overlay.visible) overlay.update(renderer, scene, camera, [ // D-337: the lines (world.summary: long strings) only when the overlay is shown
       `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + curvatureDrop(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)} m asl · ground ${terrain.aslAt(camera.position.x, camera.position.z).toFixed(1)}`,
       clock.label(),
       `sun alt ${sky.state.sunAlt.toFixed(1)}° · moon ${(sky.state.moonFraction * 100).toFixed(0)}% alt ${sky.state.moonAlt.toFixed(0)}° · ${sky.lux.toPrecision(2)} lx (USNO-C171, B) · sky gain ${sky.gain.toPrecision(3)} · exposure ${exposure.toFixed(2)} (D-117, C) · meter ${meterGain.toFixed(2)} EV, bright ${(meterBright * 100).toFixed(0)}% (D-159/D-224, C) · overcast ${(sky.overcast.w * 100).toFixed(0)}% (CIE overcast B, blend C, D-224) · twilight dome ${(twilightWeight(sky.state.sunAlt) * 100).toFixed(0)}% (D-116, B/C)`,

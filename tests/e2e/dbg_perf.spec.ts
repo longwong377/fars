@@ -36,6 +36,7 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
     out.views[s.n] = r;
     console.log(`[perf] ${s.n} cpu ${r.cpuMs} serial ${r.serialMs} gpu ${r.gpuMs} pipelined ${r.pipelinedMs} draws ${r.draws} tris ${(r.tris / 1e6).toFixed(2)}M`);
     console.log(`[perf] ${s.n} sections ${JSON.stringify(Object.fromEntries(Object.entries(r.sections).sort((a: any, b: any) => b[1] - a[1]).slice(0, 18)))}`);
+    console.log(`[perf] ${s.n} max ${r.cpuMaxMs} sections max ${JSON.stringify(Object.fromEntries(Object.entries(r.secMax).sort((a: any, b: any) => b[1] - a[1]).slice(0, 10)))}`);
     for (const p of r.passes.slice(0, 16)) console.log(`[perf]   ${String(p.gpu).padStart(7)} ms gpu ${String(p.cpu).padStart(6)} cpu ×${p.n} ${p.draws} draws ${(p.tris / 1e3).toFixed(0)}k  ${p.label}  ${JSON.stringify(p.cls).slice(0, 300)}`);
     await page.screenshot({ path: `shots/perf-${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}.png` });
     const abl = process.env.ABL === '1' ? s === first : process.env.ABL?.split(',').includes(s.n);
