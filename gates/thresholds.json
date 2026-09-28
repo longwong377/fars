@@ -2857,6 +2857,22 @@
    "anti_proxy": "the scripted D-168 situations alone do not count; an exchange must be chosen per pair and moment from their records; English heard in the world does not count unless the UD-22 opt-in is on",
    "ud": "UD-23",
    "since": "rev 2.6 (s12)"
+  },
+  {
+   "id": "T-E13",
+   "axis": "E",
+   "scope": "world",
+   "metric": "share of a seeded week of simulated life (no player input) in which person-to-person talk changes the simulation: arrangements made in talk (work, trade, help, visits, news passed on) that the people then carry out through their plans, measured as the share of talk events with a consequence in the sim within the next 3 game days, plus the share of player-caused changes that propagate to at least one other person",
+   "op": ">=",
+   "value": 50,
+   "unit": "%",
+   "sample_min": 60,
+   "sample": "the conversation test set, seeded, across classes, places and hours",
+   "tool": "tests/living_world.test.ts",
+   "status": "to-build",
+   "anti_proxy": "flavour talk with no effect on any plan does not count; scripted exchanges do not count; the consequence must be in the saved state and replay identically",
+   "ud": "UD-24",
+   "since": "rev 2.6 (s12)"
   }
  ]
 }

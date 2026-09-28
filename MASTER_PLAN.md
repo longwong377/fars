@@ -525,6 +525,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-21 | conversations act on the world (a person follows, leads, fetches, gives, refuses in character, through the simulation's own plans) and are remembered per save, with gossip along kin and friends | §6 order (sessions/s12.md, handoff/briefs/s12/talk.md; tests/talk_world.test.ts) | T-E10 |
 | UD-22 | every person a unique natural voice in their own period language (default), with an opt-in in-character Farsi or English layer in the same voice | §6 order (handoff/briefs/s12/voices.md; tests/voices_unique.test.ts) | T-E11 |
 | UD-23 | people converse with each other: model-chosen exchanges grounded in both speakers' lives and the day, in their own languages (lexicon lines) and voices, overheard near the player, feeding gossip and memory | §6 order (HANDOFF.md, a later session; tests/npc_talk.test.ts) | T-E12 |
+| UD-24 | a living world: people talk freely about whatever their lives need (§10 loosened for this by the user: generated speech voiced as reconstructed period speech, tier C), and their talk changes the simulation with or without the player, who can affect it | §6 order (HANDOFF.md; tests/living_world.test.ts) | T-E13 |
 
 ## 13. Revision log
 

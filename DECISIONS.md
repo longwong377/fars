@@ -8534,3 +8534,14 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   clips white, 4.9 % clipped: the room now reads as a sunlit room with a bright door). lane-night (the lane-with-child view at
   21:30): mean 0.4, pure black but a sliver of sky — B111 stands: no hearth, lamp, moon or sky light reaches the lane.
   Frame: scribe-room-ne 309 ms, lane-night 598 ms (B125). room-treasury-store not reached (the run's timeout).
+
+## D-316 The living world: people talk freely, and talk changes the world (the lead, session 12; UD-23, UD-24)
+The user's own words (UD-24) loosen §10 for people's talk: the conversation model may generate what people say to each other
+about whatever their lives need; in the default (period) mode it is voiced as reconstructed period speech (generated, tier C,
+flagged in F3 and the translation layer), in the Farsi/English opt-in (UD-22) word for word. The rest of §10 stands (no modern
+text rendered in the world; the lexicon's attested lines still preferred where one fits). Design for the next sessions: the
+simulation proposes talk events between pairs (kin, neighbours, co-workers, buyer and seller) from their needs; near the
+player they are generated and voiced live (model budget: the few pairs within earshot); away from the player they are resolved
+in node as structured intents without text (the D-315 intent set, extended: arrange work, trade, ask help, invite, pass news),
+so the world lives with or without the player; every consequence goes through the plans and into the save (replayable).
+Measured by T-E13 (tests/living_world.test.ts) and T-E12.

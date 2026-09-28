@@ -11,6 +11,7 @@
    voices' models, Qwen2.5-1.5B, the bake GGUF) went first, the unused 3B/7B variants last.
 2. Read sessions/s12.md (broken first; the class table).
 3. **UD-23 (new, the user: "maximum immersion"):** people converse with each other, model-driven and grounded in both lives, overheard near the player, in their own languages and voices (T-E12). The node side (pair choice, grounding, lexicon line choice, gossip) is cloud work; the in-browser model load and voices need a GPU session.
+4. **UD-24 (the user: "a living breathing world that you can actually affect and change"):** people talk freely about whatever their lives need (§10 loosened for this, D-316) and their talk changes the simulation with or without the player (T-E13). Node side first: talk events between pairs from their needs, resolved as structured intents away from the player, generated and voiced near the player.
 
 ## SESSION 12 CLOSE (Vagon): every Blender class of research/BLENDER_PLAN.md built world-wide, merged
 Merged (all branches of the session): lighting (cascades, tone look, sky visibility, interiors verified 19 -> 112), CC0 scans
