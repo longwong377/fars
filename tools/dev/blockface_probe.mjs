@@ -27,7 +27,7 @@ const V = [
   { n: 'samples-4m', court: true, e: -24, n2: 94, eye: 1.6, az: 341 + 0, pitch: -2, fov: 60, ...S25pm },
   { n: 'samples-arm', court: true, e: -30, n2: 98.2, eye: 1.4, az: 341, pitch: -5, fov: 60, ...S25pm },
   { n: 'merlon-arm', court: true, e: -15, n2: 98.9, eye: 0.5, az: 341, pitch: 0, fov: 60, sunAz: 300, sunAlt: 25 },
-  // D-328: the arrises at arm's length in a low sun: a stair's nosings, a parapet's coping, a wall's corner
+  // D-321 rev 2: the arrises at arm's length in a low sun: a stair's nosings, a parapet's coping, a wall's corner
   { n: 'nosing-arm', e: -43.9, n2: 131.5, eye: 1.6, az: 341, pitch: -32, fov: 35, sunAz: 250, sunAlt: 18 },
   { n: 'block-corner', court: true, e: -10.2, n2: 98.3, eye: 1.25, az: 315, pitch: -12, fov: 40, sunAz: 200, sunAlt: 15 },
   { n: 'block-top', court: true, e: -12, n2: 98.6, eye: 1.5, az: 341, pitch: -40, fov: 40, sunAz: 250, sunAlt: 12 },
@@ -43,7 +43,7 @@ console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) /
 const BFS = (process.env.BF ?? '1,0').split(',').map(Number); // (a gain > 1 exaggerates the detail: its placement)
 for (const v of V) { if (ONLYV && !ONLYV.includes(v.n)) continue;
   for (const bf of BFS) {
-    const ar = +(process.env.AR ?? 1); // D-328: the arris bands on (1) or off (0)
+    const ar = +(process.env.AR ?? 1); // D-321 rev 2: the arris bands on (1) or off (0)
     const errs = await p.evaluate(v => window.__shot({ ...v, n: v.n2 }), { ...v, bf, ar });
     const hit = await p.evaluate(() => window.__hit ?? null);
     await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/bfprobe-${v.n}-${TAG}-bf${bf}${process.env.AR === '0' ? '-ar0' : ''}.png` });

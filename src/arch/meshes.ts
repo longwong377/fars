@@ -239,7 +239,7 @@ function bevelledBoxGeometry(b: Box, index: PartIndex, stats: BevelStats): THREE
   const { pos, nrm, adist } = bevelledBox(h, r, edges, B.round);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  g.setAttribute('adist', new THREE.Float32BufferAttribute(adist, 4)); g.userData.arris = { edges, r }; // (D-328: the near-field arris bands)
+  g.setAttribute('adist', new THREE.Float32BufferAttribute(adist, 4)); g.userData.arris = { edges, r }; // (D-321 rev 2: the near-field arris bands)
   g.rotateY(b.rot ?? 0); g.translate(b.c[0], (b.y0 + b.y1) / 2, -b.c[1]);
   return g;
 }
@@ -403,8 +403,8 @@ export class MeshLOD extends THREE.Object3D {
   private show(k: number) { this.cur = k; this.levels.forEach((m, i) => { m.visible = i === k; }); }
 }
 
-export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-328: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[] }
-/** D-328: the surfaces whose free arrises become geometry near the eye (the dressed stone of the block-face class, D-321) */
+export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[] }
+/** D-321 rev 2: the surfaces whose free arrises become geometry near the eye (the dressed stone of the block-face class, D-321) */
 export const ARRIS_MATS = new Set(['limestone', 'terrace']);
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a

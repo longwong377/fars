@@ -21,7 +21,7 @@ import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
 import { blockFaceLoaded, blockFaceDetail, BF_ON, ADIST_OFF } from './blockface';
 import { ARRIS_EYE, ARRIS_R, ARRIS_W } from '../arch/arris';
-/** D-328: the surfaces whose free arrises are geometry near the eye (meshes.ts ARRIS_MATS, repeated here: meshes imports this module) */
+/** D-321 rev 2: the surfaces whose free arrises are geometry near the eye (meshes.ts ARRIS_MATS, repeated here: meshes imports this module) */
 const ARRIS_MATS = new Set(['limestone', 'terrace']);
 import { incisionNodes } from './incision';
 import type { Atlas } from '../arch/carving';
@@ -1106,7 +1106,7 @@ export class SurfaceNodeMaterial extends THREE.MeshStandardNodeMaterial {
 
 const cache = new Map<string, THREE.MeshStandardNodeMaterial>();
 const lin = (a: [number, number, number]) => color(new THREE.Color().setRGB(a[0], a[1], a[2], THREE.SRGBColorSpace));
-export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; variant?: string; arch?: boolean; modify?: (L: Layer, d: SurfaceDef) => Layer; /** false: the modify lays its own scans (the ground layers, scans.ts groundScan; D-302) */ scan?: boolean; /** D-328: the near-field arris bands (arris.ts) */ band?: boolean } = {}): THREE.MeshStandardNodeMaterial {
+export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; variant?: string; arch?: boolean; modify?: (L: Layer, d: SurfaceDef) => Layer; /** false: the modify lays its own scans (the ground layers, scans.ts groundScan; D-302) */ scan?: boolean; /** D-321 rev 2: the near-field arris bands (arris.ts) */ band?: boolean } = {}): THREE.MeshStandardNodeMaterial {
   const key = name + (opts.vertexColors ? '+vc' : '') + (opts.variant ? '+' + opts.variant : '') + (opts.arch ? '+arch' : '') + (opts.band ? '+band' : ''); // `modify` (Phase 7 plain layers) needs its own `variant` key
   const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES[name] ?? SURFACES.limestone;
@@ -1137,7 +1137,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   // (the scanned grain over the procedural surface, session 11: applied per layer above; identity in node)
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
-  if (opts.arch && d.blockFace && ARRIS_MATS.has(name)) { // D-328: near the eye the free arrises are geometry (arris.ts ArrisField)
+  if (opts.arch && d.blockFace && ARRIS_MATS.has(name)) { // D-321 rev 2: near the eye the free arrises are geometry (arris.ts ArrisField)
     const near = step(positionWorld.distance(ARRIS_EYE), float(ARRIS_R)); // 1 within R of the eye (the shadow pass runs the same mask)
     if (opts.band) m.maskNode = near.greaterThan(0.5); // the band draws only the near arrises
     else { const AD = attribute('adist', 'vec4').add(ADIST_OFF); m.maskNode = max(step(ARRIS_W, min(min(AD.x, AD.y), min(AD.z, AD.w))), float(1).sub(near)).greaterThan(0.5); } // the base leaves them to the band

@@ -159,7 +159,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);
-  // D-328: the dressed stone's free arrises as geometry near the eye (worn round, chipped in handling), the maps beyond
+  // D-321 rev 2: the dressed stone's free arrises as geometry near the eye (worn round, chipped in handling), the maps beyond
   const arris = new ArrisField(arch.arris, m => surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); root.add(arris.group);
   // the seal inscriptions impressed in clay (door sealings, tablets) are drawn from the period-script fonts: loaded before
   // the first clay object bakes the writing atlas (writing.ts, D-179)
@@ -577,7 +577,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
       refreshReliefShadow(); // the relief shadow atlas's upload as its fields arrive (D-226)
       doors.view(ctx.camera.position);
-      arris.update(nowView.active ? null : ctx.camera.position, dt === 0 ? 1e9 : 6); // D-328 (a test render builds all it needs at once)
+      arris.update(nowView.active ? null : ctx.camera.position, dt === 0 ? 1e9 : 6); // D-321 rev 2 (a test render builds all it needs at once)
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
       if (!nowView.active) syncTraffic(ctx.camera.position); // D-210: the drivers and riders on the roads, before the crowd draws them

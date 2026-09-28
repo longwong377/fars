@@ -1,4 +1,4 @@
-// D-328 (B145 approach 1): the dressed stone's free arrises as geometry near the eye (src/arch/arris.ts). Holds: the band stays
+// D-321 rev 2 (B145 approach 1): the dressed stone's free arrises as geometry near the eye (src/arch/arris.ts). Holds: the band stays
 // inside its part's chamfered box (it only removes stone), its chips are real cavities of the recorded sizes, the band ends at
 // ARRIS_W where the base mesh's discard ends, and the near field over the Terrace stays within its triangle budget.
 import { describe, it, expect } from 'vitest';
@@ -10,7 +10,7 @@ import { ArrisField, bandGeometry, chipsOf, profile, ARRIS_W, ARRIS_R, CHIPS, PI
 import type { Part } from '../src/arch/parts';
 
 const buf = () => ({ pos: [] as number[], nrm: [] as number[], y0: [] as number[], pbox: [] as number[], ytop: [] as number[], stair: [] as number[], adist: [] as number[], index: [] as number[] });
-describe('D-328 arris bands', () => {
+describe('D-321 rev 2 arris bands', () => {
   const wall: Part = { type: 'box', building: 't', kind: 'wall', material: 'limestone', tier: 'C', src: 'RECON', c: [0, 0], size: [6, 1.2], y0: 0, y1: 2, rot: 0.3 } as any;
   const built = buildMeshes([wall]);
   it('a free-standing block records its 12 free arrises', () => { expect(built.arris.length).toBe(12); });
@@ -43,7 +43,7 @@ describe('D-328 arris bands', () => {
       rows.push(`${n}: ${f.stats.cells} cells, ${f.stats.draws} draws, ${f.stats.triangles} triangles, first build ${full.toFixed(0)} ms, a 1.6 m step ${inc} ms (pending ${f.stats.pending})`); expect(inc).toBeLessThan(40);
       f.group.traverse((o: any) => { if (o.isMesh && o.visible) { const p = o.geometry.getAttribute('position'); for (let i = 0; i < p.count; i += 97) expect(Math.hypot(p.getX(i) - e, p.getY(i) - y, p.getZ(i) + nn)).toBeLessThan(45); } });
     }
-    mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/arris-d328.txt', rows.join('\n') + '\n');
+    mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/arris-d321.txt', rows.join('\n') + '\n');
     expect(worst).toBeGreaterThan(1000); // there are arrises near the stairs
     expect(worst).toBeLessThan(250_000); // well within the 12 M frame budget with the shadow cascades (x5)
     f.update(null); expect(f.group.visible).toBe(false);

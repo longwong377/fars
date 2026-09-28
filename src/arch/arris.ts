@@ -1,4 +1,4 @@
-// D-328 (B145 approach 1): the dressed stone's free arrises as real geometry near the eye. Every bevelled free arris of a
+// D-321 rev 2 (B145 approach 1): the dressed stone's free arrises as real geometry near the eye. Every bevelled free arris of a
 // dressed-stone box part (meshes.ts bevelledBox: an edge no other part continues) is recorded at build time; ArrisField keeps,
 // around the eye, a band of real geometry along each of them: the arris rounded as a lightly worn, fresh-dressed edge (radius
 // 1.8 x the chamfer: 18 mm), and chipped where the stone was knocked in handling and setting (conchoidal scoops, Poisson along
@@ -215,7 +215,7 @@ export class ArrisField {
       for (const p of ps) { for (let q = 0; q < p.index.length; q++) I[io + q] = p.index[q] + vo; io += p.index.length; vo += p.data.pos.length / 3; }
       g.setIndex(new THREE.BufferAttribute(I, 1)); g.computeBoundingSphere();
       const m = new THREE.Mesh(g, this.material(mat)); m.castShadow = m.receiveShadow = true; m.raycast = () => {}; m.matrixAutoUpdate = false;
-      m.name = `arris-band:${mat}`; m.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'D-328: the free arrises near the eye as geometry: worn round (18 mm), chipped in handling (C)' };
+      m.name = `arris-band:${mat}`; m.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'D-321 rev 2: the free arrises near the eye as geometry: worn round (18 mm), chipped in handling (C)' };
       c.meshes.push(m); this.group.add(m);
     }
     c.built.clear(); // (the pieces' arrays are in the meshes now)
