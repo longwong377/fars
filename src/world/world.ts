@@ -40,6 +40,7 @@ import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
+import { loadMonuments } from '../render/monuments';
 import { loadTreeAssets } from './trees/assets';
 import { loadReliefAtlas } from '../render/reliefAtlas';
 import { loadScanProps } from '../render/scanProps';
@@ -145,6 +146,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const probesP = loadProbes('/'); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
   const propsP = loadScanProps('/'); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
   const modelsP = loadModels('/'); // the Blender-built models (D-305, public/models/): in before the architecture is built
+  const monumentsP = loadMonuments('/'); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
   const treesP = loadTreeAssets('/'); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
   const animalsP = loadAnimalModels('/'); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
   const reliefAtlasP = loadReliefAtlas('/'); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
@@ -157,7 +159,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
-  await modelsP; await propsP; await treesP; await animalsP;
+  await modelsP; await propsP; await treesP; await animalsP; await monumentsP;
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);

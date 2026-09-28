@@ -8055,3 +8055,11 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
   B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
   platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.
+- **D-329 (s12c ajori_naqsh, BLENDER_PLAN rows 15-16): the Tol-e Ajori gate and Naqsh-e Rustam as Blender-built monuments.**
+  One pipeline for both (tools/blender/monuments.mjs -> public/models/monuments/, loaded by src/render/monuments.ts as plain
+  GLBs so node tests count what the page draws; `?monuments=0` for A/B; the procedural stand-ins stay, flagged PLACEHOLDER).
+  Ajori: the whole gate replaced (massing from the plan B; stepped merlons C, 11 of 56 broken; the baked-brick facing as a
+  carved 0.33 m square-brick tile in 95 mm courses, C by the Babylonian analogy; the glazed fields flanking both mouths and
+  lining both corridors: 120 relief figures as decimated geometry 28 mm proud, blue ground, white and orange-yellow figures,
+  greenish curl and hooves, sunk outlines and white-petalled rosettes B from AMADORI2023 (Journal of Cultural Heritage 60,
+  2023, read in full this session); rows, facing and drawing C). Evidence added: AMADORI2023.

@@ -53,7 +53,7 @@ const DRESSED_MARGIN = 1.2;
 const DRESSED_BLEND = 2.5;
 /** the cross-shaped hole in the cliff mesh for a façade on axis cx: the vertical arms and the median register, each with
  *  the dressed margin (two rectangles whose union is the offset cross) */
-function facadeHoles(cx: number): Hole[] {
+export function facadeHoles(cx: number): Hole[] {
   const F = NR().facade, M = DRESSED_MARGIN, h0 = F.foot_above_ground_m, hMid = h0 + F.lower_arm_h_m, hTop = hMid + F.median_register_h_m, hEnd = hTop + F.upper_arm_h_m;
   const aw = F.arm_w_m / 2, mw = F.median_register_w_m / 2;
   return [{ x0: cx - aw - M, x1: cx + aw + M, h0: h0 - M, h1: hEnd + M }, { x0: cx - mw - M, x1: cx + mw + M, h0: hMid - M, h1: hTop + M }];
@@ -143,6 +143,18 @@ function tombFacade(f: Face, cx: number, inscribed: boolean, id: string): { ston
 // buttresses and bays 30-80 m, ribs and bedding ledges 5-15 m, blocks ~2 m), and an irregular crest 54-74 m above the ancient ground around the
 // sourced 64 m, lowered to the DEM ridge behind the face where that is lower (the west end). Around the tomb panels the face is planar (dressed), blending into the rough rock over 5 m.
 type Hole = { x0: number; x1: number; h0: number; h1: number };
+/** D-329: the cliff's UV layout for its Blender-baked map (tools/blender/naqsh.py): u along the face (xa..xb), v (three's, 0 =
+ *  the image top) the face from h -1.5 m to the crest's maximum in FACE_V, the cliff top (crest back into the hill) in TOP_V,
+ *  the end returns on one flat texel */
+export const CLIFF_UV = { face: [0.0, 0.86] as [number, number], top: [0.875, 0.995] as [number, number], cap: [0.9995, 0.9995] as [number, number], hLo: -1.5, hHiPad: 11 };
+const faceV = (h: number, H: number) => CLIFF_UV.face[0] + (h - CLIFF_UV.hLo) / (H + CLIFF_UV.hHiPad - CLIFF_UV.hLo) * (CLIFF_UV.face[1] - CLIFF_UV.face[0]);
+/** face coordinates of a world point of the cliff: h above the ancient foot */
+const faceH = (f: Face, wx: number, wy: number) => wy - f.groundAsl + f.court + curvatureDrop(wx, -f.fy);
+function faceUVs(f: Face, g: THREE.BufferGeometry, xa: number, xb: number, H: number): THREE.BufferGeometry {
+  const p = g.getAttribute('position'), uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) { uv[2 * i] = (p.getX(i) - xa) / (xb - xa); uv[2 * i + 1] = faceV(faceH(f, p.getX(i), p.getY(i)), H); }
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); return g;
+}
 const n1 = (t: number) => Math.sin(t) * 0.55 + Math.sin(t * 2.13 + 1.7) * 0.3 + Math.sin(t * 4.71 + 0.4) * 0.15;
 const n2 = (x: number, y: number) => n1(x + 0.37 * y) * 0.6 + n1(y * 1.31 - 0.5 * x + 3.1) * 0.4;
 /** height of the (DEM) ridge behind the face above the ancient foot, 5 m table set by buildNaqsh; where the ridge is lower than
@@ -150,7 +162,7 @@ const n2 = (x: number, y: number) => n1(x + 0.37 * y) * 0.6 + n1(y * 1.31 - 0.5 
 let ridge: { x0: number; v: Float32Array } | null = null;
 const ridgeAt = (x: number) => { if (!ridge) return Infinity; const t = Math.min(Math.max((x - ridge.x0) / 5, 0), ridge.v.length - 1.001), i = Math.floor(t); return ridge.v[i] + (ridge.v[i + 1] - ridge.v[i]) * (t - i); };
 /** crest height above the ancient foot along the face */
-const crestH = (x: number, H: number) => Math.min(H + 7 * n1(x / 70) + 3 * n1(x / 17 + 2), Math.max(8, ridgeAt(x) + 3 + 2 * n1(x / 11)));
+export const crestH = (x: number, H: number) => Math.min(H + 7 * n1(x / 70) + 3 * n1(x / 17 + 2), Math.max(8, ridgeAt(x) + 3 + 2 * n1(x / 11)));
 const hash1 = (i: number, j = 0) => { const v = Math.sin(i * 127.1 + j * 311.7 + 0.5) * 43758.5453; return v - Math.floor(v); };
 /** the joint-bounded blocks of the rock face (D-217, C): the column (between vertical joints) and bed (between bedding
  *  joints) a point of the face lies in, and the block's own offset out of the face (m) */
@@ -160,7 +172,7 @@ export function faceBlock(x: number, h: number) {
   return { col, bed, off: (hash1(col) - 0.5) * 1.1 + (hash1(col, bed) - 0.5) * 0.45 };
 }
 const blockRelief = (x: number, h: number) => faceBlock(x, h).off;
-function faceDepth(x: number, h: number, H: number, holes: Hole[]) {
+export function faceDepth(x: number, h: number, H: number, holes: Hole[]) {
   let m = 0; for (const q of holes) { const dx = Math.max(q.x0 - x, 0, x - q.x1), dh = Math.max(q.h0 - h, 0, h - q.h1); m = Math.max(m, 1 - Math.min(1, Math.hypot(dx, dh) / DRESSED_BLEND)); }
   const top = crestH(x, H), u = Math.max(0, h) / top;
   // vertical jointing (buttresses and bays, ribs, fissures), faint sub-horizontal bedding, then blocks: oriented, not
@@ -191,21 +203,22 @@ function cliffGeometry(f: Face, holes: Hole[], xa: number, xb: number, H: number
     const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1; idx.push(a, b, c, c, b, d); // faces +z (out of the rock)
   }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-  return g;
+  return faceUVs(f, g, xa, xb, H);
 }
 /** the cliff top: from the crest back into the mountain until it meets the (uncarved) terrain */
 function cliffTop(f: Face, terrain: Terrain, xa: number, xb: number, H: number, holes: Hole[]): THREE.BufferGeometry {
-  const pos: number[] = [], idx: number[] = []; const back = [0, 4, 10, 18, 28, 40, 52];
+  const pos: number[] = [], idx: number[] = [], uvs: number[] = []; const back = [0, 4, 10, 18, 28, 40, 52];
   const X: number[] = []; for (let x = xa; x <= xb + 1e-6; x += 1.5) X.push(x);
   for (const x of X) { const top = crestH(x, H), d0 = faceDepth(x, top, H, holes);
     for (const d of back) {
       const p = toWorld(f, x, top, d0 + d), ty = terrain.heightAt(x, p.z) + 0.15, last = d === back[back.length - 1];
       pos.push(x, last ? ty : Math.max(p.y - d * 0.08 + 1.2 * n2(x / 13, d / 9) * Math.min(1, d / 10), ty), p.z);
+      uvs.push((x - xa) / (xb - xa), CLIFF_UV.top[0] + (d / back[back.length - 1]) * (CLIFF_UV.top[1] - CLIFF_UV.top[0]));
     } }
   const nb = back.length;
   for (let i = 0; i + 1 < X.length; i++) for (let k = 0; k + 1 < nb; k++) { const a = i * nb + k, b = a + 1, c = a + nb, d = c + 1; idx.push(a, c, b, b, c, d); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-  return g;
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); return g;
 }
 /** returns at both ends of the face, from the face back into the rock, so the carved ground behind is closed */
 function endCaps(f: Face, xa: number, xb: number, H: number, holes: Hole[]): THREE.BufferGeometry {
@@ -220,7 +233,8 @@ function endCaps(f: Face, xa: number, xb: number, H: number, holes: Hole[]): THR
     const out = x === xb;
     for (let k = 0; k + 1 < pts.length; k++) out ? tri.push(back[1], pts[k + 1], pts[k]) : tri.push(back[1], pts[k], pts[k + 1]);
     out ? tri.push(back[1], back[0], pts[pts.length - 1]) : tri.push(back[1], pts[pts.length - 1], back[0]);
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(tri.flatMap(v => [v.x, v.y, v.z]), 3)); g.computeVertexNormals(); parts.push(g);
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(tri.flatMap(v => [v.x, v.y, v.z]), 3)); g.computeVertexNormals();
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(tri.flatMap(() => CLIFF_UV.cap), 2)); parts.push(g);
   }
   return mergeGeometries(parts)!;
 }
@@ -252,15 +266,38 @@ function kaba(f: Face, terrain: Terrain, court: number, ancAsl: number): { white
   return { white: mergeGeometries(white.map(g => { g.computeVertexNormals(); return g; }))!, dark: mergeGeometries(dark)!, boxes };
 }
 
+/** the cliff's one sheet (face, top, returns and the dressed fronts round the facades), with its UVs (CLIFF_UV) */
+function cliffMesh(f: Face, terrain: Terrain, holes: Hole[], xa: number, xb: number, H: number, fronts: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  return mergeGeometries([cliffGeometry(f, holes, xa, xb, H), cliffTop(f, terrain, xa, xb, H, holes), endCaps(f, xa, xb, H, holes), ...fronts.map(g => faceUVs(f, g, xa, xb, H))].map(g => g.index ? g.toNonIndexed() : g))!;
+}
+/** D-329: the cliff as tools/blender/naqsh_src.ts hands it to Blender: its frame, the game's sheet, and the base surface the
+ *  bake adds its detail to (faceDepth, the joint-bounded blocks, the dressed blend round the facades) */
+export function naqshCliffSource(terrain: Terrain, ancientFootAsl: number) {
+  const cl = NR().cliff, fy = cl.face_y as number, [xa, xb] = cl.x_range as [number, number], H = cl.height_m as number;
+  const f: Face = { fy, groundAsl: ancientFootAsl, court: terrain.meta.court_asl };
+  setRidge(terrain, fy, xa, xb, ancientFootAsl);
+  const tombs = ['nr_darius_tomb', 'nr_xerxes_tomb'].map(id => feature(id).xy[0] as number);
+  const holes = tombs.flatMap(x => facadeHoles(x));
+  const fronts = tombs.map((x, i) => tombFacade(f, x, i === 0, 't').front);
+  const geo = cliffMesh(f, terrain, holes, xa, xb, H, fronts);
+  const dressed = (x: number, h: number) => { let m = 0; for (const q of holes) { const dx = Math.max(q.x0 - x, 0, x - q.x1), dh = Math.max(q.h0 - h, 0, h - q.h1); m = Math.max(m, 1 - Math.min(1, Math.hypot(dx, dh) / DRESSED_BLEND)); } return m; };
+  const inHole = (x: number, h: number) => holes.some(q => x > q.x0 + DRESSED_MARGIN && x < q.x1 - DRESSED_MARGIN && h > q.h0 + DRESSED_MARGIN && h < q.h1 - DRESSED_MARGIN);
+  return { f, xa, xb, H, holes, geo, toFace: (wx: number, wy: number, wz: number) => [wx, -wz - fy, faceH(f, wx, wy)] as [number, number, number],
+    depth: (x: number, h: number) => faceDepth(x, Math.min(h, crestH(x, H)), H, holes), crest: (x: number) => crestH(x, H), block: faceBlock, dressed, inHole, tombs, toWorld: (x: number, h: number, d: number) => toWorld(f, x, h, d) };
+}
+function setRidge(terrain: Terrain, fy: number, xa: number, xb: number, ancientFootAsl: number) {
+  const x0 = xa - 20, n = Math.ceil((xb + 20 - x0) / 5) + 1, raw = new Float32Array(n), v = new Float32Array(n);
+  for (let i = 0; i < n; i++) { let m = -Infinity; for (const d of [20, 30, 45, 60, 80, 100, 130]) m = Math.max(m, terrain.aslAt(x0 + i * 5, -(fy + d)) - ancientFootAsl); raw[i] = m; }
+  for (let i = 0; i < n; i++) v[i] = (raw[Math.max(0, i - 1)] + 2 * raw[i] + raw[Math.min(n - 1, i + 1)]) / 4;
+  ridge = { x0, v };
+}
+
 // ---------------------------------------------------------------- build
 export interface NaqshBuild { group: THREE.Group; colliders(phys: Physics): void; tris: number; /** the DNa/DNb carving and pick rectangles */ texts: THREE.Group }
 export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild {
   const cl = NR().cliff, fy = cl.face_y as number, [xa, xb] = cl.x_range as [number, number], H = cl.height_m as number;
   const f: Face = { fy, groundAsl: ancientFootAsl, court: terrain.meta.court_asl };
-  { const x0 = xa - 20, n = Math.ceil((xb + 20 - x0) / 5) + 1, raw = new Float32Array(n), v = new Float32Array(n);
-    for (let i = 0; i < n; i++) { let m = -Infinity; for (const d of [20, 30, 45, 60, 80, 100, 130]) m = Math.max(m, terrain.aslAt(x0 + i * 5, -(fy + d)) - ancientFootAsl); raw[i] = m; }
-    for (let i = 0; i < n; i++) v[i] = (raw[Math.max(0, i - 1)] + 2 * raw[i] + raw[Math.min(n - 1, i + 1)]) / 4;
-    ridge = { x0, v }; }
+  setRidge(terrain, fy, xa, xb, ancientFootAsl);
   const group = new THREE.Group(); group.name = 'naqsh-e-rustam';
   group.userData = tag(feature('nr_darius_tomb'), 'Naqsh-e Rustam in 467 BCE: cliff, tomb of Darius I (sealed), tomb attributed to Xerxes (façade cut, uninscribed, D-033), Ka\'ba-ye Zardosht, Neo-Elamite relief; geometry plain.json naqsh_e_rustam (tiers there)');
   const tombs = [{ id: 'nr_darius_tomb', x: feature('nr_darius_tomb').xy[0] as number, inscribed: true }, { id: 'nr_xerxes_tomb', x: feature('nr_xerxes_tomb').xy[0] as number, inscribed: false }];
@@ -280,7 +317,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const texts = new THREE.Group(); texts.name = 'nr-inscriptions'; const carved: THREE.BufferGeometry[] = [], textInfo: string[] = [], carvedSigns: { id: string; ver: 'op'; signs: string }[] = [];
   const inscMat = incisedMaterial('nr_dressed', inscriptionAtlas('op')); // cut into the dressed field (D-177)
   const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
-  const cliff = new THREE.Mesh(mergeGeometries([cliffGeometry(f, holes, xa, xb, H), cliffTop(f, terrain, xa, xb, H, holes), endCaps(f, xa, xb, H, holes), ...facades.map(q => q.fc.front)].map(g => g.index ? g.toNonIndexed() : g))!, rock);
+  const cliff = new THREE.Mesh(cliffMesh(f, terrain, holes, xa, xb, H, facades.map(q => q.fc.front)), rock);
   cliff.name = 'nr-cliff'; cliff.castShadow = cliff.receiveShadow = true;
   cliff.userData = { tier: 'C', src: cl.src, note: `cliff ${H} m high (B, SX); face line and rock surface reconstructed (C)`, placeholder: false };
   group.add(cliff);
