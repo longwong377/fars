@@ -121,7 +121,11 @@ describe('relief cast shadows (D-226)', () => {
     const tex = (f: string) => (f.match(/texture_2d</g) ?? []).length;
     for (const mat of [paintedStoneMaterial(), surfaceMaterial('limestone')]) {
       const f = wgsl(mat, true); expect(f).toMatch(/textureSampleLevel/); expect(f).toMatch(/% 8192/);
-      expect(tex(f) - tex(wgsl(mat, false)), 'texture bindings the term adds').toBe(1);
+      // D-320: the wall's sky past the figures (reliefSkyNode, in the material's aoNode) reads the same atlas: the material binds
+      // it with or without the sun's term, and the sun's term adds no second binding
+      const g = wgsl(mat, false); expect(g, 'the sky term reads the atlas').toMatch(/% 8192/);
+      expect(tex(f) - tex(g), 'texture bindings the sun term adds beside the sky term').toBe(0);
+      expect(tex(g) - tex(wgsl(new THREE.MeshStandardNodeMaterial(), false)), 'the relief atlas is one binding').toBeGreaterThanOrEqual(1);
       if (process.env.DUMP_WGSL) (await import('node:fs')).writeFileSync(process.env.DUMP_WGSL + (mat === paintedStoneMaterial() ? 1 : 2) + '.wgsl', f);
     }
     // a material that does not opt in (the plain's layers, plants, people) gets the constant 1

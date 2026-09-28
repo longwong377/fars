@@ -3,8 +3,9 @@
 // tools/blender/relief_atlas.ts: its heightfield becomes a dense carved mesh (the arrises of each step pulled under the top: an
 // undercut, as the Persepolis masons cut their outlines), which Blender (Cycles) bakes into a normal map and a ray-traced
 // ambient-occlusion map seen from the front, beside the paint (colour, film coverage with its wear, gilding) sampled on the
-// same grid. The maps are packed into two array textures (KTX2): `nao` (RG = the carved surface's normal in the figure's frame
-// at the baked depth ratio, B = sky occlusion, A = gilding) and `paint` (sRGB colour, A = paint coverage).
+// same grid. The maps are packed into two array textures (KTX2): `nao` (RGB = the carved surface's normal in the figure's frame
+// at the baked depth ratio, mip-averaged: its length keeps the spread; A = sky occlusion) and `paint` (sRGB colour, the gilding
+// in the gilt key colour; A = paint coverage).
 // In the game (arch/reliefs.ts), a relief set whose figures are all in the atlas draws them with ATLAS_LODS: the same RTIN
 // heightfield meshes on coarser grids with larger error bounds and no refinement at paint edges (the map carries the
 // modelling, the paint and the contour shading the triangles no longer need), each vertex carrying its atlas coordinate

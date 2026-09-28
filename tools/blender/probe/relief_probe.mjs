@@ -39,6 +39,7 @@ for (const id of ['hall100:N1', 'tachara:S', 'harem:S1']) { const d = J.find(q =
 const ITEMS = [
   ['guard-0.8m', 'guard', 3, 0.8, 0.75, 0.1, 0, 60, SUN_E], ['guard-head-0.4m', 'guard', 3, 0.4, 0.82, 0.0, 0.02, 50, SUN_E], ['guard-2.5m', 'guard', 3, 2.5, 0.6, 0.6, 0.3, 70, SUN_E], ['guards-6m', 'guard', 3, 6, 0.6, 0.9, 1.5, 70, SUN_E],
   ['delegate-1.2m', 'delegate', 20, 1.2, 0.6, 0.3, 0, 70, SUN_E], ['king-2m', 'king', 0, 2, 0.55, 0.2, 0, 70, SUN_E], ['lionbull-3m', 'lion_bull', 0, 3, 0.5, 0.3, 0, 70, SUN_E],
+  ['elamite-2m', 'elamite', 2, 2.2, 0.55, 0.2, 0, 70, [0.35, 0.75, 0.55]], ['elamite-0.7m', 'elamite', 1, 0.7, 0.8, 0.0, 0, 60, [0.35, 0.75, 0.55]],
   ['kingatt-jamb-1.5m', 'king_attendants', 0, 1.5, 0.55, -0.4, 0, 70, [0.2, 0.9, 0.35]], ['bearer-2m', 'bearer', 0, 2, 0.6, 0, 0, 70, [0.2, 0.9, 0.35]],
 ];
 for (const [n, kind, k, off, fy, dy, da, fov, sun] of ITEMS) { const v = await p.evaluate(q => window.__itemView(...q), [kind, k, off, fy, dy, da]); if (v) views.push({ n, fov, sun, eye: v.eye, at: v.at }); }

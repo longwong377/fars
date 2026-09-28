@@ -22,16 +22,15 @@ describe('birds (brief §5.5)', () => {
     const meta: TerrainMeta = JSON.parse(readFileSync('public/generated/terrain.json', 'utf8'));
     const ring = (k: 'near' | 'mid' | 'far') => new Ring(meta.rings[k], new Uint16Array(readFileSync(`public/${meta.rings[k].file}`).buffer.slice(0)), meta.court_asl);
     const B = new Birds(1, nav, new Terrain(meta, ring('near'), ring('mid'), ring('far')), [[0, 90], [150, 40]]);
-    const count = (id: string) => (B.group.children.find(m => (m as any).userData.note.startsWith(BIRDS[id as 'swallow'].name)) as THREE.InstancedMesh).count;
+    const count = (id: string) => B.countOf(id); void BIRDS;
     B.update(5, 11, 1000, null, { x: 0, n: 0 }, 0); expect(count('swallow')).toBe(BIRDS.swallow.count); expect(count('raptor')).toBe(2);
     B.update(11, 11, 1000, null, { x: 0, n: 0 }, 0); expect(count('swallow')).toBe(0); // December
     B.update(5, 23, 1000, null, { x: 0, n: 0 }, 0); expect(count('swallow') + count('raptor') + count('sparrow')).toBe(0); // night
     // a sparrow next to the player lifts off within 1.2 s
     B.update(5, 11, 2000, null, { x: 0, n: 0 }, 0);
-    const mesh = B.group.children.find(m => (m as any).userData.note.startsWith('house sparrow')) as THREE.InstancedMesh; const m4 = new THREE.Matrix4(); mesh.getMatrixAt(0, m4);
-    const p = new THREE.Vector3().setFromMatrixPosition(m4);
-    B.update(5, 11, 2000.1, [p.x + 1, -p.z], { x: 0, n: 0 }, 0); B.update(5, 11, 2000.7, [p.x + 1, -p.z], { x: 0, n: 0 }, 0); mesh.getMatrixAt(0, m4);
-    expect(new THREE.Vector3().setFromMatrixPosition(m4).y - p.y).toBeGreaterThan(0.5);
+    const p = B.posOf('sparrow', 0)!;
+    B.update(5, 11, 2000.1, [p.x + 1, -p.z], { x: 0, n: 0 }, 0); B.update(5, 11, 2000.7, [p.x + 1, -p.z], { x: 0, n: 0 }, 0);
+    expect(B.posOf('sparrow', 0)!.y - p.y).toBeGreaterThan(0.5);
   });
 });
 

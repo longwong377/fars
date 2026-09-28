@@ -98,7 +98,8 @@ export interface BlockFrame {
   isFlat: any; isPoint: any;
   /** the nearest arris of each joint family: d (m from it), along (m along it, continuous), the world directions along it and
    *  away from it into this block, a 0/1 mask (joints drawn here), a 0/1 side (which of the block's two arrises of the family) */
-  bed?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any; /** 0..1: the chips kept (D-321 rev 2: none where the arris is geometry) */ chip?: any };
+  bed?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any; /** 0..1: the chips kept (D-321 rev 2: none where the arris is geometry) */ chip?: any;
+    /** rev 3: 0/1 the part's own free arris, and its strip row and offset (m) from the edge's seed */ geo?: any; geoRow?: any; geoOff?: any };
   head?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any };
 }
 const MARGIN: [number, number] = [0.03, 0.04]; // the margin band's hand-over to the face (m from the arris; the strips' margin ends at 37 mm)
@@ -129,8 +130,10 @@ export function blockFaceDetail(F: BlockFrame): { tilt: any; alb: any; ao: any; 
   let chip: any = float(0);
   const stripL = mix(float(BF_LAYER.strip_fine), float(BF_LAYER.strip_rough), iP), rows = BLOCKFACE.strip_rows;
   const fam = (J: NonNullable<BlockFrame['bed']>, seed: any, o: any) => {
-    const row = floor(fract(seed.add(J.side.mul(0.5))).mul(rows - 0.001));
-    const S = stripDetail(J.along, o.mul(BLOCKFACE.size_m * 3.1), J.d, row, stripL);
+    // (rev 3: a part's own free arris reads the row and offset of its edge's seed, as the geometry's chips do: J.geo weights them in)
+    const row0 = floor(fract(seed.add(J.side.mul(0.5))).mul(rows - 0.001)), off0 = o.mul(BLOCKFACE.size_m * 3.1);
+    const row = J.geo ? mix(row0, J.geoRow, J.geo) : row0, off = J.geo ? mix(off0, J.geoOff, J.geo) : off0;
+    const S = stripDetail(J.along, off, J.d, row, J.geo ? mix(stripL, float(BF_LAYER.strip_fine), J.geo) : stripL);
     const inStrip = float(1).sub(step(0.125, J.d)).mul(J.mask);
     const wM = float(1).sub(smoothstep(MARGIN[0], MARGIN[1], J.d)).mul(float(1).sub(iP)).mul(inStrip); // the margin band (fine strips)
     const wC = smoothstep(CHIP[0], CHIP[1], S.h.negate()).mul(inStrip).mul(J.chip ?? float(1)); // a chip

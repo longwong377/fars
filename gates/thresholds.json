@@ -2825,6 +2825,22 @@
    "anti_proxy": "scripted or keyword-matched responses do not count; the action must change the simulation state and survive a save and reload; a recall must come from the save, not the prompt of the same conversation",
    "ud": "UD-21",
    "since": "rev 2.6 (s12)"
+  },
+  {
+   "id": "T-E11",
+   "axis": "E",
+   "scope": "world",
+   "metric": "share of a seeded sample of people (every class, sex, age band and language community) whose voice is unique (speaker-embedding distance to every other sampled person above the model's same-speaker threshold), natural (no formant-synth placeholder; a MOS-style blind rating >= 3.5 of 5 on the sample), and spoken in the person's own period language by default and in Farsi or English when that opt-in setting is on",
+   "op": ">=",
+   "value": 95,
+   "unit": "%",
+   "sample_min": 60,
+   "sample": "the conversation test set, seeded, across classes, places and hours",
+   "tool": "tests/voices_unique.test.ts",
+   "status": "to-build",
+   "anti_proxy": "pitch-shifting one voice does not make voices unique unless the embedding test passes; the formant synthesiser (src/audio/speech.ts) does not count; the Farsi/English layer must be in character (the same person, their life, no modern concepts) and off by default",
+   "ud": "UD-22",
+   "since": "rev 2.6 (s12)"
   }
  ]
 }

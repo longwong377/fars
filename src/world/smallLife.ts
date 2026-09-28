@@ -11,10 +11,18 @@
 //  - rock agamas (Paralaudakia / Laudakia, large-scaled rock agama in Fars: recollection, C) basking on rock by day
 //    Apr-Oct, still for long spells, dashing a metre or two now and then (C).
 // No creature flies in rain or wind over 8 m/s (C). One InstancedMesh per kind (4 draws, none while empty; no shadows).
+// D-332 (session 12): every kind is its modelled creature (tools/blender/life_small.py; src/world/lifeModels.ts): two levels
+// (the far one beyond SMALL_LOD x its length, never nearer than SMALL_LOD_MIN), baked colour, relief and occlusion, the
+// insects' wings beating from their wing weights, the snake's body waving along its length, the butterflies' three species
+// from one map; the creatures face their way of travel (yaw pi - heading: the models' nose is +z). Without the models the old
+// box stand-ins are drawn, flagged PLACEHOLDER.
 import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { attribute, positionLocal, sin, float, vec3, abs, uniform, mix } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
+import { lifeModel, lifeMaterial } from './lifeModels';
+import { uv, vec2 } from 'three/tsl';
+export const SMALL_LOD = 40, SMALL_LOD_MIN = 2;
 
 export type SmallKind = 'fly' | 'dragonfly' | 'butterfly' | 'lizard' | 'frog' | 'tortoise' | 'snake' | 'jird' | 'hedgehog' | 'porcupine' | 'scorpion' | 'snail' | 'turtle' | 'crab';
 export type CellCtx = 'midden' | 'water' | 'rock' | 'field' | 'steppe' | 'none';
@@ -157,6 +165,8 @@ export interface SmallWorld {
 export class SmallLife {
   readonly group = new THREE.Group();
   readonly meshes = new Map<SmallKind, THREE.InstancedMesh>();
+  /** D-332: the far level of each modelled kind (the near one is `meshes`) */
+  readonly far = new Map<SmallKind, THREE.InstancedMesh>();
   private uTime = uniform(0);
   private cells = new Map<number, CellCtx>();
   private pose: SmallPose = { e: 0, n: 0, up: 0, heading: 0, flap: 0, visible: false };
@@ -167,7 +177,25 @@ export class SmallLife {
     this.group.name = 'wildlife-small';
     const geos: Record<SmallKind, THREE.BufferGeometry> = { fly: wingedGeometry(SMALL.fly.span, SMALL.fly.length, 0.005, 1), dragonfly: wingedGeometry(SMALL.dragonfly.span, SMALL.dragonfly.length, 0.011, 2), butterfly: wingedGeometry(SMALL.butterfly.span, SMALL.butterfly.length, 0.03, 1), lizard: lizardGeometry(), frog: frogGeometry(), tortoise: tortoiseGeometry(), snake: snakeGeometry(), jird: jirdGeometry(), hedgehog: hedgehogGeometry(), porcupine: porcupineGeometry(), scorpion: scorpionGeometry(), snail: snailGeometry(), turtle: tortoiseGeometry().scale(0.95, 0.55, 0.95), crab: boxesGeometry([[0.05, 0.015, 0.04, 0, 0.012, 0], [0.012, 0.01, 0.03, 0.03, 0.008, 0.025], [0.012, 0.01, 0.03, -0.03, 0.008, 0.025], [0.08, 0.006, 0.01, 0, 0.005, -0.005]]) };
     for (const k of Object.keys(SMALL) as SmallKind[]) {
-      const sp = SMALL[k], m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: k === 'dragonfly' ? 0.45 : 0.85, side: THREE.DoubleSide });
+      const model = lifeModel(k), sp = SMALL[k];
+      if (model) { // D-332: the modelled creature, near and far levels
+        const e = model.entry, uvo = k === 'butterfly' ? attribute('uvo', 'float') : null;
+        const m = lifeMaterial(model, { fallback: sp.colour, roughness: k === 'dragonfly' ? 0.45 : 0.8, side: THREE.DoubleSide, uvNode: uvo ? uv().add(vec2(uvo.div(3), 0)) : undefined });
+        if (sp.flapHz) { const L = attribute('life', 'vec4'), phase = attribute('phase', 'float'), half = (e.half as number) || sp.span / 2;
+          m.positionNode = positionLocal.add(vec3(0, L.x.mul(L.y).mul(sin(this.uTime.mul(sp.flapHz * 2 * Math.PI).add(phase))).mul(float(half * 0.9)), 0)); }
+        if (k === 'snake') { const al = attribute('along', 'float'), phase = attribute('phase', 'float');
+          m.positionNode = positionLocal.add(vec3(sin(al.mul(11).sub(this.uTime.mul(2.2)).add(phase)).mul(0.07).mul(al.mul(0.6).add(0.4)), 0, 0)); }
+        for (const lvl of ['lod0', 'lod1']) {
+          const g = model.levels[lvl].clone(); g.setAttribute('phase', new THREE.InstancedBufferAttribute(new Float32Array(sp.max).map((_, i) => u01(seed, i, 9) * 6.28), 1));
+          if (k === 'snake') { g.computeBoundingBox(); const b = g.boundingBox!, P = g.getAttribute('position'), a = new Float32Array(P.count); for (let i = 0; i < P.count; i++) a[i] = (P.getZ(i) - b.min.z) / (b.max.z - b.min.z); g.setAttribute('along', new THREE.BufferAttribute(a, 1)); }
+          if (uvo) g.setAttribute('uvo', new THREE.InstancedBufferAttribute(new Float32Array(sp.max).map((_, i) => h32(seed, i, 11) % 3), 1));
+          const mesh = new THREE.InstancedMesh(g, m, sp.max); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.name = `small-${k}:${lvl}`;
+          mesh.userData = { ...TAG, placeholder: false, note: `${sp.name}: modelled (tools/blender/life_small.py; D-332, C); ${sp.flapHz ? 'flight' : 'movement'} procedural, around the viewer only (C)` };
+          (lvl === 'lod0' ? this.meshes : this.far).set(k, mesh); this.group.add(mesh);
+        }
+        continue;
+      }
+      const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: k === 'dragonfly' ? 0.45 : 0.85, side: THREE.DoubleSide });
       if (sp.flapHz) { const wing = attribute('wing', 'float'), phase = attribute('phase', 'float');
         // wingbeat: the tips swing through +-70 deg (a butterfly's clap, a fly's blur), scaled to the half-span
         m.positionNode = positionLocal.add(vec3(0, abs(wing).mul(sin(this.uTime.mul(sp.flapHz * 2 * Math.PI).add(phase))).mul(float(sp.span * 0.45)), 0)); }
@@ -176,7 +204,7 @@ export class SmallLife {
       const g = geos[k]; g.setAttribute('phase', new THREE.InstancedBufferAttribute(new Float32Array(sp.max).map((_, i) => u01(seed, i, 9) * 6.28), 1));
       const mesh = new THREE.InstancedMesh(g, m, sp.max); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = mesh.receiveShadow = false; mesh.name = `small-${k}`;
       if (k === 'butterfly') for (let i = 0; i < sp.max; i++) mesh.setColorAt(i, this.c.setRGB(...BUTTERFLY_COLOURS[h32(seed, i, 11) % BUTTERFLY_COLOURS.length], THREE.SRGBColorSpace));
-      mesh.userData = { ...TAG, note: `${sp.name}: ${sp.flapHz ? 'flight' : 'movement'} procedural, around the viewer only (C)` };
+      mesh.userData = { ...TAG, placeholder: true, note: `PLACEHOLDER (the model did not load): ${sp.name}: ${sp.flapHz ? 'flight' : 'movement'} procedural, around the viewer only (C)` };
       this.meshes.set(k, mesh); this.group.add(mesh);
     }
     { // the flowers: one mesh, the head's colour per instance (`fcol`), the stem green; the stem is scaled to the flower's height
@@ -190,14 +218,21 @@ export class SmallLife {
       const mesh = new THREE.InstancedMesh(g, m, FLOWER_MAX); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = mesh.receiveShadow = false; mesh.name = 'small-flower';
       mesh.userData = { ...TAG, note: `spring flowers near the walker: ${Object.values(FLOWERS).map(f => f.name).join('; ')} (C; bloom by day of year, seasonal.ts bloomAt)` };
       this.flowers = mesh; this.group.add(mesh);
+      for (const fk of Object.keys(FLOWERS) as (keyof typeof FLOWERS)[]) { const lm = lifeModel(`flower_${fk}`); if (!lm) continue;
+        const fm = new THREE.InstancedMesh(lm.levels.lod0, lifeMaterial(lm, { fallback: FLOWERS[fk].rgb, roughness: 0.8, side: THREE.DoubleSide }), FLOWER_MAX); fm.count = 0; fm.frustumCulled = false; fm.castShadow = false; fm.receiveShadow = true; fm.name = `small-flower:${fk}`;
+        fm.userData = { ...TAG, placeholder: false, note: `${FLOWERS[fk].name}: modelled (tools/blender/life_flora.py; D-332, C); near the walker (bloom by day of year, seasonal.ts bloomAt)` }; this.flowerModels.set(fk, fm); this.group.add(fm); }
+      if (this.flowerModels.size === 4) mesh.visible = false; else mesh.userData = { ...mesh.userData, placeholder: true, note: `PLACEHOLDER (the flower models did not load): ${mesh.userData.note}` };
     }
   }
   flowers!: THREE.InstancedMesh;
+  /** D-332: the modelled flowers, one mesh per bloom colour's species (grape hyacinth, buttercup, poppy, crown imperial) */
+  readonly flowerModels = new Map<keyof typeof FLOWERS, THREE.InstancedMesh>();
   /** the flowers within FLOWER_R of the viewer: in each field/steppe cell a bloom colour's heads where its patch hash falls
    *  under today's bloom (so a cell blooms in its season and fades out of it), 10-30 heads per cell; on rock tulips (red) and
    *  in April a crown imperial now and then. Static positions from (seed, cell, index) */
   private updateFlowers(viewer: P2, bloom: { violet: number; yellow: number; red: number }, month: number) {
     const fcol = this.flowers.geometry.getAttribute('fcol') as THREE.InstancedBufferAttribute, fh = this.flowers.geometry.getAttribute('fh') as THREE.InstancedBufferAttribute; let n = 0;
+    const fmc: Record<string, number> = { violet: 0, yellow: 0, red: 0, crown: 0 }, FS = new THREE.Vector3();
     const i0 = Math.floor((viewer[0] - FLOWER_R) / CELL), i1 = Math.floor((viewer[0] + FLOWER_R) / CELL), j0 = Math.floor((viewer[1] - FLOWER_R) / CELL), j1 = Math.floor((viewer[1] + FLOWER_R) / CELL);
     if (bloom.violet + bloom.yellow + bloom.red > 0.02) for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
       if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > FLOWER_R) continue;
@@ -212,10 +247,12 @@ export class SmallLife {
           const h = sp.h[0] + (sp.h[1] - sp.h[0]) * u01(this.seed, ix, iy, i, 28), lean = (u01(this.seed, ix, iy, i, 29) - 0.5) * 0.3;
           this.e.set(lean, a, 0); this.q.setFromEuler(this.e); this.p.set(e, y, -nn); this.m4.compose(this.p, this.q, ONE);
           this.flowers.setMatrixAt(n, this.m4); fcol.setXYZ(n, ...sp.rgb); fh.setX(n, h); n++;
+          const fk = crown ? 'crown' : kind, fm = this.flowerModels.get(fk); if (fm) { this.m4.compose(this.p, this.q, FS.set(h, h, h)); fm.setMatrixAt(fmc[fk]++, this.m4); }
         }
       }
     }
     this.flowers.count = n; if (n) { this.flowers.instanceMatrix.needsUpdate = true; fcol.needsUpdate = true; fh.needsUpdate = true; } this.stats.flowers = n;
+    for (const [fk, fm] of this.flowerModels) { fm.count = fmc[fk]; if (fm.count) fm.instanceMatrix.needsUpdate = true; }
   }
   private ctx(ix: number, iy: number): CellCtx {
     const key = (ix + 32768) * 65536 + (iy + 32768); let c = this.cells.get(key);
@@ -226,7 +263,7 @@ export class SmallLife {
   update(month: number, hour: number, t: number, viewer: P2, rain: number, windMs: number, bloom?: { violet: number; yellow: number; red: number }, wetness = 0) {
     this.uTime.value = t % 10000;
     this.updateFlowers(viewer, bloom ?? { violet: 0, yellow: 0, red: 0 }, month);
-    const counts = Object.fromEntries((Object.keys(SMALL) as SmallKind[]).map(k => [k, 0])) as Record<SmallKind, number>;
+    const counts = Object.fromEntries((Object.keys(SMALL) as SmallKind[]).map(k => [k, 0])) as Record<SmallKind, number>, farN = { ...counts };
     const i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
     const live = (Object.keys(SMALL) as SmallKind[]).filter(k => { const sp = SMALL[k]; const inH = (w?: [number, number]) => !!w && hour >= w[0] && hour <= w[1]; return sp.months.includes(month) && (inH(sp.hours) || inH(sp.hours2)) && (sp.wet ? wetness > 0.3 : rain < 0.15) && (sp.windOk || windMs < 8); });
     let cells = 0;
@@ -236,17 +273,19 @@ export class SmallLife {
       for (const k of live) {
         const sp = SMALL[k]; if (!(sp.ctx as readonly CellCtx[]).includes(cx)) continue;
         const p = (k === 'lizard' && cx === 'steppe') ? 0.06 : sp.p; if (u01(this.seed, ix, iy, KIND_IDX[k], 13) >= p) continue;
-        const n = sp.per[0] + (h32(this.seed, ix, iy, 17) % (sp.per[1] - sp.per[0] + 1)), mesh = this.meshes.get(k)!;
-        for (let i = 0; i < n && counts[k] < sp.max; i++) {
+        const n = sp.per[0] + (h32(this.seed, ix, iy, 17) % (sp.per[1] - sp.per[0] + 1)), mesh = this.meshes.get(k)!, far = this.far.get(k), farAt = Math.max(SMALL_LOD * sp.length, SMALL_LOD_MIN);
+        for (let i = 0; i < n && counts[k] + farN[k] < sp.max; i++) {
           const P = this.pose; smallAt(k, this.seed, ix, iy, i, t, P);
           if (sp.flee) { const key = h32(ix, iy, i, KIND_IDX[k]), gone = this.fled.get(key); if (gone !== undefined && t - gone < (sp.hide ?? 90)) continue; if (Math.hypot(P.e - viewer[0], P.n - viewer[1]) < sp.flee) { this.fled.set(key, t); continue; } }
           const y = this.world.ground(P.e, P.n); if (!Number.isFinite(y)) continue;
-          this.e.set(0, P.heading, 0); this.q.setFromEuler(this.e); this.p.set(P.e, y + P.up, -P.n);
-          this.m4.compose(this.p, this.q, ONE); mesh.setMatrixAt(counts[k]++, this.m4);
+          this.e.set(0, far ? Math.PI - P.heading : P.heading, 0); this.q.setFromEuler(this.e); this.p.set(P.e, y + P.up, -P.n);
+          this.m4.compose(this.p, this.q, ONE);
+          if (far && Math.hypot(P.e - viewer[0], P.n - viewer[1]) > farAt) far.setMatrixAt(farN[k]++, this.m4); else mesh.setMatrixAt(counts[k]++, this.m4);
         }
       }
     }
-    for (const k of Object.keys(SMALL) as SmallKind[]) { const m = this.meshes.get(k)!; m.count = counts[k]; if (counts[k]) m.instanceMatrix.needsUpdate = true; this.stats[k] = counts[k]; }
+    for (const k of Object.keys(SMALL) as SmallKind[]) { const m = this.meshes.get(k)!; m.count = counts[k]; if (counts[k]) m.instanceMatrix.needsUpdate = true; this.stats[k] = counts[k] + farN[k];
+      const f = this.far.get(k); if (f) { f.count = farN[k]; if (farN[k]) f.instanceMatrix.needsUpdate = true; } }
     this.stats.cells = cells;
     if (this.fled.size > 2000) this.fled.clear();
   }

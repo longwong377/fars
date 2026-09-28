@@ -28,7 +28,7 @@
 import * as THREE from 'three/webgpu';
 import * as TSL from 'three/tsl';
 const {
-  log2, Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
+  uniform, log2, Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
   varyingProperty, normalLocal, positionPrevious, positionView, normalView, normalViewGeometry, positionViewDirection, sign, mx_noise_float, diffuseColor,
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
   cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition, interleavedGradientNoise, screenCoordinate, frameId,
@@ -76,7 +76,7 @@ export interface HumanTextures {
    *  and its layout: columns, rows, card class → row per hair style (null: no cards in the costumes) */
   /** D-322: the garments carry their simulated folds in the geometry (people_cloth loaded): no shading stand-ins for them */
   simCloth?: boolean;
-  /** D-322: each body variant's group (0 men, 1 women, 2 children): which channel of the fold layers its garments read */
+  /** D-322: each body variant's group (0 men, 1 women, 2 children) + 3 × its drape seed: the channel and layer pair of the fold layers its garments read */
   groups?: number[];
   hairAtlas?: THREE.Texture | null; cards?: { cols: number; rows: number; classRows: number[][]; w: number; h: number; levels: number; normal?: { w: number; h: number; levels: number } | null } | null;
   /** D-323: the cards' normal atlas (R, G the lock's normal across and along the card, B occlusion inside the lock, A coverage) */
@@ -117,6 +117,14 @@ export const DRAPE = { foldLow: [2, 3] as [number, number], foldHigh: [7, 10] as
   dyeUneven: [0.04, 0.14] as [number, number], lump: 0.0015, hang: { n: 14, h: 0.003, top: 0.3 },
   /** D-225: hem soil — the last few centimetres of a skirt drag in the dust (share of the skirt's length, extra weight) */
   hemEdge: [0.93, 0.3] as [number, number] };
+
+/** D-322 rev 4 (B123): the cloth's secondary motion. Where a skirt's lower part, a hem, a sash's end or a slack sleeve
+ *  would move with its bones this frame, it lags: it stays back by `gain` × the move since the last frame (the previous
+ *  palette and root, which the velocity buffer already keeps), a first-order lag of about gain frames at 60 fps; mostly
+ *  sideways (`vertical` of the vertical move), at most `max` m, fading out from fadeNear to fadeFar m from the camera (there
+ *  the palette is refreshed less often: crowd.ts every 2-8 frames). No state: a lag behind the current motion, not a
+ *  swing that outlasts it (C). `frame` is the frame's length over 1/60 s (humanGPU.begin), so the lag keeps its time. */
+export const CLOTH_LAG = { gain: 3, vertical: 0.3, max: 0.07, fadeNear: 22, fadeFar: 30, skirtExp: 2, slack: 0.7, frame: uniform(1) };
 
 /** person flags (texel 7 w): 1 = hide the head (the player's own body, seen from inside it) */
 export const FLAG_HIDE_HEAD = 1;
@@ -305,6 +313,11 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const clothV = step(0.5, hmat.x).mul(step(hmat.x, 3.5));
       const sag = hext.y.mul(SAG_MAX).mul(horiz).mul(scale).mul(clothV);
       p.y.subAssign(sag);
+      // D-322 rev 4 (B123): the cloth lags behind its bones' move since the last frame (CLOTH_LAG)
+      { const lagW = clothV.mul(max(skirtV.mul(pow(tS, float(CLOTH_LAG.skirtExp))), hext.y.mul(CLOTH_LAG.slack))).mul(float(1).sub(smoothstep(CLOTH_LAG.fadeNear, CLOTH_LAG.fadeFar, camD)));
+        const Q0 = skinned(prevTex), pq = toWorld(vec3(dot(Q0[0], vec4(bind, 1)), dot(Q0[1], vec4(bind, 1)), dot(Q0[2], vec4(bind, 1))), rootPrev);
+        const mv = p.sub(pq).div(max(CLOTH_LAG.frame, 0.25)).mul(vec3(1, CLOTH_LAG.vertical, 1)).mul(-CLOTH_LAG.gain).mul(lagW);
+        const ml = length(mv); p.addAssign(mv.mul(min(ml, CLOTH_LAG.max).div(max(ml, 1e-6)))); }
       // optional pieces: bit b of the person's mask (bit 0 = always worn); hidden pieces collapse to one point
       const bit = hmat.z, mask = person0.y;
       const shown = mod(floor(mask.div(exp2(bit))), 2);
@@ -568,10 +581,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // D-322: the settled cloth's folds finer than the mesh (the fold layers: people_cloth's post-step), in the garment's own
     // atlas; faded where a triangle spans a chart's seam (its atlas coordinate jumps: the tubes' back seam, the body UV's)
     let simFoldH: any = float(0);
-    if (FOLD) { const z = vSkinL.z, lo = step(3.5, z), ok = step(-0.5, z), gi = floor(vSkinL.w.mul(0.5).add(0.25)), fu = vec2(z.sub(lo.mul(4)), vSkinL.w.sub(gi.mul(2)));
+    if (FOLD) { const z = vSkinL.z, lo = step(3.5, z), ok = step(-0.5, z), gi = floor(vSkinL.w.mul(0.5).add(0.25)), fu = vec2(z.sub(lo.mul(4)), vSkinL.w.sub(gi.mul(2))), sd = floor(gi.div(3).add(0.01)), gr = gi.sub(sd.mul(3));
       const seamF = float(1).sub(smoothstep(0.02, 0.05, max(fu.x.fwidth(), fu.y.fwidth())));
-      const fs = texture(FOLD.cloth, fu).depth(lo.add(FOLD.foldBase)).rgb;
-      simFoldH = dot(fs, vec3(is(gi, 0), is(gi, 1), is(gi, 2))).sub(0.5).mul(2 * FOLD.foldScale).mul(ok).mul(seamF).mul(kCloth); }
+      const fs = texture(FOLD.cloth, fu).depth(lo.add(sd.mul(2)).add(FOLD.foldBase)).rgb;
+      simFoldH = dot(fs, vec3(is(gr, 0), is(gr, 1), is(gr, 2))).sub(0.5).mul(2 * FOLD.foldScale).mul(ok).mul(seamF).mul(kCloth); }
     const clothH = n2.mul(mix(DRAPE.lump, 0.0012, is(prm, 4))).add(n1.mul(mix(DRAPE.streak.h[0], DRAPE.streak.h[1], isLinen)).mul(band(DRAPE.streak.f[1]))).add(weaveH).add(simFoldH).add(pleatH.mul(fake)).add(robeH.mul(fake)).add(foldH).add(wrinkleH).add(hemH).add(gatherH.mul(fake)).add(hangH.mul(fake)); // linen is smoother than wool
 
     // ---- felt, leather, metal, wood, wicker

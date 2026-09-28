@@ -5,11 +5,21 @@
 // May-July, dry straw heads after; C). Drawn only near the viewer (within FLORA_R) from each 8 m cell's context
 // (smallLife.ts cells), static positions from a hash of (seed, cell, index), grown in from nothing over the last 20 % of the
 // radius so nothing pops. Three InstancedMeshes, receiving shadows, casting none.
+// D-332 (session 12): each kind is drawn as the real species, modelled in Blender (tools/blender/life_flora.py;
+// src/world/lifeModels.ts): the tragacanth's grey-green dome under bristling spine-tipped tufts with its pale flowers in May-June,
+// camelthorn's green spiny twigs with pink flowers in summer, browning in autumn, the thistles' winged stems, spiny rosettes and
+// heads of spiny bracts under purple florets; two levels (near: within FLORA_LOD_NEAR), their seasons as a tint on the modelled
+// colours and the flowers shown in their months. Without the models: the D-310 scans (nearest real forms), then the procedural
+// stand-ins (flagged PLACEHOLDER).
 import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, float, vec3, mix, uniform, length, smoothstep, cameraPosition } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
 import { CELL, type CellCtx, type SmallWorld } from './smallLife';
 import { scanProp, scanMaterial, fitProp, type ScanProp } from '../render/scanProps';
+import { lifeModel, lifeMaterial } from './lifeModels';
+/** D-332: the months (0 = January) the modelled flowers show: the tragacanth's (C: Astragalus flowers in late spring),
+ *  camelthorn's (summer) */
+export const FLORA_BLOOM = { cushion: [0, 0, 0, 0.3, 1, 0.6, 0, 0, 0, 0, 0, 0], camelthorn: [0, 0, 0, 0, 0, 0.8, 1, 0.7, 0.2, 0, 0, 0] };
 
 export type FloraKind = 'cushion' | 'camelthorn' | 'thistle';
 export const FLORA_R = 36;
@@ -68,6 +78,10 @@ export class GroundFlora {
   readonly group = new THREE.Group();
   readonly meshes = new Map<FloraKind, THREE.InstancedMesh>();
   private uDry = uniform(0.5); private uGreen = uniform(0); private uFlower = uniform(0);
+  /** D-332: the modelled kinds' flowers shown (0/1 by month) and the thistles' heads (flowering or standing dry) */
+  private uBloomC = uniform(0); private uBloomA = uniform(0); private uHeads = uniform(1);
+  /** D-332: per kind the modelled levels (near, far) */
+  readonly model = new Map<FloraKind, { near: THREE.InstancedMesh; far: THREE.InstancedMesh }>();
   private cells = new Map<number, CellCtx>();
   private scanCounts: Record<FloraKind, number[]> = { cushion: [], camelthorn: [], thistle: [] };
   private last: { e: number; n: number; month: number } = { e: 1e9, n: 1e9, month: -1 };
@@ -89,6 +103,21 @@ export class GroundFlora {
       const mesh = new THREE.InstancedMesh(g, m, FLORA[k].max); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.name = `flora-${k}`;
       mesh.userData = { tier: k === 'cushion' ? 'B/C' : 'C', src: 'SMALL-R', note: `${FLORA[k].name}: near the viewer only, stands and density reconstructed (C)` };
       this.meshes.set(k, mesh); this.group.add(mesh);
+      // D-332: the modelled species first
+      const lm = lifeModel(k);
+      if (lm) {
+        const L = attribute('life', 'vec4'), part = L.x, ONE3 = vec3(1, 1, 1);
+        const tint = k === 'cushion' ? ONE3 : k === 'camelthorn' ? mix(ONE3, vec3(1.8, 0.96, 1.7), this.uDry.mul(float(1).sub(part)))
+          : mix(mix(vec3(1.25, 0.96, 0.86), ONE3, this.uGreen), mix(vec3(1.5, 3.2, 1.35), ONE3, this.uFlower), part); // (thistle: leaves green to straw; florets purple, then the dry heads' pale pappus)
+        const vis = k === 'cushion' ? this.uBloomA : k === 'camelthorn' ? this.uBloomC : this.uHeads;
+        const sm = lifeMaterial(lm, { fallback: [0.35, 0.4, 0.25], tint, roughness: 0.9, side: THREE.DoubleSide, flowerVis: vis });
+        sm.positionNode = positionLocal.mul(grow);
+        const mk = (lvl: string) => { const g = lm.levels[lvl].clone(); g.setAttribute('fpos', new THREE.InstancedBufferAttribute(new Float32Array(FLORA[k].max * 3), 3));
+          const im = new THREE.InstancedMesh(g, sm, FLORA[k].max); im.count = 0; im.frustumCulled = false; im.castShadow = false; im.receiveShadow = true; im.name = `flora-${k}:model:${lvl}`;
+          im.userData = { tier: mesh.userData.tier, src: 'SMALL-R;RECON', placeholder: false, note: `${FLORA[k].name}: modelled as the species (tools/blender/life_flora.py; D-332: forms from botanical descriptions, C); near the viewer only, stands and density reconstructed (C)` };
+          this.group.add(im); return im; };
+        this.model.set(k, { near: mk('lod0'), far: mk('lod1') }); mesh.visible = false; continue;
+      }
       // the scans (D-310): one InstancedMesh per scan and level, the same placements; the stand-in hidden
       const props = FLORA_SCANS[k].ids.map(scanProp).filter((p): p is ScanProp => !!p);
       if (props.length) {
@@ -118,9 +147,10 @@ export class GroundFlora {
   /** month 0 = January; the viewer's grid position. Rebuilds when the viewer has moved 4 m or the month changed */
   update(month: number, viewer: P2) {
     const S = floraSeason(month); this.uDry.value = S.thornDry; this.uGreen.value = S.thistleGreen; this.uFlower.value = S.thistleFlower;
+    this.uBloomA.value = FLORA_BLOOM.cushion[month] > 0.25 ? 1 : 0; this.uBloomC.value = FLORA_BLOOM.camelthorn[month] > 0.25 ? 1 : 0; this.uHeads.value = S.thistleFlower > 0.05 || (month >= 6 && month <= 11) ? 1 : 0;
     if (Math.hypot(viewer[0] - this.last.e, viewer[1] - this.last.n) < 4 && month === this.last.month) return false;
     this.last = { e: viewer[0], n: viewer[1], month };
-    const counts: Record<FloraKind, number> = { cushion: 0, camelthorn: 0, thistle: 0 };
+    const counts: Record<FloraKind, number> = { cushion: 0, camelthorn: 0, thistle: 0 }, mn: Record<FloraKind, [number, number]> = { cushion: [0, 0], camelthorn: [0, 0], thistle: [0, 0] };
     for (const k of Object.keys(FLORA) as FloraKind[]) this.scanCounts[k] = (this.scan.get(k)?.slots ?? []).map(() => 0);
     const i0 = Math.floor((viewer[0] - FLORA_R) / CELL), i1 = Math.floor((viewer[0] + FLORA_R) / CELL), j0 = Math.floor((viewer[1] - FLORA_R) / CELL), j1 = Math.floor((viewer[1] + FLORA_R) / CELL);
     for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
@@ -136,12 +166,15 @@ export class GroundFlora {
           this.eu.set(0, u01(this.seed, ix, iy, i, 36) * 6.283, 0); this.q.setFromEuler(this.eu); this.v.set(e, y - 0.03, -nn);
           this.m4.compose(this.v, this.q, k === 'cushion' ? this.s.set(sz, sz, sz) : this.s.set(sz * 0.8, sz, sz * 0.8));
           const c = counts[k]++; mesh.setMatrixAt(c, this.m4); fpos.setXYZ(c, e, y, -nn);
+          const Mo = this.model.get(k); if (Mo) { const nearL = Math.hypot(e - viewer[0], nn - viewer[1]) < FLORA_LOD_NEAR, im = nearL ? Mo.near : Mo.far, j2 = mn[k][nearL ? 0 : 1]++;
+            im.setMatrixAt(j2, this.m4); (im.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).setXYZ(j2, e, y, -nn); }
           const S = this.scan.get(k); if (S) { const vi = h32(this.seed, ix, iy, i, KIDX[k], 37) % S.props.length, near = Math.hypot(e - viewer[0], nn - viewer[1]) < FLORA_LOD_NEAR ? 0 : 1, si = vi * 2 + near, im = S.slots[si];
             if (sc[si] < S.per) { const j2 = sc[si]++; im.setMatrixAt(j2, this.m4); (im.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).setXYZ(j2, e, y, -nn); } }
         }
       }
     }
     for (const k of Object.keys(FLORA) as FloraKind[]) { const m = this.meshes.get(k)!; m.count = counts[k]; m.instanceMatrix.needsUpdate = true; (m.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).needsUpdate = true; this.stats[k] = counts[k];
+      const Mo = this.model.get(k); if (Mo) ([Mo.near, Mo.far] as THREE.InstancedMesh[]).forEach((im, i) => { im.count = mn[k][i]; im.instanceMatrix.needsUpdate = true; (im.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).needsUpdate = true; });
       const S = this.scan.get(k); if (S) S.slots.forEach((im, i) => { im.count = this.scanCounts[k][i]; im.instanceMatrix.needsUpdate = true; (im.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).needsUpdate = true; }); }
     return true;
   }
@@ -158,9 +191,14 @@ function roseGeometry() {
     q.lookAt(new THREE.Vector3(Math.cos(a) * Math.cos(el), Math.sin(el) * 0.9, Math.sin(a) * Math.cos(el))); q.translate(Math.cos(a) * Math.cos(el) * r * 1.02, Math.sin(el) * r * 0.92, Math.sin(a) * Math.cos(el) * r * 1.02); bl.push(q); }
   return build([d, ...bl], [0, ...bl.map(() => 1)]);
 }
+export const ROSE_NEAR = 30;
 export class RoseBeds {
   readonly mesh: THREE.InstancedMesh; private uBloom = uniform(0);
+  /** D-332: the modelled damask roses (near and far levels: the near ones within ROSE_NEAR of the viewer), in one group */
+  readonly group = new THREE.Group(); private far: THREE.InstancedMesh | null = null; private near: THREE.InstancedMesh | null = null; private uShow = uniform(0);
+  private spots: { e: number; n: number; y: number; size: number; rot: number }[] = []; private last: P2 = [1e9, 1e9];
   constructor(spots: { e: number; n: number; y: number; size: number; rot: number }[]) {
+    this.spots = spots;
     const g = roseGeometry(), m = new THREE.MeshStandardNodeMaterial({ roughness: 0.85, side: THREE.DoubleSide });
     const part = attribute('part', 'float');
     m.colorNode = mix(vec3(0.12, 0.2, 0.08), mix(vec3(0.12, 0.2, 0.08), vec3(0.85, 0.45, 0.55), this.uBloom), part);
@@ -169,6 +207,21 @@ export class RoseBeds {
     spots.forEach((p, i) => { e.set(0, p.rot, 0); q.setFromEuler(e); M.compose(v.set(p.e, p.y - 0.05, -p.n), q, s.set(p.size, p.size, p.size)); this.mesh.setMatrixAt(i, M); });
     this.mesh.count = spots.length;
     this.mesh.userData = { tier: 'C', src: 'RECON', note: 'rose bushes along the paradise\'s channels (old roses of Persian gardens: C for 467); blossoms May-June, a few in October' };
+    this.group.name = 'flora-roses'; this.group.add(this.mesh);
+    const lm = lifeModel('rose');
+    if (lm) {
+      const m2 = lifeMaterial(lm, { fallback: [0.15, 0.25, 0.1], roughness: 0.85, side: THREE.DoubleSide, flowerVis: this.uShow });
+      const mk = (lvl: string) => { const im = new THREE.InstancedMesh(lm.levels[lvl], m2, Math.max(1, spots.length)); im.count = 0; im.castShadow = lvl === 'lod0'; im.receiveShadow = true; im.frustumCulled = false; im.name = `flora-roses:${lvl}`;
+        im.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'damask rose bushes along the paradise\'s channels, modelled (tools/blender/life_flora.py; D-332: canes, pinnate leaves, semi-double pink blooms, C for 467); blossoms May-June, a few in October' }; this.group.add(im); return im; };
+      this.near = mk('lod0'); this.far = mk('lod1'); this.mesh.visible = false; this.place([0, 0]);
+    } else this.mesh.userData.placeholder = true;
   }
-  update(month: number) { this.uBloom.value = roseBloom(month); }
+  /** the modelled bushes by level from the viewer (grid) */
+  private place(viewer: P2) {
+    if (!this.near || !this.far) return; this.last = viewer; const M = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3(); let a = 0, b = 0;
+    for (const p of this.spots) { e.set(0, p.rot, 0); q.setFromEuler(e); M.compose(v.set(p.e, p.y - 0.03, -p.n), q, s.set(p.size, p.size, p.size)); if (Math.hypot(p.e - viewer[0], p.n - viewer[1]) < ROSE_NEAR) this.near.setMatrixAt(a++, M); else this.far.setMatrixAt(b++, M); }
+    this.near.count = a; this.far.count = b; this.near.instanceMatrix.needsUpdate = true; this.far.instanceMatrix.needsUpdate = true;
+  }
+  update(month: number, viewer?: P2) { this.uBloom.value = roseBloom(month); this.uShow.value = roseBloom(month) > 0.08 ? 1 : 0;
+    if (viewer && Math.hypot(viewer[0] - this.last[0], viewer[1] - this.last[1]) > 5) this.place(viewer); }
 }

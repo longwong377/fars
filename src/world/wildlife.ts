@@ -9,10 +9,16 @@
 //  - D-210 (gap audit items 10, 15, 36): hooded crows (C: expected, not sourced) on the ground at the town's middens by day,
 //    walking and pecking, now and then flying to another midden, lifting off when someone comes within 8 m; black kites
 //    (C: summer migrants, Mar–Sep) circling low over the town's middens and the stockyard, 35–120 m up.
-// Rendering: one InstancedMesh per species (5 draw calls; no shadows), a low-poly body + wings, flapping in the vertex
-// shader from a per-instance phase. Sizes from field-guide values (C).
+// Rendering (D-332, session 12): every species is its modelled bird (tools/blender/life_birds.py; src/world/lifeModels.ts):
+// three levels in flight (fly0-2, chosen by distance per bird) and, for the ground birds, two standing levels with the wings
+// folded and the legs down (stand0-1, drawn when the bird is on the ground), with baked plumage, feather normals and the cut-out
+// feather tips; the wings beat in the vertex shader, each wing turning about its shoulder by the instance's phase and flap
+// amount (the hand more than the arm). One InstancedMesh per species, variant and level, drawn only while it holds birds (no
+// shadows but the standing birds near the viewer). Without the models: the old diamond stand-in, flagged PLACEHOLDER. Sizes
+// from field-guide values (C).
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, sin, float, vec3, abs, uniform } from 'three/tsl';
+import { attribute, positionLocal, sin, cos, sign, max, float, vec3, abs, uniform } from 'three/tsl';
+import { lifeModel, lifeMaterial, type LifeModel } from './lifeModels';
 import { Rng } from '../core/rng';
 import type { NavGrid, P2 } from '../people/navgrid';
 import type { Terrain } from '../terrain/heightfield';
@@ -64,7 +70,7 @@ export function crowAt(middens: P2[], ground: (e: number, n: number) => number, 
   const at = (q: number) => middens[Math.floor(new Rng(seed, `crow:${i}:${q}`).range(0, m * 0.999)) % m], A = at(k), B = at(k + 1);
   const hop = new Rng(seed, `crowhop:${i}:${Math.floor(t / 4)}`), jx = hop.range(-6, 6), jn = hop.range(-6, 6);
   if (flushed) { const w = 0.5 + 0.2 * r.next(), R = 11 + 4 * r.next(), a = w * t + r.range(0, 6.3); out.pos.set(A[0] + R * Math.cos(a), ground(A[0], A[1]) + 5 + 4 * r.next(), -(A[1] + R * Math.sin(a))); out.heading = Math.atan2(-Math.sin(a), Math.cos(a)); out.bank = -0.3; out.flap = 1; out.visible = true; return; }
-  if (u < 0.75 || Math.hypot(B[0] - A[0], B[1] - A[1]) < 1) { const e = A[0] + jx, n = A[1] + jn; out.pos.set(e, ground(e, n) + 0.02, -n); out.heading = hop.range(0, 6.28); out.bank = 0; out.flap = 0; out.visible = true; return; }
+  if (u < 0.75 || Math.hypot(B[0] - A[0], B[1] - A[1]) < 1) { const e = A[0] + jx, n = A[1] + jn; out.pos.set(e, ground(e, n) + 0.02, -n); out.heading = hop.range(0, 6.28); out.bank = 0; out.flap = 0; out.visible = true; out.stand = true; return; }
   const w = (u - 0.75) / 0.25, s = w * w * (3 - 2 * w), e = A[0] + (B[0] - A[0]) * s, n = A[1] + (B[1] - A[1]) * s, h = Math.sin(Math.PI * w) * r.range(12, 25);
   out.pos.set(e, ground(e, n) + h + 0.02, -n); out.heading = Math.atan2(B[0] - A[0], B[1] - A[1]); out.bank = 0; out.flap = Math.sin(t * 0.8 + i) > -0.3 ? 1 : 0.2; out.visible = true;
 }
@@ -84,7 +90,7 @@ export function larkAt(base: P2, ground: number, seed: number, t: number, out: B
 /** a white stork: walking in the wet fields by the water most of the time, soaring over it now and then (C) */
 export function storkAt(base: P2, ground: (e: number, n: number) => number, seed: number, t: number, out: BirdPose) {
   const r = new Rng(seed, 'stork'), T = r.range(900, 1500), u = ((t + r.range(0, T)) / T) % 1, p = r.range(0, 6.3);
-  if (u < 0.8) { const e = base[0] + 25 * Math.sin(t / 97 + p), n = base[1] + 25 * Math.cos(t / 131 + p); out.pos.set(e, ground(e, n) + 0.05, -n); out.heading = t / 97 + p; out.bank = 0; out.flap = 0; out.visible = true; return; }
+  if (u < 0.8) { const e = base[0] + 25 * Math.sin(t / 97 + p), n = base[1] + 25 * Math.cos(t / 131 + p); out.pos.set(e, ground(e, n) + 0.05, -n); out.heading = t / 97 + p; out.bank = 0; out.flap = 0; out.visible = true; out.stand = true; return; }
   const R = 60, w = 0.12, h = 60 + 120 * Math.sin(Math.PI * (u - 0.8) / 0.2); out.pos.set(base[0] + R * Math.cos(w * t + p), ground(base[0], base[1]) + h, -(base[1] + R * Math.sin(w * t + p)));
   out.heading = Math.atan2(-Math.sin(w * t + p), Math.cos(w * t + p)); out.bank = -0.3; out.flap = 0; out.visible = true;
 }
@@ -119,7 +125,7 @@ export function terrainGroundBird(spot: P2, ground: (e: number, n: number) => nu
   if (f) { spot = f.to; flush.delete(i); }
   const q = new Rng(seed, `gb:${i}:${Math.floor(t / 9)}`), e = spot[0] + q.range(-r, r), n = spot[1] + q.range(-r, r);
   if (player && Math.hypot(player[0] - e, player[1] - n) < flushR) { const a = Math.atan2(n - player[1], e - player[0]) + q.range(-0.5, 0.5); flush.set(i, { from: [e, n], to: [e + Math.cos(a) * away, n + Math.sin(a) * away], t0: t }); }
-  out.pos.set(e, ground(e, n) + 0.02, -n); out.heading = q.range(0, 6.28); out.bank = 0; out.flap = 0; out.visible = true; return spot;
+  out.pos.set(e, ground(e, n) + 0.02, -n); out.heading = q.range(0, 6.28); out.bank = 0; out.flap = 0; out.visible = true; out.stand = true; return spot;
 }
 /** session 9: a flock circling as one over a cliff (jackdaws, choughs): each bird on its own offset within the flock (C) */
 export function flockAt(base: P2, ground: number, seed: number, i: number, t: number, out: BirdPose) {
@@ -151,7 +157,16 @@ function birdGeometry(span: number, len: number): THREE.BufferGeometry {
   return g;
 }
 
-export interface BirdPose { pos: THREE.Vector3; heading: number; bank: number; flap: number /* 0 glide … 1 full */; visible: boolean }
+export interface BirdPose { pos: THREE.Vector3; heading: number; bank: number; flap: number /* 0 glide … 1 full */; visible: boolean; /** D-332: on the ground (the standing model) */ stand?: boolean }
+/** D-332: the models a species' flock draws (the swifts among the swallows' instances from SWIFTS.first, the hens among the
+ *  sparrows and the ducks: every other bird), and which one bird i is */
+export const BIRD_VARIANTS: Partial<Record<string, string[]>> = { swallow: ['swallow', 'swift'], sparrow: ['sparrow', 'sparrow_f'], duck: ['duck', 'duck_f'] };
+export const birdVariant = (id: string, i: number) => (id === 'swallow' ? (i >= SWIFTS.first ? 1 : 0) : BIRD_VARIANTS[id] ? i % 2 : 0);
+/** the distances (per metre of the bird's length) beyond which the second and third flight levels are drawn (C: where a
+ *  level's triangles fall under ~2 px at the player's lens; tools/blender/life_birds.json lod) */
+export const BIRD_LOD = [60, 400] as const;
+interface BirdLevel { key: string; mesh: THREE.InstancedMesh; flap: THREE.InstancedBufferAttribute; n: number }
+interface BirdSet { id: string; model: LifeModel | null; levels: Map<string, BirdLevel> }
 
 /** closed-form swallow flight: a hawking loop around a court anchor (two incommensurate ellipses + height wobble), ~10 m/s */
 export function swallowAt(anchor: P2, ground: number, seed: number, t: number, out: BirdPose) {
@@ -255,7 +270,15 @@ export class Birds {
   private swiftFloor(k: number) { const c = Math.floor(k / SWIFTS.party) % SWIFTS.circuits.length; let y = this.floors.get(c);
     if (y === undefined) { const [e, n] = SWIFTS.circuits[c][0], h = this.nav.heightAt(e, n); y = Number.isFinite(h) ? h : this.terrain.heightAt(e, -n); this.floors.set(c, y); } return y; }
   readonly group = new THREE.Group();
-  private meshes = new Map<string, THREE.InstancedMesh>();
+  private sets = new Map<string, BirdSet[]>();
+  /** D-332: this frame's bird positions per species (index = the bird's number; x, y, z; NaN when not drawn): tests, tools */
+  private at = new Map<string, Float32Array>();
+  /** the birds drawn of a species this frame (all its variants and levels) */
+  countOf(id: string) { return (this.sets.get(id) ?? []).reduce((a, s) => a + [...s.levels.values()].reduce((b, l) => b + l.mesh.count, 0), 0); }
+  /** bird i of a species: where it was drawn this frame (null when not drawn) */
+  posOf(id: string, i: number) { const a = this.at.get(id); return a && Number.isFinite(a[i * 3]) ? new THREE.Vector3(a[i * 3], a[i * 3 + 1], a[i * 3 + 2]) : null; }
+  /** the species' meshes (every variant and level) */
+  meshesOf(id: string) { return (this.sets.get(id) ?? []).flatMap(s => [...s.levels.values()].map(l => l.mesh)); }
   private uTime = uniform(0);
   private anchors: P2[] = []; private sparrowSpots: P2[] = [];
   private flush = new Map<number, { from: THREE.Vector3; to: P2; t0: number }>();
@@ -272,28 +295,48 @@ export class Birds {
     for (let i = 0; i < BIRDS.sparrow.count; i++) { const a = anchors[i % anchors.length]; const s = nav.snap(a[0] + rng.range(-10, 10), a[1] + rng.range(-10, 10), 6); if (s) this.sparrowSpots.push(s); }
     for (let i = 0; i < BIRDS.dove.count; i++) { const a = anchors[(i * 3) % anchors.length]; const s = nav.snap(a[0] + rng.range(-14, 14), a[1] + rng.range(-14, 14), 6); if (s) this.doveSpots.push(s); }
     for (const sp of Object.values(BIRDS)) {
-      const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: 0.8, side: THREE.DoubleSide });
-      const wing = attribute('wing', 'float'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
-      // wingbeat: tips rise and fall (±60°), scaled by the instance's flap amount; gliding birds hold a slight dihedral
-      const beat = sin(this.uTime.mul(sp.flapHz * Math.PI * 2).add(phase)).mul(flap).mul(0.9).add(0.12);
-      m.positionNode = positionLocal.add(vec3(0, abs(wing).mul(beat).mul(float(sp.span * 0.5)), 0));
-      const g = birdGeometry(sp.span, sp.length);
-      const mesh = new THREE.InstancedMesh(g, m, sp.count); mesh.count = 0; mesh.castShadow = false; mesh.receiveShadow = false; mesh.frustumCulled = false;
-      g.setAttribute('phase', new THREE.InstancedBufferAttribute(new Float32Array(sp.count).map((_, i) => new Rng(seed, `${sp.id}:${i}`).range(0, 6.28)), 1));
-      g.setAttribute('flapAmt', new THREE.InstancedBufferAttribute(new Float32Array(sp.count).fill(1), 1));
-      mesh.userData = { tier: sp.tier, src: 'SOUND-R', note: `${sp.name}; flight paths procedural (C)` };
-      this.meshes.set(sp.id, mesh); this.group.add(mesh);
+      const phases = new Float32Array(sp.count).map((_, i) => new Rng(seed, `${sp.id}:${i}`).range(0, 6.28)), sets: BirdSet[] = [];
+      this.at.set(sp.id, new Float32Array(sp.count * 3).fill(NaN));
+      for (const v of BIRD_VARIANTS[sp.id] ?? [sp.id]) {
+        const model = lifeModel(v), levels = new Map<string, BirdLevel>();
+        const mk = (key: string, g0: THREE.BufferGeometry, m: THREE.Material, meta: Record<string, unknown>) => {
+          const g = g0.clone(); g.setAttribute('phase', new THREE.InstancedBufferAttribute(phases.slice(), 1)); const flap = new THREE.InstancedBufferAttribute(new Float32Array(sp.count).fill(1), 1); g.setAttribute('flapAmt', flap);
+          const mesh = new THREE.InstancedMesh(g, m, sp.count); mesh.count = 0; mesh.castShadow = key === 'stand0'; mesh.receiveShadow = false; mesh.frustumCulled = false; mesh.name = `bird-${v}:${key}`;
+          mesh.userData = { tier: sp.tier, src: model ? 'SOUND-R;RECON' : 'SOUND-R', note: `${sp.name}; flight paths procedural (C)`, ...meta }; levels.set(key, { key, mesh, flap, n: 0 }); this.group.add(mesh);
+        };
+        if (model) {
+          const e = model.entry, fly = lifeMaterial(model, { fallback: sp.colour }), stand = lifeMaterial(model, { fallback: sp.colour });
+          fly.positionNode = this.flapNode(sp.flapHz, e.sx ?? sp.span * 0.05);
+          for (const [key, g] of Object.entries(model.levels)) mk(key, g, key.startsWith('stand') ? stand : fly, { placeholder: false, model: v, note2: `${e.name}: modelled (tools/blender/life_birds.py; D-332), plumage and proportions from field guides (C)` });
+        } else {
+          const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: 0.8, side: THREE.DoubleSide });
+          const wing = attribute('wing', 'float'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
+          // the stand-in's wingbeat: tips rise and fall (±60°), scaled by the instance's flap amount; gliding birds hold a slight dihedral
+          const beat = sin(this.uTime.mul(sp.flapHz * Math.PI * 2).add(phase)).mul(flap).mul(0.9).add(0.12);
+          m.positionNode = positionLocal.add(vec3(0, abs(wing).mul(beat).mul(float(sp.span * 0.5)), 0));
+          mk('fly0', birdGeometry(sp.span, sp.length), m, { placeholder: true, note2: `PLACEHOLDER: a diamond stand-in (the model ${v} did not load)` });
+        }
+        sets.push({ id: v, model, levels });
+      }
+      this.sets.set(sp.id, sets);
     }
   }
-  /** month 0 = first month of the regnal year (spring); hour local; t world seconds; player grid position */
-  update(month: number, hour: number, t: number, player: P2 | null, wind: { x: number; n: number }, rain: number) {
+  /** D-332: the modelled wingbeat. COLOR_0 ('life'): x the wing weight (0 at the root, 1 at the tip), y 1 on the wing. Each
+   *  wing turns about its shoulder (|x| = sx) by beat x (0.55 + 0.45 w): the hand sweeps further than the arm; the beat is the
+   *  instance's phase and flap amount (0 glide, 1 full), a gliding bird holding a slight dihedral (C) */
+  private flapNode(hz: number, sx: number) { return birdFlapNode(this.uTime, hz, sx); }
+  /** month 0 = first month of the regnal year (spring); hour local; t world seconds; player grid position; eye: the camera
+   *  (the levels' distances; else the player's head over the ground) */
+  update(month: number, hour: number, t: number, player: P2 | null, wind: { x: number; n: number }, rain: number, eye?: THREE.Vector3) {
     this.uTime.value = t % 100000;
+    const ex = eye ? eye.x : player ? player[0] : NaN, ez = eye ? eye.z : player ? -player[1] : NaN, ey = eye ? eye.y : player ? this.terrain.heightAt(player[0], -player[1]) + 1.6 : NaN;
     for (const sp of Object.values(BIRDS)) {
-      const mesh = this.meshes.get(sp.id)!, flapAttr = mesh.geometry.getAttribute('flapAmt') as THREE.InstancedBufferAttribute;
+      const sets = this.sets.get(sp.id)!, at = this.at.get(sp.id)!; at.fill(NaN);
+      for (const s of sets) for (const l of s.levels.values()) l.n = 0;
       const hrs = sp.id === 'bat' ? batHours(month) : sp.hours, active = sp.months.includes(month) && hour >= hrs[0] && hour <= hrs[1] && rain < 0.4;
       let n = 0;
       if (active) for (let i = 0; i < sp.count; i++) {
-        const p = this.pose, sd = hashSeed(this.seed, sp.id, i);
+        const p = this.pose, sd = hashSeed(this.seed, sp.id, i); p.stand = false;
         if (sp.id === 'swallow' && i >= SWIFTS.first) { const k = i - SWIFTS.first, sc = swiftScreaming(month, hour); if (!SWIFTS.months.includes(month as never)) continue;
           swiftAt(k, this.seed, t, sc, this.swiftFloor(k), p); // (heights over the platform's floor under the party's circuit)
           if (sc && k % SWIFTS.party === 0 && player && this.onScream && Math.hypot(p.pos.x - player[0], -p.pos.z - player[1]) < 90) { const due = this.nextScream.get(k) ?? 0;
@@ -329,13 +372,18 @@ export class Birds {
         else if (sp.id === 'kestrel') { const pool = [...this.fields, ...this.steppe]; if (!pool.length) continue; kestrelAt(pool[(i * 37 + 11) % pool.length], this.gh, hashSeed(this.seed, 'kestrel', i), t, wind, p); }
         else if (sp.id === 'bat') { const pool = i % 2 && this.waters.length ? this.waters : this.anchors, a = pool[(i * 5) % pool.length]; batAt(a, i % 2 && this.waters.length ? this.terrain.heightAt(a[0], -a[1]) : (this.nav.heightAt(a[0], a[1]) || 0), sd, t, p); }
         else { if (!this.sparrowAt(i, t, player, p)) continue; }
-        this.e.set(0, p.heading, 0); this.q.setFromEuler(this.e); if (p.bank) this.q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), p.bank));
+        // (D-332: the models' nose is +z; heading is atan2(east, north) and the world's z is south, so the yaw is pi - heading)
+        this.e.set(0, Math.PI - p.heading, 0); this.q.setFromEuler(this.e); if (p.bank) this.q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), p.bank));
         // (the starlings: each drawn bird stands for ~15 of a real murmuration's tens of thousands, so far off it is drawn no smaller
         // than ~1.2 mrad, the flock's darkness from the many not drawn: C)
         if (sp.id === 'starling' && player) { const d = Math.hypot(p.pos.x - player[0], -p.pos.z - player[1]), k = Math.max(1, (d * 0.0012) / sp.span); this.m4.compose(p.pos, this.q, SCL.set(k, k, k)); }
-        else this.m4.compose(p.pos, this.q, ONE); mesh.setMatrixAt(n, this.m4); flapAttr.setX(n, p.flap); n++;
+        else this.m4.compose(p.pos, this.q, ONE);
+        const set = sets[Math.min(sets.length - 1, birdVariant(sp.id, i))], d = Number.isFinite(ex) ? Math.hypot(p.pos.x - ex, p.pos.y - ey, p.pos.z - ez) : 0;
+        const lod = d < BIRD_LOD[0] * sp.length ? 0 : d < BIRD_LOD[1] * sp.length ? 1 : 2, lv = set.levels;
+        const lvl = (p.stand && (lv.get(`stand${Math.min(lod, 1)}`) ?? lv.get('stand0'))) || lv.get(`fly${lod}`) || lv.get('fly0')!;
+        if (lvl.n < lvl.mesh.instanceMatrix.count) { lvl.mesh.setMatrixAt(lvl.n, this.m4); lvl.flap.setX(lvl.n, p.flap); lvl.n++; at[i * 3] = p.pos.x; at[i * 3 + 1] = p.pos.y; at[i * 3 + 2] = p.pos.z; n++; }
       }
-      mesh.count = n; mesh.instanceMatrix.needsUpdate = n > 0; flapAttr.needsUpdate = n > 0;
+      for (const s of sets) for (const l of s.levels.values()) { l.mesh.count = l.n; l.mesh.instanceMatrix.needsUpdate = l.n > 0; l.flap.needsUpdate = l.n > 0; }
     }
   }
   private gh = (e: number, n: number) => this.terrain.heightAt(e, -n);
@@ -362,7 +410,7 @@ export class Birds {
     const y = this.nav.heightAt(at[0], at[1]); if (!Number.isFinite(y)) return false;
     if (player && Math.hypot(player[0] - at[0], player[1] - at[1]) < flushR) { const ang = Math.atan2(at[1] - player[1], at[0] - player[0]) + r.range(-0.6, 0.6), d = r.range(15, 30);
       const to = this.nav.snap(at[0] + Math.cos(ang) * d, at[1] + Math.sin(ang) * d, 6); if (to) flush.set(i, { from: new THREE.Vector3(at[0], y, -at[1]), to, t0: t }); }
-    out.pos.set(at[0], y + 0.02, -at[1]); out.heading = r.range(0, 6.28); out.bank = 0; out.flap = 0; return true;
+    out.pos.set(at[0], y + 0.02, -at[1]); out.heading = r.range(0, 6.28); out.bank = 0; out.flap = 0; out.stand = true; return true;
   }
   /** sparrows: hop between spots near their anchor; flush 8–15 m when someone is within 3 m, land after ~1.2 s */
   private sparrowAt(i: number, t: number, player: P2 | null, out: BirdPose): boolean {
@@ -378,7 +426,7 @@ export class Birds {
       const ang = Math.atan2(at[1] - player[1], at[0] - player[0]) + r.range(-0.6, 0.6), d = r.range(8, 15);
       const to = this.nav.snap(at[0] + Math.cos(ang) * d, at[1] + Math.sin(ang) * d, 5); if (to) this.flush.set(i, { from: new THREE.Vector3(at[0], y, -at[1]), to, t0: t });
     }
-    out.pos.set(at[0], y + 0.02, -at[1]); out.heading = r.range(0, 6.28); out.bank = 0; out.flap = 0; return true;
+    out.pos.set(at[0], y + 0.02, -at[1]); out.heading = r.range(0, 6.28); out.bank = 0; out.flap = 0; out.stand = true; return true;
   }
 }
 const ONE = new THREE.Vector3(1, 1, 1), SCL = new THREE.Vector3();
@@ -408,6 +456,13 @@ function jackalGeometry(): THREE.BufferGeometry {
   return g;
 }
 
+/** D-332: the modelled jackal's leg weights: below the elbows and hocks (y < 0.27 m) a vertex follows its leg, weighted by its
+ *  depth under the joint, the sign of its diagonal pair (the stand-in's convention) */
+function jackalLegs(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  const P = g.getAttribute('position'), W = new Float32Array(P.count);
+  for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i); if (y < 0.27 && Math.abs(x) > 0.012 && (z > 0.1 || z < -0.08)) W[i] = (x < 0 ? 1 : -1) * (z > 0 ? 1 : -1) * Math.min(1, (0.27 - y) / 0.25); }
+  g.setAttribute('leg', new THREE.BufferAttribute(W, 1)); return g;
+}
 /** a jackal's place on the night's wander: closed form; `moving` false while it pauses */
 export function jackalAt(seed: number, night: number, i: number, t: number, out: { e: number; n: number; heading: number; moving: boolean }) {
   const r = new Rng(seed, `jackal:${night}`);
@@ -428,14 +483,16 @@ export class Jackals {
   private uTime = uniform(0); private moveAttr: THREE.InstancedBufferAttribute;
   private p = { e: 0, n: 0, heading: 0, moving: false }; private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private up = new THREE.Vector3(0, 1, 0);
   constructor(private seed: number, private terrain: Terrain) {
-    const g = jackalGeometry();
-    const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...JACKAL.colour, THREE.SRGBColorSpace), roughness: 0.95 });
+    // D-332: the modelled golden jackal (tools/blender/life_small.py) when loaded, its legs weighted here from the model (a
+    // vertex below the elbows and hocks swings with its leg, diagonal pairs in phase); else the box stand-in (PLACEHOLDER)
+    const lm = lifeModel('jackal'), g = lm ? jackalLegs(lm.levels.lod0.clone()) : jackalGeometry();
+    const m = lm ? lifeMaterial(lm, { fallback: JACKAL.colour, roughness: 0.95 }) : new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...JACKAL.colour, THREE.SRGBColorSpace), roughness: 0.95 });
     const leg = attribute('leg', 'float'), mv = attribute('moving', 'float');
     // trot: legs swing ±25° about the hip at ~2.2 Hz, diagonal pairs opposite (sign of `leg`)
     m.positionNode = positionLocal.add(vec3(0, 0, sin(this.uTime.mul(2.2 * Math.PI * 2)).mul(leg).mul(mv).mul(0.12)));
     this.mesh = new THREE.InstancedMesh(g, m, JACKAL.count); this.mesh.count = 0; this.mesh.castShadow = false; this.mesh.frustumCulled = false;
     this.moveAttr = new THREE.InstancedBufferAttribute(new Float32Array(JACKAL.count), 1); g.setAttribute('moving', this.moveAttr);
-    this.mesh.userData = { tier: JACKAL.tier, src: 'SOUND-R', note: `${JACKAL.name}; pack range and paths procedural (C)` };
+    this.mesh.userData = { tier: JACKAL.tier, src: 'SOUND-R', placeholder: !lm, note: `${lm ? '' : 'PLACEHOLDER (the model did not load): '}${JACKAL.name}${lm ? ', modelled (D-332, C)' : ''}; pack range and paths procedural (C)` };
     this.mesh.name = 'wildlife-jackals';
   }
   /** dayIndex/hour local; t world seconds */
@@ -445,9 +502,17 @@ export class Jackals {
     const night = hour >= JACKAL.hours[0] ? dayIndex : dayIndex - 1, pack = 2 + new Rng(this.seed, `jackal-pack:${night}`).int(0, JACKAL.count - 2);
     for (let i = 0; i < pack; i++) {
       jackalAt(this.seed, night, i, t, this.p); const y = this.terrain.heightAt(this.p.e, -this.p.n);
-      this.q.setFromAxisAngle(this.up, this.p.heading); this.m4.compose(new THREE.Vector3(this.p.e, y, -this.p.n), this.q, new THREE.Vector3(1, 1, 1));
+      this.q.setFromAxisAngle(this.up, Math.PI - this.p.heading); // (D-332: nose +z; heading atan2(east, north), the world's z south) this.m4.compose(new THREE.Vector3(this.p.e, y, -this.p.n), this.q, new THREE.Vector3(1, 1, 1));
       this.mesh.setMatrixAt(i, this.m4); this.moveAttr.setX(i, this.p.moving ? 1 : 0);
     }
     this.mesh.count = pack; this.mesh.instanceMatrix.needsUpdate = true; this.moveAttr.needsUpdate = true;
   }
+}
+
+/** the modelled wingbeat (Birds.flapNode; exported for the probe page) */
+export function birdFlapNode(uTime: any, hz: number, sx: number) {
+    const L = attribute('life', 'vec4'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
+    const beat = sin(uTime.mul(hz * Math.PI * 2).add(phase)).mul(flap).mul(0.85).add(0.1), th = beat.mul(L.x.mul(0.45).add(0.55));
+    const x = positionLocal.x, d = max(abs(x).sub(sx), 0).mul(L.y);
+    return vec3(x.add(sign(x).mul(d.mul(cos(th)).sub(d))), positionLocal.y.add(d.mul(sin(th))), positionLocal.z);
 }
