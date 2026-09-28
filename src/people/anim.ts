@@ -2,11 +2,15 @@
 // for moving activities): bone rotations (Euler XYZ, radians, relative to the bind pose) plus a hips offset.
 // Conventions (bind pose: arms and legs hang down −Y, the body faces +Z): rotation.x < 0 swings a limb forward;
 // a knee bends with shin.x > 0; an elbow bends with fore.x < 0; left arm abducts with +z, right arm with −z.
-// PLACEHOLDER quality: hand-authored cycles, not motion capture (brief §9.3 asks for photoreal; logged in PROGRESS).
+// D-333: walking, standing, talking and sitting on the ground are motion capture (mocap.ts: CMU takes retargeted onto this
+// rig); the holds laid over them where a thing is carried or held (the jar on the shoulder, the spear, the basket) and
+// the seated and kneeling crafts stay hand-authored (PLACEHOLDER in those channels only: flagged per activity by
+// MOCAP_ANIMS below; the dev overlay reads it).
 // The cycles drive 17 pose channels; src/people/humanRig.ts retargets them onto the 59-bone MakeHuman skeleton (D-090).
 // The work cycles of the activities performed since D-142 (hoeing, reaping, weaving, …) are in workAnims.ts: they are
 // authored from hand and foot targets (poseKit.ts IK) and return prop hints (tip, at, show, ip) for the carried props.
 import { workPose, WORK_ANIMS, type WorkAnim } from './workAnims';
+import { gaitPose, loopAt, pickOf, devAt, CLIPS, IDLES, TALKS, type GaitStyle } from './mocap';
 
 /** pose channels (the Phase 3 rig's bones); RETARGET in humanRig.ts maps each onto the 59-bone skeleton */
 export const POSE_BONES = ['hips', 'spine', 'chest', 'neck', 'head', 'l_upper', 'l_fore', 'l_hand', 'r_upper', 'r_fore', 'r_hand', 'l_thigh', 'l_shin', 'l_foot', 'r_thigh', 'r_shin', 'r_foot'] as const;
@@ -48,14 +52,6 @@ const fr = (x: number) => x - Math.floor(x);
 /** smooth pseudo-random in [-1,1] (for idle fidgets): sum of incommensurate sines */
 const wob = (t: number, k: number) => 0.6 * S(t * 0.37 + k * 1.7) + 0.4 * S(t * 0.91 + k * 4.1);
 
-function legsWalk(p: Pose, ph: number, amp: number) {
-  const r = p.rot;
-  r.l_thigh = [-amp * S(ph), 0, 0]; r.r_thigh = [amp * S(ph), 0, 0];
-  r.l_shin = [0.1 + 0.9 * amp * Math.max(0, C(ph)) ** 1.5, 0, 0]; r.r_shin = [0.1 + 0.9 * amp * Math.max(0, -C(ph)) ** 1.5, 0, 0];
-  r.l_foot = [-0.2 * S(ph), 0, 0]; r.r_foot = [0.2 * S(ph), 0, 0];
-  p.hips = [0.02 * S(ph), -0.025 + 0.02 * C(2 * ph), 0];
-  r.hips = [0, 0.08 * S(ph), 0]; r.spine = [0.03, -0.05 * S(ph), 0];
-}
 function kneel(p: Pose, lean: number) {
   const r = p.rot; p.hips = [0, -0.45, -0.05];
   r.l_thigh = [-0.1, 0, 0.04]; r.r_thigh = [-0.1, 0, -0.04]; r.l_shin = [PI / 2 + 0.1, 0, 0]; r.r_shin = [PI / 2 + 0.1, 0, 0];
@@ -73,21 +69,29 @@ export const ENTHRONED = { drop: -0.3, back: -0.12 } as const;
  *  tests/fauna.test.ts); the crowd lifts a rider by the mount's seat height minus seat × the look's scale (C) */
 export const RIDE = { drop: 0, back: -0.04, thigh: [-0.55, 0.58] as [number, number], shin: 0.7, shinIn: 0.22, seatK: 0.352 } as const;
 /** pose for an animation at time t (s); `ph` = gait phase (radians) for moving anims; `k` = per-person seed */
-export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
-  if (WORK.has(id)) return workPose(id as WorkAnim, t, ph, k);
-  const p: Pose = { rot: {}, hips: [0, 0, 0] }; const r = p.rot;
+/** D-333: how a person walks (the crowd passes it; default: a man at 1.2 m/s). v: the walking speed over the leg-length
+ *  scale (m/s on the reference body), which picks and blends the paces of the motion-capture gaits */
+export interface Gait { v: number; style: GaitStyle }
+export const GAIT0: Gait = { v: 1.2, style: 'man' };
+/** D-333: the animations whose body is motion capture (whole, or under the authored arms of a held thing); the rest are
+ *  hand-authored (PLACEHOLDER; the dev overlay's flag) */
+export const MOCAP_ANIMS = new Set<string>(['idle', 'inspect', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'talk', 'sit', 'play']);
+export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAIT0): Pose {
+  if (WORK.has(id)) return workPose(id as WorkAnim, t, ph, k, g);
+  let p: Pose = { rot: {}, hips: [0, 0, 0] }; let r = p.rot;
   const breath = 0.025 * S(t * 1.5 + k);
   r.chest = [breath, 0, 0];
   switch (id) {
     case 'idle': case 'inspect': {
-      p.hips = [0.015 * wob(t * 0.5, k), 0, 0]; r.hips = [0, 0, 0.02 * wob(t * 0.5, k)];
-      r.l_upper = [0.05, 0, 0.08]; r.r_upper = [0.05, 0, -0.08]; r.l_fore = [-0.15, 0, 0]; r.r_fore = [-0.15, 0, 0];
+      // standing (D-333): a motion-capture idle, one of five per person (weight shifts, the head turning, the hands at rest)
+      p = loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)); r = p.rot;
       if (id === 'inspect') { r.l_upper = [0.25, 0, 0.12]; r.r_upper = [0.25, 0, -0.12]; r.l_fore = [-0.9, 0, -0.5]; r.r_fore = [-0.9, 0, 0.5]; } // hands clasped behind
-      r.head = [0.05 * wob(t, k + 3), 0.45 * wob(t * 0.6, k + 7), 0]; break;
+      break;
     }
     case 'walk': case 'carry_shoulder': case 'carry_head': case 'carry_front': case 'guard_walk': {
-      legsWalk(p, ph, id === 'walk' ? 0.42 : 0.34);
-      r.l_upper = [0.3 * S(ph), 0, 0.06]; r.r_upper = [-0.3 * S(ph), 0, -0.06]; r.l_fore = [-0.25 - 0.15 * Math.max(0, -S(ph)), 0, 0]; r.r_fore = [-0.25 - 0.15 * Math.max(0, S(ph)), 0, 0];
+      // walking (D-333): the motion-capture gaits of the walker's kind and pace (the basket before the body: the carrying
+      // captures); the arms that hold a load are set over them below
+      p = gaitPose(id === 'carry_front' ? 'carry' : g.style, ph, k, g.v); r = p.rot;
       // the right arm raised out to the side and over the load (D-217: searched with tools/dev/jar_search.ts so the shoulder
       // jar's neck lies in the hand and the arm and head stay clear of it; was [-2.7, 0, -0.35] / -1.1: the hand over the
       // crown, the jar through the forearm; C)
@@ -95,16 +99,21 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
       if (id === 'carry_head') { r.l_upper = [-2.9, 0, 0.35]; r.l_fore = [-0.9, 0, 0]; r.neck = [0, 0, 0]; r.spine = [-0.03, 0, 0]; }
       if (id === 'carry_front') { r.l_upper = [-0.5, 0, 0.1]; r.r_upper = [-0.5, 0, -0.1]; r.l_fore = [-1.2, 0, -0.3]; r.r_fore = [-1.2, 0, 0.3]; }
       if (id === 'guard_walk') { r.r_upper = [-0.25, 0, -0.1]; r.r_fore = [-1.25, 0, 0]; }
-      r.head = [0.04 * S(2 * ph), 0.2 * wob(t * 0.4, k), 0];
-      // the shoulder jar's bearer holds the head turned and tilted away from the jar (D-187: this line used to overwrite
+      if (id !== 'walk') { if (id !== 'carry_head') r.r_hand = [0, 0, 0]; if (id === 'carry_front' || id === 'carry_head') r.l_hand = [0, 0, 0]; } // the held hands as authored
+      // the head: the capture's own, turning a little now and then to look about
+      const hd = r.head ?? [0, 0, 0]; r.head = [hd[0], hd[1] + 0.15 * wob(t * 0.4, k), hd[2]];
+      // the shoulder jar's bearer holds the head turned and tilted away from the jar, the chest upright under it over the captured
+      // pelvis (D-187: this line used to overwrite
       // the carry_shoulder head above, and the upright head sat hidden behind the jar from the bearer's right)
-      if (id === 'carry_shoulder') { r.head = [0.04 * S(2 * ph), 0.1 + 0.1 * wob(t * 0.4, k), -0.12]; p.shoulder = true; p.grip = [0.1, 0.6]; } // the hand round the jar's neck or the sack's mouth, not a closed fist (D-217)
+      if (id === 'carry_shoulder') { r.head = [0.04 * S(2 * ph), 0.1 + 0.1 * wob(t * 0.4, k), -0.12]; r.neck = [0, 0, 0]; const hp = r.hips ?? [0, 0, 0]; r.spine = [0.03 - hp[0], -0.6 * hp[1], -hp[2]]; r.chest = [breath, 0, 0]; p.shoulder = true; p.grip = [0.1, 0.6]; } // the hand round the jar's neck or the sack's mouth, not a closed fist (D-217)
+      if (id === 'carry_head') { r.head = [0, 0, 0]; r.neck = [0, 0, 0]; } // the head held level under the jar
       break;
     }
     case 'guard': {
-      p.hips = [0.01 * wob(t * 0.2, k), 0, 0];
-      r.r_upper = [-0.25, 0, -0.1]; r.r_fore = [-1.25, 0, 0]; r.l_upper = [-0.15, 0, 0.12]; r.l_fore = [-1.1, 0, -0.35];
-      r.head = [0, 0.3 * wob(t * 0.25, k), 0]; break;
+      // standing at his post (D-333): the quietest standing captures, the spear and shield arms held as authored
+      p = loopAt(['idle_a', 'idle_c'][pickOf(k, 2, 6)], t, k, 0.8); r = p.rot;
+      r.r_upper = [-0.25, 0, -0.1]; r.r_fore = [-1.25, 0, 0]; r.l_upper = [-0.15, 0, 0.12]; r.l_fore = [-1.1, 0, -0.35]; r.r_hand = [0, 0, 0]; r.l_hand = [0, 0, 0];
+      break;
     }
     case 'chisel': {
       const q = fr(t * 1.25 + k), s = q < 0.78 ? q / 0.78 : 1 - (q - 0.78) / 0.22; p.hit = q < 0.03;
@@ -136,7 +145,11 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
       sitCross(p); const q = fr(t * 0.12 + k), bite = q < 0.25 ? S(q / 0.25 * PI) : 0;
       r.r_upper = [-0.4 - 0.5 * bite, 0, -0.15]; r.r_fore = [-0.8 - 1.2 * bite, 0, 0.2]; r.l_upper = [-0.3, 0, 0.1]; r.l_fore = [-1.0, 0, 0]; r.head = [0.1 * bite, 0.3 * wob(t * 0.3, k), 0]; break;
     }
-    case 'sit': case 'dice': {
+    case 'sit': {
+      // sitting on the ground (D-333): the capture of a man sitting at rest, the knees up, the hands on the knees or the ground
+      p = loopAt('sit_a', t, k, 0.85 + 0.3 * fr(k * 0.41)); break;
+    }
+    case 'dice': {
       sitCross(p); r.l_upper = [-0.3, 0, 0.1]; r.r_upper = [-0.3, 0, -0.1]; r.l_fore = [-0.9, 0, 0]; r.r_fore = [-0.9, 0, 0]; r.spine = [0.12, 0, 0];
       r.head = [0.1, 0.35 * wob(t * 0.4, k), 0];
       if (id === 'dice') { const q = fr(t * 0.2 + k), th = q < 0.15 ? S(q / 0.15 * PI) : 0; p.hit = q > 0.14 && q < 0.16; r.spine = [0.35, 0, 0]; r.r_upper = [-0.9 - 0.4 * th, 0, -0.1]; r.r_fore = [-0.6 + 0.4 * th, 0, 0]; r.head = [0.3, 0, 0]; }
@@ -165,15 +178,24 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
     }
     case 'sleep': { p.hips = [0, -0.83, 0]; r.hips = [-PI / 2, 0, 0]; r.l_upper = [0, 0, 0.1]; r.r_upper = [0, 0, -0.1]; r.head = [0.2, 0.2, 0]; r.chest = [breath * 0.6, 0, 0]; r.l_shin = [0.2, 0, 0]; r.r_shin = [0.1, 0, 0]; break; }
     case 'talk': {
-      const g = Math.max(0, wob(t * 1.3, k)); p.hips = [0.015 * wob(t * 0.5, k), 0, 0];
-      r.r_upper = [-0.3 - 0.5 * g, 0, -0.15]; r.r_fore = [-0.8 - 0.4 * g, 0.3 * wob(t * 2, k), 0]; r.l_upper = [0.05, 0, 0.08]; r.l_fore = [-0.2 - 0.5 * Math.max(0, wob(t * 1.1, k + 5)), 0, 0];
-      r.head = [0.08 * wob(t * 2.1, k), 0.15 * wob(t * 0.9, k), 0.05 * wob(t * 1.4, k)]; break;
+      // in conversation (D-333): captures of people explaining with their hands, one of three per person
+      p = loopAt(TALKS[pickOf(k, TALKS.length, 7)], t, k, 0.9 + 0.2 * fr(k * 0.29)); break;
     }
-    case 'play': { // chasing/hopping in place (children)
-      const ph2 = t * 7 + k; legsWalk(p, ph2, 0.6); p.hips[1] += 0.05 * Math.abs(S(ph2)); r.l_upper = [0.6 * S(ph2), 0, 0.3]; r.r_upper = [-0.6 * S(ph2), 0, -0.3]; break;
+    case 'play': { // running about in place (children; D-333: a running capture)
+      p = gaitPose('run', t * 7 + k, k, 2.8); break;
     }
   }
+  // D-333: the hand-authored cycles here (the mason's chisel, the quern, the dough, the oven, the well, the scribe, the meal,
+  // the knucklebones, the throne, the saddle) are performed over the motion-capture body layer, as the work cycles are
+  // (workAnims.ts): a capture's deviation from its mean (standing, or seated for the seated ones) added to the upper body
+  // (spine, chest, neck, head: the pelvis and legs as authored, so the feet and seat stay where they are)
+  const Lw = LAYERED[id]; if (Lw) { const seat = SEATED_L.has(id), c = seat ? 'sit_a' : IDLES[pickOf(k, IDLES.length, 5)], d = devAt(DEV, c, (t * (0.9 + 0.2 * fr(k * 0.37))) / CLIPS[c].dur + fr(k * 0.618034));
+    for (const [b, i] of [['spine', 3], ['chest', 6], ['neck', 9], ['head', 12]] as const) { const e = r[b] ?? [0, 0, 0]; r[b] = [e[0] + Math.max(-0.08, Math.min(0.08, d[i])) * Lw, e[1] + Math.max(-0.08, Math.min(0.08, d[i + 1])) * Lw, e[2] + Math.max(-0.08, Math.min(0.08, d[i + 2])) * Lw]; } }
   return p;
 }
+const DEV = new Float32Array(54);
+/** the layer's weight per authored cycle (the king on his throne keeps nearly still: the relief's stillness, C) */
+const LAYERED: Partial<Record<AnimId, number>> = { chisel: 0.6, draw_water: 0.6, grind: 0.35, knead: 0.35, bake: 0.35, write: 0.4, eat: 0.5, dice: 0.5, enthroned: 0.2, ride: 0.4, inspect: 0 };
+const SEATED_L = new Set<AnimId>(['write', 'eat', 'dice']);
 const WORK = new Set<string>(WORK_ANIMS);
 export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', ...WORK_ANIMS];

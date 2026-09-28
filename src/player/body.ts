@@ -51,7 +51,7 @@ export function animateBody(g: THREE.Group, phase: number, speed: number, dt = 1
   const P = (g as any).playerRig as PlayerRig | undefined; if (!P) return;
   const moved = Number.isFinite(P.lastPhase) && Math.abs(phase - P.lastPhase) > 1e-4; P.lastPhase = phase;
   P.moving += ((moved ? 1 : 0) - P.moving) * Math.min(1, dt / 0.3); P.t += dt;
-  const walk = pose('walk', P.t, phase, 0.4), idle = pose('idle', P.t, phase, 0.4), k = P.moving * Math.min(1, speed / 1.35);
+  const walk = pose('walk', P.t, phase, 0.4, { v: Math.max(0.5, Math.min(2.2, speed)), style: 'man' }), idle = pose('idle', P.t, phase, 0.4), k = P.moving * Math.min(1, speed / 1.35);
   const rot: any = {}; for (const b of new Set([...Object.keys(walk.rot), ...Object.keys(idle.rot)])) { const a = (idle.rot as any)[b] ?? [0, 0, 0], w = (walk.rot as any)[b] ?? [0, 0, 0]; rot[b] = [a[0] + (w[0] - a[0]) * k, a[1] + (w[1] - a[1]) * k, a[2] + (w[2] - a[2]) * k]; }
   P.input.pose = { rot, hips: [idle.hips[0] + (walk.hips[0] - idle.hips[0]) * k, idle.hips[1] + (walk.hips[1] - idle.hips[1]) * k, idle.hips[2] + (walk.hips[2] - idle.hips[2]) * k] };
   const gpu = P.crowd.humans.gpu;

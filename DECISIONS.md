@@ -8507,3 +8507,25 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   NOT verified in the browser: Naqsh-e Rustam (two probe runs lost: vite served the SPA page for a GLB built after it started, then
   the probe's bounding box threw on the relief sets; the fixed rerun never got a GPU slot) and the KTX2 path itself (the Ajori
   probe frames were JPEG). The lead's world render must look at both (?monuments=0 for the stand-ins).
+## D-333 — The people's motion from motion capture (session 12, agent mocap; Q-921, B181..B183)
+- Source: the CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu; free for all uses; ASF/AMC read directly,
+  manifest with sha256 at T:/fars-assets-s12/mocap/manifest.json, ASSET_LEDGER row). Retargeted by tools/mocap (amc.ts:
+  ASF/AMC reader and FK; retarget.ts: world-direction retarget onto the 17 pose channels of the reference body m03, the
+  legs by IK to the source ankles scaled by the leg-length ratio, the pelvis at the source hip joints; cycles.ts: gait
+  strides cut at the left strike from the steadiest straight run, loops closed at the best-matching frame pair, drift
+  spread over the loop; bake.ts: the clips, the capture subjects' downward gaze levelled, the rig's plant pass baked in)
+  into src/people/mocapClips.ts (int16, ~380 KB base64). Contact sheets rendered in Blender (tools/mocap/sheet.py,
+  Workbench) from the game's own rig (RigSolver) on the real bodies; broken takes were rejected by eye and by a straight-
+  walk filter (a turning 144, a backward 111, an acted 113 head-up walk, a hunched 77 limp, a catch in 106).
+- Runtime (src/people/mocap.ts): gaits blended between the two pace classes nearest the walker's speed over their leg
+  scale, per person a clip of each class (seeded), the old walk with 35 % of the elderly capture's stoop; loops sampled by
+  time with per-person tempo and start. The crowd advances each walker's phase by the ground covered over the blended
+  stride × body scale (crowd.ts gaitStep: no foot skate), for agents too (their sim gait was 1.44 m a stride for all).
+- From capture now: walk (men, women, the old, children at their normalised pace), the carriers' walks under the
+  authored holds (shoulder jar, head jar, the basket before the body from the carrying captures), the guard's round and
+  post, idle and inspect, talk, sit, children's play (running in place).
+  Every work cycle (the D-142/D-255/D-292 strokes) and the
+  anim.ts crafts are performed over a capture body layer (a standing or seated capture's deviation from its mean: the
+  pelvis's weight shifts and sway, the trunk, the head; bounded, and lighter where a cycle works at the reach limit) —
+  the strokes themselves stay hand-authored (PLACEHOLDER: B181). F3 counts both per frame.
+- Impostor frames re-chosen for the captured poses (tools/dev/imp_keys.ts --cover; 71 frames).

@@ -23,7 +23,8 @@ import { Rng } from '../core/rng';
 import { attribute, positionLocal, float, abs, min, max, mix, step } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { surfaceMaterial, propScanNodes } from '../render/materials';
-import { pose, type Pose } from './anim';
+import { pose, MOCAP_ANIMS, type Pose, type Gait } from './anim';
+import { strideAt, type GaitStyle } from './mocap';
 import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type WorkSpec, type Performer } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
 import type { HumanSystem } from './humans';
@@ -41,7 +42,7 @@ import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTE
 import { h32, salt } from './hash';
 import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
-import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
+import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim, CAPTURED_WORK } from './workAnims';
 import { IK_Q } from './poseKit';
 import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
 import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, type Species } from './animals';
@@ -68,6 +69,23 @@ const PATH_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => p
  *  ground, a guard's round at his post (the plans do not route them yet: Q-196). They walk in place at the pace the
  *  performance sheet's extras use (time × 4.2, about 0.96 m/s), not frozen mid-stride */
 export const IN_PLACE_RATE = 4.2;
+/** D-333: the walking gait's style from the body variant (the motion-capture gait sets of mocap.ts) */
+export function gaitStyleOf(m: { sex?: string; group?: string }): GaitStyle { return m.group === 'elder' ? 'old' : m.sex === 'f' ? 'woman' : 'man'; }
+/** the leg (hip to ankle) of a body variant's bind joints over the reference body's (poseKit NOM: 0.826 m) */
+export function legScale(j: ArrayLike<number>): number {
+  const L = (a: number, b: number) => Math.hypot(j[a * 3] - j[b * 3], j[a * 3 + 1] - j[b * 3 + 1], j[a * 3 + 2] - j[b * 3 + 2]);
+  return (L(HB.thigh_l, HB.calf_l) + L(HB.calf_l, HB.foot_l)) / 0.8261;
+}
+/** D-333: advance a person's walking phase by the ground covered this frame over the stride of the gait blend walked at
+ *  that pace (the planted foot stays put), or in place at IN_PLACE_RATE for a stepping cycle done standing; the pace (a
+ *  smoothed speed over the leg scale) picks the gaits' blend */
+export function gaitStep(p: { gaitPh: number; gait: Gait; legK: number; gx: number; gz: number; animK: number }, x: number, z: number, moving: boolean, inPlace: boolean, dt: number) {
+  let d = Number.isNaN(p.gx) ? 0 : Math.hypot(x - p.gx, z - p.gz); p.gx = x; p.gz = z;
+  if (d > 3 || !(dt > 0)) d = 0; // a jump (placed anew), not a step
+  if (moving && d > 0) { const v = d / dt / p.legK; p.gait.v += (Math.max(0.3, Math.min(2.4, v)) - p.gait.v) * Math.min(1, dt * 3);
+    p.gaitPh += 2 * Math.PI * d / (p.legK * strideAt(p.gait.style, p.animK, p.gait.v)); }
+  else if (moving || inPlace) p.gaitPh += IN_PLACE_RATE * dt;
+}
 /** the farthest a cycle's own path takes the performer from the view's spot (m): the ploughman at the furrow's end
  *  (workAnims FURROW: 8 m + the headland turn), for the population's collision capsules (world.ts) */
 export const PATH_REACH = 9;
@@ -142,6 +160,10 @@ export interface Person {
   /** the population person (D-143; -1 for extras), the view's data for them this frame (population people, and detailed
    *  agents off the Terrace), and their walking phase */
   pid: number; vp: ViewPerson | null; vpFrame: number; gaitPh: number;
+  /** D-333: the walking gait (style and pace, fed to the motion-capture gaits), the leg-length scale (body variant × stature
+   *  over the reference body: strides scale with it) and where the walker was last frame (the phase advances by the ground
+   *  covered over the stride, so the planted foot does not slide) */
+  gait: Gait; legK: number; gx: number; gz: number;
   /** D-292: the belly drawn (Population.gravid on the day it was written) */
   belly?: number;
   /** the LOD drawn with in the last frame */
@@ -335,7 +357,8 @@ export class Crowd {
       root: [0, 0, 0, 0], prevRoot: [0, 0, 0, 0], shown: false, drawnFrame: -10, poseFrame: -10, frameMod: seed % 8, lastHit: false,
       blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0], act: '', actPlaceholder: false, nodAt: -1,
       prop2: null, propM2: new THREE.Matrix4(), ip: [0, 0], perf: null, why: '', animT: seed % 100, animK: (seed % 1000) / 159, base: [0, 0, 0, 0], path: null,
-      pid: agent ? agent.pid : -1, vp: null, vpFrame: -10, gaitPh: (seed % 628) / 100 };
+      pid: agent ? agent.pid : -1, vp: null, vpFrame: -10, gaitPh: (seed % 628) / 100,
+      gait: { v: 1.2, style: gaitStyleOf(v.meta) }, legK: legScale(v.joints) * look.scale, gx: NaN, gz: NaN };
     this.persons.set(key, p); if (agent) this.byAgent.set(agent.id, p); return p;
   }
   /** attached people by agent id (no string keys in the per-frame pool scan) */
@@ -617,7 +640,7 @@ export class Crowd {
       // the walking phase of a person of the population: at their pace on the way; in place at a standing spot where the
       // performance is a moving one (the bearers, a guard's round: IN_PLACE_RATE). Advanced for the culled too, so the
       // footsteps they sound (soundsOnly) and the pose on turning back keep time
-      if (!a && vp && !p.extra) { if (vp.moving) p.gaitPh += (vp.speed || 1.2) * dt / 0.72 * Math.PI; else if (ACTIVITIES[p.act as ActivityId]?.moving) p.gaitPh += IN_PLACE_RATE * dt; }
+      if (!p.extra) gaitStep(p, x, z, a ? a.walking : !!vp?.moving, !!ACTIVITIES[p.act as ActivityId]?.moving, dt);
       // a cycle with a path of its own (the ploughman on the furrow, the thresher turning with his team, the archer
       // side-on): the root follows it every frame, between pose refreshes too
       p.path = PATHED.has(p.anim) ? workRoot(p.anim as WorkAnim, this.cycleT(p, time), p.animK) : null;
@@ -698,7 +721,7 @@ export class Crowd {
       const fa: AnimId = moving && !ACTIVITIES[act].moving && !vAnim ? 'walk' : anim;
       if ((ACTIVITIES[act].placeholder && !moving) || impFallback(fa)) placeholders++; // shown standing: counted as the skinned are (D-229: and a frame missing)
       const inPlace = !moving && (ACTIVITIES[act].moving || IMP_GAITS.has(fa) || fa === 'carry_head' || fa === 'carry_shoulder'); // (a stepping cycle in place steps)
-      const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : inPlace ? IN_PLACE_RATE * dt : 0)); if (!a) this.impPhase.set(key, ph);
+      const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / (strideAt('man', L.seed, vp!.speed || 1.2) * L.scale) * 2 * Math.PI : inPlace ? IN_PLACE_RATE * dt : 0)); if (!a) this.impPhase.set(key, ph);
       imp.push(x, y + lift, z, yaw, rowOf(L.dress, frameOf(fa, ph, time + (L.seed % 100))), L.scale, null, L.packed); this.drawnKeys?.add(key);
       if (this.dustTap) this.tapDust(act, moving, x, y, z, yaw, vp?.speed || 1.25, a ? a.seed : pid, !!vAnim);
       const dd = Math.sqrt((x - cam.x) ** 2 + (z - cam.z) ** 2); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
@@ -740,7 +763,7 @@ export class Crowd {
     let po: Pose; let prop1: string | null = null, prop2: string | null = null; const anim = p.anim; const P = p.perf;
     if (P) {
       // the walking phase: a detailed agent's own, a person of the population's advanced by their pace (D-143)
-      po = pose(anim, this.cycleT(p, time), a ? a.gait : p.pid >= 0 && !p.extra ? p.gaitPh : time * 4.2, p.animK);
+      po = pose(anim, this.cycleT(p, time), p.extra ? time * 4.2 : p.gaitPh, p.animK, p.gait);
       // what is carried besides the performance's own props: a detailed agent's load, or a person of the population's goods
       // in the plan's words (popview propOf, D-143) where the activity performed has no prop of its own (a variant that
       // leaves the activity's prop out, prop: undefined, keeps the hands free; stepping aside on arriving is a walk, and the
@@ -753,7 +776,7 @@ export class Crowd {
       if (prop1 === 'spear') prop1 = this.spearOf(p, vp);
       if (po.hit && !p.lastHit && d < 60) this.onHit?.(po.hitKind ?? P.sound ?? 'chisel', _v.set(p.root[0], p.root[1], p.root[2]).clone());
       p.lastHit = !!po.hit;
-    } else po = pose(anim, time + p.t0, time * 4.2, p.animK);
+    } else po = pose(anim, time + p.t0, time * 4.2, p.animK, p.gait);
     // coats, weapons on the back and hats are laid aside while seated, crouched or asleep (they would pass through the ground; C)
     // dressed for the cold (outfits.weatherMask: S5 of shadow review r6), then coats, weapons and hats laid aside
     // D-215: a shield-bearer at his post holds the shield at his side by its grip (the left arm down); the children carried
@@ -770,7 +793,11 @@ export class Crowd {
     // player (sim.greeting: none → a stranger's glance; nod / recognise → the head turns fully and nods once, within 4 m)
     const f = p.face; f.look = null; f.eyeYaw = 0; f.eyePitch = 0; f.jaw = 0;
     const lookAt = p.extra?.look ?? null;
-    if (lookAt) f.look = this.toChar(p, lookAt);
+    if (lookAt) { f.look = this.toChar(p, lookAt);
+      // D-333: the head turns part of the way toward what is looked at (the captured head moves on its own; the eyes do the rest)
+      const L = f.look, ey = this.humans.A.variants[p.look.variant].eyeY, yawT = Math.atan2(L[0], Math.max(0.05, L[2])), pitT = Math.atan2(ey - L[1], Math.hypot(L[0], L[2]));
+      const h = po.rot.head ?? [0, 0, 0], n = po.rot.neck ?? [0, 0, 0]; po.rot.neck = [n[0] * 0.5, 0, n[2] * 0.5];
+      po.rot.head = [0.5 * h[0] + 0.5 * Math.max(-0.4, Math.min(0.6, pitT)), 0.7 * Math.max(-1.1, Math.min(1.1, yawT)), h[2] * 0.5]; }
     else if (playerPos && d < 7 && anim !== 'sleep' && !(p.pid >= 0 && p.pid === this.view?.pop.court?.king)) { // (D-199: the king does not turn to the visitor: brief §1.1)
       const dx = cam.x - p.root[0], dz = cam.z - p.root[2]; const cy = Math.cos(p.root[3]), sy = Math.sin(p.root[3]);
       const lx = cy * dx - sy * dz, lz = sy * dx + cy * dz; const yaw = Math.atan2(lx, lz);
@@ -847,7 +874,7 @@ export class Crowd {
   /** people culled from view still make their tool sounds (detailed agents and the population's people, D-143) */
   private soundsOnly(p: Person, d: number, time: number) {
     if (d > 60 || !p.perf?.sound) return; const a = p.agent;
-    const po = pose(p.anim, this.cycleT(p, time), a ? a.gait : p.gaitPh, p.animK);
+    const po = pose(p.anim, this.cycleT(p, time), p.gaitPh, p.animK, p.gait);
     if (po.hit && !p.lastHit) this.onHit?.(po.hitKind ?? p.perf.sound, new THREE.Vector3(p.root[0], p.root[1], p.root[2])); p.lastHit = !!po.hit;
   }
   /** props not drawn this frame because their class was full (stats) */
@@ -938,9 +965,11 @@ export class Crowd {
   stats() { const s = this.humans.gpu.stats(); let propDraws = 0, props = 0, propTriangles = 0;
     // every prop instance submits its class's whole union (the other kinds' vertices collapse to a point)
     for (const c of this.carried) if (c.mesh.count) { propDraws++; props += c.mesh.count; const g = c.mesh.geometry; propTriangles += c.mesh.count * (g.index ? g.index.count : g.getAttribute('position').count) / 3; }
-    let placeholderActs = 0; for (const p of this.persons.values()) if (p.actPlaceholder && p.drawnFrame === this.frame) placeholderActs++;
+    let placeholderActs = 0, motionCapture = 0, motionAuthored = 0; for (const p of this.persons.values()) if (p.drawnFrame === this.frame) { if (p.actPlaceholder) placeholderActs++;
+      // D-333: whose motion is a capture (whole body, or under the authored hold of a thing), whose an authored stroke over the capture layer
+      if (MOCAP_ANIMS.has(p.anim) || CAPTURED_WORK.has(p.anim)) motionCapture++; else motionAuthored++; }
     const imp = this.imp ? { impostors: this.imp.count, impostorDraws: this.imp.count ? 1 : 0, impostorTriangles: this.imp.count * 2 } : { impostors: 0, impostorDraws: 0, impostorTriangles: 0 };
-    return { ...s, propDraws, props, propTriangles, propsDropped: this.propsDropped, placeholderActs, things: this.things.stats(), animals: this.animals.stats(), perf: { ...this.perf }, ...imp, impPerf: { ...this.impPerf }, view: this.view ? { ...this.view.stats } : null }; }
+    return { ...s, propDraws, props, propTriangles, propsDropped: this.propsDropped, placeholderActs, motionCapture, motionAuthored, things: this.things.stats(), animals: this.animals.stats(), perf: { ...this.perf }, ...imp, impPerf: { ...this.impPerf }, view: this.view ? { ...this.view.stats } : null }; }
   /** evidence notes for the pieces a person wears (tests, overlay) */
   static pieceNotes(look: PersonLook) { return look.pieces.map(id => ({ ...PIECES[id], id })); }
 }

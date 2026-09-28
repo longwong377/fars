@@ -37,7 +37,7 @@ export const FRAMES: Frame[] = [
   { id: 'stand', anim: 'idle', ph: 0 },
   ...[0, 1, 2, 3, 4, 5].map(k => ({ id: `walk${k}`, anim: 'walk' as AnimId, ph: (k / 6) * Math.PI * 2 })),
   { id: 'carry_head', anim: 'carry_head', ph: Math.PI / 2, prop: 'jar_head' }, { id: 'carry_shoulder', anim: 'carry_shoulder', ph: Math.PI / 2, prop: 'sack' },
-  { id: 'sit', anim: 'sit', ph: 0 }, { id: 'kneel', anim: 'grind', ph: 0 }, { id: 'bend', anim: 'chisel', ph: 0 }, { id: 'lie', anim: 'sleep', ph: 0 }, { id: 'guard', anim: 'guard', ph: 0 },
+  { id: 'sit', anim: 'sit', ph: 0, t: 25.3 }, { id: 'kneel', anim: 'grind', ph: 0 }, { id: 'bend', anim: 'chisel', ph: 0 }, { id: 'lie', anim: 'sleep', ph: 0 }, { id: 'guard', anim: 'guard', ph: 0 },
   // D-229 (Phase 5 review M4): the carriers' other stride, and the work. A work frame is a pose of an animation's cycle at
   // time t (s; the bake's k = 0.4), chosen by `npx tsx tools/dev/imp_keys.ts --cover
   // --pairs=winnow,gather,pass,pick,wash,archery,hoe,plough,tread`: a cycle's medoid (the one pose with the least mean
@@ -55,8 +55,8 @@ export const FRAMES: Frame[] = [
   { id: 'drive@22.8', anim: 'drive', ph: 0, t: 22.8 }, { id: 'groom@27', anim: 'groom', ph: 0, t: 27 }, { id: 'herd@24.8', anim: 'herd', ph: 0, t: 24.8 },
   { id: 'sweep@24.6', anim: 'sweep', ph: 0, t: 24.6 }, { id: 'pat@52.2', anim: 'pat', ph: 0, t: 52.2 }, { id: 'haul@56.4', anim: 'haul', ph: 0, t: 56.4 },
   { id: 'reap@25.1', anim: 'reap', ph: 0, t: 25.1 }, { id: 'draw_water@1', anim: 'draw_water', ph: 0, t: 1 }, { id: 'stir@17.5', anim: 'stir', ph: 0, t: 17.5 },
-  { id: 'weave@10.8', anim: 'weave', ph: 0, t: 10.8 }, { id: 'adze@16.5', anim: 'adze', ph: 0, t: 16.5 }, { id: 'bier_r@47.9', anim: 'bier_r', ph: 0, t: 47.9 },
-  { id: 'bier_l@3.9', anim: 'bier_l', ph: 0, t: 3.9 }, { id: 'lay@37', anim: 'lay', ph: 0, t: 37 }, { id: 'irrigate@54.2', anim: 'irrigate', ph: 0, t: 54.2 },
+  { id: 'weave@10.8', anim: 'weave', ph: 0, t: 10.8 }, { id: 'adze@16.5', anim: 'adze', ph: 0, t: 16.5 }, { id: 'bier_r@24.4', anim: 'bier_r', ph: 1.1424, t: 24.4 },
+  { id: 'bier_l@33.2', anim: 'bier_l', ph: 1.1424, t: 33.2 }, { id: 'lay@37', anim: 'lay', ph: 0, t: 37 }, { id: 'irrigate@54.2', anim: 'irrigate', ph: 0, t: 54.2 },
   { id: 'mould@26', anim: 'mould', ph: 0, t: 26 },
   // D-255: the crafts' cycles, each its medoid (tools/dev/imp_keys.ts smith chasing seal_jar scrape pound; the bow drill shares the chasing frame at 0.046 m)
   { id: 'smith@28.5', anim: 'smith', ph: 0, t: 28.5 }, { id: 'chasing@54.2', anim: 'chasing', ph: 0, t: 54.2 }, { id: 'seal_jar@41.6', anim: 'seal_jar', ph: 0, t: 41.6 },
@@ -64,6 +64,11 @@ export const FRAMES: Frame[] = [
   // D-292: the body's care, each its medoid (tools/dev/imp_keys.ts wash_face delouse shave: no frame within 0.09 m before)
   { id: 'wash_face@13.1', anim: 'wash_face', ph: 0, t: 13.1 }, { id: 'delouse@6.6', anim: 'delouse', ph: 0, t: 6.6 }, { id: 'shave@30.9', anim: 'shave', ph: 0, t: 30.9 },
   { id: 'sling@27', anim: 'sling', ph: 0, t: 27 },
+  // D-333: the motion capture (the sitting capture's two ways of sitting, the bearers' captured walk, the talkers' gestures,
+  // the seated crafts over the capture layer): tools/dev/imp_keys.ts --cover --pairs=sit,bier_l,bier_r (a walking frame at its
+  // time's gait phase, 2π t / 1.1, as the tool poses it)
+  { id: 'sit@43.7', anim: 'sit', ph: 0, t: 43.7 }, { id: 'bier_l@20.7', anim: 'bier_l', ph: 5.1408, t: 20.7 }, { id: 'bier_r@20.7', anim: 'bier_r', ph: 5.1408, t: 20.7 },
+  { id: 'write@52.1', anim: 'write', ph: 0, t: 52.1 }, { id: 'fodder@4.3', anim: 'fodder', ph: 0, t: 4.3 }, { id: 'talk@5.4', anim: 'talk', ph: 0, t: 5.4 },
 ];
 export const ROWS = IMP_DRESSES.length * FRAMES.length;
 /** rows per column of blocks */
@@ -78,12 +83,15 @@ export const IMP_GAITS = new Set<AnimId>(['walk', 'guard_walk', 'play', 'carry_f
  *  where the mask's bit is set, one bit per 0.1 s of the cycle's first 60 s (then round again) */
 export const IMP_MAP: Partial<Record<AnimId, [string] | [string, string, string]>> = {
   idle: ['stand'], guard: ['guard'], chisel: ['bend'], grind: ['kneel'], knead: ['kneel'], bake: ['kneel'],
-  draw_water: ['draw_water@1'], write: ['sit'], eat: ['sit'], sleep: ['lie'], talk: ['draw_water@1'], sit: ['sit'],
-  dice: ['sit'], inspect: ['stand'], enthroned: ['enthroned@20.7'], ride: ['ride@45.8'], irrigate: ['irrigate@54.2'], reap: ['reap@25.1'],
-  bind: ['wash@26.8'], drive: ['drive@22.8'], herd: ['herd@24.8'], groom: ['groom@27'], fodder: ['gather@25.5'], shear: ['wash@26.8'],
+  draw_water: ['draw_water@1'], write: ['write@52.1'], eat: ['write@52.1'], sleep: ['lie'], talk: ['talk@5.4'],
+  sit: ['sit', 'sit@43.7', '00000000000ffffffffffffffc00000000000000007fffffffffffffe00000000000000003ffffffffffffff00000000000000001ffffffffffffff80000000000000000ffffffffffffff'],
+  dice: ['write@52.1'], inspect: ['stand'], enthroned: ['enthroned@20.7'], ride: ['ride@45.8'], irrigate: ['irrigate@54.2'], reap: ['reap@25.1'],
+  bind: ['wash@26.8'], drive: ['drive@22.8'], herd: ['herd@24.8'], groom: ['groom@27'], fodder: ['fodder@4.3'], shear: ['wash@26.8'],
   butcher: ['wash@23.5'], hold: ['harp_h@30.9'], hold_sack: ['harp_h@30.9'], hold_lead: ['draw_water@1'], sweep: ['sweep@24.6'], weave: ['weave@10.8'],
   spin: ['harp_h@30.9'], pat: ['pat@52.2'], stir: ['stir@17.5'], mould: ['mould@26'], lay: ['lay@37'], haul: ['haul@56.4'],
-  polish: ['reed_pipe@16.5'], adze: ['adze@16.5'], stoke: ['stoke@22.7'], mend: ['reed_pipe@16.5'], bier_l: ['bier_l@3.9'], bier_r: ['bier_r@47.9'],
+  polish: ['reed_pipe@16.5'], adze: ['adze@16.5'], stoke: ['stoke@22.7'], mend: ['reed_pipe@16.5'], 
+  bier_l: ['bier_l@33.2', 'bier_l@20.7', '81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e0'],
+  bier_r: ['bier_r@24.4', 'bier_r@20.7', '81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e07c0f81f03e0'],
   cook: ['stoke@22.7'], harp_v: ['harp_h@30.9'], harp_h: ['harp_h@30.9'], lyre: ['harp_h@30.9'], frame_drum: ['harp_h@30.9'], double_pipe: ['harp_h@30.9'],
   reed_pipe: ['reed_pipe@16.5'], sing: ['draw_water@1'], ball: ['harp_h@30.9'], rattle: ['reed_pipe@16.5'], barsom: ['harp_h@30.9'], feed_fire: ['harp_h@30.9'],
   mourn: ['draw_water@1'],

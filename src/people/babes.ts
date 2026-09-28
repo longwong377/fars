@@ -9,7 +9,7 @@
 // the plan's words are the simulation's own, C). The child's size follows its age (CHILD_H, a modern growth-chart median:
 // C, Q-066); its skin is the carer's tone.
 import type { Pose, AnimId } from './anim';
-import { trunk, gripIK, type Trunk } from './poseKit';
+import { trunk, gripIK, palmOf, type Trunk } from './poseKit';
 import type { ActivityId } from './activities';
 import { ACTIVITIES } from './activities';
 import { HB } from './humanFormat';
@@ -91,8 +91,12 @@ export function holdBabe(po: Pose, mode: BabeMode, anim: AnimId): number {
  *  hand (the child: `raise`, the arm's angle out from hanging, rad: popview handReach), on side `s` (C) */
 export function holdHand(po: Pose, role: 1 | 2, side: 'l' | 'r', raise: number) {
   const sg = side === 'l' ? 1 : -1;
-  if (role === 1) { po.rot[`${side}_upper`] = [0.05, 0, 0.22 * sg]; po.rot[`${side}_fore`] = [-0.25, 0, 0]; po.rot[`${side}_hand`] = [0, 0, 0]; }
-  else { po.rot[`${side}_upper`] = [-0.12, 0, raise * sg]; po.rot[`${side}_fore`] = [-0.1, 0, 0]; }
+  const up: [number, number, number] = role === 1 ? [0.05, 0, 0.22 * sg] : [-0.12, 0, raise * sg], fore: [number, number, number] = role === 1 ? [-0.25, 0, 0] : [-0.1, 0, 0];
+  // D-333: the hand is put where this arm would hold it from an upright trunk (the walk's trunk is motion capture: it
+  // turns and leans with each stride, and the two walkers' strides differ), so the two hands meet
+  const neutral: Pose = { rot: { [`${side}_upper`]: up, [`${side}_fore`]: fore, [`${side}_hand`]: [0, 0, 0] }, hips: [0, po.hips[1], 0] }; // (the hand held still in the walker's frame: the pelvis's sway is taken by the arm)
+  po.rot[`${side}_hand`] = [0, 0, 0];
+  gripIK(po, trunk(po), side, palmOf(neutral, trunk(neutral), side), [sg * 0.7, -1, -0.25]);
   po.grip = side === 'l' ? [0.6, po.grip?.[1] ?? 0] : [po.grip?.[0] ?? 0, 0.6];
 }
 const _r = new Float64Array(9);
