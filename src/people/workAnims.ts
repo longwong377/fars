@@ -7,7 +7,7 @@
 // hints (Pose.tip / at / show / ip) for the crowd's carried-prop placement (crowd.ts, props.ts GRIPS).
 // Tempo and forms are reconstructions (C): no ancient source describes these motions; tools and their sizes are
 // in props.ts with their tiers. PLACEHOLDER quality in the sense of anim.ts: hand-authored cycles, not motion capture.
-import type { Pose, E3 } from './anim';
+import type { Pose, E3, Gait } from './anim';
 import { trunk, gripIK, legIK, stance, kneeOf, hip, headOf, ANKLE_Y, NOM, HS, v3, app, type Trunk } from './poseKit';
 import { HARP_V, LYRE, DOUBLE_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
 
@@ -902,7 +902,7 @@ function sling(t: number, k: number): Pose {
   grip(p, T, 'r', R, [-0.8, -0.9, -0.3], 0.4); grip(p, T, 'l', load > 0.05 ? [pouch[0] + 0.06, pouch[1], pouch[2]] : [0.19, 0.92, 0.12 + 0.25 * cast], [0.8, -1, -0.2]);
   look(p, T, [6 * S(t * 0.11 + k), 0.3, 8 + 4 * C(t * 0.07 + k)]); p.grip = [load > 0.05 ? 0.8 : 0.2, 1]; return p;
 }
-export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
+export function workPose(id: WorkAnim, t: number, ph: number, k: number, g: Gait = { v: 1.2, style: 'man' }): Pose {
   switch (id) {
     case 'hoe': return hoe(t, k);
     case 'irrigate': return irrigate(t, k);
