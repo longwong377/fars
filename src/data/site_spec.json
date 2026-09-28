@@ -213,6 +213,23 @@
    "tier": "C",
    "note": "stone door frames: jambs lining the opening, lintel and a projecting cornice block (the cavetto \"Egyptian\" cornice of Persepolis doorways: NOT SEEN, verify). Frames of polished stone are reported for the Tachara (tachara.stone_frames, WP-EXT, C); elsewhere C. In unfinished buildings the frames stand complete above the low walls: stone elements were set before the mud brick (C). Sizes C"
   },
+  "r_frame_profile": {
+   "v": {
+    "fasciae": 3,
+    "step": 0.025,
+    "chamfer": 0.004,
+    "torus_h": 0.07,
+    "torus_proj": 0.03,
+    "fillet_h": 0.06,
+    "tongue_pitch": 0.075,
+    "tongue_relief": 0.006,
+    "tongue_rows": 1
+   },
+   "u": "m",
+   "src": "REF-PHOTO-NR3;RECON",
+   "tier": "C",
+   "note": "D-330: the stone frames of doors, windows and niches (global.r_door_frame) carved as the doorways of the Achaemenid rock tombs show them (references/Naqsh-e Rustam 3.webp, the tomb door, which copies a palace doorway: B for the tomb): three stepped fasciae nested around the opening over the whole jamb face and the lintel's lower part (on a window or niche also over the sill block, scaled to its height), each stepping back by `step` toward the opening; the lintel crowned by the cavetto (Egyptian gorge) cornice of r_door_frame: a torus roll torus_h high projecting torus_proj at its foot, the hollow gorge flaring out to the cornice projection, a flat fillet fillet_h high on top; the gorge carved with one register of upright round-topped tongues at tongue_pitch, tongue_relief proud (the tomb cornice: one register seen at ~5 cm per px, C; Q-916). Arrises chamfered by `chamfer` and worn (the Blender trim, tools/blender/decor.mjs). Step, torus, fillet and tongue sizes C (by eye from the photograph, scaled to the frame of r_door_frame)"
+  },
   "r_window": {
    "v": {
     "width_of_door": 0.5,

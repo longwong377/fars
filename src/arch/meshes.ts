@@ -8,6 +8,8 @@ import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
 import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod, protomeBox, protomeMesh, voluteBox, voluteMesh } from './sculpt';
 import { model, fitLevel, placeLevel, bakedMaterial, registerSwap } from '../render/models';
+import { frameGeometries, type FrameGeoStats } from './frames';
+import { frameMaterial } from '../render/decorAssets';
 export { cutWall } from './parts';
 
 /** Greybox materials (Phase 2): flat albedos from pigment/stone references are Phase 3; these are neutral and tagged C. */
@@ -452,7 +454,7 @@ export class MeshLOD extends THREE.Object3D {
   private show(k: number) { this.cur = k; this.levels.forEach((m, i) => { m.visible = i === k; }); }
 }
 
-export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** D-334: the wall heads and roof edges (render geometry) */ roofEdges?: RoofEdges & { pieceTriangles: number } }
+export interface BuiltArch { /** D-330: the carved stone frames (frames.ts; null: drawn as boxes: flat mode or no trim) */ frames: FrameGeoStats | null; group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** D-334: the wall heads and roof edges (render geometry) */ roofEdges?: RoofEdges & { pieceTriangles: number } }
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
@@ -472,6 +474,9 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
   const colossi = parts.filter(p => p.type === 'box' && p.sculpt) as Box[];
   let colliders = 0;
+  // D-330: the stone frames of doors, windows and niches carved (stepped fasciae, the cavetto cornice) on the Blender trim,
+  // when it is loaded; their boxes stay the colliders
+  const frames = !flatMode && frameMaterial('limestone_dark') ? frameGeometries(parts, index) : null;
   for (const p of all) {
     if (p.type === 'column') {
       const k = `${p.building}|${p.order.id}|${p.order.base}|${p.order.capital}|${p.order.shaftD}|${p.order.height}|${p.built.toFixed(2)}`;
@@ -491,12 +496,13 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     if (leaf) continue; // drawn (and moved) by the door system
     // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall). The render geometry is the part's
     // own, with its free arrises bevelled (D-157); the collider above stays the plain box
-    const plain = g.clone(), rg = (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : null) ?? g.clone();
-    if (edgeSet.has(p)) { edgeAttributes(rg, p as Box); edgeAttributes(plain, p as Box); } // D-334: the roof edges' own (no probes: ~4 k boxes)
-    else { partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p)); }
+    const fg = p.type === 'box' ? frames?.byPart.get(p) : undefined;
+    const plain = fg ?? g.clone(), rg = fg ?? (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : null) ?? g.clone();
+    if (edgeSet.has(p)) { edgeAttributes(rg, p as Box); if (plain !== rg) edgeAttributes(plain, p as Box); } // D-334: the roof edges' own (no probes: ~4 k boxes)
+    else { partAttributes(rg, p, index, stairs.get(p)); if (plain !== rg) partAttributes(plain, p, index, stairs.get(p)); }
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
-    const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
+    const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}${fg ? '|frame' : ''}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
   }
   // the timber ceilings under the roofs (D-188): render geometry only, merged per building (no colliders, no bevels)
@@ -512,9 +518,11 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     const g = mergeGeometries(geos)!; tris += g.getAttribute('position').count / 3;
     const roof = ps.every(p => p.kind === 'roof');
     // a timber roof takes the roof surface: cedar with reed matting on its underside, the ceiling (D-188)
-    const m = new THREE.Mesh(g, roof ? roofMaterial(mat === 'timber' && !flatMode ? surfaceMaterial('roof_timber', { arch: true }) : archMaterial(mat as Material)) : archMaterial(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}${extra ? ':' + extra : ''}`;
+    const m = new THREE.Mesh(g, roof ? roofMaterial(mat === 'timber' && !flatMode ? surfaceMaterial('roof_timber', { arch: true }) : archMaterial(mat as Material)) : extra === 'frame' ? frameMaterial(mat)! : archMaterial(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}${extra ? ':' + extra : ''}`;
     if (opts.dynamicDoors) bevelSwap.push({ mesh: m, bevelled: g, plain: mergeGeometries(plain)! }); // the world's build only
-    m.userData = { tier, src: [...new Set(ps.map(p => p.src))].join(';'), placeholder: ph === '1', note: `greybox (Phase 2): ${[...new Set(ps.map(p => p.kind))].join(', ')}`, building };
+    m.userData = { tier, src: [...new Set(ps.map(p => p.src))].join(';'), placeholder: ph === '1', building, note: extra === 'frame'
+      ? `stone frames (${[...new Set(ps.map(p => p.kind))].join(', ')}): three stepped fasciae round the opening and the cavetto (Egyptian gorge) cornice with its tongues, after the rock tombs' doorways (global.r_frame_profile, C; D-330), carved on the Blender-baked trim (worn, chipped arrises)`
+      : `greybox (Phase 2): ${[...new Set(ps.map(p => p.kind))].join(', ')}` };
     group.add(m);
   }
   const SW = srow('lod', 'switch');
@@ -585,5 +593,5 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   }
   let roofEdgesOut: BuiltArch['roofEdges'];
   if (RE) { const P = buildPieces(RE.pieces, flatMode); group.add(P.group); tris += P.triangles; roofEdgesOut = { ...RE, pieceTriangles: P.triangles }; }
-  return { group, triangles: tris, colliders, bevel: bstats, arris, roofEdges: roofEdgesOut };
+  return { group, triangles: tris, colliders, bevel: bstats, arris, roofEdges: roofEdgesOut, frames: frames?.stats ?? null };
 }

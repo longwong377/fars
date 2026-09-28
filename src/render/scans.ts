@@ -81,6 +81,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   prop_wicker: { scan: 'Wicker010B', scale: 0.35, alb: 0.85, height: 0.003, rough: 0.4 },
   prop_felt: { scan: 'Fabric043', scale: 0.5, alb: 0.7, height: 0.001, rough: 0.4 },
   prop_textile: { scan: 'hessian_230', scale: 0.35, alb: 0.6, height: 0.0008, rough: 0.4 },
+  tent_cloth: { scan: 'hessian_230', scale: 0.5, alb: 0.45, height: 0.001, rough: 0.4 }, // D-330: the court tents' woven wool, linen and goat hair (the weave; the colour is the tent's)
   prop_clay: { scan: 'clay_floor_001', scale: 0.6, alb: 0.9, height: 0.0008, rough: 0.6 },
   prop_stone: { scan: 'rock_surface', scale: 0.7, alb: 0.8, height: 0.0015, rough: 0.5 },
   prop_leather: { scan: 'Leather014', scale: 0.5, alb: 0.5, height: 0.0005, rough: 0.5 },
