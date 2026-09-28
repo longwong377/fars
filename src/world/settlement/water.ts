@@ -28,11 +28,15 @@ export function resample(pts: P2[], step: number): P2[] {
 export const FEATHER_DROP = 0.05;
 function ribbon(pts: P2[], w: number, H: (e: number, n: number) => number, lift: number, off = 0, dropEdge = 0, feather = 0) {
   const pos: number[] = [], nor: number[] = [], idx: number[] = [], lat: number[] = [];
+  // (and at its two ends: a run's first and last rows extended by the feather along the road, all sunk)
+  if (feather > 0 && pts.length > 1) { const ext = (p: P2, q: P2): P2 => { const L = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1; return [p[0] + (p[0] - q[0]) / L * feather, p[1] + (p[1] - q[1]) / L * feather]; };
+    pts = [ext(pts[0], pts[1]), ...pts, ext(pts[pts.length - 1], pts[pts.length - 2])]; }
   const across: [number, number][] = feather > 0 ? [[-(w / 2 + feather), -FEATHER_DROP - lift], [-w / 2, 0], [w / 2, 0], [w / 2 + feather, -FEATHER_DROP - lift]] : [[-w / 2, 0], [w / 2, 0]], per = across.length;
   for (let i = 0; i < pts.length; i++) {
     const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
     const nx = -dy / L, ny = dx / L; // left normal (grid)
-    for (const [u, dh] of across) { const e = pts[i][0] + nx * (off + u), n = pts[i][1] + ny * (off + u); pos.push(e, H(e, n) + lift - dropEdge + dh, -n); nor.push(0, 1, 0); lat.push(u, w / 2); }
+    const cap = feather > 0 && (i === 0 || i === pts.length - 1);
+    for (const [u, dh] of across) { const e = pts[i][0] + nx * (off + u), n = pts[i][1] + ny * (off + u); pos.push(e, H(e, n) + lift - dropEdge + (cap ? -FEATHER_DROP - lift : dh), -n); nor.push(0, 1, 0); lat.push(u, w / 2); }
     if (i > 0) { const k0 = (i - 1) * per, k1 = i * per; for (let j = 0; j + 1 < per; j++) idx.push(k0 + j, k1 + j, k0 + j + 1, k0 + j + 1, k1 + j, k1 + j + 1); }
   }
   return { pos, nor, idx, lat };

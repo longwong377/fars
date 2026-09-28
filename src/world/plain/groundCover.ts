@@ -65,7 +65,7 @@ export function coverCell(env: CoverEnv, ix: number, iz: number, seed: number, d
     for (let i = 0; i < n; i++) put('stubble', 20 + i, 1, mixC(COL.stubble, COL.stubbleOld, age), -u.plot.angle + (u01(seed, ix, iz, i, 13) - 0.5) * 0.12); // (its rows along the plot's strip: the sowing ran with the plough)
   } else if (wild && u.use !== 'orchard' || u.row === 'orchard_floor') {
     // the herb layer: tufts at the shader's density and the season's amount, fewer on trodden ground
-    const dens = herbDensity(cx, cz), n = Math.floor(dens * amount * 3.4 * (1 - tr * 0.9) + u01(seed, ix, iz, 9));
+    const dens = herbDensity(cx, cz), trT = Math.min(1, Math.max(0, (tr - 0.2) / 0.3)), n = Math.floor(dens * amount * 3.4 * (1 - trT) + u01(seed, ix, iz, 9) * (1 - trT)); // (none on the roads, the approach and the foot: trodden over ~0.5)
     for (let i = 0; i < n; i++) put(u01(seed, ix, iz, i, 11) < 0.25 ? 'sward' : 'tuft', 30 + i);
   }
   // dung on the trodden ground (the herds and the pack animals), a little on the grazed steppe and the stubble
