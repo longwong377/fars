@@ -157,6 +157,8 @@ export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
   K?.dispose?.();
 }
 export const scansLoaded = () => TEX.size > 0;
+/** D-334: the baked detail maps loaded (their ids), for the probes and the dev overlay */
+export const bakesLoaded = () => [...BAKE.keys()];
 /** node tests (D-301): stand-in textures for scans, so the scanned material graphs build in node as in the browser */
 export function registerScanTextures(ids: string[], make: () => THREE.Texture) { for (const id of ids) TEX.set(id, { diff: make(), arm: make() }); }
 /** tests only (D-300): stand-in textures for every scan in use, so node builds the scanned shaders and counts their samplers

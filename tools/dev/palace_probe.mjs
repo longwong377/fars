@@ -11,7 +11,7 @@ const t0 = Date.now();
 await p.goto('http://localhost:' + (process.env.E2E_PORT ?? '5346') + '/tools/dev/palace_probe.html' + URLX);
 await p.waitForFunction(() => window.__ready, null, { timeout: 1800000 });
 const BB = await p.evaluate(() => window.__bb);
-console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) / 1000, 's', Object.keys(BB).join(' '));
+console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) / 1000, 's', Object.keys(BB).join(' '), 'bakes', JSON.stringify(await p.evaluate(() => window.__bakes)));
 const AT = await p.evaluate(() => window.__at);
 const S = { sunAz: 238.8, sunAlt: 25 }, SE = { sunAz: 120, sunAlt: 35 };
 const V = [];

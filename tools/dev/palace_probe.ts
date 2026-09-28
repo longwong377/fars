@@ -3,7 +3,7 @@
 // sky hemisphere; no sky model, probes, exposure or people. The camera is placed by an eye and a look point in grid
 // coordinates (e, n, height). Driven by tools/dev/palace_probe.mjs
 import * as THREE from 'three/webgpu';
-import { loadScans } from '../../src/render/scans';
+import { loadScans, bakesLoaded } from '../../src/render/scans';
 import { ADIST_OFF } from '../../src/render/blockface';
 import { ArrisField } from '../../src/arch/arris';
 import { Terrain } from '../../src/terrain/heightfield';
@@ -65,5 +65,5 @@ import { roofEdges, wallFeet } from '../../src/arch/roofedge';
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     return errs.slice();
   };
-  (window as any).__ready = true;
+  (window as any).__bakes = bakesLoaded(); (window as any).__ready = true;
 })().catch(e => { (window as any).__ready = String(e); console.error(e); });
