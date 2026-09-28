@@ -8112,3 +8112,20 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   lion-and-bull (hadish/30320472…jpg shows the bull's neck in bead rows, a rosette collar and the lion's flame mane: the
   composition matches, those details do not), the king's audience scene, the jambs' heroes and the throne-bearers (next).
 - The atlas rebuilt (all definitions rebaked).
+
+## D-337 — Performance at high on the T4 (session 12, agent perf; B125, B193)
+- The frame profiler: `src/core/prof.ts` (CPU per named section of main.ts `frame()` and `world.update`, off unless profiling;
+  with `?prof`, WebGPU timestamp queries per render/compute pass, each pass named by its camera and target, with its draws,
+  triangles and draws by object class). `__parsa.profile(n)` runs n frames of the player's loop in a frozen test world (dt
+  1/60, the eye rays every 0.25 s and the meter read back without waiting, as in play): CPU ms, serialised CPU+GPU ms, GPU ms
+  (timestamps), pipelined ms. `tests/e2e/dbg_perf.spec.ts` (DBG=1) profiles 7 heavy views at 1920x1080 in one load, with
+  an A/B of the cascade amortisation and an ablation of the top-level groups (ABL=1).
+- Measured win 1 (node, tools/dev/eyeray_cost.ts, tests/eye_rays.test.ts): the eye's 9 upward rays (skyVisibility, eye
+  adaptation) through three's Raycaster cost 27.6 ms (court), 60.7 ms (Apadana hall), 10.8 ms (Gate) per call: every 0.25 s
+  in play (a 4-per-second hitch) and every frame of a test render. Now a BVH per geometry (three-mesh-bvh 0.9.15, MIT; shares
+  three's core classes): 0.18 ms in the hall, the same answer on 1350 of 1350 rays.
+- Win 2 (not yet measured on the GPU): the far sun cascades are re-drawn every 2nd (cascade 2) and 4th (cascade 3) frame,
+  staggered, and at once when the camera moves 1 % of the cascade's reach, turns 1.5 deg or the sun moves 0.05 deg; the map
+  and its matrix stay a pair, so a skipped frame shows the shadow one to three frames old, never misplaced. Off with ?csmall
+  or `__parsaCascades.on = false`.
+- The dev overlay's lines (world.summary: long strings every frame) are built only when the overlay is shown.
