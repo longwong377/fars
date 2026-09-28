@@ -1,0 +1,26 @@
+{
+ "device": "wasm",
+ "dtype": "q8",
+ "ok": true,
+ "loadMs": 14923.294999986887,
+ "stats0": {
+  "ready": true,
+  "device": "wasm",
+  "loadMs": 14884.765000000596,
+  "renders": 0,
+  "renderMs": 0,
+  "queuedMs": 0,
+  "cached": 0,
+  "pending": 0,
+  "errors": 0,
+  "lastError": ""
+ },
+ "wallS": 247.792,
+ "logs": [
+  "debug [vite] connecting...",
+  "debug [vite] connected.",
+  "error Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "debug [vite] connecting...",
+  "debug [vite] connected."
+ ]
+}

@@ -1,0 +1,116 @@
+[gpu_slot] voices-probe: waiting for a GPU slot (0 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (60 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (120 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (180 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (240 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (300 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (360 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (420 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (480 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (540 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (600 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (660 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (720 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (780 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (840 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (900 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (960 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1020 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1080 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1140 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1200 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1260 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1320 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1380 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1440 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1500 s)
+[gpu_slot] voices-probe: waiting for a GPU slot (1560 s)
+[gpu_slot] voices-probe: got T:/gpu-slots/slot1
+(node:16928) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+1 s {"done":false,"keys":["device","dtype"],"stats":null} debug [vite] connected. | error Failed to load resource: the server responded with a status of 404 (Not Found) | worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module
+16 s {"done":false,"keys":["device","dtype"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+31 s {"done":false,"keys":["device","dtype"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+46 s {"done":false,"keys":["device","dtype"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+61 s {"done":false,"keys":["device","dtype"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+76 s {"done":false,"keys":["device","dtype"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+91 s {"done":false,"keys":["device","dtype"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+106 s {"done":false,"keys":["device","dtype"],"stats":null} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+121 s {"done":false,"keys":["device","dtype","ok","loadMs","stats0"],"stats":{"ready":true,"device":"webgpu","loadMs":110607.56999999285,"renders":0,"renderMs":0,"queuedMs":0,"cached":0,"pending":0,"errors":0,"lastError":""}} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+136 s {"done":false,"keys":["device","dtype","ok","loadMs","stats0"],"stats":{"ready":true,"device":"webgpu","loadMs":110607.56999999285,"renders":0,"renderMs":0,"queuedMs":0,"cached":0,"pending":0,"errors":0,"lastError":""}} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+151 s {"done":false,"keys":["device","dtype","ok","loadMs","stats0","replyMs"],"stats":{"ready":true,"device":"webgpu","loadMs":110607.56999999285,"renders":0,"renderMs":0,"queuedMs":0,"cached":0,"pending":0,"errors":0,"lastError":""}} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+166 s {"done":false,"keys":["device","dtype","ok","loadMs","stats0","replyMs"],"stats":{"ready":true,"device":"webgpu","loadMs":110607.56999999285,"renders":0,"renderMs":0,"queuedMs":0,"cached":0,"pending":0,"errors":0,"lastError":""}} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+182 s {"done":false,"keys":["device","dtype","ok","loadMs","stats0","replyMs"],"stats":{"ready":true,"device":"webgpu","loadMs":110607.56999999285,"renders":0,"renderMs":0,"queuedMs":0,"cached":0,"pending":0,"errors":0,"lastError":""}} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+197 s {"done":false,"keys":["device","dtype","ok","loadMs","stats0","replyMs"],"stats":{"ready":true,"device":"webgpu","loadMs":110607.56999999285,"renders":0,"renderMs":0,"queuedMs":0,"cached":0,"pending":0,"errors":0,"lastError":""}} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+212 s {"done":false,"keys":["device","dtype","ok","loadMs","stats0","replyMs"],"stats":{"ready":true,"device":"webgpu","loadMs":110607.56999999285,"renders":0,"renderMs":0,"queuedMs":0,"cached":0,"pending":0,"errors":0,"lastError":""}} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+227 s {"done":true,"keys":["device","dtype","ok","loadMs","stats0","replyMs","crowd","stats","done"],"stats":{"ready":true,"device":"webgpu","loadMs":110607.56999999285,"renders":0,"renderMs":0,"queuedMs":0,"cached":0,"pending":0,"errors":0,"lastError":""}} worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329 | worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329
+{
+ "device": "webgpu",
+ "dtype": "auto",
+ "ok": true,
+ "loadMs": 110777.15000000596,
+ "stats0": {
+  "ready": true,
+  "device": "webgpu",
+  "loadMs": 110607.56999999285,
+  "renders": 0,
+  "renderMs": 0,
+  "queuedMs": 0,
+  "cached": 0,
+  "pending": 0,
+  "errors": 0,
+  "lastError": ""
+ },
+ "replyMs": {
+  "own": [
+   1995.8400000035763,
+   1052.7049999982119,
+   1507.1000000089407,
+   1084.1800000071526
+  ],
+  "en": [
+   3050.7750000059605,
+   2455.935000002384,
+   2578.3849999904633,
+   2782.125
+  ],
+  "fa": [
+   2646.9249999970198,
+   2369.515000000596,
+   2552.530000001192,
+   2729.4300000071526
+  ]
+ },
+ "crowd": {
+  "units": 96,
+  "wallMs": 82967.43000000715,
+  "audioS": 82.38016666666665,
+  "realtime": 0.9929215810690442
+ },
+ "stats": {
+  "ready": true,
+  "device": "webgpu",
+  "loadMs": 110607.56999999285,
+  "renders": 108,
+  "renderMs": 109747.40499998629,
+  "queuedMs": 3670146.6950000077,
+  "cached": 0,
+  "pending": 0,
+  "errors": 0,
+  "lastError": ""
+ },
+ "done": true,
+ "wallS": 226.925,
+ "logs": [
+  "error Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module",
+  "debug [vite] connecting...",
+  "debug [vite] connected.",
+  "warning Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error..",
+  "worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329",
+  "worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329",
+  "worker blob:http://localhost:5348/8f0066e9-5d29-44ee-9467-4b6a8d47a329"
+ ]
+}
+'dtype' is not recognized as an internal or external command,
+operable program or batch file.

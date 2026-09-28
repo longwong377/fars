@@ -1,0 +1,176 @@
+[gpu_slot] voices-probe2: waiting for a GPU slot (0 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (60 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (120 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (180 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (240 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (300 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (360 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (420 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (480 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (540 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (600 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (660 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (720 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (780 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (840 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (900 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (960 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (1020 s)
+[gpu_slot] voices-probe2: waiting for a GPU slot (1080 s)
+[gpu_slot] voices-probe2: got T:/gpu-slots/slot1
+(node:25728) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+2 s {"done":false,"keys":["device","runs"],"stats":null} debug [vite] connected. | error Failed to load resource: the server responded with a status of 404 (Not Found) | worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module
+17 s {"done":false,"keys":["device","runs"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+32 s {"done":false,"keys":["device","runs"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+47 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e
+62 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e
+77 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e
+93 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e
+108 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e
+123 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e
+138 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e
+153 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e | worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e
+168 s {"done":false,"keys":["device","runs"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+183 s {"done":false,"keys":["device","runs"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+198 s {"done":false,"keys":["device","runs"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+213 s {"done":false,"keys":["device","runs"],"stats":null} worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module | debug [vite] connecting... | debug [vite] connected.
+228 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+243 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+258 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+273 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+288 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+303 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+318 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+333 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+349 s {"done":false,"keys":["device","runs"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+364 s {"done":true,"keys":["device","runs","done"],"stats":null} worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0 | worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0
+{
+ "device": "webgpu",
+ "runs": [
+  {
+   "dtype": "fp16",
+   "ok": true,
+   "loadMs": 48303.52,
+   "device": "webgpu",
+   "firstAudioMs": {
+    "own": [
+     1581.61,
+     755.26,
+     826.97,
+     903.11
+    ],
+    "en": [
+     2363.94,
+     1369.4,
+     1619.86,
+     1533.13
+    ],
+    "fa": [
+     2321.23,
+     1855.27,
+     1800.13,
+     2080.34
+    ],
+    "enWhole": [
+     3680.62,
+     2478.95,
+     2628.09,
+     2728.45
+    ]
+   },
+   "clips": "[8]",
+   "crowd": {
+    "units": 96,
+    "wallMs": 80110.22,
+    "audioS": 150.35,
+    "realtime": 1.88,
+    "renderMs": "[96]"
+   },
+   "stats": {
+    "ready": true,
+    "device": "webgpu",
+    "loadMs": 48116.34,
+    "renders": 120,
+    "renderMs": "[undefined]",
+    "queuedMs": 3590137.92,
+    "cached": 0,
+    "pending": 0,
+    "errors": 0,
+    "lastError": ""
+   }
+  },
+  {
+   "dtype": "fp32",
+   "ok": true,
+   "loadMs": 64672.73,
+   "device": "webgpu",
+   "firstAudioMs": {
+    "own": [
+     1795.09,
+     1166.92,
+     1421.44,
+     1481.45
+    ],
+    "en": [
+     2365.83,
+     1787.77,
+     2132.75,
+     2579.38
+    ],
+    "fa": [
+     3368.24,
+     3053.81,
+     3289.05,
+     2884.8
+    ],
+    "enWhole": [
+     3919.8,
+     3012.38,
+     3657.67,
+     4363.44
+    ]
+   },
+   "clips": "[8]",
+   "crowd": {
+    "units": 96,
+    "wallMs": 77541.56,
+    "audioS": 82.38,
+    "realtime": 1.06,
+    "renderMs": "[96]"
+   },
+   "stats": {
+    "ready": true,
+    "device": "webgpu",
+    "loadMs": 64610.5,
+    "renders": 120,
+    "renderMs": "[undefined]",
+    "queuedMs": 3683757.55,
+    "cached": 0,
+    "pending": 0,
+    "errors": 0,
+    "lastError": ""
+   }
+  }
+ ],
+ "done": true,
+ "wallS": 363.93,
+ "logs": [
+  "debug [vite] connecting...",
+  "debug [vite] connected.",
+  "error Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module",
+  "debug [vite] connecting...",
+  "debug [vite] connected.",
+  "worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e",
+  "worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e",
+  "worker blob:http://localhost:5348/770eed18-8905-4ffd-b47a-51e75e14dd0e",
+  "worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module",
+  "debug [vite] connecting...",
+  "debug [vite] connected.",
+  "warning Unable to add response to browser cache: UnknownError: Failed to execute 'put' on 'Cache': Unexpected internal error..",
+  "worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0",
+  "worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0",
+  "worker blob:http://localhost:5348/bf0de6c2-ee14-4a01-b629-a2ab512986e0"
+ ]
+}

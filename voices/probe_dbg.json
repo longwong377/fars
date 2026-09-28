@@ -1,0 +1,37 @@
+{
+ "device": "wasm",
+ "dtype": "q8",
+ "ok": true,
+ "loadMs": 75543.02499999106,
+ "stats0": {
+  "ready": true,
+  "device": "wasm",
+  "loadMs": 74992.9849999994,
+  "renders": 0,
+  "renderMs": 0,
+  "queuedMs": 0,
+  "cached": 0,
+  "pending": 0,
+  "errors": 0,
+  "lastError": ""
+ },
+ "wallS": 107.419,
+ "logs": [
+  "debug [vite] connecting...",
+  "debug [vite] connected.",
+  "error Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "worker http://localhost:5348/src/audio/neural/neural_worker.ts?worker_file&type=module",
+  "debug [vite] connecting...",
+  "debug [vite] connected.",
+  "worker blob:http://localhost:5348/839530c6-af33-4fad-90cc-d9b49ffed4d8",
+  "worker blob:http://localhost:5348/839530c6-af33-4fad-90cc-d9b49ffed4d8",
+  "worker blob:http://localhost:5348/839530c6-af33-4fad-90cc-d9b49ffed4d8",
+  "log [neural] got speak 1 true false",
+  "log [neural] job 1",
+  "log [neural] speak baɡa wazəɾka auramazdaː. {\"key\":\"nv:rs:m8\",\"sex\":\"m\",\"age\":8,\"mix\":[[\"ff_siwis\",1.8576],[\"af_sky\",0.3174],[\"ef_dora\",0.2274]],\"speed\":1.0099,\"tract\":1.2358,\"level\":0.07217453676043079}",
+  "log [neural] done 41533 26773 ms",
+  "log [neural] got speak 2 true false",
+  "log [neural] job 1",
+  "log [neural] speak jˈɛs maɪ wˈaɪf ɪz æt hˈoʊm ɡɹˈaɪndɪŋ ðə bˈɑːɹli ænd maɪ sˈʌn ɪz wɪððə flˈɑːk {\"key\":\"nv:rs:m8\",\"sex\":\"m\",\"age\":8,\"mix\":[[\"ff_siwis\",1.8576],[\"af_sky\",0.3174],[\"ef_dora\",0.2274]],\"speed\":1.0099,\"tract\":1.2358,\"level\":0.07217453676043079}"
+ ]
+}
