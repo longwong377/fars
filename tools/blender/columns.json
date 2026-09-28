@@ -1,0 +1,72 @@
+{
+ "about": "The carving and dressing of the columns' turned and boxed members and shafts for the Blender sources (D-328; tools/blender/sources/column_member.ts, BLENDER_PLAN rows 1 and 4). MAP-ONLY relief: it is added to the dense source surface Blender bakes from (tools/blender/bake_cols.py), never to the game's triangles, which stay sculpt.ts's own members of the reference order (sculpt.ts MEMBER_REF). Units: D, the order's lower shaft diameter, unless a key ends in _m (metres). Tiers: the motifs (the bell bases' scalloped tongues over pendant leaves outlined by a raised cord with a crested face, the palm capital's drooping veined leaves, the bead row between palm and calyx, the calyx's ribbed sepals and crown of tips, the horizontally fluted torus, the shafts built of drums) are photographed or drawn on the surviving members (B for the motif); counts, layout and sizes are read by eye from the photographs and plates listed with each (C: no measured drawing was read; ISAC Schmidt 1953 plates are the next source, Q-912). The dressing (finish of the stone, joints, the plastered posts, the timber) is C, after the stone's finish on the unweathered Louvre capital (polished, B40) and the Achaemenid practice of fluting shafts after erection (the unfluted drums dressed with the point, C).",
+ "photos": {
+  "bell_base": "fars-assets/photos/columns_capitals/73396298_Persepolis_base_of_a_column.jpg (a bell base of the Terrace: scalloped tongues, pendant leaves outlined by a raised cord, crested faces, the pointed tips of the leaves behind)",
+  "bell_base2": "fars-assets/photos/columns_capitals/73458416_Persepolis_Column_Bottom.jpg (bell bases in the yard: the cords, leaf tips, the torus above)",
+  "plate_bases": "references/column 5.jpeg (19th-c. plate, Bouchet/Guillaumot: capitals and bases of Persepolis: palm bells with drooping leaves, bead rows, ribbed calyces with crowns of tips, bell and torus bases)",
+  "plate_column": "references/column 4.jpg (19th-c. engraving: the composite column with sections of the bell, the volute block and the base fluting)",
+  "louvre": "references/column in louvre.jpg (the Louvre's double-bull capital from Susa: the unweathered stone, pale, smooth, polished)",
+  "shafts": "references/columns today.jpg (standing fluted shafts: sharp arrises, drum joints)"
+ },
+ "stone": {
+  "tier": "C", "src": "louvre;shafts",
+  "note": "the dressed stone's finish on every stone member: polished (B40), with the slight unevenness of hand work: a long undulation and a short one, and rare small pits of the stone's own voids; no weathering (the Terrace is at most 50 years old in 467 BC)",
+  "undulation": [[0.15, 0.00035], [0.03, 0.00012]], "pits": { "per_m2": 14, "r_m": [0.0012, 0.003], "depth_m": 0.0008 }
+ },
+ "base_bell": {
+  "tier": "C", "src": "bell_base;bell_base2;plate_bases",
+  "note": "28 leaves round the bell (both photographs: 13-14 across the visible half); a band of scalloped tongues, one over each gap between leaves, the upper 17 % of the bell; the pendant leaves outlined by a raised cord meeting in a rounded point near the foot, each face crested along its axis; between two leaves under each tongue the pointed tip of the leaf behind, sunk; sizes by proportion to the bell's height in bell_base",
+  "leaves": 28, "band": 0.17, "tip": 0.93, "cord_w": 0.018, "cord_h": 0.016, "face_h": 0.005, "crest_h": 0.006, "behind_tip": 0.45, "behind_h": -0.004, "tongue_h": 0.014, "tongue_cord_w": 0.014
+ },
+ "torus": {
+  "tier": "C", "src": "bell_base2;plate_bases;plate_column",
+  "note": "the torus's horizontal flutes (sculpture.json base.torus, 5) with their arrises worked round (radius 3 mm) and the fillet between torus and shaft",
+  "arris_r_m": 0.003
+ },
+ "square2": {
+  "tier": "C", "src": "plate_bases;louvre",
+  "note": "the two stepped square plinths: arrises worked to a small round (4 mm), a few setting nicks along the lower arrises (C), faces polished",
+  "arris_r_m": 0.004, "nicks": { "per_m": 0.35, "len_m": [0.015, 0.05], "depth_m": 0.004 }
+ },
+ "base_plain": {
+  "tier": "C", "src": "plate_bases",
+  "note": "the plain drum base (the Hadish): a plain dressed drum under the fluted torus; its inscriptions are drawn by the inscription layer (r_base_inscriptions), not here",
+  "arris_r_m": 0.004
+ },
+ "palm": {
+  "tier": "C", "src": "plate_bases;plate_column",
+  "note": "the palm bell: drooping palm leaves from the neck to the rim (sculpture.json capital.palm, 20), each with a raised midrib and fine parallel veins, the tips rounded into the rim's scallops; a bead row at the neck, between palm and calyx (both plates)",
+  "veins": 5, "vein_h": 0.0035, "midrib_h": 0.008, "leaf_h": 0.012, "gap_w": 0.06,
+  "beads": { "n": 0, "r": 0.022, "h": 0.016 }
+ },
+ "calyx": {
+  "tier": "C", "src": "plate_bases;plate_column",
+  "note": "the calyx: ribbed sepals flaring upward (sculpture.json capital.calyx, 24), each sepal with two grooves along it; at the rim a crown of rounded sepal tips standing proud (plate_bases, the middle capital)",
+  "groove_h": 0.004, "crown": 0.12, "crown_h": 0.012
+ },
+ "collar": {
+  "tier": "C", "src": "plate_column",
+  "note": "the collar under the double-bull protome: a plain fillet with a bead row round its middle (C: the plate's composite shows a bead row at each joint of the capital; the plain bull capital's collar is not drawn in any source read)",
+  "beads": { "n": 0, "r": 0.03, "h": 0.018 }
+ },
+ "capital_plain": {
+  "tier": "C", "src": "plate_bases",
+  "note": "the timber orders' bolster and abacus (cedar): adzed faces (shallow scallops across the grain), a few checks along the grain, arrises eased (C: no timber capital survives)",
+  "adze_pitch_m": 0.06, "adze_h_m": 0.0015, "checks": { "per_face": 3, "w_m": 0.0015, "depth_m": 0.003 }, "arris_r_m": 0.006
+ },
+ "shaft_fluted": {
+  "tier": "C", "src": "shafts;plate_column",
+  "note": "the fluted shaft, three drums of it: the flutes (sculpture.json shaft.flutes) cut by hand after erection, their arrises worked to a small round and wandering by a millimetre, the depth varying by a few per cent from flute to flute; the drum joints hairline (1.2 mm) with a slight chamfer; now and then a small setting chip at an arris by a joint",
+  "arris_r_m": 0.0015, "wander_m": 0.0008, "depth_var": 0.05, "joint_w_m": 0.0012, "joint_d_m": 0.0012, "chamfer_m": 0.002, "chips_per_joint": 3, "chip_len_m": [0.01, 0.03], "chip_d_m": 0.003
+ },
+ "shaft_drums": {
+  "tier": "C", "src": "shafts",
+  "note": "the unfluted drums (a shaft is fluted after erection, D-022): the face left from the point and claw, a rougher tooling than the finished flutes, the joints open a little wider",
+  "tool_pitch_m": 0.012, "tool_h_m": 0.0012, "joint_w_m": 0.002, "joint_d_m": 0.002
+ },
+ "shaft_plaster": {
+  "tier": "C", "src": "plate_bases",
+  "note": "the plastered timber posts (the Treasury, the Harem's and the garrison's posts): the lime plaster floated by hand (broad soft undulation), a few hairline cracks along the post's grain and round it (C)",
+  "float_m": [0.25, 0.0008], "cracks": { "vertical": 5, "rings": 2, "w_m": 0.0006, "depth_m": 0.0008 }
+ }
+}

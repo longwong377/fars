@@ -11,7 +11,9 @@
 // scaffolds stand at the column receiving drums and the shaft being fluted. How drums were raised and shafts fluted is not
 // known (no ramp or crane evidence retrieved, D-022): scaffold form, drum stacking and yard layout are all C.
 import * as THREE from 'three/webgpu';
-import { InstancedLOD, carvedMaterial } from '../arch/meshes';
+import { InstancedLOD, carvedMaterial, memberLOD, shaftLOD } from '../arch/meshes';
+import { modelledParts, memberModel, columnBaked, bakedSurface, columnSeed, drumGeometry } from '../arch/column_models';
+import { memberBox, memberMesh, shaftDrumH, SHAFT_TILE, type MemberName } from '../arch/sculpt';
 import { columnMeshesByMaterial, toGeometry, srow, capitalAlone, protomeBox, protomeMesh, type Lod } from '../arch/sculpt';
 import { model, fitLevel, bakedMaterial, registerSwap } from '../render/models';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -56,14 +58,24 @@ export class ConstructionView {
     const groups = new Map<string, typeof C.columns>();
     for (const c of C.columns) { const k = stateKey(c); if (!groups.has(k)) groups.set(k, []); groups.get(k)!.push(c); }
     const SW = srow<any>('lod', 'switch'), o = this.ord, shaftH = o.height - o.baseH - o.capitalH;
+    // D-328: the members drawn by their Blender-built models, one draw each over every state (the bases of all the hall's
+    // columns; the collars of those whose capital is set)
+    const memberAt = new Map<MemberName, number[]>();
     for (const [k, cols] of groups) {
       // D-312: a set capital's double-bull protome is the Blender-built model (public/models/capital_protome.glb) as on the
       // finished halls (arch/meshes.ts), the capital drawn without its procedural protome; the procedural one when not loaded
       const c0 = cols[0], built = c0.drums / c0.drumsTotal, PM = c0.capitalSet && protomeBox(o) ? model('capital_protome') : null;
-      const st = { fluted: c0.fluted >= 1, capital: c0.capitalSet, ...(PM ? { protome: false } : {}) };
+      const MP = modelledParts(o, built, { fluted: c0.fluted >= 1, capital: c0.capitalSet });
+      const st = { fluted: c0.fluted >= 1, capital: c0.capitalSet, ...(PM ? { protome: false } : {}), omit: MP.omit };
       const top = o.baseH + shaftH * built + (st.capital ? o.capitalH : 0); // instance height for the LOD distance rule
       const at = new Float32Array(cols.length * 4); cols.forEach((c, i) => at.set([c.at[0], this.floor, -c.at[1], top], i * 4));
       const L0 = columnMeshesByMaterial(o, built, 0, st), L1 = columnMeshesByMaterial(o, built, 1, st);
+      for (const m of MP.members) { if (!memberAt.has(m)) memberAt.set(m, []); memberAt.get(m)!.push(...at); }
+      if (MP.shaft) {
+        const r = shaftLOD(o, built, { fluted: st.fluted }, MP.shaft, B, at, cols.map(c => c.at as [number, number]), { tier: 'C', src: 'RECON', name: `${B}:construction:${k}:shaft`,
+          note: `Hall of 100 Columns under construction, ${cols.length} column(s): ${c0.drums}/${c0.drumsTotal} drums set, ${st.fluted ? 'fluted' : 'shaft plain (fluting follows erection, C)'}: the game's own shaft with the baked map of a Blender-built tile (D-328: drum joints, the dressing${st.fluted ? ', the flute arrises' : ''}); state from the simulation (src/people/construction.ts, D-022)` });
+        this.group.add(r.lod);
+      }
       for (const { material: mat, mesh } of L0) {
         const lod = new InstancedLOD([toGeometry(mesh), toGeometry(L1.find(x => x.material === mat)!.mesh)], carvedMaterial(mat), at, SW.column, SW.hysteresis);
         lod.name = `${B}:construction:${k}`;
@@ -84,6 +96,8 @@ export class ConstructionView {
         this.group.add(lod);
       }
     }
+    for (const [m, a] of memberAt) { const r = memberLOD(o, m, B, new Float32Array(a), { tier: 'C', src: 'RECON', name: `${B}:construction:${m}`,
+      note: `${m === 'collar' ? 'collars of the capitals set' : 'bases'} of the Hall of 100 Columns under construction (${a.length / 4} columns): the Blender-built member (D-328), form C` }); if (r) this.group.add(r.lod); }
     return true;
   }
   /** the masons' yard and the scaffolds, from the simulation's yard counts and today's tasks */
@@ -110,11 +124,13 @@ export class ConstructionView {
     // each dressed drum carries its team's mark on the upper bedding face (D-212: masons' marks B, the shapes of Pasargadae
     // and the Persepolis reliefs; on the bedding face, hidden once the next drum is set, C)
     const marks: MarkAt[] = [];
+    // D-328: the dressed drums take the drum tile of the unfluted shafts (column_shaft_drums.glb) when it is loaded
+    const DM = model('column_shaft_drums'), drums: THREE.BufferGeometry[] = [];
     for (let k = 0; k < site.dressed; k++) { const e = ex0 + 1.5 + (k % perRow) * pitch, n = ny0 + 1.6 + (2 + Math.floor(k / perRow)) * pitch;
-      dressed.push(cyl(r, dh, e, n)); marks.push(drumMark(new THREE.Vector3(e, y + dh, -n), r, k)); }
+      if (DM) drums.push(drumGeometry(r, dh, 24, [e, y, -n], columnSeed(e, n, 48), SHAFT_TILE.drums * shaftDrumH(o))); else dressed.push(cyl(r, dh, e, n)); marks.push(drumMark(new THREE.Vector3(e, y + dh, -n), r, k)); }
     // capitals: finished ones beside the carving place, the block in work as a roughed-out box of the capital's size
     // D-312: the finished capitals' protomes are the Blender-built model (as on the columns), the rest of the capital procedural
-    const YM = protomeBox(o) ? model('capital_protome') : null, cap = capitalAlone(o, 1, !YM), capFull = YM ? capitalAlone(o, 1) : cap;
+    const YM = protomeBox(o) ? model('capital_protome') : null, CM = memberModel('collar'), cap = capitalAlone(o, 1, !YM, CM ? { collar: true } : {}), capFull = capitalAlone(o, 1);
     if (cap && capFull) {
       const gf = toGeometry(capFull); gf.computeBoundingBox(); const bb = gf.boundingBox!; gf.dispose();
       const g0 = toGeometry(cap), y0c = o.height - o.capitalH;
@@ -125,6 +141,15 @@ export class ConstructionView {
         for (let k = 0; k < site.capitalsReady; k++) im.setMatrixAt(k, M4.makeTranslation(cx - 6 - k * 6, y - y0c, -cy));
         im.castShadow = im.receiveShadow = true; im.name = 'hall100:site:protome';
         im.userData = { tier: 'C', src: 'RECON;PHOTO', building: B, placeholder: false, model: YM.id, note: `masons' yard: the protome of ${site.capitalsReady} finished capital(s), the Blender-built model (D-305/D-306/D-312)` };
+        this.yard.add(im);
+      }
+      if (CM && site.capitalsReady > 0) { // D-328: their collars, the Blender-built member
+        const [lo, hi] = memberBox(o, 'collar')!, pg = fitLevel(CM.lods[0], lo, hi), mat = columnBaked(`${CM.id}:0:limestone_carved`, bakedSurface('limestone_carved', `${CM.id}:0`), CM.maps[0], false);
+        const im = new THREE.InstancedMesh(pg, mat, site.capitalsReady), M4 = new THREE.Matrix4();
+        for (let k = 0; k < site.capitalsReady; k++) im.setMatrixAt(k, M4.makeTranslation(cx - 6 - k * 6, y - y0c, -cy));
+        im.castShadow = im.receiveShadow = true; im.name = 'hall100:site:collar';
+        im.userData = { tier: 'C', src: 'RECON;PHOTO', building: B, placeholder: false, model: CM.id, note: `masons' yard: the collars of ${site.capitalsReady} finished capital(s), the Blender-built member (D-328)` };
+        registerSwap(im, [toGeometry(memberMesh(o, 'collar', 0)!), carvedMaterial('limestone')]);
         this.yard.add(im);
       }
       if (site.capitalInWork) rough.push(new THREE.BoxGeometry(bb.max.x - bb.min.x + 0.2, bb.max.y - bb.min.y + 0.15, bb.max.z - bb.min.z + 0.2).translate(cx, y + (bb.max.y - bb.min.y + 0.15) / 2, -cy));
@@ -146,6 +171,12 @@ export class ConstructionView {
       m.userData = { tier: 'C', src: 'RECON', building: B, placeholder: false, note }; this.yard.add(m);
     };
     add(rough, 'stone_rough', `masons' yard: ${site.waiting} quarry-rough drum(s) waiting${site.capitalInWork ? ', a capital block being carved' : ''} (counts from the simulation, D-022; stacking and yard layout C)`);
+    if (DM && drums.length) {
+      const g = mergeGeometries(drums)!, mat = columnBaked(`${DM.id}:0:limestone_carved`, bakedSurface('limestone_carved', `${DM.id}:0`), DM.maps[0], true);
+      const m = new THREE.Mesh(g, mat); m.castShadow = m.receiveShadow = true; m.name = 'hall100:site:drums';
+      m.userData = { tier: 'C', src: 'RECON', building: B, placeholder: false, model: DM.id, note: `masons' yard: ${drums.length} dressed drum(s) ready to raise, with the baked map of the Blender-built drum tile (D-328; counts from the simulation, layout C)` };
+      this.yard.add(m);
+    }
     add(dressed, 'limestone', `masons' yard: ${site.dressed} dressed drum(s) ready to raise, ${site.capitalsReady} finished capital(s) (counts from the simulation; layout C)`);
     add(timber, 'scaffold', `timber scaffold(s) at column(s) ${site.scaffolds.map(i => i + 1).join(', ')} (receiving drums / being fluted); form C: no evidence of the method was retrieved (D-022)`);
     const mk = marksMesh(marks, 'limestone', v<any>('global', 'r_masons_marks').drum.lift, 'hall100:site:marks', 'masons\' marks on the dressed drums\' upper bedding faces (D-212; marks B, shapes B elsewhere, this placement C)');

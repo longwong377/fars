@@ -8,9 +8,9 @@ collar and rosettes, pendant, mane; rosette-ended rolls), and the Gate's four co
 their collar, bead rows, mane, feather barbs. The carving is map-only relief on the bake's source (tools/blender/carving.json,
 lib/carving.ts). **Not done / placeholder:** the capitals and colossi still read as CG to a blind reviewer (capitals 2/5,
 colossi 1/5; B118): the FORM of the tier-C models is what fails (Q-842, B120), and the carving's sizes are by eye (Q-840);
-the palm and calyx bells are not baked (row 1); the volute member's reeded panel shows seam streaks in its map; the other
+the palm and calyx bells are not baked (row 1: DONE since D-328, with every base, collar, timber capital and shaft, section 10); the volute member's reeded panel shows seam streaks in its map (D-328: a smooth cage and a 50 deg tilt limit, bake_cols.py); the other
 protome types of Persepolis (griffin, lion) are not modelled (Q-843); impostors are designed here but not built; the Hall of
-100 Columns' columns under construction and the masons' yard capitals still draw the procedural protome (not my files).
+100 Columns' columns under construction and the masons' yard capitals still draw the procedural protome (not my files; D-312 and D-328: done).
 
 ## 1. What Blender adds, and what it cannot
 
@@ -203,3 +203,16 @@ batched full-world render (tests/e2e/blender_hero.spec.ts is the pattern: A/B in
   manifest.json); probe page tools/blender/probe/life_probe.*; tests/life_models.test.ts (every class and kind built, in
   budget, drawn by every code path, nose-first).
 - **Not done / unverified:** see B178-B180.
+## 10. Session 12 (D-328): rows 1 and 4 finished, every column part world-wide
+
+- **Ten assets** (tools/blender/sources/column_member.ts, tools/blender/columns.json, tools/blender/bake_cols.py): the bell,
+  square and plain bases, the palm and calyx bells, the collar, the timber bolster and abacus (the game's own member of a
+  reference order, fitted to every order's member box), and four shaft tiles (48 and 40 flutes, the unfluted drums, the
+  plastered posts: a band of the reference shaft three drums tall and the whole way round, sampled by the game at
+  sculpt.ts shaftUV's coordinates, offset per column by whole flutes and drums). With the protome and the volute member no
+  column part of the 580 columns, the Hall of 100 Columns' construction states or the masons' yard is procedural when the
+  models load. ~11 MB of GLBs; the members' triangles are the game's.
+- **bake_cols.py:** bake.py plus source UVs (the tiles), rays from a smooth cage, and a tilt limit (the volute: 50 deg).
+- **Row 4:** the protome's apron of curl tufts (the Louvre capital) added to D-306's carving.
+- **Not done:** the carving is in the maps, not the silhouettes (B166); one tile per kind and one member per kind fitted to
+  every order (B167); counts and sizes by eye (Q-912); the griffin and lion capitals (Q-843) still not modelled.

@@ -21,6 +21,16 @@ export const VIEWS = [
   { n: 'harem-bull-capital', eye: [106.3, 2.6, 145.6], at: [110.25, 6.2, 149.25], fov: 70 },
   { n: 'tachara-bull-capital', eye: [-23.2, 4.2, 73.2], at: [-26.4, 9.5, 76.85], fov: 70 },
   { n: 'apadana-composite-capital', eye: [-24.5, 4.6, 21.8], at: [-19.7, 18.5, 26.5], fov: 70 },
+  // D-328: the columns' bases, shafts and capital bells (?b=gate_nations,apadana,tachara,harem,hadish,treasury,hall100,garrison)
+  { n: 'apadana-bell-base', eye: [-17.5, 4.6, -37.7], at: [-19.7, 3.7, -39.31], fov: 70 },
+  { n: 'apadana-square-base', eye: [-17.1, 4.6, 28.3], at: [-19.7, 3.7, 26.5], fov: 70 },
+  { n: 'apadana-shaft-up', eye: [-17.9, 4.6, -38.1], at: [-19.7, 11, -39.31], fov: 70 },
+  { n: 'gate-bell-base', eye: [-1.8, 1.6, -119.1], at: [-3.99, 0.6, -120.47], fov: 70 },
+  { n: 'tachara-base', eye: [-24.6, 4.2, 78.05], at: [-26.4, 2.9, 76.85], fov: 70 },
+  { n: 'hadish-plain-base', eye: [13.85, 7.6, 170.25], at: [12.25, 6.4, 169.25], fov: 70 },
+  { n: 'hall100-base', eye: [120.6, 2.1, 58.6], at: [118.38, 1.0, 57.03], fov: 70 },
+  { n: 'treasury-shafts', eye: [165.4, 1.9, 143.25], at: [163.43, 2.6, 141.75], fov: 70 },
+  { n: 'garrison-posts', eye: [196.6, 1.8, 55.6], at: [195.08, 1.6, 54.25], fov: 70 },
 ];
 const b = await chromium.launch({ channel: process.env.PW_CHANNEL ?? 'chrome', headless: true, args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'] });
 const p = await b.newPage({ viewport: { width: 1600, height: 900 } }); const logs = [];
