@@ -8055,3 +8055,18 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
   B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
   platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.
+- **D-309d (the lead's gap audit: interiors far too dark — room-treasury-store mean 31, scribe-room-ne 19 of 255).** Cause
+  (measured, src/sky/exposure.ts): interiorExposureTarget capped the eye at KEY / (v·E + fireE + 0.004); by day 0.004 is
+  ~150 lx in renderer units, so every room below ~150 lx at the eye was exposed at X ≈ 575 whatever its own light (the verify
+  render's exposures: 255, 338, 505). The floor is now 1e-6 (Xsky, the adaptation model, bounds the eye). And an adapted-eye
+  floor on the displayed grey indoors (interiorGreyFloor, C): 0.30 at 1 lx rising to 0.55 by 1000 lx, none below 0.1 lx (a
+  fireless hall at night stays black); the Meybod caravanserai vault (fars-assets/photos/fars_villages_mudbrick; reference
+  only) sits at lower-frame p50 53, the renders at 25. Probe re-bake: not needed — tests/probes.test.ts's parts hash matches
+  the current architecture (26 pass); the palaces' new mud-brick walls (D-334) are meshes over the same parts.
+- **D-309e (B111, night): the clouds' light march pointed at the set sun** (through the whole deck, so the moonlight added to
+  their light never reached them: dark smudges on the starry sky, night-moon-fire). With the sun below −4° it points at the
+  moon (blended over 4°). Not done: the town's lamps and hearths lighting the lanes beyond the 12 nearest point lights (high).
+- **T-K6 context (world, Q high, 1920×1080, T4, everything merged at 18bce96+; tests/e2e/moments.spec.ts FRAMETIME=1: 30
+  renderOnce() calls, GPU queue drained):** town-smoke-dusk 287 ms, night-moon-fire 209 ms a frame (204 draws, 4.0 M
+  triangles). renderOnce includes the frozen test world's per-frame CPU work (the eye's upward rays, the world update), so
+  this is an upper bound on the GPU frame; far over any playable budget either way (B-row below).
