@@ -43,6 +43,9 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // windows Ystd/Y 0.062 at 1 cm/px) in place of Brown Mud Dry (a gravelly soil, 0.31: the Gate's walls read as sandpaper)
   mudbrick: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.6, height: 0.003, rough: 0.4, nor: 2.0 },
   mudbrick_painted: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.5, height: 0.003, rough: 0.4, nor: 2.0 },
+  mudbrick_bare: { scan: 'clay_block_wall', scale: 1.9, alb: 0.5, height: 0.003, rough: 0.4 }, // D-334: the walls under construction
+  // D-334: the palaces' roofs and exposed tops: the rolled clay-and-straw coat (a clay plaster scan; the roller, straw and cracks baked)
+  roof_earth: { scan: 'clay_plaster', scale: 2.4, scale2: 10.3, alb: 0.6, height: 0.003, rough: 0.4 },
   house_brick: { scan: 'brown_mud_dry', scale: 1.5, alb: 0.6, height: 0.004, rough: 0.4 },
   baked_brick: { scan: 'clay_block_wall', scale: 1.5, alb: 0.5, height: 0.003, rough: 0.4 },
   mud_plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.7, height: 0.003, rough: 0.4 },
@@ -78,6 +81,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   prop_wicker: { scan: 'Wicker010B', scale: 0.35, alb: 0.85, height: 0.003, rough: 0.4 },
   prop_felt: { scan: 'Fabric043', scale: 0.5, alb: 0.7, height: 0.001, rough: 0.4 },
   prop_textile: { scan: 'hessian_230', scale: 0.35, alb: 0.6, height: 0.0008, rough: 0.4 },
+  tent_cloth: { scan: 'hessian_230', scale: 0.5, alb: 0.45, height: 0.001, rough: 0.4 }, // D-330: the court tents' woven wool, linen and goat hair (the weave; the colour is the tent's)
   prop_clay: { scan: 'clay_floor_001', scale: 0.6, alb: 0.9, height: 0.0008, rough: 0.6 },
   prop_stone: { scan: 'rock_surface', scale: 0.7, alb: 0.8, height: 0.0015, rough: 0.5 },
   prop_leather: { scan: 'Leather014', scale: 0.5, alb: 0.5, height: 0.0005, rough: 0.5 },
@@ -92,8 +96,14 @@ export const SCAN_USE: Record<string, ScanUse> = {
  *  cavity darkens the grooves and lightens the ridges (± fraction of the albedo). The houses' plaster (town and villages, near
  *  and far) takes the mud-plaster wall: the float's arcs, the straw, grit and pits, shrinkage cracks, the brick courses faint
  *  through a thin coat (C) */
-export const WALL_BAKE: Record<string, { tex: string; scale: number; nor: number; cav: number }> = {
+export const WALL_BAKE: Record<string, { tex: string; scale: number; nor: number; cav: number; /** D-334: the map is public/textures/<tex>/bake.ktx2 (UASTC) */ ktx?: boolean }> = {
   house_plaster: { tex: 'housewall_bake', scale: 2.37, nor: 1.1, cav: 0.3 },
+  // D-334 (tools/blender/palacebake.py): the palaces' mud plaster as fresh in 467 (a finer finish coat, the finishing float's
+  // wide sweeps, fine chaff, few hairline cracks, the square bricks' courses just through the coat) on every palace wall, painted
+  // or not, and their parapets; the roofs' rolled clay-and-straw coat (the roller's tracks, coarse straw, a crack network)
+  mudbrick: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true },
+  mudbrick_painted: { tex: 'palacewall_bake', scale: 2.61, nor: 2.2, cav: 0.25, ktx: true },
+  roof_earth: { tex: 'palaceroof_bake', scale: 3.13, nor: 1.8, cav: 0.3, ktx: true },
 };
 const BAKE = new Map<string, THREE.Texture>();
 
@@ -102,7 +112,7 @@ const BAKE = new Map<string, THREE.Texture>();
  *  (no fitting scan: judged by T-A4): bronze, the glazed brick, the red-painted floors, reed matting, cloth */
 export const ALB_MIN = 0.3;
 export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark',
-  'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted',
+  'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted', 'roof_earth', 'mudbrick_bare',
   'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
   'refuse', 'timber', 'roof_timber', 'house_timber', 'scaffold'].map(k => [k, true]));
 /** the scan applied to a surface at a strength that reads (T-A7's anti-proxy: alb >= ALB_MIN), or null; what the builders record
@@ -134,11 +144,22 @@ export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
   }));
   await loadGround(base, anisotropy);
   // D-324: the baked detail maps (a missing file leaves its surface as the scan alone)
+  // D-334: the KTX2 bakes (UASTC, their own mips) through the KTX2 loader, as blockface.ts
+  const ktxOf = new Set(Object.values(WALL_BAKE).filter(b => b.ktx).map(b => b.tex));
+  let K: any = null;
+  if (ktxOf.size) try { const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
+    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
+    K = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); K.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); } catch { K = null; }
   await Promise.all([...new Set(Object.values(WALL_BAKE).map(b => b.tex))].map(async id => { try {
-    const t = await L.loadAsync(`${base}textures/${id}/bake.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.generateMipmaps = true;
-    t.minFilter = THREE.LinearMipmapLinearFilter; t.colorSpace = THREE.NoColorSpace; BAKE.set(id, t); } catch { /* not built: the scan alone */ } }));
+    const kt = ktxOf.has(id); if (kt && !K) return;
+    const t: THREE.Texture = kt ? await K.loadAsync(`${base}textures/${id}/bake.ktx2`) : await L.loadAsync(`${base}textures/${id}/bake.jpg`);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; if (!kt) t.generateMipmaps = true; else t.magFilter = THREE.LinearFilter;
+    t.minFilter = THREE.LinearMipmapLinearFilter; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; BAKE.set(id, t); } catch { /* not built: the scan alone */ } }));
+  K?.dispose?.();
 }
 export const scansLoaded = () => TEX.size > 0;
+/** D-334: the baked detail maps loaded (their ids), for the probes and the dev overlay */
+export const bakesLoaded = () => [...BAKE.keys()];
 /** node tests (D-301): stand-in textures for scans, so the scanned material graphs build in node as in the browser */
 export function registerScanTextures(ids: string[], make: () => THREE.Texture) { for (const id of ids) TEX.set(id, { diff: make(), arm: make() }); }
 /** tests only (D-300): stand-in textures for every scan in use, so node builds the scanned shaders and counts their samplers

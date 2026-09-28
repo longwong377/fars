@@ -20,3 +20,4 @@ data/makehuman/
 
 # D-296: the in-browser models (a junction to C:/Users/Administrator/fars-assets/models; tools/dev/fetch_models.mjs)
 public/models
+tools/dev/decor_probe_tents.json

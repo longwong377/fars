@@ -15,6 +15,7 @@ import { figureDef } from './relief_figures';
 import inscriptions from '../data/inscriptions.json';
 import programme from '../data/royal_inscriptions.json';
 import { surfaceMaterial, incisedMaterial } from '../render/materials';
+import { merlonModel, withBakedMap } from '../render/decorAssets';
 
 const up = new THREE.Vector3(0, 1, 0);
 const gw = (e: number, n: number) => new THREE.Vector3(e, 0, -n); // grid → world (direction or point at y=0)
@@ -45,12 +46,12 @@ export function buildReliefs(m: Manifest): THREE.Group {
   const set = new ReliefSet(items, rosettes, 'relief:apadana'); g.add(set);
   g.userData = { ...set.userData };
   // four-stepped crenellations along the façade tops
-  const C = v<any>('apadana', 'r_crenellation'); const cren = crenellationGeometry(C.width, C.height, C.steps, 0.45);
+  const C = v<any>('apadana', 'r_crenellation'), MM = merlonMesh(), cren = MM?.geo ?? crenellationGeometry(C.width, C.height, C.steps, merlonModelDepth());
   const crenMats: THREE.Matrix4[] = [];
   const topAt = (aa: number) => { const s = sg.spans.find(x => aa >= x.a0 - 1e-6 && aa <= x.a1 + 1e-6); if (!s || s.type === 'landing') return sg.podium + sg.parapet; const d = s.rise > 0 ? aa - s.a0 : s.a1 - aa; return (Math.floor(d / sg.tread) + 1) * sg.riser + sg.parapet; };
   for (const f of apadanaFacades(m)) for (let aa = -f.length / 2 + C.width / 2; aa < f.length / 2; aa += C.width * 1.15) crenMats.push(facadeMatrix(f, aa, topAt(aa), 1).multiply(new THREE.Matrix4().makeTranslation(0, 0, -0.5)));
-  const ci = new THREE.InstancedMesh(cren, surfaceMaterial('limestone_merlon'), crenMats.length); crenMats.forEach((mm, i) => ci.setMatrixAt(i, mm)); ci.castShadow = true; ci.receiveShadow = true;
-  ci.userData = { tier: 'C', src: 'IR-PERS;RECON', note: 'four-stepped crenellations (motif B, size C)' }; ci.name = 'crenellations'; ci.computeBoundingSphere(); g.add(ci);
+  const ci = new THREE.InstancedMesh(cren, MM?.mat ?? surfaceMaterial('limestone_merlon'), crenMats.length); crenMats.forEach((mm, i) => ci.setMatrixAt(i, mm)); ci.castShadow = true; ci.receiveShadow = true;
+  ci.userData = { tier: 'C', src: 'IR-PERS;RECON', note: `four-stepped crenellations (motif B, size C)${MM ? MERLON_NOTE : ''}` }; ci.name = 'crenellations'; ci.computeBoundingSphere(); g.add(ci);
   return g;
 }
 /** Phase 4 reliefs (D-049): the Tachara, Hadish and Tripylon stair façades and the door jambs of the Tachara, Hadish,
@@ -102,18 +103,33 @@ export function stairCrenellationPlan(parts: Part[]): Merlon[] {
 /** the stair-parapet merlons as one instanced mesh (limestone, as the parapets) */
 export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | null {
   const CR = v<any>('global', 'r_stair_crenellation'), plan = stairCrenellationPlan(parts); if (!plan.length) return null;
-  const geo = crenellationGeometry(CR.width, CR.height, CR.steps, 1);
-  const mesh = new THREE.InstancedMesh(geo, surfaceMaterial('limestone_merlon'), plan.length), m = new THREE.Matrix4(), t = new THREE.Matrix4();
+  // D-330: the Blender merlon (built at merlonModelDepth(), scaled to each parapet) when loaded, else the unit-deep extrusion
+  const MM = merlonMesh(), D = MM ? merlonModelDepth() : 1, geo = MM?.geo ?? crenellationGeometry(CR.width, CR.height, CR.steps, 1);
+  const mesh = new THREE.InstancedMesh(geo, MM?.mat ?? surfaceMaterial('limestone_merlon'), plan.length), m = new THREE.Matrix4(), t = new THREE.Matrix4();
   plan.forEach((q, i) => {
     // X along the run, Y up, Z = X × Y across the parapet (right-handed, so the extrusion keeps its winding); the unit-deep
     // extrusion is scaled to the merlon depth and centred on the parapet's mid-line
     const X = q.axis === 0 ? gw(1, 0) : gw(0, 1), Z = new THREE.Vector3().crossVectors(X, up);
-    m.makeTranslation(q.c[0], q.y, -q.c[1]).multiply(t.makeBasis(X, up, Z)).multiply(t.makeScale(1, 1, q.depth)).multiply(t.makeTranslation(0, 0, -0.5));
+    m.makeTranslation(q.c[0], q.y, -q.c[1]).multiply(t.makeBasis(X, up, Z)).multiply(t.makeScale(1, 1, q.depth / D)).multiply(t.makeTranslation(0, 0, -D / 2));
     mesh.setMatrixAt(i, m);
   });
   mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = 'stair-crenellations'; mesh.computeBoundingSphere();
-  mesh.userData = { tier: 'C', src: 'IR-PERS;SI-ARCH;RECON', note: `four-stepped merlons on the stair parapets of ${CR.buildings.join(', ')} (motif B on the Apadana stairs; here by the Persepolis stair convention, size C; D-065)` };
+  mesh.userData = { tier: 'C', src: 'IR-PERS;SI-ARCH;RECON', note: `four-stepped merlons on the stair parapets of ${CR.buildings.join(', ')} (motif B on the Apadana stairs; here by the Persepolis stair convention, size C; D-065)${MM ? MERLON_NOTE : ''}` };
   return mesh;
+}
+/** D-330: the depth (m) of the merlon the Blender model is built at (the Apadana's: apadana crenellations; the stair
+ *  merlons scale it to their parapet, as the procedural merlon's unit depth was) */
+export const merlonModelDepth = (): number => v<any>('global', 'r_stair_crenellation').max_depth;
+const MERLON_NOTE = '; the merlon modelled in Blender (tools/blender/decor.mjs merlon, D-330): its arrises worn round, chipped, the faces pitted (C), baked as normal and occlusion maps on the same triangles';
+/** D-330: the Blender merlon (public/models/decor/merlon.glb: the game's merlon at merlonModelDepth() with baked normal + AO)
+ *  with its 'mzd' attribute (the distances to the front and back faces, as crenellationGeometry writes them), and its
+ *  material; null when not loaded (the procedural merlon is drawn) */
+export function merlonMesh(): { geo: THREE.BufferGeometry; mat: THREE.Material } | null {
+  const M = merlonModel(); if (!M) return null;
+  const g = M.lods[0].clone(), P = g.getAttribute('position'), D = merlonModelDepth(), a = new Float32Array(P.count * 2);
+  for (let i = 0; i < P.count; i++) { a[2 * i] = P.getZ(i); a[2 * i + 1] = D - P.getZ(i); }
+  g.setAttribute('mzd', new THREE.BufferAttribute(a, 2));
+  return { geo: g, mat: withBakedMap('limestone_merlon', M.maps[0], 'merlon') };
 }
 /** the merlons' chamfer (m, C) */
 export const CREN_BEVEL = 0.012;

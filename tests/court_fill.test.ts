@@ -151,9 +151,9 @@ describe('the camps’ tents (D-199: camps.ts, C)', () => {
     const sleeps = K.tents.reduce((s, t) => s + TENT_KINDS[t.kind].sleeps, 0);
     OUT.tents = { total: K.tents.length, sleeps, camps: res }; save(); console.log(JSON.stringify(OUT.tents));
   }, 300_000);
-  it('the tents drawn: a mesh per camp, a collider per tent, ≤ 20 triangles a tent; the people asleep inside (on the tent’s floor, drawn inside it: D-244), the rest before their door', () => {
+  it('the tents drawn: instanced per kind and level (D-330; was a mesh per camp), a collider per tent, ≤ 20 triangles a tent from afar (the shells; near, tests/tents.test.ts); the people asleep inside (on the tent’s floor, drawn inside it: D-244), the rest before their door', () => {
     const K = P.court!, t0 = performance.now(), C = new CourtCampTents(K.tents, () => 1600), ms = performance.now() - t0;
-    expect(C.info.tents).toBe(K.tents.length); expect(C.info.meshes).toBeGreaterThanOrEqual(CAMPS.length); expect(C.info.colliders).toBe(K.tents.length); expect(C.info.tris / C.info.tents).toBeLessThanOrEqual(20);
+    expect(C.info.tents).toBe(K.tents.length); expect(C.info.meshes).toBeGreaterThanOrEqual(Object.keys(TENT_KINDS).length); expect(C.info.colliders).toBe(K.tents.length); expect(C.info.tris / C.info.tents).toBeLessThanOrEqual(20);
     // D-252: a camp stands only while the court is here: none before its first household comes, all once the column is in, none
     // after the leave day's morning; a tent never stands before its household reaches the camp
     const Y = K.year; C.setTime(Y.first * 24); expect(C.info.standing).toBe(0); C.setTime((Y.last + 1) * 24 + 12); expect(C.info.standing).toBe(K.tents.length); C.setTime(K.leaveDay * 24 + 12); expect(C.info.standing).toBe(0);

@@ -105,7 +105,7 @@ describe('garment drape (people_cloth)', () => {
     const D = M.drape!; expect(D).toBeTruthy();
     for (const [k, S] of Object.entries(D.sets)) {
       const [key] = k.split('|'); expect(O.geos![key]?.n, k).toBe(S.meta.n);
-      expect(S.meta.max, k).toBeLessThan(key.startsWith('veil') ? 0.25 : 0.2); // (D-322: the veil, cut as an open sheet flaring off the back, falls in to the back by up to 21 cm when simulated)
+      expect(S.meta.max, k).toBeLessThan(0.2);
       if (/skirt|sleeves|veil/.test(key)) expect(S.meta.rms, k).toBeGreaterThan(0.005);
     }
   });
@@ -155,12 +155,28 @@ describe('garments re-cut from simulated patterns (D-322)', () => {
     // and every piece that is cloth in a built costume is one of them (nothing left procedural)
     for (const d of BUILT) for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) if (/upper|skirt|sleeves|trousers|kandys|headcloth|veil|belt/.test(id)) expect(SIM, `${d} ${id}`).toContain(id);
   });
-  it('the fold layers: a 1024 x 2048 PNG, and a fold atlas coordinate on every simulated piece\'s outer vertices at every level', () => {
-    const D = M.drape!, F = D.meta.folds!; expect(F.file).toBe('people_cloth_folds.png'); expect(F.layers).toBe(2); expect(F.texelsPerMetre).toBeGreaterThan(80);
-    const b = readFileSync(`${PEOPLE_DIR}/${F.file}`); expect(b.readUInt32BE(16)).toBe(1024); expect(b.readUInt32BE(20)).toBe(2048);
+  it('the fold layers: 1024 px squares, two per seed (1024 x 4096 with two seeds), and a fold atlas coordinate on every simulated piece\'s outer vertices at every level', () => {
+    const D = M.drape!, F = D.meta.folds!; expect(F.file).toBe('people_cloth_folds.png'); expect(F.layers).toBe(2 * (D.meta.seeds ?? 1)); expect(F.texelsPerMetre).toBeGreaterThan(80);
+    const b = readFileSync(`${PEOPLE_DIR}/${F.file}`); expect(b.readUInt32BE(16)).toBe(1024); expect(b.readUInt32BE(20)).toBe(1024 * F.layers);
     for (const [k, f] of Object.entries(D.fuv)) { const g = O.geos![k]; expect(g?.n, k).toBe(f.length / 2); let inAtlas = 0; for (let i = 0; i < g.n; i++) if (f[i * 2] >= 0) { expect(f[i * 2]).toBeLessThanOrEqual(1); inAtlas++; } expect(inAtlas / g.n, k).toBeGreaterThan(0.4); }
     // in the costumes: below full detail the coordinate is offset by 2 (the second layer)
     for (const C of O.costumes.woman) { let n = 0; for (let k = 0; k < C.fuv.length / 2; k++) if (C.fuv[k * 2] >= 0) { n++; expect(C.fuv[k * 2] >= 2).toBe(C.lod >= 1); } expect(n, `woman LOD${C.lod}`).toBeGreaterThan(100); }
+  });
+  it('rev 2: bodies of a group do not all fold alike: a second cut per piece and group, worn by every other body variant, whose drape differs', () => {
+    const D = M.drape!, S = D.meta.seeds ?? 1; expect(S).toBeGreaterThanOrEqual(2);
+    for (const k of ['dress_skirt@0|women', 'robe_skirt@0|men', 'tunic_upper@0|men', 'robe_sleeves@0|men', 'veil@0|women']) {
+      const a = D.sets[k], b = D.sets[`${k}#1`]; expect(b, k).toBeTruthy(); let ss = 0; for (let i = 0; i < a.d.length; i++) ss += ((a.d[i] - b.d[i]) * DRAPE_UNIT) ** 2;
+      expect(Math.sqrt(ss / (a.d.length / 3)), k).toBeGreaterThan(0.004); }
+    // in the costumes: two women wear different cuts (by body variant index), so their placed skirts differ beyond the body's own shape
+    expect(A.byId.f01.index % S).not.toBe(A.byId.f02.index % S);
+  });
+  it("rev 3: the court woman's veil passes over her sash at the back, not under it", () => {
+    for (const vid of ['f01', 'f02', 'f05']) { const v = A.byId[vid], zc = v.joints[HB.pelvis * 3 + 2] + 0.02, wy = v.joints[HB.spine_01 * 3 + 1] - 0.005;
+      const P = (k: string) => { const g = O.geos![k], a = v.index * O.NV * 4 + O.pieceBase[k] * 4; return Array.from({ length: g.n }, (_, i) => [O.source[a + i * 4], O.source[a + i * 4 + 1], O.source[a + i * 4 + 2]]); };
+      const B = 48, bin = (x: number, z: number) => Math.floor((((Math.atan2(x, z) / (2 * Math.PI)) % 1 + 1) % 1) * B) % B, br = new Array(B).fill(0);
+      for (const p of P('belt@0')) if (Math.abs(p[1] - wy) <= 0.025) { const k = bin(p[0], p[2] - zc); br[k] = Math.max(br[k], Math.hypot(p[0], p[2] - zc)); }
+      let n = 0, inside = 0; for (const p of P('veil@0')) { if (Math.abs(p[1] - wy) > 0.022) continue; const k = bin(p[0], p[2] - zc); if (!br[k]) continue; n++; if (Math.hypot(p[0], p[2] - zc) < br[k] + 0.001) inside++; }
+      expect(n, vid).toBeGreaterThan(8); expect(inside, vid).toBe(0); }
   });
   it('the headcloth lies over the dress (D-313\'s see-through: it had settled inside it), the sash over the skirt', () => {
     for (const [vid, outerK, underK] of [['f02', 'headcloth@0', 'dress_upper@0'], ['f05', 'headcloth@0', 'dress_upper@0'], ['f02', 'belt@0', 'dress_skirt@0']] as const) {

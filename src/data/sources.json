@@ -1009,6 +1009,11 @@
   "url": "references/reliefs.webp",
   "access": "supplied by the user (session 8); measured in pixels on the merlons (D-230)"
  },
+ "REF-PHOTO-NR3": {
+  "cite": "references/Naqsh-e Rustam 3.webp (INDEX.md): photograph of an Achaemenid rock tomb façade at Naqsh-e Rustam, its doorway in a frame of three nested stepped fasciae under a cavetto cornice with a register of upright tongues (third-party, reference only)",
+  "url": "references/Naqsh-e Rustam 3.webp",
+  "access": "supplied by the user; looked at for the frame profile (D-330)"
+ },
  "REF-DRAW-32": {
   "cite": "references/stairs more.webp (INDEX.md §6 #32): measured elevations of two stair façades with the merlon row, each merlon drawn with a small recess (third-party, reference only)",
   "url": "references/stairs more.webp",

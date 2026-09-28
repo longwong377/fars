@@ -333,7 +333,7 @@ async function boot() {
       const parts: any[] = building === '__marker'
         ? [{ type: 'box', building: 'm', kind: 'm', material: 'plaster', tier: 'C', src: 'RECON', c: [200, 200], size: [20, 20], y0: 0, y1: 1 }]
         : buildTerrace().parts.filter(p => (building === '*' || p.building === building) && (!kinds || kinds.includes(p.kind)) && p.type !== 'column');
-      const tmp = new THREE.Scene(); const arch = buildMeshes(parts); tmp.add(arch.group);
+      const tmp = new THREE.Scene(); const arch = buildMeshes(parts, undefined, { noRoofEdges: true }); // (D-334: the plan of the parts, without the render-only roof edges) tmp.add(arch.group);
       const white = new THREE.MeshBasicNodeMaterial({ color: 0xffffff }); arch.group.traverse(o => { if ((o as any).isMesh) (o as THREE.Mesh).material = white; });
       const W = 1408, H = 2000; const cam = new THREE.OrthographicCamera(-80, 272, 250, -250, 1, 2000); // W×4 bytes is a multiple of 256 (WebGPU row alignment)
       cam.position.set(0, 500, 0); cam.up.set(0, 0, -1); cam.lookAt(0, 0, 0); // looking down, grid north up

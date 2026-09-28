@@ -1,0 +1,2592 @@
+{
+ "about": "D-332: the modelled small life (tools/blender/life.mjs)",
+ "assets": {
+  "bat": {
+   "class": "birds",
+   "name": "Kuhl's pipistrelle",
+   "of": "bat",
+   "inHash": "eb494f7741a5974128b1fc24c3e533293eca6fe1dfa30cd78e4cff0abe5eb96f",
+   "files": {
+    "bat.glb": {
+     "bytes": 39304,
+     "sha256": "993aae09a3e6a4b45a7dfe8dc695d67b547640094b1873e2c97c45ef3ff63477"
+    },
+    "bat_albedo.ktx2": {
+     "bytes": 49178,
+     "sha256": "7551e26d33daa895a69af40c4546a2739928d22f3b9626d29a89fbd2b1f2d71b"
+    },
+    "bat_nrm.ktx2": {
+     "bytes": 65970,
+     "sha256": "0ff6a675b6ff7471a7177916f5f34b36bd293b51025f89147a89f7d166517591"
+    }
+   },
+   "tris": {
+    "fly0": 748,
+    "fly1": 172,
+    "fly2": 60
+   },
+   "tex": 256,
+   "L": 0.08,
+   "S": 0.23,
+   "sx": 0.006600000000000001,
+   "half": 0.115,
+   "cover": 0.859466552734375,
+   "ao_mean": 0.5524363798253676,
+   "high_tris": 69028,
+   "bbox_fly": [
+    [
+     -0.115,
+     -0.010787429493965828,
+     -0.038400000000000004
+    ],
+    [
+     0.115,
+     0.017641881536421457,
+     0.040183993330557194
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "beeeater": {
+   "class": "birds",
+   "name": "European bee-eater",
+   "of": "beeeater",
+   "inHash": "1ae6c363baee9ba3e09e4a8e49395de59005c245c49445ed72f8c8c1b72dccc8",
+   "files": {
+    "beeeater.glb": {
+     "bytes": 36296,
+     "sha256": "3be6fbe64ce4f5d6188b8970f7bd487e6465c3f5508c1ed6e0130f85b0252ca5"
+    },
+    "beeeater_albedo.ktx2": {
+     "bytes": 160932,
+     "sha256": "358deaa75ca3c7b9e8c21434bd905127118f46612c6bca639cbafa6e603939d5"
+    },
+    "beeeater_nrm.ktx2": {
+     "bytes": 257436,
+     "sha256": "80b2d11001633d9a82286d9597df374336ba4ca8d0c7ccd25b8a14f95118eca3"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 512,
+   "L": 0.28,
+   "S": 0.44,
+   "sx": 0.010780000000000003,
+   "half": 0.22,
+   "cover": 0.8695526123046875,
+   "ao_mean": 0.6100330726773131,
+   "high_tris": 71984,
+   "bbox_fly": [
+    [
+     -0.22,
+     -0.018598327516448493,
+     -0.13440000000000002
+    ],
+    [
+     0.22,
+     0.020801200000000002,
+     0.14319897179380187
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "bulbul": {
+   "class": "birds",
+   "name": "white-eared bulbul",
+   "of": "bulbul",
+   "inHash": "1612901c9729a9bf3b1769d7b6f3aeca01d8be26c5b158b5223cedf84f07fd6a",
+   "files": {
+    "bulbul.glb": {
+     "bytes": 66748,
+     "sha256": "bffed538ecb9477dfa10cd7712f95717c0aea1aa87c232ffe9527ead2700ee18"
+    },
+    "bulbul_albedo.ktx2": {
+     "bytes": 55218,
+     "sha256": "6476194fb195783d81bebfbe973a6df33ab9980a91bd5d67a9cb1a7114f9af99"
+    },
+    "bulbul_nrm.ktx2": {
+     "bytes": 71771,
+     "sha256": "17e0a3348bc35f3cf149fd2f04a791460896611e443ed51db6dafb8a998de5ec"
+    }
+   },
+   "tris": {
+    "fly0": 684,
+    "fly1": 164,
+    "fly2": 52,
+    "stand0": 684,
+    "stand1": 164
+   },
+   "tex": 256,
+   "L": 0.18,
+   "S": 0.28,
+   "sx": 0.00792,
+   "half": 0.14,
+   "cover": 0.868896484375,
+   "ao_mean": 0.570620907054228,
+   "high_tris": 71280,
+   "bbox_fly": [
+    [
+     -0.14,
+     -0.01438323932528777,
+     -0.08639999999999999
+    ],
+    [
+     0.14,
+     0.016569,
+     0.0911609837432337
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "butterfly": {
+   "class": "small",
+   "name": "butterflies (whites, clouded yellow, painted lady)",
+   "of": "butterfly",
+   "inHash": "124fa1263636b1cc1f847754fc40914dcb57686100526260302605027a91a15e",
+   "files": {
+    "butterfly.glb": {
+     "bytes": 20276,
+     "sha256": "dbb307213150f19909c5cf67087c6c53b7d166479a91742443743cec4159138b"
+    },
+    "butterfly_albedo.ktx2": {
+     "bytes": 29726,
+     "sha256": "485872a4d91c1e82fbe2d0eac99619ddf2939d039f671abdd988cda38d9e1f60"
+    },
+    "butterfly_nrm.ktx2": {
+     "bytes": 6830,
+     "sha256": "9953fdb9abe68b0147d4f599c188e4aeb176971bee2e14eaf7522376eff2beb2"
+    }
+   },
+   "tris": {
+    "lod0": 299,
+    "lod1": 99
+   },
+   "tex": [
+    384,
+    128
+   ],
+   "L": 0.02,
+   "variants": 3,
+   "cover": 0.4205322265625,
+   "ao_mean": 0.542843568091299,
+   "high_tris": 27050,
+   "bbox": [
+    [
+     -0.026900000870227814,
+     -0.0005247922381386161,
+     -0.012000000104308128
+    ],
+    [
+     0.026900000870227814,
+     0.003932447638362646,
+     0.01718195341527462
+    ]
+   ],
+   "half": 0.026900000000000004,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "camelthorn": {
+   "class": "flora",
+   "name": "camelthorn (Alhagi)",
+   "of": "camelthorn",
+   "inHash": "f12fa2447334a5d8391df3fe9e2f34b51c6ad447c8030c1cf62ebf9430c29cb6",
+   "files": {
+    "camelthorn.glb": {
+     "bytes": 106324,
+     "sha256": "fec4195347d819021567cc5e1d24691aa154ecd53218a0ad62cbb042f995bf53"
+    },
+    "camelthorn_albedo.ktx2": {
+     "bytes": 229101,
+     "sha256": "34d69d8141a03b19fd251f77107a4667c044909f7083235881e25327ee6733b6"
+    },
+    "camelthorn_nrm.ktx2": {
+     "bytes": 257657,
+     "sha256": "9e10ea2c156de8366f6fb5522bd7de57ef48685cf3784ee330cbba7d4ce5ef0d"
+    }
+   },
+   "tris": {
+    "lod0": 1368,
+    "lod1": 240
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.11642932891845703,
+   "bbox": [
+    [
+     -0.9279030561447144,
+     -0.07832422107458115,
+     -1.1714688539505005
+    ],
+    [
+     1.026599645614624,
+     0.9339627027511597,
+     1.2512273788452148
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "chukar": {
+   "class": "birds",
+   "name": "chukar partridge",
+   "of": "chukar",
+   "inHash": "5650d66bd610c76afb81790baeb7a11d220be5aee66b141dc0e30860cf0ab572",
+   "files": {
+    "chukar.glb": {
+     "bytes": 68724,
+     "sha256": "d5de8cfb9423540506f45a5b43bb71409f7e14bd71a192ea026698a1f536350c"
+    },
+    "chukar_albedo.ktx2": {
+     "bytes": 180456,
+     "sha256": "1b150feb34ef6f677c4d3d366e98110f903c195a5d6d2d2b6a7c4917c244e156"
+    },
+    "chukar_nrm.ktx2": {
+     "bytes": 249781,
+     "sha256": "7064ef030fd0e59d36d8b14f44ebcea56766bc068553f28da8249a633a4b9b67"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60,
+    "stand0": 704,
+    "stand1": 176
+   },
+   "tex": 512,
+   "L": 0.34,
+   "S": 0.5,
+   "sx": 0.028050000000000005,
+   "half": 0.25,
+   "cover": 0.8689384460449219,
+   "ao_mean": 0.543100544050628,
+   "high_tris": 71280,
+   "bbox_fly": [
+    [
+     -0.25,
+     -0.050940639277060856,
+     -0.1632
+    ],
+    [
+     0.25,
+     0.052335684614574385,
+     0.1713032860914147
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "crab": {
+   "class": "small",
+   "name": "freshwater crab (Potamon)",
+   "of": "crab",
+   "inHash": "366648571894d33538549f1964a94e58cce65dbf70aeeed5df08105b58e59b11",
+   "files": {
+    "crab.glb": {
+     "bytes": 78572,
+     "sha256": "4ce981ca445bd6f0c05ff22bc27c25f362a36a8d69c76c0682020b2a9d4ae1da"
+    },
+    "crab_albedo.ktx2": {
+     "bytes": 57358,
+     "sha256": "c7bfdb5ba7b88386eae34c433f1e8f403531b724498ba2ca296f75f77890ba79"
+    },
+    "crab_nrm.ktx2": {
+     "bytes": 67678,
+     "sha256": "fb0b616e806305c7417c5024f901bd3a666cda3c26aa9efff5bd626747efa7e8"
+    }
+   },
+   "tris": {
+    "lod0": 1100,
+    "lod1": 260
+   },
+   "tex": 256,
+   "L": 0.07,
+   "variants": 1,
+   "cover": 0.4810638427734375,
+   "ao_mean": 0.6874539842792585,
+   "high_tris": 112426,
+   "bbox": [
+    [
+     -0.038502778857946396,
+     0.0001486144756199792,
+     -0.02381674200296402
+    ],
+    [
+     0.038532063364982605,
+     0.016668347641825676,
+     0.045287128537893295
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "crane": {
+   "class": "birds",
+   "name": "common crane",
+   "of": "crane",
+   "inHash": "f176193c62b5fa8c82afef6a0b5b5f738c8aee001a465d3ea5012a237ca191fe",
+   "files": {
+    "crane.glb": {
+     "bytes": 36288,
+     "sha256": "caa18c0417dff2fd70b2f669429119d40b2048b726bf3891624a54b70c7f2f95"
+    },
+    "crane_albedo.ktx2": {
+     "bytes": 162102,
+     "sha256": "e34f7b1186c290696313aa38c1930a77901625a7bccd66b4f1fc1da176bc68dc"
+    },
+    "crane_nrm.ktx2": {
+     "bytes": 242814,
+     "sha256": "2c0db66e534731ba8ae0feced10bd854a67a6534dcde3da2b146d2b70abe8c19"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 512,
+   "L": 1.1,
+   "S": 2.1,
+   "sx": 0.039325000000000006,
+   "half": 1.05,
+   "cover": 0.8427047729492188,
+   "ao_mean": 0.5333295036764706,
+   "high_tris": 68376,
+   "bbox_fly": [
+    [
+     -1.05,
+     -0.07498761752402636,
+     -0.6958759322161737
+    ],
+    [
+     1.05,
+     0.07682500189350479,
+     0.5588090176462028
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "crow": {
+   "class": "birds",
+   "name": "hooded crow",
+   "of": "crow",
+   "inHash": "cabb4bc7738b4b843e23c006dd8b4acd5e06960b77305e0d0fdd33ed073bbc36",
+   "files": {
+    "crow.glb": {
+     "bytes": 68804,
+     "sha256": "94279701ad2e34aea73916942235fe2239ef34dae42e0d2307572acdff0d14bf"
+    },
+    "crow_albedo.ktx2": {
+     "bytes": 117945,
+     "sha256": "dbce63f6fef3ed75589c3f53811ed90d820463c9f80e08cbf9ba8a52707b3e30"
+    },
+    "crow_nrm.ktx2": {
+     "bytes": 251869,
+     "sha256": "fa6790c1551dd7a067bdb9ea60c18d5f0af5fd997a7fd779bd733fe671a8b4b2"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60,
+    "stand0": 704,
+    "stand1": 176
+   },
+   "tex": 512,
+   "L": 0.46,
+   "S": 0.95,
+   "sx": 0.025300000000000007,
+   "half": 0.475,
+   "cover": 0.8439407348632812,
+   "ao_mean": 0.5562175526338465,
+   "high_tris": 68580,
+   "bbox_fly": [
+    [
+     -0.475,
+     -0.04594645895578038,
+     -0.22080000000000002
+    ],
+    [
+     0.475,
+     0.047048066159736425,
+     0.23445810754481555
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "cushion": {
+   "class": "flora",
+   "name": "tragacanth cushion (Astragalus)",
+   "of": "cushion",
+   "inHash": "160d99c7dd1794da329274bb94707b8c5300ee5d29917314aae393a8f73d717a",
+   "files": {
+    "cushion.glb": {
+     "bytes": 77536,
+     "sha256": "80ef1b2f9d01cc6eb47208d43e1fa2a2c5e7d8520428ee6876d5db646def722b"
+    },
+    "cushion_albedo.ktx2": {
+     "bytes": 333761,
+     "sha256": "6be10b7afcc878e4f06370ddde9d2d4f074e74dcf55fff5247c41245a120dc7a"
+    },
+    "cushion_nrm.ktx2": {
+     "bytes": 352181,
+     "sha256": "a9df056fc47f723535847f7ea60dd7eaa5d9a346b171fd95a4f0a76c6a2d5ca6"
+    }
+   },
+   "tris": {
+    "lod0": 776,
+    "lod1": 188
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    0.55,
+    1
+   ],
+   "cover": 0.16292381286621094,
+   "bbox": [
+    [
+     -0.5857839584350586,
+     -0.07626745849847794,
+     -0.6198430061340332
+    ],
+    [
+     0.6100947260856628,
+     0.6596691608428955,
+     0.5825148820877075
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "dove": {
+   "class": "birds",
+   "name": "rock dove",
+   "of": "dove",
+   "inHash": "31b883a527b130dd6a74ce52f325e976b8eadecfafc5b83f0ef5e490b7171232",
+   "files": {
+    "dove.glb": {
+     "bytes": 68816,
+     "sha256": "6fa04eea46b0928fe2cd44594b58072c79c6874fa42a74f38cea5d4bdd0bc193"
+    },
+    "dove_albedo.ktx2": {
+     "bytes": 175508,
+     "sha256": "44d7a4108b09e80a6810de162804ec169e56924e5b11eafbe8c81c834dcac1c5"
+    },
+    "dove_nrm.ktx2": {
+     "bytes": 254025,
+     "sha256": "7c58b235fb1e77a2f8f3ec7f838f1cb516db62fb8b2313cac15baffcec5dc424"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60,
+    "stand0": 704,
+    "stand1": 176
+   },
+   "tex": 512,
+   "L": 0.32,
+   "S": 0.6,
+   "sx": 0.022880000000000005,
+   "half": 0.3,
+   "cover": 0.872833251953125,
+   "ao_mean": 0.5711259729721967,
+   "high_tris": 72028,
+   "bbox_fly": [
+    [
+     -0.3,
+     -0.041551580273053564,
+     -0.15360000000000001
+    ],
+    [
+     0.3,
+     0.04294978471100094,
+     0.1614186466583313
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "dragonfly": {
+   "class": "small",
+   "name": "dragonfly (Orthetrum)",
+   "of": "dragonfly",
+   "inHash": "d1386a43ac3683a87cfc509a6873088dccffada93305def21db2d3bebef5e20e",
+   "files": {
+    "dragonfly.glb": {
+     "bytes": 30888,
+     "sha256": "a2366e6a3e439c1623b807673ed7b73617e5a1844050336b56ff0fe49560f526"
+    },
+    "dragonfly_albedo.ktx2": {
+     "bytes": 32475,
+     "sha256": "6185852e1dabe203234dc1ef1e6ff01dbd96caaa172e03f5e2ea8591c7517985"
+    },
+    "dragonfly_nrm.ktx2": {
+     "bytes": 42024,
+     "sha256": "face033f52524c5a4d39af6af73620029aac0b9cdceed5441a1b98c92a5988f8"
+    }
+   },
+   "tris": {
+    "lod0": 458,
+    "lod1": 150
+   },
+   "tex": 256,
+   "L": 0.07,
+   "variants": 1,
+   "cover": 0.2535858154296875,
+   "ao_mean": 0.5810705446729473,
+   "high_tris": 13636,
+   "bbox": [
+    [
+     -0.04479999840259552,
+     -0.006109070498496294,
+     -0.03467945381999016
+    ],
+    [
+     0.04479999840259552,
+     0.004123052582144737,
+     0.03156076371669769
+    ]
+   ],
+   "half": 0.044800000000000006,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "duck": {
+   "class": "birds",
+   "name": "mallard (drake)",
+   "of": "duck",
+   "inHash": "acf8d6cf2ccd825107f7f73c7b3f158bed5c73ca355d0ae93ffc8b68c96857b2",
+   "files": {
+    "duck.glb": {
+     "bytes": 68808,
+     "sha256": "9ea0b648ed033d3ae8c55b09233f512fa65f80314484e090160505934740e662"
+    },
+    "duck_albedo.ktx2": {
+     "bytes": 176404,
+     "sha256": "ea479d2147d01c7d230fa1b2882893b806eea795a30f2423b910879f8a663611"
+    },
+    "duck_nrm.ktx2": {
+     "bytes": 253761,
+     "sha256": "3fb6531de34d51741e46d7f6c5e8675cc2a17a90cc591a8d008a4eec7fd09793"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60,
+    "stand0": 704,
+    "stand1": 176
+   },
+   "tex": 512,
+   "L": 0.55,
+   "S": 0.85,
+   "sx": 0.045375000000000006,
+   "half": 0.425,
+   "cover": 0.8741950988769531,
+   "ao_mean": 0.54289452047909,
+   "high_tris": 72016,
+   "bbox_fly": [
+    [
+     -0.425,
+     -0.07004337900595868,
+     -0.264
+    ],
+    [
+     0.425,
+     0.0723081925140162,
+     0.2795649923579121
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "duck_f": {
+   "class": "birds",
+   "name": "mallard (duck)",
+   "of": "duck",
+   "inHash": "d6a412b8ae0aae3225ededf3ae35742f2f80ad68caa29409c8330a348392d3b4",
+   "files": {
+    "duck_f.glb": {
+     "bytes": 68808,
+     "sha256": "9ea0b648ed033d3ae8c55b09233f512fa65f80314484e090160505934740e662"
+    },
+    "duck_f_albedo.ktx2": {
+     "bytes": 186732,
+     "sha256": "e533d5d26b67b930789f691aa1baa7a4e20b981caf8143e69e37ae561007d1e6"
+    },
+    "duck_f_nrm.ktx2": {
+     "bytes": 253761,
+     "sha256": "3fb6531de34d51741e46d7f6c5e8675cc2a17a90cc591a8d008a4eec7fd09793"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60,
+    "stand0": 704,
+    "stand1": 176
+   },
+   "tex": 512,
+   "L": 0.55,
+   "S": 0.85,
+   "sx": 0.045375000000000006,
+   "half": 0.425,
+   "cover": 0.8741950988769531,
+   "ao_mean": 0.54289452047909,
+   "high_tris": 72016,
+   "bbox_fly": [
+    [
+     -0.425,
+     -0.07004337900595868,
+     -0.264
+    ],
+    [
+     0.425,
+     0.0723081925140162,
+     0.2795649923579121
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "egret": {
+   "class": "birds",
+   "name": "little egret",
+   "of": "egret",
+   "inHash": "6f0a07e94f3d196cece30c5cd4851a60638a31b8908711f594f72394e5909d5f",
+   "files": {
+    "egret.glb": {
+     "bytes": 68804,
+     "sha256": "04c31e262903e3357150c55c16ae4e973e53021bbcc72866a706162a0d980441"
+    },
+    "egret_albedo.ktx2": {
+     "bytes": 154984,
+     "sha256": "5f18505c1e2159eb3f5cecdaed2faecab5a6f9c2d2c0ad3803669e495805e6cc"
+    },
+    "egret_nrm.ktx2": {
+     "bytes": 253171,
+     "sha256": "280b216967863c4d7296e755854b978c5ae13edc93324ab63ac5dcce3a6a1948"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60,
+    "stand0": 704,
+    "stand1": 176
+   },
+   "tex": 512,
+   "L": 0.6,
+   "S": 0.95,
+   "sx": 0.0198,
+   "half": 0.475,
+   "cover": 0.8675765991210938,
+   "ao_mean": 0.5465723823098575,
+   "high_tris": 71280,
+   "bbox_fly": [
+    [
+     -0.475,
+     -0.05597079101376887,
+     -0.37087163988194094
+    ],
+    [
+     0.475,
+     0.04046681830955795,
+     0.1884901310020751
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "flower_crown": {
+   "class": "flora",
+   "name": "crown imperial (Fritillaria imperialis)",
+   "of": "flower_crown",
+   "inHash": "0d4dd9a529fa063d708fa7ce97d9927861b4cbefd58ddfb23e6d475c7ac3b9b3",
+   "files": {
+    "flower_crown.glb": {
+     "bytes": 7948,
+     "sha256": "e3e1e415648ee74dce6ef3d017eedcad5074a2f1923f13dc1ec21f3a4a7f3ac3"
+    },
+    "flower_crown_albedo.ktx2": {
+     "bytes": 124027,
+     "sha256": "6d6210fbb1a5e54743ec5d7ad767c8983daef3a7ec3615c973dec737fafcabd7"
+    },
+    "flower_crown_nrm.ktx2": {
+     "bytes": 142703,
+     "sha256": "2b6a8ddf664f551297c92c56f0b71de58575fe306bea07f0aa8d31f1eb73c10f"
+    }
+   },
+   "tris": {
+    "lod0": 58,
+    "lod1": 32
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.12292957305908203,
+   "bbox": [
+    [
+     -0.28026533126831055,
+     0,
+     -0.27908891439437866
+    ],
+    [
+     0.2757716476917267,
+     1.0399999618530273,
+     0.2492886632680893
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "flower_red": {
+   "class": "flora",
+   "name": "corn poppy (Papaver rhoeas)",
+   "of": "flower_red",
+   "inHash": "cb731d14344afc2baba8517022c9d1b9850a29a698873e31e4a3e1dff20f16b7",
+   "files": {
+    "flower_red.glb": {
+     "bytes": 5016,
+     "sha256": "9834a5c797383e5fb35ebf5850c9e42070bc2790288d757ff1efd021301d8ee1"
+    },
+    "flower_red_albedo.ktx2": {
+     "bytes": 103923,
+     "sha256": "7ace729782c898cbfa8a1dbb078ae702354ce61df6c879dae520c7cd909a9400"
+    },
+    "flower_red_nrm.ktx2": {
+     "bytes": 139397,
+     "sha256": "da57a2c780cdb5148fab73aeffe915b6ec2c2139f3036a4edfc60ca3e5895169"
+    }
+   },
+   "tris": {
+    "lod0": 30,
+    "lod1": 18
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.12619400024414062,
+   "bbox": [
+    [
+     -0.3723986744880676,
+     -0.000623040075879544,
+     -0.3461863398551941
+    ],
+    [
+     0.3741133213043213,
+     1.0509999990463257,
+     0.30604851245880127
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "flower_violet": {
+   "class": "flora",
+   "name": "grape hyacinth (Muscari)",
+   "of": "flower_violet",
+   "inHash": "7caba2b50392177cde7fe7caf330a6ac1408e074486f486a644250528b67d7e9",
+   "files": {
+    "flower_violet.glb": {
+     "bytes": 4544,
+     "sha256": "7521a0449afb4203750d434fdc7ac3577b252560fa7fd7f68c3287d52c702903"
+    },
+    "flower_violet_albedo.ktx2": {
+     "bytes": 38967,
+     "sha256": "698b080920dcae28b322e698fbcf1d423b11c05c5a3d522782ac56ee0e0c547b"
+    },
+    "flower_violet_nrm.ktx2": {
+     "bytes": 33787,
+     "sha256": "2583372401e4bb6f604bbcb265b02cd301b86f0060345cf8963b4e029fd65f18"
+    }
+   },
+   "tris": {
+    "lod0": 22,
+    "lod1": 14
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.01701068878173828,
+   "bbox": [
+    [
+     -0.3866221606731415,
+     0,
+     -0.607471764087677
+    ],
+    [
+     0.6632310152053833,
+     1,
+     0.6027979850769043
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "flower_yellow": {
+   "class": "flora",
+   "name": "buttercup (Ranunculus)",
+   "of": "flower_yellow",
+   "inHash": "9ccce101e27fb3c67f279e4748a7045f9e769af21ecd76b295f730df28ecf056",
+   "files": {
+    "flower_yellow.glb": {
+     "bytes": 6808,
+     "sha256": "18d4c49fa34a98463a4f2798cf6d9e0b93c33425d0df72782f201639bf272fec"
+    },
+    "flower_yellow_albedo.ktx2": {
+     "bytes": 123640,
+     "sha256": "78f56501e4f97b8b8aed9fe60b9b07a691bb2cf24f6af3b24fed501a485e8f07"
+    },
+    "flower_yellow_nrm.ktx2": {
+     "bytes": 162857,
+     "sha256": "750b14cd600f7e69d7275738e56cace99a3e05023408f6497be4ce0c277239d9"
+    }
+   },
+   "tris": {
+    "lod0": 48,
+    "lod1": 32
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.1314239501953125,
+   "bbox": [
+    [
+     -0.3723986744880676,
+     -0.002865399932488799,
+     -0.3461863398551941
+    ],
+    [
+     0.3741133213043213,
+     1.0390000343322754,
+     0.30604851245880127
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "fly": {
+   "class": "small",
+   "name": "house fly",
+   "of": "fly",
+   "inHash": "6401b31cca06126f137557fd0628702e18e018ed0c399968976330306055ddea",
+   "files": {
+    "fly.glb": {
+     "bytes": 19376,
+     "sha256": "5ef7be31c9b9f321c8fc539b56cd3001f4070d329b0b7da65cdfeea207d9cdce"
+    },
+    "fly_albedo.ktx2": {
+     "bytes": 14656,
+     "sha256": "56b1ea0dfbe02e729bbd7d89f59450f91bb9b6dbedc7f025c69ea428c581166a"
+    },
+    "fly_nrm.ktx2": {
+     "bytes": 17364,
+     "sha256": "93548034801997c553787957db3b66cac2926d5325d152a5c0e4d0dafaa61707"
+    }
+   },
+   "tris": {
+    "lod0": 218,
+    "lod1": 90
+   },
+   "tex": 128,
+   "L": 0.008,
+   "variants": 1,
+   "cover": 0.3826904296875,
+   "ao_mean": 0.7880179610906862,
+   "high_tris": 88254,
+   "bbox": [
+    [
+     -0.006500000134110451,
+     -0.0025636188220232725,
+     -0.004512997809797525
+    ],
+    [
+     0.006500000134110451,
+     0.0013046340318396688,
+     0.0038014103192836046
+    ]
+   ],
+   "half": 0.0065,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "frog": {
+   "class": "small",
+   "name": "marsh frog",
+   "of": "frog",
+   "inHash": "e8d0ea3d2b6d31a1ad71f3ca7f0cecd9c1f28cff6fd1bd6213d289683ff560b0",
+   "files": {
+    "frog.glb": {
+     "bytes": 47564,
+     "sha256": "507842a5355c3d0598cb7098ce77584225fb0c6768e7000e8c63343c10aea615"
+    },
+    "frog_albedo.ktx2": {
+     "bytes": 32535,
+     "sha256": "38493280e6cac249e77b60d643056da030a8ca340710a23952e897a870495328"
+    },
+    "frog_nrm.ktx2": {
+     "bytes": 64090,
+     "sha256": "f1380dfa4cb3a1e7d5c3612f29dc673ef97cb0b80022b9db6bede565315d1ff9"
+    }
+   },
+   "tris": {
+    "lod0": 900,
+    "lod1": 220
+   },
+   "tex": 256,
+   "L": 0.08,
+   "variants": 1,
+   "cover": 0.6281280517578125,
+   "ao_mean": 0.7263811896829044,
+   "high_tris": 96390,
+   "bbox": [
+    [
+     -0.031163951382040977,
+     -0.0000450654151791241,
+     -0.026458432897925377
+    ],
+    [
+     0.031163953244686127,
+     0.026825282722711563,
+     0.04132026433944702
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "hedgehog": {
+   "class": "small",
+   "name": "long-eared hedgehog",
+   "of": "hedgehog",
+   "inHash": "b9c8d1fa8c5340f1ede2d4f3c5c73236c068fa54f2d93afafffc9a1951cfd5ea",
+   "files": {
+    "hedgehog.glb": {
+     "bytes": 50840,
+     "sha256": "ed2e965411394b86b2b20a87f2d79cab3d814bd8ba718bc2d4b2f3fe63238f71"
+    },
+    "hedgehog_albedo.ktx2": {
+     "bytes": 63790,
+     "sha256": "161fcfa6b03c10783f1bf11252ef541452cd106140fb41ad77cd6379d4f482d1"
+    },
+    "hedgehog_nrm.ktx2": {
+     "bytes": 72173,
+     "sha256": "7c4ea9bbc3e532323471eb3b490797c0f7d9a64d091dfa78729d6651e1d119f9"
+    }
+   },
+   "tris": {
+    "lod0": 1000,
+    "lod1": 240
+   },
+   "tex": 256,
+   "L": 0.2,
+   "variants": 1,
+   "cover": 0.6067047119140625,
+   "ao_mean": 0.6091969209558824,
+   "high_tris": 95160,
+   "bbox": [
+    [
+     -0.05832083895802498,
+     -0.000020132420104346238,
+     -0.08717233687639236
+    ],
+    [
+     0.05832083895802498,
+     0.09469593316316605,
+     0.10235917568206787
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "heron": {
+   "class": "birds",
+   "name": "grey heron",
+   "of": "heron",
+   "inHash": "77446325ea6668530c3a9d1e79c0034fd67afb0edb7c79863c1f4d58d3fc331a",
+   "files": {
+    "heron.glb": {
+     "bytes": 72612,
+     "sha256": "39ae5225010ae68397c8102e9dc73214696993a6046ed5705005b3d0c20789e1"
+    },
+    "heron_albedo.ktx2": {
+     "bytes": 187553,
+     "sha256": "cc50299c6ab4d611373f243cdaf9c299aa619e8b3e79cb8517e485050bd285f8"
+    },
+    "heron_nrm.ktx2": {
+     "bytes": 258034,
+     "sha256": "cfac48bf0195ca5e92739ae7892d33dbbe3694f9a98fa73c2a85610ee0af9e91"
+    }
+   },
+   "tris": {
+    "fly0": 736,
+    "fly1": 180,
+    "fly2": 64,
+    "stand0": 736,
+    "stand1": 180
+   },
+   "tex": 512,
+   "L": 0.95,
+   "S": 1.8,
+   "sx": 0.03135,
+   "half": 0.9,
+   "cover": 0.8828849792480469,
+   "ao_mean": 0.5313228831571691,
+   "high_tris": 70444,
+   "bbox_fly": [
+    [
+     -0.9,
+     -0.09228796057163424,
+     -0.563000856776646
+    ],
+    [
+     0.9,
+     0.06376565893858967,
+     0.28520078179831726
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "hoopoe": {
+   "class": "birds",
+   "name": "hoopoe",
+   "of": "hoopoe",
+   "inHash": "0eea6a4180aeb0386fecca80cb10a4bd315b8f3d1ba73cfde3551cee87f3d76d",
+   "files": {
+    "hoopoe.glb": {
+     "bytes": 72628,
+     "sha256": "7d7b9a31f21b6b7efddb6f2fec459fad38b78954b3c347e957120a11ffac9bfc"
+    },
+    "hoopoe_albedo.ktx2": {
+     "bytes": 188302,
+     "sha256": "2668315919607b1b6eb0d800e5cc78f8f2ffb78acf1748a6bf1b73bdfbae00d9"
+    },
+    "hoopoe_nrm.ktx2": {
+     "bytes": 261134,
+     "sha256": "5a46493f68bcf8ead05c238efb9cbc3d9056e9b7ca44be12a9294d63a555ed3c"
+    }
+   },
+   "tris": {
+    "fly0": 736,
+    "fly1": 180,
+    "fly2": 64,
+    "stand0": 736,
+    "stand1": 180
+   },
+   "tex": 512,
+   "L": 0.27,
+   "S": 0.44,
+   "sx": 0.011880000000000002,
+   "half": 0.22,
+   "cover": 0.9029426574707031,
+   "ao_mean": 0.5059459013097426,
+   "high_tris": 72892,
+   "bbox_fly": [
+    [
+     -0.22,
+     -0.021574858987931655,
+     -0.1296
+    ],
+    [
+     0.22,
+     0.03232293169981765,
+     0.13944597749061968
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "jackal": {
+   "class": "small",
+   "name": "golden jackal",
+   "of": "jackal",
+   "inHash": "6b4393066768920e3673bf2b7002484c6b64da09985f12c37729c970a70dc3c3",
+   "files": {
+    "jackal.glb": {
+     "bytes": 117004,
+     "sha256": "5d3a3fcce9e6fb1f3cd15d071c342f2f58ff555199425dc5001adc14537781d5"
+    },
+    "jackal_albedo.ktx2": {
+     "bytes": 228357,
+     "sha256": "d3aef936d3f4e7ed08a2b6587bde8f4561199decbf7b52b99cce53451e845890"
+    },
+    "jackal_nrm.ktx2": {
+     "bytes": 229882,
+     "sha256": "33143c79ebe47a0eb0b12851f0c7c7e7930088d2d85c9c6ea0ecd8b66741cd40"
+    }
+   },
+   "tris": {
+    "lod0": 2400,
+    "lod1": 500
+   },
+   "tex": 512,
+   "L": 0.75,
+   "variants": 1,
+   "cover": 0.5503692626953125,
+   "ao_mean": 0.635063081629136,
+   "high_tris": 83282,
+   "bbox": [
+    [
+     -0.12753485143184662,
+     -0.00008220121526392177,
+     -0.3934291899204254
+    ],
+    [
+     0.12753485143184662,
+     0.5296494364738464,
+     0.5087827444076538
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "jackdaw": {
+   "class": "birds",
+   "name": "western jackdaw",
+   "of": "jackdaw",
+   "inHash": "6f532764f986c7211214034f0f22a62ad924bed64f3774ffd18a14a353e9d9c4",
+   "files": {
+    "jackdaw.glb": {
+     "bytes": 36292,
+     "sha256": "e9509b1fa004a488d61813449deb04bf058db3722f2ebea423c0a597572cfae2"
+    },
+    "jackdaw_albedo.ktx2": {
+     "bytes": 40880,
+     "sha256": "3724c99513ad9cb8c6517108f703946f9cd2bed33b94dcc2d57b165754ba5913"
+    },
+    "jackdaw_nrm.ktx2": {
+     "bytes": 69033,
+     "sha256": "f141102e31fa5cd22e8f8b70e78d482f2e04b586b6a4c843669d20042f19d847"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 256,
+   "L": 0.34,
+   "S": 0.68,
+   "sx": 0.0187,
+   "half": 0.34,
+   "cover": 0.845703125,
+   "ao_mean": 0.6516258090150122,
+   "high_tris": 68592,
+   "bbox_fly": [
+    [
+     -0.34,
+     -0.03396042618470724,
+     -0.1632
+    ],
+    [
+     0.34,
+     0.03464356663380831,
+     0.17216178963457923
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "jird": {
+   "class": "small",
+   "name": "jird (Meriones)",
+   "of": "jird",
+   "inHash": "2957064339a343719ec2c62dd2db68563da85cc29b0351495c38ed47ca2d3182",
+   "files": {
+    "jird.glb": {
+     "bytes": 59604,
+     "sha256": "a8e7874c08b3f6dfbeff90eaaed0f4510dff1c917557797eb2b63e661fc499e4"
+    },
+    "jird_albedo.ktx2": {
+     "bytes": 58587,
+     "sha256": "82e479a4e96898cdbb009f1af2e18423913d660755ae8db2bb6e3a31ed97c675"
+    },
+    "jird_nrm.ktx2": {
+     "bytes": 58871,
+     "sha256": "36f4526774019a8b6c3696ee076915176c1d77408b1937ab4edcf9258d4adc4f"
+    }
+   },
+   "tris": {
+    "lod0": 1000,
+    "lod1": 240
+   },
+   "tex": 256,
+   "L": 0.25,
+   "variants": 1,
+   "cover": 0.4758758544921875,
+   "ao_mean": 0.6176354501761642,
+   "high_tris": 29532,
+   "bbox": [
+    [
+     -0.035729579627513885,
+     0.000210754296858795,
+     -0.15585827827453613
+    ],
+    [
+     0.03575970232486725,
+     0.06025276705622673,
+     0.10461969673633575
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "kestrel": {
+   "class": "birds",
+   "name": "common kestrel (male)",
+   "of": "kestrel",
+   "inHash": "d8479310fd224dd825fe3880356e8c6855f532e10280aa41f55f6c51721037a7",
+   "files": {
+    "kestrel.glb": {
+     "bytes": 36212,
+     "sha256": "3351812988b00a818e9f67e2f5942329478dbcc8dc9b13798fdb212d4fa18079"
+    },
+    "kestrel_albedo.ktx2": {
+     "bytes": 188231,
+     "sha256": "89b1a813ff3c005ffd7e01564b74f4ba3eb6e18de99cf926b028db98592fa821"
+    },
+    "kestrel_nrm.ktx2": {
+     "bytes": 254881,
+     "sha256": "319007b7447c9c60d19b3eab0728ee32791896b7df2bac72769defea56f35f83"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 512,
+   "L": 0.34,
+   "S": 0.75,
+   "sx": 0.014960000000000003,
+   "half": 0.375,
+   "cover": 0.8731956481933594,
+   "ao_mean": 0.6449421901328891,
+   "high_tris": 72016,
+   "bbox_fly": [
+    [
+     -0.375,
+     -0.02716834094776579,
+     -0.1632
+    ],
+    [
+     0.375,
+     0.029682000000000007,
+     0.17139682506599976
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "kite": {
+   "class": "birds",
+   "name": "black kite",
+   "of": "kite",
+   "inHash": "a28fcad9002b95fe486ffb1ee00a186ea09ab922a1e691b46f01ebb07807d077",
+   "files": {
+    "kite.glb": {
+     "bytes": 36204,
+     "sha256": "34078e176b476b4036f837c64098b49619726b4bac513ae31bd759cafea6f5f6"
+    },
+    "kite_albedo.ktx2": {
+     "bytes": 163559,
+     "sha256": "7ce2df2a71439198d23b9818a414a57622bea14f6f61e75bb661711f0200e972"
+    },
+    "kite_nrm.ktx2": {
+     "bytes": 249851,
+     "sha256": "64312347751b8e1470cf909b76990346127fc8b8f5c740ce3e3748985d38a9ef"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 512,
+   "L": 0.58,
+   "S": 1.5,
+   "sx": 0.02552,
+   "half": 0.75,
+   "cover": 0.8416938781738281,
+   "ao_mean": 0.6100344938390395,
+   "high_tris": 68376,
+   "bbox_fly": [
+    [
+     -0.75,
+     -0.04402869371240867,
+     -0.2784
+    ],
+    [
+     0.75,
+     0.044973800636304684,
+     0.2932576142837309
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "lark": {
+   "class": "birds",
+   "name": "crested lark",
+   "of": "lark",
+   "inHash": "27460c4cd674334a4d0e93e016414d7ada1949ec09c39eccf5354a47f65df0d8",
+   "files": {
+    "lark.glb": {
+     "bytes": 37208,
+     "sha256": "eead21ada0e69fd98c0eff1bb98a55da072dea2922e1df9e25e498ea8e0f0f38"
+    },
+    "lark_albedo.ktx2": {
+     "bytes": 61566,
+     "sha256": "32168f38e5be8ec32ec6cb2ba651a5c163f2367f2c446bcb9c5cf461bebe6105"
+    },
+    "lark_nrm.ktx2": {
+     "bytes": 70998,
+     "sha256": "c1b8ebab477a227d3e45d03981b33b25a0af956ad7c1897d16e31831ad7913e3"
+    }
+   },
+   "tris": {
+    "fly0": 716,
+    "fly1": 168,
+    "fly2": 56
+   },
+   "tex": 256,
+   "L": 0.17,
+   "S": 0.32,
+   "sx": 0.00935,
+   "half": 0.16,
+   "cover": 0.9046630859375,
+   "ao_mean": 0.6280125636680454,
+   "high_tris": 72892,
+   "bbox_fly": [
+    [
+     -0.16,
+     -0.01613120243773594,
+     -0.0816
+    ],
+    [
+     0.16,
+     0.023156834752754624,
+     0.0863911560372437
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "lizard": {
+   "class": "small",
+   "name": "rock agama (Paralaudakia)",
+   "of": "lizard",
+   "inHash": "15f6a33ff5c070b0ede309c174feb0b2617ed3b67ea29391cc071125762e1408",
+   "files": {
+    "lizard.glb": {
+     "bytes": 82848,
+     "sha256": "e49c4ad168d34f331d4706e96d863e911ea037a69f6a1f7ec1df0de2e829f5bd"
+    },
+    "lizard_albedo.ktx2": {
+     "bytes": 124027,
+     "sha256": "238bdd02e948aa23472805d79e9136b3bbad71ca3c1b0315b3ecae97d62125c1"
+    },
+    "lizard_nrm.ktx2": {
+     "bytes": 120899,
+     "sha256": "e37ebcb84838acde13ea524f6de9a03bb872ba1945d83ac1b11b04c17621da53"
+    }
+   },
+   "tris": {
+    "lod0": 1400,
+    "lod1": 320
+   },
+   "tex": 512,
+   "L": 0.3,
+   "variants": 1,
+   "cover": 0.23186492919921875,
+   "ao_mean": 0.3128478255926394,
+   "high_tris": 15970,
+   "bbox": [
+    [
+     -0.0480259545147419,
+     0.00013055052841082215,
+     -0.1621577888727188
+    ],
+    [
+     0.048105888068675995,
+     0.02356335148215294,
+     0.13332712650299072
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "magpie": {
+   "class": "birds",
+   "name": "Eurasian magpie",
+   "of": "magpie",
+   "inHash": "56e5ccf363e1a55fa3cf4e0ec51c7d82487c9c2584bd0d0e23fb8e9daf188104",
+   "files": {
+    "magpie.glb": {
+     "bytes": 68808,
+     "sha256": "15dd95bbd0fbcb9b5cb6b79b373b950557e9ee6c5e0bc6c97b5f047ba82538bc"
+    },
+    "magpie_albedo.ktx2": {
+     "bytes": 134795,
+     "sha256": "6a73d4ad30b608c9aa4affdf8985d67d01173d789fd020439ca27391d061b89c"
+    },
+    "magpie_nrm.ktx2": {
+     "bytes": 262497,
+     "sha256": "2538f80b1e425efc0e7ebfb5252554d681e4fa6a4939d1c8cb17f6e283839c14"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60,
+    "stand0": 704,
+    "stand1": 176
+   },
+   "tex": 512,
+   "L": 0.45,
+   "S": 0.56,
+   "sx": 0.017325000000000007,
+   "half": 0.28,
+   "cover": 0.8667449951171875,
+   "ao_mean": 0.5586144989612056,
+   "high_tris": 71180,
+   "bbox_fly": [
+    [
+     -0.28,
+     -0.03146333602406701,
+     -0.216
+    ],
+    [
+     0.28,
+     0.03206313890769065,
+     0.2276099937473811
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "owl": {
+   "class": "birds",
+   "name": "little owl",
+   "of": "owl",
+   "inHash": "d875e49df33ce14d81efc7377fa38c0b9e4eefe7b5bb9446192776dd19c58d4e",
+   "files": {
+    "owl.glb": {
+     "bytes": 66736,
+     "sha256": "f17a79d26d57d1488ec094c7a8e76976d9f35c5f56ca4f0ca86ebfe70884ed8b"
+    },
+    "owl_albedo.ktx2": {
+     "bytes": 67834,
+     "sha256": "d7feb4c85f126bd5692f184cb2896eff2be428794d91ba59a9ef1650f8396e26"
+    },
+    "owl_nrm.ktx2": {
+     "bytes": 69984,
+     "sha256": "87e1672cd32b68a727538db8bb03d92eaed838daf09c28aceeb08833bf5fc2b2"
+    }
+   },
+   "tris": {
+    "fly0": 684,
+    "fly1": 164,
+    "fly2": 52,
+    "stand0": 684,
+    "stand1": 164
+   },
+   "tex": 256,
+   "L": 0.22,
+   "S": 0.55,
+   "sx": 0.02178,
+   "half": 0.275,
+   "cover": 0.860443115234375,
+   "ao_mean": 0.5486093558517157,
+   "high_tris": 71280,
+   "bbox_fly": [
+    [
+     -0.275,
+     -0.039553908144541364,
+     -0.1056
+    ],
+    [
+     0.275,
+     0.04031776001531763,
+     0.11067097401694898
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "porcupine": {
+   "class": "small",
+   "name": "Indian crested porcupine",
+   "of": "porcupine",
+   "inHash": "46687a4390f9bed71a5210c29a3ebf44c368a941b7603914312b79f5c91901ea",
+   "files": {
+    "porcupine.glb": {
+     "bytes": 74832,
+     "sha256": "2fc89cdd6a927977f12f4806f901c3f6cef048a8bf70a01c40cf694ec96dbad8"
+    },
+    "porcupine_albedo.ktx2": {
+     "bytes": 160798,
+     "sha256": "2fcf39067fdcfce1ad73ee8096b998054d64fafa862a99d2767c4ec0bad91200"
+    },
+    "porcupine_nrm.ktx2": {
+     "bytes": 229060,
+     "sha256": "e27a63d83d0935b7d371fe60180de12c6b36ed2edb4f0ef59d7b2e634414d936"
+    }
+   },
+   "tris": {
+    "lod0": 1598,
+    "lod1": 360
+   },
+   "tex": 512,
+   "L": 0.7,
+   "variants": 1,
+   "cover": 0.5467529296875,
+   "ao_mean": 0.4727850970099954,
+   "high_tris": 75276,
+   "bbox": [
+    [
+     -0.1515282541513443,
+     0.0000023110731035558274,
+     -0.29040074348449707
+    ],
+    [
+     0.15082408487796783,
+     0.32861077785491943,
+     0.31910139322280884
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "raptor": {
+   "class": "birds",
+   "name": "golden eagle",
+   "of": "raptor",
+   "inHash": "bfcd1224cb149529e47533d9d3643969d0c82b3ac49026494cce20e388a8ecf9",
+   "files": {
+    "raptor.glb": {
+     "bytes": 36284,
+     "sha256": "040d13878ab219b65a499030af16a1336df98c99f373007878ab6ade8c5e589c"
+    },
+    "raptor_albedo.ktx2": {
+     "bytes": 166198,
+     "sha256": "2b167e51a731c1791ade4754233ad22429f2a41c072fe35ddf0c332318a52469"
+    },
+    "raptor_nrm.ktx2": {
+     "bytes": 249543,
+     "sha256": "2bf0a0ceb20a39ec5dd80139ff45a26881a3e64ca2f2d93ac9172042d5290021"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 512,
+   "L": 0.85,
+   "S": 1.9,
+   "sx": 0.04675000000000001,
+   "half": 0.95,
+   "cover": 0.8425788879394531,
+   "ao_mean": 0.5836905535529642,
+   "high_tris": 68376,
+   "bbox_fly": [
+    [
+     -0.95,
+     -0.08065601218867968,
+     -0.408
+    ],
+    [
+     0.95,
+     0.08258351689881618,
+     0.4297528310407095
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "roller": {
+   "class": "birds",
+   "name": "European roller",
+   "of": "roller",
+   "inHash": "e008382f703c12e64b17263d5a0afa03582464cae7b7bbe002b9501cc5c2396f",
+   "files": {
+    "roller.glb": {
+     "bytes": 36296,
+     "sha256": "c15119e8714bfe731f48bf7a0dc1032f3582d00702f6a9e989b550d7dfceb604"
+    },
+    "roller_albedo.ktx2": {
+     "bytes": 160404,
+     "sha256": "f32727f75dd2149b2b2fb0cdbf9617f8c5fb83d6135869dae6a678217aed29b4"
+    },
+    "roller_nrm.ktx2": {
+     "bytes": 246778,
+     "sha256": "08cb85a5da79db987050e27cdd665daba68bfd2ede418f84ca39c8402f5045f8"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 512,
+   "L": 0.31,
+   "S": 0.66,
+   "sx": 0.0161975,
+   "half": 0.33,
+   "cover": 0.8666000366210938,
+   "ao_mean": 0.6215754789464614,
+   "high_tris": 71292,
+   "bbox_fly": [
+    [
+     -0.33,
+     -0.029415722092342004,
+     -0.1488
+    ],
+    [
+     0.33,
+     0.02995053677418606,
+     0.1575213074892299
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "rose": {
+   "class": "flora",
+   "name": "damask rose bush",
+   "of": "rose",
+   "inHash": "007b2376205128a016e1bfe8ba777a8cb60006f42e5643841d78ca6e880b4c2c",
+   "files": {
+    "rose.glb": {
+     "bytes": 37940,
+     "sha256": "d5bd578f88ecd5a5b7761c8c076c0dd8db8c911fcbecba3504825ff2db0c1ce3"
+    },
+    "rose_albedo.ktx2": {
+     "bytes": 280166,
+     "sha256": "6349e324a31bab7831103cbc1f32cda41e590be5f29c7d60f026b876a286a596"
+    },
+    "rose_nrm.ktx2": {
+     "bytes": 282955,
+     "sha256": "2ef52a181ecc27066ee9c00b2c7c9c420d7f7d2177a78e5ba11124ae77a74fa7"
+    }
+   },
+   "tris": {
+    "lod0": 416,
+    "lod1": 170
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    0.9,
+    1
+   ],
+   "cover": 0.2099170684814453,
+   "bbox": [
+    [
+     -0.8736585974693298,
+     -0.0638512372970581,
+     -1.0290515422821045
+    ],
+    [
+     1.0578389167785645,
+     1.0472607612609863,
+     1.0354691743850708
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "sandgrouse": {
+   "class": "birds",
+   "name": "black-bellied sandgrouse",
+   "of": "sandgrouse",
+   "inHash": "b70d7697444fe29f9b17f836033e6f5352c0e5ef4a2a383d48d7661cf0e37abe",
+   "files": {
+    "sandgrouse.glb": {
+     "bytes": 36292,
+     "sha256": "2648ea69f5552390372ed06640cefa055ad4f8d2c5d8f7951434364b11f53846"
+    },
+    "sandgrouse_albedo.ktx2": {
+     "bytes": 166553,
+     "sha256": "710e4e2299f5d5c8d8a02436a04d92dac51a5fae0b1e60583df476c057ae2324"
+    },
+    "sandgrouse_nrm.ktx2": {
+     "bytes": 246881,
+     "sha256": "9f68608ab33cecf098d7f18cc977aae9dff62786370e57b954fbf676a00c0536"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 512,
+   "L": 0.33,
+   "S": 0.62,
+   "sx": 0.021780000000000004,
+   "half": 0.31,
+   "cover": 0.8725357055664062,
+   "ao_mean": 0.6368590261421951,
+   "high_tris": 71916,
+   "bbox_fly": [
+    [
+     -0.31,
+     -0.03559851733008724,
+     -0.1584
+    ],
+    [
+     0.31,
+     0.03642911344372465,
+     0.16599270529387358
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "scorpion": {
+   "class": "small",
+   "name": "scorpion (a yellow buthid)",
+   "of": "scorpion",
+   "inHash": "151484f733bd2c2fde0691ecdf19914bba663faeefeb360bb53d09567a3c88d4",
+   "files": {
+    "scorpion.glb": {
+     "bytes": 82168,
+     "sha256": "1eff0ed46387d2a332c1e7ce859fd199a3de9706c47b1c4b0abb557754ac062b"
+    },
+    "scorpion_albedo.ktx2": {
+     "bytes": 36729,
+     "sha256": "80f0ca8270fd53752e951f5a4165d129b3b4920d440fcf50674deee0c45277fd"
+    },
+    "scorpion_nrm.ktx2": {
+     "bytes": 74763,
+     "sha256": "8392449c423c49a0437ecdec544fc50662b97cf9edcddd7c6f5433263f0fa562"
+    }
+   },
+   "tris": {
+    "lod0": 1096,
+    "lod1": 250
+   },
+   "tex": 256,
+   "L": 0.08,
+   "variants": 1,
+   "cover": 0.5292510986328125,
+   "ao_mean": 0.7909131816789216,
+   "high_tris": 32140,
+   "bbox": [
+    [
+     -0.01626160927116871,
+     -0.00002444798701617401,
+     -0.026114877313375473
+    ],
+    [
+     0.01626160927116871,
+     0.028645582497119904,
+     0.042511120438575745
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "snail": {
+   "class": "small",
+   "name": "land snail (banded)",
+   "of": "snail",
+   "inHash": "4b4b27d85734980dceb6b4a27f945fe785daf4374964e028569641f139690e8a",
+   "files": {
+    "snail.glb": {
+     "bytes": 35068,
+     "sha256": "b18d1c2dbb9ccd3a7f8a64f027721b861dfd70d14aff4a894850b4d6f3c1c464"
+    },
+    "snail_albedo.ktx2": {
+     "bytes": 13138,
+     "sha256": "de021af2da989d022288ad8793daec2557055c3682d08c9b0cf0fa8dc37a74a4"
+    },
+    "snail_nrm.ktx2": {
+     "bytes": 18980,
+     "sha256": "33b5549338fb1229034774bfa919bfdc06aff905e514ac49af0f7f3faff09953"
+    }
+   },
+   "tris": {
+    "lod0": 600,
+    "lod1": 150
+   },
+   "tex": 128,
+   "L": 0.03,
+   "variants": 1,
+   "cover": 0.63018798828125,
+   "ao_mean": 0.7480782303155638,
+   "high_tris": 122596,
+   "bbox": [
+    [
+     -0.011168406344950199,
+     -0.000001960449253601837,
+     -0.013931245543062687
+    ],
+    [
+     0.012164384126663208,
+     0.016451258212327957,
+     0.015665028244256973
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "snake": {
+   "class": "small",
+   "name": "snake (a blunt-nosed viper)",
+   "of": "snake",
+   "inHash": "d1cf8efddccc26ca4a616dbb98b5a8d56b770522067793449a65151611b90a1e",
+   "files": {
+    "snake.glb": {
+     "bytes": 48860,
+     "sha256": "1122efdf04314e6e28e6a3af5508c29a1237f525f39f0a6416c7429881926a95"
+    },
+    "snake_albedo.ktx2": {
+     "bytes": 64844,
+     "sha256": "64b7796c165d454807cd74207e4ef96849253c172095f32e50ba2e1fead3e790"
+    },
+    "snake_nrm.ktx2": {
+     "bytes": 54422,
+     "sha256": "01fd9402ce21635dfe7bdbed8303a4c0b84292111689216557524b6933014868"
+    }
+   },
+   "tris": {
+    "lod0": 984,
+    "lod1": 300
+   },
+   "tex": 512,
+   "L": 0.9,
+   "variants": 1,
+   "cover": 0.12529373168945312,
+   "ao_mean": 0.16630805520450367,
+   "high_tris": 6574,
+   "bbox": [
+    [
+     -0.02599189057946205,
+     0.0007378882728517056,
+     -0.33321434259414673
+    ],
+    [
+     0.02599189057946205,
+     0.042109452188014984,
+     0.4629654884338379
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "sparrow": {
+   "class": "birds",
+   "name": "house sparrow (male)",
+   "of": "sparrow",
+   "inHash": "aaa4527e12457aef8bbdf9ff34e3d989efcecceb11b9b5e9530f06e05722d558",
+   "files": {
+    "sparrow.glb": {
+     "bytes": 66744,
+     "sha256": "8f806edd33d3abdfdea632415861d0508f229183b5a23f9ecc9922021afa05a7"
+    },
+    "sparrow_albedo.ktx2": {
+     "bytes": 58630,
+     "sha256": "4dcef40a25b9f2b377dc14ea2189d5cc290fe94d21f314a8beb362ed1aef1de2"
+    },
+    "sparrow_nrm.ktx2": {
+     "bytes": 71064,
+     "sha256": "945afdce36f463eb6bf88a93cb3f67583c5e9d2d24001a7db17b7c30c05ee1ae"
+    }
+   },
+   "tris": {
+    "fly0": 684,
+    "fly1": 164,
+    "fly2": 52,
+    "stand0": 684,
+    "stand1": 164
+   },
+   "tex": 256,
+   "L": 0.15,
+   "S": 0.24,
+   "sx": 0.00825,
+   "half": 0.12,
+   "cover": 0.8695831298828125,
+   "ao_mean": 0.5821783327588848,
+   "high_tris": 71292,
+   "bbox_fly": [
+    [
+     -0.12,
+     -0.014982540963841428,
+     -0.072
+    ],
+    [
+     0.12,
+     0.0160125,
+     0.075977490621088
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "sparrow_f": {
+   "class": "birds",
+   "name": "house sparrow (female)",
+   "of": "sparrow",
+   "inHash": "fb392ccf925ee4cfb9b31a525ec313f1b4c2030cdec71bb8b3fff93027dd9e80",
+   "files": {
+    "sparrow_f.glb": {
+     "bytes": 66744,
+     "sha256": "8f806edd33d3abdfdea632415861d0508f229183b5a23f9ecc9922021afa05a7"
+    },
+    "sparrow_f_albedo.ktx2": {
+     "bytes": 60544,
+     "sha256": "0ef43700cf056b93d802eb132752f3c7e443fe094aac24fd9f3d289e43e2cc80"
+    },
+    "sparrow_f_nrm.ktx2": {
+     "bytes": 71064,
+     "sha256": "945afdce36f463eb6bf88a93cb3f67583c5e9d2d24001a7db17b7c30c05ee1ae"
+    }
+   },
+   "tris": {
+    "fly0": 684,
+    "fly1": 164,
+    "fly2": 52,
+    "stand0": 684,
+    "stand1": 164
+   },
+   "tex": 256,
+   "L": 0.15,
+   "S": 0.24,
+   "sx": 0.00825,
+   "half": 0.12,
+   "cover": 0.8695831298828125,
+   "ao_mean": 0.5821783327588848,
+   "high_tris": 71292,
+   "bbox_fly": [
+    [
+     -0.12,
+     -0.014982540963841428,
+     -0.072
+    ],
+    [
+     0.12,
+     0.0160125,
+     0.075977490621088
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "starling": {
+   "class": "birds",
+   "name": "common starling (winter)",
+   "of": "starling",
+   "inHash": "d7de467d4a230143bf22435c73fa0f69b837c43c307621a70dcde6dc3fd8844d",
+   "files": {
+    "starling.glb": {
+     "bytes": 36296,
+     "sha256": "3254fce7d98aca1104081a7613a6b944d1792d4ab10978f2f11a94e4d94cca21"
+    },
+    "starling_albedo.ktx2": {
+     "bytes": 55731,
+     "sha256": "c289df35a9fca84e8981609b9bc1bdb8cb6fadfd1649d36b6ac2bcdb7a152cbf"
+    },
+    "starling_nrm.ktx2": {
+     "bytes": 69954,
+     "sha256": "2b90894bbe0d56d86d1a95afb6cf7fb3a68459bf2b84df940814da95adad812e"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 256,
+   "L": 0.2,
+   "S": 0.38,
+   "sx": 0.011000000000000003,
+   "half": 0.19,
+   "cover": 0.8738250732421875,
+   "ao_mean": 0.666352814319087,
+   "high_tris": 72028,
+   "bbox_fly": [
+    [
+     -0.19,
+     -0.019976721285121908,
+     -0.096
+    ],
+    [
+     0.19,
+     0.020380847410026128,
+     0.10196331804918679
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "stork": {
+   "class": "birds",
+   "name": "white stork",
+   "of": "stork",
+   "inHash": "0291aa4c5936d50fd7f381ff39e801469ef20eaf7b7789f3192d41109daacf73",
+   "files": {
+    "stork.glb": {
+     "bytes": 68696,
+     "sha256": "f8793e06ce7ebdd07426ebed90eb62b8c4a32cd9da3a846a1607bd1a751ba68e"
+    },
+    "stork_albedo.ktx2": {
+     "bytes": 152873,
+     "sha256": "a3281757d5384cda19aab3ae5784a30c7408616af48651c7f135221cec077d90"
+    },
+    "stork_nrm.ktx2": {
+     "bytes": 246874,
+     "sha256": "5f2cbdd7b6be67f1ca3524744437b64edd259d3ae882e3c229b54cc4569d5cd2"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60,
+    "stand0": 704,
+    "stand1": 176
+   },
+   "tex": 512,
+   "L": 1,
+   "S": 2,
+   "sx": 0.038500000000000006,
+   "half": 1,
+   "cover": 0.8425559997558594,
+   "ao_mean": 0.5372141669778263,
+   "high_tris": 68376,
+   "bbox_fly": [
+    [
+     -1,
+     -0.073414450722823,
+     -0.5726378842893186
+    ],
+    [
+     1,
+     0.07537450498057689,
+     0.5147165485618863
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "swallow": {
+   "class": "birds",
+   "name": "barn swallow",
+   "of": "swallow",
+   "inHash": "01bbc0990186db8fede6b7a4562564f1643641145a4a871ad5274ddfb1858f70",
+   "files": {
+    "swallow.glb": {
+     "bytes": 35144,
+     "sha256": "d8eaaad98c0b554a55a5315e3dfeb6e11abc9edb8081633d8f072369488543c5"
+    },
+    "swallow_albedo.ktx2": {
+     "bytes": 53002,
+     "sha256": "93e0be88882dab5ec323d3829fd8ad40ce5b20c8e78cb508c46cbc44fab29063"
+    },
+    "swallow_nrm.ktx2": {
+     "bytes": 71854,
+     "sha256": "078431a78f844af1b67329d08e4a2677c35de01f2eb5ece65b92360de0153375"
+    }
+   },
+   "tris": {
+    "fly0": 684,
+    "fly1": 164,
+    "fly2": 52
+   },
+   "tex": 256,
+   "L": 0.18,
+   "S": 0.36,
+   "sx": 0.00693,
+   "half": 0.18,
+   "cover": 0.8655548095703125,
+   "ao_mean": 0.6299829221239277,
+   "high_tris": 71808,
+   "bbox_fly": [
+    [
+     -0.18,
+     -0.011956067689145458,
+     -0.08639999999999999
+    ],
+    [
+     0.18,
+     0.0150822,
+     0.0904859837432336
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "swift": {
+   "class": "birds",
+   "name": "common and pallid swifts",
+   "of": "swift",
+   "inHash": "0db09efd59d971cfb727b2dab95739051100615551512312f721cd5dfc7c02b8",
+   "files": {
+    "swift.glb": {
+     "bytes": 35140,
+     "sha256": "139603e53ee9e289ea4b1f25e4f7405be5bbbd2ee5248ae307a79a1d8b1055b4"
+    },
+    "swift_albedo.ktx2": {
+     "bytes": 48326,
+     "sha256": "85c4629ec989868c2fbe714c793296fae1c6be78c2242e466d00c2fc0959ff2b"
+    },
+    "swift_nrm.ktx2": {
+     "bytes": 71065,
+     "sha256": "d66c68e5313bcaee6a1d7d857a36a2e83dbf5bad68c3f8d72b7d42bb659e3406"
+    }
+   },
+   "tris": {
+    "fly0": 684,
+    "fly1": 164,
+    "fly2": 52
+   },
+   "tex": 256,
+   "L": 0.18,
+   "S": 0.4,
+   "sx": 0.007425,
+   "half": 0.2,
+   "cover": 0.86859130859375,
+   "ao_mean": 0.6671618293313419,
+   "high_tris": 72024,
+   "bbox_fly": [
+    [
+     -0.2,
+     -0.01281007252408442,
+     -0.0864
+    ],
+    [
+     0.2,
+     0.0161595,
+     0.09044399749896481
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "thistle": {
+   "class": "flora",
+   "name": "thistle (Onopordum, Cousinia)",
+   "of": "thistle",
+   "inHash": "43bb367150210b7d9d9f9c711fd79441df8c78f3de34e551947b44eb4f522498",
+   "files": {
+    "thistle.glb": {
+     "bytes": 18308,
+     "sha256": "5c48fb381620a94363e992b7852121d6b7f6218d85e3eaf7bed29a4788c96a0b"
+    },
+    "thistle_albedo.ktx2": {
+     "bytes": 328055,
+     "sha256": "ca8c8640fbb3e7b9d488ab4a7ccdb3cffae3289ac4f90486f9c6c57fc9ba8e82"
+    },
+    "thistle_nrm.ktx2": {
+     "bytes": 283717,
+     "sha256": "cfbc4ff5a5ed8db162f2ba3f725527bb92e33d2566d6c0b8016c3381b562a4c3"
+    }
+   },
+   "tris": {
+    "lod0": 248,
+    "lod1": 86
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.2498455047607422,
+   "bbox": [
+    [
+     -0.3924412429332733,
+     -0.0005069485632702708,
+     -0.3818507492542267
+    ],
+    [
+     0.3837825357913971,
+     1.0499999523162842,
+     0.39355409145355225
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "tortoise": {
+   "class": "small",
+   "name": "spur-thighed tortoise",
+   "of": "tortoise",
+   "inHash": "25afdfe304eff90f2dcaec68560488c5dbc6b7daf6f6c855ba5401da90c5731c",
+   "files": {
+    "tortoise.glb": {
+     "bytes": 57756,
+     "sha256": "85bfc8d479b0725dc4591cf47b61cf33dd840bb1b1e01747e5aa6dd86f755139"
+    },
+    "tortoise_albedo.ktx2": {
+     "bytes": 120419,
+     "sha256": "ecfaab12a5d4501e8171439254e59ab375609f273cf36648202da3567e958903"
+    },
+    "tortoise_nrm.ktx2": {
+     "bytes": 243391,
+     "sha256": "6df7c76ad3434f04f8650153292ed85156a7590246e36c2383920663b2d18d5a"
+    }
+   },
+   "tris": {
+    "lod0": 1200,
+    "lod1": 280
+   },
+   "tex": 512,
+   "L": 0.2,
+   "variants": 1,
+   "cover": 0.6452217102050781,
+   "ao_mean": 0.6860638637168734,
+   "high_tris": 158104,
+   "bbox": [
+    [
+     -0.07935809344053268,
+     0.0001902424992294982,
+     -0.108664870262146
+    ],
+    [
+     0.0793580710887909,
+     0.10818097740411758,
+     0.13588669896125793
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "turtle": {
+   "class": "small",
+   "name": "Caspian turtle",
+   "of": "turtle",
+   "inHash": "6901cb42f9281972bc40defde5974573e9c4d6e149e4d51909ec92766c688c78",
+   "files": {
+    "turtle.glb": {
+     "bytes": 55440,
+     "sha256": "00396e24dd14bdcec0a98dc239beaae63c8b1b551fb32ae7c9c37a421c355fda"
+    },
+    "turtle_albedo.ktx2": {
+     "bytes": 37396,
+     "sha256": "88d903c5e47c704ad50a34d182c5d7a8d2c393b92f44846ef621595aff833a86"
+    },
+    "turtle_nrm.ktx2": {
+     "bytes": 65887,
+     "sha256": "1e51e0f3031dc6b1d192e1344da9b9157083d8bfddfbe6fa5b2e50293b0da259"
+    }
+   },
+   "tris": {
+    "lod0": 1100,
+    "lod1": 260
+   },
+   "tex": 256,
+   "L": 0.2,
+   "variants": 1,
+   "cover": 0.627532958984375,
+   "ao_mean": 0.7282568838082107,
+   "high_tris": 130198,
+   "bbox": [
+    [
+     -0.0798463299870491,
+     0.00018401893612463027,
+     -0.10884062945842743
+    ],
+    [
+     0.0798463299870491,
+     0.07606828212738037,
+     0.13597166538238525
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "vulture": {
+   "class": "birds",
+   "name": "griffon vulture",
+   "of": "vulture",
+   "inHash": "143429914939f8e90be60a6cd8dff458edd3679f5fdf351ed2e415f961ad7c4a",
+   "files": {
+    "vulture.glb": {
+     "bytes": 36284,
+     "sha256": "03df3e95ef8eecf370a83ad4f85b0204850dfd2e11b0ea1f101926c6126b3d9d"
+    },
+    "vulture_albedo.ktx2": {
+     "bytes": 167471,
+     "sha256": "1bab1515325172929eed882f12d62d8d99a6e185bf26b8ba76b0c56955a4b434"
+    },
+    "vulture_nrm.ktx2": {
+     "bytes": 240164,
+     "sha256": "ed94acb7bedb0596e9d2cd21ea950b4e3c69fce47475c476164ec777b49a2dc8"
+    }
+   },
+   "tris": {
+    "fly0": 704,
+    "fly1": 176,
+    "fly2": 60
+   },
+   "tex": 512,
+   "L": 1.05,
+   "S": 2.6,
+   "sx": 0.0693,
+   "half": 1.3,
+   "cover": 0.8398971557617188,
+   "ao_mean": 0.5696159063601026,
+   "high_tris": 68192,
+   "bbox_fly": [
+    [
+     -1.3,
+     -0.1195606768914546,
+     -0.504
+    ],
+    [
+     1.3,
+     0.1233963724216463,
+     0.47850152503521787
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "wheatear": {
+   "class": "birds",
+   "name": "northern wheatear (male)",
+   "of": "wheatear",
+   "inHash": "ee45b862084dbe182e2ad78862905722ee3de23c572374053f711dacf40aa03e",
+   "files": {
+    "wheatear.glb": {
+     "bytes": 66748,
+     "sha256": "5795325cf836e218ef53be5d49fe2d33d15d230ad4c9ab8509aabfc519a97dbb"
+    },
+    "wheatear_albedo.ktx2": {
+     "bytes": 49898,
+     "sha256": "efa3e1b391ffd93268d5aae663126ad644b239f444b905fbd1b2de8c3a60a258"
+    },
+    "wheatear_nrm.ktx2": {
+     "bytes": 71413,
+     "sha256": "0e7eecb4727c8ebbab7335675929732e7b37f3e0019af94a9426226f1e9e8828"
+    }
+   },
+   "tris": {
+    "fly0": 684,
+    "fly1": 164,
+    "fly2": 52,
+    "stand0": 684,
+    "stand1": 164
+   },
+   "tex": 256,
+   "L": 0.15,
+   "S": 0.27,
+   "sx": 0.0078375,
+   "half": 0.135,
+   "cover": 0.8758697509765625,
+   "ao_mean": 0.6275555778952205,
+   "high_tris": 72028,
+   "bbox_fly": [
+    [
+     -0.135,
+     -0.014233413915649355,
+     -0.072
+    ],
+    [
+     0.135,
+     0.015105,
+     0.075977490621088
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  }
+ }
+}

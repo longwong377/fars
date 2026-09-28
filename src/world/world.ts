@@ -42,10 +42,12 @@ import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
+import { loadDecorAssets } from '../render/decorAssets';
 import { loadTreeAssets } from './trees/assets';
 import { loadReliefAtlas } from '../render/reliefAtlas';
 import { loadScanProps } from '../render/scanProps';
 import { loadAnimalModels } from '../people/animalModels';
+import { loadLifeModels } from './lifeModels';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
 import { buildWaterworks } from '../arch/waterworks';
 import { footGeometry, FOOT_DEPTH } from '../arch/terrace_foot';
@@ -97,7 +99,7 @@ import { PeopleSim, Env } from '../people/sim';
 import { Crowd, PATH_REACH } from '../people/crowd';
 import { PopGeo } from '../people/popgeo';
 import { PopView } from '../people/popview';
-import { bakeImpostors, CrowdImpostors } from '../people/impostors';
+import { bakeImpostors, CrowdImpostors, loadImpostorAtlas } from '../people/impostors';
 import { countVisible, type VisibleCount } from '../people/crowdprobe';
 import { propGeometry } from '../people/props';
 import { villageCompounds } from './plain/villages';
@@ -148,8 +150,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const propsP = loadScanProps('/'); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
   const modelsP = loadModels('/'); // the Blender-built models (D-305, public/models/): in before the architecture is built
   const treesP = loadTreeAssets('/'); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
+  const lifeP = loadLifeModels('/'); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
   const animalsP = loadAnimalModels('/'); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
   const reliefAtlasP = loadReliefAtlas('/'); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
+  const decorP = loadDecorAssets('/'); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
   const fireOccP = loadFireOcc('/'); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
@@ -159,7 +163,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
-  await modelsP; await propsP; await treesP; await animalsP;
+  await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP;
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);
@@ -297,7 +301,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     const spots: { e: number; n: number; y: number; size: number; rot: number }[] = []; let k = 0;
     for (let u = -165 + 32; u < 165 - 26; u += 2) { if ([-40, 50].some(c => Math.abs(u - c) < 4.5)) continue; for (const v of [-1.7, 1.7]) { const g = site.grid(u, v) as [number, number], h = ((k++ * 2654435761) >>> 0) / 4294967296;
       spots.push({ e: g[0], n: g[1], y: nav.heightAt(g[0], g[1]) || terrain.heightAt(g[0], -g[1]), size: 0.6 + 0.5 * h, rot: h * 6.283 }); } }
-    const r = new RoseBeds(spots); root.add(r.mesh); return r; })();
+    const r = new RoseBeds(spots); root.add(r.group); return r; })();
   const devils = new DustDevils(seed); root.add(devils.group); // dust devils on the summer plain (session 9, G7)
   const breath = new BreathFx(); root.add(breath.group); const breathBuf: any[] = []; // breath in the cold (session 9, G5)
   const devilOpen = (e: number, n: number) => Math.hypot(e, n) > 1500 && landUseAt(plain.data.zones, e, -n).use !== 'orchard' && small.ctx(e, n) !== 'none' && small.ctx(e, n) !== 'water' && small.ctx(e, n) !== 'rock';
@@ -378,7 +382,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let smokeKey = '';
   let impMs = 0;
   { const t = performance.now(), pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
-    crowd.imp = new CrowdImpostors(bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
+    // D-331: the atlas rendered in Blender/Cycles from the full-detail people; the CPU bake of the far bodies when it is absent
+    const cyc = await loadImpostorAtlas(humans.A, humans.O);
+    crowd.imp = new CrowdImpostors(cyc ?? bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
   wmark('crowd.imp');
   // the people and animals near the player are solid (brief §6: player collision with crowds and animals; D-237): pools of
   // kinematic capsules follow the nearest of them within SOLID_R, where the crowd draws them (the view's spot and the
@@ -617,10 +623,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       if (ctx.skyLight?.hemi) wvfx.setLight(ctx.skyLight.hemi, ctx.skyLight.sun ?? null); // streaks and flakes lit by the sky (D-219)
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
-        birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
+        birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain, ctx.camera.position);
         devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
-        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
+        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); if (roses) roses.group.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)

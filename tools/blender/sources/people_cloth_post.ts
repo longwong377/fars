@@ -106,9 +106,12 @@ function fuvOf(piece: string, key: string): Float32Array | null {
   fuvSets.set(key, r); return r;
 }
 /** the fold layers (0: finer than the full-detail mesh, 1: than the mid one) × the groups' channels (men, women, children) */
-const GROUPS = ['men', 'women', 'children'], layers = [0, 1].map(() => GROUPS.map(() => ({ img: new Float32Array(FS * FS), wgt: new Float32Array(FS * FS) }))); const allR: number[] = [];
+// (D-322 rev 2: per seed two layers: layer index seed × 2 + level)
+const SEEDS: number = ARGS.seeds ?? 1, sfx = (S: any) => (S.seed ? `#${S.seed}` : '');
+const GROUPS = ['men', 'women', 'children'], layers = Array.from({ length: 2 * SEEDS }, () => 0).map(() => GROUPS.map(() => ({ img: new Float32Array(FS * FS), wgt: new Float32Array(FS * FS) }))); const allR: number[] = [];
 // stage 1 first: an outer layer is kept outside what is drawn under it
-const order = [...job.sims].sort((a: any, b: any) => (a.stage ?? 1) - (b.stage ?? 1) || a.name.localeCompare(b.name));
+const rank = (x: any) => (x.stage ?? 1) + (ARGS.pieces[x.piece].keepOver ? 0.5 : 0); // (kept over: after what it is kept over)
+const order = [...job.sims].sort((a: any, b: any) => rank(a) - rank(b) || a.name.localeCompare(b.name));
 for (const S of order) {
   const v = A.byId[S.variant], P = ARGS.pieces[S.piece];
   const F = rd(S.fitted), n = F.length / 3, fidx = readPLY(S.cloth).idx;
@@ -143,14 +146,17 @@ for (const S of order) {
       if (best >= 0) for (let e = 0; e < 3; e++) out[i * 3 + e] = pos[i * 3 + e] + out[best * 3 + e] - pos[best * 3 + e]; }
     // an outer layer stays `gap` outside the level's drawn pieces under it (their nearest point, along their normal)
     let pushed = 0;
-    for (const u of S.over ?? []) { const U = job.sims.find((x: any) => x.name === u), dr = drawn.get(`${geoKeyOf(U.piece, LODS.find(l => geoKeyOf(S.piece, l) === key)!)}|${S.group}`); if (!dr) continue;
+    // (D-322 rev 2: `keepOver`: kept outside those pieces as drawn, though not settled over them: the robe's sleeves over its body,
+    // whose shoulders enclose the sleeves' pinned tops, so a collider there crumpled the sleeves to the elbow)
+    const keepU = (P.keepOver?.[S.group] ?? []).map((p: string) => job.sims.find((x: any) => x.piece === p && x.group === S.group && (x.seed ?? 0) === (S.seed ?? 0))?.name).filter(Boolean);
+    for (const u of [...(S.over ?? []), ...keepU]) { const U = job.sims.find((x: any) => x.name === u), dr = drawn.get(`${geoKeyOf(U.piece, LODS.find(l => geoKeyOf(S.piece, l) === key)!)}|${S.group}${sfx(U)}`); if (!dr) continue;
       const ui: number[] = []; for (let t = 0; t < dr.g.index.length; t += 3) if (dr.outer[dr.g.index[t]] && dr.outer[dr.g.index[t + 1]] && dr.outer[dr.g.index[t + 2]]) ui.push(dr.g.index[t], dr.g.index[t + 1], dr.g.index[t + 2]);
       const ug = new Grid(dr.P, ui, 0.04), UN = vnormals(dr.P, ui, dr.g.n), gap = P.gap ?? 0.004;
       for (let i = 0; i < g.n; i++) { const p: V3 = [out[i * 3], out[i * 3 + 1], out[i * 3 + 2]], [t, a1, b1, c1, d] = ug.nearest(p); if (t < 0 || d > 0.05) continue;
         const ia = ui[t * 3], ib = ui[t * 3 + 1], ic = ui[t * 3 + 2], nq = [0, 1, 2].map(e => UN[ia * 3 + e] * a1 + UN[ib * 3 + e] * b1 + UN[ic * 3 + e] * c1), nl = Math.hypot(nq[0], nq[1], nq[2]) || 1;
         const qq = [0, 1, 2].map(e => dr.P[ia * 3 + e] * a1 + dr.P[ib * 3 + e] * b1 + dr.P[ic * 3 + e] * c1), s = ((p[0] - qq[0]) * nq[0] + (p[1] - qq[1]) * nq[1] + (p[2] - qq[2]) * nq[2]) / nl;
         const need = (outer[i] ? gap : gap * 0.5) - s; if (need > 0 && s > -0.03) { for (let e = 0; e < 3; e++) out[i * 3 + e] += (nq[e] / nl) * need; pushed++; } } }
-    drawn.set(`${key}|${S.group}`, { P: out, g, outer });
+    drawn.set(`${key}|${S.group}${sfx(S)}`, { P: out, g, outer });
     // D-322: the settled cloth finer than this level (layer 0 the full detail, 1 the mid level, which the far ones share):
     // at each simulated vertex, its displacement less the level's low-pass there, along the settled normal, splatted into the
     // piece's charts at the atlas coordinate of the nearest point of the level's mesh
@@ -166,25 +172,25 @@ for (const S of order) {
         const sg = sgArr[ia] * a1 + sgArr[ib] * b1 + sgArr[ic] * c1; let sw = 0; const acc = [0, 0, 0];
         for (const k of grid.within(pj, 2.5 * sg)) { if (comp[k] !== comp[j]) continue; const d2 = (F[k * 3] - pj[0]) ** 2 + (F[k * 3 + 1] - pj[1]) ** 2 + (F[k * 3 + 2] - pj[2]) ** 2, w = Math.exp(-d2 / (2 * sg * sg)); sw += w; for (let e = 0; e < 3; e++) acc[e] += D[k * 3 + e] * w; }
         if (!sw) continue; val[j] = [0, 1, 2].reduce((x, e) => x + (D[j * 3 + e] - acc[e] / sw) * NS[j * 3 + e], 0); ok[j] = 1; allR.push(Math.abs(val[j])); }
-      const L = layers[layer][GROUPS.indexOf(S.group)]; splat(L.img, L.wgt, FS, fuvJ, val, fidx, ok);
+      const L = layers[(S.seed ?? 0) * 2 + layer][GROUPS.indexOf(S.group)]; splat(L.img, L.wgt, FS, fuvJ, val, fidx, ok);
     }
     // into the local frames of the procedural placement
     const Fr = drapeFrames(pos, g.index, g.n); const d = new Int16Array(g.n * 3); let ss = 0, mx = 0;
     for (let i = 0; i < g.n; i++) { const w = [out[i * 3] - pos[i * 3], out[i * 3 + 1] - pos[i * 3 + 1], out[i * 3 + 2] - pos[i * 3 + 2]]; const m = Math.hypot(w[0], w[1], w[2]); ss += m * m; mx = Math.max(mx, m);
       for (let a = 0; a < 3; a++) { const f = Fr.subarray(i * 9 + a * 3, i * 9 + a * 3 + 3); const c = w[0] * f[0] + w[1] * f[1] + w[2] * f[2]; d[i * 3 + a] = Math.max(-32767, Math.min(32767, Math.round(c / DRAPE_UNIT))); } }
     const rms = Math.sqrt(ss / g.n);
-    sets[`${key}|${S.group}`] = { n: g.n, group: S.group, frame: 'shell', d: W.add(d), rms: +rms.toFixed(5), max: +mx.toFixed(5), note: `${S.kind}: settled by Blender's cloth solver on ${S.variant} (${S.outer} vertices, ${S.levels} Loop levels), low-passed to this level` };
-    stats[`${key}|${S.group}`] = { rms_mm: +(rms * 1000).toFixed(1), max_mm: +(mx * 1000).toFixed(1), sampled: lo, pushed };
+    sets[`${key}|${S.group}${sfx(S)}`] = { n: g.n, group: S.group, frame: 'shell', d: W.add(d), rms: +rms.toFixed(5), max: +mx.toFixed(5), note: `${S.kind}: settled by Blender's cloth solver on ${S.variant} (${S.outer} vertices, ${S.levels} Loop levels), low-passed to this level` };
+    stats[`${key}|${S.group}${sfx(S)}`] = { rms_mm: +(rms * 1000).toFixed(1), max_mm: +(mx * 1000).toFixed(1), sampled: lo, pushed };
   }
 }
 // the fold layers: heights about 0.5 in each group's channel, ± scale (the 99.8th percentile of |height|, at most 12 mm)
 allR.sort((a, b) => a - b); const scale = Math.min(0.012, Math.max(0.002, allR[Math.floor(allR.length * 0.998)] ?? 0.004));
-const png = new Uint8Array(FS * FS * 2 * 4);
+const NL = layers.length, png = new Uint8Array(FS * FS * NL * 4);
 layers.forEach((Ls, l) => Ls.forEach((L, c) => { const v = resolveDilate(L.img, L.wgt, FS, 8); for (let i = 0; i < FS * FS; i++) png[(l * FS * FS + i) * 4 + c] = srgbByte(0.5 + v[i] / (2 * scale)); }));
-for (let i = 0; i < FS * FS * 2; i++) png[i * 4 + 3] = 255;
-writeFileSync(`${outDir}/people_cloth_folds.png`, encodePNG(FS, FS * 2, png, 4));
+for (let i = 0; i < FS * FS * NL; i++) png[i * 4 + 3] = 255;
+writeFileSync(`${outDir}/people_cloth_folds.png`, encodePNG(FS, FS * NL, png, 4));
 const fuv: Record<string, any> = {}; for (const [k, a] of [...fuvSets.entries()].sort()) fuv[k] = W.add(a);
-const meta: DrapeMeta = { version: 2, groups: ARGS.groups, sets, fuv, folds: { file: 'people_cloth_folds.png', layers: 2, size: FS, scale: +scale.toFixed(5), texelsPerMetre: +texelsPerMetre.toFixed(1), charts: charts.length } };
+const meta: DrapeMeta = { version: 2, groups: ARGS.groups, sets, fuv, seeds: SEEDS, folds: { file: 'people_cloth_folds.png', layers: NL, size: FS, scale: +scale.toFixed(5), texelsPerMetre: +texelsPerMetre.toFixed(1), charts: charts.length } };
 stats.$folds = { scale_mm: +(scale * 1000).toFixed(2), texelsPerMetre: +texelsPerMetre.toFixed(1), charts: charts.length, samples: allR.length };
 writeFileSync(`${outDir}/people_cloth.bin`, W.bytes());
 writeFileSync(`${outDir}/people_cloth.json`, JSON.stringify(meta, null, 1) + '\n');

@@ -22,7 +22,7 @@ export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', place
 /** a set drawn with the carved-relief atlas (D-320). Still a placeholder: the figures' drawing (outlines, poses, folds, curls) is
  *  the procedural reconstruction of relief_figures.ts, tier C, until licensed scans or measured drawings replace it (NEEDS
  *  #10); what changed is the carving's surface, baked by Blender from the finest heightfield with undercut outlines */
-export const RELIEF_ATLAS_META = { note: 'carved relief figures baked by Blender (D-320): the finest heightfield of each figure, its outlines undercut, baked by Cycles into a normal and ambient-occlusion atlas (1.6 mm on the stone) with the paint on the same grid, drawn on coarse RTIN levels; the drawing is still the procedural reconstruction (C), licensed scans would replace it (NEEDS #10); their sun shadows marched from a height atlas (D-226); layout B/C; hair/beard dark blue B, other paint C' };
+export const RELIEF_ATLAS_META = { note: 'carved relief figures baked by Blender (D-320): the finest heightfield of each figure, its outlines undercut, baked by Cycles into a normal and ambient-occlusion atlas (1.6 mm on the stone) with the paint on the same grid, drawn on coarse RTIN levels; the heads, headgear, hair and beards of the human figures follow measured photographs (B, D-320 round 3), the rest of the drawing is the procedural reconstruction (C), licensed scans would replace it (NEEDS #10); their sun shadows marched from a height atlas (D-226); layout B/C; hair/beard dark blue B, other paint C' };
 
 // ---------------- levels of detail ----------------
 /** per LOD: target grid cell on the stone (m), largest grid, RTIN error bound (relief-depth units), normal smoothing (cells),
@@ -276,7 +276,10 @@ export class ReliefSet extends THREE.Group {
       if (wp) { wp.request(k, it.kind, it.seed, this.grids[i][C], C, this.atlas); nv += 600; ni += 3000; }
       else { const m = reliefLodMesh(it.kind, it.seed, this.grids[i][C], C, this.atlas); nv += m.verts; ni += m.index.length; } });
     if (n) {
-      (this as any).batch = new THREE.BatchedMesh(n, Math.max(4096, nv * 3 + 200_000), Math.max(12288, ni * 3 + 600_000), paintMaterial(this.atlas));
+      // room for the finer levels near the camera: up to 6x the coarse level beyond it (a small set, or one seen from far, needs
+      // little; makeRoom grows the batch when a view asks for more). D-320: a fixed 200 k vertices / 600 k indices per set gave
+      // the plain 0.2 M static triangles for the five figures of the Neo-Elamite relief
+      (this as any).batch = new THREE.BatchedMesh(n, Math.max(4096, nv * 3 + Math.min(200_000, nv * 6)), Math.max(12288, ni * 3 + Math.min(600_000, ni * 6)), paintMaterial(this.atlas));
       // no shadow from the batch (D-048): near chunks cast theirs through a merged coarse proxy
       const bm = this.batch!; bm.name = 'relief:figures'; bm.userData = { ...this.userData }; bm.castShadow = false; bm.receiveShadow = true; bm.sortObjects = false; bm.perObjectFrustumCulled = true;
       let placeholder = -1;

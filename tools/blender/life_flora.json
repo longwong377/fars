@@ -1,0 +1,14 @@
+{
+ "about": "The ground flora's Blender build (D-332; BLENDER_PLAN row 13; tools/blender/life.mjs flora, tools/blender/life_flora.py). One model per kind of src/world/groundFlora.ts FLORA, the paradise's rose bushes (RoseBeds) and the spring flowers near the walker (smallLife.ts FLOWERS), at the unit size the game scales (the cushion a dome 1 x 0.55 x 1; the others 1 m tall), as the real species: stems and branches as tubes, the foliage as cards whose maps are Cycles renders of modelled sprigs (leaflets, spines, bracts, petals: the atlas, `tiles` x `tiles` of `tile` px), the tragacanth's dome under its bristling tufts. Forms from botanical descriptions and field photographs by recollection (C): Astragalus sect. Rhacophorus / Hymenostegis cushions (grey-green pinnate leaves, rachises hardening into straw spines, pale yellow flowers in the axils, May-June); Alhagi maurorum / persarum (green twiggy stems with rigid yellow-tipped axillary spines, small oblong leaves, pink-red pea flowers on the spines, June-August); Onopordum / Cousinia thistles (winged spiny stems, lobed spiny woolly leaves, globose heads of spiny bracts with purple florets); Rosa x damascena (pinnate leaves of 5-7 serrate leaflets, semi-double pink blooms); Muscari (grape hyacinth), Ranunculus (buttercup), Papaver rhoeas (poppy), Fritillaria imperialis (crown imperial). COLOR_0.r on a vertex is its part: 0 foliage and stems, 1 flowers (the game shows them by season).",
+ "tile": 256, "tiles": 4,
+ "species": {
+  "cushion": { "name": "tragacanth cushion (Astragalus)", "tris": [1400, 300], "unit": [1, 0.55, 1] },
+  "camelthorn": { "name": "camelthorn (Alhagi)", "tris": [1450, 300], "unit": [1, 1, 1] },
+  "thistle": { "name": "thistle (Onopordum, Cousinia)", "tris": [900, 260], "unit": [1, 1, 1] },
+  "rose": { "name": "damask rose bush", "tris": [1500, 300], "unit": [1, 0.9, 1] },
+  "flower_violet": { "name": "grape hyacinth (Muscari)", "tris": [120, 40], "unit": [1, 1, 1] },
+  "flower_yellow": { "name": "buttercup (Ranunculus)", "tris": [160, 50], "unit": [1, 1, 1] },
+  "flower_red": { "name": "corn poppy (Papaver rhoeas)", "tris": [160, 50], "unit": [1, 1, 1] },
+  "flower_crown": { "name": "crown imperial (Fritillaria imperialis)", "tris": [260, 70], "unit": [1, 1, 1] }
+ }
+}

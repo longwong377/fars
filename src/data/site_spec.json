@@ -213,6 +213,23 @@
    "tier": "C",
    "note": "stone door frames: jambs lining the opening, lintel and a projecting cornice block (the cavetto \"Egyptian\" cornice of Persepolis doorways: NOT SEEN, verify). Frames of polished stone are reported for the Tachara (tachara.stone_frames, WP-EXT, C); elsewhere C. In unfinished buildings the frames stand complete above the low walls: stone elements were set before the mud brick (C). Sizes C"
   },
+  "r_frame_profile": {
+   "v": {
+    "fasciae": 3,
+    "step": 0.025,
+    "chamfer": 0.004,
+    "torus_h": 0.07,
+    "torus_proj": 0.03,
+    "fillet_h": 0.06,
+    "tongue_pitch": 0.075,
+    "tongue_relief": 0.006,
+    "tongue_rows": 1
+   },
+   "u": "m",
+   "src": "REF-PHOTO-NR3;RECON",
+   "tier": "C",
+   "note": "D-330: the stone frames of doors, windows and niches (global.r_door_frame) carved as the doorways of the Achaemenid rock tombs show them (references/Naqsh-e Rustam 3.webp, the tomb door, which copies a palace doorway: B for the tomb): three stepped fasciae nested around the opening over the whole jamb face and the lintel's lower part (on a window or niche also over the sill block, scaled to its height), each stepping back by `step` toward the opening; the lintel crowned by the cavetto (Egyptian gorge) cornice of r_door_frame: a torus roll torus_h high projecting torus_proj at its foot, the hollow gorge flaring out to the cornice projection, a flat fillet fillet_h high on top; the gorge carved with one register of upright round-topped tongues at tongue_pitch, tongue_relief proud (the tomb cornice: one register seen at ~5 cm per px, C; Q-916). Arrises chamfered by `chamfer` and worn (the Blender trim, tools/blender/decor.mjs). Step, torus, fillet and tongue sizes C (by eye from the photograph, scaled to the frame of r_door_frame)"
+  },
   "r_window": {
    "v": {
     "width_of_door": 0.5,
@@ -693,6 +710,131 @@
    "src": "MATCULT-R;SCHMIDT1953;RECON",
    "tier": "C",
    "note": "D-276: fittings of the Terrace rooms by use (all C; types from the town's houses, D-234, and MATERIAL_CULTURE): reed sleeping mats (mat w x l, thickness mat_t) laid head to the wall with mat_gap between them and wall_gap from the wall, none within door_clear of a doorway's leaf sweep or in its approach (a strip as wide as the doorway + 2 aisle/2, approach m deep) or within hearth_clear of the hearth or post_clear of a post; hearth_places / mess_places: the places round a hearth where the men sit to eat (quarters and kitchens / the mess); the aisle is the free way kept down the room between the rows. A clay hearth ring (hearth_r) in each quarters room and the kitchens; a saucer lamp on a mud ledge (ledge w x d x t) lamp_h up the back wall; storage jars (jar_r, jar_h) in a row at jar_pitch along a wall by the door; querns in the kitchens; an apartment's back room at most mats_apartment sleeping places (a household: the lady, her children and her women, C); mud-brick benches (height, depth; gap = free wall at the corners and by the door) along the walls of the stores carrying the stored goods (treasury.stored_goods). work_off: a storekeeper's place in front of a bench face (off the aisle), every work_pitch along it"
+  },
+  "r_roof_edge": {
+   "v": {
+    "parapet": {
+     "h": 0.75,
+     "t": 0.6,
+     "coping": {
+      "h": 0.08,
+      "over": 0.04
+     }
+    },
+    "string": {
+     "h": 0.14,
+     "proj": 0.06
+    },
+    "fasciae": {
+     "n": 3,
+     "h": 0.18,
+     "step": 0.035,
+     "depth": 0.45
+    },
+    "dentil": {
+     "h": 0.2,
+     "w": 0.16,
+     "proj": 0.16,
+     "step": 0.55
+    },
+    "spout": {
+     "step": 7,
+     "end": 1.5,
+     "proj": 0.55
+    },
+    "fortMerlon": {
+     "w": 0.8,
+     "gap": 0.7,
+     "h": 0.7
+    },
+    "cap": 0.03,
+    "thinWall": 1.5
+   },
+   "u": "m",
+   "src": "NR-ACHAEMENICA;IR-VERNROOF-SX;RECON",
+   "tier": "C",
+   "note": "D-334: the wall heads and roof edges of every roofed building and exposed mud-brick top (src/arch/roofedge.ts): a plastered parapet over the roof's earth with a mud coping (the seat of its crown), a string course of one brick corbelled out at the roof line, rain spouts (a cedar trough) through the parapet's foot; over a portico the timber entablature as the Naqsh-e Rustam tomb facades copy the palace portico in stone (three fasciae and a dentil row of joist ends: the form A there; its use here, sizes C; the dentils at the ceiling joists' spacing, ceilings.ts); the fortification's parapet crenellated in plastered brick (C). Every size C"
+  },
+  "r_wall_foot": {
+   "v": {
+    "h": 0.07,
+    "proud": 0.035
+   },
+   "u": "m",
+   "src": "STEIN2016;RECON",
+   "tier": "C",
+   "note": "D-334: at the foot of every finished mud-brick wall the floor's coat turned up against it (the red lime-plaster floors of the halls, STEIN2016: B for the floors) or the mud skirting thickened into a fillet on the paving (C)"
+  },
+  "r_interior_paint": {
+   "v": {
+    "ground": [
+     0.6,
+     0.6,
+     0.47
+    ],
+    "dado": {
+     "h": 0.95,
+     "col": [
+      0.55,
+      0.26,
+      0.2
+     ]
+    },
+    "bands": [
+     {
+      "col": [
+       0.86,
+       0.84,
+       0.78
+      ],
+      "w": 0.05
+     },
+     {
+      "col": [
+       0.32,
+       0.43,
+       0.6
+      ],
+      "w": 0.06
+     },
+     {
+      "col": [
+       0.86,
+       0.84,
+       0.78
+      ],
+      "w": 0.03
+     }
+    ],
+    "frieze": {
+     "h": 0.45,
+     "col": [
+      0.55,
+      0.26,
+      0.2
+     ],
+     "edge": {
+      "col": [
+       0.86,
+       0.84,
+       0.78
+      ],
+      "w": 0.04
+     }
+    },
+    "buildings": [
+     "gate_nations",
+     "apadana",
+     "tachara",
+     "hadish",
+     "treasury",
+     "harem"
+    ]
+   },
+   "u": "sRGB / m",
+   "src": "STEIN2016;RECON",
+   "tier": "B/C",
+   "note": "D-334 (Q-922): the palaces' interiors painted as the evidence gives it: Pasargadae palace P's earthen plasters with a greyish yellow-green clay ground under white, moderate red and moderate blue layers forming a geometric design, the same clay paint on the Persepolis Treasury's walls (Schmidt; STEIN2016, read in full in session 12: B); the layout (a red dado with white and blue bands, a red frieze under the ceiling) and every tone C; on the inner faces of the finished palaces and the Treasury only (meshes.ts PAINTED_INTERIORS)"
   }
  },
  "terrace": {

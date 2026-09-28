@@ -305,11 +305,11 @@ describe('the far LODs keep the figure (D-217; rubric s7 pass 2, R2: animals dra
   it('every LOD keeps the outline cell-exact: its error bound is under the silhouette error', () => {
     for (const [l, L] of RELIEF_LODS.entries()) expect(L.err, `L${l}`).toBeLessThan(SILHOUETTE_ERROR);
   });
-  it('a large figure keeps at most 2× its band\'s cell at L2-L4 (the lion-and-bull, 3.26 m across, had 25 and 51 mm cells)', () => {
+  it('a large figure keeps at most 2× its band\'s cell at L2-L4 (the lion-and-bull, ~3 m across, had 25 and 51 mm cells)', () => {
     const man = buildTerrace().manifest, a = man.apadana as any, face = apadanaFacades(man)[0];
     const items = facadeItems(face, planFacade(face, { spans: a.stairSpans, riser: a.stairRiser, tread: a.stairTread, parapet: a.parapet, podium: a.podium })).items;
     const lb = items.find(q => q.kind === 'lion_bull')!, b = kindBounds('lion_bull', 0), ext = Math.max(b[2] - b[0], b[3] - b[1]) * lb.S;
-    expect(ext).toBeGreaterThan(3);
+    expect(ext).toBeGreaterThan(2.5); // (3.26 m before D-320 round 4 drew the lion more upright on the bull: 2.9 m)
     for (const l of [2, 3, 4]) expect(ext / (lodGrid(ext, l) - 1), `L${l}`).toBeLessThanOrEqual(2 * RELIEF_LODS[l].cell + 1e-9);
   });
   it('the lion-and-bull at L3 (14-28 m) is a figure, not a cloud: no triangle spans from behind the wall face to the top across more than a cell', () => {
