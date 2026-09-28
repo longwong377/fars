@@ -1,0 +1,481 @@
+{
+ "id": "T-E10",
+ "value": 62.5,
+ "n": 40,
+ "commit": "e365603",
+ "tool": "src/dev/converseLab.ts talkSet (tools/dev/converse_drive.mjs, gpu_slot)",
+ "unit": "%",
+ "status": "FAIL",
+ "when": "2026-09-28T00:10:49.363Z",
+ "model": "gemma-2-2b-it-q4f16_1-MLC",
+ "requests": [
+  12,
+  16
+ ],
+ "recalls": [
+  7,
+  16
+ ],
+ "heard": [
+  6,
+  8
+ ],
+ "deeds": {
+  "done": 3,
+  "refused": 11,
+  "noop": 2
+ },
+ "msMedian": 1344,
+ "msP90": 3018,
+ "res": [
+  {
+   "i": 0,
+   "kind": "follow",
+   "job": "guard",
+   "say": "Walk with me for a while.",
+   "reply": "Walk with you? By Auramazda. I’m just eating.",
+   "deed": "follow refused: said no",
+   "pass": false,
+   "why": [
+    "the words agree to what the simulation refused"
+   ],
+   "ms": 2681
+  },
+  {
+   "i": 1,
+   "kind": "lead_to",
+   "job": "builder",
+   "say": "I am looking for the river.",
+   "reply": "The foreman's counting us, stranger.",
+   "deed": "lead_to:river refused: the foreman counts the gang at the work; he cannot leave it",
+   "pass": true,
+   "why": [],
+   "ms": 3185
+  },
+  {
+   "i": 2,
+   "kind": "fetch",
+   "job": "porter",
+   "say": "Could your mother come and meet me?",
+   "reply": "Tanetamun’s hands are full.",
+   "deed": "fetch:your mother refused: the loads are counted by the scribe; he cannot leave them",
+   "pass": false,
+   "why": [
+    "the words agree to what the simulation refused"
+   ],
+   "ms": 1185
+  },
+  {
+   "i": 3,
+   "kind": "give",
+   "job": "camp",
+   "say": "I am thirsty.",
+   "reply": "There is some water in the well.",
+   "deed": "give:water DONE: gave water",
+   "pass": true,
+   "why": [],
+   "ms": 1201
+  },
+  {
+   "i": 4,
+   "kind": "trade",
+   "job": "treasury",
+   "say": "I will give you my bread for some water.",
+   "reply": "My water is from the well.",
+   "deed": "trade:some water for my bread DONE: traded bread for water",
+   "pass": true,
+   "why": [],
+   "ms": 1490
+  },
+  {
+   "i": 5,
+   "kind": "stop_work",
+   "job": "scribe",
+   "say": "Leave off your work a moment, friend.",
+   "reply": "No, I am not able to do that. These tablets are for the king's house.",
+   "deed": "stop_work refused: at the tablets for the king’s house; he cannot leave them",
+   "pass": true,
+   "why": [],
+   "ms": 3018
+  },
+  {
+   "i": 6,
+   "kind": "wait_here",
+   "job": "official",
+   "say": "Remain here until I come back.",
+   "reply": "By Auramazda, I stay here.",
+   "deed": "wait_here ok (nothing to change): was staying here anyway",
+   "pass": true,
+   "why": [],
+   "ms": 1136
+  },
+  {
+   "i": 7,
+   "kind": "go_home",
+   "job": "storekeeper",
+   "say": "Head home now, friend.",
+   "reply": "By Auramazda, I am ill.",
+   "deed": "go_home refused: is sick and lying down",
+   "pass": true,
+   "why": [],
+   "ms": 2304
+  },
+  {
+   "i": 8,
+   "kind": "follow",
+   "job": "servant",
+   "say": "Keep me company along the road, friend.",
+   "reply": "I am busy.",
+   "deed": "follow refused: a woman of the house does not go off with a strange man",
+   "pass": true,
+   "why": [],
+   "ms": 1155
+  },
+  {
+   "i": 9,
+   "kind": "lead_to",
+   "job": "miller",
+   "say": "Where is the storehouse?",
+   "reply": "By Auramazda, I do not walk a stranger through the town.",
+   "deed": "lead_to:storehouse refused: a woman of the house does not walk a strange man about; she points the way",
+   "pass": false,
+   "why": [
+    "the words agree to what the simulation refused"
+   ],
+   "ms": 3209
+  },
+  {
+   "i": 10,
+   "kind": "fetch",
+   "job": "weaver",
+   "say": "Could Bagačiθrā come and meet me?",
+   "reply": "Bagačiθrā is young and sleeps.",
+   "deed": "fetch:Bagačiθrā refused: it is dark: nobody walks about with a stranger at night",
+   "pass": false,
+   "why": [
+    "the words agree to what the simulation refused"
+   ],
+   "ms": 1284
+  },
+  {
+   "i": 11,
+   "kind": "give",
+   "job": "brewer",
+   "say": "I am thirsty.",
+   "reply": "Do you want water? I can fetch some.",
+   "deed": "give:water DONE: gave water",
+   "pass": true,
+   "why": [],
+   "ms": 1265
+  },
+  {
+   "i": 12,
+   "kind": "trade",
+   "job": "groom",
+   "say": "Will you trade some water for my bread?",
+   "reply": "My horses eat fresh water.",
+   "deed": "trade:some water for my bread refused: the king’s horses are in his care",
+   "pass": true,
+   "why": [],
+   "ms": 986
+  },
+  {
+   "i": 13,
+   "kind": "stop_work",
+   "job": "shepherd",
+   "say": "Will you take a rest and talk with me?",
+   "reply": "I'm busy with the sheep.",
+   "deed": "stop_work refused: the king’s flocks are in his care",
+   "pass": true,
+   "why": [],
+   "ms": 1344
+  },
+  {
+   "i": 14,
+   "kind": "wait_here",
+   "job": "messenger",
+   "say": "Remain here until I come back.",
+   "reply": "I stay here.",
+   "deed": "wait_here ok (nothing to change): was staying here anyway",
+   "pass": true,
+   "why": [],
+   "ms": 858
+  },
+  {
+   "i": 15,
+   "kind": "go_home",
+   "job": "caretaker",
+   "say": "Head home now, friend.",
+   "reply": "Napiriša, the halls are his.",
+   "deed": "go_home refused: the halls are in his care",
+   "pass": true,
+   "why": [],
+   "ms": 3421
+  },
+  {
+   "i": 64,
+   "kind": "recall",
+   "job": "guard",
+   "say": "Do you remember me, friend? What did I ask of you?",
+   "reply": "I don't recall.",
+   "pass": false,
+   "why": [
+    "does not recall: walk|along|follow|join|company|come with|came with|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able",
+    "denies the meeting"
+   ],
+   "ms": 921
+  },
+  {
+   "i": 65,
+   "kind": "heard",
+   "job": "guard",
+   "say": "Have you heard anything of me, a foreigner?",
+   "reply": "I'm sorry, I don't know you. Čiθraduxçā's son wouldn't be walking with you.",
+   "pass": false,
+   "why": [
+    "denies the meeting"
+   ],
+   "ms": 2178
+  },
+  {
+   "i": 66,
+   "kind": "recall",
+   "job": "builder",
+   "say": "We met yesterday, did we not? What passed between us?",
+   "reply": "We were asking about the way to the river,\" I say.",
+   "pass": true,
+   "why": [],
+   "ms": 1324
+  },
+  {
+   "i": 67,
+   "kind": "recall",
+   "job": "porter",
+   "say": "Have you seen me before?",
+   "reply": "We're not supposed to talk to strangers.",
+   "pass": false,
+   "why": [
+    "does not recall: mother|fetch|call|bring|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able"
+   ],
+   "ms": 1222
+  },
+  {
+   "i": 68,
+   "kind": "heard",
+   "job": "weaver",
+   "say": "What do people say of the stranger?",
+   "reply": "He's not one for fetching strangers, that Hupannana. The scribe counted loads for the king.",
+   "pass": true,
+   "why": [],
+   "ms": 1819
+  },
+  {
+   "i": 69,
+   "kind": "recall",
+   "job": "camp",
+   "say": "Do you remember me, friend? What did I ask of you?",
+   "reply": "I remember. You asked for water.",
+   "pass": true,
+   "why": [],
+   "ms": 973
+  },
+  {
+   "i": 70,
+   "kind": "recall",
+   "job": "treasury",
+   "say": "We met yesterday, did we not? What passed between us?",
+   "reply": "We did, indeed. You offered me water and I traded you some bread.",
+   "pass": true,
+   "why": [],
+   "ms": 1347
+  },
+  {
+   "i": 71,
+   "kind": "heard",
+   "job": "child",
+   "say": "Has anyone spoken to you of me?",
+   "reply": "My mother Raučaduxçā traded with you for water three days ago,",
+   "pass": true,
+   "why": [],
+   "ms": 1321
+  },
+  {
+   "i": 72,
+   "kind": "recall",
+   "job": "scribe",
+   "say": "Have you seen me before?",
+   "reply": "No, I haven't,\" I say. \"You’re new here.",
+   "pass": false,
+   "why": [
+    "does not recall: stop|rest|leave off|break|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able"
+   ],
+   "ms": 1518
+  },
+  {
+   "i": 73,
+   "kind": "recall",
+   "job": "official",
+   "say": "Do you remember me, friend? What did I ask of you?",
+   "reply": "You asked me to wait. I waited for you.",
+   "pass": true,
+   "why": [],
+   "ms": 1100
+  },
+  {
+   "i": 74,
+   "kind": "heard",
+   "job": "homemaker",
+   "say": "Have you heard anything of me, a foreigner?",
+   "reply": "He's waiting. He said to come back.",
+   "pass": true,
+   "why": [],
+   "ms": 1155
+  },
+  {
+   "i": 75,
+   "kind": "recall",
+   "job": "storekeeper",
+   "say": "We met yesterday, did we not? What passed between us?",
+   "reply": "By Auramazda, we did. You were kind to show me the path.",
+   "pass": false,
+   "why": [
+    "does not recall: home|house|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able"
+   ],
+   "ms": 1407
+  },
+  {
+   "i": 76,
+   "kind": "recall",
+   "job": "servant",
+   "say": "Have you seen me before?",
+   "reply": "I’ve seen you before. But not today. We do not go out with strangers.",
+   "pass": false,
+   "why": [
+    "does not recall: walk|along|follow|join|company|come with|came with|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able"
+   ],
+   "ms": 1418
+  },
+  {
+   "i": 77,
+   "kind": "heard",
+   "job": "steward",
+   "say": "What do people say of the stranger?",
+   "reply": "My kinswoman’s word is like the wind. She is a good woman.",
+   "pass": false,
+   "why": [
+    "does not recall: walk|along|follow|join|company|come with|came with|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able"
+   ],
+   "ms": 1399
+  },
+  {
+   "i": 78,
+   "kind": "recall",
+   "job": "miller",
+   "say": "Do you remember me, friend? What did I ask of you?",
+   "reply": "By Auramazda, I do not remember. It was yesterday's midday.",
+   "pass": false,
+   "why": [
+    "does not recall: storehouse|storehouse|the way|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able",
+    "denies the meeting"
+   ],
+   "ms": 1401
+  },
+  {
+   "i": 79,
+   "kind": "recall",
+   "job": "weaver",
+   "say": "We met yesterday, did we not? What passed between us?",
+   "reply": "We did. You asked for someone, and I refused.",
+   "pass": true,
+   "why": [],
+   "ms": 1156
+  },
+  {
+   "i": 80,
+   "kind": "heard",
+   "job": "treasury",
+   "say": "Has anyone spoken to you of me?",
+   "reply": "Bagabāmā said you asked her to fetch someone. She did not go.",
+   "pass": true,
+   "why": [],
+   "ms": 1359
+  },
+  {
+   "i": 81,
+   "kind": "recall",
+   "job": "brewer",
+   "say": "Have you seen me before?",
+   "reply": "Mardunuya, yes. You asked for water yesterday.",
+   "pass": true,
+   "why": [],
+   "ms": 1151
+  },
+  {
+   "i": 82,
+   "kind": "recall",
+   "job": "groom",
+   "say": "Do you remember me, friend? What did I ask of you?",
+   "reply": "I do not remember, stranger. The king’s horses are not mine to trade.",
+   "pass": false,
+   "why": [
+    "denies the meeting"
+   ],
+   "ms": 1437
+  },
+  {
+   "i": 83,
+   "kind": "heard",
+   "job": "homemaker",
+   "say": "Have you heard anything of me, a foreigner?",
+   "reply": "Irdapukka’s not here. He said he’d trade with you.",
+   "pass": true,
+   "why": [],
+   "ms": 1352
+  },
+  {
+   "i": 84,
+   "kind": "recall",
+   "job": "shepherd",
+   "say": "We met yesterday, did we not? What passed between us?",
+   "reply": "We spoke then. I was with the king’s flock.",
+   "pass": false,
+   "why": [
+    "does not recall: stop|rest|leave off|break|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able"
+   ],
+   "ms": 1310
+  },
+  {
+   "i": 85,
+   "kind": "recall",
+   "job": "messenger",
+   "say": "Have you seen me before?",
+   "reply": "Yes, you came to the road station yesterday. You asked me to wait.",
+   "pass": true,
+   "why": [],
+   "ms": 1323
+  },
+  {
+   "i": 86,
+   "kind": "heard",
+   "job": "homemaker",
+   "say": "What do people say of the stranger?",
+   "reply": "He waited for you. The stranger's name is.",
+   "pass": true,
+   "why": [],
+   "ms": 1291
+  },
+  {
+   "i": 87,
+   "kind": "recall",
+   "job": "caretaker",
+   "say": "Do you remember me, friend? What did I ask of you?",
+   "reply": "By Napiriša, yes. You asked me to take care of the halls after the storm yesterday. Paktyes is working on them.",
+   "pass": false,
+   "why": [
+    "does not recall: home|house|would not|could not|cannot|can't|couldn't|wouldn't|refused|did not|didn't|said no|not able"
+   ],
+   "ms": 1875
+  }
+ ],
+ "note": "run 5 of D-315: as run 4, with the recall fact and the life fact in the closing note after the stranger's words (\"(Answer as X. What you remember: … Tell him that …)\"), and the bare-\"No,\" refusal fix"
+}
