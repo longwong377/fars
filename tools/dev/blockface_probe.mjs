@@ -32,6 +32,8 @@ const V = [
   { n: 'nosing-arm', e: -43.9, n2: 131.5, eye: 1.6, az: 341, pitch: -32, fov: 35, sunAz: 250, sunAlt: 18 },
   { n: 'block-corner', court: true, e: -10.2, n2: 98.3, eye: 1.25, az: 315, pitch: -12, fov: 40, sunAz: 200, sunAlt: 15 },
   { n: 'block-edge-rake', court: true, e: -9.9, n2: 99.0, eye: 1.3, az: 250, pitch: -14, fov: 30, sunAz: 160, sunAlt: 8 },
+  { n: 'joint-wall-arm', e: -80, n2: 22, eye: 1.6, az: 71, pitch: 12, fov: 50, dist: 1.0, sunAz: 321, sunAlt: 12 },
+  { n: 'joint-palace-arm', court: true, e: -21, n2: -110, eye: 1.6, az: 341, pitch: 0, fov: 50, dist: 1.0, sunAz: 50, sunAlt: 15 },
   { n: 'block-top', court: true, e: -12, n2: 98.6, eye: 1.5, az: 341, pitch: -40, fov: 40, sunAz: 250, sunAlt: 12 },
   { n: 'corner-arm', court: true, e: 80, n2: -14, eye: 1.6, az: 300, pitch: -10, fov: 45, dist: 1.2, sunAz: 20, sunAlt: 18 },
 ];
@@ -51,4 +53,8 @@ for (const v of V) { if (ONLYV && !ONLYV.includes(v.n)) continue;
     await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/bfprobe-${v.n}-${TAG}-bf${bf}${process.env.AR === '0' ? '-ar0' : ''}.png` });
     console.log(v.n, 'bf', bf, JSON.stringify(await p.evaluate(() => window.__arris)), hit ? JSON.stringify(hit) : '', errs.length ? errs : '', (Date.now() - t0) / 1000);
   } }
+if (process.env.WALK) { // rev 4: walks measured in the browser
+  const W = { court: [[-60, 60, 1.6, true], [-20, 60, 1.6, true], [-20, 20, 1.6, true], [-40, 0, 1.6, true]], stair: [[-43.9, 126, 1.6, false], [-43.9, 134, 1.6, false], [-60, 112, 1.6, false], [-80, 60, 1.6, false], [-80, 20, 1.6, false]], tachara: [[-30, -100, 1.6, true], [-10, -100, 1.6, true], [-10, -130, 1.6, true]] };
+  for (const w of process.env.WALK.split(',')) console.log('walk', w, JSON.stringify(await p.evaluate(([pth, sec]) => window.__walk(pth, sec), [W[w], 30])));
+}
 console.log(logs.slice(0, 12).join('\n')); await b.close();

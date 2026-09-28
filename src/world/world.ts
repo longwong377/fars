@@ -171,7 +171,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   wmark('arch');
   root.add(arch.group);
   // D-321 rev 2: the dressed stone's free arrises as geometry near the eye (worn round, chipped in handling), the maps beyond
-  const arris = new ArrisField(arch.arris, m => surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); root.add(arris.group);
+  const arris = new ArrisField([...arch.arris], m => surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); root.add(arris.group);
+  arris.addFaces(arch.jointFaces, (x, z) => terrain.heightAt(x, z)); // rev 4: the walls' joints grooved near the eye (none under the ground)
   // the seal inscriptions impressed in clay (door sealings, tablets) are drawn from the period-script fonts: loaded before
   // the first clay object bakes the writing atlas (writing.ts, D-179)
   await loadWritingFonts(async p => (await fetch('/' + p)).arrayBuffer());
@@ -193,7 +194,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   // D-300 (Q-600): the Terrace's polygonal foot as proud blocks on the W- and S-facing retaining walls; solid, and kept in the Now view
   const footG = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n)), foot = new THREE.Group(); foot.name = 'terrace-foot';
-  if (footG.geo) { const fm = new THREE.Mesh(footG.geo, surfaceMaterial('terrace_foot')); fm.castShadow = fm.receiveShadow = true; fm.name = 'terrace-foot:blocks';
+  arris.add(footG.arris); // rev 4 (D-321): the foot blocks' arrises in the near-field bands (their material the architecture's variant)
+  if (footG.geo) { const fm = new THREE.Mesh(footG.geo, surfaceMaterial('terrace_foot', { arch: true })); fm.castShadow = fm.receiveShadow = true; fm.name = 'terrace-foot:blocks';
     fm.userData = { tier: 'C', src: 'REF-PHOTO-24;IR-PERS;RECON', note: `the polygonal foot of the retaining walls as ${footG.blocks} proud blocks (terrace.r_masonry.foot, D-232; their depth ${FOOT_DEPTH.join('-')} m C, Q-600; D-300)` };
     foot.add(fm); root.add(foot);
     const pa = footG.geo.attributes.position.array as Float32Array; phys.addTrimesh(new Float32Array(pa), Uint32Array.from({ length: pa.length / 3 }, (_, i) => i)); }

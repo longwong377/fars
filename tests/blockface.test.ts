@@ -68,7 +68,7 @@ describe('D-321 block-face detail set', () => {
       const count = (m: any) => { const b = new (THREE as any).WGSLNodeBuilder(new THREE.Mesh(g, m), r); b.scene = scene; b.camera = cam; b.material = m; b.lightsNode = r.lighting.getNode(scene, cam); b.build(); return { n: ((b.fragmentShader as string).match(/: sampler[;\s]|sampler_comparison/g) ?? []).length, grad: /textureSampleGrad/.test(b.fragmentShader) }; };
       const rows: string[] = [], over: string[] = [], without: string[] = [];
       for (const k of Object.keys(SURFACES).filter(k => SURFACES[k].blockFace)) for (const [arch, band] of [[false, false], [true, false], [true, true]]) { // (D-321 rev 2: the arris bands' variant)
-        if (band && !['limestone', 'terrace'].includes(k)) continue;
+        if (band && !['limestone', 'terrace', 'terrace_foot'].includes(k)) continue;
         const c = count(surfaceMaterial(k, { arch, band, variant: 'bftest' })), tag = `${k}${arch ? '+arch' : ''}${band ? '+band' : ''}`; rows.push(`${tag} ${c.n}`);
         if (c.n > 6) over.push(`${tag}: ${c.n}`);
         if (!c.grad) without.push(k); // the set is sampled (the faces and strips read it with explicit gradients)

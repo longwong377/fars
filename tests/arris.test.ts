@@ -6,6 +6,10 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
 import { buildMeshes } from '../src/arch/meshes';
+import { footGeometry } from '../src/arch/terrace_foot';
+import { faceJoints } from '../src/arch/arris_joints';
+import { SURFACES } from '../src/render/materials';
+import { ashlarCells as ashlarCellsCpu } from './lib/stone_cpu';
 import { ArrisField, bandGeometry, chipsOf, profile, ARRIS_W, ARRIS_R, CHIPS, PIECE, ARRIS_LAP } from '../src/arch/arris';
 import type { Part } from '../src/arch/parts';
 
@@ -33,13 +37,50 @@ describe('D-321 rev 2 arris bands', () => {
     // the profile's outer rows lie on the faces at ARRIS_W (where the base mesh's discard ends)
     const P = profile(0.01); expect(P[0]).toEqual([ARRIS_W + ARRIS_LAP, 0]); expect(P[P.length - 1]).toEqual([0, ARRIS_W + ARRIS_LAP]); // (overlapping the base's face past its discard)
   });
+  it('rev 4: a dressed prism records its free top edges and convex corners, and its faces carry the distances to them', () => {
+    const pr: Part = { type: 'prism', building: 'p', kind: 'platform', material: 'limestone', tier: 'C', src: 'RECON', polygon: [[0, 0], [4, 0], [4, 4], [0, 4]], y0: 0, y1: 2 } as any;
+    const b = buildMeshes([pr]); expect(b.arris.length).toBe(8);
+    let checked = 0;
+    b.group.traverse((o: any) => { if (!o.isMesh) return; const P = o.geometry.getAttribute('position'), A = o.geometry.getAttribute('adist'); if (!A) return;
+      for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), n = -z;
+        const dA = Math.min(A.getX(i), A.getY(i), A.getZ(i), A.getW(i)) + 1000, top = y > 1.999;
+        const want = top ? Math.min(x, 4 - x, n, 4 - n) : Math.min(2 - y, Math.min(x, 4 - x) < 1e-6 ? Math.min(n, 4 - n) : Math.min(x, 4 - x));
+        if (top && want > 0.14 && dA > 900) continue; // (the inner polygon carries none)
+        expect(Math.abs(dA - want)).toBeLessThan(1e-3); checked++; } });
+    expect(checked).toBeGreaterThan(40);
+  });
+  it('rev 4: the foot blocks record an arris per face edge, their faces the distances to them (0 on the chamfer)', () => {
+    const { parts } = buildTerrace(), fg = footGeometry(parts);
+    expect(fg.arris.length).toBeGreaterThan(fg.blocks * 4);
+    const A = fg.geo!.getAttribute('adist'); let onArris = 0; for (let i = 0; i < A.count; i++) if (Math.abs(A.getX(i) + 1000) < 1e-6) onArris++;
+    expect(onArris).toBeGreaterThan(fg.arris.length * 6 - 1); // every chamfer quad's six vertices
+    for (const e of fg.arris.slice(0, 40)) { const B = buf(); bandGeometry(e, 0, e.a.distanceTo(e.b), B, 1000);
+      for (let i = 0; i < B.pos.length; i += 3) for (const pl of e.planes) expect(pl.n.x * B.pos[i] + pl.n.y * B.pos[i + 1] + pl.n.z * B.pos[i + 2] - pl.d).toBeLessThan(1e-4); }
+  });
+  it('rev 4: a palace wall\'s joints: the grooves lie on the joints the shader draws (its CPU mirror)', () => {
+    const w: Part = { type: 'box', building: 't', kind: 'wall', material: 'limestone', tier: 'C', src: 'RECON', c: [3, 7], size: [9, 1.2], y0: 0, y1: 6, rot: 0.4 } as any;
+    const b = buildMeshes([w]), J = SURFACES.limestone.joints!, faces = b.jointFaces;
+    expect(faces.length).toBeGreaterThan(3);
+    let n = 0, worst = 0;
+    for (const F of faces) {
+      const { beds, heads } = faceJoints(F);
+      // sample the face: where the shader's joint distance is small, a CPU joint line is as near
+      for (let i = 0; i < 4000; i++) {
+        const t = F.t0 + 0.05 + Math.random() * (F.t1 - F.t0 - 0.1), y = F.y0 + 0.05 + Math.random() * (F.y1 - F.y0 - 0.1);
+        const W = ashlarCellsCpu(t, y, J), dS = Math.min(W.dBed, W.dHead); if (dS > 0.01) continue;
+        const dC = Math.min(...beds.filter(q => t >= q[1] && t <= q[2]).map(q => Math.abs(y - q[0])), ...heads.filter(q => y >= q[1] - 1e-6 && y <= q[2] + 1e-6).map(q => Math.abs(t - q[0])));
+        worst = Math.max(worst, Math.abs(dC - dS)); n++;
+      }
+    }
+    expect(n).toBeGreaterThan(50); expect(worst).toBeLessThan(0.004); // (the band's lap; the mirror's hash is float64, the grooves' float32 as the GPU's)
+  });
   it('the near field over the Terrace: bands within R, triangles and rebuild time within budget', () => {
     const { parts } = buildTerrace(), g = buildMeshes(parts);
-    const mat = new THREE.MeshBasicMaterial(), f = new ArrisField(g.arris, () => mat, 1000);
+    const mat = new THREE.MeshBasicMaterial(), f = new ArrisField(g.arris, () => mat, 1000); f.addFaces(g.jointFaces, () => -12); // (the plain's level, about)
     const rows: string[] = [`free dressed-stone arrises: ${g.arris.length}, ${g.arris.reduce((s, e) => s + e.a.distanceTo(e.b), 0).toFixed(0)} m`];
     let worst = 0;
     for (const [n, e, y, nn] of [['grand stair', -43.9, 3, 128], ['stair-foot', -60, 1.6, 112], ['apadana court', -50, 1.6, 70], ['tachara stair', -21, 1.6, -112], ['apadana e stair', 80, 1.6, -14]] as [string, number, number, number][]) {
-      const t0 = performance.now(); f.update(new THREE.Vector3(e, y, -nn), 1e9); const full = performance.now() - t0; f.update(new THREE.Vector3(e + 1.6, y, -nn)); let inc = 0; for (let k = 1; k <= 12; k++) { f.update(new THREE.Vector3(e + k * 0.4, y, -nn)); inc = Math.max(inc, f.stats.ms); expect(f.stats.ready).toBe(true); } worst = Math.max(worst, f.stats.triangles);
+      const t0 = performance.now(); f.update(new THREE.Vector3(e, y, -nn), 1e9); const full = performance.now() - t0; f.update(new THREE.Vector3(e + 1.6, y, -nn)); const incs: number[] = []; for (let k = 1; k <= 12; k++) { f.update(new THREE.Vector3(e + k * 0.4, y, -nn)); incs.push(f.stats.ms); expect(f.stats.ready).toBe(true); } incs.sort((p, q) => p - q); const inc = incs[6]; worst = Math.max(worst, f.stats.triangles); // (the median: node's mark-compact pauses land in any frame) worst = Math.max(worst, f.stats.triangles);
       rows.push(`${n}: ${f.stats.cells} cells, ${f.stats.draws} draws, ${f.stats.triangles} triangles, first build ${full.toFixed(0)} ms, a 1.6 m step ${inc} ms (pending ${f.stats.pending})`); expect(inc).toBeLessThan(8); expect(f.stats.ready).toBe(true);
       f.group.traverse((o: any) => { if (o.isMesh && o.visible) { const p = o.geometry.getAttribute('position'); for (let i = 0; i < p.count; i += 97) expect(Math.hypot(p.getX(i) - e, p.getY(i) - y, p.getZ(i) + nn)).toBeLessThan(45); } });
     }

@@ -10,6 +10,8 @@ import * as THREE from 'three/webgpu';
 import type { Part, Pt } from './parts';
 import { MASONRY, hash12 } from '../render/masonry';
 import { mxNoise3 } from '../render/mx_noise_cpu';
+import { ADIST_OFF } from '../render/blockface';
+import { edgeSeed, aseedOf, type ArrisEdge } from './arris';
 
 export interface FootBlock { poly: [number, number][]; depth: number; tilt: [number, number]; edge: number }
 export interface FootEdge { a: Pt; b: Pt; n: [number, number]; t0: number; t1: number }
@@ -89,31 +91,58 @@ export function footBlocks(E: FootEdge, M = MASONRY, groundAt?: (e: number, n: n
   return out;
 }
 /** the foot's mesh (world coordinates) and its triangles for a collider */
-export function footGeometry(parts: Part[], M = MASONRY, groundAt?: (e: number, n: number) => number): { geo: THREE.BufferGeometry | null; blocks: number; edges: number; area: number } {
-  const pos: number[] = []; let blocks = 0, area = 0;
-  const E = footEdges(parts);
+/** rev 4 (D-321): the blocks' faces carry, per vertex, the distances to the block's arrises and their seeds ('adist', 'aseed':
+ *  arris.ts), and the arrises are returned for the near-field bands (the face's fan from its centre, each triangle carrying its own
+ *  edge and both neighbours: the distances are affine over a triangle, so exact per fragment) */
+export function footGeometry(parts: Part[], M = MASONRY, groundAt?: (e: number, n: number) => number): { geo: THREE.BufferGeometry | null; blocks: number; edges: number; area: number; arris: ArrisEdge[] } {
+  const pos: number[] = [], ad: number[] = [], sd: number[] = [], arris: ArrisEdge[] = []; let blocks = 0, area = 0;
+  const E = footEdges(parts), OFF = ADIST_OFF, up = new THREE.Vector3(0, 1, 0);
   for (const e of E) {
-    const [nx, nz] = e.n;
+    const [nx, nz] = e.n, wn = new THREE.Vector3(nx, 0, nz);
     const P = (t: number, y: number, o: number): [number, number, number] => { const s = (t - e.t0) / Math.max(1e-6, e.t1 - e.t0), x = e.a[0] + (e.b[0] - e.a[0]) * s, z = -(e.a[1] + (e.b[1] - e.a[1]) * s); return [x + nx * o, y, z + nz * o]; };
-    const tri = (a: number[], b: number[], c: number[]) => pos.push(...a, ...b, ...c);
+    const tdir = new THREE.Vector3(...P(e.t0 + 1, 0, 0)).sub(new THREE.Vector3(...P(e.t0, 0, 0))).normalize();
+    const tri = (a: number[], b: number[], c: number[], da: number[], db: number[], dc: number[], seeds: number[]) => { pos.push(...a, ...b, ...c); ad.push(...da, ...db, ...dc); sd.push(...seeds, ...seeds, ...seeds); };
     for (const B of footBlocks(e, M, groundAt)) {
       blocks++;
       const n = B.poly.length, ct = B.poly.reduce((p, q) => p + q[0], 0) / n, cy = B.poly.reduce((p, q) => p + q[1], 0) / n;
       const off = (t: number, y: number) => B.depth + (t - ct) * B.tilt[0] + (y - cy) * B.tilt[1];
       const inner = B.poly.map(([t, y]) => { const d = Math.hypot(t - ct, y - cy) || 1, k = Math.min(0.45, CHAMFER / d); return [t + (ct - t) * k, y + (cy - y) * k] as [number, number]; });
+      // per polygon edge: its 2-D line (the distances in the face), the sharp corner line (world) and its seed
+      const ed = B.poly.map((A, k) => { const C = B.poly[(k + 1) % n], dx = C[0] - A[0], dy = C[1] - A[1], L = Math.hypot(dx, dy) || 1e-9, on: [number, number] = [dy / L, -dx / L];
+        const a = new THREE.Vector3(...P(A[0], A[1], off(A[0], A[1]))), b = new THREE.Vector3(...P(C[0], C[1], off(C[0], C[1])));
+        return { A, on, a, b, seed: edgeSeed(a.clone().add(b).multiplyScalar(0.5)), L }; });
+      const dIn = (k: number, t: number, y: number) => -((t - ed[k].A[0]) * ed[k].on[0] + (y - ed[k].A[1]) * ed[k].on[1]); // m inside edge k (2-D)
+      const F = inner.map(([t, y]) => P(t, y, off(t, y))), Cc = P(ct, cy, off(ct, cy));
       // winding: the polygons are counter-clockwise in (t, y); (t, y, outward) is a right-handed frame when t runs along
-      // (nz, −nx): then CCW in (t, y) faces outward
-      const F = inner.map(([t, y]) => P(t, y, off(t, y)));
-      for (let i = 1; i + 1 < n; i++) tri(F[0], F[i], F[i + 1]);
+      // (nz, -nx): then CCW in (t, y) faces outward
+      for (let k = 0; k < n; k++) { const j = (k + 1) % n, pk = (k + n - 1) % n, nk = j;
+        const D = (t: number, y: number) => [dIn(k, t, y) - OFF, dIn(pk, t, y) - OFF, dIn(nk, t, y) - OFF, 0];
+        tri(Cc, F[k], F[j], D(ct, cy), D(inner[k][0], inner[k][1]), D(inner[j][0], inner[j][1]), [aseedOf(ed[k].seed), aseedOf(ed[pk].seed), aseedOf(ed[nk].seed), 0]); }
       const O = B.poly.map(([t, y]) => P(t, y, off(t, y) - CHAMFER)), W = B.poly.map(([t, y]) => P(t, y, 0));
-      for (let i = 0; i < n; i++) { const j = (i + 1) % n;
-        tri(O[i], O[j], F[j]); tri(O[i], F[j], F[i]); // the chamfer
-        tri(W[i], W[j], O[j]); tri(W[i], O[j], O[i]); // the side back to the wall plane
+      for (let k = 0; k < n; k++) { const j = (k + 1) % n, s0 = [aseedOf(ed[k].seed), 0, 0, 0], z = [-OFF, 0, 0, 0];
+        tri(O[k], O[j], F[j], z, z, z, s0); tri(O[k], F[j], F[k], z, z, z, s0); // the chamfer (on the arris)
+        const [tk, yk] = B.poly[k], [tj, yj] = B.poly[j], dw = (t: number, y: number, o: number) => [off(t, y) - o - OFF, 0, 0, 0];
+        tri(W[k], W[j], O[j], dw(tk, yk, 0), dw(tj, yj, 0), dw(tj, yj, off(tj, yj) - CHAMFER), s0); tri(W[k], O[j], O[k], dw(tk, yk, 0), dw(tj, yj, off(tj, yj) - CHAMFER), dw(tk, yk, off(tk, yk) - CHAMFER), s0); // the side back to the wall plane
+        // the arris: the face (its plane's normal) against the side (outward in the wall plane), inside the chamfer's plane
+        const fa = new THREE.Vector3(...F[k]), fb = new THREE.Vector3(...F[j]), fc = new THREE.Vector3(...Cc);
+        const na = fb.clone().sub(fa).cross(fc.clone().sub(fa)).normalize(); if (na.dot(wn) < 0) na.negate();
+        const nb = tdir.clone().multiplyScalar(ed[k].on[0]).addScaledVector(up, ed[k].on[1]).normalize();
+        const oa = new THREE.Vector3(...O[k]), cn = na.clone().add(nb).normalize();
+        arris.push({ mat: 'terrace_foot', a: ed[k].a, b: ed[k].b, na, nb, r: 0.02, seed: ed[k].seed, rough: true,
+          planes: [{ n: na, d: na.dot(ed[k].a) }, { n: nb, d: nb.dot(ed[k].a) }, { n: cn, d: Math.max(cn.dot(oa), cn.dot(fa)) }],
+          y0a: -1000, y0b: -1000, pbox: [0, 0, -1, -1], ytop: -1000, stair: [0, 0, 0, 0] });
       }
-      for (let i = 1; i + 1 < n; i++) { const a = B.poly[0], b = B.poly[i], c = B.poly[i + 1]; area += Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) / 2; }
+      for (let k = 1; k + 1 < n; k++) { const a = B.poly[0], b = B.poly[k], c = B.poly[k + 1]; area += Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) / 2; }
     }
   }
-  if (!pos.length) return { geo: null, blocks, edges: E.length, area };
+  if (!pos.length) return { geo: null, blocks, edges: E.length, area, arris };
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.computeVertexNormals();
-  return { geo, blocks, edges: E.length, area };
+  const nv = pos.length / 3;
+  geo.setAttribute('adist', new THREE.Float32BufferAttribute(ad, 4)); geo.setAttribute('aseed', new THREE.Float32BufferAttribute(sd, 4));
+  // the architecture material's part attributes: no foot band, no floor, run-off from the block's top, no stair
+  geo.setAttribute('y0', new THREE.BufferAttribute(new Float32Array(nv).fill(-1000), 1));
+  const pb = new Float32Array(nv * 4); for (let q = 0; q < nv; q++) pb.set([0, 0, -1, -1], q * 4); geo.setAttribute('pbox', new THREE.BufferAttribute(pb, 4));
+  const yt = new Float32Array(nv); yt.fill(-1000); // (no run-off: none was drawn on the foot) geo.setAttribute('ytop', new THREE.BufferAttribute(yt, 1));
+  geo.setAttribute('stair', new THREE.BufferAttribute(new Float32Array(nv * 4), 4));
+  return { geo, blocks, edges: E.length, area, arris };
 }

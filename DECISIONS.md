@@ -8128,6 +8128,29 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   round the spawn in the load (world.prebuild, settle) and then at 3 ms a frame, a cell's assembly included (1.5 m pieces; a
   walk <= 3 ms in node); the bands take over only when every cell within 12 m is drawn, so a teleport never shows a hole (the
   maps draw the arrises meanwhile). Open (B145): the painted joints inside a wall, the platform's prisms and the foot blocks.
+- **Rev 4 (same session, the lead: finish B145):** (1) **the dressed-stone prisms** (the Terrace platform's retaining walls,
+  the palaces' podiums; src/arch/arris_prism.ts): their render geometry in 4 x 4 m wall quads and a 0.15 m top ring round the
+  inner polygon, each carrying 'adist'/'aseed' to its free arrises (the wall tops, the convex corners, tested per 4 m stretch
+  for anything on or against them), which join the near-field bands (+378 arrises, 1.4 km); the collider the plain extrusion.
+  (2) **the foot's proud blocks** (terrace_foot.ts): the face as a fan from its centre, each triangle carrying the distances to
+  its own edge and both neighbours; every face edge an arris (clamped to its 3.5 cm chamfer, the rough strips' spalls as its
+  chips); drawn with the architecture variant of terrace_foot. (3) **the painted joints of the walls as geometry**
+  (src/arch/arris_joints.ts): every vertical face of a limestone or terrace part is read back from its render geometry and its
+  joints enumerated as the shader draws them (the palaces' varied coursing; the retaining walls' course tables and runs), the
+  shader's hash in float32 steps; where a decision is within 0.004 of its threshold (a run's inner joint, a face's course
+  table) every candidate is kept (a needless groove lies behind the face, hidden; a needed one is never missing). Each joint is a
+  groove band (the two blocks' arrises rounded 4 mm meeting at the joint, lapping 4 mm over the face); the base discards within
+  12 mm of those joints near the eye (Layer.jd: the course beds and head joints of vertical faces; not the stairs, the split
+  blocks' beds, the foot's polygonal joints or the Grand Stair's recess, which stay painted). Faces in 8 m chunks, chunks against
+  another part left out, expanded lazily within 42 m of the eye, none under the ground; cells keep their meshes while they
+  rebuild, their pieces cached. Node: the grooves within 4 mm of the float64 mirror's joints (tests/arris.test.ts); 60-160 k
+  triangles near the stairs; a walk step 0-4 ms. (4) **the tread row-joint chip** seen missing in rev 2's gain-4 frame: that
+  frame predates rev 3; the chip it showed was the free arris's own (the nearest-arris family draws the tread's front 4 cm),
+  whose map and geometry chips now coincide (rev 3's pinning; checked again on the probe below).
+  **Measured in the browser (probe, T4, rev 4 before the spreading commit):** walks at 1.4 m/s over the Grand Stair and the W
+  wall (131 m), the Apadana court (108 m) and the Tachara (50 m), 1800 frames each: the bands' update mean 0.13-0.27 ms, p95
+  <= 3.2 ms, max 6.4-26.7 ms; no frame with the bands off; 29-114 k band triangles, 6-9 draws. The spreading commit (cell
+  assembly over frames, reused scratch) is measured in node only (p95 3.1 ms); its browser walk was not run (the GPU slots).
 ## D-320 (continued) Round 2: the Neo-Elamite relief unpainted, the wall's sky past the figures, the mip spread, 4 layers (session 12, agent reliefs)
 - **Rev 2 (the lead's four follow-ups, same session):** (1) the Neo-Elamite worshippers rendered on the probe (a wall at CALIB):
   they read, but their hair and beards were painted the Persepolis dark blue; the relief is unpainted, so `Human.hair` carries

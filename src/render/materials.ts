@@ -21,7 +21,7 @@ import { linearToSrgb, munsellY, srgbToLinear, labToSrgb } from '../core/colour'
 import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
 import { blockFaceLoaded, blockFaceDetail, BF_ON, ADIST_OFF } from './blockface';
-import { ARRIS_W, ARRIS_MATS, ARRIS_K as ARRIS_DIR, arrisNear } from '../arch/arris';
+import { ARRIS_W, ARRIS_MATS, ARRIS_K as ARRIS_DIR, arrisNear, JOINT_W } from '../arch/arris';
 import { incisionNodes } from './incision';
 import type { Atlas } from '../arch/carving';
 import { roofedNode } from './probes/roofs';
@@ -554,7 +554,10 @@ function retainingCells(t: any, p: any, nx: any, nz: any) {
   // in the foot: the cell edges alone; above it, the courses and the foot's top edge, whichever is nearer
   const polyB = max(inFoot, step(edge, dBedC)); // 1: the nearest "bed" is a cell edge
   const dBed = mix(dBedC, edge, polyB), sBed = mix(sBedC, float(1), polyB);
-  return { dBed, sBed, dAbove: mix(dAbove, float(1e3), inFoot), dHead: mix(dHead, float(1e3), inFoot), sHead, c: mix(cU, c1.y.add(7000), inFoot), blk: mix(blk, c1.x, inFoot), polyB, eDir, inFoot, edge };
+  // (rev 4: the course beds alone, without the split blocks' beds, and whether the point is in the Grand Stair's recess: the
+  // joints that are geometry near the eye, arris.ts jointEdges)
+  const dCourse = min(p.y.sub(below0), above0.sub(p.y));
+  return { dBed, sBed, dAbove: mix(dAbove, float(1e3), inFoot), dHead: mix(dHead, float(1e3), inFoot), sHead, c: mix(cU, c1.y.add(7000), inFoot), blk: mix(blk, c1.x, inFoot), polyB, eDir, inFoot, edge, dCourse, inStair };
 }
 /** bandCover() with the half width as a node */
 function bandCoverN(d: any, px: any, hw: any) {
@@ -639,7 +642,7 @@ function stoneDetail(S: StoneDef, q: any, vs: any, id: Ids, fp: any, noTool = fa
  *  band limit and 1σ is unchanged */
 export const NOISE_FRAME: [number, number, number][] = [[0.89157, -0.37121, 0.25944], [0.45289, 0.73077, -0.51075], [0, 0.57287, 0.81965]];
 const latticeFree = (p: any) => vec3(dot(p, v3(NOISE_FRAME[0])), dot(p, v3(NOISE_FRAME[1])), dot(p, v3(NOISE_FRAME[2])));
-export interface Layer { alb: any; rough: any; height: any | null; tilt?: any; /** D-321: ambient occlusion (the material's aoNode) */ ao?: any }
+export interface Layer { alb: any; rough: any; height: any | null; tilt?: any; /** rev 4: the distance to a joint drawn as geometry near the eye */ jd?: any; /** D-321: ambient occlusion (the material's aoNode) */ ao?: any }
 /** albedo, roughness and height of one surface definition (before weather). `arch`: the architecture's own meshes, whose
  *  vertices carry the part's base height (`y0`) and, on hall floors, the floor's box (`pbox`: centre x, z, half size x, z) */
 function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
@@ -658,7 +661,7 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
   if (d.tone) alb = alb.mul(toneFactor(pr, d.tone));
   let rough: any = float(d.roughness);
   if (d.roughVar) rough = rough.mul(float(1).add(mx_noise_float(p.mul(0.9).add(3.7)).mul(0.7).add(mx_noise_float(p.mul(3.1).add(1.3)).mul(0.3)).mul(d.roughVar))).clamp(0.04, 1);
-  let height: any = null, tilt: any = undefined, bfAo: any = null;
+  let height: any = null, tilt: any = undefined, bfAo: any = null, jd: any = null;
   const BF = !!d.blockFace && blockFaceLoaded(); // D-321: the Blender-carved block faces (blockface.ts), when loaded
   if (d.bump) { // two octaves of relief: broad undulation (trowel / settling) + fine grain
     // band-limited by the pixel footprint as the micro grain is (D-217): an octave whose period spans under ~3 px fades to
@@ -848,7 +851,14 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     // the worn arris as a filtered normal (D-218): over its share of the pixel, the rounded lip turns ~40° toward the joint
     // (away from the block's face): the upper block's lower arris looks down, the lower block's upper arris up, so in sun a
     // bed joint is a dark and a light line a few mm apart, as a real rounded joint is. Replaces D-157's height lip
-    tilt = T1.mul(sH.mul(lipH)).add(T2b.mul(sB.mul(lipB))).mul(-ARRIS_K).mul(jmask).mul(SURF_AB);
+    // rev 4 (D-321): the joints that are geometry near the eye (a wall's course beds and head joints: arris.ts jointEdges; not the
+    // stairs, the split blocks' beds, the foot's polygonal joints or the Grand Stair's recess): their distance, for the masks
+    // (rev 5: the split beds, the foot's polygonal edges and the recess walls too: arris_joints.ts faceJoints; not the foot blocks' own
+    // faces, terrace_foot, whose joints are the blocks' edges)
+    const jOk = vs.mul(float(1).sub(isStep)).mul(d.blockFace === 'rough' ? 0 : 1);
+    jd = mix(float(1e3), min(W.dBed, W.dHead), jOk);
+    // (the band draws the joint's rounded arrises as geometry: no lip tilt there)
+    tilt = T1.mul(sH.mul(lipH)).add(T2b.mul(sB.mul(lipB))).mul(-ARRIS_K).mul(jmask).mul(SURF_AB).mul(band ? float(1).sub(step(jd, JOINT_W)) : float(1));
     alb = alb.mul(blockToneFactor(J, d, ids));
     const tiltA = RW ? mix(float(J.tilt ?? 0), float(MASONRY.foot.tilt), RW.inFoot.mul(vs)) : float(J.tilt ?? 0); // (D-232: the foot's rougher faces)
     if (J.tilt) tilt = tilt.add(T1.mul(ids.a.mul(2).sub(1)).add(T2.mul(ids.e.mul(2).sub(1))).mul(tiltA).mul(vert.add(flat)).mul(SURF_AB));
@@ -1137,7 +1147,7 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     const BFd = blockFaceDetail({ u: mix(p.x, p.x.mul(tx).add(p.z.mul(tz)), vs), v: mix(p.z, p.y, vs), T1: mix(vec3(1, 0, 0), vec3(tx, 0, tz), vs), T2: mix(vec3(0, 0, 1), vec3(0, 1, 0), vs), ids: blockIds(float(0.5), float(0.5)), isFlat: float(0), isPoint: d.blockFace === 'rough' ? vs : float(0) }); // (rough: the sides point-dressed, the top clawed)
     tilt = tilt ? tilt.add(BFd.tilt) : BFd.tilt; alb = alb.mul(BFd.alb); bfAo = BFd.ao;
   }
-  return { alb, rough, height, tilt, ...(bfAo ? { ao: bfAo } : {}) };
+  return { alb, rough, height, tilt, ...(bfAo ? { ao: bfAo } : {}), ...(jd ? { jd } : {}) };
 }
 /** the earth's albedo (linear): what splash and dust at a wall's foot tend toward (D-157) */
 const DIRT = vec3(...(SURFACES.earth.albedo.map(c => srgbToLinear(c) * 0.9) as [number, number, number]));
@@ -1177,7 +1187,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   if (d.top && SURFACES[d.top]) { // up-facing faces use another surface (sharp transition at the arris)
     // (the top layer's scan without its roughness map: the Terrace platform stood at 17 samplers with the wall's normal map, D-300)
     const T = applyScan(d.top, layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch), true); const t = smoothstep(0.7, 0.9, n.y);
-    L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined, ...(L.ao ? { ao: mix(L.ao, float(1), t) } : {}) };
+    L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined, ...(L.ao ? { ao: mix(L.ao, float(1), t) } : {}), ...(L.jd ? { jd: L.jd } : {}) };
   }
   if (name === 'earth') { // D-300: the Now view's gravel forecourt (NOW_GROUND, NOW_GRAVEL), identity in the 467 world
     const G = NOW_GRAVEL, pw = positionWorld, e = pw.x, nn = pw.z.negate();
@@ -1195,7 +1205,8 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   if (opts.arch && d.blockFace && ARRIS_MATS.has(name)) { // D-321 rev 2: near the eye the free arrises are geometry (arris.ts ArrisField)
     const near = arrisNear(); // 1 where the band draws (within R0 of the eye, dithered to R: rev 3's crossfade; the shadow pass runs the same mask)
     if (opts.band) m.maskNode = near.greaterThan(0.5); // the band draws only the near arrises
-    else { const AD = attribute('adist', 'vec4').add(ADIST_OFF); m.maskNode = max(step(ARRIS_W, min(min(AD.x, AD.y), min(AD.z, AD.w))), float(1).sub(near)).greaterThan(0.5); } // the base leaves them to the band
+    else { const AD = attribute('adist', 'vec4').add(ADIST_OFF), jk = L.jd ? step(JOINT_W, L.jd) : float(1); // (rev 4: and the joints within JOINT_W)
+      m.maskNode = max(min(step(ARRIS_W, min(min(AD.x, AD.y), min(AD.z, AD.w))), jk), float(1).sub(near)).greaterThan(0.5); } // the base leaves them to the band
   }
   m.userData = { tier: d.tier, note: d.note, surface: SURFACES[name] ? name : 'limestone', scan: scanOf(SURFACES[name] ? name : 'limestone') }; // (surface, scan: the T-A7 probe, D-300/D-301)
   if (!opts.modify) receiveReliefShadow(m); // the architecture's surfaces carry the reliefs' cast shadows (D-226); the plain's layers do not

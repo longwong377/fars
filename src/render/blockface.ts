@@ -133,7 +133,7 @@ export function blockFaceDetail(F: BlockFrame): { tilt: any; alb: any; ao: any; 
     // (rev 3: a part's own free arris reads the row and offset of its edge's seed, as the geometry's chips do: J.geo weights them in)
     const row0 = floor(fract(seed.add(J.side.mul(0.5))).mul(rows - 0.001)), off0 = o.mul(BLOCKFACE.size_m * 3.1);
     const row = J.geo ? mix(row0, J.geoRow, J.geo) : row0, off = J.geo ? mix(off0, J.geoOff, J.geo) : off0;
-    const S = stripDetail(J.along, off, J.d, row, J.geo ? mix(stripL, float(BF_LAYER.strip_fine), J.geo) : stripL);
+    const S = stripDetail(J.along, off, J.d, row, stripL); // (rev 4: the geometry's chips come from the same layer: fine, or rough on the foot)
     const inStrip = float(1).sub(step(0.125, J.d)).mul(J.mask);
     const wM = float(1).sub(smoothstep(MARGIN[0], MARGIN[1], J.d)).mul(float(1).sub(iP)).mul(inStrip); // the margin band (fine strips)
     const wC = smoothstep(CHIP[0], CHIP[1], S.h.negate()).mul(inStrip).mul(J.chip ?? float(1)); // a chip

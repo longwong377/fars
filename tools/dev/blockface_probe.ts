@@ -32,10 +32,10 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   // D-321 rev 2: a free-standing dressed block on the court (grid e -12, n 100: 2.4 x 1.2 x 1.1 m) for the arrises at arm's length
   parts.push({ type: 'box', building: 'probe', kind: 'wall', material: 'limestone', tier: 'C', src: 'RECON', c: [-12, 100], size: [2.4, 1.2], y0: 0, y1: 1.1, rot: 0 } as any);
   const built = buildMeshes(parts); scene.add(built.group);
-  const arris = new ArrisField(built.arris, m => P.has('arrisdbg') ? new THREE.MeshBasicNodeMaterial({ color: 0xff0000 }) : surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); scene.add(arris.group); // D-321 rev 2 (?arrisdbg: the bands red)
+  const arris = new ArrisField(built.arris, m => P.has('arrisdbg') ? new THREE.MeshBasicNodeMaterial({ color: 0xff0000 }) : surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); scene.add(arris.group); arris.addFaces(built.jointFaces, (x, z) => terrain.heightAt(x, z)); // D-321 rev 2 (rev 4: the joints) (?arrisdbg: the bands red)
   const cren = buildStairCrenellations(parts); if (cren) scene.add(cren);
-  const fg = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n));
-  if (fg.geo) { const m = new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot')); m.castShadow = m.receiveShadow = true; scene.add(m); }
+  const fg = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n)); arris.add(fg.arris); // rev 4: the foot blocks' arrises
+  if (fg.geo) { const m = new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot', { arch: true })); m.castShadow = m.receiveShadow = true; scene.add(m); }
   scene.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && !m.userData?.tier?.startsWith?.('B') ) { m.castShadow = true; m.receiveShadow = true; } });
   const sun = new THREE.DirectionalLight(0xfff1e0, 3.4), hemi = new THREE.HemisphereLight(0xbfd6ff, 0x8a7458, 0.8);
   sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); const sc = sun.shadow.camera as THREE.OrthographicCamera; sc.left = sc.bottom = -60; sc.right = sc.top = 60; sc.near = 1; sc.far = 3000; sun.shadow.bias = -0.0004;
@@ -65,5 +65,24 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   registerSettlementSurfaces();
   ['kaba_white', 'takht_stone', 'stone_plain', 'stone_rough', 'limestone'].forEach((k, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 1.2), surfaceMaterial(k)); m.position.set(-30 + i * 3, 1.1, -100); m.castShadow = m.receiveShadow = true; scene.add(m); });
   { const im = new THREE.InstancedMesh(crenellationGeometry(0.9, 0.9, 4, 1), surfaceMaterial('limestone_merlon'), 1); im.setMatrixAt(0, new THREE.Matrix4().makeTranslation(-15, 0, -100).multiply(new THREE.Matrix4().makeScale(1, 1, 0.45))); scene.add(im); }
+  // rev 4: a walk measured in the browser: the eye moved at walking pace (1.4 m/s at 60 frames a second) along a path of grid
+  // points (e, n, eye height above the court or the terrain), the bands updated each frame in their 3 ms budget, each frame
+  // rendered; returns the update's and the frame's times (ms) and how often the bands were not ready
+  (window as any).__walk = async (path: [number, number, number, boolean][], seconds = 20) => {
+    const T: number[] = [], Fm: number[] = [], pend: number[] = []; let unready = 0;
+    const at = (k: number) => { const [e, n, h, court] = path[k]; return new THREE.Vector3(e, (court ? 0 : terrain.heightAt(e, -n)) + h, -n); };
+    const legs = path.slice(1).map((_, k) => at(k).distanceTo(at(k + 1))), total = legs.reduce((p, q) => p + q, 0), frames = Math.min(seconds * 60, Math.round(total / (1.4 / 60)));
+    arris.update(at(0), 1e9);
+    for (let i = 0; i < frames; i++) {
+      let d = (i * total) / frames, k = 0; while (k < legs.length - 1 && d > legs[k]) { d -= legs[k]; k++; }
+      const p = at(k).lerp(at(k + 1), Math.min(1, d / legs[k])), q = at(k + 1);
+      cam.position.copy(p); cam.lookAt(q.x, p.y - 0.3, q.z); cam.updateMatrixWorld();
+      const t0 = performance.now(); arris.update(cam.position); const t1 = performance.now();
+      tm.update(cam.position); await r.renderAsync(scene, cam); const t2 = performance.now();
+      T.push(t1 - t0); Fm.push(t2 - t0); pend.push(arris.stats.pending); if (!arris.stats.ready) unready++;
+    }
+    const st = (a: number[]) => { const b = a.slice().sort((x, y) => x - y); return { mean: +(a.reduce((p, q) => p + q, 0) / a.length).toFixed(2), p95: +b[Math.floor(b.length * 0.95)].toFixed(2), max: +b[b.length - 1].toFixed(2) }; };
+    return { frames, metres: +total.toFixed(1), update: st(T), frame: st(Fm), unreadyFrames: unready, maxPending: Math.max(...pend), triangles: arris.stats.triangles, draws: arris.stats.draws };
+  };
   (window as any).__bf = { ...blockFaceStats, loaded: blockFaceLoaded() }; (window as any).__ready = true;
 })().catch(e => { (window as any).__ready = String(e); console.error(e); });

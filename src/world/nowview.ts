@@ -122,7 +122,7 @@ export class NowView {
       if (!map.has(flat)) map.set(flat, nowMaterial(m, true));
     }
     // D-300: the foot's proud blocks (kept, world.ts) in the ruin's weathered stone and block tone (#24)
-    map.set(surfaceMaterial('terrace_foot'), (() => { const x = surfaceMaterial('terrace_now', { variant: 'now-foot', modify: patina(0.85, [0.2, 0.195, 0.185], 0.7, NOW_STONE_TINT) }); x.userData = { ...x.userData, tier: 'C', note: NOTE }; return x; })());
+    map.set(surfaceMaterial('terrace_foot', { arch: true }), (() => { const x = surfaceMaterial('terrace_now', { variant: 'now-foot', modify: patina(0.85, [0.2, 0.195, 0.185], 0.7, NOW_STONE_TINT) }); x.userData = { ...x.userData, tier: 'C', note: NOTE }; return x; })());
     this.swapMap = map;
     g.traverse(o => { const m = o as THREE.Mesh; if (!(m as any).isMesh) return; const r = map.get(m.material as THREE.Material); if (r) m.material = r; });
     if (phys) phys.world.forEachCollider(c => { if (!before.has(c.handle)) { this.own.push(c.handle); c.setEnabled(false); } });
