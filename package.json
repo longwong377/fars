@@ -41,7 +41,8 @@
     "kokoro-js": "^1.2.1",
     "opentype.js": "^1.3.4",
     "polygon-clipping": "^0.15.7",
-    "three": "^0.186.0"
+    "three": "^0.186.0",
+    "three-mesh-bvh": "^0.9.15"
   },
   "devDependencies": {
     "@playwright/test": "1.56",
