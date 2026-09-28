@@ -527,6 +527,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-23 | people converse with each other: model-chosen exchanges grounded in both speakers' lives and the day, in their own languages (lexicon lines) and voices, overheard near the player, feeding gossip and memory | §6 order (HANDOFF.md, a later session; tests/npc_talk.test.ts) | T-E12 |
 | UD-24 | a living world: people talk freely about whatever their lives need (§10 loosened for this by the user: generated speech voiced as reconstructed period speech, tier C), and their talk changes the simulation with or without the player, who can affect it | §6 order (HANDOFF.md; tests/living_world.test.ts) | T-E13 |
 | UD-25 | speech as the sandbox's main verb (reputation, emergent needs, work, barter, rumour, language learning, identity, petitions, hospitality, groups) through a true proximity mic, the model proposing and the simulation deciding | §6 order (HANDOFF.md; tests/speech_sandbox.test.ts) | T-E14 |
+| UD-26 | an emergent sandbox by the end: needs, an economy, choices and dealings between people chain into consequences, with or without the player, who can enter every chain | §6 order (HANDOFF.md; tests/emergence.test.ts) | T-F9 |
 
 ## 13. Revision log
 

@@ -2889,6 +2889,22 @@
    "anti_proxy": "an effect the model asserts in words but the simulation does not carry out does not count; a scripted branch per mechanic does not count; the mic path must be exercised with audio, not text only",
    "ud": "UD-25",
    "since": "rev 2.6 (s12)"
+  },
+  {
+   "id": "T-F9",
+   "axis": "F",
+   "scope": "world",
+   "metric": "consequence chains per simulated year with no player input, on each of 3 seeds: a chain is >= 3 causally linked state changes across >= 2 households or systems (e.g. a poor harvest -> dearer grain -> a household's debt -> a petition or a theft -> a judgement), none scripted as a sequence; plus the share of such chains the player can enter and change through speech or action (measured on a seeded set of interventions)",
+   "op": ">=",
+   "value": 50,
+   "unit": "chains per year (and >= 50 % enterable)",
+   "sample_min": 3,
+   "sample": "seeds, default settings",
+   "tool": "tests/emergence.test.ts",
+   "status": "to-build",
+   "anti_proxy": "a scripted event sequence does not count; a chain must arise from needs, prices and choices in the simulation and replay identically from its seed; chains that differ only in names count once",
+   "ud": "UD-26",
+   "since": "rev 2.6 (s12)"
   }
  ]
 }
