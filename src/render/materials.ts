@@ -853,8 +853,10 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     // bed joint is a dark and a light line a few mm apart, as a real rounded joint is. Replaces D-157's height lip
     // rev 4 (D-321): the joints that are geometry near the eye (a wall's course beds and head joints: arris.ts jointEdges; not the
     // stairs, the split blocks' beds, the foot's polygonal joints or the Grand Stair's recess): their distance, for the masks
-    const jOk = vs.mul(float(1).sub(isStep)).mul(RW ? float(1).sub(RW.inFoot).mul(float(1).sub(RW.polyB)).mul(float(1).sub(RW.inStair)) : float(1));
-    jd = mix(float(1e3), min(RW ? RW.dCourse : W.dBed, W.dHead), jOk);
+    // (rev 5: the split beds, the foot's polygonal edges and the recess walls too: arris_joints.ts faceJoints; not the foot blocks' own
+    // faces, terrace_foot, whose joints are the blocks' edges)
+    const jOk = vs.mul(float(1).sub(isStep)).mul(d.blockFace === 'rough' ? 0 : 1);
+    jd = mix(float(1e3), min(W.dBed, W.dHead), jOk);
     // (the band draws the joint's rounded arrises as geometry: no lip tilt there)
     tilt = T1.mul(sH.mul(lipH)).add(T2b.mul(sB.mul(lipB))).mul(-ARRIS_K).mul(jmask).mul(SURF_AB).mul(band ? float(1).sub(step(jd, JOINT_W)) : float(1));
     alb = alb.mul(blockToneFactor(J, d, ids));
