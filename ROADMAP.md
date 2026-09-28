@@ -37,8 +37,7 @@ weekly all-models budget per agent-hour (~14 agents x ~4 h used ~55 %). So a wee
 - **Budget:** read usage at every check-in (mcp get_usage); stop launching at the session's budget; wind down (final commits)
   at 92 % weekly; nothing runs at 97 %. At most 6 agents at once, focused scopes, agents reused rather than restarted, short
   reports, every GPU job through tools/dev/gpu_slot.mjs, no stale jobs holding a slot.
-- **Unverified lever:** the plan shows a separate "Weekly · Fable" bucket. If agents on the Fable model do not count against the
-  all-models week, the budget roughly doubles: test it with one small agent before relying on it.
+- **Model:** every agent and the lead run on Opus 5.5 (the user). The only lever on the budget is waste: fix load time first, batch renders, no agents idling on GPU slots, no repeated rounds, short reports.
 
 ## Risks that could add a week
 The in-browser model cannot reach 90 % grounding inside the Windows GPU watchdog (then: heavier grounding by the simulation, or a
