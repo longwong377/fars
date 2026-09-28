@@ -95,7 +95,7 @@ function disc(y: number, r0: number, r1: number, up: 1 | -1) {
   for (let j = 0; j <= nr; j++) { const r = r0 + ((r1 - r0) * j) / nr; for (let i = 0; i < nu; i++) { const th = (i / nu) * TAU; M.pos.push(r * Math.cos(th), y + dressing(r * Math.cos(th), r * Math.sin(th), 0, 0, 5) * up, r * Math.sin(th)); } }
   for (let j = 0; j < nr; j++) for (let i = 0; i < nu; i++) {
     const a = o + j * nu + i, b = o + j * nu + ((i + 1) % nu), c = o + (j + 1) * nu + ((i + 1) % nu), d = o + (j + 1) * nu + i;
-    if (up > 0) M.idx.push(a, d, c, a, c, b); else M.idx.push(a, c, d, a, b, c);
+    if (up > 0) M.idx.push(a, c, d, a, b, c); else M.idx.push(a, d, c, a, c, b); // (radial x round points down: the up face winds the other way)
   }
 }
 /** a box (half extents h, centre c) with arrises rounded to `r`, the x and z half extents scaled by `taper(y)` (the plain

@@ -3,9 +3,9 @@
  "assets": {
   "capital_protome": {
    "file": "models/capital_protome.glb",
-   "inHash": "45ef4722f04868788e18debf589e96988e9f5fee144e85f0b765425e4b5fe988",
-   "outHash": "839345e044c477483cd2c784b6701043687498476efdd0471e185a22b894a81e",
-   "bytes": 3284600,
+   "inHash": "5e55402b6bcb9d1f9adf62ee31a8095c679d1ec72bff7c760c27af0e3adbe829",
+   "outHash": "27f9585db3b02ad035ec3acf36d5bc8e3d32468f2ad4f54bf1a2abaaf379e327",
+   "bytes": 3302984,
    "gpuBytes": 6491971,
    "textures": "ktx2",
    "lods": [
@@ -24,9 +24,9 @@
       "w": 2048,
       "h": 2048,
       "format": "ktx2",
-      "bytes": 3010750
+      "bytes": 3029097
      },
-     "ao_mean": 0.5212
+     "ao_mean": 0.5243
     },
     {
      "name": "lod1",
@@ -43,9 +43,9 @@
       "w": 256,
       "h": 256,
       "format": "ktx2",
-      "bytes": 77789
+      "bytes": 77826
      },
-     "ao_mean": 0.8626
+     "ao_mean": 0.863
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
@@ -53,14 +53,14 @@
    "src": "RECON;IR-COL;PHOTO-CAP",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 51.2,
-   "build_s": 291
+   "bake_s": 85,
+   "build_s": 607
   },
   "capital_volute": {
    "file": "models/capital_volute.glb",
-   "inHash": "0a677d513cb73cf15b32e55c2ccbb916a5f20580034b93afd8f8b5fec634a9cc",
-   "outHash": "2b825689226bd66551eec33279c55377fdd0a1d3ce964ac1d6ec9ba5515bd398",
-   "bytes": 915616,
+   "inHash": "2a1a53f21b81e957efbfb69bb2181a0779e3c7e9fa16dcc15122c93f7e51003e",
+   "outHash": "ac4bba429a8bd56d258e62244ee462bcfce89536226353c87184368feac736e6",
+   "bytes": 929592,
    "gpuBytes": 1690851,
    "textures": "ktx2",
    "lods": [
@@ -79,9 +79,9 @@
       "w": 1024,
       "h": 1024,
       "format": "ktx2",
-      "bytes": 790748
+      "bytes": 804275
      },
-     "ao_mean": 0.6612
+     "ao_mean": 0.6597
     },
     {
      "name": "lod1",
@@ -98,9 +98,9 @@
       "w": 256,
       "h": 256,
       "format": "ktx2",
-      "bytes": 71427
+      "bytes": 71874
      },
-     "ao_mean": 0.7934
+     "ao_mean": 0.7991
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
@@ -108,8 +108,8 @@
    "src": "RECON;IR-COL;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 18.8,
-   "build_s": 40
+   "bake_s": 46.4,
+   "build_s": 220
   },
   "colossus_bull": {
    "file": "models/colossus_bull.glb",
@@ -221,11 +221,286 @@
    "bake_s": 93,
    "build_s": 247
   },
+  "column_base_bell": {
+   "file": "models/column_base_bell.glb",
+   "inHash": "1af3181ce260512f502668ef89cc6acc4f89d8d564faa404bf83eabfa2d34169",
+   "outHash": "f0599deed009da445b104835a4b8a1745cc44d89034ce7cfb1b238f8f0d26fd5",
+   "bytes": 1861176,
+   "gpuBytes": 5959003,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 5720,
+     "verts": 3799,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 2048,
+      "h": 2048,
+      "format": "ktx2",
+      "bytes": 1762665
+     },
+     "ao_mean": 0.4289
+    },
+    {
+     "name": "lod1",
+     "tris": 456,
+     "verts": 474,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 256,
+      "h": 256,
+      "format": "ktx2",
+      "bytes": 56087
+     },
+     "ao_mean": 0.5916
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;BELL_BASE;BELL_BASE2;PLATE_BASES",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 130.6,
+   "build_s": 263
+  },
+  "column_base_plain": {
+   "file": "models/column_base_plain.glb",
+   "inHash": "44afc36acf24be12453ec5b21c123aa6ea74ca4a2f4efda2f8bbb8b7112c9099",
+   "outHash": "fd20eae0f999e9ef9337e8c168783245b849b635f244f23486d6d26ef6470bc9",
+   "bytes": 570168,
+   "gpuBytes": 1558235,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 2744,
+     "verts": 1861,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 1024,
+      "h": 1024,
+      "format": "ktx2",
+      "bytes": 529978
+     },
+     "ao_mean": 0.6292
+    },
+    {
+     "name": "lod1",
+     "tris": 264,
+     "verts": 268,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 128,
+      "h": 128,
+      "format": "ktx2",
+      "bytes": 16769
+     },
+     "ao_mean": 0.8007
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 74.1,
+   "build_s": 158
+  },
+  "column_base_square2": {
+   "file": "models/column_base_square2.glb",
+   "inHash": "c957158b3f36f04a0efc621001b92acd1861b5ce00b5051972e2808a52d35c62",
+   "outHash": "8eb1294809daf100a2b33052d04fc982fc0b9942db53e0a5cc29eb006d99f6b2",
+   "bytes": 599752,
+   "gpuBytes": 1542155,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 2544,
+     "verts": 1652,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 1024,
+      "h": 1024,
+      "format": "ktx2",
+      "bytes": 564379
+     },
+     "ao_mean": 0.6767
+    },
+    {
+     "name": "lod1",
+     "tris": 224,
+     "verts": 202,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 128,
+      "h": 128,
+      "format": "ktx2",
+      "bytes": 15387
+     },
+     "ao_mean": 0.759
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES;LOUVRE",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 70,
+   "build_s": 120
+  },
+  "column_bells": {
+   "file": "models/column_bells.glb",
+   "inHash": "64de431458fda9b7eec55d93753bb35e1759c94766b98b10214ddbdb624f74af",
+   "outHash": "7c3d1ecdf79946ef752c6ad9784e7b073711ce0b8d6d0500b7ba64ab01b43826",
+   "bytes": 891732,
+   "gpuBytes": 1610699,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 3496,
+     "verts": 2704,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 1024,
+      "h": 1024,
+      "format": "ktx2",
+      "bytes": 838189
+     },
+     "ao_mean": 0.6551
+    },
+    {
+     "name": "lod1",
+     "tris": 320,
+     "verts": 316,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 128,
+      "h": 128,
+      "format": "ktx2",
+      "bytes": 18086
+     },
+     "ao_mean": 0.7355
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES;PLATE_COLUMN",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 54.3,
+   "build_s": 170
+  },
+  "column_capital_plain": {
+   "file": "models/column_capital_plain.glb",
+   "inHash": "618d2b635391a05d15b0be4c8a4730eaaea74aa5923b2a25b9ff55dc34fc8944",
+   "outHash": "59841129c70efc5f3a6975e3157c76075d77d2a1421e348ab3da9bafc14c993d",
+   "bytes": 191428,
+   "gpuBytes": 360171,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 24,
+     "verts": 48,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 512,
+      "h": 512,
+      "format": "ktx2",
+      "bytes": 182681
+     },
+     "ao_mean": 0.4762
+    },
+    {
+     "name": "lod1",
+     "tris": 24,
+     "verts": 48,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 64,
+      "h": 64,
+      "format": "ktx2",
+      "bytes": 4853
+     },
+     "ao_mean": 0.618
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 8.6,
+   "build_s": 29
+  },
   "column_collar": {
    "file": "models/column_collar.glb",
-   "inHash": "ddaacc24abdc56cb01e2f1644db8b93bdb744f467230325b19a4e02b9f768732",
-   "outHash": "7cf44b936f2a7d05eb1a70583d3a5cce43ac23dc0de87648ce3e66d0c8f18657",
-   "bytes": 145512,
+   "inHash": "92c4e543f1e67645b29f24fb9b24e179d3867a568bc3aa5b812891eb97d9d002",
+   "outHash": "299ffe29ff5fa10b59c2df95684343c2b0ec991e58603fb75c19d8192dc573d9",
+   "bytes": 124212,
    "gpuBytes": 382059,
    "textures": "ktx2",
    "lods": [
@@ -244,9 +519,9 @@
       "w": 512,
       "h": 512,
       "format": "ktx2",
-      "bytes": 132486
+      "bytes": 111649
      },
-     "ao_mean": 0.5697
+     "ao_mean": 0.6065
     },
     {
      "name": "lod1",
@@ -263,9 +538,9 @@
       "w": 64,
       "h": 64,
       "format": "ktx2",
-      "bytes": 4662
+      "bytes": 4199
      },
-     "ao_mean": 0.7416
+     "ao_mean": 0.8055
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
@@ -273,8 +548,228 @@
    "src": "RECON;PHOTO;PLATE_COLUMN",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 26.5,
-   "build_s": 59
+   "bake_s": 25.5,
+   "build_s": 112
+  },
+  "column_shaft_drums": {
+   "file": "models/column_shaft_drums.glb",
+   "inHash": "3c5c1403966a3ccaa28bd4608fe7bcc84b2a5d130c5fae7f857e1aa7122c1d32",
+   "outHash": "62b19110faf224937d7707282bd379ffa2164a940af6f8f4e5d1fb4d794d62f5",
+   "bytes": 1011160,
+   "gpuBytes": 1429163,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 112,
+     "verts": 118,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 1024,
+      "h": 1024,
+      "format": "ktx2",
+      "bytes": 988786
+     },
+     "ao_mean": 0.9896
+    },
+    {
+     "name": "lod1",
+     "tris": 32,
+     "verts": 38,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 128,
+      "h": 128,
+      "format": "ktx2",
+      "bytes": 17951
+     },
+     "ao_mean": 0.9896
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;SHAFTS",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 78.9,
+   "build_s": 145
+  },
+  "column_shaft_f40": {
+   "file": "models/column_shaft_f40.glb",
+   "inHash": "7f54c892a9038e9069db503ac8bca116d9f901911552ccfe14b8b9761050b5b9",
+   "outHash": "5ffa6672642d6f090de760654bf66f6805e7ed26d1d276870f00034995a3a15c",
+   "bytes": 2622120,
+   "gpuBytes": 5709163,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 320,
+     "verts": 326,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 2048,
+      "h": 2048,
+      "format": "ktx2",
+      "bytes": 2574832
+     },
+     "ao_mean": 0.9776
+    },
+    {
+     "name": "lod1",
+     "tris": 160,
+     "verts": 166,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 256,
+      "h": 256,
+      "format": "ktx2",
+      "bytes": 39953
+     },
+     "ao_mean": 0.9776
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;SHAFTS;PLATE_COLUMN",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 148.1,
+   "build_s": 246
+  },
+  "column_shaft_f48": {
+   "file": "models/column_shaft_f48.glb",
+   "inHash": "5f7f28da1bd7766cb40f0c162a790e99df47b9cdd2c7c28ebf7986dbc9817ed0",
+   "outHash": "ffe4bd2a6bcbc1da7fafb5bfb54f6482032f95b126e94d5979b287326d930fd6",
+   "bytes": 2494156,
+   "gpuBytes": 5714923,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 384,
+     "verts": 390,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 2048,
+      "h": 2048,
+      "format": "ktx2",
+      "bytes": 2455517
+     },
+     "ao_mean": 0.9811
+    },
+    {
+     "name": "lod1",
+     "tris": 192,
+     "verts": 198,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 256,
+      "h": 256,
+      "format": "ktx2",
+      "bytes": 30612
+     },
+     "ao_mean": 0.981
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;SHAFTS;PLATE_COLUMN",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 124,
+   "build_s": 183
+  },
+  "column_shaft_plaster": {
+   "file": "models/column_shaft_plaster.glb",
+   "inHash": "02a9e63b3393b4ede9bd548865a221224562fa36a6eeffd70745cd568abd8bd7",
+   "outHash": "44507dee96079feea3599cad82bee18f8ec3b61d6c37889a76c8bcf5c0f736ae",
+   "bytes": 273604,
+   "gpuBytes": 1429163,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 112,
+     "verts": 118,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 1024,
+      "h": 1024,
+      "format": "ktx2",
+      "bytes": 255728
+     },
+     "ao_mean": 1
+    },
+    {
+     "name": "lod1",
+     "tris": 32,
+     "verts": 38,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 128,
+      "h": 128,
+      "format": "ktx2",
+      "bytes": 13497
+     },
+     "ao_mean": 1
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 27.6,
+   "build_s": 126
   }
  }
 }

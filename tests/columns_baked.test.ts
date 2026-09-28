@@ -20,6 +20,8 @@ import type { Column } from '../src/arch/parts';
 
 const REG = readRegistry(), MAN = JSON.parse(readFileSync('public/models/manifest.json', 'utf8'));
 const cols = buildTerrace().parts.filter(p => p.type === 'column') as Column[];
+/** the direction (x, 0, z) projected into the surface of normal n, unit */
+const along = (x: number, z: number, nx: number, ny: number, nz: number) => { const d = x * nx + z * nz, q = [x - nx * d, -ny * d, z - nz * d], l = Math.hypot(q[0], q[1], q[2]) || 1; return q.map(c => c / l); };
 const H100 = order('hall100', { base: 'bell', capital: 'bull' });
 
 describe('the columns\' Blender-built parts (D-328)', () => {
@@ -86,7 +88,8 @@ describe('the shaft tiles: the game reads each map as the bake wrote it (D-328)'
           const th = Math.atan2(z, x), u = m.uv[v * 2]; let du = u - ((th / (2 * Math.PI) + 1) % 1); du -= Math.round(du);
           expect(Math.abs(du)).toBeLessThan(1e-4);
           expect(Math.abs(m.uv[v * 2 + 1] - (y - o.baseH) / vt)).toBeLessThan(1e-4);
-          const t = [m.tan[v * 4], m.tan[v * 4 + 1], m.tan[v * 4 + 2]]; expect(t[0] * -Math.sin(th) + t[2] * Math.cos(th)).toBeGreaterThan(0.95); expect(m.tan[v * 4 + 3]).toBe(1);
+          const t = [m.tan[v * 4], m.tan[v * 4 + 1], m.tan[v * 4 + 2]], q = along(-Math.sin(th), Math.cos(th), m.nrm[v * 3], m.nrm[v * 3 + 1], m.nrm[v * 3 + 2]);
+          expect(t[0] * q[0] + t[1] * q[1] + t[2] * q[2]).toBeGreaterThan(0.999); expect(m.tan[v * 4 + 3]).toBe(1);
         }
       }
     }
@@ -103,11 +106,10 @@ describe('the shaft tiles: the game reads each map as the bake wrote it (D-328)'
         const x = P[v * 3], y = P[v * 3 + 1], z = P[v * 3 + 2], th = Math.atan2(z, x);
         let du = U[v * 2] - ((th / (2 * Math.PI) + 1) % 1); du -= Math.round(du); worstU = Math.max(worstU, Math.abs(du));
         worstV = Math.max(worstV, Math.abs(U[v * 2 + 1] - (y - ymin) / (ymax - ymin)));
-        const tx = -Math.sin(th), tz = Math.cos(th); worstT = Math.min(worstT, T[v * 4] * tx + T[v * 4 + 2] * tz); sign += T[v * 4 + 3];
-        void N;
+        const q = along(-Math.sin(th), Math.cos(th), N[v * 3], N[v * 3 + 1], N[v * 3 + 2]); worstT = Math.min(worstT, T[v * 4] * q[0] + T[v * 4 + 1] * q[1] + T[v * 4 + 2] * q[2]); sign += T[v * 4 + 3];
       }
       expect(worstU, `lod${lod} u`).toBeLessThan(2e-3); expect(worstV, `lod${lod} v`).toBeLessThan(2e-3);
-      expect(worstT, `lod${lod} tangent along d/du`).toBeGreaterThan(0.95); expect(sign / (P.length / 3), `lod${lod} handedness +1`).toBeGreaterThan(0.99);
+      expect(worstT, `lod${lod} tangent along d/du in the surface`).toBeGreaterThan(0.97); expect(sign / (P.length / 3), `lod${lod} handedness +1`).toBeGreaterThan(0.99);
     }
   });
   it('the per-column tile offset is whole flutes and whole drums, and deterministic', () => {
