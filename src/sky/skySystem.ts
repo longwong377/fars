@@ -42,6 +42,7 @@ export const GROUND_SUNLIT = 0.85;
  *  from below, the clouds' base and the air's in-scatter all take it (D-219: the snow render's brown sky and brown fill) */
 export const SNOW_RHO: [number, number, number] = [0.82, 0.83, 0.86];
 export const groundRho = (snowCover: number): [number, number, number] => { const s = Math.min(1, Math.max(0, snowCover)); return [0, 1, 2].map(c => GROUND_RHO[c] + (SNOW_RHO[c] - GROUND_RHO[c]) * s) as [number, number, number]; };
+const _mdir = new THREE.Vector3();
 export class SkySystem {
   readonly sky = new SkyMesh();
   readonly sun = new THREE.DirectionalLight(0xffffff, 3);
@@ -455,6 +456,11 @@ export class SkySystem {
     // the cloud base and top: the spherical atmosphere's transmittance from those heights, so low sun lights the deck from
     // below, reddened, until the sun sets for the cloud (~1.3–2° below the ground's horizon at 1.5–3.6 km).
     const C = this.clouds; C.mesh.position.copy(camPos); C.sunDir.value.copy(this.state.sunDir);
+    // D-309e (B111, night clouds as black blobs): with the sun below the horizon the clouds' light march still pointed at the
+    // sun, through the whole deck, so the moonlight added to sunColor never reached them. Night (sun below −4°): the march
+    // points at the moon, the light is the moon's; twilight blends (C)
+    { const mw = Math.min(1, Math.max(0, (-this.state.sunAlt - 4) / 4)); if (mw > 0 && this.moonLight.intensity > 0) {
+      _mdir.subVectors(this.moonLight.position, this.moonLight.target.position).normalize(); if (_mdir.y > 0) C.sunDir.value.lerp(_mdir, mw).normalize(); } }
     const moonC = new THREE.Color(0.55, 0.6, 0.75).multiplyScalar(this.moonLight.intensity * 0.5), cf = G * (1 - 0.75 * cloudCover);
     { const b = A.sunColorAt(OBSERVER_ALT + CLOUD_BASE, alt), t = A.sunColorAt(OBSERVER_ALT + CLOUD_TOP, alt);
       const p0 = (x: number) => Math.max(0, x) * cf;

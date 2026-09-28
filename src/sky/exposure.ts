@@ -110,11 +110,24 @@ export function exposureTarget(sunE: number, skyE: number, skyVis: number, moonE
 export function interiorExposureTarget(sunE: number, skyE: number, moonE: number, fireE: number, v: number, lux: number, skyLux: number): number {
   const Xout = Math.min(X_MAX, Math.max(X_MIN, KEY / (sunE + skyE + moonE + 0.004)));
   const vv = Math.min(1, Math.max(v, 1e-7));
-  const A = displayedGrey(vv * lux, vv * skyLux) / Math.max(displayedGrey(lux, skyLux), 1e-12);
+  const A0 = displayedGrey(vv * lux, vv * skyLux) / Math.max(displayedGrey(lux, skyLux), 1e-12);
+  // D-309d (the lead's world render: room-treasury-store mean 31, scribe-room-ne 19 of 255): an eye that has stepped indoors
+  // adapts further than Krawczyk's key allows for a camera frame — a daylit room lit through its doorway (10-300 lx) reads
+  // as dim but plainly visible, and photographs of such rooms (fars-assets/photos/fars_villages_mudbrick: the Meybod vault,
+  // lower-frame p50 53) sit well above the renders' 25. Floor on the displayed grey (C): 0.30 at 1 lx rising to 0.55 by
+  // 1000 lx, faded out below 0.1-1 lx (the rods: a fireless hall at night stays black)
+  const A = Math.max(A0, interiorGreyFloor(vv * lux));
   const Xsky = (Xout * A) / vv;
   // the eye opens no further than the interior's sky light allows (Xsky), and a fire's light closes it as the session-3
   // law does: KEY over the light actually at the eye (at night Xsky ≈ X_MAX, so a torch-lit hall is exposed as before)
-  return Math.max(X_MIN, Math.min(Xsky, KEY / (vv * (sunE + skyE + moonE) + fireE + 0.004)));
+  // (D-309d: the floor in the fire term was 0.004, ~150 lx in renderer units by day: it capped every room below ~150 lx at
+  // X ≈ 575, whatever its own light — the dark rooms of the world render. Xsky already bounds the eye; the floor is now 1e-6)
+  return Math.max(X_MIN, Math.min(Xsky, KEY / (vv * (sunE + skyE + moonE) + fireE + 1e-6)));
+}
+/** D-309d: the least displayed grey (relative to daylight's) of an interior the eye has adapted to, by the light at the eye (lx) */
+export function interiorGreyFloor(lux: number): number {
+  const l = Math.log10(Math.max(lux, 1e-9)), ss = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  return (0.3 + 0.25 * ss(0, 3, l)) * ss(-1, 0, l);
 }
 /** Eye adaptation over time (C): the exposure moves in log space (stops), faster toward less light (light adaptation,
  *  τ 0.6 s) than toward more (dark adaptation, τ 3 s: stepping from the sun into a hall, the light drops and the eye
