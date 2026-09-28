@@ -185,7 +185,9 @@ stats['figures'] = len(figs); stats['fields'] = nfields; stats['merlons'] = merl
 both = join([body, glaze], 'gate')
 me = both.data; lm = me.uv_layers.new(name='light'); me.uv_layers.active = lm
 bpy.context.view_layer.objects.active = both; bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0.002, area_weight=0.0, scale_to_bounds=True)
+bpy.ops.uv.smart_project(angle_limit=math.radians(80), island_margin=0.0015, area_weight=0.0, scale_to_bounds=True)
+# repack tighter (the relief figures' many small islands left half the map empty): concave shapes, rotation
+bpy.ops.uv.pack_islands(rotate=True, margin=0.0015, shape_method='CONCAVE')
 bpy.ops.object.mode_set(mode='OBJECT')
 LM = job.get('lightmap', 2048)
 for m in me.materials:

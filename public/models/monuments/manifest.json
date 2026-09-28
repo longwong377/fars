@@ -3,8 +3,8 @@
  "assets": {
   "ajori": {
    "file": "models/monuments/ajori.glb",
-   "sha256": "def4b125febd7cdc56791d7424745dd291fd92a53783c1acd1012107c5b24041",
-   "bytes": 5289304,
+   "sha256": "e3effb5c77344bc1fb506ce4c3ce49d1b4c52a4bc6fd6a7dc872516e5a2c085f",
+   "bytes": 5344304,
    "tris": {
     "glaze": 50440,
     "body": 17724
@@ -43,8 +43,8 @@
      "file": "models/monuments/ajori/light_a.jpg",
      "w": 2048,
      "h": 2048,
-     "bytes": 1694929,
-     "sha256": "199bbdaac10f9f0ce070f9530affc9ef98479d37d989b8489bc5bd6046797224"
+     "bytes": 1579084,
+     "sha256": "010ea96482c1c0aa8766bf473541566ac324ee4337080122797ea510c6eb951d"
     }
    },
    "tier": "B/C",
@@ -52,7 +52,7 @@
    "note": "Tol-e Ajori gate: plan B (TOLAJORI2017), baked-brick facing B (AJORI-BRICK2018), glazes, sunk outlines, rosettes and the two motifs B (AMADORI2023); brick module, relief depth, rows, drawing, merlons, height and weathering C",
    "blender": "5.0.1",
    "device": "CPU",
-   "inHash": "ede7fca86232c68b34865bc6b784d98f18ad8755d89f75d69b45ca084158aef0",
+   "inHash": "1cb07a2f7e483cd62027ac969f7909c5631096fa72330dafb9f632aaf2d72e90",
    "stats": {
     "glaze_out_frac": 0.9797458300238284,
     "figures": 120,

@@ -5,9 +5,13 @@ import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 const OUT = process.argv[2] ?? 'T:/fars-assets-s12/ajori_naqsh/probe', ONLY = process.argv[3]?.split(',');
 mkdirSync(OUT, { recursive: true });
-const SUN = [0.6, 0.6, 0.35];
+const SUN = process.env.SITE === 'naqsh' ? [-0.45, 0.55, 0.7] : [0.6, 0.6, 0.35];
 const V = (n, eye, at, fov = 60) => ({ n, eye, at, fov });
-export const VIEWS = [
+const NAQSH = process.env.SITE === 'naqsh';
+export const VIEWS = NAQSH ? [
+  V('nr-darius-ground', [606, 1.6, -6084], [592, 26, -6124], 70), V('nr-darius-near', [598, 14, -6108], [592, 24, -6124], 60), V('nr-cliff-wide', [700, 1.6, -5960], [690, 30, -6124], 70),
+  V('nr-cliff-foot', [540, 1.6, -6112], [520, 8, -6124], 70), V('nr-kaba', [560, 1.6, -5998], [543, 7, -6017], 70), V('nr-both', [622, 1.6, -6040], [622, 25, -6124], 70),
+] : [
   V("aj-far", [58, 18, 1.6], [19.5, -2, 5], 70), V("aj-facade", [27, 7, 1.6], [19.5, 6, 3], 70), V("aj-near", [21.5, 5.5, 1.6], [19.5, 5.2, 2.2], 60),
   V("aj-corridor", [22, 0.3, 1.6], [0, 2.1, 2.2], 70), V("aj-room", [6.5, -3, 1.6], [-7, 3, 2.5], 70), V("aj-top", [48, -30, 9], [19.5, 0, 11], 60),
 ];
@@ -15,7 +19,7 @@ const b = await chromium.launch({ channel: process.env.PW_CHANNEL ?? 'chrome', h
 const p = await b.newPage({ viewport: { width: 1600, height: 900 } }); const logs = [];
 p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.type() + ' ' + m.text().slice(0, 300)); }); p.on('pageerror', e => logs.push('pageerror ' + e));
 const t0 = Date.now();
-await p.goto('http://localhost:' + (process.env.E2E_PORT ?? '5341') + '/tools/blender/probe/monument_probe.html' + (process.env.Q ?? ''));
+await p.goto('http://localhost:' + (process.env.E2E_PORT ?? '5341') + '/tools/blender/probe/monument_probe.html' + (NAQSH ? '?site=naqsh' : '') + (process.env.Q ?? ''));
 await p.waitForFunction(() => window.__ready, null, { timeout: 1800000 });
 const ready = await p.evaluate(() => window.__ready); console.log('ready', JSON.stringify(ready).slice(0, 400), (Date.now() - t0) / 1000, 's');
 const rec = { ready, views: [] };
