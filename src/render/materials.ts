@@ -338,7 +338,12 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // the roofs: cedar (sides, top) with reed matting on the ceiling between the joists (D-188: cedar beams and an earth roof,
   // SITE_SPEC C; matting under the earth is the region's flat-roof build-up, RECOLLECTION, C). Reed, aged under the roof
   // and a little smoked: sRGB 0.55/0.47/0.33 (C)
-  roof_timber: { albedo: [0.57, 0.44, 0.32], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, under: 'matting', tier: 'C', note: 'roof: cedar beams (SITE_SPEC, C) with reed matting on the ceiling (C, D-188)' },
+  roof_timber: { albedo: [0.57, 0.44, 0.32], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, under: 'matting', top: 'roof_earth', tier: 'C', note: 'roof: cedar beams (SITE_SPEC, C) with reed matting on the ceiling (C, D-188) and the earth on top (D-334: was drawn as cedar planks)' },
+  // D-334: the roofs' earth (and the exposed tops of towers and the curtain): packed earth under a clay-and-straw coat, rolled
+  // and renewed before the rains (the region's kahgel, IR-VERNROOF-SX: an ethnographic analogy, C; the Terrace's roofs 'earth'
+  // in SITE_SPEC, C); the house roofs' tone (D-223), a little paler for a royal roof's fresher coat; the Blender bake
+  // (palacebake.py roof) carries the roller's tracks, the straw and the crack network
+  roof_earth: { albedo: [0.61, 0.54, 0.42], roughness: 0.96, porosity: 0.9, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.06, chroma: 0.01, patch: -0.04 }, bump: { amp: 0.006, freq: 1.2 }, micro: { amp: 0.0006, freq: 45, alb: 0.05 }, tier: 'C', note: 'the flat roofs of the palaces: packed earth with a rolled clay-and-straw coat (C, D-334)' },
   matting: { albedo: [0.55, 0.47, 0.33], roughness: 0.9, porosity: 0.8, noiseScale: 1, noiseAmp: 0.1, tone: { sd: 0.06, chroma: 0.01 }, weave: { reed: 0.012, cell: 0.09, amp: 0.0015 }, tier: 'C', note: 'reed matting under the roof earth (C, D-188)' },
   // glazed brick (session 7: the frieze read as one flat blue slab): laid in courses with thin dark joints, each brick's glaze
   // its own tone (firing and glaze thickness). Brick 0.33 × 0.09 m face and 8 mm joints: the Achaemenid glazed bricks of

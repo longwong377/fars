@@ -15,7 +15,7 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], mudbrick_painted: [0.58, 0.57, 0.45], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
-  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], steel: [0.3, 0.3, 0.31],
+  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], steel: [0.3, 0.3, 0.31],
 };
 import { surfaceMaterial, paintedShaftMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
@@ -29,6 +29,8 @@ function shaftPaint(o: ColumnOrder): THREE.Material {
   return paintedShaftMaterial({ ground: pig(R.ground), line: pig(R.line), band: pig(R.band), around: R.around, lozenge_h: R.lozenge_h, line_w: R.line_w, band_h: R.band_h, edge_w: R.edge_w, y0: o.baseH, y1: o.height - o.capitalH, D: o.shaftD });
 }
 import { ceilingTimbers } from './ceilings';
+import { roofEdges, type RoofEdges } from './roofedge';
+import { buildPieces } from './palacekit';
 /** D-276: parts that are colliders only: the round fittings world/furnish.ts draws (storage jars, querns) */
 export const COLLIDER_ONLY = new Set(['jar', 'quern']);
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
@@ -403,7 +405,7 @@ export class MeshLOD extends THREE.Object3D {
   private show(k: number) { this.cur = k; this.levels.forEach((m, i) => { m.visible = i === k; }); }
 }
 
-export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[] }
+export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** D-334: the wall heads and roof edges (render geometry) */ roofEdges?: RoofEdges & { pieceTriangles: number } }
 /** D-321 rev 2: the surfaces whose free arrises become geometry near the eye (the dressed stone of the block-face class, D-321) */
 export const ARRIS_MATS = new Set(['limestone', 'terrace']);
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
@@ -411,16 +413,20 @@ export const ARRIS_MATS = new Set(['limestone', 'terrace']);
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
 /** opts.colossusFront: the colossi's fore-part length (m) to carve with, instead of measuring it against these parts' walls
  *  (the Now view, D-201: the walls are gone, the carving is not) */
-export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number } = {}): BuiltArch {
+export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number; /** D-334: leave out the wall heads and roof edges */ noRoofEdges?: boolean } = {}): BuiltArch {
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; plain: THREE.BufferGeometry[]; parts: Part[] }>();
-  const index = new PartIndex(parts), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
+  // D-334: the wall heads and roof edges (roofedge.ts): render-only boxes drawn with the parts (bevelled, merged per building and
+  // material; no colliders: solid false), and the modelled pieces instanced below. Not in the Now view (its parts carry `now`)
+  const RE = opts.noRoofEdges || parts.some(p => (p as any).now) ? null : roofEdges(parts);
+  const all: Part[] = RE ? [...parts, ...RE.boxes] : parts, edgeSet = new Set<Part>(RE?.boxes ?? []);
+  const index = new PartIndex(all), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
   const stairs = stairRows(parts), arris: ArrisEdge[] = [];
   if (opts.dynamicDoors) bevelSwap.length = 0;
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
   const colossi = parts.filter(p => p.type === 'box' && p.sculpt) as Box[];
   let colliders = 0;
-  for (const p of parts) {
+  for (const p of all) {
     if (p.type === 'column') {
       const k = `${p.building}|${p.order.id}|${p.order.base}|${p.order.capital}|${p.order.shaftD}|${p.order.height}|${p.built.toFixed(2)}`;
       if (!cols.has(k)) cols.set(k, { order: p.order, built: p.built, parts: [] }); cols.get(k)!.parts.push(p);
@@ -443,7 +449,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p));
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
-    const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;
+    const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) ? "|edge" : ""}`; // (D-334: the roof edges their own mesh: a building's timber roofs keep the roof surface)
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
   }
   // the timber ceilings under the roofs (D-188): render geometry only, merged per building (no colliders, no bevels)
@@ -530,5 +536,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       group.add(lod);
     }
   }
-  return { group, triangles: tris, colliders, bevel: bstats, arris };
+  let roofEdgesOut: BuiltArch['roofEdges'];
+  if (RE) { const P = buildPieces(RE.pieces, flatMode); group.add(P.group); tris += P.triangles; roofEdgesOut = { ...RE, pieceTriangles: P.triangles }; }
+  return { group, triangles: tris, colliders, bevel: bstats, arris, roofEdges: roofEdgesOut };
 }
