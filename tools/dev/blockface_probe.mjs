@@ -31,6 +31,7 @@ const V = [
   // D-321 rev 2: the arrises at arm's length in a low sun: a stair's nosings, a parapet's coping, a wall's corner
   { n: 'nosing-arm', e: -43.9, n2: 131.5, eye: 1.6, az: 341, pitch: -32, fov: 35, sunAz: 250, sunAlt: 18 },
   { n: 'block-corner', court: true, e: -10.2, n2: 98.3, eye: 1.25, az: 315, pitch: -12, fov: 40, sunAz: 200, sunAlt: 15 },
+  { n: 'block-edge-rake', court: true, e: -9.9, n2: 99.0, eye: 1.3, az: 250, pitch: -14, fov: 30, sunAz: 160, sunAlt: 8 },
   { n: 'block-top', court: true, e: -12, n2: 98.6, eye: 1.5, az: 341, pitch: -40, fov: 40, sunAz: 250, sunAlt: 12 },
   { n: 'corner-arm', court: true, e: 80, n2: -14, eye: 1.6, az: 300, pitch: -10, fov: 45, dist: 1.2, sunAz: 20, sunAlt: 18 },
 ];
