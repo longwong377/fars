@@ -1031,9 +1031,12 @@ function kandysGeo(L: Lib, key: string, lod: number) {
   // the border (second colour) along the fronts and the hem (C)
   { const cols = segs + 1, nRing = cols * (rings + 1);
     for (let layer = 0; layer < 2; layer++) for (let k = 0; k <= rings; k++) for (let j = 0; j < cols; j++) if (j <= 1 || j >= segs - 1 || k === rings) { const i = layer * nRing + k * cols + j; hang.mat[i] = MAT.cloth_second; hang.col[i] = COL.second; } }
-  const sleeve = (s: 1 | -1) => tubeGeo(A, `${key}_sleeve${s}`, { segs: lod === 0 ? 12 : 4, rings: lod === 0 ? 9 : 2, capStart: true, capEnd: true,
-    frame: (c, t) => { const u = c.J(s > 0 ? 'upperarm_l' : 'upperarm_r'); const a: V3 = [u[0] + s * 0.085, u[1] - 0.01, u[2] - 0.03], b: V3 = [u[0] + s * 0.11, c.J("pelvis")[1] - 0.14, u[2] - 0.07]; return segFrame(a, b, t, [0, 0, -1]); },
-    radius: (c, t, th) => { const wd = lerp(0.04, 0.06, t), dp = lerp(0.014, 0.011, t); return (wd * dp) / Math.hypot(dp * Math.cos(th), wd * Math.sin(th)) * (1 + 0.05 * Math.sin(th * 3 + t * 9)); },
+  // D-322 rev 3: the empty sleeves read as flat planks (a uniform flat strip): now gathered narrow at the shoulder and soft,
+  // a rounder section widening to the open cuff, bowed back and out along their length and lumpy with folds (C); the solver
+  // lets them fall below their pinned top
+  const sleeve = (s: 1 | -1) => tubeGeo(A, `${key}_sleeve${s}`, { segs: lod === 0 ? 14 : lod === 1 ? 6 : 4, rings: lod === 0 ? 12 : lod === 1 ? 4 : 2, capStart: true, capEnd: true,
+    frame: (c, t) => { const u = c.J(s > 0 ? 'upperarm_l' : 'upperarm_r'); const a: V3 = [u[0] + s * 0.085, u[1] - 0.01, u[2] - 0.03], b: V3 = [u[0] + s * 0.11, c.J("pelvis")[1] - 0.14, u[2] - 0.07]; const F = segFrame(a, b, t, [0, 0, -1]), bow = Math.sin(Math.PI * t); F.o = add(F.o, [s * 0.015 * bow, 0, -0.025 * bow]); return F; },
+    radius: (c, t, th) => { const wd = lerp(0.03, 0.066, Math.pow(t, 0.7)), dp = lerp(0.02, 0.017, t); return (wd * dp) / Math.hypot(dp * Math.cos(th), wd * Math.sin(th)) * (1 + 0.1 * Math.sin(th * 3 + t * 9) + 0.05 * Math.sin(th * 5 - t * 13)); },
     weights: t => [W('spine_03', 1 - 0.5 * t), W('spine_02', 0.5 * t)], mat: MAT.cloth_trim, col: COL.trim, prm: 3 });
   return merge(key, [cape, hang, sleeve(1), sleeve(-1)]);
 }
@@ -1229,7 +1232,7 @@ function withCards(L: Lib, id: string, lod: number, base: Geo): Geo {
 /** D-322: the skirts' columns per level of detail (the settled folds are sampled at them: a fold needs two columns); their
  *  linings take every second ring, which pays for the columns (the tunics' 1,680 triangles at full detail kept; the dress,
  *  worn by women and envoys, whose costumes have room, and the child's take more) */
-export const SKIRT_SEGS: Record<string, [number, number, number]> = { tunic_skirt: [52, 14, 8], work_skirt: [52, 14, 8], child_skirt: [64, 16, 8], dress_skirt: [80, 18, 10] };
+export const SKIRT_SEGS: Record<string, [number, number, number]> = { tunic_skirt: [80, 18, 8], work_skirt: [80, 18, 8], child_skirt: [96, 18, 8], dress_skirt: [112, 22, 10] };
 function buildPiece(L: Lib, id: string, lod: number): Geo {
   const J = L.J;
   switch (id) {
@@ -1366,6 +1369,8 @@ export const geoKeyOf = geoKey;
 /** placement order: pieces a belt is fitted over come first */
 const ORDER = (id: string) => (id === 'belt' ? 2 : id.includes('upper') || id.includes('skirt') ? 0 : 1);
 
+/** D-322 rev 3: how far the veil stands outside the sash where it passes over it (m, C) */
+export const VEIL_OVER_BELT = 0.006;
 /** share of the far costume's triangles kept by the farthest LOD (C) */
 export const FAR_KEEP = 0.2;
 /** the farthest LOD's error bound for a piece, as a share of its own extent (D-205; C) */
@@ -1405,6 +1410,16 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
     const seed = v.index % (opts.models?.drape?.meta.seeds ?? 1), sfx = seed ? `#${seed}` : '';
     for (const k of keys) { const g = geos[k]; const t1 = opts.profile ? performance.now() : 0; const pos = g.place(c); const dr = drape?.[`${k}|${group}${sfx}`] ?? drape?.[`${k}|${group}`]; if (dr && dr.meta.n === g.n) applyDrape(pos, g.index, dr.d); if (opts.profile) opts.profile[k] = (opts.profile[k] ?? 0) + performance.now() - t1; c.placed.set(k, pos); const nr = geoNormals(pos, g.index, g.n); const o = base + pieceBase[k] * 4;
       for (let i = 0; i < g.n; i++) { source[o + i * 4] = pos[i * 3]; source[o + i * 4 + 1] = pos[i * 3 + 1]; source[o + i * 4 + 2] = pos[i * 3 + 2]; source[o + i * 4 + 3] = packNormal(nr[i * 3], nr[i * 3 + 1], nr[i * 3 + 2]); } }
+    // D-322 rev 3: the court woman's veil hangs over her sash, not under it (the veil is placed before the sash, which is
+    // fitted to the skirts; settled, the veil lay on the robe and the sash crossed over it at the back): at the sash's height
+    // the veil stands at least VEIL_OVER_BELT outside the sash's outline in its direction, fading out over 4 cm above and below
+    for (const vk of keys) { if (!vk.startsWith('veil@')) continue; const bk = `belt@${vk.split('@')[1]}`, bp = c.placed.get(bk), vp = c.placed.get(vk); if (!bp || !vp) continue;
+      const y0 = c.J('spine_01')[1] - 0.005, zc = c.J('pelvis')[2] + 0.02, B = 48, br = new Float32Array(B), bin = (x: number, z: number) => Math.floor((((Math.atan2(x, z) / (2 * Math.PI)) % 1 + 1) % 1) * B) % B;
+      for (let i = 0; i < bp.length; i += 3) { if (Math.abs(bp[i + 1] - y0) > 0.03) continue; const k = bin(bp[i], bp[i + 2] - zc); br[k] = Math.max(br[k], Math.hypot(bp[i], bp[i + 2] - zc)); }
+      let moved = false;
+      for (let i = 0; i < vp.length; i += 3) { const w = 1 - sstep(0.025, 0.065, Math.abs(vp[i + 1] - y0)); if (w <= 0) continue; const x = vp[i], z = vp[i + 2] - zc, r = Math.hypot(x, z), k = bin(x, z); if (!br[k] || r < 1e-4) continue;
+        const need = (br[k] + VEIL_OVER_BELT - r) * w; if (need > 0) { vp[i] = (x / r) * (r + need); vp[i + 2] = zc + (z / r) * (r + need); moved = true; } }
+      if (moved) { const g = geos[vk], o = base + pieceBase[vk] * 4, nr = geoNormals(vp, g.index, g.n); for (let i = 0; i < g.n; i++) { source[o + i * 4] = vp[i * 3]; source[o + i * 4 + 2] = vp[i * 3 + 2]; source[o + i * 4 + 3] = packNormal(nr[i * 3], nr[i * 3 + 1], nr[i * 3 + 2]); } } }
   }
   if (opts.profile) opts.profile.$source = performance.now() - t0;
   // costumes: body triangles (minus covered) + pieces

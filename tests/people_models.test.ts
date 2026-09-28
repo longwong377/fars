@@ -105,7 +105,7 @@ describe('garment drape (people_cloth)', () => {
     const D = M.drape!; expect(D).toBeTruthy();
     for (const [k, S] of Object.entries(D.sets)) {
       const [key] = k.split('|'); expect(O.geos![key]?.n, k).toBe(S.meta.n);
-      expect(S.meta.max, k).toBeLessThan(key.startsWith('veil') ? 0.25 : 0.2); // (D-322: the veil, cut as an open sheet flaring off the back, falls in to the back by up to 21 cm when simulated)
+      expect(S.meta.max, k).toBeLessThan(0.2);
       if (/skirt|sleeves|veil/.test(key)) expect(S.meta.rms, k).toBeGreaterThan(0.005);
     }
   });
@@ -169,6 +169,14 @@ describe('garments re-cut from simulated patterns (D-322)', () => {
       expect(Math.sqrt(ss / (a.d.length / 3)), k).toBeGreaterThan(0.004); }
     // in the costumes: two women wear different cuts (by body variant index), so their placed skirts differ beyond the body's own shape
     expect(A.byId.f01.index % S).not.toBe(A.byId.f02.index % S);
+  });
+  it("rev 3: the court woman's veil passes over her sash at the back, not under it", () => {
+    for (const vid of ['f01', 'f02', 'f05']) { const v = A.byId[vid], zc = v.joints[HB.pelvis * 3 + 2] + 0.02, wy = v.joints[HB.spine_01 * 3 + 1] - 0.005;
+      const P = (k: string) => { const g = O.geos![k], a = v.index * O.NV * 4 + O.pieceBase[k] * 4; return Array.from({ length: g.n }, (_, i) => [O.source[a + i * 4], O.source[a + i * 4 + 1], O.source[a + i * 4 + 2]]); };
+      const B = 48, bin = (x: number, z: number) => Math.floor((((Math.atan2(x, z) / (2 * Math.PI)) % 1 + 1) % 1) * B) % B, br = new Array(B).fill(0);
+      for (const p of P('belt@0')) if (Math.abs(p[1] - wy) <= 0.025) { const k = bin(p[0], p[2] - zc); br[k] = Math.max(br[k], Math.hypot(p[0], p[2] - zc)); }
+      let n = 0, inside = 0; for (const p of P('veil@0')) { if (Math.abs(p[1] - wy) > 0.022) continue; const k = bin(p[0], p[2] - zc); if (!br[k]) continue; n++; if (Math.hypot(p[0], p[2] - zc) < br[k] + 0.001) inside++; }
+      expect(n, vid).toBeGreaterThan(8); expect(inside, vid).toBe(0); }
   });
   it('the headcloth lies over the dress (D-313\'s see-through: it had settled inside it), the sash over the skirt', () => {
     for (const [vid, outerK, underK] of [['f02', 'headcloth@0', 'dress_upper@0'], ['f05', 'headcloth@0', 'dress_upper@0'], ['f02', 'belt@0', 'dress_skirt@0']] as const) {
