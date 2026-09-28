@@ -8083,3 +8083,7 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   triangles near the stairs; a walk step 0-4 ms. (4) **the tread row-joint chip** seen missing in rev 2's gain-4 frame: that
   frame predates rev 3; the chip it showed was the free arris's own (the nearest-arris family draws the tread's front 4 cm),
   whose map and geometry chips now coincide (rev 3's pinning; checked again on the probe below).
+  **Measured in the browser (probe, T4, rev 4 before the spreading commit):** walks at 1.4 m/s over the Grand Stair and the W
+  wall (131 m), the Apadana court (108 m) and the Tachara (50 m), 1800 frames each: the bands' update mean 0.13-0.27 ms, p95
+  <= 3.2 ms, max 6.4-26.7 ms; no frame with the bands off; 29-114 k band triangles, 6-9 draws. The spreading commit (cell
+  assembly over frames, reused scratch) is measured in node only (p95 3.1 ms); its browser walk was not run (the GPU slots).
