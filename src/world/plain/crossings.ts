@@ -20,6 +20,7 @@ import type { RiverProfile } from './data';
 import { settlementRoads, PointIndex } from './data';
 import { meander } from '../settlement/water';
 import { Rng } from '../../core/rng';
+import { fordKit } from './fordDetail';
 
 /** causeway top over the bed (m) and the low-water depth the stepping stones stand clear of (plain.json Aug-Oct, C) */
 export const FORD = {
@@ -77,7 +78,11 @@ export function keepOffChannels(lines: [number, number][][], rivers: RiverProfil
 }
 
 type Box = { c: THREE.Vector3; h: THREE.Vector3; rot: number };
-export interface CrossingBuild { group: THREE.Group; crossings: Crossing[]; boxes: Box[]; stats: { stones: number; steps: number; boats: number } }
+/** D-335: what fordDetail.ts draws near each ford as real geometry: the causeway's cobble tiles (2 x 2 m, on the slabs' tops),
+ *  the stepping stones (scanned boulders fitted to the boxes' size) and the hide boat (world x, y, z; yaw; the tile's pitch
+ *  about the ford's line; a stone's box size) */
+export interface FordDetailSites { tiles: { x: number; y: number; z: number; yaw: number; pitch: number }[]; steps: { x: number; y: number; z: number; yaw: number; s: [number, number, number] }[]; boats: { x: number; y: number; z: number; yaw: number }[]; fords: [number, number, number][] }
+export interface CrossingBuild { group: THREE.Group; crossings: Crossing[]; boxes: Box[]; stats: { stones: number; steps: number; boats: number }; detail: FordDetailSites }
 
 const COBBLE = [new THREE.Color().setRGB(0.47, 0.44, 0.39, THREE.SRGBColorSpace), new THREE.Color().setRGB(0.39, 0.37, 0.33, THREE.SRGBColorSpace), new THREE.Color().setRGB(0.53, 0.50, 0.44, THREE.SRGBColorSpace)]; // river cobbles, weathered and silted (darker than dressed limestone; C)
 const WOOD = new THREE.Color().setRGB(0.36, 0.28, 0.20, THREE.SRGBColorSpace), HIDE = new THREE.Color().setRGB(0.40, 0.30, 0.21, THREE.SRGBColorSpace);
@@ -97,7 +102,7 @@ export function buildCrossings(terrain: Terrain, rivers: RiverProfile[], seed = 
   const group = new THREE.Group(); group.name = 'plain-crossings';
   const court = terrain.meta.court_asl, crossings = roadRiverCrossings(rivers, settlementRoads(), tracks), boxes: Box[] = [];
   const stones: THREE.BufferGeometry[] = [], wood: THREE.BufferGeometry[] = [];
-  let nStones = 0, nSteps = 0, nBoats = 0;
+  let nStones = 0, nSteps = 0, nBoats = 0; const detail: FordDetailSites = { tiles: [], steps: [], boats: [], fords: [] };
   for (const c of crossings) {
     const rv = rivers.find(r => r.id === c.river)!, F = FORD[c.river], ch = rv.channel, rng = new Rng(seed, `ford:${c.road}:${c.river}:${c.i}`);
     const wy = (asl: number, x: number, y: number) => asl - court - curvatureDrop(x, -y);
@@ -116,11 +121,15 @@ export function buildCrossings(terrain: Terrain, rivers: RiverProfile[], seed = 
     };
     // the causeway and its paved ramps: slabs 1 m along the ford, the road's width across it
     const reach = topHalf + 5, W = c.roadW - 0.5;
+    detail.fords.push([c.x, 0, -c.y]);
     // each slab tilted to the slope between its neighbours (session 9: level 1 m slabs read as a flight of pale steps in the ford render)
     const topAt = (u: number) => Math.max(ground(u, 0) + 0.08, Math.abs(u) <= topHalf ? bedY + F.causeway : -Infinity);
     for (let u = -reach; u <= reach + 1e-6; u += 1) {
       const g0 = ground(u, 0), top = topAt(u), pitch = Math.atan2(topAt(u + 0.5) - topAt(u - 0.5), 1);
       put(u, rng.range(-0.1, 0.1), 1.06, W, top + rng.range(-0.03, 0.02), Math.min(g0, top) - 0.25, COBBLE[rng.int(0, 2)], stones, rng.range(-0.04, 0.04), true, pitch); nStones++;
+      // D-335: the cobble tiles over the slabs, every 2 m along and across (their bed 6 cm under the slab's top)
+      if (Math.round(u + reach) % 2 === 0) for (let v = -W / 2 + 1; v <= W / 2 - 0.99; v += 2) { const x = c.x + nx * (u + 0.5) + c.tx * v, y = c.y + ny * (u + 0.5) + c.ty * v;
+        detail.tiles.push({ x, y: topAt(u + 0.5) - 0.06, z: -y, yaw: rot, pitch: Math.atan2(topAt(u + 1.5) - topAt(u - 0.5), 2) }); }
       // cobbles spilled along the downstream lip, where the water falls off the causeway
       if (Math.abs(u) <= topHalf) for (let k = 0; k < 2; k++) { const s = rng.range(0.25, 0.45); put(u + rng.range(-0.4, 0.4), W / 2 + rng.range(0.1, 0.8), s, s * rng.range(0.7, 1.1), bedY + F.causeway * rng.range(0.5, 0.9), bedY - 0.1, COBBLE[rng.int(0, 2)], stones, rng.range(0, 3), false); nStones++; }
     }
@@ -128,15 +137,21 @@ export function buildCrossings(terrain: Terrain, rivers: RiverProfile[], seed = 
     const vStep = W / 2 + 2.5, stepTop = bedY + F.lowDepth + F.stepClear;
     for (let u = -topHalf + 0.4; u <= topHalf - 0.4; u += 0.85) {
       if (ground(u, vStep) > stepTop - 0.2) continue; // the dry bank: no stone needed
-      put(u + rng.range(-0.08, 0.08), vStep + rng.range(-0.15, 0.15), rng.range(0.5, 0.65), rng.range(0.42, 0.55), stepTop + rng.range(-0.04, 0.04), bedY - 0.15, COBBLE[rng.int(0, 2)], stones, rng.range(-0.3, 0.3)); nSteps++;
+      { const uu = u + rng.range(-0.08, 0.08), vv = vStep + rng.range(-0.15, 0.15), lx = rng.range(0.5, 0.65), lz = rng.range(0.42, 0.55), top = stepTop + rng.range(-0.04, 0.04), yaw = rng.range(-0.3, 0.3);
+        // (D-335: the box shrunk inside the scanned boulder that stands for it near the eye; its collider keeps the full size)
+        put(uu, vv, lx * 0.8, lz * 0.8, top - 0.04, bedY - 0.15, COBBLE[rng.int(0, 2)], stones, yaw); boxes[boxes.length - 1].h.set(lx / 2, boxes[boxes.length - 1].h.y, lz / 2);
+        const x = c.x + nx * uu + c.tx * vv, y = c.y + ny * uu + c.ty * vv; detail.steps.push({ x, y: bedY - 0.15, z: -y, yaw: rot + yaw, s: [lx, top - bedY + 0.15, lz] }); }
+      nSteps++;
     }
     // the ford's stakes, two each side on the bank tops
     for (const su of [-1, 1]) for (const sv of [-1, 1]) { const u = su * (topHalf + 1.2), v = sv * (W / 2 + 0.7), g0 = ground(u, v); put(u, v, 0.11, 0.11, g0 + 1.6 + rng.range(-0.15, 0.1), g0 - 0.3, WOOD, wood, rng.range(0, 1), true); }
     // the Kur: an upturned round hide boat on the bank upstream of the ford, and its pole
     if (c.river === 'river_kur') {
       const u = topHalf + 4, v = -(W / 2 + 5), g0 = ground(u, v), x = c.x + nx * u + c.tx * v, y = c.y + ny * u + c.ty * v, R = 1.35;
-      const dome = new THREE.SphereGeometry(R, 14, 5, 0, Math.PI * 2, 0, Math.PI / 2); dome.scale(1, 0.55, 1); dome.translate(x, g0 + 0.02, -y); wood.push(paint(dome, HIDE, 0.05, rng, 1)); nBoats++;
-      const rim = new THREE.TorusGeometry(R, 0.05, 4, 20); rim.rotateX(Math.PI / 2); rim.translate(x, g0 + 0.05, -y); wood.push(paint(rim, WOOD, 0, undefined, 1));
+      detail.boats.push({ x, y: g0, z: -y, yaw: rot }); nBoats++;
+      if (!fordKit()) { // (D-335: the modelled boat, fordDetail.ts, when its kit loaded; this dome and rim its stand-in)
+        const dome = new THREE.SphereGeometry(R, 14, 5, 0, Math.PI * 2, 0, Math.PI / 2); dome.scale(1, 0.55, 1); dome.translate(x, g0 + 0.02, -y); wood.push(paint(dome, HIDE, 0.05, rng, 1));
+        const rim = new THREE.TorusGeometry(R, 0.05, 4, 20); rim.rotateX(Math.PI / 2); rim.translate(x, g0 + 0.05, -y); wood.push(paint(rim, WOOD, 0, undefined, 1)); }
       boxes.push({ c: new THREE.Vector3(x, g0 + 0.37, -y), h: new THREE.Vector3(R * 0.8, 0.37, R * 0.8), rot: 0 });
       const pole = new THREE.CylinderGeometry(0.04, 0.05, 4.2, 5); pole.rotateZ(Math.PI / 2); pole.rotateY(rot + 0.3); pole.translate(x + c.tx * 1.8, g0 + 0.06, -(y + c.ty * 1.8)); wood.push(paint(pole, WOOD, 0, undefined, 1));
     }
@@ -156,5 +171,5 @@ export function buildCrossings(terrain: Terrain, rivers: RiverProfile[], seed = 
     else m.userData = own;
     group.add(m);
   }
-  return { group, crossings, boxes, stats: { stones: nStones, steps: nSteps, boats: nBoats } };
+  return { group, crossings, boxes, stats: { stones: nStones, steps: nSteps, boats: nBoats }, detail };
 }

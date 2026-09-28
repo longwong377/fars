@@ -19,7 +19,7 @@ import { TERRACE_BOX } from '../plain/townGround';
 export const LEDGES = { R: 1600, NEAR: 70, CAST: 600, /** solid (player colliders) within */ SOLID: 45, tile: 64, step: 4, moveM: 25, budgetMs: 6 } as const;
 /** the strip's form (C): face height range (m) by package, its lean back (m per m of height), the lip, the buried foot; the
  *  strike noise's thresholds for presence; the face's share of the baked image's height (the rest is the ground above) */
-export const LEDGE_FORM = { h: [1.6, 4.2] as [number, number], lean: 0.14, lip: 0.45, footOut: 0.5, footDown: 0.4, brk: [0.45, 0.8] as [number, number], minSlope: 0.2, fullSlope: 0.42, faceV: 0.93 } as const;
+export const LEDGE_FORM = { h: [1.6, 4.2] as [number, number], lean: 0.14, lip: 0.45, footOut: 0.5, footDown: 0.4, brk: [0.5, 0.85] as [number, number], minSlope: 0.26, fullSlope: 0.5, faceV: 0.93 } as const;
 const CLEAR = { e0: TERRACE_BOX.e0 - 60, e1: TERRACE_BOX.e1 + 90, n0: TERRACE_BOX.n0 - 60, n1: TERRACE_BOX.n1 + 60 };
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 function h32(...v: number[]) { let h = 2166136261 >>> 0; for (const x of v) { h = Math.imul(h ^ (x | 0), 16777619) >>> 0; h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0; } return h >>> 0; }
@@ -121,8 +121,9 @@ export function stripGeometry(runs: LedgeRun[], env: BedrockEnv, seed: number, f
         for (let j = 0; j < m; j++) { const t = j / m; q.push([ax + (bx - ax) * t, az + (bz - az) * t]); qh.push(H[i - 1] + (H[i] - H[i - 1]) * t); } }
       q.push(P[P.length - 1]); qh.push(H[H.length - 1]); P = q; H = qh; }
     const Hk = Math.max(...run.h) || 1, u0 = u01(seed, run.k, Math.round(P[0][0]), Math.round(P[0][1]), 93) * 20;
-    // colour: the limestone palette by package (weathered rock toward its dark patches), C
-    const a = u01(seed, run.k, 94), P0 = HILL.rock, P1 = HILL.rockDark, m = a * 0.45;
+    // colour: the limestone palette by package, the weathered rock toward the fresher, paler scree tone (probe b4: toward
+    // rockDark the faces read as a red-brown wall along the mountain's foot; the scan's own shading darkens its recesses), C
+    const a = u01(seed, run.k, 94), P0 = HILL.rock, P1 = HILL.scree, m = 0.2 + a * 0.5;
     tint.setRGB(P0[0] + (P1[0] - P0[0]) * m, P0[1] + (P1[1] - P0[1]) * m, P0[2] + (P1[2] - P0[2]) * m, THREE.SRGBColorSpace);
     let arc = 0; const base = pos.length / 3, rows = faceRows + 3; // foot, face rows (base .. top), lip, tread end
     for (let i = 0; i < P.length; i++) {
@@ -152,9 +153,9 @@ export function stripGeometry(runs: LedgeRun[], env: BedrockEnv, seed: number, f
 }
 
 function ledgeMaterial(face: LedgeFace | null): THREE.MeshStandardNodeMaterial {
-  const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.9, metalness: 0, side: THREE.DoubleSide, vertexColors: true });
+  const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.9, metalness: 0, side: THREE.DoubleSide }); // (no vertexColors: colorNode reads the colour itself; with the flag three multiplies it in twice)
   if (face) { const t = texture(face.map, uv()).rgb, meanY = Math.max(0.02, 0.2126 * face.mean[0] + 0.7152 * face.mean[1] + 0.0722 * face.mean[2]);
-    m.colorNode = attribute('color', 'vec3').mul(dot(t, vec3(0.2126, 0.7152, 0.0722)).div(meanY).clamp(0, 2.2)); m.normalMap = face.normal; }
+    m.colorNode = attribute('color', 'vec3').mul(dot(t, vec3(0.2126, 0.7152, 0.0722)).div(meanY).clamp(0, 1.7)); m.normalMap = face.normal; } // (clamped: the lit bed tops read as white patches at 2.2)
   else m.colorNode = attribute('color', 'vec3').mul(float(1));
   m.name = 'ledges'; return m;
 }

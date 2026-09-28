@@ -18,6 +18,7 @@ const V = [
   { n: 'spring-wet', e: -800, n2: 200, eye: 1.6, az: 251, pitch: -6, fov: 35, day: 12, sunAz: 130, sunAlt: 66, wet: 0.75 },
   { n: 'steppe-feet', e: -900, n2: 420, eye: 1.6, az: 250, pitch: -20, fov: 70, day: 30, sunAz: 120, sunAlt: 50 },
   { n: 'stubble-jul', e: -1300, n2: 900, eye: 1.6, az: 300, pitch: -14, fov: 70, day: 95, sunAz: 120, sunAlt: 50 },
+  { n: 'ford-close', e: 850, n2: 3790, eye: 1.6, az: 330, pitch: -12, fov: 60, day: 150, sunAz: 105, sunAlt: 40 },
   { n: 'feet-dust', e: -700, n2: 150, eye: 1.6, az: 200, pitch: -55, fov: 70, day: 150, sunAz: 200, sunAlt: 50 },
 ];
 if (process.env.V) V.push(...JSON.parse(process.env.V)); // extra views: [{ n, e, n2, eye, az, pitch, fov, day, sunAz, sunAlt }]

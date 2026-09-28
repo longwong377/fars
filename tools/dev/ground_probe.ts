@@ -19,6 +19,9 @@ import { buildTownGround } from '../../src/world/plain/townGround';
 import { Bedrock, loadRockKit } from '../../src/world/hills/bedrock';
 import { Ledges, loadLedgeFace } from '../../src/world/hills/ledges';
 import { GroundCover, loadCoverKit } from '../../src/world/plain/groundCover';
+import { FordDetail, loadFordKit } from '../../src/world/plain/fordDetail';
+import { buildCrossings } from '../../src/world/plain/crossings';
+import { loadScanProps } from '../../src/render/scanProps';
 import { groundAt4 } from '../../src/world/plain/townGround';
 import { CURV_SCALE } from '../../src/terrain/terrainDetail';
 (async () => {
@@ -47,6 +50,9 @@ import { CURV_SCALE } from '../../src/terrain/terrainDetail';
     const both = (ch: number, x: number, z: number) => dmap(detail.near, ch, x, z) ?? dmap(detail.mid, ch, x, z) ?? (ch === 1 ? 128 / 255 : 0);
     const env = { ground: (x: number, z: number) => terrain.surfaceAt(x, z), gully: (x: number, z: number) => both(0, x, z), curv: (x: number, z: number) => (both(1, x, z) * 255 - 128) / CURV_SCALE };
     bedrock = new Bedrock(env, 1); scene.add(bedrock.group); ledges = new Ledges(env, 1); scene.add(ledges.group); }
+  // D-335: ?fords: the fords (boxes) and their cobbles, boulders and boat
+  let fordD: FordDetail | null = null;
+  if (P.has('fords')) { await loadScanProps('/'); await loadFordKit('/'); const fb = buildCrossings(terrain, rivers.rivers, 1, []); scene.add(fb.group); fordD = new FordDetail(fb.detail); scene.add(fordD.group); }
   // D-335: ?cover: the ground cover at the feet
   let cover: GroundCover | null = null;
   if (P.has('cover')) { await loadCoverKit('/'); const gm = townGround; cover = new GroundCover({ ground: (x, z) => terrain.surfaceAt(x, z), zones, trodden: gm ? (x, z) => groundAt4(gm, x, -z)[1] : undefined }, 1); scene.add(cover.group); }
@@ -61,7 +67,7 @@ import { CURV_SCALE } from '../../src/terrain/terrainDetail';
     const x = v.e, z = -v.n, g = terrain.heightAt(x, z);
     cam.position.set(x, g + v.eye, z); cam.rotation.set(v.pitch * Math.PI / 180, -((v.az - 341) * Math.PI) / 180, 0, 'YXZ'); cam.fov = v.fov; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     const d = dirOf(v.sunAz, v.sunAlt); sun.position.copy(cam.position).addScaledVector(d, 1000); sun.target.position.copy(cam.position);
-    tm.update(cam.position); if (cover) { cover.update(cam.position, doyOf(v.day), ss, true); (window as any).__bedrock = { cover: cover.stats }; } if (bedrock) { bedrock.update(cam.position, cam.getWorldDirection(new THREE.Vector3()), true); ledges!.update(cam.position, true); (window as any).__bedrock = { ...bedrock.stats, ledges: ledges!.stats }; }
+    tm.update(cam.position); if (fordD) { fordD.update(cam.position, true); (window as any).__bedrock = { fords: fordD.stats }; } if (cover) { cover.update(cam.position, doyOf(v.day), ss, true); (window as any).__bedrock = { cover: cover.stats }; } if (bedrock) { bedrock.update(cam.position, cam.getWorldDirection(new THREE.Vector3()), true); ledges!.update(cam.position, true); (window as any).__bedrock = { ...bedrock.stats, ledges: ledges!.stats }; }
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     return errs.slice();
   };

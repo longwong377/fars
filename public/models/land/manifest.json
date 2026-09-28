@@ -442,6 +442,74 @@
      }
     }
    ]
+  },
+  "ford": {
+   "licence": "CC0-1.0 (project: own work, tools/blender/land_ford.py)",
+   "source": "PARSA",
+   "files": {
+    "ford.glb": {
+     "bytes": 968956,
+     "sha256": "e56845228ba7decb3fd3f07e11aabfa5949b4498e40ae9cd4dfdb8b3f276c801"
+    }
+   },
+   "pieces": [
+    {
+     "id": "cobbles_a",
+     "kind": "cobbles",
+     "size_m": [
+      2,
+      0.3,
+      2
+     ],
+     "tris": {
+      "lod0": 9008,
+      "lod1": 2348,
+      "lod2": 468
+     }
+    },
+    {
+     "id": "cobbles_b",
+     "kind": "cobbles",
+     "size_m": [
+      2,
+      0.3,
+      2
+     ],
+     "tris": {
+      "lod0": 9248,
+      "lod1": 2408,
+      "lod2": 548
+     }
+    },
+    {
+     "id": "cobbles_c",
+     "kind": "cobbles",
+     "size_m": [
+      2,
+      0.3,
+      2
+     ],
+     "tris": {
+      "lod0": 8048,
+      "lod1": 2108,
+      "lod2": 548
+     }
+    },
+    {
+     "id": "coracle",
+     "kind": "boat",
+     "size_m": [
+      2.76,
+      0.6,
+      2.76
+     ],
+     "tris": {
+      "lod0": 1104,
+      "lod1": 312,
+      "lod2": 108
+     }
+    }
+   ]
   }
  }
 }

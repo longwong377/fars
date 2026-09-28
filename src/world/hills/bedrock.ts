@@ -22,8 +22,8 @@ import { HILL } from '../plain/terrainPlain';
 import { TERRACE_BOX } from '../plain/townGround';
 
 export type RockClass = 'ledge' | 'ground';
-export interface RockPiece { id: string; cls: RockClass; size: [number, number, number]; lods: THREE.BufferGeometry[] }
-export interface RockAtlas { map: THREE.Texture; normal: THREE.Texture; arm: THREE.Texture; mean: [number, number, number] }
+export interface RockPiece { id: string; cls: RockClass; size: [number, number, number]; lods: THREE.BufferGeometry[]; cell?: number }
+export interface RockAtlas { map: THREE.Texture; normal: THREE.Texture; arm: THREE.Texture; mean: [number, number, number]; /** each 2x2 cell's mean luminance over the atlas's (a piece's colour is its own grain about the palette) */ cellK?: number[] }
 export interface RockKit { ledge: RockPiece[]; ground: RockPiece[]; atlas: Partial<Record<RockClass, RockAtlas>> }
 
 /** streaming radii (m) per class, level distances (m), the tile (m) and the rebuild step (m moved, deg turned) */
@@ -124,7 +124,9 @@ export function bedrockTile(env: BedrockEnv, ti: number, tj: number, seed: numbe
     const pick = u01(...hsh, 3), kind = pick < talus ? 'talus' : pick < talus + scree ? 'scree' : pick < talus + scree + outc ? 'outcrop' : null;
     if (!kind) continue;
     // variants: 0 outcrop05, 1 slab02, 2 talus03, 3 scree04 (land_rocks.mjs CLASSES.ground order)
-    const v = Math.min(nG - 1, kind === 'talus' ? 2 : kind === 'scree' ? 3 : u01(...hsh, 4) < 0.45 ? 0 : 1), sz = sizes.ground[v];
+    // D-335 probe b3: the two flat scans (slab02, scree04) lay on the slope as grey-green stains, not rock: outcrops draw the
+    // outcrop on its bedrock (0), talus and scree the talus blocks (2)
+    const v = Math.min(nG - 1, kind === 'outcrop' ? 0 : 2), sz = sizes.ground[v];
     const R = GROUND_ROCK.size[(v === 1 ? 'slab' : kind) as keyof typeof GROUND_ROCK.size], ext = R[0] + (R[1] - R[0]) * u01(...hsh, 5);
     const sc = ext / Math.max(0.1, sz[0], sz[2]);
     // tilted to the ground (the scan's base plane on the slope), turned at random about the normal
@@ -160,16 +162,19 @@ export async function loadRockKit(base = '/'): Promise<RockKit | null> {
           m.updateMatrixWorld(true); const geo = m.geometry.clone(); geo.applyMatrix4(m.matrixWorld);
           for (const k of Object.keys(geo.attributes)) if (!['position', 'normal', 'uv'].includes(k)) geo.deleteAttribute(k);
           if (!geo.getAttribute('normal')) geo.computeVertexNormals(); geo.computeBoundingBox(); geo.computeBoundingSphere(); lods.push(geo); }
-        const b = lods[0].boundingBox!; kit[cls].push({ id: pc.id, cls, size: [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z], lods });
+        const b = lods[0].boundingBox!; kit[cls].push({ id: pc.id, cls, size: [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z], lods, cell: (pc as any).cell });
       }
-      kit.atlas[cls] = { map, normal, arm, mean: meanColour(map) };
+      const mean = meanColour(map), Y = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+      kit.atlas[cls] = { map, normal, arm, mean, cellK: [0, 1, 2, 3].map(i => Y(mean) / Math.max(0.01, Y(meanColour(map, i)))) };
     }
     draco.dispose(); KIT = kit; KSTAT.pieces = kit.ledge.length + kit.ground.length;
   } catch (e) { KSTAT.failed = String((e as Error).message ?? e); console.warn(`[bedrock] no rock kit (${KSTAT.failed}): the hills keep their texture only`); KIT = null; }
   KSTAT.ms = Math.round(performance.now() - t0); return KIT;
 }
-function meanColour(t: THREE.Texture): [number, number, number] {
-  try { const img = t.image as CanvasImageSource, c = new OffscreenCanvas(16, 16), g = c.getContext('2d')!; g.drawImage(img, 0, 0, 16, 16);
+function meanColour(t: THREE.Texture, cell = -1): [number, number, number] {
+  try { const img = t.image as HTMLImageElement, c = new OffscreenCanvas(16, 16), g = c.getContext('2d')!, W = img.width / 2, H = img.height / 2;
+    // a cell (0..3, the atlas's 2x2 in Blender's order: rows bottom-up) or the whole image
+    if (cell >= 0) g.drawImage(img, (cell % 2) * W, (1 - Math.floor(cell / 2)) * H, W, H, 0, 0, 16, 16); else g.drawImage(img, 0, 0, 16, 16);
     const d = g.getImageData(0, 0, 16, 16).data; let r = 0, gg = 0, b = 0; const lin = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
     for (let i = 0; i < d.length; i += 4) { r += lin(d[i]); gg += lin(d[i + 1]); b += lin(d[i + 2]); } const n = d.length / 4; return [r / n, gg / n, b / n];
   } catch { return [0.2, 0.2, 0.2]; }
@@ -196,6 +201,7 @@ export class Bedrock {
   private tiles = new Map<number, RockSite[]>();
   private last = { x: 1e9, z: 1e9, yaw: 1e9 };
   private sizes: { ledge: [number, number, number][]; ground: [number, number, number][] };
+  private cellK: Partial<Record<RockClass, number[]>> = {};
   stats = { tiles: 0, ledges: 0, ground: 0, drawn: 0, tris: 0, ms: 0 };
   readonly active: boolean;
   private m4 = new THREE.Matrix4(); private qq = new THREE.Quaternion(); private vv = new THREE.Vector3(); private ss = new THREE.Vector3();
@@ -203,6 +209,7 @@ export class Bedrock {
     this.group.name = 'bedrock';
     this.sizes = { ledge: kit?.ledge.map(p => p.size) ?? [], ground: kit?.ground.map(p => p.size) ?? [] };
     this.active = !!kit && (kit.ledge.length > 0 || kit.ground.length > 0);
+    for (const cls of ['ledge', 'ground'] as RockClass[]) this.cellK[cls] = (kit?.[cls] ?? []).map(p => kit?.atlas[cls]?.cellK?.[p.cell ?? 0] ?? 1);
     this.group.userData = { tier: 'B/C', src: 'KR-BEDROCK;COP-DEM;POLYHAVEN-CC0', placeholder: !this.active,
       note: this.active ? 'the hills\' bedrock (D-335): ledges of the cliff-forming limestone beds along the shader\'s risers, outcrops, talus and scree, from CC0 scans (Poly Haven) re-tinted to the measured rock palette; lithology B, every place C'
         : 'PLACEHOLDER: the rock kit did not load; the hills\' rock is texture only' };
@@ -256,7 +263,7 @@ export class Bedrock {
         // the last 15 % of the radius: sunk into the ground as it recedes (no pop at the edge)
         const fade = 1 - smooth(BEDROCK.R[st.cls] * 0.85, BEDROCK.R[st.cls], d);
         this.m4.compose(this.vv.set(st.p[0], st.p[1] - (1 - fade) * st.s[1] * 4, st.p[2]), this.qq.set(st.q[0], st.q[1], st.q[2], st.q[3]), this.ss.set(st.s[0], st.s[1], st.s[2]));
-        const c = counts[si]++; S.mesh.setMatrixAt(c, this.m4); S.tint.setXYZ(c, st.c[0], st.c[1], st.c[2]);
+        const c = counts[si]++, k = this.cellK[st.cls]?.[st.v] ?? 1; S.mesh.setMatrixAt(c, this.m4); S.tint.setXYZ(c, st.c[0] * k, st.c[1] * k, st.c[2] * k);
         if (st.cls === 'ledge') nL++; else nG++;
       }
     }

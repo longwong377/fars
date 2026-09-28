@@ -71,3 +71,21 @@ describe('the ground cover (plain/groundCover.ts)', () => {
     expect(C.sets.every(s => !s.mesh.castShadow)).toBe(true);
   }, 120_000);
 });
+
+describe('the fords as cobbles, boulders and a hide boat near the eye (D-335; plain/fordDetail.ts)', () => {
+  it('every ford paved with cobble tiles over its causeway, each stepping stone a boulder, the Kur\'s boat; within budget at the ford', async () => {
+    const { buildCrossings } = await import('../src/world/plain/crossings');
+    const { FordDetail, FORD_R } = await import('../src/world/plain/fordDetail');
+    const b = buildCrossings(T, R.rivers, 1, []), d = b.detail;
+    console.log(`fords ${b.crossings.length}: cobble tiles ${d.tiles.length}, stepping stones ${d.steps.length} (boxes ${b.stats.steps}), boats ${d.boats.length}`);
+    expect(d.fords.length).toBe(b.crossings.length); expect(d.steps.length).toBe(b.stats.steps); expect(d.boats.length).toBe(b.stats.boats);
+    for (const [x, , z] of d.fords) expect(d.tiles.filter(t => Math.hypot(t.x - x, t.z - z) < 40).length).toBeGreaterThan(20);
+    const tri = (n: number) => { const g = new THREE.BufferGeometry(); g.setIndex(new Array(n * 3).fill(0)); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3)); return g; };
+    const kit = { tiles: [[9248, 2408, 548], [9008, 2348, 468], [8048, 2108, 548]].map(L => L.map(tri)), boat: [1104, 312, 108].map(tri) };
+    const F = new FordDetail(d, kit);
+    const [x0, , z0] = d.fords[0]; F.update(new THREE.Vector3(x0 + 6, 0, z0 + 6), true);
+    console.log(`at the first ford: ${JSON.stringify(F.stats)}`); expect(F.stats.tiles).toBeGreaterThan(20); expect(F.stats.tris).toBeLessThan(0.35e6);
+    F.update(new THREE.Vector3(0, 0, 0), true); expect(F.stats.tris).toBe(0); // (the Terrace: no ford within reach)
+    expect(FORD_R.lod[0]).toBeLessThan(FORD_R.lod[1]);
+  }, 120_000);
+});

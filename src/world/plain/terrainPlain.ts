@@ -404,7 +404,10 @@ export class PlainGround {
         .max(foot.mul(float(1).sub(rock)));
       const bedTone = float(1).add(unitN(pcgN(bedI.add(16384).toUint())).mul(2).sub(1).mul(0.08).mul(bedVis));
       const weather = smoothstep(-0.3, 0.5, mx_noise_float(P3.mul(0.11).add(1.7)).add(n1.mul(0.4)));
-      const recess = float(1).sub(smoothstep(0.0, 0.2, fb)).mul(bedVis).mul(cliff.mul(0.6).add(0.4)); // the shadowed foot of a ledge
+      // D-335: the recess (a fifth of a bed) only while it spans ~2 px: at bedVis's fade it was a one-pixel line drawn in dashes along
+      // every bed of the probe's hills (the aliased strata of rahmat-close)
+      const recessVis = float(1).sub(smoothstep(0.06, 0.14, fwY.div(bedT)));
+      const recess = float(1).sub(smoothstep(0.0, 0.2, fb)).mul(recessVis).mul(cliff.mul(0.6).add(0.4)); // the shadowed foot of a ledge
       // D-223: the riser's face pale (the weathered limestone face, lichen-free where it sheds water), streaked darker below
       // its ledges by run-off: 3-D noise fast across the face and slow down it (streaks ~3 m wide, ~25 m long, C), band-limited
       // by the pixel footprint; the bench below darker and browner (soil in the talus, C)
@@ -446,7 +449,7 @@ export class PlainGround {
       const fadeFine = float(1).sub(smoothstep(0.5, 2.0, fw)), fadeMid = float(1).sub(smoothstep(4.0, 16.0, fw));
       // a bed's profile up the slope: a short riser at its base (the offset climbs over the first 15 %), then a long tread
       // leaning back (it falls again to the next bed): continuous at the bed joints
-      const ledge = smoothstep(0.0, 0.15, fb).sub(fb).mul(bedT).mul(0.6).mul(bedVis).mul(rock);
+      const ledge = smoothstep(0.0, 0.15, fb).sub(fb).mul(bedT).mul(0.6).mul(recessVis).mul(rock); // (D-335: its sharp riser, 15 % of a bed, fades with the recess)
       const masses = mx_noise_float(P3.mul(0.08)).mul(2.0).mul(fadeMid).add(mx_noise_float(P3.mul(0.4).add(2.2)).mul(0.5).mul(fadeFine)).mul(rock);
       const cut = gully.mul(1.4).mul(hillOn).negate();
 
