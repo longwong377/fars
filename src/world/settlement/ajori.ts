@@ -8,12 +8,13 @@
 // stepped crenellations, bench size, the rows' number and placement, the figures' drawing (from the type, not traced
 // from the fragments) and the glaze colours.
 import * as THREE from 'three/webgpu';
-import { texture, uv, attribute, vec3, float } from 'three/tsl';
+import { texture, uv, attribute, vec3, vec2, float, normalMap, normalView, sqrt, max } from 'three/tsl';
 import { surfaceMaterial } from '../../render/materials';
 import { Batch, lin, RGB } from './geom';
 import { AJORI } from './plan';
 import type { P2 } from './site';
 import { toGrid } from './site';
+import { monument, type Monument } from '../../render/monuments';
 
 const TIER_NOTE = 'Tol-e Ajori gate: plan and size B (TOLAJORI2017, search extract: 39.07 x 29.05 m, 10.47 m walls round an 8.00 x 14.36 m room with benches, corridors on the short sides); baked-brick facing over mud brick B (AJORI-BRICK2018); height 12 m C (press); corridor size, roofs, crenellations C; standing and unrepaired in 467 C (Q-051)';
 const PANEL_NOTE = 'glazed relief panels: aurochs and mušḫuššu copied from Babylon on a blue ground (motifs B: TOLAJORI2017, WP-ISHTAR search extracts); figures drawn from the type (not traced), rows and colours C; glaze weathered (C)';
@@ -94,6 +95,8 @@ export function buildAjori(g: { c: P2; theta: number }, H: (e: number, n: number
   // stepped crenellations along the top (C)
   for (let u = -L + 0.6; u < L - 0.5; u += 2.2) for (const s of [-1, 1]) { box(u, u + 1.1, s * W - (s > 0 ? 0.9 : 0), s * W + (s < 0 ? 0.9 : 0), top, top + 0.7, false); box(u + 0.25, u + 0.85, s * W - (s > 0 ? 0.9 : 0), s * W + (s < 0 ? 0.9 : 0), top + 0.7, top + 1.2, false); }
   for (let v = -W + 2.8; v < W - 2.2; v += 2.2) for (const s of [-1, 1]) { box(s * L - (s > 0 ? 0.9 : 0), s * L + (s < 0 ? 0.9 : 0), v, v + 1.1, top, top + 0.7, false); box(s * L - (s > 0 ? 0.9 : 0), s * L + (s < 0 ? 0.9 : 0), v + 0.25, v + 0.85, top + 0.7, top + 1.2, false); }
+  const M = monument('ajori');
+  if (M) return modelled(M, group, f, y0, colliders);
   const bg = brick.toGeometry(); const bm = new THREE.Mesh(bg, surfaceMaterial('baked_brick')); bm.name = 'settlement:tol_ajori:body'; bm.castShadow = bm.receiveShadow = true; bm.matrixAutoUpdate = false;
   bm.userData = { tier: 'B/C', src: 'TOLAJORI2017;AJORI-BRICK2018;AJORI2013', note: TIER_NOTE, placeholder: true,
     placeholder_why: 'box massing with box merlons: no brick courses, glazed-brick relief panels drawn as flat strips, no wear (audit B M6)' }; group.add(bm);
@@ -132,4 +135,33 @@ export function buildAjori(g: { c: P2; theta: number }, H: (e: number, n: number
   const panels = new THREE.Mesh(pg, pm); panels.name = 'settlement:tol_ajori:glaze'; panels.receiveShadow = true; panels.matrixAutoUpdate = false;
   panels.userData = { tier: 'B/C', src: 'TOLAJORI2017;WP-ISHTAR', note: PANEL_NOTE, placeholder: true, placeholder_why: 'the glazed-brick panels are flat strips, not moulded relief bricks (audit B M6)' }; group.add(panels);
   return { group, tris: bg.index!.count / 3 + idx.length / 3, meshes: 2, colliders };
+}
+
+const MODEL_NOTE = 'Tol-e Ajori gate modelled in Blender (D-329, tools/blender/ajori.py): the massing from the plan (B), stepped merlons (C, a sixth of them broken: unrepaired, C), 25 mm worn arrises; the baked-brick facing as a Blender-carved and Cycles-baked tile of 0.33 m square bricks in 95 mm courses with recessed joints, chips and spalls (module C, by the Babylonian analogy); a light map baked in Cycles (occlusion over 4 m, damp at the foot, run-off below the merlons, dust on the ledges: C)';
+const GLAZE_NOTE = 'glazed relief fields (D-329): aurochs and mušḫuššu (B: TOLAJORI2017, AMADORI2023) as moulded relief geometry 28 mm proud on glazed bricks in 95 mm courses, figures in white and orange-yellow, the ground and the bulls’ details blue, the mušḫuššu’s curl and the bull’s hooves greenish, outlines sunk in the glaze, white-petalled rosette bands (B: AMADORI2023); drawing from the Babylonian type (C, not traced from the fragments), rows, placement and facing C; light crazing and chipped arrises of a 50-70-year-old face (C)';
+/** the Blender-built gate (monuments.ts): body in the baked-brick surface with the carved brick tile, the glazed fields with their atlas */
+function modelled(M: Monument, group: THREE.Group, f: { c: P2; theta: number }, y0: number, colliders: { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }[]) {
+  const mp = M.maps, light = texture(mp.light_a, uv(1));
+  const place = (m: THREE.Mesh) => { m.position.set(f.c[0], y0, -f.c[1]); m.rotation.y = f.theta; m.updateMatrix(); m.matrixAutoUpdate = false; m.castShadow = m.receiveShadow = true; group.add(m); };
+  // body: the project's baked-brick surface (measured tint, scans, weather) x the tile's per-brick firing colour x the light map's
+  // weathering; the tile's normal under the surface's own fine relief; occlusion = the tile's x the light map's
+  const bmat = surfaceMaterial('baked_brick', { variant: 'monument:ajori' });
+  // the brick tile's one map (D-300 sampler budget): R, G the normal's x, y (z rebuilt), B the firing tone x the joints' occlusion (/2)
+  const bp = texture(mp.brick_n, uv()), nx = bp.r.mul(2).sub(1), ny = bp.g.mul(2).sub(1), nz = sqrt(max(float(0), float(1).sub(nx.mul(nx)).sub(ny.mul(ny))));
+  const bn = normalMap(vec3(bp.r, bp.g, nz.mul(0.5).add(0.5)), vec2(1, -1)) as any, fine = bmat.normalNode as any, tone = bp.b.mul(2);
+  // hue with the tone: the darker (harder-fired) bricks a little redder-brown, the pale ones yellower (C)
+  const hue = vec3(1.0, 0.985, 0.955).add(vec3(0.0, 0.01, 0.04).mul(tone.sub(1)));
+  bmat.colorNode = (bmat.colorNode as any ?? vec3(0.62, 0.5, 0.36)).mul(hue.mul(tone)).mul(light.g.mul(2));
+  bmat.normalNode = fine ? bn.add(fine.sub(normalView)).normalize() : bn;
+  bmat.aoNode = bmat.aoNode ? (bmat.aoNode as any).mul(light.r) : light.r; bmat.name = 'monument:ajori:body';
+  const body = new THREE.Mesh(M.meshes.body, bmat); body.name = 'settlement:tol_ajori:body';
+  body.userData = { tier: 'B/C', src: 'TOLAJORI2017;AJORI-BRICK2018;AJORI2013', note: TIER_NOTE + '. ' + MODEL_NOTE, placeholder: false }; place(body);
+  const gc = texture(mp.glaze_c, uv()), ga = texture(mp.glaze_a, uv());
+  const gm = new THREE.MeshStandardNodeMaterial({ metalness: 0, side: THREE.FrontSide });
+  gm.colorNode = gc.rgb.mul(light.g.mul(2)); gm.roughnessNode = ga.b; gm.aoNode = ga.r.mul(light.r);
+  gm.normalNode = normalMap(texture(mp.glaze_n, uv()).rgb, vec2(1, -1)); gm.name = 'monument:ajori:glaze';
+  const glaze = new THREE.Mesh(M.meshes.glaze, gm); glaze.name = 'settlement:tol_ajori:glaze';
+  glaze.userData = { tier: 'B/C', src: 'TOLAJORI2017;AMADORI2023;WP-ISHTAR', note: GLAZE_NOTE, placeholder: false }; place(glaze);
+  const tris = (g: THREE.BufferGeometry) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+  return { group, tris: tris(M.meshes.body) + tris(M.meshes.glaze), meshes: 2, colliders };
 }

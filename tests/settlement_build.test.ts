@@ -10,6 +10,8 @@ import { Player } from '../src/player/player';
 import { FireSystem } from '../src/world/fire';
 import { Settlement } from '../src/world/settlement/build';
 import { Site, P2 } from '../src/world/settlement/site';
+import { loadMonumentsNode } from './lib/monuments_node';
+loadMonumentsNode(); // D-329: the Tol-e Ajori gate as the page draws it (the Blender model)
 
 const meta: TerrainMeta = JSON.parse(readFileSync('public/generated/terrain.json', 'utf8'));
 const ring = (k: 'near' | 'mid' | 'far') => new Ring(meta.rings[k], new Uint16Array(readFileSync(`public/${meta.rings[k].file}`).buffer.slice(0)), meta.court_asl);

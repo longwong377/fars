@@ -43,6 +43,7 @@ import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/ru
 import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
 import { loadDecorAssets } from '../render/decorAssets';
+import { loadMonuments } from '../render/monuments';
 import { loadTreeAssets } from './trees/assets';
 import { loadReliefAtlas } from '../render/reliefAtlas';
 import { loadScanProps } from '../render/scanProps';
@@ -161,6 +162,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const rockKitP = loadRockKit('/'), ledgeFaceP = loadLedgeFace('/'), coverKitP = loadCoverKit('/'), fordKitP = loadFordKit('/'); // the hills' bedrock pieces (D-335, public/models/land/)
   const propsP = loadScanProps('/'); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
   const modelsP = loadModels('/'); // the Blender-built models (D-305, public/models/): in before the architecture is built
+  const monumentsP = loadMonuments('/'); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
   const treesP = loadTreeAssets('/'); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
   const lifeP = loadLifeModels('/'); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
   const animalsP = loadAnimalModels('/'); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
@@ -175,7 +177,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
-  await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP;
+  await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);

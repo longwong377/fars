@@ -8483,3 +8483,27 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the eye), hill ground rock (outcrops, talus), the fords' causeways, stepping stones and boat (all 7 fords), the plain's ground
   cover (every natural, fallow, harvested and trodden cell near the eye).
 - **Assets** (ASSET_LEDGER.md): public/models/land/ (ground 4.5 MB, cover 2.0 MB, ford 1.0 MB, ledge face 0.6 MB; manifest.json).
+- **D-329 (s12c ajori_naqsh, BLENDER_PLAN rows 15-16): the Tol-e Ajori gate and Naqsh-e Rustam as Blender-built monuments.**
+  One pipeline for both (tools/blender/monuments.mjs -> public/models/monuments/, loaded by src/render/monuments.ts as plain
+  GLBs so node tests count what the page draws; `?monuments=0` for A/B; the procedural stand-ins stay, flagged PLACEHOLDER).
+  Ajori: the whole gate replaced (massing from the plan B; stepped merlons C, 11 of 56 broken; the baked-brick facing as a
+  carved 0.33 m square-brick tile in 95 mm courses, C by the Babylonian analogy; the glazed fields flanking both mouths and
+  lining both corridors: 120 relief figures as decimated geometry 28 mm proud, blue ground, white and orange-yellow figures,
+  greenish curl and hooves, sunk outlines and white-petalled rosettes B from AMADORI2023 (Journal of Cultural Heritage 60,
+  2023, read in full this session); rows, facing and drawing C). Evidence added: AMADORI2023.
+  Naqsh-e Rustam: every element the site draws but the reliefs agent's figures and the inscriptions: (1) the cliff keeps the
+  game's sheet (collision, holes, crest, blocks) and gains UVs (naqsh.ts CLIFF_UV) and a Cycles bake from a dense 8 cm surface =
+  the game's own faceDepth + the limestone's structure carved in numpy (open joints along the blocks' own joints, bedding joints
+  with a sharp lip, laminations, 1,400 fracture traces, karren under the crest, 700 spall scars, pits; nothing in the dressed
+  margins; all C): normal 8192 x 1024 (6 x 8 cm per texel), occlusion over 2 m and a run-off varnish albedo 4096 x 512; (2) the
+  tomb façade (both tombs, one model) modelled in Blender: recess and door reveal, plinth + torus bases, tapering
+  half-engaged shafts, astragals, the project's protome model and carving as the capitals at the tomb's 0.76 m shaft,
+  architrave, dentils, cornice, the doorway's bands and cavetto, the throne (stretchers, top slab, turned legs on lion's paws),
+  ground line, podium (forms C, Q-915); (3) the Ka'ba modelled (corner piers, rows of recesses and block joints carved and
+  baked, cornice, dentils, stepped dark window frames, stair). Budgets: kept under the plain's per-frame 2 M by cutting the
+  façade to ~10 k triangles (protome at 1,100); the plain's static 2.0 M test was already failing (2.105 M) before this change.
+  D-329 addendum: the monuments' maps are KTX2 (UASTC + zstd, box mipmaps; the glaze colour sRGB), loaded by monuments.ts through
+  three's KTX2Loader: ~200 MB of decoded JPEG texture memory -> ~50 MB block-compressed (BC7, 1 B a texel); download 21.8 MB.
+  NOT verified in the browser: Naqsh-e Rustam (two probe runs lost: vite served the SPA page for a GLB built after it started, then
+  the probe's bounding box threw on the relief sets; the fixed rerun never got a GPU slot) and the KTX2 path itself (the Ajori
+  probe frames were JPEG). The lead's world render must look at both (?monuments=0 for the stand-ins).
