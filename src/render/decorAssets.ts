@@ -8,7 +8,7 @@
 // procedural stand-in it replaces (the frame boxes, crenellationGeometry, the tent shells), and decorStats says so.
 // `?nodecor` switches all of it off (A/B). In node (tests) nothing loads.
 import * as THREE from 'three/webgpu';
-import { texture, uv, normalMap, normalView } from 'three/tsl';
+import { texture, uv, normalMap, normalView, vec3, float } from 'three/tsl';
 import { surfaceMaterial } from './materials';
 import META from '../data/decor_assets.json';
 
@@ -58,13 +58,13 @@ export async function loadDecorAssets(base = '/'): Promise<typeof decorStats> {
 const MATS = new Map<string, THREE.Material>();
 /** a surface (materials.ts) with a baked packed map (RGB normal under the surface's own relief, A AO on the indirect light),
  *  read through the geometry's uv; `arch`: the architecture variant (the parts' attributes, meshes.ts) */
-export function withBakedMap(surface: string, map: THREE.Texture, key: string, opts: { arch?: boolean; vertexColors?: boolean } = {}): THREE.MeshStandardNodeMaterial {
-  const k = `${surface}|${key}|${opts.arch ? 1 : 0}${opts.vertexColors ? 1 : 0}`, hit = MATS.get(k); if (hit) return hit as THREE.MeshStandardNodeMaterial;
+export function withBakedMap(surface: string, map: THREE.Texture, key: string, opts: { arch?: boolean; vertexColors?: boolean; /** the geometry has no tangents and its uv's v runs against the map's (the frames: the tangent frame from the uv's screen derivatives, D-330) */ flipG?: boolean } = {}): THREE.MeshStandardNodeMaterial {
+  const k = `${surface}|${key}|${opts.arch ? 1 : 0}${opts.vertexColors ? 1 : 0}${opts.flipG ? 1 : 0}`, hit = MATS.get(k); if (hit) return hit as THREE.MeshStandardNodeMaterial;
   const m = surfaceMaterial(surface, { arch: opts.arch, vertexColors: opts.vertexColors, variant: `decor:${key}` }), t = texture(map, uv());
-  const nMap = normalMap(t.rgb) as any, fine = m.normalNode as any;
+  const nMap = normalMap(opts.flipG ? vec3(t.r, float(1).sub(t.g), t.b) : t.rgb) as any, fine = m.normalNode as any;
   m.normalNode = fine ? nMap.add(fine.sub(normalView)).normalize() : nMap;
   m.aoNode = m.aoNode ? (m.aoNode as any).mul(t.a) : t.a;
   m.name = `decor:${key}:${surface}`; MATS.set(k, m); return m;
 }
 /** the stone frames' material: the architecture variant of their stone with the trim (null: the trim is not loaded) */
-export function frameMaterial(surface: string): THREE.MeshStandardNodeMaterial | null { return S.trim ? withBakedMap(surface, S.trim, 'frame_trim', { arch: true }) : null; }
+export function frameMaterial(surface: string): THREE.MeshStandardNodeMaterial | null { return S.trim ? withBakedMap(surface, S.trim, 'frame_trim', { arch: true, flipG: true }) : null; }

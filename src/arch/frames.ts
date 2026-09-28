@@ -153,11 +153,11 @@ export function frameGeometries(parts: Part[], index: { inside(x: number, y: num
     for (const [b, e] of sink.per) {
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(e.pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(e.nrm, 3));
-      g.setAttribute('uv', new THREE.Float32BufferAttribute(e.uv, 2)); g.setAttribute('tangent', new THREE.Float32BufferAttribute(e.tan, 4));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(e.uv, 2)); // (no tangents: the material takes the frame from the uv's derivatives, a vertex buffer fewer: WebGPU's 8, D-330)
       byPart.set(b, g); stats.parts++; stats.triangles += e.pos.length / 9;
     }
     // a part of the assembly that received no quad (hidden entirely) still gets its (empty) geometry: its box is not drawn
-    for (const b of [...A.jambs, A.lintel, A.cornice, A.sill]) if (b && !byPart.has(b)) { const g = new THREE.BufferGeometry(); for (const [k, n] of [['position', 3], ['normal', 3], ['uv', 2], ['tangent', 4]] as const) g.setAttribute(k, new THREE.Float32BufferAttribute([], n)); byPart.set(b, g); stats.parts++; }
+    for (const b of [...A.jambs, A.lintel, A.cornice, A.sill]) if (b && !byPart.has(b)) { const g = new THREE.BufferGeometry(); for (const [k, n] of [['position', 3], ['normal', 3], ['uv', 2]] as const) g.setAttribute(k, new THREE.Float32BufferAttribute([], n)); byPart.set(b, g); stats.parts++; }
     stats.byKind[A.kind] = (stats.byKind[A.kind] ?? 0) + 1;
   }
   return { byPart, stats };

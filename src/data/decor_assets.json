@@ -125,7 +125,7 @@
    "build_s": 483
   },
   "trim": {
-   "inHash": "c3bae9b6d08b97bc1e54dafebd7ce8c3909ed5733bef22eb4970b71fb6585027",
+   "inHash": "b9fa646fec3811a0cb91b7e7a2add2979eb941141087f7b4eab3ad59d41a5a36",
    "files": {
     "models/decor/frame_trim.ktx2": {
      "sha256": "577903eded3a44fff09c02b86b111a9e7aad9600920a45849f4a8b85ef9f5351",
@@ -134,7 +134,7 @@
    },
    "stats": {
     "device": "CPU",
-    "seconds": 84.3,
+    "seconds": 119,
     "png": "T:/fars-blender/decor/trim\\frame_trim.png",
     "rows": {
      "convex": {
@@ -151,7 +151,7 @@
      }
     }
    },
-   "build_s": 129
+   "build_s": 174
   }
  }
 }

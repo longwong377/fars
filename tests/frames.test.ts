@@ -24,8 +24,8 @@ describe('stone frames (D-330)', () => {
     const { byPart, stats } = frameGeometries(parts, index);
     expect(stats.loose).toBe(0); expect(stats.triangles).toBeLessThan(40_000);
     for (const [b, g] of byPart) {
-      const P = g.getAttribute('position'), N = g.getAttribute('normal'), U = g.getAttribute('uv'), T = g.getAttribute('tangent');
-      expect(U.count).toBe(P.count); expect(T.count).toBe(P.count);
+      const P = g.getAttribute('position'), N = g.getAttribute('normal'), U = g.getAttribute('uv');
+      expect(U.count).toBe(P.count); expect(g.getAttribute('tangent')).toBeUndefined(); // (a vertex buffer fewer: the arch material reads 8 at most)
       const cx = b.c[0], cz = -b.c[1], cy = (b.y0 + b.y1) / 2, hx = b.size[0] / 2 + 1e-3, hz = b.size[1] / 2 + 1e-3, hy = (b.y1 - b.y0) / 2 + 1e-3;
       for (let i = 0; i < P.count; i++) {
         expect(Math.abs(P.getX(i) - cx)).toBeLessThanOrEqual(hx + 0.2); expect(Math.abs(P.getZ(i) - cz)).toBeLessThanOrEqual(hz + 0.2); expect(Math.abs(P.getY(i) - cy)).toBeLessThanOrEqual(hy + 0.2);
