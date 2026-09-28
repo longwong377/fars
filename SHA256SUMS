@@ -72,3 +72,4 @@ e67ae3a0aaa99abcd9f187138e12db1f65c16a14761c50ef10eef2c174a7a691  models/onnx-co
 50d6a919f0a0601d56a04eb583c780d18553aa388254ba3158eb6a00f13e2c1a  models/onnx-community/whisper-base/resolve/main/vocab.json
 df34b4f930b23447cd4dc410fabfb42eb3f24e803e6c3f97d618fb359380a36f  models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/config.json
 8fbea51ea711f2af382e88c833d9e288c6dc82ce5e98421ea61c058ce21a34cb  models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model.onnx
+ba4527a874b42b21e35f468c10d326fdff3c7fc8cac1f85e9eb6c0dfc35c334a  models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_fp16.onnx
