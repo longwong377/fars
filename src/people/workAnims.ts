@@ -8,7 +8,7 @@
 // Tempo and forms are reconstructions (C): no ancient source describes these motions; tools and their sizes are
 // in props.ts with their tiers. PLACEHOLDER quality in the sense of anim.ts: hand-authored cycles, not motion capture.
 import type { Pose, E3, Gait } from './anim';
-import { devAt, pickOf, CLIPS, IDLES, gaitPose, type GaitStyle } from './mocap';
+import { devAt, pickOf, CLIPS, IDLES } from './mocap';
 import { trunk, gripIK, legIK, stance, kneeOf, hip, headOf, ANKLE_Y, NOM, HS, v3, app, type Trunk } from './poseKit';
 import { HARP_V, LYRE, DOUBLE_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
 
@@ -79,12 +79,11 @@ const wob = (t: number, k: number) => 0.6 * S(t * 0.37 + k * 1.7) + 0.4 * S(t * 
 const cyc = (t: number, period: number, k: number, salt = 0) => { const n = Math.floor(t / period + k * 0.37); return fr(Math.sin(n * 12.9898 + k * 78.233 + salt * 37.719) * 43758.5453); };
 
 function blank(): Pose { return { rot: {}, hips: [0, 0, 0] }; }
-/** D-333: the work cycles whose whole body is a capture (the walking ones: the arms hold the thing over a captured gait);
- *  every other work cycle is an authored stroke over the capture layer (the dev overlay counts both) */
-export const CAPTURED_WORK = new Set<string>(['plough', 'bier_l', 'bier_r', 'limp', 'feel', 'chase', 'pull_toy']);
-/** D-333: a walking body from motion capture (mocap.ts gaits) at gait phase ph, and its trunk for the arms' IK: the cycles
- *  that walk (the ploughman, the bearers, the lame and the blind, the children at play) hold their things over it */
-function walkBody(style: GaitStyle, ph: number, k: number, v: number): { p: Pose; T: Trunk } { const p = gaitPose(style, ph, k, v); return { p, T: trunk(p) }; }
+/** D-333: the work cycles whose whole body is a capture: none yet. The walking ones (the ploughman, the bier bearers, the
+ *  lame and the blind, the children running and pulling toys) were put on the captured gaits and returned to their
+ *  authored steps: the captured heel and toe roll dipped the foot mesh 2.1-2.4 cm under the planting test's line (B181);
+ *  every work cycle is an authored stroke over the capture layer (the dev overlay counts it so) */
+export const CAPTURED_WORK = new Set<string>();
 /** trunk: pelvis pitch/yaw, spine and chest pitch/yaw, hips drop and shift (m, reference body) */
 /** D-333: the motion-capture body layer every cycle is performed over (set per call by workPose): the deviation from its
  *  mean of a standing capture (a seated one for the seated cycles) at the cycle's time: the weight shifts, the sway of
@@ -237,10 +236,13 @@ export function ploughPath(t: number, k: number): { dx: number; dz: number; yaw:
   const a = PI * (u - 2 * tp - F.turn) / F.turn; return { dx: r + r * C(a), dz: -half - r * S(a), yaw: PI + a, s: base + 2 * F.len + arc + arc * (u - 2 * tp - F.turn) / F.turn, turning: true };
 }
 function plough(t: number, k: number): Pose {
-  const P = ploughPath(t, k), ph = 2 * PI * P.s / 1.1;
-  // walking behind the ard (D-333: a slow walking capture, one stride a 1.1 m of furrow), leaning into the stilt
-  const { p } = walkBody('man', ph, k, 0.7); const sp = p.rot.spine!; p.rot.spine = [sp[0] + 0.24, sp[1], sp[2]]; // (the lean in the spine: turning the captured pelvis would lift the feet)
-  const T = trunk(p);
+  const p = blank(), P = ploughPath(t, k), ph = 2 * PI * P.s / 1.1;
+  // walking legs (as anim.ts legsWalk, shorter steps), a lean into the stilt
+  const r = p.rot, amp = 0.3;
+  r.l_thigh = [-amp * S(ph), 0, 0]; r.r_thigh = [amp * S(ph), 0, 0];
+  r.l_shin = [0.1 + 0.9 * amp * Math.max(0, C(ph)) ** 1.5, 0, 0]; r.r_shin = [0.1 + 0.9 * amp * Math.max(0, -C(ph)) ** 1.5, 0, 0];
+  r.l_foot = [-0.2 * S(ph), 0, 0]; r.r_foot = [0.2 * S(ph), 0, 0];
+  const T = body(p, { hp: 0.1, hy: 0.06 * S(ph), sp: 0.14, ch: 0.04, drop: -0.03 + 0.018 * C(2 * ph), side: 0.018 * S(ph) }, t, k);
   const flick = win(fr(t / 4.3 + k), 0.1, 0.2, 0.04);
   grip(p, T, 'l', [0.12, 0.9 + 0.02 * S(2 * ph), 0.5], [0.8, -1, -0.3]); grip(p, T, 'r', [-0.3, 1.12 + 0.14 * flick, 0.34], [-0.9, -0.6, -0.2], 0.3);
   look(p, T, [0.3, 0.3, 3]);
@@ -490,10 +492,12 @@ function mend(t: number, k: number): Pose {
 }
 /** a bearer of the dead: walking (slow, even), the bier's pole on the shoulder held by that hand (the bier itself is
  *  placed once for the bearers together: workObjects.ts). side 'r': the pole on the right shoulder */
-function bier(t: number, ph: number, k: number, side: 'l' | 'r', g: Gait): Pose {
-  // (D-333: a slow walking capture under the pole; the chest held upright over the captured pelvis, as under a load)
-  const { p } = walkBody(g.style === 'old' ? 'old' : 'man', ph, k, Math.min(g.v, 0.9)), h = p.rot.hips!;
-  p.rot.spine = [0.03 - h[0], -0.6 * h[1], -h[2]]; p.rot.chest = [0.02 * S(t * 1.5 + k), 0, 0]; const T = trunk(p);
+function bier(t: number, ph: number, k: number, side: 'l' | 'r'): Pose {
+  const p = blank(), r = p.rot, amp = 0.26;
+  r.l_thigh = [-amp * S(ph), 0, 0]; r.r_thigh = [amp * S(ph), 0, 0];
+  r.l_shin = [0.1 + 0.9 * amp * Math.max(0, C(ph)) ** 1.5, 0, 0]; r.r_shin = [0.1 + 0.9 * amp * Math.max(0, -C(ph)) ** 1.5, 0, 0];
+  r.l_foot = [-0.2 * S(ph), 0, 0]; r.r_foot = [0.2 * S(ph), 0, 0];
+  const T = body(p, { hy: 0.05 * S(ph), sp: 0.03, drop: -0.025 + 0.015 * C(2 * ph), side: 0.015 * S(ph) }, t, k);
   const sg = side === 'r' ? -1 : 1;
   grip(p, T, side, [sg * 0.16, 1.47, 0.14], [sg * 0.9, -0.8, -0.2], -sg * 1.0);
   const o = side === 'r' ? 'l' : 'r'; grip(p, T, o, [-sg * 0.2, 0.86, 0.06 + 0.1 * S(ph) * -sg], [-sg, -1, -0.2]);
@@ -516,6 +520,12 @@ function wash(t: number, k: number): Pose {
 /** archery practice (train): stance side-on to the target (the shot goes along the performer's heading, +Z of the root:
  *  the body is turned by −90°), an arrow from the quiver, nocked, drawn to the cheek, loosed; ip = the draw */
 // ------------------------------------------------------------------------------------------------ D-215: play; the lame, the blind
+/** legs in a walking or running stride at phase ph (amplitude amp; `run`: a flight phase, the knees higher) */
+function stride(p: Pose, ph: number, amp: number, run = 0) {
+  const r = p.rot; r.l_thigh = [-amp * S(ph), 0, 0]; r.r_thigh = [amp * S(ph), 0, 0];
+  r.l_shin = [0.1 + (0.9 + run) * amp * Math.max(0, C(ph)) ** 1.5, 0, 0]; r.r_shin = [0.1 + (0.9 + run) * amp * Math.max(0, -C(ph)) ** 1.5, 0, 0];
+  r.l_foot = [-0.2 * S(ph), 0, 0]; r.r_foot = [0.2 * S(ph), 0, 0];
+}
 /** tossing a ball up and catching it (a child, standing): the ball's height above the hands is the second prop parameter */
 function ball(t: number, k: number): Pose {
   const P = 1.9, q = fr(t / P + k * 0.21), p = blank(), up = S(PI * cl(q / 0.8)), crouch = win(q, 0.78, 1.02, 0.06);
@@ -528,15 +538,17 @@ function ball(t: number, k: number): Pose {
 }
 /** running round after the other children (the root on its circle: playPath) */
 function chase(t: number, k: number): Pose {
-  // (D-333: a running capture, leaning into the turn)
-  const P = PLAY_PATH.chase, ph = 2 * PI * P.cad * t + k, { p } = walkBody('run', ph, k, 2.8), h = p.rot.hips!, hd = p.rot.head!;
-  p.rot.hips = [h[0], h[1], h[2] - 0.06]; p.rot.head = [hd[0], hd[1] + 0.25 * S(t * 0.9 + k), hd[2]]; return p;
+  const P = PLAY_PATH.chase, ph = 2 * PI * P.cad * t + k, p = blank(); stride(p, ph, 0.62, 0.5);
+  body(p, { hp: 0.12, sp: 0.08, drop: -0.04 + 0.03 * Math.abs(S(ph)), hy: 0.1 * S(ph), hr: -0.06 }, t, k); // leaning into the turn
+  const r = p.rot; r.l_upper = [0.7 * S(ph), 0, 0.25]; r.r_upper = [-0.7 * S(ph), 0, -0.25]; r.l_fore = [-1.1, 0, 0]; r.r_fore = [-1.1, 0, 0];
+  r.head = [0.05, 0.25 * S(t * 0.9 + k), 0]; return p;
 }
 /** walking round pulling a wheeled toy on a cord (the root on its circle; the cord in the right hand, behind) */
 function pullToy(t: number, k: number): Pose {
-  // (D-333: a slow walking capture, the cord's hand behind)
-  const P = PLAY_PATH.pull_toy, ph = 2 * PI * P.cad * t + k, { p } = walkBody('man', ph, k, 0.5), hp = p.rot.hips!; p.rot.hips = [hp[0], hp[1] - 0.12, hp[2]]; const T = trunk(p);
+  const P = PLAY_PATH.pull_toy, ph = 2 * PI * P.cad * t + k, p = blank(); stride(p, ph, 0.3);
+  const T = body(p, { hp: 0.04, sp: 0.03, drop: -0.02 + 0.012 * C(2 * ph), hy: -0.12 }, t, k);
   grip(p, T, 'r', [-0.16, 0.86, -0.12], [-0.8, -1, 0.2], 0.3);
+  const r = p.rot; r.l_upper = [0.25 * S(ph), 0, 0.08]; r.l_fore = [-0.3, 0, 0];
   look(p, T, [-0.6, 0.1, -0.6]); p.grip = [0.2, 1]; return p;
 }
 /** a small child sitting on the ground shaking a clay rattle */
@@ -548,17 +560,20 @@ function rattle(t: number, k: number): Pose {
 }
 /** a lame man walking with a staff in his right hand: the right leg stiff and short in its step, the body dipping onto the
  *  staff as the right foot takes his weight (gait phase ph from the walk; C) */
-function limp(t: number, ph: number, k: number, g: Gait): Pose {
-  // (D-333: a limping capture; the staff's arm over it)
-  const { p, T } = walkBody('limp', ph, k, g.v), r = p.rot, dip = Math.max(0, -S(ph));
+function limp(t: number, ph: number, k: number): Pose {
+  const p = blank(), r = p.rot, dip = Math.max(0, -S(ph));
+  r.l_thigh = [-0.4 * S(ph), 0, 0]; r.r_thigh = [0.2 * S(ph), 0, -0.05]; r.l_shin = [0.1 + 0.36 * Math.max(0, C(ph)) ** 1.5, 0, 0]; r.r_shin = [0.05, 0, 0];
+  r.l_foot = [-0.2 * S(ph), 0, 0]; r.r_foot = [0.05, 0, 0];
+  const T = body(p, { hp: 0.08, sp: 0.06, drop: -0.03 - 0.04 * dip, side: -0.03 * dip, hr: 0.06 * dip, hy: 0.04 * S(ph) }, t, k);
   const G: V3 = [-0.26, 1.18 - 0.04 * dip, 0.36 + 0.08 * S(ph)]; grip(p, T, 'r', G, [-0.8, -1, -0.2], 0.3);
-  void r; look(p, T, [0, 0.6, 5]); p.grip = [0.2, 1]; p.tip = [[-0.3, 0, 0.45 + 0.15 * S(ph)], null]; return p;
+  r.l_upper = [0.2 * S(ph), 0, 0.08]; r.l_fore = [-0.3, 0, 0];
+  look(p, T, [0, 0.6, 5]); p.grip = [0.2, 1]; p.tip = [[-0.3, 0, 0.45 + 0.15 * S(ph)], null]; return p;
 }
 /** a blind elder walking slowly, the staff held forward and down in the right hand, its foot sweeping the ground ahead,
  *  the left hand a little forward (gait phase ph; C) */
 function feel(t: number, ph: number, k: number): Pose {
-  // (D-333: a slow walking capture with the old walk's stoop; the staff held forward over it)
-  const { p, T } = walkBody('old', ph, k, 0.5);
+  const p = blank(); stride(p, ph, 0.22);
+  const T = body(p, { hp: 0.1, sp: 0.1, drop: -0.04, hy: 0.03 * S(ph) }, t, k);
   const sw = S(t * 1.7 + k); grip(p, T, 'r', [-0.14, 1.0, 0.36], [-0.8, -1, -0.2], 0.3);
   grip(p, T, 'l', [0.16, 0.98, 0.3], [0.8, -1, -0.2]);
   look(p, T, [0, 1.5, 6], -0.25); p.grip = [0.3, 1]; p.tip = [[-0.14 + 0.35 * sw, 0, 1.0], null]; return p;
@@ -946,8 +961,8 @@ function workCycle(id: WorkAnim, t: number, ph: number, k: number, g: Gait): Pos
     case 'tread': return tread(t, k);
     case 'stoke': return stoke(t, k);
     case 'mend': return mend(t, k);
-    case 'bier_l': return bier(t, ph, k, 'l', g);
-    case 'bier_r': return bier(t, ph, k, 'r', g);
+    case 'bier_l': return bier(t, ph, k, 'l');
+    case 'bier_r': return bier(t, ph, k, 'r');
     case 'wash': return wash(t, k);
     case 'archery': return archery(t, k);
     case 'cook': return cook(t, k);
@@ -962,7 +977,7 @@ function workCycle(id: WorkAnim, t: number, ph: number, k: number, g: Gait): Pos
     case 'chase': return chase(t, k);
     case 'pull_toy': return pullToy(t, k);
     case 'rattle': return rattle(t, k);
-    case 'limp': return limp(t, ph, k, g);
+    case 'limp': return limp(t, ph, k);
     case 'feel': return feel(t, ph, k);
     case 'barsom': return barsomPose(t, k);
     case 'feed_fire': return feedFire(t, k);

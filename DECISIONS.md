@@ -8072,8 +8072,8 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   stride × body scale (crowd.ts gaitStep: no foot skate), for agents too (their sim gait was 1.44 m a stride for all).
 - From capture now: walk (men, women, the old, children at their normalised pace), the carriers' walks under the
   authored holds (shoulder jar, head jar, the basket before the body from the carrying captures), the guard's round and
-  post, idle and inspect, talk, sit, children's play and chasing, pulling a toy, the ploughman, the bier bearers, the
-  lame and the blind (their staffs held over the capture). Every other work cycle (the D-142/D-255/D-292 strokes) and the
+  post, idle and inspect, talk, sit, children's play (running in place).
+  Every work cycle (the D-142/D-255/D-292 strokes) and the
   anim.ts crafts are performed over a capture body layer (a standing or seated capture's deviation from its mean: the
   pelvis's weight shifts and sway, the trunk, the head; bounded, and lighter where a cycle works at the reach limit) —
   the strokes themselves stay hand-authored (PLACEHOLDER: B181). F3 counts both per frame.
