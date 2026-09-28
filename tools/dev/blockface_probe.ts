@@ -34,8 +34,8 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   const built = buildMeshes(parts); scene.add(built.group);
   const arris = new ArrisField(built.arris, m => P.has('arrisdbg') ? new THREE.MeshBasicNodeMaterial({ color: 0xff0000 }) : surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); scene.add(arris.group); // D-321 rev 2 (?arrisdbg: the bands red)
   const cren = buildStairCrenellations(parts); if (cren) scene.add(cren);
-  const fg = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n));
-  if (fg.geo) { const m = new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot')); m.castShadow = m.receiveShadow = true; scene.add(m); }
+  const fg = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n)); arris.add(fg.arris); // rev 4: the foot blocks' arrises
+  if (fg.geo) { const m = new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot', { arch: true })); m.castShadow = m.receiveShadow = true; scene.add(m); }
   scene.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && !m.userData?.tier?.startsWith?.('B') ) { m.castShadow = true; m.receiveShadow = true; } });
   const sun = new THREE.DirectionalLight(0xfff1e0, 3.4), hemi = new THREE.HemisphereLight(0xbfd6ff, 0x8a7458, 0.8);
   sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); const sc = sun.shadow.camera as THREE.OrthographicCamera; sc.left = sc.bottom = -60; sc.right = sc.top = 60; sc.near = 1; sc.far = 3000; sun.shadow.bias = -0.0004;

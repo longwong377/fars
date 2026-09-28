@@ -14,7 +14,7 @@ import BF from '../data/blockface.json';
 import STRIP_CHIPS from '../data/blockface_chips.json';
 
 /** the surfaces whose free arrises are geometry near the eye (the dressed stone of the block-face class, D-321) */
-export const ARRIS_MATS = new Set(['limestone', 'terrace']);
+export const ARRIS_MATS = new Set(['limestone', 'terrace', 'terrace_foot']);
 
 /** the band's width on each face (m from the sharp corner line); the base mesh discards its arris zone inside it */
 export const ARRIS_W = 0.04;
@@ -45,7 +45,7 @@ export const seedOff = (seed: number) => (seed * 13.7) % 1;
 export const aseedOf = (seed: number) => seedRow(seed) + seedOff(seed) * 0.999;
 
 export interface ArrisEdge {
-  mat: string; a: THREE.Vector3; b: THREE.Vector3; na: THREE.Vector3; nb: THREE.Vector3; r: number; seed: number;
+  mat: string; a: THREE.Vector3; b: THREE.Vector3; na: THREE.Vector3; nb: THREE.Vector3; r: number; seed: number; /** the rough strips' chips (the foot) */ rough?: boolean;
   /** the box's bounding planes (world: n·x <= d), the band is kept inside them */
   planes: { n: THREE.Vector3; d: number }[];
   y0a: number; y0b: number; pbox: [number, number, number, number]; ytop: number; stair: [number, number, number, number];
@@ -79,13 +79,13 @@ export function arrisEdgesOfBox(b: Box, edges: boolean[], boxEdges: [number, num
 }
 
 export interface Chip { s: number; a: number; b: number; D: number }
-const FINE = (STRIP_CHIPS as any).strip_fine as number[][][]; // per row: [x, a, b, D, th] in mm
+const FINE = (STRIP_CHIPS as any).strip_fine as number[][][], ROUGH = (STRIP_CHIPS as any).strip_rough as number[][][]; // per row: [x, a, b, D, th] in mm
 /** the chips along an edge of length L: those of its strip row, where the shader's along coordinate reads them */
 export function chipsOf(e: ArrisEdge, L: number): Chip[] {
   const S = BF.size_m, t = e.b.clone().sub(e.a).divideScalar(L), K = new THREE.Vector3(...ARRIS_K), g = Math.sign(t.dot(K)) || 1;
   const tc = t.clone().multiplyScalar(g), A0 = e.a.dot(tc), off = seedOff(e.seed) * S, out: Chip[] = [];
   // along(s) = A0 + g s; the texture's x = (along + off) mod S
-  for (const [x, a, b, D] of FINE[seedRow(e.seed)] ?? []) {
+  for (const [x, a, b, D] of (e.rough ? ROUGH : FINE)[seedRow(e.seed)] ?? []) {
     const X = x / 1000, lo = Math.min(A0, A0 + g * L) + off, hi = Math.max(A0, A0 + g * L) + off;
     for (let k = Math.floor((lo - X) / S); X + k * S <= hi; k++) {
       const s = (X + k * S - off - A0) / g, am = a / 1000;
@@ -181,7 +181,12 @@ export class ArrisField {
   stats = { cells: 0, triangles: 0, ms: 0, pending: 0, draws: 0, ready: false };
   constructor(private edges: ArrisEdge[], private material: (mat: string) => THREE.Material, private adistOff: number, readonly step = 1.5, readonly budgetMs = 3) {
     this.group.name = 'arris-bands';
-    edges.forEach((e, i) => {
+    this.index(edges, 0);
+  }
+  /** more edges (the foot's blocks, the wall joints: rev 4), before the first update */
+  add(edges: ArrisEdge[]): void { const i0 = this.edges.length; this.edges.push(...edges); this.index(edges, i0); }
+  private index(edges: ArrisEdge[], i0: number): void {
+    edges.forEach((e, ii) => { const i = i0 + ii;
       const L = e.a.distanceTo(e.b), n = Math.max(1, Math.ceil(L / PIECE));
       for (let k = 0; k < n; k++) {
         const s0 = (L * k) / n, s1 = (L * (k + 1)) / n, mid = e.a.clone().lerp(e.b, (s0 + s1) / 2 / L), id = this.pieces.length;

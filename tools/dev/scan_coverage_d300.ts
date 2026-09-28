@@ -19,7 +19,7 @@ export function terraceScanCoverage() {
   const root = new THREE.Group(), skipped: string[] = [];
   root.add(buildMeshes(parts).group);
   // the rest of the Terrace's stone as world.ts adds it (each optional in node: what does not build is listed, not hidden)
-  const fg = footGeometry(parts); if (fg.geo) root.add(new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot'))); // D-300: the foot's blocks (world.ts)
+  const fg = footGeometry(parts); if (fg.geo) root.add(new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot', { arch: true }))); // D-300: the foot's blocks (world.ts)
   // the relief figures stream their meshes in workers (not in node): their material stands for them at the relief fields' area
   // (a nominal 1 % of the whole: the painted stone's own tag is what is checked)
   const relief = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), paintedStoneMaterial()); relief.name = 'relief-stand-in';

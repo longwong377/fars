@@ -6,6 +6,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
 import { buildMeshes } from '../src/arch/meshes';
+import { footGeometry } from '../src/arch/terrace_foot';
 import { ArrisField, bandGeometry, chipsOf, profile, ARRIS_W, ARRIS_R, CHIPS, PIECE, ARRIS_LAP } from '../src/arch/arris';
 import type { Part } from '../src/arch/parts';
 
@@ -44,6 +45,14 @@ describe('D-321 rev 2 arris bands', () => {
         if (top && want > 0.14 && dA > 900) continue; // (the inner polygon carries none)
         expect(Math.abs(dA - want)).toBeLessThan(1e-3); checked++; } });
     expect(checked).toBeGreaterThan(40);
+  });
+  it('rev 4: the foot blocks record an arris per face edge, their faces the distances to them (0 on the chamfer)', () => {
+    const { parts } = buildTerrace(), fg = footGeometry(parts);
+    expect(fg.arris.length).toBeGreaterThan(fg.blocks * 4);
+    const A = fg.geo!.getAttribute('adist'); let onArris = 0; for (let i = 0; i < A.count; i++) if (Math.abs(A.getX(i) + 1000) < 1e-6) onArris++;
+    expect(onArris).toBeGreaterThan(fg.arris.length * 6 - 1); // every chamfer quad's six vertices
+    for (const e of fg.arris.slice(0, 40)) { const B = buf(); bandGeometry(e, 0, e.a.distanceTo(e.b), B, 1000);
+      for (let i = 0; i < B.pos.length; i += 3) for (const pl of e.planes) expect(pl.n.x * B.pos[i] + pl.n.y * B.pos[i + 1] + pl.n.z * B.pos[i + 2] - pl.d).toBeLessThan(1e-4); }
   });
   it('the near field over the Terrace: bands within R, triangles and rebuild time within budget', () => {
     const { parts } = buildTerrace(), g = buildMeshes(parts);
