@@ -2873,6 +2873,22 @@
    "anti_proxy": "flavour talk with no effect on any plan does not count; scripted exchanges do not count; the consequence must be in the saved state and replay identically",
    "ud": "UD-24",
    "since": "rev 2.6 (s12)"
+  },
+  {
+   "id": "T-E14",
+   "axis": "E",
+   "scope": "world",
+   "metric": "share of a seeded set of player utterances (spoken through the proximity mic at whisper, normal and shout levels, to one person and to groups, across the ten UD-25 mechanics) whose effects on the simulation are right: the listeners chosen by loudness, distance, facing and name; each listener's response decided by the simulation from their life, rank, duties, memory and reputation; the consequence (trust, a job, a trade, a rumour spread, a petition decided, a word learned) in the saved state and replayed identically",
+   "op": ">=",
+   "value": 90,
+   "unit": "%",
+   "sample_min": 60,
+   "sample": "the conversation test set, seeded, across classes, places and hours",
+   "tool": "tests/speech_sandbox.test.ts",
+   "status": "to-build",
+   "anti_proxy": "an effect the model asserts in words but the simulation does not carry out does not count; a scripted branch per mechanic does not count; the mic path must be exercised with audio, not text only",
+   "ud": "UD-25",
+   "since": "rev 2.6 (s12)"
   }
  ]
 }
