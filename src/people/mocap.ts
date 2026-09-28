@@ -76,9 +76,9 @@ export const pickOf = (k: number, n: number, salt = 0) => Math.floor(fr(Math.sin
 /** the walking classes: the clips of each, their mean speed (m/s, reference body) */
 export type GaitStyle = 'man' | 'woman' | 'old' | 'carry' | 'carry_side' | 'limp' | 'run';
 export const GAITS: Record<GaitStyle, { slow: string[]; normal: string[]; brisk: string[] }> = {
-  man: { slow: ['walk_slow_a', 'walk_slow_b', 'walk_slow_c', 'walk_slow_d'], normal: ['walk_c', 'walk_d', 'walk_e', 'walk_g', 'walk_a'], brisk: ['walk_brisk_a', 'walk_brisk_b', 'walk_b'] },
+  man: { slow: ['walk_slow_a', 'walk_slow_c', 'walk_slow_d'], normal: ['walk_c', 'walk_d', 'walk_e', 'walk_g', 'walk_a'], brisk: ['walk_brisk_a', 'walk_brisk_b', 'walk_b'] },
   woman: { slow: ['walk_slow_c', 'walk_w_b'], normal: ['walk_w_b', 'walk_g', 'walk_d'], brisk: ['walk_brisk_a', 'walk_d'] },
-  old: { slow: ['walk_old', 'walk_slow_d'], normal: ['walk_slow_c', 'walk_slow_b'], brisk: ['walk_slow_a'] },
+  old: { slow: ['walk_slow_d', 'walk_slow_c'], normal: ['walk_slow_c', 'walk_slow_a'], brisk: ['walk_slow_a'] },
   carry: { slow: ['carry_a', 'carry_b'], normal: ['carry_a', 'carry_b'], brisk: ['carry_a', 'carry_b'] },
   carry_side: { slow: ['carry_side'], normal: ['carry_side'], brisk: ['carry_side'] },
   limp: { slow: ['limp_a'], normal: ['limp_a'], brisk: ['limp_a'] },
@@ -106,7 +106,16 @@ export function gaitPose(s: GaitStyle, ph: number, k: number, v: number): Pose {
   const [a, b, w] = gaitPair(s, k, v); const u = (ph - Math.PI / 2) / TAU;
   // a loop holds `cycles` strides: the phase runs through one stride per 2π
   sampleInto(BUF, a, u / (CLIPS[a].cycles ?? 1)); if (w > 0.001 && b !== a) sampleInto(BUF, b, u / (CLIPS[b].cycles ?? 1), w);
+  if (s === 'old') { const o = stoop(); for (let c = 3; c < 15; c++) BUF[c] += o[c]; }
   return toPose(BUF);
+}
+let STOOP: Float32Array | null = null;
+/** the old walk's stoop: a share of the elderly capture's mean trunk, neck and head (subject 142's "elderly man": acted,
+ *  so taken at 35 %) over the mean of the ordinary walks (spine, chest, neck, head channels only) */
+function stoop(): Float32Array {
+  if (STOOP) return STOOP; const O = clipMean('walk_old'), N = ['walk_c', 'walk_d', 'walk_e', 'walk_g'].map(clipMean); STOOP = new Float32Array(54);
+  for (let c = 3; c < 15; c++) STOOP[c] = 0.35 * (O[c] - N.reduce((x, M) => x + M[c], 0) / N.length);
+  return STOOP;
 }
 /** the standing clips a person idles through; the talking ones; sitting on the ground */
 export const IDLES = ['idle_a', 'idle_b', 'idle_c', 'idle_d', 'idle_e'] as const;

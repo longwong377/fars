@@ -7,8 +7,12 @@
 import { writeFileSync } from 'node:fs';
 import { gait, loop, type Baked } from './cycles';
 import { POSE_BONES, type Pose } from '../../src/people/anim';
+import { RigSolver, PALETTE_STRIDE, type RigInput } from '../../src/people/humanRig';
+import { HB } from '../../src/people/humanFormat';
+import { HS } from '../../src/people/poseKit';
+import { assets } from './preview';
 
-export interface Spec { id: string; take: string; fps?: number; kind: 'gait' | 'loop'; from?: number; to?: number; len?: number; cycles?: number; out?: number; mirror?: boolean; exact?: boolean; /** keep the capture's head pitch (default: levelled, see level()) */ gaze?: boolean; win?: number; trail?: boolean; face?: number; note: string }
+export interface Spec { id: string; take: string; fps?: number; kind: 'gait' | 'loop'; from?: number; to?: number; len?: number; cycles?: number; out?: number; mirror?: boolean; exact?: boolean; /** seated or lying: the rig's seat pass grounds it (no foot planting in the bake) */ seat?: boolean; /** keep the capture's head pitch (default: levelled, see level()) */ gaze?: boolean; win?: number; trail?: boolean; face?: number; note: string }
 /** the takes' frame rates (CMU index: 120 unless listed) */
 const FPS60 = new Set(['62', '74', '75', '77', '79', '80']);
 const fpsOf = (take: string) => (FPS60.has(take.split('_')[0]) ? 60 : 120);
@@ -23,7 +27,6 @@ export const SPECS: Spec[] = [
   { id: 'walk_g', take: '105_29', kind: 'gait', note: 'normal walk (subject 105)' },
   // slower and brisker
   { id: 'walk_slow_a', take: '07_04', kind: 'gait', note: 'slow walk (subject 7)' },
-  { id: 'walk_slow_b', take: '104_35', kind: 'gait', note: 'slow walk (subject 104)' },
   { id: 'walk_slow_c', take: '105_10', kind: 'gait', note: 'slow walk (subject 105)' },
   { id: 'walk_slow_d', take: '132_46', kind: 'gait', note: 'walk slow (subject 132)' },
   { id: 'walk_brisk_a', take: '16_21', kind: 'gait', note: 'walk (subject 16, brisk)' },
@@ -53,7 +56,7 @@ export const SPECS: Spec[] = [
   { id: 'talk_b', take: '19_08', kind: 'loop', from: 0, to: 17.4, len: 14, out: 20, note: 'conversation, explaining with hand gestures (subject 19)' },
   { id: 'talk_c', take: '80_48', kind: 'loop', from: 0, to: 19, len: 15, out: 20, note: 'arguing (subject 80)' },
   // ---- sitting on the ground
-  { id: 'sit_a', take: '82_05', kind: 'loop', gaze: true, from: 0, to: 18.7, len: 15, out: 15, note: 'sitting on the ground relaxing (subject 82)' },
+  { id: 'sit_a', take: '82_05', kind: 'loop', gaze: true, seat: true, from: 0, to: 18.7, len: 15, out: 15, note: 'sitting on the ground relaxing (subject 82)' },
 ];
 
 const QA = 5000, QH = 10000;
@@ -75,6 +78,15 @@ function level(b: Baked) {
   if (m <= 0.15) return; const d = m - 0.12;
   for (const p of b.frames) { const n = p.rot.neck!, h = p.rot.head!; p.rot.neck = [n[0] - 0.4 * d, n[1], n[2]]; p.rot.head = [h[0] - 0.6 * d, h[1], h[2]]; }
 }
+/** the feet on the ground in every frame on the reference body m03 (the rig's plant pass, done here into the hips offset):
+ *  the work cycles that hold things over a captured body (the bier's pole, the jar) solve their arms in character space
+ *  before the crowd's rig plants the feet, so the capture's pelvis must already stand at its planted height */
+function plant(b: Baked) {
+  const A = assets(), v = A.byId.m03, rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE);
+  for (const p of b.frames) { const inp: RigInput = { joints: v.joints, pose: p, face: { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 }, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1, plant: false };
+    rig.setPose(inp); rig.solve(inp, pal, 0); const y0 = rig.wt[HB.pelvis * 3 + 1]; inp.plant = true; rig.solve(inp, pal, 0); const d = rig.wt[HB.pelvis * 3 + 1] - y0;
+    p.hips = [p.hips[0], p.hips[1] + d / HS, p.hips[2]]; }
+}
 /** principal range at the first frame (each clip's angles start within ±π; the sequence stays continuous) */
 function normalise(b: Baked) { const f0 = b.frames[0]; for (const k of POSE_BONES) { const e = f0.rot[k]; if (!e) continue; const off = e.map(x => Math.round(x / (2 * Math.PI)) * 2 * Math.PI); if (off.every(x => !x)) continue; for (const p of b.frames) { const q = p.rot[k]!; p.rot[k] = [q[0] - off[0], q[1] - off[1], q[2] - off[2]]; } } }
 
@@ -88,7 +100,7 @@ if (process.argv[1]?.endsWith('bake.ts')) {
     if (s.mirror) b.frames = b.frames.map(mirrorPose);
     // a cycle cut at the trailing foot starts half a stride late: turned so that every gait starts at the left strike
     if (s.trail) { const h = b.frames.length / 2; b.frames = [...b.frames.slice(h), ...b.frames.slice(0, h)]; }
-    normalise(b); if (!s.gaze) level(b);
+    normalise(b); if (!s.gaze) level(b); if (!s.seat) plant(b);
     const q = pack(b); parts.push(q);
     meta[s.id] = { kind: s.kind, n: b.frames.length, off, dur: +b.dur.toFixed(4), ...(s.kind === 'gait' ? { cycles: s.cycles ?? 2, stride: +b.stride!.toFixed(4), speed: +b.speed!.toFixed(4) } : {}), src: `CMU ${s.take} ${b.range.map(x => x.toFixed(2)).join('-')} s${s.mirror ? ' (mirrored)' : ''}`, note: s.note };
     off += q.length;
