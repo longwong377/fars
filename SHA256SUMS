@@ -211,3 +211,8 @@ de48a00bdbf3649f07162269a2b6e0513604389bfac8a2e6c75cb34b323ad6fa  voices/models/
 261e2c89470534dbbcb8fd98b8fdc495ec94063d9bb6c8277f7be43cccba3f42  voices/models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunyang.bin
 5c150487ee6cd24a337e5254ff305416a610b8caa89b1a3985c5c854a13279ef  voices/models/TigreGotico/utmos-onnx/resolve/main/export_utmos.py
 ece7ddb0999d0f12ffe8d7586b3618b8b6fa89269b5152288e4440d686409f69  voices/models/TigreGotico/utmos-onnx/resolve/main/utmos22_strong.onnx
+7515e0d1a73accd160f85b05b4a76d505a3c545457eb05b6fc61e7614db50d5a  voices/models/Wespeaker/wespeaker-ecapa-tdnn512-LM/resolve/main/config.yaml
+d71b85d9b48058ef68004f04f1b78acebefb9dfcf542e19b976a12a5ad1f10b0  voices/models/Wespeaker/wespeaker-ecapa-tdnn512-LM/resolve/main/voxceleb_ECAPA512_LM.onnx
+52f035acb54ac80e5ef7fe78d6967f8ddf8e8799f078d1a92a2c8168d8ff4a20  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/config.json
+1ce846259ae04c572ae1863e358534bbc376ff3d3f100b1494feda6200b51de8  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/generation_config.json
+dd66608c2a4194e78f95548fa0e64f24302303698c5b09fa8e1f9e16ec00676b  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/onnx/decoder_model_merged_quantized.onnx
