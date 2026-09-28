@@ -560,7 +560,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   }, settlement ? indexTown(settlement.plan as any) : null);
   const court = settings?.courtCalendar === 'seasonal';
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
-  return { root, fire, wvfx, settlement, smoke: { model: smoke, land: landSmoke, dust }, simulate, neural, sayPcm, people: { sim, crowd, nav, humans, view, geo, probe: (r: THREE.WebGPURenderer) => countVisible(r, crowd) }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
+  return { root, fire, wvfx, settlement, smoke: { model: smoke, land: landSmoke, dust }, simulate, neural, sayPcm, /** D-336: the population's voices (stats for tests and the lead's render) */ popVoices: voices, farCrowd, people: { sim, crowd, nav, humans, view, geo, probe: (r: THREE.WebGPURenderer) => countVisible(r, crowd) }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
     building,
     /** visitor mode: where the player may stand (blocked moves go back to the last allowed point), the interact key, the
      *  log (translation layer chronicle only). `night`: outside the Terrace's hours (C: the sun below 6°) */

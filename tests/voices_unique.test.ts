@@ -111,3 +111,15 @@ describe('the Farsi fence reads what translators write (D-336)', () => {
     expect(fenceFa('پولم را بده')).toContain('money');
   });
 });
+import { FarCrowd } from '../src/audio/farcrowd';
+import { MockContext } from '../tools/dev/audio_graph';
+describe('the far crowd carries its talkers\' own voices (D-336)', () => {
+  it('grains of far talkers\' own units, in their own identity, over the murmur', () => {
+    const ctx = new MockContext(48000), e = new AudioEngine(); e.attach(ctx as unknown as AudioContext); const L = { x: 0, y: 1.6, z: 0 }; e.setListener(L, { x: 0, y: 0, z: -1 });
+    const asked = new Set<string>(); const F = new FarCrowd(e); F.neural = { stats: { ready: true }, get: (v: any) => { asked.add(v.key); return new Float32Array(9000); } } as any;
+    const people: NearPerson[] = Array.from({ length: 200 }, (_, i) => ({ key: `f${i}`, x: (i % 20) - 10, y: 0, z: -150 - Math.floor(i / 20), talking: true, lang: i % 3 ? 'Persian' : 'Elamite', sex: i % 2 ? 'f' : 'm', age: 20 + (i % 40), seed: 7000 + i, group: null }));
+    for (let i = 0; i < 300; i++) { F.update(people, L); ctx.currentTime += 1 / 30; }
+    expect(F.grains).toBeGreaterThan(3); expect(asked.size).toBeGreaterThan(1);
+    expect(F.lines()[0]).toMatch(/grains of their own voices/);
+  });
+});
