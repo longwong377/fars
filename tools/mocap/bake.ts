@@ -53,7 +53,7 @@ export const SPECS: Spec[] = [
   { id: 'idle_hips', take: '111_28', kind: 'loop', from: 10.5, to: 15.9, len: 4.5, out: 15, note: 'standing, hands on the hips (subject 111)' },
   // ---- talking (conversation with hand gestures)
   { id: 'talk_a', take: '18_08', kind: 'loop', from: 0, to: 17.4, len: 14, out: 20, note: 'conversation, explaining with hand gestures (subject 18)' },
-  { id: 'talk_b', take: '19_08', kind: 'loop', from: 0, to: 17.4, len: 14, out: 20, note: 'conversation, explaining with hand gestures (subject 19)' },
+  { id: 'talk_b', take: '18_08', kind: 'loop', from: 0, to: 17.4, len: 9, out: 20, mirror: true, note: 'conversation, explaining with hand gestures (subject 18; mirrored, another stretch)' },
   { id: 'talk_c', take: '80_48', kind: 'loop', from: 0, to: 19, len: 15, out: 20, note: 'arguing (subject 80)' },
   // ---- sitting on the ground
   { id: 'sit_a', take: '82_05', kind: 'loop', gaze: true, seat: true, from: 0, to: 18.7, len: 15, out: 15, note: 'sitting on the ground relaxing (subject 82)' },

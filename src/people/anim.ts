@@ -10,7 +10,7 @@
 // The work cycles of the activities performed since D-142 (hoeing, reaping, weaving, …) are in workAnims.ts: they are
 // authored from hand and foot targets (poseKit.ts IK) and return prop hints (tip, at, show, ip) for the carried props.
 import { workPose, WORK_ANIMS, type WorkAnim } from './workAnims';
-import { gaitPose, loopAt, pickOf, IDLES, TALKS, type GaitStyle } from './mocap';
+import { gaitPose, loopAt, pickOf, devAt, CLIPS, IDLES, TALKS, type GaitStyle } from './mocap';
 
 /** pose channels (the Phase 3 rig's bones); RETARGET in humanRig.ts maps each onto the 59-bone skeleton */
 export const POSE_BONES = ['hips', 'spine', 'chest', 'neck', 'head', 'l_upper', 'l_fore', 'l_hand', 'r_upper', 'r_fore', 'r_hand', 'l_thigh', 'l_shin', 'l_foot', 'r_thigh', 'r_shin', 'r_foot'] as const;
@@ -185,7 +185,17 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       p = gaitPose('run', t * 7 + k, k, 2.8); break;
     }
   }
+  // D-333: the hand-authored cycles here (the mason's chisel, the quern, the dough, the oven, the well, the scribe, the meal,
+  // the knucklebones, the throne, the saddle) are performed over the motion-capture body layer, as the work cycles are
+  // (workAnims.ts): a capture's deviation from its mean (standing, or seated for the seated ones) added to the upper body
+  // (spine, chest, neck, head: the pelvis and legs as authored, so the feet and seat stay where they are)
+  const Lw = LAYERED[id]; if (Lw) { const seat = SEATED_L.has(id), c = seat ? 'sit_a' : IDLES[pickOf(k, IDLES.length, 5)], d = devAt(DEV, c, (t * (0.9 + 0.2 * fr(k * 0.37))) / CLIPS[c].dur + fr(k * 0.618034));
+    for (const [b, i] of [['spine', 3], ['chest', 6], ['neck', 9], ['head', 12]] as const) { const e = r[b] ?? [0, 0, 0]; r[b] = [e[0] + Math.max(-0.08, Math.min(0.08, d[i])) * Lw, e[1] + Math.max(-0.08, Math.min(0.08, d[i + 1])) * Lw, e[2] + Math.max(-0.08, Math.min(0.08, d[i + 2])) * Lw]; } }
   return p;
 }
+const DEV = new Float32Array(54);
+/** the layer's weight per authored cycle (the king on his throne keeps nearly still: the relief's stillness, C) */
+const LAYERED: Partial<Record<AnimId, number>> = { chisel: 0.6, draw_water: 0.6, grind: 0.35, knead: 0.35, bake: 0.35, write: 0.4, eat: 0.5, dice: 0.5, enthroned: 0.2, ride: 0.4, inspect: 0 };
+const SEATED_L = new Set<AnimId>(['write', 'eat', 'dice']);
 const WORK = new Set<string>(WORK_ANIMS);
 export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', ...WORK_ANIMS];
