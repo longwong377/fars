@@ -99,13 +99,14 @@ def cycles(device='CPU'):
     if sc.world is None: sc.world = bpy.data.worlds.new('bake')
     log('device', dev); return dev
 
-def mesh_from_grid(name, X, Y, Z):
-    """a quad grid mesh from H x W arrays of vertex coordinates"""
+def mesh_from_grid(name, X, Y, Z, keep=None):
+    """a quad grid mesh from H x W arrays of vertex coordinates; keep: (H-1) x (W-1) bool, the cells to build"""
     H, W = Z.shape
     co = np.stack([X, Y, Z], -1).reshape(-1, 3).astype(np.float32)
     me = bpy.data.meshes.new(name); me.vertices.add(H * W); me.vertices.foreach_set('co', co.ravel())
     i = np.arange(H - 1)[:, None] * W + np.arange(W - 1)[None, :]
-    quads = np.stack([i, i + 1, i + 1 + W, i + W], -1).reshape(-1).astype(np.int32); nq = (H - 1) * (W - 1)
+    if keep is not None: i = i[keep]
+    quads = np.stack([i, i + 1, i + 1 + W, i + W], -1).reshape(-1).astype(np.int32); nq = quads.size // 4
     me.loops.add(nq * 4); me.loops.foreach_set('vertex_index', quads)
     me.polygons.add(nq); me.polygons.foreach_set('loop_start', np.arange(0, nq * 4, 4, dtype=np.int32))
     me.update(); me.validate(verbose=False); me.polygons.foreach_set('use_smooth', np.ones(nq, bool))
@@ -163,3 +164,33 @@ def rake(nrm, ao, sun=(-0.6, 0.55, 0.3)):
     n = nrm * 2 - 1; s = np.array(sun); s = s / np.linalg.norm(s)
     sh = np.clip(n @ s, 0, 1) * (0.55 + 0.45 * ao)
     return q8(np.clip(sh / max(np.percentile(sh, 99.5), 1e-6), 0, 1))
+
+def preview_material(o, nrm_png, aux_png, base=(0.55, 0.52, 0.47), rough=0.7, colour_png=None):
+    """a Principled material on `o` from its baked maps (normal on UVMap, AO multiplied into the base colour): previews only"""
+    m = bpy.data.materials.new('pv_' + o.name); m.use_nodes = True; nt = m.node_tree; bs = nt.nodes['Principled BSDF']
+    bs.inputs['Roughness'].default_value = rough
+    tn = nt.nodes.new('ShaderNodeTexImage'); tn.image = bpy.data.images.load(nrm_png); tn.image.colorspace_settings.name = 'Non-Color'
+    nm = nt.nodes.new('ShaderNodeNormalMap'); nt.links.new(tn.outputs[0], nm.inputs[1]); nt.links.new(nm.outputs[0], bs.inputs['Normal'])
+    ta = nt.nodes.new('ShaderNodeTexImage'); ta.image = bpy.data.images.load(aux_png); ta.image.colorspace_settings.name = 'Non-Color'
+    sp = nt.nodes.new('ShaderNodeSeparateColor'); nt.links.new(ta.outputs[0], sp.inputs[0])
+    mx = nt.nodes.new('ShaderNodeMix'); mx.data_type = 'RGBA'; mx.blend_type = 'MULTIPLY'; mx.inputs[0].default_value = 1.0
+    mx.inputs[6].default_value = (*base, 1)
+    if colour_png:
+        tc = nt.nodes.new('ShaderNodeTexImage'); tc.image = bpy.data.images.load(colour_png); nt.links.new(tc.outputs[0], mx.inputs[6])
+    ao = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(sp.outputs[0], ao.inputs[i]) for i in range(3)]
+    nt.links.new(ao.outputs[0], mx.inputs[7]); nt.links.new(mx.outputs[2], bs.inputs['Base Color'])
+    o.data.materials.clear(); o.data.materials.append(m)
+
+def preview_render(path_prefix, cams, sun_rot=(55, 0, 35), samples=32, res=(1280, 720), fov=70):
+    """Cycles renders from [(name, loc, look_at)] under a sun and a pale sky (previews only)"""
+    from mathutils import Vector
+    sc = bpy.context.scene
+    sun = bpy.data.lights.new('sun', 'SUN'); sun.energy = 5.0; so = bpy.data.objects.new('sun', sun); sc.collection.objects.link(so)
+    so.rotation_euler = tuple(math.radians(a) for a in sun_rot)
+    sc.world.use_nodes = True; bg = sc.world.node_tree.nodes['Background']; bg.inputs[0].default_value = (0.45, 0.6, 0.85, 1); bg.inputs[1].default_value = 0.6
+    cam = bpy.data.cameras.new('cam'); cam.angle = math.radians(fov); cam.clip_end = 5000; co = bpy.data.objects.new('cam', cam); sc.collection.objects.link(co); sc.camera = co
+    sc.render.resolution_x, sc.render.resolution_y = res; sc.cycles.samples = samples; sc.cycles.use_denoising = True; sc.view_settings.view_transform = 'AgX'
+    for name, loc, look in cams:
+        co.location = loc; d = Vector(look) - Vector(loc); co.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler()
+        sc.render.filepath = f'{path_prefix}_{name}.png'; t = time.time(); bpy.ops.render.render(write_still=True); log('preview', name, f'{time.time() - t:.0f} s')
+    bpy.data.objects.remove(so, do_unlink=True); bpy.data.objects.remove(co, do_unlink=True)

@@ -24,6 +24,20 @@ import type { Physics } from '../../player/physics';
 import { fitBlocks, carvedBlockGeometry, inscriptionAtlas, opSignsNote, INSCRIPTION_PICK_LAYER, type Block } from '../../arch/decor';
 import { panelText } from '../../arch/inscription_text';
 import { ReliefSet, type ReliefItem } from '../../arch/reliefs';
+import { texture, uv, vec2, normalMap, normalView } from 'three/tsl';
+import { monument } from '../../render/monuments';
+
+/** D-329: a surface of materials.ts with a Blender-baked map pair (normal, aux: R occlusion, G albedo x2) on the mesh's uv: the
+ *  map's normal under the surface's own fine relief, the occlusion on the ambient light, the albedo modulation when asked */
+function withBake(m: THREE.MeshStandardNodeMaterial, n: THREE.Texture, a: THREE.Texture, albedo: boolean): THREE.MeshStandardNodeMaterial {
+  const t = texture(a, uv()), nm = normalMap(texture(n, uv()).rgb, vec2(1, -1)) as any, fine = m.normalNode as any;
+  m.normalNode = fine ? nm.add(fine.sub(normalView)).normalize() : nm;
+  m.aoNode = m.aoNode ? (m.aoNode as any).mul(t.r) : t.r;
+  if (albedo && m.colorNode) m.colorNode = (m.colorNode as any).mul(t.g.mul(2));
+  return m;
+}
+const MODEL_FACADE_NOTE = 'modelled in Blender (D-329, tools/blender/naqsh_facade.py): the cross-shaped recess with its door reveal; four engaged columns (plinth and torus base C, smooth half-engaged shaft C, astragal) with the double-bull protome capitals (the project’s Apadana protome model and carving at the tomb’s 0.76 m shaft, C); architrave of three fasciae, dentils, cornice; the doorway’s three receding bands and cavetto cornice over a torus (C, the Persepolis doorways’ form); the throne of the upper register (stretchers and top slab with bead mouldings, legs with turned rings and lion’s-paw feet, C after the reliefs’ throne type), the ground line and the three-stepped podium; normal and occlusion baked in Cycles (the protomes from their carved source)';
+const MODEL_KABA_NOTE = 'modelled in Blender (D-329, tools/blender/naqsh_kaba.py): corner piers, rows of small rectangular wall recesses and 0.95 m block courses (carved and baked), dentil cornice and roof slabs, the blind windows as stepped dark stone frames round a sunk panel, the stair between its side walls (forms C; white limestone and dark stone B)';
 /** the largest sign height the tomb panels allow (m): their lines are fitted to the field below it (C) */
 const NR_GLYPH_MAX = 0.08;
 
@@ -240,7 +254,7 @@ function endCaps(f: Face, xa: number, xb: number, H: number, holes: Hole[]): THR
 }
 
 // ---------------------------------------------------------------- Ka'ba-ye Zardosht
-function kaba(f: Face, terrain: Terrain, court: number, ancAsl: number): { white: THREE.BufferGeometry; dark: THREE.BufferGeometry; boxes: { c: THREE.Vector3; h: THREE.Vector3 }[] } {
+function kaba(f: Face, terrain: Terrain, court: number, ancAsl: number): { white: THREE.BufferGeometry; dark: THREE.BufferGeometry; boxes: { c: THREE.Vector3; h: THREE.Vector3 }[]; at: THREE.Vector3 } {
   const K = NR().kaba, [kx, ky] = feature('nr_kaba').xy as [number, number];
   const gy = Math.min(terrain.heightAt(kx, -ky), ancAsl - court - curvatureDrop(kx, -ky) + 3); // stands on the carved ancient ground
   const white: THREE.BufferGeometry[] = [], dark: THREE.BufferGeometry[] = [], boxes: { c: THREE.Vector3; h: THREE.Vector3 }[] = [];
@@ -263,7 +277,7 @@ function kaba(f: Face, terrain: Terrain, court: number, ancAsl: number): { white
   const win = (u: number, h: number, face: number) => { const ww = 0.8, wh = 1.6, o = S / 2 + 0.01;
     if (face === 0) add(dark, X + u, base + h, Z + o, ww, wh, 0.06, false); else add(dark, X + face * o, base + h, Z + u, 0.06, wh, ww, false); };
   for (const face of [0, -1, 1]) for (const u of [-1.4, 1.4]) { win(u, 5.0, face); win(u, 8.6, face); } // two tiers of two (C, Q-078)
-  return { white: mergeGeometries(white.map(g => { g.computeVertexNormals(); return g; }))!, dark: mergeGeometries(dark)!, boxes };
+  return { white: mergeGeometries(white.map(g => { g.computeVertexNormals(); return g; }))!, dark: mergeGeometries(dark)!, boxes, at: new THREE.Vector3(X, gy, Z) };
 }
 
 /** the cliff's one sheet (face, top, returns and the dressed fronts round the facades), with its UVs (CLIFF_UV) */
@@ -302,7 +316,9 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   group.userData = tag(feature('nr_darius_tomb'), 'Naqsh-e Rustam in 467 BCE: cliff, tomb of Darius I (sealed), tomb attributed to Xerxes (façade cut, uninscribed, D-033), Ka\'ba-ye Zardosht, Neo-Elamite relief; geometry plain.json naqsh_e_rustam (tiers there)');
   const tombs = [{ id: 'nr_darius_tomb', x: feature('nr_darius_tomb').xy[0] as number, inscribed: true }, { id: 'nr_xerxes_tomb', x: feature('nr_xerxes_tomb').xy[0] as number, inscribed: false }];
   const holes = tombs.flatMap(t => facadeHoles(t.x));
-  const rock = surfaceMaterial('nr_rock'), dressed = surfaceMaterial('nr_dressed');
+  const NM = monument('naqsh');
+  const rock = NM ? withBake(surfaceMaterial('nr_rock', { variant: 'monument:naqsh' }), NM.maps.cliff_n, NM.maps.cliff_a, true) : surfaceMaterial('nr_rock'), dressed = surfaceMaterial('nr_dressed');
+  const facadeMat = NM ? withBake(surfaceMaterial('nr_dressed', { variant: 'monument:facade' }), NM.maps.facade_n, NM.maps.facade_a, false) : null;
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
   // D-223 (rubric s7 pass 2 R9, the fine wavy moiré): a DoubleSide material is drawn DoubleSide into the shadow maps
   // (three r186 Renderer: shadowSide ?? side for DoubleSide), so the lit face wrote its own depth and shadowed itself:
@@ -319,17 +335,19 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
   const cliff = new THREE.Mesh(cliffMesh(f, terrain, holes, xa, xb, H, facades.map(q => q.fc.front)), rock);
   cliff.name = 'nr-cliff'; cliff.castShadow = cliff.receiveShadow = true;
-  cliff.userData = { tier: 'C', src: cl.src, note: `cliff ${H} m high (B, SX); face line and rock surface reconstructed (C)`, placeholder: false };
+  cliff.userData = { tier: 'C', src: cl.src, note: `cliff ${H} m high (B, SX); face line and rock surface reconstructed (C)` + (NM ? '; its surface baked in Blender (D-329, tools/blender/naqsh.py): open joints along the blocks, bedding joints and laminations, fracture traces, solution flutes under the crest, spall scars, pitting; run-off varnish below the ledges (all C)' : ''), placeholder: false };
   group.add(cliff);
   let tris = cliff.geometry.getAttribute('position').count / 3;
   for (const { t, fc } of facades) {
     const ft = feature(t.id);
-    const st = new THREE.Mesh(mergeGeometries(fc.stone.map(g => g.index ? g.toNonIndexed() : g))!, dressed); st.name = t.id; st.castShadow = st.receiveShadow = true;
-    st.userData = tag(ft, `${ft.name}: façade 22.93 m, median register 14 x 7.60 m, upper arm 8.50 m (B, SX); arm width 10.9 m, recess, columns and door C${t.inscribed ? '' : '; uninscribed (D-033)'}`);
+    const fg = NM ? NM.meshes.facade.clone().translate(t.x, f.groundAsl - f.court - curvatureDrop(t.x, -fy), -fy - NR().facade.recess_m) : mergeGeometries(fc.stone.map(g => g.index ? g.toNonIndexed() : g))!;
+    const st = new THREE.Mesh(fg, NM ? facadeMat! : dressed); st.name = t.id; st.castShadow = st.receiveShadow = true;
+    st.userData = tag(ft, `${ft.name}: façade 22.93 m, median register 14 x 7.60 m, upper arm 8.50 m (B, SX); arm width 10.9 m, recess, columns and door C${t.inscribed ? '' : '; uninscribed (D-033)'}` + (NM ? '; ' + MODEL_FACADE_NOTE : ''));
+    if (!NM) Object.assign(st.userData, { placeholder: true, placeholder_why: 'the façade’s architecture as boxes (the Blender model, D-329, not loaded)' });
     // the upper register and side panels carved by the relief system (D-069; per-figure LOD, far chunks): programme B, carving C
     const fig = new ReliefSet(fc.items, [], t.id + '-reliefs', NR_RELIEF_HIDE); // beyond 1.5 km every figure is under ~1 px
     fig.userData = { ...fig.userData, tier: 'C', src: 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', note: `upper register: ${F_BEARERS()} throne-bearers in two tiers, the king on a three-stepped podium before the fire altar, the winged figure and the moon; guards and attendants on the side panels (programme B); carved relief figures, drawing and paint C (NOT SEEN)`, placeholder: false };
-    group.add(st, fig); tris += st.geometry.getAttribute('position').count / 3;
+    group.add(st, fig); tris += (st.geometry.index ? st.geometry.index.count : st.geometry.getAttribute('position').count) / 3;
     if (fc.panels.length) { const pm = new THREE.Mesh(mergeGeometries(fc.panels)!, dressed); pm.name = t.id + '-inscription-panels'; pm.userData = { tier: 'C', src: 'LIVIUS-NR', note: 'DNa/DNb inscription panels: dressed fields (position and size C)', placeholder: false }; group.add(pm); }
     // the carved Old Persian text of DNa and DNb (one mesh), with pick rectangles for the translation layer
     for (const a of fc.texts) {
@@ -362,10 +380,13 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   group.add(relief, elamSet);
   // Ka'ba
   const kb = kaba(f, terrain, f.court, ancientFootAsl);
-  const kw = new THREE.Mesh(kb.white, surfaceMaterial('kaba_white')), kd = new THREE.Mesh(kb.dark, surfaceMaterial('limestone_dark'));
+  const kpos = (g: THREE.BufferGeometry) => g.clone().translate(kb.at.x, kb.at.y, kb.at.z);
+  const kw = NM ? new THREE.Mesh(kpos(NM.meshes.kaba_white), withBake(surfaceMaterial('kaba_white', { variant: 'monument:kaba' }), NM.maps.kaba_n, NM.maps.kaba_a, false)) : new THREE.Mesh(kb.white, surfaceMaterial('kaba_white'));
+  const kd = NM ? new THREE.Mesh(kpos(NM.meshes.kaba_dark), withBake(surfaceMaterial('limestone_dark', { variant: 'monument:kaba' }), NM.maps.kaba_n, NM.maps.kaba_a, false)) : new THREE.Mesh(kb.dark, surfaceMaterial('limestone_dark'));
   kw.name = 'nr-kaba'; kd.name = 'nr-kaba-dark'; kw.castShadow = kw.receiveShadow = kd.receiveShadow = true;
-  kw.userData = kd.userData = tag(feature('nr_kaba'), `Ka'ba-ye Zardosht: 12 m tower on a triple-stepped base (14.12 m), base side 7.30 m, 30-step stair, door 1.7 x 0.87 m (C, WP-NR search extract); window layout and stair orientation C; date disputed (Q-006)`);
-  group.add(kw, kd); tris += (kb.white.getAttribute('position').count + kb.dark.getAttribute('position').count) / 3;
+  kw.userData = kd.userData = tag(feature('nr_kaba'), `Ka'ba-ye Zardosht: 12 m tower on a triple-stepped base (14.12 m), base side 7.30 m, 30-step stair, door 1.7 x 0.87 m (C, WP-NR search extract); window layout and stair orientation C; date disputed (Q-006)` + (NM ? '; ' + MODEL_KABA_NOTE : ''));
+  const ntri = (g: THREE.BufferGeometry) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+  group.add(kw, kd); tris += ntri(kw.geometry) + ntri(kd.geometry);
   return { group, tris, texts,
     colliders(phys: Physics) {
       const g = cliff.geometry, p = g.getAttribute('position') as THREE.BufferAttribute, idx = new Uint32Array(p.count); for (let i = 0; i < p.count; i++) idx[i] = i;

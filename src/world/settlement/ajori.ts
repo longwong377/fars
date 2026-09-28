@@ -8,7 +8,7 @@
 // stepped crenellations, bench size, the rows' number and placement, the figures' drawing (from the type, not traced
 // from the fragments) and the glaze colours.
 import * as THREE from 'three/webgpu';
-import { texture, uv, attribute, vec3, vec2, float, normalMap, normalView } from 'three/tsl';
+import { texture, uv, attribute, vec3, vec2, float, normalMap, normalView, sqrt, max } from 'three/tsl';
 import { surfaceMaterial } from '../../render/materials';
 import { Batch, lin, RGB } from './geom';
 import { AJORI } from './plan';
@@ -146,10 +146,14 @@ function modelled(M: Monument, group: THREE.Group, f: { c: P2; theta: number }, 
   // body: the project's baked-brick surface (measured tint, scans, weather) x the tile's per-brick firing colour x the light map's
   // weathering; the tile's normal under the surface's own fine relief; occlusion = the tile's x the light map's
   const bmat = surfaceMaterial('baked_brick', { variant: 'monument:ajori' });
-  const bc = texture(mp.brick_c, uv()), ba = texture(mp.brick_a, uv()), bn = normalMap(texture(mp.brick_n, uv()).rgb, vec2(1, -1)) as any, fine = bmat.normalNode as any;
-  bmat.colorNode = (bmat.colorNode as any ?? vec3(0.62, 0.5, 0.36)).mul(bc.rgb.mul(2)).mul(light.g.mul(2));
+  // the brick tile's one map (D-300 sampler budget): R, G the normal's x, y (z rebuilt), B the firing tone x the joints' occlusion (/2)
+  const bp = texture(mp.brick_n, uv()), nx = bp.r.mul(2).sub(1), ny = bp.g.mul(2).sub(1), nz = sqrt(max(float(0), float(1).sub(nx.mul(nx)).sub(ny.mul(ny))));
+  const bn = normalMap(vec3(bp.r, bp.g, nz.mul(0.5).add(0.5)), vec2(1, -1)) as any, fine = bmat.normalNode as any, tone = bp.b.mul(2);
+  // hue with the tone: the darker (harder-fired) bricks a little redder-brown, the pale ones yellower (C)
+  const hue = vec3(1.0, 0.985, 0.955).add(vec3(0.0, 0.01, 0.04).mul(tone.sub(1)));
+  bmat.colorNode = (bmat.colorNode as any ?? vec3(0.62, 0.5, 0.36)).mul(hue.mul(tone)).mul(light.g.mul(2));
   bmat.normalNode = fine ? bn.add(fine.sub(normalView)).normalize() : bn;
-  bmat.aoNode = bmat.aoNode ? (bmat.aoNode as any).mul(ba.r).mul(light.r) : ba.r.mul(light.r); bmat.name = 'monument:ajori:body';
+  bmat.aoNode = bmat.aoNode ? (bmat.aoNode as any).mul(light.r) : light.r; bmat.name = 'monument:ajori:body';
   const body = new THREE.Mesh(M.meshes.body, bmat); body.name = 'settlement:tol_ajori:body';
   body.userData = { tier: 'B/C', src: 'TOLAJORI2017;AJORI-BRICK2018;AJORI2013', note: TIER_NOTE + '. ' + MODEL_NOTE, placeholder: false }; place(body);
   const gc = texture(mp.glaze_c, uv()), ga = texture(mp.glaze_a, uv());

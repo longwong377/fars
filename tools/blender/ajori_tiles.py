@@ -150,7 +150,7 @@ def glaze_common(rng, Hh, Ww, th):
     craz = np.abs(ml.noise2(rng, Hh, Ww, 2, 18, 0.6)); craz = np.clip(1 - craz / 0.06, 0, 1) * 0.5   # crizzling network (faint)
     return B, tone, craz
 
-def finish_glaze(rng, B, col, h_fig, tone, craz, glaze_rough=0.26):
+def finish_glaze(rng, B, col, h_fig, tone, craz, glaze_rough=0.38):
     """joints, chips at the arrises exposing the body, crazing, per-brick glaze thickness; returns (h, colour lin, rough)"""
     h = B['hb'] + h_fig
     w = B['w']

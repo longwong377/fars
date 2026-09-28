@@ -34,8 +34,11 @@ if 'tiles' in stages:
     rng = np.random.default_rng(4671)
     h, col, rough = T.brick_tile(rng)
     nrm, ao = ml.bake_tile(h, T.TW, T.TH, ao_dist=0.03, ao_samples=96)
-    ml.write_png(f'{OUT}/brick_n.png', ml.q8(nrm)); ml.write_png(f'{OUT}/brick_a.png', ml.q8(np.stack([ao, np.full_like(ao, 0.5), rough], -1)))
-    ml.write_png(f'{OUT}/brick_c.png', ml.q8(col / 2)); ml.write_png(f'{OUT}/brick_rake.png', ml.rake(nrm, ao))
+    # one map (D-300's sampler budget: the body's surface already declares 4): R, G the tangent normal's x, y (z rebuilt in the
+    # shader), B the brick's firing tone x the joints' occlusion, /2 (the albedo multiplier; hue from the tone in the shader)
+    lum = (col * np.array([0.3, 0.55, 0.15])).sum(-1)
+    ml.write_png(f'{OUT}/brick_n.png', ml.q8(np.stack([nrm[..., 0], nrm[..., 1], np.clip(lum * (0.35 + 0.65 * ao) / 2, 0, 1)], -1)))
+    ml.write_png(f'{OUT}/brick_rake.png', ml.rake(nrm, ao))
     stats['brick'] = {'h_sd_mm': float(h.std() * 1000), 'ao_mean': float(ao.mean()), 'slope_sd': float(np.sqrt(((nrm[..., :2] * 2 - 1) ** 2).sum(-1).mean()))}
     ml.log('brick', stats['brick'])
     AC = np.zeros((ATLAS_H, T.W, 3)); AN = np.zeros((ATLAS_H, T.W, 3)); AA = np.zeros((ATLAS_H, T.W, 3)); HF = {}

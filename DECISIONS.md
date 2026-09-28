@@ -8063,3 +8063,14 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   lining both corridors: 120 relief figures as decimated geometry 28 mm proud, blue ground, white and orange-yellow figures,
   greenish curl and hooves, sunk outlines and white-petalled rosettes B from AMADORI2023 (Journal of Cultural Heritage 60,
   2023, read in full this session); rows, facing and drawing C). Evidence added: AMADORI2023.
+  Naqsh-e Rustam: every element the site draws but the reliefs agent's figures and the inscriptions: (1) the cliff keeps the
+  game's sheet (collision, holes, crest, blocks) and gains UVs (naqsh.ts CLIFF_UV) and a Cycles bake from a dense 8 cm surface =
+  the game's own faceDepth + the limestone's structure carved in numpy (open joints along the blocks' own joints, bedding joints
+  with a sharp lip, laminations, 1,400 fracture traces, karren under the crest, 700 spall scars, pits; nothing in the dressed
+  margins; all C): normal 8192 x 1024 (6 x 8 cm per texel), occlusion over 2 m and a run-off varnish albedo 4096 x 512; (2) the
+  tomb façade (both tombs, one model) modelled in Blender: recess and door reveal, plinth + torus bases, tapering
+  half-engaged shafts, astragals, the project's protome model and carving as the capitals at the tomb's 0.76 m shaft,
+  architrave, dentils, cornice, the doorway's bands and cavetto, the throne (stretchers, top slab, turned legs on lion's paws),
+  ground line, podium (forms C, Q-915); (3) the Ka'ba modelled (corner piers, rows of recesses and block joints carved and
+  baked, cornice, dentils, stepped dark window frames, stair). Budgets: kept under the plain's per-frame 2 M by cutting the
+  façade to ~10 k triangles (protome at 1,100); the plain's static 2.0 M test was already failing (2.105 M) before this change.
