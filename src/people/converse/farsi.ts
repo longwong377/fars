@@ -13,8 +13,12 @@ const FENCE_FA: [RegExp, string][] = [
   [/ماشین|اتومبیل|خودرو/, 'car'], [/قطار/, 'train'], [/هواپیما/, 'aeroplane'], [/مسجد/, 'mosque'], [/اسلام|مسلمان|قرآن|نماز|الله/, 'Islam'], [/پول|اسکناس|سکه/, 'money'],
   [/دقیقه|ساعت\s*\d/, 'clock time'], [/میلادی|هجری|شمسی/, 'era'], [/تفنگ|باروت/, 'gun'], [/سیب[\s‌]*زمینی|گوجه/, 'New World crops'], [/ایران(?!ی)/, 'Iran (the modern state)'],
 ];
-export function fenceFa(fa: string): string[] {
-  const hits = FENCE_FA.filter(([re]) => re.test(fa)).map(([, t]) => t);
+/** Arabic yeh and kaf as Persian's (the translators write either) */
+export const normFa = (s: string) => s.replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/ى/g, 'ی');
+/** each fence word only at a word's start (JS's \b is ASCII only: "پول", money, is inside "پرسپولیس") */
+const AT_START = FENCE_FA.map(([re, t]) => [new RegExp(`(?<![\\u0600-\\u06FF])(?:${re.source})`), t] as [RegExp, string]);
+export function fenceFa(text: string): string[] {
+  const fa = normFa(text); const hits = AT_START.filter(([re]) => re.test(fa)).map(([, t]) => t);
   const letters = [...fa.replace(/[\s\d.,!?؟،؛:"'«»()\-–—…‌]/g, '')]; const persian = letters.filter(c => /[؀-ۿﭐ-﷿ﹰ-﻿]/.test(c)).length;
   if (!letters.length || persian / letters.length < 0.9) hits.push('not Persian script');
   if (/\d/.test(fa)) hits.push('digits');

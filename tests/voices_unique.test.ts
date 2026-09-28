@@ -105,3 +105,9 @@ describe('T-E11: the measured share (tools/dev/voices_eval.ts)', () => {
   });
 });
 void LEXICON; void LINES;
+describe('the Farsi fence reads what translators write (D-336)', () => {
+  it('Arabic yeh and kaf, and words only at their start', () => {
+    expect(fenceFa('يه پرسپوليس با نامه اي مهر شده')).toEqual(['Persepolis']);
+    expect(fenceFa('پولم را بده')).toContain('money');
+  });
+});

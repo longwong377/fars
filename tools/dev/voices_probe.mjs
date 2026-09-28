@@ -13,5 +13,6 @@ const LIMIT = +(process.env.PROBE_S ?? 900) * 1000;
 while (Date.now() - t0 < LIMIT) { const st = await p.evaluate(() => ({ done: !!window.__probe?.done, keys: Object.keys(window.__probe ?? {}), stats: window.__probe?.stats0 ?? null })).catch(e => ({ err: String(e) }));
   console.log(((Date.now() - t0) / 1000).toFixed(0), 's', JSON.stringify(st), logs.slice(-3).join(' | ').slice(0, 400)); if (st.done) break; await new Promise(r => setTimeout(r, 15000)); }
 const r = await p.evaluate(() => window.__probe); r.wallS = (Date.now() - t0) / 1000; r.logs = logs.slice(-40);
-writeFileSync(OUTF, JSON.stringify(r, null, 1)); console.log(JSON.stringify({ ...r, crowd: r.crowd && { ...r.crowd, renderMs: undefined }, logs: r.logs.slice(-8) }, null, 1));
+writeFileSync(OUTF, JSON.stringify(r, null, 1));
+console.log(JSON.stringify(r, (k, v) => (k === 'clips' || k === 'renderMs' || k === 'rows' ? `[${v?.length}]` : typeof v === 'number' ? Math.round(v * 100) / 100 : v), 1).slice(0, 6000));
 await b.close();
