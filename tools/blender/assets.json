@@ -20,7 +20,8 @@
      "public/generated/sculpt_protome_1.bin",
      "tools/blender/lib/ply.ts",
      "tools/blender/carving.json",
-     "tools/blender/lib/carving.ts"
+     "tools/blender/lib/carving.ts",
+     "tools/blender/bake_cols.py"
     ],
     "spec_values": [
      [
@@ -39,6 +40,7 @@
    ],
    "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m). 2048 px over LOD0 (D-306: was 1024): ~0.55 cm per texel on the Apadana's protome (5.6 m wide), so a bead of the carving (0.03 D, 5 cm) spans ~9 texels and a rosette petal 2-3; 256 px for LOD1 (seen beyond 32 m, where a bead is under a pixel)",
    "bake": {
+    "script": "tools/blender/bake_cols.py",
     "cage": 0.03,
     "ray": 0.06,
     "margin": 8,
@@ -49,7 +51,7 @@
     "uv_margin": 0.004,
     "high_normals": "geometry"
    },
-   "bake_note": "units: the source's (D, the column's lower shaft diameter). cage 0.03 D and rays 0.06 D cover the LOD0 simplification error (<= 1 cell); AO rays 0.2 D (32 cm on the Apadana) see the carving's own hollows (eye sockets, the gap under the forelegs, between the locks), not the building",
+   "bake_note": "units: the source's (D, the column's lower shaft diameter). cage 0.03 D and rays 0.06 D cover the LOD0 simplification error (<= 1 cell); AO rays 0.2 D (32 cm on the Apadana) see the carving's own hollows (eye sockets, the gap under the forelegs, between the locks), not the building; D-328: baked by bake_cols.py (rays from a smooth cage: the volute's reeded panel had seam streaks along its creases)",
    "budget": {
     "tris": [
      8900,
@@ -223,7 +225,8 @@
      "public/generated/sculpt_volute_1.bin",
      "tools/blender/lib/ply.ts",
      "tools/blender/carving.json",
-     "tools/blender/lib/carving.ts"
+     "tools/blender/lib/carving.ts",
+     "tools/blender/bake_cols.py"
     ],
     "spec_values": [
      [
@@ -250,6 +253,7 @@
    ],
    "lods_note": "the game's two levels (lod.switch.column 32 m). 1024 px over LOD0 (the member is 1.25 x 0.9 x 1.6 D: ~0.5 cm per texel on the Apadana, a petal ~4 texels); 256 px for LOD1",
    "bake": {
+    "script": "tools/blender/bake_cols.py",
     "cage": 0.03,
     "ray": 0.06,
     "margin": 8,
@@ -260,7 +264,7 @@
     "uv_margin": 0.004,
     "high_normals": "geometry"
    },
-   "bake_note": "units D; as the protome (cage 0.03 D, rays 0.06 D cover the LOD0 error and the game piece's spiral channel, 0.027 D deep, that the rosette's disc fills); AO rays 0.15 D see the gaps between the rolls, the reeds and the petals",
+   "bake_note": "units D; as the protome (cage 0.03 D, rays 0.06 D cover the LOD0 error and the game piece's spiral channel, 0.027 D deep, that the rosette's disc fills); AO rays 0.15 D see the gaps between the rolls, the reeds and the petals; D-328: baked by bake_cols.py (rays from a smooth cage: the volute's reeded panel had seam streaks along its creases)",
    "budget": {
     "tris": [
      2900,
@@ -277,6 +281,796 @@
    "tier": "C",
    "src": "RECON;IR-COL;PHOTO-GATE",
    "ledger": "Baked composite-capital volute member (public/models/capital_volute.glb; D-306)"
+  },
+  "column_base_bell": {
+   "title": "the bell base (every bell-based order: the Gate, the Apadana porticoes, the Hall of 100 Columns, the Tripylon, the Harem's stone order): the game's own member of the apadana order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "base_bell",
+     "0.003"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 3 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "apadana",
+      "column_height"
+     ],
+     [
+      "apadana",
+      "shaft_diameter_base"
+     ],
+     [
+      "apadana",
+      "capital_height"
+     ],
+     [
+      "apadana",
+      "capital"
+     ],
+     [
+      "apadana",
+      "flutes"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 2048
+    },
+    {
+     "tex": 256
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m); 2048 px over LOD0, 256 px over LOD1 (beyond 32 m)",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.04,
+    "ray": 0.09,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 128,
+    "ao_distance": 0.25,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 4 cm out (bake_cols.py) and reach 9 cm: the source's carving stands at most about 2.8 cm off the game's triangles; AO rays 25 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     5720,
+     456
+    ],
+    "tex": [
+     2048,
+     256
+    ],
+    "glb_bytes": 7000000,
+    "gpu_bytes": 9000000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;BELL_BASE;BELL_BASE2;PLATE_BASES",
+   "ledger": "Baked column base bell (public/models/column_base_bell.glb; D-328)"
+  },
+  "column_base_square2": {
+   "title": "the square two-step base with its torus (the Apadana hall, the Tachara, the Treasury's, the Harem's and the garrison's timber orders): the game's own member of the apadana order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "base_square2",
+     "0.005"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 5 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "apadana",
+      "column_height"
+     ],
+     [
+      "apadana",
+      "shaft_diameter_base"
+     ],
+     [
+      "apadana",
+      "capital_height"
+     ],
+     [
+      "apadana",
+      "capital"
+     ],
+     [
+      "apadana",
+      "flutes"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 1024
+    },
+    {
+     "tex": 128
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m); 1024 px over LOD0, 128 px over LOD1 (beyond 32 m)",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.012,
+    "ray": 0.03,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 128,
+    "ao_distance": 0.2,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 1.2 cm out (bake_cols.py) and reach 3 cm: the source's carving stands at most about 0.8 cm off the game's triangles; AO rays 20 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     2544,
+     224
+    ],
+    "tex": [
+     1024,
+     128
+    ],
+    "glb_bytes": 2500000,
+    "gpu_bytes": 2600000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES;LOUVRE",
+   "ledger": "Baked column base square2 (public/models/column_base_square2.glb; D-328)"
+  },
+  "column_base_plain": {
+   "title": "the plain drum base with its torus (the Hadish): the game's own member of the hadish order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "base_plain",
+     "0.003"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 3 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "hadish",
+      "column_height"
+     ],
+     [
+      "hadish",
+      "r_shaft"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 1024
+    },
+    {
+     "tex": 128
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m); 1024 px over LOD0, 128 px over LOD1 (beyond 32 m)",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.012,
+    "ray": 0.03,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 128,
+    "ao_distance": 0.15,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 1.2 cm out (bake_cols.py) and reach 3 cm: the source's carving stands at most about 0.8 cm off the game's triangles; AO rays 15 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     2744,
+     264
+    ],
+    "tex": [
+     1024,
+     128
+    ],
+    "glb_bytes": 2500000,
+    "gpu_bytes": 2600000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES",
+   "ledger": "Baked column base plain (public/models/column_base_plain.glb; D-328)"
+  },
+  "column_bells": {
+   "title": "the composite capital's palm and calyx bells (the Apadana hall and N/E porticoes, the Gate): the game's own member of the apadana order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "bells",
+     "0.004"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 4 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "apadana",
+      "column_height"
+     ],
+     [
+      "apadana",
+      "shaft_diameter_base"
+     ],
+     [
+      "apadana",
+      "capital_height"
+     ],
+     [
+      "apadana",
+      "capital"
+     ],
+     [
+      "apadana",
+      "flutes"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 1024
+    },
+    {
+     "tex": 128
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m); 1024 px over LOD0, 128 px over LOD1 (beyond 32 m)",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.05,
+    "ray": 0.11,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 128,
+    "ao_distance": 0.3,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 5 cm out (bake_cols.py) and reach 11 cm: the source's carving stands at most about 3.5 cm off the game's triangles; AO rays 30 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     3496,
+     320
+    ],
+    "tex": [
+     1024,
+     128
+    ],
+    "glb_bytes": 2500000,
+    "gpu_bytes": 2600000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES;PLATE_COLUMN",
+   "ledger": "Baked column bells (public/models/column_bells.glb; D-328)"
+  },
+  "column_collar": {
+   "title": "the double-bull capital's collar (every bull capital): the game's own member of the apadana order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "collar",
+     "0.003"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 3 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "apadana",
+      "column_height"
+     ],
+     [
+      "apadana",
+      "shaft_diameter_base"
+     ],
+     [
+      "apadana",
+      "capital_height"
+     ],
+     [
+      "apadana",
+      "capital"
+     ],
+     [
+      "apadana",
+      "flutes"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 512
+    },
+    {
+     "tex": 64
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m); 512 px over LOD0, 64 px over LOD1 (beyond 32 m)",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.04,
+    "ray": 0.08,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 128,
+    "ao_distance": 0.15,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 4 cm out (bake_cols.py) and reach 8 cm: the source's carving stands at most about 2.8 cm off the game's triangles; AO rays 15 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     336,
+     96
+    ],
+    "tex": [
+     512,
+     64
+    ],
+    "glb_bytes": 900000,
+    "gpu_bytes": 800000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_COLUMN",
+   "ledger": "Baked column collar (public/models/column_collar.glb; D-328)"
+  },
+  "column_capital_plain": {
+   "title": "the timber orders' bolster and abacus (the Treasury, the Harem's posts, the garrison): the game's own member of the treasury order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "capital_plain",
+     "0.003"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 3 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "treasury",
+      "column_height"
+     ],
+     [
+      "treasury",
+      "r_shaft"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 512
+    },
+    {
+     "tex": 64
+    }
+   ],
+   "lods_note": "the game's two levels (sculpture.json lod.switch.column 32 m); 512 px over LOD0, 64 px over LOD1 (beyond 32 m)",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.015,
+    "ray": 0.04,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 128,
+    "ao_distance": 0.1,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 1.5 cm out (bake_cols.py) and reach 4 cm: the source's carving stands at most about 1.1 cm off the game's triangles; AO rays 10 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     24,
+     24
+    ],
+    "tex": [
+     512,
+     64
+    ],
+    "glb_bytes": 900000,
+    "gpu_bytes": 800000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES",
+   "ledger": "Baked column capital plain (public/models/column_capital_plain.glb; D-328)"
+  },
+  "column_shaft_f48": {
+   "title": "the tile of the 48-flute shafts (the Apadana), three drums tall and the whole way round: the game's own shaft band of the apadana order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "shaft_f48",
+     "0.003"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 3 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "apadana",
+      "column_height"
+     ],
+     [
+      "apadana",
+      "shaft_diameter_base"
+     ],
+     [
+      "apadana",
+      "capital_height"
+     ],
+     [
+      "apadana",
+      "capital"
+     ],
+     [
+      "apadana",
+      "flutes"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 2048,
+     "uv": "source"
+    },
+    {
+     "tex": 256,
+     "uv": "source"
+    }
+   ],
+   "lods_note": "the game's two shaft levels (sculpture.json lod.switch.column 32 m); the map spans the whole circumference and three drums (2048 px): the game samples it at sculpt.ts shaftUV's coordinates, offset per column by whole flutes and drums",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.012,
+    "ray": 0.03,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 64,
+    "ao_distance": 0.05,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 1.2 cm out (bake_cols.py) and reach 3 cm: the source's carving stands at most about 0.8 cm off the game's triangles; AO rays 5 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     384,
+     192
+    ],
+    "tex": [
+     2048,
+     256
+    ],
+    "glb_bytes": 7000000,
+    "gpu_bytes": 9000000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;SHAFTS;PLATE_COLUMN",
+   "ledger": "Baked column shaft f48 (public/models/column_shaft_f48.glb; D-328)"
+  },
+  "column_shaft_f40": {
+   "title": "the tile of the 40-flute shafts (the Gate, the Tachara, the Hadish, the Hall of 100 Columns, the Tripylon, the Harem's stone order): the game's own shaft band of the hall100 order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "shaft_f40",
+     "0.0025"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 2.5 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "hall100",
+      "column_height"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 2048,
+     "uv": "source"
+    },
+    {
+     "tex": 256,
+     "uv": "source"
+    }
+   ],
+   "lods_note": "the game's two shaft levels (sculpture.json lod.switch.column 32 m); the map spans the whole circumference and three drums (2048 px): the game samples it at sculpt.ts shaftUV's coordinates, offset per column by whole flutes and drums",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.012,
+    "ray": 0.03,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 64,
+    "ao_distance": 0.05,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 1.2 cm out (bake_cols.py) and reach 3 cm: the source's carving stands at most about 0.8 cm off the game's triangles; AO rays 5 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     320,
+     160
+    ],
+    "tex": [
+     2048,
+     256
+    ],
+    "glb_bytes": 7000000,
+    "gpu_bytes": 9000000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;SHAFTS;PLATE_COLUMN",
+   "ledger": "Baked column shaft f40 (public/models/column_shaft_f40.glb; D-328)"
+  },
+  "column_shaft_drums": {
+   "title": "the tile of the unfluted drums (the Hall of 100 Columns and the Tripylon under construction, the masons' yard): the game's own shaft band of the hall100 order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "shaft_drums",
+     "0.004"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 4 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "hall100",
+      "column_height"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 1024,
+     "uv": "source"
+    },
+    {
+     "tex": 128,
+     "uv": "source"
+    }
+   ],
+   "lods_note": "the game's two shaft levels (sculpture.json lod.switch.column 32 m); the map spans the whole circumference and three drums (1024 px): the game samples it at sculpt.ts shaftUV's coordinates, offset per column by whole flutes and drums",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.012,
+    "ray": 0.03,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 64,
+    "ao_distance": 0.05,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 1.2 cm out (bake_cols.py) and reach 3 cm: the source's carving stands at most about 0.8 cm off the game's triangles; AO rays 5 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     112,
+     32
+    ],
+    "tex": [
+     1024,
+     128
+    ],
+    "glb_bytes": 2500000,
+    "gpu_bytes": 2600000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;SHAFTS",
+   "ledger": "Baked column shaft drums (public/models/column_shaft_drums.glb; D-328)"
+  },
+  "column_shaft_plaster": {
+   "title": "the tile of the plastered timber posts (the Treasury's painted shafts, the Harem's and the garrison's posts): the game's own shaft band of the treasury order with the photographed carving and the stone's dressing baked in (D-328)",
+   "source": {
+    "script": "tools/blender/sources/column_member.ts",
+    "args": [
+     "shaft_plaster",
+     "0.003"
+    ],
+    "args_note": "member (sculpt.ts MEMBER_REF / the tile's reference shaft in column_member.ts SHAFT_REF); the source sampled every 3 mm (about the map's texel over the member, so the cords, beads and joints are resolved and nothing finer is wasted). Technical, C",
+    "inputs": [
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "src/arch/orders.ts",
+     "src/arch/sdf.ts",
+     "src/arch/spec.ts",
+     "tools/blender/columns.json",
+     "tools/blender/lib/ply_uv.ts",
+     "tools/blender/bake_cols.py"
+    ],
+    "spec_values": [
+     [
+      "global",
+      "r_column_proportions"
+     ],
+     [
+      "treasury",
+      "column_height"
+     ],
+     [
+      "treasury",
+      "r_shaft"
+     ]
+    ]
+   },
+   "lods": [
+    {
+     "tex": 1024,
+     "uv": "source"
+    },
+    {
+     "tex": 128,
+     "uv": "source"
+    }
+   ],
+   "lods_note": "the game's two shaft levels (sculpture.json lod.switch.column 32 m); the map spans the whole circumference and three drums (1024 px): the game samples it at sculpt.ts shaftUV's coordinates, offset per column by whole flutes and drums",
+   "bake": {
+    "script": "tools/blender/bake_cols.py",
+    "cage": 0.01,
+    "ray": 0.025,
+    "margin": 8,
+    "normal_samples": 16,
+    "ao_samples": 64,
+    "ao_distance": 0.05,
+    "uv_angle": 66,
+    "uv_margin": 0.004,
+    "high_normals": "geometry"
+   },
+   "bake_note": "units: metres. The rays leave from a smooth cage 1 cm out (bake_cols.py) and reach 2.5 cm: the source's carving stands at most about 0.7 cm off the game's triangles; AO rays 5 cm see the carving's own hollows, not the building",
+   "budget": {
+    "tris": [
+     112,
+     32
+    ],
+    "tex": [
+     1024,
+     128
+    ],
+    "glb_bytes": 2500000,
+    "gpu_bytes": 2600000
+   },
+   "budget_note": "triangles: the game's own member (the bake adds maps, not triangles); GLB and GPU from the measured KTX2 build with a margin (D-328)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_BASES",
+   "ledger": "Baked column shaft plaster (public/models/column_shaft_plaster.glb; D-328)"
   }
  }
 }

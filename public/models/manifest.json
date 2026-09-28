@@ -3,7 +3,7 @@
  "assets": {
   "capital_protome": {
    "file": "models/capital_protome.glb",
-   "inHash": "52efd9f60cf8a43da5d5f90d99fa1fba4f33a172d1dec27b68f198e1016f4f8d",
+   "inHash": "45ef4722f04868788e18debf589e96988e9f5fee144e85f0b765425e4b5fe988",
    "outHash": "839345e044c477483cd2c784b6701043687498476efdd0471e185a22b894a81e",
    "bytes": 3284600,
    "gpuBytes": 6491971,
@@ -53,17 +53,12 @@
    "src": "RECON;IR-COL;PHOTO-CAP",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 58,
-   "build_s": 327,
-   "reproduced": {
-    "outHash": "839345e044c477483cd2c784b6701043687498476efdd0471e185a22b894a81e",
-    "device": "CPU",
-    "blender": "5.0.1"
-   }
+   "bake_s": 51.2,
+   "build_s": 291
   },
   "capital_volute": {
    "file": "models/capital_volute.glb",
-   "inHash": "3ec757770b1caad5743b4e8706fed58e0d290ef4d59d3a3ac6fa38e0f9b3db9a",
+   "inHash": "0a677d513cb73cf15b32e55c2ccbb916a5f20580034b93afd8f8b5fec634a9cc",
    "outHash": "2b825689226bd66551eec33279c55377fdd0a1d3ce964ac1d6ec9ba5515bd398",
    "bytes": 915616,
    "gpuBytes": 1690851,
@@ -113,18 +108,13 @@
    "src": "RECON;IR-COL;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 21.7,
-   "build_s": 53,
-   "reproduced": {
-    "outHash": "2b825689226bd66551eec33279c55377fdd0a1d3ce964ac1d6ec9ba5515bd398",
-    "device": "CPU",
-    "blender": "5.0.1"
-   }
+   "bake_s": 18.8,
+   "build_s": 40
   },
   "colossus_bull": {
    "file": "models/colossus_bull.glb",
-   "inHash": "65435d71ad84cdb5d8be8d8b86f4f3820194c593e40cbdb4ef5d1222b4acbb52",
-   "outHash": "5693be667a3fc05ab9a5d07a16e24781541e31a6044bb90c3917664624bb0d40",
+   "inHash": "ff93025262ae44793755ea5278d08cea568ee02f4a6be27d3432a335502b09b7",
+   "outHash": "1f5d345e57df549289365cdf24ad4a96bba95096e9a100ac939e56d34fe831e7",
    "bytes": 3083460,
    "gpuBytes": 9097019,
    "textures": "ktx2",
@@ -173,17 +163,12 @@
    "src": "RECON;IR-PERS;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 58.7,
-   "build_s": 178,
-   "reproduced": {
-    "outHash": "5693be667a3fc05ab9a5d07a16e24781541e31a6044bb90c3917664624bb0d40",
-    "device": "CPU",
-    "blender": "5.0.1"
-   }
+   "bake_s": 81.6,
+   "build_s": 179
   },
   "colossus_lamassu": {
    "file": "models/colossus_lamassu.glb",
-   "inHash": "6341030f173405274243899f6258a5f3324881a28d72f8fb4ad496b1102fb2fc",
+   "inHash": "a0f8f1eadf585767c003a01398577e0c847e2548ea71a5f9ea8d6f1b386c5f0e",
    "outHash": "534ed063a4b98bf8e9c5d3061663ea34b0fe42c9514f83b0f9dfb27b68a67398",
    "bytes": 3480660,
    "gpuBytes": 9599879,
@@ -233,13 +218,63 @@
    "src": "RECON;IR-PERS;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 51.3,
-   "build_s": 236,
-   "reproduced": {
-    "outHash": "534ed063a4b98bf8e9c5d3061663ea34b0fe42c9514f83b0f9dfb27b68a67398",
-    "device": "CPU",
-    "blender": "5.0.1"
-   }
+   "bake_s": 93,
+   "build_s": 247
+  },
+  "column_collar": {
+   "file": "models/column_collar.glb",
+   "inHash": "ddaacc24abdc56cb01e2f1644db8b93bdb744f467230325b19a4e02b9f768732",
+   "outHash": "7cf44b936f2a7d05eb1a70583d3a5cce43ac23dc0de87648ce3e66d0c8f18657",
+   "bytes": 145512,
+   "gpuBytes": 382059,
+   "textures": "ktx2",
+   "lods": [
+    {
+     "name": "lod0",
+     "tris": 336,
+     "verts": 294,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 512,
+      "h": 512,
+      "format": "ktx2",
+      "bytes": 132486
+     },
+     "ao_mean": 0.5697
+    },
+    {
+     "name": "lod1",
+     "tris": 96,
+     "verts": 162,
+     "attrs": [
+      "NORMAL",
+      "POSITION",
+      "TANGENT",
+      "TEXCOORD_0",
+      "draco"
+     ],
+     "map": {
+      "w": 64,
+      "h": 64,
+      "format": "ktx2",
+      "bytes": 4662
+     },
+     "ao_mean": 0.7416
+    }
+   ],
+   "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
+   "tier": "C",
+   "src": "RECON;PHOTO;PLATE_COLUMN",
+   "blender": "5.0.1",
+   "device": "CPU",
+   "bake_s": 26.5,
+   "build_s": 59
   }
  }
 }

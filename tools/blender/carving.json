@@ -4,7 +4,8 @@
   "cap_side": "fars-assets/photos/columns_capitals/130306670_Top_of_column_in_Persepolis_Iran_463164308.jpg (fallen double-bull capital, side and three-quarter)",
   "cap_head": "fars-assets/photos/columns_capitals/57159196_Broken_Bull_Capital_Persepolis_panoramio.jpg (bull capital head and neck, side)",
   "gate_bull": "fars-assets/photos/gate_of_all_nations/64143388_Statuary_of_Bulls_Gate_of_All_Nations_Persepolis_Central_Ira.jpg (W doorway bull, passage side)",
-  "gate_front": "fars-assets/photos/gate_of_all_nations/81527995_GateOfAllNations_Frontview.jpg (E human-headed bulls, front)"
+  "gate_front": "fars-assets/photos/gate_of_all_nations/81527995_GateOfAllNations_Frontview.jpg (E human-headed bulls, front)",
+  "cap_louvre": "references/column in louvre.jpg (the Louvre's double-bull capital from Susa, front: the apron of close-set curl tufts hanging in a V between the two bulls' forelegs, over the volute member)"
  },
  "protome": {
   "unit": "D",
@@ -239,6 +240,37 @@
      0,
      0.038
     ]
+   },
+   {
+    "name": "apron",
+    "kind": "fringe",
+    "tier": "C",
+    "src": "cap_louvre",
+    "note": "D-328 (BLENDER_PLAN row 4): the apron of curl tufts on the front of the block where the two bulls meet, hanging in a V from under their chests (cap_louvre: a trapezoid of small square tufts, ~10 columns, longest in the middle; carved here as close bead rows, 0.034 D apart; layout and sizes C)",
+    "top": {
+     "pts": [
+      [
+       0,
+       0.56
+      ],
+      [
+       0.2,
+       0.56
+      ]
+     ]
+    },
+    "rows": [
+     7,
+     7,
+     6,
+     5,
+     4,
+     3
+    ],
+    "pitch": 0.034,
+    "spacing": 0.036,
+    "r": 0.015,
+    "h": 0.009
    }
   ]
  },

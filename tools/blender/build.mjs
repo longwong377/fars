@@ -70,9 +70,10 @@ for (const id of want) {
   // 2. source meshes (the project's own model code)
   run(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['tsx', E.source.script, src, ...E.source.args], { shell: process.platform === 'win32' });
   // 3. the Blender bake
-  const job = { id, high: `${src}/high.ply`, lods: E.lods.map((L, i) => ({ ply: `${src}/lod${i}.ply`, tex: L.tex })), out_glb: `${out}/${id}.glb`, out_dir: out, device: DEVICE, bake: E.bake, seed: 0 };
+  const job = { id, high: `${src}/high.ply`, lods: E.lods.map((L, i) => ({ ply: `${src}/lod${i}.ply`, tex: L.tex, ...(L.uv ? { uv: L.uv } : {}) })), out_glb: `${out}/${id}.glb`, out_dir: out, device: DEVICE, bake: E.bake, seed: 0 };
   writeFileSync(`${work}/job.json`, JSON.stringify(job, null, 1));
-  const bargs = ['-b', '--factory-startup', '--python', 'tools/blender/bake.py', '--', `${work}/job.json`];
+  // the Blender stage: tools/blender/bake.py, or the entry's own (D-328: the columns' bake_cols.py, listed in its inputs)
+  const bargs = ['-b', '--factory-startup', '--python', E.bake.script ?? 'tools/blender/bake.py', '--', `${work}/job.json`];
   if (DEVICE === 'GPU' && !NOSLOT) run('node', [SLOT, 'blender', '--', q(BLENDER), ...bargs]); // gpu_slot spawns through a shell
   else run(BLENDER, bargs);
   const stats = JSON.parse(readFileSync(`${out}/bake_stats.json`, 'utf8'));

@@ -85,6 +85,11 @@ const torusRows = (y0: number, y1: number, rIn: number, rOut: number, flutes: nu
   }
   return { ys, rs };
 };
+/** the bell base's radius at t (0 at the foot, 1 under the torus): since D-328 near-vertical sides rounding into a shoulder
+ *  (sculpture.json base.bell shoulder_pow, after the photographed bell bases); the older flare without it */
+export function bellRadius(B: { shoulder_pow?: number; flare_pow: number }, t: number, rTop: number, rBot: number): number {
+  return B.shoulder_pow ? rTop + (rBot - rTop) * Math.max(0, 1 - t ** B.shoulder_pow) ** (1 / B.shoulder_pow) : rTop + (rBot - rTop) * (1 - t) ** B.flare_pow;
+}
 function baseMesh(o: ColumnOrder, lod: Lod): NormMesh {
   const D = o.shaftD, hB = o.baseH, T = srow('base', 'torus'), TS = TESS(), parts: NormMesh[] = [];
   let yT: number; // torus bottom
@@ -98,7 +103,7 @@ function baseMesh(o: ColumnOrder, lod: Lod): NormMesh {
     const hf = B.foot_h * hB, hb = B.bell_h * hB, rb = o.baseW / 2, rBot = rb * (1 - B.lip), rTop = B.r_top * D;
     parts.push(norm(revolve(TS.foot[lod], [0, hf], [rb, rb]), CR().lathe));
     const rows = TS.bell_rows[lod], ys: number[] = [], rs: number[] = [], ts: number[] = [];
-    for (let j = 0; j < rows; j++) { const t = (j / (rows - 1)) ** B.row_pow; ts.push(t); ys.push(hf + hb * t); rs.push(rTop + (rBot - rTop) * (1 - t) ** B.flare_pow); }
+    for (let j = 0; j < rows; j++) { const t = B.shoulder_pow ? 1 - (1 - j / (rows - 1)) ** B.row_pow : (j / (rows - 1)) ** B.row_pow; ts.push(t); ys.push(hf + hb * t); rs.push(bellRadius(B, t, rTop, rBot)); }
     const nL = Lf.count, relief = lod ? undefined : (u: number, j: number) => {
       const s = (1 - ts[j]) / (1 - Lf.tip); // 0 at the top (attachment), 1 at the leaf tip
       return Lf.relief * D * leaf((u * nL) % 1 - 0.5, s, Lf.width, Lf.edge, Lf.midrib);
@@ -119,14 +124,14 @@ function baseMesh(o: ColumnOrder, lod: Lod): NormMesh {
 // =============================================================== shaft
 /** `fluted`: override for a shaft under construction (the Hall of 100 Columns follows the simulation: a shaft is fluted
  *  after erection, so a complete shaft can still be plain); by default partial shafts are plain and complete ones fluted */
-function shaftMesh(o: ColumnOrder, built: number, lod: Lod, fluted?: boolean): NormMesh | null {
+export function shaftRows(o: ColumnOrder, built: number, lod: Lod, fluted?: boolean): { n: number; ys: number[]; rs: number[]; relief?: (u: number, j: number) => number; crease: number } | null {
   const shaftH = o.height - o.baseH - o.capitalH, sh = shaftH * built;
   if (sh < 0.01) return null;
   const y0 = o.baseH, y1 = y0 + sh, R0 = o.shaftD / 2, Rtop = R0 * P().shaft_top_ratio;
   const R = (y: number) => R0 + (Rtop - R0) * ((y - y0) / shaftH);
   const U = srow('shaft', 'unfluted'), F = srow('shaft', 'flutes'), TS = srow('shaft', 'tessellation');
   const unfluted = (U.timber && o.material === 'timber') || (U.under_construction && (fluted === undefined ? built < 1 : !fluted)) || o.flutes < 3;
-  if (unfluted) return norm(revolve(TESS().shaft_plain[lod], [y0, y1], [R0, R(y1)]), CR().lathe);
+  if (unfluted) return { n: TESS().shaft_plain[lod], ys: [y0, y1], rs: [R0, R(y1)], crease: CR().lathe };
   const N = o.flutes, Sf = lod ? TS.lod1_per_flute : TS.lod0_per_flute, n = N * Sf;
   const ya = y0 + F.stop_bottom * o.shaftD, yb = y1 - F.stop_top * o.shaftD; // flute ends (depth 0 on the flute axis)
   const wAt = (y: number) => R(y) * Math.sin(Math.PI / N);
@@ -143,7 +148,10 @@ function shaftMesh(o: ColumnOrder, built: number, lod: Lod, fluted?: boolean): N
     return -fluteDepth(x, w, F.sagitta * w, ey);
   };
   // sample i/n: every Sf-th sample lands exactly on an arris (u·N integer), so the arrises stay sharp
-  return norm(revolve(n, ys, rs, relief), CR().lathe);
+  return { n, ys, rs, relief, crease: CR().lathe };
+}
+function shaftMesh(o: ColumnOrder, built: number, lod: Lod, fluted?: boolean): NormMesh | null {
+  const m = shaftRows(o, built, lod, fluted); return m ? norm(revolve(m.n, m.ys, m.rs, m.relief), m.crease) : null;
 }
 
 // =============================================================== capitals
@@ -362,48 +370,140 @@ export function voluteBox(o: ColumnOrder): [number[], number[]] | null {
 export function voluteMesh(o: ColumnOrder, lod: Lod): NormMesh | null { const b = voluteBox(o); return b ? fitTo(piece('volute', lod), b[0], b[1]) : null; }
 /** the procedural protome of an order alone, fitted to protomeBox (the stand-in the Blender-built one replaces, D-305) */
 export function protomeMesh(o: ColumnOrder, lod: Lod): NormMesh | null { const b = protomeBox(o); return b ? fitTo(piece('protome', lod), b[0], b[1]) : null; }
-/** protome = false: the capital without its protome (drawn by the Blender-built model instead, D-305) */
-function capitalMesh(o: ColumnOrder, lod: Lod, protome = true, volute = true): NormMesh | null {
+// =============================================================== the lathe members (D-328: Blender-baked, BLENDER_PLAN row 1)
+/** the turned and boxed members of a column that the Blender pipeline bakes (tools/blender/sources/column_member.ts): each
+ *  base type, the composite capital's palm and calyx bells, the bull capital's collar, the timber orders' bolster and abacus */
+export type MemberName = 'base_bell' | 'base_square2' | 'base_plain' | 'bells' | 'collar' | 'capital_plain';
+export const MEMBERS: MemberName[] = ['base_bell', 'base_square2', 'base_plain', 'bells', 'collar', 'capital_plain'];
+/** the procedural parts left out of a column mesh because a Blender-built model draws them (D-328) */
+export type Omit = Partial<Record<MemberName | 'shaft', boolean>>;
+const omitKey = (om?: Omit) => (om ? Object.keys(om).filter(k => (om as Record<string, boolean>)[k]).sort().join(',') : '');
+/** the lathe members an order has (its base, and its capital's turned or boxed member) */
+export function orderMembers(o: ColumnOrder): MemberName[] {
+  const m: MemberName[] = [`base_${o.base}` as MemberName];
+  if (o.capital === 'composite') m.push('bells'); else if (o.capital === 'bull') m.push('collar'); else if (o.capital === 'plain') m.push('capital_plain');
+  return m;
+}
+/** a member of order `o` at a level, column-local (base at y = 0), exactly as the column carries it (null: the order has none) */
+function memberRaw(o: ColumnOrder, name: MemberName, lod: Lod): NormMesh | null {
+  if (!orderMembers(o).includes(name)) return null;
+  if (name.startsWith('base_')) return baseMesh(o, lod);
+  const D = o.shaftD, H = o.capitalH, y0 = o.height - H, top = o.height;
+  if (name === 'bells') { const s = srow('capital', 'composite_split'), h1 = s.palm * H, h2 = s.calyx * H; return mergeNorm([palmMesh(y0, h1, D, lod), calyxMesh(y0 + h1, h2, D, lod)]); }
+  if (name === 'collar') { const B = srow('capital', 'bull'), hc = B.collar_h * H, rc = B.collar_r * D, rs = (D / 2) * P().shaft_top_ratio; return norm(revolve(TESS().collar[lod], [y0, y0 + hc * B.collar_flare, y0 + hc], [rs, rc, rc]), CR().lathe); }
+  const Pl = srow('capital', 'plain'), wA = P().capital_boxes.plain * D, ha = Pl.abacus_h * H, hb = H - ha;
+  return mergeNorm([norm(boxRaw(0, y0 + hb / 2, 0, (Pl.bolster_bottom * D) / 2, hb / 2, (Pl.bolster_bottom * D) / 2, wA / (Pl.bolster_bottom * D)), CR().box),
+    norm(boxRaw(0, top - ha / 2, 0, wA / 2, ha / 2, wA / 2), CR().box)]);
+}
+const MEMBER_CACHE = new Map<string, NormMesh | null>();
+/** the procedural member of an order (the stand-in the Blender-built model replaces, D-328), cached */
+export function memberMesh(o: ColumnOrder, name: MemberName, lod: Lod): NormMesh | null {
+  const k = `${name}|${JSON.stringify(o)}|${lod}`; if (!MEMBER_CACHE.has(k)) MEMBER_CACHE.set(k, memberRaw(o, name, lod)); return MEMBER_CACHE.get(k)!;
+}
+export const bboxOf = (m: { pos: ArrayLike<number> }): [number[], number[]] => { const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity]; for (let i = 0; i < m.pos.length; i += 3) for (let k = 0; k < 3; k++) { b[k] = Math.min(b[k], m.pos[i + k]); b[k + 3] = Math.max(b[k + 3], m.pos[i + k]); } return [b.slice(0, 3), b.slice(3)]; };
+/** the box (column-local) a member's model levels are fitted to: the order's own LOD0 member's bounds (null: no such member) */
+export function memberBox(o: ColumnOrder, name: MemberName): [number[], number[]] | null { const m = memberMesh(o, name, 0); return m ? bboxOf(m) : null; }
+/** the order each member's model is built at (tools/blender/sources/column_member.ts; the game fits it to every other order's
+ *  member box: radii scale with D, heights with the base or capital height, as the procedural members do) */
+export const MEMBER_REF: Record<MemberName, [string, Partial<ColumnOrder>]> = {
+  base_bell: ['apadana', { base: 'bell', capital: 'composite' }], base_square2: ['apadana', { base: 'square2', capital: 'composite' }],
+  base_plain: ['hadish', { base: 'plain', capital: 'bull' }], bells: ['apadana', { base: 'bell', capital: 'composite' }],
+  collar: ['apadana', { base: 'bell', capital: 'bull' }], capital_plain: ['treasury', { base: 'square2', capital: 'plain', material: 'timber' }],
+};
+
+// =============================================================== the shaft with its tile coordinates (D-328)
+/** which baked shaft tile a shaft takes (tools/blender/sources/column_member.ts shaft_*): fluted stone by flute count, the
+ *  unfluted stone drums (under construction), the plastered timber posts; null: no tile (a flute count without one) */
+export type ShaftKind = 'shaft_f40' | 'shaft_f48' | 'shaft_drums' | 'shaft_plaster';
+export function shaftKind(o: ColumnOrder, built: number, fluted?: boolean): ShaftKind | null {
+  const U = srow('shaft', 'unfluted');
+  if (U.timber && o.material === 'timber') return memberMaterials(o).shaft === 'plaster' ? 'shaft_plaster' : null;
+  if ((U.under_construction && (fluted === undefined ? built < 1 : !fluted)) || o.flutes < 3) return 'shaft_drums';
+  return o.flutes === 40 ? 'shaft_f40' : o.flutes === 48 ? 'shaft_f48' : null;
+}
+/** the tile: `drums` drums tall, the full circumference wide (u = angle / 2pi from +x, v up the shaft, glTF convention); the
+ *  drum height is the order's shaft height over its drum count at the working drum height (people/construction.ts BUILD.drumH
+ *  1.15 m, C), so joints fall at whole drums on every order (and at the Hall of 100 Columns' drum tops as the simulation
+ *  raises them) */
+export const SHAFT_TILE = { drums: 3, drumH: 1.15 };
+export function shaftDrumH(o: ColumnOrder): number { const sh = o.height - o.baseH - o.capitalH; return sh / Math.max(1, Math.round(sh / SHAFT_TILE.drumH)); }
+export interface UVMesh extends NormMesh { uv: Float32Array; tan: Float32Array }
+/** the shaft exactly as shaftMesh draws it (same triangles), with the seam column doubled and per-vertex tile coordinates
+ *  and tangents: t = d/du in the surface, w = +1 (the bitangent cross(n, t) points down the shaft, toward -v, as a Blender
+ *  bake exported to glTF reads its map; tests/columns_baked.test.ts holds it against the tile's own GLB). The end caps take
+ *  one tile coordinate (mid-drum) so their map is flat. */
+export function shaftUV(o: ColumnOrder, built: number, lod: Lod, fluted?: boolean): UVMesh | null {
+  const m = shaftRows(o, built, lod, fluted); if (!m) return null;
+  const { n, ys, rs, relief, crease } = m, vt = SHAFT_TILE.drums * shaftDrumH(o), nr = ys.length, pos: number[] = [], idx: number[] = [], uv: number[] = [];
+  for (let j = 0; j < nr; j++) for (let i = 0; i <= n; i++) {
+    const u = i / n, th = u * TAU, r = Math.max(1e-4, rs[j] + (relief ? relief(i === n ? 0 : u, j) : 0));
+    pos.push(r * Math.cos(th), ys[j], r * Math.sin(th)); uv.push(u, (ys[j] - o.baseH) / vt);
+  }
+  const W = n + 1;
+  for (let j = 0; j < nr - 1; j++) for (let i = 0; i < n; i++) { const a = j * W + i, b = j * W + i + 1, c = (j + 1) * W + i + 1, d = (j + 1) * W + i; idx.push(a, d, c, a, c, b); }
+  const capUV = 0.5 / SHAFT_TILE.drums;
+  { const c = pos.length / 3; pos.push(0, ys[0], 0); uv.push(0.5, capUV); for (let i = 0; i < n; i++) idx.push(c, i, i + 1); }
+  { const c = pos.length / 3, o2 = (nr - 1) * W; pos.push(0, ys[nr - 1], 0); uv.push(0.5, capUV); for (let i = 0; i < n; i++) idx.push(c, o2 + i + 1, o2 + i); }
+  // per-corner normals as creaseNormals gives the procedural shaft; each output vertex keeps its source vertex's tile coordinates
+  const raw = { pos: new Float32Array(pos), idx: new Uint32Array(idx) }, cn = creaseNormals(raw, crease);
+  const src = new Int32Array(cn.pos.length / 3).fill(-1);
+  for (let t = 0; t < cn.idx.length; t++) src[cn.idx[t]] = idx[t];
+  const nv = src.length, UV = new Float32Array(nv * 2), T = new Float32Array(nv * 4);
+  for (let v = 0; v < nv; v++) {
+    const s = src[v], cap = s >= nr * W; UV[v * 2] = uv[s * 2]; UV[v * 2 + 1] = uv[s * 2 + 1];
+    const th = uv[s * 2] * TAU, tx = cap ? 1 : -Math.sin(th), tz = cap ? 0 : Math.cos(th), nx = cn.nrm[v * 3], ny = cn.nrm[v * 3 + 1], nz = cn.nrm[v * 3 + 2], d = tx * nx + tz * nz;
+    const qx = tx - nx * d, qy = -ny * d, qz = tz - nz * d, l = Math.hypot(qx, qy, qz) || 1; T.set([qx / l, qy / l, qz / l, 1], v * 4);
+  }
+  return { ...cn, uv: UV, tan: T };
+}
+
+/** protome = false: the capital without its protome (drawn by the Blender-built model instead, D-305); omit: the lathe
+ *  members drawn by their models (D-328) */
+function capitalMesh(o: ColumnOrder, lod: Lod, protome = true, volute = true, omit: Omit = {}): NormMesh | null {
   if (o.capital === 'none') return null;
   const D = o.shaftD, H = o.capitalH, y0 = o.height - H, top = o.height, parts: NormMesh[] = [];
   const [pw, pd] = P().capital_boxes.protome as number[];
   if (o.capital === 'composite') {
     const s = srow('capital', 'composite_split'), [vw, vd] = P().capital_boxes.volute as number[];
     const h1 = s.palm * H, h2 = s.calyx * H, h3 = s.volute * H;
-    parts.push(palmMesh(y0, h1, D, lod), calyxMesh(y0 + h1, h2, D, lod));
+    if (!omit.bells) parts.push(memberMesh(o, 'bells', lod)!);
     if (volute) parts.push(fitTo(piece('volute', lod), [(-vw * D) / 2, y0 + h1 + h2, (-vd * D) / 2], [(vw * D) / 2, y0 + h1 + h2 + h3, (vd * D) / 2]));
     if (protome) parts.push(fitTo(piece('protome', lod), [(-pw * D) / 2, y0 + h1 + h2 + h3, (-pd * D) / 2], [(pw * D) / 2, top, (pd * D) / 2]));
   } else if (o.capital === 'bull') {
-    const B = srow('capital', 'bull'), hc = B.collar_h * H, rc = B.collar_r * D, rs = (D / 2) * P().shaft_top_ratio;
-    parts.push(norm(revolve(TESS().collar[lod], [y0, y0 + hc * B.collar_flare, y0 + hc], [rs, rc, rc]), CR().lathe));
+    const B = srow('capital', 'bull'), hc = B.collar_h * H;
+    if (!omit.collar) parts.push(memberMesh(o, 'collar', lod)!);
     if (protome) parts.push(fitTo(piece('protome', lod), [(-pw * D) / 2, y0 + hc, (-pd * D) / 2], [(pw * D) / 2, top, (pd * D) / 2]));
-  } else {
-    const Pl = srow('capital', 'plain'), wA = P().capital_boxes.plain * D, ha = Pl.abacus_h * H, hb = H - ha;
-    parts.push(norm(boxRaw(0, y0 + hb / 2, 0, (Pl.bolster_bottom * D) / 2, hb / 2, (Pl.bolster_bottom * D) / 2, wA / (Pl.bolster_bottom * D)), CR().box));
-    parts.push(norm(boxRaw(0, top - ha / 2, 0, wA / 2, ha / 2, wA / 2), CR().box));
-  }
-  return mergeNorm(parts);
+  } else if (!omit.capital_plain) parts.push(memberMesh(o, 'capital_plain', lod)!);
+  return parts.length ? mergeNorm(parts) : null;
 }
 const COL_CACHE = new Map<string, NormMesh>(), PART_CACHE = new Map<string, NormMesh | null>();
 const cached = (key: string, make: () => NormMesh | null) => { if (!PART_CACHE.has(key)) PART_CACHE.set(key, make()); return PART_CACHE.get(key)!; };
 /** the capital of an order alone, standing on y = 0 (a finished capital waiting in the masons' yard, src/world/construction.ts) */
-export function capitalAlone(o: ColumnOrder, lod: Lod = 1, protome = true): NormMesh | null {
-  const m = cached(`cap|${JSON.stringify(o)}|${lod}${protome ? '' : '|np'}`, () => capitalMesh(o, lod, protome)); if (!m) return null;
+export function capitalAlone(o: ColumnOrder, lod: Lod = 1, protome = true, omit: Omit = {}): NormMesh | null {
+  const m = cached(`cap|${JSON.stringify(o)}|${lod}${protome ? '' : '|np'}|${omitKey(omit)}`, () => capitalMesh(o, lod, protome, true, omit)); if (!m) return null;
   return transformNorm(m, [1, 0, 0, 0, 0, 1, 0, -(o.height - o.capitalH), 0, 0, 1, 0]);
 }
 /** the whole column in local space (base at y = 0, top at o.height); built < 1: shaft partly raised, no capital.
  *  Bases and capitals are cached per order (the Hall of 100 Columns' many construction states share them). */
 /** construction state of one column beyond its built fraction (the Hall of 100 Columns, src/world/construction.ts):
  *  whether the shaft is fluted and the capital set; unset = the default (fluted and capped only when complete) */
-export interface ColumnState { fluted?: boolean; capital?: boolean; /** false: the capital without its protome (D-305) */ protome?: boolean; /** false: the composite capital without its volute member (D-306) */ volute?: boolean }
+export interface ColumnState { fluted?: boolean; capital?: boolean; /** false: the capital without its protome (D-305) */ protome?: boolean; /** false: the composite capital without its volute member (D-306) */ volute?: boolean; /** the lathe members and the shaft drawn by their Blender-built models (D-328) */ omit?: Omit }
+const EMPTY: NormMesh = { pos: new Float32Array(0), nrm: new Float32Array(0), idx: new Uint32Array(0) };
+function columnParts(o: ColumnOrder, built: number, lod: Lod, st: ColumnState): { base: NormMesh | null; shaft: NormMesh | null; cap: NormMesh | null } {
+  const ok = JSON.stringify(o), np = st.protome === false, nv = st.volute === false, om = st.omit ?? {}, ck = `${np ? '|np' : ''}${nv ? '|nv' : ''}|${omitKey(om)}`;
+  const baseName = `base_${o.base}` as MemberName;
+  return {
+    base: om[baseName] ? null : memberMesh(o, baseName, lod),
+    shaft: om.shaft ? null : shaftMesh(o, built, lod, st.fluted),
+    cap: (st.capital ?? built >= 1) ? cached(`cap|${ok}|${lod}${ck}`, () => capitalMesh(o, lod, !np, !nv, om)) : null,
+  };
+}
 export function columnMesh(o: ColumnOrder, built = 1, lod: Lod = 0, st: ColumnState = {}): NormMesh {
-  const ok = JSON.stringify(o), key = `${ok}|${built.toFixed(4)}|${lod}|${st.fluted ?? '-'}|${st.capital ?? '-'}${st.protome === false ? '|np' : ''}${st.volute === false ? '|nv' : ''}`, np = st.protome === false, nv = st.volute === false, ck = `${np ? '|np' : ''}${nv ? '|nv' : ''}`;
+  const ok = JSON.stringify(o), key = `${ok}|${built.toFixed(4)}|${lod}|${st.fluted ?? '-'}|${st.capital ?? '-'}${st.protome === false ? '|np' : ''}${st.volute === false ? '|nv' : ''}|${omitKey(st.omit)}`;
   let m = COL_CACHE.get(key);
   if (!m) {
-    const parts = [cached(`base|${ok}|${lod}`, () => baseMesh(o, lod))!];
-    const sh = shaftMesh(o, built, lod, st.fluted); if (sh) parts.push(sh);
-    if (st.capital ?? built >= 1) { const c = cached(`cap|${ok}|${lod}${ck}`, () => capitalMesh(o, lod, !np, !nv)); if (c) parts.push(c); }
-    m = mergeNorm(parts); COL_CACHE.set(key, m);
+    const p = columnParts(o, built, lod, st), parts = [p.base, p.shaft, p.cap].filter((x): x is NormMesh => !!x);
+    m = parts.length ? mergeNorm(parts) : EMPTY; COL_CACHE.set(key, m);
   }
   return m;
 }
@@ -414,14 +514,12 @@ export function memberMaterials(o: ColumnOrder): { base: Material; shaft: Materi
   return M ?? { base: o.material, shaft: o.material, capital: o.material };
 }
 /** the column split by surface: one mesh per distinct member material (a single entry for one-material orders, identical to
- *  columnMesh). Same caching and geometry as columnMesh. */
+ *  columnMesh; none when every part is drawn by a model). Same caching and geometry as columnMesh. */
 export function columnMeshesByMaterial(o: ColumnOrder, built = 1, lod: Lod = 0, st: ColumnState = {}): { material: Material; mesh: NormMesh }[] {
   const M = memberMaterials(o);
-  if (M.base === M.shaft && M.shaft === M.capital) return [{ material: M.base, mesh: columnMesh(o, built, lod, st) }];
-  const ok = JSON.stringify(o), np = st.protome === false, nv = st.volute === false, ck = `${np ? '|np' : ''}${nv ? '|nv' : ''}`, by = new Map<Material, NormMesh[]>(), add = (mat: Material, m: NormMesh | null) => { if (m) { if (!by.has(mat)) by.set(mat, []); by.get(mat)!.push(m); } };
-  add(M.base, cached(`base|${ok}|${lod}`, () => baseMesh(o, lod)));
-  add(M.shaft, shaftMesh(o, built, lod, st.fluted));
-  if (st.capital ?? built >= 1) add(M.capital, cached(`cap|${ok}|${lod}${ck}`, () => capitalMesh(o, lod, !np, !nv)));
+  if (M.base === M.shaft && M.shaft === M.capital) { const m = columnMesh(o, built, lod, st); return m.idx.length ? [{ material: M.base, mesh: m }] : []; }
+  const p = columnParts(o, built, lod, st), by = new Map<Material, NormMesh[]>(), add = (mat: Material, m: NormMesh | null) => { if (m && m.idx.length) { if (!by.has(mat)) by.set(mat, []); by.get(mat)!.push(m); } };
+  add(M.base, p.base); add(M.shaft, p.shaft); add(M.capital, p.cap);
   return [...by].map(([material, ms]) => ({ material, mesh: mergeNorm(ms) }));
 }
 export function toGeometry(m: NormMesh): THREE.BufferGeometry {

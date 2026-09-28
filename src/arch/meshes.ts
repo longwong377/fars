@@ -8,6 +8,8 @@ import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
 import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod, protomeBox, protomeMesh, voluteBox, voluteMesh } from './sculpt';
 import { model, fitLevel, placeLevel, bakedMaterial, registerSwap } from '../render/models';
+import { memberBox, memberMesh, type MemberName, type ShaftKind } from './sculpt';
+import { modelledParts, memberModel, shaftModel, shaftGeometry, columnSeed, columnBaked, bakedSurface } from './column_models';
 export { cutWall } from './parts';
 
 /** Greybox materials (Phase 2): flat albedos from pigment/stone references are Phase 3; these are neutral and tagged C. */
@@ -344,11 +346,14 @@ export class InstancedLOD extends THREE.Object3D {
   readonly isLOD = true; autoUpdate = true;
   readonly levels: THREE.InstancedMesh[];
   private level: Uint8Array;
-  /** at: per instance [x, y0, z, height] (world); switch: distance to the instance's vertical axis segment (m) */
-  constructor(geos: THREE.BufferGeometry[], mat: THREE.Material, private at: Float32Array, private switchAt: number, private hyst: number) {
+  /** at: per instance [x, y0, z, height] (world); switch: distance to the instance's vertical axis segment (m); seeds: per
+   *  instance two numbers carried as the instanced attribute `colSeed` (D-328: the shaft tiles' offsets), reordered with the
+   *  instances whenever the levels are reassigned */
+  constructor(geos: THREE.BufferGeometry[], mat: THREE.Material, private at: Float32Array, private switchAt: number, private hyst: number, private seeds?: Float32Array) {
     super();
     const n = at.length / 4, m4 = new THREE.Matrix4();
     this.levels = geos.map(g => {
+      if (seeds) g.setAttribute('colSeed', new THREE.InstancedBufferAttribute(new Float32Array(n * 2), 2));
       const im = new THREE.InstancedMesh(g, mat, n);
       for (let i = 0; i < n; i++) { m4.makeTranslation(at[i * 4], at[i * 4 + 1], at[i * 4 + 2]); im.setMatrixAt(i, m4); }
       im.computeBoundingSphere(); // over all instances, once: stays a valid bound whatever the per-level count
@@ -371,10 +376,14 @@ export class InstancedLOD extends THREE.Object3D {
   }
   /** instance counts per level (tests, stats) */
   counts() { return this.levels.map(im => im.count); }
+  /** a level's geometries that carry colSeed: its own, and its procedural twin's when the A/B swap gave it one (D-305) */
+  readonly seedTwins: THREE.BufferGeometry[][] = [];
+  private seedGeos(L: number) { const im = this.levels[L], out = [im.geometry, ...(this.seedTwins[L] ?? [])]; return out.filter(g => g.getAttribute('colSeed')); }
   private assign() {
     const m4 = new THREE.Matrix4(), cnt = this.levels.map(() => 0);
     for (let i = 0; i < this.level.length; i++) {
       const L = this.level[i], im = this.levels[L];
+      if (this.seeds) for (const g of this.seedGeos(L)) { const a = g.getAttribute('colSeed') as THREE.InstancedBufferAttribute; a.setXY(cnt[L], this.seeds[i * 2], this.seeds[i * 2 + 1]); a.needsUpdate = true; }
       m4.makeTranslation(this.at[i * 4], this.at[i * 4 + 1], this.at[i * 4 + 2]); im.setMatrixAt(cnt[L]++, m4);
     }
     this.levels.forEach((im, k) => { im.count = cnt[k]; im.visible = cnt[k] > 0; im.instanceMatrix.needsUpdate = true; });
@@ -403,6 +412,43 @@ export class MeshLOD extends THREE.Object3D {
   private show(k: number) { this.cur = k; this.levels.forEach((m, i) => { m.visible = i === k; }); }
 }
 
+
+const MEMBER_WHAT: Record<MemberName, string> = {
+  base_bell: 'bell base (foot, bell with pendant leaves under a row of scalloped tongues, horizontally fluted torus)', base_square2: 'square base (two stepped plinths, fluted torus)',
+  base_plain: 'plain drum base with its torus', bells: 'palm and calyx bells of the composite capital (drooping palm leaves, bead row, ribbed calyx with its crown of sepal tips)',
+  collar: 'collar of the double-bull capital', capital_plain: 'timber bolster and abacus of the plain capital',
+};
+/** D-328: one lathe member of an order drawn by its Blender-built model at the instances `at` ([x, y0, z, height] each), fitted
+ *  to the order's member box, the procedural member as its A/B twin; null when the model is not loaded */
+export function memberLOD(o: ColumnOrder, m: MemberName, b: string, at: Float32Array, rec: { tier: string; src: string; name?: string; note?: string }): { lod: InstancedLOD; tris: number } | null {
+  const MM = memberModel(m); if (!MM || flatMode) return null;
+  const SW = srow('lod', 'switch'), [lo, hi] = memberBox(o, m)!, M = memberMaterials(o), mat = m.startsWith('base_') ? M.base : M.capital, surf = CARVED[mat] ?? mat;
+  const geos = MM.lods.map(g => fitLevel(g, lo, hi)), mats = MM.maps.map((map, k) => columnBaked(`${MM.id}:${k}:${surf}`, bakedSurface(surf, `${MM.id}:${k}`), map, false));
+  const lod = new InstancedLOD(geos, mats[0], at, SW.column, SW.hysteresis);
+  lod.name = rec.name ?? `${b}:columns:${m}`;
+  lod.userData = { tier: rec.tier, src: `${rec.src};RECON;PHOTO`, placeholder: false, building: b, model: MM.id,
+    note: rec.note ?? `${MEMBER_WHAT[m]} of the ${o.id} order, ${mat}: the game's own member (sculpture.json, SITE_SPEC dimensions; form C) baked in Blender from a dense carved source after the photographed members (D-328; tools/blender/columns.json: motifs B, layout and sizes C): normal and occlusion maps on the same triangles` };
+  lod.levels.forEach((im, k) => { im.material = mats[k] ?? mats[0]; im.name = `${lod.name}:lod${k}`; im.userData = lod.userData;
+    const pm = memberMesh(o, m, k as Lod); if (pm) registerSwap(im, [toGeometry(pm), carvedMaterial(mat)]); });
+  return { lod, tris: (geos[0].index!.count / 3) * (at.length / 4) };
+}
+/** D-328: the shafts of one column state drawn with the baked tile `kind` (column_models.ts): the game's own shaft levels with tile
+ *  coordinates, the map offset per column (colSeed from its grid position), the procedural shaft as the A/B twin */
+export function shaftLOD(o: ColumnOrder, built: number, st: { fluted?: boolean }, kind: ShaftKind, b: string, at: Float32Array, grid: [number, number][], rec: { tier: string; src: string; name?: string; note?: string }): { lod: InstancedLOD; tris: number } {
+  const SM = shaftModel(kind)!, SW = srow('lod', 'switch'), M = memberMaterials(o), mat = M.shaft, surf = CARVED[mat] ?? mat;
+  const painted = M.shaft === 'plaster' && M.base !== M.shaft && o.id === 'treasury'; // the Treasury's painted shafts (D-214)
+  const geos = ([0, 1] as Lod[]).map(l => shaftGeometry(o, built, l, st.fluted)!);
+  const seeds = new Float32Array(grid.length * 2); grid.forEach((p, i) => seeds.set(columnSeed(p[0], p[1], o.flutes), i * 2));
+  const mats = SM.maps.map((map, k) => columnBaked(`${SM.id}:${k}:${surf}${painted ? ':paint:' + o.shaftD : ''}`, painted ? () => shaftPaint(o).clone() as THREE.MeshStandardNodeMaterial : bakedSurface(surf, `${SM.id}:${k}`), map, true));
+  const lod = new InstancedLOD(geos, mats[0], at, SW.column, SW.hysteresis, seeds);
+  lod.name = rec.name ?? `${b}:columns:shaft`;
+  lod.userData = { tier: rec.tier, src: `${rec.src};RECON`, placeholder: false, building: b, model: SM.id,
+    note: rec.note ?? `shaft of the ${o.id} order (${kind === 'shaft_drums' ? 'unfluted drums' : kind === 'shaft_plaster' ? 'plastered timber post' : o.flutes + ' flutes'}), ${mat}${painted ? ', painted (D-214)' : ''}: the game's own shaft (SITE_SPEC diameter, taper, flute count) with the baked map of a Blender-built tile three drums tall and the whole way round (D-328: hand-cut flute arrises, drum joints, the dressing; offset per column by whole flutes and drums; form C)` };
+  const stand = (k: Lod) => toGeometry(columnMeshesByMaterial(o, built, k, { fluted: st.fluted, capital: false, omit: { base_bell: true, base_square2: true, base_plain: true } }).find(x => x.material === mat)!.mesh);
+  lod.levels.forEach((im, k) => { im.material = mats[k] ?? mats[0]; im.name = `${lod.name}:lod${k}`; im.userData = lod.userData; lod.seedTwins[k] = [im.geometry];
+    registerSwap(im, [stand(k as Lod), painted ? shaftPaint(o) : carvedMaterial(mat)]); });
+  return { lod, tris: (geos[0].index!.count / 3) * grid.length };
+}
 export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[] }
 /** D-321 rev 2: the surfaces whose free arrises become geometry near the eye (the dressed stone of the block-face class, D-321) */
 export const ARRIS_MATS = new Set(['limestone', 'terrace']);
@@ -465,30 +511,44 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     group.add(m);
   }
   const SW = srow('lod', 'switch');
+  // D-328: the members drawn by their Blender-built models, gathered over every column group that carries them (a base is the
+  // same whatever the shaft above it: the Hall of 100 Columns' many construction states share one draw of their bases)
+  const memberDraws = new Map<string, { order: ColumnOrder; member: MemberName; b: string; tier: string; src: string; at: number[] }>();
   for (const [, c] of cols) {
     // one InstancedLOD per member surface (a stone order is one; the Treasury's stone base, plastered shaft and timber
     // capital are three, sculpture.json shaft.members)
     // D-305: the double-bull protome from the Blender pipeline (public/models/capital_protome.glb) when it is loaded: the
     // capitals are then built without their procedural protome, which is drawn as its own instanced pair of levels below
     // D-306: likewise the composite capital's volute member (public/models/capital_volute.glb)
+    // D-328: likewise every lathe member (column_<member>.glb) and the shaft (column_shaft_<kind>.glb, a tile on the game's own
+    // shaft); what no model draws stays procedural
     const PM = !flatMode && c.built >= 1 && protomeBox(c.order) ? model('capital_protome') : null;
     const VM = !flatMode && c.built >= 1 && voluteBox(c.order) ? model('capital_volute') : null;
-    const st = { ...(PM ? { protome: false } : {}), ...(VM ? { volute: false } : {}) };
+    const MP = modelledParts(c.order, c.built, {}, flatMode);
+    const st = { ...(PM ? { protome: false } : {}), ...(VM ? { volute: false } : {}), omit: MP.omit };
     const L0 = columnMeshesByMaterial(c.order, c.built, 0, st), L1 = columnMeshesByMaterial(c.order, c.built, 1, st), M = memberMaterials(c.order);
     const at = new Float32Array(c.parts.length * 4); c.parts.forEach((p, i) => at.set([p.c[0], p.y0, -p.c[1], c.order.baseH + (c.order.height - c.order.baseH) * c.built], i * 4));
-    const b = c.parts[0].building, split = L0.length > 1;
+    const b = c.parts[0].building, split = memberMaterials(c.order).base !== M.shaft || M.shaft !== M.capital;
+    // the Treasury shafts were painted 'in bright colours' (B); colours not found: since D-214 the most probable scheme (C)
+    const paintedShaft = split && M.shaft === 'plaster' && c.order.id === 'treasury'; // (D-276: the garrison's and the Harem's plastered posts are not the Treasury's painted shafts)
     for (const { material: mat, mesh } of L0) {
       const g0 = toGeometry(mesh), g1 = toGeometry(L1.find(x => x.material === mat)!.mesh);
-      // the Treasury shafts were painted 'in bright colours' (B); colours not found: since D-214 the most probable scheme (C)
-      const painted = split && mat === 'plaster' && M.shaft === 'plaster' && c.order.id === 'treasury'; // (D-276: the garrison's and the Harem's plastered posts are not the Treasury's painted shafts)
+      const painted = paintedShaft && mat === 'plaster';
       const lod = new InstancedLOD([g0, g1], painted && !flatMode ? shaftPaint(c.order) : carvedMaterial(mat), at, SW.column, SW.hysteresis);
       const members = (['base', 'shaft', 'capital'] as const).filter(k => M[k] === mat).join(' + ');
       lod.name = `${b}:columns${split ? ':' + mat : ''}`;
       lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON${split ? ';ISAC-PA' : ''}${painted ? ';RELIEF-R;STEIN2016' : ''}`, placeholder: false, building: b,
-        note: `column order ${c.order.id} (${c.order.base} base, ${c.order.capital} capital)${split ? `, ${members} in ${mat}` : ''}: dimensions SITE_SPEC; carving procedural sculpture, form C (D-018; scans would replace it, NEEDS #10)${c.built < 1 ? '; under construction: unfluted drums' : ''}${painted ? '; the shafts painted in bright colours (B): colours and pattern not found, drawn in the most probable scheme after the Persepolis and Pasargadae painted plaster (red-ochre ground, white lozenge lattice, Egyptian-blue bands at foot and head: C; D-214, treasury.r_shaft_paint, Q-020)' : ''}` };
+        note: `column order ${c.order.id} (${c.order.base} base, ${c.order.capital} capital)${split ? `, ${members} in ${mat}` : ''}: dimensions SITE_SPEC; carving procedural sculpture, form C (D-018; scans would replace it, NEEDS #10)${c.built < 1 ? '; under construction: unfluted drums' : ''}${painted ? '; the shafts painted in bright colours (B): colours and pattern not found, drawn in the most probable scheme after the Persepolis and Pasargadae painted plaster (red-ochre ground, white lozenge lattice, Egyptian-blue bands at foot and head: C; D-214, treasury.r_shaft_paint, Q-020)' : ''}${MP.members.length || MP.shaft ? `; PROCEDURAL parts left where no Blender-built model is loaded (the others: D-328)` : ''}` };
       lod.levels.forEach((im, k) => { im.name = `${lod.name}:lod${k}`; im.userData = lod.userData; });
       tris += (g0.index!.count / 3) * c.parts.length;
       group.add(lod);
+    }
+    // D-328: the shaft, the game's own triangles with the tile's baked map
+    if (MP.shaft) { const r = shaftLOD(c.order, c.built, {}, MP.shaft, b, at, c.parts.map(p => p.c), { tier: c.parts[0].tier, src: c.parts[0].src }); tris += r.tris; group.add(r.lod); }
+    for (const m of MP.members) {
+      const k = `${b}|${m}|${JSON.stringify(c.order)}`;
+      if (!memberDraws.has(k)) memberDraws.set(k, { order: c.order, member: m, b, tier: c.parts[0].tier, src: c.parts[0].src, at: [] });
+      memberDraws.get(k)!.at.push(...at);
     }
     const members: [ReturnType<typeof model>, typeof protomeBox, typeof protomeMesh, string, string][] = [
       [PM, protomeBox, protomeMesh, 'protome', `double-bull protome of the ${c.order.capital} capital`],
@@ -508,6 +568,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       group.add(lod);
     }
   }
+  for (const d of memberDraws.values()) { const r = memberLOD(d.order, d.member, d.b, new Float32Array(d.at), { tier: d.tier, src: d.src }); if (r) { tris += r.tris; group.add(r.lod); } }
   if (colossi.length) {
     const fr = opts.colossusFront === undefined ? colossusFrontProjections(parts as Box[]) : []; const front = opts.colossusFront ?? fr.reduce((a, b) => a + b, 0) / fr.length;
     setColossusFront(front);
