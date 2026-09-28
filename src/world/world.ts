@@ -23,6 +23,8 @@ export interface WorldBuild {
   lastSubtitle?: Subtitle | null;
   /** wait until streamed detail (carved-relief LODs) for this camera is generated (tests, screenshots) */
   settle?(camera: THREE.Camera): Promise<void>;
+  /** rev 3 (D-321): build the arris bands round the eye now (the load, before the first frame) */
+  prebuild?(eye: THREE.Vector3): void;
   /** Phase 6: the lower town, gardens, Tol-e Ajori, roads (null with ?notown) */
   settlement?: Settlement | null;
   /** Phase 7: the plain (D-254: its villages as built, with their gates) */
@@ -574,13 +576,14 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     applySettings: (s: Settings) => { nowView.set(!!s.nowView); audio.setVolumes(vols(s.volume)); },
     // a test render (renderOnce): the carved reliefs' detail, and the population around the camera placed now without the
     // per-update budgets (the frozen clock never lets the budgeted view catch up: D-143), their impostor looks unrationed
-    settle: (camera: THREE.Camera) => { view.settle(sim.t, [camera.position.x, -camera.position.z]); crowd.settleLooks(); return settleReliefs(camera.position); },
+    prebuild: (eye: THREE.Vector3) => arris.update(nowView.active ? null : eye, 1e9),
+    settle: (camera: THREE.Camera) => { arris.update(nowView.active ? null : camera.position, 1e9); /* rev 3: the bands round the spawn built in the load, not in the first frames */ view.settle(sim.t, [camera.position.x, -camera.position.z]); crowd.settleLooks(); return settleReliefs(camera.position); },
     update(dt: number, ctx: any) {
       time += dt;
       updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
       refreshReliefShadow(); // the relief shadow atlas's upload as its fields arrive (D-226)
       doors.view(ctx.camera.position);
-      arris.update(nowView.active ? null : ctx.camera.position, dt === 0 ? 1e9 : 6); // D-321 rev 2 (a test render builds all it needs at once)
+      arris.update(nowView.active ? null : ctx.camera.position, dt === 0 ? 1e9 : 3); // D-321 rev 2 (a test render builds all it needs at once)
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
       if (!nowView.active) syncTraffic(ctx.camera.position); // D-210: the drivers and riders on the roads, before the crowd draws them

@@ -507,6 +507,7 @@ async function boot() {
     api.ready = true; await runBench(P.get('bench')!, api, frame, gpuSync, gpuMs); return;
   }
   TRACE('world built');
+  world.prebuild?.(camera.position); // D-321 rev 3: the arris bands round the spawn, in the load
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
   if (TEST) shell.playing(); else shell.title(continued);

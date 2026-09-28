@@ -20,9 +20,7 @@ import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
 import { blockFaceLoaded, blockFaceDetail, BF_ON, ADIST_OFF } from './blockface';
-import { ARRIS_EYE, ARRIS_R, ARRIS_W } from '../arch/arris';
-/** D-321 rev 2: the surfaces whose free arrises are geometry near the eye (meshes.ts ARRIS_MATS, repeated here: meshes imports this module) */
-const ARRIS_MATS = new Set(['limestone', 'terrace']);
+import { ARRIS_W, ARRIS_MATS, ARRIS_K as ARRIS_DIR, arrisNear } from '../arch/arris';
 import { incisionNodes } from './incision';
 import type { Atlas } from '../arch/carving';
 import { roofedNode } from './probes/roofs';
@@ -866,11 +864,17 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
       const AD = arch ? attribute('adist', 'vec4').add(ADIST_OFF) : vec4(1e3, 1e3, 1e3, 1e3), dA = min(min(AD.x, AD.y), min(AD.z, AD.w));
       const dpx = p.dFdx(), dpy = p.dFdy(), r1 = dpy.cross(n), r2 = n.cross(dpx), detA = dpx.dot(r1);
       const gA = r1.mul(dA.dFdx()).add(r2.mul(dA.dFdy())).mul(sign(detA)).div(detA.abs().max(1e-12));
-      const TawA = gA.div(gA.length().max(1e-6)), TalA = n.cross(TawA), geo = step(dA, min(dB, dN)).mul(step(dA, 0.13));
+      const TawA = gA.div(gA.length().max(1e-6)), TalA0 = n.cross(TawA), geo = step(dA, min(dB, dN)).mul(step(dA, 0.13));
+      // rev 3: the nearest arris's seed (its strip row and offset: 'aseed' in adist's order) and the canonical direction along it
+      // (signed along ARRIS_K), so the maps' chips lie where the band's geometry cuts them (arris.ts chipsOf)
+      const AS = arch ? attribute('aseed', 'vec4') : vec4(0, 0, 0, 0);
+      let sel: any = AS.x, cur: any = AD.x;
+      for (const c of ['y', 'z', 'w'] as const) { const m = step(AD[c], cur); sel = mix(sel, AS[c], m); cur = min(cur, AD[c]); }
+      const TalA = TalA0.mul(sign(TalA0.dot(vec3(...ARRIS_DIR)).add(1e-6))), geoRow = floor(sel), geoOff = fract(sel).div(0.999).mul(2.048);
       const alongB = RW && polyV ? mix(uF, t.mul(RW.eDir.y.negate()).add(p.y.mul(RW.eDir.x)), polyV) : uF;
       const TalB = RW && polyV ? mix(T1, vec3(tx, 0, tz).mul(RW.eDir.y.negate()).add(vec3(0, 1, 0).mul(RW.eDir.x)), polyV) : T1;
       const BFd = blockFaceDetail({ u: uF, v: vF, T1, T2, ids, isFlat, isPoint,
-        bed: { chip: band ? float(1).sub(geo) : undefined, d: min(min(dB, dN), dA), along: mix(alongB, p.dot(TalA), geo), Talong: mix(TalB, TalA, geo), Taway: mix(mix(T2b.mul(sB), TawN, nose), TawA, geo), mask: max(jmask, geo), side: mix(mix(step(0, sB), float(0.5), nose), float(0.75), geo) },
+        bed: { geo, geoRow, geoOff, chip: band ? float(1).sub(geo) : undefined, d: min(min(dB, dN), dA), along: mix(alongB, p.dot(TalA), geo), Talong: mix(TalB, TalA, geo), Taway: mix(mix(T2b.mul(sB), TawN, nose), TawA, geo), mask: max(jmask, geo), side: mix(mix(step(0, sB), float(0.5), nose), float(0.75), geo) },
         head: { d: dH, along: vF, Talong: T2, Taway: T1.mul(sH), mask: jmask.mul(headMask), side: step(0, sH) } });
       tilt = tilt.add(BFd.tilt); alb = alb.mul(BFd.alb); bfAo = BFd.ao;
       if (arch && d.stone?.polish) { // the nosing rounded by the feet: r 4 mm at a flight's ends … 18 mm in its walked middle (C)
@@ -1149,7 +1153,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
   if (opts.arch && d.blockFace && ARRIS_MATS.has(name)) { // D-321 rev 2: near the eye the free arrises are geometry (arris.ts ArrisField)
-    const near = step(positionWorld.distance(ARRIS_EYE), float(ARRIS_R)); // 1 within R of the eye (the shadow pass runs the same mask)
+    const near = arrisNear(); // 1 where the band draws (within R0 of the eye, dithered to R: rev 3's crossfade; the shadow pass runs the same mask)
     if (opts.band) m.maskNode = near.greaterThan(0.5); // the band draws only the near arrises
     else { const AD = attribute('adist', 'vec4').add(ADIST_OFF); m.maskNode = max(step(ARRIS_W, min(min(AD.x, AD.y), min(AD.z, AD.w))), float(1).sub(near)).greaterThan(0.5); } // the base leaves them to the band
   }
