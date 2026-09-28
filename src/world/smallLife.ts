@@ -218,14 +218,21 @@ export class SmallLife {
       const mesh = new THREE.InstancedMesh(g, m, FLOWER_MAX); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = mesh.receiveShadow = false; mesh.name = 'small-flower';
       mesh.userData = { ...TAG, note: `spring flowers near the walker: ${Object.values(FLOWERS).map(f => f.name).join('; ')} (C; bloom by day of year, seasonal.ts bloomAt)` };
       this.flowers = mesh; this.group.add(mesh);
+      for (const fk of Object.keys(FLOWERS) as (keyof typeof FLOWERS)[]) { const lm = lifeModel(`flower_${fk}`); if (!lm) continue;
+        const fm = new THREE.InstancedMesh(lm.levels.lod0, lifeMaterial(lm, { fallback: FLOWERS[fk].rgb, roughness: 0.8, side: THREE.DoubleSide }), FLOWER_MAX); fm.count = 0; fm.frustumCulled = false; fm.castShadow = false; fm.receiveShadow = true; fm.name = `small-flower:${fk}`;
+        fm.userData = { ...TAG, placeholder: false, note: `${FLOWERS[fk].name}: modelled (tools/blender/life_flora.py; D-332, C); near the walker (bloom by day of year, seasonal.ts bloomAt)` }; this.flowerModels.set(fk, fm); this.group.add(fm); }
+      if (this.flowerModels.size === 4) mesh.visible = false; else mesh.userData = { ...mesh.userData, placeholder: true, note: `PLACEHOLDER (the flower models did not load): ${mesh.userData.note}` };
     }
   }
   flowers!: THREE.InstancedMesh;
+  /** D-332: the modelled flowers, one mesh per bloom colour's species (grape hyacinth, buttercup, poppy, crown imperial) */
+  readonly flowerModels = new Map<keyof typeof FLOWERS, THREE.InstancedMesh>();
   /** the flowers within FLOWER_R of the viewer: in each field/steppe cell a bloom colour's heads where its patch hash falls
    *  under today's bloom (so a cell blooms in its season and fades out of it), 10-30 heads per cell; on rock tulips (red) and
    *  in April a crown imperial now and then. Static positions from (seed, cell, index) */
   private updateFlowers(viewer: P2, bloom: { violet: number; yellow: number; red: number }, month: number) {
     const fcol = this.flowers.geometry.getAttribute('fcol') as THREE.InstancedBufferAttribute, fh = this.flowers.geometry.getAttribute('fh') as THREE.InstancedBufferAttribute; let n = 0;
+    const fmc: Record<string, number> = { violet: 0, yellow: 0, red: 0, crown: 0 }, FS = new THREE.Vector3();
     const i0 = Math.floor((viewer[0] - FLOWER_R) / CELL), i1 = Math.floor((viewer[0] + FLOWER_R) / CELL), j0 = Math.floor((viewer[1] - FLOWER_R) / CELL), j1 = Math.floor((viewer[1] + FLOWER_R) / CELL);
     if (bloom.violet + bloom.yellow + bloom.red > 0.02) for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
       if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > FLOWER_R) continue;
@@ -240,10 +247,12 @@ export class SmallLife {
           const h = sp.h[0] + (sp.h[1] - sp.h[0]) * u01(this.seed, ix, iy, i, 28), lean = (u01(this.seed, ix, iy, i, 29) - 0.5) * 0.3;
           this.e.set(lean, a, 0); this.q.setFromEuler(this.e); this.p.set(e, y, -nn); this.m4.compose(this.p, this.q, ONE);
           this.flowers.setMatrixAt(n, this.m4); fcol.setXYZ(n, ...sp.rgb); fh.setX(n, h); n++;
+          const fk = crown ? 'crown' : kind, fm = this.flowerModels.get(fk); if (fm) { this.m4.compose(this.p, this.q, FS.set(h, h, h)); fm.setMatrixAt(fmc[fk]++, this.m4); }
         }
       }
     }
     this.flowers.count = n; if (n) { this.flowers.instanceMatrix.needsUpdate = true; fcol.needsUpdate = true; fh.needsUpdate = true; } this.stats.flowers = n;
+    for (const [fk, fm] of this.flowerModels) { fm.count = fmc[fk]; if (fm.count) fm.instanceMatrix.needsUpdate = true; }
   }
   private ctx(ix: number, iy: number): CellCtx {
     const key = (ix + 32768) * 65536 + (iy + 32768); let c = this.cells.get(key);

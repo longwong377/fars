@@ -204,6 +204,54 @@
    "tier": "C",
    "src": "RECON"
   },
+  "camelthorn": {
+   "class": "flora",
+   "name": "camelthorn (Alhagi)",
+   "of": "camelthorn",
+   "inHash": "5b9020217441fd47fb5eee564025d5b64f2cc735d0ed5ffd938e3388d72f33c6",
+   "files": {
+    "camelthorn.glb": {
+     "bytes": 106324,
+     "sha256": "fec4195347d819021567cc5e1d24691aa154ecd53218a0ad62cbb042f995bf53"
+    },
+    "camelthorn_albedo.ktx2": {
+     "bytes": 229101,
+     "sha256": "34d69d8141a03b19fd251f77107a4667c044909f7083235881e25327ee6733b6"
+    },
+    "camelthorn_nrm.ktx2": {
+     "bytes": 257657,
+     "sha256": "9e10ea2c156de8366f6fb5522bd7de57ef48685cf3784ee330cbba7d4ce5ef0d"
+    }
+   },
+   "tris": {
+    "lod0": 1368,
+    "lod1": 240
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.11642932891845703,
+   "bbox": [
+    [
+     -0.9279030561447144,
+     -0.07832422107458115,
+     -1.1714688539505005
+    ],
+    [
+     1.026599645614624,
+     0.9339627027511597,
+     1.2512273788452148
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
   "chukar": {
    "class": "birds",
    "name": "chukar partridge",
@@ -398,6 +446,54 @@
      0.475,
      0.047048066159736425,
      0.23445810754481555
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "cushion": {
+   "class": "flora",
+   "name": "tragacanth cushion (Astragalus)",
+   "of": "cushion",
+   "inHash": "b2eb5b8b34217fb7b126af0ad1b5eb5192530d10e880f24ddf2a0d2839c31a07",
+   "files": {
+    "cushion.glb": {
+     "bytes": 77536,
+     "sha256": "80ef1b2f9d01cc6eb47208d43e1fa2a2c5e7d8520428ee6876d5db646def722b"
+    },
+    "cushion_albedo.ktx2": {
+     "bytes": 336136,
+     "sha256": "806d2ad82f8bc1a283033b29dfa4012745d828ce39ed16c3215051fc10d9217a"
+    },
+    "cushion_nrm.ktx2": {
+     "bytes": 352181,
+     "sha256": "a9df056fc47f723535847f7ea60dd7eaa5d9a346b171fd95a4f0a76c6a2d5ca6"
+    }
+   },
+   "tris": {
+    "lod0": 776,
+    "lod1": 188
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    0.55,
+    1
+   ],
+   "cover": 0.16292381286621094,
+   "bbox": [
+    [
+     -0.5857839584350586,
+     -0.07626745849847794,
+     -0.6198430061340332
+    ],
+    [
+     0.6100947260856628,
+     0.6596691608428955,
+     0.5825148820877075
     ]
    ],
    "blender": "5.0.1",
@@ -654,6 +750,198 @@
      0.475,
      0.04046681830955795,
      0.1884901310020751
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "flower_crown": {
+   "class": "flora",
+   "name": "crown imperial (Fritillaria imperialis)",
+   "of": "flower_crown",
+   "inHash": "bc3310e2412029f18a94696a019b203e9a73fef6b4ce46911546315757aa9dd1",
+   "files": {
+    "flower_crown.glb": {
+     "bytes": 7948,
+     "sha256": "e3e1e415648ee74dce6ef3d017eedcad5074a2f1923f13dc1ec21f3a4a7f3ac3"
+    },
+    "flower_crown_albedo.ktx2": {
+     "bytes": 124027,
+     "sha256": "6d6210fbb1a5e54743ec5d7ad767c8983daef3a7ec3615c973dec737fafcabd7"
+    },
+    "flower_crown_nrm.ktx2": {
+     "bytes": 142703,
+     "sha256": "2b6a8ddf664f551297c92c56f0b71de58575fe306bea07f0aa8d31f1eb73c10f"
+    }
+   },
+   "tris": {
+    "lod0": 58,
+    "lod1": 32
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.12292957305908203,
+   "bbox": [
+    [
+     -0.28026533126831055,
+     0,
+     -0.27908891439437866
+    ],
+    [
+     0.2757716476917267,
+     1.0399999618530273,
+     0.2492886632680893
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "flower_red": {
+   "class": "flora",
+   "name": "corn poppy (Papaver rhoeas)",
+   "of": "flower_red",
+   "inHash": "636d53bc6d96897c769b87726f45103d19dd038b918630d8f15f0802b70a211b",
+   "files": {
+    "flower_red.glb": {
+     "bytes": 5016,
+     "sha256": "9834a5c797383e5fb35ebf5850c9e42070bc2790288d757ff1efd021301d8ee1"
+    },
+    "flower_red_albedo.ktx2": {
+     "bytes": 103923,
+     "sha256": "7ace729782c898cbfa8a1dbb078ae702354ce61df6c879dae520c7cd909a9400"
+    },
+    "flower_red_nrm.ktx2": {
+     "bytes": 139397,
+     "sha256": "da57a2c780cdb5148fab73aeffe915b6ec2c2139f3036a4edfc60ca3e5895169"
+    }
+   },
+   "tris": {
+    "lod0": 30,
+    "lod1": 18
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.12619400024414062,
+   "bbox": [
+    [
+     -0.3723986744880676,
+     -0.000623040075879544,
+     -0.3461863398551941
+    ],
+    [
+     0.3741133213043213,
+     1.0509999990463257,
+     0.30604851245880127
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "flower_violet": {
+   "class": "flora",
+   "name": "grape hyacinth (Muscari)",
+   "of": "flower_violet",
+   "inHash": "5f6f5d4749b27b562c42ad5caeea479e8d049feddb9c2f3d12555ea8f2ac3ccc",
+   "files": {
+    "flower_violet.glb": {
+     "bytes": 4544,
+     "sha256": "7521a0449afb4203750d434fdc7ac3577b252560fa7fd7f68c3287d52c702903"
+    },
+    "flower_violet_albedo.ktx2": {
+     "bytes": 38967,
+     "sha256": "698b080920dcae28b322e698fbcf1d423b11c05c5a3d522782ac56ee0e0c547b"
+    },
+    "flower_violet_nrm.ktx2": {
+     "bytes": 33787,
+     "sha256": "2583372401e4bb6f604bbcb265b02cd301b86f0060345cf8963b4e029fd65f18"
+    }
+   },
+   "tris": {
+    "lod0": 22,
+    "lod1": 14
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.01701068878173828,
+   "bbox": [
+    [
+     -0.3866221606731415,
+     0,
+     -0.607471764087677
+    ],
+    [
+     0.6632310152053833,
+     1,
+     0.6027979850769043
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "flower_yellow": {
+   "class": "flora",
+   "name": "buttercup (Ranunculus)",
+   "of": "flower_yellow",
+   "inHash": "d74ec116750509aa43fa2389754719800cce471343d91bf1133320f1f36a7d9c",
+   "files": {
+    "flower_yellow.glb": {
+     "bytes": 6808,
+     "sha256": "18d4c49fa34a98463a4f2798cf6d9e0b93c33425d0df72782f201639bf272fec"
+    },
+    "flower_yellow_albedo.ktx2": {
+     "bytes": 123640,
+     "sha256": "78f56501e4f97b8b8aed9fe60b9b07a691bb2cf24f6af3b24fed501a485e8f07"
+    },
+    "flower_yellow_nrm.ktx2": {
+     "bytes": 162857,
+     "sha256": "750b14cd600f7e69d7275738e56cace99a3e05023408f6497be4ce0c277239d9"
+    }
+   },
+   "tris": {
+    "lod0": 48,
+    "lod1": 32
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.1314239501953125,
+   "bbox": [
+    [
+     -0.3723986744880676,
+     -0.002865399932488799,
+     -0.3461863398551941
+    ],
+    [
+     0.3741133213043213,
+     1.0390000343322754,
+     0.30604851245880127
     ]
    ],
    "blender": "5.0.1",
@@ -1458,6 +1746,54 @@
    "tier": "C",
    "src": "RECON"
   },
+  "rose": {
+   "class": "flora",
+   "name": "damask rose bush",
+   "of": "rose",
+   "inHash": "bba3199fe59b42721e7e67f0581a38bfa408e8b94a89501cd9d0a7f920d01b05",
+   "files": {
+    "rose.glb": {
+     "bytes": 37940,
+     "sha256": "d5bd578f88ecd5a5b7761c8c076c0dd8db8c911fcbecba3504825ff2db0c1ce3"
+    },
+    "rose_albedo.ktx2": {
+     "bytes": 280166,
+     "sha256": "6349e324a31bab7831103cbc1f32cda41e590be5f29c7d60f026b876a286a596"
+    },
+    "rose_nrm.ktx2": {
+     "bytes": 282955,
+     "sha256": "2ef52a181ecc27066ee9c00b2c7c9c420d7f7d2177a78e5ba11124ae77a74fa7"
+    }
+   },
+   "tris": {
+    "lod0": 416,
+    "lod1": 170
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    0.9,
+    1
+   ],
+   "cover": 0.2099170684814453,
+   "bbox": [
+    [
+     -0.8736585974693298,
+     -0.0638512372970581,
+     -1.0290515422821045
+    ],
+    [
+     1.0578389167785645,
+     1.0472607612609863,
+     1.0354691743850708
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
   "sandgrouse": {
    "class": "birds",
    "name": "black-bellied sandgrouse",
@@ -1950,6 +2286,54 @@
      0.2,
      0.0161595,
      0.09044399749896481
+    ]
+   ],
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
+  "thistle": {
+   "class": "flora",
+   "name": "thistle (Onopordum, Cousinia)",
+   "of": "thistle",
+   "inHash": "b573fa39265582fd293a9771ee06181f6a4d56f381d8be106cb46765f2789d32",
+   "files": {
+    "thistle.glb": {
+     "bytes": 18308,
+     "sha256": "5c48fb381620a94363e992b7852121d6b7f6218d85e3eaf7bed29a4788c96a0b"
+    },
+    "thistle_albedo.ktx2": {
+     "bytes": 328055,
+     "sha256": "ca8c8640fbb3e7b9d488ab4a7ccdb3cffae3289ac4f90486f9c6c57fc9ba8e82"
+    },
+    "thistle_nrm.ktx2": {
+     "bytes": 283717,
+     "sha256": "cfbc4ff5a5ed8db162f2ba3f725527bb92e33d2566d6c0b8016c3381b562a4c3"
+    }
+   },
+   "tris": {
+    "lod0": 248,
+    "lod1": 86
+   },
+   "tex": 1024,
+   "unit": [
+    1,
+    1,
+    1
+   ],
+   "cover": 0.2498455047607422,
+   "bbox": [
+    [
+     -0.3924412429332733,
+     -0.0005069485632702708,
+     -0.3818507492542267
+    ],
+    [
+     0.3837825357913971,
+     1.0499999523162842,
+     0.39355409145355225
     ]
    ],
    "blender": "5.0.1",

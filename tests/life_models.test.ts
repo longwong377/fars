@@ -88,12 +88,40 @@ describe('the modelled small creatures (D-332)', () => {
     }
   });
   it('with the models: no stand-in drawn, near and far levels by distance, the worst case under 400 k triangles', () => {
-    clearLifeModels(); for (const k of Object.keys(SMALL)) setLifeModel({ id: k, entry: MAN.assets[k], levels: load(k), albedo: null, nrm: null });
+    clearLifeModels(); for (const k of [...Object.keys(SMALL), 'flower_violet', 'flower_yellow', 'flower_red', 'flower_crown']) setLifeModel({ id: k, entry: MAN.assets[k], levels: load(k), albedo: null, nrm: null });
     const ctxAt = (e: number, n: number): CellCtx => Math.hypot(e, n) < 6 ? 'midden' : Math.abs(n - 40) < 6 ? 'water' : e > 60 ? 'rock' : e < -40 ? 'field' : 'steppe';
     const s = new SmallLife(7, { ground: () => 0, ctxAt }); expect(s.group.children.filter(m => (m as any).userData.placeholder)).toHaveLength(0);
     s.update(6, 12, 50000, [0, 20], 0, 2); expect(s.stats.fly).toBeGreaterThan(0); expect(s.far.get('fly')!.count + s.meshes.get('fly')!.count).toBe(s.stats.fly);
     let worst = 0; for (const [k, sp] of Object.entries(SMALL)) worst += sp.max * MAN.assets[k].tris.lod0; expect(worst).toBeLessThan(1_200_000);
     let drawnWorst = 0; for (const [k, sp] of Object.entries(SMALL)) drawnWorst += sp.max * MAN.assets[k].tris.lod1; expect(drawnWorst).toBeLessThan(400_000);
+    clearLifeModels();
+  });
+});
+
+import { GroundFlora, RoseBeds, FLORA } from '../src/world/groundFlora';
+describe('the modelled ground flora (D-332)', () => {
+  const ids = ['cushion', 'camelthorn', 'thistle', 'rose', 'flower_violet', 'flower_yellow', 'flower_red', 'flower_crown'];
+  it('every kind is built at its unit size, within the D-310 scans\' budget (lod0 <= 1500, lod1 <= 300 triangles), with its flower parts marked', () => {
+    for (const id of ids) {
+      const e = MAN.assets[id]; expect(e, id).toBeTruthy(); expect(e.class).toBe('flora'); const L = load(id);
+      expect(levelTris(L.lod0), id).toBeLessThanOrEqual(1500); expect(levelTris(L.lod1), id).toBeLessThanOrEqual(300);
+      const b = L.lod0.boundingBox!; expect(b.max.y, id).toBeGreaterThan(0.4); expect(b.max.y, id).toBeLessThan(1.35); expect(b.min.y, id).toBeGreaterThan(-0.1);
+      const part = L.lod0.getAttribute('life'); let f = 0; for (let i = 0; i < part.count; i++) f += part.getX(i) > 0.5 ? 1 : 0; expect(f, `${id} flowers`).toBeGreaterThan(0);
+    }
+  });
+  it('with the models: no stand-in and no scan drawn, near and far levels, and the roses by distance', () => {
+    clearLifeModels(); for (const id of ids) setLifeModel({ id, entry: MAN.assets[id], levels: load(id), albedo: null, nrm: null });
+    const ctxAt = (e: number): CellCtx => (e > 100 ? 'rock' : e > 0 ? 'steppe' : 'field');
+    const f = new GroundFlora(3, { ground: () => 0, ctxAt }); f.update(4, [50, 0]);
+    for (const k of Object.keys(FLORA) as (keyof typeof FLORA)[]) { const M = f.model.get(k)!; expect(M, k).toBeTruthy(); expect(M.near.count + M.far.count, k).toBe(f.stats[k]); expect(f.meshes.get(k)!.visible).toBe(false); }
+    expect(f.stats.thistle + f.stats.camelthorn).toBeGreaterThan(0);
+    const r = new RoseBeds([{ e: 0, n: 0, y: 0, size: 1, rot: 0 }, { e: 80, n: 0, y: 0, size: 0.7, rot: 1 }]); r.update(5, [0, 0]);
+    expect(r.group.children.filter(m => (m as any).userData.placeholder)).toHaveLength(0);
+    const near = r.group.children.find(m => m.name === 'flora-roses:lod0') as THREE.InstancedMesh, far = r.group.children.find(m => m.name === 'flora-roses:lod1') as THREE.InstancedMesh;
+    expect(near.count).toBe(1); expect(far.count).toBe(1);
+    // the worst case drawn: every kind at its cap, the near share at lod0 (the area within FLORA_LOD_NEAR of the radius's disc)
+    let tris = 0; for (const k of Object.keys(FLORA) as (keyof typeof FLORA)[]) { const e = MAN.assets[k]; tris += FLORA[k].max * (0.12 * e.tris.lod0 + 0.88 * e.tris.lod1); }
+    expect(tris).toBeLessThan(1_000_000);
     clearLifeModels();
   });
 });
