@@ -25,6 +25,13 @@ export const SUN_CASCADES: Partial<Record<Quality, SunCascadeProfile>> = {
   high: { size: 4096, breaks: [8, 50, 160, 600], fade: false, taps: 12 },
   ultra: { size: 4096, breaks: [8, 50, 160, 600], fade: true, taps: 16 },
 };
+/** D-337: frames between re-renders of each cascade (1 = every frame); a cascade is re-rendered sooner when the camera has
+ *  moved CASCADE_MOVE × its far bound, turned more than CASCADE_TURN_COS allows, or the sun has moved (?csmall: every frame) */
+export const CASCADE_PERIOD = [1, 1, 2, 4];
+export const CASCADE_MOVE = 0.01, CASCADE_TURN_COS = Math.cos(THREE.MathUtils.degToRad(1.5)), CASCADE_SUN_COS = Math.cos(THREE.MathUtils.degToRad(0.05));
+export const CASCADE_AMORTISE = { on: !(typeof location !== 'undefined' && new URLSearchParams(location.search).has('csmall')) };
+if (typeof globalThis !== 'undefined') (globalThis as any).__parsaCascades = CASCADE_AMORTISE; // A/B at run time (tests/e2e/dbg_perf.spec.ts)
+const _cp = new THREE.Vector3(), _cd = new THREE.Vector3(), _sd = new THREE.Vector3();
 /** the old profile (session 11), kept for the A/B measurement (?csm=old) */
 export const SUN_CASCADES_OLD: SunCascadeProfile = { size: 2048, breaks: [], fade: false, taps: 5 };
 /** the sun's angular diameter (rad): the penumbra widens by this much per metre between occluder and receiver */
@@ -69,6 +76,25 @@ class SunCSM extends (CSMShadowNode as any) {
     this.biasFromTexels();
   }
   updateFrustums() { super.updateFrustums(); if (this.prof.breaks.length) this.biasFromTexels(); }
+  private last: { pos: THREE.Vector3; dir: THREE.Vector3; sun: THREE.Vector3; frame: number }[] = [];
+  /** D-337: the far cascades re-rendered every CASCADE_PERIOD[i] frames (staggered), unless the camera has moved or turned,
+   *  or the sun has moved, enough since that cascade was drawn: its map and its matrix stay the pair drawn together, so a
+   *  skipped frame shows the shadow of one to three frames before (the people 50-600 m off move ~2-7 cm meanwhile, under a
+   *  9-35 cm texel), never a misplaced one */
+  updateBefore(frame: any) {
+    super.updateBefore(frame);
+    const P = CASCADE_PERIOD, cam = (this as any).camera as THREE.Camera | null; if (!cam) return;
+    if (!CASCADE_AMORTISE.on) { for (const lw of (this as any).lights) lw.shadow.autoUpdate = true; return; }
+    const f = frame?.frameId ?? 0, pos = cam.getWorldPosition(_cp), dir = cam.getWorldDirection(_cd), L = (this as any).light as THREE.DirectionalLight;
+    const sun = _sd.subVectors(L.position, L.target.position).normalize();
+    ((this as any).lights as any[]).forEach((lw, i) => {
+      const p = P[i] ?? 1, S = lw.shadow; if (p <= 1) { S.autoUpdate = true; return; }
+      S.autoUpdate = false; const l = this.last[i], far = this.prof.breaks[i] ?? 600;
+      const due = !l || f - l.frame >= p || (f % p) === (i % p) && f !== l.frame
+        || l.pos.distanceTo(pos) > CASCADE_MOVE * far || l.dir.dot(dir) < CASCADE_TURN_COS || l.sun.dot(sun) < CASCADE_SUN_COS;
+      if (due) { S.needsUpdate = true; if (l) { l.pos.copy(pos); l.dir.copy(dir); l.sun.copy(sun); l.frame = f; } else this.last[i] = { pos: pos.clone(), dir: dir.clone(), sun: sun.clone(), frame: f }; }
+    });
+  }
   /** biases from each cascade's own extent: depth bias in the shadow camera's normalised depth (its near–far range) */
   private biasFromTexels() {
     for (const L of (this as any).lights ?? []) {

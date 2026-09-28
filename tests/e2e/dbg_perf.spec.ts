@@ -33,6 +33,8 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
     const tw = Date.now(); for (let i = 0; i < 4; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const r = await page.evaluate((n) => (window as any).__parsa.profile(n), N);
     r.warmS = (Date.now() - tw) / 1000;
+    { const r0 = await page.evaluate(async (n) => { const C = (globalThis as any).__parsaCascades; const was = C.on; C.on = false; try { return await (window as any).__parsa.profile(n); } finally { C.on = was; } }, 12);
+      r.allCascades = { cpu: r0.cpuMs, gpu: r0.gpuMs, serial: r0.serialMs, pipelined: r0.pipelinedMs }; console.log(`[perf] ${s.n} every cascade every frame: ${JSON.stringify(r.allCascades)}`); }
     out.views[s.n] = r;
     console.log(`[perf] ${s.n} cpu ${r.cpuMs} serial ${r.serialMs} gpu ${r.gpuMs} pipelined ${r.pipelinedMs} draws ${r.draws} tris ${(r.tris / 1e6).toFixed(2)}M`);
     console.log(`[perf] ${s.n} sections ${JSON.stringify(Object.fromEntries(Object.entries(r.sections).sort((a: any, b: any) => b[1] - a[1]).slice(0, 18)))}`);
