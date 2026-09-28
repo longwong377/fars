@@ -44,6 +44,19 @@ export class NeuralVoices {
     const ph = phonemesFor(ipa, intonation); if (!ph) return null;
     this.inflight.add(k); this.ask({ prio, phonemes: ph, voice: v, speed: variant ? 1 + 0.06 * variant : 1 }, k); return null;
   }
+  /** is this unit's clip rendered (the murmur bed draws its grains from what is) */
+  has(v: NeuralVoice, unitId: string, intonation: 'fall' | 'rise' | 'level', variant = 0) { return this.clips.has(`${voiceKey(v)}|${unitId}|${intonation}|${variant}`); }
+  /** a unit's clip, waited for (the conversation's heard reply: cached, and prefetched as the stranger comes near) */
+  async fetch(v: NeuralVoice, unitId: string, ipa: string, intonation: 'fall' | 'rise' | 'level', prio: number = PRIO.reply): Promise<Float32Array | null> {
+    const k = `${voiceKey(v)}|${unitId}|${intonation}|0`; const c = this.clips.get(k); if (c) return c;
+    const ph = phonemesFor(ipa, intonation); if (!ph || !this.stats.ready) return null;
+    this.inflight.add(k); const r = await this.ask({ prio, phonemes: ph, voice: v }, k); return r?.pcm.length ? r.pcm : null;
+  }
+  /** render these units of a person ahead (the stranger is coming near them), at a low priority, skipping what is cached */
+  prefetch(v: NeuralVoice, units: readonly { id: string; ipa: string; intonation: 'fall' | 'rise' | 'level' }[], prio: number = PRIO.near) {
+    for (const u of units) { const k = `${voiceKey(v)}|${u.id}|${u.intonation}|0`; if (this.clips.has(k) || this.inflight.has(k)) continue; const ph = phonemesFor(u.ipa, u.intonation); if (!ph) continue;
+      this.inflight.add(k); this.ask({ prio, phonemes: ph, voice: v }, k); }
+  }
   /** the whole clip, waited for (a conversation's reply): phonemes of the period language, or a text of the opt-in layer */
   say(v: NeuralVoice, o: { phonemes?: string; text?: string; lang?: 'fa' | 'en' }, prio: number = PRIO.reply) { return this.ask({ prio, voice: v, ...o }, null); }
   /** drop the queued renders of this priority and below (the listener moved far) */

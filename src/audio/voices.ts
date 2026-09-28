@@ -172,7 +172,9 @@ export class PopulationVoices {
   }
   private slot(p: NearPerson, now: number): Slot {
     let s = this.slots.get(p.key);
-    if (!s) { const r = new Rng(p.seed >>> 0, `voice.talk:${p.key}`); s = { key: p.key, p, voice: this.voiceOf(p), nv: neuralVoice({ seed: p.seed, sex: p.sex, age: p.age, lang: p.lang }), rng: r, loud: 0.85 + 0.3 * r.next(), recent: new Map(), busyUntil: 0, nextAt: now + 0.1 + 0.8 * r.next(), seen: now, n: 0, spoke: now - 5 * r.next() }; this.slots.set(p.key, s); }
+    if (!s) { const r = new Rng(p.seed >>> 0, `voice.talk:${p.key}`); s = { key: p.key, p, voice: this.voiceOf(p), nv: neuralVoice({ seed: p.seed, sex: p.sex, age: p.age, lang: p.lang }), rng: r, loud: 0.85 + 0.3 * r.next(), recent: new Map(), busyUntil: 0, nextAt: now + 0.1 + 0.8 * r.next(), seen: now, n: 0, spoke: now - 5 * r.next() }; this.slots.set(p.key, s);
+      // D-336: a person newly in earshot has two of their units rendered ahead, at the bed's priority (their first words come sooner)
+      if (this.neural?.stats.ready) { const L = voiceLang(p.lang, p.langs).lang, U = L ? unitsFor(L) : null; if (U?.words.length) this.neural.prefetch(s.nv, [r.pick(U.words), U.lines.length ? r.pick(U.lines) : r.pick(U.words)], PRIO.bed); } }
     s.p = p; s.seen = now; return s;
   }
   /** a unit this person has not said (nor any word of it) in the last 60 s, preferring one nobody near said in the last 30 s */
@@ -213,12 +215,18 @@ export class PopulationVoices {
     // nobody says a word the same way twice: this utterance's pitch (±4 %), pace (±8 %), vowels (F2/F3 ±2 %) and, for a single
     // word, its tune vary
     const r = s.rng, v = { ...s.voice, pitch: s.voice.pitch * (o.pitch ?? 1) * (0.96 + 0.08 * r.next()), rate: s.voice.rate * (u.id.startsWith('laugh') ? 1.3 : 1) * (0.92 + 0.16 * r.next()), f2: (s.voice.f2 ?? 1) * (0.98 + 0.04 * r.next()), accent: (s.voice.accent ?? 1) * (0.8 + 0.4 * r.next()) };
-    const tune: Unit = u.kind !== 'line' ? { ...u, intonation: r.chance(0.6) ? u.intonation : r.pick(['fall', 'level', 'rise'] as Intonation[]) } : u;
+    let tune: Unit = u.kind !== 'line' ? { ...u, intonation: r.chance(0.6) ? u.intonation : r.pick(['fall', 'level', 'rise'] as Intonation[]) } : u;
+    // D-336: a bed grain is one of this person's units already rendered when there is one (the bed never waits on the model)
+    if (kind === 'bed' && this.neural?.stats.ready && !o.unit && !this.neural.has(s.nv, tune.id, tune.intonation, tune.kind === 'line' ? 0 : s.n & 1)) {
+      const U = lang ? unitsFor(lang) : null, fresh = (x: Unit) => (s.recent.get(x.id) ?? -1e9) < now - 60;
+      const alt = U ? [...U.lines, ...U.words].find(x => fresh(x) && this.neural!.has(s.nv, x.id, x.intonation, x.kind === 'line' ? 0 : s.n & 1)) : undefined;
+      if (alt) tune = alt;
+    }
     // D-336: the person's own natural voice when the model is up (the clip of this unit in their voice, cached; this
     // utterance's pitch variation as the playback rate), else the formant synthesiser (placeholder)
     const nv = this.neural?.stats.ready ? this.neural : null; let buf: AudioBuffer | null, shift = 1;
     if (nv) {
-      const pcm = nv.get(s.nv, u.id, u.ipa, tune.intonation, kind === 'bed' ? PRIO.bed : d < 8 ? PRIO.near : PRIO.voice, u.kind === 'line' ? 0 : s.n & 1);
+      const pcm = nv.get(s.nv, tune.id, tune.ipa, tune.intonation, kind === 'bed' ? PRIO.bed : d < 8 ? PRIO.near : PRIO.voice, tune.kind === 'line' ? 0 : s.n & 1);
       if (!pcm) { this.stats.starved++; this.stats.totalWaits++; if (!o.unit) s.want = { u, lang }; return null; }
       s.want = undefined; buf = this.bufs.get(pcm) ?? null;
       if (!buf) { buf = this.e.ctx!.createBuffer(1, pcm.length, 24000); buf.getChannelData(0).set(pcm); this.bufs.set(pcm, buf); }
@@ -230,11 +238,11 @@ export class PopulationVoices {
     const my = p.y + (p.age < 2 ? 1.1 : p.age < 12 ? 1.05 : 1.55), pan = e.panner(p.x, my, p.z, 2, kind === 'voice' ? 100 : 160); if (!hrtf) pan.panningModel = 'equalpower';
     if (kind === 'bed') { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.5; lp.frequency.value = Math.max(900, 2600 - 25 * d); src.connect(lp); lp.connect(g); } else src.connect(g);
     g.connect(pan); e.route(pan, 'voices', t0 + dur); src.start(t0); src.stop(t0 + dur + 0.01);
-    s.n++; for (const id of [u.id, ...u.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${u.id}`, now);
+    s.n++; for (const id of [tune.id, ...tune.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${tune.id}`, now);
     if (s.recent.size > 64) for (const [k, t] of s.recent) if (t < now - 61) s.recent.delete(k);
     this.speaking.set(s.key, { from: t0, to: t0 + dur }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
-    const L = u.kind === 'wordless' ? 'wordless' : (lang ?? 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: u.id, lang: L, src, pan, buf, voice: s.voice });
-    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: u.id, lang: L, translit: u.translit, gloss: u.gloss, tier: u.tier, t0, t1: t0 + dur });
+    const L = tune.kind === 'wordless' ? 'wordless' : (lang ?? 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: tune.id, lang: L, src, pan, buf, voice: s.voice });
+    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L, translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
     return t0 + dur;
   }
   /** Call once a frame with everyone the crowd places near the listener. `hold(key)`: a person speaking a scripted line

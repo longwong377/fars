@@ -69,10 +69,16 @@ export function heardReply(pop: Population, pid: number, day: number, english: s
 }
 /** sentences of a reply for the opt-in layer (each one synthesis: short dispatches, and the first plays while the next renders) */
 export const sentences = (t: string) => t.split(/(?<=[.!?؟…])\s+/).map(s => s.trim()).filter(Boolean);
-/** the synthesis jobs of a heard reply: the own language's units (their phonemes), or the opt-in layer's sentences */
+/** the pieces a reply is rendered in: its sentences, the first cut at its first comma when long (the first audio sooner: a
+ *  synthesis takes time in proportion to its length) */
+export function chunks(t: string): string[] {
+  const S = sentences(t); if (!S.length) return S; const m = /^(.{12,}?[,،;:])\s+(.{12,})$/.exec(S[0]);
+  return S[0].length > 40 && m ? [m[1], m[2], ...S.slice(1)] : S;
+}
+/** the synthesis jobs of a heard reply: the own language's units (their phonemes), or the opt-in layer's pieces */
 export function replyJobs(layer: HearIn, units: Unit[], english: string, farsi?: string | null): ({ phonemes: string } | { text: string; lang: 'fa' | 'en' })[] {
   if (layer === 'own') return units.map(u => ({ phonemes: phonemesFor(u.ipa, u.intonation) }));
-  return sentences(layer === 'fa' ? farsi! : english).map(text => ({ text, lang: layer }));
+  return chunks(layer === 'fa' ? farsi! : english).map(text => ({ text, lang: layer }));
 }
 /** D-336: the heard reply in the person's own natural voice: their own language (the units), or with the opt-in, the reply
  *  itself in Farsi (`farsi`: the in-character reply in Persian, converse/farsi.ts) or English. `onChunk` gets each piece as it
@@ -83,7 +89,7 @@ export async function heardReplyNeural(nv: NeuralVoices, pop: Population, pid: n
   const layer: HearIn = o.hearIn === 'fa' && o.farsi ? 'fa' : o.hearIn === 'en' ? 'en' : 'own';
   const { units, lang } = replyUnits(pop, pid, day, english, worldSeed, o.agent ?? null);
   // all queued at once (the worker renders them in order); each is played as soon as it and those before it are ready
-  const ps = replyJobs(layer, units, english, o.farsi).map(j => nv.say(v, j)); const parts: Float32Array[] = []; let rate = 24000, firstMs = -1;
+  const ps = layer === 'own' ? units.map(u => nv.fetch(v, u.id, u.ipa, u.intonation).then(pcm => (pcm ? { pcm, rate: 24000 } : null))) : replyJobs(layer, units, english, o.farsi).map(j => nv.say(v, j)); const parts: Float32Array[] = []; let rate = 24000, firstMs = -1;
   for (const p of ps) { const r = await p; if (!r || !r.pcm.length) continue; rate = r.rate; parts.push(r.pcm); if (firstMs < 0) firstMs = performance.now() - t0; o.onChunk?.(r.pcm, r.rate); }
   if (!parts.length) return null;
   const { data, rms } = join(parts, rate, layer === 'own' ? 0.35 : 0.18);
