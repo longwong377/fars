@@ -65,22 +65,22 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-312 | s12 | the monuments' forms: protome, colossi, reliefs, block faces (Q-890..Q-899, B133..B135) | agent worktree T:/fars-wt/monuments, branch s12-monuments | first pass merged session 12 (87d1834, up to d417818); e7290b1 NOT merged (breaks 2 sculpt tests; plan in sessions/s12.md); no Q/B used |
 | D-313 | s12 | the people's forms: garments, belts, hair and beards (Q-900..Q-909, B136..B138) | agent worktree T:/fars-wt/people, branch s12-people | merged session 12 (b82cd90, a3d2af5; B136 used) |
 | D-314..D-319 | s12 | the lead's own decisions (Q-910..Q-919, B139..B141) | claude/amazing-fermi-40ds7j | D-314 used (the CPU bake; tool uncommitted, see sessions/s12.md); D-315..D-319, Q-910..Q-919, B139..B141 unused |
-| D-320 | s12 | Blender, all of it: reliefs (Q-920..Q-929, B142..B144) | agent worktree T:/fars-wt/reliefs, branch s12b-reliefs | in flight |
-| D-321 | s12 | Blender, all of it: blocks (Q-930..Q-939, B145..B147) | agent worktree T:/fars-wt/blocks, branch s12b-blocks | in flight |
-| D-322 | s12 | Blender, all of it: garments (Q-940..Q-949, B148..B150) | agent worktree T:/fars-wt/garments, branch s12b-garments | in flight |
-| D-323 | s12 | Blender, all of it: hairhands (Q-950..Q-959, B151..B153) | agent worktree T:/fars-wt/hairhands, branch s12b-hairhands | in flight |
-| D-324 | s12 | Blender, all of it: houselod (Q-960..Q-969, B154..B156) | agent worktree T:/fars-wt/houselod, branch s12b-houselod | in flight |
-| D-325 | s12 | Blender, all of it: props (Q-970..Q-979, B157..B159) | agent worktree T:/fars-wt/props, branch s12b-props | in flight |
-| D-326 | s12 | Blender, all of it: animals (Q-980..Q-989, B160..B162) | agent worktree T:/fars-wt/animals, branch s12b-animals | in flight |
-| D-327 | s12 | Blender, all of it: trees (Q-990..Q-999, B163..B165) | agent worktree T:/fars-wt/trees, branch s12b-trees | in flight |
-| D-315 | s12 | conversations act on the world and are remembered per save (UD-21; Q-910..Q-919, B139..B141) | agent worktree T:/fars-wt/talk, branch s12b-talk | in flight |
-| D-328 | s12 | Blender, all of it (wave 3): columns (Q-912..Q-913, B166..B168) | agent worktree T:/fars-wt/columns, branch s12c-columns | in flight |
-| D-329 | s12 | Blender, all of it (wave 3): ajori_naqsh (Q-914..Q-915, B169..B171) | agent worktree T:/fars-wt/ajori_naqsh, branch s12c-ajori_naqsh | in flight |
-| D-330 | s12 | Blender, all of it (wave 3): decor_tents (Q-916..Q-917, B172..B174) | agent worktree T:/fars-wt/decor_tents, branch s12c-decor_tents | in flight |
-| D-331 | s12 | Blender, all of it (wave 3): impostors (Q-918..Q-919, B175..B177) | agent worktree T:/fars-wt/impostors, branch s12c-impostors | in flight |
-| D-332 | s12 | Blender, all of it (wave 3): smalllife (Q-920, B178..B180) | agent worktree T:/fars-wt/smalllife, branch s12c-smalllife | in flight |
-| D-333 | s12 | wave 4: mocap (Q-921, B181..B183) | agent worktree T:/fars-wt/mocap, branch s12d-mocap | in flight |
-| D-334 | s12 | wave 4: palacewalls (Q-922, B184..B186) | agent worktree T:/fars-wt/palacewalls, branch s12d-palacewalls | in flight |
-| D-335 | s12 | wave 4: land (Q-923, B187..B189) | agent worktree T:/fars-wt/land, branch s12d-land | in flight |
-| D-336 | s12 | voices: a unique natural voice per person, period languages, the Farsi/English opt-in (UD-22; Q-924, B190..B192) | agent worktree T:/fars-wt/voices, branch s12d-voices | in flight |
-| D-337 | s12 | performance: the world playable at high on the T4 (Q-925, B193..B195) | agent worktree T:/fars-wt/perf, branch s12d-perf | in flight |
+| D-320 | s12 | Blender, all of it: reliefs (Q-920..Q-929, B142..B144) | agent worktree T:/fars-wt/reliefs, branch s12b-reliefs | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-321 | s12 | Blender, all of it: blocks (Q-930..Q-939, B145..B147) | agent worktree T:/fars-wt/blocks, branch s12b-blocks | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-322 | s12 | Blender, all of it: garments (Q-940..Q-949, B148..B150) | agent worktree T:/fars-wt/garments, branch s12b-garments | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-323 | s12 | Blender, all of it: hairhands (Q-950..Q-959, B151..B153) | agent worktree T:/fars-wt/hairhands, branch s12b-hairhands | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-324 | s12 | Blender, all of it: houselod (Q-960..Q-969, B154..B156) | agent worktree T:/fars-wt/houselod, branch s12b-houselod | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-325 | s12 | Blender, all of it: props (Q-970..Q-979, B157..B159) | agent worktree T:/fars-wt/props, branch s12b-props | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-326 | s12 | Blender, all of it: animals (Q-980..Q-989, B160..B162) | agent worktree T:/fars-wt/animals, branch s12b-animals | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-327 | s12 | Blender, all of it: trees (Q-990..Q-999, B163..B165) | agent worktree T:/fars-wt/trees, branch s12b-trees | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-315 | s12 | conversations act on the world and are remembered per save (UD-21; Q-910..Q-919, B139..B141) | agent worktree T:/fars-wt/talk, branch s12b-talk | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-328 | s12 | Blender, all of it (wave 3): columns (Q-912..Q-913, B166..B168) | agent worktree T:/fars-wt/columns, branch s12c-columns | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-329 | s12 | Blender, all of it (wave 3): ajori_naqsh (Q-914..Q-915, B169..B171) | agent worktree T:/fars-wt/ajori_naqsh, branch s12c-ajori_naqsh | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-330 | s12 | Blender, all of it (wave 3): decor_tents (Q-916..Q-917, B172..B174) | agent worktree T:/fars-wt/decor_tents, branch s12c-decor_tents | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-331 | s12 | Blender, all of it (wave 3): impostors (Q-918..Q-919, B175..B177) | agent worktree T:/fars-wt/impostors, branch s12c-impostors | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-332 | s12 | Blender, all of it (wave 3): smalllife (Q-920, B178..B180) | agent worktree T:/fars-wt/smalllife, branch s12c-smalllife | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-333 | s12 | wave 4: mocap (Q-921, B181..B183) | agent worktree T:/fars-wt/mocap, branch s12d-mocap | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-334 | s12 | wave 4: palacewalls (Q-922, B184..B186) | agent worktree T:/fars-wt/palacewalls, branch s12d-palacewalls | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-335 | s12 | wave 4: land (Q-923, B187..B189) | agent worktree T:/fars-wt/land, branch s12d-land | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-336 | s12 | voices: a unique natural voice per person, period languages, the Farsi/English opt-in (UD-22; Q-924, B190..B192) | agent worktree T:/fars-wt/voices, branch s12d-voices | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-337 | s12 | performance: the world playable at high on the T4 (Q-925, B193..B195) | agent worktree T:/fars-wt/perf, branch s12d-perf | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |

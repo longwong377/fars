@@ -1,4 +1,36 @@
-# HANDOFF — end of session 12 (2026-09-27); branch claude/amazing-fermi-40ds7j
+# HANDOFF — end of session 12 (2026-09-28); branch claude/amazing-fermi-40ds7j
+
+## FIRST, IN THE CLOUD (session 13)
+1. **Models:** the cloud's proxy blocked Hugging Face. Test it first:
+   `curl -sI https://huggingface.co/onnx-community/whisper-base/resolve/main/config.json | head -1`
+   If blocked, use branch **models-archive** (every model the game uses first; files > 95 MiB split in parts, SHA256SUMS of each
+   whole file): `git fetch origin models-archive --depth 1 && git worktree add ../models-archive FETCH_HEAD && (cd ../models-archive && node join.mjs)`,
+   then serve its `models/` at /models/ (research/MODELS_MANIFEST.json, tools/dev/fetch_models.mjs) and point tools/bake-cpu/bake.mts
+   `--model` at `bake/Qwen3-4B-Instruct-2507-Q4_K_M.gguf`. The upload was still running at the session's end: check which paths
+   landed (`git ls-tree -r --name-only origin/models-archive`); the game's own set (gemma-2-2b, WebLLM libs, Whisper, Kokoro, the
+   voices' models, Qwen2.5-1.5B, the bake GGUF) went first, the unused 3B/7B variants last.
+2. Read sessions/s12.md (broken first; the class table).
+
+## SESSION 12 CLOSE (Vagon): every Blender class of research/BLENDER_PLAN.md built world-wide, merged
+Merged (all branches of the session): lighting (cascades, tone look, sky visibility, interiors verified 19 -> 112), CC0 scans
+(rocks, flora, jars, baskets), the house kit + three LODs + baked walls, block faces (tool marks, chipped arris geometry, joint
+grooves), palace walls/roofs/painted interiors, reliefs (carved atlas; 20 of 41 kinds from photographs), columns (every part baked),
+the protome and colossi, frames/merlons/court tents, Tol-e Ajori and Naqsh-e Rustam, garments (cloth sim, 2 cuts), hands/hair/
+beards, animals (34), trees (15), birds and small life and real flora, people impostors (Cycles), motion capture for every walker,
+neural voices per person (Kokoro) with the Farsi/English opt-in, conversations that act and are remembered (behind ?converse),
+the profiler and the eye-ray fix.
+**Broken / unverified (read first):** most classes were never seen in a full-world render (the GPU slots were the bottleneck);
+world frame time 209-287 ms at high (B125; the profiler dbg_perf.spec.ts is built, not yet run to completion); blender_assets
+reproducible fails for 3 assets on the merged tree (rerun `node tools/blender/build.mjs --verify` on Vagon); the impostor atlas
+is stale after the garments merge (`node tools/blender/impostors.mjs`, Vagon); T-E10 62.5 % (target 90), T-E9 ~60 %, T-E11 not
+finally measured (94.7 % unique, 72 % natural; B190-B192); B111 the town lanes at night still black; interiors of rooms other
+than the scribe room unverified; tests timing out under load (reliefs budget, doors, arris step, performances) to re-run idle.
+**The cloud next (node-only):** reviews of REVIEWS/renders/s12/, the depth track (lives, T-E9/T-E10 grounding in node, the soak
+gates), the records; anything needing Blender or the GPU waits for the next Vagon session (list above).
+
+---
+
+# (Earlier in session 12)
 
 ## SESSION 12 CLOSE (Vagon, ~2 h, UD-19): what was built, what is broken, what the cloud does next
 Read sessions/s12.md first (broken first, the class table, the verification). In short:
