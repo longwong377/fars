@@ -24,6 +24,10 @@ import { ROOM, YARD, toLocal, toGrid } from '../src/world/settlement/site';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, type Env } from '../src/people/sim';
 import { PopGeo } from '../src/people/popgeo';
+import { registerScanStandIns, VESSEL_IDS } from './lib/scanStandIns';
+import { loadModelsNode } from './lib/models_node';
+// Q-960: the houses' scan vessels at the triangles the browser draws (node cannot load the GLBs)
+registerScanStandIns(VESSEL_IDS); loadModelsNode(); // (and the modelled props, D-325, as the page draws them)
 
 const T = loadTerrain(), R = loadRiversFile(), C = buildCanals(T, R.rivers, 1), V = placeVillages(T, R.rivers, C, 1);
 const comps = V.map(v => villageCompounds(v, T, 1));

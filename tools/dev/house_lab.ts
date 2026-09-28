@@ -65,13 +65,14 @@ import { Settlement } from '../../src/world/settlement/build';
     return [g[0], -g[1], H(g[0], -g[1]) + (a[0] === 'door' ? 1.6 : 7), ((gb % 360) + 360) % 360, a[0] === 'door' ? 4 : -35];
   };
   (window as any).__sites = town.plan.sites.map(s => [s.id, s.frame.c[0].toFixed(0), s.frame.c[1].toFixed(0), s.plots.length]);
-  (window as any).__shot = async (v: { cam: any; fov?: number; sunAz?: number; sunAlt?: number; day?: number; near?: boolean }) => {
+  (window as any).__shot = async (v: { cam: any; fov?: number; sunAz?: number; sunAlt?: number; day?: number; near?: boolean; near0?: number; farOnly?: boolean }) => {
     const [x, z, y, gb, pitch] = camOf(v.cam);
     cam.position.set(x, y, z); cam.rotation.set((pitch * Math.PI) / 180, -(gb * Math.PI) / 180, 0, 'YXZ'); cam.fov = v.fov ?? 60; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     const d = dirOf(v.sunAz ?? 200, v.sunAlt ?? 45); sun.position.copy(cam.position).addScaledVector(d, 1000); sun.target.position.copy(cam.position);
     const far = typeof v.cam === 'string' && (v.cam.startsWith('far') || v.cam.startsWith('village')), half = far ? 400 : 70; sc.left = sc.bottom = -half; sc.right = sc.top = half; sc.updateProjectionMatrix();
     tm.update(cam.position);
-    town.nearUpdate(x, z, 0, true); vh.nearUpdate(x, z, 0, true);
+    (town as any).near0 = v.near0 ?? 40; // (D-324b: 0 = every near tile at the middle ring, 1e4 = every one full: the 40 m hand-over)
+    if (v.farOnly) { town.nearUpdate(1e7, 1e7, 0, true); vh.nearUpdate(1e7, 1e7, 0, true); } else { town.nearUpdate(x, z, 0, true); vh.nearUpdate(x, z, 0, true); }
     town.doors.update(0.1, cam.position, v.day ?? 100, 40, town.nearTile); vh.doors.update(0.1, cam.position, v.day ?? 100, 40, vh.nearTile);
     for (const m of (town as any).casters as THREE.Mesh[]) m.castShadow = true;
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);

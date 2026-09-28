@@ -7829,6 +7829,19 @@ mother who followed the stranger is still "talking" in her child's plan's words)
   carved members (their own finish, D-306) and the incised signs (incisedMaterial draws its own normal: the set is left out
   there) are not this class.
 - **Reversible:** yes (`?noblockface`; `window.__parsaSurf.blockface(0)` at run time; the SurfaceDef `blockFace` flags).
+- **D-324b (the lead's follow-up, same session):** (1) Q-960: tests/lib/scanStandIns.ts registers the CC0 vessels at the
+  manifest's triangle counts (lod0 1,500) in houses/houselod/villages/plain tests; with them counted the near tiles came to
+  ~1.1 M (q_s3); the houses' jars and baskets (store rooms, court baskets, court jar fittings; town and villages) are now lathes
+  of each scan's own silhouette (kit.ts scanVessel: its widest radius in bands of its height from lod1; 72 triangles in store
+  rooms, baskets and the middle ring, 150 for court jars), as the houses' batches are vertex-coloured and drew only the scans'
+  outline: q_s3 522 k, worst tile 59.0 k, all counted; the probe's court-w1 frame 602 k -> 226 k near triangles in the browser.
+  (2) The far level: the eave poles' ends drawn in the dark band by the far material (build.ts farPoleEnds: a disc of end grain
+  every 0.5 m, filtered to its mean share where the pixel is wider than a third of the gap; no triangles; town and villages),
+  ladders against the eaves and the firewood and fodder stacks as low silhouettes (far 731 k -> 749 k). Spouts are not drawn
+  far (2-3 px at 100 m). (3) The hand-overs, one camera each on the probe (tools/dev/house_lab.mjs pop40-*, pop72-*): 40 m (all
+  tiles full vs all middle ring, town.near0 override): 542 of 518,400 pixels differ by more than 4 levels (0.1 %): invisible.
+  72 m: near vs far differ strongly within 30 m (not a hand-over); at the 72 m ring the difference is the crest's droop and
+  width (~1 px) and the far roofs' flat top: not measured per tile (unverified in motion).
 
 ## D-325 Every prop, furnishing, door fitting, fire object and held or worked object modelled in Blender (session 12; UD-19, UD-17, D-233; T-R12)
 - **How it could pass while the intent fails (said first, measured against):** a model registered but never drawn (the tests
@@ -8014,3 +8027,14 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
 - **Where it is drawn (the whole class):** every costume's hair, hair_crown, hair_bob, bun, beard_long, beard_short and brows pieces at full detail take these cards (outfits.ts withCards, unchanged), so every person of every dress: court men, guards, Medians, workers, envoys of all 23 delegations, the king, women, court women, children; the hands of every body variant (humans.bin lod0).
 - **Measured (human lab, T4, Q high, 1920x1080, 300-person wedge 2-20 m, 40 frames):** 82.5 ms a frame with the cards, 74.6 without (?peoplemodels=0), same run; download +0.7 MB (9.2 MB for people_hair: atlas 6.2, normals 1.7, cards 1.3), GPU ~14 MB (budget 16). Costumes at LOD0 within 42,000 (persian ~40,960 by the sets' sum).
 - **Tests:** tests/people_models.test.ts (the two atlases' KTX2 headers; every other D-307 check: anchors, outside the head, off the eyes, budgets with cards); tests/humans_shader.test.ts (the normal atlas path builds, one sampler); humans, humans_runtime, people_pieces, language pass. Records: B151, B152, Q-950; ASSET_LEDGER people_hair row.
+- **D-324c (merge with D-325's modelled props, rounds 1 and 2):** the house budget tests (houses, houselod, villages, plain) now
+  load the modelled props (tests/lib/models_node.ts loadModelsNode) as well as the scan stand-ins, so they count what the page
+  draws. With the models counted the worst tile was 67.7 k; brought under 60 k without raising a limit: the store rooms' jars
+  and sacks as lathes of the modelled forms' silhouettes (kit.ts scanVessel, 63 triangles; 42 in the few tiles whose stores
+  hold more than 60 vessels, houses.ts denseStores), the bedding rolls, mats, folded rugs and the vestibule's cup at the
+  models' lod2 (62, 105, 24, 60 triangles), the crest on three stations (38 -> 34 triangles, not re-previewed), the plaster
+  grid's rows 1.4 m. Court fittings (jars, querns, the pigment slab), the lamp, the manger and the court things keep the
+  models. Worst tile 59.3 k; lanes q_s1 523 k, q_w1 477 k, q_s3 575 k (< 600 k), with the models counted.
+  NOT mine and failing on claude/amazing-fermi-40ds7j itself (checked in a clean worktree of its tip): tests/plain.test.ts
+  static plain triangles 2.11 M (< 2.0 M): relief:figures 283 + 283 + 211 k and plain-stone 84 k; the village far cells are
+  31-83 k each (unchanged by this merge).

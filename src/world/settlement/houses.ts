@@ -22,7 +22,7 @@ import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
 import { hashString } from '../../core/rng';
 import { fixturesOf, livesOf, HOUSE_KINDS, type Fixture, type HouseLife } from './houseplan';
-import { kitOn, kitLog, kitPiece, kitFrame, KIT } from './kit';
+import { kitOn, kitLog, kitPiece, kitFrame, KIT, scanVessel } from './kit';
 /** D-324: the kit's brick losses (tools/blender/housekit.py brick_patch: 0.9 x 0.38 m, bricks ~33 cm, courses 11.5 cm) */
 const BRICK_W = 0.9, BRICK_H = 0.38;
 import { scanShape, modelFit, mergedModel } from '../../render/scanProps';
@@ -85,7 +85,10 @@ export function doorVar(id: string) { const h = (k: number) => hashString(`${id}
   return { drop: 0.15 * h(1), lh: 0.1 + 0.07 * h(2), bear: 0.15 + 0.17 * h(3), step: h(4) < 0.4 ? 1 : 0, niche: h(5) < 0.75 ? 1 : 0 }; }
 /** the batches a build writes into */
 export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch; props: Batch }
-export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tileId', 1, [0]); return b; };
+export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tileId', 1, [0]).addAttr('pband', 2, [0, -1e4]); return b; };
+/** D-324b: the far level's eave pole band: each vertex's distance along the eave (m) and the band's foot (world y); the far
+ *  material draws the pole ends in it (build.ts farPoleEnds). [0, -1e4] elsewhere */
+export const POLE_GAP = 0.5;
 export const plainBatch = () => new Batch().addAttr('ao', 1, [1]);
 export const newHB = (): HB => ({ plaster: plasterBatch(), stone: plainBatch(), timber: plainBatch(), brick: plainBatch(), items: plasterBatch(), props: plainBatch() });
 
@@ -226,12 +229,25 @@ export class SiteHouses {
         const yT = R - r.fall - 0.012, yc = R - ROOF_T + ROOF.beam, f0 = sgn * (t / 2), f1 = sgn * (t / 2 + o), own = this.owner(we.plot, P.eave), N = nrm(sgn), dk = sh(lin(POLE), 0.4), cd = sh(c, 0.92);
         b.quad(P3(sA, f0, yT), P3(sB, f0, yT), P3(sB, f1, yT), P3(sA, f1, yT), [0, 1, 0], c, c, c, c, own);
         b.quad(P3(sA, f1, yc), P3(sB, f1, yc), P3(sB, f1, yT), P3(sA, f1, yT), N, cd, cd, c, c, own);
-        b.set('ao', 0.35); b.quad(P3(sA, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, yc), P3(sA, f1 - sgn * 0.03, yc), N, sh(dk, 0.7), sh(dk, 0.7), dk, dk, own); b.set('ao', 1); } }
+        const o0 = P3(sA, 0, 0), al = [P3(sB, 0, 0)[0] - o0[0], P3(sB, 0, 0)[2] - o0[2]], aL = Math.hypot(al[0], al[1]) || 1; b.hook('pband', (x, _y, z) => [((x - o0[0]) * al[0] + (z - o0[2]) * al[1]) / aL + hi(we.plot, 5) * POLE_GAP, R - ROOF_T]);
+        b.set('ao', 0.35); b.quad(P3(sA, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, R - ROOF_T), P3(sB, f1 - sgn * 0.03, yc), P3(sA, f1 - sgn * 0.03, yc), N, sh(dk, 0.7), sh(dk, 0.7), dk, dk, own); b.set('ao', 1); b.hook('pband', undefined); b.set('pband', 0, -1e4); } }
     }
     for (const r of this.rooms) { b.set('tileId', r.tile + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
       // each roof its own earth (rolled and renewed at its own time: C)
       const c = sh(this.pcol[r.plot], 0.94 + 0.12 * hi(r.room, this.si, 7)), g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
       b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof)); }
+    // D-324b: the court things that show from afar: each ladder's rails against the eave (a thin slab each), the firewood and
+    // fodder stacks (a low block), from the near level's own fixtures
+    for (let fi = 0; fi < this.fixtures.length; fi++) { const f = this.fixtures[fi], own = this.fixDesc[fi] * 32 + P.fixture; if (f.kind !== 'ladder' && f.kind !== 'firewood' && f.kind !== 'fodder') continue;
+      const nu = Math.cos(f.rot), nv = Math.sin(f.rot), tu = -nv, tv = nu, at = (a: number, d: number): [number, number] => [f.u + tu * a + nu * d, f.v + tv * a + nv * d];
+      b.set('tileId', this.tileOfPlotEl(f.plot, f.u, f.v) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.85);
+      if (f.kind === 'ladder') { const R = this.base[f.plot] + s.plots[f.plot].height, top = R + 0.45, g0 = this.gl(...at(0, 1.1)), foot = 0.575 + (top - g0) * 0.2, c = sh(lin(POLE), 0.8);
+        for (const e of [-0.22, 0.22]) { const A = this.wp(...at(e, foot), g0 - 0.05), Bq = this.wp(...at(e * 0.95, 0.535), top), n = this.dirW(tu, tv), w = 0.035;
+          b.quad([A[0] - n[0] * w, A[1], A[2] - n[1] * w], [A[0] + n[0] * w, A[1], A[2] + n[1] * w], [Bq[0] + n[0] * w, Bq[1], Bq[2] + n[1] * w], [Bq[0] - n[0] * w, Bq[1], Bq[2] - n[1] * w], (() => { const d = this.dirW(nu, nv); return [d[0], 0, d[1]]; })(), c, c, c, c, own); }
+        continue; }
+      const [u, v] = at(0, f.kind === 'firewood' ? 0.45 : 0.27 + f.len * 0.35), gy = this.gl(u, v), g = s.grid(u, v), hgt = (f.h ?? 0.8) * (f.kind === 'fodder' ? 0.8 : 0.9);
+      const c = f.kind === 'fodder' ? lin([0.66, 0.58, 0.39]) : sh(lin([0.5, 0.43, 0.33]), 0.8);
+      b.box(g[0], g[1], s.frame.theta + f.rot, 0.3, f.len / 2, gy - 0.05, gy + hgt, sh(c, 0.7), c, own); }
     // the fuel stacked on the roofs (the near level's roof_fuel fixture: its place and length; brushwood and dung cakes as one stack)
     for (let fi = 0; fi < this.fixtures.length; fi++) { const f = this.fixtures[fi]; if (f.kind !== 'roof_fuel') continue; const sp = this.roofSpot(f); if (!sp) continue;
       b.set('tileId', this.tileOfPlotEl(f.plot, sp.u, sp.v) + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 0.9); const g = s.grid(sp.u, sp.v), bc = sh(lin([0.47, 0.41, 0.31]), 0.85 + 0.2 * hi(f.alt ?? 0, 5));
@@ -273,6 +289,10 @@ export class SiteHouses {
   }
   /** D-324: the brick losses drawn so far (world centre and the face's outward normal; the probes find them here) */
   readonly losses = new Map<string, number[]>();
+  /** Q-960 (D-324c): a tile whose store rooms hold more than 60 vessels (the densest few of the town) draws them on the lightest
+   *  lathe (42 triangles), so no tile passes 60 k with the modelled furnishings (D-325) counted */
+  private denseStores(tile: number) { let n = this.storeCount.get(tile); if (n === undefined) { n = 0; for (const r of this.roomsByTile.get(tile) ?? []) if (r.full && this.roomUse(r) === 'store') { const s = this.s, back = r.drain >= 0 && r.drain < 4 ? [1, 0, 3, 2][r.drain] : 1, L = back < 2 ? r.i1 - r.i0 : r.j1 - r.j0; n += Math.max(2, Math.floor((L - 0.9) / 0.62)); void s; } this.storeCount.set(tile, n); } return n > 60; }
+  private storeCount = new Map<number, number>();
   /** the level of detail the near tile being built takes (D-324) */
   private lod: 0 | 1 = 0;
   /** the day of the year the near tiles show (seasonal things on the roofs) */
@@ -284,11 +304,11 @@ export class SiteHouses {
     const { ax, sA, sB, cc, t, sg } = o, off = o.off ?? 0;
     if (sB - sA < 0.01) return;
     const st = [sA, sB]; for (const h of o.holes) st.push(Math.max(sA, Math.min(sB, h.s0)), Math.max(sA, Math.min(sB, h.s1)));
-    const lk = this.lod ? 2 : 1, step = (o.bulge ? (o.foot ? 1.5 : 1.3) : 3.0) * lk, n = Math.ceil((sB - sA) / step); for (let i = 1; i < n; i++) st.push(sA + ((sB - sA) * i) / n); // (D-324: the middle ring on a grid twice as coarse)
+    const lk = this.lod ? 2 : 1, step = (o.bulge ? (o.foot ? 1.5 : 1.4) : 3.0) * lk, n = Math.ceil((sB - sA) / step); for (let i = 1; i < n; i++) st.push(sA + ((sB - sA) * i) / n); // (D-324: the middle ring on a grid twice as coarse)
     for (const x of o.st2 ?? []) if (x > sA && x < sB) st.push(x);
     const S = [...new Set(st.map(x => +x.toFixed(4)))].sort((a, b2) => a - b2);
     const yLo = Math.min(o.yb(sA), o.yb(sB)), yHi = Math.max(o.yt(sA), o.yt(sB));
-    const brk: number[] = []; for (const h of o.holes) brk.push(h.y0, h.y1); if (o.bulge) for (let y = Math.ceil(yLo) + (o.foot ? 1.0 : 0.2); y < yHi; y += (o.foot ? 1.5 : 1.2) * lk) brk.push(y); // (D-311: the foot row carries the low bulge; rows 1.5 m apart pay for it)
+    const brk: number[] = []; for (const h of o.holes) brk.push(h.y0, h.y1); if (o.bulge) for (let y = Math.ceil(yLo) + (o.foot ? 1.0 : 0.2); y < yHi; y += (o.foot ? 1.5 : 1.4) * lk) brk.push(y); // (D-311: the foot row carries the low bulge; rows 1.5 m apart pay for it)
     if (o.foot) brk.push(yLo + 0.3); // D-311: the eroded foot's rows
     const BR = [...new Set(brk.map(x => +x.toFixed(4)))].sort((a, b2) => a - b2);
     const inHole = (sm: number, ym: number) => o.holes.some(h => sm > h.s0 && sm < h.s1 && ym > h.y0 && ym < h.y1);
@@ -748,7 +768,7 @@ export class SiteHouses {
     if (vest) { // the water jar on its stand by the street door, a cup on its lid (C); a bench in some
       { const [u, v] = atBack(along[0] + 0.15, 0.12), y = gy(u, v), g = s.grid(u, v); this.lbox(B.plaster, u, v, 0.2, 0.2, y - 0.05, y + 0.28, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own);
         // (D-325: the modelled water jar and a bowl for a cup on its mouth, when loaded)
-        const wj = scanShape('jar', r.room, [0.44, 0.62, 0.44], 2), cup = modelGeo('bowl', [0.1, 0.05, 0.1]);
+        const wj = scanShape('jar', r.room, [0.44, 0.62, 0.44], 2), cup = modelGeo('bowl', [0.1, 0.05, 0.1], 2);
         if (wj && cup) { B.plaster.geo(g[0], g[1], y + 0.28, wj, hi(r.room, 12) * 6.283, lin([0.66, 0.5, 0.37]), own); B.plaster.geo(g[0] + 0.03, g[1], y + 0.9, cup, 0, lin([0.6, 0.42, 0.3]), own); }
         else { B.plaster.lathe(g[0], g[1], y + 0.28, [[0.1, 0], [0.22, 0.2], [0.21, 0.42], [0.1, 0.58], [0.12, 0.62]], 9, lin([0.66, 0.5, 0.37]), own);
           B.plaster.lathe(g[0] + 0.03, g[1], y + 0.9, [[0.03, 0], [0.045, 0.05], [0.05, 0.08]], 6, lin([0.6, 0.42, 0.3]), own); } }
@@ -760,19 +780,21 @@ export class SiteHouses {
       const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
       for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
         // session 12 (D-310): the store's jars are a CC0 scan's shape (render/scanProps.ts) fitted to the lathe's box, when loaded
-        const sj = hi(r.room, k, 2) < 0.65 ? scanShape('jar', Math.floor(hi(r.room, k, 5) * 3), [0.52 * kk, 0.82 * kk, 0.52 * kk], 2) : scanShape('sack', k, [0.44 * (0.85 + 0.25 * hi(r.room, k, 4)), 0.58, 0.42], 2); // (D-325: modelled jars and sacks, lod1)
-        if (sj) B.plaster.geo(g[0], g[1], y - (hi(r.room, k, 2) < 0.65 ? 0.05 : 0.02), sj, hi(r.room, k, 6) * 6.283, hi(r.room, k, 2) < 0.65 ? sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)) : sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own);
+        // (Q-960 with D-325: the store's jars and sacks as lathes of the modelled forms' own silhouettes, kit.ts scanVessel, 72
+        // triangles: a store holds up to a dozen and a dense tile a dozen stores; even the models' lod2 (90-114) put tiles over 60 k)
+        const isJar = hi(r.room, k, 2) < 0.65; if (scanVessel(B.plaster, isJar ? 'jar' : 'sack', isJar ? Math.floor(hi(r.room, k, 5) * 3) : k, g[0], g[1], y - (isJar ? 0.05 : 0.02), isJar ? [0.52 * kk, 0.82 * kk, 0.52 * kk] : [0.44 * (0.85 + 0.25 * hi(r.room, k, 4)), 0.58, 0.42], isJar ? sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)) : sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own, this.denseStores(r.tile) ? 2 : 1)) { /* drawn */ }
         else if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
         else B.plaster.lathe(g[0], g[1], y - 0.02, [[0.16, 0], [0.22, 0.15], [0.2, 0.42], [0.1, 0.55], [0.03, 0.58]], 6, sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own); } }
     else { // a living room: the reed mat, bedding rolled against the back wall, folded rugs, a low platform in larger rooms
       const inset = 0.45, mu0 = u0 + inset, mu1 = u1 - inset, mv0 = v0 + inset, mv1 = v1 - inset, mat = sh(lin(MAT), 0.95 + 0.1 * h);
-      const mg = mu1 - mu0 > 0.3 && mv1 - mv0 > 0.3 ? modelGeo('mat', [mu1 - mu0, 0.012, mv1 - mv0]) : null, mc = s.grid((mu0 + mu1) / 2, (mv0 + mv1) / 2), mx = s.grid((mu0 + mu1) / 2 + 1, (mv0 + mv1) / 2), mz = s.grid((mu0 + mu1) / 2, (mv0 + mv1) / 2 + 1);
+      const mg = mu1 - mu0 > 0.3 && mv1 - mv0 > 0.3 ? modelGeo('mat', [mu1 - mu0, 0.012, mv1 - mv0], 2) : null, mc = s.grid((mu0 + mu1) / 2, (mv0 + mv1) / 2), mx = s.grid((mu0 + mu1) / 2 + 1, (mv0 + mv1) / 2), mz = s.grid((mu0 + mu1) / 2, (mv0 + mv1) / 2 + 1);
       if (mg) B.timber.geo(mc[0], mc[1], gy((mu0 + mu1) / 2, (mv0 + mv1) / 2) + 0.125, mg, frameTheta([mx[0] - mc[0], mx[1] - mc[1]], [mz[0] - mc[0], mz[1] - mc[1]]), mat, own); // (D-325: the modelled reed mat)
       else B.timber.poly([this.wp(mu0, mv0, gy(mu0, mv0) + 0.13), this.wp(mu1, mv0, gy(mu1, mv0) + 0.13), this.wp(mu1, mv1, gy(mu1, mv1) + 0.13), this.wp(mu0, mv1, gy(mu0, mv1) + 0.13)], [0, 1, 0], mat, own);
       const bed: RGB[] = [[0.7, 0.64, 0.52], [0.52, 0.28, 0.2], [0.42, 0.36, 0.3], [0.66, 0.5, 0.3]]; const nb = 1 + Math.floor(hi(r.room, 7) * 3);
       for (let k = 0; k < nb; k++) { const a = along[0] + 0.3 + k * 0.75; if (a + 0.6 > along[1]) break; const [ua, va] = atBack(a, 0.16), [ub, vb] = atBack(a + 0.6, 0.16), y = gy(ua, va) + 0.13 + 0.14;
         // D-325: the bedding a modelled roll (the spiral of the rolled felt at its ends), along the back wall
-        const rg = modelGeo('roll', [0.6, 0.26, 0.28]), pa = s.grid(ua, va), pb = s.grid(ub, vb);
+        // (Q-960: the modelled roll at lod2, 62 triangles: lod1's 752, up to three a room, put tiles over 60 k)
+        const rg = modelGeo('roll', [0.6, 0.26, 0.28], 2), pa = s.grid(ua, va), pb = s.grid(ub, vb);
         if (rg) B.timber.geo((pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2, y - 0.14, rg, Math.atan2(pb[1] - pa[1], pb[0] - pa[0]), lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own);
         else this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own, true, false); }
       const L = this.lampSpot(r.plot); if (L) { const [lu, lv] = this.backPoint(r, 0.5, 0.2); const lg = s.grid(lu, lv); if (Math.hypot(lg[0] - L[0], lg[1] - L[1]) < 0.01) { const [bu, bv] = this.backPoint(r, 0.5, 0.08);
@@ -780,7 +802,7 @@ export class SiteHouses {
         const lm = modelGeo('lamp', [0.17, 0.035, 0.14]); // D-325: the modelled saucer lamp with its pinched spout
         if (lm) B.plaster.geo(lg[0], lg[1], L[2] - 0.02, lm, hi(r.room, 9) * 6.283, lin([0.6, 0.42, 0.3]), own); else B.plaster.lathe(lg[0], lg[1], L[2] - 0.02, [[0.03, 0], [0.07, 0.02], [0.075, 0.035], [0.06, 0.035]], 7, lin([0.6, 0.42, 0.3]), own);
         } }
-      const [fu, fv] = atBack(along[1] - 0.35, 0.2), fy = gy(fu, fv) + 0.13, rug = modelGeo('rug_folded', [0.56, 0.045, 0.44]), fg = s.grid(fu, fv); // (D-325: the modelled folded rugs)
+      const [fu, fv] = atBack(along[1] - 0.35, 0.2), fy = gy(fu, fv) + 0.13, rug = modelGeo('rug_folded', [0.56, 0.045, 0.44], 2), fg = s.grid(fu, fv); // (D-325: the modelled folded rugs)
       for (let k = 0; k < 3 + Math.floor(h * 4); k++) { const c = lin(bed[(k + Math.floor(h * 4)) % bed.length]);
         if (rug) B.timber.geo(fg[0], fg[1], fy + k * 0.05, rug, 0.05 * k + hi(r.room, k, 13) * 0.1, c, own); else this.lbox(B.timber, fu, fv, 0.28 - 0.01 * k, 0.22, fy + k * 0.05, fy + k * 0.05 + 0.045, sh(c, 0.85), c, own, false, 0.05 * k); } }
     B.plaster.set('ao', 1); B.timber.set('ao', 1);
@@ -853,9 +875,8 @@ export class SiteHouses {
           B.props.quad(q[0], q[1], q[2], q[3], [nx, 0, nz], c, c, sh(c, 0.95), sh(c, 0.95), own); B.props.quad(q[1], q[0], q[3], q[2], [-nx, 0, -nz], sh(c, 0.9), sh(c, 0.9), sh(c, 0.85), sh(c, 0.85), own); } break; }
       case 'baskets': { B.props.set('ao', 0.85); const bc = lin([0.62, 0.52, 0.34]); const n = 1 + (f.alt ?? 0) % 3;
         for (let k = 0; k < n; k++) { const a = (k - (n - 1) / 2) * 0.45, gy = g(a, 0), k2 = 0.8 + 0.5 * hi(f.alt ?? 0, k), [u, v] = at(a, 0); const [e, nn] = s.grid(u, v);
-          const sb = scanShape('basket', k + (f.alt ?? 0), [0.42 * k2, 0.3 * k2, 0.42 * k2], 1); // session 12 (D-310): a CC0 scan's basket, when loaded
-          if (sb) B.props.geo(e, nn, gy - 0.01, sb, hi(k, 11) * 6.283, sh(bc, 0.85 + 0.25 * hi(k, 9)), own);
-          else B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
+          // session 12 (D-310): a CC0 scan's basket, when loaded (Q-960: its silhouette as a lathe, kit.ts scanVessel)
+          if (!scanVessel(B.props, 'basket', k + (f.alt ?? 0), e, nn, gy - 0.01, [0.42 * k2, 0.3 * k2, 0.42 * k2], sh(bc, 0.85 + 0.25 * hi(k, 9)), own, 1)) B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
         // a broom of twigs against the wall-side of the baskets
         const gy = g(0.6, 0.1); this.pole(B.props, W3(0.55, 0.35, gy + 0.02), W3(0.62, 0.05, gy + 1.1), 0.016, 4, sh(tb, 0.9), own); B.props.set('ao', 1); break; }
       case 'mortar': { const gy = g(0, 0), [u, v] = at(0, 0), [e, nn] = s.grid(u, v); B.stone.set('ao', 0.85); const mg = modelGeo('wo_oil_press', [0.48, 0.38, 0.48]); // (D-325: the modelled stone mortar)
