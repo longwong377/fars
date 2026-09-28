@@ -8529,3 +8529,4 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   pelvis's weight shifts and sway, the trunk, the head; bounded, and lighter where a cycle works at the reach limit) —
   the strokes themselves stay hand-authored (PLACEHOLDER: B181). F3 counts both per frame.
 - Impostor frames re-chosen for the captured poses (tools/dev/imp_keys.ts --cover; 71 frames).
+- **Round 4b:** the cypress redrawn from the Apadana stair trees (reliefs/90499796, 30320468: ogival crown 0.40 of the height across, scale column, rising branch pairs, needle fans, cones; B). Drawing B: 20 of 41 kinds. Heroes: no photograph on this machine (stay C).
