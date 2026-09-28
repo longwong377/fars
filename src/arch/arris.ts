@@ -90,6 +90,7 @@ export function arrisEdgesOfBox(b: Box, edges: boolean[], boxEdges: [number, num
 }
 
 export interface Chip { s: number; a: number; b: number; D: number }
+const PROFILES = new Map<number, [number, number][]>(), CHIPS_OF = new WeakMap<ArrisEdge, Chip[]>();
 const FINE = (STRIP_CHIPS as any).strip_fine as number[][][], ROUGH = (STRIP_CHIPS as any).strip_rough as number[][][]; // per row: [x, a, b, D, th] in mm
 /** the chips along an edge of length L: those of its strip row, where the shader's along coordinate reads them */
 export function chipsOf(e: ArrisEdge, L: number): Chip[] {
@@ -122,7 +123,10 @@ export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: n
   const L = e.a.distanceTo(e.b), t = e.b.clone().sub(e.a).divideScalar(L);
   s0 = Math.max(0, s0); s1 = Math.min(L, s1); if (s1 - s0 < 0.01) return 0;
   if (e.joint) return grooveGeometry(e, s0, s1, t, out, adistOff);
-  const P = profile(e.r), chips = chipsOf(e, L).filter(c => c.s + c.a > s0 && c.s - c.a < s1);
+  // (rev 4: the profile and the edge's chips computed once, not per piece: fewer allocations, fewer GC pauses while walking)
+  const P = PROFILES.get(e.r) ?? PROFILES.set(e.r, profile(e.r)).get(e.r)!;
+  let all = CHIPS_OF.get(e); if (!all) { all = chipsOf(e, L); CHIPS_OF.set(e, all); }
+  const chips = all.filter(c => c.s + c.a > s0 && c.s - c.a < s1);
   // stations along the edge: the ends, and across each chip (a straight arris needs no others)
   const S = new Set<number>([s0, s1]);
   // and near the edge's own ends, where the corner's other chamfers clip the band (clamped there, straight beyond: without these
@@ -131,9 +135,9 @@ export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: n
   for (const c of chips) for (const f of [-1.1, -0.65, -0.3, 0, 0.3, 0.65, 1.1]) { const s = c.s + f * c.a; if (s > s0 && s < s1) S.add(s); }
   const st = [...S].sort((x, y) => x - y).filter((s, i, a) => i === 0 || s - a[i - 1] > 5e-4);
   const nS = st.length, nP = P.length, V: THREE.Vector3[] = [];
-  const X = new THREE.Vector3();
+  const X = new THREE.Vector3(), c0t = new THREE.Vector3();
   for (const s of st) {
-    const C0 = e.a.clone().addScaledVector(t, s);
+    const C0 = c0t.copy(e.a).addScaledVector(t, s);
     for (const [u0, v0] of P) {
       let u = u0, v = v0;
       for (const c of chips) {
@@ -147,28 +151,28 @@ export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: n
     }
   }
   // normals: area-weighted over the grid's quads
-  const Nn = V.map(() => new THREE.Vector3()), q = new THREE.Vector3(), w = new THREE.Vector3();
+  const Nn = V.map(() => new THREE.Vector3()), q = new THREE.Vector3(), w = new THREE.Vector3(), nt = new THREE.Vector3();
   const id = (i: number, j: number) => i * nP + j;
   for (let i = 0; i + 1 < nS; i++) for (let j = 0; j + 1 < nP; j++) {
     const a = V[id(i, j)], b = V[id(i + 1, j)], c = V[id(i + 1, j + 1)], d = V[id(i, j + 1)];
-    q.subVectors(c, a); w.subVectors(d, b); const n = new THREE.Vector3().crossVectors(q, w);
+    q.subVectors(c, a); w.subVectors(d, b); const n = nt.crossVectors(q, w);
     // (the winding: outward is away from the corner line; flip to agree with na + nb)
     if (n.dot(e.na) + n.dot(e.nb) < 0) n.negate();
-    for (const k of [id(i, j), id(i + 1, j), id(i + 1, j + 1), id(i, j + 1)]) Nn[k].add(n);
+    Nn[id(i, j)].add(n); Nn[id(i + 1, j)].add(n); Nn[id(i + 1, j + 1)].add(n); Nn[id(i, j + 1)].add(n);
   }
   for (const n of Nn) n.normalize();
   // indexed: the grid's vertices, then two triangles per quad (counter-clockwise seen from outside)
   let tris = 0; const v0i = out.pos.length / 3;
   for (let k = 0; k < V.length; k++) {
-    const p = V[k], n = Nn[k], [u0, v0] = P[k % nP]; out.pos.push(p.x, p.y, p.z); out.nrm.push(n.x, n.y, n.z);
-    out.y0.push(v0 < u0 ? e.y0a : e.y0b); out.pbox.push(...e.pbox); out.ytop.push(e.ytop); out.stair.push(...e.stair);
+    const p = V[k], n = Nn[k], u0 = P[k % nP][0], v0 = P[k % nP][1]; out.pos.push(p.x, p.y, p.z); out.nrm.push(n.x, n.y, n.z);
+    out.y0.push(v0 < u0 ? e.y0a : e.y0b); out.pbox.push(e.pbox[0], e.pbox[1], e.pbox[2], e.pbox[3]); out.ytop.push(e.ytop); out.stair.push(e.stair[0], e.stair[1], e.stair[2], e.stair[3]);
     out.adist.push(Math.min(u0, v0) - adistOff, 0, 0, 0); out.aseed.push(aseedOf(e.seed), 0, 0, 0);
   }
   const ab = new THREE.Vector3(), ad = new THREE.Vector3(), cr = new THREE.Vector3();
   for (let i = 0; i + 1 < nS; i++) for (let j = 0; j + 1 < nP; j++) {
     const a = id(i, j), b = id(i + 1, j), c = id(i + 1, j + 1), d = id(i, j + 1);
     const flip = cr.crossVectors(ab.subVectors(V[b], V[a]), ad.subVectors(V[d], V[a])).dot(Nn[a]) < 0;
-    for (const k of flip ? [a, d, c, a, c, b] : [a, b, c, a, c, d]) out.index.push(v0i + k);
+    if (flip) out.index.push(v0i + a, v0i + d, v0i + c, v0i + a, v0i + c, v0i + b); else out.index.push(v0i + a, v0i + b, v0i + c, v0i + a, v0i + c, v0i + d);
     tris += 2;
   }
   return tris;
@@ -177,10 +181,20 @@ export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: n
 type Buf = { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: number[]; stair: number[]; adist: number[]; aseed: number[] };
 const ATTR: [keyof Buf, number][] = [['pos', 3], ['nrm', 3], ['y0', 1], ['pbox', 4], ['ytop', 1], ['stair', 4], ['adist', 4], ['aseed', 4]];
 /** a piece of an edge's band, built once and kept while it stays near */
-interface Piece { mat: string; data: Record<keyof Buf, Float32Array>; index: Uint32Array; tris: number }
+interface Piece { mat: string; data: Record<keyof Buf, Float32Array>; index: Uint32Array; tris: number; box: THREE.Box3 }
+/** rev 4: a cell's assembly, copied piece by piece over as many frames as its budget needs (a large cell took up to 26 ms) */
+interface Job { groups: { mat: string; ps: Piece[]; A: Record<keyof Buf, Float32Array>; I: Uint32Array; k: number; o: Record<keyof Buf, number>; io: number; vo: number; box: THREE.Box3 }[]; g: number }
+const JPROF = jointProfile(), GP = new Float64Array(JPROF.length * 6), GN = new Float64Array(JPROF.length * 6);
+/** a growable float list with an array's push and length (the builds' scratch: reused, so a walk allocates little) */
+class FList { a: Float64Array; n = 0; constructor(c = 1024) { this.a = new Float64Array(c); } get length() { return this.n; }
+  push(p: number, q?: number, r?: number, s?: number, t?: number, u?: number) { // (fixed arity: no rest array per call)
+    const m = arguments.length; if (this.n + m > this.a.length) { const b = new Float64Array(this.a.length * 2 + m); b.set(this.a); this.a = b; }
+    const A = this.a; A[this.n++] = p; if (m > 1) A[this.n++] = q!; if (m > 2) A[this.n++] = r!; if (m > 3) A[this.n++] = s!; if (m > 4) A[this.n++] = t!; if (m > 5) A[this.n++] = u!; return this.n; }
+  f32() { return new Float32Array(this.a.subarray(0, this.n)); } u32() { return Uint32Array.from(this.a.subarray(0, this.n)); } }
+const SINK = { pos: new FList(), nrm: new FList(), y0: new FList(), pbox: new FList(), ytop: new FList(), stair: new FList(), adist: new FList(), aseed: new FList(), index: new FList() };
 /** rev 4: a joint's groove over s in [s0, s1]: straight, two stations */
 function grooveGeometry(e: ArrisEdge, s0: number, s1: number, t: THREE.Vector3, out: { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: number[]; stair: number[]; adist: number[]; aseed: number[]; index: number[] }, adistOff: number): number {
-  const P = jointProfile(), nP = P.length, v0 = out.pos.length / 3, X = new THREE.Vector3(), n = new THREE.Vector3();
+  const P = JPROF, nP = P.length, v0 = out.pos.length / 3, X = new THREE.Vector3(), n = new THREE.Vector3(); let pi = 0, ni = 0;
   for (const s of [s0, s1]) {
     const C = e.a.clone().addScaledVector(t, s);
     for (let j = 0; j < nP; j++) {
@@ -188,16 +202,17 @@ function grooveGeometry(e: ArrisEdge, s0: number, s1: number, t: THREE.Vector3, 
       // the normal: across the profile's slope (the neighbours' chord), in the plane of na and nb
       const [oa, da] = P[Math.max(0, j - 1)], [ob, db] = P[Math.min(nP - 1, j + 1)], so = ob - oa, sd = db - da, ln = Math.hypot(so, sd) || 1;
       n.copy(e.na).multiplyScalar(so / ln).addScaledVector(e.nb, sd / ln).normalize();
-      out.pos.push(X.x, X.y, X.z); out.nrm.push(n.x, n.y, n.z); out.y0.push(e.y0a); out.pbox.push(...e.pbox); out.ytop.push(e.ytop); out.stair.push(...e.stair);
+      out.pos.push(X.x, X.y, X.z); out.nrm.push(n.x, n.y, n.z); out.y0.push(e.y0a); out.pbox.push(e.pbox[0], e.pbox[1], e.pbox[2], e.pbox[3]); out.ytop.push(e.ytop); out.stair.push(e.stair[0], e.stair[1], e.stair[2], e.stair[3]);
+      GP[pi++] = X.x; GP[pi++] = X.y; GP[pi++] = X.z; GN[ni++] = n.x; GN[ni++] = n.y; GN[ni++] = n.z;
       out.adist.push(0, 0, 0, 0); out.aseed.push(0, 0, 0, 0);
     }
   }
-  const cr = new THREE.Vector3(), ab = new THREE.Vector3(), ad = new THREE.Vector3();
+  const cr = new THREE.Vector3(), ab = new THREE.Vector3(), ad = new THREE.Vector3(), pa = new THREE.Vector3(), pb = new THREE.Vector3(), pd = new THREE.Vector3(), na = new THREE.Vector3();
   for (let j = 0; j + 1 < nP; j++) {
     const a = v0 + j, b = v0 + nP + j, c = v0 + nP + j + 1, d = v0 + j + 1;
-    const pa = new THREE.Vector3().fromArray(out.pos, 3 * a), pb = new THREE.Vector3().fromArray(out.pos, 3 * b), pd = new THREE.Vector3().fromArray(out.pos, 3 * d);
-    const flip = cr.crossVectors(ab.subVectors(pb, pa), ad.subVectors(pd, pa)).dot(new THREE.Vector3().fromArray(out.nrm, 3 * a)) < 0;
-    out.index.push(...(flip ? [a, d, c, a, c, b] : [a, b, c, a, c, d]));
+    const la = a - v0, lb = b - v0, ld = d - v0; pa.fromArray(GP, 3 * la); pb.fromArray(GP, 3 * lb); pd.fromArray(GP, 3 * ld); na.fromArray(GN, 3 * la);
+    const flip = cr.crossVectors(ab.subVectors(pb, pa), ad.subVectors(pd, pa)).dot(na) < 0;
+    if (flip) out.index.push(a, d, c, a, c, b); else out.index.push(a, b, c, a, c, d);
   }
   return 2 * (nP - 1);
 }
@@ -257,10 +272,13 @@ export class ArrisField {
   }
   get count() { return this.edges.length; }
   private build(id: number): Piece {
-    const P = this.pieces[id], e = this.edges[P.e], B: Buf & { index: number[] } = { pos: [], nrm: [], y0: [], pbox: [], ytop: [], stair: [], adist: [], aseed: [], index: [] };
-    const tris = bandGeometry(e, P.s0, P.s1, B, this.adistOff);
-    const data = Object.fromEntries(ATTR.map(([k]) => [k, new Float32Array(B[k])])) as Record<keyof Buf, Float32Array>;
-    return { mat: e.mat, data, index: new Uint32Array(B.index), tris };
+    const P = this.pieces[id], e = this.edges[P.e], B = SINK; for (const k in B) (B as any)[k].n = 0;
+    const tris = bandGeometry(e, P.s0, P.s1, B as any, this.adistOff);
+    const data = { pos: B.pos.f32(), nrm: B.nrm.f32(), y0: B.y0.f32(), pbox: B.pbox.f32(), ytop: B.ytop.f32(), stair: B.stair.f32(), adist: B.adist.f32(), aseed: B.aseed.f32() };
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity], ps = B.pos.a;
+    for (let q = 0; q < B.pos.n; q += 3) for (let c = 0; c < 3; c++) { const v = ps[q + c]; if (v < lo[c]) lo[c] = v; if (v > hi[c]) hi[c] = v; }
+    const box = new THREE.Box3(new THREE.Vector3(lo[0], lo[1], lo[2]), new THREE.Vector3(hi[0], hi[1], hi[2]));
+    return { mat: e.mat, data, index: B.index.u32(), tris, box };
   }
   /** `eye` null: the bands off (the Now view, or no arrises wanted): the base meshes draw their whole arrises */
   update(eye: THREE.Vector3 | null, budgetMs = this.budgetMs): void {
@@ -279,7 +297,7 @@ export class ArrisField {
       for (const [k, c] of this.cells) {
         const d = dist(c);
         if (d < reach) this.want.push(k);
-        else if (d > reach + C && (c.meshes || c.built.size)) { for (const m of c.meshes ?? []) { m.geometry.dispose(); this.group.remove(m); } c.meshes = null; c.built.clear(); c.stale = false; }
+        else if (d > reach + C && (c.meshes || c.built.size)) { for (const m of c.meshes ?? []) { m.geometry.dispose(); this.group.remove(m); } c.meshes = null; c.built.clear(); c.stale = false; this.jobs.delete(c); }
       }
       this.want.sort((a, b) => dist(this.cells.get(a)!) - dist(this.cells.get(b)!));
     }
@@ -287,7 +305,7 @@ export class ArrisField {
     for (const k of this.want) {
       const c = this.cells.get(k)!; if (c.meshes && !c.stale) continue;
       for (const id of c.ids) if (!c.built.has(id)) { if (performance.now() - t0 < budget) c.built.set(id, this.build(id)); else pending++; }
-      if (c.built.size === c.ids.length) { if (performance.now() - t0 < budget) this.assemble(c); else pending++; } // (a cell's assembly waits for a frame with time left)
+      if (c.built.size === c.ids.length) { if (performance.now() - t0 < budget) { if (!this.assemble(c, t0 + budget)) pending++; } else pending++; } // (a cell's assembly spreads over frames)
     }
     // the bands take over only when every cell within R of the eye is drawn (a teleport or a load waits for them; a walk builds
     // the cells ahead at the rim, beyond R): until then the base meshes draw every arris from the maps, so nothing is ever missing
@@ -297,24 +315,41 @@ export class ArrisField {
     let tris = 0, draws = 0, cells = 0; for (const k of this.want) { const c = this.cells.get(k)!; if (c.meshes) { cells++; for (const m of c.meshes) { draws++; tris += (m.geometry.index?.count ?? 0) / 3; } } }
     this.stats = { cells, triangles: tris, ms: Math.round(performance.now() - t0), pending, draws, ready };
   }
-  private assemble(c: { ids: number[]; built: Map<number, Piece>; meshes: THREE.Mesh[] | null; stale: boolean }): void {
-    const by = new Map<string, Piece[]>();
-    for (const m of c.meshes ?? []) { m.geometry.dispose(); this.group.remove(m); } c.stale = false;
-    for (const id of c.ids) { const p = c.built.get(id)!; if (p.tris) (by.get(p.mat) ?? by.set(p.mat, []).get(p.mat)!).push(p); }
-    c.meshes = [];
-    for (const [mat, ps] of by) {
-      const g = new THREE.BufferGeometry();
-      for (const [k, w] of ATTR) {
-        const len = ps.reduce((s, p) => s + p.data[k].length, 0), a = new Float32Array(len); let o = 0; for (const p of ps) { a.set(p.data[k], o); o += p.data[k].length; }
-        g.setAttribute(k === 'pos' ? 'position' : k === 'nrm' ? 'normal' : k, new THREE.BufferAttribute(a, w));
+  private jobs = new Map<object, Job>();
+  /** copy the cell's pieces into its meshes until `deadline` (performance.now() ms); true when the cell is drawn anew */
+  private assemble(c: { ids: number[]; built: Map<number, Piece>; meshes: THREE.Mesh[] | null; stale: boolean }, deadline = Infinity): boolean {
+    let J = this.jobs.get(c);
+    if (!J) {
+      const by = new Map<string, Piece[]>();
+      for (const id of c.ids) { const p = c.built.get(id)!; if (p.tris) (by.get(p.mat) ?? by.set(p.mat, []).get(p.mat)!).push(p); }
+      J = { g: 0, groups: [...by].map(([mat, ps]) => ({ mat, ps, k: 0, io: 0, vo: 0, box: new THREE.Box3(),
+        A: Object.fromEntries(ATTR.map(([k]) => [k, new Float32Array(ps.reduce((q, p) => q + p.data[k].length, 0))])) as Record<keyof Buf, Float32Array>,
+        o: Object.fromEntries(ATTR.map(([k]) => [k, 0])) as Record<keyof Buf, number>, I: new Uint32Array(ps.reduce((q, p) => q + p.index.length, 0)) })) };
+      this.jobs.set(c, J);
+    }
+    while (J.g < J.groups.length) {
+      const G = J.groups[J.g];
+      while (G.k < G.ps.length) {
+        if (performance.now() > deadline) return false;
+        const p = G.ps[G.k++];
+        for (const [k] of ATTR) { G.A[k].set(p.data[k], G.o[k]); G.o[k] += p.data[k].length; }
+        for (let q = 0; q < p.index.length; q++) G.I[G.io + q] = p.index[q] + G.vo;
+        G.io += p.index.length; G.vo += p.data.pos.length / 3; G.box.union(p.box);
       }
-      const ilen = ps.reduce((s, p) => s + p.index.length, 0), I = new Uint32Array(ilen); let io = 0, vo = 0;
-      for (const p of ps) { for (let q = 0; q < p.index.length; q++) I[io + q] = p.index[q] + vo; io += p.index.length; vo += p.data.pos.length / 3; }
-      g.setIndex(new THREE.BufferAttribute(I, 1)); g.computeBoundingSphere();
-      const m = new THREE.Mesh(g, this.material(mat)); m.castShadow = m.receiveShadow = true; m.raycast = () => {}; m.matrixAutoUpdate = false;
-      m.name = `arris-band:${mat}`; m.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'D-321 rev 2: the free arrises near the eye as geometry: worn round (18 mm), chipped in handling (C)' };
+      J.g++;
+    }
+    this.jobs.delete(c);
+    for (const m of c.meshes ?? []) { m.geometry.dispose(); this.group.remove(m); } c.stale = false;
+    c.meshes = [];
+    for (const G of J.groups) {
+      const g = new THREE.BufferGeometry();
+      for (const [k, w] of ATTR) g.setAttribute(k === 'pos' ? 'position' : k === 'nrm' ? 'normal' : k, new THREE.BufferAttribute(G.A[k], w));
+      g.setIndex(new THREE.BufferAttribute(G.I, 1)); g.boundingBox = G.box.clone(); g.boundingSphere = G.box.getBoundingSphere(new THREE.Sphere());
+      const m = new THREE.Mesh(g, this.material(G.mat)); m.castShadow = m.receiveShadow = true; m.raycast = () => {}; m.matrixAutoUpdate = false;
+      m.name = `arris-band:${G.mat}`; m.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'D-321 rev 2-4: the free arrises and the walls\' joints near the eye as geometry: worn round, chipped in handling, the joints grooved (C)' };
       c.meshes.push(m); this.group.add(m);
     }
     // (the pieces stay cached: a cell that receives new pieces, rev 4's joints, rebuilds only those)
+    return true;
   }
 }
