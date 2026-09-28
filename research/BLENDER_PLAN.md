@@ -55,14 +55,14 @@ the placeholder flags first. Counts from `buildTerrace()`, `public/generated/*.j
 | 10 | **Treasury goods, jars, pottery** (world/furnish.ts; interiors agent) | lathes and boxes | ~10 types, hundreds | n.s. | 1 m | 3 | 1 | worn rims, chips, throwing ridges and AO baked onto the existing lathes (same script as the protome) | 0 tris; ~2 MB |
 | 11 | **Doors** (arch/doors.ts) | boxes, cylinders, spheres | 108 leaves | n.s. | 0.5-2 m | 3 | 1 | leaves with plank joints, bronze bands and bosses as baked detail on the box | 0 tris; ~1 MB |
 | 12 | **Held props and work objects** (people/props.ts, workObjects.ts) | primitives, vertex colours | 68 + ~60 kinds | unions <= 1,000 / 700; things < 1.2 M | 0.5-2 m | 3 | 3 | modelled props (bows, spears, jars, tools, looms, ards) at the same budgets with baked maps in one atlas per union class | same tris; ~4 MB atlas |
-| 13 | **Ground flora** (world/groundFlora.ts) | boxes, spheres, planes | cushions capped at 900 | n.s. | 1-3 m | 3 | 2 | tragacanth cushions, camelthorn, thistles as card clusters with rendered atlases | ~same; ~2 MB |
+| 13 | **Ground flora** (world/groundFlora.ts) | **done session 12 (D-332)**: the tragacanth, camelthorn, thistle, the paradise's roses and the four spring flowers as the real species (tools/blender/life_flora.py: tubes + cards on Cycles-rendered sprig atlases; was: boxes, spheres, planes, then the D-310 scans shrub_03 / nettle_plant) | cushions capped at 900 | n.s. | 1-3 m | 3 | 2 | tragacanth cushions, camelthorn, thistles as card clusters with rendered atlases | ~same; ~2 MB |
 | 14 | **Fire objects** (world/fire.ts, firePlaces.ts) | lathes, cylinders | braziers, lamps, altars, ovens | n.s. | 1-3 m | 3 | 1 | braziers and incense burners after the reliefs, lamps, ovens with soot AO | small |
 | 15 | **Tol-e Ajori gate** (settlement/ajori.ts) | **placeholder** box massing | 1 | n.s. | 5-50 m | 3 | 2 | the gate's brick courses and glazed relief panels as modelled massing + baked panels | ~50 k tris |
 | 16 | **Naqsh-e Rustam** (plain/naqsh.ts) | cliff sheet + façades; Elamite relief **placeholder** | 1 site | 7 draws | 2-20 m | 3 | 3 | the tomb façades' columns and entablature, the Ka'ba's blind windows, the cliff's fracture relief as maps | ~100 k tris |
 | 17 | **Crenellations, frames, niches** (arch/decor.ts) | extrusions, bevelled boxes | 499 parapets, 128 door frames | n.s. | 1 m | 2 | 1 | edge wear and joint AO baked on the extrusion | 0 tris |
 | 18 | **Court tents** (world/courtCamps.ts) | 20-tri shells | camps | <= 20 per tent | 2-10 m | 2 | 2 | cloth-simulated tents baked to meshes with guy ropes | +500 tris per tent |
 | 19 | **Impostors: far buildings, people, trees** (people/impostors.ts, trees/impostor.ts) | CPU-rasterised in JS | beyond 90-600 m | 1 instanced quad draw | > 90 m | 2 | 2 | Cycles-rendered octahedral atlases with normal and depth (re-lit by the game's sun) | same draws; atlases |
-| 20 | **Birds, small life** (world/wildlife.ts, smallLife.ts) | 20-72-tri diamonds and boxes | 27 bird kinds, ~15 small kinds | ~20 each | 2-50 m | 2 | 2 | low-poly modelled birds with wing flap in the vertex shader | ~200 tris each |
+| 20 | **Birds, small life** (world/wildlife.ts, smallLife.ts) | **done session 12 (D-332)**: 29 modelled birds (26 species, the swifts, the hen sparrow and duck; 3 flight + 2 standing levels, wingbeat about the shoulder), 14 small creatures and the jackal (tools/blender/life_birds.py, life_small.py; was: 20-72-tri diamonds and boxes) | 27 bird kinds, ~15 small kinds | ~20 each | 2-50 m | 2 | 2 | low-poly modelled birds with wing flap in the vertex shader | ~200 tris each |
 | - | Terrace walls, steps, floors, roofs (arch/terrace.ts, meshes.ts) | 3,681 bevelled boxes (D-157) | - | 34-55 k | 0.3 m | 2 | - | little: the masonry is shader-drawn and the bevels exist; the scans do the rest | - |
 | - | Human bodies (MakeHuman, imported) | real mesh, 3 LODs | - | 29.8 k / 5.4 k / 1.3 k | 1 m | - | - | not a Blender target except garments and hair (rows 5-6); the skin is baked in node | - |
 | - | Sky, weather, fire VFX, audio, simulation, terrain | - | - | - | - | - | - | **not Blender's** | - |
@@ -184,3 +184,22 @@ batched full-world render (tests/e2e/blender_hero.spec.ts is the pattern: A/B in
   draws the parts with its own surfaces and multiplies the baked vertex occlusion in. tests/model_props.test.ts.
 - **Not done:** the houses' fixtures and living-room furnishings (houses.ts), the instruments' bodies, the precinct's
   altar; no world render (the lead's batch); the forms judged on contact sheets only (T:/fars-assets-s12/props/*.png).
+
+## 10. Session 12 (D-332): rows 13 and 20 done world-wide
+- **Birds** (tools/blender/life_birds.py, life_birds.json): every species of wildlife.ts BIRDS and the flocks' variants (the
+  swifts among the swallows' instances, the hen sparrows and ducks), 29 models from field-guide proportions and plumage (C):
+  a lofted body (tail root, body, neck, head, bill of the species' shape), two-sheet wings of the species' planform (pointed,
+  sickle, rounded, fingered, a bat's membrane), a two-sheet tail (fork, streamers, wedge, round, square, pins), legs and toes,
+  crests and ears. Flight levels fly0-2 (684-748 / 164-180 / 52-64 triangles), standing levels stand0-1 for the 14 ground
+  species (wings folded on the flanks, legs to y = 0). Maps baked in Cycles from a dense source with the feathers as relief
+  (body tips, covert rows, flight-feather vanes and shafts) and the feather tips cut out (coverage = the alpha test).
+- **Small creatures** (life_small.py): the 14 kinds of smallLife.ts SMALL and the jackal, blended-ellipsoid anatomies (Blender
+  metaballs, built at unit length), relief (scales, scutes and growth rings, spines, quills, fur, segments), two levels,
+  the butterflies' three species in one map (an instance offset).
+- **Flora** (life_flora.py): 8 kinds as tubes and cards on 4x4-tile atlases, each tile an orthographic Cycles render (albedo,
+  normal, occlusion) of a modelled sprig; seasons as tints of the modelled colours, the flowers (COLOR_0.r = 1) shown in
+  their months.
+- One command: `node tools/blender/life.mjs <birds|small|flora>` (N parallel Blender processes, KTX2, public/models/life/
+  manifest.json); probe page tools/blender/probe/life_probe.*; tests/life_models.test.ts (every class and kind built, in
+  budget, drawn by every code path, nose-first).
+- **Not done / unverified:** see B178-B180.
