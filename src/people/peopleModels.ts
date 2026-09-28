@@ -43,9 +43,14 @@ export interface DrapeSetMeta {
    *  kind, per-vertex displacement (3 × i16, 0.1 mm units) */
   n: number; group: string; frame: 'tube' | 'shell'; d: Slice; rms: number; max: number; note: string;
 }
-export interface DrapeMeta { version: 1; groups: Record<string, string>; sets: Record<string, DrapeSetMeta> }
+export interface DrapeMeta { version: 1 | 2; groups: Record<string, string>; sets: Record<string, DrapeSetMeta>;
+  /** D-322 (version 2): per piece geometry key, each vertex's fold atlas coordinate (2 × f32; −1 none) */
+  fuv?: Record<string, Slice>;
+  /** D-322: the fold layers' image (squares stacked vertically: 0 finer than full detail, 1 than the mid level; RGB the men's,
+   *  women's, children's heights, sRGB-encoded about 0.5, ± scale m), its texel density and chart count */
+  folds?: { file: string; layers: number; size: number; scale: number; texelsPerMetre: number; charts: number } }
 export interface DrapeSet { meta: DrapeSetMeta; d: Int16Array }
-export interface PeopleDrape { meta: DrapeMeta; sets: Record<string, DrapeSet> }
+export interface PeopleDrape { meta: DrapeMeta; sets: Record<string, DrapeSet>; fuv: Record<string, Float32Array> }
 
 export interface PeopleModels { cards: PeopleCards | null; drape: PeopleDrape | null }
 export const PEOPLE_DIR = 'models/people';
@@ -63,7 +68,8 @@ export function decodeCards(meta: CardsMeta, bin: ArrayBuffer): PeopleCards {
 export function decodeDrape(meta: DrapeMeta, bin: ArrayBuffer): PeopleDrape {
   const sets: Record<string, DrapeSet> = {};
   for (const [k, m] of Object.entries(meta.sets)) sets[k] = { meta: m, d: view(bin, m.d) };
-  return { meta, sets };
+  const fuv: Record<string, Float32Array> = {}; for (const [k, s] of Object.entries(meta.fuv ?? {})) fuv[k] = view(bin, s);
+  return { meta, sets, fuv };
 }
 
 /** a variant's head height (head_top − chin landmarks, m): the cards' offsets scale with it */

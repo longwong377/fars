@@ -16,7 +16,13 @@ import type { HumanVariantMeta } from './humanFormat';
 export interface ScanLayerMeta { id: string; layer: number; tile?: number; fabric?: string; k?: number }
 /** D-307: skin and cloth are one array texture (the skin's layers first, the cloth's from `clothBase`): one binding and one
  *  sampler in the human material's fragment stage, whose samplers the world's lights and shadows nearly fill (WebGPU: 16) */
-export interface HumanScans { skin: THREE.DataArrayTexture; cloth: THREE.DataArrayTexture; clothBase: number; skinIds: string[]; cloth_: ScanLayerMeta[]; clothK: number }
+export interface HumanScans { skin: THREE.DataArrayTexture; cloth: THREE.DataArrayTexture; clothBase: number; skinIds: string[]; cloth_: ScanLayerMeta[]; clothK: number;
+  /** D-322: the garments' fold-height layers (people_cloth: RGB the men's, women's and children's settled folds finer than the
+   *  full-detail mesh (layer foldBase) and than the mid one (foldBase + 1), sRGB-encoded heights about 0.5, ± foldScale m);
+   *  foldBase −1: none */
+  foldBase: number; foldScale: number }
+/** D-322: the fold layers to append (the people_cloth PNG: its layers, squares stacked vertically) */
+export interface FoldSource { url: string; layers: number; scale: number }
 export const SCANS_DIR = 'generated/humans/scans';
 
 async function img(url: string): Promise<ImageBitmap> {
@@ -34,7 +40,7 @@ function arrayTex(data: Uint8Array, n: number, layers: number, srgb: boolean) {
 }
 
 /** load and pack the layers; null without a DOM, with `?noscans`, or when the files are missing (the procedural path) */
-export async function loadHumanScans(base = '/'): Promise<HumanScans | null> {
+export async function loadHumanScans(base = '/', folds: FoldSource | null = null): Promise<HumanScans | null> {
   if (typeof document === 'undefined' || typeof createImageBitmap === 'undefined') return null;
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noscans')) return null;
   try {
@@ -43,7 +49,9 @@ export async function loadHumanScans(base = '/'): Promise<HumanScans | null> {
     const n: number = meta.size, skins: ScanLayerMeta[] = meta.skin, cloth: ScanLayerMeta[] = meta.cloth;
     const cv = document.createElement('canvas'); cv.width = cv.height = n;
     const ctx = cv.getContext('2d', { willReadFrequently: true, colorSpace: 'srgb' } as any) as CanvasRenderingContext2D;
-    const S = new Uint8Array(n * n * 4 * (skins.length + cloth.length)); // (D-307: the cloth's layers follow the skin's)
+    // D-322: the garments' fold layers follow the cloth's (none if their image fails: the folds in the geometry stay)
+    const fb = folds ? await img(folds.url).catch(e => { console.warn('fold layers not loaded', e); return null; }) : null, NF = fb ? folds!.layers : 0;
+    const S = new Uint8Array(n * n * 4 * (skins.length + cloth.length + NF)); // (D-307: the cloth's layers follow the skin's)
     const sb = await Promise.all(skins.map(s => img(`${dir}skin_${String(s.layer).padStart(2, '0')}.jpg`)));
     sb.forEach((b, k) => { S.set(pixels(ctx, b, n), k * n * n * 4); b.close(); });
     const C = S.subarray(n * n * 4 * skins.length);
@@ -51,8 +59,9 @@ export async function loadHumanScans(base = '/'): Promise<HumanScans | null> {
     cb.forEach(([d, h], k) => { const D = pixels(ctx, d, n).slice(), H = pixels(ctx, h, n), o = k * n * n * 4;
       for (let i = 0; i < n * n; i++) D[i * 4 + 3] = H[i * 4]; // the height in alpha (data, not colour: sRGB formats leave alpha linear)
       C.set(D, o); d.close(); h.close(); });
-    const all = arrayTex(S, n, skins.length + cloth.length, true); // (both were sRGB arrays: the cloth's height in alpha stays linear)
-    return { skin: all, cloth: all, clothBase: skins.length, skinIds: skins.map(s => s.id), cloth_: cloth, clothK: cloth[0]?.k ?? 0.4 };
+    if (fb) { const h = fb.height / NF; for (let k = 0; k < NF; k++) { ctx.clearRect(0, 0, n, n); ctx.drawImage(fb, 0, k * h, fb.width, h, 0, 0, n, n); S.set(ctx.getImageData(0, 0, n, n).data, (skins.length + cloth.length + k) * n * n * 4); } fb.close(); }
+    const all = arrayTex(S, n, skins.length + cloth.length + NF, true); // (both were sRGB arrays: the cloth's height in alpha stays linear)
+    return { skin: all, cloth: all, clothBase: skins.length, skinIds: skins.map(s => s.id), cloth_: cloth, clothK: cloth[0]?.k ?? 0.4, foldBase: NF ? skins.length + cloth.length : -1, foldScale: folds?.scale ?? 0 };
   } catch (e) { console.warn('human scans not loaded (procedural skin and weave kept)', e); return null; }
 }
 

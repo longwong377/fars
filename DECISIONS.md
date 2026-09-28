@@ -7578,6 +7578,410 @@ moment-*-webgpu.png in the worktree, not committed).**
   stops the leaf's thickness (r_door_leaves.thickness 0.25 m) short of the inner face and the fore-part projects 2.2 m
   (C; Q-890). The protome's horns are raised ~0.08 D in the head frame (protome.head.horn_shift [-0.07, 0.035, 0] D): with
   the head hung low they no longer rose above the poll; the photographs show them sweeping up and forward (C).
+- **D-309c (the lead's batched world render c1d6516: pure-black shade in lane-with-child).** Causes fixed world-wide in the
+  composite: (1) min(SSGI AO, sky visibility) stacked to ~0 in a lane → the two now multiply; (2) the hidden sky was replaced by
+  a fixed 25 % → by the occluders' own light, B = 0.35 · (0.5 · E_sun/E_sky + 0.5) × the open sky's, 0.3-1.6 (skyVis.bounceRatio:
+  at midday sunlit walls outshine the sky they hide); (3) the skylight removal could exceed what the material actually received
+  (col − sky·(1 − ao) < 0: black) → it is capped at col·(1 − ao); (4) the lookup stands 0.6 m off the surface (was 0.25: a wall
+  read its own 0.23 m texels as occluders). Probe lane (humanLab ?lane=1: two mudbrick walls 2 m apart; LANE=1 in
+  sunshadow_probe.spec.ts), shaded/sunlit wall in linear luma: hour 12 0.33 (session 11's composite 0.36), no pixel black;
+  hour 17 both walls shaded, 50/51 sRGB (was 45/46). The lab's closed room (1 × 2 m door): mean 43 (was 39). The world's dark
+  interiors are NOT from D-309: room-treasury-store's lower-frame luma p50 25 in the verify render vs 24 in session 11
+  (merged2); the tone look leaves darks unchanged (tests/tone_look.test.ts). World not re-rendered.
+
+## D-327 The trees from Blender, every species and every tree layer: Cycles-rendered leaf tiles from modelled leaves, skinned bark-mapped branch meshes, CC0 bark scans (session 12, agent trees; UD-19, UD-17, D-233; T-R12; BLENDER_PLAN row 7)
+- **What:** `node tools/blender/trees.mjs` rebuilds the whole tree class from the game's own generators (numbers before
+  pictures): (1) the 22 leaf, blossom and twig tiles of the leaf atlas are recorded from atlas.ts's own drawing (the same
+  sprays, leaves, flowers and random streams: `recordTiles`) and modelled in 3-D by tools/blender/trees_atlas.py (blades
+  with the species' outline folded along the midrib, arched, tipped and facing their recorded tilt; palmate blades cupped;
+  twigs as tapered round shoots; five-petalled cupped corollas; flattened scale-leaf shoots), then rendered in Cycles (512 px
+  tiles, 128 spp, OptiX) under a uniform sky: the shade channel is the leaves' own occlusion x their vein/margin albedo, the
+  tilt channel the rendered normals, petal and bark shares antialiased; each tile is scaled to the procedural tile's mean
+  shade (the season colours of seasonal.ts were tuned on it) and its coverage matches the procedural tile's within 4 %
+  (twig tiles 3-5 %), so the calibrated card sizes, LOD and impostor agreements hold (tests/tree_assets.test.ts).
+  (2) Every species variant's branch skeleton (model.ts) is skinned by tools/blender/trees_wood.py into continuous tubes
+  (a branch continues into its best-aligned child; Catmull-Rom bends; 12 sides on a trunk down to 3 on a shoot; flared,
+  buttressed foot; tip cones) within the game's own budgets (LOD0 768, LOD1 128 triangles: TRIS unchanged), with bark UVs
+  in tiles of the species' scan size and Cycles-baked vertex occlusion (branches and ground). (3) Each species takes a CC0
+  Poly Haven bark scan of its genus or bark type (src/data/tree_bark.json, tier C): luminance detail, a warm-cool axis and
+  the normal map over the species' measured tint (the tint stays the evidence's).
+- **World-wide:** every tree layer draws through one TreeKit (render.ts): the plain's near sets, the mid and far impostors
+  and the orchard row impostors (plain/index.ts, plain/trees.ts), the town gardens (settlement/trees.ts) and the tree lab.
+  The kit takes the Blender atlas and wood when `loadTreeAssets` (world.ts, before any tree layer) loaded them; the CPU
+  impostor baker (and its worker) bakes from the same rendered tiles. `?treeassets=0` draws the procedural stand-ins, and
+  the dev overlay (F3) then says PLACEHOLDER (TreeKit.assetNote).
+- **Not done (B163):** the impostors are still CPU-baked (8 horizontal views, re-baked per foliage state), not Cycles
+  octahedral renders: a pre-rendered impostor cannot follow the seasons card by card (leaf-out, blossom, autumn colour, bare
+  crowns) without one atlas per state (measured: 45 rows x 5 leaf states x 8 views x 96 px x 2 maps = ~60 MB GPU, ~15 MB
+  download, against today's 26 MB baked in place); they now bake from the Cycles-rendered tiles.
+- Download +17.8 MB (atlas PNGs 7.5, wood 1.7, bark JPEGs 8.1 at 1024 px); GPU: atlas 4096x1536 x2 RGBA8 + mips (~67 MB),
+  bark array 15 x 1024² RGBA8 + mips (~84 MB), wood data textures ~5 MB.
+
+## D-315 Conversations act on the world and are remembered per save (session 12; UD-21, UD-18, UD-07, UD-08; T-E10, T-E9)
+
+**How this could pass its tests while the intent fails (said before starting, and measured against):** (1) a stand-in model
+that always writes the right tag makes the parse look perfect while a real 1-2 B model forgets it: so the ask has two
+detectors (the grammar on the stranger's words, the model's tag) and the parser is tested on messy real-model shapes, and
+the node T-E10 number is labelled the PLUMBING's, the real model's measured apart (the lab's GPU run); (2) a deed written
+into a plan that nobody draws: so tests/talk_view.test.ts measures the population view's positions against the step's
+place (the well), the follower against the stranger's way, and tests/talk_world.test.ts walks a detailed agent (a camp
+child) after the stranger across the Terrace; (3) a deed that does not survive a reload: every request of the T-E10 set is
+checked in a fresh world loaded from the JSON save; (4) a recall that comes from the same conversation's prompt: the recalls
+are asked in the reloaded world with a fresh mind; (5) "no event = identical world" broken silently: a no-player run's
+save is compared byte for byte with a world never spoken to, and has no `talk` key; (6) a prompt over the watchdog budget:
+the estimate is calibrated against the Qwen2.5 and Gemma-2 tokenizers and the budget test runs over the whole T-E9 set.
+
+**What was built.** `src/people/talk.ts` (TalkWorld, owned by the sim): the SIMULATION decides every ask
+(`consider`): present, awake, not too small (< 5), not sick, not mourning, not in the dark (for walks), not on duty (a
+guard on watch or within call of the posts; the work of a gang, an office, the Treasury, a priest's fire, a servant's
+master: DUTY_WORDS, C), rank (a leader of a group does not go off with a stranger), family and custom (a child follows
+until called home: until the house's next meal, at most 0.6 h; a child goes at most a short walk from the house and gives
+only water without asking the mother; a woman of the house does not go off with a strange man and walks him only to the
+well, the lane or a house; tier C, custom by analogy, no source read: Q-910; the goods: Q-911), distance (one way at most 0.4 h of walking,
+Population.walkH), what they have (bread and water at home; the work's goods: beer, grapes, fruit, milk, oil, flour; never
+silver, the king's weapons or tablets), and temperament (a seeded draw on the person's trait: the wary refuse most). A
+deed is NEW PLAN STEPS laid over the day (Population.plan = the talk overlay on basePlan; every planner reads basePlan, so
+no one else's day changes): a walk to the place, a pause there pointing it out, the walk back to where the day has them by
+then; following = `@stranger` steps (the view and the agents place them on the stranger's own way, 1.5 m behind, 1.1 m
+more for each in the file) then `@back:<place>` (the way retraced); fetch = the asker walks to the one fetched and back
+with them, and the one fetched gets a `come` event of their own (they decide too: at work, asleep, sick or away they do
+not come, and the asker says so). Every player-caused change is an event in the save (`sim.save().talk`: the deeds with
+their steps, the pauses, the memory rows, what each has to tell); replayed on load; with no event the save and every plan
+are as before. The pause of a conversation: the person stops, turns to the stranger (sim: heading, `performance` = talk;
+popview: frozen at the moment addressed, act talk, facing), the task waits; afterwards the view catches the person up with
+the day at 1.5× (no jump) unless they set off on a deed. Memory: one row per conversation per person (≤ 58 estimated
+tokens; the last three verbatim, older folded to counts), what the stranger said, the deed or refusal, what they said;
+gossip is a pure function of what each has to tell (never folded, last 8), the households and Population ties: kin hear in
+2-14 h, friends and neighbours in 12-48 h, second-hand through one's own circle 1-3 days after that; the prompt carries the
+two that matter most (a deed first, one's own before hearsay). `converse/intent.ts` (the closed set, the tag parser, the
+grammar), `converse/turn.ts` (one turn, words and deed together; used by the world ?converse, the lab and the test),
+`converse/prompt.ts` (memory and tag lines inside the 450-token budget: the life's least needed lines go first),
+`converse/tokens.ts` (the estimate, calibrated), `converse/talkset.ts` (the T-E10 set and runner),
+`tests/talk_world.test.ts`, `tests/talk_view.test.ts`, `tests/talk_standin.ts`, the lab's `talkSet`.
+
+**Measured.** Node (tests/talk_world.test.ts, the stand-in model: the PLUMBING): T-E10 100 % of 158 (64 requests over every class and kind: 23 done, 26 refused for a reason of the day, 15 nothing to change; 64 recalls from the reloaded save; 30 of 30 heard second-hand or from kin), REVIEWS/evidence/s12-talk/T-E10.json. The population view carries the steps out (tests/talk_view.test.ts: a townsman walked to the well along the lanes, stood at it, went back; a follower drawn 1.5 m behind on the stranger's way and walking it back; a person spoken to stops and faces the stranger). The prompt with two memory rows and the tag line: true count max 423 (Qwen2.5), 426 (Gemma-2) over the T-E9 set (tools/dev/converse_tokens.ts), the estimate calibrated to 0-8 % above. ONE GPU run (gemma-2-2b on the T4, requests 0-15 and their recalls, 40 cases): 17.5 % (requests 7/16, recalls 0/16, heard 0/8; median answer 2.0 s), REVIEWS/evidence/s12-talk/T-E10-gpu-run1.json: the model tagged asks never made ("[go_home]" to "I am looking for the river"), refused in its own words where the scorer wanted a "no", and ignored the memory at the head of a long brief. Fixed after the run (unmeasured on the GPU: one run allowed): a tag counts only with a cue of its kind in the stranger's words and paraphrases are read by their one family (intent.ts tagAsked, looseRequest); the reason named in the reply counts as the refusal (talkset.ts sharesReason); the memory that matters most goes with the stranger's words on a talk's first turn and when asked about earlier meetings (turn.ts); stray tags are taken out of the words.
+
+**Stays behind ?converse** (not the default): T-E9 is 61 % measured (target 95), the real model's T-E10 is 17.5 % on its one run (before the fixes), and
+the model is a ~1.5 GB download. Without ?converse nothing of this runs (no event: the world is unchanged).
+
+**Not done / known limits (C, logged):** the player has no goods of their own (a trade needs something given to them first);
+a person fetched to the stranger meets them at the asker's place, not where the stranger stands if they were walking; a
+walker addressed and then setting off on a deed can jump along their route in the view (rare); followers leave the view's
+candidate set if led far beyond their home's range; children's plans that read a mother's day read her base plan (a
+mother who followed the stranger is still "talking" in her child's plan's words).
+
+## D-326 The animals as modelled bodies, every species (session 12, agent animals; UD-19, UD-17, D-233; T-R12; BLENDER_PLAN row 4)
+- **What changed, world-wide.** Every animal the game draws goes through one class, `Animals` (src/people/animals.ts), used
+  by the crowd (the work animals of every performance: flocks, ploughs, threshing, strings, mounts, draught, folds) and by
+  the fauna (world/fauna.ts: yard dogs and fowl, the herds of the villages and bands, the paradise's game, the boar, the wild
+  beasts of world/beasts.ts). That class now draws, for every one of the 34 species, a modelled body with two levels and
+  baked maps (public/models/animals/, loaded at startup by src/people/animalModels.ts, awaited by world.ts with the other
+  models); the procedural spheres-and-tubes stay only as the stand-in when a model is absent or `?animals=0` / `?models=0`.
+- **How the bodies are made (C).** One anatomy per family (equid, bovid, caprine, cervid, antelope, suid, camelid, canid,
+  felid, hare, fowl; src/people/animalForm.ts): the torso a swept elliptical section along the spine with the family's
+  profile (croup, flank, barrel, girth, withers, breast; the carnivores' tuck-up), the shoulder blade, upper arm, thigh and
+  hamstring blended over it, the legs as swept sections through elbow/stifle, knee/hock (with its point), cannon and
+  fetlock, and the family's foot (hoof, cloven hoof with dewclaws, camel pad, paw with toes and claws, the fowl's scaled
+  toes); the neck a swept section from the withers to the poll narrowing at the throat latch; the head a face section and
+  a lower-jaw section (the jowl, the throat's notch), nostrils and mouth carved, eyes under a brow, cupped ears, annulated
+  horns per species (goat, bezoar scimitars, urial curls, cattle, gazelle lyres, fallow palms); the species' marks (humps,
+  zebu hump and dewlap, udder, fat tail, fleece, boar crest and tusks and snout disc, lion's mane, hyena's crest, the
+  fowl's comb, wattles, wings, sickles) and the travelling gear (pack saddle, wicker panniers, sack, girth; the camel's
+  sacks; the saddle cloth). All sizes come from ANIMAL_BUILD and animalFrame (the rig's own pivots), so the model bends where
+  the stand-in did. The coat's relief (hair streaks along the flow, the fleece's Worley locks, mane and tail strands,
+  feathers, horn rings, hoof growth lines, the wicker's weave) and its albedo with a coat mask are computed per vertex of a
+  dense (1.6-4.5 mm) marching-cubes source; Blender (tools/blender/animals.py) decimates the plain surface to lod0
+  (5.6 k large / 4.6 k medium / 3.6 k small / 1.6 k fowl and hare) and lod1 (a fifth), unwraps, and bakes normal,
+  occlusion, albedo and mask from the dense source; KTX2 maps (1024 px large and medium, 512 px small).
+- **The coat.** The albedo map's alpha is the coat mask: where 1, the game multiplies the map (x 2) by the instance's coat
+  colour (ANIMAL_BUILD.coat: the variety of a flock is kept); where 0 the map is the colour itself (hooves, horns, eyes, nose,
+  the gear, a white belly, a black mane). The marks the old notes said were "NOT modelled" are now in the maps (C, from the
+  living animals): the fallow deer's spots and white rump, the gazelle's flank band, pale belly and face stripes, the onager's
+  and the ass's dorsal stripe and cross, the bay's black points, the leopard's rosettes, the cheetah's spots and tear marks,
+  the hyena's stripes, the fox's white tip and dark stockings, the wolf's saddle, the pale bellies of the wild species.
+  No CC0 fur or hide scan exists (ambientCG, Poly Haven searched): the coats are procedural (ASSET_LEDGER).
+- **The rig: weights transferred from the anatomy.** animalForm.rigWeights gives each vertex of a loaded level the rig's
+  attributes from the part distances: the leg weight where the leg is nearer than the torso and below the hip, the knee
+  weight over the knee, the head weight along the neck from its root, the tail weight; smooth across every blend, so the
+  vertex shader's gait, graze and lie cycles (unchanged) drive the body without tearing (tests/animal_models.test.ts: no
+  edge stretched past 3x + 3 cm in any pose). The shader now also turns the normal and tangent with the joints (the lit
+  surface follows the grazing head and the swinging legs) and applies the baked normal map and occlusion.
+- **Levels.** lod1 beyond `lod1At` = 14 x the body's length from the eye (Animals.begin now takes the eye: the crowd's and
+  the fauna's camera); triangles counted per level in stats (the fauna's < 400 k budget test measures the drawn levels).
+- **Head carriage.** animalFrame's head pitch is per family where the rig's single neck joint can still bring the muzzle to
+  the ground (deer 0.7, gazelle 0.65, boar 0.85, camel 0.3, dogs 0.4, cats 0.35; the others keep 0.55): the horse's steeper
+  carriage (0.95) was tried and fails the graze (the muzzle stops 16-28 cm above the ground): a second head joint is the
+  fix (Q-980).
+- **Not done / placeholder (honest):** the forms are C, by eye from the build numbers, and are not yet photoreal: the heads
+  of the grazers still read long and tubular from some angles; no fur cards (the coat is maps only); the gait is the old
+  lateral-walk cycle (no trot, no hopping hare); every species of a family shares one proportion table.
+## D-324 The house kit finished, near to far: three levels of detail, the eave poles' ends, the brick at the foot, the kit's benches, rungs, jambs and stones, the walls' baked detail (session 12, agent houselod; UD-19, UD-17, D-233; T-R12; continues D-311)
+- **Still broken, placeholder or unverified (lead):** no world render (the lead's batched one). Evidence: the house probe page
+  (tools/dev/house_lab.*: the town and the villages on the terrain in the game's materials and scans, a sun with a shadow map
+  and a sky hemisphere; no sky model, probes, exposure or people; shots/houselab-*, copied to T:/fars-assets-s12/houselod/) and
+  Blender previews (tools/blender/preview_housekit2.py). The far level is still a geometric simplification: at 100-600 m its
+  walls are plastered masses with the scan and the baked detail, the parapets' worn line, the eave band, dark windows and
+  doorways, but no pole ends, spouts or court things. The octahedral impostors of the brief were not built for the houses
+  (measured below). The brick losses' first cut showed dark slivers at the rectangle's ends (the ring's outline missed the
+  corners): fixed in the kit (the corners among the ring's angles), not re-rendered. The bake's strength (nor 1.1, cav 0.3) is
+  set by eye on one probe frame (first at 1.6: the walls read lumpy).
+- **How it could pass its tests while the intent fails (said before starting):** pieces and triangles placed where no player
+  reads them (pole ends still reading as lumps, bricks behind a face with no hole, a far level with more triangles that still
+  reads as boxes, a normal map too faint to see or tiling in a grid, a level swap that pops at 40 m). Measured against:
+  Blender previews of every new piece before wiring (the first pole end, one smooth-shaded mesh, read as a crumpled cap and
+  was rebuilt with its own crisp end face; the first jamb read as a pipe and was flattened), probe renders at 2-3 m (courts,
+  doorways, losses, benches, ladders), 60-600 m and a village at 30 and 200 m, and the bake's statistics.
+- **Three levels (every house of the town and the villages: one generator, SiteHouses):** the near tiles are keyed tile x 2 +
+  level (build.ts, villagehouses.ts nearUpdate): the full level within NEAR0 = 40 m of a tile's centre (kept to 50 m), the
+  middle ring to NEAR_R = 72 m (a plaster grid twice as coarse, the 14-triangle crest crestL, the eave poles cut to the stubs
+  that show over the court, the rooms empty, half the firewood and roof fuel, the brick losses drawn flat), prefetched 20 m
+  ahead; the far level beyond. The middle ring is 59 % of the full level's triangles on q_s1/q_s3/q_w1 (tests/houselod.test.ts).
+- **The kit (tools/blender/housekit.py, src/data/housekit.json 0.19 MB; all AO-baked in Cycles):** plog (the eave pole with its
+  axe-chopped end, end grain from the pale rim to the dark heart, one or two checks notched in the rim; its end's relief kept
+  in radius units whatever the pole's length: kit.ts yr; 24 triangles), crestL, bench (slumped front, rounded ends, seats worn
+  hollow), rung (rawhide collars), jamb (adzed board, rotted foot, split head), stone and pebble (fieldstones), sill (the
+  threshold worn 3 cm hollow), bpl/bbr (a 0.9 x 0.38 m loss of the plaster: the ring flush with the face and broken back to
+  the brick, the courses behind in stretcher bond: bricks 33 cm (Iranica, B), courses 11.5 cm, joints 1.6 cm sunk (C)). The
+  log's bark relief cut to a third (+-15 % read as lumps). Wired, every instance: every eave pole (full level and stubs), every
+  ladder rung, court and vestibule bench, street doorway's jamb boards, doorstep, threshold, pivot stone, post base and drip
+  stone (the middle ring keeps the boxes), the brick losses on every exterior face by the household's bare share and age (they
+  replace D-234's flat bare-brick decals; 882 in three quarters). Bedding, rolled mats and the stone roller no longer take the
+  poplar log (pole(..., wood = false)). Batch.lathe lost a zero-height band under every cap (degenerate triangles).
+- **The far level (houses.ts buildFar, farCrest; villagehouses.ts farCompound):** exposed tops follow the near level's worn
+  line (topOf: the undulation and the rain's deeper notches, ~3 m stations); the eave a top, its earth front and the dark band
+  of the pole ends (6 triangles, was a 10-triangle box); windows (windowsOf, shared with the near level) and street doorways
+  dark; each roof its own earth; the roof fuel stacks. Villages: the ranges' roofs at the roof with the parapet on the outer
+  side (was one box to the parapet's top), the eave over the yard, the gateway dark. Town far level 573 k -> 731 k (< 800 k);
+  settlement 0.87 M static (< 1.2 M); the plain's frame at village P22 1.970 M (< 2.0 M: the villages' far additions were cut
+  to 4 triangles an eave and one parapet to fit).
+- **The walls' baked detail (tools/blender/wallbake.py; public/textures/housewall_bake/bake.jpg, 1024^2, 0.29 MB):** a 2.37 m
+  tile of mud plaster modelled as a periodic height field (1.85 mm) and built as a ~4.5 M-triangle Blender mesh: the coat's
+  relief, the float's arcs, straw, grit and pits, shrinkage cracks on a cell network, the brick courses faint through a thin
+  coat; Cycles bakes the tangent normal (OpenGL) onto a flat tile, the cavity (height against its 8 mm blur) from the same
+  field; packed R, G normal, B cavity (one sampler). scans.ts WALL_BAKE lays it triplanar over the clay_plaster scan on
+  house_plaster (near and far, town and villages): house_plaster 4 samplers (was 3; the page limit leaves 6).
+- **Octahedral impostors (tools/blender/impostor.py): measured, not built for the houses.** The houses are 1,447 unique
+  plans (and ~740 village compounds), not instances: an 8 x 8 atlas of 128 px cells is 4 MB of RGBA per house, 5.8 GB for the
+  town; one per 32 m tile, 431 x 4 MB = 1.7 GB, and a tile impostor would still pop against its neighbours at 72 m. The
+  geometric far level (731 k triangles, one mesh per cluster, relit by the game) is the probable best; impostor.py stays for
+  instanced classes (trees, props).
+- **Q-960 (open):** in the browser the near tiles carry ~20-40 % more triangles than node counts (probe: q_s1 court 583 k,
+  q_s1 at 60 m 1.16 M): the CC0 scan jars and baskets (D-310, scanShape into the house batches) are drawn only in the
+  browser, so tests/houses.test.ts budgets do not see them.
+
+## D-321 The dressed stone's block faces from a Blender-carved detail set, on every block of the world (session 12, agent blocks; UD-19, UD-17, UD-20, D-233; T-R12; Q-930, B145)
+- **How it could pass its tests while the intent fails (said first):** the set loads and every dressed-stone material samples it
+  (the tests see it in the shaders) but it reads as nothing: relief under the scans' grain, or relief that shows only in raking
+  light while the moments' sun is frontal; it repeats as a stamp block after block; its chips and margins land away from the
+  painted joints (a frame error); it aliases with distance; it covers the Terrace's walls but not the merlons, the foot, the
+  stairs, the Ka'ba or Takht-e Rustam; or it pushes a pipeline over WebGPU's 16 samplers so a material draws nothing on the page
+  (B122) while the node count passes. Measured against: probe renders from one page load with the set on, off and at a gain of
+  4-6 (placement), at arm's length, 3-4 m and 20+ m, in the moments' sun and in a raking sun; the page's WebGPU errors; the
+  sampler count with every scan loaded; the class list against every surface with a joint pattern.
+- **The asset (tools/blender/blockface.{json,py,mjs}; public/textures/blockface/blockface.ktx2, one KTX2 2-D array, UASTC + zstd,
+  mipmapped, 2048 px layers of 2.048 m: 1 mm a texel; ASSET_LEDGER):** every layer is CARVED, not painted: numpy inside Blender
+  lowers a quarry-rough face (band-limited periodic noise) by the strokes of a tool, each the tool's own cutting profile swept
+  along the stroke (toothed chisel: teeth ~4 mm apart leaving ridges, a shallow arc along the stroke, the facet tilted; flat
+  chisel: the blade's rounded corners, the stroke run out at its end; point: a V groove deepest where it entered), the surface the
+  minimum of the face and every cut (material removal), then rubbed (the peaks above a local mean lowered); Cycles bakes its
+  tangent-space normals and AO from the displaced 1 mm mesh with a wrapped margin (tileable). Seven layers: three toothed-chisel
+  faces in different hands (stroke 20-30 x 35-95 mm, working patches 0.16-0.46 m, their direction per patch), a flat-chisel face
+  over a claw (treads, landings, tops), a point-dressed face (the foot), and two layers of 16 arris strips (128 mm from the joint):
+  a margin of strokes along the arris (worked to the joint, ~3.7 cm) with conchoidal chips of handling and setting (~1 per metre,
+  7-48 mm), and for the foot a pitched, irregular arris with spalls (3.2 per metre). Packed RGBA: normal x, y, height, AO.
+- **Applied (src/render/blockface.ts, materials.ts; all C):** per block of the joint pattern already drawn (the block indices
+  choose the layer among the three hands, an offset over the tile and a mirror: no two neighbouring blocks show the same tile);
+  the strips addressed by the distance to the nearest bed and head joint (the retaining walls' course table and polygonal foot
+  edges, D-232, the palaces' varied coursing, D-157, the stair rows, D-218), meeting in a mitre at the corners, the deeper chip
+  over the other; the stair nosings (a tread's front, a riser's top) take the strip and a rounding worn by the feet (r 4 mm at a
+  flight's ends to 18 mm in its walked middle); the parts' own free arrises (the bevelled edges no other part continues) take it
+  too, through a new per-vertex attribute (meshes.ts 'adist': the distance to each of a face's four bevelled arrises, affine over
+  the face, so exact per fragment; stored as d - 1000 so a geometry without it has none). Tool grooves a little lighter (the
+  stun, 5 % per 1 sigma of relief), chips' fresh fracture 7 % lighter, a third of the AO into the albedo, the AO as the ambient
+  occlusion; the baked slopes drawn x1.6 on the chiselled faces (no self-shadowing in a normal map, C). The measured layouts and
+  the tints stay (the detail is mean-preserving); the rock-boulder scan keeps its colour grain and roughness on these surfaces
+  but not its normal map and only a sixth of its luminance bump (a weathered boulder's relief is not a dressed face's; the
+  normal map's sampler pays for the set's: the node sampler count unchanged, <= 6); the procedural tool facets of D-218 are
+  dropped where the set is loaded and its fossil pits a third as dark (the "black pepper" read at 1-3 m).
+- **The class, everywhere (every code path that draws a dressed block face):** materials.ts varied-ashlar branch (limestone:
+  every palace, stair, parapet, landing and wall of the Terrace, the waterworks, the inscription stones, the quarries' benches and
+  cut blocks, the masons' yard's dressed drums; terrace: the retaining walls with their foot; terrace_foot: the proud foot blocks,
+  rough), the monolith branch (every merlon), the hairline branch (kaba_white: the Ka'ba-ye Zardosht; takht_stone: Takht-e
+  Rustam), jointless dressed stone (stone_plain: the town's kerbs and well heads; nr_dressed: the dressed fields of the rock-cut tomb
+  facades at Naqsh-e Rustam, the same tools on the living rock) and the new stone_rough (the masons' blocks at
+  their places, people/crowd.ts, and the yard's quarry-rough drums, world/construction.ts: point-dressed sides, a clawed top; were
+  'rubble', the fords' stones). The Now view's stone inherits it (no work spent there: UD-20). tests/blockface.test.ts holds the
+  class list against every surface with a joint pattern (bricks excepted).
+- **Measured (probe, GPU T4, tools/dev/blockface_probe.mjs: the Terrace's architecture and scans lit by a sun and a sky
+  hemisphere, one page load, the set on and off per view; shots under T:/fars-assets-s12/blocks/shots, not committed):** the set
+  loads as BC7 (format 36492) in 2-4 s, no WebGPU error on any view (the Terrace, the stairs, and sample blocks of kaba_white,
+  takht_stone, stone_plain, stone_rough and a merlon). Luminance spread Ystd/Y in 32 px windows, off -> on: at arm's length
+  the Tachara stair block 0.178 -> 0.201, the Grand Stair's landing (raking sun) 0.125 -> 0.140 and (moment sun) 0.089 -> 0.096,
+  the Apadana E stair wall 0.100 -> 0.112, the retaining wall's point-dressed foot (moment sun) 0.104 -> 0.140 and (raking)
+  0.230 -> 0.484; at 3.5 m 0.114 -> 0.121; the whole Grand Stair (stair-climb-pm) 0.416 -> 0.417 (at 20+ m the set averages
+  out: the mips hold the mean; no crawl seen). Seen: the toothed chisel's strokes in patches on the blocks at 1-2 m (Tachara
+  stair, Ka'ba sample), chips along the joints as small dark notches in shade, the margins as a faint band along a joint in a
+  raking sun, the foot pocked; at a gain of 4-6 the strips follow the painted joints, the stair rows and the foot's polygonal
+  edges. Not seen yet: any view in the full world (the lead's batched render), the far LODs of the stair merlons.
+- **Not done / limits (B145):** real chipped geometry: the arrises keep D-157's 10 mm chamfer and the chips are in the maps
+  (no self-shadowing, no silhouette); the merlons' arrises take the strips on their front and back faces only (the stepped
+  outline's distance in the geometry's frame, B145 approach 3: done for those faces; their sides and ledges face marks only); the
+  carved members (their own finish, D-306) and the incised signs (incisedMaterial draws its own normal: the set is left out
+  there) are not this class.
+- **Reversible:** yes (`?noblockface`; `window.__parsaSurf.blockface(0)` at run time; the SurfaceDef `blockFace` flags).
+
+## D-325 Every prop, furnishing, door fitting, fire object and held or worked object modelled in Blender (session 12; UD-19, UD-17, D-233; T-R12)
+- **How it could pass while the intent fails (said first, measured against):** a model registered but never drawn (the tests
+  build every builder with the committed GLBs loaded and count the models' triangles in what they draw); a model at the wrong
+  place or size (every tool and work object is compared with the procedural form it replaces: centre and extent); a level
+  that crumpled (lod1's box within 5 % of lod0's); the carried unions over budget in the game (measured with the models:
+  3.6k / 2.8k / 1.3k / 0.9k / 1.0k triangles per instance). What the tests cannot see: whether the forms read as real at arm's
+  length: only contact sheets (T:/fars-assets-s12/props/*.png) were looked at; NO world render was made (the lead's batch).
+- **The vessels' lod1 (D-310's crumpling):** the glTF import splits corners along UV seams; unwelded, every seam was an open
+  boundary and the collapse decimation tore the vessels. tools/blender/ph_props.py now welds before decimating (the UVs
+  survive: Blender keeps them per face corner); wicker_basket_01 (separate strands) takes a voxel-remeshed lod1. Carried
+  jars, work objects' jars, the Treasury's, the town's and the villages' jars now draw lod1 (400-500 triangles, was 1,500).
+- **The jars:** the D-310 scans are modern forms (a white bottle with a pinched lip, a handled jug, a porcelain baluster
+  vase) whose only contribution was the shape (every builder draws its own clay). scanShape('jar') now draws three modelled
+  period forms first (an ovoid storage jar with a rolled rim, a two-handled water jar, a narrow-necked jar; C, Q-972); the
+  scans stay as the fallback. Sacks and vats (no scan exists) are modelled; scanShape takes 'sack', 'sack_lying', 'vat'.
+- **The pipeline** (tools/blender/model_props.py, lib/mp_lib.py, model_props.mjs; tools/blender/preview_props.py for contact
+  sheets): every asset is a script from the builders' own numbers (SITE_SPEC r_palace_furnishings, r_door_leaf, the
+  procedural forms' sizes and frames), using lathes (hand-thrown wobble), sweeps, bevelled boxes, metaballs (lion's paws,
+  bull's hooves, heaps, goatskins), booleans (the oven's mouth, the kiln's stoke hole, the trough's hollow), voxel remeshing,
+  cloth simulation (the covered couch's cover; the sacks filled by the solver's pressure and settled on the ground), weld +
+  collapse to per-part budgets (model_props.mjs TARGETS), and ambient occlusion baked (Cycles, CPU) into a vertex colour,
+  with the buried vertices of interpenetrating parts filled from their neighbours (mp_lib.unbury). Plain GLBs (no Draco, no
+  UVs, no maps): nodes lod<i>__<part>, parsed by scanProps.parseModelGLB in the browser and in node (tests/lib/models_node.ts),
+  so the builders' tests draw the real models. The builders colour each part (the part names say what it is made of) with
+  their own surfaces and vertex colours and multiply the occlusion in (aoFactor, AO_K 0.55; Batch.geo 0.55).
+- **Classes switched everywhere (162 models):** palace furnishings, every kind (furnish_palaces.ts; all its materials now
+  vertex-coloured to carry the occlusion; carpets get the knotted pile normal map, tools/blender/carpet_pile.py, 12 x 12 knots
+  per 2 cm at the Pazyryk density, in a carpet material); the throne (workObjects); the doors' leaves, bands, bosses, posts
+  and shoes (arch/doors.ts: unit forms the instances scale); the fire bodies (fire.ts: brazier, torch, hearth, oven, each part
+  its own material and colour); the road sherds (roadLitter.ts: four modelled sherds as kinds); every held prop but the
+  tablet, the leather sheet, the instruments and the carried children (props.ts: 50 tools and weapons, the phiale, the jar,
+  the sack); every work object kind (workObjects.ts: 59 models and composites with the vessel models and the baskets'
+  scans); the Treasury's goods, the scribes' room's lamp, ink pot, water bowl and mats, the room ranges' mats, bedding,
+  querns and lamps (furnish.ts); the town's and villages' near fittings (settlement/build.ts fittingGeom: hearth with pot,
+  bowls and basket, forge, kiln, quern, grinding slab, upright loom, timber stack, anvil, bench, knucklebones, toys, trough,
+  manger, jars, vat); the houses' store sacks (houses.ts, one line). The procedural forms stay as the stand-ins (?props=0).
+- **Budgets measured:** palace furnishings 259 k triangles stored (the default), 656 k laid out for the court (were 47 k);
+  the Treasury's goods fewer than before (lod1: 56.6 k vs 71.4 k on two test benches); the carried unions above; the work
+  objects 0.3-7.6 k per kind (one instanced draw each); the town's near fittings 0.25-2.5 k each (far level unchanged).
+- **Later the same session (parts 5-7):** the instruments' bodies (harps, lyre, frame drum, pipes; strings and holes the
+  builder's); the houses' ledge lamps, rolled bedding, stone mortar, roof roller and rolled roof mats (houses.ts, small
+  edits); the precinct's fire altar (a model with the altar's steps and the fire's hollow, drawn in place of its step boxes:
+  plan.ts Prop.model / inModel, the colliders kept); the village storage bins (villagehouses.ts binGeom); the grinders'
+  querns, the guards' mats and the bakers' kneading trough (crowd.ts); and the carried props and work objects under the
+  CC0 scans of what they are made of (materials.ts propScanNodes over a per-vertex kind 'ak': wood, metal, textile, clay,
+  wicker, stone; the parts' names give it, else a guess from colour and metalness). 172 models, 6.7 MB.
+  A probe page renders every class before/after in the game's renderer without the world (tools/blender/probe/props_probe.*,
+  shots in T:/fars-assets-s12/props/probe*): no WebGPU validation error.
+- **Not done (honest):** the houses' tether, firewood, laundry line, cradle, roof fuel and fleece, the living rooms' mats and
+  folded rugs (houses.ts; its ladders and benches are D-324's), the carried children (people, not props), crates (no
+  builder draws one), the tablet (writing.ts). No world render (the lead's batch).
+## D-315 (continued) The GPU runs after the merge (session 12): the real models on T-E10 and T-E9
+
+Three runs were allowed, one at a time, through gpu_slot. Run 2's first attempt died two minutes in on an invalid shader
+module on the shared card; it is counted as a run, and the model now reloads on that error too (mind.ts). Each T-E10 pass
+used requests 0-15 of the seeded set plus their recalls: 40 cases. Evidence: REVIEWS/evidence/s12-talk/T-E10-gpu-run2.json,
+T-E10-gpu-run3.json, T-E9-gpu-run3.json.
+- Run 2 (the four fixes after run 1; run-1 scorer): gemma-2-2b with the memory in the system brief 42.5 % (run 1: 17.5 %);
+  gemma with the memory just before the stranger's words 52.5 % (own recalls 8/16, heard 1/8); qwen2.5-1.5b, memory near the
+  question, 55 %.
+- Run 3 (memory near the question, framed "You remember:", naming "this same stranger"; the simulation's "no" said before the
+  stranger's words; a person who has only heard of the stranger is told so, where they were told "you have never seen this
+  stranger"). The scorer changed before this run: a recall names what was asked or done (for a refusal, the ask or the
+  refusal); a denial fails; a hearer need not name who told them. Results: gemma 52.5 % (requests 12/16, own recalls 7/16,
+  heard 2/8; median 1.5 s, p90 2.6 s); qwen2.5-1.5b 57.5 % (14/16, 7/16, 2/8; median 1.2 s). Rescored offline after one fix
+  to the scorer (curly apostrophes, "Can’t leave work."), with no new generation: gemma 55 %, qwen 57.5 %.
+  qwen2.5-3b lost the device ("Object has already been disposed") on the shared card: it does not stay under the watchdog.
+- T-E9 with the D-315 prompt (tag line added; auto-scored, no hand overrides): gemma 62.5 % (45/72; s11: 61.1 % with
+  overrides), median 1.1 s; qwen2.5-1.5b 47.2 %. 26 of gemma's 27 failures are "not grounded in the person's own life".
+  The tag line did not hurt T-E9.
+- What still fails. Recall: the models acknowledge the stranger but invent the content ("We spoke of the harvest", "You were
+  here last month") or deny it outright ("No one has spoken of you"), with the memory line right above the question. Hearsay
+  is worst (2/8): "this same stranger" helped little. Requests: 12-14 of 16 pass; the remaining failures are refusals in the
+  person's own words that the word list misses ("My word is my word").
+- Next (not done: GPU runs used up): a two-step recall (the simulation picks the remembered fact when the question is about
+  earlier meetings and hands the model only that one sentence to put in its own words); a small judge for refusals; a 3B
+  model once the card is free.
+- The default stays gemma-2-2b behind ?converse. Qwen2.5-1.5b is a little better on T-E10 but 15 points worse on T-E9.
+
+## D-322 The garments re-cut from simulated patterns, every costume at every level of detail (session 12, agent garments; UD-19, UD-17, UD-20, D-233; B121, B123, B136; T-R12)
+- **Still broken, placeholder or unverified (read first):** (1) the patterns are the game's own cut refined, not 2-D panels sewn in Blender: each piece's full-detail procedural cut (outfits.ts) is Loop-subdivided to 1.3-2.6 cm, widened by its registry ease (and, for the upper garments, lengthened from the shoulder seam to the belt), and simulated; the Persian robe's stepped front pleats are the reliefs' pleats pressed into the cut's rest shape (drape.ts ROBE), relaxed by the solver, not sewn pleats (C). (2) The meshes the game draws keep the procedural topologies at their current triangle counts (the persian costume is at 41,978 of 42,000 at full detail): the settled cloth is sampled at their vertices, low-passed to what each level can carry, and the folds finer than each level's mesh are a fold-height atlas (below); after the hairhands merge frees ~5 k triangles at full detail, SKIRT_SEGS / ROBE / SLEEVE tessellations can take them (not done). (3) Rest drape only: walking, sitting and kneeling still deform the settled cloth by the skeleton (B123 open). (4) Every person of a group wears the same folds (one simulation per piece and group); the per-person hem folds of D-189 still vary them a little. (5) The veil settles as a narrow band falling off the back with a stiff flare at the hem (its cut is an open sheet; rms 78 mm from the procedural placement). (6) The fold atlas needs the scans array (humanScans): with ?noscans or in node there are no fold layers (the geometry's folds stay). (7) Evidence: Blender contact sheets and humanlab GPU portraits only; no world render (the lead's batched one).
+- **How it could pass its tests while the intent fails (said before starting):** a drape set exists for every piece but the game's coarse meshes cannot carry the folds, so the figures read as smooth as before (measured: the first low-pass sampling at the median edge washed the skirts smooth in the contact sheet; now the shortest edge, more skirt columns and the fold atlas); upper garments pinned almost everywhere (D-307 pinned 92 % of the tunic: the reason they read shrink-wrapped; now 53-62 %, free between the shoulder seams and the belt, the sleeves resting on the arms); an outer layer settled on the body alone lying inside the dress (the headcloth: now settled over the settled dress and kept 4 mm outside it at every level; test); a fold atlas that loads but draws nothing (the first GPU run: the PNG's URL missed the copy, then the pipeline failed on WebGPU's 16 varyings: the fold coordinate is packed into the skin layers' varying).
+- **Pipeline (tools/blender, the people registry people_cloth; D-307 extended):** people_cloth.ts cuts every piece of every costume per group (men m03, women f02, children c01: 22 simulations; trousers and working trousers added, kind `legs`), Loop-subdivided (tools/blender/lib/subdiv.ts) to the registry's `edge` (2.6 cm); cloth.py runs them in two stages in parallel Blender processes (8 at a time, 2 threads each; ~6 min on the 16 cores): stage 2 (the sash over the group's settled skirt, the headcloth over the settled dress, the veil over the settled robe, the kandys over the settled tunic) takes the stage-1 cloth as settled into its collider; the post-step samples the settled cloth at every vertex of every level (nearest point of the refined cut, a Gaussian of half the vertex's shortest edge), keeps outer layers 4 mm outside what is drawn under them, and bakes the residual (the settled cloth finer than the full-detail mesh, and than the mid one) into a 1024 x 2048 fold-height atlas (tools/blender/lib/folds.ts: 25 charts, one per connected part of each piece, laid out by the piece's own parameter so every level finds the same place; 158 texels a metre; RGB = the men's, women's and children's heights, sRGB-encoded, ± 12 mm). Built and reproduced byte for byte (build.mjs --verify); people_hair rebuilt (outfits.ts is its input) and reproduced.
+- **Game:** the drape sets are version 2 with per-piece fold atlas coordinates (peopleModels DrapeMeta.fuv, .folds); outfits.ts carries each piece's parameter (Geo.puv) and each costume vertex's fold coordinate (CostumeLOD.fuv, + 2 below full detail); humanGPU adds the `fuv` attribute; humanScans appends the fold layers to the people's one array texture (no new binding or sampler: B122); humanMaterial reads them by the person's group (a per-variant sum, as the skin layers) and adds them to the cloth's height field, faded where a triangle spans a chart seam; with the simulated drape loaded the shading stand-ins for folds (the pleat field of the dress, the robe's creases, the upper garments' gathers and hanging folds: "pleats as a shading stripe") are off. Skirts: the tunics' columns 40 -> 52, the child's 64, the dress 80 at full detail, every lining on every second ring (the tunics' 1,680 triangles kept).
+- **Class replaced everywhere (T-R12 anti-proxy):** every garment piece of every built costume (persian with the guard, king and court-woman dresses; median; worker; woman; child; envoy, envoy_short, envoy_bare): robe body, skirt and sleeves, tunic, tunic skirt, trousers, working tunic, skirt and trousers, dress body and skirt, child's tunic and skirt, kandys, headcloth, veil, sash; at LOD 0, 1, 2 and the farthest (simplified from 2), on all 23 body variants (the group's drape in each piece's local frame) and in the impostors baked from the far bodies. Code paths: src/people/outfits.ts buildOutfits (applyDrape, fuv), humans.ts, humanGPU.ts makeMesh, humanMaterial.ts, humanScans.ts; the crowd, the court, the camps, the player's body all draw through them.
+- **Measured:** settled displacement rms (full detail): skirts 18-36 mm, upper garments 7-12 mm, trousers 5-8, headcloth 12, kandys 15, veil 78, sash 5; the lower skirt's deviation from its own smooth outline above the procedural tube's (test). Budgets: every costume within [42,000, 7,000, 3,200, 800] (persian 41,978 / 6,139 / 3,050 / 772). Download: people_cloth 0.88 MB (was 0.16), the fold PNG 0.52 MB of it; GPU: two 1024² RGBA layers in the scans array (~11 MB with mips). Portraits (humanlab, GPU, TAG g1/g2: shots/portraits/g2-*.png; copies T:/fars-assets-s12/garments/): folds on bodices, sleeves and skirts; the headcloth over the dress on the women's backs.
+
+## D-320 The relief figures as carved stone, every one: a Blender-baked carved-relief atlas (session 12, agent reliefs; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN row 3)
+- **What:** every relief figure definition the world draws (221: the Apadana registers, audience panels, spandrels and rosette
+  bands; the Phase 4 stairs and door jambs incl. the blocked-out giants; the Naqsh-e Rustam tomb registers; the Neo-Elamite
+  relief) is carved once at 1.6 mm per texel on the stone (the old finest level's cell; the 3.4 m giants 1.7 mm, the canopy
+  3.2 mm): its heightfield (relief_field.ts, detail point-sampled: curls, pleats, flutes at full resolution) as a dense
+  surface in metres at the definition's most common depth ratio, clamped at the wall face, with the foot of every step at
+  least a quarter relief-depth high pulled up to 0.3 of the rise under its arris (the undercut: the masons' square-to-under
+  outlines of the Apadana photographs; C). Blender 5.0.1 / Cycles (tools/blender/relief_bake.py, OptiX on the T4 through
+  gpu_slot plus CPU jobs) bakes from a quad in front of it, orthographically: the object-space normal (4 samples) and the
+  ambient occlusion (64 rays, two relief-depths long: the contour shadow line, the folds, the curls). Texels where a front ray
+  met the underside of a folded undercut (0.6 %) take the heightfield's own normal. The paint (colour, film coverage with its
+  wear, gilding) is sampled on the same grid in node. Packed (shelf packing) into 5 array layers of 4096²: nao.ktx2 (normal
+  xy, occlusion, gilding; 21.5 MB) and paint.ktx2 (sRGB colour, coverage; 3.6 MB), UASTC + RDO 0.75 + zstd, mipmapped.
+  Index src/data/relief_atlas.json; build `npx tsx tools/blender/relief_atlas.ts --device=GPU --cpujobs=2 [--reuse]` (~25 min;
+  KTX encoding is most of it).
+- **In the game:** render/reliefAtlas.ts loads the two textures before the reliefs are built (world.ts), and every ReliefSet
+  whose figures are all in the atlas draws ATLAS_LODS (relief_atlas.ts): the same RTIN heightfield levels and switch distances
+  on grids half as fine, error bounds 0.07-0.19 (silhouette still cell-exact), no refinement at paint edges, positions and
+  triangles only (extractLod lean). Each vertex carries `ruv` (u, v, layer, instance depth ratio over the baked one) and the
+  wall frame; the paint material (materials.ts paintedStoneMaterial(atlas)) reads paint, gilding and occlusion from the atlas
+  and turns the baked normal into view space (tangent = up x normal, mirror by tangent.w: instanced rosettes do not turn a
+  tangent attribute), its slopes scaled by the depth ratio, the stone's and the film's fine relief bumped round it. The layer
+  index is rounded in the shader (an interpolated 2.0 came out 1.999 on some pixels: moire of the neighbouring layer).
+  ?reliefatlas=0 or a failed load leaves the legacy vertex-painted levels. Code paths switched: arch/reliefs.ts ReliefSet
+  (batch, far chunks, whole-set merge, shadow proxies, rosettes near and far), used by arch/decor.ts (Apadana, Phase 4) and
+  world/plain/naqsh.ts (tomb registers and, new, the Neo-Elamite relief's five worshippers, kind `elamite`, by analogy with
+  Kurangun and Kul-e Farah, C; they were five extruded silhouettes). Now view: the atlas material is swapped like the old one.
+- **Measured** (tools/relief_budget.ts, ATLAS=1; bench-reports/relief_budget_d320.txt): relief triangles before the audience
+  panel at 2 m 1.054 M -> 0.405 M, worst on the Apadana walk 1.112 M -> 0.345 M, worst at a Phase 4 jamb 1.450 M -> 0.567 M,
+  Grand Stair foot 0.474 M -> 0.173 M. GPU memory ~+110 MB (BC7), download +25 MB. Probe renders (tools/blender/probe/
+  relief_probe.*, GPU, T:/fars-assets-s12/reliefs/shots4): at 0.4-0.8 m the curls, flutes, eye and lids and the robe
+  pattern are as crisp as the legacy L0 and the paint edges crisper; at 6 m and beyond the relief shading is a little softer
+  than the legacy (the mip chain averages the normals); the legacy's zigzag shadow acne on the jambs is gone.
+- **Still placeholder (flag kept):** the drawing of the figures is the procedural reconstruction (relief_figures.ts, C) until
+  licensed scans or measured drawings replace it (NEEDS #10); the undercut depth and the AO reach are C. The wall around a
+  figure gets no baked contour occlusion (the relief mesh ends one level-cell past the outline; the sun shadows are D-226's).
+- **Round 2 (the lead's review, same session).** Measured against photographs of each species (C): the canids' and the
+  cats' heads rebuilt as a cranium, cheek arches, a stop and a short tapering muzzle (the canids' about 40% of the head, the
+  cats' about 30%, with whisker pads), nose leather and triangular ears; the carnivores' necks lengthened and raised so the
+  head stands above the withers (it was level with the back: the "anteater" read); the lion's mane shaped (a shell over
+  the neck's crest, behind the ears, the cheeks' frame, the throat and the chest; the Asiatic lion's shorter mane) and its
+  head broader (headR 0.145); the stag's antlers a burr, a long beam curving out and back with brow and trez tines and a
+  small crowned palm (the Mesopotamian fallow buck's weak palmation); the fowl rebuilt (a keel, a back rising to the tail,
+  folded wings, the hen's narrow upright fan, the cock's arched sickles and saddle hackles, a short hackled neck, a blade
+  comb with points, wattles, spurs); the camels' sternal pad a flat bare callus. The rig: a second head joint at the poll
+  (Q-980: the skull's weight stored as -aHT.y; at rest the equids carry their heads at 0.95 rad, the cattle 0.8, the small
+  stock 0.75, and grazing the poll straightens that to 0.55 before the neck brings the muzzle down); gaits in the vertex
+  shader (gaitW / gaitOffset: 0 the lateral walk, 1 the trot with the diagonal pairs together and a larger swing and bounce,
+  2 the hare's bound with the fore pair and then the hind pair); every hare bounds, and a wild animal pushed off by the
+  player trots or runs (beasts.ts keepAway gait 1). Not done: a mid-neck joint (the neck pivots at its root), a canter or
+  gallop, per-species proportion tables within a family.
+- **Rev 2 (session 12, after the lead's merge eb4c45a):** (1) forks are continuous: a chain that leaves another rises inside
+  it (from a parent's radius below the joint, on its axis, at 0.78 x its radius) and bends out through the joint, and a
+  parent ending at a fork narrows (0.68 x) into its children's bases with a low dome: no stump with sticks, no step where a
+  multi-stem's stem becomes a limb (a continued child's radius steps half-way at the joint). A chain continues into a child
+  only within ~35 deg; sharper turns are forks. (2) The far impostors draw the Blender wood's triangles (per corner normal
+  and baked occlusion, x the crown occlusion), not the skeleton's tubes; the bake worker gets the wood with the atlas.
+  (3) Under temporal AA (medium and above) the impostors' alpha test is dithered (threshold 0.18..0.98 hashed per pixel and
+  frame) and their mips keep the plain coverage share: a sparse crown's sub-pixel sky gaps survive at a distance, as they
+  do on the near cards (the oak's impostor read a steady 15/255 darker than its LOD1 at r3; now 3-15/255 across runs,
+  measurement noise of 8-frame TRAA included). The orchard row impostors share the threshold. (4) Download 17.8 -> 10.4 MB:
+  the atlas as lossless WebP (2.6 MB), the tilt at half size (1.3 MB, bilinear on load), the bark scans at 768 px
+  (4.6 MB; GPU array ~47 MB). (5) `node tools/blender/trees.mjs --verify` rebuilds every step into the work folder and
+  compares (WebP by decoded texels, wood by value): reproduced (Cycles OptiX, same seed); the record sits in the manifest
+  and tests/tree_assets.test.ts checks it.
 
 ## D-323 The people's hands simplified and their hair and beards regroomed as Blender hair curves converted to cards, every person (session 12, hairhands; UD-19, UD-17, D-233; T-R12; Q-950, B151-B152)
 - **Still broken, placeholder or unverified:** cards are drawn at full detail only (within 25 m): beyond, every head wears the procedural shells (the D-307 helmets at 20-40 px; B151); the bob still reads close to a helmet at 1.5 m (smooth, a hard jaw-line cut); hair and beards do not move; the court beard reads as a curled dark mass, its rows of curls not distinguishable at 1.5 m; no reviewer has judged it (evidence: GPU portraits in the human lab only; no world render: the lead's); people_cloth is STALE (humans.bin changed: the lod0 index; its bytes will change little: rebuild after the garments merge); the human lab's frame times before this were not the scene's (B152).

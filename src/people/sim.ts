@@ -27,6 +27,7 @@ import { hall100Layout, colPlace } from './construction';
 import { PlayerMemory, Encounter } from './memory';
 import { COURT_PLACES, COURT_PRIVATE } from './court'; // D-182 hook (D-199: the king's rooms)
 import { v as specV } from '../arch/spec';
+import { TalkWorld, type Intent } from './talk';
 /** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
  *  scribe's, the Aramaic secretary's, the pupil's; grid position and heading (deg cw from grid N) */
 export function deskSeat(who: 'elamite' | 'aramaic' | 'pupil' | 'visitor'): { at: P2; heading: number } {
@@ -131,6 +132,9 @@ export class PeopleSim {
   readonly cal: EventCalendar;
   /** memory of the player (brief §9.5) */
   readonly memory = new PlayerMemory();
+  /** D-315 (UD-21): what the stranger's conversations did to the world and what the people remember of them (talk.ts): the
+   *  deeds laid over the day plans (Population.plan), the pauses, the memory rows; saved with the sim (save().talk) */
+  readonly talk: TalkWorld;
   private pathCache = new Map<string, P2[] | null>();
   /** the most new route searches in one step. A long route on the 0.5 m grid costs 20-200 ms, and a watch change or a
    *  crowd of arrivals asks for many at once; over the budget an agent waits where it is and asks again next step.
@@ -144,6 +148,8 @@ export class PeopleSim {
     const seats = this.makeRoster();
     this.pop = new Population(seed, { court: !!opts.court, slice: seats });
     this.cal = new EventCalendar(seed, this.pop, env, !!opts.court); this.pop.attach(this.cal);
+    this.talk = new TalkWorld(this.pop, seed, id => id in PLACES); this.pop.talk = this.talk;
+    this.talk.onChange = pid => { const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.planCache.delete(a); };
     for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
   }
   /** the Hall of a Hundred Columns as simulation state (columns, walls, reliefs; D-022) */
@@ -248,6 +254,9 @@ export class PeopleSim {
   private decide0(a: Agent, seg: Seg, end: number, rng: Rng): Task {
     const day = Math.floor(this.t / 24);
     a.sick = seg.act === 'lie_ill';
+    // D-315: following the stranger (their way, re-decided every ~10 s), or walking back to the place they left from
+    if (seg.place === '@stranger') return this.followTask(a, seg, end);
+    if (seg.place.startsWith('@back:')) seg = { ...seg, place: seg.place.slice(6), act: 'walk' };
     // a porter's last sack when his carrying block ends goes into the store (a few steps at most), not home with him: D-211
     if (a.role === 'porter' && a.carry === 'sack' && !(seg.place === 'stair_foot' && seg.act === 'rest')) { a.carry = null; this.stock.store++; }
     // a guard whose watch has ended keeps the post until the relief arrives (at most ~36 minutes)
@@ -270,6 +279,26 @@ export class PeopleSim {
     }
     return this.onTerrace(a, seg, end, rng);
   }
+  /** D-315: a detailed person following the stranger: to the stranger's way 1.5 m behind them (talk.ts followPos); on the
+   *  Terrace's grid a walk there, off it a hidden leg (popview draws the off-map agent on it) */
+  private followTask(a: Agent, seg: Seg, end: number): Task {
+    const F = { e: 0, n: 0, heading: 0, moving: false }; const until = Math.min(end, this.t + 0.003);
+    if (!this.talk.followPos(a.pid, this.t, 0, 0, false, F)) return { act: 'rest', place: '@stranger', spot: a.pos, heading: null, until, why: seg.why, off: a.offmap || undefined };
+    const s = this.nav.snap(F.e, F.n, 2); this.setDown(a, 'walk');
+    if (s) return { act: 'rest', place: '@stranger', spot: s, heading: F.heading, until, why: seg.why };
+    return { act: 'rest', place: '@stranger', spot: PLACES.town.at, heading: null, until, why: seg.why, off: true, legs: [[F.e, F.n]] };
+  }
+  /** D-315: the stranger speaks to a person: they stop and turn (a pause, talk.ts), and are remembered as addressed */
+  talkAddressed(pid: number) { const h = this.talk.addressed(pid, this.t); const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.memory.note(a, 'addressed', this.t); return h; }
+  /** D-315: the stranger asks a person to do something: the simulation decides (talk.ts consider) and a detailed person
+   *  sets about it at once (the plan block in force is decided again) */
+  talkAct(pid: number, intent: Intent, t = this.t) {
+    const r = this.talk.act(pid, t, intent);
+    for (const q of [pid, r.other ?? -1]) { const ai = q >= 0 ? this.pop.persons[q]?.agent ?? -1 : -1; if (ai < 0) continue; const a = this.agents[ai]; this.planCache.delete(ai); if (r.ok && !r.noop) this.begin(a, this.decide(a), false); }
+    return r;
+  }
+  /** D-315: the person said no in their own words (the simulation would have let them): kept as a refusal of their own */
+  talkDecline(pid: number, intent: Intent, why: string, t = this.t) { return this.talk.decline(pid, t, intent, why); }
   /** carried goods are set down when the next task is not carrying them (on the Terrace, and before a block off it) */
   private setDown(a: Agent, act: ActivityId) {
     if (a.role !== 'porter' && a.carry && !((a.carry === 'jar_head' && act === 'carry_jar_head') || (a.carry === 'basket' && act === 'carry_bread') || (a.carry === 'sack' && act === 'carry_sack'))) {
@@ -481,7 +510,7 @@ export class PeopleSim {
   step(dt: number) {
     if (dt <= 0) return;
     this.t += dt * H_PER_S; this.searches = 0;
-    this.events$();
+    this.events$(); this.talk.step(this.t, this.player);
     for (const a of this.agents) this.stepAgent(a, dt);
   }
   /** simulation LOD: people within `radius` m of `centre` (the player) walk real routes; the rest travel abstractly.
@@ -535,6 +564,9 @@ export class PeopleSim {
   private stepAgent(a: Agent, dt: number) {
     const hrs = dt * H_PER_S; a.hunger = Math.min(1, a.hunger + hrs / 6); a.fatigue = Math.min(1, a.fatigue + hrs / 16);
     if (!a.task) this.begin(a, this.decide(a), true);
+    // D-315: in a conversation's pause the person stands and faces the stranger; the walk and the work wait for it
+    if (this.talk.holdAt(a.pid, this.t)) { const hrs = dt * H_PER_S; if (a.travel) { a.travel.t0 += hrs; a.travel.t1 += hrs; } if (a.task) a.task.until += hrs;
+      if (this.player && !a.offmap) a.heading = Math.atan2(this.player[0] - a.pos[0], this.player[1] - a.pos[1]) * 180 / Math.PI; this.ground(a); return; }
     if (a.waitRoute && a.task) { const r = this.routeTo(a, a.task.spot); if (r === undefined) { this.ground(a); return; }
       a.waitRoute = false; a.path = r; a.pathI = 1; a.walking = !!r; if (!r) a.pos = [...a.task.spot] as P2; }
     let budget = dt;
@@ -611,6 +643,7 @@ export class PeopleSim {
 
   /** what the renderer should show for an agent right now */
   performance(a: Agent): { act: ActivityId; moving: boolean } {
+    if (this.talk.holdAt(a.pid, this.t)) return { act: 'talk', moving: false }; // D-315: stopped to talk with the stranger
     if (a.walking) {
       const act: ActivityId = a.carry === 'sack' ? 'carry_sack' : a.carry === 'jar_head' ? 'carry_jar_head' : a.carry === 'basket' ? 'carry_bread' : a.role === 'guard' && (a.task?.act === 'stand_guard' || a.task?.act === 'patrol') ? 'patrol' : 'walk';
       return { act, moving: true };
@@ -645,7 +678,8 @@ export class PeopleSim {
   static readonly ABSTRACT_TERRACE_PLACES = TERRACE_ABSTRACT;
 
   save() {
-    return { t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
+    const talk = this.talk.save(); // D-315: only when the stranger has done something (no event: the save is as before)
+    return { ...(talk ? { talk } : {}), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
       events: this.events.slice(-SAVED_EVENTS).map(e => ({ ...e })), // the chronicle (translation layer) survives a reload (H workstream: T-H3r)
       // the route cache (5 m buckets: which route a trip takes depends on it) and the player's watching hours: without them a
       // loaded world went its own way within minutes (T-H3r)
@@ -657,7 +691,7 @@ export class PeopleSim {
   load(s: any) {
     if (!s?.agents) return; this.t = s.t; this.stock = { ...INITIAL_STOCK, ...s.stock }; this.lastCaravanDay = s.lastCaravanDay; if (s.flows) this.flows = { ...s.flows }; if (s.lastGrainDay !== undefined) this.lastGrainDay = s.lastGrainDay;
     this.cal.ctx(Math.floor(s.t / 24)); // the calendar is deterministic: recompute to the saved day, then restore what the detailed people changed
-    if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.planCache.clear();
+    if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }
     if (Array.isArray(s.near)) { this.near.clear(); for (const [k, v] of s.near) this.near.set(k, v); }

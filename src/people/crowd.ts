@@ -22,7 +22,7 @@ import * as THREE from 'three/webgpu';
 import { Rng } from '../core/rng';
 import { attribute, positionLocal, float, abs, min, max, mix, step } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { surfaceMaterial } from '../render/materials';
+import { surfaceMaterial, propScanNodes } from '../render/materials';
 import { pose, type Pose } from './anim';
 import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type WorkSpec, type Performer } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
@@ -36,7 +36,7 @@ import { sunTimes } from './calendar';
 /** D-292: the ways of holding or laying down a small child that go with humming it to sleep */
 const LULL_MODES = new Set(['arms', 'lap', 'cradle', 'mat', 'nurse']);
 import { nearCascadesOnly } from './humanGPU';
-import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave, BABE_CLASS } from './props';
+import { propGeometry, propUnionGeometry, paintedBox, paintedModel, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave, BABE_CLASS } from './props';
 import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTES, type BabeMode } from './babes';
 import { h32, salt } from './hash';
 import { PLAYING, singFace, type PlayKind } from './playing';
@@ -238,7 +238,8 @@ export class Crowd {
   private propMaterial() {
     if (this.propMat) return this.propMat;
     const m = new THREE.MeshStandardNodeMaterial(); const mr = attribute('mr', 'vec2');
-    m.colorNode = attribute('color', 'vec3'); m.metalnessNode = mr.x; m.roughnessNode = mr.y;
+    // (D-325: each vertex under the CC0 scan of what it is made of: wood, metal, textile, clay, wicker, stone; its 'ak')
+    const S = propScanNodes(attribute('color', 'vec3'), mr.y); m.colorNode = S.color; m.metalnessNode = mr.x; m.roughnessNode = S.rough; if (S.normal) m.normalNode = S.normal;
     this.propMat = m; return m;
   }
   private buildPropMeshes() {
@@ -250,9 +251,10 @@ export class Crowd {
       const data = interleave(g, ['ik', 'ip', 'aRx', 'aRy', 'aRz'], { count: CARRIED_MAX, sizes: [1, 1, 3, 3, 3] }); data.setUsage(THREE.DynamicDrawUsage);
       const at = (n: string) => g.getAttribute(n) as THREE.InterleavedBufferAttribute, ik = at('ik'), ip = at('ip'), ax = [at('aRx'), at('aRy'), at('aRz')];
       const m = new THREE.MeshStandardNodeMaterial(); const mr = attribute('mr', 'vec2');
-      m.colorNode = attribute('color', 'vec3'); m.metalnessNode = mr.x; m.roughnessNode = mr.y;
+      const S = propScanNodes(attribute('color', 'vec3'), mr.y); // (D-325: the props under the scans of what they are made of)
+      m.colorNode = S.color; m.metalnessNode = mr.x; m.roughnessNode = S.rough; if (S.normal) m.normalNode = S.normal;
       // D-215: the carried children's skin (metalness −1 in the geometry) tinted by the instance parameter (the carer's tone)
-      if (c === BABE_CLASS) { m.colorNode = attribute('color', 'vec3').mul(mix(float(1), attribute('ip', 'float'), float(1).sub(step(-0.5, mr.x)))); m.metalnessNode = max(mr.x, 0); }
+      if (c === BABE_CLASS) { m.colorNode = S.color.mul(mix(float(1), attribute('ip', 'float'), float(1).sub(step(-0.5, mr.x)))); m.metalnessNode = max(mr.x, 0); }
       // the instance's own kind only: other kinds' vertices collapse to a point (arithmetic mask, no select: D-012); the
       // instance parameter moves the vertices that carry a displacement (the bowstring's middle, the spindle on its yarn)
       const sv = attribute('sv', 'vec3').mul(attribute('ip', 'float'));
@@ -275,14 +277,14 @@ export class Crowd {
     // uneven by a few cm, the top being dressed flat; its own mesh (one draw)
     const masons = sim.agents.filter(a => a.role === 'mason'), blocks: THREE.BufferGeometry[] = [];
     for (const a of masons) { const e = a.slot[0], n = a.slot[1] + 0.95; q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.1 * Math.sin(a.id)); blocks.push(masonBlock(a.id).applyMatrix4(M.compose(gw(e, n, nav.heightAt(e, n) || 0), q, one))); }
-    if (blocks.length) { const bm = new THREE.Mesh(mergeGeometries(blocks)!, surfaceMaterial('rubble')); bm.castShadow = bm.receiveShadow = true; bm.name = 'work:blocks';
+    if (blocks.length) { const bm = new THREE.Mesh(mergeGeometries(blocks)!, surfaceMaterial('stone_rough')); bm.castShadow = bm.receiveShadow = true; bm.name = 'work:blocks';
       bm.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'limestone blocks being dressed at the masons\' places, 1.4 × 0.75 × 0.9 m, quarry-rough with the top dressed (construction in 467 B; block size and working C; D-217)' };
       this.group.add(bm); nearCascadesOnly(bm); }
     const grind = sim.agents.filter(a => a.role === 'grinder' || a.role === 'baker');
-    put(paintedBox(0.4, 0.14, 0.7, stone, 0.9), grind.map(a => { const e = a.slot[0] + 0.62, n = a.slot[1]; return [gw(e, n, nav.heightAt(e, n) || 0), Math.PI / 2]; }));
+    put(paintedModel('quern', 0.4, 0.14, 0.7, stone, 0.9, 'stone') ?? paintedBox(0.4, 0.14, 0.7, stone, 0.9), grind.map( /* (D-325: the modelled saddle quern) */a => { const e = a.slot[0] + 0.62, n = a.slot[1]; return [gw(e, n, nav.heightAt(e, n) || 0), Math.PI / 2]; }));
     const guards = sim.agents.filter(a => a.role === 'guard');
-    put(paintedBox(0.8, 0.03, 1.9, reed, 0.95), guards.map(a => [gw(a.slot[0], a.slot[1] + 0.2, (nav.heightAt(a.slot[0], a.slot[1]) || 0)), Math.PI]));
-    const o = PLACES.oven.at; put(paintedBox(0.9, 0.2, 0.5, clay, 0.95), [[gw(o[0] - 1.5, o[1] - 0.6, nav.heightAt(o[0], o[1] - 0.6) || 0), 0.2]]);
+    put(paintedModel('mat', 0.8, 0.03, 1.9, reed, 0.95, 'wicker') ?? paintedBox(0.8, 0.03, 1.9, reed, 0.95), guards.map( /* (D-325: the modelled reed mat) */a => [gw(a.slot[0], a.slot[1] + 0.2, (nav.heightAt(a.slot[0], a.slot[1]) || 0)), Math.PI]));
+    const o = PLACES.oven.at; put(paintedModel('kneading_trough', 0.9, 0.2, 0.5, clay, 0.95, 'clay') ?? paintedBox(0.9, 0.2, 0.5, clay, 0.95), /* (D-325: the modelled kneading trough) */ [[gw(o[0] - 1.5, o[1] - 0.6, nav.heightAt(o[0], o[1] - 0.6) || 0), 0.2]]);
     if (!parts.length) return;
     const mesh = new THREE.Mesh(mergeGeometries(parts)!, this.propMaterial()); mesh.castShadow = mesh.receiveShadow = true; mesh.name = 'work:objects';
     mesh.userData = { tier: 'C', src: 'RECON', note: 'work objects: limestone blocks being dressed (C); saddle querns (period type B, placement C); reed sleeping mats (C); kneading trough (C)' };
@@ -600,7 +602,7 @@ export class Crowd {
     const gpu = this.humans.gpu; gpu.begin();
     for (const c of this.carried) c.mesh.count = 0; this.propsDropped = 0;
     if ((this.frame & 63) === 0) for (const [k, pl] of this.plays) if (time > pl.until + 5) this.plays.delete(k);
-    this.things.begin(); this.animals.begin(time); this.shared.clear();
+    this.things.begin(); this.animals.begin(time, cam); this.shared.clear();
     // order by distance for the full-detail cap
     const list = this.list; list.length = 0;
     for (const p of this.persons.values()) {

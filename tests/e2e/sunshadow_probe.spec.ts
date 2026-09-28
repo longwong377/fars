@@ -8,6 +8,8 @@ const SHOTS: [string, number[], number[]][] = [
   ['full', [0, 1.5, 4.2], [0, 1.0, 0]],
   ['feet', [0.6, 0.9, 1.6], [0.2, 0.1, 0]],
 ];
+// LANE=1: the lab's lane (2 m between two mudbrick walls) and the closed room's interior (humanLab ?lane=1)
+if (process.env.LANE) SHOTS.push(['lane', [-12, 1.6, -4.5], [0, 1.2, -4.5]], ['lane-up', [4, 1.6, -4.2], [-6, 2.4, -5.2]], ['room', [25, 1.6, -0.6], [25, 1.1, -5]]);
 const MEN = [{ dress: 'persian', sex: 'm', role: 'official', seed: 36 }, { dress: 'guard', sex: 'm', role: 'guard', seed: 12 }, { dress: 'median', sex: 'm', role: 'guard', seed: 13 }, { dress: 'worker', sex: 'm', role: 'mason', seed: 14 }];
 for (const mode of (process.env.MODES ?? 'old,new').split(',')) {
   test(`sun shadows ${mode}`, async ({ page }, info) => {
@@ -15,7 +17,7 @@ for (const mode of (process.env.MODES ?? 'old,new').split(',')) {
     const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
     const Q = process.env.Q ?? 'high', H = process.env.HOUR ?? '10';
     await page.setViewportSize({ width: 1920, height: 1080 }); // the player's frame size (frame time at 1080p)
-    await page.goto(`/humanlab.html?test&quality=${Q}&hour=${H}${mode === 'old' ? '&csm=old&tone=agx' : ''}${process.env.POST ? '&post=' + process.env.POST : ''}`);
+    await page.goto(`/humanlab.html?test&quality=${Q}&hour=${H}${mode === 'old' ? '&csm=old&tone=agx' : ''}${process.env.POST ? '&post=' + process.env.POST : ''}${process.env.LANE ? '&lane=1' : ''}`);
     await page.waitForFunction(() => (window as any).__lab?.ready === true || (window as any).__lab?.error, null, { timeout: 900_000 });
     expect(await page.evaluate(() => (window as any).__lab.error ?? null)).toBeNull();
     await page.evaluate(() => (window as any).__lab.view(0, 1.5, 4, 0, 1.2, 0));

@@ -11,6 +11,7 @@ import { installWebGPUCompat } from '../render/compat';
 import { surfaceMaterial } from '../render/materials';
 import { TreeKit, NearTreeSet, ImpostorSet, treeInst, speciesSize, impostorPx, registerShadowLight, type TreeInst } from '../world/trees/render';
 import { doyOf } from '../world/plain/seasonal';
+import { loadTreeAssets, treeAssetStats } from '../world/trees/assets';
 installWebGPUCompat();
 
 const P = new URLSearchParams(location.search);
@@ -29,6 +30,7 @@ async function boot() {
   registerShadowLight(scene); // the leaves' transmission follows this sun (render.ts syncSun)
   const clock = new WorldClock(+(P.get('day') ?? 80), +(P.get('hour') ?? 10));
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2), surfaceMaterial('earth')); ground.receiveShadow = true; scene.add(ground);
+  await loadTreeAssets('/'); // D-327: the Blender trees (?treeassets=0: the procedural stand-ins)
   const t0 = performance.now();
   const kit = TreeKit.get({ impostorPx: impostorPx(quality) }); kit.configure(quality);
   const cutC = uniform(new THREE.Vector3(1e9, 0, 1e9)), cutR = uniform(0);
@@ -63,7 +65,7 @@ async function boot() {
     view: (x: number, y: number, z: number, tx: number, ty: number, tz: number) => { camera.position.set(x, y, z); camera.lookAt(tx, ty, tz); camera.updateMatrixWorld(); },
     setTime: (day: number, hour: number) => clock.set(day, hour),
     render: async (frames = 1) => { for (let i = 0; i < frames; i++) await frame(); },
-    stats: () => ({ drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, kitMs: Math.round(kit.buildMs), bakeMs: Math.round(kit.bakeMs), bakes: kit.bakes, backend: (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2' }),
+    stats: () => ({ assets: treeAssetStats(), atlas: kit.atlas.source, wood: !!kit.wood, bark: !!kit.bark, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, kitMs: Math.round(kit.buildMs), bakeMs: Math.round(kit.bakeMs), bakes: kit.bakes, backend: (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2' }),
     kit, renderer, camera, scene,
   };
   (window as any).__lab = api;

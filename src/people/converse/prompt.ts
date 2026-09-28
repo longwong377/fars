@@ -1,20 +1,36 @@
 // D-296 (UD-18): what the language model is told when the stranger speaks to a person: who they are (life.ts), the fence
 // (fence.ts), how well they know the stranger (memory.ts), and the talk so far. Short on purpose: the whole prompt stays
 // under ~450 tokens (life.ts lifeBriefShort: the read-in speed and the GPU watchdog).
+// D-315 (UD-21): and what they remember of the stranger from earlier conversations in this save (talk.ts recall: their own
+// meetings and what they heard from kin and friends), and the closed set of things they may do (intent.ts INTENT_LINE).
+// The budget holds: when the memory lines and the tag line would take the prompt past PROMPT_TOKENS, the least needed lines
+// of the life go first (the baked memories, what they know well, the day's news, the friends, the year), never the name,
+// the work, the house, the fence or the memory of the stranger.
 import { FENCE_SHORT } from './fence';
 import { lifeBriefShort, type LifeRecord } from './life';
+import { INTENT_LINE } from './intent';
+import { approxTokens } from './tokens';
 
 export interface Turn { role: 'user' | 'assistant'; content: string }
-export type Knows = 'none' | 'nod' | 'recognise';
+export type Knows = 'none' | 'nod' | 'recognise' | 'heard';
+/** the prompt's ceiling (tokens): one read-in well under the Windows GPU watchdog's ~2 s on a 1-2 B model (B98) */
+export const PROMPT_TOKENS = 450;
+export { approxTokens };
 
-export function systemPrompt(L: LifeRecord, knows: Knows, prose?: string | null): string {
-  const met = knows === 'recognise' ? 'You know this stranger’s face.' : knows === 'nod' ? 'You have seen this stranger about.' : 'You have never seen this stranger.';
-  return [
-    'You are a person of Parsa, the king’s seat, in year 19 of King Xerxes.',
-    lifeBriefShort(L, prose),
-    `A plainly dressed stranger with a foreign accent comes up to you. ${met}`,
-    FENCE_SHORT,
-  ].join('\n');
+export interface Remembered { lines: string[] }
+export function systemPrompt(L: LifeRecord, knows: Knows, prose?: string | null, memory?: string[] | null, withIntents = true): string {
+  const met = knows === 'recognise' ? 'You know this stranger’s face.' : knows === 'heard' ? 'You have not met this stranger yourself, but you have heard of him.' : knows === 'nod' ? 'You have seen this stranger about.' : 'You have never seen this stranger.';
+  const mem = (memory ?? []).filter(Boolean);
+  const head = 'You are a person of Parsa, the king’s seat, in year 19 of King Xerxes.';
+  const tail = [`A plainly dressed stranger with a foreign accent comes up to you. ${met}`, ...(mem.length ? [`What you remember of the stranger: ${mem.join(' ')}`] : []), FENCE_SHORT, ...(withIntents ? [INTENT_LINE] : [])];
+  // the life brief, cut line by line (least needed first) until the whole fits the budget
+  let life = lifeBriefShort(L, prose); const drop = [/^Memories: /m, /^You know well: /m, /^News today: /m, /^Friends and kin nearby: /m, /^Lately: /m, / Earlier: [^\n]*/];
+  const build = () => [head, life, ...tail].join('\n');
+  for (const re of drop) { if (approxTokens(build()) <= PROMPT_TOKENS) break; life = life.split('\n').map(l => re.source.startsWith('^') ? (re.test(l) ? '' : l) : l.replace(re, '')).filter(Boolean).join('\n'); }
+  let out = build();
+  // still over (a long memory): the older of the memory lines goes
+  if (approxTokens(out) > PROMPT_TOKENS && mem.length > 1) { tail[1] = `What you remember of the stranger: ${mem[mem.length - 1]}`; out = [head, life, ...tail].join('\n'); }
+  return out;
 }
 
 /** the messages for one answer (the talk so far kept short: the last few turns) */
@@ -37,6 +53,6 @@ export function tidy(text: string): string {
  *  under ~450 tokens: one read-in well under the GPU watchdog's ~2 s on a 1-2 B model) and the person notices the stranger
  *  (a first turn); WebLLM keeps both in its multi-round KV cache, so the question then costs only its own words. (A split
  *  into several "remember this" turns was measured and dropped: the model learnt to answer "Yes." to everything.) */
-export function primeParts(L: LifeRecord, knows: Knows, prose?: string | null): { system: string; facts: string[] } {
-  return { system: systemPrompt(L, knows, prose), facts: ['(The stranger comes up to you.)'] };
+export function primeParts(L: LifeRecord, knows: Knows, prose?: string | null, memory?: string[] | null): { system: string; facts: string[] } {
+  return { system: systemPrompt(L, knows, prose, memory), facts: ['(The stranger comes up to you.)'] };
 }

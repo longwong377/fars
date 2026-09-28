@@ -50,7 +50,7 @@ describe('CC0 scanned classes (D-310)', () => {
     for (const [id, a] of Object.entries<any>(man.assets)) {
       expect(existsSync('public/' + a.file), id).toBe(true); expect(a.licence).toBe('CC0 1.0');
       expect(createHash('sha256').update(readFileSync('public/' + a.file)).digest('hex')).toBe(a.sha256);
-      expect(a.tris.lod1).toBeLessThanOrEqual(a.tris.lod0); expect(a.tris.lod0).toBeLessThanOrEqual(3000);
+      expect(a.tris.lod1).toBeLessThanOrEqual(a.tris.lod0); if (!a.parts) expect(a.tris.lod0).toBeLessThanOrEqual(3000); // (a scan's budget; the modelled props, D-325, have their own: tests/model_props.test.ts)
     }
   });
 });

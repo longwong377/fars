@@ -1,6 +1,7 @@
 // Parts → Three.js meshes (merged per building+material; columns instanced per order with two distance LODs; doorway
 // colossi as sculpture) and Rapier colliders (always the parts' own boxes/prisms).
 import * as THREE from 'three/webgpu';
+import { ADIST_OFF } from '../render/blockface';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
@@ -130,14 +131,19 @@ function clipFace(P: Plane, planes: Plane[], S: number): V3[] {
  *  of the 6 face planes and one 45° plane per bevelled edge, each face clipped by all the others. `round`: a chamfer's
  *  vertices take the normals of the box faces they lie on (a rounded arris in shading); else the chamfer's own normal.
  *  Returns non-indexed positions and normals. */
-export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean): { pos: number[]; nrm: number[] } {
+export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean): { pos: number[]; nrm: number[]; adist: number[] } {
   const planes: Plane[] = FACE_N.map((n, i) => ({ n, d: Math.abs(dot3(n, h)), box: i }));
   BOX_EDGES.forEach(([a, b], k) => {
     if (!edges[k]) return;
     const na = FACE_N[a], nb = FACE_N[b], s = Math.SQRT1_2, n: V3 = [(na[0] + nb[0]) * s, (na[1] + nb[1]) * s, (na[2] + nb[2]) * s];
     planes.push({ n, d: (planes[a].d + planes[b].d - r) * s, box: -1, parents: [a, b] });
   });
-  const S = 4 * Math.max(h[0], h[1], h[2]) + 1, pos: number[] = [], nrm: number[] = [];
+  const S = 4 * Math.max(h[0], h[1], h[2]) + 1, pos: number[] = [], nrm: number[] = [], adist: number[] = [];
+  // D-321: per vertex, the distance (m) to each of the face's four bevelled arrises (the box faces round it, in FACE_N order),
+  // stored as d − ADIST_OFF so a geometry without the attribute (read as 0) has none; affine over the planar face, so the
+  // interpolated value is the exact distance at every fragment (materials.ts: chips and margins along the free arrises)
+  const around = (a: number) => [0, 1, 2, 3, 4, 5].filter(b => dot3(FACE_N[a], FACE_N[b]) === 0);
+  const edgeOf = (a: number, b: number) => BOX_EDGES.findIndex(([x, y]) => (x === a && y === b) || (x === b && y === a));
   for (const P of planes) {
     const poly = clipFace(P, planes, S); if (poly.length < 3) continue;
     const vn = poly.map(q => {
@@ -151,9 +157,11 @@ export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean):
     });
     // vertices snapped to 1 µm, so a corner computed through different clipping orders is the same vertex in every face
     const snap = (q: V3) => q.map(x => Math.round(x * 1e6) / 1e6);
-    for (let i = 1; i + 1 < poly.length; i++) for (const j of [0, i, i + 1]) { pos.push(...snap(poly[j])); nrm.push(...vn[j]); }
+    const ad = poly.map(q => P.box < 0 ? [0, ADIST_OFF, ADIST_OFF, ADIST_OFF].map(x => x - ADIST_OFF) // (the chamfer lies on its arris)
+      : around(P.box).map(b => edges[edgeOf(P.box, b)] ? planes[b].d - dot3(FACE_N[b], q) - ADIST_OFF : 0));
+    for (let i = 1; i + 1 < poly.length; i++) for (const j of [0, i, i + 1]) { pos.push(...snap(poly[j])); nrm.push(...vn[j]); adist.push(...ad[j]); }
   }
-  return { pos, nrm };
+  return { pos, nrm, adist };
 }
 /** "is this world point inside a part?" over all parts except door leaves, on a 4 m grid of the parts' plan bounds */
 export class PartIndex {
@@ -227,9 +235,10 @@ function bevelledBoxGeometry(b: Box, index: PartIndex, stats: BevelStats): THREE
   if (r < 0.002) return null;
   const edges = freeArrises(b, index); const k = edges.filter(Boolean).length; stats.edges += 12; stats.bevelled += k;
   if (!k) return null;
-  const { pos, nrm } = bevelledBox(h, r, edges, B.round);
+  const { pos, nrm, adist } = bevelledBox(h, r, edges, B.round);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  g.setAttribute('adist', new THREE.Float32BufferAttribute(adist, 4));
   g.rotateY(b.rot ?? 0); g.translate(b.c[0], (b.y0 + b.y1) / 2, -b.c[1]);
   return g;
 }
@@ -314,6 +323,7 @@ function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartInde
   g.setAttribute('ytop', new THREE.BufferAttribute(new Float32Array(n).fill(p.y1), 1)); // run-off streaks below the part's top
   const st = new Float32Array(n * 4); if (stair) for (let i = 0; i < n; i++) st.set(stair, i * 4);
   g.setAttribute('stair', new THREE.BufferAttribute(st, 4));
+  if (!g.getAttribute('adist')) g.setAttribute('adist', new THREE.BufferAttribute(new Float32Array(n * 4), 4)); // D-321: no free arris
 }
 /** A/B for measurements (window.__parsaSurf.bevels(on)): swap the merged part meshes between their bevelled and their
  *  plain geometry */

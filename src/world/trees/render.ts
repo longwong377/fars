@@ -15,10 +15,11 @@
 // normals. A quad collapses inside the near radius of the near set's centre (the trees drawn in 3-D there) and beyond
 // an outer radius. No runtime select(): masks are arithmetic (D-012).
 import * as THREE from 'three/webgpu';
-import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep, exp, fract } from 'three/tsl';
+import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep, exp, fract, hash, screenCoordinate, frameId } from 'three/tsl';
 import { allModels, K1, LOD1_LEAF, LOD1_TWIG, M0, M1, K0, SIDES0, SIDES1, VARIANTS, rowOf, TRIS, type TreeModel } from './model';
 import { COLS, ROWS, TILT, type Atlas } from './atlas';
-import { calibrateAndDrawAtlas, packCards, packSegments, packSpecies, SEG_TEX, CARD_TEX } from './kitdata';
+import { calibrateAndDrawAtlas, calibrateCards, packCards, packSegments, packSpecies, SEG_TEX, CARD_TEX } from './kitdata';
+import { treeAssets, type WoodLevel } from './assets';
 import { ImpostorBaker, NV, groupStates, barkLinear, type GroupState } from './impostor';
 import { SHADE } from './shade';
 import { SPECIES, speciesIndex, speciesTag, groupIndex } from './species';
@@ -83,6 +84,10 @@ export const impostorPx = (q: string) => (q === 'ultra' ? 128 : q === 'high' ? 9
 let shared: TreeKit | null = null;
 export class TreeKit {
   readonly models: TreeModel[]; readonly atlas: Atlas; readonly atlasTex: THREE.DataTexture; readonly tiltTex: THREE.DataTexture;
+  /** the Blender-built branch meshes (D-327: assets.ts, per level: corners in a data texture) and the bark scans, or null
+   *  (the procedural tubes: a stand-in, PLACEHOLDER in the dev overlay) */
+  readonly wood: [WoodLevel, WoodLevel] | null; readonly woodTex: [THREE.DataTexture, THREE.DataTexture] | null;
+  readonly bark: { tex: THREE.DataArrayTexture; layer: Record<string, number> } | null;
   readonly segTex: THREE.DataTexture; readonly cardTex: THREE.DataTexture; readonly spTex: THREE.DataTexture;
   readonly foliage = new FoliageState();
   readonly wind: any = uniform(2);
@@ -91,7 +96,18 @@ export class TreeKit {
   /** mip bias of the leaf atlas: +1 where nothing averages sub-pixel alpha over frames (MSAA qualities: the alpha-tested
    *  leaf edges speckled at test quality); 0 under temporal AA (medium and above), which averages them */
   readonly atlasBias: any = uniform(0);
-  readonly baker: ImpostorBaker; readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
+  readonly baker: ImpostorBaker;
+  /** the impostors' alpha test is dithered (a threshold hashed per pixel and frame) and their mips keep the plain coverage
+   *  share, so temporal AA shows a sparse crown's sub-pixel gaps as the near trees' geometry does (the oak's impostor read
+   *  15/255 darker than its LOD1 at r3: the coverage-kept mips had closed its sky gaps; D-327). Off under MSAA (test, low) */
+  readonly dither: boolean;
+  /** the alpha threshold of the impostor materials (TSL) */
+  impAlphaTest() { return this.dither ? hash(screenCoordinate.xy.add(vec2(float(frameId).mul(7.13), float(frameId).mul(3.71)))).sub(0.5).mul(this.ditherAmp).add(this.ditherMid) : float(0.5); }
+  /** the dithered threshold's centre */
+  readonly ditherMid: any = uniform(0.58);
+  /** the dithered threshold's spread about 0.5 (1: 0..1, the plain coverage share) */
+  readonly ditherAmp: any = uniform(0.8); // with ditherMid 0.58: thresholds 0.18..0.98 (tree lab, D-327 rev 2)
+  readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
   /** the sun as the leaves' transmission sees it (world direction toward the sun, irradiance = colour x intensity);
    *  synced from the scene's shadow-casting sun before each tree draw (syncSun) */
   readonly sunDir: any = uniform(new THREE.Vector3(0, 1, 0)); readonly sunIrr: any = uniform(new THREE.Color(0, 0, 0));
@@ -103,15 +119,22 @@ export class TreeKit {
   private mats = new Map<string, THREE.MeshStandardNodeMaterial>();
   /** the kit shared by every tree layer (built on first use; the impostor resolution of the first caller wins) */
   static get(opts: KitOptions = { impostorPx: 64 }) { return (shared ??= new TreeKit(opts)); }
+  /** the kit if built */
+  static peek() { return shared; }
   /** quality-dependent settings (the tree layers call this with their quality) */
   configure(quality: string) { this.atlasBias.value = quality === 'test' || quality === 'low' ? 1 : 0; }
   private constructor(opts: KitOptions) {
     const t0 = performance.now();
     this.models = allModels();
-    this.atlas = calibrateAndDrawAtlas(this.models);
+    // the Blender assets when loaded (assets.ts; the card sizes are calibrated the same way either way)
+    const A = treeAssets(); calibrateCards(this.models);
+    this.atlas = A?.atlas ?? calibrateAndDrawAtlas(this.models);
+    this.wood = A?.wood ?? null; this.woodTex = this.wood ? [dataTex(this.wood[0]), dataTex(this.wood[1])] : null;
+    this.bark = A?.bark ?? null;
     this.atlasTex = mipTex(this.atlas.levels, false); this.tiltTex = mipTex(this.atlas.tilt, false);
-    this.segTex = dataTex(packSegments(this.models)); this.cardTex = dataTex(packCards(this.models)); this.spTex = dataTex(packSpecies(this.models));
-    this.baker = new ImpostorBaker(this.models, this.atlas, opts.impostorPx);
+    this.segTex = dataTex(packSegments(this.models)); this.cardTex = dataTex(packCards(this.models)); this.spTex = dataTex(packSpecies(this.models, this.bark?.layer ?? null));
+    this.dither = opts.impostorPx >= 80; // medium and above: temporal AA (impostorPx is the quality's)
+    this.baker = new ImpostorBaker(this.models, this.atlas, opts.impostorPx, 1, this.wood, this.dither);
     this.foliage.setDay(105);
     const L = this.bakeAll(true);
     this.impCol = mipTex(L.col, true); this.impNrm = mipTex(L.nrm, false);
@@ -140,10 +163,10 @@ export class TreeKit {
     if (!changed) return;
     const step = Number.isNaN(prev) ? 99 : Math.min(Math.abs(doy - prev), 365 - Math.abs(doy - prev)), w = step <= 1 ? this.bakeWorker() : null;
     const id = ++this.reqId;
-    if (w) { w.postMessage({ id, px: this.baker.px, table: this.foliage.data.slice() }); return; }
+    if (w) { w.postMessage({ id, px: this.baker.px, dither: this.dither, table: this.foliage.data.slice(), atlas: this.workerAtlas ? undefined : this.atlas, wood: this.workerAtlas ? undefined : this.wood }); this.workerAtlas = true; return; }
     this.apply(this.bakeAll());
   }
-  private reqId = 0; private worker: Worker | null | undefined;
+  private reqId = 0; private worker: Worker | null | undefined; private workerAtlas = false;
   private apply(L: { col: { data: Uint8Array; width: number; height: number }[]; nrm: { data: Uint8Array; width: number; height: number }[] }) {
     for (const [tex, lv] of [[this.impCol, L.col], [this.impNrm, L.nrm]] as const) { tex.mipmaps = lv.map(l => ({ data: l.data, width: l.width, height: l.height })) as any; (tex.image as any).data = lv[0].data; tex.needsUpdate = true; }
   }
@@ -158,6 +181,12 @@ export class TreeKit {
     } catch { return (this.worker = null); }
   }
   asyncBakes = 0;
+  /** what the trees are drawn with, for the dev overlay (F3): the Blender assets (D-327) or the procedural stand-ins */
+  assetNote() {
+    const leaf = this.atlas.source === 'blender' ? 'leaf, blossom and twig tiles rendered in Cycles from modelled leaves (D-327)' : 'PLACEHOLDER: procedural leaf tiles (the Blender tree assets did not load)';
+    const wood = this.wood ? `branches: Blender meshes from the skeletons with baked occlusion${this.bark ? ' and CC0 bark scans (tree_bark.json, tier C)' : ', PLACEHOLDER bark (the scans did not load)'}` : 'PLACEHOLDER: procedural branch tubes';
+    return `${leaf}; ${wood}; far trees: impostors baked on the CPU from the same cards and tiles`;
+  }
   /** texel k of model row `row` in a data texture (TSL) */
   private rec(tex: THREE.DataTexture, x: any, row: any) { return textureLoad(tex, ivec2(int(x), int(row))); }
   /** sway of a tree-local point (m): the crown bends with the wind, more toward the top (C) */
@@ -168,7 +197,41 @@ export class TreeKit {
   }
 
   // ---------------------------------------------------------------- materials
-  woodMaterial(): THREE.MeshStandardNodeMaterial {
+  /** the wood of level `lod`: the Blender-built branch meshes with the species' bark scan when loaded (D-327), else the
+   *  procedural tubes */
+  woodMaterial(lod: 0 | 1 = 0): THREE.MeshStandardNodeMaterial { return this.woodTex ? this.bakedWoodMaterial(lod) : this.tubeMaterial(); }
+  /** the Blender wood (D-327): each template vertex is a corner of one of the level's triangles, pulled from the level's
+   *  data texture (position + u, normal + v, tangent + baked occlusion) for the instance's model row; the bark is the
+   *  species' scan (tree_bark.json) over its measured tint: the scan's luminance detail and warm-cool axis, and its normal
+   *  map along the mesh's tangents (around the branch) and bitangents (along it) */
+  private bakedWoodMaterial(lod: 0 | 1): THREE.MeshStandardNodeMaterial {
+    const key = `wood-baked${lod}`; if (this.mats.has(key)) return this.mats.get(key)!;
+    const { ipos, iscl, itree } = instanceNodes(), P = positionGeometry, row = itree.x, c = P.x.add(0.5).floor(), T = this.woodTex![lod];
+    const at = (k: number) => textureLoad(T, ivec2(int(c), int(row.mul(3).add(k))));
+    const w0 = at(0), w1 = at(1), w2 = at(2);
+    const sp1 = this.rec(this.spTex, 1, row), sp2 = this.rec(this.spTex, 2, row), sp3 = this.rec(this.spTex, 3, row), sp6 = this.rec(this.spTex, 6, row);
+    const local = w0.xyz;
+    const m = new THREE.MeshStandardNodeMaterial();
+    m.positionNode = toWorld(local.add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
+    // branches inside the crown are darker (shade.ts crownAO), on top of the baked occlusion of the branches and the ground
+    const vNA: any = varying(vec4(w1.xyz, w2.w.mul(crownAON(local, sp3, sp2.w, sp1.w, SHADE.woodAoIn)))), vTU: any = varying(vec4(w2.xyz, w0.w)), vVL: any = varying(vec4(w1.w, sp6.x, sp6.y, sp6.z)), vRel: any = varying(sp6.w);
+    const N = normalize(vNA.xyz), Tn = normalize(vTU.xyz), uvB = vec2(vTU.w, vVL.x);
+    const barkLin = sp1.xyz, hue = treeHue(itree, iscl);
+    if (this.bark) {
+      const bk: any = texture(this.bark.tex, uvB).depth(int(vVL.y.add(0.5).floor()));
+      const nts: any = normalize(vec3(bk.g.mul(2).sub(1).mul(vRel), bk.b.mul(2).sub(1).mul(vRel), float(1)));
+      m.normalNode = normalToView(normalize((Tn as any).mul(nts.x).add(cross(N as any, Tn as any).mul(nts.y)).add(N.mul(nts.z))), iscl);
+      const detail = mix(float(1), bk.r.mul(2), vVL.z), w = bk.a.sub(0.5).div(0.75).mul(vVL.w);
+      m.colorNode = vec4(barkLin.mul(detail).mul(vec3(w.mul(0.45).add(1), float(1), w.mul(-0.45).add(1))).mul(hue).mul(vNA.w), 1);
+    } else {
+      m.normalNode = normalToView(N, iscl);
+      m.colorNode = vec4(barkLin.mul(mx_noise_float(vec3(uvB.x.mul(3), uvB.y.mul(3), 0).add(itree.z)).mul(0.12).add(1)).mul(hue).mul(vNA.w), 1);
+    }
+    m.roughnessNode = float(0.9);
+    this.mats.set(key, m); return m;
+  }
+  /** the procedural wood (a stand-in): one tube per skeleton segment */
+  private tubeMaterial(): THREE.MeshStandardNodeMaterial {
     const key = 'wood'; if (this.mats.has(key)) return this.mats.get(key)!;
     const { ipos, iscl, itree } = instanceNodes(), P = positionGeometry, row = itree.x, slot = P.z.add(0.5).floor();
     const t0 = this.rec(this.segTex, slot.mul(SEG_TEX), row), t1 = this.rec(this.segTex, slot.mul(SEG_TEX).add(1), row), t2 = this.rec(this.segTex, slot.mul(SEG_TEX).add(2), row);
@@ -245,8 +308,8 @@ export class TreeKit {
     nL = normalize(nL);
     m.normalNode = normalToView(nL, iscl);
     // impostor.ts leafAlbedo, the same formula
-    const shade = tx.r.mul(0.6).add(0.55), petal = tx.g, bk = tx.b, lm = max(float(1).sub(petal).sub(bk), 0);
-    const alb = vLeaf.mul(shade).mul(lm).add(vBl.mul(tx.r.mul(0.15).add(0.85)).mul(petal)).add(vBark.xyz.mul(shade).mul(bk)).mul(vAo).mul(vHue); // vHue: the tree's hue x the card's tint
+    const [SA, SB] = this.atlas.shade, [PA, PB] = this.atlas.petal, shade = tx.r.mul(SB).add(SA), petal = tx.g, bk = tx.b, lm = max(float(1).sub(petal).sub(bk), 0);
+    const alb = vLeaf.mul(shade).mul(lm).add(vBl.mul(tx.r.mul(PB).add(PA)).mul(petal)).add(vBark.xyz.mul(shade).mul(bk)).mul(vAo).mul(vHue); // vHue: the tree's hue x the card's tint
     m.colorNode = vec4(alb, tx.a);
     // leaves pass light toward the viewer from the side away from the sun (shade.ts; bark and petals too, a simplification)
     m.emissiveNode = transmissionN(alb, dirToWorld(nL, iscl), vKappa, this.sunDir, this.sunIrr);
@@ -280,7 +343,7 @@ export class TreeKit {
     const col = mix(a0.xyz, a1.xyz, t).mul(vHue);
     m.colorNode = vec4(col, mix(a0.w, a1.w, t));
     m.emissiveNode = transmissionN(col, nW, vKappa, this.sunDir, this.sunIrr); // as the near leaves (the baked normals are the same)
-    m.alphaTest = 0.5; m.roughnessNode = float(0.8);
+    m.alphaTestNode = this.impAlphaTest(); m.roughnessNode = float(0.8);
     return m;
   }
   /** sample the impostor of model `row` from view float `f` (0..NV) at tile uv (TSL helper for row impostors) */
@@ -365,6 +428,12 @@ function woodTemplate(M: number, S: number) {
     for (let i = 0; i < S; i++) { const a = b + i, bb = b + ((i + 1) % S), c = a + S, d = bb + S; idx.push(a, bb, c, bb, d, c); } }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); return g;
 }
+/** the Blender wood's template (D-327): 3 T corners, each only its number (the shader pulls the corner's data) */
+function cornerTemplate(T: number) {
+  const pos = new Float32Array(T * 9), idx: number[] = [];
+  for (let k = 0; k < T * 3; k++) { pos[k * 3] = k; idx.push(k); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); return g;
+}
 function cardTemplate(K: number) {
   const pos: number[] = [], idx: number[] = [];
   for (let k = 0; k < K; k++) { const b = pos.length / 3; pos.push(-1, -1, k, 1, -1, k, -1, 1, k, 1, 1, k); idx.push(b, b + 1, b + 2, b + 2, b + 1, b + 3); }
@@ -397,7 +466,7 @@ class Instances {
 
 /** dev overlay (F3) for instanced trees: a ray hits a tree's crown (vertical cylinder over the crown) or trunk; the
  *  species' tiers and sources are shown for the tree hit */
-function pickable(mesh: THREE.Mesh, inst: () => TreeInst[], models: TreeModel[], layer: string) {
+function pickable(mesh: THREE.Mesh, inst: () => TreeInst[], models: TreeModel[], layer: string, kit?: TreeKit) {
   const ray = new THREE.Ray(), hit = new THREE.Vector3(), box = new THREE.Box3();
   mesh.raycast = (rc, out) => {
     const recs = inst(); let best: any = null;
@@ -410,9 +479,10 @@ function pickable(mesh: THREE.Mesh, inst: () => TreeInst[], models: TreeModel[],
       if (!best || d < best.distance) best = { distance: d, point: hit.clone(), object: mesh, instanceId: i }; }
     if (best) out.push(best);
   };
-  const general = { tier: 'C', src: 'BOTANY-GEN', note: `${layer}: trees generated from src/data/trees.json (species presence B, form C, placement C)` };
+  const how = kit ? `; ${kit.assetNote()}` : '';
+  const general = { tier: 'C', src: 'BOTANY-GEN', note: `${layer}: trees generated from src/data/trees.json (species presence B, form C, placement C)${how}` };
   mesh.userData = { ...general, describe: (h: any) => { const r = inst()[h?.instanceId ?? -1]; if (!r) return general; const m = models[r.row];
-    const t = speciesTag(m.species, r.where ?? layer); return { ...t, note: `${t.note}; this tree ${(m.H * r.sy).toFixed(1)} m tall, crown ${(m.W * r.sxz).toFixed(1)} m (placement C)` }; } };
+    const t = speciesTag(m.species, r.where ?? layer); return { ...t, note: `${t.note}; this tree ${(m.H * r.sy).toFixed(1)} m tall, crown ${(m.W * r.sxz).toFixed(1)} m (placement C)${how}` }; } };
 }
 
 /** near 3-D trees at one level of detail: wood + leaves, one draw each */
@@ -420,10 +490,10 @@ export class NearTreeSet {
   readonly wood: THREE.Mesh; readonly leaves: THREE.Mesh; private inst: Instances; private shadowN = 0;
   constructor(kit: TreeKit, readonly lod: 0 | 1, cap: number, castShadow: boolean, name: string) {
     this.inst = new Instances(cap);
-    this.wood = new THREE.Mesh(this.inst.geometry(woodTemplate(lod ? M1 : M0, lod ? SIDES1 : SIDES0)), kit.woodMaterial());
+    this.wood = new THREE.Mesh(this.inst.geometry(kit.wood ? cornerTemplate(kit.wood[lod].tmax) : woodTemplate(lod ? M1 : M0, lod ? SIDES1 : SIDES0)), kit.woodMaterial(lod));
     this.leaves = new THREE.Mesh(this.inst.geometry(cardTemplate(lod ? K1 : K0)), kit.leafMaterial(lod));
     this.wood.name = `${name}-wood-lod${lod}`; this.leaves.name = `${name}-leaves-lod${lod}`;
-    for (const m of [this.wood, this.leaves]) { m.castShadow = castShadow; m.receiveShadow = true; m.frustumCulled = false; pickable(m, () => this.inst.recs, kit.models, name); if (castShadow) nearCascadesOnly(m, () => this.shadowN); m.onBeforeRender = () => kit.syncSun(); }
+    for (const m of [this.wood, this.leaves]) { m.castShadow = castShadow; m.receiveShadow = true; m.frustumCulled = false; pickable(m, () => this.inst.recs, kit.models, name, kit); if (castShadow) nearCascadesOnly(m, () => this.shadowN); m.onBeforeRender = () => kit.syncSun(); }
   }
   /** the records to draw; the main pass draws the first `mainN` of them (the trees in view), the shadow passes all (D-228) */
   set(recs: TreeInst[], mainN = recs.length) { const n = this.inst.apply(recs), k = Math.min(n, mainN); this.shadowN = n;
@@ -443,7 +513,7 @@ export class ImpostorSet {
     this.inst = new Instances(cap);
     this.mesh = new THREE.Mesh(this.inst.geometry(quadTemplate()), kit.impostorMaterial(cut, outer));
     this.mesh.name = name; this.mesh.frustumCulled = false; this.mesh.castShadow = false; this.mesh.receiveShadow = true; this.mesh.onBeforeRender = () => kit.syncSun();
-    pickable(this.mesh, () => this.inst.recs, kit.models, name);
+    pickable(this.mesh, () => this.inst.recs, kit.models, name, kit);
   }
   set(recs: TreeInst[]) { const n = this.inst.apply(recs); (this.mesh.geometry as THREE.InstancedBufferGeometry).instanceCount = n; return n; }
   count() { return (this.mesh.geometry as THREE.InstancedBufferGeometry).instanceCount; }

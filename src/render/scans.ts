@@ -11,6 +11,7 @@
 import * as THREE from 'three/webgpu';
 import { texture, positionWorld, normalWorld, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
 import SCANS from '../data/scans.json';
+import { loadBlockFace } from './blockface';
 
 export interface ScanUse { scan: string; scale: number; alb: number; height: number; rough: number; scale2?: number;
   /** roughness also follows the scan's luminance detail: × (1 + roughLum·(lum − 1)) (a burnished floor: the trowel's smooth strokes
@@ -31,6 +32,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   limestone_dark: { scan: 'rock_surface', scale: 1.4, alb: 0.35, height: 0.001, rough: 0.3 },
   terrace: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.5, height: 0.006, rough: 0.5, nor: 1.8 },
   terrace_foot: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.6, height: 0.01, rough: 0.5, nor: 2.2 }, // (the foot's rougher-dressed blocks)
+  stone_rough: { scan: 'rock_boulder_dry', scale: 1.7, scale2: 7.3, alb: 0.5, height: 0.004, rough: 0.5 }, // D-321: the blocks being worked (the Terrace's stone, quarry-fresh)
   terrace_now: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.8, height: 0.008, rough: 0.5, nor: 2.2 },
   stone_plain: { scan: 'rock_wall_02', scale: 1.6, alb: 0.6, height: 0.005, rough: 0.5 },
   takht_stone: { scan: 'rock_wall_02', scale: 2.0, alb: 0.7, height: 0.006, rough: 0.5 },
@@ -84,12 +86,23 @@ export const SCAN_USE: Record<string, ScanUse> = {
   prop_mud: { scan: 'brown_mud_dry', scale: 1.0, alb: 0.6, height: 0.003, rough: 0.4 },
 };
 
+/** D-324: detail baked in Blender from a dense modelled surface (tools/blender/wallbake.py), laid triplanar over the scan: one
+ *  packed map per entry (public/textures/<tex>/bake.jpg: R, G the tangent normal's x, y, OpenGL; B the cavity, 0.5 neutral).
+ *  `scale` metres a tile (not the scan's, so the two repeats do not line up), `nor` the normal's strength, `cav` how far the
+ *  cavity darkens the grooves and lightens the ridges (± fraction of the albedo). The houses' plaster (town and villages, near
+ *  and far) takes the mud-plaster wall: the float's arcs, the straw, grit and pits, shrinkage cracks, the brick courses faint
+ *  through a thin coat (C) */
+export const WALL_BAKE: Record<string, { tex: string; scale: number; nor: number; cav: number }> = {
+  house_plaster: { tex: 'housewall_bake', scale: 2.37, nor: 1.1, cav: 0.3 },
+};
+const BAKE = new Map<string, THREE.Texture>();
+
 /** D-300 (T-A7): the surfaces for which the library holds a fitting CC0 scan (stone, earthen and lime plaster, earth and fill,
  *  timber). Drawn without one (no SCAN_USE entry, or a blend under ALB_MIN) such a surface is a procedural stand-in. Not here
  *  (no fitting scan: judged by T-A4): bronze, the glazed brick, the red-painted floors, reed matting, cloth */
 export const ALB_MIN = 0.3;
 export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark',
-  'terrace', 'terrace_now', 'terrace_foot', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted',
+  'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted',
   'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
   'refuse', 'timber', 'roof_timber', 'house_timber', 'scaffold'].map(k => [k, true]));
 /** the scan applied to a surface at a strength that reads (T-A7's anti-proxy: alb >= ALB_MIN), or null; what the builders record
@@ -109,6 +122,7 @@ export let scansOn = true;
 /** load every scan used (awaited before the world builds its materials); a no-op without a DOM (node) */
 export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
   if (typeof document === 'undefined') return;
+  await loadBlockFace(base, anisotropy); // D-321: the Blender-carved block faces (independent of ?noscans; ?noblockface)
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noscans')) { scansOn = false; return; }
   const L = new THREE.TextureLoader(), ids = [...new Set(Object.values(SCAN_USE).flatMap(u => u.rock ? [u.scan, u.rock.scan] : [u.scan]))];
   const withNor = new Set(Object.values(SCAN_USE).filter(u => u.nor).map(u => u.scan));
@@ -119,6 +133,10 @@ export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
     TEX.set(id, { diff, arm, nor });
   }));
   await loadGround(base, anisotropy);
+  // D-324: the baked detail maps (a missing file leaves its surface as the scan alone)
+  await Promise.all([...new Set(Object.values(WALL_BAKE).map(b => b.tex))].map(async id => { try {
+    const t = await L.loadAsync(`${base}textures/${id}/bake.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.generateMipmaps = true;
+    t.minFilter = THREE.LinearMipmapLinearFilter; t.colorSpace = THREE.NoColorSpace; BAKE.set(id, t); } catch { /* not built: the scan alone */ } }));
 }
 export const scansLoaded = () => TEX.size > 0;
 /** node tests (D-301): stand-in textures for scans, so the scanned material graphs build in node as in the browser */
@@ -126,9 +144,10 @@ export function registerScanTextures(ids: string[], make: () => THREE.Texture) {
 /** tests only (D-300): stand-in textures for every scan in use, so node builds the scanned shaders and counts their samplers
  *  (WebGPU's 16 samplers per fragment stage: render v4 failed the Terrace platform's pipeline at 17) */
 export function setScanTexturesForTest(on = true): void {
-  TEX.clear(); if (!on) return;
+  TEX.clear(); BAKE.clear(); if (!on) return;
   for (const u of Object.values(SCAN_USE)) for (const id of u.rock ? [u.scan, u.rock.scan] : [u.scan])
     if (!TEX.has(id)) TEX.set(id, { diff: new THREE.Texture(), arm: new THREE.Texture(), nor: Object.values(SCAN_USE).some(v => v.scan === id && v.nor) ? new THREE.Texture() : undefined });
+  BAKE.clear(); for (const b of Object.values(WALL_BAKE)) BAKE.set(b.tex, new THREE.Texture());
 }
 
 /** triplanar sample of a texture at `scale` metres per tile (world space, weights from the world normal) */
@@ -147,9 +166,11 @@ function triNormal(t: THREE.Texture, scale: number) {
   return vec3(float(0), tx.y, tx.x).mul(w.x).add(vec3(ty.x, float(0), ty.y).mul(w.y)).add(vec3(tz.x, tz.y, float(0)).mul(w.z));
 }
 /** `noRough`: keep the layer's procedural roughness (saves the arm map's sampler: a layer under another's, D-300) */
-export function applyScan<L extends { alb: any; rough: any; height: any | null; tilt?: any }>(name: string, L: L, noRough = false): L {
+/** `noNor` (D-321): no normal map and a sixth of the luminance bump (the dressed block faces: their relief is the carved set's,
+ *  blockface.ts, not a weathered boulder's; saves the normal map's sampler); the scan's colour grain and roughness stay */
+export function applyScan<L extends { alb: any; rough: any; height: any | null; tilt?: any }>(name: string, L: L, noRough = false, noNor = false): L {
   const u = SCAN_USE[name], T = u && TEX.get(u.scan), M = u && META[u.scan];
-  if (!scansOn || !u || !T || !M) return L;
+  if (!scansOn || !u || !T || !M) return applyBake(name, L);
   const mean = vec3(...M.meanLinear);
   let det = tri(T.diff, u.scale).rgb.div(mean);
   if (u.scale2) det = det.mul(tri(T.diff, u.scale2).rgb.div(mean)); // the larger tile breaks the small one's repeat
@@ -166,9 +187,20 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null; 
   let rough = u.rock || noRough ? L.rough : L.rough.mul(mix(float(1), tri(T.arm, u.scale).g.div(M.meanRough), u.rough));
   if (u.roughLum) rough = rough.mul(float(1).add(lum.sub(1).mul(u.roughLum)));
   rough = rough.clamp(0.05, 1);
-  const bump = lum.sub(1).mul(u.height);
-  const nt = u.nor && T.nor ? triNormal(T.nor, u.scale).mul(u.nor) : null;
-  return { ...L, alb, rough, height: L.height ? L.height.add(bump) : bump, ...(nt ? { tilt: L.tilt ? L.tilt.add(nt) : nt } : {}) };
+  const bump = lum.sub(1).mul(u.height * (noNor ? 1 / 6 : 1));
+  const nt = u.nor && T.nor && !noNor ? triNormal(T.nor, u.scale).mul(u.nor) : null;
+  return applyBake(name, { ...L, alb, rough, height: L.height ? L.height.add(bump) : bump, ...(nt ? { tilt: L.tilt ? L.tilt.add(nt) : nt } : {}) });
+}
+/** D-324: the Blender-baked detail (WALL_BAKE) over a layer: one sampler, three projections; the normal as a world-space tilt
+ *  (as the scans' own normal maps, triNormal), the cavity into the albedo (mean-neutral). Identity when not loaded (node) */
+function applyBake<L extends { alb: any; rough: any; height: any | null; tilt?: any }>(name: string, L: L): L {
+  const b = WALL_BAKE[name], t = b && scansOn ? BAKE.get(b.tex) : undefined; if (!b || !t) return L;
+  const p = positionWorld.div(b.scale), w0 = pow(abs(normalWorld), vec3(4)), w = w0.div(max(dot(w0, vec3(1)), float(1e-4)));
+  const sx = texture(t, p.zy), sy = texture(t, p.xz), sz = texture(t, p.xy);
+  const tx = sx.xy.mul(2).sub(1), ty = sy.xy.mul(2).sub(1), tz = sz.xy.mul(2).sub(1);
+  const tilt = vec3(float(0), tx.y, tx.x).mul(w.x).add(vec3(ty.x, float(0), ty.y).mul(w.y)).add(vec3(tz.x, tz.y, float(0)).mul(w.z)).mul(b.nor);
+  const cav = sx.z.mul(w.x).add(sy.z.mul(w.y)).add(sz.z.mul(w.z)).sub(0.5).mul(2 * b.cav).add(1);
+  return { ...L, alb: L.alb.mul(cav), tilt: L.tilt ? L.tilt.add(tilt) : tilt };
 }
 
 // ---------------------------------------------------------------- the ground layers (D-302)

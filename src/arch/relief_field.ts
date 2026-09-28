@@ -386,6 +386,38 @@ function paintCoverage(f: Field, verts: Int32Array, nv: number): Float32Array {
   return out;
 }
 
+/** extractLod's lean form (D-320): the RTIN triangles within maxError (background-only ones dropped), counter-clockwise from
+ *  +z, and the positions; no normals, paint or occlusion (empty arrays), which the relief atlas supplies */
+function extractLean(f: Field, err: Float32Array, maxError: number): LodMesh {
+  const { n, h, col, cell, x0, y0 } = f, max = n - 1;
+  let sc = scratch.get(n); if (!sc) { sc = { vid: new Int32Array(n * n), vlist: new Int32Array(n * n), tris: new Uint32Array(max * max * 6) }; scratch.set(n, sc); }
+  const { vid, vlist, tris } = sc; vid.fill(-1);
+  let nv = 0, nt = 0, sp = 0; const stack = new Int32Array(6 * 4 * 32);
+  const push6 = (a: number, b: number, c: number, d: number, e: number, g: number) => { stack[sp++] = a; stack[sp++] = b; stack[sp++] = c; stack[sp++] = d; stack[sp++] = e; stack[sp++] = g; };
+  push6(0, 0, max, max, max, 0); push6(max, max, 0, 0, 0, max);
+  while (sp > 0) {
+    sp -= 6; const ax = stack[sp], ay = stack[sp + 1], bx = stack[sp + 2], by = stack[sp + 3], cx = stack[sp + 4], cy = stack[sp + 5];
+    const mx = (ax + bx) >> 1, my = (ay + by) >> 1;
+    if (Math.abs(ax - cx) + Math.abs(ay - cy) > 1 && err[my * n + mx] > maxError) { push6(cx, cy, ax, ay, mx, my); push6(bx, by, cx, cy, mx, my); continue; }
+    const ga = ay * n + ax, gb = by * n + bx, gc = cy * n + cx;
+    if (col[ga] === BG && col[gb] === BG && col[gc] === BG) continue;
+    for (const g of [ga, gb, gc]) { let v = vid[g]; if (v < 0) { v = vid[g] = nv; vlist[nv++] = g; } tris[nt++] = v; }
+  }
+  const pos = new Float32Array(nv * 3); let maxH = 0;
+  for (let v = 0; v < nv; v++) { const g = vlist[v], i = g % n, j = (g - i) / n; pos[v * 3] = x0 + i * cell; pos[v * 3 + 1] = y0 + j * cell; pos[v * 3 + 2] = h[g]; if (h[g] > maxH) maxH = h[g]; }
+  const index = tris.slice(0, nt);
+  for (let t = 0; t < nt; t += 3) { const a = index[t] * 3, b = index[t + 1] * 3, c = index[t + 2] * 3;
+    if ((pos[b] - pos[a]) * (pos[c + 1] - pos[a + 1]) - (pos[b + 1] - pos[a + 1]) * (pos[c] - pos[a]) < 0) { const q = index[t + 1]; index[t + 1] = index[t + 2]; index[t + 2] = q; } }
+  const E = new Float32Array(0);
+  return { pos, grad: E, col: E, paint: E, gilt: E, ao: E, index, tris: nt / 3, verts: nv, maxH };
+}
+
+/** paint coverage at every grid point of a field (the relief atlas's paint layer, D-320: tools/blender/relief_atlas.ts) */
+export function fieldCoverage(f: Field): Float32Array {
+  const n2 = f.n * f.n, all = new Int32Array(n2); for (let i = 0; i < n2; i++) all[i] = i;
+  return paintCoverage(f, all, n2);
+}
+
 /** the carving's own occlusion of the sky (D-217; rubric s7 pass 2, R2: the figures read as flat cut-outs, with no dark
  *  line at their contours): a horizon-based ambient occlusion from the heightfield, 8 directions out to AO_REACH figure
  *  units, heights at a register figure's depth-to-height (AO_DEPTH_RATIO: r_relief_depth / the register figure, 0.045 /
@@ -409,7 +441,9 @@ function carvingOcclusion(f: Field, verts: Int32Array, nv: number): Float32Array
 /** Extract a LOD: RTIN triangles with error ≤ maxError, background-only triangles dropped, vertices compacted.
  *  `gradStep` = central-difference half-width in cells (larger for coarse LODs → normals of the local average). */
 const scratch = new Map<number, { vid: Int32Array; vlist: Int32Array; tris: Uint32Array }>();
-export function extractLod(f: Field, err: Float32Array, maxError: number, gradStep = 1, bgColour: C3 = STONE_SRGB): LodMesh {
+export function extractLod(f: Field, err: Float32Array, maxError: number, gradStep = 1, bgColour: C3 = STONE_SRGB, lean = false): LodMesh {
+  // lean (the relief atlas's levels, D-320): positions and triangles only; the normals, paint and occlusion come from the atlas
+  if (lean) return extractLean(f, err, maxError);
   const { n, h, col, cell, x0, y0, palette } = f, max = n - 1;
   let sc = scratch.get(n); if (!sc) { sc = { vid: new Int32Array(n * n), vlist: new Int32Array(n * n), tris: new Uint32Array(max * max * 6) }; scratch.set(n, sc); }
   const { vid, vlist, tris } = sc; vid.fill(-1);

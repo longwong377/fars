@@ -22,11 +22,12 @@ import type { Physics } from '../../player/physics';
 import type { FireSystem } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
 import { registerSettlementSurfaces } from '../settlement/surfaces';
-import { SiteHouses, plasterBatch, newHB, NEAR_R, TILE, seasonOf, doorVar, hi, type HB, type StreetDoor } from '../settlement/houses';
+import { SiteHouses, plasterBatch, newHB, NEAR_R, NEAR0, NEAR0_HYST, TILE, seasonOf, doorVar, hi, type HB, type StreetDoor } from '../settlement/houses';
 import { TownDoors } from '../settlement/towndoors';
 import { fittingGeom, partDesc, type Desc } from '../settlement/build';
 import { siteFootprints } from '../settlement/footprints';
 import { Batch, lin, type RGB } from '../settlement/geom';
+import { modelFit } from '../../render/scanProps';
 import { lifeOf, parapetOf } from '../settlement/houseplan';
 import { hashString, Rng } from '../../core/rng';
 import { DOOR_H, toGrid, type P2, type Site, type Frame, type Plot } from '../settlement/site';
@@ -70,8 +71,8 @@ export class VillageHouses {
   readonly lamps: ({ at: [number, number, number]; room: number } | null)[][] = [];
   doors: TownDoors;
   readonly st: VState[] = [];
-  private near = new Map<number, VNear>(); private shownSet = new Set<number>(); private wantKey = '';
-  private job: { tile: number; gen: Generator<void, void, void>; out: { n?: VNear }; ms: number } | null = null;
+  /** near tiles keyed tile × 2 + level (D-324: 0 the full near level within NEAR0, 1 the middle ring) */ private near = new Map<number, VNear>(); private shownSet = new Set<number>(); private shownKey = new Set<number>(); private wantKey = '';
+  private job: { key: number; gen: Generator<void, void, void>; out: { n?: VNear }; ms: number } | null = null;
   private mergeJob: Generator<void, void, void> | null = null;
   private nearDay = 0;
   private structMesh: THREE.Mesh; private thingsMesh: THREE.Mesh;
@@ -148,8 +149,10 @@ export class VillageHouses {
 
   // ---- the far level ----------------------------------------------------------------------------------------------
   /** a compound's mass in its cell's far batch: the yard walls (to yard_wall_h_m; along the pen to PEN_WALL) split at the gate,
-   *  the pen's walls to the yard, the room ranges (main range and wing) to the parapet; each piece tagged with the compound's
-   *  tile (its pen shares its rect and tile: villagesite.ts) */
+   *  the pen's walls to the yard, the room ranges (main range and wing); each piece tagged with the compound's tile (its pen
+   *  shares its rect and tile: villagesite.ts). D-324: the ranges' roofs at the roof, the parapet round their outer sides, the
+   *  eave over the yard (its earth front over the dark band of the pole ends), the gateway dark (no longer one box to the
+   *  parapet's top) */
   private farCompound(b: Batch, fr: { frame: Frame }, c: Compound, tile: number, base: number, col: RGB, pd: number, parapet: number, yardH: number) {
     const lay = feature('villages_unlocated').layout, W = c.w / 2, D = c.d / 2, t = Math.min(lay.wall_m, 0.55), tr = lay.wall_m;
     const own = pd * 32 + 1, ownR = pd * 32 + 3, yard = base + yardH, roomTop = base + (c.rooms[0]?.h ?? 2.6) + parapet, pen0 = base + PEN_WALL, y0 = base - 0.4;
@@ -171,10 +174,26 @@ export class VillageHouses {
     // the pen's walls to the yard (PEN_T, to the yard wall's height: the taller side, houses.ts wallSpan)
     box(P.u0, P.v1 - PEN_T / 2, P.u1, P.v1 + PEN_T / 2, yard, col, own); { const xi = penW ? P.u1 : P.u0; box(xi - PEN_T / 2, -D, xi + PEN_T / 2, P.v1, yard, col, own); }
     // the room ranges: the main range across the N side, the wing (its rooms' extent), out to the outer walls' faces
-    const roofC = sh(col, 0.92);
-    box(-W - tr / 2, rv0, W + tr / 2, D + tr / 2, roomTop, roofC, ownR);
+    const roofC = sh(col, 0.92 + 0.1 * hi(c.seed, 7)), roof = roomTop - parapet, pt = 0.35;
+    const L = (u: number, v: number, y: number) => [lu + u * ca - v * sa, y, -(lv + u * sa + v * ca)];
+    const N = (du: number, dv: number) => [du * ca - dv * sa, 0, -(du * sa + dv * ca)];
+    // the eave over the yard along a range's yard face (u or v = const at `at`, from a to b, out toward d): the earth front over the
+    // pole band (4 triangles: the plain's static budget, D-040, has ~30 k left; its top is the roof's edge from afar)
+    const eave = (alongU: boolean, at: number, a: number, bb: number, d: number) => { const o = 0.3, P = (x: number, off: number, y: number) => alongU ? L(x, at + d * off, y) : L(at + d * off, x, y);
+      const n = alongU ? N(0, d) : N(d, 0), yc = roof - 0.19, dk = sh(lin([0.5, 0.43, 0.34]), 0.4);
+      b.set('y0', -1000).set('ytop', 1e4);
+      b.quad(P(a, o, yc), P(bb, o, yc), P(bb, o, roof), P(a, o, roof), n, sh(col, 0.9), sh(col, 0.9), col, col, pd * 32 + 4);
+      b.set('ao', 0.35); b.quad(P(a, o - 0.03, roof - 0.35), P(bb, o - 0.03, roof - 0.35), P(bb, o - 0.03, yc), P(a, o - 0.03, yc), n, sh(dk, 0.7), sh(dk, 0.7), dk, dk, pd * 32 + 4); b.set('ao', 1); };
+    box(-W - tr / 2, rv0, W + tr / 2, D + tr / 2, roof, roofC, ownR);
+    box(-W - tr / 2, D + tr / 2 - pt, W + tr / 2, D + tr / 2, roomTop, col, own); // the parapet on the outer side
+    eave(true, rv0, -W + tr / 2, W - tr / 2, -1);
     const wing = c.rooms.filter(r => !main.includes(r)); if (wing.length) { const u0 = Math.min(...wing.map(r => r.u0)), u1 = Math.max(...wing.map(r => r.u1)), v0 = Math.min(...wing.map(r => r.v0)), v1 = Math.max(...wing.map(r => r.v1));
-      box(u0 - (u0 <= -W + 1e-6 ? tr / 2 : 0), v0 - (v0 <= -D + 1e-6 ? tr / 2 : 0), u1 + (u1 >= W - 1e-6 ? tr / 2 : 0), v1, roomTop, roofC, ownR); }
+      const wu0 = u0 - (u0 <= -W + 1e-6 ? tr / 2 : 0), wv0 = v0 - (v0 <= -D + 1e-6 ? tr / 2 : 0), wu1 = u1 + (u1 >= W - 1e-6 ? tr / 2 : 0);
+      box(wu0, wv0, wu1, v1, roof, roofC, ownR);
+      const west = u0 <= -W + 1e-6;
+      eave(false, west ? u1 : u0, wv0 + 0.3, v1, west ? 1 : -1); }
+    // the gateway: dark behind the opening (the leaf, when shut, stands in front of it)
+    { const dk = sh(col, 0.1), y1 = base + 2.0; b.set('ao', 0.15); b.quad(L(g0, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, base - 0.3), L(g1, -D + t / 2 + 0.14, y1), L(g0, -D + t / 2 + 0.14, y1), N(0, -1), dk, dk, dk, dk, own); b.set('ao', 1); }
   }
   /** a threshing floor: beaten earth, a kerb of fieldstones (C) */
   private floor(cell: VCell, v: Village, at: P2) {
@@ -217,8 +236,8 @@ export class VillageHouses {
   }
 
   // ---- the near level ---------------------------------------------------------------------------------------------
-  private *nearSteps(hs: SiteHouses, vi: number, tile: number, B: HB, out: { n?: VNear }): Generator<void, void, void> {
-    yield* hs.tileSteps(tile, B, this.nearDay);
+  private *nearSteps(hs: SiteHouses, vi: number, tile: number, lod: 0 | 1, B: HB, out: { n?: VNear }): Generator<void, void, void> {
+    yield* hs.tileSteps(tile, B, this.nearDay, lod);
     const S = this.st[vi], s = hs.s, fd = S.fd!; let c = 0;
     B.items.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
     for (let fi = 0; fi < s.fittings.length; fi++) { const f = s.fittings[fi]; if (hs.tileOfPlotEl(f.plot, f.u, f.v) !== tile) continue;
@@ -227,15 +246,15 @@ export class VillageHouses {
     for (const k of [...STRUCT, ...THINGS]) { const b = B[k]; if (!b.tris) continue; geo[k] = { g: b.toGeometry(), owner: b.owner.slice() }; tris += b.tris; yield; }
     out.n = { hs, vi, geo, tris, desc: S.cell.desc };
   }
-  private buildNear(hs: SiteHouses, vi: number, tile: number): VNear {
-    const t0 = performance.now(), out: { n?: VNear } = {}; const g = this.nearSteps(hs, vi, tile, newHB(), out); while (!g.next().done) { /* at once */ }
+  private buildNear(hs: SiteHouses, vi: number, tile: number, lod: 0 | 1): VNear {
+    const t0 = performance.now(), out: { n?: VNear } = {}; const g = this.nearSteps(hs, vi, tile, lod, newHB(), out); while (!g.next().done) { /* at once */ }
     this.nearInfo.syncBuilds++; this.nearInfo.builds++; this.nearInfo.buildMs += performance.now() - t0; return out.n!;
   }
   private runJob(budgetMs: number, all = false): VNear | null {
     const j = this.job; if (!j) return null; const t0 = performance.now(); let done = false;
     while (!done && (all || performance.now() - t0 < budgetMs)) { const t1 = performance.now(); done = !!j.gen.next().done; this.nearInfo.maxStep = Math.max(this.nearInfo.maxStep, performance.now() - t1); }
     j.ms += performance.now() - t0; if (!done) return null;
-    this.job = null; this.nearInfo.jobBuilds++; this.nearInfo.builds++; this.nearInfo.buildMs += j.ms; this.near.set(j.tile, j.out.n!); return j.out.n!;
+    this.job = null; this.nearInfo.jobBuilds++; this.nearInfo.builds++; this.nearInfo.buildMs += j.ms; this.near.set(j.key, j.out.n!); return j.out.n!;
   }
   /** the near tiles round the eye (as the town's, build.ts nearUpdate): built within NEAR_R (at once when missing), the next
    *  ring a few ms a frame, shown within NEAR_R (kept to NEAR_R + NEAR_HYST), dropped beyond NEAR_R + 80 m; merged and swapped
@@ -244,14 +263,27 @@ export class VillageHouses {
   nearUpdate(x: number, z: number, prefetch = 1, sync = false) {
     if (sync) for (const q of this.inReach({ x, z }, { x, z })) this.ensure(q.vi);
     let tiles = 0, tris = 0, lost = true; const want: number[] = [];
+    const job = (hs: SiteHouses, vi: number, t: number, lod: 0 | 1) => { const out: { n?: VNear } = {}; this.job = { key: t * 2 + lod, gen: this.nearSteps(hs, vi, t, lod, newHB(), out), out, ms: 0 }; };
     this.st.forEach((S, vi) => { const hs = S.hs; if (!hs) return;
-      if (Math.hypot(S.v.x - x, -S.v.y - z) > S.v.r * 1.2 + 30 + NEAR_R + 120) { for (const [t, n] of this.near) if (n.hs === hs) this.dropNear(t); return; }
-      for (const [t, info] of hs.tiles) { const d = Math.hypot(info.x - x, info.z - z); let n = this.near.get(t);
-        if (d < NEAR_R) { if (!n) { n = this.job?.tile === t ? this.runJob(0, true)! : this.buildNear(hs, vi, t); this.near.set(t, n); } }
-        else if (d < NEAR_R + 40 && !n && prefetch > 0 && !this.job) { prefetch--; const out: { n?: VNear } = {}; this.job = { tile: t, gen: this.nearSteps(hs, vi, t, newHB(), out), out, ms: 0 }; }
-        else if (n && d > NEAR_R + 80) { this.dropNear(t); n = undefined; }
-        if (n) { const on = d < NEAR_R || (this.shownSet.has(t) && d < NEAR_R + NEAR_HYST); if (on) { want.push(t); tiles++; tris += n.tris; if (this.shownSet.has(t) && d < NEAR_R) lost = false; } } } });
-    if (this.job) { const j = this.job, hs = this.st[Math.floor(j.tile / 4096)].hs!, info = hs.tiles.get(j.tile)!; if (Math.hypot(info.x - x, info.z - z) > NEAR_R + 80) this.job = null; else this.runJob(3); }
+      if (Math.hypot(S.v.x - x, -S.v.y - z) > S.v.r * 1.2 + 30 + NEAR_R + 120) { for (const [k, n] of this.near) if (n.hs === hs) this.dropNear(k); return; }
+      for (const [t, info] of hs.tiles) { const d = Math.hypot(info.x - x, info.z - z);
+        // D-324: the level this tile wants (as the town's, build.ts nearUpdate), keyed tile × 2 + level
+        const lod: 0 | 1 = d < NEAR0 || (this.shownKey.has(2 * t) && d < NEAR0 + NEAR0_HYST) ? 0 : 1, K = 2 * t + lod, Ko = K ^ 1;
+        if (d > NEAR_R + 80) { this.dropNear(K); this.dropNear(Ko); continue; }
+        let show = -1;
+        if (d < NEAR_R) {
+          if (this.near.has(K)) show = K;
+          else if (this.job?.key === K) { this.runJob(0, true); show = K; }
+          else if (!sync && this.shownKey.has(Ko) && this.near.has(Ko)) { show = Ko; if (!this.job) job(hs, vi, t, lod); }
+          else { this.near.set(K, this.buildNear(hs, vi, t, lod)); show = K; }
+        } else {
+          if (d < NEAR_R + NEAR_HYST) show = this.shownKey.has(K) ? K : this.shownKey.has(Ko) ? Ko : -1;
+          if (d < NEAR_R + 40 && !this.near.has(K) && !this.near.has(Ko) && prefetch > 0 && !this.job) { prefetch--; job(hs, vi, t, 1); }
+        }
+        if (lod === 1 && d < NEAR0 + 20 && !this.near.has(2 * t) && prefetch > 0 && !this.job) { prefetch--; job(hs, vi, t, 0); }
+        if (d > NEAR0 + 40 && !this.shownKey.has(2 * t)) this.dropNear(2 * t);
+        if (show >= 0) { want.push(show); tiles++; tris += this.near.get(show)!.tris; if (this.shownKey.has(show) && d < NEAR_R) lost = false; } } });
+    if (this.job) { const j = this.job, hs = this.st[Math.floor((j.key >> 1) / 4096)].hs!, info = hs.tiles.get(j.key >> 1)!; if (Math.hypot(info.x - x, info.z - z) > NEAR_R + 80) this.job = null; else this.runJob(3); }
     const key = want.sort((p, q) => p - q).join(',');
     if (key !== this.wantKey) { this.wantKey = key; this.mergeJob = this.mergeSteps(want); }
     if (this.mergeJob) { const t0 = performance.now(), all = sync || lost || !want.length; if (all) this.nearInfo.syncMerges++; let done = false;
@@ -281,10 +313,10 @@ export class VillageHouses {
       m.geometry.dispose(); if (!x) { m.geometry = emptyGeometry(); m.visible = false; continue; }
       m.geometry = x.g; m.visible = true; const ranges = x.ranges;
       m.userData = { ...m.userData, describe: (hit: any) => { const f = hit?.faceIndex ?? -1; let lo = 0, hi2 = ranges.length - 1; while (lo < hi2) { const mid = (lo + hi2 + 1) >> 1; if (ranges[mid].f0 <= f) lo = mid; else hi2 = mid - 1; } const r = ranges[lo]; return r && f >= r.f0 && f < r.f1 ? partDesc(r.desc, r.owner[f - r.f0], false) : null; } }; }
-    const stt = VILLAGE_NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) stt[(t + 1) * 4] = 0; this.shownSet = new Set(parts.map(q => q.t)); for (const t of this.shownSet) stt[(t + 1) * 4] = 255; VILLAGE_NEAR_STATE.needsUpdate = true;
+    const stt = VILLAGE_NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) stt[(t + 1) * 4] = 0; this.shownKey = new Set(parts.map(q => q.t)); this.shownSet = new Set(parts.map(q => q.t >> 1)); for (const t of this.shownSet) stt[(t + 1) * 4] = 255; VILLAGE_NEAR_STATE.needsUpdate = true;
   }
-  private dropNear(t: number) { if (this.job?.tile === t) this.job = null; if (this.shownSet.has(t)) return; const n = this.near.get(t); if (!n) return; for (const x of Object.values(n.geo)) x?.g.dispose(); this.near.delete(t); }
-  private resetNear() { this.job = null; this.mergeJob = null; const stt = VILLAGE_NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) stt[(t + 1) * 4] = 0; VILLAGE_NEAR_STATE.needsUpdate = true; this.shownSet.clear(); this.wantKey = '';
+  private dropNear(k: number) { if (this.job?.key === k) this.job = null; if (this.shownKey.has(k)) return; const n = this.near.get(k); if (!n) return; for (const x of Object.values(n.geo)) x?.g.dispose(); this.near.delete(k); }
+  private resetNear() { this.job = null; this.mergeJob = null; const stt = VILLAGE_NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) stt[(t + 1) * 4] = 0; VILLAGE_NEAR_STATE.needsUpdate = true; this.shownSet.clear(); this.shownKey.clear(); this.wantKey = '';
     for (const t of [...this.near.keys()]) this.dropNear(t); this.structMesh.visible = this.thingsMesh.visible = false; }
   /** is tile t drawn near? */
   nearTile = (t: number) => this.shownSet.has(t);
@@ -319,6 +351,9 @@ const emptyGeometry = () => new THREE.BufferGeometry().setAttribute('position', 
 export function binBox(f: Site['fittings'][0]) { const k = f.size; return { hu: 0.32 * k, hv: 0.5 * k, hy: 0.55 * k }; }
 function binGeom(s: Site, f: Site['fittings'][0], b: Batch, H: (e: number, n: number) => number, d: number) {
   const { hu, hv, hy } = binBox(f), g = s.grid(f.u, f.v), y = H(g[0], g[1]), c = lin([0.58, 0.49, 0.37]), th = s.frame.theta + f.rot;
+  // D-325: the modelled bin (rounded plastered corners, the lid over sticks, the outlet's plug), fitted to the bin's box
+  const mp = modelFit('bin', [2 * hu + 0.06, hy * 2 + 0.11, 2 * hv + 0.06], 1);
+  if (mp) { for (const [k, gg] of Object.entries(mp)) b.geo(g[0], g[1], y - 0.05, gg, th, k === 'lid' ? sh(c, 1.05) : k === 'dark' ? lin([0.25, 0.21, 0.17]) : c, d); return; }
   b.box(g[0], g[1], th, hu, hv, y - 0.05, y + hy * 2, sh(c, 0.75), c, d);
   b.box(g[0], g[1], th, hu + 0.03, hv + 0.03, y + hy * 2, y + hy * 2 + 0.06, sh(c, 0.9), sh(c, 1.05), d); // the lid
   const ca = Math.cos(th), sa = Math.sin(th), hole = lin([0.25, 0.21, 0.17]); // the outlet stopper low on the front (away from the wall)

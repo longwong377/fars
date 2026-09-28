@@ -19,7 +19,8 @@
 // a string of pack animals walks nose to tail behind its driver, an ox pair draws a cart behind its carter, a horse carries
 // its rider.
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, positionGeometry, vec3, sin, cos, max, float, uniform } from 'three/tsl';
+import { attribute, positionLocal, positionGeometry, normalGeometry, modelViewMatrix, texture, uv, varying, mix, vec3, vec4, sin, cos, max, float, uniform } from 'three/tsl';
+import { animalModel } from './animalModels';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { nearCascadesOnly } from './humanGPU';
 import { interleave } from './props';
@@ -64,7 +65,7 @@ export const ANIMAL_BUILD: Record<Species, Build> = {
     tier: 'C (draught cattle: E-40 “draught animals (C)”; not in population.json, Q-193)', note: 'ox, humpless (the zebu is delegation imagery only: MATERIAL_CULTURE); size and coat C' },
   donkey: DONKEY,
   horse: HORSE,
-  dog: { len: 0.82, h: 0.6, girth: 0.33, neck: 0.27, neckA: 0.8, nb: -0.05, head: 0.26, headR: 0.07, leg: 0.024, tail: 'curl', ears: 'prick', coat: [[0.62, 0.48, 0.3], [0.3, 0.24, 0.18], [0.78, 0.7, 0.55], [0.16, 0.13, 0.11]], stride: 0.95, row: 'dog',
+  dog: { len: 0.82, h: 0.6, girth: 0.33, neck: 0.32, neckA: 1.05, nb: -0.05, head: 0.26, headR: 0.07, leg: 0.024, tail: 'curl', ears: 'prick', coat: [[0.62, 0.48, 0.3], [0.3, 0.24, 0.18], [0.78, 0.7, 0.55], [0.16, 0.13, 0.11]], stride: 0.95, row: 'dog',
     tier: 'B species (HDT 1.140: the magi kill every creature “except dogs and men”, a claim; population.json dog 100-400, C) / C form', note: 'dog of the pariah and herding type, tawny, black or cream, pricked ears and a curled tail (form and coat C: no Persepolis image of a dog was retrieved; Assyrian mastiff reliefs and the Persian-period dog burials at Ashkelon are recollections, NOT SEEN)' },
   mule: MULE,
   camel: CAMEL,
@@ -88,21 +89,21 @@ export const ANIMAL_BUILD: Record<Species, Build> = {
     tier: 'B (PF 2034 poultry) / C form', note: 'cock of the red-junglefowl type, red-gold with a dark arched tail (C; “the Persian bird” of Aristophanes’ Birds is a recollection, NOT SEEN)' },
   // session 9 (the wild animals of Fars in 467: world/fauna.ts; fauna.json rows with the evidence). Forms from the living
   // species (C: size, proportion and coat); spots, rosettes and stripes are NOT modelled (plain coats: seen mostly far off)
-  wolf: { len: 1.15, h: 0.78, girth: 0.36, neck: 0.32, neckA: 0.7, nb: -0.05, head: 0.3, headR: 0.075, leg: 0.026, tail: 'brush', ears: 'prick', coat: [[0.55, 0.5, 0.42], [0.47, 0.42, 0.35], [0.62, 0.55, 0.44]], stride: 1.25, row: 'wolf',
+  wolf: { len: 1.15, h: 0.78, girth: 0.36, neck: 0.36, neckA: 1, nb: -0.05, head: 0.3, headR: 0.075, leg: 0.026, tail: 'brush', ears: 'prick', coat: [[0.55, 0.5, 0.42], [0.47, 0.42, 0.35], [0.62, 0.55, 0.44]], stride: 1.25, row: 'wolf',
     tier: 'B species (grey wolf across Iran, the Zagros and Fars: range, RECOLLECTION NOT SEEN) / C form', note: 'grey wolf of the Iranian type, smaller and sandier than the northern wolves; coat pattern not modelled' },
-  lion: { len: 1.75, h: 1.05, girth: 0.56, neck: 0.4, neckA: 0.55, nb: -0.08, head: 0.4, headR: 0.12, leg: 0.045, tail: 'cat', ears: 'small', ruff: true, coat: [[0.7, 0.55, 0.36], [0.64, 0.5, 0.33]], stride: 1.4, row: 'lion',
+  lion: { len: 1.75, h: 1.05, girth: 0.56, neck: 0.42, neckA: 0.8, nb: -0.08, head: 0.4, headR: 0.145, leg: 0.045, tail: 'cat', ears: 'small', ruff: true, coat: [[0.7, 0.55, 0.36], [0.64, 0.5, 0.33]], stride: 1.4, row: 'lion',
     tier: 'B species (the Asiatic lion in the Mesopotamian and Iranian lowlands and the Fars river valleys into the 20th c.: Dasht-e Arzhan by Shiraz, RECOLLECTION NOT SEEN; lions throughout Achaemenid art: the Persepolis door-jamb reliefs of the royal hero, A) / C form', note: 'Asiatic lion, male: the mane shorter than the African lion\'s (C), tawny' },
-  lioness: { len: 1.5, h: 0.92, girth: 0.46, neck: 0.36, neckA: 0.55, nb: -0.08, head: 0.34, headR: 0.1, leg: 0.038, tail: 'cat', ears: 'small', coat: [[0.74, 0.6, 0.4], [0.68, 0.54, 0.36]], stride: 1.3, row: 'lion',
+  lioness: { len: 1.5, h: 0.92, girth: 0.46, neck: 0.38, neckA: 0.8, nb: -0.08, head: 0.34, headR: 0.12, leg: 0.038, tail: 'cat', ears: 'small', coat: [[0.74, 0.6, 0.4], [0.68, 0.54, 0.36]], stride: 1.3, row: 'lion',
     tier: 'B species (as the lion) / C form', note: 'Asiatic lioness, tawny' },
-  cheetah: { len: 1.25, h: 0.8, girth: 0.3, neck: 0.44, neckA: 0.75, nb: -0.05, head: 0.22, headR: 0.07, leg: 0.022, tail: 'cat', ears: 'small', coat: [[0.8, 0.66, 0.44], [0.76, 0.62, 0.42]], stride: 1.5, row: 'cheetah',
+  cheetah: { len: 1.25, h: 0.8, girth: 0.3, neck: 0.44, neckA: 0.9, nb: -0.05, head: 0.22, headR: 0.07, leg: 0.022, tail: 'cat', ears: 'small', coat: [[0.8, 0.66, 0.44], [0.76, 0.62, 0.42]], stride: 1.5, row: 'cheetah',
     tier: 'B species (the Asiatic cheetah on the open plains of Iran; the last wild ones survive in the central deserts: RECOLLECTION NOT SEEN) / C form', note: 'Asiatic cheetah: long-legged, small-headed; spots and the tear marks NOT modelled; the neck 0.44 m (a real one ~0.3 m) so the head reaches the water: the rig cannot crouch the forelegs to drink (C)' },
-  leopard: { len: 1.3, h: 0.66, girth: 0.38, neck: 0.3, neckA: 0.6, nb: -0.05, head: 0.26, headR: 0.085, leg: 0.03, tail: 'cat', ears: 'small', coat: [[0.76, 0.6, 0.38], [0.7, 0.55, 0.34]], stride: 1.1, row: 'leopard',
+  leopard: { len: 1.3, h: 0.66, girth: 0.38, neck: 0.34, neckA: 0.85, nb: -0.05, head: 0.26, headR: 0.085, leg: 0.03, tail: 'cat', ears: 'small', coat: [[0.76, 0.6, 0.38], [0.7, 0.55, 0.34]], stride: 1.1, row: 'leopard',
     tier: 'B species (the Persian leopard in the Zagros, rocky slopes: RECOLLECTION NOT SEEN) / C form', note: 'Persian leopard, pale and large; rosettes NOT modelled' },
-  hyena: { len: 1.05, h: 0.78, girth: 0.4, neck: 0.34, neckA: 0.65, nb: -0.08, head: 0.3, headR: 0.09, leg: 0.03, tail: 'brush', ears: 'prick', mane: true, coat: [[0.66, 0.6, 0.48], [0.58, 0.53, 0.42]], stride: 0.95, row: 'striped_hyena',
+  hyena: { len: 1.05, h: 0.78, girth: 0.4, neck: 0.36, neckA: 0.95, nb: -0.08, head: 0.3, headR: 0.09, leg: 0.03, tail: 'brush', ears: 'prick', mane: true, coat: [[0.66, 0.6, 0.48], [0.58, 0.53, 0.42]], stride: 0.95, row: 'striped_hyena',
     tier: 'B species (the striped hyena across Iran, a scavenger at the edges of settlements: RECOLLECTION NOT SEEN) / C form', note: 'striped hyena: a crest of long hair along the back (the mane); stripes and the sloping back NOT modelled' },
   onager: { ...DONKEY, len: 1.35, h: 1.2, girth: 0.5, coat: [[0.74, 0.6, 0.44], [0.7, 0.56, 0.4], [0.78, 0.64, 0.48]], stride: 1.3, row: 'onager',
     tier: 'B species (the Persian onager on the steppes of Iran; hunted by the Achaemenid and Assyrian kings: the Nineveh reliefs, recollection; RECOLLECTION NOT SEEN) / C form', note: 'Persian onager (wild ass): sandy with a pale belly (belly NOT modelled), a dark dorsal stripe NOT modelled' },
-  fox: { len: 0.68, h: 0.4, girth: 0.22, neck: 0.2, neckA: 0.75, nb: -0.05, head: 0.2, headR: 0.055, leg: 0.015, tail: 'brush', ears: 'prick', coat: [[0.72, 0.42, 0.22], [0.66, 0.44, 0.28]], stride: 0.7, row: 'red_fox',
+  fox: { len: 0.68, h: 0.4, girth: 0.22, neck: 0.23, neckA: 1, nb: -0.05, head: 0.2, headR: 0.055, leg: 0.015, tail: 'brush', ears: 'prick', coat: [[0.72, 0.42, 0.22], [0.66, 0.44, 0.28]], stride: 0.7, row: 'red_fox',
     tier: 'B species (red fox in Fars: research/SOUNDSCAPE.md §5) / C form', note: 'red fox, rufous with a bushy tail (white tip and dark legs NOT modelled)' },
   hare: { len: 0.5, h: 0.32, girth: 0.2, neck: 0.1, neckA: 0.6, nb: 0.05, head: 0.13, headR: 0.045, leg: 0.012, tail: 'short', ears: 'long', coat: [[0.62, 0.52, 0.38], [0.56, 0.46, 0.33]], stride: 0.6, row: 'hare',
     tier: 'C (the Cape or European hare of the Iranian plateau: RECOLLECTION NOT SEEN)', note: 'hare, sandy brown, long ears (the hopping gait NOT modelled: it walks)' },
@@ -132,20 +133,30 @@ function tube(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, seg = 
   const L = a.distanceTo(b); const g = new THREE.CylinderGeometry(r1, r0, L, seg, 1, !caps).translate(0, L / 2, 0);
   g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize())).translate(a.x, a.y, a.z); return g;
 }
+/** D-326: how far below the horizontal each family carries its head at rest (rad; C, from the living animals: the horse's
+ *  and the ass's head hangs steep from the poll, the cattle's, the small stock's, the deer's and the boar's less, the dog's,
+ *  the cats' and the camel's nearly level). Q-980: the head has its own joint at the poll (aHT.y < 0: the skull's weight);
+ *  grazing it straightens a carriage steeper than GRAZE_PITCH back to it, and the neck's joint brings that muzzle down */
+const HEAD_PITCH: Record<string, number> = { equid: 0.95, bovid: 0.8, caprine: 0.75, cervid: 0.7, antelope: 0.65, suid: 0.85, camelid: 0.3, canid: 0.4, felid: 0.35 };
+const GRAZE_PITCH = 0.55;
+const FAMILY_OF = (sp: Species) => /^(donkey|horse|mule|onager)/.test(sp) ? 'equid' : /^(ox|cow|calf|zebu)$/.test(sp) ? 'bovid' : /^(sheep|goat|wild_goat|urial)$/.test(sp) ? 'caprine' : /^(deer|stag)$/.test(sp) ? 'cervid'
+  : /^gazelle/.test(sp) ? 'antelope' : sp === 'boar' ? 'suid' : /^(camel|dromedary)/.test(sp) ? 'camelid' : /^(dog|wolf|fox|hyena)$/.test(sp) ? 'canid' : /^(lion|lioness|cheetah|leopard)$/.test(sp) ? 'felid' : sp === 'hare' ? 'hare' : 'fowl';
 /** the neck base (head pivot), the head's centre and direction, and the graze angle that brings the muzzle to the ground */
 export function animalFrame(sp: Species) {
   const B = ANIMAL_BUILD[sp], bodyY = B.h - B.girth * 0.5;
   // the neck root: at the barrel's centre for the small stock, lower at the breast for the big animals (nb, x girth)
   const base = new THREE.Vector3(0, bodyY + B.girth * (B.nb ?? 0.04), B.len * 0.4);
   const top = base.clone().add(new THREE.Vector3(0, Math.sin(B.neckA), Math.cos(B.neckA)).multiplyScalar(B.neck));
-  const hd = new THREE.Vector3(0, -Math.sin(0.55), Math.cos(0.55)); // the head points forward and down
+  const ha = HEAD_PITCH[FAMILY_OF(sp)] ?? 0.55, hd = new THREE.Vector3(0, -Math.sin(ha), Math.cos(ha)); // the head points forward and down (D-326: at the family's own carriage)
   const muzzle = top.clone().add(hd.clone().multiplyScalar(B.head));
-  // graze: pitch about the neck base (x) until the muzzle is 3 cm above the ground
-  let lo = 0, hi = 1.9; for (let i = 0; i < 30; i++) { const a = (lo + hi) / 2, d = muzzle.clone().sub(base); const y = base.y + d.y * Math.cos(a) - d.z * Math.sin(a); if (y > 0.03) lo = a; else hi = a; }
-  return { bodyY, base, top, hd, muzzle, graze: (lo + hi) / 2 };
+  // grazing, the poll's joint first turns a carriage steeper than GRAZE_PITCH back to it (bend, rad), then the neck's joint
+  // pitches about the neck base (x) until that muzzle is 3 cm above the ground
+  const g0 = Math.min(ha, GRAZE_PITCH), bend = ha - g0, muzzleG = top.clone().add(new THREE.Vector3(0, -Math.sin(g0), Math.cos(g0)).multiplyScalar(B.head));
+  let lo = 0, hi = 1.9; for (let i = 0; i < 30; i++) { const a = (lo + hi) / 2, d = muzzleG.clone().sub(base); const y = base.y + d.y * Math.cos(a) - d.z * Math.sin(a); if (y > 0.03) lo = a; else hi = a; }
+  return { bodyY, base, top, hd, muzzle, muzzleG, bend, graze: (lo + hi) / 2 };
 }
 /** how far ahead of its centre an animal's muzzle meets the ground when it grazes (local z, m): where its fodder lies */
-export function grazeReach(sp: Species) { const F = animalFrame(sp), d = F.muzzle.clone().sub(F.base); return F.base.z + d.y * Math.sin(F.graze) + d.z * Math.cos(F.graze); }
+export function grazeReach(sp: Species) { const F = animalFrame(sp), d = F.muzzleG.clone().sub(F.base); return F.base.z + d.y * Math.sin(F.graze) + d.z * Math.cos(F.graze); }
 /** the top of the back at z (local, m): the body ellipsoid's upper surface */
 const backAt = (B: Build, z: number) => B.h - B.girth * 0.5 + B.girth * 0.52 * Math.sqrt(Math.max(0, 1 - (z / (B.len * 0.5)) ** 2));
 /** where a rider sits (animal-local: y of the seat's surface, z of the seat; ANIMAL_BUILD gear included): a horse's rider
@@ -189,8 +200,8 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
     else parts.push({ g: new THREE.BoxGeometry(B.leg * 2.2, 0.05, B.leg * 2.6).translate(X, 0.025, piv[3] + 0.005), col: sp === 'dog' ? white : dark, leg: [ph * 2 * Math.PI, 1, 1, fore], piv });
   }
   // neck and head (head weight 1 about the neck base)
-  const ht: [number, number, number, number] = [1, 0, F.base.y, F.base.z];
-  parts.push({ g: tube(F.base.clone().add(new V(0, -0.02, -0.04)), F.top, B.girth * (B.biped ? 0.22 : 0.26), B.headR * 1.1, 7), col: white, ht });
+  const ht: [number, number, number, number] = [1, -1, F.base.y, F.base.z]; // (y = -1: the skull, on the poll's joint too)
+  parts.push({ g: tube(F.base.clone().add(new V(0, -0.02, -0.04)), F.top, B.girth * (B.biped ? 0.22 : 0.26), B.headR * 1.1, 7), col: white, ht: [1, 0, F.base.y, F.base.z] });
   const hc = F.top.clone().add(F.hd.clone().multiplyScalar(B.head * 0.5));
   parts.push({ g: new THREE.SphereGeometry(1, 9, 6).scale(B.headR * 1.05, B.headR * 1.15, B.head * 0.55).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new V(0, 0, 1), F.hd)).translate(hc.x, hc.y, hc.z), col: white, ht });
   const muzzleCol: RGB = sp.startsWith('donkey') ? [1.35, 1.35, 1.35] : B.biped ? [0.72, 0.62, 0.3] : sp === 'dog' || sp === 'boar' ? [0.12, 0.1, 0.09] : [0.7, 0.66, 0.62];
@@ -255,6 +266,11 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
   // colour and the rig attributes in one interleaved buffer (WebGPU allows 8 vertex buffers per pipeline)
   const g = mergeGeometries(gs)!; interleave(g, ['color', 'aLeg', 'aPiv', 'aHT']); g.computeBoundingSphere(); return g;
 }
+/** the gaits (D-326): 0 the lateral walk, 1 the trot (diagonal pairs together), 2 the hare's bound (the fore pair together,
+ *  the hind pair half a cycle later); weights [walk, trot, bound] */
+export const gaitW = (g: number): [number, number, number] => { const t = Math.min(1, Math.max(0, g)), h = Math.min(1, Math.max(0, g - 1)); return [1 - t, t - h, h]; };
+/** a leg's phase offset in a gait, from its walk offset (LH 0, LF pi/2, RH pi, RF 3pi/2) and fore/hind */
+export const gaitOffset = (walkOff: number, fore: number, G: [number, number, number]) => G[0] * walkOff + G[1] * Math.PI * (1 - Math.cos(walkOff) + Math.sin(walkOff)) / 2 + G[2] * Math.PI * fore;
 /** rig constants: leg swing and knee flex at a full walk */
 export const RIG = { swing: 0.42, knee: 0.75 } as const;
 /** the lying drop: the belly on the ground */
@@ -268,24 +284,27 @@ export function foldOf(sp: Species): [number, number, number, number] {
   return [-a, flat + a, a, -flat - a];
 }
 /** one vertex of an animal posed on the CPU (the vertex shader's arithmetic; tests and previews) */
-export function deformAnimal(sp: Species, p: ArrayLike<number>, leg: ArrayLike<number>, piv: ArrayLike<number>, ht: ArrayLike<number>, st: { phase: number; walk: number; graze: number; lie: number }, time: number, out: number[] = [0, 0, 0]) {
+export function deformAnimal(sp: Species, p: ArrayLike<number>, leg: ArrayLike<number>, piv: ArrayLike<number>, ht: ArrayLike<number>, st: { phase: number; walk: number; graze: number; lie: number; gait?: number }, time: number, out: number[] = [0, 0, 0]) {
   const F = animalFrame(sp); let x = p[0], y = p[1], z = p[2];
-  const ph = st.phase + leg[0], fore = leg[3] > 0 ? 1 : 0;
+  const G = gaitW(st.gait ?? 0), fore = leg[3] > 0 ? 1 : 0, ph = st.phase + gaitOffset(leg[0], fore, G);
   const fo = foldOf(sp);
-  const a1 = leg[1] * (st.walk * RIG.swing * Math.sin(ph) + st.lie * (fore ? fo[0] : fo[2]));
+  const a1 = leg[1] * (st.walk * (RIG.swing + 0.14 * (G[1] + G[2])) * Math.sin(ph) + st.lie * (fore ? fo[0] : fo[2]));
   const a2 = leg[2] * (st.walk * RIG.knee * Math.max(0, Math.sin(ph - 0.6)) + st.lie * (fore ? fo[1] : fo[3]));
   const rx = (py: number, pz: number, a: number, cy: number, cz: number) => { const dy = py - cy, dz = pz - cz, c = Math.cos(a), s = Math.sin(a); return [cy + dy * c - dz * s, cz + dy * s + dz * c]; };
   [y, z] = rx(y, z, a2, piv[2], piv[3]); [y, z] = rx(y, z, a1, piv[0], piv[1]);
+  const skull = Math.max(0, -ht[1]), tailW = Math.max(0, ht[1]);
+  [y, z] = rx(y, z, -skull * F.bend * st.graze, F.top.y, F.top.z);
   const ah = ht[0] * (st.graze * F.graze + 0.05 * st.walk * Math.sin(2 * ph) + 0.04 * st.graze * Math.sin(time * 5.3));
   [y, z] = rx(y, z, ah, ht[2], ht[3]);
-  const at = ht[1] * 0.3 * Math.sin(time * 1.1 + st.phase * 0.1), c = Math.cos(at), s = Math.sin(at), dx = x, dz = z - ht[3]; if (ht[1]) { x = dx * c + dz * s; z = ht[3] - dx * s + dz * c; }
-  y += -st.lie * lieDrop(sp) + st.walk * 0.012 * Math.sin(2 * ph);
+  const at = tailW * 0.3 * Math.sin(time * 1.1 + st.phase * 0.1), c = Math.cos(at), s = Math.sin(at), dx = x, dz = z - ht[3]; if (tailW) { x = dx * c + dz * s; z = ht[3] - dx * s + dz * c; }
+  y += -st.lie * lieDrop(sp) + st.walk * (0.012 * G[0] * Math.sin(2 * ph) + 0.025 * G[1] * Math.abs(Math.sin(st.phase)) + 0.06 * G[2] * Math.max(0, Math.sin(st.phase)));
   out[0] = x; out[1] = y; out[2] = z; return out;
 }
 
 /** an animal to draw: species, place in the performer's frame (x, z, yaw; y offset), state; roll: lying on its side */
 export interface AnimalInst { sp: Species; x: number; z: number; yaw: number; y?: number; roll?: number; phase: number; walk: number; graze: number; lie: number; coat: number;
-  /** placed relative to the performer's own path (the plough team) instead of the simulation's spot */ follow?: boolean }
+  /** placed relative to the performer's own path (the plough team) instead of the simulation's spot */ follow?: boolean;
+  /** D-326: the gait when walking (0 the lateral walk, 1 the trot, 2 the bound; default: the hare bounds, the rest walk) */ gait?: number }
 const fr = (x: number) => x - Math.floor(x);
 const h1 = (a: number, b = 0) => fr(Math.sin(a * 12.9898 + b * 78.233) * 43758.5453);
 const TWO_PI = 2 * Math.PI;
@@ -362,54 +381,88 @@ export const FOLD_R = 6, FOLD_AT = 7.5;
 /** where the cart stands behind its draught pair (the performer's frame: the axle, m; workObjects 'cart') */
 export const CART_AT: [number, number, number] = [0, 0, -(1.2 + 1.85 + 0.45 + 1.2)];
 
-/** the animals: one instanced mesh per species, filled every frame by the crowd (begin / push / end) */
+/** the animals: one instanced mesh per species and level, filled every frame by the crowd and the fauna (begin / push /
+ *  end). D-326: a species whose modelled body is loaded (animalModels.ts) draws it, lod0 near and lod1 beyond its
+ *  distance (the manifest's lod1At, m, from the eye given to begin); else its procedural stand-in (one level). */
+type Slot = { mesh: THREE.InstancedMesh; data: THREE.InterleavedBuffer; state: THREE.InterleavedBufferAttribute; gait: THREE.InterleavedBufferAttribute; rot: THREE.InterleavedBufferAttribute[]; coat: THREE.InterleavedBufferAttribute | null; n: number; box: THREE.Box3; tris: number };
 export class Animals {
   readonly group = new THREE.Group();
-  private meshes = new Map<Species, { mesh: THREE.InstancedMesh; data: THREE.InterleavedBuffer; state: THREE.InterleavedBufferAttribute; rot: THREE.InterleavedBufferAttribute[]; n: number; box: THREE.Box3 }>();
+  private meshes = new Map<string, Slot>();
   private uTime = uniform(0);
+  private eye: { x: number; y: number; z: number } | null = null;
   /** animals not drawn this frame because their species' instance cap was full (reported by stats: never silent) */
   dropped = 0;
   constructor(private cap = 512, name = 'animals:work') { this.group.name = name; }
   /** D-220: called for every animal pushed (the world's dust: a walking animal raises dust on dry earth) */
   onPush: ((a: AnimalInst, M: THREE.Matrix4) => void) | null = null;
-  private mesh(sp: Species) {
-    let m = this.meshes.get(sp); if (m) return m;
-    const g = animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp);
-    // per instance, in one interleaved buffer: the state (gait phase, walk, graze, lie) and the instance's rotation (its
-    // matrix's axes). three.js applies the instance matrix to positionLocal BEFORE the material's positionNode, so the rig
-    // deforms the raw geometry position in the animal's own frame and adds the displacement turned by these axes
-    // (rotating legs about pivots in world space would throw them across the field)
-    const data = interleave(g, ['aState', 'aRx', 'aRy', 'aRz'], { count: this.cap, sizes: [4, 3, 3, 3] }); data.setUsage(THREE.DynamicDrawUsage);
+  private mesh(sp: Species, lod: number): Slot {
+    const key = `${sp}:${lod}`; let m = this.meshes.get(key); if (m) return m;
+    const model = animalModel(sp);
+    const g = model ? model.lods[lod].clone() : animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp);
+    if (model) interleave(g, ['aLeg', 'aPiv', 'aHT']);
+    // per instance, in one interleaved buffer: the state (gait phase, walk, graze, lie), the instance's rotation (its
+    // matrix's axes) and (the models) the coat colour. three.js applies the instance matrix to positionLocal BEFORE the
+    // material's positionNode, so the rig deforms the raw geometry position in the animal's own frame and adds the
+    // displacement turned by these axes (rotating legs about pivots in world space would throw them across the field)
+    const names = ['aState', 'aRx', 'aRy', 'aRz', 'aGait', ...(model ? ['aCoat'] : [])];
+    const data = interleave(g, names, { count: this.cap, sizes: [4, 3, 3, 3, 1, ...(model ? [3] : [])] }); data.setUsage(THREE.DynamicDrawUsage);
     const state = g.getAttribute('aState') as THREE.InterleavedBufferAttribute, rot = ['aRx', 'aRy', 'aRz'].map(n => g.getAttribute(n) as THREE.InterleavedBufferAttribute);
-    const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.95 }); mat.vertexColors = true;
+    const mat = new THREE.MeshStandardNodeMaterial({ roughness: model ? 0.82 : 0.95 }); mat.vertexColors = !model;
     const L = attribute('aLeg', 'vec4'), Pv = attribute('aPiv', 'vec4'), H = attribute('aHT', 'vec4'), S = attribute('aState', 'vec4');
     const rx = (p: any, a: any, cy: any, cz: any) => { const dy = p.y.sub(cy), dz = p.z.sub(cz), c = cos(a), s = sin(a); return vec3(p.x, cy.add(dy.mul(c)).sub(dz.mul(s)), cz.add(dy.mul(s)).add(dz.mul(c))); };
-    const ph = S.x.add(L.x), fore = max(L.w, float(0));
+    // the gait's weights (walk, trot, bound: gaitW) and each leg's phase offset in it (gaitOffset)
+    const Gt = attribute('aGait', 'float'), gT = Gt.clamp(0, 1), gH = Gt.sub(1).clamp(0, 1), gW0 = float(1).sub(gT), gW1 = gT.sub(gH);
+    const fore = max(L.w, float(0));
+    const ph = S.x.add(L.x.mul(gW0)).add(gW1.mul(Math.PI / 2).mul(float(1).sub(cos(L.x)).add(sin(L.x)))).add(gH.mul(Math.PI).mul(fore));
     // arithmetic masks only (no select: D-012): fore = 1 for fore legs, 0 for hind
     const fo = foldOf(sp);
-    const a1 = L.y.mul(S.y.mul(RIG.swing).mul(sin(ph)).add(S.w.mul(fore.mul(fo[0] - fo[2]).add(fo[2]))));
+    const a1 = L.y.mul(S.y.mul(gW1.add(gH).mul(0.14).add(RIG.swing)).mul(sin(ph)).add(S.w.mul(fore.mul(fo[0] - fo[2]).add(fo[2]))));
     const a2 = L.z.mul(S.y.mul(RIG.knee).mul(max(sin(ph.sub(0.6)), 0)).add(S.w.mul(fore.mul(fo[1] - fo[3]).add(fo[3]))));
     const P0 = positionGeometry; let p: any = rx(P0, a2, Pv.z, Pv.w); p = rx(p, a1, Pv.x, Pv.y);
+    // Q-980: the poll's joint (the skull's weight is -aHT.y): grazing, it straightens the carriage by F.bend
+    const skullW = max(H.y.negate(), float(0)), tailW = max(H.y, float(0)), as = skullW.mul(S.z).mul(-F.bend);
+    p = rx(p, as, float(F.top.y), float(F.top.z));
     const ah = H.x.mul(S.z.mul(F.graze).add(S.y.mul(0.05).mul(sin(ph.mul(2)))).add(S.z.mul(0.04).mul(sin(this.uTime.mul(5.3)))));
     p = rx(p, ah, H.z, H.w);
-    const at = H.y.mul(0.3).mul(sin(this.uTime.mul(1.1).add(S.x.mul(0.1)))), c = cos(at), s = sin(at), dz = p.z.sub(H.w);
+    const at = tailW.mul(0.3).mul(sin(this.uTime.mul(1.1).add(S.x.mul(0.1)))), c = cos(at), s = sin(at), dz = p.z.sub(H.w);
     p = vec3(p.x.mul(c).add(dz.mul(s)), p.y, H.w.sub(p.x.mul(s)).add(dz.mul(c)));
-    p = p.add(vec3(0, S.w.mul(-drop).add(S.y.mul(0.012).mul(sin(ph.mul(2)))), 0));
-    const d = p.sub(P0);
-    mat.positionNode = positionLocal.add(attribute('aRx', 'vec3').mul(d.x)).add(attribute('aRy', 'vec3').mul(d.y)).add(attribute('aRz', 'vec3').mul(d.z)) as any;
+    const bob = gW0.mul(0.012).mul(sin(ph.mul(2))).add(gW1.mul(0.025).mul(sin(S.x).abs())).add(gH.mul(0.06).mul(max(sin(S.x), float(0))));
+    p = p.add(vec3(0, S.w.mul(-drop).add(S.y.mul(bob)), 0));
+    const d = p.sub(P0), Rx = attribute('aRx', 'vec3'), Ry = attribute('aRy', 'vec3'), Rz = attribute('aRz', 'vec3');
+    mat.positionNode = positionLocal.add(Rx.mul(d.x)).add(Ry.mul(d.y)).add(Rz.mul(d.z)) as any;
+    if (model) {
+      // the surface turns with the rig: the normal and the tangent pitched by the joints' summed angle (every rotation of
+      // the rig but the tail's is about a lateral axis), yawed by the tail's, carried to the world by the instance's axes
+      // and to the view; the baked normal map on that frame, the occlusion on the indirect light
+      const turn = (v: any) => { const A = a1.add(a2).add(ah).add(as), ca = cos(A), sa = sin(A); let q: any = vec3(v.x, v.y.mul(ca).sub(v.z.mul(sa)), v.y.mul(sa).add(v.z.mul(ca)));
+        q = vec3(q.x.mul(c).add(q.z.mul(s)), q.y, q.x.mul(s).negate().add(q.z.mul(c))); return modelViewMatrix.mul(vec4(Rx.mul(q.x).add(Ry.mul(q.y)).add(Rz.mul(q.z)), 0)).xyz.normalize(); };
+      const T4 = attribute('tangent', 'vec4'), vN = varying(turn(normalGeometry)), vT = varying(turn(T4.xyz)), vW = varying(T4.w);
+      const tn = texture(model.nrm, uv()), ta = texture(model.albedo, uv()), m3 = tn.rgb.mul(2).sub(1);
+      const N = vN.normalize(), T = vT.sub(N.mul(vT.dot(N))).normalize(), Bt = N.cross(T).mul(vW);
+      mat.normalNode = T.mul(m3.x).add(Bt.mul(m3.y)).add(N.mul(m3.z)).normalize() as any;
+      mat.aoNode = tn.a as any;
+      mat.colorNode = mix(ta.rgb, attribute('aCoat', 'vec3').mul(ta.rgb).mul(2), ta.a) as any;
+    }
     const mesh = new THREE.InstancedMesh(g, mat, this.cap); mesh.count = 0; mesh.visible = false; mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere();
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `animals:${sp}`; mesh.userData = { tier: 'C', src: 'RECON', note: `${ANIMAL_BUILD[sp].note}; ${ANIMAL_BUILD[sp].tier}` }; mesh.raycast = () => {};
-    mesh.setColorAt(0, new THREE.Color(1, 1, 1)); nearCascadesOnly(mesh);
-    this.group.add(mesh); m = { mesh, data, state, rot, n: 0, box: new THREE.Box3() }; this.meshes.set(sp, m); return m;
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `animals:${sp}${model ? `:lod${lod}` : ''}`; mesh.raycast = () => {};
+    mesh.userData = { tier: 'C', src: 'RECON', note: `${ANIMAL_BUILD[sp].note}; ${ANIMAL_BUILD[sp].tier}${model ? `; modelled body level ${lod} (D-326: anatomy src/people/animalForm.ts, built in Blender by tools/blender/animals.mjs, baked coat maps)` : '; procedural stand-in (the modelled body not loaded)'}` };
+    if (!model) mesh.setColorAt(0, new THREE.Color(1, 1, 1));
+    nearCascadesOnly(mesh);
+    this.group.add(mesh); m = { mesh, data, state, gait: g.getAttribute('aGait') as THREE.InterleavedBufferAttribute, rot, coat: model ? g.getAttribute('aCoat') as THREE.InterleavedBufferAttribute : null, n: 0, box: new THREE.Box3(), tris: (g.index ? g.index.count : g.getAttribute('position').count) / 3 };
+    this.meshes.set(key, m); return m;
   }
-  begin(time: number) { this.uTime.value = time % 100000; this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
+  /** a frame's start: the time (the rig's idle cycles) and the eye (the level of detail; none: the nearest level) */
+  begin(time: number, eye?: { x: number; y: number; z: number } | null) { this.uTime.value = time % 100000; this.dropped = 0; this.eye = eye ?? null; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
   /** an animal at a world transform with its state */
   push(a: AnimalInst, M: THREE.Matrix4) {
     this.onPush?.(a, M);
-    const m = this.mesh(a.sp); if (m.n >= this.cap) { this.dropped++; return; } const i = m.n++;
-    m.mesh.setMatrixAt(i, M); m.state.setXYZW(i, a.phase % (TWO_PI * 64), a.walk, a.graze, a.lie);
-    const e = M.elements; m.rot[0].setXYZ(i, e[0], e[1], e[2]); m.rot[1].setXYZ(i, e[4], e[5], e[6]); m.rot[2].setXYZ(i, e[8], e[9], e[10]);
-    const c = ANIMAL_BUILD[a.sp].coat, k = Math.min(c.length - 1, Math.floor(a.coat * c.length)); _c.setRGB(c[k][0], c[k][1], c[k][2], THREE.SRGBColorSpace); m.mesh.setColorAt(i, _c);
+    const model = animalModel(a.sp), e = M.elements;
+    const lod = model && this.eye && Math.hypot(e[12] - this.eye.x, e[13] - this.eye.y, e[14] - this.eye.z) > model.lod1At ? 1 : 0;
+    const m = this.mesh(a.sp, lod); if (m.n >= this.cap) { this.dropped++; return; } const i = m.n++;
+    m.mesh.setMatrixAt(i, M); m.state.setXYZW(i, a.phase % (TWO_PI * 64), a.walk, a.graze, a.lie); m.gait.setX(i, a.gait ?? (a.sp === 'hare' ? 2 : 0));
+    m.rot[0].setXYZ(i, e[0], e[1], e[2]); m.rot[1].setXYZ(i, e[4], e[5], e[6]); m.rot[2].setXYZ(i, e[8], e[9], e[10]);
+    const c = ANIMAL_BUILD[a.sp].coat, k = Math.min(c.length - 1, Math.floor(a.coat * c.length)); _c.setRGB(c[k][0], c[k][1], c[k][2], THREE.SRGBColorSpace);
+    if (m.coat) m.coat.setXYZ(i, _c.r, _c.g, _c.b); else m.mesh.setColorAt(i, _c);
     m.box.expandByPoint(_p.setFromMatrixPosition(M));
   }
   end() {
@@ -419,8 +472,8 @@ export class Animals {
       if (im.instanceColor) { im.instanceColor.needsUpdate = true; im.instanceColor.clearUpdateRanges(); im.instanceColor.addUpdateRange(0, m.n * 3); }
       m.box.getBoundingSphere(im.boundingSphere!); im.boundingSphere!.radius += 1.5; }
   }
-  stats() { let draws = 0, instances = 0, triangles = 0; const species: Record<string, number> = {};
-    for (const [k, m] of this.meshes) if (m.n) { draws++; instances += m.n; triangles += m.n * m.mesh.geometry.getAttribute('position').count / 3; species[k] = m.n; }
-    return { draws, instances, triangles, species, dropped: this.dropped }; }
+  stats() { let draws = 0, instances = 0, triangles = 0, modelled = 0; const species: Record<string, number> = {};
+    for (const [k, m] of this.meshes) if (m.n) { draws++; instances += m.n; triangles += m.n * m.tris; const sp = k.split(':')[0]; species[sp] = (species[sp] ?? 0) + m.n; if (m.coat) modelled += m.n; }
+    return { draws, instances, triangles, species, dropped: this.dropped, modelled }; }
 }
 const _p = new THREE.Vector3(), _c = new THREE.Color();

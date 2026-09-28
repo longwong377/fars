@@ -8,9 +8,10 @@
 // lighting normal in the view's frame (x right, y up, z toward the viewer), encoded 0..1. Re-baked per model row when
 // its foliage group's state changes (render.ts). Pure JS (unit-tested: tests/trees.test.ts).
 import { cardState, variantLeaf, cardHalf, M0, M1, K0, K1, lod1Size, lod1Twigs, type TreeModel, type V3 } from './model';
-import { tileIndex, TILE, COLS, ROWS, TILT, mipChain, type Atlas } from './atlas';
+import { tileIndex, COLS, ROWS, TILT, mipChain, type Atlas } from './atlas';
 import { TREE_GROUPS } from '../plain/seasonal';
 import { crownOf, leafShadeTo, crownAO, SHADE } from './shade';
+import type { WoodLevel } from './assets';
 
 export const NV = 8;
 export interface GroupState { leaf: [number, number, number, number]; blossom: [number, number, number, number] }
@@ -20,8 +21,8 @@ export const linearToSrgb = (c: number) => (c <= 0.0031308 ? c * 12.92 : 1.055 *
 export const barkLinear = (m: TreeModel): V3 => [srgbToLinear(m.species.bark[0]), srgbToLinear(m.species.bark[1]), srgbToLinear(m.species.bark[2])];
 
 /** the near leaf shader's albedo for one texel of the atlas (render.ts mirrors this) */
-export function leafAlbedo(tex: { r: number; g: number; b: number }, leafCol: number[], blCol: number[], bark: number[], tint: number, ao: number): V3 {
-  const shade = 0.55 + 0.6 * tex.r, petal = tex.g, bk = tex.b, lm = Math.max(0, 1 - petal - bk), ps = 0.85 + 0.15 * tex.r;
+export function leafAlbedo(tex: { r: number; g: number; b: number }, leafCol: number[], blCol: number[], bark: number[], tint: number, ao: number, at: Pick<Atlas, 'shade' | 'petal'> = { shade: [0.55, 0.6], petal: [0.85, 0.15] }): V3 {
+  const shade = at.shade[0] + at.shade[1] * tex.r, petal = tex.g, bk = tex.b, lm = Math.max(0, 1 - petal - bk), ps = at.petal[0] + at.petal[1] * tex.r;
   return [0, 1, 2].map(k => (leafCol[k] * shade * lm + blCol[k] * ps * petal + bark[k] * shade * bk) * tint * ao) as V3;
 }
 
@@ -34,7 +35,9 @@ export class ImpostorBaker {
    *  rows, so each row's mips are built on its own and copied into the levels (a whole-atlas float image cost 47-106 MB) */
   private colS: Float32Array; private nrmS: Float32Array;
   /** lod 1: the far atlas (what the near LOD1 draws); lod 0: the full model (tests compare the two) */
-  constructor(readonly models: TreeModel[], readonly atlas: Atlas, readonly px: number, readonly lod: 0 | 1 = 1) {
+  /** wood: the Blender branch meshes (assets.ts, D-327): drawn as they are near (the level's triangles); without them the
+   *  skeleton's tubes; dither: the mips keep the plain coverage share, for render.ts's dithered alpha test (TRAA qualities) */
+  constructor(readonly models: TreeModel[], readonly atlas: Atlas, readonly px: number, readonly lod: 0 | 1 = 1, readonly wood: [WoodLevel, WoodLevel] | null = null, readonly dither = false) {
     this.width = NV * px; this.height = models.length * px; this.nl = Math.max(1, Math.floor(Math.log2(px)) - 1);
     this.colS = new Float32Array(this.width * px * 4); this.nrmS = new Float32Array(this.width * px * 4);
     const lv = (): Level[] => { const o: Level[] = []; for (let L = 0; L < this.nl && (px >> L) >= 2; L++) { const w = this.width >> L, h = this.height >> L; o.push({ data: new Uint8Array(w * h * 4), width: w, height: h }); } return o; };
@@ -46,7 +49,7 @@ export class ImpostorBaker {
   bakeRow(r: number, st: GroupState) {
     const m = this.models[r], N = this.px, W = this.width, s = m.species;
     const leafT = tileIndex(s.leaf.tile), twigT = tileIndex(s.twig_tile), blT = s.blossom_tile ? tileIndex(s.blossom_tile) : leafT;
-    const bark = barkLinear(m), lc = st.leaf, bc = st.blossom, AL = this.atlas.levels, nL = AL.length, cr = crownOf(m);
+    const bark = barkLinear(m), lc = st.leaf, bc = st.blossom, AL = this.atlas.levels, nL = AL.length, cr = crownOf(m), TT = this.atlas.tile, [SA, SB] = this.atlas.shade, [PA, PB] = this.atlas.petal;
     const z = new Float32Array(N * N);
     const kc = this.lod ? K1 : K0, km = this.lod ? M1 : M0;
     const leaf = variantLeaf(lc[3], m.variant); // this variant's leaf amount (model.ts)
@@ -73,7 +76,7 @@ export class ImpostorBaker {
         const Sz = (cd.side[0] * dx + cd.side[2] * dz) * hs, Uz = (cd.up[0] * dx + cd.up[2] * dz) * hu;
         const det = Sx * Uy - Sy * Ux; if (Math.abs(det) < 1e-3) continue; // edge-on
         const ext = Math.abs(Sx) + Math.abs(Ux), eyt = Math.abs(Sy) + Math.abs(Uy);
-        const lvl = Math.min(nL - 1, Math.max(0, Math.floor(Math.log2(TILE / Math.max(1, 2 * h * k))))), L = AL[lvl], ts = TILE >> lvl, d = L.data, lw = L.width, td = this.atlas.tilt[lvl].data;
+        const lvl = Math.min(nL - 1, Math.max(0, Math.floor(Math.log2(TT / Math.max(1, 2 * h * k))))), L = AL[lvl], ts = TT >> lvl, d = L.data, lw = L.width, td = this.atlas.tilt[lvl].data;
         const tx0 = (tile % COLS) * ts, ty0 = Math.floor(tile / COLS) * ts;
         const tint = cd.tint, Sv = cd.side, Uv = cd.up, P0 = cs.pos, size = 2 * hu, kb = SHADE.clumpBack * size * 0.5;
         const ccx = P0[0] - Uv[0] * kb, ccy = P0[1] - Uv[1] * kb, ccz = P0[2] - Uv[2] * kb; // the clump's centre (shade.ts)
@@ -85,7 +88,7 @@ export class ImpostorBaker {
             const ti = Math.min(ts - 1, ((a * 0.5 + 0.5) * ts) | 0), tj = Math.min(ts - 1, ((b * 0.5 + 0.5) * ts) | 0), o = ((ty0 + tj) * lw + tx0 + ti) * 4;
             if (d[o + 3] < 128) continue;
             // impostor.ts leafAlbedo, inlined
-            const tr = d[o] / 255, petal = d[o + 1] / 255, bk = d[o + 2] / 255, shade = 0.55 + 0.6 * tr, lm = Math.max(0, 1 - petal - bk), ps = (0.85 + 0.15 * tr) * petal;
+            const tr = d[o] / 255, petal = d[o + 1] / 255, bk = d[o + 2] / 255, shade = SA + SB * tr, lm = Math.max(0, 1 - petal - bk), ps = (PA + PB * tr) * petal;
             // the crown's and the clump's normal and occlusion at this texel (shade.ts; render.ts leaf shader)
             const as = a * hs, bu = b * hu;
             leafShadeTo(SH, cr, P0[0] + Sv[0] * as + Uv[0] * bu, P0[1] + Sv[1] * as + Uv[1] * bu, P0[2] + Sv[2] * as + Uv[2] * bu, ccx, ccy, ccz, Uv[0], Uv[1], Uv[2], size, this.lod, clumpS);
@@ -96,8 +99,35 @@ export class ImpostorBaker {
             put(i, j, depth, (lc[0] * shade * lm + bc[0] * ps + bark[0] * shade * bk) * tao, (lc[1] * shade * lm + bc[1] * ps + bark[1] * shade * bk) * tao, (lc[2] * shade * lm + bc[2] * ps + bark[2] * shade * bk) * tao, nx * rx + nz * rz, ny, nx * dx + nz * dz);
           }
       }
-      // branches: the projected tube (normal across it, bulging toward the viewer), darker inside the crown
-      for (let si = 0; si < Math.min(km, m.used.segs); si++) {
+      // branches: the Blender mesh's triangles of this level (D-327), each corner's normal and baked occlusion, darker inside
+      // the crown (as render.ts bakedWoodMaterial)
+      const WL = this.wood?.[this.lod];
+      if (WL) {
+        const nt = WL.tris[r], W3 = WL.width, D = WL.data, row0 = r * 3;
+        const cp = new Float64Array(9 * 3); // per corner: sx, sy, depth, n (view), ao
+        for (let t = 0; t < nt; t++) {
+          for (let q = 0; q < 3; q++) { const c = t * 3 + q, o0 = (row0 * W3 + c) * 4, o1 = ((row0 + 1) * W3 + c) * 4, o2 = ((row0 + 2) * W3 + c) * 4;
+            const x = D[o0], y = D[o0 + 1], z = D[o0 + 2], nx = D[o1], ny = D[o1 + 1], nz = D[o1 + 2], b = q * 9;
+            cp[b] = sx(x * rx + z * rz); cp[b + 1] = sy(y); cp[b + 2] = x * dx + z * dz;
+            cp[b + 3] = nx * rx + nz * rz; cp[b + 4] = ny; cp[b + 5] = nx * dx + nz * dz;
+            cp[b + 6] = D[o2 + 3] * crownAO(cr, [x, y, z], SHADE.woodAoIn); }
+          const x0 = cp[0], y0 = cp[1], x1 = cp[9], y1 = cp[10], x2 = cp[18], y2 = cp[19], area = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
+          if (Math.abs(area) < 1e-9) continue;
+          for (let j = Math.max(0, Math.floor(Math.min(y0, y1, y2))); j <= Math.min(N - 1, Math.ceil(Math.max(y0, y1, y2))); j++)
+            for (let i = Math.max(0, Math.floor(Math.min(x0, x1, x2))); i <= Math.min(N - 1, Math.ceil(Math.max(x0, x1, x2))); i++) {
+              const X = i + 0.5, Y = j + 0.5;
+              const w0 = ((x1 - X) * (y2 - Y) - (x2 - X) * (y1 - Y)) / area, w1 = ((x2 - X) * (y0 - Y) - (x0 - X) * (y2 - Y)) / area, w2 = 1 - w0 - w1;
+              if (w0 < 0 || w1 < 0 || w2 < 0) continue;
+              const depth = w0 * cp[2] + w1 * cp[11] + w2 * cp[20];
+              let n0 = w0 * cp[3] + w1 * cp[12] + w2 * cp[21], n1 = w0 * cp[4] + w1 * cp[13] + w2 * cp[22], n2 = w0 * cp[5] + w1 * cp[14] + w2 * cp[23];
+              if (n2 < 0) { n0 = -n0; n1 = -n1; n2 = -n2; } const nl = Math.hypot(n0, n1, n2) || 1;
+              const ao = w0 * cp[6] + w1 * cp[15] + w2 * cp[24];
+              put(i, j, depth, bark[0] * ao, bark[1] * ao, bark[2] * ao, n0 / nl, n1 / nl, n2 / nl);
+            }
+        }
+      }
+      // (no Blender wood) the projected tube (normal across it, bulging toward the viewer), darker inside the crown
+      if (!WL) for (let si = 0; si < Math.min(km, m.used.segs); si++) {
         const g = m.segs[si]; if (g.ra <= 0) continue;
         const ax = sx(g.a[0] * rx + g.a[2] * rz), ay = sy(g.a[1]), bx = sx(g.b[0] * rx + g.b[2] * rz), by = sy(g.b[1]);
         const az = g.a[0] * dx + g.a[2] * dz, bz = g.b[0] * dx + g.b[2] * dz, ra = g.ra * k, rb = g.rb * k;
@@ -118,7 +148,7 @@ export class ImpostorBaker {
   levels() { return this.out; }
   /** the row strip's mips, copied into the atlas levels at the row */
   private commitRow(r: number) {
-    const lc = mipChain(this.colS, this.width, this.px, this.px, NV, 1, this.nl, true), ln = mipChain(this.nrmS, this.width, this.px, this.px, NV, 1, this.nl);
+    const lc = mipChain(this.colS, this.width, this.px, this.px, NV, 1, this.nl, true, !this.dither), ln = mipChain(this.nrmS, this.width, this.px, this.px, NV, 1, this.nl, false, !this.dither);
     for (let L = 0; L < this.out.col.length; L++) { const off = r * (this.px >> L) * (this.width >> L) * 4; this.out.col[L].data.set(lc[L].data, off); this.out.nrm[L].data.set(ln[L].data, off); }
   }
 }

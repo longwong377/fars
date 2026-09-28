@@ -145,7 +145,7 @@ export class ConstructionView {
       const m = new THREE.Mesh(g, surfaceMaterial(mat)); m.castShadow = m.receiveShadow = true; m.name = `hall100:site:${mat}`;
       m.userData = { tier: 'C', src: 'RECON', building: B, placeholder: false, note }; this.yard.add(m);
     };
-    add(rough, 'rubble', `masons' yard: ${site.waiting} quarry-rough drum(s) waiting${site.capitalInWork ? ', a capital block being carved' : ''} (counts from the simulation, D-022; stacking and yard layout C)`);
+    add(rough, 'stone_rough', `masons' yard: ${site.waiting} quarry-rough drum(s) waiting${site.capitalInWork ? ', a capital block being carved' : ''} (counts from the simulation, D-022; stacking and yard layout C)`);
     add(dressed, 'limestone', `masons' yard: ${site.dressed} dressed drum(s) ready to raise, ${site.capitalsReady} finished capital(s) (counts from the simulation; layout C)`);
     add(timber, 'scaffold', `timber scaffold(s) at column(s) ${site.scaffolds.map(i => i + 1).join(', ')} (receiving drums / being fluted); form C: no evidence of the method was retrieved (D-022)`);
     const mk = marksMesh(marks, 'limestone', v<any>('global', 'r_masons_marks').drum.lift, 'hall100:site:marks', 'masons\' marks on the dressed drums\' upper bedding faces (D-212; marks B, shapes B elsewhere, this placement C)');

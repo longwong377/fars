@@ -1,0 +1,17 @@
+{
+ "about": "The animals' Blender build (D-326; tools/blender/animals.mjs). Per size class: cell = [dense source, base surface] marching-cubes cells (m; the dense one fine enough to carry the fleece's locks and the hair's streaks into the maps, the base fine enough for the thinnest part the levels keep: the ears, the fowl's toes); tris = [lod0, lod1] triangle targets (BLENDER_PLAN row 4: 3-6 k at LOD0; the fowl and the hare, 0.4-0.5 m long and drawn by the hundred in the yards, 1.6 k: C); tex = map size (px; about 3-5 mm per texel on each body); lod1 = the distance (m) beyond which lod1 is drawn, per metre of body length (C: where a lod0 triangle falls under ~2 px at the player's lens). Every species of src/people/animals.ts SPECIES is listed (tests/animal_models.test.ts).",
+ "classes": {
+  "large": { "cell": [0.0045, 0.011], "tris": [5600, 1100], "tex": 1024 },
+  "medium": { "cell": [0.0038, 0.009], "tris": [4600, 900], "tex": 1024 },
+  "small": { "cell": [0.003, 0.007], "tris": [3600, 720], "tex": 512 },
+  "tiny": { "cell": [0.0016, 0.0038], "tris": [1600, 340], "tex": 512 }
+ },
+ "bake": { "uv_angle": 66, "uv_margin": 0.004, "margin": 4, "ao_samples": 48, "ao_distance_per_len": 0.12, "cage_per_len": 0.009, "ray_per_len": 0.02, "normal_samples": 4, "emit_samples": 4 },
+ "lod1_per_len": 14,
+ "species": {
+  "horse": "large", "horse_saddle": "large", "mule": "large", "mule_pack": "large", "ox": "large", "cow": "large", "zebu": "large", "camel": "large", "camel_pack": "large", "dromedary": "large", "lion": "large",
+  "donkey": "medium", "donkey_pack": "medium", "onager": "medium", "deer": "medium", "stag": "medium", "boar": "medium", "lioness": "medium", "cheetah": "medium", "leopard": "medium", "wolf": "medium", "wild_goat": "medium", "urial": "medium", "hyena": "medium", "calf": "medium",
+  "sheep": "small", "goat": "small", "dog": "small", "gazelle": "small", "gazelle_m": "small", "fox": "small",
+  "hare": "tiny", "hen": "tiny", "cock": "tiny"
+ }
+}

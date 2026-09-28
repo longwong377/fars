@@ -15,6 +15,7 @@ const SHOTS: [string, number, number, any[], number[], number[]][] = [
   ['rows-april', 0, 10, rows(), [0, 1.6, 34], [0, 5, -5]],
   ['rows-winter', 280, 11, rows(), [0, 1.6, 34], [0, 5, -5]],
   ['near-plane', 80, 10, [{ sp: 'plane', x: 0, z: 0, lod: 0 }], [3, 1.6, 11], [0, 9, 0]],
+  ['near-trunk', 80, 10, [{ sp: 'plane', x: 0, z: 0, lod: 0 }, { sp: 'olive', x: 5, z: 3, lod: 0 }], [2.2, 1.5, 4.5], [1.2, 1.6, 0]],
   ['near-apple-april', 0, 10, [{ sp: 'apple', x: 0, z: 0, lod: 0 }], [1, 1.6, 5.5], [0, 3, 0]],
   ['lod-trio', 80, 10, ['plane', 'poplar', 'apple'].flatMap((sp, i) => [0, 1, 'imp'].map((lod, j) => ({ sp, x: (j - 1) * 24 + (sp === 'apple' ? 0 : 0), z: -i * 30, lod }))), [0, 1.6, 45], [0, 6, -20]],
 ];
@@ -30,7 +31,8 @@ test('tree lab', async ({ page }, info) => {
   test.setTimeout(840_000);
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(`${m.type()}: ${m.text().slice(0, 300)}`); });
   const Q = process.env.Q ?? 'test', only = process.env.ONLY?.split(',');
-  await page.goto(`/treelab.html?test&quality=${Q}`);
+  const TA = process.env.TA === "0" ? "&treeassets=0" : ""; // TA=0: the procedural stand-ins (A/B, D-327)
+  await page.goto(`/treelab.html?test&quality=${Q}${TA}`);
   await page.waitForFunction(() => (window as any).__lab?.ready === true || (window as any).__lab?.error, null, { timeout: 600_000 });
   expect(await page.evaluate(() => (window as any).__lab.error ?? null)).toBeNull();
   console.log('load', JSON.stringify(await page.evaluate(() => ({ kit: (window as any).__lab.kitMs, total: (window as any).__lab.totalMs }))));
@@ -39,14 +41,15 @@ test('tree lab', async ({ page }, info) => {
     if (only && !only.includes(n)) continue;
     await L('setTime', day, hour); await L('place', trees); await L('view', ...c, ...t); await L('render', 3);
     console.log(n, JSON.stringify(await L('stats')));
-    await page.screenshot({ path: `shots/treelab-${n}-${Q}-${info.project.name}.png` });
+    await page.screenshot({ path: `shots/treelab-${n}-${Q}${TA ? "-proc" : ""}-${info.project.name}.png` });
   }
   // near/far at the near radius: the same tree as LOD1 (just inside r3) and as the impostor (just outside)
   if (!only || only.includes('r3')) {
     const r3 = R3[Q] ?? 160, out: Record<string, any> = {};
     for (const [sp, day] of [['plane', 80], ['poplar', 80], ['willow', 80], ['apple', 0], ['oak', 80], ['plane', 280], ['cypress', 80]] as [string, number][]) {
       await L('setTime', day, 10); await L('view', 0, 1.6, r3, 0, 6, 0);
-      const shot = async (lod: any) => { await L('place', lod === null ? [] : [{ sp, x: 0, z: 0, lod }]); await L('render', 3); return decode(await page.screenshot()); };
+      // 8 frames: temporal AA converged (the impostors' dithered alpha, D-327 rev 2, needs it as the near cards' sub-pixel gaps do)
+      const shot = async (lod: any) => { await L('place', lod === null ? [] : [{ sp, x: 0, z: 0, lod }]); await L('render', 8); return decode(await page.screenshot()); };
       // the tree's box on screen (+4 px), and an empty frame right before each view (the clouds drift between frames)
       const sz = await L('size', sp), box = (await L('project', -sz.w * 0.75, -0.5, -sz.w * 0.75, sz.w * 0.75, sz.h * 1.1, sz.w * 0.75)) as number[];
       box[0] -= 4; box[1] -= 4; box[2] += 4; box[3] += 4;

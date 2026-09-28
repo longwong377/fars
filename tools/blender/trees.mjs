@@ -1,0 +1,155 @@
+// PARSA tree assets (D-327): the whole class of trees (15 species x 3 variants, src/world/trees) rebuilt with Blender from the
+// game's own generators, and packed for the game (public/models/trees/, loaded by src/world/trees/assets.ts):
+//   src    npx tsx tools/blender/sources/trees_src.ts: the leaf atlas's primitives and every model's branch skeleton (JSON)
+//   atlas  tools/blender/trees_atlas.py: every leaf, blossom and twig tile modelled in 3-D and rendered in Cycles, then here:
+//          leaf_col.png (shade, petal, bark, coverage) and leaf_tilt.png (the leaves' own facing), in the atlas layout
+//   wood   tools/blender/trees_wood.py: every variant's branches skinned into one continuous bark-mapped mesh per level of
+//          detail (the game's triangle budgets), with Cycles-baked occlusion per vertex, then here: wood.bin + wood.json
+//   bark   the species' CC0 bark scans (src/data/tree_bark.json), resized for the game: bark/<scan>_{diff,nor}.jpg
+//   manifest  public/models/trees/manifest.json: input hash, output hashes and sizes, measurements
+//   node tools/blender/trees.mjs [src] [atlas] [wood] [bark] [manifest]   (none: all)  [--tile=512] [--spp=128] [--device=GPU|CPU]
+// Heavy Cycles renders go through tools/dev/gpu_slot.mjs when --device=GPU (the watchdog: at most two heavy GPU jobs).
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readNpy } from './lib/npy.mjs';
+import { treeInputHash } from './lib/tree_inputs.mjs';
+
+const BLENDER = process.env.BLENDER ?? 'C:/Program Files/Blender Foundation/Blender 5.0/blender.exe';
+const WORK = process.env.TREES_WORK ?? 'T:/fars-assets-s12/trees/work', BARK_SRC = process.env.TREES_BARK ?? 'T:/fars-assets-s12/trees/bark';
+const GAME = 'public/models/trees';
+// --verify: every step rebuilt into WORK/verify, then compared with the committed assets (below); the result goes into the
+// committed manifest (verify), which tests/tree_assets.test.ts checks
+const VERIFY = process.argv.includes('--verify'), OUT = VERIFY ? `${process.env.TREES_WORK ?? 'T:/fars-assets-s12/trees/work'}/verify` : GAME;
+const args = process.argv.slice(2), flag = (k, d) => { const a = args.find(x => x.startsWith(`--${k}=`)); return a ? a.split('=')[1] : d; };
+const steps = args.filter(a => !a.startsWith('--')); const all = !steps.length || VERIFY, want = s => all || steps.includes(s);
+const TILE = +flag('tile', 512), SPP = +flag('spp', 128), DEVICE = flag('device', 'GPU');
+mkdirSync(WORK, { recursive: true }); mkdirSync(OUT, { recursive: true });
+const t0 = Date.now(), log = (...a) => console.log(`[trees ${((Date.now() - t0) / 1000).toFixed(0)}s]`, ...a);
+const run = (cmd, argv, label) => { const r = spawnSync(cmd, argv, { stdio: 'inherit', shell: false }); if (r.status !== 0) throw new Error(`${label} exited ${r.status}`); };
+const blender = (script, argv, label, gpu) => {
+  const bl = [BLENDER, '-b', '--factory-startup', '--python', script, '--', ...argv];
+  if (gpu) run(process.execPath, ['tools/dev/gpu_slot.mjs', `trees-${label}`, '--', ...bl.map(q => q.includes(' ') ? `"${q}"` : q)], label);
+  else run(bl[0], bl.slice(1), label);
+};
+const SRC = `${WORK}/src.json`;
+
+if (want('src')) { run(process.execPath, ['node_modules/tsx/dist/cli.mjs', 'tools/blender/sources/trees_src.ts', SRC], 'trees_src'); }
+
+// ---------------------------------------------------------------- the leaf atlas
+/** the shade's scale (atlas.ts Atlas.shade: multiplier = SB x R): room above the tiles' means (~1) for the brightest texels */
+export const SHADE_B = 1.8;
+if (want('atlas')) {
+  const dir = `${WORK}/atlas${TILE}`;
+  blender('tools/blender/trees_atlas.py', [SRC, dir, String(TILE), String(SPP), DEVICE], 'atlas', DEVICE === 'GPU');
+  await atlasPost(dir);
+}
+if (steps.includes('atlaspost')) await atlasPost(`${WORK}/atlas${TILE}`);
+async function atlasPost(dir) {
+  const J = JSON.parse(readFileSync(SRC, 'utf8')), A = J.atlas, sh = readNpy(`${dir}/shade.npy`), cl = readNpy(`${dir}/cls.npy`), nr = readNpy(`${dir}/nrm.npy`);
+  const [H, W] = sh.shape, T = W / A.cols, pad = Math.max(2, Math.round(A.pad * T / 256));
+  const col = new Uint8Array(W * H * 4), tilt = new Uint8Array(W * H * 4), u8 = x => Math.max(0, Math.min(255, Math.round(x * 255)));
+  const stats = [];
+  for (let t = 0; t < A.names.length; t++) {
+    const ox = (t % A.cols) * T, oy = Math.floor(t / A.cols) * T;
+    // the tile's mean rendered radiance over its covered texels, against the procedural tile's mean shade multiplier
+    let s = 0, n = 0, over = 0;
+    for (let j = pad; j < T - pad; j++) for (let i = pad; i < T - pad; i++) { const o = ((oy + j) * W + ox + i) * 4, a = sh.data[o + 3]; if (a < 0.5) continue; s += sh.data[o] / a; n++; }
+    const k = n ? A.procMean[t] / (s / n) : 1;
+    for (let j = 0; j < T; j++) for (let i = 0; i < T; i++) {
+      const o = ((oy + j) * W + ox + i) * 4, a = sh.data[o + 3];
+      if (a < 1e-3 || j < pad || i < pad || j >= T - pad || i >= T - pad) continue; // the tile's clear margin (atlas.ts PAD)
+      const m = k * sh.data[o] / a; if (m > SHADE_B) over++;
+      col[o] = u8(m / SHADE_B); col[o + 1] = u8(cl.data[o + 1] / a); col[o + 2] = u8(cl.data[o + 2] / a); col[o + 3] = u8(a);
+      // the normal (0.5 + 0.5 n, premultiplied by coverage) -> the tilt along the tile's u and v (the leaf shader's)
+      let nx = (nr.data[o] / a) * 2 - 1, ny = (nr.data[o + 1] / a) * 2 - 1, nz = (nr.data[o + 2] / a) * 2 - 1; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+      const d = Math.max(0.35, nz);
+      tilt[o] = u8(0.5 + 0.5 * Math.max(-1, Math.min(1, nx / d))); tilt[o + 1] = u8(0.5 + 0.5 * Math.max(-1, Math.min(1, ny / d))); tilt[o + 2] = 128; tilt[o + 3] = u8(a);
+    }
+    let f = 0; for (let j = 0; j < T; j++) for (let i = 0; i < T; i++) if (col[((oy + j) * W + ox + i) * 4 + 3] >= 128) f++;
+    stats.push({ tile: A.names[t], scale: +k.toFixed(4), fill: +(f / (T * T)).toFixed(4), procFill: A.procFill[t], clipped: over });
+  }
+  // lossless WebP (the coverage-kept mips need exact alpha); the tilt at half size (a leaf's facing is smooth across it):
+  // T-K7 (the first-load download) is over, so the class takes as little of it as it can (D-327 rev 2)
+  await writeWebp(`${OUT}/leaf_col.webp`, col, W, H); await writeWebp(`${OUT}/leaf_tilt.webp`, tilt, W, H, 2);
+  writeFileSync(`${WORK}/atlas_stats.json`, JSON.stringify({ tile: T, shadeB: SHADE_B, render: JSON.parse(readFileSync(`${dir}/atlas_render.json`, 'utf8')), tiles: stats }, null, 1));
+  log('atlas', `${W}x${H}`, stats.map(s => `${s.tile} fill ${s.fill} (proc ${s.procFill}) x${s.scale}${s.clipped ? ` clipped ${s.clipped}` : ''}`).join('; '));
+}
+/** RGBA8 rows bottom-up (v up) -> a lossless WebP (rows top-down), optionally shrunk by `div` */
+async function writeWebp(path, data, W, H, div = 1) {
+  const flip = Buffer.alloc(W * H * 4); for (let j = 0; j < H; j++) flip.set(data.subarray((H - 1 - j) * W * 4, (H - j) * W * 4), j * W * 4);
+  let img = createRequireSync()('sharp')(flip, { raw: { width: W, height: H, channels: 4 } });
+  if (div > 1) img = img.resize(W / div, H / div, { kernel: 'lanczos3' });
+  writeFileSync(path, await img.webp({ lossless: true, exact: true, effort: 6 }).toBuffer());
+}
+function writePng(path, data, W, H) {
+  const { PNG } = createRequireSync()('playwright-core/lib/utilsBundle');
+  const png = new PNG({ width: W, height: H, colorType: 6 });
+  for (let j = 0; j < H; j++) png.data.set(data.subarray((H - 1 - j) * W * 4, (H - j) * W * 4), j * W * 4);
+  writeFileSync(path, PNG.sync.write(png, { colorType: 6, deflateLevel: 9 }));
+}
+import { createRequire } from 'node:module';
+function createRequireSync() { return createRequire(import.meta.url); }
+export { atlasPost };
+
+// ---------------------------------------------------------------- the wood
+if (want('wood')) {
+  const dir = `${WORK}/wood`;
+  blender('tools/blender/trees_wood.py', [SRC, 'src/data/tree_bark.json', dir, DEVICE], 'wood', DEVICE === 'GPU');
+  for (const f of ['wood.bin', 'wood.json']) writeFileSync(`${OUT}/${f}`, readFileSync(`${dir}/${f}`));
+  const m = JSON.parse(readFileSync(`${dir}/wood.json`, 'utf8'));
+  log('wood', m.lods.map((l, i) => `lod${i}: ${l.reduce((a, e) => a + e.tris, 0)} triangles over ${l.length} models (max ${Math.max(...l.map(e => e.tris))}, budget ${m.budget[i]})`).join('; '));
+}
+// ---------------------------------------------------------------- the bark scans (CC0), at the game's size
+if (want('bark')) {
+  const sharp = createRequireSync()('sharp'), B = JSON.parse(readFileSync('src/data/tree_bark.json', 'utf8')), px = B.px;
+  mkdirSync(`${OUT}/bark`, { recursive: true });
+  for (const scan of [...new Set(Object.values(B.species).map(s => s.scan))]) {
+    await sharp(`${BARK_SRC}/${scan}/diff.jpg`).resize(px, px).jpeg({ quality: 84, mozjpeg: true }).toFile(`${OUT}/bark/${scan}_diff.jpg`);
+    await sharp(`${BARK_SRC}/${scan}/nor.jpg`).resize(px, px).jpeg({ quality: 88, mozjpeg: true }).toFile(`${OUT}/bark/${scan}_nor.jpg`);
+  }
+  log('bark', readdirSync(`${OUT}/bark`).length, 'files');
+}
+// ---------------------------------------------------------------- the manifest
+if ((want('manifest') || all) && !VERIFY) {
+  const files = {}, walk = d => { for (const f of readdirSync(d)) { const p = `${d}/${f}`; if (statSync(p).isDirectory()) walk(p); else if (!p.endsWith('manifest.json')) { const b = readFileSync(p); files[p.slice(OUT.length + 1)] = { sha256: createHash('sha256').update(b).digest('hex'), bytes: b.length }; } } };
+  walk(OUT);
+  const st = existsSync(`${WORK}/atlas_stats.json`) ? JSON.parse(readFileSync(`${WORK}/atlas_stats.json`, 'utf8')) : null;
+  const wood = JSON.parse(readFileSync(`${OUT}/wood.json`, 'utf8'));
+  const settings = { tile: st?.tile ?? TILE, shadeB: SHADE_B };
+  const man = { about: 'Generated by tools/blender/trees.mjs (D-327); do not edit. Leaf atlas rendered in Cycles from modelled leaves (tools/blender/trees_atlas.py), branch meshes skinned from the game skeletons with baked occlusion (trees_wood.py), CC0 bark scans from Poly Haven (src/data/tree_bark.json; raw downloads with sha256: T:/fars-assets-s12/trees/bark/manifest.json).',
+    inHash: treeInputHash(settings), settings, tile: settings.tile, shadeB: SHADE_B, blender: st?.render?.blender, atlas: st, wood: { budget: wood.budget, lods: wood.lods.map(l => l.map(e => ({ row: e.row, tris: e.tris, ao_mean: e.ao_mean }))), device: wood.device, ao_samples: wood.ao_samples },
+    bytes: Object.values(files).reduce((a, f) => a + f.bytes, 0), files };
+  // a --verify record stays while the inputs and every file are the same as when it was taken
+  const old = existsSync(`${OUT}/manifest.json`) ? JSON.parse(readFileSync(`${OUT}/manifest.json`, 'utf8')) : null;
+  if (old?.verify && old.inHash === man.inHash && JSON.stringify(old.files) === JSON.stringify(man.files)) man.verify = old.verify;
+  writeFileSync(`${OUT}/manifest.json`, JSON.stringify(man, null, 1));
+  log('manifest', Object.keys(files).length, 'files', (man.bytes / 1e6).toFixed(2), 'MB');
+}
+
+// ---------------------------------------------------------------- --verify: the rebuild against the committed assets
+if (VERIFY) {
+  const sharp = createRequireSync()('sharp'), man = JSON.parse(readFileSync(`${GAME}/manifest.json`, 'utf8')), res = {};
+  const raw = async p => (await sharp(p).ensureAlpha().raw().toBuffer({ resolveWithObject: true }));
+  for (const f of Object.keys(man.files)) {
+    const a = readFileSync(`${GAME}/${f}`), b = existsSync(`${OUT}/${f}`) ? readFileSync(`${OUT}/${f}`) : null;
+    if (!b) { res[f] = { ok: false, why: 'not rebuilt' }; continue; }
+    if (a.equals(b)) { res[f] = { ok: true, bytes: 'identical' }; continue; }
+    if (f.endsWith('.webp')) {
+      // Cycles on the GPU does not reproduce bit for bit: the decoded texels within 3 levels on >= 99.5 %, mean |d| < 0.5
+      const A = await raw(`${GAME}/${f}`), B = await raw(`${OUT}/${f}`); let n = 0, s = 0;
+      for (let i = 0; i < A.data.length; i++) { const d = Math.abs(A.data[i] - B.data[i]); s += d; if (d > 3) n++; }
+      const share = n / A.data.length, mean = s / A.data.length; res[f] = { ok: share <= 0.005 && mean < 0.5, share: +share.toFixed(5), mean: +mean.toFixed(3) };
+    } else if (f === 'wood.bin') {
+      const m = JSON.parse(readFileSync(`${GAME}/wood.json`, 'utf8')), fa = new Float32Array(a.buffer, a.byteOffset, m.vertex_floats), fb = new Float32Array(b.buffer, b.byteOffset, m.vertex_floats);
+      let dp = 0, dao = 0; const ia = a.subarray(m.vertex_floats * 4), ib = b.subarray(m.vertex_floats * 4);
+      for (let i = 0; i < fa.length; i++) { const d = Math.abs(fa[i] - fb[i]); if (i % 12 === 11) dao = Math.max(dao, d); else dp = Math.max(dp, d); }
+      res[f] = { ok: a.length === b.length && ia.equals(ib) && dp < 1e-4 && dao < 0.03, maxGeom: dp, maxAO: dao };
+    } else res[f] = { ok: false, why: 'bytes differ' };
+  }
+  const ok = Object.values(res).every(r => r.ok);
+  man.verify = { at: new Date().toISOString(), ok, device: DEVICE, inHash: man.inHash, files: res };
+  writeFileSync(`${GAME}/manifest.json`, JSON.stringify(man, null, 1));
+  log('verify', ok ? 'REPRODUCED' : 'DIFFERS', Object.entries(res).filter(([, r]) => !r.ok || r.bytes !== 'identical').map(([f, r]) => `${f} ${JSON.stringify(r)}`).join('; '));
+  if (!ok) process.exitCode = 1;
+}

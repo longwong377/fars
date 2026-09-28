@@ -25,7 +25,8 @@ import { surfaceMaterial, SURFACES, type SurfaceDef } from '../render/materials'
 import type { Part, Manifest, Doorway, Column, Box } from '../arch/parts';
 import type { Physics } from '../player/physics';
 import courtJson from '../data/court.json';
-import { scanShape } from '../render/scanProps';
+import { scanShape, modelParts, modelFit, aoFactor, propTexture } from '../render/scanProps';
+import { texture, positionWorld, vec3, normalWorld, smoothstep } from 'three/tsl';
 
 type RGB = [number, number, number];
 export type FurnState = 'stored' | 'use';
@@ -46,13 +47,25 @@ const F = () => v<any>('global', 'r_palace_furnishings');
 const lin = (c: RGB): RGB => { const t = new THREE.Color().setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace); return [t.r, t.g, t.b]; };
 
 // ---------------- local geometry (x = length axis, y up from the floor, z across) ----------------
-type Mat = 'furn_textile' | 'timber' | 'furn_gilt' | 'furn_silver' | 'bronze' | 'furn_clay' | 'matting';
+type Mat = 'furn_textile' | 'furn_carpet' | 'timber' | 'furn_gilt' | 'furn_silver' | 'bronze' | 'furn_clay' | 'matting';
 type Parts = Partial<Record<Mat, THREE.BufferGeometry[]>>;
+// every material is drawn with vertex colours (D-325): the modelled pieces' baked occlusion is multiplied into them; a part of
+// a metal, the timber or the matting is coloured with its surface's own albedo (the material's colour before)
 const prep = (g: THREE.BufferGeometry, rgb: RGB = [1, 1, 1]) => {
-  const n = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(n.attributes)) if (k !== 'position' && k !== 'normal') n.deleteAttribute(k);
-  const c = lin(rgb), a = new Float32Array(n.getAttribute('position').count * 3); for (let i = 0; i < a.length; i += 3) a.set(c, i); n.setAttribute('color', new THREE.BufferAttribute(a, 3)); return n;
+  const n = g.index ? g.toNonIndexed() : g, c = lin(rgb), a = new Float32Array(n.getAttribute('position').count * 3);
+  for (let i = 0; i < a.length; i += 3) { const k = aoFactor(n, i / 3); a[i] = c[0] * k; a[i + 1] = c[1] * k; a[i + 2] = c[2] * k; }
+  for (const k of Object.keys(n.attributes)) if (k !== 'position' && k !== 'normal') n.deleteAttribute(k);
+  n.setAttribute('color', new THREE.BufferAttribute(a, 3)); return n;
 };
-const put = (P: Parts, m: Mat, g: THREE.BufferGeometry, rgb?: RGB) => { (P[m] ??= []).push(prep(g, rgb)); };
+const put = (P: Parts, m: Mat, g: THREE.BufferGeometry, rgb?: RGB) => { (P[m] ??= []).push(prep(g, rgb ?? ((SURFACES[m] ?? FURNISH_SURFACES[m])?.albedo as RGB | undefined) ?? [1, 1, 1])); };
+/** D-325: a modelled piece's parts (tools/blender/model_props.py, authored in this file's local frame at the SITE_SPEC sizes)
+ *  put under their materials and colours; false when the model is not loaded (the procedural stand-in is drawn) */
+export const FURNISH_LOD = { lod: 0 };
+function putModel(P: Parts, id: string, map: Record<string, [Mat, RGB?]>, M?: THREE.Matrix4): boolean {
+  const parts = modelParts(id, FURNISH_LOD.lod, M); if (!parts) return false;
+  for (const [k, g] of Object.entries(parts)) { const t = map[k]; if (t) put(P, t[0], g, t[1]); }
+  return true;
+}
 const box = (sx: number, sy: number, sz: number, x = 0, y = 0, z = 0) => new THREE.BoxGeometry(sx, sy, sz).translate(x, y + sy / 2, z);
 const cylX = (r: number, len: number, x = 0, y = 0, z = 0, seg = 12) => new THREE.CylinderGeometry(r, r, len, seg, 1).rotateZ(Math.PI / 2).translate(x, y, z);
 const lathe = (pts: [number, number][], seg = 14) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
@@ -61,24 +74,30 @@ const patch = (x0: number, x1: number, z0: number, z1: number, y: number) => new
 
 function carpetGeo(P: Parts, variant: number, L: number, W: number) {
   const C = F().carpet, t = C.thick, b = Math.min(C.border, 0.14 * Math.min(L, W)), col = C.colours;
-  put(P, 'furn_textile', box(L, t, W), col.border);
+  const cp = modelParts('carpet', FURNISH_LOD.lod);
+  if (cp) { // D-325: the pile slab (unit, scaled to the carpet) and the warp ends' fringe beyond the short ends (at their own length)
+    put(P, 'furn_carpet', cp.pile.applyMatrix4(new THREE.Matrix4().makeScale(L, t / 0.012, W)), col.border);
+    const Fr = cp.fringe, Q = Fr.getAttribute('position'); for (let i = 0; i < Q.count; i++) { const x = Q.getX(i); Q.setXYZ(i, Math.sign(x) * (L / 2 + Math.abs(x) - 0.5), Q.getY(i), Q.getZ(i) * W); }
+    Fr.computeVertexNormals(); put(P, 'furn_carpet', Fr, col.undyed ?? col.band);
+  } else put(P, 'furn_carpet', box(L, t, W), col.border);
   // the pattern as colour patches lying on the pile, each 1.5 mm above the one under it (no coplanar faces to fight in the
   // depth buffer within the 90 m a palace's pieces are drawn)
   const s = 0.0015, fx = L / 2 - b, fz = W / 2 - b;
-  put(P, 'furn_textile', patch(-L / 2 + 0.06, L / 2 - 0.06, -W / 2 + 0.06, W / 2 - 0.06, t + s), col.band); // the guard band inside the edge
-  put(P, 'furn_textile', patch(-L / 2 + 0.1, L / 2 - 0.1, -W / 2 + 0.1, W / 2 - 0.1, t + 2 * s), col.border);
-  put(P, 'furn_textile', patch(-fx, fx, -fz, fz, t + 3 * s), col.field);
+  put(P, 'furn_carpet', patch(-L / 2 + 0.06, L / 2 - 0.06, -W / 2 + 0.06, W / 2 - 0.06, t + s), col.band); // the guard band inside the edge
+  put(P, 'furn_carpet', patch(-L / 2 + 0.1, L / 2 - 0.1, -W / 2 + 0.1, W / 2 - 0.1, t + 2 * s), col.border);
+  put(P, 'furn_carpet', patch(-fx, fx, -fz, fz, t + 3 * s), col.field);
   const [nx, nz] = C.squares as number[], sx = (2 * fx) / nx, sz = (2 * fz) / nz; // the field of squares (Pazyryk: 24; C here)
   for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
     const cx = -fx + (i + 0.5) * sx, cz = -fz + (j + 0.5) * sz;
-    if ((i + j + variant) % 2) put(P, 'furn_textile', patch(cx - sx * 0.4, cx + sx * 0.4, cz - sz * 0.4, cz + sz * 0.4, t + 4 * s), col.square);
-    put(P, 'furn_textile', patch(cx - sx * 0.14, cx + sx * 0.14, cz - sz * 0.14, cz + sz * 0.14, t + 5 * s), col.motif);
+    if ((i + j + variant) % 2) put(P, 'furn_carpet', patch(cx - sx * 0.4, cx + sx * 0.4, cz - sz * 0.4, cz + sz * 0.4, t + 4 * s), col.square);
+    put(P, 'furn_carpet', patch(cx - sx * 0.14, cx + sx * 0.14, cz - sz * 0.14, cz + sz * 0.14, t + 5 * s), col.motif);
   }
 }
 function rollsGeo(P: Parts, n: number, r: number, len: number, cols: RGB[]) { // a pile of rolls along x: rows of k, k-1, … (C)
   let k = Math.max(1, Math.ceil((Math.sqrt(8 * n + 1) - 1) / 2)), left = n, row = 0;
   while (left > 0 && k > 0) { const m = Math.min(k, left);
-    for (let i = 0; i < m; i++) put(P, 'furn_textile', cylX(r, len, 0, r + row * r * 1.7, (i - (m - 1) / 2) * 2 * r), cols[(i + row) % cols.length]);
+    for (let i = 0; i < m; i++) { const z = (i - (m - 1) / 2) * 2 * r, rl = modelFit('roll', [len, 2 * r, 2 * r], FURNISH_LOD.lod, [0, row * r * 1.7, z]); // D-325: the modelled roll (the spiral at its ends)
+      if (rl) put(P, 'furn_textile', rl.textile, cols[(i + row) % cols.length]); else put(P, 'furn_textile', cylX(r, len, 0, r + row * r * 1.7, z), cols[(i + row) % cols.length]); }
     left -= m; k--; row++; }
 }
 function legs(P: Parts, m: Mat, len: number, w: number, h: number, r: number, rgb?: RGB, inset = 0.06) {
@@ -86,6 +105,8 @@ function legs(P: Parts, m: Mat, len: number, w: number, h: number, r: number, rg
 }
 function couchGeo(P: Parts, covered: boolean, metal: Mat, variant: number) {
   const C = F().couch, L = C.len, W = C.w, H = C.h, frameY = H - C.mattress - 0.1;
+  const cloth0: RGB[] = [[0.44, 0.1, 0.08], [0.2, 0.24, 0.38], [0.74, 0.6, 0.32]];
+  if (covered ? putModel(P, 'couch_covered', { metal: [metal], cover: ['furn_textile', C.cover] }) : putModel(P, 'couch', { metal: [metal], mattress: ['furn_textile', cloth0[variant % 3]], bolster: ['furn_textile', cloth0[(variant + 1) % 3]] })) return;
   legs(P, metal, L, W, frameY, C.leg_r);
   if (covered) { // a linen cover over the mattress and head, reaching down over the frame (C)
     put(P, 'furn_textile', box(L + 0.06, H - frameY + 0.2, W + 0.06, 0, frameY - 0.2, 0), C.cover);
@@ -98,22 +119,24 @@ function couchGeo(P: Parts, covered: boolean, metal: Mat, variant: number) {
   put(P, 'furn_textile', box(L - 0.1, C.mattress, W - 0.04, -0.04, frameY + 0.1, 0), cloth[variant % 3]); // mattress "richly covered"
   put(P, 'furn_textile', cylX(0.1, W - 0.1, 0, 0, 0).rotateY(Math.PI / 2).translate(L / 2 - 0.2, H + 0.08, 0), cloth[(variant + 1) % 3]); // bolster at the head
 }
-function tableGeo(P: Parts, metal: Mat) { const T = F().table; put(P, metal, box(T.len, 0.04, T.w, 0, T.h - 0.04, 0)); legs(P, metal, T.len, T.w, T.h - 0.04, 0.025); }
-function stoolGeo(P: Parts, m: Mat, y0 = 0, rgb?: RGB) { const S = F().stool; put(P, m, box(S.w, 0.05, S.w, 0, y0 + S.h - 0.05, 0), rgb); legs(P, m, S.w, S.w, S.h - 0.05, 0.02, rgb, 0.04); if (y0) for (const g of P[m]!.slice(-4)) g.translate(0, y0, 0); }
-function footstoolGeo(P: Parts, m: Mat) { const S = F().footstool; put(P, m, box(S.len, 0.06, S.w, 0, S.h - 0.06, 0)); for (const sx of [-1, 1]) for (const sz of [-1, 1]) put(P, m, box(0.05, S.h - 0.06, 0.05, sx * (S.len / 2 - 0.05), 0, sz * (S.w / 2 - 0.05))); }
+function tableGeo(P: Parts, metal: Mat) { if (putModel(P, 'table', { metal: [metal] })) return; const T = F().table; put(P, metal, box(T.len, 0.04, T.w, 0, T.h - 0.04, 0)); legs(P, metal, T.len, T.w, T.h - 0.04, 0.025); }
+function stoolGeo(P: Parts, m: Mat, y0 = 0, rgb?: RGB) { if (putModel(P, 'stool', { wood: [m, rgb] }, new THREE.Matrix4().makeTranslation(0, y0, 0))) return; const S = F().stool; put(P, m, box(S.w, 0.05, S.w, 0, y0 + S.h - 0.05, 0), rgb); legs(P, m, S.w, S.w, S.h - 0.05, 0.02, rgb, 0.04); if (y0) for (const g of P[m]!.slice(-4)) g.translate(0, y0, 0); }
+function footstoolGeo(P: Parts, m: Mat) { if (putModel(P, 'footstool', { frame: [m, m === 'timber' ? [0.5, 0.38, 0.27] : undefined] })) return; const S = F().footstool; put(P, m, box(S.len, 0.06, S.w, 0, S.h - 0.06, 0)); for (const sx of [-1, 1]) for (const sz of [-1, 1]) put(P, m, box(0.05, S.h - 0.06, 0.05, sx * (S.len / 2 - 0.05), 0, sz * (S.w / 2 - 0.05))); }
 function burnerGeo(P: Parts) { // after the incense burners of the audience reliefs (B): a tall stand, a bowl and a stepped conical lid (C)
   const B = F().incense_burner, h = B.h, r = B.r;
+  if (putModel(P, 'burner', { bronze: ['bronze'] })) return;
   put(P, 'bronze', lathe([[0, 0], [r * 1.1, 0], [r * 0.9, 0.04], [r * 0.25, h * 0.14], [r * 0.14, h * 0.2], [r * 0.12, h * 0.62], [r * 0.3, h * 0.66], [r * 0.95, h * 0.72], [r, h * 0.74],
     [r * 0.8, h * 0.78], [r * 0.8, h * 0.82], [r * 0.55, h * 0.86], [r * 0.55, h * 0.9], [r * 0.3, h * 0.94], [r * 0.08, h * 0.98], [r * 0.1, h], [0, h]], 16));
 }
 function lampGeo(P: Parts) { // a bronze lamp stand with a clay lamp on its dish (C; candles are blocklisted)
   const L = F().lamp_stand, h = L.h, r = L.r;
+  if (putModel(P, 'lamp_stand', { bronze: ['bronze'], clay: ['furn_clay', [0.62, 0.47, 0.34]] })) return;
   for (let k = 0; k < 3; k++) { const a = (k / 3) * Math.PI * 2; put(P, 'bronze', new THREE.CylinderGeometry(0.012, 0.016, 0.32, 5).rotateZ(0.9).rotateY(a).translate(Math.cos(a) * r * 0.55, 0.12, -Math.sin(a) * r * 0.55)); }
   put(P, 'bronze', new THREE.CylinderGeometry(0.014, 0.02, h - 0.2, 6).translate(0, 0.2 + (h - 0.2) / 2, 0));
   put(P, 'bronze', lathe([[0, 0], [r * 0.7, 0.01], [r * 0.75, 0.03], [0, 0.03]], 10).translate(0, h, 0));
   put(P, 'furn_clay', new THREE.SphereGeometry(0.06, 10, 6).scale(1.3, 0.35, 0.8).translate(0.01, h + 0.045, 0), [0.62, 0.47, 0.34]);
 }
-function chestGeo(P: Parts) { const C = F().chest; put(P, 'timber', box(C.len, C.h - 0.06, C.w), [0.5, 0.37, 0.26]); put(P, 'timber', box(C.len + 0.04, 0.06, C.w + 0.04, 0, C.h - 0.06, 0), [0.44, 0.32, 0.22]);
+function chestGeo(P: Parts) { if (putModel(P, 'chest', { wood: ['timber', [0.5, 0.37, 0.26]], lid: ['timber', [0.44, 0.32, 0.22]], bronze: ['bronze'] })) return; const C = F().chest; put(P, 'timber', box(C.len, C.h - 0.06, C.w), [0.5, 0.37, 0.26]); put(P, 'timber', box(C.len + 0.04, 0.06, C.w + 0.04, 0, C.h - 0.06, 0), [0.44, 0.32, 0.22]);
   for (const x of [-0.3, 0.3]) put(P, 'bronze', box(0.04, C.h - 0.05, C.w + 0.01, x * C.len, 0, 0)); }
 function jarGeo(P: Parts) { const J = F().jar, h = J.h, r = J.r;
   // session 12 (D-310): the jar's body is a CC0 scan's (Poly Haven; render/scanProps.ts) fitted to r and h, when loaded
@@ -121,6 +144,8 @@ function jarGeo(P: Parts) { const J = F().jar, h = J.h, r = J.r;
   put(P, 'furn_clay', new THREE.SphereGeometry(r * 0.46, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.4, 1).translate(0, h, 0), [0.5, 0.4, 0.3]); } // the clay stopper
 function hangingGeo(P: Parts, variant: number) { // x along the wall, z out of it (the wall face at z = 0), y from the floor
   const H = F().hanging, w = H.w, h = H.h, top = H.top, z = H.off_wall, cols = (H.colours as RGB[][])[variant % H.colours.length];
+  // D-325: the modelled hanging (folds, bands, fringe, rod and rings), its cloth's top at the hanging's top
+  if (putModel(P, 'hanging', { cloth: ['furn_textile', cols[0]], band: ['furn_textile', cols[1]], rod: ['furn_gilt'] }, new THREE.Matrix4().makeTranslation(0, top - h, z))) return;
   put(P, 'furn_textile', box(w, h, H.thick, 0, top - h, z), cols[0]);
   for (const f of [0.12, 0.5, 0.88]) put(P, 'furn_textile', box(w, h * 0.06, H.thick, 0, top - h * f - h * 0.03, z + 0.002), cols[1]); // woven bands (C)
   put(P, 'furn_textile', box(w, 0.08, H.thick * 0.5, 0, top - h - 0.08, z), cols[1]); // the fringe
@@ -128,6 +153,7 @@ function hangingGeo(P: Parts, variant: number) { // x along the wall, z out of i
 }
 function canopyGeo(P: Parts) { // after the canopy over the king on the audience reliefs (B); four gilded poles, a cloth roof, a fringed band (C)
   const C = F().canopy, w = C.w, d = C.d, h = C.h;
+  if (putModel(P, 'canopy', { gilt: ['furn_gilt'], cloth: ['furn_textile', C.cloth], band: ['furn_textile', C.band] })) return;
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) put(P, 'furn_gilt', new THREE.CylinderGeometry(C.pole_r, C.pole_r * 1.2, h, 8).translate(sx * w / 2, h / 2, sz * d / 2));
   put(P, 'furn_textile', box(w + 0.1, 0.03, d + 0.1, 0, h, 0), C.cloth);
   for (const [sx, sz, lx, lz] of [[0, -1, w + 0.1, 0.01], [0, 1, w + 0.1, 0.01], [-1, 0, 0.01, d + 0.1], [1, 0, 0.01, d + 0.1]] as const)
@@ -140,7 +166,7 @@ export function itemGeometry(it: FurnItem): Parts {
     case 'carpet': carpetGeo(P, it.variant, 2 * it.hu, 2 * it.hv); break;
     case 'carpet_rolls': rollsGeo(P, it.count ?? 6, R.carpet_roll.r, R.carpet_roll.len, [R.carpet.colours.undyed, R.carpet.colours.field, R.carpet.colours.undyed]); break;
     case 'hanging_rolls': rollsGeo(P, it.count ?? 3, R.hanging_roll.r, R.hanging_roll.len, [R.carpet.colours.undyed, [0.2, 0.24, 0.38], [0.44, 0.1, 0.08]]); break;
-    case 'mat': put(P, 'matting', box(R.mat.size[0], R.mat.thick, R.mat.size[1])); break;
+    case 'mat': { const mt = modelFit('mat', [R.mat.size[0], R.mat.thick, R.mat.size[1]], FURNISH_LOD.lod); if (mt) put(P, 'matting', mt.matting); else put(P, 'matting', box(R.mat.size[0], R.mat.thick, R.mat.size[1])); break; }
     case 'hanging': hangingGeo(P, it.variant); break;
     case 'couch': couchGeo(P, false, metal, it.variant); break;
     case 'couch_covered': couchGeo(P, true, metal, it.variant); break;
@@ -336,9 +362,21 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
   return out;
 }
 
+/** a furnishing material by name (the probe pages; PalaceFurnishings draws with the same) */
+export function furnishingMaterial(mat: string): THREE.Material { Object.assign(SURFACES, FURNISH_SURFACES); return mat === 'furn_carpet' ? carpetMaterial() : surfaceMaterial(mat, { vertexColors: true }); }
 // ---------------- the drawn furnishings ----------------
-const MATS: Mat[] = ['furn_textile', 'timber', 'furn_gilt', 'furn_silver', 'bronze', 'furn_clay', 'matting'];
-const VC = new Set<Mat>(['furn_textile', 'timber', 'furn_clay']);
+const MATS: Mat[] = ['furn_textile', 'furn_carpet', 'timber', 'furn_gilt', 'furn_silver', 'bronze', 'furn_clay', 'matting'];
+/** D-325: the carpets' material: the woven textile's surface with the knotted pile's normal map (tools/blender/carpet_pile.py:
+ *  12 x 12 knots per 2 cm tile, the Pazyryk density) laid in world x-z on the upward faces; the plain textile without it */
+function carpetMaterial(): THREE.Material {
+  const pile = propTexture('carpet_pile_n'); if (!pile) return surfaceMaterial('furn_textile', { vertexColors: true });
+  return surfaceMaterial('furn_textile', { vertexColors: true, variant: 'carpet', modify: L => {
+    const t = texture(pile, positionWorld.xz.div(0.02)).xy.mul(2).sub(1), up = smoothstep(0.6, 0.9, normalWorld.y), k = 0.9;
+    const tilt = vec3(t.x, 0, t.y.negate()).mul(up.mul(k));
+    return { ...L, tilt: L.tilt ? L.tilt.add(tilt) : tilt };
+  } });
+}
+const VC = new Set<Mat>(MATS); // (D-325: all: the occlusion of the modelled pieces rides in the vertex colours)
 /** the palaces' furnishings in both states: one merged mesh per building, state and material; colliders of the current
  *  state; `setCourt` switches between them (the court setting only) */
 export class PalaceFurnishings {
@@ -362,7 +400,7 @@ export class PalaceFurnishings {
         for (const mat of MATS) for (const geo of P[mat] ?? []) { geo.applyMatrix4(m4); (acc[mat] ??= []).push(geo); const o = (owners[mat] ??= []); for (let t = 0; t < geo.getAttribute('position').count / 3; t++) o.push(idx); } });
       for (const mat of MATS) { const list = acc[mat]; if (!list?.length) continue;
         const geo = mergeGeometries(list)!; for (const x of list) x.dispose(); geo.computeBoundingSphere();
-        const mesh = new THREE.Mesh(geo, surfaceMaterial(mat, VC.has(mat) ? { vertexColors: true } : {})); mesh.name = `${g.name}:${mat}`; mesh.castShadow = true; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false;
+        const mesh = new THREE.Mesh(geo, mat === 'furn_carpet' ? carpetMaterial() : surfaceMaterial(mat, VC.has(mat) ? { vertexColors: true } : {})); mesh.name = `${g.name}:${mat}`; mesh.castShadow = true; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false;
         const own = owners[mat]!;
         mesh.userData = { tier: 'C', src: 'TREAS-AUD;HDT;PAZYRYK;ASB-GARDEN;ESTHER-1.6;RECON', note: `${b} furnishings, ${st === 'use' ? 'laid out for the court (court setting, in residence)' : 'the court away: stored, covered, the steward\'s minimum'} (D-212, C)`,
           describe: (h: any) => { const it = items[own[h?.faceIndex ?? -1]]; return it ? { tier: 'C', src: 'RECON', note: `${it.kind} in the ${b} ${it.room}: ${it.note}` } : null; } };

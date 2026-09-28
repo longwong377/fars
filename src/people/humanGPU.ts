@@ -67,7 +67,7 @@ export class HumanGPU {
   palette: Float32Array; prevPalette: Float32Array; person: Float32Array;
   capacity: number;
   private personDirty = true;
-  constructor(readonly A: HumanAssets, readonly O: OutfitBuild, images: { skin: THREE.Texture; eye: THREE.Texture; scans?: HumanScans | null; hairAtlas?: THREE.Texture | null; hairNormal?: THREE.Texture | null; cards?: CardsMeta | null }, opts: { capacity?: number; velocity?: boolean; castShadow?: boolean } = {}) {
+  constructor(readonly A: HumanAssets, readonly O: OutfitBuild, images: { skin: THREE.Texture; eye: THREE.Texture; scans?: HumanScans | null; hairAtlas?: THREE.Texture | null; hairNormal?: THREE.Texture | null; cards?: CardsMeta | null; simCloth?: boolean }, opts: { capacity?: number; velocity?: boolean; castShadow?: boolean } = {}) {
     this.group.name = 'people:humans';
     this.capacity = Math.max(16, opts.capacity ?? 256);
     const rows = Math.ceil(O.source.length / 4 / SOURCE_WIDTH);
@@ -80,6 +80,8 @@ export class HumanGPU {
       // D-304: the scanned skin and cloth layers, and each body variant's light- and dark-toned skin layer
       scans: images.scans ?? null, skinLayers: images.scans ? A.variants.map((v, i) => skinLayersOf(v.meta, i, images.scans!.skinIds)) : [],
       // D-307: the strand atlas of the hair cards and its layout (null: no cards were built into the costumes)
+      simCloth: !!images.simCloth, // D-322: the garments' simulated folds are in their geometry
+      groups: A.variants.map(v => (v.meta.group === 'child' ? 2 : v.meta.sex === 'f' ? 1 : 0)), // (D-322: the fold layers' channel per body variant)
       hairAtlas: images.hairAtlas && images.cards ? images.hairAtlas : null, cards: images.hairAtlas && images.cards ? { cols: images.cards.atlas.cols, rows: images.cards.atlas.rows.length, classRows: images.cards.classRows, w: images.cards.atlas.w, h: images.cards.atlas.h, levels: Math.floor(Math.log2(Math.max(images.cards.atlas.w, images.cards.atlas.h))) + 1,
         // D-323: the normal atlas (same cells, its own size)
         normal: images.hairNormal && images.cards.normal ? { w: images.cards.normal.w, h: images.cards.normal.h, levels: Math.floor(Math.log2(Math.max(images.cards.normal.w, images.cards.normal.h))) + 1 } : null } : null,
@@ -102,14 +104,15 @@ export class HumanGPU {
     }
   }
   /** one instanced mesh for a costume LOD (plain Mesh + InstancedBufferGeometry: the material places every instance).
-   *  Three interleaved vertex buffers (WebGPU allows 8): per-vertex floats (position, normal, uv, tid), per-vertex bytes
+   *  Three interleaved vertex buffers (WebGPU allows 8): per-vertex floats (position, normal, uv, tid, fold atlas uv), per-vertex bytes
    *  (skin indices, weights, material, extras), per-instance floats (slot, root, previous root). */
   makeMesh(C: CostumeLOD, material: THREE.Material, castShadow: boolean, initial = 64): CostumeMesh {
     const g = new THREE.InstancedBufferGeometry(); const n = C.tid.length;
-    const F = new Float32Array(n * 9); for (let i = 0; i < n; i++) { F.set(C.refPos.subarray(i * 3, i * 3 + 3), i * 9); F.set(C.refNrm.subarray(i * 3, i * 3 + 3), i * 9 + 3); F[i * 9 + 6] = C.uv[i * 2]; F[i * 9 + 7] = C.uv[i * 2 + 1]; F[i * 9 + 8] = C.tid[i]; }
-    const fb = new THREE.InterleavedBuffer(F, 9);
+    // (D-322: + the garments' fold atlas coordinate, fuv; −1 where none)
+    const F = new Float32Array(n * 11); for (let i = 0; i < n; i++) { F.set(C.refPos.subarray(i * 3, i * 3 + 3), i * 11); F.set(C.refNrm.subarray(i * 3, i * 3 + 3), i * 11 + 3); F[i * 11 + 6] = C.uv[i * 2]; F[i * 11 + 7] = C.uv[i * 2 + 1]; F[i * 11 + 8] = C.tid[i]; const fu = (C as { fuv?: Float32Array }).fuv; F[i * 11 + 9] = fu ? fu[i * 2] : -1; F[i * 11 + 10] = fu ? fu[i * 2 + 1] : -1; }
+    const fb = new THREE.InterleavedBuffer(F, 11);
     g.setAttribute('position', new THREE.InterleavedBufferAttribute(fb, 3, 0)); g.setAttribute('normal', new THREE.InterleavedBufferAttribute(fb, 3, 3));
-    g.setAttribute('uv', new THREE.InterleavedBufferAttribute(fb, 2, 6)); g.setAttribute('tid', new THREE.InterleavedBufferAttribute(fb, 1, 8));
+    g.setAttribute('uv', new THREE.InterleavedBufferAttribute(fb, 2, 6)); g.setAttribute('tid', new THREE.InterleavedBufferAttribute(fb, 1, 8)); g.setAttribute('fuv', new THREE.InterleavedBufferAttribute(fb, 2, 9));
     const B = new Uint8Array(n * 16); for (let i = 0; i < n; i++) { B.set(C.skinIndex.subarray(i * 4, i * 4 + 4), i * 16); B.set(C.skinWeight.subarray(i * 4, i * 4 + 4), i * 16 + 4); B.set(C.hmat.subarray(i * 4, i * 4 + 4), i * 16 + 8); B.set(C.hext.subarray(i * 4, i * 4 + 4), i * 16 + 12); }
     const bb = new THREE.InterleavedBuffer(B, 16);
     g.setAttribute('skinIndex', new THREE.InterleavedBufferAttribute(bb, 4, 0, true)); g.setAttribute('skinWeight', new THREE.InterleavedBufferAttribute(bb, 4, 4, true));

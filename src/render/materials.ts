@@ -13,12 +13,13 @@
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
 import { receiveReliefShadow, RELIEF_SHADOW_FLAG } from './reliefShadow';
 import * as THREE from 'three/webgpu';
-import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt } from 'three/tsl';
+import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, normalGeometry, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt } from 'three/tsl';
 import { MASONRY, courseTexels } from './masonry';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
+import { blockFaceLoaded, blockFaceDetail, BF_ON, ADIST_OFF } from './blockface';
 import { incisionNodes } from './incision';
 import type { Atlas } from '../arch/carving';
 import { roofedNode } from './probes/roofs';
@@ -129,6 +130,9 @@ export interface SurfaceDef {
   /** masonry joints (D-029): course height and block length (m, C pattern), joint width (m) and how much a joint darkens the
    *  albedo inside it. Drawn as an anti-aliased hairline (box-filtered over the pixel footprint), never as a sunk groove */
   joints?: Joints; metal?: number; tier: string; note: string;
+  /** D-321: the block faces take the Blender-carved detail set (blockface.ts): tool marks in each block's frame, margin strokes and
+   *  chips along its arrises (strips), worn stair nosings; 'rough': the point-dressed layer and the pitched arrises (the foot) */
+  blockFace?: 'dressed' | 'rough';
   /** procedural relief (m): amplitude of the height field used for the shading normal, and its base frequency (1/m) */
   bump?: { amp: number; freq: number };
   /** use another surface on up-facing faces (e.g. the Terrace platform: ashlar retaining walls, fill on top) */
@@ -295,10 +299,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // Persepolis light grey limestone, freshly dressed (LIMESTONE above: stone B, N7 C). Ashlar dry-laid
   // without mortar (SITE_SPEC terrace.wall_material, B: 'dry-laid'; Grand Stair 'dry-jointed', B) and, by the Achaemenid
   // practice of anathyrosis (recollection, C; Q-071), fitted to hairline joints: 0.8 mm (C), not a sunk mortar groove
-  limestone: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, stone: STONE, soil: SOIL, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, wear: { alb: 0.05, rough: 0.2 }, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed light grey limestone (Iranica, B), dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo N7 = 42 % C (D-188) pending calibration photo (NEEDS #13); D-230: block tone 1σ 13 % from the site photographs (the least weathered in-situ stone, Apadana E stair #29; the weathered walls #24 show 27 %, mostly weathering; B40); D-218: rounded arrises, laminae, stylolites, pits, chisel facets (C, Q-480); stairs in blocks of 4–5 steps (B, Grand Stair; others C), treads foot-polished (C)' },
+  limestone: { blockFace: 'dressed', albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, stone: STONE, soil: SOIL, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, wear: { alb: 0.05, rough: 0.2 }, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed light grey limestone (Iranica, B), dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo N7 = 42 % C (D-188) pending calibration photo (NEEDS #13); D-230: block tone 1σ 13 % from the site photographs (the least weathered in-situ stone, Apadana E stair #29; the weathered walls #24 show 27 %, mostly weathering; B40); D-218: rounded arrises, laminae, stylolites, pits, chisel facets (C, Q-480); stairs in blocks of 4–5 steps (B, Grand Stair; others C), treads foot-polished (C)' },
   // the merlons (D-218, rubric s7 fix 10: 'box stacks'): each a monolith of the same stone, its own tone, no joints across it
   // (it sits on its coping on the chamfered foot joint), dust on the step ledges and faint run-off under them (C)
-  limestone_merlon: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, blockTone: 0.13, joints: HAIRLINE, stone: STONE, monolith: { w: 0.9, h: 0.9, steps: 4, dust: 0.14, runoff: 0.07 }, tone: { sd: 0.075, chroma: 0.01 }, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'four-stepped merlon: one block of the dressed light grey limestone (monolith C), its own tone, dust on the ledges and run-off (C, D-218)' },
+  limestone_merlon: { blockFace: 'dressed', albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, blockTone: 0.13, joints: HAIRLINE, stone: STONE, monolith: { w: 0.9, h: 0.9, steps: 4, dust: 0.14, runoff: 0.07 }, tone: { sd: 0.075, chroma: 0.01 }, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'four-stepped merlon: one block of the dressed light grey limestone (monolith C), its own tone, dust on the ledges and run-off (C, D-218)' },
   // carved members (column bases, shafts and capitals, colossi, relief figures): the same stone with no masonry joints drawn
   // (the block layout of carved members is unknown; a joint may cross a carving only as a hairline) and a finer, rubbed
   // finish (D-029, C)
@@ -342,7 +346,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
   // limestone dressing chips over the levelled platform (C)
   court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.015 }, macro: { sd: 0.08, chroma: 0.015 }, debris: true, traffic: true, pebbles: { cover: 0.07, size: 0.45, albedo: [0.66, 0.64, 0.59] }, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
-  terrace: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: RETAINING, blockTone: 0.13, stone: STONE, soil: SOIL_TERRACE, runoffLen: 6, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); D-232: the joint layout measured on photographs #24 and #33 (SITE_SPEC terrace.r_masonry: course heights 0.45-1.65 m, blocks 1.2-7 m, split blocks, a polygonal foot of large blocks and dressed bedrock on the W and S walls, the Grand Stair recess with jogged beds and leaning joints; C); open court surface C (Q-027)' },
+  terrace: { blockFace: 'dressed', albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: RETAINING, blockTone: 0.13, stone: STONE, soil: SOIL_TERRACE, runoffLen: 6, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); D-232: the joint layout measured on photographs #24 and #33 (SITE_SPEC terrace.r_masonry: course heights 0.45-1.65 m, blocks 1.2-7 m, split blocks, a polygonal foot of large blocks and dressed bedrock on the W and S walls, the Grand Stair recess with jogged beds and leaning joints; C); open court surface C (Q-027)' },
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
   rubble: { albedo: LIMESTONE, roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips: the Terrace limestone (albedo as `limestone`, D-188)' },
 };
@@ -350,12 +354,17 @@ export const SURFACES: Record<string, SurfaceDef> = {
  *  retaining walls' layout of D-232 on its walls */
 /** D-300: the foot's proud blocks (src/arch/terrace_foot.ts): the retaining walls' stone and layout, no court fill on their up-facing
  *  ledges (the platform's top takes court_fill; a block's top is its own stone, dusty) */
-SURFACES.terrace_foot = { ...SURFACES.terrace, top: undefined, note: SURFACES.terrace.note + '; D-300: the polygonal foot as proud blocks (Q-600, C)' };
+SURFACES.terrace_foot = { ...SURFACES.terrace, top: undefined, blockFace: 'rough', note: SURFACES.terrace.note + '; D-300: the polygonal foot as proud blocks (Q-600, C)' };
+/** D-321: limestone blocks as they come from the quarry and are being worked (the masons' blocks at their places, the yard's
+ *  quarry-rough drums: people/crowd.ts, world/construction.ts): the Terrace's stone, point-dressed on every side (the carved set's
+ *  rough layers), no joints; up-facing faces take the claw (the top being dressed). Was 'rubble' (the fords' stones) */
+SURFACES.stone_rough = { ...SURFACES.limestone, joints: undefined, stone: undefined, soil: undefined, foot: 0, wear: undefined, runoff: 0, blockFace: 'rough', note: 'limestone blocks being worked: quarry-rough, point-dressed faces, the top being dressed with the claw (construction in 467 B; block size and working C; D-217, D-321)' };
 SURFACES.terrace_now = { ...SURFACES.limestone, joints: { ...RETAINING, blockSd: 0.27 }, note: SURFACES.limestone.note + '; D-232: the Terrace walls\' photographed joint layout (terrace.r_masonry); D-300: the ruin\'s block tone, 1σ 0.27 between blocks as measured on #24 (D-230, B40), in the Now view only (the 467 stone keeps 0.13)' };
 
-/** shading normal from a procedural height field (view space; surface-gradient method, Mikkelsen 2010) */
-function bumped(h: any) {
-  const dpdx = positionView.dFdx(), dpdy = positionView.dFdy(), n = normalView;
+/** shading normal from a procedural height field (view space; surface-gradient method, Mikkelsen 2010), around the
+ *  geometric normal or around `base` (a mapped normal: the relief atlas's carving, D-320) */
+function bumped(h: any, base: any = null) {
+  const dpdx = positionView.dFdx(), dpdy = positionView.dFdy(), n = base ?? normalView;
   const r1 = dpdy.cross(n), r2 = n.cross(dpdx), det = dpdx.dot(r1);
   const grad = sign(det).mul(h.dFdx().mul(r1).add(h.dFdy().mul(r2)));
   return abs(det).mul(n).sub(grad).normalize();
@@ -560,7 +569,7 @@ export function styloMean(S: StoneDef['stylo']) { let s = 0; const N = 256; for 
 /** the stone inside a block (StoneDef, D-218): `q` = the face's own 2-D frame (m: along the course or x, up the wall or z),
  *  `vs` = 1 on vertical faces, `id` = the block's random values, `fp` = the pixel footprint (m). Returns the albedo factor,
  *  a height to add and a tilt in the face frame (radians along q.x, q.y) */
-function stoneDetail(S: StoneDef, q: any, vs: any, id: Ids, fp: any) {
+function stoneDetail(S: StoneDef, q: any, vs: any, id: Ids, fp: any, noTool = false) {
   // bedding laminae: bands along the bed on vertical faces (slightly wavy, varying along the block), a stretched mottle on
   // bedding planes (up-facing). Per-block amplitude 0.25–1.75 × beds; each octave band-limited (fades under ~3–7 px)
   const amp = float(S.beds * LAM_NORM).mul(float(0.25).add(id.c.mul(1.5))).mul(SURF_AB);
@@ -581,9 +590,13 @@ function stoneDetail(S: StoneDef, q: any, vs: any, id: Ids, fp: any) {
   const near = float(1).sub(smoothstep(0.25, 0.6, fwidth(cq).length()));
   const pitN = float(1).sub(smoothstep(r.mul(0.75), r, wv));
   const pit = mix(float(1).sub(exp(r.mul(r).mul(-Math.PI))), pitN, near).mul(SURF_AB);
-  f = f.mul(float(1).sub(pit.mul(S.pits.dark))).div(mix(float(1), float(pitMean(S.pits)), SURF_AB));
-  let h: any = pitN.mul(near).mul(-S.pits.depth).mul(SURF_AB);
+  // (D-321: with the carved block faces the moulds read as dust-filled cavities of a fresh face, not black pepper: a third as dark, less than half as deep)
+  const PT = noTool ? { ...S.pits, dark: S.pits.dark * 0.3, depth: S.pits.depth * 0.4 } : S.pits;
+  f = f.mul(float(1).sub(pit.mul(PT.dark))).div(mix(float(1), float(pitMean(PT)), SURF_AB));
+  let h: any = pitN.mul(near).mul(-PT.depth).mul(SURF_AB);
   // the tool: chisel facets along a per-block stroke direction (45° ± 40°), each tilted; fine striations inside them
+  // (D-321: when the Blender-carved block faces are loaded they carry the tool marks: none drawn here)
+  if (noTool) return { f, h, tf: vec2(0, 0) };
   const ang = float(Math.PI / 4).add(id.b.sub(0.5).mul(1.4)), cs = cos(ang), sn = sin(ang);
   const u = q.x.mul(cs).add(q.y.mul(sn)), v = q.y.mul(cs).sub(q.x.mul(sn));
   const iv = floor(v.div(S.tool.w)), iu = floor(u.div(S.tool.l).add(hash12(iv, 1.7)));
@@ -603,7 +616,7 @@ function stoneDetail(S: StoneDef, q: any, vs: any, id: Ids, fp: any) {
  *  band limit and 1σ is unchanged */
 export const NOISE_FRAME: [number, number, number][] = [[0.89157, -0.37121, 0.25944], [0.45289, 0.73077, -0.51075], [0, 0.57287, 0.81965]];
 const latticeFree = (p: any) => vec3(dot(p, v3(NOISE_FRAME[0])), dot(p, v3(NOISE_FRAME[1])), dot(p, v3(NOISE_FRAME[2])));
-export interface Layer { alb: any; rough: any; height: any | null; tilt?: any }
+export interface Layer { alb: any; rough: any; height: any | null; tilt?: any; /** D-321: ambient occlusion (the material's aoNode) */ ao?: any }
 /** albedo, roughness and height of one surface definition (before weather). `arch`: the architecture's own meshes, whose
  *  vertices carry the part's base height (`y0`) and, on hall floors, the floor's box (`pbox`: centre x, z, half size x, z) */
 function layer(d: SurfaceDef, base: any, arch = false): Layer {
@@ -622,7 +635,8 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
   if (d.tone) alb = alb.mul(toneFactor(pr, d.tone));
   let rough: any = float(d.roughness);
   if (d.roughVar) rough = rough.mul(float(1).add(mx_noise_float(p.mul(0.9).add(3.7)).mul(0.7).add(mx_noise_float(p.mul(3.1).add(1.3)).mul(0.3)).mul(d.roughVar))).clamp(0.04, 1);
-  let height: any = null, tilt: any = undefined;
+  let height: any = null, tilt: any = undefined, bfAo: any = null;
+  const BF = !!d.blockFace && blockFaceLoaded(); // D-321: the Blender-carved block faces (blockface.ts), when loaded
   if (d.bump) { // two octaves of relief: broad undulation (trowel / settling) + fine grain
     // band-limited by the pixel footprint as the micro grain is (D-217): an octave whose period spans under ~3 px fades to
     // its mean. Unfiltered, the fine octave (5.3 × freq: 0.31 m on the Naqsh cliff) aliased from 200 m and its screen-space
@@ -723,7 +737,7 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     if (J.tilt) tilt = Tq1.mul(ids.a.mul(2).sub(1)).add(Tq2.mul(ids.e.mul(2).sub(1))).mul(J.tilt).mul(vert.add(flat)).mul(SURF_AB);
     if (d.stone) {
       const q = mix(vec2(p.x, p.z), vec2(t, p.y), vs);
-      const R = stoneDetail(d.stone, q, vs, ids, fwidth(p).length().max(1e-6));
+      const R = stoneDetail(d.stone, q, vs, ids, fwidth(p).length().max(1e-6), BF);
       alb = alb.mul(R.f); height = (height ?? float(0)).add(R.h);
       const tq = Tq1.mul(R.tf.x).add(Tq2.mul(R.tf.y)); tilt = tilt ? tilt.add(tq) : tq;
     }
@@ -731,6 +745,16 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     // geometry's own frame: x across −w/2…w/2, y up from the foot)
     const pg = positionGeometry, sw = M.w / 2 / M.steps, sh = M.h / M.steps;
     const top = min(float(M.steps), floor(float(M.w / 2 + 0.002).sub(abs(pg.x)).div(sw)).add(1)).mul(sh), below = top.sub(pg.y).max(0);
+    if (BF) { // D-321: the monolith's dressed face and its own arrises: the stepped outline in the geometry's frame (x across, y up):
+      // across to the outline at this height, up to the ledge above, on its front and back faces; the direction away from the
+      // arris from the surface gradient of that distance (the instance's orientation is not known here)
+      const halfW = float(M.w / 2).sub(floor(pg.y.div(sh)).min(M.steps - 1).mul(sw)), dM = min(halfW.sub(abs(pg.x)), top.sub(pg.y)).max(0);
+      const dpx = p.dFdx(), dpy = p.dFdy(), r1 = dpy.cross(n), r2 = n.cross(dpx), detM = dpx.dot(r1);
+      const gM = r1.mul(dM.dFdx()).add(r2.mul(dM.dFdy())).mul(sign(detM)).div(detM.abs().max(1e-12)), TawM = gM.div(gM.length().max(1e-6)), TalM = n.cross(TawM);
+      const BFd = blockFaceDetail({ u: mix(p.x, t, vs), v: mix(p.z, p.y, vs), T1: Tq1, T2: Tq2, ids, isFlat: float(1).sub(vs), isPoint: float(0),
+        bed: { d: dM, along: p.dot(TalM), Talong: TalM, Taway: TawM, mask: step(0.7, abs(normalGeometry.z)), side: step(halfW.sub(abs(pg.x)), top.sub(pg.y)) } });
+      tilt = tilt ? tilt.add(BFd.tilt) : BFd.tilt; alb = alb.mul(BFd.alb); bfAo = BFd.ao;
+    }
     const st = smoothstep(0.1, 0.7, mx_noise_float(vec3(p.x.mul(9), p.y.mul(0.8), p.z.mul(9)).add(vec3(3.3, 1.1, 7.7))).mul(0.5).add(0.5));
     alb = alb.mul(float(1).sub(st.mul(float(1).sub(smoothstep(0.02, 0.2, below))).mul(vert).mul(M.runoff).mul(SURF_AB)));
     alb = mix(alb, DIRT, flat.mul(M.dust).mul(smoothstep(-0.3, 0.3, mx_noise_float(p.mul(4.1).add(vec3(1.3, 0, 5.5))))).mul(SURF_AB));
@@ -808,11 +832,40 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     if (d.stone) {
       // face frame: (along the course or x, up the wall or z); the steps' faces use the same world frame
       const q = mix(vec2(p.x, p.z), vec2(t, p.y), vs);
-      const R = stoneDetail(d.stone, q, vs, ids, fwidth(p).length().max(1e-6));
+      const R = stoneDetail(d.stone, q, vs, ids, fwidth(p).length().max(1e-6), BF);
       const worn = float(1).sub(polish.mul(0.8)); // the treads' tool marks and pit edges worn smooth where they are polished
       alb = alb.mul(R.f); height = (height ?? float(0)).add(R.h.mul(worn));
       const Tq1 = mix(vec3(1, 0, 0), vec3(tx, 0, tz), vs), Tq2 = mix(vec3(0, 0, 1), vec3(0, 1, 0), vs);
       tilt = tilt.add(Tq1.mul(R.tf.x).add(Tq2.mul(R.tf.y)).mul(worn));
+    }
+    if (BF) { // D-321: the Blender-carved block face (blockface.ts): the tool's marks in the block's own frame, the margin strokes
+      // and chips of its arrises (the nearest bed and head joints), the stair nosings worn by the feet
+      const uF = mix(mix(p.x, t, vs), across, isStep), vF = mix(mix(p.z, p.y, vs), mix(along, p.y, vs), isStep);
+      const isPoint = d.blockFace === 'rough' ? float(1) : RW ? RW.inFoot.mul(vs) : float(0); // (the foot's rough-dressed blocks)
+      const isFlat = float(1).sub(vs).mul(float(1).sub(isPoint)); // treads, landings, the tops of walls: the flat chisel
+      // the nosing: a tread's front arris, a riser's top (the step's own arris; the row joint is the treads' other "bed")
+      const isTread = isStep.mul(float(1).sub(vs)).mul(flat), isRiser = isStep.mul(vs).mul(step(0.7, dot(n, vec3(sdx, 0, sdz)).negate()));
+      const yTop = arch ? attribute('ytop', 'float') : p.y;
+      const dN = mix(mix(big, along.add(tHalf), isTread), yTop.sub(p.y), isRiser), nose = step(dN, dB);
+      const TawN = T2.mul(float(1).sub(isRiser.mul(2))); // away from the nosing: back along the tread, down the riser
+      // the part's own free arrises (meshes.ts 'adist': the bevelled edges no other part continues): the nearest of the face's
+      // four, its direction from the surface gradient of the distance (affine over a planar face: exact inside it)
+      const AD = arch ? attribute('adist', 'vec4').add(ADIST_OFF) : vec4(1e3, 1e3, 1e3, 1e3), dA = min(min(AD.x, AD.y), min(AD.z, AD.w));
+      const dpx = p.dFdx(), dpy = p.dFdy(), r1 = dpy.cross(n), r2 = n.cross(dpx), detA = dpx.dot(r1);
+      const gA = r1.mul(dA.dFdx()).add(r2.mul(dA.dFdy())).mul(sign(detA)).div(detA.abs().max(1e-12));
+      const TawA = gA.div(gA.length().max(1e-6)), TalA = n.cross(TawA), geo = step(dA, min(dB, dN)).mul(step(dA, 0.13));
+      const alongB = RW && polyV ? mix(uF, t.mul(RW.eDir.y.negate()).add(p.y.mul(RW.eDir.x)), polyV) : uF;
+      const TalB = RW && polyV ? mix(T1, vec3(tx, 0, tz).mul(RW.eDir.y.negate()).add(vec3(0, 1, 0).mul(RW.eDir.x)), polyV) : T1;
+      const BFd = blockFaceDetail({ u: uF, v: vF, T1, T2, ids, isFlat, isPoint,
+        bed: { d: min(min(dB, dN), dA), along: mix(alongB, p.dot(TalA), geo), Talong: mix(TalB, TalA, geo), Taway: mix(mix(T2b.mul(sB), TawN, nose), TawA, geo), mask: max(jmask, geo), side: mix(mix(step(0, sB), float(0.5), nose), float(0.75), geo) },
+        head: { d: dH, along: vF, Talong: T2, Taway: T1.mul(sH), mask: jmask.mul(headMask), side: step(0, sH) } });
+      tilt = tilt.add(BFd.tilt); alb = alb.mul(BFd.alb); bfAo = BFd.ao;
+      if (arch && d.stone?.polish) { // the nosing rounded by the feet: r 4 mm at a flight's ends … 18 mm in its walked middle (C)
+        const lat = abs(across.sub(B.y.mul(sdx).sub(B.x.mul(sdz)))).div(wHalf), r = mix(float(0.004), float(0.018), float(1).sub(smoothstep(0.3, 0.9, lat)));
+        const x = clamp(r.sub(dN).div(r), 0, 0.93), tanT = x.div(sqrt(float(1).sub(x.mul(x))));
+        const vis = float(1).sub(smoothstep(0.4, 1.2, fwidth(dN).div(r))).mul(isTread.add(isRiser)).mul(BF_ON);
+        tilt = tilt.sub(TawN.mul(tanT.mul(vis))); // the normal turns toward the arris over the rounding
+      }
     }
     if (d.soil) { // D-285: ~50 years of soiling, structured by the joints (SoilDef; CPU mirror tests/lib/stone_cpu.ts soilAt)
       const So = d.soil, onFace = vs.mul(float(1).sub(isStep)).mul(SURF_D285);
@@ -846,6 +899,16 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
       alb = alb.mul(float(1).add(hsh.mul(d.blockTone)));
     }
     rough = mix(rough, float(1), line);
+    if (BF) { // D-321: the Blender-carved block face in this pattern's blocks (the same cells as the joints and the block tone)
+      const vs = step(0.5, vert), hl = vec2(n.x, n.z).length().max(1e-3), tx = n.z.div(hl), tz = n.x.negate().div(hl), t = p.x.mul(tx).add(p.z.mul(tz));
+      const sc = s.add(step(0.5, fract(p.y.div(J.course * 2))).mul(J.block / 2)), fy = fract(p.y.div(J.course)), fb = fract(sc.div(J.block));
+      const ids = blockIds(floor(sc.div(J.block)), floor(p.y.div(J.course)));
+      const T1 = mix(vec3(1, 0, 0), vec3(tx, 0, tz), vs), T2 = mix(vec3(0, 0, 1), vec3(0, 1, 0), vs), dir = sign(tx.add(tz)); // (s = x + z runs along ±T1)
+      const BFd = blockFaceDetail({ u: mix(p.x, t, vs), v: mix(p.z, p.y, vs), T1, T2, ids, isFlat: float(1).sub(vs), isPoint: float(d.blockFace === 'rough' ? 1 : 0),
+        bed: { d: min(fy, float(1).sub(fy)).mul(J.course), along: t, Talong: T1, Taway: T2.mul(step(fy, 0.5).mul(2).sub(1)), mask: vs, side: step(fy, 0.5) },
+        head: { d: min(fb, float(1).sub(fb)).mul(J.block), along: p.y, Talong: T2, Taway: T1.mul(dir).mul(step(fb, 0.5).mul(2).sub(1)), mask: vs, side: step(fb, 0.5) } });
+      tilt = tilt ? tilt.add(BFd.tilt) : BFd.tilt; alb = alb.mul(BFd.alb); bfAo = BFd.ao;
+    }
   }
   // the masons' yard (D-188): 0…1 inside the yard (soft 1.5 m edges, ragged) and round a block in work
   let debris: any = null;
@@ -1012,7 +1075,12 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     alb = mix(alb, DIRT, dust.mul(0.3));
     rough = mix(rough, float(0.9), dust.mul(0.7));
   }
-  return { alb, rough, height, tilt };
+  if (BF && !d.joints && !bfAo) { // D-321: dressed stone without a drawn joint pattern (kerbs, well heads): the claw face in the face's own frame
+    const vs = step(0.5, float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))), hl = vec2(n.x, n.z).length().max(1e-3), tx = n.z.div(hl), tz = n.x.negate().div(hl);
+    const BFd = blockFaceDetail({ u: mix(p.x, p.x.mul(tx).add(p.z.mul(tz)), vs), v: mix(p.z, p.y, vs), T1: mix(vec3(1, 0, 0), vec3(tx, 0, tz), vs), T2: mix(vec3(0, 0, 1), vec3(0, 1, 0), vs), ids: blockIds(float(0.5), float(0.5)), isFlat: float(0), isPoint: d.blockFace === 'rough' ? vs : float(0) }); // (rough: the sides point-dressed, the top clawed)
+    tilt = tilt ? tilt.add(BFd.tilt) : BFd.tilt; alb = alb.mul(BFd.alb); bfAo = BFd.ao;
+  }
+  return { alb, rough, height, tilt, ...(bfAo ? { ao: bfAo } : {}) };
 }
 /** the earth's albedo (linear): what splash and dust at a wall's foot tend toward (D-157) */
 const DIRT = vec3(...(SURFACES.earth.albedo.map(c => srgbToLinear(c) * 0.9) as [number, number, number]));
@@ -1048,11 +1116,11 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   // (a surface with a top layer keeps its procedural roughness: the merged session-11 render found a 17-sampler pipeline with the
   // Terrace platform at the node limit (wall scan, its roughness and normal maps, the court's scan); the scene's lights add a
   // varying number on the page, so the platform keeps one sampler of headroom)
-  let L = opts.scan === false ? layer(d, base, !!opts.arch) : applyScan(name, layer(d, base, !!opts.arch), !!(d.top && SURFACES[d.top]));
+  let L = opts.scan === false ? layer(d, base, !!opts.arch) : applyScan(name, layer(d, base, !!opts.arch), !!(d.top && SURFACES[d.top]), !!d.blockFace && blockFaceLoaded());
   if (d.top && SURFACES[d.top]) { // up-facing faces use another surface (sharp transition at the arris)
     // (the top layer's scan without its roughness map: the Terrace platform stood at 17 samplers with the wall's normal map, D-300)
     const T = applyScan(d.top, layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch), true); const t = smoothstep(0.7, 0.9, n.y);
-    L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
+    L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined, ...(L.ao ? { ao: mix(L.ao, float(1), t) } : {}) };
   }
   if (name === 'earth') { // D-300: the Now view's gravel forecourt (NOW_GROUND, NOW_GRAVEL), identity in the 467 world
     const G = NOW_GRAVEL, pw = positionWorld, e = pw.x, nn = pw.z.negate();
@@ -1121,6 +1189,7 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const nb = L.height ? bumped(L.height.mul(flatten)) : null;
   if (L.tilt) m.normalNode = (nb ?? normalView).add(cameraViewMatrix.mul(vec4(L.tilt.mul(flatten), 0)).xyz).normalize();
   else if (nb) m.normalNode = nb;
+  if (L.ao) m.aoNode = L.ao; // D-321: the carved block faces' baked AO (the ambient light only)
   // sky specular (D-157): the smoother surfaces reflect the sky environment (radiance only; envmap.ts)
   if (wantsSkySpecular(d)) {
     if (m instanceof SurfaceNodeMaterial) m.skySpecular = true;
@@ -1143,12 +1212,15 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
  *  as a yellow film for that reason); here the lighting model reflects the skylight into the metal's specular lobe: the
  *  radiance round the reflection is taken as the skylight's irradiance at the point / pi (the hemisphere light, through the
  *  light probes indoors, so gold in a doorway is as dim as the doorway). Arithmetic masks only (D-012). */
-export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
-  const key = 'painted-stone'; const hit = cache.get(key); if (hit) return hit;
+export function paintedStoneMaterial(atlas: ReliefAtlasMaps | null = null): THREE.MeshStandardNodeMaterial {
+  const key = atlas ? `painted-stone:atlas:${atlas.nao.uuid}` : 'painted-stone'; const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES.limestone_carved, F = (PC as any).paint.film.v, LS = (PC as any).paint.loss.v, G = (PC as any).paint.gold.v;
   const p = positionWorld;
   const S = applyScan('limestone_carved', layer(d, lin(d.albedo))); // D-300: the bare stone between and under the paint takes the carved stone's scan
-  const pig = attribute('color', 'vec3'), cov = attribute('paint', 'float'), gilt = attribute('gilt', 'float');
+  // the paint, the gilding and the carving's occlusion: per vertex, or (D-320) from the carved-relief atlas at the vertex's
+  // `ruv` (arch/relief_atlas.ts: u, v, layer, depth-ratio correction)
+  const A = atlas ? reliefAtlasNodes(atlas) : null;
+  const pig = A ? A.pig : attribute('color', 'vec3'), cov = A ? A.cov : attribute('paint', 'float'), gilt = A ? A.gilt : attribute('gilt', 'float');
   // the paint's noise fields are faded to their mean where their period falls under ~3 pixels (D-204): the ~7 mm losses and the
   // pigment grain, point-sampled per pixel from a few metres away, turned every painted surface into salt-and-pepper speckle
   // and broke the paint edge along each outline into dots. The pixel footprint is |fwidth(world position)| in metres
@@ -1164,7 +1236,7 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   const gold = vec3(G.f0[0], G.f0[1], G.f0[2]).mul(float(1).add(mx_noise_float(p.mul(G.grain_freq)).mul(G.grain_amp)));
   // the carving's own sky occlusion (D-217, relief_field.carvingOcclusion): the skylight at the foot of each contour and in
   // the folds scaled by 1 − 0.85 × occlusion, and grime held in the recesses (up to 15 % darker, C)
-  const occ = clamp(attribute('ao', 'float'), 0, 1);
+  const occ = A ? A.occ : clamp(attribute('ao', 'float'), 0, 1);
   const L: Layer = { alb: mix(mix(S.alb, pig.mul(grain), film), gold, leaf).mul(float(1).sub(occ.mul(0.15))), rough: mix(mix(S.rough, float(F.roughness), film), float(G.roughness), leaf), height: (S.height ?? float(0)).add(film.add(leaf).mul(F.relief)) };
   class GiltLighting extends (THREE as any).PhysicalLightingModel {
     indirectSpecular(builder: any) {
@@ -1175,13 +1247,39 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   }
   const m = new THREE.MeshStandardNodeMaterial();
   finish(m, L, d);
+  // D-320: the atlas's carved surface is the shading normal; the stone's and the paint film's own fine relief bumped round it
+  if (A) m.normalNode = bumped(L.height ?? float(0), A.normal);
   m.aoNode = float(1).sub(occ.mul(0.85));
   m.metalnessNode = leaf;
   receiveReliefShadow(m); // the figures' shadows on themselves (D-226)
   (m as any).setupLightingModel = () => new GiltLighting();
-  m.userData = { surface: 'limestone_carved', scan: scanOf('limestone_carved'), tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
+  m.userData = { surface: 'limestone_carved', scan: scanOf('limestone_carved'), tier: 'C', ...(atlas ? { atlas: 'relief (D-320)' } : {}), note: (atlas ? 'the carving, paint and occlusion read from the carved-relief atlas baked by Blender (D-320); ' : '') + 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
   cache.set(key, m);
   return m;
+}
+
+/** the carved-relief atlas's two array textures (D-320; arch/relief_atlas.ts, render/reliefAtlas.ts) */
+export interface ReliefAtlasMaps { nao: THREE.Texture; paint: THREE.Texture }
+/** what the relief material reads from the atlas at the vertex's `ruv` (u, v, layer, ratio): the paint (colour, coverage), the
+ *  gilding, the sky occlusion (1 - the baked ambient occlusion), and the carved surface's normal in view space. The baked
+ *  normal is the surface's at the definition's baked depth ratio (x along the figure, y up, z out of the wall); its slopes
+ *  (x/z, y/z) scale with the instance's depth ratio (ruv.w = its ratio over the baked one), and the wall's frame (the
+ *  geometry's normal and tangent, turned by the instance's matrix: arch/reliefs.ts lodGeometryAtlas) takes it to view space */
+function reliefAtlasNodes(atlas: ReliefAtlasMaps) {
+  const r = attribute('ruv', 'vec4'), uv = r.xy;
+  const layered = (t: any) => t.isCompressedArrayTexture || t.isDataArrayTexture || t.isArrayTexture;
+  // the layer, rounded: the interpolated constant comes out a hair under the integer on some pixels, and the sampler truncates
+  const layer = r.z.add(0.5).floor();
+  const at = (t: THREE.Texture) => (layered(t) ? texture(t, uv).depth(layer) : texture(t, uv));
+  const P = at(atlas.paint), N = at(atlas.nao);
+  const bx = N.r.mul(2).sub(1), by = N.g.mul(2).sub(1), bz = float(1).sub(bx.mul(bx)).sub(by.mul(by)).max(0.0025).sqrt();
+  const nT = vec3(bx.div(bz).mul(r.w), by.div(bz).mul(r.w), float(1)).normalize();
+  // the wall's frame in view space: every relief stands on a vertical wall with the figure's up = the world's up (arch/reliefs.ts
+  // placements; tests/relief_atlas.test.ts), so the bitangent is the world's up, the tangent up x normal, turned by the
+  // geometry's mirror sign (tangent.w). Instanced meshes (the rosettes) do not turn a tangent attribute by the instance
+  // matrix, so the frame is built here and not from TBNViewMatrix
+  const Nv = normalView, up = cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz.normalize(), T = up.cross(Nv).normalize().mul(attribute('tangent', 'vec4').w);
+  return { pig: P.rgb, cov: P.a, gilt: N.a, occ: float(1).sub(N.b), normal: T.mul(nT.x).add(up.mul(nT.y)).add(Nv.mul(nT.z)).normalize() };
 }
 
 /** Incised signs (D-177; src/render/incision.ts): the host stone's own surface (the same world-space layer and weather as the
@@ -1192,7 +1290,8 @@ export function incisedMaterial(surface: string, atlas: Atlas): THREE.MeshStanda
   const key = `incised:${surface}:${atlas.tex.uuid}`; const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES[surface] ?? SURFACES.limestone;
   const m = new SurfaceNodeMaterial();
-  finish(m, applyScan(SURFACES[surface] ? surface : 'limestone', layer(d, lin(d.albedo))), d); // D-300: the cut shows the host face's scanned grain (the same world-space tiles)
+  // (D-321: without the carved block face: the incision draws its own normal and AO over it, and its sampler would be spent for nothing)
+  finish(m, applyScan(SURFACES[surface] ? surface : 'limestone', layer({ ...d, blockFace: undefined }, lin(d.albedo))), d); // D-300: the cut shows the host face's scanned grain (the same world-space tiles)
   const I = incisionNodes(atlas);
   m.normalNode = I.normalView; m.aoNode = I.ao; m.opacityNode = I.mask; m.alphaTest = 0.5;
   m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -4;
@@ -1266,4 +1365,16 @@ export function propMaterialMulti(kinds: string[]): THREE.MeshStandardNodeMateri
   const scans = kinds.map(q => scanOf(`prop_${q}`));
   m.userData = { surface: `prop_${kinds.join('+')}`, scan: scans.every(Boolean) ? scans.join('+') : null, tier: 'C', note: `furnishings of ${kinds.join(', ')} merged into one draw (grain: the CC0 scans, D-301)` };
   propCache.set(key, m); return m;
+}
+
+/** D-325: what the carried props' and the work objects' vertices are made of (their 'ak' attribute: an index here); each kind
+ *  lays its CC0 scan (scans.ts SCAN_USE prop_<kind>) over the written colour, as propMaterialMulti does for the rooms' pieces */
+export const PROP_SCAN_KINDS = ['wood', 'metal', 'textile', 'clay', 'wicker', 'stone'] as const;
+/** the colour, roughness and normal nodes of per-vertex coloured props under their scans (by the vertex's kind attribute),
+ *  for materials built elsewhere (the crowd's instanced props: people/crowd.ts). Identity in node (no scans): the plain colour */
+export function propScanNodes(base: any, rough: any, kindAttr = 'ak'): { color: any; rough: any; normal: any | null } {
+  const k = attribute(kindAttr, 'float'); let alb: any = vec3(0), r: any = float(0), h: any = float(0), anyH = false;
+  PROP_SCAN_KINDS.forEach((kind, i) => { const w = float(1).sub(step(0.5, abs(k.sub(i)))), L = applyScan(`prop_${kind}`, { alb: base, rough, height: null } as Layer, true);
+    alb = alb.add(L.alb.mul(w)); r = r.add(L.rough.mul(w)); if (L.height) { h = h.add(L.height.mul(w)); anyH = true; } });
+  return { color: alb, rough: r, normal: anyH ? bumped(h) : null };
 }

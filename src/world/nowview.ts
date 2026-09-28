@@ -18,7 +18,7 @@ import { buildMeshes, carvedMaterial, flatMaterial } from '../arch/meshes';
 import { colossusFrontProjections } from '../arch/sculpt';
 import { surfaceMaterial, paintedStoneMaterial, NOW_GROUND, type Layer } from '../render/materials';
 import { setRoofsPresent } from '../render/probes/roofs';
-import { setReliefMaterialOverride } from '../arch/reliefs';
+import { setReliefMaterialOverride, reliefPaintMaterial } from '../arch/reliefs';
 import { nowParts, NOW_DATA, type NowResult } from '../arch/now';
 
 const ALL: Material[] = ['limestone', 'limestone_dark', 'mudbrick', 'mudbrick_painted', 'plaster', 'plaster_red', 'timber', 'glazed', 'earth', 'scaffold', 'rubble', 'bronze', 'court_fill', 'terrace', 'steel'];
@@ -151,7 +151,7 @@ export class NowView {
     const painted = paintedStoneMaterial();
     for (const k of this.o.keep ?? []) k.traverse(o => {
       const m = o as THREE.Mesh; if (!(m as any).isMesh || Array.isArray(m.material)) return;
-      const to = m.material === painted ? this.reliefNow! : this.swapMap.get(m.material as THREE.Material);
+      const to = m.material === painted || (m.material as any).userData?.atlas ? this.reliefNow! : this.swapMap.get(m.material as THREE.Material); // (the relief atlas's material too, D-320)
       if (to) { this.swapped.push({ o: m, was: m.material }); m.material = to; }
     });
     setReliefMaterialOverride(this.reliefNow);
@@ -163,7 +163,7 @@ export class NowView {
     for (const { o, was } of this.swapped) o.material = was; this.swapped = [];
     // relief LODs streamed while the view was on carry the Now material: back to the paint
     const painted = paintedStoneMaterial();
-    for (const k of this.o.keep ?? []) k.traverse(o => { const m = o as THREE.Mesh; if ((m as any).isMesh && m.material === this.reliefNow) m.material = painted; });
+    for (const k of this.o.keep ?? []) k.traverse(o => { const m = o as THREE.Mesh; if ((m as any).isMesh && m.material === this.reliefNow) m.material = m.geometry.hasAttribute('ruv') ? reliefPaintMaterial(true) : painted; }); // (atlas levels: the atlas material, D-320)
     setReliefMaterialOverride(null);
     setRoofsPresent(true); NOW_GROUND.value = 0;
     if (this.group) this.group.visible = false;
