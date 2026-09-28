@@ -167,3 +167,45 @@ function coveredTop(b: Box, grid: Grid): boolean {
   }
   return hit > n / 2;
 }
+
+// ---- the wall feet (D-334): where the mud brick meets the stone ---------------------------------------------------------
+// The plastered walls stood on the stone floors and platforms (or on the red lime-plaster floor coats of the halls, Stein et al.
+// 2016: B) and the floor's coat was turned up against the wall's foot (a cove), outside the renewed mud skirting thickened into
+// a low fillet where it met the paving (both C, the region's plastered building). Drawn along every free foot of a finished
+// mud-brick wall: a strip FOOT.h high standing FOOT.proud out of the face, in the floor coat's material in front of it
+// (plaster_red in the halls, mud elsewhere).
+export const FOOT = { h: 0.07, proud: 0.035, sample: 0.5 };
+export function wallFeet(parts: Part[]): Box[] {
+  const out: Box[] = [];
+  const boxes = parts.filter(p => p.type === 'box' && !p.door && !p.sculpt && !(p.kind || '').startsWith('ceiling')) as Box[];
+  const grid = new Grid(boxes.filter(b => b.kind !== 'floor_finish' && b.kind !== 'frieze' && b.kind !== 'roof'));
+  const finishes = new Grid(boxes.filter(b => b.kind === 'floor_finish'));
+  const prisms = parts.filter(p => p.type === 'prism') as Extract<Part, { type: 'prism' }>[];
+  const floorAt = (e: number, n: number, y: number, self: Box) => {
+    // a floor (any part whose top is at the wall's foot) under the point in front
+    const b = grid.at(e, n, y - 0.03, self, q => Math.abs(q.y1 - y) < 0.03); if (b) return true;
+    return prisms.some(p => Math.abs(p.y1 - y) < 0.03 && pointIn(e, n, p.polygon));
+  };
+  for (const w of boxes) {
+    if (!w.material.startsWith('mudbrick') || underConstruction(w) || !['wall', 'tower', 'curtain', 'storerooms'].includes(w.kind) || w.y1 - w.y0 < 1) continue;
+    for (const sd of sides(w)) {
+      const L = Math.hypot(sd.b[0] - sd.a[0], sd.b[1] - sd.a[1]), ux = (sd.b[0] - sd.a[0]) / L, uy = (sd.b[1] - sd.a[1]) / L;
+      const nS = Math.max(1, Math.round(L / FOOT.sample)), st = L / nS, mat: (string | null)[] = [];
+      for (let i = 0; i < nS; i++) {
+        const s = (i + 0.5) * st, e = sd.a[0] + ux * s + sd.n[0] * 0.1, n = sd.a[1] + uy * s + sd.n[1] * 0.1;
+        if (grid.at(e, n, w.y0 + 0.05, w)) { mat.push(null); continue; } // another part stands against the foot here
+        const f = finishes.at(e, n, w.y0 + 0.005);
+        mat.push(f ? f.material : floorAt(e, n, w.y0, w) ? 'mudbrick' : null);
+      }
+      for (let i = 0; i < nS;) {
+        const k = mat[i]; let j = i; while (j < nS && mat[j] === k) j++;
+        const s0 = i * st, s1 = j * st; i = j; if (!k || s1 - s0 < 0.4) continue;
+        const f0 = k === 'mudbrick' ? w.y0 : w.y0 + 0.01; // (on the red floor's 1 cm coat)
+        out.push(runBox({ building: w.building, material: k as Material, tier: 'C', src: 'RECON;STEIN2016', placeholder: false }, sd, s0, s1, FOOT.proud, FOOT.proud + 0.05, f0, f0 + FOOT.h, 'wall_foot',
+          k === 'mudbrick' ? 'the mud skirting thickened into a fillet at the paving (D-334, C)' : 'the floor coat turned up against the wall foot (D-334, C)'));
+      }
+    }
+  }
+  return out;
+}
+function pointIn(x: number, y: number, p: [number, number][]) { let ins = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) ins = !ins; } return ins; }

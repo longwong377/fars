@@ -210,6 +210,11 @@ export interface SurfaceDef {
   runoffLen?: number; footH?: number;
   /** D-285: ~50 years of soiling on dressed stone (SoilDef) */
   soil?: SoilDef;
+  /** D-334: painted plaster inside the halls and rooms (arch meshes: the vertex attribute 'inner' marks a face that looks into a
+   *  roofed room, meshes.ts PAINTED_INTERIORS): the wall's ground in `ground` (sRGB) over the plaster's own grain; a dado to `dado.h`
+   *  m over the floor in `dado.col`, edged above by bands (`bands`: colour and width, bottom up); a frieze band `frieze.h` m
+   *  deep under the ceiling in `frieze.col`, edged below by `frieze.edge` */
+  paint?: { ground: [number, number, number]; dado: { h: number; col: [number, number, number] }; bands: { col: [number, number, number]; w: number }[]; frieze: { h: number; col: [number, number, number]; edge: { col: [number, number, number]; w: number } } };
   /** D-285: the plastering campaign and the weather on a mud-plastered wall (PlasterWeatherDef) */
   plasterWeather?: PlasterWeatherDef;
 }
@@ -298,6 +303,18 @@ const PLASTER_WEATHER: PlasterWeatherDef = { lift: [1.1, 1.7], bay: 3.0, sd: 0.0
 export const STAIR_BLOCK = { length: 1.9, jitter: 0.6, rowJoint: 0.06 };
 /** the worn arris as a normal (D-218): the tangent added per unit of the lip's pixel coverage (0.84 ≈ the lip's mean slope, 40°) */
 export const ARRIS_K = 0.84;
+/** D-334 (Q-922; C): the palaces' painted interiors, the most probable scheme from the evidence (D-207): Pasargadae's palace P
+ *  earthen plasters painted with a greyish yellow-green clay ground under white, moderate red and moderate blue layers 'forming
+ *  a geometric design' (Aloiz, Douglas and Nagel 2016, npj Heritage Science 4, read in full this session: B there), the same
+ *  greyish yellow-green clay paint on the Persepolis Treasury's walls (Schmidt, via the same paper: B), red and white and
+ *  Egyptian blue in the Terrace's painted plaster and floors (RELIEFS_AND_COLOUR §5, B). The layout (a red dado with white and
+ *  blue bands over it, a red frieze with a white edge under the ceiling) and the tones are C */
+export const PALACE_PAINT: NonNullable<SurfaceDef['paint']> = {
+  ground: [0.6, 0.6, 0.47],
+  dado: { h: 0.95, col: [0.55, 0.26, 0.2] },
+  bands: [{ col: [0.86, 0.84, 0.78], w: 0.05 }, { col: [0.32, 0.43, 0.6], w: 0.06 }, { col: [0.86, 0.84, 0.78], w: 0.03 }],
+  frieze: { h: 0.45, col: [0.55, 0.26, 0.2], edge: { col: [0.86, 0.84, 0.78], w: 0.04 } },
+};
 export const SURFACES: Record<string, SurfaceDef> = {
   // Persepolis light grey limestone, freshly dressed (LIMESTONE above: stone B, N7 C). Ashlar dry-laid
   // without mortar (SITE_SPEC terrace.wall_material, B: 'dry-laid'; Grand Stair 'dry-jointed', B) and, by the Achaemenid
@@ -321,10 +338,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // with straw, finished fine: a light buff (sRGB 0.64/0.55/0.43, L* 60, the town render's hue lightened as a fine clay
   // finish dries, C). The greyish yellow-green clay paint is attested only for the Treasury (Schmidt) and at
   // Pasargadae: `mudbrick_painted` below, used by the Treasury alone
-  mudbrick: { albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483); D-300: the shrinkage cracks at 0.3 and the salt line at 0.08 of their D-188/D-218 strength (the session-11 blind review: Voronoi craze patches and a decal-like base line); the hand-laid undulation ±12 mm at ~0.9 m (the second review: "single flat planes" at 24 m)' },
+  mudbrick: { paint: PALACE_PAINT, albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483); D-300: the shrinkage cracks at 0.3 and the salt line at 0.08 of their D-188/D-218 strength (the session-11 blind review: Voronoi craze patches and a decal-like base line); the hand-laid undulation ±12 mm at ~0.9 m (the second review: "single flat planes" at 24 m)' },
   // the Treasury's walls: mud plaster coated with a greyish yellow-green clay paint, attested at Pasargadae and, per
   // Schmidt, on the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone C
-  mudbrick_painted: { albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
+  mudbrick_painted: { paint: PALACE_PAINT, albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.08 }, runoff: 0.1, plasterWork: { float: 1, cracks: 0.3 }, plasterWeather: PLASTER_WEATHER, bump: { amp: 0.012, freq: 1.1 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, tone: { sd: 0.09, chroma: 0.015, patch: 0.05 }, foot: 1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
@@ -339,6 +356,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // SITE_SPEC C; matting under the earth is the region's flat-roof build-up, RECOLLECTION, C). Reed, aged under the roof
   // and a little smoked: sRGB 0.55/0.47/0.33 (C)
   roof_timber: { albedo: [0.57, 0.44, 0.32], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, under: 'matting', top: 'roof_earth', tier: 'C', note: 'roof: cedar beams (SITE_SPEC, C) with reed matting on the ceiling (C, D-188) and the earth on top (D-334: was drawn as cedar planks)' },
+  // D-334: the bare courses of the walls still rising in 467 (the Hall of 100 Columns, the Tripylon; renderMaterial, meshes.ts):
+  // square sun-dried bricks 33 cm, 13 cm a course with its mud mortar joint (bricks of the Terrace's walls: C here), laid in
+  // running bond, each brick its own tone, the mortar darker and a little sunk; the straw-tempered earth of a clay block scan
+  mudbrick_bare: { albedo: [0.6, 0.52, 0.41], roughness: 0.95, porosity: 0.85, noiseScale: 0.8, noiseAmp: 0.08, joints: { course: 0.13, block: 0.33, width: 0.016, dark: 0.22, warmCool: 0.02 }, blockTone: 0.08, foot: 1, bump: { amp: 0.004, freq: 2 }, micro: { amp: 0.0008, freq: 45, alb: 0.06 }, tier: 'C', note: 'the bare mud-brick courses of a wall under construction in 467 (C, D-334)' },
   // D-334: the roofs' earth (and the exposed tops of towers and the curtain): packed earth under a clay-and-straw coat, rolled
   // and renewed before the rains (the region's kahgel, IR-VERNROOF-SX: an ethnographic analogy, C; the Terrace's roofs 'earth'
   // in SITE_SPEC, C); the house roofs' tone (D-223), a little paler for a royal roof's fresher coat; the Blender bake
@@ -1054,6 +1075,22 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     // (a soft band ~4 cm either side, not a line: the first render drew a 2.4 mm-sharp line that read as a wire at dusk)
     const salt = float(1).sub(smoothstep(float(0), aa.add(0.04), abs(h.sub(dampTop)))).mul(smoothstep(-0.2, 0.3, mx_noise_float(along.mul(0.9).add(vec3(4.4, 0, 9.2))))).mul(on);
     alb = mix(alb, vec3(0.78, 0.77, 0.74), salt.mul(K.salt));
+  }
+  if (arch && d.paint) { // D-334: the painted interiors (inner faces only): the ground and the bands over the plaster's own grain
+    const PT = d.paint, inner = attribute('inner', 'float').mul(float(1).sub(smoothstep(0.3, 0.7, abs(n.y)))).mul(SURF_AB);
+    const h = p.y.sub(attribute('y0', 'float')), ht = attribute('ytop', 'float').sub(p.y), aa = fwidth(p.y).max(1e-4);
+    const L0 = new THREE.Color().setRGB(...d.albedo, THREE.SRGBColorSpace), rel = (c: [number, number, number]) => { const q = new THREE.Color().setRGB(...c, THREE.SRGBColorSpace); return vec3(q.r / L0.r, q.g / L0.g, q.b / L0.b); }; // paint over plaster: the plaster's grain stays, its mean becomes the paint's
+    const inBand = (x: any, a: number, b: number) => smoothstep(float(a).sub(aa), float(a).add(aa), x).mul(float(1).sub(smoothstep(float(b).sub(aa), float(b).add(aa), x)));
+    let f: any = rel(PT.ground) as any;
+    // the painted edges wander a few millimetres (brushed, not ruled)
+    const wob = mx_noise_float(vec3(p.x, float(0), p.z).mul(3.1)).mul(0.008);
+    const hh = h.add(wob), tt = ht.add(wob);
+    f = mix(f, rel(PT.dado.col), float(1).sub(smoothstep(float(PT.dado.h).sub(aa), float(PT.dado.h).add(aa), hh)).mul(step(-0.01, h)));
+    let y = PT.dado.h; for (const B of PT.bands) { f = mix(f, rel(B.col), inBand(hh, y, y + B.w)); y += B.w; }
+    f = mix(f, rel(PT.frieze.col), float(1).sub(smoothstep(float(PT.frieze.h).sub(aa), float(PT.frieze.h).add(aa), tt)).mul(step(-0.01, ht)));
+    f = mix(f, rel(PT.frieze.edge.col), inBand(tt, PT.frieze.h, PT.frieze.h + PT.frieze.edge.w));
+    alb = mix(alb, alb.mul(f), inner);
+    rough = mix(rough, rough.mul(0.94), inner); // a paint film a little less matte than bare mud
   }
   if (arch && d.runoff) { // run-off below the tops of exposed stone (D-157, C): streaks fast across the face, slow down it
     const below = attribute('ytop', 'float').sub(p.y), vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));

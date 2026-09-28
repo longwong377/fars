@@ -43,6 +43,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // windows Ystd/Y 0.062 at 1 cm/px) in place of Brown Mud Dry (a gravelly soil, 0.31: the Gate's walls read as sandpaper)
   mudbrick: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.6, height: 0.003, rough: 0.4, nor: 2.0 },
   mudbrick_painted: { scan: 'clay_floor_001', scale: 2.2, scale2: 9.7, alb: 0.5, height: 0.003, rough: 0.4, nor: 2.0 },
+  mudbrick_bare: { scan: 'clay_block_wall', scale: 1.9, alb: 0.5, height: 0.003, rough: 0.4 }, // D-334: the walls under construction
   // D-334: the palaces' roofs and exposed tops: the rolled clay-and-straw coat (a clay plaster scan; the roller, straw and cracks baked)
   roof_earth: { scan: 'clay_plaster', scale: 2.4, scale2: 10.3, alb: 0.6, height: 0.003, rough: 0.4 },
   house_brick: { scan: 'brown_mud_dry', scale: 1.5, alb: 0.6, height: 0.004, rough: 0.4 },
@@ -110,7 +111,7 @@ const BAKE = new Map<string, THREE.Texture>();
  *  (no fitting scan: judged by T-A4): bronze, the glazed brick, the red-painted floors, reed matting, cloth */
 export const ALB_MIN = 0.3;
 export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark',
-  'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted', 'roof_earth',
+  'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted', 'roof_earth', 'mudbrick_bare',
   'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
   'refuse', 'timber', 'roof_timber', 'house_timber', 'scaffold'].map(k => [k, true]));
 /** the scan applied to a surface at a strength that reads (T-A7's anti-proxy: alb >= ALB_MIN), or null; what the builders record
