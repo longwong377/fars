@@ -128,6 +128,7 @@ import { SmokeModel, type SmokeSite } from './hearthSmoke';
 import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
 import { DustSystem, type DustKind } from './dust';
+import { pt, pa } from '../core/prof';
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
@@ -580,48 +581,49 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     settle: (camera: THREE.Camera) => { arris.update(nowView.active ? null : camera.position, 1e9); /* rev 3: the bands round the spawn built in the load, not in the first frames */ view.settle(sim.t, [camera.position.x, -camera.position.z]); crowd.settleLooks(); return settleReliefs(camera.position); },
     update(dt: number, ctx: any) {
       time += dt;
-      updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
+      let tp = pt(); updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
       refreshReliefShadow(); // the relief shadow atlas's upload as its fields arrive (D-226)
       doors.view(ctx.camera.position);
-      arris.update(nowView.active ? null : ctx.camera.position, dt === 0 ? 1e9 : 3); // D-321 rev 2 (a test render builds all it needs at once)
+      pa('w.reliefs+doors', tp); tp = pt(); arris.update(nowView.active ? null : ctx.camera.position, dt === 0 ? 1e9 : 3); pa('w.arris', tp); tp = pt(); // D-321 rev 2 (a test render builds all it needs at once)
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
-      if (!nowView.active) syncTraffic(ctx.camera.position); // D-210: the drivers and riders on the roads, before the crowd draws them
+      pa('w.popview', tp); tp = pt(); if (!nowView.active) syncTraffic(ctx.camera.position); // D-210: the drivers and riders on the roads, before the crowd draws them
       dust.begin(ctx.camera.position); // D-220: this frame's dust emitters are reported while the crowd draws (begin BEFORE it: render 2 found none)
       solids.beginAnimals(); // this frame's animals are gathered as they are pushed (crowd and fauna, below)
-      crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
+      pa('w.traffic', tp); tp = pt(); crowd.update(time, ctx.camera.position, playerAt, ctx.camera); pa('w.crowd', tp); tp = pt();
       { const day = Math.floor(sim.t / 24), sun = sunTimes(day); // D-210: the animals of the town, the villages, the paradise and the river
         fauna.group.visible = !nowView.active;
         if (!nowView.active) fauna.update({ t: time, worldT: ctx.clock.t * 86400, hour: ctx.clock.localHour, day, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain }); }
-      { // D-220: what the households burn now → the fires' state and the smoke layer (recomputed when the minute or the wind changes)
+      pa('w.fauna', tp); tp = pt(); { // D-220: what the households burn now → the fires' state and the smoke layer (recomputed when the minute or the wind changes)
         const key = `${ctx.clock.dayIndex}|${Math.floor(ctx.clock.localHour * 60)}|${ctx.cond.windMs.toFixed(1)}|${Math.round(ctx.cond.windDirDeg)}|${Math.round(ctx.sky.sunAlt)}`;
         if (key !== smokeKey) { smokeKey = key; smoke.update(ctx.clock.dayIndex, ctx.clock.localHour, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.sky.sunAlt); }
         smoke.setFireLight(fire.fires, k => fireLight(k as FireKind).candela); // D-227: the fires' light on the layer from below (their lit state of the last frame)
         landSmoke.group.visible = !nowView.active; landSmoke.setSkyLight(ctx.skyLight); landSmoke.update(smoke.cells, ctx.camera.position); }
-      settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
+      pa('w.smoke', tp); tp = pt(); settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
       campTents?.update(ctx.player.position.x, ctx.player.position.z, 400, sim.t); // D-199; D-252: the tents standing now
-      fire.setSkyLight(ctx.skyLight);
+      pa('w.settlement', tp); tp = pt(); fire.setSkyLight(ctx.skyLight);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
-      { // D-220: dust from this frame's emitters (the crowd and its animals were drawn above), and the carts' wheels
+      pa('w.fire', tp); tp = pt(); { // D-220: dust from this frame's emitters (the crowd and its animals were drawn above), and the carts' wheels
         if (!nowView.active) for (const m of movers) if (m.kind === 'cart') dust.emit('cart', m.e, groundAt(m.e, m.n), -m.n, yawOf(m.heading * 180 / Math.PI), 0.9, m.key.length * 131 + Math.round(m.e));
         dust.group.visible = !nowView.active; dust.setSkyLight(ctx.skyLight); dust.update(time, ctx.camera, ctx.cond); }
       { // breath in the cold (session 9, G5): the people within BREATH_R and the walker's own, only when it can be seen
         const cold = !nowView.active && breathVisibility(ctx.cond.tempC, ctx.cond.rh) > 0.02; breath.group.visible = cold;
         if (cold) { breath.setSkyLight(ctx.skyLight); breath.update(time, ctx.camera, crowd.nearPeople(ctx.camera.position, BREATH_R, breathBuf), ctx.player ? { moving: false } : null, { tempC: ctx.cond.tempC, rh: ctx.cond.rh }); } }
-      plain.update(dt, ctx);
+      pa('w.dust+breath', tp); tp = pt(); plain.update(dt, ctx); pa('w.plain', tp); tp = pt();
       building?.sync(); // cheap unless a column changed state
       palace.update(ctx.camera.position, courtOn(Math.floor(sim.t / 24))); // D-212: stored / laid out for the court; far groups not drawn
       nowView.update(); // the Now view: colliders the town streams in meanwhile stay off
-      if (ctx.skyLight?.hemi) wvfx.setLight(ctx.skyLight.hemi, ctx.skyLight.sun ?? null); // streaks and flakes lit by the sky (D-219)
+      pa('w.palace', tp); tp = pt(); if (ctx.skyLight?.hemi) wvfx.setLight(ctx.skyLight.hemi, ctx.skyLight.sun ?? null); // streaks and flakes lit by the sky (D-219)
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
-      { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
+      pa('w.wvfx', tp); tp = pt(); { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
         devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
         if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
-      shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
+      pa('w.life+flora', tp); tp = pt(); shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)
+      pa('w.shafts', tp); tp = pt();
       if (audio.ctx) {
         const cam = ctx.camera, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
         audio.setListener(cam.position, fwd);
@@ -665,6 +667,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           worksite: null, workHours: hour > 6.5 && hour < 17.5, // chisels, querns, dice now come from the people (crowd.onHit)
           place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC }); // D-210: where the animals and insects are heard
       }
+      pa('w.audio', tp);
     },
     flash: () => lastFlash,
     /** dev overlay (F3): what is heard, with tiers, claims, occlusion and placeholders (§3.2; D-178) */

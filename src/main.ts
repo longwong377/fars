@@ -29,6 +29,7 @@ import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
+import { PROF, pt, pa, takeSections, PassLog } from './core/prof';
 import { probeEyeVisibility, probeVolumeExtent } from './render/probes/runtime';
 import { WEATHER, SEASON, BLOOM } from './render/materials';
 import { haloAmount } from './sky/halo';
@@ -75,7 +76,7 @@ async function boot() {
     // session 11: ask for the adapter's own sampled-texture limit (the default 16 blocked fire-light shadows, B24, and the
     // scanned surfaces; the T4 allows 48). Capped at 48; an adapter at 16 keeps 16.
     const requiredLimits = adapter ? { maxSampledTexturesPerShaderStage: Math.min(48, adapter.limits.maxSampledTexturesPerShaderStage) } : undefined;
-    renderer = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: !gpuOK, requiredLimits, reversedDepthBuffer: gpuOK && !P.has('noreverse'), logarithmicDepthBuffer: !gpuOK, trackTimestamp: P.has('bench') });
+    renderer = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: !gpuOK, requiredLimits, reversedDepthBuffer: gpuOK && !P.has('noreverse'), logarithmicDepthBuffer: !gpuOK, trackTimestamp: P.has('bench') || P.has('prof') });
     await renderer.init();
   } catch (e) {
     console.warn('WebGPU init failed, falling back to WebGL2', e);
@@ -224,6 +225,24 @@ async function boot() {
     setInput: (i: Partial<{ forward: number; right: number; run: boolean; yawDeg: number; pitchDeg: number }>) => { botInput = { ...botInput, ...i }; },
     playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, rescues: player.rescues, lastRescue: player.lastRescue, terrainColliders: phys.terrainChunks().length, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.surfaceAt(player.position.x, player.position.z) }),
     stats: () => ({ reliefs: reliefStats(), backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
+    /** D-337 (B125): n frames of the player's loop at this view (dt 1/60; the test world's per-frame extras off): CPU per section,
+     *  GPU per pass (timestamp queries with ?prof), the serialised frame (CPU + GPU) and the pipelined throughput */
+    profile: async (n = 30, dt = 1 / 60) => { const dev = (renderer.backend as any).device; const done = () => dev ? dev.queue.onSubmittedWorkDone() : Promise.resolve();
+      passLog ??= new PassLog(renderer); PROF.on = true; PLAYLIKE = true; const rows: any[] = [];
+      try { for (let i = 0; i < 3; i++) { await frame(dt); await done(); } takeSections(); await passLog.resolve();
+        for (let i = 0; i < n; i++) { const t0 = performance.now(); await frame(dt); const t1 = performance.now(); await done(); const t2 = performance.now();
+          const sec = takeSections(), g = await passLog.resolve(); rows.push({ cpu: t1 - t0, wall: t2 - t0, sec, gpu: g?.gpuMs ?? null, passes: g?.passes ?? [] }); }
+        PROF.on = false; await done(); const tp0 = performance.now(); for (let i = 0; i < n; i++) await frame(dt); await done(); const pipelined = (performance.now() - tp0) / n;
+        const med = (a: number[]) => { const b = a.filter(Number.isFinite).sort((x, y) => x - y); return b.length ? +b[Math.floor(b.length / 2)].toFixed(2) : null; };
+        const secs: Record<string, number | null> = {}; for (const k of new Set(rows.flatMap(r => Object.keys(r.sec)))) secs[k] = med(rows.map(r => r.sec[k] ?? 0));
+        const byLabel = new Map<string, { gpu: number[]; cpu: number[]; draws: number; tris: number; n: number }>();
+        for (const r of rows) { const seen = new Map<string, { gpu: number; cpu: number; draws: number; tris: number }>(); for (const p of r.passes) { const q = seen.get(p.label) ?? { gpu: 0, cpu: 0, draws: 0, tris: 0 }; q.gpu += p.gpu; q.cpu += p.cpu; q.draws += p.draws; q.tris += p.tris; seen.set(p.label, q); }
+          for (const [k, q] of seen) { const b = byLabel.get(k) ?? { gpu: [], cpu: [], draws: 0, tris: 0, n: 0 }; b.gpu.push(q.gpu); b.cpu.push(q.cpu); b.draws = q.draws; b.tris = q.tris; b.n = r.passes.filter((p: any) => p.label === k).length; byLabel.set(k, b); } }
+        const lastCls = new Map<string, Record<string, [number, number]>>(); for (const p of rows[rows.length - 1]?.passes ?? []) { const m = lastCls.get(p.label) ?? {}; for (const [k, v] of Object.entries(p.cls as Record<string, [number, number]>)) { const q = m[k] ?? [0, 0]; q[0] += v[0]; q[1] += v[1]; m[k] = q; } lastCls.set(p.label, m); }
+        const topCls = (m: Record<string, [number, number]> = {}) => Object.fromEntries(Object.entries(m).sort((x, y) => y[1][1] - x[1][1]).slice(0, 14).map(([k, v]) => [k, [v[0], Math.round(v[1])]]));
+        const passes = [...byLabel].map(([label, b]) => ({ label, n: b.n, gpu: med(b.gpu), cpu: med(b.cpu), draws: b.draws, tris: b.tris, cls: topCls(lastCls.get(label)) })).sort((a, b) => (b.gpu ?? 0) - (a.gpu ?? 0));
+        return { frames: n, cpuMs: med(rows.map(r => r.cpu)), serialMs: med(rows.map(r => r.wall)), gpuMs: med(rows.map(r => r.gpu)), pipelinedMs: +pipelined.toFixed(2), sections: secs, passes, draws: renderer.info.render.drawCalls, tris: renderer.info.render.triangles };
+      } finally { PROF.on = false; PLAYLIKE = false; } },
     renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
     /** a frame without rendering: the camera placed (view), the world updated (picks after a view or setTime; D-187) */
     tick: async () => { await frame(0, { render: false }); },
@@ -366,6 +385,8 @@ async function boot() {
   let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0, meterTex: Float32Array | null = null, meterBright = 0, meterMean = 0; // frame meter (D-159, D-224)
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
   let lastFrameMs = 0; let probeT = 0;
+  /** D-337: a frozen test world profiled as the player's loop runs it (the eye rays every 0.25 s, the meter read back without waiting) */
+  let PLAYLIKE = false; let passLog: PassLog | null = null;
 
   function simStep(dt: number, advanceClock = true) {
     if (advanceClock) clock.advance(dt);
@@ -408,7 +429,7 @@ async function boot() {
     overlay.frame(dt);
     const playing = shell.mode === 'playing' || TEST || P.has('bench');
     const tf0 = firstFrames > 0 ? performance.now() : 0;
-    if (playing && opts.sim !== false) simStep(dt, !TEST);
+    let tp = pt(); if (playing && opts.sim !== false) simStep(dt, !TEST); pa('simStep', tp);
     if (firstFrames > 0) TRACE(`frame ${3 - firstFrames}: simStep ${(performance.now() - tf0).toFixed(0)} ms`);
     const cond = weather.conditions(clock.dayIndex, clock.localHour);
     if (freeCam) { camera.position.set(freeCam.x, freeCam.y, freeCam.z); camera.rotation.set(freeCam.pitch, freeCam.yaw, 0, 'YXZ'); body.visible = false; }
@@ -422,9 +443,10 @@ async function boot() {
     }
     sky.groundSnow = cond.snowCover; // the ground's reflectance under snow (D-219)
     sky.halo = haloAmount(SEED, clock.dayIndex, cond.cloud, cond.rain, sky.state.sunAlt); // session 9: the 22 deg halo and sun dogs on cirrus days
-    sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: (clock.t % 7) * 86400 }, viewDir.set(0, 0, -1).applyEuler(camera.rotation));
+    tp = pt(); sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: (clock.t % 7) * 86400 }, viewDir.set(0, 0, -1).applyEuler(camera.rotation));
     if (P.get('hemi')) sky.hemi.intensity *= +P.get('hemi')!; if (P.has('noshadow')) sky.sun.castShadow = false;
     if (P.has('nosun')) sky.sun.intensity = 0; if (P.get('sbias')) sky.sun.shadow.bias = +P.get('sbias')!; // debug (diagnostic renders)
+    pa('sky.update', tp);
     if (scene.fog) (scene.fog as THREE.FogExp2).color.copy(sky.horizon); // the distance converges to the sky at the horizon (D-060)
     sky.air.setWeather({ haze: cond.haze, dust: cond.dust, mist: cond.mist, rain: cond.rain, snow: cond.snowFall }); // the air from the weather: terrain, clouds and ranges fade through it (D-156, D-064)
     // eye adaptation (C): exposure follows an estimate of the illuminance at the eye — sun + skylight scaled by the visible
@@ -432,9 +454,10 @@ async function boot() {
     adaptT += dt;
     // light probes in the roofed halls (D-113), upward rays elsewhere; every frame in frozen test renders (dt = 0 never
     // reached 0.25 s, so moments kept the first frame's value)
-    if (adaptT > 0.25 || skyVis < 0 || TEST) { adaptT = 0; probeVis = probeEyeVisibility(camera.position); rayVis = probeVis.w < 0.999 ? skyVisibility() : 1; skyVis = probeVis.w * probeVis.eye + (1 - probeVis.w) * rayVis;
+    tp = pt(); if (adaptT > 0.25 || skyVis < 0 || (TEST && !PLAYLIKE)) { adaptT = 0; probeVis = probeEyeVisibility(camera.position); rayVis = probeVis.w < 0.999 ? skyVisibility() : 1; skyVis = probeVis.w * probeVis.eye + (1 - probeVis.w) * rayVis;
       // the air inside the hall around the eye is lit by the hall's light, not the horizon's (session 5)
       sky.air.setInterior(probeVis.w > 0 ? probeVis.w * Math.min(1, probeVis.eye) + (1 - probeVis.w) : 1, probeVis.w > 0 ? probeVolumeExtent(camera.position) : 0); }
+    pa('eyeVis', tp);
     // the sun the eye has: above the terrain's horizon at the camera (D-156: Kuh-e Rahmat shades the Terrace at sunrise)
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) * sky.eyeSunVisibility : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position, camera.getWorldDirection(fireView)) : 0; // D-297: the light entering the eye
@@ -456,7 +479,7 @@ async function boot() {
     pipeline.setExposure(exposure / X_MAX, exposure); // bloom threshold in display terms once the exposure leaves the outdoor range; saturation cap
     const tu0 = performance.now();
     world.update?.(dt, { clock, cond, sky: sky.state, skyLight: sky, camera, player, settings }); // skyLight: horizon radiance and sun light (D-060)
-    tmesh.update(camera.position);
+    pa('world.update', tu0); tp = pt(); tmesh.update(camera.position); pa('terrain.update', tp);
     if (firstFrames > 0) TRACE(`frame ${3 - firstFrames}: world.update ${(performance.now() - tu0).toFixed(0)} ms`);
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();
     { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; const bl = bloomAt(doyOf(clock.dayIndex)); BLOOM.violet.value = bl.violet; BLOOM.yellow.value = bl.yellow; BLOOM.red.value = bl.red; }
@@ -470,16 +493,17 @@ async function boot() {
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the
     // session 2 bench and every renderOnce-based count measured that: 1 draw call, sub-millisecond "frames")
     if (!inAnimationLoop) { const nf = (renderer as any)._nodes?.nodeFrame; if (nf) { nf.update(); (renderer.info as any).frame = nf.frameId; } }
-    pipeline.render(scene, camera);
+    tp = pt(); pipeline.render(scene, camera); pa('render', tp);
     lastFrameMs = performance.now() - t0;
     if (firstFrames > 0) { TRACE(`frame ${3 - firstFrames}: render ${lastFrameMs.toFixed(0)} ms`); firstFrames--; }
     // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
     meterT += dt;
-    if (pipeline.meterTarget && !meterBusy && (TEST || meterT > 0.25)) {
+    tp = pt(); if (pipeline.meterTarget && !meterBusy && ((TEST && !PLAYLIKE) || meterT > 0.25)) {
       meterBusy = true; meterT = 0;
       const rd = renderer.readRenderTargetPixelsAsync(pipeline.meterTarget, 0, 0, METER_W, METER_H).then(px => { meterLn = meterLogMean(px as any); meterTex = meterTexels(px as any); }).catch(() => {}).finally(() => { meterBusy = false; });
-      if (TEST) await rd;
+      if (TEST && !PLAYLIKE) await rd;
     }
+    pa('meter', tp); tp = pt();
     { const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = now / 1000; }
       const P = (world as any).people; const hm = (t: number) => { const d = Math.floor(t / 24), h = t - d * 24; return `day ${d + 1}, ${Math.floor(h)}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };
       tl.update({ camera, inscriptions: inscGroup, subtitle: settings.nowView ? null : sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
@@ -495,6 +519,7 @@ async function boot() {
       // speech and music heard, with tiers, claims, occlusion and placeholders (world.soundLines; D-178)
       ...((world as any).soundLines?.() ?? [((s: any) => (s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}` : 'speech heard: none yet'))((world as any).lastSpoken)]),
     ]);
+    pa('ui', tp);
   }
   // load on start (audit D M9): the saved visit, unless a test world or ?newvisit; the title then offers to continue it
   const continued = P.get('loadsave') || (!TEST && !P.has('newvisit')) ? restore(await readSaveAsync() as any) : false;
