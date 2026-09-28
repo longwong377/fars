@@ -217,3 +217,8 @@ d71b85d9b48058ef68004f04f1b78acebefb9dfcf542e19b976a12a5ad1f10b0  voices/models/
 1ce846259ae04c572ae1863e358534bbc376ff3d3f100b1494feda6200b51de8  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/generation_config.json
 dd66608c2a4194e78f95548fa0e64f24302303698c5b09fa8e1f9e16ec00676b  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/onnx/decoder_model_merged_quantized.onnx
 5cde664eacba07a62f198857ec6c06e09572b1ebb77c8137f1fa99ac604a3a28  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/onnx/encoder_model_quantized.onnx
+992bd4ed610d644d6823081937bcc91bb8878dd556cea4ae5327f2480361330e  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/special_tokens_map.json
+8ac789ad7dabea44d41537822d48c516ba358374c51813e2cba78c006e150c94  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/tokenizer.json
+ddf411c9f790d081e72de76bb8e8b714d74e160e61bc10c9bd8f56022dcd7fd7  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/tokenizer_config.json
+75efe37fb015f22d82af367dcef974c39119fa4c6505d16a82d86f604a431f4e  voices/models/Xenova/wavlm-base-plus-sv/resolve/main/config.json
+22a38bdd854a11db171357cb997156511697d2f2c621d1262c82ba91b873d08b  voices/models/Xenova/wavlm-base-plus-sv/resolve/main/onnx/model.onnx
