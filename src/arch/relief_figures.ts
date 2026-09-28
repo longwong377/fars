@@ -85,11 +85,19 @@ const M = (add: SDF[], o: Partial<Mass> & { colour: Col; amp: number }): Mass =>
 const inc = (s: SDF, depth = 0.1, width = 0.0022): Incision => ({ s, depth, width });
 export interface Built { masses: Mass[]; incisions: Incision[] }
 
-// ---------------- the human head (profile facing +x; the neck meets the body at about (0.005, 0.74)) ----------------
+// ---------------- the human head (profile facing +x; the neck meets the body at about (0.004, 0.80)) ----------------
+/** D-320 round 3: the head's size, measured on the photographs of the Apadana E stair nobles (fars-assets/photos/apadana/
+ *  13502746_Medes_and_Persians_at_eastern_stairs_of_the_Apadana_Persepol.jpg, two Persian nobles 717 and 860 px tall: from
+ *  the top of the fluted hat to the foot of the beard 0.226 and 0.251 of the figure, the hat 0.096 and 0.084, the eye at
+ *  0.872 and 0.863, the beard's foot at 0.774 and 0.749; B). The head was drawn 0.335 of the figure (1.4x too large): it is
+ *  now drawn in a frame scaled by HEAD_SCALE about the hat's top (0.99), which gives 0.251, the hat 0.095, the eye 0.863 and
+ *  the beard's foot 0.739 */
+export const HEAD_SCALE = 0.75, HEAD_TOP = 0.99;
+const headFrame = (fr: Frame) => { const [ox, oy] = fr.p(0, HEAD_TOP * (1 - HEAD_SCALE)); return new Frame(ox, oy, fr.rot, fr.s * HEAD_SCALE, fr.flip); };
 export type Head = 'fluted' | 'cap' | 'band' | 'pointed' | 'hood' | 'bare' | 'crown' | 'fillet' | 'tallcap';
 export type Beard = 'long' | 'short' | 'none';
-export function humanHead(fr: Frame, head: Head, beard: Beard, hc: C3, HAIR: C3 = P.darkBlue): Built {
-  const ms: Mass[] = [], I: Incision[] = [];
+export function humanHead(fr0: Frame, head: Head, beard: Beard, hc: C3, HAIR: C3 = P.darkBlue): Built {
+  const ms: Mass[] = [], I: Incision[] = [], fr = headFrame(fr0);
   // cranium + face profile (forehead, straight nose, lips, chin)
   const face = fr.spoly([[-0.03, 0.855], [0.02, 0.856], [0.044, 0.838], [0.053, 0.816], [0.058, 0.805], [0.076, 0.774], [0.072, 0.768], [0.06, 0.766], [0.062, 0.759], [0.057, 0.753], [0.06, 0.744], [0.046, 0.728], [0.01, 0.728], [-0.02, 0.76]], 4);
   // the face rises toward the profile (brow, nose, lips carry the relief's highest line; the cheek recedes to the ear) with
@@ -102,22 +110,31 @@ export function humanHead(fr: Frame, head: Head, beard: Beard, hc: C3, HAIR: C3 
   I.push(...fr.caps([[0.016, 0.818], [0.034, 0.823], [0.051, 0.818]], 0.0004, 0.0004, 2).map(s => inc(s, 0.1, 0.002))); // brow
   I.push(inc(fr.seg(0.049, 0.759, 0.061, 0.7595, 0.0004), 0.1, 0.0016), inc(fr.ell(0.064, 0.774, 0.005, 0.003), 0.06, 0.0014)); // lips, nostril
   // hair bunched at the nape and the beard: dark blue (B), carved in rows of snail curls
-  const hairCurl = fr.det((x, y) => curls(x, y, 0.0122, 0.17));
-  if (head !== 'hood') ms.push(M([fr.spoly([[-0.028, 0.82], [-0.058, 0.818], [-0.082, 0.79], [-0.084, 0.757], [-0.066, 0.738], [-0.038, 0.744], [-0.024, 0.776]], 4)], { amp: 0.72, lift: 0.12, colour: HAIR, round: 0.016, detail: hairCurl, groove: 0.08 }));
+  // D-320 round 3 (fars-assets/photos/reliefs/94473576_AKS_0720.jpg, the guards' heads frontally, and 73117298_King_guard.jpg):
+  // the bunch at the nape is a mass of large snail curls reaching 0.57 of the way from the eye to the beard's foot, its curls
+  // 0.06 of the head's height (the beard's 0.05), in staggered rows (B)
+  const hairCurl = fr.det((x, y) => curls(x, y, 0.02, 0.19));
+  // the neck (bare stone, as the face), from under the jaw down into the shoulders; mostly hidden by the beard and the hair
+  ms.push(M([fr.seg(-0.006, 0.705, 0.0, 0.77, 0.03, 0.028)], { amp: 0.62, lift: 0.02, colour: STONE, round: 0.014 }));
+  if (head !== 'hood') ms.push(M([fr.spoly([[-0.028, 0.824], [-0.062, 0.824], [-0.092, 0.79], [-0.096, 0.735], [-0.076, 0.698], [-0.04, 0.708], [-0.024, 0.776]], 4)], { amp: 0.72, lift: 0.12, colour: HAIR, round: 0.016, detail: hairCurl, groove: 0.08 }));
   if (head === 'bare' || head === 'fillet' || head === 'band')
     ms.push(M([fr.spoly([[-0.058, 0.8], [-0.056, 0.842], [-0.028, 0.864], [0.016, 0.866], [0.042, 0.846], [0.03, 0.836], [-0.02, 0.836], [-0.038, 0.8]], 4)], { amp: 0.72, lift: 0.08, colour: HAIR, round: 0.012, detail: hairCurl }));
   if (beard !== 'none') {
     const bot = beard === 'long' ? 0.655 : 0.715;
     const b = fr.spoly([[0.004, 0.792], [0.022, 0.778], [0.043, 0.768], [0.054, 0.755], [0.068, 0.748], [0.074, 0.72], [0.072, bot + 0.012], [0.062, bot], [0.024, bot], [0.008, bot + 0.012], [-0.004, 0.74], [-0.004, 0.772]], 4);
-    ms.push(M([b], { amp: 0.8, lift: 0.14, colour: HAIR, round: 0.014, edge: 0.55, groove: 0.1, detail: fr.det((x, y) => (y > 0.746 ? curls(x, y, 0.0105, 0.15, 0.004, 0.002) : curls(x, y, 0.0122, 0.19, 0.0, 0.004))) }));
+    ms.push(M([b], { amp: 0.8, lift: 0.14, colour: HAIR, round: 0.014, edge: 0.55, groove: 0.1, detail: fr.det((x, y) => (y > 0.746 ? curls(x, y, 0.0125, 0.16, 0.004, 0.002) : curls(x, y, 0.0145, 0.19, 0.0, 0.004))) }));
     ms.push(M([fr.ell(0.054, 0.759, 0.012, 0.005, -0.2)], { amp: 0.84, lift: 0.1, colour: HAIR, round: 0.005, detail: fr.det((x, y) => curls(x, y, 0.008, 0.12)) })); // moustache
   }
   ms.push(M([fr.ell(-0.008, 0.796, 0.011, 0.018)], { amp: 0.76, lift: 0.1, colour: STONE, round: 0.008, groove: 0.08 })); // ear
   I.push(inc(fr.ell(-0.006, 0.796, 0.005, 0.01), 0.12, 0.0016));
   if (head === 'fluted') { // tall fluted hat (Persian dress, B): vertical flutes over a plain band
-    ms.push(M([fr.spoly([[-0.058, 0.816], [-0.04, 0.842], [0.05, 0.842], [0.058, 0.836], [0.067, 0.99], [0.03, 0.998], [-0.02, 0.997], [-0.067, 0.99]], 2)],
+    // D-320 round 3 (AKS photo, B): the top edge is the row of the flutes' rounded tips, rising a little to the front; under the
+    // band a row of snail curls frames the brow from the ear to the forehead
+    const tips: number[][] = []; for (let x = 0.067; x >= -0.067 - 1e-9; x -= 0.0135 / 4) { const q = (x + 0.067) / 0.0135, c = Math.abs(Math.cos(Math.PI * q)); tips.push([x, 0.984 + 0.006 * ((x + 0.067) / 0.134) + 0.006 * (1 - c * c)]); }
+    ms.push(M([fr.poly([[-0.058, 0.816], [-0.04, 0.842], [0.05, 0.842], [0.058, 0.836], ...tips])],
       { amp: 0.66, lift: 0.08, colour: hc, round: 0.016, dome: 0.3, domeW: 0.05, groove: 0.08, detail: fr.det((x, y) => (y > 0.864 ? flutes(x + 0.002, 0.0135, 0.2) : 0.04)) }));
     I.push(inc(fr.seg(-0.061, 0.864, 0.061, 0.864, 0.0005), 0.1, 0.0022));
+    ms.push(M([fr.spoly([[-0.03, 0.846], [0.046, 0.846], [0.054, 0.834], [0.046, 0.826], [0.02, 0.826], [-0.028, 0.83]], 3)], { amp: 0.74, lift: 0.08, colour: HAIR, round: 0.008, detail: fr.det((x, y) => curls(x, y, 0.0105, 0.16, 0.002, 0.0)) }));
   } else if (head === 'cap' || head === 'hood') { // soft rounded felt cap with a flap at the nape (Median dress; NS, C); the hood also covers the chin
     ms.push(M([fr.spoly([[0.047, 0.828], [0.056, 0.866], [0.036, 0.91], [-0.004, 0.926], [-0.05, 0.906], [-0.075, 0.86], [-0.082, 0.79], [-0.072, 0.742], [-0.05, 0.75], [-0.046, 0.81], [-0.02, 0.828]], 4)],
       { amp: 0.7, lift: 0.1, colour: hc, round: 0.02, dome: 0.4, domeW: 0.05, groove: 0.08, detail: fr.det((x, y) => pleats(Math.atan2(y - 0.8, x + 0.01), 0.35, 0.05)) }));
@@ -225,7 +242,8 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
   // pillow ("clay cut-outs", rubric s7 pass 2). D-226: the robe is a low plane cut back in a near-vertical step of 0.75 of
   // its height, its arris rounded over 0.012 (9 mm), a slight doming (0.15 over 0.06) left for the body under the cloth
   const BODY = { amp: 0.6, round: 0.012, edge: 0.75, dome: 0.15, domeW: 0.06, groove: 0.12, grooveW: 0.007 };
-  const body: SDF[] = [fr.spoly([[-0.064, 0.712], [-0.072, 0.64], [-0.066, 0.53], [-0.062, 0.49], [0.068, 0.49], [0.079, 0.58], [0.077, 0.655], [0.052, 0.708], [0.0, 0.724]]), fr.seg(0.0, 0.7, 0.012, 0.765, 0.031, 0.027)];
+  // D-320 round 3: the shoulders at 0.74 of the figure and the neck up into the head drawn at its measured size (the Apadana nobles, B)
+  const body: SDF[] = [fr.spoly([[-0.064, 0.728], [-0.072, 0.65], [-0.066, 0.53], [-0.062, 0.49], [0.068, 0.49], [0.079, 0.58], [0.077, 0.66], [0.052, 0.722], [0.0, 0.742]])];
   let fold: ((x: number, y: number, t: number) => number) | undefined;
   if (seated) { // thighs horizontal, shins down to the footstool (the throne is drawn by the caller)
     if (h.royal) robe = royalRobe(fr, g, [[0.13, 0.058], [0.2, 0.048], [0.222, 0.058]]);
@@ -282,7 +300,8 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
     const out: Mass[] = [], [ex, ey] = a.elbow, [hx, hy] = a.hand, amp = near ? 0.66 : 0.4, lift = near ? 0.12 : 0;
     out.push(M(fr.strokeR([sh, [ex, ey], [hx, hy]], [0.03, 0.025, 0.018], 3), { amp, lift, colour: h.dress === 'wrap' ? STONE : robe, round: 0.016, groove: near ? 0.08 : 0 }));
     if (h.dress === 'persian' || h.dress === 'royal') {
-      const low = Math.min(ey, hy) - 0.13, mx = (ex + hx) / 2;
+      // D-320 round 3: the wide Persian sleeve hangs lower (its hem 0.17 of the figure under the forearm: the Apadana nobles, B/C)
+      const low = Math.min(ey, hy) - 0.17, mx = (ex + hx) / 2;
       const sleeve: Col = h.royal ? royalRobe(fr, g, [[ex - 0.044, ey - 0.05], [mx - 0.048, low], [mx - 0.01, low + 0.01], [hx - 0.035, hy - 0.06]]) // the strip along the sleeve's hanging edge
         : h.pattern ? patternedRobe(fr, g, null) : g;
       out.push(M([fr.spoly([[ex - 0.028, ey + 0.02], [hx - 0.01, hy - 0.004], [hx - 0.035, hy - 0.06], [mx - 0.01, low + 0.01], [mx - 0.048, low], [ex - 0.044, ey - 0.05]], 4)],
@@ -697,7 +716,10 @@ export const DELEGATIONS: Delegation[] = [
 ];
 
 // ---------------- the kinds ----------------
-export interface KindInfo { tier: 'A' | 'B' | 'C'; src: string; note: string; group: 'person' | 'animal' | 'plant' | 'emblem' | 'group' | 'ornament'; w: number }
+export interface KindInfo { tier: 'A' | 'B' | 'C'; src: string; note: string; group: 'person' | 'animal' | 'plant' | 'emblem' | 'group' | 'ornament'; w: number;
+  /** D-320 round 3: the tier of the DRAWING (proportions, outlines, curls), apart from the motif's (tier): B where it follows
+   *  measured photographs (`photos`), C (reconstruction, PLACEHOLDER) elsewhere */
+  drawing?: 'B' | 'C'; photos?: string[]; drawingNote?: string }
 const K = (tier: KindInfo['tier'], src: string, group: KindInfo['group'], w: number, note: string): KindInfo => ({ tier, src, group, w, note });
 /** every figure kind the relief system can carve; `tier` = evidence for the motif (the carving itself is always C);
  *  `w` = advance width along a register in figure heights */
@@ -745,6 +767,17 @@ export const FIGURE_KINDS: Record<string, KindInfo> = {
   rosette: K('C', 'RECON', 'ornament', 1.0, 'twelve-petalled rosette of the border bands (motif from reconstructions, C); unit = diameter'),
 };
 
+/** D-320 round 3: the kinds whose drawing follows measured photographs (fars-assets/photos, Wikimedia Commons, CC-BY / CC-BY-SA).
+ *  What was measured: the human head's size and parts (HEAD_SCALE: hat 0.09, head to the beard's foot 0.25 of the figure,
+ *  eye 0.865, shoulders 0.74), the fluted hat's rounded flute tips and the curl row under it, the hair bunch's size and its
+ *  curls (0.06 of the head), the beard's curls, the Persian sleeve's hang. Every kind drawn with the human figure takes them;
+ *  the rest of each drawing (poses, held objects, dress details per delegation) stays C */
+const PHOTOS_HEAD = ['apadana/13502746_Medes_and_Persians_at_eastern_stairs_of_the_Apadana_Persepol.jpg', 'reliefs/94473576_AKS_0720.jpg', 'reliefs/73117298_King_guard.jpg'];
+const HEAD_NOTE = 'head, headgear, hair and beard measured on the Apadana nobles and guards (B); pose and objects C';
+for (const k of ['guard', 'mede_guard', 'persian', 'mede', 'usher', 'delegate', 'servant', 'crown_prince', 'official', 'weapon_bearer', 'attendant', 'lance_bearer', 'king', 'king_walking', 'king_attendants', 'bearer', 'king_worship'])
+  Object.assign(FIGURE_KINDS[k], { drawing: 'B', photos: PHOTOS_HEAD, drawingNote: HEAD_NOTE });
+for (const k of Object.keys(FIGURE_KINDS)) FIGURE_KINDS[k].drawing ??= 'C';
+
 const ARM_SPEAR: Pick<Human, 'near' | 'far'> = { near: { elbow: [0.035, 0.56], hand: [0.118, 0.575] }, far: { elbow: [0.025, 0.6], hand: [0.118, 0.64] } };
 const ARM_FLOWER: Pick<Human, 'near' | 'far'> = { near: { elbow: [0.035, 0.56], hand: [0.105, 0.61] }, far: { elbow: [-0.02, 0.56], hand: [0.03, 0.5] } };
 const ARM_CARRY: Pick<Human, 'near' | 'far'> = { near: { elbow: [0.04, 0.56], hand: [0.115, 0.57] }, far: { elbow: [0.035, 0.58], hand: [0.105, 0.6] } };
@@ -770,7 +803,7 @@ export function figureDef(kind: string, seed: number): FigureDef {
     case 'crown_prince': return withProps(persianDress({ garment: P.purple, garment2: P.egyptianBlue, near: { elbow: [0.035, 0.57], hand: [0.105, 0.62] } }), [['lotus', 'near']]);
     case 'official': { // the Median official bowing before the king, his right hand raised before his mouth (TREAS-AUD, B): the
       // whole figure leans 4° forward from the feet (C); the far hand hangs at the side
-      const lf = new Frame(0, 0, -0.07), b = human(lf, medianDress({ kandys: true, near: { elbow: [0.06, 0.62], hand: [0.085, 0.74] }, far: { elbow: [0.0, 0.56], hand: [0.03, 0.47] } }));
+      const lf = new Frame(0, 0, -0.07), b = human(lf, medianDress({ kandys: true, near: { elbow: [0.06, 0.62], hand: [0.07, 0.8] }, far: { elbow: [0.0, 0.56], hand: [0.03, 0.47] } })); // (the hand before the mouth: 0.8 with the measured head, D-320)
       return { masses: b.masses, incisions: b.incisions };
     }
     case 'weapon_bearer': { // a Mede with a battle-axe held upright in the near hand and a bow case at the hip (TREAS-AUD, B; C)

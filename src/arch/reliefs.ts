@@ -22,7 +22,7 @@ export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', place
 /** a set drawn with the carved-relief atlas (D-320). Still a placeholder: the figures' drawing (outlines, poses, folds, curls) is
  *  the procedural reconstruction of relief_figures.ts, tier C, until licensed scans or measured drawings replace it (NEEDS
  *  #10); what changed is the carving's surface, baked by Blender from the finest heightfield with undercut outlines */
-export const RELIEF_ATLAS_META = { note: 'carved relief figures baked by Blender (D-320): the finest heightfield of each figure, its outlines undercut, baked by Cycles into a normal and ambient-occlusion atlas (1.6 mm on the stone) with the paint on the same grid, drawn on coarse RTIN levels; the drawing is still the procedural reconstruction (C), licensed scans would replace it (NEEDS #10); their sun shadows marched from a height atlas (D-226); layout B/C; hair/beard dark blue B, other paint C' };
+export const RELIEF_ATLAS_META = { note: 'carved relief figures baked by Blender (D-320): the finest heightfield of each figure, its outlines undercut, baked by Cycles into a normal and ambient-occlusion atlas (1.6 mm on the stone) with the paint on the same grid, drawn on coarse RTIN levels; the heads, headgear, hair and beards of the human figures follow measured photographs (B, D-320 round 3), the rest of the drawing is the procedural reconstruction (C), licensed scans would replace it (NEEDS #10); their sun shadows marched from a height atlas (D-226); layout B/C; hair/beard dark blue B, other paint C' };
 
 // ---------------- levels of detail ----------------
 /** per LOD: target grid cell on the stone (m), largest grid, RTIN error bound (relief-depth units), normal smoothing (cells),

@@ -8076,3 +8076,22 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   normal: the mean shading of fine carving is k × the shading of its mean direction) and the roughness takes Toksvig's spread
   (1 − k)/k. Probe at 6 m: the atlas figures read crisper than the legacy ones. (4) Skyline packing: 4 layers (84 % fill) where
   the shelves took 5; nao 26.5 MB (three normal components compress less), paint 3.9 MB.
+
+## D-320 (continued) Round 3: the human relief figures redrawn from measured photographs (session 12, agent reliefs)
+- **Measured** (tools/dev/photo_crop.mjs: a photograph's region with a ruler in source pixels; fars-assets/photos, Wikimedia
+  Commons): on the Apadana E stair nobles (apadana/13502746…jpg), two Persian nobles 717 and 860 px tall from the fluted hat's
+  top to the feet: hat 0.096 / 0.084 of the figure, eye 0.872 / 0.863, beard's foot 0.774 / 0.749, head to the beard's foot
+  0.226 / 0.251, shoulders ~0.74. The relief figures drew the head 0.335 of the figure (1.4x too large: the "doll" read). On
+  the guards' heads photographed square to the wall (reliefs/94473576_AKS_0720.jpg) and reliefs/73117298_King_guard.jpg: the
+  fluted hat's flutes end in rounded tips along a straight edge rising a little to the front; a row of snail curls frames the
+  brow under the hat's band; the bunch at the nape is a mass of large snail curls (0.06 of the head's height, the beard's 0.05)
+  reaching 0.57 of the way from the eye to the beard's foot; the beard is square-cut in horizontal rows.
+- **Redrawn** (relief_figures.ts): the head in a frame scaled HEAD_SCALE 0.75 about the hat's top (head 0.251, hat 0.095, eye
+  0.863, beard's foot 0.739); a bare-stone neck under it; the shoulders at 0.74; the hair bunch fuller and lower; curl sizes
+  from the photographs; the fluted hat's tips and brow curls; the Persian sleeve hanging 0.17 under the forearm (was 0.13;
+  B/C); the Median official's hand at his mouth moved with the head. Every kind drawn with the human figure takes it (17
+  kinds, ~800 of the 927 figures): their KindInfo carries drawing 'B' and the photographs; animals, plants, emblems,
+  ornaments and the Neo-Elamite worshippers stay drawing 'C' (PLACEHOLDER). Not redrawn, though photographed: the
+  lion-and-bull (hadish/30320472…jpg shows the bull's neck in bead rows, a rosette collar and the lion's flame mane: the
+  composition matches, those details do not), the king's audience scene, the jambs' heroes and the throne-bearers (next).
+- The atlas rebuilt (all definitions rebaked).
