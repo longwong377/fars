@@ -47,6 +47,6 @@ import { loadReliefAtlas } from '../../../src/render/reliefAtlas';
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     return { errs: errs.slice(), info: { draws: (r.info as any).render?.drawCalls, tris: (r.info as any).render?.triangles } };
   };
-  const bb = new THREE.Box3().setFromObject(after);
+  const bb = new THREE.Box3(); after.updateMatrixWorld(true); after.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && typeof (m.geometry as any)?.getAttribute === "function" && m.geometry.getAttribute("position")) { m.geometry.computeBoundingBox(); bb.union(m.geometry.boundingBox!.clone().applyMatrix4(m.matrixWorld)); } });
   (window as any).__ready = { stats, mon: monumentStats(), gy, foot, bb: [bb.min.toArray().map(Math.round), bb.max.toArray().map(Math.round)], meshes: after.children.length };
 })().catch(e => { (window as any).__ready = 'ERROR ' + String(e?.stack ?? e); console.error(e); });
