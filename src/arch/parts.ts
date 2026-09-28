@@ -2,7 +2,7 @@
 // plan-overlay tests all consume the same parts, so what is tested is what is built.
 import type { Tier } from './spec';
 export type Pt = [number, number]; // grid (east, north)
-export type Material = 'limestone' | 'limestone_dark' | 'mudbrick' | 'mudbrick_painted' | 'plaster' | 'plaster_red' | 'timber' | 'glazed' | 'earth' | 'scaffold' | 'rubble' | 'bronze' | 'court_fill' | 'terrace' | 'steel' /* modern steel: the Now view only (D-201) */;
+export type Material = 'limestone' | 'limestone_dark' | 'mudbrick' | 'mudbrick_painted' | 'plaster' | 'plaster_red' | 'timber' | 'glazed' | 'earth' | 'scaffold' | 'rubble' | 'bronze' | 'court_fill' | 'terrace' | 'roof_earth' /* D-334: the roofs' earth on exposed tops */ | 'mudbrick_bare' /* D-334: render only, the walls under construction */ | 'steel' /* modern steel: the Now view only (D-201) */;
 export interface Base { building: string; kind: string; material: Material; tier: Tier; src: string; note?: string; placeholder?: boolean; solid?: boolean; /** Now view parts only: the element of src/data/now_view.json it comes from (D-201) */ now?: string }
 /** vertical prism: polygon extruded from y0 to y1 (heights relative to the court datum) */
 export interface Prism extends Base { type: 'prism'; polygon: Pt[]; y0: number; y1: number }

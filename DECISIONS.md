@@ -8056,6 +8056,69 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
   B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
   platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.
+
+## D-334 The palaces' mud-brick walls, their heads and roofs, world-wide: the roofs' earth, parapets and copings, the porticos' timber entablature with Blender-modelled joist ends, rain spouts, the fortification's crenellation, the wall feet, the painted interiors, the bare courses of the unfinished halls, Blender-baked plaster and roof coats (session 12, agent palacewalls; UD-19, UD-20, D-233; T-R12; Q-922, B184..B186)
+- **Still broken, placeholder or unverified (lead):** no world render (the lead's batched one). Evidence: the palace probe page
+  (tools/dev/palace_probe.*: the Terrace's architecture on the terrain in the game's materials, scans and bakes, a sun with a
+  shadow map and a sky hemisphere; no sky model, light probes, exposure or people; ~110 views from the buildings' bounds and
+  the class's own places; shots under T:/fars-assets-s12/palacewalls/shots, not committed). No colliders on the class (B185);
+  no merlons on the palace roofs (B184); the kit's pieces without normal maps and the wall faces still planar (B186). The paint
+  scheme's layout and tones and every size of the class are C. Timing: buildMeshes takes ~1-2.5 s longer on a loaded box
+  (tests/doors.test.ts's 10 s beforeAll hook timed out under load; re-run it alone).
+- **How it could pass its tests while the intent fails (said first):** the counts and materials right but nothing a player
+  reads: a parapet flush and in the wall's tone (a taller box), a roof earth never seen from where anyone walks, joist ends too
+  small to read 10-22 m up, spouts lost in the wall, a paint scheme on faces nobody faces (or outside), a bake too faint under
+  the scans, the painted bands aliasing, the class on one building and not the rest. Measured against: probe renders per
+  building (from the court at the player's height, from 30 m, from above, at the class's own places: dentil rows, spouts, wall
+  feet, interiors, roofs at arm's length), the class's per-building census (tests/roofedge.test.ts), the bakes' lit previews.
+- **The roofs:** a roof was one box of 'timber': its top drawn as cedar planks (the probe: a brown board on every palace, seen
+  from the stairs, the mountain and the tombs), its sides a cedar band 1.2-2 m tall flush with the plaster. Now its top is
+  roof_earth (roof_timber `top`: the rolled clay-and-straw coat, the region's kahgel, C, IR-VERNROOF-SX; the house roofs' tone a
+  little paler; the clay_plaster scan and the Blender roof bake), its underside the reed matting as before, its sides covered by
+  the edge. The ceiling timbers (ceilings.ts) ran through the walls to the roof's edge, their ends flush with the outer plaster
+  (a cedar stripe down every facade: the Gate's 'T' stripes): now clipped to the walls and borne 0.25 m into each (clipToWalls).
+- **The edges (src/arch/roofedge.ts; SITE_SPEC global.r_roof_edge, all C):** every edge of every roof and of every exposed
+  mud-brick top (towers, the storerooms' range, the fortification's curtain and towers) sampled every 0.25 m: free where nothing
+  continues the roof beyond it at the slab's level or rises past the parapet; carried by a wall or open (a portico). Over a
+  wall: the parapet (0.75 m over the roof's earth, 0.6 m thick, 6 mm over the slab's side), a mud coping 4 cm wider each side
+  (the seat of the crown, B184), a string course of one brick corbelled 6 cm at the roof line, a cedar trough spout through the
+  parapet's foot every ~7 m. Over a portico: the timber entablature as the Naqsh-e Rustam tomb facades copy a palace portico in
+  stone (three fasciae each 3.5 cm over the one below and a dentil row of joist ends: A for the form there, C here) at the
+  ceiling joists' 0.55 m spacing, then the plastered earth edge and the parapet. The fortification's parapets crenellated in
+  plastered brick (0.8 m merlons, 0.7 m gaps). An exposed top: its earth cap and parapets; a top narrower than 1.5 m a mud
+  coping. Census: 588 edges, 560 free runs (546 wall-borne, 14 porticos), 6.5 km of parapet, 229 exposed tops, 2,664 boxes,
+  669 joist ends and 750 spouts over 12 buildings; the Hall of 100 Columns and the Tripylon have no roof in 467 and no edge.
+  Render only (B185): merged with each building's own mud-brick mesh (the entablature's timber its own mesh so the roofs keep
+  the roof surface), no colliders, not in the Now view (UD-20) nor the plan masks (main.ts planMask).
+- **The kit (tools/blender/palacekit.py -> src/data/palacekit.json; src/arch/palacekit.ts):** three joist ends (cedar 0.16 x
+  0.2 m, arrises eased by the adze, the end sawn a little off square, one or two radial checks from an off-centre pith, five
+  rings of end-grain shade; 286 triangles), two spouts (a hollowed half-log trough, the chopped end, the channel and tip darkened
+  by the water; 158), each with a 12-triangle far level; AO baked by Cycles into the vertices against their wall. Instanced per
+  variant, two levels by distance (PieceLOD: the model within 28 m); the cedar surface with its scan (vertex colour = albedo x
+  shade x AO). 310 k triangles if every piece were near.
+- **The wall feet (roofedge.ts wallFeet; global.r_wall_foot, C):** along every free foot of a finished mud-brick wall a rounded
+  strip 7 cm high, 3.5 cm proud: the halls' red lime-plaster floor coat turned up against the wall (plaster_red; the floors B,
+  STEIN2016) or the mud skirting thickened into a fillet on the paving: 1,431 runs, 7.6 km (3.0 km red).
+- **The painted interiors (materials.ts SurfaceDef.paint = global.r_interior_paint; meshes.ts 'inner', PAINTED_INTERIORS):** the
+  paper (Aloiz, Douglas and Nagel 2016, npj Heritage Science 4) read in full this session (a search extract before, B6):
+  Pasargadae palace P's earthen plasters painted with a greyish yellow-green clay ground under white, moderate red and moderate
+  blue layers forming a geometric design; the same clay paint noted by Schmidt on the Treasury's walls (B). Drawn (D-207's most
+  probable fill; layout and tones C): the ground over the plaster's grain (paint as a ratio), a red dado 0.95 m with white, blue
+  and white bands, a red frieze 0.45 m with a white edge under the ceiling; on the faces that look into a roofed hall or room
+  (a probe 0.3 m out under one of the building's roofs) of the Gate, the Apadana, the Tachara, the Hadish, the Treasury and the
+  Harem; not the garrison, the fortification or the halls under construction. D-218's damp and salt line a fifth as strong
+  inside (it read as a scratch across the dado).
+- **The walls under construction (meshes.ts renderMaterial):** the Hall of 100 Columns' and the Tripylon's mud-brick walls in
+  their bare courses (mudbrick_bare: square bricks 33 cm, 13 cm courses, 1.6 cm mortar joints, a tone per brick, the
+  clay_block_wall scan; C): the plaster is the last coat.
+- **The bakes (tools/blender/palacebake.py; public/textures/palacewall_bake/bake.ktx2 0.74 MB, palaceroof_bake/bake.ktx2 1.0 MB,
+  1024 px UASTC + zstd, box mips; scans.ts WALL_BAKE now loads KTX2):** as D-324, a periodic height field built as a 4.8 M-
+  triangle Blender mesh, Cycles baking its tangent normal onto a flat tile, the cavity from the field. Wall (2.61 m tile, 0.83 mm
+  rms): a finish coat finer than the houses', the float's wide sweeps, fine chaff, little grit, few hairline cracks, the bricks'
+  courses faint; on mudbrick and mudbrick_painted (every palace wall, parapet and fillet) at nor 2.2, cav 0.25. Roof (3.13 m):
+  six roller tracks with lips and striations, coarse straw a third weathered out, grit and small stones, a crack network; on
+  roof_earth at nor 1.8, cav 0.3. tests/shader_build.test.ts passes with them.
+- **Reversible:** yes (buildMeshes `noRoofEdges`; the WALL_BAKE entries; SurfaceDef paint and top).
 - **Rev 3 (same session, the lead):** (1) the 12 m hand-over is a crossfade: from 9.5 to 12 m the band/maps threshold is
   dithered per pixel and per frame (interleaved gradient noise; TRAA resolves it to a blend), the two masks exact complements;
   (2) the geometry's chips are the maps' own: tools/blender/blockface.py records every chip it carves (the carving unchanged:

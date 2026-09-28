@@ -15,7 +15,7 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], mudbrick_painted: [0.58, 0.57, 0.45], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
-  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], steel: [0.3, 0.3, 0.31],
+  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], roof_earth: [0.61, 0.54, 0.42], mudbrick_bare: [0.6, 0.52, 0.41], steel: [0.3, 0.3, 0.31],
 };
 import { surfaceMaterial, paintedShaftMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
@@ -29,6 +29,8 @@ function shaftPaint(o: ColumnOrder): THREE.Material {
   return paintedShaftMaterial({ ground: pig(R.ground), line: pig(R.line), band: pig(R.band), around: R.around, lozenge_h: R.lozenge_h, line_w: R.line_w, band_h: R.band_h, edge_w: R.edge_w, y0: o.baseH, y1: o.height - o.capitalH, D: o.shaftD });
 }
 import { ceilingTimbers } from './ceilings';
+import { roofEdges, wallFeet, type RoofEdges } from './roofedge';
+import { buildPieces } from './palacekit';
 /** D-276: parts that are colliders only: the round fittings world/furnish.ts draws (storage jars, querns) */
 export const COLLIDER_ONLY = new Set(['jar', 'quern']);
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
@@ -98,7 +100,7 @@ export function joistGeometry(b: Box): THREE.BufferGeometry {
 /** chamfer / rounding size (m) and whether its normals are rounded, per material; none for the rest (timber, floors, fill) */
 export const BEVEL: Partial<Record<Material, { r: number; round: boolean }>> = {
   limestone: { r: 0.01, round: false }, limestone_dark: { r: 0.008, round: false }, terrace: { r: 0.01, round: false }, glazed: { r: 0.005, round: false },
-  mudbrick: { r: 0.03, round: true }, mudbrick_painted: { r: 0.03, round: true }, plaster: { r: 0.03, round: true },
+  mudbrick: { r: 0.03, round: true }, mudbrick_painted: { r: 0.03, round: true }, plaster: { r: 0.03, round: true }, mudbrick_bare: { r: 0.015, round: true }, plaster_red: { r: 0.03, round: true } /* D-334: the floor coat's cove at the wall foot */,
 };
 /** kinds never bevelled (thin finishes, moving leaves, roofs, sculpture boxes) */
 const NO_BEVEL = new Set(['floor_finish', 'roof', 'door_leaf', 'colossus']);
@@ -167,6 +169,13 @@ export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean, 
   return { pos, nrm, adist, aseed };
 }
 /** "is this world point inside a part?" over all parts except door leaves, on a 4 m grid of the parts' plan bounds */
+/** D-334 (Q-922, C): the buildings whose halls and rooms are drawn with painted plaster inside (materials.ts SurfaceDef paint):
+ *  the finished palaces and the Treasury (clay paint on its walls: Schmidt via Stein et al. 2016, B), not the garrison's
+ *  service ranges, the fortification, or the halls still under construction in 467 (the Hall of 100 Columns, the Tripylon) */
+/** D-334: the surface a part is drawn in: a mud-brick wall still under construction in 467 stands in its bare courses (the
+ *  plaster is the last coat, laid when the brickwork is done: C); every other part its own material */
+export const renderMaterial = (p: Part): Material => p.material.startsWith('mudbrick') && /under construction/.test(p.note ?? '') ? 'mudbrick_bare' : p.material;
+export const PAINTED_INTERIORS = new Set<string>(v<any>('global', 'r_interior_paint').buildings); // SITE_SPEC global.r_interior_paint
 export class PartIndex {
   private cells = new Map<number, number[]>(); private CELL = 4;
   constructor(private parts: Part[]) {
@@ -195,6 +204,15 @@ export class PartIndex {
     }
     return best;
   }
+  /** D-334: whether a roof of this building stands over the point (world x, y, z): the plan inside a roof box whose underside
+   *  is above y (an interior face of a hall or a room looks at this) */
+  roofOver(x: number, y: number, z: number, building: string): boolean {
+    const e = x, n = -z, list = this.cells.get(Math.floor(e / this.CELL) * 100003 + Math.floor(n / this.CELL)); if (!list) return false;
+    for (const i of list) { const p = this.parts[i]; if (p.kind !== 'roof' || p.type !== 'box' || p.building !== building || p.y0 < y) continue;
+      const c = Math.cos(-(p.rot ?? 0)), s = Math.sin(-(p.rot ?? 0)), de = e - p.c[0], dn = n - p.c[1];
+      if (Math.abs(de * c - dn * s) <= p.size[0] / 2 && Math.abs(de * s + dn * c) <= p.size[1] / 2) return true; }
+    return false;
+  }
   inside(x: number, y: number, z: number, except: Part): boolean {
     const e = x, n = -z, list = this.cells.get(Math.floor(e / this.CELL) * 100003 + Math.floor(n / this.CELL)); if (!list) return false;
     for (const i of list) {
@@ -212,7 +230,10 @@ export class PartIndex {
 function planBounds(p: Part): [number, number, number, number] {
   if (p.type === 'prism') { let x0 = Infinity, x1 = -Infinity, n0 = Infinity, n1 = -Infinity; for (const [x, n] of p.polygon) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); n0 = Math.min(n0, n); n1 = Math.max(n1, n); } return [x0, x1, n0, n1]; }
   if (p.type === 'column') { const r = p.order.baseW / 2; return [p.c[0] - r, p.c[0] + r, p.c[1] - r, p.c[1] + r]; }
-  const R = Math.hypot(p.size[0], p.size[1]) / 2; return [p.c[0] - R, p.c[0] + R, p.c[1] - R, p.c[1] + R];
+  // D-334: the rotated box's own bounds (was its circumscribed square: a 70 m parapet filled every cell of a 70 m square, and
+  // every lookup there walked it)
+  const r = p.rot ?? 0, cs = Math.abs(Math.cos(r)), sn = Math.abs(Math.sin(r)), ex = (cs * p.size[0] + sn * p.size[1]) / 2, ey = (sn * p.size[0] + cs * p.size[1]) / 2;
+  return [p.c[0] - ex, p.c[0] + ex, p.c[1] - ey, p.c[1] + ey];
 }
 /** which of a box's 12 edges are free arrises: at 5 points along the edge, the space just beyond each of its two faces
  *  (3 cm out, 3 cm in from the edge) is not inside another part */
@@ -327,10 +348,32 @@ function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartInde
   for (let i = 0; i < n; i++) box.set([cx, cz, sx, hz], i * 4);
   g.setAttribute('y0', new THREE.BufferAttribute(y0, 1)); g.setAttribute('pbox', new THREE.BufferAttribute(box, 4));
   g.setAttribute('ytop', new THREE.BufferAttribute(new Float32Array(n).fill(p.y1), 1)); // run-off streaks below the part's top
+  // D-334: 'inner' = 1 on a vertical face that looks into a roofed hall or room of its own building (a probe 0.3 m out along the
+  // face's normal at mid height, under one of the building's roofs): the painted interiors (materials.ts paint); 0 elsewhere
+  const inner = new Float32Array(n);
+  if (p.material.startsWith('mudbrick') && PAINTED_INTERIORS.has(p.building) && !/under construction/.test(p.note ?? '')) for (const idx of faces.values()) {
+    let x = 0, y = 0, z = 0; for (const i of idx) { x += P.getX(i); y += P.getY(i); z += P.getZ(i); } x /= idx.length; y /= idx.length; z /= idx.length;
+    const nx = N.getX(idx[0]), nz = N.getZ(idx[0]), l = Math.hypot(nx, nz) || 1;
+    if (index.roofOver(x + (nx / l) * 0.3, Math.min(y, p.y1 - 0.2), z + (nz / l) * 0.3, p.building)) for (const i of idx) inner[i] = 1;
+  }
+  g.setAttribute('inner', new THREE.BufferAttribute(inner, 1));
   const st = new Float32Array(n * 4); if (stair) for (let i = 0; i < n; i++) st.set(stair, i * 4);
   g.setAttribute('stair', new THREE.BufferAttribute(st, 4));
   if (!g.getAttribute('adist')) g.setAttribute('adist', new THREE.BufferAttribute(new Float32Array(n * 4), 4)); // D-321: no free arris
   if (!g.getAttribute('aseed')) g.setAttribute('aseed', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+}
+/** D-334: the part attributes of a roof-edge or wall-foot box without the per-face probes: its floor is its own foot for a wall
+ *  foot (the skirting's band continues over it) and none for the wall heads (no foot band up there); no floor box, no stair, not
+ *  an inner face; the run-off from its own top */
+function edgeAttributes(g: THREE.BufferGeometry, p: Box) {
+  const n = g.getAttribute('position').count, box = new Float32Array(n * 4), r = p.rot ?? 0, c = Math.abs(Math.cos(r)), s = Math.abs(Math.sin(r));
+  const hx = (p.size[0] * c + p.size[1] * s) / 2, hz = (p.size[0] * s + p.size[1] * c) / 2;
+  for (let i = 0; i < n; i++) box.set([p.c[0], -p.c[1], -hx, hz], i * 4);
+  g.setAttribute('y0', new THREE.BufferAttribute(new Float32Array(n).fill(p.kind === 'wall_foot' ? p.y0 : -1000), 1)); g.setAttribute('pbox', new THREE.BufferAttribute(box, 4));
+  g.setAttribute('ytop', new THREE.BufferAttribute(new Float32Array(n).fill(p.y1), 1)); g.setAttribute('inner', new THREE.BufferAttribute(new Float32Array(n), 1));
+  g.setAttribute('stair', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+  if (!g.getAttribute('adist')) g.setAttribute('adist', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+  if (!g.getAttribute('aseed')) g.setAttribute('aseed', new THREE.BufferAttribute(new Float32Array(n * 4), 4)); // (D-321 rev 3's arris seeds: none here)
 }
 /** A/B for measurements (window.__parsaSurf.bevels(on)): swap the merged part meshes between their bevelled and their
  *  plain geometry */
@@ -409,22 +452,27 @@ export class MeshLOD extends THREE.Object3D {
   private show(k: number) { this.cur = k; this.levels.forEach((m, i) => { m.visible = i === k; }); }
 }
 
-export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[] }
+export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** D-334: the wall heads and roof edges (render geometry) */ roofEdges?: RoofEdges & { pieceTriangles: number } }
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
 /** opts.colossusFront: the colossi's fore-part length (m) to carve with, instead of measuring it against these parts' walls
  *  (the Now view, D-201: the walls are gone, the carving is not) */
-export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number } = {}): BuiltArch {
+export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number; /** D-334: leave out the wall heads and roof edges */ noRoofEdges?: boolean } = {}): BuiltArch {
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; plain: THREE.BufferGeometry[]; parts: Part[] }>();
-  const index = new PartIndex(parts), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
+  // D-334: the wall heads and roof edges (roofedge.ts): render-only boxes drawn with the parts (bevelled, merged per building and
+  // material; no colliders: solid false), and the modelled pieces instanced below. Not in the Now view (its parts carry `now`)
+  const RE = opts.noRoofEdges || parts.some(p => (p as any).now) ? null : roofEdges(parts);
+  if (RE) RE.boxes.push(...wallFeet(parts)); // D-334: the wall feet (the floor coat or the skirting against the foot)
+  const all: Part[] = RE ? [...parts, ...RE.boxes] : parts, edgeSet = new Set<Part>(RE?.boxes ?? []);
+  const index = new PartIndex(all), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
   const stairs = stairRows(parts), arris: ArrisEdge[] = [];
   if (opts.dynamicDoors) bevelSwap.length = 0;
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
   const colossi = parts.filter(p => p.type === 'box' && p.sculpt) as Box[];
   let colliders = 0;
-  for (const p of parts) {
+  for (const p of all) {
     if (p.type === 'column') {
       const k = `${p.building}|${p.order.id}|${p.order.base}|${p.order.capital}|${p.order.shaftD}|${p.order.height}|${p.built.toFixed(2)}`;
       if (!cols.has(k)) cols.set(k, { order: p.order, built: p.built, parts: [] }); cols.get(k)!.parts.push(p);
@@ -444,10 +492,11 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall). The render geometry is the part's
     // own, with its free arrises bevelled (D-157); the collider above stays the plain box
     const plain = g.clone(), rg = (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : null) ?? g.clone();
-    partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p));
+    if (edgeSet.has(p)) { edgeAttributes(rg, p as Box); edgeAttributes(plain, p as Box); } // D-334: the roof edges' own (no probes: ~4 k boxes)
+    else { partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p)); }
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
-    const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;
+    const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
   }
   // the timber ceilings under the roofs (D-188): render geometry only, merged per building (no colliders, no bevels)
@@ -534,5 +583,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       group.add(lod);
     }
   }
-  return { group, triangles: tris, colliders, bevel: bstats, arris };
+  let roofEdgesOut: BuiltArch['roofEdges'];
+  if (RE) { const P = buildPieces(RE.pieces, flatMode); group.add(P.group); tris += P.triangles; roofEdgesOut = { ...RE, pieceTriangles: P.triangles }; }
+  return { group, triangles: tris, colliders, bevel: bstats, arris, roofEdges: roofEdgesOut };
 }

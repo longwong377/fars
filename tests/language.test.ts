@@ -495,6 +495,8 @@ describe('language lint: every source that can reach the canvas', () => {
     'public/models/trees/leaf_tilt.webp': 'the trees leaf/blossom/twig card atlas rendered by Blender/Cycles (D-327; leaf_col viewed by the lead, session 12: coded sprays only, no text)',
     'public/textures/blockface/blockface.ktx2': 'the dressed-stone tool-mark set baked by Blender/Cycles (D-321; layer 0 decoded and viewed by the lead, session 12: chisel strokes only, no text)',
     'public/textures/housewall_bake/bake.jpg': 'the Blender-baked mud-plaster wall detail (D-324; viewed by the lead, session 12: plaster and cracks only, no text)',
+    'public/textures/palacewall_bake/bake.ktx2': 'the Blender-baked palace mud-plaster detail (D-334; its source PNG viewed lit by the palacewalls agent, session 12: float arcs, chaff, pits and hairline cracks only, no text)',
+    'public/textures/palaceroof_bake/bake.ktx2': 'the Blender-baked rolled clay-and-straw roof coat (D-334; its source PNG viewed lit by the palacewalls agent, session 12: roller tracks, straw, grit and cracks only, no text)',
     'public/models/reliefs/nao.ktx2': 'the carved-relief atlas, normal + occlusion + gilding of every relief figure baked by Blender/Cycles (D-320; layers decoded and viewed by the reliefs agent, session 12: carved figures only, no text: the inscriptions are cut by incision.ts, not baked here)',
     'public/models/reliefs/paint.ktx2': 'the carved-relief atlas, the paint of the figures on the same grid (D-320; decoded and viewed, session 12: flat pigments and the robe patterns, no text)',
     'public/generated/humans/scans/cloth_0.jpg': 'cloth scan layer (CC0) (D-304/D-307; viewed in a contact sheet by the lead, session 11: no text)',
