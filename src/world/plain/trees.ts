@@ -189,7 +189,7 @@ export function orchardRows(kit: TreeKit, plots: RowPlot[], terrain: Terrain, mi
   const right = vec3(dir.y, 0, dir.x.negate()), nW = right.mul(n.x).add(vec3(0, 1, 0).mul(n.y)).add(vec3(dir.x, 0, dir.y).mul(n.z));
   m.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
   m.emissiveNode = kit.transmission(colR, normalize(nW), s0.kappa); // leaves pass light as on the near trees (shade.ts)
-  m.alphaTest = 0.5; m.roughnessNode = float(0.8);
+  m.alphaTestNode = kit.impAlphaTest(); m.roughnessNode = float(0.8); // dithered under TRAA, as the other impostors (D-327)
   const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-orchards-far'; mesh.frustumCulled = false; mesh.userData = { ...TREE_TAG(), rows }; mesh.onBeforeRender = () => kit.syncSun();
   return mesh;
 }

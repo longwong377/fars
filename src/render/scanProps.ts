@@ -116,12 +116,12 @@ export const SHAPES = {
 } as const;
 /** a scanned shape of `cls` (variant by `seed`) fitted to `size` (x, y, z m; base on y = 0, footprint centred); null when no
  *  scan of the class is loaded (the caller draws its procedural form) */
-export function scanShape(cls: ShapeClass, seed: number, size: [number, number, number], lod: 0 | 1 = 0): THREE.BufferGeometry | null {
+export function scanShape(cls: ShapeClass, seed: number, size: [number, number, number], lod: 0 | 1 | 2 = 0): THREE.BufferGeometry | null {
   // D-325: a class with modelled forms of the period draws them first (position, normal and a zero uv: the same attributes
   // as a scan's, so the builders' merges are unchanged; modelShape keeps the occlusion for the builders that use it)
   const mg = modelShape(cls, seed, size, lod); if (mg) { mg.deleteAttribute('ao'); mg.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(mg.getAttribute('position').count * 2), 2)); return mg; }
   const ps = ((SHAPES as Record<string, readonly string[]>)[cls] ?? []).map(id => PROPS.get(id)).filter((p): p is ScanProp => !!p); if (!ps.length) return null;
-  const p = ps[Math.abs(Math.floor(seed)) % ps.length]; return fitProp(p.lods[lod], size);
+  const p = ps[Math.abs(Math.floor(seed)) % ps.length]; return fitProp(p.lods[Math.min(lod, p.lods.length - 1)], size);
 }
 /** D-325: the classes drawn from the project's models of the period's forms (tools/blender/model_props.py) before any scan.
  *  The jars: the D-310 scans are modern forms (a white bottle with a pinched lip, a handled jug, a porcelain baluster vase)

@@ -12,7 +12,7 @@
 // player is (T-F6). The large wild animals keep their distance from a person (C); none ever comes at the player.
 import { h01 } from './fauna';
 export type P2 = [number, number];
-export interface BeastInst { sp: 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial' | 'gazelle' | 'gazelle_m'; e: number; n: number; yaw: number; walk: number; graze: number; lie: number; coat: number }
+export interface BeastInst { sp: 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial' | 'gazelle' | 'gazelle_m'; e: number; n: number; yaw: number; walk: number; graze: number; lie: number; coat: number; /** D-326: 1 when it trots or runs off (keepAway) */ gait?: number }
 export interface BeastRanges { wolfPath: P2[]; wolfDen: P2 | null; leopardPath: P2[]; lionReach: P2[]; lionDen: P2 | null; hyenaMidden: P2 | null; steppe: P2 | null;
   /** session 9 (the gap hunters): the gazelles' plain (the second-best flat natural patch), the fields' edges where foxes and hares go */
   gazellePlain: P2 | null; fieldEdges: P2[] }
@@ -113,7 +113,7 @@ export function beastsAt(R: BeastRanges, seed: number, t: number, hour: number, 
 /** the large wild animals keep their distance from a person on foot (C): pushed out along the line from the player */
 export function keepAway(b: BeastInst, player: P2 | null): BeastInst {
   if (!player) return b; const R = b.sp === 'hyena' || b.sp === 'fox' || b.sp === 'hare' ? 25 : b.sp === 'onager' || b.sp === 'gazelle' || b.sp === 'gazelle_m' ? 150 : b.sp === 'cheetah' || b.sp === 'wild_goat' || b.sp === 'urial' ? 120 : 80, dx = b.e - player[0], dn = b.n - player[1], d = Math.hypot(dx, dn);
-  if (d >= R || d < 0.01) return b; const k = (R - d) / d; return { ...b, e: b.e + dx * k, n: b.n + dn * k, walk: 1, graze: 0, lie: 0, yaw: Math.atan2(dx, dn) };
+  if (d >= R || d < 0.01) return b; const k = (R - d) / d; return { ...b, e: b.e + dx * k, n: b.n + dn * k, walk: 1, graze: 0, lie: 0, yaw: Math.atan2(dx, dn), gait: 1 };
 }
 /** the calls: which animal calls when (per second of world time, C) and how far it carries (m) */
 export const BEAST_CALLS = {

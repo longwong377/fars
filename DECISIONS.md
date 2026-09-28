@@ -7878,9 +7878,17 @@ mother who followed the stranger is still "talking" in her child's plan's words)
   wicker, stone; the parts' names give it, else a guess from colour and metalness). 172 models, 6.7 MB.
   A probe page renders every class before/after in the game's renderer without the world (tools/blender/probe/props_probe.*,
   shots in T:/fars-assets-s12/props/probe*): no WebGPU validation error.
-- **Not done (honest):** the houses' tether, firewood, laundry line, cradle, roof fuel and fleece, the living rooms' mats and
-  folded rugs (houses.ts; its ladders and benches are D-324's), the carried children (people, not props), crates (no
-  builder draws one), the tablet (writing.ts). No world render (the lead's batch).
+- **Round 2 (after the merge, 65a86dd):** the houses' tether (manger and peg), firewood, laundry, cradle, roof brushwood and
+  dung cakes, fleece over the parapet (cloth-solver drape), the living rooms' reed mats and folded rugs; the babes' basket
+  cradle; the carried tablet at writing.ts's rounded middle level (with the models loaded). A third level (lod2) for every
+  model: the town's houses and fittings draw it (a near tile holds dozens of rooms): measured on six sites, the near tiles
+  +13 % over the procedural forms (worst tile 66 k, the procedural 58.7 k). Palace furnishings: carpets, rolls and
+  hangings at lod1; each building's pieces at lod0 within 12 m of their footprint, lod1 beyond: with the court laid out
+  399 k near / 240 k far (was 656 k); T-K has no triangle threshold (T-K6 is the frame-time model): measured, not gated.
+  Weak forms fixed: field stones split along planes (angular), bricks with crisp worn arrises and chips, the kiln's
+  courses, stoke arch and flues, the couch cover laid in the couch's shape before it settles.
+- **Not done (honest):** crates (no builder draws one); the carried children themselves (people); the tablet's text
+  (its UVs are not carried by the props' material). No world render (the lead's batch).
 ## D-315 (continued) The GPU runs after the merge (session 12): the real models on T-E10 and T-E9
 
 Three runs were allowed, one at a time, through gpu_slot. Run 2's first attempt died two minutes in on an invalid shader
@@ -7917,3 +7925,82 @@ T-E10-gpu-run3.json, T-E9-gpu-run3.json.
 - **Class replaced everywhere (T-R12 anti-proxy):** every garment piece of every built costume (persian with the guard, king and court-woman dresses; median; worker; woman; child; envoy, envoy_short, envoy_bare): robe body, skirt and sleeves, tunic, tunic skirt, trousers, working tunic, skirt and trousers, dress body and skirt, child's tunic and skirt, kandys, headcloth, veil, sash; at LOD 0, 1, 2 and the farthest (simplified from 2), on all 23 body variants (the group's drape in each piece's local frame) and in the impostors baked from the far bodies. Code paths: src/people/outfits.ts buildOutfits (applyDrape, fuv), humans.ts, humanGPU.ts makeMesh, humanMaterial.ts, humanScans.ts; the crowd, the court, the camps, the player's body all draw through them.
 - **Measured:** settled displacement rms (full detail): skirts 18-36 mm, upper garments 7-12 mm, trousers 5-8, headcloth 12, kandys 15, veil 78, sash 5; the lower skirt's deviation from its own smooth outline above the procedural tube's (test). Budgets: every costume within [42,000, 7,000, 3,200, 800] (persian 41,978 / 6,139 / 3,050 / 772). Download: people_cloth 0.88 MB (was 0.16), the fold PNG 0.52 MB of it; GPU: two 1024² RGBA layers in the scans array (~11 MB with mips). Portraits (humanlab, GPU, TAG g1/g2: shots/portraits/g2-*.png; copies T:/fars-assets-s12/garments/): folds on bodices, sleeves and skirts; the headcloth over the dress on the women's backs.
 - **Revision 2 (the lead's review, same session):** (1) the robe's shoulders: its sleeves and body settled apart interpenetrated (patches of one through the other); the sleeves are now kept 4 mm outside the drawn body (`keepOver`, post-step only: settled over it as a collider, the body's shoulders enclosing the sleeves' pinned tops crumpled them to the elbow, tried and reverted). (2) The kandys's cape: its cut line smoothed along itself (the body triangles' zigzag read as a ragged edge). (3) The veil: cut ±75° from the back (was ±60°), resting on the shoulders' tops as well as the crown (`pinShoulder`), 6 % fuller, its flare 1.2 cm (was 2.8): it falls over the shoulder blades instead of drawing in to a band (max displacement 0.11 m; the 0.20 m test limit restored). (4) Per-person variation: two cuts per piece and group (`seeds` 2: the seed turns the gathers' phase, varies ease and blouse by a quarter and ripples the cut by 5 mm; 44 simulations, ~8 min), body variant v wears seed v mod 2, and the fold layers are per seed (4 layers, 1024 x 4096 PNG; the material picks the pair from the variant table). people_cloth 1.6 MB; rebuilt and reproduced, people_hair rebuilt and reproduced. B149's "same folds for everyone" is reduced to two cuts per group.
+
+## D-320 The relief figures as carved stone, every one: a Blender-baked carved-relief atlas (session 12, agent reliefs; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN row 3)
+- **What:** every relief figure definition the world draws (221: the Apadana registers, audience panels, spandrels and rosette
+  bands; the Phase 4 stairs and door jambs incl. the blocked-out giants; the Naqsh-e Rustam tomb registers; the Neo-Elamite
+  relief) is carved once at 1.6 mm per texel on the stone (the old finest level's cell; the 3.4 m giants 1.7 mm, the canopy
+  3.2 mm): its heightfield (relief_field.ts, detail point-sampled: curls, pleats, flutes at full resolution) as a dense
+  surface in metres at the definition's most common depth ratio, clamped at the wall face, with the foot of every step at
+  least a quarter relief-depth high pulled up to 0.3 of the rise under its arris (the undercut: the masons' square-to-under
+  outlines of the Apadana photographs; C). Blender 5.0.1 / Cycles (tools/blender/relief_bake.py, OptiX on the T4 through
+  gpu_slot plus CPU jobs) bakes from a quad in front of it, orthographically: the object-space normal (4 samples) and the
+  ambient occlusion (64 rays, two relief-depths long: the contour shadow line, the folds, the curls). Texels where a front ray
+  met the underside of a folded undercut (0.6 %) take the heightfield's own normal. The paint (colour, film coverage with its
+  wear, gilding) is sampled on the same grid in node. Packed (shelf packing) into 5 array layers of 4096²: nao.ktx2 (normal
+  xy, occlusion, gilding; 21.5 MB) and paint.ktx2 (sRGB colour, coverage; 3.6 MB), UASTC + RDO 0.75 + zstd, mipmapped.
+  Index src/data/relief_atlas.json; build `npx tsx tools/blender/relief_atlas.ts --device=GPU --cpujobs=2 [--reuse]` (~25 min;
+  KTX encoding is most of it).
+- **In the game:** render/reliefAtlas.ts loads the two textures before the reliefs are built (world.ts), and every ReliefSet
+  whose figures are all in the atlas draws ATLAS_LODS (relief_atlas.ts): the same RTIN heightfield levels and switch distances
+  on grids half as fine, error bounds 0.07-0.19 (silhouette still cell-exact), no refinement at paint edges, positions and
+  triangles only (extractLod lean). Each vertex carries `ruv` (u, v, layer, instance depth ratio over the baked one) and the
+  wall frame; the paint material (materials.ts paintedStoneMaterial(atlas)) reads paint, gilding and occlusion from the atlas
+  and turns the baked normal into view space (tangent = up x normal, mirror by tangent.w: instanced rosettes do not turn a
+  tangent attribute), its slopes scaled by the depth ratio, the stone's and the film's fine relief bumped round it. The layer
+  index is rounded in the shader (an interpolated 2.0 came out 1.999 on some pixels: moire of the neighbouring layer).
+  ?reliefatlas=0 or a failed load leaves the legacy vertex-painted levels. Code paths switched: arch/reliefs.ts ReliefSet
+  (batch, far chunks, whole-set merge, shadow proxies, rosettes near and far), used by arch/decor.ts (Apadana, Phase 4) and
+  world/plain/naqsh.ts (tomb registers and, new, the Neo-Elamite relief's five worshippers, kind `elamite`, by analogy with
+  Kurangun and Kul-e Farah, C; they were five extruded silhouettes). Now view: the atlas material is swapped like the old one.
+- **Measured** (tools/relief_budget.ts, ATLAS=1; bench-reports/relief_budget_d320.txt): relief triangles before the audience
+  panel at 2 m 1.054 M -> 0.405 M, worst on the Apadana walk 1.112 M -> 0.345 M, worst at a Phase 4 jamb 1.450 M -> 0.567 M,
+  Grand Stair foot 0.474 M -> 0.173 M. GPU memory ~+110 MB (BC7), download +25 MB. Probe renders (tools/blender/probe/
+  relief_probe.*, GPU, T:/fars-assets-s12/reliefs/shots4): at 0.4-0.8 m the curls, flutes, eye and lids and the robe
+  pattern are as crisp as the legacy L0 and the paint edges crisper; at 6 m and beyond the relief shading is a little softer
+  than the legacy (the mip chain averages the normals); the legacy's zigzag shadow acne on the jambs is gone.
+- **Still placeholder (flag kept):** the drawing of the figures is the procedural reconstruction (relief_figures.ts, C) until
+  licensed scans or measured drawings replace it (NEEDS #10); the undercut depth and the AO reach are C. The wall around a
+  figure gets no baked contour occlusion (the relief mesh ends one level-cell past the outline; the sun shadows are D-226's).
+- **Round 2 (the lead's review, same session).** Measured against photographs of each species (C): the canids' and the
+  cats' heads rebuilt as a cranium, cheek arches, a stop and a short tapering muzzle (the canids' about 40% of the head, the
+  cats' about 30%, with whisker pads), nose leather and triangular ears; the carnivores' necks lengthened and raised so the
+  head stands above the withers (it was level with the back: the "anteater" read); the lion's mane shaped (a shell over
+  the neck's crest, behind the ears, the cheeks' frame, the throat and the chest; the Asiatic lion's shorter mane) and its
+  head broader (headR 0.145); the stag's antlers a burr, a long beam curving out and back with brow and trez tines and a
+  small crowned palm (the Mesopotamian fallow buck's weak palmation); the fowl rebuilt (a keel, a back rising to the tail,
+  folded wings, the hen's narrow upright fan, the cock's arched sickles and saddle hackles, a short hackled neck, a blade
+  comb with points, wattles, spurs); the camels' sternal pad a flat bare callus. The rig: a second head joint at the poll
+  (Q-980: the skull's weight stored as -aHT.y; at rest the equids carry their heads at 0.95 rad, the cattle 0.8, the small
+  stock 0.75, and grazing the poll straightens that to 0.55 before the neck brings the muzzle down); gaits in the vertex
+  shader (gaitW / gaitOffset: 0 the lateral walk, 1 the trot with the diagonal pairs together and a larger swing and bounce,
+  2 the hare's bound with the fore pair and then the hind pair); every hare bounds, and a wild animal pushed off by the
+  player trots or runs (beasts.ts keepAway gait 1). Not done: a mid-neck joint (the neck pivots at its root), a canter or
+  gallop, per-species proportion tables within a family.
+- **Rev 2 (session 12, after the lead's merge eb4c45a):** (1) forks are continuous: a chain that leaves another rises inside
+  it (from a parent's radius below the joint, on its axis, at 0.78 x its radius) and bends out through the joint, and a
+  parent ending at a fork narrows (0.68 x) into its children's bases with a low dome: no stump with sticks, no step where a
+  multi-stem's stem becomes a limb (a continued child's radius steps half-way at the joint). A chain continues into a child
+  only within ~35 deg; sharper turns are forks. (2) The far impostors draw the Blender wood's triangles (per corner normal
+  and baked occlusion, x the crown occlusion), not the skeleton's tubes; the bake worker gets the wood with the atlas.
+  (3) Under temporal AA (medium and above) the impostors' alpha test is dithered (threshold 0.18..0.98 hashed per pixel and
+  frame) and their mips keep the plain coverage share: a sparse crown's sub-pixel sky gaps survive at a distance, as they
+  do on the near cards (the oak's impostor read a steady 15/255 darker than its LOD1 at r3; now 3-15/255 across runs,
+  measurement noise of 8-frame TRAA included). The orchard row impostors share the threshold. (4) Download 17.8 -> 10.4 MB:
+  the atlas as lossless WebP (2.6 MB), the tilt at half size (1.3 MB, bilinear on load), the bark scans at 768 px
+  (4.6 MB; GPU array ~47 MB). (5) `node tools/blender/trees.mjs --verify` rebuilds every step into the work folder and
+  compares (WebP by decoded texels, wood by value): reproduced (Cycles OptiX, same seed); the record sits in the manifest
+  and tests/tree_assets.test.ts checks it.
+## D-315 (continued) Runs 4 and 5: the picked recall fact, the refusal judge, the life fact beside the question (session 12)
+
+Built in node first:
+- For a question about earlier meetings, the simulation picks the one thing the person remembers (talk.ts recallFact): their own meeting with a deed first, then their own words, then what kin or friends told them, else that they never met the stranger. It is said in their words ("Yesterday in the morning you asked me for water, and I gave you water."), and the model only rephrases it.
+- A small judge (mind.ts judge, ground.ts judgePrompt): the loaded model is asked YES, NO or UNSURE, greedy, 3 tokens, and only a NO counts as a refusal. It decides at runtime whether the words refused, so a "yes" to something the simulation refuses is retold.
+- The one life fact most relevant to the question, picked by the kind of question (ground.ts groundFact).
+- A scorer bug found and fixed: a bare "No," never matched the refusal words (the closing \b cannot follow a comma and a space). Runs 1-4 were scored with the bug.
+
+GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = the 72-case set, auto-scored):
+- Run 4, facts placed BEFORE the stranger's words: T-E10 55 % (requests 10/16, own recalls 9/16, heard 3/8; 60 % when the same replies are rescored with the "No," fix); T-E9 52.8 %, down from 62.5 %: the replies grew shorter and named less of the life.
+- Run 5, facts in the closing note AFTER the stranger's words ("(Answer as X. What you remember: … Tell him that …)" and "(Answer as X, from your own life: …)"): **T-E10 62.5 %** (requests 12/16, own recalls 7/16, heard 6/8), median answer 1.3 s; **T-E9 59.7 %** (43/72), median 1.4 s, 24 of 29 failures "not grounded". Evidence: REVIEWS/evidence/s12-talk/T-E10-gpu-run4.json, T-E10-gpu-run5.json, T-E9-gpu-run4.json, T-E9-gpu-run5.json.
+- Across runs: T-E10 17.5 → 52.5 → 62.5 %. Hearsay recall is fixed (2/8 → 6/8). Own recall is not (7/16): the model still says "I don't recall" or invents a different errand, even with the fact placed directly before it answers. Four of the four request failures are refusals in the person's own words ("Bagačiθrā is young and sleeps"): the lexical scorer misses them, although the judge accepted them at runtime. T-E9 is not better than run 3's 62.5 % without the life fact: the fact does not ground a 2 B model's replies. T-E9 stays below the target; the next approach would be checking a reply's grounding and asking once more with the fact named (not done).
+- The default stays gemma-2-2b behind ?converse.

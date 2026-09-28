@@ -422,9 +422,9 @@ export class TalkWorld {
    *  seeded delay of hours to two days; second-hand, through someone of their own circle who heard it, one to three days
    *  later). One line per teller: what matters most of what they told (a deed first), and how often they met the stranger.
    *  Pure: a function of what each has to tell (told), the households and the ties */
-  heard(pid: number, t: number): { t: number; from: number; text: string; hand: 1 | 2; deed: boolean }[] {
+  heard(pid: number, t: number): { t: number; from: number; text: string; hand: 1 | 2; deed: boolean; src: number; k: Told; d0: number }[] {
     const P = this.pop, day = Math.floor(t / 24); if (!P.present(pid, day)) return [];
-    const out: { t: number; from: number; text: string; hand: 1 | 2; deed: boolean }[] = [];
+    const out: { t: number; from: number; text: string; hand: 1 | 2; deed: boolean; src: number; k: Told; d0: number }[] = [];
     const circle = (x: number, d: number) => { const hh = P.home(x, d); return new Set([...P.membersOn(hh, d), ...P.persons[x].ties].filter(y => y !== x)); };
     let mine: Set<number> | null = null;
     for (const [src, list] of this.told) { if (src === pid) continue; const got: { k: Told; at: number; via: number }[] = [];
@@ -437,10 +437,22 @@ export class TalkWorld {
       if (!got.length) continue;
       const top = [...got].sort((a, b) => (b.k.deed ? 1 : 0) - (a.k.deed ? 1 : 0) || b.at - a.at)[0]; const n = got.length, sx = P.persons[src].sex; const times = n > 1 ? ` ${n === 2 ? 'twice' : `${n} times`}` : '';
       const d0 = Math.floor(top.k.t / 24);
-      out.push(top.via < 0 ? { t: top.at, from: src, hand: 1, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} your ${this.relWord(pid, src, d0)} ${this.name(src)} told you: this same stranger ${summary3(top.k, sx, undefined, times)}.`, 44) }
-        : { t: top.at, from: top.via, hand: 2, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} you heard from ${this.name(top.via)}: this same stranger ${summary3(top.k, sx, this.name(src), times)}.`, 44) });
+      out.push(top.via < 0 ? { src, k: top.k, d0, t: top.at, from: src, hand: 1, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} your ${this.relWord(pid, src, d0)} ${this.name(src)} told you: this same stranger ${summary3(top.k, sx, undefined, times)}.`, 44) }
+        : { src, k: top.k, d0, t: top.at, from: top.via, hand: 2, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} you heard from ${this.name(top.via)}: this same stranger ${summary3(top.k, sx, this.name(src), times)}.`, 44) });
     }
     return out.sort((a, b) => a.t - b.t);
+  }
+  /** D-315 (after the GPU runs): the ONE thing the person remembers of the stranger, as they would say it to him (first
+   *  person, "you" is the stranger), picked by the simulation for a question about earlier meetings: their own meeting with a
+   *  deed first, then their own words with him, then what kin or friends told them (a deed first), else that they never met
+   *  him and nobody spoke of him. The model only puts this sentence in its own words (turn.ts). Out of world (English) */
+  recallFact(pid: number, t: number): { fact: string; kind: 'own' | 'heard' | 'none'; row?: MemRow; k?: Told } {
+    const own = (this.rows.get(pid) ?? []).filter(r => !r.folded && r.t <= t + 1e-9).sort((a, b) => (b.deed ? 1 : 0) - (a.deed ? 1 : 0) || b.t - a.t)[0];
+    if (own) return { kind: 'own', row: own, fact: cap(`${when(own.t, t)} ${meFact(own.deed, own.asked[0], 'me')}`) + '.' };
+    const h = this.heard(pid, t).sort((a, b) => (b.deed ? 1 : 0) - (a.deed ? 1 : 0) || (a.hand - b.hand) || b.t - a.t)[0];
+    if (h) { const P = this.pop, sx = P.persons[h.src].sex, pr = sx === 'm' ? 'him' : 'her', who = h.hand === 1 ? `my ${this.relWord(pid, h.src, h.d0)} ${this.name(h.src)}` : `${this.name(h.from)}, who had it from ${this.name(h.src)},`;
+      return { kind: 'heard', k: h.k, fact: cap(`${when(h.t, t)} ${who} told me that ${meFact(h.k.deed, h.k.asked, pr)}`) + '.' }; }
+    return { kind: 'none', fact: 'I have never met you, and nobody has spoken to me of you.' };
   }
   private relWord(pid: number, o: number, day: number): string {
     const P = this.pop, me = P.persons[pid], O = P.persons[o];
@@ -483,6 +495,17 @@ export function walkWords(h: number) { const m = h * 60; return m < 8 ? 'a few s
 export function placeWords(place: string): string {
   const head = place.split(':')[0];
   return ({ well: 'the well', canal: 'the canal', river: 'the river', mill: 'the mill', brewery: 'the brewery', store_town: 'the storehouse', station: 'the road station', oil_press: 'the oil press', tannery: 'the tannery', brickyard: 'the brickyard', stockyard: 'the stockyard', offering_place: 'the fire of the magi', outside: 'the burial ground', official_bldg: 'the officials’ building', terrace_edge: 'the foot of the great stair', h: 'the house', lane: 'the lane', water: 'the water jars', stair_foot: 'the stair foot' } as Record<string, string>)[head] ?? (/^[a-z_]+:/.test(place) || !place ? 'the place' : place.replace(/^(the|a|an)\s+/i, 'the '));
+}
+/** a meeting in the words of the one met ("me") or told of it ("him"/"her"): "you" is the stranger */
+function meFact(d: MemRow['deed'] | undefined, asked: string | undefined, me: string): string {
+  const I = me === 'me' ? 'I' : me === 'him' ? 'he' : 'she', my = me === 'me' ? 'my' : me === 'him' ? 'his' : 'her';
+  if (!d) return `you spoke with ${me}${asked ? ` and said “${asked.replace(/…$/, '')}”` : ''}`;
+  const a = d.arg ? placeWords(d.arg) : '';
+  const ask = ({ follow: `to walk with you`, lead_to: `the way to ${a && a !== 'the place' ? a : (d.arg ?? 'a place')}`, fetch: `to fetch someone for you`, give: `for ${d.item ?? 'something'}`, trade: `to trade with you`, stop_work: `to stop work`, wait_here: `to wait for you`, go_home: `to go home` } as Record<Deed, string>)[d.kind];
+  if (!d.ok) { const r = d.reason.split(/[;:]/)[0].trim().replace(/^is /, `${I} was `).replace(/^was /, `${I} was `).replace(/^has /, `${I} had `).replace(/^does not /, `${I} did not `).replace(/^too /, `${I} was too `).replace(/^(it is|the|a|an|strangers|nobody) /i, m => m.toLowerCase());
+    return `you asked ${me} ${ask}, and ${I} would not: ${r}`; }
+  const did = ({ follow: `${I} walked with you a while`, lead_to: `${I} showed you the way to ${a}`, fetch: `${I} ${d.reason} for you`, give: `${I} gave you ${d.item ?? 'it'}`, trade: `${I} ${d.reason.replace(/^traded/, 'traded you')}`, stop_work: `${I} stopped ${my} work to talk with you`, wait_here: `${I} waited for you`, go_home: `${I} went home` } as Record<Deed, string>)[d.kind];
+  return `you asked ${me} ${ask}, and ${did}`;
 }
 function deedWord(k: Deed, arg?: string) { return ({ follow: 'to come along', lead_to: `the way to ${arg ? placeWords(arg) : 'a place'}`, fetch: 'to fetch someone', give: 'for something', trade: 'to trade', stop_work: 'to stop work', wait_here: 'to wait', go_home: 'to go home' } as Record<Deed, string>)[k]; }
 function deedOutcome(d: NonNullable<MemRow['deed']>, you: 'you'): string {

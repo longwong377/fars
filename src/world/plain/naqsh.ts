@@ -5,7 +5,7 @@
 // 22.93 m, foot 15 m above the ancient ground, median register 14 x 7.60 m, upper arm 8.50 m (B, search extracts); arm
 // width, recess, column and door sizes and the figures' drawing are reconstruction (C). The tomb reliefs are carved by the
 // relief system (D-069: bearers, the king with his bow, the fire altar, the winged figure, the moon, the side-panel guards;
-// programme B, drawing C); the Neo-Elamite relief's figures stay schematic silhouettes (PLACEHOLDER). The DNa and DNb panels carry the Old Persian text of the
+// programme B, drawing C); the Neo-Elamite relief's figures are carved by the relief system by analogy (D-320, C; PLACEHOLDER: NOT SEEN). The DNa and DNb panels carry the Old Persian text of the
 // standard edition (ARIo Q007152 / Q007153, Schmitt 2009, CC0; session 3), incised like the Terrace inscriptions with
 // the published sign-by-sign edition and its lineation (ARIo in CATF, CC0; D-184: 60 lines each, research/OP_SIGNS.md);
 // the editor's restorations carved (C), a stretch lost and not restored left as uncut blanks (nothing invented, no gap closed); the Elamite and Babylonian versions are not carved
@@ -38,28 +38,6 @@ export const NR_RELIEF_HIDE = 1500;
 interface Face { fy: number; groundAsl: number; court: number }
 const toWorld = (f: Face, x: number, h: number, d: number) => new THREE.Vector3(x, f.groundAsl - f.court - curvatureDrop(x, -f.fy) + h, -f.fy - d);
 
-// ---------------------------------------------------------------- relief figures (schematic silhouettes, C)
-type FigureKind = 'bearer' | 'king' | 'guard' | 'winged' | 'standing';
-/** a standing figure's outline, height 1, facing +x; arms by kind */
-function figureShape(kind: FigureKind): THREE.Shape {
-  const s = new THREE.Shape();
-  if (kind === 'winged') { // winged disc with a small figure rising from it (C)
-    s.moveTo(-1.5, 0.35); s.lineTo(-0.9, 0.55); s.lineTo(-0.35, 0.5); s.lineTo(-0.25, 0.62); s.lineTo(-0.12, 0.9); s.absarc(0, 0.95, 0.1, Math.PI, 0, true);
-    s.lineTo(0.12, 0.9); s.lineTo(0.25, 0.62); s.lineTo(0.35, 0.5); s.lineTo(0.9, 0.55); s.lineTo(1.5, 0.35); s.lineTo(0.9, 0.3); s.lineTo(0.4, 0.28); s.lineTo(0.25, 0.1); s.lineTo(-0.25, 0.1); s.lineTo(-0.4, 0.28); s.lineTo(-0.9, 0.3); s.lineTo(-1.5, 0.35);
-    return s;
-  }
-  // robe from feet to shoulders, head, headgear
-  s.moveTo(-0.14, 0); s.lineTo(0.16, 0); s.lineTo(0.12, 0.45); s.lineTo(0.11, 0.78);
-  if (kind === 'bearer') { s.lineTo(0.15, 0.8); s.lineTo(0.2, 1.0); s.lineTo(0.14, 1.0); s.lineTo(0.08, 0.84); } // both hands up to the dais
-  else if (kind === 'king') { s.lineTo(0.3, 0.72); s.lineTo(0.33, 0.76); s.lineTo(0.12, 0.84); } // right hand raised toward the altar
-  else if (kind === 'guard') { s.lineTo(0.2, 0.62); s.lineTo(0.22, 0.66); s.lineTo(0.2, 0.66); s.lineTo(0.2, 1.05); s.lineTo(0.23, 1.05); s.lineTo(0.23, 0.0); s.lineTo(0.26, 0.0); s.lineTo(0.26, 1.08); s.lineTo(0.17, 1.08); s.lineTo(0.17, 0.7); s.lineTo(0.11, 0.8); } // with spear
-  s.lineTo(0.07, 0.86); s.absarc(0.0, 0.9, 0.07, -0.2, Math.PI + 0.2, false); s.lineTo(-0.08, 0.84);
-  if (kind === 'king') { s.lineTo(-0.2, 0.84); s.lineTo(-0.24, 0.78); s.lineTo(-0.18, 0.4); s.lineTo(-0.28, 0.1); s.lineTo(-0.25, 0.08); s.lineTo(-0.16, 0.36); } // bow in the left hand
-  if (kind === 'bearer') { s.lineTo(-0.1, 0.84); s.lineTo(-0.13, 1.0); s.lineTo(-0.19, 1.0); s.lineTo(-0.14, 0.8); }
-  s.lineTo(-0.12, 0.78); s.lineTo(-0.15, 0.45); s.lineTo(-0.14, 0);
-  return s;
-}
-const extrude = (shape: THREE.Shape, depth: number) => { const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 5 }); g.deleteAttribute('uv'); return g.index ? g.toNonIndexed() : g; };
 /** place a local geometry (x along the face, y up, z out of the back wall) at face position (x0, h0) with its back at depth d0 */
 function onFace(f: Face, g: THREE.BufferGeometry, x0: number, h0: number, d0: number, sx = 1, sy = 1, sz = 1): THREE.BufferGeometry {
   const p = g.getAttribute('position') as THREE.BufferAttribute;
@@ -335,13 +313,16 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
     texts.add(tm); tris += tm.geometry.getAttribute('position').count / 3;
   }
   group.add(texts);
-  // Neo-Elamite relief: a panel at the nearest point of the face to its xy, schematic figures (PLACEHOLDER carving)
+  // Neo-Elamite relief: a panel at the nearest point of the face to its xy; its five figures carved by the relief system
+  // (D-320: the relief atlas's carved figures, kind 'elamite', drawing by analogy C; was five extruded silhouettes)
   const ER = NR().elamite_relief, ex = feature('nr_elamite_relief').xy[0] as number;
-  const rel: THREE.BufferGeometry[] = [onFace(f, box(ER.w_m + 0.3, ER.h_m + 0.3, 0.05), ex - ER.w_m / 2 - 0.15, ER.base_above_ground_m - 0.15, 0.12)];
-  for (let i = 0; i < 5; i++) rel.push(onFace(f, extrude(figureShape('standing'), 0.08), ex - ER.w_m / 2 + 0.8 + i * 1.35, ER.base_above_ground_m + 0.2, 0.07, 1.9, 1.9, 1));
-  const relief = new THREE.Mesh(mergeGeometries(rel)!, dressed); relief.name = 'nr-elamite-relief'; relief.castShadow = relief.receiveShadow = true;
-  relief.userData = { tier: 'B/C', src: ER.src, note: 'Neo-Elamite relief 7 x 2.5 m, intact in 467 (B); figures schematic (C)', placeholder: true };
-  group.add(relief);
+  const relief = new THREE.Mesh(onFace(f, box(ER.w_m + 0.3, ER.h_m + 0.3, 0.05), ex - ER.w_m / 2 - 0.15, ER.base_above_ground_m - 0.15, 0.12), dressed); relief.name = 'nr-elamite-relief'; relief.castShadow = relief.receiveShadow = true;
+  relief.userData = { tier: 'B/C', src: ER.src, note: 'Neo-Elamite relief 7 x 2.5 m, intact in 467 (B): the dressed panel', placeholder: false };
+  const elam: ReliefItem[] = [];
+  for (let i = 0; i < 5; i++) elam.push({ kind: 'elamite', seed: i, o: toWorld(f, ex - ER.w_m / 2 + 0.95 + i * 1.35, ER.base_above_ground_m + 0.2, 0.07), X: new THREE.Vector3(1, 0, 0), Y: new THREE.Vector3(0, 1, 0), Z: new THREE.Vector3(0, 0, 1), S: 1.9, D: 0.06, mirror: i >= 3, meta: { programme: 'Neo-Elamite relief (B); figures by analogy with Kurangun and Kul-e Farah (C)', tier: 'C', where: 'nr_elamite_relief' } });
+  const elamSet = new ReliefSet(elam, [], 'nr-elamite-relief:figures', NR_RELIEF_HIDE);
+  elamSet.userData = { ...elamSet.userData, tier: 'C', src: ER.src, note: 'Neo-Elamite relief: five worshippers carved by the relief system, facing the middle (drawing by analogy, C; NOT SEEN: overcarved by Bahram II); ' + elamSet.userData.note, placeholder: true };
+  group.add(relief, elamSet);
   // Ka'ba
   const kb = kaba(f, terrain, f.court, ancientFootAsl);
   const kw = new THREE.Mesh(kb.white, surfaceMaterial('kaba_white')), kd = new THREE.Mesh(kb.dark, surfaceMaterial('limestone_dark'));

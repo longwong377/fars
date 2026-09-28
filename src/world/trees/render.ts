@@ -15,7 +15,7 @@
 // normals. A quad collapses inside the near radius of the near set's centre (the trees drawn in 3-D there) and beyond
 // an outer radius. No runtime select(): masks are arithmetic (D-012).
 import * as THREE from 'three/webgpu';
-import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep, exp, fract } from 'three/tsl';
+import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep, exp, fract, hash, screenCoordinate, frameId } from 'three/tsl';
 import { allModels, K1, LOD1_LEAF, LOD1_TWIG, M0, M1, K0, SIDES0, SIDES1, VARIANTS, rowOf, TRIS, type TreeModel } from './model';
 import { COLS, ROWS, TILT, type Atlas } from './atlas';
 import { calibrateAndDrawAtlas, calibrateCards, packCards, packSegments, packSpecies, SEG_TEX, CARD_TEX } from './kitdata';
@@ -96,7 +96,18 @@ export class TreeKit {
   /** mip bias of the leaf atlas: +1 where nothing averages sub-pixel alpha over frames (MSAA qualities: the alpha-tested
    *  leaf edges speckled at test quality); 0 under temporal AA (medium and above), which averages them */
   readonly atlasBias: any = uniform(0);
-  readonly baker: ImpostorBaker; readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
+  readonly baker: ImpostorBaker;
+  /** the impostors' alpha test is dithered (a threshold hashed per pixel and frame) and their mips keep the plain coverage
+   *  share, so temporal AA shows a sparse crown's sub-pixel gaps as the near trees' geometry does (the oak's impostor read
+   *  15/255 darker than its LOD1 at r3: the coverage-kept mips had closed its sky gaps; D-327). Off under MSAA (test, low) */
+  readonly dither: boolean;
+  /** the alpha threshold of the impostor materials (TSL) */
+  impAlphaTest() { return this.dither ? hash(screenCoordinate.xy.add(vec2(float(frameId).mul(7.13), float(frameId).mul(3.71)))).sub(0.5).mul(this.ditherAmp).add(this.ditherMid) : float(0.5); }
+  /** the dithered threshold's centre */
+  readonly ditherMid: any = uniform(0.58);
+  /** the dithered threshold's spread about 0.5 (1: 0..1, the plain coverage share) */
+  readonly ditherAmp: any = uniform(0.8); // with ditherMid 0.58: thresholds 0.18..0.98 (tree lab, D-327 rev 2)
+  readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
   /** the sun as the leaves' transmission sees it (world direction toward the sun, irradiance = colour x intensity);
    *  synced from the scene's shadow-casting sun before each tree draw (syncSun) */
   readonly sunDir: any = uniform(new THREE.Vector3(0, 1, 0)); readonly sunIrr: any = uniform(new THREE.Color(0, 0, 0));
@@ -122,7 +133,8 @@ export class TreeKit {
     this.bark = A?.bark ?? null;
     this.atlasTex = mipTex(this.atlas.levels, false); this.tiltTex = mipTex(this.atlas.tilt, false);
     this.segTex = dataTex(packSegments(this.models)); this.cardTex = dataTex(packCards(this.models)); this.spTex = dataTex(packSpecies(this.models, this.bark?.layer ?? null));
-    this.baker = new ImpostorBaker(this.models, this.atlas, opts.impostorPx);
+    this.dither = opts.impostorPx >= 80; // medium and above: temporal AA (impostorPx is the quality's)
+    this.baker = new ImpostorBaker(this.models, this.atlas, opts.impostorPx, 1, this.wood, this.dither);
     this.foliage.setDay(105);
     const L = this.bakeAll(true);
     this.impCol = mipTex(L.col, true); this.impNrm = mipTex(L.nrm, false);
@@ -151,7 +163,7 @@ export class TreeKit {
     if (!changed) return;
     const step = Number.isNaN(prev) ? 99 : Math.min(Math.abs(doy - prev), 365 - Math.abs(doy - prev)), w = step <= 1 ? this.bakeWorker() : null;
     const id = ++this.reqId;
-    if (w) { w.postMessage({ id, px: this.baker.px, table: this.foliage.data.slice(), atlas: this.workerAtlas ? undefined : this.atlas }); this.workerAtlas = true; return; }
+    if (w) { w.postMessage({ id, px: this.baker.px, dither: this.dither, table: this.foliage.data.slice(), atlas: this.workerAtlas ? undefined : this.atlas, wood: this.workerAtlas ? undefined : this.wood }); this.workerAtlas = true; return; }
     this.apply(this.bakeAll());
   }
   private reqId = 0; private worker: Worker | null | undefined; private workerAtlas = false;
@@ -331,7 +343,7 @@ export class TreeKit {
     const col = mix(a0.xyz, a1.xyz, t).mul(vHue);
     m.colorNode = vec4(col, mix(a0.w, a1.w, t));
     m.emissiveNode = transmissionN(col, nW, vKappa, this.sunDir, this.sunIrr); // as the near leaves (the baked normals are the same)
-    m.alphaTest = 0.5; m.roughnessNode = float(0.8);
+    m.alphaTestNode = this.impAlphaTest(); m.roughnessNode = float(0.8);
     return m;
   }
   /** sample the impostor of model `row` from view float `f` (0..NV) at tile uv (TSL helper for row impostors) */

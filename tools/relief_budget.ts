@@ -1,21 +1,22 @@
 // Relief cost probe (D-204): reliefStats (triangles submitted, per LOD, draws) for all relief sets at fixed camera
 // positions: before each Apadana audience panel, the walk along both Apadana façades used by tests/reliefs.test.ts (the
 // worst case), the Phase 4 jamb probes, and the Grand Stair foot. Node, synchronous generation (no workers).
-//   npx tsx tools/relief_budget.ts
+//   npx tsx tools/relief_budget.ts            (ATLAS=1: the sets drawn with the carved-relief atlas, D-320)
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
 import { buildReliefs, apadanaFacades, buildPhase4Reliefs } from '../src/arch/decor';
-import { ReliefSet, updateReliefs, reliefStats, genStats } from '../src/arch/reliefs';
+import { ReliefSet, updateReliefs, reliefStats, genStats, setReliefAtlas } from '../src/arch/reliefs';
 import { buildReliefMarks } from '../src/arch/marks';
 import { PalaceFurnishings } from '../src/world/furnish_palaces';
 import { v } from '../src/arch/spec';
 
+if (process.env.ATLAS) setReliefAtlas(true); // D-320: the atlas levels (geometry only: no textures needed)
 const t0 = performance.now();
 const { manifest, doorways } = buildTerrace() as any;
 const ap = buildReliefs(manifest), p4 = buildPhase4Reliefs(doorways).group;
 const sets = [...ap.children, ...p4.children].filter(c => c instanceof ReliefSet) as ReliefSet[];
 const apSet = sets[0];
-console.log(`built ${sets.length} sets, ${sets.reduce((s, q) => s + q.items.length, 0)} figures (Apadana ${apSet.items.length}) in ${(performance.now() - t0).toFixed(0)} ms`);
+console.log(`${process.env.ATLAS ? 'ATLAS: ' + sets.filter(s => s.atlas).length + ' of ' + sets.length + ' sets drawn with the atlas; ' : ''}built ${sets.length} sets, ${sets.reduce((s, q) => s + q.items.length, 0)} figures (Apadana ${apSet.items.length}) in ${(performance.now() - t0).toFixed(0)} ms`);
 const at = (e: number, y: number, n: number) => new THREE.Vector3(e, y, -n);
 const line = (what: string, cam: THREE.Vector3) => {
   updateReliefs(cam, 1e9); const s = reliefStats();

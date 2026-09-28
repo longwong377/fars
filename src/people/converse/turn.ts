@@ -14,6 +14,8 @@ import type { Decision, TalkEvent } from '../talk';
 import type { Mind, Answer } from './mind';
 import type { Turn, Knows } from './prompt';
 import { lifeRecord } from './life';
+import { groundFact, isRecallQuestion } from './ground';
+import { hearAsPerson } from './hear';
 import { requestOf, looseRequest, tagAsked, wordsRefuse, type Intent, type Deed } from './intent';
 
 export interface TurnOut {
@@ -23,12 +25,13 @@ export interface TurnOut {
   decision: (Decision & { event: TalkEvent }) | null;
   /** the words said no (the person's own), and whether the answer was asked again to match a refusal */
   saidNo: boolean; retold: boolean;
+  /** a question about earlier meetings: the fact the simulation picked (the model only rephrased it) */ fact?: string; judged?: boolean | null;
 }
 /** the simulation's word on an ask, as the person is told it (the model's brief: out of world) */
 /** D-315 (the GPU runs): where the memory of the stranger goes. 'near' (the default after run 2): in the turn, just before
  *  the stranger's words, framed "You remember:", every time there is one; 'top': in the system brief, and with the words only on
  *  a talk's first turn or when asked about earlier meetings (run 1's layout) */
-export const talkOpts = { memory: 'near' as 'near' | 'top' };
+export const talkOpts = { memory: 'near' as 'near' | 'top', /** D-315 run 4: the picked recall fact, the life fact, the judge */ pick: true };
 export function verdictNote(d: Decision): string {
   if (d.noop) return `You may say yes: ${d.reason}.`;
   return d.ok ? 'You can do this, if you are willing.' : `You cannot do this: ${d.reason}.`;
@@ -55,10 +58,20 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   // (run 2: the simulation's "no" after the stranger's words was often not kept; said first, plainly, it goes with the memory)
   const before = [near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
     near && pre && !pre.ok && !pre.noop ? `(Whatever he asks, you must say no: ${pre.reason}.)` : ''].filter(Boolean).join('\n') || undefined;
-  let answer = await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: near ? [] : memory, note, before });
+  // (after run 3: asked about earlier meetings, the simulation picks the ONE remembered fact and the model only says it in
+  // its own words; otherwise the one life fact most relevant to the words goes next to them: ground.ts)
+  const recallQ = talkOpts.pick && isRecallQuestion(said) && !request; const fact = recallQ ? sim.talk.recallFact(pid, t).fact : undefined;
+  // (run 4: the fact BEFORE the stranger's words took T-E9 from 62.5 % to 52.8 %: run 5 puts it in the closing note, last)
+  const ground = talkOpts.pick && !recallQ ? groundFact(L, said) : undefined;
+  let answer = fact ? await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: [], userText: `The stranger says: “${hearAsPerson(said).text}” (Answer as ${L.name}. What you remember: ${fact} Tell him that, in your own words, keeping what happened and who it was.)` })
+    : await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: near ? [] : memory, note, before, ground });
   const tag = answer.intent ?? null;
   const ask = request ?? (tagAsked(tag, said) ? tag : null); // (a tag the stranger's words give no cue for is the model's, not an ask)
-  const saidNo = answer.ok && (tag?.kind === 'refuse' || ((!tag || tag.kind === 'none') && wordsRefuse(answer.text)));
+  // (a "no" in the words: the refuse tag; else, when something was asked, the judge (the loaded model: YES or NO), and the
+  // word list only when the judge gives no clear answer)
+  let judged: boolean | null = null;
+  if (talkOpts.pick && ask && answer.ok && tag?.kind !== 'refuse' && !(tag && tag.kind === ask.kind)) judged = await mind.judge(said, answer.text);
+  const saidNo = answer.ok && (tag?.kind === 'refuse' || (judged === false) || (judged === null && (!tag || tag.kind === 'none') && wordsRefuse(answer.text)));
   let decision: TurnOut['decision'] = null, retold = false;
   if (ask) {
     if (saidNo && !(pre && !pre.ok)) decision = sim.talkDecline(pid, ask, tag?.kind === 'refuse' ? tag.arg ?? '' : 'said no', t);
@@ -73,5 +86,5 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   }
   const deed = decision ? { kind: decision.kind as Deed, arg: decision.arg ?? decision.event.arg, ok: decision.ok, reason: decision.reason, item: decision.item } : undefined;
   sim.talk.remember(pid, t, o.conv, said, answer.ok ? answer.text : '', deed);
-  return { pid, said, answer, knows, memory, request, tag, ask, decision, saidNo, retold };
+  return { pid, said, answer, knows, memory, request, tag, ask, decision, saidNo, retold, fact, judged };
 }

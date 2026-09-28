@@ -48,7 +48,8 @@ test('tree lab', async ({ page }, info) => {
     const r3 = R3[Q] ?? 160, out: Record<string, any> = {};
     for (const [sp, day] of [['plane', 80], ['poplar', 80], ['willow', 80], ['apple', 0], ['oak', 80], ['plane', 280], ['cypress', 80]] as [string, number][]) {
       await L('setTime', day, 10); await L('view', 0, 1.6, r3, 0, 6, 0);
-      const shot = async (lod: any) => { await L('place', lod === null ? [] : [{ sp, x: 0, z: 0, lod }]); await L('render', 3); return decode(await page.screenshot()); };
+      // 8 frames: temporal AA converged (the impostors' dithered alpha, D-327 rev 2, needs it as the near cards' sub-pixel gaps do)
+      const shot = async (lod: any) => { await L('place', lod === null ? [] : [{ sp, x: 0, z: 0, lod }]); await L('render', 8); return decode(await page.screenshot()); };
       // the tree's box on screen (+4 px), and an empty frame right before each view (the clouds drift between frames)
       const sz = await L('size', sp), box = (await L('project', -sz.w * 0.75, -0.5, -sz.w * 0.75, sz.w * 0.75, sz.h * 1.1, sz.w * 0.75)) as number[];
       box[0] -= 4; box[1] -= 4; box[2] += 4; box[3] += 4;
