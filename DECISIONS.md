@@ -8530,3 +8530,7 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the strokes themselves stay hand-authored (PLACEHOLDER: B181). F3 counts both per frame.
 - Impostor frames re-chosen for the captured poses (tools/dev/imp_keys.ts --cover; 71 frames).
 - **Round 4b:** the cypress redrawn from the Apadana stair trees (reliefs/90499796, 30320468: ogival crown 0.40 of the height across, scale column, rising branch pairs, needle fans, cones; B). Drawing B: 20 of 41 kinds. Heroes: no photograph on this machine (stay C).
+- **D-309d verified in the world (run d309d2, Q high, FOV game):** scribe-room-ne mean 19 → 112 of 255 (p50 102; the doorway
+  clips white, 4.9 % clipped: the room now reads as a sunlit room with a bright door). lane-night (the lane-with-child view at
+  21:30): mean 0.4, pure black but a sliver of sky — B111 stands: no hearth, lamp, moon or sky light reaches the lane.
+  Frame: scribe-room-ne 309 ms, lane-night 598 ms (B125). room-treasury-store not reached (the run's timeout).
