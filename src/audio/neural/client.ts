@@ -19,7 +19,7 @@ export class NeuralVoices {
   readonly ready: Promise<boolean>;
   constructor(o: { device?: 'webgpu' | 'wasm'; dtype?: string } = {}) {
     this.ready = new Promise(res => {
-      try { this.w = new Worker(new URL('./neural_worker.ts', import.meta.url), { type: 'module' }); } catch (e) { this.stats.lastError = String(e); res(false); return; }
+      try { this.w = new Worker(new URL('./neural_worker.ts', import.meta.url), { type: 'module', name: typeof location !== 'undefined' && /[?&]neuraldebug/.test(location.search) ? 'debug' : 'voices' }); } catch (e) { this.stats.lastError = String(e); res(false); return; }
       this.w.onmessage = (e: MessageEvent) => { const m = e.data;
         if (m.type === 'loaded') { this.stats.ready = true; this.stats.device = m.device; this.stats.loadMs = m.ms; res(true); return; }
         if (m.type === 'error' && m.id === undefined) { this.stats.lastError = m.error; res(false); return; }

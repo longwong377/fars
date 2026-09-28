@@ -17,6 +17,10 @@
 import type { AudioEngine } from './engine';
 import { tokenizeIpa, syllabify, Phone, type Syllable } from './phonemes';
 import type { LangId } from '../lang/lexicon';
+import type { NeuralVoice } from './neural/identity';
+import { voiceKey as neuralKey } from './neural/identity';
+import { phonemesFor } from './neural/kokoro';
+import type { NeuralVoices } from './neural/client';
 
 export interface Vec3 { x: number; y: number; z: number }
 export interface VoiceParams {
@@ -325,7 +329,7 @@ export function renderPlan(plan: Plan, sampleRate = 24000, seed = 1, peak = 0.8)
 }
 
 // ---------------------------------------------------------------- swappable backends
-export interface SpeechRequest { ipa: string; lang?: LangId; voice: VoiceParams; intonation?: Intonation; lineId?: string; voiceKey?: string }
+export interface SpeechRequest { ipa: string; lang?: LangId; voice: VoiceParams; intonation?: Intonation; lineId?: string; voiceKey?: string; /** D-336: the speaker's own neural voice (audio/neural/identity.ts); the NeuralBackend speaks with it */ neural?: NeuralVoice }
 export interface AudioClip { sampleRate: number; data: Float32Array; backend: string; tier: string }
 /**
  * A voice backend turns a request into audio. Backends are tried in order; the first non-null result wins, so a
@@ -345,6 +349,18 @@ export class FormantBackend implements VoiceBackend {
     return { sampleRate: this.sampleRate, data: renderPlan(plan, this.sampleRate, req.voice.seed ?? 1), backend: this.id, tier: 'C' };
   }
   render(req: SpeechRequest): Promise<AudioClip> { return Promise.resolve(this.renderSync(req)); }
+}
+
+/** D-336 (UD-22): the person's own natural voice (Kokoro-82M in a worker: audio/neural). First in the chain: a request
+ *  with the speaker's neural voice is spoken with it; without one (or before the model has loaded) the next backend speaks */
+export class NeuralBackend implements VoiceBackend {
+  readonly id = 'kokoro';
+  constructor(readonly nv: NeuralVoices, readonly prio = 1) {}
+  async render(req: SpeechRequest): Promise<AudioClip | null> {
+    if (!req.neural || !this.nv.stats.ready) return null; const ph = phonemesFor(req.ipa, req.intonation); if (!ph) return null;
+    const r = await this.nv.say(req.neural, { phonemes: ph }, this.prio); if (!r || !r.pcm.length) return null;
+    return { sampleRate: r.rate, data: r.pcm, backend: this.id, tier: 'C' };
+  }
 }
 
 /** Only same-origin relative paths: the pipeline must never call a network service. */
@@ -409,7 +425,7 @@ export class Speech {
   onSubtitle: ((s: Subtitle, h: SpeechHandle) => void) | null = null;
   constructor(readonly e: AudioEngine, readonly backends: VoiceBackend[] = [new FormantBackend()], readonly maxCache = 96) {}
 
-  private key(req: SpeechRequest) { const v = req.voice; return `${req.lineId ?? ''}|${req.ipa}|${req.lang}|${req.intonation}|${v.sex}|${v.age}|${v.pitch.toFixed(3)}|${v.rate.toFixed(3)}|${v.breath ?? 0}|${v.seed ?? 1}|${v.formant ?? 1}|${v.f2 ?? 1}|${v.wander ?? 0}|${v.durJitter ?? 0}|${v.accent ?? 1}|${v.glottis ?? 0.5}|${v.jitter ?? 0.01}|${v.shimmer ?? 0.03}`; }
+  private key(req: SpeechRequest) { const v = req.voice; return `${req.neural ? neuralKey(req.neural) : ''}|${req.lineId ?? ''}|${req.ipa}|${req.lang}|${req.intonation}|${v.sex}|${v.age}|${v.pitch.toFixed(3)}|${v.rate.toFixed(3)}|${v.breath ?? 0}|${v.seed ?? 1}|${v.formant ?? 1}|${v.f2 ?? 1}|${v.wander ?? 0}|${v.durJitter ?? 0}|${v.accent ?? 1}|${v.glottis ?? 0.5}|${v.jitter ?? 0.01}|${v.shimmer ?? 0.03}`; }
 
   /** Render (or fetch from cache) the audio for a request; tries each backend in order. */
   async buffer(req: SpeechRequest): Promise<{ buf: AudioBuffer; backend: string } | null> {
@@ -429,8 +445,8 @@ export class Speech {
   }
 
   /** Speak a scripted line at a world position through the voices channel. */
-  say(line: SpeakableLine, voice: VoiceParams, pos: Vec3, opts: { speakerId?: string | number; voiceKey?: string; delay?: number; gain?: number } = {}): SpeechHandle {
-    return this.play({ ipa: line.ipa, lang: line.lang, voice, intonation: line.intonation, lineId: line.id, voiceKey: opts.voiceKey }, pos, line, opts);
+  say(line: SpeakableLine, voice: VoiceParams, pos: Vec3, opts: { speakerId?: string | number; voiceKey?: string; delay?: number; gain?: number; neural?: NeuralVoice } = {}): SpeechHandle {
+    return this.play({ ipa: line.ipa, lang: line.lang, voice, intonation: line.intonation, lineId: line.id, voiceKey: opts.voiceKey, neural: opts.neural }, pos, line, opts);
   }
   /** Speak raw IPA (used for chants/murmur experiments); no subtitle. */
   sayIpa(req: SpeechRequest, pos: Vec3, opts: { delay?: number; gain?: number } = {}): SpeechHandle { return this.play(req, pos, null, opts); }

@@ -357,7 +357,7 @@ async function boot() {
       advance: (s: number) => api.advanceWorld(s, 0.5), tick: () => api.tick() }); } return covPass as import('./dev/coverage').CoveragePass; };
   (window as any).__parsa = api;
   // D-296 (UD-18): speaking with the people, on request (?converse; loaded on demand, nothing without it)
-  if (P.has('converse')) import('./people/converse/ui').then(m => { (api as any).converse = m.mountConverse({ world, camera, clock, seed: SEED }); }).catch(e => api.errors.push('converse: ' + e));
+  if (P.has('converse')) import('./people/converse/ui').then(m => { (api as any).converse = m.mountConverse({ world, camera, clock, seed: SEED, settings }); }).catch(e => api.errors.push('converse: ' + e));
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;

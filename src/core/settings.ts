@@ -11,6 +11,9 @@ export interface Settings {
   /** the Now view (brief §1.1 stretch, out-of-world, D-201): the ruin as it stands today. Off by default and never restored
    *  from storage: every visit starts in 467 BCE */
   nowView: boolean;
+  /** D-336 (UD-22): in what the person you speak with is heard: their own period language (the default: the heard world
+   *  stays period, §10), or the same in-character reply in Farsi or English, in the person's own voice (out of world, opt-in) */
+  hearIn: 'own' | 'fa' | 'en';
 }
 export const DEFAULT_KEYS: Record<string, string> = {
   forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', interact: 'KeyE', pause: 'Escape', overlay: 'F3',
@@ -21,7 +24,7 @@ export const DEFAULT_SETTINGS: Settings = {
   quality: 'high', forceWebGL: false, playerMode: 'observer', courtCalendar: 'seasonal', translation: false, fov: 60, headBob: true,
   mouseSensitivity: 1, invertY: false, keys: { ...DEFAULT_KEYS },
   volume: { master: 0.9, ambience: 1, voices: 1, music: 1, effects: 1 }, subtitleSize: 1, lightningWarning: true, colourBlindUI: false,
-  timeScale: 1, devOverlay: false, nowView: false,
+  timeScale: 1, devOverlay: false, nowView: false, hearIn: 'own',
 };
 const KEY = 'parsa.settings.v1';
 export function loadSettings(): Settings {

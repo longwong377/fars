@@ -10,6 +10,7 @@ import { localModels } from '../../people/converse/models';
 import type { NeuralVoice } from './identity';
 
 localModels(self.location.origin);
+const DBG = (self as any).name === 'debug';
 let K: KokoroRunner | null = null; let device = 'webgpu';
 interface Job { id: number; prio: number; t: number; phonemes?: string; text?: string; lang?: 'fa' | 'en'; voice: NeuralVoice; speed?: number }
 const queue: Job[] = []; let busy = false;
@@ -20,11 +21,14 @@ async function pump() {
   if (busy || !K) return; busy = true;
   try {
     while (queue.length) {
+      if (DBG) console.log('[neural] job', queue.length);
       queue.sort((a, b) => a.prio - b.prio || (a.prio === 0 ? a.t - b.t : b.t - a.t)); const j = queue.shift()!; const t0 = performance.now();
       try {
         let ph = j.phonemes ?? '';
         if (!ph && j.text && j.lang) { const { espeakIpa } = await import('./g2p'); ph = espeakToKokoro(await espeakIpa(j.text, j.lang), j.lang); }
+        if (DBG) console.log('[neural] speak', ph, JSON.stringify(j.voice).slice(0, 200));
         const pcm = ph ? await K.speak(ph, j.voice, { speed: j.speed }) : new Float32Array(0);
+        if (DBG) console.log('[neural] done', pcm.length, (performance.now() - t0).toFixed(0), 'ms');
         post({ type: 'audio', id: j.id, pcm, rate: KOKORO_RATE, ms: performance.now() - t0, queued: t0 - j.t, phonemes: ph }, [pcm.buffer]);
       } catch (err) { post({ type: 'error', id: j.id, error: String((err as any)?.message ?? err) }); if (/device|lost|disposed|GPU/i.test(String(err))) await reload(); }
     }
@@ -46,6 +50,6 @@ self.onmessage = async (e: MessageEvent) => {
     // warm the kernels (the first call compiles them)
     await K!.raw('ha.', new Float32Array(256), 1);
     post({ type: 'loaded', ms: performance.now() - t0, device }); pump();
-  } else if (m.type === 'speak') { queue.push({ ...m, t: performance.now() }); pump(); }
+  } else if (m.type === 'speak') { if (DBG) console.log('[neural] got speak', m.id, !!K, busy); queue.push({ ...m, t: performance.now() }); pump(); }
   else if (m.type === 'drop') { for (let i = queue.length - 1; i >= 0; i--) if (queue[i].prio >= m.below) { post({ type: 'error', id: queue[i].id, error: 'dropped' }); queue.splice(i, 1); } }
 };

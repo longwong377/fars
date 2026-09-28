@@ -8,14 +8,17 @@
 import * as THREE from 'three/webgpu';
 import { Mind, Ears, Mic, EnglishVoice } from './mind';
 import { lifeRecord, type LifeRecord } from './life';
-import { heardReply } from './voice';
+import { heardReply, heardReplyNeural, type HearIn } from './voice';
+import { toFarsi, FarsiTranslator, type FarsiRoute } from './farsi';
 import type { Turn } from './prompt';
 import { bakedProse } from './bake';
 import { talkTurn } from './turn';
 
 export const DEFAULT_MODEL = 'gemma-2-2b-it-q4f16_1-MLC'; // D-296: measured on the T4 (the lab's T-E9 runs): the most natural voice of the 1-3 B models that fit 4 s and the watchdog
 export const NEAR_M = 3;
-interface Ctx { world: any; camera: THREE.Camera; clock: { dayIndex: number; localHour: number; t: number }; seed: number; englishVoice?: boolean }
+/** D-336: the Farsi of the opt-in layer by default: the conversation model's own Persian of its reply (measured against NLLB-600M: DECISIONS D-336) */
+export const FARSI_ROUTE: FarsiRoute = 'llm';
+interface Ctx { world: any; camera: THREE.Camera; clock: { dayIndex: number; localHour: number; t: number }; seed: number; englishVoice?: boolean; /** D-336: settings.hearIn (the opt-in layer) */ settings?: { hearIn?: HearIn } }
 export interface Near { pid: number; agent: number | null; name: string; d: number; e: number; n: number }
 
 /** the nearest person within 3 m of the eye (detailed agents and the population's people drawn around the player) */
@@ -43,6 +46,9 @@ export function mountConverse(c: Ctx) {
   // the baked prose layer (D-296): only for the world it was baked for (seed 1: src/data/lives_baked_s1.json)
   let baked = new Map<number, any>(); if (c.seed === 1) import('../../data/lives_baked_s1.json').then(m => { baked = new Map(((m as any).default ?? m).rows.map((r: any) => [r.pid, r])); }).catch(() => {});
   const prose = (pid: number) => bakedProse(baked.get(pid));
+  // D-336: the opt-in layer (settings.hearIn; ?hear=fa|en for tests) and the route of its Farsi (?farsi=llm|nllb; D-336 measured)
+  const hearIn = (): HearIn => (P.get('hear') as HearIn | null) ?? c.settings?.hearIn ?? 'own';
+  const faRoute = (): FarsiRoute => (P.get('farsi') as FarsiRoute | null) ?? FARSI_ROUTE; const nllb = new FarsiTranslator();
   let audio: AudioContext | null = null;
   const play = (data: Float32Array, rate: number) => { audio ??= new AudioContext(); const b = audio.createBuffer(1, data.length, rate); b.getChannelData(0).set(data); const s = audio.createBufferSource(); s.buffer = b; s.connect(audio.destination); s.start(); };
   const eye = () => ({ e: c.camera.position.x, n: -c.camera.position.z });
@@ -66,9 +72,19 @@ export function mountConverse(c: Ctx) {
     const t0 = performance.now(); const T = await talkTurn(mind, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid) }); const a = T.answer; state.busy = false;
     hist.push({ role: 'user', content: text }, { role: 'assistant', content: a.ok ? a.text : '' }); state.history.set(near.pid, hist.slice(-8));
     let heard = null as any;
-    if (a.ok) { const h = heardReply(sim.pop, near.pid, day, a.text, c.seed); heard = { lang: h.lang, units: h.units.map(u => u.translit || u.gloss), seconds: h.seconds };
-      play(h.data, h.rate); if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => play(r.data, r.rate)).catch(() => {}); } }
-    show(a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`, `translation layer (English, out of world); heard: ${heard ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
+    if (a.ok) {
+      // D-336 (UD-22): the person's own natural voice, in their own language, or (the opt-in layer) the same reply in Farsi or
+      // English; played at them in the world's sound (sayPcm), piece by piece as it renders
+      const nv = c.world.neural, agent = near.agent !== null ? sim.agents[near.agent] : null, layer = hearIn(); let fa: Awaited<ReturnType<typeof toFarsi>> = null;
+      if (layer === 'fa') fa = await toFarsi(a.text, { route: faRoute(), mind, nllb }).catch(() => null);
+      const faOk = !!fa && !fa.hits.length, key = near.agent !== null ? `a${near.agent}` : `p${near.pid}`, at = { x: near.e, y: c.camera.position.y - 0.1, z: -near.n };
+      const tH = performance.now();
+      const h = nv?.stats.ready ? await heardReplyNeural(nv, sim.pop, near.pid, day, a.text, c.seed, { hearIn: layer === 'fa' && !faOk ? 'en' : layer, farsi: faOk ? fa!.fa : null, agent,
+        onChunk: (pcm, rate) => { if (c.world.sayPcm) c.world.sayPcm(key, pcm, rate, at); else play(pcm, rate); } }) : null;
+      if (h) heard = { lang: h.lang, layer: h.layer, units: h.units.map(u => u.translit || u.gloss), text: h.text, seconds: h.seconds, backend: 'kokoro', firstMs: h.firstMs, totalMs: performance.now() - tH, fa: fa ? { route: fa.route, ms: fa.ms, hits: fa.hits } : null };
+      else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; play(f.data, f.rate); }
+      if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => play(r.data, r.rate)).catch(() => {}); } }
+    show(a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`, `translation layer (English, out of world); heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
     const row = { pid: near.pid, name: L.name, d: +near.d.toFixed(2), said: text, reply: a.text, ok: a.ok, hits: a.hits, ms: performance.now() - t0 + heardMs, ttft: a.ttftMs, heard, key, ask: T.ask, tag: T.tag, decision: T.decision ? { kind: T.decision.kind, ok: T.decision.ok, reason: T.decision.reason, noop: !!T.decision.noop } : null, memory: T.memory };
     state.last = row; state.log.push(row); return row;
   }
