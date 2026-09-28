@@ -13,7 +13,8 @@ import { buildTerrace } from '../../../src/arch/terrace';
 import { buildMeshes } from '../../../src/arch/meshes';
 import { buildReliefs, buildPhase4Reliefs, apadanaFacades } from '../../../src/arch/decor';
 import { ReliefSet, setReliefAtlas, updateReliefs, settleReliefs, reliefStats, buildReliefShadow, reliefShadowData, type ReliefItem } from '../../../src/arch/reliefs';
-import { setReliefShadow, refreshReliefShadow } from '../../../src/render/reliefShadow';
+import { setReliefShadow, refreshReliefShadow, reliefSkyNode, receiveReliefShadow } from '../../../src/render/reliefShadow';
+import { positionWorld } from 'three/tsl';
 import { surfaceMaterial } from '../../../src/render/materials';
 (async () => {
   const P = new URLSearchParams(location.search);
@@ -68,6 +69,8 @@ import { surfaceMaterial } from '../../../src/render/materials';
   const dbgMats = new Map<string, THREE.Material>(), origMat = new Map<THREE.Object3D, THREE.Material>();
   (window as any).__debug = (mode0: string) => {
     const nowall = mode0.endsWith('-nowall'), mode = mode0.replace('-nowall', ''); arch.group.visible = !nowall;
+    if (mode === 'wallsky') { if (!(wall as any).__orig) (wall as any).__orig = wall.material; const b = receiveReliefShadow(new THREE.MeshBasicNodeMaterial()); b.colorNode = vec3(reliefSkyNode(positionWorld)); wall.material = b; return; }
+    if ((wall as any).__orig) wall.material = (wall as any).__orig;
     const M = reliefAtlasMaps()!, r = attribute('ruv', 'vec4'), at = (t: THREE.Texture) => texture(t, r.xy).depth(r.z.add(0.5).floor());
     atlas.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh && !(m as any).isBatchedMesh) return; if (!origMat.has(m)) origMat.set(m, m.material as THREE.Material);
       if (!mode) { m.material = origMat.get(m)!; return; }
