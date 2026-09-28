@@ -8064,3 +8064,15 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   round the spawn in the load (world.prebuild, settle) and then at 3 ms a frame, a cell's assembly included (1.5 m pieces; a
   walk <= 3 ms in node); the bands take over only when every cell within 12 m is drawn, so a teleport never shows a hole (the
   maps draw the arrises meanwhile). Open (B145): the painted joints inside a wall, the platform's prisms and the foot blocks.
+## D-320 (continued) Round 2: the Neo-Elamite relief unpainted, the wall's sky past the figures, the mip spread, 4 layers (session 12, agent reliefs)
+- **Rev 2 (the lead's four follow-ups, same session):** (1) the Neo-Elamite worshippers rendered on the probe (a wall at CALIB):
+  they read, but their hair and beards were painted the Persepolis dark blue; the relief is unpainted, so `Human.hair` carries
+  the stone (relief_figures.ts). (2) The wall beside each figure now loses sky past the carving (render/reliefShadow.ts
+  reliefSkyNode, multiplied into the aoNode of every material that receives the relief shadows): at a wall-face point inside a
+  relief panel, the horizon the carving raises in 8 directions at 1.2, 3 and 6.5 cm in the D-226 height atlas, the sky lost
+  per direction sin² of its angle; the figures sit in the stone with a soft dark line along their contours (C). (3) The
+  softer look beyond ~6 m: the atlas's `nao` now holds the normal's three components (the gilding moved to the paint, as its
+  gilt key colour), so the mip chain keeps the averaged normal's length k; the albedo takes k (Lambert is linear in the
+  normal: the mean shading of fine carving is k × the shading of its mean direction) and the roughness takes Toksvig's spread
+  (1 − k)/k. Probe at 6 m: the atlas figures read crisper than the legacy ones. (4) Skyline packing: 4 layers (84 % fill) where
+  the shelves took 5; nao 26.5 MB (three normal components compress less), paint 3.9 MB.

@@ -12,7 +12,10 @@ import { loadSculpt } from '../../../src/arch/sculpt';
 import { buildTerrace } from '../../../src/arch/terrace';
 import { buildMeshes } from '../../../src/arch/meshes';
 import { buildReliefs, buildPhase4Reliefs, apadanaFacades } from '../../../src/arch/decor';
-import { ReliefSet, setReliefAtlas, updateReliefs, settleReliefs, reliefStats } from '../../../src/arch/reliefs';
+import { ReliefSet, setReliefAtlas, updateReliefs, settleReliefs, reliefStats, buildReliefShadow, reliefShadowData, type ReliefItem } from '../../../src/arch/reliefs';
+import { setReliefShadow, refreshReliefShadow, reliefSkyNode, receiveReliefShadow } from '../../../src/render/reliefShadow';
+import { positionWorld } from 'three/tsl';
+import { surfaceMaterial } from '../../../src/render/materials';
 (async () => {
   const P = new URLSearchParams(location.search);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
@@ -29,13 +32,19 @@ import { ReliefSet, setReliefAtlas, updateReliefs, settleReliefs, reliefStats } 
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0.55, 0.68, 0.85);
   scene.add(arch.group);
   arch.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = m.receiveShadow = true; } });
+  const sets = (g: THREE.Object3D) => { const out: ReliefSet[] = []; g.traverse(o => { if (o instanceof ReliefSet) out.push(o); }); return out; };
   // the relief sets, twice: legacy levels, then (atlas loaded) the atlas levels
-  const mk = () => { const g = new THREE.Group(); const ap = buildReliefs(manifest), p4 = buildPhase4Reliefs(doorways).group; g.add(ap, p4); return g; };
+  // the Neo-Elamite relief's five worshippers (world/plain/naqsh.ts places them on the cliff) on a wall at CALIB, off the Terrace
+  const CALIB = [-60, 1.0, 150];
+  const elam = (): ReliefItem[] => [0, 1, 2, 3, 4].map(i => ({ kind: 'elamite', seed: i, o: new THREE.Vector3(CALIB[0] + i * 1.35, CALIB[1], CALIB[2]), X: new THREE.Vector3(1, 0, 0), Y: new THREE.Vector3(0, 1, 0), Z: new THREE.Vector3(0, 0, 1), S: 1.9, D: 0.06, mirror: i >= 3 }));
+  const mk = () => { const g = new THREE.Group(); const ap = buildReliefs(manifest), p4 = buildPhase4Reliefs(doorways).group; g.add(ap, p4, new ReliefSet(elam(), [], 'elamite')); return g; };
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(9, 3.4, 0.5), surfaceMaterial('limestone')); wall.position.set(CALIB[0] + 2.7, CALIB[1] + 1.2, CALIB[2] - 0.25); wall.castShadow = wall.receiveShadow = true;
   setReliefAtlas(false); const legacy = mk(); legacy.name = 'legacy';
   const st = await loadReliefAtlas('/', r);
   const atlas = mk(); atlas.name = 'atlas';
-  scene.add(legacy, atlas);
-  const sets = (g: THREE.Object3D) => { const out: ReliefSet[] = []; g.traverse(o => { if (o instanceof ReliefSet) out.push(o); }); return out; };
+  scene.add(legacy, atlas, wall);
+  // the relief shadows and (D-320) the walls' sky past the figures: from the atlas group's sets (the same placements)
+  setReliefShadow(buildReliefShadow(sets(atlas)));
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9c8a70, roughness: 1 }));
   ground.position.y = -0.02; ground.receiveShadow = true; scene.add(ground);
   const sun = new THREE.DirectionalLight(0xfff1e0, 3.4), hemi = new THREE.HemisphereLight(0xbfd6ff, 0x8a7458, 1.0);
@@ -60,6 +69,8 @@ import { ReliefSet, setReliefAtlas, updateReliefs, settleReliefs, reliefStats } 
   const dbgMats = new Map<string, THREE.Material>(), origMat = new Map<THREE.Object3D, THREE.Material>();
   (window as any).__debug = (mode0: string) => {
     const nowall = mode0.endsWith('-nowall'), mode = mode0.replace('-nowall', ''); arch.group.visible = !nowall;
+    if (mode === 'wallsky') { if (!(wall as any).__orig) (wall as any).__orig = wall.material; const b = receiveReliefShadow(new THREE.MeshBasicNodeMaterial()); b.colorNode = vec3(reliefSkyNode(positionWorld)); (wall as any).material = b; return; }
+    if ((wall as any).__orig) wall.material = (wall as any).__orig;
     const M = reliefAtlasMaps()!, r = attribute('ruv', 'vec4'), at = (t: THREE.Texture) => texture(t, r.xy).depth(r.z.add(0.5).floor());
     atlas.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh && !(m as any).isBatchedMesh) return; if (!origMat.has(m)) origMat.set(m, m.material as THREE.Material);
       if (!mode) { m.material = origMat.get(m)!; return; }
@@ -74,6 +85,8 @@ import { ReliefSet, setReliefAtlas, updateReliefs, settleReliefs, reliefStats } 
     const d = new THREE.Vector3(v.sun[0], v.sun[1], v.sun[2]).normalize(), t = new THREE.Vector3(v.at[0], v.at[1], v.at[2]);
     sun.position.copy(t).addScaledVector(d, 200); sun.target.position.copy(t); sun.target.updateMatrixWorld();
     await settleReliefs(cam.position, 120000);
+    for (let t = 0; t < 600 && (reliefShadowData()?.jobs.size ?? 0) > 0; t++) await new Promise(r => setTimeout(r, 100)); // the shadow atlas's fields
+    refreshReliefShadow(Infinity);
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     // the shown group's own relief sets (reliefStats counts every live set, both groups)
     const ss = sets(v.atlas ? atlas : legacy), tris = ss.reduce((q, x) => q + x.stats.tris, 0), byLod = [0, 1, 2, 3, 4].map(l => ss.reduce((q, x) => q + x.stats.byLod[l], 0));
