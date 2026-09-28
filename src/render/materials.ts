@@ -20,6 +20,9 @@ import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
 import { blockFaceLoaded, blockFaceDetail, BF_ON, ADIST_OFF } from './blockface';
+import { ARRIS_EYE, ARRIS_R, ARRIS_W } from '../arch/arris';
+/** D-328: the surfaces whose free arrises are geometry near the eye (meshes.ts ARRIS_MATS, repeated here: meshes imports this module) */
+const ARRIS_MATS = new Set(['limestone', 'terrace']);
 import { incisionNodes } from './incision';
 import type { Atlas } from '../arch/carving';
 import { roofedNode } from './probes/roofs';
@@ -618,7 +621,7 @@ const latticeFree = (p: any) => vec3(dot(p, v3(NOISE_FRAME[0])), dot(p, v3(NOISE
 export interface Layer { alb: any; rough: any; height: any | null; tilt?: any; /** D-321: ambient occlusion (the material's aoNode) */ ao?: any }
 /** albedo, roughness and height of one surface definition (before weather). `arch`: the architecture's own meshes, whose
  *  vertices carry the part's base height (`y0`) and, on hall floors, the floor's box (`pbox`: centre x, z, half size x, z) */
-function layer(d: SurfaceDef, base: any, arch = false): Layer {
+function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
   const p = positionWorld, n = normalWorld, pr = latticeFree(p); // pr: the noise's own frame (D-218, below)
   // mottling: broad variation (metre scale) + fine grain; mx_noise is ~[-1,1] so amplitudes are fractions of albedo. With a
   // broad tone (D-157) only the fine octave stays (as grain), the broad field is toneFactor()
@@ -856,7 +859,7 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
       const alongB = RW && polyV ? mix(uF, t.mul(RW.eDir.y.negate()).add(p.y.mul(RW.eDir.x)), polyV) : uF;
       const TalB = RW && polyV ? mix(T1, vec3(tx, 0, tz).mul(RW.eDir.y.negate()).add(vec3(0, 1, 0).mul(RW.eDir.x)), polyV) : T1;
       const BFd = blockFaceDetail({ u: uF, v: vF, T1, T2, ids, isFlat, isPoint,
-        bed: { d: min(min(dB, dN), dA), along: mix(alongB, p.dot(TalA), geo), Talong: mix(TalB, TalA, geo), Taway: mix(mix(T2b.mul(sB), TawN, nose), TawA, geo), mask: max(jmask, geo), side: mix(mix(step(0, sB), float(0.5), nose), float(0.75), geo) },
+        bed: { chip: band ? float(1).sub(geo) : undefined, d: min(min(dB, dN), dA), along: mix(alongB, p.dot(TalA), geo), Talong: mix(TalB, TalA, geo), Taway: mix(mix(T2b.mul(sB), TawN, nose), TawA, geo), mask: max(jmask, geo), side: mix(mix(step(0, sB), float(0.5), nose), float(0.75), geo) },
         head: { d: dH, along: vF, Talong: T2, Taway: T1.mul(sH), mask: jmask.mul(headMask), side: step(0, sH) } });
       tilt = tilt.add(BFd.tilt); alb = alb.mul(BFd.alb); bfAo = BFd.ao;
       if (arch && d.stone?.polish) { // the nosing rounded by the feet: r 4 mm at a flight's ends … 18 mm in its walked middle (C)
@@ -1103,8 +1106,8 @@ export class SurfaceNodeMaterial extends THREE.MeshStandardNodeMaterial {
 
 const cache = new Map<string, THREE.MeshStandardNodeMaterial>();
 const lin = (a: [number, number, number]) => color(new THREE.Color().setRGB(a[0], a[1], a[2], THREE.SRGBColorSpace));
-export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; variant?: string; arch?: boolean; modify?: (L: Layer, d: SurfaceDef) => Layer; /** false: the modify lays its own scans (the ground layers, scans.ts groundScan; D-302) */ scan?: boolean } = {}): THREE.MeshStandardNodeMaterial {
-  const key = name + (opts.vertexColors ? '+vc' : '') + (opts.variant ? '+' + opts.variant : '') + (opts.arch ? '+arch' : ''); // `modify` (Phase 7 plain layers) needs its own `variant` key
+export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; variant?: string; arch?: boolean; modify?: (L: Layer, d: SurfaceDef) => Layer; /** false: the modify lays its own scans (the ground layers, scans.ts groundScan; D-302) */ scan?: boolean; /** D-328: the near-field arris bands (arris.ts) */ band?: boolean } = {}): THREE.MeshStandardNodeMaterial {
+  const key = name + (opts.vertexColors ? '+vc' : '') + (opts.variant ? '+' + opts.variant : '') + (opts.arch ? '+arch' : '') + (opts.band ? '+band' : ''); // `modify` (Phase 7 plain layers) needs its own `variant` key
   const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES[name] ?? SURFACES.limestone;
   const m = new SurfaceNodeMaterial(); // vertex colours are read explicitly below; the vertexColors flag would multiply them in a second time
@@ -1115,7 +1118,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   // (a surface with a top layer keeps its procedural roughness: the merged session-11 render found a 17-sampler pipeline with the
   // Terrace platform at the node limit (wall scan, its roughness and normal maps, the court's scan); the scene's lights add a
   // varying number on the page, so the platform keeps one sampler of headroom)
-  let L = opts.scan === false ? layer(d, base, !!opts.arch) : applyScan(name, layer(d, base, !!opts.arch), !!(d.top && SURFACES[d.top]), !!d.blockFace && blockFaceLoaded());
+  let L = opts.scan === false ? layer(d, base, !!opts.arch, !!opts.band) : applyScan(name, layer(d, base, !!opts.arch, !!opts.band), !!(d.top && SURFACES[d.top]), !!d.blockFace && blockFaceLoaded());
   if (d.top && SURFACES[d.top]) { // up-facing faces use another surface (sharp transition at the arris)
     // (the top layer's scan without its roughness map: the Terrace platform stood at 17 samplers with the wall's normal map, D-300)
     const T = applyScan(d.top, layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch), true); const t = smoothstep(0.7, 0.9, n.y);
@@ -1134,6 +1137,11 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   // (the scanned grain over the procedural surface, session 11: applied per layer above; identity in node)
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
+  if (opts.arch && d.blockFace && ARRIS_MATS.has(name)) { // D-328: near the eye the free arrises are geometry (arris.ts ArrisField)
+    const near = step(positionWorld.distance(ARRIS_EYE), float(ARRIS_R)); // 1 within R of the eye (the shadow pass runs the same mask)
+    if (opts.band) m.maskNode = near.greaterThan(0.5); // the band draws only the near arrises
+    else { const AD = attribute('adist', 'vec4').add(ADIST_OFF); m.maskNode = max(step(ARRIS_W, min(min(AD.x, AD.y), min(AD.z, AD.w))), float(1).sub(near)).greaterThan(0.5); } // the base leaves them to the band
+  }
   m.userData = { tier: d.tier, note: d.note, surface: SURFACES[name] ? name : 'limestone', scan: scanOf(SURFACES[name] ? name : 'limestone') }; // (surface, scan: the T-A7 probe, D-300/D-301)
   if (!opts.modify) receiveReliefShadow(m); // the architecture's surfaces carry the reliefs' cast shadows (D-226); the plain's layers do not
   cache.set(key, m);
