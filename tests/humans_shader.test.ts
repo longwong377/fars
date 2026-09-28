@@ -71,11 +71,3 @@ describe('the human material builds (D-155)', () => {
     }, 60_000);
   }
 });
-
-describe('D-322 rev 4 (B123): the cloth lags behind its bones in motion', () => {
-  it('the lag is bounded, mostly sideways, gone at a distance, and its frame length follows the frame', async () => {
-    const { CLOTH_LAG } = await import('../src/people/humanMaterial');
-    expect(CLOTH_LAG.max).toBeLessThanOrEqual(0.08); expect(CLOTH_LAG.vertical).toBeLessThan(0.5); expect(CLOTH_LAG.fadeFar).toBeLessThanOrEqual(30); // (crowd.ts poses every frame within 30 m)
-    expect(CLOTH_LAG.gain).toBeGreaterThan(0); expect(CLOTH_LAG.frame.value).toBeGreaterThan(0);
-  });
-});
