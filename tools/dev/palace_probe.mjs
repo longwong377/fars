@@ -12,6 +12,7 @@ await p.goto('http://localhost:' + (process.env.E2E_PORT ?? '5346') + '/tools/de
 await p.waitForFunction(() => window.__ready, null, { timeout: 1800000 });
 const BB = await p.evaluate(() => window.__bb);
 console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) / 1000, 's', Object.keys(BB).join(' '));
+const AT = await p.evaluate(() => window.__at);
 const S = { sunAz: 238.8, sunAlt: 25 }, SE = { sunAz: 120, sunAlt: 35 };
 const V = [];
 // per building: from the S (grid) at 30 m, eye 1.6 m over its floor; at arm's length of the S wall; from above at 45 degrees
@@ -22,6 +23,17 @@ for (const [k, B] of Object.entries(BB)) {
   V.push({ n: `${k}-high`, eye: [cx - R * 0.9, B[2] - R * 1.1, top + R * 0.9], look: [cx, cy, top - 2], ...S });
   V.push({ n: `${k}-eave`, eye: [cx + 3, B[2] - 9, fl + 1.6], look: [cx, B[2] + 1, top - 0.5], fov: 45, ...S });
 }
+// the class's own places: a dentil row from 8 m below and out, a spout from 6 m, a wall foot at arm's length (outward normal az)
+for (const [k, [e, n, y, az]] of Object.entries(AT)) {
+  const ox = Math.cos(az), oy = Math.sin(az), [b, kind] = k.split(':');
+  if (kind === 'dentil') V.push({ n: `${b}-dentils`, eye: [e + ox * 7 + oy * 4, n + oy * 7 - ox * 4, y - 6], look: [e, n, y], fov: 40, ...S });
+  if (kind === 'spout') V.push({ n: `${b}-spout`, eye: [e + ox * 5 + oy * 3, n + oy * 5 - ox * 3, y - 1.5], look: [e, n, y - 1], fov: 45, ...S });
+  if (kind === 'foot') V.push({ n: `${b}-foot-${k.split(':')[2]}`, eye: [e + ox * 1.4 + oy * 0.8, n + oy * 1.4 - ox * 0.8, y + 1.2], look: [e, n, y + 0.4], fov: 55, ...S });
+}
+// inside: from the hall's middle toward its S wall; the roof close from 25 m over its S edge
+for (const [k, B] of Object.entries(BB)) { const cx = (B[0] + B[1]) / 2, cy = (B[2] + B[3]) / 2;
+  V.push({ n: `${k}-inside`, eye: [cx + 2, cy + 3, B[4] + 1.6], look: [cx, B[2], B[4] + 2.5], fov: 70, ...S });
+  V.push({ n: `${k}-roofnear`, eye: [cx - 6, B[2] - 10, B[5] + 12], look: [cx, B[2] + 4, B[5] - 1], fov: 55, ...S }); }
 V.push({ n: 'gate-arm', eye: [-40, 15, 1.6], look: [-40, 30, 1.8], fov: 60, ...S });
 const FL = process.env.FLAGS ? JSON.parse(process.env.FLAGS) : [{}];
 for (const v of V) { if (ONLYV && !ONLYV.some(o => v.n.startsWith(o))) continue;

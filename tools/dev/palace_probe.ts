@@ -15,6 +15,7 @@ import { buildStairCrenellations } from '../../src/arch/decor';
 import { footGeometry } from '../../src/arch/terrace_foot';
 import { surfaceMaterial, setTraffic } from '../../src/render/materials';
 import { loadModels } from '../../src/render/models';
+import { roofEdges, wallFeet } from '../../src/arch/roofedge';
 (async () => {
   const P = new URLSearchParams(location.search);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
@@ -49,6 +50,11 @@ import { loadModels } from '../../src/render/models';
     B[0] = Math.min(B[0], p.c[0] - h); B[1] = Math.max(B[1], p.c[0] + h); B[2] = Math.min(B[2], p.c[1] - h); B[3] = Math.max(B[3], p.c[1] + h); B[4] = Math.min(B[4], p.y0); B[5] = Math.max(B[5], p.y1);
   }
   (window as any).__bb = bb;
+  // D-334: sample places of the class per building (the first dentil, spout and wall-foot run), to aim views at them
+  const RE = roofEdges(parts), FT = wallFeet(parts), at: Record<string, any> = {};
+  for (const p of RE.pieces) { const k = p.building + ':' + p.kind; if (!at[k]) at[k] = [p.e, p.n, p.y, p.az]; }
+  for (const f of FT) { const k = f.building + ':foot:' + f.material; if (!at[k] && f.size[0] > 3) at[k] = [f.c[0], f.c[1], f.y0, (f.rot ?? 0) - Math.PI / 2]; }
+  (window as any).__at = at;
   (window as any).__shot = async (v: { eye: number[]; look: number[]; fov?: number; sunAz: number; sunAlt: number; flags?: Record<string, number> }) => {
     for (const [k, x] of Object.entries(v.flags ?? {})) (globalThis as any).__parsaSurf?.[k]?.(x);
     cam.position.set(v.eye[0], v.eye[2], -v.eye[1]); cam.lookAt(v.look[0], v.look[2], -v.look[1]); cam.fov = v.fov ?? 60; cam.updateProjectionMatrix(); cam.updateMatrixWorld();

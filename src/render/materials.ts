@@ -16,6 +16,7 @@ import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, normalGeometry, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt } from 'three/tsl';
 import { MASONRY, courseTexels } from './masonry';
 import PC from '../data/polychromy.json';
+import SPEC_JSON from '../data/site_spec.json'; // D-334: the painted interiors' scheme (global.r_interior_paint)
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
@@ -309,12 +310,7 @@ export const ARRIS_K = 0.84;
  *  greyish yellow-green clay paint on the Persepolis Treasury's walls (Schmidt, via the same paper: B), red and white and
  *  Egyptian blue in the Terrace's painted plaster and floors (RELIEFS_AND_COLOUR §5, B). The layout (a red dado with white and
  *  blue bands over it, a red frieze with a white edge under the ceiling) and the tones are C */
-export const PALACE_PAINT: NonNullable<SurfaceDef['paint']> = {
-  ground: [0.6, 0.6, 0.47],
-  dado: { h: 0.95, col: [0.55, 0.26, 0.2] },
-  bands: [{ col: [0.86, 0.84, 0.78], w: 0.05 }, { col: [0.32, 0.43, 0.6], w: 0.06 }, { col: [0.86, 0.84, 0.78], w: 0.03 }],
-  frieze: { h: 0.45, col: [0.55, 0.26, 0.2], edge: { col: [0.86, 0.84, 0.78], w: 0.04 } },
-};
+export const PALACE_PAINT: NonNullable<SurfaceDef['paint']> = (SPEC_JSON as any).global.r_interior_paint.v; // SITE_SPEC global.r_interior_paint
 export const SURFACES: Record<string, SurfaceDef> = {
   // Persepolis light grey limestone, freshly dressed (LIMESTONE above: stone B, N7 C). Ashlar dry-laid
   // without mortar (SITE_SPEC terrace.wall_material, B: 'dry-laid'; Grand Stair 'dry-jointed', B) and, by the Achaemenid
@@ -1061,7 +1057,9 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
   }
   if (arch && d.skirt) { // the foot of a plastered mud-brick wall (D-218, C): a renewed skirting coat, damp and a salt tide line
     const K = d.skirt, h = p.y.sub(attribute('y0', 'float')), vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));
-    const along = vec3(p.x, float(0), p.z), aa = fwidth(h).max(1e-4), on = step(-0.01, h).mul(vert).mul(SURF_AB);
+    const along = vec3(p.x, float(0), p.z), aa = fwidth(h).max(1e-4), on0 = step(-0.01, h).mul(vert).mul(SURF_AB);
+    // D-334: inside the painted halls (on the stone platform, under the roof) the damp and its salt line a fifth as strong
+    const on = d.paint ? on0.mul(float(1).sub(attribute('inner', 'float').mul(0.8))) : on0;
     // the coat's upper edge wanders ±0.12 m along the wall (re-plastered in stretches) and stands 4 mm proud
     const top = float(K.h).add(mx_noise_float(along.mul(0.45).add(vec3(2.1, 0, 6.3))).mul(0.3)).add(mx_noise_float(along.mul(3.1).add(vec3(5.2, 0, 1.4))).mul(0.03));
     const coat = float(1).sub(smoothstep(top.sub(aa).sub(0.004), top.add(aa), h)).mul(on);

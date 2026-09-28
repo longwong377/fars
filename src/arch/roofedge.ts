@@ -19,20 +19,15 @@
 // plan tests keep the roofs as they were. An edge is drawn only where it is free: where another part continues the roof at
 // its level or rises past the parapet (a tower, a higher hall) nothing is added.
 import type { Part, Box, Material } from './parts';
+import { row } from './spec';
 
-export const ROOFEDGE = {
-  parapet: { h: 0.75, t: 0.6, coping: { h: 0.08, over: 0.04 } },
-  string: { h: 0.14, proj: 0.06 },       // one brick course (13 cm + joint) corbelled 6 cm, at the roof line
-  proud: 0.006,                          // the parapet's skin over the roof slab's side (hides the slab's side face)
-  fasciae: { n: 3, h: 0.18, step: 0.035, depth: 0.45 },
-  dentil: { h: 0.2, w: 0.16, proj: 0.16, step: 0.55 },
-  spout: { step: 7.0, end: 1.5, proj: 0.55 },
-  fortMerlon: { w: 0.8, gap: 0.7, h: 0.7 },
-  cap: 0.03,                             // the roof-earth cap on an exposed top (m)
-  thinWall: 1.5,                         // a top narrower than this is a wall's coping, not a roof
-  sample: 0.25,
-  tier: 'C' as const, src: 'RECON;NR-TOMB',
-};
+/** SITE_SPEC global.r_roof_edge (every size C; the portico entablature's form after the Naqsh-e Rustam facades); proud and
+ *  sample are the drawing's own (the skin 6 mm over the slab's side, the edges sampled every 0.25 m) */
+const RE_ROW = row<any>('global', 'r_roof_edge');
+export const ROOFEDGE = { ...RE_ROW.v, proud: 0.006, sample: 0.25, tier: 'C' as const, src: RE_ROW.src } as {
+  parapet: { h: number; t: number; coping: { h: number; over: number } }; string: { h: number; proj: number }; fasciae: { n: number; h: number; step: number; depth: number };
+  dentil: { h: number; w: number; proj: number; step: number }; spout: { step: number; end: number; proj: number }; fortMerlon: { w: number; gap: number; h: number };
+  cap: number; thinWall: number; proud: number; sample: number; tier: 'C'; src: string };
 
 /** an instanced modelled piece at a place: grid position of its back centre (e, n), height of its foot, the outward normal
  *  (grid azimuth, radians CCW from grid east), and its scale along the normal (a spout's length) */
@@ -174,7 +169,7 @@ function coveredTop(b: Box, grid: Grid): boolean {
 // a low fillet where it met the paving (both C, the region's plastered building). Drawn along every free foot of a finished
 // mud-brick wall: a strip FOOT.h high standing FOOT.proud out of the face, in the floor coat's material in front of it
 // (plaster_red in the halls, mud elsewhere).
-export const FOOT = { h: 0.07, proud: 0.035, sample: 0.5 };
+export const FOOT = { ...row<any>('global', 'r_wall_foot').v, sample: 0.5 } as { h: number; proud: number; sample: number }; // SITE_SPEC global.r_wall_foot
 export function wallFeet(parts: Part[]): Box[] {
   const out: Box[] = [];
   const boxes = parts.filter(p => p.type === 'box' && !p.door && !p.sculpt && !(p.kind || '').startsWith('ceiling')) as Box[];

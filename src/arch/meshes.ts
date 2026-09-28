@@ -173,7 +173,7 @@ export function bevelledBox(h: V3, r: number, edges: boolean[], round: boolean):
 /** D-334: the surface a part is drawn in: a mud-brick wall still under construction in 467 stands in its bare courses (the
  *  plaster is the last coat, laid when the brickwork is done: C); every other part its own material */
 export const renderMaterial = (p: Part): Material => p.material.startsWith('mudbrick') && /under construction/.test(p.note ?? '') ? 'mudbrick_bare' : p.material;
-export const PAINTED_INTERIORS = new Set(['gate_nations', 'apadana', 'tachara', 'hadish', 'treasury', 'harem']);
+export const PAINTED_INTERIORS = new Set<string>(v<any>('global', 'r_interior_paint').buildings); // SITE_SPEC global.r_interior_paint
 export class PartIndex {
   private cells = new Map<number, number[]>(); private CELL = 4;
   constructor(private parts: Part[]) {
