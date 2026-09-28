@@ -82,3 +82,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-333 | s12 | wave 4: mocap (Q-921, B181..B183) | agent worktree T:/fars-wt/mocap, branch s12d-mocap | in flight |
 | D-334 | s12 | wave 4: palacewalls (Q-922, B184..B186) | agent worktree T:/fars-wt/palacewalls, branch s12d-palacewalls | in flight |
 | D-335 | s12 | wave 4: land (Q-923, B187..B189) | agent worktree T:/fars-wt/land, branch s12d-land | in flight |
+| D-336 | s12 | voices: a unique natural voice per person, period languages, the Farsi/English opt-in (UD-22; Q-924, B190..B192) | agent worktree T:/fars-wt/voices, branch s12d-voices | in flight |
