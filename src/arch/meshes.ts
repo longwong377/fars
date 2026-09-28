@@ -3,6 +3,7 @@
 import * as THREE from 'three/webgpu';
 import { ADIST_OFF } from '../render/blockface';
 import { arrisEdgesOfBox, edgeSeed, aseedOf, ARRIS_MATS, type ArrisEdge } from './arris';
+import { prismArrisGeometry, finishProtoEdges } from './arris_prism';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
@@ -443,8 +444,11 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     if (leaf) continue; // drawn (and moved) by the door system
     // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall). The render geometry is the part's
     // own, with its free arrises bevelled (D-157); the collider above stays the plain box
-    const plain = g.clone(), rg = (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : null) ?? g.clone();
+    // rev 4 (D-321): a dressed-stone prism's render geometry carries the arris attributes and records its free arrises
+    const pa = p.type === 'prism' && ARRIS_MATS.has(p.material) ? prismArrisGeometry(p, index) : null;
+    const plain = g.clone(), rg = (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : pa?.geo) ?? g.clone();
     partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p));
+    if (pa && p.type === 'prism') arris.push(...finishProtoEdges(p, p.material, pa.edges, rg));
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;

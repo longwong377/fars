@@ -33,6 +33,18 @@ describe('D-321 rev 2 arris bands', () => {
     // the profile's outer rows lie on the faces at ARRIS_W (where the base mesh's discard ends)
     const P = profile(0.01); expect(P[0]).toEqual([ARRIS_W + ARRIS_LAP, 0]); expect(P[P.length - 1]).toEqual([0, ARRIS_W + ARRIS_LAP]); // (overlapping the base's face past its discard)
   });
+  it('rev 4: a dressed prism records its free top edges and convex corners, and its faces carry the distances to them', () => {
+    const pr: Part = { type: 'prism', building: 'p', kind: 'platform', material: 'limestone', tier: 'C', src: 'RECON', polygon: [[0, 0], [4, 0], [4, 4], [0, 4]], y0: 0, y1: 2 } as any;
+    const b = buildMeshes([pr]); expect(b.arris.length).toBe(8);
+    let checked = 0;
+    b.group.traverse((o: any) => { if (!o.isMesh) return; const P = o.geometry.getAttribute('position'), A = o.geometry.getAttribute('adist'); if (!A) return;
+      for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), n = -z;
+        const dA = Math.min(A.getX(i), A.getY(i), A.getZ(i), A.getW(i)) + 1000, top = y > 1.999;
+        const want = top ? Math.min(x, 4 - x, n, 4 - n) : Math.min(2 - y, Math.min(x, 4 - x) < 1e-6 ? Math.min(n, 4 - n) : Math.min(x, 4 - x));
+        if (top && want > 0.14 && dA > 900) continue; // (the inner polygon carries none)
+        expect(Math.abs(dA - want)).toBeLessThan(1e-3); checked++; } });
+    expect(checked).toBeGreaterThan(40);
+  });
   it('the near field over the Terrace: bands within R, triangles and rebuild time within budget', () => {
     const { parts } = buildTerrace(), g = buildMeshes(parts);
     const mat = new THREE.MeshBasicMaterial(), f = new ArrisField(g.arris, () => mat, 1000);
