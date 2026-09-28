@@ -1198,7 +1198,7 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const fpW = fwidth(p).length().max(1e-6);
   const pv = mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5).add(level.sub(1).mul(0.35)).add(mx_noise_float(p.mul(1.3).add(vec3(4.1, 0, 2.3))).mul(0.025).mul(bandLimit(fpW, 0.77)));
   const puddle = puddles.mul(open).mul(smoothstep(0.68, 0.72, pv));
-  const shore = puddles.mul(open).mul(smoothstep(0.62, 0.68, pv)).mul(float(1).sub(puddle));
+  const shore = puddles.mul(open).mul(smoothstep(0.645, 0.69, pv)).mul(float(1).sub(puddle));
   alb = alb.mul(float(1).sub(shore.mul(d.porosity * 0.45)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
   // the mountains' seasonal snow above the snowline (session 9): a patchy band 250 m deep (drifts in the hollows first, C)

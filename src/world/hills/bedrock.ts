@@ -32,7 +32,7 @@ export const BEDROCK = { R: { ledge: 1500, ground: 260 }, lod: [50, 260], castR:
  *  height), the pieces' share of the riser's length and their spacing (m) along it (C) */
 export const LEDGE = { h: [2.3, 4.2] as [number, number], sink: 0.28, cover: 0.62, spacing: 5.5, minSlope: 0.22, fullSlope: 0.45 } as const;
 /** ground rock per 16 m cell: the probability of an outcrop on convex hill ground, a talus heap under a riser, a scree apron (C) */
-export const GROUND_ROCK = { cell: 16, outcrop: 0.16, talus: 0.5, scree: 0.22, size: { outcrop: [2.5, 6], slab: [3, 7], talus: [4, 8], scree: [5, 10] } } as const;
+export const GROUND_ROCK = { cell: 16, outcrop: 0.3, talus: 0.6, scree: 0.3, size: { outcrop: [2.5, 6], slab: [3, 7], talus: [4, 8], scree: [5, 10] } } as const;
 /** the Terrace, its E fortification on the mountain's foot and its approach: no rock drawn (m round TERRACE_BOX) */
 const CLEAR = { e0: TERRACE_BOX.e0 - 60, e1: TERRACE_BOX.e1 + 90, n0: TERRACE_BOX.n0 - 60, n1: TERRACE_BOX.n1 + 60 };
 
@@ -121,7 +121,7 @@ export function bedrockTile(env: BedrockEnv, ti: number, tj: number, seed: numbe
     const talus = cliffPkg(k) && f > 0.3 && f < 0.62 ? GROUND_ROCK.talus * smooth(0.2, 0.4, s) : 0;
     const scree = GROUND_ROCK.scree * Math.max(smooth(0.3, 0.7, gully), smooth(0.25, 0.45, s) * smooth(0.0, -0.01, curv) * 0.6);
     const outc = GROUND_ROCK.outcrop * hillOn * (env.curv ? smooth(-0.002, 0.012, curv) : 0.5) * (1 - smooth(0.3, 0.6, gully));
-    const pick = u01(...hsh, 3) * 1.4, kind = pick < talus ? 'talus' : pick < talus + scree ? 'scree' : pick < talus + scree + outc ? 'outcrop' : null;
+    const pick = u01(...hsh, 3), kind = pick < talus ? 'talus' : pick < talus + scree ? 'scree' : pick < talus + scree + outc ? 'outcrop' : null;
     if (!kind) continue;
     // variants: 0 outcrop05, 1 slab02, 2 talus03, 3 scree04 (land_rocks.mjs CLASSES.ground order)
     const v = Math.min(nG - 1, kind === 'talus' ? 2 : kind === 'scree' ? 3 : u01(...hsh, 4) < 0.45 ? 0 : 1), sz = sizes.ground[v];
@@ -181,7 +181,8 @@ function rockMaterial(A: RockAtlas, name: string): THREE.MeshStandardNodeMateria
   const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.92, metalness: 0, side: THREE.DoubleSide });
   const t = texture(A.map, uv()).rgb, meanY = Math.max(0.02, 0.2126 * A.mean[0] + 0.7152 * A.mean[1] + 0.0722 * A.mean[2]);
   m.colorNode = attribute('rtint', 'vec3').mul(dot(t, vec3(0.2126, 0.7152, 0.0722)).div(meanY).clamp(0, 2.2));
-  m.normalMap = A.normal; const a = texture(A.arm, uv()); m.roughnessNode = a.g.mul(0.15).add(0.8); m.aoNode = a.r.mul(float(0.6)).add(0.4);
+  // (glTF's UVs run v down: without tangents the normal map's green is flipped, as three's GLTFLoader does)
+  m.normalMap = A.normal; m.normalScale.set(1, -1); const a = texture(A.arm, uv()); m.roughnessNode = a.g.mul(0.15).add(0.8); m.aoNode = a.r.mul(float(0.6)).add(0.4);
   m.name = name; return m;
 }
 
@@ -236,7 +237,7 @@ export class Bedrock {
     const yaw = dir ? Math.atan2(dir.x, dir.z) : 0, dYaw = Math.abs(((yaw - this.last.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
     if (!force && !this.pending && Math.hypot(cam.x - this.last.x, cam.z - this.last.z) < BEDROCK.moveM && dYaw < (BEDROCK.turnDeg * Math.PI) / 180) return false;
     const t0 = performance.now(); this.last = { x: cam.x, z: cam.z, yaw }; this.pending = false; this.budgetT = force ? Infinity : t0 + BEDROCK.budgetMs;
-    const T = BEDROCK.tile, R = BEDROCK.R.ledge, cone = Math.cos(((BEDROCK.viewCone + 40) * Math.PI) / 180);
+    const T = BEDROCK.tile, R = Math.max(...(['ledge', 'ground'] as RockClass[]).filter(c => this.sets.some(q => q.cls === c)).map(c => BEDROCK.R[c]), 0), cone = Math.cos(((BEDROCK.viewCone + 40) * Math.PI) / 180);
     const counts = this.sets.map(() => 0), idx = new Map<string, number>(); this.sets.forEach((s, i) => idx.set(`${s.cls}:${s.v}:${s.lod}`, i));
     let nL = 0, nG = 0, tiles = 0, tris = 0;
     const hx = dir ? dir.x / (Math.hypot(dir.x, dir.z) || 1) : 0, hz = dir ? dir.z / (Math.hypot(dir.x, dir.z) || 1) : 0;

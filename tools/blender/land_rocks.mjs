@@ -14,12 +14,9 @@ const src = id => `${SRC}/${id}/2k/${id}.gltf`;
 /** the classes (up to four sources each: the atlas cells) and their pieces. `ledge`: the resistant beds standing as low cliffs
  *  along the strata (front faces downhill); `ground`: outcrops, slabs and scree lying on the slope (tilted to the ground) */
 export const CLASSES = {
-  ledge: [
-    { id: 'cliff02', src: src('namaqualand_cliff_02'), segs: 2, lods: [3000, 700, 90] },  // a jointed blocky band, 20 m: two pieces
-    { id: 'face01', src: src('rock_face_01'), segs: 1, lods: [3000, 700, 90] },           // a bedded face with an overhanging bed
-    { id: 'mside', src: src('mountainside'), segs: 1, lods: [3000, 700, 90] },            // thin-bedded, laminated
-    { id: 'coast04', src: src('coastal_cliff_04'), segs: 8, keep: [1, 3, 5, 6], lods: [3000, 700, 90] }, // a long bedded cliff band, 87 m: four of eight pieces
-  ],
+  // (the ledges, D-335 round 1, were scanned cliff pieces (namaqualand_cliff_02, rock_face_01, mountainside, coastal_cliff_04)
+  // placed along the risers: in the probe they stood as isolated boxes and tombstones on a smooth slope, not as beds; the
+  // ledges are now continuous strips faced with a baked cliff, src/world/hills/ledges.ts and land_ledgeface.py)
   ground: [
     { id: 'outcrop05', src: src('coast_rocks_05'), flat: true, segs: 1, lods: [3000, 600, 80] },     // an outcrop boulder on its bedrock
     { id: 'slab02', src: src('coast_land_rocks_02'), flat: true, segs: 1, lods: [2500, 500, 60] },   // a low bedrock outcrop
