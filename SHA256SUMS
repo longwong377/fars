@@ -17,3 +17,7 @@ c76e8b19695fa67047df0ae09434a9a44ce62f76358382ac0a08815ea2e5d8e5  models/mlc-ai/
 f6ae673641b9dcc15283031db590e99be3c800b5ee75c9d3bda3fcd0ae7af025  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_20.bin
 de061dae0b37f913db432c8c2b275da051f5ef418a5134e453535ff80a5303b2  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_21.bin
 f0c532d8c2a33aace7dc619046c8d95cd5166dff2d8ae6fff97ced5342583dab  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_22.bin
+3398e26efbb209c88bc29023e658c0a76d9e1446d834324d8345488781d8973b  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_23.bin
+dbe9988abeaf4b074fcda4ffa50ce798c55a6a5d56a5f95c632dacf9affe0da3  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_24.bin
+6bc144f520e1c3ae1d657b4a988bb2b3d11100783b92230100b128d3087783ed  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_25.bin
+10667e8ce89945dd6d1f19bbe6baddf11badf2b1bd1e1a92e1323dc31cc64713  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_26.bin
