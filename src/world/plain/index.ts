@@ -27,7 +27,7 @@ import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, wid
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries } from './quarries';
-import { buildCrossings, keepOffChannels } from './crossings';
+import { buildCrossings, keepOffChannels, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
 import { buildTownGround } from './townGround';
@@ -53,7 +53,7 @@ const SHRUBS = new Set(['tamarisk', 'almond', 'pomegranate', 'vine']);
 export const PLAIN_DRAWS_SETTLEMENT_ROADS = false;
 
 export interface PlainBuild {
-  group: THREE.Group; data: { rivers: RiversData; canals: Canal[]; villages: Village[]; zones: ZoneMap };
+  group: THREE.Group; data: { rivers: RiversData; canals: Canal[]; villages: Village[]; zones: ZoneMap; /** D-335: the fords' cobbles, stepping stones and boat (fordDetail.ts) */ fords: FordDetailSites };
   update(dt: number, ctx: any): void;
   /** D-254: the villages as built (their sites, houses, gates, colliders) */
   villageHouses: VillageHouses;
@@ -234,6 +234,6 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const t of woodlandTrees(zones, e, -n, R)) add(t);
     return out;
   };
-  return { group, data: { rivers, canals, villages, zones }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
+  return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees} (LOD0 ${s.lod0Trees}), mid-ring impostors ${s.midTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }

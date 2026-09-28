@@ -1,0 +1,10 @@
+{
+ "about": "D-335: the ledges' face, baked from Poly Haven coastal_cliff_04 (CC0) by tools/blender/land_ledgeface.*",
+ "src": "coastal_cliff_04.gltf",
+ "width_m": 84.48741301055998,
+ "height_m": 8.736307111726358,
+ "W": 2048,
+ "H": 212,
+ "relief_range_m": 1.2,
+ "relief_note": "height png: 0.5 = the face's local mean (a 2.5 m box), 0 / 1 = -/+ relief_range_m out of it"
+}
