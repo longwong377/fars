@@ -21,7 +21,8 @@ export interface NeuralVoice {
 /** the style voices left out of the blends: below the naturalness floor on the period languages' lines (UTMOS22 mean of two
  *  sets of lines < 3.6, or English < 4.0, or Farsi < 3.7; tools/dev/voices_calib.ts, REVIEWS/evidence/s12-voices/calib.json).
  *  Mostly the voices trained on little data (the Spanish, French, Portuguese and Japanese ones) and the breathy or caricatured
- *  ones (af_nicole's whisper, the 'santa' voices) */
+ *  ones (af_nicole's whisper, the 'santa' voices). zm_yunxi and zm_yunyang passed once all 54 were measured, after the pool
+ *  was fixed for the eval: left out for now */
 export const EXCLUDED = new Set(['af_bella', 'af_jessica', 'af_nicole', 'am_santa', 'bf_alice', 'bf_lily', 'bm_george', 'bm_lewis', 'ef_dora', 'em_alex', 'em_santa', 'ff_siwis',
   'hm_omega', 'if_sara', 'jf_alpha', 'jf_gongitsune', 'jf_nezumi', 'jf_tebukuro', 'pf_dora', 'pm_alex', 'pm_santa', 'zf_xiaobei', 'zf_xiaoni', 'zf_xiaoxiao', 'zf_xiaoyi', 'zm_yunjian', 'zm_yunxi', 'zm_yunxia', 'zm_yunyang']);
 /** the style voices a person may be blended from */

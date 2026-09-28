@@ -1,0 +1,615 @@
+{
+ "what": "the instruments calibrated on Kokoro's 54 style voices (54 speakers): same = one voice on two different sets of lines (A/B), and across languages (A vs English, A vs Farsi); different = A of two voices",
+ "models": {
+  "wavlm": {
+   "eer": {
+    "t": 0.922,
+    "eer": 0.037
+   },
+   "eerSameSex": {
+    "t": 0.936,
+    "eer": 0.0556
+   },
+   "same": {
+    "min": 0.8845,
+    "p10": 0.9428,
+    "med": 0.9688
+   },
+   "diff": {
+    "med": 0.6449,
+    "p90": 0.8853,
+    "p99": 0.9554,
+    "max": 0.9965
+   },
+   "diffSameSex": {
+    "med": 0.7946,
+    "p99": 0.9729,
+    "max": 0.9965
+   },
+   "crossEn": {
+    "min": 0.8195,
+    "med": 0.905
+   },
+   "crossFa": {
+    "min": 0.9129,
+    "med": 0.9733
+   }
+  },
+  "ecapa": {
+   "eer": {
+    "t": 0.784,
+    "eer": 0.0042
+   },
+   "eerSameSex": {
+    "t": 0.784,
+    "eer": 0.0085
+   },
+   "same": {
+    "min": 0.7851,
+    "p10": 0.8632,
+    "med": 0.9031
+   },
+   "diff": {
+    "med": 0.1672,
+    "p90": 0.3385,
+    "p99": 0.6502,
+    "max": 0.9821
+   },
+   "diffSameSex": {
+    "med": 0.2073,
+    "p99": 0.7232,
+    "max": 0.9821
+   },
+   "crossEn": {
+    "min": 0.6366,
+    "med": 0.7891
+   },
+   "crossFa": {
+    "min": 0.755,
+    "med": 0.8696
+   }
+  }
+ },
+ "voices": [
+  {
+   "name": "af_alloy",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 12.44,
+   "mosA": 4.192,
+   "mosB": 3.995,
+   "mosEn": 4.368,
+   "mosFa": 4.24
+  },
+  {
+   "name": "af_aoede",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 7.72,
+   "mosA": 4.007,
+   "mosB": 3.619,
+   "mosEn": 4.325,
+   "mosFa": 4.244
+  },
+  {
+   "name": "af_bella",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 7.52,
+   "mosA": 3.465,
+   "mosB": 3.245,
+   "mosEn": 4.31,
+   "mosFa": 3.5
+  },
+  {
+   "name": "af_heart",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 7.92,
+   "mosA": 4.293,
+   "mosB": 4.315,
+   "mosEn": 4.522,
+   "mosFa": 4.354
+  },
+  {
+   "name": "af_jessica",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 9.69,
+   "mosA": 3.807,
+   "mosB": 3.249,
+   "mosEn": 4.425,
+   "mosFa": 3.974
+  },
+  {
+   "name": "af_kore",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 7.85,
+   "mosA": 4.212,
+   "mosB": 4.202,
+   "mosEn": 4.518,
+   "mosFa": 4.435
+  },
+  {
+   "name": "af_nicole",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 9.83,
+   "mosA": 2.372,
+   "mosB": 2.445,
+   "mosEn": 3.074,
+   "mosFa": 2.338
+  },
+  {
+   "name": "af_nova",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 10.79,
+   "mosA": 4.389,
+   "mosB": 4.38,
+   "mosEn": 4.495,
+   "mosFa": 4.435
+  },
+  {
+   "name": "af_river",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 9.96,
+   "mosA": 4.132,
+   "mosB": 3.554,
+   "mosEn": 4.432,
+   "mosFa": 4.388
+  },
+  {
+   "name": "af_sarah",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 8.07,
+   "mosA": 4.364,
+   "mosB": 4.356,
+   "mosEn": 4.51,
+   "mosFa": 4.437
+  },
+  {
+   "name": "af_sky",
+   "sex": "f",
+   "lang": "en-us",
+   "sec": 9.85,
+   "mosA": 3.915,
+   "mosB": 3.775,
+   "mosEn": 4.452,
+   "mosFa": 4.347
+  },
+  {
+   "name": "am_adam",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 8.29,
+   "mosA": 3.916,
+   "mosB": 3.534,
+   "mosEn": 4.455,
+   "mosFa": 4.283
+  },
+  {
+   "name": "am_echo",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 10.83,
+   "mosA": 4.306,
+   "mosB": 4.084,
+   "mosEn": 4.431,
+   "mosFa": 4.36
+  },
+  {
+   "name": "am_eric",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 9.2,
+   "mosA": 3.946,
+   "mosB": 4.018,
+   "mosEn": 4.405,
+   "mosFa": 4.285
+  },
+  {
+   "name": "am_fenrir",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 7.38,
+   "mosA": 3.876,
+   "mosB": 4.148,
+   "mosEn": 4.482,
+   "mosFa": 4.335
+  },
+  {
+   "name": "am_liam",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 9.95,
+   "mosA": 3.987,
+   "mosB": 3.738,
+   "mosEn": 4.411,
+   "mosFa": 4.366
+  },
+  {
+   "name": "am_michael",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 8.93,
+   "mosA": 3.85,
+   "mosB": 3.418,
+   "mosEn": 4.374,
+   "mosFa": 4.207
+  },
+  {
+   "name": "am_onyx",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 11.85,
+   "mosA": 3.922,
+   "mosB": 3.285,
+   "mosEn": 4.371,
+   "mosFa": 4.22
+  },
+  {
+   "name": "am_puck",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 7.73,
+   "mosA": 3.694,
+   "mosB": 3.915,
+   "mosEn": 4.467,
+   "mosFa": 4.415
+  },
+  {
+   "name": "am_santa",
+   "sex": "m",
+   "lang": "en-us",
+   "sec": 9.67,
+   "mosA": 1.899,
+   "mosB": 1.934,
+   "mosEn": 3.646,
+   "mosFa": 2.835
+  },
+  {
+   "name": "bf_alice",
+   "sex": "f",
+   "lang": "en-gb",
+   "sec": 10.59,
+   "mosA": 2.937,
+   "mosB": 2.935,
+   "mosEn": 4.281,
+   "mosFa": 3.889
+  },
+  {
+   "name": "bf_emma",
+   "sex": "f",
+   "lang": "en-gb",
+   "sec": 9.62,
+   "mosA": 4.083,
+   "mosB": 3.956,
+   "mosEn": 4.375,
+   "mosFa": 4.25
+  },
+  {
+   "name": "bf_isabella",
+   "sex": "f",
+   "lang": "en-gb",
+   "sec": 10.4,
+   "mosA": 3.891,
+   "mosB": 3.802,
+   "mosEn": 4.4,
+   "mosFa": 4.219
+  },
+  {
+   "name": "bf_lily",
+   "sex": "f",
+   "lang": "en-gb",
+   "sec": 11.92,
+   "mosA": 3.384,
+   "mosB": 3.164,
+   "mosEn": 4.37,
+   "mosFa": 3.884
+  },
+  {
+   "name": "bm_daniel",
+   "sex": "m",
+   "lang": "en-gb",
+   "sec": 10.93,
+   "mosA": 3.769,
+   "mosB": 3.501,
+   "mosEn": 4.122,
+   "mosFa": 3.907
+  },
+  {
+   "name": "bm_fable",
+   "sex": "m",
+   "lang": "en-gb",
+   "sec": 12.29,
+   "mosA": 3.768,
+   "mosB": 3.802,
+   "mosEn": 4.342,
+   "mosFa": 4.273
+  },
+  {
+   "name": "bm_george",
+   "sex": "m",
+   "lang": "en-gb",
+   "sec": 11.24,
+   "mosA": 3.373,
+   "mosB": 3.315,
+   "mosEn": 4.261,
+   "mosFa": 3.765
+  },
+  {
+   "name": "bm_lewis",
+   "sex": "m",
+   "lang": "en-gb",
+   "sec": 9.43,
+   "mosA": 3.406,
+   "mosB": 3.251,
+   "mosEn": 3.992,
+   "mosFa": 3.425
+  },
+  {
+   "name": "ef_dora",
+   "sex": "f",
+   "lang": "es",
+   "sec": 8.3,
+   "mosA": 3.362,
+   "mosB": 2.818,
+   "mosEn": 4.267,
+   "mosFa": 3.777
+  },
+  {
+   "name": "em_alex",
+   "sex": "m",
+   "lang": "es",
+   "sec": 8.67,
+   "mosA": 2.766,
+   "mosB": 2.81,
+   "mosEn": 4.025,
+   "mosFa": 3.561
+  },
+  {
+   "name": "em_santa",
+   "sex": "m",
+   "lang": "es",
+   "sec": 8.45,
+   "mosA": 2.521,
+   "mosB": 2.466,
+   "mosEn": 3.426,
+   "mosFa": 2.578
+  },
+  {
+   "name": "ff_siwis",
+   "sex": "f",
+   "lang": "fr",
+   "sec": 8.41,
+   "mosA": 3.315,
+   "mosB": 3.008,
+   "mosEn": 3.912,
+   "mosFa": 3.74
+  },
+  {
+   "name": "hf_alpha",
+   "sex": "f",
+   "lang": "hi",
+   "sec": 10.24,
+   "mosA": 3.888,
+   "mosB": 3.719,
+   "mosEn": 4.459,
+   "mosFa": 4.099
+  },
+  {
+   "name": "hf_beta",
+   "sex": "f",
+   "lang": "hi",
+   "sec": 8.9,
+   "mosA": 3.799,
+   "mosB": 3.68,
+   "mosEn": 4.469,
+   "mosFa": 4.13
+  },
+  {
+   "name": "hm_omega",
+   "sex": "m",
+   "lang": "hi",
+   "sec": 10.16,
+   "mosA": 3.403,
+   "mosB": 3.251,
+   "mosEn": 4.436,
+   "mosFa": 3.88
+  },
+  {
+   "name": "hm_psi",
+   "sex": "m",
+   "lang": "hi",
+   "sec": 9.85,
+   "mosA": 3.843,
+   "mosB": 3.649,
+   "mosEn": 4.409,
+   "mosFa": 4.135
+  },
+  {
+   "name": "if_sara",
+   "sex": "f",
+   "lang": "it",
+   "sec": 9.24,
+   "mosA": 3.59,
+   "mosB": 3.386,
+   "mosEn": 4.494,
+   "mosFa": 4.178
+  },
+  {
+   "name": "im_nicola",
+   "sex": "m",
+   "lang": "it",
+   "sec": 10.11,
+   "mosA": 3.715,
+   "mosB": 3.509,
+   "mosEn": 4.369,
+   "mosFa": 3.863
+  },
+  {
+   "name": "jf_alpha",
+   "sex": "f",
+   "lang": "ja",
+   "sec": 8.84,
+   "mosA": 3.364,
+   "mosB": 3.239,
+   "mosEn": 4.317,
+   "mosFa": 3.887
+  },
+  {
+   "name": "jf_gongitsune",
+   "sex": "f",
+   "lang": "ja",
+   "sec": 9.96,
+   "mosA": 2.945,
+   "mosB": 2.97,
+   "mosEn": 4.326,
+   "mosFa": 3.18
+  },
+  {
+   "name": "jf_nezumi",
+   "sex": "f",
+   "lang": "ja",
+   "sec": 8.8,
+   "mosA": 3.525,
+   "mosB": 3.565,
+   "mosEn": 4.35,
+   "mosFa": 3.713
+  },
+  {
+   "name": "jf_tebukuro",
+   "sex": "f",
+   "lang": "ja",
+   "sec": 8.6,
+   "mosA": 2.36,
+   "mosB": 2.231,
+   "mosEn": 4.057,
+   "mosFa": 2.938
+  },
+  {
+   "name": "jm_kumo",
+   "sex": "m",
+   "lang": "ja",
+   "sec": 8.52,
+   "mosA": 3.863,
+   "mosB": 3.892,
+   "mosEn": 4.425,
+   "mosFa": 4.045
+  },
+  {
+   "name": "pf_dora",
+   "sex": "f",
+   "lang": "pt",
+   "sec": 8.57,
+   "mosA": 3.16,
+   "mosB": 2.772,
+   "mosEn": 4.289,
+   "mosFa": 3.755
+  },
+  {
+   "name": "pm_alex",
+   "sex": "m",
+   "lang": "pt",
+   "sec": 8.83,
+   "mosA": 2.965,
+   "mosB": 2.919,
+   "mosEn": 3.835,
+   "mosFa": 3.441
+  },
+  {
+   "name": "pm_santa",
+   "sex": "m",
+   "lang": "pt",
+   "sec": 8.89,
+   "mosA": 2.453,
+   "mosB": 2.309,
+   "mosEn": 3.326,
+   "mosFa": 2.496
+  },
+  {
+   "name": "zf_xiaobei",
+   "sex": "f",
+   "lang": "zh",
+   "sec": 9.39,
+   "mosA": 3.271,
+   "mosB": 2.933,
+   "mosEn": 3.995,
+   "mosFa": 4.128
+  },
+  {
+   "name": "zf_xiaoni",
+   "sex": "f",
+   "lang": "zh",
+   "sec": 7.93,
+   "mosA": 3.211,
+   "mosB": 2.934,
+   "mosEn": 4.41,
+   "mosFa": 3.966
+  },
+  {
+   "name": "zf_xiaoxiao",
+   "sex": "f",
+   "lang": "zh",
+   "sec": 7.97,
+   "mosA": 2.754,
+   "mosB": 2.636,
+   "mosEn": 4.017,
+   "mosFa": 3.164
+  },
+  {
+   "name": "zf_xiaoyi",
+   "sex": "f",
+   "lang": "zh",
+   "sec": 7.32,
+   "mosA": 2.369,
+   "mosB": 2.451,
+   "mosEn": 3.443,
+   "mosFa": 2.728
+  },
+  {
+   "name": "zm_yunjian",
+   "sex": "m",
+   "lang": "zh",
+   "sec": 7.82,
+   "mosA": 3.755,
+   "mosB": 3.441,
+   "mosEn": 4.354,
+   "mosFa": 3.937
+  },
+  {
+   "name": "zm_yunxi",
+   "sex": "m",
+   "lang": "zh",
+   "sec": 7.3,
+   "mosA": 3.824,
+   "mosB": 3.635,
+   "mosEn": 4.302,
+   "mosFa": 3.984
+  },
+  {
+   "name": "zm_yunxia",
+   "sex": "m",
+   "lang": "zh",
+   "sec": 7.7,
+   "mosA": 2.761,
+   "mosB": 2.793,
+   "mosEn": 3.721,
+   "mosFa": 3.281
+  },
+  {
+   "name": "zm_yunyang",
+   "sex": "m",
+   "lang": "zh",
+   "sec": 7.39,
+   "mosA": 3.898,
+   "mosB": 3.714,
+   "mosEn": 4.261,
+   "mosFa": 4.013
+  }
+ ]
+}

@@ -8095,4 +8095,20 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
 - **Tools:** tools/dev/fetch_models.mjs voices (all downloads recorded in research/MODELS_MANIFEST.json; outside git on
   T:/fars-assets-s12/voices/models, served by per-repo junctions under public/models/); tools/dev/voices_eval.ts (T-E11),
   voices_calib.ts (the instruments calibrated), voices_fa_cache.ts, voices_probe.* and farsi_probe.* (GPU probes).
-- **Measured (T-E11; tools/dev/voices_eval.ts, REVIEWS/evidence/s12-voices/):** MEASUREMENTS_PENDING
+- **Measured (T-E11; tools/dev/voices_eval.ts, REVIEWS/evidence/s12-voices/). T-E11 is NOT yet measured with the final
+  pool and instrument (the session stopped; the run was under way):** run 1 (75 people: the conversation test set + every
+  community, sex and age band; T-E11-run1-wavlm.json) scored 1.3 % with WavLM-SV at its published 0.86, which is wrong for
+  this synthesiser: calibrated on Kokoro's 54 speakers (calib.json) WavLM's equal-error point is 0.922 (EER 3.7 %), ECAPA's
+  0.784 (EER 0.42 %: the instrument T-E11 now uses). Run 1 re-scored at ECAPA 0.784: unique 94.7 %, natural (UTMOS >= 3.5
+  on the own-language, English and Farsi clips) 72.0 % (82.8 % of those who speak words; the 11 wordless: B190), unique and
+  natural 66.7 %; run 1 predates the pool filter and used 0.5-4 s of speech per person (now 6 s). The pool filter: 29 of
+  the 54 style voices left out (calib.json: period-language UTMOS < 3.6, English < 4.0 or Farsi < 3.7; zm_yunxi and
+  zm_yunyang passed after the pool was fixed and stay out for now). **fp16 on WebGPU refused:** UTMOS 3.25/3.39 against fp32
+  3.72/4.38 and its clips 1.8 x as long (the durations break); fp32 stays. **Runtime on the T4 (probe page; two other
+  renders on the card, the CPU at 100 %):** fp32 WebGPU load 65 s; a unit ~0.8 s (1.06 x real time for a crowd's queue); a
+  reply's first audio: own language 1.2-1.8 s uncached, ~0 when prefetched (the conversation prefetches it), English first
+  piece 1.8-2.6 s, Farsi 2.9-3.4 s (target < 1 s: met only for the prefetched own language; B191); WASM q8 27 s a unit
+  (useless under that load); DirectML in node 0.16 s for 1.9 s of speech (the instruments run on it). **The Farsi text:**
+  NLLB-200 600M keeps the meaning in about half of 70 in-character replies and breaks character in several (B192); the
+  conversation model's own Persian (FARSI_ROUTE 'llm', the default) was queued on the GPU and not measured (B192).
+  Wordless voice through the neural voices: UTMOS 1.7-2.8 in three approaches (B190).
