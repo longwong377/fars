@@ -8,7 +8,7 @@ const p = await b.newPage(); const logs = [];
 p.on('console', m => logs.push(m.type() + ' ' + m.text().slice(0, 300))); p.on('pageerror', e => logs.push('pageerror ' + e)); p.on('response', r => { if (r.status() >= 400) logs.push('HTTP ' + r.status() + ' ' + r.url()); });
 p.on('worker', w => { logs.push('worker ' + w.url()); w.on('console', m => logs.push('W ' + m.type() + ' ' + m.text().slice(0, 300))); });
 const t0 = Date.now();
-await p.goto('http://localhost:' + (process.env.E2E_PORT ?? '5348') + '/tools/dev/voices_probe.html' + Q);
+await p.goto('http://localhost:' + (process.env.E2E_PORT ?? '5348') + '/tools/dev/' + (process.env.PROBE_PAGE ?? 'voices_probe') + '.html' + Q);
 const LIMIT = +(process.env.PROBE_S ?? 900) * 1000;
 while (Date.now() - t0 < LIMIT) { const st = await p.evaluate(() => ({ done: !!window.__probe?.done, keys: Object.keys(window.__probe ?? {}), stats: window.__probe?.stats0 ?? null })).catch(e => ({ err: String(e) }));
   console.log(((Date.now() - t0) / 1000).toFixed(0), 's', JSON.stringify(st), logs.slice(-3).join(' | ').slice(0, 400)); if (st.done) break; await new Promise(r => setTimeout(r, 15000)); }

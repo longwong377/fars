@@ -423,7 +423,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const speech = new Speech(audio, [...(neural ? [new NeuralBackend(neural)] : []), new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]);
   // D-245: voices from everyone the crowd places near the listener (detailed agents, the population, impostors), not only the
   // 135 on the Terrace; published words only, each person their own voice; a grain bed for the talkers beyond (audio/voices.ts)
-  const voices = new PopulationVoices(audio, { seed }); voices.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
+  const voices = new PopulationVoices(audio, { seed }); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
   // what a person near says reaches the translation layer (out of world; T-K3c), unless a scripted line was shown lately
   let scriptedSubAt = -1e9; voices.onCaption = c => { if (c.lang === 'wordless' || time - scriptedSubAt < 4) return;
     lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };

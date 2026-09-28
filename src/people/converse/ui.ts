@@ -8,7 +8,8 @@
 import * as THREE from 'three/webgpu';
 import { Mind, Ears, Mic, EnglishVoice } from './mind';
 import { lifeRecord, type LifeRecord } from './life';
-import { heardReply, heardReplyNeural, type HearIn } from './voice';
+import { heardReply, heardReplyNeural, replyVoice, type HearIn } from './voice';
+import { unitsFor, voiceLang, WORDLESS } from '../../audio/voices';
 import { toFarsi, FarsiTranslator, type FarsiRoute } from './farsi';
 import type { Turn } from './prompt';
 import { bakedProse } from './bake';
@@ -104,11 +105,15 @@ export function mountConverse(c: Ctx) {
     if (e.key === 'Enter' && input.value.trim()) { const t = input.value.trim(); input.value = ''; input.style.display = 'none'; input.blur(); say(t); } });
   input.addEventListener('keyup', e => e.stopPropagation());
   // prime the model with the nearest person's life as the stranger comes near (within 6 m), so the answer costs only the question
-  let primeP: Promise<any> = Promise.resolve();
+  let primeP: Promise<any> = Promise.resolve(); let prefetchedFor = -1;
   setInterval(() => {
     // (D-315: the stranger walked away from the one they were talking with: the talk ends, the person goes back to the day)
     if (state.talking && !state.busy) { const k = state.talking, sim = c.world.people?.sim, a = sim?.pop.persons[k.pid]?.agent ?? -1, e = eye();
       const at = a >= 0 ? sim.agents[a].pos : (c.world.people?.view?.visible ?? []).find((o: any) => o.pid === k.pid); const d = at ? Math.hypot((at.e ?? at[0]) - e.e, (at.n ?? at[1]) - e.n) : Infinity; if (d > NEAR_M + 1.5) endTalk(); }
+    { // D-336: the lines of the nearest person's language rendered ahead in their voice (their heard reply starts at once)
+      const nv = c.world.neural, n6 = nv?.stats.ready && hearIn() === 'own' ? nearest(c.world, eye(), 6) : null;
+      if (n6 && n6.pid !== prefetchedFor) { prefetchedFor = n6.pid; const sim = c.world.people.sim, { neural: v, id } = replyVoice(sim.pop, n6.pid, c.clock.dayIndex, c.seed, n6.agent !== null ? sim.agents[n6.agent] : null);
+        const L = voiceLang(id.lang, id.langs).lang; nv.prefetch(v, L ? unitsFor(L).lines.slice(0, 32) : WORDLESS); } }
     if (!state.loaded || state.busy) return; const n = nearest(c.world, eye(), 6); if (!n) return; const sim = c.world.people.sim;
     const L = lifeRecord(sim.pop, sim.cal, n.pid, c.clock.dayIndex, c.clock.localHour); const mem = sim.talk.recall(n.pid, sim.t, 2);
     const knows = (sim.talk.rows.get(n.pid)?.length ?? 0) > 0 ? 'recognise' : n.agent !== null ? sim.memory.greeting(n.agent, sim.t) : mem.length ? 'nod' : 'none';
