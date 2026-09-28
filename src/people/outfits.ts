@@ -1031,12 +1031,14 @@ function kandysGeo(L: Lib, key: string, lod: number) {
   // the border (second colour) along the fronts and the hem (C)
   { const cols = segs + 1, nRing = cols * (rings + 1);
     for (let layer = 0; layer < 2; layer++) for (let k = 0; k <= rings; k++) for (let j = 0; j < cols; j++) if (j <= 1 || j >= segs - 1 || k === rings) { const i = layer * nRing + k * cols + j; hang.mat[i] = MAT.cloth_second; hang.col[i] = COL.second; } }
-  // D-322 rev 3: the empty sleeves read as flat planks (a uniform flat strip): now gathered narrow at the shoulder and soft,
-  // a rounder section widening to the open cuff, bowed back and out along their length and lumpy with folds (C); the solver
-  // lets them fall below their pinned top
-  const sleeve = (s: 1 | -1) => tubeGeo(A, `${key}_sleeve${s}`, { segs: lod === 0 ? 14 : lod === 1 ? 6 : 4, rings: lod === 0 ? 12 : lod === 1 ? 4 : 2, capStart: true, capEnd: true,
-    frame: (c, t) => { const u = c.J(s > 0 ? 'upperarm_l' : 'upperarm_r'); const a: V3 = [u[0] + s * 0.085, u[1] - 0.01, u[2] - 0.03], b: V3 = [u[0] + s * 0.11, c.J("pelvis")[1] - 0.14, u[2] - 0.07]; const F = segFrame(a, b, t, [0, 0, -1]), bow = Math.sin(Math.PI * t); F.o = add(F.o, [s * 0.015 * bow, 0, -0.025 * bow]); return F; },
-    radius: (c, t, th) => { const wd = lerp(0.03, 0.066, Math.pow(t, 0.7)), dp = lerp(0.02, 0.017, t); return (wd * dp) / Math.hypot(dp * Math.cos(th), wd * Math.sin(th)) * (1 + 0.1 * Math.sin(th * 3 + t * 9) + 0.05 * Math.sin(th * 5 - t * 13)); },
+  // D-322 rev 4 (the Persepolis reliefs: the Median courtiers' and guards' kandys worn over the shoulders, the empty sleeves
+  // hanging behind them): each empty sleeve hangs down the back from behind its shoulder to the hip (was: beside the arm to
+  // below the hip, where it read as a plank), gathered narrow at the top, flattened against the coat's back (its wide axis
+  // across the back), widening to the cuff, lumpy with folds; the solver lets it fall over the coat below its pinned top (C)
+  const sleeve = (s: 1 | -1) => tubeGeo(A, `${key}_sleeve${s}`, { segs: lod === 0 ? 14 : lod === 1 ? 6 : 4, rings: lod === 0 ? 10 : lod === 1 ? 4 : 2, capStart: true, capEnd: true,
+    frame: (c, t) => { const u = c.J(s > 0 ? 'upperarm_l' : 'upperarm_r'), ya = u[1] - 0.005, yb = c.J('pelvis')[1] + 0.04;
+      const a: V3 = [s * 0.12, ya, backZ(c, ya) - 0.045], b: V3 = [s * 0.145, yb, backZ(c, yb) - 0.09]; return segFrame(a, b, t, [s, 0, 0]); },
+    radius: (c, t, th) => { const wd = lerp(0.028, 0.06, Math.pow(t, 0.7)), dp = lerp(0.018, 0.014, t); return (wd * dp) / Math.hypot(dp * Math.cos(th), wd * Math.sin(th)) * (1 + 0.1 * Math.sin(th * 3 + t * 9) + 0.05 * Math.sin(th * 5 - t * 13)); },
     weights: t => [W('spine_03', 1 - 0.5 * t), W('spine_02', 0.5 * t)], mat: MAT.cloth_trim, col: COL.trim, prm: 3 });
   return merge(key, [cape, hang, sleeve(1), sleeve(-1)]);
 }

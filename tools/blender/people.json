@@ -831,7 +831,7 @@
        "cloth": {
         "bending": 4
        },
-       "blouse": 0.08
+       "blouse": 0.05
       },
       "tunic_skirt": {
        "kind": "skirt",
@@ -857,7 +857,7 @@
        "cloth": {
         "bending": 4
        },
-       "blouse": 0.08
+       "blouse": 0.04
       },
       "work_skirt": {
        "kind": "skirt",
@@ -913,7 +913,7 @@
        "cloth": {
         "bending": 4
        },
-       "blouse": 0.08
+       "blouse": 0.05
       },
       "child_skirt": {
        "kind": "skirt",
@@ -939,6 +939,9 @@
          "tunic_upper",
          "tunic_skirt"
         ]
+       },
+       "cloth": {
+        "self_collision": true
        }
       },
       "headcloth": {
