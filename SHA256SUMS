@@ -222,3 +222,4 @@ dd66608c2a4194e78f95548fa0e64f24302303698c5b09fa8e1f9e16ec00676b  voices/models/
 ddf411c9f790d081e72de76bb8e8b714d74e160e61bc10c9bd8f56022dcd7fd7  voices/models/Xenova/nllb-200-distilled-600M/resolve/main/tokenizer_config.json
 75efe37fb015f22d82af367dcef974c39119fa4c6505d16a82d86f604a431f4e  voices/models/Xenova/wavlm-base-plus-sv/resolve/main/config.json
 22a38bdd854a11db171357cb997156511697d2f2c621d1262c82ba91b873d08b  voices/models/Xenova/wavlm-base-plus-sv/resolve/main/onnx/model.onnx
+576bf6017796bdd179824d801b3a355a1dda2451559c6a398562175e33589f68  voices/models/Xenova/wavlm-base-plus-sv/resolve/main/onnx/model_quantized.onnx
