@@ -13,10 +13,10 @@ export const haveModels = () => existsSync(join(MODELS, KOKORO_REPO, 'resolve/ma
 const file = (repo: string, f: string) => join(MODELS, repo, 'resolve/main', f);
 
 export async function kokoro(dtype: 'fp32' | 'q8' = 'fp32') {
-  return KokoroRunner.load({ root: MODELS, device: 'cpu', dtype, voiceData: async n => { const b = readFileSync(file(KOKORO_REPO, `voices/${n}.bin`)); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); } });
+  return KokoroRunner.load({ root: MODELS, device: (process.env.VOICE_DEVICE as any) ?? 'cpu', dtype, voiceData: async n => { const b = readFileSync(file(KOKORO_REPO, `voices/${n}.bin`)); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); } });
 }
 let ort: any = null;
-const session = async (p: string) => { ort ??= await import('onnxruntime-node'); return ort.InferenceSession.create(p, { intraOpNumThreads: +(process.env.ORT_THREADS ?? 4) }); };
+const session = async (p: string) => { ort ??= await import('onnxruntime-node'); return ort.InferenceSession.create(p, { intraOpNumThreads: +(process.env.ORT_THREADS ?? 4), executionProviders: process.env.VOICE_DEVICE === 'dml' ? ['dml', 'cpu'] : ['cpu'] }); };
 
 /** 24 kHz (or any rate) to 16 kHz, windowed sinc */
 export function to16k(x: Float32Array, rate: number): Float32Array {

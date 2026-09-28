@@ -16,6 +16,7 @@ export interface NeuralVoice {
   /** vocal-tract scale: pitch and formants × tract (1 = the blend's own; a child 1.15–1.35) */ tract: number;
   /** speaking level (RMS of the voiced part) */ level: number;
   /** a small offset in style space, the person's own (optional) */ offset?: Float32Array;
+  /** the person's own step off the blend, in units of the voices' spread per dimension (runner.ts), and its direction's seed */ jitter?: number; jitterSeed?: number;
 }
 /** the style voices a person may be blended from (D-336: measured on the lexicon's lines, tools/dev/voices_eval.ts
  *  --bases: the ones below the naturalness floor are left out) */

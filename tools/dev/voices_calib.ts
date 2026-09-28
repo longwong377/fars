@@ -1,3 +1,4 @@
+// (VOICE_DEVICE=dml: the T4 through DirectML, ~10x the loaded CPU; through tools/dev/gpu_slot.mjs)
 // D-336: calibrating the speaker-embedding instruments on this synthesiser, and each style voice's naturalness. Kokoro's 54
 // style voices are 54 different speakers (each trained from its own speaker's recordings); each speaks two different sets of
 // the lexicon's lines (A, B: ~5 s each), an English and a Farsi sentence. Same speaker = A vs B (and A vs English / Farsi:
