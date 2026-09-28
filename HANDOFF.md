@@ -15,6 +15,20 @@
 5. **UD-25 (the user: "sure"):** speech as the sandbox's main verb: reputation and trust, emergent needs, work, barter, rumour, learning the language, the stranger's identity, petitions, hospitality, groups, and a true proximity mic (loudness, distance, bystanders react, open mic) (T-E14). The model proposes, the simulation decides. Needs a stronger grounded model and a playable frame rate first.
 6. **UD-26 (the user: "an incredibly complex emergent sandbox by the end"):** the end state is emergent, not scheduled: needs, an economy (prices, shortages, debts), people's choices and dealings chain into consequences with or without the player, who can enter every chain (T-F9: >= 50 unscripted chains a year on 3 seeds). This frames UD-24 and UD-25; node-side simulation work, the cloud's main track.
 
+## THE BAR, BEFORE ANYTHING ELSE (the user, session 12: "every inch of this project needs to look photoreal and you've missed this over and over and over")
+Session 12 built better objects but the whole world still reads as CG at 10-30 m (REVIEWS/renders/s12/final/: flat single-colour
+walls and paving, reliefs as saturated stickers, grey "concrete" stone, empty courts and rooms, a barren plain). It was missed because
+classes were called done on their own probe pages and frames were graded against "better than before", not against photographs.
+**Rule for every session from now on (D-233, CLAUDE.md's first question):**
+1. Start by rendering ~20 whole views across every area (town lanes and courts, villages, the plain and hills, the Terrace courts,
+   stairs and halls, interiors, people close and in crowds, dusk and night) at the player's lens, in one batched load.
+2. Blind-review them against references/ with handoff/review_template.md (calibrated reviewers), and measure image statistics
+   against the photographs (large-surface colour variance, local contrast, saturation, shadow depth at wall feet and joints).
+3. Run cheap one-view experiments (grime on one wall, relief saturation halved, a lane filled with people) and re-review, to learn
+   which causes move the photo score; then attack those causes in bulk, world-wide.
+4. No class is "done" until whole views containing it pass the blind review; probe pages and node tests are never the evidence.
+Performance (B125, ~4 fps) still comes first on the GPU machine: none of this is seen at 4 fps.
+
 ## SESSION 12 CLOSE (Vagon): every Blender class of research/BLENDER_PLAN.md built world-wide, merged
 Merged (all branches of the session): lighting (cascades, tone look, sky visibility, interiors verified 19 -> 112), CC0 scans
 (rocks, flora, jars, baskets), the house kit + three LODs + baked walls, block faces (tool marks, chipped arris geometry, joint
