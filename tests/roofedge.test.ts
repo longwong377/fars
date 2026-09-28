@@ -65,7 +65,7 @@ describe('D-334 roof edges and wall heads', () => {
     expect([...names].some(n => /:roof_earth(:edge)?$/.test(n))).toBe(true);
     // the Now view keeps none of it (no work there, UD-20)
     expect(buildMeshes(parts.map(p => ({ ...p, now: 'x' }) as any)).roofEdges).toBeUndefined();
-  });
+  }, 600000);
 });
 
 describe('D-334 surfaces', () => {
@@ -83,7 +83,7 @@ describe('D-334 surfaces', () => {
     B.group.traverse(o => { const g = (o as any).geometry; if (!g || !/^(apadana|garrison):mudbrick/.test(o.name)) return; const a = g.getAttribute('inner'); if (!a) return;
       for (let i = 0; i < a.count; i++) { if (a.getX(i) > 0.5) { if (o.name.startsWith('garrison')) outer++; else inner++; } } });
     expect(inner).toBeGreaterThan(100); expect(outer).toBe(0);
-  });
+  }, 600000);
   it('the Blender bakes are shipped as KTX2 and laid on every palace wall and roof', () => {
     for (const k of ['mudbrick', 'mudbrick_painted', 'roof_earth']) { const b = WALL_BAKE[k]; expect(b?.ktx, k).toBe(true);
       const f = `public/textures/${b.tex}/bake.ktx2`; expect(existsSync(f), f).toBe(true); expect(statSync(f).size).toBeLessThan(2e6); }

@@ -475,7 +475,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p));
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
-    const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) ? "|edge" : ""}`; // (D-334: the roof edges their own mesh: a building's timber roofs keep the roof surface)
+    const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
   }
   // the timber ceilings under the roofs (D-188): render geometry only, merged per building (no colliders, no bevels)

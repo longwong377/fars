@@ -34,6 +34,11 @@ for (const [k, [e, n, y, az]] of Object.entries(AT)) {
 for (const [k, B] of Object.entries(BB)) { const cx = (B[0] + B[1]) / 2, cy = (B[2] + B[3]) / 2;
   V.push({ n: `${k}-inside`, eye: [cx + 2, cy + 3, B[4] + 1.6], look: [cx, B[2], B[4] + 2.5], fov: 70, ...S });
   V.push({ n: `${k}-roofnear`, eye: [cx - 6, B[2] - 10, B[5] + 12], look: [cx, B[2] + 4, B[5] - 1], fov: 55, ...S }); }
+// round 3: bare courses close (the Tripylon's and Hall of 100 Columns' walls), the roof coat at arm's length (on the Gate's
+// roof, by its parapet), the portico entablature from the court at the player's lens
+for (const k of ['tripylon', 'hall100']) { const B = BB[k]; const cx = (B[0] + B[1]) / 2; V.push({ n: k + '-bare', eye: [cx + 1, B[2] - 3.5, B[4] + 1.6], look: [cx, B[2], B[4] + 1.8], fov: 60, ...S }); }
+{ const B = BB.gate_nations, cx = (B[0] + B[1]) / 2, cy = (B[2] + B[3]) / 2; V.push({ n: 'gate-roof-arm', eye: [cx, B[2] + 2.2, B[5] + 1.6], look: [cx + 2, B[2] + 0.2, B[5] - 0.2], fov: 60, ...S }); V.push({ n: 'gate-roof-walk', eye: [cx - 3, cy, B[5] + 1.6], look: [cx + 6, B[2] + 3, B[5] + 0.2], fov: 60, ...S }); }
+{ const B = BB.apadana, cy = (B[2] + B[3]) / 2; V.push({ n: 'apadana-portico-court', eye: [B[1] + 30, cy - 10, 1.6], look: [B[1], cy, 16], fov: 60, ...SE }); }
 V.push({ n: 'gate-arm', eye: [-40, 15, 1.6], look: [-40, 30, 1.8], fov: 60, ...S });
 const FL = process.env.FLAGS ? JSON.parse(process.env.FLAGS) : [{}];
 for (const v of V) { if (ONLYV && !ONLYV.some(o => v.n.startsWith(o))) continue;
