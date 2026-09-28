@@ -8,20 +8,41 @@
 // within R), so near the eye the arrises are geometry and beyond R they are the maps (the LOD by distance). The shadow pass
 // runs the same masks, so the chips' shadows fall. 467: fresh, lightly handled edges, no ruin weathering (UD-20). Tier C.
 import * as THREE from 'three/webgpu';
-import { uniform } from 'three/tsl';
+import { uniform, positionWorld, interleavedGradientNoise, screenCoordinate, frameId, float, vec2, step } from 'three/tsl';
 import type { Box } from './parts';
+import BF from '../data/blockface.json';
+import STRIP_CHIPS from '../data/blockface_chips.json';
+
+/** the surfaces whose free arrises are geometry near the eye (the dressed stone of the block-face class, D-321) */
+export const ARRIS_MATS = new Set(['limestone', 'terrace']);
 
 /** the band's width on each face (m from the sharp corner line); the base mesh discards its arris zone inside it */
 export const ARRIS_W = 0.04;
 /** the band runs this far (m) past ARRIS_W, over the base mesh's face (coplanar, the same shading): no crack where they meet */
 export const ARRIS_LAP = 0.006;
-/** the radius (m) within which the arrises are geometry */
-export const ARRIS_R = 12;
+/** the radius (m) within which the arrises are geometry; from ARRIS_R0 to ARRIS_R the hand-over to the maps is a crossfade
+ *  (rev 3): the threshold dithered per pixel and per frame (interleaved gradient noise), so TRAA resolves it to a blend */
+export const ARRIS_R = 12, ARRIS_R0 = 9.5;
+/** 1 where this fragment of the arris is drawn by the band, 0 where by the base mesh's maps (the same pixel, the same frame:
+ *  the two masks are exact complements) */
+export function arrisNear(): any {
+  const ign = interleavedGradientNoise(screenCoordinate.xy.add(vec2(float(frameId).mod(64).mul(5.588238))));
+  return step(positionWorld.distance(ARRIS_EYE), float(ARRIS_R0).add(ign.mul(ARRIS_R - ARRIS_R0)));
+}
 /** the eye for the masks (world); far away (no band anywhere) until an ArrisField updates it */
 export const ARRIS_EYE = uniform(new THREE.Vector3(1e7, 1e7, 1e7));
-/** chips per metre of arris, their half length (m): 3.5 mm + exp(mean 6 mm), at most 24 mm; the struck face's scoop 0.9-1.9 x
- *  the half length across the face, 0.22-0.45 of that deep; the other face 0.4 of both (D-321's fine strips, C) */
-export const CHIPS = { rate: 1.0, a0: 0.0035, aMean: 0.006, aMax: 0.024, b: [0.9, 1.9] as [number, number], d: [0.22, 0.45] as [number, number], other: 0.4, endGap: 0.06 };
+/** rev 3: the geometry's chips are the maps' own: the fine strip layer's chips (tools/blender/blockface.py records every one it
+ *  carves: src/data/blockface_chips.json), at the places the shader reads them for this arris (its strip row and offset from the
+ *  edge's seed, 'aseed'; along the arris's canonical direction ARRIS_K), so nothing moves at the hand-over */
+export const CHIPS = { rate: 1.0, endGap: 0.02 };
+/** the canonical direction along an arris: the edge direction, signed to point along ARRIS_K (the shader signs it the same way) */
+export const ARRIS_K: [number, number, number] = [0.8, 0.13, 0.59];
+/** an edge's seed from its midpoint (world), and its strip row and offset (fraction of the tile) */
+export function edgeSeed(m: { x: number; y: number; z: number }): number { return Math.abs(Math.sin(m.x * 12.9898 + m.y * 78.233 + m.z * 37.719) * 43758.5453) % 1; }
+export const seedRow = (seed: number) => Math.floor(((seed * 7.13) % 1) * BF.strip_rows);
+export const seedOff = (seed: number) => (seed * 13.7) % 1;
+/** 'aseed' packs row + offset x 0.999 */
+export const aseedOf = (seed: number) => seedRow(seed) + seedOff(seed) * 0.999;
 
 export interface ArrisEdge {
   mat: string; a: THREE.Vector3; b: THREE.Vector3; na: THREE.Vector3; nb: THREE.Vector3; r: number; seed: number;
@@ -51,28 +72,30 @@ export function arrisEdgesOfBox(b: Box, edges: boolean[], boxEdges: [number, num
     const p0 = [...c], p1 = [...c]; p0[ax] = -h[ax]; p1[ax] = h[ax];
     const a = new THREE.Vector3(...(p0 as [number, number, number])).applyMatrix4(M), bb = new THREE.Vector3(...(p1 as [number, number, number])).applyMatrix4(M);
     const na = planes[i].n.clone(), nb = planes[j].n.clone();
-    const seed = Math.abs(Math.sin(a.x * 12.9898 + a.y * 78.233 + a.z * 37.719 + bb.x * 4.1 + bb.y * 7.3 + bb.z * 1.7) * 43758.5453) % 1;
+    const seed = edgeSeed(a.clone().add(bb).multiplyScalar(0.5));
     out.push({ mat: b.material, a, b: bb, na, nb, r, seed, planes, y0a: y0Of(na), y0b: y0Of(nb), pbox, ytop: b.y1, stair });
   });
   return out;
 }
 
-/** a small deterministic generator (mulberry32) */
-function rng(seed: number) { let s = (seed * 4294967296) >>> 0; return () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-export interface Chip { s: number; a: number; face: 0 | 1; b: number; D: number }
-/** the chips along an edge of length L (deterministic per edge) */
+export interface Chip { s: number; a: number; b: number; D: number }
+const FINE = (STRIP_CHIPS as any).strip_fine as number[][][]; // per row: [x, a, b, D, th] in mm
+/** the chips along an edge of length L: those of its strip row, where the shader's along coordinate reads them */
 export function chipsOf(e: ArrisEdge, L: number): Chip[] {
-  const R = rng(e.seed), out: Chip[] = [], C = CHIPS;
-  let s = -Math.log(1 - R() * 0.999) / C.rate;
-  while (s < L) {
-    const a = Math.min(C.aMax, C.a0 + -Math.log(1 - R() * 0.999) * C.aMean), bS = 2 * a * (C.b[0] + R() * (C.b[1] - C.b[0])) / 2, D = bS * (C.d[0] + R() * (C.d[1] - C.d[0]));
-    if (s > C.endGap + a && s < L - C.endGap - a) out.push({ s, a, face: R() < 0.5 ? 0 : 1, b: Math.min(bS, ARRIS_W * 0.9), D });
-    s += -Math.log(1 - R() * 0.999) / C.rate;
+  const S = BF.size_m, t = e.b.clone().sub(e.a).divideScalar(L), K = new THREE.Vector3(...ARRIS_K), g = Math.sign(t.dot(K)) || 1;
+  const tc = t.clone().multiplyScalar(g), A0 = e.a.dot(tc), off = seedOff(e.seed) * S, out: Chip[] = [];
+  // along(s) = A0 + g s; the texture's x = (along + off) mod S
+  for (const [x, a, b, D] of FINE[seedRow(e.seed)] ?? []) {
+    const X = x / 1000, lo = Math.min(A0, A0 + g * L) + off, hi = Math.max(A0, A0 + g * L) + off;
+    for (let k = Math.floor((lo - X) / S); X + k * S <= hi; k++) {
+      const s = (X + k * S - off - A0) / g, am = a / 1000;
+      if (s > CHIPS.endGap + am && s < L - CHIPS.endGap - am) out.push({ s, a: am, b: Math.min(b / 1000, ARRIS_W * 0.9), D: D / 1000 });
+    }
   }
-  return out;
+  return out.sort((p, q) => p.s - q.s);
 }
-/** the removal at (s, x) for one face's chips: depth into that face for a point at distance x from the arris along the other */
-const shape = (q: number) => q >= 1 ? 0 : Math.pow(1 - q, 1.3);
+/** the scoop's depth at normalised radius rr (the carving's chip_cut: D (1 - rr)^1.4 + a 12 % hinge, blockface.py) */
+const scoop = (rr2: number) => rr2 >= 1 ? 0 : Math.pow(1 - Math.sqrt(rr2), 1.4) + 0.12;
 /** the band's cross-section: (u, v) = distances from face B's plane (into face A) and from face A's plane, for the nominal
  *  (unchipped) profile: face A from ARRIS_W to the rounding, the worn arc (radius rho, tangent to both faces), face B back out */
 export function profile(r: number): [number, number][] {
@@ -84,7 +107,7 @@ export function profile(r: number): [number, number][] {
 }
 
 /** one edge's band over s in [s0, s1] (m along it): positions, normals and the part attributes (non-indexed triangles) */
-export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: number[]; stair: number[]; adist: number[]; index: number[] }, adistOff: number): number {
+export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: number[]; stair: number[]; adist: number[]; aseed: number[]; index: number[] }, adistOff: number): number {
   const L = e.a.distanceTo(e.b), t = e.b.clone().sub(e.a).divideScalar(L);
   s0 = Math.max(0, s0); s1 = Math.min(L, s1); if (s1 - s0 < 0.01) return 0;
   const P = profile(e.r), chips = chipsOf(e, L).filter(c => c.s + c.a > s0 && c.s - c.a < s1);
@@ -103,9 +126,8 @@ export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: n
       let u = u0, v = v0;
       for (const c of chips) {
         const q = ((s - c.s) / c.a) ** 2; if (q >= 1) continue;
-        // the struck face loses depth D x shape over its scoop; the other face a smaller one
-        if (c.face === 0) { v = Math.max(v, c.D * shape(q + (u0 / c.b) ** 2)); u = Math.max(u, c.D * CHIPS.other * shape(q + (v0 / (c.b * CHIPS.other)) ** 2)); }
-        else { u = Math.max(u, c.D * shape(q + (v0 / c.b) ** 2)); v = Math.max(v, c.D * CHIPS.other * shape(q + (u0 / (c.b * CHIPS.other)) ** 2)); }
+        // both faces read the same strip row at the same place (the maps): the scoop into each, as the carving cut it
+        v = Math.max(v, c.D * scoop(q + (u0 / c.b) ** 2)); u = Math.max(u, c.D * scoop(q + (v0 / c.b) ** 2));
       }
       X.copy(C0).addScaledVector(e.nb, -u).addScaledVector(e.na, -v);
       for (let it = 0; it < 2; it++) for (const pl of e.planes) { const o = pl.n.dot(X) - pl.d; if (o > 0) X.addScaledVector(pl.n, -o); } // inside the part's own chamfered box
@@ -128,7 +150,7 @@ export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: n
   for (let k = 0; k < V.length; k++) {
     const p = V[k], n = Nn[k], [u0, v0] = P[k % nP]; out.pos.push(p.x, p.y, p.z); out.nrm.push(n.x, n.y, n.z);
     out.y0.push(v0 < u0 ? e.y0a : e.y0b); out.pbox.push(...e.pbox); out.ytop.push(e.ytop); out.stair.push(...e.stair);
-    out.adist.push(Math.min(u0, v0) - adistOff, 0, 0, 0);
+    out.adist.push(Math.min(u0, v0) - adistOff, 0, 0, 0); out.aseed.push(aseedOf(e.seed), 0, 0, 0);
   }
   const ab = new THREE.Vector3(), ad = new THREE.Vector3(), cr = new THREE.Vector3();
   for (let i = 0; i + 1 < nS; i++) for (let j = 0; j + 1 < nP; j++) {
@@ -140,8 +162,8 @@ export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: n
   return tris;
 }
 
-type Buf = { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: number[]; stair: number[]; adist: number[] };
-const ATTR: [keyof Buf, number][] = [['pos', 3], ['nrm', 3], ['y0', 1], ['pbox', 4], ['ytop', 1], ['stair', 4], ['adist', 4]];
+type Buf = { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: number[]; stair: number[]; adist: number[]; aseed: number[] };
+const ATTR: [keyof Buf, number][] = [['pos', 3], ['nrm', 3], ['y0', 1], ['pbox', 4], ['ytop', 1], ['stair', 4], ['adist', 4], ['aseed', 4]];
 /** a piece of an edge's band, built once and kept while it stays near */
 interface Piece { mat: string; data: Record<keyof Buf, Float32Array>; index: Uint32Array; tris: number }
 /** the near-field bands. The edges are cut in pieces of PIECE m; the pieces are grouped by CELL m plan cells, and a cell is drawn by
@@ -149,15 +171,15 @@ interface Piece { mat: string; data: Record<keyof Buf, Float32Array>; index: Uin
  *  `budgetMs` of building per call: call update() every frame; the first call builds all it needs) and dropped when it is well
  *  out of reach, so a step of the eye costs building the few pieces at the rim and assembling their cells (~1-5 ms each). Draws:
  *  the cells within reach (~15 at the stairs), their triangles 10-110 k */
-export const PIECE = 3;
+export const PIECE = 1.5;
 export class ArrisField {
   readonly group = new THREE.Group();
   private cell = 8; private last = new THREE.Vector3(1e9, 0, 0); private first = true;
   private pieces: { e: number; s0: number; s1: number; mid: THREE.Vector3; half: number }[] = [];
   private cells = new Map<number, { ids: number[]; cx: number; cz: number; built: Map<number, Piece>; meshes: THREE.Mesh[] | null }>();
   private want: number[] = [];
-  stats = { cells: 0, triangles: 0, ms: 0, pending: 0, draws: 0 };
-  constructor(private edges: ArrisEdge[], private material: (mat: string) => THREE.Material, private adistOff: number, readonly step = 1.5, readonly budgetMs = 6) {
+  stats = { cells: 0, triangles: 0, ms: 0, pending: 0, draws: 0, ready: false };
+  constructor(private edges: ArrisEdge[], private material: (mat: string) => THREE.Material, private adistOff: number, readonly step = 1.5, readonly budgetMs = 3) {
     this.group.name = 'arris-bands';
     edges.forEach((e, i) => {
       const L = e.a.distanceTo(e.b), n = Math.max(1, Math.ceil(L / PIECE));
@@ -171,7 +193,7 @@ export class ArrisField {
   }
   get count() { return this.edges.length; }
   private build(id: number): Piece {
-    const P = this.pieces[id], e = this.edges[P.e], B: Buf & { index: number[] } = { pos: [], nrm: [], y0: [], pbox: [], ytop: [], stair: [], adist: [], index: [] };
+    const P = this.pieces[id], e = this.edges[P.e], B: Buf & { index: number[] } = { pos: [], nrm: [], y0: [], pbox: [], ytop: [], stair: [], adist: [], aseed: [], index: [] };
     const tris = bandGeometry(e, P.s0, P.s1, B, this.adistOff);
     const data = Object.fromEntries(ATTR.map(([k]) => [k, new Float32Array(B[k])])) as Record<keyof Buf, Float32Array>;
     return { mat: e.mat, data, index: new Uint32Array(B.index), tris };
@@ -179,7 +201,6 @@ export class ArrisField {
   /** `eye` null: the bands off (the Now view, or no arrises wanted): the base meshes draw their whole arrises */
   update(eye: THREE.Vector3 | null, budgetMs = this.budgetMs): void {
     if (!eye) { this.group.visible = false; ARRIS_EYE.value.set(1e7, 1e7, 1e7); this.last.set(1e9, 0, 0); return; }
-    this.group.visible = true; ARRIS_EYE.value.copy(eye);
     const t0 = performance.now(), reach = ARRIS_R + this.step + 1 + PIECE, C = this.cell;
     if (eye.distanceTo(this.last) >= this.step) {
       this.last.copy(eye);
@@ -196,10 +217,15 @@ export class ArrisField {
     for (const k of this.want) {
       const c = this.cells.get(k)!; if (c.meshes) continue;
       for (const id of c.ids) if (!c.built.has(id)) { if (performance.now() - t0 < budget) c.built.set(id, this.build(id)); else pending++; }
-      if (c.built.size === c.ids.length) this.assemble(c);
+      if (c.built.size === c.ids.length) { if (performance.now() - t0 < budget) this.assemble(c); else pending++; } // (a cell's assembly waits for a frame with time left)
     }
+    // the bands take over only when every cell within R of the eye is drawn (a teleport or a load waits for them; a walk builds
+    // the cells ahead at the rim, beyond R): until then the base meshes draw every arris from the maps, so nothing is ever missing
+    let ready = true;
+    for (const k of this.want) { const c = this.cells.get(k)!; if (!c.meshes && Math.hypot(Math.max(0, Math.abs(eye.x - (c.cx + 0.5) * C) - C / 2), Math.max(0, Math.abs(eye.z - (c.cz + 0.5) * C) - C / 2)) < ARRIS_R + 0.5) { ready = false; break; } }
+    this.group.visible = ready; if (ready) ARRIS_EYE.value.copy(eye); else ARRIS_EYE.value.set(1e7, 1e7, 1e7);
     let tris = 0, draws = 0, cells = 0; for (const k of this.want) { const c = this.cells.get(k)!; if (c.meshes) { cells++; for (const m of c.meshes) { draws++; tris += (m.geometry.index?.count ?? 0) / 3; } } }
-    this.stats = { cells, triangles: tris, ms: Math.round(performance.now() - t0), pending, draws };
+    this.stats = { cells, triangles: tris, ms: Math.round(performance.now() - t0), pending, draws, ready };
   }
   private assemble(c: { ids: number[]; built: Map<number, Piece>; meshes: THREE.Mesh[] | null }): void {
     const by = new Map<string, Piece[]>();

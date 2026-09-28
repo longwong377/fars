@@ -9,7 +9,7 @@ import { buildMeshes } from '../src/arch/meshes';
 import { ArrisField, bandGeometry, chipsOf, profile, ARRIS_W, ARRIS_R, CHIPS, PIECE, ARRIS_LAP } from '../src/arch/arris';
 import type { Part } from '../src/arch/parts';
 
-const buf = () => ({ pos: [] as number[], nrm: [] as number[], y0: [] as number[], pbox: [] as number[], ytop: [] as number[], stair: [] as number[], adist: [] as number[], index: [] as number[] });
+const buf = () => ({ pos: [] as number[], nrm: [] as number[], y0: [] as number[], pbox: [] as number[], ytop: [] as number[], stair: [] as number[], adist: [] as number[], aseed: [] as number[], index: [] as number[] });
 describe('D-321 rev 2 arris bands', () => {
   const wall: Part = { type: 'box', building: 't', kind: 'wall', material: 'limestone', tier: 'C', src: 'RECON', c: [0, 0], size: [6, 1.2], y0: 0, y1: 2, rot: 0.3 } as any;
   const built = buildMeshes([wall]);
@@ -39,8 +39,8 @@ describe('D-321 rev 2 arris bands', () => {
     const rows: string[] = [`free dressed-stone arrises: ${g.arris.length}, ${g.arris.reduce((s, e) => s + e.a.distanceTo(e.b), 0).toFixed(0)} m`];
     let worst = 0;
     for (const [n, e, y, nn] of [['grand stair', -43.9, 3, 128], ['stair-foot', -60, 1.6, 112], ['apadana court', -50, 1.6, 70], ['tachara stair', -21, 1.6, -112], ['apadana e stair', 80, 1.6, -14]] as [string, number, number, number][]) {
-      const t0 = performance.now(); f.update(new THREE.Vector3(e, y, -nn), 1e9); const full = performance.now() - t0; f.update(new THREE.Vector3(e + 1.6, y, -nn)); let inc = 0; for (let k = 1; k <= 12; k++) { f.update(new THREE.Vector3(e + k * 0.4, y, -nn)); inc = Math.max(inc, f.stats.ms); } worst = Math.max(worst, f.stats.triangles);
-      rows.push(`${n}: ${f.stats.cells} cells, ${f.stats.draws} draws, ${f.stats.triangles} triangles, first build ${full.toFixed(0)} ms, a 1.6 m step ${inc} ms (pending ${f.stats.pending})`); expect(inc).toBeLessThan(40);
+      const t0 = performance.now(); f.update(new THREE.Vector3(e, y, -nn), 1e9); const full = performance.now() - t0; f.update(new THREE.Vector3(e + 1.6, y, -nn)); let inc = 0; for (let k = 1; k <= 12; k++) { f.update(new THREE.Vector3(e + k * 0.4, y, -nn)); inc = Math.max(inc, f.stats.ms); expect(f.stats.ready).toBe(true); } worst = Math.max(worst, f.stats.triangles);
+      rows.push(`${n}: ${f.stats.cells} cells, ${f.stats.draws} draws, ${f.stats.triangles} triangles, first build ${full.toFixed(0)} ms, a 1.6 m step ${inc} ms (pending ${f.stats.pending})`); expect(inc).toBeLessThan(8); expect(f.stats.ready).toBe(true);
       f.group.traverse((o: any) => { if (o.isMesh && o.visible) { const p = o.geometry.getAttribute('position'); for (let i = 0; i < p.count; i += 97) expect(Math.hypot(p.getX(i) - e, p.getY(i) - y, p.getZ(i) + nn)).toBeLessThan(45); } });
     }
     mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/arris-d321.txt', rows.join('\n') + '\n');
