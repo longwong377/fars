@@ -31,7 +31,7 @@ const {
   log2, Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
   varyingProperty, normalLocal, positionPrevious, positionView, normalView, normalViewGeometry, positionViewDirection, sign, mx_noise_float, diffuseColor,
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
-  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition,
+  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition, interleavedGradientNoise, screenCoordinate, frameId,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE, PRM_CARD } from './humanFormat';
 import { ROBE, BEARD, BELLY } from './drape';
@@ -78,7 +78,9 @@ export interface HumanTextures {
   simCloth?: boolean;
   /** D-322: each body variant's group (0 men, 1 women, 2 children) + 3 × its drape seed: the channel and layer pair of the fold layers its garments read */
   groups?: number[];
-  hairAtlas?: THREE.Texture | null; cards?: { cols: number; rows: number; classRows: number[][]; w: number; h: number; levels: number } | null;
+  hairAtlas?: THREE.Texture | null; cards?: { cols: number; rows: number; classRows: number[][]; w: number; h: number; levels: number; normal?: { w: number; h: number; levels: number } | null } | null;
+  /** D-323: the cards' normal atlas (R, G the lock's normal across and along the card, B occlusion inside the lock, A coverage) */
+  hairNormal?: THREE.Texture | null;
 }
 /** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
  *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair (w: the belly of a woman with child, 0..1, D-292), 6 leather
@@ -158,7 +160,15 @@ export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, bumpMass: 
  *  (depth 0 → back); the coverage is tested at `alphaTest`, the value the atlas' coverage-preserving mips were made for
  *  (tools/blender/sources/people_hair_post.ts: a card keeps its density at every distance; the first render's hashed test
  *  read as speckled noise at the strands' edges); the strand's direction across the card tilts the highlight's tangent */
-export const CARD = { back: 0.55, alphaTest: 0.5, tilt: 0.9 };
+export const CARD = { back: 0.55, alphaTest: 0.5, tilt: 0.9,
+  /** D-323: the normal atlas's weight (the lock's roundness across the card: its edges turn away, so a card lights as a
+   *  lock, not a sheet) and how much of its occlusion (inside a lock, the back strands) reaches the ambient and the albedo */
+  normal: 1, aoAmb: 1, aoAlb: 0.35,
+  /** D-323: the test's threshold dithered per pixel and per frame about alphaTest by this share of its range (interleaved
+   *  gradient noise, offset each frame), so TRAA resolves a card's edge to its coverage: with a fixed threshold, minified
+   *  locks passed or failed whole pixels and every hairline, beard edge and brow read as jagged pixel noise at 1.5 m
+   *  (the D-323 GPU portraits). The D-307 hashed test was static per pixel: TRAA had nothing to average. */
+  dither: 0.9 };
 
 class HumanLightingModel extends THREE.PhysicalLightingModel {
   constructor(private S: Record<string, any>) { super(); }
@@ -445,7 +455,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // ---- D-307: strand cards (hair class, PRM_CARD): the atlas cell of the card's class, the person's hair style and the
     // card's column; shade, depth, strand direction and coverage from it
     const CA = T.hairAtlas && T.cards ? T.cards : null;
-    let kCard: any = float(0), cardAlb: any = vec3(0), cardCov: any = float(1), cardDepth: any = float(1), cardT: any = vec3(0, -1, 0);
+    let kCard: any = float(0), cardAlb: any = vec3(0), cardCov: any = float(1), cardDepth: any = float(1), cardT: any = vec3(0, -1, 0), cardN: any = null, cardAO: any = float(1);
     if (CA) {
       kCard = step(PRM_CARD - 0.5, prm).mul(kHair);
       const cellV = floor(vAux.y.mul(255).add(0.5)), cls = floor(cellV.div(8)), colC = cellV.sub(cls.mul(8));
@@ -460,6 +470,14 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const pV = normalize(dpy.mul(dux.x).sub(dpx.mul(duy.x)).div(det).add(vec3(0, 1e-9, 0))), pU = normalize(dpx.mul(duy.y).sub(dpy.mul(dux.y)).div(det).add(vec3(1e-9, 0, 0)));
       const tx = at.b.mul(2).sub(1).mul(CARD.tilt).clamp(-0.95, 0.95);
       cardT = normalize(pV.mul(sqrt(float(1).sub(tx.mul(tx)))).add(pU.mul(tx)));
+      // D-323: the normal atlas (rendered from the hair curves' locks): the card's shading normal turned across and along it
+      if (CA.normal && T.hairNormal) {
+        const na = loadBilinear(T.hairNormal, auv, [CA.normal.w, CA.normal.h], CA.normal.levels);
+        const nx = na.r.mul(2).sub(1).mul(CARD.normal), ny = na.g.mul(2).sub(1).mul(CARD.normal), nz = sqrt(float(1).sub(nx.mul(nx)).sub(ny.mul(ny)).max(0.04));
+        cardN = normalize(normalView.mul(nz).add(pU.mul(nx)).add(pV.mul(ny)));
+        cardAO = na.b;
+        cardAlb = cardAlb.mul(mix(float(1), cardAO, CARD.aoAlb));
+      }
     }
     const kShell = kHair.mul(float(1).sub(kCard));
     const kohlK = bits('kohl').mul(float(1).sub(smoothstep(KOHL.band * 0.7, KOHL.band * 1.3, e1))); // D-215
@@ -593,10 +611,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // specular F0 (dielectrics): skin 0.028, cornea 0.025, hair cuticle 0.046, others 0.04 (setupSpecular)
     this.f0Node = float(0.04).sub(kSkin.mul(0.04 - SKIN.f0)).sub(kEye.mul(0.04 - EYE.f0)).add(kHair.mul(0.006));
     // cavity occlusion (indirect light), weaker on the eyeball (the socket's ray-cast cavity greyed the whites); curl valleys
-    this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45))).mul(mix(float(1), curls.mul(0.45).add(0.55), kShell)).mul(mix(float(1), cardDepth.mul(0.35).add(0.65), kCard));
+    this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45))).mul(mix(float(1), curls.mul(0.45).add(0.55), kShell)).mul(mix(float(1), cardDepth.mul(0.35).add(0.65).mul(mix(float(1), cardAO, CARD.aoAmb)), kCard));
     // shading normal: curls on hair, creases and pores on skin, folds and weave on cloth, fibres on felt, grain on leather
     const h = hairH.mul(kShell).add(skinH.mul(kSkin)).add(clothH.mul(kCloth)).add(feltH.mul(kFelt)).add(leatherH.mul(kLeather));
-    this.normalNode = bumped(h);
+    this.normalNode = cardN ? mix(bumped(h), cardN, kCard).normalize() : bumped(h);
     // lighting-model inputs
     const curv = e2.mul(SKIN_CURV_MAX);
     const skinWrap = vec3(...SKIN.scatter).mul(curv).min(SKIN.wrapMax).add(vec3(...SKIN.wrapBase));
@@ -634,7 +652,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const lashCut = max(step(lashW, clumpC), step(0.9, tl)).mul(float(1).sub(bits('kohl').mul(step(tl, KOHL.band)))); // (kohl: the root band solid)
     // D-307: a card is cut where the atlas' coverage is under the test its mips were made for (a fixed threshold: TRAA
     // antialiases the edges; a per-pixel hashed threshold read as speckled noise in the first review)
-    const cardCut = step(cardCov, CARD.alphaTest);
+    const cardThr = interleavedGradientNoise(screenCoordinate.xy.add(vec2(float(frameId).mod(64).mul(5.588238)))).sub(0.5).mul(CARD.dither).add(CARD.alphaTest);
+    const cardCut = step(cardCov, cardThr);
     this.maskNode = float(1).sub(kShell.mul(max(edgeCut, silCut))).sub(kCard.mul(cardCut)).sub(kLash.mul(lashCut)).greaterThan(0.5);
     // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and
     // a constant fragment so the main pass only pays for vertices; the shadow pass uses this positionNode

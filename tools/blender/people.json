@@ -2,7 +2,7 @@
  "about": "The people's Blender-built assets (D-307; the D-305 pipeline, tools/blender/build.mjs). Per asset: the node source (the project's own bodies and pieces; nothing shaped by hand), the Blender script, the node post-step, the files it writes to public/models/people/, the inputs whose hash decides staleness, budgets and the ledger row. tests/people_models.test.ts holds them to it; src/people/peopleModels.ts loads them.",
  "assets": {
   "people_hair": {
-   "title": "strand cards for scalp hair, the bob, the bunch at the nape, long and short beards and brows, and their strand atlas",
+   "title": "hair, beards and brows: hair curves groomed in Blender over the reference head and converted to cards (scalp hair in three layers, the bob, the bunch at the nape, long and short beards, brows), with a strand atlas and a normal atlas rendered from hair curves",
    "source": {
     "script": "tools/blender/sources/people_hair.ts",
     "inputs": [
@@ -11,8 +11,8 @@
      "public/generated/humans/skin.png",
      "src/people/humanAssets.ts",
      "src/people/outfits.ts",
-     "src/people/peopleModels.ts",
-     "tools/humans/png.ts"
+     "tools/humans/png.ts",
+     "tools/blender/hair_atlas.py"
     ],
     "args": {
      "ref": "m03",
@@ -20,162 +20,459 @@
      "makehuman": "C:/Users/Administrator/fars-assets/humans/makehuman_cc0",
      "styles": {
       "hair": {
-       "spacing": 0.018,
-       "len": [
-        0.045,
-        0.07
-       ],
-       "width": [
-        0.024,
-        0.016
-       ],
-       "lift": [
-        0.004,
-        0.009
-       ],
-       "len2": [
-        0.028,
-        0.042
-       ],
-       "width2": [
-        0.018,
-        0.012
-       ],
-       "lift2": [
-        0.007,
-        0.011
+       "region": "scalp",
+       "thr": 0.5,
+       "flow": "back",
+       "cut": "nape",
+       "short_sides": 0.25,
+       "face_guard": true,
+       "crown_split": "hair_crown",
+       "note": "scalp hair: guide curves combed back from the brow and down behind the ears to the nape, three layers of cards (a dense inner layer on the scalp, a middle one, an outer one of narrower locks lifted and jittered: a broken outline)",
+       "layers": [
+        {
+         "spacing": 0.0115,
+         "len": [
+          0.05,
+          0.075
+         ],
+         "width": [
+          0.026,
+          0.02
+         ],
+         "lift": [
+          0.0025,
+          0.006
+         ],
+         "segs": 3,
+         "gravity": 5,
+         "cls": 0,
+         "ao": [
+          0.5,
+          0.85
+         ]
+        },
+        {
+         "spacing": 0.0155,
+         "len": [
+          0.04,
+          0.065
+         ],
+         "width": [
+          0.02,
+          0.015
+         ],
+         "lift": [
+          0.006,
+          0.0105
+         ],
+         "segs": 3,
+         "gravity": 4.5,
+         "cls": 0,
+         "ao": [
+          0.7,
+          0.95
+         ],
+         "jitter": 0.15
+        },
+        {
+         "spacing": 0.019,
+         "len": [
+          0.03,
+          0.05
+         ],
+         "width": [
+          0.014,
+          0.009
+         ],
+         "lift": [
+          0.0095,
+          0.014
+         ],
+         "tip_lift": 0.006,
+         "segs": 2,
+         "gravity": 3.5,
+         "cls": 1,
+         "ao": [
+          0.85,
+          1
+         ],
+         "jitter": 0.3,
+         "twist": 0.35
+        }
        ]
       },
-      "bob": {
-       "spacing": 0.016,
-       "len": [
-        0.2,
-        0.26
-       ],
-       "width": [
-        0.026,
-        0.02
-       ],
-       "lift": [
-        0.005,
-        0.01
-       ],
-       "width2": [
-        0.02,
-        0.016
-       ],
-       "lift2": [
-        0.009,
-        0.013
+      "hair_bob": {
+       "region": "scalp",
+       "thr": 0.5,
+       "flow": "bob",
+       "cut": "jaw",
+       "cut_dy": 0.02,
+       "stick_tol": 0.02,
+       "face_guard": true,
+       "ear_guard": false,
+       "note": "the bob (the elite woman of the Egyptian statuette: B): guide curves combed back from the brow and falling to the jaw, cut level; an inner layer close on the head, a middle one and an outer one of looser locks that stand off it as they fall (volume) and hang two-sided below the ears",
+       "layers": [
+        {
+         "spacing": 0.013,
+         "len": [
+          0.2,
+          0.26
+         ],
+         "width": [
+          0.028,
+          0.024
+         ],
+         "lift": [
+          0.002,
+          0.006
+         ],
+         "segs": 6,
+         "gravity": 9,
+         "cls": 0,
+         "ao": [
+          0.5,
+          0.9
+         ],
+         "both": true
+        },
+        {
+         "spacing": 0.017,
+         "len": [
+          0.2,
+          0.26
+         ],
+         "width": [
+          0.024,
+          0.02
+         ],
+         "lift": [
+          0.005,
+          0.01
+         ],
+         "segs": 6,
+         "gravity": 9,
+         "cls": 0,
+         "ao": [
+          0.7,
+          1
+         ],
+         "both": true,
+         "jitter": 0.05
+        },
+        {
+         "spacing": 0.023,
+         "len": [
+          0.19,
+          0.25
+         ],
+         "width": [
+          0.016,
+          0.012
+         ],
+         "lift": [
+          0.008,
+          0.013
+         ],
+         "tip_lift": 0.002,
+         "segs": 5,
+         "gravity": 9,
+         "cls": 1,
+         "ao": [
+          0.85,
+          1
+         ],
+         "both": true,
+         "jitter": 0.04,
+         "twist": 0.12
+        }
        ]
       },
       "bun": {
-       "spacing": 0.02,
-       "len": [
-        0.06,
-        0.09
-       ],
-       "width": [
-        0.022,
-        0.016
-       ],
-       "lift": [
-        0.005,
-        0.01
+       "mode": "bun",
+       "note": "the bunch at the nape (the reliefs: the hair gathered in a bushy mass of curls behind the neck): strips over the bun's ellipsoid from its top down its back, an outer layer of corkscrew locks whose ends hang free",
+       "layers": [
+        {
+         "spacing": 0.018,
+         "len": [
+          0.06,
+          0.09
+         ],
+         "width": [
+          0.024,
+          0.02
+         ],
+         "lift": [
+          0.006,
+          0.01
+         ],
+         "segs": 4,
+         "cls": 5,
+         "ao": [
+          0.6,
+          0.95
+         ]
+        },
+        {
+         "spacing": 0.023,
+         "len": [
+          0.07,
+          0.1
+         ],
+         "width": [
+          0.016,
+          0.012
+         ],
+         "lift": [
+          0.009,
+          0.014
+         ],
+         "segs": 4,
+         "cls": 1,
+         "ao": [
+          0.8,
+          1
+         ],
+         "hang": 0.3,
+         "both": true
+        }
        ]
       },
       "beard_long": {
-       "spacing": 0.014,
-       "len": [
-        0.3,
-        0.3
-       ],
+       "region": "beard",
+       "thr": 0.5,
+       "flow": "beard",
+       "cut": "beard",
        "below": 0.12,
-       "width": [
-        0.018,
-        0.016
-       ],
-       "lift": [
-        0.004,
-        0.018
-       ],
-       "width2": [
-        0.016,
-        0.014
-       ],
-       "lift2": [
-        0.012,
-        0.028
+       "push": "chest",
+       "chest_clear": 0.022,
+       "stick": "aboveChin",
+       "axis_z": 0,
+       "note": "the long beard (the reliefs: long and squared, in rows of curls): guide curves down from the cheeks, chin and upper lip, the moustache out to the mouth's corners, hanging below the jaw to a square cut 12 cm below the chin; inner, middle and outer layers, two-sided where they hang",
+       "layers": [
+        {
+         "spacing": 0.0155,
+         "len": [
+          0.3,
+          0.3
+         ],
+         "lenK": "moustache",
+         "width": [
+          0.018,
+          0.017
+         ],
+         "lift": [
+          0.003,
+          0.014
+         ],
+         "segs": 6,
+         "gravity": 12,
+         "cls": 2,
+         "ao": [
+          0.5,
+          0.9
+         ],
+         "both": true
+        },
+        {
+         "spacing": 0.02,
+         "len": [
+          0.3,
+          0.3
+         ],
+         "lenK": "moustache",
+         "width": [
+          0.016,
+          0.015
+         ],
+         "lift": [
+          0.009,
+          0.024
+         ],
+         "segs": 6,
+         "gravity": 12,
+         "cls": 3,
+         "ao": [
+          0.7,
+          1
+         ],
+         "both": true,
+         "jitter": 0.08
+        },
+        {
+         "spacing": 0.026,
+         "len": [
+          0.3,
+          0.3
+         ],
+         "lenK": "moustache",
+         "width": [
+          0.013,
+          0.011
+         ],
+         "lift": [
+          0.015,
+          0.032
+         ],
+         "segs": 5,
+         "gravity": 12,
+         "cls": 3,
+         "ao": [
+          0.85,
+          1
+         ],
+         "both": true,
+         "jitter": 0.12,
+         "twist": 0.3
+        }
        ]
       },
       "beard_short": {
-       "spacing": 0.0125,
-       "len": [
-        0.014,
-        0.022
-       ],
-       "width": [
-        0.012,
-        0.009
-       ],
-       "lift": [
-        0.002,
-        0.005
+       "region": "beard",
+       "thr": 0.5,
+       "flow": "beard",
+       "note": "the short beard: short cards lying close, down and out, two layers",
+       "layers": [
+        {
+         "spacing": 0.0135,
+         "len": [
+          0.014,
+          0.022
+         ],
+         "width": [
+          0.013,
+          0.01
+         ],
+         "lift": [
+          0.0015,
+          0.004
+         ],
+         "segs": 2,
+         "gravity": 4,
+         "cls": 6,
+         "ao": [
+          0.55,
+          0.95
+         ]
+        },
+        {
+         "spacing": 0.02,
+         "len": [
+          0.016,
+          0.026
+         ],
+         "width": [
+          0.01,
+          0.007
+         ],
+         "lift": [
+          0.003,
+          0.0065
+         ],
+         "segs": 2,
+         "gravity": 4,
+         "cls": 6,
+         "ao": [
+          0.75,
+          1
+         ],
+         "jitter": 0.25
+        }
        ]
       },
       "brows": {
-       "spacing": 0.0032,
-       "len": [
-        0.009,
-        0.014
-       ],
-       "width": [
-        0.006,
-        0.004
-       ],
-       "lift": [
-        0.0008,
-        0.0016
+       "region": "brow",
+       "thr": 0.35,
+       "flow": "brow",
+       "note": "the brows: short cards along the brow, out from the nose and up at the inner end",
+       "layers": [
+        {
+         "spacing": 0.0032,
+         "len": [
+          0.009,
+          0.014
+         ],
+         "width": [
+          0.006,
+          0.004
+         ],
+         "lift": [
+          0.0008,
+          0.0016
+         ],
+         "segs": 2,
+         "gravity": 0,
+         "cls": 4,
+         "ao": [
+          0.8,
+          1
+         ]
+        }
        ]
       }
      },
      "classRows": [
       [
-       1,
        2,
-       0
-      ],
-      [
-       1,
-       1,
+       7,
        0
       ],
       [
        3,
+       4,
+       1
+      ],
+      [
+       2,
+       7,
+       0
+      ],
+      [
        3,
-       3
+       5,
+       1
+      ],
+      [
+       6,
+       6,
+       6
+      ],
+      [
+       3,
+       7,
+       1
+      ],
+      [
+       6,
+       7,
+       6
       ]
      ],
      "atlas": {
       "size": [
        2048,
-       2048
+       4096
       ],
+      "normal_scale": 0.5,
       "cols": 8,
       "samples": 32,
+      "alphaTest": 0.5,
       "rows": [
        {
-        "kind": "straight",
-        "strands": 170,
-        "clumps": 5,
-        "wave": 0.025,
-        "clump": 0.35,
+        "kind": "straight_dense",
+        "locks": 6,
+        "strands": 60,
+        "lock_r": 0.07,
+        "body": 16,
+        "body_w": 4,
+        "wave": 0.02,
         "len": [
-         0.72,
+         0.8,
          1
         ],
-        "width": 1.1,
+        "fray": 0.35,
+        "width": 1.15,
         "tone_sd": 0.22,
+        "strays": 3,
         "src": {
          "image": "hair/long01/long01_diffuse.png",
          "rect": [
@@ -187,20 +484,52 @@
         }
        },
        {
-        "kind": "curly",
-        "strands": 200,
-        "clumps": 6,
-        "curl_r": 0.09,
-        "curl_pitch": 0.12,
-        "wave": 0.02,
-        "spread": 0.06,
-        "phase_sd": 0.9,
+        "kind": "straight_clump",
+        "locks": 4,
+        "strands": 36,
+        "lock_r": 0.05,
+        "body": 9,
+        "body_w": 3.5,
+        "wave": 0.03,
         "len": [
          0.7,
          1
         ],
+        "fray": 0.6,
+        "width": 1.1,
+        "tone_sd": 0.22,
+        "strays": 6,
+        "drift": 0.08,
+        "src": {
+         "image": "hair/long01/long01_diffuse.png",
+         "rect": [
+          0.06,
+          0.2,
+          0.26,
+          0.7
+         ]
+        }
+       },
+       {
+        "kind": "curly_dense",
+        "locks": 8,
+        "strands": 64,
+        "lock_r": 0.045,
+        "body": 16,
+        "body_w": 5,
+        "curl_r": 0.05,
+        "curl_pitch": 0.075,
+        "phase_sd": 0.5,
+        "irregular": 0.7,
+        "wave": 0.02,
+        "len": [
+         0.75,
+         1
+        ],
+        "fray": 0.4,
         "width": 1.1,
         "tone_sd": 0.25,
+        "strays": 4,
         "src": {
          "image": "hair/afro01/afro_diffuse.png",
          "rect": [
@@ -209,24 +538,59 @@
           0.55,
           0.38
          ]
-        },
-        "irregular": 0.8
+        }
+       },
+       {
+        "kind": "curly_clump",
+        "locks": 4,
+        "strands": 48,
+        "lock_r": 0.04,
+        "body": 10,
+        "body_w": 4.5,
+        "curl_r": 0.065,
+        "curl_pitch": 0.09,
+        "phase_sd": 0.6,
+        "irregular": 0.9,
+        "wave": 0.03,
+        "len": [
+         0.65,
+         1
+        ],
+        "fray": 0.6,
+        "width": 1.1,
+        "tone_sd": 0.25,
+        "strays": 8,
+        "drift": 0.08,
+        "src": {
+         "image": "hair/afro01/afro_diffuse.png",
+         "rect": [
+          0.08,
+          0.12,
+          0.55,
+          0.38
+         ]
+        }
        },
        {
         "kind": "ringlet",
-        "strands": 200,
-        "clumps": 4,
-        "curl_r": 0.07,
-        "curl_pitch": 0.075,
+        "locks": 4,
+        "strands": 50,
+        "lock_r": 0.035,
+        "body": 10,
+        "body_w": 4,
+        "curl_r": 0.05,
+        "curl_pitch": 0.06,
+        "phase_sd": 0.25,
+        "irregular": 0.25,
         "wave": 0.008,
-        "spread": 0.04,
-        "phase_sd": 0.3,
         "len": [
          0.8,
          1
         ],
+        "fray": 0.15,
         "width": 1.1,
         "tone_sd": 0.2,
+        "strays": 2,
         "src": {
          "image": "hair/afro01/afro_diffuse.png",
          "rect": [
@@ -235,21 +599,51 @@
           0.55,
           0.38
          ]
-        },
-        "irregular": 0.25
+        }
+       },
+       {
+        "kind": "beard_court",
+        "locks": 5,
+        "strands": 56,
+        "lock_r": 0.045,
+        "body": 12,
+        "body_w": 3.5,
+        "wave": 0.02,
+        "curl_r": 0.055,
+        "curl_pitch": 0.13,
+        "phase_sd": 0.25,
+        "sync": true,
+        "irregular": 0.2,
+        "roll": 0.22,
+        "roll_r": 0.12,
+        "roll_turns": 1.6,
+        "len": [
+         0.92,
+         1
+        ],
+        "fray": 0.2,
+        "width": 1.1,
+        "tone_sd": 0.22,
+        "strays": 2,
+        "src": {
+         "image": "hair/afro01/afro_diffuse.png",
+         "rect": [
+          0.08,
+          0.12,
+          0.55,
+          0.38
+         ]
+        }
        },
        {
         "kind": "fine",
-        "strands": 110,
-        "clumps": 8,
-        "spread": 0.12,
+        "strands": 240,
         "len": [
          0.35,
          0.8
         ],
         "slant_sd": 0.2,
-        "scatter": true,
-        "width": 1,
+        "width": 1.5,
         "tone_sd": 0.25,
         "src": {
          "image": "hair/short02/short02_diffuse.png",
@@ -260,39 +654,69 @@
           0.4
          ]
         }
+       },
+       {
+        "kind": "court_dense",
+        "locks": 9,
+        "strands": 48,
+        "lock_r": 0.035,
+        "body": 12,
+        "body_w": 4.5,
+        "curl_r": 0.035,
+        "curl_pitch": 0.045,
+        "phase_sd": 0.3,
+        "irregular": 0.35,
+        "wave": 0.01,
+        "len": [
+         0.8,
+         1
+        ],
+        "fray": 0.2,
+        "width": 1.1,
+        "tone_sd": 0.22,
+        "strays": 2,
+        "src": {
+         "image": "hair/afro01/afro_diffuse.png",
+         "rect": [
+          0.08,
+          0.12,
+          0.55,
+          0.38
+         ]
+        }
        }
-      ],
-      "alphaTest": 0.5
-     },
-     "args_note": "C throughout, after the reliefs (hair to the nape bunched behind, the long beard to the upper chest cut square: outfits.ts LEN 0.12 m below the chin) and MATERIAL_CULTURE 'Hair and beards'. Spacing (m) between card roots on the surface; len, width, lift [root, tip] (m); the second layer of scalp hair shorter and lifted (volume, a broken outline). Atlas: 2048 px, 8 columns x 4 rows (cells 256 x 512 px: ~80 um a pixel across a 2 cm card, so a strand is about one pixel wide); rows straight/wavy, natural curls, ringlets (the rolled curls of the court dressing), fine (brows, short hairs); curl radius and pitch as shares of the cell (natural curl ~4 mm across, ringlets ~3 mm: C). classRows: card class (0 scalp and nape, 1 beards, 2 brows) -> atlas row per hair style (0 natural, 1 court, 2 straight). The MakeHuman CC0 hair textures give each strand its shade (their luminance along the strand)."
+      ]
+     }
     },
-    "args_note": "C throughout, after the reliefs (hair to the nape bunched behind, the long beard to the upper chest cut square: outfits.ts LEN 0.12 m below the chin) and MATERIAL_CULTURE 'Hair and beards'. Spacing (m) between card roots on the surface; len, width, lift [root, tip] (m); the second layer of scalp hair shorter and lifted (volume, a broken outline). Atlas: 2048 px, 8 columns x 4 rows (cells 256 x 512 px: ~80 um a pixel across a 2 cm card, so a strand is about one pixel wide); rows straight/wavy, natural curls, ringlets (the rolled curls of the court dressing), fine (brows, short hairs); curl radius and pitch as shares of the cell (natural curl ~4 mm across, ringlets ~3 mm: C). classRows: card class (0 scalp and nape, 1 beards, 2 brows) -> atlas row per hair style (0 natural, 1 court, 2 straight). The MakeHuman CC0 hair textures give each strand its shade (their luminance along the strand). Beards in the court dressing take the natural curls row (classRows [1,1,0]): the ringlets read as strings in the first render."
+    "args_note": "C throughout, after the reliefs (hair to the nape gathered in a bushy mass of curls, bound by the fillet; the long beard squared, in rows of curls, to the upper chest: 12 cm below the chin) and MATERIAL_CULTURE 'Hair and beards' (the elite woman's bob: B). Styles: guide curves grown in Blender (tools/blender/hair_groom.py) from roots sampled over the region mask at each layer's spacing (m); len, width, lift [root, tip] (m), segs, gravity (turn per metre), jitter (rad, sd), twist (rad, sd), tip_lift (m), both (two-sided where hanging); cls = card class. Atlas: 2048 x 4096 px, 8 columns x 8 rows (cells 256 x 512 px), rendered from hair curves in locks (locks per cell, strands per lock, lock_r / curl_r as shares of the cell's width, curl_pitch of its height, roll: the share of the length rolled into a curl at the tip); the normal atlas at half size. classRows: card class (0 scalp inner, 1 scalp outer and bun locks, 2 beard inner, 3 beard outer, 4 brows, 5 bun mass, 6 short beard) -> atlas row per hair style (0 natural, 1 court, 2 straight). The MakeHuman CC0 hair textures give each strand its shade."
    },
    "blender": {
-    "script": "tools/blender/hair_atlas.py"
+    "script": "tools/blender/hair_groom.py"
    },
    "ktx": [
-    "people_hair_atlas.png"
+    "people_hair_atlas.png",
+    "people_hair_normal.png"
    ],
    "outputs": [
     "people_hair.json",
     "people_hair.bin",
-    "people_hair_atlas.ktx2"
+    "people_hair_atlas.ktx2",
+    "people_hair_normal.ktx2"
    ],
    "budget": {
-    "bytes": 6000000,
-    "gpu_bytes": 6000000,
+    "bytes": 16000000,
+    "gpu_bytes": 16000000,
     "tris": {
-     "hair": 1600,
-     "hair_bob": 2600,
-     "bun": 700,
-     "beard_long": 2200,
-     "beard_short": 1200,
-     "brows": 200,
-     "hair_crown": 1200
+     "hair": 1400,
+     "hair_crown": 2400,
+     "hair_bob": 4600,
+     "bun": 1600,
+     "beard_long": 3600,
+     "beard_short": 900,
+     "brows": 220
     }
    },
-   "budget_note": "download <= 6 MB of T-K7's 60 MB; GPU: the atlas UASTC 2048^2 with mips ~5.6 MB (T-K8 3.5 GB); triangles per set at the full-detail LOD (the costumes' 42,000 of tests/humans_runtime.test.ts hold the sum)",
+   "budget_note": "download <= 16 MB of T-K7's 60 MB; GPU: the atlas (UASTC 2048 x 4096, ~11 MB with mips) and the normal atlas (1024 x 2048, ~2.8 MB); triangles per set at the full-detail LOD (the costumes' 42,000 of tests/humans_runtime.test.ts hold the sum; D-323 spends the ~4,300 the simplified hands freed)",
    "tier": "C",
    "src": "RELIEF-R;IR-WOMEN;MH-CC0",
    "ledger": "People's hair cards and strand atlas (public/models/people/people_hair.*; D-307)",

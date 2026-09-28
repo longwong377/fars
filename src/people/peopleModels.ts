@@ -29,6 +29,8 @@ export interface CardsMeta {
   /** the reference variant's head height (head_top − chin, m): offsets scale by variant / reference */
   headH: number;
   atlas: { file: string; w: number; h: number; cols: number; rows: string[] };
+  /** D-323: the normal atlas (same cells; R, G the lock's normal across and along the card, B occlusion, A coverage) */
+  normal?: { file: string; w: number; h: number };
   /** card class → atlas row per hair style (looks.ts hairStyle: 0 natural curls, 1 court rows, 2 straight) */
   classRows: number[][];
   sets: Record<string, CardSetMeta>;
@@ -125,7 +127,7 @@ export class BinWriter {
 
 /** browser loader: the people's assets from public/models/people (null for each that is absent or fails: the procedural
  *  pieces are drawn). `?models=0` or `?peoplemodels=0` switches them off. */
-export async function loadPeopleModels(base = '/'): Promise<PeopleModels & { atlasUrl: string | null }> {
+export async function loadPeopleModels(base = '/'): Promise<PeopleModels & { atlasUrl: string | null; normalUrl?: string | null }> {
   const off = typeof location !== 'undefined' && (new URLSearchParams(location.search).get('models') === '0' || new URLSearchParams(location.search).get('peoplemodels') === '0');
   if (off) return { cards: null, drape: null, atlasUrl: null };
   const dir = `${base}${PEOPLE_DIR}/`;
@@ -135,7 +137,7 @@ export async function loadPeopleModels(base = '/'): Promise<PeopleModels & { atl
     catch (e) { console.warn(`[people models] ${name}: ${(e as Error).message}; the procedural pieces are drawn`); return null; }
   };
   const [cards, drape] = await Promise.all([one('people_hair', decodeCards), one('people_cloth', decodeDrape)]);
-  return { cards, drape, atlasUrl: cards ? dir + cards.meta.atlas.file : null };
+  return { cards, drape, atlasUrl: cards ? dir + cards.meta.atlas.file : null, normalUrl: cards?.meta.normal ? dir + cards.meta.normal.file : null };
 }
 /** the strand atlas (KTX2: UASTC + zstd with mipmaps, built by the pipeline's KTX step), transcoded by three's KTX2Loader
  *  (Basis transcoder served from public/models/lib/basis) to the GPU's compressed format: the loader needs the device's

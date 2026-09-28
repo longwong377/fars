@@ -925,8 +925,8 @@
     "n": 2961,
     "t": "i16"
    },
-   "rms": 0.01258,
-   "max": 0.04558,
+   "rms": 0.01212,
+   "max": 0.04633,
    "note": "upper: settled by Blender's cloth solver on m03 (3678 vertices, 1 Loop levels), low-passed to this level"
   },
   "work_upper@1|men": {
@@ -938,8 +938,8 @@
     "n": 963,
     "t": "i16"
    },
-   "rms": 0.01327,
-   "max": 0.05794,
+   "rms": 0.01296,
+   "max": 0.06119,
    "note": "upper: settled by Blender's cloth solver on m03 (3678 vertices, 1 Loop levels), low-passed to this level"
   },
   "work_upper@0|men#1": {

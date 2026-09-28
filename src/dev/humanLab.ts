@@ -64,6 +64,9 @@ async function boot() {
       fireE = (fire.intensity / Math.max(d * d, 0.01)) * Math.max(0.15, to.dot(fwd)); }
     renderer.toneMappingExposure = Math.min(6, Math.max(0.35, 2.3 / (sunE + sky.hemi.intensity * 0.8 + fireE + 0.004)));
     crowd.update(time, camera.position, null, camera);
+    // (D-323: a frame rendered outside the animation loop advances the node frame itself, as main.ts does: TRAA's jitter
+    // and the hair cards' per-frame dither follow it; the test-mode portraits rendered every frame as the same node frame)
+    if (P.has('test')) { const nf = (renderer as any)._nodes?.nodeFrame; if (nf) nf.update(); }
     renderer.info.reset(); pipeline.render(scene, camera);
   };
   const api: any = {

@@ -52,11 +52,14 @@ describe('the people\'s Blender assets are built, current, reproduced, within bu
 });
 
 describe('hair cards (people_hair)', () => {
-  it('the atlas is KTX2, UASTC with zstd supercompression and a full mip chain, 2048 px', () => {
-    const b = readFileSync(`${PEOPLE_DIR}/people_hair_atlas.ktx2`);
-    expect(b.subarray(0, 12).toString('latin1')).toBe('\xABKTX 20\xBB\r\n\x1A\n');
-    const w = b.readUInt32LE(20), h = b.readUInt32LE(24), levels = b.readUInt32LE(40), scheme = b.readUInt32LE(44);
-    expect([w, h]).toEqual([2048, 2048]); expect(levels).toBe(12); expect(scheme).toBe(2); // 2 = zstd
+  it('the atlases are KTX2, UASTC with zstd supercompression and a full mip chain: strands 2048 x 4096, normals 1024 x 2048 (D-323)', () => {
+    for (const [f, size, lv] of [['people_hair_atlas.ktx2', [2048, 4096], 13], ['people_hair_normal.ktx2', [1024, 2048], 12]] as const) {
+      const b = readFileSync(`${PEOPLE_DIR}/${f}`);
+      expect(b.subarray(0, 12).toString('latin1')).toBe('\xABKTX 20\xBB\r\n\x1A\n');
+      const w = b.readUInt32LE(20), h = b.readUInt32LE(24), levels = b.readUInt32LE(40), scheme = b.readUInt32LE(44);
+      expect([w, h], f).toEqual([...size]); expect(levels, f).toBe(lv); expect(scheme, f).toBe(2); // 2 = zstd
+    }
+    expect(M.cards!.meta.normal?.file).toBe('people_hair_normal.ktx2');
   });
   it('every card vertex is anchored on the body (valid triangles and barycentrics) and placed finite on every variant', () => {
     const C = M.cards!; expect(C).toBeTruthy();
