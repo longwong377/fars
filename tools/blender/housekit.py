@@ -5,7 +5,7 @@
 # place along every wall top, every roof and ceiling pole, every oven and every street door, driven by the plot data.
 # Reproducible: `blender -b --factory-startup --python tools/blender/housekit.py -- <out.json>` (node tools/blender/housekit.mjs).
 # Pieces (all tier C; analogues: Iranian vernacular adobe, excavated Iron Age / Achaemenid-period houses, HOUSE_PARTS):
-#  crest0..2  an exposed wall top's slumped mud cap, 2 m module, unit thickness across (z in [-0.5, 0.5]), the cap
+#  crest0..2  an exposed wall top's slumped mud cap (D-324c: three stations, 38 triangles), 2 m module, unit thickness across (z in [-0.5, 0.5]), the cap
 #             drooping 12 cm down both faces over the arris (rain-rounded, never a sharp edge), top at y = 0
 #  log0..1    a poplar pole, unit radius and length along +y, knotty, slightly bent and tapered, checked end grain
 #  tannur0..1 a bread oven: a clay cone 0.84 m across at the foot, 0.8 m high, a rolled lip round a 0.36 m mouth, the
@@ -89,7 +89,7 @@ def G(x, y, z):  # game coordinates -> Blender
 def crest(seed):
     r = random.Random(seed)
     prof = [(-0.5, -0.12), (-0.525, -0.055), (-0.455, 0.015), (0.0, 0.035), (0.455, 0.015), (0.525, -0.055), (0.5, -0.12)]  # a flat top, the sides slumped
-    NX = 4; X0, X1 = -1.02, 1.02
+    NX = 3; X0, X1 = -1.02, 1.02
     verts, faces, shade = [], [], []
     for ix in range(NX):
         x = X0 + (X1 - X0) * ix / (NX - 1)

@@ -7891,9 +7891,17 @@ mother who followed the stranger is still "talking" in her child's plan's words)
   wicker, stone; the parts' names give it, else a guess from colour and metalness). 172 models, 6.7 MB.
   A probe page renders every class before/after in the game's renderer without the world (tools/blender/probe/props_probe.*,
   shots in T:/fars-assets-s12/props/probe*): no WebGPU validation error.
-- **Not done (honest):** the houses' tether, firewood, laundry line, cradle, roof fuel and fleece, the living rooms' mats and
-  folded rugs (houses.ts; its ladders and benches are D-324's), the carried children (people, not props), crates (no
-  builder draws one), the tablet (writing.ts). No world render (the lead's batch).
+- **Round 2 (after the merge, 65a86dd):** the houses' tether (manger and peg), firewood, laundry, cradle, roof brushwood and
+  dung cakes, fleece over the parapet (cloth-solver drape), the living rooms' reed mats and folded rugs; the babes' basket
+  cradle; the carried tablet at writing.ts's rounded middle level (with the models loaded). A third level (lod2) for every
+  model: the town's houses and fittings draw it (a near tile holds dozens of rooms): measured on six sites, the near tiles
+  +13 % over the procedural forms (worst tile 66 k, the procedural 58.7 k). Palace furnishings: carpets, rolls and
+  hangings at lod1; each building's pieces at lod0 within 12 m of their footprint, lod1 beyond: with the court laid out
+  399 k near / 240 k far (was 656 k); T-K has no triangle threshold (T-K6 is the frame-time model): measured, not gated.
+  Weak forms fixed: field stones split along planes (angular), bricks with crisp worn arrises and chips, the kiln's
+  courses, stoke arch and flues, the couch cover laid in the couch's shape before it settles.
+- **Not done (honest):** crates (no builder draws one); the carried children themselves (people); the tablet's text
+  (its UVs are not carried by the props' material). No world render (the lead's batch).
 ## D-315 (continued) The GPU runs after the merge (session 12): the real models on T-E10 and T-E9
 
 Three runs were allowed, one at a time, through gpu_slot. Run 2's first attempt died two minutes in on an invalid shader
@@ -7995,3 +8003,14 @@ T-E10-gpu-run3.json, T-E9-gpu-run3.json.
   (4.6 MB; GPU array ~47 MB). (5) `node tools/blender/trees.mjs --verify` rebuilds every step into the work folder and
   compares (WebP by decoded texels, wood by value): reproduced (Cycles OptiX, same seed); the record sits in the manifest
   and tests/tree_assets.test.ts checks it.
+- **D-324c (merge with D-325's modelled props, rounds 1 and 2):** the house budget tests (houses, houselod, villages, plain) now
+  load the modelled props (tests/lib/models_node.ts loadModelsNode) as well as the scan stand-ins, so they count what the page
+  draws. With the models counted the worst tile was 67.7 k; brought under 60 k without raising a limit: the store rooms' jars
+  and sacks as lathes of the modelled forms' silhouettes (kit.ts scanVessel, 63 triangles; 42 in the few tiles whose stores
+  hold more than 60 vessels, houses.ts denseStores), the bedding rolls, mats, folded rugs and the vestibule's cup at the
+  models' lod2 (62, 105, 24, 60 triangles), the crest on three stations (38 -> 34 triangles, not re-previewed), the plaster
+  grid's rows 1.4 m. Court fittings (jars, querns, the pigment slab), the lamp, the manger and the court things keep the
+  models. Worst tile 59.3 k; lanes q_s1 523 k, q_w1 477 k, q_s3 575 k (< 600 k), with the models counted.
+  NOT mine and failing on claude/amazing-fermi-40ds7j itself (checked in a clean worktree of its tip): tests/plain.test.ts
+  static plain triangles 2.11 M (< 2.0 M): relief:figures 283 + 283 + 211 k and plain-stone 84 k; the village far cells are
+  31-83 k each (unchanged by this merge).

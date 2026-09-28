@@ -56,15 +56,15 @@ export function kitLog(b: Batch, A: number[], Bp: number[], r: number, base: RGB
 /** Q-960 (D-324b): a CC0 scan's vessel (D-310: the jars and baskets of the houses) as a lathe of its own silhouette: the scan's
  *  widest radius in `rings` bands of its height (lod1, cached per variant), turned on `sides`. The houses' batches are vertex-
  *  coloured (the scan's maps are not drawn there), so the scan's 700-1500 triangles bought only its outline: this keeps the
- * *  outline at 72 (lod 1: the store rooms' jars, the middle ring) or 150 triangles. False when no scan of the class is loaded (the caller draws its procedural form) */
+ * *  outline at 63 (lod 1: the store rooms' jars and sacks, baskets, the middle ring) or 150 triangles (lod 2, 42: the stores of the densest tiles). False when no scan of the class is loaded (the caller draws its procedural form) */
 const PROFILES = new Map<string, [number, number][]>();
-export function scanVessel(b: Batch, cls: ShapeClass, seed: number, e: number, n: number, y0: number, size: [number, number, number], col: RGB, owner: number, lod: 0 | 1 = 0): boolean {
-  const nv = (MODEL_SHAPES[cls] ?? (SHAPES as Record<string, readonly string[]>)[cls] ?? [0]).length || 1, v = Math.abs(Math.floor(seed)) % nv, rings = lod ? 3 : 6, key = `${cls}:${v}:${rings}`;
+export function scanVessel(b: Batch, cls: ShapeClass, seed: number, e: number, n: number, y0: number, size: [number, number, number], col: RGB, owner: number, lod: 0 | 1 | 2 = 0): boolean {
+  const nv = (MODEL_SHAPES[cls] ?? (SHAPES as Record<string, readonly string[]>)[cls] ?? [0]).length || 1, v = Math.abs(Math.floor(seed)) % nv, rings = lod === 2 ? 2 : lod ? 3 : 6, key = `${cls}:${v}:${rings}`;
   let prof = PROFILES.get(key);
   if (!prof) { const g = scanShape(cls, v, [1, 1, 1], 1); if (!g) return false; const P = g.getAttribute('position'), R = new Array(rings).fill(0);
     for (let i = 0; i < P.count; i++) { const y = P.getY(i), k = Math.min(rings - 1, Math.max(0, Math.floor(y * rings))); R[k] = Math.max(R[k], Math.hypot(P.getX(i), P.getZ(i))); }
     for (let k = 0; k < rings; k++) if (!R[k]) R[k] = R[Math.max(0, k - 1)] || 0.3;
     prof = [[R[0] * 0.92, 0], ...R.map((r, k) => [r, (k + 0.5) / rings] as [number, number]), [R[rings - 1] * 0.96, 1]]; PROFILES.set(key, prof); g.dispose(); }
-  const sx = size[0], sy = size[1]; b.lathe(e, n, y0, prof.map(([r, y]) => [r * sx, y * sy] as [number, number]), lod ? 8 : 10, col, owner); void size[2];
+  const sx = size[0], sy = size[1]; b.lathe(e, n, y0, prof.map(([r, y]) => [r * sx, y * sy] as [number, number]), lod === 2 ? 6 : lod ? 7 : 10, col, owner); void size[2];
   return true;
 }
