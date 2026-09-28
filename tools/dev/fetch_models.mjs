@@ -29,6 +29,18 @@ const GROUPS = {
     { repo: 'onnx-community/whisper-base', licence: 'MIT (openai/whisper-base; ONNX export by onnx-community)', only: /^(config\.json|generation_config\.json|preprocessor_config\.json|tokenizer\.json|tokenizer_config\.json|special_tokens_map\.json|added_tokens\.json|vocab\.json|merges\.txt|normalizer\.json|onnx\/(encoder_model(_fp16)?|decoder_model_merged(_q4|_fp16)?)\.onnx)$/ },
     { repo: 'onnx-community/whisper-small', licence: 'MIT (openai/whisper-small; ONNX export by onnx-community)', only: /^(config\.json|generation_config\.json|preprocessor_config\.json|tokenizer\.json|tokenizer_config\.json|special_tokens_map\.json|added_tokens\.json|vocab\.json|merges\.txt|normalizer\.json|onnx\/(encoder_model_fp16|decoder_model_merged_q4)\.onnx)$/ },
   ],
+  // D-336 (UD-22): the people's own voices. Kokoro-82M with every one of its 54 style voices (a person's voice is a blend
+  // of them: audio/neural), the speaker-verification models that measure that every voice is unique (T-E11), a naturalness
+  // (MOS) predictor, the English-to-Farsi translator of the opt-in layer, and Piper's 904-speaker LibriTTS-R voice (the
+  // measured alternative). Usage: MODELS_DIR=T:/fars-assets-s12/voices/models node tools/dev/fetch_models.mjs voices
+  voices: [
+    { repo: 'onnx-community/Kokoro-82M-v1.0-ONNX', licence: 'Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community)', only: /^(config\.json|tokenizer\.json|tokenizer_config\.json|onnx\/model(_fp16|_q8f16|_quantized)?\.onnx|voices\/[a-z]{2}_[a-z]+\.bin)$/ },
+    { repo: 'Xenova/wavlm-base-plus-sv', licence: 'MIT (microsoft/wavlm-base-plus-sv; ONNX export by Xenova)', only: /^(config\.json|preprocessor_config\.json|onnx\/model(_quantized)?\.onnx)$/ },
+    { repo: 'Wespeaker/wespeaker-ecapa-tdnn512-LM', licence: 'CC-BY-4.0 (WeSpeaker, VoxCeleb ECAPA-TDNN 512)', only: /^(config\.yaml|voxceleb_ECAPA512_LM\.onnx)$/ },
+    { repo: 'TigreGotico/utmos-onnx', licence: 'MIT (UTMOS22 strong, sarulab-speech; ONNX export by TigreGotico)', only: /^(utmos22_strong\.onnx|export_utmos\.py)$/ },
+    { repo: 'Xenova/nllb-200-distilled-600M', licence: 'CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use)', only: /^(config\.json|generation_config\.json|special_tokens_map\.json|tokenizer\.json|tokenizer_config\.json|onnx\/(encoder_model_quantized|decoder_model_merged_quantized)\.onnx)$/ },
+    { repo: 'rhasspy/piper-voices', licence: 'MIT (Piper) / CC-BY-4.0 (LibriTTS-R data)', only: /^en\/en_US\/libritts_r\/medium\/(en_US-libritts_r-medium\.onnx(\.json)?|MODEL_CARD)$/ },
+  ],
   tts: [{ repo: 'onnx-community/Kokoro-82M-v1.0-ONNX', only: /^(config\.json|tokenizer\.json|tokenizer_config\.json|onnx\/model(_q8f16|_fp16)?\.onnx|voices\/(af_heart|am_michael|bf_emma|bm_george)\.bin)$/ }],
 };
 
