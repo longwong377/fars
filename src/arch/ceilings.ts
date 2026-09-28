@@ -19,14 +19,27 @@ export const CEILING = { beamW: 0.55, beamD: 0.75, joistW: 0.16, joistD: 0.2, jo
  *  facade under the roof (the probe, s12). Sampled at 5 cm; walls are the building's solid boxes (any rotation) standing from
  *  below the timber to the roof */
 export function clipToWalls(walls: Box[], alongX: boolean, c: number, a: number, b: number, yLo: number, top: number): [number, number][] {
-  const W = walls.filter(w => w.y1 >= top - 0.05 && w.y0 <= yLo + 0.05);
-  const inWall = (s: number) => { const x = alongX ? s : c, y = alongX ? c : s;
-    return W.some(w => { const r = -(w.rot ?? 0), dx = x - w.c[0], dy = y - w.c[1], u = dx * Math.cos(r) - dy * Math.sin(r), v = dx * Math.sin(r) + dy * Math.cos(r);
-      return Math.abs(u) < w.size[0] / 2 - 1e-6 && Math.abs(v) < w.size[1] / 2 - 1e-6; }); };
-  const step = 0.05, n = Math.max(1, Math.round((b - a) / step)), out: [number, number][] = []; let s0: number | null = null;
-  for (let i = 0; i <= n; i++) { const s = a + (b - a) * i / n, free = !inWall(s);
-    if (free && s0 === null) s0 = s; if ((!free || i === n) && s0 !== null) { const e = free ? s : s - (b - a) / n; out.push([Math.max(a, s0 - (s0 > a + 1e-6 ? CEILING.bearing : 0)), Math.min(b, e + (e < b - 1e-6 ? CEILING.bearing : 0))]); s0 = null; } }
-  return out.filter(([p, q]) => q - p > 0.3);
+  // each wall's stretch of the line, exactly (the line in the wall's own frame is linear in s: a slab test per axis)
+  const cut: [number, number][] = [];
+  for (const w of walls) {
+    if (w.y1 < top - 0.05 || w.y0 > yLo + 0.05) continue;
+    const r = -(w.rot ?? 0), cr = Math.cos(r), sr = Math.sin(r), hx = w.size[0] / 2 - 1e-6, hy = w.size[1] / 2 - 1e-6;
+    // point(s) = alongX ? (s, c) : (c, s); local u = dx cr - dy sr, v = dx sr + dy cr
+    const px = alongX ? 0 : c, py = alongX ? c : 0, ex = alongX ? 1 : 0, ey = alongX ? 0 : 1;
+    const u0 = (px - w.c[0]) * cr - (py - w.c[1]) * sr, du = ex * cr - ey * sr, v0 = (px - w.c[0]) * sr + (py - w.c[1]) * cr, dv = ex * sr + ey * cr;
+    let lo = -Infinity, hi = Infinity;
+    for (const [o, d, h] of [[u0, du, hx], [v0, dv, hy]]) {
+      if (Math.abs(d) < 1e-12) { if (Math.abs(o) >= h) { lo = 1; hi = 0; } continue; }
+      const t1 = (-h - o) / d, t2 = (h - o) / d; lo = Math.max(lo, Math.min(t1, t2)); hi = Math.min(hi, Math.max(t1, t2));
+    }
+    if (hi > lo && hi > a && lo < b) cut.push([Math.max(a, lo), Math.min(b, hi)]);
+  }
+  cut.sort((p, q) => p[0] - q[0]);
+  const out: [number, number][] = []; let s0 = a;
+  for (const [p, q] of cut) { if (p > s0) out.push([s0, p]); s0 = Math.max(s0, q); }
+  if (s0 < b) out.push([s0, b]);
+  // each free run borne CEILING.bearing into the wall at an end that is a wall (not the roof's own edge)
+  return out.map(([p, q]): [number, number] => [Math.max(a, p - (p > a + 1e-6 ? CEILING.bearing : 0)), Math.min(b, q + (q < b - 1e-6 ? CEILING.bearing : 0))]).filter(([p, q]) => q - p > 0.3);
 }
 
 /** the ceiling timbers of every roof over columns or rooms, as render-only boxes (kind 'ceiling_beam' / 'ceiling_joist') */
@@ -38,7 +51,8 @@ export function ceilingTimbers(parts: Part[]): Box[] {
     const x0 = r.c[0] - r.size[0] / 2, x1 = r.c[0] + r.size[0] / 2, y0 = r.c[1] - r.size[1] / 2, y1 = r.c[1] + r.size[1] / 2, top = r.y0;
     const under = cols.filter(c => { const t = c.y0 + c.order.height; return c.building === r.building && t <= top + 0.05 && t >= top - 2.5 && c.c[0] > x0 && c.c[0] < x1 && c.c[1] > y0 && c.c[1] < y1; });
     const base = { building: r.building, material: r.material, tier: CEILING.tier, src: CEILING.src, solid: false, placeholder: false };
-    const walls = parts.filter(p => p.type === 'box' && p.building === r.building && p.kind !== 'roof' && p.solid !== false && p.material !== 'timber') as Box[];
+    const walls = (parts.filter(p => p.type === 'box' && p.building === r.building && p.kind !== 'roof' && p.solid !== false && p.material !== 'timber') as Box[])
+      .filter(w => { const R = Math.hypot(w.size[0], w.size[1]) / 2; return w.c[0] + R > x0 && w.c[0] - R < x1 && w.c[1] + R > y0 && w.c[1] - R < y1 && w.y1 >= top - 0.05; }); // (those under this roof)
     const joist = (xa0: number, xb0: number, y: number, alongX: boolean) => { for (const [xa, xb] of clipToWalls(walls, alongX, y, xa0, xb0, top - CEILING.joistD, top)) joistOne(xa, xb, y, alongX); };
     const joistOne = (xa: number, xb: number, y: number, alongX: boolean) => {
       if (xb - xa < 0.3) return;

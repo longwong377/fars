@@ -228,7 +228,10 @@ export class PartIndex {
 function planBounds(p: Part): [number, number, number, number] {
   if (p.type === 'prism') { let x0 = Infinity, x1 = -Infinity, n0 = Infinity, n1 = -Infinity; for (const [x, n] of p.polygon) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); n0 = Math.min(n0, n); n1 = Math.max(n1, n); } return [x0, x1, n0, n1]; }
   if (p.type === 'column') { const r = p.order.baseW / 2; return [p.c[0] - r, p.c[0] + r, p.c[1] - r, p.c[1] + r]; }
-  const R = Math.hypot(p.size[0], p.size[1]) / 2; return [p.c[0] - R, p.c[0] + R, p.c[1] - R, p.c[1] + R];
+  // D-334: the rotated box's own bounds (was its circumscribed square: a 70 m parapet filled every cell of a 70 m square, and
+  // every lookup there walked it)
+  const r = p.rot ?? 0, cs = Math.abs(Math.cos(r)), sn = Math.abs(Math.sin(r)), ex = (cs * p.size[0] + sn * p.size[1]) / 2, ey = (sn * p.size[0] + cs * p.size[1]) / 2;
+  return [p.c[0] - ex, p.c[0] + ex, p.c[1] - ey, p.c[1] + ey];
 }
 /** which of a box's 12 edges are free arrises: at 5 points along the edge, the space just beyond each of its two faces
  *  (3 cm out, 3 cm in from the edge) is not inside another part */
@@ -353,6 +356,18 @@ function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartInde
   g.setAttribute('stair', new THREE.BufferAttribute(st, 4));
   if (!g.getAttribute('adist')) g.setAttribute('adist', new THREE.BufferAttribute(new Float32Array(n * 4), 4)); // D-321: no free arris
 }
+/** D-334: the part attributes of a roof-edge or wall-foot box without the per-face probes: its floor is its own foot for a wall
+ *  foot (the skirting's band continues over it) and none for the wall heads (no foot band up there); no floor box, no stair, not
+ *  an inner face; the run-off from its own top */
+function edgeAttributes(g: THREE.BufferGeometry, p: Box) {
+  const n = g.getAttribute('position').count, box = new Float32Array(n * 4), r = p.rot ?? 0, c = Math.abs(Math.cos(r)), s = Math.abs(Math.sin(r));
+  const hx = (p.size[0] * c + p.size[1] * s) / 2, hz = (p.size[0] * s + p.size[1] * c) / 2;
+  for (let i = 0; i < n; i++) box.set([p.c[0], -p.c[1], -hx, hz], i * 4);
+  g.setAttribute('y0', new THREE.BufferAttribute(new Float32Array(n).fill(p.kind === 'wall_foot' ? p.y0 : -1000), 1)); g.setAttribute('pbox', new THREE.BufferAttribute(box, 4));
+  g.setAttribute('ytop', new THREE.BufferAttribute(new Float32Array(n).fill(p.y1), 1)); g.setAttribute('inner', new THREE.BufferAttribute(new Float32Array(n), 1));
+  g.setAttribute('stair', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+  if (!g.getAttribute('adist')) g.setAttribute('adist', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+}
 /** A/B for measurements (window.__parsaSurf.bevels(on)): swap the merged part meshes between their bevelled and their
  *  plain geometry */
 const bevelSwap: { mesh: THREE.Mesh; bevelled: THREE.BufferGeometry; plain: THREE.BufferGeometry }[] = [];
@@ -472,7 +487,8 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall). The render geometry is the part's
     // own, with its free arrises bevelled (D-157); the collider above stays the plain box
     const plain = g.clone(), rg = (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : null) ?? g.clone();
-    partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p));
+    if (edgeSet.has(p)) { edgeAttributes(rg, p as Box); edgeAttributes(plain, p as Box); } // D-334: the roof edges' own (no probes: ~4 k boxes)
+    else { partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p)); }
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
