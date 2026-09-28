@@ -51,7 +51,7 @@ def finish(ob, pid, lods, kind):
 
 # ------------------------------------------------------------------ the grass scans: each tuft of a file is a piece
 # (source, kind, atlas cell, short id, how many of its tufts (the fullest), levels)
-GRASS = [('grass_medium_02', 'tuft', 0, 'm2', 5, [1500, 320, 70]), ('grass_medium_01', 'tuft', 1, 'm1', 5, [900, 220, 50]), ('grass_bermuda_01', 'sward', 2, 'bm', 4, [300, 90, 30])]
+GRASS = [('grass_medium_02', 'tuft', 0, 'm2', 5, [900, 250, 60]), ('grass_medium_01', 'tuft', 1, 'm1', 5, [700, 200, 50]), ('grass_bermuda_01', 'sward', 2, 'bm', 4, [300, 90, 30])]
 for name, kind, ci, short, pick, lods in GRASS:
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath='%s/%s/2k/%s.gltf' % (SRC, name, name))
@@ -99,11 +99,13 @@ def mesh_from(bm, name):
 
 # stubble: the stalks of a sickle-cut cereal in their sown rows (~18 cm apart), cut 8-25 cm high (a sickle cuts under the ears,
 # and the stubble was grazed and gleaned: C), a few leaning, broken or fallen; a 0.6 x 0.6 m patch
-def stubble(seed, n):
+def stubble(seed, n, keep=1.0, sides=5):
+    # keep: the share of the stalks drawn (the far levels thin them rather than collapse them: each stalk is its own shell)
     R = random.Random(seed); bm = bmesh.new(); uvl = bm.loops.layers.uv.new()
     for i in range(n):
+        if R.random() > keep: R.random(); R.random(); R.random(); R.random(); continue
         row = R.randrange(4); x = -0.27 + row * 0.18 + R.gauss(0, 0.025); y = R.uniform(-0.3, 0.3); h = R.uniform(0.08, 0.25) * (0.35 if R.random() < 0.12 else 1)
-        lean = Vector((R.gauss(0, 0.18), R.gauss(0, 0.18), 1)).normalized(); r = R.uniform(0.0015, 0.0028); sides = 5
+        lean = Vector((R.gauss(0, 0.18), R.gauss(0, 0.18), 1)).normalized(); r = R.uniform(0.0015, 0.0028) * (5 / sides) ** 0.5
         base = Vector((x, y, 0)); top = base + lean * h
         ax = lean.cross(Vector((0, 0, 1))); ax = ax.normalized() if ax.length > 1e-4 else Vector((1, 0, 0)); ay = lean.cross(ax).normalized()
         ring = lambda c, rr: [bm.verts.new(c + (ax * math.cos(2 * math.pi * k / sides) + ay * math.sin(2 * math.pi * k / sides)) * rr) for k in range(sides)]
@@ -118,7 +120,15 @@ def stubble(seed, n):
         f_ = bm.faces.new(vv)
         for lp, (uu, v2) in zip(f_.loops, ((0.1, 0), (0.1, l * 4), (0.15, l * 4), (0.15, 0))): lp[uvl].uv = cell_uv(3, uu, v2)
     return bm
-for i, n in enumerate((60, 45, 80)): finish(mesh_from(stubble(11 + i, n), 'stubble'), 'stubble_%c' % (97 + i), [n * 12, n * 5, n * 2], 'stubble')
+def finish_levels(obs, pid, kind):
+    # levels built separately (no decimation), each centred as its lod0
+    vs = [v.co for v in obs[0].data.vertices]; X = [v.x for v in vs]; Y = [v.y for v in vs]; Z = [v.z for v in vs]
+    cx, cy, z0 = (min(X) + max(X)) / 2, (min(Y) + max(Y)) / 2, min(Z); tris = {}
+    for li, ob in enumerate(obs):
+        for v in ob.data.vertices: v.co.x -= cx; v.co.y -= cy; v.co.z -= z0
+        ob.data.update(); ob.name = '%s__lod%d' % (pid, li); ob.data.name = ob.name; tris['lod%d' % li] = tri_count(ob); keep.append(ob)
+    pieces.append({'id': pid, 'kind': kind, 'size_m': [max(X) - min(X), max(Z) - min(Z), max(Y) - min(Y)], 'tris': tris}); print('[land_cover]', pid, kind, tris)
+for i, n in enumerate((60, 45, 80)): finish_levels([mesh_from(stubble(11 + i, n, k, sd), 'stubble') for k, sd in ((1.0, 5), (0.45, 3), (0.18, 3))], 'stubble_%c' % (97 + i), 'stubble')
 
 # dung: a cattle pat (a lumpy disc, 18-28 cm, its rim coiled), a heap of donkey or horse droppings (lumpy balls, 5-7 cm), a
 # scatter of sheep and goat pellets (1 cm)

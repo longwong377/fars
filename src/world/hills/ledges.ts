@@ -16,7 +16,7 @@ import { stratY, cliffPkg, riserBreak, type BedrockEnv } from './bedrock';
 import { TERRACE_BOX } from '../plain/townGround';
 
 /** reach (m): strips drawn to R, fine (displaced) within NEAR; tile (m, as the bedrock's), grid step (m); rebuild step (m) */
-export const LEDGES = { R: 1600, NEAR: 70, tile: 64, step: 4, moveM: 25, budgetMs: 6 } as const;
+export const LEDGES = { R: 1600, NEAR: 70, CAST: 600, tile: 64, step: 4, moveM: 25, budgetMs: 6 } as const;
 /** the strip's form (C): face height range (m) by package, its lean back (m per m of height), the lip, the buried foot; the
  *  strike noise's thresholds for presence; the face's share of the baked image's height (the rest is the ground above) */
 export const LEDGE_FORM = { h: [1.6, 4.2] as [number, number], lean: 0.14, lip: 0.45, footOut: 0.5, footDown: 0.4, brk: [0.45, 0.8] as [number, number], minSlope: 0.2, fullSlope: 0.42, faceV: 0.82, relief: 1.1 } as const;
@@ -160,17 +160,18 @@ function ledgeMaterial(face: LedgeFace | null): THREE.MeshStandardNodeMaterial {
 
 export class Ledges {
   readonly group = new THREE.Group();
-  readonly near: THREE.Mesh; readonly far: THREE.Mesh;
+  readonly near: THREE.Mesh; readonly mid: THREE.Mesh; readonly far: THREE.Mesh;
   private runs = new Map<number, LedgeRun[]>(); private strips = new Map<string, ReturnType<typeof stripGeometry>>();
   private last = { x: 1e9, z: 1e9 }; private pending = false; private budgetT = 0;
-  stats = { tiles: 0, runs: 0, nearTris: 0, farTris: 0, ms: 0 };
+  stats = { tiles: 0, runs: 0, nearTris: 0, midTris: 0, farTris: 0, ms: 0 };
   constructor(private env: BedrockEnv, private seed: number, face: LedgeFace | null = ledgeFace()) {
     this.group.name = 'ledges';
     const mat = ledgeMaterial(face);
-    const mk = (name: string) => { const g = new THREE.BufferGeometry(); const m = new THREE.Mesh(g, mat); m.name = name; m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; m.visible = false;
+    const mk = (name: string, cast = true) => { const g = new THREE.BufferGeometry(); const m = new THREE.Mesh(g, mat); m.name = name; m.castShadow = cast; m.receiveShadow = true; m.frustumCulled = false; m.visible = false;
       m.userData = { tier: 'B/C', src: 'KR-BEDROCK;COP-DEM;POLYHAVEN-CC0', placeholder: !face, note: `the limestone's ledges (D-335): the cliff-forming beds' risers as rock strips along the strata${face ? ', faced with a scanned bedded cliff baked in Blender (Poly Haven coastal_cliff_04, CC0)' : ' (PLACEHOLDER: no face maps loaded, plain palette colour)'}; bedding B, each ledge C` };
       this.group.add(m); return m; };
-    this.near = mk('ledges:near'); this.far = mk('ledges:far');
+    // near (fine, displaced) and mid (coarse) cast shadows; beyond the cascades' reach (LEDGES.CAST) the far set casts none
+    this.near = mk('ledges:near'); this.mid = mk('ledges:mid'); this.far = mk('ledges:far', false);
   }
   private tileRuns(ti: number, tj: number): LedgeRun[] | null {
     const key = (ti + 32768) * 65536 + (tj + 32768); let r = this.runs.get(key);
@@ -183,12 +184,12 @@ export class Ledges {
   update(cam: THREE.Vector3, force = false): boolean {
     if (!force && !this.pending && Math.hypot(cam.x - this.last.x, cam.z - this.last.z) < LEDGES.moveM) return false;
     const t0 = performance.now(); this.last = { x: cam.x, z: cam.z }; this.pending = false; this.budgetT = force ? Infinity : t0 + LEDGES.budgetMs;
-    const T = LEDGES.tile, R = LEDGES.R, parts: { near: ReturnType<typeof stripGeometry>[]; far: ReturnType<typeof stripGeometry>[] } = { near: [], far: [] };
+    const T = LEDGES.tile, R = LEDGES.R, parts: Record<'near' | 'mid' | 'far', ReturnType<typeof stripGeometry>[]> = { near: [], mid: [], far: [] };
     let tiles = 0, nr = 0;
     for (let ti = Math.floor((cam.x - R) / T); ti <= Math.floor((cam.x + R) / T); ti++) for (let tj = Math.floor((cam.z - R) / T); tj <= Math.floor((cam.z + R) / T); tj++) {
       const d = Math.hypot(Math.max(0, Math.abs((ti + 0.5) * T - cam.x) - T / 2), Math.max(0, Math.abs((tj + 0.5) * T - cam.z) - T / 2)); if (d > R) continue;
       const runs = this.tileRuns(ti, tj); if (!runs) continue; tiles++; if (!runs.length) continue; nr += runs.length;
-      const fine = d < LEDGES.NEAR; (fine ? parts.near : parts.far).push(this.strip(ti, tj, fine, runs));
+      const fine = d < LEDGES.NEAR; (fine ? parts.near : d < LEDGES.CAST ? parts.mid : parts.far).push(this.strip(ti, tj, fine, runs));
     }
     const merge = (m: THREE.Mesh, ps: ReturnType<typeof stripGeometry>[]) => {
       const nv = ps.reduce((a, p) => a + p.pos.length / 3, 0), ni = ps.reduce((a, p) => a + p.idx.length, 0);
@@ -198,8 +199,8 @@ export class Ledges {
       g.setIndex(new THREE.BufferAttribute(idx, 1)); if (nv) g.computeVertexNormals(); g.computeBoundingSphere();
       m.geometry.dispose(); m.geometry = g; m.visible = ni > 0; return ni / 3;
     };
-    const nt = merge(this.near, parts.near), ft = merge(this.far, parts.far);
-    this.stats = { tiles, runs: nr, nearTris: nt, farTris: ft, ms: Math.round(performance.now() - t0) };
+    const nt = merge(this.near, parts.near), mt = merge(this.mid, parts.mid), ft = merge(this.far, parts.far);
+    this.stats = { tiles, runs: nr, nearTris: nt, midTris: mt, farTris: ft, ms: Math.round(performance.now() - t0) };
     return true;
   }
 }

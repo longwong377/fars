@@ -16,6 +16,8 @@ const V = [
   { n: 'rahmat-mid', e: 330, n2: 60, eye: 1.6, az: 90, pitch: 10, fov: 60, day: 150, sunAz: 150, sunAlt: 45 },
   { n: 'rahmat-close', e: 520, n2: 180, eye: 1.6, az: 70, pitch: 5, fov: 60, day: 150, sunAz: 150, sunAlt: 40 },
   { n: 'spring-wet', e: -800, n2: 200, eye: 1.6, az: 251, pitch: -6, fov: 35, day: 12, sunAz: 130, sunAlt: 66, wet: 0.75 },
+  { n: 'steppe-feet', e: -900, n2: 420, eye: 1.6, az: 250, pitch: -20, fov: 70, day: 30, sunAz: 120, sunAlt: 50 },
+  { n: 'stubble-jul', e: -1300, n2: 900, eye: 1.6, az: 300, pitch: -14, fov: 70, day: 95, sunAz: 120, sunAlt: 50 },
   { n: 'feet-dust', e: -700, n2: 150, eye: 1.6, az: 200, pitch: -55, fov: 70, day: 150, sunAz: 200, sunAlt: 50 },
 ];
 if (process.env.V) V.push(...JSON.parse(process.env.V)); // extra views: [{ n, e, n2, eye, az, pitch, fov, day, sunAz, sunAlt }]

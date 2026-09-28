@@ -52,11 +52,11 @@ describe('the ledges (hills/ledges.ts)', () => {
     expect((topV.x - x) * -gx + (topV.z - z) * -gz).toBeLessThan(0); // the top leans back, uphill
     expect(foot.y).toBeLessThan(T.surfaceAt(foot.x, foot.z)); // buried
   });
-  it('what a frame draws of them stays within its budget at the views that see the mountain (<= 0.40 M triangles, 2 draws + shadow passes)', () => {
+  it('what a frame draws of them stays within its budget at the views that see the mountain (<= 0.40 M triangles in the view, <= 0.40 M in the shadow passes, 3 draws)', () => {
     const L = new Ledges(env, 1, null), out: string[] = [];
     for (const [n, e, no] of [['calib-24', -166.6, 108.9], ['stair-top', -36.4, 122.45], ['rahmat-slope', 420, 150], ['quarry', 600, -700]] as [string, number, number][]) {
-      L.update(new THREE.Vector3(e, T.surfaceAt(e, -no), -no), true); const tris = L.stats.nearTris + L.stats.farTris; out.push(`${n}: ${JSON.stringify(L.stats)}`);
-      expect(tris).toBeLessThan(0.40e6); expect(L.group.children.length).toBe(2);
+      L.update(new THREE.Vector3(e, T.surfaceAt(e, -no), -no), true); const tris = L.stats.nearTris + L.stats.midTris + L.stats.farTris, shadow = 4 * (L.stats.nearTris + L.stats.midTris); // (every caster in every cascade: the upper bound) out.push(`${n}: ${JSON.stringify(L.stats)}`);
+      expect(tris).toBeLessThan(0.40e6); expect(shadow).toBeLessThan(0.40e6); expect(L.group.children.length).toBe(3);
     }
     console.log(out.join('\n'));
   }, 120_000);
