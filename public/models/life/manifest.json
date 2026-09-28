@@ -157,7 +157,7 @@
    "class": "small",
    "name": "butterflies (whites, clouded yellow, painted lady)",
    "of": "butterfly",
-   "inHash": "0649c90dd467bc188fd141bfc4fb2b512907d6117e211b85ac213e5a7c0cee69",
+   "inHash": "124fa1263636b1cc1f847754fc40914dcb57686100526260302605027a91a15e",
    "files": {
     "butterfly.glb": {
      "bytes": 20276,
@@ -208,7 +208,7 @@
    "class": "flora",
    "name": "camelthorn (Alhagi)",
    "of": "camelthorn",
-   "inHash": "5b9020217441fd47fb5eee564025d5b64f2cc735d0ed5ffd938e3388d72f33c6",
+   "inHash": "f12fa2447334a5d8391df3fe9e2f34b51c6ad447c8030c1cf62ebf9430c29cb6",
    "files": {
     "camelthorn.glb": {
      "bytes": 106324,
@@ -308,7 +308,7 @@
    "class": "small",
    "name": "freshwater crab (Potamon)",
    "of": "crab",
-   "inHash": "0a9973231be7a023e3daedf03f6caf6e6db1a529421681b9a7a16ad4db1f21e1",
+   "inHash": "366648571894d33538549f1964a94e58cce65dbf70aeeed5df08105b58e59b11",
    "files": {
     "crab.glb": {
      "bytes": 78572,
@@ -458,15 +458,15 @@
    "class": "flora",
    "name": "tragacanth cushion (Astragalus)",
    "of": "cushion",
-   "inHash": "bb6d987f69a7a5826ff03e2961365439feec1c6c6938093df2ebcaaba7c56cc0",
+   "inHash": "160d99c7dd1794da329274bb94707b8c5300ee5d29917314aae393a8f73d717a",
    "files": {
     "cushion.glb": {
      "bytes": 77536,
      "sha256": "80ef1b2f9d01cc6eb47208d43e1fa2a2c5e7d8520428ee6876d5db646def722b"
     },
     "cushion_albedo.ktx2": {
-     "bytes": 336136,
-     "sha256": "806d2ad82f8bc1a283033b29dfa4012745d828ce39ed16c3215051fc10d9217a"
+     "bytes": 333761,
+     "sha256": "6be10b7afcc878e4f06370ddde9d2d4f074e74dcf55fff5247c41245a120dc7a"
     },
     "cushion_nrm.ktx2": {
      "bytes": 352181,
@@ -558,7 +558,7 @@
    "class": "small",
    "name": "dragonfly (Orthetrum)",
    "of": "dragonfly",
-   "inHash": "c809b118bd2e6da684ca2c1e574e490f02e20f08f4996eaa61b2c8c912321f9c",
+   "inHash": "d1386a43ac3683a87cfc509a6873088dccffada93305def21db2d3bebef5e20e",
    "files": {
     "dragonfly.glb": {
      "bytes": 30888,
@@ -762,7 +762,7 @@
    "class": "flora",
    "name": "crown imperial (Fritillaria imperialis)",
    "of": "flower_crown",
-   "inHash": "9b22c6d77288d60890f08f55a006f76e1195411cb7d75f79fa254e39c9890526",
+   "inHash": "0d4dd9a529fa063d708fa7ce97d9927861b4cbefd58ddfb23e6d475c7ac3b9b3",
    "files": {
     "flower_crown.glb": {
      "bytes": 7948,
@@ -810,7 +810,7 @@
    "class": "flora",
    "name": "corn poppy (Papaver rhoeas)",
    "of": "flower_red",
-   "inHash": "6a95bb53551d1edf41bbe603b4b5c41fcfd6bebe6d88ae41c77741c5fbad5f1c",
+   "inHash": "cb731d14344afc2baba8517022c9d1b9850a29a698873e31e4a3e1dff20f16b7",
    "files": {
     "flower_red.glb": {
      "bytes": 5016,
@@ -858,7 +858,7 @@
    "class": "flora",
    "name": "grape hyacinth (Muscari)",
    "of": "flower_violet",
-   "inHash": "1530e98d8c6da48498f0bbcc41c3d798dc2b78c9a5fe94136c1bc90e96dc3aab",
+   "inHash": "7caba2b50392177cde7fe7caf330a6ac1408e074486f486a644250528b67d7e9",
    "files": {
     "flower_violet.glb": {
      "bytes": 4544,
@@ -906,7 +906,7 @@
    "class": "flora",
    "name": "buttercup (Ranunculus)",
    "of": "flower_yellow",
-   "inHash": "f58e88145c9a78b9cb3d6804603917b27328c4609b3d9493d12351d3a42d5354",
+   "inHash": "9ccce101e27fb3c67f279e4748a7045f9e769af21ecd76b295f730df28ecf056",
    "files": {
     "flower_yellow.glb": {
      "bytes": 6808,
@@ -954,7 +954,7 @@
    "class": "small",
    "name": "house fly",
    "of": "fly",
-   "inHash": "6ba83ee6e78491380425e1aba2f2ecf9e432fa8aefbfa550d7b5ca60bb8428b8",
+   "inHash": "6401b31cca06126f137557fd0628702e18e018ed0c399968976330306055ddea",
    "files": {
     "fly.glb": {
      "bytes": 19376,
@@ -1002,7 +1002,7 @@
    "class": "small",
    "name": "marsh frog",
    "of": "frog",
-   "inHash": "2241167adb5b24a9668032ae7184b7198aec60aef92d337cd0c841fb14f060c7",
+   "inHash": "e8d0ea3d2b6d31a1ad71f3ca7f0cecd9c1f28cff6fd1bd6213d289683ff560b0",
    "files": {
     "frog.glb": {
      "bytes": 47564,
@@ -1050,7 +1050,7 @@
    "class": "small",
    "name": "long-eared hedgehog",
    "of": "hedgehog",
-   "inHash": "fe9e04dd9434282436dece0694e4b2a233bc8c9b528d4b283cdd4e9761e2eaa1",
+   "inHash": "b9c8d1fa8c5340f1ede2d4f3c5c73236c068fa54f2d93afafffc9a1951cfd5ea",
    "files": {
     "hedgehog.glb": {
      "bytes": 50840,
@@ -1202,7 +1202,7 @@
    "class": "small",
    "name": "golden jackal",
    "of": "jackal",
-   "inHash": "28beba2ddc5a9174bdd168522f71246c798afeedddb2261cd26dce56a595fec8",
+   "inHash": "6b4393066768920e3673bf2b7002484c6b64da09985f12c37729c970a70dc3c3",
    "files": {
     "jackal.glb": {
      "bytes": 117004,
@@ -1300,7 +1300,7 @@
    "class": "small",
    "name": "jird (Meriones)",
    "of": "jird",
-   "inHash": "3fd0d8303d3e6498b24e499066c222afaf88107eaa03bdeff919adc9dc757e56",
+   "inHash": "2957064339a343719ec2c62dd2db68563da85cc29b0351495c38ed47ca2d3182",
    "files": {
     "jird.glb": {
      "bytes": 59604,
@@ -1498,7 +1498,7 @@
    "class": "small",
    "name": "rock agama (Paralaudakia)",
    "of": "lizard",
-   "inHash": "5ce7924c68a10adb1cbf417bb48affe26b678a1f2440f8ae4a2f4a00925e885f",
+   "inHash": "15f6a33ff5c070b0ede309c174feb0b2617ed3b67ea29391cc071125762e1408",
    "files": {
     "lizard.glb": {
      "bytes": 82848,
@@ -1650,15 +1650,15 @@
    "class": "small",
    "name": "Indian crested porcupine",
    "of": "porcupine",
-   "inHash": "0b343d566d5e8056b286996276640c5998c29da04dc6382981f7fb35a99ce029",
+   "inHash": "46687a4390f9bed71a5210c29a3ebf44c368a941b7603914312b79f5c91901ea",
    "files": {
     "porcupine.glb": {
      "bytes": 74832,
      "sha256": "2fc89cdd6a927977f12f4806f901c3f6cef048a8bf70a01c40cf694ec96dbad8"
     },
     "porcupine_albedo.ktx2": {
-     "bytes": 135013,
-     "sha256": "432c5d81d071e621b694685c1c1e78e12a87285933850575e8ba5faa4963f337"
+     "bytes": 160798,
+     "sha256": "2fcf39067fdcfce1ad73ee8096b998054d64fafa862a99d2767c4ec0bad91200"
     },
     "porcupine_nrm.ktx2": {
      "bytes": 229060,
@@ -1798,7 +1798,7 @@
    "class": "flora",
    "name": "damask rose bush",
    "of": "rose",
-   "inHash": "4549f52b0d411a6825162a69ebb5a2f9552a32d36f4b0a1944c3062c171a2ce9",
+   "inHash": "007b2376205128a016e1bfe8ba777a8cb60006f42e5643841d78ca6e880b4c2c",
    "files": {
     "rose.glb": {
      "bytes": 37940,
@@ -1896,7 +1896,7 @@
    "class": "small",
    "name": "scorpion (a yellow buthid)",
    "of": "scorpion",
-   "inHash": "4de4728b3d57d6ac97a81a5c52cc14f5e75e45a818e299c3f82a30fb76a06972",
+   "inHash": "151484f733bd2c2fde0691ecdf19914bba663faeefeb360bb53d09567a3c88d4",
    "files": {
     "scorpion.glb": {
      "bytes": 82168,
@@ -1944,7 +1944,7 @@
    "class": "small",
    "name": "land snail (banded)",
    "of": "snail",
-   "inHash": "b39b7d47209d226a1e07c400a60b0259bc0750f6446630131b485bc808666c5c",
+   "inHash": "4b4b27d85734980dceb6b4a27f945fe785daf4374964e028569641f139690e8a",
    "files": {
     "snail.glb": {
      "bytes": 35068,
@@ -1992,7 +1992,7 @@
    "class": "small",
    "name": "snake (a blunt-nosed viper)",
    "of": "snake",
-   "inHash": "20f4aaacd031216742c0598e8661b95171a9b3ff06c5f7881eaae0b6b06a7b0c",
+   "inHash": "d1cf8efddccc26ca4a616dbb98b5a8d56b770522067793449a65151611b90a1e",
    "files": {
     "snake.glb": {
      "bytes": 48860,
@@ -2346,7 +2346,7 @@
    "class": "flora",
    "name": "thistle (Onopordum, Cousinia)",
    "of": "thistle",
-   "inHash": "9f22030ddc0ac1ad2df85c4b6202948a07ddef03f85b626cabf1d7a6c658d68c",
+   "inHash": "43bb367150210b7d9d9f9c711fd79441df8c78f3de34e551947b44eb4f522498",
    "files": {
     "thistle.glb": {
      "bytes": 18308,
@@ -2394,7 +2394,7 @@
    "class": "small",
    "name": "spur-thighed tortoise",
    "of": "tortoise",
-   "inHash": "5e82b038ed8979064d22503338d519714d0b3d9233d4768c185754183825f02d",
+   "inHash": "25afdfe304eff90f2dcaec68560488c5dbc6b7daf6f6c855ba5401da90c5731c",
    "files": {
     "tortoise.glb": {
      "bytes": 57756,
@@ -2442,7 +2442,7 @@
    "class": "small",
    "name": "Caspian turtle",
    "of": "turtle",
-   "inHash": "f95e723693e4b5d3bbc1f35fccc9c8eaada69a7eb0d7024fb1bf1c6196aac8a3",
+   "inHash": "6901cb42f9281972bc40defde5974573e9c4d6e149e4d51909ec92766c688c78",
    "files": {
     "turtle.glb": {
      "bytes": 55440,

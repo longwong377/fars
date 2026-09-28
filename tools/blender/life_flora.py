@@ -117,7 +117,7 @@ def tile_astragalus_tuft(seed, flowers=False):
         a = r.u(-0.55, 0.55); astragalus_sprig(t, r, r.u(-0.08, 0.08), -0.5, a, r.u(0.6, 0.95) / math.cos(a) * 0.85, leaves=r.u() > 0.15)
     return t
 def tile_astragalus_surface(seed):
-    t = Tile(); r = R(seed); t.quad(-0.52, -0.52, 0.52, 0.52, [0.17, 0.19, 0.14], z=-0.3)
+    t = Tile(); r = R(seed); t.quad(-0.52, -0.52, 0.52, 0.52, [0.3, 0.33, 0.24], z=-0.3)
     for k in range(170):
         astragalus_sprig(t, r, r.u(-0.55, 0.55), r.u(-0.55, 0.55), r.u(0, 6.28), r.u(0.1, 0.22), leaves=r.u() > 0.1)
     return t
