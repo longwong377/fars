@@ -69,7 +69,7 @@ import { surfaceMaterial } from '../../../src/render/materials';
   const dbgMats = new Map<string, THREE.Material>(), origMat = new Map<THREE.Object3D, THREE.Material>();
   (window as any).__debug = (mode0: string) => {
     const nowall = mode0.endsWith('-nowall'), mode = mode0.replace('-nowall', ''); arch.group.visible = !nowall;
-    if (mode === 'wallsky') { if (!(wall as any).__orig) (wall as any).__orig = wall.material; const b = receiveReliefShadow(new THREE.MeshBasicNodeMaterial()); b.colorNode = vec3(reliefSkyNode(positionWorld)); wall.material = b; return; }
+    if (mode === 'wallsky') { if (!(wall as any).__orig) (wall as any).__orig = wall.material; const b = receiveReliefShadow(new THREE.MeshBasicNodeMaterial()); b.colorNode = vec3(reliefSkyNode(positionWorld)); (wall as any).material = b; return; }
     if ((wall as any).__orig) wall.material = (wall as any).__orig;
     const M = reliefAtlasMaps()!, r = attribute('ruv', 'vec4'), at = (t: THREE.Texture) => texture(t, r.xy).depth(r.z.add(0.5).floor());
     atlas.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh && !(m as any).isBatchedMesh) return; if (!origMat.has(m)) origMat.set(m, m.material as THREE.Material);
