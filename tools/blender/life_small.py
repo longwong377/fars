@@ -241,7 +241,8 @@ def build_porcupine(L):
     return b
 def col_porcupine(P, part, loc, L):
     s = L / 700; c = np.tile([0.14, 0.12, 0.11], (len(P), 1)); q = (part == 'quills') | (part == 'crest')
-    band = ((np.hypot(P[:, 0], P[:, 1] - 0.1 * L) / s + 12 * hsh((P[:, 0] / s / 6).astype(int), (P[:, 2] / s / 6).astype(int), 1)) % 34) < 14
+    th = np.arctan2(P[:, 1] - 150 * s, P[:, 0]); ci = np.floor(th * 34); cz = np.floor((P[:, 2] / s + 90 * hsh(ci, 7)) / 70)  # (the quills lie back along the body: long streaks)
+    band = hsh(ci, cz, 1) > 0.45
     c[q & band] = [0.85, 0.83, 0.78]; c[q & ~band] = [0.1, 0.09, 0.08]; c[part == 'eye'] = [0.02, 0.02, 0.02]; c[part == 'snout'] = [0.2, 0.17, 0.15]
     return c
 
