@@ -26,7 +26,7 @@ const posedCache = new Map<string, Posed[]>();
 function posed(T: Take): Posed[] { let p = posedCache.get(T.id); if (!p) { p = T.frames.map(f => fk(T.sk, f)); posedCache.set(T.id, p); } return p; }
 
 /** a gait loop of `cycles` strides from the steadiest part of the take between from and to (s), `per` samples a cycle */
-export function gait(takeId: string, fps: number, o: { from?: number; to?: number; cycles?: number; per?: number; strikeFoot?: 'l' | 'r'; win?: number; trail?: boolean } = {}): Baked {
+export function gait(takeId: string, fps: number, o: { from?: number; to?: number; cycles?: number; per?: number; strikeFoot?: 'l' | 'r'; win?: number; trail?: boolean; face?: number } = {}): Baked {
   const T = loadTake(takeId, fps), P = posed(T), n = P.length;
   const i0 = Math.max(0, Math.round((o.from ?? 0) * fps)), i1 = Math.min(n - 1, o.to !== undefined ? Math.round(o.to * fps) : n - 1);
   // strikes: the left ankle at its farthest ahead of the pelvis along the local travel direction (±0.25 s window)
@@ -41,8 +41,15 @@ export function gait(takeId: string, fps: number, o: { from?: number; to?: numbe
   for (let s = 0; s + C < strikes.length; s++) { const d: number[] = [], sp: number[] = [];
     for (let c = 0; c < C; c++) { const a = strikes[s + c], b = strikes[s + c + 1]; d.push(b - a); const A = P[a].rootT, B = P[b].rootT; sp.push(Math.hypot(B[0] - A[0], B[2] - A[2]) / ((b - a) / fps)); }
     const md = d.reduce((x, y) => x + y) / C, ms = sp.reduce((x, y) => x + y) / C;
-    const score = d.reduce((x, y) => x + Math.abs(y - md), 0) / md + sp.reduce((x, y) => x + Math.abs(y - ms), 0) / ms + 0.02 * Math.abs(s + C / 2 - strikes.length / 2);
+    // walking straight ahead, facing the way: the pelvis's heading within 20° of the travel direction at every frame and
+    // the path's own direction turning less than 15° over the run (captures turn, walk figures of eight, walk backwards)
+    const a0 = strikes[s], b0 = strikes[s + C], A0 = P[a0].rootT, B0 = P[b0].rootT, trav = Math.atan2(B0[0] - A0[0], B0[2] - A0[2]);
+    let worst = 0; for (let i = a0; i <= b0; i += 4) { let e = headingOf(P[i]) - trav; e -= Math.round(e / (2 * Math.PI)) * 2 * Math.PI; worst = Math.max(worst, Math.abs(e)); }
+    const M0 = P[Math.round((a0 + b0) / 2)].rootT, t1 = Math.atan2(M0[0] - A0[0], M0[2] - A0[2]), t2 = Math.atan2(B0[0] - M0[0], B0[2] - M0[2]); let turn = t2 - t1; turn -= Math.round(turn / (2 * Math.PI)) * 2 * Math.PI;
+    if (worst > (o.face ?? 0.35) || Math.abs(turn) > 0.26) continue;
+    const score = d.reduce((x, y) => x + Math.abs(y - md), 0) / md + sp.reduce((x, y) => x + Math.abs(y - ms), 0) / ms + 0.02 * Math.abs(s + C / 2 - strikes.length / 2) + worst;
     if (ms > 0.2 && score < bs) { bs = score; best = s; } }
+  if (best < 0) throw new Error(`${takeId}: no straight steady run of ${C} strides`);
   const a = strikes[best], b = strikes[best + C], A = P[a].rootT, B = P[b].rootT;
   const yaw = Math.atan2(B[0] - A[0], B[2] - A[2]), dist = Math.hypot(B[0] - A[0], B[2] - A[2]), dur = (b - a) / fps, v = dist / dur;
   const fwd: V3 = [Math.sin(yaw), 0, Math.cos(yaw)];

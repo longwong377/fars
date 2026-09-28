@@ -102,9 +102,10 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       if (id !== 'walk') { if (id !== 'carry_head') r.r_hand = [0, 0, 0]; if (id === 'carry_front' || id === 'carry_head') r.l_hand = [0, 0, 0]; } // the held hands as authored
       // the head: the capture's own, turning a little now and then to look about
       const hd = r.head ?? [0, 0, 0]; r.head = [hd[0], hd[1] + 0.15 * wob(t * 0.4, k), hd[2]];
-      // the shoulder jar's bearer holds the head turned and tilted away from the jar, the trunk upright under it (D-187: this line used to overwrite
+      // the shoulder jar's bearer holds the head turned and tilted away from the jar, the chest upright under it over the captured
+      // pelvis (D-187: this line used to overwrite
       // the carry_shoulder head above, and the upright head sat hidden behind the jar from the bearer's right)
-      if (id === 'carry_shoulder') { r.head = [0.04 * S(2 * ph), 0.1 + 0.1 * wob(t * 0.4, k), -0.12]; r.neck = [0, 0, 0]; for (const b of ['spine', 'chest'] as const) { const e = r[b]!; r[b] = [e[0], e[1], e[2] * 0.3]; } p.shoulder = true; p.grip = [0.1, 0.6]; } // the hand round the jar's neck or the sack's mouth, not a closed fist (D-217)
+      if (id === 'carry_shoulder') { r.head = [0.04 * S(2 * ph), 0.1 + 0.1 * wob(t * 0.4, k), -0.12]; r.neck = [0, 0, 0]; const hp = r.hips ?? [0, 0, 0]; r.spine = [0.03 - hp[0], -0.6 * hp[1], -hp[2]]; r.chest = [breath, 0, 0]; p.shoulder = true; p.grip = [0.1, 0.6]; } // the hand round the jar's neck or the sack's mouth, not a closed fist (D-217)
       if (id === 'carry_head') { r.head = [0, 0, 0]; r.neck = [0, 0, 0]; } // the head held level under the jar
       break;
     }

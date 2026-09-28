@@ -8,7 +8,7 @@ import { writeFileSync } from 'node:fs';
 import { gait, loop, type Baked } from './cycles';
 import { POSE_BONES, type Pose } from '../../src/people/anim';
 
-export interface Spec { id: string; take: string; fps?: number; kind: 'gait' | 'loop'; from?: number; to?: number; len?: number; cycles?: number; out?: number; mirror?: boolean; exact?: boolean; /** keep the capture's head pitch (default: levelled, see level()) */ gaze?: boolean; win?: number; trail?: boolean; note: string }
+export interface Spec { id: string; take: string; fps?: number; kind: 'gait' | 'loop'; from?: number; to?: number; len?: number; cycles?: number; out?: number; mirror?: boolean; exact?: boolean; /** keep the capture's head pitch (default: levelled, see level()) */ gaze?: boolean; win?: number; trail?: boolean; face?: number; note: string }
 /** the takes' frame rates (CMU index: 120 unless listed) */
 const FPS60 = new Set(['62', '74', '75', '77', '79', '80']);
 const fpsOf = (take: string) => (FPS60.has(take.split('_')[0]) ? 60 : 120);
@@ -20,7 +20,6 @@ export const SPECS: Spec[] = [
   { id: 'walk_c', take: '35_02', kind: 'gait', note: 'walk (subject 35)' },
   { id: 'walk_d', take: '16_15', kind: 'gait', note: 'walk (subject 16)' },
   { id: 'walk_e', take: '136_20', kind: 'gait', note: 'normal walk (subject 136)' },
-  { id: 'walk_f', take: '113_25', kind: 'gait', note: 'walk (subject 113)' },
   { id: 'walk_g', take: '105_29', kind: 'gait', note: 'normal walk (subject 105)' },
   // slower and brisker
   { id: 'walk_slow_a', take: '07_04', kind: 'gait', note: 'slow walk (subject 7)' },
@@ -29,14 +28,12 @@ export const SPECS: Spec[] = [
   { id: 'walk_slow_d', take: '132_46', kind: 'gait', note: 'walk slow (subject 132)' },
   { id: 'walk_brisk_a', take: '16_21', kind: 'gait', note: 'walk (subject 16, brisk)' },
   { id: 'walk_brisk_b', take: '105_17', kind: 'gait', note: 'quick walk (subject 105)' },
-  // women
-  { id: 'walk_w_a', take: '144_33', kind: 'gait', note: 'walking (subject 144, a woman)' },
+  // women (the database has no straight walk by a woman that is not acted or turning: subject 106's takes are runs, catches
+  // and games, subject 144's walks go round figures of eight; the women walk with 114 and the shorter strides below)
   { id: 'walk_w_b', take: '114_13', kind: 'gait', note: 'walk (subject 114)' },
-  { id: 'walk_w_c', take: '111_34', kind: 'gait', note: 'walk (subject 111)' },
   // the old, the lame
   { id: 'walk_old', take: '142_07', kind: 'gait', note: 'elderly man walk (subject 142)' },
   { id: 'limp_a', take: '91_16', kind: 'gait', note: 'limp (subject 91)' },
-  { id: 'limp_b', take: '77_20', kind: 'gait', note: 'limping, hurt right leg (subject 77)' },
   // carrying (a box before the body in both hands; a suitcase in one hand)
   { id: 'carry_a', take: '111_36', kind: 'gait', note: 'walk and carry (subject 111)' },
   { id: 'carry_b', take: '113_26', kind: 'gait', note: 'walk and carry (subject 113)' },
@@ -87,7 +84,7 @@ if (process.argv[1]?.endsWith('bake.ts')) {
   for (const s of SPECS) {
     if (only && !only.has(s.id)) continue;
     const fps = s.fps ?? fpsOf(s.take);
-    const b = s.kind === 'gait' ? gait(s.take, fps, { from: s.from, to: s.to, cycles: s.cycles ?? 2, win: s.win, trail: s.trail }) : loop(s.take, fps, { from: s.from, to: s.to, len: s.len ?? 4, out: s.out, exact: s.exact });
+    const b = s.kind === 'gait' ? gait(s.take, fps, { from: s.from, to: s.to, cycles: s.cycles ?? 2, win: s.win, trail: s.trail, face: s.face }) : loop(s.take, fps, { from: s.from, to: s.to, len: s.len ?? 4, out: s.out, exact: s.exact });
     if (s.mirror) b.frames = b.frames.map(mirrorPose);
     // a cycle cut at the trailing foot starts half a stride late: turned so that every gait starts at the left strike
     if (s.trail) { const h = b.frames.length / 2; b.frames = [...b.frames.slice(h), ...b.frames.slice(0, h)]; }

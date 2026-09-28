@@ -8,6 +8,7 @@
 // Tempo and forms are reconstructions (C): no ancient source describes these motions; tools and their sizes are
 // in props.ts with their tiers. PLACEHOLDER quality in the sense of anim.ts: hand-authored cycles, not motion capture.
 import type { Pose, E3, Gait } from './anim';
+import { devAt, pickOf, CLIPS, IDLES } from './mocap';
 import { trunk, gripIK, legIK, stance, kneeOf, hip, headOf, ANKLE_Y, NOM, HS, v3, app, type Trunk } from './poseKit';
 import { HARP_V, LYRE, DOUBLE_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
 
@@ -79,10 +80,21 @@ const cyc = (t: number, period: number, k: number, salt = 0) => { const n = Math
 
 function blank(): Pose { return { rot: {}, hips: [0, 0, 0] }; }
 /** trunk: pelvis pitch/yaw, spine and chest pitch/yaw, hips drop and shift (m, reference body) */
+/** D-333: the motion-capture body layer every cycle is performed over (set per call by workPose): the deviation from its
+ *  mean of a standing capture (a seated one for the seated cycles) at the cycle's time: the weight shifts, the sway of
+ *  the pelvis and the trunk, the breath and the head's small turns of a real body, added to the authored trunk before the
+ *  feet are planted and the hands put on their targets (so the contacts hold) */
+const LAYER = { on: false, d: new Float32Array(54), w: 1 };
+/** the layer's weight where a cycle works at the edge of the arms' reach (the fork raised high, the seated crafts leaning
+ *  far out): less of the body's own motion, so the hands still reach their marks (tests/performances.test.ts) */
+const LAYER_W: Partial<Record<string, number>> = { hoe: 0.5, irrigate: 0.5, winnow: 0.05, butcher: 0.15, mould: 0.1, stoke: 0.2, wash: 0.15, sweep: 0.4, lay: 0.4, weave: 0.25, smith: 0.4 };
 function body(p: Pose, o: { hp?: number; hy?: number; hr?: number; sp?: number; sy?: number; ch?: number; cy?: number; drop?: number; back?: number; side?: number }, t: number, k: number): Trunk {
-  const br = 0.02 * S(t * 1.5 + k);
+  const br = LAYER.on ? 0 : 0.02 * S(t * 1.5 + k);
   p.rot.hips = [o.hp ?? 0, o.hy ?? 0, o.hr ?? 0]; p.rot.spine = [o.sp ?? 0, o.sy ?? 0, 0]; p.rot.chest = [(o.ch ?? 0) + br, o.cy ?? 0, 0];
   p.hips = [(o.side ?? 0) / HS, (o.drop ?? 0) / HS, (o.back ?? 0) / HS];
+  if (LAYER.on) { const d = LAYER.d, w = LAYER.w, r = p.rot;
+    for (const [b, i, s] of [['hips', 0, 1], ['spine', 3, 0.6], ['chest', 6, 0.4]] as const) { const e = r[b]!; r[b] = [e[0] + d[i] * w * s, e[1] + d[i + 1] * w * s, e[2] + d[i + 2] * w * s]; }
+    p.hips = [p.hips[0] + d[51] * w, p.hips[1] + d[52] * w * 0.5, p.hips[2] + d[53] * w]; }
   return trunk(p);
 }
 /** head and neck turned toward a point (character space), clamped, split 40/60 over neck and head */
@@ -91,6 +103,7 @@ function look(p: Pose, T: Trunk, at: V3, extraPitch = 0) {
   const d = v3.sub(at, hp); const dc: V3 = [R[0] * d[0] + R[3] * d[1] + R[6] * d[2], R[1] * d[0] + R[4] * d[1] + R[7] * d[2], R[2] * d[0] + R[5] * d[1] + R[8] * d[2]];
   const pitch = cl(Math.atan2(-dc[1], Math.hypot(dc[0], dc[2])) + extraPitch, -0.5, 1.1), yaw = cl(Math.atan2(dc[0], Math.max(0.05, dc[2])), -1.1, 1.1);
   p.rot.neck = [0.4 * pitch, 0.4 * yaw, 0]; p.rot.head = [0.6 * pitch, 0.6 * yaw, 0];
+  if (LAYER.on) { const d = LAYER.d, w = LAYER.w * 0.7, n = p.rot.neck, h = p.rot.head; p.rot.neck = [n[0] + d[9] * w, n[1] + d[10] * w, n[2] + d[11] * w]; p.rot.head = [h[0] + d[12] * w, h[1] + d[13] * w, h[2] + d[14] * w]; }
 }
 const RP: V3 = [-0.7, -1, -0.25], LP: V3 = [0.7, -1, -0.25]; // default elbow poles: down, out, a little back
 /** a point in the pelvis's frame (character space): where a basket rests on the hip moves with the hips */
@@ -903,6 +916,14 @@ function sling(t: number, k: number): Pose {
   look(p, T, [6 * S(t * 0.11 + k), 0.3, 8 + 4 * C(t * 0.07 + k)]); p.grip = [load > 0.05 ? 0.8 : 0.2, 1]; return p;
 }
 export function workPose(id: WorkAnim, t: number, ph: number, k: number, g: Gait = { v: 1.2, style: 'man' }): Pose {
+  const m = WORK_META[id]; LAYER.on = !m.gait;
+  if (LAYER.on) { const seat = m.ground === 'seat', clip = seat ? 'sit_a' : IDLES[pickOf(k, IDLES.length, 5)];
+    const d = devAt(LAYER.d, clip, (t * (0.9 + 0.2 * fr(k * 0.37))) / CLIPS[clip].dur + fr(k * 0.618034)); LAYER.w = LAYER_W[id] ?? (seat ? 0.35 : 0.7);
+    // (bounded: the layer is the small motion of a body at rest; a cycle's hands must still reach their marks)
+    for (let c = 0; c < 15; c++) d[c] = cl(d[c], -0.08, 0.08); for (let c = 51; c < 54; c++) d[c] = cl(d[c], -0.03, 0.03); }
+  try { return workCycle(id, t, ph, k, g); } finally { LAYER.on = false; }
+}
+function workCycle(id: WorkAnim, t: number, ph: number, k: number, g: Gait): Pose {
   switch (id) {
     case 'hoe': return hoe(t, k);
     case 'irrigate': return irrigate(t, k);
