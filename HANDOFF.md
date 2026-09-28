@@ -10,6 +10,7 @@
    landed (`git ls-tree -r --name-only origin/models-archive`); the game's own set (gemma-2-2b, WebLLM libs, Whisper, Kokoro, the
    voices' models, Qwen2.5-1.5B, the bake GGUF) went first, the unused 3B/7B variants last.
 2. Read sessions/s12.md (broken first; the class table).
+3. **UD-23 (new, the user: "maximum immersion"):** people converse with each other, model-driven and grounded in both lives, overheard near the player, in their own languages and voices (T-E12). The node side (pair choice, grounding, lexicon line choice, gossip) is cloud work; the in-browser model load and voices need a GPU session.
 
 ## SESSION 12 CLOSE (Vagon): every Blender class of research/BLENDER_PLAN.md built world-wide, merged
 Merged (all branches of the session): lighting (cascades, tone look, sky visibility, interiors verified 19 -> 112), CC0 scans

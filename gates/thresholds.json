@@ -2841,6 +2841,22 @@
    "anti_proxy": "pitch-shifting one voice does not make voices unique unless the embedding test passes; the formant synthesiser (src/audio/speech.ts) does not count; the Farsi/English layer must be in character (the same person, their life, no modern concepts) and off by default",
    "ud": "UD-22",
    "since": "rev 2.6 (s12)"
+  },
+  {
+   "id": "T-E12",
+   "axis": "E",
+   "scope": "world",
+   "metric": "share of a seeded sample of overheard person-to-person exchanges near the player (every class, hour and place) that are grounded in both speakers' lives and the situation (a fact of either life or the day named), in a language both understand from the lexicon, in each speaker's own voice, and never repeated verbatim within a game day",
+   "op": ">=",
+   "value": 90,
+   "unit": "%",
+   "sample_min": 60,
+   "sample": "the conversation test set, seeded, across classes, places and hours",
+   "tool": "tests/npc_talk.test.ts",
+   "status": "to-build",
+   "anti_proxy": "the scripted D-168 situations alone do not count; an exchange must be chosen per pair and moment from their records; English heard in the world does not count unless the UD-22 opt-in is on",
+   "ud": "UD-23",
+   "since": "rev 2.6 (s12)"
   }
  ]
 }
