@@ -44,6 +44,9 @@ export interface DrapeSetMeta {
 export interface DrapeMeta { version: 1 | 2; groups: Record<string, string>; sets: Record<string, DrapeSetMeta>;
   /** D-322 (version 2): per piece geometry key, each vertex's fold atlas coordinate (2 × f32; −1 none) */
   fuv?: Record<string, Slice>;
+  /** D-322 rev 2: cuts per piece and group (sets `key|group` for the first, `key|group#s` for the others; body variant v wears
+   *  seed v mod seeds) */
+  seeds?: number;
   /** D-322: the fold layers' image (squares stacked vertically: 0 finer than full detail, 1 than the mid level; RGB the men's,
    *  women's, children's heights, sRGB-encoded about 0.5, ± scale m), its texel density and chart count */
   folds?: { file: string; layers: number; size: number; scale: number; texelsPerMetre: number; charts: number } }

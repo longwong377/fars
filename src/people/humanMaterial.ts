@@ -76,7 +76,7 @@ export interface HumanTextures {
    *  and its layout: columns, rows, card class → row per hair style (null: no cards in the costumes) */
   /** D-322: the garments carry their simulated folds in the geometry (people_cloth loaded): no shading stand-ins for them */
   simCloth?: boolean;
-  /** D-322: each body variant's group (0 men, 1 women, 2 children): which channel of the fold layers its garments read */
+  /** D-322: each body variant's group (0 men, 1 women, 2 children) + 3 × its drape seed: the channel and layer pair of the fold layers its garments read */
   groups?: number[];
   hairAtlas?: THREE.Texture | null; cards?: { cols: number; rows: number; classRows: number[][]; w: number; h: number; levels: number } | null;
 }
@@ -550,10 +550,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // D-322: the settled cloth's folds finer than the mesh (the fold layers: people_cloth's post-step), in the garment's own
     // atlas; faded where a triangle spans a chart's seam (its atlas coordinate jumps: the tubes' back seam, the body UV's)
     let simFoldH: any = float(0);
-    if (FOLD) { const z = vSkinL.z, lo = step(3.5, z), ok = step(-0.5, z), gi = floor(vSkinL.w.mul(0.5).add(0.25)), fu = vec2(z.sub(lo.mul(4)), vSkinL.w.sub(gi.mul(2)));
+    if (FOLD) { const z = vSkinL.z, lo = step(3.5, z), ok = step(-0.5, z), gi = floor(vSkinL.w.mul(0.5).add(0.25)), fu = vec2(z.sub(lo.mul(4)), vSkinL.w.sub(gi.mul(2))), sd = floor(gi.div(3).add(0.01)), gr = gi.sub(sd.mul(3));
       const seamF = float(1).sub(smoothstep(0.02, 0.05, max(fu.x.fwidth(), fu.y.fwidth())));
-      const fs = texture(FOLD.cloth, fu).depth(lo.add(FOLD.foldBase)).rgb;
-      simFoldH = dot(fs, vec3(is(gi, 0), is(gi, 1), is(gi, 2))).sub(0.5).mul(2 * FOLD.foldScale).mul(ok).mul(seamF).mul(kCloth); }
+      const fs = texture(FOLD.cloth, fu).depth(lo.add(sd.mul(2)).add(FOLD.foldBase)).rgb;
+      simFoldH = dot(fs, vec3(is(gr, 0), is(gr, 1), is(gr, 2))).sub(0.5).mul(2 * FOLD.foldScale).mul(ok).mul(seamF).mul(kCloth); }
     const clothH = n2.mul(mix(DRAPE.lump, 0.0012, is(prm, 4))).add(n1.mul(mix(DRAPE.streak.h[0], DRAPE.streak.h[1], isLinen)).mul(band(DRAPE.streak.f[1]))).add(weaveH).add(simFoldH).add(pleatH.mul(fake)).add(robeH.mul(fake)).add(foldH).add(wrinkleH).add(hemH).add(gatherH.mul(fake)).add(hangH.mul(fake)); // linen is smoother than wool
 
     // ---- felt, leather, metal, wood, wicker

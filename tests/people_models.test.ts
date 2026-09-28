@@ -152,12 +152,20 @@ describe('garments re-cut from simulated patterns (D-322)', () => {
     // and every piece that is cloth in a built costume is one of them (nothing left procedural)
     for (const d of BUILT) for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) if (/upper|skirt|sleeves|trousers|kandys|headcloth|veil|belt/.test(id)) expect(SIM, `${d} ${id}`).toContain(id);
   });
-  it('the fold layers: a 1024 x 2048 PNG, and a fold atlas coordinate on every simulated piece\'s outer vertices at every level', () => {
-    const D = M.drape!, F = D.meta.folds!; expect(F.file).toBe('people_cloth_folds.png'); expect(F.layers).toBe(2); expect(F.texelsPerMetre).toBeGreaterThan(80);
-    const b = readFileSync(`${PEOPLE_DIR}/${F.file}`); expect(b.readUInt32BE(16)).toBe(1024); expect(b.readUInt32BE(20)).toBe(2048);
+  it('the fold layers: 1024 px squares, two per seed (1024 x 4096 with two seeds), and a fold atlas coordinate on every simulated piece\'s outer vertices at every level', () => {
+    const D = M.drape!, F = D.meta.folds!; expect(F.file).toBe('people_cloth_folds.png'); expect(F.layers).toBe(2 * (D.meta.seeds ?? 1)); expect(F.texelsPerMetre).toBeGreaterThan(80);
+    const b = readFileSync(`${PEOPLE_DIR}/${F.file}`); expect(b.readUInt32BE(16)).toBe(1024); expect(b.readUInt32BE(20)).toBe(1024 * F.layers);
     for (const [k, f] of Object.entries(D.fuv)) { const g = O.geos![k]; expect(g?.n, k).toBe(f.length / 2); let inAtlas = 0; for (let i = 0; i < g.n; i++) if (f[i * 2] >= 0) { expect(f[i * 2]).toBeLessThanOrEqual(1); inAtlas++; } expect(inAtlas / g.n, k).toBeGreaterThan(0.4); }
     // in the costumes: below full detail the coordinate is offset by 2 (the second layer)
     for (const C of O.costumes.woman) { let n = 0; for (let k = 0; k < C.fuv.length / 2; k++) if (C.fuv[k * 2] >= 0) { n++; expect(C.fuv[k * 2] >= 2).toBe(C.lod >= 1); } expect(n, `woman LOD${C.lod}`).toBeGreaterThan(100); }
+  });
+  it('rev 2: bodies of a group do not all fold alike: a second cut per piece and group, worn by every other body variant, whose drape differs', () => {
+    const D = M.drape!, S = D.meta.seeds ?? 1; expect(S).toBeGreaterThanOrEqual(2);
+    for (const k of ['dress_skirt@0|women', 'robe_skirt@0|men', 'tunic_upper@0|men', 'robe_sleeves@0|men', 'veil@0|women']) {
+      const a = D.sets[k], b = D.sets[`${k}#1`]; expect(b, k).toBeTruthy(); let ss = 0; for (let i = 0; i < a.d.length; i++) ss += ((a.d[i] - b.d[i]) * DRAPE_UNIT) ** 2;
+      expect(Math.sqrt(ss / (a.d.length / 3)), k).toBeGreaterThan(0.004); }
+    // in the costumes: two women wear different cuts (by body variant index), so their placed skirts differ beyond the body's own shape
+    expect(A.byId.f01.index % S).not.toBe(A.byId.f02.index % S);
   });
   it('the headcloth lies over the dress (D-313\'s see-through: it had settled inside it), the sash over the skirt', () => {
     for (const [vid, outerK, underK] of [['f02', 'headcloth@0', 'dress_upper@0'], ['f05', 'headcloth@0', 'dress_upper@0'], ['f02', 'belt@0', 'dress_skirt@0']] as const) {

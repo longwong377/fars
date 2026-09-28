@@ -37,7 +37,7 @@ const A: HumanAssets = decodeHumanAssets(JSON.parse(readFileSync(`${HD}/humans.j
 const O = buildOutfits(A, { lods: [0] }); // the procedural pieces (no drape) at full detail on every variant: the cut
 const geos = O.geos!;
 
-interface Sim { name: string; key: string; piece: string; group: string; variant: string; kind: string; stage: number; over: string[]; body: string; cloth: string; target: string; pin: string; fitted: string; outer: number; levels: number; frames: number; cloth_params: any }
+interface Sim { seed: number; name: string; key: string; piece: string; group: string; variant: string; kind: string; stage: number; over: string[]; body: string; cloth: string; target: string; pin: string; fitted: string; outer: number; levels: number; frames: number; cloth_params: any }
 const sims: Sim[] = []; const stats: Record<string, any> = {};
 const bodyCache = new Map<string, string>();
 /** the body as the collider: the full-detail triangles, without the arms for skirts, upper garments and trousers (the arms
@@ -71,7 +71,11 @@ function alongArm(vid: string, x: number, y: number, z: number) { const s = x >=
 const toBlender = (p: Float32Array) => { const o = new Float32Array(p.length); for (let i = 0; i < p.length; i += 3) { o[i] = p[i]; o[i + 1] = -p[i + 2]; o[i + 2] = p[i + 1]; } return o; };
 
 const EDGE = ARGS.edge ?? 0.026; // the simulation's mesh: refined until the mean edge is at most this (m)
-for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for (const group of P.groups as string[]) {
+// D-322 rev 2: `seeds` cuts of each piece per group (the seed turns the gathers' phase, varies the ease and the blouse by a
+// quarter either way and ripples the cut by a few millimetres), so the bodies of a group do not all wear the same folds
+// (outfits.ts gives body variant v the seed v mod seeds)
+const SEEDS: number = ARGS.seeds ?? 1, EVAR = [0, 1, -1, 0.5, -0.5];
+for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for (const group of P.groups as string[]) for (let seed = 0; seed < SEEDS; seed++) {
   const key = `${piece}@0`, g: Geo | undefined = geos[key]; if (!g) { log('no geometry', key); continue; }
   const vid = ARGS.groups[group], v = A.byId[vid];
   const base = v.index * O.NV * 4 + O.pieceBase[key] * 4;
@@ -102,11 +106,13 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
     if (P.cinch != null) { const sup0 = supAt(torsoSupport(vid, y, zc), th), sup = sup0 + P.cinch;
       const k = P.kind === 'skirt' ? 1 - sstep(P.pinTop, P.pinTop + gBand, t) : sstep(waist - 0.05, waist - 0.02, y) * (1 - sstep(waist + 0.02, waist + 0.04, y));
       rc = r + (Math.min(r, sup) - r) * k * (r < sup0 + 0.035 && !armV ? 1 : 0); } // (the torso's cloth only: a sleeve hanging beside the waist is not drawn in)
-    const rg = rc + (gA ? gA * Math.sin(P.gathers * th + 0.7) : 0);
+    const rg = rc + (gA ? gA * Math.sin(P.gathers * th + 0.7 + 2.1 * seed) : 0);
     tgt.set(gA || rc !== r ? [x / (r || 1) * rg, y, zc + (z - zc) / (r || 1) * rg] : [x, y, z], o * 3);
-    let w = 0, ease = 1;
+    let w = 0, ease = 1; const eK = 1 + 0.25 * EVAR[seed % EVAR.length], PE = P.ease ? 1 + (P.ease - 1) * eK : 0, PB = (P.blouse ?? 0) * eK;
+    // (the seed's ripple of the cut: smooth, radial, a few mm, 0 on the first cut)
+    const rip = seed ? 0.005 * Math.sin(11 * y + 1.7 * seed + 3 * th) * Math.sin(7 * th + 2.3 * seed) : 0;
     switch (P.kind) {
-      case 'skirt': w = t < P.pinTop + (P.gathers ? gBand : 0) ? 1 : 0; ease = 1 + (P.ease - 1) * sstep(0, 0.25, t); break; // the waist is gathered in; the cut is wide below
+      case 'skirt': w = t < P.pinTop + (P.gathers ? gBand : 0) ? 1 : 0; ease = 1 + (PE - 1) * sstep(0, 0.25, t); break; // the waist is gathered in; the cut is wide below
       // D-322: an upper garment hangs from its shoulder seams (above the shoulder joints) and is held under the belt and at the
       // cuffs; the chest, back, sides and sleeves are free (they fold over the body and the arms; D-307 pinned all but a band
       // above the belt, and the tunics read as shrink-wrapped)
@@ -117,18 +123,22 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
       case 'hang': w = sstep(P.pinY[0], P.pinY[1], y - neck); break; // coats and cloths hang from the shoulders or the head
       case 'sash': w = sstep(P.pinY[0], P.pinY[1], y - (waist + P.dy)); break; // D-313: the belt's band and knot pinned, the ends free below the knot
     }
+    // D-322 rev 2: a veil also rests on the tops of the shoulders (hung from the crown alone it drew in to a narrow band)
+    if (P.pinShoulder) { const sh = J(vid, 'upperarm_l')[1]; w = Math.max(w, sstep(sh - 0.03, sh + 0.01, y)); }
     pin[o] = w;
     // an upper garment is cut fuller than its fitted shell between the pins (`ease` about the torso's axis): it settles in folds;
     // trousers fuller about each leg's axis below the pinned band
-    if (P.kind === 'upper' && P.ease) ease = 1 + (P.ease - 1) * (1 - w);
+    if (P.kind === 'upper' && P.ease) ease = 1 + (PE - 1) * (1 - w);
+    if (P.kind === 'hang' && P.ease) ease = 1 + (PE - 1) * (1 - w); // D-322 rev 2: a veil or mantle cut fuller than the body it falls over
     if (P.kind === 'legs' && P.ease) { const s = x >= 0 ? 'l' : 'r', a = J(vid, `thigh_${s}` as HBone), b = J(vid, `calf_${s}` as HBone), c = J(vid, `foot_${s}` as HBone);
       const up = y > b[1], f = up ? Math.min(1, Math.max(0, (a[1] - y) / (a[1] - b[1]))) : Math.min(1, Math.max(0, (b[1] - y) / (b[1] - c[1])));
       const ax = up ? a[0] + (b[0] - a[0]) * f : b[0] + (c[0] - b[0]) * f, az = up ? a[2] + (b[2] - a[2]) * f : b[2] + (c[2] - b[2]) * f;
-      const e = 1 + (P.ease - 1) * (1 - w); start.set([ax + (x - ax) * e, y, az + (z - az) * e], o * 3); continue; }
+      const e = 1 + (PE - 1) * (1 - w) + rip * 10; start.set([ax + (x - ax) * e, y, az + (z - az) * e], o * 3); continue; }
     // D-322: an upper garment is also cut longer than the body from the shoulder seam to the belt (`blouse`): the pinned
     // waist band is drawn up to its fitted place over the first frames and the extra length falls over the belt in folds
-    const shY = J(vid, 'upperarm_l')[1], yb = P.kind === 'upper' && P.blouse && !armV && y < shY ? shY - (shY - y) * (1 + P.blouse) : y;
-    start.set(P.kind === 'skirt' || P.kind === 'upper' ? [x * ease, yb, zc + (z - zc) * ease] : [x, y, z], o * 3);
+    const shY = J(vid, 'upperarm_l')[1], yb = P.kind === 'upper' && PB && !armV && y < shY ? shY - (shY - y) * (1 + PB) : y;
+    ease += rip * (1 - w) / Math.max(0.05, r);
+    start.set(P.kind === 'skirt' || P.kind === 'upper' || P.kind === 'hang' || P.kind === 'sleeve' ? [x * ease, yb, zc + (z - zc) * ease] : [x, y, z], o * 3);
   }
   // a part of the piece with nothing pinned (the kandys's hanging sleeves are tubes of their own) would fall away: such a
   // connected part is pinned whole (it keeps its procedural shape; D-307)
@@ -136,18 +146,20 @@ for (const [piece, P] of Object.entries(ARGS.pieces as Record<string, any>)) for
     for (let t = 0; t < idx.length; t += 3) { const a = find(idx[t]), b = find(idx[t + 1]), c = find(idx[t + 2]); par[b] = a; par[find(c)] = a; }
     const has = new Set<number>(); for (let o = 0; o < n; o++) if (pin[o] > 0.5) has.add(find(o));
     for (let o = 0; o < n; o++) if (!has.has(find(o))) pin[o] = 1; }
-  const name = `${piece}_${group}`, cloth = `${srcDir}/${name}.ply`, target = `${srcDir}/${name}.target.f32`, pinF = `${srcDir}/${name}.pin.f32`, fitted = `${srcDir}/${name}.fitted.f32`;
+  const name = `${piece}_${group}${seed ? `_s${seed}` : ''}`, cloth = `${srcDir}/${name}.ply`, target = `${srcDir}/${name}.target.f32`, pinF = `${srcDir}/${name}.pin.f32`, fitted = `${srcDir}/${name}.fitted.f32`;
   writePLY(cloth, { pos: start, nrm: new Float32Array(n * 3), idx } as any);
   // the fitted positions (Blender axes) the pinned vertices are drawn to; and the fitted refinement itself (game axes) for
   // the post-step, which measures the settled cloth against it
   writeFileSync(target, Buffer.from(toBlender(tgt).buffer)); writeFileSync(pinF, Buffer.from(pin.buffer)); writeFileSync(fitted, Buffer.from(pos.buffer));
-  const over = (P.over?.[group] ?? []).map((p: string) => `${p}_${group}`);
+  const over = (P.over?.[group] ?? []).map((p: string) => `${p}_${group}${seed && seed < ((ARGS.pieces[p]?.seeds ?? SEEDS)) ? `_s${seed}` : ''}`);
   const arms = P.kind === 'sleeve' || P.kind === 'hang' || P.kind === 'sash' || P.kind === 'upper'; // (D-322: the sleeves of an upper garment rest on the arms)
-  sims.push({ name, key, piece, group, variant: vid, kind: P.kind, stage: over.length ? 2 : 1, over, body: bodyPLY(vid, arms), cloth, target, pin: pinF, fitted, outer: n, levels,
+  sims.push({ name, key, piece, group, variant: vid, kind: P.kind, seed, stage: 1, over, body: bodyPLY(vid, arms), cloth, target, pin: pinF, fitted, outer: n, levels,
     frames: P.frames ?? ARGS.frames, cloth_params: { ...ARGS.cloth, ...(P.cloth ?? {}) } });
   stats[name] = { verts: n, tris: idx.length / 3, levels, edge0_cm: +(edge0 * 100).toFixed(2), edge_cm: +(edge0 * 100 / 2 ** levels).toFixed(2), pinned: +(pin.reduce((a, b) => a + (b > 0.5 ? 1 : 0), 0) / n).toFixed(3), over };
 }
 for (const s of sims) for (const o of s.over) if (!sims.find(x => x.name === o)) throw new Error(`${s.name}: collider ${o} is not simulated`);
+// stages: a piece settles after everything it lies over (the veil over the sleeves over the robe's body: 3)
+for (let it = 0; it < 8; it++) for (const s of sims) s.stage = 1 + Math.max(0, ...s.over.map(o => sims.find(x => x.name === o)!.stage));
 writeFileSync(`${srcDir}/job.json`, JSON.stringify({ sims, out_dir: srcDir, seed: 0, parallel: ARGS.parallel ?? 8, threads: ARGS.threads ?? 2 }, null, 1));
 writeFileSync(`${srcDir}/source_stats.json`, JSON.stringify(stats, null, 1));
-log(`${sims.length} simulations written (${sims.filter(s => s.stage === 2).length} over settled garments)`);
+log(`${sims.length} simulations written (${sims.filter(s => s.stage > 1).length} over settled garments, ${Math.max(...sims.map(s => s.stage))} stages)`);

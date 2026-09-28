@@ -45,12 +45,51 @@
    "max": 0.03482,
    "note": "skirt: settled by Blender's cloth solver on c01 (704 vertices, 0 Loop levels), low-passed to this level"
   },
+  "child_skirt@0|children#1": {
+   "n": 1088,
+   "group": "children",
+   "frame": "shell",
+   "d": {
+    "o": 7968,
+    "n": 3264,
+    "t": "i16"
+   },
+   "rms": 0.01957,
+   "max": 0.05712,
+   "note": "skirt: settled by Blender's cloth solver on c01 (704 vertices, 0 Loop levels), low-passed to this level"
+  },
+  "child_skirt@1|children#1": {
+   "n": 176,
+   "group": "children",
+   "frame": "shell",
+   "d": {
+    "o": 14496,
+    "n": 528,
+    "t": "i16"
+   },
+   "rms": 0.01869,
+   "max": 0.0522,
+   "note": "skirt: settled by Blender's cloth solver on c01 (704 vertices, 0 Loop levels), low-passed to this level"
+  },
+  "child_skirt@2|children#1": {
+   "n": 64,
+   "group": "children",
+   "frame": "shell",
+   "d": {
+    "o": 15552,
+    "n": 192,
+    "t": "i16"
+   },
+   "rms": 0.01689,
+   "max": 0.033,
+   "note": "skirt: settled by Blender's cloth solver on c01 (704 vertices, 0 Loop levels), low-passed to this level"
+  },
   "child_upper@0|children": {
    "n": 987,
    "group": "children",
    "frame": "shell",
    "d": {
-    "o": 7968,
+    "o": 15936,
     "n": 2961,
     "t": "i16"
    },
@@ -63,7 +102,7 @@
    "group": "children",
    "frame": "shell",
    "d": {
-    "o": 13892,
+    "o": 21860,
     "n": 963,
     "t": "i16"
    },
@@ -71,12 +110,38 @@
    "max": 0.06971,
    "note": "upper: settled by Blender's cloth solver on c01 (987 vertices, 0 Loop levels), low-passed to this level"
   },
+  "child_upper@0|children#1": {
+   "n": 987,
+   "group": "children",
+   "frame": "shell",
+   "d": {
+    "o": 23788,
+    "n": 2961,
+    "t": "i16"
+   },
+   "rms": 0.01661,
+   "max": 0.07182,
+   "note": "upper: settled by Blender's cloth solver on c01 (987 vertices, 0 Loop levels), low-passed to this level"
+  },
+  "child_upper@1|children#1": {
+   "n": 321,
+   "group": "children",
+   "frame": "shell",
+   "d": {
+    "o": 29712,
+    "n": 963,
+    "t": "i16"
+   },
+   "rms": 0.01519,
+   "max": 0.08252,
+   "note": "upper: settled by Blender's cloth solver on c01 (987 vertices, 0 Loop levels), low-passed to this level"
+  },
   "dress_skirt@0|men": {
    "n": 1360,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 15820,
+    "o": 31640,
     "n": 4080,
     "t": "i16"
    },
@@ -89,7 +154,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 23980,
+    "o": 39800,
     "n": 594,
     "t": "i16"
    },
@@ -102,7 +167,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 25168,
+    "o": 40988,
     "n": 240,
     "t": "i16"
    },
@@ -110,12 +175,51 @@
    "max": 0.06938,
    "note": "skirt: settled by Blender's cloth solver on m03 (13120 vertices, 2 Loop levels), low-passed to this level"
   },
+  "dress_skirt@0|men#1": {
+   "n": 1360,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 41468,
+    "n": 4080,
+    "t": "i16"
+   },
+   "rms": 0.0386,
+   "max": 0.10061,
+   "note": "skirt: settled by Blender's cloth solver on m03 (13120 vertices, 2 Loop levels), low-passed to this level"
+  },
+  "dress_skirt@1|men#1": {
+   "n": 198,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 49628,
+    "n": 594,
+    "t": "i16"
+   },
+   "rms": 0.0353,
+   "max": 0.08412,
+   "note": "skirt: settled by Blender's cloth solver on m03 (13120 vertices, 2 Loop levels), low-passed to this level"
+  },
+  "dress_skirt@2|men#1": {
+   "n": 80,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 50816,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.03199,
+   "max": 0.07316,
+   "note": "skirt: settled by Blender's cloth solver on m03 (13120 vertices, 2 Loop levels), low-passed to this level"
+  },
   "dress_skirt@0|women": {
    "n": 1360,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 25648,
+    "o": 51296,
     "n": 4080,
     "t": "i16"
    },
@@ -128,7 +232,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 33808,
+    "o": 59456,
     "n": 594,
     "t": "i16"
    },
@@ -141,7 +245,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 34996,
+    "o": 60644,
     "n": 240,
     "t": "i16"
    },
@@ -149,12 +253,51 @@
    "max": 0.06267,
    "note": "skirt: settled by Blender's cloth solver on f02 (13120 vertices, 2 Loop levels), low-passed to this level"
   },
+  "dress_skirt@0|women#1": {
+   "n": 1360,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 61124,
+    "n": 4080,
+    "t": "i16"
+   },
+   "rms": 0.0385,
+   "max": 0.10407,
+   "note": "skirt: settled by Blender's cloth solver on f02 (13120 vertices, 2 Loop levels), low-passed to this level"
+  },
+  "dress_skirt@1|women#1": {
+   "n": 198,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 69284,
+    "n": 594,
+    "t": "i16"
+   },
+   "rms": 0.03529,
+   "max": 0.08363,
+   "note": "skirt: settled by Blender's cloth solver on f02 (13120 vertices, 2 Loop levels), low-passed to this level"
+  },
+  "dress_skirt@2|women#1": {
+   "n": 80,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 70472,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.03147,
+   "max": 0.06886,
+   "note": "skirt: settled by Blender's cloth solver on f02 (13120 vertices, 2 Loop levels), low-passed to this level"
+  },
   "dress_upper@0|women": {
    "n": 1078,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 35476,
+    "o": 70952,
     "n": 3234,
     "t": "i16"
    },
@@ -167,7 +310,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 41944,
+    "o": 77420,
     "n": 942,
     "t": "i16"
    },
@@ -175,12 +318,38 @@
    "max": 0.04153,
    "note": "upper: settled by Blender's cloth solver on f02 (4118 vertices, 1 Loop levels), low-passed to this level"
   },
+  "dress_upper@0|women#1": {
+   "n": 1078,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 79304,
+    "n": 3234,
+    "t": "i16"
+   },
+   "rms": 0.01412,
+   "max": 0.07018,
+   "note": "upper: settled by Blender's cloth solver on f02 (4118 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "dress_upper@1|women#1": {
+   "n": 314,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 85772,
+    "n": 942,
+    "t": "i16"
+   },
+   "rms": 0.01204,
+   "max": 0.04815,
+   "note": "upper: settled by Blender's cloth solver on f02 (4118 vertices, 1 Loop levels), low-passed to this level"
+  },
   "robe_skirt@0|men": {
    "n": 1656,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 43828,
+    "o": 87656,
     "n": 4968,
     "t": "i16"
    },
@@ -193,7 +362,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 53764,
+    "o": 97592,
     "n": 1008,
     "t": "i16"
    },
@@ -206,7 +375,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 55780,
+    "o": 99608,
     "n": 240,
     "t": "i16"
    },
@@ -214,12 +383,51 @@
    "max": 0.07126,
    "note": "skirt: settled by Blender's cloth solver on m03 (4176 vertices, 1 Loop levels), low-passed to this level"
   },
+  "robe_skirt@0|men#1": {
+   "n": 1656,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 100088,
+    "n": 4968,
+    "t": "i16"
+   },
+   "rms": 0.03459,
+   "max": 0.11751,
+   "note": "skirt: settled by Blender's cloth solver on m03 (4176 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_skirt@1|men#1": {
+   "n": 336,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 110024,
+    "n": 1008,
+    "t": "i16"
+   },
+   "rms": 0.03394,
+   "max": 0.11075,
+   "note": "skirt: settled by Blender's cloth solver on m03 (4176 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_skirt@2|men#1": {
+   "n": 80,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 112040,
+    "n": 240,
+    "t": "i16"
+   },
+   "rms": 0.02882,
+   "max": 0.07838,
+   "note": "skirt: settled by Blender's cloth solver on m03 (4176 vertices, 1 Loop levels), low-passed to this level"
+  },
   "robe_skirt@0|women": {
    "n": 1656,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 56260,
+    "o": 112520,
     "n": 4968,
     "t": "i16"
    },
@@ -232,7 +440,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 66196,
+    "o": 122456,
     "n": 1008,
     "t": "i16"
    },
@@ -245,7 +453,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 68212,
+    "o": 124472,
     "n": 240,
     "t": "i16"
    },
@@ -253,90 +461,51 @@
    "max": 0.07613,
    "note": "skirt: settled by Blender's cloth solver on f02 (4176 vertices, 1 Loop levels), low-passed to this level"
   },
-  "robe_sleeves@0|men": {
-   "n": 1280,
-   "group": "men",
-   "frame": "shell",
-   "d": {
-    "o": 68692,
-    "n": 3840,
-    "t": "i16"
-   },
-   "rms": 0.04229,
-   "max": 0.11388,
-   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
-  },
-  "robe_sleeves@1|men": {
-   "n": 160,
-   "group": "men",
-   "frame": "shell",
-   "d": {
-    "o": 76372,
-    "n": 480,
-    "t": "i16"
-   },
-   "rms": 0.03998,
-   "max": 0.09792,
-   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
-  },
-  "robe_sleeves@2|men": {
-   "n": 128,
-   "group": "men",
-   "frame": "shell",
-   "d": {
-    "o": 77332,
-    "n": 384,
-    "t": "i16"
-   },
-   "rms": 0.03724,
-   "max": 0.08697,
-   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
-  },
-  "robe_sleeves@0|women": {
-   "n": 1280,
+  "robe_skirt@0|women#1": {
+   "n": 1656,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 78100,
-    "n": 3840,
+    "o": 124952,
+    "n": 4968,
     "t": "i16"
    },
-   "rms": 0.04811,
-   "max": 0.15039,
-   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+   "rms": 0.03974,
+   "max": 0.09494,
+   "note": "skirt: settled by Blender's cloth solver on f02 (4176 vertices, 1 Loop levels), low-passed to this level"
   },
-  "robe_sleeves@1|women": {
-   "n": 160,
+  "robe_skirt@1|women#1": {
+   "n": 336,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 85780,
-    "n": 480,
+    "o": 134888,
+    "n": 1008,
     "t": "i16"
    },
-   "rms": 0.04638,
-   "max": 0.11841,
-   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+   "rms": 0.03961,
+   "max": 0.10532,
+   "note": "skirt: settled by Blender's cloth solver on f02 (4176 vertices, 1 Loop levels), low-passed to this level"
   },
-  "robe_sleeves@2|women": {
-   "n": 128,
+  "robe_skirt@2|women#1": {
+   "n": 80,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 86740,
-    "n": 384,
+    "o": 136904,
+    "n": 240,
     "t": "i16"
    },
-   "rms": 0.0442,
-   "max": 0.10139,
-   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+   "rms": 0.03525,
+   "max": 0.07876,
+   "note": "skirt: settled by Blender's cloth solver on f02 (4176 vertices, 1 Loop levels), low-passed to this level"
   },
   "robe_upper@0|men": {
    "n": 1024,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 87508,
+    "o": 137384,
     "n": 3072,
     "t": "i16"
    },
@@ -349,7 +518,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 93652,
+    "o": 143528,
     "n": 951,
     "t": "i16"
    },
@@ -357,12 +526,38 @@
    "max": 0.04564,
    "note": "upper: settled by Blender's cloth solver on m03 (3825 vertices, 1 Loop levels), low-passed to this level"
   },
+  "robe_upper@0|men#1": {
+   "n": 1024,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 145432,
+    "n": 3072,
+    "t": "i16"
+   },
+   "rms": 0.01289,
+   "max": 0.04858,
+   "note": "upper: settled by Blender's cloth solver on m03 (3825 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_upper@1|men#1": {
+   "n": 317,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 151576,
+    "n": 951,
+    "t": "i16"
+   },
+   "rms": 0.01272,
+   "max": 0.0549,
+   "note": "upper: settled by Blender's cloth solver on m03 (3825 vertices, 1 Loop levels), low-passed to this level"
+  },
   "robe_upper@0|women": {
    "n": 1024,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 95556,
+    "o": 153480,
     "n": 3072,
     "t": "i16"
    },
@@ -375,7 +570,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 101700,
+    "o": 159624,
     "n": 951,
     "t": "i16"
    },
@@ -383,12 +578,38 @@
    "max": 0.04755,
    "note": "upper: settled by Blender's cloth solver on f02 (3825 vertices, 1 Loop levels), low-passed to this level"
   },
+  "robe_upper@0|women#1": {
+   "n": 1024,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 161528,
+    "n": 3072,
+    "t": "i16"
+   },
+   "rms": 0.01529,
+   "max": 0.06662,
+   "note": "upper: settled by Blender's cloth solver on f02 (3825 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_upper@1|women#1": {
+   "n": 317,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 167672,
+    "n": 951,
+    "t": "i16"
+   },
+   "rms": 0.01452,
+   "max": 0.05789,
+   "note": "upper: settled by Blender's cloth solver on f02 (3825 vertices, 1 Loop levels), low-passed to this level"
+  },
   "trousers@0|men": {
    "n": 661,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 103604,
+    "o": 169576,
     "n": 1983,
     "t": "i16"
    },
@@ -401,11 +622,37 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 107572,
+    "o": 173544,
     "n": 555,
     "t": "i16"
    },
    "rms": 0.00483,
+   "max": 0.01281,
+   "note": "legs: settled by Blender's cloth solver on m03 (2517 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "trousers@0|men#1": {
+   "n": 661,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 174656,
+    "n": 1983,
+    "t": "i16"
+   },
+   "rms": 0.00598,
+   "max": 0.01602,
+   "note": "legs: settled by Blender's cloth solver on m03 (2517 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "trousers@1|men#1": {
+   "n": 185,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 178624,
+    "n": 555,
+    "t": "i16"
+   },
+   "rms": 0.00555,
    "max": 0.01281,
    "note": "legs: settled by Blender's cloth solver on m03 (2517 vertices, 1 Loop levels), low-passed to this level"
   },
@@ -414,7 +661,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 108684,
+    "o": 179736,
     "n": 2652,
     "t": "i16"
    },
@@ -427,7 +674,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 113988,
+    "o": 185040,
     "n": 462,
     "t": "i16"
    },
@@ -440,7 +687,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 114912,
+    "o": 185964,
     "n": 192,
     "t": "i16"
    },
@@ -448,12 +695,51 @@
    "max": 0.04328,
    "note": "skirt: settled by Blender's cloth solver on m03 (2184 vertices, 1 Loop levels), low-passed to this level"
   },
+  "tunic_skirt@0|men#1": {
+   "n": 884,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 186348,
+    "n": 2652,
+    "t": "i16"
+   },
+   "rms": 0.02171,
+   "max": 0.05571,
+   "note": "skirt: settled by Blender's cloth solver on m03 (2184 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "tunic_skirt@1|men#1": {
+   "n": 154,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 191652,
+    "n": 462,
+    "t": "i16"
+   },
+   "rms": 0.02003,
+   "max": 0.0483,
+   "note": "skirt: settled by Blender's cloth solver on m03 (2184 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "tunic_skirt@2|men#1": {
+   "n": 64,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 192576,
+    "n": 192,
+    "t": "i16"
+   },
+   "rms": 0.01888,
+   "max": 0.04106,
+   "note": "skirt: settled by Blender's cloth solver on m03 (2184 vertices, 1 Loop levels), low-passed to this level"
+  },
   "tunic_upper@0|men": {
    "n": 1066,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 115296,
+    "o": 192960,
     "n": 3198,
     "t": "i16"
    },
@@ -466,7 +752,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 121692,
+    "o": 199356,
     "n": 897,
     "t": "i16"
    },
@@ -474,12 +760,38 @@
    "max": 0.04844,
    "note": "upper: settled by Blender's cloth solver on m03 (4065 vertices, 1 Loop levels), low-passed to this level"
   },
+  "tunic_upper@0|men#1": {
+   "n": 1066,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 201152,
+    "n": 3198,
+    "t": "i16"
+   },
+   "rms": 0.01305,
+   "max": 0.05956,
+   "note": "upper: settled by Blender's cloth solver on m03 (4065 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "tunic_upper@1|men#1": {
+   "n": 299,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 207548,
+    "n": 897,
+    "t": "i16"
+   },
+   "rms": 0.01164,
+   "max": 0.03344,
+   "note": "upper: settled by Blender's cloth solver on m03 (4065 vertices, 1 Loop levels), low-passed to this level"
+  },
   "work_skirt@0|men": {
    "n": 884,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 123488,
+    "o": 209344,
     "n": 2652,
     "t": "i16"
    },
@@ -492,7 +804,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 128792,
+    "o": 214648,
     "n": 462,
     "t": "i16"
    },
@@ -505,7 +817,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 129716,
+    "o": 215572,
     "n": 192,
     "t": "i16"
    },
@@ -513,12 +825,51 @@
    "max": 0.05057,
    "note": "skirt: settled by Blender's cloth solver on m03 (2184 vertices, 1 Loop levels), low-passed to this level"
   },
+  "work_skirt@0|men#1": {
+   "n": 884,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 215956,
+    "n": 2652,
+    "t": "i16"
+   },
+   "rms": 0.02262,
+   "max": 0.06161,
+   "note": "skirt: settled by Blender's cloth solver on m03 (2184 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "work_skirt@1|men#1": {
+   "n": 154,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 221260,
+    "n": 462,
+    "t": "i16"
+   },
+   "rms": 0.02126,
+   "max": 0.05314,
+   "note": "skirt: settled by Blender's cloth solver on m03 (2184 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "work_skirt@2|men#1": {
+   "n": 64,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 222184,
+    "n": 192,
+    "t": "i16"
+   },
+   "rms": 0.02077,
+   "max": 0.04789,
+   "note": "skirt: settled by Blender's cloth solver on m03 (2184 vertices, 1 Loop levels), low-passed to this level"
+  },
   "work_trousers@0|men": {
    "n": 661,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 130100,
+    "o": 222568,
     "n": 1983,
     "t": "i16"
    },
@@ -531,7 +882,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 134068,
+    "o": 226536,
     "n": 555,
     "t": "i16"
    },
@@ -539,12 +890,38 @@
    "max": 0.0138,
    "note": "legs: settled by Blender's cloth solver on m03 (2517 vertices, 1 Loop levels), low-passed to this level"
   },
+  "work_trousers@0|men#1": {
+   "n": 661,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 227648,
+    "n": 1983,
+    "t": "i16"
+   },
+   "rms": 0.00725,
+   "max": 0.01855,
+   "note": "legs: settled by Blender's cloth solver on m03 (2517 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "work_trousers@1|men#1": {
+   "n": 185,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 231616,
+    "n": 555,
+    "t": "i16"
+   },
+   "rms": 0.00642,
+   "max": 0.01413,
+   "note": "legs: settled by Blender's cloth solver on m03 (2517 vertices, 1 Loop levels), low-passed to this level"
+  },
   "work_upper@0|men": {
    "n": 987,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 135180,
+    "o": 232728,
     "n": 2961,
     "t": "i16"
    },
@@ -557,7 +934,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 141104,
+    "o": 238652,
     "n": 963,
     "t": "i16"
    },
@@ -565,12 +942,194 @@
    "max": 0.05794,
    "note": "upper: settled by Blender's cloth solver on m03 (3678 vertices, 1 Loop levels), low-passed to this level"
   },
+  "work_upper@0|men#1": {
+   "n": 987,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 240580,
+    "n": 2961,
+    "t": "i16"
+   },
+   "rms": 0.01353,
+   "max": 0.05827,
+   "note": "upper: settled by Blender's cloth solver on m03 (3678 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "work_upper@1|men#1": {
+   "n": 321,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 246504,
+    "n": 963,
+    "t": "i16"
+   },
+   "rms": 0.01425,
+   "max": 0.07148,
+   "note": "upper: settled by Blender's cloth solver on m03 (3678 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@0|men": {
+   "n": 1280,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 248432,
+    "n": 3840,
+    "t": "i16"
+   },
+   "rms": 0.04253,
+   "max": 0.11388,
+   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@1|men": {
+   "n": 160,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 256112,
+    "n": 480,
+    "t": "i16"
+   },
+   "rms": 0.04014,
+   "max": 0.09792,
+   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@2|men": {
+   "n": 128,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 257072,
+    "n": 384,
+    "t": "i16"
+   },
+   "rms": 0.03795,
+   "max": 0.08697,
+   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@0|men#1": {
+   "n": 1280,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 257840,
+    "n": 3840,
+    "t": "i16"
+   },
+   "rms": 0.0429,
+   "max": 0.12774,
+   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@1|men#1": {
+   "n": 160,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 265520,
+    "n": 480,
+    "t": "i16"
+   },
+   "rms": 0.04009,
+   "max": 0.10477,
+   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@2|men#1": {
+   "n": 128,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 266480,
+    "n": 384,
+    "t": "i16"
+   },
+   "rms": 0.03803,
+   "max": 0.08704,
+   "note": "sleeve: settled by Blender's cloth solver on m03 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@0|women": {
+   "n": 1280,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 267248,
+    "n": 3840,
+    "t": "i16"
+   },
+   "rms": 0.04823,
+   "max": 0.15039,
+   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@1|women": {
+   "n": 160,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 274928,
+    "n": 480,
+    "t": "i16"
+   },
+   "rms": 0.047,
+   "max": 0.12489,
+   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@2|women": {
+   "n": 128,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 275888,
+    "n": 384,
+    "t": "i16"
+   },
+   "rms": 0.04476,
+   "max": 0.10139,
+   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@0|women#1": {
+   "n": 1280,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 276656,
+    "n": 3840,
+    "t": "i16"
+   },
+   "rms": 0.04594,
+   "max": 0.12015,
+   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@1|women#1": {
+   "n": 160,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 284336,
+    "n": 480,
+    "t": "i16"
+   },
+   "rms": 0.04454,
+   "max": 0.10261,
+   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "robe_sleeves@2|women#1": {
+   "n": 128,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 285296,
+    "n": 384,
+    "t": "i16"
+   },
+   "rms": 0.04238,
+   "max": 0.0901,
+   "note": "sleeve: settled by Blender's cloth solver on f02 (3200 vertices, 1 Loop levels), low-passed to this level"
+  },
   "belt@0|men": {
    "n": 326,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 143032,
+    "o": 286064,
     "n": 978,
     "t": "i16"
    },
@@ -583,7 +1142,7 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 144988,
+    "o": 288020,
     "n": 369,
     "t": "i16"
    },
@@ -596,11 +1155,50 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 145728,
+    "o": 288760,
     "n": 222,
     "t": "i16"
    },
    "rms": 0.00484,
+   "max": 0.01527,
+   "note": "sash: settled by Blender's cloth solver on m03 (588 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "belt@0|men#1": {
+   "n": 326,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 289204,
+    "n": 978,
+    "t": "i16"
+   },
+   "rms": 0.00513,
+   "max": 0.02442,
+   "note": "sash: settled by Blender's cloth solver on m03 (588 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "belt@1|men#1": {
+   "n": 123,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 291160,
+    "n": 369,
+    "t": "i16"
+   },
+   "rms": 0.00524,
+   "max": 0.02069,
+   "note": "sash: settled by Blender's cloth solver on m03 (588 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "belt@2|men#1": {
+   "n": 74,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 291900,
+    "n": 222,
+    "t": "i16"
+   },
+   "rms": 0.00472,
    "max": 0.01527,
    "note": "sash: settled by Blender's cloth solver on m03 (588 vertices, 1 Loop levels), low-passed to this level"
   },
@@ -609,7 +1207,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 146172,
+    "o": 292344,
     "n": 978,
     "t": "i16"
    },
@@ -622,7 +1220,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 148128,
+    "o": 294300,
     "n": 369,
     "t": "i16"
    },
@@ -635,7 +1233,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 148868,
+    "o": 295040,
     "n": 222,
     "t": "i16"
    },
@@ -643,12 +1241,51 @@
    "max": 0.02338,
    "note": "sash: settled by Blender's cloth solver on f02 (588 vertices, 1 Loop levels), low-passed to this level"
   },
+  "belt@0|women#1": {
+   "n": 326,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 295484,
+    "n": 978,
+    "t": "i16"
+   },
+   "rms": 0.00599,
+   "max": 0.02534,
+   "note": "sash: settled by Blender's cloth solver on f02 (588 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "belt@1|women#1": {
+   "n": 123,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 297440,
+    "n": 369,
+    "t": "i16"
+   },
+   "rms": 0.00514,
+   "max": 0.01978,
+   "note": "sash: settled by Blender's cloth solver on f02 (588 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "belt@2|women#1": {
+   "n": 74,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 298180,
+    "n": 222,
+    "t": "i16"
+   },
+   "rms": 0.00574,
+   "max": 0.02102,
+   "note": "sash: settled by Blender's cloth solver on f02 (588 vertices, 1 Loop levels), low-passed to this level"
+  },
   "headcloth@0|women": {
    "n": 772,
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 149312,
+    "o": 298624,
     "n": 2316,
     "t": "i16"
    },
@@ -661,7 +1298,7 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 153944,
+    "o": 303256,
     "n": 663,
     "t": "i16"
    },
@@ -669,17 +1306,43 @@
    "max": 0.04319,
    "note": "hang: settled by Blender's cloth solver on f02 (772 vertices, 0 Loop levels), low-passed to this level"
   },
+  "headcloth@0|women#1": {
+   "n": 772,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 304584,
+    "n": 2316,
+    "t": "i16"
+   },
+   "rms": 0.01275,
+   "max": 0.0554,
+   "note": "hang: settled by Blender's cloth solver on f02 (772 vertices, 0 Loop levels), low-passed to this level"
+  },
+  "headcloth@1|women#1": {
+   "n": 221,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 309216,
+    "n": 663,
+    "t": "i16"
+   },
+   "rms": 0.01308,
+   "max": 0.05485,
+   "note": "hang: settled by Blender's cloth solver on f02 (772 vertices, 0 Loop levels), low-passed to this level"
+  },
   "kandys@0|men": {
    "n": 1727,
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 155272,
+    "o": 310544,
     "n": 5181,
     "t": "i16"
    },
-   "rms": 0.01544,
-   "max": 0.06969,
+   "rms": 0.01619,
+   "max": 0.07736,
    "note": "hang: settled by Blender's cloth solver on m03 (4614 vertices, 1 Loop levels), low-passed to this level"
   },
   "kandys@1|men": {
@@ -687,12 +1350,12 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 165636,
+    "o": 320908,
     "n": 933,
     "t": "i16"
    },
-   "rms": 0.01981,
-   "max": 0.06976,
+   "rms": 0.01841,
+   "max": 0.06715,
    "note": "hang: settled by Blender's cloth solver on m03 (4614 vertices, 1 Loop levels), low-passed to this level"
   },
   "kandys@2|men": {
@@ -700,12 +1363,51 @@
    "group": "men",
    "frame": "shell",
    "d": {
-    "o": 167504,
+    "o": 322776,
     "n": 687,
     "t": "i16"
    },
-   "rms": 0.02279,
-   "max": 0.06976,
+   "rms": 0.02115,
+   "max": 0.06715,
+   "note": "hang: settled by Blender's cloth solver on m03 (4614 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "kandys@0|men#1": {
+   "n": 1727,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 324152,
+    "n": 5181,
+    "t": "i16"
+   },
+   "rms": 0.01923,
+   "max": 0.09328,
+   "note": "hang: settled by Blender's cloth solver on m03 (4614 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "kandys@1|men#1": {
+   "n": 311,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 334516,
+    "n": 933,
+    "t": "i16"
+   },
+   "rms": 0.02088,
+   "max": 0.08722,
+   "note": "hang: settled by Blender's cloth solver on m03 (4614 vertices, 1 Loop levels), low-passed to this level"
+  },
+  "kandys@2|men#1": {
+   "n": 229,
+   "group": "men",
+   "frame": "shell",
+   "d": {
+    "o": 336384,
+    "n": 687,
+    "t": "i16"
+   },
+   "rms": 0.02405,
+   "max": 0.08722,
    "note": "hang: settled by Blender's cloth solver on m03 (4614 vertices, 1 Loop levels), low-passed to this level"
   },
   "veil@0|women": {
@@ -713,12 +1415,12 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 168880,
+    "o": 337760,
     "n": 1326,
     "t": "i16"
    },
-   "rms": 0.07824,
-   "max": 0.15598,
+   "rms": 0.05011,
+   "max": 0.10713,
    "note": "hang: settled by Blender's cloth solver on f02 (3185 vertices, 2 Loop levels), low-passed to this level"
   },
   "veil@1|women": {
@@ -726,12 +1428,12 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 171532,
+    "o": 340412,
     "n": 324,
     "t": "i16"
    },
-   "rms": 0.0634,
-   "max": 0.12593,
+   "rms": 0.03351,
+   "max": 0.07395,
    "note": "hang: settled by Blender's cloth solver on f02 (3185 vertices, 2 Loop levels), low-passed to this level"
   },
   "veil@2|women": {
@@ -739,193 +1441,233 @@
    "group": "women",
    "frame": "shell",
    "d": {
-    "o": 172180,
+    "o": 341060,
     "n": 144,
     "t": "i16"
    },
-   "rms": 0.05768,
-   "max": 0.10697,
+   "rms": 0.02889,
+   "max": 0.0657,
+   "note": "hang: settled by Blender's cloth solver on f02 (3185 vertices, 2 Loop levels), low-passed to this level"
+  },
+  "veil@0|women#1": {
+   "n": 442,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 341348,
+    "n": 1326,
+    "t": "i16"
+   },
+   "rms": 0.05049,
+   "max": 0.10831,
+   "note": "hang: settled by Blender's cloth solver on f02 (3185 vertices, 2 Loop levels), low-passed to this level"
+  },
+  "veil@1|women#1": {
+   "n": 108,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 344000,
+    "n": 324,
+    "t": "i16"
+   },
+   "rms": 0.03332,
+   "max": 0.07472,
+   "note": "hang: settled by Blender's cloth solver on f02 (3185 vertices, 2 Loop levels), low-passed to this level"
+  },
+  "veil@2|women#1": {
+   "n": 48,
+   "group": "women",
+   "frame": "shell",
+   "d": {
+    "o": 344648,
+    "n": 144,
+    "t": "i16"
+   },
+   "rms": 0.02923,
+   "max": 0.06922,
    "note": "hang: settled by Blender's cloth solver on f02 (3185 vertices, 2 Loop levels), low-passed to this level"
   }
  },
  "fuv": {
   "belt@0": {
-   "o": 172468,
+   "o": 344936,
    "n": 652,
    "t": "f32"
   },
   "belt@1": {
-   "o": 175076,
+   "o": 347544,
    "n": 246,
    "t": "f32"
   },
   "child_skirt@0": {
-   "o": 176060,
+   "o": 348528,
    "n": 2176,
    "t": "f32"
   },
   "child_skirt@1": {
-   "o": 184764,
+   "o": 357232,
    "n": 352,
    "t": "f32"
   },
   "child_upper@0": {
-   "o": 186172,
+   "o": 358640,
    "n": 1974,
    "t": "f32"
   },
   "child_upper@1": {
-   "o": 194068,
+   "o": 366536,
    "n": 642,
    "t": "f32"
   },
   "dress_skirt@0": {
-   "o": 196636,
+   "o": 369104,
    "n": 2720,
    "t": "f32"
   },
   "dress_skirt@1": {
-   "o": 207516,
+   "o": 379984,
    "n": 396,
    "t": "f32"
   },
   "dress_upper@0": {
-   "o": 209100,
+   "o": 381568,
    "n": 2156,
    "t": "f32"
   },
   "dress_upper@1": {
-   "o": 217724,
+   "o": 390192,
    "n": 628,
    "t": "f32"
   },
   "headcloth@0": {
-   "o": 220236,
+   "o": 392704,
    "n": 1544,
    "t": "f32"
   },
   "headcloth@1": {
-   "o": 226412,
+   "o": 398880,
    "n": 442,
    "t": "f32"
   },
   "kandys@0": {
-   "o": 228180,
+   "o": 400648,
    "n": 3454,
    "t": "f32"
   },
   "kandys@1": {
-   "o": 241996,
+   "o": 414464,
    "n": 622,
    "t": "f32"
   },
   "robe_skirt@0": {
-   "o": 244484,
+   "o": 416952,
    "n": 3312,
    "t": "f32"
   },
   "robe_skirt@1": {
-   "o": 257732,
+   "o": 430200,
    "n": 672,
    "t": "f32"
   },
   "robe_sleeves@0": {
-   "o": 260420,
+   "o": 432888,
    "n": 2560,
    "t": "f32"
   },
   "robe_sleeves@1": {
-   "o": 270660,
+   "o": 443128,
    "n": 320,
    "t": "f32"
   },
   "robe_upper@0": {
-   "o": 271940,
+   "o": 444408,
    "n": 2048,
    "t": "f32"
   },
   "robe_upper@1": {
-   "o": 280132,
+   "o": 452600,
    "n": 634,
    "t": "f32"
   },
   "trousers@0": {
-   "o": 282668,
+   "o": 455136,
    "n": 1322,
    "t": "f32"
   },
   "trousers@1": {
-   "o": 287956,
+   "o": 460424,
    "n": 370,
    "t": "f32"
   },
   "tunic_skirt@0": {
-   "o": 289436,
+   "o": 461904,
    "n": 1768,
    "t": "f32"
   },
   "tunic_skirt@1": {
-   "o": 296508,
+   "o": 468976,
    "n": 308,
    "t": "f32"
   },
   "tunic_upper@0": {
-   "o": 297740,
+   "o": 470208,
    "n": 2132,
    "t": "f32"
   },
   "tunic_upper@1": {
-   "o": 306268,
+   "o": 478736,
    "n": 598,
    "t": "f32"
   },
   "veil@0": {
-   "o": 308660,
+   "o": 481128,
    "n": 884,
    "t": "f32"
   },
   "veil@1": {
-   "o": 312196,
+   "o": 484664,
    "n": 216,
    "t": "f32"
   },
   "work_skirt@0": {
-   "o": 313060,
+   "o": 485528,
    "n": 1768,
    "t": "f32"
   },
   "work_skirt@1": {
-   "o": 320132,
+   "o": 492600,
    "n": 308,
    "t": "f32"
   },
   "work_trousers@0": {
-   "o": 321364,
+   "o": 493832,
    "n": 1322,
    "t": "f32"
   },
   "work_trousers@1": {
-   "o": 326652,
+   "o": 499120,
    "n": 370,
    "t": "f32"
   },
   "work_upper@0": {
-   "o": 328132,
+   "o": 500600,
    "n": 1974,
    "t": "f32"
   },
   "work_upper@1": {
-   "o": 336028,
+   "o": 508496,
    "n": 642,
    "t": "f32"
   }
  },
+ "seeds": 2,
  "folds": {
   "file": "people_cloth_folds.png",
-  "layers": 2,
+  "layers": 4,
   "size": 1024,
   "scale": 0.012,
-  "texelsPerMetre": 158.3,
+  "texelsPerMetre": 156.3,
   "charts": 25
  }
 }

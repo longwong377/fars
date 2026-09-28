@@ -40,6 +40,6 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   try { O = outfits ? await outfits : (await MeshoptSimplifier.ready, buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier), models })); }
   catch (e) { console.warn('outfit worker failed, building on the main thread', e); await MeshoptSimplifier.ready; O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier), models }); }
   const t2 = performance.now();
-  const gpu = new HumanGPU(A, O, { skin, eye, scans, hairAtlas, cards: models.cards?.meta ?? null, simCloth: !!models.drape && models.drape.meta.version >= 2 }, { capacity: opts.capacity, velocity: opts.velocity });
+  const gpu = new HumanGPU(A, O, { skin, eye, scans, hairAtlas, cards: models.cards?.meta ?? null, simCloth: !!models.drape && models.drape.meta.version >= 2, drapeSeeds: models.drape?.meta.seeds ?? 1 }, { capacity: opts.capacity, velocity: opts.velocity });
   return { A, O, gpu, ms: { load: t1 - t0, outfits: t2 - t1, gpu: performance.now() - t2, worker: !!outfits } };
 }

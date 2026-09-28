@@ -1014,7 +1014,7 @@ function kandysGeo(L: Lib, key: string, lod: number) {
     const outer = lod === 0 && Math.abs(p[0]) > 0.15 ? p[1] - (sh - 0.1) : -1; // over the shoulder point (close up only)
     const neck = J('neck_01')[1] + 0.02 - p[1];
     return Math.min(upper, Math.max(back, top, outer), neck, 0.04); });
-  const cape = shellGeo(A, ref, `${key}_cape`, { tris: A.lods[TESS[lod].tris], d, ramp: 0.02, smooth: 6, minOff: 0.018, thick: () => 0.026, mat: MAT.cloth_trim, col: COL.trim, prm: 3, hull: () => 1 }); // D-206: over the tunic's hull
+  const cape = shellGeo(A, ref, `${key}_cape`, { tris: A.lods[TESS[lod].tris], d, ramp: 0.02, smooth: 8, smoothEdge: true, minOff: 0.018, thick: () => 0.026, mat: MAT.cloth_trim, col: COL.trim, prm: 3, hull: () => 1 }); // D-206: over the tunic's hull (D-322 rev 2: its cut line smoothed along itself: the body triangles' zigzag read as a ragged edge)
   const skirtKeys = ['tunic_skirt', 'tunic_upper'].map(k => geoKey(k, lod)); // D-206: and over the tunic, which now hangs off the back
   const top = (c: Ctx) => c.J('upperarm_l')[1] - 0.06, hem = (c: Ctx) => c.J('calf_l')[1] - 0.2;
   const frame = (c: Ctx, t: number) => vertFrame([0, lerp(top(c), hem(c), t), lerp(c.J('spine_03')[2] + 0.02, c.J('pelvis')[2], t)]);
@@ -1169,7 +1169,7 @@ const VEIL = new WeakMap<HumanVariant, Map<string, number[][]>>();
  *  crown to mid-thigh; hanging from the widest of the body and the robe above each height (a running maximum: cloth
  *  hangs, it does not tuck in), 12 mm clear of them and flaring to 4 cm at the hem; 3 mm fine wool, lined (C) */
 function veilGeo(L: Lib, key: string, lod: number) {
-  const S = lod === 0 ? 16 : lod === 1 ? 8 : 5, R = lod === 0 ? 12 : lod === 1 ? 5 : 3, A0 = Math.PI - 1.05, A1 = Math.PI + 1.05;
+  const S = lod === 0 ? 16 : lod === 1 ? 8 : 5, R = lod === 0 ? 12 : lod === 1 ? 5 : 3, A0 = Math.PI - 1.3, A1 = Math.PI + 1.3; // (D-322 rev 2: ±75° from the back, over the shoulder blades: at ±60° it settled into a narrow band)
   const origin = (c: Ctx, t: number): V3 => { const y0 = c.v.eyeY + 0.055, y1 = c.J('pelvis')[1] - 0.26, hz = c.J('head')[2] + 0.03, bz = c.J('spine_02')[2]; return [0, lerp(y0, y1, t), lerp(hz, bz, sstep(0, 0.3, t))]; };
   const robe = ['robe_upper', 'robe_sleeves', 'robe_skirt'].map(k => geoKey(k, lod));
   const table = (c: Ctx) => { let m = VEIL.get(c.v); if (!m) VEIL.set(c.v, m = new Map()); const hit = m.get(key); if (hit) return hit;
@@ -1181,7 +1181,7 @@ function veilGeo(L: Lib, key: string, lod: number) {
     m.set(key, rows); return rows; };
   return tubeGeo(L.A, key, { segs: S, rings: R, lining: 0.003, arc: [A0, A1],
     frame: (c, t) => vertFrame(origin(c, t)),
-    radius: (c, t, th) => { const rows = table(c), k = Math.min(R, Math.round(t * R)); return rimAt(rows[k], th) + 0.012 + 0.028 * t * t + 0.003 * Math.sin(th * 9 + t * 5) * t; },
+    radius: (c, t, th) => { const rows = table(c), k = Math.min(R, Math.round(t * R)); return rimAt(rows[k], th) + 0.012 + 0.012 * t * t + 0.003 * Math.sin(th * 9 + t * 5) * t; }, // (D-322 rev 2: the flare 2.8 -> 1.2 cm: the solver gives the hem its fall)
     weights: t => t < 0.1 ? [W('head', 1 - t / 0.1), W('neck_01', t / 0.1)] : t < 0.25 ? [W('neck_01', 1 - (t - 0.1) / 0.15), W('spine_03', (t - 0.1) / 0.15)] : t < 0.6 ? [W('spine_03', 1 - (t - 0.25) / 0.35), W('spine_01', (t - 0.25) / 0.35)] : [W('spine_01', 1 - (t - 0.6) / 0.4), W('pelvis', (t - 0.6) / 0.4)],
     mat: MAT.cloth_second, col: COL.second, prm: 4 });
 }
@@ -1401,7 +1401,9 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
     // D-307: the drape Blender's cloth solver gave the piece on the group's reference body (people_cloth), added in the
     // piece's local frame to its placement on this body (before anything is fitted over it: the belt goes over the settled skirt)
     const group = v.meta.group === 'child' ? 'children' : v.meta.sex === 'f' ? 'women' : 'men', drape = opts.models?.drape?.sets;
-    for (const k of keys) { const g = geos[k]; const t1 = opts.profile ? performance.now() : 0; const pos = g.place(c); const dr = drape?.[`${k}|${group}`]; if (dr && dr.meta.n === g.n) applyDrape(pos, g.index, dr.d); if (opts.profile) opts.profile[k] = (opts.profile[k] ?? 0) + performance.now() - t1; c.placed.set(k, pos); const nr = geoNormals(pos, g.index, g.n); const o = base + pieceBase[k] * 4;
+    // (D-322 rev 2: body variant v wears the cut of seed v mod seeds: the bodies of a group do not all fold alike)
+    const seed = v.index % (opts.models?.drape?.meta.seeds ?? 1), sfx = seed ? `#${seed}` : '';
+    for (const k of keys) { const g = geos[k]; const t1 = opts.profile ? performance.now() : 0; const pos = g.place(c); const dr = drape?.[`${k}|${group}${sfx}`] ?? drape?.[`${k}|${group}`]; if (dr && dr.meta.n === g.n) applyDrape(pos, g.index, dr.d); if (opts.profile) opts.profile[k] = (opts.profile[k] ?? 0) + performance.now() - t1; c.placed.set(k, pos); const nr = geoNormals(pos, g.index, g.n); const o = base + pieceBase[k] * 4;
       for (let i = 0; i < g.n; i++) { source[o + i * 4] = pos[i * 3]; source[o + i * 4 + 1] = pos[i * 3 + 1]; source[o + i * 4 + 2] = pos[i * 3 + 2]; source[o + i * 4 + 3] = packNormal(nr[i * 3], nr[i * 3 + 1], nr[i * 3 + 2]); } }
   }
   if (opts.profile) opts.profile.$source = performance.now() - t0;
