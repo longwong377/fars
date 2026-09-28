@@ -8070,3 +8070,7 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   renderOnce() calls, GPU queue drained):** town-smoke-dusk 287 ms, night-moon-fire 209 ms a frame (204 draws, 4.0 M
   triangles). renderOnce includes the frozen test world's per-frame CPU work (the eye's upward rays, the world update), so
   this is an upper bound on the GPU frame; far over any playable budget either way (B-row below).
+- **D-309d verified in the world (run d309d2, Q high, FOV game):** scribe-room-ne mean 19 → 112 of 255 (p50 102; the doorway
+  clips white, 4.9 % clipped: the room now reads as a sunlit room with a bright door). lane-night (the lane-with-child view at
+  21:30): mean 0.4, pure black but a sliver of sky — B111 stands: no hearth, lamp, moon or sky light reaches the lane.
+  Frame: scribe-room-ne 309 ms, lane-night 598 ms (B125). room-treasury-store not reached (the run's timeout).
