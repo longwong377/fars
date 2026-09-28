@@ -3,7 +3,7 @@
  "assets": {
   "capital_protome": {
    "file": "models/capital_protome.glb",
-   "inHash": "5e55402b6bcb9d1f9adf62ee31a8095c679d1ec72bff7c760c27af0e3adbe829",
+   "inHash": "3fa9cac3248248272d8d3c4d13d9e02422f5edb8245950dff45c107e96b5024a",
    "outHash": "27f9585db3b02ad035ec3acf36d5bc8e3d32468f2ad4f54bf1a2abaaf379e327",
    "bytes": 3302984,
    "gpuBytes": 6491971,
@@ -53,14 +53,14 @@
    "src": "RECON;IR-COL;PHOTO-CAP",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 85,
-   "build_s": 607
+   "bake_s": 84.2,
+   "build_s": 481
   },
   "capital_volute": {
    "file": "models/capital_volute.glb",
-   "inHash": "2a1a53f21b81e957efbfb69bb2181a0779e3c7e9fa16dcc15122c93f7e51003e",
-   "outHash": "ac4bba429a8bd56d258e62244ee462bcfce89536226353c87184368feac736e6",
-   "bytes": 929592,
+   "inHash": "4815d1dbb5b49e4d9d25a46fd120be7f4e576e915b6548d8d987ddb7acaec902",
+   "outHash": "7761fa78af09a9262b6dbb820e5cef6f2917df50c06d1c9a82996797dc57217b",
+   "bytes": 920916,
    "gpuBytes": 1690851,
    "textures": "ktx2",
    "lods": [
@@ -79,7 +79,7 @@
       "w": 1024,
       "h": 1024,
       "format": "ktx2",
-      "bytes": 804275
+      "bytes": 795991
      },
      "ao_mean": 0.6597
     },
@@ -98,7 +98,7 @@
       "w": 256,
       "h": 256,
       "format": "ktx2",
-      "bytes": 71874
+      "bytes": 71482
      },
      "ao_mean": 0.7991
     }
@@ -108,14 +108,14 @@
    "src": "RECON;IR-COL;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 46.4,
-   "build_s": 220
+   "bake_s": 39.5,
+   "build_s": 141
   },
   "colossus_bull": {
    "file": "models/colossus_bull.glb",
-   "inHash": "ff93025262ae44793755ea5278d08cea568ee02f4a6be27d3432a335502b09b7",
-   "outHash": "1f5d345e57df549289365cdf24ad4a96bba95096e9a100ac939e56d34fe831e7",
-   "bytes": 3083460,
+   "inHash": "30c336c6d9c412bd260da80d9174a11077995dbb936b131fddf29229a974d9d1",
+   "outHash": "32b8c98e50abc5058fce8af1cd43a2cc0e192bf0b3d821a392df633044a81122",
+   "bytes": 3083456,
    "gpuBytes": 9097019,
    "textures": "ktx2",
    "lods": [
@@ -163,12 +163,12 @@
    "src": "RECON;IR-PERS;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 81.6,
-   "build_s": 179
+   "bake_s": 86,
+   "build_s": 377
   },
   "colossus_lamassu": {
    "file": "models/colossus_lamassu.glb",
-   "inHash": "a0f8f1eadf585767c003a01398577e0c847e2548ea71a5f9ea8d6f1b386c5f0e",
+   "inHash": "570ec21128a2e09637293eb0dc6554169db9bc02280d26a96b1631b4b1a4c5ca",
    "outHash": "534ed063a4b98bf8e9c5d3061663ea34b0fe42c9514f83b0f9dfb27b68a67398",
    "bytes": 3480660,
    "gpuBytes": 9599879,
@@ -218,12 +218,12 @@
    "src": "RECON;IR-PERS;PHOTO-GATE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 93,
-   "build_s": 247
+   "bake_s": 52.7,
+   "build_s": 253
   },
   "column_base_bell": {
    "file": "models/column_base_bell.glb",
-   "inHash": "1af3181ce260512f502668ef89cc6acc4f89d8d564faa404bf83eabfa2d34169",
+   "inHash": "fca1d087b7055318f25bb067fbe27ae3bc1e0694ed2fdad48a9538523fd885a0",
    "outHash": "f0599deed009da445b104835a4b8a1745cc44d89034ce7cfb1b238f8f0d26fd5",
    "bytes": 1861176,
    "gpuBytes": 5959003,
@@ -273,12 +273,12 @@
    "src": "RECON;PHOTO;BELL_BASE;BELL_BASE2;PLATE_BASES",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 130.6,
-   "build_s": 263
+   "bake_s": 98.6,
+   "build_s": 175
   },
   "column_base_plain": {
    "file": "models/column_base_plain.glb",
-   "inHash": "44afc36acf24be12453ec5b21c123aa6ea74ca4a2f4efda2f8bbb8b7112c9099",
+   "inHash": "bf7b0f76b2168e5856f9d653bc574ba933e5b9440ef3a7b1d406c7df8bc2ac71",
    "outHash": "fd20eae0f999e9ef9337e8c168783245b849b635f244f23486d6d26ef6470bc9",
    "bytes": 570168,
    "gpuBytes": 1558235,
@@ -328,12 +328,12 @@
    "src": "RECON;PHOTO;PLATE_BASES",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 74.1,
-   "build_s": 158
+   "bake_s": 32.4,
+   "build_s": 64
   },
   "column_base_square2": {
    "file": "models/column_base_square2.glb",
-   "inHash": "c957158b3f36f04a0efc621001b92acd1861b5ce00b5051972e2808a52d35c62",
+   "inHash": "4c2729480036933e5694171e820474e64f40d84ef487f0fb6dc0db872287736c",
    "outHash": "8eb1294809daf100a2b33052d04fc982fc0b9942db53e0a5cc29eb006d99f6b2",
    "bytes": 599752,
    "gpuBytes": 1542155,
@@ -383,14 +383,14 @@
    "src": "RECON;PHOTO;PLATE_BASES;LOUVRE",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 70,
-   "build_s": 120
+   "bake_s": 46,
+   "build_s": 89
   },
   "column_bells": {
    "file": "models/column_bells.glb",
-   "inHash": "64de431458fda9b7eec55d93753bb35e1759c94766b98b10214ddbdb624f74af",
-   "outHash": "7c3d1ecdf79946ef752c6ad9784e7b073711ce0b8d6d0500b7ba64ab01b43826",
-   "bytes": 891732,
+   "inHash": "00dba0f236aa891c98c8f63cf37e0c1daf57a87bc81cebc4bea20f4af2ffd77b",
+   "outHash": "7434a44790272c63297f06f414e5513364334eb3c4ff21672c35b1a01f193553",
+   "bytes": 892648,
    "gpuBytes": 1610699,
    "textures": "ktx2",
    "lods": [
@@ -409,9 +409,9 @@
       "w": 1024,
       "h": 1024,
       "format": "ktx2",
-      "bytes": 838189
+      "bytes": 839115
      },
-     "ao_mean": 0.6551
+     "ao_mean": 0.6591
     },
     {
      "name": "lod1",
@@ -428,9 +428,9 @@
       "w": 128,
       "h": 128,
       "format": "ktx2",
-      "bytes": 18086
+      "bytes": 18077
      },
-     "ao_mean": 0.7355
+     "ao_mean": 0.7405
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
@@ -438,12 +438,12 @@
    "src": "RECON;PHOTO;PLATE_BASES;PLATE_COLUMN",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 54.3,
-   "build_s": 170
+   "bake_s": 40.5,
+   "build_s": 83
   },
   "column_capital_plain": {
    "file": "models/column_capital_plain.glb",
-   "inHash": "618d2b635391a05d15b0be4c8a4730eaaea74aa5923b2a25b9ff55dc34fc8944",
+   "inHash": "334a949107de41697f2142d5a3fec2985a35d75156ff57695f73bf8d459d69d0",
    "outHash": "59841129c70efc5f3a6975e3157c76075d77d2a1421e348ab3da9bafc14c993d",
    "bytes": 191428,
    "gpuBytes": 360171,
@@ -493,12 +493,12 @@
    "src": "RECON;PHOTO;PLATE_BASES",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 8.6,
-   "build_s": 29
+   "bake_s": 17,
+   "build_s": 85
   },
   "column_collar": {
    "file": "models/column_collar.glb",
-   "inHash": "92c4e543f1e67645b29f24fb9b24e179d3867a568bc3aa5b812891eb97d9d002",
+   "inHash": "c8b17c404864bd7c82a05a774e44c9d82ae867ae385b1fb4f0a97b1024a702e4",
    "outHash": "299ffe29ff5fa10b59c2df95684343c2b0ec991e58603fb75c19d8192dc573d9",
    "bytes": 124212,
    "gpuBytes": 382059,
@@ -548,12 +548,12 @@
    "src": "RECON;PHOTO;PLATE_COLUMN",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 25.5,
-   "build_s": 112
+   "bake_s": 19.8,
+   "build_s": 54
   },
   "column_shaft_drums": {
    "file": "models/column_shaft_drums.glb",
-   "inHash": "3c5c1403966a3ccaa28bd4608fe7bcc84b2a5d130c5fae7f857e1aa7122c1d32",
+   "inHash": "7cfaaa8ee4d9896568cfb8f37863cc8b90c32713bc9512acecf3add8123fd537",
    "outHash": "62b19110faf224937d7707282bd379ffa2164a940af6f8f4e5d1fb4d794d62f5",
    "bytes": 1011160,
    "gpuBytes": 1429163,
@@ -603,12 +603,12 @@
    "src": "RECON;PHOTO;SHAFTS",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 78.9,
-   "build_s": 145
+   "bake_s": 35.7,
+   "build_s": 81
   },
   "column_shaft_f40": {
    "file": "models/column_shaft_f40.glb",
-   "inHash": "7f54c892a9038e9069db503ac8bca116d9f901911552ccfe14b8b9761050b5b9",
+   "inHash": "e183c6a0d2e4a773cefccb61bc73f80ee3e1b7b8f816a42edfb02f008170d591",
    "outHash": "5ffa6672642d6f090de760654bf66f6805e7ed26d1d276870f00034995a3a15c",
    "bytes": 2622120,
    "gpuBytes": 5709163,
@@ -658,12 +658,12 @@
    "src": "RECON;PHOTO;SHAFTS;PLATE_COLUMN",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 148.1,
-   "build_s": 246
+   "bake_s": 159.6,
+   "build_s": 260
   },
   "column_shaft_f48": {
    "file": "models/column_shaft_f48.glb",
-   "inHash": "5f7f28da1bd7766cb40f0c162a790e99df47b9cdd2c7c28ebf7986dbc9817ed0",
+   "inHash": "5b6c3213f272780c90134ad3e0cc2eb38faf35fb41eb7708b821f30bd4a54744",
    "outHash": "ffe4bd2a6bcbc1da7fafb5bfb54f6482032f95b126e94d5979b287326d930fd6",
    "bytes": 2494156,
    "gpuBytes": 5714923,
@@ -713,12 +713,12 @@
    "src": "RECON;PHOTO;SHAFTS;PLATE_COLUMN",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 124,
-   "build_s": 183
+   "bake_s": 135.5,
+   "build_s": 227
   },
   "column_shaft_plaster": {
    "file": "models/column_shaft_plaster.glb",
-   "inHash": "02a9e63b3393b4ede9bd548865a221224562fa36a6eeffd70745cd568abd8bd7",
+   "inHash": "94e2f275b40709f2865355002cc5f40c9fc904eaa5fbf21f8b11355e3d6210c1",
    "outHash": "44507dee96079feea3599cad82bee18f8ec3b61d6c37889a76c8bcf5c0f736ae",
    "bytes": 273604,
    "gpuBytes": 1429163,
@@ -768,8 +768,8 @@
    "src": "RECON;PHOTO;PLATE_BASES",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 27.6,
-   "build_s": 126
+   "bake_s": 29.8,
+   "build_s": 216
   }
  }
 }

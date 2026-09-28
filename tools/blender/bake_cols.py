@@ -120,6 +120,14 @@ for (o, mat, tn, img_n, img_a, n, cage) in levels:
     px_n = np.empty(n * n * 4, np.float32); img_n.pixels.foreach_get(px_n)
     px_a = np.empty(n * n * 4, np.float32); img_a.pixels.foreach_get(px_a)
     out = px_n.reshape(-1, 4).copy(); out[:, 3] = px_a.reshape(-1, 4)[:, 0]
+    if B.get('max_tilt'):
+        # c. (D-328) a baked normal tilted further than max_tilt from the level's own is a facet of the level bridging a groove
+        # of the source (the volute's reeds): the map cannot draw that groove on that facet, only a streak; it is laid back to
+        # max_tilt, keeping its direction
+        v = out[:, :3] * 2.0 - 1.0; t = np.hypot(v[:, 0], v[:, 1]); a = np.arctan2(t, v[:, 2]); m = a > math.radians(B['max_tilt'])
+        s_, c_ = math.sin(math.radians(B['max_tilt'])), math.cos(math.radians(B['max_tilt']))
+        v[m, 0] = v[m, 0] / np.maximum(t[m], 1e-6) * s_; v[m, 1] = v[m, 1] / np.maximum(t[m], 1e-6) * s_; v[m, 2] = c_
+        out[:, :3] = (v + 1.0) * 0.5; stats.setdefault('tilt_clamped', []).append(float(m.mean()))
     # quantise here (round half up), so the PNG holds exactly these bytes whatever Blender's own float->byte conversion does
     q = np.clip(np.floor(out * 255.0 + 0.5), 0, 255).astype(np.uint8)
     packed = bpy.data.images.new(f'{job["id"]}_{o.name}', n, n, alpha=True, float_buffer=False)

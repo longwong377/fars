@@ -262,9 +262,10 @@
     "ao_distance": 0.15,
     "uv_angle": 66,
     "uv_margin": 0.004,
-    "high_normals": "geometry"
+    "high_normals": "geometry",
+    "max_tilt": 50
    },
-   "bake_note": "units D; as the protome (cage 0.03 D, rays 0.06 D cover the LOD0 error and the game piece's spiral channel, 0.027 D deep, that the rosette's disc fills); AO rays 0.15 D see the gaps between the rolls, the reeds and the petals; D-328: baked by bake_cols.py (rays from a smooth cage: the volute's reeded panel had seam streaks along its creases)",
+   "bake_note": "units D; as the protome (cage 0.03 D, rays 0.06 D cover the LOD0 error and the game piece's spiral channel, 0.027 D deep, that the rosette's disc fills); AO rays 0.15 D see the gaps between the rolls, the reeds and the petals; D-328: baked by bake_cols.py (rays from a smooth cage: the volute's reeded panel had seam streaks along its creases); max_tilt 50 deg: baked normals tilted further are laid back to 50 deg (the reeded panel's facets bridging the reeds drew streaks, BLENDER_PLAN row 1)",
    "budget": {
     "tris": [
      2900,

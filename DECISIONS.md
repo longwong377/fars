@@ -8055,3 +8055,47 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
   B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
   platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.
+
+## D-328 Every column part of the world Blender-modelled and baked: the bases, the palm and calyx bells, the collars, the timber capitals and every shaft (session 12, agent columns; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN rows 1 and 4; Q-912..Q-913, B166..B168)
+- **The class, world-wide (580 columns + the Hall of 100 Columns' construction states + the masons' yard):** every turned or
+  boxed member of every order and every shaft is now drawn from a Blender-built model (public/models/column_*.glb, 10 assets,
+  ~11 MB): `column_base_bell` (the Gate, the Apadana porticoes, the Hall of 100 Columns, the Tripylon, the Harem's stone
+  order), `column_base_square2` (the Apadana hall, the Tachara, the Treasury's, the Harem's and the garrison's timber orders),
+  `column_base_plain` (the Hadish), `column_bells` (the composite capital's palm and calyx: the Apadana hall and N/E
+  porticoes, the Gate), `column_collar` (every double-bull capital, the yard's finished capitals), `column_capital_plain` (the
+  timber orders' bolster and abacus), and four shaft tiles: `column_shaft_f48` (the Apadana), `column_shaft_f40` (every other
+  fluted stone order), `column_shaft_drums` (the unfluted drums under construction: the Hall of 100 Columns, the Tripylon, the
+  yard's dressed drums) and `column_shaft_plaster` (the Treasury's painted shafts, the Harem's and the garrison's posts). With
+  the protome (D-305) and the volute member (D-306) nothing of a column is procedural when the models load.
+- **Members** (tools/blender/sources/column_member.ts): the game's own member of a reference order (sculpt.ts MEMBER_REF,
+  memberMesh) is the bake's target; the source is the same form evaluated densely (3-5 mm) with the carving of the photographs
+  (tools/blender/columns.json, map-only relief: the bell base's 28 corded pendant leaves with crested faces under a band of
+  scalloped tongues and the sunk tips of the leaves behind; the palm's veined drooping leaves and the close-set bead row at
+  its neck; the calyx's grooved sepals and crown of tips; the collar's bead row; the torus flutes' worked arrises) and the
+  dressing (polish with the unevenness of hand work and pits; the square plinths' eased arrises and setting nicks; the timber's
+  adze scallops and checks), relief laid along the profile's own normal. The game fits each model level to the order's own
+  member box (sculpt.ts memberBox: radii scale with D, heights with the base or capital height, as the procedural members do);
+  one draw per member kind per building (the Hall of 100 Columns' bases are one draw over every construction state).
+- **Shafts:** the game keeps its own shaft (SITE_SPEC diameter, taper, 40/48 flutes; no entasis: SITE_SPEC gives none, only
+  shaft_top_ratio, Q-913) and draws it with sculpt.ts shaftUV (the same triangles, the seam doubled, u = angle / 2pi, v = height
+  over three drums, tangents d/du, w = +1); the tile's map is baked on a band of the reference shaft three drums tall and the
+  whole way round with the tile's UVs kept (bake_cols.py uv "source"): hand-cut flute arrises that wander a millimetre, the
+  flutes' depth varying by flute, hairline drum joints with a chamfer at whole drums (drum height = shaft over round(shaft /
+  1.15 m), people/construction.ts BUILD.drumH, C), setting chips beside joints; the unfluted drums' point and claw tooling and
+  wider joints; the posts' floated plaster and hairline cracks. Each column reads the tile offset by whole flutes and whole
+  drums (colSeed, an instanced attribute InstancedLOD reorders with its instances), so neighbours do not repeat each other.
+  tests/columns_baked.test.ts decodes each tile's GLB and holds its UVs and MikkTSpace tangents to the analytic frame.
+- **The bell base's form re-read** (sculpture.json base.bell shoulder_pow 3, bell_leaves count 28, relief 0.012 D): the two
+  photographed bell bases (fars-assets/photos/columns_capitals 73396298, 73458416) have near-vertical sides under a rounded
+  shoulder, not the flare of the old profile, and 13-14 leaves across the visible half (C for both numbers).
+- **bake_cols.py** (the columns' Blender stage; bake.py and the other assets untouched): rays from a smooth cage (the welded
+  level pushed out along its averaged normals) instead of the split normals' extrusion, and (volute) normals tilted beyond 50
+  deg laid back: the volute member's reeded panel drew seam streaks where the level's facets bridge the reeds.
+- **Row 4 (the capitals' source detail):** the protome's carving gains the apron of curl tufts hanging in a V between the two
+  bulls' forelegs (the Louvre capital, references/column in louvre.jpg; carving.json protome.apron, C); its bead rows, halter,
+  collar with rosettes, pendant and mane are D-306's.
+- **The world's code paths switched:** src/arch/meshes.ts buildMeshes (every column group: memberLOD per member kind, shaftLOD
+  per state), src/world/construction.ts (the Hall of 100 Columns' states: bases and collars one draw each, shafts per state;
+  the yard's capitals' collars and dressed drums), src/arch/column_models.ts (which parts a model draws, the shaft geometry,
+  the seeded baked material); the Now view goes through buildMeshes too. What no model draws stays procedural (A/B:
+  window.__models.ab).

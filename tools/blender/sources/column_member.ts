@@ -207,7 +207,8 @@ function bellsHigh(o: ColumnOrder) {
   disc(y0, 0, rShaft, -1);
   lathe(rowsAlong(pprof, 160), pprof, (th, t, y, r) => {
     const u = (th / TAU) * nL, lu = u - Math.floor(u) - 0.5, sv = sOf(t);
-    const env = leaf(lu, sv, Pm.leaf_w, Pm.leaf_edge, 0); // the leaf's body (0..1), as the game's lathe carries it
+    // the leaf's body (0..1), as the game's lathe carries it, springing from just below the bead row at the neck
+    const env = leaf(lu, sv, Pm.leaf_w, Pm.leaf_edge, 0) * (1 - smoothstep(yb - 2.2 * bead.r * D, yb - 1.1 * bead.r * D, y));
     let rr = K.leaf_h * D * env;
     if (env > 0) {
       const hw = Pm.leaf_w, a = Math.abs(lu) / hw; // across the leaf, 0 at the midrib, 1 at its edge
