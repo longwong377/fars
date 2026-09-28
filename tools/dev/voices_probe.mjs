@@ -3,7 +3,7 @@
 import { chromium } from 'playwright';
 import { writeFileSync } from 'node:fs';
 const Q = process.env.PROBE_Q ?? process.argv[2] ?? '', OUTF = process.argv[3] ?? 'T:/fars-assets-s12/voices/probe.json';
-const b = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
+const b = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required', ...(process.env.WEBNN ? ['--enable-features=WebMachineLearningNeuralNetwork'] : [])] });
 const p = await b.newPage(); const logs = [];
 p.on('console', m => logs.push(m.type() + ' ' + m.text().slice(0, 300))); p.on('pageerror', e => logs.push('pageerror ' + e)); p.on('response', r => { if (r.status() >= 400) logs.push('HTTP ' + r.status() + ' ' + r.url()); });
 p.on('worker', w => { logs.push('worker ' + w.url()); w.on('console', m => logs.push('W ' + m.type() + ' ' + m.text().slice(0, 300))); });

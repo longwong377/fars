@@ -4,7 +4,7 @@ import { KOKORO_REPO, KOKORO_RATE, STYLE_DIM, STYLE_ROWS, BASE_VOICES, blendStyl
 import type { NeuralVoice } from './identity';
 import { Rng } from '../../core/rng';
 
-export interface RunnerOpts { device?: 'webgpu' | 'wasm' | 'cpu'; dtype?: 'fp32' | 'fp16' | 'q8' | 'q8f16'; /** node: the model store laid out as <repo>/resolve/main/<file> */ root?: string; /** the style voice files */ voiceData: (name: string) => Promise<ArrayBuffer> }
+export interface RunnerOpts { device?: 'webgpu' | 'wasm' | 'cpu' | 'dml' | 'webnn' | 'webnn-gpu'; dtype?: 'fp32' | 'fp16' | 'q8' | 'q8f16'; /** node: the model store laid out as <repo>/resolve/main/<file> */ root?: string; /** the style voice files */ voiceData: (name: string) => Promise<ArrayBuffer> }
 export class KokoroRunner {
   private tables = new Map<string, Float32Array>();
   private constructor(private model: any, private T: any) {}

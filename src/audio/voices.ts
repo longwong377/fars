@@ -17,9 +17,11 @@
 // lexicon (a detailed agent's `langs`). A conversation whose members have different home languages is held in Aramaic,
 // the lingua franca (brief §10; C), by those who have Aramaic or a lexicon language of their own; the wordless stay wordless.
 //
-// How they sound: each person has their own voice from their own seed (pitch, rate, breathiness, timbre = formant scale),
-// never shared with a neighbour (two near-identical voices of one class in earshot are pushed apart), rendered afresh for
-// every utterance by the formant synthesiser (speech.ts; PLACEHOLDER-QUALITY voice, tier C) with a new jitter seed.
+// How they sound (D-336, UD-22): each person's own natural voice (audio/neural: Kokoro-82M in a worker, a blend of its style
+// voices, their vocal-tract length and pace from their own seed, sex, age and people), each unit's clip cached per person
+// and played with this utterance's own small pitch and pace variation. Until the model has loaded, or where it cannot run,
+// the formant synthesiser speaks instead (speech.ts; PLACEHOLDER-QUALITY, tier C: each person their own formant voice from
+// their seed, pushed apart from the voices in earshot, rendered afresh for every utterance with a new jitter seed).
 //
 // Conversation: talkers standing within 3 m of each other at the same place are one conversation and take turns (one
 // speaks, the others listen; a short overlap now and then). The crowd moves a person's jaw only while their voice plays
@@ -28,7 +30,8 @@
 // The crowd bed: talkers beyond the individual voices (farther than `clearR`, or more than `maxVoices`) up to `bedR` are
 // heard as a murmur of independent grains: up to `bedStreams` overlapping streams (√n of the talkers), each grain one unit
 // in the voice of a talker drawn near-weighted, placed at that talker, low-passed with distance. Nothing is looped or
-// pooled: every grain is a fresh render, so the bed never repeats.
+// pooled across people: a grain is one of that talker's own units (D-336: one already rendered in their voice when there is
+// one), never the same unit from them within 60 s.
 //
 // Cost: a unit renders in ~2–4 ms on the main thread (node, measured by tools/dev/audio_render.ts); renders are budgeted per
 // update (`renderBudget` 2, `renderMs` 3); a speaker whose render does not fit waits a frame, silent (and so not moving the jaw).

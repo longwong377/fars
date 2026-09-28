@@ -17,7 +17,7 @@ export class NeuralVoices {
   /** the clips kept (a clip of ~1.5 s is ~140 kB; 1200 is ~170 MB at most, most units are shorter) */
   maxClips = 1200;
   readonly ready: Promise<boolean>;
-  constructor(o: { device?: 'webgpu' | 'wasm'; dtype?: string } = {}) {
+  constructor(o: { device?: 'webgpu' | 'wasm' | 'webnn-gpu'; dtype?: string } = {}) {
     this.ready = new Promise(res => {
       try { this.w = new Worker(new URL('./neural_worker.ts', import.meta.url), { type: 'module', name: typeof location !== 'undefined' && /[?&]neuraldebug/.test(location.search) ? 'debug' : 'voices' }); } catch (e) { this.stats.lastError = String(e); res(false); return; }
       this.w.onmessage = (e: MessageEvent) => { const m = e.data;
