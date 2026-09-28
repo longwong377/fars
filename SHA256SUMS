@@ -299,3 +299,7 @@ b894a7f1a344a99c921faeec5d26463b8e365421087bfd890e925bf0f2a9783e  voices/smoke/w
 7da4954212d3f21a91cc3e693d179f63213fd57356796847f65d7f95478a1f9e  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/mlc-chat-config.json
 6d16a8936b1c9f372305064c4688eae17a609b62693f6782454d4fa2055c6e94  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/ndarray-cache.json
 29e46841454786b2c36cbcfd1d9a0777f8cb2bb55fb7cdf9ebd3df6ea6aa61f6  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_0.bin
+a99a03870f60127bdc3891f0bdc13a0f6e25efa984e9a5d6b188b5aae6f4fbae  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_1.bin
+cbe9fa5eaff5463502bf9cc766b39081482e7df30ffc250d8f3e83c45d1700d1  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_10.bin
+f99e7bfc14e17d88d905360dd1f0ecbaab98d5778acdd762e397254c293a2b42  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_11.bin
+3ec7ea81f305fc10b5ed9958ae279486d113d2621029f5f4a4cb820bc803c2ca  models/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/main/params_shard_12.bin
