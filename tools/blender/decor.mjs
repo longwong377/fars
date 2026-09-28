@@ -59,12 +59,21 @@ for (const id of ids) {
     meta.assets.merlon = { inHash, files: { 'models/decor/merlon.glb': { sha256: sha(glb), bytes: glb.length } }, lods: Object.fromEntries(Object.entries(M.meshes).map(([k, m]) => [k, { tris: m.tris, verts: m.verts }])), gpuBytes: M.gpuBytes, stats: st, build_s: Math.round((Date.now() - t0) / 1000) };
   } else if (id === 'tents') {
     npx(['tools/blender/sources/tents.ts', work]);
-    blender('tools/blender/decor_tents.py', [`${work}/job.json`, work, DEVICE], 'decor-tents');
-    const st = JSON.parse(readFileSync(`${work}/tents_stats.json`, 'utf8'));
+    // the three kinds' simulations at once (one Blender each), then each baked by the pipeline's bake.py
+    const kinds = JSON.parse(readFileSync(`${work}/job.json`, 'utf8')).kinds.map(k => k.kind), { spawn } = await import('node:child_process');
+    await Promise.all(kinds.map(kind => new Promise((ok, no) => {
+      log('$ decor_tents.py', kind); const p = spawn(BLENDER, ['-b', '--factory-startup', '--python', 'tools/blender/decor_tents.py', '--', `${work}/job.json`, work, kind], { stdio: ['ignore', 'pipe', 'pipe'] });
+      let tail = ''; p.stdout.on('data', d => { tail = (tail + d).slice(-4000); if (/\[decor_tents\]/.test(String(d))) process.stdout.write(String(d)); }); p.stderr.on('data', d => { tail = (tail + d).slice(-4000); });
+      p.on('close', c => c === 0 ? ok() : no(new Error(`decor_tents ${kind} exited ${c}: ${tail}`)));
+    })));
+    const st = { kinds, per: Object.fromEntries(kinds.map(k => [k, JSON.parse(readFileSync(`${work}/tent_${k}_stats.json`, 'utf8'))])) };
     const { repackGLB, measureGLB } = await import('./lib/glb.mjs'); const files = {}, lods = {};
     for (const kind of st.kinds) {
+      writeFileSync(`${work}/bake_${kind}.json`, JSON.stringify({ id: `tent_${kind}`, high: `${work}/tent_${kind}_high.ply`, lods: [{ ply: `${work}/tent_${kind}_lod0.ply`, tex: 1024 }, { ply: `${work}/tent_${kind}_lod1.ply`, tex: 256 }], out_glb: `${work}/tent_${kind}.glb`, out_dir: work, device: DEVICE, seed: 0,
+        bake: { cage: 0.04, ray: 0.08, margin: 6, normal_samples: 4, ao_samples: 128, ao_distance: 0.6, uv_angle: 66, uv_margin: 0.006, high_normals: 'geometry' } }, null, 1));
+      blender('tools/blender/bake.py', [`${work}/bake_${kind}.json`], `decor-tent-${kind}`);
       let glb = readFileSync(`${work}/tent_${kind}.glb`); const M0 = measureGLB(glb), rep = {};
-      for (const im of M0.images) { const png = `${work}/tent_${kind}_map${im.index}.png`, k2 = png.replace(/\.png$/, '.ktx2'); ktx2(png, k2, 'clamp'); rep[im.index] = { data: readFileSync(k2), mimeType: 'image/ktx2' }; }
+      for (const im of M0.images) { const png = `${work}/tent_${kind}_lod${im.index}.png`, k2 = png.replace(/\.png$/, '.ktx2'); ktx2(png, k2, 'clamp'); rep[im.index] = { data: readFileSync(k2), mimeType: 'image/ktx2' }; }
       glb = repackGLB(glb, rep); writeFileSync(`${OUT}/tent_${kind}.glb`, glb); const M = measureGLB(glb);
       files[`models/decor/tent_${kind}.glb`] = { sha256: sha(glb), bytes: glb.length }; lods[kind] = Object.fromEntries(Object.entries(M.meshes).map(([k, m]) => [k, { tris: m.tris, verts: m.verts }]));
     }

@@ -11,7 +11,7 @@ import { buildMeshes } from '../../src/arch/meshes';
 import { loadSculpt } from '../../src/arch/sculpt';
 import { buildStairCrenellations, buildReliefs } from '../../src/arch/decor';
 import { setTraffic } from '../../src/render/materials';
-import { loadDecorAssets, decorStats } from '../../src/render/decorAssets';
+import { loadDecorAssets, decorStats, withBakedMap, frameTrim } from '../../src/render/decorAssets';
 import { loadModels } from '../../src/render/models';
 import { CourtCampTents } from '../../src/world/courtCamps';
 (async () => {
@@ -33,6 +33,11 @@ import { CourtCampTents } from '../../src/world/courtCamps';
     await loadSculpt(async p => { const q = await fetch('/' + p); if (!q.ok) throw new Error(`${p}: ${q.status}`); return q.arrayBuffer(); });
     const { parts, doorways, manifest } = buildTerrace(); setTraffic(doorways);
     const arch = buildMeshes(parts); scene.add(arch.group); (window as any).__frames = arch.frames;
+    // ?framelight: the frames in the light limestone (to see the trim's relief; the game's frames are the dark polished stone);
+    // ?noroof: the roofs hidden (the sun on the frames inside the halls)
+    arch.group.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return;
+      if (P.has('framelight') && m.name.endsWith(':frame') && frameTrim()) m.material = withBakedMap('limestone', frameTrim()!, 'frame_trim_light', { arch: true });
+      if (P.has('noroof') && /: roof$/.test(String(m.userData?.note ?? ''))) m.visible = false; });
     const cren = buildStairCrenellations(parts); if (cren) scene.add(cren);
     if (P.has('reliefs')) scene.add(buildReliefs(manifest));
   }

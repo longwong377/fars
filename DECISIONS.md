@@ -8055,3 +8055,44 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
   B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
   platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.
+
+## D-330 The stone frames of every door, window and niche carved, every merlon modelled, every court tent pitched as simulated cloth (session 12, agent decor_tents; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN rows 17-18; Q-916, Q-917)
+- **How this could pass its tests while the intent fails (clause 1), and what was measured against it:** (a) the frame
+  geometry passes its node tests while the page draws the boxes (the trim texture fails to load, or a generator's frames are
+  not recognised): measured by the probe's `__frames` (59 assemblies, 263 parts, 0 left as boxes) and decorStats.loaded on
+  the page; (b) the normal maps load but are read upside down or in the wrong tangent frame (the tongues sunk, the chips
+  raised): checked on the probe with the frames in light stone (?framelight) under a grazing sun; (c) the tent models load
+  but the level switch never picks them (every tent stays a shell): tests/tents.test.ts puts the eye at every camp's centre
+  and requires the modelled level for every tent within 37 m; (d) a class counted while one generator still draws the old
+  form: every path was grepped (below).
+- **Frames (row 17):** src/arch/frames.ts finds every frame of every generator (parts.ts doorFrames, openings.ts
+  openingParts, plan_walls.ts) again as an assembly (two jambs, lintel, cornice block, sill block under a window or niche; the
+  faces carved where nothing lies against them) and draws it carved: three stepped fasciae nested round the opening over the
+  jambs, the lintel's lower part and the sill (scaled to the sill), mitred at the corners, the arrises chamfered 4 mm; the
+  cornice block as the cavetto (Egyptian gorge) cornice: torus, gorge, fillet, swept round the lintel on every side it
+  projects, a whole number of tongues along each side. New SITE_SPEC row global.r_frame_profile (C; the form after the rock
+  tomb doorway, references/Naqsh-e Rustam 3.webp, REF-PHOTO-NR3). Every face is UV-mapped onto one trim texture carved and
+  baked in Blender (tools/blender/decor.mjs trim, decor_trim.py; 2048 x 1024, 1 mm a texel across the profiles, periodic
+  along the frame every 1.2 m = 16 tongues): the gorge's upright round-topped tongues (6 mm proud), every convex arris worn
+  round and chipped (conchoidal scoops 1-3.5 mm deep), the steps' feet filleted, a faint polish ripple; normal + AO,
+  KTX2 1.2 MB. meshes.ts routes the frame parts to it (their own draw per building, the architecture variant of the stone,
+  its y0 / pbox / ytop attributes per part); colliders are the boxes still. 29.9 k triangles for all 59 frames (+~17 k over
+  the bevelled boxes). tests/frames.test.ts.
+- **Merlons (row 17):** the four-stepped merlon modelled in Blender from the game's own (decor_merlon.py: voxel remesh,
+  chips cut along each of its 154 convex arrises with the Manifold boolean, the arrises worn round by smoothing, shallow
+  pitting and grain) and baked onto the game's 204 triangles (bake.py, 2048 px, KTX2): decor.ts merlonMesh(); both builders
+  draw it: the Apadana crenellations (buildReliefs) and the stair parapets' 228 merlons (buildStairCrenellations, the model
+  scaled from its 0.45 m depth to each parapet's); 'mzd' kept for D-321's arris strips. Byte-identical on a CPU rebuild.
+- **Tents (row 18):** every tent of every camp (1,944: ridge 996, black 861, pavilion 87) is pitched cloth: src/world/
+  tentForms.ts gives each kind its poles, the cloth's holds (the ridge on its pole, the pole tops, the eave and hem points at
+  the guy ropes and pegs, the edges roped taut, a pavilion's hips), its ropes and pegs; Blender's cloth solver
+  (decor_tents.py, 5 cm grid, 3 % slack, 90 frames) hangs each kind's panels from those holds: the roofs sag between the
+  ropes, the black tent's roof dips between its poles, the walls hang in folds, the ridge tent's door and the pavilion's
+  stand open; decimated to two levels (1,568 and ~312 triangles) with the folds baked (bake.py; normal + AO, 1024 / 256 px).
+  courtCamps.ts draws them instanced per kind and level: the simulated cloth with its rig (poles, ropes, pegs from
+  tentForms.ts, so they meet the cloth at its holds) within 40 m, the decimated cloth with its poles to 110 m, beyond that the
+  D-199 shell (<= 20 triangles, now tinted per instance); each tent on the plane of the ground under its corners; colour per
+  tent as before; the cloth takes the hessian weave scan (scans.ts tent_cloth). Drawn at the densest camp centre: 173 k
+  triangles (29 near, 209-221 mid, the rest shells; tests/tents.test.ts, limit 400 k), 15 instanced meshes for all camps (was
+  one merged mesh per camp and hour of pitching). No royal tent: the king lodges in the Hadish (court.ts); the brief's
+  "royal tent" is the pavilions of the Persians of rank.
