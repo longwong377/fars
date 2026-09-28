@@ -17,7 +17,7 @@ import { deflateSync } from 'node:zlib';
 import { spawnSync, spawn } from 'node:child_process';
 import { cpus } from 'node:os';
 import { figureDef } from '../../src/arch/relief_figures';
-import { rasterize, fieldCoverage, figureBounds, BG, GILT_SRGB, STONE_SRGB } from '../../src/arch/relief_field';
+import { rasterize, fieldCoverage, figureBounds, BG, STONE_SRGB } from '../../src/arch/relief_field';
 import { v } from '../../src/arch/spec';
 import { atlasCell, type AtlasIndex, type AtlasEntry } from '../../src/arch/relief_atlas';
 import { reliefAtlasInputs } from './lib/relief_inputs';
@@ -52,7 +52,7 @@ const sha = (b: Buffer | Uint8Array) => createHash('sha256').update(b).digest('h
 // ---------------------------------------------------------------- 1. census: tools/blender/lib/relief_census.ts
 
 // ---------------------------------------------------------------- 2. surfaces and paint
-interface Prepared { key: string; nx: number; ny: number; cell: number; fig: [number, number]; rho: number; S: number; zmax: number; id: string; paint: Uint8Array; gilt: Uint8Array }
+interface Prepared { key: string; nx: number; ny: number; cell: number; fig: [number, number]; rho: number; S: number; zmax: number; id: string; paint: Uint8Array }
 /** an sRGB value (the palette is held in sRGB) as a byte */
 const u8 = (c: number) => Math.max(0, Math.min(255, Math.floor(c * 255 + 0.5)));
 function prepare(u: DefUse): Prepared {
@@ -82,16 +82,15 @@ function prepare(u: DefUse): Prepared {
   }
   const id = u.key.replace(/[|~]/g, '_');
   writeFileSync(`${WORK}/${id}.xyz`, Buffer.from(xyz.buffer));
-  // paint on the same grid: sRGB colour (the stone where nothing is painted), coverage (0 = bare stone) and gilding
-  const cov = fieldCoverage(f), paint = new Uint8Array(nx * ny * 4), gilt = new Uint8Array(nx * ny);
-  const gk = f.palette.findIndex(c => c[0] === GILT_SRGB[0] && c[1] === GILT_SRGB[1] && c[2] === GILT_SRGB[2]);
+  // paint on the same grid: sRGB colour (the stone where nothing is painted; gilding is its gilt key colour, which the shader
+  // recognises) and coverage (0 = bare stone)
+  const cov = fieldCoverage(f), paint = new Uint8Array(nx * ny * 4);
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const g = (j + j0) * n + i + i0, k = j * nx + i, ci = f.col[g], c = ci === BG ? STONE_SRGB : f.palette[ci];
     paint[k * 4] = u8(c[0]); paint[k * 4 + 1] = u8(c[1]); paint[k * 4 + 2] = u8(c[2]);
     paint[k * 4 + 3] = ci === BG ? 0 : u8(cov[g]);
-    gilt[k] = gk > 0 && ci === gk ? 255 : 0;
   }
-  return { key: u.key, nx, ny, cell, fig: [f.x0 + i0 * cell, f.y0 + j0 * cell], rho, S, zmax, id, paint, gilt };
+  return { key: u.key, nx, ny, cell, fig: [f.x0 + i0 * cell, f.y0 + j0 * cell], rho, S, zmax, id, paint };
 }
 
 // ---------------------------------------------------------------- 3. Blender
@@ -116,16 +115,37 @@ function bake(ps: Prepared[], devices: string[]) {
 }
 
 // ---------------------------------------------------------------- 4. packing, PNG, KTX2
+/** skyline bottom-left packing (tallest first; each rectangle at the lowest top it can have in the first layer it fits, GAP
+ *  texels apart): 4 layers where the shelves of D-320's first build took 5 */
 function pack(ps: Prepared[]) {
   const order = [...ps].sort((a, b) => b.ny - a.ny || b.nx - a.nx), place = new Map<string, { layer: number; x: number; y: number }>();
-  let layer = 0, x = 0, y = 0, rowH = 0;
+  const sky: { x: number; y: number; w: number }[][] = [];
+  const fit = (L: { x: number; y: number; w: number }[], i: number, w: number) => { // the top of the skyline under [x, x + w) from segment i, or -1
+    const x = L[i].x; if (x + Math.min(w, PAGE - x) > PAGE || x >= PAGE) return -1;
+    let y = 0; for (let j = i; j < L.length && L[j].x < x + w; j++) y = Math.max(y, L[j].y);
+    return x + w - GAP > PAGE ? -1 : y;
+  };
   for (const p of order) {
     if (p.nx > PAGE || p.ny > PAGE) throw new Error(`${p.key}: ${p.nx}x${p.ny} does not fit a ${PAGE} page`);
-    if (x + p.nx > PAGE) { x = 0; y += rowH + GAP; rowH = 0; }
-    if (y + p.ny > PAGE) { layer++; x = 0; y = 0; rowH = 0; }
-    place.set(p.key, { layer, x, y }); x += p.nx + GAP; rowH = Math.max(rowH, p.ny);
+    const w = p.nx + GAP, h = p.ny + GAP; let done = false;
+    for (let li = 0; li <= sky.length && !done; li++) {
+      if (li === sky.length) sky.push([{ x: 0, y: 0, w: PAGE }]);
+      const L = sky[li]; let best = -1, by = Infinity;
+      for (let i = 0; i < L.length; i++) { const y = fit(L, i, w); if (y >= 0 && y + p.ny <= PAGE && y < by) { by = y; best = i; } }
+      if (best < 0) continue;
+      const x = L[best].x; place.set(p.key, { layer: li, x, y: by });
+      // the skyline under the new rectangle becomes one segment at its top
+      const out: typeof L = [], x1 = x + w;
+      for (const g of L) { const g1 = g.x + g.w;
+        if (g1 <= x || g.x >= x1) { out.push(g); continue; }
+        if (g.x < x) out.push({ x: g.x, y: g.y, w: x - g.x });
+        if (g1 > x1) out.push({ x: x1, y: g.y, w: g1 - x1 }); }
+      out.push({ x, y: by + h, w: Math.min(w, PAGE - x) }); out.sort((a, b) => a.x - b.x);
+      const merged: typeof L = []; for (const g of out) { const m = merged[merged.length - 1]; if (m && m.y === g.y && m.x + m.w === g.x) m.w += g.w; else merged.push({ ...g }); }
+      sky[li] = merged; done = true;
+    }
   }
-  return { place, layers: layer + 1 };
+  return { place, layers: sky.length };
 }
 /** the bake of one figure (normal x, y, z and occlusion per texel). Where a front ray met the underside of an undercut step
  *  (the pulled-in foot of a thin feature folds over its neighbour: ~0.5 % of the texels, all on outlines), the normal is
@@ -179,11 +199,11 @@ function run(cmd: string, args: string[]) { const r = spawnSync(cmd, args, { enc
   const S0 = STONE_SRGB.map(u8), naoPng: string[] = [], paintPng: string[] = [];
   for (let L = 0; L < layers; L++) {
     const nao = new Uint8Array(PAGE * PAGE * 4), paint = new Uint8Array(PAGE * PAGE * 4);
-    for (let k = 0; k < PAGE * PAGE; k++) { nao[k * 4] = 128; nao[k * 4 + 1] = 128; nao[k * 4 + 2] = 255; nao[k * 4 + 3] = 0; paint[k * 4] = S0[0]; paint[k * 4 + 1] = S0[1]; paint[k * 4 + 2] = S0[2]; paint[k * 4 + 3] = 0; }
+    for (let k = 0; k < PAGE * PAGE; k++) { nao[k * 4] = 128; nao[k * 4 + 1] = 128; nao[k * 4 + 2] = 255; nao[k * 4 + 3] = 255; paint[k * 4] = S0[0]; paint[k * 4 + 1] = S0[1]; paint[k * 4 + 2] = S0[2]; paint[k * 4 + 3] = 0; }
     for (const p of ps) { const q = place.get(p.key)!; if (q.layer !== L) continue;
       const nb = bakedNormals(p);
       for (let j = 0; j < p.ny; j++) for (let i = 0; i < p.nx; i++) { const s = j * p.nx + i, d = ((q.y + j) * PAGE + q.x + i) * 4;
-        nao[d] = nb[s * 4]; nao[d + 1] = nb[s * 4 + 1]; nao[d + 2] = nb[s * 4 + 3]; nao[d + 3] = p.gilt[s];
+        nao[d] = nb[s * 4]; nao[d + 1] = nb[s * 4 + 1]; nao[d + 2] = nb[s * 4 + 2]; nao[d + 3] = nb[s * 4 + 3];
         paint[d] = p.paint[s * 4]; paint[d + 1] = p.paint[s * 4 + 1]; paint[d + 2] = p.paint[s * 4 + 2]; paint[d + 3] = p.paint[s * 4 + 3]; } }
     naoPng.push(`${WORK}/nao_${L}.png`); paintPng.push(`${WORK}/paint_${L}.png`);
     writeFileSync(naoPng[L], png(PAGE, PAGE, nao)); writeFileSync(paintPng[L], png(PAGE, PAGE, paint));

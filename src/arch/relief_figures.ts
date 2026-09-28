@@ -88,7 +88,7 @@ export interface Built { masses: Mass[]; incisions: Incision[] }
 // ---------------- the human head (profile facing +x; the neck meets the body at about (0.005, 0.74)) ----------------
 export type Head = 'fluted' | 'cap' | 'band' | 'pointed' | 'hood' | 'bare' | 'crown' | 'fillet' | 'tallcap';
 export type Beard = 'long' | 'short' | 'none';
-export function humanHead(fr: Frame, head: Head, beard: Beard, hc: C3): Built {
+export function humanHead(fr: Frame, head: Head, beard: Beard, hc: C3, HAIR: C3 = P.darkBlue): Built {
   const ms: Mass[] = [], I: Incision[] = [];
   // cranium + face profile (forehead, straight nose, lips, chin)
   const face = fr.spoly([[-0.03, 0.855], [0.02, 0.856], [0.044, 0.838], [0.053, 0.816], [0.058, 0.805], [0.076, 0.774], [0.072, 0.768], [0.06, 0.766], [0.062, 0.759], [0.057, 0.753], [0.06, 0.744], [0.046, 0.728], [0.01, 0.728], [-0.02, 0.76]], 4);
@@ -210,6 +210,8 @@ export interface Human {
   royal?: boolean;
   /** D-214: the guards' robe, patterned after the Susa glazed-brick guards (patternedRobe, C) */
   pattern?: boolean;
+  /** D-320: the hair and beard's paint (default dark blue, B; the unpainted Neo-Elamite relief: the stone) */
+  hair?: C3;
 }
 type Layer = 'back' | 'farArm' | 'body' | 'top' | 'front';
 
@@ -290,7 +292,7 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
     return out;
   };
   if (h.far) L.farArm.push(...arm(h.far, false));
-  const hd = humanHead(fr, h.head, h.beard, h.headCol ?? g2); L.top.push(...hd.masses); I.push(...hd.incisions);
+  const hd = humanHead(fr, h.head, h.beard, h.headCol ?? g2, h.hair); L.top.push(...hd.masses); I.push(...hd.incisions);
   L.front.push(...arm(h.near, true));
   if (h.akinakes) { // short sword on the right (near) thigh, lobed scabbard mouth, chape (Median dress, B)
     L.front.push(M([fr.seg(0.005, 0.47, 0.055, 0.34, 0.012, 0.007), fr.ell(0.004, 0.472, 0.02, 0.009, -0.9), fr.circ(0.058, 0.335, 0.009)], { amp: 0.72, lift: 0.1, colour: P.gold, round: 0.008, groove: 0.08 }));
@@ -821,7 +823,7 @@ export function figureDef(kind: string, seed: number): FigureDef {
     case 'fire_altar': return { masses: fireAltar(fr) };
     case 'elamite': { // D-320: a worshipper of the Neo-Elamite relief (by analogy, C; see FIGURE_KINDS.elamite), unpainted
       const woman = seed % 3 === 2, clasp = { near: { elbow: [0.05, 0.56], hand: [0.085, 0.64] }, far: { elbow: [0.035, 0.57], hand: [0.075, 0.63] } } as Pick<Human, 'near' | 'far'>;
-      return human(fr, { dress: 'long', head: woman ? 'fillet' : 'band', beard: woman ? 'none' : 'long', garment: STONE, garment2: STONE, headCol: STONE, ...clasp });
+      return human(fr, { dress: 'long', head: woman ? 'fillet' : 'band', beard: woman ? 'none' : 'long', garment: STONE, garment2: STONE, headCol: STONE, hair: STONE, ...clasp });
     }
     case 'moon': return { masses: [M([diff(fr.circ(0, 0.5, 0.5), fr.circ(0.16, 0.56, 0.42))], { amp: 0.7, colour: P.yellowOchre, round: 0.03, groove: 0.1 }), M([diff(fr.circ(0, 0.5, 0.5), fr.circ(0, 0.5, 0.44))], { amp: 0.6, colour: STONE, round: 0.02 })] };
     case 'hero': { // the royal hero grasps the rampant beast and stabs it in the belly (composition C); seed % 3: lion, bull,

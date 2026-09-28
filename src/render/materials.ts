@@ -16,7 +16,7 @@ import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, normalGeometry, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt } from 'three/tsl';
 import { MASONRY, courseTexels } from './masonry';
 import PC from '../data/polychromy.json';
-import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
+import { linearToSrgb, munsellY, srgbToLinear, labToSrgb } from '../core/colour';
 import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
 import { blockFaceLoaded, blockFaceDetail, BF_ON, ADIST_OFF } from './blockface';
@@ -1266,7 +1266,9 @@ export function paintedStoneMaterial(atlas: ReliefAtlasMaps | null = null): THRE
   const m = new THREE.MeshStandardNodeMaterial();
   finish(m, L, d);
   // D-320: the atlas's carved surface is the shading normal; the stone's and the paint film's own fine relief bumped round it
-  if (A) m.normalNode = bumped(L.height ?? float(0), A.normal);
+  if (A) { m.normalNode = bumped(L.height ?? float(0), A.normal);
+    // the carving finer than the pixel (the mip chain's normal spread, above): its mean shading in the albedo, its spread in the roughness
+    const cn = m.colorNode as any, rn = m.roughnessNode as any; m.colorNode = cn.mul(A.k); m.roughnessNode = rn.mul(rn).add(A.spread).sqrt().min(1); }
   m.aoNode = float(1).sub(occ.mul(0.85));
   m.metalnessNode = leaf;
   receiveReliefShadow(m); // the figures' shadows on themselves (D-226)
@@ -1279,7 +1281,7 @@ export function paintedStoneMaterial(atlas: ReliefAtlasMaps | null = null): THRE
 /** the carved-relief atlas's two array textures (D-320; arch/relief_atlas.ts, render/reliefAtlas.ts) */
 export interface ReliefAtlasMaps { nao: THREE.Texture; paint: THREE.Texture }
 /** what the relief material reads from the atlas at the vertex's `ruv` (u, v, layer, ratio): the paint (colour, coverage), the
- *  gilding, the sky occlusion (1 - the baked ambient occlusion), and the carved surface's normal in view space. The baked
+ *  gilding (the gilt key colour), the sky occlusion (1 - the baked ambient occlusion, nao.a), and the carved surface's normal in view space. The baked
  *  normal is the surface's at the definition's baked depth ratio (x along the figure, y up, z out of the wall); its slopes
  *  (x/z, y/z) scale with the instance's depth ratio (ruv.w = its ratio over the baked one), and the wall's frame (the
  *  geometry's normal and tangent, turned by the instance's matrix: arch/reliefs.ts lodGeometryAtlas) takes it to view space */
@@ -1290,14 +1292,21 @@ function reliefAtlasNodes(atlas: ReliefAtlasMaps) {
   const layer = r.z.add(0.5).floor();
   const at = (t: THREE.Texture) => (layered(t) ? texture(t, uv).depth(layer) : texture(t, uv));
   const P = at(atlas.paint), N = at(atlas.nao);
-  const bx = N.r.mul(2).sub(1), by = N.g.mul(2).sub(1), bz = float(1).sub(bx.mul(bx)).sub(by.mul(by)).max(0.0025).sqrt();
-  const nT = vec3(bx.div(bz).mul(r.w), by.div(bz).mul(r.w), float(1)).normalize();
+  // the baked normal as the mip chain averaged it: its length k < 1 where the carving's normals vary within the texel footprint
+  // (curls, flutes, pleats seen from metres away). Lambert's law is linear in the normal, so the mean of the texels' shading is
+  // k × the shading of the mean direction: the diffuse albedo takes k (the fine carving keeps its dark, and does not wash out
+  // to a flat pad), and the roughness takes the spread (Toksvig 2005: σ² = (1 − k)/k), so the highlights spread as they would
+  const nb = N.rgb.mul(2).sub(1), k = nb.length().div(0.985).clamp(0.3, 1), bz = nb.z.max(0.05);
+  const nT = vec3(nb.x.div(bz).mul(r.w), nb.y.div(bz).mul(r.w), float(1)).normalize();
+  // gilding: the texels painted in the gilt key colour (linear, after the texture's sRGB decode)
+  const GL = (PC as any).pigment.gilt.v as number[], gk = labToSrgb(GL[0], GL[1], GL[2]).map(srgbToLinear);
+  const gilt = float(1).sub(smoothstep(0.02, 0.045, P.rgb.sub(vec3(gk[0], gk[1], gk[2])).length()));
   // the wall's frame in view space: every relief stands on a vertical wall with the figure's up = the world's up (arch/reliefs.ts
   // placements; tests/relief_atlas.test.ts), so the bitangent is the world's up, the tangent up x normal, turned by the
   // geometry's mirror sign (tangent.w). Instanced meshes (the rosettes) do not turn a tangent attribute by the instance
   // matrix, so the frame is built here and not from TBNViewMatrix
   const Nv = normalView, up = cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz.normalize(), T = up.cross(Nv).normalize().mul(attribute('tangent', 'vec4').w);
-  return { pig: P.rgb, cov: P.a, gilt: N.a, occ: float(1).sub(N.b), normal: T.mul(nT.x).add(up.mul(nT.y)).add(Nv.mul(nT.z)).normalize() };
+  return { pig: P.rgb, cov: P.a, gilt, occ: float(1).sub(N.a), normal: T.mul(nT.x).add(up.mul(nT.y)).add(Nv.mul(nT.z)).normalize(), k, spread: float(1).sub(k).div(k) };
 }
 
 /** Incised signs (D-177; src/render/incision.ts): the host stone's own surface (the same world-space layer and weather as the

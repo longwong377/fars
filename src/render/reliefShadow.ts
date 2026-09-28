@@ -10,7 +10,7 @@
 // One texture binding (the 8-bit atlas, with the plan grid in its last rows) and a uniform array (the panel table), in the
 // materials that opt in (receiveReliefShadow): a fragment stage may bind only 16 sampled textures (D-216).
 import * as THREE from 'three/webgpu';
-import { Fn, float, int, ivec2, vec2, vec4, texture, textureLoad, uniformArray, floor, clamp, max, min, smoothstep, length, If, Loop } from 'three/tsl';
+import { positionWorld, Fn, float, int, ivec2, vec2, vec4, texture, textureLoad, uniformArray, floor, clamp, max, min, smoothstep, length, If, Loop } from 'three/tsl';
 import { HSCALE, REACH, SLOTS, MARCH_STEPS, BIAS, SOFT0, SOFT_T, LIFT_MIN, type ReliefShadowData } from '../arch/relief_shadow';
 
 let DATA: ReliefShadowData | null = null, ATLAS: THREE.DataTexture | null = null, PANELS: any = null, uploaded = -1, lastUpload = -Infinity;
@@ -36,6 +36,8 @@ export function setReliefShadow(D: ReliefShadowData) {
 export const RELIEF_SHADOW_FLAG = 'receivesReliefShadow';
 export function receiveReliefShadow<M extends THREE.Material>(m: M): M {
   (m as any)[RELIEF_SHADOW_FLAG] = true;
+  // D-320: the wall's sky past the figures on its ambient light (once: a copied material carries the wrapped node already)
+  const ao = (m as any).aoNode; if (!ao?.reliefSky) { const n = ao ? ao.mul(reliefSkyNode(positionWorld)) : reliefSkyNode(positionWorld); n.reliefSky = true; (m as any).aoNode = n; }
   const key = (m as any).customProgramCacheKey.bind(m);
   (m as any).customProgramCacheKey = () => key() + '|reliefShadow'; // a program with the term is never shared with one without
   return m;
@@ -54,29 +56,8 @@ export const reliefShadowBytes = () => (DATA ? DATA.aw * DATA.ah : 0);
 export function reliefShadowNode(p: any, L: any): any {
   return Fn((builder: any) => {
     const D = DATA; if (!D || !D.panels.length || !ATLAS || !PANELS || !builder?.material?.[RELIEF_SHADOW_FLAG]) return float(1);
-    const A = ATLAS, PT = PANELS, AW = D.aw, AH = D.ah;
-    const cx = int(clamp(floor(p.x.sub(D.gx0).div(D.gc)), 0, D.gw - 1)), cz = int(clamp(floor(p.z.sub(D.gz0).div(D.gc)), 0, D.gh - 1));
-    // integer arithmetic throughout (a float carries 24 bits: the grid's texels lie beyond 2^24 in the linear index)
-    const cell0 = cz.mul(int(D.gw)).add(cx).mul(int(SLOTS)).add(int(D.gridRow0 * AW)).toVar();
-    const found = float(0).toVar(), u = float(0).toVar(), v = float(0).toVar(), w = float(0).toVar();
-    const X = vec2(0, 0).toVar(), Z = vec2(0, 0).toVar(), rect = vec4(0, 0, 0, 0).toVar(), T = float(1).toVar(), hmax = float(0).toVar();
-    // the slots fill in order, so the first empty one ends the list: a fragment far from any relief reads one texel
-    const more = float(1).toVar();
-    for (let k = 0; k < SLOTS; k++) If(more.greaterThan(0.5).and(found.lessThan(0.5)), () => {
-      const idx = cell0.add(int(k)), id = textureLoad(A, ivec2(idx.mod(int(AW)), idx.div(int(AW)))).r.mul(255).add(0.5).floor();
-      If(id.lessThan(0.5), () => { more.assign(0); });
-      If(id.greaterThan(0.5), () => {
-        const b = int(id).sub(int(1)).mul(int(4));
-        const t0 = PT.element(b), t1 = PT.element(b.add(int(1))), t2 = PT.element(b.add(int(2))), t3 = PT.element(b.add(int(3)));
-        const d = p.sub(t0.xyz), uu = d.x.mul(t1.x).add(d.z.mul(t1.y)), ww = d.x.mul(t1.z).add(d.z.mul(t1.w)), vv = d.y;
-        const inU = uu.greaterThanEqual(t3.y).and(uu.lessThanEqual(t3.z)); // the points this panel holds (its slice of the wall)
-        const inV = vv.greaterThanEqual(-REACH).and(vv.lessThanEqual(t2.w.mul(t0.w).add(REACH)));
-        const inW = ww.greaterThanEqual(-0.05).and(ww.lessThanEqual(t3.x));
-        If(inU.and(inV).and(inW), () => {
-          found.assign(1); u.assign(uu); v.assign(vv); w.assign(ww); X.assign(t1.xy); Z.assign(t1.zw); rect.assign(t2); T.assign(t0.w); hmax.assign(t3.x);
-        });
-      });
-    });
+    const A = ATLAS, AW = D.aw, AH = D.ah;
+    const { found, u, v, w, X, Z, rect, T, hmax } = panelAt(D, p);
     const vis = float(1).toVar();
     If(found.greaterThan(0.5), () => {
       const su = L.x.mul(X.x).add(L.z.mul(X.y)), sv = L.y, sw = L.x.mul(Z.x).add(L.z.mul(Z.y));
@@ -100,5 +81,62 @@ export function reliefShadowNode(p: any, L: any): any {
       });
     });
     return vis;
+  })();
+}
+
+/** the panel holding world point p (inside a TSL Fn): found (0/1), the point in the panel's frame (u along, v up, w out of the
+ *  wall, m), the panel's axes in plan, its atlas rectangle, texel size and top */
+function panelAt(D: ReliefShadowData, p: any) {
+    const A = ATLAS!, PT = PANELS, AW = D.aw;
+    const cx = int(clamp(floor(p.x.sub(D.gx0).div(D.gc)), 0, D.gw - 1)), cz = int(clamp(floor(p.z.sub(D.gz0).div(D.gc)), 0, D.gh - 1));
+    // integer arithmetic throughout (a float carries 24 bits: the grid's texels lie beyond 2^24 in the linear index)
+    const cell0 = cz.mul(int(D.gw)).add(cx).mul(int(SLOTS)).add(int(D.gridRow0 * AW)).toVar();
+    const found = float(0).toVar(), u = float(0).toVar(), v = float(0).toVar(), w = float(0).toVar();
+    const X = vec2(0, 0).toVar(), Z = vec2(0, 0).toVar(), rect = vec4(0, 0, 0, 0).toVar(), T = float(1).toVar(), hmax = float(0).toVar();
+    // the slots fill in order, so the first empty one ends the list: a fragment far from any relief reads one texel
+    const more = float(1).toVar();
+    for (let k = 0; k < SLOTS; k++) If(more.greaterThan(0.5).and(found.lessThan(0.5)), () => {
+      const idx = cell0.add(int(k)), id = textureLoad(A, ivec2(idx.mod(int(AW)), idx.div(int(AW)))).r.mul(255).add(0.5).floor();
+      If(id.lessThan(0.5), () => { more.assign(0); });
+      If(id.greaterThan(0.5), () => {
+        const b = int(id).sub(int(1)).mul(int(4));
+        const t0 = PT.element(b), t1 = PT.element(b.add(int(1))), t2 = PT.element(b.add(int(2))), t3 = PT.element(b.add(int(3)));
+        const d = p.sub(t0.xyz), uu = d.x.mul(t1.x).add(d.z.mul(t1.y)), ww = d.x.mul(t1.z).add(d.z.mul(t1.w)), vv = d.y;
+        const inU = uu.greaterThanEqual(t3.y).and(uu.lessThanEqual(t3.z)); // the points this panel holds (its slice of the wall)
+        const inV = vv.greaterThanEqual(-REACH).and(vv.lessThanEqual(t2.w.mul(t0.w).add(REACH)));
+        const inW = ww.greaterThanEqual(-0.05).and(ww.lessThanEqual(t3.x));
+        If(inU.and(inV).and(inW), () => {
+          found.assign(1); u.assign(uu); v.assign(vv); w.assign(ww); X.assign(t1.xy); Z.assign(t1.zw); rect.assign(t2); T.assign(t0.w); hmax.assign(t3.x);
+        });
+      });
+    });
+    return { found, u, v, w, X, Z, rect, T, hmax };
+}
+/** D-320: the wall face's sky seen past the relief figures beside it (1 open … 0 shut), for the materials' ambient light: at a
+ *  point of the wall face (not on a figure: the figures carry their own baked occlusion, arch/relief_atlas.ts) inside a
+ *  panel, the horizon raised by the carving in 8 directions, sampled at 1.2, 3 and 6.5 cm in the height atlas; the
+ *  cosine-weighted sky lost in a direction is sin² of its horizon angle. Figures then sit in the stone, a soft dark line along
+ *  every contour, instead of standing on it lit all round */
+export const SKY_DIST = [0.012, 0.03, 0.065];
+export function reliefSkyNode(p: any): any {
+  return Fn((builder: any) => {
+    const D = DATA; if (!D || !D.panels.length || !ATLAS || !PANELS || !builder?.material?.[RELIEF_SHADOW_FLAG]) return float(1);
+    const A = ATLAS, AW = D.aw, AH = D.ah;
+    const { found, u, v, w, rect, T } = panelAt(D, p);
+    const sky = float(1).toVar();
+    If(found.greaterThan(0.5).and(w.lessThan(LIFT_MIN)), () => {
+      const lost = float(0).toVar();
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2, dx = Math.cos(a), dy = Math.sin(a); let s2: any = float(0);
+        for (const d of SKY_DIST) {
+          const q = clamp(vec2(u.add(dx * d), v.add(dy * d)).div(T), vec2(-0.5, -0.5), rect.zw.add(0.5));
+          const H = texture(A, rect.xy.add(q).div(vec2(AW, AH))).level(float(0)).r.mul(HSCALE).sub(w).max(0);
+          s2 = max(s2, H.mul(H).div(H.mul(H).add(d * d))); // sin² of the elevation of the carving at that distance
+        }
+        lost.addAssign(s2);
+      }
+      sky.assign(float(1).sub(lost.div(8)));
+    });
+    return sky;
   })();
 }
