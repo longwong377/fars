@@ -8113,3 +8113,59 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   composition matches, those details do not), the king's audience scene, the jambs' heroes and the throne-bearers (next).
 - The atlas rebuilt (all definitions rebaked).
 - **Revision 4 (the lead's review of the g5 portraits):** (1) the kandys's empty sleeves hang behind the shoulders down the coat's back to the hip, as the Median courtiers' and guards' on the Persepolis reliefs (C for the length and cut), flattened across the back, gathered at the top and widening to the cuff; the kandys simulated with self-collision so the sleeves lie on the coat (its simulation ~6 min of the build). (2) The upper garments' blouse over the belt, which read as a pot belly on the short tunics: working tunic 8 -> 4 %, riding and child's tunics 8 -> 5 % (the dress and robe keep 3.5 %). (3) B123, a cloth response in motion: in the vertex stage, a skirt's lower part (t²), the hems, the sash's ends and slack sleeves lag behind their bones' move since the last frame (humanMaterial CLOTH_LAG: 3 frames' worth at 60 fps, a third of it vertical, at most 7 cm, faded from 22 to 30 m where crowd.ts stops posing every frame), from the previous palette the velocity buffer already keeps (12 more texel loads a vertex), the frame's length from humanGPU.begin so the lag keeps its time; no state (a lag, not a swing that outlasts the motion; posed drape sets for sitting and kneeling are still not built: B123 narrowed). Seen: not yet in motion on screen (the portrait harness renders stills); the humanlab crowd's walkers are the check.
+
+## D-332 The birds, the small creatures and the ground flora modelled in Blender, every species (session 12, agent smalllife; UD-19, UD-17, UD-20, D-233; T-R12; BLENDER_PLAN rows 13 and 20; B178-B180)
+- **What changed, world-wide.** Every code path that draws the class now draws modelled forms (public/models/life/, loaded
+  at startup by src/world/lifeModels.ts, awaited by world.ts with the other models): wildlife.ts `Birds` (all 26 species of
+  BIRDS; the swifts among the swallows' instances, the hen sparrows and ducks every other bird) and `Jackals`; smallLife.ts
+  `SmallLife` (all 14 kinds of SMALL, and the spring flowers near the walker: grape hyacinth, buttercup, poppy, crown
+  imperial by bloom colour); groundFlora.ts `GroundFlora` (tragacanth cushion, camelthorn, thistle: over the D-310 scans,
+  which remain the second fallback) and `RoseBeds` (the paradise's roses). The procedural diamonds, boxes, domes and crossed
+  quads remain only as stand-ins when a model is absent or `?life=0` / `?models=0`, flagged PLACEHOLDER in the dev overlay.
+  Placement, counts, sizes, seasons, hours and tiers are the simulation's own, unchanged.
+- **The birds (C: field-guide proportions and plumage by recollection; tools/blender/life_birds.json).** A parametric bird
+  per species (tools/blender/life_birds.py): a lofted body along a spine (tail root, body, neck, head, bill of the species'
+  shape: cone, fine, hook, dagger, flat, decurved, gape, short), two-sheet wings (upper and under surfaces with their own
+  plumage) of the species' planform (pointed, sickle, rounded, fingered with 4-7 fingers, a bat's membrane), a two-sheet tail
+  (fork, streamers, notch, wedge, round, square, pins, membrane), legs with toes, crests (hoopoe, lark, heron) and ears
+  (bat). Two poses from the same numbers: in flight (legs tucked or, for storks, herons, cranes and egrets, trailing; the
+  herons' and egret's neck folded) and, for the 14 ground species, standing (body pitched, neck and head raised, wings
+  folded on the flanks with the trailing edge along the back, legs to the ground). Levels: fly0 684-748, fly1 164-180, fly2
+  52-64 triangles (drawn beyond 60 x and 400 x the bird's length); stand0/stand1 as fly0/fly1. The maps are Cycles bakes
+  (normal, occlusion, albedo, coverage) from a dense source ~100x the rings with the feathers as relief (the body's
+  overlapping tips, the coverts' rows, the flight feathers' vanes and shafts) and the flight and tail feathers' tips cut from
+  the planform: the coverage is the alpha test (the eagles' and storks' fingers, the swallows' streamers, the bat's scallops).
+  The wingbeat: each wing turns about its shoulder by the instance's beat x (0.55 + 0.45 x the wing weight in COLOR_0), the
+  hand sweeping further than the arm; gliders hold a slight dihedral.
+- **A bug fixed on the way (visible):** heading is atan2(east, north) while the world's z is south, so the old meshes (nose
+  +z, yaw = heading) flew, crawled and trotted tail-first whenever they moved along north-south. Every bird, creature and
+  jackal now yaws by pi - heading (tests/life_models.test.ts: the nose follows the path).
+- **The small creatures and the jackal (C; tools/blender/life_small.py).** Anatomies of blended ellipsoids (Blender
+  metaballs, built at unit length: Blender clamps a metaball's resolution) per kind, with the relief of the kind (the agama's
+  and the viper's scales, the tortoises' scutes with growth rings, the hedgehog's spines, the porcupine's quills, fur,
+  segments) and colour marks per part, decimated to two levels (lod1 beyond 40 x the length, never nearer than 2 m), baked;
+  the insects' wings as sheets with their veins and the clear membrane as a stipple; the butterflies' three species (whites,
+  clouded yellow, painted lady) side by side in one map (an instance offset); the snake waves along its length, the insects'
+  wings beat from their weights, the jackal's legs are weighted from its model (below the elbows and hocks, diagonal pairs).
+- **The ground flora as the real species (C; tools/blender/life_flora.py).** No CC0 scan of Astragalus, Alhagi, Onopordum or
+  the others exists (D-310's search): each is modelled. Stems and branches are tubes; the foliage is cards whose maps are
+  orthographic Cycles renders (albedo with coverage, normal, occlusion) of modelled sprigs in 4 x 4 atlases: the tragacanth's
+  spine-tipped pinnate tufts standing out of a lumpy grey-green dome, its pale flowers in April-June; camelthorn's green
+  twigs with rigid yellow-tipped spines and small leaves, pink flowers in June-August, browning in autumn; the thistles'
+  winged stems, lobed spiny woolly rosettes and stem leaves bent in two, globose heads of spiny bracts under purple florets
+  (dry pale heads after); the damask rose's canes, pinnate serrate leaves and semi-double pink blooms; the spring flowers'
+  stalks, leaves and blooms. The seasons tint the modelled colours (spring = 1); the flowers (COLOR_0.r = 1) are cut out
+  of season by the alpha test. Levels within the D-310 scans' budget (lod0 <= 1500, lod1 <= 300).
+- **Budgets (tests/life_models.test.ts, counting what the page draws):** every bird species at its full count at its
+  nearest level (the murmuration at its far level) < 400 k triangles; the small creatures at their caps at lod1 < 400 k;
+  the flora at their caps with the near share at lod0 < 1 M (the scans were the same levels). Draws: one per species,
+  variant and level holding birds or creatures this frame (none while empty).
+- **How this could pass its tests while the intent fails (clause 1), and what was measured against it:** (a) the tests read
+  the GLBs in node without their KTX2 maps: a map failing in the browser leaves the fallback colour, untested; measured on
+  Blender contact sheets of every model with its shipped maps (T:/fars-assets-s12/smalllife/{birds,small,flora}/sheet*.png),
+  NOT yet in the game's renderer (B178); (b) a code path still drawing a stand-in: every drawer of the class was switched
+  and each test asserts no PLACEHOLDER mesh with the models registered; (c) birds unreadable at distance (alpha thinning in
+  the mips, the far level): unverified in the browser (B178).
+- Files: tools/blender/life.mjs, life_lib.py, life_birds.py/.json, life_small.py/.json, life_flora.py/.json, life_preview.py,
+  tools/blender/probe/life_probe.*; src/world/lifeModels.ts, wildlife.ts, smallLife.ts, groundFlora.ts, world.ts (the
+  loader, the eye for the birds' levels, the roses' viewer); tests/life_models.test.ts, wildlife.test.ts (countOf/posOf).
