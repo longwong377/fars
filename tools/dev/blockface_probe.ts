@@ -12,7 +12,7 @@ import { TerrainMesh } from '../../src/terrain/terrainMesh';
 import { buildTerrace } from '../../src/arch/terrace';
 import { buildMeshes } from '../../src/arch/meshes';
 import { loadSculpt } from '../../src/arch/sculpt';
-import { buildStairCrenellations } from '../../src/arch/decor';
+import { buildStairCrenellations, crenellationGeometry } from '../../src/arch/decor';
 import { footGeometry } from '../../src/arch/terrace_foot';
 import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materials';
 (async () => {
@@ -64,6 +64,6 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   // here: the Ka'ba's and Takht-e Rustam's hairline ashlar, the town's kerb stone, the masons' rough blocks, a merlon (instanced)
   registerSettlementSurfaces();
   ['kaba_white', 'takht_stone', 'stone_plain', 'stone_rough', 'limestone'].forEach((k, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 1.2), surfaceMaterial(k)); m.position.set(-30 + i * 3, 1.1, -100); m.castShadow = m.receiveShadow = true; scene.add(m); });
-  { const im = new THREE.InstancedMesh(new THREE.BoxGeometry(0.9, 0.9, 0.9).translate(0, 0.45, 0), surfaceMaterial('limestone_merlon'), 1); im.setMatrixAt(0, new THREE.Matrix4().makeTranslation(-15, 0, -100)); scene.add(im); }
+  { const im = new THREE.InstancedMesh(crenellationGeometry(0.9, 0.9, 4, 1), surfaceMaterial('limestone_merlon'), 1); im.setMatrixAt(0, new THREE.Matrix4().makeTranslation(-15, 0, -100).multiply(new THREE.Matrix4().makeScale(1, 1, 0.45))); scene.add(im); }
   (window as any).__bf = { ...blockFaceStats, loaded: blockFaceLoaded() }; (window as any).__ready = true;
 })().catch(e => { (window as any).__ready = String(e); console.error(e); });

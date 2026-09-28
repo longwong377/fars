@@ -136,13 +136,15 @@ export function crenellationGeometry(w: number, h: number, steps: number, depth:
   const B = CREN_BEVEL, shape = (q: number[][]) => new THREE.Shape(q.map(([x, y]) => new THREE.Vector2(x, y)));
   const g = new THREE.ExtrudeGeometry(shape(pts), { depth: depth - 2 * B, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelOffset: -B, bevelSegments: 1 });
   g.translate(0, 0, B); g.deleteAttribute('uv');
-  if (!slot) return g;
+  // D-321 rev 2: the distances (geometry units) to the front and back faces, for the arris strips of the sides and ledges
+  const mzd = (q: THREE.BufferGeometry) => { const P = q.getAttribute('position'), a = new Float32Array(P.count * 2); for (let i = 0; i < P.count; i++) { a[2 * i] = P.getZ(i); a[2 * i + 1] = depth - P.getZ(i); } q.setAttribute('mzd', new THREE.BufferAttribute(a, 2)); return q; };
+  if (!slot) return mzd(g);
   // the outer rebate's back plane (with the inner slot through it) and the web behind the inner slot
   const rebate = new THREE.ExtrudeGeometry(shape([[-wo / 2, 0], [-wi / 2, 0], [-wi / 2, hi], [wi / 2, hi], [wi / 2, 0], [wo / 2, 0], [wo / 2, ho], [-wo / 2, ho]]), { depth: depth - 2 * d_o, bevelEnabled: false });
   rebate.translate(0, 0, d_o); rebate.deleteAttribute('uv');
   const web = new THREE.BoxGeometry(wi, hi, depth - 2 * d_o - 2 * d_i).toNonIndexed(); web.translate(0, hi / 2, depth / 2); web.deleteAttribute('uv');
   const out = mergeGeometries([g, rebate, web])!; g.dispose(); rebate.dispose(); web.dispose();
-  return out;
+  return mzd(out);
 }
 
 // ---------- carved inscriptions: the published text (D-177), incised into the stone (D-177) ----------

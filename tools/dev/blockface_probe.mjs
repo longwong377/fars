@@ -27,6 +27,7 @@ const V = [
   { n: 'samples-4m', court: true, e: -24, n2: 94, eye: 1.6, az: 341 + 0, pitch: -2, fov: 60, ...S25pm },
   { n: 'samples-arm', court: true, e: -30, n2: 98.2, eye: 1.4, az: 341, pitch: -5, fov: 60, ...S25pm },
   { n: 'merlon-arm', court: true, e: -15, n2: 98.9, eye: 0.5, az: 341, pitch: 0, fov: 60, sunAz: 300, sunAlt: 25 },
+  { n: 'merlon-side', court: true, e: -14.1, n2: 99.2, eye: 1.1, az: 290, pitch: -20, fov: 50, sunAz: 150, sunAlt: 20 },
   // D-321 rev 2: the arrises at arm's length in a low sun: a stair's nosings, a parapet's coping, a wall's corner
   { n: 'nosing-arm', e: -43.9, n2: 131.5, eye: 1.6, az: 341, pitch: -32, fov: 35, sunAz: 250, sunAlt: 18 },
   { n: 'block-corner', court: true, e: -10.2, n2: 98.3, eye: 1.25, az: 315, pitch: -12, fov: 40, sunAz: 200, sunAlt: 15 },

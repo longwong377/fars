@@ -98,7 +98,7 @@ export interface BlockFrame {
   isFlat: any; isPoint: any;
   /** the nearest arris of each joint family: d (m from it), along (m along it, continuous), the world directions along it and
    *  away from it into this block, a 0/1 mask (joints drawn here), a 0/1 side (which of the block's two arrises of the family) */
-  bed?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any; /** 0..1: the chips kept (D-328: none where the arris is geometry) */ chip?: any };
+  bed?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any; /** 0..1: the chips kept (D-321 rev 2: none where the arris is geometry) */ chip?: any };
   head?: { d: any; along: any; Talong: any; Taway: any; mask: any; side: any };
 }
 const MARGIN: [number, number] = [0.03, 0.04]; // the margin band's hand-over to the face (m from the arris; the strips' margin ends at 37 mm)

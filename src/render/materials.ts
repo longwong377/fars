@@ -592,8 +592,8 @@ function stoneDetail(S: StoneDef, q: any, vs: any, id: Ids, fp: any, noTool = fa
   const near = float(1).sub(smoothstep(0.25, 0.6, fwidth(cq).length()));
   const pitN = float(1).sub(smoothstep(r.mul(0.75), r, wv));
   const pit = mix(float(1).sub(exp(r.mul(r).mul(-Math.PI))), pitN, near).mul(SURF_AB);
-  // (D-321: with the carved block faces the moulds read as dust-filled cavities of a fresh face, not black pepper: a third as dark, less than half as deep)
-  const PT = noTool ? { ...S.pits, dark: S.pits.dark * 0.3, depth: S.pits.depth * 0.4 } : S.pits;
+  // (D-321: with the carved block faces the moulds read as dust-filled cavities of a fresh face, not black pepper: 0.15 as dark, a quarter as deep: rev 2, the merlons' sides at 1 m still read as pepper at 0.3)
+  const PT = noTool ? { ...S.pits, dark: S.pits.dark * 0.15, depth: S.pits.depth * 0.25 } : S.pits;
   f = f.mul(float(1).sub(pit.mul(PT.dark))).div(mix(float(1), float(pitMean(PT)), SURF_AB));
   let h: any = pitN.mul(near).mul(-PT.depth).mul(SURF_AB);
   // the tool: chisel facets along a per-block stroke direction (45° ± 40°), each tilted; fine striations inside them
@@ -750,11 +750,21 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     if (BF) { // D-321: the monolith's dressed face and its own arrises: the stepped outline in the geometry's frame (x across, y up):
       // across to the outline at this height, up to the ledge above, on its front and back faces; the direction away from the
       // arris from the surface gradient of that distance (the instance's orientation is not known here)
-      const halfW = float(M.w / 2).sub(floor(pg.y.div(sh)).min(M.steps - 1).mul(sw)), dM = min(halfW.sub(abs(pg.x)), top.sub(pg.y)).max(0);
+      // (D-321 rev 2) and on its sides (to the front and back faces and the ledge above) and ledges and top (to the front and back
+      // faces and the ledge's outer edge): the front/back distance in metres through the instance's depth scale, from the
+      // screen derivatives of the world and geometry positions (x, y are unscaled)
+      const ng = normalGeometry, isF = step(0.7, abs(ng.z)), isS = step(0.7, abs(ng.x)).mul(float(1).sub(isF)), isU = step(0.7, ng.y).mul(float(1).sub(isF));
+      const k = floor(pg.y.div(sh)).clamp(0, M.steps - 1), kU = floor(pg.y.div(sh).add(0.5)).sub(1).clamp(0, M.steps - 1);
+      const halfW = float(M.w / 2).sub(k.mul(sw));
+      const gx = pg.dFdx(), gy = pg.dFdy(), wx = p.dFdx(), wy = p.dFdy();
+      const sZ = wx.dot(wx).sub(gx.x.mul(gx.x)).sub(gx.y.mul(gx.y)).add(wy.dot(wy)).sub(gy.x.mul(gy.x)).sub(gy.y.mul(gy.y)).div(gx.z.mul(gx.z).add(gy.z.mul(gy.z)).max(1e-14)).max(0).sqrt().clamp(0.2, 3);
+      const MZ = attribute('mzd', 'vec2'), dz = min(MZ.x, MZ.y).mul(sZ);
+      const dF = min(halfW.sub(abs(pg.x)), top.sub(pg.y)), dS = min(dz, k.add(1).mul(sh).sub(pg.y)), dU = min(dz, float(M.w / 2).sub(kU.mul(sw)).sub(abs(pg.x)));
+      const dM = dF.mul(isF).add(dS.mul(isS)).add(dU.mul(isU)).max(0);
       const dpx = p.dFdx(), dpy = p.dFdy(), r1 = dpy.cross(n), r2 = n.cross(dpx), detM = dpx.dot(r1);
       const gM = r1.mul(dM.dFdx()).add(r2.mul(dM.dFdy())).mul(sign(detM)).div(detM.abs().max(1e-12)), TawM = gM.div(gM.length().max(1e-6)), TalM = n.cross(TawM);
       const BFd = blockFaceDetail({ u: mix(p.x, t, vs), v: mix(p.z, p.y, vs), T1: Tq1, T2: Tq2, ids, isFlat: float(1).sub(vs), isPoint: float(0),
-        bed: { d: dM, along: p.dot(TalM), Talong: TalM, Taway: TawM, mask: step(0.7, abs(normalGeometry.z)), side: step(halfW.sub(abs(pg.x)), top.sub(pg.y)) } });
+        bed: { d: dM, along: p.dot(TalM), Talong: TalM, Taway: TawM, mask: isF.add(isS).add(isU), side: step(halfW.sub(abs(pg.x)), top.sub(pg.y)).mul(isF).add(isS.mul(0.25)).add(isU.mul(0.5)) } });
       tilt = tilt ? tilt.add(BFd.tilt) : BFd.tilt; alb = alb.mul(BFd.alb); bfAo = BFd.ao;
     }
     const st = smoothstep(0.1, 0.7, mx_noise_float(vec3(p.x.mul(9), p.y.mul(0.8), p.z.mul(9)).add(vec3(3.3, 1.1, 7.7))).mul(0.5).add(0.5));
