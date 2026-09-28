@@ -32,7 +32,7 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   // D-321 rev 2: a free-standing dressed block on the court (grid e -12, n 100: 2.4 x 1.2 x 1.1 m) for the arrises at arm's length
   parts.push({ type: 'box', building: 'probe', kind: 'wall', material: 'limestone', tier: 'C', src: 'RECON', c: [-12, 100], size: [2.4, 1.2], y0: 0, y1: 1.1, rot: 0 } as any);
   const built = buildMeshes(parts); scene.add(built.group);
-  const arris = new ArrisField(built.arris, m => P.has('arrisdbg') ? new THREE.MeshBasicNodeMaterial({ color: 0xff0000 }) : surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); scene.add(arris.group); // D-321 rev 2 (?arrisdbg: the bands red)
+  const arris = new ArrisField(built.arris, m => P.has('arrisdbg') ? new THREE.MeshBasicNodeMaterial({ color: 0xff0000 }) : surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); scene.add(arris.group); arris.addFaces(built.jointFaces, (x, z) => terrain.heightAt(x, z)); // D-321 rev 2 (rev 4: the joints) (?arrisdbg: the bands red)
   const cren = buildStairCrenellations(parts); if (cren) scene.add(cren);
   const fg = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n)); arris.add(fg.arris); // rev 4: the foot blocks' arrises
   if (fg.geo) { const m = new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot', { arch: true })); m.castShadow = m.receiveShadow = true; scene.add(m); }

@@ -165,6 +165,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   root.add(arch.group);
   // D-321 rev 2: the dressed stone's free arrises as geometry near the eye (worn round, chipped in handling), the maps beyond
   const arris = new ArrisField([...arch.arris], m => surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); root.add(arris.group);
+  arris.addFaces(arch.jointFaces, (x, z) => terrain.heightAt(x, z)); // rev 4: the walls' joints grooved near the eye (none under the ground)
   // the seal inscriptions impressed in clay (door sealings, tablets) are drawn from the period-script fonts: loaded before
   // the first clay object bakes the writing atlas (writing.ts, D-179)
   await loadWritingFonts(async p => (await fetch('/' + p)).arrayBuffer());

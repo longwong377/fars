@@ -4,6 +4,13 @@ import * as THREE from 'three/webgpu';
 import { ADIST_OFF } from '../render/blockface';
 import { arrisEdgesOfBox, edgeSeed, aseedOf, ARRIS_MATS, type ArrisEdge } from './arris';
 import { prismArrisGeometry, finishProtoEdges } from './arris_prism';
+import { verticalFaces, chunkFaces, type JointFace } from './arris_joints';
+/** rev 4: a wall chunk every sample of which lies against (3 cm in front of it is inside) another part */
+function faceCovered(F: JointFace, p: Part, index: PartIndex): boolean {
+  for (const ft of [0.1, 0.5, 0.9]) for (const fy of [0.1, 0.5, 0.9]) { const t = F.t0 + (F.t1 - F.t0) * ft, y = F.y0 + (F.y1 - F.y0) * fy, x = F.n.z * t + F.n.x * (F.d + 0.03), z = -F.n.x * t + F.n.z * (F.d + 0.03);
+    if (!index.inside(x, y, z, p)) return false; }
+  return true;
+}
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
@@ -410,7 +417,7 @@ export class MeshLOD extends THREE.Object3D {
   private show(k: number) { this.cur = k; this.levels.forEach((m, i) => { m.visible = i === k; }); }
 }
 
-export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[] }
+export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number; bevel: BevelStats; /** D-321 rev 2: the dressed stone's free arrises (arris.ts ArrisField) */ arris: ArrisEdge[]; /** rev 4: their walls' faces, whose joints the near field grooves */ jointFaces: JointFace[] }
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
@@ -420,7 +427,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; plain: THREE.BufferGeometry[]; parts: Part[] }>();
   const index = new PartIndex(parts), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
-  const stairs = stairRows(parts), arris: ArrisEdge[] = [];
+  const stairs = stairRows(parts), arris: ArrisEdge[] = [], jointFaces: JointFace[] = [];
   if (opts.dynamicDoors) bevelSwap.length = 0;
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
   const colossi = parts.filter(p => p.type === 'box' && p.sculpt) as Box[];
@@ -449,6 +456,8 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     const plain = g.clone(), rg = (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : pa?.geo) ?? g.clone();
     partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p));
     if (pa && p.type === 'prism') arris.push(...finishProtoEdges(p, p.material, pa.edges, rg));
+    // rev 4: the joints of its vertical faces, grooved near the eye (not the steps: their joints stay painted)
+    if (ARRIS_MATS.has(p.material) && !(p.type === 'box' && p.kind === 'step')) jointFaces.push(...chunkFaces(verticalFaces(rg, p.material, p.y1), stairs.get(p)).filter(F => !faceCovered(F, p, index))); // (a chunk against another part has no joints to show)
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;
@@ -538,5 +547,5 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       group.add(lod);
     }
   }
-  return { group, triangles: tris, colliders, bevel: bstats, arris };
+  return { group, triangles: tris, colliders, bevel: bstats, arris, jointFaces };
 }

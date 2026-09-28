@@ -10,6 +10,7 @@
 import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, interleavedGradientNoise, screenCoordinate, frameId, float, vec2, step } from 'three/tsl';
 import type { Box } from './parts';
+import { faceBounds, jointEdgesOfFace, type JointFace } from './arris_joints';
 import BF from '../data/blockface.json';
 import STRIP_CHIPS from '../data/blockface_chips.json';
 
@@ -20,6 +21,15 @@ export const ARRIS_MATS = new Set(['limestone', 'terrace', 'terrace_foot']);
 export const ARRIS_W = 0.04;
 /** the band runs this far (m) past ARRIS_W, over the base mesh's face (coplanar, the same shading): no crack where they meet */
 export const ARRIS_LAP = 0.006;
+/** rev 4: the joints drawn as geometry near the eye: the base discards within JOINT_W of the joint, the groove band runs
+ *  JOINT_LAP further (coplanar there: no crack), its two arrises rounded JOINT_RHO (C: the painted lip's 3-9 mm, D-218) */
+export const JOINT_W = 0.012, JOINT_LAP = 0.004, JOINT_RHO = 0.004;
+/** the groove's cross-section: (offset across the joint, depth into the face) */
+export function jointProfile(): [number, number][] {
+  const r = JOINT_RHO, os = [JOINT_W + JOINT_LAP, r, 0.002, 0.0006];
+  const depth = (o: number) => o >= r ? 0 : r - Math.sqrt(Math.max(0, r * r - (r - o) * (r - o)));
+  return [...os.map(o => [-o, depth(o)] as [number, number]), [0, r], ...os.slice().reverse().map(o => [o, depth(o)] as [number, number])];
+}
 /** the radius (m) within which the arrises are geometry; from ARRIS_R0 to ARRIS_R the hand-over to the maps is a crossfade
  *  (rev 3): the threshold dithered per pixel and per frame (interleaved gradient noise), so TRAA resolves it to a blend */
 export const ARRIS_R = 12, ARRIS_R0 = 9.5;
@@ -45,7 +55,8 @@ export const seedOff = (seed: number) => (seed * 13.7) % 1;
 export const aseedOf = (seed: number) => seedRow(seed) + seedOff(seed) * 0.999;
 
 export interface ArrisEdge {
-  mat: string; a: THREE.Vector3; b: THREE.Vector3; na: THREE.Vector3; nb: THREE.Vector3; r: number; seed: number; /** the rough strips' chips (the foot) */ rough?: boolean;
+  mat: string; a: THREE.Vector3; b: THREE.Vector3; na: THREE.Vector3; nb: THREE.Vector3; r: number; seed: number;
+  /** rev 4: a joint in a face (na its normal, nb across the joint in the face): drawn as a groove, no chips */ joint?: boolean; /** the rough strips' chips (the foot) */ rough?: boolean;
   /** the box's bounding planes (world: n·x <= d), the band is kept inside them */
   planes: { n: THREE.Vector3; d: number }[];
   y0a: number; y0b: number; pbox: [number, number, number, number]; ytop: number; stair: [number, number, number, number];
@@ -110,6 +121,7 @@ export function profile(r: number): [number, number][] {
 export function bandGeometry(e: ArrisEdge, s0: number, s1: number, out: { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: number[]; stair: number[]; adist: number[]; aseed: number[]; index: number[] }, adistOff: number): number {
   const L = e.a.distanceTo(e.b), t = e.b.clone().sub(e.a).divideScalar(L);
   s0 = Math.max(0, s0); s1 = Math.min(L, s1); if (s1 - s0 < 0.01) return 0;
+  if (e.joint) return grooveGeometry(e, s0, s1, t, out, adistOff);
   const P = profile(e.r), chips = chipsOf(e, L).filter(c => c.s + c.a > s0 && c.s - c.a < s1);
   // stations along the edge: the ends, and across each chip (a straight arris needs no others)
   const S = new Set<number>([s0, s1]);
@@ -166,6 +178,30 @@ type Buf = { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: n
 const ATTR: [keyof Buf, number][] = [['pos', 3], ['nrm', 3], ['y0', 1], ['pbox', 4], ['ytop', 1], ['stair', 4], ['adist', 4], ['aseed', 4]];
 /** a piece of an edge's band, built once and kept while it stays near */
 interface Piece { mat: string; data: Record<keyof Buf, Float32Array>; index: Uint32Array; tris: number }
+/** rev 4: a joint's groove over s in [s0, s1]: straight, two stations */
+function grooveGeometry(e: ArrisEdge, s0: number, s1: number, t: THREE.Vector3, out: { pos: number[]; nrm: number[]; y0: number[]; pbox: number[]; ytop: number[]; stair: number[]; adist: number[]; aseed: number[]; index: number[] }, adistOff: number): number {
+  const P = jointProfile(), nP = P.length, v0 = out.pos.length / 3, X = new THREE.Vector3(), n = new THREE.Vector3();
+  for (const s of [s0, s1]) {
+    const C = e.a.clone().addScaledVector(t, s);
+    for (let j = 0; j < nP; j++) {
+      const [o, d] = P[j]; X.copy(C).addScaledVector(e.nb, o).addScaledVector(e.na, -d);
+      // the normal: across the profile's slope (the neighbours' chord), in the plane of na and nb
+      const [oa, da] = P[Math.max(0, j - 1)], [ob, db] = P[Math.min(nP - 1, j + 1)], so = ob - oa, sd = db - da, ln = Math.hypot(so, sd) || 1;
+      n.copy(e.na).multiplyScalar(so / ln).addScaledVector(e.nb, sd / ln).normalize();
+      out.pos.push(X.x, X.y, X.z); out.nrm.push(n.x, n.y, n.z); out.y0.push(e.y0a); out.pbox.push(...e.pbox); out.ytop.push(e.ytop); out.stair.push(...e.stair);
+      out.adist.push(0, 0, 0, 0); out.aseed.push(0, 0, 0, 0);
+    }
+  }
+  const cr = new THREE.Vector3(), ab = new THREE.Vector3(), ad = new THREE.Vector3();
+  for (let j = 0; j + 1 < nP; j++) {
+    const a = v0 + j, b = v0 + nP + j, c = v0 + nP + j + 1, d = v0 + j + 1;
+    const pa = new THREE.Vector3().fromArray(out.pos, 3 * a), pb = new THREE.Vector3().fromArray(out.pos, 3 * b), pd = new THREE.Vector3().fromArray(out.pos, 3 * d);
+    const flip = cr.crossVectors(ab.subVectors(pb, pa), ad.subVectors(pd, pa)).dot(new THREE.Vector3().fromArray(out.nrm, 3 * a)) < 0;
+    out.index.push(...(flip ? [a, d, c, a, c, b] : [a, b, c, a, c, d]));
+  }
+  return 2 * (nP - 1);
+}
+
 /** the near-field bands. The edges are cut in pieces of PIECE m; the pieces are grouped by CELL m plan cells, and a cell is drawn by
  *  its own mesh per surface once all its pieces are built. A cell is built when it comes within reach of the eye (at most
  *  `budgetMs` of building per call: call update() every frame; the first call builds all it needs) and dropped when it is well
@@ -176,8 +212,8 @@ export class ArrisField {
   readonly group = new THREE.Group();
   private cell = 8; private last = new THREE.Vector3(1e9, 0, 0); private first = true;
   private pieces: { e: number; s0: number; s1: number; mid: THREE.Vector3; half: number }[] = [];
-  private cells = new Map<number, { ids: number[]; cx: number; cz: number; built: Map<number, Piece>; meshes: THREE.Mesh[] | null }>();
-  private want: number[] = [];
+  private cells = new Map<number, { ids: number[]; cx: number; cz: number; built: Map<number, Piece>; meshes: THREE.Mesh[] | null; stale: boolean }>();
+  private want: number[] = []; private dirty = false;
   stats = { cells: 0, triangles: 0, ms: 0, pending: 0, draws: 0, ready: false };
   constructor(private edges: ArrisEdge[], private material: (mat: string) => THREE.Material, private adistOff: number, readonly step = 1.5, readonly budgetMs = 3) {
     this.group.name = 'arris-bands';
@@ -185,14 +221,37 @@ export class ArrisField {
   }
   /** more edges (the foot's blocks, the wall joints: rev 4), before the first update */
   add(edges: ArrisEdge[]): void { const i0 = this.edges.length; this.edges.push(...edges); this.index(edges, i0); }
+  /** rev 4: wall faces (chunks) whose joints are expanded into groove edges when they come near (arris_joints.ts) */
+  private faces: { F: JointFace; lo: THREE.Vector3; hi: THREE.Vector3; done: boolean }[] = []; private faceGrid = new Map<number, number[]>(); private faceQueue: number[] = []; private queued = new Set<number>();
+  private groundAt: ((x: number, z: number) => number) | null = null;
+  /** `groundAt` (world x, z): the joints under the ground are left out */
+  addFaces(faces: JointFace[], groundAt?: (x: number, z: number) => number): void {
+    if (groundAt) this.groundAt = groundAt;
+    for (const F of faces) { const { lo, hi } = faceBounds(F), id = this.faces.length; this.faces.push({ F, lo, hi, done: false });
+      for (let x = Math.floor(lo.x / this.cell); x <= Math.floor(hi.x / this.cell); x++) for (let z = Math.floor(lo.z / this.cell); z <= Math.floor(hi.z / this.cell); z++) { const k = x * 100003 + z; (this.faceGrid.get(k) ?? this.faceGrid.set(k, []).get(k)!).push(id); } }
+  }
+  private clipGround(E: ArrisEdge[]): ArrisEdge[] {
+    const G = this.groundAt; if (!G) return E;
+    const out: ArrisEdge[] = [];
+    for (const e of E) {
+      const ga = G(e.a.x, e.a.z) - 0.3, gb = G(e.b.x, e.b.z) - 0.3;
+      if (Math.abs(e.a.y - e.b.y) < 1e-6) { if (e.a.y >= Math.min(ga, gb)) out.push(e); continue; } // a bed: kept unless wholly buried
+      const lo = e.a.y < e.b.y ? e.a : e.b, hi = lo === e.a ? e.b : e.a; if (hi.y < ga) continue; // a head: from the ground up
+      if (lo.y < ga) { const c = { ...e, a: new THREE.Vector3(lo.x, ga, lo.z), b: hi.clone() }; out.push(c); } else out.push(e);
+    }
+    return out;
+  }
+  private boxDist(eye: THREE.Vector3, lo: THREE.Vector3, hi: THREE.Vector3) { return Math.hypot(Math.max(0, lo.x - eye.x, eye.x - hi.x), Math.max(0, lo.y - eye.y, eye.y - hi.y), Math.max(0, lo.z - eye.z, eye.z - hi.z)); }
   private index(edges: ArrisEdge[], i0: number): void {
     edges.forEach((e, ii) => { const i = i0 + ii;
-      const L = e.a.distanceTo(e.b), n = Math.max(1, Math.ceil(L / PIECE));
+      const L = e.a.distanceTo(e.b), n = Math.max(1, Math.ceil(L / (e.joint ? 4 : PIECE))); // (a joint's groove is straight: longer pieces)
       for (let k = 0; k < n; k++) {
         const s0 = (L * k) / n, s1 = (L * (k + 1)) / n, mid = e.a.clone().lerp(e.b, (s0 + s1) / 2 / L), id = this.pieces.length;
         this.pieces.push({ e: i, s0, s1, mid, half: (s1 - s0) / 2 });
         const cx = Math.floor(mid.x / this.cell), cz = Math.floor(mid.z / this.cell), kk = cx * 100003 + cz;
-        (this.cells.get(kk) ?? this.cells.set(kk, { ids: [], cx, cz, built: new Map(), meshes: null }).get(kk)!).ids.push(id);
+        const cell = this.cells.get(kk) ?? this.cells.set(kk, { ids: [], cx, cz, built: new Map(), meshes: null, stale: false }).get(kk)!; cell.ids.push(id);
+        if (cell.meshes) cell.stale = true; // (rebuilt with its new pieces; its meshes drawn until then)
+        this.dirty = true;
       }
     });
   }
@@ -206,34 +265,41 @@ export class ArrisField {
   /** `eye` null: the bands off (the Now view, or no arrises wanted): the base meshes draw their whole arrises */
   update(eye: THREE.Vector3 | null, budgetMs = this.budgetMs): void {
     if (!eye) { this.group.visible = false; ARRIS_EYE.value.set(1e7, 1e7, 1e7); this.last.set(1e9, 0, 0); return; }
-    const t0 = performance.now(), reach = ARRIS_R + this.step + 1 + PIECE, C = this.cell;
-    if (eye.distanceTo(this.last) >= this.step) {
-      this.last.copy(eye);
+    const t0 = performance.now(), reach = ARRIS_R + this.step + 4, C = this.cell; // (rev 4: 4 m of walking to build a cell before it is within R)
+    // rev 4: the wall chunks coming near are expanded into their joints first (nearest first, in the frame's budget)
+    if (eye.distanceTo(this.last) >= this.step || this.dirty) for (let x = Math.floor((eye.x - reach - 3 * C) / C); x <= Math.floor((eye.x + reach + 3 * C) / C); x++) for (let z = Math.floor((eye.z - reach - 3 * C) / C); z <= Math.floor((eye.z + reach + 3 * C) / C); z++)
+      for (const id of this.faceGrid.get(x * 100003 + z) ?? []) { const q = this.faces[id]; if (!q.done && this.boxDist(eye, q.lo, q.hi) < reach + 3 * C && !this.queued.has(id)) { this.faceQueue.push(id); this.queued.add(id); } }
+    this.faceQueue.sort((a, b) => this.boxDist(eye, this.faces[a].lo, this.faces[a].hi) - this.boxDist(eye, this.faces[b].lo, this.faces[b].hi));
+    const budget0 = this.first ? 1e9 : budgetMs;
+    while (this.faceQueue.length && performance.now() - t0 < budget0) { const q = this.faces[this.faceQueue.shift()!]; q.done = true; this.add(this.clipGround(jointEdgesOfFace(q.F))); }
+    if (eye.distanceTo(this.last) >= this.step || this.dirty) {
+      this.last.copy(eye); this.dirty = false;
       const dist = (c: { cx: number; cz: number }) => Math.hypot(Math.max(0, Math.abs(eye.x - (c.cx + 0.5) * C) - C / 2), Math.max(0, Math.abs(eye.z - (c.cz + 0.5) * C) - C / 2));
       this.want = [];
       for (const [k, c] of this.cells) {
         const d = dist(c);
         if (d < reach) this.want.push(k);
-        else if (d > reach + C && (c.meshes || c.built.size)) { for (const m of c.meshes ?? []) { m.geometry.dispose(); this.group.remove(m); } c.meshes = null; c.built.clear(); }
+        else if (d > reach + C && (c.meshes || c.built.size)) { for (const m of c.meshes ?? []) { m.geometry.dispose(); this.group.remove(m); } c.meshes = null; c.built.clear(); c.stale = false; }
       }
       this.want.sort((a, b) => dist(this.cells.get(a)!) - dist(this.cells.get(b)!));
     }
     let pending = 0; const budget = this.first ? 1e9 : budgetMs; this.first = false;
     for (const k of this.want) {
-      const c = this.cells.get(k)!; if (c.meshes) continue;
+      const c = this.cells.get(k)!; if (c.meshes && !c.stale) continue;
       for (const id of c.ids) if (!c.built.has(id)) { if (performance.now() - t0 < budget) c.built.set(id, this.build(id)); else pending++; }
       if (c.built.size === c.ids.length) { if (performance.now() - t0 < budget) this.assemble(c); else pending++; } // (a cell's assembly waits for a frame with time left)
     }
     // the bands take over only when every cell within R of the eye is drawn (a teleport or a load waits for them; a walk builds
     // the cells ahead at the rim, beyond R): until then the base meshes draw every arris from the maps, so nothing is ever missing
-    let ready = true;
-    for (const k of this.want) { const c = this.cells.get(k)!; if (!c.meshes && Math.hypot(Math.max(0, Math.abs(eye.x - (c.cx + 0.5) * C) - C / 2), Math.max(0, Math.abs(eye.z - (c.cz + 0.5) * C) - C / 2)) < ARRIS_R + 0.5) { ready = false; break; } }
+    let ready = !this.faceQueue.some(id => this.boxDist(eye, this.faces[id].lo, this.faces[id].hi) < ARRIS_R + 0.5);
+    for (const k of this.want) { const c = this.cells.get(k)!; if ((!c.meshes || c.stale) && Math.hypot(Math.max(0, Math.abs(eye.x - (c.cx + 0.5) * C) - C / 2), Math.max(0, Math.abs(eye.z - (c.cz + 0.5) * C) - C / 2)) < ARRIS_R + 0.5) { ready = false; break; } }
     this.group.visible = ready; if (ready) ARRIS_EYE.value.copy(eye); else ARRIS_EYE.value.set(1e7, 1e7, 1e7);
     let tris = 0, draws = 0, cells = 0; for (const k of this.want) { const c = this.cells.get(k)!; if (c.meshes) { cells++; for (const m of c.meshes) { draws++; tris += (m.geometry.index?.count ?? 0) / 3; } } }
     this.stats = { cells, triangles: tris, ms: Math.round(performance.now() - t0), pending, draws, ready };
   }
-  private assemble(c: { ids: number[]; built: Map<number, Piece>; meshes: THREE.Mesh[] | null }): void {
+  private assemble(c: { ids: number[]; built: Map<number, Piece>; meshes: THREE.Mesh[] | null; stale: boolean }): void {
     const by = new Map<string, Piece[]>();
+    for (const m of c.meshes ?? []) { m.geometry.dispose(); this.group.remove(m); } c.stale = false;
     for (const id of c.ids) { const p = c.built.get(id)!; if (p.tris) (by.get(p.mat) ?? by.set(p.mat, []).get(p.mat)!).push(p); }
     c.meshes = [];
     for (const [mat, ps] of by) {
@@ -249,6 +315,6 @@ export class ArrisField {
       m.name = `arris-band:${mat}`; m.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'D-321 rev 2: the free arrises near the eye as geometry: worn round (18 mm), chipped in handling (C)' };
       c.meshes.push(m); this.group.add(m);
     }
-    c.built.clear(); // (the pieces' arrays are in the meshes now)
+    // (the pieces stay cached: a cell that receives new pieces, rev 4's joints, rebuilds only those)
   }
 }
