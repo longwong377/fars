@@ -2,3 +2,6 @@
 4d2954ec2459fe7d3cf7de1edbba7ec24df2498ce9769482e49772b781165a67  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/mlc-chat-config.json
 9674d4b0968b9ad288cd777a683190c4594706bd16dad99f70ba5d8bd911a3a3  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/ndarray-cache.json
 358c68eddbe3dc7337dc40345f5d19bfee59c01df8f3f5a1f87667cadc91c954  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_0.bin
+95fca2590ce5e017ac016a3f78384ce9207e6e385ab3822d3aa0daf480e5dcf9  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_1.bin
+f9375a12c9f781b05a1466519d729ab077b9a2fd25d154c4cee9f264f4496e1b  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_10.bin
+cff35d830761e27973c72c192f7534fbc101dd4dcfa2f38095089eeb79379a0b  models/mlc-ai/gemma-2-2b-it-q4f16_1-MLC/resolve/main/params_shard_11.bin
