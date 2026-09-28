@@ -65,5 +65,24 @@ import { surfaceMaterial, setTraffic, NOW_GROUND } from '../../src/render/materi
   registerSettlementSurfaces();
   ['kaba_white', 'takht_stone', 'stone_plain', 'stone_rough', 'limestone'].forEach((k, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 1.2), surfaceMaterial(k)); m.position.set(-30 + i * 3, 1.1, -100); m.castShadow = m.receiveShadow = true; scene.add(m); });
   { const im = new THREE.InstancedMesh(crenellationGeometry(0.9, 0.9, 4, 1), surfaceMaterial('limestone_merlon'), 1); im.setMatrixAt(0, new THREE.Matrix4().makeTranslation(-15, 0, -100).multiply(new THREE.Matrix4().makeScale(1, 1, 0.45))); scene.add(im); }
+  // rev 4: a walk measured in the browser: the eye moved at walking pace (1.4 m/s at 60 frames a second) along a path of grid
+  // points (e, n, eye height above the court or the terrain), the bands updated each frame in their 3 ms budget, each frame
+  // rendered; returns the update's and the frame's times (ms) and how often the bands were not ready
+  (window as any).__walk = async (path: [number, number, number, boolean][], seconds = 20) => {
+    const T: number[] = [], Fm: number[] = [], pend: number[] = []; let unready = 0;
+    const at = (k: number) => { const [e, n, h, court] = path[k]; return new THREE.Vector3(e, (court ? 0 : terrain.heightAt(e, -n)) + h, -n); };
+    const legs = path.slice(1).map((_, k) => at(k).distanceTo(at(k + 1))), total = legs.reduce((p, q) => p + q, 0), frames = Math.min(seconds * 60, Math.round(total / (1.4 / 60)));
+    arris.update(at(0), 1e9);
+    for (let i = 0; i < frames; i++) {
+      let d = (i * total) / frames, k = 0; while (k < legs.length - 1 && d > legs[k]) { d -= legs[k]; k++; }
+      const p = at(k).lerp(at(k + 1), Math.min(1, d / legs[k])), q = at(k + 1);
+      cam.position.copy(p); cam.lookAt(q.x, p.y - 0.3, q.z); cam.updateMatrixWorld();
+      const t0 = performance.now(); arris.update(cam.position); const t1 = performance.now();
+      tm.update(cam.position); await r.renderAsync(scene, cam); const t2 = performance.now();
+      T.push(t1 - t0); Fm.push(t2 - t0); pend.push(arris.stats.pending); if (!arris.stats.ready) unready++;
+    }
+    const st = (a: number[]) => { const b = a.slice().sort((x, y) => x - y); return { mean: +(a.reduce((p, q) => p + q, 0) / a.length).toFixed(2), p95: +b[Math.floor(b.length * 0.95)].toFixed(2), max: +b[b.length - 1].toFixed(2) }; };
+    return { frames, metres: +total.toFixed(1), update: st(T), frame: st(Fm), unreadyFrames: unready, maxPending: Math.max(...pend), triangles: arris.stats.triangles, draws: arris.stats.draws };
+  };
   (window as any).__bf = { ...blockFaceStats, loaded: blockFaceLoaded() }; (window as any).__ready = true;
 })().catch(e => { (window as any).__ready = String(e); console.error(e); });
