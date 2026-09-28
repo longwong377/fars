@@ -8179,3 +8179,4 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   bearers' dais (hall_100_columns/46774486), the stair servant with a young deer (tachara/17611958: the hood covers the chin,
   as drawn), the jamb king under the parasol (no near-frontal photograph on this machine). The animals, plants, emblems,
   rosettes and the Neo-Elamite relief stay drawing C.
+- **Round 4b:** the cypress redrawn from the Apadana stair trees (reliefs/90499796, 30320468: ogival crown 0.40 of the height across, scale column, rising branch pairs, needle fans, cones; B). Drawing B: 20 of 41 kinds. Heroes: no photograph on this machine (stay C).

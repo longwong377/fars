@@ -599,9 +599,29 @@ function standing(sp: Species, lean: number, s: number, xHip: number, flip = fal
 }
 
 // ---------------- plants, emblems, ornaments ----------------
-function cypress(fr: Frame): Mass[] { // cypress separating the delegations (B); scale-like foliage (C)
-  return [M([fr.seg(0, 0, 0, 0.08, 0.012)], { amp: 0.5, colour: P.redOchre, round: 0.01 }),
-    M([fr.spoly([[0, 0.02], [0.06, 0.06], [0.075, 0.25], [0.06, 0.55], [0.03, 0.8], [0.0, 0.93], [-0.03, 0.8], [-0.06, 0.55], [-0.075, 0.25], [-0.06, 0.06]], 4)], { amp: 0.74, lift: 0.05, colour: P.malachite, round: 0.03, dome: 0.4, domeW: 0.06, groove: 0.08, detail: fr.det((x, y) => curls(x * 1.3, y, 0.018, 0.12)) })];
+/** the cypress separating the delegations (B). D-320 round 4, drawn from the Apadana stair trees (fars-assets/photos/reliefs/
+ *  90499796_132_Persepolis_16261656536.jpg, a whole tree 1100 px tall, and 30320468_Bas_Relief_on_Apadana_Staircase…jpg, its
+ *  carving close to): an ogival crown widest at 0.3 of the height (0.40 of the height across; the parapet rows' trees,
+ *  narrow, 0.28 to keep their pitch) over a short bare trunk (0.06), a column of scales up the middle to the tip, which curls
+ *  over in a hook; pairs of branches every 0.065 rising at ~40° from the vertical to the edge, the crown between them cut in
+ *  fans of fine needle grooves, with pendant cones along the branches (B). Paint as before (C) */
+function cypress(fr: Frame, narrow = false): Mass[] {
+  const hw = narrow ? 0.13 : 0.185, top = 0.93, base = 0.06;
+  const crown = fr.spoly([[0, top], [0.3 * hw, 0.82], [0.7 * hw, 0.62], [hw, 0.36], [0.94 * hw, 0.2], [0.6 * hw, 0.085], [0.15 * hw, base], [-0.15 * hw, base], [-0.6 * hw, 0.085], [-0.94 * hw, 0.2], [-hw, 0.36], [-0.7 * hw, 0.62], [-0.3 * hw, 0.82]], 4);
+  const crownIn: SDF = { f: (x, y) => crown.f(x, y) + 0.006, b: crown.b, pv: undefined }; // branches and cones stop 6 mm inside the crown's edge
+  const tan40 = Math.tan((40 * Math.PI) / 180), br: SDF[] = [], cones: SDF[] = [];
+  for (let y0 = 0.1; y0 < top - 0.1; y0 += 0.065) for (const sd of [-1, 1]) {
+    const L = hw * 1.15; br.push(fr.seg(0, y0, sd * L, y0 + L / tan40, 0.0045, 0.0018));
+    for (const t of [0.4, 0.75]) cones.push(fr.ell(sd * L * t + sd * 0.006, y0 + (L * t) / tan40 - 0.022, 0.0065, 0.013));
+  }
+  // needles: fine grooves running up and out (steeper than the branches) across the crown
+  const needles = fr.det((x, y) => { const a = x >= 0 ? 0.35 : -0.35; return pleats(x * Math.cos(a) + y * Math.sin(a), 0.009, 0.16) - 0.02; });
+  return [M([fr.seg(0, 0, 0, base + 0.02, 0.011)], { amp: 0.5, colour: P.redOchre, round: 0.01 }),
+    M([crown], { amp: 0.6, lift: 0.03, colour: P.malachite, round: 0.02, edge: 0.6, dome: 0.25, domeW: 0.05, groove: 0.08, detail: needles }),
+    M(br, { clip: crownIn, amp: 0.001, lift: 0.1, colour: P.malachite, round: 0.004, groove: 0.07, grooveW: 0.003 }),
+    M(cones, { clip: crownIn, amp: 0.001, lift: 0.1, colour: P.malachite, round: 0.004, detail: fr.det((x, y) => curls(x, y, 0.005, 0.08)) }),
+    M([fr.seg(0, base, 0, top - 0.035, 0.011, 0.007)], { amp: 0.001, lift: 0.13, colour: P.redOchre, round: 0.005, groove: 0.06, detail: fr.det((x, y) => curls(x, y, 0.0085, 0.14)) }),
+    M(fr.stroke([[0, top - 0.05], [0.012, top - 0.015], [0.0, top + 0.005], [-0.012, top - 0.012]], 0.004, 0.003), { amp: 0.001, lift: 0.12, colour: P.redOchre, round: 0.003 })];
 }
 function palm(fr: Frame): Mass[] { // date palm beside the sphinxes of the Tripylon panel (B); form C
   const out: Mass[] = [M(fr.stroke([[0, 0], [0.005, 0.4], [0.0, 0.7]], 0.03, 0.022), { amp: 0.55, colour: P.redOchre, round: 0.02, detail: fr.det((x, y) => pleats(y + Math.abs(x) * 0.5, 0.025, 0.12)) })];
@@ -798,6 +818,7 @@ export const FIGURE_KINDS: Record<string, KindInfo> = {
  *  curls (0.06 of the head), the beard's curls, the Persian sleeve's hang. Every kind drawn with the human figure takes them;
  *  the rest of each drawing (poses, held objects, dress details per delegation) stays C */
 const PHOTOS_HEAD = ['apadana/13502746_Medes_and_Persians_at_eastern_stairs_of_the_Apadana_Persepol.jpg', 'reliefs/94473576_AKS_0720.jpg', 'reliefs/73117298_King_guard.jpg'];
+Object.assign(FIGURE_KINDS.cypress, { drawing: 'B', photos: ['reliefs/90499796_132_Persepolis_16261656536.jpg', 'reliefs/30320468_Bas_Relief_on_Apadana_Staircase_Persepolis_Central_Iran_02_7.jpg'], drawingNote: 'ogival crown, scale column, rising branch pairs, needle fans and cones measured on the Apadana stair trees (B)' });
 Object.assign(FIGURE_KINDS.incense_burner, { drawing: 'B', photos: ['hall_100_columns/46774486_panoramio_Farid_Atar.jpg'], drawingNote: 'ribbed shaft, petal crown and stepped lid measured on the throne-hall audience relief (B)' });
 Object.assign(FIGURE_KINDS.lion_bull, { drawing: 'B', photos: ['hadish/30320472_Bas_Relief_of_Lion_Attacking_Bull_Persepolis_Central_Iran_74.jpg', 'tachara/90454853_Lion_and_bull_relief_on_the_southern_staircase_of_the_Palace.jpg'], drawingNote: 'the bead rows of the bull and rosette collar, the lion leaping upright on its back (B); the proportions of the bodies C' });
 const HEAD_NOTE = 'head, headgear, hair and beard measured on the Apadana nobles and guards (B); pose and objects C';
@@ -940,7 +961,7 @@ export function figureDef(kind: string, seed: number): FigureDef {
       const hd = humanHead(new Frame(q.poll[0] - 0.005 * 0.9, q.poll[1] - 0.745 * 0.9, 0, 0.9), 'crown', 'long', P.gold);
       return { masses: [...q.masses, wing, ...hd.masses], incisions: [...q.incisions, ...hd.incisions] };
     }
-    case 'cypress': return { masses: cypress(fr) };
+    case 'cypress': return { masses: cypress(fr, seed === 1) }; // seed 1: the flight parapets' rows (their pitch, r_cypress_band)
     case 'palm': return { masses: palm(fr) };
     case 'rosette': return { masses: rosette(fr), bounds: [-0.52, -0.02, 0.52, 1.02] };
     case 'winged_disc': return { masses: wingedDisc(fr) };
