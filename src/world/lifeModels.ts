@@ -8,7 +8,7 @@
 // before the world is built; a model absent, failed or switched off (?life=0, ?models=0) leaves its builder's procedural
 // stand-in drawn and flagged PLACEHOLDER. The GLB parser is the module's own so the tests read the same files in node.
 import * as THREE from 'three/webgpu';
-import { texture, uv, vec3, float, attribute } from 'three/tsl';
+import { texture, uv, vec3, normalMap } from 'three/tsl';
 
 export interface LifeAsset { class: 'birds' | 'small' | 'flora'; name: string; of: string; files: Record<string, { bytes: number; sha256: string }>; tris: Record<string, number>; tex: number | [number, number];
   L?: number; S?: number; sx?: number; half?: number; [k: string]: unknown }
@@ -81,13 +81,13 @@ export function clearLifeModels() { MODELS.clear(); }
 
 /** a model's surface: the baked albedo (x `tint` when given: a colour node multiplying the albedo, the flora's seasons), the
  *  coverage as an alpha test, the baked normal and occlusion; `fallback` the colour drawn when the maps are absent (node) */
-export function lifeMaterial(m: LifeModel, o: { fallback: [number, number, number]; tint?: any; roughness?: number; side?: THREE.Side; alphaTest?: number } ): THREE.MeshStandardNodeMaterial {
+export function lifeMaterial(m: LifeModel, o: { fallback: [number, number, number]; tint?: any; roughness?: number; side?: THREE.Side; alphaTest?: number; uvNode?: any } ): THREE.MeshStandardNodeMaterial {
   const mat = new THREE.MeshStandardNodeMaterial({ roughness: o.roughness ?? 0.85, metalness: 0, side: o.side ?? THREE.FrontSide });
   if (m.albedo) {
-    const t = texture(m.albedo, uv()); mat.colorNode = o.tint ? t.rgb.mul(o.tint) : t.rgb;
+    const U = o.uvNode ?? uv(), t = texture(m.albedo, U); mat.colorNode = o.tint ? t.rgb.mul(o.tint) : t.rgb;
     mat.opacityNode = t.a; mat.alphaTest = o.alphaTest ?? 0.5;
   } else mat.colorNode = o.tint ? vec3(...o.fallback).mul(o.tint) : vec3(...o.fallback);
-  if (m.nrm) { mat.normalMap = m.nrm; mat.aoNode = texture(m.nrm, uv()).a.mul(0.8).add(0.2); }
-  mat.name = `life:${m.id}`; void float; void attribute;
+  if (m.nrm) { if (o.uvNode) { mat.normalNode = normalMap(texture(m.nrm, o.uvNode).rgb); } else mat.normalMap = m.nrm; mat.aoNode = texture(m.nrm, o.uvNode ?? uv()).a.mul(0.8).add(0.2); }
+  mat.name = `life:${m.id}`;
   return mat;
 }

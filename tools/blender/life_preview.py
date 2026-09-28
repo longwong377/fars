@@ -31,7 +31,7 @@ def shoot(o, view):
         if x.type == 'MESH' and x is not gp: x.hide_render = x is not o
     bb = [o.matrix_world @ Vector(c) for c in o.bound_box]; c = sum(bb, Vector()) / 8; r = max((p - c).length for p in bb)
     dirs = {'above': (0.35, 0.75, 0.8), 'below': (0.3, 0.5, -0.9), 'side': (-1, 0.15, 0.12), 'q34': (-0.7, -0.6, 0.35), 'front': (0.2, -1, 0.25)}
-    v = Vector(dirs[view]).normalized(); cam.location = c + v * r * 3.6; cam.rotation_euler = (c - cam.location).to_track_quat('-Z', 'Y').to_euler()
+    v = Vector(dirs[view]).normalized(); cam.location = c + v * r * 3.6; cam.data.clip_start = r * 0.05; cam.data.clip_end = r * 400; cam.rotation_euler = (c - cam.location).to_track_quat('-Z', 'Y').to_euler()
     gp.location = (0, 0, (min(p.z for p in bb) - 0.001) if view in ('side', 'q34', 'front') else -1000)
     p = out + '_shot.png'; sc.render.filepath = p; bpy.ops.render.render(write_still=True)
     im = bpy.data.images.load(p); px = np.array(im.pixels[:], np.float32).reshape(R, R, 4); bpy.data.images.remove(im); return px

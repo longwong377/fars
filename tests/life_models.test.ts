@@ -76,3 +76,24 @@ describe('the modelled birds (D-332)', () => {
   });
 });
 void existsSync;
+
+import { SmallLife, SMALL, type CellCtx } from '../src/world/smallLife';
+describe('the modelled small creatures (D-332)', () => {
+  it('every kind is built at the game\'s length, its levels in budget (lod0 <= 1600, lod1 <= 400 triangles)', () => {
+    for (const k of Object.keys(SMALL)) {
+      const e = MAN.assets[k]; expect(e, k).toBeTruthy(); expect(e.class).toBe('small'); expect(e.L, k).toBeCloseTo(SMALL[k as keyof typeof SMALL].length, 4);
+      const L = load(k); expect(levelTris(L.lod0), k).toBeLessThanOrEqual(1600); expect(levelTris(L.lod1), k).toBeLessThanOrEqual(400); expect(L.lod0.getAttribute('uv')).toBeTruthy();
+      const b = L.lod0.boundingBox!; expect(Math.max(b.max.z - b.min.z, b.max.x - b.min.x), k).toBeGreaterThan(0.6 * e.L!); expect(Math.max(b.max.z - b.min.z, b.max.x - b.min.x), k).toBeLessThan(3.6 * e.L!);
+      if (!['fly', 'dragonfly', 'butterfly'].includes(k)) expect(Math.abs(b.min.y), `${k} stands on the ground`).toBeLessThan(0.002);
+    }
+  });
+  it('with the models: no stand-in drawn, near and far levels by distance, the worst case under 400 k triangles', () => {
+    clearLifeModels(); for (const k of Object.keys(SMALL)) setLifeModel({ id: k, entry: MAN.assets[k], levels: load(k), albedo: null, nrm: null });
+    const ctxAt = (e: number, n: number): CellCtx => Math.hypot(e, n) < 6 ? 'midden' : Math.abs(n - 40) < 6 ? 'water' : e > 60 ? 'rock' : e < -40 ? 'field' : 'steppe';
+    const s = new SmallLife(7, { ground: () => 0, ctxAt }); expect(s.group.children.filter(m => (m as any).userData.placeholder)).toHaveLength(0);
+    s.update(6, 12, 50000, [0, 20], 0, 2); expect(s.stats.fly).toBeGreaterThan(0); expect(s.far.get('fly')!.count + s.meshes.get('fly')!.count).toBe(s.stats.fly);
+    let worst = 0; for (const [k, sp] of Object.entries(SMALL)) worst += sp.max * MAN.assets[k].tris.lod0; expect(worst).toBeLessThan(1_200_000);
+    let drawnWorst = 0; for (const [k, sp] of Object.entries(SMALL)) drawnWorst += sp.max * MAN.assets[k].tris.lod1; expect(drawnWorst).toBeLessThan(400_000);
+    clearLifeModels();
+  });
+});

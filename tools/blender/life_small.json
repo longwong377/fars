@@ -1,0 +1,21 @@
+{
+ "about": "The small creatures' Blender build (D-332; BLENDER_PLAN row 20; tools/blender/life.mjs small, tools/blender/life_small.py). One model per kind of src/world/smallLife.ts SMALL, at the game's own length L (m; tests/life_models.test.ts checks it). Each body is the species' anatomy as blended ellipsoids (metaballs) and sheets (the insects' wings), from field-guide proportions by eye (C): the builder functions in life_small.py hold the parts. tris = [lod0, lod1] (lod1 drawn beyond lod1_per_len x L, and never nearer than lod1_min m); tex = map size; the butterfly's albedo holds its three species side by side (whites, clouded yellow, painted lady: the game picks one per instance).",
+ "lod1_per_len": 40, "lod1_min": 2.0,
+ "bake": { "ao_samples": 32, "normal_samples": 4, "emit_samples": 4, "margin": 3, "cage_per_len": 0.03, "ray_per_len": 0.06, "ao_per_len": 0.2 },
+ "species": {
+  "fly": { "name": "house fly", "L": 0.008, "tris": [360, 90], "tex": 128 },
+  "dragonfly": { "name": "dragonfly (Orthetrum)", "L": 0.07, "tris": [700, 160], "tex": 256 },
+  "butterfly": { "name": "butterflies (whites, clouded yellow, painted lady)", "L": 0.02, "tris": [420, 110], "tex": [384, 128], "variants": 3 },
+  "lizard": { "name": "rock agama (Paralaudakia)", "L": 0.3, "tris": [1400, 320], "tex": 512 },
+  "frog": { "name": "marsh frog", "L": 0.08, "tris": [900, 220], "tex": 256 },
+  "tortoise": { "name": "spur-thighed tortoise", "L": 0.2, "tris": [1200, 280], "tex": 512 },
+  "snake": { "name": "snake (a blunt-nosed viper)", "L": 0.9, "tris": [1200, 300], "tex": 512 },
+  "jird": { "name": "jird (Meriones)", "L": 0.25, "tris": [1000, 240], "tex": 256 },
+  "hedgehog": { "name": "long-eared hedgehog", "L": 0.2, "tris": [1000, 240], "tex": 256 },
+  "porcupine": { "name": "Indian crested porcupine", "L": 0.7, "tris": [1600, 360], "tex": 512 },
+  "scorpion": { "name": "scorpion (a yellow buthid)", "L": 0.08, "tris": [1100, 260], "tex": 256 },
+  "snail": { "name": "land snail (banded)", "L": 0.03, "tris": [600, 150], "tex": 128 },
+  "turtle": { "name": "Caspian turtle", "L": 0.2, "tris": [1100, 260], "tex": 256 },
+  "crab": { "name": "freshwater crab (Potamon)", "L": 0.07, "tris": [1100, 260], "tex": 256 }
+ }
+}

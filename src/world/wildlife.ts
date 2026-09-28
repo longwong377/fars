@@ -324,12 +324,7 @@ export class Birds {
   /** D-332: the modelled wingbeat. COLOR_0 ('life'): x the wing weight (0 at the root, 1 at the tip), y 1 on the wing. Each
    *  wing turns about its shoulder (|x| = sx) by beat x (0.55 + 0.45 w): the hand sweeps further than the arm; the beat is the
    *  instance's phase and flap amount (0 glide, 1 full), a gliding bird holding a slight dihedral (C) */
-  private flapNode(hz: number, sx: number) {
-    const L = attribute('life', 'vec4'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
-    const beat = sin(this.uTime.mul(hz * Math.PI * 2).add(phase)).mul(flap).mul(0.85).add(0.1), th = beat.mul(L.x.mul(0.45).add(0.55));
-    const x = positionLocal.x, d = max(abs(x).sub(sx), 0).mul(L.y);
-    return vec3(x.add(sign(x).mul(d.mul(cos(th)).sub(d))), positionLocal.y.add(d.mul(sin(th))), positionLocal.z);
-  }
+  private flapNode(hz: number, sx: number) { return birdFlapNode(this.uTime, hz, sx); }
   /** month 0 = first month of the regnal year (spring); hour local; t world seconds; player grid position; eye: the camera
    *  (the levels' distances; else the player's head over the ground) */
   update(month: number, hour: number, t: number, player: P2 | null, wind: { x: number; n: number }, rain: number, eye?: THREE.Vector3) {
@@ -503,4 +498,12 @@ export class Jackals {
     }
     this.mesh.count = pack; this.mesh.instanceMatrix.needsUpdate = true; this.moveAttr.needsUpdate = true;
   }
+}
+
+/** the modelled wingbeat (Birds.flapNode; exported for the probe page) */
+export function birdFlapNode(uTime: any, hz: number, sx: number) {
+    const L = attribute('life', 'vec4'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
+    const beat = sin(uTime.mul(hz * Math.PI * 2).add(phase)).mul(flap).mul(0.85).add(0.1), th = beat.mul(L.x.mul(0.45).add(0.55));
+    const x = positionLocal.x, d = max(abs(x).sub(sx), 0).mul(L.y);
+    return vec3(x.add(sign(x).mul(d.mul(cos(th)).sub(d))), positionLocal.y.add(d.mul(sin(th))), positionLocal.z);
 }
