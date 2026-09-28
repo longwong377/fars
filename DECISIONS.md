@@ -8055,3 +8055,12 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the stair nosings rounded at 1-2 m, a chip as a notch on a nosing, no crack or WebGPU error. Not seen: the full world.
   B145: approach 1 done for the free arrises of box parts; the painted joints inside a wall (no geometry there), the Terrace
   platform's prisms and the foot blocks (terrace_foot.ts, chamfered) keep map-only chips.
+- **Rev 3 (same session, the lead):** (1) the 12 m hand-over is a crossfade: from 9.5 to 12 m the band/maps threshold is
+  dithered per pixel and per frame (interleaved gradient noise; TRAA resolves it to a blend), the two masks exact complements;
+  (2) the geometry's chips are the maps' own: tools/blender/blockface.py records every chip it carves (the carving unchanged:
+  the strip PNGs byte-identical, the KTX2 untouched; src/data/blockface_chips.json), and each free arris reads one strip row and
+  offset from its edge's seed ('aseed', arris.ts edgeSeed) along one canonical direction in both the shader and the band
+  builder: on the probe at gain 4 a nosing's chip lies at the same place drawn as geometry and as map; (3) the bands are built
+  round the spawn in the load (world.prebuild, settle) and then at 3 ms a frame, a cell's assembly included (1.5 m pieces; a
+  walk <= 3 ms in node); the bands take over only when every cell within 12 m is drawn, so a teleport never shows a hole (the
+  maps draw the arrises meanwhile). Open (B145): the painted joints inside a wall, the platform's prisms and the foot blocks.
