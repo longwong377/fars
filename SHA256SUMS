@@ -61,3 +61,4 @@ f4d0608f7d918166da7edb3e188de5ef1bfe70d9802e785d271fd88111e9cf4b  models/onnx-co
 2df2990a395e35e8dfbc7511e08c12d56018d8d04691e0133e5d63b21e154dc6  models/onnx-community/whisper-base/resolve/main/merges.txt
 bf1c507dc8724ca9cf9903640dacfb69dae2f00edee4f21ceba106a7392f26dd  models/onnx-community/whisper-base/resolve/main/normalizer.json
 514903744bb1b45803ec571af99b31110491c6f77b0a154825866995fb124b73  models/onnx-community/whisper-base/resolve/main/onnx/decoder_model_merged.onnx
+2078fb08b753e3a74120e6a52446eef1b98f6152d1da43658731367a93fd71a4  models/onnx-community/whisper-base/resolve/main/onnx/decoder_model_merged_fp16.onnx
