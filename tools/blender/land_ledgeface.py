@@ -48,6 +48,7 @@ for k in ('diff', 'nor', 'height'):
     if k != 'diff': imgs[k].colorspace_settings.name = 'Non-Color'
 sc = bpy.context.scene; sc.render.engine = 'CYCLES'; sc.cycles.samples = 4
 try:
+    if os.environ.get('CPU'): raise RuntimeError('CPU asked (the GPU slots busy)')
     prefs = bpy.context.preferences.addons['cycles'].preferences; prefs.compute_device_type = 'OPTIX'; prefs.get_devices()
     for d in prefs.devices: d.use = True
     sc.cycles.device = 'GPU'

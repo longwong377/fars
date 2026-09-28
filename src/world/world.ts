@@ -303,7 +303,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     const both = (ch: number, x: number, z: number) => dmap(det.near, ch, x, z) ?? dmap(det.mid, ch, x, z) ?? (ch === 1 ? 128 / 255 : 0);
     const env = { ground: (x: number, z: number) => terrain.surfaceAt(x, z), gully: (x: number, z: number) => both(0, x, z), curv: (x: number, z: number) => (both(1, x, z) * 255 - 128) / CURV_SCALE,
       trodden: gmap ? (x: number, z: number) => groundAt4(gmap, x, -z)[1] : undefined };
-    return { rock: new Bedrock(env, seed), ledges: new Ledges(env, seed) }; })();
+    return { rock: new Bedrock(env, seed), ledges: new Ledges(env, seed, undefined, phys as any) }; })();
   root.add(bedrock.rock.group, bedrock.ledges.group);
   // D-335: the ground cover at the feet (grass tufts, stubble, dung) by the shader's herb, plot and trample rules
   const cover = (() => { const gmap = plain.data.zones.ground ?? null;

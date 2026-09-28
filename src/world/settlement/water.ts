@@ -21,13 +21,19 @@ export function resample(pts: P2[], step: number): P2[] {
   return out;
 }
 /** a ribbon of width w along pts, draped: y = ground + lift; returns position/normal/index arrays */
-function ribbon(pts: P2[], w: number, H: (e: number, n: number) => number, lift: number, off = 0, dropEdge = 0) {
+/** a ribbon over a polyline: w wide, lift over the ground. D-335 (the stair-foot-ground view's long black line: the approach's
+ *  free edge stood 6 cm over the terrain, a depth step the screen-space shadow and occlusion drew as a black line along it,
+ *  every road alike): feather m more either side, sunk FEATHER_DROP under the ground, so the ribbon meets the ground in a
+ *  slope and no edge stands free */
+export const FEATHER_DROP = 0.05;
+function ribbon(pts: P2[], w: number, H: (e: number, n: number) => number, lift: number, off = 0, dropEdge = 0, feather = 0) {
   const pos: number[] = [], nor: number[] = [], idx: number[] = [], lat: number[] = [];
+  const across: [number, number][] = feather > 0 ? [[-(w / 2 + feather), -FEATHER_DROP - lift], [-w / 2, 0], [w / 2, 0], [w / 2 + feather, -FEATHER_DROP - lift]] : [[-w / 2, 0], [w / 2, 0]], per = across.length;
   for (let i = 0; i < pts.length; i++) {
     const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
     const nx = -dy / L, ny = dx / L; // left normal (grid)
-    for (const s of [-1, 1]) { const e = pts[i][0] + nx * (off + s * w / 2), n = pts[i][1] + ny * (off + s * w / 2); pos.push(e, H(e, n) + lift - dropEdge, -n); nor.push(0, 1, 0); lat.push(s * w / 2, w / 2); }
-    if (i > 0) { const k = (i - 1) * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); }
+    for (const [u, dh] of across) { const e = pts[i][0] + nx * (off + u), n = pts[i][1] + ny * (off + u); pos.push(e, H(e, n) + lift - dropEdge + dh, -n); nor.push(0, 1, 0); lat.push(u, w / 2); }
+    if (i > 0) { const k0 = (i - 1) * per, k1 = i * per; for (let j = 0; j + 1 < per; j++) idx.push(k0 + j, k1 + j, k0 + j + 1, k0 + j + 1, k1 + j, k1 + j + 1); }
   }
   return { pos, nor, idx, lat };
 }
@@ -203,7 +209,7 @@ export function buildWaterAndRoads(plan: TownPlan, H: (e: number, n: number) => 
     const all = meander(r.pts, 8), near = all.filter(p => Math.hypot(p[0], p[1]) <= 4000), farPts = all.filter((p, i) => Math.hypot(p[0], p[1]) > 4000 && i % 5 === 0);
     // keep the order along the road: split into runs of near / far samples
     let run: P2[] = [], runFar = false;
-    const flush = () => { if (run.length > 1) rparts.push(ribbon(run, r.width, H, runFar ? 0.4 : 0.06)); };
+    const flush = () => { if (run.length > 1) rparts.push(ribbon(run, r.width, H, runFar ? 0.4 : 0.06, 0, 0, runFar ? 0 : 0.6)); };
     all.forEach((p, i) => { const far = Math.hypot(p[0], p[1]) > 4000; if (far && i % 5 !== 0 && i !== all.length - 1) return; if (far !== runFar && run.length) { run.push(p); flush(); run = [p]; runFar = far; return; } runFar = far; run.push(p); });
     flush(); void near; void farPts;
   }
@@ -213,7 +219,7 @@ export function buildWaterAndRoads(plan: TownPlan, H: (e: number, n: number) => 
   // stair's top, so from there its ruts and verges are bands along the view and survive the pixel footprint (D-223: marks
   // across the view do not). It stops 3 m short of the stair's first step
   { const P = (id: string) => ((placesJson as any).places as any[]).find(q => q.id === id)?.at as P2 | undefined, a = P('town'), b = P('stair_foot');
-    if (a && b) { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), end: P2 = [b[0] - ((b[0] - a[0]) / L) * 3, b[1] - ((b[1] - a[1]) / L) * 3]; rparts.push({ ...ribbon(meander([a, end], 8), APPROACH_W, H, 0.06), wd: [0.4, 1] }); } }
+    if (a && b) { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), end: P2 = [b[0] - ((b[0] - a[0]) / L) * 3, b[1] - ((b[1] - a[1]) / L) * 3]; rparts.push({ ...ribbon(meander([a, end], 8), APPROACH_W, H, 0.06, 0, 0, 0.6), wd: [0.4, 1] }); } }
   const rg = geo(rparts); const rm = new THREE.Mesh(rg, roadMat); rm.name = 'settlement:roads'; rm.receiveShadow = true; rm.matrixAutoUpdate = false;
   rm.userData = { tier: 'C', src: 'LIVIUS-TR;PLEIADES-FARS;ROYALROAD-GIS;SUMNER1986;RECON', note: 'earth roads 6-8 m (settlement.json): to Naqsh-e Rustam, to Pasargadae up the Pulvar, the royal road W toward Susa, S to Tirazziš; courses C (Q-054); the approach from the town place to the Grand Stair worn as a track too (D-227, C); spur to the Tol-e Ajori gate C; worn as tracks: a cart-rut pair each side, a ragged herb verge (D-223, C)' };
   group.add(rm); tris += rg.index!.count / 3; meshes++;

@@ -86,3 +86,22 @@ describe('the ground rock (hills/bedrock.ts)', () => {
   }, 120_000);
 });
 void LEDGE_FORM;
+
+describe('the stair-foot line (D-335): the roads and the approach meet the ground with no free edge', () => {
+  it('every road ribbon near the Terrace ends in a feather sunk under the ground: no vertex of its outline stands above the ground', async () => {
+    const { buildWaterAndRoads, FEATHER_DROP } = await import('../src/world/settlement/water');
+    const { buildTownPlan } = await import('../src/world/settlement/plan');
+    const { registerSettlementSurfaces } = await import('../src/world/settlement/surfaces');
+    registerSettlementSurfaces();
+    const H = (e: number, n: number) => T.heightAt(e, -n), wr = buildWaterAndRoads(buildTownPlan(), H);
+    const g = (wr.group.getObjectByName('settlement:roads') as THREE.Mesh).geometry, P = g.getAttribute('position'), lat = g.getAttribute('lat');
+    let edges = 0, above = 0, near = 0;
+    for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i); if (Math.hypot(x, z) > 4000) continue; near++;
+      if (Math.abs(lat.getX(i)) > lat.getY(i) + 0.3) { edges++; if (P.getY(i) > H(x, -z) - FEATHER_DROP * 0.9) above++; } }
+    console.log(`road vertices within 4 km: ${near}, outline (feather) vertices ${edges}, above the ground ${above}`);
+    expect(edges).toBeGreaterThan(near * 0.4); expect(above).toBe(0);
+    // the approach to the Grand Stair: its outline at the stair-foot-ground view (grid e -62..-66) under the ground
+    let seen = 0; for (let i = 0; i < P.count; i++) { const e = P.getX(i), n = -P.getZ(i); if (e < -56 && e > -80 && n > 108 && n < 130 && Math.abs(lat.getX(i)) > lat.getY(i)) { seen++; expect(P.getY(i)).toBeLessThan(H(e, n)); } }
+    expect(seen).toBeGreaterThan(0);
+  }, 120_000);
+});
