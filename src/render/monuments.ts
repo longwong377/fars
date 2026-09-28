@@ -1,7 +1,7 @@
 // D-329: the Blender-built monuments of the plain and the town (Tol-e Ajori, Naqsh-e Rustam: tools/blender/monuments.mjs).
 // Each asset is a plain (uncompressed) GLB of named meshes (position, normal, TEXCOORD_0, TEXCOORD_1 as `uv1`, COLOR_0 as
 // `ao`, indices) and a few JPEG maps (tangent-space normal RGB, OpenGL; aux: R occlusion, G albedo x2, B roughness; colour
-// sRGB), listed in public/models/monuments/manifest.json. The GLB is parsed here (no loader), so node tests draw and count
+// sRGB; KTX2 UASTC, D-329), listed in public/models/monuments/manifest.json. The GLB is parsed here (no loader), so node tests draw and count
 // the same geometry as the page (loadMonumentsNode), and a missing or failed asset leaves the builder's procedural stand-in
 // (flagged PLACEHOLDER) in place: nothing is ever missing. `?monuments=0` switches them off (A/B).
 import * as THREE from 'three/webgpu';
@@ -75,12 +75,19 @@ export async function loadMonuments(base = '/', anisotropy = 8): Promise<ReturnT
   try { const r = await fetch(base + 'models/monuments/manifest.json'); if (!r.ok) throw new Error(`manifest ${r.status}`); man = await r.json(); }
   catch (e) { console.warn(`[monuments] no manifest (${(e as Error).message}): procedural stand-ins drawn`); return monumentStats(); }
   const L = new THREE.TextureLoader();
+  // KTX2 maps (UASTC): the transcoder picks the GPU's block format from the WebGPU adapter (as models.ts; decoders in /models/lib/)
+  let K: any = null;
+  if (Object.values(man.assets).some(a => Object.values(a.maps).some(m => m.file.endsWith('.ktx2')))) {
+    const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
+    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
+    K = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); K.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any);
+  }
   await Promise.all(Object.entries(man.assets).map(async ([id, e]) => {
     try {
       const r = await fetch(base + e.file); if (!r.ok) throw new Error(`${e.file} ${r.status}`);
       const meshes = parseMonumentGLB(await r.arrayBuffer()), maps: Record<string, THREE.Texture> = {};
       await Promise.all(Object.entries(e.maps).map(async ([k, m]) => {
-        const t = await L.loadAsync(base + m.file); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy;
+        const t: THREE.Texture = m.file.endsWith('.ktx2') ? await K.loadAsync(base + m.file) : await L.loadAsync(base + m.file); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy;
         t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.colorSpace = m.srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.flipY = false; t.needsUpdate = true;
         maps[k] = t; }));
       MON.set(id, { id, entry: e, meshes, maps }); LOAD.loaded.push(id);

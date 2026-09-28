@@ -8074,3 +8074,8 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   ground line, podium (forms C, Q-915); (3) the Ka'ba modelled (corner piers, rows of recesses and block joints carved and
   baked, cornice, dentils, stepped dark window frames, stair). Budgets: kept under the plain's per-frame 2 M by cutting the
   façade to ~10 k triangles (protome at 1,100); the plain's static 2.0 M test was already failing (2.105 M) before this change.
+  D-329 addendum: the monuments' maps are KTX2 (UASTC + zstd, box mipmaps; the glaze colour sRGB), loaded by monuments.ts through
+  three's KTX2Loader: ~200 MB of decoded JPEG texture memory -> ~50 MB block-compressed (BC7, 1 B a texel); download 21.8 MB.
+  NOT verified in the browser: Naqsh-e Rustam (two probe runs lost: vite served the SPA page for a GLB built after it started, then
+  the probe's bounding box threw on the relief sets; the fixed rerun never got a GPU slot) and the KTX2 path itself (the Ajori
+  probe frames were JPEG). The lead's world render must look at both (?monuments=0 for the stand-ins).
