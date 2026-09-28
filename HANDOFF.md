@@ -86,7 +86,7 @@ AT ONCE, each in its own worktree (on T: if C: is short), each owning a whole cl
 (seconds a load; never a full-world render while iterating), committing as they go:
 1. **The lighting at the T4's full quality** (the biggest single "photograph vs render" lever): shadow maps and cascades up
    (the stair-stepped shadows, B113), SSR/AO/contact shadows at full resolution, GI or probe light everywhere people walk (not
-   only some halls), the tone curve and exposure against the photographs (#24, the Wikimedia set), atmospheric depth. Frame time
+   only some halls), the tone curve and exposure (a cinematic AAA look), atmospheric depth. Frame time
    measured on the T4 (T-K6).
 2. **CC0 3D models in bulk (Poly Haven models: rocks, boulders, plants, shrubs, trees, pottery, baskets, crates, logs):**
    download the whole relevant set (commit what the game loads to public/models; everything else to branch assets-archive),
