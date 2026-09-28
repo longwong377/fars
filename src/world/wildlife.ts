@@ -456,6 +456,13 @@ function jackalGeometry(): THREE.BufferGeometry {
   return g;
 }
 
+/** D-332: the modelled jackal's leg weights: below the elbows and hocks (y < 0.27 m) a vertex follows its leg, weighted by its
+ *  depth under the joint, the sign of its diagonal pair (the stand-in's convention) */
+function jackalLegs(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  const P = g.getAttribute('position'), W = new Float32Array(P.count);
+  for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i); if (y < 0.27 && Math.abs(x) > 0.012 && (z > 0.1 || z < -0.08)) W[i] = (x < 0 ? 1 : -1) * (z > 0 ? 1 : -1) * Math.min(1, (0.27 - y) / 0.25); }
+  g.setAttribute('leg', new THREE.BufferAttribute(W, 1)); return g;
+}
 /** a jackal's place on the night's wander: closed form; `moving` false while it pauses */
 export function jackalAt(seed: number, night: number, i: number, t: number, out: { e: number; n: number; heading: number; moving: boolean }) {
   const r = new Rng(seed, `jackal:${night}`);
@@ -476,14 +483,16 @@ export class Jackals {
   private uTime = uniform(0); private moveAttr: THREE.InstancedBufferAttribute;
   private p = { e: 0, n: 0, heading: 0, moving: false }; private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private up = new THREE.Vector3(0, 1, 0);
   constructor(private seed: number, private terrain: Terrain) {
-    const g = jackalGeometry();
-    const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...JACKAL.colour, THREE.SRGBColorSpace), roughness: 0.95 });
+    // D-332: the modelled golden jackal (tools/blender/life_small.py) when loaded, its legs weighted here from the model (a
+    // vertex below the elbows and hocks swings with its leg, diagonal pairs in phase); else the box stand-in (PLACEHOLDER)
+    const lm = lifeModel('jackal'), g = lm ? jackalLegs(lm.levels.lod0.clone()) : jackalGeometry();
+    const m = lm ? lifeMaterial(lm, { fallback: JACKAL.colour, roughness: 0.95 }) : new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...JACKAL.colour, THREE.SRGBColorSpace), roughness: 0.95 });
     const leg = attribute('leg', 'float'), mv = attribute('moving', 'float');
     // trot: legs swing ±25° about the hip at ~2.2 Hz, diagonal pairs opposite (sign of `leg`)
     m.positionNode = positionLocal.add(vec3(0, 0, sin(this.uTime.mul(2.2 * Math.PI * 2)).mul(leg).mul(mv).mul(0.12)));
     this.mesh = new THREE.InstancedMesh(g, m, JACKAL.count); this.mesh.count = 0; this.mesh.castShadow = false; this.mesh.frustumCulled = false;
     this.moveAttr = new THREE.InstancedBufferAttribute(new Float32Array(JACKAL.count), 1); g.setAttribute('moving', this.moveAttr);
-    this.mesh.userData = { tier: JACKAL.tier, src: 'SOUND-R', note: `${JACKAL.name}; pack range and paths procedural (C)` };
+    this.mesh.userData = { tier: JACKAL.tier, src: 'SOUND-R', placeholder: !lm, note: `${lm ? '' : 'PLACEHOLDER (the model did not load): '}${JACKAL.name}${lm ? ', modelled (D-332, C)' : ''}; pack range and paths procedural (C)` };
     this.mesh.name = 'wildlife-jackals';
   }
   /** dayIndex/hour local; t world seconds */
@@ -493,7 +502,7 @@ export class Jackals {
     const night = hour >= JACKAL.hours[0] ? dayIndex : dayIndex - 1, pack = 2 + new Rng(this.seed, `jackal-pack:${night}`).int(0, JACKAL.count - 2);
     for (let i = 0; i < pack; i++) {
       jackalAt(this.seed, night, i, t, this.p); const y = this.terrain.heightAt(this.p.e, -this.p.n);
-      this.q.setFromAxisAngle(this.up, this.p.heading); this.m4.compose(new THREE.Vector3(this.p.e, y, -this.p.n), this.q, new THREE.Vector3(1, 1, 1));
+      this.q.setFromAxisAngle(this.up, Math.PI - this.p.heading); // (D-332: nose +z; heading atan2(east, north), the world's z south) this.m4.compose(new THREE.Vector3(this.p.e, y, -this.p.n), this.q, new THREE.Vector3(1, 1, 1));
       this.mesh.setMatrixAt(i, this.m4); this.moveAttr.setX(i, this.p.moving ? 1 : 0);
     }
     this.mesh.count = pack; this.mesh.instanceMatrix.needsUpdate = true; this.moveAttr.needsUpdate = true;

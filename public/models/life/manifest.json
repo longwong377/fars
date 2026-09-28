@@ -1198,6 +1198,54 @@
    "tier": "C",
    "src": "RECON"
   },
+  "jackal": {
+   "class": "small",
+   "name": "golden jackal",
+   "of": "jackal",
+   "inHash": "28beba2ddc5a9174bdd168522f71246c798afeedddb2261cd26dce56a595fec8",
+   "files": {
+    "jackal.glb": {
+     "bytes": 117004,
+     "sha256": "5d3a3fcce9e6fb1f3cd15d071c342f2f58ff555199425dc5001adc14537781d5"
+    },
+    "jackal_albedo.ktx2": {
+     "bytes": 228357,
+     "sha256": "d3aef936d3f4e7ed08a2b6587bde8f4561199decbf7b52b99cce53451e845890"
+    },
+    "jackal_nrm.ktx2": {
+     "bytes": 229882,
+     "sha256": "33143c79ebe47a0eb0b12851f0c7c7e7930088d2d85c9c6ea0ecd8b66741cd40"
+    }
+   },
+   "tris": {
+    "lod0": 2400,
+    "lod1": 500
+   },
+   "tex": 512,
+   "L": 0.75,
+   "variants": 1,
+   "cover": 0.5503692626953125,
+   "ao_mean": 0.635063081629136,
+   "high_tris": 83282,
+   "bbox": [
+    [
+     -0.12753485143184662,
+     -0.00008220121526392177,
+     -0.3934291899204254
+    ],
+    [
+     0.12753485143184662,
+     0.5296494364738464,
+     0.5087827444076538
+    ]
+   ],
+   "half": 0,
+   "blender": "5.0.1",
+   "device": "CPU",
+   "ktx": "ktx version: v4.4.2",
+   "tier": "C",
+   "src": "RECON"
+  },
   "jackdaw": {
    "class": "birds",
    "name": "western jackdaw",

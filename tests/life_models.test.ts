@@ -125,3 +125,14 @@ describe('the modelled ground flora (D-332)', () => {
     clearLifeModels();
   });
 });
+
+import { Jackals } from '../src/world/wildlife';
+describe('the modelled jackal (D-332)', () => {
+  it('draws the model (not the boxes) when loaded, its legs weighted, in budget', () => {
+    const e = MAN.assets.jackal; expect(e.L).toBeCloseTo(0.75, 3); const L = load('jackal'); expect(levelTris(L.lod0)).toBeLessThanOrEqual(2400);
+    clearLifeModels(); setLifeModel({ id: 'jackal', entry: e, levels: L, albedo: null, nrm: null });
+    const J = new Jackals(1, { heightAt: () => 0 } as any); expect((J.mesh.userData as any).placeholder).toBe(false);
+    const w = J.mesh.geometry.getAttribute('leg'); let pos = 0, neg = 0; for (let i = 0; i < w.count; i++) { if (w.getX(i) > 0.5) pos++; if (w.getX(i) < -0.5) neg++; } expect(pos).toBeGreaterThan(10); expect(neg).toBeGreaterThan(10);
+    clearLifeModels();
+  });
+});

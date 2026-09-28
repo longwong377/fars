@@ -296,7 +296,27 @@ def col_crab(P, part, loc, L):
     c[(part == 'claw') & (P[:, 2] / L * 70 > 39)] = [0.85, 0.6, 0.35]
     return c * (0.9 + 0.2 * hsh((P[:, 0] / L * 300).astype(int), (P[:, 2] / L * 300).astype(int), 2))[:, None]
 
-BUILD = {'fly': (build_fly, col_fly), 'dragonfly': (build_dragonfly, col_dragonfly), 'butterfly': (build_butterfly, col_butterfly), 'lizard': (build_lizard, col_lizard),
+def build_jackal(L):
+    b = Body(L); s = L / 750.0  # mm; L = the game's jackal length (nose to rump), shoulder ~450 mm
+    b.ell([0, 330 * s, 40 * s], [95 * s, 105 * s, 230 * s], part='body'); b.ell([0, 345 * s, 210 * s], [88 * s, 110 * s, 90 * s], part='chest')
+    b.chain([[0, 360 * s, 250 * s], [0, 420 * s, 330 * s]], [62 * s, 55 * s], part='neck'); b.ell([0, 440 * s, 370 * s], [58 * s, 55 * s, 70 * s], part='head')
+    b.chain([[0, 430 * s, 420 * s], [0, 412 * s, 490 * s]], [30 * s, 17 * s], part='muzzle', flat=0.85); b.ell([0, 418 * s, 492 * s], [10 * s, 9 * s, 8 * s], part='nose')
+    for x in (-1, 1):
+        b.ell([x * 32 * s, 505 * s, 345 * s], [16 * s, 42 * s, 9 * s], R=rot_to([x * 0.3, 1, 0.15]), part='ear'); b.ell([x * 30 * s, 452 * s, 420 * s], [9 * s, 8 * s, 9 * s], part='eye')
+        b.chain([[x * 55 * s, 300 * s, 190 * s], [x * 45 * s, 170 * s, 205 * s], [x * 40 * s, 40 * s, 200 * s], [x * 40 * s, 12 * s, 225 * s]], [42 * s, 22 * s, 15 * s, 14 * s], part='leg')
+        b.chain([[x * 55 * s, 300 * s, -130 * s], [x * 50 * s, 180 * s, -170 * s], [x * 40 * s, 90 * s, -215 * s], [x * 40 * s, 12 * s, -200 * s], [x * 40 * s, 10 * s, -175 * s]], [60 * s, 32 * s, 16 * s, 14 * s, 13 * s], part='leg')
+    b.chain([[0, 330 * s, -190 * s], [0, 250 * s, -290 * s], [0, 150 * s, -350 * s], [0, 110 * s, -370 * s]], [30 * s, 38 * s, 32 * s, 18 * s], part='tail')
+    return b
+def col_jackal(P, part, loc, L):
+    s = L / 750; c = np.tile([0.66, 0.53, 0.33], (len(P), 1)); y = P[:, 1] / s; z = P[:, 2] / s
+    sad = (y > 400) & (part == 'body') | ((part == 'body') & (y > 380)); c[sad] = [0.35, 0.3, 0.24]
+    gr = hsh((P[:, 0] / s / 8).astype(int), (z / 8).astype(int), (y / 8).astype(int), 5) > 0.55; c[sad & gr] = [0.78, 0.72, 0.6]
+    c[(y < 250) & ((part == 'body') | (part == 'chest'))] = [0.86, 0.8, 0.68]; c[(part == 'muzzle') & (y < 420)] = [0.88, 0.84, 0.75]
+    c[part == 'leg'] = [0.7, 0.48, 0.28]; c[part == 'ear'] = [0.68, 0.5, 0.3]; c[part == 'nose'] = [0.06, 0.05, 0.05]; c[part == 'eye'] = [0.2, 0.12, 0.05]
+    tip = (part == 'tail') & (z < -330); c[tip] = [0.08, 0.07, 0.06]
+    return c * (0.92 + 0.16 * hsh((P[:, 0] / s / 5).astype(int), (z / 5).astype(int), (y / 5).astype(int)))[:, None]
+
+BUILD = {'jackal': (build_jackal, col_jackal), 'fly': (build_fly, col_fly), 'dragonfly': (build_dragonfly, col_dragonfly), 'butterfly': (build_butterfly, col_butterfly), 'lizard': (build_lizard, col_lizard),
          'frog': (build_frog, col_frog), 'tortoise': (build_tortoise, col_tortoise), 'turtle': (lambda L: build_tortoise(L, True), lambda P, p, l, L: col_tortoise(P, p, l, L, True)),
          'snake': (build_snake, col_snake), 'jird': (build_jird, col_jird), 'hedgehog': (build_hedgehog, col_hedgehog), 'porcupine': (build_porcupine, col_porcupine),
          'scorpion': (build_scorpion, col_scorpion), 'snail': (build_snail, col_snail), 'crab': (build_crab, col_crab)}
@@ -313,6 +333,7 @@ def relief(kind, P, part, L):
         k, edge, rc = scute(P, L); h += (part == 'shell') * (0.004 * L * (np.sin(rc * 1.6) * 0.5 + 0.5) - 0.01 * L * np.exp(-edge / 1.2))
     if kind == 'hedgehog': h += (part == 'spines') * 0.012 * L * (cell(0.012, 1) > 0.4)
     if kind == 'porcupine': m = (part == 'quills') | (part == 'crest'); h += m * 0.02 * L * (np.sin(P[:, 0] / L * 400) * 0.5 + 0.5) * (cell(0.02, 2) > 0.3)
+    if kind == 'jackal': h += 0.0012 * L * (cell(0.004, 5) - 0.5)
     if kind in ('jird', 'hedgehog', 'porcupine'): h += 0.0015 * L * (cell(0.006, 3) - 0.5)
     if kind == 'frog': bumps(0.03, 0.004, np.ones(n, bool))
     if kind in ('scorpion', 'crab', 'fly', 'dragonfly'): h += 0.002 * L * (cell(0.01, 4) - 0.5)
