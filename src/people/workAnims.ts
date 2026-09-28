@@ -79,6 +79,9 @@ const wob = (t: number, k: number) => 0.6 * S(t * 0.37 + k * 1.7) + 0.4 * S(t * 
 const cyc = (t: number, period: number, k: number, salt = 0) => { const n = Math.floor(t / period + k * 0.37); return fr(Math.sin(n * 12.9898 + k * 78.233 + salt * 37.719) * 43758.5453); };
 
 function blank(): Pose { return { rot: {}, hips: [0, 0, 0] }; }
+/** D-333: the work cycles whose whole body is a capture (the walking ones: the arms hold the thing over a captured gait);
+ *  every other work cycle is an authored stroke over the capture layer (the dev overlay counts both) */
+export const CAPTURED_WORK = new Set<string>(['plough', 'bier_l', 'bier_r', 'limp', 'feel', 'chase', 'pull_toy']);
 /** D-333: a walking body from motion capture (mocap.ts gaits) at gait phase ph, and its trunk for the arms' IK: the cycles
  *  that walk (the ploughman, the bearers, the lame and the blind, the children at play) hold their things over it */
 function walkBody(style: GaitStyle, ph: number, k: number, v: number): { p: Pose; T: Trunk } { const p = gaitPose(style, ph, k, v); return { p, T: trunk(p) }; }

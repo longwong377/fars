@@ -23,7 +23,7 @@ import { Rng } from '../core/rng';
 import { attribute, positionLocal, float, abs, min, max, mix, step } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { surfaceMaterial, propScanNodes } from '../render/materials';
-import { pose, type Pose, type Gait } from './anim';
+import { pose, MOCAP_ANIMS, type Pose, type Gait } from './anim';
 import { strideAt, type GaitStyle } from './mocap';
 import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type WorkSpec, type Performer } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
@@ -42,7 +42,7 @@ import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTE
 import { h32, salt } from './hash';
 import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
-import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
+import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim, CAPTURED_WORK } from './workAnims';
 import { IK_Q } from './poseKit';
 import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
 import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, type Species } from './animals';
@@ -965,9 +965,11 @@ export class Crowd {
   stats() { const s = this.humans.gpu.stats(); let propDraws = 0, props = 0, propTriangles = 0;
     // every prop instance submits its class's whole union (the other kinds' vertices collapse to a point)
     for (const c of this.carried) if (c.mesh.count) { propDraws++; props += c.mesh.count; const g = c.mesh.geometry; propTriangles += c.mesh.count * (g.index ? g.index.count : g.getAttribute('position').count) / 3; }
-    let placeholderActs = 0; for (const p of this.persons.values()) if (p.actPlaceholder && p.drawnFrame === this.frame) placeholderActs++;
+    let placeholderActs = 0, motionCapture = 0, motionAuthored = 0; for (const p of this.persons.values()) if (p.drawnFrame === this.frame) { if (p.actPlaceholder) placeholderActs++;
+      // D-333: whose motion is a capture (whole body, or under the authored hold of a thing), whose an authored stroke over the capture layer
+      if (MOCAP_ANIMS.has(p.anim) || CAPTURED_WORK.has(p.anim)) motionCapture++; else motionAuthored++; }
     const imp = this.imp ? { impostors: this.imp.count, impostorDraws: this.imp.count ? 1 : 0, impostorTriangles: this.imp.count * 2 } : { impostors: 0, impostorDraws: 0, impostorTriangles: 0 };
-    return { ...s, propDraws, props, propTriangles, propsDropped: this.propsDropped, placeholderActs, things: this.things.stats(), animals: this.animals.stats(), perf: { ...this.perf }, ...imp, impPerf: { ...this.impPerf }, view: this.view ? { ...this.view.stats } : null }; }
+    return { ...s, propDraws, props, propTriangles, propsDropped: this.propsDropped, placeholderActs, motionCapture, motionAuthored, things: this.things.stats(), animals: this.animals.stats(), perf: { ...this.perf }, ...imp, impPerf: { ...this.impPerf }, view: this.view ? { ...this.view.stats } : null }; }
   /** evidence notes for the pieces a person wears (tests, overlay) */
   static pieceNotes(look: PersonLook) { return look.pieces.map(id => ({ ...PIECES[id], id })); }
 }
