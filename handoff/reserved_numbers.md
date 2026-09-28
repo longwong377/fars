@@ -74,3 +74,8 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-326 | s12 | Blender, all of it: animals (Q-980..Q-989, B160..B162) | agent worktree T:/fars-wt/animals, branch s12b-animals | in flight |
 | D-327 | s12 | Blender, all of it: trees (Q-990..Q-999, B163..B165) | agent worktree T:/fars-wt/trees, branch s12b-trees | in flight |
 | D-315 | s12 | conversations act on the world and are remembered per save (UD-21; Q-910..Q-919, B139..B141) | agent worktree T:/fars-wt/talk, branch s12b-talk | in flight |
+| D-328 | s12 | Blender, all of it (wave 3): columns (Q-912..Q-913, B166..B168) | agent worktree T:/fars-wt/columns, branch s12c-columns | in flight |
+| D-329 | s12 | Blender, all of it (wave 3): ajori_naqsh (Q-914..Q-915, B169..B171) | agent worktree T:/fars-wt/ajori_naqsh, branch s12c-ajori_naqsh | in flight |
+| D-330 | s12 | Blender, all of it (wave 3): decor_tents (Q-916..Q-917, B172..B174) | agent worktree T:/fars-wt/decor_tents, branch s12c-decor_tents | in flight |
+| D-331 | s12 | Blender, all of it (wave 3): impostors (Q-918..Q-919, B175..B177) | agent worktree T:/fars-wt/impostors, branch s12c-impostors | in flight |
+| D-332 | s12 | Blender, all of it (wave 3): smalllife (Q-920, B178..B180) | agent worktree T:/fars-wt/smalllife, branch s12c-smalllife | in flight |
