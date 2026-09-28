@@ -1,13 +1,13 @@
 {
  "id": "T-E10",
- "value": 100,
+ "value": 99.4,
  "n": 158,
- "commit": "66f25ae",
+ "commit": "c26daf9d",
  "tool": "tests/talk_world.test.ts",
  "unit": "%",
  "status": "PLUMBING PASS (stand-in model; the real model unmeasured)",
  "model": "stand-in (tests/talk_standin.ts)",
- "pass": 158,
+ "pass": 157,
  "requests": [
   64,
   64
@@ -17,7 +17,7 @@
   64
  ],
  "heard": [
-  30,
+  29,
   30
  ],
  "kinds": {
@@ -58,7 +58,7 @@
    64
   ],
   "heard": [
-   30,
+   29,
    30
   ]
  },
@@ -67,7 +67,18 @@
   "refused": 26,
   "noop": 15
  },
- "fails": [],
+ "fails": [
+  {
+   "i": 153,
+   "kind": "heard",
+   "job": "steward",
+   "say": "Have you heard anything of me, a foreigner?",
+   "reply": "Yes, stranger. In the month Θāigraciš you spoke with me and said “What do people say of the stranger?”.",
+   "why": [
+    "does not recall: bread|trade|exchange"
+   ]
+  }
+ ],
  "sample": [
   {
    "i": 0,

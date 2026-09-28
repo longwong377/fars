@@ -7990,3 +7990,16 @@ T-E10-gpu-run3.json, T-E9-gpu-run3.json.
   (4.6 MB; GPU array ~47 MB). (5) `node tools/blender/trees.mjs --verify` rebuilds every step into the work folder and
   compares (WebP by decoded texels, wood by value): reproduced (Cycles OptiX, same seed); the record sits in the manifest
   and tests/tree_assets.test.ts checks it.
+## D-315 (continued) Runs 4 and 5: the picked recall fact, the refusal judge, the life fact beside the question (session 12)
+
+Built in node first:
+- For a question about earlier meetings, the simulation picks the one thing the person remembers (talk.ts recallFact): their own meeting with a deed first, then their own words, then what kin or friends told them, else that they never met the stranger. It is said in their words ("Yesterday in the morning you asked me for water, and I gave you water."), and the model only rephrases it.
+- A small judge (mind.ts judge, ground.ts judgePrompt): the loaded model is asked YES, NO or UNSURE, greedy, 3 tokens, and only a NO counts as a refusal. It decides at runtime whether the words refused, so a "yes" to something the simulation refuses is retold.
+- The one life fact most relevant to the question, picked by the kind of question (ground.ts groundFact).
+- A scorer bug found and fixed: a bare "No," never matched the refusal words (the closing \b cannot follow a comma and a space). Runs 1-4 were scored with the bug.
+
+GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = the 72-case set, auto-scored):
+- Run 4, facts placed BEFORE the stranger's words: T-E10 55 % (requests 10/16, own recalls 9/16, heard 3/8; 60 % when the same replies are rescored with the "No," fix); T-E9 52.8 %, down from 62.5 %: the replies grew shorter and named less of the life.
+- Run 5, facts in the closing note AFTER the stranger's words ("(Answer as X. What you remember: … Tell him that …)" and "(Answer as X, from your own life: …)"): **T-E10 62.5 %** (requests 12/16, own recalls 7/16, heard 6/8), median answer 1.3 s; **T-E9 59.7 %** (43/72), median 1.4 s, 24 of 29 failures "not grounded". Evidence: REVIEWS/evidence/s12-talk/T-E10-gpu-run4.json, T-E10-gpu-run5.json, T-E9-gpu-run4.json, T-E9-gpu-run5.json.
+- Across runs: T-E10 17.5 → 52.5 → 62.5 %. Hearsay recall is fixed (2/8 → 6/8). Own recall is not (7/16): the model still says "I don't recall" or invents a different errand, even with the fact placed directly before it answers. Four of the four request failures are refusals in the person's own words ("Bagačiθrā is young and sleeps"): the lexical scorer misses them, although the judge accepted them at runtime. T-E9 is not better than run 3's 62.5 % without the life fact: the fact does not ground a 2 B model's replies. T-E9 stays below the target; the next approach would be checking a reply's grounding and asking once more with the fact named (not done).
+- The default stays gemma-2-2b behind ?converse.

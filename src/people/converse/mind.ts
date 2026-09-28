@@ -9,9 +9,10 @@ import { primeParts, tidy, type Knows, type Turn } from './prompt';
 import { hearAsPerson } from './hear';
 import type { LifeRecord } from './life';
 import { parseIntent, type Intent } from './intent';
+import { judgePrompt } from './ground';
 
 /** D-315: what the person remembers of the stranger (talk.ts recall) and the simulation's word on what was asked */
-export interface AskOpts { memory?: string[]; note?: string; /** a turn that is not the stranger's words (the retelling of a refusal: turn.ts) */ userText?: string; /** D-315: said just before the stranger's words (the memory, near the question) */ before?: string }
+export interface AskOpts { memory?: string[]; note?: string; /** a turn that is not the stranger's words (the retelling of a refusal: turn.ts) */ userText?: string; /** D-315: said just before the stranger's words (the memory, near the question) */ before?: string; /** D-315 run 5: the one life fact, in the closing note: "(Answer as X, from your own life: …)" */ ground?: string }
 export interface Answer { /** D-315: the tag the model ended with (intent.ts; null: none) */ intent?: Intent | null; heard?: string; recovered?: boolean; text: string; raw: string; ok: boolean; hits: FenceHit[]; tries: number; ttftMs: number; totalMs: number; primeMs: number; tokens: number; prefillTps: number; decodeTps: number }
 export interface LoadInfo { ms: number; model: string }
 type Msg = { role: 'system' | 'user' | 'assistant'; content: string };
@@ -41,6 +42,15 @@ export class Mind {
       msgs.push({ role: 'assistant', content: r.choices[0].message.content ?? '' }); }
     this.conv = msgs; this.primedFor = key; return performance.now() - t0;
   }
+  /** D-315: the judge: did this reply agree to what was asked? (the loaded model, two tokens, greedy; outside the person's
+   *  talk, which is primed again for the next answer). null: no clear answer */
+  judges = 0;
+  async judge(asked: string, reply: string): Promise<boolean | null> {
+    if (!this.engine) return null; this.judges++;
+    const r = await this.engine.chat.completions.create({ messages: judgePrompt(asked, reply), max_tokens: 3, temperature: 0, ...this.extra() } as any) as any;
+    this.primedFor = ''; const a = String(r.choices?.[0]?.message?.content ?? '').trim().toUpperCase();
+    return /^Y/.test(a) ? true : /^N/.test(a) ? false : null;
+  }
   /** forget the primed person (another comes near) */
   forget() { this.conv = []; this.primedFor = ''; }
 
@@ -62,7 +72,7 @@ export class Mind {
     const h = hearAsPerson(said); // the fence on the way in (hear.ts): later words reach the person as "…"
     // (D-315: the simulation's word on what was asked, when the stranger asked for something: "(You can do it.)" / "(You
     // cannot: on watch ...)"; the person's own words and tag follow)
-    let msgs: Msg[] = [...this.conv, { role: 'user', content: opts.userText ?? `${opts.before ? opts.before + '\n' : ''}The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''}${opts.note ? ` (${opts.note})` : ''} (Answer as ${L.name}, from your own life.)` }];
+    let msgs: Msg[] = [...this.conv, { role: 'user', content: opts.userText ?? `${opts.before ? opts.before + '\n' : ''}The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''}${opts.note ? ` (${opts.note})` : ''} (Answer as ${L.name}, from your own life${opts.ground ? `: ${opts.ground}` : ''}.)` }];
     while (tries < 2) {
       tries++; raw = '';
       const stream = await e.chat.completions.create({ messages: msgs, stream: true, stream_options: { include_usage: true }, max_tokens: maxTokens, temperature: 0.7, top_p: 0.9, frequency_penalty: 0.3, presence_penalty: 0.1, ...this.extra() } as any) as any;

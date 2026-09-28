@@ -184,3 +184,23 @@ describe('T-E10: the seeded request-and-recall set (the plumbing, with the stand
     expect(value).toBeGreaterThanOrEqual(90);
   }, 600_000);
 });
+
+describe('after the GPU runs: the picked facts and the judge (ground.ts, talk.ts recallFact)', () => {
+  it('asked about earlier meetings, the simulation picks the one thing remembered, own or heard, in the words of the one who says it', async () => {
+    const { isRecallQuestion, groundFact } = await import('../src/people/converse/ground');
+    for (const q of ['Do you remember me, friend? What did I ask of you?', 'We met yesterday, did we not? What passed between us?', 'Have you seen me before?', 'Have you heard anything of me, a foreigner?', 'Has anyone spoken to you of me?', 'What do people say of the stranger?']) expect(isRecallQuestion(q), q).toBe(true);
+    for (const q of ['Who are you, friend?', 'Where can I find water?', 'Come with me, friend.']) expect(isRecallQuestion(q), q).toBe(false);
+    const sim = fresh(); const m = mind(); const d = 153;
+    const p = find(sim, d, 10.5, x => sim.pop.persons[x].job === 'homemaker' && sim.pop.persons[x].agent < 0 && segAt(sim.pop.plan(x, d), 10.5).place.startsWith('h:') && sim.pop.membersOn(sim.pop.home(x, d), d).length >= 3);
+    sim.jumpTo(d * 24 + 10.5); await talkTurn(m, sim, p, 'I am thirsty.', { conv: sim.t });
+    const f = sim.talk.recallFact(p, (d + 1) * 24 + 10); expect(f.kind).toBe('own'); expect(f.fact).toMatch(/^Yesterday in the morning you asked me for water, and I gave you water\.$/);
+    const kin = sim.pop.membersOn(sim.pop.home(p, d), d).find(x => x !== p && sim.pop.ageOn(x, d) >= 8)!; const h = sim.talk.recallFact(kin, (d + 1) * 24 + 12);
+    expect(h.kind).toBe('heard'); expect(h.fact).toContain(sim.talk.name(p)); expect(h.fact).toMatch(/told me that you asked (him|her) for water, and (he|she) gave you water/);
+    expect(sim.talk.recallFact(5, d * 24).fact).toMatch(/never met you/);
+    // the life fact next to the question names the person's own life (T-E9: grounded)
+    const L = lifeRecord(sim.pop, sim.cal, p, d, 10.5);
+    expect(groundFact(L, 'Who are you, friend?')).toContain(L.name); expect(groundFact(L, 'Do you have a family?')).toContain(L.household[0].name);
+    expect(groundFact(L, 'Will these halls stand forever?')).toMatch(/right now/);
+    const o = await talkTurn(m, sim, p, 'Do you remember me, friend?', { conv: sim.t + 1 }); expect(o.fact).toBeTruthy();
+  });
+});
