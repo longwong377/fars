@@ -40,6 +40,7 @@ import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
+import { loadDecorAssets } from '../render/decorAssets';
 import { loadTreeAssets } from './trees/assets';
 import { loadReliefAtlas } from '../render/reliefAtlas';
 import { loadScanProps } from '../render/scanProps';
@@ -148,6 +149,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const treesP = loadTreeAssets('/'); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
   const animalsP = loadAnimalModels('/'); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
   const reliefAtlasP = loadReliefAtlas('/'); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
+  const decorP = loadDecorAssets('/'); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
   const fireOccP = loadFireOcc('/'); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
@@ -157,7 +159,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
-  await modelsP; await propsP; await treesP; await animalsP;
+  await modelsP; await propsP; await treesP; await animalsP; await decorP;
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);

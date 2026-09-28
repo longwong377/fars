@@ -473,6 +473,7 @@ describe('language lint: every source that can reach the canvas', () => {
     'public/textures/rough_wood/arm.jpg': 'CC0 scan AO/roughness/metal pack (rough_wood; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/sandy_gravel_02/diff.jpg': 'CC0 scan albedo (sandy_gravel_02; viewed in a contact sheet, session 11 D-301: no text)',
     'public/textures/sandy_gravel_02/arm.jpg': 'CC0 scan AO/roughness/metal pack (sandy_gravel_02; viewed in a contact sheet, session 11 D-301: no text)',
+    'public/models/decor/frame_trim.ktx2': 'the trim of the stone frames (tangent normal + AO) baked by Blender/Cycles from the carved profiles (D-330); its PNG viewed by the decor_tents agent, session 12: tongues, arrises and chips only, no text',
   };
   it('every raster or vector image shipped is registered as looked at and free of text', () => {
     const imgs = walk(join(root, 'public'), /\.(png|jpe?g|webp|gif|avif|bmp|ktx2|basis|svg|ico)$/i).map(rel);
