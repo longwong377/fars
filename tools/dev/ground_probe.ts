@@ -14,6 +14,8 @@ import { canalBanks } from '../../src/world/plain/ribbons';
 import { SEASON, BLOOM, WEATHER } from '../../src/render/materials';
 import { seasonAt } from '../../src/world/season';
 import { bloomAt, doyOf } from '../../src/world/plain/seasonal';
+import { buildTownPlan } from '../../src/world/settlement/plan';
+import { buildTownGround } from '../../src/world/plain/townGround';
 (async () => {
   const P = new URLSearchParams(location.search);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
@@ -26,7 +28,9 @@ import { bloomAt, doyOf } from '../../src/world/plain/seasonal';
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0.55, 0.68, 0.85);
   const tm = new TerrainMesh(terrain, 1); scene.add(tm.group);
   const rivers = await loadRivers(), canals = buildCanals(terrain, rivers.rivers, 1), villages = placeVillages(terrain, rivers.rivers, canals, 1);
-  const zones = buildZones({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })) });
+  const town = P.has('town') ? buildTownPlan() : null, townGround = town ? buildTownGround(town, [], []) : null;
+  const zones = buildZones({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
+    sites: town?.sites.map(s => ({ c: s.frame.c as [number, number], theta: s.frame.theta, W: s.W, H: s.H })) });
   const detail = await bakeTerrainDetail(terrain);
   const ground = new PlainGround(zones, detail);
   tm.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).material = ground.material; });

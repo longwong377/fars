@@ -619,7 +619,9 @@ function stoneDetail(S: StoneDef, q: any, vs: any, id: Ids, fp: any, noTool = fa
  *  band limit and 1σ is unchanged */
 export const NOISE_FRAME: [number, number, number][] = [[0.89157, -0.37121, 0.25944], [0.45289, 0.73077, -0.51075], [0, 0.57287, 0.81965]];
 const latticeFree = (p: any) => vec3(dot(p, v3(NOISE_FRAME[0])), dot(p, v3(NOISE_FRAME[1])), dot(p, v3(NOISE_FRAME[2])));
-export interface Layer { alb: any; rough: any; height: any | null; tilt?: any; /** D-321: ambient occlusion (the material's aoNode) */ ao?: any }
+export interface Layer { alb: any; rough: any; height: any | null; tilt?: any; /** D-321: ambient occlusion (the material's aoNode) */ ao?: any;
+  /** D-335: the ground's levelness 0..1 for standing water (a smooth field: the terrain's landform-map slope), in place of the
+   *  geometric normal's */ level?: any }
 /** albedo, roughness and height of one surface definition (before weather). `arch`: the architecture's own meshes, whose
  *  vertices carry the part's base height (`y0`) and, on hall floors, the floor's box (`pbox`: centre x, z, half size x, z) */
 function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
@@ -1187,9 +1189,17 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen;
   // session 9: and only on near-level ground (water stands on slopes under ~3 %, none by 9 %; the beasts renders showed puddles
   // lying on the hillsides of the SW steppe, where `up` let them onto slopes up to ~33 %)
-  const level = smoothstep(0.996, 0.9995, n.y);
+  const level = L.level ?? smoothstep(0.996, 0.9995, n.y);
   const puddles = max(WEATHER.puddles, cellWet.sub(0.4).div(0.6).max(0));
-  const puddle = level.mul(puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
+  // D-335 (small-spring-field: the flooded ground's water in square patches): the level multiplied the noise's low spots, and
+  // on the plain's 4 m DEM facets its contours are the facets' square outlines. The level now lowers the noise's threshold
+  // (water stands where the ground is both low in the noise and level), so every edge is a contour of the noise, ragged at
+  // ~0.8 m (a second octave, band-limited); a band of saturated dark mud rims each pool
+  const fpW = fwidth(p).length().max(1e-6);
+  const pv = mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5).add(level.sub(1).mul(0.35)).add(mx_noise_float(p.mul(1.3).add(vec3(4.1, 0, 2.3))).mul(0.025).mul(bandLimit(fpW, 0.77)));
+  const puddle = puddles.mul(open).mul(smoothstep(0.68, 0.72, pv));
+  const shore = puddles.mul(open).mul(smoothstep(0.62, 0.68, pv)).mul(float(1).sub(puddle));
+  alb = alb.mul(float(1).sub(shore.mul(d.porosity * 0.45)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
   // the mountains' seasonal snow above the snowline (session 9): a patchy band 250 m deep (drifts in the hollows first, C)
   const elev = smoothstep(WEATHER.snowLine.sub(100), WEATHER.snowLine.add(150), p.y.add(mx_noise_float(p.mul(0.004)).mul(120)));
@@ -1200,7 +1210,7 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
     .mul(mx_noise_float(p.mul(18)).mul(0.25).add(0.75));
   alb = mix(alb, vec3(0.72, 0.74, 0.78), rime.mul(0.45));
   m.colorNode = mix(alb, vec3(0.92, 0.93, 0.96), snowMask);
-  m.roughnessNode = mix(mix(L.rough, L.rough.mul(0.45), wet), float(0.05), puddle).max(float(0.04)).mul(float(1).sub(snowMask.mul(0.1))).add(snowMask.mul(0.1));
+  m.roughnessNode = mix(mix(L.rough, L.rough.mul(0.45), max(wet, shore)), float(0.05), puddle).max(float(0.04)).mul(float(1).sub(snowMask.mul(0.1))).add(snowMask.mul(0.1));
   m.metalnessNode = float(d.metal ?? 0);
   // relief flattens under water and snow; the per-block tilt (world space, D-157) is added to the bumped normal
   const flatten = float(1).sub(puddle).mul(float(1).sub(snowMask));
@@ -1215,7 +1225,7 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   } else if (m instanceof SurfaceNodeMaterial && (d.metal ?? 0) === 0 && d.porosity >= 0.5) {
     // D-219: a porous surface too rough to reflect the sky when dry (earth, mud plaster, lime plaster, timber) reflects it when
     // wet: the water film and the puddles are smooth. Scaled by the wetness, so the dry look is unchanged
-    m.skySpecular = true; m.skySpecularScale = max(wet, puddle);
+    m.skySpecular = true; m.skySpecularScale = max(max(wet, puddle), shore.mul(0.5));
   }
 }
 

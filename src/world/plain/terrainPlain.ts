@@ -523,7 +523,10 @@ export class PlainGround {
     const out = field(L.alb), tilt = tiltFn().xyz;
     // D-302: with the ground scans the earth surface's own procedural bump and chips give way to the scans' displacement (hS)
     const h0 = groundLoaded() ? null : L.height;
-    return { alb: out.xyz, rough: L.rough, height: h0 ? h0.add(out.w) : out.w, tilt: L.tilt ? L.tilt.add(tilt) : tilt };
+    // D-335: standing water by the landform maps' slope (bilinear over the 4 / 16 m samples; the DEM facets' vertex normals drew
+    // the pools in squares), level under ~2 %, none from ~6 %; beyond the maps the geometric normal's
+    const level = float(1).sub(smoothstep(0.02, 0.06, HB.slope));
+    return { alb: out.xyz, rough: L.rough, height: h0 ? h0.add(out.w) : out.w, tilt: L.tilt ? L.tilt.add(tilt) : tilt, level };
   }
 }
 

@@ -59,7 +59,8 @@ import { PalaceFurnishings } from './furnish_palaces';
 import { buildReliefMarks } from '../arch/marks';
 import { loadWritingFonts } from './writing';
 import { buildPlain } from './plain';
-import { bakeTerrainDetail } from '../terrain/terrainDetail';
+import { bakeTerrainDetail, CURV_SCALE } from '../terrain/terrainDetail';
+const _bdir = new THREE.Vector3();
 import { ConstructionView } from './construction';
 import { NowView } from './nowview';
 import { Visitor } from './visitor/controller';
@@ -77,6 +78,8 @@ import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
 import { GroundRocks } from './groundRocks';
+import { Bedrock, loadRockKit } from './hills/bedrock';
+import { groundAt4 } from './plain/townGround';
 import { FOOTPRINTS } from '../arch/spec';
 import { toLocal } from './settlement/site';
 import settlementData from '../data/settlement.json';
@@ -143,6 +146,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const q0 = settings?.quality ?? 'high';
   const humansP = loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' });
   const probesP = loadProbes('/'); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
+  const rockKitP = loadRockKit('/'); // the hills' bedrock pieces (D-335, public/models/land/)
   const propsP = loadScanProps('/'); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
   const modelsP = loadModels('/'); // the Blender-built models (D-305, public/models/): in before the architecture is built
   const treesP = loadTreeAssets('/'); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
@@ -157,7 +161,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
-  await modelsP; await propsP; await treesP; await animalsP;
+  await modelsP; await propsP; await treesP; await animalsP; await rockKitP;
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);
@@ -288,6 +292,15 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const smallLife = small.life, flora = small.flora; // flora (session 9, G72): the thorn cushions, camelthorn and thistles near the viewer
   const rocks = small.rocks; // loose stones and boulders as CC0 scans (session 12, D-310)
   root.add(smallLife.group, flora.group, rocks.group);
+  // D-335: the hills' bedrock as geometry (ledges along the strata, outcrops, talus, scree), streamed round the camera
+  const bedrock = await (async () => { const det = await bakeTerrainDetail(terrain), gmap = plain.data.zones.ground ?? null;
+    const dmap = (m: any, ch: number, x: number, z: number) => { const fx = (x + m.half) / m.cell, fy = (z + m.half) / m.cell; if (fx < 0 || fy < 0 || fx > m.n - 1 || fy > m.n - 1) return null;
+      const c = Math.min(m.n - 2, Math.floor(fx)), r = Math.min(m.n - 2, Math.floor(fy)), tx = fx - c, ty = fy - r, a = (rr: number, cc: number) => m.data[(rr * m.n + cc) * 4 + ch] / 255;
+      return (a(r, c) * (1 - tx) + a(r, c + 1) * tx) * (1 - ty) + (a(r + 1, c) * (1 - tx) + a(r + 1, c + 1) * tx) * ty; };
+    const both = (ch: number, x: number, z: number) => dmap(det.near, ch, x, z) ?? dmap(det.mid, ch, x, z) ?? (ch === 1 ? 128 / 255 : 0);
+    return new Bedrock({ ground: (x, z) => terrain.surfaceAt(x, z), gully: (x, z) => both(0, x, z), curv: (x, z) => (both(1, x, z) * 255 - 128) / CURV_SCALE,
+      trodden: gmap ? (x, z) => groundAt4(gmap, x, -z)[1] : undefined }, seed); })();
+  root.add(bedrock.group);
   // roses along the paradise's axis channel (session 9, G73): both sides, every 2 m, clear of the basins where channels cross
   const roses = (() => { const site = settlement?.plan.sites.find((q: any) => q.meta?.id === 'paradise' || q.id === 'paradise') as any; if (!site?.grid) return null;
     const spots: { e: number; n: number; y: number; size: number; rot: number }[] = []; let k = 0;
@@ -615,7 +628,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
         devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
-        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
+        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); bedrock.group.visible = !nowView.active; if (!nowView.active) bedrock.update(ctx.camera.position, ctx.camera.getWorldDirection(_bdir), dt === 0); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)
