@@ -97,7 +97,7 @@ import { PeopleSim, Env } from '../people/sim';
 import { Crowd, PATH_REACH } from '../people/crowd';
 import { PopGeo } from '../people/popgeo';
 import { PopView } from '../people/popview';
-import { bakeImpostors, CrowdImpostors } from '../people/impostors';
+import { bakeImpostors, CrowdImpostors, loadImpostorAtlas } from '../people/impostors';
 import { countVisible, type VisibleCount } from '../people/crowdprobe';
 import { propGeometry } from '../people/props';
 import { villageCompounds } from './plain/villages';
@@ -376,7 +376,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let smokeKey = '';
   let impMs = 0;
   { const t = performance.now(), pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
-    crowd.imp = new CrowdImpostors(bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
+    // D-331: the atlas rendered in Blender/Cycles from the full-detail people; the CPU bake of the far bodies when it is absent
+    const cyc = await loadImpostorAtlas(humans.A, humans.O);
+    crowd.imp = new CrowdImpostors(cyc ?? bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
   wmark('crowd.imp');
   // the people and animals near the player are solid (brief §6: player collision with crowds and animals; D-237): pools of
   // kinematic capsules follow the nearest of them within SOLID_R, where the crowd draws them (the view's spot and the
