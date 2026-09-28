@@ -8112,3 +8112,13 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   lion-and-bull (hadish/30320472…jpg shows the bull's neck in bead rows, a rosette collar and the lion's flame mane: the
   composition matches, those details do not), the king's audience scene, the jambs' heroes and the throne-bearers (next).
 - The atlas rebuilt (all definitions rebaked).
+- **Round 4 (same session):** the GPU probe of the round-3 figures (T:/fars-assets-s12/reliefs/shots7: guards, delegates, the
+  audience scene, the jamb king): the heads read at their measured size, nothing wrong seen. Redrawn from photographs: the
+  lion-and-bull's bull (hadish/30320472…jpg, tachara/90454853…jpg: three rows of round beads along its throat and crest and a
+  collar band of rosettes; the lion leaping more upright on its back, lean 1.12 rad; B) and the incense stands
+  (hall_100_columns/46774486…jpg, the throne-hall audience relief: a ribbed shaft tapering from a splayed foot, a crown of
+  hanging petals and a stepped conical lid, widths measured; B). Drawing B now: 19 of the 41 kinds. Looked at, not redrawn
+  (the photographs agree with the drawing within what they resolve, or are too worn or oblique): the throne-bearers and the
+  bearers' dais (hall_100_columns/46774486), the stair servant with a young deer (tachara/17611958: the hood covers the chin,
+  as drawn), the jamb king under the parasol (no near-frontal photograph on this machine). The animals, plants, emblems,
+  rosettes and the Neo-Elamite relief stay drawing C.
