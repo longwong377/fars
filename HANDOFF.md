@@ -1,6 +1,7 @@
 # HANDOFF — end of session 12 (2026-09-28); branch claude/amazing-fermi-40ds7j
 
 ## FIRST, IN THE CLOUD (session 13)
+0. **Read ROADMAP.md:** the plan to finish everything inside the usage budget (the user: never reach 97 % weekly). This week has <= 10 % left: 2-3 agents on the economy and needs foundations only.
 1. **Models:** the cloud's proxy blocked Hugging Face. Test it first:
    `curl -sI https://huggingface.co/onnx-community/whisper-base/resolve/main/config.json | head -1`
    If blocked, use branch **models-archive** (every model the game uses first; files > 95 MiB split in parts, SHA256SUMS of each
