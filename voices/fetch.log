@@ -1,0 +1,6 @@
+onnx-community/Kokoro-82M-v1.0-ONNX: 61 files, 695 MB, licence Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community)
+Xenova/wavlm-base-plus-sv: 4 files, 504 MB, licence MIT (microsoft/wavlm-base-plus-sv; ONNX export by Xenova)
+Wespeaker/wespeaker-ecapa-tdnn512-LM: 2 files, 25 MB, licence CC-BY-4.0 (WeSpeaker, VoxCeleb ECAPA-TDNN 512)
+TigreGotico/utmos-onnx: 2 files, 411 MB, licence MIT (UTMOS22 strong, sarulab-speech; ONNX export by TigreGotico)
+Xenova/nllb-200-distilled-600M: 7 files, 912 MB, licence CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use)
+rhasspy/piper-voices: 0 files, 0 MB, licence MIT (Piper) / CC-BY-4.0 (LibriTTS-R data)

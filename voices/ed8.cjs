@@ -1,0 +1,11 @@
+const fs=require('fs');
+let p='T:/fars-wt/voices/src/ui/shell.ts'; let s=fs.readFileSync(p,'utf8');
+const a="      ...(['master', 'ambience', 'voices', 'music', 'effects'] as const).map(ch => range(`Volume: ${ch}`, s.volume[ch], 0, 1, 0.01, v => { s.volume[ch] = v; })),";
+if(!s.includes(a)) throw 'miss shell'; s=s.replace(a, a+"\n      // D-336 (UD-22): out of world; off by default (the heard world stays period)\n      sel('Hear the people you speak with in', s.hearIn, [['own', 'Their own language (default)'], ['fa', 'Farsi, in character, in their own voice'], ['en', 'English, in character, in their own voice']], v => { s.hearIn = v as any; }),");
+fs.writeFileSync(p,s);
+p='T:/fars-wt/voices/src/core/settings.ts'; s=fs.readFileSync(p,'utf8');
+const b="  nowView: boolean;\n}";
+if(!s.includes(b)) throw 'miss settings'; s=s.replace(b, "  nowView: boolean;\n  /** D-336 (UD-22): in what the person you speak with is heard: their own period language (the default: the heard world\n   *  stays period, §10), or the same in-character reply in Farsi or English, in the person's own voice (out of world, opt-in) */\n  hearIn: 'own' | 'fa' | 'en';\n}");
+s=s.replace("timeScale: 1, devOverlay: false, nowView: false,\n};", "timeScale: 1, devOverlay: false, nowView: false, hearIn: 'own',\n};");
+if(!s.includes("hearIn: 'own',")) throw 'miss default';
+fs.writeFileSync(p,s);
