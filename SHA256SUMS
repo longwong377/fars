@@ -151,3 +151,5 @@ f51d81ef2790ad10d36b09d8ad839f331452fda8518862db8cbc481176aecc3e  voices/farsi_g
 df34b4f930b23447cd4dc410fabfb42eb3f24e803e6c3f97d618fb359380a36f  voices/models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/config.json
 8fbea51ea711f2af382e88c833d9e288c6dc82ce5e98421ea61c058ce21a34cb  voices/models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model.onnx
 ba4527a874b42b21e35f468c10d326fdff3c7fc8cac1f85e9eb6c0dfc35c334a  voices/models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_fp16.onnx
+04c658aec1b6008857c2ad10f8c589d4180d0ec427e7e6118ceb487e215c3cd0  voices/models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_q8f16.onnx
+fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478  voices/models/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_quantized.onnx
