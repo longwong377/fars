@@ -1,0 +1,4262 @@
+{
+ "id": "T-E11",
+ "value": 1.3,
+ "n": 75,
+ "commit": "ef322d46",
+ "tool": "tools/dev/voices_eval.ts (tests/voices_unique.test.ts reads it)",
+ "unit": "%",
+ "status": "measured: WavLM-SV embeddings, UTMOS22 as the MOS predictor (not a human listening panel: see the note)",
+ "parts": {
+  "unique": 12,
+  "natural": 72,
+  "ownLanguage": 100,
+  "optInSamePerson": 10.7,
+  "wordless": 14.7,
+  "mosMean": 3.666,
+  "mosEnMean": 4.295,
+  "mosFaMean": 4.052,
+  "maxSimMax": 0.9772,
+  "maxSimMedian": 0.941,
+  "ecapaMaxSimMax": 0.8289,
+  "faFenceHits": 4
+ },
+ "cover": {
+  "classes": [
+   "brewer",
+   "builder",
+   "camp",
+   "caretaker",
+   "child",
+   "craftsman",
+   "elder",
+   "farmer",
+   "gardener",
+   "groom",
+   "guard",
+   "herder",
+   "homemaker",
+   "messenger",
+   "miller",
+   "official",
+   "porter",
+   "priest",
+   "scribe",
+   "servant",
+   "shepherd",
+   "steward",
+   "storekeeper",
+   "traveller",
+   "treasury",
+   "weaver"
+  ],
+  "origins": [
+   "Babylonian",
+   "Bactrian",
+   "Cappadocian",
+   "Carian",
+   "Egyptian",
+   "Elamite",
+   "Ionian",
+   "Lycian",
+   "Lydian",
+   "Median",
+   "Persian",
+   "Sogdian",
+   "Syrian",
+   "Thracian"
+  ],
+  "bands": [
+   "fadult",
+   "fchild",
+   "felder",
+   "madult",
+   "mchild",
+   "melder"
+  ],
+  "langs": [
+   "arc",
+   "bab",
+   "el",
+   "grc",
+   "op",
+   "wordless"
+  ]
+ },
+ "models": {
+  "tts": "onnx-community/Kokoro-82M-v1.0-ONNX fp32 (node, onnxruntime-node)",
+  "embedding": "Xenova/wavlm-base-plus-sv (threshold 0.86)",
+  "embedding2": "Wespeaker/wespeaker-ecapa-tdnn512-LM (reported)",
+  "mos": "TigreGotico/utmos-onnx utmos22_strong",
+  "farsiText": "Xenova/nllb-200-distilled-600M q8 (the text only; its quality is measured apart: D-336)"
+ },
+ "note": "natural = UTMOS22 >= 3.5 on the own-language, English and Farsi clips (a predictor trained on listener ratings; the brief's blind human rating is not run here); UTMOS was trained on English, so its Farsi and period-language scores measure acoustic naturalness, not pronunciation",
+ "rows": [
+  {
+   "pid": 262,
+   "day": 130,
+   "job": "guard",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 33,
+   "band": "adult",
+   "voiceAge": 53,
+   "agent": 84,
+   "lang": "op",
+   "via": "Old Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "I am Rāzā. I come from Parsa.",
+   "fa": "من رازا هستم من از پارسا هستم",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_george",
+     0.2758
+    ],
+    [
+     "am_santa",
+     0.208
+    ],
+    [
+     "am_michael",
+     1.7769
+    ]
+   ],
+   "tract": 1.0359,
+   "speed": 1.0373,
+   "seconds": 1.63,
+   "mos": 3.843,
+   "mosEn": 4.287,
+   "mosFa": 4.122,
+   "backend": "kokoro",
+   "maxSim": 0.933,
+   "nearest": 41646,
+   "maxSimEcapa": 0.4588,
+   "unique": false,
+   "sameEn": 0.7437,
+   "otherEn": 0.835,
+   "rank1En": false,
+   "sameFa": 0.822,
+   "otherFa": 0.8925,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 44711,
+   "day": 182,
+   "job": "builder",
+   "why": "testset",
+   "origin": "Lycian",
+   "sex": "m",
+   "age": 25,
+   "band": "adult",
+   "voiceAge": 25,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:6",
+    "wordless:6"
+   ],
+   "english": "South-west of the Terrace, near the stair. About half an hour’s walk from there.",
+   "fa": "جنوب غربي از تراس، نزديک پله ها، حدود نيم ساعت راهپيما از اونجا",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_santa",
+     0.1541
+    ],
+    [
+     "em_alex",
+     1.3334
+    ],
+    [
+     "pm_alex",
+     1.2266
+    ]
+   ],
+   "tract": 1.0579,
+   "speed": 0.9543,
+   "seconds": 0.94,
+   "mos": 1.804,
+   "mosEn": 3.823,
+   "mosFa": 3.297,
+   "backend": "kokoro",
+   "maxSim": 0.7978,
+   "nearest": 63,
+   "maxSimEcapa": 0.3739,
+   "unique": true,
+   "sameEn": 0.8714,
+   "otherEn": 0.9123,
+   "rank1En": false,
+   "sameFa": 0.7821,
+   "otherFa": 0.9757,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 1322,
+   "day": 26,
+   "job": "porter",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 33,
+   "band": "adult",
+   "voiceAge": 33,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op:šiyāta",
+    "op:Māda",
+    "op:akunavam"
+   ],
+   "english": "Not too bad, not too bad. The stair is a bit steep, but my son Miššabadda helps me with the grain.",
+   "fa": "نه خيلي بد نيست پله ها يه کم عميقه ولي پسرم \"ميشابادا\" با دانه ها کمکم ميکنه",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_daniel",
+     1.7726
+    ],
+    [
+     "hm_psi",
+     1.6005
+    ],
+    [
+     "am_echo",
+     1.0891
+    ]
+   ],
+   "tract": 0.9536,
+   "speed": 0.9789,
+   "seconds": 2.85,
+   "mos": 4.221,
+   "mosEn": 4.47,
+   "mosFa": 4.379,
+   "backend": "kokoro",
+   "maxSim": 0.9551,
+   "nearest": 43347,
+   "maxSimEcapa": 0.6364,
+   "unique": false,
+   "sameEn": 0.8424,
+   "otherEn": 0.8915,
+   "rank1En": false,
+   "sameFa": 0.9789,
+   "otherFa": 0.9652,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 1277,
+   "day": 135,
+   "job": "camp",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "f",
+   "age": 20,
+   "band": "adult",
+   "voiceAge": 20,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el:attata"
+   ],
+   "english": "I’ll nurse the baby.",
+   "fa": "من بچه رو میخورم",
+   "faHits": [],
+   "mix": [
+    [
+     "pf_dora",
+     1.4979
+    ],
+    [
+     "ff_siwis",
+     0.1538
+    ],
+    [
+     "zf_xiaoxiao",
+     0.2358
+    ]
+   ],
+   "tract": 1.0516,
+   "speed": 0.9897,
+   "seconds": 0.74,
+   "mos": 2.669,
+   "mosEn": 4.1,
+   "mosFa": 4.317,
+   "backend": "kokoro",
+   "maxSim": 0.8609,
+   "nearest": 1651,
+   "maxSimEcapa": 0.2863,
+   "unique": false,
+   "sameEn": 0.7421,
+   "otherEn": 0.9262,
+   "rank1En": false,
+   "sameFa": 0.7834,
+   "otherFa": 0.9494,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 1417,
+   "day": 297,
+   "job": "treasury",
+   "why": "testset",
+   "origin": "Syrian",
+   "sex": "f",
+   "age": 17,
+   "band": "adult",
+   "voiceAge": 17,
+   "agent": null,
+   "lang": "arc",
+   "via": "Syrian",
+   "units": [
+    "arc.reply.slm",
+    "arc:šbʿh"
+   ],
+   "english": "A courier came with a sealed letter for the Treasury,\" I say.",
+   "fa": "يه پرسپوليس با نامه اي مهر شده براي خزانه داری اومده\" گفتم",
+   "faHits": [
+    "money"
+   ],
+   "mix": [
+    [
+     "pf_dora",
+     0.3225
+    ],
+    [
+     "if_sara",
+     0.7092
+    ],
+    [
+     "af_sarah",
+     1.3751
+    ]
+   ],
+   "tract": 1.0598,
+   "speed": 1.0072,
+   "seconds": 1.55,
+   "mos": 4.341,
+   "mosEn": 4.49,
+   "mosFa": 4.322,
+   "backend": "kokoro",
+   "maxSim": 0.9428,
+   "nearest": 26111,
+   "maxSimEcapa": 0.3882,
+   "unique": false,
+   "sameEn": 0.9039,
+   "otherEn": 0.8482,
+   "rank1En": true,
+   "sameFa": 0.9266,
+   "otherFa": 0.9688,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 2909,
+   "day": 215,
+   "job": "scribe",
+   "why": "testset",
+   "origin": "Syrian",
+   "sex": "m",
+   "age": 50,
+   "band": "adult",
+   "voiceAge": 50,
+   "agent": null,
+   "lang": "arc",
+   "via": "Syrian",
+   "units": [
+    "arc.reply.slm_lyk"
+   ],
+   "english": "The god of the hearth, the god of the field.",
+   "fa": "خدایی آتش، خدایی میدان",
+   "faHits": [],
+   "mix": [
+    [
+     "em_santa",
+     0.578
+    ],
+    [
+     "am_onyx",
+     0.9143
+    ],
+    [
+     "am_adam",
+     0.3463
+    ]
+   ],
+   "tract": 0.9488,
+   "speed": 0.927,
+   "seconds": 1.34,
+   "mos": 4.297,
+   "mosEn": 4.3,
+   "mosFa": 4.103,
+   "backend": "kokoro",
+   "maxSim": 0.9409,
+   "nearest": 5410,
+   "maxSimEcapa": 0.5054,
+   "unique": false,
+   "sameEn": 0.9118,
+   "otherEn": 0.8482,
+   "rank1En": true,
+   "sameFa": 0.8591,
+   "otherFa": 0.9587,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 2785,
+   "day": 67,
+   "job": "official",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 30,
+   "band": "adult",
+   "voiceAge": 30,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.vasna_auramazdaha"
+   ],
+   "english": "Gods’ will be done. Hope for good harvest.",
+   "fa": "خدايان نابود خواهند شد اميد بر درو خوب",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_fable",
+     0.6735
+    ],
+    [
+     "hm_omega",
+     1.0101
+    ],
+    [
+     "am_echo",
+     0.4198
+    ]
+   ],
+   "tract": 1.0528,
+   "speed": 1.0411,
+   "seconds": 1.83,
+   "mos": 4.418,
+   "mosEn": 4.495,
+   "mosFa": 4.187,
+   "backend": "kokoro",
+   "maxSim": 0.9266,
+   "nearest": 6680,
+   "maxSimEcapa": 0.4221,
+   "unique": false,
+   "sameEn": 0.7615,
+   "otherEn": 0.8912,
+   "rank1En": false,
+   "sameFa": 0.955,
+   "otherFa": 0.9259,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3009,
+   "day": 135,
+   "job": "storekeeper",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "m",
+   "age": 30,
+   "band": "adult",
+   "voiceAge": 30,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el.pious.nap_irsarra",
+    "el:kanti"
+   ],
+   "english": "By Auramazda, may peace come to all. I hope for good harvests and healthy children.",
+   "fa": "به نام \"آوروماژدا\" ، اميدوارم صلح بر همه باشد",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_santa",
+     0.2942
+    ],
+    [
+     "am_fenrir",
+     6.892
+    ],
+    [
+     "em_alex",
+     0.3294
+    ]
+   ],
+   "tract": 0.972,
+   "speed": 1.0626,
+   "seconds": 1.81,
+   "mos": 3.923,
+   "mosEn": 4.417,
+   "mosFa": 4.157,
+   "backend": "kokoro",
+   "maxSim": 0.8412,
+   "nearest": 23338,
+   "maxSimEcapa": 0.6004,
+   "unique": true,
+   "sameEn": 0.8862,
+   "otherEn": 0.7302,
+   "rank1En": true,
+   "sameFa": 0.9383,
+   "otherFa": 0.8904,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": true,
+   "pass": true
+  },
+  {
+   "pid": 5795,
+   "day": 81,
+   "job": "servant",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 41,
+   "band": "adult",
+   "voiceAge": 41,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa",
+    "op:gāθu-"
+   ],
+   "english": "The barley is good. My Hupannana worries about the heat, but Dātaduxçā says it will be fine.",
+   "fa": "شيرين خوب است، هپانا من نگران گرماست اما ديوانسوکسا ميگه که خوب ميشه",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_beta",
+     1.2289
+    ],
+    [
+     "hf_alpha",
+     0.8469
+    ],
+    [
+     "af_alloy",
+     1.6848
+    ]
+   ],
+   "tract": 0.9843,
+   "speed": 1.0428,
+   "seconds": 2.72,
+   "mos": 4.379,
+   "mosEn": 4.522,
+   "mosFa": 4.444,
+   "backend": "kokoro",
+   "maxSim": 0.95,
+   "nearest": 1215,
+   "maxSimEcapa": 0.7357,
+   "unique": false,
+   "sameEn": 0.8306,
+   "otherEn": 0.9071,
+   "rank1En": false,
+   "sameFa": 0.9681,
+   "otherFa": 0.9126,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3165,
+   "day": 66,
+   "job": "miller",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "f",
+   "age": 51,
+   "band": "adult",
+   "voiceAge": 51,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el:akkayaše"
+   ],
+   "english": "This year is the twenty-fifth year of King Xerxes.",
+   "fa": "امسال بیست و پنجمین سال سلطنت پادشاه Xerxes است.",
+   "faHits": [
+    "not Persian script"
+   ],
+   "mix": [
+    [
+     "zf_xiaobei",
+     0.981
+    ],
+    [
+     "af_nova",
+     1.4346
+    ],
+    [
+     "jf_alpha",
+     2.8278
+    ]
+   ],
+   "tract": 0.9698,
+   "speed": 1.0515,
+   "seconds": 0.97,
+   "mos": 4.318,
+   "mosEn": 4.539,
+   "mosFa": 4.469,
+   "backend": "kokoro",
+   "maxSim": 0.9043,
+   "nearest": 3175,
+   "maxSimEcapa": 0.4946,
+   "unique": false,
+   "sameEn": 0.7497,
+   "otherEn": 0.9365,
+   "rank1En": false,
+   "sameFa": 0.8925,
+   "otherFa": 0.9686,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3522,
+   "day": 261,
+   "job": "weaver",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 20,
+   "band": "adult",
+   "voiceAge": 20,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.baga_vazrka"
+   ],
+   "english": "The gods are fair. I am a brewer.",
+   "fa": "خداها منصفانه اند من يه آبجو سازم",
+   "faHits": [],
+   "mix": [
+    [
+     "bf_lily",
+     2.6763
+    ],
+    [
+     "zf_xiaoyi",
+     4.6194
+    ],
+    [
+     "af_kore",
+     2.5804
+    ]
+   ],
+   "tract": 0.9916,
+   "speed": 1.0596,
+   "seconds": 1.43,
+   "mos": 4.169,
+   "mosEn": 4.403,
+   "mosFa": 4.238,
+   "backend": "kokoro",
+   "maxSim": 0.9508,
+   "nearest": 20400,
+   "maxSimEcapa": 0.5002,
+   "unique": false,
+   "sameEn": 0.8974,
+   "otherEn": 0.9448,
+   "rank1En": false,
+   "sameFa": 0.9191,
+   "otherFa": 0.9547,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3573,
+   "day": 334,
+   "job": "brewer",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 19,
+   "band": "adult",
+   "voiceAge": 19,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "Haturka, stablehand. This is my wife Raučaduxçā. You're a stranger.",
+   "fa": "هاتورکا، دست مستقر، اين همسرم راچادوکساست.",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_daniel",
+     0.4483
+    ],
+    [
+     "am_michael",
+     0.326
+    ],
+    [
+     "hm_omega",
+     1.2378
+    ]
+   ],
+   "tract": 0.9523,
+   "speed": 0.9706,
+   "seconds": 2.02,
+   "mos": 4.243,
+   "mosEn": 4.418,
+   "mosFa": 4.147,
+   "backend": "kokoro",
+   "maxSim": 0.9561,
+   "nearest": 4594,
+   "maxSimEcapa": 0.8289,
+   "unique": false,
+   "sameEn": 0.9464,
+   "otherEn": 0.9564,
+   "rank1En": false,
+   "sameFa": 0.9437,
+   "otherFa": 0.9541,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3652,
+   "day": 322,
+   "job": "groom",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 33,
+   "band": "adult",
+   "voiceAge": 33,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "We live near the Terrace, south-west of the stair.",
+   "fa": "ما نزديک تراس زندگي مي کنيم، جنوب غرب پله",
+   "faHits": [],
+   "mix": [
+    [
+     "hm_omega",
+     0.781
+    ],
+    [
+     "em_alex",
+     0.2899
+    ],
+    [
+     "pm_alex",
+     0.7031
+    ]
+   ],
+   "tract": 0.9591,
+   "speed": 1.0532,
+   "seconds": 1.77,
+   "mos": 3.803,
+   "mosEn": 4.324,
+   "mosFa": 4.049,
+   "backend": "kokoro",
+   "maxSim": 0.9653,
+   "nearest": 2928,
+   "maxSimEcapa": 0.8289,
+   "unique": false,
+   "sameEn": 0.9428,
+   "otherEn": 0.9466,
+   "rank1En": false,
+   "sameFa": 0.9746,
+   "otherFa": 0.9559,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3792,
+   "day": 64,
+   "job": "shepherd",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 31,
+   "band": "adult",
+   "voiceAge": 31,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "I mend the harnesses and saddlebags.",
+   "fa": "من بند و کوله هاي سيل را درست مي کنم",
+   "faHits": [],
+   "mix": [
+    [
+     "hm_psi",
+     1.4917
+    ],
+    [
+     "zm_yunxia",
+     0.2964
+    ],
+    [
+     "am_puck",
+     1.6695
+    ]
+   ],
+   "tract": 1.0418,
+   "speed": 1.0387,
+   "seconds": 1.46,
+   "mos": 4.135,
+   "mosEn": 4.41,
+   "mosFa": 4.418,
+   "backend": "kokoro",
+   "maxSim": 0.9181,
+   "nearest": 2785,
+   "maxSimEcapa": 0.4985,
+   "unique": false,
+   "sameEn": 0.8168,
+   "otherEn": 0.8841,
+   "rank1En": false,
+   "sameFa": 0.9648,
+   "otherFa": 0.9426,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3865,
+   "day": 74,
+   "job": "messenger",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 33,
+   "band": "adult",
+   "voiceAge": 33,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "Rest after work.",
+   "fa": "بعد از کار استراحت کن",
+   "faHits": [],
+   "mix": [
+    [
+     "hm_omega",
+     0.9351
+    ],
+    [
+     "bm_george",
+     3.9995
+    ],
+    [
+     "am_echo",
+     0.8337
+    ]
+   ],
+   "tract": 1.0255,
+   "speed": 1.048,
+   "seconds": 0.93,
+   "mos": 4.165,
+   "mosEn": 4.418,
+   "mosFa": 4.072,
+   "backend": "kokoro",
+   "maxSim": 0.9484,
+   "nearest": 5892,
+   "maxSimEcapa": 0.464,
+   "unique": false,
+   "sameEn": 0.7591,
+   "otherEn": 0.8505,
+   "rank1En": false,
+   "sameFa": 0.9275,
+   "otherFa": 0.9481,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3914,
+   "day": 90,
+   "job": "caretaker",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 45,
+   "band": "adult",
+   "voiceAge": 45,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "An express courier just came from the road station.",
+   "fa": "يه پرسپرس از ایستگاه جاده اومده",
+   "faHits": [],
+   "mix": [
+    [
+     "am_michael",
+     0.3204
+    ],
+    [
+     "em_santa",
+     2.8195
+    ],
+    [
+     "bm_fable",
+     0.8293
+    ]
+   ],
+   "tract": 1.021,
+   "speed": 0.9294,
+   "seconds": 0.85,
+   "mos": 3.822,
+   "mosEn": 4.184,
+   "mosFa": 3.635,
+   "backend": "kokoro",
+   "maxSim": 0.9489,
+   "nearest": 4594,
+   "maxSimEcapa": 0.7406,
+   "unique": false,
+   "sameEn": 0.7814,
+   "otherEn": 0.9327,
+   "rank1En": false,
+   "sameFa": 0.8975,
+   "otherFa": 0.9582,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 4002,
+   "day": 334,
+   "job": "priest",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 59,
+   "band": "elder",
+   "voiceAge": 59,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "Ay, the Terrace. My father works it.",
+   "fa": "آره، تراس، پدرم کارش ميکنه",
+   "faHits": [],
+   "mix": [
+    [
+     "hm_omega",
+     1.1783
+    ],
+    [
+     "bm_george",
+     1.0835
+    ],
+    [
+     "pm_alex",
+     1.1902
+    ]
+   ],
+   "tract": 0.9414,
+   "speed": 0.8301,
+   "seconds": 1.05,
+   "mos": 3.979,
+   "mosEn": 4.373,
+   "mosFa": 3.991,
+   "backend": "kokoro",
+   "maxSim": 0.9772,
+   "nearest": 24,
+   "maxSimEcapa": 0.4799,
+   "unique": false,
+   "sameEn": 0.8893,
+   "otherEn": 0.9429,
+   "rank1En": false,
+   "sameFa": 0.9663,
+   "otherFa": 0.9685,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 4594,
+   "day": 84,
+   "job": "gardener",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 17,
+   "band": "adult",
+   "voiceAge": 17,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.affirm.hasiyam",
+    "op:šiyāta"
+   ],
+   "english": "He’s a long way off, like the sun. My king’s distant.",
+   "fa": "اون دور مثل خورشید دور پادشاهم",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_george",
+     0.2042
+    ],
+    [
+     "am_fenrir",
+     0.306
+    ],
+    [
+     "em_santa",
+     1.3513
+    ]
+   ],
+   "tract": 0.9979,
+   "speed": 0.9336,
+   "seconds": 1.6,
+   "mos": 3.465,
+   "mosEn": 4.203,
+   "mosFa": 3.914,
+   "backend": "kokoro",
+   "maxSim": 0.9561,
+   "nearest": 3573,
+   "maxSimEcapa": 0.7406,
+   "unique": false,
+   "sameEn": 0.8292,
+   "otherEn": 0.9358,
+   "rank1En": false,
+   "sameFa": 0.9052,
+   "otherFa": 0.9561,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 6680,
+   "day": 43,
+   "job": "craftsman",
+   "why": "testset",
+   "origin": "Babylonian",
+   "sex": "m",
+   "age": 33,
+   "band": "adult",
+   "voiceAge": 33,
+   "agent": null,
+   "lang": "bab",
+   "via": "Babylonian",
+   "units": [
+    "bab.pious.ina_silli",
+    "bab:mātu"
+   ],
+   "english": "The gods’ will be kind. We’ll see. Dātabāmā’s laugh is like the wind through the barley fields.",
+   "fa": "خدايان مهربان خواهند بود، مي بينيم. خنده داتاباتاما مثل باد در حقل شتر است.",
+   "faHits": [],
+   "mix": [
+    [
+     "em_alex",
+     0.838
+    ],
+    [
+     "em_santa",
+     1.2478
+    ],
+    [
+     "am_fenrir",
+     1.9128
+    ]
+   ],
+   "tract": 1.0563,
+   "speed": 0.9453,
+   "seconds": 2.38,
+   "mos": 3.911,
+   "mosEn": 4.418,
+   "mosFa": 3.394,
+   "backend": "kokoro",
+   "maxSim": 0.9693,
+   "nearest": 2359,
+   "maxSimEcapa": 0.608,
+   "unique": false,
+   "sameEn": 0.7437,
+   "otherEn": 0.8678,
+   "rank1En": false,
+   "sameFa": 0.9779,
+   "otherFa": 0.9549,
+   "rank1Fa": true,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 20400,
+   "day": 34,
+   "job": "homemaker",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 45,
+   "band": "adult",
+   "voiceAge": 45,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.baga_vazrka"
+   ],
+   "english": "By Auramazda, the gods’ will is strong.",
+   "fa": "توسط اروما زدا، اراده خداها قوی است",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_beta",
+     0.5696
+    ],
+    [
+     "zf_xiaoyi",
+     0.9326
+    ],
+    [
+     "af_bella",
+     1.3367
+    ]
+   ],
+   "tract": 0.9998,
+   "speed": 0.9767,
+   "seconds": 1.46,
+   "mos": 4.242,
+   "mosEn": 4.416,
+   "mosFa": 3.992,
+   "backend": "kokoro",
+   "maxSim": 0.9508,
+   "nearest": 3522,
+   "maxSimEcapa": 0.4836,
+   "unique": false,
+   "sameEn": 0.8706,
+   "otherEn": 0.9085,
+   "rank1En": false,
+   "sameFa": 0.9186,
+   "otherFa": 0.9479,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 11374,
+   "day": 102,
+   "job": "child",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 9,
+   "band": "child",
+   "voiceAge": 9,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "Near Terrace, the road.",
+   "fa": "نزديک تراس، جاده",
+   "faHits": [],
+   "mix": [
+    [
+     "af_aoede",
+     0.3517
+    ],
+    [
+     "af_nova",
+     1.3313
+    ],
+    [
+     "zf_xiaobei",
+     0.7931
+    ]
+   ],
+   "tract": 1.2109,
+   "speed": 1.0352,
+   "seconds": 1.73,
+   "mos": 3.963,
+   "mosEn": 4.407,
+   "mosFa": 4.365,
+   "backend": "kokoro",
+   "maxSim": 0.951,
+   "nearest": 44584,
+   "maxSimEcapa": 0.516,
+   "unique": false,
+   "sameEn": 0.9249,
+   "otherEn": 0.9302,
+   "rank1En": false,
+   "sameFa": 0.952,
+   "otherFa": 0.9303,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 17971,
+   "day": 17,
+   "job": "elder",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 70,
+   "band": "elder",
+   "voiceAge": 70,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.vasna_auramazdaha",
+    "op:hacā"
+   ],
+   "english": "By Auramazda, game? We play in the fields, with water and wheat.",
+   "fa": "ما در حقل ها با آب و گندم بازی می کنیم",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_lewis",
+     0.2922
+    ],
+    [
+     "bm_daniel",
+     0.5699
+    ],
+    [
+     "am_eric",
+     1.7201
+    ]
+   ],
+   "tract": 0.9799,
+   "speed": 0.9545,
+   "seconds": 2.47,
+   "mos": 4.141,
+   "mosEn": 4.416,
+   "mosFa": 3.899,
+   "backend": "kokoro",
+   "maxSim": 0.942,
+   "nearest": 3861,
+   "maxSimEcapa": 0.783,
+   "unique": false,
+   "sameEn": 0.8258,
+   "otherEn": 0.8733,
+   "rank1En": false,
+   "sameFa": 0.9522,
+   "otherFa": 0.9358,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 41646,
+   "day": 87,
+   "job": "farmer",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 35,
+   "band": "adult",
+   "voiceAge": 35,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "Pirriyašba, man of Parsa. The king's road.",
+   "fa": "\"پيررياشبا\" مرد پارسا، جاده پادشاه",
+   "faHits": [],
+   "mix": [
+    [
+     "am_onyx",
+     1.2392
+    ],
+    [
+     "am_santa",
+     1.1378
+    ],
+    [
+     "jm_kumo",
+     0.6175
+    ]
+   ],
+   "tract": 0.9882,
+   "speed": 0.9178,
+   "seconds": 2.05,
+   "mos": 4.075,
+   "mosEn": 4.389,
+   "mosFa": 4.097,
+   "backend": "kokoro",
+   "maxSim": 0.9472,
+   "nearest": 4594,
+   "maxSimEcapa": 0.5863,
+   "unique": false,
+   "sameEn": 0.8154,
+   "otherEn": 0.9078,
+   "rank1En": false,
+   "sameFa": 0.9666,
+   "otherFa": 0.9598,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 44503,
+   "day": 201,
+   "job": "herder",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 27,
+   "band": "adult",
+   "voiceAge": 27,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "Aye, we have four sons.",
+   "fa": "آره، ما چهار پسر داریم",
+   "faHits": [],
+   "mix": [
+    [
+     "am_echo",
+     0.1561
+    ],
+    [
+     "zm_yunxia",
+     1.8729
+    ],
+    [
+     "am_eric",
+     1.3454
+    ]
+   ],
+   "tract": 1.0144,
+   "speed": 0.9122,
+   "seconds": 0.74,
+   "mos": 4.055,
+   "mosEn": 3.752,
+   "mosFa": 4.147,
+   "backend": "kokoro",
+   "maxSim": 0.941,
+   "nearest": 27817,
+   "maxSimEcapa": 0.4425,
+   "unique": false,
+   "sameEn": 0.5948,
+   "otherEn": 0.8177,
+   "rank1En": false,
+   "sameFa": 0.8421,
+   "otherFa": 0.9458,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 43347,
+   "day": 94,
+   "job": "traveller",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 25,
+   "band": "adult",
+   "voiceAge": 25,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "By the king's gold.",
+   "fa": "به طلا پادشاه سوگند",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_lewis",
+     0.2515
+    ],
+    [
+     "pm_santa",
+     0.7629
+    ],
+    [
+     "am_adam",
+     2.4692
+    ]
+   ],
+   "tract": 0.9906,
+   "speed": 0.9327,
+   "seconds": 1.69,
+   "mos": 3.869,
+   "mosEn": 4.337,
+   "mosFa": 4.3,
+   "backend": "kokoro",
+   "maxSim": 0.9551,
+   "nearest": 1322,
+   "maxSimEcapa": 0.5392,
+   "unique": false,
+   "sameEn": 0.8537,
+   "otherEn": 0.8404,
+   "rank1En": true,
+   "sameFa": 0.9372,
+   "otherFa": 0.9141,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": true,
+   "pass": false
+  },
+  {
+   "pid": 5814,
+   "day": 66,
+   "job": "steward",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 43,
+   "band": "adult",
+   "voiceAge": 43,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "Just helping Karma with the brickwork.",
+   "fa": "فقط کمک به کارما در کار کردن",
+   "faHits": [],
+   "mix": [
+    [
+     "em_alex",
+     1.6621
+    ],
+    [
+     "am_santa",
+     2.5734
+    ],
+    [
+     "bm_fable",
+     0.3577
+    ]
+   ],
+   "tract": 0.9864,
+   "speed": 1.0433,
+   "seconds": 1.76,
+   "mos": 2.866,
+   "mosEn": 4.19,
+   "mosFa": 3.212,
+   "backend": "kokoro",
+   "maxSim": 0.9358,
+   "nearest": 2928,
+   "maxSimEcapa": 0.678,
+   "unique": false,
+   "sameEn": 0.8464,
+   "otherEn": 0.886,
+   "rank1En": false,
+   "sameFa": 0.9213,
+   "otherFa": 0.961,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 63,
+   "day": 8,
+   "job": "guard",
+   "why": "testset",
+   "origin": "Median",
+   "sex": "m",
+   "age": 44,
+   "band": "adult",
+   "voiceAge": 22,
+   "agent": 21,
+   "lang": "op",
+   "via": "Old Persian",
+   "units": [
+    "op.remark.parsa_uvaspa",
+    "op:ṛdata-"
+   ],
+   "english": "The harvest is good, and the stores are full. We have enough barley flour.",
+   "fa": "محصول خوب است و فروشگاه ها پر شده اند. ما آرد آرژانتین کافی داریم.",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_alex",
+     1.0948
+    ],
+    [
+     "bm_fable",
+     0.3196
+    ],
+    [
+     "am_puck",
+     0.8363
+    ]
+   ],
+   "tract": 0.9907,
+   "speed": 0.9933,
+   "seconds": 2.47,
+   "mos": 4.153,
+   "mosEn": 4.458,
+   "mosFa": 4.376,
+   "backend": "kokoro",
+   "maxSim": 0.9496,
+   "nearest": 2852,
+   "maxSimEcapa": 0.608,
+   "unique": false,
+   "sameEn": 0.8066,
+   "otherEn": 0.8931,
+   "rank1En": false,
+   "sameFa": 0.8958,
+   "otherFa": 0.894,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 44792,
+   "day": 288,
+   "job": "builder",
+   "why": "testset",
+   "origin": "Lycian",
+   "sex": "m",
+   "age": 40,
+   "band": "adult",
+   "voiceAge": 40,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:7"
+   ],
+   "english": "In the well behind the house of Tanetamun,.",
+   "fa": "در چاه پشت خانه تَنتامون",
+   "faHits": [],
+   "mix": [
+    [
+     "zm_yunxi",
+     0.9806
+    ],
+    [
+     "pm_alex",
+     1.486
+    ],
+    [
+     "am_adam",
+     0.2068
+    ]
+   ],
+   "tract": 0.964,
+   "speed": 0.9209,
+   "seconds": 0.6,
+   "mos": 3.021,
+   "mosEn": 4.379,
+   "mosFa": 3.956,
+   "backend": "kokoro",
+   "maxSim": 0.8827,
+   "nearest": 41646,
+   "maxSimEcapa": 0.3961,
+   "unique": false,
+   "sameEn": 0.789,
+   "otherEn": 0.8952,
+   "rank1En": false,
+   "sameFa": 0.6956,
+   "otherFa": 0.9608,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3995,
+   "day": 164,
+   "job": "porter",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 20,
+   "band": "adult",
+   "voiceAge": 20,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.vasna_auramazdaha"
+   ],
+   "english": "The festival of the god Marduk.",
+   "fa": "جشن خدایان \"ماردوک\"",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_daniel",
+     1.1274
+    ],
+    [
+     "pm_santa",
+     2.3872
+    ],
+    [
+     "am_michael",
+     0.692
+    ]
+   ],
+   "tract": 0.9993,
+   "speed": 0.9789,
+   "seconds": 1.62,
+   "mos": 3.764,
+   "mosEn": 4.103,
+   "mosFa": 3.51,
+   "backend": "kokoro",
+   "maxSim": 0.932,
+   "nearest": 5814,
+   "maxSimEcapa": 0.6441,
+   "unique": false,
+   "sameEn": 0.9392,
+   "otherEn": 0.8891,
+   "rank1En": true,
+   "sameFa": 0.9317,
+   "otherFa": 0.9486,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 2359,
+   "day": 116,
+   "job": "treasury",
+   "why": "testset",
+   "origin": "Babylonian",
+   "sex": "m",
+   "age": 36,
+   "band": "adult",
+   "voiceAge": 36,
+   "agent": null,
+   "lang": "bab",
+   "via": "Babylonian",
+   "units": [
+    "bab.pious.ilu_rabu",
+    "bab:sīsû"
+   ],
+   "english": "The gods’ will be strong, and my home will see many a harvest.",
+   "fa": "خداها قوی خواهند شد و خانه ام محصول زیادی خواهد داشت.",
+   "faHits": [],
+   "mix": [
+    [
+     "hm_omega",
+     1.5906
+    ],
+    [
+     "am_adam",
+     0.7418
+    ],
+    [
+     "am_eric",
+     1.7867
+    ]
+   ],
+   "tract": 1.0229,
+   "speed": 1.0711,
+   "seconds": 2.37,
+   "mos": 4.195,
+   "mosEn": 4.464,
+   "mosFa": 4.136,
+   "backend": "kokoro",
+   "maxSim": 0.9693,
+   "nearest": 6680,
+   "maxSimEcapa": 0.6209,
+   "unique": false,
+   "sameEn": 0.6583,
+   "otherEn": 0.8821,
+   "rank1En": false,
+   "sameFa": 0.9132,
+   "otherFa": 0.9593,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 2928,
+   "day": 87,
+   "job": "scribe",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 58,
+   "band": "elder",
+   "voiceAge": 58,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.vasna_auramazdaha"
+   ],
+   "english": "The gods’ will is always with their people.",
+   "fa": "خدايان هميشه با مردمشون هستند",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_santa",
+     0.3874
+    ],
+    [
+     "hm_omega",
+     1.3365
+    ],
+    [
+     "em_alex",
+     0.8115
+    ]
+   ],
+   "tract": 0.9545,
+   "speed": 0.9156,
+   "seconds": 1.8,
+   "mos": 4.143,
+   "mosEn": 4.376,
+   "mosFa": 4.332,
+   "backend": "kokoro",
+   "maxSim": 0.9653,
+   "nearest": 3652,
+   "maxSimEcapa": 0.6931,
+   "unique": false,
+   "sameEn": 0.8916,
+   "otherEn": 0.9433,
+   "rank1En": false,
+   "sameFa": 0.9429,
+   "otherFa": 0.966,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 2852,
+   "day": 13,
+   "job": "official",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 33,
+   "band": "adult",
+   "voiceAge": 33,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa",
+    "op:umartiya-"
+   ],
+   "english": "What’s that you asking, stranger? Time’s a’ways a’matter of reckoning with the sun.",
+   "fa": "چه چيزي ازت ميپرسي غريبه؟ زمان هميشه يه موضوع حساب کردن با خورشيد است.",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_fable",
+     0.3214
+    ],
+    [
+     "am_eric",
+     1.0119
+    ],
+    [
+     "hm_psi",
+     0.6182
+    ]
+   ],
+   "tract": 1.0136,
+   "speed": 1.0104,
+   "seconds": 2.67,
+   "mos": 4.312,
+   "mosEn": 4.508,
+   "mosFa": 4.423,
+   "backend": "kokoro",
+   "maxSim": 0.9604,
+   "nearest": 3582,
+   "maxSimEcapa": 0.7071,
+   "unique": false,
+   "sameEn": 0.6948,
+   "otherEn": 0.8716,
+   "rank1En": false,
+   "sameFa": 0.974,
+   "otherFa": 0.9672,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3032,
+   "day": 105,
+   "job": "storekeeper",
+   "why": "testset",
+   "origin": "Babylonian",
+   "sex": "m",
+   "age": 51,
+   "band": "adult",
+   "voiceAge": 51,
+   "agent": null,
+   "lang": "bab",
+   "via": "Babylonian",
+   "units": [
+    "bab.reply.sulmu",
+    "bab:šamnu"
+   ],
+   "english": "It is the year of King Xerxes, in the 19th year.",
+   "fa": "سال پادشاه Xerxes است، در سال 19",
+   "faHits": [
+    "not Persian script",
+    "digits"
+   ],
+   "mix": [
+    [
+     "pm_santa",
+     0.9057
+    ],
+    [
+     "bm_daniel",
+     1.5645
+    ],
+    [
+     "hm_psi",
+     2.453
+    ]
+   ],
+   "tract": 1.0385,
+   "speed": 0.9763,
+   "seconds": 1.54,
+   "mos": 3.882,
+   "mosEn": 4.41,
+   "mosFa": 4.323,
+   "backend": "kokoro",
+   "maxSim": 0.9241,
+   "nearest": 1804,
+   "maxSimEcapa": 0.5032,
+   "unique": false,
+   "sameEn": 0.7118,
+   "otherEn": 0.9337,
+   "rank1En": false,
+   "sameFa": 0.8746,
+   "otherFa": 0.9416,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 5892,
+   "day": 105,
+   "job": "servant",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 29,
+   "band": "adult",
+   "voiceAge": 29,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa",
+    "op:ai̯va-"
+   ],
+   "english": "My name is Aryazātā. My son Ziššukka grinds grain with me at the mill.",
+   "fa": "اسم من آريازاتاه پسر من زيشوکا با من در کارخانه دانه مي خرد",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_george",
+     0.6938
+    ],
+    [
+     "jm_kumo",
+     0.7699
+    ],
+    [
+     "hm_omega",
+     4.5163
+    ]
+   ],
+   "tract": 0.9997,
+   "speed": 1.0452,
+   "seconds": 2.61,
+   "mos": 4.155,
+   "mosEn": 4.485,
+   "mosFa": 4.214,
+   "backend": "kokoro",
+   "maxSim": 0.9533,
+   "nearest": 4555,
+   "maxSimEcapa": 0.7359,
+   "unique": false,
+   "sameEn": 0.961,
+   "otherEn": 0.9397,
+   "rank1En": true,
+   "sameFa": 0.9574,
+   "otherFa": 0.952,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": true,
+   "pass": false
+  },
+  {
+   "pid": 3175,
+   "day": 143,
+   "job": "miller",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 36,
+   "band": "adult",
+   "voiceAge": 36,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "I’m Rtačiθrā, weaver from Parsa.",
+   "fa": "من \"رتاتشيتر\" هستم، بافتن از پارسا.",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_beta",
+     1.5108
+    ],
+    [
+     "af_aoede",
+     0.8102
+    ],
+    [
+     "ef_dora",
+     4.4362
+    ]
+   ],
+   "tract": 1.0413,
+   "speed": 0.9033,
+   "seconds": 1.8,
+   "mos": 4.188,
+   "mosEn": 4.433,
+   "mosFa": 3.984,
+   "backend": "kokoro",
+   "maxSim": 0.9476,
+   "nearest": 1215,
+   "maxSimEcapa": 0.6242,
+   "unique": false,
+   "sameEn": 0.8464,
+   "otherEn": 0.945,
+   "rank1En": false,
+   "sameFa": 0.9058,
+   "otherFa": 0.9588,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3497,
+   "day": 133,
+   "job": "weaver",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 24,
+   "band": "adult",
+   "voiceAge": 24,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "My Vahubāmā and me. We live here.",
+   "fa": "من و \"واهوباما\" من اينجا زندگي مي کنيم",
+   "faHits": [],
+   "mix": [
+    [
+     "bf_alice",
+     0.2378
+    ],
+    [
+     "af_sarah",
+     0.4841
+    ],
+    [
+     "zf_xiaoyi",
+     0.875
+    ]
+   ],
+   "tract": 0.9582,
+   "speed": 1.0708,
+   "seconds": 1.37,
+   "mos": 4.201,
+   "mosEn": 4.246,
+   "mosFa": 3.877,
+   "backend": "kokoro",
+   "maxSim": 0.9588,
+   "nearest": 3207,
+   "maxSimEcapa": 0.5002,
+   "unique": false,
+   "sameEn": 0.9006,
+   "otherEn": 0.9336,
+   "rank1En": false,
+   "sameFa": 0.9341,
+   "otherFa": 0.9641,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3582,
+   "day": 202,
+   "job": "brewer",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 23,
+   "band": "adult",
+   "voiceAge": 23,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "I take care of the horses. My name is Bakabada.",
+   "fa": "من به اسب ها مراقبت میکنم اسم من باکابادا",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_fable",
+     2.4557
+    ],
+    [
+     "zm_yunxi",
+     3.6617
+    ],
+    [
+     "am_fenrir",
+     0.6092
+    ]
+   ],
+   "tract": 0.9497,
+   "speed": 0.904,
+   "seconds": 1.86,
+   "mos": 4.39,
+   "mosEn": 4.51,
+   "mosFa": 4.414,
+   "backend": "kokoro",
+   "maxSim": 0.9604,
+   "nearest": 2852,
+   "maxSimEcapa": 0.5336,
+   "unique": false,
+   "sameEn": 0.8083,
+   "otherEn": 0.9115,
+   "rank1En": false,
+   "sameFa": 0.8744,
+   "otherFa": 0.9117,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3626,
+   "day": 29,
+   "job": "groom",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 30,
+   "band": "adult",
+   "voiceAge": 30,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "Today we've been grazing the state flock. “",
+   "fa": "امروز ما در حال چر کردن گله اي رياست بوده ايم",
+   "faHits": [],
+   "mix": [
+    [
+     "jm_kumo",
+     1.2225
+    ],
+    [
+     "em_alex",
+     1.2451
+    ],
+    [
+     "bm_fable",
+     2.2622
+    ]
+   ],
+   "tract": 0.9642,
+   "speed": 1.0623,
+   "seconds": 0.87,
+   "mos": 4.216,
+   "mosEn": 3.848,
+   "mosFa": 4.353,
+   "backend": "kokoro",
+   "maxSim": 0.941,
+   "nearest": 41646,
+   "maxSimEcapa": 0.4445,
+   "unique": false,
+   "sameEn": 0.7432,
+   "otherEn": 0.796,
+   "rank1En": false,
+   "sameFa": 0.8515,
+   "otherFa": 0.954,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3761,
+   "day": 37,
+   "job": "shepherd",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 49,
+   "band": "adult",
+   "voiceAge": 49,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "Grape harvest, good. Miθračiθrā’s got her hands full, see.",
+   "fa": "انگور ميخوري خوب ميتراترا دستش پر شده",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_fable",
+     0.6497
+    ],
+    [
+     "zm_yunyang",
+     1.9011
+    ],
+    [
+     "hm_psi",
+     0.5496
+    ]
+   ],
+   "tract": 1.0001,
+   "speed": 0.9815,
+   "seconds": 1.64,
+   "mos": 4.266,
+   "mosEn": 4.442,
+   "mosFa": 4.358,
+   "backend": "kokoro",
+   "maxSim": 0.9286,
+   "nearest": 63,
+   "maxSimEcapa": 0.5251,
+   "unique": false,
+   "sameEn": 0.8169,
+   "otherEn": 0.8832,
+   "rank1En": false,
+   "sameFa": 0.9597,
+   "otherFa": 0.8962,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3861,
+   "day": 204,
+   "job": "messenger",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 32,
+   "band": "adult",
+   "voiceAge": 32,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa",
+    "op:naiba-"
+   ],
+   "english": "The water jar is in the courtyard. You’ll find it there.",
+   "fa": "جار آب تو حياطيه، اونجا پيدا ميکني",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_daniel",
+     0.6644
+    ],
+    [
+     "em_santa",
+     0.8562
+    ],
+    [
+     "am_eric",
+     1.3616
+    ]
+   ],
+   "tract": 1.0197,
+   "speed": 0.9074,
+   "seconds": 2.9,
+   "mos": 3.745,
+   "mosEn": 4.289,
+   "mosFa": 4.275,
+   "backend": "kokoro",
+   "maxSim": 0.9679,
+   "nearest": 5953,
+   "maxSimEcapa": 0.7918,
+   "unique": false,
+   "sameEn": 0.8669,
+   "otherEn": 0.9112,
+   "rank1En": false,
+   "sameFa": 0.9559,
+   "otherFa": 0.9521,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3981,
+   "day": 131,
+   "job": "caretaker",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 41,
+   "band": "adult",
+   "voiceAge": 41,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "I have seen him a few times, but not often.",
+   "fa": "چند بار ديدمش ولي چندين بار",
+   "faHits": [],
+   "mix": [
+    [
+     "af_aoede",
+     0.9321
+    ],
+    [
+     "af_sky",
+     1.1353
+    ],
+    [
+     "ef_dora",
+     0.1579
+    ]
+   ],
+   "tract": 0.9755,
+   "speed": 1.0084,
+   "seconds": 1.56,
+   "mos": 4.321,
+   "mosEn": 4.348,
+   "mosFa": 4.434,
+   "backend": "kokoro",
+   "maxSim": 0.8665,
+   "nearest": 5803,
+   "maxSimEcapa": 0.5373,
+   "unique": false,
+   "sameEn": 0.8893,
+   "otherEn": 0.8395,
+   "rank1En": true,
+   "sameFa": 0.8877,
+   "otherFa": 0.8607,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": true,
+   "pass": false
+  },
+  {
+   "pid": 5410,
+   "day": 213,
+   "job": "gardener",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 44,
+   "band": "adult",
+   "voiceAge": 44,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.baga_vazrka"
+   ],
+   "english": "The gods give us good harvests.",
+   "fa": "خداها به ما ميوه هاي خوب ميدهن",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_lewis",
+     0.7407
+    ],
+    [
+     "am_adam",
+     1.5329
+    ],
+    [
+     "pm_santa",
+     2.5389
+    ]
+   ],
+   "tract": 0.9731,
+   "speed": 0.994,
+   "seconds": 1.85,
+   "mos": 3.832,
+   "mosEn": 4.176,
+   "mosFa": 3.778,
+   "backend": "kokoro",
+   "maxSim": 0.9541,
+   "nearest": 2767,
+   "maxSimEcapa": 0.6136,
+   "unique": false,
+   "sameEn": 0.9549,
+   "otherEn": 0.919,
+   "rank1En": true,
+   "sameFa": 0.8635,
+   "otherFa": 0.9738,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 6706,
+   "day": 185,
+   "job": "craftsman",
+   "why": "testset",
+   "origin": "Egyptian",
+   "sex": "m",
+   "age": 37,
+   "band": "adult",
+   "voiceAge": 37,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:6",
+    "wordless:1"
+   ],
+   "english": "I hope the gods keep them from burning. My wife is weak with the sickness.",
+   "fa": "اميدوارم خداها از سوختنشون محافظت کنن",
+   "faHits": [],
+   "mix": [
+    [
+     "em_alex",
+     0.451
+    ],
+    [
+     "hm_psi",
+     0.159
+    ],
+    [
+     "pm_santa",
+     0.859
+    ]
+   ],
+   "tract": 1.0541,
+   "speed": 0.9081,
+   "seconds": 1.04,
+   "mos": 1.845,
+   "mosEn": 4.152,
+   "mosFa": 3.568,
+   "backend": "kokoro",
+   "maxSim": 0.8515,
+   "nearest": 3995,
+   "maxSimEcapa": 0.3739,
+   "unique": true,
+   "sameEn": 0.8875,
+   "otherEn": 0.9556,
+   "rank1En": false,
+   "sameFa": 0.6347,
+   "otherFa": 0.9644,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 27817,
+   "day": 211,
+   "job": "homemaker",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 40,
+   "band": "adult",
+   "voiceAge": 40,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op:stūnā",
+    "op:ardastāna"
+   ],
+   "english": "I don’t understand that word. My husband’s been talking about that strange new thing from faraway lands.",
+   "fa": "من اين کلمه رو نمي فهمم شوهرم از اين چيز عجيب تازه از كشور هاي دور صحبت مي کنه",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_alpha",
+     4.6316
+    ],
+    [
+     "zf_xiaobei",
+     0.1948
+    ],
+    [
+     "zf_xiaoxiao",
+     0.6485
+    ]
+   ],
+   "tract": 1.0455,
+   "speed": 1.0116,
+   "seconds": 1.86,
+   "mos": 3.821,
+   "mosEn": 4.485,
+   "mosFa": 4.382,
+   "backend": "kokoro",
+   "maxSim": 0.941,
+   "nearest": 44503,
+   "maxSimEcapa": 0.4695,
+   "unique": false,
+   "sameEn": 0.9193,
+   "otherEn": 0.9609,
+   "rank1En": false,
+   "sameFa": 0.9495,
+   "otherFa": 0.9625,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 26111,
+   "day": 325,
+   "job": "child",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 12,
+   "band": "child",
+   "voiceAge": 12,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op:framātar-"
+   ],
+   "english": "No. I’m Miθrastūnā.",
+   "fa": "نه من ميتراستونا هستم",
+   "faHits": [],
+   "mix": [
+    [
+     "bf_emma",
+     0.289
+    ],
+    [
+     "af_sarah",
+     0.6031
+    ],
+    [
+     "af_nova",
+     0.917
+    ]
+   ],
+   "tract": 1.1747,
+   "speed": 0.9987,
+   "seconds": 1.21,
+   "mos": 3.661,
+   "mosEn": 4.438,
+   "mosFa": 4.366,
+   "backend": "kokoro",
+   "maxSim": 0.9428,
+   "nearest": 1417,
+   "maxSimEcapa": 0.4702,
+   "unique": false,
+   "sameEn": 0.9165,
+   "otherEn": 0.9081,
+   "rank1En": true,
+   "sameFa": 0.9667,
+   "otherFa": 0.9374,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": true,
+   "pass": false
+  },
+  {
+   "pid": 23338,
+   "day": 71,
+   "job": "elder",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 66,
+   "band": "elder",
+   "voiceAge": 66,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "My work is the land. Bakumarda remembers the land well.",
+   "fa": "کار من زمينه.باکوماردا زمين رو خوب ياد مياره",
+   "faHits": [],
+   "mix": [
+    [
+     "af_nicole",
+     1.431
+    ],
+    [
+     "bf_lily",
+     0.8321
+    ],
+    [
+     "hf_alpha",
+     0.5568
+    ]
+   ],
+   "tract": 0.932,
+   "speed": 0.8394,
+   "seconds": 1.1,
+   "mos": 4.046,
+   "mosEn": 4.213,
+   "mosFa": 3.727,
+   "backend": "kokoro",
+   "maxSim": 0.8548,
+   "nearest": 44977,
+   "maxSimEcapa": 0.3307,
+   "unique": true,
+   "sameEn": 0.865,
+   "otherEn": 0.8544,
+   "rank1En": true,
+   "sameFa": 0.9089,
+   "otherFa": 0.9376,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 11884,
+   "day": 185,
+   "job": "farmer",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 14,
+   "band": "adult",
+   "voiceAge": 14,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa",
+    "op:viθ-"
+   ],
+   "english": "I am Miθrazātā, daughter of Manyakka. We farm the land and are proud of our work.",
+   "fa": "من ميترازاتا دختر منياکا هستم ما زمين رو کشت مي کنيم و از کارمون افتخار مي کنيم",
+   "faHits": [],
+   "mix": [
+    [
+     "bf_alice",
+     0.9945
+    ],
+    [
+     "af_kore",
+     1.6976
+    ],
+    [
+     "af_nova",
+     0.2448
+    ]
+   ],
+   "tract": 0.9796,
+   "speed": 0.9027,
+   "seconds": 2.57,
+   "mos": 4.159,
+   "mosEn": 4.493,
+   "mosFa": 4.469,
+   "backend": "kokoro",
+   "maxSim": 0.9092,
+   "nearest": 5795,
+   "maxSimEcapa": 0.7357,
+   "unique": false,
+   "sameEn": 0.9169,
+   "otherEn": 0.8802,
+   "rank1En": true,
+   "sameFa": 0.9436,
+   "otherFa": 0.9408,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": true,
+   "pass": false
+  },
+  {
+   "pid": 44584,
+   "day": 204,
+   "job": "herder",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 5,
+   "band": "child",
+   "voiceAge": 5,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "In the plain. We camp near the Terrace.",
+   "fa": "در دشت، ما نزديک تراس کمپ ميريم",
+   "faHits": [],
+   "mix": [
+    [
+     "bf_emma",
+     0.4137
+    ],
+    [
+     "af_jessica",
+     2.1011
+    ],
+    [
+     "jf_alpha",
+     1.047
+    ]
+   ],
+   "tract": 1.2892,
+   "speed": 0.9321,
+   "seconds": 2.01,
+   "mos": 2.877,
+   "mosEn": 2.824,
+   "mosFa": 2.815,
+   "backend": "kokoro",
+   "maxSim": 0.951,
+   "nearest": 11374,
+   "maxSimEcapa": 0.516,
+   "unique": false,
+   "sameEn": 0.9198,
+   "otherEn": 0.9458,
+   "rank1En": false,
+   "sameFa": 0.9367,
+   "otherFa": 0.9692,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 43291,
+   "day": 54,
+   "job": "traveller",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 46,
+   "band": "adult",
+   "voiceAge": 46,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "I’m a road traveler, like my father was.",
+   "fa": "من مسافر جاده ای هستم مثل پدرم",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_george",
+     0.6533
+    ],
+    [
+     "am_michael",
+     0.6825
+    ],
+    [
+     "am_santa",
+     1.614
+    ]
+   ],
+   "tract": 1.0234,
+   "speed": 1.0431,
+   "seconds": 0.84,
+   "mos": 3.613,
+   "mosEn": 4.046,
+   "mosFa": 4.221,
+   "backend": "kokoro",
+   "maxSim": 0.9268,
+   "nearest": 262,
+   "maxSimEcapa": 0.6007,
+   "unique": false,
+   "sameEn": 0.8174,
+   "otherEn": 0.9067,
+   "rank1En": false,
+   "sameFa": 0.8824,
+   "otherFa": 0.9333,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 5953,
+   "day": 208,
+   "job": "steward",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 45,
+   "band": "adult",
+   "voiceAge": 45,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa"
+   ],
+   "english": "I'll tend to my garden.",
+   "fa": "من باغم رو نگه ميدارم",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_george",
+     1.0347
+    ],
+    [
+     "im_nicola",
+     0.2939
+    ],
+    [
+     "am_echo",
+     0.5591
+    ]
+   ],
+   "tract": 1.0317,
+   "speed": 0.9916,
+   "seconds": 2.03,
+   "mos": 3.827,
+   "mosEn": 4.396,
+   "mosFa": 4.313,
+   "backend": "kokoro",
+   "maxSim": 0.9679,
+   "nearest": 3861,
+   "maxSimEcapa": 0.7918,
+   "unique": false,
+   "sameEn": 0.8167,
+   "otherEn": 0.83,
+   "rank1En": false,
+   "sameFa": 0.9566,
+   "otherFa": 0.9646,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 24,
+   "day": 139,
+   "job": "guard",
+   "why": "testset",
+   "origin": "Median",
+   "sex": "m",
+   "age": 37,
+   "band": "adult",
+   "voiceAge": 39,
+   "agent": 7,
+   "lang": "op",
+   "via": "Old Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "Harvest was good, not bad. Zarathustra’s oxen are strong.",
+   "fa": "محصول خوب بود نه بد، گاوهای زراتوستر قوی هستند",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_alex",
+     0.8527
+    ],
+    [
+     "hm_omega",
+     1.9144
+    ],
+    [
+     "pm_santa",
+     0.1562
+    ]
+   ],
+   "tract": 0.9478,
+   "speed": 1.0706,
+   "seconds": 0.85,
+   "mos": 4.13,
+   "mosEn": 4.347,
+   "mosFa": 4.251,
+   "backend": "kokoro",
+   "maxSim": 0.9772,
+   "nearest": 4002,
+   "maxSimEcapa": 0.5879,
+   "unique": false,
+   "sameEn": 0.8951,
+   "otherEn": 0.9376,
+   "rank1En": false,
+   "sameFa": 0.9222,
+   "otherFa": 0.9565,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 44977,
+   "day": 228,
+   "job": "builder",
+   "why": "testset",
+   "origin": "Lycian",
+   "sex": "m",
+   "age": 32,
+   "band": "adult",
+   "voiceAge": 32,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:8",
+    "wordless:1"
+   ],
+   "english": "That's the Terrace, where the king lives. We're working on the walls.",
+   "fa": "اون تراسيه که پادشاه زندگي ميکنه",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_alex",
+     0.8355
+    ],
+    [
+     "zm_yunxia",
+     1.5423
+    ],
+    [
+     "hm_omega",
+     0.2852
+    ]
+   ],
+   "tract": 1.0376,
+   "speed": 1.0755,
+   "seconds": 0.87,
+   "mos": 1.444,
+   "mosEn": 4.365,
+   "mosFa": 4.141,
+   "backend": "kokoro",
+   "maxSim": 0.8548,
+   "nearest": 23338,
+   "maxSimEcapa": 0.3222,
+   "unique": true,
+   "sameEn": 0.6768,
+   "otherEn": 0.8466,
+   "rank1En": false,
+   "sameFa": 0.6342,
+   "otherFa": 0.9609,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 296,
+   "day": 138,
+   "job": "porter",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 18,
+   "band": "adult",
+   "voiceAge": 18,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op:Anāmaka"
+   ],
+   "english": "No. He is a distant king.",
+   "fa": "نه، اون پادشاه دور است",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_lewis",
+     1.7097
+    ],
+    [
+     "am_santa",
+     0.4355
+    ],
+    [
+     "hm_omega",
+     0.5209
+    ]
+   ],
+   "tract": 0.9782,
+   "speed": 1.0568,
+   "seconds": 0.98,
+   "mos": 3.443,
+   "mosEn": 4.236,
+   "mosFa": 3.435,
+   "backend": "kokoro",
+   "maxSim": 0.9241,
+   "nearest": 3573,
+   "maxSimEcapa": 0.406,
+   "unique": false,
+   "sameEn": 0.7531,
+   "otherEn": 0.8567,
+   "rank1En": false,
+   "sameFa": 0.7838,
+   "otherFa": 0.905,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 1215,
+   "day": 40,
+   "job": "camp",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "f",
+   "age": 38,
+   "band": "adult",
+   "voiceAge": 38,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el.pious.nap_irsarra",
+    "el:kurtaš kapnuškip"
+   ],
+   "english": "The gods give strength to those who work. May they bring good harvests to all.",
+   "fa": "خدايان به كسانى كه كار مي كنند قدرت بدهند",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_alpha",
+     1.0561
+    ],
+    [
+     "zf_xiaoyi",
+     0.6496
+    ],
+    [
+     "af_alloy",
+     3.6827
+    ]
+   ],
+   "tract": 1.0325,
+   "speed": 1.0034,
+   "seconds": 3.43,
+   "mos": 4.449,
+   "mosEn": 4.513,
+   "mosFa": 4.414,
+   "backend": "kokoro",
+   "maxSim": 0.95,
+   "nearest": 5795,
+   "maxSimEcapa": 0.6107,
+   "unique": false,
+   "sameEn": 0.7561,
+   "otherEn": 0.8721,
+   "rank1En": false,
+   "sameFa": 0.96,
+   "otherFa": 0.9431,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 1651,
+   "day": 307,
+   "job": "treasury",
+   "why": "testset",
+   "origin": "Egyptian",
+   "sex": "f",
+   "age": 14,
+   "band": "adult",
+   "voiceAge": 14,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:8",
+    "wordless:2"
+   ],
+   "english": "My work is to spin thread. What news for the gods?",
+   "fa": "کار من اينه که رشته رو چرخدم خبري براي خداها چي؟",
+   "faHits": [],
+   "mix": [
+    [
+     "ff_siwis",
+     1.348
+    ],
+    [
+     "jf_tebukuro",
+     0.2866
+    ],
+    [
+     "af_kore",
+     0.6607
+    ]
+   ],
+   "tract": 1.0164,
+   "speed": 0.9057,
+   "seconds": 1.08,
+   "mos": 2.495,
+   "mosEn": 4.488,
+   "mosFa": 4.111,
+   "backend": "kokoro",
+   "maxSim": 0.8714,
+   "nearest": 572,
+   "maxSimEcapa": 0.6119,
+   "unique": false,
+   "sameEn": 0.8358,
+   "otherEn": 0.8787,
+   "rank1En": false,
+   "sameFa": 0.8866,
+   "otherFa": 0.9606,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 2977,
+   "day": 337,
+   "job": "scribe",
+   "why": "testset",
+   "origin": "Babylonian",
+   "sex": "m",
+   "age": 37,
+   "band": "adult",
+   "voiceAge": 37,
+   "agent": null,
+   "lang": "bab",
+   "via": "Babylonian",
+   "units": [
+    "bab.reply.sulmu"
+   ],
+   "english": "By Marduk, I don't know.",
+   "fa": "به نام \"ماردوک\" نميدونم",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_santa",
+     1.9039
+    ],
+    [
+     "bm_george",
+     0.7494
+    ],
+    [
+     "am_santa",
+     0.5532
+    ]
+   ],
+   "tract": 0.9443,
+   "speed": 1.0383,
+   "seconds": 0.73,
+   "mos": 2.645,
+   "mosEn": 3.312,
+   "mosFa": 3.703,
+   "backend": "kokoro",
+   "maxSim": 0.9409,
+   "nearest": 3107,
+   "maxSimEcapa": 0.4234,
+   "unique": false,
+   "sameEn": 0.9658,
+   "otherEn": 0.9411,
+   "rank1En": true,
+   "sameFa": 0.8497,
+   "otherFa": 0.949,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 2767,
+   "day": 190,
+   "job": "official",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 31,
+   "band": "adult",
+   "voiceAge": 35,
+   "agent": 133,
+   "lang": "op",
+   "via": "Old Persian",
+   "units": [
+    "op.affirm.hasiyam"
+   ],
+   "english": "I am a servant in the king's administration.",
+   "fa": "من خدمتکار اداري پادشاهم",
+   "faHits": [],
+   "mix": [
+    [
+     "zm_yunxia",
+     0.178
+    ],
+    [
+     "em_alex",
+     0.152
+    ],
+    [
+     "am_onyx",
+     1.855
+    ]
+   ],
+   "tract": 0.9414,
+   "speed": 1.0085,
+   "seconds": 0.83,
+   "mos": 3.903,
+   "mosEn": 4.359,
+   "mosFa": 4.315,
+   "backend": "kokoro",
+   "maxSim": 0.9541,
+   "nearest": 5410,
+   "maxSimEcapa": 0.5054,
+   "unique": false,
+   "sameEn": 0.8924,
+   "otherEn": 0.9305,
+   "rank1En": false,
+   "sameFa": 0.9107,
+   "otherFa": 0.9519,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3107,
+   "day": 61,
+   "job": "storekeeper",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "m",
+   "age": 36,
+   "band": "adult",
+   "voiceAge": 36,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el:Barsa"
+   ],
+   "english": "Speak to me as a merchant.",
+   "fa": "به من به عنوان يه تاجر صحبت کن",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_alex",
+     0.2933
+    ],
+    [
+     "am_adam",
+     1.1718
+    ],
+    [
+     "pm_santa",
+     0.9872
+    ]
+   ],
+   "tract": 0.9703,
+   "speed": 1.0568,
+   "seconds": 0.68,
+   "mos": 3.05,
+   "mosEn": 4.378,
+   "mosFa": 3.99,
+   "backend": "kokoro",
+   "maxSim": 0.9409,
+   "nearest": 2977,
+   "maxSimEcapa": 0.6364,
+   "unique": false,
+   "sameEn": 0.9056,
+   "otherEn": 0.9474,
+   "rank1En": false,
+   "sameFa": 0.921,
+   "otherFa": 0.9585,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 5803,
+   "day": 292,
+   "job": "servant",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "f",
+   "age": 46,
+   "band": "adult",
+   "voiceAge": 46,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el:zaumin",
+    "el:šiyatiš"
+   ],
+   "english": "Mibṭaḥiah, from Elam. We're from the land of the sun,\" I say.",
+   "fa": "\"مبتاهيا\" از \"علام\" ما از \"ملك آفتاب\" هستيم",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_beta",
+     0.6244
+    ],
+    [
+     "af_jessica",
+     1.3304
+    ],
+    [
+     "bf_emma",
+     0.2092
+    ]
+   ],
+   "tract": 0.9716,
+   "speed": 0.9752,
+   "seconds": 1.69,
+   "mos": 4.169,
+   "mosEn": 4.475,
+   "mosFa": 4.405,
+   "backend": "kokoro",
+   "maxSim": 0.9124,
+   "nearest": 1215,
+   "maxSimEcapa": 0.2833,
+   "unique": false,
+   "sameEn": 0.8849,
+   "otherEn": 0.854,
+   "rank1En": true,
+   "sameFa": 0.9333,
+   "otherFa": 0.8721,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": true,
+   "pass": false
+  },
+  {
+   "pid": 3207,
+   "day": 283,
+   "job": "miller",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 33,
+   "band": "adult",
+   "voiceAge": 33,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.remark.parsa_uvaspa",
+    "op:būmi-"
+   ],
+   "english": "We live south-west of the Terrace. My home is a mud-brick house.",
+   "fa": "ما در جنوب غرب تراس زندگی می کنیم.",
+   "faHits": [],
+   "mix": [
+    [
+     "bf_alice",
+     2.8784
+    ],
+    [
+     "if_sara",
+     1.0591
+    ],
+    [
+     "af_kore",
+     0.9894
+    ]
+   ],
+   "tract": 1.0398,
+   "speed": 1.0264,
+   "seconds": 2.44,
+   "mos": 4.173,
+   "mosEn": 4.505,
+   "mosFa": 4.108,
+   "backend": "kokoro",
+   "maxSim": 0.9588,
+   "nearest": 3497,
+   "maxSimEcapa": 0.5263,
+   "unique": false,
+   "sameEn": 0.8668,
+   "otherEn": 0.8859,
+   "rank1En": false,
+   "sameFa": 0.9275,
+   "otherFa": 0.955,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3529,
+   "day": 210,
+   "job": "weaver",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "f",
+   "age": 29,
+   "band": "adult",
+   "voiceAge": 29,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el:gal"
+   ],
+   "english": "By the weight of the wool, like others,",
+   "fa": "و سوگند به وزن موی مانند دیگر موی",
+   "faHits": [],
+   "mix": [
+    [
+     "zf_xiaoxiao",
+     4.8577
+    ],
+    [
+     "af_sky",
+     3.0396
+    ],
+    [
+     "zf_xiaoyi",
+     1.8852
+    ]
+   ],
+   "tract": 0.9869,
+   "speed": 0.9429,
+   "seconds": 0.49,
+   "mos": 2.855,
+   "mosEn": 4.457,
+   "mosFa": 4.254,
+   "backend": "kokoro",
+   "maxSim": 0.8508,
+   "nearest": 20400,
+   "maxSimEcapa": 0.2427,
+   "unique": true,
+   "sameEn": 0.9104,
+   "otherEn": 0.9478,
+   "rank1En": false,
+   "sameFa": 0.7809,
+   "otherFa": 0.9304,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3714,
+   "day": 102,
+   "job": "groom",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "m",
+   "age": 31,
+   "band": "adult",
+   "voiceAge": 31,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el:kumaš"
+   ],
+   "english": "I'll mend the baskets with Huduxçā’s help.",
+   "fa": "با کمک هودوکسا اسباب رو درست ميکنم",
+   "faHits": [],
+   "mix": [
+    [
+     "am_fenrir",
+     1.282
+    ],
+    [
+     "jm_kumo",
+     1.0771
+    ],
+    [
+     "hm_psi",
+     0.5691
+    ]
+   ],
+   "tract": 0.9683,
+   "speed": 0.9394,
+   "seconds": 0.68,
+   "mos": 4.108,
+   "mosEn": 4.436,
+   "mosFa": 4.304,
+   "backend": "kokoro",
+   "maxSim": 0.9152,
+   "nearest": 4555,
+   "maxSimEcapa": 0.4465,
+   "unique": false,
+   "sameEn": 0.5803,
+   "otherEn": 0.8526,
+   "rank1En": false,
+   "sameFa": 0.9175,
+   "otherFa": 0.9473,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3804,
+   "day": 128,
+   "job": "shepherd",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "m",
+   "age": 47,
+   "band": "adult",
+   "voiceAge": 47,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el:ak"
+   ],
+   "english": "There's a letter for the Treasury.",
+   "fa": "يه نامه براي خزانه داری هست",
+   "faHits": [],
+   "mix": [
+    [
+     "hm_psi",
+     0.6468
+    ],
+    [
+     "zm_yunxi",
+     0.6915
+    ],
+    [
+     "zm_yunjian",
+     1.4095
+    ]
+   ],
+   "tract": 0.9804,
+   "speed": 0.9838,
+   "seconds": 0.47,
+   "mos": 1.901,
+   "mosEn": 4.294,
+   "mosFa": 4.087,
+   "backend": "kokoro",
+   "maxSim": 0.9247,
+   "nearest": 3652,
+   "maxSimEcapa": 0.4234,
+   "unique": false,
+   "sameEn": 0.8457,
+   "otherEn": 0.9352,
+   "rank1En": false,
+   "sameFa": 0.8896,
+   "otherFa": 0.9127,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3957,
+   "day": 266,
+   "job": "caretaker",
+   "why": "testset",
+   "origin": "Elamite",
+   "sex": "f",
+   "age": 32,
+   "band": "adult",
+   "voiceAge": 32,
+   "agent": null,
+   "lang": "el",
+   "via": "Elamite",
+   "units": [
+    "el.pious.nap_irsarra",
+    "el:tumara"
+   ],
+   "english": "By Humban, stranger! Water is in the courtyard. You can find water there.",
+   "fa": "به نام \"همانبان\" غريبه، آب در حياط هست",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_beta",
+     0.6206
+    ],
+    [
+     "zf_xiaoni",
+     1.0994
+    ],
+    [
+     "if_sara",
+     1.859
+    ]
+   ],
+   "tract": 1.0432,
+   "speed": 0.9399,
+   "seconds": 2.36,
+   "mos": 4.222,
+   "mosEn": 4.484,
+   "mosFa": 4.411,
+   "backend": "kokoro",
+   "maxSim": 0.9308,
+   "nearest": 3522,
+   "maxSimEcapa": 0.4695,
+   "unique": false,
+   "sameEn": 0.933,
+   "otherEn": 0.9423,
+   "rank1En": false,
+   "sameFa": 0.9475,
+   "otherFa": 0.9162,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 3993,
+   "day": 122,
+   "job": "priest",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 43,
+   "band": "adult",
+   "voiceAge": 43,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.vasna_auramazdaha"
+   ],
+   "english": "By Auramazda, no.",
+   "fa": "نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه، نه",
+   "faHits": [],
+   "mix": [
+    [
+     "am_onyx",
+     0.8905
+    ],
+    [
+     "am_eric",
+     3.7055
+    ],
+    [
+     "am_fenrir",
+     1.6406
+    ]
+   ],
+   "tract": 0.9901,
+   "speed": 1.0519,
+   "seconds": 1.41,
+   "mos": 4.25,
+   "mosEn": 4.376,
+   "mosFa": 1.726,
+   "backend": "kokoro",
+   "maxSim": 0.9191,
+   "nearest": 17971,
+   "maxSimEcapa": 0.783,
+   "unique": false,
+   "sameEn": 0.8636,
+   "otherEn": 0.7948,
+   "rank1En": true,
+   "sameFa": 0.5973,
+   "otherFa": 0.8102,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 4555,
+   "day": 163,
+   "job": "gardener",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "m",
+   "age": 15,
+   "band": "adult",
+   "voiceAge": 15,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.baga_vazrka",
+    "op:umartiya-",
+    "op:dahyāuš"
+   ],
+   "english": "Only the gods know what will be. But I pray for the safety of my children and a good harvest.",
+   "fa": "فقط خداها ميدونن چه اتفاقي ميفته ولي من براي سلامت بچه هام و محصول خوب دعا ميکنم",
+   "faHits": [],
+   "mix": [
+    [
+     "bm_daniel",
+     0.7648
+    ],
+    [
+     "hm_omega",
+     1.3287
+    ],
+    [
+     "am_santa",
+     0.4052
+    ]
+   ],
+   "tract": 1.0233,
+   "speed": 0.9804,
+   "seconds": 4.17,
+   "mos": 4.121,
+   "mosEn": 4.45,
+   "mosFa": 3.991,
+   "backend": "kokoro",
+   "maxSim": 0.9533,
+   "nearest": 5892,
+   "maxSimEcapa": 0.7359,
+   "unique": false,
+   "sameEn": 0.9707,
+   "otherEn": 0.962,
+   "rank1En": true,
+   "sameFa": 0.9733,
+   "otherFa": 0.9579,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": true,
+   "pass": false
+  },
+  {
+   "pid": 6604,
+   "day": 129,
+   "job": "craftsman",
+   "why": "testset",
+   "origin": "Babylonian",
+   "sex": "m",
+   "age": 54,
+   "band": "adult",
+   "voiceAge": 54,
+   "agent": null,
+   "lang": "bab",
+   "via": "Babylonian",
+   "units": [
+    "bab.pious.ilu_rabu",
+    "bab:mātu"
+   ],
+   "english": "By Auramazda, the gods will decide. I pray they are kind to us.",
+   "fa": "به نام \"اورامازدا\" خداها تصميم ميگيرن",
+   "faHits": [],
+   "mix": [
+    [
+     "pm_alex",
+     0.8676
+    ],
+    [
+     "bm_daniel",
+     0.6046
+    ],
+    [
+     "jm_kumo",
+     0.174
+    ]
+   ],
+   "tract": 0.9689,
+   "speed": 1.0112,
+   "seconds": 2.56,
+   "mos": 3.846,
+   "mosEn": 4.27,
+   "mosFa": 3.914,
+   "backend": "kokoro",
+   "maxSim": 0.9526,
+   "nearest": 43347,
+   "maxSimEcapa": 0.5571,
+   "unique": false,
+   "sameEn": 0.8434,
+   "otherEn": 0.9198,
+   "rank1En": false,
+   "sameFa": 0.9779,
+   "otherFa": 0.9526,
+   "rank1Fa": true,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 22217,
+   "day": 121,
+   "job": "homemaker",
+   "why": "testset",
+   "origin": "Persian",
+   "sex": "f",
+   "age": 23,
+   "band": "adult",
+   "voiceAge": 23,
+   "agent": null,
+   "lang": "op",
+   "via": "Persian",
+   "units": [
+    "op.pious.vasna_auramazdaha"
+   ],
+   "english": "The gods willing, midday. The sun is warm.",
+   "fa": "اگه خداها بخواين، ظهر.",
+   "faHits": [],
+   "mix": [
+    [
+     "bf_lily",
+     0.1748
+    ],
+    [
+     "af_aoede",
+     0.2716
+    ],
+    [
+     "af_bella",
+     2.0733
+    ]
+   ],
+   "tract": 0.9976,
+   "speed": 0.9221,
+   "seconds": 1.35,
+   "mos": 3.533,
+   "mosEn": 4.401,
+   "mosFa": 3.807,
+   "backend": "kokoro",
+   "maxSim": 0.8584,
+   "nearest": 5803,
+   "maxSimEcapa": 0.4253,
+   "unique": true,
+   "sameEn": 0.8108,
+   "otherEn": 0.8193,
+   "rank1En": false,
+   "sameFa": 0.8505,
+   "otherFa": 0.8942,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 1804,
+   "day": 78,
+   "job": "treasury",
+   "why": "coverage",
+   "origin": "Ionian",
+   "sex": "m",
+   "age": 31,
+   "band": "adult",
+   "voiceAge": 31,
+   "agent": null,
+   "lang": "grc",
+   "via": "Ionian",
+   "units": [
+    "grc.reply.ouk_oida",
+    "grc:adelpheos"
+   ],
+   "english": "I… I… make baskets. My wife’s son, Nabû-zēr-ukīn, likes to play games with me. “",
+   "fa": "من... من... سبد درست میکنم پسر همسرم، نابو زيروکين دوست داره با من بازی کنه",
+   "faHits": [],
+   "mix": [
+    [
+     "em_santa",
+     1.1009
+    ],
+    [
+     "zm_yunjian",
+     0.5723
+    ],
+    [
+     "hm_psi",
+     1.4885
+    ]
+   ],
+   "tract": 1.0555,
+   "speed": 1.0334,
+   "seconds": 1.89,
+   "mos": 4.211,
+   "mosEn": 3.883,
+   "mosFa": 4.257,
+   "backend": "kokoro",
+   "maxSim": 0.9338,
+   "nearest": 2359,
+   "maxSimEcapa": 0.5032,
+   "unique": false,
+   "sameEn": 0.935,
+   "otherEn": 0.9653,
+   "rank1En": false,
+   "sameFa": 0.9417,
+   "otherFa": 0.9647,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 1628,
+   "day": 181,
+   "job": "child",
+   "why": "coverage",
+   "origin": "Lydian",
+   "sex": "m",
+   "age": 6,
+   "band": "child",
+   "voiceAge": 6,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:4",
+    "wordless:8"
+   ],
+   "english": "My daughter is learning to walk. By Auramazda. We hope she will be strong.",
+   "fa": "دخترم داره راه رفتن رو ياد ميگيرد از طرف اروما زدا اميدواريم که قوی باشه",
+   "faHits": [],
+   "mix": [
+    [
+     "if_sara",
+     0.1636
+    ],
+    [
+     "af_river",
+     0.7021
+    ],
+    [
+     "af_sky",
+     0.2058
+    ]
+   ],
+   "tract": 1.2983,
+   "speed": 0.9317,
+   "seconds": 1.3,
+   "mos": 1.8,
+   "mosEn": 3.337,
+   "mosFa": 3.467,
+   "backend": "kokoro",
+   "maxSim": 0.9147,
+   "nearest": 721,
+   "maxSimEcapa": 0.6822,
+   "unique": false,
+   "sameEn": 0.826,
+   "otherEn": 0.9303,
+   "rank1En": false,
+   "sameFa": 0.8441,
+   "otherFa": 0.9581,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 354,
+   "day": 163,
+   "job": "homemaker",
+   "why": "coverage",
+   "origin": "Bactrian",
+   "sex": "f",
+   "age": 34,
+   "band": "adult",
+   "voiceAge": 34,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:9"
+   ],
+   "english": "I am Rāzā. I come from Parsa.",
+   "fa": "من رازا هستم من از پارسا هستم",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_beta",
+     2.4357
+    ],
+    [
+     "af_sarah",
+     0.5255
+    ],
+    [
+     "zf_xiaoni",
+     0.2819
+    ]
+   ],
+   "tract": 0.9423,
+   "speed": 1.0427,
+   "seconds": 0.53,
+   "mos": 3.734,
+   "mosEn": 4.379,
+   "mosFa": 4.283,
+   "backend": "kokoro",
+   "maxSim": 0.8385,
+   "nearest": 2852,
+   "maxSimEcapa": 0.2807,
+   "unique": true,
+   "sameEn": 0.6282,
+   "otherEn": 0.9391,
+   "rank1En": false,
+   "sameFa": 0.7236,
+   "otherFa": 0.8854,
+   "rank1Fa": false,
+   "natural": true,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 418,
+   "day": 249,
+   "job": "homemaker",
+   "why": "coverage",
+   "origin": "Cappadocian",
+   "sex": "f",
+   "age": 31,
+   "band": "adult",
+   "voiceAge": 31,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:4",
+    "wordless:7"
+   ],
+   "english": "South-west of the Terrace, near the stair. About half an hour’s walk from there.",
+   "fa": "جنوب غربي از تراس، نزديک پله ها، حدود نيم ساعت راهپيما از اونجا",
+   "faHits": [],
+   "mix": [
+    [
+     "hf_beta",
+     0.7965
+    ],
+    [
+     "ff_siwis",
+     2.5642
+    ],
+    [
+     "af_sky",
+     0.2186
+    ]
+   ],
+   "tract": 1.0298,
+   "speed": 1.0288,
+   "seconds": 1.03,
+   "mos": 2.476,
+   "mosEn": 4.27,
+   "mosFa": 4.206,
+   "backend": "kokoro",
+   "maxSim": 0.8504,
+   "nearest": 1651,
+   "maxSimEcapa": 0.6119,
+   "unique": true,
+   "sameEn": 0.8245,
+   "otherEn": 0.9473,
+   "rank1En": false,
+   "sameFa": 0.8117,
+   "otherFa": 0.9353,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 533,
+   "day": 8,
+   "job": "builder",
+   "why": "coverage",
+   "origin": "Carian",
+   "sex": "m",
+   "age": 47,
+   "band": "adult",
+   "voiceAge": 47,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:5",
+    "wordless:6",
+    "wordless:5"
+   ],
+   "english": "Not too bad, not too bad. The stair is a bit steep, but my son Miššabadda helps me with the grain.",
+   "fa": "نه خيلي بد نيست پله ها يه کم عميقه ولي پسرم \"ميشابادا\" با دانه ها کمکم ميکنه",
+   "faHits": [],
+   "mix": [
+    [
+     "im_nicola",
+     1.2562
+    ],
+    [
+     "zm_yunyang",
+     0.1589
+    ],
+    [
+     "bm_george",
+     0.2066
+    ]
+   ],
+   "tract": 1.0497,
+   "speed": 1.0583,
+   "seconds": 1.68,
+   "mos": 2.242,
+   "mosEn": 4.43,
+   "mosFa": 4.3,
+   "backend": "kokoro",
+   "maxSim": 0.8987,
+   "nearest": 3995,
+   "maxSimEcapa": 0.2604,
+   "unique": false,
+   "sameEn": 0.8782,
+   "otherEn": 0.9033,
+   "rank1En": false,
+   "sameFa": 0.8249,
+   "otherFa": 0.9646,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 572,
+   "day": 0,
+   "job": "homemaker",
+   "why": "coverage",
+   "origin": "Thracian",
+   "sex": "f",
+   "age": 17,
+   "band": "adult",
+   "voiceAge": 17,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:7"
+   ],
+   "english": "I’ll nurse the baby.",
+   "fa": "من بچه رو میخورم",
+   "faHits": [],
+   "mix": [
+    [
+     "zf_xiaoni",
+     1.6714
+    ],
+    [
+     "af_sarah",
+     1.1472
+    ],
+    [
+     "jf_gongitsune",
+     0.8556
+    ]
+   ],
+   "tract": 0.9556,
+   "speed": 0.9658,
+   "seconds": 0.6,
+   "mos": 2.142,
+   "mosEn": 4.426,
+   "mosFa": 4.4,
+   "backend": "kokoro",
+   "maxSim": 0.8714,
+   "nearest": 1651,
+   "maxSimEcapa": 0.3961,
+   "unique": false,
+   "sameEn": 0.6703,
+   "otherEn": 0.8934,
+   "rank1En": false,
+   "sameFa": 0.7331,
+   "otherFa": 0.9549,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  },
+  {
+   "pid": 721,
+   "day": 37,
+   "job": "child",
+   "why": "coverage",
+   "origin": "Sogdian",
+   "sex": "m",
+   "age": 6,
+   "band": "child",
+   "voiceAge": 6,
+   "agent": null,
+   "lang": "wordless",
+   "via": "wordless",
+   "units": [
+    "wordless:4",
+    "wordless:5"
+   ],
+   "english": "A courier came with a sealed letter for the Treasury,\" I say.",
+   "fa": "يه پرسپوليس با نامه اي مهر شده براي خزانه داری اومده\" گفتم",
+   "faHits": [
+    "money"
+   ],
+   "mix": [
+    [
+     "af_nicole",
+     1.0162
+    ],
+    [
+     "af_heart",
+     0.5076
+    ],
+    [
+     "af_river",
+     1.7921
+    ]
+   ],
+   "tract": 1.2601,
+   "speed": 0.9193,
+   "seconds": 1.61,
+   "mos": 1.853,
+   "mosEn": 4.24,
+   "mosFa": 3.342,
+   "backend": "kokoro",
+   "maxSim": 0.9314,
+   "nearest": 11374,
+   "maxSimEcapa": 0.6822,
+   "unique": false,
+   "sameEn": 0.8583,
+   "otherEn": 0.8896,
+   "rank1En": false,
+   "sameFa": 0.9419,
+   "otherFa": 0.9576,
+   "rank1Fa": false,
+   "natural": false,
+   "ownLang": true,
+   "optIn": false,
+   "pass": false
+  }
+ ]
+}

@@ -225,6 +225,8 @@ async function boot() {
     playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, rescues: player.rescues, lastRescue: player.lastRescue, terrainColliders: phys.terrainChunks().length, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.surfaceAt(player.position.x, player.position.z) }),
     stats: () => ({ reliefs: reliefStats(), backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
     renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
+    /** D-336: who is heard in which voice (the neural voices' worker, the population's voices, the far crowd) */
+    voiceStats: () => { const w = world as any; return { neural: w.neural ? { ...w.neural.stats } : null, pop: w.popVoices ? { ...w.popVoices.stats, lines: w.popVoices.lines() } : null, far: w.farCrowd ? { grains: w.farCrowd.grains, lines: w.farCrowd.lines() } : null }; },
     /** a frame without rendering: the camera placed (view), the world updated (picks after a view or setTime; D-187) */
     tick: async () => { await frame(0, { render: false }); },
     /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
@@ -357,7 +359,7 @@ async function boot() {
       advance: (s: number) => api.advanceWorld(s, 0.5), tick: () => api.tick() }); } return covPass as import('./dev/coverage').CoveragePass; };
   (window as any).__parsa = api;
   // D-296 (UD-18): speaking with the people, on request (?converse; loaded on demand, nothing without it)
-  if (P.has('converse')) import('./people/converse/ui').then(m => { (api as any).converse = m.mountConverse({ world, camera, clock, seed: SEED }); }).catch(e => api.errors.push('converse: ' + e));
+  if (P.has('converse')) import('./people/converse/ui').then(m => { (api as any).converse = m.mountConverse({ world, camera, clock, seed: SEED, settings }); }).catch(e => api.errors.push('converse: ' + e));
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;

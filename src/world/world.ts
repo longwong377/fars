@@ -104,7 +104,10 @@ import { countVisible, type VisibleCount } from '../people/crowdprobe';
 import { propGeometry } from '../people/props';
 import { villageCompounds } from './plain/villages';
 import { loadHumans, type HumanSystem } from '../people/humans';
-import { Speech, Subtitle, RecordingBackend, FormantBackend } from '../audio/speech';
+import { Speech, Subtitle, RecordingBackend, FormantBackend, NeuralBackend } from '../audio/speech';
+import { NeuralVoices } from '../audio/neural/client';
+import { neuralVoice } from '../audio/neural/identity';
+import { voiceIdentity } from '../people/talkers';
 import { PopulationVoices, type NearPerson } from '../audio/voices';
 import { FarCrowd, FAR_R } from '../audio/farcrowd';
 import { WaterSound } from '../audio/water';
@@ -421,25 +424,39 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // speech + crowd murmur (D-011): murmur from everyone whose activity sounds as talk; lines only from the lexicons
   // voices: eSpeak-NG clips pre-rendered from the lexicon IPA (tools/build_speech.py) first, the formant synthesiser for anything missing
   const voiceManifest = await fetch('/voices/manifest.json').then(r => (r.ok ? r.json() : { clips: {} })).catch(() => ({ clips: {} }));
-  const speech = new Speech(audio, [new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]);
+  // D-336 (UD-22): every person's own natural voice (Kokoro-82M in a worker, WebGPU or WASM; ?neural=0 keeps the formant
+  // synthesiser, which also speaks while the model loads or when it cannot): the scripted lines and the population's voices
+  const NP = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+  const neural = NP.get('neural') !== '0' && typeof Worker !== 'undefined' ? new NeuralVoices({ device: (NP.get('neuraldevice') as 'webgpu' | 'wasm' | null) ?? undefined }) : null;
+  const speech = new Speech(audio, [...(neural ? [new NeuralBackend(neural)] : []), new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]);
   // D-245: voices from everyone the crowd places near the listener (detailed agents, the population, impostors), not only the
   // 135 on the Terrace; published words only, each person their own voice; a grain bed for the talkers beyond (audio/voices.ts)
-  const voices = new PopulationVoices(audio, { seed }); const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
+  const voices = new PopulationVoices(audio, { seed }); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
   // what a person near says reaches the translation layer (out of world; T-K3c), unless a scripted line was shown lately
   let scriptedSubAt = -1e9; voices.onCaption = c => { if (c.lang === 'wordless' || time - scriptedSubAt < 4) return;
-    lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: 'formant' }; };
+    lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
   // D-245: the rivers and canals sound near their banks (audio/water.ts; T-G3e)
   const water = new WaterSound(audio, [...plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2, kind: 'river' as const })),
     ...plain.data.canals.map(c => ({ pts: c.pts, half: c.width / 2, kind: 'canal' as const }))], groundAt, seed);
   let lastSubtitle: Subtitle | null = null; speech.onSubtitle = (s: Subtitle) => { lastSubtitle = s; scriptedSubAt = time; };
+  /** D-336: a conversation's reply played at the person in the world's own graph (the distance law, occlusion, the voices
+   *  channel), piece after piece as the worker renders them; their jaw moves with it and their murmur waits. Returns the end */
+  let replyAt = 0;
+  const sayPcm = (key: string, pcm: Float32Array, rate: number, pos: { x: number; y: number; z: number }): number => {
+    const c = audio.ctx; if (!c || !pcm.length) return 0; const t0 = Math.max(c.currentTime + 0.02, replyAt), b = c.createBuffer(1, pcm.length, rate); b.getChannelData(0).set(pcm);
+    const src = c.createBufferSource(); src.buffer = b; const g = c.createGain(); g.gain.value = voices.level; const pan = audio.panner(pos.x, pos.y, pos.z, 2, 100);
+    src.connect(g); g.connect(pan); audio.route(pan, 'voices', t0 + b.duration); src.start(t0); replyAt = t0 + b.duration + 0.18;
+    voices.speaking.set(key, { from: t0, to: t0 + b.duration }); scriptedUntil.set(key, time + (replyAt - c.currentTime) + 0.3); return replyAt;
+  };
   /** the backend a line will play through for a voice class (the manifest's clip, else the formant synthesiser) */
-  const clipBackend = (line: ResolvedLine, voiceKey: string) => ((voiceManifest.clips as Record<string, { backend?: string }>)[`${line.id}|${voiceKey}`]?.backend ?? 'formant');
+  const clipBackend = (line: ResolvedLine, voiceKey: string) => neural?.stats.ready ? 'kokoro' : ((voiceManifest.clips as Record<string, { backend?: string }>)[`${line.id}|${voiceKey}`]?.backend ?? 'formant');
   /** what was last said and why (dev overlay F3: the line's tiers and the situation that chose it; §3.2) */
   let lastSpoken: { lineId: string; lang: string; tier: string; parts: string; situation: string; backend: string } | null = null; let lastHandle: { panner: PannerNode | null } | null = null;
   /** one person says one line where they stand (jaw, subtitle, overlay); resolves with the clip's length (s) */
   const sayAt = (a: any, line: ResolvedLine, situation: string): Promise<number> => {
     const vo = voiceFor({ seed: a.seed, sex: a.sex, role: a.role }), key = voiceKeyFor(vo);
-    const h = speech.say(line, vo, { x: a.pos[0], y: a.y + 1.55, z: -a.pos[1] }, { speakerId: a.id, voiceKey: key }); lastHandle = h;
+    const vid = voiceIdentity(a, a.pid ?? -1, sim.pop, Math.floor(sim.t / 24), seed); // (the same identity as their murmur: crowd.ts voiceId)
+    const h = speech.say(line, vo, { x: a.pos[0], y: a.y + 1.55, z: -a.pos[1] }, { speakerId: a.id, voiceKey: key, neural: neuralVoice({ seed: vid.seed, sex: vid.sex, age: vid.age, lang: vid.lang }) }); lastHandle = h;
     scriptedUntil.set(`a${a.id}`, time + 3); // the population voices leave a scripted speaker to the line (D-245)
     crowd.speaking(a.id, 2.5, time); // the jaw moves while they speak
     const tp = line.tierParts; lastSpoken = { lineId: line.id, lang: line.lang, tier: line.tier, parts: `words ${tp.words}, phrase ${tp.phrase}, IPA ${tp.ipa}, usage ${tp.usage}`, situation, backend: clipBackend(line, key) };
@@ -551,7 +568,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   }, settlement ? indexTown(settlement.plan as any) : null);
   const court = settings?.courtCalendar === 'seasonal';
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
-  return { root, fire, wvfx, settlement, smoke: { model: smoke, land: landSmoke, dust }, simulate, people: { sim, crowd, nav, humans, view, geo, probe: (r: THREE.WebGPURenderer) => countVisible(r, crowd) }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
+  return { root, fire, wvfx, settlement, smoke: { model: smoke, land: landSmoke, dust }, simulate, neural, sayPcm, /** D-336: the population's voices (stats for tests and the lead's render) */ popVoices: voices, farCrowd, people: { sim, crowd, nav, humans, view, geo, probe: (r: THREE.WebGPURenderer) => countVisible(r, crowd) }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
     building,
     /** visitor mode: where the player may stand (blocked moves go back to the last allowed point), the interact key, the
      *  log (translation layer chronicle only). `night`: outside the Terrace's hours (C: the sun below 6°) */
@@ -678,7 +695,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       const o = audio.occlusionOf(lastHandle?.panner), s = lastSpoken;
       return [s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}${o ? ` · occlusion ${o.gainDb.toFixed(1)} dB, ${Math.round(o.cutoffHz)} Hz via ${o.path}` : ''}` : 'speech heard: none yet',
         ...director.lines(),
-        ...voices.lines(), ...farCrowd.lines(),
+        ...voices.lines(), ...(neural?.lines() ?? ['neural voices off (?neural=0): formant synthesiser, PLACEHOLDER-QUALITY']), ...farCrowd.lines(),
         `water (D-245, synthesised, C): river ${Number.isFinite(water.near.river) ? `${water.near.river.toFixed(0)} m` : 'none within 150 m'}, canal ${Number.isFinite(water.near.canal) ? `${water.near.canal.toFixed(0)} m` : 'none within 60 m'} · space ${sound.lastSpace}`,
         `animals and insects heard (D-210, synthesised, C): ${sound.heardLines().join(' · ') || 'none in the last minute'}${sound.fliesLevel > 0.05 ? ` · flies ${sound.fliesLevel.toFixed(2)}` : ''}`,
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];

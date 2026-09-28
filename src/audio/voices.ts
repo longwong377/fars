@@ -17,9 +17,11 @@
 // lexicon (a detailed agent's `langs`). A conversation whose members have different home languages is held in Aramaic,
 // the lingua franca (brief §10; C), by those who have Aramaic or a lexicon language of their own; the wordless stay wordless.
 //
-// How they sound: each person has their own voice from their own seed (pitch, rate, breathiness, timbre = formant scale),
-// never shared with a neighbour (two near-identical voices of one class in earshot are pushed apart), rendered afresh for
-// every utterance by the formant synthesiser (speech.ts; PLACEHOLDER-QUALITY voice, tier C) with a new jitter seed.
+// How they sound (D-336, UD-22): each person's own natural voice (audio/neural: Kokoro-82M in a worker, a blend of its style
+// voices, their vocal-tract length and pace from their own seed, sex, age and people), each unit's clip cached per person
+// and played with this utterance's own small pitch and pace variation. Until the model has loaded, or where it cannot run,
+// the formant synthesiser speaks instead (speech.ts; PLACEHOLDER-QUALITY, tier C: each person their own formant voice from
+// their seed, pushed apart from the voices in earshot, rendered afresh for every utterance with a new jitter seed).
 //
 // Conversation: talkers standing within 3 m of each other at the same place are one conversation and take turns (one
 // speaks, the others listen; a short overlap now and then). The crowd moves a person's jaw only while their voice plays
@@ -28,7 +30,8 @@
 // The crowd bed: talkers beyond the individual voices (farther than `clearR`, or more than `maxVoices`) up to `bedR` are
 // heard as a murmur of independent grains: up to `bedStreams` overlapping streams (√n of the talkers), each grain one unit
 // in the voice of a talker drawn near-weighted, placed at that talker, low-passed with distance. Nothing is looped or
-// pooled: every grain is a fresh render, so the bed never repeats.
+// pooled across people: a grain is one of that talker's own units (D-336: one already rendered in their voice when there is
+// one), never the same unit from them within 60 s.
 //
 // Cost: a unit renders in ~2–4 ms on the main thread (node, measured by tools/dev/audio_render.ts); renders are budgeted per
 // update (`renderBudget` 2, `renderMs` 3); a speaker whose render does not fit waits a frame, silent (and so not moving the jaw).
@@ -39,6 +42,8 @@ import { LEXICON, LANG_IDS, murmurEligible, spokenForm, type LangId } from '../l
 import { LINES } from '../people/speech_lines';
 import { HOME_LANG } from '../people/exchanges';
 import { Rng, hashString } from '../core/rng';
+import { neuralVoice, type NeuralVoice } from './neural/identity';
+import { PRIO, type NeuralVoices } from './neural/client';
 
 /** a person near the listener, as the crowd places them this frame (world coordinates of the feet: x east, z = −north) */
 export interface NearPerson {
@@ -127,7 +132,7 @@ export const voiceDist = (a: VoiceParams, b: VoiceParams) => { const A = voiceBa
   return Math.hypot(dp / VOICE_MIN.pitch, (Math.log(A.formantScale / B.formantScale) - dp) / VOICE_MIN.formant, (a.rate - b.rate) / VOICE_MIN.rate,
     ((a.glottis ?? 0.5) - (b.glottis ?? 0.5)) / VOICE_MIN.glottis, ((a.f2 ?? 1) - (b.f2 ?? 1)) / VOICE_MIN.f2); };
 const wrap = (v: number, lo: number, w: number) => lo + ((((v - lo) % w) + w) % w);
-interface Slot { key: string; p: NearPerson; voice: VoiceParams; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number; /** D-292: the lullaby's phrase: notes left, its length, the scale step */ lull?: { left: number; n: number; step: number } }
+interface Slot { key: string; p: NearPerson; voice: VoiceParams; /** D-336: their own natural voice, and the unit waiting for its render */ nv: NeuralVoice; want?: { u: Unit; lang: LangId | null }; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number; /** D-292: the lullaby's phrase: notes left, its length, the scale step */ lull?: { left: number; n: number; step: number } }
 interface Group { busyUntil: number; nextAt: number; speaker: string | null; turnLeft: number; last: string | null; /** a listener's laugh after the turn */ laughAt?: number; laughBy?: string }
 /** one utterance or grain started (the offline measurement reads these: tools/dev/audio_render.ts) */
 export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: LangId | 'wordless'; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
@@ -149,7 +154,7 @@ export class PopulationVoices {
   /** when set, every utterance and grain started is appended (the offline measurement) */
   log: Uttered[] | null = null;
   /** the last update, for the dev overlay (F3) */
-  readonly stats = { talkers: 0, voices: 0, bed: 0, streams: 0, renders: 0, renderMs: 0, starved: 0, byLang: {} as Record<string, number>, /** the peoples heard with wordless voice only */ fallbacks: [] as string[], utterances: 0, totalRenders: 0, totalRenderMs: 0, totalWaits: 0 };
+  readonly stats = { talkers: 0, voices: 0, bed: 0, streams: 0, renders: 0, renderMs: 0, starved: 0, /** D-336: utterances in the neural voices (the rest: formant) */ neural: 0, formant: 0, byLang: {} as Record<string, number>, /** the peoples heard with wordless voice only */ fallbacks: [] as string[], utterances: 0, totalRenders: 0, totalRenderMs: 0, totalWaits: 0 };
   constructor(readonly e: AudioEngine, o: VoicesOptions = {}) {
     this.clearR = o.clearR ?? 20; this.bedR = o.bedR ?? 60; this.maxVoices = o.maxVoices ?? 48; this.hrtfN = o.hrtfN ?? 8; this.bedStreams = o.bedStreams ?? 8;
     this.level = o.level ?? 1.1; this.bedLevel = o.bedLevel ?? 0.5; this.renderBudget = o.renderBudget ?? 2; this.renderMs = o.renderMs ?? 3;
@@ -170,7 +175,9 @@ export class PopulationVoices {
   }
   private slot(p: NearPerson, now: number): Slot {
     let s = this.slots.get(p.key);
-    if (!s) { const r = new Rng(p.seed >>> 0, `voice.talk:${p.key}`); s = { key: p.key, p, voice: this.voiceOf(p), rng: r, loud: 0.85 + 0.3 * r.next(), recent: new Map(), busyUntil: 0, nextAt: now + 0.1 + 0.8 * r.next(), seen: now, n: 0, spoke: now - 5 * r.next() }; this.slots.set(p.key, s); }
+    if (!s) { const r = new Rng(p.seed >>> 0, `voice.talk:${p.key}`); s = { key: p.key, p, voice: this.voiceOf(p), nv: neuralVoice({ seed: p.seed, sex: p.sex, age: p.age, lang: p.lang }), rng: r, loud: 0.85 + 0.3 * r.next(), recent: new Map(), busyUntil: 0, nextAt: now + 0.1 + 0.8 * r.next(), seen: now, n: 0, spoke: now - 5 * r.next() }; this.slots.set(p.key, s);
+      // D-336: a person newly in earshot has two of their units rendered ahead, at the bed's priority (their first words come sooner)
+      if (this.neural?.stats.ready) { const L = voiceLang(p.lang, p.langs).lang, U = L ? unitsFor(L) : null; if (U?.words.length) this.neural.prefetch(s.nv, [r.pick(U.words), U.lines.length ? r.pick(U.lines) : r.pick(U.words)], PRIO.bed); } }
     s.p = p; s.seen = now; return s;
   }
   /** a unit this person has not said (nor any word of it) in the last 60 s, preferring one nobody near said in the last 30 s */
@@ -193,6 +200,10 @@ export class PopulationVoices {
     catch { return null; }
     finally { this.budget.n++; const ms = performance.now() - t0; this.budget.ms += ms; this.stats.renders++; this.stats.renderMs += ms; this.stats.totalRenders++; this.stats.totalRenderMs += ms; }
   }
+  /** D-336 (UD-22): the people's natural voices (Kokoro-82M in a worker); null or not yet loaded: the formant synthesiser
+   *  (PLACEHOLDER-QUALITY) speaks instead */
+  neural: NeuralVoices | null = null;
+  private bufs = new WeakMap<Float32Array, AudioBuffer>();
   /** a baby's mean seconds between bouts of crying (CRY_EVERY_S; tests shorten it) */
   cryEvery = CRY_EVERY_S;
   /** a person's mean seconds between coughs (COUGH_EVERY_S; the world shortens it in winter) */
@@ -203,22 +214,38 @@ export class PopulationVoices {
   private utter(s: Slot, lang: LangId | null, now: number, kind: 'voice' | 'bed', hrtf: boolean, d: number, o: { unit?: Unit; loud?: number; pitch?: number } = {}): number | null {
     // a child's unit is now and then a call at play, louder (G33)
     if (!o.unit && s.p.age < 12 && s.rng.chance(CHILD_CALL_P)) o = { unit: s.rng.pick(CHILD_CALL), loud: 1.8, pitch: 1.1 };
-    const u = o.unit ?? this.pickUnit(s, lang, now); if (!u) return null;
+    const u = o.unit ?? (s.want && s.want.lang === lang ? s.want.u : null) ?? this.pickUnit(s, lang, now); if (!u) return null;
     // nobody says a word the same way twice: this utterance's pitch (±4 %), pace (±8 %), vowels (F2/F3 ±2 %) and, for a single
     // word, its tune vary
     const r = s.rng, v = { ...s.voice, pitch: s.voice.pitch * (o.pitch ?? 1) * (0.96 + 0.08 * r.next()), rate: s.voice.rate * (u.id.startsWith('laugh') ? 1.3 : 1) * (0.92 + 0.16 * r.next()), f2: (s.voice.f2 ?? 1) * (0.98 + 0.04 * r.next()), accent: (s.voice.accent ?? 1) * (0.8 + 0.4 * r.next()) };
-    const tune: Unit = u.kind !== 'line' ? { ...u, intonation: r.chance(0.6) ? u.intonation : r.pick(['fall', 'level', 'rise'] as Intonation[]) } : u;
-    const buf = this.render(tune, lang ?? 'arc', v, s.n); if (!buf) return null;
-    const e = this.e, c = e.ctx!, p = s.p, t0 = now + 0.02, src = c.createBufferSource(); src.buffer = buf; src.playbackRate.value = 0.98 + 0.04 * s.rng.next();
+    let tune: Unit = u.kind !== 'line' ? { ...u, intonation: r.chance(0.6) ? u.intonation : r.pick(['fall', 'level', 'rise'] as Intonation[]) } : u;
+    // D-336: a bed grain is one of this person's units already rendered when there is one (the bed never waits on the model)
+    if (kind === 'bed' && this.neural?.stats.ready && !o.unit && !this.neural.has(s.nv, tune.id, tune.intonation, tune.kind === 'line' ? 0 : s.n & 1)) {
+      const U = lang ? unitsFor(lang) : null, fresh = (x: Unit) => (s.recent.get(x.id) ?? -1e9) < now - 60;
+      const alt = U ? [...U.lines, ...U.words].find(x => fresh(x) && this.neural!.has(s.nv, x.id, x.intonation, x.kind === 'line' ? 0 : s.n & 1)) : undefined;
+      if (alt) tune = alt;
+    }
+    // D-336: the person's own natural voice when the model is up (the clip of this unit in their voice, cached; this
+    // utterance's pitch variation as the playback rate), else the formant synthesiser (placeholder)
+    const nv = this.neural?.stats.ready ? this.neural : null; let buf: AudioBuffer | null, shift = 1;
+    if (nv) {
+      const pcm = nv.get(s.nv, tune.id, tune.ipa, tune.intonation, kind === 'bed' ? PRIO.bed : d < 8 ? PRIO.near : PRIO.voice, tune.kind === 'line' ? 0 : s.n & 1);
+      if (!pcm) { this.stats.starved++; this.stats.totalWaits++; if (!o.unit) s.want = { u, lang }; return null; }
+      s.want = undefined; buf = this.bufs.get(pcm) ?? null;
+      if (!buf) { buf = this.e.ctx!.createBuffer(1, pcm.length, 24000); buf.getChannelData(0).set(pcm); this.bufs.set(pcm, buf); }
+      shift = Math.max(0.8, Math.min(1.3, v.pitch / s.voice.pitch)); this.stats.neural++;
+    } else { buf = this.render(tune, lang ?? 'arc', v, s.n); if (buf) this.stats.formant++; }
+    if (!buf) return null;
+    const e = this.e, c = e.ctx!, p = s.p, t0 = now + 0.02, src = c.createBufferSource(); src.buffer = buf; src.playbackRate.value = (0.98 + 0.04 * s.rng.next()) * shift;
     const dur = buf.duration / src.playbackRate.value, g = c.createGain(); g.gain.value = (kind === 'voice' ? this.level : this.bedLevel) * s.loud * (o.loud ?? 1) * (0.9 + 0.2 * s.rng.next());
     const my = p.y + (p.age < 2 ? 1.1 : p.age < 12 ? 1.05 : 1.55), pan = e.panner(p.x, my, p.z, 2, kind === 'voice' ? 100 : 160); if (!hrtf) pan.panningModel = 'equalpower';
     if (kind === 'bed') { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.5; lp.frequency.value = Math.max(900, 2600 - 25 * d); src.connect(lp); lp.connect(g); } else src.connect(g);
     g.connect(pan); e.route(pan, 'voices', t0 + dur); src.start(t0); src.stop(t0 + dur + 0.01);
-    s.n++; for (const id of [u.id, ...u.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${u.id}`, now);
+    s.n++; for (const id of [tune.id, ...tune.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${tune.id}`, now);
     if (s.recent.size > 64) for (const [k, t] of s.recent) if (t < now - 61) s.recent.delete(k);
     this.speaking.set(s.key, { from: t0, to: t0 + dur }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
-    const L = u.kind === 'wordless' ? 'wordless' : (lang ?? 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: u.id, lang: L, src, pan, buf, voice: s.voice });
-    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: u.id, lang: L, translit: u.translit, gloss: u.gloss, tier: u.tier, t0, t1: t0 + dur });
+    const L = tune.kind === 'wordless' ? 'wordless' : (lang ?? 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: tune.id, lang: L, src, pan, buf, voice: s.voice });
+    if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: tune.id, lang: L, translit: tune.translit, gloss: tune.gloss, tier: tune.tier, t0, t1: t0 + dur });
     return t0 + dur;
   }
   /** Call once a frame with everyone the crowd places near the listener. `hold(key)`: a person speaking a scripted line
@@ -312,6 +339,6 @@ export class PopulationVoices {
   /** the dev overlay (F3): who is heard, in which languages, the bed, the cost; the voice's quality is a placeholder */
   lines(): string[] {
     const s = this.stats;
-    return [`voices (D-245, formant synth: PLACEHOLDER-QUALITY, C): ${s.voices} talkers voiced within ${this.clearR} m, ${s.bed} in the murmur bed (${s.streams} grain streams) to ${this.bedR} m · ${Object.entries(s.byLang).map(([l, n]) => `${l} ${n}`).join(', ') || 'nobody talking'}${s.fallbacks.length ? ` · no published corpus, gesture and wordless voice (T-K1a2): ${s.fallbacks.join(', ')}` : ''} · ${s.renders} renders ${s.renderMs.toFixed(1)} ms${s.starved ? `, ${s.starved} waited` : ''}`];
+    const nv = this.neural?.stats.ready; return [`voices (D-245${nv ? '; D-336 natural voices, Kokoro-82M, one per person, C' : ', formant synth: PLACEHOLDER-QUALITY, C'}): ${s.voices} talkers voiced within ${this.clearR} m, ${s.bed} in the murmur bed (${s.streams} grain streams) to ${this.bedR} m · ${Object.entries(s.byLang).map(([l, n]) => `${l} ${n}`).join(', ') || 'nobody talking'}${s.fallbacks.length ? ` · no published corpus, gesture and wordless voice (T-K1a2): ${s.fallbacks.join(', ')}` : ''} · ${s.renders} renders ${s.renderMs.toFixed(1)} ms${s.starved ? `, ${s.starved} waited` : ''}`];
   }
 }

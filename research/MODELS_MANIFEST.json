@@ -2,7 +2,8 @@
  "_meta": {
   "what": "model downloads for PĀRSA (D-296, UD-18): outside git; served to the dev server at /models/ (public/models junction)",
   "layout": "<repo>/resolve/main/<file>; WebLLM libraries under mlc-libs/",
-  "location": "T:/fars-assets/models (volatile; junction at C:/Users/Administrator/fars-assets/models); re-fetch with node tools/dev/fetch_models.mjs llm asr tts bake"
+  "location": "T:/fars-assets/models (volatile; junction at C:/Users/Administrator/fars-assets/models); re-fetch with node tools/dev/fetch_models.mjs llm asr tts bake",
+  "voices": "D-336 (UD-22): the people's voices: every Kokoro style voice, WavLM-SV, WeSpeaker ECAPA, UTMOS22, NLLB-200 600M (q8); fetched to T:/fars-assets-s12/voices/models (volatile) with MODELS_DIR=... node tools/dev/fetch_models.mjs voices; served through per-repo junctions under public/models/"
  },
  "files": {
   "onnx-community/whisper-base/resolve/main/added_tokens.json": {
@@ -3588,6 +3589,468 @@
    "bytes": 5339669,
    "sha256": "2aa567bea574b72ac250a25fa3524487fd28a218dad49eac8650eda2771396a3",
    "fetched": "2026-09-27"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_quantized.onnx": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_quantized.onnx",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 92361116,
+   "sha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_alloy.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_alloy.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "c4a6b876047fd7fb472edf4ebd63cfac7c3b958a7cae7c106e8f038ca6308c45",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_aoede.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_aoede.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "4a004c33430762e2461eedb2013fad808ef4ab3121f5300f554476caf58d8361",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_bella.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_bella.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "f69d836209b78eb8c66e75e3cda491e26ea838a3674257e9d4e5703cbaf55c8b",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_jessica.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_jessica.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "a240a5e3c15b43563d6e923bdca8ef5613a23471d9b77653694012435df23bd8",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_kore.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_kore.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "9be5221b6a941c04b561959b8ff0b06e809444dcc4ab7e75a7b23606f691819e",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_nicole.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_nicole.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "cd2191ab31b914ed7b318416b0e4440fdf392ddad9106a060819aa600a64f59a",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_nova.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_nova.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "18778272caa0d0eebaea251c35fd635f038434f9eee5e691d02a174bd328414f",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_river.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_river.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "00a2bcf82b1d86e8f19902ede58c65ccf6c0e43b44b7d74fad54e5d8933c9c30",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_sarah.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_sarah.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "4409fbc125afabacc615d94db5398d847006a737b0247d6892b7a9a0007a2f0a",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_sky.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_sky.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "4435255c9744f3f31659e0d714ab7689bf65d9e77ec1cce060f083912614f0b9",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_adam.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_adam.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "162b035ed91cfc48b6046982184c645f72edcdd1b82843347f605d7bf7b15716",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_echo.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_echo.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "3968b92c3c4cd1c4416dbded36c13eaa388a90d5788d02a13e4d781f5f8cf3c3",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_eric.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_eric.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "e8b5be17edd1e3636901ce7598baafe2dc8dd8ff707a0c23bf9e461add7e2832",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_fenrir.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_fenrir.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "c27989f741f7ee34d273a39d8a595cc0837d35f5ced9a29b7cc162614616df43",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_liam.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_liam.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "52403be32fd047c6a44517cb0bcd6b134f2a18baa73e70ef41651e0eab921ade",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_onyx.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_onyx.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "da5d135b424164916d75a68ffb4c2abce3d7d5ccc82dd1ee6cf447ce286145e6",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_puck.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_puck.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "fcf73c989033e9233e0b98713eca600c8c74dcc1614b37009d5450ff4a2274a0",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_santa.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_santa.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "61150cf726ab6c5ed7a99f90a304f91f5a72c00c592e89ec94e5df11c319227a",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bf_alice.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bf_alice.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "08afa6ba24da61ea5e8efa139e5aadc938d83f0a6da5a900adaf763ac1da5573",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bf_isabella.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bf_isabella.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "3754352c4aaa46d17f27654ab7518d65b62ad6163a0f55a5f4330c2da2c4e94f",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bf_lily.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bf_lily.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "5e0ee32ebe64a467124976b14e69590746f1c4ce41a12b587a50c862edfea335",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bm_daniel.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bm_daniel.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "6b3194bbceffb746733cbc22c8f593dd44e401a71d53895a2dca891bc595a1e8",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bm_fable.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bm_fable.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "f889083196807b4adb15e9204252165f503b8d33d3982e681c52443c49d798f1",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bm_lewis.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bm_lewis.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "b8f671cef828c30e66fdf0b0756a76bba58f6bb3398cbbf27058642acbcedb97",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/ef_dora.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/ef_dora.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "f66ec66bd295acb18372e37008533a9a3228483ccd294e7538d5d9294ac9a532",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/em_alex.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/em_alex.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "27809e9eafdcbcfff90a3016c697568676531de2a2c39cee29c96c7bd6b83e95",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/em_santa.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/em_santa.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "ad43b774e1ca24d05c6161297d8aeb770ac3d29bb95daf516727af5f7d543683",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/ff_siwis.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/ff_siwis.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "a35f5675ad08948e326ae75fd0ea16ba5d0042e4f76b5f3d1df77d0a48c54861",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/hf_alpha.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/hf_alpha.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "040be6a4425411cc01fda5fd06693c76bfa78572632852bc8cda9c99232ffb56",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/hf_beta.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/hf_beta.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "cd83ae0bb9b2e4e4fb92b4973bd8d1822ca0036d3c498bf4fc89aa8e33917cc7",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/hm_omega.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/hm_omega.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "b02d9222d9ed00ce26b302173a862c2c93f96cc40b5c422b8d14910b9ff34137",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/hm_psi.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/hm_psi.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "644daf88ba8aeb7bd08950bbdcd4453bb280864e49dc4df93fabc6be32e03f37",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/if_sara.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/if_sara.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "409b69248798fcdc2542330c76953d230710f19b057e59cb82fdc3c4cf71265c",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/im_nicola.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/im_nicola.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "bc578e510d52a96d6940d46f12e96d7b3df00905dbea075113226d100e6e1ab0",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jf_alpha.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jf_alpha.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "56b479360aad9f367aeb8cef908f9201cf48b4555e488c5f4590c9dfcd978bb6",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jf_gongitsune.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jf_gongitsune.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "0f1181f3772d27b7c12aaf4bcd71e31b186c4146e330d074a3dc64ee392af396",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jf_nezumi.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jf_nezumi.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "13cb71eebb0b48739d444558322aa35a8c9a489b80e1e631f14d2e6aea93026b",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jf_tebukuro.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jf_tebukuro.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "29c6c0561b4288d59639677bebe7533c919743d5ea68d0d2ae992644beea6696",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jm_kumo.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/jm_kumo.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "09e959d239724c734d65661f06f14cdabcddfd476bfaaad905a937099ae9e64f",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/pf_dora.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/pf_dora.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "3da7b5b2d91847ebf5646f57631af6ececae3c29a89cd300f06edf9aa6cfe9ee",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/pm_alex.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/pm_alex.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "0175c753f59c54e7fd5a995bedef0c5ff2fb67e0043dd3dcb2ae74ec2acbeb2a",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/pm_santa.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/pm_santa.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "8b012db3185778afe2e45a62cbad69db73021774fe68dda634bcc748a982eede",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zf_xiaobei.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zf_xiaobei.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "5dde6e1c9c4f12c8b327bc29c0cee361a23b52b952c04636858ba637ec66e640",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zf_xiaoni.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zf_xiaoni.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "08892b62a39af0a615cd0581238db7e19e44c578e8fa0bfd0e586e93327d9cba",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zf_xiaoxiao.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zf_xiaoxiao.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "03adb5d5e3ddd88b047954e974e651cb0a4b524c985057e5d872e962c7be1169",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zf_xiaoyi.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zf_xiaoyi.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "bc1555c5c486099196ac254bae5e0bb543c121952a3092f50b7d8724f1bc36b3",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunjian.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunjian.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "de48a00bdbf3649f07162269a2b6e0513604389bfac8a2e6c75cb34b323ad6fa",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunxi.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunxi.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "7243892fb4e560d47014090ddf010f8b8b790f3c6b029ff82b2ac06aa4e27c8b",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunxia.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunxia.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "6b2b8fc15b3df19a368daebe5c581c7fabf433ee5b8a17ffd6b3d723cff8936d",
+   "fetched": "2026-09-28"
+  },
+  "onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunyang.bin": {
+   "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/zm_yunyang.bin",
+   "licence": "Apache-2.0 (hexgrad/Kokoro-82M; ONNX export by onnx-community) (base hexgrad/Kokoro-82M)",
+   "bytes": 522240,
+   "sha256": "261e2c89470534dbbcb8fd98b8fdc495ec94063d9bb6c8277f7be43cccba3f42",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/wavlm-base-plus-sv/resolve/main/config.json": {
+   "source": "https://huggingface.co/Xenova/wavlm-base-plus-sv/resolve/main/config.json",
+   "licence": "MIT (microsoft/wavlm-base-plus-sv; ONNX export by Xenova) (base microsoft/wavlm-base-plus-sv)",
+   "bytes": 58609,
+   "sha256": "75efe37fb015f22d82af367dcef974c39119fa4c6505d16a82d86f604a431f4e",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/wavlm-base-plus-sv/resolve/main/onnx/model.onnx": {
+   "source": "https://huggingface.co/Xenova/wavlm-base-plus-sv/resolve/main/onnx/model.onnx",
+   "licence": "MIT (microsoft/wavlm-base-plus-sv; ONNX export by Xenova) (base microsoft/wavlm-base-plus-sv)",
+   "bytes": 402471430,
+   "sha256": "22a38bdd854a11db171357cb997156511697d2f2c621d1262c82ba91b873d08b",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/wavlm-base-plus-sv/resolve/main/onnx/model_quantized.onnx": {
+   "source": "https://huggingface.co/Xenova/wavlm-base-plus-sv/resolve/main/onnx/model_quantized.onnx",
+   "licence": "MIT (microsoft/wavlm-base-plus-sv; ONNX export by Xenova) (base microsoft/wavlm-base-plus-sv)",
+   "bytes": 101683453,
+   "sha256": "576bf6017796bdd179824d801b3a355a1dda2451559c6a398562175e33589f68",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/wavlm-base-plus-sv/resolve/main/preprocessor_config.json": {
+   "source": "https://huggingface.co/Xenova/wavlm-base-plus-sv/resolve/main/preprocessor_config.json",
+   "licence": "MIT (microsoft/wavlm-base-plus-sv; ONNX export by Xenova) (base microsoft/wavlm-base-plus-sv)",
+   "bytes": 215,
+   "sha256": "99272fe8ccfab114b68b478681ea47ee3a1ce62bb788cb92dd6e4f69fb1f1da2",
+   "fetched": "2026-09-28"
+  },
+  "Wespeaker/wespeaker-ecapa-tdnn512-LM/resolve/main/config.yaml": {
+   "source": "https://huggingface.co/Wespeaker/wespeaker-ecapa-tdnn512-LM/resolve/main/config.yaml",
+   "licence": "CC-BY-4.0 (WeSpeaker, VoxCeleb ECAPA-TDNN 512)",
+   "bytes": 1537,
+   "sha256": "7515e0d1a73accd160f85b05b4a76d505a3c545457eb05b6fc61e7614db50d5a",
+   "fetched": "2026-09-28"
+  },
+  "Wespeaker/wespeaker-ecapa-tdnn512-LM/resolve/main/voxceleb_ECAPA512_LM.onnx": {
+   "source": "https://huggingface.co/Wespeaker/wespeaker-ecapa-tdnn512-LM/resolve/main/voxceleb_ECAPA512_LM.onnx",
+   "licence": "CC-BY-4.0 (WeSpeaker, VoxCeleb ECAPA-TDNN 512)",
+   "bytes": 24861931,
+   "sha256": "d71b85d9b48058ef68004f04f1b78acebefb9dfcf542e19b976a12a5ad1f10b0",
+   "fetched": "2026-09-28"
+  },
+  "TigreGotico/utmos-onnx/resolve/main/export_utmos.py": {
+   "source": "https://huggingface.co/TigreGotico/utmos-onnx/resolve/main/export_utmos.py",
+   "licence": "MIT (UTMOS22 strong, sarulab-speech; ONNX export by TigreGotico)",
+   "bytes": 2716,
+   "sha256": "5c150487ee6cd24a337e5254ff305416a610b8caa89b1a3985c5c854a13279ef",
+   "fetched": "2026-09-28"
+  },
+  "TigreGotico/utmos-onnx/resolve/main/utmos22_strong.onnx": {
+   "source": "https://huggingface.co/TigreGotico/utmos-onnx/resolve/main/utmos22_strong.onnx",
+   "licence": "MIT (UTMOS22 strong, sarulab-speech; ONNX export by TigreGotico)",
+   "bytes": 411462406,
+   "sha256": "ece7ddb0999d0f12ffe8d7586b3618b8b6fa89269b5152288e4440d686409f69",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/nllb-200-distilled-600M/resolve/main/config.json": {
+   "source": "https://huggingface.co/Xenova/nllb-200-distilled-600M/resolve/main/config.json",
+   "licence": "CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use) (base facebook/nllb-200-distilled-600M)",
+   "bytes": 873,
+   "sha256": "52f035acb54ac80e5ef7fe78d6967f8ddf8e8799f078d1a92a2c8168d8ff4a20",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/nllb-200-distilled-600M/resolve/main/generation_config.json": {
+   "source": "https://huggingface.co/Xenova/nllb-200-distilled-600M/resolve/main/generation_config.json",
+   "licence": "CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use) (base facebook/nllb-200-distilled-600M)",
+   "bytes": 189,
+   "sha256": "1ce846259ae04c572ae1863e358534bbc376ff3d3f100b1494feda6200b51de8",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/nllb-200-distilled-600M/resolve/main/onnx/decoder_model_merged_quantized.onnx": {
+   "source": "https://huggingface.co/Xenova/nllb-200-distilled-600M/resolve/main/onnx/decoder_model_merged_quantized.onnx",
+   "licence": "CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use) (base facebook/nllb-200-distilled-600M)",
+   "bytes": 475505771,
+   "sha256": "dd66608c2a4194e78f95548fa0e64f24302303698c5b09fa8e1f9e16ec00676b",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/nllb-200-distilled-600M/resolve/main/onnx/encoder_model_quantized.onnx": {
+   "source": "https://huggingface.co/Xenova/nllb-200-distilled-600M/resolve/main/onnx/encoder_model_quantized.onnx",
+   "licence": "CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use) (base facebook/nllb-200-distilled-600M)",
+   "bytes": 419120483,
+   "sha256": "5cde664eacba07a62f198857ec6c06e09572b1ebb77c8137f1fa99ac604a3a28",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/nllb-200-distilled-600M/resolve/main/special_tokens_map.json": {
+   "source": "https://huggingface.co/Xenova/nllb-200-distilled-600M/resolve/main/special_tokens_map.json",
+   "licence": "CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use) (base facebook/nllb-200-distilled-600M)",
+   "bytes": 3548,
+   "sha256": "992bd4ed610d644d6823081937bcc91bb8878dd556cea4ae5327f2480361330e",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/nllb-200-distilled-600M/resolve/main/tokenizer.json": {
+   "source": "https://huggingface.co/Xenova/nllb-200-distilled-600M/resolve/main/tokenizer.json",
+   "licence": "CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use) (base facebook/nllb-200-distilled-600M)",
+   "bytes": 17331224,
+   "sha256": "8ac789ad7dabea44d41537822d48c516ba358374c51813e2cba78c006e150c94",
+   "fetched": "2026-09-28"
+  },
+  "Xenova/nllb-200-distilled-600M/resolve/main/tokenizer_config.json": {
+   "source": "https://huggingface.co/Xenova/nllb-200-distilled-600M/resolve/main/tokenizer_config.json",
+   "licence": "CC-BY-NC-4.0 (facebook/nllb-200-distilled-600M; personal non-commercial use) (base facebook/nllb-200-distilled-600M)",
+   "bytes": 544,
+   "sha256": "ddf411c9f790d081e72de76bb8e8b714d74e160e61bc10c9bd8f56022dcd7fd7",
+   "fetched": "2026-09-28"
   }
  }
 }

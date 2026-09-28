@@ -124,6 +124,8 @@ export class Shell {
       range('Subtitle size', s.subtitleSize, 0.75, 2, 0.05, v => { s.subtitleSize = v; }),
       el('h2', {}, 'Sound'),
       ...(['master', 'ambience', 'voices', 'music', 'effects'] as const).map(ch => range(`Volume: ${ch}`, s.volume[ch], 0, 1, 0.01, v => { s.volume[ch] = v; })),
+      // D-336 (UD-22): out of world; off by default (the heard world stays period)
+      sel('Hear the people you speak with in', s.hearIn, [['own', 'Their own language (default)'], ['fa', 'Farsi, in character, in their own voice'], ['en', 'English, in character, in their own voice']], v => { s.hearIn = v as any; }),
       el('h2', {}, 'Keys'), ...keyRows,
       el('button', { onclick: back }, 'Back'))));
   }

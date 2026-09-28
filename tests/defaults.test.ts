@@ -34,6 +34,11 @@ describe('decided defaults (T-K10)', () => {
     const main = readFileSync('src/main.ts', 'utf8'); expect(main).toMatch(/newGameStart\(SEED, settings\.courtCalendar === 'seasonal'\)/);
     expect(newGameStart(1, false)).toEqual({ day: 0, hour: 7 }); // (the evidence-strict world keeps the old start)
   });
+  it('D-336 / UD-22: every person speaks in their own natural voice by default (the neural voices on unless ?neural=0), heard in their own period language; the Farsi/English layer off by default', () => {
+    expect(DEFAULT_SETTINGS.hearIn).toBe('own');
+    const w = readFileSync('src/world/world.ts', 'utf8'); expect(w).toMatch(/NP\.get\('neural'\) !== '0'/); expect(w).toMatch(/voices\.neural = neural/);
+    expect(readFileSync('src/people/converse/ui.ts', 'utf8')).toMatch(/export const FARSI_ROUTE: FarsiRoute = '(llm|nllb)'/);
+  });
   it('D-290: the looped probe lookup is the browser default (?probeloop=0 for the unrolled one)', () => {
     expect(readFileSync('src/render/probes/runtime.ts', 'utf8')).toMatch(/get\('probeloop'\) === '0'/);
   });
