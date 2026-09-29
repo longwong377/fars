@@ -8714,7 +8714,6 @@ Measured (seed 1, days 20-26, 130 people): nobody in one outfit all week; all 13
 without a body garment; 118/118 dirty unworn garments washed clean on laundering days; replay identical in reverse order.
 Weak: laundering trips in the plans are rare (9 house-days of ~840 in the week), so garments run near-saturated dirt between
 washes; no bathing or river-bathing days exist in the plans; the plans' wear words carry no best-clothes or mourning dress.
-<<<<<<< HEAD
 ## D-343 (addendum, after living4 / D-344 was merged; agent econplans)
 The lean week's crisis steps fell to a few (seed 1 a year: thefts 3, petitions 207; 66,561 `given` events from the people's
 talk now carry the hungry through), and those few did not lay: they were far villagers' court business (2.9-5 h each way from
@@ -8723,7 +8722,6 @@ house more than 2.5 h from the town now brings its petitions, arrears, accusatio
 village elders at its own lane (C: the village head as the officials' go-between). The save keeps the economy and the talk
 state together (D-344) when the economy exists, else the non-talk intents; EconPlans is reset on every load. Far villagers'
 loans still lay about half (the lenders are in the town).
-=======
 
 ## D-346 (s13, relations): relationships and sexuality as life, node side (ROADMAP 3e)
 src/people/relations/{law,world}.ts. Every adult (18+, the user's rule) of the town and the plain has, with each person they
@@ -8755,4 +8753,3 @@ Weak: contact is structural (not read from the day plans), so courting is not ye
 births get almost no doubtful parentage (0 of 1,787: affairs are rarely of fertile wives at the right weeks); this layer's own
 children are a pregnancies list, not Persons; the player's pregnancy (a woman player) is not modelled; take_lover by the
 player is untested; the population still marries brides of 14-17 (Q-1040); sim.ts does not yet own a Relations instance.
->>>>>>> s13-relations
