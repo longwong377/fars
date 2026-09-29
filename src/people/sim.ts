@@ -30,6 +30,8 @@ import { v as specV } from '../arch/spec';
 import { TalkWorld, type Intent } from './talk';
 import { Economy } from './economy/world';
 import { householdsOf } from './economy/chains';
+import { LivingWorld } from './living/world';
+import { FakeEcon } from './living/fakeEcon';
 /** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
  *  scribe's, the Aramaic secretary's, the pupil's; grid position and heading (deg cw from grid N) */
 export function deskSeat(who: 'elamite' | 'aramaic' | 'pupil' | 'visitor'): { at: P2; heading: number } {
@@ -140,6 +142,8 @@ export class PeopleSim {
   /** D-315 (UD-21): what the stranger's conversations did to the world and what the people remember of them (talk.ts): the
    *  deeds laid over the day plans (Population.plan), the pauses, the memory rows; saved with the sim (save().talk) */
   readonly talk: TalkWorld;
+  /** D-339 (UD-24): the people’s talk with each other, arrangements laid into their plans (living/world.ts); a pure function of the seed and the talk events, so nothing new is saved. Economy: FakeEcon PLACEHOLDER until src/people/economy lands */
+  readonly living: LivingWorld;
   private pathCache = new Map<string, P2[] | null>();
   /** the most new route searches in one step. A long route on the 0.5 m grid costs 20-200 ms, and a watch change or a
    *  crowd of arrivals asks for many at once; over the budget an agent waits where it is and asks again next step.
@@ -154,6 +158,7 @@ export class PeopleSim {
     this.pop = new Population(seed, { court: !!opts.court, slice: seats });
     this.cal = new EventCalendar(seed, this.pop, env, !!opts.court); this.pop.attach(this.cal);
     this.talk = new TalkWorld(this.pop, seed, id => id in PLACES); this.pop.talk = this.talk;
+    this.living = new LivingWorld(this.pop, seed, () => new FakeEcon(seed), () => this.talk.events); this.living.now = () => Math.floor(this.t / 24); this.talk.living = this.living;
     this.talk.onChange = pid => { const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.planCache.delete(a); };
     for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
   }
