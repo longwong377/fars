@@ -8644,3 +8644,34 @@ Measured (seed 1, days 20-26, 130 people): nobody in one outfit all week; all 13
 without a body garment; 118/118 dirty unworn garments washed clean on laundering days; replay identical in reverse order.
 Weak: laundering trips in the plans are rare (9 house-days of ~840 in the week), so garments run near-saturated dirt between
 washes; no bathing or river-bathing days exist in the plans; the plans' wear words carry no best-clothes or mourning dress.
+
+## D-346 (s13, relations): relationships and sexuality as life, node side (ROADMAP 3e)
+src/people/relations/{law,world}.ts. Every adult (18+, the user's rule) of the town and the plain has, with each person they
+share time with (house, crew, ties, kin, neighbours, the well: structural contact, hours by kind), familiarity, affection,
+trust and a directed desire (who they can desire: a few percent their own sex or both, hidden; age; seeded chemistry;
+familiarity). Weekly, affection and trust move toward the pair's temperament fit, faster with more shared time; slights,
+help in sickness and mourning, discoveries and scandal move them. Events arise only from the state (law.ts REL thresholds are
+necessary conditions): courting (mutual desire and liking, both free and of an age), rejection (one wants, the other not),
+the families' agreement or refusal (house standing, scandal, trust) with a bride-gift and, at the wedding, a dowry entered
+through the economy interface (Intent 'trade'/'help', payload.src 'relations'), weddings (the bride to the groom's house:
+homeOf), lovers and affairs (mutual desire, familiarity, a cold marriage), intimacy as a state change only (cut away; no
+undressing act exists), discovery by the spouse or by the talk reaching them, jealousy, scandal as news passed hand to hand
+over the contact graph (up to 3 hands, 'news' intents), divorce (a marriage cold in affection AND trust for 3 weeks; her
+dowry and the divorce silver unless she was found out), conception for this layer's own couples and lovers, and fathers for
+the population's births (doubt where a lover shared the bed at conception). The population's own weddings are adopted as
+arranged; its married couples are paired per house (a wife with the man nearest her age + 6). The one hook: PopOpts.fertility
+(population.ts births draw), fed by Relations.fertility() (weeks of intimacy with a husband at home; 0 once widowed or
+divorced; 1 where not modelled); absent, the population is unchanged (asserted). Player API: act(pid, day, 'talk' | 'gift' |
+'help' | 'slight' | 'court' | 'propose' | 'take_lover' | 'share_bed' | 'share_home' | 'leave'), memoryOf, moodOf, homeOf,
+spouseOn; a dated ledger replayed identically (save/load). Law and custom: law.ts (ROTH1987 B for Babylonia, the rest
+RECOLLECTION NOT SEEN or RECON; all C here; Q-1040..Q-1044).
+Measured (seed 1, a year, 23,133 adults; bench-reports/relations.json): per 1,000 adults marriages 7.0 (3.5 from courtship
+in this layer, 3.5 the population's adult brides), courtships 7.0, rejections 39, family refusals 1.0, affairs 7.1, found
+out 3.3, divorces 3.5, scandals 8.6, conceptions 0.7; 1,513 events checked against their state; divorce after a discovered
+affair 71 % vs 0.9 % base; ablated desire gives zero courting/rejection/affairs; replay identical; no event, pregnancy or
+intimacy involves anyone under 18; 598 intents (98 bride-gifts, 81 dowries, 54 divorce silver, news) give 233 'given' and 362
+'news' economy events; births with the hook 1,767 vs 1,787. A year costs ~65-85 s (weekly steps over ~375k pairs).
+Weak: contact is structural (not read from the day plans), so courting is not yet placed in anyone's day; the population's
+births get almost no doubtful parentage (0 of 1,787: affairs are rarely of fertile wives at the right weeks); this layer's own
+children are a pregnancies list, not Persons; the player's pregnancy (a woman player) is not modelled; take_lover by the
+player is untested; the population still marries brides of 14-17 (Q-1040); sim.ts does not yet own a Relations instance.

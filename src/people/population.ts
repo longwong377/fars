@@ -83,7 +83,7 @@ export interface Household { id: number; home: string; q: string; zone: 'town' |
   joins: number[] }
 export interface Group { id: number; kind: string; label: string; members: number[]; issuePlace: string; silver: boolean; head: number; from: number; zone: 'terrace' | 'town' }
 export interface SliceSeat { agent: number; role: string; sex: 'm' | 'f'; origin: string; mother?: number; name?: string | null }
-export interface PopOpts { court?: boolean; slice?: SliceSeat[] }
+export interface PopOpts { court?: boolean; slice?: SliceSeat[]; /** D-346: a wife's birth-draw weight from her marriage (relations/world.ts fertility(); 1 when absent) */ fertility?: (pid: number) => number }
 /** the main field task of a farming household on a day (shared by its members): what, where, the hours, who goes */
 export interface PTask { kind: 'reap' | 'thresh' | 'vintage' | 'fruit' | 'plough' | 'canal' | 'turn' | 'field' | 'other'; act: ActivityId; place: string; why: string; h0: number; h1: number; all: boolean; sheaves: boolean; late: number;
   /** the harvest's afternoon session, after the midday meal and a rest as long as the heat demands (C), or null; and its reason */
@@ -791,7 +791,7 @@ export class Population {
     for (let i = 0; i < n0; i++) {
       const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || !p.wife || p.age < 15 || p.age > 44) continue;
       const youngest = Math.min(99, ...(this.kidsOf.get(i) ?? []).map(c => this.persons[c].age));
-      const ub = u01(this.seed, S.birth, i); const pb = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365; if (ub >= pb) continue;
+      const ub = u01(this.seed, S.birth, i); const pb = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365 * (this.opts.fertility?.(i) ?? 1); if (ub >= pb) continue;
       const day = Math.floor(ub / pb * REGNAL_DAYS); if (day >= p.dies || day < p.arrive || youngest === 0 || (youngest === 1 && day < 180)) continue;
       const home = this.home(i, day);
       const c = this.person({ sex: u01(this.seed, S.birth, i, 1) < 0.5 ? 'm' : 'f', age: 0, job: 'child', hh: home, origin: p.origin, born: day, mother: i, arrive: day });
