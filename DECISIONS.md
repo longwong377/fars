@@ -8627,3 +8627,20 @@ the economy to the saved day and resumes. News intents and market trades take ef
 Measured (seed 1): 974 talks in days 150-156, 874 with a consequence (89.7 %); player news 6/6; save at 153 and load replay the
 week identically; a day-300 save loads in 3.6-7.2 s, of which the economy's replay of ~58 k intents is 3.0-5.8 s (economy/**:
 index intents by day and snapshot the stores instead of replaying, not done here); cost ~0.29 s a simulated day.
+
+## D-345 (s13, wardrobe): wardrobes and the daily change of clothes, node side (ROADMAP 3d)
+src/people/wardrobe/{garments,world}.ts. Garments (tiers in garments.ts): the pleated Persian robe, Median trousers, kandys and
+soft cap (A, reliefs); the working tunic, women's dress and mantle, plain cloak (B); the sleeping shift, face wrap, counts and
+rates (C). A household owns per person 2 (poor), 3 (middle) or 5 (rich) body garments by its members' jobs, a shift, mantles or
+Median pieces by dress, and shared cloaks and wraps. Each day at rising each member chooses: best clothes on a festival or
+wedding day, the same garment unchanged in mourning, otherwise yesterday's work garment until it is clearly dirtier than the
+cleanest other or has been worn 3-5 days (the person's habit; C); the best garment is kept back when there are three or more.
+Asleep: the shift only; nobody is otherwise out of their day clothes. The plans' wear words add a cloak (cold) or the wrap
+(dust). Dirt builds per hour by activity; the plans' laundering trips wash every household garment nobody wears that day.
+Pure: stepped from a fixed 14-day anchor with seeded dirt and wear; the ledger (make, buy, mend, hand down, discard: the
+interface the economy will call) is the only saved state (save()/load(); not yet in the sim's save: no hook added).
+Output for the GPU pass: Wardrobes.outfitAt(pid, day, hour) (documented in world.ts's header).
+Measured (seed 1, days 20-26, 130 people): nobody in one outfit all week; all 130 change day clothes during the week; 0 awake
+without a body garment; 118/118 dirty unworn garments washed clean on laundering days; replay identical in reverse order.
+Weak: laundering trips in the plans are rare (9 house-days of ~840 in the week), so garments run near-saturated dirt between
+washes; no bathing or river-bathing days exist in the plans; the plans' wear words carry no best-clothes or mourning dress.
