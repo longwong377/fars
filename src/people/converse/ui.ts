@@ -12,7 +12,7 @@ import { heardReply, heardReplyNeural, replyVoice, type HearIn } from './voice';
 import { unitsFor, voiceLang, WORDLESS } from '../../audio/voices';
 import { toFarsi, FarsiTranslator, type FarsiRoute } from './farsi';
 import type { Turn } from './prompt';
-import { bakedProse } from './bake';
+import { bakedProse, bakedWho } from './bake';
 import { talkTurn } from './turn';
 
 export const DEFAULT_MODEL = 'gemma-2-2b-it-q4f16_1-MLC'; // D-296: measured on the T4 (the lab's T-E9 runs): the most natural voice of the 1-3 B models that fit 4 s and the watchdog
@@ -46,7 +46,7 @@ export function mountConverse(c: Ctx) {
   const endTalk = () => { const k = state.talking; if (!k) return; state.talking = null; c.world.people?.sim?.talk.release(k.pid, c.world.people.sim.t); };
   // the baked prose layer (D-296): only for the world it was baked for (seed 1: src/data/lives_baked_s1.json)
   let baked = new Map<number, any>(); if (c.seed === 1) import('../../data/lives_baked_s1.json').then(m => { baked = new Map(((m as any).default ?? m).rows.map((r: any) => [r.pid, r])); }).catch(() => {});
-  const prose = (pid: number) => bakedProse(baked.get(pid));
+  const prose = (pid: number) => { const b = baked.get(pid), p = c.world.people?.sim?.pop?.persons[pid]; return bakedProse(b && p && b.who === bakedWho(p) ? b : null); }; // (D-348: only while the pid is still the person it was baked for)
   // D-336: the opt-in layer (settings.hearIn; ?hear=fa|en for tests) and the route of its Farsi (?farsi=llm|nllb; D-336 measured)
   const hearIn = (): HearIn => (P.get('hear') as HearIn | null) ?? c.settings?.hearIn ?? 'own';
   const faRoute = (): FarsiRoute => (P.get('farsi') as FarsiRoute | null) ?? FARSI_ROUTE; const nllb = new FarsiTranslator();

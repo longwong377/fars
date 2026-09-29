@@ -134,7 +134,8 @@
      "name:Sparda"
     ]
    }
-  ]
+  ],
+  "who": "D-348: each row carries the person it was baked for (sex:age:job:origin); the page uses a row only while the pid is still that person (after D-348 none is: re-bake)"
  },
  "rows": [
   {
@@ -157,7 +158,8 @@
     "ok": true
    },
    "name": "(no name recorded: he gives his father’s house)",
-   "job": "a spearman of the Terrace garrison (a company of a hundred in files of ten, on a five-day rota of watches and posts)"
+   "job": "a spearman of the Terrace garrison (a company of a hundred in files of ten, on a five-day rota of watches and posts)",
+   "who": "m:23:guard:Median"
   },
   {
    "pid": 893,
@@ -179,7 +181,8 @@
     "ok": true
    },
    "name": "Utira",
-   "job": "a brick maker and layer in the brick gang: moulding mud brick and laying the walls of the Hall of a Hundred Columns"
+   "job": "a brick maker and layer in the brick gang: moulding mud brick and laying the walls of the Hall of a Hundred Columns",
+   "who": "m:8:child:Elamite"
   },
   {
    "pid": 3374,
@@ -201,7 +204,8 @@
     "ok": true
    },
    "name": "Myrsos",
-   "job": "a porter of the town, carrying loads between the stores, the depot and the houses"
+   "job": "a porter of the town, carrying loads between the stores, the depot and the houses",
+   "who": "f:11:child:Elamite"
   },
   {
    "pid": 1222,
@@ -223,7 +227,8 @@
     "ok": true
    },
    "name": "Raučaduxçā",
-   "job": "a grinder of the work camp, grinding the gangs’ barley at the querns"
+   "job": "a grinder of the work camp, grinding the gangs’ barley at the querns",
+   "who": "f:12:child:Elamite"
   },
   {
    "pid": 3032,
@@ -245,7 +250,8 @@
     "ok": true
    },
    "name": "Marduk-šum-iddin",
-   "job": "a storekeeper of the royal stores"
+   "job": "a storekeeper of the royal stores",
+   "who": "f:43:homemaker:Babylonian"
   },
   {
    "pid": 5755,
@@ -267,7 +273,8 @@
     "ok": true
    },
    "name": "Raučastūnā",
-   "job": "a servant"
+   "job": "a servant",
+   "who": "f:49:servant:Elamite"
   },
   {
    "pid": 3860,
@@ -289,7 +296,8 @@
     "ok": true
    },
    "name": "Manyakka",
-   "job": "a messenger of the road station"
+   "job": "a messenger of the road station",
+   "who": "m:31:messenger:Persian"
   },
   {
    "pid": 3942,
@@ -311,7 +319,8 @@
     "ok": true
    },
    "name": "Utira",
-   "job": "a caretaker and lamp keeper of the palaces"
+   "job": "a caretaker and lamp keeper of the palaces",
+   "who": "f:21:homemaker:Elamite"
   },
   {
    "pid": 4098,
@@ -333,7 +342,8 @@
     "ok": true
    },
    "name": "Tiššantamma",
-   "job": "a gardener on an estate of the plain"
+   "job": "a gardener on an estate of the plain",
+   "who": "f:14:homemaker:Persian"
   },
   {
    "pid": 6440,
@@ -355,7 +365,8 @@
     "ok": true
    },
    "name": "Baduzarma",
-   "job": "a craftsman of the town"
+   "job": "a craftsman of the town",
+   "who": "f:17:homemaker:Elamite"
   },
   {
    "pid": 650,
@@ -377,7 +388,8 @@
     "ok": true
    },
    "name": "Sunkana",
-   "job": "a labourer in the labour gang: earth, rubble and stone chips on the Hall of a Hundred Columns"
+   "job": "a labourer in the labour gang: earth, rubble and stone chips on the Hall of a Hundred Columns",
+   "who": "m:19:builder:Syrian"
   },
   {
    "pid": 3368,
@@ -399,7 +411,8 @@
     "ok": true
    },
    "name": "Mardunuya",
-   "job": "a porter of the town, carrying loads between the stores, the depot and the houses"
+   "job": "a porter of the town, carrying loads between the stores, the depot and the houses",
+   "who": "m:12:child:Persian"
   },
   {
    "pid": 1220,
@@ -421,7 +434,8 @@
     "ok": true
    },
    "name": "Miθraduxçā",
-   "job": "a grinder of the work camp, grinding the gangs’ barley at the querns"
+   "job": "a grinder of the work camp, grinding the gangs’ barley at the querns",
+   "who": "f:38:camp:Elamite"
   },
   {
    "pid": 1941,
@@ -443,7 +457,8 @@
     "ok": true
    },
    "name": "Huzātā",
-   "job": "a textile worker of the Treasury"
+   "job": "a textile worker of the Treasury",
+   "who": "f:21:treasury:Egyptian"
   },
   {
    "pid": 2760,
@@ -465,7 +480,8 @@
     "ok": true
    },
    "name": "(no name recorded: he gives his father’s house)",
-   "job": "an official of the administration"
+   "job": "an official of the administration",
+   "who": "f:28:homemaker:Persian"
   },
   {
    "pid": 3086,
@@ -487,7 +503,8 @@
     "ok": true
    },
    "name": "Zakkur",
-   "job": "a storekeeper of the royal stores"
+   "job": "a storekeeper of the royal stores",
+   "who": "f:45:homemaker:Syrian"
   },
   {
    "pid": 6046,
@@ -509,7 +526,8 @@
     "ok": true
    },
    "name": "Šakada",
-   "job": "a servant"
+   "job": "a servant",
+   "who": "f:20:servant:Elamite"
   },
   {
    "pid": 3157,
@@ -531,7 +549,8 @@
     "ok": true
    },
    "name": "Hučiθrā",
-   "job": "a woman of the mill"
+   "job": "a woman of the mill",
+   "who": "f:14:homemaker:Persian"
   },
   {
    "pid": 3694,
@@ -553,7 +572,8 @@
     "ok": true
    },
    "name": "Umanna",
-   "job": "a groom of the stables and the road station"
+   "job": "a groom of the stables and the road station",
+   "who": "f:32:homemaker:Persian"
   },
   {
    "pid": 3745,
@@ -575,7 +595,8 @@
     "ok": true
    },
    "name": "Sunkana",
-   "job": "a herdsman of the state flocks"
+   "job": "a herdsman of the state flocks",
+   "who": "f:17:homemaker:Elamite"
   },
   {
    "pid": 3861,
@@ -597,7 +618,8 @@
     "ok": true
    },
    "name": "Bakabana",
-   "job": "a messenger of the road station"
+   "job": "a messenger of the road station",
+   "who": "f:26:homemaker:Persian"
   },
   {
    "pid": 3914,
@@ -619,7 +641,8 @@
     "ok": true
    },
    "name": "Irtam",
-   "job": "a caretaker and lamp keeper of the palaces"
+   "job": "a caretaker and lamp keeper of the palaces",
+   "who": "f:40:homemaker:Persian"
   },
   {
    "pid": 6025,
@@ -641,7 +664,8 @@
     "ok": true
    },
    "name": "Haturka",
-   "job": "a gardener on an estate of the plain"
+   "job": "a gardener on an estate of the plain",
+   "who": "f:33:servant:Elamite"
   },
   {
    "pid": 16391,
@@ -663,7 +687,8 @@
     "ok": true
    },
    "name": "Farnačiθrā",
-   "job": "keeper of the household: grinding, baking, water, spinning and the children"
+   "job": "keeper of the household: grinding, baking, water, spinning and the children",
+   "who": "f:7:child:Persian"
   },
   {
    "pid": 11730,
@@ -685,7 +710,8 @@
     "ok": true
    },
    "name": "Čiθrazātā",
-   "job": "an elder of the household, past heavy work"
+   "job": "an elder of the household, past heavy work",
+   "who": "m:39:farmer:Persian"
   },
   {
    "pid": 39383,
@@ -707,7 +733,8 @@
     "ok": true
    },
    "name": "Babiruš",
-   "job": "a farmer of the plain (barley, wheat, sesame, vines)"
+   "job": "a farmer of the plain (barley, wheat, sesame, vines)",
+   "who": "f:40:homemaker:Elamite"
   },
   {
    "pid": 5926,
@@ -729,7 +756,8 @@
     "ok": true
    },
    "name": "Manyakka",
-   "job": "a steward of an estate"
+   "job": "a steward of an estate",
+   "who": "f:45:homemaker:Persian"
   },
   {
    "pid": 1143,
@@ -751,7 +779,8 @@
     "ok": true
    },
    "name": "Naprap",
-   "job": "a brick maker and layer in the brick gang: moulding mud brick and laying the walls of the Hall of a Hundred Columns"
+   "job": "a brick maker and layer in the brick gang: moulding mud brick and laying the walls of the Hall of a Hundred Columns",
+   "who": "m:2:child:Elamite"
   },
   {
    "pid": 3424,
@@ -773,7 +802,8 @@
     "ok": true
    },
    "name": "Haturka",
-   "job": "a porter of the town, carrying loads between the stores, the depot and the houses"
+   "job": "a porter of the town, carrying loads between the stores, the depot and the houses",
+   "who": "f:12:child:Persian"
   },
   {
    "pid": 2952,
@@ -795,7 +825,8 @@
     "ok": true
    },
    "name": "Nergal-ušēzib",
-   "job": "a scribe of the stores, recording what comes in and goes out"
+   "job": "a scribe of the stores, recording what comes in and goes out",
+   "who": "f:21:homemaker:Babylonian"
   }
  ]
 }

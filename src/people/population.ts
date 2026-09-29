@@ -26,6 +26,9 @@ import type { ActivityId } from './activities';
 const POPD = popData as any, T = townData as any, L = livesData as any;
 /** a house plot of the built settlement (town_plots.json, Phase 6: D-041); grid metres */
 export interface TownPlot { id: string; site: string; zone: string; pop_zone: string; kind: string; craft?: string; c: [number, number]; door: [number, number]; door_in: [number, number]; capacity: number }
+/** D-348 (the lead, s13): nobody under 18 marries, is betrothed, courts or conceives anywhere in the simulation (tier C: the
+ *  project's own rule; the period married girls from about 14, ROTH1987, and that stays in the translation layer's note) */
+export const ADULT = 18;
 export const TOWN_PLOTS: TownPlot[] = (plotsData as any).plots;
 const PLOT_BY_ID = new Map(TOWN_PLOTS.map(x => [x.id, x]));
 /** D-256: the usual walk out from a village to the grounds of the land work (m; C): the river meadow and the fallow the cows
@@ -492,7 +495,7 @@ export class Population {
       bday: Math.floor(r.next() * REGNAL_DAYS), trait: r.next(), file: -1, idx: -1, gang: -1, squad: -1, agent: -1, mother: -1, zone: H?.zone ?? 'town', work: '', ...x } as Person;
     // a woman of 15-50 who is not a daughter at home, a servant or an old woman is married, or heads her own household in a
     // work group (women of the pašap groups drew maternity rations: E-04), and may bear a child (C)
-    if (p.wife === undefined) p.wife = p.sex === 'f' && p.age >= 15 && p.age <= 50 && !p.kin && !['servant', 'child', 'elder', 'traveller', 'herder'].includes(p.job);
+    if (p.wife === undefined) p.wife = p.sex === 'f' && p.age >= ADULT && p.age <= 50 && !p.kin && !['servant', 'child', 'elder', 'traveller', 'herder'].includes(p.job);
     this.persons.push(p); H?.members.push(id); return id;
   }
   private group(kind: string, label: string, issuePlace: string, silver: boolean, zone: 'terrace' | 'town', from = 0): number {
@@ -503,11 +506,14 @@ export class Population {
   }
   private pickQuarter(r: HStream, kinds = ['town']) { const qs = T.quarters.filter((q: any) => kinds.includes(q.kind)); let u = r.next() * qs.reduce((s: number, q: any) => s + q.share, 0);
     for (const q of qs) { u -= q.share; if (u <= 0) return q.id as string; } return qs[0].id as string; }
+  /** D-348: a person's age on any day, before the year (negative) or after it (from the age at its start and the birthday) */
+  ageAt(pid: number, d: number) { const p = this.persons[pid]; if (p.born >= 0) return d < p.born ? -1 : Math.floor((d - p.born) / REGNAL_DAYS); const k = Math.floor(d / REGNAL_DAYS), r = d - k * REGNAL_DAYS; return p.age + k + (p.bday >= 0 && r >= p.bday ? 1 : 0); }
   private ageIn(r: HStream, lo: number, hi: number) { return Math.floor(lerp(lo, hi + 0.999, r.next())); }
   /** a wife's age from her husband's: Babylonian men married at about 26-32 and women at about 14-20 (ROTH1987, B for
    *  Babylonia), so she is one to twelve years younger (C); without a man in the house, the given range */
   private wifeAge(r: HStream, hh: number, lo: number, hi: number) {
     const m = this.households[hh].members.map(x => this.persons[x]).find(q => q.sex === 'm' && q.age >= 18 && !q.kin && q.job !== 'child');
+    lo = Math.max(lo, ADULT); // (D-348: no wife under 18)
     return m ? Math.max(lo, Math.min(hi, m.age - Math.round(lerp(1, 12, r.next())))) : this.ageIn(r, lo, hi); }
   /** the surviving children at home of the household's mother (lives.json family): her births from 16-21 on, every 2-4
    *  years, twins in ~1.5 % of maternities; children die at the E-71 rates; daughters who have married have left; nobody
@@ -520,7 +526,7 @@ export class Population {
     for (let a = lerp(F.first_birth_age[0], F.first_birth_age[1], r.next()); a <= Math.min(F.last_birth_age, M.age); a += lerp(F.birth_interval_y[0], F.birth_interval_y[1], r.next())) {
       const age = Math.floor(M.age - a); const n = r.chance(F.twins) ? 2 : 1; const pair: number[] = [];
       for (let t = 0; t < n; t++) { const sex: 'm' | 'f' = r.chance(0.5) ? 'm' : 'f';
-        if (age > F.home_until_age[sex === 'm' ? 'son' : 'daughter'] || !r.chance(step(F.survival_to_age, age)) || (sex === 'f' && age >= 14 && r.chance(step(F.daughter_married_by_age, age)))) continue;
+        if (age > F.home_until_age[sex === 'm' ? 'son' : 'daughter'] || !r.chance(step(F.survival_to_age, age)) || (sex === 'f' && age >= ADULT && r.chance(step(F.daughter_married_by_age, age)))) continue;
         pair.push(this.child(hh, sex, age, origin, group, mom)); }
       if (pair.length === 2) { this.persons[pair[0]].twin = pair[1]; this.persons[pair[1]].twin = pair[0]; }
     }
@@ -713,13 +719,13 @@ export class Population {
       const base = { job: 'herder' as Job, hh, origin: 'Persian', arrive: b.day, leave: Math.min(REGNAL_DAYS - 1, b.day + b.stay), zone: 'transient' as const, idx: b.i };
       let n = 0; const add = (x: Partial<Person> & { sex: 'm' | 'f'; age: number }) => { if (n >= b.size) return -1; n++; return this.person({ ...base, ...x }); };
       for (let tent = 0; n < b.size && tent < 40; tent++) { const r = this.rng(-30000 - b.i * 50 - tent);
-        const man = this.ageIn(r, 22, 50), wifeAge = Math.max(16, Math.min(45, man - Math.round(lerp(2, 10, r.next()))));
+        const man = this.ageIn(r, 22, 50), wifeAge = Math.max(ADULT, Math.min(45, man - Math.round(lerp(2, 10, r.next()))));
         add({ sex: 'm', age: man, squad: tent, rank: tent === 0 ? 1 : 0 }); const mom = add({ sex: 'f', age: wifeAge, squad: tent });
         if (r.chance(HB.tent_extra.elder)) add({ sex: r.chance(0.5) ? 'm' : 'f', age: Math.min(72, man + this.ageIn(r, 20, 28)), squad: tent });
         // (an unmarried younger brother: only in a young man's tent, 3-12 years younger and 16 or more)
         if (man <= 34 && r.chance(HB.tent_extra.brother)) add({ sex: 'm', age: Math.max(16, man - this.ageIn(r, 3, 12)), squad: tent });
         if (mom < 0) continue;
-        for (let a = lerp(17, 20, r.next()); a <= Math.min(F.last_birth_age, wifeAge); a += lerp(F.birth_interval_y[0], F.birth_interval_y[1], r.next())) { const age = Math.floor(wifeAge - a), sex: 'm' | 'f' = r.chance(0.5) ? 'm' : 'f';
+        for (let a = lerp(ADULT + 1, ADULT + 4, r.next()); a <= Math.min(F.last_birth_age, wifeAge); a += lerp(F.birth_interval_y[0], F.birth_interval_y[1], r.next())) { const age = Math.floor(wifeAge - a), sex: 'm' | 'f' = r.chance(0.5) ? 'm' : 'f';
           const survive = (F.survival_to_age as [number, number][]).reduce((v, [x, s]) => age >= x ? s : v, 1);
           if (age > (sex === 'm' ? 17 : 15) || !r.chance(survive)) continue; add({ sex, age, squad: tent, mother: mom }); } } }
     for (const x of this.transferList) { const g = this.group(x.kind === 'construction_gang' ? 'gang' : 'pasap', `a newly arrived work group (${x.size})`, 'store_town', false, 'town', x.day);
@@ -773,6 +779,7 @@ export class Population {
       // lives.json marriage.season; the rest through the year; never on a festival day. Strabo 15.3.17, recalled, NOT SEEN: C)
       const MS = M.season, x = um / pm; let day = u01(this.seed, S.marry, b, 2) < MS.share ? (Math.floor(x * (REGNAL_DAYS - MS.from + MS.to + 1)) + MS.from) % REGNAL_DAYS : Math.floor(x * REGNAL_DAYS);
       if (festivalOn(this.seed, day)) day = (day + 1) % REGNAL_DAYS;
+      if (this.ageAt(b, day - L.body_care.court_days) < ADULT) continue; // (D-348: 18 by the first courting day)
       const pools = [H.q, ...H.kin.map(k => this.households[k].q)]; let g = -1;
       for (const q of [...pools, ...[...grooms.keys()].filter(q => this.quarters[q]?.kind === this.quarters[H.q]?.kind)]) { const list = grooms.get(q) ?? []; const k0 = Math.floor(u01(this.seed, S.marry, b, 1) * Math.max(1, list.length));
         for (let k = 0; k < list.length && g < 0; k++) { const c = list[(k0 + k) % list.length]; if (!wed.has(c) && this.persons[c].hh !== B.hh && this.persons[c].age >= B.age + 2 && this.walkH(H.home, this.households[this.persons[c].hh].home, day, H.zone === 'plain' ? 'plain' : 'town', this.households[this.persons[c].hh].zone === 'plain' ? 'plain' : 'town') <= 1.5) g = c; } if (g >= 0) break; }
@@ -792,7 +799,7 @@ export class Population {
       const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || !p.wife || p.age < 15 || p.age > 44) continue;
       const youngest = Math.min(99, ...(this.kidsOf.get(i) ?? []).map(c => this.persons[c].age));
       const ub = u01(this.seed, S.birth, i); const pb = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365 * (this.opts.fertility?.(i) ?? 1); if (ub >= pb) continue;
-      const day = Math.floor(ub / pb * REGNAL_DAYS); if (day >= p.dies || day < p.arrive || youngest === 0 || (youngest === 1 && day < 180)) continue;
+      const day = Math.floor(ub / pb * REGNAL_DAYS); if (day >= p.dies || day < p.arrive || youngest === 0 || (youngest === 1 && day < 180) || this.ageAt(i, day - L.pregnancy.gestation_days) < ADULT) continue;
       const home = this.home(i, day);
       const c = this.person({ sex: u01(this.seed, S.birth, i, 1) < 0.5 ? 'm' : 'f', age: 0, job: 'child', hh: home, origin: p.origin, born: day, mother: i, arrive: day });
       (this.kidsOf.get(i) ?? this.kidsOf.set(i, []).get(i)!).push(c);
@@ -806,11 +813,11 @@ export class Population {
     // stream so no other draw moves (C)
     { const PG = L.pregnancy, pbN = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365;
       for (let i = 0; i < n0; i++) {
-        const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || this.due.has(i) || p.age + 1 < 15 || p.age + 1 > 44 || p.dies < REGNAL_DAYS || p.leave < REGNAL_DAYS) continue;
+        const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || this.due.has(i) || p.age + 1 < ADULT || p.age + 1 > 44 || p.dies < REGNAL_DAYS || p.leave < REGNAL_DAYS) continue;
         const bride = !p.wife && p.marry < REGNAL_DAYS; if (!p.wife && !bride) continue;
         if ((this.kidsOf.get(i) ?? []).some(c => this.persons[c].age === 0)) continue;
         const ub = u01(this.seed, S.birthNext, i); if (ub >= pbN) continue;
-        const day = REGNAL_DAYS + Math.floor(ub / pbN * REGNAL_DAYS); if (day - REGNAL_DAYS >= PG.show_days || (bride && day < p.marry + PG.after_wedding_days)) continue;
+        const day = REGNAL_DAYS + Math.floor(ub / pbN * REGNAL_DAYS); if (day - REGNAL_DAYS >= PG.show_days || (bride && day < p.marry + PG.after_wedding_days) || this.ageAt(i, day - PG.gestation_days) < ADULT) continue;
         this.due.set(i, day); } }
     for (let i = 0; i < n0; i++) { const p = this.persons[i]; if (p.persian && p.age >= 16 && p.bday >= 0 && (p.zone === 'town' || p.zone === 'plain' || p.job === 'guard')) this.bdayByDay[p.bday].push(i); }
     this.foster();

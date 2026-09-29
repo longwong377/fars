@@ -98,8 +98,8 @@ export class Relations {
     // the marriages standing at day 0: in each house, each married woman with the man of it nearest her age + 6 (the
     // population keeps households, not couples; unmarried sons and the old are not husbands of the young; C)
     for (const H of P.households) { if (H.zone !== 'town' && H.zone !== 'plain') continue;
-      const women = H.members.map(m => P.persons[m]).filter(p => p.sex === 'f' && p.age >= 14 && !p.single && !p.kin && p.marry >= 1e9).sort((a, b) => b.age - a.age);
-      const men = H.members.map(m => P.persons[m]).filter(p => p.sex === 'm' && p.age >= 16 && !p.single && !p.kin && p.spouse === undefined); const used = new Set<number>();
+      const women = H.members.map(m => P.persons[m]).filter(p => p.sex === 'f' && p.age >= REL.adult && !p.single && !p.kin && p.marry >= 1e9).sort((a, b) => b.age - a.age);
+      const men = H.members.map(m => P.persons[m]).filter(p => p.sex === 'm' && P.ageAt(p.id, -REL.gestationDays) >= REL.adult && !p.single && !p.kin && p.spouse === undefined); const used = new Set<number>();
       for (const w of women) { let best = -1, bd = 1e9; for (const m of men) { if (used.has(m.id) || m.age < w.age - 5) continue; const dd = Math.abs(m.age - (w.age + 6)); if (dd < bd) { bd = dd; best = m.id; } }
         if (best < 0) continue; used.add(best); this.marry(w.id, best, -1e9);
         const pr = this.pair(w.id, best, 'home'); pr.status = 'married'; pr.since = -1e9; pr.wedDay = -1e9;
