@@ -51,6 +51,9 @@ export function unknownNames(text: string, L: LifeRecord): string[] {
   return [...new Set(out)];
 }
 
+/** D-348: who a baked row was written for (sex:age:job:origin); a row is used only while its pid is still that person */
+export function bakedWho(p: { sex: string; age: number; job: string; origin: string }) { return `${p.sex}:${p.age}:${p.job}:${p.origin}`; }
+
 /** the memories as the runtime gives them to the model: short (the prompt's token budget, B98): the backstory's first
  *  sentence, one memory and the saying (about 60 tokens) */
 export function bakedProse(b: Baked | null | undefined): string | null {

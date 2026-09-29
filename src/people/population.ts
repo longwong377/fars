@@ -26,6 +26,9 @@ import type { ActivityId } from './activities';
 const POPD = popData as any, T = townData as any, L = livesData as any;
 /** a house plot of the built settlement (town_plots.json, Phase 6: D-041); grid metres */
 export interface TownPlot { id: string; site: string; zone: string; pop_zone: string; kind: string; craft?: string; c: [number, number]; door: [number, number]; door_in: [number, number]; capacity: number }
+/** D-348 (the lead, s13): nobody under 18 marries, is betrothed, courts or conceives anywhere in the simulation (tier C: the
+ *  project's own rule; the period married girls from about 14, ROTH1987, and that stays in the translation layer's note) */
+export const ADULT = 18;
 export const TOWN_PLOTS: TownPlot[] = (plotsData as any).plots;
 const PLOT_BY_ID = new Map(TOWN_PLOTS.map(x => [x.id, x]));
 /** D-256: the usual walk out from a village to the grounds of the land work (m; C): the river meadow and the fallow the cows
@@ -83,7 +86,7 @@ export interface Household { id: number; home: string; q: string; zone: 'town' |
   joins: number[] }
 export interface Group { id: number; kind: string; label: string; members: number[]; issuePlace: string; silver: boolean; head: number; from: number; zone: 'terrace' | 'town' }
 export interface SliceSeat { agent: number; role: string; sex: 'm' | 'f'; origin: string; mother?: number; name?: string | null }
-export interface PopOpts { court?: boolean; slice?: SliceSeat[] }
+export interface PopOpts { court?: boolean; slice?: SliceSeat[]; /** D-346: a wife's birth-draw weight from her marriage (relations/world.ts fertility(); 1 when absent) */ fertility?: (pid: number) => number }
 /** the main field task of a farming household on a day (shared by its members): what, where, the hours, who goes */
 export interface PTask { kind: 'reap' | 'thresh' | 'vintage' | 'fruit' | 'plough' | 'canal' | 'turn' | 'field' | 'other'; act: ActivityId; place: string; why: string; h0: number; h1: number; all: boolean; sheaves: boolean; late: number;
   /** the harvest's afternoon session, after the midday meal and a rest as long as the heat demands (C), or null; and its reason */
@@ -376,6 +379,7 @@ export class Population {
     for (const f of T.facilities) this.facilities[f.id] = f.at;
     this.parties = travellerParties(seed, !!opts.court); this.transferList = transfers(seed); this.bands = transhumantBands(seed); this.drives = flockDrives(seed);
     this.generate();
+    this.adultMothers();
     for (const s of opts.slice ?? []) { const pid = this.bySeat.get(s.agent); if (pid !== undefined) this.persons[pid].nm = s.name ?? null; }
     this.precomputeLife();
     this.housePlots();
@@ -383,6 +387,14 @@ export class Population {
     if (opts.court) this.court = new CourtResidents(this); // D-182 hook
   }
   attach(cal: EventCalendar) { this.cal = cal; }
+  /** D-348: after the households are drawn, every wife is made 18 or more and every mother 18 or more years older than each
+   *  child of hers (her age raised; nothing else drawn changes, so no person's id moves). The period's younger wives and
+   *  mothers (ROTH1987) stay a documented fact of the period, not simulated (C) */
+  private adultMothers() {
+    const need = new Map<number, number>();
+    for (const p of this.persons) if (p.mother >= 0 && p.born < 0) need.set(p.mother, Math.max(need.get(p.mother) ?? 0, p.age + ADULT));
+    for (const p of this.persons) { if (p.sex !== 'f') continue; const n = Math.max(need.get(p.id) ?? 0, p.wife ? ADULT : 0); if (p.age < n) p.age = n; }
+  }
   /** D-255 (WORLD_INVENTORY G26, G20): the town's craftsmen whose house is a metal workshop (town_plots.json craft 'metal')
    *  are its smiths and work at its forge; one craftsman in OIL_EVERY of the others presses sesame oil at the oil press
    *  (C). No person is added and nothing is drawn: the trades are given after the houses (housePlots) */
@@ -503,6 +515,8 @@ export class Population {
   }
   private pickQuarter(r: HStream, kinds = ['town']) { const qs = T.quarters.filter((q: any) => kinds.includes(q.kind)); let u = r.next() * qs.reduce((s: number, q: any) => s + q.share, 0);
     for (const q of qs) { u -= q.share; if (u <= 0) return q.id as string; } return qs[0].id as string; }
+  /** D-348: a person's age on any day, before the year (negative) or after it (from the age at its start and the birthday) */
+  ageAt(pid: number, d: number) { const p = this.persons[pid]; if (p.born >= 0) return d < p.born ? -1 : Math.floor((d - p.born) / REGNAL_DAYS); const k = Math.floor(d / REGNAL_DAYS), r = d - k * REGNAL_DAYS; return p.age + k + (p.bday >= 0 && r >= p.bday ? 1 : 0); }
   private ageIn(r: HStream, lo: number, hi: number) { return Math.floor(lerp(lo, hi + 0.999, r.next())); }
   /** a wife's age from her husband's: Babylonian men married at about 26-32 and women at about 14-20 (ROTH1987, B for
    *  Babylonia), so she is one to twelve years younger (C); without a man in the house, the given range */
@@ -773,6 +787,7 @@ export class Population {
       // lives.json marriage.season; the rest through the year; never on a festival day. Strabo 15.3.17, recalled, NOT SEEN: C)
       const MS = M.season, x = um / pm; let day = u01(this.seed, S.marry, b, 2) < MS.share ? (Math.floor(x * (REGNAL_DAYS - MS.from + MS.to + 1)) + MS.from) % REGNAL_DAYS : Math.floor(x * REGNAL_DAYS);
       if (festivalOn(this.seed, day)) day = (day + 1) % REGNAL_DAYS;
+      if (this.ageAt(b, day - L.body_care.court_days) < ADULT) continue; // (D-348: 18 by the first courting day)
       const pools = [H.q, ...H.kin.map(k => this.households[k].q)]; let g = -1;
       for (const q of [...pools, ...[...grooms.keys()].filter(q => this.quarters[q]?.kind === this.quarters[H.q]?.kind)]) { const list = grooms.get(q) ?? []; const k0 = Math.floor(u01(this.seed, S.marry, b, 1) * Math.max(1, list.length));
         for (let k = 0; k < list.length && g < 0; k++) { const c = list[(k0 + k) % list.length]; if (!wed.has(c) && this.persons[c].hh !== B.hh && this.persons[c].age >= B.age + 2 && this.walkH(H.home, this.households[this.persons[c].hh].home, day, H.zone === 'plain' ? 'plain' : 'town', this.households[this.persons[c].hh].zone === 'plain' ? 'plain' : 'town') <= 1.5) g = c; } if (g >= 0) break; }
@@ -791,8 +806,8 @@ export class Population {
     for (let i = 0; i < n0; i++) {
       const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || !p.wife || p.age < 15 || p.age > 44) continue;
       const youngest = Math.min(99, ...(this.kidsOf.get(i) ?? []).map(c => this.persons[c].age));
-      const ub = u01(this.seed, S.birth, i); const pb = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365; if (ub >= pb) continue;
-      const day = Math.floor(ub / pb * REGNAL_DAYS); if (day >= p.dies || day < p.arrive || youngest === 0 || (youngest === 1 && day < 180)) continue;
+      const ub = u01(this.seed, S.birth, i); const pb = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365 * (this.opts.fertility?.(i) ?? 1); if (ub >= pb) continue;
+      const day = Math.floor(ub / pb * REGNAL_DAYS); if (day >= p.dies || day < p.arrive || youngest === 0 || (youngest === 1 && day < 180) || this.ageAt(i, day - L.pregnancy.gestation_days) < ADULT) continue;
       const home = this.home(i, day);
       const c = this.person({ sex: u01(this.seed, S.birth, i, 1) < 0.5 ? 'm' : 'f', age: 0, job: 'child', hh: home, origin: p.origin, born: day, mother: i, arrive: day });
       (this.kidsOf.get(i) ?? this.kidsOf.set(i, []).get(i)!).push(c);
@@ -806,11 +821,11 @@ export class Population {
     // stream so no other draw moves (C)
     { const PG = L.pregnancy, pbN = L.birth_p_year_women_15_44.v * REGNAL_DAYS / 365;
       for (let i = 0; i < n0; i++) {
-        const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || this.due.has(i) || p.age + 1 < 15 || p.age + 1 > 44 || p.dies < REGNAL_DAYS || p.leave < REGNAL_DAYS) continue;
+        const p = this.persons[i]; if (p.zone === 'transient' || p.sex !== 'f' || this.due.has(i) || p.age + 1 < ADULT || p.age + 1 > 44 || p.dies < REGNAL_DAYS || p.leave < REGNAL_DAYS) continue;
         const bride = !p.wife && p.marry < REGNAL_DAYS; if (!p.wife && !bride) continue;
         if ((this.kidsOf.get(i) ?? []).some(c => this.persons[c].age === 0)) continue;
         const ub = u01(this.seed, S.birthNext, i); if (ub >= pbN) continue;
-        const day = REGNAL_DAYS + Math.floor(ub / pbN * REGNAL_DAYS); if (day - REGNAL_DAYS >= PG.show_days || (bride && day < p.marry + PG.after_wedding_days)) continue;
+        const day = REGNAL_DAYS + Math.floor(ub / pbN * REGNAL_DAYS); if (day - REGNAL_DAYS >= PG.show_days || (bride && day < p.marry + PG.after_wedding_days) || this.ageAt(i, day - PG.gestation_days) < ADULT) continue;
         this.due.set(i, day); } }
     for (let i = 0; i < n0; i++) { const p = this.persons[i]; if (p.persian && p.age >= 16 && p.bday >= 0 && (p.zone === 'town' || p.zone === 'plain' || p.job === 'guard')) this.bdayByDay[p.bday].push(i); }
     this.foster();
@@ -1559,7 +1574,9 @@ export class Population {
     return -x <= G.postpartum_days ? G.postpartum * (1 - -x / G.postpartum_days) : 0;
   }
   /** D-292: the days until a woman gives birth (negative after it), or null when she gives no birth this year or early the next */
-  dueIn(pid: number, d: number): number | null { const B = this.due.get(pid); return B === undefined ? null : B - d; }
+  /** (D-348: a pregnancy of the relations layer, a lover's child or a new couple's, conceived by day d, counts too: bonds.dueOf) */
+  dueOwn(pid: number): number | undefined { return this.due.get(pid); }
+  dueIn(pid: number, d: number): number | null { const B = this.due.get(pid) ?? this.bonds?.dueOf(pid, d); return B === undefined ? null : B - d; }
   /** D-292: visibly with child on day d (the months when the belly reads under the clothes: lives.json pregnancy.visible_days) */
   expecting(pid: number, d: number): boolean { const x = this.dueIn(pid, d); return x !== null && x >= 0 && x < L.pregnancy.visible_days && this.present(pid, d); }
   babyLives(pid: number, d: number) { const H = this.households[this.home(pid, d)]; for (const x of H.births) if (x <= d && d - x < 45) for (const c of this.lifeByDay[x].births) if (this.persons[c].mother === pid && this.present(c, d)) return true; return false; }
@@ -1725,7 +1742,9 @@ export class Population {
   econ: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
   /** D-347: laundry days and baths laid over the base plan (wardrobe/washing.ts WashPlans; the sim sets it), under the economy's steps */
   wash: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  /** D-348: courting visits, the families' agreement, lovers' meetings laid over the plans (people/relations/plans.ts RelPlans; the sim sets it; Population.rel is the older affinity map) */
+  bonds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[]; dueOf(pid: number, day: number): number | undefined } | null = null;
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }
