@@ -48,6 +48,8 @@ export interface TalkEvent {
   t1?: number; setOff?: boolean;
   /** follow: the way walked behind the stranger (grid metres, every ~2 m), filled when the following ends */
   path?: P2[];
+  /** D-341: the day the people start telling of it (living/world.ts sets it when it first sees the event) */
+  newsFrom?: number;
 }
 /** one conversation as the person remembers it (≤ ~60 tokens when written out) */
 export interface MemRow { pid: number; t: number; conv: number; asked: string[]; said: string; deed?: { kind: Deed; arg?: string; ok: boolean; reason: string; item?: string }; turns: number; folded?: number; firstT?: number }
@@ -93,7 +95,7 @@ export class TalkWorld {
   /** the player's way (grid metres, sim hours): followers walk it; not saved (a follower re-found after a reload) */
   private trail: { p: P2; t: number }[] = [];
   private touched = new Map<string, TalkEvent[]>(); // `${pid}:${day}` → the deeds laid over that day, in order
-  private overlaid = new Map<string, Seg[]>();
+  private overlaid = new Map<string, { base: Seg[]; segs: Seg[] }>();
   /** the plan steps changed: popview and the agents' plan caches read these (version, pid) */
   version = 0; readonly changed: { v: number; pid: number }[] = [];
   /** the detailed agents' plan cache and task to drop when a person's plan changes (sim.ts sets it) */
@@ -102,12 +104,15 @@ export class TalkWorld {
 
   // ---------------------------------------------------------------- the plan steps
   /** Population.plan asks: are there steps of the stranger's over this person's day? */
-  touches(pid: number, day: number) { return this.touched.size > 0 && this.touched.has(`${pid}:${day}`); }
+  touches(pid: number, day: number) { return (this.touched.size > 0 && this.touched.has(`${pid}:${day}`)) || !!this.living?.touches(pid, day); }
+  /** D-339: the people’s own talk laid over their plans (people/living/world.ts; the sim sets it), under the stranger’s deeds */
+  living: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
   /** the day plan with the stranger's steps laid over it (cached until the next event) */
   overlay(pid: number, day: number, base: Seg[]): Seg[] {
-    const k = `${pid}:${day}`; const c = this.overlaid.get(k); if (c) return c;
+    if (this.living?.touches(pid, day)) base = this.living.overlay(pid, day, base);
+    const k = `${pid}:${day}`; const c = this.overlaid.get(k); if (c && c.base === base) return c.segs;
     let segs = base; for (const e of this.touched.get(k) ?? []) if (e.segs?.length) segs = splice(segs, e.h0, e.h1, e.segs);
-    this.overlaid.set(k, segs); return segs;
+    this.overlaid.set(k, { base, segs }); return segs;
   }
   private lay(e: TalkEvent) { if (!e.segs?.length) return; const k = `${e.pid}:${e.day}`; (this.touched.get(k) ?? this.touched.set(k, []).get(k)!).push(e); this.overlaid.delete(k); this.bump(e.pid); }
   private bump(pid: number) { this.version++; this.changed.push({ v: this.version, pid }); if (this.changed.length > 2000) this.changed.splice(0, 1000); this.onChange?.(pid); }

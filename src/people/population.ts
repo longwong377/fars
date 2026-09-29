@@ -1601,7 +1601,8 @@ export class Population {
       if (o === i || C.disputes.has(o) || !this.present(o, d) || this.sick(o, d) || this.ageOn(o, d) < 14) continue;
       if (p.job === 'builder' && !this.builderAvailable(o, d, C)) continue;
       C.disputes.set(i, { t, other: o, place, why }); C.disputes.set(o, { t, other: i, place, why });
-      this.relate(i, o, d, L.affinity.dispute);
+      // (once: a day's draw is recomputed after a load when the living world looks ahead past the saved day, D-340)
+      { const r = this.rel.get(this.relKey(i, o)); if (!r?.some(([x, v]) => x === d && v === L.affinity.dispute)) this.relate(i, o, d, L.affinity.dispute); }
     }
   }
   shearingToday(d: number) { let n = 0; for (const q of Object.values(this.quarters)) if (q.kind === 'village') { const day = this.shearDay(q.id); if (day === d) n++; } return n; }

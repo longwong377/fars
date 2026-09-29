@@ -114,6 +114,9 @@ export class EconPlans {
   steps(day: number): Map<number, EconStep[]> {
     const c = this.byDay.get(day); if (c) return c;
     const E = this.econTo(day + 1); // (an accusation is dated the morning after the theft it follows)
+    // (asked while the living world is itself stepping the economy (its re-entry guard): the day is not decided yet; nothing
+    // is laid and nothing cached, so the next ask after the step sees it)
+    if (E.day < day) return new Map();
     for (; this.scanned < E.events.length; this.scanned++) { const e = E.events[this.scanned]; (this.evDay.get(e.day) ?? this.evDay.set(e.day, []).get(e.day)!).push(e); }
     const m = new Map<number, EconStep[]>(); this.today = m;
     const put = (s: EconStep | null) => { if (!s) return; const xs = m.get(s.pid) ?? m.set(s.pid, []).get(s.pid)!; xs.push(s); };

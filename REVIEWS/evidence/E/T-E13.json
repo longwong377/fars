@@ -1,0 +1,108 @@
+{
+ "id": "T-E13",
+ "commit": "05555963e6942ecaadc40bb148349e79722cc411",
+ "tool": "tests/living_world.test.ts",
+ "value": 88.1,
+ "unit": "%",
+ "detail": {
+  "week": [
+   150,
+   156
+  ],
+  "days": 160,
+  "ms": 69914,
+  "msPerDay": 437,
+  "stats": {
+   "plans": 53038,
+   "days": 160,
+   "asks": 67,
+   "offers": 4550,
+   "meetings": 6859,
+   "msMeet": 9921.04179999996,
+   "msArrange": 56231.57139999972,
+   "msEcon": 1705.069000000029,
+   "msCheck": 21187.070900000457,
+   "try_tie": 7906,
+   "try_kin": 10763,
+   "ok_tie": 2958,
+   "ok_kin": 3740,
+   "try_nbr": 531,
+   "ok_nbr": 161
+  },
+  "noPlayer": {
+   "talks": 253,
+   "withConsequence": 223,
+   "share": 0.8814229249011858,
+   "byKind": {
+    "news→help": [
+     118,
+     118
+    ],
+    "help": [
+     78,
+     80
+    ],
+    "news": [
+     2,
+     28
+    ],
+    "tool": [
+     24,
+     24
+    ],
+    "labour": [
+     1,
+     2
+    ],
+    "trade": [
+     0,
+     1
+    ]
+   },
+   "why": {
+    "carried out": 223,
+    "news at its last hand": 23,
+    "news not passed on": 3,
+    "no free stretch in the doer’s next three days": 4
+   },
+   "playerEvents": 0,
+   "playerPropagated": 0,
+   "playerShare": 0
+  },
+  "economy": {
+   "talkEvents": 17465,
+   "withTalk": {
+    "events": 32283,
+    "hunger": 0,
+    "illness": 2065,
+    "death": 0,
+    "theft": 0
+   },
+   "withoutTalk": {
+    "events": 14834,
+    "hunger": 0,
+    "illness": 2065,
+    "death": 0,
+    "theft": 0
+   }
+  },
+  "withPlayer": {
+   "playerEvents": 6,
+   "playerPropagated": 6,
+   "playerShare": 1,
+   "share": 0.85,
+   "why": {
+    "carried out": 170,
+    "news at its last hand": 21,
+    "news not passed on": 5,
+    "no free stretch in the doer’s next three days": 4
+   }
+  },
+  "replay": {
+   "savedAtDay": 153,
+   "talksCompared": 104,
+   "plansCompared": 40,
+   "economyEventsIdentical": true
+  }
+ }
+}

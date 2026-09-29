@@ -102,17 +102,22 @@ export class Economy implements EconWorld {
   applyIntent(i: Intent): { ok: boolean; changes: string[] } {
     const to = this.hh.get(i.to); const changes: string[] = []; if (!to) return { ok: false, changes };
     const p = i.payload, d = i.day;
+    // (D-340, for the living world: an intent may name the economy events it answers, payload.causes, a list of event ids or
+    // a comma-separated string; they become the causes of what it does, and what the receiving house was short of now
+    // traces to it, so a neighbour's help or a talk joins the chain it answers)
+    const cz = (Array.isArray(p.causes) ? p.causes : typeof p.causes === 'string' ? p.causes.split(',') : typeof p.causes === 'number' ? [p.causes] : []).map(Number).filter(x => Number.isInteger(x) && x >= 0 && x < this.events.length);
+    const ev = (kind: string, amt?: number) => this.ev(d, i.to, kind, cz, i.from, amt);
     if (i.kind === 'help' || i.kind === 'trade') {
       const g = Number(p.grain ?? 0), c = Number(p.cash ?? 0), f = Number(p.fuel ?? 0);
       to.grain += g; to.cash += c; to.fuel += f; if (g) changes.push(`${i.to}.grain+${g}`); if (c) changes.push(`${i.to}.cash+${c}`); if (f) changes.push(`${i.to}.fuel+${f}`);
-      this.ev(d, i.to, 'given', [], i.from, g + c);
+      const e = ev('given', g + c); if (cz.length) { if (g > 0) to.cause.food = e; if (f > 0) to.cause.fuel = e; if (c > 0) to.cause.cash = e; if (Number(p.labour ?? 0) > 0) to.cause.help = e; }
     } else if (i.kind === 'loan') {
       const c = Number(p.cash ?? 0); to.cash += c; changes.push(`${i.to}.cash+${c}`); // the player's loan: no interest, no court
-      this.ev(d, i.to, 'lent_by_stranger', [], i.from, c);
+      const e = ev('lent_by_stranger', c); if (cz.length && c > 0) to.cause.cash = e;
     } else if (i.kind === 'petition') { // speaking for a household before the judge: the next judgement over it is lenient
-      (to as any).advocate = d + Number(p.days ?? 30); changes.push(`${i.to}.advocate`); this.ev(d, i.to, 'spoken_for', [], i.from);
-    } else if (i.kind === 'work') { const g = Number(p.grain ?? 0); to.grain += g; changes.push(`${i.to}.grain+${g}`); this.ev(d, i.to, 'hired_by_stranger', [], i.from, g);
-    } else { this.ev(d, i.to, i.kind, [], i.from); changes.push(`${i.to}.${i.kind}`); }
+      (to as any).advocate = d + Number(p.days ?? 30); changes.push(`${i.to}.advocate`); ev('spoken_for');
+    } else if (i.kind === 'work') { const g = Number(p.grain ?? 0); to.grain += g; changes.push(`${i.to}.grain+${g}`); const e = ev('hired_by_stranger', g); if (cz.length && g > 0) to.cause.food = e;
+    } else { ev(i.kind); changes.push(`${i.to}.${i.kind}`); }
     return { ok: true, changes };
   }
   snapshot() { return { seed: this.seed, day: this.day, intents: this.intents.map(i => ({ ...i })) }; }
@@ -368,11 +373,19 @@ export class Economy implements EconWorld {
         const g = eat * 15; kin.grain -= g; h.grain += g; const e = act('kin_help', [cause], kin.id, g); kin.cause.food = kin.cause.food ?? e; return; }
       // (D-340: the treasury's works take on only so many day labourers a day, C: ~12 across the town and the plain)
       if (h.workers > 0 && day >= h.sickUntil && r < 0.5 && this.hired(day) < 12) { const g = eat * 8; if (this.treasury.grain > g) { this.hires.n++; this.treasury.grain -= g; h.grain += g; h.sickUntil = day + 2; act('wage_work', [cause], 'treasury', g); return; } }
+      // (D-340, the seed-7 loop: a quarter's better-off farmers hire the hungry for a day's work on their land, paid in barley,
+      // one labourer a day each; C: day labour for neighbours, the commonest outlet of the landless and the short)
+      if (h.workers > 0 && day >= h.sickUntil && top.kind === 'food') { const qs = this.byQ.get(h.q)!;
+        for (let t = 0; t < 6; t++) { const N = qs[h32(this.seed, S.act, k, day * 8 + t) % qs.length]; if (N === h || N.dead || N.kind === 'ration' || N.workers < 1 || (N as any).hireDay === day || N.grain < N.eaters * GRAIN_EAT * 200) continue;
+          (N as any).hireDay = day; const g = eat * 6; N.grain -= g; h.grain += g; h.sickUntil = day + 1; act('hired_by_neighbour', [cause], N.id, g); return; } }
       const L = this.lender(h.id);
       let refused: number | undefined;
       if (L && this.creditOk(h, day)) { this.borrow(h, L, Math.max(1, cost), day, cause); h.lastAct = day; return; }
       // D-340: the lenders will not lend again after a default, nor without a pledge (C): the refusal is an event
       if (L && day - h.lastRefused > 30) { h.lastRefused = day; refused = act('loan_refused', [cause, h.badUntil > day ? h.badEv : undefined], L.id); }
+      // (D-340, the seed-7 loop: a farm refused credit sells a strip of its land to a rich house for silver, C: land sales
+      // under need concentrate land in the lenders' hands)
+      if (L && h.land > 0.6 && top.urgency > 0.75) { h.land -= 0.3; L.land += 0.3; L.cash -= 3; h.cash += 3; act('land_sold', [refused ?? cause], L.id, 3); return; }
       if (top.kind === 'food' && top.urgency > 0.65 && day - h.lastTheft > 20 && h.honest < 0.6 && u01(this.seed, S.steal, k, day, 1) < 0.35 + 0.6 * (1 - h.honest)) { h.lastTheft = day; this.steal(h, day, k, refused ?? cause); return; }
       if (day - h.lastPet < 30 || top.kind === 'fuel') return;
       h.lastPet = day; const pet = act('petition', [refused ?? cause], 'court'); this.relief(h, day, k, pet, eat);

@@ -8564,6 +8564,51 @@ in node as structured intents without text (the D-315 intent set, extended: arra
 so the world lives with or without the player; every consequence goes through the plans and into the save (replayable).
 Measured by T-E13 (tests/living_world.test.ts) and T-E12.
 
+## D-339 (s13, living): talk between people that changes the world (UD-24, UD-21; T-E13)
+src/people/living/world.ts: each day, co-located pairs (a seeded 1.5 % of the present plus news-carriers and their ties and kin,
+read from the BASE plans so there is no loop) talk; the one in greater want (EconWorld.needsOf) asks, the other gives if not in
+the same want; the Intent (trade/help/work/visit) is laid into the doer's plan on a free stretch within 3 days (walk, errand at the
+other house, walk back; hooked under the stranger's deeds in TalkWorld.touches/overlay) and applied by the economy that day.
+Player deeds (TalkWorld events) become news carried up to 3 hands. Replay-pure: 8-day blocks, each starting afresh (an arrangement is carried out inside its own block),
+each block simulated whole and on its own; nothing new in the save. Ordinary arrangements are not passed on as news (nothing measurable follows). Economy is
+FakeEcon (PLACEHOLDER, living/fakeEcon.ts; types copied from the brief in living/types.ts) until src/people/economy lands.
+Measured (tests/living_world.test.ts, seed 1, days 150-156): 604/814 = 74.2 % talk events with a consequence within 3 days (210 found no free stretch inside their block);
+player changes 6/6 propagate. Tier C.
+The talk runs only within one block of the sim's present day (LivingWorld.now): plans asked for far days (year-long tests and tools) are the base plans, so a plan depends on the sim's current day. Cost ~0.75 s of node time per simulated day (1.5 % sample).
+
+## D-341 (s13, living2): the people's talk on the real economy, pure by day (UD-24, UD-26; T-E13)
+Supersedes D-339's FakeEcon and its 8-day blocks and present-day window. living/world.ts now steps the real Economy (D-338)
+day by day from day 0 (Simulation.economy() asks it to), so a day's talk and plans depend only on the seed, the days before
+and the player's events, never on the sim's present or on which day was asked first. Each day a seeded 3 % of the town's and
+the plain's households read their needs (Economy.needsOf, water excluded: heat is not a neighbour's gift); for kin, then
+neighbours of the quarter, the giver's own stores decide what can be spared (grain beyond 40 days' bread, fuel beyond 12,
+a fifth of the silver); the two must meet in their base plans (at most 60 meeting checks a day). The errand is laid in the
+doer's plan (planCheck must not gain an issue) and entered into the economy for that day as two intents, the receiver's and
+the giver's (payload.src = 'talk'; the giver's stores go down). On load the talk's intents are dropped from the economy's
+saved interventions and re-derived. Player deeds carry `newsFrom` (the first day not yet simulated when first seen, saved
+with the event). Economy events from talk carry no causes (applyIntent takes none): the talk changes the economy's state and
+so its later course, but a chain cannot yet name a talk as its cause (economy change, not made here). Cost ~0.27 s a day.
+
+## D-342 (s13, living3): talk volume, news of what happened, labour and tools; save/load replay (UD-24; T-E13)
+living/world.ts: people meet their company (kin, three neighbours of the quarter, two workmates of the gang or work group,
+friends: Population ties), each meeting confirmed in both base plans (at most 120 meeting checks a day). News is what happened:
+yesterday's economy events of a town or plain house (death, illness, theft, robbery, default, suit, seizure, debt labour,
+loan, hunger, tax arrears, cold hearth, poor harvest, repayment, acquittal) are carried by one of its adults and told at every
+meeting, two hands on (the stranger's doings three, told first); news of want or loss at a house of the hearer's kin or quarter
+makes the hearer's house help (grain, fuel, or a condolence visit: an errand and two economy intents). Asks at a meeting: spare
+stores first, else a day's labour (a sick house, a farming house at harvest or ploughing) or a tool lent (economy 'help'
+intents with no stores moved: an event and an errand only). Childcare asks are NOT built (the minding rules of planCheck).
+Measured (seed 1, days 150-156): 253 talks, 223 with a consequence (88.1 %); player news 6/6; save at day 153 and load
+replays the rest of the week identically (104 talks, 40 plans, economy events). Meetings are checked on the planners' raw plans
+(Population.rawPlan: same places, ~4x cheaper); cost ~0.32 s a simulated day from day 0 (a first plan for day 150 costs ~50 s).
+Workmates are never tried in practice (town and plain people carry no gang or work group); meetings are kin 35 %, friends 38 %,
+neighbours 27 % successful.
+For the economy owner (not applied): to let talk start chains, Economy.applyIntent should take the causes from the intent,
+e.g. `const causes = (i.payload.causes as string | undefined)?.split(',').map(Number) ?? []` and pass them to every
+`this.ev(d, i.to, …, causes, i.from, …)` in applyIntent, and set the receiving household's `cause[kind]` to that event
+(food for grain, fuel for fuel, cash for silver, help for labour) so its later needs-driven events name it; the living
+world would then put `causes: '<econ event ids of the news heard>'` in the payload (e.g. illness → neighbour's gift).
+
 ## D-340 — The economy in the day plans, and a deeper crisis end (session 13, agent econplans; UD-26, UD-07/UD-08; T-F9)
 **Plans read the economy** (src/people/economy/plans.ts EconPlans; Population.plan = base plan, then the economy's steps, then
 the stranger's; PeopleSim sets it, off with SimOpts.economy === false). Every economy event of a day is given to a real member
@@ -8608,3 +8653,28 @@ the hour, or the walk from a far village is too long); the lenders' side of a lo
 before fitting, so a refused step is not handed to another member; a player intervention entered into the economy needs
 EconPlans.reset() before the plans see it; the first plan read of a day costs ~0.3-1.4 s of node CPU more (the day's
 steps, the economy stepped, the plan checks); nothing is rendered (no browser run: render budget 0).
+
+## D-343 — The economy's plans on the living world's economy; talk joins chains; the seed-7 loop (session 13, agent econplans; UD-26, UD-24; T-F9)
+Merged with D-339/D-341/D-342. **One owner of stepping:** PeopleSim.econTo(d) = living.advance(d) then the shared economy, so
+the plans (EconPlans) read the economy with the people's talk entered. No loop: the living world reads base plans
+(Population.basePlan) and EconPlans sits in Population.plan above them; when a plan is asked while the living world is itself
+stepping (its re-entry guard) and the economy has not reached the day, EconPlans lays nothing and caches nothing for it.
+**Load:** the living world's scheme (talk intents re-derived from day 0; the others replayed) with EconPlans.reset(). The save
+now keeps only the non-talk intents (`econ: {seed, intents}`, omitted when none), so a loaded world saves the same bytes before
+it has stepped its economy (persistence T-H3r). The day's disputes (Population.drawDisputes) relate a pair once per day: the
+living world's look-ahead past the saved day recomputed them after a load and doubled them.
+**Talk joins chains:** Economy.applyIntent reads payload.causes (event ids, a list or a comma string) and gives them to every
+event it makes; the receiving house's food/fuel/cash/help cause becomes that event. The living world passes the id of the
+economy event a hearer heard of when the news leads to help (not for plain news passed on, which changes no state, so no
+chain grows by gossip alone). tests/emergence.test.ts runs the bare economy (no talk), so T-F9's count is unchanged by this;
+shapes stay deduplicated by kind sequence.
+**Seed 7 (738 thefts, 2433 petitions a year):** a poor year by the draws (3642 poor harvests vs 1746 on seed 1, 12 hail and
+blight, the treasury short so the extra levy was called: 817 levy and 1038 tax arrears), AND a loop of D-340's own making:
+credit refused for 240 days after a default plus a flat cap of 12 treasury hires a day left 381 farming houses hungry at the
+year's end with barley at the floor price and 6 million kg at market. Fixed with the two outlets real households had (C):
+a quarter's better-off farmers hire the hungry for a day on their land (`hired_by_neighbour`, one a day each), and a farm
+refused credit sells a strip of land to a rich house (`land_sold`). Now seed 7: thefts 342, hungry at year end 72; the
+petitions are mostly for remission of that year's tax and levy arrears (1094 of 1931): the bad year, by design. Seed 1:
+thefts 16.
+**Pre-existing, not mine (checked on a16bd8ce):** popview "matches the far body" (child/walk2 width 0.0625 > 0.0505) and
+people_children "the lame and the blind" (lame share 0.020 > 0.0096) fail there too.
