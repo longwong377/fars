@@ -47,6 +47,7 @@ weekly all-models budget per agent-hour (~14 agents x ~4 h used ~55 %). So a wee
 | Rivers and water | reeds, boats, washers, mud, waterfowl |
 
 **3. Density of life:** more people and animals doing visible things everywhere, at every hour.
+**3b. Every body different (the user, s13):** today each person is one of a few body variants scaled by height only (src/people/looks.ts:181, ±7 %). Replace it with continuous, seeded body and face variation for men and women: build and weight (lean to heavy), musculature, shoulders and hips, bust size from small to very large, belly, posture, facial structure and features, from very plain to very beautiful, plus age marks, scars, pregnancy and nursing. The spread is the real one (a bell curve: most people ordinary, both extremes rare but present, so any walk can meet either), shaped by the period: labour and diet (lean field hands, heavier well-fed households), age, and illness from the economy. Garments drape over the actual body (the cloth bake per shape band). Blender shape keys on the base meshes, driven by the person's seed and life; GPU work (Vagon), ~6 agent-hours.
 
 **4. Paired with performance:** everything instanced, with detail levels and cheap far versions, grime in shaders, so density costs
 little frame time.
