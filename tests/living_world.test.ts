@@ -22,7 +22,7 @@ beforeAll(() => {
 }, 300_000);
 
 describe('talk that changes the world (T-E13)', () => {
-  let S: PeopleSim;
+  let S: PeopleSim, S2: PeopleSim;
   it('a seeded week with no player: talk events with a consequence within 3 days, on the real economy', () => {
     S = mk(); const t0 = performance.now(); const r = S.living.report(D0, D1); const ms = performance.now() - t0;
     const E = S.economy(); const base = new Economy(1, householdsOf(S.pop)); for (let d = 0; d <= E.day; d++) base.step(d);
@@ -31,14 +31,14 @@ describe('talk that changes the world (T-E13)', () => {
     Object.assign(OUT, { week: [D0, D1], days: S.living.day + 1, ms: Math.round(ms), msPerDay: +(ms / (S.living.day + 1)).toFixed(1), stats: S.living.stats, noPlayer: r,
       economy: { talkEvents: talkEv, withTalk: { events: E.events.length, hunger: kinds(E, /^hunger$/), illness: kinds(E, /^illness$/), death: kinds(E, /^death$/), theft: kinds(E, /theft|steal/) },
         withoutTalk: { events: base.events.length, hunger: kinds(base, /^hunger$/), illness: kinds(base, /^illness$/), death: kinds(base, /^death$/), theft: kinds(base, /theft|steal/) } } });
-    console.log('[living]', JSON.stringify(OUT));
-    expect(r.talks).toBeGreaterThan(15); // thin (22 in s13): most wants find no one with stores to spare that they meet
+    console.log('[living]', JSON.stringify(OUT)); mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/living_world.json', JSON.stringify(OUT, null, 1));
+    expect(r.talks).toBeGreaterThan(150); // s13 living3: ~250 a week
     expect(E.events.length).not.toBe(base.events.length); // the talk changed the economy's course
     expect(r.share * 100).toBeGreaterThanOrEqual(50);
   }, 900_000);
 
   it('player deeds spread; a day is the same whatever the sim’s present and whatever was asked first', () => {
-    const S2 = mk(); S2.t = 300 * 24; // the sim's present far from the measured week
+    S2 = mk(); S2.t = 300 * 24; // the sim's present far from the measured week
     const P = S2.pop; const picks = P.persons.filter(p => p.zone === 'town' && p.age >= 16 && P.present(p.id, D0) && !P.sick(p.id, D0)).filter((_, i) => i % 211 === 0).slice(0, 8);
     for (const p of picks) S2.talkAct(p.id, { kind: 'go_home' }, D0 * 24 + 16);
     const r2 = S2.living.report(D0, D1);
@@ -54,5 +54,18 @@ describe('talk that changes the world (T-E13)', () => {
     console.log('[living]', JSON.stringify(ev));
     expect(r2.playerEvents).toBeGreaterThan(0);
     expect(r2.playerShare * 100).toBeGreaterThanOrEqual(50);
+  }, 900_000);
+
+  it('save mid-week, load: the rest of the week replays identically (talks, the economy, the plans)', () => {
+    const MID = 153; S2.t = MID * 24 + 12; const snap = JSON.parse(JSON.stringify(S2.save()));
+    const S4 = mk(); S4.load(snap); S4.living.report(D0, D1);
+    const key = (s: PeopleSim) => s.living.talks.filter(t => t.day >= MID && t.day <= D1).map(t => `${t.day}:${t.a}:${t.b}:${t.kind}:${t.label ?? ''}:${t.done?.day ?? '-'}:${JSON.stringify(t.intents.map(i => i.payload))}`);
+    expect(key(S4).length).toBeGreaterThan(0); expect(key(S4)).toEqual(key(S2));
+    const doers = [...new Set(S2.living.talks.filter(t => t.done && t.done.day >= MID && t.done.day <= D1).map(t => `${t.doer}:${t.done!.day}`))].slice(0, 40);
+    for (const k of doers) { const [pid, d] = k.split(':').map(Number); expect(JSON.stringify(S4.pop.plan(pid, d)), k).toBe(JSON.stringify(S2.pop.plan(pid, d))); }
+    const E2 = S2.economy(), E4 = S4.economy(); const ev = (E: typeof E2) => JSON.stringify(E.events.filter(v => v.day >= MID && v.day <= D1));
+    expect(ev(E4)).toBe(ev(E2));
+    Object.assign(OUT, { replay: { savedAtDay: MID, talksCompared: key(S4).length, plansCompared: doers.length, economyEventsIdentical: true } });
+    const f = 'REVIEWS/evidence/E/T-E13.json'; const e = JSON.parse(readFileSync(f, 'utf8')); e.detail = OUT; writeFileSync(f, JSON.stringify(e, null, 1) + '\n');
   }, 900_000);
 });
