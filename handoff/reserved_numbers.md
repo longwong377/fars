@@ -91,3 +91,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-342 | s13 | talk volume, news on every meeting, save/load replay test (UD-24, T-E13; Q-1020..Q-1024, B208..B210) | agent worktree, branch s13-living3 | merged session 13 |
 | D-343 | s13 | econplans merged with the talk economy: one stepping owner, load scheme, seed-7 check (Q-1025..Q-1029, B211..B213) | agent worktree, branch s13-econplans | in flight |
 | D-344 | s13 | talk cost and save cache, volume, childcare, workmates, news that acts (UD-24, T-E13; Q-1030..Q-1034, B214..B216) | agent worktree, branch s13-living4 | merged session 13 |
+| D-345 | s13 | wardrobes and daily clothes changes, node side (ROADMAP 3d; Q-1035..Q-1039, B217..B219) | agent worktree, branch s13-wardrobe | in flight |
