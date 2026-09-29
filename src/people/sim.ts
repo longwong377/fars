@@ -99,7 +99,7 @@ export const ABSTRACT_DETOUR = 1.3;
 export interface SimEvent { t: number; kind: string; text: string; place: string; id?: string; tier?: string }
 export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean;
   /** D-340: lay the economy's decisions over the day plans (default true) */ economy?: boolean;
-  /** D-348: lay the relations' meetings (courting, the families' agreement, lovers) over the day plans (default true) */ bonds?: boolean }
+  /** D-348: lay the relations' meetings (courting, the families' agreement, lovers) over the day plans (default false: the relations' year costs ~0.3 s a week of it on first use, B228; the world sets it) */ bonds?: boolean }
 
 const H_PER_S = 1 / 3600;
 /** the slice's goods at the start (C): the Treasury's sacks at the depot and in its store; the camp's barley at the depot
@@ -176,7 +176,7 @@ export class PeopleSim {
     this.talk = new TalkWorld(this.pop, seed, id => id in PLACES); this.pop.talk = this.talk;
     this.living = new LivingWorld(this.pop, seed, () => this.econCore(), () => this.talk.events); this.talk.living = this.living;
     this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
-    this.bonds = new Relations(this.pop, seed); this.bondPlans = new RelPlans(this.bonds, this.pop); if (opts.bonds !== false) this.pop.bonds = this.bondPlans;
+    this.bonds = new Relations(this.pop, seed); this.bondPlans = new RelPlans(this.bonds, this.pop); if (opts.bonds) this.pop.bonds = this.bondPlans;
     this.talk.onChange = pid => { const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.planCache.delete(a); };
     for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
   }
@@ -725,7 +725,7 @@ export class PeopleSim {
     // D-344: with the talk state saved, the economy replays all its intents and the talk resumes; an older save re-derives (D-341)
     this.econIv = s.econ ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : []; this.econ = null; if (s.living) this.living.load(s.living); else this.living.reset(); this.econPlans.reset();
     if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
-    this.bonds.load(s.bonds); this.bondPlans.reset();
+    if (s.bonds || this.bonds.acted) { this.bonds.load(s.bonds); this.bondPlans.reset(); } // (without the player's acts the relations are the seed's: nothing to redo)
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }
     if (Array.isArray(s.near)) { this.near.clear(); for (const [k, v] of s.near) this.near.set(k, v); }

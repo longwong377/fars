@@ -17,7 +17,7 @@ const write = () => { mkdirSync('bench-reports', { recursive: true }); writeFile
 beforeAll(() => {
   const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
   const W = new WeatherSystem(1), env = (t: number): Env => { const dd = Math.floor(t / 24), c = W.conditions(dd, t - dd * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
-  mk = () => new PeopleSim(1, nav, env); S = mk();
+  mk = () => new PeopleSim(1, nav, env, { bonds: true }); S = mk();
 }, 300_000);
 
 describe('relations in the day plans and the save (D-348)', () => {

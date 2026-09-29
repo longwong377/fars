@@ -6,7 +6,7 @@
 // window, D-344), not minding a little one, not on the road; each side's part names the other (Seg.with), so the two are
 // at the same place. Pure: a function of the seed, the population and the relations' state, like the plans themselves.
 // The hook: Population.bonds (one line in Population.plan, under the economy's and the stranger's layers).
-import type { Population, Seg, Where } from '../population';
+import { wetHours, type Population, type Seg, type Where } from '../population';
 import type { ActivityId } from '../activities';
 import { splice } from '../talk';
 import { MINDING, reasonOk } from '../planCheck';
@@ -14,9 +14,14 @@ import type { Relations, Meet } from './world';
 
 const FREE = new Set<ActivityId>(['rest', 'talk', 'play', 'gamble', 'tend_body', 'queue', 'exchange', 'spin']);
 const DAY_START = 8, DAY_END = 17.5;
-const free = (s: Seg) => FREE.has(s.act) && !/the heat/.test(s.why) && s.where !== 'road' && s.where !== 'away' && !s.place.startsWith('@') && s.with === undefined && !MINDING.test(s.why);
+const free = (s: Seg) => FREE.has(s.act) && !/the heat|household/.test(s.why) && s.where !== 'road' && s.where !== 'away' && !s.place.startsWith('@') && s.with === undefined && !MINDING.test(s.why);
 const sg = (t0: number, t1: number, place: string, act: ActivityId, why: string, where: Where, withP?: number): Seg => ({ t0, t1, place, act, why, where, ...(withP !== undefined ? { with: withP } : {}) });
 interface Lay { h0: number; h1: number; segs: Seg[]; meet: Meet }
+/** a stretch of the day a meeting may take: dry, and not beside the rest through the heat (a gap in it would break the stretch) */
+function clear(P: Population, base: Seg[], d: number, t0: number, t1: number) {
+  if (wetHours(P.cal.ctx(d).wx, t0 - 0.25, t1 + 0.25) > 0) return false;
+  return !base.some(s => /the heat/.test(s.why) && s.t1 > t0 - 0.6 && s.t0 < t1 + 0.6);
+}
 
 export class RelPlans {
   /** each day's meetings by person (the first of the day for each person is the one laid: no order of asking matters) */
@@ -52,15 +57,15 @@ export class RelPlans {
   /** a visitor's part: walk there, the stay, walk back, within one free stretch of his base day */
   private visit(pid: number, d: number, place: string, W: Where, a: number, b: number, why: string, withP: number, meet: Meet): [number, Lay] | null {
     const P = this.pop, base = P.basePlan(pid, d);
-    for (const s of base) { if (!free(s) || s.t0 > a || s.t1 < b) continue; const w = P.walkH(s.place, place, d, s.where, W); if (s.t0 > a - w + 1e-9 || s.t1 < b + w - 1e-9 || a - w < DAY_START) continue;
+    for (const s of base) { if (!free(s) || s.t0 > a || s.t1 < b) continue; const w = P.walkH(s.place, place, d, s.where, W); if (s.t0 > a - w + 1e-9 || s.t1 < b + w - 1e-9 || a - w < DAY_START || !clear(P, base, d, a - w, b + w)) continue;
       const segs = [...(w > 0.01 ? [sg(a - w, a, `road:${W}`, 'walk', `on the way to ${place.startsWith('well:') ? 'the well' : place.startsWith('lane:') ? 'the lane' : 'the house'}`, 'road')] : []), sg(a, b, place, 'talk', why, W, withP), ...(w > 0.01 ? [sg(b, b + w, `road:${s.where}`, 'walk', 'walking back', 'road')] : [])];
       if (!segs.every(x => x.where === 'road' || reasonOk(x.act, x.why))) return null; return [pid, { h0: a - w, h1: b + w, segs, meet }]; }
     return null;
   }
   /** a host's part: at home (or in the lane before the house), free over [a, b] */
   private host(pid: number, d: number, place: string, W: Where, a: number, b: number, why: string, withP: number, meet: Meet, atHome = true): [number, Lay] | null {
-    const P = this.pop, home = P.households[P.home(pid, d)]?.home, s = P.basePlan(pid, d).find(x => x.t0 <= a + 1e-9 && x.t1 >= b - 1e-9);
-    if (!s || !free(s) || (atHome && s.place !== home)) return null; return [pid, { h0: a, h1: b, segs: [sg(a, b, place, 'talk', why, W, withP)], meet }];
+    const P = this.pop, home = P.households[P.home(pid, d)]?.home, base = P.basePlan(pid, d), s = base.find(x => x.t0 <= a + 1e-9 && x.t1 >= b - 1e-9);
+    if (!s || !free(s) || (atHome && s.place !== home) || !clear(P, base, d, a, b)) return null; return [pid, { h0: a, h1: b, segs: [sg(a, b, place, 'talk', why, W, withP)], meet }];
   }
   private lay(x: Meet, d: number, busy: Set<number>): [number, Lay][] | null {
     const P = this.pop; // (busy: the companions who have another meeting first that day)
