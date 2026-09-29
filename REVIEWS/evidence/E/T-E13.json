@@ -1,0 +1,80 @@
+{
+ "id": "T-E13",
+ "commit": "0da4080d1f5761500433b664c664ec8c521cb612",
+ "tool": "tests/living_world.test.ts",
+ "value": 66.7,
+ "unit": "%",
+ "detail": {
+  "week": [
+   150,
+   156
+  ],
+  "days": 160,
+  "ms": 34934,
+  "msPerDay": 218.3,
+  "stats": {
+   "plans": 12964,
+   "days": 160,
+   "asks": 29100,
+   "offers": 5620,
+   "meetings": 1540,
+   "noNeed": 0,
+   "need_health": 521,
+   "need_cash": 181,
+   "need_fuel": 27998,
+   "need_help": 831,
+   "need_food": 1375
+  },
+  "noPlayer": {
+   "talks": 22,
+   "withConsequence": 21,
+   "share": 0.9545454545454546,
+   "byKind": {
+    "help": [
+     17,
+     18
+    ],
+    "trade": [
+     4,
+     4
+    ]
+   },
+   "why": {
+    "carried out": 21,
+    "no free stretch in the doer’s next three days": 1
+   },
+   "playerEvents": 0,
+   "playerPropagated": 0,
+   "playerShare": 0
+  },
+  "economy": {
+   "talkEvents": 3018,
+   "withTalk": {
+    "events": 17561,
+    "hunger": 0,
+    "illness": 2065,
+    "death": 0,
+    "theft": 0
+   },
+   "withoutTalk": {
+    "events": 14834,
+    "hunger": 0,
+    "illness": 2065,
+    "death": 0,
+    "theft": 0
+   }
+  },
+  "withPlayer": {
+   "playerEvents": 6,
+   "playerPropagated": 4,
+   "playerShare": 0.6666666666666666,
+   "share": 0.7435897435897436,
+   "why": {
+    "carried out": 29,
+    "news not passed on": 4,
+    "no free stretch in the doer’s next three days": 1,
+    "news at its last hand": 5
+   }
+  }
+ }
+}
