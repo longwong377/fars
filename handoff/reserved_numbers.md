@@ -84,3 +84,5 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-335 | s12 | wave 4: land (Q-923, B187..B189) | agent worktree T:/fars-wt/land, branch s12d-land | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
 | D-336 | s12 | voices: a unique natural voice per person, period languages, the Farsi/English opt-in (UD-22; Q-924, B190..B192) | agent worktree T:/fars-wt/voices, branch s12d-voices | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
 | D-337 | s12 | performance: the world playable at high on the T4 (Q-925, B193..B195) | agent worktree T:/fars-wt/perf, branch s12d-perf | merged session 12 (final merges 04:30-04:55 UTC, 2026-09-28) |
+| D-338 | s13 | economy and needs core, emergence test (UD-26, T-F9; Q-1000..Q-1004, B196..B198) | agent worktree, branch s13-economy | in flight |
+| D-339 | s13 | talk that changes the world, living_world test (UD-24, T-E13; Q-1005..Q-1009, B199..B201) | agent worktree, branch s13-living | in flight |
