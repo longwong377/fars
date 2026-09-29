@@ -95,3 +95,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-346 | s13 | relationships and sexuality as life, node side (ROADMAP 3e; Q-1040..Q-1044, B220..B222) | agent worktree, branch s13-relations | merged session 13 |
 | D-347 | s13 | simjoin: economy snapshot save, wardrobe save, washing/bathing, economy deaths into Population, balance (Q-1045..Q-1049, B223..B225) | agent worktree, branch s13-simjoin | in flight |
 | D-348 | s13 | nobody under 18 in marriage/courting/conception (Q-1040); courting in plans, parentage, relations saved (Q-1050..Q-1054, B226..B228) | agent worktree, branch s13-relations2 | merged session 13 (brides redraw left on branch s13-relations2-brides, 902ebbaf: pinned tests to re-pin) |
+| D-349 | s13 | adult brides redraw, pinned tests re-pinned (Q-1055..Q-1057, B229..B230) | agent worktree, branch s13-brides | in flight |
