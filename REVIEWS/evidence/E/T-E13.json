@@ -1,6 +1,6 @@
 {
  "id": "T-E13",
- "commit": "d846c6e17ff0fb01bc2281e275db74083cbdb1a6",
+ "commit": "05555963e6942ecaadc40bb148349e79722cc411",
  "tool": "tests/living_world.test.ts",
  "value": 88.1,
  "unit": "%",
@@ -10,17 +10,24 @@
    156
   ],
   "days": 160,
-  "ms": 108133,
-  "msPerDay": 675.8,
+  "ms": 69914,
+  "msPerDay": 437,
   "stats": {
-   "plans": 52286,
+   "plans": 53038,
    "days": 160,
    "asks": 67,
-   "offers": 4549,
-   "meetings": 6857,
-   "msMeet": 45690.02849999943,
-   "msArrange": 58324.34559999978,
-   "msEcon": 2052.637500000038
+   "offers": 4550,
+   "meetings": 6859,
+   "msMeet": 9921.04179999996,
+   "msArrange": 56231.57139999972,
+   "msEcon": 1705.069000000029,
+   "msCheck": 21187.070900000457,
+   "try_tie": 7906,
+   "try_kin": 10763,
+   "ok_tie": 2958,
+   "ok_kin": 3740,
+   "try_nbr": 531,
+   "ok_nbr": 161
   },
   "noPlayer": {
    "talks": 253,
@@ -63,9 +70,9 @@
    "playerShare": 0
   },
   "economy": {
-   "talkEvents": 17782,
+   "talkEvents": 17465,
    "withTalk": {
-    "events": 32601,
+    "events": 32283,
     "hunger": 0,
     "illness": 2065,
     "death": 0,
