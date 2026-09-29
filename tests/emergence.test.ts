@@ -4,6 +4,8 @@
 // chains from more than one causal root, and interventions that change outcomes. The honest count is in the evidence file.
 import { describe, it, expect } from 'vitest';
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { execSync } from 'node:child_process';
+import { depHashFor } from '../tools/dev/coverage_dep';
 import { Population } from '../src/people/population';
 import { Economy } from '../src/people/economy/world';
 import { chains, householdsOf, type Chain } from '../src/people/economy/chains';
@@ -45,6 +47,8 @@ describe('T-F9 emergent consequence chains', () => {
     const kinds: Record<string, number> = {}; for (const v of e.events) kinds[v.kind] = (kinds[v.kind] ?? 0) + 1;
     results.push({ seed, households: hs.length, events: e.events.length, chains: cs.length, shapes: new Set(cs.map(c => c.shape)).size, roots: [...roots],
       longest: Math.max(0, ...cs.map(c => c.path.length)), enterable: entered / Math.max(1, sample.length), sampled: sample.length, kinds,
+      // D-340: the crisis end, counted per year (thefts, arrests, judgements, petitions, bondages)
+      crisis: Object.fromEntries(Object.entries({ thefts: ['theft'], accusations: ['accusation'], arrests: ['arrest'], theftJudgements: ['acquitted', 'fined', 'beaten'], debtSuits: ['suit'], debtJudgements: ['time_granted', 'debt_labour'], bondages: ['bound_labour'], petitions: ['petition'], reliefs: ['relief'], remissions: ['remitted'], refusals: ['petition_refused'], loansRefused: ['loan_refused'], fires: ['house_fire'], animalsLost: ['animal_lost'], levies: ['levy'], goodHarvests: ['harvest_good'] }).map(([k, xs]) => [k, xs.reduce((a, x) => a + (kinds[x] ?? 0), 0)])),
       examples: cs.slice(0, 5).map(c => c.path.map(i => `${e.events[i].kind}(${e.events[i].actor})`).join(' -> ')) });
     expect(cs.length).toBeGreaterThan(0);
     expect(roots.size).toBeGreaterThanOrEqual(2);
@@ -54,7 +58,11 @@ describe('T-F9 emergent consequence chains', () => {
     // strict: distinct shapes over the whole world (r.chains counts shape@leaf-household)
     const min = Math.min(...results.map(r => r.shapes)), ent = Math.min(...results.map(r => r.enterable));
     mkdirSync('REVIEWS/evidence/F', { recursive: true });
-    writeFileSync('REVIEWS/evidence/F/T-F9.json', JSON.stringify({ id: 'T-F9', tool: 'tests/emergence.test.ts', value: min, enterable: ent, pass: min >= 50 && ent >= 0.5, perSeed: results }, null, 1) + '\n');
-    console.log(JSON.stringify(results.map(r => ({ seed: r.seed, hh: r.households, chains: r.chains, shapes: r.shapes, enterable: r.enterable, ex: r.examples.slice(0, 2) }))));
+    // (D-340: stamped with the commit the tree was run from, '-dirty' when src/tests/tools/data had uncommitted changes, and
+    // the tool's dependency hash, so the board can judge it)
+    let commit = 'none'; try { commit = execSync('git rev-parse --short HEAD').toString().trim() + (execSync('git status --porcelain -- src tests tools data').toString().trim() ? '-dirty' : ''); } catch { /* no git */ }
+    const pass = min >= 50 && ent >= 0.5;
+    writeFileSync('REVIEWS/evidence/F/T-F9.json', JSON.stringify({ id: 'T-F9', tool: 'tests/emergence.test.ts', value: min, n: results.length, enterable: ent, pass, status: pass ? 'PASS' : 'FAIL', commit, dep: depHashFor('tests/emergence.test.ts'), generated: new Date().toISOString(), perSeed: results }, null, 1) + '\n');
+    console.log(JSON.stringify(results.map(r => ({ seed: r.seed, hh: r.households, chains: r.chains, shapes: r.shapes, enterable: r.enterable, crisis: r.crisis, ex: r.examples.slice(0, 2) }))));
   });
 });

@@ -8563,3 +8563,48 @@ player they are generated and voiced live (model budget: the few pairs within ea
 in node as structured intents without text (the D-315 intent set, extended: arrange work, trade, ask help, invite, pass news),
 so the world lives with or without the player; every consequence goes through the plans and into the save (replayable).
 Measured by T-E13 (tests/living_world.test.ts) and T-E12.
+
+## D-340 — The economy in the day plans, and a deeper crisis end (session 13, agent econplans; UD-26, UD-07/UD-08; T-F9)
+**Plans read the economy** (src/people/economy/plans.ts EconPlans; Population.plan = base plan, then the economy's steps, then
+the stranger's; PeopleSim sets it, off with SimOpts.economy === false). Every economy event of a day is given to a real member
+of its household (present, not sick, not one of the Terrace slice's detailed agents, not at supervised work; errands to anyone
+of 12+, the lenders and the court to a grown man where there is one; a rich house's pledges and suits may go by its servants)
+and laid as walked stretches at real places: buying barley or fuel, and selling, at the town's exchange lane (lane:q_lt_e, as
+the farmers' market mornings; a village's own lane when the town is > 1.2 h away), a loan asked, refused or repaid at the
+lender's house, a pledge carried to the creditor, petitions, tax and levy arrears, suits, accusations and judgements at the
+officials' building, relief fetched from the storehouse, a day's hire hauling at the royal store (on the crown's canal work by
+a far village), kin asked for barley, a kinswoman sitting with the sick, neighbours bringing barley to a burnt house, the
+burnt roof cleared, the thief's small-hours trip to a neighbour's store, the robbed telling the lane, the accused taken and
+held a night, a beating lain off at home, and a bound son or daughter working in the creditor's house every day of the
+bondage (living in when it is > 1.5 h away, home the morning it ends). Errands fill a free stretch of the person's own day and
+return to it; a grown man's business is gone to from the day's work when no free hour fits; a far village's walk starts at
+first light. A meal the step takes the person from is eaten where they are (bread and water brought along), the stretches
+are dressed against the cold and the dust as the day's own (coldWear, dustWear), and a little one of four or under at a
+mother's side goes with her (its plan copies her stretches, `with` her). A step is NOT laid when it would add any issue of
+the plan checks (planCheck.ts checkPlan: out in the rain, a meal gap, a baby unfed, a wait, too long on foot, dress), cut
+through a rite, a funeral or a wedding, leave a little one "with" the person elsewhere, or leave a child under ten alone at
+night; nor when no person or no time is found: each refusal is counted with its reason (tools/dev/econ_day.ts prints them).
+Measured: a seeded week (days 119-125) lays 170 of 236 steps (72 %), the seeded lean week (337-343) ~78 %; most refusals
+are rain and nursing mothers. Only existing activities (exchange, queue,
+talk, haul, dig_canal, carry_sack, grind, cook, clean, lie_ill, sleep, rest, walk): lint:activity unchanged.
+**Crises deepened (world.ts; all C, reasoned by analogy):** lenders remember a default for 240 days and want a pledge
+(`loan_refused` is an event); a pledge covers only its worth, the rest goes to the judge; a debt judged to labour binds a
+member (`bound_labour`) until it is worked off at 0.02 sheqel a day, at most three years (Codex Hammurabi §117 by analogy),
+released or redeemed after a good harvest (`released`, `redeemed`); an unpaid theft fine is worked off in the victim's house;
+the accused are arrested and held a day before judgement; the treasury hires at most 12 day labourers a day; kin give barley
+once in forty days. New causes: animals lost (an ox: three quarters of the next crop until replaced, bought or borrowed for;
+ewes: the flock's goods), house fires in winter (stores and goods burnt; neighbours help), a death's burial silver borrowed
+and a house left without a worker petitioning, a good harvest (`harvest_good`: debts repaid early, the bound redeemed; grain
+cheap raises the crafts' demand), an extra levy for the king's works in Kislimu when the treasury ran short (else 2 years in
+5; `levy_arrears`), petitions to remit treasury arrears (`remitted` / refused), fuel bought (`buy_fuel`).
+Measured (seed 1, a year): thefts 106, accusations 53, arrests 53, theft judgements 39, debt suits 97, debt judgements 97,
+bondages 87, petitions 468 (relief 73, remitted 85, refused 233), loans 672 (refused 820), fires 36, animals lost 235. Most
+crises fall in the lean months (Tebetu to Addaru). tests/econ_plans.test.ts lays a seeded week and a seeded lean week,
+checks every laid stretch is an activity, every day whole, every change of place walked, no plan-check issue added, every
+little one with its mother, and a save/load replay.
+**Known gaps (honest):** the economy's own illness and death are not the Population's (no funeral or sickbed laid for them;
+the economy's `death` does not kill a person); petitions lay worst (10 of 29 in the lean week: a same-day loan refusal took
+the hour, or the walk from a far village is too long); the lenders' side of a loan is not laid; a pid given a step is fixed
+before fitting, so a refused step is not handed to another member; a player intervention entered into the economy needs
+EconPlans.reset() before the plans see it; the first plan read of a day costs ~0.3-1.4 s of node CPU more (the day's
+steps, the economy stepped, the plan checks); nothing is rendered (no browser run: render budget 0).

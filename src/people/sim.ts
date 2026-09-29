@@ -30,6 +30,7 @@ import { v as specV } from '../arch/spec';
 import { TalkWorld, type Intent } from './talk';
 import { Economy } from './economy/world';
 import { householdsOf } from './economy/chains';
+import { EconPlans } from './economy/plans';
 /** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
  *  scribe's, the Aramaic secretary's, the pupil's; grid position and heading (deg cw from grid N) */
 export function deskSeat(who: 'elamite' | 'aramaic' | 'pupil' | 'visitor'): { at: P2; heading: number } {
@@ -92,7 +93,8 @@ export interface Agent {
 /** straight-line → walked-route factor for abstract travel (C: the Terrace's stairs and doorways add detours) */
 export const ABSTRACT_DETOUR = 1.3;
 export interface SimEvent { t: number; kind: string; text: string; place: string; id?: string; tier?: string }
-export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean }
+export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean;
+  /** D-340: lay the economy's decisions over the day plans (default true) */ economy?: boolean }
 
 const H_PER_S = 1 / 3600;
 /** the slice's goods at the start (C): the Treasury's sacks at the depot and in its store; the camp's barley at the depot
@@ -133,7 +135,11 @@ export class PeopleSim {
   readonly pop: Population;
   /** s13 (D-338, UD-26): the emergent economy, built on first use and stepped to the sim's day; saved as seed + day + interventions */
   private econ: Economy | null = null;
-  economy(): Economy { if (!this.econ) this.econ = new Economy(this.seed, householdsOf(this.pop)); const d = Math.floor(this.t / 24); for (let x = this.econ.day + 1; x <= d; x++) this.econ.step(x); return this.econ; }
+  economy(): Economy { return this.econTo(Math.floor(this.t / 24)); }
+  /** the economy stepped to at least day d (the day plans read a day's decisions: EconPlans) */
+  econTo(d: number): Economy { if (!this.econ) this.econ = new Economy(this.seed, householdsOf(this.pop)); for (let x = this.econ.day + 1; x <= d; x++) this.econ.step(x); return this.econ; }
+  /** D-340: the economy's decisions laid over the day plans (Population.plan; off with SimOpts.economy === false) */
+  readonly econPlans: EconPlans;
   readonly cal: EventCalendar;
   /** memory of the player (brief §9.5) */
   readonly memory = new PlayerMemory();
@@ -154,6 +160,7 @@ export class PeopleSim {
     this.pop = new Population(seed, { court: !!opts.court, slice: seats });
     this.cal = new EventCalendar(seed, this.pop, env, !!opts.court); this.pop.attach(this.cal);
     this.talk = new TalkWorld(this.pop, seed, id => id in PLACES); this.pop.talk = this.talk;
+    this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
     this.talk.onChange = pid => { const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.planCache.delete(a); };
     for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
   }
@@ -696,7 +703,7 @@ export class PeopleSim {
   load(s: any) {
     if (!s?.agents) return; this.t = s.t; this.stock = { ...INITIAL_STOCK, ...s.stock }; this.lastCaravanDay = s.lastCaravanDay; if (s.flows) this.flows = { ...s.flows }; if (s.lastGrainDay !== undefined) this.lastGrainDay = s.lastGrainDay;
     this.cal.ctx(Math.floor(s.t / 24)); // the calendar is deterministic: recompute to the saved day, then restore what the detailed people changed
-    this.econ = s.econ ? Economy.restore(s.econ, householdsOf(this.pop)) : null;
+    this.econ = s.econ ? Economy.restore(s.econ, householdsOf(this.pop)) : null; this.econPlans.reset();
     if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }
