@@ -9,7 +9,7 @@ import { NavGrid } from '../../src/people/navgrid';
 import { PeopleSim } from '../../src/people/sim';
 import { WeatherSystem } from '../../src/weather/weatherState';
 import { lifeRecord } from '../../src/people/converse/life';
-import { bakeMessages, parseBake, checkBake } from '../../src/people/converse/bake';
+import { bakeMessages, parseBake, checkBake, bakedWho } from '../../src/people/converse/bake';
 import { buildTestSet } from '../../src/people/converse/testset';
 
 const A = process.argv.slice(2), opt = (k: string, d: string) => { const i = A.indexOf('--' + k); return i >= 0 ? A[i + 1] : d; };
@@ -23,7 +23,7 @@ const rows = existsSync(log) ? readFileSync(log, 'utf8').split('\n').filter(Bool
 
 if (A.includes('--write')) {
   // the checks again with the tree's current fence and name lists, on each record rebuilt from the sim
-  const kept = rows.filter(r => r.seed === seed).map(r => { const b = parseBake(r.raw ?? ''); if (!b) return null; const check = checkBake(b, lifeRecord(S.pop, S.cal, r.pid, r.day, 12)); return check.ok ? { seed, pid: r.pid, day: r.day, model: r.model, ms: r.ms, ...b, check, name: r.name, job: r.job } : null; }).filter(Boolean);
+  const kept = rows.filter(r => r.seed === seed).map(r => { const b = parseBake(r.raw ?? ''); if (!b) return null; const check = checkBake(b, lifeRecord(S.pop, S.cal, r.pid, r.day, 12)); return check.ok ? { seed, pid: r.pid, day: r.day, model: r.model, ms: r.ms, ...b, check, name: r.name, job: r.job, who: bakedWho(S.pop.persons[r.pid]) } : null; }).filter(Boolean);
   // the rows already shipped (the session-11 browser bake) stay where this bake has no passing row of its own
   const outF = `src/data/lives_baked_s${seed}.json`, old = existsSync(outF) ? JSON.parse(readFileSync(outF, 'utf8')).rows ?? [] : [];
   const have = new Set(kept.map((r: any) => r.pid)); kept.push(...old.filter((r: any) => !have.has(r.pid)));

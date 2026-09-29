@@ -82,6 +82,7 @@ export class EconPlans {
       const mid = (m.t0 + m.t1) / 2, cands = out.filter(s => s.ev?.startsWith('D-340') && s.t1 - s.t0 >= 0.8 && s.act !== 'sleep');
       const host = cands.sort((a, b) => Math.abs((a.t0 + a.t1) / 2 - mid) - Math.abs((b.t0 + b.t1) / 2 - mid))[0]; if (!host) continue;
       const t = Math.min(Math.max(mid - 0.2, host.t0 + 0.2), host.t1 - 0.6), i = out.indexOf(host);
+      if (out.some(a => a.act === 'eat' && !/nursed|softened/.test(a.why) && a.t1 > t - 1 && a.t0 < t + 1.4)) continue; // (D-348: a meal within the hour already: none brought along; people_days_r6, child 28825 day 21)
       out = [...out.slice(0, i), { ...host, t1: t }, this.seg(t, t + 0.4, host.place, 'eat', host.where === 'road' ? 'bread and water brought along, eaten by the way' : 'bread and water brought along, eaten there', st, host.where), { ...host, t0: t + 0.4 }, ...out.slice(i + 1)];
     }
     return out;

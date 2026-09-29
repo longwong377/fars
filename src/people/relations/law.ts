@@ -7,7 +7,7 @@ export interface Rule { id: string; says: string; tier: 'A' | 'B' | 'C'; src: st
 
 export const LAW: Rule[] = [
   { id: 'age', says: 'nobody under 18 takes any part in courting, desire, lovers, intimacy or marriage in this layer', tier: 'C', src: 'the user (s13 brief)',
-    note: 'the period married girls from about 14 (ROTH1987); the population still draws such weddings (lives.json marriage.bride_age), which this layer does not model as courtship or desire (Q-1040)' },
+    note: 'D-348 (closes Q-1040): the whole simulation, the population included, follows it; the period married girls from about 14 (ROTH1987), which stays a documented fact about the period, not simulated' },
   { id: 'agreement', says: 'a marriage is agreed between the groom (or his father) and the bride’s father, mother or brother; the families decide, the pair’s liking weighs', tier: 'C', src: 'ROTH1987 (B for Babylonia)' },
   { id: 'dowry', says: 'the bride brings a dowry from her family’s house into the new household; it stays hers and goes back with her if she is divorced without fault', tier: 'C', src: 'ROTH1987 (B for Babylonia); return on divorce RECOLLECTION, NOT SEEN' },
   { id: 'bridewealth', says: 'the groom’s house gives a gift of silver to the bride’s family at the agreement (rarer than the dowry in the Neo-Babylonian texts)', tier: 'C', src: 'RECOLLECTION, NOT SEEN (Old Babylonian terhatum; Neo-Babylonian biblu)' },

@@ -8753,3 +8753,38 @@ Weak: contact is structural (not read from the day plans), so courting is not ye
 births get almost no doubtful parentage (0 of 1,787: affairs are rarely of fertile wives at the right weeks); this layer's own
 children are a pregnancies list, not Persons; the player's pregnancy (a woman player) is not modelled; take_lover by the
 player is untested; the population still marries brides of 14-17 (Q-1040); sim.ts does not yet own a Relations instance.
+
+## D-348 (s13, relations2): nobody under 18 in marriage, courting or conception; the relations in the plans and the save
+The lead's decision on Q-1040 (closed): nobody under 18 marries, is betrothed, courts or conceives anywhere in the simulation,
+the population included (tier C, the project's rule, deliberately against the period: ROTH1987's brides of 14-20 stay a
+documented fact, not simulated). Done without moving any person: the households are drawn as before (every pinned person of
+the tests and the baked prose keeps who they are), then Population.adultMothers raises every wife to 18 and every mother to 18
+years older than each of her children; brides are 17-24 at the year's start and 18 by the first courting day (ageAt);
+grooms 22-40; the year's births and the next year's dues need the mother 18 at conception (lives.json pregnancy.gestation_days
+266). Measured over seeds 1-8 (tests/adult_only.test.ts): no wedding, betrothal, wife, pregnancy, birth or child's history
+with anyone under 18; weddings 113-143 a year (353 before: Q-1050), births 1,630-1,784 (1,787 before, seed 1: 1,644).
+Baked prose rows now carry who they were written for (converse/bake.ts bakedWho; the page uses a row only while its pid is
+that person): 28 of 30 still match; the two wives raised from 17 to 18 are skipped until re-baked.
+The relations in the day plans (relations/plans.ts RelPlans; hook Population.bonds, one line in plan() after the economy's):
+a suitor's visit to the woman's house (she sits with him, her family by) or his walk beside her to the well; the groom and
+his father at the bride's house with her and her father on the day of the agreement; lovers' word apart in the lane. Laid
+only where both base days are free, dry, in daylight (8-17.5), not beside the rest through the heat, not minding, not "with
+the household"; each part names the other (Seg.with); each person's first meeting of the day is the one laid (no order of
+asking matters). Measured (seed 1, days 120-134): 238 meetings drawn, 54 parts laid (46 courting, 8 lovers), 0 apart, 0 plan
+issues the plan without them lacks; negotiations laid on 1 of 129 agreement days (weak: the bride or her father rarely free
+at home in daylight). Doubtful parentage feeds the births: a wife's lover's child is this layer's pregnancy, due through
+Population.dueIn (bonds.dueOf, pure: the relations are advanced to the day asked), and a population pregnancy conceived with a
+lover in the bed that week is a 'doubt' event (seed 1: 39 doubt events, 55 conceptions). The Simulation owns Relations and
+RelPlans (sim.bonds, bondPlans, bondAct(pid, act)); the save carries only the player's acts ({ bonds: { ledger } } when any)
+and a reload replays them; the meetings are laid only with SimOpts.bonds (the world sets it, tests do not: B228). The player's
+take_lover is tested (refused without desire; with a married woman an affair, nights cut away, found out on day 157).
+Relations cost cut 5x (pairs that can never desire each other are not stepped; no per-call closures): ~0.3 s a week.
+Regression (the 42 test files that build a population or a sim; 5-8 workers on a shared box): the failures of 7 of them were
+run on the base commit 16e9ce92 too and fail the same there (19 tests: court_view, land_work, people_children's lame share,
+people_days_r6 x6, population x6, popview x2, religion x2), except one new: people_days_r6 "no two meals within an hour"
+(child 28825, day 21: the same with the meetings off, so from the population change through another layer; not traced).
+Timeouts in people, court, talk_world and people_days_r5 under that load were not re-run alone.
+D-348, final round: people_days_r6 "no two meals within an hour" (child 28825, day 21) was the economy's step laying a "bread
+and water brought along" meal 20 minutes after the household's meal (economy/plans.ts feed); it is skipped when a meal is
+within the hour. The lead's redraw of brides among women of 18+ (289-336 weddings a year) is on branch s13-relations2-brides,
+not here: it moves person ids and 9 more pinned people_days_r6 tests fail there (not re-pinned).

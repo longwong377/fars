@@ -32,6 +32,8 @@ import { Economy } from './economy/world';
 import { householdsOf } from './economy/chains';
 import { EconPlans } from './economy/plans';
 import { LivingWorld } from './living/world';
+import { Relations, type PlayerAct, type ActResult } from './relations/world';
+import { RelPlans } from './relations/plans';
 import type { Intent as EconIntent } from './economy/api';
 /** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
  *  scribe's, the Aramaic secretary's, the pupil's; grid position and heading (deg cw from grid N) */
@@ -96,7 +98,8 @@ export interface Agent {
 export const ABSTRACT_DETOUR = 1.3;
 export interface SimEvent { t: number; kind: string; text: string; place: string; id?: string; tier?: string }
 export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean;
-  /** D-340: lay the economy's decisions over the day plans (default true) */ economy?: boolean }
+  /** D-340: lay the economy's decisions over the day plans (default true) */ economy?: boolean;
+  /** D-348: lay the relations' meetings (courting, the families' agreement, lovers) over the day plans (default false: the relations' year costs ~0.3 s a week of it on first use, B228; the world sets it) */ bonds?: boolean }
 
 const H_PER_S = 1 / 3600;
 /** the slice's goods at the start (C): the Treasury's sacks at the depot and in its store; the camp's barley at the depot
@@ -155,6 +158,8 @@ export class PeopleSim {
   readonly talk: TalkWorld;
   /** D-339 (UD-24): the people’s talk with each other, arrangements laid into their plans (living/world.ts); a pure function of the seed and the talk events, so nothing new is saved (D-341: on the real economy) */
   readonly living: LivingWorld;
+  /** D-346/D-348: relationships (relations/world.ts) and their meetings in the plans (relations/plans.ts); the save keeps only the player's acts */
+  readonly bonds: Relations; readonly bondPlans: RelPlans;
   private pathCache = new Map<string, P2[] | null>();
   /** the most new route searches in one step. A long route on the 0.5 m grid costs 20-200 ms, and a watch change or a
    *  crowd of arrivals asks for many at once; over the budget an agent waits where it is and asks again next step.
@@ -171,6 +176,7 @@ export class PeopleSim {
     this.talk = new TalkWorld(this.pop, seed, id => id in PLACES); this.pop.talk = this.talk;
     this.living = new LivingWorld(this.pop, seed, () => this.econCore(), () => this.talk.events); this.talk.living = this.living;
     this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
+    this.bonds = new Relations(this.pop, seed); this.bondPlans = new RelPlans(this.bonds, this.pop); if (opts.bonds) this.pop.bonds = this.bondPlans;
     this.talk.onChange = pid => { const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.planCache.delete(a); };
     for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
   }
@@ -699,9 +705,12 @@ export class PeopleSim {
   /** the Terrace places only the abstract tier uses (no detailed spot yet) */
   static readonly ABSTRACT_TERRACE_PLACES = TERRACE_ABSTRACT;
 
+  /** D-348: the player's act on a person's relationship with them (court, propose, take a lover, share a home or a bed:
+   *  intimacy is a state and a cut-away); replayed from the save's ledger */
+  bondAct(pid: number, act: PlayerAct): ActResult { const r = this.bonds.act(pid, Math.floor(this.t / 24), act); this.bondPlans.reset(); this.planCache.clear(); return r; }
   save() {
     const talk = this.talk.save(); // D-315: only when the stranger has done something (no event: the save is as before)
-    return { ...(talk ? { talk } : {}), ...this.econSave(), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
+    return { ...(talk ? { talk } : {}), ...(this.bonds.acted ? { bonds: this.bonds.save() } : {}), ...this.econSave(), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
       events: this.events.slice(-SAVED_EVENTS).map(e => ({ ...e })), // the chronicle (translation layer) survives a reload (H workstream: T-H3r)
       // the route cache (5 m buckets: which route a trip takes depends on it) and the player's watching hours: without them a
       // loaded world went its own way within minutes (T-H3r)
@@ -716,6 +725,7 @@ export class PeopleSim {
     // D-344: with the talk state saved, the economy replays all its intents and the talk resumes; an older save re-derives (D-341)
     this.econIv = s.econ ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : []; this.econ = null; if (s.living) this.living.load(s.living); else this.living.reset(); this.econPlans.reset();
     if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
+    if (s.bonds || this.bonds.acted) { this.bonds.load(s.bonds); this.bondPlans.reset(); } // (without the player's acts the relations are the seed's: nothing to redo)
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }
     if (Array.isArray(s.near)) { this.near.clear(); for (const [k, v] of s.near) this.near.set(k, v); }
