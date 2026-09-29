@@ -8784,3 +8784,16 @@ run on the base commit 16e9ce92 too and fail the same there (19 tests: court_vie
 people_days_r6 x6, population x6, popview x2, religion x2), except one new: people_days_r6 "no two meals within an hour"
 (child 28825, day 21: the same with the meetings off, so from the population change through another layer; not traced).
 Timeouts in people, court, talk_world and people_days_r5 under that load were not re-run alone.
+D-348 revised (the lead, final round): the bride pool is redrawn among women of 18 and over. Daughters now marry away from 18
+(lives.json family.daughter_married_by_age from 18 to 23, home_until_age.daughter 23), so unmarried daughters of 18-23 are
+at home to be brides; brides 17-26 at the year's start and 18 by the first courting day. This moves person ids after the
+first household that draws a daughter differently (accepted by the lead): pinned people in the tests and the baked prose
+rows no longer name the same person (the prose rows are skipped by their who-check until re-baked). Weddings over seeds
+1-8: 289-336 a year (7 per 1,000; 353 before; E-73 has 8-10, unsourced); Q-1050 answered by it. And people_days_r6 "no two
+meals within an hour" (child 28825, day 21): the economy's step laid a "bread and water brought along" meal 20 minutes after
+the household's meal (economy/plans.ts feed); the brought meal is now skipped when a meal is within the hour of it.
+NOT MERGED WITH IT (branch s13-relations2-brides): the redraw moves person ids, and people_days_r6 then fails 15 tests where
+the base fails 6; the 9 new are pinned people and days (21408 Karkišša d292, 39742 Ratukka d148 x2, 234 Maza, #9 Attemira,
+"on her hip", the safety net's bread and water 5894 d21, the 38-41 °C lane, the scribes' sons) and relations_plans' one
+laid negotiation (0 of 129 after the redraw). Re-pinning them (and the pinned people of the other people_days files, not
+run) was beyond the round's budget; the fix of the meal (above) is on s13-relations2.
