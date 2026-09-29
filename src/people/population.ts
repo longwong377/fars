@@ -1601,7 +1601,8 @@ export class Population {
       if (o === i || C.disputes.has(o) || !this.present(o, d) || this.sick(o, d) || this.ageOn(o, d) < 14) continue;
       if (p.job === 'builder' && !this.builderAvailable(o, d, C)) continue;
       C.disputes.set(i, { t, other: o, place, why }); C.disputes.set(o, { t, other: i, place, why });
-      this.relate(i, o, d, L.affinity.dispute);
+      // (once: a day's draw is recomputed after a load when the living world looks ahead past the saved day, D-340)
+      { const r = this.rel.get(this.relKey(i, o)); if (!r?.some(([x, v]) => x === d && v === L.affinity.dispute)) this.relate(i, o, d, L.affinity.dispute); }
     }
   }
   shearingToday(d: number) { let n = 0; for (const q of Object.values(this.quarters)) if (q.kind === 'village') { const day = this.shearDay(q.id); if (day === d) n++; } return n; }
@@ -1672,7 +1673,10 @@ export class Population {
   /** D-315 (UD-21): the stranger's deeds laid over the day plans (people/talk.ts TalkWorld; the sim sets it). The base plans
    *  and every planner's reading of the others' days stay pure: only plan() carries the stranger's steps */
   talk: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
-  plan(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  /** D-340 (UD-26): the economy's decisions laid over the day plans (people/economy/plans.ts EconPlans; the sim sets it):
+   *  the market, the lender, the court, the day's hire, the thief's night, the bondage. Under the stranger's steps */
+  econ: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); if (this.econ?.touches(pid, day)) b = this.econ.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }

@@ -30,6 +30,7 @@ import { v as specV } from '../arch/spec';
 import { TalkWorld, type Intent } from './talk';
 import { Economy } from './economy/world';
 import { householdsOf } from './economy/chains';
+import { EconPlans } from './economy/plans';
 import { LivingWorld } from './living/world';
 import type { Intent as EconIntent } from './economy/api';
 /** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
@@ -94,7 +95,8 @@ export interface Agent {
 /** straight-line → walked-route factor for abstract travel (C: the Terrace's stairs and doorways add detours) */
 export const ABSTRACT_DETOUR = 1.3;
 export interface SimEvent { t: number; kind: string; text: string; place: string; id?: string; tier?: string }
-export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean }
+export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean;
+  /** D-340: lay the economy's decisions over the day plans (default true) */ economy?: boolean }
 
 const H_PER_S = 1 / 3600;
 /** the slice's goods at the start (C): the Treasury's sacks at the depot and in its store; the camp's barley at the depot
@@ -138,6 +140,13 @@ export class PeopleSim {
   /** D-341: the economy is stepped day by day by the living world, with the people's talk entered into it (living/world.ts) */
   economy(): Economy { this.living.advance(Math.floor(this.t / 24)); return this.econCore(); }
   private econCore(): Economy { return this.econ ??= new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv }); }
+  /** D-340: what of the economy a save keeps: only the intents that are not the talk's (the talk's are re-derived from day 0 by the
+   *  living world, D-341), so a loaded world that has not yet stepped its economy saves the same bytes */
+  private econSave() { if (this.econ) return { econ: this.econ.snapshot(), living: this.living.save() }; const iv = this.econIv.filter(i => i.payload?.src !== 'talk'); return iv.length ? { econ: { seed: this.seed, intents: iv } } : {}; }
+  /** the economy stepped (by the living world, the talk entered) to at least day d: the day plans read a day's decisions (EconPlans, D-340) */
+  econTo(d: number): Economy { this.living.advance(d); return this.econCore(); }
+  /** D-340: the economy's decisions laid over the day plans (Population.plan; off with SimOpts.economy === false) */
+  readonly econPlans: EconPlans;
   readonly cal: EventCalendar;
   /** memory of the player (brief §9.5) */
   readonly memory = new PlayerMemory();
@@ -161,6 +170,7 @@ export class PeopleSim {
     this.cal = new EventCalendar(seed, this.pop, env, !!opts.court); this.pop.attach(this.cal);
     this.talk = new TalkWorld(this.pop, seed, id => id in PLACES); this.pop.talk = this.talk;
     this.living = new LivingWorld(this.pop, seed, () => this.econCore(), () => this.talk.events); this.talk.living = this.living;
+    this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
     this.talk.onChange = pid => { const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.planCache.delete(a); };
     for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
   }
@@ -691,7 +701,7 @@ export class PeopleSim {
 
   save() {
     const talk = this.talk.save(); // D-315: only when the stranger has done something (no event: the save is as before)
-    return { ...(talk ? { talk } : {}), ...(this.econ ? { econ: this.econ.snapshot(), living: this.living.save() } : {}), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
+    return { ...(talk ? { talk } : {}), ...this.econSave(), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
       events: this.events.slice(-SAVED_EVENTS).map(e => ({ ...e })), // the chronicle (translation layer) survives a reload (H workstream: T-H3r)
       // the route cache (5 m buckets: which route a trip takes depends on it) and the player's watching hours: without them a
       // loaded world went its own way within minutes (T-H3r)
@@ -704,7 +714,7 @@ export class PeopleSim {
     if (!s?.agents) return; this.t = s.t; this.stock = { ...INITIAL_STOCK, ...s.stock }; this.lastCaravanDay = s.lastCaravanDay; if (s.flows) this.flows = { ...s.flows }; if (s.lastGrainDay !== undefined) this.lastGrainDay = s.lastGrainDay;
     this.cal.ctx(Math.floor(s.t / 24)); // the calendar is deterministic: recompute to the saved day, then restore what the detailed people changed
     // D-344: with the talk state saved, the economy replays all its intents and the talk resumes; an older save re-derives (D-341)
-    this.econIv = s.econ ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : []; this.econ = null; if (s.living) this.living.load(s.living); else this.living.reset();
+    this.econIv = s.econ ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : []; this.econ = null; if (s.living) this.living.load(s.living); else this.living.reset(); this.econPlans.reset();
     if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }

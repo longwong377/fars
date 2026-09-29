@@ -194,6 +194,8 @@ export class LivingWorld {
     const hh = P.home(to, day);
     if (x.about !== undefined && x.about !== hh && HELP_ON.has(x.what ?? '') && (P.households[hh].kin.includes(x.about) || P.households[hh].q === P.households[x.about].q)) {
       const off = this.offer(E, x.what === 'cold_hearth' ? 'fuel' : x.what === 'death' ? 'kin' : 'help', x.about, hh, day);
+      // (D-340: the help answers the economy event the news was of: its intents name it, so the help joins that chain)
+      if (off && x.src.startsWith('econ:')) for (const i of off.intents) i.payload.causes = [+x.src.slice(5)];
       if (off && off.intents.every(i => i.kind !== 'visit' || x.what === 'death')) { T.intents = off.intents; T.kind = off.kind; T.target = `h:${x.about}`; T.news = { ...T.news!, acted: true } as any; this.talks.push(T); this.arrange(E, T); return; }
     }
     // a price heard: a house with grain beyond its year's bread sells some while grain is dear; a house in want buys when a
