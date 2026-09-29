@@ -8608,3 +8608,22 @@ e.g. `const causes = (i.payload.causes as string | undefined)?.split(',').map(Nu
 `this.ev(d, i.to, …, causes, i.from, …)` in applyIntent, and set the receiving household's `cause[kind]` to that event
 (food for grain, fuel for fuel, cash for silver, help for labour) so its later needs-driven events name it; the living
 world would then put `causes: '<econ event ids of the news heard>'` in the payload (e.g. illness → neighbour's gift).
+
+## D-344 (s13, living4): cheaper talk, more of it, workmates, childcare, news that acts; the talk state in the save (UD-24; T-E13)
+Profile (160 days, before): of 0.30 s a day, 0.23 s was laying errands (the doer's base plans for the next days 0.15 s,
+planCheck 0.09 s). Errand slots are now found in the planner's raw day (Population.rawPlan) and overlay() lays an errand only
+where the base day is free over its whole window (else it is counted 'laid but not in the executed plan'); planCheck is
+replaced by the rules it enforced for these errands (a free stretch, 08-17.5 h, no meal, no little one minded, the words fit the
+act: reasonOk, the dress of the base day kept). Company: workmates first (the same job and sub-job in the same quarter or
+village, confirmed by both raw days: 44 % of tries meet), then kin, three neighbours, friends; at most 450 meeting checks a day.
+Asks add childcare (a mother of a child under 5 with work away tomorrow, a neighbour woman keeps the child; the errand is not
+timed to her work: C, weak). Labour, tools, childcare and a watch kept change people's days, not stores: no economy intent.
+News acts: grain dear heard → a house with more than a year's bread sells a month's (economy trade, no market errand); grain
+brought heard → a house in want buys; a theft heard in the quarter → the house keeps watch by its store (errand); a death,
+illness, hunger, cold hearth heard by kin or quarter → help (as D-342); other news only passes on (counted without consequence
+at its last hand). Plain news enters nothing into the economy. Save hook (sim.ts save/load, two lines): the save carries
+`living` (the last 7 days' talks, errands, news, counters; ~1.1 MB at day 300) and the economy keeps all its intents; load steps
+the economy to the saved day and resumes. News intents and market trades take effect the day after (replay order).
+Measured (seed 1): 974 talks in days 150-156, 874 with a consequence (89.7 %); player news 6/6; save at 153 and load replay the
+week identically; a day-300 save loads in 3.6-7.2 s, of which the economy's replay of ~58 k intents is 3.0-5.8 s (economy/**:
+index intents by day and snapshot the stores instead of replaying, not done here); cost ~0.29 s a simulated day.
