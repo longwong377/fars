@@ -51,12 +51,12 @@ export class LivingWorld {
   readonly talks: LivingTalk[] = [];
   private laid = new Map<string, { h0: number; h1: number; segs: Seg[] }[]>();
   private overlaid = new Map<string, Seg[]>();
-  private news = new Map<number, News[]>(); private evSeen = 0; private gangs = new Map<number, number[]>();
+  private news = new Map<number, News[]>(); private evSeen = 0; private srcOf = new Map<number, string>(); private gangs = new Map<number, number[]>();
   private busy = new Set<string>();
   private byQ = new Map<string, number[]>();
   private upTo = -1; private running = false;
   /** plans asked for and talk simulated (for the dev overlay and the cost report) */
-  stats = { plans: 0, days: 0, asks: 0, offers: 0, meetings: 0, msMeet: 0, msArrange: 0, msEcon: 0 };
+  stats = { plans: 0, days: 0, asks: 0, offers: 0, meetings: 0, msMeet: 0, msArrange: 0, msEcon: 0, msCheck: 0 };
   constructor(readonly pop: Population, readonly seed: number, private econ: () => Economy, private playerEvents: () => PlayerEv[] = () => []) {
     for (const p of pop.persons) if (p.gang >= 0) (this.gangs.get(p.gang) ?? this.gangs.set(p.gang, []).get(p.gang)!).push(p.id);
     for (const H of pop.households) if (H.zone === 'town' || H.zone === 'plain') (this.byQ.get(H.q) ?? this.byQ.set(H.q, []).get(H.q)!).push(H.id);
@@ -89,9 +89,9 @@ export class LivingWorld {
   private eligible(i: number, day: number) { const P = this.pop, p = P.persons[i]; if (!p || !P.present(i, day) || P.ageOn(i, day) < 14 || p.sub.startsWith('court') || P.sick(i, day)) return false; const z = P.households[P.home(i, day)]?.zone; return z === 'town' || z === 'plain'; }
   private adultOf(h: number, day: number, k: number): number { const ms = this.pop.membersOn(h, day).filter(m => this.eligible(m, day)); return ms.length ? ms[h32(this.seed, S, h, day, k) % ms.length] : -1; }
   /** where two people's base plans put them together that day: the place and the hour (null: they do not meet) */
-  private meet(a: number, b: number, day: number) { const t = performance.now(); try { return this.meet0(a, b, day); } finally { this.stats.msMeet += performance.now() - t; } }
+  private meet(a: number, b: number, day: number) { const t = performance.now(); try { const r = this.meet0(a, b, day); const s = this.srcOf.get(b) ?? '?'; const st = this.stats as any; st['try_' + s] = (st['try_' + s] ?? 0) + 1; if (r) st['ok_' + s] = (st['ok_' + s] ?? 0) + 1; return r; } finally { this.stats.msMeet += performance.now() - t; } }
   private meet0(a: number, b: number, day: number): { place: string; h: number } | null {
-    const pa = this.plan(a, day), pb = this.plan(b, day);
+    const pa = this.pop.rawPlan(a, day), pb = this.pop.rawPlan(b, day); this.stats.plans += 2; // the planner's own days (cheaper than the relabelled base; the places are the same)
     for (const s of pa) {
       if (s.where === 'road' || s.where === 'away' || s.place.startsWith('@') || !MEET_ACTS.has(s.act)) continue;
       for (const t of pb) if (t.place === s.place && MEET_ACTS.has(t.act)) { const lo = Math.max(s.t0, t.t0), hi = Math.min(s.t1, t.t1); if (hi - lo >= 0.25) return { place: s.place, h: lo }; }
@@ -102,11 +102,11 @@ export class LivingWorld {
   /** the people this person may run into on a day: kin, neighbours of the quarter, workmates (same gang or work group) */
   private company(pid: number, day: number): number[] {
     const P = this.pop, p = P.persons[pid], h = P.home(pid, day), H = P.households[h]; const out: number[] = [];
-    for (const k of H.kin) { const a = this.adultOf(k, day, 1); if (a >= 0) out.push(a); }
-    const hs = this.byQ.get(H.q) ?? []; for (let k = 0; k < 3 && hs.length > 1; k++) { const n = hs[h32(this.seed, S, pid, day, 20 + k) % hs.length]; if (n !== h) { const a = this.adultOf(n, day, k); if (a >= 0) out.push(a); } }
+    for (const k of H.kin) { const a = this.adultOf(k, day, 1); if (a >= 0) { out.push(a); this.srcOf.set(a, 'kin'); } }
+    const hs = this.byQ.get(H.q) ?? []; for (let k = 0; k < 3 && hs.length > 1; k++) { const n = hs[h32(this.seed, S, pid, day, 20 + k) % hs.length]; if (n !== h) { const a = this.adultOf(n, day, k); if (a >= 0) { out.push(a); this.srcOf.set(a, 'nbr'); } } }
     const mates = p.gang >= 0 ? this.gangs.get(p.gang) ?? [] : p.group >= 0 ? P.groups[p.group]?.members ?? [] : [];
-    for (let k = 0; k < 2 && mates.length > 1; k++) { const m = mates[h32(this.seed, S, pid, day, 30 + k) % mates.length]; if (m !== pid && this.eligible(m, day)) out.push(m); }
-    for (const t of p.ties) if (this.eligible(t, day)) out.push(t);
+    for (let k = 0; k < 2 && mates.length > 1; k++) { const m = mates[h32(this.seed, S, pid, day, 30 + k) % mates.length]; if (m !== pid && this.eligible(m, day)) { out.push(m); this.srcOf.set(m, 'mate'); } }
+    for (const t of p.ties) if (this.eligible(t, day)) { out.push(t); this.srcOf.set(t, 'tie'); }
     return [...new Set(out)].filter(q => q !== pid && P.home(q, day) !== h);
   }
 
@@ -222,8 +222,8 @@ export class LivingWorld {
         segs.push({ ...sg(h0 + w, h0 + w + dur, T.target, ACT[T.kind], why, tgtWhere), ev: `living:${T.id}` });
         if (w > 0.01) segs.push(sg(h0 + w + dur, h1, `road:${s.where}`, 'walk', 'walking back', 'road'));
         for (const x of segs) if (s.wear) x.wear = s.wear;
-        if (++tries > 2) break; before ??= new Set(checkPlan(P, T.doer, d, base, null).map(x => x.kind));
-        if (checkPlan(P, T.doer, d, splice(base, h0, h1, segs), null).some(x => !before!.has(x.kind))) continue;
+        if (++tries > 1) break; const tc = performance.now(); before ??= new Set(checkPlan(P, T.doer, d, base, null).map(x => x.kind));
+        const bad = checkPlan(P, T.doer, d, splice(base, h0, h1, segs), null).some(x => !before!.has(x.kind)); this.stats.msCheck += performance.now() - tc; if (bad) continue;
         const k = `${T.doer}:${d}`; (this.laid.get(k) ?? this.laid.set(k, []).get(k)!).push({ h0, h1, segs }); this.overlaid.delete(k); this.busy.add(`${T.doer}:${d}:${s.t0}`);
         T.done = { day: d, h0, h1 }; for (const i of T.intents) { i.day = d; E.enter(i); } return;
       }

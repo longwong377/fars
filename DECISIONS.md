@@ -8599,7 +8599,10 @@ makes the hearer's house help (grain, fuel, or a condolence visit: an errand and
 stores first, else a day's labour (a sick house, a farming house at harvest or ploughing) or a tool lent (economy 'help'
 intents with no stores moved: an event and an errand only). Childcare asks are NOT built (the minding rules of planCheck).
 Measured (seed 1, days 150-156): 253 talks, 223 with a consequence (88.1 %); player news 6/6; save at day 153 and load
-replays the rest of the week identically (104 talks, 40 plans, economy events). Cost ~0.38 s a simulated day, from day 0.
+replays the rest of the week identically (104 talks, 40 plans, economy events). Meetings are checked on the planners' raw plans
+(Population.rawPlan: same places, ~4x cheaper); cost ~0.32 s a simulated day from day 0 (a first plan for day 150 costs ~50 s).
+Workmates are never tried in practice (town and plain people carry no gang or work group); meetings are kin 35 %, friends 38 %,
+neighbours 27 % successful.
 For the economy owner (not applied): to let talk start chains, Economy.applyIntent should take the causes from the intent,
 e.g. `const causes = (i.payload.causes as string | undefined)?.split(',').map(Number) ?? []` and pass them to every
 `this.ev(d, i.to, …, causes, i.from, …)` in applyIntent, and set the receiving household's `cause[kind]` to that event
