@@ -22,10 +22,16 @@ import type { Intent, NeedKind } from '../economy/api';
 import type { Economy } from '../economy/world';
 import { splice } from '../talk';
 import { checkPlan } from '../planCheck';
+import { dateOf } from '../calendar';
 
 const S = salt('living-talk');
 /** households in want who look for help each day (seeded share of the town's and the plain's), and the most talks a day */
-const ASK_SHARE = 0.03, MAX_MEETS = 60, CANDIDATES = 3;
+const ASK_SHARE = 0.03, MAX_MEETS = 120, CANDIDATES = 3;
+/** economy events that are talked of, and those at which kin and neighbours help (C) */
+const NEWSWORTHY = new Set(['death', 'illness', 'theft', 'robbed', 'default', 'suit', 'pledge_seized', 'debt_labour', 'loan', 'hunger', 'tax_arrears', 'cold_hearth', 'harvest_poor', 'repaid', 'acquitted', 'mourning']);
+const HELP_ON = new Set(['death', 'illness', 'hunger', 'cold_hearth', 'robbed', 'harvest_poor']);
+const TOOLS = ['sickle', 'mattock', 'hoe', 'axe', 'ladder', 'sieve'];
+type News = { src: string; hand: number; day: number; about?: number; what?: string };
 const FREE = new Set<ActivityId>(['rest', 'eat', 'talk', 'play', 'gamble', 'tend_body', 'queue', 'exchange', 'spin']);
 const MEET_ACTS = new Set<ActivityId>(['rest', 'eat', 'talk', 'queue', 'exchange', 'draw_water', 'wash', 'gamble', 'spin', 'field_work', 'garden_work', 'reap', 'thresh', 'tend_animals', 'herd', 'craft', 'weave', 'grind', 'bake', 'play']);
 const GRAIN_EAT = 0.55; // kg a day per eater: the economy's ration unit (economy/world.ts), for sizing what is given
@@ -35,6 +41,8 @@ export interface LivingTalk {
   /** the intents entered into the economy (the asker's side first) */
   intents: Intent[]; kind: Intent['kind']; doer: number; target: string;
   news?: { src: string; hand: number };
+  /** an ask that is not of stores: a day's labour, a tool lent */
+  label?: string;
   done?: { day: number; h0: number; h1: number }; why?: string;
 }
 type PlayerEv = { i: number; pid: number; day: number; ok: boolean; kind: string; newsFrom?: number };
@@ -43,13 +51,14 @@ export class LivingWorld {
   readonly talks: LivingTalk[] = [];
   private laid = new Map<string, { h0: number; h1: number; segs: Seg[] }[]>();
   private overlaid = new Map<string, Seg[]>();
-  private news = new Map<number, { src: string; hand: number; day: number }[]>();
+  private news = new Map<number, News[]>(); private evSeen = 0; private srcOf = new Map<number, string>(); private gangs = new Map<number, number[]>();
   private busy = new Set<string>();
   private byQ = new Map<string, number[]>();
   private upTo = -1; private running = false;
   /** plans asked for and talk simulated (for the dev overlay and the cost report) */
-  stats = { plans: 0, days: 0, asks: 0, offers: 0, meetings: 0, noNeed: 0 };
+  stats = { plans: 0, days: 0, asks: 0, offers: 0, meetings: 0, msMeet: 0, msArrange: 0, msEcon: 0, msCheck: 0 };
   constructor(readonly pop: Population, readonly seed: number, private econ: () => Economy, private playerEvents: () => PlayerEv[] = () => []) {
+    for (const p of pop.persons) if (p.gang >= 0) (this.gangs.get(p.gang) ?? this.gangs.set(p.gang, []).get(p.gang)!).push(p.id);
     for (const H of pop.households) if (H.zone === 'town' || H.zone === 'plain') (this.byQ.get(H.q) ?? this.byQ.set(H.q, []).get(H.q)!).push(H.id);
   }
   get day() { return this.upTo; }
@@ -62,7 +71,7 @@ export class LivingWorld {
     this.overlaid.set(k, segs); return segs;
   }
   /** after a load: everything is re-derived from day 0 (the sim gives a fresh economy) */
-  reset() { this.talks.length = 0; this.laid.clear(); this.overlaid.clear(); this.news.clear(); this.busy.clear(); this.upTo = -1; }
+  reset() { this.talks.length = 0; this.laid.clear(); this.overlaid.clear(); this.news.clear(); this.busy.clear(); this.upTo = -1; this.evSeen = 0; }
 
   // ---------------------------------------------------------------- the days
   /** run the economy and the talk up to `day` (inclusive); arrangements reach 3 days past it and are laid already */
@@ -72,7 +81,7 @@ export class LivingWorld {
       const E = this.econ();
       // player events first seen now: their news starts on the first day not yet simulated (fixed, and saved with the event)
       for (const e of this.playerEvents()) if (e.newsFrom === undefined) e.newsFrom = Math.max(e.day + 1, this.upTo + 1);
-      while (this.upTo < day) { const d = ++this.upTo; E.step(d); this.simulate(E, d); this.stats.days++; }
+      while (this.upTo < day) { const d = ++this.upTo; const t0 = performance.now(); E.step(d); this.stats.msEcon += performance.now() - t0; this.simulate(E, d); this.stats.days++; }
     } finally { this.running = false; }
   }
 
@@ -80,8 +89,9 @@ export class LivingWorld {
   private eligible(i: number, day: number) { const P = this.pop, p = P.persons[i]; if (!p || !P.present(i, day) || P.ageOn(i, day) < 14 || p.sub.startsWith('court') || P.sick(i, day)) return false; const z = P.households[P.home(i, day)]?.zone; return z === 'town' || z === 'plain'; }
   private adultOf(h: number, day: number, k: number): number { const ms = this.pop.membersOn(h, day).filter(m => this.eligible(m, day)); return ms.length ? ms[h32(this.seed, S, h, day, k) % ms.length] : -1; }
   /** where two people's base plans put them together that day: the place and the hour (null: they do not meet) */
-  private meet(a: number, b: number, day: number): { place: string; h: number } | null {
-    const pa = this.plan(a, day), pb = this.plan(b, day);
+  private meet(a: number, b: number, day: number) { const t = performance.now(); try { const r = this.meet0(a, b, day); const s = this.srcOf.get(b) ?? '?'; const st = this.stats as any; st['try_' + s] = (st['try_' + s] ?? 0) + 1; if (r) st['ok_' + s] = (st['ok_' + s] ?? 0) + 1; return r; } finally { this.stats.msMeet += performance.now() - t; } }
+  private meet0(a: number, b: number, day: number): { place: string; h: number } | null {
+    const pa = this.pop.rawPlan(a, day), pb = this.pop.rawPlan(b, day); this.stats.plans += 2; // the planner's own days (cheaper than the relabelled base; the places are the same)
     for (const s of pa) {
       if (s.where === 'road' || s.where === 'away' || s.place.startsWith('@') || !MEET_ACTS.has(s.act)) continue;
       for (const t of pb) if (t.place === s.place && MEET_ACTS.has(t.act)) { const lo = Math.max(s.t0, t.t0), hi = Math.min(s.t1, t.t1); if (hi - lo >= 0.25) return { place: s.place, h: lo }; }
@@ -89,43 +99,84 @@ export class LivingWorld {
     return null;
   }
 
+  /** the people this person may run into on a day: kin, neighbours of the quarter, workmates (same gang or work group) */
+  private company(pid: number, day: number): number[] {
+    const P = this.pop, p = P.persons[pid], h = P.home(pid, day), H = P.households[h]; const out: number[] = [];
+    for (const k of H.kin) { const a = this.adultOf(k, day, 1); if (a >= 0) { out.push(a); this.srcOf.set(a, 'kin'); } }
+    const hs = this.byQ.get(H.q) ?? []; for (let k = 0; k < 3 && hs.length > 1; k++) { const n = hs[h32(this.seed, S, pid, day, 20 + k) % hs.length]; if (n !== h) { const a = this.adultOf(n, day, k); if (a >= 0) { out.push(a); this.srcOf.set(a, 'nbr'); } } }
+    const mates = p.gang >= 0 ? this.gangs.get(p.gang) ?? [] : p.group >= 0 ? P.groups[p.group]?.members ?? [] : [];
+    for (let k = 0; k < 2 && mates.length > 1; k++) { const m = mates[h32(this.seed, S, pid, day, 30 + k) % mates.length]; if (m !== pid && this.eligible(m, day)) { out.push(m); this.srcOf.set(m, 'mate'); } }
+    for (const t of p.ties) if (this.eligible(t, day)) { out.push(t); this.srcOf.set(t, 'tie'); }
+    return [...new Set(out)].filter(q => q !== pid && P.home(q, day) !== h);
+  }
+
   private simulate(E: Economy, day: number) {
-    const P = this.pop;
+    const P = this.pop; let meets = 0;
     for (const [pid, l] of this.news) { const k = l.filter(x => day - x.day <= 3); if (k.length) this.news.set(pid, k); else this.news.delete(pid); }
     for (const e of this.playerEvents()) if (e.ok && e.kind !== 'hold' && e.newsFrom === day && this.eligible(e.pid, day)) this.carry(e.pid, { src: `player:${e.i}`, hand: 0, day });
-    // news: each carrier looks for kin or a friend among the day's company
-    for (const [pid, l] of [...this.news]) {
-      const x = l.find(y => y.hand < 3 && y.day < day + 1); if (!x) continue;
-      const p = P.persons[pid], H = P.households[P.home(pid, day)];
-      const cands = [...p.ties, ...H.kin.map(h => this.adultOf(h, day, 1))].filter(q => q >= 0 && q !== pid && this.eligible(q, day) && !(this.news.get(q) ?? []).some(y => y.src === x.src));
-      for (let k = 0; k < Math.min(CANDIDATES, cands.length); k++) {
-        const q = cands[(h32(this.seed, S, pid, day, k) + k) % cands.length]; const m = this.meet(pid, q, day); if (!m) continue;
-        const i: Intent = { kind: 'news', from: `h:${P.home(pid, day)}`, to: `h:${P.home(q, day)}`, day, payload: { src: 'talk', of: x.src } };
-        E.enter(i); this.carry(q, { src: x.src, hand: x.hand + 1, day });
-        this.talks.push({ id: this.talks.length, day, h: m.h, place: m.place, a: pid, b: q, intents: [i], kind: 'news', doer: q, target: `h:${P.home(q, day)}`, news: { src: x.src, hand: x.hand + 1 } });
-        break;
+    // what happened yesterday in the economy is news in the lanes: a death, an illness, a theft, a debt, a suit, hunger
+    for (; this.evSeen < E.events.length; this.evSeen++) {
+      const v = E.events[this.evSeen]; if (v.day < day - 1 || !NEWSWORTHY.has(v.kind) || !v.actor.startsWith('h:')) continue;
+      const h = +v.actor.slice(2); const H = P.households[h]; if (!H || (H.zone !== 'town' && H.zone !== 'plain')) continue;
+      const c = this.adultOf(h, day, 2); if (c >= 0) this.carry(c, { src: `econ:${v.id}`, hand: 0, day, about: h, what: v.kind });
+    }
+    // every carrier of fresh news tells someone they meet today
+    const hot = (l: News[]) => l.some(y => y.src.startsWith('player:') && y.hand < 3); // a stranger's doings are told first and harder
+    for (const [pid, l] of [...this.news].sort((a, b) => +hot(b[1]) - +hot(a[1]))) {
+      if (meets >= MAX_MEETS) break;
+      const x = l.find(y => y.hand < (y.src.startsWith('player:') ? 3 : 2)); if (!x || !this.eligible(pid, day)) continue;
+      const cands = this.company(pid, day).filter(q => !(this.news.get(q) ?? []).some(y => y.src === x.src));
+      for (let k = 0; k < Math.min(x.src.startsWith('player:') ? 6 : 2, cands.length) && meets < MAX_MEETS; k++) {
+        const q = cands[k]; meets++; const m = this.meet(pid, q, day); if (!m) continue; this.stats.meetings++;
+        this.tell(E, pid, q, x, m, day); this.ask(E, pid, q, m, day); break;
       }
     }
-    // wants: a seeded few households in want look for a giver they meet
-    let asks = 0;
-    for (const [q, hs] of this.byQ) for (const h of hs) {
-      if (asks >= MAX_MEETS) return;
-      if (u01(this.seed, S, h, day, 3) >= ASK_SHARE * 1) continue;
-      const needs = E.needsOf(`h:${h}`).filter(n => n.urgency >= 0.15 && n.kind !== 'water').sort((a, b) => b.urgency - a.urgency); if (!needs.length) continue;
-      const asker = this.adultOf(h, day, 0); if (asker < 0) continue; for (const n of needs) (this.stats as any)[`need_${n.kind}`] = ((this.stats as any)[`need_${n.kind}`] ?? 0) + 1;
-      this.stats.asks++;
-      const H = P.households[h]; const kinP = H.kin.filter(k => P.households[k] && (P.households[k].zone === 'town' || P.households[k].zone === 'plain')); const pool = [...kinP, ...hs.filter(x => x !== h)];
-      for (let k = 0; k < CANDIDATES && pool.length; k++) {
-        const g = pool[k < kinP.length ? k : h32(this.seed, S, h, day, 10 + k) % pool.length];
-        const offer = needs.map(n => this.offer(E, n.kind, h, g, day)).find(x => x) ?? null; if (!offer) continue; this.stats.offers++;
-        const giver = this.adultOf(g, day, 0); if (giver < 0) continue;
-        asks++; const m = this.meet(asker, giver, day); if (!m) continue; this.stats.meetings++;
-        const T: LivingTalk = { id: this.talks.length, day, h: m.h, place: m.place, a: asker, b: giver, intents: offer.intents, kind: offer.kind,
-          doer: offer.kind === 'visit' || offer.kind === 'work' ? asker : giver, target: offer.kind === 'visit' || offer.kind === 'work' ? `h:${g}` : `h:${h}` };
-        this.talks.push(T); this.arrange(E, T); break;
+    // wants: a seeded share of the town's and the plain's households look for help from the people they meet
+    for (const hs of this.byQ.values()) for (const h of hs) {
+      if (meets >= MAX_MEETS) return;
+      if (u01(this.seed, S, h, day, 3) >= ASK_SHARE) continue;
+      const asker = this.adultOf(h, day, 0); if (asker < 0) continue; this.stats.asks++;
+      const cands = this.company(asker, day);
+      for (let k = 0; k < Math.min(CANDIDATES, cands.length) && meets < MAX_MEETS; k++) {
+        meets++; const m = this.meet(asker, cands[k], day); if (!m) continue; this.stats.meetings++;
+        const fresh = (this.news.get(asker) ?? []).find(y => y.hand < 2 && !(this.news.get(cands[k]) ?? []).some(z => z.src === y.src));
+        if (fresh) this.tell(E, asker, cands[k], fresh, m, day);
+        this.ask(E, asker, cands[k], m, day) || this.ask(E, cands[k], asker, m, day); break;
       }
-      void q;
     }
+  }
+
+  /** news passed on: a talk event; if it is of want or loss at a house of the hearer's kin or quarter, the hearer's house
+   *  helps (an errand laid and entered into the economy); otherwise its consequence is its passing on (report()) */
+  private tell(E: Economy, from: number, to: number, x: News, m: { place: string; h: number }, day: number) {
+    const P = this.pop; this.carry(to, { ...x, hand: x.hand + 1, day });
+    const T: LivingTalk = { id: this.talks.length, day, h: m.h, place: m.place, a: from, b: to, intents: [], kind: 'news', doer: to, target: `h:${P.home(to, day)}`, news: { src: x.src, hand: x.hand + 1 } };
+    const hh = P.home(to, day);
+    if (x.about !== undefined && x.about !== hh && HELP_ON.has(x.what ?? '') && (P.households[hh].kin.includes(x.about) || P.households[hh].q === P.households[x.about].q)) {
+      const off = this.offer(E, x.what === 'cold_hearth' ? 'fuel' : x.what === 'death' ? 'kin' : 'help', x.about, hh, day);
+      if (off && off.intents.every(i => i.kind !== 'visit' || x.what === 'death')) { T.intents = off.intents; T.kind = off.kind; T.target = `h:${x.about}`; T.news = { ...T.news!, acted: true } as any; this.talks.push(T); this.arrange(E, T); return; }
+    }
+    const i: Intent = { kind: 'news', from: `h:${P.home(from, day)}`, to: `h:${hh}`, day, payload: { src: 'talk', of: x.src } }; E.enter(i); T.intents = [i];
+    this.talks.push(T);
+  }
+
+  /** an ask between two who met: spare stores first, else a day's labour or the loan of a tool; true when something is agreed */
+  private ask(E: Economy, asker: number, giver: number, m: { place: string; h: number }, day: number): boolean {
+    const P = this.pop, h = P.home(asker, day), g = P.home(giver, day);
+    const needs = E.needsOf(`h:${h}`).filter(n => n.urgency >= 0.15 && n.kind !== 'water').sort((a, b) => b.urgency - a.urgency);
+    let offer = needs.map(n => this.offer(E, n.kind, h, g, day)).find(x => x) ?? null;
+    let label = '';
+    if (!offer) { // labour: a sick house, or a farming house at the harvest and the ploughing, asks for hands; else a tool (C)
+      const sick = needs.some(n => n.kind === 'help'); const A = E.hh.get(`h:${h}`); const month = (dateOf(day) as any).month as number;
+      if (sick || (A?.kind === 'farmer' && (month === 1 || month === 2 || month === 7 || month === 8) && u01(this.seed, S, h, day, 40) < 0.5)) { offer = { kind: 'work', intents: [{ kind: 'help', from: `h:${g}`, to: `h:${h}`, day, payload: { labour: 1, src: 'talk' } }] }; label = 'labour'; }
+      else if (u01(this.seed, S, h, day, 41) < 0.35) { offer = { kind: 'loan', intents: [{ kind: 'help', from: `h:${g}`, to: `h:${h}`, day, payload: { tool: TOOLS[h32(this.seed, S, h, day) % TOOLS.length], src: 'talk' } }] }; label = 'tool'; }
+    }
+    if (!offer) return false; this.stats.offers++;
+    const helpsAtHome = offer.kind === 'work' || label === 'tool';
+    const T: LivingTalk = { id: this.talks.length, day, h: m.h, place: m.place, a: asker, b: giver, intents: offer.intents, kind: offer.kind, label: label || undefined,
+      doer: offer.kind === 'visit' || (offer.kind === 'work' && !label) ? asker : giver, target: offer.kind === 'visit' || (offer.kind === 'work' && !label) ? `h:${g}` : `h:${h}` };
+    void helpsAtHome;
+    this.talks.push(T); this.arrange(E, T); return true;
   }
 
   /** what the giver's house can spare for this want, as economy intents (asker's side, giver's side); null: nothing to spare */
@@ -154,31 +205,32 @@ export class LivingWorld {
   }
 
   /** lay the errand into the doer's plan on a free stretch of the next three days, and enter the intents for that day */
-  private arrange(E: Economy, T: LivingTalk) {
+  private arrange(E: Economy, T: LivingTalk) { const t = performance.now(); try { this.arrange0(E, T); } finally { this.stats.msArrange += performance.now() - t; } }
+  private arrange0(E: Economy, T: LivingTalk) {
     const P = this.pop;
     for (let d = T.day + 1; d <= T.day + 3; d++) {
       if (!this.eligible(T.doer, d) || P.mourning(T.doer, d)) continue;
-      const base = this.plan(T.doer, d); const tgtWhere = this.whereOf(T.target); let before: Set<string> | null = null;
+      const base = this.plan(T.doer, d); const tgtWhere = this.whereOf(T.target); let before: Set<string> | null = null; let tries = 0;
       for (const s of base) {
         if (!FREE.has(s.act) || s.where === 'road' || s.where === 'away' || s.place.startsWith('@') || s.t0 < 7 || s.t1 > 20.5) continue;
         if (this.busy.has(`${T.doer}:${d}:${s.t0}`)) continue;
         const w = s.place === T.target ? 0 : P.walkH(s.place, T.target, d, s.where, tgtWhere); const dur = STAY[T.kind];
         if (s.t1 - s.t0 < 2 * w + dur) continue;
         const h0 = s.t0, h1 = h0 + 2 * w + dur; const good = String(T.intents[0].payload.grain !== undefined ? 'grain' : T.intents[0].payload.fuel !== undefined ? 'fuel' : T.intents[0].payload.cash !== undefined ? 'cash' : 'none');
-        const why = WHY[T.kind](good); const segs: Seg[] = [];
+        const why = T.label === 'tool' ? `taking the ${T.intents[0].payload.tool} lent to a neighbour` : WHY[T.kind](good); const segs: Seg[] = [];
         if (w > 0.01) segs.push(sg(h0, h0 + w, `road:${tgtWhere}`, 'walk', `${why}: on the way`, 'road'));
         segs.push({ ...sg(h0 + w, h0 + w + dur, T.target, ACT[T.kind], why, tgtWhere), ev: `living:${T.id}` });
         if (w > 0.01) segs.push(sg(h0 + w + dur, h1, `road:${s.where}`, 'walk', 'walking back', 'road'));
         for (const x of segs) if (s.wear) x.wear = s.wear;
-        before ??= new Set(checkPlan(P, T.doer, d, base, null).map(x => x.kind));
-        if (checkPlan(P, T.doer, d, splice(base, h0, h1, segs), null).some(x => !before!.has(x.kind))) continue;
+        if (++tries > 1) break; const tc = performance.now(); before ??= new Set(checkPlan(P, T.doer, d, base, null).map(x => x.kind));
+        const bad = checkPlan(P, T.doer, d, splice(base, h0, h1, segs), null).some(x => !before!.has(x.kind)); this.stats.msCheck += performance.now() - tc; if (bad) continue;
         const k = `${T.doer}:${d}`; (this.laid.get(k) ?? this.laid.set(k, []).get(k)!).push({ h0, h1, segs }); this.overlaid.delete(k); this.busy.add(`${T.doer}:${d}:${s.t0}`);
         T.done = { day: d, h0, h1 }; for (const i of T.intents) { i.day = d; E.enter(i); } return;
       }
     }
     T.why = 'no free stretch in the doer’s next three days';
   }
-  private carry(pid: number, x: { src: string; hand: number; day: number }) { const l = this.news.get(pid) ?? this.news.set(pid, []).get(pid)!; if (!l.some(y => y.src === x.src)) l.push(x); }
+  private carry(pid: number, x: News) { const l = this.news.get(pid) ?? this.news.set(pid, []).get(pid)!; if (!l.some(y => y.src === x.src)) l.push(x); }
   private whereOf(place: string): Where { if (place.startsWith('h:')) { const H = this.pop.households[+place.slice(2)]; return H?.zone === 'plain' ? 'plain' : 'town'; } return 'town'; }
 
   // ---------------------------------------------------------------- the measure (T-E13)
@@ -191,14 +243,14 @@ export class LivingWorld {
     const ts = this.talks.filter(t => t.day >= d0 && t.day <= d1); let withC = 0; const byKind: Record<string, [number, number]> = {}; const why: Record<string, number> = {};
     for (const t of ts) {
       let ok = false, w = t.why ?? '';
-      if (t.news) { ok = t.news.hand < 3 && this.talks.some(u => u.news?.src === t.news!.src && u.a === t.b && u.day <= t.day + 3 && u.id > t.id); if (!ok) w = t.news.hand >= 3 ? 'news at its last hand' : 'news not passed on'; }
+      if (t.news && !t.done) { ok = t.news.hand < 3 && this.talks.some(u => u.news?.src === t.news!.src && u.a === t.b && u.day <= t.day + 3 && u.id > t.id); if (!ok) w = t.news.hand >= (t.news.src.startsWith('player:') ? 3 : 2) ? 'news at its last hand' : 'news not passed on'; }
       else if (t.done) {
         const inPlan = this.pop.plan(t.doer, t.done.day).some(s => s.ev === `living:${t.id}`);
         const inEcon = t.intents.every(i => evKey.has(`${t.done!.day}|${i.to}|${i.from}`));
         ok = inPlan && inEcon; if (!ok) w = !inPlan ? 'laid but not in the executed plan' : 'no economy event';
       }
       if (ok) { withC++; w = 'carried out'; } why[w] = (why[w] ?? 0) + 1;
-      const k = byKind[t.kind] ?? (byKind[t.kind] = [0, 0]); k[1]++; if (ok) k[0]++;
+      const kk = t.news ? (t.done ? 'news→help' : 'news') : t.label ?? t.kind; const k = byKind[kk] ?? (byKind[kk] = [0, 0]); k[1]++; if (ok) k[0]++;
     }
     const pe = this.playerEvents().filter(e => e.ok && e.kind !== 'hold' && e.day >= d0 && e.day <= d1);
     const reached = pe.filter(e => this.talks.some(u => u.news?.src === `player:${e.i}` && u.day <= (e.newsFrom ?? e.day) + 3)).length;

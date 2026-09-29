@@ -8588,3 +8588,23 @@ the giver's (payload.src = 'talk'; the giver's stores go down). On load the talk
 saved interventions and re-derived. Player deeds carry `newsFrom` (the first day not yet simulated when first seen, saved
 with the event). Economy events from talk carry no causes (applyIntent takes none): the talk changes the economy's state and
 so its later course, but a chain cannot yet name a talk as its cause (economy change, not made here). Cost ~0.27 s a day.
+
+## D-342 (s13, living3): talk volume, news of what happened, labour and tools; save/load replay (UD-24; T-E13)
+living/world.ts: people meet their company (kin, three neighbours of the quarter, two workmates of the gang or work group,
+friends: Population ties), each meeting confirmed in both base plans (at most 120 meeting checks a day). News is what happened:
+yesterday's economy events of a town or plain house (death, illness, theft, robbery, default, suit, seizure, debt labour,
+loan, hunger, tax arrears, cold hearth, poor harvest, repayment, acquittal) are carried by one of its adults and told at every
+meeting, two hands on (the stranger's doings three, told first); news of want or loss at a house of the hearer's kin or quarter
+makes the hearer's house help (grain, fuel, or a condolence visit: an errand and two economy intents). Asks at a meeting: spare
+stores first, else a day's labour (a sick house, a farming house at harvest or ploughing) or a tool lent (economy 'help'
+intents with no stores moved: an event and an errand only). Childcare asks are NOT built (the minding rules of planCheck).
+Measured (seed 1, days 150-156): 253 talks, 223 with a consequence (88.1 %); player news 6/6; save at day 153 and load
+replays the rest of the week identically (104 talks, 40 plans, economy events). Meetings are checked on the planners' raw plans
+(Population.rawPlan: same places, ~4x cheaper); cost ~0.32 s a simulated day from day 0 (a first plan for day 150 costs ~50 s).
+Workmates are never tried in practice (town and plain people carry no gang or work group); meetings are kin 35 %, friends 38 %,
+neighbours 27 % successful.
+For the economy owner (not applied): to let talk start chains, Economy.applyIntent should take the causes from the intent,
+e.g. `const causes = (i.payload.causes as string | undefined)?.split(',').map(Number) ?? []` and pass them to every
+`this.ev(d, i.to, …, causes, i.from, …)` in applyIntent, and set the receiving household's `cause[kind]` to that event
+(food for grain, fuel for fuel, cash for silver, help for labour) so its later needs-driven events name it; the living
+world would then put `causes: '<econ event ids of the news heard>'` in the payload (e.g. illness → neighbour's gift).
