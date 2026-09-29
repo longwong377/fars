@@ -88,3 +88,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-339 | s13 | talk that changes the world, living_world test (UD-24, T-E13; Q-1005..Q-1009, B199..B201) | agent worktree, branch s13-living | merged session 13 |
 | D-340 | s13 | economy in the day plans, deeper crises (UD-26, T-F9; Q-1010..Q-1014, B202..B204) | agent worktree, branch s13-econplans | in flight |
 | D-341 | s13 | talk on the real economy, deterministic windows (UD-24, T-E13; Q-1015..Q-1019, B205..B207) | agent worktree, branch s13-living2 | merged session 13 |
+| D-342 | s13 | talk volume, news on every meeting, save/load replay test (UD-24, T-E13; Q-1020..Q-1024, B208..B210) | agent worktree, branch s13-living3 | in flight |
