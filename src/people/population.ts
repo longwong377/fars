@@ -2462,7 +2462,12 @@ class Planner {
       let tt = this.p.job === 'guard' ? cand(true) : -1; if (tt < 0) tt = cand(false);
       if (tt < 0) { tt = at; let i = segs.findIndex(s => tt < s.t1); while (i >= 0 && i < segs.length && segs[i].where === 'road') { tt = segs[i].t1; i++; } if (i >= 0 && i < segs.length && segs[i].act === 'sleep' && segs[i].t0 > wake) tt = segs[i].t0; if (!clearOf(tt)) tt = -2; }
       const sh = tt >= 0 ? segAt(segs, tt) : null, bw = sh && outdoors(sh) && /out of the rain/.test(sh.why) && wetHours(this.C.wx, tt, tt + 0.35) > 0 ? 'bread and water, out of the rain' : 'bread and water'; // (in the fold's shelter: planCheck (a))
+      // (D-349: a short spell is not cut in two by the bread: it is eaten at the spell's end; and insertAt steps past the road,
+      // the water and the bread, so where it lands is checked again: servant 5894, day 21, 23 min before the household's midday meal)
+      if (tt >= 0) { const q = segAt(segs, tt); if (q.t1 - q.t0 < 1 && tt > q.t0 + 0.05 && q.t1 - tt > 0.4 && q.act !== 'sleep' && clearOf(q.t1)) tt = q.t1; }
+      const snap = segs.slice();
       let t = tt === -2 ? -1 : this.insertAt(segs, tt, 0.35, 'eat', bw, s => s.act === 'stand_guard' || s.act === 'patrol' || (s.act === 'sleep' && tt > s.t0 + 1e-6));
+      if (t >= 0 && !clearOf(t)) { segs.splice(0, segs.length, ...snap); return; }
       // a guard with no free moment in the gap eats the bread he carried up at his post, in the middle of the watch (as a man
       // with no patrol to relieve him does: D-136); the soak on D-175 found 8.1-8.2 h between the family's midday meal before
       // an afternoon watch and a meal relief at about 21:00
@@ -2796,7 +2801,7 @@ class Planner {
       if (u < 0.3) { const v = this.visitTarget(); if (v) { this.go(v.place, v.where, 'visiting'); this.add(this.t + r.range(1, 2.5), v.place, 'talk', `visiting ${v.name}`, v.where); this.go(this.home, this.homeW); } }
       else if (u < 0.5) { if (!dustAt(this.t, this.t + 1.5)) { const l = `lane:${this.hh.q}`; this.go(l, this.homeW); this.add(this.t + r.range(0.5, 1.5), l, 'exchange', 'exchanging ration goods in kind', this.homeW); this.go(this.home, this.homeW); } }
       else if (u < 0.65 && p.sex === 'f' && this.canDraw()) this.well(this.t + 0.4, 'fetching water');
-      else if (u < 0.8 && p.sex === 'm' && !dustAt(this.t, this.t + 2)) { const l = `lane:${this.hh.q}`; this.go(l, this.homeW); this.add(this.t + r.range(0.8, 2), l, 'gamble', 'knucklebones in the lane', this.homeW); this.go(this.home, this.homeW); }
+      else if (u < 0.8 && p.sex === 'm' && !dustAt(this.t, this.t + 2)) { const l = `lane:${this.hh.q}`; this.go(l, this.homeW); this.add(this.t + Math.min(r.range(0.8, 2), 2 - this.P.walkH(l, this.home, this.d, this.homeW, this.homeW)), l, 'gamble', 'knucklebones in the lane', this.homeW); /* (D-349: with the walk home at most 2 h: a walk home and out again folds into it; 3096, day 84) */ this.go(this.home, this.homeW); }
     }
     const hw = stayIn || /^at home/.test(why) ? why : `at home: ${why}`;
     if (this.t < this.hd.noon - 0.3) { if (p.sex === 'f' && this.adult()) this.homeHours(this.hd.noon, hw); else if (p.sex === 'm' && this.adult() && !stayIn) this.homeHours(this.hd.noon, hw); else this.atHome(this.hd.noon, 'rest', hw); }
@@ -3325,7 +3330,8 @@ class Planner {
       if (x.post) { const i = GUARD_POSTS.indexOf(x.post); const b = brk(i);
         if (b > this.t + 0.1 && b + GR.break_h < t1 - 0.1) { this.add(b, x.post, 'stand_guard', 'on watch', 'terrace');
           if (patrol[i < 8 ? 0 : 1] !== undefined) this.add(b + GR.break_h, hearth, 'eat', 'bread and water at the hearth, relieved at the post', 'terrace');
-          else this.add(b + 0.25, x.post, 'eat', 'bread and water at the post (no man of the patrol to relieve him)', 'terrace'); }
+          else { const bb = Math.max(b, this.segs.reduce((m, q) => q.act === 'eat' ? Math.max(m, q.t1) : m, -9) + 1); // (D-349: not within the hour of his breakfast: 313, day 341, 59 min after it)
+            if (bb + 0.25 < t1 - 0.1) { if (bb > b) this.add(bb, x.post, 'stand_guard', 'on watch', 'terrace'); this.add(bb + 0.25, x.post, 'eat', 'bread and water at the post (no man of the patrol to relieve him)', 'terrace'); } } }
         this.add(t1, x.post, 'stand_guard', 'on watch', 'terrace'); return; }
       if (p.rank === 1) { // the leader of ten (S3, Q-147): the watch's schedule is a function of the watch itself (both halves of a night watch agree)
         for (const [a, b, k] of leaderWatch(rd, x.watch)) { const B = Math.min(t1, w0 + b); if (B <= this.t + 1e-6) continue;

@@ -8801,3 +8801,26 @@ the base fails 6; the 9 new are pinned people and days (21408 Karkišša d292, 3
 "on her hip", the safety net's bread and water 5894 d21, the 38-41 °C lane, the scribes' sons) and relations_plans' one
 laid negotiation (0 of 129 after the redraw). Re-pinning them (and the pinned people of the other people_days files, not
 run) was beyond the round's budget; the fix of the meal (above) is on s13-relations2.
+D-349 (s13 agent brides; branch s13-brides = 032df61d + 902ebbaf, the adult-brides redraw): the redraw merged; what it broke,
+fixed or re-pinned. (1) The families' agreement (relations/plans.ts): before the redraw it was laid on 1 of 129 agreement
+days, after it 0; the cause (tools/dev/negotiate_trace.ts, seed 1): a groom and a bride's father who both work are free together
+only after work, and the meeting was held to 8-17.5 h, on a half-hour grid, and kept out of the hours "with the household".
+Now the agreement alone may be held to 21 h (after the evening meal, as the town's evening visits already are), is fitted to
+the six minutes, may take the hours with the household, and joins touching free stretches at one place: laid on 44 of 157
+agreements (the rest: the bride never 1.5 h free at home, 31, or the groom busy). Courting and lovers keep 8-17.5 and the
+half-hour grid (unchanged). relations_plans: its daylight check is now per kind (agreements to 21 h), and the agreement test
+asks for 12 laid (it breaks at 12) where it asked for 1. (2) Re-pins in people_days_r6 (tools/dev/repin_find.ts: the first ids
+that show the test's own property; the checks unchanged): 21408 Karkišša d291 -> 7036 (a farmer of the plain kept in by the
+rain); 39742 Ratukka d147 -> 4544 (a girl of one, her mother 4537 ill: the shadow tool's line now matches "4537 homemaker f38
+(ill today)"); 1906 d232 -> 3298 (a boy of eight with a day of his own); 234 Maza d343 / 2868 Utira d238 -> 2 / 3 (the
+little one minded is with them). (3) Four of the "new" failures were not moved ids but planner faults the new people showed,
+fixed at the cause (population.ts): the meals' safety net checked its time before insertAt stepped past the road, the water
+and the bread, so it landed 23 min before a servant's midday meal (5894 d21): the landed time is checked again and the net
+undone if it is within the hour; it no longer cuts a spell under 1 h in two (it goes at the spell's end: an elder's "little
+grinding" counted twice, 19329 d101); a guard with no patrol to relieve him eats his bread at the post no sooner than an hour
+after his breakfast (313 d341, 59 min); the men's morning knucklebones in the lane last at most 2 h with the walk home
+(3096 d84, 2.08 h). Result: people_days_r6 7 failed / 25 passed (base 032df61d: 6 failed, the same 6); the one new is
+"the little ones" (B229). NOT DONE: the other ten people_days files fail 34 tests on this branch (a 2-worker run on a loaded
+box; many are pinned people: 22239, 18904, 31224, 41397, 27094, #28/78, #104/324, 3885, 46220, 17959, 44627, 44216, 1888,
+#114/1287, 2036, household 9660, guard #76); the base was not run on them (a 1-worker base run was stopped for the budget),
+so which are new is not known (B230). The baked prose rows stay skipped by their who-check until re-baked (902ebbaf).
