@@ -19,28 +19,34 @@ const sg = (t0: number, t1: number, place: string, act: ActivityId, why: string,
 interface Lay { h0: number; h1: number; segs: Seg[]; meet: Meet }
 
 export class RelPlans {
-  private days = new Map<number, Map<number, Lay[]>>();
+  /** each day's meetings by person (the first of the day for each person is the one laid: no order of asking matters) */
+  private idx = new Map<number, { by: Map<number, Meet[]>; first: Map<number, Meet> }>();
+  private laidOf = new Map<Meet, [number, Lay][] | null>();
   private overlaid = new Map<string, Seg[]>();
   stats = { meets: 0, laid: 0 };
   constructor(readonly rel: Relations, readonly pop: Population) {}
-  touches(pid: number, day: number) { return this.day(day).has(pid); }
+  touches(pid: number, day: number) { return this.index(day).by.has(pid); }
   dueOf(pid: number, day: number) { return this.rel.dueOf(pid, day); }
   overlay(pid: number, day: number, base: Seg[]): Seg[] {
     const k = `${pid}:${day}`; const c = this.overlaid.get(k); if (c) return c;
-    let segs = base; for (const L of this.day(day).get(pid) ?? []) { const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (over.length && over.every(free)) segs = splice(segs, L.h0, L.h1, L.segs); }
+    let segs = base; for (const m of this.index(day).by.get(pid) ?? []) for (const [who, L] of this.layOf(m) ?? []) { if (who !== pid) continue;
+      const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (over.length && over.every(free)) segs = splice(segs, L.h0, L.h1, L.segs); }
     if (this.overlaid.size > 20000) this.overlaid.clear(); this.overlaid.set(k, segs); return segs;
   }
   /** the day's meetings as laid (pid → its parts): for the tests and the dev overlay */
-  lays(day: number) { return this.day(day); }
+  lays(day: number) { const m = new Map<number, Lay[]>(); this.index(day); for (const x of this.rel.meets.get(day) ?? []) for (const [pid, L] of this.layOf(x) ?? []) (m.get(pid) ?? m.set(pid, []).get(pid)!).push(L); return m; }
   /** after a player act replays the relations (their meetings may change) */
-  reset() { this.days.clear(); this.overlaid.clear(); }
+  reset() { this.idx.clear(); this.laidOf.clear(); this.overlaid.clear(); }
 
-  private day(d: number): Map<number, Lay[]> {
-    let m = this.days.get(d); if (m) return m; this.rel.advance(d); m = new Map(); this.days.set(d, m); if (this.days.size > 30) this.days.delete(this.days.keys().next().value!);
-    const busy = new Set<number>();
-    for (const x of this.rel.meets.get(d) ?? []) { this.stats.meets++; const parts = this.lay(x, d, busy); if (!parts) continue; this.stats.laid++;
-      for (const [pid, L] of parts) { busy.add(pid); (m.get(pid) ?? m.set(pid, []).get(pid)!).push(L); } }
-    return m;
+  private index(d: number) {
+    let x = this.idx.get(d); if (x) return x; this.rel.advance(d); x = { by: new Map(), first: new Map() }; this.idx.set(d, x); if (this.idx.size > 60) { const k = this.idx.keys().next().value!; for (const m of this.rel.meets.get(k) ?? []) this.laidOf.delete(m); this.idx.delete(k); }
+    for (const m of this.rel.meets.get(d) ?? []) for (const p of [m.a, m.b, m.c, m.hostKin]) { if (p === undefined) continue; (x.by.get(p) ?? x.by.set(p, []).get(p)!).push(m); if (!x.first.has(p)) x.first.set(p, m); }
+    return x;
+  }
+  private layOf(m: Meet) {
+    if (this.laidOf.has(m)) return this.laidOf.get(m)!; const x = this.index(m.day); this.stats.meets++;
+    const parts = [m.a, m.b].every(p => x.first.get(p) === m) ? this.lay(m, m.day, new Set([m.c, m.hostKin].filter((p): p is number => p !== undefined && x.first.get(p) !== m))) : null;
+    if (parts) this.stats.laid++; this.laidOf.set(m, parts); return parts;
   }
   private where(h: number): Where { return this.pop.households[h]?.zone === 'plain' ? 'plain' : 'town'; }
   /** a visitor's part: walk there, the stay, walk back, within one free stretch of his base day */
@@ -57,7 +63,7 @@ export class RelPlans {
     if (!s || !free(s) || (atHome && s.place !== home)) return null; return [pid, { h0: a, h1: b, segs: [sg(a, b, place, 'talk', why, W, withP)], meet }];
   }
   private lay(x: Meet, d: number, busy: Set<number>): [number, Lay][] | null {
-    const P = this.pop; if ([x.a, x.b, x.c, x.hostKin].some(p => p !== undefined && busy.has(p))) return null;
+    const P = this.pop; // (busy: the companions who have another meeting first that day)
     // (the relations' own weddings move a bride by homeOf; the plans still keep her in her old house: the meeting is at the plans' house)
     const hh = P.home(x.b, d), H = P.households[hh]; if (!H || (H.zone !== 'town' && H.zone !== 'plain')) return null;
     const W = this.where(hh), home = H.home, lane = `lane:${H.q}`;
@@ -73,8 +79,8 @@ export class RelPlans {
         if (x.kind === 'court') { const h = this.host(x.b, d, home, W, a, b, 'talking with her suitor, her family by', x.a, x); const v = h && this.visit(x.a, d, home, W, a, b, 'visiting her family’s house, courting her', x.b, x); if (!h || !v) continue; parts.push(h, v); }
         else if (x.kind === 'lovers') { const h = this.host(x.b, d, lane, W, a, b, 'talking apart in the lane with a lover', x.a, x); const v = h && this.visit(x.a, d, lane, W, a, b, 'talking apart in the lane with a lover', x.b, x); if (!h || !v) continue; parts.push(h, v); }
         else { const h = this.host(x.b, d, home, W, a, b, 'talking over the marriage with his family: the bride-gift and the dowry', x.a, x); const v = h && this.visit(x.a, d, home, W, a, b, 'visiting her father’s house to agree the marriage: the bride-gift and the dowry', x.b, x); if (!h || !v) continue; parts.push(h, v);
-          if (x.hostKin !== undefined) { const k = this.host(x.hostKin, d, home, W, a, b, 'talking over the marriage of the daughter of the house with the groom’s family', x.a, x); if (k) parts.push(k); }
-          if (x.c !== undefined) { const c = this.visit(x.c, d, home, W, a, b, 'visiting the bride’s house with his son to agree the marriage', x.a, x); if (c) parts.push(c); } }
+          if (x.hostKin !== undefined && !busy.has(x.hostKin)) { const k = this.host(x.hostKin, d, home, W, a, b, 'talking over the marriage of the daughter of the house with the groom’s family', x.a, x); if (k) parts.push(k); }
+          if (x.c !== undefined && !busy.has(x.c)) { const c = this.visit(x.c, d, home, W, a, b, 'visiting the bride’s house with his son to agree the marriage', x.a, x); if (c) parts.push(c); } }
         return parts;
       }
     }

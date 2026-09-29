@@ -73,10 +73,12 @@ export class Relations {
   private pendingShow: [number, number, number][] = [];
   private week = -1;
   stats = { pairs: 0, slights: 0, helps: 0, bedWeeks: 0, newsTold: 0, intents: 0 };
-  constructor(readonly pop: Population, readonly seed: number, readonly opts: RelOpts = {}) { this.reset(); }
+  constructor(readonly pop: Population, readonly seed: number, readonly opts: RelOpts = {}) {} // (the layer is built on first use: a Simulation that never asks pays nothing)
+  private ready = false;
+  private ensure() { if (!this.ready) this.reset(); }
 
   // ================================================================ set-up
-  private reset() {
+  private reset() { this.ready = true;
     this.pairs.clear(); this.player.clear(); this.events.length = 0; this.news.length = 0; this.pregnancies.length = 0; this.meets.clear(); this.wed.clear(); this.homeOv.clear(); this.rep.clear();
     this.arranged.clear(); this.ownWed.clear(); this.busy.clear(); this.pendingShow = [];
     this.moodEv.clear(); this.pregBy.clear(); this.bedWeeks.clear(); this.lovBed.clear(); this.week = -1; this.contacts.clear(); this.edges = [];
@@ -131,7 +133,7 @@ export class Relations {
     return Math.max(u1, u2) >= REL.advanceDesire || Math.min(u1, u2) >= Math.min(REL.courtDesire, REL.affairDesire); }
   private canDesire(a: number, b: number) { const same = this.pop.persons[a].sex === this.pop.persons[b].sex, oa = this.orient(a), ob = this.orient(b);
     return (same ? oa !== 'o' || ob !== 'o' : oa !== 's' || ob !== 's') && !this.closeKin(a, b); }
-  getPair(a: number, b: number) { return a === PLAYER ? this.player.get(b) : b === PLAYER ? this.player.get(a) : this.pairs.get(key(a, b)); }
+  getPair(a: number, b: number) { this.ensure(); return a === PLAYER ? this.player.get(b) : b === PLAYER ? this.player.get(a) : this.pairs.get(key(a, b)); }
   /** the player's pair with a person (created on first meeting) */
   private ppair(pid: number, d: number): Pair { let pr = this.player.get(pid); if (!pr) { pr = { a: PLAYER, b: pid, kind: 'player', c: 2 * u01(this.seed, S.pl, pid, 1) - 1, h: 0, hw: -1, fam: 0, aff: 0, trust: 0, status: 'none', since: d, weeks: 0, cool: 0, intimate: 0, lastBed: -99, wedDay: 1e9, discovered: false }; this.player.set(pid, pr); } return pr; }
   /** temperament fit: -1..1, fixed per pair (C) */
@@ -162,9 +164,9 @@ export class Relations {
   private marry(a: number, b: number, day: number) { for (const [x, y] of [[a, b], [b, a]]) (this.wed.get(x) ?? this.wed.set(x, []).get(x)!).push([day, 1e9, y]); }
   private unmarry(a: number, b: number, day: number) { for (const [x, y] of [[a, b], [b, a]]) for (const w of this.wed.get(x) ?? []) if (w[2] === y && w[1] >= 1e9) w[1] = day; }
   /** the spouse on day d, or -1 */
-  spouseOn(pid: number, d: number): number { for (const w of this.wed.get(pid) ?? []) if (d >= w[0] && d < w[1]) return w[2]; return -1; }
+  spouseOn(pid: number, d: number): number { this.ensure(); for (const w of this.wed.get(pid) ?? []) if (d >= w[0] && d < w[1]) return w[2]; return -1; }
   /** the household a person lives in on day d, with this layer's weddings and divorces laid over the population's */
-  homeOf(pid: number, d: number): number { let h = pid === PLAYER ? -1 : this.pop.home(pid, d); for (const [x, hh] of this.homeOv.get(pid) ?? []) if (x <= d) h = hh; return h; }
+  homeOf(pid: number, d: number): number { this.ensure(); let h = pid === PLAYER ? -1 : this.pop.home(pid, d); for (const [x, hh] of this.homeOv.get(pid) ?? []) if (x <= d) h = hh; return h; }
   private move(pid: number, day: number, hh: number) { (this.homeOv.get(pid) ?? this.homeOv.set(pid, []).get(pid)!).push([day, hh]); }
   private adult(pid: number, d: number) { if (pid === PLAYER) return true; const P = this.pop; if (!P.present(pid, d) || P.ageOn(pid, d) < REL.adult) return false; const z = P.households[this.homeOf(pid, d)]?.zone; return z === 'town' || z === 'plain'; }
   private closeKin(a: number, b: number) { const A = this.pop.persons[a], B = this.pop.persons[b]; return A.hh === B.hh || A.mother === b || B.mother === a || (A.mother >= 0 && A.mother === B.mother); }
@@ -175,7 +177,7 @@ export class Relations {
 
   // ================================================================ the weeks
   /** simulate every week that starts on or before `day` */
-  advance(day: number) { const W = Math.min(Math.floor(day / 7), Math.floor((REGNAL_DAYS - 1) / 7)); if (this.stepping || this.week >= W) return; this.stepping = true; try { while (this.week < W) this.step(++this.week); } finally { this.stepping = false; } }
+  advance(day: number) { this.ensure(); const W = Math.min(Math.floor(day / 7), Math.floor((REGNAL_DAYS - 1) / 7)); if (this.stepping || this.week >= W) return; this.stepping = true; try { while (this.week < W) this.step(++this.week); } finally { this.stepping = false; } }
   private step(w: number) {
     const P = this.pop, d0 = w * 7, d1 = Math.min(REGNAL_DAYS - 1, d0 + 6), d = d0 + 3, e0 = this.events.length;
     const fest = [0, 1, 2, 3, 4, 5, 6].some(k => festivalOn(this.seed, d0 + k) !== null);
@@ -361,6 +363,7 @@ export class Relations {
   /** the population's births of the year, each given its father from who shared the mother's bed around conception (266 days
    *  before), with the doubt where a lover did too; before the year: the husband's (run after advance(353)) */
   fathers(): { child: number; mother: number; father: number; doubt: number[]; conceived: number }[] {
+    this.ensure();
     const P = this.pop, out: { child: number; mother: number; father: number; doubt: number[]; conceived: number }[] = [];
     const born: [number, number, number][] = []; // [child (-1: not yet born), mother, day]
     for (let x = 0; x < REGNAL_DAYS; x++) for (const c of P.lifeOn(x).births) { const m = P.persons[c].mother; if (m >= 0) born.push([c, m, x]); }
@@ -373,6 +376,7 @@ export class Relations {
   /** the population's birth draw weight for a wife (PopOpts.fertility: the one hook): her weeks of intimacy with a husband who
    *  is at home, against the mean over the wives (1 keeps the rate); 0 once widowed or divorced */
   fertility(): (pid: number) => number {
+    this.ensure();
     const P = this.pop, wv = new Map<number, number>(); let sum = 0, n = 0;
     for (const p of P.persons) if (p.wife) { const ws = this.wed.get(p.id), last = ws?.[ws.length - 1]; const v = !last ? -1 : last[1] < 1e9 && p.dies !== last[1] ? 0 : (this.bedWeeks.get(p.id)?.length || -1); wv.set(p.id, v); if (v > 0) { sum += v; n++; } }
     const mean = n ? sum / n : 1; return (pid: number) => { const v = wv.get(pid); return v === undefined || v < 0 ? 1 : v / mean; }; // (a wife this layer does not model, a husband not found or a wife under 18: the population's own rate)
@@ -400,6 +404,7 @@ export class Relations {
   // ================================================================ the player (for the GPU and speech pass)
   /** the player's act on a person, entered in the ledger (replayed identically); intimacy is a state and a cut-away */
   act(pid: number, day: number, act: PlayerAct): ActResult {
+    this.ensure();
     const W = Math.floor(day / 7); // (acts of one week apply at its end in the order they were made, live and in replay)
     if (this.week > W) { const led = this.ledger.map(l => ({ day: l.day, pid: l.pid, act: l.act })); this.reset(); this.ledger = led; } // (asked in the past: replay)
     this.advance(day); const L: Ledger = { day, pid, act }; this.ledger.push(L); if (this.week === W) L.res = this.apply(L); else this.advance(day); return L.res!;
@@ -445,10 +450,12 @@ export class Relations {
   // ---------------------------------------------------------------- reading for talk and the renderer
   /** a person's own memory of the player (or of anyone): the dated things between them and how each felt */
   memoryOf(pid: number, of = PLAYER): { day: number; what: string; kind: EvKind; aff: number }[] {
+    this.ensure();
     return (this.moodEv.get(pid) ?? []).map(i => this.events[i]).filter(e => e.a === of || e.b === of || e.c === of).map(e => ({ day: e.day, what: e.why, kind: e.kind, aff: e.s.aff }));
   }
   /** a person's mood from what has happened to them in the last four weeks, else from the marriage (C) */
   moodOf(pid: number, d: number): { mood: string; cause?: number } {
+    this.ensure();
     const M: Partial<Record<EvKind, string>> = { reject: 'hurt', refused: 'bitter', court: 'hopeful', betroth: 'hopeful', wed: 'content', wed_arranged: 'uncertain', affair: 'secretive', lovers: 'secretive',
       discovered: 'ashamed', slight: 'hurt', gift: 'warm', help: 'grateful', intimate: 'tender', kind: 'at ease', jealous: 'jealous', divorce: 'grieving', widowed: 'grieving', conceive: 'expectant', doubt: 'anxious', scandal: 'ashamed', end_affair: 'low' };
     const ids = this.moodEv.get(pid) ?? []; for (let i = ids.length - 1; i >= 0; i--) { const e = this.events[ids[i]]; if (e.day > d) continue; if (d - e.day > 28) break; let m = M[e.kind]; if (!m) continue;
@@ -461,5 +468,5 @@ export class Relations {
   save() { return { ledger: this.ledger.map(l => ({ day: l.day, pid: l.pid, act: l.act })) }; }
   load(s: { ledger?: { day: number; pid: number; act: PlayerAct }[] } | undefined) { this.reset(); this.ledger = (s?.ledger ?? []).map(l => ({ ...l })); }
   /** counts of the year's events (the test's measure) */
-  counts() { const c: Record<string, number> = {}; for (const e of this.events) c[e.kind] = (c[e.kind] ?? 0) + 1; return c; }
+  counts() { this.ensure(); const c: Record<string, number> = {}; for (const e of this.events) c[e.kind] = (c[e.kind] ?? 0) + 1; return c; }
 }
