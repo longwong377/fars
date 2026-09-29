@@ -8678,3 +8678,31 @@ petitions are mostly for remission of that year's tax and levy arrears (1094 of 
 thefts 16.
 **Pre-existing, not mine (checked on a16bd8ce):** popview "matches the far body" (child/walk2 width 0.0625 > 0.0505) and
 people_children "the lame and the blind" (lame share 0.020 > 0.0096) fail there too.
+
+## D-344 (s13, living4): cheaper talk, more of it, workmates, childcare, news that acts; the talk state in the save (UD-24; T-E13)
+Profile (160 days, before): of 0.30 s a day, 0.23 s was laying errands (the doer's base plans for the next days 0.15 s,
+planCheck 0.09 s). Errand slots are now found in the planner's raw day (Population.rawPlan) and overlay() lays an errand only
+where the base day is free over its whole window (else it is counted 'laid but not in the executed plan'); planCheck is
+replaced by the rules it enforced for these errands (a free stretch, 08-17.5 h, no meal, no little one minded, the words fit the
+act: reasonOk, the dress of the base day kept). Company: workmates first (the same job and sub-job in the same quarter or
+village, confirmed by both raw days: 44 % of tries meet), then kin, three neighbours, friends; at most 450 meeting checks a day.
+Asks add childcare (a mother of a child under 5 with work away tomorrow, a neighbour woman keeps the child; the errand is not
+timed to her work: C, weak). Labour, tools, childcare and a watch kept change people's days, not stores: no economy intent.
+News acts: grain dear heard → a house with more than a year's bread sells a month's (economy trade, no market errand); grain
+brought heard → a house in want buys; a theft heard in the quarter → the house keeps watch by its store (errand); a death,
+illness, hunger, cold hearth heard by kin or quarter → help (as D-342); other news only passes on (counted without consequence
+at its last hand). Plain news enters nothing into the economy. Save hook (sim.ts save/load, two lines): the save carries
+`living` (the last 7 days' talks, errands, news, counters; ~1.1 MB at day 300) and the economy keeps all its intents; load steps
+the economy to the saved day and resumes. News intents and market trades take effect the day after (replay order).
+Measured (seed 1): 974 talks in days 150-156, 874 with a consequence (89.7 %); player news 6/6; save at 153 and load replay the
+week identically; a day-300 save loads in 3.6-7.2 s, of which the economy's replay of ~58 k intents is 3.0-5.8 s (economy/**:
+index intents by day and snapshot the stores instead of replaying, not done here); cost ~0.29 s a simulated day.
+
+## D-343 (addendum, after living4 / D-344 was merged; agent econplans)
+The lean week's crisis steps fell to a few (seed 1 a year: thefts 3, petitions 207; 66,561 `given` events from the people's
+talk now carry the hungry through), and those few did not lay: they were far villagers' court business (2.9-5 h each way from
+the town: over the day's walking cap, or the day already spent at a town lender). The cause was the place, not free time: a
+house more than 2.5 h from the town now brings its petitions, arrears, accusations and suits, and hears the answers, before the
+village elders at its own lane (C: the village head as the officials' go-between). The save keeps the economy and the talk
+state together (D-344) when the economy exists, else the non-talk intents; EconPlans is reset on every load. Far villagers'
+loans still lay about half (the lenders are in the town).

@@ -142,7 +142,7 @@ export class PeopleSim {
   private econCore(): Economy { return this.econ ??= new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv }); }
   /** D-340: what of the economy a save keeps: only the intents that are not the talk's (the talk's are re-derived from day 0 by the
    *  living world, D-341), so a loaded world that has not yet stepped its economy saves the same bytes */
-  private econSave() { const iv = (this.econ ? (this.econ.snapshot().intents as EconIntent[]) : this.econIv).filter(i => i.payload?.src !== 'talk'); return iv.length ? { econ: { seed: this.seed, intents: iv } } : {}; }
+  private econSave() { if (this.econ) return { econ: this.econ.snapshot(), living: this.living.save() }; const iv = this.econIv.filter(i => i.payload?.src !== 'talk'); return iv.length ? { econ: { seed: this.seed, intents: iv } } : {}; }
   /** the economy stepped (by the living world, the talk entered) to at least day d: the day plans read a day's decisions (EconPlans, D-340) */
   econTo(d: number): Economy { this.living.advance(d); return this.econCore(); }
   /** D-340: the economy's decisions laid over the day plans (Population.plan; off with SimOpts.economy === false) */
@@ -713,8 +713,8 @@ export class PeopleSim {
   load(s: any) {
     if (!s?.agents) return; this.t = s.t; this.stock = { ...INITIAL_STOCK, ...s.stock }; this.lastCaravanDay = s.lastCaravanDay; if (s.flows) this.flows = { ...s.flows }; if (s.lastGrainDay !== undefined) this.lastGrainDay = s.lastGrainDay;
     this.cal.ctx(Math.floor(s.t / 24)); // the calendar is deterministic: recompute to the saved day, then restore what the detailed people changed
-    // D-341: the talk's own intents are re-derived by the living world from day 0; only the others are replayed
-    this.econIv = s.econ ? (s.econ.intents as EconIntent[]).filter(i => i.payload?.src !== 'talk') : []; this.econ = null; this.living.reset(); this.econPlans.reset();
+    // D-344: with the talk state saved, the economy replays all its intents and the talk resumes; an older save re-derives (D-341)
+    this.econIv = s.econ ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : []; this.econ = null; if (s.living) this.living.load(s.living); else this.living.reset(); this.econPlans.reset();
     if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }

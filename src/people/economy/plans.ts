@@ -176,6 +176,16 @@ export class EconPlans {
     const H = this.pop.households[hid], home = `h:${hid}`, w = this.pop.walkH(home, EXCHANGE, day, this.whereOf(home), 'town');
     return w < 1.2 ? EXCHANGE : `lane:${H.q}`;
   }
+  /** a house more than 2.5 h from the town brings its court business (petitions, arrears, accusations, suits, the answers)
+   *  before the village's elders at its own lane, who carry it on to the officials (D-343, C: the village headman as the
+   *  officials' go-between, by analogy with the Babylonian and Achaemenid village heads); a day's walk each way is not a
+   *  morning's errand */
+  local<T extends { dest: string; work: EconStep['work']; goWhy: string }>(hid: number, day: number, s: T): T {
+    const H = this.pop.households[hid], home = `h:${hid}`;
+    if (!H || s.dest !== 'official_bldg' || this.pop.walkH(home, s.dest, day, this.whereOf(home), 'town') <= 2.5) return s;
+    const w = (x: string) => x.replace(/at the officials’ building/g, 'before the village elders').replace(/the officials’ building/g, 'the village elders').replace(/before the judge/g, 'before the elders, for the judge').replace(/petitioning the officials/g, 'asking the elders to petition the officials');
+    return { ...s, dest: `lane:${H.q}`, work: s.work.map(([a, h, why]) => [a, h, w(why)] as [ActivityId, number, string]), goWhy: w(s.goWhy) };
+  }
   private dur(e: EconEvent, a: number, b: number, n = 0) { return a + (b - a) * u01(this.pop.seed, S.dur, e.id, n); }
   private at(e: EconEvent, a: number, b: number) { return a + (b - a) * u01(this.pop.seed, S.when, e.id); }
 
@@ -212,17 +222,17 @@ export class EconPlans {
         // (the debtor's house brings the pledge to the creditor: a jar, a cloth, a tool, or the tablet for a strip of field; C)
         step(other, 'man', errand(7, 17, dest, [['talk', this.dur(e, 0.2, 0.5), `at ${L}: the debt was not paid on its day; handing over the pledge`]], ['carry_sack', `carrying the pledge to ${L} for the unpaid debt`], ['walk', 'going back empty-handed'])); break; }
       case 'suit': { if (me === null || other === null) break; const D = this.headName(other, day);
-        step(me, 'house', errand(7.5, 13, court, [['queue', this.dur(e, 0.8, 1.8), 'waiting to be heard at the officials’ building'], ['talk', 0.3, `bringing a suit before the judge against ${D} for an unpaid debt`]], ['walk', 'going to the officials’ building'], ['walk', 'going back'])); break; }
+        step(me, 'house', this.local(me, day, errand(7.5, 13, court, [['queue', this.dur(e, 0.8, 1.8), 'waiting to be heard at the officials’ building'], ['talk', 0.3, `bringing a suit before the judge against ${D} for an unpaid debt`]], ['walk', 'going to the officials’ building'], ['walk', 'going back']))); break; }
       case 'tax_arrears': case 'levy_arrears': { if (me === null) break;
-        step(me, 'man', errand(7.5, 14, court, [['queue', this.dur(e, 0.8, 2), 'waiting to be called at the officials’ building, with the others who owe'], ['talk', 0.2, e.kind === 'tax_arrears' ? 'the tax cannot be paid; the arrears are written down against the house' : 'the extra levy cannot be given; it is written down as owed']],
-          ['walk', 'going to the officials’ building'], ['walk', 'going back'])); break; }
+        step(me, 'man', this.local(me, day, errand(7.5, 14, court, [['queue', this.dur(e, 0.8, 2), 'waiting to be called at the officials’ building, with the others who owe'], ['talk', 0.2, e.kind === 'tax_arrears' ? 'the tax cannot be paid; the arrears are written down against the house' : 'the extra levy cannot be given; it is written down as owed']],
+          ['walk', 'going to the officials’ building'], ['walk', 'going back']))); break; }
       case 'petition': { if (me === null) break; const cause = E.events[e.causes[0]]?.kind;
         const what = cause === 'tax_arrears' || cause === 'levy_arrears' ? 'to remit what the house owes the treasury' : cause === 'death' ? 'for grain: the house has lost its worker' : 'for grain from the royal store: the house has nothing left';
-        step(me, 'man', errand(7.5, 13, court, [['queue', this.dur(e, 1, 2.5), 'waiting to be heard at the officials’ building, among the petitioners'], ['talk', 0.25, `petitioning the officials ${what}`]], ['walk', 'going to the officials’ building to petition'], ['walk', 'going back'])); break; }
+        step(me, 'man', this.local(me, day, errand(7.5, 13, court, [['queue', this.dur(e, 1, 2.5), 'waiting to be heard at the officials’ building, among the petitioners'], ['talk', 0.25, `petitioning the officials ${what}`]], ['walk', 'going to the officials’ building to petition'], ['walk', 'going back']))); break; }
       case 'relief': { if (other === null) break;
         step(other, 'worker', errand(8, 15, store, [['queue', this.dur(e, 0.4, 1), 'waiting to be called at the storehouse: the petition was granted']], ['walk', 'going to the storehouse for the grain granted'], ['carry_sack', 'carrying home the relief grain from the royal store'])); break; }
       case 'petition_refused': case 'remitted': { if (other === null) break;
-        step(other, 'man', errand(8, 14, court, [['queue', this.dur(e, 0.5, 1.2), 'waiting to be called at the officials’ building for the answer'], ['talk', 0.15, e.kind === 'remitted' ? 'told the arrears are remitted' : 'told the petition is refused']], ['walk', 'going to hear the answer to the petition'], ['walk', 'going back'])); break; }
+        step(other, 'man', this.local(other, day, errand(8, 14, court, [['queue', this.dur(e, 0.5, 1.2), 'waiting to be called at the officials’ building for the answer'], ['talk', 0.15, e.kind === 'remitted' ? 'told the arrears are remitted' : 'told the petition is refused']], ['walk', 'going to hear the answer to the petition'], ['walk', 'going back']))); break; }
       case 'wage_work': { if (me === null) break;
         // (a village far from the town is hired on the crown's canal work near it, paid in barley by the treasury: C)
         const far = this.pop.walkH(`h:${me}`, store, day, this.whereOf(`h:${me}`), 'town') > 1.5, cq = `canal:${P.households[me].q}`;
@@ -241,7 +251,7 @@ export class EconPlans {
       case 'robbed': { if (me === null) break;
         step(me, 'man', errand(6, 9, `lane:${P.households[me].q}`, [['talk', this.dur(e, 0.3, 0.6), 'found the house’s store broken into; telling those in the lane']], ['walk', 'going out into the lane'], ['walk', 'going back into the house'])); break; }
       case 'accusation': { if (me === null || other === null) break; const T = this.headName(other, day);
-        step(me, 'man', errand(7.5, 12, court, [['queue', this.dur(e, 0.6, 1.5), 'waiting to be heard at the officials’ building'], ['talk', 0.3, `accusing a man of ${T} before the judge of the theft of barley`]], ['walk', 'going to the officials’ building to accuse the thief'], ['walk', 'going back'])); break; }
+        step(me, 'man', this.local(me, day, errand(7.5, 12, court, [['queue', this.dur(e, 0.6, 1.5), 'waiting to be heard at the officials’ building'], ['talk', 0.3, `accusing a man of ${T} before the judge of the theft of barley`]], ['walk', 'going to the officials’ building to accuse the thief'], ['walk', 'going back']))); break; }
       case 'arrest': { if (other === null) break; const pid = this.thiefOf(E, e, other);
         if (pid !== null) out.push({ pid, day, kind: e.kind, ev: e.id, role: 'thief', mode: 'held', lo: this.at(e, 7, 9), hi: 24, dest: court, work: [['rest', 0, 'held at the officials’ building by the judge’s men, accused of theft']], goAct: 'walk', goWhy: 'taken by the judge’s men to the officials’ building', backAct: 'walk', backWhy: '' });
         break; }

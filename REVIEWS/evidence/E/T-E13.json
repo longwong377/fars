@@ -1,8 +1,8 @@
 {
  "id": "T-E13",
- "commit": "05555963e6942ecaadc40bb148349e79722cc411",
+ "commit": "caf15931c8650852dc2e06780fb52f9df959e34f",
  "tool": "tests/living_world.test.ts",
- "value": 88.1,
+ "value": 89.7,
  "unit": "%",
  "detail": {
   "week": [
@@ -10,69 +10,81 @@
    156
   ],
   "days": 160,
-  "ms": 69914,
-  "msPerDay": 437,
+  "ms": 102020,
+  "msPerDay": 637.6,
   "stats": {
-   "plans": 53038,
+   "plans": 144000,
    "days": 160,
-   "asks": 67,
-   "offers": 4550,
-   "meetings": 6859,
-   "msMeet": 9921.04179999996,
-   "msArrange": 56231.57139999972,
-   "msEcon": 1705.069000000029,
-   "msCheck": 21187.070900000457,
-   "try_tie": 7906,
-   "try_kin": 10763,
-   "ok_tie": 2958,
-   "ok_kin": 3740,
-   "try_nbr": 531,
-   "ok_nbr": 161
+   "asks": 17610,
+   "offers": 20974,
+   "meetings": 31263,
+   "msMeet": 54945.586499997575,
+   "msArrange": 26995.094700000052,
+   "msEcon": 3164.838500000068,
+   "msCheck": 0,
+   "msBase": 24333.941899999507,
+   "msSim": 92252.0892,
+   "try_mate": 68867,
+   "ok_mate": 30317,
+   "try_kin": 865,
+   "ok_kin": 200,
+   "try_tie": 1889,
+   "ok_tie": 621,
+   "try_nbr": 379,
+   "ok_nbr": 125
   },
   "noPlayer": {
-   "talks": 253,
-   "withConsequence": 223,
-   "share": 0.8814229249011858,
+   "talks": 974,
+   "withConsequence": 874,
+   "share": 0.8973305954825462,
    "byKind": {
     "news→help": [
-     118,
-     118
-    ],
-    "help": [
-     78,
-     80
-    ],
-    "news": [
-     2,
-     28
+     243,
+     246
     ],
     "tool": [
-     24,
-     24
+     398,
+     424
+    ],
+    "help": [
+     103,
+     125
+    ],
+    "news": [
+     12,
+     46
+    ],
+    "childcare": [
+     99,
+     107
     ],
     "labour": [
-     1,
-     2
+     4,
+     10
     ],
     "trade": [
-     0,
+     14,
+     15
+    ],
+    "loan": [
+     1,
      1
     ]
    },
    "why": {
-    "carried out": 223,
-    "news at its last hand": 23,
-    "news not passed on": 3,
-    "no free stretch in the doer’s next three days": 4
+    "carried out": 874,
+    "news at its last hand": 34,
+    "laid but not in the executed plan": 7,
+    "no free stretch in the doer’s next three days": 59
    },
    "playerEvents": 0,
    "playerPropagated": 0,
    "playerShare": 0
   },
   "economy": {
-   "talkEvents": 17465,
+   "talkEvents": 37638,
    "withTalk": {
-    "events": 32283,
+    "events": 52303,
     "hunger": 0,
     "illness": 2065,
     "death": 0,
@@ -90,19 +102,33 @@
    "playerEvents": 6,
    "playerPropagated": 6,
    "playerShare": 1,
-   "share": 0.85,
+   "share": 0.8529680365296803,
    "why": {
-    "carried out": 170,
-    "news at its last hand": 21,
-    "news not passed on": 5,
-    "no free stretch in the doer’s next three days": 4
+    "carried out": 934,
+    "news at its last hand": 91,
+    "laid but not in the executed plan": 8,
+    "no free stretch in the doer’s next three days": 61,
+    "news not passed on": 1
    }
   },
   "replay": {
    "savedAtDay": 153,
-   "talksCompared": 104,
+   "talksCompared": 632,
    "plansCompared": 40,
    "economyEventsIdentical": true
+  },
+  "lateLoad": {
+   "day": 300,
+   "generateMs": 112459,
+   "loadMs": 10508,
+   "econReplayMs": 9314,
+   "intents": 58536,
+   "saveBytes": {
+    "living": 1108512,
+    "econ": 5501162
+   },
+   "plansCompared": 20,
+   "nextDaysIdentical": true
   }
  }
 }

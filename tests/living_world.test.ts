@@ -32,7 +32,7 @@ describe('talk that changes the world (T-E13)', () => {
       economy: { talkEvents: talkEv, withTalk: { events: E.events.length, hunger: kinds(E, /^hunger$/), illness: kinds(E, /^illness$/), death: kinds(E, /^death$/), theft: kinds(E, /theft|steal/) },
         withoutTalk: { events: base.events.length, hunger: kinds(base, /^hunger$/), illness: kinds(base, /^illness$/), death: kinds(base, /^death$/), theft: kinds(base, /theft|steal/) } } });
     console.log('[living]', JSON.stringify(OUT)); mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/living_world.json', JSON.stringify(OUT, null, 1));
-    expect(r.talks).toBeGreaterThan(150); // s13 living3: ~250 a week
+    expect(r.talks).toBeGreaterThan(400); // s13 living4: ~550+ a week
     expect(E.events.length).not.toBe(base.events.length); // the talk changed the economy's course
     expect(r.share * 100).toBeGreaterThanOrEqual(50);
   }, 900_000);
@@ -66,6 +66,16 @@ describe('talk that changes the world (T-E13)', () => {
     const E2 = S2.economy(), E4 = S4.economy(); const ev = (E: typeof E2) => JSON.stringify(E.events.filter(v => v.day >= MID && v.day <= D1));
     expect(ev(E4)).toBe(ev(E2));
     Object.assign(OUT, { replay: { savedAtDay: MID, talksCompared: key(S4).length, plansCompared: doers.length, economyEventsIdentical: true } });
+    // a late-year save loads at once: the talk state is in the save, the economy replays its intents (D-344)
+    const S5 = mk(); S5.t = 300 * 24 + 10; const tg = performance.now(); S5.economy(); const genMs = performance.now() - tg;
+    const late = JSON.parse(JSON.stringify(S5.save())); const bytes = { living: JSON.stringify(late.living).length, econ: JSON.stringify(late.econ).length };
+    const S6 = mk(); const tl = performance.now(); S6.load(late); S6.economy(); const econMs = performance.now() - tl; const lateTalks = S5.living.talks.filter(t => t.done && t.done.day > 300 && t.done.h0 >= 0).slice(0, 20);
+    for (const t of lateTalks) S6.pop.plan(t.doer, t.done!.day); const loadMs = performance.now() - tl;
+    for (const t of lateTalks) expect(JSON.stringify(S6.pop.plan(t.doer, t.done!.day))).toBe(JSON.stringify(S5.pop.plan(t.doer, t.done!.day)));
+    S5.living.advance(303); S6.living.advance(303); const k3 = (s: PeopleSim) => s.living.talks.filter(t => t.day > 300).map(t => `${t.id}:${t.day}:${t.a}:${t.b}:${t.kind}`);
+    expect(k3(S6)).toEqual(k3(S5));
+    Object.assign(OUT, { lateLoad: { day: 300, generateMs: Math.round(genMs), loadMs: Math.round(loadMs), econReplayMs: Math.round(econMs), intents: late.econ.intents.length, saveBytes: bytes, plansCompared: lateTalks.length, nextDaysIdentical: true } });
+    expect(loadMs - econMs).toBeLessThan(2000); // the talk's own part; the economy's replay of its intents (economy/**) is reported, not asserted here
     const f = 'REVIEWS/evidence/E/T-E13.json'; const e = JSON.parse(readFileSync(f, 'utf8')); e.detail = OUT; writeFileSync(f, JSON.stringify(e, null, 1) + '\n');
   }, 900_000);
 });

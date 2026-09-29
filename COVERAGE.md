@@ -400,6 +400,6 @@ Cell: status; the evidence's value and n; its file, commit, session age and depe
 | T-E10 | E | world | >= 90 % (n ≥ 60) | **STALE** | 99.4 | 158 | s12-talk/T-E10.json | c26daf9d | 0 s | – | no dependency hash; also 5 file(s) from other tools | tests/talk_world.test.ts |
 | T-E11 | E | world | >= 95 % (n ≥ 60) | **NOT-MEASURED** | – | – | – | – | – | – | evidence from another tool (tools/dev/voices_eval.ts (tests/voices_unique.test.ts reads it)) does not count | tests/voices_unique.test.ts |
 | T-E12 | E | world | >= 90 % (n ≥ 60) | **NOT-MEASURED** | – | – | – | – | – | – |  | tests/npc_talk.test.ts |
-| T-E13 | E | world | >= 50 % (n ≥ 60) | **STALE** | 88.1 | – | E/T-E13.json | 05555963e6942ecaadc40bb148349e79722cc411 | 0 s | – | no dependency hash | tests/living_world.test.ts |
+| T-E13 | E | world | >= 50 % (n ≥ 60) | **STALE** | 89.7 | – | E/T-E13.json | caf15931c8650852dc2e06780fb52f9df959e34f | 0 s | – | no dependency hash | tests/living_world.test.ts |
 | T-E14 | E | world | >= 90 % (n ≥ 60) | **NOT-MEASURED** | – | – | – | – | – | – |  | tests/speech_sandbox.test.ts |
 | T-F9 | F | world | >= 50 chains per year (and >= 50 % enterable) (n ≥ 3) | **PASS** | 318 | 3 | F/T-F9.json | 33f91efd | 0 s | 719816fd33f8 |  | tests/emergence.test.ts |
