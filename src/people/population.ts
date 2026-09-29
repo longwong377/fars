@@ -534,7 +534,7 @@ export class Population {
     for (let a = lerp(F.first_birth_age[0], F.first_birth_age[1], r.next()); a <= Math.min(F.last_birth_age, M.age); a += lerp(F.birth_interval_y[0], F.birth_interval_y[1], r.next())) {
       const age = Math.floor(M.age - a); const n = r.chance(F.twins) ? 2 : 1; const pair: number[] = [];
       for (let t = 0; t < n; t++) { const sex: 'm' | 'f' = r.chance(0.5) ? 'm' : 'f';
-        if (age > F.home_until_age[sex === 'm' ? 'son' : 'daughter'] || !r.chance(step(F.survival_to_age, age)) || (sex === 'f' && age >= 14 && r.chance(step(F.daughter_married_by_age, age)))) continue;
+        if (age > F.home_until_age[sex === 'm' ? 'son' : 'daughter'] || !r.chance(step(F.survival_to_age, age)) || (sex === 'f' && age >= ADULT && r.chance(step(F.daughter_married_by_age, age)))) continue;
         pair.push(this.child(hh, sex, age, origin, group, mom)); }
       if (pair.length === 2) { this.persons[pair[0]].twin = pair[1]; this.persons[pair[1]].twin = pair[0]; }
     }
