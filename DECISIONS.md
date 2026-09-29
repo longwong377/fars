@@ -8722,3 +8722,62 @@ house more than 2.5 h from the town now brings its petitions, arrears, accusatio
 village elders at its own lane (C: the village head as the officials' go-between). The save keeps the economy and the talk
 state together (D-344) when the economy exists, else the non-talk intents; EconPlans is reset on every load. Far villagers'
 loans still lay about half (the lenders are in the town).
+
+## D-347 (s13, simjoin): the new systems joined into one saved, fast, balanced simulation (UD-26, UD-24; T-F9, T-E13, T-H3r)
+**How it could pass while the intent fails (clause 1):** a save that loads fast because it quietly drops what the days to come
+need (a plan, a thief's chain, a sickbed); deaths that reach the Population but leave the funeral or the orphans unlaid, or
+count twice; washing that is laid but never reaches the wardrobe's dirt; a balance tuned on the bare economy that the talk then
+cancels. Measured against each: replay identity of events, talks and plans after a load (living_world, persistence, simjoin
+tests), one mortality counted from both sides (simjoin), the garments' dirt read from the wardrobe, balance on the full sim.
+- **(1) The economy saved as it stands** (economy/world.ts snapshot/restore, v 2): households by field (only what differs from
+  the seed's start, or all when most do), debts, bondages, the deferred steps as data (were closures: `Task`), the intents
+  still to come (indexed by day; were a list scanned daily), and of the events the count (ids go on), the sim's last two days
+  whole, defaults (240 d) and thieves' chains (40 d) whole, and as day and kind only the events the state names as causes and
+  those the market's and treasury's look-backs filter. The state is rounded at each day's end (grain 0.1 kg, silver 1e-4
+  sheqel, fuel 0.1, health 0.001) so a day is short. The living world saves from the sim's day, its errands' words interned.
+  An older save (seed + intents) still replays. A loaded economy has gaps in `events` (readers skip them; chains.ts reads a
+  whole year only in a world that ran it).
+- **(2)** The wardrobes (D-345) live in PeopleSim; their ledger is in the save (`wardrobe`, only when not empty).
+- **(3) Laundry days and baths** (wardrobe/washing.ts WashPlans, Population.plan under the economy's steps, clear of the living
+  world's errands): a wash day every 6-9 days per town and plain household (a woman of 12+ takes the clothes to the quarter's
+  water; a Persian house washes on the bank from a jar, B as D-292), a bath every 5-8 days for everyone of 4+ (at home from a
+  basin; in the warm months non-Persian men and boys in the canal). Rates C. tend_body gains two variants (lint:activity OK).
+- **(4) One mortality:** with the sim's Population (EconLife), the Population's own deaths are the economy's deaths (burial,
+  mourning of kin, widow's petition) and the economy's illnesses are drawn LIFE_LAG = 4 days ahead (past every plan the living
+  world has read: it looks 3 ahead) and laid on a member as a sickbed (Population.sick); a grave one kills that member some
+  days in (p.dies moved, the natural death removed: no one dies twice; funeral and mourning follow from the Population's own
+  rules). Not killed (the illness stays): agents, mothers of a child under 3, the due, wet nurses, one marrying away, the last
+  grown-up of a house (fosterage is laid out at the year's start). Saved as `life`. The bare economy (tests) is unchanged.
+- **(5) Balance:** petty theft by the least honest houses when short (PETTY_THEFT 0.0015 a day, a sixth of the hungry theft's
+  take; C, by analogy: property crime in pre-modern towns ran at one to a few per thousand people a year).
+- **Errands keep to the little ones (found by this work, fixed world-wide):** the living world's errands (D-344) and the
+  economy's steps (D-340) were laid over a mother while her toddler's plan said it was "with" her, or while a toddler of kin or
+  a friend was visiting her (people_days_r4 failed once the economy's course changed). wardrobe/washing.ts nobodyWith() is
+  now asked by the washing, by LivingWorld.arrange (the house's little ones, on the raw days; when they hold the doer, another
+  grown-up of the house takes the errand) and overlay (visitors too), and by EconPlans.breaks (visitors; and a little one who
+  would go along with its mother is not one a sister is minding then). Visitors are read from an index per quarter and day of
+  who is "with" whom among the children of the quarter and of the house's kin. The economy's sickbeds go to members of five or
+  more (a sick infant beside its mother met the economy's errands badly; the little ones' illnesses are the year's own). Errands
+  and washing trips leave a few minutes (0.05 h) at the place before and after (a walk that arrived and went straight on). The living world's
+  errands are dressed for the cold and the dust by their own hours (were: the base stretch's dress copied; a walk back into
+  the dust went unwrapped).
+- **Measured.** Save and load (seed 1, day 300, the full sim with talk): the people's save 946 KB (econ 697 KB, living 160 KB;
+  was 6.6 MB), the load (restore and resume, the calendar recomputed to the day as before) 1.4 s once, 1.9-4.3 s with another
+  agent's 8 test workers on the 4 cores (was 3.6-10.5 s; the test's < 2 s assertion FAILS under that load); after it the next days' talks, economy events and plans are identical
+  (living_world, persistence T-H3r byte-identical, simjoin: a snapshot restored at day 150 of seed 7 runs days 151-200 to the
+  same events and re-saves the same bytes). Washing (seed 1, 56 households, days 20-33): laundry on 9.2 % of house-days (was
+  0.5 %), a bath on 9.5 % of person-days (was none); body garments' dirt at noon on day 33: median 0.34 (0.92 without the
+  washing), over 0.9 for 15 % (53 %). One mortality (days 0-90, simjoin): every economy death is a member's death that day and
+  each economy illness lies on a member's sickbed. A year, full sim, per seed (thefts / petitions / deaths / hungry at year's
+  end): seed 1: 69 / 276 / 1462 / 20; seed 42: 80 / 420 / 1496 / 30; seed 7 (the poor year): 352 / 1802 / 1450 / 104 (the old
+  runaway was 738 / 2433). Thefts 1.5-1.7 per thousand people in an ordinary year, 7.5 in the poor one. T-F9 (bare economy)
+  393 shapes, PASS. T-E13 65.6 % (was 89.7 %): the news of the year's ~1,450 deaths now travels, and news at its last hand
+  counts as no consequence (257 of 1,146 talks); 752 carried out; 89 found no free stretch (the little ones, D-347).
+- **Not done / weak:** chains.ts on a loaded world sees only the kept events; the economy's deaths do not re-plan fosterage or
+  wet-nursing (those deaths are not laid; the illness stays); canal bathing is rare (the warm months only, and few free
+  stretches); the load's 2 s is not met under another agent's load (the calendar's recompute is most of it); nothing rendered.
+- **Tests not green at hand-off:** people_days_r6 "no child is planned as an infant after its first birthday..." (46173 d148:
+  its mother's day changed by an economy step; not traced) and "on the dust days ... the face is wrapped" (unlocated: a node
+  scan of days 0-150 found no unwrapped stretch); several people_days r4/r5/r6 year-wide tests and living_world's load assertion
+  timed out or ran slow while another agent's 8 vitest workers held the 4 cores: to be re-run alone. The economy's changed course
+  surfaced older gaps in EconPlans' and the living world's errands (fixed above as found: 5 cases); more may remain.

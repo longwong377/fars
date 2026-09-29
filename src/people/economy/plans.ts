@@ -17,6 +17,7 @@
 // Tier C throughout: the places are the town's own (the exchange lane of the town, the officials' building, the royal
 // store: town.json facilities), the hours and durations reasoned.
 import { segAt, coldWear, dustWear, type Population, type Seg, type Where } from '../population';
+import { nobodyWith } from '../wardrobe/washing';
 import { checkPlan } from '../planCheck';
 import type { ActivityId } from '../activities';
 import type { Economy, EconEvent } from './world';
@@ -101,8 +102,14 @@ export class EconPlans {
     for (const s of before) if (!kept.has(s) && (PROTECT_ACTS.has(s.act) || PROTECT_WHY.test(s.why))) return `would cut through: ${s.why}`;
     for (const [kind, n] of this.issues(pid, day, after)) if (n > (baseIss.get(kind) ?? 0)) return `plan check: ${kind}`;
     const hid = P.home(pid, day), mem = P.membersOn(hid, day).filter(x => x !== pid && P.present(x, day));
-    for (const x of mem) { if (P.ageOn(x, day) >= 14 || this.follows(x, pid, day)) continue; for (const s of P.basePlan(x, day)) { if (s.with !== pid) continue; const o = segAt(after, (s.t0 + s.t1) / 2);
+    for (const x of mem) { if (P.ageOn(x, day) >= 14) continue;
+      if (this.follows(x, pid, day)) { // (D-347: a little one going along must not be one another of the house is minding then)
+        const bs0 = new Set(before), nw0 = after.filter(s => !bs0.has(s)), a0 = Math.min(...nw0.map(s => s.t0)), a1 = Math.max(...nw0.map(s => s.t1));
+        if (nw0.length && P.basePlan(x, day).some(s => s.with !== undefined && s.with !== pid && s.t1 > a0 && s.t0 < a1)) return 'a little one is minded by another of the house then'; continue; } for (const s of P.basePlan(x, day)) { if (s.with !== pid) continue; const o = segAt(after, (s.t0 + s.t1) / 2);
       if (o.place !== s.place && !(o.where === 'road' && s.where === 'road')) return 'a little one is with this person'; } }
+    // (D-347: nor a toddler of kin or friends visiting this house while the step takes the person away)
+    { const bs = new Set(before), nw = after.filter(s => !bs.has(s) && s.ev?.startsWith('D-340') && s.place !== P.households[hid].home);
+      if (nw.length && !nobodyWith(P, pid, day, Math.min(...nw.map(s => s.t0)), Math.max(...nw.map(s => s.t1)), true)) return 'a visiting little one is with this person'; }
     for (const h of [1.5, 23.5]) { const a = segAt(before, h), b = segAt(after, h); if (a.place === b.place) continue;
       const kids = mem.filter(x => P.ageOn(x, day) < 10 && P.persons[x].agent < 0 && segAt(P.basePlan(x, day), h).place === a.place);
       if (kids.length && !mem.some(x => P.ageOn(x, day) >= 14 && segAt(P.basePlan(x, day), h).place === a.place)) return 'a child would be alone at night'; }
@@ -117,7 +124,7 @@ export class EconPlans {
     // (asked while the living world is itself stepping the economy (its re-entry guard): the day is not decided yet; nothing
     // is laid and nothing cached, so the next ask after the step sees it)
     if (E.day < day) return new Map();
-    for (; this.scanned < E.events.length; this.scanned++) { const e = E.events[this.scanned]; (this.evDay.get(e.day) ?? this.evDay.set(e.day, []).get(e.day)!).push(e); }
+    for (; this.scanned < E.events.length; this.scanned++) { const e = E.events[this.scanned]; if (!e?.actor) continue; /* (a loaded economy keeps only the recent days whole, D-347) */ (this.evDay.get(e.day) ?? this.evDay.set(e.day, []).get(e.day)!).push(e); }
     const m = new Map<number, EconStep[]>(); this.today = m;
     const put = (s: EconStep | null) => { if (!s) return; const xs = m.get(s.pid) ?? m.set(s.pid, []).get(s.pid)!; xs.push(s); };
     for (const e of this.evDay.get(day) ?? []) for (const s of this.stepsOf(E, e, day)) put(s);
