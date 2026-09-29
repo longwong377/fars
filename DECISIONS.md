@@ -8545,3 +8545,15 @@ player they are generated and voiced live (model budget: the few pairs within ea
 in node as structured intents without text (the D-315 intent set, extended: arrange work, trade, ask help, invite, pass news),
 so the world lives with or without the player; every consequence goes through the plans and into the save (replayable).
 Measured by T-E13 (tests/living_world.test.ts) and T-E12.
+
+## D-339 (s13, living): talk between people that changes the world (UD-24, UD-21; T-E13)
+src/people/living/world.ts: each day, co-located pairs (a seeded 1.5 % of the present plus news-carriers and their ties and kin,
+read from the BASE plans so there is no loop) talk; the one in greater want (EconWorld.needsOf) asks, the other gives if not in
+the same want; the Intent (trade/help/work/visit) is laid into the doer's plan on a free stretch within 3 days (walk, errand at the
+other house, walk back; hooked under the stranger's deeds in TalkWorld.touches/overlay) and applied by the economy that day.
+Player deeds (TalkWorld events) become news carried up to 3 hands. Replay-pure: 8-day blocks, each starting afresh (an arrangement is carried out inside its own block),
+each block simulated whole and on its own; nothing new in the save. Ordinary arrangements are not passed on as news (nothing measurable follows). Economy is
+FakeEcon (PLACEHOLDER, living/fakeEcon.ts; types copied from the brief in living/types.ts) until src/people/economy lands.
+Measured (tests/living_world.test.ts, seed 1, days 150-156): 604/814 = 74.2 % talk events with a consequence within 3 days (210 found no free stretch inside their block);
+player changes 6/6 propagate. Tier C.
+The talk runs only within one block of the sim's present day (LivingWorld.now): plans asked for far days (year-long tests and tools) are the base plans, so a plan depends on the sim's current day. Cost ~0.75 s of node time per simulated day (1.5 % sample).
