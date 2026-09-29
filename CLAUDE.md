@@ -91,7 +91,7 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   procedural base (src/render/scans.ts; the measured tint and layout stay, the scan adds the grain); every asset in
   ASSET_LEDGER.md. The user's direction (session 11): every inch looking real, and every limit of the old machine revisited.
 - Agents: briefs carry handoff/agent_template.md's fixed clauses and its machine section.
-- **Disk:** C: is 75 GB and ran down to 3.5 GB free in session 11 (downloads, worktrees, models). Large re-downloadable files
+- **Disk:** C: is 125 GB since session 13 (75 GB and down to 3.5 GB free in session 11). Session 13: T: was wiped; the models were restored from branch models-archive to C:/Users/Administrator/models-archive (checksums verified; 4 Qwen2.5-1.5B files re-fetched from Hugging Face) and linked as public/models/{mlc-ai,onnx-community,mlc-libs}. Older note: (downloads, worktrees, models). Large re-downloadable files
   (language models, browser caches) live on T: ("Temporary Storage", ~210 GB, may be wiped when the machine stops) behind
   a junction at their old path; anything that cannot be re-fetched stays on C: or goes to git. Check free space before
   large downloads.
