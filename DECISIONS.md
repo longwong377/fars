@@ -8784,3 +8784,7 @@ run on the base commit 16e9ce92 too and fail the same there (19 tests: court_vie
 people_days_r6 x6, population x6, popview x2, religion x2), except one new: people_days_r6 "no two meals within an hour"
 (child 28825, day 21: the same with the meetings off, so from the population change through another layer; not traced).
 Timeouts in people, court, talk_world and people_days_r5 under that load were not re-run alone.
+D-348, final round: people_days_r6 "no two meals within an hour" (child 28825, day 21) was the economy's step laying a "bread
+and water brought along" meal 20 minutes after the household's meal (economy/plans.ts feed); it is skipped when a meal is
+within the hour. The lead's redraw of brides among women of 18+ (289-336 weddings a year) is on branch s13-relations2-brides,
+not here: it moves person ids and 9 more pinned people_days_r6 tests fail there (not re-pinned).
