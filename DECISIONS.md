@@ -8415,6 +8415,24 @@ GPU (gemma-2-2b, T4; T-E10 = 40 cases, requests 0-15 and their recalls; T-E9 = t
   the seeded baked material); the Now view goes through buildMeshes too. What no model draws stays procedural (A/B:
   window.__models.ab).
 
+## D-338 — The emergent economy and needs core (session 13, agent economy; UD-26, T-F9)
+src/people/economy/ (api.ts the shared interface; world.ts the engine; chains.ts reads chains). Every household of the
+Population (householdsOf: farmer / ration / craft / herder / rich by its members' jobs) keeps grain, fuel, silver, goods, land,
+health and debts, and has needs (food, fuel, water, cash, help, health, kin; urgency 0..1). Harvests fall on each household's
+own day in months 2-3, scaled by the year's generated rain (src/weather/generator) and a quarter's hail or blight; a tenth goes
+to the treasury, which pays monthly rations (A in kind) and cuts them when short. The grain price is supply against demand at
+the market (elasticity 0.7, C); dear grain slumps the crafts' sales; caravans come when it is dear. A silver tax after the
+harvest (B; the sum C) leaves arrears as debts to the treasury. A pressed household chooses: buy, sell, ask kin, wage work,
+borrow (~10 % a term), steal (desperate and not honest), petition. Thefts are detected or not; the court judges thefts and
+unpaid debts (time granted, debt labour, fine, beating, acquittal; C odds). Illness grows with hunger and cold; a death costs
+silver and brings mourning to kin. Nothing is scripted as a sequence: each state change is an event naming its causes, and
+chains are read off that graph. Deterministic (keyed hashes); the save is seed + day + interventions (Simulation.save().econ).
+Headline chain count = distinct shapes (sequences of event kinds) over the whole world, the strictest reading of "deduplicated
+by shape"; the per-household count (shape @ leaf household) is recorded beside it (REVIEWS/evidence/F/T-F9.json). Enterable =
+of 10 seeded chains per seed, the share whose leaf no longer happens after one player intent the day before the chain's first
+household event (alternately grain and silver given, or speaking for the household before the judge).
+Not yet: the day plans do not read the economy (nobody is seen going to market, lender or judge because of it).
+
 ## D-337 — Performance at high on the T4 (session 12, agent perf; B125, B193)
 - The frame profiler: `src/core/prof.ts` (CPU per named section of main.ts `frame()` and `world.update`, off unless profiling;
   with `?prof`, WebGPU timestamp queries per render/compute pass, each pass named by its camera and target, with its draws,
