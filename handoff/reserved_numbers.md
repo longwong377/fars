@@ -92,5 +92,5 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-343 | s13 | econplans merged with the talk economy: one stepping owner, load scheme, seed-7 check (Q-1025..Q-1029, B211..B213) | agent worktree, branch s13-econplans | merged session 13 |
 | D-344 | s13 | talk cost and save cache, volume, childcare, workmates, news that acts (UD-24, T-E13; Q-1030..Q-1034, B214..B216) | agent worktree, branch s13-living4 | merged session 13 |
 | D-345 | s13 | wardrobes and daily clothes changes, node side (ROADMAP 3d; Q-1035..Q-1039, B217..B219) | agent worktree, branch s13-wardrobe | merged session 13 |
-| D-346 | s13 | relationships and sexuality as life, node side (ROADMAP 3e; Q-1040..Q-1044, B220..B222) | agent worktree, branch s13-relations | in flight |
+| D-346 | s13 | relationships and sexuality as life, node side (ROADMAP 3e; Q-1040..Q-1044, B220..B222) | agent worktree, branch s13-relations | merged session 13 |
 | D-347 | s13 | simjoin: economy snapshot save, wardrobe save, washing/bathing, economy deaths into Population, balance (Q-1045..Q-1049, B223..B225) | agent worktree, branch s13-simjoin | in flight |
