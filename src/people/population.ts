@@ -379,6 +379,7 @@ export class Population {
     for (const f of T.facilities) this.facilities[f.id] = f.at;
     this.parties = travellerParties(seed, !!opts.court); this.transferList = transfers(seed); this.bands = transhumantBands(seed); this.drives = flockDrives(seed);
     this.generate();
+    this.adultMothers();
     for (const s of opts.slice ?? []) { const pid = this.bySeat.get(s.agent); if (pid !== undefined) this.persons[pid].nm = s.name ?? null; }
     this.precomputeLife();
     this.housePlots();
@@ -386,6 +387,14 @@ export class Population {
     if (opts.court) this.court = new CourtResidents(this); // D-182 hook
   }
   attach(cal: EventCalendar) { this.cal = cal; }
+  /** D-348: after the households are drawn, every wife is made 18 or more and every mother 18 or more years older than each
+   *  child of hers (her age raised; nothing else drawn changes, so no person's id moves). The period's younger wives and
+   *  mothers (ROTH1987) stay a documented fact of the period, not simulated (C) */
+  private adultMothers() {
+    const need = new Map<number, number>();
+    for (const p of this.persons) if (p.mother >= 0 && p.born < 0) need.set(p.mother, Math.max(need.get(p.mother) ?? 0, p.age + ADULT));
+    for (const p of this.persons) { if (p.sex !== 'f') continue; const n = Math.max(need.get(p.id) ?? 0, p.wife ? ADULT : 0); if (p.age < n) p.age = n; }
+  }
   /** D-255 (WORLD_INVENTORY G26, G20): the town's craftsmen whose house is a metal workshop (town_plots.json craft 'metal')
    *  are its smiths and work at its forge; one craftsman in OIL_EVERY of the others presses sesame oil at the oil press
    *  (C). No person is added and nothing is drawn: the trades are given after the houses (housePlots) */
@@ -495,7 +504,7 @@ export class Population {
       bday: Math.floor(r.next() * REGNAL_DAYS), trait: r.next(), file: -1, idx: -1, gang: -1, squad: -1, agent: -1, mother: -1, zone: H?.zone ?? 'town', work: '', ...x } as Person;
     // a woman of 15-50 who is not a daughter at home, a servant or an old woman is married, or heads her own household in a
     // work group (women of the pašap groups drew maternity rations: E-04), and may bear a child (C)
-    if (p.wife === undefined) p.wife = p.sex === 'f' && p.age >= ADULT && p.age <= 50 && !p.kin && !['servant', 'child', 'elder', 'traveller', 'herder'].includes(p.job);
+    if (p.wife === undefined) p.wife = p.sex === 'f' && p.age >= 15 && p.age <= 50 && !p.kin && !['servant', 'child', 'elder', 'traveller', 'herder'].includes(p.job);
     this.persons.push(p); H?.members.push(id); return id;
   }
   private group(kind: string, label: string, issuePlace: string, silver: boolean, zone: 'terrace' | 'town', from = 0): number {
@@ -513,7 +522,6 @@ export class Population {
    *  Babylonia), so she is one to twelve years younger (C); without a man in the house, the given range */
   private wifeAge(r: HStream, hh: number, lo: number, hi: number) {
     const m = this.households[hh].members.map(x => this.persons[x]).find(q => q.sex === 'm' && q.age >= 18 && !q.kin && q.job !== 'child');
-    lo = Math.max(lo, ADULT); // (D-348: no wife under 18)
     return m ? Math.max(lo, Math.min(hi, m.age - Math.round(lerp(1, 12, r.next())))) : this.ageIn(r, lo, hi); }
   /** the surviving children at home of the household's mother (lives.json family): her births from 16-21 on, every 2-4
    *  years, twins in ~1.5 % of maternities; children die at the E-71 rates; daughters who have married have left; nobody
@@ -526,7 +534,7 @@ export class Population {
     for (let a = lerp(F.first_birth_age[0], F.first_birth_age[1], r.next()); a <= Math.min(F.last_birth_age, M.age); a += lerp(F.birth_interval_y[0], F.birth_interval_y[1], r.next())) {
       const age = Math.floor(M.age - a); const n = r.chance(F.twins) ? 2 : 1; const pair: number[] = [];
       for (let t = 0; t < n; t++) { const sex: 'm' | 'f' = r.chance(0.5) ? 'm' : 'f';
-        if (age > F.home_until_age[sex === 'm' ? 'son' : 'daughter'] || !r.chance(step(F.survival_to_age, age)) || (sex === 'f' && age >= ADULT && r.chance(step(F.daughter_married_by_age, age)))) continue;
+        if (age > F.home_until_age[sex === 'm' ? 'son' : 'daughter'] || !r.chance(step(F.survival_to_age, age)) || (sex === 'f' && age >= 14 && r.chance(step(F.daughter_married_by_age, age)))) continue;
         pair.push(this.child(hh, sex, age, origin, group, mom)); }
       if (pair.length === 2) { this.persons[pair[0]].twin = pair[1]; this.persons[pair[1]].twin = pair[0]; }
     }
@@ -719,13 +727,13 @@ export class Population {
       const base = { job: 'herder' as Job, hh, origin: 'Persian', arrive: b.day, leave: Math.min(REGNAL_DAYS - 1, b.day + b.stay), zone: 'transient' as const, idx: b.i };
       let n = 0; const add = (x: Partial<Person> & { sex: 'm' | 'f'; age: number }) => { if (n >= b.size) return -1; n++; return this.person({ ...base, ...x }); };
       for (let tent = 0; n < b.size && tent < 40; tent++) { const r = this.rng(-30000 - b.i * 50 - tent);
-        const man = this.ageIn(r, 22, 50), wifeAge = Math.max(ADULT, Math.min(45, man - Math.round(lerp(2, 10, r.next()))));
+        const man = this.ageIn(r, 22, 50), wifeAge = Math.max(16, Math.min(45, man - Math.round(lerp(2, 10, r.next()))));
         add({ sex: 'm', age: man, squad: tent, rank: tent === 0 ? 1 : 0 }); const mom = add({ sex: 'f', age: wifeAge, squad: tent });
         if (r.chance(HB.tent_extra.elder)) add({ sex: r.chance(0.5) ? 'm' : 'f', age: Math.min(72, man + this.ageIn(r, 20, 28)), squad: tent });
         // (an unmarried younger brother: only in a young man's tent, 3-12 years younger and 16 or more)
         if (man <= 34 && r.chance(HB.tent_extra.brother)) add({ sex: 'm', age: Math.max(16, man - this.ageIn(r, 3, 12)), squad: tent });
         if (mom < 0) continue;
-        for (let a = lerp(ADULT + 1, ADULT + 4, r.next()); a <= Math.min(F.last_birth_age, wifeAge); a += lerp(F.birth_interval_y[0], F.birth_interval_y[1], r.next())) { const age = Math.floor(wifeAge - a), sex: 'm' | 'f' = r.chance(0.5) ? 'm' : 'f';
+        for (let a = lerp(17, 20, r.next()); a <= Math.min(F.last_birth_age, wifeAge); a += lerp(F.birth_interval_y[0], F.birth_interval_y[1], r.next())) { const age = Math.floor(wifeAge - a), sex: 'm' | 'f' = r.chance(0.5) ? 'm' : 'f';
           const survive = (F.survival_to_age as [number, number][]).reduce((v, [x, s]) => age >= x ? s : v, 1);
           if (age > (sex === 'm' ? 17 : 15) || !r.chance(survive)) continue; add({ sex, age, squad: tent, mother: mom }); } } }
     for (const x of this.transferList) { const g = this.group(x.kind === 'construction_gang' ? 'gang' : 'pasap', `a newly arrived work group (${x.size})`, 'store_town', false, 'town', x.day);
@@ -1519,7 +1527,9 @@ export class Population {
     return -x <= G.postpartum_days ? G.postpartum * (1 - -x / G.postpartum_days) : 0;
   }
   /** D-292: the days until a woman gives birth (negative after it), or null when she gives no birth this year or early the next */
-  dueIn(pid: number, d: number): number | null { const B = this.due.get(pid); return B === undefined ? null : B - d; }
+  /** (D-348: a pregnancy of the relations layer, a lover's child or a new couple's, conceived by day d, counts too: bonds.dueOf) */
+  dueOwn(pid: number): number | undefined { return this.due.get(pid); }
+  dueIn(pid: number, d: number): number | null { const B = this.due.get(pid) ?? this.bonds?.dueOf(pid, d); return B === undefined ? null : B - d; }
   /** D-292: visibly with child on day d (the months when the belly reads under the clothes: lives.json pregnancy.visible_days) */
   expecting(pid: number, d: number): boolean { const x = this.dueIn(pid, d); return x !== null && x >= 0 && x < L.pregnancy.visible_days && this.present(pid, d); }
   babyLives(pid: number, d: number) { const H = this.households[this.home(pid, d)]; for (const x of H.births) if (x <= d && d - x < 45) for (const c of this.lifeByDay[x].births) if (this.persons[c].mother === pid && this.present(c, d)) return true; return false; }
@@ -1683,7 +1693,9 @@ export class Population {
   /** D-340 (UD-26): the economy's decisions laid over the day plans (people/economy/plans.ts EconPlans; the sim sets it):
    *  the market, the lender, the court, the day's hire, the thief's night, the bondage. Under the stranger's steps */
   econ: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); if (this.econ?.touches(pid, day)) b = this.econ.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  /** D-348: courting visits, the families' agreement, lovers' meetings laid over the plans (people/relations/plans.ts RelPlans; the sim sets it; Population.rel is the older affinity map) */
+  bonds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[]; dueOf(pid: number, day: number): number | undefined } | null = null;
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); if (this.econ?.touches(pid, day)) b = this.econ.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }

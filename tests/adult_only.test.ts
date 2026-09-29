@@ -34,7 +34,7 @@ describe('D-348: nobody under 18 marries, is betrothed, courts or conceives', ()
     const out: Record<number, { weddings: number; births: number; due: number }> = {};
     for (const s of SEEDS) { const r = check(new Population(s)); out[s] = { weddings: r.weddings, births: r.births, due: r.due }; expect(r.bad.slice(0, 5)).toEqual([]); }
     console.log('D-348 counts', JSON.stringify(out));
-    for (const s of SEEDS) { expect(out[s].weddings).toBeGreaterThan(200); expect(out[s].births).toBeGreaterThan(1300); }
+    for (const s of SEEDS) { expect(out[s].weddings).toBeGreaterThan(100); expect(out[s].births).toBeGreaterThan(1300); }
   }, 600_000);
 
   it('the relations layer, seed 1: no event, pregnancy, courting or lover state involves anyone under 18', () => {

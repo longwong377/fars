@@ -31,9 +31,10 @@ describe('relations (ROADMAP 3e)', () => {
       affairs: per(c.affair ?? 0), discovered: per(c.discovered ?? 0), divorces: per(c.divorce ?? 0), scandals: per(R.news.length), conceptions: per(c.conceive ?? 0), doubtfulParentage: per(c.doubt ?? 0) };
     const fathers = R.fathers();
     Object.assign(OUT, { adults, counts: c, per1000Adults: rates, stats: R.stats, newsHearers: R.news.reduce((a, n) => a + n.knows.size, 0),
-      populationBirths: fathers.length, birthsFatherKnown: fathers.filter(f => f.father >= 0).length, birthsDoubtful: fathers.filter(f => f.doubt.length).length,
+      populationBirthsAndDues: fathers.length, doubtEvents: c.doubt ?? 0, birthsFatherKnown: fathers.filter(f => f.father >= 0).length, birthsDoubtful: fathers.filter(f => f.doubt.length).length,
       populationBridesUnder18: P.persons.filter(p => p.sex === 'f' && p.spouse !== undefined && p.marry < 1e9 && P.ageOn(p.id, p.marry) < 18).length });
     write();
+    expect(fathers.filter(f => f.doubt.length).length + (c.doubt ?? 0)).toBeGreaterThan(0);
     for (const k of ['marriages', 'ofWhichFromCourtship', 'affairs', 'divorces', 'scandals', 'conceptions'] as const) { expect(rates[k]).toBeGreaterThan(0.5); expect(rates[k]).toBeLessThan(30); }
   });
 
@@ -104,6 +105,21 @@ describe('relations (ROADMAP 3e)', () => {
     const Y = new Relations(P, 1, { player: { sex: 'm', age: 30 } }); Y.load(JSON.parse(JSON.stringify(X.save()))); Y.advance(wd + 13);
     expect(JSON.stringify(Y.memoryOf(wife))).toBe(JSON.stringify(mem)); expect(Y.spouseOn(wife, wd + 13)).toBe(PLAYER);
     OUT.player = { candidates: cands.length, courted: courted.length, wife, weddingDay: wd, memory: mem.length, mood, bed }; write();
+  }, 600_000);
+
+  it('the player takes a lover: refused where she does not want it; with a married woman, an affair that can be found out; she remembers', () => {
+    const X = new Relations(P, 1, { player: { sex: 'm', age: 30 } });
+    const wives = P.persons.filter(p => p.sex === 'f' && p.age >= 20 && p.age <= 34 && p.dies > 400 && X.spouseOn(p.id, 5) >= 0 && P.households[p.hh].zone === 'town');
+    const keen = wives.filter(p => X.want(p.id, PLAYER, 5, 0.5) > 0.45).slice(0, 3).map(p => p.id), cold = wives.find(p => X.want(p.id, PLAYER, 5, 1) === 0)!.id;
+    expect(keen.length).toBeGreaterThan(0);
+    for (let d = 3; d <= 45; d += 7) for (const c of keen) { X.act(c, d, 'gift'); X.act(c, d + 1, 'help'); }
+    const no = X.act(cold, 46, 'take_lover'); expect(no.ok).toBe(false);
+    const lover = keen.find(c => X.act(c, 50, 'take_lover').ok); expect(lover).toBeDefined();
+    const bed = X.act(lover!, 51, 'share_bed'); expect(bed.ok).toBe(true); expect(bed.cutAway).toBe(true);
+    for (let d = 58; d <= 240; d += 7) X.act(lover!, d, 'share_bed');
+    X.advance(250); const mem = X.memoryOf(lover!), found = X.events.find(e => e.kind === 'discovered' && (e.a === lover || e.b === lover) && (e.a === PLAYER || e.b === PLAYER));
+    expect(mem.some(m => m.kind === 'affair')).toBe(true); expect(mem.filter(m => m.kind === 'intimate').length).toBeGreaterThan(1);
+    OUT.playerLover = { refusedWhereNoDesire: !no.ok, lover, nights: mem.filter(m => m.kind === 'intimate').length, foundOut: found ? found.day : null, moodAfter: X.moodOf(lover!, 250), husbandMood: X.moodOf(X.spouseOn(lover!, 5), 250) }; write();
   }, 600_000);
 
   it('the couple feeds the population’s birth draw (the one hook); the dowries and news enter the economy', () => {

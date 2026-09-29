@@ -23,10 +23,10 @@ import { REL } from './law';
 
 export const PLAYER = -1;
 const S = { chem: salt('rel-chem'), compat: salt('rel-compat'), orient: salt('rel-orient'), h: salt('rel-hours'), ev: salt('rel-event'), pick: salt('rel-pick'),
-  init: salt('rel-init'), away: salt('rel-away'), bed: salt('rel-bed'), news: salt('rel-news'), conc: salt('rel-conceive'), pl: salt('rel-player') };
+  init: salt('rel-init'), meet: salt('rel-meet'), away: salt('rel-away'), bed: salt('rel-bed'), news: salt('rel-news'), conc: salt('rel-conceive'), pl: salt('rel-player') };
 export type Status = 'none' | 'courting' | 'betrothed' | 'married' | 'lovers' | 'divorced';
 export type Kind = 'home' | 'crew' | 'tie' | 'kin' | 'neighbour' | 'well' | 'player';
-export interface Pair { a: number; b: number; kind: Kind; /** temperament fit, fixed */ c: number; fam: number; aff: number; trust: number; status: Status; since: number; weeks: number; cool: number;
+export interface Pair { a: number; b: number; kind: Kind; /** temperament fit, fixed */ c: number; /** hours shared in week hw */ h: number; hw: number; fam: number; aff: number; trust: number; status: Status; since: number; weeks: number; cool: number;
   /** weeks of intimacy (a state; never shown) and the last week of it */
   intimate: number; lastBed: number; wedDay: number; discovered: boolean }
 export type EvKind = 'court' | 'reject' | 'refused' | 'betroth' | 'wed' | 'wed_arranged' | 'lovers' | 'affair' | 'end_affair' | 'discovered' | 'jealous' | 'divorce' | 'widowed'
@@ -37,6 +37,9 @@ export interface RelEvent { id: number; day: number; kind: EvKind; a: number; b:
 export interface News { id: number; day: number; about: number[]; ev: number; what: string; knows: Map<number, number>; front: number[]; hand: number[] }
 export interface Pregnancy { mother: number; father: number; doubt: number[]; conceived: number; due: number; pop: boolean }
 export type PlayerAct = 'talk' | 'gift' | 'help' | 'slight' | 'court' | 'propose' | 'take_lover' | 'share_bed' | 'share_home' | 'leave';
+/** a meeting the relations lay into the day plans (plans.ts): a suitor's visit or walk by the well, the families agreeing a
+ *  marriage at the bride's house, lovers' word apart. a visits b's house (or lane); c goes with a (the groom's father) */
+export interface Meet { day: number; kind: 'court' | 'negotiate' | 'lovers'; a: number; b: number; c?: number; hostKin?: number }
 export interface ActResult { ok: boolean; why: string; cutAway?: boolean; weddingDay?: number }
 interface Ledger { day: number; pid: number; act: PlayerAct; res?: ActResult }
 export interface RelOpts { econ?: (i: Intent) => void; player?: { sex: 'm' | 'f'; age: number }; ablate?: boolean }
@@ -50,6 +53,8 @@ export class Relations {
   readonly events: RelEvent[] = [];
   readonly news: News[] = [];
   readonly pregnancies: Pregnancy[] = [];
+  /** the meetings of each day, laid into the plans by plans.ts */
+  readonly meets = new Map<number, Meet[]>();
   private edges: [number, number, Kind][] = [];
   private contacts = new Map<number, number[]>();
   /** marriages: pid → [from, to, spouse][] (to = 1e9 while it lasts) */
@@ -72,7 +77,7 @@ export class Relations {
 
   // ================================================================ set-up
   private reset() {
-    this.pairs.clear(); this.player.clear(); this.events.length = 0; this.news.length = 0; this.pregnancies.length = 0; this.wed.clear(); this.homeOv.clear(); this.rep.clear();
+    this.pairs.clear(); this.player.clear(); this.events.length = 0; this.news.length = 0; this.pregnancies.length = 0; this.meets.clear(); this.wed.clear(); this.homeOv.clear(); this.rep.clear();
     this.arranged.clear(); this.ownWed.clear(); this.busy.clear(); this.pendingShow = [];
     this.moodEv.clear(); this.pregBy.clear(); this.bedWeeks.clear(); this.lovBed.clear(); this.week = -1; this.contacts.clear(); this.edges = [];
     this.stats = { pairs: 0, slights: 0, helps: 0, bedWeeks: 0, newsTold: 0, intents: 0 };
@@ -95,6 +100,9 @@ export class Relations {
       pick(quarter.get(H.q), p.id, 3, 'neighbour', x => P.persons[x].sex !== p.sex && Math.abs(P.persons[x].age - p.age) < 15);
     }
     for (const [a, b] of this.edges) { (this.contacts.get(a) ?? this.contacts.set(a, []).get(a)!).push(b); (this.contacts.get(b) ?? this.contacts.set(b, []).get(b)!).push(a); }
+    // (only pairs where one could desire the other can come to anything here; the rest carry the news and nothing else: the
+    // relations' cost is these pairs, not the whole contact graph)
+    this.edges = this.edges.filter(([a, b]) => this.canCome(a, b));
     // the marriages standing at day 0: in each house, each married woman with the man of it nearest her age + 6 (the
     // population keeps households, not couples; unmarried sons and the old are not husbands of the young; C)
     for (const H of P.households) { if (H.zone !== 'town' && H.zone !== 'plain') continue;
@@ -113,12 +121,19 @@ export class Relations {
     const K = key(a, b); let pr = this.pairs.get(K); if (pr) return pr;
     const lo = Math.min(a, b), hi = Math.max(a, b), u = (k: number) => u01(this.seed, S.init, lo, hi, k);
     const F: Record<Kind, number> = { home: 0.85, crew: 0.4, tie: 0.5, kin: 0.45, neighbour: 0.2, well: 0.3, player: 0 };
-    pr = { a: lo, b: hi, kind, c: this.compat(lo, hi), fam: F[kind] * (0.6 + 0.4 * u(4)), aff: kind === 'home' ? 0.35 : 0.3 * this.compat(lo, hi), trust: kind === 'home' || kind === 'kin' ? 0.3 : 0.1 * u(5), status: 'none', since: 0, weeks: 0, cool: 0, intimate: 0, lastBed: -99, wedDay: 1e9, discovered: false };
+    pr = { a: lo, b: hi, kind, c: this.compat(lo, hi), h: 0, hw: -1, fam: F[kind] * (0.6 + 0.4 * u(4)), aff: kind === 'home' ? 0.35 : 0.3 * this.compat(lo, hi), trust: kind === 'home' || kind === 'kin' ? 0.3 : 0.1 * u(5), status: 'none', since: 0, weeks: 0, cool: 0, intimate: 0, lastBed: -99, wedDay: 1e9, discovered: false };
     this.pairs.set(K, pr); this.stats.pairs++; return pr;
   }
+  /** one of the two could desire the other (who they can desire, not close kin) */
+  /** ... and the desire could reach what courting, an affair or an advance needs this year (its bound: well known, at the
+   *  ages of the start or the end of the year); pairs that cannot are never stepped */
+  private canCome(a: number, b: number) { if (!this.canDesire(a, b)) return false; const ub = (x: number, y: number) => Math.max(this.want(x, y, 0, 1), this.want(x, y, REGNAL_DAYS - 1, 1)); const u1 = ub(a, b), u2 = ub(b, a);
+    return Math.max(u1, u2) >= REL.advanceDesire || Math.min(u1, u2) >= Math.min(REL.courtDesire, REL.affairDesire); }
+  private canDesire(a: number, b: number) { const same = this.pop.persons[a].sex === this.pop.persons[b].sex, oa = this.orient(a), ob = this.orient(b);
+    return (same ? oa !== 'o' || ob !== 'o' : oa !== 's' || ob !== 's') && !this.closeKin(a, b); }
   getPair(a: number, b: number) { return a === PLAYER ? this.player.get(b) : b === PLAYER ? this.player.get(a) : this.pairs.get(key(a, b)); }
   /** the player's pair with a person (created on first meeting) */
-  private ppair(pid: number, d: number): Pair { let pr = this.player.get(pid); if (!pr) { pr = { a: PLAYER, b: pid, kind: 'player', c: 2 * u01(this.seed, S.pl, pid, 1) - 1, fam: 0, aff: 0, trust: 0, status: 'none', since: d, weeks: 0, cool: 0, intimate: 0, lastBed: -99, wedDay: 1e9, discovered: false }; this.player.set(pid, pr); } return pr; }
+  private ppair(pid: number, d: number): Pair { let pr = this.player.get(pid); if (!pr) { pr = { a: PLAYER, b: pid, kind: 'player', c: 2 * u01(this.seed, S.pl, pid, 1) - 1, h: 0, hw: -1, fam: 0, aff: 0, trust: 0, status: 'none', since: d, weeks: 0, cool: 0, intimate: 0, lastBed: -99, wedDay: 1e9, discovered: false }; this.player.set(pid, pr); } return pr; }
   /** temperament fit: -1..1, fixed per pair (C) */
   private compat(a: number, b: number) { const P = this.pop; return 0.7 * (2 * u01(this.seed, S.compat, Math.min(a, b), Math.max(a, b)) - 1) + 0.3 * (1 - 2 * Math.abs(P.persons[a].trait - P.persons[b].trait)); }
   /** whom a person can desire: 'o' the other sex, 's' the same, 'b' both (C: a few percent each, the evidence is silent) */
@@ -160,9 +175,9 @@ export class Relations {
 
   // ================================================================ the weeks
   /** simulate every week that starts on or before `day` */
-  advance(day: number) { const W = Math.min(Math.floor(day / 7), Math.floor((REGNAL_DAYS - 1) / 7)); while (this.week < W) this.step(++this.week); }
+  advance(day: number) { const W = Math.min(Math.floor(day / 7), Math.floor((REGNAL_DAYS - 1) / 7)); if (this.stepping || this.week >= W) return; this.stepping = true; try { while (this.week < W) this.step(++this.week); } finally { this.stepping = false; } }
   private step(w: number) {
-    const P = this.pop, d0 = w * 7, d1 = Math.min(REGNAL_DAYS - 1, d0 + 6), d = d0 + 3;
+    const P = this.pop, d0 = w * 7, d1 = Math.min(REGNAL_DAYS - 1, d0 + 6), d = d0 + 3, e0 = this.events.length;
     const fest = [0, 1, 2, 3, 4, 5, 6].some(k => festivalOn(this.seed, d0 + k) !== null);
     this.busy.clear(); for (const pr of this.pairs.values()) if (pr.status === 'courting' || pr.status === 'betrothed') { this.busy.add(pr.a); this.busy.add(pr.b); }
     for (const pr of this.player.values()) if (pr.status === 'courting' || pr.status === 'betrothed') this.busy.add(pr.b);
@@ -179,27 +194,26 @@ export class Relations {
     for (const [pid] of this.contacts) { if (!this.adult(pid, d)) { st.set(pid, 0); continue; } st.set(pid, 1 | (P.sick(pid, d) ? 2 : 0) | (P.mourning(pid, d) ? 4 : 0) | (this.away(pid, w) ? 8 : 0));
       const h = this.homeOf(pid, d); (byHome.get(h) ?? byHome.set(h, []).get(h)!).push(pid); }
     const F = (x: number) => st.get(x) ?? 0;
-    const hours = new Map<number, [Pair, number]>();
-    const add = (a: number, b: number, k: Kind) => { const fa = F(a), fb = F(b); if (!(fa & fb & 1)) return; const pr = this.pair(a, b, k), K = key(a, b); let h = REL.hours[k] * (0.4 + 1.2 * u01(this.seed, S.h, pr.a, pr.b, w));
+    const met: Pair[] = [];
+    const add = (a: number, b: number, k: Kind) => { const fa = F(a), fb = F(b); if (!(fa & fb & 1)) return; if (k === 'home' && this.spouseOn(a, d) !== b && !this.canDesire(a, b)) return; const pr = this.pair(a, b, k); let h = REL.hours[k] * (0.4 + 1.2 * u01(this.seed, S.h, pr.a, pr.b, w));
       if (fest && (k === 'neighbour' || k === 'well' || k === 'kin')) h *= 1.6; if ((fa | fb) & 2) h *= 0.3; if ((fa | fb) & 8) h *= 0.2;
-      const o = hours.get(K); if (!o || o[1] < h) hours.set(K, [pr, h]); };
+      if (pr.hw !== w) { pr.hw = w; pr.h = h; met.push(pr); } else if (pr.h < h) pr.h = h; };
     for (const [a, b, k] of this.edges) add(a, b, k);
     for (const ms of byHome.values()) for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) add(ms[i], ms[j], 'home');
-    for (const pr of this.pairs.values()) if (pr.status === 'lovers' && !hours.has(key(pr.a, pr.b)) && this.adult(pr.a, d) && this.adult(pr.b, d)) hours.set(key(pr.a, pr.b), [pr, 3]);
+    for (const pr of this.pairs.values()) { if (pr.hw !== w) { if (pr.status === 'lovers' && this.adult(pr.a, d) && this.adult(pr.b, d)) { pr.hw = w; pr.h = 3; met.push(pr); } else pr.fam *= 0.997; } }
     // the state moves
-    for (const [K, [pr, h]] of hours) {
-      const c = pr.c, lh = Math.log1p(h), u = (k: number) => u01(this.seed, S.ev, K % 1e9, w, k);
+    for (const pr of met) {
+      const h = pr.h, K = key(pr.a, pr.b) % 1e9, c = pr.c, lh = Math.log1p(h);
       pr.fam = cl(pr.fam + (1 - pr.fam) * (1 - Math.exp(-h / 150)), 0, 1);
       // (affection and trust move toward what the two are to each other, the faster the more time they share; shocks fade)
       const close = pr.status === 'married' || pr.status === 'courting' || pr.status === 'betrothed' || pr.status === 'lovers' || pr.kind === 'home' || pr.kind === 'kin', rate = 0.04 * lh / 3.3;
       pr.aff = cl(pr.aff + ((close ? 0.3 : 0.05) + 0.5 * c * (0.5 + 0.5 * pr.fam) - pr.aff) * rate);
       pr.trust = cl(pr.trust + ((close ? 0.3 : 0.1) + 0.35 * c - pr.trust) * rate * 0.7);
-      if (u(1) < 0.012 * lh * (0.7 - 0.5 * c)) { pr.aff = cl(pr.aff - 0.14); pr.trust = cl(pr.trust - 0.1); this.stats.slights++; } // a slight: a harsh word, a thing not returned
-      if ((pr.kind !== 'home') && ((F(pr.a) | F(pr.b)) & 6) && u(2) < 0.3) { pr.aff = cl(pr.aff + 0.06); pr.trust = cl(pr.trust + 0.1); this.stats.helps++; }
+      if (u01(this.seed, S.ev, K, w, 1) < 0.012 * lh * (0.7 - 0.5 * c)) { pr.aff = cl(pr.aff - 0.14); pr.trust = cl(pr.trust - 0.1); this.stats.slights++; } // a slight: a harsh word, a thing not returned
+      if ((pr.kind !== 'home') && ((F(pr.a) | F(pr.b)) & 6) && u01(this.seed, S.ev, K, w, 2) < 0.3) { pr.aff = cl(pr.aff + 0.06); pr.trust = cl(pr.trust + 0.1); this.stats.helps++; }
     }
-    for (const pr of this.pairs.values()) if (!hours.has(key(pr.a, pr.b))) pr.fam *= 0.997;
     // what comes of it
-    for (const [K, [pr, h]] of hours) this.decide(pr, K, w, d0, d1, h);
+    for (const pr of met) this.decide(pr, key(pr.a, pr.b), w, d0, d1, pr.h);
     for (const pr of [...this.pairs.values(), ...this.player.values()]) if (pr.status === 'betrothed' && pr.wedDay >= d0 && pr.wedDay <= d1 && !this.arranged.has(key(pr.a, pr.b))) this.wedding(pr);
     // the player's married lovers risk being found out as anyone's do
     for (const pr of this.player.values()) if (pr.status === 'lovers' && !pr.discovered) { const s = this.spouseOn(pr.b, d); if (s >= 0 && u01(this.seed, S.pl, pr.b, w, 3) < REL.discoverP) this.discover(pr, pr.b, s, d); }
@@ -207,45 +221,60 @@ export class Relations {
     // the player's acts of this week, in day order, at its end (so a live act and its replay land at the same point)
     for (const L of this.ledger) if (Math.floor(L.day / 7) === w && !L.res) L.res = this.apply(L);
     this.spread(w, d);
+    this.meetings(d0, d1, e0);
+  }
+  private meetings(d0: number, d1: number, e0: number) {
+    const P = this.pop, put = (m: Meet) => (this.meets.get(m.day) ?? this.meets.set(m.day, []).get(m.day)!).push(m);
+    const head = (pid: number, d: number) => { const ms = P.membersOn(this.homeOf(pid, d), d).filter(x => x !== pid && this.adult(x, d) && P.ageOn(x, d) >= 30 && !P.sick(x, d)); ms.sort((x, y) => P.ageOn(y, d) - P.ageOn(x, d) || x - y); return ms[0]; };
+    // the families agree the marriage at the bride's house on the day of the agreement
+    for (let i = e0; i < this.events.length; i++) { const e = this.events[i]; if (e.kind !== 'betroth' || e.a === PLAYER || e.b === PLAYER) continue; put({ day: e.day, kind: 'negotiate', a: e.a, b: e.b, c: head(e.a, e.day), hostKin: head(e.b, e.day) }); }
+    for (const pr of this.pairs.values()) { if (pr.status !== 'courting' && pr.status !== 'lovers') continue;
+      for (let x = Math.max(d0, pr.since + 1); x <= d1; x++) { if (u01(this.seed, S.meet, pr.a, pr.b, x) >= (pr.status === 'courting' ? 0.3 : 0.2)) continue;
+        if (pr.status === 'courting') { const man = P.persons[pr.a].sex === 'm' ? pr.a : pr.b; put({ day: x, kind: 'court', a: man, b: man === pr.a ? pr.b : pr.a }); }
+        else put({ day: x, kind: 'lovers', a: pr.a, b: pr.b }); } }
   }
   private decide(pr: Pair, K: number, w: number, d0: number, d1: number, h: number) {
-    const P = this.pop, d = d0 + 3, u = (k: number) => u01(this.seed, S.ev, K % 1e9, w, 10 + k), A = P.persons[pr.a], B = P.persons[pr.b];
-    const wa = this.want(pr.a, pr.b, d, pr.fam), wb = this.want(pr.b, pr.a, d, pr.fam), sa = this.spouseOn(pr.a, d), sb = this.spouseOn(pr.b, d);
+    const P = this.pop, d = d0 + 3, A = P.persons[pr.a], B = P.persons[pr.b];
+    const sa = this.spouseOn(pr.a, d), sb = this.spouseOn(pr.b, d);
     const opp = A.sex !== B.sex, woman = A.sex === 'f' ? A : B, man = A.sex === 'f' ? B : A;
+    // (a pair neither of whom can desire the other has nothing more to come of it this week: the common case, decided cheaply)
+    if (pr.status === 'none' && (d < pr.cool || (!opp && this.orient(pr.a) === 'o' && this.orient(pr.b) === 'o'))) return;
     if (pr.status === 'married') { // a marriage goes cold, and ends
       if (pr.aff < REL.divorceAff && pr.trust < REL.divorceTrust) pr.weeks++; else pr.weeks = 0;
-      if (pr.weeks >= REL.divorceWeeks && u(1) < REL.divorceP) this.divorce(pr, d);
-      else if (pr.aff < 0.1 && u(7) < 0.005) this.ev(d, 'jealous', pr, pr.a, pr.b, 'quarrels in the house: the marriage is cold');
+      if (pr.weeks >= REL.divorceWeeks && this.r(K, w, 1) < REL.divorceP) this.divorce(pr, d);
+      else if (pr.aff < 0.1 && this.r(K, w, 7) < 0.005) this.ev(d, 'jealous', pr, pr.a, pr.b, 'quarrels in the house: the marriage is cold');
       return;
     }
     if (pr.status === 'betrothed') return;
     if (pr.status === 'courting') {
       pr.weeks++;
       if (pr.aff < -0.05 || sa >= 0 || sb >= 0) { pr.status = 'none'; pr.cool = d + 7 * REL.rejectCooldownW; return; }
-      if (pr.weeks >= REL.betrothWeeks && pr.aff >= REL.betrothAff && pr.trust >= REL.betrothTrust) this.families(pr, d, u(2));
+      if (pr.weeks >= REL.betrothWeeks && pr.aff >= REL.betrothAff && pr.trust >= REL.betrothTrust) this.families(pr, d, this.r(K, w, 2));
       return;
     }
     if (pr.status === 'lovers') { this.affairWeek(pr, K, w, d); return; }
     if (d < pr.cool || this.closeKin(pr.a, pr.b)) return;
-    const free = (x: number) => this.spouseOn(x, d) < 0 && !this.busy.has(x) && !(P.persons[x].spouse !== undefined && P.persons[x].marry > d);
-    const fits = (x: typeof A) => { const a = P.ageOn(x.id, d); return x.sex === 'f' ? a >= REL.bride[0] && a <= REL.bride[1] : a >= REL.groom[0] && a <= REL.groom[1]; };
+    const wa = this.want(pr.a, pr.b, d, pr.fam), wb = this.want(pr.b, pr.a, d, pr.fam);
     // courting: both free, of an age to marry, mutual desire and liking
-    if (opp && sa < 0 && sb < 0 && free(pr.a) && free(pr.b) && fits(woman) && fits(man)) {
+    if (opp && sa < 0 && sb < 0 && this.free(pr.a, d) && this.free(pr.b, d) && this.fits(woman.id, d) && this.fits(man.id, d)) {
       if (wa >= REL.courtDesire && wb >= REL.courtDesire && pr.aff >= REL.courtAff) { pr.status = 'courting'; pr.weeks = 0; pr.since = d; this.busy.add(pr.a); this.busy.add(pr.b); this.ev(d, 'court', pr, man.id, woman.id, 'they seek each other out: at the well, in the lane, at the feast'); return; }
     }
     // an advance to one who does not want it: a rejection (the advancer hurt, a little colder)
     const hi = wa >= wb ? pr.a : pr.b, lo = hi === pr.a ? pr.b : pr.a, wh = Math.max(wa, wb), wl = Math.min(wa, wb);
-    if (wh >= REL.advanceDesire && wl < REL.rejectBelow && this.spouseOn(hi, d) < 0 && u(3) < 0.004 * Math.log1p(h)) {
+    if (wh >= REL.advanceDesire && wl < REL.rejectBelow && this.spouseOn(hi, d) < 0 && this.r(K, w, 3) < 0.004 * Math.log1p(h)) {
       pr.aff = cl(pr.aff - 0.12); pr.cool = d + 7 * REL.rejectCooldownW; this.ev(d, 'reject', pr, hi, lo, this.spouseOn(lo, d) >= 0 ? 'turned away: married, and not wanting it' : 'turned away: not wanting it'); return; }
     // lovers: mutual desire and familiarity; when one is married, a cold marriage (an affair). Different houses only
     if (wa >= REL.affairDesire && wb >= REL.affairDesire && pr.fam >= REL.affairFam && pr.aff >= 0.15 && this.homeOf(pr.a, d) !== this.homeOf(pr.b, d)) {
       const cold = (x: number, s: number) => s < 0 || (this.getPair(x, s)?.aff ?? 0) < REL.affairSpouseAff;
       if (!cold(pr.a, sa) || !cold(pr.b, sb)) return;
       const married = sa >= 0 || sb >= 0; if (!married && opp) return; // (two free people of the two sexes court instead)
-      if (u(4) >= REL.affairP * 0.1) return;
+      if (this.r(K, w, 4) >= REL.affairP * 0.1) return;
       pr.status = 'lovers'; pr.since = d; pr.discovered = false; this.ev(d, married ? 'affair' : 'lovers', pr, pr.a, pr.b, married ? 'lovers in secret: a cold marriage and a warm look' : 'lovers in secret (never a marriage)');
     }
   }
+  private r(K: number, w: number, k: number) { return u01(this.seed, S.ev, K % 1e9, w, 10 + k); }
+  private free(x: number, d: number) { const p = this.pop.persons[x]; return this.spouseOn(x, d) < 0 && !this.busy.has(x) && !(p.spouse !== undefined && p.marry > d); }
+  private fits(x: number, d: number) { const a = this.pop.ageOn(x, d); return this.pop.persons[x].sex === 'f' ? a >= REL.bride[0] && a <= REL.bride[1] : a >= REL.groom[0] && a <= REL.groom[1]; }
   private families(pr: Pair, d: number, u: number) {
     const woman = this.sexOf(pr.a) === 'f' ? pr.a : pr.b, man = woman === pr.a ? pr.b : pr.a;
     const hw = this.homeOf(woman, d), hm = this.homeOf(man, d);
@@ -306,7 +335,7 @@ export class Relations {
     // conception: this layer's couples and lovers (the population draws the births of its own wives; those are given fathers)
     for (const src of [this.bedWeeks, this.lovBed]) for (const [pid, ws] of src) {
       const last = ws[ws.length - 1]; const wk = Array.isArray(last) ? last[0] : last; if (wk !== w) continue;
-      const p = P.persons[pid]; if (p.wife || (src === this.bedWeeks && !this.ownWed.has(pid)) || this.pregBy.has(pid) || P.dueIn(pid, d) !== null) continue;
+      const p = P.persons[pid]; if ((src === this.bedWeeks && (p.wife || !this.ownWed.has(pid))) || this.pregBy.has(pid) || P.dueOwn(pid) !== undefined || P.ageAt(pid, d) < REL.adult) continue; // (a wife's child by her husband is the population's draw; by a lover, this layer's)
       const a = P.ageOn(pid, d); let f = 0; for (const [ag, v] of REL.fecundAge) if (a >= ag) f = v;
       const nursing = P.childrenOf(pid).some(c => P.present(c, d) && P.ageOn(c, d) < 1) ? REL.nursing : 1;
       if (u01(this.seed, S.conc, pid, w) >= REL.fecund * f * nursing * 7 / 29.5 * 1.6) continue;
@@ -318,14 +347,25 @@ export class Relations {
       // an unmarried woman with child: the talk comes when it shows (four months), and her lover's family is pressed
       if (this.spouseOn(pid, d) < 0 && d + 120 < REGNAL_DAYS) { this.pendingShow.push([d + 120, pid, e.id]); }
     }
+    // the population's own pregnancies conceived this week: a lover in her bed then makes the child's father doubtful
+    for (const [pid, ws] of this.lovBed) { const due = P.dueOwn(pid); if (due === undefined || this.pregBy.has(pid)) continue; const cd = due - REL.gestationDays; if (cd < d0 || cd > d0 + 6 || !ws.some(([x]) => Math.abs(x - w) <= 2)) continue;
+      const hus = this.spouseOn(pid, cd), around = this.partnersAround(pid, w); const lov = around.filter(y => y !== hus); if (!lov.length) continue;
+      const e = this.ev(cd, 'doubt', this.getPair(pid, lov[0]) ?? null, pid, lov[0], hus >= 0 && around.includes(hus) ? 'with child: her husband’s, or her lover’s' : 'with child while her husband was away: the lover’s', hus >= 0 ? hus : undefined); void e; }
     for (const [x, pid, cause] of this.pendingShow) if (x >= d0 && x < d0 + 7) this.scandal(x, [pid], cause, 'with child and unmarried');
   }
   private partnersAround(pid: number, w: number) { const out = new Set<number>(); for (const x of this.bedWeeks.get(pid) ?? []) if (Math.abs(x - w) <= 2) out.add(this.spouseOn(pid, x * 7 + 3)); for (const [x, y] of this.lovBed.get(pid) ?? []) if (Math.abs(x - w) <= 2) out.add(y); out.delete(-1); return [...out]; }
+  /** the due day of this layer's pregnancy of a woman conceived by day d (the population asks: dueIn); pure: the weeks up to d
+   *  are simulated first (not while they are being simulated: then the state so far) */
+  dueOf(pid: number, d: number): number | undefined { if (!this.stepping) this.advance(d); const g = this.pregBy.get(pid); return g && g.conceived <= d ? g.due : undefined; }
+  private stepping = false;
   /** the population's births of the year, each given its father from who shared the mother's bed around conception (266 days
    *  before), with the doubt where a lover did too; before the year: the husband's (run after advance(353)) */
   fathers(): { child: number; mother: number; father: number; doubt: number[]; conceived: number }[] {
     const P = this.pop, out: { child: number; mother: number; father: number; doubt: number[]; conceived: number }[] = [];
-    for (let x = 0; x < REGNAL_DAYS; x++) for (const c of P.lifeOn(x).births) { const m = P.persons[c].mother; if (m < 0) continue; const cd = x - REL.gestationDays, w = Math.floor(cd / 7);
+    const born: [number, number, number][] = []; // [child (-1: not yet born), mother, day]
+    for (let x = 0; x < REGNAL_DAYS; x++) for (const c of P.lifeOn(x).births) { const m = P.persons[c].mother; if (m >= 0) born.push([c, m, x]); }
+    for (const p of P.persons) if (p.sex === 'f') { const due = P.dueOwn(p.id); if (due !== undefined && due >= REGNAL_DAYS && !this.pregBy.has(p.id)) born.push([-1, p.id, due]); } // (the next year's, conceived in this one)
+    for (const [c, m, x] of born) { const cd = x - REL.gestationDays, w = Math.floor(cd / 7);
       const husband = this.spouseOn(m, Math.max(0, cd)); const around = cd >= 0 ? this.partnersAround(m, w) : []; const lov = around.filter(y => y !== husband);
       const father = lov.length && !around.includes(husband) ? lov[0] : husband; out.push({ child: c, mother: m, father, doubt: lov.filter(y => y !== father).concat(father !== husband && husband >= 0 ? [husband] : []), conceived: cd }); }
     return out;
@@ -416,6 +456,8 @@ export class Relations {
     const s = this.spouseOn(pid, d), pr = s >= 0 ? this.getPair(pid, s) : undefined; if (!pr) return { mood: 'even' };
     return { mood: pr.aff > 0.4 ? 'content' : pr.aff < -0.1 ? 'unhappy' : 'even' };
   }
+  /** the player has acted (only then is there anything to save) */
+  get acted() { return this.ledger.length > 0; }
   save() { return { ledger: this.ledger.map(l => ({ day: l.day, pid: l.pid, act: l.act })) }; }
   load(s: { ledger?: { day: number; pid: number; act: PlayerAct }[] } | undefined) { this.reset(); this.ledger = (s?.ledger ?? []).map(l => ({ ...l })); }
   /** counts of the year's events (the test's measure) */
