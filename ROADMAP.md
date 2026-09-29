@@ -57,7 +57,7 @@ little frame time.
 - **Build en masse** with a fixed scope; nothing is added mid-session.
 - **Close:** the same check again, merge every branch, push (verified against GitHub, never a log line), a short report that
   leads with what is broken.
-- **Budget:** read usage at every check-in (mcp get_usage); stop launching at the session's budget; wind down (final commits)
+- **Budget (the user, s13, 2026-09-29: "stop launching new work at 97% until then max 2 agents at a time"):** two agents at a time, working continuously; no new launches at 97 % weekly. Older rule: read usage at every check-in (mcp get_usage); stop launching at the session's budget; wind down (final commits)
   at 92 % weekly; nothing runs at 97 %. At most 6 agents at once, focused scopes, agents reused rather than restarted, short
   reports, every GPU job through tools/dev/gpu_slot.mjs, no stale jobs holding a slot.
 - **Model:** every agent and the lead run on Opus 5.5 (the user). The only lever on the budget is waste: fix load time first, batch renders, no agents idling on GPU slots, no repeated rounds, short reports.
