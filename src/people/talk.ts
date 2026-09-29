@@ -48,6 +48,8 @@ export interface TalkEvent {
   t1?: number; setOff?: boolean;
   /** follow: the way walked behind the stranger (grid metres, every ~2 m), filled when the following ends */
   path?: P2[];
+  /** D-341: the day the people start telling of it (living/world.ts sets it when it first sees the event) */
+  newsFrom?: number;
 }
 /** one conversation as the person remembers it (≤ ~60 tokens when written out) */
 export interface MemRow { pid: number; t: number; conv: number; asked: string[]; said: string; deed?: { kind: Deed; arg?: string; ok: boolean; reason: string; item?: string }; turns: number; folded?: number; firstT?: number }

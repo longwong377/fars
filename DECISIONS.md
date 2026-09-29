@@ -8575,3 +8575,16 @@ FakeEcon (PLACEHOLDER, living/fakeEcon.ts; types copied from the brief in living
 Measured (tests/living_world.test.ts, seed 1, days 150-156): 604/814 = 74.2 % talk events with a consequence within 3 days (210 found no free stretch inside their block);
 player changes 6/6 propagate. Tier C.
 The talk runs only within one block of the sim's present day (LivingWorld.now): plans asked for far days (year-long tests and tools) are the base plans, so a plan depends on the sim's current day. Cost ~0.75 s of node time per simulated day (1.5 % sample).
+
+## D-341 (s13, living2): the people's talk on the real economy, pure by day (UD-24, UD-26; T-E13)
+Supersedes D-339's FakeEcon and its 8-day blocks and present-day window. living/world.ts now steps the real Economy (D-338)
+day by day from day 0 (Simulation.economy() asks it to), so a day's talk and plans depend only on the seed, the days before
+and the player's events, never on the sim's present or on which day was asked first. Each day a seeded 3 % of the town's and
+the plain's households read their needs (Economy.needsOf, water excluded: heat is not a neighbour's gift); for kin, then
+neighbours of the quarter, the giver's own stores decide what can be spared (grain beyond 40 days' bread, fuel beyond 12,
+a fifth of the silver); the two must meet in their base plans (at most 60 meeting checks a day). The errand is laid in the
+doer's plan (planCheck must not gain an issue) and entered into the economy for that day as two intents, the receiver's and
+the giver's (payload.src = 'talk'; the giver's stores go down). On load the talk's intents are dropped from the economy's
+saved interventions and re-derived. Player deeds carry `newsFrom` (the first day not yet simulated when first seen, saved
+with the event). Economy events from talk carry no causes (applyIntent takes none): the talk changes the economy's state and
+so its later course, but a chain cannot yet name a talk as its cause (economy change, not made here). Cost ~0.27 s a day.
