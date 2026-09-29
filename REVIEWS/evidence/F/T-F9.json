@@ -1,0 +1,152 @@
+{
+ "id": "T-F9",
+ "tool": "tests/emergence.test.ts",
+ "value": 75,
+ "enterable": 0.7,
+ "pass": true,
+ "perSeed": [
+  {
+   "seed": 1,
+   "households": 10002,
+   "events": 42654,
+   "chains": 875,
+   "shapes": 85,
+   "roots": [
+    "hail",
+    "blight",
+    "loan",
+    "illness",
+    "harvest_poor",
+    "tax_arrears",
+    "cold_hearth"
+   ],
+   "longest": 7,
+   "enterable": 0.9,
+   "sampled": 10,
+   "kinds": {
+    "illness": 4350,
+    "nursed_by_kin": 4261,
+    "buy": 25599,
+    "blight": 2,
+    "hail": 6,
+    "kin_help": 1141,
+    "sell": 1082,
+    "wage_work": 640,
+    "harvest_poor": 1745,
+    "tithe_short": 780,
+    "loan": 838,
+    "repaid": 77,
+    "default": 694,
+    "pledge_seized": 694,
+    "tax_arrears": 520,
+    "petition": 3,
+    "relief": 2,
+    "cold_hearth": 219,
+    "petition_refused": 1
+   },
+   "examples": [
+    "hail(weather) -> harvest_poor(h:1448) -> tithe_short(treasury)",
+    "blight(weather) -> harvest_poor(h:1641) -> tithe_short(treasury)",
+    "loan(h:6722) -> default(h:6722) -> pledge_seized(h:1108)",
+    "blight(weather) -> harvest_poor(h:1454) -> buy(h:1454)",
+    "hail(weather) -> harvest_poor(h:6624) -> buy(h:6624)"
+   ]
+  },
+  {
+   "seed": 7,
+   "households": 9925,
+   "events": 55438,
+   "chains": 3581,
+   "shapes": 104,
+   "roots": [
+    "blight",
+    "hail",
+    "loan",
+    "illness",
+    "harvest_poor",
+    "kin_help",
+    "tax_arrears",
+    "cold_hearth"
+   ],
+   "longest": 9,
+   "enterable": 1,
+   "sampled": 10,
+   "kinds": {
+    "illness": 4346,
+    "nursed_by_kin": 4245,
+    "buy": 27344,
+    "blight": 6,
+    "hail": 6,
+    "kin_help": 3121,
+    "sell": 2073,
+    "loan": 2011,
+    "wage_work": 1768,
+    "harvest_poor": 3642,
+    "tithe_short": 2668,
+    "default": 1373,
+    "pledge_seized": 1371,
+    "repaid": 120,
+    "tax_arrears": 1021,
+    "cold_hearth": 311,
+    "petition": 3,
+    "theft": 1,
+    "robbed": 1,
+    "accusation": 1,
+    "suit": 2,
+    "relief": 2,
+    "acquitted": 1,
+    "debt_labour": 1
+   },
+   "examples": [
+    "blight(weather) -> harvest_poor(h:2046) -> tithe_short(treasury)",
+    "hail(weather) -> harvest_poor(h:2098) -> tithe_short(treasury)",
+    "blight(weather) -> harvest_poor(h:9203) -> buy(h:9203)",
+    "loan(h:1639) -> default(h:1639) -> pledge_seized(h:1776)",
+    "hail(weather) -> harvest_poor(h:2210) -> sell(h:2210)"
+   ]
+  },
+  {
+   "seed": 42,
+   "households": 9927,
+   "events": 46221,
+   "chains": 1184,
+   "shapes": 75,
+   "roots": [
+    "blight",
+    "loan",
+    "illness",
+    "harvest_poor",
+    "tax_arrears",
+    "cold_hearth"
+   ],
+   "longest": 8,
+   "enterable": 0.7,
+   "sampled": 10,
+   "kinds": {
+    "illness": 4450,
+    "nursed_by_kin": 4361,
+    "buy": 26126,
+    "blight": 3,
+    "sell": 1375,
+    "kin_help": 1549,
+    "wage_work": 868,
+    "loan": 1098,
+    "harvest_poor": 2406,
+    "tithe_short": 1400,
+    "repaid": 56,
+    "default": 819,
+    "pledge_seized": 819,
+    "tax_arrears": 644,
+    "cold_hearth": 246,
+    "petition": 1
+   },
+   "examples": [
+    "blight(weather) -> harvest_poor(h:2125) -> tithe_short(treasury)",
+    "blight(weather) -> harvest_poor(h:7424) -> buy(h:7424)",
+    "blight(weather) -> harvest_poor(h:2177) -> buy(h:2177)",
+    "blight(weather) -> harvest_poor(h:9777) -> buy(h:9777)",
+    "blight(weather) -> harvest_poor(h:7448) -> buy(h:7448)"
+   ]
+  }
+ ]
+}
