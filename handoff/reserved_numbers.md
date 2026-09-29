@@ -90,4 +90,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-341 | s13 | talk on the real economy, deterministic windows (UD-24, T-E13; Q-1015..Q-1019, B205..B207) | agent worktree, branch s13-living2 | merged session 13 |
 | D-342 | s13 | talk volume, news on every meeting, save/load replay test (UD-24, T-E13; Q-1020..Q-1024, B208..B210) | agent worktree, branch s13-living3 | merged session 13 |
 | D-343 | s13 | econplans merged with the talk economy: one stepping owner, load scheme, seed-7 check (Q-1025..Q-1029, B211..B213) | agent worktree, branch s13-econplans | in flight |
-| D-344 | s13 | talk cost and save cache, volume, childcare, workmates, news that acts (UD-24, T-E13; Q-1030..Q-1034, B214..B216) | agent worktree, branch s13-living4 | in flight |
+| D-344 | s13 | talk cost and save cache, volume, childcare, workmates, news that acts (UD-24, T-E13; Q-1030..Q-1034, B214..B216) | agent worktree, branch s13-living4 | merged session 13 |
