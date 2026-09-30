@@ -535,7 +535,7 @@ export class Economy implements EconWorld {
       const cause = top.kind === 'food' ? h.cause.food : h.cause.fuel;
       if (h.cash >= cost) { h.cash -= cost; if (top.kind === 'food') { const got = Math.min(want, this.market.grain); this.market.grain -= got; h.grain += got; } else h.fuel += want; act(top.kind === 'food' ? 'buy' : 'buy_fuel', [cause, top.kind === 'food' ? this.market.dearEv : undefined], 'market', cost); return; }
       if (h.goods > 0) { h.goods--; h.cash += this.price('goods', day); act('sell', [cause, this.market.slumpEv], 'market'); return; }
-      const kin = h.kin.map(x => this.hh.get(x)!).find(K => K && !K.dead && K.grain > K.eaters * GRAIN_EAT * 60 && (!this.trust || this.trust.willHelp(K.id, h.id, day, 0.3))); // (D-351: kin help whom they trust)
+      const kin = h.kin.map(x => this.hh.get(x)!).find(K => K && !K.dead && K.grain > K.eaters * GRAIN_EAT * 60 && (!this.trust || this.trust.willHelp(K.id, h.id, day, 0.2))); // (D-351: kin help whom they trust)
       if (kin && top.kind === 'food' && day - ((h as any).lastKin ?? -99) >= 40) { (h as any).lastKin = day; // (D-340: kin help once in forty days; C)
         const g = eat * 15; kin.grain -= g; h.grain += g; const e = act('kin_help', [cause], kin.id, g); kin.cause.food = kin.cause.food ?? e; return; }
       // (D-340: the treasury's works take on only so many day labourers a day, C: ~12 across the town and the plain)
@@ -543,7 +543,7 @@ export class Economy implements EconWorld {
       // (D-340, the seed-7 loop: a quarter's better-off farmers hire the hungry for a day's work on their land, paid in barley,
       // one labourer a day each; C: day labour for neighbours, the commonest outlet of the landless and the short)
       if (h.workers > 0 && day >= h.sickUntil && top.kind === 'food') { const qs = this.byQ.get(h.q)!;
-        for (let t = 0; t < 6; t++) { const N = qs[h32(this.seed, S.act, k, day * 8 + t) % qs.length]; if (N === h || N.dead || N.kind === 'ration' || N.workers < 1 || (N as any).hireDay === day || N.grain < N.eaters * GRAIN_EAT * 200 || (this.trust && !this.trust.willHelp(N.id, h.id, day, 0.35))) continue; // (D-351: no hiring of one they do not trust)
+        for (let t = 0; t < 6; t++) { const N = qs[h32(this.seed, S.act, k, day * 8 + t) % qs.length]; if (N === h || N.dead || N.kind === 'ration' || N.workers < 1 || (N as any).hireDay === day || N.grain < N.eaters * GRAIN_EAT * 200 || (this.trust && !this.trust.willHelp(N.id, h.id, day, 0.25))) continue; // (D-351: no hiring of one they do not trust)
           (N as any).hireDay = day; const g = eat * 6; N.grain -= g; h.grain += g; h.sickUntil = day + 1; act('hired_by_neighbour', [cause], N.id, g); return; } }
       const L = this.lender(h.id, h, day);
       let refused: number | undefined;

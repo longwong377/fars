@@ -103,6 +103,7 @@ export class TrustLedger {
 
   // ---- save (full precision: a loaded ledger replays the same) ----
   snapshot() {
+    this.sync();
     const r = (m: Map<string, Rec>) => [...m].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([k, x]) => [k, x.v, x.d]);
     return { cursor: this.cursor, personal: r(this.personal), dyad: r(this.dyad), group: r(this.group), cool: [...this.cool], counts: { ...this.counts } };
   }
