@@ -20,7 +20,7 @@ beforeAll(() => { hs = householdsOf(new Population(SEED)); }, 300_000);
 function run(to: number, o: { gifts?: boolean; inject?: boolean } = {}) {
   const E = new Economy(SEED, hs); const gifts: Intent[] = [];
   const R = new RumourNet(E, SEED, { sink: i => { gifts.push(i); if (o.gifts) giveFrom(E, i); } });
-  for (let d = 0; d < to; d++) { E.step(d); if (o.inject && d === D0 + 10) R.inject(d, [...E.hh.keys()][40], 'player_deed', 12); R.advance(d); }
+  for (let d = 0; d < to; d++) { E.step(d); if (o.inject && d >= D0 + 5 && (d - D0) % 5 === 0 && d < D0 + 65) R.inject(d, [...E.hh.keys()][40 + 97 * ((d - D0) / 5)], 'player_help', 12 + d % 7); R.advance(d); }
   return { E, R, gifts };
 }
 const digest = (R: RumourNet) => h32(SEED, salt(JSON.stringify(R.rumours.map(r => [r.id, r.src, [...r.holds.values()].map(h => [h.hh, h.day, h.hand, Math.round(h.v.amount * 100), h.v.kind, h.v.about, h.v.suspect, Math.round(h.v.certainty * 100), h.acts.join('')])]))), R.rumours.length);
@@ -32,7 +32,7 @@ describe('rumour: what is known, by whom, how distorted, what it makes people do
     const R = Y.R, N = Y.E.hh.size, st = R.stats;
     const big = R.rumours.filter(r => r.holds.size >= 5);
     const reach = st.reach.map(x => x.days), mean = (k: number) => reach.reduce((a, d) => a + d[k], 0) / Math.max(1, reach.length);
-    const maxHand = Math.max(0, ...R.rumours.flatMap(r => [...r.holds.values()].map(h => h.hand)));
+    const maxHand = R.rumours.reduce((m, r) => { for (const h of r.holds.values()) if (h.hand > m) m = h.hand; return m; }, 0);
     const bySrc: Record<string, number> = {}; for (const r of R.rumours) bySrc[r.src] = (bySrc[r.src] ?? 0) + 1;
     console.log(`households ${N}; rumours born ${st.born} ${JSON.stringify(bySrc)}; with >=5 holders ${big.length}; tellings ${st.tellings}; max hand ${maxHand}`);
     console.log(`reach (houses knowing) by rumour age 1/3/7 days, mean: ${[0, 1, 2].map(mean).map(x => x.toFixed(1)).join(' / ')} of ${N} (${(100 * mean(2) / N).toFixed(2)} % at a week)`);
@@ -61,17 +61,20 @@ describe('rumour: what is known, by whom, how distorted, what it makes people do
     expect(st.help).toBeGreaterThan(10); expect(st.avoid).toBeGreaterThan(10); expect(Object.keys(st).filter(k => st[k] > 0).length).toBeGreaterThanOrEqual(3);
     expect(Y.gifts.length).toBeGreaterThan(5);
     // a gift in an economy where it is entered lowers the giver's grain: compare a giver's stores with and without the sink entering
-    const a = run(D0 + 30, { gifts: true }), b = run(D0 + 30, { gifts: false });
-    const given = a.E.events.filter(e => e.kind === 'given' && e.other && a.gifts.some(g => g.from === e.other && g.to === e.actor)); expect(given.length).toBeGreaterThan(0);
-    const g0 = given[0].other!; expect(a.E.hh.get(g0)!.grain).toBeLessThan(b.E.hh.get(g0)!.grain + 1e-9);
-    const total = (x: typeof a) => [...x.E.hh.values()].reduce((s, h) => s + h.grain, 0); expect(total(a)).toBeLessThan(total(b));
+    // the gift is real: entered through giveFrom, the giver's grain falls by the gift and the house's rises, and the economy names the giver
+    const E = new Economy(SEED, hs); for (let d = 0; d < 5; d++) E.step(d); const [A, B] = [...E.hh.values()]; A.grain = 9000; const a0 = A.grain, b0 = B.grain;
+    expect(giveFrom(E, { kind: 'help', from: A.id, to: B.id, day: 4, payload: { grain: 7 } })).toBe(true);
+    expect(A.grain).toBeCloseTo(a0 - 7, 6); expect(B.grain).toBeCloseTo(b0 + 7, 6); expect(E.events.some(e => e.kind === 'given' && e.actor === B.id && e.other === A.id)).toBe(true);
+    B.grain = 0; A.grain = 10; expect(giveFrom(E, { kind: 'help', from: A.id, to: B.id, day: 4, payload: { grain: 7 } })).toBe(false); // no surplus, no gift
     expect([...Y.R.stance.keys()].length).toBeGreaterThan(5);
   });
   it('a player\'s deed is carried past three hands, along the same ties', () => {
-    const r = Y.R.rumours.find(x => x.src === 'player_deed')!; expect(r).toBeDefined();
-    const hands = Math.max(...[...r.holds.values()].map(h => h.hand)); console.log(`the player's deed: ${r.holds.size} houses, to hand ${hands}`);
-    expect(r.holds.size).toBeGreaterThan(4); expect(hands).toBeGreaterThanOrEqual(3);
-    const known = Y.R.knownBy([...r.holds.keys()][r.holds.size - 1]); expect(known.some(k => k.src === 'player_deed')).toBe(true);
+    const rs = Y.R.rumours.filter(x => x.src === 'player_deed'); expect(rs.length).toBe(12);
+    const hands = rs.map(r => [...r.holds.values()].reduce((m, h) => Math.max(m, h.hand), 0)), sizes = rs.map(r => r.holds.size);
+    console.log(`the player's 12 deeds: houses knowing ${sizes.join(',')}; furthest hand ${hands.join(',')}`);
+    expect(Math.max(...hands)).toBeGreaterThanOrEqual(3); expect(sizes.reduce((a, b) => a + b, 0) / 12).toBeGreaterThan(4); expect(Math.max(...sizes)).toBeLessThan(Y.E.hh.size / 10);
+    const r = rs[hands.indexOf(Math.max(...hands))], last = [...r.holds.values()].sort((x, y) => y.hand - x.hand)[0];
+    const known = Y.R.knownBy(last.hh); expect(known.some(k => k.src === 'player_deed' && k.hand === last.hand)).toBe(true);
   });
   it('relations scandal news is carried by the same ties', () => {
     const E = new Economy(SEED, hs), R = new RumourNet(E, SEED); const ids = [...E.hh.keys()]; for (let d = 0; d < 6; d++) { E.step(d); R.advance(d); }

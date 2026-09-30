@@ -77,7 +77,7 @@ export class AskBook {
   /** the last HIST days' events by household (actor or other), for what answered or escalated an ask */
   private hist = new Map<string, EconEvent[]>(); private since = new Map<string, number>();
   constructor(readonly econ: Economy, readonly seed: number, readonly opts: AsksOpts = {}) {
-    for (const h of econ.hh.values()) { this.qOf.set(h.id, h.q); this.kinOf.set(h.id, new Set(h.kin)); this.qn.set(h.q, (this.qn.get(h.q) ?? 0) + 1); }
+    for (const h of econ.hh.values()) { this.qOf.set(h.id, h.q); this.kinOf.set(h.id, new Set(h.kin)); this.qn.set(h.q, (this.qn.get(h.q) ?? 0) + 1); (this.qList.get(h.q) ?? this.qList.set(h.q, []).get(h.q)!).push(h.id); }
   }
   get day() { return this.upTo; }
   private rel(a: string, b: string): By {
@@ -156,13 +156,16 @@ export class AskBook {
   }
   /** a kin or a lane neighbour with a surplus answers: their own stores fall, the house's rise (an Intent entered in the economy) */
   private kinDeed(a: Ask, day: number) {
-    const E = this.econ, h = E.hh.get(a.hh)!; const cand: [string, Audience][] = [...h.kin.map(k => [k, 'kin'] as [string, Audience]), ...[...E.hh.values()].filter(x => x.q === h.q && x.id !== h.id && h32(this.seed, S.who, this.idOf(x.id) ^ this.idOf(h.id), 77) % 40 === 0).slice(0, 3).map(x => [x.id, 'neighbour'] as [string, Audience])];
+    const E = this.econ, h = E.hh.get(a.hh)!; const cand: [string, Audience][] = [...h.kin.map(k => [k, 'kin'] as [string, Audience]), ...this.lane(h.id).map(x => [x, 'neighbour'] as [string, Audience])];
     for (const [gid, aud] of cand) { const g = E.hh.get(gid); if (!g || g.dead) continue; const v = a.voices.find(x => x.to === aud)!;
       if (u01(this.seed, S.found, a.id * 7 + this.idOf(gid), day) >= HELP_P[aud] * (v.willing ? 1 : 0.4)) continue;
       const pay = a.satisfy!.payload, sc = aud === 'kin' ? 1 : 0.6, grain = Number(pay.grain ?? 0) * sc, fuel = Number(pay.fuel ?? 0) * sc, cash = Number(pay.cash ?? 0) * sc;
       if (!grain && !fuel && !cash) continue; if (g.grain < g.eaters * GRAIN_EAT * 50 + grain || g.fuel < 10 + fuel || g.cash < cash + 2) continue;
       g.grain -= grain; g.fuel -= fuel; g.cash -= cash; E.enter({ kind: a.satisfy!.kind === 'loan' ? 'loan' : 'help', from: gid, to: a.hh, day, payload: { grain, fuel, cash, causes: a.why.ev ?? -1, src: 'ask' } }); return; }
   }
+  /** the lane: three houses either side in the quarter's list */
+  private lane(id: string): string[] { let l = this.laneOf.get(id); if (!l) { const q = this.qList.get(this.qOf.get(id)!)!, i = q.indexOf(id); l = [-1, 1, -2, 2].map(d => q[i + d]).filter(Boolean); this.laneOf.set(id, l); } return l; }
+  private laneOf = new Map<string, string[]>(); private qList = new Map<string, string[]>();
   private sizing(k: AskKind, h: { id: string; debts: { amt: number }[] }, eat: number, cause: number | undefined): [string, number, string, Intent | null] {
     const d = this.econ.day, mk = (kind: Intent['kind'], payload: Intent['payload']): Intent => ({ kind, from: 'player', to: h.id, day: d, payload: { ...payload, ...(cause !== undefined ? { causes: cause } : {}) } });
     switch (k) {
