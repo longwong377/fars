@@ -1776,6 +1776,9 @@ export class Population {
   /** D-348: courting visits, the families' agreement, lovers' meetings laid over the plans (people/relations/plans.ts RelPlans; the sim sets it; Population.rel is the older affinity map) */
   bonds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[]; dueOf(pid: number, day: number): number | undefined } | null = null;
   plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  /** the base day with the house's washing laid in (D-347): what the relations' meetings are fitted to, since plan() lays
+   *  them over it (D-350: fitted to the base alone, a meeting was reported laid and then refused by the washing under it) */
+  washedPlan(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.wash?.touches(pid, day) ? this.wash.overlay(pid, day, b) : b; }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }

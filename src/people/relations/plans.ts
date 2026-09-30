@@ -61,7 +61,7 @@ export class RelPlans {
   private where(h: number): Where { return this.pop.households[h]?.zone === 'plain' ? 'plain' : 'town'; }
   /** a visitor's part: walk there, the stay, walk back, within one free stretch of his base day */
   private visit(pid: number, d: number, place: string, W: Where, a: number, b: number, why: string, withP: number, meet: Meet): [number, Lay] | null {
-    const P = this.pop, base = P.basePlan(pid, d), loose = meet.kind === 'negotiate';
+    const P = this.pop, base = P.washedPlan(pid, d), loose = meet.kind === 'negotiate';
     for (const s of loose ? runs(base) : base) { if (!free(s, loose) || s.t0 > a || s.t1 < b) continue; const w = P.walkH(s.place, place, d, s.where, W); if (s.t0 > a - w + 1e-9 || s.t1 < b + w - 1e-9 || a - w < DAY_START || !clear(P, base, d, a - w, b + w)) continue;
       const segs = [...(w > 0.01 ? [sg(a - w, a, `road:${W}`, 'walk', `on the way to ${place.startsWith('well:') ? 'the well' : place.startsWith('lane:') ? 'the lane' : 'the house'}`, 'road')] : []), sg(a, b, place, 'talk', why, W, withP), ...(w > 0.01 ? [sg(b, b + w, `road:${s.where}`, 'walk', 'walking back', 'road')] : [])];
       if (!segs.every(x => x.where === 'road' || reasonOk(x.act, x.why))) return null; return [pid, { h0: a - w, h1: b + w, segs, meet }]; }
@@ -69,7 +69,7 @@ export class RelPlans {
   }
   /** a host's part: at home (or in the lane before the house), free over [a, b] */
   private host(pid: number, d: number, place: string, W: Where, a: number, b: number, why: string, withP: number, meet: Meet, atHome = true): [number, Lay] | null {
-    const P = this.pop, home = P.households[P.home(pid, d)]?.home, base = P.basePlan(pid, d), s = (meet.kind === 'negotiate' ? runs(base) : base).find(x => x.t0 <= a + 1e-9 && x.t1 >= b - 1e-9);
+    const P = this.pop, home = P.households[P.home(pid, d)]?.home, base = P.washedPlan(pid, d), s = (meet.kind === 'negotiate' ? runs(base) : base).find(x => x.t0 <= a + 1e-9 && x.t1 >= b - 1e-9);
     if (!s || !free(s, meet.kind === 'negotiate') || (atHome && s.place !== home) || !clear(P, base, d, a, b)) return null; return [pid, { h0: a, h1: b, segs: [sg(a, b, place, 'talk', why, W, withP)], meet }];
   }
   private lay(x: Meet, d: number, busy: Set<number>): [number, Lay][] | null {
@@ -81,9 +81,9 @@ export class RelPlans {
     const step = x.kind === 'negotiate' ? 0.1 : 0.5; // (D-349: the families' meeting is fitted to both free stretches to the six minutes; the half-hour grid missed nearly all)
     // the time: the first free stretch of the host's base day in daylight long enough for the meeting
     if (x.kind === 'court') { // a walk beside her to the well when she draws water there
-      for (const s of P.basePlan(x.b, d)) { if (s.act !== 'draw_water' || !s.place.startsWith('well:') || s.with !== undefined || s.t0 < DAY_START || s.t1 > DAY_END || s.t1 - s.t0 < 0.1) continue;
+      for (const s of P.washedPlan(x.b, d)) { if (s.act !== 'draw_water' || !s.place.startsWith('well:') || s.with !== undefined || s.t0 < DAY_START || s.t1 > DAY_END || s.t1 - s.t0 < 0.1) continue;
         const v = this.visit(x.a, d, s.place, W, s.t0, s.t1, 'talking with her by the well as she draws the water: courting', x.b, x); if (v) return [v]; } }
-    for (const s of x.kind === 'negotiate' ? runs(P.basePlan(x.b, d)) : P.basePlan(x.b, d)) {
+    for (const s of x.kind === 'negotiate' ? runs(P.washedPlan(x.b, d)) : P.washedPlan(x.b, d)) {
       if (!free(s, x.kind === 'negotiate') || s.place !== home) continue;
       for (let a = Math.max(s.t0, DAY_START + 0.5); a + len <= Math.min(s.t1, x.kind === 'negotiate' ? EVE_END : DAY_END); a += step) {
         const b = a + len, parts: [number, Lay][] = [];
