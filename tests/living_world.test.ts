@@ -68,14 +68,16 @@ describe('talk that changes the world (T-E13)', () => {
     Object.assign(OUT, { replay: { savedAtDay: MID, talksCompared: key(S4).length, plansCompared: doers.length, economyEventsIdentical: true } });
     // a late-year save loads at once: the talk state is in the save, the economy replays its intents (D-344)
     const S5 = mk(); S5.t = 300 * 24 + 10; const tg = performance.now(); S5.economy(); const genMs = performance.now() - tg;
-    const late = JSON.parse(JSON.stringify(S5.save())); const bytes = { living: JSON.stringify(late.living).length, econ: JSON.stringify(late.econ).length };
+    const lateStr = JSON.stringify(S5.save()), late = JSON.parse(lateStr); const bytes = { total: lateStr.length, living: JSON.stringify(late.living).length, econ: JSON.stringify(late.econ).length };
     const S6 = mk(); const tl = performance.now(); S6.load(late); S6.economy(); const econMs = performance.now() - tl; const lateTalks = S5.living.talks.filter(t => t.done && t.done.day > 300 && t.done.h0 >= 0).slice(0, 20);
     for (const t of lateTalks) S6.pop.plan(t.doer, t.done!.day); const loadMs = performance.now() - tl;
     for (const t of lateTalks) expect(JSON.stringify(S6.pop.plan(t.doer, t.done!.day))).toBe(JSON.stringify(S5.pop.plan(t.doer, t.done!.day)));
     S5.living.advance(303); S6.living.advance(303); const k3 = (s: PeopleSim) => s.living.talks.filter(t => t.day > 300).map(t => `${t.id}:${t.day}:${t.a}:${t.b}:${t.kind}`);
     expect(k3(S6)).toEqual(k3(S5));
-    Object.assign(OUT, { lateLoad: { day: 300, generateMs: Math.round(genMs), loadMs: Math.round(loadMs), econReplayMs: Math.round(econMs), intents: late.econ.intents.length, saveBytes: bytes, plansCompared: lateTalks.length, nextDaysIdentical: true } });
-    expect(loadMs - econMs).toBeLessThan(2000); // the talk's own part; the economy's replay of its intents (economy/**) is reported, not asserted here
+    Object.assign(OUT, { lateLoad: { day: 300, generateMs: Math.round(genMs), loadMs: Math.round(loadMs), restoreMs: Math.round(econMs), intentsToCome: late.econ.intents.length, saveBytes: bytes, plansCompared: lateTalks.length, nextDaysIdentical: true } });
+    // D-347: the economy restored from its snapshot, not replayed: the load itself (restore and resume) under 2 s of node time,
+    // the whole people's save under 1 MB (was 3.6-10.5 s and 6.6 MB); the 20 plans read after it are reported in loadMs
+    expect(econMs).toBeLessThan(2000); expect(bytes.total).toBeLessThan(1_000_000);
     const f = 'REVIEWS/evidence/E/T-E13.json'; const e = JSON.parse(readFileSync(f, 'utf8')); e.detail = OUT; writeFileSync(f, JSON.stringify(e, null, 1) + '\n');
   }, 900_000);
 });

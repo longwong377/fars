@@ -136,7 +136,7 @@ const TERRACE_XY: [number, number] = [-52, 118.5];
  *  carries his work to the royal stores on this share of days (C) */
 const TANNERS_GROUP = 7, OIL_EVERY = 25, SMITH_DELIVER = 0.15;
 const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
-  dispo: salt('dispo'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral'), birthNext: salt('birth-next'), care: salt('body-care') };
+  dispo: salt('dispo'), econLife: salt('econ-life'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral'), birthNext: salt('birth-next'), care: salt('body-care') };
 const AGE: [number, number, number][] = L.age_structure.v;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** a feed or a spell while the household sleeps (Planner.nightWords): in the night, or at first light before getting up, or
@@ -1156,7 +1156,7 @@ export class Population {
   private mindAfter(pid: number, d: number, segs: Seg[]): Seg[] {
     if (!segs.some(s => MIND_WHY.test(s.why))) return segs;
     const md = this.mindDay(this.home(pid, d), d); if (md.minder !== pid) return segs;
-    const kids = [...md.little.keys()]; if (!kids.some(k => this.econ?.touches(k, d) || this.bonds?.touches(k, d))) return segs;
+    const kids = [...md.little.keys()]; if (!kids.some(k => this.wash?.touches(k, d) || this.econ?.touches(k, d) || this.bonds?.touches(k, d))) return segs;
     const plans = new Map(kids.map(k => [k, this.plan(k, d)] as [number, Seg[]])), ma = this.ageOn(pid, d);
     const out: Seg[] = [];
     for (const s of segs) {
@@ -1335,10 +1335,57 @@ export class Population {
     if (u01(this.seed, S.sick, pid, d) >= this.sickP[d % REGNAL_DAYS]) return 0;
     const [a, b] = L.sick_episodes_per_year.days; return a + Math.floor(u01(this.seed, S.sickd, pid, d) * (b - a + 1));
   }
-  /** sick today (an episode of 1–7 days started within the last week) */
-  sick(pid: number, d: number) { for (let s = d; s > d - 7; s--) { const n = this.sickStart(pid, s); if (n && s + n > d) return true; } return false; }
+  /** sick today (an episode of 1–7 days started within the last week; or the economy's illness laid on the person, D-347) */
+  sick(pid: number, d: number) { if (this.econSick.size && this.econSickOf(pid, d)) return true; for (let s = d; s > d - 7; s--) { const n = this.sickStart(pid, s); if (n && s + n > d) return true; } return false; }
   /** which day (k of n) of the current illness this is */
-  sickDayOf(pid: number, d: number) { for (let s = d; s > d - 7; s--) { const n = this.sickStart(pid, s); if (n && s + n > d) return { k: d - s, n }; } return { k: 0, n: 1 }; }
+  sickDayOf(pid: number, d: number) { const e = this.econSick.size ? this.econSickOf(pid, d) : null; if (e) return { k: d - e[0], n: e[1] - e[0] };
+    for (let s = d; s > d - 7; s--) { const n = this.sickStart(pid, s); if (n && s + n > d) return { k: d - s, n }; } return { k: 0, n: 1 }; }
+
+  // ------------------------------------------------------------------ D-347: the economy's illness and death on the people
+  /** the economy's illnesses laid on people ([from, until) by person) and the deaths it caused (the day, and the person's own
+   *  death day before it, to undo on a load). Laid LIFE_LAG (4) days ahead of the economy's day: past every plan read so far */
+  private econSick = new Map<number, [number, number][]>(); private econDead = new Map<number, { day: number; was: number }>();
+  private econSickOf(pid: number, d: number) { return this.econSick.get(pid)?.find(([a, b]) => d >= a && d < b) ?? null; }
+  /** the household's own deaths on a day (the year's mortality, not those the economy caused): the economy's deaths too */
+  ownDeaths(hid: number, d: number) { const L = this.lifeByDay[d]; if (!L?.deaths.length) return 0; let n = 0; for (const i of L.deaths) if (this.persons[i].hh === hid && !this.econDead.has(i)) n++; return n; }
+  /** an illness of the household laid on one member of five or more (seeded; the little ones' illnesses are the year's own), and
+   *  when `dieOn` >= 0 their death that day if it can be: not a
+   *  detailed agent, not someone whose own death comes sooner, not a mother of a child under three, not due to give birth or to
+   *  marry away, not a wet nurse, not the last grown-up of the house (no child left without one: fosterage is laid out at the
+   *  year's start); C */
+  econSicken(hid: number, from: number, until: number, dieOn: number): { ok: boolean; died: boolean } {
+    const ms = this.membersOn(hid, from).filter(x => { const p = this.persons[x]; return p.agent < 0 && this.present(x, from) && this.ageOn(x, from) >= 5 && p.dies > from + 1 && !(this.econSick.get(x) ?? []).some(([a, b]) => a < until && b > from); });
+    if (!ms.length) return { ok: false, died: false };
+    const pid = ms[Math.floor(u01(this.seed, S.econLife, hid, from) * ms.length)];
+    const l = this.econSick.get(pid) ?? this.econSick.set(pid, []).get(pid)!; l.push([from, until]);
+    if (dieOn < 0 || !this.killable(pid, hid, dieOn)) return { ok: true, died: false };
+    this.econKill(pid, dieOn); return { ok: true, died: true };
+  }
+  private killable(pid: number, hid: number, d: number) {
+    const p = this.persons[pid]; if (p.agent >= 0 || p.dies <= d || p.marry < 1e9 || this.due.has(pid) || this.nursedBy.has(pid) || d >= REGNAL_DAYS - 1) return false;
+    if (this.childrenOf(pid).some(c => this.present(c, d) && this.ageOn(c, d) < 3)) return false;
+    return this.membersOn(hid, d).some(x => x !== pid && this.present(x, d + 1) && this.ageOn(x, d) >= 16 && this.persons[x].dies > d + 30);
+  }
+  private econKill(pid: number, d: number) {
+    const p = this.persons[pid]; this.econDead.set(pid, { day: d, was: p.dies }); this.moveDeath(pid, p.dies, d);
+  }
+  private moveDeath(pid: number, from: number, to: number) {
+    const p = this.persons[pid], H = this.households[p.hh];
+    if (from < REGNAL_DAYS) { const L = this.lifeByDay[from].deaths, i = L.indexOf(pid); if (i >= 0) L.splice(i, 1); const j = H.deaths.indexOf(from); if (j >= 0) H.deaths.splice(j, 1); }
+    p.dies = to; if (to < REGNAL_DAYS) { this.lifeByDay[to].deaths.push(pid); H.deaths.push(to); }
+  }
+  /** the economy's hand on the people, for Economy's opts.life */
+  econLife() { const hid = (h: string) => +h.slice(2); return { deaths: (h: string, d: number) => this.ownDeaths(hid(h), d), sicken: (h: string, a: number, b: number, die: number) => this.econSicken(hid(h), a, b, die) }; }
+  /** for the save: the illnesses still running or to come after day `from`, and every death the economy caused */
+  econLifeSave(from: number) {
+    const sick: [number, number, number][] = []; for (const [pid, l] of this.econSick) for (const [a, b] of l) if (b > from) sick.push([pid, a, b]);
+    return sick.length || this.econDead.size ? { sick, dead: [...this.econDead].map(([pid, x]) => [pid, x.day, x.was]) } : undefined;
+  }
+  econLifeLoad(s: { sick: [number, number, number][]; dead: [number, number, number][] } | undefined) {
+    for (const [pid, x] of [...this.econDead].reverse()) this.moveDeath(pid, x.day, x.was); this.econDead.clear(); this.econSick.clear();
+    for (const [pid, a, b] of s?.sick ?? []) (this.econSick.get(pid) ?? this.econSick.set(pid, []).get(pid)!).push([a, b]);
+    for (const [pid, day, was] of s?.dead ?? []) { this.econDead.set(pid, { day, was }); this.moveDeath(pid, was, day); }
+  }
   sickOnsets(d: number) { let n = 0; for (let i = 0; i < this.persons.length; i++) if (this.sickStart(i, d) && this.present(i, d)) n++; return n; }
   home(pid: number, d: number) { const p = this.persons[pid]; return d >= p.marry && p.hh2 >= 0 ? p.hh2 : p.hh; }
   /** days since a death in the household (mourning 1–3 days, C) */
@@ -1724,9 +1771,11 @@ export class Population {
   /** D-340 (UD-26): the economy's decisions laid over the day plans (people/economy/plans.ts EconPlans; the sim sets it):
    *  the market, the lender, the court, the day's hire, the thief's night, the bondage. Under the stranger's steps */
   econ: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
+  /** D-347: laundry days and baths laid over the base plan (wardrobe/washing.ts WashPlans; the sim sets it), under the economy's steps */
+  wash: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
   /** D-348: courting visits, the families' agreement, lovers' meetings laid over the plans (people/relations/plans.ts RelPlans; the sim sets it; Population.rel is the older affinity map) */
   bonds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[]; dueOf(pid: number, day: number): number | undefined } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); if (this.econ?.touches(pid, day)) b = this.econ.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }

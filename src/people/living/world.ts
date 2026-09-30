@@ -16,13 +16,14 @@
 // sim's present. The economy's saved intents from talk are dropped on load and re-derived (payload.src = 'talk').
 // Tier C throughout (DECISIONS D-339, D-341).
 import { h32, u01, salt } from '../hash';
-import type { Population, Seg, Where } from '../population';
+import { coldWear, dustWear, type Population, type Seg, type Where } from '../population';
 import type { ActivityId } from '../activities';
 import type { Intent, NeedKind } from '../economy/api';
 import type { Economy } from '../economy/world';
 import { splice } from '../talk';
 import { MINDING, reasonOk } from '../planCheck';
 import { dateOf } from '../calendar';
+import { nobodyWith } from '../wardrobe/washing';
 
 const S = salt('living-talk');
 /** households in want who look for help each day (seeded share of the town's and the plain's), and the most talks a day */
@@ -37,7 +38,7 @@ const HELP_ON = new Set(['death', 'illness', 'hunger', 'cold_hearth', 'robbed', 
 const TOOLS = ['sickle', 'mattock', 'hoe', 'axe', 'ladder', 'sieve'];
 /** days of talk state kept in the save (errands reach 3 days ahead; news goes stale in 3; the rest is for the dev overlay) */
 const KEEP = 7;
-export interface LivingSave { upTo: number; evSeen: number; nextId: number; talks: LivingTalk[]; laid: [string, { h0: number; h1: number; segs: Seg[] }[]][]; news: [number, News[]][]; busy: string[] }
+export interface LivingSave { upTo: number; evSeen: number; nextId: number; talks: LivingTalk[]; laid: [string, { h0: number; h1: number; segs: Seg[] }[] | unknown[]][]; strs?: string[]; news: [number, News[]][]; busy: string[] }
 const crewKey = (p: { job: string; sub: string }, q: string) => `${p.job}|${p.sub}|${q}`;
 type News = { src: string; hand: number; day: number; about?: number; what?: string };
 const FREE = new Set<ActivityId>(['rest', 'talk', 'play', 'gamble', 'tend_body', 'queue', 'exchange', 'spin']);
@@ -77,28 +78,36 @@ export class LivingWorld {
 
   // ---------------------------------------------------------------- the plan hook (talk.ts TalkWorld asks)
   touches(pid: number, day: number) { this.advance(day); return this.laid.has(`${pid}:${day}`); }
+  /** the hours of a person's day taken by errands laid for them (D-347: the laundry and the bath keep clear of them) */
+  windows(pid: number, day: number): [number, number][] { this.advance(day); return (this.laid.get(`${pid}:${day}`) ?? []).map(L => [L.h0, L.h1]); }
   overlay(pid: number, day: number, base: Seg[]): Seg[] {
     const k = `${pid}:${day}`; const c = this.overlaid.get(k); if (c) return c;
     // laid only where the base day is free over the whole window (the raw day found the slot; relabel and care may differ)
     let segs = base; for (const L of this.laid.get(k) ?? []) {
-      const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (!over.length || !over.every(slotOk)) continue;
-      const wear = over[0].wear; segs = splice(segs, L.h0, L.h1, wear ? L.segs.map(x => ({ ...x, wear })) : L.segs);
+      const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (!over.length || !over.every(slotOk) || !nobodyWith(this.pop, pid, day, L.h0, L.h1)) continue; // (D-347: nor while a little one is with the doer)
+      // (D-347: the errand dressed against the cold and the dust by its own hours, as the day's stretches are; was: the base
+      // stretch's dress copied, so a walk back into the dust went unwrapped)
+      const mid = L.segs.map(x => ({ ...x })), wx = this.pop.cal.ctx(day).wx; dustWear(mid, wx); coldWear(mid, wx); segs = splice(segs, L.h0, L.h1, mid);
     }
     this.overlaid.set(k, segs); return segs;
   }
   /** after a load: everything is re-derived from day 0 (the sim gives a fresh economy) */
   /** the talk state for the save (D-344): what the days to come still need — the last KEEP days' talks, errands and news,
    *  the counters — so a load resumes at once instead of re-deriving from day 0; the economy replays its own intents (talk's too) */
-  save(): LivingSave {
-    const lo = this.upTo - KEEP;
-    return { upTo: this.upTo, evSeen: this.evSeen, nextId: this.nextId, talks: this.talks.filter(x => x.day >= lo || (x.done?.day ?? -1) >= lo),
-      laid: [...this.laid].filter(([k]) => +k.split(':')[1] >= lo), news: [...this.news], busy: [...this.busy].filter(k => +k.split(':')[1] >= lo) };
+  save(from = this.upTo - KEEP): LivingSave {
+    // D-347: from the sim's present day (the sim passes it; errands of days before it are never laid again), the errands'
+    // stretches with their places and words as indices into one table of strings (they repeat)
+    const lo = Math.max(from, this.upTo - KEEP), strs: string[] = [], si = new Map<string, number>(), s = (x: string) => { let i = si.get(x); if (i === undefined) { i = strs.length; strs.push(x); si.set(x, i); } return i; };
+    const laid = [...this.laid].filter(([k]) => +k.split(':')[1] >= lo).map(([k, v]) => [k, v.map(L => [L.h0, L.h1, L.segs.map(g => [g.t0, g.t1, s(g.place), s(g.act), s(g.why), s(g.where), ...(g.ev ? [s(g.ev)] : [])])])]) as any;
+    return { upTo: this.upTo, evSeen: this.evSeen, nextId: this.nextId, talks: this.talks.filter(x => x.day >= lo - 1 || (x.done?.day ?? -1) >= lo),
+      laid, strs, news: [...this.news], busy: [...this.busy].filter(k => +k.split(':')[1] >= lo) } as LivingSave;
   }
-  /** resume from a save: the economy (built from its saved intents) is stepped to the saved day, the talk state restored */
+  /** resume from a save: the economy (restored, or built from its saved intents and stepped) at the saved day, the talk state restored */
   load(s: LivingSave) {
     this.reset(); const E = this.econ(); this.running = true; try { for (let d = E.day + 1; d <= s.upTo; d++) E.step(d); } finally { this.running = false; }
     this.upTo = s.upTo; this.evSeen = s.evSeen; this.nextId = s.nextId; this.talks.push(...s.talks);
-    for (const [k, v] of s.laid) this.laid.set(k, v); for (const [k, v] of s.news) this.news.set(k, v); for (const k of s.busy) this.busy.add(k);
+    const T = s.strs; for (const [k, v] of s.laid) this.laid.set(k, T ? (v as any[]).map(([h0, h1, g]) => ({ h0, h1, segs: g.map((x: any[]) => ({ t0: x[0], t1: x[1], place: T[x[2]], act: T[x[3]], why: T[x[4]], where: T[x[5]], ...(x.length > 6 ? { ev: T[x[6]] } : {}) })) })) : v as any);
+    for (const [k, v] of s.news) this.news.set(k, v); for (const k of s.busy) this.busy.add(k);
   }
   reset() { this.talks.length = 0; this.laid.clear(); this.overlaid.clear(); this.news.clear(); this.busy.clear(); this.nextId = 0; this.upTo = -1; this.evSeen = 0; }
 
@@ -154,7 +163,7 @@ export class LivingWorld {
     for (const e of this.playerEvents()) if (e.ok && e.kind !== 'hold' && e.newsFrom === day && this.eligible(e.pid, day)) this.carry(e.pid, { src: `player:${e.i}`, hand: 0, day });
     // what happened yesterday in the economy is news in the lanes: a death, an illness, a theft, a debt, a suit, hunger
     for (; this.evSeen < E.events.length; this.evSeen++) {
-      const v = E.events[this.evSeen]; if (v.day < day - 1) continue;
+      const v = E.events[this.evSeen]; if (!v?.actor || v.day < day - 1) continue; // (a loaded economy keeps only the recent days whole, D-347)
       if (MARKET_NEWS.has(v.kind)) { const all = [...this.byQ.values()]; for (let k = 0; k < MARKET_CARRIERS; k++) { const hs = all[h32(this.seed, S, v.id, k) % all.length]; const c = this.adultOf(hs[h32(this.seed, S, v.id, k, 1) % hs.length], day, 3); if (c >= 0) this.carry(c, { src: `econ:${v.id}`, hand: 0, day, what: v.kind }); } continue; }
       if (!NEWSWORTHY.has(v.kind) || !v.actor.startsWith('h:')) continue;
       const h = +v.actor.slice(2); const H = P.households[h]; if (!H || (H.zone !== 'town' && H.zone !== 'plain')) continue;
@@ -272,15 +281,21 @@ export class LivingWorld {
   private arrange(E: Economy, T: LivingTalk) { const t = performance.now(); try { this.arrange0(E, T); } finally { this.stats.msArrange += performance.now() - t; } }
   private arrange0(E: Economy, T: LivingTalk) {
     const P = this.pop;
-    for (let d = T.day + 1; d <= T.day + 3; d++) {
-      if (!this.eligible(T.doer, d) || P.mourning(T.doer, d)) continue;
+    // (D-347: the one who agreed, or when a little one is with them all their free hours, another grown-up of the house takes
+    // the errand; not a childcare or a watch, which are the person's own)
+    const P0 = T.doer, house = T.label === 'childcare' || T.label === 'guard' ? [] : P.membersOn(P.home(P0, T.day), T.day).filter(x => x !== P0 && P.ageOn(x, T.day) >= 14);
+    let held = false; // (another of the house is tried only when a little one with the doer was what stopped it)
+    for (let d = T.day + 1; d <= T.day + 3; d++) for (const doer of [P0, ...house]) {
+      if ((doer !== P0 && !held) || !this.eligible(doer, d) || P.mourning(doer, d)) continue;
       // the slot is found in the planner's raw day (cheap); overlay() lays it only where the base day agrees (D-344)
-      const tb = performance.now(); const raw = P.rawPlan(T.doer, d); this.stats.msBase += performance.now() - tb; const tgtWhere = this.whereOf(T.target);
+      const tb = performance.now(); const raw = P.rawPlan(doer, d); this.stats.msBase += performance.now() - tb; const tgtWhere = this.whereOf(T.target);
       for (const s of raw) {
-        if (!slotOk(s) || this.busy.has(`${T.doer}:${d}:${s.t0}`)) continue;
+        if (!slotOk(s) || this.busy.has(`${doer}:${d}:${s.t0}`)) continue;
         const w = s.place === T.target ? 0 : P.walkH(s.place, T.target, d, s.where, tgtWhere); const dur = STAY[T.kind];
-        if (s.t1 - s.t0 < 2 * w + dur) continue;
-        const h0 = s.t0, h1 = h0 + 2 * w + dur; if (h1 > DAY_END) continue;
+        const m = w > 0.01 ? 0.05 : 0; if (s.t1 - s.t0 < 2 * w + dur + 2 * m) continue; // (D-347: a few minutes at the place before and after, so a walk does not arrive and go straight on)
+        const h0 = s.t0 + m, h1 = h0 + 2 * w + dur; if (h1 > DAY_END) continue;
+        if (!nobodyWith(P, doer, d, h0, h1, false, true, true)) { held = true; continue; } // (D-347: not while a little one of the house is with the doer)
+        T.doer = doer;
         const good = String(T.intents[0].payload.grain !== undefined ? 'grain' : T.intents[0].payload.fuel !== undefined ? 'fuel' : T.intents[0].payload.cash !== undefined ? 'cash' : 'none');
         const why = T.label === 'tool' ? `taking the ${T.intents[0].payload.tool} lent to a neighbour` : T.label === 'childcare' ? 'keeping a neighbour’s little ones at their house while she works' : T.label === 'guard' ? 'staying by the house to watch the store, a theft heard of in the quarter' : WHY[T.kind](good); const segs: Seg[] = [];
         if (w > 0.01) segs.push(sg(h0, h0 + w, `road:${tgtWhere}`, 'walk', `${why}: on the way`, 'road'));
@@ -304,7 +319,7 @@ export class LivingWorld {
    *  news passed on within 3 days — and the share of player events whose news reached another person within 3 days */
   report(d0: number, d1: number) {
     this.advance(d1 + 3); const E = this.econ();
-    const evKey = new Set(E.events.map(e => `${e.day}|${e.actor}|${e.other ?? ''}`));
+    const evKey = new Set<string>(); E.events.forEach(e => evKey.add(`${e.day}|${e.actor}|${e.other ?? ''}`));
     const ts = this.talks.filter(t => t.day >= d0 && t.day <= d1); let withC = 0; const byKind: Record<string, [number, number]> = {}; const why: Record<string, number> = {};
     for (const t of ts) {
       let ok = false, w = t.why ?? '';

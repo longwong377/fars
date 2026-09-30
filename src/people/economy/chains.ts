@@ -9,6 +9,7 @@ import type { HHSeed, HHKind } from './world';
 export interface Chain { leaf: number; path: number[]; shape: string; actors: string[] }
 
 export function chains(events: EconEvent[]): Chain[] {
+  events = events.filter(e => e?.actor); // (a loaded economy's older events are gone or kept as day and kind only: D-347)
   const hasChild = new Set<number>(); for (const e of events) for (const c of e.causes) hasChild.add(c);
   const best = new Map<number, number[]>(); // longest path ending at each event (events are in causal order: causes precede)
   for (const e of events) {

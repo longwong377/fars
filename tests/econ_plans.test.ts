@@ -67,7 +67,10 @@ describe('the economy in the day plans (D-340)', () => {
     expect(n).toBeGreaterThan(100); expect(bad).toEqual([]);
   });
   it('the same seed lays the same days, and a save and a load lay them again', () => {
-    const keys = [...plans.keys()].filter(k => plans.get(k)!.some(econ)).sort().slice(0, 40), d = +keys[0].split(':')[1];
+    // (D-347: a save keeps the economy as it stands and its recent days whole, not every day since the first: the plans laid
+    // again are those of the save's own day, the last of the lean week)
+    const d = LEAN[LEAN.length - 1], keys = [...plans.keys()].filter(k => +k.split(':')[1] === d && plans.get(k)!.some(econ)).sort().slice(0, 40);
+    expect(keys.length).toBeGreaterThan(5);
     const T = makeSim(SEED); T.t = S.t; T.load(JSON.parse(JSON.stringify(S.save())));
     for (const k of keys.filter(x => +x.split(':')[1] === d)) { const [pid] = k.split(':').map(Number); expect(JSON.stringify(T.pop.plan(pid, d))).toBe(JSON.stringify(plans.get(k))); }
   }, 300_000);

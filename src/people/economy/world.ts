@@ -17,15 +17,54 @@ export interface HHSeed { id: string; kind: HHKind; eaters: number; workers: num
 export interface EconEvent { id: number; day: number; actor: string; kind: string; causes: number[]; other?: string; amt?: number }
 interface HH extends HHSeed {
   kin: string[]; grain: number; fuel: number; cash: number; goods: number; land: number; health: number; honest: number;
-  sickUntil: number; mourning: number; lastPet: number; lastTheft: number; debts: { to: string; amt: number; due: number; ev: number }[];
+  sickUntil: number; mourning: number; lastPet: number; lastTheft: number; debts: Debt[];
   cause: Partial<Record<NeedKind, number>>; lastAct: number; harvestDay: number; dead: number;
   // D-340 (s13 econplans): the crisis end. badUntil/badEv: a default is remembered by the lenders (no new loan without a
   // pledge); noOx: the event of a draught ox (or the flock's ewes) lost and not yet replaced; bound: members working off a
   // debt or a fine in another house; lastRefused/lastFire: rate limits on repeated events
   badUntil: number; badEv: number; noOx: number; bound: { to: string; until: number; ev: number; done: boolean; rec: Bondage }[]; lastRefused: number; lastFire: number;
+  /** D-347: the day an illness drawn LIFE_LAG ahead takes hold (-1: none pending) */
+  illAt: number;
+  advocate?: number; lastKin?: number; helped?: number; hireDay?: number;
 }
 /** a member bound to work off a debt (D-340): who, for whom, from the event, until the day (Economy.boundOn) */
 export interface Bondage { hh: string; to: string; from: number; until: number; ev: number }
+/** a debt owed (n: its number, so a saved deferred step finds it again, D-347) */
+export interface Debt { to: string; amt: number; due: number; ev: number; n: number }
+/** a deferred step (D-347: data, not a closure, so the economy's state is saved and restored as it stands) */
+type Task =
+  | { t: 'release'; hh: string; b: number }
+  | { t: 'judgeDebt'; hh: string; cause: number; debt: Debt }
+  | { t: 'relief'; hh: string; d: number; pet: number; eat: number }
+  | { t: 'remit'; hh: string; debt: Debt; pet: number; d: number }
+  | { t: 'arrest'; hh: string; v: string; g: number; acc: number; d: number }
+  | { t: 'judgeTheft'; hh: string; v: string; g: number; ar: number; d: number }
+  | { t: 'ill'; hh: string; ev: number }
+  | { t: 'die'; hh: string; ev: number };
+/** D-347: the Population's side of illness and death (PeopleSim wires it; the bare economy of the tests has none). One
+ *  mortality: the Population's own deaths are the economy's deaths (burial, mourning), and the economy's illness is laid on a
+ *  member as a sickbed and, when grave, as that member's death. Both are decided LIFE_LAG days ahead, past every day plan the
+ *  living world has already read (it looks 3 days ahead), so no plan already made is changed by them. */
+export interface EconLife {
+  /** the Population's own deaths among the household's members on the day (not those the economy caused) */
+  deaths(hh: string, day: number): number;
+  /** lay an illness on a member from `from` to `until` (exclusive), and their death on `dieOn` (-1: they recover); false when
+   *  no member can take it (the economy then has no illness either); `died` false when the death could not be laid */
+  sicken(hh: string, from: number, until: number, dieOn: number): { ok: boolean; died: boolean };
+}
+export const LIFE_LAG = 4;
+/** the household fields a snapshot carries (the rest are fixed by the seed); cause.* and the D-340 extras are optional */
+const HH_NUM = ['eaters', 'workers', 'grain', 'fuel', 'cash', 'goods', 'land', 'health', 'sickUntil', 'mourning', 'lastPet', 'lastTheft', 'lastAct', 'dead',
+  'badUntil', 'badEv', 'noOx', 'lastRefused', 'lastFire', 'illAt', 'advocate', 'lastKin', 'helped', 'hireDay'] as const;
+const CAUSES: NeedKind[] = ['food', 'fuel', 'water', 'cash', 'help', 'health', 'kin'];
+/** events a snapshot keeps whole besides the last days' (the plans' words read them: a default remembered 240 days, a thief's
+ *  chain back to the theft), and those it keeps as day and kind only (the market's and the treasury's look-backs) */
+const KEEP_WHOLE: Record<string, number> = { default: 240, theft: 40, robbed: 40, accusation: 40, arrest: 40 };
+const KEEP_STUB: Record<string, number> = { harvest_poor: 21, blight: 21, buy: 21, ration_cut: 21, hoard: 21, harvest_good: 21, grain_brought: 21, hoard_released: 21, tithe_short: 61 };
+/** the state is rounded at each day's end (grain 0.1 kg, silver 1e-4 sheqel, fuel 0.1, health 0.001) so a saved day is short (D-347) */
+const q = (x: number, k: number) => Math.round(x * k) / k;
+/** the fields a snapshot writes as whole numbers of these units when every value is on the grid (D-347) */
+const SCALE: Record<string, number> = { grain: 10, fuel: 10, cash: 1e4 };
 
 const S = { yield: salt('econ-yield'), plot: salt('econ-plot'), act: salt('econ-act'), ill: salt('econ-ill'), steal: salt('econ-steal'),
   detect: salt('econ-detect'), judge: salt('econ-judge'), kin: salt('econ-kin'), trait: salt('econ-trait'), shock: salt('econ-shock'), craft: salt('econ-craft'),
@@ -39,6 +78,8 @@ const BOUND_MAX = 3 * 354;
 const GRAIN_EAT = 0.55;        // kg a day per eater (a ration of ~1 qa of barley, A in kind, C in kg)
 const GRAIN_BASE = 0.02;       // sheqel per kg at a normal market (C)
 const TITHE = 0.1;             // the treasury's share of a harvest (B)
+/** D-347: the daily chance of a petty theft by one of the least honest houses when short (C; tuned to ~1-3 thefts a year per thousand people on seeds 1, 7, 42) */
+const PETTY_THEFT = 0.0015;
 export const SYSTEMS = ['weather', 'market', 'treasury', 'court', 'caravan'] as const;
 
 export class Economy implements EconWorld {
@@ -50,11 +91,13 @@ export class Economy implements EconWorld {
   /** D-340: every bondage for debt or fine, in order (the day plans read it: Economy.boundOn) */
   readonly bondages: Bondage[] = [];
   treasury = { grain: 0, shortEv: -1 };
-  private pending: { day: number; run: () => void }[] = [];
-  private intents: Intent[] = [];
+  private pending: { day: number; task: Task }[] = [];
+  /** the intents to apply, by day (D-347: indexed, was a list scanned every day) */
+  private intents = new Map<number, Intent[]>();
+  private debtN = 0;
   private idx = new Map<string, number>(); private byQ = new Map<string, HH[]>();
   private shocks = new Map<string, number>(); // quarter -> event of this year's local blight
-  constructor(readonly seed: number, seeds: HHSeed[], readonly opts: { interventions?: Intent[] } = {}) {
+  constructor(readonly seed: number, seeds: HHSeed[], readonly opts: { interventions?: Intent[]; life?: EconLife } = {}) {
     this.wx = generateYear(seed, START_JDN, 365);
     const ids = seeds.map(s => s.id);
     for (const [i, s] of seeds.entries()) {
@@ -64,18 +107,23 @@ export class Economy implements EconWorld {
       this.hh.set(s.id, { ...s, kin, grain: s.eaters * GRAIN_EAT * (40 + 80 * u(1)) * (rich ? 4 : 1), fuel: 10 + 20 * u(2), cash: (rich ? 80 : 1) + 6 * u(3) * u(3),
         goods: Math.floor(4 * u(4)) + (s.kind === 'craft' ? 3 : 0), land: s.kind === 'farmer' ? 1.2 + 2.8 * u(5) : rich ? 6 : 0, health: 0.8 + 0.2 * u(6),
         honest: u(7), sickUntil: -1, mourning: -1, debts: [], cause: {}, lastAct: -99, lastPet: -99, lastTheft: -99, harvestDay: 34 + Math.floor(40 * u(8)), dead: 0,
-        badUntil: -1, badEv: -1, noOx: -1, bound: [], lastRefused: -99, lastFire: -999 });
+        badUntil: -1, badEv: -1, noOx: -1, bound: [], lastRefused: -99, lastFire: -999, illAt: -1 });
     }
     for (const [i, h] of [...this.hh.values()].entries()) { this.idx.set(h.id, i); if (!this.byQ.has(h.q)) this.byQ.set(h.q, []); this.byQ.get(h.q)!.push(h); }
     this.market.grain = seeds.length * 60; this.treasury.grain = seeds.filter(s => s.kind === 'ration').reduce((a, s) => a + s.eaters, 0) * GRAIN_EAT * 45;
-    for (const i of opts.interventions ?? []) this.intents.push(i);
+    for (const i of opts.interventions ?? []) this.addIntent(i);
+    const H = [...this.hh.values()]; for (const f of HH_NUM) this.init[f] = H.map(h => (h as any)[f]);
   }
+  /** each household's fields as the seed made them (a snapshot keeps only what differs) */
+  private init: Record<string, (number | undefined)[]> = {};
+  private addIntent(i: Intent) { const l = this.intents.get(i.day); if (l) l.push(i); else this.intents.set(i.day, [i]); }
+  private debt(to: string, amt: number, due: number, ev: number): Debt { return { to, amt, due, ev, n: this.debtN++ }; }
 
   // ---- the event graph ----
   private ev(day: number, actor: string, kind: string, causes: (number | undefined)[], other?: string, amt?: number): number {
     const id = this.events.length; this.events.push({ id, day, actor, kind, causes: [...new Set(causes.filter((c): c is number => c !== undefined && c >= 0))], other, amt }); return id;
   }
-  private later(day: number, run: () => void) { this.pending.push({ day, run }); }
+  private later(day: number, task: Task) { this.pending.push({ day, task }); }
 
   // ---- EconWorld ----
   price(good: string, day: number): number {
@@ -120,12 +168,71 @@ export class Economy implements EconWorld {
     } else { ev(i.kind); changes.push(`${i.to}.${i.kind}`); }
     return { ok: true, changes };
   }
-  snapshot() { return { seed: this.seed, day: this.day, intents: this.intents.map(i => ({ ...i })) }; }
-  static restore(s: { seed: number; day: number; intents: Intent[] }, seeds: HHSeed[]): Economy {
-    const e = new Economy(s.seed, seeds, { interventions: s.intents }); for (let d = 0; d <= s.day; d++) e.step(d); return e;
+  /** D-347: the economy's state as it stands at the end of its day (was: the seed and every intent, replayed from day 0 on
+   *  load: 3.6-10.5 s and 5.5 MB at day 300). Households by field (only those that differ from the seed's start, or all when
+   *  most do), debts, bondages, the deferred steps as data, the intents still to come; of the events, the count (ids go on
+   *  from it), the days from `keepFrom` whole (the day plans of the sim's present read them) and, before that, only what the
+   *  days to come can still read: whole, the defaults and the thieves' chains; as day and kind, the events the state names
+   *  as causes and those the market's and the treasury's look-backs filter. Older events are gone from a loaded economy
+   *  (chains.ts reads a whole year only in a world that ran it). */
+  snapshot(keepFrom = this.day - 2) {
+    const H = [...this.hh.values()], n = H.length;
+    const col = (f: string, get: (h: HH, i: number) => number | undefined, init?: (i: number) => number | undefined) => {
+      const vals = H.map(get), diff: number[] = []; for (let i = 0; i < n; i++) if (vals[i] !== (init ? init(i) : undefined)) diff.push(i);
+      if (!diff.length) return undefined;
+      const k = SCALE[f] ?? 0, dense = diff.length * 3 > n, sc = k > 0 && (dense ? vals : diff.map(i => vals[i])).every(v => v === undefined || v === q(v, k)), enc = (v: number | undefined) => v === undefined ? null : sc ? Math.round(v * k) : v;
+      if (dense) return { ...(sc ? { k } : {}), d: vals.map(enc) };
+      return { ...(sc ? { k } : {}), i: diff.map((x, j) => x - (j ? diff[j - 1] : 0)), v: diff.map(i => enc(vals[i])) };
+    };
+    const hh: Record<string, unknown> = {};
+    for (const f of HH_NUM) { const c = col(f, h => (h as any)[f], i => this.init[f][i]); if (c) hh[f] = c; }
+    for (const c of CAUSES) { const x = col("c." + c, h => h.cause[c]); if (x) hh['c.' + c] = x; }
+    const hi = (id: string) => this.idx.get(id)!;
+    const debts: unknown[] = []; for (const h of H) for (const d of h.debts) debts.push([hi(h.id), d.to, d.amt, d.due, d.ev, d.n]);
+    const bix = new Map(this.bondages.map((b, i) => [b, i]));
+    const bound: unknown[] = []; for (const h of H) for (const b of h.bound) bound.push([hi(h.id), b.to, b.until, b.ev, b.done ? 1 : 0, bix.get(b.rec)]);
+    const dref = (hid: string, d: Debt) => this.hh.get(hid)!.debts.includes(d) ? d.n : [d.to, d.amt, d.due, d.ev, d.n];
+    const pending = this.pending.map(p => { const t = p.task as any; return [p.day, t.t, hi(t.hh), ...('debt' in t ? [{ ...t, t: undefined, hh: undefined, debt: dref(t.hh, t.debt) }] : [{ ...t, t: undefined, hh: undefined }])]; });
+    const intents: Intent[] = []; for (const [d, l] of [...this.intents].sort((a, b) => a[0] - b[0])) if (d > this.day) intents.push(...l);
+    // the events kept
+    const refs = new Set<number>([this.market.dearEv, this.market.slumpEv, this.market.cheapEv, this.treasury.shortEv, ...this.shocks.values()]);
+    for (const h of H) { for (const c of CAUSES) if (h.cause[c] !== undefined) refs.add(h.cause[c]!); refs.add(h.badEv); refs.add(h.noOx); for (const d of h.debts) refs.add(d.ev); for (const b of h.bound) refs.add(b.ev); }
+    for (const p of this.pending) { const t = p.task as any; for (const k of ['cause', 'pet', 'acc', 'ar', 'ev']) if (typeof t[k] === 'number') refs.add(t[k]); if (t.debt) refs.add(t.debt.ev); }
+    const kinds: string[] = [], ki = (k: string) => { let i = kinds.indexOf(k); if (i < 0) { i = kinds.length; kinds.push(k); } return i; };
+    const whole: unknown[] = [], stub: number[][] = [[], [], []]; let lw = 0, lwd = 0, ls = 0, lsd = 0;
+    this.events.forEach(e => { // (forEach: a loaded economy's events have gaps)
+      if (e.day >= keepFrom || (KEEP_WHOLE[e.kind] !== undefined && e.day > this.day - KEEP_WHOLE[e.kind])) {
+        whole.push([e.id - lw, e.day - lwd, ki(e.kind), e.actor, e.causes, e.other ?? null, e.amt ?? null]); lw = e.id; lwd = e.day; return; }
+      if (refs.has(e.id) || (KEEP_STUB[e.kind] !== undefined && e.day > this.day - KEEP_STUB[e.kind])) { stub[0].push(e.id - ls); stub[1].push(e.day - lsd); stub[2].push(ki(e.kind)); ls = e.id; lsd = e.day; }
+    });
+    return { v: 2, seed: this.seed, day: this.day, nEv: this.events.length, debtN: this.debtN, market: { ...this.market, hist: this.market.hist.slice(-11) }, treasury: { ...this.treasury },
+      shocks: [...this.shocks], hires: [this.hires.day, this.hires.n], hh, debts, bound, bondages: this.bondages.map(b => [this.idx.get(b.hh), b.to, b.from, b.until, b.ev]), pending, intents, kinds, whole, stub };
+  }
+  /** a snapshot back into an economy (D-347), or an older save's seed and intents replayed from day 0 (D-338) */
+  static restore(s: any, seeds: HHSeed[], opts: { life?: EconLife } = {}): Economy {
+    if (s.v !== 2) { const e = new Economy(s.seed, seeds, { interventions: s.intents, life: opts.life }); for (let d = 0; d <= s.day; d++) e.step(d); return e; }
+    const e = new Economy(s.seed, seeds, { life: opts.life }), H = [...e.hh.values()], hid = (i: number) => H[i].id;
+    const uncol = (c: any, set: (h: HH, v: number | undefined) => void) => { if (!c) return;
+      const dec = (v: number | null) => v === null ? undefined : c.k ? v / c.k : v; // (q(): Math.round(x * k) / k, the same double)
+      if (c.d) c.d.forEach((v: number | null, i: number) => set(H[i], dec(v))); else { let i = 0; c.i.forEach((dx: number, j: number) => { i += dx; set(H[i], dec(c.v[j])); }); } };
+    for (const f of HH_NUM) uncol(s.hh[f], (h, v) => { (h as any)[f] = v; });
+    for (const c of CAUSES) uncol(s.hh['c.' + c], (h, v) => { if (v === undefined) delete h.cause[c]; else h.cause[c] = v; });
+    for (const f of ['advocate', 'lastKin', 'helped', 'hireDay'] as const) for (const h of H) if (h[f] === undefined) delete h[f];
+    e.day = s.day; e.debtN = s.debtN; Object.assign(e.market, s.market); Object.assign(e.treasury, s.treasury); for (const [k, v] of s.shocks) e.shocks.set(k, v); e.hires = { day: s.hires[0], n: s.hires[1] };
+    for (const [i, to, amt, due, ev, n] of s.debts) H[i].debts.push({ to, amt, due, ev, n });
+    for (const [i, to, from, until, ev] of s.bondages) e.bondages.push({ hh: hid(i), to, from, until, ev });
+    for (const [i, to, until, ev, done, r] of s.bound) H[i].bound.push({ to, until, ev, done: !!done, rec: e.bondages[r] });
+    for (const [day, t, i, a] of s.pending) { const h = H[i], task: any = { ...a, t, hh: h.id };
+      if (a.debt !== undefined) task.debt = typeof a.debt === 'number' ? h.debts.find(d => d.n === a.debt) : { to: a.debt[0], amt: a.debt[1], due: a.debt[2], ev: a.debt[3], n: a.debt[4] };
+      e.pending.push({ day, task }); }
+    for (const i of s.intents) e.addIntent(i);
+    e.events.length = s.nEv; let id = 0, day = 0;
+    for (const [di, dd, k, actor, causes, other, amt] of s.whole) { id += di; day += dd; const v: EconEvent = { id, day, actor, kind: s.kinds[k], causes }; if (other !== null) v.other = other; if (amt !== null) v.amt = amt; e.events[id] = v; }
+    id = 0; day = 0; for (let k = 0; k < s.stub[0].length; k++) { id += s.stub[0][k]; day += s.stub[1][k]; e.events[id] = { id, day, actor: '', kind: s.kinds[s.stub[2][k]], causes: [] }; }
+    return e;
   }
   /** record an intent to be applied on its day (live play) */
-  enter(i: Intent) { this.intents.push(i); if (i.day <= this.day) this.applyIntent(i); }
+  enter(i: Intent) { this.addIntent(i); if (i.day <= this.day) this.applyIntent(i); }
 
   private season(day: number) { const m = dateOf(Math.max(0, day)).month; return m >= 10 || m <= 0 ? 'winter' : m <= 3 ? 'spring' : m <= 6 ? 'summer' : 'autumn'; }
 
@@ -133,14 +240,15 @@ export class Economy implements EconWorld {
   step(day: number): void {
     if (day <= this.day) return; this.day = day;
     const wx = this.wx[day % this.wx.length], { month, dom } = dateOf(day) as any;
-    for (const i of this.intents) if (i.day === day) this.applyIntent(i);
-    for (const p of this.pending.filter(x => x.day === day)) p.run();
+    for (const i of this.intents.get(day) ?? []) this.applyIntent(i);
+    this.intents.delete(day - 1); // (an intent entered for a past day is applied at once by enter(); nothing reads the list after)
+    for (let j = 0, n = this.pending.length; j < n; j++) { const p = this.pending[j]; if (p.day === day) this.run(p.task); } // (in the order laid)
     this.pending = this.pending.filter(x => x.day > day);
     if (day === 20) this.blights(day);
     const pGrain = this.price('grain', day);
     // prices: a rise of a fifth within ten days is an event, caused by what emptied the market
     this.market.hist.push(pGrain);
-    const old = this.market.hist[Math.max(0, this.market.hist.length - 11)];
+    const old = this.market.hist[Math.max(0, this.market.hist.length - 11)]; if (this.market.hist.length > 11) this.market.hist.shift();
     if (pGrain > old * 1.2 && (this.market.dearEv < 0 || this.events[this.market.dearEv].day < day - 20)) {
       const recent = this.events.filter(e => e.day >= day - 20 && /^(harvest_poor|blight|buy|ration_cut|hoard)$/.test(e.kind)).slice(-4).map(e => e.id);
       this.market.dearEv = this.ev(day, 'market', 'grain_dear', recent, undefined, pGrain);
@@ -159,6 +267,9 @@ export class Economy implements EconWorld {
     if (dom === 12 && month === 9) this.levy(day);
     let k = 0;
     for (const h of this.hh.values()) { this.household(h, day, wx, k++); }
+    // the day's end: the state rounded to what matters (D-347: a saved day is short, and a loaded one goes on the same)
+    for (const h of this.hh.values()) { h.grain = q(h.grain, 10); h.fuel = q(h.fuel, 10); h.cash = q(h.cash, 1e4); h.health = q(h.health, 1e3); }
+    this.market.grain = q(this.market.grain, 100); this.treasury.grain = q(this.treasury.grain, 100);
   }
 
   private blights(day: number) { // this year's local losses: hail or blight over some quarters (C: a few a year)
@@ -181,7 +292,7 @@ export class Economy implements EconWorld {
     for (const h of this.hh.values()) { if (h.dead || h.kind === 'ration') continue; const t = h.kind === 'rich' ? 6 : 1.2 + 0.2 * h.eaters;
       if (h.cash >= t) { h.cash -= t; continue; }
       const owed = t - h.cash; h.cash = 0; const e = this.ev(day, h.id, 'tax_arrears', [h.cause.food, h.cause.cash], 'treasury', owed);
-      h.debts.push({ to: 'treasury', amt: owed, due: day + 45 + (h32(this.seed, S.act, day, this.idx.get(h.id)!) % 30), ev: e }); h.cause.cash = e; }
+      h.debts.push(this.debt('treasury', owed, day + 45 + (h32(this.seed, S.act, day, this.idx.get(h.id)!) % 30), e)); h.cause.cash = e; }
   }
 
   /** D-340: an extra levy for the king's works and the army's stores (C: the Fortification texts' dues in kind and the
@@ -200,7 +311,7 @@ export class Economy implements EconWorld {
       else { if (h.cash >= 0.6) h.cash -= 0.6; else owed = 0.6 - h.cash; }
       if (owed <= 0) continue;
       const e = this.ev(day, h.id, 'levy_arrears', [L, h.cause.food, h.cause.cash], 'treasury', owed);
-      h.debts.push({ to: 'treasury', amt: owed, due: day + 40 + (h32(this.seed, S.levy, day, k) % 30), ev: e }); h.cause.cash = e;
+      h.debts.push(this.debt('treasury', owed, day + 40 + (h32(this.seed, S.levy, day, k) % 30), e)); h.cause.cash = e;
     }
   }
 
@@ -210,7 +321,7 @@ export class Economy implements EconWorld {
     const days = Math.max(20, Math.min(BOUND_MAX, Math.ceil(amt / BOUND_WAGE))); const e = this.ev(day, h.id, 'bound_labour', [cause], to, days);
     const rec: Bondage = { hh: h.id, to, from: day + 1, until: day + days, ev: e }; this.bondages.push(rec);
     const b = { to, until: day + days, ev: e, done: false, rec }; h.bound.push(b); h.workers = Math.max(0, h.workers - 1);
-    this.later(day + days, () => { if (b.done) return; b.done = true; h.workers++; this.ev(this.day, h.id, 'released', [e], to); });
+    this.later(day + days, { t: 'release', hh: h.id, b: h.bound.length - 1 });
     return e;
   }
   /** the bondages in force on a day (the day plans: a member of `hh` works in `to`'s house) */
@@ -280,7 +391,17 @@ export class Economy implements EconWorld {
     if (h.fuel <= 0 && winter && (h.cause.fuel === undefined || this.events[h.cause.fuel].day < day - 30)) h.cause.fuel = this.ev(day, h.id, 'cold_hearth', [h.cause.cash]);
     // illness: more likely when hungry or cold (C)
     const pIll = 0.0012 + (1 - h.health) * 0.01 + (winter && h.fuel <= 0 ? 0.004 : 0);
-    if (day >= h.sickUntil && u01(this.seed, S.ill, k, day) < pIll) {
+    const L = this.opts.life;
+    if (L) { // D-347: the Population's own deaths are this house's deaths; the economy's illness is drawn LIFE_LAG days ahead and
+      // laid on a member (sickbed), and when grave, that member's death some days into it (one mortality: no double deaths)
+      for (let n = L.deaths(h.id, day); n > 0; n--) this.death(h, day, false);
+      if (day >= h.sickUntil && h.illAt < day && u01(this.seed, S.ill, k, day) < pIll) {
+        const from = day + LIFE_LAG, len = 6 + (h32(this.seed, S.ill, k, day + 1) % 20);
+        const grave = h.health - 0.15 < 0.3 && u01(this.seed, S.ill, k, day + 2) < 0.35, dieOn = grave ? from + 2 + (h32(this.seed, S.ill, k, day + 3) % (len - 3)) : -1;
+        const r = L.sicken(h.id, from, from + len, dieOn);
+        if (r.ok) { h.illAt = from; this.later(from, { t: 'ill', hh: h.id, ev: len }); if (r.died) this.later(dieOn, { t: 'die', hh: h.id, ev: -1 }); }
+      }
+    } else if (day >= h.sickUntil && u01(this.seed, S.ill, k, day) < pIll) {
       h.sickUntil = day + 6 + (h32(this.seed, S.ill, k, day + 1) % 20); h.health -= 0.15;
       h.cause.help = this.ev(day, h.id, 'illness', [h.cause.health, h.cause.fuel]);
       if (h.health < 0.3 && u01(this.seed, S.ill, k, day + 2) < 0.35) this.death(h, day);
@@ -288,12 +409,23 @@ export class Economy implements EconWorld {
     // debts fall due
     for (const d of h.debts) if (d.due === day) this.due(h, d, day, k);
     h.debts = h.debts.filter(d => d.amt > 0.01);
+    // D-347: petty theft, not only from hunger: the least honest houses, short of barley or silver, now and then take from a
+    // neighbour's store (C, by analogy: property crime in pre-modern towns ran at one to a few in a thousand people a year,
+    // most of it small and not from starvation); with the neighbours' help carrying the hungry (D-344), want alone left ~5 a year
+    if (h.honest < 0.1 && day - h.lastTheft > 90 && day - h.lastAct >= 3 && (h.grain < eat * 30 || h.cash < 1) && u01(this.seed, S.steal, k, day, 2) < PETTY_THEFT) {
+      h.lastTheft = day; this.steal(h, day, k, h.grain < eat * 30 ? h.cause.food : h.cause.cash, eat * 6); return; }
     // one choice a day at most, when a need presses
     if (day - h.lastAct >= 3) this.decide(h, day, k);
   }
 
-  private death(h: HH, day: number) {
-    const e = this.ev(day, h.id, 'death', [h.cause.help]); h.eaters = Math.max(1, h.eaters - 1); h.workers = Math.max(0, h.workers - (h.workers > 1 ? 1 : 0));
+  /** D-347: an illness drawn LIFE_LAG days ago takes hold (the member already lies sick in the Population) */
+  private illDue(h: HH, _k: number, len: number) {
+    h.sickUntil = this.day + len; h.health -= 0.15; h.illAt = -1;
+    h.cause.help = this.ev(this.day, h.id, 'illness', [h.cause.health, h.cause.fuel]);
+  }
+  private dieDue(h: HH, _ev: number) { if (!h.dead) this.death(h, this.day); }
+  private death(h: HH, day: number, ofIllness = true) {
+    const e = this.ev(day, h.id, 'death', ofIllness ? [h.cause.help] : []); h.eaters = Math.max(1, h.eaters - 1); h.workers = Math.max(0, h.workers - (h.workers > 1 ? 1 : 0));
     h.mourning = day + 30; h.cause.kin = e; h.cause.cash = e; // the burial and its meal cost silver (C)
     // (D-340: borrowed for when the house has not got it; was: the silver went below nothing)
     if (h.cash >= 1.5) h.cash -= 1.5; else { const L = this.lender(h.id); if (L && this.creditOk(h, day)) { this.borrow(h, L, 1.5 - h.cash, day, e); } h.cash = Math.max(0, h.cash - 1.5); }
@@ -316,7 +448,7 @@ export class Economy implements EconWorld {
     }
     // nothing (more) to take: the lender goes to the judge
     const pet = this.ev(day, d.to, 'suit', [cause], h.id);
-    this.later(day + 8 + (h32(this.seed, S.judge, k, day) % 10), () => this.judge(h, day + 0, pet, 'debt', d));
+    this.later(day + 8 + (h32(this.seed, S.judge, k, day) % 10), { t: 'judgeDebt', hh: h.id, cause: pet, debt: d });
   }
 
   /** the judge's decision (C throughout: Babylonian and Achaemenid practice by analogy, the odds reasoned): a debt either
@@ -340,8 +472,28 @@ export class Economy implements EconWorld {
   }
   /** a petition for relief answered after some days: grain from the royal store, or refused (C) */
   private relief(h: HH, day: number, k: number, pet: number, eat: number) {
-    this.later(day + 5 + (h32(this.seed, S.judge, k, day) % 12), () => { const ok = this.treasury.grain > eat * 30 && u01(this.seed, S.judge, k, day + 3) < 0.6;
-      if (ok) { this.treasury.grain -= eat * 30; h.grain += eat * 30; this.ev(this.day, 'treasury', 'relief', [pet], h.id); } else h.cause.food = this.ev(this.day, 'court', 'petition_refused', [pet], h.id); });
+    this.later(day + 5 + (h32(this.seed, S.judge, k, day) % 12), { t: 'relief', hh: h.id, d: day, pet, eat });
+  }
+  private reliefDue(h: HH, day: number, k: number, pet: number, eat: number) {
+    const ok = this.treasury.grain > eat * 30 && u01(this.seed, S.judge, k, day + 3) < 0.6;
+    if (ok) { this.treasury.grain -= eat * 30; h.grain += eat * 30; this.ev(this.day, 'treasury', 'relief', [pet], h.id); } else h.cause.food = this.ev(this.day, 'court', 'petition_refused', [pet], h.id);
+  }
+  /** a deferred step falls due (D-347: data, not closures, so the economy's state can be saved and restored as it is) */
+  private run(p: Task) {
+    const h = this.hh.get(p.hh)!, k = this.idx.get(p.hh)!;
+    switch (p.t) {
+      case 'release': { const b = h.bound[p.b]; if (b.done) return; b.done = true; h.workers++; this.ev(this.day, h.id, 'released', [b.ev], b.to); return; }
+      case 'judgeDebt': this.judge(h, this.day, p.cause, 'debt', p.debt); return;
+      case 'relief': this.reliefDue(h, p.d, k, p.pet, p.eat); return;
+      case 'remit': { const tre = p.debt; if (tre.amt <= 0.01) return;
+        if (u01(this.seed, S.judge, k, p.d + 9) < 0.35) { tre.amt = 0; this.ev(this.day, 'treasury', 'remitted', [p.pet], h.id); } else { tre.due = Math.max(tre.due, this.day + 1); h.cause.cash = this.ev(this.day, 'court', 'petition_refused', [p.pet], h.id); }
+        return; }
+      case 'arrest': { const ar = this.ev(this.day, 'court', 'arrest', [p.acc], h.id); h.sickUntil = Math.max(h.sickUntil, this.day + 1); h.lastAct = this.day;
+        this.later(this.day + 4 + (h32(this.seed, S.judge, k, p.d) % 8), { t: 'judgeTheft', hh: p.hh, v: p.v, g: p.g, ar, d: p.d }); return; }
+      case 'judgeTheft': { const v = this.hh.get(p.v)!; h.grain = Math.max(0, h.grain - p.g * 0.5); v.grain += p.g * 0.5; this.judge(h, p.d, p.ar, 'theft', undefined, p.v); return; }
+      case 'ill': this.illDue(h, k, p.ev); return;
+      case 'die': this.dieDue(h, p.ev); return;
+    }
   }
 
   private hires = { day: -1, n: 0 };
@@ -353,7 +505,7 @@ export class Economy implements EconWorld {
   }
   private borrow(h: HH, L: HH, amt: number, day: number, cause: number | undefined): number {
     L.cash -= amt; h.cash += amt; const e = this.ev(day, h.id, 'loan', [cause], L.id, amt);
-    h.debts.push({ to: L.id, amt: amt * 1.1, due: day + 60 + (h32(this.seed, S.act, day, amt | 0) % 60), ev: e }); h.cause.cash = e; return e;
+    h.debts.push(this.debt(L.id, amt * 1.1, day + 60 + (h32(this.seed, S.act, day, amt | 0) % 60), e)); h.cause.cash = e; return e;
   }
 
   private decide(h: HH, day: number, k: number) {
@@ -397,23 +549,21 @@ export class Economy implements EconWorld {
     const tre = h.debts.find(d => d.to === 'treasury');
     if (top.kind === 'cash' && tre && day - h.lastPet >= 30 && r < 0.5) {
       h.lastPet = day; const pet = act('petition', [tre.ev], 'court');
-      this.later(day + 4 + (h32(this.seed, S.judge, k, day + 7) % 10), () => { if (tre.amt <= 0.01) return;
-        if (u01(this.seed, S.judge, k, day + 9) < 0.35) { tre.amt = 0; this.ev(this.day, 'treasury', 'remitted', [pet], h.id); } else { tre.due = Math.max(tre.due, this.day + 1); h.cause.cash = this.ev(this.day, 'court', 'petition_refused', [pet], h.id); } });
+      this.later(day + 4 + (h32(this.seed, S.judge, k, day + 7) % 10), { t: 'remit', hh: h.id, debt: tre, pet, d: day });
       return;
     }
     if (top.kind === 'help' || top.kind === 'health') { const K = h.kin.map(x => this.hh.get(x)!).find(K => K && !K.dead && K.workers > 1);
       if (K && (h as any).helped !== h.sickUntil) { (h as any).helped = h.sickUntil; const e = act('nursed_by_kin', [h.cause.help ?? h.cause.health], K.id); K.cash = Math.max(0, K.cash - 0.3); if (K.cash < 1) K.cause.cash = e; } }
   }
 
-  private steal(h: HH, day: number, k: number, cause: number | undefined) {
+  private steal(h: HH, day: number, k: number, cause: number | undefined, most = h.eaters * GRAIN_EAT * 25) {
     const qs = this.byQ.get(h.q)!; let v: HH | undefined;
     for (let t = 0; t < 8 && !v; t++) { const c = qs[h32(this.seed, S.steal, k, day * 8 + t) % qs.length]; if (c.id !== h.id && c.grain > c.eaters * GRAIN_EAT * 30) v = c; }
-    if (!v) return; const g = Math.min(v.grain * 0.3, h.eaters * GRAIN_EAT * 25);
+    if (!v) return; const g = Math.min(v.grain * 0.3, most);
     v.grain -= g; h.grain += g; h.lastAct = day; const e = this.ev(day, h.id, 'theft', [cause], v.id, g); v.cause.food = this.ev(day, v.id, 'robbed', [e], h.id, g);
     // found out (C): the victim accuses the thief before the judge the next morning; the judge's men take him the day after
     // (arrest) and hold him until he is judged; half the grain found is given back
     if (u01(this.seed, S.detect, k, day) < 0.55) { const acc = this.ev(day + 1, v.id, 'accusation', [e, v.cause.food], h.id);
-      this.later(day + 2, () => { const ar = this.ev(this.day, 'court', 'arrest', [acc], h.id); h.sickUntil = Math.max(h.sickUntil, this.day + 1); h.lastAct = this.day;
-        this.later(this.day + 4 + (h32(this.seed, S.judge, k, day) % 8), () => { h.grain = Math.max(0, h.grain - g * 0.5); v.grain += g * 0.5; this.judge(h, day, ar, 'theft', undefined, v.id); }); }); }
+      this.later(day + 2, { t: 'arrest', hh: h.id, v: v.id, g, acc, d: day }); }
   }
 }
