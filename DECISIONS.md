@@ -8883,3 +8883,17 @@ after his breakfast (313 d341, 59 min); the men's morning knucklebones in the la
 box; many are pinned people: 22239, 18904, 31224, 41397, 27094, #28/78, #104/324, 3885, 46220, 17959, 44627, 44216, 1888,
 #114/1287, 2036, household 9660, guard #76); the base was not run on them (a 1-worker base run was stopped for the budget),
 so which are new is not known (B230). The baked prose rows stay skipped by their who-check until re-baked (902ebbaf).
+
+D-350 (s13 agent bridesmerge; branch s13-bridesmerge = s13-brides 2929ab64 + main 08868d73): (1) B229 fixed at the cause
+(population.ts Population.mindAfter, called in plan() after the washing, the economy and the relations): mindDay writes the
+minder's and the little ones' pieces from the mothers' raw days; a later layer (the economy's 'follow': a mother sent to a
+kin's sickbed takes her little ones) then moved the little ones and left the minder "minding the little ones" at home
+(28536 day 181, 8.39-9.69 and 10.01-11.51). The minder's minding stretches are now cut where the little ones with her
+change and worded from those who are with her (the same words, one function mindWords for both); none with her: her own
+time at home ("playing in the courtyard", "at home" at 13). people_days_r6 S2 "the little ones only for two or more" passes;
+the S2 "no minding, no apart" test still fails on 'apart' (little ones with a mother at an exchange: the base's failure, the
+economy's class) and S3 45438 d148 (the base's). (2) After the merge, relations_plans failed: two courting visits were
+reported laid (RelPlans.lays) and then refused by overlay under the house's laundry (D-347's washing layer, merged into main
+with the relations, is laid before them in plan()). The meetings are now fitted to Population.washedPlan (the base day with
+the washing), so a meeting laid is a meeting in both plans. (3) tools/dev/household_day.ts prints a household's day (the
+minder, the little ones, the mother's plan and raw plan).
