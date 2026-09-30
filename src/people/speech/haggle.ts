@@ -84,7 +84,7 @@ export function haggle(E: Economy, r: HaggleReq): HaggleResult {
     if (bg === r.good || have < n) return fail(B && B.cash < price ? 'buyer cannot pay' : 'buyer has nothing to barter', { ceiling, floor, price });
     pay = { kind: 'barter', good: bg, qty: n };
   } else if (B && B.cash < price) return fail('buyer cannot pay', { ceiling, floor, price });
-  const cz = r.causes ?? [B?.cause[r.good === 'fuel' ? 'fuel' : r.good === 'grain' ? 'food' : 'cash']].filter((x): x is number => x !== undefined);
+  const cz = r.causes ?? [B?.cause[r.good === 'fuel' ? 'fuel' : r.good === 'grain' ? 'food' : 'cash']].filter((x): x is number => x !== undefined && E.events[x]?.kind !== 'haggle_deal'); // (a need answered by an earlier deal is not a fresh cause: no deal-after-deal chains)
   const gp = (x: number, key: 'grain' | 'fuel' | 'goods') => ({ [key]: x });
   const common = { deal: 1, src: 'haggle', good: r.good, price, ...(cz.length ? { causes: cz } : {}) };
   const toB: Record<string, number | string | number[]> = { ...common, ...(r.good !== 'labour' ? gp(r.qty, r.good) : {}) };
