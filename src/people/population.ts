@@ -174,6 +174,8 @@ export const DEPOT_EARLY_H = 1;
  *  posts; not a house, a workshop, a store, a hall or a tent */
 export const OPEN_PLACE = /^(lane:|well:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:)/;
 /** at the house but out of doors: on the roof, in the courtyard, at the wall where the dung cakes dry, on the doorstep */
+/** a minder's words for her stretches with the little ones (planCheck.ts MINDING, which imports this file) */
+const MIND_WHY = /^(minding (the little|her little|his little)|carrying (the little|her little|his little)|(out to the lane|home) with (the little|her little|his little))/;
 export const OPEN_WHY = /\broof\b|in the courtyard|courtyard before|on the wall to dry|on the doorstep|animals out|on the open ground|(weaving at the ground loom|spinning wool|playing|talking with the men of the band|sitting|minding the little ones|resting) by the (new )?tents?\b|by the fire (with the (band|family)|, telling|while)/;
 /** a band's camp work and leisure out of doors by the tents (B S2 / A S10 of shadow review r9: weaving, spinning, play and talk
  *  "by the tent" through the rain; OPEN_WHY: planCheck (a)) */
@@ -1107,12 +1109,11 @@ export class Population {
       const rep = [part(p.t0, s0, 'home', home, W), part(s0, s0 + wk, 'out', `road:${W}`, 'road'), part(s0 + wk, s1 - wk, 'lane', lane, W), part(s1 - wk, s1, 'back', `road:${W}`, 'road'), part(s1, p.t1, 'home', home, W)].filter(x => x.t1 - x.t0 > 1e-6);
       pcs.splice(i, 1, ...rep); i += rep.length - 1; }
     // both sides' words
-    const she = M.sex === 'f' ? 'her' : 'his', rel = M.sex === 'f' ? 'the elder sister' : 'the elder brother';
-    const pro = (k: number) => this.persons[k].sex === 'm' ? 'him' : 'her', sib = (k: number) => this.persons[k].mother === M.mother && M.mother >= 0 ? `${she} little ${this.persons[k].sex === 'm' ? 'brother' : 'sister'}` : 'the little one';
-    const who = (ks: number[]) => ks.length === 1 ? sib(ks[0]) : 'the little ones', them = (ks: number[]) => ks.length === 1 ? pro(ks[0]) : 'them';
+    const rel = M.sex === 'f' ? 'the elder sister' : 'the elder brother';
+    const pro = (k: number) => this.persons[k].sex === 'm' ? 'him' : 'her';
     const asleep = (k: number, t: number) => { const s = kids.find(x => x.pid === k)!.sl; return t < s.wakeT || (t >= s.napAM[0] && t < s.napAM[1]) || (t >= s.napW[0] && t < s.napW[1]) || t >= s.bedtime; };
     const inMeal = (t: number) => meals.find(([x, y]) => t >= x && t < y);
-    const age = (k: number) => this.ageOn(k, d), ma = this.ageOn(mn, d);
+    const age = (k: number) => this.ageOn(k, d);
     for (const p of pcs) {
       const cuts = [...new Set([p.t0, p.t1, ...meals.flat(), ...kids.flatMap(k => [k.sl.wakeT, ...k.sl.napAM, ...k.sl.napW, k.sl.bedtime])].filter(x => x >= p.t0 && x <= p.t1))].sort((x, y) => x - y);
       for (let j = 0; j + 1 < cuts.length; j++) { const a = cuts[j], b = cuts[j + 1]; if (b - a < 1e-6) continue; const mid = (a + b) / 2;
@@ -1126,18 +1127,48 @@ export class Population {
           s.with = mn; const Lk = segs[segs.length - 1]; if (Lk && Math.abs(Lk.t1 - a) < 1e-6 && Lk.why === s.why && Lk.place === s.place) Lk.t1 = b; else segs.push(s); }
         // the minder's side: from her breakfast on, not at the meals (she eats with the household)
         if (a < bfEnd - 1e-6 || inMeal(mid)) continue;
-        const awake = p.kids.filter(k => !asleep(k, mid)), ks = p.kids; let s: Seg;
-        if (p.kind === 'out' || p.kind === 'back') s = { t0: a, t1: b, place: p.place, where: 'road', act: 'walk', why: ks.some(k => age(k) < 2) ? `carrying ${who(ks)} ${p.kind === 'out' ? 'out to the lane' : 'home'}` : `${p.kind === 'out' ? 'out to the lane with' : 'home with'} ${who(ks)}` };
-        else if (p.kind === 'lane') s = { t0: a, t1: b, place: p.place, where: p.where, act: ma >= 10 ? 'rest' : 'play', why: `minding ${who(ks)} in the lane among the other children` };
-        else if (!awake.length) s = { t0: a, t1: b, place: home, where: W, act: 'rest', why: `minding ${who(ks)} while ${ks.length === 1 ? (this.persons[ks[0]].sex === 'm' ? 'he sleeps' : 'she sleeps') : 'they sleep'}` };
-        else if (awake.length === 1 && age(awake[0]) <= 2 && ma >= 10) s = { t0: a, t1: b, place: home, where: W, act: 'rest', why: `minding ${who(ks)}, now on ${she} hip, now playing beside ${them(awake)}` };
-        else s = { t0: a, t1: b, place: home, where: W, act: 'play', why: `minding ${who(ks)} in the courtyard, playing with ${them(awake)}` };
+        const awake = p.kids.filter(k => !asleep(k, mid)), w = this.mindWords(mn, d, p.kind, p.kids, awake);
+        const s: Seg = { t0: a, t1: b, place: p.place, where: p.kind === 'out' || p.kind === 'back' ? 'road' : p.where, ...w };
         const Lm = out.mine[out.mine.length - 1]; if (Lm && Math.abs(Lm.t1 - a) < 1e-6 && Lm.why === s.why && Lm.place === s.place) Lm.t1 = b; else out.mine.push(s); } }
     // no piece of under two minutes (a nap that ends a moment before the mother comes in): it joins the piece before it at the
     // same place, on both sides alike
     const tidy = (xs: Seg[]) => { for (let i = xs.length - 1; i > 0; i--) { const x = xs[i], pv = xs[i - 1]; if (x.t1 - x.t0 < 0.03 && pv.place === x.place && Math.abs(pv.t1 - x.t0) < 1e-6) { pv.t1 = x.t1; xs.splice(i, 1); } } };
     tidy(out.mine); for (const v of out.little.values()) tidy(v);
     out.spans = kids.flatMap(k => k.sp).sort((x, y) => x[0] - y[0]);
+    return out;
+  }
+  /** the minder's words for a stretch with the little ones `ks` (`awake` of them awake): mindDay's, and mindAfter's */
+  private mindWords(mn: number, d: number, kind: 'home' | 'lane' | 'out' | 'back', ks: number[], awake: number[]): { act: ActivityId; why: string } {
+    const M = this.persons[mn], ma = this.ageOn(mn, d), she = M.sex === 'f' ? 'her' : 'his';
+    const pro = (k: number) => this.persons[k].sex === 'm' ? 'him' : 'her', sib = (k: number) => this.persons[k].mother === M.mother && M.mother >= 0 ? `${she} little ${this.persons[k].sex === 'm' ? 'brother' : 'sister'}` : 'the little one';
+    const who = (xs: number[]) => xs.length === 1 ? sib(xs[0]) : 'the little ones', them = (xs: number[]) => xs.length === 1 ? pro(xs[0]) : 'them';
+    if (kind === 'out' || kind === 'back') return { act: 'walk', why: ks.some(k => this.ageOn(k, d) < 2) ? `carrying ${who(ks)} ${kind === 'out' ? 'out to the lane' : 'home'}` : `${kind === 'out' ? 'out to the lane with' : 'home with'} ${who(ks)}` };
+    if (kind === 'lane') return { act: ma >= 10 ? 'rest' : 'play', why: `minding ${who(ks)} in the lane among the other children` };
+    if (!awake.length) return { act: 'rest', why: `minding ${who(ks)} while ${ks.length === 1 ? (this.persons[ks[0]].sex === 'm' ? 'he sleeps' : 'she sleeps') : 'they sleep'}` };
+    if (awake.length === 1 && this.ageOn(awake[0], d) <= 2 && ma >= 10) return { act: 'rest', why: `minding ${who(ks)}, now on ${she} hip, now playing beside ${them(awake)}` };
+    return { act: 'play', why: `minding ${who(ks)} in the courtyard, playing with ${them(awake)}` };
+  }
+  /** B229 (D-350): the minder's words checked against the little ones' days as the later layers leave them. mindDay writes
+   *  both sides from the mothers' raw days; the economy's steps (a kin's sickbed, the market) may then take a little one
+   *  along with its mother (economy/plans.ts 'follow'), so the minder "minded the little ones" at home while they were with
+   *  their mother at another house (28536 day 181). Each of her minding stretches is cut where the little ones with her
+   *  change and worded from those who are with her (none: her own time at home) */
+  private mindAfter(pid: number, d: number, segs: Seg[]): Seg[] {
+    if (!segs.some(s => MIND_WHY.test(s.why))) return segs;
+    const md = this.mindDay(this.home(pid, d), d); if (md.minder !== pid) return segs;
+    const kids = [...md.little.keys()]; if (!kids.some(k => this.econ?.touches(k, d) || this.bonds?.touches(k, d))) return segs;
+    const plans = new Map(kids.map(k => [k, this.plan(k, d)] as [number, Seg[]])), ma = this.ageOn(pid, d);
+    const out: Seg[] = [];
+    for (const s of segs) {
+      if (!MIND_WHY.test(s.why)) { out.push(s); continue; }
+      const kind: 'home' | 'lane' | 'out' | 'back' = s.where === 'road' ? (/out to the lane/.test(s.why) ? 'out' : 'back') : s.place.startsWith('lane:') ? 'lane' : 'home';
+      const cuts = [...new Set([s.t0, s.t1, ...[...plans.values()].flatMap(v => v.flatMap(x => [x.t0, x.t1]))].filter(x => x >= s.t0 && x <= s.t1))].sort((x, y) => x - y);
+      for (let j = 0; j + 1 < cuts.length; j++) { const a = cuts[j], b = cuts[j + 1]; if (b - a < 1e-6) continue; const mid = (a + b) / 2;
+        const ks = kids.filter(k => { const g = segAt(plans.get(k)!, mid); return g.with === pid && (g.place === s.place || (g.where === 'road' && s.where === 'road')); });
+        const w: { act: ActivityId; why: string } = ks.length ? this.mindWords(pid, d, kind, ks, ks.filter(k => segAt(plans.get(k)!, mid).act !== 'sleep'))
+          : s.where === 'road' ? { act: 'walk', why: 'walking' } : kind === 'lane' ? { act: 'play', why: 'playing in the lane' } : ma >= 13 ? { act: 'rest', why: 'at home' } : { act: 'play', why: 'playing in the courtyard' };
+        const n: Seg = { ...s, t0: a, t1: b, ...w }, L = out[out.length - 1];
+        if (L && Math.abs(L.t1 - a) < 1e-6 && L.why === n.why && L.place === n.place && L.act === n.act) out[out.length - 1] = { ...L, t1: b }; else out.push(n); } }
     return out;
   }
   private mindCache = new Map<number, MindDay>();
@@ -1695,7 +1726,7 @@ export class Population {
   econ: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
   /** D-348: courting visits, the families' agreement, lovers' meetings laid over the plans (people/relations/plans.ts RelPlans; the sim sets it; Population.rel is the older affinity map) */
   bonds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[]; dueOf(pid: number, day: number): number | undefined } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); if (this.econ?.touches(pid, day)) b = this.econ.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); if (this.econ?.touches(pid, day)) b = this.econ.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); b = this.mindAfter(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }
