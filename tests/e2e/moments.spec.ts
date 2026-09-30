@@ -300,6 +300,7 @@ test('moments', async ({ page }, info) => {
     if (state !== loaded) { eyeAt.clear();
       await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}${s.court ? '&court=seasonal' : ''}${WEBGL ? '&webgl=1' : ''}${process.env.URLX ?? ''}`); // URLX: extra query for debug runs (e.g. &shaftdbg=1)
       await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
+      if (!process.env.NOWARM) { await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null)); console.log('warmUp', JSON.stringify(await page.evaluate(() => (window as any).__parsa.warmUp()))); } // D-353: one giant first submit hung the T4
       // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
       // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)
       await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
