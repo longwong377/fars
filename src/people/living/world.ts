@@ -66,6 +66,8 @@ export class LivingWorld {
   private overlaid = new Map<string, Seg[]>();
   private news = new Map<number, News[]>(); private evSeen = 0; private nextId = 0; private atWork = new Map<string, number[]>(); private workDay = -1; private crews = new Map<string, number[]>(); private srcOf = new Map<number, string>(); private gangs = new Map<number, number[]>();
   private busy = new Set<string>();
+  /** D-352: called after each simulated day (the asks and the rumours of src/people/asks ride on it) */
+  onDay?: (d: number) => void;
   private byQ = new Map<string, number[]>();
   private upTo = -1; private running = false;
   /** plans asked for and talk simulated (for the dev overlay and the cost report) */
@@ -120,7 +122,7 @@ export class LivingWorld {
       const E = this.econ();
       // player events first seen now: their news starts on the first day not yet simulated (fixed, and saved with the event)
       for (const e of this.playerEvents()) if (e.newsFrom === undefined) e.newsFrom = Math.max(e.day + 1, this.upTo + 1);
-      while (this.upTo < day) { const d = ++this.upTo; const t0 = performance.now(); E.step(d); this.stats.msEcon += performance.now() - t0; const t1 = performance.now(); this.simulate(E, d); this.stats.msSim += performance.now() - t1; this.stats.days++; }
+      while (this.upTo < day) { const d = ++this.upTo; const t0 = performance.now(); E.step(d); this.stats.msEcon += performance.now() - t0; const t1 = performance.now(); this.simulate(E, d); this.stats.msSim += performance.now() - t1; this.stats.days++; this.onDay?.(d); }
     } finally { this.running = false; }
   }
 
