@@ -10,6 +10,10 @@ import { Population } from '../src/people/population';
 import { Economy, type HHSeed, type EconLife } from '../src/people/economy/world';
 import { householdsOf } from '../src/people/economy/chains';
 import { AskBook, type Ask } from '../src/people/asks/asks';
+import { readFileSync } from "node:fs";
+import { NavGrid } from "../src/people/navgrid";
+import { PeopleSim, type Env } from "../src/people/sim";
+import { WeatherSystem } from "../src/weather/weatherState";
 import { h32, salt } from '../src/people/hash';
 
 const SEED = 1, YEAR = 354;
@@ -79,4 +83,14 @@ describe('asks: needs surfaced as emergent asks (D-352)', () => {
     for (let d = 120; d < 200; d++) { mid.E.step(d); mid.B.advance(d); E2.step(d); B2.advance(d); }
     expect(digest(B2)).toBe(digest(mid.B)); expect(digest(mid.B)).toBe(digest(a.B));
   });
+  it("rides the sim: PeopleSim with asks on derives asks and rumours day by day, saved and loaded with the sim; off by default", () => {
+    const mk = (asks?: boolean) => { const nav = new NavGrid(new Int16Array(readFileSync("public/generated/nav.i16").buffer.slice(0)), new Uint8Array(readFileSync("public/generated/nav_edges.u8")));
+      const W = new WeatherSystem(SEED), env = (t: number): Env => { const dd = Math.floor(t / 24), c = W.conditions(dd, t - dd * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
+      return new PeopleSim(SEED, nav, env, { asks }); };
+    const S = mk(true), off = mk(); S.econTo(30); off.econTo(30);
+    expect(S.asksWorld.asks.asks.length).toBeGreaterThan(0); expect(S.asksWorld.rumours.rumours.length).toBeGreaterThan(10); expect(off.asksWorld.save()).toBeUndefined();
+    S.t = 30 * 24; const save = JSON.parse(JSON.stringify(S.save())); expect(save.asks.asks.asks.length).toBe(S.asksWorld.asks.asks.length);
+    const L = mk(true); L.load(save); L.econTo(40); S.econTo(40);
+    expect(L.asksWorld.asks.asks.length).toBe(S.asksWorld.asks.asks.length); expect(L.asksWorld.rumours.rumours.length).toBe(S.asksWorld.rumours.rumours.length);
+  }, 600_000);
 });

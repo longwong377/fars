@@ -8847,3 +8847,29 @@ D-348, final round: people_days_r6 "no two meals within an hour" (child 28825, d
 and water brought along" meal 20 minutes after the household's meal (economy/plans.ts feed); it is skipped when a meal is
 within the hour. The lead's redraw of brides among women of 18+ (289-336 weddings a year) is on branch s13-relations2-brides,
 not here: it moves person ids and 9 more pinned people_days_r6 tests fail there (not re-pinned).
+
+## D-352 (s13, needsasks): needs as emergent asks, and rumour spreading (UD-25 mechanics 2 and 5; UD-24, UD-26), node side
+New dir src/people/asks/ (asks.ts, rumour.ts, world.ts); hooks: LivingWorld.onDay (one line, after each simulated day), PeopleSim
+(opts.asks, asksWorld, the save's `asks` field, load): off unless SimOpts.asks is true (a year costs ~28 s of asks and ~12 s of
+rumour on 10002 households, the economy itself ~7 s), so no other test moves. Nothing in economy/** or relations/** changed.
+ASKS: from Economy.needsOf, the debts, and the events (robbed, animal_lost, house_fire, tax/levy arrears, suit) each house in want has a
+structured ask (who, speaker, what, why with the causing economy event, urgency, what it would say to kin / neighbour / stranger: amount, offer,
+reluctance, willing; the Intent that would satisfy it; what the world does if met and if ignored). A need becomes an ask only after it has stood
+at its gate for a few days (food .45 x 4 d, fuel .7 x 6, cash .5 x 8, health .45 x 4, sickness and mourning 1 d): the house tried its own means first
+(the first draft asked for every cold hearth and every hot day: 18 asks per 1000 people a day, 98 % met by the house itself, meaningless; water is not
+asked for at all). Met = the need is gone or a deed answered it, by whom read off the economy's event (kin, neighbour, stranger, state, lender, self,
+player); escalated = the economy then did what its rules do to a house left in that want (hunger, theft, default, suit, bondage), naming that event;
+the layer decides no outcome. answer() enters the player's deed through Economy.enter. kinHelp (option): kin and lane neighbours with a surplus answer
+open asks from their own stores. A lost child is this layer's one own seeded event (C, ~0.05 per 1000 people a day), found by the quarter's searching.
+RUMOUR: born of economy events, player deeds (inject) and relations' scandal news (fromRelations); moves over kin, lane, work and trade ties
+(creditors and debtors included); a seeded distortion per hand; certainty falls per hand and rises with a second teller; a hearer helps (a real gift
+from the giver's surplus, to a house still in the want named), avoids, demands, flees or gossips. Numbers: Q-1065..Q-1067 (all tier C).
+Measured (seed 1, a year of 10002 households, 45136 people, life stub): 8498 asks = 0.53 per 1000 people a day (labour .31, lost child .05, silver .06,
+grain .05, time .03, animal .015, justice .005, petition .007, shelter .002, fuel .001); 83.7 % met (kin 1909+99, neighbour 865+53+833 child hunts,
+state 306, lender 69, stranger 156, self 2754), 6.6 % escalated (time 325, petition 114, silver 69, lost child 46, grain 6, labour 4), 388 lapsed, 994 open at the
+year's end; escalated share of the unmet 30.9 % against 1.9 % of the met. Rumour (days 250-370): 5900 born (illness 4466, default 718, pledge 309,
+animal 238, theft 104, fire 36), 269145 tellings, reach at a week ~48 houses (0.48 %), furthest hand 7; versions still true by hand 55 37 27 21 16 13 10 %.
+NOT MEASURED / OPEN: no healer or company asks (the economy has no death in a year on seed 1 even with the life stub, health never falls low enough);
+flee (quarter run of illness) is still frequent (16160 hearers) and only a stance, no plan reads it yet; avoid and demand are stances nothing reads
+yet (plans and the voice layer should); the player's ask answered the same day as a neighbour's shows the neighbour as the hand (first deed wins);
+only seed 1 was run; the ask's 'speaker' and kids need the Population (AsksWorld gives them, the bare tests do not); no browser run (budget 0).
