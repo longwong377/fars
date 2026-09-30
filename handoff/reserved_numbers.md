@@ -99,3 +99,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-350 | s13 | bridesmerge: finish and merge the adult-brides branch (Q-1058..Q-1059, B231..B232) | agent worktree | in flight |
 | D-351 | s13 | trust and haggling, node side (UD-25 mechanics 1 and 4; Q-1060..Q-1064, B233..B235) | agent worktree | merged session 13 |
 | D-352 | s13 | needs as emergent asks, rumour spreading, node side (UD-25 mechanics 2 and 5; Q-1065..Q-1069, B236..B238) | agent worktree | merged session 13 |
+| D-353 | s13 | the GPU hang: the game renders black on this box (Q-1070..Q-1071, B239..B240) | agent worktree | in flight |
