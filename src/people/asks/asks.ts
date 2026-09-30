@@ -34,8 +34,9 @@ export interface AsksOpts { /** kin and neighbours with a surplus answer open as
 const GRAIN_EAT = 0.55;
 /** the economy events that answer an ask (a deed naming the house), and those that are what a house left in want comes to (C) */
 const MEET_EV: Record<AskKind, string[]> = {
-  grain: ['given', 'relief', 'grain_brought'], fuel: ['given'], water: ['given'], silver: ['given', 'loan', 'remitted'], labour: ['given', 'hired_by_stranger'], healer: ['given', 'relief'],
-  company: ['given', 'relief'], animal: ['animal_bought', 'given', 'loan'], justice: ['arrest', 'acquitted', 'given'], shelter: ['given', 'relief', 'loan'], time: ['time_granted', 'remitted', 'spoken_for', 'repaid'],
+  grain: ['given', 'relief', 'grain_brought', 'kin_help', 'neighbours_help', 'hired_by_neighbour', 'wage_work'], fuel: ['given'], water: ['given'], silver: ['given', 'loan', 'remitted'],
+  labour: ['given', 'hired_by_stranger', 'nursed_by_kin', 'neighbours_help', 'hired_by_neighbour', 'wage_work', 'kin_help'], healer: ['given', 'relief', 'nursed_by_kin'],
+  company: ['given', 'relief', 'kin_help'], animal: ['animal_bought', 'given', 'loan'], justice: ['arrest', 'acquitted', 'given'], shelter: ['given', 'relief', 'loan'], time: ['time_granted', 'remitted', 'spoken_for', 'repaid'],
   petition: ['spoken_for', 'remitted', 'relief', 'acquitted', 'time_granted'], lost_child: []
 };
 const ESC_EV: Record<AskKind, string[]> = {
@@ -55,7 +56,8 @@ const COOLDOWN = 10, LAPSE = 40, HIST = 60;
 const GATE: Partial<Record<NeedKind, [number, number]>> = { food: [0.45, 4], fuel: [0.7, 6], water: [0.5, 3], cash: [0.5, 8], help: [0.5, 1], health: [0.45, 4], kin: [0.5, 1] };
 /** the daily chance that a kin / neighbour with a surplus answers an open ask by their own hand (opts.kinHelp; C) */
 const HELP_P: Record<string, number> = { kin: 0.2, neighbour: 0.1 };
-const NEEDS: Partial<Record<NeedKind, AskKind>> = { food: 'grain', fuel: 'fuel', water: 'water', cash: 'silver', help: 'labour', health: 'healer', kin: 'company' };
+/** (water is not asked for: a hot dry day is the weather's, it passes, and nobody is asked to carry a neighbour's water: D-352) */
+const NEEDS: Partial<Record<NeedKind, AskKind>> = { food: 'grain', fuel: 'fuel', cash: 'silver', help: 'labour', health: 'healer', kin: 'company' };
 /** audiences by reluctance: kin first, a stranger last; the proud (seeded) ask a stranger only when it is grave (C) */
 const RELUCT: Record<Audience, number> = { kin: 0.15, neighbour: 0.4, stranger: 0.75 };
 const OFFERS: Record<AskKind, Record<Audience, string>> = {
@@ -89,7 +91,7 @@ export class AskBook {
     const pride = u01(this.seed, S.pride, this.idOf(id)); // 0 humble .. 1 proud
     return (['kin', 'neighbour', 'stranger'] as Audience[]).map(to => {
       const reluctance = Math.min(1, RELUCT[to] * (0.6 + 0.8 * pride));
-      return { to, willing: urgency >= reluctance * 0.9, amount: Math.round(amount * (to === 'kin' ? 1 : to === 'neighbour' ? 0.6 : 0.3) * 10) / 10, offers: OFFERS[kind][to], reluctance };
+      return { to, willing: urgency >= reluctance * 0.9, amount: Math.max(0.05, Math.round(amount * (to === 'kin' ? 1 : to === 'neighbour' ? 0.6 : 0.3) * 100) / 100), offers: OFFERS[kind][to], reluctance };
     });
   }
   private begin(hh: string, kind: AskKind, day: number, urgency: number, amount: number, good: string, unit: string, why: Ask['why'], satisfy: Intent | null) {
@@ -97,7 +99,7 @@ export class AskBook {
     const h = this.econ.hh.get(hh); if (!h || h.dead) return;
     const m = this.opts.members?.(hh), id = this.nextId++;
     const a: Ask = { id, hh, speaker: m && m.length ? m[h32(this.seed, S.who, this.idOf(hh), day, id) % m.length] : undefined, kind, day0: day, urgency, peak: urgency,
-      what: { good, amount: Math.round(amount * 10) / 10, unit }, why, voices: this.voices(hh, kind, urgency, amount), satisfy, ifMet: IF_MET[kind], ifIgnored: IF_IGNORED[kind], status: 'open' };
+      what: { good, amount: Math.max(0.1, Math.round(amount * 100) / 100), unit }, why, voices: this.voices(hh, kind, urgency, amount), satisfy, ifMet: IF_MET[kind], ifIgnored: IF_IGNORED[kind], status: 'open' };
     this.asks.push(a); this.open.set(key, a); bump(this.stats.opened, kind);
   }
   private close(a: Ask, status: 'met' | 'lapsed', day: number, by?: By) {

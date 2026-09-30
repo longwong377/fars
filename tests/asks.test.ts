@@ -7,16 +7,18 @@
 // the same seed, a save and a load give the same book. The honest measured rates are printed and written to the test log.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { Population } from '../src/people/population';
-import { Economy, type HHSeed } from '../src/people/economy/world';
+import { Economy, type HHSeed, type EconLife } from '../src/people/economy/world';
 import { householdsOf } from '../src/people/economy/chains';
 import { AskBook, type Ask } from '../src/people/asks/asks';
 import { h32, salt } from '../src/people/hash';
 
 const SEED = 1, YEAR = 354;
+/** the Population's side of illness and death, as a stub (none of the Population's own deaths; every grave illness is laid and kills) */
+const LIFE: EconLife = { deaths: () => 0, sicken: (_h, _f, _u, dieOn) => ({ ok: true, died: dieOn >= 0 }) }; const kidMap = new Map<string, number>(); const kids = (id: string) => kidMap.get(id) ?? 0;
 let hs: HHSeed[], people = 0;
-beforeAll(() => { const pop = new Population(SEED); hs = householdsOf(pop); people = hs.reduce((a, h) => a + h.eaters, 0); }, 300_000);
+beforeAll(() => { const pop = new Population(SEED); hs = householdsOf(pop); people = hs.reduce((a, h) => a + h.eaters, 0); for (const h of hs) kidMap.set(h.id, h.eaters > 2 ? 1 : 0); }, 300_000);
 function run(days: number, opts: { at?: (d: number, E: Economy, B: AskBook) => void } = {}) {
-  const E = new Economy(SEED, hs), B = new AskBook(E, SEED, { kinHelp: true, kids: id => (hs.find(h => h.id === id)?.eaters ?? 0) > 2 ? 1 : 0 });
+  const E = new Economy(SEED, hs, { life: LIFE }), B = new AskBook(E, SEED, { kinHelp: true, kids: kids });
   for (let d = 0; d < days; d++) { E.step(d); B.advance(d); opts.at?.(d, E, B); }
   return { E, B };
 }
@@ -73,7 +75,7 @@ describe('asks: needs surfaced as emergent asks (D-352)', () => {
   it('the same seed gives the same book; a save and a load from the economy\'s snapshot go on the same', () => {
     const a = run(200), b = run(200); expect(digest(a.B)).toBe(digest(b.B));
     const mid = run(120); const snap = JSON.parse(JSON.stringify(mid.E.snapshot())), save = JSON.parse(JSON.stringify(mid.B.save()));
-    const E2 = Economy.restore(snap, hs), B2 = new AskBook(E2, SEED, { kinHelp: true, kids: id => (hs.find(h => h.id === id)?.eaters ?? 0) > 2 ? 1 : 0 }); B2.load(save);
+    const E2 = Economy.restore(snap, hs, { life: LIFE }), B2 = new AskBook(E2, SEED, { kinHelp: true, kids: kids }); B2.load(save);
     for (let d = 120; d < 200; d++) { mid.E.step(d); mid.B.advance(d); E2.step(d); B2.advance(d); }
     expect(digest(B2)).toBe(digest(mid.B)); expect(digest(mid.B)).toBe(digest(a.B));
   });

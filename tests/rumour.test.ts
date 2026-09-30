@@ -8,17 +8,19 @@
 // go on the same. Honest numbers are printed.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { Population } from '../src/people/population';
-import { Economy, type HHSeed } from '../src/people/economy/world';
+import { Economy, type HHSeed, type EconLife } from '../src/people/economy/world';
 import { householdsOf } from '../src/people/economy/chains';
 import { RumourNet, giveFrom } from '../src/people/asks/rumour';
 import type { Intent } from '../src/people/economy/api';
 import { h32, salt } from '../src/people/hash';
 
 const SEED = 1, D0 = 250, D1 = 370;
+/** the Population's side of illness and death, as a stub (every grave illness is laid and kills) */
+const LIFE: EconLife = { deaths: () => 0, sicken: (_h, _f, _u, dieOn) => ({ ok: true, died: dieOn >= 0 }) };
 let hs: HHSeed[];
 beforeAll(() => { hs = householdsOf(new Population(SEED)); }, 300_000);
 function run(to: number, o: { gifts?: boolean; inject?: boolean } = {}) {
-  const E = new Economy(SEED, hs); const gifts: Intent[] = [];
+  const E = new Economy(SEED, hs, { life: LIFE }); const gifts: Intent[] = [];
   const R = new RumourNet(E, SEED, { sink: i => { gifts.push(i); if (o.gifts) giveFrom(E, i); } });
   for (let d = 0; d < to; d++) { E.step(d); if (o.inject && d >= D0 + 5 && (d - D0) % 5 === 0 && d < D0 + 65) R.inject(d, [...E.hh.keys()][40 + 97 * ((d - D0) / 5)], 'player_help', 12 + d % 7); R.advance(d); }
   return { E, R, gifts };
@@ -62,7 +64,7 @@ describe('rumour: what is known, by whom, how distorted, what it makes people do
     expect(Y.gifts.length).toBeGreaterThan(5);
     // a gift in an economy where it is entered lowers the giver's grain: compare a giver's stores with and without the sink entering
     // the gift is real: entered through giveFrom, the giver's grain falls by the gift and the house's rises, and the economy names the giver
-    const E = new Economy(SEED, hs); for (let d = 0; d < 5; d++) E.step(d); const [A, B] = [...E.hh.values()]; A.grain = 9000; const a0 = A.grain, b0 = B.grain;
+    const E = new Economy(SEED, hs, { life: LIFE }); for (let d = 0; d < 5; d++) E.step(d); const [A, B] = [...E.hh.values()]; A.grain = 9000; const a0 = A.grain, b0 = B.grain;
     expect(giveFrom(E, { kind: 'help', from: A.id, to: B.id, day: 4, payload: { grain: 7 } })).toBe(true);
     expect(A.grain).toBeCloseTo(a0 - 7, 6); expect(B.grain).toBeCloseTo(b0 + 7, 6); expect(E.events.some(e => e.kind === 'given' && e.actor === B.id && e.other === A.id)).toBe(true);
     B.grain = 0; A.grain = 10; expect(giveFrom(E, { kind: 'help', from: A.id, to: B.id, day: 4, payload: { grain: 7 } })).toBe(false); // no surplus, no gift
@@ -77,7 +79,7 @@ describe('rumour: what is known, by whom, how distorted, what it makes people do
     const known = Y.R.knownBy(last.hh); expect(known.some(k => k.src === 'player_deed' && k.hand === last.hand)).toBe(true);
   });
   it('relations scandal news is carried by the same ties', () => {
-    const E = new Economy(SEED, hs), R = new RumourNet(E, SEED); const ids = [...E.hh.keys()]; for (let d = 0; d < 6; d++) { E.step(d); R.advance(d); }
+    const E = new Economy(SEED, hs, { life: LIFE }), R = new RumourNet(E, SEED); const ids = [...E.hh.keys()]; for (let d = 0; d < 6; d++) { E.step(d); R.advance(d); }
     R.fromRelations([{ day: 5, about: [7], ev: 99, what: 'affair' }], p => ids[p]);
     for (let d = 6; d < 30; d++) { E.step(d); R.advance(d); }
     const r = R.rumours.find(x => x.src === 'scandal')!; expect(r).toBeDefined(); console.log('scandal reach', r.holds.size); expect(r.holds.size).toBeGreaterThan(1);
@@ -85,7 +87,7 @@ describe('rumour: what is known, by whom, how distorted, what it makes people do
   it('the same seed gives the same news; a save and a load go on the same', () => {
     const a = run(D0 + 40), b = run(D0 + 40); expect(digest(a.R)).toBe(digest(b.R));
     const mid = run(D0 + 20); const snap = JSON.parse(JSON.stringify(mid.E.snapshot())), save = JSON.parse(JSON.stringify(mid.R.save()));
-    const E2 = Economy.restore(snap, hs), R2 = new RumourNet(E2, SEED); R2.load(save);
+    const E2 = Economy.restore(snap, hs, { life: LIFE }), R2 = new RumourNet(E2, SEED); R2.load(save);
     for (let d = D0 + 20; d < D0 + 40; d++) { mid.E.step(d); mid.R.advance(d); E2.step(d); R2.advance(d); }
     expect(digest(R2)).toBe(digest(mid.R)); expect(digest(mid.R)).toBe(digest(a.R));
   });
