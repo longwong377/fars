@@ -24,6 +24,7 @@ import { splice } from '../talk';
 import { MINDING, reasonOk } from '../planCheck';
 import { dateOf } from '../calendar';
 import { nobodyWith } from '../wardrobe/washing';
+import { haggleRound } from '../speech/haggle';
 
 const S = salt('living-talk');
 /** households in want who look for help each day (seeded share of the town's and the plain's), and the most talks a day */
@@ -159,6 +160,7 @@ export class LivingWorld {
 
   private simulate(E: Economy, day: number) {
     const P = this.pop; let meets = 0;
+    if (E.trust) haggleRound(E, day); // D-351: the day's haggles between households (speech/haggle.ts), before the talk
     for (const [pid, l] of this.news) { const k = l.filter(x => day - x.day <= 3); if (k.length) this.news.set(pid, k); else this.news.delete(pid); }
     for (const e of this.playerEvents()) if (e.ok && e.kind !== 'hold' && e.newsFrom === day && this.eligible(e.pid, day)) this.carry(e.pid, { src: `player:${e.i}`, hand: 0, day });
     // what happened yesterday in the economy is news in the lanes: a death, an illness, a theft, a debt, a suit, hunger
@@ -201,6 +203,7 @@ export class LivingWorld {
     const P = this.pop; this.carry(to, { ...x, hand: x.hand + 1, day });
     const T: LivingTalk = { id: this.nextId++, day, h: m.h, place: m.place, a: from, b: to, intents: [], kind: 'news', doer: to, target: `h:${P.home(to, day)}`, news: { src: x.src, hand: x.hand + 1 } };
     const hh = P.home(to, day);
+    if (E.trust && x.about !== undefined && x.what) E.trust.hear(`h:${hh}`, `h:${x.about}`, x.what, day); // D-351: news heard moves the hearer's own trust
     if (x.about !== undefined && x.about !== hh && HELP_ON.has(x.what ?? '') && (P.households[hh].kin.includes(x.about) || P.households[hh].q === P.households[x.about].q)) {
       const off = this.offer(E, x.what === 'cold_hearth' ? 'fuel' : x.what === 'death' ? 'kin' : 'help', x.about, hh, day);
       // (D-340: the help answers the economy event the news was of: its intents name it, so the help joins that chain)
