@@ -146,7 +146,7 @@ export class PeopleSim {
   /** D-341: the economy is stepped day by day by the living world, with the people's talk entered into it (living/world.ts) */
   economy(): Economy { this.living.advance(Math.floor(this.t / 24)); return this.econCore(); }
   private econCore(): Economy {
-    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife() }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife() }); this.econSnap = null; }
+    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true }); this.econSnap = null; }
     return this.econ;
   }
   /** D-347: the economy's illness and death reach the people (sickbed, funeral, the person gone); not with the economy off */

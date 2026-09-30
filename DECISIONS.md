@@ -8847,3 +8847,13 @@ D-348, final round: people_days_r6 "no two meals within an hour" (child 28825, d
 and water brought along" meal 20 minutes after the household's meal (economy/plans.ts feed); it is skipped when a meal is
 within the hour. The lead's redraw of brides among women of 18+ (289-336 weddings a year) is on branch s13-relations2-brides,
 not here: it moves person ids and 9 more pinned people_days_r6 tests fail there (not re-pinned).
+D-351 (s13 trust; UD-25 (1) and (4), UD-26): reputation and trust, haggling and barter, node side. src/people/speech/trust.ts: a TrustLedger read
+off the economy's event graph (deeds of repaying, defaulting, theft, arrest, acquittal, kin's help, hiring, gifts, the stranger's own help; news
+heard via living/world.ts tell()), three decaying layers (personal standing, dyad, group: quarter, trade, kin name; half-life 150 days), trustOf(a, b)
+0..1 with 0.5 for no record; saved in Economy.snapshot (full precision) and restored. Hooks, named: Economy.creditOk (below 0.35 no loan, above 0.7 a
+loan without a pledge), Economy.lender (the lender who trusts the asker most), decide() (kin help and neighbours' hiring need trust >= 0.2 / 0.25),
+applyIntent (payload.deal: event kind haggle_deal; payload.goods), living simulate (haggleRound) and tell (hear). Economy opts.trust (PeopleSim turns it on;
+a bare Economy has none, so every earlier test is unchanged). src/people/speech/haggle.ts: haggle(E, req) resolves one exchange (price from
+Economy.price, ceiling and floor from urgency and trust, the split from each house's skill and a keyed draw, cash or barter at the market less a tenth),
+enters two intents that name the events the need answers; haggleRound drives it daily (<= 40 a day, 3 days' cooldown per buyer, trusted sellers first).
+All the weights are C (reasoned). The model will only propose a HaggleReq later; nothing here calls a model.
