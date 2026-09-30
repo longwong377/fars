@@ -98,3 +98,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-349 | s13 | adult brides redraw, pinned tests re-pinned (Q-1055..Q-1057, B229..B230) | agent worktree, branch s13-brides | NOT merged: branch s13-brides (2929ab64, on origin); 34 failures in other people_days files unchecked against base (B230), one new r6 failure (B229) |
 | D-350 | s13 | bridesmerge: finish and merge the adult-brides branch (Q-1058..Q-1059, B231..B232) | agent worktree | in flight |
 | D-351 | s13 | trust and haggling, node side (UD-25 mechanics 1 and 4; Q-1060..Q-1064, B233..B235) | agent worktree | in flight |
+| D-352 | s13 | needs as emergent asks, rumour spreading, node side (UD-25 mechanics 2 and 5; Q-1065..Q-1069, B236..B238) | agent worktree | in flight |
