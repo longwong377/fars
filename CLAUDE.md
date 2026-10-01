@@ -134,15 +134,13 @@ areas come from the physically walkable envelope (`data/areas.json`, not the nav
 change until canaries clear it, reviewers are briefed from `handoff/review_template.md` and calibrated on an anchor set,
 agents from `handoff/agent_template.md`, and every session ships a change a player would notice plus three verified surprises.
 
-## Guards (MASTER_PLAN rev 2.1; the second critique)
-- `npm run guards` (the ratchet, scope and defaults tests) runs before every commit (`.githooks/pre-commit`, installed by `npm ci`),
-  at the start of `npm run build`, and on GitHub (`.github/workflows/guards.yml`). They fail closed. Never bypass the hook, never
-  edit a guard to pass; a threshold wrong in principle goes through `gates/errata/`, a loosening only through the user's own words.
-- Session start: `git fetch --unshallow --tags` when the clone is shallow. Session close: every agent branch merged or abandoned
-  and its fate in `handoff/reserved_numbers.md`; `sessions/sNN.md` written; tag `ratchet/sNN` pushed (this environment refused tag pushes in session 8: then record the closing
-  commit in `sessions/sNN.md`; the ratchet's baseline-ancestor check still blocks a squash).
-- Agent and reviewer briefs are generated from `handoff/agent_template.md` / `handoff/review_template.md` and saved to
-  `handoff/briefs/sNN/`. Reserve D/Q/B numbers in `handoff/reserved_numbers.md` before launching.
-- Status of a threshold is earned by evidence (`REVIEWS/evidence/**/<id>.json` written by its tool), never typed. A decided default
-  is pinned in `tests/defaults.test.ts`.
+## Guards and process (UD-30, session 15: "do whatever you think is best" after the critique of too much process)
+- `npm run guards` runs before every commit (`.githooks/pre-commit`) and keeps only what protects the user: no direction in
+  USER_DIRECTIONS.md reworded or dropped, no threshold in gates/thresholds.json loosened or removed. Never bypass the hook.
+- Briefs are a short paragraph: goal as the player meets it, files owned, done line, the box rules. No templates.
+- Records: one DECISIONS line per package (the lead gives each agent a D number); no reserved ranges, evidence paperwork or
+  per-change verification. Status messages only when something changed.
+- **The goal that orders all work: the playable slice.** A URL that loads in about 2 minutes and runs smoothly on the T4; walk
+  into a lane and it looks real; talk to anyone and they answer from their own life in their own voice; follow them home. Every
+  package is judged by whether it moves the slice forward, and none may make load or frame rate worse.
 
