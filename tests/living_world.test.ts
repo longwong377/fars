@@ -12,7 +12,9 @@ import { PeopleSim, type Env } from '../src/people/sim';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { Economy } from '../src/people/economy/world';
 import { householdsOf } from '../src/people/economy/chains';
+import { depHashFor } from '../tools/dev/coverage_dep';
 
+const DEP = depHashFor('tests/living_world.test.ts'); // D-360: the board's dependency hash, taken before the run
 const D0 = 150, D1 = 156; let mk: () => PeopleSim;
 const OUT: Record<string, unknown> = {};
 beforeAll(() => {
@@ -49,7 +51,7 @@ describe('talk that changes the world (T-E13)', () => {
     expect(S.pop.plan(T.doer, T.done!.day).find(s => s.ev === `living:${T.id}`)?.place).toBe(T.target);
     Object.assign(OUT, { withPlayer: { playerEvents: r2.playerEvents, playerPropagated: r2.playerPropagated, playerShare: r2.playerShare, share: r2.share, why: r2.why } });
     let commit = 'unknown'; try { commit = execSync('git rev-parse HEAD').toString().trim(); if (execSync('git status --porcelain -- src tests').toString().trim()) commit += '-dirty'; } catch { /* no git */ }
-    const ev = { id: 'T-E13', commit, tool: 'tests/living_world.test.ts', value: +(Math.min((OUT.noPlayer as any).share, r2.playerShare) * 100).toFixed(1), unit: '%', detail: OUT };
+    const ev = { id: 'T-E13', commit, dep: DEP, tool: 'tests/living_world.test.ts', value: +(Math.min((OUT.noPlayer as any).share, r2.playerShare) * 100).toFixed(1), unit: '%', detail: OUT };
     mkdirSync('REVIEWS/evidence/E', { recursive: true }); writeFileSync('REVIEWS/evidence/E/T-E13.json', JSON.stringify(ev, null, 1) + '\n');
     console.log('[living]', JSON.stringify(ev));
     expect(r2.playerEvents).toBeGreaterThan(0);

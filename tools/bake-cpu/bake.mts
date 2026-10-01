@@ -39,6 +39,7 @@ const adults = [...new Set([...first, ...everyone])].filter(pid => S.pop.ageOn(p
 const nArg = opt('n', 'all'), todo = adults.filter(p => !rows.some(r => r.pid === p && r.seed === seed)).slice(0, nArg === 'all' ? Infinity : +nArg);
 console.log(`seed ${seed} day ${day}: ${adults.length} adults, ${rows.length} baked, ${todo.length} to bake now`);
 
+// @ts-ignore -- optional dependency, installed only on a bake machine (tsc stays clean without it)
 const { getLlama, LlamaChatSession } = await import('node-llama-cpp');
 const llama = await getLlama({ gpu: false });
 const model = await llama.loadModel({ modelPath });

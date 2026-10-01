@@ -4,7 +4,7 @@
 // e.g. node C:/Users/Administrator/fars-assets/gpu_slot.mjs terrace -- npx playwright test tests/e2e/moments.spec.ts --project=gpu
 // It waits for a free slot (a directory under T:\gpu-slots made atomically with mkdir), runs the command with the current
 // environment, and frees the slot on exit. A slot whose holder process is gone is reclaimed.
-import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 const SLOTS = +(process.env.GPU_SLOTS ?? 2), ROOT = 'T:/gpu-slots';
 const argv = process.argv.slice(2), sep = argv.indexOf('--');
@@ -12,12 +12,20 @@ if (sep < 0 || sep === argv.length - 1) { console.error('usage: gpu_slot.mjs <la
 const label = argv.slice(0, sep).join(' ') || 'job', cmd = argv.slice(sep + 1);
 mkdirSync(ROOT, { recursive: true });
 const alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
+
+// FIFO (session 14): waiters take tickets; only the oldest live waiter may take a free slot, so a patient job never loses
+// every race to newer pollers. A ticket of a dead process is dropped.
+const QD = `${ROOT}/queue`; mkdirSync(QD, { recursive: true });
+const ticket = `${QD}/${Date.now().toString().padStart(15, '0')}-${process.pid}.json`; writeFileSync(ticket, JSON.stringify({ pid: process.pid, label }));
+const dropTicket = () => { try { rmSync(ticket, { force: true }); } catch {} };
+process.on('exit', dropTicket);
+const myTurn = () => { for (const t of readdirSync(QD).sort()) { const pid = +t.split('-')[1].replace('.json', ''); if (pid === process.pid) return true; if (alive(pid)) return false; try { rmSync(`${QD}/${t}`, { force: true }); } catch {} } return true; };
 async function acquire() {
   let waited = 0;
   for (;;) {
-    for (let i = 0; i < SLOTS; i++) {
+    if (myTurn()) for (let i = 0; i < SLOTS; i++) {
       const d = `${ROOT}/slot${i}`;
-      try { mkdirSync(d); writeFileSync(`${d}/owner.json`, JSON.stringify({ pid: process.pid, label, since: new Date().toISOString() })); return d; }
+      try { mkdirSync(d); writeFileSync(`${d}/owner.json`, JSON.stringify({ pid: process.pid, label, since: new Date().toISOString() })); dropTicket(); return d; }
       catch { try { const o = JSON.parse(readFileSync(`${d}/owner.json`, 'utf8')); if (!alive(o.pid)) rmSync(d, { recursive: true, force: true }); } catch { if (existsSync(d)) { /* being written; retry */ } } }
     }
     if (waited % 60 === 0) console.error(`[gpu_slot] ${label}: waiting for a GPU slot (${waited} s)`);
