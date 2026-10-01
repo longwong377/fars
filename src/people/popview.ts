@@ -25,6 +25,7 @@ import { sunTimes } from './calendar';
 import { h32, salt } from './hash';
 import type { P2 } from './navgrid';
 import type { LookInput } from './looks';
+import { lifeOf } from './bodyShape'; // D-363 hook: the body drawn from the life
 import type { Dress } from './body';
 import delegationsData from '../data/delegations.json';
 
@@ -558,9 +559,9 @@ export class PopView {
   /** the look input of a person of the population (a detailed agent keeps its own: sim.ts roster) */
   lookInput(pid: number): LookInput {
     const p = this.pop.persons[pid];
-    if (p.agent >= 0) { const a = this.sim.agents[p.agent]; return { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed }; }
+    if (p.agent >= 0) { const a = this.sim.agents[p.agent]; return { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed, life: lifeOf(this.pop, pid, Math.floor(this.sim.t / 24)) }; }
     const day = Math.floor(this.sim.t / 24), age = this.pop.ageOn(pid, day), cl = this.pop.court?.lookOf(pid) ?? null, dress = (cl?.dress as Dress | undefined) ?? (p.pupilOf !== undefined ? 'median' : dressOf(p.job, p.sex, age, p.persian)); // (D-221: a scribe's pupil dresses as the scribes, Q-515)
-    return { id: 100000 + pid, sex: p.sex, role: roleOf(p.job, p.sub), dress, origin: p.origin, seed: h32(this.seed, salt('look'), pid) % 1000000000, age: age < 12 ? 'child' : age >= 58 ? 'elder' : 'adult',
+    return { id: 100000 + pid, sex: p.sex, role: roleOf(p.job, p.sub), dress, origin: p.origin, seed: h32(this.seed, salt('look'), pid) % 1000000000, age: age < 12 ? 'child' : age >= 58 ? 'elder' : 'adult', life: lifeOf(this.pop, pid, day),
       ...(cl ? { delegation: cl.delegation, pieces: cl.pieces, beardless: cl.beardless, stature: cl.stature } : {}) }; // (D-199: the court setting's delegations, king and attendants)
   }
   /** a child's standing height by age (m; C: a modern growth-chart median, the body is the child variant scaled) */

@@ -48,7 +48,7 @@ for (const id of ids) {
     npx(['tools/blender/sources/merlon.ts', work]);
     blender('tools/blender/decor_merlon.py', [`${work}/job.json`, work], 'decor-merlon');
     // the bake of the high source onto the game's merlon: the pipeline's own stage (tools/blender/bake.py)
-    writeFileSync(`${work}/bake_job.json`, JSON.stringify({ id: 'merlon', high: `${work}/high.ply`, lods: [{ ply: `${work}/lod0.ply`, tex: 2048 }], out_glb: `${work}/merlon.glb`, out_dir: work, device: DEVICE, seed: 0,
+    writeFileSync(`${work}/bake_job.json`, JSON.stringify({ id: 'merlon', high: `${work}/high.ply`, lods: [{ ply: `${work}/lod0.ply`, tex: 2048 }, { ply: `${work}/near.ply`, tex: 1024 } /* D-364: the near level (decor_merlon.py) */], out_glb: `${work}/merlon.glb`, out_dir: work, device: DEVICE, seed: 0,
       bake: { cage: 0.012, ray: 0.024, margin: 8, normal_samples: 4, ao_samples: 128, ao_distance: 0.08, uv_angle: 66, uv_margin: 0.004, high_normals: 'geometry' } }, null, 1));
     blender('tools/blender/bake.py', [`${work}/bake_job.json`], 'decor-merlon-bake');
     const st = JSON.parse(readFileSync(`${work}/bake_stats.json`, 'utf8'));

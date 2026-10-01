@@ -27,8 +27,9 @@ import { h32, u01, salt } from '../hash';
 const SUPERVISED = new Set(['guard', 'builder', 'porter', 'camp', 'scribe', 'treasury', 'official', 'messenger', 'storekeeper', 'miller', 'weaver', 'brewer', 'groom', 'caretaker', 'priest', 'servant', 'shepherd']);
 /** the parts of a day an errand may take the place of (rest, talk, the house's own work) */
 const FREE = new Set<ActivityId>(['rest', 'talk', 'play', 'gamble', 'tend_body', 'spin', 'weave', 'grind', 'cook', 'clean', 'craft', 'wash', 'gather', 'garden_work', 'tend_animals']);
-/** the town's exchange lane (population.ts: the farmers' market mornings go there; lives.json exchange_in_kind: no coins) */
-export const EXCHANGE = 'lane:q_lt_e';
+/** the town's exchange (lives.json exchange_in_kind: no coins): the market ground of the lower town's east quarter, nearest
+ *  the Terrace foot (D-359: was 'lane:q_lt_e', which the crowd drew outside each buyer's own door: popgeo.ts lane) */
+export const EXCHANGE = 'market:q_lt_e';
 /** the day's rites and feasts an economy step does not cut through (the magi's and the households' rites, the funerals, the
  *  weddings: D-209, D-211) */
 const PROTECT_ACTS = new Set<ActivityId>(['offer', 'sacrifice', 'cut_offering', 'chant', 'tend_fire', 'bury', 'mourn', 'carry_bier']);
@@ -47,7 +48,10 @@ export interface EconStep { pid: number; day: number; kind: string; ev: number; 
   lo: number; hi: number; dest: string; from?: string;
   /** what is done there: [act, hours, why] in order */
   work: [ActivityId, number, string][];
-  goAct: ActivityId; goWhy: string; backAct: ActivityId; backWhy: string; after?: [ActivityId, number, string] }
+  goAct: ActivityId; goWhy: string; backAct: ActivityId; backWhy: string; after?: [ActivityId, number, string];
+  /** D-359: a haggle's buyer: the seller (a person) at whose stall the work must fall; `alt`: where the deal is struck when the
+   *  seller keeps no stall that day (the seller's house) */
+  with?: number; /** D-359: a stall's hours must cover this window (when both houses' people are free) */ cover?: [number, number]; alt?: { dest: string; work: [ActivityId, number, string][] } }
 /** what became of a step (the test's count) */
 export interface Laid { step: EconStep; ok: boolean; why?: string }
 
@@ -68,10 +72,11 @@ export class EconPlans {
   overlay(pid: number, day: number, base: Seg[]): Seg[] {
     const k = `${pid}:${day}`, c = this.cache.get(k); if (c) return c;
     let segs = base; const out: Laid[] = []; let baseIss: Map<string, number> | null = null;
-    for (const st of this.steps(day).get(pid) ?? []) {
+    this.inFit.add(pid);
+    try { for (const st of this.steps(day).get(pid) ?? []) {
       let r = this.fit(segs, st), why = r ? '' : 'no time in the day';
       if (r) { r = this.dress(this.feed(segs, r, st), day); baseIss ??= this.issues(pid, day, base); why = this.breaks(pid, day, segs, r, baseIss); if (why) r = null; }
-      out.push({ step: st, ok: !!r, why: why || undefined }); if (r) segs = r; }
+      out.push({ step: st, ok: !!r, why: why || undefined }); if (r) segs = r; } } finally { this.inFit.delete(pid); }
     this.cache.set(k, segs); this.laid.set(k, out); if (this.cache.size > 40000) this.cache.clear(); return segs;
   }
   /** a meal of the day the step took the person away from is eaten where they are: bread and water brought along, eaten
@@ -182,7 +187,7 @@ export class EconPlans {
    *  farmers' market mornings do: population.ts, 1.5 h) */
   exchangeFor(hid: number, day: number): string {
     const H = this.pop.households[hid], home = `h:${hid}`, w = this.pop.walkH(home, EXCHANGE, day, this.whereOf(home), 'town');
-    return w < 1.2 ? EXCHANGE : `lane:${H.q}`;
+    return w < 1.2 ? EXCHANGE : `market:${H.q}`;
   }
   /** a house more than 2.5 h from the town brings its court business (petitions, arrears, accusations, suits, the answers)
    *  before the village's elders at its own lane, who carry it on to the officials (D-343, C: the village headman as the
@@ -254,6 +259,27 @@ export class EconPlans {
         step(me, 'errand', errand(7, 17, `h:${other}`, [['talk', this.dur(e, 0.2, 0.5), `bringing barley to ${K}, whose house burnt`]], ['carry_sack', `carrying barley to ${K}, whose house burnt`], ['walk', 'going home'])); break; }
       case 'house_fire': { if (me === null) break;
         step(me, 'man', summons(this.at(e, 7, 8), `h:${me}`, [['clean', this.dur(e, 3, 5), 'clearing the burnt beams and the ash of the roof: the house burnt']], ['walk', 'going home to the burnt house'], ['walk', 'going on with the day'])); break; }
+      case 'haggle_deal': { if (me === null || other === null) break;
+        // D-359 (B235): a deal haggled between two houses (speech/haggle.ts, D-351) is walked: the selling house keeps a stall at
+        // the market ground for the morning, its goods spread out, and the buying house's errand falls inside it, at the stall,
+        // the goods carried home after. The two events of a deal follow each other (the buyer's, then the seller's); which good
+        // is read from the buyer's event (the grain comes in: the amount is positive; fuel paid in silver: not; C: a reading)
+        const pv = E.events[e.id - 1], nx = E.events[e.id + 1];
+        if (pv && pv.kind === 'haggle_deal' && pv.day === e.day && pv.actor === e.other && pv.other === e.actor) break; // (the seller's side: laid with the buyer's)
+        if (!nx || nx.kind !== 'haggle_deal' || nx.actor !== e.other || nx.other !== e.actor) break;
+        const grain = (e.amt ?? 0) > 0, what = grain ? 'barley' : 'brushwood and dung cakes', B = this.headName(me, day), Sh = this.headName(other, day);
+        const stall = `${this.exchangeFor(other, day)}:${other}`, n0 = out.length;
+        step(other, 'woman', errand(7, 16, stall, [['exchange', this.dur(e, 1, 1.8, 1), `selling ${what} from a stall at the market, ${grain ? 'the sacks open, a measuring bowl by them' : 'the bundles stacked by'}: someone of ${B} haggles over them`]],
+          ['carry_sack', `carrying ${grain ? 'sacks of barley' : 'bundles of brushwood'} to the market to sell`], ['walk', 'going home from the market with the price']), nx.id);
+        const sel = out.length > n0 ? out[out.length - 1] : null; if (sel) { sel.kind = 'haggle_sell'; sel.ev = nx.id; }
+        const n1 = out.length, bp = this.pick(me, day, 'woman', e.id);
+        // (the stall is kept over an hour both the seller and the buyer are free in their own days, so they meet there)
+        if (sel && bp !== null) { const fa = this.pop.basePlan(sel.pid, day), fb = this.pop.basePlan(bp, day), ok = (p: Seg[], h: number) => { const x = segAt(p, h); return FREE.has(x.act) && x.where !== 'road' && !x.place.startsWith('@') && x.with === undefined; };
+          for (let h = 8.5; h <= 15; h += 0.25) if ([0, 0.4, 0.8, 1.2].every(k => ok(fa, h + k) && ok(fb, h + k) && ok(fb, h - 0.6) && ok(fa, h - 0.6))) { sel.cover = [h, h + 0.8]; break; } }
+        step(me, 'woman', { ...errand(7, 15, stall, [['exchange', this.dur(e, 0.4, 0.8, 2), `haggling over ${what} at the stall of ${Sh}: offer and counter-offer until the price is agreed`]],
+          ['walk', `going to the market for ${grain ? 'barley' : 'fuel'}`], ['carry_sack', `carrying home the ${grain ? 'barley' : 'fuel'} bought at the market`]), ...(sel ? { with: sel.pid } : { dest: `h:${other}`, work: [['exchange', this.dur(e, 0.4, 0.8, 2), `haggling at ${Sh} over ${what}: offer and counter-offer until the price is agreed`]] as EconStep['work'] }),
+          alt: { dest: `h:${other}`, work: [['exchange', this.dur(e, 0.4, 0.8, 2), `haggling at ${Sh} over ${what}: offer and counter-offer until the price is agreed`]] } });
+        if (out.length > n1) out[out.length - 1].kind = 'haggle_buy'; break; }
       case 'theft': { if (me === null || other === null) break; const V = this.headName(other, day);
         step(me, 'thief', { mode: 'night', lo: this.at(e, 0.5, 2.5), hi: 4, dest: `h:${other}`, work: [['carry_sack', 0.15, `taking barley from the store of ${V} in the dark`]], goAct: 'walk', goWhy: 'going out in the dark while the house sleeps', backAct: 'carry_sack', backWhy: 'carrying the stolen barley home in the dark' }); break; }
       case 'robbed': { if (me === null) break;
@@ -317,6 +343,9 @@ export class EconPlans {
   fit(segs: Seg[], st: EconStep): Seg[] | null {
     const home = `h:${this.pop.home(st.pid, st.day)}`;
     if (segs.some(s => s.where === 'away')) return null;
+    // (D-359: a haggle's buyer goes while the seller keeps the stall; with no stall that day, to the seller's house)
+    const alt = () => st.alt ? this.fit(segs, { ...st, with: undefined, alt: undefined, dest: st.alt.dest, work: st.alt.work }) : null;
+    let at: [number, number] | null = null; if (st.with !== undefined) { at = this.stallOf(st); if (!at) return alt(); }
     if (st.mode === 'errand' || st.mode === 'night') {
       const need = this.trip(st, st.dest, 0, st.dest).t; // (work only; the walks depend on where from)
       // runs of free stretches at one place (the house's work and rest follow each other in short blocks); home first
@@ -329,14 +358,17 @@ export class EconPlans {
       }
       const order = [...runs.filter(r => r.place === home), ...runs.filter(r => r.place && r.place !== home)];
       for (const s of order) {
-        const a = Math.max(s.t0 + 0.05, st.lo), w = this.walk(s.place, st.dest, st.day);
-        const len = need + 2 * w; if (a > st.hi || a + len > s.t1 - 0.05) continue;
+        const w = this.walk(s.place, st.dest, st.day), a = Math.max(s.t0 + 0.05, st.lo, at ? at[0] + 0.05 - w : -1, st.cover ? st.cover[1] - need - w : -1);
+        const len = need + 2 * w; if (a > st.hi || a + len > s.t1 - 0.05 || (at && a + w + need > at[1] - 0.05) || (st.cover && a + w > st.cover[0])) continue;
         const back = s.place === home ? st : { ...st, backWhy: st.backWhy.replace(/\bhome\b/, 'back') };
         const r = this.trip(back, s.place, a, s.place); return splice(segs, a, r.t, r.segs);
       }
       // a grown man's or woman's business (the lender, the court, the kin's sickbed) is left for no free hour: it is gone to
       // from the work of the day, and the work taken up again after (C)
       // (from a far village the walk starts at first light: D-340, C)
+      // (no free hour while the stall is kept: a grown-up goes from the day's work to the stall then, if the hours fit; else to the house)
+      if (at) { if (st.role !== 'errand') { const sm = this.fit(segs, { ...st, with: undefined, alt: undefined, mode: 'summons', lo: Math.max(4.5, at[0] + 0.05 - this.walk(home, st.dest, st.day)) });
+        const x = sm?.find(g => g.act === 'exchange' && g.place === st.dest && g.ev?.startsWith('D-340')); if (sm && x && x.t0 >= at[0] - 1e-6 && x.t1 <= at[1] + 1e-6) return sm; } return alt(); }
       if (st.mode === 'errand' && st.role !== 'errand') return this.fit(segs, { ...st, mode: 'summons', lo: Math.max(4.5, Math.min(st.lo + (st.hi - st.lo) * 0.25, st.lo + 0.5 - this.walk(home, st.dest, st.day))) });
       return null;
     }
@@ -404,6 +436,13 @@ export class EconPlans {
       return splice(segs, h0, b.t0, out.filter(x => x.t1 > x.t0 + 1e-6));
     }
     return null;
+  }
+  /** D-359: the hours the seller keeps the stall a buyer's step names (null: no stall that day, or the seller's own day is
+   *  being laid now: a pair of houses selling to each other on one day) */
+  private inFit = new Set<number>();
+  private stallOf(st: EconStep): [number, number] | null {
+    const sel = st.with!; if (this.inFit.has(sel)) return null;
+    const s = this.pop.plan(sel, st.day).find(x => x.act === 'exchange' && x.place === st.dest && !!x.ev?.includes('haggle_sell')); return s ? [s.t0, s.t1] : null;
   }
   /** the first stretch of the day that is not a walk and starts at or after t */
   private boundary(segs: Seg[], t: number): Seg | null { return segs.find(s => s.t0 >= t - 1e-6 && s.where !== 'road' && !s.place.startsWith('road:') && !s.place.startsWith('@')) ?? null; }

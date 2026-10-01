@@ -60,6 +60,8 @@ export const HOUSE_PARTS: PartDef[] = [
   { tier: 'C', src: 'RECON', note: 'soot from the hearth or the oven on the wall above it (C)' },
   { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door: a leaf of poplar planks on battens, turning on a pivot post in a stone socket (B analogue: Babylonian doors on doorposts in sockets), shut and barred at night, open, ajar or shut by day by the household (C)' },
 ];
+/** D-364: the near tile's triangle ceiling the weathering pieces keep under (tests/houses.test.ts: worst tile < 60 k) */
+const TILE_TRIS = 59_000;
 export const P = { whole: 0, wall: 1, socle: 2, roof: 3, eave: 4, ceiling: 5, door: 6, window: 7, spout: 8, portico: 9, ladder: 10, bench: 11, fixture: 12, repair: 13, soot: 14, leaf: 15 } as const;
 
 const MUD: RGB = [0.56, 0.47, 0.36], POLE: RGB = [0.5, 0.43, 0.34], BRUSH: RGB = [0.52, 0.45, 0.31], MAT: RGB = [0.5, 0.43, 0.3], STONE: RGB = [0.53, 0.51, 0.47];
@@ -165,6 +167,20 @@ export class SiteHouses {
   private _ends: Map<string, number> | null = null; private _doorEnds = new Set<string>();
   private get ends() { if (!this._ends) { this._ends = new Map(); for (const we of this.walls) { const w = we.w; for (const k of [this.endKey(w.u0, w.v0), this.endKey(w.u1, w.v1)]) { this._ends.set(k, (this._ends.get(k) ?? 0) + 1); if (w.door) this._doorEnds.add(k); } } } return this._ends; }
   private get doorEnds() { void this.ends; return this._doorEnds; }
+  /** D-364: the walls by the 1 m cells their bodies cover (site-local), for the corner test */
+  private _wcell: Map<string, Wall[]> | null = null;
+  private insideWall(u: number, v: number, not: Wall) { if (!this._wcell) { this._wcell = new Map(); for (const we of this.walls) { const w = we.w, h = w.thick / 2, ax = w.v0 === w.v1 ? 0 : 1;
+      const [u0, u1, v0, v1] = ax === 0 ? [w.u0, w.u1, w.v0 - h, w.v0 + h] : [w.u0 - h, w.u0 + h, w.v0, w.v1];
+      for (let i = Math.floor(u0); i <= Math.floor(u1); i++) for (let j = Math.floor(v0); j <= Math.floor(v1); j++) { const k = i + ',' + j; (this._wcell.get(k) ?? this._wcell.set(k, []).get(k)!).push(w); } } }
+    for (const w of this._wcell.get(Math.floor(u) + ',' + Math.floor(v)) ?? []) { if (w === not) continue; const h = w.thick / 2, ax = w.v0 === w.v1 ? 0 : 1;
+      if (ax === 0 ? u > w.u0 && u < w.u1 && Math.abs(v - w.v0) < h : v > w.v0 && v < w.v1 && Math.abs(u - w.u0) < h) return true; }
+    return false; }
+  /** D-364: a wall's end at an outer L corner (the wall carried through the corner, the other wall against one of its faces
+   *  just inside the end): the side whose arris is the house's outer corner (±1), else 0 (a free end, a T, a door) */
+  private outerCorner(w: Wall, x: number, dir: number): number {
+    const ax = w.v0 === w.v1 ? 0 : 1, cc = ax === 0 ? w.v0 : w.u0, t = w.thick, P = (al: number, ac: number): [number, number] => ax === 0 ? [al, ac] : [ac, al];
+    const inn = [-1, 1].map(sg => this.insideWall(...P(x - dir * 0.05, cc + sg * (t / 2 + 0.05)), w));
+    return inn[0] === inn[1] ? 0 : inn[0] ? 1 : -1; }
   tileAt(u: number, v: number) { const ti = Math.floor((u - this.s.u0) / TILE), tj = Math.floor((v - this.s.v0) / TILE); return this.si * 4096 + ti * 64 + tj; }
   tileInfo(t: number) { let x = this.tiles.get(t); if (!x) { const ti = ((t % 4096) / 64) | 0, tj = t % 64; const c = this.s.grid(this.s.u0 + (ti + 0.5) * TILE, this.s.v0 + (tj + 0.5) * TILE); x = { c, x: c[0], z: -c[1] }; this.tiles.set(t, x); } return x; }
   /** local (u, v, y) → world [x, y, z] */
@@ -286,7 +302,12 @@ export class SiteHouses {
     for (const we of this.wallsByTile.get(tile) ?? []) { this.day = day; this.lod = lod; this.wallNear(we, B); yield; }
     for (const r of this.roomsByTile.get(tile) ?? []) { this.day = day; this.lod = lod; this.roomNear(r, B); yield; }
     this.day = day; this.lod = lod; this.fixturesNear(tile, B);
+    // D-364: the walls' weathering pieces last, the kit's while the tile stays under TILE_TRIS (the densest tiles keep the flat repairs)
+    let tot = 0; for (const b of Object.values(B)) tot += b.tris; B.plaster.hook('ao', undefined);
+    for (const p of this.deferred) { if (tot + p.cost <= TILE_TRIS) { p.draw(); tot += p.cost; } else p.flat?.(); } this.deferred.length = 0;
   }
+  /** D-364: the kit's weathering pieces of the tile being built, drawn at its end (tileSteps) */
+  private deferred: { cost: number; draw: () => void; flat?: () => void }[] = [];
   /** D-324: the brick losses drawn so far (world centre and the face's outward normal; the probes find them here) */
   readonly losses = new Map<string, number[]>();
   /** Q-960 (D-324c): a tile whose store rooms hold more than 60 vessels (the densest few of the town) draws them on the lightest
@@ -300,9 +321,9 @@ export class SiteHouses {
   /** face plane geometry of a wall: axis 0 = along u, 1 = along v; `cc` = the wall's centre line across; the face at
    *  cc + sg · (t / 2 + d) */
   private face(b: Batch, o: { ax: number; sA: number; sB: number; cc: number; t: number; sg: number; yb: (s: number) => number; yt: (s: number) => number; holes: Hole[]; bulge: number; seed: number;
-    col: (s: number, y: number) => RGB; owner: number; ao: (y: number) => number; y0: (s: number) => number; ytop: number; off?: number; st2?: number[]; foot?: number }) {
+    col: (s: number, y: number) => RGB; owner: number; ao: (y: number) => number; y0: (s: number) => number; ytop: number; off?: number; st2?: number[]; foot?: number; sag?: number }): (x: number, y: number) => number {
     const { ax, sA, sB, cc, t, sg } = o, off = o.off ?? 0;
-    if (sB - sA < 0.01) return;
+    if (sB - sA < 0.01) return () => 0;
     const st = [sA, sB]; for (const h of o.holes) st.push(Math.max(sA, Math.min(sB, h.s0)), Math.max(sA, Math.min(sB, h.s1)));
     const lk = this.lod ? 2 : 1, step = (o.bulge ? (o.foot ? 1.5 : 1.4) : 3.0) * lk, n = Math.ceil((sB - sA) / step); for (let i = 1; i < n; i++) st.push(sA + ((sB - sA) * i) / n); // (D-324: the middle ring on a grid twice as coarse)
     for (const x of o.st2 ?? []) if (x > sA && x < sB) st.push(x);
@@ -315,7 +336,13 @@ export class SiteHouses {
     const T3 = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), N3 = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0);
     // D-311: the foot eaten back by splash and salt (a coved undercut up to o.foot deep, gone by ~0.4 m up), under the bulge
     const footD = (x: number, y: number) => o.foot ? -o.foot * (1 - smooth((y - o.yb(x)) / 0.4)) * (0.6 + 0.4 * vn(x * 1.7 + o.seed, 1.3)) * Math.min(smooth((x - sA) / 0.3), smooth((sB - x) / 0.3)) : 0;
-    const disp = (x: number, y: number) => footD(x, y) + dispB(x, y);
+    // D-364: the wall body's slump: an old mud wall bellies out low on one side (and is hollowed on the other, o.sag signed per
+    // face), the corners and the openings stiff (the sag gone within ~0.9 m of an end, 0.35 m of a hole), nothing at the
+    // foot and the top (the footing's ledge and the crest stay true); 2.5-9.5 cm by the wall's age and the household's upkeep (C)
+    const sagD = (x: number, y: number) => { if (!o.sag) return 0; const yb = o.yb(x), H = o.yt(x) - yb; if (H < 0.6) return 0; const h = Math.min(1, Math.max(0, (y - yb) / H));
+      let tp = Math.min(smooth((x - sA) / 0.9), smooth((sB - x) / 0.9)); for (const hl of o.holes) { const dx = Math.max(hl.s0 - x, 0, x - hl.s1), dy = Math.max(hl.y0 - y, 0, y - hl.y1); tp = Math.min(tp, smooth(Math.hypot(dx, dy) / 0.35)); }
+      return o.sag * tp * Math.sin(Math.PI * h) ** 1.3 * (1 - 0.35 * h) * (0.6 + 0.4 * vn(x * 0.35 + o.seed * 0.71, 2.9)); };
+    const disp = (x: number, y: number) => footD(x, y) + dispB(x, y) + sagD(x, y);
     const dispB = (x: number, y: number) => { if (!o.bulge) return 0; let tp = Math.min(smooth((x - sA) / 0.3), smooth((sB - x) / 0.3), smooth((o.yt(x) - y) / 0.25), smooth((y - o.yb(x) - 0.05) / 0.3));
       for (const h of o.holes) { const dx = Math.max(h.s0 - x, 0, x - h.s1), dy = Math.max(h.y0 - y, 0, y - h.y1); tp = Math.min(tp, smooth(Math.hypot(dx, dy) / 0.25)); }
       return o.bulge * tp * ((vn(x * 0.9 + o.seed, y * 0.9) * 0.7 + vn(x * 2.3 + o.seed * 1.7, y * 2.3 + 5) * 0.3) * 2 - 1); };
@@ -323,7 +350,7 @@ export class SiteHouses {
     const cache = new Map<number, [number[], number[]]>(), N0 = [N3[0], 0, N3[1]];
     const vert = (x: number, y: number) => { const key = Math.round(x * 1000) * 1e7 + Math.round(y * 1000); let c = cache.get(key); if (c) return c;
       const d0 = disp(x, y), a = t / 2 + d0 + off; const [u, v] = ax === 0 ? [x, cc + sg * a] : [cc + sg * a, x]; let nrm = N0;
-      if (o.bulge) { const e = 0.08, ds = (disp(x + e, y) - d0) / e, dy = (disp(x, y + e) - d0) / e; const nx = N3[0] - T3[0] * ds, nz = N3[1] - T3[1] * ds, ny = -dy, L = Math.hypot(nx, ny, nz); nrm = [nx / L, ny / L, nz / L]; }
+      if (o.bulge || o.sag) { const e = 0.08, ds = (disp(x + e, y) - d0) / e, dy = (disp(x, y + e) - d0) / e; const nx = N3[0] - T3[0] * ds, nz = N3[1] - T3[1] * ds, ny = -dy, L = Math.hypot(nx, ny, nz); nrm = [nx / L, ny / L, nz / L]; }
       c = [this.wp(u, v, y), nrm]; cache.set(key, c); return c; };
     b.hook('ao', (_x, y) => o.ao(y)); b.set('ytop', o.ytop);
     for (let c = 0; c + 1 < S.length; c++) { const a = S[c], z = S[c + 1], sm = (a + z) / 2; if (z - a < 0.005) continue;
@@ -335,6 +362,14 @@ export class SiteHouses {
         const A = vert(a, y0a), Bv = vert(z, y0z), C = vert(z, y1z), D = vert(a, y1a);
         b.quadN(A[0], Bv[0], C[0], D[0], A[1], Bv[1], C[1], D[1], o.col(a, y0a), o.col(z, y0z), o.col(z, y1z), o.col(a, y1a), o.owner); } }
     b.hook('ao', undefined); b.set('ao', 1);
+    // D-364: the face as drawn (its displacement interpolated over the grid's cell, as the triangles lie): the pieces laid on it
+    // (repairs, rain rills, soot, dung) follow it within a millimetre or two instead of standing 2.4 cm off to clear it
+    return (x: number, y: number) => { let c = 0; while (c + 2 < S.length && x > S[c + 1]) c++; const a = S[c], z = S[c + 1], fx = Math.min(1, Math.max(0, (x - a) / Math.max(1e-6, z - a)));
+      const ybA = o.yb(a), ybZ = o.yb(z), ytA = o.yt(a), ytZ = o.yt(z), rows = BR.filter(y2 => y2 > Math.max(ybA, ybZ) + 0.01 && y2 < Math.min(ytA, ytZ) - 0.01);
+      const lev: [number, number][] = [[ybA, ybZ], ...rows.map(y2 => [y2, y2] as [number, number]), [ytA, ytZ]]; let r = 0; const yl = (k: number) => lev[k][0] + (lev[k][1] - lev[k][0]) * fx;
+      while (r + 2 < lev.length && y > yl(r + 1)) r++; const y0 = yl(r), y1 = yl(r + 1), fy = Math.min(1, Math.max(0, (y - y0) / Math.max(1e-6, y1 - y0)));
+      const dA = disp(a, lev[r][0]), dB = disp(z, lev[r][1]), dC = disp(z, lev[r + 1][1]), dD = disp(a, lev[r + 1][0]);
+      return off + (dA * (1 - fx) + dB * fx) * (1 - fy) + (dD * (1 - fx) + dC * fx) * fy; };
   }
   /** a box in site-local axes (u, v) with its own y range: centre (u, v), half sizes; faces ±u, ±v, top (and bottom) */
   private lbox(b: Batch, u: number, v: number, hu: number, hv: number, y0: number, y1: number, cb: RGB, ct: RGB, owner: number, bottom = false, rot = 0) {
@@ -458,10 +493,16 @@ export class SiteHouses {
       return f.len > 0 ? Math.abs(sB - (al - 0.5)) < 0.05 : Math.abs(sA - (al + 0.5)) < 0.05; }) : undefined;
     // exterior faces: footing, bulge, decals; interior faces: plain, darker (smoke), low ambient
     const courtFix = pfix;
+    // D-364: the house's outer corners rounded (10-18 cm, the rain and the passing loads take a mud corner round): the end of
+    // the wall carried through the corner gets the fillet, its outer face stops short of it
+    const corner = ([[sA, -1], [sB, 1]] as const).map(([x, dir]) => { const ek = this.endKey(ax === 0 ? x : cc, ax === 0 ? cc : x);
+      if (!kitOn || (this.ends.get(ek) ?? 0) > 1 || this.doorEnds.has(ek)) return { so: 0, r: 0 }; const so = this.outerCorner(w, x, dir); const sd = sides[so < 0 ? 0 : 1];
+      return so && sd.cls !== 'room' && t > 0.3 ? { so, r: Math.min(t * 0.4, 0.1 + 0.08 * hi(seed, dir, 153)) } : { so: 0, r: 0 }; });
+    const faceCol: Record<number, { col: (x: number, y: number) => RGB; ao: (y: number) => number; ysoc: (x: number) => number }> = {};
     for (const [si, sg] of [[0, -1], [1, 1]] as const) {
       const sd = sides[si]; if (w.kind === 'partition' && sd.cls !== 'room') continue;
       const faceHoles = holes.slice();
-      const off = sg * (t / 2); const along0 = sA, along1 = sB;
+      const off = sg * (t / 2); const along0 = sA, along1 = sB, pA = sA + (corner[0].so === sg ? corner[0].r : 0), pB = sB - (corner[1].so === sg ? corner[1].r : 0);
       const gAt = (x: number) => this.gl(...P2l(x, off));
       const floor = sd.plot >= 0 ? this.base[sd.plot] : sp.gmin;
       const col0 = this.tone(we.plot, sd.cls === 'court' ? 1 : 0, add);
@@ -499,12 +540,25 @@ export class SiteHouses {
             if (y1 > Math.min(ytopF(s0), ytopF(s1)) - 0.35 || faceHoles.some(h => s0 < h.s1 + 0.3 && s1 > h.s0 - 0.3 && y0 < h.y1 + 0.3 && y1 > h.y0 - 0.3)) continue;
             if (this.lod) decs.push([sg, { s0: s0 + 0.08, s1: s1 - 0.08, y0: y0 + 0.05, y1: y1 - 0.05, kind: 'bare', seed: seed * 7 + q }]);
             else faceHoles.push({ s0, s1, y0, y1, through: false, depth: 0, brick: Math.floor(hi(seed, si, q, 98) * 3), fl: hi(seed, si, q, 99) < 0.5 ? -1 : 1 }); } }
-        this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: ysoc, yt: x => ytopF(x) - bev, holes: faceHoles, bulge, seed: seed + si * 13, st2: topSt,
-          col: colF, owner: this.owner(we.plot, P.wall), ao: aoF, y0: ysoc, ytop: top, foot: kitOn ? (sd.cls === 'open' ? 0.035 : 0.02) * (house ? 1 : 1.5) : 0 });
+        // D-364: the slump leans one way per wall (hi(seed, 141)): this face bellies out or is hollowed by it
+        const sag = kitOn && len > 1.6 ? (0.025 + 0.045 * (1 - L.standing) + 0.025 * (L.age / 50)) * (house ? 1 : 1.3) * (hi(seed, 141) < 0.5 ? 1 : -1) * sg * (sd.cls === 'court' ? 0.7 : 1) : 0;
+        faceCol[sg] = { col: colF, ao: aoF, ysoc };
+        const surf = this.face(B.plaster, { ax, sA: pA, sB: pB, cc, t, sg, yb: ysoc, yt: x => ytopF(x) - bev, holes: faceHoles, bulge, seed: seed + si * 13, st2: topSt,
+          col: colF, owner: this.owner(we.plot, P.wall), ao: aoF, y0: ysoc, ytop: top, foot: kitOn ? (sd.cls === 'open' ? 0.035 : 0.02) * (house ? 1 : 1.5) : 0, sag });
         for (const h of faceHoles) if (h.brick !== undefined) this.brickLoss(B, ax, cc, t, sg, h, colF, aoF, ysoc, top, we.plot, seed);
         // decals on this face: repairs, bare brick, soot, the household's dung cakes, the drain's stain
         if (we.plot >= 0) this.faceDecals(we, sd, sg, floor, top, faceHoles, courtFix, decs, seed + si); // (yard and garden walls weather too)
-        for (const [sgd, d] of decs) if (sgd === sg) this.decal(B, ax, cc, t, sg, d, col0, floor, we.plot);
+        // D-364: rain rills down the face from the notches the rain has cut in an exposed top (the kit's 'rill', full level)
+        if (kitOn && !this.lod && exposedTop && we.plot >= 0) for (let q = 0; q < notches.length; q++) { const [c, nw, dpt] = notches[q]; if (dpt < 0.07) continue;
+          const wd = Math.min(0.32, 0.1 + nw * 0.35) * (0.8 + 0.4 * hi(seed, si, q, 142)), yt = ytopF(c) - bev - 0.01, ln = Math.min(yt - ysoc(c) - 0.25, (0.5 + 1.1 * hi(seed, si, q, 143)) * Math.min(1.4, dpt / 0.12));
+          if (ln < 0.35 || c - wd / 2 < sA + 0.1 || c + wd / 2 > sB - 0.1 || faceHoles.some(h => c - wd / 2 < h.s1 + 0.05 && c + wd / 2 > h.s0 - 0.05 && yt - ln < h.y1 + 0.05 && yt > h.y0 - 0.05)) continue;
+          decs.push([sg, { s0: c - wd / 2, s1: c + wd / 2, y0: yt - ln, y1: yt, kind: 'streak', seed: seed * 11 + q }]); }
+        // and the lesser runs the rain takes down any exposed face from its top (on the lane faces, more on old walls; the courts keep the notches' rills only: the worst tile's 60 k)
+        if (kitOn && !this.lod && exposedTop && we.plot >= 0 && len > 1.2 && sd.cls === 'open') { const nr = Math.min(2, Math.floor(len * (0.08 + 0.15 * (L.age / 50)) + hi(seed, si, 147)));
+          for (let q = 0; q < nr; q++) { const c = sA + 0.35 + (len - 0.7) * hi(seed, si, q, 148), wd = 0.08 + 0.12 * hi(seed, si, q, 149), yt = ytopF(c) - bev - 0.01, ln = Math.min(yt - ysoc(c) - 0.3, 0.35 + 0.9 * hi(seed, si, q, 150) ** 1.5);
+            if (ln < 0.3 || faceHoles.some(h => c - wd / 2 < h.s1 + 0.05 && c + wd / 2 > h.s0 - 0.05 && yt - ln < h.y1 + 0.05 && yt > h.y0 - 0.05)) continue;
+            decs.push([sg, { s0: c - wd / 2, s1: c + wd / 2, y0: yt - ln, y1: yt, kind: 'streak', seed: seed * 13 + q + 50 }]); } }
+        for (const [sgd, d] of decs) if (sgd === sg) this.decal(B, ax, cc, t, sg, d, col0, floor, we.plot, surf, colF);
         decs.length = 0;
         // hole reveals and backs
         for (const h of faceHoles) if (h.brick === undefined) this.reveal(B, ax, cc, t, sg, h, col0, we.plot);
@@ -539,7 +593,19 @@ export class SiteHouses {
         const p = (o2: number, y: number) => this.wp(...P2l(x, o2), y);
         // D-311: a free end or a door jamb is worn round (the rain and the passing shoulders take the arris): the end bows out
         // up to 6-9 cm in an elliptical arc meeting both faces tangentially; ends that abut another wall stay flat (hidden)
-        const ek = this.endKey(ax === 0 ? x : cc, ax === 0 ? cc : x);
+        const ek = this.endKey(ax === 0 ? x : cc, ax === 0 ? cc : x), cn = corner[dir < 0 ? 0 : 1], fc = faceCol[cn.so];
+        if (cn.so && fc) { const so = cn.so, r = cn.r, K = 3, own = this.owner(we.plot, P.wall), y0e = sp.y0 + 0.3, ys = fc.ysoc(x);
+          const al = ax === 0 ? this.dirW(dir, 0) : this.dirW(0, dir), ac = ax === 0 ? this.dirW(0, so) : this.dirW(so, 0);
+          // the end's flat part, from the inner arris to where the fillet begins
+          B.plaster.quad(p(-so * t / 2, y0e), p(so * (t / 2 - r), y0e), p(so * (t / 2 - r), yt2), p(-so * t / 2, yt2), [al[0], 0, al[1]], sh(c, 0.9), sh(c, 0.9), c, c, own);
+          // the fillet: a quarter round from the outer face (th 0) to the end (th pi/2), in rows so it takes the face's foot band and AO
+          const ptF = (k: number, y: number) => { const th = Math.PI / 2 * k / K; return this.wp(...P2l(x - dir * r + dir * r * Math.sin(th), so * (t / 2 - r) + so * r * Math.cos(th)), y); };
+          const nmF = (k: number) => { const th = Math.PI / 2 * k / K; return [al[0] * Math.sin(th) + ac[0] * Math.cos(th), 0, al[1] * Math.sin(th) + ac[1] * Math.cos(th)]; };
+          const rows = [y0e, ys, ys + 0.38, yt2];
+          B.plaster.set('y0', ys).hook('ao', (_x, y) => fc.ao(y));
+          for (let j = 0; j + 1 < rows.length; j++) { const ya = rows[j], yb = rows[j + 1]; if (yb - ya < 0.01) continue; const ca = fc.col(x - dir * r, Math.max(ya, ys)), cb = fc.col(x - dir * r, yb);
+            for (let k = 0; k < K; k++) B.plaster.quadN(ptF(k, ya), ptF(k + 1, ya), ptF(k + 1, yb), ptF(k, yb), nmF(k), nmF(k + 1), nmF(k + 1), nmF(k), ca, ca, cb, cb, own); }
+          B.plaster.hook('ao', undefined).set('y0', sp.gmin).set('ao', 0.85); continue; }
         if (kitOn && ((this.ends.get(ek) ?? 0) <= 1 || this.doorEnds.has(ek))) { const r = 0.06 + 0.03 * hi(seed, dir, 71), K = 3, y0e = sp.y0 + 0.3, own = this.owner(we.plot, P.wall);
           const pt = (k: number, y: number) => { const th = -Math.PI / 2 + Math.PI * k / K; return this.wp(...P2l(x + dir * r * Math.cos(th), (t / 2) * Math.sin(th)), y); };
           const nm = (k: number) => { const th = -Math.PI / 2 + Math.PI * k / K, na = Math.cos(th) / r, nc = Math.sin(th) / (t / 2); const al = ax === 0 ? this.dirW(dir, 0) : this.dirW(0, dir), ac = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0); const v = [al[0] * na + ac[0] * nc, 0, al[1] * na + ac[1] * nc], L2 = Math.hypot(v[0], v[2]) || 1; return [v[0] / L2, 0, v[2] / L2]; };
@@ -617,10 +683,22 @@ export class SiteHouses {
   }
   /** one decal on a wall face, a few millimetres proud: a repair patch (fresh plaster, irregular edge), bare brick (the
    *  brick material), soot (darkening toward the heat), dung cakes (discs), a drain hole */
-  private decal(B: HB, ax: number, cc: number, t: number, sg: number, d: Dec, col: RGB, floor: number, plot: number) {
+  private decal(B: HB, ax: number, cc: number, t: number, sg: number, d: Dec, col: RGB, floor: number, plot: number, surf: (x: number, y: number) => number = () => 0.024, colAt?: (x: number, y: number) => RGB, flatOnly = false) {
     const P2l = (x: number, off: number): [number, number] => (ax === 0 ? [x, cc + off] : [cc + off, x]);
     const nA = ax === 0 ? this.dirW(0, sg) : this.dirW(sg, 0), N = [nA[0], 0, nA[1]];
-    const p = (x: number, y: number, o2 = 0.006) => this.wp(...P2l(x, sg * (t / 2 + 0.024 + o2)), y); // clears the bulge (≤ 2.4 cm)
+    const p = (x: number, y: number, o2 = 0.006) => this.wp(...P2l(x, sg * (t / 2 + surf(x, y) + 0.002 + o2)), y); // D-364: on the face as drawn (surf), not 2.4 cm off it
+    if (kitOn && !this.lod && !flatOnly && ((d.kind === 'patch' && (d.s1 - d.s0) * (d.y1 - d.y0) > 0.3) || d.kind === 'streak')) { // (small patches: the flat outline; the worst tile's 60 k) // D-364: the kit's repair (fresh plaster smeared on, its rim feathered) and rain rill
+      const q = kitPiece(d.kind === 'patch' ? 'rpatch' : 'rill', hi(d.seed, 144)), W = d.s1 - d.s0, H = d.y1 - d.y0, fl = d.kind === 'patch' && hi(d.seed, 145) < 0.5 ? -1 : 1; const aoM = B.plaster.cur('ao'); const draw = () => {
+      const al = ax === 0 ? this.dirW(1, 0) : this.dirW(0, 1), A3 = [al[0] * fl, 0, al[1] * fl], N3 = [nA[0], 0, nA[1]], cr = [A3[1] * N3[2] - A3[2] * N3[1], A3[2] * N3[0] - A3[0] * N3[2], A3[0] * N3[1] - A3[1] * N3[0]];
+      const idx = cr[1] > 0 ? q.i.map((_, j) => q.i[j - (j % 3) + [0, 2, 1][j % 3]]) : q.i; // (along, up, out) left-handed in the world: wind the other way
+      const x0 = d.kind === 'patch' ? (fl > 0 ? d.s0 : d.s1) : (d.s0 + d.s1) / 2, base: RGB = d.kind === 'patch' ? sh([col[0] * 1.08, col[1] * 1.06, col[2] * 0.98], 1.02 + 0.04 * hi(d.seed, 146)) : col;
+      const b = B.plaster; b.set('y0', -1000).set('ytop', 1e4); 
+      b.mesh(q.nv, k => { const x = x0 + fl * q.p[k * 3] * W, y = d.y0 + q.p[k * 3 + 1] * H; return this.wp(...P2l(x, sg * (t / 2 + surf(x, y) + 0.0015 + q.p[k * 3 + 2])), y); },
+        k => { const nx = q.n[k * 3] / W, ny = q.n[k * 3 + 1] / H, nz = q.n[k * 3 + 2]; const v = [A3[0] * nx + N3[0] * nz, ny, A3[2] * nx + N3[2] * nz], L = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / L, v[1] / L, v[2] / L]; },
+        k => { if (!colAt) return sh(base, q.k[k]); const x = x0 + fl * q.p[k * 3] * W, y = d.y0 + q.p[k * 3 + 1] * H, c = colAt(x, y); return sh(d.kind === 'patch' ? [c[0] * base[0] / col[0], c[1] * base[1] / col[1], c[2] * base[2] / col[2]] : c, q.k[k]); }, idx, this.owner(plot, P.repair), { ao: k => Math.max(0.5, q.ao[k] * aoM) }); };
+      // (drawn after the tile's other things, while the tile stays under its 60 k: tests/houses.test.ts; else the flat outline)
+      this.deferred.push({ cost: q.tris, draw, flat: d.kind === 'patch' ? () => this.decal(B, ax, cc, t, sg, d, col, floor, plot, surf, colAt, true) : undefined }); return; }
+    if (d.kind === 'streak') return;
     const mx = (d.s0 + d.s1) / 2, my = (d.y0 + d.y1) / 2, rx = (d.s1 - d.s0) / 2, ry = (d.y1 - d.y0) / 2;
     if (d.kind === 'patch' || d.kind === 'bare') { const n = 11, pts: number[][] = [], cols: RGB[] = [];
       for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2, r = 0.72 + 0.28 * hi(d.seed, k); pts.push(p(mx + Math.cos(a) * rx * r, my + Math.sin(a) * ry * r, d.kind === 'patch' ? 0.004 : 0)); cols.push(d.kind === 'patch' ? sh(mixc(col, [col[0] * 1.08, col[1] * 1.06, col[2] * 0.98], 1), 1.03 + 0.03 * hi(d.seed, k, 1)) : sh(lin([0.62, 0.53, 0.41]), 0.9 + 0.15 * hi(d.seed, k, 2))); }

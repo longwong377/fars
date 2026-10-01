@@ -6,13 +6,14 @@
 // and the base mesh discards its joint zone within the eye's radius. Where the shader's decision is close to a threshold (a run's
 // inner joint present or not, a face's course table), the CPU keeps every candidate: an unneeded groove lies behind the wall's
 // face (hidden), a needed one is never missing. Rev 5: the split blocks' beds, the Grand Stair's recess walls (their table, oblique
-// heads) and the foot's polygonal joints too; the stairs' joints in stairJointEdges; not grooved: the up-facing slabs. Tier C.
+// heads) and the foot's polygonal joints too; D-364: the stairs' treads and risers and the up-facing slabs in arris_slabs.ts. Tier C.
 import * as THREE from 'three/webgpu';
 import { SURFACES } from '../render/materials';
 import { MASONRY, courseTables, courseTexels } from '../render/masonry';
 import { ARRIS_W, type ArrisEdge } from './arris';
 import { ADIST_OFF } from '../render/blockface';
 import { mxNoise3 } from '../render/mx_noise_cpu';
+import { planarBounds, planarWorld, planarJointEdges, type PlanarFace } from './arris_slabs';
 
 const fr = Math.fround, fract = (v: number) => fr(v - Math.floor(v));
 /** materials.ts hash12 in float32 steps (the shader's arithmetic) */
@@ -25,7 +26,8 @@ export function hash12f(x: number, y: number): number {
 const MARGIN = 0.004; // a hash within this of its threshold: both outcomes kept
 export interface JointFace { n: THREE.Vector3; d: number; t0: number; t1: number; y0: number; y1: number; surf: string; y0attr: number; pbox: [number, number, number, number]; ytop: number;
   /** a chunk's ends inside the face (no margin, half-open), and its stair attribute */ open0?: boolean; open1?: boolean; stair?: [number, number, number, number];
-  /** rev 5: per bound (t0, t1, y0, y1): null, or the bound is a free arris r m from the sharp corner */ free?: (number | null)[] }
+  /** rev 5: per bound (t0, t1, y0, y1): null, or the bound is a free arris r m from the sharp corner */ free?: (number | null)[];
+  /** D-364: a tread, riser or slab (arris_slabs.ts): its own frame and triangles; n, d, t, y then only its bounds */ pf?: PlanarFace }
 /** a face in chunks of CHUNK m along it (the near field expands a chunk when it comes near: arris.ts ArrisField.addFaces) */
 export const CHUNK = 8;
 export function chunkFaces(faces: JointFace[], stair?: [number, number, number, number]): JointFace[] {
@@ -36,6 +38,8 @@ export function chunkFaces(faces: JointFace[], stair?: [number, number, number, 
 }
 /** the chunk's plan bounds (world x, z) and heights */
 export function faceBounds(F: JointFace): { lo: THREE.Vector3; hi: THREE.Vector3 } {
+  if (F.pf) { const [u0, u1, v0, v1] = planarBounds(F.pf), lo = new THREE.Vector3(Infinity, Infinity, Infinity), hi = lo.clone().negate();
+    for (const [u, v] of [[u0, v0], [u1, v0], [u0, v1], [u1, v1]]) { const q = planarWorld(F.pf, u, v); lo.min(q); hi.max(q); } return { lo, hi }; }
   const tdir = new THREE.Vector3(F.n.z, 0, -F.n.x), a = tdir.clone().multiplyScalar(F.t0).addScaledVector(F.n, F.d), b = tdir.clone().multiplyScalar(F.t1).addScaledVector(F.n, F.d);
   return { lo: new THREE.Vector3(Math.min(a.x, b.x), F.y0, Math.min(a.z, b.z)), hi: new THREE.Vector3(Math.max(a.x, b.x), F.y1, Math.max(a.z, b.z)) };
 }
@@ -176,6 +180,7 @@ export function faceJoints(F: JointFace): { beds: [number, number, number][]; he
 
 /** a face's (or chunk's) joints as band edges, stopped ARRIS_W short of its free arrises (the arris bands draw them there) */
 export function jointEdgesOfFace(F: JointFace): ArrisEdge[] {
+  if (F.pf) return planarJointEdges(F.pf, F.surf, { y0: F.y0attr, pbox: F.pbox, ytop: F.ytop, stair: F.stair ?? [0, 0, 0, 0] });
   const out: ArrisEdge[] = [], stair = F.stair ?? [0, 0, 0, 0], fr4 = F.free ?? [null, null, null, null];
   const tdir = new THREE.Vector3(F.n.z, 0, -F.n.x), at = (t: number, y: number) => tdir.clone().multiplyScalar(t).addScaledVector(F.n, F.d).add(new THREE.Vector3(0, y, 0));
   // the clip box: the face's bounds, less the arris band where a bound is a free arris (from the sharp corner: bound - r)
