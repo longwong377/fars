@@ -30,9 +30,9 @@ function check() {
 if (process.argv.includes('--loop')) {
   let seen = new Set();
   for (;;) {
-    const now = check(), fresh = now.filter(l => !seen.has(l.replace(/\d+ min/g, '')));
+    const key = l => l.replace(/[\d.]+/g, '#'), now = check(), fresh = now.filter(l => !seen.has(key(l)));
     for (const l of fresh) console.log(`[watchdog ${new Date().toTimeString().slice(0, 5)}] ${l}`);
-    seen = new Set(now.map(l => l.replace(/\d+ min/g, '')));
+    seen = new Set(now.map(key));
     await new Promise(r => setTimeout(r, 300000));
   }
 } else {
