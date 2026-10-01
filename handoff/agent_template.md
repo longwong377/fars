@@ -29,3 +29,35 @@ On the GPU machine (session 11 on: Windows, NVIDIA T4, 16 cores, 63 GB, open int
    Run node jobs directly (no cpu_slot.sh, flock or python here). Surfaces must read as real at arm's length: use CC0
    scans and assets (Poly Haven, ambientCG; src/render/scans.ts; each recorded in ASSET_LEDGER.md) over the procedural
    base, keeping the measured tints and layouts; a procedural stand-in where a scan exists is a placeholder.
+
+## Operating model (session 14 on; UD-28; governs where it differs from the clauses and machine section above)
+The box is now 4 cores, 16 GB, one T4 (two GPU slots). An agent's own thinking costs the box nothing; its jobs do. Work so
+that no hour is spent reading, waiting or polishing.
+1. **Setup in one command:** `node tools/dev/mkwt.mjs <name>` (branch `s14-<name>` off `s14-int`, node_modules and models
+   linked, your port in `.wtport`; use it as E2E_PORT). No `npm ci`. Work only in that tree.
+2. **Read the context pack, not the records.** Your brief names the entry files and lines, the decisions and blockers that
+   matter, the commands and the done line. Never read DECISIONS.md, PROGRESS.md, HANDOFF.md, TASKS.md or BLOCKERS.md whole:
+   grep an id when you need one.
+3. **You own your files.** Edit only the files your pack lists as owned (new files in your area are yours). A needed change in
+   a file you do not own: make the smallest hook (an import, one call) and say so in the report; never refactor it.
+4. **Iterate fast, verify once.** Iterate on probe pages and node checks (seconds). Never load the full world yourself:
+   request your views on the render train (`node tools/dev/render_train.mjs request <name> <moment,...> [views.json]`); the
+   lead runs it on `s14-int` after merging you and puts the frames in fars-train/out/<run>/<name>/. While you wait, do your
+   next item; never sit idle on a slot.
+5. **Slots:** every GPU job (probe pages too) through `node tools/dev/gpu_slot.mjs`; every heavy node job (soak, long vitest
+   files, bots, Blender bakes on the CPU) through `node tools/dev/cpu_slot.mjs <label> -- <cmd>`; a job of more than ~10 min
+   with `LONG=1` (it may take one slot only; the other stays for short checks), and hours-long runs queued for the night.
+   Memory: one browser or Blender process of yours at a time (16 GB is shared; the session crashed once from it). Tests: only the files you
+   touched or that import them (`npx vitest run <files>`); the lead runs the full suite overnight.
+5b. **Box safeguards (session 15):** the slot tools wait while free memory is under 4 GB; mkwt refuses a 5th active agent;
+   when you finish, run `node tools/dev/mkwt.mjs --done <name>`. A blocking resource problem (a stalled slot, memory) goes in
+   your report's first line with the pids; never kill another agent's job.
+6. **Done line and stop rules.** Your pack's done line is what a player would see (or a named threshold). Stop when it is
+   met: no polish past it. A sub-goal that fails three measured approaches goes to BLOCKERS (your numbers) and you move on.
+   Time box: the pack's hours; at the box's end, commit and report whatever state you are in.
+7. **Commit hourly** to your branch (the guards run in the hook); before the final report, merge `s14-int` into your branch,
+   re-run your tests, and commit. The lead merges you into `s14-int`; do not push.
+8. **Records:** one DECISIONS row (your reserved D number) for the package; BLOCKERS rows only for real blocks; no edits to
+   PROGRESS, HANDOFF, TASKS or COVERAGE (the lead's).
+9. **Report ≤ 250 words:** broken/placeholder first; what a player now sees differently; train views requested; files
+   touched; tests run with results. No questions mid-run: decide, log, proceed.

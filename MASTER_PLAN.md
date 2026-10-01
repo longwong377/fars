@@ -528,6 +528,9 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-24 | a living world: people talk freely about whatever their lives need (§10 loosened for this by the user: generated speech voiced as reconstructed period speech, tier C), and their talk changes the simulation with or without the player, who can affect it | §6 order (HANDOFF.md; tests/living_world.test.ts) | T-E13 |
 | UD-25 | speech as the sandbox's main verb (reputation, emergent needs, work, barter, rumour, language learning, identity, petitions, hospitality, groups) through a true proximity mic, the model proposing and the simulation deciding | §6 order (HANDOFF.md; tests/speech_sandbox.test.ts) | T-E14 |
 | UD-26 | an emergent sandbox by the end: needs, an economy, choices and dealings between people chain into consequences, with or without the player, who can enter every chain | §6 order (HANDOFF.md; tests/emergence.test.ts) | T-F9 |
+| UD-27 | every body different, everything moves with physics, clothes change, relationships as life (not explicit) | §6 order (ROADMAP.md 3b-3e; the week plan; its tool, tests/body_variety.test.ts, is to build) | T-E15 |
+| UD-28 | agents on Opus 5.5, no caps; finish within a week; the plan, agents and workflow optimized (context packs, disjoint ownership, the render train, slots, stop rules) | §6 order (ROADMAP.md, the week plan; handoff/agent_template.md operating model; tools/dev/render_train.mjs) | T-R14 |
+| UD-29 | immersion governs priority; the references ground the place, not a 1:1 target; the lead directs and takes artistic liberties where the vision needs them (tier C, reasoning in F3) | §3 rule 6 as amended (CLAUDE.md); §6 order (packages chosen from whole-view judgement) | T-R15 |
 
 ## 13. Revision log
 
@@ -540,3 +543,5 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | 2.2 | 2026-09-26 (s8) | The speed plan: renderless mode, a cached world, cheaper renders, tiered tests first in step 2; no extra paid compute without a user direction (T-R10) | UD-15 |
 | 2.4 | 2026-09-27 (s11) | The GPU machine: B7 lifted (CC0 scans over the procedural base, T-A7); speaking with the people (T-E9); every SwiftShader-era working rule revisited (CLAUDE.md) | UD-17, UD-18 |
 | 2.5 | 2026-09-27 (s11) | Mass production over verification on the GPU machine (T-R12); session 12 plan | UD-19 |
+| 2.7 | 2026-10-01 (s14) | The week plan (ROADMAP.md): finish by the four pillars as the player meets them; the agent operating model (context packs, disjoint file ownership, the render train, CPU/GPU slots, stop rules, a ready queue); T-E15, T-R14 | UD-27, UD-28 |
+| 2.8 | 2026-10-01 (s15) | Immersion governs priority over 1:1 reference match; the lead as director (UD-29); T-R15 | UD-29 |

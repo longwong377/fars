@@ -20,7 +20,8 @@ const EVE_END = 21;
 const free = (s: Seg, loose = false) => FREE.has(s.act) && !(loose ? /the heat/ : /the heat|household/).test(s.why) && s.where !== 'road' && s.where !== 'away' && !s.place.startsWith('@') && s.with === undefined && !MINDING.test(s.why);
 /** (D-349) touching free stretches at one place joined into one (talk with the household, then rest at home): the families' meeting only */
 const runs = (base: Seg[]) => { const out: Seg[] = []; for (const s of base) { const p = out[out.length - 1]; if (p && free(p, true) && free(s, true) && p.place === s.place && Math.abs(p.t1 - s.t0) < 1e-6) out[out.length - 1] = { ...p, t1: s.t1 }; else out.push(s); } return out; };
-const sg = (t0: number, t1: number, place: string, act: ActivityId, why: string, where: Where, withP?: number): Seg => ({ t0, t1, place, act, why, where, ...(withP !== undefined ? { with: withP } : {}) });
+// (D-359: each part tagged, so the dev overlay and the visibility count (tools/dev/visible_week.ts) find it)
+const sg = (t0: number, t1: number, place: string, act: ActivityId, why: string, where: Where, withP?: number): Seg => ({ t0, t1, place, act, why, where, ...(withP !== undefined ? { with: withP } : {}), ev: 'D-348 relations (C)' });
 interface Lay { h0: number; h1: number; segs: Seg[]; meet: Meet }
 /** a stretch of the day a meeting may take: dry, and not beside the rest through the heat (a gap in it would break the stretch) */
 function clear(P: Population, base: Seg[], d: number, t0: number, t1: number) {
@@ -82,13 +83,14 @@ export class RelPlans {
     // the time: the first free stretch of the host's base day in daylight long enough for the meeting
     if (x.kind === 'court') { // a walk beside her to the well when she draws water there
       for (const s of P.washedPlan(x.b, d)) { if (s.act !== 'draw_water' || !s.place.startsWith('well:') || s.with !== undefined || s.t0 < DAY_START || s.t1 > DAY_END || s.t1 - s.t0 < 0.1) continue;
-        const v = this.visit(x.a, d, s.place, W, s.t0, s.t1, 'talking with her by the well as she draws the water: courting', x.b, x); if (v) return [v]; } }
+        // (D-359: at her well, the one nearest her house: `well:<q>:<her house>`; a bare well:<q> is drawn at the visitor's own)
+        const v = this.visit(x.a, d, `${s.place.split(':').slice(0, 2).join(':')}:${hh}`, W, s.t0, s.t1, 'talking with her by the well as she draws the water: courting', x.b, x); if (v) return [v]; } }
     for (const s of x.kind === 'negotiate' ? runs(P.washedPlan(x.b, d)) : P.washedPlan(x.b, d)) {
       if (!free(s, x.kind === 'negotiate') || s.place !== home) continue;
       for (let a = Math.max(s.t0, DAY_START + 0.5); a + len <= Math.min(s.t1, x.kind === 'negotiate' ? EVE_END : DAY_END); a += step) {
         const b = a + len, parts: [number, Lay][] = [];
         if (x.kind === 'court') { const h = this.host(x.b, d, home, W, a, b, 'talking with her suitor, her family by', x.a, x); const v = h && this.visit(x.a, d, home, W, a, b, 'visiting her family’s house, courting her', x.b, x); if (!h || !v) continue; parts.push(h, v); }
-        else if (x.kind === 'lovers') { const h = this.host(x.b, d, lane, W, a, b, 'talking apart in the lane with a lover', x.a, x); const v = h && this.visit(x.a, d, lane, W, a, b, 'talking apart in the lane with a lover', x.b, x); if (!h || !v) continue; parts.push(h, v); }
+        else if (x.kind === 'lovers') { const h = this.host(x.b, d, lane, W, a, b, 'talking apart in the lane with a lover', x.a, x); const v = h && this.visit(x.a, d, `${lane}:${hh}`, W, a, b, 'talking apart in the lane with a lover', x.b, x); if (!h || !v) continue; parts.push(h, v); } /* (D-359: the visitor at the lane outside her door) */
         else { const h = this.host(x.b, d, home, W, a, b, 'talking over the marriage with his family: the bride-gift and the dowry', x.a, x); const v = h && this.visit(x.a, d, home, W, a, b, 'visiting her father’s house to agree the marriage: the bride-gift and the dowry', x.b, x); if (!h || !v) continue; parts.push(h, v);
           if (x.hostKin !== undefined && !busy.has(x.hostKin)) { const k = this.host(x.hostKin, d, home, W, a, b, 'talking over the marriage of the daughter of the house with the groom’s family', x.a, x); if (k) parts.push(k); }
           if (x.c !== undefined && !busy.has(x.c)) { const c = this.visit(x.c, d, home, W, a, b, 'visiting the bride’s house with his son to agree the marriage', x.a, x); if (c) parts.push(c); } }

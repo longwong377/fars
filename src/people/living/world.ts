@@ -24,6 +24,8 @@ import { splice } from '../talk';
 import { MINDING, reasonOk } from '../planCheck';
 import { dateOf } from '../calendar';
 import { nobodyWith } from '../wardrobe/washing';
+import { haggleRound } from '../speech/haggle';
+import type { Relations } from '../relations/world';
 
 const S = salt('living-talk');
 /** households in want who look for help each day (seeded share of the town's and the plain's), and the most talks a day */
@@ -65,6 +67,23 @@ export class LivingWorld {
   private overlaid = new Map<string, Seg[]>();
   private news = new Map<number, News[]>(); private evSeen = 0; private nextId = 0; private atWork = new Map<string, number[]>(); private workDay = -1; private crews = new Map<string, number[]>(); private srcOf = new Map<number, string>(); private gangs = new Map<number, number[]>();
   private busy = new Set<string>();
+  /** D-352: called after each simulated day (the asks and the rumours of src/people/asks ride on it) */
+  onDay?: (d: number) => void;
+  // ---------------------------------------------------------------- D-359 (B227, B226): the relations stepped with the days
+  private rel: Relations | null = null; private relAt = new Map<number, Intent[]>(); private relFloor = -1;
+  /** relation intents entered into the economy (bride-gifts, dowries, divorce silver, news) */
+  relEntered = 0;
+  /** step the relations layer from here, a week ahead of the economy's day (so its weddings move the bride before any plan of
+   *  the wedding's week is drawn: Population.addWedding), its intents entered into the economy on their own day, before the
+   *  economy's step (the sim sets it with SimOpts.bonds, the world's setting; tests without it are unchanged) */
+  attachRelations(rel: Relations) { this.rel = rel; rel.opts.joinPop = true;
+    // (each intent kept by the day it enters: its own, or the first day not yet stepped when it came late, from a player's act;
+    // one dated before a load's day is in the saved economy already; kept, so a re-derivation from day 0 enters them again)
+    rel.opts.econ = i => { if (i.day <= this.relFloor) return; const at = Math.max(i.day, this.upTo + (this.running ? 0 : 1)); (this.relAt.get(at) ?? this.relAt.set(at, []).get(at)!).push(i); }; }
+  private relDay(E: Economy, d: number) {
+    const R = this.rel; if (!R) return; R.advance(d + 7);
+    for (const i of this.relAt.get(d) ?? []) { E.enter({ ...i, day: d, payload: { ...i.payload } }); this.relEntered++; }
+  }
   private byQ = new Map<string, number[]>();
   private upTo = -1; private running = false;
   /** plans asked for and talk simulated (for the dev overlay and the cost report) */
@@ -105,7 +124,7 @@ export class LivingWorld {
   /** resume from a save: the economy (restored, or built from its saved intents and stepped) at the saved day, the talk state restored */
   load(s: LivingSave) {
     this.reset(); const E = this.econ(); this.running = true; try { for (let d = E.day + 1; d <= s.upTo; d++) E.step(d); } finally { this.running = false; }
-    this.upTo = s.upTo; this.evSeen = s.evSeen; this.nextId = s.nextId; this.talks.push(...s.talks);
+    this.upTo = s.upTo; this.relFloor = s.upTo; for (const k of [...this.relAt.keys()]) if (k <= s.upTo) this.relAt.delete(k); this.evSeen = s.evSeen; this.nextId = s.nextId; this.talks.push(...s.talks);
     const T = s.strs; for (const [k, v] of s.laid) this.laid.set(k, T ? (v as any[]).map(([h0, h1, g]) => ({ h0, h1, segs: g.map((x: any[]) => ({ t0: x[0], t1: x[1], place: T[x[2]], act: T[x[3]], why: T[x[4]], where: T[x[5]], ...(x.length > 6 ? { ev: T[x[6]] } : {}) })) })) : v as any);
     for (const [k, v] of s.news) this.news.set(k, v); for (const k of s.busy) this.busy.add(k);
   }
@@ -119,7 +138,7 @@ export class LivingWorld {
       const E = this.econ();
       // player events first seen now: their news starts on the first day not yet simulated (fixed, and saved with the event)
       for (const e of this.playerEvents()) if (e.newsFrom === undefined) e.newsFrom = Math.max(e.day + 1, this.upTo + 1);
-      while (this.upTo < day) { const d = ++this.upTo; const t0 = performance.now(); E.step(d); this.stats.msEcon += performance.now() - t0; const t1 = performance.now(); this.simulate(E, d); this.stats.msSim += performance.now() - t1; this.stats.days++; }
+      while (this.upTo < day) { const d = ++this.upTo; const t0 = performance.now(); this.relDay(E, d); E.step(d); this.stats.msEcon += performance.now() - t0; const t1 = performance.now(); this.simulate(E, d); this.stats.msSim += performance.now() - t1; this.stats.days++; this.onDay?.(d); }
     } finally { this.running = false; }
   }
 
@@ -159,6 +178,7 @@ export class LivingWorld {
 
   private simulate(E: Economy, day: number) {
     const P = this.pop; let meets = 0;
+    if (E.trust) haggleRound(E, day); // D-351: the day's haggles between households (speech/haggle.ts), before the talk
     for (const [pid, l] of this.news) { const k = l.filter(x => day - x.day <= 3); if (k.length) this.news.set(pid, k); else this.news.delete(pid); }
     for (const e of this.playerEvents()) if (e.ok && e.kind !== 'hold' && e.newsFrom === day && this.eligible(e.pid, day)) this.carry(e.pid, { src: `player:${e.i}`, hand: 0, day });
     // what happened yesterday in the economy is news in the lanes: a death, an illness, a theft, a debt, a suit, hunger
@@ -201,6 +221,7 @@ export class LivingWorld {
     const P = this.pop; this.carry(to, { ...x, hand: x.hand + 1, day });
     const T: LivingTalk = { id: this.nextId++, day, h: m.h, place: m.place, a: from, b: to, intents: [], kind: 'news', doer: to, target: `h:${P.home(to, day)}`, news: { src: x.src, hand: x.hand + 1 } };
     const hh = P.home(to, day);
+    if (E.trust && x.about !== undefined && x.what) E.trust.hear(`h:${hh}`, `h:${x.about}`, x.what, day); // D-351: news heard moves the hearer's own trust
     if (x.about !== undefined && x.about !== hh && HELP_ON.has(x.what ?? '') && (P.households[hh].kin.includes(x.about) || P.households[hh].q === P.households[x.about].q)) {
       const off = this.offer(E, x.what === 'cold_hearth' ? 'fuel' : x.what === 'death' ? 'kin' : 'help', x.about, hh, day);
       // (D-340: the help answers the economy event the news was of: its intents name it, so the help joins that chain)

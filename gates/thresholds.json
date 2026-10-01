@@ -2905,6 +2905,54 @@
    "anti_proxy": "a scripted event sequence does not count; a chain must arise from needs, prices and choices in the simulation and replay identically from its seed; chains that differ only in names count once",
    "ud": "UD-26",
    "since": "rev 2.6 (s12)"
+  },
+  {
+   "id": "T-E15",
+   "axis": "E",
+   "scope": "world",
+   "metric": "distinct drawn bodies: share of the drawn population whose body and face shape vector (continuous, seeded from the person and their life) differs from every other person's, with garments draped over that body and the day's wardrobe choice shown",
+   "op": ">=",
+   "value": 99,
+   "unit": "% unique",
+   "sample_min": 3,
+   "sample": "seeds, the full population",
+   "tool": "tests/body_variety.test.ts",
+   "status": "to-build",
+   "anti_proxy": "height scaling, colour swaps or a handful of variants do not count; the spread must follow a bell curve with both extremes present; a body the render never shows does not count",
+   "ud": "UD-27",
+   "since": "rev 2.7 (s14)"
+  },
+  {
+   "id": "T-R14",
+   "axis": "R",
+   "scope": "session",
+   "metric": "views rendered per full-world page load in the session (the render train batches every agent's views into one load), session mean",
+   "op": ">=",
+   "value": 10,
+   "unit": "views per load",
+   "sample_min": 1,
+   "sample": "every GPU session",
+   "tool": "sessions/",
+   "status": "to-build",
+   "anti_proxy": "probe pages do not count as full-world loads or as views; a view counts only when it is judged (whole view, AAA and full of life)",
+   "ud": "UD-28",
+   "since": "rev 2.7 (s14)"
+  },
+  {
+   "id": "T-R15",
+   "axis": "R",
+   "scope": "session",
+   "metric": "share of the session's agent packages whose target is an immersion breaker found in whole-view judgement (light, density, life, surfaces, silhouettes at the player's view, against the AAA bar) rather than a match to a reference photograph, counted from the session log",
+   "op": ">=",
+   "value": 80,
+   "unit": "%",
+   "sample_min": 1,
+   "sample": "every session with agents",
+   "tool": "sessions/",
+   "status": "to-build",
+   "anti_proxy": "a package counts only when its target was named from a whole-view render of the world, not a probe page or a reference comparison; period-accuracy fixes count only when the inaccuracy itself breaks the illusion",
+   "ud": "UD-29",
+   "since": "rev 2.8 (s15)"
   }
  ]
 }

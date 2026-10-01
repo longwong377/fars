@@ -32,6 +32,7 @@ import { Economy } from './economy/world';
 import { householdsOf } from './economy/chains';
 import { EconPlans } from './economy/plans';
 import { LivingWorld } from './living/world';
+import { AsksWorld } from './asks/world';
 import { WashPlans } from './wardrobe/washing';
 import { Wardrobes } from './wardrobe/world';
 import { Relations, type PlayerAct, type ActResult } from './relations/world';
@@ -101,6 +102,7 @@ export const ABSTRACT_DETOUR = 1.3;
 export interface SimEvent { t: number; kind: string; text: string; place: string; id?: string; tier?: string }
 export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean;
   /** D-340: lay the economy's decisions over the day plans (default true) */ economy?: boolean;
+  /** D-352: derive the people's asks and let news travel (src/people/asks; default false: ~40 s of node time a year) */ asks?: boolean;
   /** D-347: lay laundry days and baths over the day plans (default true) */ washing?: boolean;
   /** D-348: lay the relations' meetings (courting, the families' agreement, lovers) over the day plans (default false: the relations' year costs ~0.3 s a week of it on first use, B228; the world sets it) */ bonds?: boolean }
 
@@ -146,19 +148,22 @@ export class PeopleSim {
   /** D-341: the economy is stepped day by day by the living world, with the people's talk entered into it (living/world.ts) */
   economy(): Economy { this.living.advance(Math.floor(this.t / 24)); return this.econCore(); }
   private econCore(): Economy {
-    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife() }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife() }); this.econSnap = null; }
+    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true }); this.econSnap = null; }
     return this.econ;
   }
   /** D-347: the economy's illness and death reach the people (sickbed, funeral, the person gone); not with the economy off */
   private econLife() { return this.opts.economy === false ? undefined : this.pop.econLife(); }
   private econSnap: unknown = null;
+  /** D-352: the asks (needs as what people would say to kin, neighbour, stranger) and the rumours; read by the voice layer */
+  readonly asksWorld: AsksWorld;
   /** D-340/D-347: what of the economy a save keeps: its state at its day (Economy.snapshot; the events of the sim's last two
    *  days whole), the talk's state, and the illnesses and deaths it laid on the people. A world that has not built its economy
    *  saves only the intents that are not the talk's (as before) */
   private econSave() {
     const day = Math.floor(this.t / 24), life = this.pop.econLifeSave(day - 7);
-    if (this.econ) return { econ: this.econ.snapshot(day - 2), living: this.living.save(day), ...(life ? { life } : {}) };
-    if (this.econSnap) return { econ: this.econSnap, living: this.living.save(day), ...(life ? { life } : {}) };
+    const asks = this.asksWorld.save(), ax = asks ? { asks } : {};
+    if (this.econ) return { econ: this.econ.snapshot(day - 2), living: this.living.save(day), ...(life ? { life } : {}), ...ax };
+    if (this.econSnap) return { econ: this.econSnap, living: this.living.save(day), ...(life ? { life } : {}), ...ax };
     const iv = this.econIv.filter(i => i.payload?.src !== 'talk'); return iv.length ? { econ: { seed: this.seed, intents: iv } } : {};
   }
   /** the economy stepped (by the living world, the talk entered) to at least day d: the day plans read a day's decisions (EconPlans, D-340) */
@@ -194,11 +199,12 @@ export class PeopleSim {
     this.cal = new EventCalendar(seed, this.pop, env, !!opts.court); this.pop.attach(this.cal);
     this.talk = new TalkWorld(this.pop, seed, id => id in PLACES); this.pop.talk = this.talk;
     this.living = new LivingWorld(this.pop, seed, () => this.econCore(), () => this.talk.events); this.talk.living = this.living;
+    this.asksWorld = new AsksWorld(this.pop, seed, () => this.econCore(), opts.asks === true); this.living.onDay = d => this.asksWorld.day(d);
     this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
     // D-347: laundry days and baths in the plans (clear of the living world's errands), and the wardrobes that read them
     this.washPlans = new WashPlans(this.pop, seed, (pid, d) => this.living.windows(pid, d)); if (opts.washing !== false) this.pop.wash = this.washPlans;
     this.wardrobes = new Wardrobes(this.pop, seed, (pid, d) => this.pop.plan(pid, d));
-    this.bonds = new Relations(this.pop, seed); this.bondPlans = new RelPlans(this.bonds, this.pop); if (opts.bonds) this.pop.bonds = this.bondPlans;
+    this.bonds = new Relations(this.pop, seed); this.bondPlans = new RelPlans(this.bonds, this.pop); if (opts.bonds) { this.pop.bonds = this.bondPlans; this.living.attachRelations(this.bonds); } // (D-359: the relations stepped with the days, into the economy and the households)
     this.talk.onChange = pid => { const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.planCache.delete(a); };
     for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
   }
@@ -750,7 +756,7 @@ export class PeopleSim {
     // with the talk state; an older save re-derives (D-341)
     this.econ = null; this.econSnap = s.econ?.v === 2 ? s.econ : null;
     this.econIv = s.econ && s.econ.v !== 2 ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : [];
-    if (s.living) this.living.load(s.living); else this.living.reset(); this.econPlans.reset(); this.wardrobes.load(s.wardrobe);
+    this.asksWorld.load(s.asks); if (s.living) this.living.load(s.living); else this.living.reset(); this.econPlans.reset(); this.wardrobes.load(s.wardrobe);
     if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
     if (s.bonds || this.bonds.acted) { this.bonds.load(s.bonds); this.bondPlans.reset(); } // (without the player's acts the relations are the seed's: nothing to redo)
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });

@@ -96,4 +96,24 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-347 | s13 | simjoin: economy snapshot save, wardrobe save, washing/bathing, economy deaths into Population, balance (Q-1045..Q-1049, B223..B225) | agent worktree, branch s13-simjoin | merged session 13 |
 | D-348 | s13 | nobody under 18 in marriage/courting/conception (Q-1040); courting in plans, parentage, relations saved (Q-1050..Q-1054, B226..B228) | agent worktree, branch s13-relations2 | merged session 13 (brides redraw left on branch s13-relations2-brides, 902ebbaf: pinned tests to re-pin) |
 | D-349 | s13 | adult brides redraw, pinned tests re-pinned (Q-1055..Q-1057, B229..B230) | agent worktree, branch s13-brides | NOT merged: branch s13-brides (2929ab64, on origin); 34 failures in other people_days files unchecked against base (B230), one new r6 failure (B229) |
-| D-350 | s13 | bridesmerge: finish and merge the adult-brides branch (Q-1058..Q-1059, B231..B232) | agent worktree | in flight |
+| D-350 | s13 | bridesmerge: finish and merge the adult-brides branch (Q-1058..Q-1059, B231..B232) | agent worktree | NOT merged: branch s13-bridesmerge (908fee4e, on origin): B229 fixed; B230 (people_days failures vs main) never compared: the comparison runs take hours, see HANDOFF |
+| D-351 | s13 | trust and haggling, node side (UD-25 mechanics 1 and 4; Q-1060..Q-1064, B233..B235) | agent worktree | merged session 13 |
+| D-352 | s13 | needs as emergent asks, rumour spreading, node side (UD-25 mechanics 2 and 5; Q-1065..Q-1069, B236..B238) | agent worktree | merged session 13 |
+| D-353 | s13 | the GPU hang: the game renders black on this box (Q-1070..Q-1071, B239..B240) | agent worktree | merged session 13 |
+| D-354 | s14 | load time to about a minute (Q-1080..Q-1089, B250..B259) | agent worktree, branch s14-load | in flight |
+| D-355 | s14 | frame rate to 30 fps on the T4 (Q-1090..Q-1099, B260..B269) | agent worktree, branch s14-frame | in flight |
+| D-356 | s14 | the plain and hills filled (Q-1100..Q-1109, B270..B279) | agent worktree, branch s14-plain | in flight |
+| D-357 | s14 | baked path-traced light (Q-1110..Q-1119, B280..B289) | agent worktree, branch s14-light | in flight |
+| D-358 | s14 | talk reaches the real simulation (Q-1120..Q-1129, B290..B299) | agent worktree, branch s14-simtalk | in flight |
+| D-359 | s14 | the simulation made visible (Q-1130..Q-1139, B300..B309) | agent worktree, branch s14-visible | in flight |
+| D-360 | s14 | simulation health, tests, merges (Q-1140..Q-1149, B310..B319) | agent worktree, branch s14-simhealth | in flight |
+| D-361 | s14 | Blender leftovers: monuments, far Terrace, reproducibility (Q-1150..Q-1159, B320..B329) | agent worktree, branch s14-blender | in flight |
+| D-362 | s14 | animals and birds move (Q-1160..Q-1169, B330..B339) | agent worktree, branch s14-animalmotion | in flight |
+| D-363 | s14 | every body different, soft tissue, drape, far people (Q-1170..Q-1179, B340..B349) | agent worktree, branch s14-bodies | in flight |
+| D-364 | s14 | the walls stop being boxes (Q-1180..Q-1189, B350..B359) | agent worktree, branch s14-walls | in flight |
+| D-365 | s14 | monuments: colossi, capitals, column orders (Q-1190..Q-1199, B360..B369) | agent worktree, branch s14-monuments | in flight |
+| D-366 | s15 | surfaces: grime, wear and large-scale variation (Q-1200..Q-1209, B370..B379) | agent worktree, branch s14-surfaces | in flight |
+| D-367 | s15 | fill: courts, lanes and rooms full (Q-1210..Q-1219, B380..B389) | agent worktree, branch s14-fill | in flight |
+| D-368..D-369 | s15 | reserved for the lead (Q-1220..Q-1229, B390..B399) | the lead | reserved |
+| D-370..D-379 | s15 | the cloud depth session (Q-1230..Q-1259, B400..B429) | cloud, branch cloud-s15-depth | reserved |
+| D-380..D-399 | s15 | reserved for Vagon waves (Q-1260..Q-1399, B430..B499) | the lead | reserved |

@@ -1,5 +1,6 @@
 // World assembly: architecture (Phase 2+), people (Phase 3/5), audio (Phase 3). Phase 1: empty shell with hooks.
 import * as THREE from 'three/webgpu';
+import { FORWARD_FIRE_LIGHTS, GLOW_MAX } from '../render/fireGlow';
 import { ArrisField } from '../arch/arris';
 import { ADIST_OFF } from '../render/blockface';
 import type { Physics } from '../player/physics';
@@ -38,12 +39,14 @@ import { buildTerrace } from '../arch/terrace';
 import { partsKey } from '../arch/partsKey';
 import type { Doorway } from '../arch/parts';
 import { setTraffic, surfaceMaterial } from '../render/materials';
+import { buildGrime } from '../render/grime';
 import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
 import { loadDecorAssets } from '../render/decorAssets';
 import { loadMonuments } from '../render/monuments';
+import { FarTerrace } from '../render/far_terrace';
 import { loadTreeAssets } from './trees/assets';
 import { loadReliefAtlas } from '../render/reliefAtlas';
 import { loadScanProps } from '../render/scanProps';
@@ -82,6 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
+import { WorldFill } from './fill'; import { townFill, terraceFill } from './fillPlan'; import { villageSite } from './plain/villagesite';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -231,7 +235,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // ?fireshadows=K (diagnostic, D-216): the nearest K fire lights cast shadows
   const fireShadows = typeof location !== 'undefined' ? +(new URLSearchParams(location.search).get('fireshadows') ?? 0) : 0;
   await fireOccP;
-  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q], fireShadows); placeFires(fire, manifest, parts, doorways);
+  // D-355: the nearest fires as forward lights (a fixed set), the next GLOW_MAX through the post composite (high/ultra)
+  const fire = new FireSystem(FORWARD_FIRE_LIGHTS[q], fireShadows, 512, q === 'high' || q === 'ultra' ? GLOW_MAX : 0); placeFires(fire, manifest, parts, doorways);
   // the halls' interiors: a fire's light stays on its side of their walls (D-216; manifest rooms [e, n, size e, size n, floor, height])
   // (D-276: and every room of the room ranges: a quarters hearth lights its own room, not the next one through the wall)
   fire.setRooms([...Object.values(manifest).map((m: any) => m?.room), ...Object.values(manifest).flatMap((m: any) => m?.ranges?.rooms ?? [])].filter((r: any) => Array.isArray(r))
@@ -250,6 +255,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   wmark('plain');
   // (D-254: the fire system builds after the plain: the villages' hearths, ovens and lamps join it)
   fire.build(); root.add(fire.group);
+  buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }); // D-366: soot, ash, damp and lane wear (render/grime.ts)
   wmark('fire.build');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
@@ -286,7 +292,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     plain.data.rivers.rivers.forEach((r, k) => { halfW[k] = r.topWidth / 2; wet.addPolyline(r, 5, k); });
     for (const c of plain.data.canals) wet.addPolyline(c.pts as [number, number][], 5, 9);
     for (const m of townMiddens) dung.add(m[0], m[1]); if ((FAUNA_FAC as any).tannery) dung.add((FAUNA_FAC as any).tannery[0], (FAUNA_FAC as any).tannery[1]); // the tannery's flies (D-255)
-    const ground = (e: number, n: number) => { const y = nav.heightAt(e, n); return Number.isFinite(y) ? y : terrain.heightAt(e, -n); };
+    const ground = (e: number, n: number) => { const y = nav.heightAt(e, n); return Number.isFinite(y) ? y : terrain.surfaceAt(e, -n); }; // D-356: the drawn surface (heightAt, the bilinear placement height, floats up to ~0.5 m on the mid ring)
     // (session 10, the planets-dusk render: a thistle grew out of the Terrace's paving; built ground, the Terrace and the town's
     // plots, holds no flora and no small life but the middens' flies)
     const terr = (FOOTPRINTS as any).terrace.polygon as [number, number][], inPoly = (P: [number, number][], x: number, y: number) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
@@ -364,6 +370,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const groundAt = (e: number, n: number) => (nav.walkable(e, n) ? nav.heightAt(e, n) : terrain.heightAt(e, -n));
   const faunaT0 = performance.now();
   const villagesIn: VillageIn[] = plain.data.villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, comps: villageCompounds(v, terrain, seed) }));
+  // D-367 (agent fill): the markets, the lanes' and villages' things, washing lines, awnings, the Terrace's yards and standards
+  const fill = new WorldFill([...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items, ...terraceFill(seed)], { ground: groundAt, phys, nav }); root.add(fill.group);
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
     // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)
@@ -432,6 +440,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     solids.end(); };
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
   const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
+  // D-361 (B175): the Terrace's far levels from 150 m out (render/far_terrace.ts); ?farterrace=0 draws the near shapes everywhere (A/B)
+  const farTerrace = new URLSearchParams(location.search).get('farterrace') === '0' ? null : new FarTerrace([arch.group, reliefs, p4.group, ...(cren ? [cren] : []), foot, ...(building ? [building.group] : [])]);
   // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467
   const nowView = new NowView({ root, parts, phys, keep: [reliefs, p4.group, insc, wvfx.group, shafts.group, birds.group, foot],
     hideWithin: [reliefs.getObjectByName('crenellations'), insc.getObjectByName('apadana-foundation-deposits')] });
@@ -633,6 +643,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     update(dt: number, ctx: any) {
       time += dt;
       let tp = pt(); updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
+      farTerrace?.update(ctx.camera, dt === 0 ? 1e9 : 3, dt); // D-361: after the reliefs made their far meshes
       refreshReliefShadow(); // the relief shadow atlas's upload as its fields arrive (D-226)
       doors.view(ctx.camera.position);
       pa('w.reliefs+doors', tp); tp = pt(); arris.update(nowView.active ? null : ctx.camera.position, dt === 0 ? 1e9 : 3); pa('w.arris', tp); tp = pt(); // D-321 rev 2 (a test render builds all it needs at once)
@@ -670,7 +681,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain, ctx.camera.position);
         devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
-        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); bedrock.rock.group.visible = bedrock.ledges.group.visible = !nowView.active; if (!nowView.active) { bedrock.rock.update(ctx.camera.position, ctx.camera.getWorldDirection(_bdir), dt === 0); bedrock.ledges.update(ctx.camera.position, dt === 0); } fordDetail.update(ctx.camera.position, dt === 0); cover.group.visible = !nowView.active; if (!nowView.active) cover.update(ctx.camera.position, doyOf(ctx.clock.dayIndex), seasonAt(ctx.clock.dayIndex), dt === 0); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
+        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); bedrock.rock.group.visible = bedrock.ledges.group.visible = !nowView.active; if (!nowView.active) { bedrock.rock.update(ctx.camera.position, ctx.camera.getWorldDirection(_bdir), dt === 0); bedrock.ledges.update(ctx.camera.position, dt === 0); } fordDetail.update(ctx.camera.position, dt === 0); cover.group.visible = !nowView.active; if (!nowView.active) cover.update(ctx.camera.position, doyOf(ctx.clock.dayIndex), seasonAt(ctx.clock.dayIndex), dt === 0); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; fill.group.visible = !nowView.active; if (!nowView.active) fill.update([ctx.camera.position.x, -ctx.camera.position.z], ctx.clock.localHour, ctx.cond.rain); roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       pa('w.life+flora', tp); tp = pt(); shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)

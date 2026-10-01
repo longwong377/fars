@@ -9318,6 +9318,640 @@
     0.5139999985694885
    ],
    "tex": 0
+  },
+  "m_fill_stall": {
+   "file": "models/props/m_fill_stall.glb",
+   "of": "fill_stall",
+   "role": "model",
+   "parts": [
+    "wood",
+    "mud",
+    "cloth",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 188264,
+   "sha256": "4553ed218b19912d0818d9efa349e50489e8eb4b262c30564d0398a09672a8de",
+   "tris": {
+    "lod0": 5236,
+    "lod1": 1974,
+    "lod2": 776
+   },
+   "partTris": {
+    "lod0__wood": 2396,
+    "lod0__mud": 216,
+    "lod0__cloth": 2600,
+    "lod0__cord": 24,
+    "lod1__wood": 1000,
+    "lod1__mud": 150,
+    "lod1__cloth": 800,
+    "lod1__cord": 24,
+    "lod2__wood": 400,
+    "lod2__mud": 60,
+    "lod2__cloth": 300,
+    "lod2__cord": 16
+   },
+   "box": [
+    [
+     -1.805267333984375,
+     -0.224166601896286,
+     -0.9253053069114685
+    ],
+    [
+     1.805267333984375,
+     2.203808069229126,
+     1.9045400619506836
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    3.61053466796875,
+    2.427974671125412,
+    2.829845368862152
+   ],
+   "tex": 0
+  },
+  "m_fill_awning": {
+   "file": "models/props/m_fill_awning.glb",
+   "of": "fill_awning",
+   "role": "model",
+   "parts": [
+    "wood",
+    "cloth",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 127752,
+   "sha256": "9088a8726e7ab66e939f2405e79f5db87892b1e9dca737fd1a904e0e03c8472e",
+   "tris": {
+    "lod0": 3568,
+    "lod1": 1324,
+    "lod2": 516
+   },
+   "partTris": {
+    "lod0__wood": 1144,
+    "lod0__cloth": 2400,
+    "lod0__cord": 24,
+    "lod1__wood": 600,
+    "lod1__cloth": 700,
+    "lod1__cord": 24,
+    "lod2__wood": 240,
+    "lod2__cloth": 260,
+    "lod2__cord": 16
+   },
+   "box": [
+    [
+     -1.6054829359054565,
+     -0.17300941050052643,
+     0.028884904459118843
+    ],
+    [
+     1.6054829359054565,
+     2.371904134750366,
+     2.6049420833587646
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    3.210965871810913,
+    2.5449135452508926,
+    2.576057178899646
+   ],
+   "tex": 0
+  },
+  "m_fill_produce": {
+   "file": "models/props/m_fill_produce.glb",
+   "of": "fill_produce",
+   "role": "model",
+   "parts": [
+    "wicker",
+    "fruit"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 116580,
+   "sha256": "9ff9e9ae216426280a6a5050d393def9958f26da1fc7572fbb3e51287335cb6a",
+   "tris": {
+    "lod0": 3252,
+    "lod1": 1200,
+    "lod2": 420
+   },
+   "partTris": {
+    "lod0__wicker": 852,
+    "lod0__fruit": 2400,
+    "lod1__wicker": 500,
+    "lod1__fruit": 700,
+    "lod2__wicker": 200,
+    "lod2__fruit": 220
+   },
+   "box": [
+    [
+     -0.289000004529953,
+     -0.0005075764493085444,
+     -0.289000004529953
+    ],
+    [
+     0.2889581322669983,
+     0.2937905192375183,
+     0.289000004529953
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.5779581367969513,
+    0.29429809568682685,
+    0.578000009059906
+   ],
+   "tex": 0
+  },
+  "m_fill_grain": {
+   "file": "models/props/m_fill_grain.glb",
+   "of": "fill_grain",
+   "role": "model",
+   "parts": [
+    "cloth",
+    "grain",
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 48628,
+   "sha256": "120a3a1d57b846f1e64104688d53456a1de0ef945204104c11c61fc60e6ab7db",
+   "tris": {
+    "lod0": 1032,
+    "lod1": 580,
+    "lod2": 230
+   },
+   "partTris": {
+    "lod0__cloth": 432,
+    "lod0__grain": 488,
+    "lod0__wood": 112,
+    "lod1__cloth": 300,
+    "lod1__grain": 220,
+    "lod1__wood": 60,
+    "lod2__cloth": 120,
+    "lod2__grain": 80,
+    "lod2__wood": 30
+   },
+   "box": [
+    [
+     -0.26334452629089355,
+     -0.002617629710584879,
+     -0.25205695629119873
+    ],
+    [
+     0.25100305676460266,
+     0.6477707028388977,
+     0.24483665823936462
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.5143475830554962,
+    0.6503883325494826,
+    0.49689361453056335
+   ],
+   "tex": 0
+  },
+  "m_fill_bolts": {
+   "file": "models/props/m_fill_bolts.glb",
+   "of": "fill_bolts",
+   "role": "model",
+   "parts": [
+    "reed",
+    "textile_a",
+    "textile_b"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 54560,
+   "sha256": "b5f1dd3d807f8af0e02646580b1b23c9b3895f6119535e47088fce6bfefe491a",
+   "tris": {
+    "lod0": 1252,
+    "lod1": 612,
+    "lod2": 212
+   },
+   "partTris": {
+    "lod0__reed": 24,
+    "lod0__textile_a": 520,
+    "lod0__textile_b": 708,
+    "lod1__reed": 12,
+    "lod1__textile_a": 300,
+    "lod1__textile_b": 300,
+    "lod2__reed": 12,
+    "lod2__textile_a": 100,
+    "lod2__textile_b": 100
+   },
+   "box": [
+    [
+     -0.49904897809028625,
+     0.0009510259842500091,
+     -0.3090992569923401
+    ],
+    [
+     0.634295642375946,
+     0.30534622073173523,
+     0.3090992569923401
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.1333446204662323,
+    0.3043951947474852,
+    0.6181985139846802
+   ],
+   "tex": 0
+  },
+  "m_fill_pots": {
+   "file": "models/props/m_fill_pots.glb",
+   "of": "fill_pots",
+   "role": "model",
+   "parts": [
+    "reed",
+    "clay"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 132392,
+   "sha256": "de632236057f160a4ffa67557a70f5c7d31d8e36a5495c14caeb0c2484ea052a",
+   "tris": {
+    "lod0": 4024,
+    "lod1": 1212,
+    "lod2": 412
+   },
+   "partTris": {
+    "lod0__reed": 24,
+    "lod0__clay": 4000,
+    "lod1__reed": 12,
+    "lod1__clay": 1200,
+    "lod2__reed": 12,
+    "lod2__clay": 400
+   },
+   "box": [
+    [
+     -0.5003999471664429,
+     0.0003704225237015635,
+     -0.3503999412059784
+    ],
+    [
+     0.5004632472991943,
+     0.31268176436424255,
+     0.3503999412059784
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.0008631944656372,
+    0.312311341840541,
+    0.7007998824119568
+   ],
+   "tex": 0
+  },
+  "m_fill_line": {
+   "file": "models/props/m_fill_line.glb",
+   "of": "fill_line",
+   "role": "model",
+   "parts": [
+    "cord",
+    "wood",
+    "cloth_a",
+    "cloth_b"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 71196,
+   "sha256": "b7e8405f1a0d9feee49a1c8ef436bfcb4128d1a931a2f6b282a4eb216db7020c",
+   "tris": {
+    "lod0": 1800,
+    "lod1": 660,
+    "lod2": 280
+   },
+   "partTris": {
+    "lod0__cord": 160,
+    "lod0__wood": 40,
+    "lod0__cloth_a": 900,
+    "lod0__cloth_b": 700,
+    "lod1__cord": 80,
+    "lod1__wood": 40,
+    "lod1__cloth_a": 300,
+    "lod1__cloth_b": 240,
+    "lod2__cord": 40,
+    "lod2__wood": 20,
+    "lod2__cloth_a": 120,
+    "lod2__cloth_b": 100
+   },
+   "box": [
+    [
+     -1.5010437965393066,
+     1.375500202178955,
+     -0.033662065863609314
+    ],
+    [
+     1.5010437965393066,
+     2.420356512069702,
+     0.024156488478183746
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    3.0020875930786133,
+    1.044856309890747,
+    0.05781855434179306
+   ],
+   "tex": 0
+  },
+  "m_fill_bundle": {
+   "file": "models/props/m_fill_bundle.glb",
+   "of": "fill_bundle",
+   "role": "model",
+   "parts": [
+    "wood",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 44164,
+   "sha256": "22770d951c95fb2166689d37e74d507c4686425bf2c285dc384a9f6ec17f5a12",
+   "tris": {
+    "lod0": 696,
+    "lod1": 638,
+    "lod2": 299
+   },
+   "partTris": {
+    "lod0__wood": 576,
+    "lod0__cord": 120,
+    "lod1__wood": 576,
+    "lod1__cord": 62,
+    "lod2__wood": 243,
+    "lod2__cord": 56
+   },
+   "box": [
+    [
+     -0.5996221303939819,
+     -0.012343828566372395,
+     -0.1545131653547287
+    ],
+    [
+     0.6993148326873779,
+     0.26283764839172363,
+     0.13079555332660675
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.2989369630813599,
+    0.275181476958096,
+    0.28530871868133545
+   ],
+   "tex": 0
+  },
+  "m_fill_standard": {
+   "file": "models/props/m_fill_standard.glb",
+   "of": "fill_standard",
+   "role": "model",
+   "parts": [
+    "wood",
+    "stone",
+    "cloth",
+    "gilt"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 129312,
+   "sha256": "9df1443f12eb9ad7f764ba4727c05fcfbac772577d781cbd5297cf97de934601",
+   "tris": {
+    "lod0": 3280,
+    "lod1": 1458,
+    "lod2": 530
+   },
+   "partTris": {
+    "lod0__wood": 616,
+    "lod0__stone": 108,
+    "lod0__cloth": 1800,
+    "lod0__gilt": 756,
+    "lod1__wood": 300,
+    "lod1__stone": 108,
+    "lod1__cloth": 600,
+    "lod1__gilt": 450,
+    "lod2__wood": 120,
+    "lod2__stone": 60,
+    "lod2__cloth": 200,
+    "lod2__gilt": 150
+   },
+   "box": [
+    [
+     -0.5343236327171326,
+     -0.001244083046913147,
+     -0.25009405612945557
+    ],
+    [
+     0.5349231958389282,
+     5.587382793426514,
+     0.25068387389183044
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.0692468285560608,
+    5.588626876473427,
+    0.500777930021286
+   ],
+   "tex": 0
+  },
+  "m_fill_chips": {
+   "file": "models/props/m_fill_chips.glb",
+   "of": "fill_chips",
+   "role": "model",
+   "parts": [
+    "fines",
+    "stone"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 124104,
+   "sha256": "04635728a0ec3f833b2d9898e6372f20497f36d76e72287a040386258dcd8191",
+   "tris": {
+    "lod0": 3404,
+    "lod1": 1304,
+    "lod2": 500
+   },
+   "partTris": {
+    "lod0__fines": 404,
+    "lod0__stone": 3000,
+    "lod1__fines": 404,
+    "lod1__stone": 900,
+    "lod2__fines": 200,
+    "lod2__stone": 300
+   },
+   "box": [
+    [
+     -0.88234943151474,
+     -0.032010942697525024,
+     -0.6749999523162842
+    ],
+    [
+     0.9509657621383667,
+     0.3983347713947296,
+     0.7348580956459045
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.8333151936531067,
+    0.43034571409225464,
+    1.4098580479621887
+   ],
+   "tex": 0
+  },
+  "m_fill_block": {
+   "file": "models/props/m_fill_block.glb",
+   "of": "fill_block",
+   "role": "model",
+   "parts": [
+    "stone",
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 95308,
+   "sha256": "e812aae54f68aac2b36645218be9115acb1d7f7cc8c6fa14606fd5efe097eab4",
+   "tris": {
+    "lod0": 2900,
+    "lod1": 860,
+    "lod2": 310
+   },
+   "partTris": {
+    "lod0__stone": 2400,
+    "lod0__wood": 500,
+    "lod1__stone": 700,
+    "lod1__wood": 160,
+    "lod2__stone": 250,
+    "lod2__wood": 60
+   },
+   "box": [
+    [
+     -0.7320247888565063,
+     -0.006758538540452719,
+     -0.41782644391059875
+    ],
+    [
+     0.7332808375358582,
+     0.8198662996292114,
+     0.41491883993148804
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.4653056263923645,
+    0.8266248381696641,
+    0.8327452838420868
+   ],
+   "tex": 0
+  },
+  "m_fill_scaffold": {
+   "file": "models/props/m_fill_scaffold.glb",
+   "of": "fill_scaffold",
+   "role": "model",
+   "parts": [
+    "wood",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 202560,
+   "sha256": "e90bb9ef340f9734a9d83d7031f2b3a3d21a5086e9f619f9e97c084ba7872df3",
+   "tris": {
+    "lod0": 5780,
+    "lod1": 2100,
+    "lod2": 700
+   },
+   "partTris": {
+    "lod0__wood": 5140,
+    "lod0__cord": 640,
+    "lod1__wood": 1800,
+    "lod1__cord": 300,
+    "lod2__wood": 600,
+    "lod2__cord": 100
+   },
+   "box": [
+    [
+     -1.4346504211425781,
+     -0.2246120721101761,
+     -0.82871013879776
+    ],
+    [
+     1.812416911125183,
+     5.925286293029785,
+     1.2972854375839233
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    3.2470673322677612,
+    6.149898365139961,
+    2.1259955763816833
+   ],
+   "tex": 0
+  },
+  "m_fill_rubble": {
+   "file": "models/props/m_fill_rubble.glb",
+   "of": "fill_rubble",
+   "role": "model",
+   "parts": [
+    "mud",
+    "brick"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 72680,
+   "sha256": "7e72299991272380a433ed50e6472d2a6f0782c81953151651691d1f23549759",
+   "tris": {
+    "lod0": 1904,
+    "lod1": 804,
+    "lod2": 310
+   },
+   "partTris": {
+    "lod0__mud": 304,
+    "lod0__brick": 1600,
+    "lod1__mud": 304,
+    "lod1__brick": 500,
+    "lod2__mud": 150,
+    "lod2__brick": 160
+   },
+   "box": [
+    [
+     -0.6875,
+     -0.023884695023298264,
+     -0.4400000274181366
+    ],
+    [
+     0.7362483143806458,
+     0.3251398205757141,
+     0.4400000274181366
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    1.4237483143806458,
+    0.3490245155990124,
+    0.8800000548362732
+   ],
+   "tex": 0
   }
  }
 }

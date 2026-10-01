@@ -59,7 +59,7 @@ describe('D-321 rev 2 arris bands', () => {
   });
   it('rev 4: a palace wall\'s joints: the grooves lie on the joints the shader draws (its CPU mirror)', () => {
     const w: Part = { type: 'box', building: 't', kind: 'wall', material: 'limestone', tier: 'C', src: 'RECON', c: [3, 7], size: [9, 1.2], y0: 0, y1: 6, rot: 0.4 } as any;
-    const b = buildMeshes([w]), J = SURFACES.limestone.joints!, faces = b.jointFaces;
+    const b = buildMeshes([w]), J = SURFACES.limestone.joints!, faces = b.jointFaces.filter(F => !F.pf); // (D-364: its top's slabs are arris_slabs.test.ts)
     expect(faces.length).toBeGreaterThan(3);
     let n = 0, worst = 0;
     for (const F of faces) {

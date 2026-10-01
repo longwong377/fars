@@ -438,6 +438,53 @@ def brick_patch(seed, W=0.9, H=0.38):
     br = mesh_from(V, F, K, f'bbr{seed}', recalc=False); smooth(br)
     return ring, br
 
+# ---- D-364 (session 15): the wall bodies' weathering, on every face of the town and the villages ---------------------------
+def repair_patch(seed, N=12):
+    # a repair: a handful of fresh mud plaster smeared over a worn place by hand and float. Unit footprint (x along the face
+    # 0..1, y up 0..1; the caller scales it to the patch), z out of the face in metres: ~6-10 mm proud in its body, lumpy
+    # with the float's arcs, the smeared rim standing a little higher, then a ragged edge feathered to the old face (z 0)
+    r = random.Random(seed); cx, cy = 0.5, 0.5
+    RINGS = [(0.0, 0.0085, 1.05), (0.6, 0.0078, 1.03), (0.88, 0.0085, 0.97), (1.0, 0.0, 0.9)]
+    edge = []
+    for s in range(N):
+        a = 2 * math.pi * s / N
+        q = 0.5 * (0.8 + 0.2 * (0.5 + nz((math.cos(a), math.sin(a), 0), 1.4, seed)) + 0.08 * (r.random() - 0.5))
+        edge.append(min(0.5, q))
+    V, F, K = [], [], []
+    V.append(G(cx, cy, RINGS[0][1] + 0.002 * nz((cx, cy, 0), 6, seed))); K.append(RINGS[0][2])
+    for (f, z0, k) in RINGS[1:]:
+        for s in range(N):
+            a = 2 * math.pi * s / N; R = edge[s] * f
+            x, y = cx + math.cos(a) * R, cy + math.sin(a) * R
+            z = z0 + (0.0025 * nz((x * 3, y * 3, 0), 2.0, seed + 1) + 0.0015 * math.sin((x * 9 + y * 4) + seed) if f < 1 else 0.0)
+            V.append(G(x, y, max(0.0, z))); K.append(k * (0.97 + 0.06 * (0.5 + nz((x, y, 2), 3.0, seed + 2))))
+    for s in range(N):
+        t = (s + 1) % N; F.append((0, 1 + s, 1 + t))
+    for ri in range(len(RINGS) - 2):
+        b0, b1 = 1 + ri * N, 1 + (ri + 1) * N
+        for s in range(N):
+            t = (s + 1) % N; F.append((b0 + s, b1 + s, b1 + t, b0 + t))
+    ob = mesh_from(V, F, K, f'rpatch{seed}', recalc=False); smooth(ob); return ob
+
+def rain_rill(seed, NX=5, NY=4):
+    # a rain gully down an exposed wall from a notch in its top: x across (-0.5..0.5, the caller scales it to 12-30 cm), y
+    # down the face (0 the bottom, 1 the top; the caller scales it to 0.6-1.6 m), z out of the face in metres. The water has
+    # washed the coat thin in the channel and left the silt in two soft lips beside it; the channel darker (wet, then dirt),
+    # narrowing to nothing at its foot
+    r = random.Random(seed); V, F, K = [], [], []
+    XS = [-0.5, -0.3, 0.0, 0.3, 0.5]; ZS = [0.0, 0.005, 0.001, 0.005, 0.0]; KS = [1.0, 1.05, 0.74, 1.05, 1.0]
+    for j in range(NY):
+        y = j / (NY - 1); w = 0.35 + 0.65 * y ** 0.6  # wider at the top
+        mx = 0.06 * nz((0, y * 2.5, 0), 1.0, seed)    # the channel wanders
+        for i in range(NX):
+            x = XS[i] * w + mx * (1 - abs(XS[i]))
+            z = ZS[i] * (0.4 + 0.6 * y) + (0.0008 * nz((x * 5, y * 7, 0), 1.0, seed + 1) if 0 < i < NX - 1 else 0.0)
+            V.append(G(x, y, z)); K.append(1.0 + (KS[i] - 1.0) * (0.35 + 0.65 * y) * (0.9 + 0.2 * r.random()))
+    for j in range(NY - 1):
+        for i in range(NX - 1):
+            a = j * NX + i; F.append((a, a + 1, a + NX + 1, a + NX))
+    ob = mesh_from(V, F, K, f'rill{seed}', recalc=False); smooth(ob); return ob
+
 def check_normals(name, ob):
     # the share of vertex normals pointing away from the piece's centre (an outward-wound closed piece: most of them)
     me = ob.data; c = sum((v.co for v in me.vertices), Vector()) / max(1, len(me.vertices))
@@ -461,6 +508,8 @@ def main():
     for s in range(2): obs[f'jamb{s}'] = jamb(71 + s)
     for s in range(4): obs[f'stone{s}'] = slab(81 + s)
     for s in range(2): obs[f'sill{s}'] = slab(91 + s, dip=0.3, name='sill')
+    for s in range(4): obs[f'rpatch{s}'] = repair_patch(141 + s)  # D-364
+    for s in range(3): obs[f'rill{s}'] = rain_rill(151 + s)
     pairs = {}
     for s in range(3): ring, br = brick_patch(101 + s); obs[f'bpl{s}'] = ring; obs[f'bbr{s}'] = br; pairs[f'bpl{s}'] = br; pairs[f'bbr{s}'] = ring
     # AO baked with each piece alone, on a ground plane where it stands on the ground (tannur) or against its wall (crest)
@@ -473,6 +522,8 @@ def main():
             bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 1.0, 1.0)); c = bpy.context.active_object; c.scale = (3, 1.0, 2.0); others.append(c)
         if name.startswith('plog'):  # the wall it comes out of (Blender z < POLE_LG - 5: the exposed end is ~5 radii)
             bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, POLE_LG - 5 - 20)); c = bpy.context.active_object; c.scale = (40, 40, 40); others.append(c)
+        if name.startswith('rpatch') or name.startswith('rill'):  # D-364: the wall face they lie on (game z = 0: Blender y = 0)
+            bpy.ops.mesh.primitive_plane_add(size=4, location=(0, 0.0005, 0.5), rotation=(math.pi / 2, 0, 0)); others.append(bpy.context.active_object)
         if name.startswith('tannur'):
             bpy.ops.mesh.primitive_plane_add(size=4, location=(0, 0, -0.06)); others.append(bpy.context.active_object)
         if name.startswith('crest'):
@@ -485,7 +536,7 @@ def main():
             bpy.data.objects.remove(o)
     out = {'about': 'D-311 house kit (tools/blender/housekit.py): pieces modelled and AO-baked in Blender 5 (Cycles, vertex AO), game axes y-up; tier C', 'pieces': {}}
     for name, ob in obs.items(): out['pieces'][name] = export(ob, name.startswith('leaf') or name.startswith('beam') or name.startswith('jamb'))
-    print('[housekit] outward normals', {k: round(check_normals(k, ob), 2) for k, ob in obs.items() if not k.startswith('bpl') and not k.startswith('bbr')})
+    print('[housekit] outward normals', {k: round(check_normals(k, ob), 2) for k, ob in obs.items() if not k.startswith('bpl') and not k.startswith('bbr') and not k.startswith('rpatch') and not k.startswith('rill')})
     with open(OUT, 'w') as f: json.dump(out, f, separators=(',', ':'))
     print('[housekit] wrote', OUT, {k: v['tris'] for k, v in out['pieces'].items()})
 
