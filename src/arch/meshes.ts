@@ -6,6 +6,7 @@ import { arrisEdgesOfBox, edgeSeed, aseedOf, ARRIS_MATS, type ArrisEdge } from '
 import { prismArrisGeometry, finishProtoEdges } from './arris_prism';
 import { verticalFaces, chunkFaces, type JointFace } from './arris_joints';
 import { planarFaces, planarBounds, planarWorld } from './arris_slabs';
+import { mudFace, HardIndex, MUD_MATS } from './mudface';
 /** D-364: the treads, risers and slabs of a dressed-stone part whose joints the near field grooves (arris_slabs.ts); a chunk whose
  *  every sample, 3 cm out of the face, lies inside another part (a riser's back against the next step, a slab under a floor) left out */
 function planarJointFaces(rg: THREE.BufferGeometry, p: Part, stair: [number, number, number, number] | undefined, index: PartIndex): JointFace[] {
@@ -534,6 +535,9 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   if (RE) RE.boxes.push(...wallFeet(parts)); // D-334: the wall feet (the floor coat or the skirting against the foot)
   const all: Part[] = RE ? [...parts, ...RE.boxes] : parts, edgeSet = new Set<Part>(RE?.boxes ?? []);
   const index = new PartIndex(all), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
+  // D-364 (B186): the mud-brick faces bowed by one world field (mudface.ts), faded against the parts set into them; not in flat
+  // mode (plan overlays) nor the Now view (no mud brick stands there)
+  const hard = flatMode || parts.some(p => (p as any).now) || (typeof process !== 'undefined' && process.env?.MUDFACE === '0') ? null : new HardIndex(all); // (MUDFACE=0, node: the A/B)
   const stairs = stairRows(parts), arris: ArrisEdge[] = [], jointFaces: JointFace[] = [];
   if (opts.dynamicDoors) bevelSwap.length = 0;
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
@@ -564,7 +568,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     // rev 4 (D-321): a dressed-stone prism's render geometry carries the arris attributes and records its free arrises
     const pa = p.type === 'prism' && ARRIS_MATS.has(p.material) ? prismArrisGeometry(p, index) : null;
     const fg = p.type === 'box' ? frames?.byPart.get(p) : undefined;
-    const plain = fg ?? g.clone(), rg = fg ?? (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : pa?.geo) ?? g.clone();
+    const plain = fg ?? g.clone(); let rg = fg ?? (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : pa?.geo) ?? g.clone();
     if (edgeSet.has(p)) { edgeAttributes(rg, p as Box); if (plain !== rg) edgeAttributes(plain, p as Box); } // D-334: the roof edges' own (no probes: ~4 k boxes)
     else { partAttributes(rg, p, index, stairs.get(p)); if (plain !== rg) partAttributes(plain, p, index, stairs.get(p)); }
     if (pa && p.type === 'prism') arris.push(...finishProtoEdges(p, p.material, pa.edges, rg));
@@ -572,6 +576,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     if (ARRIS_MATS.has(p.material) && !(p.type === 'box' && p.kind === 'step')) jointFaces.push(...chunkFaces(verticalFaces(rg, p.material, p.y1), stairs.get(p)).filter(F => !faceCovered(F, p, index))); // (a chunk against another part has no joints to show)
     if (ARRIS_MATS.has(p.material) && !fg) jointFaces.push(...planarJointFaces(rg, p, stairs.get(p), index)); // D-364: the treads, risers and slabs
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
+    if (hard && !fg && !edgeSet.has(p) && MUD_MATS.has(renderMaterial(p))) rg = mudFace(rg, hard, renderMaterial(p) === 'mudbrick_bare' ? 0.5 : 1); // D-364 (not the roof edges: the string course at the roof line covers the step; nor the wall feet)
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}${fg ? '|frame' : ''}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
