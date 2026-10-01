@@ -45,7 +45,9 @@ that no hour is spent reading, waiting or polishing.
    lead runs it on `s14-int` after merging you and puts the frames in fars-train/out/<run>/<name>/. While you wait, do your
    next item; never sit idle on a slot.
 5. **Slots:** every GPU job (probe pages too) through `node tools/dev/gpu_slot.mjs`; every heavy node job (soak, long vitest
-   files, bots, Blender bakes on the CPU) through `node tools/dev/cpu_slot.mjs <label> -- <cmd>`. Tests: only the files you
+   files, bots, Blender bakes on the CPU) through `node tools/dev/cpu_slot.mjs <label> -- <cmd>`; a job of more than ~10 min
+   with `LONG=1` (it may take one slot only; the other stays for short checks), and hours-long runs queued for the night.
+   Memory: one browser or Blender process of yours at a time (16 GB is shared; the session crashed once from it). Tests: only the files you
    touched or that import them (`npx vitest run <files>`); the lead runs the full suite overnight.
 6. **Done line and stop rules.** Your pack's done line is what a player would see (or a named threshold). Stop when it is
    met: no polish past it. A sub-goal that fails three measured approaches goes to BLOCKERS (your numbers) and you move on.
