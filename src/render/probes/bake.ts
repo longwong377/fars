@@ -192,7 +192,7 @@ export function probeSky(ctx: BakeContext, x: number, y: number, z: number): num
 
 const _smp = { w: 0, v: 0, s: new Float64Array(PROBE_STRIDE) };
 /** sky irradiance at a surface point per unit S (0 … 1): from the pass-0 field inside a volume, else cosine-weighted rays */
-function skyAt(ctx: BakeContext, px: number, py: number, pz: number, nx: number, ny: number, nz: number, seed: number): number {
+export function skyAt(ctx: BakeContext, px: number, py: number, pz: number, nx: number, ny: number, nz: number, seed: number): number {
   let fromField = 0, w = 0;
   if (ctx.sky) { const s = sampleField(ctx.sky, px, py, pz, nx, ny, nz, _smp); if (s && s.w > 0) { w = s.w; fromField = Math.max(0, s.s[0] + s.s[1] * nx + s.s[2] * ny + s.s[3] * nz); } }
   if (w >= 0.999) return fromField;
@@ -210,7 +210,7 @@ function skyAt(ctx: BakeContext, px: number, py: number, pz: number, nx: number,
   return w * fromField + (1 - w) * (esc / M);
 }
 /** direct sun at a surface point per unit horizontal sun irradiance, year-averaged (importance-sampled shadow rays) */
-function sunAt(ctx: BakeContext, px: number, py: number, pz: number, nx: number, ny: number, nz: number, seed: number): number {
+export function sunAt(ctx: BakeContext, px: number, py: number, pz: number, nx: number, ny: number, nz: number, seed: number): number {
   const K = ctx.o.sunRays, S = ctx.sun, r = h01(seed, 41, 7); let acc = 0;
   for (let k = 0; k < K; k++) {
     const j = pickSun(S, (k + r) / K), lx = S.dir[j * 3], ly = S.dir[j * 3 + 1], lz = S.dir[j * 3 + 2], c = nx * lx + ny * ly + nz * lz;
