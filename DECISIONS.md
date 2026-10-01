@@ -8886,3 +8886,41 @@ only seed 1 was run; the ask's 'speaker' and kids need the Population (AsksWorld
 
 ## D-353 — The black render was one giant first submit, not one object class (session 13, gpuhang)
 Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the world, every shot black). A bisect page load (tests/e2e/dbg_bisect.spec.ts: every top-level group hidden, then added cumulatively, two frames each, high, 1920x1080) rendered all 44 groups with no loss in 33 min (first frame per group: architecture 148 s, fire 447 s, settlement 97 s, weather-vfx 144 s, terrain 73 s; warm frames 0.3-0.5 s) and ended on a real full-world frame (shots/bisect-final.png, dawn-stair-top). So no single pass is over ~2 s once its pipelines are compiled; the hang is the first frames compiling ~1000 pipelines in one submit. Fix: `__parsa.warmUp()` (main.ts) shows the groups one at a time before the first shot; moments.spec calls it (NOWARM=1 skips). Not yet re-run through moments.spec itself; the 'ytop' warning and the stale impostor atlas (CPU bake fallback, ~12 s) were present in the good run too, so neither is the cause. A first reload of the page mid-run came from Vite re-optimising deps in a fresh worktree: use NOHMR=1.
+
+## D-362 The animals move like living things: secondary motion on every body, the birds' take-off morph and lit wingbeat (session 14, agent animalmotion; UD-11, UD-27; B179)
+- **Still broken, placeholder or unverified (lead):** no world render yet (train views requested: drum-road, small-spring-field,
+  ford-pulvar-sep). The goats' (goat, wild goat) short tails are fused to the quarters in their models (D-326): no tail motion
+  for them (B330). The ears turn their positions, not their normals (a flicked ear keeps its rest shading: small). The motion
+  has no memory: it builds and settles with the walk's own 0.5 s ramp, with no overshoot when an animal stops. The ground
+  birds' landing still jumps up to 2 m sideways (the next spot's jitter: sparrows, doves, the session-9 ground birds).
+- **What changed, world-wide.** Every animal the Animals class draws (the crowd's work animals and the fauna) gets a fourth
+  rig attribute, aJig, computed at load from the same anatomy as its other weights (animalRig.jigParts: "weights transferred",
+  no model rebuild): the soft tissue (the belly under the barrel, the cattle's dewlap from the throat to the brisket, the
+  udder, the camels' humps), each ear's lever from where it leaves the skull, the tail's lever along its chain, and the load's
+  lever below its top (the panniers and sacks; the pad, cloth and girth stay on the body). The vertex shader (and its CPU
+  mirror, animals.jiggle) moves them on the rest pose before the joints turn it: the belly swings once a stride and bobs
+  twice, lagging the gait; the ears nod with the stride and flick every 5-11 s (seeded per animal), rebounding and settling in
+  ~0.4 s; the tail swings as a chain whose tip lags its root; the panniers swing out from the flanks and surge with the
+  stride. All scaled by the walk, so standing they settle to breathing, flicks and the slow tail. The stand-ins carry the same
+  attribute. Constants JIG (C, by eye from the living animals). Closed form like the rest of the rig (D-054): a stepped
+  spring-damper would need per-animal memory the crowd and fauna do not keep (their animals are re-pushed every frame).
+- **The birds (B179, solved in the shader).** (1) The flying levels carry their standing twin's positions and normals (same
+  vertices and UVs: life_birds.py builds both poses from one topology); each bird's stand amount eases over BIRD_MORPH_S =
+  0.22 s, and in between the flying level draws the morph: the wings open as it lifts and fold as it lands, no level swap.
+  (2) Found on the way: the wingbeat ran on positionLocal, which three has already moved by the instance matrix, so the wing
+  span was measured from the world's x axis (every modelled bird away from x = 0 drew its wings wrong); it now runs on the
+  bird's own geometry and its displacement is carried by the instance's axes (one interleaved per-instance buffer: phase,
+  flap, stand, axes). (3) The normal turns with the wing (normalLocal), so a raised wing is lit as raised. (4) The wingbeat
+  phase was per draw slot, not per bird (a bird's beat jumped when others appeared): now per bird. (5) Position pops: the crow
+  flew from its midden's centre though it stood up to 6 m away (now from and to where it stands), the stork jumped from its
+  walk to 60 m up (now climbs from where it walked), the ground birds lifted 28 cm at once.
+- **Found on the way (jackals):** the call placing each jackal had been swallowed by a line comment, so every jackal was drawn
+  at the world's origin; and their legs swung along the world's z whatever way they faced (now along their own length).
+- **How this could pass its tests while the intent fails (clause 1), and what was measured against it:** the tests read the
+  CPU mirror, not the shader, and a centimetre number can be invisible. Measured in the GPU probe (tools/dev/motion_probe.*,
+  the game's own Animals and birdFlapNode): no WebGPU errors, the bodies whole, the crow at x = 200 m beating its wings in its
+  own frame, half-folded at stand 0.5. Cost: 200 modelled animals (919 k triangles), median frame 6.1-6.5 ms with the motion
+  vs 6.7-6.9 ms without (noise: no measurable cost, < 0.5 ms).
+- **Numbers (tests/animal_motion.test.ts, lod0, peak to peak):** belly walking 6-11 cm, standing 0.8-1.9 cm (breathing); ear
+  flick 1.8-8.4 cm, moving 1-6 % of the time; tail walking 8-57 cm (goats 0.3); load 8.8-11.4 cm walking, 0.0 standing; no edge
+  stretched past 3x + 2 cm. tests/bird_takeoff.test.ts: a flushed sparrow is drawn at stand 0.77 the next frame and flying by 0.5 s.

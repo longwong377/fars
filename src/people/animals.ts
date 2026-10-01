@@ -415,6 +415,8 @@ export const CART_AT: [number, number, number] = [0, 0, -(1.2 + 1.85 + 0.45 + 1.
  *  distance (the manifest's lod1At, m, from the eye given to begin); else its procedural stand-in (one level). */
 type Slot = { mesh: THREE.InstancedMesh; data: THREE.InterleavedBuffer; state: THREE.InterleavedBufferAttribute; gait: THREE.InterleavedBufferAttribute; rot: THREE.InterleavedBufferAttribute[]; coat: THREE.InterleavedBufferAttribute | null; n: number; box: THREE.Box3; tris: number };
 export class Animals {
+  /** D-362: the secondary motion on (the probe's cost measurement builds a set without it) */
+  static secondary = true;
   readonly group = new THREE.Group();
   private meshes = new Map<string, Slot>();
   private uTime = uniform(0);
@@ -462,7 +464,7 @@ export class Animals {
     const ll = Jg.w, sx = step(float(0), P0.x).mul(2).sub(1);
     jx = jx.add(sx.mul(ll).mul(JIG.loadL).mul(w).mul(max(sx.mul(sin(f.sub(1.0))), float(0))));
     jz = jz.add(ll.mul(JIG.loadZ).mul(w).mul(sin(f.mul(2).sub(1.6)))); jy = jy.add(min(ll.mul(10), float(1)).mul(JIG.loadV).mul(w).mul(sin(f.mul(2).sub(1.3))));
-    let p: any = rx(P0.add(vec3(jx, jy, jz)), a2, Pv.z, Pv.w); p = rx(p, a1, Pv.x, Pv.y);
+    let p: any = rx(Animals.secondary ? P0.add(vec3(jx, jy, jz)) : P0, a2, Pv.z, Pv.w); p = rx(p, a1, Pv.x, Pv.y);
     // Q-980: the poll's joint (the skull's weight is -aHT.y): grazing, it straightens the carriage by F.bend
     const skullW = max(H.y.negate(), float(0)), tailW = max(H.y, float(0)), as = skullW.mul(S.z).mul(-F.bend);
     p = rx(p, as, float(F.top.y), float(F.top.z));
