@@ -15,10 +15,11 @@ import { cerealClumpGeometry } from './cropForms';
 export interface NearCrops { mesh: THREE.Mesh; update(cam: THREE.Vector3, terrain: Terrain): boolean; count(): number }
 export function nearCrops(zm: ZoneMap, cropTex: THREE.DataTexture, day: any, wind: any, radius: number, spacing: number): NearCrops {
   const max_ = Math.ceil((Math.PI * radius * radius) / (spacing * spacing) * 1.05);
-  const g0 = cerealClumpGeometry(), g = new THREE.InstancedBufferGeometry(); for (const [k, a] of Object.entries(g0.attributes)) g.setAttribute(k, a); g.instanceCount = 0;
-  const inst = new THREE.InstancedBufferAttribute(new Float32Array(max_ * 4), 4); // row, offset days, seed, scale
-  const posA = new THREE.InstancedBufferAttribute(new Float32Array(max_ * 3), 3), sclA = new THREE.InstancedBufferAttribute(new Float32Array(max_ * 4), 4);
-  g.setAttribute('crop', inst); g.setAttribute('ipos', posA); g.setAttribute('iscl', sclA);
+  const mk = (g0: THREE.BufferGeometry, cap: number) => { const g = new THREE.InstancedBufferGeometry(); for (const [k, a] of Object.entries(g0.attributes)) g.setAttribute(k, a); g.instanceCount = 0;
+    const inst = new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4); // row, offset days, seed, scale
+    const posA = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3), sclA = new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4);
+    g.setAttribute('crop', inst); g.setAttribute('ipos', posA); g.setAttribute('iscl', sclA); return { g, inst, posA, sclA, cap, n: 0 }; };
+  const SN = mk(cerealClumpGeometry(), max_);
   const ipos = attribute('ipos', 'vec3'), iscl = attribute('iscl', 'vec4');
   const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
   const a = attribute('crop', 'vec4'), tip = attribute('tip', 'float'), ear = attribute('ear', 'float'), ebase = attribute('ebase', 'vec3');
@@ -52,28 +53,28 @@ export function nearCrops(zm: ZoneMap, cropTex: THREE.DataTexture, day: any, win
   const earCol = mix(vec3(0.16, 0.22, 0.07), vec3(0.52, 0.41, 0.2), clamp(straw.div(green.add(straw).max(0.01)), 0, 1));
   m.colorNode = mix(mix(baseCol, tipCol, tip), earCol, ear).mul(mx_noise_float(vec3(a.z.mul(40), 0, 0)).mul(0.15).add(1));
   m.roughnessNode = float(0.8);
-  const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-crops-near'; mesh.frustumCulled = false; mesh.receiveShadow = true;
+  const mesh = new THREE.Mesh(SN.g, m); mesh.name = 'plain-crops-near'; mesh.frustumCulled = false; mesh.receiveShadow = true;
   let last = new THREE.Vector3(1e9, 0, 1e9), n = 0;
   return { mesh, count: () => n,
     update(cam, terrain) {
       if (Math.hypot(cam.x - last.x, cam.z - last.z) < radius * 0.12) return false;
-      last = cam.clone(); n = 0;
+      last = cam.clone(); n = 0; SN.n = 0;
       const i0 = Math.floor((cam.x - radius) / spacing), i1 = Math.ceil((cam.x + radius) / spacing), j0 = Math.floor((cam.z - radius) / spacing), j1 = Math.ceil((cam.z + radius) / spacing);
       for (let i = i0; i <= i1 && n < max_; i++) for (let j = j0; j <= j1 && n < max_; j++) {
         const hh = hash2(cellU(i), cellU(j), 91);
         const x = (i + 0.5 + 0.8 * (unit(hh) - 0.5)) * spacing, z = (j + 0.5 + 0.8 * (unit(hash2(cellU(i), cellU(j), 92)) - 0.5)) * spacing;
-        if (Math.hypot(x - cam.x, z - cam.z) > radius) continue;
+        const dc = Math.hypot(x - cam.x, z - cam.z); if (dc > radius) continue;
         const u = landUseAt(zm, x, z);
         if (u.use === 'natural' || u.row === 'orchard_floor') continue;
         if (u.plot.edge < 0.35 || u.plot.dEdge < 1.6) continue; // bunds and district tracks stay clear
         if (u.row === 'vineyard') { // vines only in their rows (2.5 m apart), as the shader draws them
           const across = ((x - u.plot.dSeed[0]) * Math.cos(u.plot.angle) + (z - u.plot.dSeed[1]) * Math.sin(u.plot.angle));
           const fr = ((across / 2.5) % 1 + 1) % 1; if (Math.abs(fr - 0.5) > 0.12) continue; } // the shader's rows are centred where fract = 0.5
-        posA.setXYZ(n, x, terrain.heightAt(x, z), z); sclA.setXYZW(n, 1, 1, 1, unit(hh) * 6.283);
-        inst.setXYZW(n, u.rowIndex, u.offsetDays, unit(hash2(cellU(i), cellU(j), 93)), 0.8 + 0.4 * unit(hash2(cellU(i), cellU(j), 94)));
-        n++;
+        const S = SN, k = S.n++; n++; void dc;
+        S.posA.setXYZ(k, x, terrain.surfaceAt(x, z), z); S.sclA.setXYZW(k, 1, 1, 1, unit(hh) * 6.283); // (the drawn surface, D-356)
+        S.inst.setXYZW(k, u.rowIndex, u.offsetDays, unit(hash2(cellU(i), cellU(j), 93)), 0.8 + 0.4 * unit(hash2(cellU(i), cellU(j), 94)));
       }
-      g.instanceCount = n; posA.needsUpdate = sclA.needsUpdate = inst.needsUpdate = true;
+      for (const S of [SN]) { S.g.instanceCount = S.n; S.posA.needsUpdate = S.sclA.needsUpdate = S.inst.needsUpdate = true; }
       return true;
     } };
 }

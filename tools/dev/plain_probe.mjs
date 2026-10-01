@@ -22,8 +22,7 @@ const p = await b.newPage({ viewport: { width: 1280, height: 720 } }); const log
 p.on('console', m => { if (m.text().startsWith('[stage]')) console.log(m.text()); if (m.type() === 'error' || m.type() === 'warning') logs.push(m.type() + ' ' + m.text().slice(0, 300)); }); p.on('pageerror', e => logs.push('pageerror ' + e));
 const t0 = Date.now();
 await p.goto('http://localhost:' + (process.env.E2E_PORT ?? '5291') + '/tools/dev/plain_probe.html' + URLX, { timeout: 600000, waitUntil: 'domcontentloaded' });
-try { await p.waitForFunction(() => window.__ready, null, { timeout: +(process.env.READY_S ?? 900) * 1000 }); } catch (e) { console.log('not ready:', await p.evaluate(() => window.__stage)); console.log(logs.join('
-')); await b.close(); process.exit(1); }
+try { await p.waitForFunction(() => window.__ready, null, { timeout: +(process.env.READY_S ?? 900) * 1000 }); } catch (e) { console.log('not ready:', await p.evaluate(() => window.__stage)); console.log(logs.join(String.fromCharCode(10))); await b.close(); process.exit(1); }
 console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) / 1000, 's');
 if (await p.evaluate(() => window.__ready) !== true) { console.log(logs.join('\n')); await b.close(); process.exit(1); }
 for (const v of V) { if (ONLYV && !ONLYV.includes(v.n)) continue;

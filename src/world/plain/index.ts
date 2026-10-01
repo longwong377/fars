@@ -38,12 +38,14 @@ import type { TownPlan } from '../settlement/plan';
  *  mid ring of per-tree impostors (orchards, woodland) ends here; maxMid: its instances at most (D-120). r3 is 0.9x the
  *  D-120 radii since D-149: LOD1 has 120 smaller leaf-cluster cards (was 80; 368 triangles, was 288), and the 19%
  *  smaller ring pays for them (village P22 at high: 1,979 3-D trees, 0.82 M triangles at r3 250 m) */
+/** D-356: the near crops are modelled cereal clumps (cropForms.ts, 36 triangles, was 10): their radius and spacing traded so the
+ *  frame stays in D-040's budget */
 export const PLAIN_QUALITY: Record<Quality, { r3: number; maxNear: number; cropR: number; cropStep: number; lod0R: number; rMid: number; maxMid: number }> = {
-  test: { r3: 145, maxNear: 700, cropR: 18, cropStep: 0.42, lod0R: 30, rMid: 450, maxMid: 14000 },
-  low: { r3: 180, maxNear: 900, cropR: 20, cropStep: 0.45, lod0R: 35, rMid: 550, maxMid: 18000 },
-  medium: { r3: 200, maxNear: 1300, cropR: 24, cropStep: 0.4, lod0R: 40, rMid: 700, maxMid: 24000 },
-  high: { r3: 225, maxNear: 1800, cropR: 30, cropStep: 0.36, lod0R: 50, rMid: 900, maxMid: 32000 },
-  ultra: { r3: 290, maxNear: 2600, cropR: 38, cropStep: 0.33, lod0R: 70, rMid: 1200, maxMid: 44000 },
+  test: { r3: 145, maxNear: 700, cropR: 15, cropStep: 0.5, lod0R: 30, rMid: 450, maxMid: 14000 },
+  low: { r3: 180, maxNear: 900, cropR: 17, cropStep: 0.52, lod0R: 35, rMid: 550, maxMid: 18000 },
+  medium: { r3: 200, maxNear: 1300, cropR: 20, cropStep: 0.48, lod0R: 40, rMid: 700, maxMid: 24000 },
+  high: { r3: 225, maxNear: 1800, cropR: 22, cropStep: 0.45, lod0R: 50, rMid: 900, maxMid: 32000 },
+  ultra: { r3: 290, maxNear: 2600, cropR: 28, cropStep: 0.42, lod0R: 70, rMid: 1200, maxMid: 44000 },
 };
 /** trees that cast shadows: the nearest SHADOW_N within SHADOW_R m of the camera; at most MAX_LOD0 at full detail */
 const SHADOW_N = 400, SHADOW_R = 120, MAX_LOD0 = 300;
