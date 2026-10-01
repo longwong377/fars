@@ -75,7 +75,7 @@ first), session close (sessions/s14.md, branches merged or abandoned, push verif
 | 2-3 | bodies | shape keys for every body (3b), jiggle-bone rig for secondary motion (3c), garments re-draped per shape band, the impostor atlas re-baked (stale today: the CPU fallback costs ~12 s of load) |
 | 4-5 | reliefs | relief paint as thin pigment on carved stone; the 21 of 41 relief kinds not yet from photographs |
 | 1 (now) | animalmotion | secondary motion for all 34 animals (bellies, dewlaps, ears, tail chains, pack loads) and birds' take-off blend (B179) |
-| 2-3 | columns2 | griffin and lion protome capitals; one member per column order; 2-3 shaft tile variants; carving in the silhouette near the eye (B166, B167); lamassu heads if the blender package leaves them |
+| 1-2 | monuments (was columns2; D-365) | the colossi and capitals from licensed scans or a photo-driven re-sculpt (B118), plus griffin and lion protome capitals; one member per column order; 2-3 shaft tile variants; carving in the silhouette near the eye (B166, B167); lamassu heads if the blender package leaves them |
 | 4-5 | peoplemotion | secondary motion on hair, beards, sash ends, tassels, jewellery and carried loads in the bodies' spring pass; hair cards beyond 25 m, the bob no longer a helmet (B151) — after bodies |
 | 4-5 | drape2 | posed drape (seated, kneeling, carrying; B123); 2-3 fold variants per group and real panel patterns (B149); fold normal maps under the triangle cap (B148) — after bodies |
 | 4-5 | windcloth | cloth loops baked as vertex-animation textures for tents, awnings, banners and laundry, driven by the weather's wind — after fill places the awnings, banners and lines |
