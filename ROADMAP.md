@@ -44,7 +44,7 @@ render train), with every unmet id listed. Thresholds are not lowered.
 8. **Tests:** agents run only related tests; `test:fast` (< 5 min) gates merges; `test:slow` runs overnight.
 
 ## Waves (each line is one agent; G = needs a GPU slot, B = Blender, N = node only)
-**Wave 1 — day 1 (launched 2026-10-01):** load (G) · frame (G) · plain (G) · light (B) · simtalk (N) · visible (N) · simhealth (N)
+**Wave 1 — day 1 (launched 2026-10-01):** load (G) · frame (G) · plain (G) · light (B) · blender (B) · simtalk (N) · visible (N) · simhealth (N)
 **Wave 2 — day 2-3 (as wave 1 lands; packs written from the day-1 train):**
 - surfaces (G): grime, wear, large-scale variation on every material (scans.ts, masonry.ts, blockface.ts, materials.ts) — after frame
 - walls (B): Terrace walls/floors/steps and palace + house wall bodies as kit meshes with LODs and impostors — after light
@@ -63,6 +63,17 @@ render train), with every unmet id listed. Thresholds are not lowered.
 area in one train, one blind review against references/; two agents on the worst findings.
 **Day 7 — finish:** integration, perf tiers (medium default if high misses 30 fps), download size, FINAL_REPORT.md (broken
 first), session close (sessions/s14.md, branches merged or abandoned, push verified).
+
+## The Blender work, by day (UD-20: "all of it, for everywhere")
+| Day | Package | Blender work |
+|---|---|---|
+| 1 | light | Cycles lightmaps (AO, sky, bounce) for the Terrace, palaces and town houses; outdoor probe grid |
+| 1 | blender | --verify reproducibility; colossi and capitals re-carved from the photographs (B118); the far Terrace level and impostor (B175) |
+| 2-3 | walls | Terrace walls, floors and steps and palace and house wall bodies as kit meshes with LODs and impostors (the largest share of the screen still primitives) |
+| 2-3 | bodies | shape keys for every body (3b), jiggle-bone rig for secondary motion (3c), garments re-draped per shape band, the impostor atlas re-baked (stale today: the CPU fallback costs ~12 s of load) |
+| 4-5 | reliefs | relief paint as thin pigment on carved stone; the 21 of 41 relief kinds not yet from photographs |
+| nights | (GPU slots) | the long Cycles bakes queue overnight through gpu_slot.mjs |
+Every BLENDER_PLAN row is then built world-wide; the rows already done in session 12 (animals, flora, frames, tents, birds, Ajori, Naqsh, columns, props) get fixes only where the train shows a fault.
 
 ## The lead's loop (every ~20 min)
 Check agents and slots → merge what landed into s14-int (guards + related tests) → launch the next package from the queue →
