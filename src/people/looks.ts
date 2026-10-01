@@ -134,7 +134,12 @@ export interface LookInput { id: number; sex: 'm' | 'f'; role: string; dress: Dr
    *  no beard (the beardless attendants of the reliefs), a fixed stature (the king: fitted to the throne, anim ENTHRONED) */
   pieces?: string[]; beardless?: boolean; stature?: number;
   /** D-363: the life the body is drawn from (age, labour, means, illness, children borne, nursing); absent values from the role and dress */
-  life?: BodyLife }
+  life?: BodyLife;
+  /** D-363 hook for the wardrobes (D-345, wardrobe/world.ts outfitAt): the day's chosen set and garments. Each garment's
+   *  dye (a DYES key), dirt (hem soil) and wear (fading) replace the seeded draw for its slot: body → main, legs and over →
+   *  second; the best set wears its dye strong, mourning the plainest (C). Applied after every seeded draw (no draw is
+   *  consumed): a person without it looks as before */
+  outfit?: { set?: 'work' | 'best' | 'mourning' | 'sleep'; garments?: { slot: string; dye: string; dirt: number; wear: number }[] } }
 /** the delegations of the Apadana reliefs (D-199): dress, pieces, beard, dyes and gifts per people */
 export interface DelegationDef { id: string; origin: string; relief: string; dress: Dress; pieces: string[]; beard: 'long' | 'short' | 'none'; dyes: { main: string[]; second: string[]; trim: string[] }; gifts: [string, string][]; note: string }
 export const DELEGATIONS: DelegationDef[] = (delegationsData as any).peoples;
@@ -261,6 +266,11 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   col.main = garment(mainK, sMain); col.second = garment(secondK, sMain + rng.range(-0.25, 0.25)); col.trim = garment(trimK, sMain + rng.range(-0.2, 0.2));
   const wear: Wear = { fade: age, soil, fit: rng.range(-0.004, 0.022), foldAmp: rng.range(0.012, 0.026), foldPhase: rng.next(), k: [DYES[mainK].fade, DYES[secondK].fade, DYES[trimK].fade], hat: 0 };
   wear.hat = rng.range(-0.12, 0.12);
+  if (p.outfit?.garments?.length) { const o = p.outfit, sSet = o.set === 'best' ? Math.min(1, sMain + 0.3) : o.set === 'mourning' ? sMain * 0.4 : sMain;
+    const by = (slots: string[]) => o.garments!.find(g => slots.includes(g.slot) && DYES[g.dye]);
+    const gm = by(['body']), gs = by(['legs', 'over']);
+    if (gm) { mainK = gm.dye; col.main = dyeColour(mainK, sSet, gm.wear); wear.fade = gm.wear; wear.soil = Math.max(gm.dirt, 0.5 * wear.soil); wear.k[0] = DYES[mainK].fade; }
+    if (gs && gs.dye !== mainK) { secondK = gs.dye; col.second = dyeColour(secondK, sSet, gs.wear); wear.k[1] = DYES[secondK].fade; } }
   const hl = rng.range(0.85, 1.3); col.hair = col.hair.map(x => Math.min(0.2, x * hl)) as RGB;
   // D-215 (gap audit item 21; new draws last): ornaments by rank, the guards' wicker shield and eye paint for the court
   // (the placement by rank is C; the things: JEWELS)
