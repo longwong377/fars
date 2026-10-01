@@ -26,7 +26,8 @@ render train), with every unmet id listed. Thresholds are not lowered.
 - **Health:** tsc 23 errors (tools/dev/audit_d only); guards pass; people_days files take hours; board 0 PASS.
 
 ## How the agents work (the operating model; handoff/agent_template.md "Operating model")
-1. **Ready queue, disjoint ownership.** Every package below is pre-briefed (handoff/briefs/s14/packs.json →
+1. **At most 4 agents at once on the 16 GB box** (session 14: nine crashed the session and froze the app for hours); free memory checked before each launch; agents commit every 30 min.
+   **Ready queue, disjoint ownership.** Every package below is pre-briefed (handoff/briefs/s14/packs.json →
    `node tools/dev/brief.mjs`) with the files it owns; packages running together never own the same file. A finished
    agent is replaced from the queue within the lead's next check (~20 min).
 2. **Context packs, not records.** Each brief carries entry points, the ids that matter, commands and a player-visible done
