@@ -5,6 +5,17 @@ import { ADIST_OFF } from '../render/blockface';
 import { arrisEdgesOfBox, edgeSeed, aseedOf, ARRIS_MATS, type ArrisEdge } from './arris';
 import { prismArrisGeometry, finishProtoEdges } from './arris_prism';
 import { verticalFaces, chunkFaces, type JointFace } from './arris_joints';
+import { planarFaces, planarBounds, planarWorld } from './arris_slabs';
+/** D-364: the treads, risers and slabs of a dressed-stone part whose joints the near field grooves (arris_slabs.ts); a chunk whose
+ *  every sample, 3 cm out of the face, lies inside another part (a riser's back against the next step, a slab under a floor) left out */
+function planarJointFaces(rg: THREE.BufferGeometry, p: Part, stair: [number, number, number, number] | undefined, index: PartIndex): JointFace[] {
+  if (p.type === 'column') return [];
+  const PB = rg.getAttribute('pbox'), pbox: [number, number, number, number] = PB ? [PB.getX(0), PB.getY(0), PB.getZ(0), PB.getW(0)] : [0, 0, -1, -1];
+  return planarFaces(rg, p.material, stair).filter(pf => { const [u0, u1, v0, v1] = planarBounds(pf);
+    for (const fu of [0.1, 0.5, 0.9]) for (const fv of [0.1, 0.5, 0.9]) { const q = planarWorld(pf, u0 + (u1 - u0) * fu, v0 + (v1 - v0) * fv).addScaledVector(pf.N, 0.03); if (!index.inside(q.x, q.y, q.z, p)) return true; }
+    return false; })
+    .map(pf => ({ n: pf.N, d: pf.d, t0: 0, t1: 0, y0: p.y0, y1: p.y1, surf: p.material, y0attr: pf.y0, pbox, ytop: p.y1, stair, pf }));
+}
 /** rev 4: a wall chunk every sample of which lies against (3 cm in front of it is inside) another part */
 function faceCovered(F: JointFace, p: Part, index: PartIndex): boolean {
   for (const ft of [0.1, 0.5, 0.9]) for (const fy of [0.1, 0.5, 0.9]) { const t = F.t0 + (F.t1 - F.t0) * ft, y = F.y0 + (F.y1 - F.y0) * fy, x = F.n.z * t + F.n.x * (F.d + 0.03), z = -F.n.x * t + F.n.z * (F.d + 0.03);
@@ -559,6 +570,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     if (pa && p.type === 'prism') arris.push(...finishProtoEdges(p, p.material, pa.edges, rg));
     // rev 4: the joints of its vertical faces, grooved near the eye (the steps: stairJointEdges below)
     if (ARRIS_MATS.has(p.material) && !(p.type === 'box' && p.kind === 'step')) jointFaces.push(...chunkFaces(verticalFaces(rg, p.material, p.y1), stairs.get(p)).filter(F => !faceCovered(F, p, index))); // (a chunk against another part has no joints to show)
+    if (ARRIS_MATS.has(p.material) && !fg) jointFaces.push(...planarJointFaces(rg, p, stairs.get(p), index)); // D-364: the treads, risers and slabs
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}${fg ? '|frame' : ''}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)

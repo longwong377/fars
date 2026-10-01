@@ -859,6 +859,9 @@ function layer(d: SurfaceDef, base: any, arch = false, band = false): Layer {
     // faces, terrace_foot, whose joints are the blocks' edges)
     const jOk = vs.mul(float(1).sub(isStep)).mul(d.blockFace === 'rough' ? 0 : 1);
     jd = mix(float(1e3), min(W.dBed, W.dHead), jOk);
+    // D-364 (arch/arris_slabs.ts): the stairs' treads and risers and the up-facing slabs are grooved near the eye too (not a surface
+    // drawn under another top, nor the rough foot)
+    if (arch && !d.top && d.blockFace !== 'rough') jd = min(jd, mix(float(1e3), min(dB, dH.add(float(1).sub(headMask).mul(1e3))), step(0.5, jmask).mul(float(1).sub(jOk))));
     // (the band draws the joint's rounded arrises as geometry: no lip tilt there)
     tilt = T1.mul(sH.mul(lipH)).add(T2b.mul(sB.mul(lipB))).mul(-ARRIS_K).mul(jmask).mul(SURF_AB).mul(band ? float(1).sub(step(jd, JOINT_W)) : float(1));
     alb = alb.mul(blockToneFactor(J, d, ids));
