@@ -32,6 +32,12 @@ const LAUNDRY_HOUSE = /washing (the household’s clothes|clothes) at the water/
 export interface Garment { id: string; hh: number; owner: number; kind: GarmentKind; slot: Slot; quality: Quality; dye: string; from: number; to: number }
 export interface GarmentState { id: string; kind: GarmentKind; slot: Slot; dye: string; quality: Quality; dirt: number; wear: number; tier: 'A' | 'B' | 'C' }
 export type SetKind = 'work' | 'best' | 'mourning' | 'sleep';
+/** D-359: one garment of the day's choice, as it stands at rising */
+export interface DayPiece { id: string; kind: GarmentKind; dye: string; quality: Quality; dirt: number; wear: number; tier: 'A' | 'B' | 'C' }
+/** D-359 (for the render: the crowd's dress per person per day, read by the people agent's renderer): the set chosen at rising
+ *  (work, best for a wedding or a festival, mourning) and the garment of each slot (body, legs, head) with its dye, quality and
+ *  its dirt and wear at rising; `over`: the person's own cloak or kandys, put on in the cold (outfitAt has it by the hour) */
+export interface DayGarments { pid: number; day: number; set: SetKind; body?: DayPiece; legs?: DayPiece; head?: DayPiece; over?: DayPiece }
 export interface OutfitAt { pid: number; day: number; hour: number; state: 'dressed' | 'sleeping'; set: SetKind; garments: GarmentState[] }
 /** the economy's hand on the wardrobe (to be called by src/people/economy later): each call is a dated ledger event */
 export type LedgerEvent =
@@ -189,6 +195,18 @@ export class Wardrobes {
   }
   /** a garment's dirt and wear at the end of a day (for tests and the overlay) */
   stateAtEnd(hh: number, day: number, id: string) { return this.dayRec(hh, day).end.get(id); }
+  /** D-359: the day's garment choice of a person (null: not of a household with a wardrobe that day) */
+  garmentsOn(pid: number, day: number): DayGarments | null {
+    const hh = this.pop.home(pid, day), rec = this.dayRec(hh, day), ch = rec.sets.get(pid); if (!ch) return null;
+    const gs = this.garments(hh, day), byId = new Map(gs.map(g => [g.id, g]));
+    const piece = (g: Garment): DayPiece => { const x = rec.start.get(g.id) ?? { dirt: 0, wear: 0 }; return { id: g.id, kind: g.kind, dye: g.dye, quality: g.quality, dirt: +x.dirt.toFixed(3), wear: +x.wear.toFixed(3), tier: GARMENTS[g.kind].tier }; };
+    const out: DayGarments = { pid, day, set: ch.set };
+    for (const id of ch.ids) { const g = byId.get(id); if (g && (g.slot === 'body' || g.slot === 'legs' || g.slot === 'head')) out[g.slot] = piece(g); }
+    const ov = gs.find(g => g.owner === pid && g.slot === 'over'); if (ov) out.over = piece(ov);
+    return out;
+  }
+  /** D-359: the day's garment choices of many people at once (the render asks for the people near the camera) */
+  dayExport(day: number, pids: Iterable<number>): DayGarments[] { const out: DayGarments[] = []; for (const pid of pids) { const g = this.garmentsOn(pid, day); if (g) out.push(g); } return out; }
   /** the day's chosen set of a person (their garments at rising) */
   daySet(pid: number, day: number) { return this.dayRec(this.pop.home(pid, day), day).sets.get(pid); }
 }

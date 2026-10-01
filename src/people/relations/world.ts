@@ -42,7 +42,10 @@ export type PlayerAct = 'talk' | 'gift' | 'help' | 'slight' | 'court' | 'propose
 export interface Meet { day: number; kind: 'court' | 'negotiate' | 'lovers'; a: number; b: number; c?: number; hostKin?: number }
 export interface ActResult { ok: boolean; why: string; cutAway?: boolean; weddingDay?: number }
 interface Ledger { day: number; pid: number; act: PlayerAct; res?: ActResult }
-export interface RelOpts { econ?: (i: Intent) => void; player?: { sex: 'm' | 'f'; age: number }; ablate?: boolean }
+export interface RelOpts { econ?: (i: Intent) => void; player?: { sex: 'm' | 'f'; age: number }; ablate?: boolean;
+  /** D-359 (B226): this layer's weddings join the population (Population.addWedding: the bride lives in the groom's house and
+   *  both houses keep the wedding day); set by the living world when it steps this layer (living/world.ts) */
+  joinPop?: boolean }
 
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
 const key = (a: number, b: number) => a < b ? a * 262144 + b : b * 262144 + a;
@@ -55,6 +58,8 @@ export class Relations {
   readonly pregnancies: Pregnancy[] = [];
   /** the meetings of each day, laid into the plans by plans.ts */
   readonly meets = new Map<number, Meet[]>();
+  /** D-359: weddings of this layer joined to the population (opts.joinPop) */
+  joined = 0;
   private edges: [number, number, Kind][] = [];
   private contacts = new Map<number, number[]>();
   /** marriages: pid → [from, to, spouse][] (to = 1e9 while it lasts) */
@@ -294,7 +299,7 @@ export class Relations {
     const hw = woman === PLAYER ? this.homeOf(man, d) : this.homeOf(woman, d), hm = man === PLAYER ? hw : this.homeOf(man, d); // (the stranger has no house: he or she joins the spouse's)
     const e = this.ev(d, 'wed', pr, man, woman, 'married: she goes to his house with her dowry');
     if (man === PLAYER || woman === PLAYER) this.move(PLAYER, d, man === PLAYER ? hw : hm);
-    else if (hm !== hw) { this.move(woman, d, hm); const dw = REL.dowry[this.wealth(hw)]; if (dw) this.intent({ kind: 'help', from: `h:${hw}`, to: `h:${hm}`, day: d, payload: { cash: dw, src: 'relations', what: 'dowry', ev: e.id } }); }
+    else if (hm !== hw) { this.move(woman, d, hm); if (this.opts.joinPop) this.joined += this.pop.addWedding(woman, man, d, hm) ? 1 : 0; const dw = REL.dowry[this.wealth(hw)]; if (dw) this.intent({ kind: 'help', from: `h:${hw}`, to: `h:${hm}`, day: d, payload: { cash: dw, src: 'relations', what: 'dowry', ev: e.id } }); }
   }
   private divorce(pr: Pair, d: number) {
     const P = this.pop, woman = this.sexOf(pr.a) === 'f' ? pr.a : pr.b, man = woman === pr.a ? pr.b : pr.a;

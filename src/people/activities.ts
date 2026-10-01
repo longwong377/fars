@@ -102,6 +102,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-209: a man of the town leading the beast for his sacrifice to the precinct (Herodotus 1.132: B claim; C)
       { when: /leading a sheep/, animals: { kind: 'string', species: ['sheep'], n: 1, pace: 1.0 }, note: 'leading a sheep on a rope to the precinct for a sacrifice (Herodotus 1.132, a Greek claim: B; C)' },
+      // D-359: the draught ox or the ewes bought at the exchange after a loss (economy/plans.ts animal_bought)
+      { when: /leading the new ox home/, animals: { kind: 'string', species: ['ox'], n: 1, pace: 0.9 }, note: 'leading home on a rope the draught ox bought to replace the one the house lost (C: D-359)' },
+      { when: /driving the ewes home/, animals: { kind: 'string', species: ['sheep', 'sheep', 'sheep'], n: 3, pace: 0.9 }, note: 'driving home the ewes bought to make up the flock after a loss (C: D-359)' },
       { when: /leading a goat/, animals: { kind: 'string', species: ['goat'], n: 1, pace: 1.0 }, note: 'leading a goat on a rope to the precinct for a sacrifice (C)' },
       { when: /string of pack|pack train/, animals: { kind: 'string', species: ['donkey_pack', 'donkey_pack', 'mule_pack', 'donkey_pack', 'donkey_pack'], n: 5, pace: 1.0 },
         note: 'a driver leading a string of five pack animals nose to tail, donkeys and a mule with panniers and sacks (pack donkeys: POTTS2023, B; mules: population.json, C; strings of five, the loads and the pace C)' },
@@ -124,6 +127,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
         note: 'a carter walking ahead of his yoked oxen and their cart of grain sacks on the road (carts silent at Persepolis, Assyrian reliefs B analogy; draught cattle Q-193; C)' }] },
   carry_sack: { anim: 'carry_shoulder', moving: true, prop: 'sack', sound: 'footsteps', tier: 'B', note: 'sack on the shoulder (porters on the tribute reliefs carry skins and bags: B)',
     variants: [
+      // D-359: the household's washing taken to the water in a basket (wardrobe/washing.ts)
+      { when: /the washing/, anim: 'carry_front', prop: 'basket', note: 'carrying the household’s clothes to the water and back in a basket held before her (C: D-359)' },
+      { when: /bundles of brushwood|the fuel/, note: 'carrying bundles of brushwood or a sack of dung cakes over the shoulder (C: D-359)' },
       { when: /the catch|the nuts|the acorns|the birds|the garlic|the honey/, note: 'carrying home what the day gathered, in a bag over the shoulder: the fish, the nuts or acorns, the snared birds, the wild garlic, the combs in a covered pot (C: D-256)' },{ when: /loading the donkeys|unloading the donkeys|pitching the tents|loading the animals|unloading the party/, animals: { kind: 'beside', species: ['donkey_pack'] },
       note: 'loading or unloading the pack donkeys by the tents, a loaded donkey standing by (E-49 “herders, dogs and donkeys”; C)' }] },
   carry_jar: { anim: 'carry_shoulder', moving: true, prop: 'jar', sound: 'footsteps', tier: 'B', note: 'jar on the shoulder (tribute reliefs: B)' },
@@ -153,7 +159,11 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     // session 10 (D-283; gap hunter C, C-D28): the wine and beer rations drunk in company of an evening, the jar on the ground
     // between them (wine and beer issued to workers: E-02, PF 50, A; the Persians "very fond of wine", Hdt 1.133, B claim; the
     // company and the jar C)
-    variants: [{ when: /a jar of (beer|wine)/, work: [{ kind: 'jar', at: [0.5, 0, 0.4] }], note: 'drinking the ration in company of an evening, a jar of beer or wine set on the ground between them, poured into cups in turn (the rations: E-02, A; the evening company C: D-283)' }] },
+    variants: [
+      // D-359: the economy's visits (economy/plans.ts): silver weighed at the lender's, the pledge handed over, barley brought
+      { when: /loan of silver; it is weighed out|seeing it weighed/, work: [{ kind: 'weigh_table', at: [0.55, 0, 0.5] }], note: 'at a lender’s house: the silver weighed out on a hand balance on a low table between them, the terms said before a witness (silver loans with interest: the Babylonian loan texts, B analogy; C: D-359)' },
+      { when: /handing over the pledge|^bringing barley/, work: [{ kind: 'jar', at: [0.5, 0, 0.45] }], note: 'at another house, a jar set down between them: the pledge for an unpaid debt handed over, or barley brought in it (C: D-359)' },
+      { when: /a jar of (beer|wine)/, work: [{ kind: 'jar', at: [0.5, 0, 0.4] }], note: 'drinking the ration in company of an evening, a jar of beer or wine set on the ground between them, poured into cups in turn (the rations: E-02, A; the evening company C: D-283)' }] },
   rest: { anim: 'sit', tier: 'C', note: 'sitting and resting' },
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
   inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)' },
@@ -176,13 +186,27 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   // Phase 5 (D-021): performed with existing poses
   queue: { anim: 'idle', tier: 'C', note: 'standing in the queue at a ration issue (E-01: the group queues and receives its grain; standing C)' },
   exchange: { anim: 'talk', prop: 'basket', sound: 'murmur', tier: 'C', note: 'exchanging goods in kind with a basket in hand (no coins: blocklist coins-everyday; C)',
-    variants: [{ when: /from a tray/, anim: 'sit', prop: 'basket_lap', note: 'a woman selling her wares from a tray at her door in the lane, for barley or oil in kind (D-211; lanes as working space: analogy, C)' }] },
+    variants: [
+      // D-359 (B235): the haggled deals walked to the market ground (economy/plans.ts): the selling house's stall, the buyer at it
+      { when: /^selling barley from a stall/, anim: 'sit', prop: 'bowl', work: [{ kind: 'grain_heap', at: [0, 0, 0.8] }, { kind: 'jar', at: [0.75, 0, 0.3] }],
+        note: 'a seller sitting at a stall on the market ground, barley poured out of the sacks in a heap before them, a bowl to measure it out, a jar by them; a buyer stands haggling (exchange in kind and in silver by weight, no coins: lives.json, B by analogy with the Babylonian market texts; the stall, the heap and the measure C: D-359)' },
+      { when: /^selling brushwood/, anim: 'sit', prop: undefined, work: [{ kind: 'brushwood', at: [0, 0, 0.8] }, { kind: 'dung_cakes', at: [0.85, 0, 0.25] }],
+        note: 'a seller sitting at a stall on the market ground by bundles of brushwood and a stack of dried dung cakes for the hearth; a buyer stands haggling (C: D-359)' },
+      { when: /^haggling/, note: 'a buyer standing at a stall (or in the seller’s doorway) haggling with a basket in hand: offer, refusal, a gesture at the goods, counter-offer, until the price is agreed (the haggle itself: speech/haggle.ts, D-351; C: D-359)' },
+      { when: /^exchanging silver for barley|^exchanging for brushwood/, note: 'a buyer at the exchange with a basket to carry the barley or the fuel home, silver weighed out against it (exchange in kind and silver by weight: lives.json; C: D-359)' },
+      { when: /^exchanging a jar and a cloth/, prop: 'jar', note: 'a house selling its own things at the exchange: a jar held out, a cloth over the arm (C: D-359)' },
+      { when: /from a tray/, anim: 'sit', prop: 'basket_lap', note: 'a woman selling her wares from a tray at her door in the lane, for barley or oil in kind (D-211; lanes as working space: analogy, C)' }] },
   lie_ill: { anim: 'sleep', tier: 'C', note: 'lying ill on a mat at home (E-72 sickness; C)' },
   // ============================================ the abstract population's work (D-142; every motion C)
   haul: { anim: 'haul', prop: 'rope', tier: 'C', work: [{ kind: 'drum_sledge', at: [0, 0, 6.2], shared: 'place' }],
     note: 'the labour gang hauling a column drum on a sledge with ropes, heaving in time (construction by ramp and sledge: C; the gangs are attested, PT-WAGE: B)',
     variants: [
       // D-256: the drum's gang at the quarry and at the drum ground (the drum on its sledge is the driver's: world/traffic.ts)
+      // D-359: the hired day at the royal store and the debt-bound son's yard work in the creditor's house (economy/plans.ts)
+      { when: /royal store|carrying sacks/, anim: 'pass', prop: 'sack', work: [{ kind: 'sealed_jars', at: [-1.0, 0, 0.35] }],
+        note: 'hired hands at the royal store passing sacks of barley along a chain into the store, the sealed jars and sacks of the store by them (the royal stores receive grain: PF 2-8, A; the day hire and the chain C: D-359)' },
+      { when: /water, dung and fodder/, anim: 'fodder', prop: 'fork', work: [{ kind: 'fodder', at: [0.8, 0, 0.45] }],
+        note: 'a debt-bound son of another house doing the yard work of the creditor’s house: fodder forked to the animals, the dung carried out, water brought (the pledged person working in the creditor’s house: Babylonian loan texts, B analogy; C: D-359)' },
       { when: /roping the drum|levering the drum/, work: [], note: 'the haul\'s gang roping the rough drum down on its sledge at the quarry, or levering it off at the drum ground below the Terrace (C: D-256)' },
       { when: /earth/, anim: 'pass', prop: 'basket_both', work: [], note: 'building up the earth ramp: baskets of earth passed along a chain of men (C)' },
       { when: /brick/, anim: 'pass', prop: 'brick', work: [{ kind: 'brick_stack', at: [-0.9, 0, 0.3] }], note: 'carrying dried bricks to the wall: passed hand to hand along a chain (C)' }] },
@@ -271,7 +295,11 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   bury: { anim: 'hoe', prop: 'hoe', sound: 'hoe', tier: 'C', work: [{ kind: 'spoil', at: [-1.1, 0, 0.4] }, { kind: 'bier', at: [1.1, 0, 0.6], shared: 'group' }],
     note: 'the men of the house digging the grave with hoes and laying the dead, coated in wax and wrapped, in the earth, the bier set down beside (Herodotus 1.140, read, a Greek claim: B; the grave and the tools C: D-209). Nothing of the body is shown' },
   mourn: { anim: 'mourn', tier: 'C', note: 'standing in mourning at the grave, the head bowed and the hands joined (C: the gestures of mourning at Persepolis are not attested; nothing more is staged: D-209)' },
-  clean: { anim: 'sweep', prop: 'broom', sound: 'broom', tier: 'C', note: 'sweeping the closed palaces and the stalls with a twig broom (C)' },
+  clean: { anim: 'sweep', prop: 'broom', sound: 'broom', tier: 'C', note: 'sweeping the closed palaces and the stalls with a twig broom (C)',
+    variants: [
+      // D-359: a house that burnt (economy/plans.ts house_fire)
+      { when: /burnt beams/, work: [{ kind: 'beam', at: [1.0, 0, 0.4] }], note: 'clearing the ash and the charred beams of a burnt roof out of the house with a broom, a blackened beam dragged out beside (house fires: C; D-359)' },
+      { when: /^readying the new house/, note: 'sweeping out the new house for the bride, the mats laid, the jars set out (C: D-211)' }] },
   garden_work: { anim: 'hoe', prop: 'hoe', sound: 'hoe', tier: 'C', note: 'hoeing, weeding and digging dung into the garden beds (C)',
     variants: [
       { when: /prun/, anim: 'pick', prop: 'knife', sound: undefined, note: 'pruning the garden trees with a knife (C)' },

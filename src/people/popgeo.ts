@@ -267,8 +267,8 @@ export class PopGeo {
   private housePlot(hh: number, pid: number): [number, number] | null {
     const H = this.pop.households[hh]; if (!H) return null; const id = H.plots?.length ? H.plots[Math.floor(this.hash(pid, `hh${hh}`, 11) * H.plots.length)] : H.plot; return id ? this.plotIx.get(id) ?? null : null;
   }
-  private homeDoor(pid: number, day: number): { s: Site; si: number; pi: number } | null {
-    const hh = this.pop.home(pid, day), x = this.housePlot(hh, pid); if (!x || !this.plan) return null; return { s: this.plan.sites[x[0]], si: x[0], pi: x[1] };
+  private homeDoor(pid: number, day: number, hh = this.pop.home(pid, day)): { s: Site; si: number; pi: number } | null {
+    const x = this.housePlot(hh, pid); if (!x || !this.plan) return null; return { s: this.plan.sites[x[0]], si: x[0], pi: x[1] };
   }
 
   /** D-244: the keys of the walled plots of a person's own house on a day (PopGeo.plotAt's keys: an estate's every plot;
@@ -298,8 +298,11 @@ export class PopGeo {
     const indoor = indoorArg ?? (INDOOR.has(act) || (dark && act === 'rest'));
     switch (head) {
       case 'h': return this.home(pid, +tail, act, indoor, day);
-      case 'lane': return this.lane(pid, q, day);
-      case 'well': return this.well(pid, q, day);
+      // (D-359: `lane:<q>:<hid>` / `well:<q>:<hid>`: the lane outside, or the well nearest, that household's door, for a visitor
+      // too; `market:<q>[:<hid>]`: the quarter's or village's market ground, at the stall of the selling household)
+      case 'lane': return this.lane(pid, q, day, tail.split(':')[1] ? +tail.split(':')[1] : undefined);
+      case 'well': return this.well(pid, q, day, tail.split(':')[1] ? +tail.split(':')[1] : undefined);
+      case 'market': return this.market(pid, q, tail.split(':')[1]);
       case 'canal': return this.canal(pid, q, day);
       case 'outside': return tail ? this.outside(pid, q, day, 90, 220, 'gathering ground outside') : this.burial(pid, act, day);
       case 'garden': return this.garden(pid, q, day);
@@ -550,15 +553,22 @@ export class PopGeo {
     void act; return this.none('h', `household zone ${H.zone}`);
   }
   /** the lane outside the household's street door (women "outside the door", children with the neighbours' children) */
-  private lane(pid: number, q: string, day: number): Spot {
-    const H = this.pop.households[this.pop.home(pid, day)], child = this.pop.ageOn(pid, day) < 12;
+  private lane(pid: number, q: string, day: number, hh?: number): Spot {
+    const H = this.pop.households[hh ?? this.pop.home(pid, day)], child = this.pop.ageOn(pid, day) < 12;
     if (H.zone === 'plain') { const m = this.villageOf(H.id); if (!m) return this.none('lane', 'village not built'); const V = this.vsite(m.vi), p = V.site.plots[m.ci]; if (!p.door) return this.none('lane', 'no gate');
       const k = this.nearOpen(V.site, p.door.out, pid, `lane:${q}`, child ? 16 : 5); return this.cellSpot(V.site, k, pid, `lane:${q}`, 'village', 'the lane outside the gate', undefined, m.vi); }
-    const hd = this.homeDoor(pid, day); if (!hd) return this.quarterPoint(pid, q, 'lane');
+    const hd = this.homeDoor(pid, day, H.id); if (!hd) return this.quarterPoint(pid, q, 'lane');
     const p = hd.s.plots[hd.pi]; if (!p.door) return this.quarterPoint(pid, q, 'lane');
     const k = this.nearOpen(hd.s, p.door.out, pid, `lane:${q}`, child ? 16 : 5, c => hd.s.cell[c] !== OUT || child);
     const dp = hd.s.doorPoints(p)!; const door = hd.s.grid(dp.mid[0], dp.mid[1]);
     return this.cellSpot(hd.s, k, pid, `lane:${q}`, 'town', `the lane outside the door of ${p.id}`, child ? undefined : door);
+  }
+  /** D-359: the market ground of a quarter or village (the town's exchange lane, a village's open ground near its centre: C);
+   *  a stall is a selling household's spread of goods there, one spot for it, the seller and the buyers about it, facing it */
+  private market(pid: number, q: string, stall?: string): Spot {
+    const c = this.quarterPoint(stall ? -1 - +stall : pid, q, 'market'); if (!c.ok || !stall) return c;
+    const a = this.hash(pid, `market:${q}:${stall}`, 9) * Math.PI * 2, e = c.e + Math.sin(a) * 1.1, n = c.n + Math.cos(a) * 1.1;
+    return { ...c, e, n, heading: headingOf(c.e - e, c.n - n), what: `${c.what}, at the stall of h:${stall} (C: D-359)` };
   }
   private quarterPoint(pid: number, q: string, what: string): Spot {
     const Q = this.pop.quarters[q]; if (!Q || !this.town) return this.none(what, 'quarter not built');
@@ -566,11 +576,11 @@ export class PopGeo {
     const s = this.town.boxes[l.si].s; return this.cellSpot(s, this.nearOpen(s, l.k, pid, `${what}:${q}`, 30), pid, `${what}:${q}`, 'town', `${what} of ${q}`);
   }
   /** the well nearest the house (a public well of the quarter; C which one) */
-  private well(pid: number, q: string, day: number): Spot {
-    const H = this.pop.households[this.pop.home(pid, day)];
+  private well(pid: number, q: string, day: number, hh?: number): Spot {
+    const H = this.pop.households[hh ?? this.pop.home(pid, day)];
     if (H.zone === 'plain') { const m = this.villageOf(H.id); if (!m) return this.none('well', 'village not built'); const v = this.villages[m.vi], V = this.vsite(m.vi), s = V.site, at: P2 = V.well ?? [v.x, v.y], [u, w] = toLocal(s.frame, at[0], at[1]);
       const k = this.nearOpen(s, s.k(s.ci(u), s.cj(w)), pid, `well:${q}`, 40, kk => !s.blocked?.has(kk)); return this.cellSpot(s, k, pid, `well:${q}`, 'village', `the village well of ${v.id} (C: in the lane nearest the village centre, D-254)`, at, m.vi); }
-    const hd = this.homeDoor(pid, day); const from = hd && hd.s.plots[hd.pi].door ? hd.s.cellGrid(hd.s.plots[hd.pi].door!.out) : this.pop.quarters[q]?.xy;
+    const hd = this.homeDoor(pid, day, H.id); const from = hd && hd.s.plots[hd.pi].door ? hd.s.cellGrid(hd.s.plots[hd.pi].door!.out) : this.pop.quarters[q]?.xy;
     if (!from || !this.wells.length || !this.town) return this.none('well', 'no well built');
     const w = this.wells.reduce((b, x) => Math.hypot(x[0] - from[0], x[1] - from[1]) < Math.hypot(b[0] - from[0], b[1] - from[1]) ? x : b);
     const a = this.hash(pid, `well:${q}`, 16) * Math.PI * 2, r = 1.3 + this.hash(pid, `well:${q}`, 17) * 1.4, e = w[0] + Math.cos(a) * r, n = w[1] + Math.sin(a) * r;
