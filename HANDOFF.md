@@ -6,6 +6,8 @@
 #  2. mkwt.mjs refuses a 5th active agent worktree on this 16 GB box.
 #  3. A watchdog: any slot held > 45 min without progress is reported to the user at once, one line, with the exact pids to kill.
 #  4. A blocking problem goes to the user first and alone. 5. No full-world render while agents build: the render train only, between waves.
+# FOCUS (the user, end of s14): do not fixate on minutiae while massive big work is left. After the safeguards (a ~1 h job, no polishing), the session is BULK work from the ROADMAP week plan: whole classes across the world (plain fill, walls, bodies, monuments, fill, night, water, the speech sandbox). No tool tinkering, no record-keeping beyond one line per package, no per-change verification; one render-train pass per wave.
+
 
 
 # HANDOFF — end of session 13 (2026-10-01); branch claude/amazing-fermi-40ds7j (pushed, verified against GitHub)
