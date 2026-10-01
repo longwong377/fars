@@ -216,7 +216,8 @@ def a_chips():
 def a_block():
     """a quarry block brought up for dressing (C): rough pitched faces with the quarry's wedge marks, 1.3 x 0.75 x 0.8 m,
     on two wooden skids"""
-    b = box(1.3, 0.8, 0.72, (0, 0, 0.08), 'block', bevel=0.04, segs=2); subdiv(b, 2); displace(b, 0.025, 0.25, seed=880); displace(b, 0.008, 0.05, seed=881)
+    b = box(1.3, 0.8, 0.72, (0, 0, 0.08), 'block', bevel=0.015, segs=1); remesh(b, 0.025, smooth=False)
+    displace(b, 0.05, 0.35, seed=880); displace(b, 0.015, 0.07, seed=881); sharp(b, 30)  # (pitched faces: broad hollows and bosses, then the point's pecking)
     for k in range(4):  # wedge holes along the top arris
         c = box(0.04, 0.08, 0.06, (-0.45 + 0.3 * k, 0.4, 0.78), 'w', base=False); boolean(b, c)
     sk = [log((-0.75, 0.04, z), (0.75, 0.04, z), 0.05, 0.05, 7, 'skid', seed=882 + int(z * 10)) for z in (-0.25, 0.25)]
