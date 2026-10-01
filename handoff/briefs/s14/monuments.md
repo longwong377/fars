@@ -1,25 +1,21 @@
-# Agent brief template (MASTER_PLAN.md §6 session loop, step 5; generate every worker agent's brief from this)
+# Brief s14/monuments: The Gate colossi, protome capitals and column orders read as carved Achaemenid stone
 
 ## Fixed clauses (copy verbatim)
 
 You are a worker agent on PĀRSA (repo /home/user/fars, your own worktree branch; do not push). Read USER_DIRECTIONS.md,
 MASTER_PLAN.md and CLAUDE.md first. The standard is every walkable area, at the player's lens and quality,
-in motion, with sound, at every hour, season and weather. Your work serves the user directions {UD ids} and the thresholds {T- ids, quoted
-verbatim from gates/thresholds.json}.
+in motion, with sound, at every hour, season and weather. Your work serves the user directions UD-19, UD-20, UD-01 and the thresholds T-R12: "whole asset classes replaced in a GPU session by real modelled (Blender, the D-305 pipeline) or scanned 3D assets across the world (e.g. every rock, every jar, every house wall kit), counted from the session log" >= 5 asset classes.
 
 1. Say before you start how your change could pass its tests while the intent fails, and measure against that, not only the test.
 2. Prefer the world-wide fix to the per-view fix. A fix proved in one view is not proved everywhere.
-3. Evidence: node previews and CPU mirrors first; at most {n ≤ 2} browser runs through tools/dev/queue_e2e.sh.
-4. Records: your reserved numbers are D-{d}, Q-{q0}..Q-{q1}, B{b0}..B{b1}; rows are appended, never renumbered.
+3. Evidence: node previews and CPU mirrors first; at most 2 browser runs through tools/dev/queue_e2e.sh.
+4. Records: your reserved numbers are D-365, Q-1190..Q-1199, B360..B369; rows are appended, never renumbered.
 5. Never lower or reword a threshold (tests/gates_ratchet.test.ts); a threshold you cannot meet goes to BLOCKERS with ≥ 3
    approaches measured.
 6. Lead your final report with what is broken, placeholder or unverified on screen; list tests run with results; run
    `git checkout bench-reports/` before committing.
 7. Heavy CPU work (soaks, bots, audio renders, bakes, long test runs) goes through `tools/dev/cpu_slot.sh`, one process at a
    time: the four cores are shared with the render lane.
-
-## Slots
-- {task}; {areas}; {files in scope}; {what "done" means in thresholds}; {UD ids}; {reserved numbers}; {render budget}
 
 ## Machine section (session 11 on; copy into every brief after the fixed clauses)
 On the GPU machine (session 11 on: Windows, NVIDIA T4, 16 cores, 63 GB, open internet), this clause governs where it
@@ -58,3 +54,48 @@ that no hour is spent reading, waiting or polishing.
    PROGRESS, HANDOFF, TASKS or COVERAGE (the lead's).
 9. **Report ≤ 250 words:** broken/placeholder first; what a player now sees differently; train views requested; files
    touched; tests run with results. No questions mid-run: decide, log, proceed.
+
+## Your context pack
+**Your tree:** C:/Users/Administrator/fars-wt/monuments (branch s14-monuments; the fixed clause's /home/user path is the cloud's).
+
+**Goal (as the player meets it):** Standing under the Gate of All Nations or in the Apadana, the colossi and the bull, lion and griffin capitals look like the carved originals in the photographs: correct heads, horns, curled beards, feather and hair carving, the double-bodied protome mass, and each column order its own member; no toys.
+
+**Time box:** 8 h. **Needs:** blender. **Reserved:** D-365, Q-1190..Q-1199, B360..B369.
+
+**Files you own:**
+- src/arch/sculpt.ts
+- src/arch/sculpt_models.ts
+- src/arch/column_models.ts
+- src/arch/orders.ts
+- src/render/monuments.ts
+- tools/blender/monuments.mjs
+- tools/blender/mon_lib.py
+- tools/blender/columns.json
+- tools/blender/bake_cols.py
+- tools/blender/carving.json
+- new tools/blender/scans/**
+- src/data/sculpture.json
+
+**Read-only, for context:**
+- research/BLENDER_PLAN.md rows 1, 2 and §8
+- references/ and C:/Users/Administrator/fars-assets/photos/columns_capitals, gate_of_all_nations
+- REVIEWS/review_carving_s11.md
+- DECISIONS D-312, D-328, D-361 (grep)
+
+**Start here (entry points):**
+- APPROACH 1 (try first, 1 h max): licensed 3D scans. Search Sketchfab (CC0/CC-BY/CC-BY-NC), Smithsonian 3D, Scan the World, museum open-access (the Oriental Institute Chicago bull capital and protome, the British Museum, the Louvre lion/bull capital, the Met, Persepolis site scans) for photogrammetry of Achaemenid bull/lion/griffin protome capitals and the Gate lamassu/bulls. A usable scan is decimated, retopologised and baked in Blender, scaled to SITE_SPEC, recorded in ASSET_LEDGER.md with its licence (CLAUDE.md §12: personal non-commercial use allows CC-BY-NC).
+- APPROACH 2: re-sculpt in Blender from the photographs: multires sculpt with displacement baked from the photo-derived heightfields (the relief pipeline already turns photographs into heightfields, D-320), the protome as a double-forepart with the correct head, horns and harness.
+- B118: capitals 2/5, colossi 1/5; the previous agent left a rounded head, ball muzzle and thin antelope horns.
+- columns2 (folded in): one member per order (B167), 2-3 shaft tile variants, carving in the silhouette near the eye (B166).
+- build.mjs --verify ran out of memory in the protome BVH: build monument assets one at a time (one Blender process).
+
+**Decisions and blockers that matter (grep these ids, do not read the files whole):** D-312, D-320, D-328, D-361, B118, B166, B167, B320
+
+**Commands:**
+- node tools/dev/mkwt.mjs monuments
+- "C:/Program Files/Blender Foundation/Blender 5.0/blender.exe" -b --factory-startup --python <script> (one process at a time; LONG=1 cpu_slot or gpu_slot for Cycles bakes)
+- iterate on tools/dev/terrace_probe.html and tools/blender/probe/*
+
+**Done line:** Side by side with the reference photographs at the same angle (tools/blender/probe renders committed under REVIEWS/s14/monuments/), a colossus and each capital type read as the carved originals at 1-3 m; build.mjs --verify reproduces every monument asset; frame and triangle budgets within D-312's.
+
+**Render-train views to request:** gate-w-day, gate-w-lens, apadana-nw-court, apadana-hall-axis, apadana-enter-portico

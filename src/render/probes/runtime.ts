@@ -21,6 +21,7 @@ import type { Part } from '../../arch/parts';
 import { SPEC } from '../../arch/spec';
 import { EYE_SKY } from '../../sky/aerial';
 import { setRoofBoxes, ROOFS_PRESENT, roofsPresent } from './roofs';
+import { loadOutdoor, outdoorAmbient, setOutdoorSun, outdoorSummary } from './outdoor_runtime';
 
 let FIELD: ProbeField | null = null;
 /** atlas bands: S channel, U channel, tint above + validity, reach, tint below (field.ts atlasData) */
@@ -45,6 +46,7 @@ export const probeField = () => FIELD;
 export const probeMeta = () => META;
 /** load the baked field (call before the first frame is rendered: the shaders are built with the volumes as constants) */
 export async function loadProbes(base = '/'): Promise<ProbeField | null> {
+  await loadOutdoor(base); // D-357: the Terrace's and the town's outdoor light field (outdoor_runtime.ts)
   try {
     const [mj, bin] = await Promise.all([fetch(`${base}generated/probes.json`), fetch(`${base}generated/probes.f16`)]);
     if (!mj.ok || !bin.ok) throw new Error(`HTTP ${mj.status}/${bin.status}`);
@@ -95,6 +97,7 @@ export function updateProbeLights(hemi: THREE.HemisphereLight | undefined, sun: 
     probeSun.value.copy(sun.color).multiplyScalar(s);
   } else probeSun.value.setRGB(0, 0, 0);
   const U = probeSun.value; current.U = lum(U.r, U.g, U.b);
+  setOutdoorSun(current.sun);
   current.S = hemi ? hemi.intensity * lum(hemi.color.r, hemi.color.g, hemi.color.b) : 0;
 }
 
@@ -146,8 +149,13 @@ const rampN = (a: any, b: any, x: any) => { const w = b.sub(a), t = clamp(x.sub(
  *  a probe's reach (a step of up to 3×) or a cell, and the composite (its G-buffer normal quantised and filtered
  *  differently) disagreed with the material there: speckle on the floors, ragged fringes at arrises. The irradiance is
  *  still evaluated for the shading normal n. */
-export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSky = false, off: any = n): { E: any; w: any } {
-  if (!FIELD || !ATLAS || !FIELD.volumes.length) return { E: hemi, w: float(0) };
+export function probeAmbient(p: any, n: any, S: any, U: any, hemi0: any, directSky = false, off: any = n): { E: any; w: any } {
+  // D-357: outside the roofed halls (and across their volumes' fading edges) the outdoor light field of the Terrace and the
+  // town stands in for the open sky: the hemisphere light outside both. The weight returned is the two fields' together, so
+  // the post composite treats the baked outdoors as it treats the halls (its own sky visibility, D-309b, only outside both)
+  const O = outdoorAmbient(p, n, S, U, hemi0, directSky, off), hemi = O.E;
+  const Ow = O.w.mul(ROOFS_PRESENT); // the Now view (no roofs, D-201): the 467 world's field does not apply
+  if (!FIELD || !ATLAS || !FIELD.volumes.length) return { E: mix(hemi0, hemi, ROOFS_PRESENT), w: Ow };
   const q = p.add(off.mul(FIELD.normalBias)), W = ATLAS.width, H = ATLAS.height;
   // per volume (masked sums: the volumes do not overlap): the texel centre of the cell's low corner in q's two layers,
   // the fractions within the cell, and the fade
@@ -218,7 +226,8 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSk
   const tint = vec3(tr, max(float(1).sub(tr.mul(0.2126)).sub(tb.mul(0.0722)).div(0.7152), 0), tb);
   const E = directSky ? S.mul(eS).mul(float(1).sub(fb)) : S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
   const w = fade.mul(smoothstep(VALID_LO, VALID_HI, val)).mul(ROOFS_PRESENT); // 0 in the Now view (no roofs, D-201)
-  return { E: mix(hemi, E, w), w };
+  const out = mix(mix(hemi0, hemi, ROOFS_PRESENT), E, w);
+  return { E: out, w: w.add(float(1).sub(w).mul(Ow)) };
 }
 
 /** the hemisphere light with its irradiance replaced by the probe field's (outside the volumes: unchanged) */
@@ -243,6 +252,6 @@ export function installProbeLight(renderer: THREE.WebGPURenderer) {
 }
 /** dev overlay / world summary line */
 export function probeSummary() {
-  if (!FIELD) return 'light probes: none (skylight unoccluded indoors)';
-  return `light probes (C): ${FIELD.volumes.length} volumes, ${FIELD.count} probes, ${(probeTextureBytes() / 1048576).toFixed(1)} MB${META?.partsHash ? `, parts ${META.partsHash}` : ''}`;
+  if (!FIELD) return 'light probes: none (skylight unoccluded indoors); ' + outdoorSummary();
+  return `light probes (C): ${FIELD.volumes.length} volumes, ${FIELD.count} probes, ${(probeTextureBytes() / 1048576).toFixed(1)} MB${META?.partsHash ? `, parts ${META.partsHash}` : ''}; ${outdoorSummary()}`;
 }
