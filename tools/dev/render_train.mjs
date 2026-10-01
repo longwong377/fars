@@ -28,6 +28,8 @@ if (cmd === 'request') {
   for (const r of reqs()) console.log(`${r.agent}\t${r.at}\t${[...r.views, ...r.extra.map(s => s.n)].join(',')}`);
   const out = join(ROOT, 'out'); if (existsSync(out)) console.log('runs:', readdirSync(out).sort().slice(-5).join(' '));
 } else if (cmd === 'run') {
+  { const { activeAgents } = await import('./boxguard.mjs'), b = activeAgents(); // session 15: the train runs between waves only
+    if (b.length && !process.env.FORCE) { console.error(`refused: agents still building (${b.join(', ')}); run between waves (FORCE=1 overrides)`); process.exit(3); } }
   const rs = reqs(); if (!rs.length) { console.log('queue empty'); process.exit(0); }
   const tree = resolve(opt('--tree') ?? '.'), stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const extra = rs.flatMap(r => r.extra), xf = join(ROOT, `extra-${stamp}.json`); writeFileSync(xf, JSON.stringify(extra));

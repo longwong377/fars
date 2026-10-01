@@ -11,6 +11,8 @@ const STEPS = [1, 2, 4, 8, 16];
  *  subtends ≤ ERR_RAD (≈ 1.5 px at 1440p / 70° vertical FOV) and its vertex spacing ≤ SPACING_RAD (keeps shading and
  *  silhouettes from turning into large facets even on flat ground) */
 const ERR_RAD = 0.0013, SPACING_RAD = 0.02;
+/** D-356: whether the near ring casts into the sun's cascades (off; ?tcast=1 for the A/B) */
+export const TERRAIN_CASTS = { on: typeof location !== 'undefined' && new URLSearchParams(location.search).get('tcast') === '1' };
 
 /** Ground colour: procedural and tier C. It will be replaced by calibrated materials in Phase 3 (flagged in the dev overlay). */
 function groundColour(h: number, slope: number, out: THREE.Color) {
@@ -39,7 +41,12 @@ export class TerrainMesh {
       const center = new THREE.Vector3(x0 + size / 2, (hmin + hmax) / 2, z0 + size / 2);
       const radius = Math.hypot(size / 2, size / 2, (hmax - hmin) / 2);
       const mesh = new THREE.Mesh(undefined, this.material);
-      mesh.receiveShadow = true; mesh.castShadow = ring === this.terrain.near; mesh.matrixAutoUpdate = false;
+      // D-356: the terrain casts no sun-cascade shadow (TERRAIN_CASTS). At a low sun (dawn, dusk) a heightfield in its own
+      // cascades shadows itself across whole cascades (the depth error over one texel is texel / tan(sun altitude): ~1.8 m in
+      // the 50-160 m cascade at 3 deg, against its 9 cm bias): the s14 baseline drew the plain from ~50 m out near-black at
+      // both hours. The terrain's own shadows at the landform scale are the horizon map's (D-156: every occluder past 40 m);
+      // the hills' rock and ledges near the eye are meshes of their own and still cast
+      mesh.receiveShadow = true; mesh.castShadow = TERRAIN_CASTS.on && ring === this.terrain.near; mesh.matrixAutoUpdate = false;
       mesh.userData = this.group.userData;
       this.chunks.push({ ring, r0, c0, cells: CH, center, radius, lods: new Map(), mesh, step: -1, err: null });
       this.group.add(mesh);

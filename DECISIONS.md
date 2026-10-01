@@ -8998,4 +8998,20 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
   the body and legs/over slots, the best set stronger, mourning plainer (C), with no seeded draw consumed
   (tests/looks_outfit.test.ts); popview does not pass it yet (the visible package's wiring). Garments stay skinned over the
   girth (no per-band cloth bake: the measured cloth-inside-skin rise is <= 1.4 points); shape bands in the atlas would need
-  1,314 rows (> 4096 texels at cell 64), so B341 stands.
+  1,278 rows (> 4096 texels at cell 64), so B341 stands. tests/impostor_assets budget: 56.62 vs 56.10 MB (the 8-column layout pads 426 rows to 432).
+
+## D-356 — The plain filled: the terrain out of the sun cascades, bedded rocks and plants, modelled crops, denser cover (session 14, plain)
+- **The near-black plain at dawn and dusk (lead's s14 baseline):** the near ring cast into the sun's cascades and shadowed itself at a low sun
+  (depth error over a texel = texel / tan(alt): ~1.8 m in the 50-160 m cascade at 3 deg against a 9 cm bias). The terrain now casts no cascade
+  shadow (terrainMesh.ts `TERRAIN_CASTS`, ?tcast=1 restores it for the A/B); its landform shadows stay the horizon map's (D-156). The likely
+  same cause for the black ground flora: their normal-biased lookups fell under the terrain's own shadow depth. A/B on tools/dev/plain_probe
+  (?lite&csm) at both hours: see the report; full-world proof is the train's dawn-stair-top and town-smoke-dusk.
+- **Floating rocks and plants:** the scans' base is their lowest point and they stood upright at their centre, so on slopes the downhill half
+  hung in the air; rocks are now bedded in the ground's plane over their footprint (four samples) and seated at the lowest, plants at the
+  lowest ground under them; the small world's ground is the drawn surface (surfaceAt, a one-line hook in world.ts), crops too.
+- **Crops:** the near crop is a modelled cereal clump (cropForms.ts: culms, arching leaf blades, ears with awns shown from heading to harvest
+  on barley, wheat and emmer; C for the form) in place of ten one-triangle blades; to stay inside D-040 (plain.test) it is 3 culms, 36
+  triangles, and the crop radius / spacing are traded (high 22 m / 0.45 m, was 30 / 0.36). Procedural in code, not a Blender asset.
+- **Ground cover:** the steppe's tufts twice as dense, six tuft pieces of the kit (was four), three swards; LOD at 5.5 / 16 m to stay inside
+  ground_cover.test's 0.35 M triangles and 36 draws.
+- Not done: herders with flocks in the near plain (the people sim's, not this package's files); far-tree "lollipops" (no frame of them seen).
