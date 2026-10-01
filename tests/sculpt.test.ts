@@ -111,7 +111,8 @@ describe('sculpted columns (D-018)', () => {
     const ap = columns.filter(c => c.building === 'apadana');
     expect(ap.filter(c => c.order.capital === 'composite').length).toBe(60); expect(ap.filter(c => c.order.capital === 'bull').length).toBe(12);
     expect(columns.filter(c => c.building === 'gate_nations').every(c => c.order.capital === 'composite')).toBe(true);
-    for (const b of ['tachara', 'hadish', 'hall100', 'harem', 'tripylon']) expect(columns.filter(c => c.building === b).every(c => c.order.capital === 'bull'), b).toBe(true);
+    // stone columns only: the room ranges' timber posts (D-276: plain capitals, e.g. the Harem's store rooms) are not the hall orders
+    for (const b of ['tachara', 'hadish', 'hall100', 'harem', 'tripylon']) expect(columns.filter(c => c.building === b && c.order.material !== 'timber').every(c => c.order.capital === 'bull'), b).toBe(true);
     expect(columns.filter(c => c.building === 'treasury').every(c => c.order.capital === 'plain')).toBe(true);
     const hall = ap.find(c => c.order.base === 'square2')!; expect(hall.order.capitalH).toBe(7.8); // SITE_SPEC capital_height (composite)
   });
@@ -148,7 +149,7 @@ describe('sculpted columns (D-018)', () => {
     for (const n of ['protome', 'volute', 'colossus_bull', 'colossus_lamassu'] as PieceName[]) for (const lod of [0, 1] as Lod[]) {
       const m = piece(n, lod); sanity(m, `${n} ${lod}`); expect(openEdges(m), `${n} ${lod} open edges`).toBe(0);
     }
-  });
+  }, 600_000); // ~100 s alone, > 120 s on a loaded box
 });
 
 describe('doorway colossi (D-018)', () => {
