@@ -8992,3 +8992,10 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
   300 people on the loaded box (least of five runs; unverified idle). tests/humans_runtime's 300-people pose budget failed at
   10.8 ms vs 6 under load: re-run idle (the body adds ~1-4 ms per 300 by tools/dev/body_cost.ts, noisy).
 - **Tiers:** every number C (Q-1170 the spreads, Q-1171 the soft tissue's frequencies).
+- **Session 15 (resume).** The Cycles impostor atlas re-baked for this build's 71 frames (tools/blender/impostors.mjs; 42
+  frames of each dress hold their activity's tool; imp_stale: frames, dresses and layout match, so no CPU fallback). The day's
+  outfit hook: looks.LookInput.outfit (wardrobe/world.ts outfitAt's garments) replaces the seeded dye, fading and hem soil of
+  the body and legs/over slots, the best set stronger, mourning plainer (C), with no seeded draw consumed
+  (tests/looks_outfit.test.ts); popview does not pass it yet (the visible package's wiring). Garments stay skinned over the
+  girth (no per-band cloth bake: the measured cloth-inside-skin rise is <= 1.4 points); shape bands in the atlas would need
+  1,314 rows (> 4096 texels at cell 64), so B341 stands.
