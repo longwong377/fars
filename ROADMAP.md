@@ -47,9 +47,10 @@ render train), with every unmet id listed. Thresholds are not lowered.
 **Wave 1 — day 1 (launched 2026-10-01):** load (G) · frame (G) · plain (G) · light (B) · blender (B) · simtalk (N) · visible (N) · simhealth (N)
 **Wave 2 — day 2-3 (as wave 1 lands; packs written from the day-1 train):**
 - surfaces (G): grime, wear, large-scale variation on every material (scans.ts, masonry.ts, blockface.ts, materials.ts) — after frame
-- walls (B): Terrace walls/floors/steps and palace + house wall bodies as kit meshes with LODs and impostors — after light
-- fill (G): courts, lanes and interiors filled: clutter, awnings, braziers, goods, density of people at every hour (furnish*, settlement build, courtCamps, crowd density)
-- bodies (B): every body different + secondary physics (3b, 3c), impostor atlas re-baked, wardrobes drawn (3d render side)
+- walls (B): Terrace walls/floors/steps (real chipped arrises, B145) and palace + house wall bodies (B186) as kit meshes with LODs and impostors; village compounds hollow (B64) — after light
+- fill (G+B): courts, lanes and interiors filled: market stalls, awnings, banners, laundry lines, scaffolds, braziers, textiles, lamps, goods, density of people at every hour (furnish*, settlement build, courtCamps, crowd density)
+- bodies (B): every body different, faces plain to beautiful, pregnancy, nursing, age marks, scars (3b); soft-tissue jiggle (3c); garments re-draped per shape band; impostor atlas re-baked with the far people's spears, bows and tools (B176); wardrobes drawn: outfit swaps, per-garment dirt, undressing to sleep and wash (3d render side)
+- columns2 (B): see the Blender table
 - converse (G): conversation on by default (menu, consent, VRAM check), model dirs trimmed, real-model T-E9/T-E10 — after simtalk
 - overheard (N→G): the simulation's talk events voiced near the player; NPC-to-NPC exchanges grounded in both lives (UD-23, T-E12)
 **Wave 3 — day 4-5:**
@@ -57,7 +58,8 @@ render train), with every unmet id listed. Thresholds are not lowered.
 - verbs (N): the remaining UD-25 mechanics: work and livelihood, learning the language, identity, hospitality, groups, petitions
 - mic (G): the proximity mic (loudness and distance, bystanders react, open mic with voice activity, room acoustics)
 - night (G): town lanes lit, night clouds, fires, dusk and night in every area
-- water (G): rivers and canals: reeds, boats, washers, mud, waterfowl
+- water (G+B): rivers and canals: reeds and boats modelled in Blender, washers, mud, waterfowl
+- peoplemotion, drape2, windcloth, vegimpostors (B): see the Blender table
 - worst-area round (G/B ×2): the two worst areas of the day-4 train
 **Day 6 — measure:** overnight soak on 3 seeds and slow tests (CPU slots), renderless bot fleet, the coverage sample and every
 area in one train, one blind review against references/; two agents on the worst findings.
@@ -72,6 +74,12 @@ first), session close (sessions/s14.md, branches merged or abandoned, push verif
 | 2-3 | walls | Terrace walls, floors and steps and palace and house wall bodies as kit meshes with LODs and impostors (the largest share of the screen still primitives) |
 | 2-3 | bodies | shape keys for every body (3b), jiggle-bone rig for secondary motion (3c), garments re-draped per shape band, the impostor atlas re-baked (stale today: the CPU fallback costs ~12 s of load) |
 | 4-5 | reliefs | relief paint as thin pigment on carved stone; the 21 of 41 relief kinds not yet from photographs |
+| 1 (now) | animalmotion | secondary motion for all 34 animals (bellies, dewlaps, ears, tail chains, pack loads) and birds' take-off blend (B179) |
+| 2-3 | columns2 | griffin and lion protome capitals; one member per column order; 2-3 shaft tile variants; carving in the silhouette near the eye (B166, B167); lamassu heads if the blender package leaves them |
+| 4-5 | peoplemotion | secondary motion on hair, beards, sash ends, tassels, jewellery and carried loads in the bodies' spring pass; hair cards beyond 25 m, the bob no longer a helmet (B151) — after bodies |
+| 4-5 | drape2 | posed drape (seated, kneeling, carrying; B123); 2-3 fold variants per group and real panel patterns (B149); fold normal maps under the triangle cap (B148) — after bodies |
+| 4-5 | windcloth | cloth loops baked as vertex-animation textures for tents, awnings, banners and laundry, driven by the weather's wind — after fill places the awnings, banners and lines |
+| 4-5 | vegimpostors | Cycles octahedral tree impostors per season state (B163); 3-4 variants per flora kind with wind weights (B180) — after plain |
 | nights | (GPU slots) | the long Cycles bakes queue overnight through gpu_slot.mjs |
 Every BLENDER_PLAN row is then built world-wide; the rows already done in session 12 (animals, flora, frames, tents, birds, Ajori, Naqsh, columns, props) get fixes only where the train shows a fault.
 
