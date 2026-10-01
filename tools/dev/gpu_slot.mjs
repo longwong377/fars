@@ -6,8 +6,9 @@
 // environment, and frees the slot on exit. A slot whose holder process is gone is reclaimed.
 import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
+import { setPriority, constants } from 'node:os';
 import { MIN_FREE_GB, freeGB, pipeWithProgress, recordChild } from './boxguard.mjs';
-const SLOTS = +(process.env.GPU_SLOTS ?? 2), ROOT = 'T:/gpu-slots';
+const SLOTS = +(process.env.GPU_SLOTS ?? 1) // session 15: 1 on the 4-core box (two renders + agents starved the Claude app), ROOT = 'T:/gpu-slots';
 const argv = process.argv.slice(2), sep = argv.indexOf('--');
 if (sep < 0 || sep === argv.length - 1) { console.error('usage: gpu_slot.mjs <label> -- <command...>'); process.exit(2); }
 const label = argv.slice(0, sep).join(' ') || 'job', cmd = argv.slice(sep + 1);
@@ -37,6 +38,7 @@ const slot = await acquire();
 console.error(`[gpu_slot] ${label}: got ${slot}`);
 const free = () => { try { rmSync(slot, { recursive: true, force: true }); } catch {} };
 process.on('SIGINT', () => { free(); process.exit(130); }); process.on('SIGTERM', () => { free(); process.exit(143); });
+try { setPriority(constants.priority.PRIORITY_BELOW_NORMAL); } catch {} // children inherit the class (Windows): the app stays responsive
 const child = spawn(cmd[0], cmd.slice(1), { stdio: ['inherit', 'pipe', 'pipe'], shell: true, env: process.env });
 pipeWithProgress(child, slot); recordChild(slot, child);
 child.on('exit', code => { free(); process.exit(code ?? 1); });
