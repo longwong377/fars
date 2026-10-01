@@ -8,7 +8,8 @@ import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync, readdirSync
 import { spawn } from 'node:child_process';
 import { setPriority, constants } from 'node:os';
 import { MIN_FREE_GB, freeGB, pipeWithProgress, recordChild } from './boxguard.mjs';
-const SLOTS = +(process.env.GPU_SLOTS ?? 1) // session 15: 1 on the 4-core box (two renders + agents starved the Claude app), ROOT = 'T:/gpu-slots';
+// session 15: 1 slot on the 4-core box (two renders + agents starved the Claude app)
+const SLOTS = +(process.env.GPU_SLOTS ?? 1), ROOT = 'T:/gpu-slots';
 const argv = process.argv.slice(2), sep = argv.indexOf('--');
 if (sep < 0 || sep === argv.length - 1) { console.error('usage: gpu_slot.mjs <label> -- <command...>'); process.exit(2); }
 const label = argv.slice(0, sep).join(' ') || 'job', cmd = argv.slice(sep + 1);
