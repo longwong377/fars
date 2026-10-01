@@ -35,6 +35,7 @@ export class GroundRocks {
   private cells = new Map<number, CellCtx>();
   private last = { e: 1e9, n: 1e9 };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private eu = new THREE.Euler(); private v = new THREE.Vector3(); private s = new THREE.Vector3(); private col = new THREE.Color();
+  private up = new THREE.Vector3(); private Y = new THREE.Vector3(0, 1, 0); private qs = new THREE.Quaternion();
   /** false when no scan was loaded (node, ?props=0, a failed load): then nothing is drawn (the terrain's rock texture remains) */
   readonly active: boolean;
   constructor(private seed: number, private world: SmallWorld) {
@@ -87,8 +88,18 @@ export class GroundRocks {
           const ext = Math.max(S.prop.size[0], S.prop.size[2], 1e-3), sc = sz / ext;
           // bedded: a stone sits a tenth of its height in the ground, a boulder a fifth; tilted a little (C)
           const hgt = S.prop.size[1] * sc, sink = hgt * (k === 'stone' ? 0.1 : 0.2);
-          this.eu.set((u01(this.seed, ix, iy, i, 38) - 0.5) * 0.25, u01(this.seed, ix, iy, i, 36) * 6.283, (u01(this.seed, ix, iy, i, 39) - 0.5) * 0.25); this.q.setFromEuler(this.eu);
-          this.v.set(e, y - sink, -nn); this.m4.compose(this.v, this.q, this.s.set(sc, sc, sc));
+          // D-356 (the brief's "rocks float over puddles"): the scans' base is their lowest point (y = 0), and they stood upright
+          // on the ground at their centre, so on any slope the downhill half of the footprint hung in the air (a 2.5 m boulder on
+          // the `rock` context's >30 % slopes: 0.4-0.8 m of daylight under it). Now each piece is bedded in the ground's plane
+          // over its footprint (the ground sampled at its four quarter points, the plane's normal its up), and seated at the
+          // lowest of those samples less the sink, so no edge stands clear of the drawn ground (C for the bedding)
+          const yaw = u01(this.seed, ix, iy, i, 36) * 6.283, rr = 0.5 * sz, gE = this.world.ground(e + rr, nn), gW = this.world.ground(e - rr, nn), gN = this.world.ground(e, nn + rr), gS = this.world.ground(e, nn - rr);
+          const fin = Number.isFinite(gE) && Number.isFinite(gW) && Number.isFinite(gN) && Number.isFinite(gS);
+          const dx = fin ? (gE - gW) / (2 * rr) : 0, dn = fin ? (gN - gS) / (2 * rr) : 0, low = fin ? Math.min(y, (gE + gW + gN + gS) / 4) : y;
+          this.up.set(-dx, 1, dn).normalize(); this.qs.setFromUnitVectors(this.Y, this.up); // (world z = -north)
+          this.eu.set((u01(this.seed, ix, iy, i, 38) - 0.5) * 0.25, yaw, (u01(this.seed, ix, iy, i, 39) - 0.5) * 0.25); this.q.setFromEuler(this.eu); this.q.premultiply(this.qs);
+          const tiltSink = 0.5 * sz * 0.125; // the random tilt (up to 7 deg) lifts one edge by up to this
+          this.v.set(e, low - sink - tiltSink, -nn); this.m4.compose(this.v, this.q, this.s.set(sc, sc, sc));
           const c = counts[si]++; S.mesh.setMatrixAt(c, this.m4); S.fpos.setXYZ(c, e, y, -nn);
           // colour: the rock / dark / scree tones of the palette mixed by hash, each over the scan's own albedo variation
           const a = u01(this.seed, ix, iy, i, 40), b = u01(this.seed, ix, iy, i, 41), P0 = PAL[0], P1 = PAL[a < 0.5 ? 1 : 2], m = (a < 0.5 ? a : a - 0.5) * 1.4;
