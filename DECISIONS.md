@@ -8886,3 +8886,19 @@ only seed 1 was run; the ask's 'speaker' and kids need the Population (AsksWorld
 
 ## D-353 — The black render was one giant first submit, not one object class (session 13, gpuhang)
 Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the world, every shot black). A bisect page load (tests/e2e/dbg_bisect.spec.ts: every top-level group hidden, then added cumulatively, two frames each, high, 1920x1080) rendered all 44 groups with no loss in 33 min (first frame per group: architecture 148 s, fire 447 s, settlement 97 s, weather-vfx 144 s, terrain 73 s; warm frames 0.3-0.5 s) and ended on a real full-world frame (shots/bisect-final.png, dawn-stair-top). So no single pass is over ~2 s once its pipelines are compiled; the hang is the first frames compiling ~1000 pipelines in one submit. Fix: `__parsa.warmUp()` (main.ts) shows the groups one at a time before the first shot; moments.spec calls it (NOWARM=1 skips). Not yet re-run through moments.spec itself; the 'ytop' warning and the stale impostor atlas (CPU bake fallback, ~12 s) were present in the good run too, so neither is the cause. A first reload of the page mid-run came from Vite re-optimising deps in a fresh worktree: use NOHMR=1.
+
+## D-356 — The plain filled: the terrain out of the sun cascades, bedded rocks and plants, modelled crops, denser cover (session 14, plain)
+- **The near-black plain at dawn and dusk (lead's s14 baseline):** the near ring cast into the sun's cascades and shadowed itself at a low sun
+  (depth error over a texel = texel / tan(alt): ~1.8 m in the 50-160 m cascade at 3 deg against a 9 cm bias). The terrain now casts no cascade
+  shadow (terrainMesh.ts `TERRAIN_CASTS`, ?tcast=1 restores it for the A/B); its landform shadows stay the horizon map's (D-156). The likely
+  same cause for the black ground flora: their normal-biased lookups fell under the terrain's own shadow depth. A/B on tools/dev/plain_probe
+  (?lite&csm) at both hours: see the report; full-world proof is the train's dawn-stair-top and town-smoke-dusk.
+- **Floating rocks and plants:** the scans' base is their lowest point and they stood upright at their centre, so on slopes the downhill half
+  hung in the air; rocks are now bedded in the ground's plane over their footprint (four samples) and seated at the lowest, plants at the
+  lowest ground under them; the small world's ground is the drawn surface (surfaceAt, a one-line hook in world.ts), crops too.
+- **Crops:** the near crop is a modelled cereal clump (cropForms.ts: culms, arching leaf blades, ears with awns shown from heading to harvest
+  on barley, wheat and emmer; C for the form) in place of ten one-triangle blades; to stay inside D-040 (plain.test) it is 3 culms, 36
+  triangles, and the crop radius / spacing are traded (high 22 m / 0.45 m, was 30 / 0.36). Procedural in code, not a Blender asset.
+- **Ground cover:** the steppe's tufts twice as dense, six tuft pieces of the kit (was four), three swards; LOD at 5.5 / 16 m to stay inside
+  ground_cover.test's 0.35 M triangles and 36 draws.
+- Not done: herders with flocks in the near plain (the people sim's, not this package's files); far-tree "lollipops" (no frame of them seen).
