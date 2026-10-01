@@ -38,6 +38,14 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
     { const r0 = await page.evaluate(async (n) => { const C = (globalThis as any).__parsaCascades; const was = C.on; C.on = false; try { return await (window as any).__parsa.profile(n); } finally { C.on = was; } }, 12);
       r.allCascades = { cpu: r0.cpuMs, gpu: r0.gpuMs, serial: r0.serialMs, pipelined: r0.pipelinedMs }; console.log(`[perf] ${s.n} every cascade every frame: ${JSON.stringify(r.allCascades)}`); }
     out.views[s.n] = r;
+    // D-355 (AB=1): the screen-space passes at half resolution, one at a time and together, and the whole frame at 0.75 scale
+    if (process.env.AB) { r.ab = {};
+      for (const [k, o] of Object.entries({ ssgi: { ssgi: 0.5 }, ssr: { ssr: 0.5 }, sss: { sss: 0.5 }, all: { ssgi: 0.5, ssr: 0.5, sss: 0.5 } })) {
+        const r1 = await page.evaluate(async ([o, n]) => { const S = (globalThis as any).__parsaSurf, was = S.postScale({}); S.postScale(o); try { return await (window as any).__parsa.profile(n); } finally { S.postScale(was); } }, [o, 12] as const);
+        r.ab['half-' + k] = { gpu: r1.gpuMs, pipelined: r1.pipelinedMs, top: r1.passes.slice(0, 6).map((p: any) => [p.label, p.gpu]) }; }
+      const r2 = await page.evaluate(async (n) => { const R = (window as any).__parsa.renderer, was = R.getPixelRatio(); R.setPixelRatio(was * 0.75); try { return await (window as any).__parsa.profile(n); } finally { R.setPixelRatio(was); } }, 12);
+      r.ab.scale075 = { gpu: r2.gpuMs, pipelined: r2.pipelinedMs };
+      console.log(`[ab] ${s.n} ${JSON.stringify(r.ab)}`); }
     console.log(`[perf] ${s.n} cpu ${r.cpuMs} serial ${r.serialMs} gpu ${r.gpuMs} pipelined ${r.pipelinedMs} draws ${r.draws} tris ${(r.tris / 1e6).toFixed(2)}M`);
     console.log(`[perf] ${s.n} sections ${JSON.stringify(Object.fromEntries(Object.entries(r.sections).sort((a: any, b: any) => b[1] - a[1]).slice(0, 18)))}`);
     console.log(`[perf] ${s.n} max ${r.cpuMaxMs} sections max ${JSON.stringify(Object.fromEntries(Object.entries(r.secMax).sort((a: any, b: any) => b[1] - a[1]).slice(0, 10)))}`);
