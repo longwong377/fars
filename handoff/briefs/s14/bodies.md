@@ -1,25 +1,21 @@
-# Agent brief template (MASTER_PLAN.md §6 session loop, step 5; generate every worker agent's brief from this)
+# Brief s14/bodies: Every body different, soft-tissue motion, clothes over the real body, the far people re-baked
 
 ## Fixed clauses (copy verbatim)
 
 You are a worker agent on PĀRSA (repo /home/user/fars, your own worktree branch; do not push). Read USER_DIRECTIONS.md,
 MASTER_PLAN.md and CLAUDE.md first. The standard is every walkable area, at the player's lens and quality,
-in motion, with sound, at every hour, season and weather. Your work serves the user directions {UD ids} and the thresholds {T- ids, quoted
-verbatim from gates/thresholds.json}.
+in motion, with sound, at every hour, season and weather. Your work serves the user directions UD-27, UD-08 and the thresholds T-E15: "distinct drawn bodies: share of the drawn population whose body and face shape vector (continuous, seeded from the person and their life) differs from every other person's, with garments draped over that body and the day's wardrobe choice shown" >= 99 % unique.
 
 1. Say before you start how your change could pass its tests while the intent fails, and measure against that, not only the test.
 2. Prefer the world-wide fix to the per-view fix. A fix proved in one view is not proved everywhere.
-3. Evidence: node previews and CPU mirrors first; at most {n ≤ 2} browser runs through tools/dev/queue_e2e.sh.
-4. Records: your reserved numbers are D-{d}, Q-{q0}..Q-{q1}, B{b0}..B{b1}; rows are appended, never renumbered.
+3. Evidence: node previews and CPU mirrors first; at most 2 browser runs through tools/dev/queue_e2e.sh.
+4. Records: your reserved numbers are D-363, Q-1170..Q-1179, B340..B349; rows are appended, never renumbered.
 5. Never lower or reword a threshold (tests/gates_ratchet.test.ts); a threshold you cannot meet goes to BLOCKERS with ≥ 3
    approaches measured.
 6. Lead your final report with what is broken, placeholder or unverified on screen; list tests run with results; run
    `git checkout bench-reports/` before committing.
 7. Heavy CPU work (soaks, bots, audio renders, bakes, long test runs) goes through `tools/dev/cpu_slot.sh`, one process at a
    time: the four cores are shared with the render lane.
-
-## Slots
-- {task}; {areas}; {files in scope}; {what "done" means in thresholds}; {UD ids}; {reserved numbers}; {render budget}
 
 ## Machine section (session 11 on; copy into every brief after the fixed clauses)
 On the GPU machine (session 11 on: Windows, NVIDIA T4, 16 cores, 63 GB, open internet), this clause governs where it
@@ -45,9 +41,7 @@ that no hour is spent reading, waiting or polishing.
    lead runs it on `s14-int` after merging you and puts the frames in fars-train/out/<run>/<name>/. While you wait, do your
    next item; never sit idle on a slot.
 5. **Slots:** every GPU job (probe pages too) through `node tools/dev/gpu_slot.mjs`; every heavy node job (soak, long vitest
-   files, bots, Blender bakes on the CPU) through `node tools/dev/cpu_slot.mjs <label> -- <cmd>`; a job of more than ~10 min
-   with `LONG=1` (it may take one slot only; the other stays for short checks), and hours-long runs queued for the night.
-   Memory: one browser or Blender process of yours at a time (16 GB is shared; the session crashed once from it). Tests: only the files you
+   files, bots, Blender bakes on the CPU) through `node tools/dev/cpu_slot.mjs <label> -- <cmd>`. Tests: only the files you
    touched or that import them (`npx vitest run <files>`); the lead runs the full suite overnight.
 6. **Done line and stop rules.** Your pack's done line is what a player would see (or a named threshold). Stop when it is
    met: no polish past it. A sub-goal that fails three measured approaches goes to BLOCKERS (your numbers) and you move on.
@@ -58,3 +52,52 @@ that no hour is spent reading, waiting or polishing.
    PROGRESS, HANDOFF, TASKS or COVERAGE (the lead's).
 9. **Report ≤ 250 words:** broken/placeholder first; what a player now sees differently; train views requested; files
    touched; tests run with results. No questions mid-run: decide, log, proceed.
+
+## Your context pack
+**Your tree:** C:/Users/Administrator/fars-wt/bodies (branch s14-bodies; the fixed clause's /home/user path is the cloud's).
+
+**Goal (as the player meets it):** No two people share a body: build, weight, musculature, shoulders and hips, bust from small to very large, belly, posture and face from very plain to very beautiful vary continuously on a real bell curve shaped by labour, diet, age and illness, with age marks, scars, pregnancy and nursing; bodies move with soft-tissue physics; garments drape over the actual body; far people (impostors) match, with their spears, bows and tools. Not explicit: people are clothed as the day requires.
+
+**Time box:** 6 h. **Needs:** blender. **Reserved:** D-363, Q-1170..Q-1179, B340..B349.
+
+**Files you own:**
+- src/people/looks.ts
+- src/people/body.ts
+- src/people/humans.ts
+- src/people/humanRig.ts
+- src/people/humanGPU.ts
+- src/people/humanMaterial.ts
+- src/people/drape.ts
+- src/people/outfits.ts
+- src/people/outfit_worker.ts
+- src/people/impostors.ts
+- new src/people/softbody.ts
+- tools/blender/people*.py
+- tools/blender/people.json
+- tools/blender/cloth.py
+- tools/blender/preview_people.*
+
+**Read-only, for context:**
+- src/people/crowd.ts
+- src/people/popview.ts
+- src/people/wardrobe/** (the visible agent exports the day's garment; read it if merged, else leave a hook)
+- src/people/population.ts
+- research/BLENDER_PLAN.md rows 5, 6, 19
+- humanlab.html
+
+**Start here (entry points):**
+- looks.ts:173-182 lookFor: pickVariant + a stature scale clamped to ±7 % is the whole body variation: replace with a continuous seeded shape vector (Blender shape keys on the MakeHuman base meshes: build, fat, muscle, bust, hips, belly, posture, face structure and attractiveness), drawn on a bell curve and shifted by the person's labour, household wealth, age, illness and pregnancy from the simulation
+- soft-tissue: spring-damper jiggle bones (breasts, buttocks, belly, thighs, upper arms, jowls) weighted in Blender, solved on the GPU (humanGPU.ts) or a worker, scaled by size and firmness, faded with distance; the same spring pass is the hook the later peoplemotion package uses for hair, sashes, jewellery and loads
+- garments: the cloth bake (cloth.py) per shape band so dress drapes over the actual body
+- impostors.ts: the Cycles atlas is stale (the render warns; a CPU fallback costs ~12 s of load): re-bake with tools/blender/people_impostors.py over shape bands and with the far people's spears, bows and tools (B176)
+
+**Decisions and blockers that matter (grep these ids, do not read the files whole):** D-304, D-307, D-313, B136, B151, B176, B148
+
+**Commands:**
+- node tools/dev/mkwt.mjs bodies
+- iterate on humanlab.html through node tools/dev/gpu_slot.mjs
+- node tools/blender/build.mjs <people ids> (Blender, headless); node tools/blender/impostors.mjs (Cycles, takes a GPU slot)
+
+**Done line:** tests/body_variety.test.ts (T-E15) passes: >= 99 % of the drawn population has a unique body/face vector, the spread is a bell curve with both extremes present on a 3,000-person sample; in humanlab and in train views a crowd shows visibly different bodies and faces, with soft-tissue motion in walking; the impostor atlas is fresh (no CPU fallback warning); frame cost of the jiggle pass <= 1 ms for the visible crowd.
+
+**Render-train views to request:** lane-with-child, apadana-nw-court, morning-wash, tannery-work, hall100-site
