@@ -8962,3 +8962,19 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
 - **Measured** (tools/blender/far_terrace_cost.ts, node, relief atlas on, procedural columns): near 1.125 M triangles; far 41.8 % at the W edge + 150 m, 30.7 % at 400 m (the town), 27.2 % at 1 km, 25.2 % at 2 km, 17.7 % at 4 km; worst bound drawn 0.475 px. Draws unchanged (137). The done line's <= 25 % is met only beyond ~2 km: B320.
 - Rejected (measured): bounds at 0.25 px without Permissive (78 % / 72 % / 67 %); 0.25 px with Permissive (62 % / 53 % / 42 %); exact hidden-face culling of building boxes (only ~14 % of the building triangles are covered faces); Blender planar dissolve (the building meshes are per-part boxes: nothing coplanar to merge).
 - tests/sculpt.test.ts: the capital-type test now ignores the room ranges' timber posts (D-276 put plain-capital posts in the Harem's store rooms); the mesh-sanity test has its own 600 s timeout (~100 s alone, > 120 s on the loaded box). The two failures e7290b1 named (door leaves, horns) pass on s14-int.
+
+## D-356 — The plain filled: the terrain out of the sun cascades, bedded rocks and plants, modelled crops, denser cover (session 14, plain)
+- **The near-black plain at dawn and dusk (lead's s14 baseline):** the near ring cast into the sun's cascades and shadowed itself at a low sun
+  (depth error over a texel = texel / tan(alt): ~1.8 m in the 50-160 m cascade at 3 deg against a 9 cm bias). The terrain now casts no cascade
+  shadow (terrainMesh.ts `TERRAIN_CASTS`, ?tcast=1 restores it for the A/B); its landform shadows stay the horizon map's (D-156). The likely
+  same cause for the black ground flora: their normal-biased lookups fell under the terrain's own shadow depth. A/B on tools/dev/plain_probe
+  (?lite&csm) at both hours: see the report; full-world proof is the train's dawn-stair-top and town-smoke-dusk.
+- **Floating rocks and plants:** the scans' base is their lowest point and they stood upright at their centre, so on slopes the downhill half
+  hung in the air; rocks are now bedded in the ground's plane over their footprint (four samples) and seated at the lowest, plants at the
+  lowest ground under them; the small world's ground is the drawn surface (surfaceAt, a one-line hook in world.ts), crops too.
+- **Crops:** the near crop is a modelled cereal clump (cropForms.ts: culms, arching leaf blades, ears with awns shown from heading to harvest
+  on barley, wheat and emmer; C for the form) in place of ten one-triangle blades; to stay inside D-040 (plain.test) it is 3 culms, 36
+  triangles, and the crop radius / spacing are traded (high 22 m / 0.45 m, was 30 / 0.36). Procedural in code, not a Blender asset.
+- **Ground cover:** the steppe's tufts twice as dense, six tuft pieces of the kit (was four), three swards; LOD at 5.5 / 16 m to stay inside
+  ground_cover.test's 0.35 M triangles and 36 draws.
+- Not done: herders with flocks in the near plain (the people sim's, not this package's files); far-tree "lollipops" (no frame of them seen).

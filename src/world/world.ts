@@ -289,7 +289,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     plain.data.rivers.rivers.forEach((r, k) => { halfW[k] = r.topWidth / 2; wet.addPolyline(r, 5, k); });
     for (const c of plain.data.canals) wet.addPolyline(c.pts as [number, number][], 5, 9);
     for (const m of townMiddens) dung.add(m[0], m[1]); if ((FAUNA_FAC as any).tannery) dung.add((FAUNA_FAC as any).tannery[0], (FAUNA_FAC as any).tannery[1]); // the tannery's flies (D-255)
-    const ground = (e: number, n: number) => { const y = nav.heightAt(e, n); return Number.isFinite(y) ? y : terrain.heightAt(e, -n); };
+    const ground = (e: number, n: number) => { const y = nav.heightAt(e, n); return Number.isFinite(y) ? y : terrain.surfaceAt(e, -n); }; // D-356: the drawn surface (heightAt, the bilinear placement height, floats up to ~0.5 m on the mid ring)
     // (session 10, the planets-dusk render: a thistle grew out of the Terrace's paving; built ground, the Terrace and the town's
     // plots, holds no flora and no small life but the middens' flies)
     const terr = (FOOTPRINTS as any).terrace.polygon as [number, number][], inPoly = (P: [number, number][], x: number, y: number) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
