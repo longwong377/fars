@@ -10,6 +10,7 @@ export interface Chain { leaf: number; path: number[]; shape: string; actors: st
 
 export function chains(events: EconEvent[]): Chain[] {
   events = events.filter(e => e?.actor); // (a loaded economy's older events are gone or kept as day and kind only: D-347)
+  const byId = new Map(events.map(e => [e.id, e])); // (D-359: by id, not by position in the filtered list: simtalk's finding)
   const hasChild = new Set<number>(); for (const e of events) for (const c of e.causes) hasChild.add(c);
   const best = new Map<number, number[]>(); // longest path ending at each event (events are in causal order: causes precede)
   for (const e of events) {
@@ -21,9 +22,9 @@ export function chains(events: EconEvent[]): Chain[] {
   for (const e of events) {
     if (hasChild.has(e.id)) continue;
     const path = best.get(e.id)!; if (path.length < 3) continue;
-    const actors = [...new Set(path.flatMap(i => [events[i].actor, ...(events[i].other ? [events[i].other!] : [])]))];
+    const actors = [...new Set(path.flatMap(i => [byId.get(i)!.actor, ...(byId.get(i)!.other ? [byId.get(i)!.other!] : [])]))];
     if (actors.length < 2) continue;
-    const shape = path.map(i => events[i].kind).join('>');
+    const shape = path.map(i => byId.get(i)!.kind).join('>');
     const key = `${shape}@${e.actor}`; if (seen.has(key)) continue; seen.add(key);
     out.push({ leaf: e.id, path, shape, actors });
   }
