@@ -1,5 +1,6 @@
 // World assembly: architecture (Phase 2+), people (Phase 3/5), audio (Phase 3). Phase 1: empty shell with hooks.
 import * as THREE from 'three/webgpu';
+import { FORWARD_FIRE_LIGHTS, GLOW_MAX } from '../render/fireGlow';
 import { ArrisField } from '../arch/arris';
 import { ADIST_OFF } from '../render/blockface';
 import type { Physics } from '../player/physics';
@@ -44,6 +45,7 @@ import { loadSculpt } from '../arch/sculpt';
 import { loadModels } from '../render/models';
 import { loadDecorAssets } from '../render/decorAssets';
 import { loadMonuments } from '../render/monuments';
+import { FarTerrace } from '../render/far_terrace';
 import { loadTreeAssets } from './trees/assets';
 import { loadReliefAtlas } from '../render/reliefAtlas';
 import { loadScanProps } from '../render/scanProps';
@@ -231,7 +233,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // ?fireshadows=K (diagnostic, D-216): the nearest K fire lights cast shadows
   const fireShadows = typeof location !== 'undefined' ? +(new URLSearchParams(location.search).get('fireshadows') ?? 0) : 0;
   await fireOccP;
-  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q], fireShadows); placeFires(fire, manifest, parts, doorways);
+  // D-355: the nearest fires as forward lights (a fixed set), the next GLOW_MAX through the post composite (high/ultra)
+  const fire = new FireSystem(FORWARD_FIRE_LIGHTS[q], fireShadows, 512, q === 'high' || q === 'ultra' ? GLOW_MAX : 0); placeFires(fire, manifest, parts, doorways);
   // the halls' interiors: a fire's light stays on its side of their walls (D-216; manifest rooms [e, n, size e, size n, floor, height])
   // (D-276: and every room of the room ranges: a quarters hearth lights its own room, not the next one through the wall)
   fire.setRooms([...Object.values(manifest).map((m: any) => m?.room), ...Object.values(manifest).flatMap((m: any) => m?.ranges?.rooms ?? [])].filter((r: any) => Array.isArray(r))
@@ -432,6 +435,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     solids.end(); };
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
   const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
+  // D-361 (B175): the Terrace's far levels from 150 m out (render/far_terrace.ts); ?farterrace=0 draws the near shapes everywhere (A/B)
+  const farTerrace = new URLSearchParams(location.search).get('farterrace') === '0' ? null : new FarTerrace([arch.group, reliefs, p4.group, ...(cren ? [cren] : []), foot, ...(building ? [building.group] : [])]);
   // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467
   const nowView = new NowView({ root, parts, phys, keep: [reliefs, p4.group, insc, wvfx.group, shafts.group, birds.group, foot],
     hideWithin: [reliefs.getObjectByName('crenellations'), insc.getObjectByName('apadana-foundation-deposits')] });
@@ -633,6 +638,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     update(dt: number, ctx: any) {
       time += dt;
       let tp = pt(); updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
+      farTerrace?.update(ctx.camera, dt === 0 ? 1e9 : 3, dt); // D-361: after the reliefs made their far meshes
       refreshReliefShadow(); // the relief shadow atlas's upload as its fields arrive (D-226)
       doors.view(ctx.camera.position);
       pa('w.reliefs+doors', tp); tp = pt(); arris.update(nowView.active ? null : ctx.camera.position, dt === 0 ? 1e9 : 3); pa('w.arris', tp); tp = pt(); // D-321 rev 2 (a test render builds all it needs at once)

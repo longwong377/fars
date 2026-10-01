@@ -226,6 +226,9 @@ class SSGINode extends TempNode {
 		 */
 		this.useTemporalFiltering = true;
 
+		// PĀRSA (D-355): the effect's resolution relative to the drawing buffer (0.5 = half; the composite upsamples bilinearly, TRAA resolves)
+		this.resolutionScale = 1;
+
 		// private uniforms
 
 		/**
@@ -397,7 +400,7 @@ class SSGINode extends TempNode {
 		//
 
 		const size = renderer.getDrawingBufferSize( _size );
-		this.setSize( size.width, size.height );
+		this.setSize( Math.max( 1, Math.round( size.width * this.resolutionScale ) ), Math.max( 1, Math.round( size.height * this.resolutionScale ) ) );
 
 		// update temporal uniforms
 

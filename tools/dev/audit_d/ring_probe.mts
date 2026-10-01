@@ -1,5 +1,6 @@
+import { fileURLToPath } from 'node:url';
 // Audit D's ring probe (M1), now the tool of gates T-H1 (MASTER_PLAN §4.1): the walked terrain against the drawn terrain.
-//  1. T-H1: collider vs DRAWN ground at the terrain LOD seams, 10,000 samples per ring seam (near/mid, mid/far), the drawn
+process.chdir(fileURLToPath(new URL('../../../', import.meta.url))); // the repo root, wherever it is cloned
 //     height read from the terrain mesh's own chunk geometry (tests/lib/seams.ts seamSamples); writes the evidence
 //     REVIEWS/evidence/s8-h/T-H1.json {id, value (m, the worst seam's worst), n (samples per seam), commit, tool}.
 //  2. The audit's bands: physics ray vs Terrain.surfaceAt (the drawn surface), 200 samples per band from 0 to 30 km.
