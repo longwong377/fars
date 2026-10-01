@@ -1,25 +1,21 @@
-# Agent brief template (MASTER_PLAN.md §6 session loop, step 5; generate every worker agent's brief from this)
+# Brief s14/animalmotion: Animals and birds move like living things (3c)
 
 ## Fixed clauses (copy verbatim)
 
 You are a worker agent on PĀRSA (repo /home/user/fars, your own worktree branch; do not push). Read USER_DIRECTIONS.md,
 MASTER_PLAN.md and CLAUDE.md first. The standard is every walkable area, at the player's lens and quality,
-in motion, with sound, at every hour, season and weather. Your work serves the user directions {UD ids} and the thresholds {T- ids, quoted
-verbatim from gates/thresholds.json}.
+in motion, with sound, at every hour, season and weather. Your work serves the user directions UD-27, UD-11 and the thresholds T-E15: "distinct drawn bodies: share of the drawn population whose body and face shape vector (continuous, seeded from the person and their life) differs from every other person's, with garments draped over that body and the day's wardrobe choice shown" >= 99 % unique.
 
 1. Say before you start how your change could pass its tests while the intent fails, and measure against that, not only the test.
 2. Prefer the world-wide fix to the per-view fix. A fix proved in one view is not proved everywhere.
-3. Evidence: node previews and CPU mirrors first; at most {n ≤ 2} browser runs through tools/dev/queue_e2e.sh.
-4. Records: your reserved numbers are D-{d}, Q-{q0}..Q-{q1}, B{b0}..B{b1}; rows are appended, never renumbered.
+3. Evidence: node previews and CPU mirrors first; at most 2 browser runs through tools/dev/queue_e2e.sh.
+4. Records: your reserved numbers are D-362, Q-1160..Q-1169, B330..B339; rows are appended, never renumbered.
 5. Never lower or reword a threshold (tests/gates_ratchet.test.ts); a threshold you cannot meet goes to BLOCKERS with ≥ 3
    approaches measured.
 6. Lead your final report with what is broken, placeholder or unverified on screen; list tests run with results; run
    `git checkout bench-reports/` before committing.
 7. Heavy CPU work (soaks, bots, audio renders, bakes, long test runs) goes through `tools/dev/cpu_slot.sh`, one process at a
    time: the four cores are shared with the render lane.
-
-## Slots
-- {task}; {areas}; {files in scope}; {what "done" means in thresholds}; {UD ids}; {reserved numbers}; {render budget}
 
 ## Machine section (session 11 on; copy into every brief after the fixed clauses)
 On the GPU machine (session 11 on: Windows, NVIDIA T4, 16 cores, 63 GB, open internet), this clause governs where it
@@ -45,9 +41,7 @@ that no hour is spent reading, waiting or polishing.
    lead runs it on `s14-int` after merging you and puts the frames in fars-train/out/<run>/<name>/. While you wait, do your
    next item; never sit idle on a slot.
 5. **Slots:** every GPU job (probe pages too) through `node tools/dev/gpu_slot.mjs`; every heavy node job (soak, long vitest
-   files, bots, Blender bakes on the CPU) through `node tools/dev/cpu_slot.mjs <label> -- <cmd>`; a job of more than ~10 min
-   with `LONG=1` (it may take one slot only; the other stays for short checks), and hours-long runs queued for the night.
-   Memory: one browser or Blender process of yours at a time (16 GB is shared; the session crashed once from it). Tests: only the files you
+   files, bots, Blender bakes on the CPU) through `node tools/dev/cpu_slot.mjs <label> -- <cmd>`. Tests: only the files you
    touched or that import them (`npx vitest run <files>`); the lead runs the full suite overnight.
 6. **Done line and stop rules.** Your pack's done line is what a player would see (or a named threshold). Stop when it is
    met: no polish past it. A sub-goal that fails three measured approaches goes to BLOCKERS (your numbers) and you move on.
@@ -58,3 +52,40 @@ that no hour is spent reading, waiting or polishing.
    PROGRESS, HANDOFF, TASKS or COVERAGE (the lead's).
 9. **Report ≤ 250 words:** broken/placeholder first; what a player now sees differently; train views requested; files
    touched; tests run with results. No questions mid-run: decide, log, proceed.
+
+## Your context pack
+**Your tree:** C:/Users/Administrator/fars-wt/animalmotion (branch s14-animalmotion; the fixed clause's /home/user path is the cloud's).
+
+**Goal (as the player meets it):** Every animal has secondary motion: bellies and dewlaps sway, ears flick, tails swing as chains, pack loads sway with the gait; birds take off without a pop and their wings shade correctly in flight.
+
+**Time box:** 4 h. **Needs:** blender. **Reserved:** D-362, Q-1160..Q-1169, B330..B339.
+
+**Files you own:**
+- src/people/animals.ts
+- src/people/animalForm.ts
+- src/people/animalRig.ts
+- src/people/animalModels.ts
+- tools/blender/animals.mjs
+- tools/blender/animals.py
+- tools/blender/life_birds.py
+- src/world/wildlife.ts
+
+**Read-only, for context:**
+- src/world/fauna.ts (the plain agent owns it)
+- src/world/beasts.ts
+- research/BLENDER_PLAN.md rows 4, 20
+- tools/dev/animal_probe.*
+
+**Start here (entry points):**
+- animals.ts:12: the only motion is a procedural tail swish; add spring-damper jiggle bones (belly, dewlap, ears, tail chain, load) in Blender weights on the vertex rig, solved per frame on the GPU or a worker, faded with distance
+- B179: birds pop at take-off (separate stand and fly levels) and flying wings keep rest normals: blend the rigs, recompute normals
+
+**Decisions and blockers that matter (grep these ids, do not read the files whole):** D-326, D-332, B179
+
+**Commands:**
+- node tools/dev/mkwt.mjs animalmotion
+- iterate on tools/dev/animal_probe.html: node tools/dev/gpu_slot.mjs animalmotion -- node tools/dev/animal_probe.mjs
+
+**Done line:** In the animal probe and in train views, donkeys, oxen, sheep, goats, dogs, horses and camels show visible belly, ear, tail and load motion while walking and settle when standing; birds take off without a pop; cost <= 0.5 ms for 200 animals.
+
+**Render-train views to request:** drum-road, small-spring-field, ford-pulvar-sep
