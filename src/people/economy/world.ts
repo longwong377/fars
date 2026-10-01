@@ -415,7 +415,7 @@ export class Economy implements EconWorld {
       }
     } else if (day >= h.sickUntil && u01(this.seed, S.ill, k, day) < pIll) {
       h.sickUntil = day + 6 + (h32(this.seed, S.ill, k, day + 1) % 20); h.health -= 0.15;
-      h.cause.help = this.ev(day, h.id, 'illness', [h.cause.health, h.cause.fuel]);
+      h.cause.help = this.ev(day, h.id, 'illness', this.illCauses(h, day));
       if (h.health < 0.3 && u01(this.seed, S.ill, k, day + 2) < 0.35) this.death(h, day);
     }
     // debts fall due
@@ -425,7 +425,7 @@ export class Economy implements EconWorld {
     // neighbour's store (C, by analogy: property crime in pre-modern towns ran at one to a few in a thousand people a year,
     // most of it small and not from starvation); with the neighbours' help carrying the hungry (D-344), want alone left ~5 a year
     if (h.honest < 0.1 && day - h.lastTheft > 90 && day - h.lastAct >= 3 && (h.grain < eat * 30 || h.cash < 1) && u01(this.seed, S.steal, k, day, 2) < PETTY_THEFT) {
-      h.lastTheft = day; this.steal(h, day, k, h.grain < eat * 30 ? h.cause.food : h.cause.cash, eat * 6); return; }
+      h.lastTheft = day; this.steal(h, day, k, this.wantEv(h, h.grain < eat * 30 ? 'food' : 'cash', day), eat * 6); return; }
     // one choice a day at most, when a need presses
     if (day - h.lastAct >= 3) this.decide(h, day, k);
   }
@@ -433,7 +433,7 @@ export class Economy implements EconWorld {
   /** D-347: an illness drawn LIFE_LAG days ago takes hold (the member already lies sick in the Population) */
   private illDue(h: HH, _k: number, len: number) {
     h.sickUntil = this.day + len; h.health -= 0.15; h.illAt = -1;
-    h.cause.help = this.ev(this.day, h.id, 'illness', [h.cause.health, h.cause.fuel]);
+    h.cause.help = this.ev(this.day, h.id, 'illness', this.illCauses(h, this.day));
   }
   private dieDue(h: HH, _ev: number) { if (!h.dead) this.death(h, this.day); }
   private death(h: HH, day: number, ofIllness = true) {
@@ -523,6 +523,25 @@ export class Economy implements EconWorld {
     h.debts.push(this.debt(L.id, amt * 1.1, day + 60 + (h32(this.seed, S.act, day, amt | 0) % 60), e)); h.cause.cash = e; return e;
   }
 
+  /** s15 (D-358 repair): the event behind a want the house acts on (a loan, a sale, a theft, a petition, kin's help). A want
+   *  with no event recorded (the stores simply ran down, the silver ran out) is itself recorded, 'stores_low', 'fuel_low' or
+   *  'silver_short', caused by what the state knows lies behind it: for barley, the treasury's ration cut (a ration house) and
+   *  the market's dear grain of the last sixty days; for silver, the debts that press it (each debt's own event, soonest due
+   *  first) and the house's own want of barley (silver goes on bread). Was: the act named the undefined cause, and a loan
+   *  taken for a want nobody recorded began a chain from nothing (s15: the stranger's loans to such houses joined no chain). */
+  private wantEv(h: HH, kind: 'food' | 'fuel' | 'cash', day: number): number {
+    const c = h.cause[kind]; if (c !== undefined && this.events[c]) return c;
+    const recent = (e: number) => (e >= 0 && this.events[e] && this.events[e].day > day - 60 ? e : undefined);
+    const causes = kind === 'food' ? [h.kind === 'ration' ? recent(this.treasury.shortEv) : undefined, recent(this.market.dearEv)]
+      : kind === 'cash' ? [...h.debts.filter(d => d.amt > 0.01).sort((a, b) => a.due - b.due).slice(0, 2).map(d => d.ev), h.cause.food] : [];
+    const e = this.ev(day, h.id, kind === 'food' ? 'stores_low' : kind === 'fuel' ? 'fuel_low' : 'silver_short', causes); h.cause[kind] = e; return e;
+  }
+  /** s15: what made an illness likelier (the draw's own terms): a house poorly fed (its hunger), a cold hearth in winter; a
+   *  healthy, warm house falls ill by chance alone, and the illness then names no cause (was: both causes always, even
+   *  when the house was fed and warm) */
+  private illCauses(h: HH, day: number): (number | undefined)[] {
+    return [h.health < 0.75 ? h.cause.health : undefined, this.season(day) === 'winter' && h.fuel <= 0 ? h.cause.fuel : undefined];
+  }
   private decide(h: HH, day: number, k: number) {
     const eat0 = h.eaters * GRAIN_EAT;
     if (!h.debts.length && day >= h.sickUntil && h.health > 0.46 && h.grain > eat0 * 9.5 && h.fuel > 4.5) return; // nothing presses (the same test as below, cheaply)
@@ -532,7 +551,7 @@ export class Economy implements EconWorld {
     const act = (kind: string, causes: (number | undefined)[], other?: string, amt?: number) => { h.lastAct = day; return this.ev(day, h.id, kind, causes, other, amt); };
     if (top.kind === 'food' || top.kind === 'fuel') {
       const want = top.kind === 'food' ? eat * 20 : 10, cost = top.kind === 'food' ? want * pG : want * this.price('fuel', day);
-      const cause = top.kind === 'food' ? h.cause.food : h.cause.fuel;
+      const cause = this.wantEv(h, top.kind, day);
       if (h.cash >= cost) { h.cash -= cost; if (top.kind === 'food') { const got = Math.min(want, this.market.grain); this.market.grain -= got; h.grain += got; } else h.fuel += want; act(top.kind === 'food' ? 'buy' : 'buy_fuel', [cause, top.kind === 'food' ? this.market.dearEv : undefined], 'market', cost); return; }
       if (h.goods > 0) { h.goods--; h.cash += this.price('goods', day); act('sell', [cause, this.market.slumpEv], 'market'); return; }
       const kin = h.kin.map(x => this.hh.get(x)!).find(K => K && !K.dead && K.grain > K.eaters * GRAIN_EAT * 60 && (!this.trust || this.trust.willHelp(K.id, h.id, day, 0.2))); // (D-351: kin help whom they trust)
@@ -558,7 +577,7 @@ export class Economy implements EconWorld {
       h.lastPet = day; const pet = act('petition', [refused ?? cause], 'court'); this.relief(h, day, k, pet, eat);
       return;
     }
-    if (top.kind === 'cash' && h.goods > 0) { h.goods--; h.cash += this.price('goods', day); act('sell', [h.cause.cash], 'market'); return; }
+    if (top.kind === 'cash' && h.goods > 0) { h.goods--; h.cash += this.price('goods', day); act('sell', [this.wantEv(h, 'cash', day)], 'market'); return; }
     // D-340: a household owing the treasury (tax or levy arrears) petitions for remission (C: the officials could remit
     // or defer dues; the odds are reasoned)
     const tre = h.debts.find(d => d.to === 'treasury');

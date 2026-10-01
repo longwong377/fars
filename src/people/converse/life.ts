@@ -11,7 +11,7 @@ import { MONTHS, dateOf, seasonOf } from '../calendar';
 import type { EventCalendar } from '../calendar';
 import { HOME_LANG } from '../exchanges';
 import { Rng } from '../../core/rng';
-import { standing, type SimView } from '../speech/grounds';
+import { standing, countWords, type SimView } from '../speech/grounds';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
 export interface LifeRecord {
@@ -147,7 +147,7 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     return { name: spokenName(pop, o)!, how: `${how}, ${jobWords(O)}`, feeling: a < 0 ? 'on bad terms since a quarrel' : a > 0.5 ? 'close' : 'friendly' }; });
   // the year so far (the regnal year starts at day 0, the month of Nisanu: sim facts only)
   const year: string[] = [], quarrels: string[] = [];
-  const when = (d: number) => { const k = day - d; return k === 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${k} days ago` : k < 45 ? `about ${Math.round(k / 7)} weeks ago` : `in the month ${MONTHS[dateOf(d).month - 1].op}`; };
+  const when = (d: number) => { const k = day - d; return k === 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${countWords(k)} days ago` : k < 45 ? `about ${countWords(k / 7)} weeks ago` : `in the month ${MONTHS[dateOf(d).month - 1].op}`; };
   if (p.arrive > 0 && p.arrive <= day) year.push(p.job === 'herder' ? `came down into the plain with the band and the flocks ${when(p.arrive)}` : p.job === 'traveller' ? `came to Parsa on the king’s road ${when(p.arrive)}` : `came to Parsa with a newly sent work group ${when(p.arrive)}`);
   if (p.marry <= day && p.spouse !== undefined && !p.moved) year.push(`was married ${when(p.marry)} to ${spokenName(pop, p.spouse)}`);
   if (p.marry > day && p.marry < 1e8 && p.spouse !== undefined) year.push(`is to be married this year to ${spokenName(pop, p.spouse)} (the families have agreed)`);
@@ -158,13 +158,17 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     const C = cal.ctx(d); const x = C.disputes.get(pid); if (x && (d < day || x.t <= hour)) quarrels.push(`quarrelled with ${spokenName(pop, x.other)} ${x.why} ${when(d)}`);
   }
   let sickDays = 0; for (let d = Math.max(0, day - 30); d < day; d++) if (pop.sick(pid, d)) sickDays++;
-  if (sickDays) year.push(`was sick for ${sickDays} day${sickDays > 1 ? 's' : ''} in the last month`);
+  if (sickDays) year.push(`was sick for ${sickDays === 1 ? 'a' : countWords(sickDays)} day${sickDays > 1 ? 's' : ''} in the last month`);
   if (pop.sick(pid, day)) year.push('is sick today');
-  const mourn = pop.mourning(pid, day); if (mourn) year.push(`the house is in mourning (a death ${mourn === 1 ? 'yesterday' : `${mourn} days ago`})`);
+  const mourn = pop.mourning(pid, day); if (mourn) year.push(`the house is in mourning (a death ${mourn === 1 ? 'yesterday' : `${countWords(mourn)} days ago`})`);
   const hear = pop.hearing(pid, day); if (hear) year.push(`must go before an official today over the quarrel with ${spokenName(pop, hear.other)} ${hear.why}`);
   if (p.group >= 0) { const sh = cal.shortfalls.filter(s => s.group === p.group && s.day <= day && s.day > day - 90); if (sh.length) year.push(`the group’s rations came short ${when(sh[sh.length - 1].day)}${sh[sh.length - 1].paidSilver ? ' and part was paid in silver' : ''}`); }
   // D-358: the house's means and obligations, from the running simulation (the seeded debts of D-296 are gone: B234's pack)
   const S = world ? standing(world, pid, day) : null; const debts = S?.debts ?? [];
+  // (session 15: a member of a work group lives on the group's ration, not a house of the economy: asked of means, that is
+  // what they would say, from the calendar's ration shortfalls; the market's price comes from standing)
+  if (S && !S.hh && p.group >= 0) { const sh = cal.shortfalls.filter(s => s.group === p.group && s.day <= day && s.day > day - 90).pop();
+    S.means.unshift(`you eat from the barley ration the tablets give your group${sh ? `; it came short ${when(sh.day)}${sh.paidSilver ? ', part paid in silver' : ''}` : ', and lately it has come in full'}`); }
   const [temper, habit] = TEMPER[Math.min(TEMPER.length - 1, Math.floor(p.trait * TEMPER.length))];
   const oaths = OATHS[p.origin] ?? ['by the gods'];
   const speech = [habit, `oath: “${oaths[Math.floor(r.next() * oaths.length)]}”`, age < 13 ? 'speaks like a child: short, plain, about play, family and food' : age > 55 ? 'speaks slowly, remembers older days under the king’s father' : r.next() < 0.5 ? 'plain speech of the town' : 'plain speech, some words of the work',
@@ -206,24 +210,27 @@ export function knowsFor(p: Person, age: number): string[] {
   return k;
 }
 
+/** the first n words (session 15: a brief ran to 470 tokens with every droppable line gone: a long home and a long "right
+ *  now" are cut to their first clause or words) */
+const words = (s: string, n: number) => { const w = s.trim().split(/\s+/); return w.length <= n ? s.trim() : w.slice(0, n).join(' ').replace(/[,;]$/, ''); };
 const short = (s: string, n = 9) => { const t = s.split(/[:(;]/)[0].trim().split(/\s+/); return t.slice(0, n).join(' '); };
 /** the record in as few words as keep it whole: the prompt the person's model reads on every answer (D-296: a long prompt
  *  is slow to read in, ~460 tokens a second on a T4, and one read of ~900 tokens hung the card past the Windows watchdog; the
  *  whole prompt stays under ~450 tokens). The events of the day that everyone shares are cut to the two nearest the person */
 export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
   // "your wife Dātabāmā (28)" reads right to a small model; "Dātabāmā (wife, 28)" was misread (a 2B made a child of two a wife)
-  const kin = L.household.slice(0, 5).map(k => /^kins|^the old/.test(k.rel) ? `${k.name} (${k.rel}, ${k.age})` : `your ${k.rel} ${k.name} (${k.age})`).join(', ') || 'no one: you live with your work group';
+  const kin = L.household.slice(0, 4).map(k => /^kins|^the old/.test(k.rel) ? `${k.name} (${k.rel}, ${k.age})` : `your ${k.rel} ${k.name} (${k.age})`).join(', ') || 'no one: you live with your work group';
   const who = L.age < 14 ? (L.sex === 'm' ? 'boy' : 'girl') : L.sex === 'm' ? 'man' : 'woman';
   const ev = L.today.events.filter(e => !/^the gangs at work/.test(e)).slice(0, 1);
   const lines = [
     `You are ${L.name}, ${who} of ${L.age}, ${L.origin}; you speak ${L.language}.`,
-    `Work: ${short(L.job, 16)}${L.rank ? `, ${L.rank}` : ''}. Home: ${L.home.replace(/ \(a household of.*\)$/, '')}.`,
+    `Work: ${short(L.job, 16)}${L.rank ? `, ${L.rank}` : ''}. Home: ${words(L.home.replace(/ \(a household of.*\)$/, '').split(/, /)[0], 14)}.`,
     `In your house: ${kin}.`,
     L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
     lately(L).length ? `Lately: ${lately(L).join('; ')}.` : '',
     L.means.length ? `Means: ${L.means.join('; ')}.` : '',
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
-    `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${L.today.now.replace(/^[a-z ]+: /, '')}${L.today.next ? `; after this: ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
+    `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${words(L.today.now.replace(/^[a-z ]+: /, ''), 12)}${L.today.next ? `; after this: ${words(L.today.next, 8)}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
     ev.length ? `News today: ${ev.join('; ')}.` : '',
     prose ? `Memories: ${prose}` : '',
     L.knows.length > 6 ? `You know well: ${L.knows[L.knows.length - 1]}.` : '',

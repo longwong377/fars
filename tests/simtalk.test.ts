@@ -37,12 +37,20 @@ import { day300, navGrid, env, OPTS, DAY } from './simtalk_world';
  *  "Answer as X, from your own life: FACT"): a small obedient model says the fact in the first person */
 function reader() {
   const e = standInEngine(); const inner = e.chat.completions.create;
-  e.chat.completions.create = async (req: any) => {
-    const r: any = await inner(req); if (req.stream) return r; const text: string = r.choices[0].message.content;
+  // (session 15: the answers are streamed (mind.ts) and the reading was applied only to unstreamed calls, so the means
+  // questions were scored on replies that never read the closing note: a stream is now read whole, read the same way, re-sent)
+  const read = (req: any, text: string) => {
     const last: string = req.messages[req.messages.length - 1]?.content ?? ''; const f = /from your own life: (.*?)\.\)\s*$/.exec(last)?.[1];
-    if (!f || !/^I am [^,]+, stranger\./.test(text)) return r;
+    // (a turn carrying the simulation's word on an ask is answered as the stand-in answers it: yes or no, not a life fact)
+    if (!f || !/^I am [^,]+, stranger\./.test(text) || /You can do this|You cannot do this|must say no/.test(last)) return text;
     const first = f.replace(/\byour house\b/g, 'my house').replace(/\byour own house\b/g, 'my own house').replace(/\byour\b/g, 'my').replace(/\byou are\b/g, 'I am').replace(/\byou\b/g, 'I');
-    return { choices: [{ message: { content: text.replace(/(stranger\.)\s.*?(\s*\[none\])$/, `$1 ${first.charAt(0).toUpperCase() + first.slice(1)}.$2`) } }] };
+    return text.replace(/(stranger\.)\s.*?(\s*\[none\])$/, `$1 ${first.charAt(0).toUpperCase() + first.slice(1)}.$2`);
+  };
+  e.chat.completions.create = async (req: any) => {
+    const r: any = await inner(req);
+    if (!req.stream) return { choices: [{ message: { content: read(req, r.choices[0].message.content) } }] };
+    let text = '', tail: any = null; for await (const ch of r) { text += ch.choices?.[0]?.delta?.content ?? ''; if (ch.usage) tail = ch; }
+    const out = read(req, text); return (async function* () { yield { choices: [{ delta: { content: out } }] }; if (tail) yield tail; })();
   };
   return e;
 }
@@ -201,8 +209,9 @@ describe('a day-300 save: talking reaches the real simulation', () => {
       const L = lifeRecord(b.pop, b.cal, c.pid, c.day, b.t - c.day * 24, simView(b, c.day)); const s = score(c, L, o.answer.text, o.answer.totalMs, o.answer.ttftMs, o.answer.tries, o.answer.ok); t9.push({ ...s, means: /owe|silver|barley|BAR|house/.test(o.answer.text) }); }
     // the means questions: the house's debts, prices, wants and hearsay asked of the same people (grounded in the sim's facts)
     const MQ = ['Do you owe anyone?', 'Is barley dear at the market?', 'Does your house need anything?', 'What have you heard lately?'];
-    const mq: any[] = []; for (const [k, c] of cases.slice(0, 32).entries()) { b.jumpTo(Math.max(b.t + 0.02, c.day * 24 + c.hour)); const q = MQ[k % MQ.length]; const o = await talkTurn(m, b, c.pid, q, { conv: b.t }); m.forget();
-      const L = lifeRecord(b.pop, b.cal, c.pid, c.day, b.t - c.day * 24, simView(b, c.day)); const facts = [...L.debts, ...L.means, ...L.needs, ...L.rumours, ...L.dealings];
+    // (session 15: asked the next day at each person's own hour; they were asked after the last case's hour, mostly asleep)
+    const mq: any[] = []; for (const [k, c] of cases.slice(0, 32).entries()) { const dq = c.day + 1; b.jumpTo(Math.max(b.t + 0.02, dq * 24 + c.hour)); const q = MQ[k % MQ.length]; const o = await talkTurn(m, b, c.pid, q, { conv: b.t }); m.forget();
+      const L = lifeRecord(b.pop, b.cal, c.pid, dq, b.t - dq * 24, simView(b, dq)); const facts = [...L.debts, ...L.means, ...L.needs, ...L.rumours, ...L.dealings];
       const named = facts.some(f => { const w = f.toLowerCase().split(/[^a-z’]+/).filter(x => x.length >= 5 && !['house', 'which', 'there'].includes(x)); return w.filter(x => o.answer.text.toLowerCase().includes(x)).length >= 2; });
       mq.push({ q, pid: c.pid, reply: o.answer.text, pass: o.answer.ok && named && !fenceHits(o.answer.text).length }); }
     const t9pass = t9.filter(s => s.pass).length, te9 = +(100 * t9pass / t9.length).toFixed(1), mqv = +(100 * mq.filter(x => x.pass).length / mq.length).toFixed(1);

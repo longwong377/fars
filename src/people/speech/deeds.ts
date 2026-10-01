@@ -20,7 +20,7 @@ import type { Intent } from '../economy/api';
 import type { AsksWorld } from '../asks/world';
 import type { EconAsk, EconDeed } from '../converse/intent';
 import { haggle, type HaggleGood } from './haggle';
-import { PLAYER_ID, silverWords, grainWords } from './grounds';
+import { PLAYER_ID, silverWords, barWords, countWords } from './grounds';
 
 const GRAIN_EAT = 0.55, QA = 0.55;
 /** the stranger's purse at the start (C: a traveller on the king's road carries a few sheqel of silver and a little barley) */
@@ -28,17 +28,23 @@ export const PURSE0 = { silver: 4, grain: 5.5, goods: 1, fuel: 0 };
 export type Purse = typeof PURSE0;
 export interface DeedOut {
   kind: EconDeed; ok: boolean; reason: string; hh: string;
-  /** the economy events the deed made, and the event it names as its cause (-1: none) */ events: number[]; cause: number; causeKind: 'need' | 'matter' | 'player' | 'none';
+  /** the economy events the deed made, and the event it names as its cause (-1: none); all the causes it names */ events: number[]; cause: number; causeKind: 'need' | 'matter' | 'player' | 'none'; causes?: number[];
   intents: Intent[]; changes: string[]; price?: number; counter?: number; qty?: number;
   /** what happened, in the person's brief (out of world) */ words: string;
 }
 export interface DealRow { t: number; pid: number; hh: string; kind: EconDeed; ok: boolean; reason: string; events: number[]; cause: number; purse: Purse }
+/** a lot of barley in the stranger's purse and the economy event it came by (a bargain, barley given for the road): what he
+ *  gives on names where it came from (session 15: the provenance is a link of the chain, "bought of one house, given to another") */
+export interface Lot { kg: number; ev: number }
 
 /** the stranger's purse and the record of his dealings (saved with the sim) */
 export class PlayerDeals {
-  purse: Purse = { ...PURSE0 }; readonly rows: DealRow[] = [];
-  save() { return this.rows.length ? { purse: { ...this.purse }, rows: this.rows.map(r => ({ ...r, events: [...r.events], purse: { ...r.purse } })) } : undefined; }
-  load(s?: { purse: Purse; rows: DealRow[] }) { this.purse = { ...(s?.purse ?? PURSE0) }; this.rows.length = 0; for (const r of s?.rows ?? []) this.rows.push({ ...r, events: [...r.events], purse: { ...r.purse } }); }
+  purse: Purse = { ...PURSE0 }; readonly rows: DealRow[] = []; lots: Lot[] = [];
+  save() { return this.rows.length ? { purse: { ...this.purse }, rows: this.rows.map(r => ({ ...r, events: [...r.events], purse: { ...r.purse } })), ...(this.lots.length ? { lots: this.lots.map(l => ({ ...l })) } : {}) } : undefined; }
+  load(s?: { purse: Purse; rows: DealRow[]; lots?: Lot[] }) { this.purse = { ...(s?.purse ?? PURSE0) }; this.rows.length = 0; for (const r of s?.rows ?? []) this.rows.push({ ...r, events: [...r.events], purse: { ...r.purse } }); this.lots = (s?.lots ?? []).map(l => ({ ...l })); }
+  /** the lots that `kg` of barley given now comes out of (oldest first; the purse's first barley has no event) */
+  peek(kg: number): Lot[] { const out: Lot[] = []; let left = kg; for (const l of this.lots) { if (left <= 1e-9) break; const k = Math.min(l.kg, left); out.push({ kg: k, ev: l.ev }); left -= k; } return out; }
+  take(kg: number) { let left = kg; while (left > 1e-9 && this.lots.length) { const l = this.lots[0], k = Math.min(l.kg, left); l.kg -= k; left -= k; if (l.kg <= 1e-9) this.lots.shift(); } }
 }
 const deals = new WeakMap<object, PlayerDeals>();
 /** the deals of a sim (or any owner object) */
@@ -46,9 +52,20 @@ export function dealsOf(owner: object): PlayerDeals { let d = deals.get(owner); 
 
 export interface DeedWorld { pop: Population; econ: Economy; asks: AsksWorld | null }
 const hhOf = (pop: Population, pid: number, day: number) => `h:${pop.home(pid, day)}`;
-/** the event behind a want of the house (its own cause for the need), if it is still an event of the economy */
-function needCause(E: Economy, hh: string, kind: 'food' | 'fuel' | 'cash' | 'help' | 'health'): number {
-  const h = E.hh.get(hh)!; const c = h.cause[kind]; return c !== undefined && E.events[c] ? c : -1; // (a loaded economy keeps an older cause as day and kind: the link is the same)
+/** every live event behind a want of the house (session 15; was: the one cause.<kind>): for silver, also the debts that press
+ *  it (each debt's own event: the loan, the arrears; Economy.needsOf counts them in the want); a bargain struck before is
+ *  not a fresh cause (haggle.ts's rule: no deal-after-deal chains) */
+function wantCauses(E: Economy, hh: string, kinds: ('food' | 'fuel' | 'cash' | 'help' | 'health')[]): number[] {
+  const h = E.hh.get(hh)!, out: number[] = []; const add = (c: number | undefined) => { if (c !== undefined && c >= 0 && E.events[c] && E.events[c].kind !== 'haggle_deal' && !out.includes(c)) out.push(c); };
+  for (const k of kinds) { add(h.cause[k]); if (k === 'cash') for (const d of [...h.debts].filter(d => d.amt > 0.004).sort((a, b) => a.due - b.due).slice(0, 3)) add(d.ev); }
+  return out;
+}
+/** what the barley (or fuel) a house sells came by: the event behind its stock when that is an inflow (kin's or neighbours'
+ *  gift, relief, work paid in barley, a good harvest), so a sale names where the goods came from as well as why silver is
+ *  wanted */
+const INFLOW = new Set(['given', 'kin_help', 'neighbours_help', 'relief', 'hired_by_neighbour', 'hired_by_stranger', 'wage_work', 'grain_brought', 'harvest_good']);
+function stockCause(E: Economy, hh: string, good: HaggleGood): number {
+  if (good !== 'grain' && good !== 'fuel') return -1; const c = E.hh.get(hh)!.cause[good === 'fuel' ? 'fuel' : 'food']; return c !== undefined && E.events[c] && INFLOW.has(E.events[c].kind) ? c : -1;
 }
 /** the matter before the judge: an open ask for time, an advocate or justice (asks.ts: the suit, arrears or theft behind it),
  *  the house's default still remembered by the lenders, else its latest suit, arrears, accusation, arrest or default of the
@@ -80,14 +97,16 @@ export function considerDeed(W: DeedWorld, D: PlayerDeals, pid: number, day: num
   if (E.trust && !E.trust.willTalk(hh, PLAYER_ID, day)) return out(false, 'does not deal with a stranger the house does not trust');
   const P = D.purse, eat = h.eaters * GRAIN_EAT;
   const cz = (c: number, k: DeedOut['causeKind']) => c >= 0 ? { cause: c, causeKind: k } : { cause: -1, causeKind: 'none' as const };
+  const czs = (cs: number[], k: DeedOut['causeKind']) => ({ ...cz(cs[0] ?? -1, k), causes: cs });
   switch (a.kind) {
     case 'buy': case 'haggle': case 'sell': {
       const good = (a.good === 'silver' || a.good === 'labour' || !a.good ? 'grain' : a.good) as HaggleGood, qty = a.qty ?? (good === 'grain' ? 5.5 : 1);
       const sell = a.kind === 'sell'; const buyer = sell ? hh : PLAYER_ID, seller = sell ? PLAYER_ID : hh;
       if (sell && (good === 'grain' ? P.grain : good === 'fuel' ? P.fuel : P.goods) < qty) return out(false, `the stranger has no ${good === 'grain' ? 'barley' : good} to sell`);
       // the cause: the seller house's want of silver (it sells to meet it), the buyer house's want of the good
-      const c = sell ? needCause(E, hh, good === 'fuel' ? 'fuel' : 'food') : needCause(E, hh, 'cash');
-      const r = haggle(E, { buyer, seller, good, qty, day, apply: false, pay: 'cash', causes: c >= 0 ? [c] : [], urgency: sell ? undefined : { buyer: 0.3 } });
+      // (session 15: and, for a sale, what the house's stock came by; for a purchase, the want of silver includes its debts)
+      const cs = sell ? wantCauses(E, hh, [good === 'fuel' ? 'fuel' : 'food']) : [...wantCauses(E, hh, ['cash']), stockCause(E, hh, good)].filter((x, i, a) => x >= 0 && a.indexOf(x) === i);
+      const r = haggle(E, { buyer, seller, good, qty, day, apply: false, pay: 'cash', causes: cs, urgency: sell ? undefined : { buyer: 0.3 } });
       if (!r.ok) return out(false, r.why === 'seller has no spare' ? `has no ${good === 'grain' ? 'barley' : good} to spare` : r.why === 'buyer cannot pay' ? 'the house has no silver to pay for it' : r.why === 'no overlap' ? 'the price will not meet' : r.why ?? 'will not deal');
       let price = r.price; const counter = sell ? r.price : r.floor;
       if (a.kind === 'haggle' && a.price !== undefined) {
@@ -96,21 +115,23 @@ export function considerDeed(W: DeedWorld, D: PlayerDeals, pid: number, day: num
       }
       if (!sell && P.silver < price) return out(false, `the stranger has not ${silverWords(price)} to pay`, { counter, qty });
       const ints = r.intents.map(i => ({ ...i, payload: { ...i.payload, price, src: 'player', ...(i.payload.cash !== undefined ? { cash: (i.payload.cash as number) > 0 ? price : -price } : {}) } }));
-      const what = good === 'grain' ? grainWords(qty, 1).replace(/^barley for .* of bread \(/, 'barley (').replace(/\)$/, ')') : `${Math.round(qty)} ${good === 'fuel' ? 'loads of fuel' : 'lots of goods'}`;
-      return out(true, sell ? `bought ${what} from the stranger for ${silverWords(price)}` : `sold the stranger ${what} for ${silverWords(price)}`, { intents: ints, price, counter, qty, ...cz(c, 'need') });
+      const what = good === 'grain' ? `barley (${barWords(qty)})` : `${countWords(qty)} ${good === 'fuel' ? 'loads of fuel' : 'lots of goods'}`;
+      return out(true, sell ? `bought ${what} from the stranger for ${silverWords(price)}` : `sold the stranger ${what} for ${silverWords(price)}`, { intents: ints, price, counter, qty, ...czs(cs, 'need') });
     }
     case 'gift': {
       const good = a.good === 'labour' ? 'silver' : a.good ?? 'silver', qty = a.qty ?? 0.5;
       const have = good === 'silver' ? P.silver : good === 'grain' ? P.grain : good === 'fuel' ? P.fuel : P.goods; if (have < qty * 0.999) return out(false, `the stranger has no ${good === 'grain' ? 'barley' : good} to give`);
-      const c = needCause(E, hh, good === 'grain' ? 'food' : good === 'fuel' ? 'fuel' : 'cash');
-      const payload: Intent['payload'] = { src: 'player', [good === 'silver' ? 'cash' : good]: qty, ...(c >= 0 ? { causes: [c] } : {}) };
-      return out(true, `took the stranger's gift of ${good === 'silver' ? silverWords(qty) : good === 'grain' ? 'barley' : good}`, { intents: [{ kind: 'help', from: PLAYER_ID, to: hh, day, payload }], qty, ...cz(c, 'need') });
+      const cw = wantCauses(E, hh, [good === 'grain' ? 'food' : good === 'fuel' ? 'fuel' : 'cash']);
+      // (barley the stranger bought of another house, or was given for the road, names where it came from)
+      const prov = good === 'grain' ? D.peek(qty).map(l => l.ev).filter(e => e >= 0 && E.events[e]) : []; const cs = [...cw, ...prov.filter(e => !cw.includes(e))];
+      const payload: Intent['payload'] = { src: 'player', [good === 'silver' ? 'cash' : good]: qty, ...(cs.length ? { causes: cs } : {}) };
+      return out(true, `took the stranger's gift of ${good === 'silver' ? silverWords(qty) : good === 'grain' ? 'barley' : good}`, { intents: [{ kind: 'help', from: PLAYER_ID, to: hh, day, payload }], qty, ...czs(cs, cw.length ? 'need' : 'player') });
     }
     case 'lend': {
       const qty = a.qty ?? 1; if (P.silver < qty) return out(false, `the stranger has not ${silverWords(qty)} to lend`);
       if (need(E, hh, 'cash') < 0.3 && !h.debts.some(d => d.amt > 0)) return out(false, 'has no need of a loan');
-      const c = needCause(E, hh, 'cash');
-      return out(true, `took a loan of ${silverWords(qty)} from the stranger`, { intents: [{ kind: 'loan', from: PLAYER_ID, to: hh, day, payload: { cash: qty, src: 'player', ...(c >= 0 ? { causes: [c] } : {}) } }], qty, ...cz(c, 'need') });
+      const cs = wantCauses(E, hh, ['cash']);
+      return out(true, `took a loan of ${silverWords(qty)} from the stranger`, { intents: [{ kind: 'loan', from: PLAYER_ID, to: hh, day, payload: { cash: qty, src: 'player', ...(cs.length ? { causes: cs } : {}) } }], qty, ...czs(cs, 'need') });
     }
     case 'petition': {
       const m = matterOf(E, hh, day, W.asks); if (m < 0) return out(false, 'has no matter before the judge');
@@ -133,8 +154,9 @@ export function considerDeed(W: DeedWorld, D: PlayerDeals, pid: number, day: num
     case 'offer_help': {
       const sick = need(E, hh, 'help'), hungry = need(E, hh, 'food');
       if (sick < 0.3 && hungry < 0.45 && h.kind !== 'farmer') return out(false, 'has no work for a stranger');
-      const c = sick >= 0.3 ? needCause(E, hh, 'help') : needCause(E, hh, 'food'); const days = Math.min(3, a.qty ?? 2);
-      return out(true, `let the stranger work ${days} days for the house`, { intents: [{ kind: 'work', from: PLAYER_ID, to: hh, day, payload: { src: 'player', grain: days * GRAIN_EAT * 2, labour: days, ...(c >= 0 ? { causes: [c] } : {}) } }], qty: days, ...cz(c, 'need') });
+      // (the work answers the want of hands and, paid in barley, the want of bread: each want the house has names its cause)
+      const cs = wantCauses(E, hh, [...(sick >= 0.3 ? ['help', 'health'] as const : []), ...(hungry >= 0.3 || sick < 0.3 ? ['food'] as const : [])]); const days = Math.min(3, a.qty ?? 2);
+      return out(true, `let the stranger work ${countWords(days)} days for the house`, { intents: [{ kind: 'work', from: PLAYER_ID, to: hh, day, payload: { src: 'player', grain: days * GRAIN_EAT * 2, labour: days, ...(cs.length ? { causes: cs } : {}) } }], qty: days, ...czs(cs, 'need') });
     }
   }
   return out(false, 'does not understand what the stranger means');
@@ -147,13 +169,13 @@ export function actDeed(W: DeedWorld, D: PlayerDeals, pid: number, t: number, a:
   if (d.ok) {
     const h = E.hh.get(d.hh)!, n0 = E.events.length;
     for (const i of d.intents) {
-      if (i.kind === ('hosted_stranger' as Intent['kind']) || i.kind === ('helped_stranger' as Intent['kind'])) { const g = Number(i.payload.grain ?? 0); h.grain = Math.max(0, h.grain - g); d.changes.push(`${d.hh}.grain-${g.toFixed(2)}`); if (i.kind === ('helped_stranger' as Intent['kind'])) P.grain += g; }
+      if (i.kind === ('hosted_stranger' as Intent['kind']) || i.kind === ('helped_stranger' as Intent['kind'])) { const g = Number(i.payload.grain ?? 0); h.grain = Math.max(0, h.grain - g); d.changes.push(`${d.hh}.grain-${g.toFixed(2)}`); if (i.kind === ('helped_stranger' as Intent['kind'])) { P.grain += g; D.lots.push({ kg: g, ev: E.events.length }); } }
       E.enter(i); }
     for (let k = n0; k < E.events.length; k++) d.events.push(k);
     switch (a.kind) {
-      case 'buy': case 'haggle': P.silver -= d.price!; if (a.good === 'fuel') P.fuel += d.qty!; else if (a.good === 'goods') P.goods += d.qty!; else P.grain += d.qty!; break;
+      case 'buy': case 'haggle': P.silver -= d.price!; if (a.good === 'fuel') P.fuel += d.qty!; else if (a.good === 'goods') P.goods += d.qty!; else { P.grain += d.qty!; D.lots.push({ kg: d.qty!, ev: d.events.find(k => E.events[k]?.kind === 'haggle_deal') ?? -1 }); } break;
       case 'sell': P.silver += d.price!; if (a.good === 'fuel') P.fuel -= d.qty!; else if (a.good === 'goods') P.goods -= d.qty!; else P.grain -= d.qty!; break;
-      case 'gift': { const g = a.good === 'labour' || !a.good ? 'silver' : a.good; P[g] -= d.qty!; break; }
+      case 'gift': { const g = a.good === 'labour' || !a.good ? 'silver' : a.good; P[g] -= d.qty!; if (g === 'grain') D.take(d.qty!); break; }
       case 'lend': P.silver -= d.qty!; break;
       default: break;
     }
@@ -169,7 +191,7 @@ export function talkGift(W: DeedWorld, D: PlayerDeals, pid: number, t: number, i
   const day = Math.floor(t / 24), E = W.econ, hh = hhOf(W.pop, pid, day), h = E.hh.get(hh); if (!h || h.dead) return null;
   const g = item === 'barley' ? QA * 3 : QA, c = playerCause(E, hh, day), n0 = E.events.length;
   h.grain = Math.max(0, h.grain - g); E.enter({ kind: 'helped_stranger' as Intent['kind'], from: PLAYER_ID, to: hh, day, payload: { src: 'player', grain: g, item, ...(c >= 0 ? { causes: [c] } : {}) } });
-  D.purse.grain += item === 'bread' ? 0 : g;
+  if (item !== 'bread') { D.purse.grain += g; D.lots.push({ kg: g, ev: n0 }); }
   const d: DeedOut = { kind: 'ask_help', ok: true, reason: `gave the stranger ${item}`, hh, events: [...Array(E.events.length - n0).keys()].map(k => n0 + k), cause: c, causeKind: c >= 0 ? 'player' : 'none', intents: [], changes: [`${hh}.grain-${g.toFixed(2)}`], qty: g, words: `gave the stranger ${item}` };
   D.rows.push({ t, pid, hh, kind: 'ask_help', ok: true, reason: d.reason, events: [...d.events], cause: c, purse: { ...D.purse } });
   return d;

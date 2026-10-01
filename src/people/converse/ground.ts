@@ -24,7 +24,7 @@ export function groundFact(L: LifeRecord, said: string): string {
     [/\b(owe|owed|debts?|loans?|lend|borrow\w*|silver|money|prices?|costs?|buy|sell|dear|cheap|market|afford|stores?|rich|poor|sheqel|how much)\b/, () => mean.length || debts.length
       ? sim([...debts.slice(0, 1), ...(/\b(price|cost|buy|sell|dear|cheap|market|how much)/.test(s) ? mean.slice(1, 2) : []), ...mean.slice(0, 1)], 3) : `your work: ${job}; right now: ${now(L)}`],
     [/\b(marr\w*|betroth\w*|bride|wedding|courting|sweetheart|lovers?)\b/, () => bonds.length ? sim(bonds) : kin ? `in your house: ${kinOf(L, 3)}` : 'you live with your work group'],
-    [/\b(heard|rumou?rs?|gossip|whisper\w*|people say|they say)\b/, () => heard.length ? sim(heard, 1) : dealt.length ? sim(dealt, 1) : `right now: ${now(L)}`],
+    [/\b(heard|rumou?rs?|gossip|whisper\w*|people say|they say)\b/, () => heard.length ? sim(heard, 1) : dealt.length ? sim(dealt, 1) : mean.length ? `nothing new has reached you; ${cut(mean[mean.length - 1], 16)}` : `right now: ${now(L)}`],
     [/\b(need|needs|trouble|worr\w*|lack|short of|struggl\w*|can i help|help you)\b/, () => needs.length ? sim([...needs.slice(0, 1), ...debts.slice(0, 1)]) : mean.length ? `your house is getting by: ${cut(mean[0], 16)}` : `right now: ${now(L)}`],
     [/\b(family|wife|husband|children|child|son|daughter|mother|father|house|live|home|sick|ill)\b/, () => kin ? `in your house: ${kinOf(L, 3)}${L.year.find(y => /sick|died|born|married/.test(y)) ? `; ${L.year.find(y => /sick|died|born|married/.test(y))}` : ''}` : `you live with your work group; your work: ${job}`],
     [/\b(work|job|paid|pay|hard|labou?r|trade|craft)\b/, () => `your work: ${job}${L.group ? ` (${cut(L.group, 6)})` : ''}; right now: ${now(L)}`],

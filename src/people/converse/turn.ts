@@ -17,7 +17,7 @@ import { lifeRecord } from './life';
 import { groundFact, isRecallQuestion } from './ground';
 import { hearAsPerson } from './hear';
 import { requestOf, looseRequest, tagAsked, wordsRefuse, econAskOf, type Intent, type Deed, type EconAsk } from './intent';
-import type { SimView } from '../speech/grounds';
+import { spellDigits, type SimView } from '../speech/grounds';
 import { considerDeed, actDeed, talkGift, dealsOf, type DeedOut, type DeedWorld } from '../speech/deeds';
 import type { LifeRecord } from './life';
 
@@ -86,8 +86,13 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   // (after run 3: asked about earlier meetings, the simulation picks the ONE remembered fact and the model only says it in
   // its own words; otherwise the one life fact most relevant to the words goes next to them: ground.ts)
   const recallQ = talkOpts.pick && isRecallQuestion(said) && !request && !eAsk; const rf = recallQ ? sim.talk.recallFact(pid, t) : null;
-  // (D-358: what the house did with the stranger through the economy, a bargain, a gift, a meal, is part of what they remember)
-  const fact = rf ? (L.stranger.length && !(rf.kind === 'own' && rf.row?.deed) ? `${rf.kind === 'none' ? '' : rf.fact + ' '}At my house: ${L.stranger[0].replace(/\bthe stranger\b/g, 'you')}.`.trim() : rf.fact) : undefined;
+  // (D-358: what the house did with the stranger through the economy, a bargain, a gift, a meal, is part of what they remember;
+  // session 15: asked a second time, the person recalled only the last question ("just now you asked whether I remember you")
+  // and only the newest of the house's dealings (a bargain then a meal was told as the meal): a remembered recall question is
+  // passed over and up to three dealings are told, oldest first; digits from the talk layer's times are said as words)
+  const own = rf && rf.kind === 'own' && isRecallQuestion(rf.row?.asked[0] ?? '') ? null : rf;
+  const dealt = L.stranger.slice(0, 3).map(s => s.replace(/\bthe stranger\b/g, 'you')).reverse();
+  const fact = rf ? spellDigits([own && !(own.kind === 'none' && dealt.length) ? own.fact : '', dealt.length ? `At my house: ${dealt.join('; then ')}.` : ''].filter(Boolean).join(' ') || rf.fact) : undefined;
   // (run 4: the fact BEFORE the stranger's words took T-E9 from 62.5 % to 52.8 %: run 5 puts it in the closing note, last)
   const ground = talkOpts.pick && !recallQ ? groundFact(L, said) : undefined;
   let answer = fact ? await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: [], userText: `The stranger says: “${hearAsPerson(said).text}” (Answer as ${L.name}. What you remember: ${fact} Tell him that, in your own words, keeping what happened and who it was.)` })
