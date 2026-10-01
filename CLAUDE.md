@@ -111,6 +111,12 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   is `node tools/blender/build.mjs [id]` (D-305; research/BLENDER_PLAN.md); KTX-Software 4.4.2 is installed
   (`C:/Program Files/KTX-Software/bin/ktx.exe`) for its KTX2 textures.
 
+## Box safeguards (session 15; the session-14 freeze)
+- At most 4 agents at once (`tools/dev/mkwt.mjs` refuses a 5th; `--done <name>` when one finishes). gpu_slot/cpu_slot wait while
+  free memory < 4 GB. `node tools/dev/watchdog.mjs [--loop]` reports a slot held > 45 min with no output (pids to kill), low
+  memory, too many agents: the lead runs it every 30 min (the user, session 15) and passes any problem to the user at once, alone.
+- No full-world render while agents build: the render train refuses while any agent is active (FORCE=1); it runs between waves.
+
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
 of the Terrace, the town and the plain must reach the photoreal bar, one way or another. Measure it as coverage, not by

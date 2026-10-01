@@ -49,6 +49,9 @@ that no hour is spent reading, waiting or polishing.
    with `LONG=1` (it may take one slot only; the other stays for short checks), and hours-long runs queued for the night.
    Memory: one browser or Blender process of yours at a time (16 GB is shared; the session crashed once from it). Tests: only the files you
    touched or that import them (`npx vitest run <files>`); the lead runs the full suite overnight.
+5b. **Box safeguards (session 15):** the slot tools wait while free memory is under 4 GB; mkwt refuses a 5th active agent;
+   when you finish, run `node tools/dev/mkwt.mjs --done <name>`. A blocking resource problem (a stalled slot, memory) goes in
+   your report's first line with the pids; never kill another agent's job.
 6. **Done line and stop rules.** Your pack's done line is what a player would see (or a named threshold). Stop when it is
    met: no polish past it. A sub-goal that fails three measured approaches goes to BLOCKERS (your numbers) and you move on.
    Time box: the pack's hours; at the box's end, commit and report whatever state you are in.
