@@ -39,6 +39,7 @@ import { buildTerrace } from '../arch/terrace';
 import { partsKey } from '../arch/partsKey';
 import type { Doorway } from '../arch/parts';
 import { setTraffic, surfaceMaterial } from '../render/materials';
+import { buildGrime } from '../render/grime';
 import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
@@ -253,6 +254,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   wmark('plain');
   // (D-254: the fire system builds after the plain: the villages' hearths, ovens and lamps join it)
   fire.build(); root.add(fire.group);
+  buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }); // D-366: soot, ash, damp and lane wear (render/grime.ts)
   wmark('fire.build');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
