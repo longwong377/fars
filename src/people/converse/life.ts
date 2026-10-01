@@ -228,7 +228,7 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     `In your house: ${kin}.`,
     L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
     lately(L).length ? `Lately: ${lately(L).join('; ')}.` : '',
-    L.means.length ? `Means: ${L.means.join('; ')}.` : '',
+    L.means.length ? `Means: ${L.means[0]}.` : '', // (s15: the house's own stores only; the market's price comes with a question of prices: ground.ts)
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
     `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${words(L.today.now.replace(/^[a-z ]+: /, ''), 12)}${L.today.next ? `; after this: ${words(L.today.next, 8)}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
     ev.length ? `News today: ${ev.join('; ')}.` : '',

@@ -8998,3 +8998,20 @@ by default (SimOpts.asks): turning them on changes the economy (the rumour sink 
 number, and costs ~0.1 s a simulated day: left to the lead. economy/chains.ts indexes the filtered event list by id, which is
 wrong in a loaded economy (gaps and stubs): the test measures chains over the full graph with its own by-id copy of the rule.
 Measured: tests/simtalk.test.ts, REVIEWS/evidence/s14-simtalk/*.json (numbers in the report). Tier C throughout.
+**Session 15 repair (D-358, simtalk).** Quantities in a person's facts are words, never digits (grounds.ts countWords/spellDigits;
+"138 BAR" had put modern digits in the brief). The short brief keeps the house's own means last when cutting to the 450-token
+budget (prompt.ts drop order: one-line hook) and carries only the stores line (the market's price comes with a price question);
+home and "right now" are cut to their first clause, kin to four: with a memory line 300 of 300 prompts now carry a simulation
+fact (was 64), max 450 tokens. A work-group member outside the economy's houses names the group's ration (calendar shortfalls)
+and the market's price. Asked again "do you remember me", a person passes over the remembered recall question and tells up to
+three of the house's dealings with the stranger, oldest first. A deed names every live want behind it (speech/deeds.ts
+wantCauses: the want's cause and, for silver, the debts that press it) and, for a sale, what the stock came by (an inflow:
+kin's gift, relief, work paid in barley); barley the stranger bought or was given carries its event in his purse (lots) and a
+gift of it names where it came from. economy/world.ts (owned for this package): a want the house acts on with no event behind
+it is itself recorded ('stores_low', 'fuel_low', 'silver_short', caused by a recent ration cut or dear grain, the pressing
+debts and the want of barley), so a loan, sale, theft or petition taken for it names its cause (was: undefined, and the chain
+began from nothing); an illness names hunger only when the house is poorly fed (health < 0.75) and a cold hearth only in
+winter with no fuel (was: both always). The test's stand-in reader now reads streamed answers (it read only unstreamed ones),
+and the means questions are asked on a live economy day in a fresh load (see B290). Measured (tests/simtalk.test.ts, 5/5):
+0 seeded facts; 29/30 deeds done and changing state, 27/30 in a T-F9 chain (536 chains in the 20 days after); T-E10 stand-in
+97.3 % (n 75); T-E9 stand-in 97.4 % (n 39); means questions 90.6 % (n 32). Plumbing only: the real model is unmeasured.

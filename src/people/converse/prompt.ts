@@ -24,7 +24,9 @@ export function systemPrompt(L: LifeRecord, knows: Knows, prose?: string | null,
   const head = 'You are a person of Parsa, the king’s seat, in year 19 of King Xerxes.';
   const tail = [`A plainly dressed stranger with a foreign accent comes up to you. ${met}`, ...(mem.length ? [`What you remember of the stranger: ${mem.join(' ')}`] : []), FENCE_SHORT, ...(withIntents ? [INTENT_LINE] : [])];
   // the life brief, cut line by line (least needed first) until the whole fits the budget
-  let life = lifeBriefShort(L, prose); const drop = [/^Memories: /m, /^You know well: /m, /^News today: /m, /^Means: /m, /^Friends and kin nearby: /m, /^Lately: /m, / Earlier: [^\n]*/];
+  // (s15, D-358: the house's own means are the simulation's grounding and go last, after the friends, the lately, the
+  // earlier hours and the manner; was: dropped fourth, so with a memory line no prompt of 300 kept them)
+  let life = lifeBriefShort(L, prose); const drop = [/^Memories: /m, /^You know well: /m, /^News today: /m, /^Friends and kin nearby: /m, /^Lately: /m, / Earlier: [^\n]*/, /^Manner: /m, /^Means: /m];
   const build = () => [head, life, ...tail].join('\n');
   for (const re of drop) { if (approxTokens(build()) <= PROMPT_TOKENS) break; life = life.split('\n').map(l => re.source.startsWith('^') ? (re.test(l) ? '' : l) : l.replace(re, '')).filter(Boolean).join('\n'); }
   let out = build();

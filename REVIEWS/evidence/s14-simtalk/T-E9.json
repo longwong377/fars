@@ -1,0 +1,44 @@
+{
+ "id": "T-E9",
+ "scope": "simtalk: the seeded set at day 300 with the simulation's means",
+ "value": 97.4,
+ "n": 39,
+ "commit": "88071b0f",
+ "tool": "tests/simtalk.test.ts",
+ "status": "PLUMBING (stand-in model; the real model unmeasured)",
+ "meansQuestions": {
+  "value": 90.6,
+  "n": 32,
+  "fails": [
+   {
+    "q": "Does your house need anything?",
+    "pid": 27817,
+    "reply": "I am Rtačiθrā, stranger. The house is short of fuel.",
+    "pass": false
+   },
+   {
+    "q": "Does your house need anything?",
+    "pid": 1417,
+    "reply": "I am Qudāšu, stranger. The house is short of fuel.",
+    "pass": false
+   },
+   {
+    "q": "Does your house need anything?",
+    "pid": 1277,
+    "reply": "I am Miθračiθrā, stranger. The house is short of fuel.",
+    "pass": false
+   }
+  ]
+ },
+ "fails": [
+  {
+   "kind": "house",
+   "job": "builder",
+   "prompt": "Where do you live?",
+   "reply": "No, stranger, I cannot: does not know the place the stranger means.",
+   "why": [
+    "not grounded in the person’s own life"
+   ]
+  }
+ ]
+}

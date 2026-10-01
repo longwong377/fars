@@ -92,7 +92,7 @@ const EV: Record<string, (o: string, amt: string) => string> = {
 function when(d: number, day: number) { const k = day - d; return k <= 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${countWords(k)} days ago` : k < 45 ? `about ${countWords(k / 7)} weeks ago` : 'some months ago'; }
 function evWords(pop: Population, e: EconEvent, me: string, day: number): string | null {
   const f = EV[e.kind]; if (!f) return null; const other = e.actor === me ? e.other : e.actor; const o = other ? houseWords(pop, other, day, me) : 'someone';
-  const a = e.amt === undefined ? 'something' : /loan|lent|repaid|default/.test(e.kind) ? silverWords(e.amt) : e.amt >= QA ? `barley (${barWords(e.amt)})` : silverWords(e.amt);
+  const a = e.amt === undefined || e.amt <= 0.004 ? 'something' : /loan|lent|repaid|default/.test(e.kind) ? silverWords(e.amt) : e.amt >= QA ? `barley (${barWords(e.amt)})` : silverWords(e.amt);
   if (e.actor !== me && e.other === me) { // the event is the other house's, about this one (a suit brought by a creditor, a theft from this house)
     if (e.kind === 'theft') return `${o} took grain from your house`; if (e.kind === 'suit') return `you took ${o} to the court over a debt`; if (e.kind === 'pledge_seized') return `you seized ${o}’s pledge for a debt`;
     if (e.kind === 'default') return `${o} could not pay what it owed you`; if (e.kind === 'repaid') return `${o} paid back what it owed you`; if (e.kind === 'loan') return `you lent ${o} ${a}`;

@@ -209,9 +209,14 @@ describe('a day-300 save: talking reaches the real simulation', () => {
       const L = lifeRecord(b.pop, b.cal, c.pid, c.day, b.t - c.day * 24, simView(b, c.day)); const s = score(c, L, o.answer.text, o.answer.totalMs, o.answer.ttftMs, o.answer.tries, o.answer.ok); t9.push({ ...s, means: /owe|silver|barley|BAR|house/.test(o.answer.text) }); }
     // the means questions: the house's debts, prices, wants and hearsay asked of the same people (grounded in the sim's facts)
     const MQ = ['Do you owe anyone?', 'Is barley dear at the market?', 'Does your house need anything?', 'What have you heard lately?'];
-    // (session 15: asked the next day at each person's own hour; they were asked after the last case's hour, mostly asleep)
-    const mq: any[] = []; for (const [k, c] of cases.slice(0, 32).entries()) { const dq = c.day + 1; b.jumpTo(Math.max(b.t + 0.02, dq * 24 + c.hour)); const q = MQ[k % MQ.length]; const o = await talkTurn(m, b, c.pid, q, { conv: b.t }); m.forget();
-      const L = lifeRecord(b.pop, b.cal, c.pid, dq, b.t - dq * 24, simView(b, dq)); const facts = [...L.debts, ...L.means, ...L.needs, ...L.rumours, ...L.dealings];
+    // (session 15: asked on a day the economy has reached (it was stepped to DAY + 20 above, and a record asked of an earlier
+    // day gets no state: standing's rule), at each person's own hour, awake; they were asked after the last case's hour,
+    // mostly asleep, on day DAY + 4, when no means were live). In a fresh load of the save: buildTestSet reads day plans of
+    // the whole year, and each plan read steps the economy to its day (plans.ts touches), so in `b` it stood at day 354
+    const dq = DAY + 21; const b2 = new PeopleSim(1, navGrid(), env, OPTS); b2.load(saved); b2.econTo(DAY + 20);
+    const awakeQ = cases.filter(c => b2.pop.present(c.pid, dq) && (s => s.act !== 'sleep' && s.where !== 'away')(segAt(b2.pop.plan(c.pid, dq), c.hour)));
+    const mq: any[] = []; for (const [k, c] of awakeQ.slice(0, 32).entries()) { b2.jumpTo(Math.max(b2.t + 0.02, dq * 24 + c.hour)); const q = MQ[k % MQ.length]; const o = await talkTurn(m, b2, c.pid, q, { conv: b2.t }); m.forget();
+      const L = lifeRecord(b2.pop, b2.cal, c.pid, dq, b2.t - dq * 24, simView(b2, dq)); const facts = [...L.debts, ...L.means, ...L.needs, ...L.rumours, ...L.dealings];
       const named = facts.some(f => { const w = f.toLowerCase().split(/[^a-z’]+/).filter(x => x.length >= 5 && !['house', 'which', 'there'].includes(x)); return w.filter(x => o.answer.text.toLowerCase().includes(x)).length >= 2; });
       mq.push({ q, pid: c.pid, reply: o.answer.text, pass: o.answer.ok && named && !fenceHits(o.answer.text).length }); }
     const t9pass = t9.filter(s => s.pass).length, te9 = +(100 * t9pass / t9.length).toFixed(1), mqv = +(100 * mq.filter(x => x.pass).length / mq.length).toFixed(1);

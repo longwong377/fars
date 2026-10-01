@@ -1,0 +1,47 @@
+{
+ "id": "T-E10",
+ "scope": "simtalk: economy deeds at day 300",
+ "value": 97.3,
+ "n": 75,
+ "commit": "88071b0f",
+ "tool": "tests/simtalk.test.ts",
+ "status": "PLUMBING (stand-in model; the real model unmeasured)",
+ "model": "stand-in (tests/talk_standin.ts + the closing note read)",
+ "by": [
+  [
+   "request",
+   30,
+   30
+  ],
+  [
+   "recall",
+   29,
+   30
+  ],
+  [
+   "heard",
+   14,
+   15
+  ]
+ ],
+ "fails": [
+  {
+   "kind": "recall",
+   "deed": "host",
+   "pass": false,
+   "why": [
+    "does not recall it"
+   ],
+   "reply": "Yes, stranger. At my house: struck a bargain with you ."
+  },
+  {
+   "kind": "heard",
+   "deed": "host",
+   "pass": false,
+   "why": [
+    "has not heard"
+   ],
+   "reply": "Yes, stranger. At my house: struck a bargain with you ."
+  }
+ ]
+}

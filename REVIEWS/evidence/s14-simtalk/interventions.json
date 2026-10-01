@@ -1,0 +1,862 @@
+{
+ "id": "simtalk-interventions",
+ "commit": "88071b0f",
+ "tool": "tests/simtalk.test.ts",
+ "day": 300,
+ "seed": 1,
+ "n": 30,
+ "done": 29,
+ "stateChanged": 29,
+ "inChain": 27,
+ "enterableShare": 90,
+ "causeKinds": {
+  "need": 19,
+  "none": 2,
+  "matter": 4,
+  "player": 5
+ },
+ "chainsAfter20Days": 536,
+ "purse": {
+  "silver": 1.5518666666666658,
+  "grain": 53.900000000000006,
+  "goods": 1,
+  "fuel": 0
+ },
+ "rows": [
+  {
+   "i": 0,
+   "kind": "buy",
+   "pid": 2490,
+   "job": "treasury",
+   "say": "I want to buy a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a twentieth of a sheqel of silver",
+   "cause": 136885,
+   "causeKind": "need",
+   "causeEv": "death",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.5,
+    0.5315
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [
+    "given"
+   ],
+   "reply": "I am Nupta, stranger. Just now I am shining gold and silver at home.",
+   "shape": "death>given>haggle_deal"
+  },
+  {
+   "i": 1,
+   "kind": "buy",
+   "pid": 1963,
+   "job": "treasury",
+   "say": "I want to buy a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a twentieth of a sheqel of silver",
+   "cause": 80180,
+   "causeKind": "need",
+   "causeEv": "death",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.5045,
+    0.536
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [
+    "hosted_stranger"
+   ],
+   "reply": "I am Mibṭaḥiah, stranger. Just now I am textiles.",
+   "shape": "death>given>haggle_deal"
+  },
+  {
+   "i": 2,
+   "kind": "buy",
+   "pid": 29761,
+   "job": "homemaker",
+   "say": "I want to buy a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a twentieth of a sheqel of silver",
+   "cause": 93908,
+   "causeKind": "need",
+   "causeEv": "death",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.509,
+    0.5405
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [
+    "hosted_stranger"
+   ],
+   "reply": "I am Hučiθrā, stranger. Just now I am mending clothes on the doorstep.",
+   "shape": "death>given>haggle_deal"
+  },
+  {
+   "i": 3,
+   "kind": "buy",
+   "pid": 36294,
+   "job": "homemaker",
+   "say": "I want to buy a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a twentieth of a sheqel of silver",
+   "cause": 22285,
+   "causeKind": "need",
+   "causeEv": "death",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.5135,
+    0.545
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [
+    "hosted_stranger"
+   ],
+   "reply": "I am Farnačiθrā, stranger. Just now I am at home.",
+   "shape": "illness>given>haggle_deal"
+  },
+  {
+   "i": 4,
+   "kind": "buy",
+   "pid": 26652,
+   "job": "homemaker",
+   "say": "I want to buy a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a twentieth of a sheqel of silver",
+   "cause": 48758,
+   "causeKind": "need",
+   "causeEv": "death",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.518,
+    0.5495
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [],
+   "reply": "I am Hučiθrā, stranger. Just now I am out to the doorstep.",
+   "shape": "death>given>haggle_deal"
+  },
+  {
+   "i": 5,
+   "kind": "haggle",
+   "pid": 36089,
+   "job": "farmer",
+   "say": "I will pay a tenth of a sheqel for a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a tenth of a sheqel of silver",
+   "cause": 107452,
+   "causeKind": "need",
+   "causeEv": "default",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.5225,
+    0.554
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [
+    "helped_stranger"
+   ],
+   "reply": "I am Haturka, stranger. Just now I am clearing the village canal.",
+   "shape": "harvest_poor>tax_arrears>default>haggle_deal"
+  },
+  {
+   "i": 6,
+   "kind": "haggle",
+   "pid": 27202,
+   "job": "homemaker",
+   "say": "I will pay a tenth of a sheqel for a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a tenth of a sheqel of silver",
+   "cause": 89073,
+   "causeKind": "need",
+   "causeEv": "death",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.527,
+    0.5585
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [
+    "helped_stranger"
+   ],
+   "reply": "I am Huduxçā, stranger. Just now I am spinning.",
+   "shape": "death>given>haggle_deal"
+  },
+  {
+   "i": 7,
+   "kind": "haggle",
+   "pid": 35794,
+   "job": "farmer",
+   "say": "I will pay a tenth of a sheqel for a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a tenth of a sheqel of silver",
+   "cause": 130226,
+   "causeKind": "need",
+   "causeEv": "death",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.5315,
+    0.563
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [],
+   "reply": "I am Irtima, stranger. Just now I am clearing the village canal.",
+   "shape": "death>given>haggle_deal"
+  },
+  {
+   "i": 8,
+   "kind": "haggle",
+   "pid": 33615,
+   "job": "farmer",
+   "say": "I will pay a tenth of a sheqel for a BAR of barley.",
+   "ok": true,
+   "reason": "sold the stranger barley (a BAR) for a tenth of a sheqel of silver",
+   "cause": 115371,
+   "causeKind": "need",
+   "causeEv": "default",
+   "changed": [
+    "grain",
+    "cash"
+   ],
+   "trust": [
+    0.536,
+    0.5675
+   ],
+   "events": [
+    "haggle_deal"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [],
+   "reply": "I am Bakerabba, stranger. Just now I am going back.",
+   "shape": "stores_low>tax_arrears>default>haggle_deal"
+  },
+  {
+   "i": 9,
+   "kind": "gift",
+   "pid": 12791,
+   "job": "elder",
+   "say": "Take this barley for your house.",
+   "ok": true,
+   "reason": "took the stranger's gift of barley",
+   "cause": 21984,
+   "causeKind": "need",
+   "causeEv": "harvest_poor",
+   "changed": [
+    "grain"
+   ],
+   "trust": [
+    0.5405,
+    0.689
+   ],
+   "events": [
+    "given"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [
+    "kin_help"
+   ],
+   "reply": "I am Farnačiθrā, stranger. Just now I am walking.",
+   "shape": "death>given>haggle_deal>given"
+  },
+  {
+   "i": 10,
+   "kind": "gift",
+   "pid": 39168,
+   "job": "elder",
+   "say": "Let me give you a tenth of a sheqel for your children.",
+   "ok": true,
+   "reason": "took the stranger's gift of a tenth of a sheqel of silver",
+   "cause": 108237,
+   "causeKind": "need",
+   "causeEv": "default",
+   "changed": [
+    "cash"
+   ],
+   "trust": [
+    0.554,
+    0.7025
+   ],
+   "events": [
+    "given"
+   ],
+   "inChain": true,
+   "depth": 5,
+   "later": [],
+   "reply": "Yes, stranger, I will. I am Raučačiθrā.",
+   "shape": "illness>nursed_by_kin>tax_arrears>default>given"
+  },
+  {
+   "i": 11,
+   "kind": "gift",
+   "pid": 22164,
+   "job": "homemaker",
+   "say": "Let me give you a tenth of a sheqel for your children.",
+   "ok": true,
+   "reason": "took the stranger's gift of a tenth of a sheqel of silver",
+   "cause": 152433,
+   "causeKind": "need",
+   "causeEv": "loan",
+   "changed": [
+    "cash"
+   ],
+   "trust": [
+    0.5675,
+    0.716
+   ],
+   "events": [
+    "given"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [
+    "theft"
+   ],
+   "reply": "Yes, stranger, I will. I am Dātačiθrā.",
+   "shape": "fuel_low>loan>given"
+  },
+  {
+   "i": 12,
+   "kind": "gift",
+   "pid": 13723,
+   "job": "farmer",
+   "say": "Let me give you a tenth of a sheqel for your children.",
+   "ok": true,
+   "reason": "took the stranger's gift of a tenth of a sheqel of silver",
+   "cause": 88463,
+   "causeKind": "need",
+   "causeEv": "tax_arrears",
+   "changed": [
+    "cash"
+   ],
+   "trust": [
+    0.581,
+    0.7295
+   ],
+   "events": [
+    "given"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [],
+   "reply": "Yes, stranger, I will. I am Mardunuya.",
+   "shape": "harvest_poor>given>tax_arrears>given"
+  },
+  {
+   "i": 13,
+   "kind": "gift",
+   "pid": 8177,
+   "job": "elder",
+   "say": "Let me give you a tenth of a sheqel for your children.",
+   "ok": true,
+   "reason": "took the stranger's gift of a tenth of a sheqel of silver",
+   "cause": -1,
+   "causeKind": "none",
+   "causeEv": null,
+   "changed": [
+    "cash"
+   ],
+   "trust": [
+    0.5945,
+    0.743
+   ],
+   "events": [
+    "given"
+   ],
+   "inChain": false,
+   "depth": 1,
+   "later": [],
+   "reply": "Yes, stranger, I will. I am Čiθrastūnā.",
+   "shape": "given"
+  },
+  {
+   "i": 14,
+   "kind": "lend",
+   "pid": 27984,
+   "job": "farmer",
+   "say": "I can lend you a third of a sheqel.",
+   "ok": true,
+   "reason": "took a loan of a third of a sheqel of silver from the stranger",
+   "cause": 145765,
+   "causeKind": "need",
+   "causeEv": "loan",
+   "changed": [
+    "cash"
+   ],
+   "trust": [
+    0.608,
+    0.7318
+   ],
+   "events": [
+    "lent_by_stranger"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [],
+   "reply": "I am Bakubeša, stranger. Just now I am clearing the village canal.",
+   "shape": "fuel_low>loan>lent_by_stranger"
+  },
+  {
+   "i": 15,
+   "kind": "lend",
+   "pid": 26342,
+   "job": "homemaker",
+   "say": "I can lend you a third of a sheqel.",
+   "ok": true,
+   "reason": "took a loan of a third of a sheqel of silver from the stranger",
+   "cause": 150005,
+   "causeKind": "need",
+   "causeEv": "loan",
+   "changed": [
+    "cash"
+   ],
+   "trust": [
+    0.6192,
+    0.743
+   ],
+   "events": [
+    "lent_by_stranger"
+   ],
+   "inChain": true,
+   "depth": 6,
+   "later": [],
+   "reply": "I am Aryabāmā, stranger. Just now I am at home.",
+   "shape": "harvest_poor>given>tax_arrears>cold_hearth>loan>lent_by_stranger"
+  },
+  {
+   "i": 16,
+   "kind": "lend",
+   "pid": 8409,
+   "job": "farmer",
+   "say": "I can lend you a third of a sheqel.",
+   "ok": true,
+   "reason": "took a loan of a third of a sheqel of silver from the stranger",
+   "cause": 133779,
+   "causeKind": "need",
+   "causeEv": "loan",
+   "changed": [
+    "cash"
+   ],
+   "trust": [
+    0.6305,
+    0.7543
+   ],
+   "events": [
+    "lent_by_stranger"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [],
+   "reply": "I am Bakabana, stranger. Just now I am bread and water brought out from home by a.",
+   "shape": "fuel_low>loan>lent_by_stranger"
+  },
+  {
+   "i": 17,
+   "kind": "lend",
+   "pid": 4477,
+   "job": "homemaker",
+   "say": "I can lend you a third of a sheqel.",
+   "ok": true,
+   "reason": "took a loan of a third of a sheqel of silver from the stranger",
+   "cause": 112642,
+   "causeKind": "need",
+   "causeEv": "default",
+   "changed": [
+    "cash"
+   ],
+   "trust": [
+    0.6418,
+    0.7655
+   ],
+   "events": [
+    "lent_by_stranger"
+   ],
+   "inChain": true,
+   "depth": 6,
+   "later": [],
+   "reply": "I am Aryabāmā, stranger. Just now I am with the household.",
+   "shape": "death>given>haggle_deal>tax_arrears>default>lent_by_stranger"
+  },
+  {
+   "i": 18,
+   "kind": "petition",
+   "pid": 41255,
+   "job": "homemaker",
+   "say": "I will speak for you before the judge.",
+   "ok": true,
+   "reason": "the stranger will speak for the house before the judge",
+   "cause": 107826,
+   "causeKind": "matter",
+   "causeEv": "default",
+   "changed": [
+    "advocate"
+   ],
+   "trust": [
+    0.653,
+    0.6598
+   ],
+   "events": [
+    "spoken_for"
+   ],
+   "inChain": true,
+   "depth": 5,
+   "later": [],
+   "reply": "I am Aryazātā, stranger. Just now I am the midday meal with the household.",
+   "shape": "harvest_poor>given>tax_arrears>default>spoken_for"
+  },
+  {
+   "i": 19,
+   "kind": "petition",
+   "pid": 15474,
+   "job": "farmer",
+   "say": "I will speak for you before the judge.",
+   "ok": true,
+   "reason": "the stranger will speak for the house before the judge",
+   "cause": 115988,
+   "causeKind": "matter",
+   "causeEv": "default",
+   "changed": [
+    "advocate"
+   ],
+   "trust": [
+    0.6598,
+    0.6665
+   ],
+   "events": [
+    "spoken_for"
+   ],
+   "inChain": true,
+   "depth": 7,
+   "later": [],
+   "reply": "I am Mitranka, stranger. Just now I am the midday meal with the household.",
+   "shape": "death>given>tax_arrears>petition>petition_refused>default>spoken_for"
+  },
+  {
+   "i": 20,
+   "kind": "petition",
+   "pid": 38676,
+   "job": "homemaker",
+   "say": "I will speak for you before the judge.",
+   "ok": true,
+   "reason": "the stranger will speak for the house before the judge",
+   "cause": 107072,
+   "causeKind": "matter",
+   "causeEv": "default",
+   "changed": [
+    "advocate"
+   ],
+   "trust": [
+    0.6665,
+    0.6733
+   ],
+   "events": [
+    "spoken_for"
+   ],
+   "inChain": true,
+   "depth": 5,
+   "later": [],
+   "reply": "I am Vahuzātā, stranger. Just now I am the midday meal with the household.",
+   "shape": "hail>harvest_poor>tax_arrears>default>spoken_for"
+  },
+  {
+   "i": 21,
+   "kind": "petition",
+   "pid": 30406,
+   "job": "homemaker",
+   "say": "I will speak for you before the judge.",
+   "ok": true,
+   "reason": "the stranger will speak for the house before the judge",
+   "cause": 109750,
+   "causeKind": "matter",
+   "causeEv": "default",
+   "changed": [
+    "advocate"
+   ],
+   "trust": [
+    0.6733,
+    0.68
+   ],
+   "events": [
+    "spoken_for"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [],
+   "reply": "I am Rtaduxçā, stranger. Just now I am the midday meal with the household.",
+   "shape": "harvest_poor>tax_arrears>default>spoken_for"
+  },
+  {
+   "i": 22,
+   "kind": "offer_help",
+   "pid": 38777,
+   "job": "farmer",
+   "say": "Can I help you? I will work for your house.",
+   "ok": true,
+   "reason": "let the stranger work two days for the house",
+   "cause": 31195,
+   "causeKind": "need",
+   "causeEv": "harvest_poor",
+   "changed": [
+    "grain"
+   ],
+   "trust": [
+    0.68,
+    0.779
+   ],
+   "events": [
+    "hired_by_stranger"
+   ],
+   "inChain": true,
+   "depth": 3,
+   "later": [
+    "kin_help",
+    "hired_by_neighbour"
+   ],
+   "reply": "I am Tiššantamma, stranger. Just now I am bread and water brought out from home by a.",
+   "shape": "hail>harvest_poor>hired_by_stranger"
+  },
+  {
+   "i": 23,
+   "kind": "offer_help",
+   "pid": 45015,
+   "job": "builder",
+   "say": "Can I help you? I will work for your house.",
+   "ok": true,
+   "reason": "let the stranger work two days for the house",
+   "cause": 152255,
+   "causeKind": "need",
+   "causeEv": "illness",
+   "changed": [
+    "grain"
+   ],
+   "trust": [
+    0.689,
+    0.788
+   ],
+   "events": [
+    "hired_by_stranger"
+   ],
+   "inChain": false,
+   "depth": 2,
+   "later": [],
+   "reply": "I am Telephanes, stranger. Just now I am the midday meal with the household.",
+   "shape": "illness>hired_by_stranger"
+  },
+  {
+   "i": 24,
+   "kind": "host",
+   "pid": 2490,
+   "job": "treasury",
+   "say": "May I eat with your family tonight?",
+   "ok": false,
+   "reason": "the house is in mourning",
+   "cause": -1,
+   "causeKind": "none",
+   "causeEv": null,
+   "changed": [],
+   "trust": [
+    0.725,
+    0.725
+   ],
+   "events": [],
+   "inChain": false,
+   "depth": 0,
+   "later": [],
+   "reply": "No, stranger, I cannot: the house is in mourning.",
+   "shape": ""
+  },
+  {
+   "i": 25,
+   "kind": "host",
+   "pid": 1963,
+   "job": "treasury",
+   "say": "May I eat with your family tonight?",
+   "ok": true,
+   "reason": "gave the stranger a meal at the house",
+   "cause": 157440,
+   "causeKind": "player",
+   "causeEv": "haggle_deal",
+   "changed": [
+    "grain"
+   ],
+   "trust": [
+    0.725,
+    0.725
+   ],
+   "events": [
+    "hosted_stranger"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [],
+   "reply": "I am Mibṭaḥiah, stranger. Just now I am textiles.",
+   "shape": "death>given>haggle_deal>hosted_stranger"
+  },
+  {
+   "i": 26,
+   "kind": "host",
+   "pid": 29761,
+   "job": "homemaker",
+   "say": "May I eat with your family tonight?",
+   "ok": true,
+   "reason": "gave the stranger a meal at the house",
+   "cause": 157441,
+   "causeKind": "player",
+   "causeEv": "haggle_deal",
+   "changed": [
+    "grain"
+   ],
+   "trust": [
+    0.725,
+    0.725
+   ],
+   "events": [
+    "hosted_stranger"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [],
+   "reply": "I am Hučiθrā, stranger. Just now I am spinning.",
+   "shape": "death>given>haggle_deal>hosted_stranger"
+  },
+  {
+   "i": 27,
+   "kind": "host",
+   "pid": 36294,
+   "job": "homemaker",
+   "say": "May I eat with your family tonight?",
+   "ok": true,
+   "reason": "gave the stranger a meal at the house",
+   "cause": 157442,
+   "causeKind": "player",
+   "causeEv": "haggle_deal",
+   "changed": [
+    "grain"
+   ],
+   "trust": [
+    0.725,
+    0.725
+   ],
+   "events": [
+    "hosted_stranger"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [],
+   "reply": "I am Farnačiθrā, stranger. Just now I am spinning.",
+   "shape": "illness>given>haggle_deal>hosted_stranger"
+  },
+  {
+   "i": 28,
+   "kind": "ask_help",
+   "pid": 36089,
+   "job": "farmer",
+   "say": "I have no food, help me please.",
+   "ok": true,
+   "reason": "gave the stranger barley for the road",
+   "cause": 157444,
+   "causeKind": "player",
+   "causeEv": "haggle_deal",
+   "changed": [
+    "grain"
+   ],
+   "trust": [
+    0.725,
+    0.725
+   ],
+   "events": [
+    "helped_stranger"
+   ],
+   "inChain": true,
+   "depth": 5,
+   "later": [],
+   "reply": "I am Haturka, stranger. Just now I am clearing the village canal.",
+   "shape": "harvest_poor>tax_arrears>default>haggle_deal>helped_stranger"
+  },
+  {
+   "i": 29,
+   "kind": "ask_help",
+   "pid": 27202,
+   "job": "homemaker",
+   "say": "I have no food, help me please.",
+   "ok": true,
+   "reason": "gave the stranger barley for the road",
+   "cause": 157445,
+   "causeKind": "player",
+   "causeEv": "haggle_deal",
+   "changed": [
+    "grain"
+   ],
+   "trust": [
+    0.725,
+    0.725
+   ],
+   "events": [
+    "helped_stranger"
+   ],
+   "inChain": true,
+   "depth": 4,
+   "later": [],
+   "reply": "I am Huduxçā, stranger. Just now I am grinding the household’s flour.",
+   "shape": "death>given>haggle_deal>helped_stranger"
+  }
+ ],
+ "note": "Each intervention is said to a person (talkTurn, stand-in model); the house decides from its own state (speech/deeds.ts) and a yes enters the economy with the player as a party. In a chain: an event of the deed lies on a counted T-F9 chain (>= 3 causally linked events, >= 2 actors) over the full event graph after 20 more days. The targets are drawn in a seeded order among houses a stranger would approach for that deed (a house with barley to spare for a purchase, one in want for a gift), never chosen by hand."
+}

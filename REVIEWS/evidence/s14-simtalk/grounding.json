@@ -1,0 +1,137 @@
+{
+ "id": "simtalk-grounding",
+ "commit": "88071b0f",
+ "tool": "tests/simtalk.test.ts",
+ "day": 300,
+ "seed": 1,
+ "n": 300,
+ "seededFakes": 0,
+ "withSimFacts": 300,
+ "factsInPrompt": 300,
+ "maxPromptTokens": 450,
+ "share": {
+  "debts": 5.7,
+  "means": 100,
+  "needs": 28,
+  "rumours": 95.7,
+  "bonds": 70.7,
+  "dealings": 15.3
+ },
+ "cache": {
+  "built": false,
+  "loadMs": 4970
+ },
+ "sample": [
+  {
+   "pid": 18925,
+   "job": "homemaker",
+   "debts": 0,
+   "means": 2,
+   "needs": 0,
+   "rumours": 2,
+   "bonds": 1,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 3460,
+   "job": "porter",
+   "debts": 0,
+   "means": 2,
+   "needs": 0,
+   "rumours": 3,
+   "bonds": 0,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 17931,
+   "job": "homemaker",
+   "debts": 0,
+   "means": 2,
+   "needs": 0,
+   "rumours": 2,
+   "bonds": 1,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 33884,
+   "job": "homemaker",
+   "debts": 0,
+   "means": 2,
+   "needs": 1,
+   "rumours": 3,
+   "bonds": 1,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 9062,
+   "job": "elder",
+   "debts": 2,
+   "means": 2,
+   "needs": 0,
+   "rumours": 3,
+   "bonds": 0,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 32724,
+   "job": "farmer",
+   "debts": 0,
+   "means": 2,
+   "needs": 0,
+   "rumours": 0,
+   "bonds": 1,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 30278,
+   "job": "homemaker",
+   "debts": 0,
+   "means": 2,
+   "needs": 0,
+   "rumours": 3,
+   "bonds": 1,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 37282,
+   "job": "homemaker",
+   "debts": 0,
+   "means": 2,
+   "needs": 0,
+   "rumours": 2,
+   "bonds": 1,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 37386,
+   "job": "homemaker",
+   "debts": 0,
+   "means": 2,
+   "needs": 0,
+   "rumours": 3,
+   "bonds": 1,
+   "dealings": 0,
+   "trust": 0.5
+  },
+  {
+   "pid": 24675,
+   "job": "farmer",
+   "debts": 0,
+   "means": 2,
+   "needs": 0,
+   "rumours": 2,
+   "bonds": 1,
+   "dealings": 1,
+   "trust": 0.5
+  }
+ ],
+ "briefSample": "You are Bakerabba, man of 76, a Persian of Parsa; you speak Old Persian.\nWork: an elder of the household, past heavy work. Home: a village of the plain.\nIn your house: Bakabana (kinsman of the house, 42), Rtazātā (kinswoman of the house, 39), your son Haturka (21), Irdaša (kinsman of the house, 13).\nFriends and kin nearby: Miššabadda (kin), Ziššukka (kin).\nLately: your house owes a sheqel of silver to the house of Tiššantamma, due in about eighty-five days; your house owes a sheqel of silver to the house of Sunkana, due in about eighty days; heard from kin about three weeks ago of sickness at the house of Irdapukka.\nMeans: your house has barley for about forty days of bread, half a sheqel of silver.\nManner: cheerful; quick to laugh, teases; oath: “the gods willing”.\nToday: day 6 of the month Θwayauvā, winter, winter cold.\nRight now: visiting Bakadušda; after this: at home. Earlier: a small exchange in the lane.\nNews today: 3 lambs born in the state flocks."
+}
