@@ -19,12 +19,15 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
   test.setTimeout(+(process.env.TIMEOUT ?? 3600) * 1000);
   const W = +(process.env.W ?? 1920), H = +(process.env.H ?? 1080), N = +(process.env.N ?? 30), q = process.env.Q ?? 'high';
   await page.setViewportSize({ width: W, height: H });
-  page.on('console', m => { const t = m.text(); if (m.type() === 'error' || t.startsWith('[prof]')) console.log(t.slice(0, 400)); });
+  page.on('console', m => { const t = m.text(); if (m.type() === 'error' || t.startsWith('[prof]') || t.startsWith('[boot]')) console.log(t.slice(0, 400)); });
+  page.on('pageerror', e => console.log('[pageerror]', String(e).slice(0, 400))); page.on('crash', () => console.log('[crash] the page crashed'));
   const only = process.env.ONLY?.split(','), views = VIEWS.filter(v => !only || only.includes(v.n)), first = views[0];
   const t0 = Date.now();
   await page.goto(`/?test&prof&quality=${q}&day=${first.day}&hour=${first.hour}&weather=${first.w}&court=seasonal${process.env.URLX ?? ''}`);
-  await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 3_000_000, polling: 2000 });
+  await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: +(process.env.TIMEOUT ?? 3600) * 1000, polling: 2000 });
   await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
+  // D-353: the groups shown one at a time before the first frame (one giant first submit resets the T4); NOWARM=1 skips
+  if (!process.env.NOWARM) console.log('warmUp', JSON.stringify(await page.evaluate(() => (window as any).__parsa.warmUp())));
   console.log('ready', ((Date.now() - t0) / 1000).toFixed(0), 's', await page.evaluate(() => { const b = (window as any).__parsa.renderer.backend; return { ts: !!b.trackTimestamp, adapter: b.adapter?.info?.description ?? b.device?.adapterInfo?.description ?? '' }; }));
   const out: Record<string, any> = { when: new Date().toISOString(), W, H, q, tag: process.env.TAG ?? '', views: {} };
   const f = 'shots/perf-profile.json'; mkdirSync('shots', { recursive: true });
@@ -36,6 +39,14 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
     { const r0 = await page.evaluate(async (n) => { const C = (globalThis as any).__parsaCascades; const was = C.on; C.on = false; try { return await (window as any).__parsa.profile(n); } finally { C.on = was; } }, 12);
       r.allCascades = { cpu: r0.cpuMs, gpu: r0.gpuMs, serial: r0.serialMs, pipelined: r0.pipelinedMs }; console.log(`[perf] ${s.n} every cascade every frame: ${JSON.stringify(r.allCascades)}`); }
     out.views[s.n] = r;
+    // D-355 (AB=1): the screen-space passes at half resolution, one at a time and together, and the whole frame at 0.75 scale
+    if (process.env.AB) { r.ab = {};
+      for (const [k, o] of Object.entries({ ssgi: { ssgi: 0.5 }, ssr: { ssr: 0.5 }, sss: { sss: 0.5 }, all: { ssgi: 0.5, ssr: 0.5, sss: 0.5 } })) {
+        const r1 = await page.evaluate(async ([o, n]) => { const S = (globalThis as any).__parsaSurf, was = S.postScale({}); S.postScale(o); try { return await (window as any).__parsa.profile(n); } finally { S.postScale(was); } }, [o, 12] as const);
+        r.ab['half-' + k] = { gpu: r1.gpuMs, pipelined: r1.pipelinedMs, top: r1.passes.slice(0, 6).map((p: any) => [p.label, p.gpu]) }; }
+      const r2 = await page.evaluate(async (n) => { const R = (window as any).__parsa.renderer, was = R.getPixelRatio(); R.setPixelRatio(was * 0.75); try { return await (window as any).__parsa.profile(n); } finally { R.setPixelRatio(was); } }, 12);
+      r.ab.scale075 = { gpu: r2.gpuMs, pipelined: r2.pipelinedMs };
+      console.log(`[ab] ${s.n} ${JSON.stringify(r.ab)}`); }
     console.log(`[perf] ${s.n} cpu ${r.cpuMs} serial ${r.serialMs} gpu ${r.gpuMs} pipelined ${r.pipelinedMs} draws ${r.draws} tris ${(r.tris / 1e6).toFixed(2)}M`);
     console.log(`[perf] ${s.n} sections ${JSON.stringify(Object.fromEntries(Object.entries(r.sections).sort((a: any, b: any) => b[1] - a[1]).slice(0, 18)))}`);
     console.log(`[perf] ${s.n} max ${r.cpuMaxMs} sections max ${JSON.stringify(Object.fromEntries(Object.entries(r.secMax).sort((a: any, b: any) => b[1] - a[1]).slice(0, 10)))}`);
@@ -57,6 +68,20 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
       out.views[s.n].ablation = { base: { cpu: base.cpuMs, gpu: base.gpuMs, serial: base.serialMs }, rows };
       for (const x of rows) console.log(`[abl] ${s.n} hide ${x.group}: gpu -${x.dGpu} cpu -${x.dCpu} (draws ${x.draws})`);
     }
+    const done = Object.values(out.views).map((x: any) => x.gpuMs).filter(Number.isFinite).sort((a: number, b: number) => a - b);
+    out.medianGpuMs = done[Math.floor(done.length / 2)]; console.log(`[perf] median GPU over ${done.length} views so far: ${out.medianGpuMs} ms`);
     const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {}; all[`${out.tag || 'run'}|${W}x${H}|${q}`] = out; writeFileSync(f, JSON.stringify(all, null, 1));
   }
+  // D-355 (FIREAB=<view>): the fire lights before (12 forward, no deferred term) and now (4 forward + 12 deferred), last since
+  // the switch recompiles every lit material (one frame per group as in warmUp)
+  if (process.env.FIREAB) { const s = VIEWS.find(v => v.n === process.env.FIREAB)!;
+    await page.evaluate(([d, h, w, v]) => { const p = (window as any).__parsa; p.setWeather(w); p.setTime(d, h); p.view(...(v as any)); }, [s.day, s.hour, s.w, s.v] as const);
+    const prof = () => page.evaluate((n) => (window as any).__parsa.profile(n), 20);
+    for (let i = 0; i < 3; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+    const now = await prof(); await page.screenshot({ path: `shots/perf-fireab-now-${s.n}.png` });
+    const tc = Date.now(); await page.evaluate(() => { (globalThis as any).__parsaFire.legacy = true; }); await page.evaluate(() => (window as any).__parsa.warmUp()); for (let i = 0; i < 3; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+    const recompile = (Date.now() - tc) / 1000, old = await prof(); await page.screenshot({ path: `shots/perf-fireab-legacy-${s.n}.png` });
+    const fire = { view: s.n, now: { gpu: now.gpuMs, pipelined: now.pipelinedMs, scene: now.passes[0] }, legacy: { gpu: old.gpuMs, pipelined: old.pipelinedMs, scene: old.passes[0] }, recompileS: recompile };
+    console.log(`[fireab] ${JSON.stringify(fire)}`);
+    const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {}; const k = `${out.tag || 'run'}|${W}x${H}|${q}`; all[k] = { ...out, fireab: fire }; writeFileSync(f, JSON.stringify(all, null, 1)); }
 });
