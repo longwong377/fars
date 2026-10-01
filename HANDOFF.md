@@ -1,3 +1,5 @@
+# SESSION 14 (2026-10-01): the week plan is ROADMAP.md top section; agents follow handoff/agent_template.md "Operating model"; briefs in handoff/briefs/s14/. The session-13 handoff below still holds for what it records.
+
 # HANDOFF — end of session 13 (2026-10-01); branch claude/amazing-fermi-40ds7j (pushed, verified against GitHub)
 
 ## What session 13 was, honestly

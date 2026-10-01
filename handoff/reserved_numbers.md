@@ -100,3 +100,11 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-351 | s13 | trust and haggling, node side (UD-25 mechanics 1 and 4; Q-1060..Q-1064, B233..B235) | agent worktree | merged session 13 |
 | D-352 | s13 | needs as emergent asks, rumour spreading, node side (UD-25 mechanics 2 and 5; Q-1065..Q-1069, B236..B238) | agent worktree | merged session 13 |
 | D-353 | s13 | the GPU hang: the game renders black on this box (Q-1070..Q-1071, B239..B240) | agent worktree | merged session 13 |
+| D-354 | s14 | load time to about a minute (Q-1080..Q-1089, B250..B259) | agent worktree, branch s14-load | in flight |
+| D-355 | s14 | frame rate to 30 fps on the T4 (Q-1090..Q-1099, B260..B269) | agent worktree, branch s14-frame | in flight |
+| D-356 | s14 | the plain and hills filled (Q-1100..Q-1109, B270..B279) | agent worktree, branch s14-plain | in flight |
+| D-357 | s14 | baked path-traced light (Q-1110..Q-1119, B280..B289) | agent worktree, branch s14-light | in flight |
+| D-358 | s14 | talk reaches the real simulation (Q-1120..Q-1129, B290..B299) | agent worktree, branch s14-simtalk | in flight |
+| D-359 | s14 | the simulation made visible (Q-1130..Q-1139, B300..B309) | agent worktree, branch s14-visible | in flight |
+| D-360 | s14 | simulation health, tests, merges (Q-1140..Q-1149, B310..B319) | agent worktree, branch s14-simhealth | in flight |
+| D-361..D-399 | s14 | reserved for waves 2-4 of the week plan (Q-1150..Q-1399, B320..B499) | the lead | reserved |

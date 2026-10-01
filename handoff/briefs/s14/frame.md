@@ -1,25 +1,21 @@
-# Agent brief template (MASTER_PLAN.md §6 session loop, step 5; generate every worker agent's brief from this)
+# Brief s14/frame: Frame rate: from ~4-5 fps to 30 fps at 1080p on the T4
 
 ## Fixed clauses (copy verbatim)
 
 You are a worker agent on PĀRSA (repo /home/user/fars, your own worktree branch; do not push). Read USER_DIRECTIONS.md,
 MASTER_PLAN.md and CLAUDE.md first. The standard is every walkable area, at the player's lens and quality,
-in motion, with sound, at every hour, season and weather. Your work serves the user directions {UD ids} and the thresholds {T- ids, quoted
-verbatim from gates/thresholds.json}.
+in motion, with sound, at every hour, season and weather. Your work serves the user directions UD-17, UD-28 and the thresholds T-R14: "views rendered per full-world page load in the session (the render train batches every agent's views into one load), session mean" >= 10 views per load.
 
 1. Say before you start how your change could pass its tests while the intent fails, and measure against that, not only the test.
 2. Prefer the world-wide fix to the per-view fix. A fix proved in one view is not proved everywhere.
-3. Evidence: node previews and CPU mirrors first; at most {n ≤ 2} browser runs through tools/dev/queue_e2e.sh.
-4. Records: your reserved numbers are D-{d}, Q-{q0}..Q-{q1}, B{b0}..B{b1}; rows are appended, never renumbered.
+3. Evidence: node previews and CPU mirrors first; at most 2 browser runs through tools/dev/queue_e2e.sh.
+4. Records: your reserved numbers are D-355, Q-1090..Q-1099, B260..B269; rows are appended, never renumbered.
 5. Never lower or reword a threshold (tests/gates_ratchet.test.ts); a threshold you cannot meet goes to BLOCKERS with ≥ 3
    approaches measured.
 6. Lead your final report with what is broken, placeholder or unverified on screen; list tests run with results; run
    `git checkout bench-reports/` before committing.
 7. Heavy CPU work (soaks, bots, audio renders, bakes, long test runs) goes through `tools/dev/cpu_slot.sh`, one process at a
    time: the four cores are shared with the render lane.
-
-## Slots
-- {task}; {areas}; {files in scope}; {what "done" means in thresholds}; {UD ids}; {reserved numbers}; {render budget}
 
 ## Machine section (session 11 on; copy into every brief after the fixed clauses)
 On the GPU machine (session 11 on: Windows, NVIDIA T4, 16 cores, 63 GB, open internet), this clause governs where it
@@ -56,3 +52,42 @@ that no hour is spent reading, waiting or polishing.
    PROGRESS, HANDOFF, TASKS or COVERAGE (the lead's).
 9. **Report ≤ 250 words:** broken/placeholder first; what a player now sees differently; train views requested; files
    touched; tests run with results. No questions mid-run: decide, log, proceed.
+
+## Your context pack
+**Your tree:** C:/Users/Administrator/fars-wt/frame (branch s14-frame; the fixed clause's /home/user path is the cloud's).
+
+**Goal (as the player meets it):** The world moves smoothly when walked (30 fps at 1080p on the T4), without looking worse.
+
+**Time box:** 6 h. **Needs:** gpu. **Reserved:** D-355, Q-1090..Q-1099, B260..B269.
+
+**Files you own:**
+- src/render/pipeline.ts
+- src/render/sunShadows.ts
+- src/render/ssgi.ts
+- src/world/fire.ts
+- src/world/fireOcc.ts
+- src/world/firePlaces.ts
+- src/world/world.ts:~234 (the fire lights block only)
+- tests/e2e/dbg_perf.spec.ts
+
+**Read-only, for context:**
+- src/render/materials.ts
+- src/render/skyVis.ts
+- src/core/**
+
+**Start here (entry points):**
+- run tests/e2e/dbg_perf.spec.ts with ABL=1 once (never run to completion before): GPU ms per pass
+- pipeline.ts:200,236,272: SSGI, SSR and contact shadows back to half resolution with TRAA upscale
+- sunShadows.ts: 3 cascades at 2048 with static-caster caching
+- world.ts:234 + fire.ts:174-181: 12 fire point lights with custom colour nodes in every lit material's shader key: cap at 4 nearest, fixed set from frame 0, the rest emissive glow
+- dynamic resolution (0.75 scale + TRAA) as the quality tier's lever
+
+**Decisions and blockers that matter (grep these ids, do not read the files whole):** D-309, D-337, B125, B193, D-353
+
+**Commands:**
+- node tools/dev/mkwt.mjs frame
+- DBG=1 ABL=1 PW_CHANNEL=chrome node tools/dev/gpu_slot.mjs frame -- npx playwright test tests/e2e/dbg_perf.spec.ts --project=gpu
+
+**Done line:** Median GPU frame time <= 33 ms at 1080p high on this T4 at 5 views (Terrace court, Apadana hall, town lane, plain, crowd), measured by dbg_perf with the per-pass split committed; train frames show no visible loss (shadows, GI, reflections).
+
+**Render-train views to request:** apadana-nw-court, apadana-hall-axis, lane-with-child, small-spring-field, night-terrace

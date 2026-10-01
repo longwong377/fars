@@ -1,4 +1,76 @@
-# ROADMAP — finishing PĀRSA within the usage budget (written session 12, 2026-09-28)
+# ROADMAP — PĀRSA
+
+# THE WEEK PLAN (session 14, 2026-10-01 → 2026-10-07; UD-28) — governs over everything below it
+
+## What finished means this week (the user's words, not the board's)
+A player opens a URL, waits about a minute, and walks a living Persepolis of 467 BC that looks like a top modern open-world
+game everywhere they go (UD-06, UD-19), runs smoothly (30 fps on the T4), is full of people living their own lives that the
+player can see (UD-07, UD-08, UD-09, UD-26, UD-27), and can talk to anyone, who answers from their real life and is changed by
+it (UD-18, UD-21 … UD-25). Four pillars: **Runs, Looks, Alive (as seen), Interactive (as played).**
+
+**Honest limit:** MASTER_PLAN §10 (all 183 thresholds PASS) is not reachable in a week by construction: ~11.7k coverage views,
+~4k bot-hours, n ≥ 60 GPU conversation runs per row, a calibrated anchor set. This week ends with the four pillars met in whole
+views and play, and the board measured in batch (one soak per seed overnight, renderless bots, the coverage sample inside the
+render train), with every unmet id listed. Thresholds are not lowered.
+
+## Audit (2026-10-01) — what is true now
+- **Runs:** a load is ~15 min (world build ~9 min on 4 cores, then ~1000 pipelines); 4-5 fps at high (B125); profiler never run.
+- **Looks:** every blind review reads 100 % CG; s12/s13 work never reviewed. Tells: shade with no sky/bounce light, no
+  large-scale variation on big surfaces, empty plain and courts, reliefs as stickers, boxy edges; black ground flora (bug).
+  Real assets: columns, colossi, props, rocks, flora, animals, trees, Ajori, Naqsh. Still primitives: Terrace walls/floors/steps,
+  palace and house wall bodies (the biggest share of the screen).
+- **Alive:** deep node simulation (economy, relations, wardrobes, talk, trust, rumour, T-F9 378 chains) but the player sees only
+  people walking: wardrobes, haggling, laundry, weddings, talk events are never drawn or heard.
+- **Interactive:** conversation works behind `?converse` only, grounded on seeded fakes (life.ts), cut off from the economy;
+  4 of 10 UD-25 mechanics node-only; no NPC-to-NPC voiced talk; no proximity mic; T-E9 ~60 %.
+- **Health:** tsc 23 errors (tools/dev/audit_d only); guards pass; people_days files take hours; board 0 PASS.
+
+## How the agents work (the operating model; handoff/agent_template.md "Operating model")
+1. **Ready queue, disjoint ownership.** Every package below is pre-briefed (handoff/briefs/s14/packs.json →
+   `node tools/dev/brief.mjs`) with the files it owns; packages running together never own the same file. A finished
+   agent is replaced from the queue within the lead's next check (~20 min).
+2. **Context packs, not records.** Each brief carries entry points, the ids that matter, commands and a player-visible done
+   line; agents grep records, never read them whole (DECISIONS.md is 8.9k lines).
+3. **One-command worktrees** (`tools/dev/mkwt.mjs`: node_modules and models linked, own port): no npm ci, no disk copies.
+4. **Probe pages to iterate, the render train to verify** (`tools/dev/render_train.mjs`): agents never pay a full-world
+   load; their views ride the lead's one batched load on `s14-int`. Trains at ~09:00, ~14:00, ~20:00 daily, hourly once the
+   load is about a minute. Metric: views per full-world load (T-R14 ≥ 10).
+5. **Slots:** two GPU slots (`gpu_slot.mjs`), two CPU slots at low priority (`cpu_slot.mjs`, new: the bash one never ran on
+   Windows). Overnight the CPU slots run the soak seeds and the slow tests; the GPU slots run Cycles bakes.
+6. **Stop rules:** done line met → stop; three failed approaches → BLOCKERS and move on; time box → commit and report.
+7. **Integration:** the lead merges finished branches into `s14-int` (guards + the agent's tests), runs the train, judges
+   whole views against references/ in one pass, and fast-forwards `claude/amazing-fermi-40ds7j` and pushes after each train.
+   No per-change reviews; one blind review on day 6.
+8. **Tests:** agents run only related tests; `test:fast` (< 5 min) gates merges; `test:slow` runs overnight.
+
+## Waves (each line is one agent; G = needs a GPU slot, B = Blender, N = node only)
+**Wave 1 — day 1 (launched 2026-10-01):** load (G) · frame (G) · plain (G) · light (B) · simtalk (N) · visible (N) · simhealth (N)
+**Wave 2 — day 2-3 (as wave 1 lands; packs written from the day-1 train):**
+- surfaces (G): grime, wear, large-scale variation on every material (scans.ts, masonry.ts, blockface.ts, materials.ts) — after frame
+- walls (B): Terrace walls/floors/steps and palace + house wall bodies as kit meshes with LODs and impostors — after light
+- fill (G): courts, lanes and interiors filled: clutter, awnings, braziers, goods, density of people at every hour (furnish*, settlement build, courtCamps, crowd density)
+- bodies (B): every body different + secondary physics (3b, 3c), impostor atlas re-baked, wardrobes drawn (3d render side)
+- converse (G): conversation on by default (menu, consent, VRAM check), model dirs trimmed, real-model T-E9/T-E10 — after simtalk
+- overheard (N→G): the simulation's talk events voiced near the player; NPC-to-NPC exchanges grounded in both lives (UD-23, T-E12)
+**Wave 3 — day 4-5:**
+- reliefs (B): paint as thin pigment on stone, floors and courts re-surfaced — after surfaces
+- verbs (N): the remaining UD-25 mechanics: work and livelihood, learning the language, identity, hospitality, groups, petitions
+- mic (G): the proximity mic (loudness and distance, bystanders react, open mic with voice activity, room acoustics)
+- night (G): town lanes lit, night clouds, fires, dusk and night in every area
+- water (G): rivers and canals: reeds, boats, washers, mud, waterfowl
+- worst-area round (G/B ×2): the two worst areas of the day-4 train
+**Day 6 — measure:** overnight soak on 3 seeds and slow tests (CPU slots), renderless bot fleet, the coverage sample and every
+area in one train, one blind review against references/; two agents on the worst findings.
+**Day 7 — finish:** integration, perf tiers (medium default if high misses 30 fps), download size, FINAL_REPORT.md (broken
+first), session close (sessions/s14.md, branches merged or abandoned, push verified).
+
+## The lead's loop (every ~20 min)
+Check agents and slots → merge what landed into s14-int (guards + related tests) → launch the next package from the queue →
+at train time run the train and judge whole views on one question (does this look AAA and full of life?) → turn the worst
+findings into the next packs. Keep both GPU slots and both CPU slots busy; never two agents on one file.
+
+---
+# (Older plan, session 12; superseded where the week plan differs)
 
 No usage cap and no cap on the number of agents (the user, 2026-10-01: the weekly window reset; "remove the cap on agents", "drop the 97%"). Measured in session 12: about 1 % of the
 weekly all-models budget per agent-hour (~14 agents x ~4 h used ~55 %). So a week holds ~85 agent-hours with margin.

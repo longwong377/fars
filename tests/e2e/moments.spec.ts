@@ -267,6 +267,9 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'room-garrison-night', day: 20, hour: 23, w: 'clear', v: [193.2, -25.2, 1.6, 103, -10], fov: IN },
   { n: 'room-garrison-mats-night', day: 20, hour: 23, w: 'clear', v: [196.0, -27.0, 1.6, 111, -25], fov: IN },
 ];
+// EXTRA=<a.json,b.json> (session 14, the render train): agents' own views ({n, day, hour, w, v, fov?}) appended to the list, so
+// every agent's views share the lead's one batched page load (tools/dev/render_train.mjs)
+for (const f of (process.env.EXTRA ?? '').split(',').filter(Boolean)) SHOTS.push(...JSON.parse(readFileSync(f, 'utf8')));
 test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES
   // override it and the per-view frame count (session 5: WebGL2 at high under SwiftShader did not finish 8 frames of one view in 23 min)
