@@ -19,7 +19,8 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
   test.setTimeout(+(process.env.TIMEOUT ?? 3600) * 1000);
   const W = +(process.env.W ?? 1920), H = +(process.env.H ?? 1080), N = +(process.env.N ?? 30), q = process.env.Q ?? 'high';
   await page.setViewportSize({ width: W, height: H });
-  page.on('console', m => { const t = m.text(); if (m.type() === 'error' || t.startsWith('[prof]')) console.log(t.slice(0, 400)); });
+  page.on('console', m => { const t = m.text(); if (m.type() === 'error' || t.startsWith('[prof]') || t.startsWith('[boot]')) console.log(t.slice(0, 400)); });
+  page.on('pageerror', e => console.log('[pageerror]', String(e).slice(0, 400))); page.on('crash', () => console.log('[crash] the page crashed'));
   const only = process.env.ONLY?.split(','), views = VIEWS.filter(v => !only || only.includes(v.n)), first = views[0];
   const t0 = Date.now();
   await page.goto(`/?test&prof&quality=${q}&day=${first.day}&hour=${first.hour}&weather=${first.w}&court=seasonal${process.env.URLX ?? ''}`);
