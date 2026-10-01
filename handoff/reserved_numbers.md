@@ -112,4 +112,6 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-363 | s14 | every body different, soft tissue, drape, far people (Q-1170..Q-1179, B340..B349) | agent worktree, branch s14-bodies | in flight |
 | D-364 | s14 | the walls stop being boxes (Q-1180..Q-1189, B350..B359) | agent worktree, branch s14-walls | in flight |
 | D-365 | s14 | monuments: colossi, capitals, column orders (Q-1190..Q-1199, B360..B369) | agent worktree, branch s14-monuments | in flight |
-| D-366..D-399 | s14 | reserved for waves 2-4 of the week plan (Q-1200..Q-1399, B370..B499) | the lead | reserved |
+| D-366 | s15 | surfaces: grime, wear and large-scale variation (Q-1200..Q-1209, B370..B379) | agent worktree, branch s14-surfaces | in flight |
+| D-367 | s15 | fill: courts, lanes and rooms full (Q-1210..Q-1219, B380..B389) | agent worktree, branch s14-fill | in flight |
+| D-368..D-399 | s14 | reserved for waves 2-4 of the week plan (Q-1220..Q-1399, B390..B499) | the lead | reserved |
