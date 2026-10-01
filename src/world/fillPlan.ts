@@ -185,6 +185,19 @@ export function terraceFill(seed = 1): FillItem[] {
   scatter('garrison_sleep', [['roll', 3], ['mat', 1], ['jar_water', 1], ['sack', 1]], 30, 41, k => ({ col: { textile: cloth(u01(seed, 41, k, 9)) } }));
   // the Treasury store's sacks and jars stacked
   { const t = P.get('treasury_store')?.at as [number, number] | undefined; if (t) for (let k = 0; k < 12; k++) add(k % 3 === 2 ? 'jar_store' : 'sack', t[0] - 3 + (k % 6) * 1.0, t[1] - 1 + Math.floor(k / 6) * 1.1, u01(seed, 51, k) * 6.283, 0.95); }
+  // the palace courts on an ordinary day (the court away; C): the servants' water jars, baskets and rolled mats along the
+  // edges of the Harem's court and the Hadish's N court (SITE_SPEC harem.court, hadish.north_court: B), a few jars for laying
+  // the dust in the forecourt; at every guard post a water jar and the guard's rolled mat
+  const rectFill = (r: [number, number, number, number], list: [string, number][], n: number, salt: number) => { const [e0, e1, n0, n1] = r;
+    for (let k = 0; k < n; k++) { const side = k % 4, t = u01(seed, salt, k, 1), inset = 0.8 + 1.2 * u01(seed, salt, k, 2);
+      const e = side === 0 ? e0 + inset : side === 1 ? e1 - inset : e0 + 1 + t * (e1 - e0 - 2), nn = side === 2 ? n0 + inset : side === 3 ? n1 - inset : n0 + 1 + t * (n1 - n0 - 2);
+      const m = wpick(list, u01(seed, salt, k, 3)); add(m, e, nn, u01(seed, salt, k, 4) * 6.283, 0.85 + 0.25 * u01(seed, salt, k, 5), { col: { textile: cloth(u01(seed, salt, k, 6)), fruit: pick(FRUIT, u01(seed, salt, k, 7)) } }); } };
+  rectFill([101, 127, -125, -112], [['jar_water', 3], ['jar_store', 2], ['roll', 2], ['fill_produce', 1.5], ['sack', 1], ['bowl', 1], ['rug_folded', 1]], 18, 71);
+  rectFill([-3, 40, -134, -109], [['jar_water', 3], ['jar_store', 1], ['roll', 1.5], ['rug_folded', 1], ['fill_produce', 0.5]], 14, 72);
+  rectFill([-25, 30, 68, 95], [['jar_water', 3], ['jar_neck', 1], ['fill_bundle', 0.5]], 8, 73);
+  for (const p of P.values()) if (p.kind === 'post') { const [e, n] = p.at as [number, number], a = ((p.heading ?? 0) * Math.PI) / 180, fe = Math.sin(a), fn = Math.cos(a);
+    add('jar_water', e - fe * 0.6 + fn * 0.9, n - fn * 0.6 - fe * 0.9, u01(seed, 81, e, n) * 6.283, 0.8);
+    if (u01(seed, 82, e, n) < 0.6) add('roll', e - fe * 0.7 - fn * 0.9, n - fn * 0.7 + fe * 0.9, Math.atan2(fe, -fn) + Math.PI / 2, 0.85, { col: { textile: cloth(u01(seed, 83, e, n)) } }); }
   // standards (C, after the royal standard of Xenophon: B): outside the Gate's W door and flanking the Apadana N stair
   for (const [id, de, dn] of [['post_gate_w1', -3.2, -1.2], ['post_gate_w2', -3.2, 1.2], ['post_apa_w', -2.0, 1.5], ['post_apa_e', 2.0, 1.5], ['post_hadish_1', -2.5, 1.0], ['post_tachara_1', -2.0, -1.5]] as [string, number, number][]) {
     const p = P.get(id)?.at as [number, number] | undefined; if (p) add('fill_standard', p[0] + de, p[1] + dn, rotFacing(0, -1), 1, { col: { cloth: [[0.55, 0.18, 0.14], [0.62, 0.48, 0.2], [0.3, 0.3, 0.5]][u01(seed, 61, de * 10, dn * 10) * 3 | 0] as RGB } }); }

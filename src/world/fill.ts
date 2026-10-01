@@ -25,7 +25,7 @@ const CELL = 32;
 const _c = new THREE.Color();
 
 interface Slot { mesh: THREE.InstancedMesh; part: string; n: number }
-export interface FillEnv { ground: (e: number, n: number) => number; phys?: { addBox(c: { x: number; y: number; z: number }, h: { x: number; y: number; z: number }, rotY?: number): unknown } | null; nav?: { blockDisc(e: number, n: number, r: number): void } | null }
+export interface FillEnv { ground: (e: number, n: number) => number; phys?: { addBox(c: { x: number; y: number; z: number }, h: { x: number; y: number; z: number }, rotY?: number): unknown } | null; nav?: { blockDisc(e: number, n: number, r: number): void; walkable?(e: number, n: number): boolean } | null }
 
 export class WorldFill {
   readonly group = new THREE.Group();
@@ -40,7 +40,7 @@ export class WorldFill {
     this.group.userData = { tier: 'C', src: 'RECON', note: 'the fill (D-367): market stalls and their goods, the lanes\' fuel, jars, sacks and rubble, awnings over doors, washing lines across the lanes, the masons\' waste, the goods at the stair foot and the standards on the Terrace: placed by rule (fillPlan.ts), modelled props (C)' };
     this.y = new Float32Array(items.length);
     const count = new Map<string, number>();
-    items.forEach((it, i) => { const y = env.ground(it.e, it.n); this.y[i] = Number.isFinite(y) ? y : NaN; count.set(it.m, (count.get(it.m) ?? 0) + 1);
+    items.forEach((it, i) => { const y = env.ground(it.e, it.n); this.y[i] = Number.isFinite(y) && !(it.at === 'terrace' && env.nav?.walkable && !env.nav.walkable(it.e, it.n)) ? y : NaN; /* (a Terrace item off the walkable floor, in a wall or a hall: not drawn) */ count.set(it.m, (count.get(it.m) ?? 0) + 1);
       const k = this.key(Math.floor(it.e / CELL), Math.floor(it.n / CELL)); (this.grid.get(k) ?? this.grid.set(k, []).get(k)!).push(i);
       if (it.solid && Number.isFinite(this.y[i])) { const [hx, hz] = it.solid;
         env.phys?.addBox({ x: it.e, y: this.y[i] + it.dy + 0.5, z: -it.n }, { x: hx * it.s[0], y: 0.5, z: hz * it.s[2] }, it.rot); env.nav?.blockDisc(it.e, it.n, Math.max(hx, hz) * it.s[0]); this.solids++; } });
@@ -62,16 +62,16 @@ export class WorldFill {
     }
   }
   private key(i: number, j: number) { return (i + 4096) * 8192 + (j + 4096); }
-  /** rebuild round the viewer (grid e, n) when it has moved FILL_R.move m or the market opened or closed (local hour) */
-  update(viewer: [number, number], hour: number, force = false): boolean {
-    const day = hour >= 6.5 && hour < 19 ? 1 : 0;
+  /** rebuild round the viewer (grid e, n) when it has moved FILL_R.move m, the market opened or closed (local hour) or rain began or stopped */
+  update(viewer: [number, number], hour: number, rain = 0, force = false): boolean {
+    const day = (hour >= 6.5 && hour < 19 ? 1 : 0) + (rain > 0.15 ? 2 : 0), wet = day >= 2; // (in rain the goods are taken in and the washing too)
     if (!force && day === this.lastDay && Math.hypot(viewer[0] - this.last[0], viewer[1] - this.last[1]) < FILL_R.move) return false;
     this.last = [viewer[0], viewer[1]]; this.lastDay = day;
     for (const L of this.slots.values()) for (const S of L) for (const s of S) s.n = 0;
     const R = FILL_R.big, i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
     let drawn = 0;
     for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) for (const k of this.grid.get(this.key(i, j)) ?? []) {
-      const it = this.items[k], y = this.y[k]; if (!Number.isFinite(y) || (it.day && !day)) continue;
+      const it = this.items[k], y = this.y[k]; if (!Number.isFinite(y) || (it.day && (day !== 1)) || (wet && it.m === 'fill_line')) continue;
       const d = Math.hypot(it.e - viewer[0], it.n - viewer[1]); if (d > (BIG.has(it.m) ? FILL_R.big : FILL_R.small)) continue;
       const levels = this.slots.get(it.m); if (!levels) continue;
       const L = levels[d < FILL_R.lod0 ? 0 : d < FILL_R.lod1 ? 1 : 2];
