@@ -514,5 +514,63 @@
    "dawn-stair-top",
    "drum-road"
   ]
+ },
+ {
+  "name": "animalmotion",
+  "title": "Animals and birds move like living things (3c)",
+  "hours": 4,
+  "needs": "blender",
+  "ud": [
+   "UD-27",
+   "UD-11"
+  ],
+  "thresholds": [
+   "T-E15"
+  ],
+  "d": 362,
+  "q": [
+   1160,
+   1169
+  ],
+  "b": [
+   330,
+   339
+  ],
+  "goal": "Every animal has secondary motion: bellies and dewlaps sway, ears flick, tails swing as chains, pack loads sway with the gait; birds take off without a pop and their wings shade correctly in flight.",
+  "owns": [
+   "src/people/animals.ts",
+   "src/people/animalForm.ts",
+   "src/people/animalRig.ts",
+   "src/people/animalModels.ts",
+   "tools/blender/animals.mjs",
+   "tools/blender/animals.py",
+   "tools/blender/life_birds.py",
+   "src/world/wildlife.ts"
+  ],
+  "reads": [
+   "src/world/fauna.ts (the plain agent owns it)",
+   "src/world/beasts.ts",
+   "research/BLENDER_PLAN.md rows 4, 20",
+   "tools/dev/animal_probe.*"
+  ],
+  "entry": [
+   "animals.ts:12: the only motion is a procedural tail swish; add spring-damper jiggle bones (belly, dewlap, ears, tail chain, load) in Blender weights on the vertex rig, solved per frame on the GPU or a worker, faded with distance",
+   "B179: birds pop at take-off (separate stand and fly levels) and flying wings keep rest normals: blend the rigs, recompute normals"
+  ],
+  "ids": [
+   "D-326",
+   "D-332",
+   "B179"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs animalmotion",
+   "iterate on tools/dev/animal_probe.html: node tools/dev/gpu_slot.mjs animalmotion -- node tools/dev/animal_probe.mjs"
+  ],
+  "done": "In the animal probe and in train views, donkeys, oxen, sheep, goats, dogs, horses and camels show visible belly, ear, tail and load motion while walking and settle when standing; birds take off without a pop; cost <= 0.5 ms for 200 animals.",
+  "train": [
+   "drum-road",
+   "small-spring-field",
+   "ford-pulvar-sep"
+  ]
  }
 ]
