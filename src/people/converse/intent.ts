@@ -155,7 +155,8 @@ export function econAskOf(said: string): EconAsk | null {
     switch (kind) {
       case 'haggle': { const good = goodOf(s.replace(/\b(sheqels?|shekels?|silver)\b/gi, ''), 'grain'); return { kind, good, qty: qtyOf(s, good), price: silverOf(s), words: s }; }
       case 'buy': case 'sell': { const good = goodOf(s, 'grain'); return { kind, good: good === 'silver' ? 'grain' : good, qty: qtyOf(s, good === 'silver' ? 'grain' : good), words: s }; }
-      case 'gift': { const good = goodOf(s, 'silver'); return { kind, good, qty: qtyOf(s, good), words: s }; }
+      case 'gift': { if (requestOf(s)?.kind === 'trade') continue; // ("I will give you my bread for some water": a trade of things, the talk's)
+        const good = goodOf(s, 'silver'); return { kind, good, qty: qtyOf(s, good), words: s }; }
       case 'lend': return { kind, good: 'silver', qty: silverOf(s) ?? 1, words: s };
       case 'offer_help': return { kind, good: 'labour', qty: qtyOf(s, 'labour'), words: s };
       case 'ask_help': return { kind, good: 'grain', qty: 1.1, words: s };
