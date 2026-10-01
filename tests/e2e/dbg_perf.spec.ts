@@ -24,7 +24,7 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
   const only = process.env.ONLY?.split(','), views = VIEWS.filter(v => !only || only.includes(v.n)), first = views[0];
   const t0 = Date.now();
   await page.goto(`/?test&prof&quality=${q}&day=${first.day}&hour=${first.hour}&weather=${first.w}&court=seasonal${process.env.URLX ?? ''}`);
-  await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 3_000_000, polling: 2000 });
+  await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: +(process.env.TIMEOUT ?? 3600) * 1000, polling: 2000 });
   await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
   // D-353: the groups shown one at a time before the first frame (one giant first submit resets the T4); NOWARM=1 skips
   if (!process.env.NOWARM) console.log('warmUp', JSON.stringify(await page.evaluate(() => (window as any).__parsa.warmUp())));
