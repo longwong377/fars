@@ -40,6 +40,7 @@ import { WeatherSystem } from '../src/weather/weatherState';
 import { seasonAt } from '../src/world/season';
 import { execSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
+import { depHashFor } from './dev/coverage_dep';
 
 export const SOAK_GATES = {
   NEAR_COPY: 0.9,          // two days agreeing in ≥ 90 % of their half-hour buckets are near-copies
@@ -228,10 +229,11 @@ function courtEvents(inRoad: Int32Array, outRoad: Int32Array, terr: Int32Array, 
     rule: `an event: a run of days with >= ${T_F8.MIN_ROAD} of the court's column on the road in daylight on their arrival (leave) day, and the court on the Terrace at ${T_F8.HOUR}:00 up (down) by >= ${T_F8.MIN_TERRACE} across it${scale < 1 ? ` (scaled by the sample, ${scale.toFixed(3)})` : ''}` };
 }
 /** write the T-F8 evidence of one soak run and fold the pass's runs into one record (REVIEWS/evidence/<pass>/) */
-function writeTF8(pass: string, r: ReturnType<typeof runSoak>) {
+function writeTF8(pass: string, r: ReturnType<typeof runSoak> & { dep?: string }) {
   if (!r.tf8) return; const dir = `REVIEWS/evidence/${pass}`; mkdirSync(dir, { recursive: true });
   let commit = 'unknown'; try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch { /* no git */ }
-  const run = { seed: r.seed, court: r.court, days: r.days, gates: r.gates, gatesPassed: Object.values(r.gates).filter(Boolean).length, ...r.tf8 };
+  // D-360: the dependency hash the run was made with (taken at its start; an old report without one stays without: STALE)
+  const run = { seed: r.seed, court: r.court, days: r.days, ...(r.dep ? { dep: r.dep } : {}), gates: r.gates, gatesPassed: Object.values(r.gates).filter(Boolean).length, ...r.tf8 };
   writeFileSync(`${dir}/T-F8.seed-${r.seed}.json`, JSON.stringify({ run: 'T-F8', commit, tool: 'tools/soak.ts', date: new Date().toISOString().slice(0, 10), ...run }, null, 1));
   aggregateTF8(pass, commit);
 }
@@ -239,8 +241,9 @@ function writeTF8(pass: string, r: ReturnType<typeof runSoak>) {
 function aggregateTF8(pass: string, commit: string) {
   const dir = `REVIEWS/evidence/${pass}`;
   const runs = readdirSync(dir).filter(f => /^T-F8\.seed-\d+\.json$/.test(f)).map(f => JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')));
+  const deps = [...new Set(runs.map(x => x.dep))], dep = deps.length === 1 && deps[0] ? deps[0] : undefined; // (a hash only when every seed's run shares it)
   writeFileSync(`${dir}/T-F8.json`, JSON.stringify({ id: 'T-F8', value: Math.min(...runs.map(x => x.value)), n: runs.filter(x => x.court && x.days >= 354).length, n_note: 'seeds of the default world soaked a whole year (tools/soak.ts, one run per seed)',
-    unit: 'events per year', commit, tool: 'tools/soak.ts', pass, date: new Date().toISOString().slice(0, 10), runs: runs.map(x => ({ seed: x.seed, court: x.court, days: x.days, value: x.value, gatesPassed: x.gatesPassed, commit: x.commit, events: x.events.map((e: any) => ({ kind: e.kind, days: e.days, witnessable: e.witnessable })), tf5: x.tf5.ok })) }, null, 1));
+    unit: 'events per year', commit, ...(dep ? { dep } : {}), tool: 'tools/soak.ts', pass, date: new Date().toISOString().slice(0, 10), runs: runs.map(x => ({ seed: x.seed, dep: x.dep, court: x.court, days: x.days, value: x.value, gatesPassed: x.gatesPassed, commit: x.commit, events: x.events.map((e: any) => ({ kind: e.kind, days: e.days, witnessable: e.witnessable })), tf5: x.tf5.ok })) }, null, 1));
   void existsSync;
 }
 
@@ -266,7 +269,8 @@ if (process.argv[1]?.endsWith('soak.ts')) {
   if (flag('--evidence') >= 0 && /[\\/.]/.test(process.argv[flag('--evidence') + 1] ?? '')) { console.error('--evidence takes a pass name, e.g. s11-soak'); process.exit(2); }
   const [days, dt, seed] = [+(args[0] ?? 354), +(args[1] ?? 60), +(args[2] ?? 1)];
   const sample = flag('--sample') >= 0 ? +process.argv[flag('--sample') + 1] : 0;
-  const r = runSoak(days, dt, seed, undefined, { sample, court: flag('--no-court') < 0 }); // (the default world: the court comes and goes, D-236)
+  const dep = depHashFor('tools/soak.ts'); // D-360: before the run, so an edit during a year-long soak does not freshen it
+  const r = { ...runSoak(days, dt, seed, undefined, { sample, court: flag('--no-court') < 0 }), dep }; // (the default world: the court comes and goes, D-236)
   if (flag('--evidence') >= 0) writeTF8(process.argv[flag('--evidence') + 1], r);
   mkdirSync('bench-reports', { recursive: true }); const f = `bench-reports/soak-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
   writeFileSync(f, JSON.stringify(r, null, 1));

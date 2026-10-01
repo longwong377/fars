@@ -1,11 +1,12 @@
+import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
-process.chdir('/home/user/fars');
-const { Ring, Terrain } = await import('/home/user/fars/src/terrain/heightfield');
-const { Physics } = await import('/home/user/fars/src/player/physics');
-const { Player } = await import('/home/user/fars/src/player/player');
-const { buildTerrace } = await import('/home/user/fars/src/arch/terrace');
-const { buildMeshes } = await import('/home/user/fars/src/arch/meshes');
-const { NavGrid, NAV } = await import('/home/user/fars/src/people/navgrid');
+process.chdir(fileURLToPath(new URL('../../../', import.meta.url))); // the repo root, wherever it is cloned
+const { Ring, Terrain } = await import('../../../src/terrain/heightfield');
+const { Physics } = await import('../../../src/player/physics');
+const { Player } = await import('../../../src/player/player');
+const { buildTerrace } = await import('../../../src/arch/terrace');
+const { buildMeshes } = await import('../../../src/arch/meshes');
+const { NavGrid, NAV } = await import('../../../src/people/navgrid');
 const meta: any = JSON.parse(readFileSync('public/generated/terrain.json', 'utf8'));
 const ring = (k: string) => new Ring(meta.rings[k], new Uint16Array(readFileSync(`public/${meta.rings[k].file}`).buffer.slice(0)), meta.court_asl);
 const T = new Terrain(meta, ring('near'), ring('mid'), ring('far'));

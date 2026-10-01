@@ -108,17 +108,18 @@ function occTexture(): THREE.DataTexture {
   t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true; TEX = t; return t;
 }
 /** TSL: 1 where the light at `lightPos` (uniform vec3) reaches the shaded point, 0 in the shade of the architecture, a
- *  bilinear blend of four texel tests between (percentage-closer filtering); `tile` (uniform float) < 0 → 1 */
-export function fireOccNode(lightPos: any, tile: any) {
+ *  bilinear blend of four texel tests between (percentage-closer filtering); `tile` (uniform float) < 0 → 1. `pos`/`nrm`:
+ *  the shaded point and its world normal (the material's by default; the post composite's deferred fires pass the G-buffer's, D-355) */
+export function fireOccNode(lightPos: any, tile: any, pos: any = positionWorld, nrm: any = normalWorld) {
   const tex = texture(occTexture()), T = OCC?.tile ?? 1, cols = OCC?.cols ?? 1;
-  const d = positionWorld.add(normalWorld.mul(OCC_NORMAL_OFFSET)).sub(lightPos), r = max(length(d), 1e-4), n = d.div(r);
+  const d = pos.add(nrm.mul(OCC_NORMAL_OFFSET)).sub(lightPos), r = max(length(d), 1e-4), n = d.div(r);
   const a = abs(n.x).add(abs(n.y)).add(abs(n.z)), p = vec2(n.x, n.z).div(a);
   // the lower hemisphere folds over the diagonals; step, not select (no runtime select under TRAA: HANDOFF gotchas)
   const sg = vec2(step(0, p.x).mul(2).sub(1), step(0, p.y).mul(2).sub(1));
   const fold = vec2(float(1).sub(abs(p.y)), float(1).sub(abs(p.x))).mul(sg);
   const lower = step(n.y, 0), q = mix(p, fold, lower).mul(0.5).add(0.5);
   const f = q.mul(T).sub(0.5), i0 = floor(f), w = fract(f);
-  const c = max(abs(normalWorld.dot(n)), 1e-3), tanT = min(float(1).sub(c.mul(c)).max(0).sqrt().div(c), OCC_TAN_MAX);
+  const c = max(abs(nrm.dot(n)), 1e-3), tanT = min(float(1).sub(c.mul(c)).max(0).sqrt().div(c), OCC_TAN_MAX);
   const tx = floor(tile.mod(cols)).mul(T), ty = floor(tile.div(cols)).mul(T), bias = min(r.mul(OCC_BIAS_R).add(OCC_BIAS).add(r.mul(tanT).mul(OCC_SLOPE)), OCC_BIAS_MAX);
   const tap = (ox: number, oy: number) => {
     const c = clamp(i0.add(vec2(ox, oy)), 0, T - 1);

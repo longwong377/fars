@@ -1,7 +1,8 @@
+import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
-process.chdir('/home/user/fars');
-const { NavGrid, NAV } = await import('/home/user/fars/src/people/navgrid');
-const { ROUTES, SLICE } = await import('/home/user/fars/tests/e2e/lib/routes');
+process.chdir(fileURLToPath(new URL('../../../', import.meta.url))); // the repo root, wherever it is cloned
+const { NavGrid, NAV } = await import('../../../src/people/navgrid');
+const { ROUTES, SLICE } = await import('../../../tests/e2e/lib/routes');
 const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
 const { w, h, cell, e0, n0 } = NAV; const BL = -32768;
 const cov = new Uint8Array(w * h); const R = 5; // metres either side of the walked line
