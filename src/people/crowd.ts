@@ -826,7 +826,7 @@ export class Crowd {
     }
     // hands: the cycle's grip, else what they hold
     p.rig.grip = po.grip ?? (prop1 ? PROPS[prop1]?.grip : undefined) ?? (anim === 'guard' || anim === 'guard_walk' ? [0.5, 1] : [0, 0]);
-    p.rig.pose = po; p.rig.plant = PLANTED.has(anim); p.rig.seat = SEATED.has(anim);
+    p.rig.pose = po; p.rig.plant = PLANTED.has(anim); p.rig.seat = SEATED.has(anim); p.rig.t = time; // (D-363: the soft tissue on the crowd's clock)
     const o = p.slot * PALETTE_STRIDE;
     g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o);
     this.rigS.setPose(p.rig); this.rigS.solve(p.rig, g.palette, o);

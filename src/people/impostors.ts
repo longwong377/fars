@@ -356,6 +356,11 @@ export const packRGB = (c: ArrayLike<number>) => { const q = (x: number) => Math
 export const unpackRGB = (p: number): [number, number, number] => { const r = Math.floor(p / 65536), g = Math.floor((p % 65536) / 256), b = p % 256; return [(r / 255) ** 2, (g / 255) ** 2, (b / 255) ** 2]; };
 /** floats per instance: position + yaw, row + scale + main + second, trim + skin + hair + leather */
 export const IMP_STRIDE = 12;
+/** D-363: a far person's breadth against the reference body the atlas was rendered from: the trunk's girth (spine and pelvis
+ *  width, bodyShape girth) and the fat belly's and the bust's share of the silhouette (C); 1 without a body */
+export function impBreadth(look: PersonLook): number { const b = look.body; if (!b) return 1;
+  const gx = (bone: number) => (b.bones[bone] ? b.girth[bone * 12] : 1), w = (gx(HB.pelvis) + gx(HB.spine_01) + gx(HB.spine_02) + gx(HB.spine_03)) / 4;
+  return Math.max(0.6, Math.min(1.45, w + 0.15 * b.extras[28] + 0.05 * Math.max(0, b.extras[4]))); }
 
 export class CrowdImpostors {
   readonly mesh: THREE.Mesh; private geo: THREE.InstancedBufferGeometry; private buf: THREE.InstancedInterleavedBuffer; count = 0;
@@ -366,17 +371,20 @@ export class CrowdImpostors {
     const LY = atlas.layout ?? { cell: IMP.cell, cols: IMP.cols, rpc: RPC, source: 'cpu' as const }, cyc = LY.source === 'cycles';
     const ipos = attribute('ipos', 'vec4'), iinfo = attribute('iinfo', 'vec4'), icol = attribute('icol', 'vec4'), P = positionGeometry;
     const toCam = cameraPosition.xz.sub(ipos.xz), dir = toCam.div(max(length(toCam), 1e-3)), right = vec3(dir.y, 0, dir.x.negate()), sc = iinfo.y;
+    // D-363: the row carries the body's breadth against the dress's reference body in its fraction (impBreadth): the quad and
+    // its image widen about the person's axis (row + (w − 1) / 2, w in 0.52 … 1.48)
+    const rowI = floor(iinfo.x.add(0.25)), wB = float(1).add(iinfo.x.sub(rowI).mul(2));
     const m = new THREE.MeshStandardNodeMaterial();
     // the billboard corner; with a velocity pass (TRAA) the previous position is the same point (a person's own motion is a
     // few cm a frame; three's default would be the raw quad at the origin and smear every impostor)
-    m.positionNode = Fn((builder: any) => { const p = vec3(ipos.x, ipos.y, ipos.z).add(right.mul(P.x.mul(IMP.width * 0.5).mul(sc))).add(vec3(0, P.y.mul(IMP.height).add(IMP.y0).mul(sc), 0)).toVar();
+    m.positionNode = Fn((builder: any) => { const p = vec3(ipos.x, ipos.y, ipos.z).add(right.mul(P.x.mul(IMP.width * 0.5).mul(sc).mul(wB))).add(vec3(0, P.y.mul(IMP.height).add(IMP.y0).mul(sc), 0)).toVar();
       if (builder.needsPreviousData()) positionPrevious.assign(p); return p; })();
     // the view: the direction to the camera in the person's own frame (inverse of the crowd's yaw: humanMaterial rotN)
     const c = cos(ipos.w), s = sin(ipos.w), lx = dir.x.mul(c).sub(dir.y.mul(s)), lz = dir.x.mul(s).add(dir.y.mul(c));
     const view = mod(floor(atan(lx, lz).div(Math.PI * 2).mul(IMP.views).add(0.5).add(IMP.views)), IMP.views);
     const half = 0.5 / LY.cell; // half a texel inset: no bleeding between cells at level 0
     // the row's cell (D-229: rows in the layout's columns of blocks, cellAt)
-    const blk = floor(iinfo.x.div(LY.rpc)), rr = iinfo.x.sub(blk.mul(LY.rpc));
+    const blk = floor(rowI.div(LY.rpc)), rr = rowI.sub(blk.mul(LY.rpc));
     const vUV = varying(vec2(blk.mul(IMP.views).add(view).add(P.x.mul(0.5 - half).add(0.5)).div(IMP.views * LY.cols), rr.add(P.y.mul(1 - 2 * half).add(half)).div(LY.rpc)));
     const unpack = (p: any) => { const r = floor(p.div(65536)), g2 = floor(mod(p, 65536).div(256)), b = mod(p, 256); const v = vec3(r, g2, b).div(255); return v.mul(v); };
     const cMain = varying(unpack(iinfo.z)), cSecond = varying(unpack(iinfo.w)), cTrim = varying(unpack(icol.x)), cSkin = varying(unpack(icol.y)), cHair = varying(unpack(icol.z)), cLeather = varying(unpack(icol.w));
@@ -407,7 +415,7 @@ export class CrowdImpostors {
   push(x: number, y: number, z: number, yaw: number, row: number, scale: number, col: PersonLook['col'] | null, packed?: Float32Array) {
     if ((this.count + 1) * IMP_STRIDE > this.buf.array.length) this.buf = this.alloc(this.buf.count * 2, this.buf.array as Float32Array);
     const a = this.buf.array as Float32Array, o = this.count++ * IMP_STRIDE;
-    a[o] = x; a[o + 1] = y; a[o + 2] = z; a[o + 3] = yaw; a[o + 4] = row; a[o + 5] = scale;
+    a[o] = x; a[o + 1] = y; a[o + 2] = z; a[o + 3] = yaw; a[o + 4] = row + (packed && packed.length > 6 ? (packed[6] - 1) / 2 : 0); a[o + 5] = scale; // (D-363: the breadth in the row's fraction)
     if (packed) { a[o + 6] = packed[0]; a[o + 7] = packed[1]; a[o + 8] = packed[2]; a[o + 9] = packed[3]; a[o + 10] = packed[4]; a[o + 11] = packed[5]; }
     else if (col) { a[o + 6] = packRGB(col.main); a[o + 7] = packRGB(col.second); a[o + 8] = packRGB(col.trim); a[o + 9] = packRGB(col.skin); a[o + 10] = packRGB(col.hair); a[o + 11] = packRGB(col.leather); }
   }
@@ -418,5 +426,5 @@ export class CrowdImpostors {
   static pack(col: PersonLook['col']): Float32Array { return Float32Array.of(packRGB(col.main), packRGB(col.second), packRGB(col.trim), packRGB(col.skin), packRGB(col.hair), packRGB(col.leather)); }
   /** the packed colours of a look as the skinned material shows them on average (farColours, D-189) */
   packLook(look: PersonLook): Float32Array { const [m, s, t] = farColours(look, this.atlas.cloth?.[look.far ?? look.dress]) /* D-199: a dress without a row of its own uses its far row's */; const c = look.col;
-    return Float32Array.of(packRGB(m), packRGB(s), packRGB(t), packRGB(c.skin), packRGB(c.hair), packRGB(c.leather)); }
+    return Float32Array.of(packRGB(m), packRGB(s), packRGB(t), packRGB(c.skin), packRGB(c.hair), packRGB(c.leather), impBreadth(look)); }
 }
