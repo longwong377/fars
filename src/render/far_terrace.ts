@@ -80,7 +80,7 @@ export class FarTerrace {
     const seen = new Set<THREE.Mesh>();
     for (const r of this.roots) r.traverse(o => {
       const m = o as THREE.Mesh; if (!m.isMesh || (m as any).isBatchedMesh || (m as any).isSkinnedMesh || m.userData?.noFar) return;
-      const g = m.geometry; if (!g?.getAttribute('position') || g.groups.length || g.drawRange.start !== 0 || g.drawRange.count !== Infinity || g.morphAttributes.position) return;
+      const g = m.geometry; if (!g?.getAttribute('position') || (Array.isArray(m.material) && g.groups.length) || g.drawRange.start !== 0 || g.drawRange.count !== Infinity || g.morphAttributes.position) return;
       seen.add(m);
       const e = this.E.get(m);
       if (e && (m.geometry === e.near || e.levels.includes(m.geometry))) return;
