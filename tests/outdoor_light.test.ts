@@ -2,6 +2,7 @@
 // shipped bake (public/lightmaps/outdoor.*) against the world it was baked from.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { encL1, decL1, OutMeta, OutRegion, OUT_TEXELS, sampleOutdoor, outIrradiance, afternoonWeight, OUT_TEX_W, fromRegion, groundAt } from '../src/render/probes/outdoor';
 import { outProbe, encodeRegion, halfDaySuns, OUT_W, OUT_RAYS, RegionScene } from '../src/render/probes/outdoor_bake';
 import { sceneFromParts, srgbToLinear } from '../src/render/probes/trace';
@@ -40,7 +41,7 @@ function syntheticLane(): { meta: OutMeta; tex: Uint8Array; R: OutRegion } {
   const flags = new Uint8Array(W * H), ceil = new Float32Array(W * H).fill(Infinity);
   for (let i = 0; i < W; i++) { flags[2 * W + i] |= 2; flags[4 * W + i] |= 2; flags[7 * W + i] |= 2; } // walls on the +j edges of rows 2, 4, 7
   for (let j = 5; j < 8; j++) for (let i = 0; i < W; i++) ceil[j * W + i] = 3.0;
-  const R: OutRegion = { id: 'lane', kind: 'town', c: [0, 0], theta: 0, u0: 0, v0: 0, cell: 1, W, H, L, y0: 0.5, dy: 1.5, gmin: -0.5, grange: 1, lo: [-0.9, -0.4], hi: [3.2, 4.6], edge: 0, probeBase: 0, colBase: W * H * L * OUT_TEXELS, flags: true };
+  const R: OutRegion = { id: 'lane', kind: 'town', c: [0, 0], theta: 0, u0: 0, v0: 0, cell: 1, W, H, L, y0: 0.5, dy: 1.5, gmin: -0.5, grange: 1, lo: [-0.9, -0.4], hi: [3.2, 4.6], edge: 0, probeBase: 0, colBase: W * H * L * OUT_TEXELS, flags: true, cstep: 0.025 };
   const rs: RegionScene = { R, scene, ground: new Float32Array(W * H), flags, ceil };
   const suns = halfDaySuns(), ctx = { scene, dirs: sphereDirs(OUT_RAYS.bounce), skyDirs: sphereDirs(OUT_RAYS.sky), sun: suns.am, o: { ...BAKE, skyRays: 1, sunRays: 1 }, plain: [0.2, 0.17, 0.12] as [number, number, number] };
   const a = new Float32Array(W * H * L * OUT_W);
@@ -68,15 +69,21 @@ describe('outdoor light field: a synthetic lane', () => {
   it('the lane\'s shaded side gets the bounce of the sunlit ground and walls', () => {
     const f = at(6, 3.26, 1.2, [0, 0, -1]); expect(f.sun).toBeGreaterThan(0.01);
   });
+  it('agrees with Cycles (tools/blender/lightmap_check.py, uniform sky, 512 samples, 8 bounces) within the one-bounce model', () => {
+    // Cycles' sensor radiances (= irradiance / pi per unit sky radiance) at the same points, from the run recorded in D-357
+    const C: [string, [number, number, number], [number, number, number], number][] = [['open_up', [6, 0.5, 0.02], [0, 1, 0], 0.809], ['lane_up', [6, 4, 0.02], [0, 1, 0], 0.242],
+      ['lane_face_s', [6, 4.74, 1.2], [0, 0, 1], 0.123], ['lane_face_n', [6, 3.26, 1.2], [0, 0, -1], 0.122], ['lane_mid_up', [6, 4, 1.2], [0, 1, 0], 0.343]];
+    for (const [k, [e, n, y], nrm, c] of C) { const r = at(e, n, y, nrm).sky / c; expect(r, k).toBeGreaterThan(0.72); expect(r, k).toBeLessThan(1.2); }
+  });
   it('a roof top above a closed room is left to the open sky (its column\'s probes are under the roof)', () => {
     expect(at(6, 6.5, 3.4, [0, 1, 0]).s.w).toBeLessThan(0.01);
   });
 });
 
-const META = 'public/lightmaps/outdoor.json', BIN = 'public/lightmaps/outdoor.bin';
+const META = 'public/lightmaps/outdoor.json', BIN = 'public/lightmaps/outdoor.lmz';
 describe.skipIf(!existsSync(META))('outdoor light field: the shipped bake', () => {
   let meta: OutMeta, tex: Uint8Array;
-  beforeAll(() => { meta = JSON.parse(readFileSync(META, 'utf8')); tex = new Uint8Array(readFileSync(BIN)); });
+  beforeAll(() => { meta = JSON.parse(readFileSync(META, 'utf8')); tex = new Uint8Array(gunzipSync(readFileSync(BIN))); });
   it('matches its size and covers the Terrace and the town\'s roofed sites', () => {
     expect(tex.length).toBe(meta.width * meta.height * 4);
     const ids = new Set(meta.regions.map(r => r.id));

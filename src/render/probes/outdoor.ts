@@ -8,25 +8,27 @@
 //  • Regions: a rotated rectangle of square cells (the town's sites on their own 1 m cell grid, so its walls lie on the cell
 //    edges; the Terrace on a 2 m grid along the world axes), each cell a column of L probes at heights y0 + k·dy above the
 //    column's ground (the town: the house floor or the lane; the Terrace: the court datum 0).
-//  • Per probe 4 RGBA8 texels (OUT_TEXELS):
-//      0  S: the sky channel, irradiance per unit sky irradiance S (the hemisphere light's sky term): the sky seen directly
-//         plus the light the sky puts on the surfaces the probe sees. L1, E_S(n) = a + b·n, stored as sqrt(a / A_S) and the
-//         direction ratio r = b / 2a (|r| <= 1 for any non-negative radiance) as (r + 1) / 2.
-//      1  U, morning: irradiance per unit horizontal direct sun irradiance U from the sunlit surfaces the probe sees, the sun
-//         sampled over the year's mornings (sun east of the meridian); same encoding with A_U.
-//      2  U, afternoon (sun west of the meridian). The shader blends the two by the sun's azimuth, so the bounce follows the
-//         sun across the day (a west wall in the morning sun lights the lane's other side; in the afternoon the east one).
-//      3  tint red, tint blue (luminance 1, so green follows; / TINT_MAX), the bounce fraction of S, validity (1 = a probe
-//         in the open, 0 = inside a solid: such probes carry their neighbours' mean and are left out of the interpolation).
+//  • Per probe 6 RGBA8 texels (OUT_TEXELS) holding three ambient cubes in the region's own axes (+u, −u, +v, −v, +y, −y:
+//    the irradiance on a surface facing each; exact for walls along the axes, which the town's and the Terrace's all are),
+//    each face as sqrt(E / A):
+//      S: the sky channel, irradiance per unit sky irradiance S (the hemisphere light's sky term): the sky seen directly plus
+//         the light the sky puts on the surfaces the probe sees (the open sky: +y 1, the sides ½).
+//      U morning: irradiance per unit horizontal direct sun irradiance U from the sunlit surfaces the probe sees, the sun
+//         sampled over the year's mornings (sun east of the meridian); U afternoon likewise (west). The shader blends the two
+//         by the sun's azimuth, so the bounce follows the sun across the day.
+//      texel 0: S ±u ±v · 1: S +y −y, tint red, tint blue (luminance 1, so green follows; / TINT_MAX) · 2: U am ±u ±v ·
+//      3: U am +y −y, U pm +y −y · 4: U pm ±u ±v · 5: the bounce fraction of S, validity (1 = a probe in the open, 0 = inside
+//      a solid: such probes carry their neighbours' mean and are left out of the interpolation), 0, 0.
+//    (An L1 field put 40–50 % too much sky on the walls of a 2 m lane against Cycles, tools/blender/lightmap_check.py.)
 //  • Per column 1 texel: ground height (16 bits over the region's [gmin, gmin + grange]), wall flags (town: bit 0 a wall on
 //    the cell's +i edge, bit 1 on its +j edge; the lookup never interpolates across a wall), the roof's underside above the
 //    ground (0.025 m steps; 255 = open): a lookup point above it (a roof top) does not use that column's probes.
-// Irradiance at a point, normal n (tint t, bounce fraction f, w_pm the afternoon weight):
-//   E = S·mix(1, t, f)·max(0, E_S(n)) + U·t·max(0, mix(E_am, E_pm, w_pm)(n))
-// In the open this is the hemisphere light's sky term plus the ground's bounce (L1 is exact for a hemisphere).
+// Irradiance at a point, normal n (tint t, bounce fraction f, w_pm the afternoon weight; a cube read for n as
+// Σ n_a² · face(sign n_a), a over the region's axes):
+//   E = S·mix(1, t, f)·E_S(n) + U·t·mix(E_am, E_pm, w_pm)(n)
 
 export const OUT_TEX_W = 4096;
-export const OUT_TEXELS = 4;
+export const OUT_TEXELS = 6;
 export const A_S = 1.5, A_U = 2.5, TINT_MAX = 2.5;
 
 export interface OutRegion {
@@ -45,6 +47,7 @@ export interface OutRegion {
   /** texel offsets of the region's probes and columns in the atlas */
   probeBase: number; colBase: number;
   /** walls on the cell edges (the town) */ flags: boolean;
+  /** the step (m) of the column's roof-underside height (255 steps: the town 0.025, the Terrace's halls 0.1) */ cstep: number;
 }
 export interface OutMeta { tier: 'C'; note: string; built: string; width: number; height: number; regions: OutRegion[]; sunAm: [number, number]; sunPm: [number, number]; seconds?: number; rays?: { sky: number; bounce: number } }
 
@@ -75,7 +78,8 @@ export function fromRegion(R: OutRegion, u: number, v: number): [number, number]
   return [R.c[0] + u * c - v * s, -(R.c[1] + u * s + v * c)];
 }
 
-export interface OutSample { S: [number, number, number, number]; Uam: [number, number, number, number]; Upm: [number, number, number, number]; tint: [number, number]; fb: number; w: number }
+/** cubes as [+u, −u, +v, −v, +y, −y] */
+export interface OutSample { S: number[]; Uam: number[]; Upm: number[]; tint: [number, number]; fb: number; w: number; theta: number }
 /** CPU mirror of the shader lookup (outdoor_runtime.ts): the field at world p, the lookup point q = p + off·bias. The first
  *  region containing p wins; null outside every region. */
 export function sampleOutdoor(meta: OutMeta, tex: Uint8Array, p: [number, number, number], off: [number, number, number] = [0, 0, 0], bias = OUT_BIAS): OutSample | null {
@@ -89,12 +93,13 @@ export function sampleOutdoor(meta: OutMeta, tex: Uint8Array, p: [number, number
   return null;
 }
 const byte = (tex: Uint8Array, t: number, c: number) => tex[t * 4 + c] / 255;
+void decL1;
 export function groundAt(R: OutRegion, tex: Uint8Array, i: number, j: number) {
   const t = colTexel(R, i, j); return R.gmin + ((tex[t * 4] * 256 + tex[t * 4 + 1]) / 65535) * R.grange;
 }
 export function flagsAt(R: OutRegion, tex: Uint8Array, i: number, j: number) { return tex[colTexel(R, i, j) * 4 + 2]; }
 /** the height of the roof's underside over a column above its ground (Infinity: open to the sky) */
-export function ceilAt(R: OutRegion, tex: Uint8Array, i: number, j: number) { const c = tex[colTexel(R, i, j) * 4 + 3]; return c === 255 ? Infinity : c * 0.025; }
+export function ceilAt(R: OutRegion, tex: Uint8Array, i: number, j: number) { const c = tex[colTexel(R, i, j) * 4 + 3]; return c === 255 ? Infinity : c * R.cstep; }
 /** the lookup inside one region; (fu, fv) the point's and (qu, qv) the lookup point's position in cell units */
 export function lookupRegion(meta: OutMeta, tex: Uint8Array, R: OutRegion, fu: number, fv: number, qu: number, qv: number, py: number, qy: number): OutSample {
   const W = R.W, H = R.H, cl = (x: number, n: number) => Math.min(n - 1, Math.max(0, x));
@@ -113,36 +118,41 @@ export function lookupRegion(meta: OutMeta, tex: Uint8Array, R: OutRegion, fu: n
     if (a === ci) return zEdgeAt(ci) ? 0 : 1;
     return (!xEdgeAt(cj) && !zEdgeAt(a)) || (!zEdgeAt(ci) && !xEdgeAt(b)) ? 1 : 0;
   };
-  const acc = { S: [0, 0, 0, 0], Uam: [0, 0, 0, 0], Upm: [0, 0, 0, 0], tr: 0, tb: 0, fb: 0, w: 0, g: 0, gw: 0 };
+  const acc = { S: [0, 0, 0, 0, 0, 0], Uam: [0, 0, 0, 0, 0, 0], Upm: [0, 0, 0, 0, 0, 0], tr: 0, tb: 0, fb: 0, w: 0, g: 0, gw: 0 };
   for (const [a, b] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
     const wb = (a ? tx : 1 - tx) * (b ? tz : 1 - tz) * reach(a, b); if (wb <= 0) continue;
     const i = a ? i1 : i0, j = b ? j1 : j0, g = groundAt(R, tex, i, j); acc.g += wb * g; acc.gw += wb;
     const hk = Math.min(Math.max((qy - g - R.y0) / R.dy, 0), R.L - 1), k0 = Math.min(Math.floor(hk), Math.max(0, R.L - 2)), k1 = Math.min(k0 + 1, R.L - 1), fk = hk - k0;
     for (const [k, wk] of [[k0, 1 - fk], [k1, fk]] as [number, number][]) {
       if (wk <= 0) continue;
-      const t3 = probeTexel(R, i, j, k, 3), val = byte(tex, t3, 3) * (qy - g < ceilAt(R, tex, i, j) ? 1 : 0), w = wb * wk * val; if (w <= 0) continue;
-      const dec = (t: number, A: number) => { const tt = probeTexel(R, i, j, k, t); return decL1(byte(tex, tt, 0), byte(tex, tt, 1), byte(tex, tt, 2), byte(tex, tt, 3), A); };
-      const s = dec(0, A_S), am = dec(1, A_U), pm = dec(2, A_U);
-      for (let c = 0; c < 4; c++) { acc.S[c] += w * s[c]; acc.Uam[c] += w * am[c]; acc.Upm[c] += w * pm[c]; }
-      acc.tr += w * byte(tex, t3, 0) * TINT_MAX; acc.tb += w * byte(tex, t3, 1) * TINT_MAX; acc.fb += w * byte(tex, t3, 2); acc.w += w;
+      const T = (t: number, c: number) => byte(tex, probeTexel(R, i, j, k, t), c), val = T(5, 1) * (qy - g < ceilAt(R, tex, i, j) ? 1 : 0), w = wb * wk * val; if (w <= 0) continue;
+      const sq = (x: number, A: number) => x * x * A;
+      const S = [T(0, 0), T(0, 1), T(0, 2), T(0, 3), T(1, 0), T(1, 1)].map(x => sq(x, A_S));
+      const am = [T(2, 0), T(2, 1), T(2, 2), T(2, 3), T(3, 0), T(3, 1)].map(x => sq(x, A_U)), pm = [T(4, 0), T(4, 1), T(4, 2), T(4, 3), T(3, 2), T(3, 3)].map(x => sq(x, A_U));
+      for (let c = 0; c < 6; c++) { acc.S[c] += w * S[c]; acc.Uam[c] += w * am[c]; acc.Upm[c] += w * pm[c]; }
+      acc.tr += w * T(1, 2) * TINT_MAX; acc.tb += w * T(1, 3) * TINT_MAX; acc.fb += w * T(5, 0); acc.w += w;
     }
   }
   const inv = acc.w > 1e-6 ? 1 / acc.w : 0, ground = acc.gw > 0 ? acc.g / acc.gw : 0, hy = py - ground;
   const ramp = (a: number, b: number, x: number) => (b - a > 1e-6 ? Math.min(1, Math.max(0, (x - a) / (b - a))) : x >= a ? 1 : 0);
   const eu = Math.min(fu, W - fu, fv, H - fv) * R.cell, we = R.edge > 0 ? Math.min(1, Math.max(0, eu / R.edge)) : 1;
   const wy = ramp(R.lo[0], R.lo[1], hy) * (1 - ramp(R.hi[0], R.hi[1], hy)), wv = ramp(OUT_VALID[0], OUT_VALID[1], acc.w);
-  const m = (x: number[]) => x.map(v => v * inv) as [number, number, number, number];
-  return { S: m(acc.S), Uam: m(acc.Uam), Upm: m(acc.Upm), tint: [acc.tr * inv, acc.tb * inv], fb: acc.fb * inv, w: we * wy * wv };
+  const m = (x: number[]) => x.map(v => v * inv);
+  return { S: m(acc.S), Uam: m(acc.Uam), Upm: m(acc.Upm), tint: [acc.tr * inv, acc.tb * inv], fb: acc.fb * inv, w: we * wy * wv, theta: R.theta };
 }
 /** the summed validity weight below which the field gives way (a point whose every neighbour probe is inside a solid) */
 export const OUT_VALID: [number, number] = [0.02, 0.1];
 /** the lookup point stands this far off the surface along its geometric normal (m): the probe on the surface's own side */
 export const OUT_BIAS = 0.35;
-/** irradiance (per unit S and U) for normal n from a sample: [sky part, sun part] luminance, with wPm the afternoon weight */
+/** a cube [+u, −u, +v, −v, +y, −y] read for world normal n in a region turned by theta */
+export function cubeAt(cube: number[], n: [number, number, number], theta: number): number {
+  const c = Math.cos(theta), s = Math.sin(theta), nu = n[0] * c - n[2] * s, nv = -n[0] * s - n[2] * c, ny = n[1];
+  return nu * nu * (nu >= 0 ? cube[0] : cube[1]) + nv * nv * (nv >= 0 ? cube[2] : cube[3]) + ny * ny * (ny >= 0 ? cube[4] : cube[5]);
+}
+/** irradiance (per unit S and U) for normal n from a sample: [sky part, sun part], with wPm the afternoon weight */
 export function outIrradiance(s: OutSample, n: [number, number, number], wPm: number): { sky: number; sun: number } {
-  const l1 = (v: number[]) => Math.max(0, v[0] + v[1] * n[0] + v[2] * n[1] + v[3] * n[2]);
   const U = s.Uam.map((v, i) => v * (1 - wPm) + s.Upm[i] * wPm);
-  return { sky: l1(s.S), sun: l1(U) };
+  return { sky: cubeAt(s.S, n, s.theta), sun: cubeAt(U, n, s.theta) };
 }
 /** the afternoon weight from the direction toward the sun (world): 0 with the sun east, 1 west, ½ on the meridian */
 export function afternoonWeight(dx: number, dz: number, am: [number, number] = [1, 0], pm: [number, number] = [-1, 0]): number {

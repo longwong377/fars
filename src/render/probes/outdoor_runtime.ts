@@ -2,7 +2,8 @@
 // textureLoad only (no sampler: the fragment stage's 16 are spoken for, B122), the regions as a uniform table; the lookup
 // is the CPU mirror's (outdoor.ts lookupRegion) in TSL: the region holding the point (first match, a loop), the 2 × 2
 // columns round the lookup point with the corners behind a wall left out (the town's cell-edge walls), each column's two
-// layers round the point's height above that column's ground, validity-weighted, the corners above a column's roof left out.
+// layers round the point's height above that column's ground, validity-weighted, the corners above a column's roof left out;
+// each probe's ambient cubes read for the normal in the region's axes.
 // Sampled through probeAmbient (runtime.ts): the hemisphere light's irradiance and the post composite's skylight.
 import * as THREE from 'three/webgpu';
 import { uniform, uniformArray, textureLoad, ivec2, int, vec2, vec3, vec4, float, mix, max, min, clamp, floor, smoothstep, step, dot, abs, Fn, Loop } from 'three/tsl';
@@ -21,9 +22,11 @@ const NROW = 6;
 
 export async function loadOutdoor(base = '/'): Promise<OutMeta | null> {
   try {
-    const [mj, bin] = await Promise.all([fetch(`${base}lightmaps/outdoor.json`), fetch(`${base}lightmaps/outdoor.bin`)]);
+    const [mj, bin] = await Promise.all([fetch(`${base}lightmaps/outdoor.json`), fetch(`${base}lightmaps/outdoor.lmz`)]);
     if (!mj.ok || !bin.ok) throw new Error(`HTTP ${mj.status}/${bin.status}`);
-    const meta = await mj.json(), buf = new Uint8Array(await bin.arrayBuffer());
+    const meta = await mj.json(); let buf = new Uint8Array(await bin.arrayBuffer());
+    // gzip as written by the bake (a server may already have inflated it: the magic decides)
+    if (buf[0] === 0x1f && buf[1] === 0x8b) buf = new Uint8Array(await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
     if (buf.byteLength !== meta.width * meta.height * 4) throw new Error(`outdoor field ${buf.byteLength} B, meta says ${meta.width}×${meta.height}`);
     setOutdoorField(meta, buf);
   } catch (e) { console.warn('[outdoor light] no outdoor field; the open sky and D-309b outdoors', e); META = null; TEX = null; }
@@ -40,7 +43,7 @@ export function setOutdoorField(meta: OutMeta | null, data: Uint8Array | null) {
     new THREE.Vector4(R.W, R.H, R.L, R.flags ? 1 : 0),
     new THREE.Vector4(R.y0, R.dy, R.gmin, R.grange),
     new THREE.Vector4(R.lo[0], R.lo[1], R.hi[0], R.hi[1]),
-    new THREE.Vector4(R.edge, R.probeBase, R.colBase, 0),
+    new THREE.Vector4(R.edge, R.probeBase, R.colBase, R.cstep),
   ]), 'vec4');
 }
 /** per frame: which half of the day's sun the bounce takes (the direction toward the sun, world) */
@@ -81,29 +84,35 @@ export function outdoorAmbient(p: any, n: any, S: any, U: any, hemi: any, direct
     const diag = max(float(1).sub(xE(cj)).mul(float(1).sub(zE(float(a)))), float(1).sub(zE(ci)).mul(float(1).sub(xE(float(b)))));
     return float(1).sub(sx).mul(float(1).sub(sz)).add(sx.mul(float(1).sub(sz)).mul(float(1).sub(xE(cj)))).add(float(1).sub(sx).mul(sz).mul(float(1).sub(zE(ci)))).add(sx.mul(sz).mul(diag));
   };
-  const accS = vec4(0).toVar(), accU = vec4(0).toVar(), accT = vec4(0).toVar(), accG = vec2(0).toVar();
-  const pm = outdoorPm, dec = (e: any, A: number) => { const a = e.x.mul(e.x).mul(A); return vec4(a, e.yzw.mul(2).sub(1).mul(a.mul(2))); };
+  // the normal in the region's axes, and the weights of a cube's faces for it (Σ n_a² · face(sign n_a))
+  const nu = n.x.mul(R0.z).sub(n.z.mul(R0.w)), nv = n.x.mul(R0.w).add(n.z.mul(R0.z)).negate(), ny = n.y;
+  const pu = step(0, nu), pv = step(0, nv), py = step(0, ny), u2 = nu.mul(nu), v2 = nv.mul(nv), y2 = ny.mul(ny);
+  const wH = vec4(u2.mul(pu), u2.mul(float(1).sub(pu)), v2.mul(pv), v2.mul(float(1).sub(pv))), wV = vec2(y2.mul(py), y2.mul(float(1).sub(py)));
+  const face = (h: any, v: any, A: number) => dot(h.mul(h), wH).add(dot(v.mul(v), wV)).mul(A); // stored as sqrt(E / A)
+  const acc = (vec4 as any)(0, 0, 0, 0).toVar(), accT = (vec4 as any)(0, 0, 0, 0).toVar(), accG = (vec2 as any)(0, 0).toVar();
+  const pm = outdoorPm;
   const corner = (a: number, b: number, c: any) => {
     const wb = (a ? tx : float(1).sub(tx)).mul(b ? tz : float(1).sub(tz)).mul(reach(a, b));
-    const g = R3.z.add(c.x.mul(255 * 256).add(c.y.mul(255)).div(65535).mul(R3.w)), ceil = mix(c.w.mul(255 * 0.025), float(1e4), step(0.999, c.w));
+    const g = R3.z.add(c.x.mul(255 * 256).add(c.y.mul(255)).div(65535).mul(R3.w)), ceil = mix(c.w.mul(255).mul(R5.w), float(1e4), step(0.999, c.w));
     accG.addAssign((vec2 as any)(wb.mul(g), wb));
     const hq = q.y.sub(g), hk = clamp(hq.sub(R3.x).div(R3.y), 0, L.sub(1)), k0 = min(floor(hk), L.sub(2)), fk = hk.sub(k0), above = step(ceil, hq);
     for (const [kk, wk] of [[k0, float(1).sub(fk)], [k0.add(1), fk]] as [any, any][]) {
       const pb = R5.y.add(kk.mul(H).add(j0.add(b)).mul(W).add(i0.add(a)).mul(OUT_TEXELS));
-      const t3 = load(pb.add(3)), w = wb.mul(wk).mul(t3.w).mul(float(1).sub(above));
-      accS.addAssign(dec(load(pb), A_S).mul(w));
-      if (!directSky) accU.addAssign(mix(dec(load(pb.add(1)), A_U), dec(load(pb.add(2)), A_U), pm).mul(w));
-      accT.addAssign(vec4(t3.x.mul(TINT_MAX), t3.y.mul(TINT_MAX), t3.z, 1).mul(w));
+      const t0 = load(pb), t1 = load(pb.add(1)), t5 = load(pb.add(5)), w = wb.mul(wk).mul(t5.y).mul(float(1).sub(above));
+      const eS = face(t0, t1.xy, A_S);
+      let eU: any = float(0);
+      if (!directSky) { const t2 = load(pb.add(2)), t3 = load(pb.add(3)), t4 = load(pb.add(4)); eU = mix(face(t2, t3.xy, A_U), face(t4, t3.zw, A_U), pm); }
+      acc.addAssign(vec4(eS, eU, t5.x, 1).mul(w));
+      accT.addAssign(vec4(t1.z.mul(TINT_MAX), t1.w.mul(TINT_MAX), 0, 0).mul(w));
     }
   };
   corner(0, 0, c00); corner(1, 0, c10); corner(0, 1, c01); corner(1, 1, c11);
-  const wsum = accT.w, inv = float(1).div(max(wsum, 1e-6)), Sv = accS.mul(inv), Uv = accU.mul(inv), tr = accT.x.mul(inv), tb = accT.y.mul(inv), fb = clamp(accT.z.mul(inv), 0, 1);
+  const wsum = acc.w, inv = float(1).div(max(wsum, 1e-6)), eS = acc.x.mul(inv), eU = acc.y.mul(inv), tr = accT.x.mul(inv), tb = accT.y.mul(inv), fb = clamp(acc.z.mul(inv), 0, 1);
   const ground = accG.x.div(max(accG.y, 1e-6)), hy = p.y.sub(ground);
   const ramp = (a: any, b: any, x: any) => clamp(x.sub(a).div(max(b.sub(a), 1e-6)), 0, 1);
   const wy = ramp(R4.x, R4.y, hy).mul(float(1).sub(ramp(R4.z, R4.w, hy)));
   const eu = min(min(fp.x, W.sub(fp.x)), min(fp.y, H.sub(fp.y))).mul(R1.w), we = clamp(eu.div(max(R5.x, 1e-3)), 0, 1);
   const w = inside.mul(wy).mul(we).mul(smoothstep(OUT_VALID[0], OUT_VALID[1], wsum)).mul(outdoorOn);
-  const eS = max(Sv.x.add(dot(Sv.yzw, n)), 0), eU = max(Uv.x.add(dot(Uv.yzw, n)), 0);
   const tint = vec3(tr, max(float(1).sub(tr.mul(0.2126)).sub(tb.mul(0.0722)).div(0.7152), 0), tb);
   const E = directSky ? S.mul(eS).mul(float(1).sub(fb)) : S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
   return { E: mix(hemi, E, w), w };

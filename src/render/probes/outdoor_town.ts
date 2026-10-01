@@ -54,6 +54,6 @@ export function siteLight(s: Site, H: (e: number, n: number) => number): SiteLig
   }
   let gmin = Infinity, gmax = -Infinity; for (const g of ground) { gmin = Math.min(gmin, g); gmax = Math.max(gmax, g); }
   const R: OutRegion = { id: s.id, kind: 'town', c: [s.frame.c[0], s.frame.c[1]], theta: th, u0: s.u0, v0: s.v0, cell: 1, W: s.W, H: s.H,
-    L: TOWN_LAYERS.L, y0: TOWN_LAYERS.y0, dy: TOWN_LAYERS.dy, gmin: gmin - 0.5, grange: gmax - gmin + 1, lo: [-0.9, -0.4], hi: [3.2, 4.6], edge: 2, probeBase: 0, colBase: 0, flags: true };
+    L: TOWN_LAYERS.L, y0: TOWN_LAYERS.y0, dy: TOWN_LAYERS.dy, gmin: gmin - 0.5, grange: gmax - gmin + 1, lo: [-0.9, -0.4], hi: [3.2, 4.6], edge: 2, probeBase: 0, colBase: 0, flags: true, cstep: 0.025 };
   return { R, parts, ground, flags, ceil };
 }
