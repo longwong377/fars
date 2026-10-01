@@ -114,4 +114,6 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-365 | s14 | monuments: colossi, capitals, column orders (Q-1190..Q-1199, B360..B369) | agent worktree, branch s14-monuments | in flight |
 | D-366 | s15 | surfaces: grime, wear and large-scale variation (Q-1200..Q-1209, B370..B379) | agent worktree, branch s14-surfaces | in flight |
 | D-367 | s15 | fill: courts, lanes and rooms full (Q-1210..Q-1219, B380..B389) | agent worktree, branch s14-fill | in flight |
-| D-368..D-399 | s14 | reserved for waves 2-4 of the week plan (Q-1220..Q-1399, B390..B499) | the lead | reserved |
+| D-368..D-369 | s15 | reserved for the lead (Q-1220..Q-1229, B390..B399) | the lead | reserved |
+| D-370..D-379 | s15 | the cloud depth session (Q-1230..Q-1259, B400..B429) | cloud, branch cloud-s15-depth | reserved |
+| D-380..D-399 | s15 | reserved for Vagon waves (Q-1260..Q-1399, B430..B499) | the lead | reserved |
