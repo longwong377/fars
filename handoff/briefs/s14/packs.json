@@ -733,5 +733,79 @@
    "tachara-s-stair",
    "harem-portico"
   ]
+ },
+ {
+  "name": "monuments",
+  "title": "The Gate colossi, protome capitals and column orders read as carved Achaemenid stone",
+  "hours": 8,
+  "needs": "blender",
+  "ud": [
+   "UD-19",
+   "UD-20",
+   "UD-01"
+  ],
+  "thresholds": [
+   "T-R12"
+  ],
+  "d": 365,
+  "q": [
+   1190,
+   1199
+  ],
+  "b": [
+   360,
+   369
+  ],
+  "goal": "Standing under the Gate of All Nations or in the Apadana, the colossi and the bull, lion and griffin capitals look like the carved originals in the photographs: correct heads, horns, curled beards, feather and hair carving, the double-bodied protome mass, and each column order its own member; no toys.",
+  "owns": [
+   "src/arch/sculpt.ts",
+   "src/arch/sculpt_models.ts",
+   "src/arch/column_models.ts",
+   "src/arch/orders.ts",
+   "src/render/monuments.ts",
+   "tools/blender/monuments.mjs",
+   "tools/blender/mon_lib.py",
+   "tools/blender/columns.json",
+   "tools/blender/bake_cols.py",
+   "tools/blender/carving.json",
+   "new tools/blender/scans/**",
+   "src/data/sculpture.json"
+  ],
+  "reads": [
+   "research/BLENDER_PLAN.md rows 1, 2 and §8",
+   "references/ and C:/Users/Administrator/fars-assets/photos/columns_capitals, gate_of_all_nations",
+   "REVIEWS/review_carving_s11.md",
+   "DECISIONS D-312, D-328, D-361 (grep)"
+  ],
+  "entry": [
+   "APPROACH 1 (try first, 1 h max): licensed 3D scans. Search Sketchfab (CC0/CC-BY/CC-BY-NC), Smithsonian 3D, Scan the World, museum open-access (the Oriental Institute Chicago bull capital and protome, the British Museum, the Louvre lion/bull capital, the Met, Persepolis site scans) for photogrammetry of Achaemenid bull/lion/griffin protome capitals and the Gate lamassu/bulls. A usable scan is decimated, retopologised and baked in Blender, scaled to SITE_SPEC, recorded in ASSET_LEDGER.md with its licence (CLAUDE.md §12: personal non-commercial use allows CC-BY-NC).",
+   "APPROACH 2: re-sculpt in Blender from the photographs: multires sculpt with displacement baked from the photo-derived heightfields (the relief pipeline already turns photographs into heightfields, D-320), the protome as a double-forepart with the correct head, horns and harness.",
+   "B118: capitals 2/5, colossi 1/5; the previous agent left a rounded head, ball muzzle and thin antelope horns.",
+   "columns2 (folded in): one member per order (B167), 2-3 shaft tile variants, carving in the silhouette near the eye (B166).",
+   "build.mjs --verify ran out of memory in the protome BVH: build monument assets one at a time (one Blender process)."
+  ],
+  "ids": [
+   "D-312",
+   "D-320",
+   "D-328",
+   "D-361",
+   "B118",
+   "B166",
+   "B167",
+   "B320"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs monuments",
+   "\"C:/Program Files/Blender Foundation/Blender 5.0/blender.exe\" -b --factory-startup --python <script> (one process at a time; LONG=1 cpu_slot or gpu_slot for Cycles bakes)",
+   "iterate on tools/dev/terrace_probe.html and tools/blender/probe/*"
+  ],
+  "done": "Side by side with the reference photographs at the same angle (tools/blender/probe renders committed under REVIEWS/s14/monuments/), a colossus and each capital type read as the carved originals at 1-3 m; build.mjs --verify reproduces every monument asset; frame and triangle budgets within D-312's.",
+  "train": [
+   "gate-w-day",
+   "gate-w-lens",
+   "apadana-nw-court",
+   "apadana-hall-axis",
+   "apadana-enter-portico"
+  ]
  }
 ]
