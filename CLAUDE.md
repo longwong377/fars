@@ -93,7 +93,7 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
 - **B7 is lifted: texture and asset libraries are reachable.** Surfaces use CC0 scans (Poly Haven, ambientCG) over the
   procedural base (src/render/scans.ts; the measured tint and layout stay, the scan adds the grain); every asset in
   ASSET_LEDGER.md. The user's direction (session 11): every inch looking real, and every limit of the old machine revisited.
-- Agents: briefs carry handoff/agent_template.md's fixed clauses and its machine section.
+- Agents: short briefs (UD-30): goal, owned files, done line, the box rules.
 - **Disk:** C: is 125 GB since session 13 (75 GB and down to 3.5 GB free in session 11). Session 13: T: was wiped; the models were restored from branch models-archive to C:/Users/Administrator/models-archive (checksums verified; 4 Qwen2.5-1.5B files re-fetched from Hugging Face) and linked as public/models/{mlc-ai,onnx-community,mlc-libs}. Older note: (downloads, worktrees, models). Large re-downloadable files
   (language models, browser caches) live on T: ("Temporary Storage", ~210 GB, may be wiped when the machine stops) behind
   a junction at their old path; anything that cannot be re-fetched stays on C: or goes to git. Check free space before
@@ -129,10 +129,7 @@ chosen views: the coverage harness (`tests/e2e/coverage.spec.ts`, `tools/dev/cov
 sampled over every walkable area and reports, per view and per area, the share of pixels drawn by PLACEHOLDER-flagged
 objects, flat/blank surfaces, and the rubric reviewer's scores on a sample. The backlog is ordered by the areas that fail
 most; a phase or area is done only when its coverage passes. Placeholders (town houses, procedural reliefs, stand-in
-people at distance) are the first targets. Since MASTER_PLAN rev 2: samples are seeded from the commit hash (never chosen),
-areas come from the physically walkable envelope (`data/areas.json`, not the nav grid), evidence goes STALE after a global
-change until canaries clear it, reviewers are briefed from `handoff/review_template.md` and calibrated on an anchor set,
-agents from `handoff/agent_template.md`, and every session ships a change a player would notice plus three verified surprises.
+people at distance) are the first targets. Judge whole views at the player's lens against the AAA bar (UD-29); every session ships a change a player would notice.
 
 ## Guards and process (UD-30, session 15: "do whatever you think is best" after the critique of too much process)
 - `npm run guards` runs before every commit (`.githooks/pre-commit`) and keeps only what protects the user: no direction in
