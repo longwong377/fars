@@ -8886,3 +8886,39 @@ only seed 1 was run; the ask's 'speaker' and kids need the Population (AsksWorld
 
 ## D-353 — The black render was one giant first submit, not one object class (session 13, gpuhang)
 Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the world, every shot black). A bisect page load (tests/e2e/dbg_bisect.spec.ts: every top-level group hidden, then added cumulatively, two frames each, high, 1920x1080) rendered all 44 groups with no loss in 33 min (first frame per group: architecture 148 s, fire 447 s, settlement 97 s, weather-vfx 144 s, terrain 73 s; warm frames 0.3-0.5 s) and ended on a real full-world frame (shots/bisect-final.png, dawn-stair-top). So no single pass is over ~2 s once its pipelines are compiled; the hang is the first frames compiling ~1000 pipelines in one submit. Fix: `__parsa.warmUp()` (main.ts) shows the groups one at a time before the first shot; moments.spec calls it (NOWARM=1 skips). Not yet re-run through moments.spec itself; the 'ytop' warning and the stale impostor atlas (CPU bake fallback, ~12 s) were present in the good run too, so neither is the cause. A first reload of the page mid-run came from Vite re-optimising deps in a fresh worktree: use NOHMR=1.
+
+## D-358 (s14, simtalk): talking to people reaches the real simulation (UD-18, UD-21, UD-24, UD-25, UD-26; T-E9, T-E10, T-F9; B234)
+**Grounding from the sim, none seeded.** converse/life.ts lifeRecord takes the running simulation (a SimView: the economy at the
+day, relations when the world runs them, asks and rumours when on) and reads a person's means and standing from it through the
+new speech/grounds.ts standing(): the house's stores (barley in days of bread and BAR, silver in sheqel, goods, fuel) and the
+market's price of a BAR; its debts and debtors (Economy debts, named by the other house's head, amount, due day); its economy
+events of the last 60 days (a poor harvest, a loan, a theft, a suit, kin's help, the stranger's own deeds), newest first; its
+needs (Economy.needsOf >= 0.45) and open asks (asks.ts, the stranger voice: willing and offer, or the shame of asking);
+spouse, betrothal, courting, widowhood, divorce and scandal news (relations/world.ts, only when opts.bonds: never built by a
+conversation, B228); what the house has heard (RumourNet.knownBy: the version, the tie, how sure); its trust in the stranger
+(TrustLedger.trustOf(hh, 'player')). The D-296 seeded debts (45 % of adults "owe a jar of oil...") are removed: without the
+sim a record has no debts. State facts are given only when the economy is at the record's day (a test jumping back gets the
+events only). The short brief carries them in "Lately:" (the stranger's dealings first) and a new "Means:" line (prompt.ts
+drops it before the friends when over 450 tokens); ground.ts groundFact answers money, debt, price, marriage, want and hearsay
+questions from them. Names are "the house of X" (bake.ts's known names now include the new lines: one-line hook).
+**B234 closed:** talkTurn gates on TrustLedger.willTalk(hh, 'player'): a house below 0.3 is told "you do not trust this
+stranger", answers short and declines every ask (talk.ts decline, reason 'does not trust the stranger').
+**Speech enters the economy.** intent.ts econAskOf (a grammar read BEFORE requestOf): buy, sell, haggle (an offered price in
+sheqel), gift (silver, barley, fuel, goods), lend, petition (speak for the house before the judge), host (be a guest), ask_help
+(ask for barley for the road), offer_help (work for the house). speech/deeds.ts considerDeed decides from the house's own
+state (no spare, no need of a loan, too little barley for itself, mourning, no matter before the judge, trust below the gate;
+a haggle below the seller's floor is refused with the counter-price) and actDeed enters it: deals through haggle.ts haggle()
+with 'player' as buyer or seller; gifts, loans, work and petitions as the economy's own intents; hospitality and help to the
+stranger out of the house's barley as events 'hosted_stranger' / 'helped_stranger' (unknown kinds fall to applyIntent's
+generic branch: an event, no state change there; the stores are lowered here, and the snapshot carries them). Each names
+the economy event behind the want it answers (the house's cause.food/fuel/cash/help, the suit/arrears/default before the court,
+or the stranger's earlier deed at that house for hospitality); with none it enters no chain, and the measure says so. A
+talk deed giving bread, barley or flour (talk.ts give/trade) now lowers the house's barley (talkGift). The stranger's purse
+(C: 4 sheqel, a BAR of barley, one lot of goods) and the deal rows are saved with the sim (sim.ts: `deals`, a two-line hook).
+News of a deed is injected into the rumour net when asks run.
+**Not done / limits:** the deeds lay no walked step in any day plan (B235 stands: nobody is seen weighing barley); the model's
+tag line was not extended (the grammar reads the stranger's words; a model's [host]/[petition] tag is not read); asks stay off
+by default (SimOpts.asks): turning them on changes the economy (the rumour sink gives real gifts) and so every pinned economy
+number, and costs ~0.1 s a simulated day: left to the lead. economy/chains.ts indexes the filtered event list by id, which is
+wrong in a loaded economy (gaps and stubs): the test measures chains over the full graph with its own by-id copy of the rule.
+Measured: tests/simtalk.test.ts, REVIEWS/evidence/s14-simtalk/*.json (numbers in the report). Tier C throughout.

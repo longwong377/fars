@@ -113,3 +113,54 @@ export function looseRequest(said: string): Intent | null {
 }
 /** a tag the stranger's words give no cue for is not an ask (the model's, not the stranger's) */
 export function tagAsked(tag: Intent | null, said: string): boolean { return !!tag && (DEEDS as string[]).includes(tag.kind) && cues(said).includes(tag.kind as Deed); }
+
+// D-358 (UD-25, UD-26; T-F9): what the stranger's words offer or ask that is the ECONOMY's business, not a walk: to buy, sell
+// or haggle, to give or lend, to speak for a house before the judge, to be a guest, to ask for help or offer it. Read by a
+// small grammar of the stranger's words BEFORE requestOf (whose 'give' would read "let me give you" as an ask); the
+// simulation decides it (speech/deeds.ts: the house's stores, needs, trust and pride) and enters it as economy intents with
+// the player as a party. Out of world: the translation layer's English.
+export type EconDeed = 'buy' | 'sell' | 'haggle' | 'gift' | 'lend' | 'petition' | 'host' | 'ask_help' | 'offer_help';
+export type EconGood = 'grain' | 'fuel' | 'goods' | 'silver' | 'labour';
+export interface EconAsk { kind: EconDeed; good?: EconGood; /** kg of barley, loads of fuel, lots of goods, sheqel of silver */ qty?: number; /** sheqel offered (haggle) */ price?: number; words: string }
+const GOODS: [RegExp, EconGood][] = [[/\b(barley|grain|wheat|flour|bread|food)\b/i, 'grain'], [/\b(silver|sheqels?|shekels?|money|coin)\b/i, 'silver'], [/\b(fuel|firewood|wood|dung|kindling)\b/i, 'fuel'],
+  [/\b(cloth|wool|oil|pots?|jars?|goods|wares|sandals?|baskets?|cheese|linen|rope|mats?)\b/i, 'goods'], [/\b(work|labou?r|hands?)\b/i, 'labour']];
+const NUM: Record<string, number> = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, ten: 10, half: 0.5, third: 1 / 3, quarter: 0.25, tenth: 0.1 };
+/** "half a sheqel", "a third of a sheqel", "two sheqels", "3 sheqel" */
+export function silverOf(s: string): number | undefined {
+  const m = /\b(\d+(?:\.\d+)?|a|an|one|two|three|four|five|six|ten|half|a third|a quarter|a tenth)\s+(?:of\s+)?(?:a\s+)?(?:sheqels?|shekels?)\b/i.exec(s); if (!m) return undefined;
+  const w = m[1].toLowerCase().replace(/^a /, ''); return /^\d/.test(w) ? +w : NUM[w];
+}
+/** an amount of a good in the economy's units (a BAR of barley is ten qa, ~5.5 kg; C), from the words or a default */
+function qtyOf(s: string, good: EconGood): number {
+  const n = /\b(\d+|a|an|one|two|three|four|five|six|ten)\s+(bar|measures?|sacks?|baskets?|loads?|jars?|days?|lots?)\b/i.exec(s); const k = n ? (/^\d/.test(n[1]) ? +n[1] : NUM[n[1].toLowerCase()] ?? 1) : 1;
+  if (good === 'grain') return 5.5 * k * (n && /sack/i.test(n[2]) ? 5 : 1); if (good === 'fuel') return 4 * k; if (good === 'labour') return Math.min(5, k * (n && /day/i.test(n[2]) ? 1 : 2));
+  if (good === 'silver') return silverOf(s) ?? 0.5; return k;
+}
+const goodOf = (s: string, dflt: EconGood = 'grain'): EconGood => GOODS.find(([re]) => re.test(s))?.[1] ?? dflt;
+const E_R: [EconDeed, RegExp][] = [
+  ['petition', /\b(speak for (?:you|your)|plead for (?:you|your)|petition (?:the )?(?:judge|court|officials?)|go before the (?:judge|court) for|stand (?:witness|surety) for|put in a word (?:for|with))\b/i],
+  ['lend', /\b(?:i (?:can|could|will|shall|would)? ?lend (?:you|your)|let me lend|i'll lend|take (?:this|it) as a loan|do you need a loan|i (?:can|will) loan)\b/i],
+  ['haggle', /\b(?:i(?:'ll| will| can| could)? (?:pay|offer)|would you take|will you take|how about|i(?:'ll| will) give you)\b[^?.!]*\b(?:sheqels?|shekels?)\b/i],
+  ['sell', /\b(?:will|would|do) you (?:want to )?buy\b|\bi (?:want|wish|have|would like) to sell\b|\bi(?:'ll| will) sell you\b/i],
+  ['buy', /\b(?:i (?:want|wish|would like|'d like|need) to buy|can i buy|could i buy|may i buy|will you sell me|would you sell me|sell me|what would you take for|how much (?:for|is|are|do you want for))\b/i],
+  ['gift', /\b(?:let me give you|i (?:want to|would like to|will|'ll|shall) give (?:you|your (?:house|family|children))|take this|accept this|a gift for (?:you|your)|this is for your (?:house|family|children))\b/i],
+  ['host', /\b(?:(?:may|can|could) i (?:eat|dine|sup|stay|sleep|lodge|share (?:your|a) meal|have (?:a |my )?(?:meal|supper|bed))|a bed for the night|shelter for the night|a place to sleep|be your guest|eat with (?:you|your family))\b/i],
+  ['offer_help', /\b(?:can i help|let me help|may i help|i (?:can|could|will) (?:help|work for|work with)|i'll help|i will work|do you need (?:help|a hand|hands))\b/i],
+  ['ask_help', /\b(?:i have nothing|i have no (?:money|silver|food|bread)|i am (?:poor|starving|destitute|penniless)|help me,? (?:i|please)|i need (?:food|silver|help) for the road|have pity)\b/i],
+];
+/** the economy's business in the stranger's words (null: none) */
+export function econAskOf(said: string): EconAsk | null {
+  const s = said.trim().replace(/[’]/g, "'");
+  for (const [kind, re] of E_R) { if (!re.test(s)) continue;
+    switch (kind) {
+      case 'haggle': { const good = goodOf(s.replace(/\b(sheqels?|shekels?|silver)\b/gi, ''), 'grain'); return { kind, good, qty: qtyOf(s, good), price: silverOf(s), words: s }; }
+      case 'buy': case 'sell': { const good = goodOf(s, 'grain'); return { kind, good: good === 'silver' ? 'grain' : good, qty: qtyOf(s, good === 'silver' ? 'grain' : good), words: s }; }
+      case 'gift': { const good = goodOf(s, 'silver'); return { kind, good, qty: qtyOf(s, good), words: s }; }
+      case 'lend': return { kind, good: 'silver', qty: silverOf(s) ?? 1, words: s };
+      case 'offer_help': return { kind, good: 'labour', qty: qtyOf(s, 'labour'), words: s };
+      case 'ask_help': return { kind, good: 'grain', qty: 1.1, words: s };
+      default: return { kind, words: s };
+    }
+  }
+  return null;
+}

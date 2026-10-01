@@ -16,12 +16,20 @@ const kinOf = (L: LifeRecord, n = 2) => L.household.slice(0, n).map(k => /^kins|
 /** the one life fact for the stranger's words (a sentence to the person, second person) */
 export function groundFact(L: LifeRecord, said: string): string {
   const s = said.toLowerCase(); const kin = kinOf(L); const job = cut(L.job, 10);
+  // D-358: the house's means, debts, wants, marriage and what it has heard come from the running simulation (life.ts standing)
+  const sim = (xs: string[], n = 2) => xs.slice(0, n).map(x => cut(x, 16)).join('; ');
+  const mean = L.means ?? [], debts = L.debts ?? [], needs = L.needs ?? [], bonds = L.bonds ?? [], heard = L.rumours ?? [], dealt = L.dealings ?? [], met = L.stranger ?? [];
   const pick: [RegExp, () => string][] = [
     [/\b(who are you|your name|yourself|how old|where are you from|where do you come from)\b/, () => `you are ${L.name}, ${L.age}, ${L.origin}${kin ? `; ${kin} live${L.household.length > 1 ? '' : 's'} with you` : ''}`],
+    [/\b(owe|owed|debts?|loans?|lend|borrow\w*|silver|money|prices?|costs?|buy|sell|dear|cheap|market|afford|stores?|rich|poor|sheqel|how much)\b/, () => mean.length || debts.length
+      ? sim([...debts.slice(0, 1), ...(/\b(price|cost|buy|sell|dear|cheap|market|how much)/.test(s) ? mean.slice(1, 2) : []), ...mean.slice(0, 1)], 3) : `your work: ${job}; right now: ${now(L)}`],
+    [/\b(marr\w*|betroth\w*|bride|wedding|courting|sweetheart|lovers?)\b/, () => bonds.length ? sim(bonds) : kin ? `in your house: ${kinOf(L, 3)}` : 'you live with your work group'],
+    [/\b(heard|rumou?rs?|gossip|whisper\w*|people say|they say)\b/, () => heard.length ? sim(heard, 1) : dealt.length ? sim(dealt, 1) : `right now: ${now(L)}`],
+    [/\b(need|needs|trouble|worr\w*|lack|short of|struggl\w*|can i help|help you)\b/, () => needs.length ? sim([...needs.slice(0, 1), ...debts.slice(0, 1)]) : mean.length ? `your house is getting by: ${cut(mean[0], 16)}` : `right now: ${now(L)}`],
     [/\b(family|wife|husband|children|child|son|daughter|mother|father|house|live|home|sick|ill)\b/, () => kin ? `in your house: ${kinOf(L, 3)}${L.year.find(y => /sick|died|born|married/.test(y)) ? `; ${L.year.find(y => /sick|died|born|married/.test(y))}` : ''}` : `you live with your work group; your work: ${job}`],
     [/\b(work|job|paid|pay|hard|labou?r|trade|craft)\b/, () => `your work: ${job}${L.group ? ` (${cut(L.group, 6)})` : ''}; right now: ${now(L)}`],
     [/\b(doing|today|eat|eaten|evening|tonight|morning|now|later|busy)\b/, () => `right now: ${now(L)}${L.today.next ? `; after this: ${cut(L.today.next, 10)}` : ''}`],
-    [/\b(news|happened|harvest|quarrel|lately|quarter|year)\b/, () => [...L.year.slice(0, 1), ...L.quarrels.slice(-1), ...L.today.events.slice(0, 1)].filter(Boolean).map(x => cut(x, 14)).join('; ') || `right now: ${now(L)}`],
+    [/\b(news|happened|harvest|quarrel|lately|quarter|year)\b/, () => [...met.slice(0, 1), ...L.year.slice(0, 1), ...dealt.filter(x => !met.includes(x)).slice(0, 1), ...L.quarrels.slice(-1), ...L.today.events.slice(0, 1)].filter(Boolean).slice(0, 3).map(x => cut(x, 14)).join('; ') || `right now: ${now(L)}`],
     [/\b(terrace|water|well|villages?|where|far|place|river|town)\b/, () => `you live in ${cut(L.home.replace(/ \(a household of.*\)$/, ''), 14)}; right now: ${now(L)}`],
     [/\b(gods?|pray|king|festival|xerxes|offering)\b/, () => `${L.speech.find(x => /^oath/.test(x))?.replace(/^oath: /, 'you swear ') ?? 'you swear by the gods'}; ${kin ? `${kin} of your house` : `your work: ${job}`}`],
   ];

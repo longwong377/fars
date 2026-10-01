@@ -11,6 +11,7 @@ import { MONTHS, dateOf, seasonOf } from '../calendar';
 import type { EventCalendar } from '../calendar';
 import { HOME_LANG } from '../exchanges';
 import { Rng } from '../../core/rng';
+import { standing, type SimView } from '../speech/grounds';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
 export interface LifeRecord {
@@ -21,8 +22,13 @@ export interface LifeRecord {
   household: Kin[]; kinHouses: string[]; friends: { name: string; how: string; feeling: string }[];
   /** the year so far, in order: what happened to this person and their house (sim facts) */
   year: string[];
-  /** quarrels and small obligations (disputes: sim facts; debts: seeded, C) */
+  /** quarrels (the calendar's disputes) and debts owed and owing (the economy's: D-358; never seeded) */
   quarrels: string[]; debts: string[];
+  /** D-358: the house's means (stores, the market's price), wants (needs, open asks), marriage and scandal (relations), what it
+   *  has heard (rumours), its dealings with the stranger and its trust in him: all read from the running simulation (speech/
+   *  grounds.ts); empty when the record is made without the simulation (a lab page) */
+  means: string[]; needs: string[]; bonds: string[]; rumours: string[]; stranger: string[]; trust: number; willTalk: boolean;
+  asks: { id: number; kind: string; good: string; amount: number; unit: string; willing: boolean; offers: string }[]; dealings: string[];
   temperament: string; speech: string[];
   /** today: the date as they would say it, the season and weather, what they are doing now and next, what happened earlier */
   today: { date: string; season: string; weather: string; now: string; place: string; next: string | null; earlier: string[]; events: string[] };
@@ -122,8 +128,10 @@ const OATHS: Record<string, string[]> = {
   Lydian: ['by the gods'], Carian: ['by the gods'], Lycian: ['by the gods'], Bactrian: ['by the gods'], Sogdian: ['by the gods'], Thracian: ['by the gods'], Cappadocian: ['by the gods'],
 };
 
-/** the full record of person `pid` on day `day` at `hour` (the calendar's days up to `day` are computed on demand) */
-export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day: number, hour: number): LifeRecord {
+/** the full record of person `pid` on day `day` at `hour` (the calendar's days up to `day` are computed on demand); `world`:
+ *  the running simulation (D-358: means, debts, wants, bonds, rumours, trust). Without it the record has no debts at all:
+ *  nothing of a person's means is invented */
+export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day: number, hour: number, world?: SimView | null): LifeRecord {
   const p = pop.persons[pid]; const r = new Rng((pop.seed * 7919 + pid) >>> 0, 'converse.life');
   const name = spokenName(pop, pid) ?? `(no name recorded: ${p.sex === 'm' ? 'he' : 'she'} gives ${p.sex === 'm' ? 'his' : 'her'} father’s house)`;
   const age = pop.ageOn(pid, day); const hh = pop.home(pid, day); const H = pop.households[hh];
@@ -155,11 +163,8 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   const mourn = pop.mourning(pid, day); if (mourn) year.push(`the house is in mourning (a death ${mourn === 1 ? 'yesterday' : `${mourn} days ago`})`);
   const hear = pop.hearing(pid, day); if (hear) year.push(`must go before an official today over the quarrel with ${spokenName(pop, hear.other)} ${hear.why}`);
   if (p.group >= 0) { const sh = cal.shortfalls.filter(s => s.group === p.group && s.day <= day && s.day > day - 90); if (sh.length) year.push(`the group’s rations came short ${when(sh[sh.length - 1].day)}${sh[sh.length - 1].paidSilver ? ' and part was paid in silver' : ''}`); }
-  // small obligations (seeded, C: loans in kind between neighbours and kin are the ordinary texture of such a town)
-  const debts: string[] = []; const lenders = [...p.ties, ...household.map(k => k.pid)].filter(o => pop.persons[o].age >= 16 && pop.persons[o].hh !== hh && !!spokenName(pop, o));
-  if (age >= 16 && lenders.length && r.next() < 0.45) { const o = lenders[Math.floor(r.next() * lenders.length)];
-    const what = p.job === 'farmer' || p.job === 'gardener' ? ['seed barley for the sowing', 'the loan of an ox for two days of ploughing', 'a jar of sesame oil'] : p.job === 'builder' ? ['a borrowed chisel, not yet given back', 'three days of barley ration'] : ['a measure of barley flour', 'a jar of beer from the last festival', 'a length of wool yarn', 'a goat kid promised at lambing'];
-    const owes = r.next() < 0.6; debts.push(`${owes ? 'owes' : 'is owed'} ${what[Math.floor(r.next() * what.length)]} ${owes ? 'to' : 'by'} ${spokenName(pop, o)}`); }
+  // D-358: the house's means and obligations, from the running simulation (the seeded debts of D-296 are gone: B234's pack)
+  const S = world ? standing(world, pid, day) : null; const debts = S?.debts ?? [];
   const [temper, habit] = TEMPER[Math.min(TEMPER.length - 1, Math.floor(p.trait * TEMPER.length))];
   const oaths = OATHS[p.origin] ?? ['by the gods'];
   const speech = [habit, `oath: “${oaths[Math.floor(r.next() * oaths.length)]}”`, age < 13 ? 'speaks like a child: short, plain, about play, family and food' : age > 55 ? 'speaks slowly, remembers older days under the king’s father' : r.next() < 0.5 ? 'plain speech of the town' : 'plain speech, some words of the work',
@@ -181,6 +186,7 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? pop.groups[p.group].label.replace(/\s*\(\d+\)/, '') : null,
     rank: p.job === 'guard' && p.rank === 1 ? 'leader of a file of ten' : p.rank > 1 ? 'a leader of the group' : null,
     home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${all.length + 1} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, quarrels, debts, temperament: temper, speech,
+    means: S?.means ?? [], needs: S?.needs ?? [], bonds: S?.bonds ?? [], rumours: S?.rumours ?? [], stranger: S?.stranger ?? [], trust: S?.trust ?? 0.5, willTalk: S?.willTalk ?? true, asks: S?.asks ?? [], dealings: S?.events ?? [],
     today: { date: `day ${dt.dom} of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), year 19 of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
     knows, tier: 'C',
   };
@@ -214,7 +220,8 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     `Work: ${short(L.job, 16)}${L.rank ? `, ${L.rank}` : ''}. Home: ${L.home.replace(/ \(a household of.*\)$/, '')}.`,
     `In your house: ${kin}.`,
     L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
-    [...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].length ? `Lately: ${[...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].join('; ')}.` : '',
+    lately(L).length ? `Lately: ${lately(L).join('; ')}.` : '',
+    L.means.length ? `Means: ${L.means.join('; ')}.` : '',
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
     `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${L.today.now.replace(/^[a-z ]+: /, '')}${L.today.next ? `; after this: ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
     ev.length ? `News today: ${ev.join('; ')}.` : '',
@@ -224,6 +231,11 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
   return lines.filter(Boolean).join('\n').replace(/\*(?=\p{Lu})/gu, '');
 }
 
+/** what has happened lately, most telling first: the stranger's own dealings with the house, the year's news, the house's
+ *  economy (a loan, a theft, a suit), the debts, a quarrel, a want, a whisper (D-358: each from the simulation) */
+function lately(L: LifeRecord): string[] {
+  return [...L.stranger.slice(0, 1), ...L.year.slice(0, 2), ...L.dealings.filter(x => !L.stranger.includes(x)).slice(0, 1), ...L.debts.slice(0, 2), ...L.quarrels.slice(-1), ...L.needs.slice(0, 1), ...L.bonds.filter(b => !/^married/.test(b)).slice(0, 1), ...L.rumours.slice(0, 1)];
+}
 /** the full brief of the record (the bake's input, the lab's display; English, out of world) */
 export function lifeBrief(L: LifeRecord, prose?: string | null): string {
   const kin = L.household.map(k => `${k.name} (${k.rel}, ${k.age}${k.job !== 'child' ? ', ' + k.job : ''})`).join('; ') || 'none: you live alone or with your work group';
@@ -235,6 +247,8 @@ export function lifeBrief(L: LifeRecord, prose?: string | null): string {
     L.friends.length ? `People you know: ${L.friends.map(f => `${f.name} (${f.how}; ${f.feeling})`).join('; ')}.` : '',
     L.year.length ? `This year: ${L.year.join('; ')}.` : '',
     L.quarrels.length ? `Quarrels: ${L.quarrels.join('; ')}.` : '', L.debts.length ? `Debts: ${L.debts.join('; ')}.` : '',
+    L.means.length ? `Means: ${L.means.join('; ')}.` : '', L.dealings.length ? `Lately at your house: ${L.dealings.join('; ')}.` : '', L.needs.length ? `Wants: ${L.needs.join('; ')}.` : '',
+    L.bonds.length ? `Marriage: ${L.bonds.join('; ')}.` : '', L.rumours.length ? `You have heard: ${L.rumours.join('; ')}.` : '', L.stranger.length ? `With the stranger: ${L.stranger.join('; ')}.` : '',
     `Temperament: ${L.temperament}. Speech: ${L.speech.join('; ')}.`,
     `Today is ${L.today.date}; ${L.today.season}; weather: ${L.today.weather}. Now (${L.today.place}) ${L.today.now}${L.today.next ? `; next: ${L.today.next}` : ''}.`,
     L.today.earlier.length ? `Earlier today: ${L.today.earlier.join('; ')}.` : '',

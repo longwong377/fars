@@ -7,13 +7,13 @@
 // day (turn.ts, people/talk.ts); what passed is remembered in the save and told on to kin and friends.
 import * as THREE from 'three/webgpu';
 import { Mind, Ears, Mic, EnglishVoice } from './mind';
-import { lifeRecord, type LifeRecord } from './life';
+import type { LifeRecord } from './life';
 import { heardReply, heardReplyNeural, replyVoice, type HearIn } from './voice';
 import { unitsFor, voiceLang, WORDLESS } from '../../audio/voices';
 import { toFarsi, FarsiTranslator, type FarsiRoute } from './farsi';
 import type { Turn } from './prompt';
 import { bakedProse, bakedWho } from './bake';
-import { talkTurn } from './turn';
+import { talkTurn, lifeOf } from './turn';
 
 export const DEFAULT_MODEL = 'gemma-2-2b-it-q4f16_1-MLC'; // D-296: measured on the T4 (the lab's T-E9 runs): the most natural voice of the 1-3 B models that fit 4 s and the watchdog
 export const NEAR_M = 3;
@@ -64,7 +64,7 @@ export function mountConverse(c: Ctx) {
     const near = nearest(c.world, eye()); if (!near) { show('<i>No one is near enough to hear you.</i>'); return null; }
     if (!(await ensure())) return null;
     const sim = c.world.people.sim; const day = c.clock.dayIndex, hour = c.clock.localHour;
-    const L: LifeRecord = lifeRecord(sim.pop, sim.cal, near.pid, day, hour);
+    const L: LifeRecord = lifeOf(sim, near.pid, day, hour); // (D-358: the simulation's means and standing, as the turn reads them)
     const key = near.agent ?? -1 - near.pid;
     const hist = state.history.get(near.pid) ?? [];
     if (state.talking?.pid !== near.pid) { endTalk(); state.talking = { pid: near.pid, conv: sim.t }; }
@@ -115,7 +115,7 @@ export function mountConverse(c: Ctx) {
       if (n6 && n6.pid !== prefetchedFor) { prefetchedFor = n6.pid; const sim = c.world.people.sim, { neural: v, id } = replyVoice(sim.pop, n6.pid, c.clock.dayIndex, c.seed, n6.agent !== null ? sim.agents[n6.agent] : null);
         const L = voiceLang(id.lang, id.langs).lang; nv.prefetch(v, L ? unitsFor(L).lines.slice(0, 32) : WORDLESS); } }
     if (!state.loaded || state.busy) return; const n = nearest(c.world, eye(), 6); if (!n) return; const sim = c.world.people.sim;
-    const L = lifeRecord(sim.pop, sim.cal, n.pid, c.clock.dayIndex, c.clock.localHour); const mem = sim.talk.recall(n.pid, sim.t, 2);
+    const L = lifeOf(sim, n.pid, c.clock.dayIndex, c.clock.localHour); const mem = sim.talk.recall(n.pid, sim.t, 2);
     const knows = (sim.talk.rows.get(n.pid)?.length ?? 0) > 0 ? 'recognise' : n.agent !== null ? sim.memory.greeting(n.agent, sim.t) : mem.length ? 'nod' : 'none';
     state.busy = true; primeP = mind.prime(L, knows, prose(n.pid), mem).then(ms => { if (ms) state.log.push({ primed: n.pid, ms }); }).catch(() => mind.forget()).finally(() => { state.busy = false; }); }, 500);
   const api = { state, say, nearest: () => nearest(c.world, eye()), load: ensure, mind, hear: async (samples: number[]) => { ears ??= new Ears(); if (!(ears as any).w) await ears.load(); return ears.hear(Float32Array.from(samples)); } };
