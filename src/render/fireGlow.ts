@@ -9,7 +9,7 @@
 // the baked architectural occlusion (D-222). What they lack against a forward light: the specular highlight, the SSGI
 // bounce of their light, and transparent surfaces (C; logged in D-355).
 import * as THREE from 'three/webgpu';
-import { uniformArray, Loop, If, float, vec3, max, min, dot, length, step, clamp, int } from 'three/tsl';
+import { Fn, uniformArray, Loop, If, float, vec3, max, min, dot, length, step, clamp, int } from 'three/tsl';
 import { fireOccNode } from '../world/fireOcc';
 
 /** forward point lights of the fires per quality (the nearest; specular and every material) */
@@ -42,9 +42,14 @@ export function glowIrradianceCPU(i: number, p: THREE.Vector3, n: THREE.Vector3)
   return [B.x * att * ndl * mask, B.y * att * ndl * mask, B.z * att * ndl * mask];
 }
 
-let nodes: { A: any; B: any; C: any; D: any } | null = null;
+let nodes: { A: any; B: any; C: any; D: any } | null = null, fn: any = null;
 /** TSL: the summed irradiance of the deferred fire lights at world point p with world normal n (vec3) */
 export function fireGlowIrradiance(p: any, n: any): any {
+  // (inside Fn: a Loop outside a function's stack is not recorded in the shader)
+  fn ??= Fn(([p, n]: any[]) => glowBody(p, n));
+  return fn(p, n);
+}
+function glowBody(p: any, n: any): any {
   nodes ??= { A: uniformArray(FIRE_GLOW.A, 'vec4'), B: uniformArray(FIRE_GLOW.B, 'vec4'), C: uniformArray(FIRE_GLOW.C, 'vec4'), D: uniformArray(FIRE_GLOW.D, 'vec4') };
   const { A, B, C, D } = nodes;
   const E = vec3(0).toVar('fireGlowE');
