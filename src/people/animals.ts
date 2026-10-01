@@ -19,7 +19,7 @@
 // a string of pack animals walks nose to tail behind its driver, an ox pair draws a cart behind its carter, a horse carries
 // its rider.
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, positionGeometry, normalGeometry, modelViewMatrix, texture, uv, varying, mix, vec3, vec4, sin, cos, max, float, uniform } from 'three/tsl';
+import { attribute, positionLocal, positionGeometry, normalGeometry, modelViewMatrix, texture, uv, varying, mix, vec3, vec4, sin, cos, max, min, abs, sign, exp, fract, step, float, uniform } from 'three/tsl';
 import { animalModel } from './animalModels';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { nearCascadesOnly } from './humanGPU';
@@ -178,16 +178,18 @@ function saddleCloth(B: Build, bodyY: number, zc: number): THREE.BufferGeometry 
     const A = pt(a0, w0), Bq = pt(a1, w0), C = pt(a1, w1), D = pt(a0, w1); P.push(...A, ...C, ...Bq, ...A, ...D, ...C); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals(); return g;
 }
+/** D-362: a stand-in part's secondary motion (aJig): soft tissue below `soft` (y), an ear about its root, a load hanging from `load` (y) */
+type PartJ = Part & { soft?: number; ear?: THREE.Vector3; load?: number };
 export function animalGeometry(sp: Species): THREE.BufferGeometry {
-  const B = ANIMAL_BUILD[sp], F = animalFrame(sp), V = THREE.Vector3, parts: Part[] = [];
+  const B = ANIMAL_BUILD[sp], F = animalFrame(sp), V = THREE.Vector3, parts: PartJ[] = [];
   const white: RGB = [1, 1, 1], dark: RGB = [0.14, 0.12, 0.1], horn: RGB = [0.62, 0.56, 0.44], red: RGB = [0.62, 0.1, 0.08];
   // body (coat colour comes from the instance colour: the geometry is white where the coat is)
-  parts.push({ g: new THREE.SphereGeometry(1, 12, 8).scale(B.girth * 0.46, B.girth * 0.52, B.len * 0.5).translate(0, F.bodyY, 0), col: white });
+  parts.push({ g: new THREE.SphereGeometry(1, 12, 8).scale(B.girth * 0.46, B.girth * 0.52, B.len * 0.5).translate(0, F.bodyY, 0), col: white, soft: F.bodyY - B.girth * 0.1 });
   if (B.tail === 'fat') parts.push({ g: new THREE.SphereGeometry(B.girth * 0.26, 7, 5).scale(1.1, 1, 0.8).translate(0, F.bodyY - B.girth * 0.15, -B.len * 0.5), col: white });
   // humps (camels: two over the fore and hind barrel, one high in the middle for the dromedary) and the zebu's hump
   if (B.humps === 2) for (const z of [0.24, -0.2]) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.27, 8, 6).scale(1, 1.25, 1.1).translate(0, F.bodyY + B.girth * 0.5, z * B.len), col: white });
   if (B.humps === 1) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.36, 9, 6).scale(1, 1.15, 1.35).translate(0, F.bodyY + B.girth * 0.46, -0.02 * B.len), col: white });
-  if (B.udder) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.17, 8, 5).scale(1, 0.75, 1.1).translate(0, F.bodyY - B.girth * 0.46, -B.len * 0.22), col: [0.86, 0.62, 0.55] });
+  if (B.udder) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.17, 8, 5).scale(1, 0.75, 1.1).translate(0, F.bodyY - B.girth * 0.46, -B.len * 0.22), col: [0.86, 0.62, 0.55], soft: F.bodyY - B.girth * 0.1 });
   if (B.withers) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.2, 7, 5).scale(0.9, 1.3, 1).translate(0, F.bodyY + B.girth * 0.52, 0.3 * B.len), col: white });
   // legs: fore at +z, hind at −z; gait order LH 0, LF .25, RH .5, RF .75 (a lateral walk); the fowl: two legs under the body
   const hipY = F.bodyY - B.girth * 0.12, kneeY = hipY * 0.45;
@@ -209,7 +211,7 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
   if (B.ears !== 'none') { const earL = B.ears === 'long' ? (sp.startsWith('mule') ? 0.16 : 0.22) : B.ears === 'mid' ? 0.1 : B.ears === 'prick' ? 0.09 : 0.07;
     for (const s of [-1, 1]) { const e0 = F.top.clone().add(new V(s * B.headR * 0.7, B.headR * 0.7, 0));
       const e1 = e0.clone().add(B.ears === 'long' ? new V(s * earL * 0.25, earL * 0.95, -earL * 0.2) : B.ears === 'prick' ? new V(s * earL * 0.3, earL * 0.92, -earL * 0.1) : new V(s * earL * 0.8, earL * 0.4, -earL * 0.2));
-      parts.push({ g: tube(e0, e1, 0.02 + earL * 0.12, 0.008, 4), col: white, ht }); } }
+      parts.push({ g: tube(e0, e1, 0.02 + earL * 0.12, 0.008, 4), col: white, ht, ear: e0 }); } }
   if (B.horns === 'goat') for (const s of [-1, 1]) { let p = F.top.clone().add(new V(s * 0.03, B.headR * 0.9, 0.02)); const pts = [p]; for (let i = 1; i <= 4; i++) { p = p.clone().add(new V(s * 0.012, 0.045 - i * 0.012, -0.045)); pts.push(p); }
     for (let i = 0; i < 4; i++) parts.push({ g: tube(pts[i], pts[i + 1], 0.016 - i * 0.003, 0.013 - i * 0.003, 4), col: horn, ht }); }
   if (B.horns === 'ox') for (const s of [-1, 1]) { const a = F.top.clone().add(new V(s * B.headR * 0.8, B.headR * 0.6, -0.02)); const b = a.clone().add(new V(s * 0.16, 0.05, 0.03)), c = b.clone().add(new V(s * 0.04, 0.14, 0.06));
@@ -252,19 +254,24 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
   // gear: rides with the body (no rig weight), never below the belly (it lies down with its load: C)
   if (B.gear === 'pack') { const pad: RGB = [0.32, 0.2, 0.13], wick: RGB = [0.55, 0.44, 0.28], sack: RGB = [0.64, 0.58, 0.46], zc = -0.04 * B.len, top = backAt(B, zc);
     parts.push({ g: new THREE.BoxGeometry(B.girth * 0.7, 0.06, B.len * 0.42).translate(0, top + 0.02, zc), col: pad });
-    for (const s of [-1, 1]) parts.push({ g: new THREE.BoxGeometry(0.2, B.girth * 0.62, B.len * 0.4).translate(s * (B.girth * 0.46 + 0.1), F.bodyY + B.girth * 0.08, zc), col: wick });
-    parts.push({ g: new THREE.CylinderGeometry(0.11, 0.11, B.girth * 1.25, 8).rotateZ(Math.PI / 2).translate(0, top + 0.16, zc), col: sack }); }
+    for (const s of [-1, 1]) parts.push({ g: new THREE.BoxGeometry(0.2, B.girth * 0.62, B.len * 0.4).translate(s * (B.girth * 0.46 + 0.1), F.bodyY + B.girth * 0.08, zc), col: wick, load: top });
+    parts.push({ g: new THREE.CylinderGeometry(0.11, 0.11, B.girth * 1.25, 8).rotateZ(Math.PI / 2).translate(0, top + 0.16, zc), col: sack, load: top + 0.27 }); }
   if (B.gear === 'pack_camel') { const sack: RGB = [0.6, 0.53, 0.42], sack2: RGB = [0.46, 0.36, 0.26];
-    for (const s of [-1, 1]) parts.push({ g: new THREE.CylinderGeometry(0.2, 0.2, B.len * 0.5, 8).rotateX(Math.PI / 2).translate(s * (B.girth * 0.46 + 0.16), F.bodyY + B.girth * 0.18, 0.02 * B.len), col: s > 0 ? sack : sack2 });
-    parts.push({ g: new THREE.CylinderGeometry(0.16, 0.16, B.girth * 1.5, 8).rotateZ(Math.PI / 2).translate(0, F.bodyY + B.girth * 0.62, 0.02 * B.len), col: sack2 }); }
+    for (const s of [-1, 1]) parts.push({ g: new THREE.CylinderGeometry(0.2, 0.2, B.len * 0.5, 8).rotateX(Math.PI / 2).translate(s * (B.girth * 0.46 + 0.16), F.bodyY + B.girth * 0.18, 0.02 * B.len), col: s > 0 ? sack : sack2, load: F.bodyY + B.girth * 0.52 });
+    parts.push({ g: new THREE.CylinderGeometry(0.16, 0.16, B.girth * 1.5, 8).rotateZ(Math.PI / 2).translate(0, F.bodyY + B.girth * 0.62, 0.02 * B.len), col: sack2, load: F.bodyY + B.girth * 0.62 + 0.18 }); }
   if (B.gear === 'saddle') { const zs = mountSeat(sp).z; parts.push({ g: saddleCloth(B, F.bodyY, zs), col: [0.52, 0.14, 0.1] }); }
   // bake attributes
   const gs = parts.map(pt => { const g = pt.g.index ? pt.g.toNonIndexed() : pt.g; if (g.getAttribute('uv')) g.deleteAttribute('uv'); if (!g.getAttribute('normal')) g.computeVertexNormals(); const n = g.getAttribute('position').count;
-    const col = new Float32Array(n * 3), leg = new Float32Array(n * 4), piv = new Float32Array(n * 4), ht2 = new Float32Array(n * 4);
-    for (let i = 0; i < n; i++) { col.set(pt.col.map(c => (c > 1 ? c : lin(c))), i * 3); leg.set(pt.leg ?? [0, 0, 0, 0], i * 4); piv.set(pt.piv ?? [0, 0, 0, 0], i * 4); ht2.set(pt.ht ?? [0, 0, 0, 0], i * 4); }
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('aLeg', new THREE.BufferAttribute(leg, 4)); g.setAttribute('aPiv', new THREE.BufferAttribute(piv, 4)); g.setAttribute('aHT', new THREE.BufferAttribute(ht2, 4)); return g; });
+    const col = new Float32Array(n * 3), leg = new Float32Array(n * 4), piv = new Float32Array(n * 4), ht2 = new Float32Array(n * 4), jig = new Float32Array(n * 4), P = g.getAttribute('position');
+    for (let i = 0; i < n; i++) { col.set(pt.col.map(c => (c > 1 ? c : lin(c))), i * 3); leg.set(pt.leg ?? [0, 0, 0, 0], i * 4); piv.set(pt.piv ?? [0, 0, 0, 0], i * 4); ht2.set(pt.ht ?? [0, 0, 0, 0], i * 4);
+      const x = P.getX(i), y = P.getY(i), z = P.getZ(i);
+      if (pt.soft !== undefined) jig[i * 4] = Math.min(1, Math.max(0, (pt.soft - y) / (pt.soft - (F.bodyY - B.girth * 0.52))));
+      if (pt.ear) jig[i * 4 + 1] = Math.sign(pt.ear.x || 1) * Math.hypot(x - pt.ear.x, y - pt.ear.y, z - pt.ear.z);
+      if (pt.ht && pt.ht[1] > 0) jig[i * 4 + 2] = Math.hypot(y - tr.y, z - tr.z, x);
+      if (pt.load !== undefined) jig[i * 4 + 3] = 0.02 + Math.max(0, pt.load - y); }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('aLeg', new THREE.BufferAttribute(leg, 4)); g.setAttribute('aPiv', new THREE.BufferAttribute(piv, 4)); g.setAttribute('aHT', new THREE.BufferAttribute(ht2, 4)); g.setAttribute('aJig', new THREE.BufferAttribute(jig, 4)); return g; });
   // colour and the rig attributes in one interleaved buffer (WebGPU allows 8 vertex buffers per pipeline)
-  const g = mergeGeometries(gs)!; interleave(g, ['color', 'aLeg', 'aPiv', 'aHT']); g.computeBoundingSphere(); return g;
+  const g = mergeGeometries(gs)!; interleave(g, ['color', 'aLeg', 'aPiv', 'aHT', 'aJig']); g.computeBoundingSphere(); return g;
 }
 /** the gaits (D-326): 0 the lateral walk, 1 the trot (diagonal pairs together), 2 the hare's bound (the fore pair together,
  *  the hind pair half a cycle later); weights [walk, trot, bound] */
@@ -283,9 +290,31 @@ export function foldOf(sp: Species): [number, number, number, number] {
   const a = Math.acos(Math.max(-1, Math.min(1, (hipY - lieDrop(sp) - r) / u))), flat = Math.PI / 2 - 0.12;
   return [-a, flat + a, a, -flat - a];
 }
-/** one vertex of an animal posed on the CPU (the vertex shader's arithmetic; tests and previews) */
-export function deformAnimal(sp: Species, p: ArrayLike<number>, leg: ArrayLike<number>, piv: ArrayLike<number>, ht: ArrayLike<number>, st: { phase: number; walk: number; graze: number; lie: number; gait?: number }, time: number, out: number[] = [0, 0, 0]) {
+/** D-362: the secondary motion's constants (C, by eye from the living animals: a donkey's belly swings a few centimetres with
+ *  its walk, a cow's dewlap more; ears flick every 5-11 s and settle in a quarter second; a tail swings as a chain, its tip
+ *  lagging the root; panniers swing out from the flanks and surge with the stride). Each is the steady response of a damped
+ *  spring to the gait (the stride's sway once per stride, its bob twice) with a fixed lag behind it, so it is closed-form in
+ *  time like the rest of the rig, scaled by the walk (it builds as the animal sets off and settles as it stops), plus the
+ *  idle cycles (breathing, the ears' flicks, the tail's slow swing) that go on when it stands. */
+export const JIG = { bellyL: 0.05, bellyV: 0.035, breathe: 0.012, earFlick: 0.5, earNod: 0.12, tailIdle: 0.3, tailWalk: 0.22, tailK: 3, loadL: 0.12, loadZ: 0.05, loadV: 0.015 } as const;
+/** an ear's flick at time t (rad; 0 between flicks): every 5-11 s (seed), a quick turn that rebounds and dies in ~0.4 s */
+export const earFlick = (t: number, seed: number) => { const P = 5 + 6 * fr(seed * 7.13), tau = fr(t / P + seed) * P; return Math.exp(-6 * tau) * Math.sin(22 * tau); };
+/** the secondary displacement of a vertex at rest x = x0 with weights jig (aJig) in the animal's rest frame (m; before the joints turn it) */
+export function jiggle(sp: Species, j: ArrayLike<number>, st: { phase: number; walk: number }, time: number, seed: number, x0: number, out: number[] = [0, 0, 0]) {
+  const g = ANIMAL_BUILD[sp].girth, w = st.walk, f = st.phase;
+  let dx = j[0] * g * JIG.bellyL * w * Math.sin(f - 0.9), dy = j[0] * g * (JIG.bellyV * w * Math.sin(2 * f - 1.1) + JIG.breathe * Math.sin(1.4 * time + 6.28 * seed)), dz = 0;
+  const le = Math.abs(j[1]), se = Math.sign(j[1]);
+  if (le) { const th = JIG.earFlick * earFlick(time, fr(seed + (se > 0 ? 0.37 : 0))) + JIG.earNod * w * Math.sin(2 * f - 0.6); dx += se * le * th * 0.45; dy -= le * th * 0.15; dz -= le * th * 0.9; }
+  const lt = j[2];
+  if (lt) { const th = JIG.tailIdle * (1 - w) * Math.sin(1.7 * time + 6.28 * seed - JIG.tailK * lt) + JIG.tailWalk * w * Math.sin(f - 1.2 - JIG.tailK * lt), k = lt * Math.min(1, lt / 0.3); dx += th * k; dy -= w * 0.06 * k * Math.sin(2 * f - 1.5); }
+  const ll = j[3];
+  if (ll) { const sx = x0 < 0 ? -1 : 1; dx += sx * ll * JIG.loadL * w * Math.max(0, sx * Math.sin(f - 1.0)); dz += ll * JIG.loadZ * w * Math.sin(2 * f - 1.6); dy += Math.min(1, ll * 10) * JIG.loadV * w * Math.sin(2 * f - 1.3); }
+  out[0] = dx; out[1] = dy; out[2] = dz; return out;
+}
+/** one vertex of an animal posed on the CPU (the vertex shader's arithmetic; tests and previews); jig, seed: D-362 */
+export function deformAnimal(sp: Species, p: ArrayLike<number>, leg: ArrayLike<number>, piv: ArrayLike<number>, ht: ArrayLike<number>, st: { phase: number; walk: number; graze: number; lie: number; gait?: number }, time: number, out: number[] = [0, 0, 0], jig?: ArrayLike<number>, seed = 0) {
   const F = animalFrame(sp); let x = p[0], y = p[1], z = p[2];
+  if (jig) { const J = jiggle(sp, jig, st, time, seed, x); x += J[0]; y += J[1]; z += J[2]; }
   const G = gaitW(st.gait ?? 0), fore = leg[3] > 0 ? 1 : 0, ph = st.phase + gaitOffset(leg[0], fore, G);
   const fo = foldOf(sp);
   const a1 = leg[1] * (st.walk * (RIG.swing + 0.14 * (G[1] + G[2])) * Math.sin(ph) + st.lie * (fore ? fo[0] : fo[2]));
@@ -398,27 +427,42 @@ export class Animals {
   private mesh(sp: Species, lod: number): Slot {
     const key = `${sp}:${lod}`; let m = this.meshes.get(key); if (m) return m;
     const model = animalModel(sp);
-    const g = model ? model.lods[lod].clone() : animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp);
-    if (model) interleave(g, ['aLeg', 'aPiv', 'aHT']);
+    const g = model ? model.lods[lod].clone() : animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp), B0 = ANIMAL_BUILD[sp];
+    if (model) interleave(g, ['aLeg', 'aPiv', 'aHT', 'aJig']);
     // per instance, in one interleaved buffer: the state (gait phase, walk, graze, lie), the instance's rotation (its
     // matrix's axes) and (the models) the coat colour. three.js applies the instance matrix to positionLocal BEFORE the
     // material's positionNode, so the rig deforms the raw geometry position in the animal's own frame and adds the
     // displacement turned by these axes (rotating legs about pivots in world space would throw them across the field)
     const names = ['aState', 'aRx', 'aRy', 'aRz', 'aGait', ...(model ? ['aCoat'] : [])];
-    const data = interleave(g, names, { count: this.cap, sizes: [4, 3, 3, 3, 1, ...(model ? [3] : [])] }); data.setUsage(THREE.DynamicDrawUsage);
+    const data = interleave(g, names, { count: this.cap, sizes: [4, 3, 3, 3, 2, ...(model ? [3] : [])] }); data.setUsage(THREE.DynamicDrawUsage);
     const state = g.getAttribute('aState') as THREE.InterleavedBufferAttribute, rot = ['aRx', 'aRy', 'aRz'].map(n => g.getAttribute(n) as THREE.InterleavedBufferAttribute);
     const mat = new THREE.MeshStandardNodeMaterial({ roughness: model ? 0.82 : 0.95 }); mat.vertexColors = !model;
     const L = attribute('aLeg', 'vec4'), Pv = attribute('aPiv', 'vec4'), H = attribute('aHT', 'vec4'), S = attribute('aState', 'vec4');
     const rx = (p: any, a: any, cy: any, cz: any) => { const dy = p.y.sub(cy), dz = p.z.sub(cz), c = cos(a), s = sin(a); return vec3(p.x, cy.add(dy.mul(c)).sub(dz.mul(s)), cz.add(dy.mul(s)).add(dz.mul(c))); };
     // the gait's weights (walk, trot, bound: gaitW) and each leg's phase offset in it (gaitOffset)
-    const Gt = attribute('aGait', 'float'), gT = Gt.clamp(0, 1), gH = Gt.sub(1).clamp(0, 1), gW0 = float(1).sub(gT), gW1 = gT.sub(gH);
+    const G2 = attribute('aGait', 'vec2'), Gt = G2.x, seedN = G2.y, gT = Gt.clamp(0, 1), gH = Gt.sub(1).clamp(0, 1), gW0 = float(1).sub(gT), gW1 = gT.sub(gH);
     const fore = max(L.w, float(0));
     const ph = S.x.add(L.x.mul(gW0)).add(gW1.mul(Math.PI / 2).mul(float(1).sub(cos(L.x)).add(sin(L.x)))).add(gH.mul(Math.PI).mul(fore));
     // arithmetic masks only (no select: D-012): fore = 1 for fore legs, 0 for hind
     const fo = foldOf(sp);
     const a1 = L.y.mul(S.y.mul(gW1.add(gH).mul(0.14).add(RIG.swing)).mul(sin(ph)).add(S.w.mul(fore.mul(fo[0] - fo[2]).add(fo[2]))));
     const a2 = L.z.mul(S.y.mul(RIG.knee).mul(max(sin(ph.sub(0.6)), 0)).add(S.w.mul(fore.mul(fo[1] - fo[3]).add(fo[3]))));
-    const P0 = positionGeometry; let p: any = rx(P0, a2, Pv.z, Pv.w); p = rx(p, a1, Pv.x, Pv.y);
+    const P0 = positionGeometry;
+    // D-362: the secondary motion (jiggle: the same arithmetic) on the rest pose, before the joints turn it
+    const Jg = attribute('aJig', 'vec4'), w = S.y, f = S.x, T = this.uTime;
+    const flick = (sd: any) => { const Pd = fract(sd.mul(7.13)).mul(6).add(5), tau = fract(T.div(Pd).add(sd)).mul(Pd); return exp(tau.mul(-6)).mul(sin(tau.mul(22))); };
+    let jx: any = Jg.x.mul(B0.girth * JIG.bellyL).mul(w).mul(sin(f.sub(0.9)));
+    let jy: any = Jg.x.mul(B0.girth).mul(w.mul(JIG.bellyV).mul(sin(f.mul(2).sub(1.1))).add(sin(T.mul(1.4).add(seedN.mul(6.28))).mul(JIG.breathe)));
+    let jz: any = float(0);
+    const le = abs(Jg.y), se = sign(Jg.y), the = flick(fract(seedN.add(max(se, float(0)).mul(0.37)))).mul(JIG.earFlick).add(w.mul(JIG.earNod).mul(sin(f.mul(2).sub(0.6))));
+    jx = jx.add(se.mul(le).mul(the).mul(0.45)); jy = jy.sub(le.mul(the).mul(0.15)); jz = jz.sub(le.mul(the).mul(0.9));
+    const lt = Jg.z, kt = lt.mul(min(lt.div(0.3), float(1)));
+    const tht = float(1).sub(w).mul(JIG.tailIdle).mul(sin(T.mul(1.7).add(seedN.mul(6.28)).sub(lt.mul(JIG.tailK)))).add(w.mul(JIG.tailWalk).mul(sin(f.sub(1.2).sub(lt.mul(JIG.tailK)))));
+    jx = jx.add(tht.mul(kt)); jy = jy.sub(w.mul(0.06).mul(kt).mul(sin(f.mul(2).sub(1.5))));
+    const ll = Jg.w, sx = step(float(0), P0.x).mul(2).sub(1);
+    jx = jx.add(sx.mul(ll).mul(JIG.loadL).mul(w).mul(max(sx.mul(sin(f.sub(1.0))), float(0))));
+    jz = jz.add(ll.mul(JIG.loadZ).mul(w).mul(sin(f.mul(2).sub(1.6)))); jy = jy.add(min(ll.mul(10), float(1)).mul(JIG.loadV).mul(w).mul(sin(f.mul(2).sub(1.3))));
+    let p: any = rx(P0.add(vec3(jx, jy, jz)), a2, Pv.z, Pv.w); p = rx(p, a1, Pv.x, Pv.y);
     // Q-980: the poll's joint (the skull's weight is -aHT.y): grazing, it straightens the carriage by F.bend
     const skullW = max(H.y.negate(), float(0)), tailW = max(H.y, float(0)), as = skullW.mul(S.z).mul(-F.bend);
     p = rx(p, as, float(F.top.y), float(F.top.z));
@@ -459,7 +503,7 @@ export class Animals {
     const model = animalModel(a.sp), e = M.elements;
     const lod = model && this.eye && Math.hypot(e[12] - this.eye.x, e[13] - this.eye.y, e[14] - this.eye.z) > model.lod1At ? 1 : 0;
     const m = this.mesh(a.sp, lod); if (m.n >= this.cap) { this.dropped++; return; } const i = m.n++;
-    m.mesh.setMatrixAt(i, M); m.state.setXYZW(i, a.phase % (TWO_PI * 64), a.walk, a.graze, a.lie); m.gait.setX(i, a.gait ?? (a.sp === 'hare' ? 2 : 0));
+    m.mesh.setMatrixAt(i, M); m.state.setXYZW(i, a.phase % (TWO_PI * 64), a.walk, a.graze, a.lie); m.gait.setXY(i, a.gait ?? (a.sp === 'hare' ? 2 : 0), a.coat); // (D-362: y the animal's own seed, its ears' and tail's idle timing)
     m.rot[0].setXYZ(i, e[0], e[1], e[2]); m.rot[1].setXYZ(i, e[4], e[5], e[6]); m.rot[2].setXYZ(i, e[8], e[9], e[10]);
     const c = ANIMAL_BUILD[a.sp].coat, k = Math.min(c.length - 1, Math.floor(a.coat * c.length)); _c.setRGB(c[k][0], c[k][1], c[k][2], THREE.SRGBColorSpace);
     if (m.coat) m.coat.setXYZ(i, _c.r, _c.g, _c.b); else m.mesh.setColorAt(i, _c);

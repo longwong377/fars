@@ -54,12 +54,12 @@ export function animalModel(sp: Species): AnimalModel | null {
   if (!rigged.has(sp)) { for (const g of m.lods) rigLevel(sp, g); rigged.add(sp); }
   return m;
 }
-/** the rig's per-vertex attributes (aLeg, aPiv, aHT: animals.ts) on a level, from the anatomy's part distances */
+/** the rig's per-vertex attributes (aLeg, aPiv, aHT, and D-362 aJig: animals.ts) on a level, from the anatomy's part distances */
 export function rigLevel(sp: Species, g: THREE.BufferGeometry) {
   const P = g.getAttribute('position') as THREE.BufferAttribute, pos = new Float32Array(P.count * 3);
   for (let i = 0; i < P.count; i++) { pos[i * 3] = P.getX(i); pos[i * 3 + 1] = P.getY(i); pos[i * 3 + 2] = P.getZ(i); }
   const W = rigWeights(sp, pos);
-  g.setAttribute('aLeg', new THREE.BufferAttribute(W.leg, 4)); g.setAttribute('aPiv', new THREE.BufferAttribute(W.piv, 4)); g.setAttribute('aHT', new THREE.BufferAttribute(W.ht, 4));
+  g.setAttribute('aLeg', new THREE.BufferAttribute(W.leg, 4)); g.setAttribute('aPiv', new THREE.BufferAttribute(W.piv, 4)); g.setAttribute('aHT', new THREE.BufferAttribute(W.ht, 4)); g.setAttribute('aJig', new THREE.BufferAttribute(W.jig, 4));
   return g;
 }
 /** tests and tools (node): register levels decoded elsewhere (tools/blender/lib/glb.mjs glbContent) */
