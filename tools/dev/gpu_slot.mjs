@@ -7,7 +7,7 @@
 import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { setPriority, constants } from 'node:os';
-import { MIN_FREE_GB, freeGB, pipeWithProgress, recordChild } from './boxguard.mjs';
+import { MIN_FREE_GB, freeGB, pipeWithProgress, recordChild, MAX_CPU, cpuBusy } from './boxguard.mjs';
 // session 15: 1 slot on the 4-core box (two renders + agents starved the Claude app)
 const SLOTS = +(process.env.GPU_SLOTS ?? 1), ROOT = 'T:/gpu-slots';
 const argv = process.argv.slice(2), sep = argv.indexOf('--');
@@ -26,12 +26,12 @@ const myTurn = () => { for (const t of readdirSync(QD).sort()) { const pid = +t.
 async function acquire() {
   let waited = 0;
   for (;;) {
-    if (myTurn() && freeGB() >= MIN_FREE_GB) for (let i = 0; i < SLOTS; i++) {
+    if (myTurn() && freeGB() >= MIN_FREE_GB && await cpuBusy() < MAX_CPU) for (let i = 0; i < SLOTS; i++) {
       const d = `${ROOT}/slot${i}`;
       try { mkdirSync(d); writeFileSync(`${d}/owner.json`, JSON.stringify({ pid: process.pid, label, since: new Date().toISOString() })); dropTicket(); return d; }
       catch { try { const o = JSON.parse(readFileSync(`${d}/owner.json`, 'utf8')); if (!alive(o.pid)) rmSync(d, { recursive: true, force: true }); } catch { if (existsSync(d)) { /* being written; retry */ } } }
     }
-    if (waited % 60 === 0) console.error(`[gpu_slot] ${label}: waiting for a GPU slot or memory (${freeGB().toFixed(1)} GB free; ${waited} s)`);
+    if (waited % 60 === 0) console.error(`[gpu_slot] ${label}: waiting for a GPU slot, memory or CPU (${freeGB().toFixed(1)} GB free; ${waited} s)`);
     await new Promise(r => setTimeout(r, 5000)); waited += 5;
   }
 }
