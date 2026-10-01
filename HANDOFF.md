@@ -1,3 +1,31 @@
+# HANDOFF — end of session 13 (2026-10-01); branch claude/amazing-fermi-40ds7j (pushed, verified against GitHub)
+
+## What session 13 was, honestly
+A node-only simulation session on the GPU box (4 cores, 16 GB, T4; C: now 125 GB) that I ran off the cloud plan, and the user was right to be angry: **nothing it built is visible.** The first-question rule (CLAUDE.md: look at renders before any task list) was skipped until the end. Details and the broken list: sessions/s13.md.
+
+## THE FIRST THING NEXT SESSION: look, then fix the look
+1. **The game renders again** (D-353, merged): the first frame compiled ~1000 pipelines in one submit and tripped the 2 s Windows GPU watchdog (every shot black, DXGI_ERROR_DEVICE_HUNG). `__parsa.warmUp()` (src/main.ts) now sets pipelines up in batches; moments.spec calls it (NOWARM=1 skips it; use NOHMR=1 because Vite once reloaded the page mid-run). **Not yet proven in moments.spec itself**: run one view first (`PW_CHANNEL=chrome BATCH=1 NOHMR=1 ONLY=dawn-stair-top node tools/dev/gpu_slot.mjs look -- npx playwright test tests/e2e/moments.spec.ts --project=gpu`; T:/gpu-slots is recreated by the script's mkdir). The in-app browser pane does NOT work for the game (hidden, WebGPU fails): use Playwright + the installed Chrome.
+2. **What the one good full-world frame shows** (fars-wt/gpuhang/shots/bisect-final.png, dawn from the stair top, high): real stone grain on the wall, moody clouds, good mountains and haze; but the plain is flat brown/dull green, empty (no crops, grass cover, people or animals visible), flat overcast light with no strong sun or shadows, blocky merlons. **Verdict: not AAA, not full of life.** The old (Sep 27) Apadana and gate shots are worse: flat surfaces, sticker-like figures. Session 12's scans/props/crowds were never rendered on this box: the first batched render of the session-12 world is the real baseline.
+3. **Load time** is ~15 min on this box (world build ~9 min, then pipelines). Measure the split from a load trace first, then bake the built world to disk (placements, merged geometry, baked lighting) so a load is about a minute (T-K7). Plan: ROADMAP.md (pillars, AAA plan items 1-4).
+4. Then the AAA plan (ROADMAP 1-4), the user's additions 3b (every body different, full real range, bell curve), 3c (secondary physics on everything), 3d (clothes change: node side done, render side open), 3e (relationships as life, not explicit: node side done).
+
+## Simulation state (all merged; sessions/s13.md has the numbers)
+economy (src/people/economy/**), talk (living/**), wardrobes (wardrobe/**), relations (relations/**, nobody under 18 anywhere), trust and haggling (speech/**), needs-as-asks and rumour (asks/**, off unless opts.asks), laundry and baths in the plans, economy deaths on real people, small saves (946 KB at day 300). UD-25 mechanics done on the node side: 1 (trust), 2 (asks), 4 (haggling), 5 (rumour); open: 3 (work and livelihood), 6 (learning the language), 7 (identity), 8 (petitions and authority as player verbs), 9 (hospitality), 10 (groups), the proximity mic. T-F9 PASS; T-E13 65.6 %; both need a render-side "visible" step that does not exist.
+
+## Open, in order
+- **Adult-brides branch not merged:** s13-bridesmerge (908fee4e, on origin; main merged in at 08868d73; D-349/D-350). Weddings are ~120 a year on main (D-348 raised ages after the draw), ~300 on the branch. B230: tests/people_days*.test.ts failures vs main never compared (one file takes ~4 h; per-file runs of the bride branch finished only people_days: 1 failure that passed alone, d211: 3 failures: festival days off, boys 13-15 with fathers, errand/breakfast wording). Run those d211 tests on main (git worktree at main + node_modules junction; -t filter) and merge if they also fail there. Not urgent for looks.
+- living_world "load < 2 s" fails on a loaded box (3-5 s); re-run alone.
+- people_days_r6: 6 failures pre-existing on main.
+- Courting meetings off by default (SimOpts.bonds, +13 s CPU on a day-300 load; B228); relations weddings move no house (B226) and do not reach the economy (B227); trust barely moves loans (B233); willTalk not called by conversation (B234); haggles never walked (B235); rumour stances nothing reads (flee far too common).
+- Session close not fully done: ratchet tag ratchet/s13 not pushed (this environment refused tags before); the closing commit is in sessions/s13.md.
+
+## Rules the user set this session (also in memory and ROADMAP)
+Agents on **Sonnet 5.5**; at most 2 agents at once; keep working, stop launching at 97 % weekly (the weekly window reset 2026-10-01 01:00 UTC, so the new week starts empty); look at renders before building; the user wants visible, meaningful progress, not process.
+
+
+---
+(older handoff below: end of session 12)
+
 # HANDOFF — end of session 12 (2026-09-28); branch claude/amazing-fermi-40ds7j
 
 ## FIRST, IN THE CLOUD (session 13)
