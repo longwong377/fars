@@ -33,7 +33,8 @@ if (process.env.WORLD) {
 } else {
   await page.goto(`http://localhost:${port}/tools/dev/terrace_probe.html`);
   await page.waitForFunction(() => window.__ready, null, { timeout: 900_000 });
-  res.readyS = el();
+  res.readyS = el(); res.ready = await page.evaluate(() => window.__ready);
+  if (res.ready !== true) { console.log(JSON.stringify(res), logs.slice(0, 20)); await ctx.close(); process.exit(1); }
   const v = { e: -43.9, n: 128, eye: 1.6, az: 341, pitch: 12, fov: 60, sunAz: 271, sunAlt: 32 };
   res.shots = []; for (let i = 0; i < 2; i++) { const t = Date.now(); await page.evaluate(v => window.__shot(v), v); res.shots.push((Date.now() - t) / 1000); }
   // the device's queue drained: the async compiles are done
