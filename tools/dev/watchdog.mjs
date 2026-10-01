@@ -9,6 +9,7 @@ import { SLOT_ROOTS, MIN_FREE_GB, MAX_AGENTS, freeGB, activeAgents, cpuBusy } fr
 const STALL_MIN = +(process.env.STALL_MIN ?? 45);
 const alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
 
+let hot = 0;
 async function check() {
   const out = [];
   for (const [kind, root] of Object.entries(SLOT_ROOTS)) {
@@ -22,7 +23,8 @@ async function check() {
       else if (idle > STALL_MIN) out.push(`${kind} ${s} '${o.label}': held ${held | 0} min, no output for ${idle | 0} min; kill pids ${pids.join(' ')} (and children: taskkill /T /F /PID ${o.pid})`);
     }
   }
-  const c = await cpuBusy(10000); if (c > 90) out.push(`cpu: ${c | 0} % busy over 10 s (the app starves above ~90 %)`);
+  const c = await cpuBusy(10000); hot = c > 90 ? hot + 1 : 0; // sustained only: a commit's guard run spikes for seconds
+  if (hot >= 2) out.push(`cpu: ${c | 0} % busy for over a minute (the app starves above ~90 %)`);
   const f = freeGB(); if (f < MIN_FREE_GB) out.push(`memory: ${f.toFixed(1)} GB free (< ${MIN_FREE_GB})`);
   const a = activeAgents(); if (a.length > MAX_AGENTS) out.push(`agents: ${a.length} active worktrees > ${MAX_AGENTS}: ${a.join(', ')}`);
   return out;
