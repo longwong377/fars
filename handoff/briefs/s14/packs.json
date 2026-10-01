@@ -572,5 +572,81 @@
    "small-spring-field",
    "ford-pulvar-sep"
   ]
+ },
+ {
+  "name": "bodies",
+  "title": "Every body different, soft-tissue motion, clothes over the real body, the far people re-baked",
+  "hours": 6,
+  "needs": "blender",
+  "ud": [
+   "UD-27",
+   "UD-08"
+  ],
+  "thresholds": [
+   "T-E15"
+  ],
+  "d": 363,
+  "q": [
+   1170,
+   1179
+  ],
+  "b": [
+   340,
+   349
+  ],
+  "goal": "No two people share a body: build, weight, musculature, shoulders and hips, bust from small to very large, belly, posture and face from very plain to very beautiful vary continuously on a real bell curve shaped by labour, diet, age and illness, with age marks, scars, pregnancy and nursing; bodies move with soft-tissue physics; garments drape over the actual body; far people (impostors) match, with their spears, bows and tools. Not explicit: people are clothed as the day requires.",
+  "owns": [
+   "src/people/looks.ts",
+   "src/people/body.ts",
+   "src/people/humans.ts",
+   "src/people/humanRig.ts",
+   "src/people/humanGPU.ts",
+   "src/people/humanMaterial.ts",
+   "src/people/drape.ts",
+   "src/people/outfits.ts",
+   "src/people/outfit_worker.ts",
+   "src/people/impostors.ts",
+   "new src/people/softbody.ts",
+   "tools/blender/people*.py",
+   "tools/blender/people.json",
+   "tools/blender/cloth.py",
+   "tools/blender/preview_people.*"
+  ],
+  "reads": [
+   "src/people/crowd.ts",
+   "src/people/popview.ts",
+   "src/people/wardrobe/** (the visible agent exports the day's garment; read it if merged, else leave a hook)",
+   "src/people/population.ts",
+   "research/BLENDER_PLAN.md rows 5, 6, 19",
+   "humanlab.html"
+  ],
+  "entry": [
+   "looks.ts:173-182 lookFor: pickVariant + a stature scale clamped to ±7 % is the whole body variation: replace with a continuous seeded shape vector (Blender shape keys on the MakeHuman base meshes: build, fat, muscle, bust, hips, belly, posture, face structure and attractiveness), drawn on a bell curve and shifted by the person's labour, household wealth, age, illness and pregnancy from the simulation",
+   "soft-tissue: spring-damper jiggle bones (breasts, buttocks, belly, thighs, upper arms, jowls) weighted in Blender, solved on the GPU (humanGPU.ts) or a worker, scaled by size and firmness, faded with distance; the same spring pass is the hook the later peoplemotion package uses for hair, sashes, jewellery and loads",
+   "garments: the cloth bake (cloth.py) per shape band so dress drapes over the actual body",
+   "impostors.ts: the Cycles atlas is stale (the render warns; a CPU fallback costs ~12 s of load): re-bake with tools/blender/people_impostors.py over shape bands and with the far people's spears, bows and tools (B176)"
+  ],
+  "ids": [
+   "D-304",
+   "D-307",
+   "D-313",
+   "B136",
+   "B151",
+   "B176",
+   "B148"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs bodies",
+   "iterate on humanlab.html through node tools/dev/gpu_slot.mjs",
+   "node tools/blender/build.mjs <people ids> (Blender, headless); node tools/blender/impostors.mjs (Cycles, takes a GPU slot)"
+  ],
+  "done": "tests/body_variety.test.ts (T-E15) passes: >= 99 % of the drawn population has a unique body/face vector, the spread is a bell curve with both extremes present on a 3,000-person sample; in humanlab and in train views a crowd shows visibly different bodies and faces, with soft-tissue motion in walking; the impostor atlas is fresh (no CPU fallback warning); frame cost of the jiggle pass <= 1 ms for the visible crowd.",
+  "train": [
+   "lane-with-child",
+   "apadana-nw-court",
+   "morning-wash",
+   "tannery-work",
+   "hall100-site"
+  ]
  }
 ]

@@ -109,4 +109,5 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-360 | s14 | simulation health, tests, merges (Q-1140..Q-1149, B310..B319) | agent worktree, branch s14-simhealth | in flight |
 | D-361 | s14 | Blender leftovers: monuments, far Terrace, reproducibility (Q-1150..Q-1159, B320..B329) | agent worktree, branch s14-blender | in flight |
 | D-362 | s14 | animals and birds move (Q-1160..Q-1169, B330..B339) | agent worktree, branch s14-animalmotion | in flight |
-| D-363..D-399 | s14 | reserved for waves 2-4 of the week plan (Q-1170..Q-1399, B340..B499) | the lead | reserved |
+| D-363 | s14 | every body different, soft tissue, drape, far people (Q-1170..Q-1179, B340..B349) | agent worktree, branch s14-bodies | in flight |
+| D-364..D-399 | s14 | reserved for waves 2-4 of the week plan (Q-1180..Q-1399, B350..B499) | the lead | reserved |
