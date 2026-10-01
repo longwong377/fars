@@ -591,7 +591,9 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   let tris = 0;
   for (const [key, { geos, plain, parts: ps }] of byKey) {
     const [building, mat, tier, ph, extra] = key.split('|');
-    const g = mergeGeometries(geos)!; tris += g.getAttribute('position').count / 3;
+    // (D-364: the mud-brick faces are indexed, the roof edges merged with them not: the latter take a sequential index)
+    if (geos.some(q => q.index) && geos.some(q => !q.index)) for (const q of geos) if (!q.index) q.setIndex(new THREE.BufferAttribute(Uint32Array.from({ length: q.getAttribute('position').count }, (_, i) => i), 1));
+    const g = mergeGeometries(geos)!; tris += (g.index ? g.index.count : g.getAttribute('position').count) / 3;
     const roof = ps.every(p => p.kind === 'roof');
     // a timber roof takes the roof surface: cedar with reed matting on its underside, the ceiling (D-188)
     const m = new THREE.Mesh(g, roof ? roofMaterial(mat === 'timber' && !flatMode ? surfaceMaterial('roof_timber', { arch: true }) : archMaterial(mat as Material)) : extra === 'frame' ? frameMaterial(mat)! : archMaterial(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}${extra ? ':' + extra : ''}`;

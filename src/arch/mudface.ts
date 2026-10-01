@@ -137,9 +137,15 @@ export function mudFace(g: THREE.BufferGeometry, hard: HardIndex | null, gain = 
     N.addScaledVector(t1, -(h1 - h) / e).addScaledVector(t2, -(h2 - h) / e).normalize();
     out[o + pOff] = x + dx; out[o + pOff + 2] = z + dz; out[o + nOff] = N.x; out[o + nOff + 1] = N.y; out[o + nOff + 2] = N.z;
   }
-  const r = new THREE.BufferGeometry();
+  // welded and indexed (a vertex of one face at one place is one vertex: its position and normal decide it, the rest is the face's
+  // affine attributes there): ~6x fewer vertices, and the far levels (D-361, meshoptimizer) can collapse the faces' cells
+  const r = new THREE.BufferGeometry(), map = new Map<string, number>(), uniq: number[] = [], index = new Uint32Array(nv), F = new Float32Array(1), U = new Uint32Array(F.buffer);
+  const bits = (v: number) => { F[0] = v; return U[0]; };
+  for (let i = 0; i < nv; i++) { const o = i * stride, k = [0, 1, 2].map(c => bits(out[o + pOff + c])).join(',') + '|' + [0, 1, 2].map(c => Math.round(out[o + nOff + c] * 1e4)).join(',');
+    let j = map.get(k); if (j === undefined) { j = uniq.length; map.set(k, j); uniq.push(i); } index[i] = j; }
   let off = 0;
-  names.forEach((k, j) => { const w = W[j], a = new Float32Array(nv * w); for (let i = 0; i < nv; i++) for (let c = 0; c < w; c++) a[i * w + c] = out[i * stride + off + c]; off += w; r.setAttribute(k, new THREE.BufferAttribute(a, w)); });
+  names.forEach((k, j) => { const w = W[j], a = new Float32Array(uniq.length * w); uniq.forEach((i, q) => { for (let c = 0; c < w; c++) a[q * w + c] = out[i * stride + off + c]; }); off += w; r.setAttribute(k, new THREE.BufferAttribute(a, w)); });
+  r.setIndex(new THREE.BufferAttribute(index, 1));
   r.userData = { ...g.userData };
   return r;
 }

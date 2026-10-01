@@ -20,7 +20,7 @@ describe('D-364 mud-brick faces', () => {
   it('two walls meeting at a corner move together: the merged mesh has no open edge on their faces', () => {
     const w1: Part = { type: 'box', building: 't', kind: 'wall', material: 'mudbrick', tier: 'C', src: 'RECON', c: [0, 0], size: [8, 1], y0: 0, y1: 6 } as any;
     const w2: Part = { type: 'box', building: 't', kind: 'wall', material: 'mudbrick', tier: 'C', src: 'RECON', c: [4.5, 3.5], size: [1, 8], y0: 0, y1: 6 } as any;
-    const g = meshOf(buildMeshes([w1, w2]), /mudbrick$/), P = g.getAttribute('position');
+    const g = meshOf(buildMeshes([w1, w2]), /mudbrick$/).toNonIndexed(), P = g.getAttribute('position');
     // watertight within each part: every edge of the triangle soup is shared by a triangle on the other side (positions welded at 0.1 mm)
     const key = (i: number) => `${Math.round(P.getX(i) * 1e4)},${Math.round(P.getY(i) * 1e4)},${Math.round(P.getZ(i) * 1e4)}`;
     const edges = new Map<string, number>();
@@ -39,7 +39,7 @@ describe('D-364 mud-brick faces', () => {
   });
   it('the Terrace\'s mud brick: triangles within budget', async () => {
     const { parts } = buildTerrace(), b = buildMeshes(parts); let tris = 0;
-    b.group.traverse((o: any) => { if (o.isMesh && /:(mudbrick|mudbrick_painted|mudbrick_bare)$/.test(o.name)) tris += o.geometry.getAttribute('position').count / 3; });
+    b.group.traverse((o: any) => { if (o.isMesh && /:(mudbrick|mudbrick_painted|mudbrick_bare)$/.test(o.name)) tris += (o.geometry.index?.count ?? o.geometry.getAttribute('position').count) / 3; });
     console.log(`D-364 mud brick: ${tris} triangles`); if (process.env.MUD_OUT) (await import("node:fs")).writeFileSync(process.env.MUD_OUT, String(tris));
     expect(tris).toBeLessThan(300_000); // (94 k before D-364: +147 k)
   }, 300_000);
