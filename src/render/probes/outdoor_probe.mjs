@@ -12,5 +12,5 @@ const t0 = Date.now();
 await p.goto('http://localhost:' + (process.env.E2E_PORT ?? '5187') + '/src/render/probes/outdoor_probe.html' + Q);
 await p.waitForFunction(() => window.__ready, null, { timeout: 600000 });
 console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) / 1000, 's');
-for (const v of V) { const errs = await p.evaluate(v => window.__shot(v), v); await p.screenshot({ path: `${OUT}/${v.n}-${TAG}.png` }); console.log(v.n, errs.length ? errs : '', (Date.now() - t0) / 1000); }
+for (const v of V) { const errs = await p.evaluate(v => window.__shot(v), v); await p.screenshot({ timeout: 600000, path: `${OUT}/${v.n}-${TAG}.png` }); console.log(v.n, errs.length ? errs : '', (Date.now() - t0) / 1000); }
 console.log(logs.slice(0, 12).join('\n')); await b.close();
