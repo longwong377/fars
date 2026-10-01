@@ -1,87 +1,576 @@
 [
  {
-  "name": "load", "title": "Load time: from ~15 min to about a minute", "hours": 6, "needs": "gpu",
-  "ud": ["UD-15", "UD-28"], "thresholds": ["T-R14"], "d": 354, "q": [1080, 1089], "b": [250, 259],
+  "name": "load",
+  "title": "Load time: from ~15 min to about a minute",
+  "hours": 6,
+  "needs": "gpu",
+  "ud": [
+   "UD-15",
+   "UD-28"
+  ],
+  "thresholds": [
+   "T-R14"
+  ],
+  "d": 354,
+  "q": [
+   1080,
+   1089
+  ],
+  "b": [
+   250,
+   259
+  ],
   "goal": "The game opens in about a minute instead of ~15, so the player (and every render this week) is not waiting. This multiplies everything else this week does.",
-  "owns": ["src/world/world.ts (the build path and its timing marks only)", "new src/world/cache/** (the baked world loader)", "new tools/bake_world/**", "src/main.ts warmUp (D-353) only"],
-  "reads": ["src/render/pipeline.ts", "src/render/materials.ts", "src/world/fire.ts", "tools/dev/load_probe.mjs", "tools/dev/renderless_probe.mjs"],
-  "entry": ["src/world/world.ts: its 11 performance.now marks; log them as one load trace first and split world build (~9 min on 4 cores) from pipeline compiles", "src/main.ts: __parsa.warmUp() (D-353, batches of pipelines; the T4 watchdog)", "the CPU impostor fallback (~12 s; src/people/impostors.ts) and the SDF/marching-cubes paths (sdf.ts, relief_figures.ts, outfits.ts, hills/bedrock.ts): bake their outputs to disk"],
-  "ids": ["D-250", "D-253", "D-299", "D-353", "B125", "B228"],
-  "commands": ["node tools/dev/mkwt.mjs load", "node tools/dev/gpu_slot.mjs load -- node tools/dev/load_probe.mjs (a load trace; ?norender for build-only timing)", "a node bake script: node tools/bake_world/bake.mjs -> public/world-cache/*.bin + manifest (gitignored if > 50 MB; regenerable, like npm run terrain)"],
+  "owns": [
+   "src/world/world.ts (the build path and its timing marks only)",
+   "new src/world/cache/** (the baked world loader)",
+   "new tools/bake_world/**",
+   "src/main.ts warmUp (D-353) only"
+  ],
+  "reads": [
+   "src/render/pipeline.ts",
+   "src/render/materials.ts",
+   "src/world/fire.ts",
+   "tools/dev/load_probe.mjs",
+   "tools/dev/renderless_probe.mjs"
+  ],
+  "entry": [
+   "src/world/world.ts: its 11 performance.now marks; log them as one load trace first and split world build (~9 min on 4 cores) from pipeline compiles",
+   "src/main.ts: __parsa.warmUp() (D-353, batches of pipelines; the T4 watchdog)",
+   "the CPU impostor fallback (~12 s; src/people/impostors.ts) and the SDF/marching-cubes paths (sdf.ts, relief_figures.ts, outfits.ts, hills/bedrock.ts): bake their outputs to disk"
+  ],
+  "ids": [
+   "D-250",
+   "D-253",
+   "D-299",
+   "D-353",
+   "B125",
+   "B228"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs load",
+   "node tools/dev/gpu_slot.mjs load -- node tools/dev/load_probe.mjs (a load trace; ?norender for build-only timing)",
+   "a node bake script: node tools/bake_world/bake.mjs -> public/world-cache/*.bin + manifest (gitignored if > 50 MB; regenerable, like npm run terrain)"
+  ],
   "done": "A cold page load to the first rendered frame at high on this T4 in <= 120 s (measured, trace committed), the baked world identical to the built one (a node test compares placements/bounds hashes), and a fallback to the live build when the cache is stale (hash of the sources).",
-  "train": ["dawn-stair-top", "lane-with-child"],
+  "train": [
+   "dawn-stair-top",
+   "lane-with-child"
+  ],
   "notes": "The pipeline count (~1000) is the other half: coordinate with the 'frame' agent, which owns the fire lights (a light set fixed from the first frame stops lit shaders recompiling). Do not change materials.ts."
  },
  {
-  "name": "frame", "title": "Frame rate: from ~4-5 fps to 30 fps at 1080p on the T4", "hours": 6, "needs": "gpu",
-  "ud": ["UD-17", "UD-28"], "thresholds": ["T-R14"], "d": 355, "q": [1090, 1099], "b": [260, 269],
+  "name": "frame",
+  "title": "Frame rate: from ~4-5 fps to 30 fps at 1080p on the T4",
+  "hours": 6,
+  "needs": "gpu",
+  "ud": [
+   "UD-17",
+   "UD-28"
+  ],
+  "thresholds": [
+   "T-R14"
+  ],
+  "d": 355,
+  "q": [
+   1090,
+   1099
+  ],
+  "b": [
+   260,
+   269
+  ],
   "goal": "The world moves smoothly when walked (30 fps at 1080p on the T4), without looking worse.",
-  "owns": ["src/render/pipeline.ts", "src/render/sunShadows.ts", "src/render/ssgi.ts", "src/world/fire.ts", "src/world/fireOcc.ts", "src/world/firePlaces.ts", "src/world/world.ts:~234 (the fire lights block only)", "tests/e2e/dbg_perf.spec.ts"],
-  "reads": ["src/render/materials.ts", "src/render/skyVis.ts", "src/core/**"],
-  "entry": ["run tests/e2e/dbg_perf.spec.ts with ABL=1 once (never run to completion before): GPU ms per pass", "pipeline.ts:200,236,272: SSGI, SSR and contact shadows back to half resolution with TRAA upscale", "sunShadows.ts: 3 cascades at 2048 with static-caster caching", "world.ts:234 + fire.ts:174-181: 12 fire point lights with custom colour nodes in every lit material's shader key: cap at 4 nearest, fixed set from frame 0, the rest emissive glow", "dynamic resolution (0.75 scale + TRAA) as the quality tier's lever"],
-  "ids": ["D-309", "D-337", "B125", "B193", "D-353"],
-  "commands": ["node tools/dev/mkwt.mjs frame", "DBG=1 ABL=1 PW_CHANNEL=chrome node tools/dev/gpu_slot.mjs frame -- npx playwright test tests/e2e/dbg_perf.spec.ts --project=gpu"],
+  "owns": [
+   "src/render/pipeline.ts",
+   "src/render/sunShadows.ts",
+   "src/render/ssgi.ts",
+   "src/world/fire.ts",
+   "src/world/fireOcc.ts",
+   "src/world/firePlaces.ts",
+   "src/world/world.ts:~234 (the fire lights block only)",
+   "tests/e2e/dbg_perf.spec.ts"
+  ],
+  "reads": [
+   "src/render/materials.ts",
+   "src/render/skyVis.ts",
+   "src/core/**"
+  ],
+  "entry": [
+   "run tests/e2e/dbg_perf.spec.ts with ABL=1 once (never run to completion before): GPU ms per pass",
+   "pipeline.ts:200,236,272: SSGI, SSR and contact shadows back to half resolution with TRAA upscale",
+   "sunShadows.ts: 3 cascades at 2048 with static-caster caching",
+   "world.ts:234 + fire.ts:174-181: 12 fire point lights with custom colour nodes in every lit material's shader key: cap at 4 nearest, fixed set from frame 0, the rest emissive glow",
+   "dynamic resolution (0.75 scale + TRAA) as the quality tier's lever"
+  ],
+  "ids": [
+   "D-309",
+   "D-337",
+   "B125",
+   "B193",
+   "D-353"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs frame",
+   "DBG=1 ABL=1 PW_CHANNEL=chrome node tools/dev/gpu_slot.mjs frame -- npx playwright test tests/e2e/dbg_perf.spec.ts --project=gpu"
+  ],
   "done": "Median GPU frame time <= 33 ms at 1080p high on this T4 at 5 views (Terrace court, Apadana hall, town lane, plain, crowd), measured by dbg_perf with the per-pass split committed; train frames show no visible loss (shadows, GI, reflections).",
-  "train": ["apadana-nw-court", "apadana-hall-axis", "lane-with-child", "small-spring-field", "night-terrace"]
+  "train": [
+   "apadana-nw-court",
+   "apadana-hall-axis",
+   "lane-with-child",
+   "small-spring-field",
+   "night-terrace"
+  ]
  },
  {
-  "name": "plain", "title": "The plain and hills filled: dense, alive ground at walking distance", "hours": 6, "needs": "gpu",
-  "ud": ["UD-06", "UD-14", "UD-19"], "thresholds": ["T-R12"], "d": 356, "q": [1100, 1109], "b": [270, 279],
+  "name": "plain",
+  "title": "The plain and hills filled: dense, alive ground at walking distance",
+  "hours": 6,
+  "needs": "gpu",
+  "ud": [
+   "UD-06",
+   "UD-14",
+   "UD-19"
+  ],
+  "thresholds": [
+   "T-R12"
+  ],
+  "d": 356,
+  "q": [
+   1100,
+   1109
+  ],
+  "b": [
+   270,
+   279
+  ],
   "goal": "Walking off the Terrace into the plain, the ground reads as a real Fars plain in its season: dense steppe cover, crops in every field, orchards, channels and tracks, flocks with herders, workers in fields, dust; not flat brown with scattered rocks.",
-  "owns": ["src/world/plain/**", "src/world/groundFlora.ts", "src/world/groundRocks.ts", "src/world/trees/**", "src/world/roadLitter.ts", "src/world/fauna.ts"],
-  "reads": ["src/terrain/**", "src/render/scans.ts", "src/render/scanProps.ts", "research/PLAIN.md", "data/plain.json"],
-  "entry": ["BUG first: many ground-flora plants render pure black (material/alpha/normal fault, groundFlora.ts) and rocks float over puddles (groundRocks.ts)", "src/world/plain/groundCover.ts and crops.ts/fields.ts: density and coverage of cover and crops by season", "far trees read as lollipops: an impostor/LOD for trees (src/world/trees/**)", "herders and flocks visible in the near plain (fauna.ts and the sim's herders)"],
-  "ids": ["D-149", "D-190", "D-310", "D-332", "D-120"],
-  "commands": ["node tools/dev/mkwt.mjs plain", "iterate on tools/dev/ground_probe.html (~10 s a load): node tools/dev/gpu_slot.mjs plain -- node tools/dev/ground_probe.mjs"],
+  "owns": [
+   "src/world/plain/**",
+   "src/world/groundFlora.ts",
+   "src/world/groundRocks.ts",
+   "src/world/trees/**",
+   "src/world/roadLitter.ts",
+   "src/world/fauna.ts"
+  ],
+  "reads": [
+   "src/terrain/**",
+   "src/render/scans.ts",
+   "src/render/scanProps.ts",
+   "research/PLAIN.md",
+   "data/plain.json"
+  ],
+  "entry": [
+   "BUG first: many ground-flora plants render pure black (material/alpha/normal fault, groundFlora.ts) and rocks float over puddles (groundRocks.ts)",
+   "src/world/plain/groundCover.ts and crops.ts/fields.ts: density and coverage of cover and crops by season",
+   "far trees read as lollipops: an impostor/LOD for trees (src/world/trees/**)",
+   "herders and flocks visible in the near plain (fauna.ts and the sim's herders)"
+  ],
+  "ids": [
+   "D-149",
+   "D-190",
+   "D-310",
+   "D-332",
+   "D-120"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs plain",
+   "iterate on tools/dev/ground_probe.html (~10 s a load): node tools/dev/gpu_slot.mjs plain -- node tools/dev/ground_probe.mjs"
+  ],
   "done": "Whole views of the plain at the player's lens (near field, mid field, from the stair top) read as a real, filled, inhabited landscape in spring and in late summer; no black plants, no floating rocks; instanced so frame time rises <= 2 ms.",
-  "train": ["small-spring-field", "flowers-may", "drum-road", "ford-pulvar-sep", "dawn-stair-top", "quarry-work"]
+  "train": [
+   "small-spring-field",
+   "flowers-may",
+   "drum-road",
+   "ford-pulvar-sep",
+   "dawn-stair-top",
+   "quarry-work"
+  ]
  },
  {
-  "name": "light", "title": "Baked path-traced light on all static architecture and the town", "hours": 6, "needs": "blender",
-  "ud": ["UD-17", "UD-19", "UD-20"], "thresholds": ["T-R12"], "d": 357, "q": [1110, 1119], "b": [280, 289],
+  "name": "light",
+  "title": "Baked path-traced light on all static architecture and the town",
+  "hours": 6,
+  "needs": "blender",
+  "ud": [
+   "UD-17",
+   "UD-19",
+   "UD-20"
+  ],
+  "thresholds": [
+   "T-R12"
+  ],
+  "d": 357,
+  "q": [
+   1110,
+   1119
+  ],
+  "b": [
+   280,
+   289
+  ],
   "goal": "Shade stops being flat and dark: every wall, court, room and lane carries sky light and bounce from a Cycles bake, so a frame reads like a photograph of sunlit stone and mudbrick.",
-  "owns": ["new tools/blender/lightmap*.py and tools/blender/lightmaps.mjs", "src/render/probes/**", "new src/render/lightmaps.ts (the material hook lives here; one import into materials.ts is the only allowed edit there)", "public/lightmaps/**"],
-  "reads": ["src/render/materials.ts", "src/arch/**", "src/world/settlement/**", "research/BLENDER_PLAN.md", "tools/blender/build.mjs"],
-  "entry": ["src/render/probes/bake.ts: L1 probes for roofed interiors only, a yearly-average bounce; extend to a dense outdoor irradiance grid over the Terrace and town", "Cycles bake (OptiX on the T4) of AO + sky term + sun-bounce term per static instance class (Terrace blocks, palace walls, house kit), stored as atlases + per-instance UV offsets", "Tol-e Ajori already has real lightmaps (D-329): reuse that path"],
-  "ids": ["D-305", "D-309", "D-329", "B111", "Q-153"],
-  "commands": ["node tools/dev/mkwt.mjs light", "node tools/dev/gpu_slot.mjs light-bake -- \"C:/Program Files/Blender Foundation/Blender 5.0/blender.exe\" -b --factory-startup --python tools/blender/lightmap_bake.py", "iterate on tools/dev/terrace_probe.html and palace_probe.html"],
+  "owns": [
+   "new tools/blender/lightmap*.py and tools/blender/lightmaps.mjs",
+   "src/render/probes/**",
+   "new src/render/lightmaps.ts (the material hook lives here; one import into materials.ts is the only allowed edit there)",
+   "public/lightmaps/**"
+  ],
+  "reads": [
+   "src/render/materials.ts",
+   "src/arch/**",
+   "src/world/settlement/**",
+   "research/BLENDER_PLAN.md",
+   "tools/blender/build.mjs"
+  ],
+  "entry": [
+   "src/render/probes/bake.ts: L1 probes for roofed interiors only, a yearly-average bounce; extend to a dense outdoor irradiance grid over the Terrace and town",
+   "Cycles bake (OptiX on the T4) of AO + sky term + sun-bounce term per static instance class (Terrace blocks, palace walls, house kit), stored as atlases + per-instance UV offsets",
+   "Tol-e Ajori already has real lightmaps (D-329): reuse that path"
+  ],
+  "ids": [
+   "D-305",
+   "D-309",
+   "D-329",
+   "B111",
+   "Q-153"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs light",
+   "node tools/dev/gpu_slot.mjs light-bake -- \"C:/Program Files/Blender Foundation/Blender 5.0/blender.exe\" -b --factory-startup --python tools/blender/lightmap_bake.py",
+   "iterate on tools/dev/terrace_probe.html and palace_probe.html"
+  ],
   "done": "Every static architectural surface of the Terrace, palaces and town houses lit by the bake (sky + bounce), shade readable with colour bleed in whole views; town lanes no longer black at night under lamps (B111); frame time not worse.",
-  "train": ["apadana-enter-court", "gate-w-day", "lane-with-child", "lane-night", "room-kitchen", "room-treasury-store", "tachara-lance-bearers"]
+  "train": [
+   "apadana-enter-court",
+   "gate-w-day",
+   "lane-with-child",
+   "lane-night",
+   "room-kitchen",
+   "room-treasury-store",
+   "tachara-lance-bearers"
+  ]
  },
  {
-  "name": "simtalk", "title": "Talking to people reaches the real simulation", "hours": 6, "needs": "node",
-  "ud": ["UD-18", "UD-21", "UD-24", "UD-25", "UD-26"], "thresholds": ["T-E9", "T-E10", "T-F9"], "d": 358, "q": [1120, 1129], "b": [290, 299],
+  "name": "simtalk",
+  "title": "Talking to people reaches the real simulation",
+  "hours": 6,
+  "needs": "node",
+  "ud": [
+   "UD-18",
+   "UD-21",
+   "UD-24",
+   "UD-25",
+   "UD-26"
+  ],
+  "thresholds": [
+   "T-E9",
+   "T-E10",
+   "T-F9"
+  ],
+  "d": 358,
+  "q": [
+   1120,
+   1129
+  ],
+  "b": [
+   290,
+   299
+  ],
   "goal": "When the player talks to someone, they speak from their real life (their actual debts, prices, spouse or betrothal, rumours they hold, trust in the player), and what the player says can enter the world: trade and haggle, give, ask for help, petition, hospitality, all as real economy and simulation intents.",
-  "owns": ["src/people/converse/life.ts", "src/people/converse/turn.ts", "src/people/converse/intent.ts", "src/people/converse/ground.ts", "src/people/speech/**", "src/people/asks/**", "tests/ (new files for this package)"],
-  "reads": ["src/people/economy/**", "src/people/relations/**", "src/people/living/**", "src/people/sim.ts", "src/people/talk.ts"],
-  "entry": ["converse/life.ts:158-162: lifeRecord fakes seeded debts: read the economy's real loans, stores, prices and recent events, relations (spouse, betrothal, scandal), rumours held, trust", "willTalk is never called by conversation (B234): gate turns on it", "talkAct goes through talk.ts only: [trade], [give] and a new [petition]/[host] become economy intents through speech/haggle.ts with the player as a party", "asks (needs as emergent quests, off unless opts.asks): surface them as talk hooks and turn them on by default if cost allows"],
-  "ids": ["D-296", "D-339", "D-341", "D-351", "D-352", "B234", "B235", "B233"],
-  "commands": ["node tools/dev/mkwt.mjs simtalk", "npx vitest run tests/<your files> tests/converse*.test.ts", "the stand-in model for T-E9/T-E10 in node (the real model is the interactive agent's, wave 2)"],
+  "owns": [
+   "src/people/converse/life.ts",
+   "src/people/converse/turn.ts",
+   "src/people/converse/intent.ts",
+   "src/people/converse/ground.ts",
+   "src/people/speech/**",
+   "src/people/asks/**",
+   "tests/ (new files for this package)"
+  ],
+  "reads": [
+   "src/people/economy/**",
+   "src/people/relations/**",
+   "src/people/living/**",
+   "src/people/sim.ts",
+   "src/people/talk.ts"
+  ],
+  "entry": [
+   "converse/life.ts:158-162: lifeRecord fakes seeded debts: read the economy's real loans, stores, prices and recent events, relations (spouse, betrothal, scandal), rumours held, trust",
+   "willTalk is never called by conversation (B234): gate turns on it",
+   "talkAct goes through talk.ts only: [trade], [give] and a new [petition]/[host] become economy intents through speech/haggle.ts with the player as a party",
+   "asks (needs as emergent quests, off unless opts.asks): surface them as talk hooks and turn them on by default if cost allows"
+  ],
+  "ids": [
+   "D-296",
+   "D-339",
+   "D-341",
+   "D-351",
+   "D-352",
+   "B234",
+   "B235",
+   "B233"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs simtalk",
+   "npx vitest run tests/<your files> tests/converse*.test.ts",
+   "the stand-in model for T-E9/T-E10 in node (the real model is the interactive agent's, wave 2)"
+  ],
   "done": "In a node session on a day-300 save, every conversation's grounding facts come from the simulation (0 seeded fakes), and a scripted set of 30 player interventions (buy, haggle, give, lend, petition, host, ask for help) each change simulation state and enter a T-F9 chain; T-E9/T-E10 measured with the stand-in.",
   "train": []
  },
  {
-  "name": "visible", "title": "The simulation made visible: errands, markets, washing, weddings, wardrobes", "hours": 6, "needs": "node",
-  "ud": ["UD-07", "UD-08", "UD-09", "UD-26", "UD-27"], "thresholds": ["T-F9", "T-E13"], "d": 359, "q": [1130, 1139], "b": [300, 309],
+  "name": "visible",
+  "title": "The simulation made visible: errands, markets, washing, weddings, wardrobes",
+  "hours": 6,
+  "needs": "node",
+  "ud": [
+   "UD-07",
+   "UD-08",
+   "UD-09",
+   "UD-26",
+   "UD-27"
+  ],
+  "thresholds": [
+   "T-F9",
+   "T-E13"
+  ],
+  "d": 359,
+  "q": [
+   1130,
+   1139
+  ],
+  "b": [
+   300,
+   309
+  ],
   "goal": "What the simulation does, the player can see: people walk to market and haggle at stalls, carry goods home, wash clothes at the canal, go to a wedding procession and feast, wear the clothes their wardrobe chose today.",
-  "owns": ["src/people/economy/plans.ts", "src/people/wardrobe/**", "src/people/activities.ts", "src/people/relations/plans.ts", "src/people/relations/world.ts", "src/people/living/world.ts"],
-  "reads": ["src/people/population.ts", "src/people/crowd.ts", "src/people/popview.ts", "src/people/sim.ts", "src/people/economy/world.ts"],
-  "entry": ["haggles are never walked (B235): a market segment at a real stall with a performance", "laundry is a plan segment with no activity: washing at the canal/river with a performance and props", "every economy segment gets a performance and carried goods (activities.ts, lint:activity must stay 0 placeholders)", "weddings move no house (B226) and never reach the economy (B227): step Relations inside LivingWorld.advance; processions and feasts as plan segments for both households", "export the day's garment choice per person for the render (the 'people' agent reads it in wave 2)"],
-  "ids": ["D-338", "D-343", "D-345", "D-347", "D-348", "B226", "B227", "B235"],
-  "commands": ["node tools/dev/mkwt.mjs visible", "npm run lint:activity", "npx vitest run <touched tests>; long people_days files only through node tools/dev/cpu_slot.mjs"],
+  "owns": [
+   "src/people/economy/plans.ts",
+   "src/people/wardrobe/**",
+   "src/people/activities.ts",
+   "src/people/relations/plans.ts",
+   "src/people/relations/world.ts",
+   "src/people/living/world.ts"
+  ],
+  "reads": [
+   "src/people/population.ts",
+   "src/people/crowd.ts",
+   "src/people/popview.ts",
+   "src/people/sim.ts",
+   "src/people/economy/world.ts"
+  ],
+  "entry": [
+   "haggles are never walked (B235): a market segment at a real stall with a performance",
+   "laundry is a plan segment with no activity: washing at the canal/river with a performance and props",
+   "every economy segment gets a performance and carried goods (activities.ts, lint:activity must stay 0 placeholders)",
+   "weddings move no house (B226) and never reach the economy (B227): step Relations inside LivingWorld.advance; processions and feasts as plan segments for both households",
+   "export the day's garment choice per person for the render (the 'people' agent reads it in wave 2)"
+  ],
+  "ids": [
+   "D-338",
+   "D-343",
+   "D-345",
+   "D-347",
+   "D-348",
+   "B226",
+   "B227",
+   "B235"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs visible",
+   "npm run lint:activity",
+   "npx vitest run <touched tests>; long people_days files only through node tools/dev/cpu_slot.mjs"
+  ],
   "done": "In a simulated week (node), >= 95 % of economy, washing and relation segments have a performance, a real place and carried props (a node count), weddings move a household and reach the economy, and each person's daily garment is exported; T-E13 and T-F9 re-measured.",
-  "train": ["lane-with-child", "morning-wash", "tannery-work", "press-work"]
+  "train": [
+   "lane-with-child",
+   "morning-wash",
+   "tannery-work",
+   "press-work"
+  ]
  },
  {
-  "name": "simhealth", "title": "Simulation health: merges, late-load cost, tests that run", "hours": 5, "needs": "node",
-  "ud": ["UD-07", "UD-26", "UD-28"], "thresholds": ["T-F8", "T-F9"], "d": 360, "q": [1140, 1149], "b": [310, 319],
+  "name": "simhealth",
+  "title": "Simulation health: merges, late-load cost, tests that run",
+  "hours": 5,
+  "needs": "node",
+  "ud": [
+   "UD-07",
+   "UD-26",
+   "UD-28"
+  ],
+  "thresholds": [
+   "T-F8",
+   "T-F9"
+  ],
+  "d": 360,
+  "q": [
+   1140,
+   1149
+  ],
+  "b": [
+   310,
+   319
+  ],
   "goal": "The living world loads fast late in the year and the test suite tells the truth in minutes, so the rest of the week can move without fear.",
-  "owns": ["src/people/sim.ts (init only)", "package.json scripts", "vitest.config.ts", "tools/dev/audit_d/**", "tools/soak.ts", "tests/people_days*.test.ts (timeouts and pins only)", "tests/living_world*.test.ts"],
-  "reads": ["src/people/relations/**", "src/people/living/**", "src/people/economy/**"],
-  "entry": ["tsc: 23 errors, all in tools/dev/audit_d/*.mts (hard-coded /home/user paths): fix or exclude", "split npm test into test:fast (< 5 min) and test:slow (people_days*, soak-scale), slow ones runnable through cpu_slot.mjs", "B228: courting (SimOpts.bonds) costs ~13 s on a day-300 load: snapshot the relations year; LivingWorld at ~1086 ms per simulated day", "s13-bridesmerge (908fee4e): run the d211 people_days failures on s14-int and on the branch (B230); merge it if they match", "a dependency hash in soak.ts and living_world evidence so the board stops marking them STALE for want of one"],
-  "ids": ["D-349", "D-350", "B228", "B229", "B230"],
-  "commands": ["node tools/dev/mkwt.mjs simhealth", "npx tsc --noEmit", "node tools/dev/cpu_slot.mjs pd -- npx vitest run tests/people_days_d211.test.ts"],
+  "owns": [
+   "src/people/sim.ts (init only)",
+   "package.json scripts",
+   "vitest.config.ts",
+   "tools/dev/audit_d/**",
+   "tools/soak.ts",
+   "tests/people_days*.test.ts (timeouts and pins only)",
+   "tests/living_world*.test.ts"
+  ],
+  "reads": [
+   "src/people/relations/**",
+   "src/people/living/**",
+   "src/people/economy/**"
+  ],
+  "entry": [
+   "tsc: 23 errors, all in tools/dev/audit_d/*.mts (hard-coded /home/user paths): fix or exclude",
+   "split npm test into test:fast (< 5 min) and test:slow (people_days*, soak-scale), slow ones runnable through cpu_slot.mjs",
+   "B228: courting (SimOpts.bonds) costs ~13 s on a day-300 load: snapshot the relations year; LivingWorld at ~1086 ms per simulated day",
+   "s13-bridesmerge (908fee4e): run the d211 people_days failures on s14-int and on the branch (B230); merge it if they match",
+   "a dependency hash in soak.ts and living_world evidence so the board stops marking them STALE for want of one"
+  ],
+  "ids": [
+   "D-349",
+   "D-350",
+   "B228",
+   "B229",
+   "B230"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs simhealth",
+   "npx tsc --noEmit",
+   "node tools/dev/cpu_slot.mjs pd -- npx vitest run tests/people_days_d211.test.ts"
+  ],
   "done": "tsc clean; npm run test:fast green in < 5 min; living_world day-300 load < 2 s measured alone; bridesmerge merged or abandoned with the reason; soak.ts writes a dependency hash.",
   "train": []
+ },
+ {
+  "name": "blender",
+  "title": "Blender leftovers: monuments that read as CG, the far Terrace, reproducibility",
+  "hours": 6,
+  "needs": "blender",
+  "ud": [
+   "UD-19",
+   "UD-20"
+  ],
+  "thresholds": [
+   "T-R12"
+  ],
+  "d": 361,
+  "q": [
+   1150,
+   1159
+  ],
+  "b": [
+   320,
+   329
+  ],
+  "goal": "The Gate colossi and the protome capitals read as carved stone, not toys, close up; the Terrace seen from the plain (150 m to 4 km) is a cheap far version that looks the same; every Blender asset rebuilds identically from its script.",
+  "owns": [
+   "tools/blender/monuments.mjs",
+   "tools/blender/mon_lib.py",
+   "tools/blender/impostor.py",
+   "new tools/blender/far_terrace*",
+   "src/arch/sculpt*.ts",
+   "src/render/monuments.ts",
+   "tools/blender/assets.json (monument and far-terrace entries only)"
+  ],
+  "reads": [
+   "research/BLENDER_PLAN.md (rows 1, 2, 19)",
+   "tools/blender/build.mjs",
+   "tools/dev/far_terrace_cost.ts",
+   "src/arch/terrace.ts",
+   "references/ (the colossi and capital photographs)"
+  ],
+  "entry": [
+   "node tools/blender/build.mjs --verify: 3 assets failed reproduction on the merged tree (session 12): fix first",
+   "B118: capitals 2/5, colossi 1/5 in blind review; commit e7290b1 (D-312 rev, merged) noted 2 broken tests: find and fix them; judge against the photographs in references/ and fars-assets/photos/columns_capitals, gate_of_all_nations",
+   "B175: from 150 m to 4 km the Terrace draws 1.27 M triangles in 114 draws: a far level (merged, decimated, Cycles-baked albedo+normal) and an impostor beyond ~1.5 km, swapped by distance"
+  ],
+  "ids": [
+   "D-305",
+   "D-312",
+   "D-328",
+   "D-331",
+   "B118",
+   "B175"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs blender",
+   "node tools/dev/gpu_slot.mjs blender -- node tools/blender/build.mjs --verify",
+   "iterate on tools/dev/terrace_probe.html and tools/blender/probe/*"
+  ],
+  "done": "build.mjs --verify reproduces every asset; colossi and capitals at 1-3 m judged against the photographs as carved stone (no paddle ears, no vertical stretch); the Terrace beyond 150 m costs <= 25 % of its present triangles with no visible change in the train views.",
+  "train": [
+   "gate-w-day",
+   "gate-w-lens",
+   "apadana-nw-court",
+   "dawn-stair-top",
+   "drum-road"
+  ]
+ },
+ {
+  "name": "animalmotion",
+  "title": "Animals and birds move like living things (3c)",
+  "hours": 4,
+  "needs": "blender",
+  "ud": [
+   "UD-27",
+   "UD-11"
+  ],
+  "thresholds": [
+   "T-E15"
+  ],
+  "d": 362,
+  "q": [
+   1160,
+   1169
+  ],
+  "b": [
+   330,
+   339
+  ],
+  "goal": "Every animal has secondary motion: bellies and dewlaps sway, ears flick, tails swing as chains, pack loads sway with the gait; birds take off without a pop and their wings shade correctly in flight.",
+  "owns": [
+   "src/people/animals.ts",
+   "src/people/animalForm.ts",
+   "src/people/animalRig.ts",
+   "src/people/animalModels.ts",
+   "tools/blender/animals.mjs",
+   "tools/blender/animals.py",
+   "tools/blender/life_birds.py",
+   "src/world/wildlife.ts"
+  ],
+  "reads": [
+   "src/world/fauna.ts (the plain agent owns it)",
+   "src/world/beasts.ts",
+   "research/BLENDER_PLAN.md rows 4, 20",
+   "tools/dev/animal_probe.*"
+  ],
+  "entry": [
+   "animals.ts:12: the only motion is a procedural tail swish; add spring-damper jiggle bones (belly, dewlap, ears, tail chain, load) in Blender weights on the vertex rig, solved per frame on the GPU or a worker, faded with distance",
+   "B179: birds pop at take-off (separate stand and fly levels) and flying wings keep rest normals: blend the rigs, recompute normals"
+  ],
+  "ids": [
+   "D-326",
+   "D-332",
+   "B179"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs animalmotion",
+   "iterate on tools/dev/animal_probe.html: node tools/dev/gpu_slot.mjs animalmotion -- node tools/dev/animal_probe.mjs"
+  ],
+  "done": "In the animal probe and in train views, donkeys, oxen, sheep, goats, dogs, horses and camels show visible belly, ear, tail and load motion while walking and settle when standing; birds take off without a pop; cost <= 0.5 ms for 200 animals.",
+  "train": [
+   "drum-road",
+   "small-spring-field",
+   "ford-pulvar-sep"
+  ]
  }
 ]

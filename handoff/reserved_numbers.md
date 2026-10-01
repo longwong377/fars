@@ -107,4 +107,6 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-358 | s14 | talk reaches the real simulation (Q-1120..Q-1129, B290..B299) | agent worktree, branch s14-simtalk | in flight |
 | D-359 | s14 | the simulation made visible (Q-1130..Q-1139, B300..B309) | agent worktree, branch s14-visible | in flight |
 | D-360 | s14 | simulation health, tests, merges (Q-1140..Q-1149, B310..B319) | agent worktree, branch s14-simhealth | in flight |
-| D-361..D-399 | s14 | reserved for waves 2-4 of the week plan (Q-1150..Q-1399, B320..B499) | the lead | reserved |
+| D-361 | s14 | Blender leftovers: monuments, far Terrace, reproducibility (Q-1150..Q-1159, B320..B329) | agent worktree, branch s14-blender | in flight |
+| D-362 | s14 | animals and birds move (Q-1160..Q-1169, B330..B339) | agent worktree, branch s14-animalmotion | in flight |
+| D-363..D-399 | s14 | reserved for waves 2-4 of the week plan (Q-1170..Q-1399, B340..B499) | the lead | reserved |
