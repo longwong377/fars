@@ -2,7 +2,8 @@
 // node jobs at once (soaks, long vitest files, bots, bakes), each at low priority, so renders and agents' edits keep a core.
 //   node tools/dev/cpu_slot.mjs <label> -- <command and args...>
 // Slots are directories under C:/Users/Administrator/fars-train/cpu-slots made atomically with mkdir; a dead holder's slot
-// is reclaimed. CPU_SLOTS overrides the count (default 2).
+// is reclaimed. CPU_SLOTS overrides the count (default 2). LONG=1 marks a job of more than ~10 min (people_days files, soaks,
+// bakes): long jobs may hold only slots 0..CPU_SLOTS-2, so the last slot always stays free for short checks (merges, related tests).
 import { mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { setPriority, constants } from 'node:os';
@@ -14,7 +15,7 @@ mkdirSync(ROOT, { recursive: true });
 const alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
 let slot, waited = 0;
 for (;;) {
-  for (let i = 0; i < SLOTS && !slot; i++) {
+  for (let i = 0; i < (process.env.LONG ? Math.max(1, SLOTS - 1) : SLOTS) && !slot; i++) {
     const d = `${ROOT}/slot${i}`;
     try { mkdirSync(d); writeFileSync(`${d}/owner.json`, JSON.stringify({ pid: process.pid, label, since: new Date().toISOString() })); slot = d; }
     catch { try { const o = JSON.parse(readFileSync(`${d}/owner.json`, 'utf8')); if (!alive(o.pid)) rmSync(d, { recursive: true, force: true }); } catch {} }
