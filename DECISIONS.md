@@ -8924,3 +8924,33 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
 - **Numbers (tests/animal_motion.test.ts, lod0, peak to peak):** belly walking 6-11 cm, standing 0.8-1.9 cm (breathing); ear
   flick 1.8-8.4 cm, moving 1-6 % of the time; tail walking 8-57 cm (goats 0.3); load 8.8-11.4 cm walking, 0.0 standing; no edge
   stretched past 3x + 2 cm. tests/bird_takeoff.test.ts: a flushed sparrow is drawn at stand 0.77 the next frame and flying by 0.5 s.
+
+## D-363 Every body different: a continuous body per person drawn on the rig and the vertex stage, soft tissue, the far people's breadth and tools (session 14, agent bodies; UD-27, UD-08; T-E15)
+- **Still broken, placeholder or unverified:** no world render yet (train views requested: lane-with-child, apadana-nw-court,
+  morning-wash, tannery-work, hall100-site). The shape is drawn by girth per bone, bind-space fields and the stoop on the 23
+  MakeHuman base meshes, NOT by MakeHuman/Blender shape keys (no target library in the repo; humans.bin is not this
+  package's file): fat sits where the fields put it (limbs, trunk, breasts, buttocks, cheeks, the belly dome), not in
+  MakeHuman's measured distribution (B340). Scars and nursing marks on the skin are not drawn. The impostor atlas is not baked
+  per shape band: a far person's breadth is the quad's width (impBreadth), the image is the reference body's (B341). The
+  re-bake draws the work frames' tools, cut at the cell's 2 m top (a spear reads as a staff; B176 stays open for the spear).
+- **What changed, world-wide.** bodyShape.ts draws for every person a shape vector (fat, muscle, frame, shoulders, bust,
+  hips, belly, buttocks, posture, face width and length, jaw, cheeks, asymmetry, nose, chin; beauty 0..1 as averageness and
+  symmetry; firmness) from independent normals seeded by the person, shifted by the life the simulation gives (popview's
+  lookInput hook: lifeOf from age, the job's labour, the ration or the household's rank, illness, children borne, nursing,
+  a child carried). bodyRigFor turns it into girth per bone folded into the person's skin matrices (humanRig.solve: the body
+  and every garment skinned over it change together), the stoop added to the pose, and nine extra palette texels (three
+  virtual bones) that the vertex stage reads for the breast, buttock, cheek and nose fields and the fat belly (the D-292 dome's
+  amount, the months added); bodyShape.bodyFieldOffset mirrors the shader term for term. softbody.ts: damped springs on
+  breasts, belly, buttocks, thighs, upper arms and jowls driven by their bone's acceleration on the crowd's clock, written into
+  the same texels, faded out from 18 to 35 m; the hook the peoplemotion package uses. Hooks in files not owned: crowd.ts (the
+  rig carries look.body; the rig's clock), popview.ts (lookInput's life), tools/blender/sources/people_imp_src.ts (tools).
+- **Numbers.** tests/body_variety.test.ts: 3,000 people of the population per seed, seeds 1-3; the share whose drawn body
+  differs from every other on the same base mesh by >= 3 mm somewhere (or in stature) is >= 99 % (seed 1: 99.5 %); per sex
+  the components are bell curves (|skew| < 0.6, excess kurtosis < 2) with both extremes beyond 2.5 sd; bust volume 3x+ from
+  smallest to largest; the largest bodies move 6 cm+ at the 99th percentile; porters leaner and more muscled than scribes,
+  the old stooped and soft, nursing women fuller, the ill wasted. Clothes: on every adult woman's body the dress's cloth
+  inside the skin rises by <= 1.4 points at the largest bust, buttocks and belly (binned; the 5-8 % baseline is the bins).
+  Soft tissue: a large soft bust 40 mm (at its clamp) walking, a small firm one 4.6 mm, standing 0.8 mm; 1.0 ms a frame for
+  300 people on the loaded box (least of five runs; unverified idle). tests/humans_runtime's 300-people pose budget failed at
+  10.8 ms vs 6 under load: re-run idle (the body adds ~1-4 ms per 300 by tools/dev/body_cost.ts, noisy).
+- **Tiers:** every number C (Q-1170 the spreads, Q-1171 the soft tissue's frequencies).
