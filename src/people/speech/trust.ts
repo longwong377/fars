@@ -39,9 +39,15 @@ const DEEDS: Record<string, Deed> = {
   // the court's judgements are about the one judged (`other`); the judge is a system, never a person
   acquitted: { who: 'other', pub: 0.15, dyad: 0 }, arrest: { who: 'other', pub: -0.15, dyad: 0 },
   debt_labour: { who: 'other', pub: -0.10, dyad: 0 }, time_granted: { who: 'other', pub: 0.03, dyad: 0 },
+  // D-370: the stranger's deeds (speech/stranger.ts); `other` is the stranger when a house acts on them
+  wage_paid: { who: 'other', pub: 0.01, dyad: 0.06 }, wage_owed: { who: 'actor', pub: -0.03, dyad: 0 }, dismissed: { who: 'other', pub: -0.05, dyad: -0.3 },
+  hand_hired: { who: 'other', pub: 0.03, dyad: 0.15 }, hosted: { who: 'actor', pub: 0.02, dyad: 0.05 }, guest_repaid: { who: 'actor', pub: 0.05, dyad: 0.25 },
+  ingrate: { who: 'actor', pub: -0.15, dyad: -0.45 }, guest_sent_away: { who: 'other', pub: -0.03, dyad: -0.15 }, claim_doubted: { who: 'other', pub: -0.03, dyad: -0.3 },
+  claim_denied: { who: 'other', pub: -0.10, dyad: -0.5 }, learned_tongue: { who: 'actor', pub: 0.03, dyad: 0.12 }, joined_house: { who: 'other', pub: 0.03, dyad: 0.3 },
+  ruling_for: { who: 'other', pub: 0.04, dyad: 0 }, ruling_against: { who: 'other', pub: -0.03, dyad: 0 }, halmi_sealed: { who: 'other', pub: 0.06, dyad: 0 },
 };
 /** what hearing of a deed does to the hearer's own view of the one it is about (hear()) */
-const HEARD: Record<string, number> = { theft: -0.25, default: -0.2, repaid: 0.08, acquitted: 0.08, loan: 0.03, debt_labour: -0.05, tax_arrears: -0.04, suit: -0.04 };
+const HEARD: Record<string, number> = { ingrate: -0.2, claim_denied: -0.15, claim_doubted: -0.06, guest_repaid: 0.05, theft: -0.25, default: -0.2, repaid: 0.08, acquitted: 0.08, loan: 0.03, debt_labour: -0.05, tax_arrears: -0.04, suit: -0.04 };
 const clamp = (x: number, a = -1, b = 1) => Math.max(a, Math.min(b, x));
 const decay = (r: Rec | undefined, day: number) => !r ? 0 : day > r.d ? r.v * Math.pow(0.5, (day - r.d) / HALF_LIFE) : r.v;
 
