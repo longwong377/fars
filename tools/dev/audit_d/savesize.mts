@@ -1,8 +1,9 @@
+import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
-process.chdir('/home/user/fars');
-const { NavGrid } = await import('/home/user/fars/src/people/navgrid');
-const { PeopleSim } = await import('/home/user/fars/src/people/sim');
-const { WeatherSystem } = await import('/home/user/fars/src/weather/weatherState');
+process.chdir(fileURLToPath(new URL('../../../', import.meta.url))); // the repo root, wherever it is cloned
+const { NavGrid } = await import('../../../src/people/navgrid');
+const { PeopleSim } = await import('../../../src/people/sim');
+const { WeatherSystem } = await import('../../../src/weather/weatherState');
 const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
 const W = new WeatherSystem(1);
 const env = (t: number) => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
