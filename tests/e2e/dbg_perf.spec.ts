@@ -25,6 +25,8 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
   await page.goto(`/?test&prof&quality=${q}&day=${first.day}&hour=${first.hour}&weather=${first.w}&court=seasonal${process.env.URLX ?? ''}`);
   await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 3_000_000, polling: 2000 });
   await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
+  // D-353: the groups shown one at a time before the first frame (one giant first submit resets the T4); NOWARM=1 skips
+  if (!process.env.NOWARM) console.log('warmUp', JSON.stringify(await page.evaluate(() => (window as any).__parsa.warmUp())));
   console.log('ready', ((Date.now() - t0) / 1000).toFixed(0), 's', await page.evaluate(() => { const b = (window as any).__parsa.renderer.backend; return { ts: !!b.trackTimestamp, adapter: b.adapter?.info?.description ?? b.device?.adapterInfo?.description ?? '' }; }));
   const out: Record<string, any> = { when: new Date().toISOString(), W, H, q, tag: process.env.TAG ?? '', views: {} };
   const f = 'shots/perf-profile.json'; mkdirSync('shots', { recursive: true });
@@ -57,6 +59,8 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
       out.views[s.n].ablation = { base: { cpu: base.cpuMs, gpu: base.gpuMs, serial: base.serialMs }, rows };
       for (const x of rows) console.log(`[abl] ${s.n} hide ${x.group}: gpu -${x.dGpu} cpu -${x.dCpu} (draws ${x.draws})`);
     }
+    const done = Object.values(out.views).map((x: any) => x.gpuMs).filter(Number.isFinite).sort((a: number, b: number) => a - b);
+    out.medianGpuMs = done[Math.floor(done.length / 2)]; console.log(`[perf] median GPU over ${done.length} views so far: ${out.medianGpuMs} ms`);
     const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {}; all[`${out.tag || 'run'}|${W}x${H}|${q}`] = out; writeFileSync(f, JSON.stringify(all, null, 1));
   }
 });
