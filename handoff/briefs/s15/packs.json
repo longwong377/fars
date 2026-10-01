@@ -299,5 +299,73 @@
    "gate-w-day",
    "scribe-room"
   ]
+ },
+ {
+  "name": "simtalk",
+  "title": "Talking to people reaches the real simulation",
+  "hours": 3,
+  "needs": "node",
+  "ud": [
+   "UD-18",
+   "UD-21",
+   "UD-24",
+   "UD-25",
+   "UD-26"
+  ],
+  "thresholds": [
+   "T-E9",
+   "T-E10",
+   "T-F9"
+  ],
+  "d": 358,
+  "q": [
+   1120,
+   1129
+  ],
+  "b": [
+   290,
+   299
+  ],
+  "goal": "When the player talks to someone, they speak from their real life (their actual debts, prices, spouse or betrothal, rumours they hold, trust in the player), and what the player says can enter the world: trade and haggle, give, ask for help, petition, hospitality, all as real economy and simulation intents.",
+  "owns": [
+   "src/people/converse/life.ts",
+   "src/people/converse/turn.ts",
+   "src/people/converse/intent.ts",
+   "src/people/converse/ground.ts",
+   "src/people/speech/**",
+   "src/people/asks/**",
+   "tests/ (new files for this package)"
+  ],
+  "reads": [
+   "src/people/economy/**",
+   "src/people/relations/**",
+   "src/people/living/**",
+   "src/people/sim.ts",
+   "src/people/talk.ts"
+  ],
+  "entry": [
+   "converse/life.ts:158-162: lifeRecord fakes seeded debts: read the economy's real loans, stores, prices and recent events, relations (spouse, betrothal, scandal), rumours held, trust",
+   "willTalk is never called by conversation (B234): gate turns on it",
+   "talkAct goes through talk.ts only: [trade], [give] and a new [petition]/[host] become economy intents through speech/haggle.ts with the player as a party",
+   "asks (needs as emergent quests, off unless opts.asks): surface them as talk hooks and turn them on by default if cost allows"
+  ],
+  "ids": [
+   "D-296",
+   "D-339",
+   "D-341",
+   "D-351",
+   "D-352",
+   "B234",
+   "B235",
+   "B233"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs simtalk",
+   "npx vitest run tests/<your files> tests/converse*.test.ts",
+   "the stand-in model for T-E9/T-E10 in node (the real model is the interactive agent's, wave 2)"
+  ],
+  "done": "In a node session on a day-300 save, every conversation's grounding facts come from the simulation (0 seeded fakes), and a scripted set of 30 player interventions (buy, haggle, give, lend, petition, host, ask for help) each change simulation state and enter a T-F9 chain; T-E9/T-E10 measured with the stand-in.",
+  "train": [],
+  "notes": "RESUME/REPAIR (session 15): branch s14-simtalk (merged with s14-int at cc660894) fails 3 of 5 tests in tests/simtalk.test.ts (log: C:/Users/Administrator/fars-train/logs/simtalk.log): (1) a grounding fact puts modern digits in the stranger's words (\"138 BAR\", lint kind modern/digits): render quantities in the period way, no digits; (2) 30 scripted interventions: 22 join a causal chain, need >= 27; (3) T-E10 stand-in 86.7 % < 90. A 4th failure was a 300 s timeout on a loaded box (econAskOf talk set): re-run alone before treating it as real. Never lower a threshold. Fix the causes, re-run the file through cpu_slot (LONG=1), commit."
  }
 ]
