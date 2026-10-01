@@ -8908,6 +8908,33 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
   rounds, first frames) and compile_probe.mjs (per-pipeline compile time and WGSL hashes, cold vs a warm browser profile) are the
   measurements to run; the done line (cold load to first frame at high <= 120 s) is unverified.
 
+## D-355 — The frame at high on the T4: the fire lights a fixed forward set plus a deferred term; the post resolution and fire A/Bs (session 14, agent frame; B125, B193, B260)
+- **How it could pass while the intent fails (clause 1):** a GPU-timestamp median under 33 ms that leaves out a pass or is
+  CPU-bound (so the player still sees 5 fps), or a cheaper frame that drops the far fires' light, the shadows' detail, the GI or
+  the reflections. Measured against: the per-pass split and the pipelined frame (dbg_perf), the fire A/B screenshots in one
+  load (__parsaFire.legacy), and the deferred term's light model tested against the point light it replaces (node).
+- **The fire lights (world-wide):** the set of visible lights is part of every lit material's shader key. The 12 fire lights
+  were shown and hidden as fires lit and went out within 90 m, so every change of that count (dusk; walking at night) rebuilt
+  and recompiled every lit pipeline (the D-353 bisect: the fire group's first frame 447 s), and each lit pixel of each lit
+  material evaluated 12 lights with their room mask and the 16-tap occlusion atlas whether in range or not. Now: a fixed set
+  from frame 0 (always visible, intensity 0 when free), 4 forward lights at high (8 ultra and medium, 4 low), and the next 12
+  nearest lit fires added once per pixel in the post composite from the G-buffer (src/render/fireGlow.ts: the same candela,
+  flicker, inverse square with three's cut-off window, Lambert on the albedo, the room confinement and the occlusion atlas,
+  each light branched out beyond its cut-off). 16 fires light the scene at high (12 before); the eye adapts to all 16. What
+  the deferred 12 lack (C): their specular highlight, the SSGI bounce of their light, and transparent surfaces.
+- **Measured (node, tools/dev/fireglow_wgsl.ts, limestone with the probe field and the occlusion atlas):** a lit surface's
+  fragment shader 270 KB / 192 texture loads (12 forward) → 156 KB / 64 (4 forward); 101 KB with no fire lights; node build
+  959 → 340 ms (the GPU compile scales with it). The deferred term: one 12-iteration loop, 16 texture loads per light in range.
+  (A bug caught there: a TSL Loop outside an Fn is silently dropped from the shader.)
+- **Knobs for the measurement, not yet decided:** POST_SCALE per quality (SSGI, SSR, contact shadows; 1 at high, as D-309),
+  each node's resolutionScale settable at run time (__parsaSurf.postScale; ssgi.ts gained the knob); dbg_perf AB=1 profiles
+  each at half resolution and the whole frame at 0.75 scale; FIREAB=<view> profiles the fire lights before/after in one load.
+  Shadows (3 cascades at 2048, static casters cached) left unchanged: no GPU split to justify the visible loss.
+- **Not measured on the GPU (B260):** three dbg_perf loads failed for the box, not the code (shared Vite cache; the session
+  crash; a world build stalled under memory pressure). The done line (median GPU ≤ 33 ms at 5 views) is unverified.
+- vite.config.ts: cacheDir from VITE_CACHE_DIR (default unchanged): worktrees sharing node_modules/.vite through mkwt's junction
+  re-optimised each other's deps (504 Outdated Optimize Dep, GLTFLoader missing mid-load). A run tree should set it.
+
 ## D-362 The animals move like living things: secondary motion on every body, the birds' take-off morph and lit wingbeat (session 14, agent animalmotion; UD-11, UD-27; B179)
 - **Still broken, placeholder or unverified (lead):** no world render yet (train views requested: drum-road, small-spring-field,
   ford-pulvar-sep). The goats' (goat, wild goat) short tails are fused to the quarters in their models (D-326): no tail motion

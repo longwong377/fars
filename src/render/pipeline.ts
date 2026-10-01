@@ -45,6 +45,7 @@ import { SkyEnvCapture, skyEnv, specularOcclusion } from './envmap';
 import { addAirLight } from './airlight';
 import { agxLook } from './toneLook';
 import { SkyVisField, SKYVIS } from './skyVis';
+import { fireGlowIrradiance } from './fireGlow';
 /** D-309: the fitted AgX look (toneLook.ts) at medium and above; ?tone=agx draws three's plain AgX (the A/B) */
 export const TONE_LOOK_ON = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('tone') === 'agx');
 
@@ -72,6 +73,11 @@ export const SSR_MISS_D = 8;
  *  only the pixel's share of direct sun (estimated as below), where the shadow map's texels and bias (6 cm, D-146) leave a
  *  plinth or a step nosing without its contact shadow */
 export const SSS_MAX_DISTANCE = 0.6, SSS_THICKNESS = 0.06;
+/** D-355: the screen-space passes' resolution (× the drawing buffer) per quality; TRAA resolves the upsampled result */
+export const POST_SCALE: Partial<Record<Quality, { ssgi: number; ssr: number; sss: number }>> = {
+  high: { ssgi: 1, ssr: 1, sss: 1 },
+  ultra: { ssgi: 1, ssr: 1, sss: 1 },
+};
 
 /** the SSR blur mip for a reflection (D-188): the glossy cone (half-angle ≈ α = roughness², GGX) spans dHit · α at a hit
  *  dHit metres away, i.e. dHit · α / (viewDist · pxAngle) pixels on screen; mip i of the half-resolution blur chain averages
@@ -111,13 +117,17 @@ export class Pipeline {
   setDebugView(v: string) { this.debugView = v; this.built = false; this.rp = null; }
   /** A/B switches for measurements (window.__parsaSurf; 1 = on): SSR, sun contact shadows (sss), the direct-only SSGI input with its bounce inside
    *  the probe volumes (0 = the session-4 composite: full scene into the SSGI, bounce × (1 − w)), the contact AO outdoors */
-  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1), skyvis: uniform(1) };
+  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1), skyvis: uniform(1), fireglow: uniform(1) };
   /** the outdoor sky visibility from the built world's height map (D-309b; high/ultra) */
   private skyVis: SkyVisField | null = null;
   /** the sun as the composite's contact-shadow estimate sees it: direction toward the sun (world) and colour × intensity */
   private sunDirW = uniform(new THREE.Vector3(0, 1, 0)); private sunE = uniform(new THREE.Color(0, 0, 0));
   /** the angle one pixel spans at the centre of the frame (rad; the SSR blur's footprint, D-188) */
   private pxAngle = uniform(0.0015);
+  /** the screen-space nodes, for the run-time resolution A/B (__parsaSurf.postScale, tests/e2e/dbg_perf.spec.ts) */
+  private post: { ssgi?: any; ssr?: any; sss?: any } = {};
+  /** set the screen-space passes' resolution scales at run time (each node resizes its target on its next frame) */
+  setPostScale(o: { ssgi?: number; ssr?: number; sss?: number }) { for (const k of ['ssgi', 'ssr', 'sss'] as const) { const n = this.post[k], v = o[k]; if (n && v) n.resolutionScale = v; } return { ssgi: this.post.ssgi?.resolutionScale, ssr: this.post.ssr?.resolutionScale, sss: this.post.sss?.resolutionScale }; }
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
     installProbeLight(renderer); // before any material is built
     // the sun: the shadow-casting directional light (SkySystem.sun); the sky dome (SkySystem.sky) for the environment
@@ -133,7 +143,7 @@ export class Pipeline {
       const P = probeAmbient(p, r, vec3(1, 1, 1), vec3(0, 0, 0), vec3(open, open, open), true, rOff ?? r); // direct sky only (D-181); rOff: D-187
       return clamp(luminance(P.E).div(open), 0, 1);
     };
-    (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), ...this.ab, env: skyEnv.intensity, envCaptures: () => skyEnv.captures, post: (v: string) => this.setDebugView(v) };
+    (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), ...this.ab, env: skyEnv.intensity, envCaptures: () => skyEnv.captures, post: (v: string) => this.setDebugView(v), postScale: (o: any) => this.setPostScale(o ?? {}) };
   }
   /** the post graph is built at the first render, after the world (and its light probes) has loaded: the composite reads
    *  the probe volumes as constants */
@@ -198,7 +208,7 @@ export class Pipeline {
       const colDirect = max(col.rgb.sub(sky.mul(this.ab.giDirect)), vec3(0));
       const node = (V.includes('orig') ? ssgiOrig(col, dep, nrm, camera) : ssgi(vec4(colDirect, 1), dep, nrm, camera)) as any;
       node.sliceCount.value = quality === 'ultra' ? 4 : 3; node.stepCount.value = quality === 'ultra' ? 16 : 12; // D-309 (the T4): were 3/16 and 2/8
-      node.giIntensity.value = GI_SCALE;
+      node.giIntensity.value = GI_SCALE; node.resolutionScale = POST_SCALE[quality]?.ssgi ?? 1; this.post.ssgi = node;
       if (!V.includes('orig')) {
         node.thickness.value = SSGI_THICKNESS; node.useLinearThickness.value = true;
         node.aoNearRadius.value = SSGI_CONTACT_RADIUS; node.nearSteps.value = SSGI_CONTACT_STEPS;
@@ -233,7 +243,7 @@ export class Pipeline {
       const fres = float(1).sub(dotNV.mul(dotNV)).max(0.05);
       const S: any = ssr(col, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
       S.maxDistance.value = SSR_MAX_DISTANCE; S.thickness.value = SSR_THICKNESS; S.quality.value = 0.5; // D-188: 0.5 at high too (0.3 stepped ~3 texels and hit the thin column bases only sporadically: dark dots, D-187)
-      S.resolutionScale = 1; // D-309: full resolution at high too (the T4; session 11 and before: half at high, for SwiftShader)
+      S.resolutionScale = POST_SCALE[quality]?.ssr ?? 1; this.post.ssr = S; // D-309: full resolution at high too (the T4; session 11 and before: half at high, for SwiftShader); D-355: POST_SCALE
       // the sky environment the material reflected (the same lookup and specular occlusion as SkySpecularNode: the
       // dominant direction, the probe field's visibility through the cone fit), removed where a ray hits, by the node's own
       // falloff (1 − plane distance / max distance)²; alpha = the hit's distance along the ray
@@ -269,12 +279,15 @@ export class Pipeline {
       let sunLoss: any = vec3(0);
       if (this.sun) {
         const C: any = sss(dep, camera, this.sun); C.maxDistance.value = SSS_MAX_DISTANCE; C.thickness.value = SSS_THICKNESS; C.quality.value = 0.5;
-        C.resolutionScale = 1; // D-309: full resolution at high too (half before: the contact shadow's 0.6 m rays stepped in 2-pixel blocks)
+        C.resolutionScale = POST_SCALE[quality]?.sss ?? 1; this.post.sss = C; // D-355: POST_SCALE; D-309: full resolution at high too (half before: the contact shadow's 0.6 m rays stepped in 2-pixel blocks)
         const sunEst = dif.rgb.mul(this.sunE).mul(max(dot(nW, this.sunDirW), 0)).mul(1 / Math.PI);
         sunLoss = min(max(col.rgb.sub(sky), vec3(0)), sunEst).mul(float(1).sub(C.r)).mul(notSky).mul(this.ab.sss);
         this.sssDebug = vec3(C.r);
       }
-      const litR = max(lit.add(ssrAdd).sub(sunLoss), vec3(0));
+      // the far fires' light (D-355, fireGlow.ts): the nearest fires are forward lights, the next ones are added here, Lambert
+      // diffuse on the G-buffer's albedo (the metal's share reflects none) and the bumped world normal
+      const fireAdd = dif.rgb.mul(float(1).sub(metal)).mul(fireGlowIrradiance(pWorld, nW)).mul(1 / Math.PI).mul(notSky).mul(this.ab.fireglow);
+      const litR = max(lit.add(ssrAdd).sub(sunLoss).add(fireAdd), vec3(0));
       // [reserved: the air-light pass (another agent) joins here]
       // debug views are chosen when the pipeline is built (?post=scene|ao|aonear|gi|probe|plain|direct|ssr|env|sss; probe =
       // (w, AO near, AO full) as RGB): a runtime select() on these texture nodes inside the TRAA input made the first-frame

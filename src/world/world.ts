@@ -1,5 +1,6 @@
 // World assembly: architecture (Phase 2+), people (Phase 3/5), audio (Phase 3). Phase 1: empty shell with hooks.
 import * as THREE from 'three/webgpu';
+import { FORWARD_FIRE_LIGHTS, GLOW_MAX } from '../render/fireGlow';
 import { ArrisField } from '../arch/arris';
 import { ADIST_OFF } from '../render/blockface';
 import type { Physics } from '../player/physics';
@@ -235,7 +236,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // ?fireshadows=K (diagnostic, D-216): the nearest K fire lights cast shadows
   const fireShadows = typeof location !== 'undefined' ? +(new URLSearchParams(location.search).get('fireshadows') ?? 0) : 0;
   await fireOccP;
-  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q], fireShadows); placeFires(fire, manifest, parts, doorways);
+  // D-355: the nearest fires as forward lights (a fixed set), the next GLOW_MAX through the post composite (high/ultra)
+  const fire = new FireSystem(FORWARD_FIRE_LIGHTS[q], fireShadows, 512, q === 'high' || q === 'ultra' ? GLOW_MAX : 0); placeFires(fire, manifest, parts, doorways);
   // the halls' interiors: a fire's light stays on its side of their walls (D-216; manifest rooms [e, n, size e, size n, floor, height])
   // (D-276: and every room of the room ranges: a quarters hearth lights its own room, not the next one through the wall)
   fire.setRooms([...Object.values(manifest).map((m: any) => m?.room), ...Object.values(manifest).flatMap((m: any) => m?.ranges?.rooms ?? [])].filter((r: any) => Array.isArray(r))
