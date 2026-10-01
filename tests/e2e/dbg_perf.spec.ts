@@ -72,4 +72,16 @@ test('perf: the frame by section, pass and object class', async ({ page }) => {
     out.medianGpuMs = done[Math.floor(done.length / 2)]; console.log(`[perf] median GPU over ${done.length} views so far: ${out.medianGpuMs} ms`);
     const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {}; all[`${out.tag || 'run'}|${W}x${H}|${q}`] = out; writeFileSync(f, JSON.stringify(all, null, 1));
   }
+  // D-355 (FIREAB=<view>): the fire lights before (12 forward, no deferred term) and now (4 forward + 12 deferred), last since
+  // the switch recompiles every lit material (one frame per group as in warmUp)
+  if (process.env.FIREAB) { const s = VIEWS.find(v => v.n === process.env.FIREAB)!;
+    await page.evaluate(([d, h, w, v]) => { const p = (window as any).__parsa; p.setWeather(w); p.setTime(d, h); p.view(...(v as any)); }, [s.day, s.hour, s.w, s.v] as const);
+    const prof = () => page.evaluate((n) => (window as any).__parsa.profile(n), 20);
+    for (let i = 0; i < 3; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+    const now = await prof(); await page.screenshot({ path: `shots/perf-fireab-now-${s.n}.png` });
+    const tc = Date.now(); await page.evaluate(() => { (globalThis as any).__parsaFire.legacy = true; }); await page.evaluate(() => (window as any).__parsa.warmUp()); for (let i = 0; i < 3; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+    const recompile = (Date.now() - tc) / 1000, old = await prof(); await page.screenshot({ path: `shots/perf-fireab-legacy-${s.n}.png` });
+    const fire = { view: s.n, now: { gpu: now.gpuMs, pipelined: now.pipelinedMs, scene: now.passes[0] }, legacy: { gpu: old.gpuMs, pipelined: old.pipelinedMs, scene: old.passes[0] }, recompileS: recompile };
+    console.log(`[fireab] ${JSON.stringify(fire)}`);
+    const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {}; const k = `${out.tag || 'run'}|${W}x${H}|${q}`; all[k] = { ...out, fireab: fire }; writeFileSync(f, JSON.stringify(all, null, 1)); }
 });

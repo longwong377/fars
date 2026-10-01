@@ -14,17 +14,18 @@ function setup(nFires: number, forward: number, glow: number) {
   F.build(); const cam = new THREE.PerspectiveCamera(46, 16 / 9, 0.1, 1000); cam.position.set(0, 1.6, 0);
   return { F, cam };
 }
+import { FIRE_AB } from '../src/world/fire';
 describe('fire lights: a fixed forward set and the deferred far fires (D-355)', () => {
   it('high has 4 forward lights and every light stays visible by day, at dusk and at night', () => {
     expect(FORWARD_FIRE_LIGHTS.high).toBe(4);
-    const { F, cam } = setup(20, FORWARD_FIRE_LIGHTS.high, GLOW_MAX), L = (F as any).lights as THREE.PointLight[];
-    expect(L.length).toBe(4);
+    const { F, cam } = setup(20, FORWARD_FIRE_LIGHTS.high, GLOW_MAX), L = ((F as any).lights as THREE.PointLight[]).filter(l => l.visible);
+    expect(L.length).toBe(4); // (the A/B's hidden legacy lights are never shown unless __parsaFire.legacy)
     for (const alt of [30, 2, -20, 30]) { F.update(0.016, cam, alt, 0, 0, 0, 12); expect(L.every(l => l.visible)).toBe(true); }
     F.update(0.016, cam, 30, 0, 0, 0, 12); expect(L.every(l => l.intensity === 0)).toBe(true); expect(FIRE_GLOW.n).toBe(0);
   });
   it('the nearest lit fires are forward, the next GLOW_MAX deferred, nearest first, with the forward light model', () => {
     const { F, cam } = setup(20, 4, GLOW_MAX); F.update(0.016, cam, -20, 0, 0, 0, 2);
-    const L = (F as any).lights as THREE.PointLight[];
+    const L = ((F as any).lights as THREE.PointLight[]).filter(l => l.visible); expect(L.length).toBe(4);
     const byD = F.fires.filter(f => f.lit).map(f => f.pos.distanceTo(cam.position)).sort((a, b) => a - b);
     const fwdMax = Math.max(...L.map(l => { const f = F.fires.find(q => Math.hypot(q.pos.x - l.position.x, q.pos.z - l.position.z) < 1e-6)!; return f.pos.distanceTo(cam.position); }));
     expect(fwdMax).toBeCloseTo(byD[3], 6);
@@ -50,5 +51,11 @@ describe('fire lights: a fixed forward set and the deferred far fires (D-355)', 
     let sum = 0; for (const f of lit) { const L = fireLight(f.kind), q = new THREE.Vector3(f.pos.x, L.height, f.pos.z); // (base y 0: the light at its height)
       sum += L.candela * FIRE_FLICKER_MEAN * pointAttenuation(q.distanceTo(cam.position), L.cutoff, L.decay); }
     expect(F.localIlluminance(cam.position)).toBeCloseTo(sum, 9);
+  });
+  it('the A/B switch shows the 12 legacy forward lights and empties the deferred term', () => {
+    const { F, cam } = setup(20, 4, GLOW_MAX); FIRE_AB.legacy = true;
+    try { F.update(0.016, cam, -20, 0, 0, 0, 2); const L = (F as any).lights as THREE.PointLight[];
+      expect(L.filter(l => l.visible && l.intensity > 0).length).toBe(12); expect(FIRE_GLOW.n).toBe(0); } finally { FIRE_AB.legacy = false; }
+    F.update(0.016, cam, -20, 0, 0, 0, 2); expect(((F as any).lights as THREE.PointLight[]).filter(l => l.visible).length).toBe(4);
   });
 });
