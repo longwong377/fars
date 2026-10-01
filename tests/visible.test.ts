@@ -49,5 +49,5 @@ describe('the simulation made visible (D-359)', () => {
     const d = 44, pids = [...S.econPlans.steps(d).keys()].slice(0, 50), out = S.wardrobes.dayExport(d, pids);
     expect(out.length).toBeGreaterThan(pids.length * 0.8);
     for (const g of out) { expect(g.body, String(g.pid)).toBeTruthy(); expect(['work', 'best', 'mourning']).toContain(g.set); expect(g.body!.dirt).toBeGreaterThanOrEqual(0); }
-  });
+  }, 900_000); // steps day 44 like its siblings (session 15: 120 s timed out on a loaded box)
 });
