@@ -2937,6 +2937,22 @@
    "anti_proxy": "probe pages do not count as full-world loads or as views; a view counts only when it is judged (whole view, AAA and full of life)",
    "ud": "UD-28",
    "since": "rev 2.7 (s14)"
+  },
+  {
+   "id": "T-R15",
+   "axis": "R",
+   "scope": "session",
+   "metric": "share of the session's agent packages whose target is an immersion breaker found in whole-view judgement (light, density, life, surfaces, silhouettes at the player's view, against the AAA bar) rather than a match to a reference photograph, counted from the session log",
+   "op": ">=",
+   "value": 80,
+   "unit": "%",
+   "sample_min": 1,
+   "sample": "every session with agents",
+   "tool": "sessions/",
+   "status": "to-build",
+   "anti_proxy": "a package counts only when its target was named from a whole-view render of the world, not a probe page or a reference comparison; period-accuracy fixes count only when the inaccuracy itself breaks the illusion",
+   "ud": "UD-29",
+   "since": "rev 2.8 (s15)"
   }
  ]
 }
