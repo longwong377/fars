@@ -9,6 +9,7 @@ import { modelParts, colourByAO } from '../render/scanProps';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow, step } from 'three/tsl';
 import { Rng } from '../core/rng';
 import { fireOcc, fireOccNode, tileOf } from './fireOcc';
+import { FIRE_GLOW, GLOW_MAX } from '../render/fireGlow';
 import { SOURCE, FORGE_GH, sourceTau, windWorld } from './hearthSmoke';
 
 export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln' | 'altar';
@@ -165,12 +166,17 @@ export class FireSystem {
   private flux!: THREE.InstancedBufferAttribute;
   private drawnLit: Uint8Array | null = null; private frameN = 0;
   /** `shadowLights`: how many of the nearest fires' lights cast shadows (cube maps of `shadowMapSize`; 0 by default: D-216,
-   *  measured cost in BLOCKERS) */
-  constructor(maxLights: number, shadowLights = 0, shadowMapSize = 512) {
+   *  measured cost in BLOCKERS). `glowLights` (D-355): how many of the next nearest lit fires light the scene through the post
+   *  composite's deferred term (render/fireGlow.ts; high/ultra), not as forward lights */
+  constructor(maxLights: number, shadowLights = 0, shadowMapSize = 512, glowLights = 0) {
+    this.glowN = Math.min(glowLights, GLOW_MAX);
     this.group.name = 'fire';
     // ?fireocc=0 (diagnostic, D-222): the fire lights without the baked occlusion
-    const useOcc = fireOcc() !== null && !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('fireocc') === '0');
+    const useOcc = this.useOcc = fireOcc() !== null && !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('fireocc') === '0');
     for (let i = 0; i < maxLights; i++) {
+      // D-355: a fixed set of lights from frame 0, always visible (intensity 0 when free): the set of visible lights is part of
+      // every lit material's shader key, so a light switched on or off rebuilt and recompiled every lit pipeline (seconds to
+      // minutes on the T4) each time the number of lit fires within reach changed
       const l = new THREE.PointLight(FIRE_RGB, 0, 20, 2); l.castShadow = i < shadowLights; this.lights.push(l); this.group.add(l);
       if (l.castShadow) { l.shadow.mapSize.set(shadowMapSize, shadowMapSize); l.shadow.camera.near = 0.1; l.shadow.camera.far = 50; l.shadow.bias = -0.0005; (l.shadow as any).normalBias = 0.05; }
       // the light confined to its side of a hall's walls (D-216, roomMask): the light's colour × intensity × the mask
@@ -185,6 +191,9 @@ export class FireSystem {
   /** per light: the room box its light is confined to (world x0, x1, z0, z1; y0, y1) and the mode (+1 inside it only, −1
    *  outside it only, 0 unconfined) */
   private lightRoom: { box: any; ys: any; mode: any; lp: any; tile: any }[] = [];
+  /** deferred fire lights (D-355; render/fireGlow.ts) */
+  private glowN = 0;
+  private useOcc = false;
   /** the roofed halls' interiors (world boxes); set before build() (world.ts placeFires) */
   private rooms: RoomBox[] = [];
   setRooms(rooms: RoomBox[]) { this.rooms = rooms; }
@@ -312,8 +321,8 @@ export class FireSystem {
     // lights to the nearest lit fires (the fire light model, fireLight)
     const lit_ = this.lightedFires(camera.position);
     this.lights.forEach((l, i) => {
-      const f = lit_[i]; if (!f) { l.intensity = 0; l.visible = false; return; }
-      const L = fireLight(f.kind); l.visible = true;
+      const f = lit_[i]; if (!f) { l.intensity = 0; return; } // (stays visible: D-355)
+      const L = fireLight(f.kind);
       { const R = this.roomOf(f), u = this.lightRoom[i]; u.mode.value = R.mode;
         if (R.room) { u.box.value.set(R.room.x0, R.room.x1, R.room.z0, R.room.z1); u.ys.value.set(R.room.y0, R.room.y1); } }
       l.position.copy(f.pos).y += L.height - LIFT[f.kind];
@@ -321,6 +330,18 @@ export class FireSystem {
       const flick = 0.8 + 0.2 * (Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 17.3 + f.seed * 3) * 0.5);
       l.intensity = L.candela * flick * this.lightScale; l.distance = L.cutoff; l.decay = L.decay;
     });
+    // the next nearest lit fires: the composite's deferred term (D-355), the same light model without the specular
+    FIRE_GLOW.n = 0;
+    for (let j = 0; j < GLOW_MAX; j++) {
+      const f = j < this.glowN ? lit_[this.lights.length + j] : undefined, A = FIRE_GLOW.A[j], B = FIRE_GLOW.B[j], C = FIRE_GLOW.C[j], D = FIRE_GLOW.D[j];
+      if (!f) { B.set(0, 0, 0, 0); A.w = 0; continue; }
+      const L = fireLight(f.kind), R = this.roomOf(f); FIRE_GLOW.n++;
+      A.set(f.pos.x, f.pos.y + L.height - LIFT[f.kind], f.pos.z, L.cutoff);
+      if (f.occ === undefined) f.occ = tileOf(fireOcc(), A.x, A.y, A.z);
+      const flick = 0.8 + 0.2 * (Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 17.3 + f.seed * 3) * 0.5), I = L.candela * flick * this.lightScale;
+      B.set(FIRE_RGB.r * I, FIRE_RGB.g * I, FIRE_RGB.b * I, R.mode);
+      if (R.room) { C.set(R.room.x0, R.room.x1, R.room.z0, R.room.z1); D.set(R.room.y0, R.room.y1, this.useOcc ? f.occ : -1, 0); } else D.set(0, 0, this.useOcc ? f.occ : -1, 0);
+    }
     // smoke puffs near the camera, closed-form in time (D-220: frozen renders show them), nearest smoking fires first
     const wind = windWorld(windDirDeg, windMs), u = Math.max(1, windMs), cp = camera.position, camQ = camera.quaternion;
     const near: { i: number; d2: number; g: number }[] = [];
@@ -341,10 +362,10 @@ export class FireSystem {
     }
     this.smokeN = k; this.smoke.count = k; this.smoke.visible = k > 0; this.smoke.instanceMatrix.needsUpdate = true; this.smokeAlpha.needsUpdate = true; this.smokeGlow.needsUpdate = true;
   }
-  /** the lit fires that get a point light for an eye at `p`: the nearest `lights.length` within 90 m */
+  /** the lit fires that get a light for an eye at `p`: the nearest `lights.length` (forward) + glow (deferred, D-355) within 90 m */
   private lightedFires(p: THREE.Vector3): FireSource[] {
     return this.fires.filter(f => f.lit).map(f => ({ f, d: f.pos.distanceTo(p) })).sort((a, b) => a.d - b.d)
-      .slice(0, this.lights.length).filter(x => x.d <= 90).map(x => x.f);
+      .slice(0, this.lights.length + this.glowN).filter(x => x.d <= 90).map(x => x.f);
   }
   /** illuminance at `p` (renderer units, on a surface facing each fire: the eye's adaptation) from the fires' cast light
    *  as the point lights cast it (fireLight: the same candela, mean flicker, decay and cut-off window; D-216) */

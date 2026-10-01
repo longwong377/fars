@@ -45,6 +45,7 @@ import { SkyEnvCapture, skyEnv, specularOcclusion } from './envmap';
 import { addAirLight } from './airlight';
 import { agxLook } from './toneLook';
 import { SkyVisField, SKYVIS } from './skyVis';
+import { fireGlowIrradiance } from './fireGlow';
 /** D-309: the fitted AgX look (toneLook.ts) at medium and above; ?tone=agx draws three's plain AgX (the A/B) */
 export const TONE_LOOK_ON = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('tone') === 'agx');
 
@@ -111,7 +112,7 @@ export class Pipeline {
   setDebugView(v: string) { this.debugView = v; this.built = false; this.rp = null; }
   /** A/B switches for measurements (window.__parsaSurf; 1 = on): SSR, sun contact shadows (sss), the direct-only SSGI input with its bounce inside
    *  the probe volumes (0 = the session-4 composite: full scene into the SSGI, bounce × (1 − w)), the contact AO outdoors */
-  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1), skyvis: uniform(1) };
+  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1), skyvis: uniform(1), fireglow: uniform(1) };
   /** the outdoor sky visibility from the built world's height map (D-309b; high/ultra) */
   private skyVis: SkyVisField | null = null;
   /** the sun as the composite's contact-shadow estimate sees it: direction toward the sun (world) and colour × intensity */
@@ -274,7 +275,10 @@ export class Pipeline {
         sunLoss = min(max(col.rgb.sub(sky), vec3(0)), sunEst).mul(float(1).sub(C.r)).mul(notSky).mul(this.ab.sss);
         this.sssDebug = vec3(C.r);
       }
-      const litR = max(lit.add(ssrAdd).sub(sunLoss), vec3(0));
+      // the far fires' light (D-355, fireGlow.ts): the nearest fires are forward lights, the next ones are added here, Lambert
+      // diffuse on the G-buffer's albedo (the metal's share reflects none) and the bumped world normal
+      const fireAdd = dif.rgb.mul(float(1).sub(metal)).mul(fireGlowIrradiance(pWorld, nW)).mul(1 / Math.PI).mul(notSky).mul(this.ab.fireglow);
+      const litR = max(lit.add(ssrAdd).sub(sunLoss).add(fireAdd), vec3(0));
       // [reserved: the air-light pass (another agent) joins here]
       // debug views are chosen when the pipeline is built (?post=scene|ao|aonear|gi|probe|plain|direct|ssr|env|sss; probe =
       // (w, AO near, AO full) as RGB): a runtime select() on these texture nodes inside the TRAA input made the first-frame

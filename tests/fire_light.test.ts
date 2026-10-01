@@ -42,7 +42,7 @@ describe('fire light: the eye adapts to the light the fires cast (R4, R5)', () =
   it('localIlluminance is the sum of the point lights as cast (candela, mean flicker, decay, window, position)', () => {
     const { F, cam } = setup(-37), lights = (F as any).lights as THREE.PointLight[];
     let sum = 0, n = 0;
-    for (const l of lights) { if (!l.visible) continue; n++;
+    for (const l of lights) { if (!(l.intensity > 0)) continue; n++; // (D-355: every light stays visible; a free one has intensity 0)
       const f = F.fires.find(q => Math.hypot(q.pos.x - l.position.x, q.pos.z - l.position.z) < 1e-6)!, L = fireLight(f.kind);
       expect(l.decay).toBe(2); expect(l.distance).toBe(L.cutoff);
       const flick = l.intensity / L.candela; expect(flick).toBeGreaterThanOrEqual(0.6 - 1e-9); expect(flick).toBeLessThanOrEqual(1 + 1e-9);
