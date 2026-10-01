@@ -42,4 +42,9 @@ process.on('SIGINT', () => { free(); process.exit(130); }); process.on('SIGTERM'
 try { setPriority(constants.priority.PRIORITY_BELOW_NORMAL); } catch {} // children inherit the class (Windows): the app stays responsive
 const child = spawn(cmd[0], cmd.slice(1), { stdio: ['inherit', 'pipe', 'pipe'], shell: true, env: process.env });
 pipeWithProgress(child, slot); recordChild(slot, child);
+// Chrome raises its own GPU process above the class it inherits: every 15 s, put this job's Playwright Chromes (their
+// profiles are playwright_* temp dirs) back to below normal so the Claude app keeps the CPU (session 15)
+const DEPRIO = "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | ? { $_.CommandLine -like '*playwright*' } | % { try { (Get-Process -Id $_.ProcessId).PriorityClass = 'BelowNormal' } catch {} }";
+const deprio = setInterval(() => { try { spawn('powershell', ['-NoProfile', '-Command', DEPRIO], { stdio: 'ignore' }); } catch {} }, 15000);
+child.on('exit', () => clearInterval(deprio));
 child.on('exit', code => { free(); process.exit(code ?? 1); });
