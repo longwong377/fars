@@ -251,11 +251,11 @@ async function boot() {
         return { frames: n, cpuMs: med(rows.map(r => r.cpu)), serialMs: med(rows.map(r => r.wall)), gpuMs: med(rows.map(r => r.gpu)), pipelinedMs: +pipelined.toFixed(2), cpuMaxMs: +Math.max(...rows.map(r => r.cpu)).toFixed(2), sections: secs, secMax, passes, draws: renderer.info.render.drawCalls, tris: renderer.info.render.triangles };
       } finally { PROF.on = false; PLAYLIKE = false; } },
     renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
-    /** D-353 (B98): the first frames compile ~1000 pipelines; in ONE sync submit the T4 watchdog reset the card. D-354: the warm-up in parallel. Every render pipeline a frame needs is created with createRenderPipelineAsync (the
+    /** D-353 (B98): the first frames compile ~1000 pipelines; in ONE sync submit the T4 watchdog reset the card. D-354: the warm-up in parallel (?warm=async). Every render pipeline a frame needs is created with createRenderPipelineAsync (the
      *  browser compiles them on its worker threads, several at once, and no submit waits on a compile, so the watchdog sees
      *  only short submits); a draw whose pipeline is not ready is skipped (three's Pipelines.isReady). Whole frames, round
-     *  after round, until a frame asks for no new pipeline. ?warm=groups keeps D-353's one group at a time. ms per round. */
-    warmUp: async () => { if (P.get('warm') === 'groups') return warmGroups();
+     *  after round, until a frame asks for no new pipeline. Opt-in with ?warm=async until it is measured on the T4; D-353's one group at a time stays the default. ms per round. */
+    warmUp: async () => { if (P.get('warm') !== 'async') return warmGroups(); // (opt-in until measured on the T4: D-354)
       const pl: any = (renderer as any)._pipelines, orig = pl.getForRender, ms: Record<string, number> = {}; let pend: Promise<void>[] = [];
       pl.getForRender = function (ro: any, pr: any) { return orig.call(this, ro, pr ?? pend); };
       try { for (let round = 0; round < 12; round++) { pend = []; const t = performance.now();

@@ -8902,7 +8902,7 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
 - **The warm-up (main.ts, D-353 revised).** `__parsa.warmUp()` now renders whole frames with every new render pipeline created by
   createRenderPipelineAsync (three's Pipelines.getForRender given a promise list; a draw whose pipeline is pending is skipped by its
   isReady), awaits them, and repeats until a frame asks for none: the browser compiles on its worker threads several at once and no
-  submit waits on a compile (the watchdog's case). D-353's one-group-at-a-time warm-up stays as ?warm=groups / __parsa.warmGroups().
+  submit waits on a compile (the watchdog's case). opt-in with ?warm=async (moments: URLX=&warm=async) until measured on the T4; D-353 one group at a time stays the default (and __parsa.warmGroups()).
 - **Not measured on the T4 yet** (see the session's report): both GPU slots and both CPU slots were held by other jobs for the whole
   time box (my trace waited > 90 min). tools/bake_world/load_trace.mjs (a cold, traced page load: boot and build stages, warm-up
   rounds, first frames) and compile_probe.mjs (per-pipeline compile time and WGSL hashes, cold vs a warm browser profile) are the

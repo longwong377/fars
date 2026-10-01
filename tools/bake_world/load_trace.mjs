@@ -8,7 +8,7 @@ import { chromium } from '@playwright/test';
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-const [port = '5182', q = 'high', out = 'bench-reports/load_trace.json'] = process.argv.slice(2), extra = process.env.URLX ?? ''; // URLX: extra query (e.g. &norender), an env var so no shell splits it
+const [port = '5182', q = 'high', out = 'bench-reports/load_trace.json'] = process.argv.slice(2), extra = process.env.URLX ?? ''; // URLX: extra query (e.g. &norender, &warm=async), an env var so no shell splits it
 const prof = process.env.PROFILE ?? mkdtempSync(join(tmpdir(), 'parsa-load-'));
 const args = ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'];
 const ctx = await chromium.launchPersistentContext(prof, { channel: process.env.PW_CHANNEL ?? 'chrome', headless: !process.env.HEADED, args, viewport: { width: 1920, height: 1080 } });
