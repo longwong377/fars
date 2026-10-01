@@ -147,7 +147,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     // D-221: the Aramaic secretary writes with a reed pen and ink on leather (Aramaic epigraphs in ink on PF tablets: B;
     // the Treasury tablets' leather duplicates, Cameron's inference: B)
     variants: [{ when: /in Aramaic/, prop: 'leather', prop2: 'pen', note: 'writing Aramaic with a reed pen and ink on a sheet of leather on the left palm (Aramaic ink epigraphs on Persepolis tablets: B; leather documents in the chancery: B by analogy; posture C; the writing on the sheet is not drawn: D-221)' }] },
-  eat: { anim: 'eat', sound: 'murmur', tier: 'C', note: 'sitting and eating bread (rations: B)' },
+  eat: { anim: 'eat', sound: 'murmur', tier: 'C', note: 'sitting and eating bread (rations: B)',
+    // D-359: the bread brought along on an errand or a summons (economy/plans.ts feed)
+    variants: [{ when: /^bread and water brought along/, prop: 'bread', note: 'eating a flat loaf brought along from home, wrapped in a cloth, where the day’s business holds them (C: D-359)' }] },
   sleep: { anim: 'sleep', tier: 'C', note: 'lying asleep on a mat (C)',
     variants: [
       // D-256: the drum haul's night halt by the road (world/traffic.ts), the oxen unyoked and lying by it
@@ -162,6 +164,7 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-359: the economy's visits (economy/plans.ts): silver weighed at the lender's, the pledge handed over, barley brought
       { when: /loan of silver; it is weighed out|seeing it weighed/, work: [{ kind: 'weigh_table', at: [0.55, 0, 0.5] }], note: 'at a lender’s house: the silver weighed out on a hand balance on a low table between them, the terms said before a witness (silver loans with interest: the Babylonian loan texts, B analogy; C: D-359)' },
+      { when: /the dowry set down|^(talking over the marriage|visiting her father’s house to agree the marriage)/, work: [{ kind: 'jar', at: [0.6, 0, 0.5] }, { kind: 'basket_fruit', at: [-0.6, 0, 0.5] }], note: 'the families together over the marriage, or the dowry set down in the groom’s courtyard: jars and a basket of the gifts between them (bride-gift and dowry: the Neo-Babylonian marriage contracts, B analogy; C: D-359)' },
       { when: /handing over the pledge|^bringing barley/, work: [{ kind: 'jar', at: [0.5, 0, 0.45] }], note: 'at another house, a jar set down between them: the pledge for an unpaid debt handed over, or barley brought in it (C: D-359)' },
       { when: /a jar of (beer|wine)/, work: [{ kind: 'jar', at: [0.5, 0, 0.4] }], note: 'drinking the ration in company of an evening, a jar of beer or wine set on the ground between them, poured into cups in turn (the rations: E-02, A; the evening company C: D-283)' }] },
   rest: { anim: 'sit', tier: 'C', note: 'sitting and resting' },
@@ -299,7 +302,7 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-359: a house that burnt (economy/plans.ts house_fire)
       { when: /burnt beams/, work: [{ kind: 'beam', at: [1.0, 0, 0.4] }], note: 'clearing the ash and the charred beams of a burnt roof out of the house with a broom, a blackened beam dragged out beside (house fires: C; D-359)' },
-      { when: /^readying the new house/, note: 'sweeping out the new house for the bride, the mats laid, the jars set out (C: D-211)' }] },
+      { when: /^readying the (new )?house/, note: 'sweeping out the new house for the bride, the mats laid, the jars set out (C: D-211)' }] },
   garden_work: { anim: 'hoe', prop: 'hoe', sound: 'hoe', tier: 'C', note: 'hoeing, weeding and digging dung into the garden beds (C)',
     variants: [
       { when: /prun/, anim: 'pick', prop: 'knife', sound: undefined, note: 'pruning the garden trees with a knife (C)' },

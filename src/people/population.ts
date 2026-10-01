@@ -1723,7 +1723,7 @@ export class Population {
   }
   private pos(place: string, d: number): [number, number] {
     if (place.startsWith('h:')) return this.households[+place.slice(2)].xy;
-    { const m = /^(lane|well|market):([^:]+)(?::(d+))?$/.exec(place); if (m && (m[1] === 'market' || m[3])) return m[1] === 'market' || !this.households[+m[3]] ? this.quarters[m[2]]?.xy ?? TERRACE_XY : this.households[+m[3]].xy; } // (D-359: a market ground; another house's lane or well)
+    { const m = /^(lane|well|market):([^:]+)(?::(\d+))?$/.exec(place); if (m && (m[1] === 'market' || m[3])) return m[1] === 'market' || !this.households[+m[3]] ? this.quarters[m[2]]?.xy ?? TERRACE_XY : this.households[+m[3]].xy; } // (D-359: a market ground; another house's lane or well)
     // the trees of a garden or an estate stand beside its beds (C). Was: `estate:<h>:trees` read "trees" as a plot number
     // (NaN: every walk to them and the rest of the day had NaN times) and `garden:<q>:trees` fell through to the Terrace
     if (place.endsWith(':trees')) { const b = this.pos(place.slice(0, -6), d); return [b[0] + 90, b[1] + 120]; }
