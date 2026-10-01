@@ -1,6 +1,6 @@
 # ROADMAP — finishing PĀRSA within the usage budget (written session 12, 2026-09-28)
 
-The user's constraint: finish everything without the weekly usage ever reaching 97 %. Measured in session 12: about 1 % of the
+No usage cap and no cap on the number of agents (the user, 2026-10-01: the weekly window reset; "remove the cap on agents", "drop the 97%"). Measured in session 12: about 1 % of the
 weekly all-models budget per agent-hour (~14 agents x ~4 h used ~55 %). So a week holds ~85 agent-hours with margin.
 
 ## Finished means all four pillars (USER_DIRECTIONS UD-19..UD-26; MASTER_PLAN; the board)
@@ -61,10 +61,8 @@ little frame time.
 - **Build en masse** with a fixed scope; nothing is added mid-session.
 - **Close:** the same check again, merge every branch, push (verified against GitHub, never a log line), a short report that
   leads with what is broken.
-- **Budget (the user, s13, 2026-09-29: "stop launching new work at 97% until then max 2 agents at a time"):** two agents at a time, working continuously; no new launches at 97 % weekly. Older rule: read usage at every check-in (mcp get_usage); stop launching at the session's budget; wind down (final commits)
-  at 92 % weekly; nothing runs at 97 %. At most 6 agents at once, focused scopes, agents reused rather than restarted, short
-  reports, every GPU job through tools/dev/gpu_slot.mjs, no stale jobs holding a slot.
-- **Model:** every agent runs on Sonnet 5.5 (the user, s13; it was Opus 5.5 in s12). The only lever on the budget is waste: fix load time first, batch renders, no agents idling on GPU slots, no repeated rounds, short reports.
+- **Agents:** as many as the work and the machine can use; focused scopes, short reports, every GPU job through tools/dev/gpu_slot.mjs (the machine's GPU slots are a hardware limit, not a rule), no stale jobs holding a slot.
+- **Model:** every agent runs on Opus 5.5 (the user, 2026-10-01). Waste is still waste: batch renders, no agents idling on GPU slots, no repeated rounds.
 
 ## Risks that could add a week
 The in-browser model cannot reach 90 % grounding inside the Windows GPU watchdog (then: heavier grounding by the simulation, or a

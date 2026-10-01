@@ -20,7 +20,7 @@ economy (src/people/economy/**), talk (living/**), wardrobes (wardrobe/**), rela
 - Session close not fully done: ratchet tag ratchet/s13 not pushed (this environment refused tags before); the closing commit is in sessions/s13.md.
 
 ## Rules the user set this session (also in memory and ROADMAP)
-Agents on **Sonnet 5.5**; at most 2 agents at once; keep working, stop launching at 97 % weekly (the weekly window reset 2026-10-01 01:00 UTC, so the new week starts empty); look at renders before building; the user wants visible, meaningful progress, not process.
+Agents on **Opus 5.5** (the user, 2026-10-01); no cap on the number of agents; no weekly usage cap; keep working; look at renders before building; the user wants visible, meaningful progress, not process.
 
 
 ---
@@ -29,7 +29,7 @@ Agents on **Sonnet 5.5**; at most 2 agents at once; keep working, stop launching
 # HANDOFF — end of session 12 (2026-09-28); branch claude/amazing-fermi-40ds7j
 
 ## FIRST, IN THE CLOUD (session 13)
-0. **Read ROADMAP.md:** the plan to finish everything inside the usage budget (the user: never reach 97 % weekly). This week has <= 10 % left: 2-3 agents on the economy and needs foundations only.
+0. **Read ROADMAP.md** (the plan; its usage-budget rules were dropped by the user on 2026-10-01).
 1. **Models:** the cloud's proxy blocked Hugging Face. Test it first:
    `curl -sI https://huggingface.co/onnx-community/whisper-base/resolve/main/config.json | head -1`
    If blocked, use branch **models-archive** (every model the game uses first; files > 95 MiB split in parts, SHA256SUMS of each
