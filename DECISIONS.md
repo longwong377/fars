@@ -8969,3 +8969,55 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
 - **Rules (src/world/fillPlan.ts, all C):** every square of every quarter is a market (17 squares, 65 stalls; one trade per stall: fruit, grain, cloth, pots, fuel, oil; goods set out 6.5-19 h and in rain, the awnings stay; stalls solid for the player and blocked for the people); every wall fronting a lane holds household fuel, jars, sacks, rubble, a workshop's craft goods (by craft) and awnings over workshop doors (3,037 lane + 575 door items); 667 washing lines across 2-4 m lanes (taken in when it rains); villages the same round their compounds; the Terrace: masons' yard waste, stair-foot goods, querns, garrison jars and fuel, Treasury store, Harem and Hadish courts' jars and mats, a jar and mat at every guard post, six standards (Gate W, Apadana N stair, Hadish, Tachara). Terrace items off the walkable floor are dropped.
 - **Drawn (src/world/fill.ts):** one InstancedMesh per model, part and level (lod0 < 7 m, lod1 < 22 m, lod2 beyond; small things to 55 m, large to 110 m), rebuilt every 3 m; at a market by day 253 things, 55 draws, 87 k triangles. Hook: world.ts (construction + one update call).
 - **Not done:** people density at the markets (the people system routes 'exchange' to lanes, not squares: owner people); frame time unmeasured on the GPU (train views requested); scaffold model built but not placed (construction.ts keeps its own scaffolds).
+## D-363 Every body different: a continuous body per person drawn on the rig and the vertex stage, soft tissue, the far people's breadth and tools (session 14, agent bodies; UD-27, UD-08; T-E15)
+- **Still broken, placeholder or unverified:** no world render yet (train views requested: lane-with-child, apadana-nw-court,
+  morning-wash, tannery-work, hall100-site). The shape is drawn by girth per bone, bind-space fields and the stoop on the 23
+  MakeHuman base meshes, NOT by MakeHuman/Blender shape keys (no target library in the repo; humans.bin is not this
+  package's file): fat sits where the fields put it (limbs, trunk, breasts, buttocks, cheeks, the belly dome), not in
+  MakeHuman's measured distribution (B340). Scars and nursing marks on the skin are not drawn. The impostor atlas is not baked
+  per shape band: a far person's breadth is the quad's width (impBreadth), the image is the reference body's (B341). The
+  re-bake draws the work frames' tools, cut at the cell's 2 m top (a spear reads as a staff; B176 stays open for the spear).
+- **What changed, world-wide.** bodyShape.ts draws for every person a shape vector (fat, muscle, frame, shoulders, bust,
+  hips, belly, buttocks, posture, face width and length, jaw, cheeks, asymmetry, nose, chin; beauty 0..1 as averageness and
+  symmetry; firmness) from independent normals seeded by the person, shifted by the life the simulation gives (popview's
+  lookInput hook: lifeOf from age, the job's labour, the ration or the household's rank, illness, children borne, nursing,
+  a child carried). bodyRigFor turns it into girth per bone folded into the person's skin matrices (humanRig.solve: the body
+  and every garment skinned over it change together), the stoop added to the pose, and nine extra palette texels (three
+  virtual bones) that the vertex stage reads for the breast, buttock, cheek and nose fields and the fat belly (the D-292 dome's
+  amount, the months added); bodyShape.bodyFieldOffset mirrors the shader term for term. softbody.ts: damped springs on
+  breasts, belly, buttocks, thighs, upper arms and jowls driven by their bone's acceleration on the crowd's clock, written into
+  the same texels, faded out from 18 to 35 m; the hook the peoplemotion package uses. Hooks in files not owned: crowd.ts (the
+  rig carries look.body; the rig's clock), popview.ts (lookInput's life), tools/blender/sources/people_imp_src.ts (tools).
+- **Numbers.** tests/body_variety.test.ts: 3,000 people of the population per seed, seeds 1-3; the share whose drawn body
+  differs from every other on the same base mesh by >= 3 mm somewhere (or in stature) is >= 99 % (seed 1: 99.5 %); per sex
+  the components are bell curves (|skew| < 0.6, excess kurtosis < 2) with both extremes beyond 2.5 sd; bust volume 3x+ from
+  smallest to largest; the largest bodies move 6 cm+ at the 99th percentile; porters leaner and more muscled than scribes,
+  the old stooped and soft, nursing women fuller, the ill wasted. Clothes: on every adult woman's body the dress's cloth
+  inside the skin rises by <= 1.4 points at the largest bust, buttocks and belly (binned; the 5-8 % baseline is the bins).
+  Soft tissue: a large soft bust 40 mm (at its clamp) walking, a small firm one 4.6 mm, standing 0.8 mm; 1.0 ms a frame for
+  300 people on the loaded box (least of five runs; unverified idle). tests/humans_runtime's 300-people pose budget failed at
+  10.8 ms vs 6 under load: re-run idle (the body adds ~1-4 ms per 300 by tools/dev/body_cost.ts, noisy).
+- **Tiers:** every number C (Q-1170 the spreads, Q-1171 the soft tissue's frequencies).
+- **Session 15 (resume).** The Cycles impostor atlas re-baked for this build's 71 frames (tools/blender/impostors.mjs; 42
+  frames of each dress hold their activity's tool; imp_stale: frames, dresses and layout match, so no CPU fallback). The day's
+  outfit hook: looks.LookInput.outfit (wardrobe/world.ts outfitAt's garments) replaces the seeded dye, fading and hem soil of
+  the body and legs/over slots, the best set stronger, mourning plainer (C), with no seeded draw consumed
+  (tests/looks_outfit.test.ts); popview does not pass it yet (the visible package's wiring). Garments stay skinned over the
+  girth (no per-band cloth bake: the measured cloth-inside-skin rise is <= 1.4 points); shape bands in the atlas would need
+  1,278 rows (> 4096 texels at cell 64), so B341 stands. tests/impostor_assets budget: 56.62 vs 56.10 MB (the 8-column layout pads 426 rows to 432).
+
+## D-356 — The plain filled: the terrain out of the sun cascades, bedded rocks and plants, modelled crops, denser cover (session 14, plain)
+- **The near-black plain at dawn and dusk (lead's s14 baseline):** the near ring cast into the sun's cascades and shadowed itself at a low sun
+  (depth error over a texel = texel / tan(alt): ~1.8 m in the 50-160 m cascade at 3 deg against a 9 cm bias). The terrain now casts no cascade
+  shadow (terrainMesh.ts `TERRAIN_CASTS`, ?tcast=1 restores it for the A/B); its landform shadows stay the horizon map's (D-156). The likely
+  same cause for the black ground flora: their normal-biased lookups fell under the terrain's own shadow depth. A/B on tools/dev/plain_probe
+  (?lite&csm) at both hours: see the report; full-world proof is the train's dawn-stair-top and town-smoke-dusk.
+- **Floating rocks and plants:** the scans' base is their lowest point and they stood upright at their centre, so on slopes the downhill half
+  hung in the air; rocks are now bedded in the ground's plane over their footprint (four samples) and seated at the lowest, plants at the
+  lowest ground under them; the small world's ground is the drawn surface (surfaceAt, a one-line hook in world.ts), crops too.
+- **Crops:** the near crop is a modelled cereal clump (cropForms.ts: culms, arching leaf blades, ears with awns shown from heading to harvest
+  on barley, wheat and emmer; C for the form) in place of ten one-triangle blades; to stay inside D-040 (plain.test) it is 3 culms, 36
+  triangles, and the crop radius / spacing are traded (high 22 m / 0.45 m, was 30 / 0.36). Procedural in code, not a Blender asset.
+- **Ground cover:** the steppe's tufts twice as dense, six tuft pieces of the kit (was four), three swards; LOD at 5.5 / 16 m to stay inside
+  ground_cover.test's 0.35 M triangles and 36 draws.
+- Not done: herders with flocks in the near plain (the people sim's, not this package's files); far-tree "lollipops" (no frame of them seen).

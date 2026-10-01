@@ -12,7 +12,7 @@ import { BUILT } from './outfits';
 import { HumanMaterial, PERSON_TEXELS, type HumanTextures } from './humanMaterial';
 import type { CardsMeta } from './peopleModels';
 import { skinLayersOf, type HumanScans } from './humanScans';
-import { NBONES, PALETTE_STRIDE } from './humanRig';
+import { PALETTE_TEXELS, PALETTE_STRIDE } from './humanRig';
 
 export const SOURCE_WIDTH = 2048;
 export interface CostumeMesh { dress: Dress; lod: number; mesh: THREE.Mesh; geo: THREE.InstancedBufferGeometry; inst: THREE.InstancedInterleavedBuffer; count: number; triangles: number; box: THREE.Box3;
@@ -75,7 +75,7 @@ export class HumanGPU {
     this.palette = new Float32Array(this.capacity * PALETTE_STRIDE); this.prevPalette = new Float32Array(this.capacity * PALETTE_STRIDE); this.person = new Float32Array(this.capacity * PERSON_TEXELS * 4);
     this.textures = {
       source: dataTex(src, SOURCE_WIDTH, rows), sourceWidth: SOURCE_WIDTH, NV: O.NV,
-      bones: dataTex(this.palette, NBONES * 3, this.capacity), prevBones: dataTex(this.prevPalette, NBONES * 3, this.capacity), person: dataTex(this.person, PERSON_TEXELS, this.capacity),
+      bones: dataTex(this.palette, PALETTE_TEXELS, this.capacity), prevBones: dataTex(this.prevPalette, PALETTE_TEXELS, this.capacity), person: dataTex(this.person, PERSON_TEXELS, this.capacity),
       skin: images.skin, eye: images.eye,
       // D-304: the scanned skin and cloth layers, and each body variant's light- and dark-toned skin layer
       scans: images.scans ?? null, skinLayers: images.scans ? A.variants.map((v, i) => skinLayersOf(v.meta, i, images.scans!.skinIds)) : [],
@@ -165,7 +165,7 @@ export class HumanGPU {
     pal.set(this.palette); prev.set(this.prevPalette); per.set(this.person);
     this.palette = pal; this.prevPalette = prev; this.person = per; this.capacity = capacity;
     const T = this.textures;
-    for (const [k, data, w] of [['bones', pal, NBONES * 3], ['prevBones', prev, NBONES * 3], ['person', per, PERSON_TEXELS]] as const) {
+    for (const [k, data, w] of [['bones', pal, PALETTE_TEXELS], ['prevBones', prev, PALETTE_TEXELS], ['person', per, PERSON_TEXELS]] as const) {
       const old = T[k]; const t = dataTex(data, w, capacity); (T as any)[k] = t; for (const m of this.materials) m.retexture(old, t); old.dispose();
     }
     this.personDirty = true;

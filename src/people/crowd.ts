@@ -353,7 +353,7 @@ export class Crowd {
     const slot = this.allocSlot(); this.writePerson(slot, look);
     const v = this.humans.A.variants[look.variant];
     const face: FaceState = { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 };
-    const p: Person = { key, agent, look, slot, face, rig: { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1 },
+    const p: Person = { key, agent, look, slot, face, rig: { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1, body: look.body }, // (D-363: the body drawn)
       root: [0, 0, 0, 0], prevRoot: [0, 0, 0, 0], shown: false, drawnFrame: -10, poseFrame: -10, frameMod: seed % 8, lastHit: false,
       blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0], act: '', actPlaceholder: false, nodAt: -1,
       prop2: null, propM2: new THREE.Matrix4(), ip: [0, 0], perf: null, why: '', animT: seed % 100, animK: (seed % 1000) / 159, base: [0, 0, 0, 0], path: null,
@@ -826,7 +826,7 @@ export class Crowd {
     }
     // hands: the cycle's grip, else what they hold
     p.rig.grip = po.grip ?? (prop1 ? PROPS[prop1]?.grip : undefined) ?? (anim === 'guard' || anim === 'guard_walk' ? [0.5, 1] : [0, 0]);
-    p.rig.pose = po; p.rig.plant = PLANTED.has(anim); p.rig.seat = SEATED.has(anim);
+    p.rig.pose = po; p.rig.plant = PLANTED.has(anim); p.rig.seat = SEATED.has(anim); p.rig.t = time; // (D-363: the soft tissue on the crowd's clock)
     const o = p.slot * PALETTE_STRIDE;
     g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o);
     this.rigS.setPose(p.rig); this.rigS.solve(p.rig, g.palette, o);

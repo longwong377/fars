@@ -8,11 +8,15 @@
 import { HBONES, HB, HPARENT, FINGERS, type HBone } from './humanFormat';
 import type { Pose, PoseBone } from './anim';
 import { WORK_META, type WorkAnim } from './workAnims';
+import { EXTRA_BONES, EXTRA_FLOATS, type BodyRig } from './bodyShape';
+import { SoftState, stepSoft } from './softbody';
 
 export const NBONES = HBONES.length;
 export const PARENT = Int8Array.from(HBONES.map(b => (HPARENT[b] ? HB[HPARENT[b]!] : -1)));
-/** floats per person in the skin palette (59 bones × 12) */
-export const PALETTE_STRIDE = NBONES * 12;
+/** floats per person in the skin palette (59 bones × 12, then D-363 the body's extras: bodyShape EX, three virtual bones) */
+export const PALETTE_STRIDE = (NBONES + EXTRA_BONES) * 12;
+/** texels per palette row (the bones texture's width) */
+export const PALETTE_TEXELS = PALETTE_STRIDE / 4;
 
 /** pose channel → bones and share of the rotation (the old spine channel spreads over two vertebrae) */
 export const RETARGET: Record<PoseBone, [HBone, number][]> = {
@@ -43,6 +47,11 @@ export interface RigInput {
   /** seated, kneeling or lying: the lowest point of the flesh (buttocks, thighs, knees, shins, feet, back, head) is put on
    *  the ground (the hip offsets of those cycles were authored for another rig: people sat 0.2–0.3 m in the air) */
   seat?: boolean;
+  /** D-363: the person's body (bodyShape.bodyRigFor: girth per bone, stoop, the fields' extras, soft tissue); absent: the
+   *  variant as modelled, extras zero */
+  body?: BodyRig;
+  /** D-363: the soft tissue's state (made on first use) and the clock (s; absent: performance.now) */
+  soft?: SoftState; t?: number;
 }
 /** flesh radius (m) below bone heads, for the seated contact: [bone, child or -1 (a point at the joint only), radius at
  *  the joint, radius at the middle of the bone] (C: reference-body proportions) */
@@ -103,6 +112,9 @@ export class RigSolver {
     const acc = this.acc, has = this.has; acc.fill(0); has.fill(0);
     for (const ch in inp.pose.rot) { const e = inp.pose.rot[ch as PoseBone]; if (!e) continue;
       for (const [bn, k] of RETARGET[ch as PoseBone]) { const b = HB[bn]; acc[b * 3] += e[0] * k; acc[b * 3 + 1] += e[1] * k; acc[b * 3 + 2] += e[2] * k; has[b] = 1; } }
+    // D-363: the stoop of age and of carrying (+X bows forward), spread over the spine and neck, the head lifting half back
+    const st = inp.body?.stoop ?? 0;
+    if (st) { for (const [b, k] of [[HB.spine_02, 0.35], [HB.spine_03, 0.35], [HB.neck_01, 0.3], [HB.head, -0.45]] as [number, number][]) { acc[b * 3] += st * k; has[b] = 1; } }
     for (let b = 0; b < NBONES; b++) if (has[b]) eulerXYZ(L, b * 9, acc[b * 3], acc[b * 3 + 1], acc[b * 3 + 2]);
     // fingers: resting curl blended to a grip (thumb_01 … pinky_03 are consecutive bones after each hand)
     L.set(this.fingers(0, inp.grip[0]), HB.thumb_01_l * 9); L.set(this.fingers(1, inp.grip[1]), HB.thumb_01_r * 9);
@@ -134,7 +146,7 @@ export class RigSolver {
       WT[b * 3 + 2] = WT[p * 3 + 2] + a20 * dx + a21 * dy + a22 * dz;
     }
     if (inp.seat || inp.plant) { const d = -(inp.seat ? Math.min(this.footLow(J), this.seatLow()) : this.footLow(J)); for (let b = 0; b < NBONES; b++) WT[b * 3 + 1] += d; }
-    const cy = Math.cos(inp.yaw), sy = Math.sin(inp.yaw), s = inp.scale, X = inp.x, Y = inp.y, Z = inp.z;
+    const cy = Math.cos(inp.yaw), sy = Math.sin(inp.yaw), s = inp.scale, X = inp.x, Y = inp.y, Z = inp.z, G = inp.body;
     for (let b = 0; b < NBONES; b++) {
       // skin matrix: root · (R_b (v − j_b) + t_b);  root = translate(x,y,z) · rotY(yaw) · scale; rotY rows [cy 0 sy], [0 1 0], [-sy 0 cy]
       const o = off + b * 12, r = b * 9, jx = J[b * 3], jy = J[b * 3 + 1], jz = J[b * 3 + 2];
@@ -143,7 +155,12 @@ export class RigSolver {
       palette[o] = s * (cy * R00 + sy * R20); palette[o + 1] = s * (cy * R01 + sy * R21); palette[o + 2] = s * (cy * R02 + sy * R22); palette[o + 3] = s * (cy * t0 + sy * t2) + X;
       palette[o + 4] = s * R10; palette[o + 5] = s * R11; palette[o + 6] = s * R12; palette[o + 7] = s * t1 + Y;
       palette[o + 8] = s * (cy * R20 - sy * R00); palette[o + 9] = s * (cy * R21 - sy * R01); palette[o + 10] = s * (cy * R22 - sy * R02); palette[o + 11] = s * (cy * t2 - sy * t0) + Z;
+      if (G && G.bones[b]) girthInto(palette, o, G.girth, b * 12);
     }
+    // D-363: the body's extras (static fields) and the soft tissue's springs
+    const eo = off + NBONES * 12;
+    if (G) { palette.set(G.extras, eo); const S = inp.soft ?? (inp.soft = new SoftState()); stepSoft(S, G, inp.t ?? (typeof performance !== 'undefined' ? performance.now() / 1000 : 0), WT, WR, inp, palette, eo); }
+    else palette.fill(0, eo, eo + EXTRA_FLOATS);
   }
   /** lowest foot contact point (heel, ball, toe tip; character space, after FK) */
   private footLow(J: Float32Array) {
@@ -199,6 +216,12 @@ export class RigSolver {
   }
 }
 
+/** M ← M·G for a 3×4 skin matrix at offset o and a bind-space girth transform (3×4) at offset g (D-363) */
+function girthInto(P: Float32Array, o: number, G: Float32Array, g: number) {
+  for (let r = 0; r < 3; r++) { const m0 = P[o + r * 4], m1 = P[o + r * 4 + 1], m2 = P[o + r * 4 + 2];
+    P[o + r * 4] = m0 * G[g] + m1 * G[g + 4] + m2 * G[g + 8]; P[o + r * 4 + 1] = m0 * G[g + 1] + m1 * G[g + 5] + m2 * G[g + 9]; P[o + r * 4 + 2] = m0 * G[g + 2] + m1 * G[g + 6] + m2 * G[g + 10];
+    P[o + r * 4 + 3] += m0 * G[g + 3] + m1 * G[g + 7] + m2 * G[g + 11]; }
+}
 /** skin a bind-pose point with one person's palette (tests; the GPU does this per vertex) */
 export function skinPoint(palette: Float32Array, off: number, idx: ArrayLike<number>, w: ArrayLike<number>, p: ArrayLike<number>, out: number[] = [0, 0, 0]) {
   out[0] = out[1] = out[2] = 0;
