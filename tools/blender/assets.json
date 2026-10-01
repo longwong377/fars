@@ -144,9 +144,9 @@
     "args": [
      "lamassu",
      "lamassu_hp",
-     "600000"
+     "400000"
     ],
-    "args_note": "model; scan id (tools/blender/scans/scans.json: the file, its url, sha256 and licence); high source 600 k triangles (the sculpt has 2.54 M; 600 k keeps its beads, curls and feather barbs at ~4 mm and the bake within the shared box memory: 900 k ran Blender out of memory). The levels are the sculpt simplified (meshoptimizer) to the game budget less the jamb block. Technical, C",
+    "args_note": "model; scan id (tools/blender/scans/scans.json: the file, its url, sha256 and licence); high source 400 k triangles (the sculpt has 2.54 M; 400 k, ~1.4 cm edges, still carries its beads, curls and feather barbs into the 5 mm-texel map, and keeps the bake within the shared box memory: 900 k and 600 k ran Blender out of memory at ~1 GB). The levels are the sculpt simplified (meshoptimizer) to the game budget less the jamb block. Technical, C",
     "inputs": [
      "tools/blender/scans/scans.json",
      "tools/blender/scans/scanlib.ts",
