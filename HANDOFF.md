@@ -1,4 +1,6 @@
-# SESSION 14 (2026-10-01): the week plan is ROADMAP.md top section; agents follow handoff/agent_template.md "Operating model"; briefs in handoff/briefs/s14/. The session-13 handoff below still holds for what it records.
+# HANDOFF — end of session 14 (2026-10-01): read sessions/s14.md first (broken first, merged, unmerged branches, next steps).
+# The week plan is ROADMAP.md top section; agents follow handoff/agent_template.md "Operating model"; briefs in handoff/briefs/s14/.
+# HARD RULE learned: at most 4 agents at once on this 16 GB box (9 crashed the session and froze the app for hours).
 
 # HANDOFF — end of session 13 (2026-10-01); branch claude/amazing-fermi-40ds7j (pushed, verified against GitHub)
 
