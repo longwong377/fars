@@ -20,6 +20,7 @@ import SPEC_JSON from '../data/site_spec.json'; // D-334: the painted interiors'
 import { linearToSrgb, munsellY, srgbToLinear, labToSrgb } from '../core/colour';
 import { SkySpecularNode } from './envmap';
 import { applyScan, scanOf } from './scans';
+import { applyGrime, grimeClass } from './grime';
 import { blockFaceLoaded, blockFaceDetail, BF_ON, ADIST_OFF } from './blockface';
 import { ARRIS_W, ARRIS_MATS, ARRIS_K as ARRIS_DIR, arrisNear, JOINT_W } from '../arch/arris';
 import { incisionNodes } from './incision';
@@ -1206,6 +1207,8 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   }
   // (the scanned grain over the procedural surface, session 11: applied per layer above; identity in node)
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
+  // D-366: the shared grime layer (grime.ts): drift at 100/10/1 m, the soot, ash, damp and lane wear of the grime map, lichen
+  L = applyGrime(SURFACES[name] ? name : 'limestone', L, { hasTone: !!d.tone, macro: !!d.macro, topGround: !!(d.top && SURFACES[d.top] && grimeClass(d.top) === 'ground') });
   finish(m, L, d);
   if (opts.arch && d.blockFace && ARRIS_MATS.has(name)) { // D-321 rev 2: near the eye the free arrises are geometry (arris.ts ArrisField)
     const near = arrisNear(); // 1 where the band draws (within R0 of the eye, dithered to R: rev 3's crossfade; the shadow pass runs the same mask)

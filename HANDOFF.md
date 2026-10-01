@@ -1,4 +1,14 @@
-# SESSION 14 (2026-10-01): the week plan is ROADMAP.md top section; agents follow handoff/agent_template.md "Operating model"; briefs in handoff/briefs/s14/. The session-13 handoff below still holds for what it records.
+# HANDOFF — end of session 14 (2026-10-01): read sessions/s14.md first (broken first, merged, unmerged branches, next steps).
+# The week plan is ROADMAP.md top section; agents follow handoff/agent_template.md "Operating model"; briefs in handoff/briefs/s14/.
+# HARD RULE learned: at most 4 agents at once on this 16 GB box (9 crashed the session and froze the app for hours).
+# FIRST TASK OF SESSION 15, before any agent: build the safeguards (the session-14 freeze):
+#  1. gpu_slot.mjs and cpu_slot.mjs refuse to start a job when free memory < ~4 GB (wait instead).
+#  2. mkwt.mjs refuses a 5th active agent worktree on this 16 GB box.
+#  3. A watchdog: any slot held > 45 min without progress is reported to the user at once, one line, with the exact pids to kill.
+#  4. A blocking problem goes to the user first and alone. 5. No full-world render while agents build: the render train only, between waves.
+# FOCUS (the user, end of s14): do not fixate on minutiae while massive big work is left. After the safeguards (a ~1 h job, no polishing), the session is BULK work from the ROADMAP week plan: whole classes across the world (plain fill, walls, bodies, monuments, fill, night, water, the speech sandbox). No tool tinkering, no record-keeping beyond one line per package, no per-change verification; one render-train pass per wave.
+
+
 
 # HANDOFF — end of session 13 (2026-10-01); branch claude/amazing-fermi-40ds7j (pushed, verified against GitHub)
 

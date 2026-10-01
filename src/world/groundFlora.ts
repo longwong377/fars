@@ -163,7 +163,10 @@ export class GroundFlora {
         for (let i = 0; i < n && counts[k] < FLORA[k].max; i++) {
           const e = (ix + u01(this.seed, ix, iy, i, KIDX[k], 33)) * CELL, nn = (iy + u01(this.seed, ix, iy, i, KIDX[k], 34)) * CELL, y = this.world.ground(e, nn); if (!Number.isFinite(y)) continue;
           const sz = FLORA[k].size[0] + (FLORA[k].size[1] - FLORA[k].size[0]) * u01(this.seed, ix, iy, i, KIDX[k], 35);
-          this.eu.set(0, u01(this.seed, ix, iy, i, 36) * 6.283, 0); this.q.setFromEuler(this.eu); this.v.set(e, y - 0.03, -nn);
+          // D-356: plants stand upright, so on a slope the stem is set at the lowest ground under the plant's footprint (a
+          // tragacanth dome on the hills' slopes showed daylight under its downhill side)
+          const fr = (k === 'cushion' ? 0.5 : 0.3) * sz, low = Math.min(y, ...[this.world.ground(e + fr, nn), this.world.ground(e - fr, nn), this.world.ground(e, nn + fr), this.world.ground(e, nn - fr)].filter(Number.isFinite));
+          this.eu.set(0, u01(this.seed, ix, iy, i, 36) * 6.283, 0); this.q.setFromEuler(this.eu); this.v.set(e, low - 0.03, -nn);
           this.m4.compose(this.v, this.q, k === 'cushion' ? this.s.set(sz, sz, sz) : this.s.set(sz * 0.8, sz, sz * 0.8));
           const c = counts[k]++; mesh.setMatrixAt(c, this.m4); fpos.setXYZ(c, e, y, -nn);
           const Mo = this.model.get(k); if (Mo) { const nearL = Math.hypot(e - viewer[0], nn - viewer[1]) < FLORA_LOD_NEAR, im = nearL ? Mo.near : Mo.far, j2 = mn[k][nearL ? 0 : 1]++;

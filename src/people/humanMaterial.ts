@@ -33,8 +33,9 @@ const {
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
   cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition, interleavedGradientNoise, screenCoordinate, frameId,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
-import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE, PRM_CARD } from './humanFormat';
+import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE, PRM_CARD, HB, HBONES } from './humanFormat';
 import { ROBE, BEARD, BELLY } from './drape';
+import { CHEEK_R, NOSE_R } from './bodyShape';
 import type { HumanScans } from './humanScans';
 
 /** height field → shading normal (view space; surface gradient from screen-space derivatives, Mikkelsen 2010) */
@@ -62,7 +63,7 @@ const TAU = Math.PI * 2;
 export interface HumanTextures {
   /** RGBA32F: xyz bind position, w packed normal; row-major over variant × NV vertices */
   source: THREE.DataTexture; sourceWidth: number; NV: number;
-  /** RGBA32F: one row per slot, 177 texels (59 bones × 3 rows of a 3×4 matrix) */
+  /** RGBA32F: one row per slot, 186 texels (59 bones × 3 rows of a 3×4 matrix, then D-363 the body's 9 extra texels: bodyShape EX) */
   bones: THREE.DataTexture; prevBones: THREE.DataTexture;
   /** RGBA32F: one row per slot, 8 texels (see PERSON_TEXELS) */
   person: THREE.DataTexture;
@@ -118,6 +119,8 @@ export const DRAPE = { foldLow: [2, 3] as [number, number], foldHigh: [7, 10] as
   /** D-225: hem soil — the last few centimetres of a skirt drag in the dust (share of the skirt's length, extra weight) */
   hemEdge: [0.93, 0.3] as [number, number] };
 
+/** D-363: the soft tissue fades out between these distances (m): beyond them a few millimetres of motion are under a pixel */
+export const SOFT_FADE: [number, number] = [18, 35];
 /** person flags (texel 7 w): 1 = hide the head (the player's own body, seen from inside it) */
 export const FLAG_HIDE_HEAD = 1;
 
@@ -281,7 +284,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const rowV = hext.z.sub(0.6).mul(BEARD.rowAmp).mul(is(hmat.x, MAT.hair)).mul(is(hmat.w, 3)).mul(courtV);
       // D-292: the belly of a woman with child (drape.ts bellyOffset, mirrored term for term): amount in texel 5 w, the
       // abdomen's frame (navel height, front surface z) in texels 6 w and 8 w; zero amount leaves every vertex where it was
-      const bAmt = row(5).w, bYc = row(6).w, bZ0 = row(8).w;
+      const bAmt = row(5).w.add(boneTex.load(ivec2(int(HBONES.length * 3 + 7), int(slot))).x), bYc = row(6).w, bZ0 = row(8).w;
       const bRx = float(BELLY.rx[0]).add(bAmt.mul(BELLY.rx[1])), bDy = s.y.sub(bYc.add(BELLY.rise[0]).add(bAmt.mul(BELLY.rise[1])));
       const bRy = mix(float(BELLY.ryLow[0]).add(bAmt.mul(BELLY.ryLow[1])), float(BELLY.ryUp[0]).add(bAmt.mul(BELLY.ryUp[1])), step(0, bDy));
       const bUx = s.x.div(bRx), bUy = bDy.div(bRy), bQ = max(float(1).sub(bUx.mul(bUx)).sub(bUy.mul(bUy)), 0), bSq = sqrt(bQ);
@@ -293,7 +296,36 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const bDz = max(bDome, bFall), bMoved = step(1e-6, bDz).mul(step(bFall, bDome));
       const bDh = bAmt.mul(-BELLY.term * BELLY.exp * 2).mul(bSq).mul(bS);
       const nBb = normalize(nB.sub(vec3(bDh.mul(s.x).div(bRx.mul(bRx)), bDh.mul(bDy).div(bRy.mul(bRy)), 0).mul(nB.z.mul(bMoved))));
-      const bind = s.xyz.add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS))).add(nB.mul(rowV)).add(vec3(0, bDz.mul(-BELLY.drop), bDz));
+      // D-363: the body's fields (bodyShape.bodyFieldOffset, term for term) from the palette row's extra texels: breasts,
+      // buttocks and cheeks scaled about their centres (the breasts' fall), and the soft tissue's springs (breasts, belly,
+      // buttocks, thighs, upper arms, jowls), faded out with distance; the fat belly joins the D-292 dome's amount
+      const xe = (k: number) => boneTex.load(ivec2(int(HBONES.length * 3 + k), int(slot)));
+      const e0 = xe(0), e1 = xe(1), e2 = xe(2), e3 = xe(3), e4 = xe(4), e5 = xe(5), e6 = xe(6), e7 = xe(7), e8 = xe(8);
+      const sideP = step(0, s.x), side = sideP.mul(2).sub(1), bn = si.x, isB = (k: number) => is(bn, k);
+      const fadeJ = e8.y.mul(float(1).sub(smoothstep(SOFT_FADE[0], SOFT_FADE[1], camD)));
+      const torsoM = isB(HB.pelvis).add(isB(HB.spine_01)).add(isB(HB.spine_02)).add(isB(HB.spine_03)).add(isB(HB.clavicle_l)).add(isB(HB.clavicle_r));
+      const dBr = vec3(s.x.sub(e0.x.mul(side)), s.y.sub(e0.y), s.z.sub(e0.z));
+      const qBr = max(float(1).sub(dBr.x.mul(dBr.x).div(0.81).add(dBr.y.mul(dBr.y)).add(dBr.z.mul(dBr.z).div(1.44)).div(max(e0.w.mul(e0.w), 1e-6))), 0);
+      const wBr = qBr.mul(qBr).mul(smoothstep(e0.z.sub(0.045), e0.z.sub(0.005), s.z)).mul(torsoM);
+      const offBr = dBr.mul(e1.x).add(mix(e4.xyz, e3.xyz, sideP).mul(fadeJ)).add(vec3(0, e1.y.negate(), e1.y.mul(-0.3))).mul(wBr);
+      const buttM = isB(HB.pelvis).add(isB(HB.spine_01)).add(isB(HB.thigh_l)).add(isB(HB.thigh_r));
+      const dBt = vec3(s.x.sub(e2.x.mul(side)), s.y.sub(e2.y), s.z.sub(e2.z));
+      const qBt = max(float(1).sub(dot(dBt, dBt).div(max(e2.w.mul(e2.w), 1e-6))), 0);
+      const wBt = qBt.mul(qBt).mul(float(1).sub(smoothstep(e2.z.sub(0.005), e2.z.add(0.045), s.z))).mul(buttM);
+      const offBt = dBt.mul(e1.z).add(vec3(0, e5.x, e5.y).mul(fadeJ)).mul(wBt);
+      const faceM = float(1).sub(is(hmat.x, MAT.eye)).sub(is(hmat.x, MAT.teeth)).sub(is(hmat.x, MAT.mouth)).sub(is(hmat.x, MAT.lash)).mul(isB(HB.head).add(isB(HB.jaw)));
+      const dCh = vec3(s.x.sub(e6.x.mul(side)), s.y.sub(e6.y), s.z.sub(e6.z));
+      const qCh = max(float(1).sub(dot(dCh, dCh).div(CHEEK_R * CHEEK_R)), 0).mul(step(1e-6, abs(e8.w)));
+      const wCh = qCh.mul(qCh).mul(smoothstep(e6.z.sub(0.012), e6.z.add(0.004), s.z)).mul(faceM);
+      const offCh = dCh.mul(e1.w).add(vec3(0, e7.w.mul(fadeJ).mul(float(1).sub(smoothstep(e6.y.sub(0.02), e6.y.add(0.02), s.y))), 0)).mul(wCh);
+      // the nose scaled about its base (wider × 0.7, longer, more projecting × 1.2; the cheek centre's w is its k − 1)
+      const nZ = e8.w.sub(0.025), dNo = vec3(s.x, s.y.sub(e8.z), s.z.sub(nZ)), qNo = max(float(1).sub(dot(dNo, dNo).div(NOSE_R * NOSE_R)), 0);
+      const offNo = dNo.mul(vec3(0.7, 1, 1.2)).mul(e6.w).mul(qNo.mul(qNo).mul(smoothstep(nZ.sub(0.005), nZ.add(0.01), s.z)).mul(faceM));
+      const thW = max(float(1).sub(s.y.sub(e8.x).div(0.16).mul(s.y.sub(e8.x).div(0.16))), 0);
+      const limbY = thW.mul(isB(HB.thigh_l).mul(e5.z).add(isB(HB.thigh_r).mul(e5.w))).add(isB(HB.upperarm_l).mul(e7.y).add(isB(HB.upperarm_r).mul(e7.z)).mul(0.7)).mul(fadeJ);
+      const bodyOff = offBr.add(offBt).add(offCh).add(offNo).add(vec3(0, limbY, 0));
+      const bellyJ = vec3(0, xe(3).w, xe(4).w).mul(bQ.mul(bS)).mul(fadeJ);
+      const bind = s.xyz.add(bodyOff).add(bellyJ).add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS))).add(nB.mul(rowV)).add(vec3(0, bDz.mul(-BELLY.drop), bDz));
       const R = skinned(boneTex);
       const p = toWorld(vec3(dot(R[0], vec4(bind, 1)), dot(R[1], vec4(bind, 1)), dot(R[2], vec4(bind, 1))), root).toVar();
       const n = rotN(normalize(vec3(dot(R[0].xyz, nBb), dot(R[1].xyz, nBb), dot(R[2].xyz, nBb))), root);

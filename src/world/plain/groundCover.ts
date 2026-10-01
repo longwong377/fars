@@ -20,11 +20,11 @@ import { cropState } from './seasonal';
 
 export type CoverKind = 'tuft' | 'sward' | 'stubble' | 'dung';
 /** reach (m), level distances (m), cell (m), rebuild step (m moved) */
-export const COVER = { R: 34, lod: [7, 18], cell: 2, moveM: 3 } as const;
+export const COVER = { R: 34, lod: [5.5, 16], cell: 2, moveM: 3 } as const;
 /** per kind: the pieces drawn (ids in public/models/land/cover.json), the size range (m, largest extent), the most instances per piece */
 export const COVER_KINDS: Record<CoverKind, { ids: string[]; size: [number, number]; cap: number }> = {
-  tuft: { ids: ['tuft_m2b', 'tuft_m2d', 'tuft_m2e', 'tuft_m1a'], size: [0.22, 0.5], cap: 700 },
-  sward: { ids: ['sward_bmj', 'sward_bmm'], size: [0.12, 0.22], cap: 900 },
+  tuft: { ids: ['tuft_m2b', 'tuft_m2c', 'tuft_m2d', 'tuft_m2e', 'tuft_m1a', 'tuft_m1c'], size: [0.22, 0.5], cap: 1100 }, // D-356: six pieces (was 4), the steppe twice as dense
+  sward: { ids: ['sward_bmj', 'sward_bmk', 'sward_bmm'], size: [0.12, 0.22], cap: 1200 },
   stubble: { ids: ['stubble_a', 'stubble_c'], size: [0.6, 0.8], cap: 900 },
   dung: { ids: ['dung_pat', 'dung_horse', 'dung_sheep'], size: [0.16, 0.3], cap: 250 },
 };
@@ -65,7 +65,7 @@ export function coverCell(env: CoverEnv, ix: number, iz: number, seed: number, d
     for (let i = 0; i < n; i++) put('stubble', 20 + i, 1, mixC(COL.stubble, COL.stubbleOld, age), -u.plot.angle + (u01(seed, ix, iz, i, 13) - 0.5) * 0.12); // (its rows along the plot's strip: the sowing ran with the plough)
   } else if (wild && u.use !== 'orchard' || u.row === 'orchard_floor') {
     // the herb layer: tufts at the shader's density and the season's amount, fewer on trodden ground
-    const dens = herbDensity(cx, cz), trT = Math.min(1, Math.max(0, (tr - 0.2) / 0.3)), n = Math.floor(dens * amount * 3.4 * (1 - trT) + u01(seed, ix, iz, 9) * (1 - trT)); // (none on the roads, the approach and the foot: trodden over ~0.5)
+    const dens = herbDensity(cx, cz), trT = Math.min(1, Math.max(0, (tr - 0.2) / 0.3)), n = Math.floor(dens * amount * 7 * (1 - trT) + u01(seed, ix, iz, 9) * (1 - trT)); // (none on the roads, the approach and the foot: trodden over ~0.5)
     for (let i = 0; i < n; i++) put(u01(seed, ix, iz, i, 11) < 0.25 ? 'sward' : 'tuft', 30 + i);
   }
   // dung on the trodden ground (the herds and the pack animals), a little on the grazed steppe and the stubble

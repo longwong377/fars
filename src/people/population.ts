@@ -172,7 +172,7 @@ export const DEPOT_EARLY_H = 1;
 /** out of doors: the planners' own list (Planner.dustVeil, coldWear): the roads, the lanes, the wells, the fields, the
  *  canal, the pasture, the fuel ground, the threshing floor, the gardens, the stockyard, the Terrace's open courts, works and
  *  posts; not a house, a workshop, a store, a hall or a tent */
-export const OPEN_PLACE = /^(lane:|well:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:)/;
+export const OPEN_PLACE = /^(lane:|well:|market:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:)/;
 /** at the house but out of doors: on the roof, in the courtyard, at the wall where the dung cakes dry, on the doorstep */
 export const OPEN_WHY = /\broof\b|in the courtyard|courtyard before|on the wall to dry|on the doorstep|animals out|on the open ground|(weaving at the ground loom|spinning wool|playing|talking with the men of the band|sitting|minding the little ones|resting) by the (new )?tents?\b|by the fire (with the (band|family)|, telling|while)/;
 /** a band's camp work and leisure out of doors by the tents (B S2 / A S10 of shadow review r9: weaving, spinning, play and talk
@@ -1455,6 +1455,16 @@ export class Population {
   }
   /** the year's weddings (E-73; D-211): the bride, the groom, the house she leaves and the house of the feast */
   private weddingList: { day: number; bride: number; groom: number; from: number; to: number }[][] = [];
+  /** D-359 (B226): a wedding the relations layer made (relations/world.ts), joined to the population as its own are: the bride
+   *  lives in the groom's house from the day, and the day is a wedding day for both houses (procession, feast: weddingDay).
+   *  Only for a bride the population never married or moved (one move a year per person: Person.marry/hh2); false if not */
+  addWedding(bride: number, groom: number, day: number, to: number): boolean {
+    const B = this.persons[bride], G = this.persons[groom]; if (!B || !G || B.hh2 >= 0 || B.marry < 1e9 || B.hh === to || !this.households[to]) return false;
+    B.hh2 = to; B.marry = day; B.single = false; G.single = false; if (!this.households[to].joins.includes(bride)) this.households[to].joins.push(bride);
+    (this.weddingList[day] ??= []).push({ day, bride, groom, from: B.hh, to }); this.wedCache.delete(day); this.relWed.add(bride); return true;
+  }
+  /** the brides of the relations layer's weddings (addWedding) */
+  readonly relWed = new Set<number>();
   private wedCache = new Map<number, { day: number; bride: number; groom: number; from: number; to: number }[]>();
   /** the weddings held today: bride and groom both fit for the day, both houses in the town or the plain (else the move is
    *  the quiet one of before: Planner.marriageDay) */
@@ -1713,6 +1723,7 @@ export class Population {
   }
   private pos(place: string, d: number): [number, number] {
     if (place.startsWith('h:')) return this.households[+place.slice(2)].xy;
+    { const m = /^(lane|well|market):([^:]+)(?::(\d+))?$/.exec(place); if (m && (m[1] === 'market' || m[3])) return m[1] === 'market' || !this.households[+m[3]] ? this.quarters[m[2]]?.xy ?? TERRACE_XY : this.households[+m[3]].xy; } // (D-359: a market ground; another house's lane or well)
     // the trees of a garden or an estate stand beside its beds (C). Was: `estate:<h>:trees` read "trees" as a plot number
     // (NaN: every walk to them and the rest of the day had NaN times) and `garden:<q>:trees` fell through to the Terrace
     if (place.endsWith(':trees')) { const b = this.pos(place.slice(0, -6), d); return [b[0] + 90, b[1] + 120]; }

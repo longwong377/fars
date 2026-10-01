@@ -1,0 +1,371 @@
+[
+ {
+  "name": "walls",
+  "title": "The walls stop being boxes: Terrace, palaces and town houses as modelled masonry and mudbrick",
+  "hours": 6,
+  "needs": "blender",
+  "ud": [
+   "UD-19",
+   "UD-20",
+   "UD-06"
+  ],
+  "thresholds": [
+   "T-R12"
+  ],
+  "d": 364,
+  "q": [
+   1180,
+   1189
+  ],
+  "b": [
+   350,
+   359
+  ],
+  "goal": "Every wall, floor, step and parapet the player walks past reads as built: dressed stone blocks with real chipped arrises, joints and weathering in the geometry, stepped merlons with worn edges, palace wall faces with depth, and town house walls of mudbrick and plaster with sag, repairs and eroded feet; not bevelled boxes with a texture.",
+  "owns": [
+   "src/arch/terrace.ts",
+   "src/arch/meshes.ts",
+   "src/arch/parts.ts",
+   "src/arch/partsKey.ts",
+   "src/arch/arris.ts",
+   "src/arch/arris_joints.ts",
+   "src/arch/arris_prism.ts",
+   "src/arch/palacekit.ts",
+   "src/arch/roofedge.ts",
+   "src/arch/plan_walls.ts",
+   "src/arch/decor.ts (merlons only)",
+   "src/world/settlement/houses.ts",
+   "src/world/settlement/kit.ts",
+   "src/world/settlement/compounds.ts",
+   "tools/blender/housekit.*",
+   "tools/blender/palacekit.py",
+   "tools/blender/palacebake.py",
+   "tools/blender/decor_merlon.py",
+   "new tools/blender/terracekit*"
+  ],
+  "reads": [
+   "src/render/blockface.ts",
+   "src/render/masonry.ts",
+   "src/render/materials.ts (the surfaces package owns these next)",
+   "src/render/probes/outdoor*.ts (the light field just merged: geometry changes must keep its walls; re-bake it with its own tool if the plan changes)",
+   "research/BLENDER_PLAN.md rows 8, 17",
+   "references/"
+  ],
+  "entry": [
+   "src/arch/terrace.ts + meshes.ts: 3,681 bevelled boxes are the Terrace walls, floors and steps, the biggest share of every frame: a Blender kit of dressed blocks (several sizes, chipped arrises in geometry within ~12 m, B145) instanced along the measured courses, with LODs; floors as laid slabs with joints and wear along paths",
+   "B186: palace wall faces are planar with vertex AO: kit wall panels with depth, baked normals for the roof-edge joists",
+   "settlement/houses.ts + kit.ts: the house kit (D-311, D-324) put trims on box wall bodies: make the wall bodies themselves kit meshes (plaster, mudbrick showing through, sag, repairs, eroded foot) with three LODs and an impostor for far houses",
+   "village compounds (B64) live in src/world/plain/** (the plain agent): leave them; note the hook for after plain merges"
+  ],
+  "ids": [
+   "D-311",
+   "D-321",
+   "D-324",
+   "D-330",
+   "D-334",
+   "B145",
+   "B186",
+   "B64"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs walls",
+   "iterate on tools/dev/terrace_probe.html, palace_probe.html and tools/dev/house_probe.ts through gpu_slot.mjs",
+   "node tools/blender/build.mjs <ids> (headless; one Blender process at a time)",
+   "the light field: node src/render/probes/outdoor_probe.mjs or its bake tool if your geometry moves walls"
+  ],
+  "done": "In train views of the Terrace courts and stairs, a palace exterior and a town lane at the player's lens, no wall, floor, step or parapet reads as a box: chipped block edges and joints visible at 2-10 m, house walls irregular and weathered; triangles and draws within the frame agent's budget (frame time not worse by more than 2 ms); the light field still matches the walls.",
+  "train": [
+   "stair-climb",
+   "apadana-nw-court",
+   "gate-w-day",
+   "terrace-wall-near",
+   "lane-with-child",
+   "tachara-s-stair",
+   "harem-portico"
+  ],
+  "notes": "RESUME (session 15): your branch s14-walls already has stair/landing joint grooves within 12 m, palace mudbrick faces bowed (mudface.ts) and near merlons from Blender (f387992d, uncommitted nothing). First: fix decor_assets trim (`node tools/blender/decor.mjs trim`), tsc on your files. Then the big untouched share: TOWN HOUSE WALL BODIES as kit meshes (plaster, mudbrick showing through, sag, repairs, eroded foot) with 3 LODs + far impostor, then Terrace floors as laid slabs. Bulk across every house, not one showcase."
+ },
+ {
+  "name": "bodies",
+  "title": "Every body different, soft-tissue motion, clothes over the real body, the far people re-baked",
+  "hours": 6,
+  "needs": "blender",
+  "ud": [
+   "UD-27",
+   "UD-08"
+  ],
+  "thresholds": [
+   "T-E15"
+  ],
+  "d": 363,
+  "q": [
+   1170,
+   1179
+  ],
+  "b": [
+   340,
+   349
+  ],
+  "goal": "No two people share a body: build, weight, musculature, shoulders and hips, bust from small to very large, belly, posture and face from very plain to very beautiful vary continuously on a real bell curve shaped by labour, diet, age and illness, with age marks, scars, pregnancy and nursing; bodies move with soft-tissue physics; garments drape over the actual body; far people (impostors) match, with their spears, bows and tools. Not explicit: people are clothed as the day requires.",
+  "owns": [
+   "src/people/looks.ts",
+   "src/people/body.ts",
+   "src/people/humans.ts",
+   "src/people/humanRig.ts",
+   "src/people/humanGPU.ts",
+   "src/people/humanMaterial.ts",
+   "src/people/drape.ts",
+   "src/people/outfits.ts",
+   "src/people/outfit_worker.ts",
+   "src/people/impostors.ts",
+   "new src/people/softbody.ts",
+   "tools/blender/people*.py",
+   "tools/blender/people.json",
+   "tools/blender/cloth.py",
+   "tools/blender/preview_people.*"
+  ],
+  "reads": [
+   "src/people/crowd.ts",
+   "src/people/popview.ts",
+   "src/people/wardrobe/** (the visible agent exports the day's garment; read it if merged, else leave a hook)",
+   "src/people/population.ts",
+   "research/BLENDER_PLAN.md rows 5, 6, 19",
+   "humanlab.html"
+  ],
+  "entry": [
+   "looks.ts:173-182 lookFor: pickVariant + a stature scale clamped to ±7 % is the whole body variation: replace with a continuous seeded shape vector (Blender shape keys on the MakeHuman base meshes: build, fat, muscle, bust, hips, belly, posture, face structure and attractiveness), drawn on a bell curve and shifted by the person's labour, household wealth, age, illness and pregnancy from the simulation",
+   "soft-tissue: spring-damper jiggle bones (breasts, buttocks, belly, thighs, upper arms, jowls) weighted in Blender, solved on the GPU (humanGPU.ts) or a worker, scaled by size and firmness, faded with distance; the same spring pass is the hook the later peoplemotion package uses for hair, sashes, jewellery and loads",
+   "garments: the cloth bake (cloth.py) per shape band so dress drapes over the actual body",
+   "impostors.ts: the Cycles atlas is stale (the render warns; a CPU fallback costs ~12 s of load): re-bake with tools/blender/people_impostors.py over shape bands and with the far people's spears, bows and tools (B176)"
+  ],
+  "ids": [
+   "D-304",
+   "D-307",
+   "D-313",
+   "B136",
+   "B151",
+   "B176",
+   "B148"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs bodies",
+   "iterate on humanlab.html through node tools/dev/gpu_slot.mjs",
+   "node tools/blender/build.mjs <people ids> (Blender, headless); node tools/blender/impostors.mjs (Cycles, takes a GPU slot)"
+  ],
+  "done": "tests/body_variety.test.ts (T-E15) passes: >= 99 % of the drawn population has a unique body/face vector, the spread is a bell curve with both extremes present on a 3,000-person sample; in humanlab and in train views a crowd shows visibly different bodies and faces, with soft-tissue motion in walking; the impostor atlas is fresh (no CPU fallback warning); frame cost of the jiggle pass <= 1 ms for the visible crowd.",
+  "train": [
+   "lane-with-child",
+   "apadana-nw-court",
+   "morning-wash",
+   "tannery-work",
+   "hall100-site"
+  ],
+  "notes": "RESUME (session 15): your branch s14-bodies (f8ee41a3) is WIP. An orphaned impostor bake from session 14 (tools/blender/impostors.mjs, Blender pid in GPU slot1) may still be running or finished: check public/models impostor atlas mtimes before re-baking. Finish 3b (every body different), 3c (soft tissue), garments per shape band, the impostor re-bake with tools (B176). Bulk over every class, not one showcase body."
+ },
+ {
+  "name": "surfaces",
+  "title": "No single-colour surface anywhere: grime, wear and large-scale variation on every material",
+  "hours": 6,
+  "needs": "gpu",
+  "ud": [
+   "UD-19",
+   "UD-06"
+  ],
+  "thresholds": [
+   "T-R12"
+  ],
+  "d": 366,
+  "q": [
+   1200,
+   1209
+  ],
+  "b": [
+   370,
+   379
+  ],
+  "goal": "Every big surface the player sees (Terrace paving, stone walls, mudbrick and plaster, lanes, courts, roofs, terrain near the eye) carries the variation of a real place: large-scale colour drift and patches over tens of metres, dirt and damp rising at wall feet, run-off streaks under sills and parapets, soot above doors and hearths, wear polish and dust along the paths people walk, edge chipping and lichen on old stone. No flat single-colour plane at any distance.",
+  "owns": [
+   "src/render/scans.ts",
+   "src/render/masonry.ts",
+   "src/render/blockface.ts",
+   "src/render/materials.ts",
+   "new src/render/grime*.ts",
+   "new tools/dev/surface_probe*"
+  ],
+  "reads": [
+   "src/arch/** (the walls agent owns the geometry; you own how it is shaded)",
+   "src/render/probes/** (the light field)",
+   "src/render/toneLook.ts",
+   "references/",
+   "ASSET_LEDGER.md (add any new CC0 scan)"
+  ],
+  "entry": [
+   "src/render/materials.ts: every material factory; add one shared world-space grime layer (TSL nodes): low-frequency colour drift (100 m, 10 m, 1 m octaves), height-from-ground dirt and damp band, AO-driven crevice dirt, a run-off mask from the surface normal and the height above the next ledge",
+   "src/render/scans.ts: the CC0 scan layer; add 1-2 grime/dirt/plaster-stain scans from ambientCG/Poly Haven (CC0) as detail masks; record them in ASSET_LEDGER.md",
+   "paths: wear polish and dust along walked routes (the nav/route data the people use; read-only), soot above every fire place (src/world/firePlaces.ts read-only)",
+   "keep sampler counts under 16 per pipeline (SAMPLERDBG=1) and the fragment shader size from growing more than ~20 % (frame agent cut it to 156 KB, D-355)"
+  ],
+  "ids": [
+   "D-309",
+   "D-355",
+   "D-357",
+   "B113",
+   "B260"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs surfaces",
+   "iterate on tools/dev/ground_probe.* and a surface probe page of your own through gpu_slot.mjs (seconds a load)",
+   "npx vitest run <your tests>"
+  ],
+  "done": "In train views of a Terrace court, a palace wall, a town lane and the plain near the eye, no surface reads as one flat colour: dirt bands at wall feet, streaks, soot and path wear visible at walking distance; frame time not worse by more than 2 ms; samplers < 16.",
+  "train": [
+   "apadana-nw-court",
+   "gate-w-day",
+   "lane-with-child",
+   "town-smoke-dusk",
+   "dawn-stair-top",
+   "terrace-wall-near"
+  ]
+ },
+ {
+  "name": "fill",
+  "title": "Courts, lanes and rooms full of life and things, at every hour",
+  "hours": 6,
+  "needs": "blender",
+  "ud": [
+   "UD-19",
+   "UD-07",
+   "UD-08",
+   "UD-06"
+  ],
+  "thresholds": [
+   "T-R12"
+  ],
+  "d": 367,
+  "q": [
+   1210,
+   1219
+  ],
+  "b": [
+   380,
+   389
+  ],
+  "goal": "Every town lane, court, market and room the player walks into is full: market stalls with awnings and goods, laundry lines, drying racks, firewood stacks, tethered animals, jars and sacks, mats and textiles, braziers and lamps, scaffolds and building debris on the Terrace, banners and awnings in the palace courts, and enough people at every hour that no walkable place reads as empty. Real modelled assets (Blender or CC0 scans), placed by rules from the simulation and SITE_SPEC, everywhere, not one dressed showcase street.",
+  "owns": [
+   "src/world/furnish.ts",
+   "src/world/furnish_palaces.ts",
+   "src/world/courtCamps.ts",
+   "src/world/roadLitter.ts",
+   "src/world/construction.ts",
+   "src/world/tentForms.ts",
+   "src/render/scanProps.ts",
+   "new src/world/fill*.ts",
+   "new tools/blender/fill*.py"
+  ],
+  "reads": [
+   "src/world/settlement/** (the walls agent owns houses.ts/kit.ts/compounds.ts: place props in courts and lanes from their plot data, do not edit them)",
+   "src/people/** (crowd density: make the smallest hook and report it)",
+   "research/SITE_SPEC.md",
+   "research/ANACHRONISM_BLOCKLIST.md",
+   "references/",
+   "ASSET_LEDGER.md"
+  ],
+  "entry": [
+   "src/world/furnish.ts + furnish_palaces.ts: what rooms hold today; fill every room class, not one",
+   "src/world/courtCamps.ts + tentForms.ts: court tents; add awnings, banners, braziers, scaffolds and debris on the Terrace (construction.ts)",
+   "town lanes and courtyards: laundry lines, racks, firewood, tethered animals, stalls (a market rule per quarter), goods by trade from the economy (read-only: src/people/economy/**)",
+   "instancing: one InstancedMesh per asset kind; LOD and a draw budget (frame agent: D-355)"
+  ],
+  "ids": [
+   "D-310",
+   "D-311",
+   "D-324",
+   "D-355",
+   "D-207",
+   "B64"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs fill",
+   "node tools/blender/build.mjs <ids> (one Blender process at a time, through cpu_slot.mjs)",
+   "iterate on probe pages through gpu_slot.mjs",
+   "npm run lint:all (anachronism) before the final commit"
+  ],
+  "done": "In train views of a town lane, the market, a palace court, the Terrace stair top and two interiors at morning, noon and dusk, no walkable place reads as empty: goods, cloth, animals, fires and people at walking distance; every asset in ASSET_LEDGER.md; frame time not worse by more than 3 ms.",
+  "train": [
+   "lane-with-child",
+   "town-smoke-dusk",
+   "apadana-nw-court",
+   "harem-portico",
+   "gate-w-day",
+   "scribe-room"
+  ]
+ },
+ {
+  "name": "simtalk",
+  "title": "Talking to people reaches the real simulation",
+  "hours": 3,
+  "needs": "node",
+  "ud": [
+   "UD-18",
+   "UD-21",
+   "UD-24",
+   "UD-25",
+   "UD-26"
+  ],
+  "thresholds": [
+   "T-E9",
+   "T-E10",
+   "T-F9"
+  ],
+  "d": 358,
+  "q": [
+   1120,
+   1129
+  ],
+  "b": [
+   290,
+   299
+  ],
+  "goal": "When the player talks to someone, they speak from their real life (their actual debts, prices, spouse or betrothal, rumours they hold, trust in the player), and what the player says can enter the world: trade and haggle, give, ask for help, petition, hospitality, all as real economy and simulation intents.",
+  "owns": [
+   "src/people/converse/life.ts",
+   "src/people/converse/turn.ts",
+   "src/people/converse/intent.ts",
+   "src/people/converse/ground.ts",
+   "src/people/speech/**",
+   "src/people/asks/**",
+   "tests/ (new files for this package)"
+  ],
+  "reads": [
+   "src/people/economy/**",
+   "src/people/relations/**",
+   "src/people/living/**",
+   "src/people/sim.ts",
+   "src/people/talk.ts"
+  ],
+  "entry": [
+   "converse/life.ts:158-162: lifeRecord fakes seeded debts: read the economy's real loans, stores, prices and recent events, relations (spouse, betrothal, scandal), rumours held, trust",
+   "willTalk is never called by conversation (B234): gate turns on it",
+   "talkAct goes through talk.ts only: [trade], [give] and a new [petition]/[host] become economy intents through speech/haggle.ts with the player as a party",
+   "asks (needs as emergent quests, off unless opts.asks): surface them as talk hooks and turn them on by default if cost allows"
+  ],
+  "ids": [
+   "D-296",
+   "D-339",
+   "D-341",
+   "D-351",
+   "D-352",
+   "B234",
+   "B235",
+   "B233"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs simtalk",
+   "npx vitest run tests/<your files> tests/converse*.test.ts",
+   "the stand-in model for T-E9/T-E10 in node (the real model is the interactive agent's, wave 2)"
+  ],
+  "done": "In a node session on a day-300 save, every conversation's grounding facts come from the simulation (0 seeded fakes), and a scripted set of 30 player interventions (buy, haggle, give, lend, petition, host, ask for help) each change simulation state and enter a T-F9 chain; T-E9/T-E10 measured with the stand-in.",
+  "train": [],
+  "notes": "RESUME/REPAIR (session 15): branch s14-simtalk (merged with s14-int at cc660894) fails 3 of 5 tests in tests/simtalk.test.ts (log: C:/Users/Administrator/fars-train/logs/simtalk.log): (1) a grounding fact puts modern digits in the stranger's words (\"138 BAR\", lint kind modern/digits): render quantities in the period way, no digits; (2) 30 scripted interventions: 22 join a causal chain, need >= 27; (3) T-E10 stand-in 86.7 % < 90. A 4th failure was a 300 s timeout on a loaded box (econAskOf talk set): re-run alone before treating it as real. Never lower a threshold. Fix the causes, re-run the file through cpu_slot (LONG=1), commit."
+ }
+]
