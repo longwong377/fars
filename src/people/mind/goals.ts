@@ -150,11 +150,11 @@ export class Goals {
       const d = eh.debts.filter(x => x.amt > 0.05).sort((a, b) => a.due - b.due)[0];
       return this.make(pid, 'debt', -1, day, Math.max(day + 10, d.due + 3) - day, d.to === 'treasury' ? 'what the house owes the king\'s treasury' : 'the house\'s debt', 'econ'); }
     // marriage: a young man's bride-gift and match; a daughter's dowry and match (C: the families arrange, the young court)
-    if (town && p.sex === 'm' && age >= 19 && age <= 32 && this.unwed(pid, day) && !has('bridegift') && !has('spouse') && u(5) < 0.02)
+    if (town && p.sex === 'm' && age >= 19 && age <= 32 && this.unwed(pid, day) && !has('bridegift') && !has('spouse') && u(5) < 0.008)
       return (eh && eh.cash > 1.2) || age >= 26 ? this.make(pid, 'spouse', -1, day, 240, 'of an age to marry', 'aim') : this.make(pid, 'bridegift', -1, day, 200, 'of an age to marry, and no bride-gift put by', 'aim');
-    if (town && age >= 34) for (const m of mem) { const q = P.persons[m]; if (q.sex === 'f' && q.mother === pid && P.ageOn(m, day) >= 16 && P.ageOn(m, day) <= 24 && this.unwed(m, day) && !this.houseHas(m, 'dowry', day) && !this.of(m).some(g => g.kind === 'spouse') && u(6) < 0.05)
+    if (town && age >= 34) for (const m of mem) { const q = P.persons[m]; if (q.sex === 'f' && q.mother === pid && P.ageOn(m, day) >= 16 && P.ageOn(m, day) <= 24 && this.unwed(m, day) && !this.houseHas(m, 'dowry', day) && !this.of(m).some(g => g.kind === 'spouse') && u(6) < 0.02)
       return this.make(pid, 'dowry', m, day, 180, `${this.name(m)} is of an age to marry`, 'aim'); }
-    if (town && p.sex === 'f' && age >= 17 && age <= 26 && this.unwed(pid, day) && !has('spouse') && u(7) < 0.008) return this.make(pid, 'spouse', -1, day, 240, 'of an age to marry', 'aim');
+    if (town && p.sex === 'f' && age >= 17 && age <= 26 && this.unwed(pid, day) && !has('spouse') && u(7) < 0.004) return this.make(pid, 'spouse', -1, day, 240, 'of an age to marry', 'aim');
     // a better place: the low-paid and a landless son, or a house short of silver
     if (town && p.sex === 'm' && age >= 16 && age <= 40 && u(8) < 0.02 && !this.places.has(pid) && !has('work')) { const low = LOWJOBS.has(p.job) || (p.kin === 'son' && age >= 18 && (p.job === 'farmer' || p.job === 'gardener')), short = !low && this.W.minds.ctx.need(pid, day).cash > 0.6;
       if (low || short) return this.make(pid, 'work', -1, day, 120, short ? 'the house short of silver' : 'a poor place', short ? 'econ' : 'aim'); }
@@ -301,7 +301,7 @@ export class Goals {
     const f = this.W.minds.feelOf(w, g.pid, day), tr = E?.trust && E.hh.has(hh) ? E.trust.trustOf(hh, `h:${this.hid(g.pid, day)}`, day) : 0.5;
     const fam = wHead >= 0 && wHead !== w ? this.W.minds.feelOf(wHead, speaker, day) : f, step = g.n % 4;
     // (the families agree when the one sought is fond enough and her house thinks well of his: C)
-    if (g.n >= 6 && f.anger < 0.2 && f.aff + 0.5 * (fam.aff + fam.grat) + (tr - 0.5) > 0.5) { // the families agree: the betrothal promised, the wedding set (the bride goes to the groom's house)
+    if (g.n >= 8 && f.anger < 0.2 && f.aff + 0.5 * (fam.aff + fam.grat) + (tr - 0.5) > 0.65) { // the families agree: the betrothal promised, the wedding set (the bride goes to the groom's house)
       const bride = me.sex === 'f' ? g.pid : w, groom = me.sex === 'm' ? g.pid : w;
       this.act(g, { verb: 'promise', actor: speaker, target: wHead >= 0 && wHead !== speaker ? wHead : w, about: `the betrothal of ${this.name(groom)} and ${this.name(bride)}`, aim: 'the betrothal' }, day, 18);
       const wday = Math.min(REGNAL_DAYS - 2, day + 25 + Math.floor(this.u(g.id, day, 3) * 35)), to = this.hid(groom, day);
