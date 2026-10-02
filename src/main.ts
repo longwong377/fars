@@ -68,7 +68,10 @@ if (settings.devOverlay || P.has('overlay')) overlay.toggle();
 // spawn: on the approach from the plain, west of the Grand Stair, facing the Terrace (grid east)
 const SPAWN = { east: -175, north: 122.45, yaw: -Math.PI / 2 };
 
-const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms') : (_: string) => {};
+// s15/ship: with ?trace each mark also says how much of the main thread was busy (long tasks) so far: CPU-bound vs waiting on the network
+let BUSY = 0; if (P.has('trace') && typeof PerformanceObserver !== 'undefined') try { new PerformanceObserver(l => { for (const e of l.getEntries()) BUSY += e.duration; }).observe({ type: 'longtask', buffered: true }); } catch { /* no long-task timing */ }
+const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms', 'busy', BUSY.toFixed(0)) : (_: string) => {};
+(globalThis as any).__bootBusy = () => Math.round(BUSY); // (world.ts's marks print it)
 /** s15/ship (D-368): the built site's service worker (public/sw.js: the site's files in Cache Storage, so a second visit
  *  fetches nothing); on a first visit the boot waits (at most 3 s) until it controls the page, so the first visit's files are kept */
 async function siteWorker() {
