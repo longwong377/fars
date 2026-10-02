@@ -112,6 +112,10 @@ async function boot() {
       I.begin(); let n = 0; for (const p of crowd.persons.values()) { if (!p.extra || !p.key.startsWith('lab')) continue; const L = p.look, d = (L.far ?? L.dress) as import("../people/outfits").Dress;
         I.push(p.extra.x + dx, 0, p.extra.z + z, p.extra.yaw ?? 0, rowOf(d, frameOf(anim as AnimId, ph, ph)), L.stature / (I.atlas.refStature[d] || 1.65), null, I.packLook(L)); n++; }
       I.end(); return { n, source: I.atlas.layout?.source ?? 'cpu' }; },
+    /** D-395: a reaction to the stranger (greet, bow, nod, stare, avoid, turn: people/react.ts) played on lineup person i from
+     *  the crowd's clock now, toward the camera (or `at`); the pose's head/chest/right arm after `render` is read by `rot` */
+    react: (i: number, kind: string, at?: [number, number, number]) => crowd.reactions.play(`lab${i}`, kind as any, time, at ?? [camera.position.x, camera.position.y, camera.position.z], { byName: true }),
+    rot: (i: number) => { const r = crowd.persons.get(`lab${i}`)?.rig.pose?.rot; return r ? { head: r.head, chest: r.chest, r_upper: r.r_upper } : null; },
     impClear: () => { for (const I of Object.values(imps)) { I.begin(); I.end(); } },
     crowd, humans, renderer, camera, scene,
   };

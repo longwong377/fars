@@ -30,11 +30,11 @@ const nearCopyShare = (pid: number) => { const days: number[] = []; for (let d =
 const OUTING = /^(playing in the lane with the neighbours|playing outside the door with the neighbours|playing on the doorstep|playing at a neighbour’s house|at a kinswoman’s house in the lane)/;
 
 describe('plans well formed: nobody is "with" someone who is elsewhere (D-140)', () => {
-  it('the children of household 9660 on day 123 are where their mother is (the soak failure after round 3)', () => {
-    const d = 123, h = P.home(42000, d); const mem: number[] = P.membersOn(h, d); expect(mem).toContain(42002); expect(mem).toContain(42003);
+  it('the children of household 1999 on day 123 are where their mother is (the soak failure after round 3; D-350, s15: was household 9660, mother 42000, before the brides\' redraw moved the ids)', () => {
+    const d = 123, h = P.home(7037, d); const mem: number[] = P.membersOn(h, d); expect(mem).toContain(7038); expect(mem).toContain(7039);
     for (const x of mem) expect(apart(x, d)).toBeNull();
     // the mother's two well trips in a row now run on from one to the next, with no 0.32-second sliver at home between them
-    const ms: Seg[] = P.plan(42000, d); for (const s of ms) expect(s.t1 - s.t0, `${s.t0.toFixed(4)} ${s.act} ${s.why}`).toBeGreaterThanOrEqual(0.001);
+    const ms: Seg[] = P.plan(7037, d); for (const s of ms) expect(s.t1 - s.t0, `${s.t0.toFixed(4)} ${s.act} ${s.why}`).toBeGreaterThanOrEqual(0.001);
   });
   it('no plan holds a sliver (every piece but the day\'s first and last lasts 3.6 s or more, a walk that is the only way between two places excepted) and no time is NaN', () => {
     let n = 0;
@@ -59,8 +59,8 @@ describe('plans well formed: nobody is "with" someone who is elsewhere (D-140)',
 });
 
 describe('a toddler\'s day varies for real (D-140)', () => {
-  it('41397, a girl of three present seven days, is not a near-copy of herself (the soak failure after round 3)', () => {
-    const r = nearCopyShare(41397); expect(r.days).toBe(7); expect(r.share).toBeLessThan(SOAK_GATES.MAX_NEAR_COPY_SHARE);
+  it('30037, a girl of three present sixteen days, is not a near-copy of herself (the soak failure after round 3; D-350, s15: was 41397, present seven days; since the brides\' redraw no girl of three of the town or the plain is present seven)', () => {
+    const r = nearCopyShare(30037); expect(r.days).toBe(16); expect(r.share).toBeLessThan(SOAK_GATES.MAX_NEAR_COPY_SHARE);
   });
   it('small children go out after a storm has passed and before the dust rises, and are kept in during them', () => {
     let out = 0, days = 0;
