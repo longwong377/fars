@@ -83,4 +83,7 @@ for (const v of visits) {
   await ctx.close();
 }
 writeFileSync(join(dist, '..', 'visits.json'), JSON.stringify(out, null, 1)); console.log(JSON.stringify(out, null, 1));
-stop(); process.exit(0);
+stop();
+// (D-393: the empty profile made here is removed: each visit's profile kept up to 1.3 GB of caches, and nine filled the disk)
+if (!opt('--profile', null)) try { (await import('node:fs')).rmSync(prof, { recursive: true, force: true }); } catch {}
+process.exit(0);
