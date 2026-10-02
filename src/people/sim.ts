@@ -40,6 +40,7 @@ import { RelPlans } from './relations/plans';
 import type { Intent as EconIntent } from './economy/api';
 import { HOME_LANG } from './exchanges';
 import type { SAct, Verdict } from './speech/stranger';
+import { chronicleLine } from './speech/stranger';
 import { strangerAsk } from './speech/verbs';
 import { unitsFor, LEX_LABEL } from '../audio/voices';
 import { packJSON, unpackJSON } from './savepack';
@@ -650,12 +651,20 @@ export class PeopleSim {
     this.t = tHours; this.evT = tHours < this.evT ? tHours - 24 : Math.max(this.evT, tHours - 24); this.events$();
     for (const a of this.agents) { if (a.carry === 'sack' && a.sackTo) this.stock[a.sackTo] += 1; a.carry = null; a.sackTo = undefined; a.relieved = true; this.begin(a, this.decide(a), true); } // (a camp sack in hand is set down at its place: S6 r5)
   }
+  private strChron = -1;
   private events$() {
     const day = Math.floor(this.t / 24), hour = this.t - day * 24;
     const C = this.cal.ctx(day);
     // the calendar's events (rations, deliveries, couriers, offerings, construction, life …) enter the chronicle as time passes
     if (this.evT < 0) this.evT = this.t - 1e-9;
     if (this.t > this.evT) { for (const e of this.cal.eventsBetween(this.evT, this.t)) this.log(e.kind, e.text, e.place, e.id, e.t, e.tier); this.evT = this.t; }
+    // D-370: the stranger's own deeds enter the chronicle as the economy records them (out of world: the translation layer's journal)
+    if (this.econ?.hasStranger) { const ev = this.econ.events; if (this.strChron < 0) this.strChron = ev.length;
+      for (; this.strChron < ev.length; this.strChron++) { const v = ev[this.strChron]; if (!v || (v.actor !== 'player' && v.other !== 'player')) continue;
+        const other = v.actor === 'player' ? v.other : v.actor, hid = other && /^h:\d+$/.test(other) ? Number(other.slice(2)) : -1, H = hid >= 0 ? this.pop.households[hid] : null;
+        const head = H ? H.members.find(m => this.pop.persons[m].sex === 'm' && this.pop.ageOn(m, day) >= 16) ?? H.members[0] : undefined;
+        const line = chronicleLine(v.kind, head !== undefined ? `the house of ${this.pop.nameOf(head)?.replace(/^\*/, '') ?? 'a man of the quarter'}` : 'the court');
+        if (line) this.log('stranger', line, H?.home ?? '', `econ:${v.id}`, Math.min(this.t, v.day * 24 + 12), 'C'); } }
     // the camp's barley sent up from the storehouse to the depot in the morning when the depot is low (lives.json
     // camp_women_needed.camp_grain_up; C)
     if (day !== this.lastGrainDay && hour >= 6.5) { this.lastGrainDay = day;

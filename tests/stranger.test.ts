@@ -153,4 +153,10 @@ describe('D-370 the stranger in the simulation', () => {
     const host = [...e.hh.values()].find(h => h.kind === 'farmer' && S.stayCheck(h.id, e.day).ok)!; S.do({ a: 'stay', day: e.day, hh: host.id });
     step(e, 1 + STR_LAG); expect(S.hungry).toBe(0);
   });
+  it('nights in the open: winter chills him, the watch questions a stranger without a document', () => {
+    const e = town(300), S = e.stranger(); S.purse.grain = 100; S.do({ a: 'hear', day: 300, lang: 'Elamite', hours: 0.1 });
+    step(e, 30); const k = (x: string) => e.events.filter(v => v.kind === x).length;
+    expect(k('stranger_chilled')).toBeGreaterThan(0); expect(k('questioned_by_watch') + k('held_by_watch')).toBeGreaterThan(0);
+    const before = k('questioned_by_watch') + k('held_by_watch'); S.halmi = 999; step(e, 20); expect(k('questioned_by_watch') + k('held_by_watch')).toBe(before);
+  });
 });
