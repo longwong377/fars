@@ -7,10 +7,10 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
 Read this section, then `git log origin/cloud-s15-depth -15`. Branch `cloud-s15-depth`; Vagon merges it into s14-int and
 deploys Pages from there (D-370..D-391 are live; D-382 onward wait for Vagon's next merge).
 - **Still running when this session ended** (collect, verify their push, archive with archive_session):
-  soaks per seed (session_01Y3BRtndaPvEPWgo5D6HNjd, report only, slow box); B230 the adult-brides branch
+  the soaks were archived unfinished (seed 1 stuck 3 h in the population phase on the cloud box: re-run on Vagon or alone); B230 the adult-brides branch
   (session_01YY3WBdP7cdEqwqtZhcadWQ, branch s13-bridesmerge, comparing test failures). D-452 (spouses mutual, names
   dealt round, visible marks: src/people/marks.ts) and D-454 landed before the handoff; see their DECISIONS rows for numbers.
-  The playtest bot (session_01Bo2awCHnnWMLyESsfn6MWD) is idle: its script is tools/dev/playtest_year.ts (re-run it after
+  The playtest bot is archived: its script is tools/dev/playtest_year.ts (re-run it after
   every depth change; it found more real bugs than any test).
 - **Broken / unverified, first:** the 1.5B (D-394) heard only on Vagon's 12 lab prompts, not over the cloud's newer briefs (past, marks); `sim.strangerSeen` reactions not wired on screen; the stranger can barely buy (6/120 buys; silver never
   accumulates: day labour, the market and selling his grain should make one loop); two converse T-E9 tests time out under
