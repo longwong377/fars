@@ -165,6 +165,7 @@ export class PeopleSim {
       this.econ.stranger().opts.needOf = (id: string, day: number) => { const H = this.econ?.hh.get(id);
         if (H && (H.kind === 'farmer' || H.kind === 'rich')) { const A = this.cal.ctx(day).agri; for (const [e, w] of [['E-40', 'the ploughing and sowing'], ['E-44', 'the spring sowing'], ['E-42', 'the wheat harvest'], ['E-43', 'the threshing'], ['E-45', 'the vintage']] as const) if (A.has(e)) return w; }
         return ''; };
+      this.econ.stranger().opts.skillOf = (k: string) => this.deeds.skills.get(k) ?? 0; // (D-462: the crafts he was taught)
       this.econ.stranger().opts.langOf = (id: string) => { const H = this.pop.households[Number(id.slice(2))]; const o = H ? this.pop.persons[H.members[0]]?.origin : undefined; return (o && HOME_LANG[o]) || 'Elamite'; }; }
     return this.econ;
   }
@@ -198,7 +199,10 @@ export class PeopleSim {
     const cand = [...P.membersOn(P.home(pid, day), day), ...P.persons[pid].ties];
     for (const x of cand) { const n = P.nameOf(x)?.replace(/^\*/, '').toLowerCase(); if (n && n.length > 2 && w.includes(n)) return x; }
     const rel: [RegExp, (x: number) => boolean][] = [[/\b(your|the) (father)\b/, x => P.persons[pid].mother >= 0 && P.persons[x].sex === 'm' && P.ageOn(x, day) - P.ageOn(pid, day) > 15], [/\b(your|the) (mother)\b/, x => x === P.persons[pid].mother],
-      [/\b(your) (wife|husband)\b/, x => P.persons[pid].spouse === x], [/\b(your) (son|boy)\b/, x => P.persons[x].mother >= 0 && P.persons[x].sex === 'm' && P.ageOn(pid, day) - P.ageOn(x, day) > 14], [/\b(your) (daughter|girl)\b/, x => P.persons[x].sex === 'f' && P.ageOn(pid, day) - P.ageOn(x, day) > 14]];
+      [/\b(your) (wife|husband)\b/, x => P.persons[pid].spouse === x], [/\b(your) (son|boy)\b/, x => P.persons[x].mother >= 0 && P.persons[x].sex === 'm' && P.ageOn(pid, day) - P.ageOn(x, day) > 14], [/\b(your) (daughter|girl)\b/, x => P.persons[x].sex === 'f' && P.ageOn(pid, day) - P.ageOn(x, day) > 14],
+      // D-462: a brother or sister (the same mother), a friend (their ties)
+      [/\b(your) (brother)\b/, x => P.persons[x].sex === 'm' && P.persons[pid].mother >= 0 && P.persons[x].mother === P.persons[pid].mother], [/\b(your) (sister)\b/, x => P.persons[x].sex === 'f' && P.persons[pid].mother >= 0 && P.persons[x].mother === P.persons[pid].mother],
+      [/\b(your) (friend)\b/, x => P.persons[pid].ties.includes(x)]];
     for (const [re, ok] of rel) if (re.test(w)) { const x = cand.find(c => c !== pid && ok(c)); if (x !== undefined) return x; }
     return null;
   }
@@ -484,6 +488,7 @@ export class PeopleSim {
    *  call. Between 6 and 18 h, time spent near a member of the employer's house (or of the household joined; for a gang, any
    *  builder or porter; with a caravan, any traveller) counts as work; two hours make the day attended (C) */
   strangerNear(pids: readonly number[], dtH: number) {
+    this.deeds.joint.near(pids, this.t); // (D-462: the undertakings he is at with them are kept)
     const day = Math.floor(this.t / 24), h = this.t - day * 24; if (h < 6 || h > 18 || !this.econ) return;
     const S = this.econ.stranger(), J = S.job, G = S.group;
     // D-455: a day's hire at the market: hours spent on the market ground (among people whose place now is a market) are the
@@ -717,7 +722,7 @@ export class PeopleSim {
   /** advance by dt game seconds */
   step(dt: number) {
     if (dt <= 0) return;
-    this.t += dt * H_PER_S; this.searches = 0;
+    this.t += dt * H_PER_S; this.searches = 0; this.deeds.joint.settle(this.t);
     this.events$(); this.talk.step(this.t, this.player);
     for (const a of this.agents) this.stepAgent(a, dt);
   }
@@ -743,7 +748,7 @@ export class PeopleSim {
   }
   /** jump to a new time: everyone is placed where their plan puts them (continuity after time skips, loads) */
   jumpTo(tHours: number) {
-    this.t = tHours; this.evT = tHours < this.evT ? tHours - 24 : Math.max(this.evT, tHours - 24); this.events$();
+    this.t = tHours; this.evT = tHours < this.evT ? tHours - 24 : Math.max(this.evT, tHours - 24); this.events$(); this.deeds.joint.settle(this.t);
     for (const a of this.agents) { if (a.carry === 'sack' && a.sackTo) this.stock[a.sackTo] += 1; a.carry = null; a.sackTo = undefined; a.relieved = true; this.begin(a, this.decide(a), true); } // (a camp sack in hand is set down at its place: S6 r5)
   }
   private strChron = -1;

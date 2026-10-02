@@ -79,7 +79,7 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   // an open deed, judged by the world and this person's mind before they answer (o.deed: the model's reading, when it made one)
   const dj = strict || sb ? null : sim.strangerDeed(pid, said, o.deed);
   const dSense = dj ? VERBS[dj.deed.verb] : null;
-  const dNote = !dj || !dSense ? '' : dSense.consent ? (dj.out.ok ? `You are willing: ${dj.out.why}.` : `You will not: ${dj.out.why}.`) : dj.out.ok ? `(What he does: ${dSense.gloss}${dj.out.why && dj.out.why !== dSense.gloss ? `; you feel: ${dj.out.why}` : ''}.)` : `(${dj.out.why}.)`;
+  const dNote = !dj || !dSense ? '' : dSense.consent ? (dj.out.ok ? `You are willing: ${dj.out.why}.` : `You will not: ${dj.out.why}.${dj.out.say ? ` (In your words: “${dj.out.say}”)` : ''}`) : dj.out.ok ? `(What he does: ${dSense.gloss}${dj.out.why && dj.out.why !== dSense.gloss ? `; you feel: ${dj.out.why}` : ''}.)` : `(${dj.out.why}.)`;
   const request = strict ?? (sb ? null : looseRequest(said));
   const pre = request ? sim.talk.consider(pid, t, request) : null;
   const sbNote = sb && sb.act.a !== 'hear' && sb.act.a !== 'claim' ? (sb.verdict.ok ? `You may say yes: ${sb.verdict.why}.` : `You cannot do this: ${sb.verdict.why}.`) : '';
