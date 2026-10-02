@@ -1,3 +1,6 @@
+# HANDOFF — end of session 16 (2026-10-02): read sessions/s16.md "START HERE" first (cloud: merge, fix the shared-decoder hang, watch the first 8-world CI bake).
+# LIVE: https://longwong377.github.io/fars/ (Pages source = GitHub Actions). Walkable 84.6 s cold on the 4-core box with the bake (was 166 s); talking on (Qwen2.5-1.5B). Next on Vagon: handoff/briefs/s16/bigbox.md.
+
 # HANDOFF — end of session 15 (2026-10-02): read sessions/s15.md "START HERE" first.
 # LIVE: https://longwong377.github.io/fars/ (Actions deploys every push to s14-int). Goal UD-31: walkable < 1 min (now 162 s cold), talking on.
 
