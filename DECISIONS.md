@@ -9432,3 +9432,16 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   models in the lying fold allowed 30 cm of hide stretch at hock and tail, a 20-cm-deep chest, no ear flick and their own
   tails' swing: B550; tests/animal_motion.test.ts likewise), probe frames
   shots/animal-*-r4.png (not committed). Load: 29 sets of ~1.6-2.3 MB each, the same order as the procedural sets (manifest).
+
+## D-521 (s17, V5): rain that reads (mixed streaks, splashes), dust that shows, a weather probe
+- weatherVfx.ts: each drop its own streak length (0.45-1.25 x) and brightness, the sheet's opacity 0.5 -> 0.34 (a uniform
+  sheet of equal streaks read as scratches on the lens); splashes where drops land within 9 m of the eye (a crown and a
+  rebound droplet, ~0.3 s, closed form in time; brighter than the streak: the sky in the water), none under the halls' roofs;
+  world.ts hook (one line): wvfx.ground = terrain.surfaceAt. shader_build counts the new mesh.
+- dust.ts: the puffs' optical depths 6-10x (the first pass's read as nothing in the probe: tau 0.05-0.12), longer lives,
+  more puffs per animal; a billowing edge (two noise octaves) instead of a disc.
+- tools/dev/weather_probe.{html,ts,mjs}: the plain (plain_probe's ?lite ground, flora, rocks) with the game's Animals in
+  flocks and strings, their dust, the rain, the wet ground and breath; views rain-spring, wet-after, dust-june, herd-5m,
+  herd-30m, cold-morning. Frames judged: shots/wx-*-w6.png (not committed).
+- Not mine, seen in the probe: the wet plain is darker but matte (no sheen, no puddles: the ground material, V2/C2); the
+  ground flora draws black spiky cards on the plain (groundFlora, C2).
