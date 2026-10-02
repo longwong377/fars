@@ -96,6 +96,7 @@ export class Minds {
     const tr = this.ctx.trust(pid, doer, day); add(0.6 * (tr - 0.5), tr < 0.35 ? 'the house does not trust him' : tr > 0.65 ? 'the house trusts him' : '');
     // D-460: his record as the house knows it (a thief, a liar, a man who strikes people), and the custom that a wound is paid for
     const rec = sense.consent || d.verb === 'ask_for' ? this.ctx.record?.(pid, doer, day) : null; if (rec) add(0.8 * rec.v, rec.v < -0.1 ? rec.why : '');
+    if (d.verb === 'give' && /compensation|blood-price|the wound|for the blow/.test(d.about ?? d.said ?? '')) add(0.7, 'the price of the wound offered');
     if (d.verb === 'ask_for' && /compensation|blood-price/.test(d.about ?? '')) add(0.55 + 0.3 * Math.max(0, f.fear) - 0.25 * (pe.pride - 0.5), 'the custom: a wound is paid for');
     // temper and facets
     if (sense.consent) { add(0.25 * (pe.warmth - 0.5), pe.warmth > 0.7 ? 'warm by nature' : pe.warmth < 0.3 ? (doer === 'player' ? 'cold to strangers' : 'cold by nature') : '');

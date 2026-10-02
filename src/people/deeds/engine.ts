@@ -63,7 +63,8 @@ export class DeedWorld {
     });
     this.law = new Law({ pop: w.pop, seed: w.seed, minds: this.minds, econ: E, rumours: w.rumours, near: w.near, injuries: this.injuries,
       hh: (a, d) => this.hh(a, d), name: a => this.name(a), holds: (a, g, d) => this.holds(a, g, d), move: (f, t, g, q, d) => { const e = E(d); if (e) this.moveGoods(e, f, t, g, q, d); },
-      lay: (pid, d, seg) => this.lay(pid, d, seg), layDays: (pid, d, n, act, why) => this.layDays(pid, d, n, act, why), whereOf: (pl, pid, d) => this.whereOf(pl, pid, d) });
+      lay: (pid, d, seg) => this.lay(pid, d, seg), layDays: (pid, d, n, act, why) => this.layDays(pid, d, n, act, why), whereOf: (pl, pid, d) => this.whereOf(pl, pid, d),
+      strangerAbout: d => this.mine.some(m => d - m.t / 24 < 14 && m.t / 24 <= d + 1) || !!(E(d)?.hasStranger && E(d)!.stranger().active) });
   }
   private hh(a: Actor, day: number): string | null { return a === 'player' ? null : `h:${this.w.pop.home(a, day)}`; }
   private name(a: Actor) { return a === 'player' ? 'the stranger' : (this.w.pop.nameOf(a) ?? 'someone').replace(/^\*/, ''); }
@@ -213,7 +214,7 @@ export class DeedWorld {
         const how = e.how === 'killed' ? 'broken' : e.how; this.injuries.set(e.pid, { how, day, until: day + (how === 'broken' ? 40 : how === 'cut' ? 12 : 4), by: e.by });
         if (how === 'broken' || how === 'cut') this.layDays(e.pid, day, how === 'broken' ? 10 : 2, 'lie_ill', `wounded: ${how === 'broken' ? 'a bone broken' : 'a cut'} by ${this.name(e.by)}`); break; }
       case 'rumour': { const about = e.about === 'player' ? undefined : this.hh(e.about, day) ?? undefined; if (R && E?.hh.has(e.hh)) R.inject(day, e.hh, e.kind, 1, about ?? e.hh, e.about === 'player' ? 'player' : about); break; }
-      case 'law': this.law.file(e.offender, e.victim, e.crime, e.witnessed, day, d.verb === 'complain' || d.verb === 'accuse' ? { accuser: d.actor } : {}); break;
+      case 'law': this.law.file(e.offender, e.victim, e.crime, e.witnessed, day, d.verb === 'complain' || d.verb === 'accuse' ? { accuser: d.actor } : { innocent: false }); break; // (a wrong done is not an accusation: the doer did it)
       case 'skill': this.skills.set(e.skill, Math.min(1, (this.skills.get(e.skill) ?? 0) + e.d)); break;
       case 'promise': this.promises.push({ id: this.promises.length, from: e.from, to: e.to, verb: e.what === 'return' ? 'return' : 'give', due: e.due }); break;
       case 'work': if (E) { const H = E.hh.get(e.hh); if (H) { if (/reap|thresh|field|plough|irrigat|garden|pick/.test(e.what)) H.grain += 0.8 * e.amt; else if (/craft|weave|spin|smith|work_wood|pot/.test(e.what)) H.goods += 0.05 * e.amt; } } break;

@@ -91,6 +91,7 @@ export interface LawPort {
   lay(pid: number, day: number, seg: Seg): void; layDays(pid: number, day: number, n: number, act: ActivityId, why: string): void;
   whereOf(place: string, pid: number, day: number): Where;
   injuries: Map<number, { how: string; day: number; until: number; by: Actor; why?: string }>;
+  /** the stranger has been about the town lately (else no one thinks of him) */ strangerAbout(day: number): boolean;
 }
 
 export class Law {
@@ -192,15 +193,16 @@ export class Law {
     const guard = wit.find(x => P.persons[x].job === 'guard' || ['stand_guard', 'patrol'].includes(segAt(P.plan(x, day), hour).act));
     const tg = d.target, terrace = typeof tg === 'number' && segAt(P.plan(tg, day), hour).where === 'terrace';
     const men = wit.filter(x => P.persons[x].sex === 'm' && P.ageOn(x, day) >= 18 && P.ageOn(x, day) < 60).length;
-    const p = guard !== undefined ? 0.85 : terrace ? 0.7 : men >= 2 ? 0.3 : 0;
+    const onDuty = typeof tg === 'number' && (P.persons[tg].job === 'guard' && ['stand_guard', 'patrol'].includes(segAt(P.plan(tg, day), hour).act));
+    const p = onDuty ? 0.95 : guard !== undefined ? 0.85 : terrace ? 0.7 : men >= 2 ? 0.3 : 0; // (a guard struck at his post: the next post sees it)
     if (u01(this.p.seed, S.seize, rec.id) >= p) return false;
-    const hearH = Math.ceil(hour + 0.5), why = `held by ${guard !== undefined ? 'the watch' : 'the men of the lane, then the watch'} at the officials' building for ${crime === 'theft' ? 'a theft' : crime === 'damage' ? 'damage done' : crime === 'killing' ? 'a killing' : 'a blow struck'}, until the king's judges hear it`;
+    const hearH = Math.ceil(hour + 0.5), why = `held by ${guard !== undefined || onDuty ? 'the watch' : 'the men of the lane, then the watch'} at the officials' building for ${crime === 'theft' ? 'a theft' : crime === 'damage' ? 'damage done' : crime === 'killing' ? 'a killing' : 'a blow struck'}, until the king's judges hear it`;
     const c = this.file(d.actor, tg ?? 'player', crime, true, day, { seized: true, court: 'judges' }); if (!c) return false; c.seized = true; c.court = 'judges'; c.due = Math.min(c.due, day + 1);
     if (d.actor === 'player') this.stranger.held = { until: (day + 1) * 24 + 10, why };
     else { const pl = this.p.pop; this.p.lay(d.actor, day, { t0: Math.min(23.4, hearH), t1: 24, place: 'official_bldg', act: 'rest', why, where: 'town' });
       this.p.lay(d.actor, day + 1, { t0: 0, t1: 10, place: 'official_bldg', act: 'rest', why, where: 'town' }); void pl; }
     this.mark({ day, who: d.actor, kind: 'seized', crime, q: this.qOf(this.side(tg ?? 'player', day)), hhs: [this.side(tg ?? 'player', day), ...wit.map(x => this.p.hh(x, day))] });
-    if (rec.out.why) rec.out.why += guard !== undefined ? '; the watch seize him in the act' : '; he is seized and held for the watch';
+    if (rec.out.why) rec.out.why += guard !== undefined || onDuty ? '; the watch seize him in the act' : '; he is seized and held for the watch';
     return true;
   }
   private kinAnger(victim: number, by: Actor, a: number, day: number) {
@@ -326,7 +328,7 @@ export class Law {
     const cand: { who: Actor; s: number }[] = [];
     const thQ = this.qOf(this.side(l.thief, day)), vQ = this.qOf(l.hh);
     cand.push({ who: l.thief, s: 0.3 + (thQ === vQ ? 0.15 : 0) + 0.2 * rec(l.thief) + 0.5 * (0.5 - tr(l.thief)) + 0.35 * u01(this.p.seed, S.sus, l.id, 1) });
-    if (l.thief !== 'player' && E?.hasStranger) cand.push({ who: 'player', s: 0.25 + 0.2 * rec('player') + 0.5 * (0.5 - tr('player')) + 0.35 * u01(this.p.seed, S.sus, l.id, 2) }); // (the stranger is the first one a lane suspects)
+    if (l.thief !== 'player' && !this.stranger.expelled && this.p.strangerAbout(day)) cand.push({ who: 'player', s: 0.25 + 0.2 * rec('player') + 0.5 * (0.5 - tr('player')) + 0.35 * u01(this.p.seed, S.sus, l.id, 2) }); // (the stranger is the first one a lane suspects)
     // a neighbour the house already distrusts, or one with a record
     const H = P.households[this.hid(l.hh)], lane = P.households.filter(x => x.q === H?.q && x.id !== H?.id && x.members.length);
     for (let k = 0; k < 3 && lane.length; k++) { const n = lane[Math.floor(u01(this.p.seed, S.sus, l.id, 10 + k) * lane.length)], who = this.head(`h:${n.id}`, day); if (who === null || who === l.thief) continue;

@@ -96,16 +96,16 @@ describe('D-460 a blow by the stranger: the wound, the kin, the demand, the judg
     const f = L.feuds.find(x => x.a === hh && x.b === 'player')!; step(sim, DAY + 1);
     const a0 = Math.max(...kin.map(x => sim.deeds.minds.feelOf(x, 'player', DAY + 1).anger));
     const head = L.head(hh, DAY + 1)!, coins = Math.ceil((f.price - f.paid) / 0.05);
-    const g = sim.deeds.act({ verb: 'give', actor: 'player', target: head, good: 'silver', qty: coins }, sim.t); expect(g.out.ok).toBe(true);
+    const g = sim.deeds.act({ verb: 'give', actor: 'player', target: head, good: 'silver', qty: coins, about: 'compensation for the blow' }, sim.t); expect(g.out.ok).toBe(true);
     expect(f.state).toBe('settled'); expect(S.purse.cash).toBeLessThan(5);
     expect(Math.max(...kin.map(x => sim.deeds.minds.feelOf(x, 'player', DAY + 1).anger))).toBeLessThan(a0);
   });
   it('seized in the act: a blow before a guard on duty is taken by the watch and held for the judges', () => {
     const sim = simAt(1, DAY, 10, { asks: true }), P = sim.pop, L = sim.deeds.law, t = sim.t;
-    // anyone a guard on duty stands with
+    // a guard on duty at his post
     let done = false;
     for (const g of P.persons.filter(p => p.job === 'guard' && P.present(p.id, DAY)).map(p => p.id)) { if (!['stand_guard', 'patrol'].includes(segAt(P.plan(g, DAY), 10).act)) continue;
-      const v = sim.deeds.w.near(g, t).find(x => x !== g && P.ageOn(x, DAY) >= 18 && awake(sim, x, DAY, 10)); if (v === undefined) continue;
+      const v = g; // (a guard at his post: struck by the stranger)
       const rec = sim.deeds.act({ verb: 'attack', actor: 'player', target: v, force: 0.5 }, t); if (!rec.out.ok) continue;
       const c = sim.deeds.cases.find(x => x.accused === 'player' && x.victim === v)!; if (!c.seized) continue;
       expect(c.court).toBe('judges'); expect(L.stranger.held).toBeTruthy(); expect(rec.out.why).toMatch(/seize/); done = true; break; }
