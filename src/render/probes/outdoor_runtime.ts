@@ -56,6 +56,10 @@ export function outdoorSummary() { return META ? `outdoor light (C, D-357): ${ME
 export function outdoorAmbient(p: any, n: any, S: any, U: any, hemi: any, directSky = false, off: any = n): { E: any; w: any } {
   if (!META || !TEX || !ROWS || !ENABLED || !META.regions.length) return { E: hemi, w: float(0) };
   const T = TEX, V = ROWS, NR = META.regions.length, TW = OUT_TEX_W;
+  // one Fn round the whole lookup (session 15): the accumulators below assign, and TSL drops assigns made outside a Fn's
+  // stack; the post pipeline (pipeline.ts: the composite's skylight, the reflections' sky) built this outside any Fn, so the
+  // field never reached those passes ("No stack defined for assign operation", 40 errors a load)
+  const body = Fn((): any => {
   const load = (idx: any) => { const y = floor(idx.div(TW)); return textureLoad(T, ivec2(int(idx.sub(y.mul(TW))), int(y))); };
   // the region holding p (first match; the regions do not overlap where it matters: the town's sites lie apart)
   const find = Fn(([pp]: [any]) => { const vi = float(0).toVar(), found = float(0).toVar();
@@ -115,5 +119,8 @@ export function outdoorAmbient(p: any, n: any, S: any, U: any, hemi: any, direct
   const w = inside.mul(wy).mul(we).mul(smoothstep(OUT_VALID[0], OUT_VALID[1], wsum)).mul(outdoorOn);
   const tint = vec3(tr, max(float(1).sub(tr.mul(0.2126)).sub(tb.mul(0.0722)).div(0.7152), 0), tb);
   const E = directSky ? S.mul(eS).mul(float(1).sub(fb)) : S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
-  return { E: mix(hemi, E, w), w };
+  return (vec4 as any)(mix(hemi, E, w), w);
+  });
+  const r = (body as any)();
+  return { E: r.xyz, w: r.w };
 }

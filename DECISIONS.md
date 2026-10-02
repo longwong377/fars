@@ -8937,6 +8937,27 @@ only seed 1 was run; the ask's 'speaker' and kids need the Population (AsksWorld
 ## D-353 — The black render was one giant first submit, not one object class (session 13, gpuhang)
 Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the world, every shot black). A bisect page load (tests/e2e/dbg_bisect.spec.ts: every top-level group hidden, then added cumulatively, two frames each, high, 1920x1080) rendered all 44 groups with no loss in 33 min (first frame per group: architecture 148 s, fire 447 s, settlement 97 s, weather-vfx 144 s, terrain 73 s; warm frames 0.3-0.5 s) and ended on a real full-world frame (shots/bisect-final.png, dawn-stair-top). So no single pass is over ~2 s once its pipelines are compiled; the hang is the first frames compiling ~1000 pipelines in one submit. Fix: `__parsa.warmUp()` (main.ts) shows the groups one at a time before the first shot; moments.spec calls it (NOWARM=1 skips). Not yet re-run through moments.spec itself; the 'ytop' warning and the stale impostor atlas (CPU bake fallback, ~12 s) were present in the good run too, so neither is the cause. A first reload of the page mid-run came from Vite re-optimising deps in a fresh worktree: use NOHMR=1.
 
+## D-354 — The load: a baked world cache that falls back to the live build, and the warm-up's pipelines compiled in parallel (session 14, load)
+- **The baked world (src/world/cache/, tools/bake_world/).** Pure CPU results of the build are kept in public/world-cache/ (gitignored,
+  regenerable like `npm run terrain`): the fitted costumes (outfits, built in the outfit worker: 99 s in node on the loaded box),
+  the hills' landform maps (detail: 45 s) and the far people's CPU atlas (impostors, the fallback while the Cycles atlas is stale, ~12 s
+  on the main thread). Each entry records the hash of its sources (its entry modules and every module they import under src/, by a
+  static import walk, plus its data inputs: tools/bake_world/srchash.mjs, src/world/cache/units.json; the impostors' key also hashes
+  the held jar and sack geometry at load). The page reads an entry only when that hash equals the served tree's (/world-cache/src.json
+  from the vite plugin, fresh every load); otherwise it builds the unit live and, on the dev server, posts the result back (the cache
+  bakes itself on the first load of a tree). `npx tsx tools/bake_world/bake.ts` bakes the node-buildable units. ?worldcache=0 skips it;
+  ?worldcache=verify builds live as well and logs identical/MISMATCH. tests/world_cache.test.ts: pack lossless, the import walk, and
+  each node-built unit identical (content hash without timings) to its fresh baked entry. Hooks outside the owned files: one call each
+  in src/people/humans.ts (outfits) and src/terrain/terrainDetail.ts (detail), the plugin and an unwatched public/world-cache in vite.config.ts.
+- **The warm-up (main.ts, D-353 revised).** `__parsa.warmUp()` now renders whole frames with every new render pipeline created by
+  createRenderPipelineAsync (three's Pipelines.getForRender given a promise list; a draw whose pipeline is pending is skipped by its
+  isReady), awaits them, and repeats until a frame asks for none: the browser compiles on its worker threads several at once and no
+  submit waits on a compile (the watchdog's case). opt-in with ?warm=async (moments: URLX=&warm=async) until measured on the T4; D-353 one group at a time stays the default (and __parsa.warmGroups()).
+- **Not measured on the T4 yet** (see the session's report): both GPU slots and both CPU slots were held by other jobs for the whole
+  time box (my trace waited > 90 min). tools/bake_world/load_trace.mjs (a cold, traced page load: boot and build stages, warm-up
+  rounds, first frames) and compile_probe.mjs (per-pipeline compile time and WGSL hashes, cold vs a warm browser profile) are the
+  measurements to run; the done line (cold load to first frame at high <= 120 s) is unverified.
+
 ## D-355 — The frame at high on the T4: the fire lights a fixed forward set plus a deferred term; the post resolution and fire A/Bs (session 14, agent frame; B125, B193, B260)
 - **How it could pass while the intent fails (clause 1):** a GPU-timestamp median under 33 ms that leaves out a pass or is
   CPU-bound (so the player still sees 5 fps), or a cheaper frame that drops the far fires' light, the shadows' detail, the GI or
