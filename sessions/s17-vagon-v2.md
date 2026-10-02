@@ -1,10 +1,10 @@
-# Session 17 (Vagon, ONE DAY), revised: every inch AAA and filled in. START HERE
+# Session 17 (ONE DAY, cloud + Vagon together), revised: every inch AAA and filled in. START HERE
 
 Supersedes the schedule, scoreboard, machine limits and ownership of sessions/s17-vagon.md (the why is in
 sessions/s17-audit.md). Kept from it unchanged: the goal (UD-36), the bar (a top modern AAA open world, UD-35), nothing on
 screen procedural (UD-33), real assets in bulk with no per-object research (UD-34), libraries only for what has no culture and
 everything culturally shaped built to the period kit in Blender (UD-37), reject on sight, the done line's spirit.
-
+The user (2026-10-02, cloud): one day, a cloud session and a Vagon session working at the same time.
 ## The goal and what "done tonight" means
 The user: "by the end of this day I want every inch of the world to look AAA and ... filled in" (UD-36). One lead cannot judge
 ~3,000 views in a day, so the day is judged on a **frozen scoreboard** that stands for every inch, and measured on the whole
@@ -18,95 +18,115 @@ coverage set where a machine can measure it:
   the baseline in every area; the live site still meets the load and memory budget (below); talking still on. What the day
   does not reach is listed first in sessions/s17.md, by area, with its share of the coverage set.
 
-## Step 0 (before the box starts; the cloud can do these now, node-only)
-1. `tests/data/scoreboard_s17.json`: the ids above, with a tiny `tools/dev/scoreboard.mjs` that runs coverage.spec on just
-   those ids (it already takes START/END/STRIDE/OFFSET; add `IDS=`) and writes `shots/scoreboard/<stamp>/` + an index.
-2. render_train.mjs: accept coverage ids (run coverage.spec, not only moments.spec) and drop `now` views by default.
-3. boxguard / gpu_slot / mkwt: limits from one file per box (`gates/box.json`: cores, RAM, MAX_AGENTS, GPU_SLOTS,
-   MIN_FREE_GB, TRAIN_WHILE_AGENTS), read at start, so the lead sets the box's numbers once and records them in DECISIONS.
-4. Reserve numbers in handoff/reserved_numbers.md (table at the end) and write each agent's brief to handoff/briefs/s17/
-   (short: what the player sees by tonight, files owned, files read-only, done line, the art direction, the box rules).
-If the cloud has not done them, the lead does 1, 3 and 4 in the first 30 minutes and runs the scoreboard through coverage.spec
-directly (2 can wait).
+## The split: Vagon only for what needs the GPU's eyes; the cloud builds everything else
+What each side can do (measured 2026-10-02 in the cloud):
+- **Cloud:** 4 cores / 15 GB per container, no GPU (headless Chromium on SwiftShader: slow, crude pictures only). It cannot reach
+  Poly Haven, ambientCG, Hugging Face or GitHub release downloads, but it **has what was already downloaded**: branch
+  assets-archive (~2.2 GB: 57 Poly Haven and 33 ambientCG material sets, MakeHuman CC0, audio IRs, climate data, the reference
+  photos), branch models-archive (~9 GB, the language and voice models), and public/ (85 textures, ~600 models). **Blender
+  5.0.1 runs here** (`pip install bpy`, the same version as Vagon's), CPU only. npm is reachable. Each sibling cloud session
+  (create_session) is its own container, so cloud agents do not share the 4 cores.
+- **Vagon:** the T4 (renders, probe pages at full quality, Cycles bakes on the GPU), new library downloads, KTX-Software,
+  and the only place the look can be judged.
+So: **Vagon runs the light, the surfaces, the people, the stone, the interiors and the weather (the classes you cannot do
+without seeing them), the trains, the judging, the merges and the deploy. The cloud builds the rest in parallel**, verified by
+node tests, census tools and bpy, and sees its work in the Vagon trains' frames.
 
-## Minute 0-15: which box is this? (the plan forks here)
+## How the two sides talk (git only)
+- Vagon's lead keeps **s17-int** (the integration branch) and pushes it after every train, with the train's frames on
+  branch **s17-renders** (`renders/<stamp>/<view>.jpg` at 1280 px + index.md; ~5 MB a train). Cloud agents read the frames
+  (they can view images) and judge their own classes from them.
+- The cloud lead merges its agents into **cloud-s17-int** (records as unions) and keeps it merged with s17-int, so Vagon
+  merges ONE cloud branch before each train. Nothing on either side pushes s14-int except Vagon's lead at the end.
+- Asks across the line: `handoff/s17/asks_vagon.md` (the cloud writes, Vagon reads) and `handoff/s17/asks_cloud.md` (the
+  reverse); one line each, owner and file named. Each side writes only its own file, so they never conflict.
+- **The cloud is also Vagon's CI:** on every s17-int push the cloud lead runs `npm test` (the sim tiers included), guards and
+  the headless built-site load (`measure.mjs dist --visits cold --params norender`) and writes the result to asks_vagon.md
+  within ~30 min. Vagon's CPU stays on renders.
+
+## Cloud, starting now (before the box starts)
+Step 0 (the cloud lead, first ~2 h; Vagon pulls it at its minute 0):
+1. `tests/data/scoreboard_s17.json` + `tools/dev/scoreboard.mjs` (coverage.spec on those ids: add `IDS=`; output
+   `shots/scoreboard/<stamp>/` + index), and a `--push-frames` step that commits the jpgs to s17-renders.
+2. render_train.mjs: accept coverage ids (coverage.spec, not only moments.spec); drop `now` views by default (UD-20).
+3. `gates/box.json`: the box's limits (MAX_AGENTS, GPU_SLOTS, MIN_FREE_GB, TRAIN_WHILE_AGENTS) read by boxguard, gpu_slot, mkwt.
+4. A Blender shim so `tools/blender/build.mjs` runs in the cloud: `BLENDER=tools/blender/bpy_cli.sh` (a `blender -b --python
+   x.py -- args` front end over the bpy module; DEVICE=CPU). Prove it on one housekit and one fill_props asset; byte-compare
+   against the Vagon build where one exists. KTX2: try the npm `ktx2-encoder` (basis WASM); if it fails, leave the textures
+   uncompressed on the branch and list them in asks_vagon.md for Vagon's ktx.exe.
+5. Reserved numbers (table below) into handoff/reserved_numbers.md; each brief to handoff/briefs/s17/ (short: what the player
+   sees by tonight, files owned, files read-only, done line, the art direction, the sync rules above).
+6. Fetch assets-archive and models-archive into each cloud container that needs them (shallow, only the paths it uses).
+
+Then the cloud agents, each a sibling cloud session on its own branch `cloud-s17-<name>` (at most 2 subagents per container;
+heavy node jobs through tools/dev/cpu_slot): 
+
+| # | cloud agent | the player sees by tonight | owns |
+|---|---|---|---|
+| C1 | town fill | every lane, court and roof dressed: house variants from the kit, jars, baskets, mats, firewood, laundry, dung cakes, tools, tethered animals, awnings, litter; the market's stalls and mended roofs from the sim's hooks (deeds_render.md); new kit pieces as bpy scripts in tools/blender/ | src/world/settlement/** except surfaces.ts, src/world/fill*.ts, furnish.ts, roadLitter.ts, tools/blender/housekit*, fill_props* |
+| C2 | plain fill | fields by season, orchards, villages, threshing floors, roadsides, canal banks and reeds, scatter density near the walker; an empty-ground census (no bare 10 m patch near a path) | src/world/plain/** except seasonal.ts, src/world/groundRocks.ts, groundFlora.ts, src/world/trees/**, tools/blender/land_* |
+| C3 | life on the roads | caravans, visitors, traffic, herds on the move, the building site's gangs and ramps, the court's camps and tents; who goes where and when (the animals' looks stay Vagon's) | traffic.ts, visitor/**, construction.ts, courtCamps.ts, tentForms.ts, terraceFoot.ts, fauna.ts, wildlife.ts, smallLife.ts |
+| C4 | load keeper (UD-31) | under a minute and under 5 GB while both sides add assets; the shared decoder (871d8aab) re-landed with a passing headless load; animals and far models after walkable; Pages under 1 GB | src/render/models.ts, a new src/render/loaders.ts, the boot sequence in src/main.ts, public/sw.js, tools/deploy/**, .github/workflows/pages.yml |
+| C5 | screens and intro | loading screen, title, menus, settings, subtitles, translation-layer text, the chronicle (J); the wordless intro (starts when walkable, skippable, nothing hints at the fate, §1.1) written as a camera path, judged in Vagon's train | src/shell/**, src/ui/**, src/shell/intro.ts (hook in main.ts via C4) |
+| C6 | far land | hills, skyline, far terrain levels and the far Terrace (B175), no pop-in (node pop-in checks; looks judged on the train) | src/world/hills/**, src/terrain/terrainMesh.ts, horizonMap.ts, horizonShadow.ts, heightfield.ts (the far levels) |
+The cloud lead: Step 0, then merging C1-C6 into cloud-s17-int, the CI runs, and answering Vagon's asks.
+
+## Vagon (the day)
+### Minute 0-15: which box is this? (the plan forks here)
 `node -e "const o=require('os');console.log(o.cpus().length, (o.totalmem()/2**30).toFixed(0)+' GB')"`, `nvidia-smi`.
-- **BIG (16 cores, 63 GB, T4):** MAX_AGENTS=6, GPU_SLOTS=2 (one train or budget load + one short probe/bake job), MIN_FREE_GB=6,
+- **BIG (16 cores, 63 GB, T4):** MAX_AGENTS=5, GPU_SLOTS=2 (a train or budget load + one short probe/bake job), MIN_FREE_GB=6,
   train allowed while agents build (the session-15 rule was for the 4-core box; record the override in DECISIONS with the
-  measured free memory and CPU). Raise to 7 agents only if, after the first train, free memory stays above 12 GB and CPU
-  under 75 % with a train running; never above 8. The watchdog (CPU > 90 %) still stops new work at once.
-- **SMALL (4 cores, 16 GB):** the user's cap: 2 agents, 1 GPU slot, no render while agents build. Run the queue below two at
-  a time, the train between pairs. Say in the first report that "every inch in a day" will not be reached on this box and
-  which classes are left; do not pretend.
-Then: `git config core.autocrlf false`, `npm ci`, clone s14-int into the lead's tree, create the integration branch
-**s17-int** (agents merge here; s14-int, which deploys, is pushed once at the end). Merge s14-monuments (713ed04: the Gate
-colossi's licensed-scan route and lamassu source) into s17-int first or hand it to the terrace agent as its starting branch.
+  measured free memory and CPU). A 6th agent only if, with a train running, free memory stays above 12 GB and CPU under 75 %.
+  The watchdog (CPU > 90 %) still stops new work at once.
+- **SMALL (4 cores, 16 GB):** the user's cap: 2 agents, 1 GPU slot, no render while agents build: run V1 and V2 below, then
+  V3 and V4; the train between pairs. Say in the first report what will not be reached; do not pretend.
+Then: `git config core.autocrlf false`, `npm ci`, pull the cloud's Step 0 from cloud-s17-int, create **s17-int** from
+s14-int + cloud-s17-int + s14-monuments (713ed04: the Gate colossi's scan route and lamassu source).
 
-## Hour 0-1.5: baseline (lead), agents 1-3 start at minute 20
-1. Built-site cold load, headless, no GPU: `node tools/deploy/measure.mjs dist --visits cold --params norender`. Record ready s,
-   bytes before ready, page memory. Then once rendered on the GPU: walk a lane, talk to three people, try five free deeds.
-2. **Set the budget's first baseline:** `node tools/dev/gpu_slot.mjs budget -- node tools/dev/budget.mjs --accept`
-   (gates/budgets.json has `baseline: null` today, so nothing is gated until this runs).
-3. The scoreboard, one load (~36 views x ~2 min + the load: ~85 min, sessions/s11.md:22's rate). Judge, rank what reads as CG or
-   empty by share of the screen, and re-point the queue below if the ranking disagrees with it.
-4. Run coverage.spec at Q=test over the whole set in the background slot only if the box is BIG and the GPU slot is free (its
-   numbers are the per-area baseline for the done line; CHUNK=40 keeps each run under the watchdog).
+### Hour 0-1.5: baseline (lead); V1-V3 start at minute 20
+1. Rendered: walk a lane, talk to three people, try five free deeds. (The headless load numbers come from the cloud's CI.)
+2. **The budget's first baseline:** `node tools/dev/gpu_slot.mjs budget -- node tools/dev/budget.mjs --accept`
+   (gates/budgets.json has `baseline: null` today).
+3. The scoreboard, one load (~36 views x ~2 min + the load: ~85 min, sessions/s11.md:22's rate); push the frames to
+   s17-renders so the cloud sees them. Judge, rank what reads as CG or empty by share of the screen, re-point both sides.
+4. coverage.spec at Q=test over the whole set in the second slot if the box is BIG (the per-area baseline; CHUNK=40).
 
-## Hours 0.5-10: the agent queue (not 13 at once; a queue in order of screen share and dependency)
-At most MAX_AGENTS run at once; when one finishes (`mkwt.mjs --done`), the next in the list starts. Each agent iterates on
-probe pages (seconds per load; surface_probe, ground_probe, plain_probe, house_lab, humanlab, terrace_probe, palace_probe,
-animal_probe, treelab), never its own full-world load, and asks the train for whole views.
-
-| # | agent | the player sees by tonight | owns (no one else edits these) | starts |
+### The Vagon agents (a queue; at most MAX_AGENTS at once; each iterates on probe pages, never its own full-world load)
+| # | Vagon agent | the player sees by tonight | owns | starts |
 |---|---|---|---|---|
-| 1 | light | the art direction's light and tone in every band: sun, sky, haze, exposure, bounce, contact shadow, AO; **then night** (moon, star, fire light levels, night exposure) | src/render/pipeline.ts, toneLook.ts, ssgi.ts, sunShadows.ts, airlight.ts, envmap.ts, src/sky/**, src/render/probes/** (the outdoor bake) | min 20 |
-| 2 | materials | one material system everywhere: scans lead the pattern and local colour, a per-material mean albedo from the palette, wear and grime; town walls, roofs, doors, thresholds, ground surfaces, limestone, plaster, wood, cloth weaves | src/render/materials.ts, scans.ts, grime.ts, masonry.ts, blockface.ts, src/world/settlement/surfaces.ts, public/textures/** | min 20 |
-| 3 | town | every lane, court and roof built and dressed: house variety from the kit, jars, baskets, mats, firewood, laundry, dung cakes, tools, tethered animals, awnings, litter; the market's stalls | src/world/settlement/** (except surfaces.ts), src/world/fill*.ts, furnish.ts, roadLitter.ts | min 20 |
-| 4 | people | bodies, skin, cloth, hair, motion at 2-30 m; crowds read as people; marks and wounds from the sim's hooks; new performances from the CMU mocap route (D-333) | src/people/** except animal*.ts and src/people/converse/** (talk is not touched today) | hour 1.5 (after the baseline) |
-| 5 | ground and plain | earth, paths, rocks, weeds that sit in the ground; fields, orchards, villages, threshing floors, roadsides; the river Pulvar, canals, banks and reeds | src/terrain/**, src/world/groundRocks.ts, groundFlora.ts, src/world/plain/**, src/world/trees/** | hour 1.5 |
-| 6 | load keeper (UD-31) | the site stays under a minute and under 5 GB while the others add assets: KTX2/Draco/LOD/impostor for everything landed, the shared decoder retried (cloud-s16-boot / 871d8aab), animals and far models streamed after walkable, Pages size under 1 GB | src/render/models.ts (the model loader), a new src/render/loaders.ts (the shared KTX2/Draco decoder), the boot sequence in src/main.ts (screens asks for its intro hook), public/sw.js, tools/deploy/**, .github/workflows/pages.yml; runs the budget before every train | hour 1.5 |
-| 7 | terrace | stone, capitals, reliefs, colossi and block joints off CG; the Blender wave placed and judged; s14-monuments finished | src/arch/** except rooms.ts and terrace_rooms.ts, src/render/monuments.ts, reliefAtlas.ts | when 1 or 2 frees a slot |
-| 8 | atmosphere and seasons | rain shafts, wet ground, dust and dust devils, hearth and land smoke, breath in winter; the season's look from season.ts (spring green on arrival, straw from June, autumn, winter) | src/world/weatherVfx.ts, rainShafts.ts, dust*.ts, *Smoke.ts, breath.ts, season.ts, plain/seasonal.ts (handed over by 5), src/weather/** | next free slot |
-| 9 | life on the roads | herds, flocks, oxen, donkeys, horses, dogs, birds, wildlife; caravans, visitors, traffic; the Hall of a Hundred Columns' building site; the court's camps and tents | src/world/fauna.ts, beasts.ts, wildlife.ts, smallLife.ts, lifeModels.ts, src/people/animal*.ts, traffic.ts, visitor/**, construction.ts, courtCamps.ts, tentForms.ts, terraceFoot.ts | next free slot |
-| 10 | interiors and fire | rooms lit by doors, hearths, lamps and torches, furnished and lived in; the fire's light and its places (night outdoors reads from these too) | src/arch/rooms.ts, terrace_rooms.ts, src/world/furnish_palaces.ts, fire.ts, fireOcc.ts, firePlaces.ts | next free slot |
-| 11 | far land | hills, mountains, the skyline, far terrain levels and far Terrace, no pop-in | src/world/hills/**, far levels in src/terrain (handed over by 5 when it finishes) | next free slot |
-| 12 | screens and intro | loading screen (honest progress, beautiful), title, menus, settings, translation-layer text, subtitles, the chronicle (J); a wordless in-engine intro that **starts when the world is walkable** (plain at dawn, river, town waking, the Terrace in first sun, people at work, ending where the walk begins; skippable; covers the streaming of animals, far models and the talk model; nothing that hints at the fate, §1.1) | src/shell/**, src/ui/**, src/shell/intro.ts (its hook in src/main.ts through the load keeper) | last; drop first if the day runs short |
+| V1 | light | the art direction's light and tone in every band: sun, sky, haze, exposure, bounce, contact shadow, AO; then night (moon, stars, fire light levels, night exposure); the outdoor light re-bake | src/render/pipeline.ts, toneLook.ts, ssgi.ts, sunShadows.ts, airlight.ts, envmap.ts, src/sky/**, src/render/probes/** | min 20 |
+| V2 | materials | one material system: scans lead pattern and local colour, a per-material mean albedo from the palette, wear and grime; walls, roofs, doors, thresholds, ground, limestone, plaster, wood, cloth; new downloads only where the archive lacks a material | src/render/materials.ts, scans.ts, grime.ts, masonry.ts, blockface.ts, src/world/settlement/surfaces.ts, src/terrain/terrainDetail.ts, detail_worker.ts (near ground shading), public/textures/** | min 20 |
+| V3 | people | bodies, skin, cloth, hair, motion at 2-30 m; crowds read as people; marks and wounds from the sim's hooks; new performances from the CMU mocap route (D-333) | src/people/** except animal*.ts and converse/** | min 20 |
+| V4 | terrace | stone, capitals, reliefs, colossi, block joints off CG; s14-monuments finished; Blender GPU bakes for the Terrace | src/arch/** except rooms.ts, terrace_rooms.ts; src/render/monuments.ts, reliefAtlas.ts | hour 1.5 |
+| V5 | animals and weather | the animals' looks and motion (src/people/animal*.ts, beasts.ts, lifeModels.ts); rain, wet ground, dust, smoke, breath; the season's look (season.ts, plain/seasonal.ts) | as listed + src/world/weatherVfx.ts, rainShafts.ts, dust*.ts, *Smoke.ts, breath.ts, src/weather/** | hour 1.5 |
+| V6 | interiors and fire | rooms lit by doors, hearths, lamps, torches, furnished and lived in | src/arch/rooms.ts, terrace_rooms.ts, src/world/furnish_palaces.ts, fire.ts, fireOcc.ts, firePlaces.ts | when V1 lands light v1 |
 
-Rules that make the queue work:
-- **Hand-overs, not overlaps.** A file has one owner at a time. When an agent finishes, its files pass to the agent named in the
-  table (or back to the lead). Anyone who needs a change in a file it does not own writes one line to the owner's
-  `handoff/briefs/s17/asks.md` row; the owner does it or says no within its next commit.
-- **The light lands first.** The light agent pushes a "light v1" to s17-int by hour 2.5 (one tone, exposure and haze per band;
-  then it only fine-tunes, and announces each change). Materials, town and ground judge colour only under light v1 or later.
-- **Re-bake the outdoor light** (src/render/probes/outdoor_bake.ts, D-357) after light v1, after the materials' first pass and
-  before the final train: it holds the sky past the walls and the bounce off the surfaces.
-- **Season-aware palette.** The world opens on 17 April (season.ts: green peaks at doy 105). The art direction below applies by
-  season; no agent hard-codes straw, green or haze colour outside season.ts.
-- **Blender.** Variants of the kit that exists (house kit, jars, baskets, garments, tents, capitals, the s12 wave) come before
-  any new object type; every Blender job is a script in tools/blender/ (reproducible) and every Cycles bake goes through
-  gpu_slot. A culturally shaped object the kit lacks is built only if it fills a lot of screen in the scoreboard.
-- **Sources (UD-37).** Libraries (Poly Haven, ambientCG, CMU mocap) for materials, nature and motion only; no pack building,
-  pot, chair, tool or costume. Every asset in ASSET_LEDGER.md as it lands.
-- **What must not break (the depth):** talking on by default, the sim's hooks (marks, wounds, roofs, stalls), people's
-  activities and homes. Each merge runs `npm run guards` and `npm test`'s fast tier; a merge that breaks a sim test waits.
+## Rules for both sides
+- **One owner per file**, across both sides (the two tables). A change in someone else's file goes through the asks files.
+- **The light lands first:** V1 pushes "light v1" to s17-int by hour 2.5; colour is judged only under it. Re-bake the outdoor
+  light (src/render/probes/outdoor_bake.ts, D-357) after light v1, after V2's first pass and before the final train.
+- **Season-aware palette:** the world opens on 17 April (season.ts); nobody hard-codes straw, green or haze outside season.ts.
+- **Blender:** variants of the existing kit first; every job a script in tools/blender/; the cloud builds geometry and CPU
+  bakes, Cycles GPU bakes are Vagon's (through gpu_slot). A new culturally shaped object only if it fills a lot of screen.
+- **Sources (UD-37):** libraries for materials, nature and motion only; every asset in ASSET_LEDGER.md as it lands.
+- **What must not break (the depth):** talking on by default, the sim's hooks, people's activities and homes; the cloud's CI
+  runs the sim tests on every s17-int push and a red result holds the next merge.
 
-## The rhythm: two kinds of train, one budget, merges on s17-int
-- **Focus train (~45 min each, every ~90 min, from hour 2.5):** the ~12 views the agents asked for + the 5 worst scoreboard
-  views. One load. The lead judges, re-points agents, merges.
-- **Scoreboard train (3 times: baseline, ~hour 6, final):** the frozen ~36 views. The only before/after evidence.
-- **Before every train:** merge what is ready into s17-int (records as unions of appended rows), `npm run guards`, then the
-  budget (`budget.mjs` on s17-int). A metric worse than the baseline by more than 5 % holds back the merges since the last
-  train until the load keeper finds which one.
-- Never edit a tree whose dev server serves a render: the trains run from their own worktree of s17-int.
-- Lead's clock: `node tools/dev/watchdog.mjs` every 30 min (CLAUDE.md); act on any alert at once.
+## The rhythm
+- **Focus train (~45 min, every ~90 min from hour 2.5):** the views both sides asked for + the 5 worst scoreboard views.
+  Before it: merge the ready Vagon branches and cloud-s17-int into s17-int, `npm run guards`, the budget (a metric worse than
+  baseline by > 5 % holds those merges back until the cloud's load keeper finds which). After it: push s17-int and the frames.
+- **Scoreboard train (3 times: baseline, ~hour 6, final):** the frozen ~36 views, the only before/after evidence.
+- Trains run from their own worktree of s17-int (never edit a tree whose dev server serves a render). The watchdog every 30 min.
 
 ## Last 90 minutes
-1. Stop new merges at T-90. Re-bake the outdoor light. Final scoreboard train and coverage.spec at Q=test over the whole set.
-2. `npm run build`, then the built-site cold load (`measure.mjs dist --visits cold --params norender`) and the budget:
-   ready, memory and Pages size within the budget, talking on. Only then merge s17-int into s14-int and push (it deploys).
-   If it fails: push s17-int only, leave s14-int as it is, and say so first.
-3. sessions/s17.md: what is still broken or placeholder first (by area, with its share of the coverage set), then the
-   before/after scoreboard frames, the measurements, every agent branch's fate in handoff/reserved_numbers.md.
+1. T-120: the cloud's last cloud-s17-int. T-90: no new merges. Re-bake the outdoor light; final scoreboard train; coverage.spec
+   at Q=test over the whole set.
+2. `npm run build`; the built-site cold load and the budget (ready, memory, Pages size, talking on); the cloud's CI green on the
+   same commit. Only then merge s17-int into s14-int and push (it deploys). If anything fails: push s17-int only, leave
+   s14-int, and say so first.
+3. sessions/s17.md (Vagon lead) with the cloud's report appended: what is still broken or placeholder first (by area, with its
+   share of the coverage set), the before/after scoreboard frames, the measurements, every branch's fate.
 
 ## The art direction (unchanged in substance; two corrections)
 - **Light:** Fars, hard high sun, warm key (5200-5800 K), cool sky fill, deep but not black shadows, a haze that lifts the
@@ -120,10 +140,10 @@ Rules that make the queue work:
 - **Wear, scale, era limits, reject on sight:** as in sessions/s17-vagon.md, except people: the body system's seeded spread
   (UD-27) stands; doors and walls from research/SITE_SPEC.md.
 
-## Reserved numbers (write these into handoff/reserved_numbers.md before launching)
-D-470..D-479 lead; then ten each in table order: light D-480, materials D-490, town D-500, people D-510, ground and plain D-520,
-load keeper D-530, terrace D-540, atmosphere D-550, life on the roads D-560, interiors D-570, far land D-580, screens D-590
-(each D-x0..D-x9). Q-1400.. and B500.. in the same order, ten each (lead Q-1400..1409 / B500..B509, light Q-1410 / B510, ...).
+## Reserved numbers (write into handoff/reserved_numbers.md in Step 0)
+Ten each (D-x0..D-x9, and the matching Q and B blocks): Vagon lead D-470, V1 D-480, V2 D-490, V3 D-500, V4 D-510, V5 D-520,
+V6 D-530; cloud lead D-540, C1 D-550, C2 D-560, C3 D-570, C4 D-580, C5 D-590, C6 D-600. Q from Q-1400 and B from B500 in the
+same order (Vagon lead Q-1400..1409 / B500..B509, V1 Q-1410 / B510, ...).
 
 ## If an agent frees up (in order)
 The sim hooks nothing draws yet (handoff/briefs/s16/deeds_render.md); the Blender backlog (B342 people atlas, relief atlases,
