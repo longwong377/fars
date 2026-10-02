@@ -455,7 +455,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     const people: [number, number][] = [[0, 0], ...Object.values(FAUNA_FAC) as [number, number][], ...villagesIn.map(v => [v.x, v.y] as [number, number])];
     fauna.setWild((e, n) => landUseAt(plain.data.zones, e, -n).use === 'natural', plain.data.rivers.rivers.map(r => Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number])), people); }
   wmark('fauna');
-  if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); }
+  if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); fauna.addCampLines(sim.pop.court.tents, settlement?.plan ?? null); } // (D-570: the camps' picket lines)
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
@@ -519,7 +519,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     } else solids.beginAnimals();
     solids.end(); };
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
-  const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
+  const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction, phys) : null; if (building) root.add(building.group);
   // D-361 (B175): the Terrace's far levels from 150 m out (render/far_terrace.ts); ?farterrace=0 draws the near shapes everywhere (A/B)
   const farTerrace = new URLSearchParams(location.search).get('farterrace') === '0' ? null : new FarTerrace([arch.group, reliefs, p4.group, ...(cren ? [cren] : []), foot, ...(building ? [building.group] : [])]);
   // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467

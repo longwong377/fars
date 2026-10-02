@@ -2,7 +2,7 @@
 // 128-cell chunks; each chunk picks a power-of-two vertex step by camera distance and hides cracks with skirts.
 // Coarser rings skip the chunks covered by the finer ring (the ring extents are chunk-aligned by construction).
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, uniform, vec3 } from 'three/tsl';
+import { attribute, positionLocal, positionWorld, uniform, vec2, vec3, vec4, float, max, abs, mix, smoothstep, sqrt, dot, texture, normalView, cameraViewMatrix } from 'three/tsl';
 import { Ring, Terrain } from './heightfield';
 import { surfaceMaterial } from '../render/materials';
 
@@ -70,16 +70,53 @@ export function morphShare(err: number[], d: number, cell: number, lodBias: numb
 }
 /** the morph runs over this share of a level's far distance to its end */
 export const MORPH_FROM = 0.5;
+/** D-600: the per-pixel ring normals (?ringnormals=0 for the A/B) */
+export const TERRAIN_RING_NORMALS = { on: !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('ringnormals') === '0') };
 /** the per-chunk morph share, read for each drawn chunk (the shadow and coverage passes too) */
 const uMorph = uniform(0).onObjectUpdate(({ object }: any) => object?.tmorph ?? 0);
 /** the terrain chunks' vertex position: the level's own plus its share of the slide to the coarser level */
 export const TERRAIN_MORPH_POSITION = positionLocal.add(vec3(0, attribute('tmorph', 'float').mul(uMorph), 0));
+
+/** D-600: each ring's full-resolution surface normal (x, z; y implied) as a texture the terrain samples per pixel. The
+ *  vertex normals were the only lighting normal: on a coarse level they sit 0.02 rad apart (~19 px at the player's lens), so
+ *  a far hill shaded as smooth blobs ("a smooth dune", sessions/s11.md) and changed its shading when its level changed. Now
+ *  the lighting carries the ring's own 4 / 16 / 80 m detail at every distance and every level. RG8, 127 = 0 (no bias on the
+ *  flat plain); one atlas of 4,099 x 1,793 (14.7 MB) */
+export function ringNormalData(ring: Ring): Uint8Array {
+  const n = ring.n, h = ring.h, k2 = 1 / (2 * ring.cell), out = new Uint8Array(n * n * 2);
+  for (let r = 0; r < n; r++) { const ru = (r > 0 ? r - 1 : 0) * n, rd = (r < n - 1 ? r + 1 : n - 1) * n, row = r * n;
+    for (let c = 0; c < n; c++) {
+      const dx = (h[row + (c < n - 1 ? c + 1 : n - 1)] - h[row + (c > 0 ? c - 1 : 0)]) * k2, dz = (h[rd + c] - h[ru + c]) * k2, il = 127 / Math.sqrt(dx * dx + 1 + dz * dz), k = (row + c) * 2;
+      out[k] = 127 - Math.round(dx * il); out[k + 1] = 127 - Math.round(dz * il);
+    } }
+  return out;
+}
+/** the decoded normal (world) at byte pair (a, b) */
+export const decodeRingNormal = (a: number, b: number): [number, number, number] => { const x = (a - 127) / 127, z = (b - 127) / 127; return [x, Math.sqrt(Math.max(0, 1 - x * x - z * z)), z]; };
+/** the per-pixel ring normal node (world): near, mid and far rings blended across the finer ring's edge as the plain's
+ *  landform maps are (terrainPlain.ts hillBase) */
+function ringNormalNode(terrain: Terrain) {
+  // one RG8 atlas, the rings side by side (near, mid, far; one sampler: the plain's material is near the stage's limit)
+  const rings = [terrain.near, terrain.mid, terrain.far], W = rings.reduce((a, r) => a + r.n, 0), Ht = Math.max(...rings.map(r => r.n));
+  const data = new Uint8Array(W * Ht * 2).fill(127), x0: number[] = [];
+  let ox = 0; for (const ring of rings) { const d = ringNormalData(ring), n = ring.n; x0.push(ox);
+    for (let r = 0; r < n; r++) data.set(d.subarray(r * n * 2, (r + 1) * n * 2), (r * W + ox) * 2); ox += n; }
+  const t = new THREE.DataTexture(data, W, Ht, THREE.RGFormat, THREE.UnsignedByteType);
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
+  const q = positionWorld.xz, at = (k: number) => { const ring = rings[k], g = q.add(ring.half).div(ring.cell).clamp(0, ring.n - 1).add(0.5);
+    const e = texture(t, g.add(vec2(x0[k], 0)).div(vec2(W, Ht))).rg.mul(255 / 127).sub(1); return vec3(e.x, sqrt(max(float(0), float(1).sub(dot(e, e)))), e.y); };
+  const cheb = max(abs(q.x), abs(q.y)), nr = terrain.near, md = terrain.mid;
+  const inNear = float(1).sub(smoothstep(nr.half - 96, nr.half - 24, cheb)), inMid = float(1).sub(smoothstep(md.half - 400, md.half - 48, cheb));
+  return mix(mix(at(2), at(1), inMid), at(0), inNear).normalize();
+}
 
 export class TerrainMesh {
   readonly group = new THREE.Group();
   private chunks: Chunk[] = [];
   private material: THREE.MeshStandardNodeMaterial;
   private morphed: THREE.Material | null = null;
+  /** the per-pixel ring normal (world), built on first use */
+  private ringN: any = null;
   constructor(readonly terrain: Terrain, private lodBias = 1) {
     this.group.name = 'terrain';
     this.material = surfaceMaterial('earth', { vertexColors: true });
@@ -150,12 +187,22 @@ export class TerrainMesh {
       (ch.mesh as any).tmorph = morphShare(err, d, ch.ring.cell, this.lodBias, step);
       // the morph rides on whatever material the chunks wear (the plain's replaces this one: plain/index.ts)
       const mat = ch.mesh.material as THREE.MeshStandardNodeMaterial;
-      if (mat !== this.morphed) { if (mat.positionNode !== TERRAIN_MORPH_POSITION) { mat.positionNode = TERRAIN_MORPH_POSITION; mat.needsUpdate = true; } this.morphed = mat; }
+      if (mat !== this.morphed) { this.hook(mat); this.morphed = mat; }
       if (step !== ch.step) {
         let g = ch.lods.get(step); if (!g) { g = this.buildGeometry(ch, step); ch.lods.set(step, g); }
         ch.mesh.geometry = g; ch.step = step;
       }
     }
+  }
+  /** the material's hooks (once per material): the geomorph position, and the ring normal under its own normal: the
+   *  material's normal (its bump and tilts over the vertex normal) moved by the ring normal's difference from the vertex's */
+  private hook(mat: THREE.MeshStandardNodeMaterial) {
+    if ((mat as any).__terrainHooked) return; (mat as any).__terrainHooked = true;
+    mat.positionNode = TERRAIN_MORPH_POSITION;
+    if (TERRAIN_RING_NORMALS.on) { this.ringN ??= ringNormalNode(this.terrain);
+      const nv = cameraViewMatrix.mul(vec4(this.ringN, 0)).xyz;
+      mat.normalNode = ((mat.normalNode as any) ?? normalView).add(nv.sub(normalView)).normalize(); }
+    mat.needsUpdate = true;
   }
   stats() { let tris = 0; for (const ch of this.chunks) tris += (ch.mesh.geometry.index?.count ?? 0) / 3; return { chunks: this.chunks.length, tris }; }
 }

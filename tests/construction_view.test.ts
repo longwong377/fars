@@ -54,4 +54,17 @@ describe('construction view (Hall of 100 Columns)', () => {
     site.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return; m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox!;
       expect(b.min.x, m.name).toBeGreaterThan(40); expect(b.max.x, m.name).toBeLessThan(200); expect(-b.max.z, m.name).toBeGreaterThan(-80); expect(-b.min.z, m.name).toBeLessThan(50); });
   });
+  it('D-570: an earth ramp leads up to the column being raised, its slope facing up, clear of the other columns, walkable', () => {
+    const arch = buildMeshes(parts); const C = new Construction(1); const live = new Map<number, { c: any; h: any }>(); let nid = 0;
+    const phys = { addBox: (c: any, h: any) => { live.set(++nid, { c, h }); return nid; }, world: { removeCollider: (k: number) => { live.delete(k); } } };
+    const view = new ConstructionView(arch.group, () => C, phys); let seen = 0;
+    for (let d = 0; d < 200; d++) { C.step(d, { stone: 60, labour: 80, brick: 20, frost: false, wet: false, storm: false }); view.sync(); const boxes = [...live.values()]; const R = view.ramp; if (!R) continue; seen++;
+      const m = view.group.getObjectByName('hall100:site:earth') as THREE.Mesh; expect(m, `day ${d}`).toBeTruthy();
+      const g = m.geometry.toNonIndexed(); g.computeVertexNormals(); const nr = g.getAttribute('normal'), ps = g.getAttribute('position');
+      expect(nr.getY(0), 'the slope faces up').toBeGreaterThan(0.5);
+      const col = C.columns[R.col]; for (const q of C.columns) { if (q.i === R.col) continue; for (let i = 0; i < ps.count; i++) expect(Math.hypot(ps.getX(i) - q.at[0], -ps.getZ(i) - q.at[1]) > 1.6 || ps.getY(i) - ps.getY(0) > 50, `ramp at column ${q.i}`).toBe(true); }
+      expect(boxes.length).toBeGreaterThan(2); expect(Math.max(...boxes.map(b => b.c.y + b.h.y))).toBeCloseTo(Math.max(...Array.from({ length: ps.count }, (_, i) => ps.getY(i))), 1);
+      void col; }
+    console.log(`D-570: the ramp drawn on ${seen} of 200 days; last ${JSON.stringify(view.ramp)}`); expect(seen).toBeGreaterThan(20);
+  });
 });
