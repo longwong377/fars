@@ -89,3 +89,14 @@ describe('FieldFill draws the loaded models', () => {
     f.update([300, 300], 107, true); const spring = f.drawn; expect(spring).toBeGreaterThanOrEqual(0); expect(spring).toBeLessThan(5);
   });
 });
+import { quarryPaths, QUARRY_PATH } from '../src/world/plain/ribbons';
+describe('the quarry path (ribbons.ts quarryPaths)', () => {
+  it('goes round a steep ridge (steeper than 1 in 3) to the nearest track', () => {
+    // a wall 200 m high across x = 500..600 except a gap at y > 800; the quarry at (0, 0), the track along x = 1200
+    const h = (x: number, y: number) => (x > 500 && x < 600 && y < 800 ? 200 : 0), terrain = { heightAt: (x: number, z: number) => h(x, -z) };
+    const [p] = quarryPaths([{ x: 0, y: 0 }], [[[1200, -2000], [1200, 2000]]], terrain);
+    expect(p).toBeTruthy(); expect(Math.abs(p[p.length - 1][0] - 1200)).toBeLessThan(40);
+    expect(p.some(q => q[1] > 750)).toBe(true); // (round by the gap)
+    for (const q of p) if (h(q[0], q[1]) > 0) expect(Math.min(q[0] - 500, 600 - q[0], 800 - q[1])).toBeLessThan(QUARRY_PATH.cell + 5); // (never across the ridge: the smoothing clips its corner by at most a cell)
+  });
+});

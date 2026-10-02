@@ -9410,6 +9410,20 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   JPEG without alpha: since s12 every tuft at the walker's feet drew its card's black ground as a black flame; seen in the
   cloud's crude WebGL probe and in the s12 frames); the tint normaliser averages the drawn pixels only. Verges 6-10 tufts a
   2 m cell at 1.2-1.8x (tuft cap 1800). Fixed fieldFill's model keys (the registry is keyed wo_*, not m_wo_*: nothing drew).
+- fieldFill's draws: once its models loaded it added 66 meshes to the plain group and broke the plain's own gate (tests/plain.test:
+  <= 40 meshes; the plain was at exactly 40). Now one InstancedMesh per model and level (parts merged, one 3-kind material,
+  lod1 and lod2): at most 16, only the season's drawn (April: the folds, 1-2 draws), in its own group beside the plain's
+  as the town's fill is; the plain gate is unchanged and passes. Its draws are outside that gate: C4's budget counts them.
+- Boot (C4's profile: the plain 8.1 s of main-thread JS): the town's ground (0.7 s), the zones (1.5 s, baked before) and the
+  orchard plots (2.0 s) are baked together in the world's 'zones' unit (+0.23 MB gzipped; its source hash covers the plain's
+  modules); the compounds (0.4 s, 0.7 MB gzipped) are not; desire lines computed once a plan (0.4 s saved on every boot).
+- The leaf atlas (trees/assets.ts, ~2 s of main-thread JS at load) is decoded and assembled in a worker (trees/atlas_worker.ts;
+  measured in headless Chromium: built in 2.7 s with the main thread's longest task 64 ms); not baked: its packed levels are
+  16 MB gzipped against the 3.9 MB of WebP shipped. The main-thread path stays as the fallback.
+- For C6's quarries (asked through the cloud lead): the quarrymen's worn path from each quarry down to the nearest track or road
+  (ribbons.ts quarryPaths: A* on a 25 m grid, length weighted by slope, nothing steeper than 1 in 3, smoothed; 82 ms at
+  load), drawn in the tracks' mesh (allowed on the slopes the village tracks are cut on) with the same tread and verge
+  (verge.ts). Majdabad: 4.1 km to a village track, steepest 0.11 (C).
 
 ## D-590 The front end and the opening: one type system, a loading screen that is the place's own dawn, and a wordless in-engine intro (session 17, cloud C5; UD-37)
 - Screens (src/ui/shell.ts, shell.css): Cormorant Garamond (display) and Alegreya Sans (interface), SIL OFL, self-hosted in public/fonts (ASSET_LEDGER); the title and the pause menu are a column of glass over the live world with the place's name in Old Persian (𐎱𐎠𐎼𐎿, p-a-r-s, as carved in DB I 5 and passim), settings a tabbed sheet (World, Display, Sound, Language, Keys; Esc goes back), controls with readable key names; the chronicle (J) a journal grouped by day and rebuilt only when it changes (it was rebuilt every frame); subtitles without the box, eased in once per line.

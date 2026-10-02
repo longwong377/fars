@@ -22,13 +22,13 @@ import { buildZones, ZoneMap, ZONE, landUseAt } from './fields';
 import { cachedSync } from '../cache/worldCache';
 import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
-import { canalBanks, trackLines, tracksMesh } from './ribbons';
+import { canalBanks, trackLines, tracksMesh, quarryPaths } from './ribbons';
 import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, fieldTrees, orchardRows, instOf, Tree, TREE_TAG } from './trees';
 import { TRIS } from '../trees/model';
 import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, widenedFrustum, shadowSunDir, treeViewClass, VIEW_CULL, type TreeInst } from '../trees/render';
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
-import { buildQuarries } from './quarries';
+import { buildQuarries, quarrySites } from './quarries';
 import { buildCrossings, keepOffChannels, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
@@ -78,11 +78,19 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const canals = buildCanals(terrain, rivers.rivers, opts.seed);
   const villages = placeVillages(terrain, rivers.rivers, canals, opts.seed);
   // the town's used ground (D-190): only with the town as built (?notown and the plain tests keep the D-040 boundary)
-  const townGround = opts.town ? buildTownGround(opts.town, opts.camps ?? [], opts.drains ?? []) : null;
-  const zoneIn = () => ({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
+  const zoneIn = (townGround: ReturnType<typeof buildTownGround> | null) => ({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
     sites: opts.town?.sites.map(s => ({ c: s.frame.c as [number, number], theta: s.frame.theta, W: s.W, H: s.H })) });
+  // s17 (D-560, C4's boot profile): the town's ground (0.7 s; 0.23 MB gzipped), the zones (1.5 s) and the orchard plots (2.0 s)
+  // are pure results of the world's inputs: baked together in the world's 'zones' unit (its source hash covers
+  // every plain module), built live on a miss
+  type PlainBake = { zones: Uint8Array; ground: ReturnType<typeof buildTownGround> | null; plots: ReturnType<typeof orchardPlots> | null };
+  const bakeLive = (): PlainBake => { const ground = opts.town ? buildTownGround(opts.town, opts.camps ?? [], opts.drains ?? []) : null;
+    const zd = buildZones(zoneIn(ground)).data, zm: ZoneMap = { data: zd, n: ZONE.n, half: ZONE.half, cell: ZONE.cell, ground };
+    return { zones: zd, ground, plots: orchardPlots(zm, villages) }; }; // (the compounds, 0.4 s, are not: 0.7 MB gzipped)
+  const baked: PlainBake = opts.bakeKey ? cachedSync('zones', opts.bakeKey, bakeLive) : bakeLive();
+  const townGround = baked.ground;
   // D-392: the zone map read from the baked world (keyed by the world's inputs, world.ts bakeKey) when unchanged
-  const zones: ZoneMap = opts.bakeKey ? { data: cachedSync('zones', opts.bakeKey, () => buildZones(zoneIn()).data), n: ZONE.n, half: ZONE.half, cell: ZONE.cell, ground: townGround ?? null } : buildZones(zoneIn());
+  const zones: ZoneMap = { data: baked.zones, n: ZONE.n, half: ZONE.half, cell: ZONE.cell, ground: townGround ?? null };
   const tGen = performance.now() - t0;
   // terrain: the plain's field / crop / woodland layer on the existing chunks (no new draw calls)
   const tDet = performance.now(), detail = await detailP, detailWaitMs = performance.now() - tDet;
@@ -96,7 +104,10 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const floodDepth = rivers.rivers.map(r => (feature(r.id).flow_by_month as { month: string; depth_m: number }[]).reduce((m, q) => Math.max(m, q.depth_m), 0)) as [number, number];
   const margins = riparianMargins(rv.profiles, canals, terrain, opts.quality, floodDepth); group.add(margins.mesh);
   const cb = canalBanks(canals, terrain); group.add(cb);
-  const tLines = keepOffChannels(trackLines(villages), rivers.rivers); const tr = tracksMesh(tLines, terrain); group.add(tr);
+  const vLines = keepOffChannels(trackLines(villages), rivers.rivers);
+  // s17 (D-560, C6's quarries): the quarrymen's worn path from each quarry down to the nearest track or road (ribbons.ts quarryPaths)
+  const qLines = keepOffChannels(quarryPaths(quarrySites(terrain), [...settlementRoads().map(r => r.pts), ...vLines], terrain), rivers.rivers);
+  const tLines = [...vLines, ...qLines]; const tr = tracksMesh(tLines, terrain, undefined, undefined, new Set(qLines.map((_, i) => vLines.length + i))); group.add(tr);
   // s17 (D-560): the paths' treads and verges for the cover, flora, rocks and crops (verge.ts)
   setVergePaths([...settlementRoads().map(r => ({ pts: r.pts, hw: r.width / 2, kind: 'road' as const })), ...tLines.map(pts => ({ pts, hw: (feature('villages_unlocated').tracks.width_m as number) / 2, kind: 'track' as const })),
     ...(opts.town ? desireLines(opts.town).map(l => ({ pts: [l.a, l.b] as [number, number][], hw: l.w / 2, kind: 'path' as const })) : [])]);
@@ -107,7 +118,8 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const vb = new VillageHouses(villages, comps, terrain, phys, opts.fire ?? null, opts.seed); group.add(vb.group);
   // s17 (D-560): the farm year near the walker (fieldFill.ts): the harvest's sheaves and stooks, the floors' threshing and straw, ards, folds
   const fieldFill = new FieldFill(zones, villages.map((v, i) => ({ id: v.id, x: v.x, y: v.y, r: v.r, floor: threshingFloor(v, comps[i], opts.seed) })), (e, n) => terrain.surfaceAt(e, -n),
-    (e, n) => landUseAt(zones, e, -n).use === 'natural' && !villages.some(v => Math.hypot(v.x - e, v.y - n) < v.r + 20)); group.add(fieldFill.group);
+    (e, n) => landUseAt(zones, e, -n).use === 'natural' && !villages.some(v => Math.hypot(v.x - e, v.y - n) < v.r + 20));
+  scene.add(fieldFill.group); // (its own group beside the plain's, as the town's fill: the plain's D-039 handful of meshes is unchanged)
   // trees (D-120): one kit (models, leaf atlas, impostor atlas) shared with the town gardens
   const kit = TreeKit.get({ deferBake: true, impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
   const nearC = uniform(new THREE.Vector3(1e9, 0, 1e9)), nearR = uniform(0); // the 3-D set: centre and radius
@@ -115,7 +127,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const lineTrees = [...riparianTrees(rivers.rivers, opts.seed).map(t => ({ t, where: 'riparian woodland (river_*.riparian)' })), ...canalTrees(canals, opts.seed).map(t => ({ t, where: 'canal tree line' }))];
   const far = new ImpostorSet(kit, lineTrees.length, { c: nearC, r: nearR }, 20000, 'plain-trees-far'); group.add(far.mesh);
   far.set(lineTrees.map(q => instOf(q.t, terrain, q.where)));
-  const plots = orchardPlots(zones, villages);
+  const plots = baked.plots ?? orchardPlots(zones, villages);
   const orch = orchardRows(kit, plots, terrain, { c: midC, r: midR }, nearR, 16000); group.add(orch);
   const mid = new ImpostorSet(kit, Q.maxMid, { c: nearC, r: nearR }, 1e6, 'plain-trees-mid'); group.add(mid.mesh);
   // the nearest trees (within SHADOW_R, at most SHADOW_N) cast shadows; the rest of the 3D set does not (shadow passes cost
