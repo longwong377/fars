@@ -20,6 +20,12 @@ export interface ScanUse { scan: string; scale: number; alb: number; height: num
    *  darker and glossier than the matte ground between them, where the scan's own roughness map is flat; D-301) */ roughLum?: number;
   /** D-300: the scan's own normal map (nor.jpg, OpenGL), triplanar with a whiteout blend into the surface's normal, × this strength */
   nor?: number;
+  /** D-490: how much of the scan's own colour variation (its chroma about its luminance) is kept, 0..1 (default 1): the scan leads
+   *  the pattern, the palette the hue (a scan's iron stains or lichen read as another place's soil) */
+  chroma?: number;
+  /** D-490: how much of the scan's own mean hue is laid over the palette's (0..1, default 0): a grey palette stone takes the
+   *  scan's dusty buff */
+  hue?: number;
   /** steep ground takes a rock scan at large scale (the mountain and the outcrops: a 2.5 m tile averages to flat colour at 1 km) */
   rock?: { scan: string; scale: number; scale2: number; alb: number; ny0: number; ny1: number } }
 /** metres per tile (`scale`), blend weights, bump amplitude in metres; `scale2`: a second, larger tile multiplied in (ground) */
@@ -50,9 +56,17 @@ export const SCAN_USE: Record<string, ScanUse> = {
   roof_earth: { scan: 'clay_plaster', scale: 2.4, scale2: 10.3, alb: 0.6, height: 0.003, rough: 0.4 },
   house_brick: { scan: 'brown_mud_dry', scale: 1.5, alb: 0.6, height: 0.004, rough: 0.4 },
   baked_brick: { scan: 'clay_block_wall', scale: 1.5, alb: 0.5, height: 0.003, rough: 0.4 },
-  mud_plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.7, height: 0.003, rough: 0.4 },
-  house_plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.7, height: 0.003, rough: 0.4 },
-  house_socle: { scan: 'clay_plaster', scale: 2.0, alb: 0.6, height: 0.003, rough: 0.4 },
+  // D-490 (s17 V2): the town's and villages' mud render takes Dirt Floor (a smoothed earthen coat: pores, grit, specks of
+  // straw and lime; clay_plaster's flat brown read as a painted plane past 10 m) with a second, larger tile turned in, the
+  // scan leading the local colour (alb 0.85) over the palette's mean (the house's vertex colour); the footing takes Stone
+  // Wall (rough limestone fieldstones in mud mortar: the procedural Worley fieldstones read as a CG voronoi at every lane's
+  // foot), its colour led by the scan; the flat roofs and wall tops the rolled kahgel coat (Raked Dirt: clay with chopped
+  // straw, the roller's lines)
+  mud_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
+  house_plaster: { scan: 'dirt_floor', scale: 2.07, scale2: 9.1, alb: 0.75, chroma: 0.45, height: 0.003, rough: 0.4 },
+  house_socle: { scan: 'stone_wall', scale: 2.0, alb: 1.0, hue: 0.45, height: 0.01, rough: 0.6, nor: 1.4 },
+  house_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
+  mud_roof: { scan: 'raked_dirt', scale: 1.1, scale2: 6.3, alb: 0.85, chroma: 0.6, height: 0.004, rough: 0.4 },
   plaster: { scan: 'clay_plaster', scale: 2.0, alb: 0.35, height: 0.002, rough: 0.3 },
   // D-302: the terrain, the rivers' banks, the tracks and the canal banks lay their own ground layers (GROUND below, groundScan);
   // this entry is the 'earth' of other meshes (the Now view's stumps, the lab ground): dust, not the cracked earth of D-295
@@ -99,7 +113,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
  *  and far) takes the mud-plaster wall: the float's arcs, the straw, grit and pits, shrinkage cracks, the brick courses faint
  *  through a thin coat (C) */
 export const WALL_BAKE: Record<string, { tex: string; scale: number; nor: number; cav: number; /** D-334: the map is public/textures/<tex>/bake.ktx2 (UASTC) */ ktx?: boolean }> = {
-  house_plaster: { tex: 'housewall_bake', scale: 2.37, nor: 1.1, cav: 0.3 },
+  house_plaster: { tex: 'housewall_bake', scale: 2.37, nor: 0.8, cav: 0.25 }, // (D-490: 1.1 drew a lumpy stucco at 3 m under the new scan)
   // D-334 (tools/blender/palacebake.py): the palaces' mud plaster as fresh in 467 (a finer finish coat, the finishing float's
   // wide sweeps, fine chaff, few hairline cracks, the square bricks' courses just through the coat) on every palace wall, painted
   // or not, and their parapets; the roofs' rolled clay-and-straw coat (the roller's tracks, coarse straw, a crack network)
@@ -115,7 +129,7 @@ const BAKE = new Map<string, THREE.Texture>();
 export const ALB_MIN = 0.3;
 export const SCANNABLE: Record<string, true> = Object.fromEntries(['limestone', 'limestone_merlon', 'limestone_carved', 'limestone_dark',
   'terrace', 'terrace_now', 'terrace_foot', 'stone_rough', 'stone_plain', 'takht_stone', 'nr_dressed', 'nr_rock', 'rubble', 'kaba_white', 'mudbrick', 'mudbrick_painted', 'roof_earth', 'mudbrick_bare',
-  'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
+  'house_brick', 'baked_brick', 'mud_plaster', 'house_plaster', 'house_socle', 'house_roof', 'mud_roof', 'plaster', 'village_mud', 'earth', 'court_fill', 'road', 'bank',
   'refuse', 'timber', 'roof_timber', 'house_timber', 'scaffold'].map(k => [k, true]));
 /** the scan applied to a surface at a strength that reads (T-A7's anti-proxy: alb >= ALB_MIN), or null; what the builders record
  *  in material.userData.scan (node as well: there no texture loads, the tag says what the page applies) */
@@ -204,11 +218,13 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null; 
   const mean = vec3(...M.meanLinear);
   let det = tri(T.diff, u.scale).rgb.div(mean);
   if (u.scale2) det = det.mul(tri(T.diff, u.scale2).rgb.div(mean)); // the larger tile breaks the small one's repeat
+  if (u.chroma !== undefined && u.chroma < 1) det = mix(vec3(dot(det, vec3(0.2126, 0.7152, 0.0722))), det, u.chroma); // D-490
   const R = u.rock, RT = R && TEX.get(R.scan), RM = R && META[R.scan];
   if (R && RT && RM) { // slope-driven rock: full below ny0 (~37°), none above ny1 (~23°)
     const rmean = vec3(...RM.meanLinear), rdet = tri(RT.diff, R.scale).rgb.div(rmean).mul(tri(RT.diff, R.scale2).rgb.div(rmean));
     det = mix(det, mix(vec3(1), rdet, R.alb / u.alb), float(1).sub(smoothstep(R.ny0, R.ny1, normalWorld.y)));
   }
+  if (u.hue) { const m = M.meanLinear, y = 0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]; det = det.mul(vec3(...m.map(c => 1 + u.hue! * (c / y - 1)) as [number, number, number])); }
   const lum = dot(det, vec3(0.2126, 0.7152, 0.0722));
   const alb = L.alb.mul(mix(vec3(1), det, u.alb));
   // the scan's roughness costs a sampler; a surface with a rock layer (the terrain) is at WebGPU's 16 samplers per stage

@@ -9407,3 +9407,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - mkwt.mjs: base defaults to s17-int; branch is s<N>-<name> from base s<N>-int (was always s14-<name>).
 - Uncommitted leftovers on the box: branch vagon-leftovers-s17 (two empty stray files). Dirty old trees kept as they are:
   fars-wt/load (KTX2 textures), simhealth-brides, simtalk, visible, visiblebase, light, int.
+
+## D-490 (s17, V2 materials): scans lead the town's surfaces
+- First pass (house_lab frames shots/a2, uncommitted): the houses' render takes Dirt Floor (was clay_plaster: a flat brown
+  plane past 10 m), the footings Stone Wall (the procedural Worley fieldstones, a CG voronoi at every lane's foot, are gone),
+  the flat roofs and wall tops Raked Dirt (the kahgel's chopped straw; the roofs had no scan at all). ScanUse gains `chroma`
+  (the scan's colour variation kept, the palette leading the hue) and `hue` (a share of the scan's own mean hue). House
+  plaster's broad tone 1σ 0.07 -> 0.10; the wall bake's normal 1.1 -> 0.8. New scans in ASSET_LEDGER.md; only the maps used ship.
