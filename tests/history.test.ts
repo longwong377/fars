@@ -47,3 +47,18 @@ describe('D-371 children have playmates (a lookup; no plan changes)', () => {
     expect(kids.length).toBeGreaterThan(20); expect(with_ / kids.length).toBeGreaterThan(0.8);
   });
 });
+describe('D-371 the life record speaks from the economy\'s real debts and dealings', () => {
+  it('with a sim, debts and recent dealings come from the economy (no seeded fakes, no digits)', async () => {
+    const { readFileSync } = await import('node:fs'); const { NavGrid } = await import('../src/people/navgrid'); const { PeopleSim } = await import('../src/people/sim');
+    const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
+    const sim = new PeopleSim(1, nav, (() => ({ rain: 0, lightning: 0, windMs: 2, tempC: 20, dust: 0 })) as any); sim.jumpTo(120 * 24 + 12); const E = sim.econTo(121);
+    const debtor = [...E.hh.values()].find(h => h.debts.some(d => d.amt > 0.05) && sim.pop.households[Number(h.id.slice(2))]?.members.some(m => sim.pop.ageOn(m, 120) >= 20 && sim.pop.present(m, 120)))!;
+    const pid = sim.pop.households[Number(debtor.id.slice(2))].members.find(m => sim.pop.ageOn(m, 120) >= 20 && sim.pop.present(m, 120))!;
+    const L = lifeRecord(sim.pop, sim.cal, pid, 120, 12);
+    expect(L.debts.some(d => /^owes /.test(d))).toBe(true);
+    for (const d of [...L.debts, ...L.year]) expect(d).not.toMatch(/\d/);
+    let fake = 0; for (const h of [...E.hh.values()].slice(0, 300)) { const m = sim.pop.households[Number(h.id.slice(2))]?.members.find(x => sim.pop.ageOn(x, 120) >= 16 && sim.pop.present(x, 120)); if (m === undefined) continue;
+      const L2 = lifeRecord(sim.pop, sim.cal, m, 120, 12); if (L2.debts.length && !h.debts.some(d => d.amt > 0.01) && !L2.debts.some(d => /is owed/.test(d))) fake++; }
+    expect(fake).toBe(0);
+  }, 600_000);
+});

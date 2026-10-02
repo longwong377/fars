@@ -12,6 +12,7 @@ import type { EventCalendar } from '../calendar';
 import { HOME_LANG } from '../exchanges';
 import { Rng } from '../../core/rng';
 import { pastOf, pastWords } from '../history';
+import type { Economy } from '../economy/world';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
 export interface LifeRecord {
@@ -161,10 +162,14 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   const hear = pop.hearing(pid, day); if (hear) year.push(`must go before an official today over the quarrel with ${spokenName(pop, hear.other)} ${hear.why}`);
   if (p.group >= 0) { const sh = cal.shortfalls.filter(s => s.group === p.group && s.day <= day && s.day > day - 90); if (sh.length) year.push(`the group’s rations came short ${when(sh[sh.length - 1].day)}${sh[sh.length - 1].paidSilver ? ' and part was paid in silver' : ''}`); }
   // small obligations (seeded, C: loans in kind between neighbours and kin are the ordinary texture of such a town)
-  const debts: string[] = []; const lenders = [...p.ties, ...household.map(k => k.pid)].filter(o => pop.persons[o].age >= 16 && pop.persons[o].hh !== hh && !!spokenName(pop, o));
+  // D-371: the house's real debts and dealings when the economy stands built (the sim's ledger), else the seeded small obligations
+  const E = pop.ledger?.(day) ?? null, real = E ? econFacts(pop, E, hh, day) : null;
+  if (real) year.push(...real.year);
+  let debts: string[] = []; const lenders = [...p.ties, ...household.map(k => k.pid)].filter(o => pop.persons[o].age >= 16 && pop.persons[o].hh !== hh && !!spokenName(pop, o));
   if (age >= 16 && lenders.length && r.next() < 0.45) { const o = lenders[Math.floor(r.next() * lenders.length)];
     const what = p.job === 'farmer' || p.job === 'gardener' ? ['seed barley for the sowing', 'the loan of an ox for two days of ploughing', 'a jar of sesame oil'] : p.job === 'builder' ? ['a borrowed chisel, not yet given back', 'three days of barley ration'] : ['a measure of barley flour', 'a jar of beer from the last festival', 'a length of wool yarn', 'a goat kid promised at lambing'];
     const owes = r.next() < 0.6; debts.push(`${owes ? 'owes' : 'is owed'} ${what[Math.floor(r.next() * what.length)]} ${owes ? 'to' : 'by'} ${spokenName(pop, o)}`); }
+  if (real) debts = real.debts; // (the seeded draws are still made: the speech and oath draws after them stay as they were)
   const [temper, habit] = TEMPER[Math.min(TEMPER.length - 1, Math.floor(p.trait * TEMPER.length))];
   const oaths = OATHS[p.origin] ?? ['by the gods'];
   const speech = [habit, `oath: “${oaths[Math.floor(r.next() * oaths.length)]}”`, age < 13 ? 'speaks like a child: short, plain, about play, family and food' : age > 55 ? 'speaks slowly, remembers older days under the king’s father' : r.next() < 0.5 ? 'plain speech of the town' : 'plain speech, some words of the work',
@@ -189,6 +194,32 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     today: { date: `day ${dt.dom} of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), year 19 of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
     knows, tier: 'C',
   };
+}
+
+/** D-371: silver in the words of the town (no digits: the §10 lint) */
+const silverWords = (x: number) => x < 0.15 ? 'a little silver' : x < 0.6 ? 'some silver' : x < 1.5 ? 'about a shekel' : x < 4 ? 'a few shekels' : x < 12 ? 'many shekels' : 'a great sum of silver';
+const houseOf = (pop: Population, id: string) => { if (id === 'treasury') return 'the king\'s treasury'; if (id === 'player') return 'the stranger'; if (!/^h:\d+$/.test(id)) return null;
+  const H = pop.households[Number(id.slice(2))]; const head = H?.members.find(m => pop.persons[m].age >= 16) ?? H?.members[0]; const n = head !== undefined ? spokenName(pop, head) : null; return n ? `the house of ${n}` : 'a house of the quarter'; };
+/** D-371: what the economy says of a house: its debts (owed and owing) and its dealings of the last two months, in the town's
+ *  words, from the economy's own state and events (no seeded fakes) */
+export function econFacts(pop: Population, E: Economy, hh: number, day: number): { debts: string[]; year: string[] } {
+  const id = `h:${hh}`, H = E.hh.get(id); if (!H) return { debts: [], year: [] };
+  const debts: string[] = [];
+  for (const d of H.debts) if (d.amt > 0.01) { const who = houseOf(pop, d.to); if (who) debts.push(`owes ${silverWords(d.amt)} to ${who}${d.due <= day + 14 ? ', due soon' : ''}`); }
+  let owedBy = 0; for (const o of E.hh.values()) if (o !== H) for (const d of o.debts) if (d.to === id && d.amt > 0.01 && owedBy < 2) { const who = houseOf(pop, o.id); if (who) { debts.push(`is owed ${silverWords(d.amt)} by ${who}`); owedBy++; } }
+  const WORDS: Record<string, (o: string | null) => string | null> = {
+    harvest_poor: () => 'the harvest was poor', harvest_good: () => 'the harvest was good', default: o => `could not pay ${o ?? 'a creditor'} when the debt fell due`,
+    pledge_seized: o => o ? `${o} took a pledge for a debt` : null, suit: o => o ? `${o} went to the judge over a debt` : null, time_granted: () => 'the judge gave the house time to pay',
+    debt_labour: () => 'one of the house was bound to work off a debt', hunger: () => 'the house went hungry', animal_lost: () => 'the ox was lost', house_fire: () => 'there was a fire in the house',
+    relief: () => 'grain came from the king\'s stores after a petition', given: o => o ? `${o} gave them grain or help` : null, kin_help: o => o ? `${o}, kin, helped them` : null,
+    lent_by_neighbour: o => o ? `${o} lent them silver` : null, loan: o => o ? `borrowed silver from ${o}` : null, repaid: o => o ? `paid back ${o}` : null, robbed: () => 'they were robbed',
+    hired_by_neighbour: o => o ? `worked for ${o} for grain` : null, acquitted: () => 'the judge found for them', petition_refused: () => 'a petition of theirs was refused',
+  };
+  const year: string[] = [], seen = new Set<string>();
+  for (let i = E.events.length - 1; i >= 0 && year.length < 3; i--) { const v = E.events[i]; if (!v) continue; if (v.day < day - 60) break; if (v.day > day) continue;
+    if (v.actor !== id && !(v.kind === 'theft' && v.other === id)) continue; const k = v.kind === 'theft' ? 'robbed' : v.kind; if (seen.has(k)) continue;
+    const w = WORDS[k]?.(v.other ? houseOf(pop, v.other) : null); if (w) { seen.add(k); year.push(w); } }
+  return { debts: debts.slice(0, 3), year };
 }
 
 /** the knowledge fence: what this person can know (by work and place; C) */

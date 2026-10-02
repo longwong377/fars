@@ -1762,6 +1762,9 @@ export class Population {
   /** D-340 (UD-26): the economy's decisions laid over the day plans (people/economy/plans.ts EconPlans; the sim sets it):
    *  the market, the lender, the court, the day's hire, the thief's night, the bondage. Under the stranger's steps */
   econ: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
+  /** D-371: the economy as it stands, when it is already built up to about the day (no side effect: never steps it); the life
+   *  record reads a house's real debts and dealings from it (PeopleSim sets it) */
+  ledger: ((day: number) => import('./economy/world').Economy | null) | null = null;
   /** D-347: laundry days and baths laid over the base plan (wardrobe/washing.ts WashPlans; the sim sets it), under the economy's steps */
   wash: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
   /** D-348: courting visits, the families' agreement, lovers' meetings laid over the plans (people/relations/plans.ts RelPlans; the sim sets it; Population.rel is the older affinity map) */
