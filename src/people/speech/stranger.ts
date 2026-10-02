@@ -33,6 +33,7 @@ import { h32, u01, salt } from '../hash';
 import { hashString } from '../../core/rng';
 
 export const PLAYER = 'player';
+const ROLE_WORDS: Record<string, string> = { labourer: 'a labourer', craftsman: 'a craftsman', merchant: 'a merchant', scribe: 'a scribe', pilgrim: 'a pilgrim', envoy: 'an envoy of the king', soldier: 'a soldier', healer: 'a healer', kin: 'kin of a house here' };
 const S = { hire: salt('str-hire'), tell: salt('str-tell'), pet: salt('str-pet'), host: salt('str-host'), lang: salt('str-lang'), head: salt('str-head'), car: salt('str-car'), nb: salt('str-nb') };
 const GRAIN_EAT = 0.55;
 /** a hired hand's day: ~1 kg barley (a man's ration of 30 qa a month, Fortification texts: A in kind, C in kg) or its silver */
@@ -462,6 +463,20 @@ export class Stranger {
     if (this.E.trust && day % 10 === 0) this.E.trust.note(G.id, PLAYER, 0.02, day);
   }
 
+  /** D-370: what a house knows of its own dealings with the stranger, and how to speak to them, as the person is told it
+   *  (second person, the model's brief: out of world). Empty when the house has none */
+  factsFor(hh: string, day: number, roleWords: Record<string, string> = ROLE_WORDS): string[] {
+    const out: string[] = [], b = this.belief.get(hh), C = this.claim;
+    if (this.stay?.host === hh) out.push(`the stranger is a guest of your house these ${this.stay.nights || 'first'} nights${this.stay.nights > CUSTOM_NIGHTS && this.stay.owed > 0.01 ? ', and gives nothing back' : ''}`);
+    if (this.job?.employer === hh) out.push(`the stranger works for your house as a hand (${this.job.need})${this.owesNow(hh) ? '; your house owes him wages' : ''}`);
+    else if (this.owesNow(hh)) out.push('your house owes the stranger wages from his work');
+    if (this.group?.kind === 'household' && this.group.id === hh) out.push('the stranger lives in your house now, as one of it');
+    if (this.slighted.has(hh)) out.push('the stranger once ate your bread and went off without a word of thanks');
+    if (C && b) out.push(b.doubted || b.b < 0.35 ? `the stranger says he is ${roleWords[C.role] ?? C.role}${C.origin ? ` from ${C.origin}` : ''}, but you do not believe it` : `you have heard the stranger is ${roleWords[C.role] ?? C.role}${C.origin ? ` from ${C.origin}` : ''}`);
+    const c = this.comp(this.langOf(hh), day);
+    out.push(c < 0.2 ? 'the stranger hardly knows your tongue: use very few, simple words and point and gesture' : c < 0.5 ? 'the stranger knows a little of your tongue: speak simply and slowly' : 'the stranger speaks your tongue well enough');
+    return out;
+  }
   // ---------------------------------------------------------------- the day (Economy.step, after the households)
   step(day: number) {
     for (const s of this.acts.get(day) ?? []) this.apply(s); this.acts.delete(day);

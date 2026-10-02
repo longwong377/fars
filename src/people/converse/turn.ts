@@ -65,7 +65,9 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   const remind = !near && top && (first || /\b(remember|before|met|heard|know me|say of|spoken)\b/i.test(said)) ? `What you remember of the stranger: ${top}` : '';
   const note = [pre ? verdictNote(pre) : '', sbNote, remind].filter(Boolean).join(' ') || undefined;
   // (run 2: the simulation's "no" after the stranger's words was often not kept; said first, plainly, it goes with the memory)
-  const before = [near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
+  // D-370: the house's own dealings with the stranger and how much of their tongue he has (the sim's state, not the model's)
+  const E0 = sim.ledgerNow(), sFacts = E0 && E0.hasStranger ? E0.stranger().factsFor(`h:${sim.pop.home(pid, day)}`, day) : [];
+  const before = [sFacts.length ? `(${sFacts.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join('. ')}.)` : '', near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
     near && pre && !pre.ok && !pre.noop ? `(Whatever he asks, you must say no: ${pre.reason}.)` : ''].filter(Boolean).join('\n') || undefined;
   // (after run 3: asked about earlier meetings, the simulation picks the ONE remembered fact and the model only says it in
   // its own words; otherwise the one life fact most relevant to the words goes next to them: ground.ts)

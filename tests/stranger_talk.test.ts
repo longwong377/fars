@@ -82,3 +82,15 @@ describe('the render side\'s hooks (speech/presence.ts)', () => {
     expect((S as any).attended.has(d)).toBe(true);
   }, 300_000);
 });
+describe('the house knows its dealings with the stranger (factsFor, in the turn)', () => {
+  it('the host is told the stranger is their guest, what is believed of him, and to speak simply', async () => {
+    const d = 60, sim = simAt(1, d, 17), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
+    const E = sim.econTo(d), S = E.stranger();
+    const pid = sim.pop.persons.find(p => p.job === 'farmer' && p.age >= 25 && sim.pop.present(p.id, d) && S.stayCheck(`h:${sim.pop.home(p.id, d)}`, d).ok)!.id, hh = `h:${sim.pop.home(pid, d)}`;
+    S.do({ a: 'claim', day: d, hh, role: 'merchant', origin: 'Babylon' }); S.do({ a: 'stay', day: d, hh });
+    const f = S.factsFor(hh, d); expect(f.some(x => /guest of your house/.test(x))).toBe(true); expect(f.some(x => /merchant from Babylon/.test(x))).toBe(true); expect(f.some(x => /simple words|simply/.test(x))).toBe(true);
+    const seen: string[] = []; const ans = m.answer.bind(m); (m as any).answer = async (...a: any[]) => { seen.push(String(a[6]?.before ?? '')); return ans(...(a as [any, any, any, any, any, any, any])); };
+    await talkTurn(m, sim, pid, 'Good evening to you.', { conv: sim.t });
+    expect(seen.join(' ')).toMatch(/guest of your house/);
+  }, 300_000);
+});
