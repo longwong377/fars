@@ -114,10 +114,13 @@ async function boot() {
 
   shell.loading('Loading the plain and the mountain…');
   await swP;
+  // s15/ship: the terrain's rings and the physics engine load while the scans decode (each was awaited in turn)
+  const terrainP = Terrain.load(BASE), physP = Physics.create();
   await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
-  const terrain = await Terrain.load(BASE);
+  TRACE('scans');
+  const terrain = await terrainP;
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
-  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars(BASE); sky.meteors.seed = SEED;
+  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars(BASE); sky.meteors.seed = SEED; TRACE('terrain, sky');
   shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-093)
   const weather = new WeatherSystem(SEED);
   if (P.get('weather')) weather.override = P.get('weather') as WeatherOverride;
@@ -134,7 +137,7 @@ async function boot() {
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality, sky.hemi);
   TRACE('pipeline built');
   shell.loading('Raising the Terrace…');
-  const phys = await Physics.create();
+  const phys = await physP;
   TRACE('physics ready');
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];

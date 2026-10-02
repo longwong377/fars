@@ -29,12 +29,13 @@ for (const v of visits) {
   const ctx = await chromium.launchPersistentContext(prof, { channel: process.env.PW_CHANNEL ?? 'chrome', headless: !process.env.HEADED,
     args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'], viewport: { width: 1920, height: 1080 } });
   const page = ctx.pages()[0] ?? await ctx.newPage(), boot = [], errs = [];
-  page.on('console', m => { const t = m.text(); if (t.startsWith('[boot]')) boot.push([+((Date.now() - t0) / 1000).toFixed(1), t.slice(7, 120)]); else if (m.type() === 'error') errs.push(t.slice(0, 200)); });
+  page.on('console', m => { const t = m.text(); if (t.startsWith('[boot]')) { boot.push([+((Date.now() - t0) / 1000).toFixed(1), t.slice(7, 120)]); console.log(((Date.now() - t0) / 1000).toFixed(1), t.slice(0, 160)); } else if (m.type() === 'error' || m.type() === 'warning') { errs.push(t.slice(0, 200)); console.log('[page]', m.type(), t.slice(0, 300)); } });
+  page.on('crash', () => console.log('[page] CRASHED at', ((Date.now() - t0) / 1000).toFixed(1), 's')); page.on('close', () => console.log('[page] closed'));
   let peak = 0; const poll = setInterval(() => { const m = memGB(); if (m > peak) peak = m; }, 5000);
-  const t0 = Date.now(), s = () => +((Date.now() - t0) / 1000).toFixed(1), r = {};
+  let t0 = Date.now(); const s = () => +((Date.now() - t0) / 1000).toFixed(1), r = {};
   await page.goto(`${host}/fars/?quality=${q}&trace${extra ? '&' + extra : ''}`);
   await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 250 });
-  r.error = await page.evaluate(() => window.__parsa.error ?? null); r.readyS = s();
+  r.error = await page.evaluate(() => window.__parsa.error ?? null); r.readyS = s(); console.log(v, 'ready', r.readyS, 's', r.error ?? '');
   const log1 = await served(); r.beforeReadyMB = +(log1.reduce((x, e) => x + (e.b ?? 0), 0) / 1048576).toFixed(1); r.requests = log1.length; r.lastByteBeforeReadyS = +(Math.max(0, ...log1.map(e => e.t)) / 1000).toFixed(1);
   if (!r.error) {
     await page.evaluate(() => new Promise(res => { let n = 0; const f = () => (++n >= 3 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); })); r.framesS = s();
