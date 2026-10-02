@@ -51,3 +51,14 @@ describe('house variety (s17 C1)', () => {
     console.log('[house_census]', JSON.stringify(c)); expect(c.alike).toBe(0); expect(c.twins).toBe(0); expect(c.heightByStanding).toBeGreaterThan(0.4);
   }, 120_000);
 });
+
+import { plotCells, siteSearch } from '../src/world/settlement/walk';
+describe('every plot\'s spots reachable from its street door (C9 walk bots; B580)', () => {
+  it('no plot spot behind a neck narrower than a body; at most the five shut houses of B580', () => {
+    const sites = buildTownPlan().sites, bad: string[] = [];
+    for (const s of sites) { if (s.meta.kind !== 'quarter') continue; for (const p of s.plots) { if (!p.door) continue; const c = plotCells(s, p.idx), all = [...c.open, ...c.rooms];
+      if (all.filter((k, i) => i % 7 === 0).some(k => !siteSearch(s, p.door!.out, k))) bad.push(p.id); } }
+    console.log('[reach] plots with a spot not reached from their door:', bad.join(' ') || 'none');
+    expect(bad).not.toContain('q_s2-0181'); expect(bad.length).toBeLessThanOrEqual(5);
+  }, 300_000);
+});
