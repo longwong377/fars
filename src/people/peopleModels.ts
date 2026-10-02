@@ -108,9 +108,11 @@ export function drapeFrames(pos: Float32Array, index: ArrayLike<number>, n: numb
   return F;
 }
 /** add a drape displacement (local frame components, DRAPE_UNIT) to a placed piece, in place */
-export function applyDrape(pos: Float32Array, index: ArrayLike<number>, d: Int16Array): Float32Array {
-  const n = pos.length / 3, F = drapeFrames(pos, index, n);
-  for (let i = 0; i < n; i++) for (let e = 0; e < 3; e++) pos[i * 3 + e] += (F[i * 9 + e] * d[i * 3] + F[i * 9 + 3 + e] * d[i * 3 + 1] + F[i * 9 + 6 + e] * d[i * 3 + 2]) * DRAPE_UNIT;
+export function applyDrape(pos: Float32Array, index: ArrayLike<number>, d: Int16Array, capOut = Infinity): Float32Array {
+  const n = pos.length / 3, F = drapeFrames(pos, index, n), cap = capOut / DRAPE_UNIT;
+  // (s17 V3, D-500: capOut (m) limits how far out along its normal the settled cloth may stand: the short sleeves' caps settled
+  // 3 cm proud of the shoulder, epaulettes on every working man)
+  for (let i = 0; i < n; i++) { const dn = Math.min(d[i * 3], cap); for (let e = 0; e < 3; e++) pos[i * 3 + e] += (F[i * 9 + e] * dn + F[i * 9 + 3 + e] * d[i * 3 + 1] + F[i * 9 + 6 + e] * d[i * 3 + 2]) * DRAPE_UNIT; }
   return pos;
 }
 

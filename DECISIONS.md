@@ -9502,3 +9502,6 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   the head at each edge (one rim stood the upper edge off the sloping forehead: a halo). A skirted walker's knee folds less in
   the swing (SKIRT_KNEE): the heel no longer kicks out through the back of a long dress or robe. people_cloth rebuilt and
   reproduced; the Cycles impostors re-rendered on the new posture and garments.
+- (D-500, step 6) Short sleeves' settled cloth capped at 1.2 cm proud of the arm (applyDrape capOut, outfits DRAPE_CAP: the
+  caps settled 3 cm out, epaulettes on every working man); talkers' arms 60 % back to standing. people_cloth and people_hair
+  rebuilt and reproduced.

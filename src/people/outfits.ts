@@ -1333,6 +1333,9 @@ export interface CostumeLOD {
   /** triangle ranges per piece (for tests and budgets) */
   pieceTris: Record<string, number>;
 }
+/** s17 V3 (D-500): the settled cloth's furthest stand off along its normal (m) per piece (applyDrape capOut): the short-sleeved
+ *  tunics' sleeve caps */
+export const DRAPE_CAP: Record<string, number> = { work_upper: 0.012, child_upper: 0.012, tunic_upper: 0.016 };
 export interface OutfitBuild {
   /** vertex source: body render vertices first, then every distinct piece geometry */
   NV: number; pieceBase: Record<string, number>;
@@ -1413,7 +1416,7 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
     const group = v.meta.group === 'child' ? 'children' : v.meta.sex === 'f' ? 'women' : 'men', drape = opts.models?.drape?.sets;
     // (D-322 rev 2: body variant v wears the cut of seed v mod seeds: the bodies of a group do not all fold alike)
     const seed = v.index % (opts.models?.drape?.meta.seeds ?? 1), sfx = seed ? `#${seed}` : '';
-    for (const k of keys) { const g = geos[k]; const t1 = opts.profile ? performance.now() : 0; const pos = g.place(c); const dr = drape?.[`${k}|${group}${sfx}`] ?? drape?.[`${k}|${group}`]; if (dr && dr.meta.n === g.n) applyDrape(pos, g.index, dr.d); if (opts.profile) opts.profile[k] = (opts.profile[k] ?? 0) + performance.now() - t1; c.placed.set(k, pos); const nr = geoNormals(pos, g.index, g.n); const o = base + pieceBase[k] * 4;
+    for (const k of keys) { const g = geos[k]; const t1 = opts.profile ? performance.now() : 0; const pos = g.place(c); const dr = drape?.[`${k}|${group}${sfx}`] ?? drape?.[`${k}|${group}`]; if (dr && dr.meta.n === g.n) applyDrape(pos, g.index, dr.d, DRAPE_CAP[k.split('@')[0]]); if (opts.profile) opts.profile[k] = (opts.profile[k] ?? 0) + performance.now() - t1; c.placed.set(k, pos); const nr = geoNormals(pos, g.index, g.n); const o = base + pieceBase[k] * 4;
       for (let i = 0; i < g.n; i++) { source[o + i * 4] = pos[i * 3]; source[o + i * 4 + 1] = pos[i * 3 + 1]; source[o + i * 4 + 2] = pos[i * 3 + 2]; source[o + i * 4 + 3] = packNormal(nr[i * 3], nr[i * 3 + 1], nr[i * 3 + 2]); } }
     // D-322 rev 3: the court woman's veil hangs over her sash, not under it (the veil is placed before the sash, which is
     // fitted to the skirts; settled, the veil lay on the robe and the sash crossed over it at the back): at the sash's height
