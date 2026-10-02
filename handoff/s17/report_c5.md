@@ -29,5 +29,4 @@ view applies, Esc back -> save -> reload (ready again) -> "Continue the visit" -
 answers in their own tongue with the gloss while the model cannot load (blocked here), no hang. No console error from C5's
 files. The only errors: five 404s per load (boot-files.json, textures/ktx.json, textures/low.json, textures/ground/ground.json,
 world-cache/manifest.json): written by tools/deploy/build_site.mjs, not by a bare vite build (C4's pipeline; expected here).
-For converse/ui.ts's owner: when the model failed to load, the panel's note does not say so (it says only "translation layer
-(out of world)"); it should say the people answer in their own lines because the talk's model could not be fetched.
+converse/ui.ts (assigned to C5 by the cloud lead): the note now says why a person answers in their own lines (talk arriving, not fetched, or the card cannot run it).
