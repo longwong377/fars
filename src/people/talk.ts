@@ -54,13 +54,16 @@ export interface TalkEvent {
 /** one conversation as the person remembers it (≤ ~60 tokens when written out) */
 export interface MemRow { pid: number; t: number; conv: number; asked: string[]; said: string; deed?: { kind: Deed; arg?: string; ok: boolean; reason: string; item?: string }; turns: number; folded?: number; firstT?: number }
 /** what a person has to tell others of one conversation with the stranger (the gossip's source) */
-export interface Told { t: number; conv: number; asked: string; deed?: MemRow['deed'] }
+export interface Told { t: number; conv: number; asked: string; deed?: MemRow['deed']; /** D-379: overheard (said to someone else in their hearing) */ over?: boolean }
+/** D-379 (UD-25): words of the stranger to someone else, overheard clearly (by: the one spoken to; -1: nobody in particular) */
+export interface OverRow { pid: number; t: number; conv: number; said: string; by: number }
+export const OVER_KEEP = 2;
 export const TOLD_KEEP = 8;
 export interface Decision { ok: boolean; reason: string; kind: Deed; arg?: string; segs?: Seg[]; h0: number; h1: number; other?: number; otherSegs?: Seg[]; otherH?: [number, number]; item?: string; paid?: string; noop?: boolean }
 
-const WORK_FREE = new Set<ActivityId>(['rest', 'eat', 'talk', 'play', 'gamble', 'walk', 'tend_body', 'queue', 'sleep', 'shelter', 'exchange']);
+export const WORK_FREE = new Set<ActivityId>(['rest', 'eat', 'talk', 'play', 'gamble', 'walk', 'tend_body', 'queue', 'sleep', 'shelter', 'exchange']);
 /** work done under someone's count or order: leaving it is not the person's to decide (C) */
-const SUPERVISED = new Set(['guard', 'builder', 'porter', 'camp', 'scribe', 'treasury', 'official', 'messenger', 'storekeeper', 'miller', 'weaver', 'brewer', 'groom', 'caretaker', 'priest', 'servant', 'shepherd']);
+export const SUPERVISED = new Set(['guard', 'builder', 'porter', 'camp', 'scribe', 'treasury', 'official', 'messenger', 'storekeeper', 'miller', 'weaver', 'brewer', 'groom', 'caretaker', 'priest', 'servant', 'shepherd']);
 const DUTY_WORDS: Record<string, string> = {
   guard: 'on watch: a spearman does not leave his post until he is relieved', builder: 'the foreman counts the gang at the work; he cannot leave it',
   porter: 'the loads are counted by the scribe; he cannot leave them', camp: 'the camp grinds and bakes for the gangs; she cannot leave the work',
@@ -397,7 +400,7 @@ export class TalkWorld {
     const list = this.rows.get(pid) ?? []; let r = list.find(x => x.conv === conv && !x.folded);
     if (!r) { r = { pid, t, conv, asked: [], said: '', turns: 0 }; list.push(r); }
     r.t = t; r.turns++; const a = asked ? gist(hearAsPerson(asked).text, 9) : ''; if (a && !r.asked.includes(a)) r.asked = [...r.asked, a].slice(-2); if (said) r.said = gist(said, 12); if (deed && (!r.deed || !r.deed.ok || deed.ok)) r.deed = deed;
-    const tl = this.told.get(pid) ?? []; let k = tl.find(x => x.conv === conv); if (!k) { k = { t, conv, asked: '' }; tl.push(k); if (tl.length > TOLD_KEEP) tl.shift(); this.told.set(pid, tl); }
+    const tl = this.told.get(pid) ?? []; let k = tl.find(x => x.conv === conv && !x.over); if (!k) { k = { t, conv, asked: '' }; tl.push(k); if (tl.length > TOLD_KEEP) tl.shift(); this.told.set(pid, tl); }
     k.t = t; if (!k.asked && r.asked[0]) k.asked = r.asked[0]; if (r.deed) k.deed = { ...r.deed };
     // older rows folded: the last three verbatim, the rest one row of counts
     const own = list.filter(x => !x.folded); if (own.length > 3) { const old = own.slice(0, own.length - 3); const f = list.find(x => x.folded) ?? { pid, t: old[0].t, conv: -1, asked: [], said: '', turns: 0, folded: 0, firstT: old[0].t };
@@ -406,13 +409,29 @@ export class TalkWorld {
     else this.rows.set(pid, list);
     return r;
   }
+  /** D-379 (UD-25): what the person overheard the stranger say to someone else (earshot.ts: clearly, not to them): the last
+   *  OVER_KEEP utterances, one per conversation (the latest words), and an item to tell on (gossip), like remember() */
+  readonly over = new Map<number, OverRow[]>();
+  overheard(pid: number, t: number, conv: number, said: string, by: number): OverRow {
+    const a = said ? gist(hearAsPerson(said).text, 9) : ''; const list = this.over.get(pid) ?? [];
+    let r = list.find(x => x.conv === conv); if (!r) { r = { pid, t, conv, said: a, by }; list.push(r); if (list.length > OVER_KEEP) list.shift(); }
+    r.t = t; r.said = a; r.by = by; this.over.set(pid, list);
+    const tl = this.told.get(pid) ?? []; let k = tl.find(x => x.conv === conv && x.over); if (!k) { k = { t, conv, asked: '', over: true }; tl.push(k); if (tl.length > TOLD_KEEP) tl.shift(); this.told.set(pid, tl); }
+    k.t = t; k.asked = a; return r;
+  }
+  /** an overheard row as the person's own memory (out of world, the model's brief) */
+  overText(r: OverRow, now: number): string {
+    const to = r.by >= 0 ? ` to ${this.name(r.by)}` : '';
+    return fit(`${cap(when(r.t, now))} you overheard this same stranger say${to}: “${r.said}”.`, 44);
+  }
   /** what the person remembers of the stranger at sim time t, their own meetings and what they have heard: the `max` that
    *  matter most (a deed done or refused before words alone, their own before hearsay, then the latest), in time order.
    *  Each line ≤ ~60 tokens (ROW_TOKENS) */
   recall(pid: number, t: number, max = 2): string[] {
     const own = (this.rows.get(pid) ?? []).filter(r => r.t <= t + 1e-9).map(r => ({ t: r.t, text: this.rowText(r, t), w: r.folded ? 0.5 : (r.deed ? 4 : 3) }));
     const heard = this.heard(pid, t).map(x => ({ t: x.t, text: x.text, w: (x.deed ? 2 : 1) - (x.hand === 2 ? 0.25 : 0) }));
-    return [...own, ...heard].sort((a, b) => b.w - a.w || b.t - a.t).slice(0, max).sort((a, b) => a.t - b.t).map(x => x.text);
+    const over = (this.over.get(pid) ?? []).filter(r => r.t <= t + 1e-9).map(r => ({ t: r.t, text: this.overText(r, t), w: 2.5 }));
+    return [...own, ...over, ...heard].sort((a, b) => b.w - a.w || b.t - a.t).slice(0, max).sort((a, b) => a.t - b.t).map(x => x.text);
   }
   /** a row as the person's own memory (their words for it: out of world, the model's brief) */
   rowText(r: MemRow, now: number): string {
@@ -440,7 +459,7 @@ export class TalkWorld {
         for (const via of mine) { if (!first.has(via)) continue; const at = firstAt(via, new Rng(this.seed, `gossip:${src}:${Math.round(k.conv * 3600)}:${via}`)) + g.range(24, 72); if (at <= t && (!best || at < best.at)) best = { at, via }; }
         if (best) got.push({ k, ...best }); }
       if (!got.length) continue;
-      const top = [...got].sort((a, b) => (b.k.deed ? 1 : 0) - (a.k.deed ? 1 : 0) || b.at - a.at)[0]; const n = got.length, sx = P.persons[src].sex; const times = n > 1 ? ` ${n === 2 ? 'twice' : `${n} times`}` : '';
+      const top = [...got].sort((a, b) => (b.k.deed ? 1 : 0) - (a.k.deed ? 1 : 0) || (a.k.over ? 1 : 0) - (b.k.over ? 1 : 0) || b.at - a.at)[0]; const n = got.length, sx = P.persons[src].sex; const times = n > 1 ? ` ${n === 2 ? 'twice' : `${n} times`}` : '';
       const d0 = Math.floor(top.k.t / 24);
       out.push(top.via < 0 ? { src, k: top.k, d0, t: top.at, from: src, hand: 1, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} your ${this.relWord(pid, src, d0)} ${this.name(src)} told you: this same stranger ${summary3(top.k, sx, undefined, times)}.`, 44) }
         : { src, k: top.k, d0, t: top.at, from: top.via, hand: 2, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} you heard from ${this.name(top.via)}: this same stranger ${summary3(top.k, sx, this.name(src), times)}.`, 44) });
@@ -454,9 +473,11 @@ export class TalkWorld {
   recallFact(pid: number, t: number): { fact: string; kind: 'own' | 'heard' | 'none'; row?: MemRow; k?: Told } {
     const own = (this.rows.get(pid) ?? []).filter(r => !r.folded && r.t <= t + 1e-9).sort((a, b) => (b.deed ? 1 : 0) - (a.deed ? 1 : 0) || b.t - a.t)[0];
     if (own) return { kind: 'own', row: own, fact: cap(`${when(own.t, t)} ${meFact(own.deed, own.asked[0], 'me')}`) + '.' };
+    const ov = (this.over.get(pid) ?? []).filter(r => r.t <= t + 1e-9).sort((a, b) => b.t - a.t)[0];
+    if (ov) return { kind: 'own', fact: cap(`${when(ov.t, t)} I heard you say${ov.by >= 0 ? ` to ${this.name(ov.by)}` : ''} “${ov.said.replace(/…$/, '')}”`) + '.' };
     const h = this.heard(pid, t).sort((a, b) => (b.deed ? 1 : 0) - (a.deed ? 1 : 0) || (a.hand - b.hand) || b.t - a.t)[0];
     if (h) { const P = this.pop, sx = P.persons[h.src].sex, pr = sx === 'm' ? 'him' : 'her', who = h.hand === 1 ? `my ${this.relWord(pid, h.src, h.d0)} ${this.name(h.src)}` : `${this.name(h.from)}, who had it from ${this.name(h.src)},`;
-      return { kind: 'heard', k: h.k, fact: cap(`${when(h.t, t)} ${who} told me that ${meFact(h.k.deed, h.k.asked, pr)}`) + '.' }; }
+      return { kind: 'heard', k: h.k, fact: cap(`${when(h.t, t)} ${who} told me that ${h.k.over ? `you said “${h.k.asked.replace(/…$/, '')}” in ${pr === 'him' ? 'his' : 'her'} hearing` : meFact(h.k.deed, h.k.asked, pr)}`) + '.' }; }
     return { kind: 'none', fact: 'I have never met you, and nobody has spoken to me of you.' };
   }
   private relWord(pid: number, o: number, day: number): string {
@@ -469,19 +490,20 @@ export class TalkWorld {
   }
 
   // ---------------------------------------------------------------- the save
-  save(): { events: TalkEvent[]; rows: [number, MemRow[]][]; told: [number, Told[]][] } | undefined {
-    if (!this.events.length && !this.rows.size && !this.told.size) return undefined;
+  save(): { events: TalkEvent[]; rows: [number, MemRow[]][]; told: [number, Told[]][]; over?: [number, OverRow[]][] } | undefined {
+    if (!this.events.length && !this.rows.size && !this.told.size && !this.over.size) return undefined;
     // (a pause two days past changes nothing any more: only each person's last is kept, so a long visit's save stays small)
     const keep = this.events.filter(e => e.kind !== 'hold' || e.t1! > this.lastT - 48 || this.lastHold.get(e.pid) === e);
-    return { events: keep.map(e => ({ ...e, segs: e.segs?.map(s => ({ ...s })), path: e.path?.map(p => [p[0], p[1]] as P2) })), rows: [...this.rows].map(([k, v]) => [k, v.map(r => ({ ...r, asked: [...r.asked], deed: r.deed ? { ...r.deed } : undefined }))]), told: [...this.told].map(([k, v]) => [k, v.map(x => ({ ...x, deed: x.deed ? { ...x.deed } : undefined }))]) };
+    return { events: keep.map(e => ({ ...e, segs: e.segs?.map(s => ({ ...s })), path: e.path?.map(p => [p[0], p[1]] as P2) })), rows: [...this.rows].map(([k, v]) => [k, v.map(r => ({ ...r, asked: [...r.asked], deed: r.deed ? { ...r.deed } : undefined }))]), told: [...this.told].map(([k, v]) => [k, v.map(x => ({ ...x, deed: x.deed ? { ...x.deed } : undefined }))]), ...(this.over.size ? { over: [...this.over].map(([k, v]) => [k, v.map(r => ({ ...r }))] as [number, OverRow[]]) } : {}) };
   }
   /** a save's events replayed: the plan steps laid again in order, the pauses and the rows restored (no save: nothing) */
-  load(s: { events?: TalkEvent[]; rows?: [number, MemRow[]][]; told?: [number, Told[]][] } | undefined) {
+  load(s: { events?: TalkEvent[]; rows?: [number, MemRow[]][]; told?: [number, Told[]][]; over?: [number, OverRow[]][] } | undefined) {
     const pids = new Set<number>([...this.events.map(e => e.pid)]);
-    this.events.length = 0; this.rows.clear(); this.told.clear(); this.touched.clear(); this.overlaid.clear(); this.lastHold.clear(); this.trail.length = 0;
+    this.events.length = 0; this.rows.clear(); this.told.clear(); this.over.clear(); this.touched.clear(); this.overlaid.clear(); this.lastHold.clear(); this.trail.length = 0;
     for (const e of s?.events ?? []) { const x: TalkEvent = { ...e, segs: e.segs?.map(q => ({ ...q })), path: e.path?.map(p => [p[0], p[1]] as P2) }; this.events.push(x); pids.add(x.pid); if (x.segs) this.lay(x); if (x.kind === 'hold') this.lastHold.set(x.pid, x); }
     for (const [k, v] of s?.rows ?? []) this.rows.set(k, v.map(r => ({ ...r, asked: [...r.asked], deed: r.deed ? { ...r.deed } : undefined })));
     for (const [k, v] of s?.told ?? []) this.told.set(k, v.map(x => ({ ...x, deed: x.deed ? { ...x.deed } : undefined })));
+    for (const [k, v] of s?.over ?? []) this.over.set(k, v.map(r => ({ ...r })));
     for (const p of pids) this.bump(p);
   }
 }
@@ -519,6 +541,7 @@ function deedOutcome(d: NonNullable<MemRow['deed']>, you: 'you'): string {
   return ({ follow: 'You walked with him a while.', lead_to: `You showed him the way to ${a}.`, fetch: `You ${d.reason} for him.`, give: `You gave him ${d.item ?? 'something'}.`, trade: `You ${d.reason.replace(/^traded/, 'traded him')}.`, stop_work: 'You stopped work to talk with him.', wait_here: 'You waited there for him.', go_home: 'You went home, as he urged.' } as Record<Deed, string>)[d.kind];
 }
 function summary3(r: Told, sex: 'm' | 'f', name?: string, times = ''): string {
+  if (r.over) return `said “${r.asked.replace(/…$/, '')}” in ${name ? `${name}’s` : sex === 'm' ? 'his' : 'her'} hearing`;
   const who = name ? `talked with ${name}${times}` : `talked with ${sex === 'm' ? 'him' : 'her'}${times}`; const pr = sex === 'm' ? 'he' : 'she';
   if (!r.deed) return r.asked ? `${who} and asked “${r.asked}”` : who;
   const a = r.deed.arg ? placeWords(r.deed.arg) : '';
