@@ -15,7 +15,7 @@ import namesData from '../data/names.json';
 import namesRecalled from '../data/names_recalled.json';
 import plotsData from '../data/town_plots.json';
 import faunaJson from '../data/fauna.json';
-import { u01, salt, HStream } from './hash';
+import { u01, h32, salt, HStream } from './hash';
 import { Rng } from '../core/rng';
 import { dateOf, REGNAL_DAYS, travellerParties, transfers, transhumantBands, flockDrives, DayCtx, EventCalendar, eventRow, rainHours, rainSpells, festivalOn, stormWord, TREASURY_DESK } from './calendar';
 import { colPlace } from './construction';
@@ -135,6 +135,7 @@ const TERRACE_XY: [number, number] = [-52, 118.5];
 /** D-255: the Treasury group (k) whose men and boys are the tanners; one town craftsman in OIL_EVERY presses oil; a smith
  *  carries his work to the royal stores on this share of days (C) */
 const TANNERS_GROUP = 7, OIL_EVERY = 25, SMITH_DELIVER = 0.15;
+const S_PLAY = salt('playmates'); // (D-371)
 const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
   dispo: salt('dispo'), econLife: salt('econ-life'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral'), birthNext: salt('birth-next'), care: salt('body-care') };
 const AGE: [number, number, number][] = L.age_structure.v;
@@ -1647,6 +1648,16 @@ export class Population {
   relate(a: number, b: number, d: number, dv: number) { const k = this.relKey(a, b); (this.rel.get(k) ?? this.rel.set(k, []).get(k)!).push([d, dv]);
     for (const [day, m] of this.planCache) if (day > d) { this.planCount -= m.size; this.planCache.delete(day); }
     for (const [day, m] of this.rawCache) if (day > d) { this.rawCount -= m.size; this.rawCache.delete(day); } } // later days' plans may change
+  /** D-371: a child's playmates (2-11): children of the same lane or village within two years of age, a few by a keyed draw
+   *  of the pair (C). A pure lookup for the life record and the talk: it changes no plan (the day plans are pinned) */
+  playmatesOf(pid: number, d: number): number[] {
+    const age = this.ageOn(pid, d); if (age < 2 || age > 11) return [];
+    if (!this.kidsByQ) { this.kidsByQ = new Map(); for (const P of this.persons) { const H = this.households[P.hh]; if (!H || (H.zone !== 'town' && H.zone !== 'plain') || P.age > 12) continue; (this.kidsByQ.get(H.q) ?? this.kidsByQ.set(H.q, []).get(H.q)!).push(P.id); } }
+    const me = this.home(pid, d), q = this.households[me]?.q; if (q === undefined) return [];
+    return (this.kidsByQ.get(q) ?? []).filter(o => o !== pid && this.present(o, d) && this.home(o, d) !== me && Math.abs(this.ageOn(o, d) - age) <= 2 && this.ageOn(o, d) >= 2)
+      .map(o => [o, h32(this.seed, S_PLAY, Math.min(pid, o), Math.max(pid, o))] as const).sort((x, y) => x[1] - y[1]).slice(0, 1 + (h32(this.seed, S_PLAY, pid) % 3)).map(x => x[0]);
+  }
+  private kidsByQ: Map<string, number[]> | null = null;
   affinity(a: number, b: number, d: number) {
     const A = this.persons[a], B = this.persons[b], base = L.affinity.base;
     let v = A.hh === B.hh ? base.household : this.households[A.hh].kin.includes(B.hh) ? base.kin : A.group >= 0 && A.group === B.group ? base.work : this.households[A.hh].q === this.households[B.hh].q ? base.neighbour : 0;
@@ -1682,6 +1693,11 @@ export class Population {
   shearingToday(d: number) { let n = 0; for (const q of Object.values(this.quarters)) if (q.kind === 'village') { const day = this.shearDay(q.id); if (day === d) n++; } return n; }
   private shearDay(q: string) { const M = [12, 1, 2]; const m = M[Math.floor(u01(this.seed, S.shear, salt(q)) * 3)]; const start = [0, 29, 59, 89, 118, 148, 177, 207, 236, 266, 295, 325][m - 1]; return start + 3 + Math.floor(u01(this.seed, S.shear, salt(q), 1) * 24); }
   nameOf(pid: number): string | null { return nameFor(this.seed, this.persons[pid]); }
+  /** D-372: a father's name for one whose father is not in the population (dead, or far): drawn once per mother (so brothers and
+   *  sisters share it) or per person, from the attested names of their origin (C) */
+  absentFatherName(pid: number): string | null { const p = this.persons[pid]; const key = p.mother >= 0 ? p.mother : pid, own = this.nameOf(pid)?.replace(/^\*/, '');
+    // (never the son's own name: a second draw then; C)
+    for (let k = 0; k < 4; k++) { const n = nameFor(this.seed, { ...p, id: 5_000_000 + key + k * 7_000_003, sex: 'm', nm: undefined } as Person)?.replace(/^\*/, '') ?? null; if (!n || n !== own) return n; } return null; }
 
   // ================================================================== guard rota (lives.json guard_rota; D-023)
   /** 0 = watch A (6–14), 1 = B (14–22), 2 = C (22–6), 3 = off after the night watch, 4 = off */
@@ -1751,6 +1767,11 @@ export class Population {
   /** D-340 (UD-26): the economy's decisions laid over the day plans (people/economy/plans.ts EconPlans; the sim sets it):
    *  the market, the lender, the court, the day's hire, the thief's night, the bondage. Under the stranger's steps */
   econ: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
+  /** D-371: the economy as it stands, when it is already built up to about the day (no side effect: never steps it); the life
+   *  record reads a house's real debts and dealings from it (PeopleSim sets it) */
+  ledger: ((day: number) => import('./economy/world').Economy | null) | null = null;
+  /** D-375: a house's open asks and the rumours it holds, when the asks layer runs (PeopleSim sets it; null when off) */
+  asksNow: ((hh: string, day: number) => { asks: import('./asks/asks').Ask[]; rumours: ReturnType<import('./asks/rumour').RumourNet['knownBy']> } | null) | null = null;
   /** D-347: laundry days and baths laid over the base plan (wardrobe/washing.ts WashPlans; the sim sets it), under the economy's steps */
   wash: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
   /** D-348: courting visits, the families' agreement, lovers' meetings laid over the plans (people/relations/plans.ts RelPlans; the sim sets it; Population.rel is the older affinity map) */

@@ -92,10 +92,11 @@ export class Mind {
 /** speech recognition in a worker */
 export class Ears {
   w: Worker | null = null; private pending: ((m: any) => void) | null = null;
-  async load(model = 'onnx-community/whisper-base', dtype: any = { encoder_model: 'fp16', decoder_model_merged: 'fp16' }): Promise<number> {
+  // D-376 (UD-31): only when the microphone is turned on, and the quantized files (encoder 23 MB + merged decoder 54 MB, on WASM)
+  async load(model = 'onnx-community/whisper-base', dtype: any = { encoder_model: 'q8', decoder_model_merged: 'q8' }, device = 'wasm'): Promise<number> {
     this.w = new Worker(new URL('./asr_worker.ts', import.meta.url), { type: 'module' });
     this.w.onmessage = e => { const p = this.pending; this.pending = null; p?.(e.data); };
-    const r = await this.ask({ type: 'load', model, dtype }); if (r.type === 'error') throw new Error(r.error); return r.ms;
+    const r = await this.ask({ type: 'load', model, dtype, device }); if (r.type === 'error') throw new Error(r.error); return r.ms;
   }
   private ask(m: any): Promise<any> { return new Promise(res => { this.pending = res; this.w!.postMessage(m); }); }
   async hear(audio16k: Float32Array): Promise<{ text: string; ms: number }> { const r = await this.ask({ type: 'run', audio: audio16k }); if (r.type === 'error') throw new Error(r.error); return r; }

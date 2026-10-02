@@ -108,6 +108,8 @@ import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { NavGrid } from '../people/navgrid';
 import { PeopleSim, Env } from '../people/sim';
+import { strangerPresence, thinCaption } from '../people/speech/presence';
+import { Overheard } from '../people/overheard';
 import { Crowd, PATH_REACH } from '../people/crowd';
 import { PopGeo } from '../people/popgeo';
 import { PopView } from '../people/popview';
@@ -352,7 +354,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
   // Phase 5 (D-021): the whole population and the year's calendar; the court is absent unless the out-of-world setting
   // 'Court calendar = seasonal pattern' is on (D-003)
-  const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal', bonds: true }); let simStarted = false;
+  const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal', bonds: true, asks: true }); let simStarted = false;
   wmark('sim');
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
@@ -473,13 +475,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // D-336 (UD-22): every person's own natural voice (Kokoro-82M in a worker, WebGPU or WASM; ?neural=0 keeps the formant
   // synthesiser, which also speaks while the model loads or when it cannot): the scripted lines and the population's voices
   const NP = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-  const neural = NP.get('neural') !== '0' && typeof Worker !== 'undefined' ? new NeuralVoices({ device: (NP.get('neuraldevice') as 'webgpu' | 'wasm' | null) ?? undefined }) : null;
+  const neural = NP.get('neural') !== '0' && typeof Worker !== 'undefined' ? new NeuralVoices({ device: (NP.get('neuraldevice') as 'webgpu' | 'wasm' | null) ?? undefined, dtype: NP.get('neuraldtype') ?? undefined, lazy: true }) : null; // (D-376: lazy: started after the first frames, main.ts)
   const speech = new Speech(audio, [...(neural ? [new NeuralBackend(neural)] : []), new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]);
   // D-245: voices from everyone the crowd places near the listener (detailed agents, the population, impostors), not only the
   // 135 on the Terrace; published words only, each person their own voice; a grain bed for the talkers beyond (audio/voices.ts)
-  const voices = new PopulationVoices(audio, { seed }); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
+  const voices = new PopulationVoices(audio, { seed }); const overheard = new Overheard(sim); voices.script = (k, g, l) => overheard.next(k, g, l); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
   // what a person near says reaches the translation layer (out of world; T-K3c), unless a scripted line was shown lately
-  let scriptedSubAt = -1e9; voices.onCaption = c => { if (c.lang === 'wordless' || time - scriptedSubAt < 4) return;
+  let scriptedSubAt = -1e9; voices.onCaption = c0 => { if (c0.lang === 'wordless' || time - scriptedSubAt < 4) return; const c1 = thinCaption(sim, c0), tp = overheard.topicFor(c0.key), c = { ...c1, lang: c0.lang, gloss: tp ? `${c1.gloss}${c1.gloss ? ' ' : ''}(talking of ${tp})` : c1.gloss }; // (D-377: what they talk of; D-370: the gloss thins as the stranger learns the tongue)
     lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
   // D-245: the rivers and canals sound near their banks (audio/water.ts; T-G3e)
   const water = new WaterSound(audio, [...plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2, kind: 'river' as const })),
@@ -708,6 +710,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         const p = ctx.player.position, feet = ctx.player.feetY;
         { // D-245: the population's voices (the Now view has no people of 467), the jaw moving with the voice; the water
           const near = nowView.active ? [] : crowd.nearPeople(cam.position, voices.bedR, nearBuf);
+          if (ctx.player) strangerPresence(sim, near, cam.position); // (D-370: time beside the employer's people makes an attended day)
+          overheard.noteNear(near); // (D-377: who talks with whom, for the exchanges overheard)
           voices.coughEvery = [0, 1, 2, 10, 11].includes(ctx.cond.day.climMonth) ? 500 : [5, 6, 7].includes(ctx.cond.day.climMonth) ? 1800 : 1200; // winter colds (C)
           voices.update(dt, near, cam.position, k => (scriptedUntil.get(k) ?? -1) > time);
           // session 10 (GB56): the talkers from 60 m to FAR_R as a distant murmur (the wide gather twice a second: it builds a

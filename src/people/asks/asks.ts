@@ -34,7 +34,7 @@ export interface AsksOpts { /** kin and neighbours with a surplus answer open as
 const GRAIN_EAT = 0.55;
 /** the economy events that answer an ask (a deed naming the house), and those that are what a house left in want comes to (C) */
 const MEET_EV: Record<AskKind, string[]> = {
-  grain: ['given', 'relief', 'grain_brought', 'kin_help', 'neighbours_help', 'hired_by_neighbour', 'wage_work'], fuel: ['given'], water: ['given'], silver: ['given', 'loan', 'remitted'],
+  grain: ['given', 'relief', 'grain_brought', 'kin_help', 'neighbours_help', 'hired_by_neighbour', 'wage_work'], fuel: ['given'], water: ['given'], silver: ['given', 'loan', 'lent_by_neighbour', 'lent_by_stranger', 'remitted'],
   labour: ['given', 'hired_by_stranger', 'nursed_by_kin', 'neighbours_help', 'hired_by_neighbour', 'wage_work', 'kin_help'], healer: ['given', 'relief', 'nursed_by_kin'],
   company: ['given', 'relief', 'kin_help'], animal: ['animal_bought', 'given', 'loan'], justice: ['arrest', 'acquitted', 'given'], shelter: ['given', 'relief', 'loan'], time: ['time_granted', 'remitted', 'spoken_for', 'repaid'],
   petition: ['spoken_for', 'remitted', 'relief', 'acquitted', 'time_granted'], lost_child: []
