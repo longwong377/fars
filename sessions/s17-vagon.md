@@ -6,7 +6,9 @@ and seeing everything in the browser.
 
 ## The goal and how it is judged (UD-33)
 The user: "i want every inch of the world to look AAA/real", and the rule agreed with them: **nothing on screen may read as
-procedural.** Every surface and object is a real scan or a hand-modelled asset made from references. Code-made content stays
+procedural.** Every surface and object is a real scan or a ready-made real asset (UD-34: "fill in the blanks for the sake of the
+project": no per-object research, no modelling a cup from museum photos; the most real-looking asset that fits, in bulk; near
+enough is right; Blender only for what no library has, fast). Code-made content stays
 only where AAA games use it too: physically based sky, light, atmosphere and water; the placement and variation of real
 assets; simulation (wind, cloth, crowds). Placement stays computed from the evidence (site spec, DEM, the town's layout).
 
@@ -28,9 +30,11 @@ The rules for the session:
    (src/world/settlement/*, furnish*.ts, roadLitter.ts); ground, flora, trees and the plain (src/world/groundFlora.ts,
    trees/*, plain/*, src/terrain/terrainMesh.ts's shading); the Terrace's carved and modelled stone (src/arch/reliefs.ts,
    relief_figures.ts, sculpt.ts, column_models.ts, decor.ts, meshes.ts); people's bodies, outfits and props
-   (src/people/body.ts, outfits.ts, props.ts, peopleModels.ts) and the animals; small life and wildlife. Each is replaced by
-   CC0 scans (Poly Haven, ambientCG and the like; every asset in ASSET_LEDGER.md) or by Blender assets from tools/blender/
-   modelled from the references, the scan's colour and pattern leading (flip the scans.ts rule).
+   (src/people/body.ts, outfits.ts, props.ts, peopleModels.ts) and the animals; small life and wildlife. Each class is replaced
+   IN BULK by ready-made real assets: scan libraries and asset packs first (Poly Haven, ambientCG, Sketchfab CC0/CC-BY and the
+   like; every asset in ASSET_LEDGER.md), the scan's colour and pattern leading (flip the scans.ts rule); a class is one agent's
+   job for an hour, not an object a day. Blender only to fill what no library has, quickly; the existing Blender wave reused
+   where it reads real. No research per object: fill the blank, look at the whole view, move on.
 4. **Seen or not done.** A replacement counts only when it is right in a whole-view render at the player's lens; no new
    assets until the existing ones are judged in place (most of the Blender wave never has been).
 5. **Every ~45 min the render train** re-renders the scoreboard with every merge in; judge by eye against the AAA bar (RDR2,
