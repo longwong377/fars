@@ -9582,3 +9582,27 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   capital_protome). Tier C. The SDF protome stays as the flat-mode swap. The D-305 protome tests read the scan route's
   bounds within 0.08 D and its triangles within the budget. The relief film's hiding went on to 0.85 (opacity ~0.5) and the
   incision's far shade keeps a quarter of the cut's normal and a 0.6 skylight, so the texts read as soft grey script at 5-10 m.
+## D-520 (s17, V5 animals and weather): the animals from real library models, rigged by their own landmarks
+- 29 of 34 species now draw a ready-made, realistically textured model (Objaverse 1.0 = Sketchfab, CC-BY / CC-BY-NC, each
+  credited in ASSET_LEDGER.md and the manifest) instead of the procedural anatomy: donkey, onager, mule, the pack donkey and
+  mule, horse, saddled horse, ox, cow, calf, sheep, goat, wild goat, urial, dog, dromedary, hen, cock, wolf, fox, hyena, lion,
+  lioness, cheetah, leopard, deer, stag, gazelle, gazelle_m (the ox is the cow model darkened: the only bull found was a
+  raging, curled-tail fighting bull). Kept procedural: the Bactrian camel and its pack (no two-humped
+  model found), the zebu (the only scan was broken), the boar (only a domestic pig found), the hare (only a cartoon rabbit).
+- tools/blender/animals_real.{mjs,py,json}: the model's head end found and turned to +z, the four leg columns found by
+  k-means under a fifth of its height (two for the fowl), one scale putting the legs on the rig's pivots (+-0.35 L), the
+  height nudged toward the species' withers (+-12 %); its landmarks measured (legs, belly, back, neck base, poll, muzzle,
+  tail root) and written to the manifest; lod0/lod1 decimated, re-unwrapped and baked in Cycles (OptiX) from the source's own
+  textures; species tints where the library animal is another breed (the grey wild ass -> grey-brown donkey, dark mule, sandy
+  onager, gazelles and wild sheep). The pack saddles, panniers and saddle cloth are the anatomy's gear
+  (tools/blender/sources/animal_gear.ts) set on the model's measured back.
+- The rig is the procedural one (animals.ts vertex shader, unchanged): animalReal.ts registers each model's landmarks;
+  animalRig.ts realForm builds capsules on them so rigWeights assigns the same groups (no leg weight on the belly's midline
+  or the hanging tail; wider knee, leg and neck bands for the coarser meshes); animalFrame/lieDrop/foldOf/mountSeat use the
+  model's neck, belly and back (the grazing carriage searched until the muzzle reaches the ground; riders on the real back).
+  The instance coat scales the model's own colours about the species' mean coat (a dark sheep, a pale ox). A fur sheen at
+  grazing angles on every coat (D-520's shader line).
+- Verified: tests/animal_models.test.ts (every species stands, grazes to the ground, walks, lies and stays whole; library
+  models in the lying fold allowed 30 cm of hide stretch at hock and tail, a 20-cm-deep chest, no ear flick and their own
+  tails' swing: B550; tests/animal_motion.test.ts likewise), probe frames
+  shots/animal-*-r4.png (not committed). Load: 29 sets of ~1.6-2.3 MB each, the same order as the procedural sets (manifest).

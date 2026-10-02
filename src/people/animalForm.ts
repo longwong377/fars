@@ -39,7 +39,9 @@ export interface Form { sp: Species; fam: Family; prims: Prim[]; subs: Prim[]; m
   /** the rig's numbers (animals.ts: animalFrame, the leg pivots) */
   rig: { bodyY: number; hipY: number; kneeY: number; legs: { x: number; z: number; zk: number; phase: number; fore: number }[]; base: V3; top: V3; hd: V3; muzzle: V3; tailRoot: V3; neckDir: V3; neck: number };
   /** heights of the torso, for the coat patterns */
-  bellyY: number; backY: number }
+  bellyY: number; backY: number;
+  /** V5 D-520: a library model's form (animalRig.ts realForm): its barrel's half width and the knee's blend band (m) */
+  real?: { halfW: number; kneeBand: number } }
 
 const sub = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const add = (a: V3, b: V3): V3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
@@ -51,12 +53,12 @@ const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[
 const lerp3 = (a: V3, b: V3, t: number): V3 => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 /** an ellipsoid with its third axis along `fwd` (its first axis as near the lateral x as fwd allows, or `side` given) */
-function ell(c: V3, r: V3, fwd: V3 = [0, 0, 1], side: V3 = [1, 0, 0]) {
+export function ell(c: V3, r: V3, fwd: V3 = [0, 0, 1], side: V3 = [1, 0, 0]) {
   const e3 = nrm(fwd), s0 = sub(side, mul(e3, dot(side, e3))), e1 = nrm(len3(s0) > 1e-6 ? s0 : [0, 1, 0]), e2 = cross(e3, e1);
   const f = (x: number, y: number, z: number) => { const d: V3 = [x - c[0], y - c[1], z - c[2]]; return sdEllipsoid(dot(d, e1), dot(d, e2), dot(d, e3), r[0], r[1], r[2]); };
   return { f, c, R: Math.max(r[0], r[1], r[2]) };
 }
-function cone(a: V3, b: V3, ra: number, rb: number) {
+export function cone(a: V3, b: V3, ra: number, rb: number) {
   const f = (x: number, y: number, z: number) => sdRoundCone(x, y, z, a[0], a[1], a[2], b[0], b[1], b[2], ra, rb);
   return { f, c: lerp3(a, b, 0.5), R: len3(sub(b, a)) / 2 + Math.max(ra, rb) };
 }
