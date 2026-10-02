@@ -8,17 +8,17 @@ Read this section, then `git log origin/cloud-s15-depth -15`. Branch `cloud-s15-
 deploys Pages from there (D-370..D-391 are live; D-382 onward wait for Vagon's next merge).
 - **Still running when this session ended** (collect, verify their push, archive with archive_session):
   soaks per seed (session_01Y3BRtndaPvEPWgo5D6HNjd, report only, slow box); B230 the adult-brides branch
-  (session_01YY3WBdP7cdEqwqtZhcadWQ, branch s13-bridesmerge, comparing test failures); the local D-452 agent (spouses
-  mutual, namesakes T-E2, visible marks T-E3v; if its work is not committed, apply handoff/wip/s15_d452_inflight.patch).
+  (session_01YY3WBdP7cdEqwqtZhcadWQ, branch s13-bridesmerge, comparing test failures). D-452 (spouses mutual, names
+  dealt round, visible marks: src/people/marks.ts) and D-454 landed before the handoff; see their DECISIONS rows for numbers.
   The playtest bot (session_01Bo2awCHnnWMLyESsfn6MWD) is idle: its script is tools/dev/playtest_year.ts (re-run it after
   every depth change; it found more real bugs than any test).
 - **Broken / unverified, first:** nothing heard with a real model (Qwen2.5-0.5B grounding unknown: Vagon's GPU run; fallback
   Llama-3.2-1B); `sim.strangerSeen` reactions not wired on screen; the stranger can barely buy (6/120 buys; silver never
   accumulates: day labour, the market and selling his grain should make one loop); two converse T-E9 tests time out under
-  load (re-run alone); T-E2 namesakes 12.9 % (≤ 1 %), T-E3v marks 0 % (≥ 30 %) unless D-452 landed; approach test once flaky.
+  load (re-run alone); T-E2/T-E3v after D-452: see its DECISIONS row; approach test once flaky.
 - **Next, in order:** (1) the real model on the GPU (Vagon); (2) wire strangerSeen; (3) the stranger's living loop;
   (4) playtest bot after each change; (5) the census gaps.
-- **Numbers:** the cloud continues from D-455 (Vagon owns D-392..D-449). One DECISIONS row per package.
+- **Numbers:** the cloud continues from D-455 (D-450..D-454 used) (Vagon owns D-392..D-449). One DECISIONS row per package.
 - **Box rules learned:** two local agents at most; agents share this working tree, so never let one run git
   checkout/stash/reset on files it does not own; inline `//` comments inside one-line code have twice swallowed code: put
   them at the end of the line only.
