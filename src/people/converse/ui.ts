@@ -157,13 +157,19 @@ export function mountConverse(c: Ctx) {
   }
   /** D-376: the person's own answer while the model is not there: they stop and turn, and answer with a greeting or a word of
    *  their own in their language and voice (the translation layer gives its sense) */
+  /** D-590 (C5, assigned by the cloud lead): why the person answered in their own lines, said honestly (out of world) */
+  const ownNote = () => { const st = state.status ?? '';
+    if (st === 'loading') return `; the talk is still arriving (${(state.progress * 100).toFixed(0)} %): until it does, the people answer from their own lines`;
+    if (/did not load/.test(st)) return '; the talk could not be fetched in this browser, so the people answer from their own lines (reload to try again)';
+    if (/cannot hold|no WebGPU/.test(st)) return '; this graphics card cannot run the talk, so the people answer from their own lines';
+    return ''; };
   function ownLine(near: Near, text: string) {
     const sim = c.world.people.sim, day = c.clock.dayIndex; sim.talkAddressed(near.pid);
     const met = state.history.get(near.pid)?.length ?? 0; state.history.set(near.pid, [...(state.history.get(near.pid) ?? []), { role: 'user', content: text }, { role: 'assistant', content: '' }]);
     const gloss = met === 0 ? 'Greetings, stranger.' : /\?$/.test(text.trim()) ? 'I do not understand you, stranger.' : 'Go well, stranger.';
     const agent = near.agent !== null ? sim.agents[near.agent] : null; const f = heardReply(sim.pop, near.pid, day, gloss, c.seed, 24000, agent); play(f.data, f.rate);
     const name = sim.pop.nameOf(near.pid)?.replace(/^\*/, '') ?? 'They';
-    show(`<b>${name}</b> <i>answers in their own tongue:</i> ${gloss}`, `translation layer (out of world)${state.status === 'loading' ? `; the talk is still arriving (${(state.progress * 100).toFixed(0)} %)` : ''}`);
+    show(`<b>${name}</b> <i>answers in their own tongue:</i> ${gloss}`, `translation layer (out of world)${ownNote()}`);
     const row = { pid: near.pid, said: text, reply: gloss, ok: true, own: true }; state.last = row; state.log.push(row); return row;
   }
   /** D-376: begin streaming the model in (main.ts calls it after the first frames; idempotent) */

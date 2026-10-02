@@ -25,13 +25,23 @@ export const CLIPS = CLIP_META as Record<string, ClipMeta>;
 export const hasClip = (id: string) => id in CLIP_META;
 const fr = (x: number) => x - Math.floor(x);
 const TAU = 2 * Math.PI;
-/** sample clip `id` at loop fraction u into buf (54 floats); w > 0 blends it into what buf holds by w */
-function sampleInto(buf: Float32Array, id: string, u: number, wBlend = 1) {
-  const m = CLIPS[id], D = data(), f = fr(u) * m.n, i = Math.floor(f) % m.n, j = (i + 1) % m.n, w = f - Math.floor(f), a = m.off + i * 54, b = m.off + j * 54;
+/** s17 V3 (D-500): the captures' anterior pelvic tilt taken out. The CMU subjects' pelvis (the root's pitch) tips forward
+ *  by 3-34° on average (walk_w_b 34°, idle_e 14°) and their lumbar spine bends back to match: on the MakeHuman spine that
+ *  sharp bend at spine_01 pushed the belly out and the shoulders back (every standing man read pot-bellied, the cloth over
+ *  it ballooned). Per clip, its mean pitch above ${TILT_NEUTRAL} rad is taken off the pelvis and given back to the thighs and the
+ *  spine channel (Euler X is the outermost rotation, so the legs and the chest keep their world orientation): the same
+ *  stance with an upright pelvis and half the lumbar bend. The motion about the mean is kept. C */
+export const TILT_NEUTRAL = 0.03;
+const TILT = new Map<string, number>();
+export function tiltFix(id: string) { let t = TILT.get(id); if (t === undefined) { t = Math.max(0, Math.min(0.6, clipMean(id)[0] - TILT_NEUTRAL)); TILT.set(id, t); } return t; }
+/** sample clip `id` at loop fraction u into buf (54 floats); w > 0 blends it into what buf holds by w; `fix` false: the raw capture (devAt) */
+function sampleInto(buf: Float32Array, id: string, u: number, wBlend = 1, fix = true) {
+  const m = CLIPS[id], D = data(), tf = fix ? tiltFix(id) : 0, f = fr(u) * m.n, i = Math.floor(f) % m.n, j = (i + 1) % m.n, w = f - Math.floor(f), a = m.off + i * 54, b = m.off + j * 54;
   for (let c = 0; c < 54; c++) { const x = D[a + c]; let y = D[b + c];
     // the loop's last frame and its first differ by whole turns where an angle wound round (unwrapped in the bake)
     if (j === 0 && c < 51) { const d = y - x; y = x + d - Math.round(d / TAU) * TAU; }
-    const v = x + (y - x) * w;
+    let v = x + (y - x) * w;
+    if (tf) { if (c === 0) v -= tf; else if (c === 3 || c === 33 || c === 42) v += tf; }
     if (wBlend >= 1) buf[c] = v; else { let d = v - buf[c]; if (c < 51 && (d > Math.PI || d < -Math.PI)) d -= Math.round(d / TAU) * TAU; buf[c] += d * wBlend; } }
 }
 /** a Pose from a sample buffer (fresh arrays: the crowd and the rig keep them) */
@@ -58,7 +68,7 @@ export function clipMean(id: string): Float32Array {
 /** the deviation of clip `id` from its mean at loop fraction u, into buf (54 floats): the motion of a capture, laid over
  *  a pose authored elsewhere (the work cycles' trunk and head: workAnims.ts body layer) */
 export function devAt(buf: Float32Array, id: string, u: number): Float32Array {
-  sampleInto(buf, id, u); const M = clipMean(id); for (let c = 0; c < 54; c++) { let d = buf[c] - M[c]; if (c < 51 && (d > Math.PI || d < -Math.PI)) d -= Math.round(d / TAU) * TAU; buf[c] = d; }
+  sampleInto(buf, id, u, 1, false); const M = clipMean(id); for (let c = 0; c < 54; c++) { let d = buf[c] - M[c]; if (c < 51 && (d > Math.PI || d < -Math.PI)) d -= Math.round(d / TAU) * TAU; buf[c] = d; }
   return buf;
 }
 /** blend b into a by w (Euler lerp, the difference taken the short way round) */

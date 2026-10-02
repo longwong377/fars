@@ -859,11 +859,14 @@ function flutedHatFitted(L: Lib, key: string, lod: number) {
 /** torus-like band around the head (fillet, headband) */
 function headBand(L: Lib, key: string, lod: number, o: { dy: number; w: number; t: number; twisted: boolean; col: number; gap?: number }) {
   const T = TESS[lod], segs = Math.max(8, T.hs);
-  const cache = { v: null as HumanVariant | null, r: [] as number[] };
+  // (s17 V3, D-500: each edge of the band fitted to the head in its own plane: one rim for both stood the upper edge off the
+  // sloping forehead, a halo round the head at 2 m)
+  const caches = [0, 1].map(() => ({ v: null as HumanVariant | null, r: [] as number[] }));
+  const ring = (c: Ctx, t: number) => { const F = headRingFrame(c, o.dy, 0.15); return { ...F, o: add(F.o, scl(F.w, (t - 0.5) * o.w)) }; };
   return tubeGeo(L.A, key, { segs, rings: 2, lining: 0.003, closeTop: true,
-    frame: (c, t) => { const F = headRingFrame(c, o.dy, 0.15); return { ...F, o: add(F.o, scl(F.w, (t - 0.5) * o.w)) }; },
+    frame: (c, t) => ring(c, t),
     // a wrapped strip, not a lathe: small irregular lumps and creases along it (a perfect torus read as a plastic ring, D-155)
-    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, o.dy, 0.15), 0.01, cache); return rimAt(r, th) + (o.gap ?? 0.006) + (o.twisted ? 0.003 * Math.sin(th * 30 + t * 3) : 0.0012 * Math.sin(th * 7 + 0.7) * Math.sin(Math.PI * t) + 0.0007 * Math.sin(th * 19 + t * 5)) + o.t * Math.sin(Math.PI * t); },
+    radius: (c, t, th) => { const r = headRim(c, ring(c, t < 0.5 ? 0 : 1), 0.006, caches[t < 0.5 ? 0 : 1]); return rimAt(r, th) + (o.gap ?? 0.006) + (o.twisted ? 0.003 * Math.sin(th * 30 + t * 3) : 0.0012 * Math.sin(th * 7 + 0.7) * Math.sin(Math.PI * t) + 0.0007 * Math.sin(th * 19 + t * 5)) + o.t * Math.sin(Math.PI * t); },
     weights: () => [W('head', 1)], mat: MAT.cloth_trim, col: o.col, prm: o.twisted ? 3 : 0 });
 }
 /** D-199: the tall pointed felt cap of the Saka (Sakā tigraxaudā): a cone from a rim fitted to the head (as the fluted
@@ -1269,7 +1272,7 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'brows': return withCards(L, id, lod, newGeo(`${id}@${lod}`, 0, [], () => new Float32Array(0)));
     case 'hat_fluted': return flutedHatFitted(L, `${id}@${lod}`, lod);
     case 'fillet': return headBand(L, `${id}@${lod}`, lod, { dy: 0.04, w: 0.022, t: 0.006, twisted: true, col: COL.trim });
-    case 'headband': return headBand(L, `${id}@${lod}`, lod, { dy: 0.045, w: 0.02, t: 0.002, twisted: false, col: COL.second, gap: 0.0045 });
+    case 'headband': return headBand(L, `${id}@${lod}`, lod, { dy: 0.045, w: 0.018, t: 0.0015, twisted: false, col: COL.second, gap: 0.0025 });
     case 'cap_soft': return softCap(L, `${id}@${lod}`, lod);
     case 'cap_pointed': return pointedCap(L, `${id}@${lod}`, lod);
     case 'cap_low': return lowCap(L, `${id}@${lod}`, lod);

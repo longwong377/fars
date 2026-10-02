@@ -61,7 +61,7 @@ export interface WorkSpec { kind: WorkKind; at: [number, number, number]; follow
 /** animals the work needs (animals.ts): a flock grazing about the herder, the yoked pair ahead of the ploughman, the
  *  animals treading the threshing floor, one standing to be groomed, a sheep lying to be shorn, stock tethered by the
  *  butcher, a sheep on a lead */
-export interface AnimalSpec { kind: 'flock' | 'team' | 'circle' | 'beside' | 'lying' | 'tethered' | 'lead' | 'string' | 'mount' | 'draught'
+export interface AnimalSpec { kind: 'flock' | 'drive' | 'team' | 'circle' | 'beside' | 'lying' | 'tethered' | 'lead' | 'string' | 'mount' | 'draught'
   /** D-256: penned in a fold (the fold's centre FOLD_AT ahead; `pace` 1 = night, most lying) */
   | 'fold'; species: Species[]; n?: number;
   /** D-210: a flock's dogs; a string's, a mount's or a draught pair's walking pace (m/s; 0 standing), the lead rope between
@@ -105,6 +105,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       // D-359: the draught ox or the ewes bought at the exchange after a loss (economy/plans.ts animal_bought)
       { when: /leading the new ox home/, animals: { kind: 'string', species: ['ox'], n: 1, pace: 0.9 }, note: 'leading home on a rope the draught ox bought to replace the one the house lost (C: D-359)' },
       { when: /driving the ewes home/, animals: { kind: 'string', species: ['sheep', 'sheep', 'sheep'], n: 3, pace: 0.9 }, note: 'driving home the ewes bought to make up the flock after a loss (C: D-359)' },
+      // s17 V3 (C3's ask): a flock driven along the road, walking ahead of its herder in a loose mass with the dogs at its flanks
+      { when: /driving a flock|driving the flock/, prop: 'staff', sound: 'bleat', animals: { kind: 'drive', species: SHEEP, n: 16, dogs: 2, pace: 0.9 },
+        note: 'a herder driving the flock along the road at a slow walk, the sheep and goats ahead of him in a loose mass, two dogs working its flanks (E-49 herders and dogs; the drive, its size and pace C)' },
       { when: /leading a goat/, animals: { kind: 'string', species: ['goat'], n: 1, pace: 1.0 }, note: 'leading a goat on a rope to the precinct for a sacrifice (C)' },
       { when: /string of pack|pack train/, animals: { kind: 'string', species: ['donkey_pack', 'donkey_pack', 'mule_pack', 'donkey_pack', 'donkey_pack'], n: 5, pace: 1.0 },
         note: 'a driver leading a string of five pack animals nose to tail, donkeys and a mule with panniers and sacks (pack donkeys: POTTS2023, B; mules: population.json, C; strings of five, the loads and the pace C)' },
@@ -123,6 +126,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       // session 9 (G77): the roof timbers for the building works, beams hauled in on ox carts along the royal road (C)
       { when: /cart of roof timbers|emptied timber cart/, animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0.9 }, work: [{ kind: 'cart_timber', at: [0, 0, -4.7] }],
         note: 'a carter walking ahead of his yoked oxen and a cart of roof beams for the building works (the Susa charter\'s timbers from far: A for Susa, B analogy here; carts, loads and rate C)' },
+      // s17 V3 (C3's ask): the quarry's stone for the door and window frames, one rough block a cart, at a slower walk
+      { when: /ox cart of building stone|cart of building stone|emptied stone cart/, prop: 'goad', animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0.7 }, work: [{ kind: 'cart_stone', at: [0, 0, -4.7] }],
+        note: 'a carter walking ahead of his yoked oxen and a cart with a rough-cut block from the quarry for the Hall of 100 Columns’ door and window frames (the stone from Majdabad: construction.ts E-61, B; carts, loads and pace C)' },
       { when: /ox cart/, animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0.9 }, work: [{ kind: 'cart', at: [0, 0, -4.7] }],
         note: 'a carter walking ahead of his yoked oxen and their cart of grain sacks on the road (carts silent at Persepolis, Assyrian reliefs B analogy; draught cattle Q-193; C)' }] },
   carry_sack: { anim: 'carry_shoulder', moving: true, prop: 'sack', sound: 'footsteps', tier: 'B', note: 'sack on the shoulder (porters on the tribute reliefs carry skins and bags: B)',
@@ -242,6 +248,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
         note: 'a camel driver holding his string while the loads are taken off (C)' },
       { when: /holding the timber cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart_timber', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
         note: 'a carter standing by his oxen while the beams are levered off at the drum ground (C)' },
+      { when: /holding the stone cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart_stone', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
+        note: 'a carter holding his yoked oxen while the block is levered off his cart (s17 V3, C3’s ask; C)' },
       { when: /holding the ox cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
         note: 'a carter standing by his oxen while the grain is taken off the cart (C)' },
       // D-210 (gap audit item 17, court setting): a delegation's gift animal at the court's camp (the Apadana reliefs: B imagery; C)

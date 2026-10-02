@@ -1,4 +1,6 @@
-// Visible wildlife, part 1: birds (brief §5.5 "birds (including seasonal migrants and raptors)"; research/SOUNDSCAPE.md
+// Visible wildlife, part 1: birds (D-570, s17 C3: the counts over the fields, the water and the town raised so the plain's sky
+// is not empty by day: larks 10 -> 36, kestrels 6 -> 14, herons 4 -> 6, egrets 6 -> 16, magpies 8 -> 20, crows 30 -> 40, doves
+// 24 -> 32, within the worst-case triangle budget (tests/wildlife.test.ts); C, the region's common birds on a farmed plain by a river) (brief §5.5 "birds (including seasonal migrants and raptors)"; research/SOUNDSCAPE.md
 // §4 for species). Modern Fars distributions stand in for 467 BCE (C unless stated). Every bird's position is a closed-form
 // function of (world seed, species, index, world time), so birds are deterministic, need no saved state and stay
 // continuous across time skips and loads; only the sparrows' flight from the player is reactive (and short-lived).
@@ -29,11 +31,11 @@ export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 
   swallow: { id: 'swallow', name: 'barn swallow; common and pallid swifts', tier: 'C (expected, not sourced; summer migrants)', months: [2, 3, 4, 5, 6, 7, 8], hours: [4.8, 20.2], span: 0.36, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 60 },
   raptor: { id: 'raptor', name: 'buzzard / golden eagle', tier: 'B (Zagros raptors, extract) / C on-site', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [8.5, 17.5], span: 1.9, length: 0.85, colour: [0.28, 0.21, 0.14], flapHz: 2.2, count: 2 },
   sparrow: { id: 'sparrow', name: 'house sparrow', tier: 'C (expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.24, length: 0.15, colour: [0.42, 0.33, 0.24], flapHz: 14, count: 40 },
-  crow: { id: 'crow', name: 'hooded crow', tier: 'C (crows and ravens expected, not sourced: SOUNDSCAPE.md section 4; D-210)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.2, 18.3], span: 0.95, length: 0.46, colour: [0.2, 0.2, 0.21], flapHz: 3.5, count: 30 },
+  crow: { id: 'crow', name: 'hooded crow', tier: 'C (crows and ravens expected, not sourced: SOUNDSCAPE.md section 4; D-210)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.2, 18.3], span: 0.95, length: 0.46, colour: [0.2, 0.2, 0.21], flapHz: 3.5, count: 40 },
   kite: { id: 'kite', name: 'black kite', tier: 'C (summer migrant over towns and middens; expected, not sourced; D-210)', months: [2, 3, 4, 5, 6, 7, 8], hours: [8, 17.5], span: 1.5, length: 0.58, colour: [0.3, 0.22, 0.15], flapHz: 2.4, count: 4 },
   // session 9 (both gap hunters: the commonest birds were missing): months 0 = January (the weather's climatological month)
-  dove: { id: 'dove', name: 'rock dove / collared dove', tier: 'C (expected on buildings and in courts; not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [5.8, 18.8], span: 0.6, length: 0.32, colour: [0.52, 0.52, 0.55], flapHz: 6, count: 24 },
-  lark: { id: 'lark', name: 'crested lark / skylark in song flight', tier: 'C (larks over fields and steppe: SOUNDSCAPE.md section 4 "expected")', months: [1, 2, 3, 4, 5, 6], hours: [5.5, 11], span: 0.32, length: 0.17, colour: [0.5, 0.42, 0.32], flapHz: 12, count: 10 },
+  dove: { id: 'dove', name: 'rock dove / collared dove', tier: 'C (expected on buildings and in courts; not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [5.8, 18.8], span: 0.6, length: 0.32, colour: [0.52, 0.52, 0.55], flapHz: 6, count: 32 },
+  lark: { id: 'lark', name: 'crested lark / skylark in song flight', tier: 'C (larks over fields and steppe: SOUNDSCAPE.md section 4 "expected")', months: [1, 2, 3, 4, 5, 6], hours: [5.5, 11], span: 0.32, length: 0.17, colour: [0.5, 0.42, 0.32], flapHz: 12, count: 36 },
   stork: { id: 'stork', name: 'white stork', tier: 'C (summer visitor of the Iranian plateau\'s wet fields; not sourced)', months: [2, 3, 4, 5, 6, 7], hours: [7, 18], span: 2.0, length: 1.0, colour: [0.86, 0.86, 0.84], flapHz: 2, count: 8 },
   vulture: { id: 'vulture', name: 'griffon vulture', tier: 'B (griffon and Egyptian vultures of the Zagros; recollection) / C place', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [9.5, 16.5], span: 2.6, length: 1.05, colour: [0.55, 0.45, 0.33], flapHz: 1.5, count: 3 },
   // session 9 (G42): pipistrelles hawking over the courts and the water at dusk, Mar-Oct; `hours` is replaced by batHours()
@@ -42,10 +44,10 @@ export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 
   chukar: { id: 'chukar', name: 'chukar / see-see partridge coveys', tier: 'B (partridges of the Zagros slopes: SOUNDSCAPE.md section 4) / C place', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.5, length: 0.34, colour: [0.52, 0.47, 0.42], flapHz: 9, count: 32 },
   hoopoe: { id: 'hoopoe', name: 'hoopoe', tier: 'C (summer visitor of gardens and courts; its call in the soundscape)', months: [2, 3, 4, 5, 6, 7, 8], hours: [6, 18.5], span: 0.44, length: 0.27, colour: [0.72, 0.5, 0.33], flapHz: 5, count: 6 },
   beeeater: { id: 'beeeater', name: 'European bee-eater', tier: 'B range / C (summer flocks hawking over fields and water)', months: [3, 4, 5, 6, 7, 8], hours: [7, 18], span: 0.44, length: 0.28, colour: [0.55, 0.52, 0.2], flapHz: 6, count: 14 },
-  heron: { id: 'heron', name: 'grey heron', tier: 'C (at the rivers all year)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 1.8, length: 0.95, colour: [0.55, 0.57, 0.6], flapHz: 2, count: 4 },
-  egret: { id: 'egret', name: 'little egret', tier: 'C (at the water, spring to autumn)', months: [2, 3, 4, 5, 6, 7, 8, 9], hours: [6, 18.5], span: 0.95, length: 0.6, colour: [0.93, 0.93, 0.92], flapHz: 3, count: 6 },
+  heron: { id: 'heron', name: 'grey heron', tier: 'C (at the rivers all year)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 1.8, length: 0.95, colour: [0.55, 0.57, 0.6], flapHz: 2, count: 6 },
+  egret: { id: 'egret', name: 'little egret', tier: 'C (at the water, spring to autumn)', months: [2, 3, 4, 5, 6, 7, 8, 9], hours: [6, 18.5], span: 0.95, length: 0.6, colour: [0.93, 0.93, 0.92], flapHz: 3, count: 16 },
   jackdaw: { id: 'jackdaw', name: 'jackdaws and choughs over the cliffs', tier: 'C (corvid flocks at cliffs and ruins)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [7, 17.5], span: 0.68, length: 0.34, colour: [0.12, 0.12, 0.13], flapHz: 4.5, count: 18 },
-  magpie: { id: 'magpie', name: 'magpie', tier: 'C (fields and village edges)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.5, 18], span: 0.56, length: 0.45, colour: [0.2, 0.21, 0.24], flapHz: 5, count: 8 },
+  magpie: { id: 'magpie', name: 'magpie', tier: 'C (fields and village edges)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.5, 18], span: 0.56, length: 0.45, colour: [0.2, 0.21, 0.24], flapHz: 5, count: 20 },
   sandgrouse: { id: 'sandgrouse', name: 'sandgrouse flights to water at dawn', tier: 'C (black-bellied and pin-tailed sandgrouse of the Iranian plateau: recollection)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.2, 8.8], span: 0.62, length: 0.33, colour: [0.62, 0.53, 0.38], flapHz: 7, count: 14 },
   wheatear: { id: 'wheatear', name: 'wheatears on the stony steppe', tier: 'C (wheatears of the Iranian steppe: recollection)', months: [2, 3, 4, 5, 6, 7, 8, 9], hours: [6, 18.5], span: 0.27, length: 0.15, colour: [0.72, 0.68, 0.6], flapHz: 12, count: 10 },
   // session 9 (G47, G54, G46, G51): the little owl of open country, bulbuls in the gardens and courts, rollers over the fields in
@@ -59,7 +61,7 @@ export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 
   starling: { id: 'starling', name: 'common starlings: a winter murmuration over the reeds', tier: 'C (starlings winter in huge flocks on the plains of Fars and roost in reedbeds: expected, not sourced)', months: [10, 11, 0, 1], hours: [15, 19], span: 0.38, length: 0.2, colour: [0.09, 0.09, 0.1], flapHz: 12, count: 1500 },
   // session 10 (GA44): kestrels hunting over the fields and the steppe, hovering in place into the wind, then sliding off to hover
   // again or dropping on a vole (C: common and lesser kestrels of the Iranian plateau; expected, not sourced)
-  kestrel: { id: 'kestrel', name: 'kestrels hovering over the fields', tier: 'C (common kestrel resident, lesser kestrel a summer breeder on the plateau: expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [7, 17.5], span: 0.75, length: 0.34, colour: [0.55, 0.36, 0.22], flapHz: 9, count: 6 },
+  kestrel: { id: 'kestrel', name: 'kestrels hovering over the fields', tier: 'C (common kestrel resident, lesser kestrel a summer breeder on the plateau: expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [7, 17.5], span: 0.75, length: 0.34, colour: [0.55, 0.36, 0.22], flapHz: 9, count: 14 },
   crane: { id: 'crane', name: 'common crane (winter flocks)', tier: 'B (winter cranes, geese and ducks at the Fars lakes: SOUNDSCAPE.md section 4, Bakhtegan) / C passage', months: [10, 11, 0, 1, 2], hours: [7.5, 16.5], span: 2.1, length: 1.1, colour: [0.55, 0.57, 0.6], flapHz: 1.6, count: 18 },
 };
 /** a crow's place (closed form): three quarters of each spell on the ground at its midden, walking and pecking between
@@ -315,7 +317,10 @@ export class Birds {
         let flyMorph: THREE.Material | null = null;
         const mk = (key: string, g0: THREE.BufferGeometry, m: THREE.Material, meta: Record<string, unknown>) => {
           const g = g0.clone(), data = new THREE.InstancedInterleavedBuffer(new Float32Array(sp.count * BIRD_STRIDE), BIRD_STRIDE); data.setUsage(THREE.DynamicDrawUsage);
-          for (const [nm, sz, off] of [['phase', 1, 0], ['flapAmt', 1, 1], ['standAmt', 1, 2], ['bRx', 3, 3], ['bRy', 3, 6], ['bRz', 3, 9]] as const) g.setAttribute(nm, new THREE.InterleavedBufferAttribute(data, sz, off));
+          // (D-570: the instance's 12 floats (phase, flap, stand, the bird's three axes) as three vec4s, bA bB bC: WebGPU on the T4
+          // allows 16 vertex inputs and the starlings (1,500 instances: their matrices are four more inputs) used 17; birdIn() reads
+          // them; tests/vertex_inputs.test.ts keeps every life pipeline at <= 16)
+          for (const [nm, off] of [['bA', 0], ['bB', 4], ['bC', 8]] as const) g.setAttribute(nm, new THREE.InterleavedBufferAttribute(data, 4, off));
           // D-362: the flying levels that have a standing twin (the same vertices and UVs: tools/blender/life_birds.py builds both
           // poses from one topology) carry its positions and normals: the morph at take-off and landing (B179)
           const tw = model && key.startsWith('fly') ? model.levels[`stand${key.slice(3)}`] : undefined;
@@ -332,7 +337,7 @@ export class Birds {
           for (const [key, g] of Object.entries(model.levels)) mk(key, g, key.startsWith('stand') ? stand : fly, { placeholder: false, model: v, note2: `${e.name}: modelled (tools/blender/life_birds.py; D-332), plumage and proportions from field guides (C)` });
         } else {
           const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: 0.8, side: THREE.DoubleSide });
-          const wing = attribute('wing', 'float'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
+          const wing = attribute('wing', 'float'), phase = attribute('bA', 'vec4').x, flap = attribute('bA', 'vec4').y;
           // the stand-in's wingbeat: tips rise and fall (±60°), scaled by the instance's flap amount; gliding birds hold a slight dihedral
           const beat = sin(this.uTime.mul(sp.flapHz * Math.PI * 2).add(phase)).mul(flap).mul(0.9).add(0.12);
           m.positionNode = positionLocal.add(vec3(0, abs(wing).mul(beat).mul(float(sp.span * 0.5)), 0));
@@ -541,6 +546,9 @@ export class Jackals {
   }
 }
 
+/** D-570: a bird instance's packed inputs (three vec4s: phase, flap, stand, then the bird's x, y and z axes in the world) */
+export function birdIn() { const a = attribute('bA', 'vec4'), b = attribute('bB', 'vec4'), c = attribute('bC', 'vec4');
+  return { phase: a.x, flap: a.y, stand: a.z, Rx: vec3(a.w, b.x, b.y), Ry: vec3(b.z, b.w, c.x), Rz: vec3(c.y, c.z, c.w) }; }
 /** the modelled wingbeat (Birds.flapNode; exported for the probe pages). D-362 (B179): the wing turns in the bird's own frame
  *  (positionGeometry; three applies the instance matrix before the material's positionNode, so the old arithmetic on
  *  positionLocal measured the wing's span from the world's x axis), the displacement carried to the world by the instance's
@@ -548,8 +556,8 @@ export class Jackals {
  *  positions and normals and the instance's stand amount blends the poses (the wings open as the bird lifts: no pop) */
 export function birdFlapNode(uTime: any, hz: number, sx: number, morph = false) {
   return Fn(() => {
-    const L = attribute('life', 'vec4'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
-    const st = morph ? attribute('standAmt', 'float').clamp(0, 1) : float(0), fly = float(1).sub(st);
+    const L = attribute('life', 'vec4'), { phase, flap, stand, Rx, Ry, Rz } = birdIn();
+    const st = morph ? stand.clamp(0, 1) : float(0), fly = float(1).sub(st);
     const pg: any = morph ? mix(positionGeometry, attribute('standPos', 'vec3'), st) : positionGeometry;
     const ng: any = morph ? mix(normalGeometry, attribute('standNrm', 'vec3'), st) : normalGeometry;
     const beat = sin(uTime.mul(hz * Math.PI * 2).add(phase)).mul(flap).mul(0.85).add(0.1).mul(fly), th = beat.mul(L.x.mul(0.45).add(0.55));
@@ -557,7 +565,6 @@ export function birdFlapNode(uTime: any, hz: number, sx: number, morph = false) 
     const p = vec3(x.add(sg.mul(d.mul(cos(th)).sub(d))), pg.y.add(d.mul(sin(th))), pg.z), dp = p.sub(positionGeometry);
     // the normal: turned about the bird's long axis by the wing's angle (sign(x) th) beyond the shoulder
     const a = sg.mul(th).mul(L.y).mul(step(float(sx), abs(x))), ca = cos(a), sa = sin(a), n = vec3(ng.x.mul(ca).sub(ng.y.mul(sa)), ng.x.mul(sa).add(ng.y.mul(ca)), ng.z);
-    const Rx = attribute('bRx', 'vec3'), Ry = attribute('bRy', 'vec3'), Rz = attribute('bRz', 'vec3');
     normalLocal.assign(Rx.mul(n.x).add(Ry.mul(n.y)).add(Rz.mul(n.z)).normalize());
     return positionLocal.add(Rx.mul(dp.x)).add(Ry.mul(dp.y)).add(Rz.mul(dp.z));
   })();

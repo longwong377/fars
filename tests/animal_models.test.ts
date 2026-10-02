@@ -4,7 +4,7 @@
 // procedural stand-in (grazing brings the muzzle to the ground, walking swings the legs, lying rests the belly down, the
 // body stays whole); and the Animals class draws the model's levels by distance within the fauna's budget.
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, appendFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { SPECIES, ANIMAL_BUILD, deformAnimal, lieDrop, Animals, type Species } from '../src/people/animals';
 import { animalForm, FAMILY } from '../src/people/animalForm';
@@ -13,11 +13,15 @@ import { setAnimalModel, clearAnimalModels } from '../src/people/animalModels';
 // @ts-ignore plain node module shared with the build
 import { parseGLB, glbContent } from '../tools/blender/lib/glb.mjs';
 // @ts-ignore plain node module shared with the build
-import { animalHash } from '../tools/blender/lib/animal_inputs.mjs';
+import { animalHash, realHash } from '../tools/blender/lib/animal_inputs.mjs';
+import { setRealRig, clearRealRigs } from '../src/people/animalReal';
 
 const HAVE = existsSync('public/models/animals/manifest.json');
 const MAN = (HAVE ? JSON.parse(readFileSync('public/models/animals/manifest.json', 'utf8')) : { assets: {} }) as { assets: Record<string, any> };
 const REG = JSON.parse(readFileSync('tools/blender/animals.json', 'utf8'));
+const REAL = JSON.parse(readFileSync('tools/blender/animals_real.json', 'utf8'));
+// V5 D-520: the library models' rigs as the loader registers them (animalModels.ts)
+for (const [sp, e] of Object.entries(MAN.assets) as [string, any][]) if (e.real) setRealRig(sp, e.rig);
 /** the decoded levels of a species' GLB: { lod0: { attributes: { POSITION, NORMAL, TANGENT, TEXCOORD_0 }, index }, lod1 } */
 const levels = async (sp: string) => { const buf = readFileSync(`public/models/animals/${sp}.glb`), { json } = parseGLB(buf), c: any = await glbContent(buf), out: any = {};
   for (const g of c.geo) { const m = json.meshes.find((x: any) => x.name === g.mesh), names = Object.keys(m.primitives[0].extensions.KHR_draco_mesh_compression.attributes), attributes: any = {};
@@ -29,13 +33,14 @@ describe.skipIf(!HAVE)('the animals are modelled bodies (D-326)', () => {
     expect(Object.keys(REG.species).sort()).toEqual([...SPECIES].sort());
     for (const sp of SPECIES) {
       const e = MAN.assets[sp]; expect(e, `${sp} built`).toBeTruthy();
-      expect(e.inHash, `${sp} current (node tools/blender/animals.mjs ${sp})`).toBe(animalHash(sp));
-      const C = REG.classes[REG.species[sp]];
-      expect(e.tris[0], `${sp} lod0`).toBeLessThanOrEqual(C.tris[0] * 1.02); expect(e.tris[0]).toBeGreaterThan(C.tris[0] * 0.8);
+      if (e.real) expect(e.inHash, `${sp} current (node tools/blender/animals_real.mjs ${sp})`).toBe(realHash(sp));
+      else expect(e.inHash, `${sp} current (node tools/blender/animals.mjs ${sp})`).toBe(animalHash(sp));
+      const C = e.real ? REAL.classes[REAL.species[sp].class] : REG.classes[REG.species[sp]];
+      expect(e.tris[0], `${sp} lod0`).toBeLessThanOrEqual(C.tris[0] * 1.02); if (!e.real) expect(e.tris[0]).toBeGreaterThan(C.tris[0] * 0.8); else expect(e.tris[0]).toBeGreaterThan(C.tris[0] * 0.4);
       expect(e.tris[1], `${sp} lod1`).toBeLessThanOrEqual(C.tris[1] * 1.05); expect(e.tris[1]).toBeLessThan(e.tris[0] / 3);
       for (const [f, m] of Object.entries(e.files) as [string, any][]) { const b = readFileSync(`public/models/animals/${f}`); expect(b.length, f).toBe(m.bytes); }
       expect(e.ao_mean, `${sp} occlusion baked`).toBeGreaterThan(0.2); expect(e.ao_mean).toBeLessThan(0.99);
-      expect(e.mask_mean, `${sp} coat mask baked`).toBeGreaterThan(0.05);
+      expect(e.mask_mean, `${sp} coat mask baked`).toBeGreaterThan(0.05); if (e.real) expect(e.source?.licence, `${sp} credited`).toMatch(/^CC/);
       const { json } = parseGLB(readFileSync(`public/models/animals/${sp}.glb`)); expect(json.extensionsUsed).toContain('KHR_draco_mesh_compression');
       for (const n of ['lod0', 'lod1']) { const mesh = json.meshes.find((m: any) => m.name === n); expect(mesh, `${sp} ${n}`).toBeTruthy(); for (const a of ['POSITION', 'NORMAL', 'TANGENT', 'TEXCOORD_0']) expect(mesh.primitives[0].attributes[a], `${sp} ${n} ${a}`).toBeDefined(); }
     }
@@ -60,17 +65,19 @@ describe.skipIf(!HAVE)('the animals are modelled bodies (D-326)', () => {
         // the body stays whole: no edge stretched to more than 3x (+ 3 cm) by the walk; the lying fold and the graze bend the skin
         // over the elbow and along the neck's crest (one neck joint at the breast: the crest over the withers stretches as the
         // head goes down), within 8 and 20 cm
-        const idx: Uint32Array | Uint16Array = prim.index, poses = [{ phase: 0.7, walk: 1, graze: 0, lie: 0, lim: 0 }, { phase: 0, walk: 0, graze: 1, lie: 0, lim: 0.17 }, { phase: 0, walk: 0, graze: 0, lie: 1, lim: 0.05 }];
+        const idx: Uint32Array | Uint16Array = prim.index, poses = [{ phase: 0.7, walk: 1, graze: 0, lie: 0, lim: 0 }, { phase: 0, walk: 0, graze: 1, lie: 0, lim: 0.17 }, { phase: 0, walk: 0, graze: 0, lie: 1, lim: MAN.assets[sp].real ? 0.3 : 0.05 }];
+        // (V5 D-520: a library model's coarser hide folds over its hocks and the hanging tail when it lies, up to 30 cm (the kneeling dromedary): B550)
         for (const st of poses) { const Q = new Float32Array(n * 3); for (let i = 0; i < n; i++) Q.set(at(i, st), i * 3);
           for (let t = 0; t < idx.length; t += 3) for (let k = 0; k < 3; k++) { const a = idx[t + k], b = idx[t + (k + 1) % 3];
             const l0 = Math.hypot(pos[a * 3] - pos[b * 3], pos[a * 3 + 1] - pos[b * 3 + 1], pos[a * 3 + 2] - pos[b * 3 + 2]), l1 = Math.hypot(Q[a * 3] - Q[b * 3], Q[a * 3 + 1] - Q[b * 3 + 1], Q[a * 3 + 2] - Q[b * 3 + 2]);
             if (l1 - 3 * l0 - st.lim > stretch) { stretch = l1 - 3 * l0 - st.lim; worst = JSON.stringify({ st, p: [pos[a * 3], pos[a * 3 + 1], pos[a * 3 + 2]].map(v => +v.toFixed(2)), wa: [W.leg[a * 4 + 1], W.leg[a * 4 + 2], W.ht[a * 4], W.ht[a * 4 + 1]].map(v => +v.toFixed(2)), wb: [W.leg[b * 4 + 1], W.leg[b * 4 + 2], W.ht[b * 4], W.ht[b * 4 + 1]].map(v => +v.toFixed(2)) }); } } }
         if (stretch > 0.025) console.log('WORST', sp, name, worst); rows.push(`${sp} ${name}: ${n} v, stand ${minStand.toFixed(3)}, graze ${lowHead.toFixed(3)}, stride ${maxLegDz.toFixed(2)}, lie body ${lowBody.toFixed(3)} legs ${legLow.toFixed(3)}, stretch ${stretch.toFixed(3)}`);
+        if (process.env.ANIM_ROWS) { appendFileSync(process.env.ANIM_ROWS, rows[rows.length - 1] + (stretch > 0.025 ? ' WORST ' + worst : '') + '\n'); continue; } // (a survey of every species, no assertions)
         expect(minStand, `${sp} ${name} stands on the ground`).toBeGreaterThan(-0.01); expect(minStand).toBeLessThan(0.03);
         expect(lowHead, `${sp} ${name} grazes`).toBeLessThan(0.12); expect(lowHead).toBeGreaterThan(-0.08);
         expect(maxLegDz, `${sp} ${name} walks`).toBeGreaterThan(0.08);
-        expect(lowBody, `${sp} ${name} lies on its belly (the cattle's deep belly and udder settle up to 13 cm into the ground: the rig's drop is the stand-in's)`).toBeGreaterThan(-0.15); expect(lowBody).toBeLessThan(0.1);
-        expect(legLow, `${sp} ${name}'s folded legs (under the ground they are hidden: the camels' long legs reach 15 cm)`).toBeGreaterThan(-0.2);
+        expect(lowBody, `${sp} ${name} lies on its belly (the cattle's deep belly and udder settle up to 13 cm into the ground: the rig's drop is the stand-in's; a library model's chest up to 20 cm, B550)`).toBeGreaterThan(MAN.assets[sp].real ? -0.2 : -0.15); expect(lowBody).toBeLessThan(0.1);
+        expect(legLow, `${sp} ${name}'s folded legs (under the ground they are hidden: the camels' long legs reach 15 cm)`).toBeGreaterThan(MAN.assets[sp].real ? -0.3 : -0.2); // (a library model's longer cannon bones: B550)
         expect(stretch, `${sp} ${name} stays whole`).toBeLessThan(0.03);
         expect(FAMILY[sp]).toBeTruthy(); expect(lieDrop(sp)).toBeGreaterThan(0); void li; void F;
       }

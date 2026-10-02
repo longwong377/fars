@@ -37,6 +37,10 @@ const memNow = () => new Promise(res => {
     execFile('powershell', ['-NoProfile', '-Command', ps], { encoding: 'utf8', timeout: 60_000 }, (e, o) => done(e, +(+String(o).trim() / 2 ** 30).toFixed(2)));
   } else execFile('ps', ['-eo', 'rss=,args='], { encoding: 'utf8', maxBuffer: 64 << 20, timeout: 60_000 }, (e, o) => done(e, +(String(o).split('\n').filter(l => l.includes(profTag)).reduce((x, l) => x + (parseInt(l, 10) || 0), 0) / 2 ** 20).toFixed(2)));
 });
+// D-580: the memory by Chrome process type (browser, renderer, gpu-process, utility...) at ready and at the peak's moment
+const memByType = () => new Promise(res => process.platform === 'win32' ? res(null) : execFile('ps', ['-eo', 'rss=,args='], { encoding: 'utf8', maxBuffer: 64 << 20, timeout: 60_000 }, (e, o) => {
+  if (e) return res(null); const m = {}; for (const l of String(o).split('\n')) { if (!l.includes(profTag)) continue; const t = /--type=([\w-]+)/.exec(l)?.[1] ?? 'browser', x = /--utility-sub-type=([\w.]+)/.exec(l)?.[1];
+    const k = x ? `${t}:${x.split('.').pop()}` : t; m[k] = +((m[k] ?? 0) + (parseInt(l, 10) || 0) / 2 ** 20).toFixed(2); } res(m); }));
 let memBusy = false;
 const memGB = async () => { if (memBusy) return NaN; memBusy = true; try { return await memNow(); } finally { memBusy = false; } };
 const ext = new Map(); // the model hosts' traffic (Hugging Face, GitHub raw): requests and bytes per host
@@ -62,18 +66,39 @@ for (const v of visits) {
   await served(true);
   const ctx = await chromium.launchPersistentContext(prof, { channel: process.env.PW_CHANNEL ?? 'chrome', headless: !process.env.HEADED,
     args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'], viewport: { width: 1920, height: 1080 } });
+  // --css '<rules>': a style added to the page (A/B of the loading screen's cost, D-580)
+  if (opt('--css', '')) await ctx.addInitScript(css => addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = css; document.head.append(st); }), opt('--css', ''));
   const page = ctx.pages()[0] ?? await ctx.newPage(), boot = [], errs = [];
   page.on('console', m => { const t = m.text(); if (t.startsWith('[boot]')) { boot.push([+((Date.now() - t0) / 1000).toFixed(1), t.slice(7, 120)]); console.log(((Date.now() - t0) / 1000).toFixed(1), t.slice(0, 160)); } else if (m.type() === 'error' || m.type() === 'warning') { errs.push(t.slice(0, 200)); console.log('[page]', m.type(), t.slice(0, 300)); } });
   page.on('requestfinished', async q => { const u = new URL(q.url()); if (u.host.startsWith('127.0.0.2')) return; const x = ext.get(u.host) ?? { n: 0, b: 0, f: 0 }; x.n++; ext.set(u.host, x);
     try { const z = await q.sizes(); x.b += z.responseBodySize; } catch {} });
   page.on('requestfailed', q => { const u = new URL(q.url()); if (u.host.startsWith('127.0.0.2')) return; const x = ext.get(u.host) ?? { n: 0, b: 0, f: 0 }; x.f++; ext.set(u.host, x); console.log('[net] failed', q.url().slice(0, 160), q.failure()?.errorText); });
   page.on('crash',() => console.log('[page] CRASHED at', ((Date.now() - t0) / 1000).toFixed(1), 's')); page.on('close', () => console.log('[page] closed'));
-  let peak = 0; const poll = setInterval(() => { void memGB().then(m => { if (m > peak) peak = m; }); }, 5000);
+  let peak = 0, peakBy = null; const poll = setInterval(() => { void memGB().then(async m => { if (m > peak) { peak = m; peakBy = await memByType(); } }); }, 5000);
   let t0 = Date.now(); const s = () => +((Date.now() - t0) / 1000).toFixed(1), r = {};
   await page.goto(`${host}/fars/?quality=${q}&trace${extra ? '&' + extra : ''}`);
   await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 250 });
   r.error = await page.evaluate(() => window.__parsa.error ?? null); r.swControl = await page.evaluate(() => !!navigator.serviceWorker?.controller); r.warm = await page.evaluate(() => window.__warm ?? null);
-  r.siteCache = await page.evaluate(async () => { try { const ks = await caches.keys(), out = {}; for (const k of ks) out[k] = (await (await caches.open(k)).keys()).length; const e = await navigator.storage.estimate(); return { caches: out, usageMB: Math.round(e.usage / 1048576), quotaMB: Math.round(e.quota / 1048576) }; } catch (e) { return String(e); } }); r.readyS = s(); console.log(v, 'ready', r.readyS, 's', r.error ?? '');
+  r.siteCache = await page.evaluate(async () => { try { const ks = await caches.keys(), out = {}; for (const k of ks) out[k] = (await (await caches.open(k)).keys()).length; const e = await navigator.storage.estimate(); return { caches: out, usageMB: Math.round(e.usage / 1048576), quotaMB: Math.round(e.quota / 1048576) }; } catch (e) { return String(e); } }); r.memAtReady = await memByType();
+  // D-580 (Linux): the CPU seconds each thread of the page's processes has used by ready, by thread name
+  r.cpuByThread = await new Promise(res => process.platform === 'win32' ? res(null) : execFile('sh', ['-c', `for p in $(pgrep -f '${profTag}'); do t=$(ps -o args= -p $p | grep -o -- '--type=[a-z-]*' | head -1 | sed 's/--type=//'); ps -L -o comm=,time= -p $p 2>/dev/null | sed "s/^/\${t:-browser}:/"; done`], { encoding: 'utf8', timeout: 30_000 }, (e, o) => {
+    if (e) return res(null); const m = {}; for (const l of String(o).split('\n')) { const x = /^(.*?)\s+(?:(\d+)-)?(\d+):(\d+):(\d+)$/.exec(l.trim()); if (!x) continue; const k = x[1].replace(/\d+$/, '#').trim(); m[k] = (m[k] ?? 0) + (+(x[2] ?? 0) * 86400 + +x[3] * 3600 + +x[4] * 60 + +x[5]); }
+    res(Object.fromEntries(Object.entries(m).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]))); }));
+  // D-580: the page's JS heaps at ready: the main thread's and each live worker's (by script), and how many workers there are
+  // (and after a full garbage collection: how much of it is garbage not yet collected)
+  try { const c = await ctx.newCDPSession(page); await c.send('HeapProfiler.collectGarbage'); await page.waitForTimeout(1500); r.memAfterGC = await memByType(); r.heapAfterGCMB = await page.evaluate(() => Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1048576)); await c.detach(); } catch (e) { r.memAfterGC = String(e).slice(0, 80); }
+  // D-580: what the scene holds in typed arrays at ready (geometry attributes and indices, textures' data), by the world's
+  // top-level groups (each buffer counted once, where first met)
+  r.sceneMB = await page.evaluate(() => { const seen = new Set(), by = {}; let tex = 0; const S = window.__parsa.scene;
+    const add = (k, b) => { if (!b || seen.has(b)) return 0; seen.add(b); by[k] = (by[k] ?? 0) + b.byteLength; return b.byteLength; };
+    const top = o => { let x = o, path = []; while (x && x !== S) { path.unshift(x.name || x.type); x = x.parent; } return path.slice(0, 2).join('/'); };
+    S.traverse(o => { const k = top(o), g = o.geometry; if (g) { for (const a of Object.values(g.attributes ?? {})) add(k, (a.data ?? a).array?.buffer); add(k, g.index?.array?.buffer); for (const a of Object.values(g.morphAttributes ?? {}).flat()) add(k, a.array?.buffer); }
+      if (o.instanceMatrix) add(k, o.instanceMatrix.array.buffer); if (o.instanceColor) add(k, o.instanceColor.array.buffer);
+      const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : []; for (const m of ms) for (const v of Object.values(m)) if (v?.isTexture) { const d = v.image?.data ?? v.mipmaps?.[0]?.data; if (d?.buffer) tex += add('textures:' + k.split('/')[0], d.buffer); } });
+    return Object.fromEntries(Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, b]) => [k, Math.round(b / 1048576)])); }).catch(e => String(e).slice(0, 120));
+  r.heapsMB = await (async () => { const o = { main: await page.evaluate(() => Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1048576)).catch(() => null), workers: {} };
+    for (const w of page.workers()) { const k = w.url().split('/').pop().replace(/^blob:.*/, 'blob').replace(/-[\w-]{8}\.js$/, '.js'); const mb = await Promise.race([w.evaluate(() => Math.round((performance.memory?.usedJSHeapSize ?? 0) / 1048576)).catch(() => null), new Promise(r => setTimeout(() => r(null), 3000))]);
+      const x = o.workers[k] ??= { n: 0, MB: 0 }; x.n++; x.MB += mb ?? 0; } return o; })(); r.readyS = s(); r.readyPageS = await page.evaluate(() => window.__parsa.readyAt ? +(window.__parsa.readyAt / 1000).toFixed(1) : null); console.log(v, 'ready', r.readyS, 's (page clock', r.readyPageS, 's)', r.error ?? ''); // (D-580: readyS is when the harness saw it: later when the main thread is busy)
   const log1 = await served(); r.beforeReadyMB = +(log1.reduce((x, e) => x + (e.b ?? 0), 0) / 1048576).toFixed(1); r.requests = log1.length; r.served = log1.map(e => [e.p, e.b ?? 0, e.t]); r.lastByteBeforeReadyS = +(Math.max(0, ...log1.map(e => e.t)) / 1000).toFixed(1);
   if (!r.error) {
     await page.evaluate(() => new Promise(res => { let n = 0; const f = () => (++n >= 3 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); })); r.framesS = s();
@@ -91,7 +116,7 @@ for (const v of visits) {
   r.first60sMB = +(log2.filter(e => e.t <= 60000).reduce((x, e) => x + (e.b ?? 0), 0) / 1048576).toFixed(1);
   r.notModified = log2.filter(e => e.s === 304).length; r.missing = log2.filter(e => e.s === 404).map(e => e.p).slice(0, 20);
   r.top = [...log2].sort((x, y) => (y.b ?? 0) - (x.b ?? 0)).slice(0, 10).map(e => `${e.p} ${((e.b ?? 0) / 1048576).toFixed(1)}`);
-  clearInterval(poll); r.memGB = Math.max(peak, (await memGB()) || 0) || null; r.boot = boot; r.errors = errs.slice(0, 15);
+  clearInterval(poll); r.memGB = Math.max(peak, (await memGB()) || 0) || null; r.memPeakBy = peakBy; r.boot = boot; r.errors = errs.slice(0, 15);
   out.visits[v] = r; console.log(v, JSON.stringify({ ...r, boot: undefined, served: undefined, errors: r.errors.filter(e => !/KTX2Loader/.test(e)).slice(0, 5) }));
   await ctx.close();
 }

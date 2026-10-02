@@ -8,9 +8,9 @@ import { PlainGround } from '../../src/world/plain/terrainPlain';
 import { buildZones } from '../../src/world/plain/fields';
 import { loadRivers } from '../../src/world/plain/data';
 import { buildCanals } from '../../src/world/plain/canals';
-import { placeVillages } from '../../src/world/plain/villages';
+import { placeVillages, threshingFloor, villageCompounds } from '../../src/world/plain/villages';
 import { buildRivers } from '../../src/world/plain/rivers';
-import { canalBanks } from '../../src/world/plain/ribbons';
+import { canalBanks, trackLines, tracksMesh } from '../../src/world/plain/ribbons';
 import { SEASON, BLOOM, WEATHER } from '../../src/render/materials';
 import { seasonAt } from '../../src/world/season';
 import { bloomAt, doyOf } from '../../src/world/plain/seasonal';
@@ -19,6 +19,8 @@ import { buildTownGround } from '../../src/world/plain/townGround';
 import { Bedrock, loadRockKit } from '../../src/world/hills/bedrock';
 import { Ledges, loadLedgeFace } from '../../src/world/hills/ledges';
 import { GroundCover, loadCoverKit } from '../../src/world/plain/groundCover';
+import { setVergePaths } from '../../src/world/plain/verge';
+import { FieldFill } from '../../src/world/plain/fieldFill';
 import { FordDetail, loadFordKit } from '../../src/world/plain/fordDetail';
 import { buildCrossings } from '../../src/world/plain/crossings';
 import { loadScanProps } from '../../src/render/scanProps';
@@ -27,8 +29,8 @@ import { CURV_SCALE } from '../../src/terrain/terrainDetail';
 (async () => {
   const P = new URLSearchParams(location.search);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
-  const adapter = await (navigator as any).gpu.requestAdapter();
-  const r = new THREE.WebGPURenderer({ canvas, antialias: true, requiredLimits: { maxSampledTexturesPerShaderStage: Math.min(48, adapter.limits.maxSampledTexturesPerShaderStage) } } as any); await r.init();
+  const adapter = P.has('webgl') ? null : await (navigator as any).gpu.requestAdapter();
+  const r = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: P.has('webgl'), requiredLimits: adapter ? { maxSampledTexturesPerShaderStage: Math.min(48, adapter.limits.maxSampledTexturesPerShaderStage) } : undefined } as any); await r.init(); // (?webgl: three's WebGL2 backend, for a box without WebGPU)
   r.toneMapping = THREE.AgXToneMapping; r.toneMappingExposure = +(P.get('xp') ?? 1);
   const errs: string[] = []; (r.backend as any).device?.addEventListener?.('uncapturederror', (e: any) => errs.push(String(e.error?.message).slice(0, 300)));
   await loadScans('/');
@@ -56,6 +58,11 @@ import { CURV_SCALE } from '../../src/terrain/terrainDetail';
   // D-335: ?cover: the ground cover at the feet
   let cover: GroundCover | null = null;
   if (P.has('cover')) { await loadCoverKit('/'); const gm = townGround; cover = new GroundCover({ ground: (x, z) => terrain.surfaceAt(x, z), zones, trodden: gm ? (x, z) => groundAt4(gm, x, -z)[1] : undefined }, 1); scene.add(cover.group); }
+  // s17 C2 (D-560): ?tracks: the village tracks drawn, their treads and verges (verge.ts) read by the cover; ?fill: the farm year (fieldFill.ts)
+  if (P.has('tracks')) { const tl = trackLines(villages); scene.add(tracksMesh(tl, terrain)); setVergePaths(tl.map(pts => ({ pts, hw: 1.75, kind: 'track' as const }))); }
+  let ffill: FieldFill | null = null;
+  if (P.has('fill')) { await loadScanProps('/'); ffill = new FieldFill(zones, villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, floor: threshingFloor(v, villageCompounds(v, terrain, 1), 1) })), (e, n) => terrain.surfaceAt(e, -n)); scene.add(ffill.group); }
+  if (P.has('cover') && P.has('tracks')) cover?.update(new THREE.Vector3(1e9, 0, 1e9), 0, { green: 0, dry: 0 }, true); // (cells cached before the paths: dropped)
   const sun = new THREE.DirectionalLight(0xfff4e6, 3.2), hemi = new THREE.HemisphereLight(0xbfd6ff, 0x8a7458, 0.9);
   if (P.has('shadows')) { r.shadowMap.enabled = true; sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); const sc = sun.shadow.camera as THREE.OrthographicCamera; sc.left = sc.bottom = -+(P.get('shadows') || 150); sc.right = sc.top = +(P.get('shadows') || 150); sc.near = 1; sc.far = 3000; sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.35; }
   scene.add(sun, sun.target, hemi);
@@ -67,7 +74,7 @@ import { CURV_SCALE } from '../../src/terrain/terrainDetail';
     const x = v.e, z = -v.n, g = terrain.heightAt(x, z);
     cam.position.set(x, g + v.eye, z); cam.rotation.set(v.pitch * Math.PI / 180, -((v.az - 341) * Math.PI) / 180, 0, 'YXZ'); cam.fov = v.fov; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     const d = dirOf(v.sunAz, v.sunAlt); sun.position.copy(cam.position).addScaledVector(d, 1000); sun.target.position.copy(cam.position);
-    tm.update(cam.position); if (fordD) { fordD.update(cam.position, true); (window as any).__bedrock = { fords: fordD.stats }; } if (cover) { cover.update(cam.position, doyOf(v.day), ss, true); (window as any).__bedrock = { cover: cover.stats }; } if (bedrock) { bedrock.update(cam.position, cam.getWorldDirection(new THREE.Vector3()), true); ledges!.update(cam.position, true); (window as any).__bedrock = { ...bedrock.stats, ledges: ledges!.stats }; }
+    tm.update(cam.position); if (ffill) { ffill.update([v.e, v.n], doyOf(v.day), true); (window as any).__fill = ffill.stats(); } if (fordD) { fordD.update(cam.position, true); (window as any).__bedrock = { fords: fordD.stats }; } if (cover) { cover.update(cam.position, doyOf(v.day), ss, true); (window as any).__bedrock = { cover: cover.stats }; } if (bedrock) { bedrock.update(cam.position, cam.getWorldDirection(new THREE.Vector3()), true); ledges!.update(cam.position, true); (window as any).__bedrock = { ...bedrock.stats, ledges: ledges!.stats }; }
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     return errs.slice();
   };
