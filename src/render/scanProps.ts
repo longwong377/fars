@@ -61,7 +61,7 @@ export async function loadScanProps(base = BASE): Promise<ReturnType<typeof scan
       PROPS.set(id, { id, entry: e, lods, map, normal, arm, mean: meanColour(map), size }); LOAD.loaded.push(id);
     } catch (err) { LOAD.failed.push(id); console.warn(`[props] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
-  // (D-392: the shared decoder stays up)
+  draco.dispose();
   // D-325: the props' own maps (the carpets' knotted pile: tools/blender/carpet_pile.py)
   await Promise.all(['carpet_pile_n'].map(async n => { try { const t = await new THREE.TextureLoader().loadAsync(`${base}models/props/${n}.png`);
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; PROP_TEX.set(n, t); } catch { LOAD.failed.push(n); } }));

@@ -58,7 +58,7 @@ export async function loadModels(base = BASE, renderer?: THREE.WebGPURenderer): 
       MODELS.set(id, { id, entry: e, lods, maps }); LOAD.loaded.push(id);
     } catch (err) { LOAD.failed.push(id); console.warn(`[models] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
-  // (D-392: the shared decoder stays up)
+  draco.dispose();
   LOAD.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__models = { stats: modelStats, ab };
   return modelStats();

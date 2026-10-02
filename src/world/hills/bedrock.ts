@@ -169,7 +169,7 @@ export async function loadRockKit(base = BASE): Promise<RockKit | null> {
       const mean = meanColour(map), Y = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
       kit.atlas[cls] = { map, normal, arm, mean, cellK: [0, 1, 2, 3].map(i => Y(mean) / Math.max(0.01, Y(meanColour(map, i)))) };
     }
-    KIT = kit; KSTAT.pieces = kit.ledge.length + kit.ground.length;
+    draco.dispose(); KIT = kit; KSTAT.pieces = kit.ledge.length + kit.ground.length;
   } catch (e) { KSTAT.failed = String((e as Error).message ?? e); console.warn(`[bedrock] no rock kit (${KSTAT.failed}): the hills keep their texture only`); KIT = null; }
   KSTAT.ms = Math.round(performance.now() - t0); return KIT;
 }

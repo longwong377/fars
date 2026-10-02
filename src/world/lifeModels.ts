@@ -69,7 +69,7 @@ export async function loadLifeModels(base = BASE): Promise<ReturnType<typeof lif
       MODELS.set(id, { id, entry: e, levels: parseLifeGLB(ab), albedo, nrm }); LOAD.loaded.push(id); LOAD.bytes += Object.values(e.files).reduce((a, f) => a + f.bytes, 0);
     } catch (err) { LOAD.failed.push(id); console.warn(`[life] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
-  LOAD.ms = Math.round(performance.now() - t0);
+  ktx.dispose(); LOAD.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__lifeModels = { stats: lifeModelStats, ids: () => [...MODELS.keys()] };
   return lifeModelStats();
 }
