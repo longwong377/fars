@@ -193,7 +193,7 @@ export class PeopleSim {
   /** D-459: the deed done (after the person's answer) */
   strangerDeedDo(deed: Deed): DeedRec { return this.deeds.act(deed, this.t); }
   /** a person named in the words: a name of the addressee's house, kin or friends (their own word for them) */
-  private namedIn(words: string, pid: number): number | null {
+  namedIn(words: string, pid: number): number | null {
     const P = this.pop, day = Math.floor(this.t / 24), w = words.toLowerCase();
     const cand = [...P.membersOn(P.home(pid, day), day), ...P.persons[pid].ties];
     for (const x of cand) { const n = P.nameOf(x)?.replace(/^\*/, '').toLowerCase(); if (n && n.length > 2 && w.includes(n)) return x; }

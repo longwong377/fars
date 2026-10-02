@@ -2,6 +2,7 @@
 // in a worker) and the out-of-world English voice (Kokoro, in a worker). Loaded only on request (?converse or the dev lab);
 // without WebGPU the people live as before. Every answer is checked by the fence before it is shown (fence.ts); a failed
 // answer is asked again once with the failure named, and still failing, nothing is said (the person shrugs: T-E9 counts it).
+import { DEED_SCHEMA, deedPrompt, type ModelDeed } from '../deeds/extract';
 import type { MLCEngineInterface } from '@mlc-ai/web-llm';
 import { appConfig } from './models';
 import { fenceHits, type FenceHit } from './fence';
@@ -50,6 +51,15 @@ export class Mind {
     const r = await this.engine.chat.completions.create({ messages: judgePrompt(asked, reply), max_tokens: 3, temperature: 0, ...this.extra() } as any) as any;
     this.primedFor = ''; const a = String(r.choices?.[0]?.message?.content ?? '').trim().toUpperCase();
     return /^Y/.test(a) ? true : /^N/.test(a) ? false : null;
+  }
+  /** D-459 (UD-32): the stranger's words read as a deed by the loaded model under the deed schema (deeds/extract.ts: WebLLM's
+   *  JSON mode, greedy); null without a model or a clear reading. Outside the person's talk, which is primed again after (as the judge) */
+  deedReads = 0;
+  async readDeed(said: string): Promise<ModelDeed | null> {
+    if (!this.engine) return null; this.deedReads++; const p = deedPrompt(said);
+    try { const r = await this.engine.chat.completions.create({ messages: [{ role: 'system', content: p.system }, { role: 'user', content: p.user }], max_tokens: 80, temperature: 0, response_format: { type: 'json_object', schema: JSON.stringify(DEED_SCHEMA) }, ...this.extra() } as any) as any;
+      this.primedFor = ''; return JSON.parse(String(r.choices?.[0]?.message?.content ?? 'null')) as ModelDeed; }
+    catch { this.primedFor = ''; return null; }
   }
   /** forget the primed person (another comes near) */
   forget() { this.conv = []; this.primedFor = ''; }

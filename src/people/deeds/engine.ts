@@ -49,7 +49,9 @@ export class DeedWorld {
   /** the stranger's deeds (replayed on load) */
   private mine: { t: number; deed: Deed }[] = [];
   private lays = new Map<string, Seg[]>();
-  private dayDone = -1;
+  private dayDone = -1; private evSeen = 0;
+  /** the minds' days run, their cost and their deeds (a measure) */
+  readonly stats = { days: 0, ms: 0, deeds: 0 };
   constructor(readonly w: WorldPort, ctx?: Partial<MindCtx>) {
     const E = (d: number) => w.econ(d), hhOf = (pid: number, d: number) => `h:${w.pop.home(pid, d)}`;
     this.minds = new Minds(w.pop, w.seed, {
@@ -96,15 +98,17 @@ export class DeedWorld {
     // the things: the doer must have what he gives, the other what is taken or asked
     const lack = this.lacks(d, day); if (lack) return no(lack);
     // asleep: words are not heard, and the consenting deeds wait
-    const tSeg = typeof tg === 'number' ? segAt(P.plan(tg, day), hour) : null;
-    if (tSeg?.act === 'sleep' && (d.inH ?? 0) < 1 && !['attack', 'steal', 'break', 'push'].includes(d.verb)) return no('asleep');
+    const tSeg = typeof tg === 'number' ? (d.actor === 'player' ? segAt(P.plan(tg, day), hour) : { act: hour < 5.5 || hour > 21.75 ? 'sleep' : 'rest' }) : null; // (the town's own deeds read only the hour: the cost)
+    const tended = ['help', 'heal', 'comfort'].includes(d.verb) && typeof tg === 'number' && (P.sick(tg, day) || P.mourning(tg, day)); // (the sick are tended asleep; the mourners comforted)
+    if (tSeg?.act === 'sleep' && (d.inH ?? 0) < 1 && !tended && !['attack', 'steal', 'break', 'push'].includes(d.verb)) return no('asleep');
     // the other's mind
     const dec = typeof tg === 'number' ? this.minds.decide(tg, d, day, hour) : { lean: 0.5, ok: true, why: '' };
     if (sense.consent && !dec.ok) {
       const eff: Effect[] = typeof d.actor === 'number' && typeof tg === 'number' ? [{ k: 'feel', who: d.actor, toward: tg, d: { aff: -0.03 } }] : [];
       if (apply) this.applyAll(eff, day, d); return { ok: false, refused: true, why: dec.why, lean: dec.lean, effects: eff };
     }
-    const wit = typeof tg === 'number' ? this.w.near(tg, t).filter(x => x !== tg && x !== d.actor && P.ageOn(x, day) >= 10).slice(0, 8) : [];
+    // (witnesses matter for a wrong and for the stranger's deeds; a kindness between neighbours is not searched for: the cost of it)
+    const wit = typeof tg === 'number' && (sense.wrong || d.actor === 'player') ? this.w.near(tg, t).filter(x => x !== tg && x !== d.actor && P.ageOn(x, day) >= 10).slice(0, 8) : [];
     const eff = this.effects(d, t, dec.lean, wit);
     if (apply) this.applyAll(eff, day, d);
     return { ok: true, why: dec.why || sense.gloss, lean: dec.lean, effects: eff, witnesses: wit };
@@ -179,7 +183,7 @@ export class DeedWorld {
     // where the deed takes people: the other (and a mind doer) go to the place and do it for its hours
     if (tg !== undefined && sense.consent && sense.hours > 0.2 && typeof tg === 'number') {
       const at = hour + (d.inH ?? 0), dd = day + Math.floor(at / 24), h0 = at % 24, h1 = Math.min(23.5, h0 + sense.hours);
-      const place = d.place ?? (d.verb === 'visit' ? (typeof d.actor === 'number' ? `h:${P.home(d.actor, dd)}` : `h:${P.home(tg, dd)}`) : segAt(P.plan(tg, dd), h0).place);
+      const place = d.place ?? (d.verb === 'visit' ? (typeof d.actor === 'number' ? `h:${P.home(d.actor, dd)}` : `h:${P.home(tg, dd)}`) : d.actor === 'player' ? segAt(P.plan(tg, dd), h0).place : `h:${P.home(tg, dd)}`);
       const act: ActivityId = d.act ?? (d.verb === 'visit' || d.verb === 'meet' || d.verb === 'intercede' || d.verb === 'reconcile' || d.verb === 'introduce' ? 'talk' : d.verb === 'share_food' ? 'eat' : d.verb === 'pray' ? 'offer' : d.verb === 'heal' ? 'tend_body' : d.verb === 'carry' ? 'carry_sack' : d.verb === 'come_with' ? 'walk' : 'talk');
       const why = `${d.verb === 'help' ? 'helping' : d.verb === 'join' ? 'together with' : d.verb.replace(/_/g, ' ')} ${this.name(d.actor)}${d.act ? `: ${d.act.replace(/_/g, ' ')}` : ''}`;
       if (h1 - h0 > 0.15) { out.push({ k: 'lay', pid: tg, day: dd, h0, h1, place, act, why, with: d.actor });
@@ -215,7 +219,7 @@ export class DeedWorld {
   }
   private whereOf(place: string, pid: number, day: number): Where {
     if (/^(hills|river|field:|pasture:|flock:|crown_fields|canal:)/.test(place)) return 'plain';
-    const s = this.w.pop.plan(pid, day)[0]; return (s?.where === 'away' || s?.where === 'road' ? 'town' : s?.where) ?? 'town';
+    const P = this.w.pop, m = /^h:(\d+)$/.exec(place), z = P.households[m ? +m[1] : P.home(pid, day)]?.zone; return z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town';
   }
   /** lay a segment over a person's day (the plans' overlay) */
   private lay(pid: number, day: number, seg: Seg) { const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); }
@@ -252,9 +256,17 @@ export class DeedWorld {
   *dayParts(day: number): Generator<void> {
     if (day <= this.dayDone) return; this.dayDone = day;
     for (const c of this.cases) if (!c.ruled && c.due <= day) this.rule(c, day);
-    this.duesOf(day); yield;
-    const own = this.minds.deeds(day); let k = 0;
-    for (const d of own) { const t = day * 24 + 8 + u01(this.w.seed, S.hour, day, k++) * 12; d.inH = d.inH ?? 0; this.act(d, t); if (k % 40 === 0) yield; }
+    this.duesOf(day);
+    // the world's own events of the day felt by the people they name (the economy's: robbed, default, loan, death, ...)
+    const E = this.w.econ(day); if (E) { const evs: { day: number; actor: string; kind: string; other?: string }[] = [];
+      for (let i = Math.max(this.evSeen, 0); i < E.events.length; i++) { const e = E.events[i]; if (e && e.day === day) evs.push(e as any); } this.evSeen = E.events.length; this.minds.observe(evs, day); }
+    yield;
+    const own = this.minds.deeds(day); let k = 0, ms = 0;
+    for (const d of own) { const t0 = Date.now();
+      // (visits, meals and comfort of an evening, when people are home and awake; the rest by day: C)
+      const ev = ['visit', 'share_food', 'comfort', 'reconcile'].includes(d.verb), t = day * 24 + (ev ? 17.5 + u01(this.w.seed, S.hour, day, k++) * 2.5 : 8 + u01(this.w.seed, S.hour, day, k++) * 10);
+      d.inH = d.inH ?? 0; this.act(d, t); ms += Date.now() - t0; if (k % 40 === 0) yield; }
+    this.stats.days++; this.stats.ms += ms; this.stats.deeds += own.length;
   }
   day(day: number) { for (const _ of this.dayParts(day)); }
 
@@ -275,7 +287,7 @@ export class DeedWorld {
   save() { return { mine: this.mine, minds: this.minds.save(), inj: [...this.injuries], cases: this.cases, promises: this.promises, skills: [...this.skills], lays: [...this.lays], dayDone: this.dayDone, n: this.log.length }; }
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.cases.splice(0, this.cases.length, ...s.cases); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
-    this.lays = new Map(s.lays); this.dayDone = s.dayDone; }
+    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0; }
 }
 
 /** a segment laid into a day: the base is cut around it (the overlays' shared rule) */

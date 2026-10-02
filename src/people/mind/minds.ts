@@ -80,7 +80,9 @@ export class Minds {
   decide(pid: number, d: Deed, day: number, hour: number): Decision {
     const P = this.pop, p = P.persons[pid], sense = VERBS[d.verb], doer = d.actor;
     const f = this.feelOf(pid, doer, day), pe = personaOf(P, pid, day), age = P.ageOn(pid, day);
-    const seg = segAt(P.plan(pid, day), hour), why: [number, string][] = [];
+    // (the stranger's deeds read the person's day as it is now; the town's own deeds, drawn by the hundred a day, read only the
+    // hour: building a stranger's plan cascades through a household, ~20 ms, the cost of the minds: D-459)
+    const seg = doer === 'player' ? segAt(P.plan(pid, day), hour) : { act: hour < 5.5 || hour > 21.75 ? 'sleep' : 'rest', why: '' } as { act: string; why: string }, why: [number, string][] = [];
     let lean = sense.want; why.push([sense.want, sense.want >= 0.3 ? `${sense.gloss} is welcome to anyone` : sense.want <= -0.3 ? `no one likes ${sense.gloss}` : '']);
     const add = (x: number, w: string) => { lean += x; why.push([x, w]); };
     add(0.5 * f.aff, f.aff > 0.25 ? 'fond of him' : f.aff < -0.2 ? 'dislikes him' : '');
@@ -91,7 +93,7 @@ export class Minds {
     if (f.fear > 0.3) add(['give', 'ask_for', 'borrow', 'fetch', 'carry', 'dismiss'].includes(d.verb) ? 0.3 * f.fear : -0.4 * f.fear, 'afraid of him');
     const tr = this.ctx.trust(pid, doer, day); add(0.6 * (tr - 0.5), tr < 0.35 ? 'the house does not trust him' : tr > 0.65 ? 'the house trusts him' : '');
     // temper and facets
-    if (sense.consent) { add(0.25 * (pe.warmth - 0.5), pe.warmth > 0.7 ? 'warm by nature' : pe.warmth < 0.3 ? 'cold to strangers' : '');
+    if (sense.consent) { add(0.25 * (pe.warmth - 0.5), pe.warmth > 0.7 ? 'warm by nature' : pe.warmth < 0.3 ? (doer === 'player' ? 'cold to strangers' : 'cold by nature') : '');
       if (doer === 'player') add(0.2 * (pe.curiosity - 0.5), pe.curiosity > 0.7 ? 'curious about the stranger' : ''); }
     if (d.verb === 'pray' || d.verb === 'offer' || d.verb === 'bless') add(0.4 * (pe.piety - 0.4), pe.piety > 0.7 ? 'devout' : '');
     if (['insult', 'mock', 'threaten', 'push'].includes(d.verb)) add(-0.3 * pe.pride, pe.pride > 0.7 ? 'proud: will not stand it' : '');
@@ -116,10 +118,44 @@ export class Minds {
     return { lean: cl(lean), ok: draw > 0, why: top.join('; ') || (draw > 0 ? 'willing' : 'not willing') };
   }
 
+  // ---------------------------------------------------------------- the world's own events felt (with or without the stranger)
+  /** deeds the world's events call for, taken up on the day (comfort to a house in mourning, help to a sick or burnt house) */
+  private queued: Deed[] = [];
+  /** the head of a house on a day: its eldest man of working age, else its eldest adult */
+  headOf(h: number, day: number): number | null {
+    const P = this.pop; if (!P.households[h]) return null; const m = P.membersOn(h, day).filter(x => P.present(x, day) && P.persons[x].dies > day + 1 && P.ageOn(x, day) >= 16); // (not the one dying) if (!m.length) return null;
+    return [...m].sort((a, b) => (P.persons[b].sex === 'm' && P.ageOn(b, day) < 65 ? 1 : 0) - (P.persons[a].sex === 'm' && P.ageOn(a, day) < 65 ? 1 : 0) || P.ageOn(b, day) - P.ageOn(a, day))[0];
+  }
+  /** the economy's events of a day, felt by the people of the houses they name (C: who feels what toward whom):
+   *  robbed -> anger at the thief's house; a default -> the lender's anger; a pledge seized or a suit -> the debtor's anger; a loan
+   *  -> gratitude; a loan refused -> resentment; kin's help -> gratitude; a debt repaid -> regard; a death, an illness, a fire ->
+   *  kin and friends come to comfort or help */
+  observe(evs: readonly { day: number; actor: string; kind: string; other?: string }[], day: number) {
+    const P = this.pop, hid = (x?: string) => x && /^h:\d+$/.test(x) ? +x.slice(2) : -1;
+    for (const e of evs) { const a = this.headOf(hid(e.actor), day), o = e.other ? this.headOf(hid(e.other), day) : null;
+      const feel = (who: number | null, to: number | null, d: Partial<Feel>) => { if (who !== null && to !== null && who !== to) this.move(who, to, d, day); };
+      switch (e.kind) {
+        case 'robbed': feel(a, o, { anger: 0.55, aff: -0.3, fear: 0.1 }); break;
+        case 'default': feel(o, a, { anger: 0.4, aff: -0.15, resp: -0.1 }); break;
+        case 'pledge_seized': case 'suit': feel(o, a, { anger: 0.3, fear: 0.1, aff: -0.1 }); break;
+        case 'loan': feel(a, o, { grat: 0.25, resp: 0.05 }); break;
+        case 'loan_refused': feel(a, o, { anger: 0.15, aff: -0.08 }); break;
+        case 'kin_help': case 'help': feel(a, o, { grat: 0.35, aff: 0.05 }); break;
+        case 'repaid': feel(o, a, { resp: 0.08, aff: 0.04 }); break;
+        case 'death': case 'illness': case 'house_fire': { const h = hid(e.actor), H = P.households[h]; if (!H || a === null) break;
+          // the kin houses' heads and the friends of the house's members come round (C: most kin, a few friends)
+          const come = new Set<number>(); for (const k of H.kin) { const x = this.headOf(k, day); if (x !== null) come.add(x); }
+          for (const m of P.membersOn(h, day)) for (const t of P.persons[m].ties) if (P.home(t, day) !== h) come.add(t);
+          let n = 0; for (const x of come) { if (n >= 6 || !P.persons[x] || !P.present(x, day) || P.ageOn(x, day) < 14) continue; if (u01(this.seed, S.own, x, day, 9) > (H.kin.includes(P.home(x, day)) ? 0.85 : 0.35)) continue; n++;
+            this.queued.push(e.kind === 'death' ? { verb: 'comfort', actor: x, target: a } : e.kind === 'illness' ? { verb: 'help', actor: x, target: a, act: 'tend_body' } : { verb: 'help', actor: x, target: a, act: 'mould_brick' }); }
+          break; }
+      } }
+  }
+
   // ---------------------------------------------------------------- initiative: what a mind does of its own accord
   /** the deeds the town's minds take up on a day (with or without the stranger): drawn over the state, at most `max` */
   deeds(day: number, max = 300): Deed[] {
-    const P = this.pop, out: Deed[] = [], rng = (pid: number, k: number) => u01(this.seed, S.own, pid, day, k);
+    const P = this.pop, out: Deed[] = this.queued.splice(0, this.queued.length).slice(0, max >> 1), rng = (pid: number, k: number) => u01(this.seed, S.own, pid, day, k);
     // (1) feelings acted on: every person who holds a strong feeling about someone (the minds' own state)
     for (const [pid, m] of this.feel) { if (out.length >= max) break; if (!P.persons[pid] || !P.present(pid, day) || P.ageOn(pid, day) < 8) continue;
       for (const [k] of m) { const o: Actor = k === -1 ? 'player' : k; if (o !== 'player' && (!P.persons[o] || !P.present(o, day))) continue;
