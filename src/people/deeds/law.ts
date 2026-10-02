@@ -105,6 +105,8 @@ export class Law {
 
   private side(a: Actor, day: number): string | null { return a === 'player' ? 'player' : this.p.hh(a, day); }
   private hid(h: string) { return +h.slice(2); }
+  /** a house's zone as a plan's Where (never read from a plan: a plan read for a later day fills the economy plans' cache early) */
+  private zoneOf(h: string): Where { const z = this.p.pop.households[this.hid(h)]?.zone; return z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town'; }
   private qOf(h: string | null): string | undefined { return h && h !== 'player' ? this.p.pop.households[this.hid(h)]?.q : undefined; }
   private adults(h: string, day: number, min = 14): number[] { const P = this.p.pop; return h === 'player' ? [] : P.membersOn(this.hid(h), day).filter(x => P.present(x, day) && P.persons[x].dies > day && P.ageOn(x, day) >= min); }
   /** the head who speaks for a house: its eldest man under 70, else its eldest grown-up */
@@ -288,7 +290,7 @@ export class Law {
   private labour(pid: number, hh: string, amt: number, day: number, why: string): number {
     const days = Math.min(12, Math.ceil(amt / DAY_WAGE)), P = this.p.pop; if (hh === 'player') return 0;
     for (let k = 1; k <= days; k++) { const dd = day + k; if (P.persons[pid].dies <= dd) break;
-      this.p.lay(pid, dd, { t0: 7, t1: 14, place: hh, act: P.persons[pid].sex === 'f' ? 'grind' : 'carry_sack', why: `working off what is owed: ${why}`, where: this.p.whereOf(hh, pid, dd) }); }
+      this.p.lay(pid, dd, { t0: 7, t1: 14, place: hh, act: P.persons[pid].sex === 'f' ? 'grind' : 'carry_sack', why: `working off what is owed: ${why}`, where: this.zoneOf(hh) }); }
     return days;
   }
 
@@ -373,7 +375,7 @@ export class Law {
     const place = court === 'judges' ? 'official_bldg' : judge !== null ? `h:${P.home(judge, day)}` : 'official_bldg';
     const heard = court === 'judges' ? "before the king's judges" : 'before the elder of the quarter';
     for (const x of [c.accuser, c.accused]) if (typeof x === 'number' && P.present(x, day) && P.persons[x].dies > day)
-      this.p.lay(x, day, { t0: 8, t1: 9.5, place, act: 'queue', why: `${heard}: ${x === c.accused ? 'accused of' : 'bringing a charge of'} ${c.crime}`, where: place === 'official_bldg' ? 'town' : this.p.whereOf(place, x, day) });
+      this.p.lay(x, day, { t0: 8, t1: 9.5, place, act: 'queue', why: `${heard}: ${x === c.accused ? 'accused of' : 'bringing a charge of'} ${c.crime}`, where: place === 'official_bldg' ? 'town' : this.zoneOf(place) });
     if (c.accused === 'player' && this.stranger.held) this.stranger.held.until = day * 24 + 10;
     if (ev <= 0) { // not proved: dismissed; a wrong charge leaves the accused (if innocent) angry at the accuser
       c.ruled = 'dismissed'; c.why = `not proved ${heard}`;
