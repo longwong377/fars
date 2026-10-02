@@ -473,7 +473,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // D-336 (UD-22): every person's own natural voice (Kokoro-82M in a worker, WebGPU or WASM; ?neural=0 keeps the formant
   // synthesiser, which also speaks while the model loads or when it cannot): the scripted lines and the population's voices
   const NP = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-  const neural = NP.get('neural') !== '0' && typeof Worker !== 'undefined' ? new NeuralVoices({ device: (NP.get('neuraldevice') as 'webgpu' | 'wasm' | null) ?? undefined }) : null;
+  const neural = NP.get('neural') !== '0' && typeof Worker !== 'undefined' ? new NeuralVoices({ device: (NP.get('neuraldevice') as 'webgpu' | 'wasm' | null) ?? undefined, dtype: NP.get('neuraldtype') ?? undefined, lazy: true }) : null; // (D-376: lazy: started after the first frames, main.ts)
   const speech = new Speech(audio, [...(neural ? [new NeuralBackend(neural)] : []), new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]);
   // D-245: voices from everyone the crowd places near the listener (detailed agents, the population, impostors), not only the
   // 135 on the Terrace; published words only, each person their own voice; a grain bed for the talkers beyond (audio/voices.ts)
