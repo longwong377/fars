@@ -9489,3 +9489,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - The court's camps: before every standing tent its things (courtCamps.ts campItems: mats or a carpet, bedding rolls, water jars, baggage, a chest, a hearth and pot at every third tent; the modelled props), shown only while that tent stands; picket lines of horses, mules and camels at every camp (fauna.ts addCampLines; 10 at the royal stud's camp), filled with the share of the camp's tents standing. All C (Q-333).
 - The Hall of 100 Columns' site: the earth ramp the sim's gangs haul drums up (BUILD.raiseDays) to the column being raised, along the aisle beside its row, sleepers, a drum on rollers, a plank bridge to the scaffold; walkable (stepped colliders). C (D-022, Q-710). Census: ~500 at the site per working hour, ~4,300 at the camps in residence (the population's plans).
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView.
+- (D-500, step 3) The sim's hooks on the body (handoff/briefs/s16/deeds_render.md): a wound of the deeds (DeedWorld.injuryOf)
+  drawn as a linen bandage round the head or the left forearm (a cut) or a splinted right forearm, or a broken leg's limp with
+  a staff (seeded per person); a healed wound or scald of the past (marks.ts war_scar, burn_arm, crooked_arm) as paler,
+  glossier patches on the right forearm. Person texel 10 [wound, scar, eye height]; the per-vertex mask rides vExt.w on skin
+  (no new varying). crowd.setMarks once a person a day. C.

@@ -33,6 +33,7 @@ await shot('d05-face', { fn: m => { const L = window.__lab; L.lineup(m.slice(0, 
 await shot('d05-woman', { fn: m => { const L = window.__lab; L.lineup(m.slice(0, 3), 0.9, true); L.at(4); L.frameFace(1, 0.5, -0.1); }, arg: MIX });
 await shot('asks', { fn: () => { const L = window.__lab; L.stations([{ act: 'walk', why: 'driving a flock along the road', dress: 'worker', sex: 'm', role: 'herder', x: -4, z: -2, yaw: 0.3 },
   { act: 'walk', why: 'ox cart of building stone', dress: 'worker', sex: 'm', role: 'porter', x: 4, z: 3, yaw: 0.4 }, { act: 'walk', why: 'holding the stone cart', dress: 'worker', sex: 'm', role: 'porter', x: 9, z: -4, yaw: -0.6 }]); L.at(6); L.view(-2, 3.2, 16, 2, 0.8, 0); }, arg: null });
+await shot('marks', { fn: m => { const L = window.__lab; L.lineup([{ ...m[1], seed: 31 }, m[6], { ...m[3], seed: 77 }], 0.9, true); L.marks(0, 1); L.marks(1, 1, 1); L.marks(2, 3); L.at(4); L.frameFace(1, 0.7, 0.1); }, arg: MIX });
 // 10 m: a group, mixed activities
 await shot('d10', { fn: m => { const L = window.__lab; const A = ['walk', 'idle', 'talk', 'carry_shoulder', 'idle', 'walk', 'talk'];
   L.lineup(m.map((s, i) => ({ ...s, anim: A[i] })), 1.3, false); L.at(7.7); L.view(1.5, 1.62, 10, 0, 1.0, 0); }, arg: MIX });

@@ -40,6 +40,8 @@ import { nearCascadesOnly } from './humanGPU';
 import { propGeometry, propUnionGeometry, paintedBox, paintedModel, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave, BABE_CLASS } from './props';
 import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTES, type BabeMode } from './babes';
 import { h32, salt } from './hash';
+import { marksOf } from './marks';
+const S_MARK = salt('crowd-marks');
 import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim, CAPTURED_WORK } from './workAnims';
@@ -168,6 +170,8 @@ export interface Person {
   gait: Gait; legK: number; gx: number; gz: number;
   /** D-292: the belly drawn (Population.gravid on the day it was written) */
   belly?: number;
+  /** s17 V3 (D-500): the marks drawn (texel 10: wound, scar), and a broken leg's limp from the deeds (DeedWorld.injuryOf) */
+  marks?: number; deedLimp?: boolean;
   /** the LOD drawn with in the last frame */
   lod?: number;
   /** D-215: the children carried or put down beside this person now (prop kind, transform in character space, skin tint) */
@@ -339,6 +343,7 @@ export class Crowd {
     D.set(w ? wearTexel(w) : [0, 0, 0, 0], o + 36);
     // D-292: the abdomen's frame of the body variant (the belly's displacement, humanMaterial); the amount is set by setBelly
     const bf = bellyFrame(this.humans.A, this.humans.A.variants[look.variant]); D[o + 27] = bf.yc; D[o + 35] = bf.z0;
+    D.set([0, 0, this.humans.A.variants[look.variant].eyeY, 0], o + 40); // s17 V3: the marks (setMarks), the eye height they are laid from
     this.humans.gpu.markPersonDirty();
   }
   /** D-292 (C-D09): a woman with child carries the belly of her months (Population.gravid: 0 for everyone else) */
@@ -350,7 +355,24 @@ export class Crowd {
   /** the day's bellies for everyone attached (each day's refresh: the months go on) */
   private bellies(day: number, force = false) {
     const pop = this.view?.pop ?? this.sim?.pop; if (!pop || (!force && day === this.bellyDay)) return; this.bellyDay = day;
-    for (const p of this.persons.values()) { if (p.extra) continue; const pid = this.popPid(p); if (pid >= 0) this.setBelly(p, pop.gravid?.(pid, day) ?? 0); } }
+    for (const p of this.persons.values()) { if (p.extra) continue; const pid = this.popPid(p); if (pid >= 0) { this.setBelly(p, pop.gravid?.(pid, day) ?? 0); this.setMarks(p, pid, day); } } }
+  /** s17 V3 (D-500; handoff/briefs/s16/deeds_render.md): the sim's hooks on the body. A wound of the deeds (DeedWorld.injuryOf):
+   *  a cut bandaged round the head or the left forearm, a broken bone splinted at the right forearm or a broken leg's limp
+   *  (seeded by the person); a healed wound or scald of the past (marks.ts: war_scar, burn_arm, crooked_arm) on the right
+   *  forearm. Once a day per person (marksOf reads the past) */
+  private markCache = new Map<number, { day: number; scar: number }>();
+  setMarks(p: Person, pid: number, day: number) {
+    const pop = this.view?.pop ?? this.sim?.pop; if (!pop) return;
+    let mc = this.markCache.get(pid); if (!mc || mc.day !== day) { let scar = 0;
+      try { const ms = marksOf(pop as any, pid, day); if (ms.some(m => m.look === 'war_scar' || m.look === 'burn_arm' || m.look === 'crooked_arm')) scar = 1; } catch { /* a partial population (tests' stand-ins) */ }
+      mc = { day, scar }; if (this.markCache.size > 5000) this.markCache.clear(); this.markCache.set(pid, mc); }
+    const inj = (this.sim as any)?.deeds?.injuryOf?.(pid, day) as { how: string } | null | undefined, side = (h32(this.seed, S_MARK, pid) & 1) === 0;
+    const wound = !inj || inj.how === 'bruised' || inj.how === 'killed' ? 0 : inj.how === 'cut' ? (side ? 1 : 2) : side ? 3 : 0;
+    p.deedLimp = !!inj && inj.how === 'broken' && !side;
+    this.setMarkBits(p, wound, mc.scar); }
+  /** write a person's marks (wound 0-3, scar 0-1: humanMaterial MARK) */
+  setMarkBits(p: Person, wound: number, scar: number) { const m = wound + 4 * scar; if ((p.marks ?? 0) === m) return; p.marks = m;
+    const o = p.slot * PERSON_TEXELS * 4 + 40; this.humans.gpu.person[o] = wound; this.humans.gpu.person[o + 1] = scar; this.humans.gpu.markPersonDirty(); }
   private newPerson(key: string, agent: Agent | null, look: PersonLook, seed: number): Person {
     const slot = this.allocSlot(); this.writePerson(slot, look);
     const v = this.humans.A.variants[look.variant];
@@ -369,7 +391,7 @@ export class Crowd {
   attach(a: Agent): Person {
     const hit = this.byAgent.get(a.id); if (hit) return hit; const key = `a${a.id}`;
     const look = lookFor(this.humans.A, { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } as LookInput, this.seed);
-    const p = this.newPerson(key, a, look, a.seed); if (a.pid >= 0 && this.sim) this.setBelly(p, this.sim.pop.gravid?.(a.pid, Math.floor(this.sim.t / 24)) ?? 0); return p;
+    const p = this.newPerson(key, a, look, a.seed); if (a.pid >= 0 && this.sim) { const d = Math.floor(this.sim.t / 24); this.setBelly(p, this.sim.pop.gravid?.(a.pid, d) ?? 0); this.setMarks(p, a.pid, d); } return p;
   }
   detach(a: Agent | string) { const p = typeof a === 'string' ? this.persons.get(a) : this.byAgent.get(a.id); if (!p) return; this.freeSlot(p.slot); this.persons.delete(p.key); if (p.agent) this.byAgent.delete(p.agent.id); else if (p.pid >= 0) this.byPid.delete(p.pid); }
   /** attach a person of the population (D-143): their look from the view (a detailed agent keeps its own); idempotent */
@@ -378,7 +400,7 @@ export class Crowd {
     const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
     if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
     const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p);
-    const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid?.(pid, day) ?? 0); return p; // (gravid?.: a view built on a partial population, as the tests' stand-ins, draws no belly)
+    const day = Math.floor((this.sim?.t ?? 0) / 24); this.setBelly(p, this.view!.pop.gravid?.(pid, day) ?? 0); this.setMarks(p, pid, day); return p; // (gravid?.: a view built on a partial population, as the tests' stand-ins, draws no belly)
   }
   /** an extra person not driven by the simulation (test lineups, the performance sheet): fixed place, yaw and animation,
    *  or an activity (`act`, with the plan's reason `why`) performed with its props, work objects and animals */
@@ -533,8 +555,9 @@ export class Crowd {
     if (act !== p.act || why !== p.why) { // the performance changes only with the activity or the plan's reason
       p.act = act ?? ''; p.why = why; p.perf = act ? performanceFor(act, why, a ? a.seed : Math.round(p.animK * 159), e?.variant, vp ? this.who(p.pid) : undefined) : null; p.actPlaceholder = !!p.perf?.placeholder;
       // D-215 (gap audit item 37): the lame walk with a staff, the blind feel their way with one
-      if (vp?.impair && p.perf && act === 'walk' && !p.perf.animals) { const hurt = vp.impair === 1 && p.pid >= 0 ? this.view?.pop.injuryOn?.(p.pid, Math.floor((this.sim?.t ?? 0) / 24)) : null;
-        p.perf = { ...p.perf, anim: vp.impair === 1 ? 'limp' : 'feel', prop: 'staff', note: hurt ? `limping on a staff, ${hurt.how} some days ago (gap hunter C, C-D19: hurts of the heavy work; C: D-292)` : vp.impair === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; } }
+      const imp = vp?.impair || (p.deedLimp ? 1 : 0); // (s17 V3: a broken leg of the deeds limps too)
+      if (imp && p.perf && act === 'walk' && !p.perf.animals) { const hurt = imp === 1 && p.pid >= 0 ? this.view?.pop.injuryOn?.(p.pid, Math.floor((this.sim?.t ?? 0) / 24)) : null;
+        p.perf = { ...p.perf, anim: imp === 1 ? 'limp' : 'feel', prop: 'staff', note: p.deedLimp && !vp?.impair ? 'limping on a staff, a leg broken in a fight or a fall (the deeds: DeedWorld.injuryOf; C)' : hurt ? `limping on a staff, ${hurt.how} some days ago (gap hunter C, C-D19: hurts of the heavy work; C: D-292)` : imp === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; } }
     p.anim = p.perf ? p.perf.anim : e?.anim ?? 'idle';
   }
   private lastTime = 0;
