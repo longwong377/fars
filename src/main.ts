@@ -18,6 +18,7 @@ import { WeatherSystem, WeatherOverride } from './weather/weatherState';
 import { Physics } from './player/physics';
 import { Player } from './player/player';
 import { makePlayerBody, animateBody } from './player/body';
+import { Head } from './player/motion';
 import { shadowsSeePeople } from './people/humanGPU';
 import { Shell } from './ui/shell';
 import { DevOverlay } from './ui/overlay';
@@ -27,7 +28,8 @@ import { PLACES } from './people/sim';
 import { buildWorld, WorldBuild } from './world/world';
 import { releaseUploadedTextures, releaseStats } from './world/cache/release';
 import { BootProgress } from './shell/progress';
-import { warmBootFiles } from './shell/warm';
+import { prefetchBootFiles } from './core/prefetch';
+import { Intro, TitleDrift, type IntroDeps } from './shell/intro';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -125,7 +127,7 @@ async function boot() {
   prog.step('renderer');
   shell.loading('Loading the plain and the mountain…');
   await swP;
-  void warmBootFiles(BASE).then(() => TRACE(`warm done ${JSON.stringify((globalThis as any).__warm ?? null)}`)); // D-393: the world's files download while the terrain and the scans decode (the build waited ~30 s for them after)
+  void prefetchBootFiles(BASE, SEED).then(s => { (globalThis as any).__warm = s; TRACE(`prefetch done ${JSON.stringify(s)}`); }); // D-580 (was D-393's warming): the world's files download while the terrain and the scans decode
   // s15/ship: the terrain's rings and the physics engine load while the scans decode (each was awaited in turn)
   const terrainP = Terrain.load(BASE), physP = Physics.create();
   await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
@@ -153,6 +155,9 @@ async function boot() {
   shell.loading('Raising the Terrace…');
   const phys = await physP;
   TRACE('physics ready');
+  // D-580: the ground's chunks round the spawn built while the world's build waits for its assets (the main thread idles ~8 s
+  // there on a cold visit), not in the first frame after ready (2.8 s of terrain.update in frame 0, measured)
+  setTimeout(() => { const [ex, ez] = [SPAWN.east, -SPAWN.north]; tmesh.update(new THREE.Vector3(ex, terrain.surfaceAt(ex, ez) + 1.6, ez)); }, 0);
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
   phys.updateTerrain(terrain, { x: sx, y: 0, z: sz }); phys.step(1 / 60);
@@ -172,6 +177,7 @@ async function boot() {
   let lastSub: any = null, lastSubAt = -1e9; const inscGroup = [world.root.getObjectByName('inscriptions') ?? null, world.root.getObjectByName('nr-inscriptions') ?? null,
     world.root.getObjectByName('treasury_scribes_room') ?? null, world.root.getObjectByName('doors') ?? null]; // the last two: writing on objects (D-179)
   const body = makePlayerBody((world as any).people?.crowd); scene.add(body);
+  const head = new Head(); // the head on the walking body (D-630)
 
   let lastSave: string | null = null;
   function state() {
@@ -200,6 +206,10 @@ async function boot() {
 
   const notices: string[] = []; // out-of-world save and load notices (T-H3s, T-H3v)
   setSaveProblemHandler(m => { notices.push(m); console.warn('[save]', m); shell.notice(m); });
+  let titleDrift: TitleDrift | null = null;
+  const introDeps = (): IntroDeps => ({ setCam: c => { freeCam = c; }, heightAt: (x, z) => terrain.heightAt(x, z), camera, player: () => ({ ...player.eye, yaw: input.yaw, pitch: input.pitch }),
+    look: (yaw, pitch) => { input.yaw = yaw; input.pitch = pitch; }, paused: () => shell.mode !== 'playing', getTime: () => ({ day: clock.dayIndex, hour: clock.localHour }), setTime: (d, h) => clock.set(d, h), fov: () => settings.fov,
+    rigClear: m => { const pp = (world as any).people; if (pp) pp.crowd.rigClear = m; } });
   Object.assign(hooksImpl, {
     start: () => { shell.playing(); input.lock(); world.audio?.unlock(); },
     resume: () => { shell.playing(); input.lock(); },
@@ -213,6 +223,9 @@ async function boot() {
     getTime: () => ({ day: clock.dayIndex, hour: clock.localHour, label: clock.label() }),
     setTime: (d: number, h: number) => clock.set(d, h),
     getWeather: () => weather.override, setWeather: (w: string) => { weather.override = w as WeatherOverride; },
+    // s17 C5 (D-590): the wordless opening as a new visit begins, and the title's drifting backdrop (src/shell/intro.ts); test worlds skip both, ?nointro the opening
+    intro: () => { if (!TEST && !P.has('nointro')) new Intro(introDeps()).play(); },
+    backdrop: (on: boolean) => { if (TEST) return; titleDrift ??= new TitleDrift(introDeps()); if (on) titleDrift.start(); else titleDrift.stop(); },
   });
   // autosave (audit D M9; T-H3): every AUTOSAVE_MS of real time while the visit is on (playing or paused), and when the page
   // is hidden or closed; frozen test worlds only with ?autosave
@@ -456,7 +469,7 @@ async function boot() {
     // the first __parsa.view() the people's simulation stayed at the page-load time: a setTime (or advanceWorld) moved the
     // sun but not the people (the coverage pilot found every walker frozen over 2 s of world time)
     if (freeCam) { world.simulate?.(dt, clock); return; }
-    const ax = input.locked ? input.axes() : botInput;
+    const ax = input.active() ? input.axes() : botInput;
     if (botInput.yawDeg !== undefined) { input.yaw = -((botInput.yawDeg - 341) * Math.PI) / 180; input.pitch = ((botInput.pitchDeg ?? 0) * Math.PI) / 180; }
     phys.updateTerrain(terrain, player.position);
     player.update(dt, { ...ax, yaw: input.yaw, pitch: input.pitch });
@@ -507,9 +520,9 @@ async function boot() {
     if (freeCam) { camera.position.set(freeCam.x, freeCam.y, freeCam.z); camera.rotation.set(freeCam.pitch, freeCam.yaw, 0, 'YXZ'); body.visible = false; }
     else {
       const e = player.eye;
-      const bob = settings.headBob && player.grounded ? Math.sin(player.bobPhase * 2) * 0.018 : 0; // ±1.8 cm (D-238: comfort; T-K3 < 2 cm)
-      camera.position.set(e.x, e.y + bob, e.z); camera.rotation.set(input.pitch, input.yaw, 0, 'YXZ');
-      body.visible = true; body.position.set(e.x, player.feetY, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, 1.35, dt);
+      const h = head.update(dt, { phase: player.bobPhase, speed: player.speed, grounded: player.grounded, landed: player.landed, bob: settings.headBob }, input.yaw); // D-630 (D-238: ±1.8 cm, no roll)
+      camera.position.set(e.x + h.x, e.y + h.y, e.z + h.z); camera.rotation.set(input.pitch, input.yaw, 0, 'YXZ');
+      body.visible = true; body.position.set(e.x, player.feetY + player.stepEase.y, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, player.speed, dt, player.crouchEase);
       // keep the camera ahead of the torso when looking down
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }
@@ -616,7 +629,7 @@ async function boot() {
     onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
-  prog.finish(); api.ready = true;
+  prog.finish(); api.ready = true; (api as any).readyAt = Math.round(performance.now()); // (D-580: the page clock at ready; the harness sees it late when the main thread is busy)
   // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
   if (NORENDER) void startTalk();
   // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)

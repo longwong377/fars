@@ -27,7 +27,7 @@ import { birdFlapNode, BIRDS } from '../../src/world/wildlife';
   // one bird: the fly0 level with its standing twin, as Birds builds it
   const uT = uniform(0), id = new URLSearchParams(location.search).get('bird') ?? 'crow', lm = lifeModel(id)!, sp = Object.values(BIRDS).find(b => b.id === id) ?? BIRDS.crow;
   const g = lm.levels.fly0.clone(), data = new THREE.InstancedInterleavedBuffer(new Float32Array(12), 12);
-  for (const [nm, sz, off] of [['phase', 1, 0], ['flapAmt', 1, 1], ['standAmt', 1, 2], ['bRx', 3, 3], ['bRy', 3, 6], ['bRz', 3, 9]] as const) g.setAttribute(nm, new THREE.InterleavedBufferAttribute(data, sz, off));
+  for (const [nm, off] of [['bA', 0], ['bB', 4], ['bC', 8]] as const) g.setAttribute(nm, new THREE.InterleavedBufferAttribute(data, 4, off)); // (wildlife.ts birdIn, D-570)
   const tw = lm.levels.stand0;
   if (tw) { const P = tw.getAttribute('position'), N = tw.getAttribute('normal'), a = new Float32Array(P.count * 6); for (let k = 0; k < P.count; k++) a.set([P.getX(k), P.getY(k), P.getZ(k), N.getX(k), N.getY(k), N.getZ(k)], k * 6);
     const ib = new THREE.InterleavedBuffer(a, 6); g.setAttribute('standPos', new THREE.InterleavedBufferAttribute(ib, 3, 0)); g.setAttribute('standNrm', new THREE.InterleavedBufferAttribute(ib, 3, 3)); }

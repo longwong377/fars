@@ -39,8 +39,9 @@ function leafGeometry(variant: number): THREE.BufferGeometry {
   const box = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, c: RGB) => b.box((x0 + x1) / 2, -(z0 + z1) / 2, 0, (x1 - x0) / 2, (z1 - z0) / 2, y0, y1, c, c, -1, true);
   // D-311: planks, battens and pull from the Blender kit (tools/blender/housekit.py leaf0..2: 3/4/5 planks with their gaps,
   // grain warp and baked AO), scaled to the opening; the pivot post below stays a prism
-  void n; void w; void box; kitFrame(b, KIT[`leaf${variant}`], [0, 0, 0], [DOOR_W, 0, 0], [0, H, 0], [0, 0, 1], lin(tones[variant][1]), -1, 1, 0.25);
-  const post = lin(tones[variant][2].map(x => x * 0.85) as RGB);
+  // (s17 C1, D-550: leaf3..5, the same three ages of wood in the kit's other three forms: tone by variant % 3)
+  void n; void w; void box; const age = variant % 3; kitFrame(b, KIT[`leaf${KIT[`leaf${variant}`] ? variant : age}`], [0, 0, 0], [DOOR_W, 0, 0], [0, H, 0], [0, 0, 1], lin(tones[age][1]), -1, 1, 0.25);
+  const post = lin(tones[age][2].map(x => x * 0.85) as RGB);
   const r = 0.045, sides = 8; for (let k = 0; k < sides; k++) { const a0 = (k / sides) * Math.PI * 2, a1 = ((k + 1) / sides) * Math.PI * 2;
     const p = (a: number, y: number) => [0.02 + Math.cos(a) * r, y, Math.sin(a) * r]; b.quadN(p(a0, -0.04), p(a1, -0.04), p(a1, DOOR_H + 0.06), p(a0, DOOR_H + 0.06), [Math.cos(a0), 0, Math.sin(a0)], [Math.cos(a1), 0, Math.sin(a1)], [Math.cos(a1), 0, Math.sin(a1)], [Math.cos(a0), 0, Math.sin(a0)], post, post, post, post, -1); }
   // a wooden pull and the bar's staple on the inside (the bar itself lies in the vestibule by day)
@@ -51,7 +52,7 @@ export class TownDoors {
   readonly group = new THREE.Group();
   private meshes: THREE.InstancedMesh[] = [];
   private open: Float32Array; private target: Float32Array; private sched: Float32Array; private manual = new Map<number, { to: number; sched: number }>();
-  private cols = new Map<number, any>(); private shown: number[][] = [[], [], []];
+  private cols = new Map<number, any>(); private shown: number[][] = [[], [], [], [], [], []];
   private lastEye = new THREE.Vector3(1e9, 0, 0); private lastKey = '';
   readonly stats = { drawn: 0, shut: 0, colliders: 0 };
   /** session 10 (WORLD_INVENTORY GB55): a door within SOUND_R of the eye begins to swing ('door': the pivot turning in its stone
@@ -59,7 +60,7 @@ export class TownDoors {
   onSound: ((kind: 'door' | 'door_shut', pos: { x: number; y: number; z: number }, barred: boolean) => void) | null = null;
   private eye = new THREE.Vector3(); private night = false; private moving: Uint8Array;
   /** `variants`: how many leaf meshes (by the wood's age); the villages use one (D-254: a single draw, the plain's mesh budget) */
-  constructor(readonly doors: StreetDoor[], private phys: Physics | null, private variants = 3, name = 'settlement:doors') {
+  constructor(readonly doors: StreetDoor[], private phys: Physics | null, private variants = 6, name = 'settlement:doors') {
     this.group.name = name;
     this.moving = new Uint8Array(doors.length); this.open = new Float32Array(doors.length).fill(-1); this.target = new Float32Array(doors.length); this.sched = new Float32Array(doors.length);
     const mat = surfaceMaterial('house_timber', { vertexColors: true }) as any; mat.aoNode = attribute('ao', 'float');
@@ -67,14 +68,16 @@ export class TownDoors {
       m.userData = { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door leaves (D-234)', describe: () => ({ tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door: a leaf of poplar planks on battens, turning on a pivot post in a stone socket (B analogue: Babylonian doors on doorposts in sockets of brick or stone, search extract); shut and barred at night, open, ajar or shut by day by the household (C)' }) };
       this.meshes.push(m); this.group.add(m); }
   }
-  private variant(d: StreetDoor) { return this.variants === 1 ? 0 : d.wood < 0.35 ? 0 : d.wood < 0.7 ? 1 : 2; }
+  /** the leaf's mesh: the wood's age (0 grey old .. 2 fresh), and for the town (variants 6, s17 C1) one of the kit's two forms
+   *  of that age by a hash of the door, so the doors of a lane differ */
+  private variant(d: StreetDoor) { if (this.variants === 1) return 0; const a = d.wood < 0.35 ? 0 : d.wood < 0.7 ? 1 : 2; return this.variants >= 6 && hashString(`${d.id}:form`) / 4294967296 < 0.5 ? a + 3 : a; }
   /** the leaf's yaw at openness f */
   private yaw(d: StreetDoor, f: number) { let da = d.openYaw - d.closedYaw; da = ((da + Math.PI * 3) % (Math.PI * 2)) - Math.PI; return d.closedYaw + da * f; }
   update(dt: number, eye: THREE.Vector3, day: number, sunAlt: number, nearTile: (t: number) => boolean) {
     this.eye.copy(eye); this.night = sunAlt < -6;
     const key = `${day}|${Math.round(sunAlt * 2)}`;
     const moved = eye.distanceTo(this.lastEye) > 8, rescan = moved || key !== this.lastKey;
-    if (rescan) { this.lastEye.copy(eye); this.lastKey = key; this.shown = [[], [], []];
+    if (rescan) { this.lastEye.copy(eye); this.lastKey = key; this.shown = [[], [], [], [], [], []];
       this.doors.forEach((d, i) => { const dx = d.hinge[0] - eye.x, dz = -d.hinge[1] - eye.z; if (dx * dx + dz * dz > DOOR_R * DOOR_R) return;
         const sched = doorOpenness(d.id, d.kind, day, sunAlt), m = this.manual.get(i); this.sched[i] = sched; if (m && Math.abs(m.sched - sched) > 1e-3) this.manual.delete(i);
         this.target[i] = this.manual.get(i)?.to ?? sched; if (this.open[i] < 0) this.open[i] = this.target[i]; this.shown[this.variant(d)].push(i); }); }

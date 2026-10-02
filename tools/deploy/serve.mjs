@@ -27,7 +27,9 @@ createServer((req, res) => {
   const url = new URL(req.url ?? '/', 'http://x');
   if (url.pathname === '/__served') { if (req.method === 'POST') { log = []; t0 = Date.now(); } res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(log)); return; }
   if (!url.pathname.startsWith(base)) { res.statusCode = 404; res.end('not under ' + base); log.push({ p: url.pathname, s: 404, t: Date.now() - t0 }); return; }
-  let rel = decodeURIComponent(url.pathname.slice(base.length)); if (rel === '' || rel.endsWith('/')) rel += 'index.html';
+  let rel = decodeURIComponent(url.pathname.slice(base.length));
+  if (process.env.HANG && rel.includes(process.env.HANG)) { log.push({ p: rel, s: 0, t: Date.now() - t0 }); return; } // (D-580: HANG=<part of a path>: never answer it, the boot's hang test)
+  if (rel === '' || rel.endsWith('/')) rel += 'index.html';
   const file = normalize(join(dist, rel)); if (!file.startsWith(dist) || !existsSync(file) || statSync(file).isDirectory()) { res.statusCode = 404; res.end('404'); log.push({ p: rel, s: 404, t: Date.now() - t0 }); return; }
   const st = statSync(file), etag = `"${st.size.toString(16)}-${Math.floor(st.mtimeMs).toString(16)}"`, ext = extname(file).toLowerCase();
   res.setHeader('cache-control', 'max-age=600'); res.setHeader('etag', etag); res.setHeader('last-modified', st.mtime.toUTCString());

@@ -8,7 +8,8 @@
 // surface carries its own tool marks and arrises. In node (tests, bakes) nothing loads and every function here is the
 // identity (the CPU mirrors of materials.ts hold). Tier C (Q-484, Q-930).
 import * as THREE from 'three/webgpu';
-import { texture, vec2, float, int, clamp, sqrt, max, dFdx, dFdy, mix, uniform, step, smoothstep, fract, floor } from 'three/tsl';
+import { sharedKTX2 } from './loaders';
+import { texture, vec2, float, int, clamp, sqrt, max, dFdx, dFdy, mix, uniform, step, smoothstep, fract, floor, fwidth } from 'three/tsl';
 import META from '../data/blockface.json';
 import { BASE } from '../core/base';
 
@@ -33,15 +34,11 @@ export async function loadBlockFace(base = BASE, anisotropy = 8): Promise<void> 
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noblockface')) { blockFaceOn = false; return; }
   const t0 = performance.now();
   try {
-    const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
-    // the transcoder's target format from the adapter's features (as models.ts: the scans load before the renderer exists)
-    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
-    const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/');
-    k.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any);
+    const k = await sharedKTX2(base); // (D-392: the page's transcoder; its target format from the adapter's features)
     const t = await k.loadAsync(base + 'textures/blockface/blockface.ktx2') as THREE.Texture;
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.colorSpace = THREE.NoColorSpace;
     t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true;
-    blockFaceStats.format = String((t as any).format); TEX = t; k.dispose();
+    blockFaceStats.format = String((t as any).format); TEX = t;
   } catch (e) { blockFaceStats.error = String((e as Error)?.message ?? e); console.warn('[blockface] not loaded:', blockFaceStats.error); }
   blockFaceStats.ms = Math.round(performance.now() - t0);
 }
@@ -121,13 +118,16 @@ export function blockFaceDetail(F: BlockFrame): { tilt: any; alb: any; ao: any; 
   const flip = float(1).sub(step(0.5, F.ids.c).mul(2)); // ±1: half the blocks mirrored
   const off = vec2(F.ids.a, F.ids.e).mul(BLOCKFACE.size_m);
   const Fd = faceDetail(F.u, F.v, off, flip, layer, hsc);
-  const gain = mix(float(RELIEF_GAIN), float(1), iP); // (the point-dressed face's pits are deep enough as baked)
+  // D-490 (s17 V2): past arm's length the claw's passes drew a regular diagonal hatching over every block at 5-30 m (the terrace
+  // probe); the struck relief and its stun fade to a third as a pixel grows from 4 to 15 mm (a wall seen from ~3.5 to ~13 m)
+  const far = smoothstep(0.004, 0.015, max(fwidth(F.u), fwidth(F.v))).mul(float(1).sub(iP)), keep = float(1).sub(far.mul(0.67));
+  const gain = mix(float(RELIEF_GAIN), float(1), iP).mul(keep); // (the point-dressed face's pits are deep enough as baked)
   let tilt: any = F.T1.mul(Fd.slope.x).add(F.T2.mul(Fd.slope.y)).mul(gain);
   let ao: any = Fd.ao.div(faceAoMean(iP, iF)), h: any = Fd.h;
   const hMean = mix(mix(float(avg('h_mean')), float(L[BF_LAYER.flat].h_mean), iF), float(L[BF_LAYER.point].h_mean), iP);
   const hSd = mix(mix(float(avg('h_sd')), float(L[BF_LAYER.flat].h_sd), iF), float(L[BF_LAYER.point].h_sd), iP);
   // the tool's struck grooves: limestone crushed by the teeth or the point dries a little lighter than the ridges (C, 1σ STUN)
-  let alb: any = float(1).sub(clamp(Fd.h.sub(hMean).div(hSd.max(1e-3)), -2, 2).mul(STUN));
+  let alb: any = float(1).sub(clamp(Fd.h.sub(hMean).div(hSd.max(1e-3)), -2, 2).mul(STUN).mul(keep));
   let chip: any = float(0);
   const stripL = mix(float(BF_LAYER.strip_fine), float(BF_LAYER.strip_rough), iP), rows = BLOCKFACE.strip_rows;
   const fam = (J: NonNullable<BlockFrame['bed']>, seed: any, o: any) => {

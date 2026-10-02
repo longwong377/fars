@@ -10,7 +10,8 @@
 // The work cycles of the activities performed since D-142 (hoeing, reaping, weaving, …) are in workAnims.ts: they are
 // authored from hand and foot targets (poseKit.ts IK) and return prop hints (tip, at, show, ip) for the carried props.
 import { workPose, WORK_ANIMS, type WorkAnim } from './workAnims';
-import { gaitPose, loopAt, pickOf, devAt, CLIPS, IDLES, TALKS, type GaitStyle } from './mocap';
+import { gaitPose, loopAt, pickOf, devAt, blendInto, CLIPS, IDLES, TALKS, type GaitStyle } from './mocap';
+const TALK_DAMP = ['l_upper', 'l_fore', 'l_hand', 'r_upper', 'r_fore', 'r_hand'] as const;
 
 /** pose channels (the Phase 3 rig's bones); RETARGET in humanRig.ts maps each onto the 59-bone skeleton */
 export const POSE_BONES = ['hips', 'spine', 'chest', 'neck', 'head', 'l_upper', 'l_fore', 'l_hand', 'r_upper', 'r_fore', 'r_hand', 'l_thigh', 'l_shin', 'l_foot', 'r_thigh', 'r_shin', 'r_foot'] as const;
@@ -71,7 +72,12 @@ export const RIDE = { drop: 0, back: -0.04, thigh: [-0.55, 0.58] as [number, num
 /** pose for an animation at time t (s); `ph` = gait phase (radians) for moving anims; `k` = per-person seed */
 /** D-333: how a person walks (the crowd passes it; default: a man at 1.2 m/s). v: the walking speed over the leg-length
  *  scale (m/s on the reference body), which picks and blends the paces of the motion-capture gaits */
-export interface Gait { v: number; style: GaitStyle }
+export interface Gait { v: number; style: GaitStyle;
+  /** s17 V3 (D-500): a skirt to the ankle (the women's dress, the Persian robe): the knee folds less in the swing, so the
+   *  heel kicked up behind does not come out through the back of the skirt */
+  skirt?: boolean }
+/** s17 V3: knee flexion (rad) above which a skirted walker's swing is compressed, and the share kept above it (C) */
+export const SKIRT_KNEE = { from: 0.32, keep: 0.45 };
 export const GAIT0: Gait = { v: 1.2, style: 'man' };
 /** D-333: the animations whose body is motion capture (whole, or under the authored arms of a held thing); the rest are
  *  hand-authored (PLACEHOLDER; the dev overlay's flag) */
@@ -92,6 +98,7 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
       // walking (D-333): the motion-capture gaits of the walker's kind and pace (the basket before the body: the carrying
       // captures); the arms that hold a load are set over them below
       p = gaitPose(id === 'carry_front' ? 'carry' : g.style, ph, k, g.v); r = p.rot;
+      if (g.skirt) for (const sh of [r.l_shin, r.r_shin]) if (sh && sh[0] > SKIRT_KNEE.from) sh[0] = SKIRT_KNEE.from + (sh[0] - SKIRT_KNEE.from) * SKIRT_KNEE.keep;
       // the right arm raised out to the side and over the load (D-217: searched with tools/dev/jar_search.ts so the shoulder
       // jar's neck lies in the hand and the arm and head stay clear of it; was [-2.7, 0, -0.35] / -1.1: the hand over the
       // crown, the jar through the forearm; C)
@@ -179,7 +186,10 @@ export function pose(id: AnimId, t: number, ph: number, k: number, g: Gait = GAI
     case 'sleep': { p.hips = [0, -0.83, 0]; r.hips = [-PI / 2, 0, 0]; r.l_upper = [0, 0, 0.1]; r.r_upper = [0, 0, -0.1]; r.head = [0.2, 0.2, 0]; r.chest = [breath * 0.6, 0, 0]; r.l_shin = [0.2, 0, 0]; r.r_shin = [0.1, 0, 0]; break; }
     case 'talk': {
       // in conversation (D-333): captures of people explaining with their hands, one of three per person
-      p = loopAt(TALKS[pickOf(k, TALKS.length, 7)], t, k, 0.9 + 0.2 * fr(k * 0.29)); break;
+      p = loopAt(TALKS[pickOf(k, TALKS.length, 7)], t, k, 0.9 + 0.2 * fr(k * 0.29));
+      // (s17 V3, D-500: the captured speakers lecture, a hand flung to head height every few seconds; at 10 m a lane of talkers
+      // read as waving robots: the arms are taken 45 % of the way back to a standing capture's, the gesture kept, smaller; C)
+      blendInto(p, loopAt(IDLES[pickOf(k, IDLES.length, 5)], t, k, 0.9 + 0.2 * fr(k * 0.37)), 0.45, TALK_DAMP); break;
     }
     case 'play': { // running about in place (children; D-333: a running capture)
       p = gaitPose('run', t * 7 + k, k, 2.8); break;
