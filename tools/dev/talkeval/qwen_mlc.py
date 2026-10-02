@@ -238,6 +238,58 @@ class Engine:
                              'prefill_s': r.get('prefill_s', 0.0), 'total_s': time.time() - r['t0'], 'ttft_s': r['ttft'], 'batch': len(active) + 1}
                 r['_ev'].set()
 
+# ---------- schema-constrained decoding (D-459's deeds: the CPU stand-in for WebLLM's json_schema / llama.cpp's grammar) ----------
+class Constrained:
+    """greedy decoding of one JSON object whose keys come in a fixed order: the punctuation and keys are forced, an enum is
+    chosen token by token among the tokens that keep a prefix of some allowed value, a string is free text without quotes or
+    newlines (at most 12 tokens), an integer is digits. fields: [{key, kind: enum|string|int, options?, min?, max?}]"""
+    def __init__(self, model, tok):
+        self.m, self.tok = model, tok; self.lock = threading.Lock()
+        raw = [tok.decode_bytes([i]) for i in range(151643)]
+        self.noq = np.array([b'"' not in r and b'\n' not in r and b'\\' not in r and len(r) > 0 for r in raw])
+        self.endq = np.array([r.endswith(b'"') and r.count(b'"') == 1 and b'\n' not in r and b'\\' not in r for r in raw])
+        self.digit = np.array([r.isdigit() for r in raw]); self.comma = tok.vocab[','];
+    def enc(self, s): return ''.join(self.tok.b2u[b] for b in s.encode('utf-8'))
+    def run(self, messages, fields):
+        with self.lock:
+            t0 = time.time(); s = Seq(1024); toks = self.tok.encode(chat_text(messages)); lg = self.m.forward([s], [toks])[0]; pre = time.time() - t0
+            out = {}; gen = 0; text = ''
+            def feed(ids):
+                nonlocal lg, gen; lg = self.m.forward([s], [ids])[0]; gen += len(ids)
+            for i, f in enumerate(fields):
+                lit = ('{' if i == 0 else ', ') + f'"{f["key"]}": ' + ('"' if f['kind'] != 'int' else '')
+                feed(self.tok.encode(lit)); text += lit
+                if f['kind'] == 'enum':
+                    targets = [o + '"' for o in f['options']]; got = ''
+                    while got not in targets:
+                        allowed = set()
+                        for r in targets:
+                            if not r.startswith(got): continue
+                            suf = r[len(got):]
+                            for k in range(1, len(suf) + 1):
+                                t = self.tok.vocab.get(self.enc(suf[:k]))
+                                if t is not None: allowed.add(t)
+                        al = np.array(sorted(allowed)); t = int(al[np.argmax(lg[al])]); got += self.tok.decode([t]); feed([t])
+                    out[f['key']] = got[:-1]; text += got
+                elif f['kind'] == 'string':
+                    got = b''
+                    for k in range(12):
+                        mask = self.noq | self.endq; l = np.where(np.concatenate([mask, np.zeros(len(lg) - len(mask), bool)]), lg, -np.inf)
+                        t = int(np.argmax(l)); b = self.tok.decode_bytes([t]); feed([t]); got += b
+                        if self.endq[t]: break
+                    else: feed(self.tok.encode('"')); got += b'"'
+                    out[f['key']] = got.decode('utf-8', 'replace')[:-1]; text += got.decode('utf-8', 'replace')
+                else:
+                    ds = ''
+                    for k in range(3):
+                        al = np.flatnonzero(self.digit)
+                        if ds: al = np.append(al, self.comma)
+                        t = int(al[np.argmax(lg[al])])
+                        if t == self.comma: break
+                        ds += self.tok.decode([t]); feed([t])
+                    v = min(f.get('max', 10**9), max(f.get('min', 0), int(ds or 0))); out[f['key']] = v; text += ds
+            return {'json': out, 'text': text + '}', 'prompt_tokens': len(toks), 'prefill_s': pre, 'total_s': time.time() - t0, 'gen_tokens': gen}
+
 def serve(engine, port):
     from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
     class Hd(BaseHTTPRequestHandler):
@@ -246,9 +298,12 @@ def serve(engine, port):
             b = json.dumps(engine.stats).encode(); self.send_response(200); self.send_header('content-type', 'application/json'); self.end_headers(); self.wfile.write(b)
         def do_POST(self):
             req = json.loads(self.rfile.read(int(self.headers['content-length'])))
+            if self.path == '/deed':
+                out = engine.constrained.run(req['messages'], req['fields'])
+                b = json.dumps(out).encode(); self.send_response(200); self.send_header('content-type', 'application/json'); self.end_headers(); self.wfile.write(b); return
             out = engine.submit({k: req[k] for k in ('messages', 'max_tokens', 'temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'seed', 'stop') if k in req})
             b = json.dumps(out).encode(); self.send_response(200); self.send_header('content-type', 'application/json'); self.end_headers(); self.wfile.write(b)
-    print(f'serving on {port}', flush=True); ThreadingHTTPServer(('127.0.0.1', port), Hd).serve_forever()
+    engine.constrained = Constrained(engine.m, engine.tok); print(f'serving on {port}', flush=True); ThreadingHTTPServer(('127.0.0.1', port), Hd).serve_forever()
 
 def check(model, tok):
     # ids published for Qwen2's tokenizer (Qwen2.5 model card examples and the HF tokenizer): "Hello world" -> [9707, 1879]
