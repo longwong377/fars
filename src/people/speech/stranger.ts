@@ -33,6 +33,7 @@ import { h32, u01, salt } from '../hash';
 import { hashString } from '../../core/rng';
 import { haggle } from './haggle';
 import { dateOf } from '../calendar';
+import { numWords, silverSpoken } from '../converse/words';
 
 export const PLAYER = 'player';
 /** D-370: the stranger's own deeds as the chronicle tells them (the translation layer's journal, key J: out of world) */
@@ -149,6 +150,14 @@ export class Stranger {
   understood(s: SAct, day: number): boolean {
     const hh = 'hh' in s ? s.hh : 'q' in s && s.q ? this.headOf(s.q) : undefined;
     const own = hh ? this.comp(this.langOf(hh), day) : 0, ara = this.comp('Aramaic', day);
+    // D-450: a petition for leave to stay, put to an official: the officials kept interpreters and Aramaic scribes (the
+    // Fortification and Treasury texts' translators: B), so a newcomer without words is understood by gesture and an
+    // interpreter's help on the days one is at hand (a seeded draw per day, likelier with any tongue at all: C)
+    if (s.a === 'petition' && s.kind === 'leave' && s.to === 'official') {
+      if (Math.max(ara, own, this.comp('Elamite', day)) >= TONGUE_MIN) return true;
+      let any = ara; for (const k of this.lang.keys()) any = Math.max(any, this.comp(k, day));
+      return u01(this.E.seed, salt('str-interp'), day) < 0.4 + 2 * any;
+    }
     if (s.a === 'petition') return Math.max(s.to === 'headman' ? own : 0, ara, s.to === 'headman' ? 0 : this.comp('Elamite', day)) >= TONGUE_MIN;
     return Math.max(own, ara * 0.6) >= TONGUE_MIN;
   }
@@ -285,7 +294,7 @@ export class Stranger {
     const r = haggle(this.E, s.a === 'buy' ? { buyer: PLAYER, seller: s.hh, good: s.good, qty: s.qty, day, pay: 'cash', skill: { buyer: skill }, apply: false } : { buyer: s.hh, seller: PLAYER, good: s.good, qty: s.qty, day, pay: 'cash', skill: { seller: skill }, apply: false });
     if (!r.ok) return { ok: false, why: r.why === 'seller has no spare' ? 'they have none to spare' : r.why === 'no overlap' ? 'they will not come to a price' : r.why === 'buyer cannot pay' ? 'they cannot pay for it' : r.why ?? 'no deal' };
     if (s.a === 'buy' && this.purse.cash < r.price) return { ok: false, why: 'the stranger has not the silver for it' };
-    if (!apply) return { ok: true, why: `a deal at about ${r.price.toFixed(2)} of silver` };
+    if (!apply) return { ok: true, why: `a deal at ${silverSpoken(r.price)}` /* D-450: words, not 0.42 */ };
     for (const i of r.intents) this.E.enter(i);
     const sign = s.a === 'buy' ? 1 : -1; this.purse.cash -= sign * r.price; (this.purse as any)[s.good] = have(s.good) + sign * s.qty; this.deeds.trades++;
     return { ok: true, why: 'a deal', ev: [this.E.events.length - 1] };
@@ -554,7 +563,7 @@ export class Stranger {
    *  (second person, the model's brief: out of world). Empty when the house has none */
   factsFor(hh: string, day: number, roleWords: Record<string, string> = ROLE_WORDS): string[] {
     const out: string[] = [], b = this.belief.get(hh), C = this.claim;
-    if (this.stay?.host === hh) out.push(`the stranger is a guest of your house these ${this.stay.nights || 'first'} nights${this.stay.nights > CUSTOM_NIGHTS && this.stay.owed > 0.01 ? ', and gives nothing back' : ''}`);
+    if (this.stay?.host === hh) out.push(`the stranger is a guest of your house ${this.stay.nights > 1 ? `these ${numWords(this.stay.nights)} nights` : this.stay.nights === 1 ? 'since last night' : 'these first nights'}${this.stay.nights > CUSTOM_NIGHTS && this.stay.owed > 0.01 ? ', and gives nothing back' : ''}`);
     if (this.job?.employer === hh) out.push(`the stranger works for your house as a hand (${this.job.need})${this.owesNow(hh) ? '; your house owes him wages' : ''}`);
     else if (this.owesNow(hh)) out.push('your house owes the stranger wages from his work');
     if (this.group?.kind === 'household' && this.group.id === hh) out.push('the stranger lives in your house now, as one of it');

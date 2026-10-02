@@ -79,6 +79,8 @@ const BOUND_WAGE = 0.02;
  *  Babylonian rule, taken as the probable custom by analogy, C) */
 const BOUND_MAX = 3 * 354;
 const GRAIN_EAT = 0.55;        // kg a day per eater (a ration of ~1 qa of barley, A in kind, C in kg)
+/** D-450: a gift weighs fully with a house when it is worth a month of the house's bread (C): a pinch of silver is thanked, not trusted */
+const GIFT_DAYS = 30;
 const GRAIN_BASE = 0.02;       // sheqel per kg at a normal market (C)
 const TITHE = 0.1;             // the treasury's share of a harvest (B)
 /** D-347: the daily chance of a petty theft by one of the least honest houses when short (C; tuned to ~1-3 thefts a year per thousand people on seeds 1, 7, 42) */
@@ -90,6 +92,10 @@ export class Economy implements EconWorld {
   readonly events: EconEvent[] = [];
   /** D-351 (s13 trust): who is trusted by whom, read off the events (speech/trust.ts); absent in a bare economy */
   trust?: TrustLedger;
+  /** D-450: a gift's weight to the house that took it (its worth over GIFT_DAYS of the house's bread, 0..1), by event id, set
+   *  when the 'given' event is recorded (the house's state that day) and taken by the trust ledger when it reads the event */
+  private giftW = new Map<number, number>();
+  giftWeight(id: number): number | undefined { const w = this.giftW.get(id); this.giftW.delete(id); return w; }
   /** D-370: the player as a person of the economy (work, tongue, claim, petitions, guest-right, groups: speech/stranger.ts);
    *  built on first use (Economy.stranger()), saved with the economy, absent in a world the stranger never entered */
   private str?: Stranger;
@@ -168,7 +174,10 @@ export class Economy implements EconWorld {
       const g = Number(p.grain ?? 0), c = Number(p.cash ?? 0), f = Number(p.fuel ?? 0), gd = Number(p.goods ?? 0);
       to.grain += g; to.cash += c; to.fuel += f; to.goods = Math.max(0, to.goods + gd); if (g) changes.push(`${i.to}.grain+${g}`); if (c) changes.push(`${i.to}.cash+${c}`); if (f) changes.push(`${i.to}.fuel+${f}`); if (gd) changes.push(`${i.to}.goods+${gd}`);
       // (D-351: a haggled deal is its own kind of event, `haggle_deal`, so the trust ledger and the chains tell it from a gift)
-      const e = ev(p.deal ? 'haggle_deal' : 'given', g + c); if (cz.length) { if (g > 0) to.cause.food = e; if (f > 0) to.cause.fuel = e; if (c > 0) to.cause.cash = e; if (Number(p.labour ?? 0) > 0) to.cause.help = e; }
+      const e = ev(p.deal ? 'haggle_deal' : 'given', g + c);
+      if (!p.deal && this.trust) { const pG = this.price('grain', d), worth = c + g * pG + f * this.price('fuel', d) + gd * this.price('goods', d); // (help given in person, labour, weighs fully)
+        this.giftW.set(e, Number(p.labour ?? 0) > 0 ? 1 : Math.min(1, worth / Math.max(1e-6, Math.max(1, to.eaters) * GRAIN_EAT * GIFT_DAYS * pG))); }
+      if (cz.length) { if (g > 0) to.cause.food = e; if (f > 0) to.cause.fuel = e; if (c > 0) to.cause.cash = e; if (Number(p.labour ?? 0) > 0) to.cause.help = e; }
     } else if (i.kind === 'loan') {
       const c = Number(p.cash ?? 0); to.cash += c; changes.push(`${i.to}.cash+${c}`); // the player's loan: no interest, no court
       const e = ev(this.hh.has(i.from) ? 'lent_by_neighbour' : 'lent_by_stranger', c); // (D-371: a neighbour's loan made in talk is not the stranger's) if (cz.length && c > 0) to.cause.cash = e;

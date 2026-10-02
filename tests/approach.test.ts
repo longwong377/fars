@@ -39,3 +39,15 @@ describe('D-375 a friendly house invites the stranger', () => {
     const a = new Approaches(sim).next(near); expect(a?.kind).toBe('invite'); expect(a!.trust).toBeGreaterThanOrEqual(0.7);
   }, 900_000);
 });
+describe('D-450 the people who come up do not all say the same thing', () => {
+  it('openings vary, and mourning company does not dominate the asks', () => {
+    const d = 120, sim = simAt(1, d, 10, { asks: true }); sim.econTo(d + 1); const A = sim.asksWorld.asks;
+    const needy = [...new Set([...(A as any).open.values()].map((a: any) => a.hh))] as string[];
+    const out: { kind: string; opening: string }[] = [];
+    for (const h of [10, 13, 16]) { sim.t = d * 24 + h; for (const hh of needy) { const a = new Approaches(sim).next(sim.pop.households[Number(hh.slice(2))].members); if (a?.ask) out.push({ kind: a.ask.kind, opening: a.opening }); } }
+    const firsts = new Map<string, number>(); for (const o of out) { const k = o.opening.split(/[,;:]/)[0]; firsts.set(k, (firsts.get(k) ?? 0) + 1); }
+    const company = out.filter(o => o.kind === 'company').length, top = Math.max(...firsts.values());
+    console.log('[D-450 approaches]', out.length, 'approaches;', firsts.size, 'distinct openings; most common', top, '; company asks', company);
+    expect(out.length).toBeGreaterThan(5); expect(top / out.length).toBeLessThan(0.4); expect(company / out.length).toBeLessThan(0.4);
+  }, 900_000);
+});

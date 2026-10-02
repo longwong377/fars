@@ -15,6 +15,7 @@ import { pastOf, pastWords } from '../history';
 import { aimsOf } from '../aims';
 import type { Economy } from '../economy/world';
 import { personaOf } from '../persona';
+import { numWords, ageWords, ordWords, countWords, spellDigits } from './words';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
 export interface LifeRecord {
@@ -142,10 +143,10 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     const how = pop.households[p.hh].kin.includes(O.hh) ? 'kin' : p.group >= 0 && O.group === p.group ? 'works in the same group' : 'a neighbour';
     return { name: spokenName(pop, o)!, how: `${how}, ${jobWords(O)}`, feeling: a < 0 ? 'on bad terms since a quarrel' : a > 0.5 ? 'close' : 'friendly' }; });
   // (D-371: a small child's friends are the children it plays with in the lane)
-  if (age < 12) for (const o of pop.playmatesOf(pid, day)) if (friends.length < 4 && spokenName(pop, o)) friends.push({ name: spokenName(pop, o)!, how: `plays with them in the ${pop.households[pop.home(o, day)].zone === 'plain' ? 'village' : 'lane'}, a ${pop.persons[o].sex === 'm' ? 'boy' : 'girl'} of ${pop.ageOn(o, day)}`, feeling: 'close' });
+  if (age < 12) for (const o of pop.playmatesOf(pid, day)) if (friends.length < 4 && spokenName(pop, o)) friends.push({ name: spokenName(pop, o)!, how: `plays with them in the ${pop.households[pop.home(o, day)].zone === 'plain' ? 'village' : 'lane'}, a ${pop.persons[o].sex === 'm' ? 'boy' : 'girl'} of ${ageWords(pop.ageOn(o, day))}`, feeling: 'close' });
   // the year so far (the regnal year starts at day 0, the month of Nisanu: sim facts only)
   const year: string[] = [], quarrels: string[] = [];
-  const when = (d: number) => { const k = day - d; return k === 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${k} days ago` : k < 45 ? `about ${Math.round(k / 7)} weeks ago` : `in the month ${MONTHS[dateOf(d).month - 1].op}`; };
+  const when = (d: number) => { const k = day - d; return k === 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${numWords(k)} days ago` : k < 45 ? (Math.round(k / 7) === 1 ? 'about a week ago' : `about ${numWords(Math.round(k / 7))} weeks ago`) : `in the month ${MONTHS[dateOf(d).month - 1].op}`; };
   if (p.arrive > 0 && p.arrive <= day) year.push(p.job === 'herder' ? `came down into the plain with the band and the flocks ${when(p.arrive)}` : p.job === 'traveller' ? `came to Parsa on the king’s road ${when(p.arrive)}` : `came to Parsa with a newly sent work group ${when(p.arrive)}`);
   if (p.marry <= day && p.spouse !== undefined && !p.moved) year.push(`was married ${when(p.marry)} to ${spokenName(pop, p.spouse)}`);
   if (p.marry > day && p.marry < 1e8 && p.spouse !== undefined) year.push(`is to be married this year to ${spokenName(pop, p.spouse)} (the families have agreed)`);
@@ -156,9 +157,9 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     const C = cal.ctx(d); const x = C.disputes.get(pid); if (x && (d < day || x.t <= hour)) quarrels.push(`quarrelled with ${spokenName(pop, x.other)} ${x.why} ${when(d)}`);
   }
   let sickDays = 0; for (let d = Math.max(0, day - 30); d < day; d++) if (pop.sick(pid, d)) sickDays++;
-  if (sickDays) year.push(`was sick for ${sickDays} day${sickDays > 1 ? 's' : ''} in the last month`);
+  if (sickDays) year.push(`was sick for ${countWords(sickDays, 'day')} in the last month`);
   if (pop.sick(pid, day)) year.push('is sick today');
-  const mourn = pop.mourning(pid, day); if (mourn) year.push(`the house is in mourning (a death ${mourn === 1 ? 'yesterday' : `${mourn} days ago`})`);
+  const mourn = pop.mourning(pid, day); if (mourn) year.push(`the house is in mourning (a death ${mourn === 1 ? 'yesterday' : `${numWords(mourn)} days ago`})`);
   const hear = pop.hearing(pid, day); if (hear) year.push(`must go before an official today over the quarrel with ${spokenName(pop, hear.other)} ${hear.why}`);
   if (p.group >= 0) { const sh = cal.shortfalls.filter(s => s.group === p.group && s.day <= day && s.day > day - 90); if (sh.length) year.push(`the group’s rations came short ${when(sh[sh.length - 1].day)}${sh[sh.length - 1].paidSilver ? ' and part was paid in silver' : ''}`); }
   // small obligations (seeded, C: loans in kind between neighbours and kin are the ordinary texture of such a town)
@@ -194,8 +195,8 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     otherLanguages: [...new Set([p.origin !== 'Persian' && age >= 12 ? 'some Persian' : '', p.job === 'scribe' ? 'Elamite and Aramaic (writes them)' : '', p.group >= 0 && lang !== 'Elamite' ? 'a little Elamite (the language of the ration tablets)' : ''].filter(Boolean))],
     job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? pop.groups[p.group].label.replace(/\s*\(\d+\)/, '') : null,
     rank: p.job === 'guard' && p.rank === 1 ? 'leader of a file of ten' : p.rank > 1 ? 'a leader of the group' : null,
-    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${all.length + 1} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), quarrels, debts, temperament: temper, speech,
-    today: { date: `day ${dt.dom} of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), year 19 of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
+    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${numWords(all.length + 1)} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)).map(spellDigits), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), quarrels, debts, temperament: temper, speech,
+    today: { date: `the ${ordWords(dt.dom)} day of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), the nineteenth year of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
     knows, tier: 'C',
   };
 }
@@ -255,7 +256,7 @@ export function econFacts(pop: Population, E: Economy, hh: number, day: number):
 /** the knowledge fence: what this person can know (by work and place; C) */
 export function knowsFor(p: Person, age: number): string[] {
   const k = ['your own house, kin, neighbours and work', 'the town, the Terrace seen from below, the plain, the river Pulvar and the mountains', 'the gods of your people, the offerings and festivals', 'the months, the seasons, the harvests and the weather of this year',
-    'that the king is Xerxes (Khshayarsha), son of Darius, and that this is the 19th year of his reign; the king’s father built the Terrace', 'rations of barley, wine and beer paid by the tablets; silver weighed, not counted'];
+    'that the king is Xerxes (Khshayarsha), son of Darius, and that this is the nineteenth year of his reign; the king’s father built the Terrace', 'rations of barley, wine and beer paid by the tablets; silver weighed, not counted'];
   if (age < 12) return ['your house, your mother and father, brothers and sisters, games, animals and food', 'the lane, the well and the children of the neighbours', 'a child knows little of the king or of far places'];
   if (['guard', 'official', 'scribe', 'messenger', 'caretaker'].includes(p.job)) k.push('the Terrace: its gates, stairs, halls and guard posts; who may go up and who may not');
   if (p.job === 'builder' || p.job === 'porter' || p.job === 'camp') k.push('the building of the Hall of a Hundred Columns: gangs, stone, brick, the foremen, the rations of the gangs');
@@ -272,11 +273,11 @@ const short = (s: string, n = 9) => { const t = s.split(/[:(;]/)[0].trim().split
  *  whole prompt stays under ~450 tokens). The events of the day that everyone shares are cut to the two nearest the person */
 export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
   // "your wife Dātabāmā (28)" reads right to a small model; "Dātabāmā (wife, 28)" was misread (a 2B made a child of two a wife)
-  const kin = L.household.slice(0, 5).map(k => /^kins|^the old/.test(k.rel) ? `${k.name} (${k.rel}, ${k.age})` : `your ${k.rel} ${k.name} (${k.age})`).join(', ') || 'no one: you live with your work group';
+  const kin = L.household.slice(0, 5).map(k => /^kins|^the old/.test(k.rel) ? `${k.name} (${k.rel}, ${ageWords(k.age)})` : `your ${k.rel} ${k.name} (${ageWords(k.age)})`).join(', ') || 'no one: you live with your work group';
   const who = L.age < 14 ? (L.sex === 'm' ? 'boy' : 'girl') : L.sex === 'm' ? 'man' : 'woman';
   const ev = L.today.events.filter(e => !/^the gangs at work/.test(e)).slice(0, 1);
   const lines = [
-    `You are ${L.name}, ${who} of ${L.age}, ${L.origin}${L.byname ? `, ${L.byname}` : ''}; you speak ${L.language}.`,
+    `You are ${L.name}, ${who} of ${ageWords(L.age)}, ${L.origin}${L.byname ? `, ${L.byname}` : ''}; you speak ${L.language}.`,
     `Work: ${short(L.job, 16)}${L.rank ? `, ${L.rank}` : ''}. Home: ${L.home.replace(/ \(a household of.*\)$/, '')}.`,
     `In your house: ${kin}.`,
     L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
@@ -286,19 +287,19 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     L.past.length ? `Before this year: ${L.past.slice(0, 2).join('; ')}.` : '',
     L.worries.length || L.hopes.length ? `On your mind: ${[...L.worries.map(w => `worried about ${w}`), ...L.hopes.map(h => /^(that|to) /.test(h) ? `hoping ${h}` : `hoping for ${h}`)].slice(0, 3).join('; ')}.` : '',
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
-    `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${L.today.now.replace(/^[a-z ]+: /, '')}${L.today.next ? `; after this: ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
+    `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), the nineteenth year of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${L.today.now.replace(/^[a-z ]+: /, '')}${L.today.next ? `; after this: ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
     ev.length ? `News today: ${ev.join('; ')}.` : '',
     prose ? `Memories: ${prose}` : '',
     L.knows.length > 6 ? `You know well: ${L.knows[L.knows.length - 1]}.` : '',
   ];
-  return lines.filter(Boolean).join('\n').replace(/\*(?=\p{Lu})/gu, '');
+  return spellDigits(lines.filter(Boolean).join('\n').replace(/\*(?=\p{Lu})/gu, ''));
 }
 
 /** the full brief of the record (the bake's input, the lab's display; English, out of world) */
 export function lifeBrief(L: LifeRecord, prose?: string | null): string {
-  const kin = L.household.map(k => `${k.name} (${k.rel}, ${k.age}${k.job !== 'child' ? ', ' + k.job : ''})`).join('; ') || 'none: you live alone or with your work group';
+  const kin = L.household.map(k => `${k.name} (${k.rel}, ${ageWords(k.age)}${k.job !== 'child' ? ', ' + k.job : ''})`).join('; ') || 'none: you live alone or with your work group';
   const lines = [
-    `You are ${L.name}, ${L.age < 14 ? (L.sex === 'm' ? 'a boy' : 'a girl') : L.sex === 'm' ? 'a man' : 'a woman'} of ${L.age}, ${L.origin}${L.byname ? `, ${L.byname}` : ''}. Your language: ${L.language}${L.otherLanguages.length ? '; also ' + L.otherLanguages.join(', ') : ''}.`,
+    `You are ${L.name}, ${L.age < 14 ? (L.sex === 'm' ? 'a boy' : 'a girl') : L.sex === 'm' ? 'a man' : 'a woman'} of ${ageWords(L.age)}, ${L.origin}${L.byname ? `, ${L.byname}` : ''}. Your language: ${L.language}${L.otherLanguages.length ? '; also ' + L.otherLanguages.join(', ') : ''}.`,
     `Work: ${L.job}${L.group ? ` (${L.group})` : ''}${L.rank ? `, ${L.rank}` : ''}.`,
     `Home: ${L.home}. Household: ${kin}.`,
     L.kinHouses.length ? `Kin in other houses: ${L.kinHouses.join('; ')}.` : '',
@@ -315,5 +316,5 @@ export function lifeBrief(L: LifeRecord, prose?: string | null): string {
     prose ? `Your own memories: ${prose}` : '',
     `You know: ${L.knows.join('; ')}.`,
   ];
-  return lines.filter(Boolean).join('\n').replace(/\*(?=\p{Lu})/gu, ''); // the plan's words carry the names' reconstruction mark
+  return spellDigits(lines.filter(Boolean).join('\n').replace(/\*(?=\p{Lu})/gu, '')); // the plan's words carry the names' reconstruction mark
 }

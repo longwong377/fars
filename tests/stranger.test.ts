@@ -165,7 +165,11 @@ describe('D-370 the stranger in the simulation', () => {
   });
   it('complex asks need words: a stranger with none of the tongue is not understood in a petition or a bargain; gestures do for bread and a bed', () => {
     const e = new Economy(1, hs, { trust: true }); for (let d = 0; d <= 60; d++) e.step(d); const S = e.stranger(); S.purse.cash = 5;
-    expect(S.judge({ a: 'petition', day: 60, to: 'official', kind: 'leave' }).why).toMatch(/cannot follow/);
+    expect(S.judge({ a: 'petition', day: 60, to: 'official', kind: 'relief' }).why).toMatch(/cannot follow/);
+    // D-450: leave to stay before an official goes through the official's interpreter on the days one is at hand (seeded)
+    const days = Array.from({ length: 20 }, (_, i) => 41 + i).map(d => S.understood({ a: 'petition', day: d, to: 'official', kind: 'leave' }, d));
+    expect(days.some(Boolean)).toBe(true); expect(days.every(Boolean)).toBe(false);
+    expect(S.understood({ a: 'petition', day: 60, to: 'headman', kind: 'leave' }, 60)).toBe(false);
     const h = [...e.hh.values()].find(x => x.kind === 'farmer' && S.stayCheck(x.id, 60).ok)!; expect(S.judge({ a: 'stay', day: 60, hh: h.id }).ok).toBe(true);
     S.hear('Aramaic', 400, 1, true, 60); expect(S.judge({ a: 'petition', day: 60, to: 'official', kind: 'leave' }).ok).toBe(true);
   });
