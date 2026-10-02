@@ -20,7 +20,7 @@ Hall of a Hundred Columns, then down to the eye at the spawn), letterboxed, any 
 (Cormorant Garamond, Alegreya Sans, OFL); index.html (3 font preloads); src/main.ts (hook: introDeps + two hook entries,
 C4's file); tests/intro.test.ts (new); tests/language.test.ts (one registry line); tools/dev/shell_probe.*, skyline_gen.ts.
 
-**Tests.** intro 11/11 (paths, control flow, and "never delays walkable": the title, the only way in, comes after ready; Enter starts the walk before the opening); lint:lang + intro 37/37; guards 25/25; tsc clean in touched files. No s17-renders yet: the intro is unseen.
+**Tests.** intro 11/11 (paths, control flow, and "never delays walkable": the title, the only way in, comes after ready; Enter starts the walk before the opening); lint:lang + intro 37/37; guards 25/25; tsc clean in touched files. No s17-renders branch at 23:00 either: the intro is still unseen.
 
 **The first minutes on the built site (tools/dev/first_minutes.mjs; `npx vite build`, served as Pages, headless, ?norender&seed=1, 22:30).**
 All 19 steps pass: ready 73 s; title; the loading screen leaves; Enter -> the opening plays -> a key skips it (the clock to
