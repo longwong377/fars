@@ -28,6 +28,7 @@ import { buildWorld, WorldBuild } from './world/world';
 import { releaseUploadedTextures, releaseStats } from './world/cache/release';
 import { BootProgress } from './shell/progress';
 import { warmBootFiles } from './shell/warm';
+import { Intro } from './shell/intro';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -213,6 +214,10 @@ async function boot() {
     getTime: () => ({ day: clock.dayIndex, hour: clock.localHour, label: clock.label() }),
     setTime: (d: number, h: number) => clock.set(d, h),
     getWeather: () => weather.override, setWeather: (w: string) => { weather.override = w as WeatherOverride; },
+    // s17 C5 (D-590): the wordless opening as a new visit begins (src/shell/intro.ts); test worlds and ?nointro skip it
+    intro: () => { if (TEST || P.has('nointro')) return; new Intro({ setCam: c => { freeCam = c; }, heightAt: (x, z) => terrain.heightAt(x, z), camera, player: () => ({ ...player.eye, yaw: input.yaw, pitch: input.pitch }),
+      look: (yaw, pitch) => { input.yaw = yaw; input.pitch = pitch; }, paused: () => shell.mode !== 'playing', getTime: () => ({ day: clock.dayIndex, hour: clock.localHour }), setTime: (d, h) => clock.set(d, h), fov: () => settings.fov,
+      rigClear: m => { const pp = (world as any).people; if (pp) pp.crowd.rigClear = m; } }).play(); },
   });
   // autosave (audit D M9; T-H3): every AUTOSAVE_MS of real time while the visit is on (playing or paused), and when the page
   // is hidden or closed; frozen test worlds only with ?autosave

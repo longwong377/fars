@@ -194,6 +194,7 @@ export class TranslationLayer {
   private panel = el('div', 'tl-panel');
   private mapCanvas = document.createElement('canvas');
   private mode: 'none' | 'map' | 'chronicle' = 'none';
+  private chronSig = ''; private subSig = '';
   private zoom = 0; private drawn = { zoom: -1, e: 0, n: 0, yaw: 0, t: 0 };
   private ray = new THREE.Raycaster(); private lastPick = 0; private picked: { id: string; version: string } | null = null;
   constructor(private settings: () => Settings) {
@@ -214,8 +215,10 @@ export class TranslationLayer {
     // subtitles: shown for 3 s + reading time
     const sb = ctx.subtitle, show = sb && ctx.now - ctx.subtitleAt < 3 + (sb.gloss.length + sb.translit.length) / 18;
     this.sub.hidden = !show;
-    if (show && sb) { const src = sb.lineId ? LINE_BY_ID.get(sb.lineId)?.def.src : undefined;
+    const subSig = show && sb ? `${sb.lineId ?? ''}|${sb.translit}|${sb.gloss}|${ctx.subtitleAt}` : '';
+    if (show && sb && subSig !== this.subSig) { const src = sb.lineId ? LINE_BY_ID.get(sb.lineId)?.def.src : undefined;
       this.sub.replaceChildren(el('div', 'tl-orig', sb.translit), el('div', 'tl-gloss', `“${sb.gloss}”`), el('div', 'tl-meta', `${LANG_NAMES[sb.lang as LangId] ?? sb.lang} · tier ${sb.tier}${src ? ` · ${src}` : ''}`)); }
+    this.subSig = subSig; // (rebuilt only when the line changes: its fade-in plays once)
     // inscriptions under the crosshair
     if (ctx.now - this.lastPick > 0.25 && ctx.inscriptions) {
       this.lastPick = ctx.now; this.ray.setFromCamera(new THREE.Vector2(0, 0), ctx.camera); this.ray.far = 80;
@@ -240,10 +243,24 @@ export class TranslationLayer {
       }
     } else this.drawn.zoom = -1;
     if (this.mode === 'chronicle') {
-      const list = el('div', 'tl-chron');
-      for (const ev of ctx.events.slice(-40).reverse()) { const p = ctx.places[ev.place]; list.append(el('div', 'row', `${ctx.timeLabel(ev.t)} — ${ev.text}${p ? ` (${placeLabel(ev.place)})` : ''}${ev.tier ? ` · tier ${ev.tier}` : ''}`)); }
-      this.panel.replaceChildren(el('h2', '', 'Chronicle (translation layer)'), list.childElementCount ? list : el('p', 'small', 'Nothing noted yet.'), el('div', 'small', 'Events the simulation records. J closes.'));
-    }
+      // s17 C5 (D-590): a journal, newest first, grouped by day; rebuilt only when the record changes (it was rebuilt every
+      // frame, which also reset its scroll)
+      const evs = ctx.events, last = evs[evs.length - 1], sig = `${evs.length}|${last?.t ?? ''}|${last?.text ?? ''}`;
+      if (sig !== this.chronSig || !this.panel.firstChild) { this.chronSig = sig;
+        const list = el('div', 'tl-chron'); let day = -1;
+        for (const ev of evs.slice(-60).reverse()) {
+          const d = Math.floor(ev.t / 24);
+          if (d !== day) { day = d; list.append(el('div', 'chron-day', `Day ${d + 1}`)); }
+          const lab = ctx.timeLabel(ev.t), time = lab.includes(', ') ? lab.split(', ').pop()! : lab;
+          const row = el('div', 'chron-ev'), body = el('div', 'x', ev.text), meta = el('span', 'm');
+          if (ev.kind) meta.append(el('span', 'kind', ev.kind.replace(/[_-]/g, ' ')));
+          meta.append([ctx.places[ev.place] ? placeLabel(ev.place) : '', ev.tier ? `tier ${ev.tier}` : ''].filter(Boolean).join(' · '));
+          body.append(meta); row.append(el('div', 't', time), body); list.append(row);
+        }
+        const head = el('div', 'chron-head'); head.append(el('h2', '', 'Chronicle'), el('div', 'small', 'What the people of this world did and what befell them, as the simulation records it. Translation layer · J closes.'));
+        this.panel.replaceChildren(head, list.childElementCount ? list : el('p', 'small', 'Nothing noted yet.'));
+      }
+    } else this.chronSig = '';
   }
 
   private inscriptionView(id: string, version: string): HTMLElement[] {
