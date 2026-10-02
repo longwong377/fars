@@ -41,6 +41,8 @@ const GRAIN_EAT = 0.55;
 export const WAGE_GRAIN = 1.0;
 /** the stranger's days are settled this many days behind the economy's (Stranger.step) */
 export const STR_LAG = 4;
+/** hearings of a word, its sense shown, before the stranger knows it (C: a handful of meetings in context) */
+export const KNOW_AFTER = 6;
 const PAYDAY = 6, MISS_FIRE = 2, CUSTOM_NIGHTS = 3, SENT_AWAY = 7, GRATITUDE_DAYS = 30;
 const DROVER_CASH = 0.05, GANG_GRAIN = 0.9;
 /** the languages, by family (a related tongue is learned a third as fast from the other: C) */
@@ -103,6 +105,11 @@ export class Stranger {
   readonly deeds = { labour: 0, craftWork: 0, trades: 0, gifts: 0, tended: 0, gang: 0 };
   /** the steps still to come (by day), and what each verb did: the measured report */
   private acts = new Map<number, SAct[]>(); private petN = 0; private tongueMet = new Set<string>();
+  /** D-370 (UD-25 (6)): the words of each tongue the stranger has heard with their sense shown, and how often; a word heard
+   *  KNOW_AFTER times (or taught: 'hear' with simple 1) is known: the translation layer stops glossing it (presence.ts) */
+  readonly vocab = new Map<string, number>();
+  heardWord(id: string, n = 1) { this.vocab.set(id, (this.vocab.get(id) ?? 0) + n); }
+  knows(id: string) { return (this.vocab.get(id) ?? 0) >= KNOW_AFTER; }
   /** the hosts the stranger left without thanks: they do not take the stranger in again */
   readonly slighted = new Set<string>();
   readonly stats: Record<string, number> = {};
@@ -516,13 +523,13 @@ export class Stranger {
   // ---------------------------------------------------------------- save
   snapshot() {
     return { purse: { ...this.purse }, job: this.job, stay: this.stay, group: this.group, lang: [...this.lang], claim: this.claim, belief: [...this.belief], halmi: this.halmi,
-      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], slighted: [...this.slighted], judged: [...this.judged], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
+      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], slighted: [...this.slighted], judged: [...this.judged], vocab: [...this.vocab], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
   }
   static restore(s: any, E: Economy, opts: StrangerOpts = {}): Stranger {
     const X = new Stranger(E, opts); const c = JSON.parse(JSON.stringify(s));
     X.purse = c.purse; X.job = c.job; X.stay = c.stay; X.group = c.group; X.claim = c.claim; X.halmi = c.halmi; X.petN = c.petN; for (const a of c.attended ?? []) X.attended.add(a);
     for (const [k, v] of c.lang) X.lang.set(k, v); for (const [k, v] of c.belief) X.belief.set(k, v);
     X.debtors.push(...c.debtors); X.petitions.push(...c.petitions); Object.assign(X.deeds, c.deeds); Object.assign(X.stats, c.stats);
-    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); return X;
+    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); for (const [k, v] of c.vocab ?? []) X.vocab.set(k, v); return X;
   }
 }

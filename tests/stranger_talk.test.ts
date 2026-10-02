@@ -115,3 +115,16 @@ describe('the trust gate (B234)', () => {
     expect(o.refused).toBe('distrust'); expect(asked).toBe(0); expect(o.answer.text).toMatch(/turns away/);
   }, 300_000);
 });
+
+describe('words learned one by one (presence.ts thinCaption)', () => {
+  it('a word heard often with its sense shown stops being glossed; the vocabulary is saved', async () => {
+    const { thinCaption } = await import('../src/people/speech/presence');
+    const { unitsFor } = await import('../src/audio/voices');
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const w = unitsFor('arc').words.find(x => /peace/.test(x.gloss))!;
+    const cap = { key: 'p1', unit: w.id, lang: 'arc', translit: w.translit, gloss: w.gloss, tier: 'C', t0: 0, t1: 1 };
+    for (let i = 0; i < 6; i++) expect(thinCaption(sim, cap).gloss.length).toBeGreaterThan(0);
+    expect(thinCaption(sim, cap).gloss).toBe(''); // known now
+    const snap = JSON.parse(JSON.stringify(E.snapshot(d - 2))); expect(snap.stranger.vocab.some(([k]: [string]) => k === w.id)).toBe(true);
+  }, 300_000);
+});
