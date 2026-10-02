@@ -12,6 +12,7 @@ import * as THREE from 'three/webgpu';
 import { texture, positionWorld, normalWorld, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
 import SCANS from '../data/scans.json';
 import { loadBlockFace } from './blockface';
+import { BASE } from '../core/base';
 
 export interface ScanUse { scan: string; scale: number; alb: number; height: number; rough: number; scale2?: number;
   /** roughness also follows the scan's luminance detail: × (1 + roughLum·(lum − 1)) (a burnished floor: the trowel's smooth strokes
@@ -130,7 +131,7 @@ const TEX = new Map<string, { diff: THREE.Texture; arm: THREE.Texture; nor?: THR
 export let scansOn = true;
 
 /** load every scan used (awaited before the world builds its materials); a no-op without a DOM (node) */
-export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
+export async function loadScans(base = BASE, anisotropy = 8): Promise<void> {
   if (typeof document === 'undefined') return;
   await loadBlockFace(base, anisotropy); // D-321: the Blender-carved block faces (independent of ?noscans; ?noblockface)
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noscans')) { scansOn = false; return; }

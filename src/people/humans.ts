@@ -9,6 +9,7 @@ import { HumanGPU } from './humanGPU';
 import { loadHumanScans } from './humanScans';
 import { cached } from '../world/cache/worldCache';
 import { loadPeopleModels, loadHairAtlas, PEOPLE_DIR, type PeopleModels } from './peopleModels';
+import { BASE } from '../core/base';
 
 export interface HumanSystem { A: HumanAssets; O: OutfitBuild; gpu: HumanGPU; ms: { load: number; outfits: number; gpu: number; worker: boolean } }
 
@@ -22,13 +23,13 @@ function outfitsInWorker(meta: any, bin: ArrayBuffer, models: PeopleModels): Pro
 }
 
 export async function loadHumans(opts: { base?: string; velocity?: boolean; capacity?: number } = {}): Promise<HumanSystem> {
-  const base = (opts.base ?? '/') + HUMANS_DIR + '/';
+  const base = (opts.base ?? BASE) + HUMANS_DIR + '/';
   const t0 = performance.now();
   const get = async (f: string) => { const r = await fetch(base + f); if (!r.ok) throw new Error(`${f}: ${r.status}`); return r; };
   const loader = new THREE.TextureLoader();
   // D-307: the Blender-built hair cards and garment drape (public/models/people; null each when absent: the procedural pieces)
   // (D-322: the scans' array takes the garments' fold layers, so it waits for the people's models)
-  const pmP = loadPeopleModels(opts.base ?? '/'), scansP = pmP.then(pm => { const F = pm.drape?.meta.folds; return loadHumanScans(opts.base ?? '/', F ? { url: `${opts.base ?? '/'}${PEOPLE_DIR}/${F.file}`, layers: F.layers, scale: F.scale } : null); });
+  const pmP = loadPeopleModels(opts.base ?? BASE), scansP = pmP.then(pm => { const F = pm.drape?.meta.folds; return loadHumanScans(opts.base ?? BASE, F ? { url: `${opts.base ?? BASE}${PEOPLE_DIR}/${F.file}`, layers: F.layers, scale: F.scale } : null); });
   const [meta, bin, skin, eye, scans, pm] = await Promise.all([get('humans.json').then(r => r.json()), get('humans.bin').then(r => r.arrayBuffer()), loader.loadAsync(base + 'skin.png'), loader.loadAsync(base + 'eye.png'), scansP, pmP]);
   const hairAtlas = pm.atlasUrl ? await loadHairAtlas(pm.atlasUrl) : null;
   const hairNormal = hairAtlas && pm.normalUrl ? await loadHairAtlas(pm.normalUrl) : null; // D-323 (null: the cards shade flat)

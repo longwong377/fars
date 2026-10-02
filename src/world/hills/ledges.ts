@@ -14,6 +14,7 @@ import { texture, uv, vec3, dot, attribute, float } from 'three/tsl';
 import { HILL } from '../plain/terrainPlain';
 import { stratY, cliffPkg, riserBreak, type BedrockEnv } from './bedrock';
 import { TERRACE_BOX } from '../plain/townGround';
+import { BASE } from '../../core/base';
 
 /** reach (m): strips drawn to R, fine (displaced) within NEAR; tile (m, as the bedrock's), grid step (m); rebuild step (m) */
 export const LEDGES = { R: 1600, NEAR: 70, CAST: 600, /** solid (player colliders) within */ SOLID: 45, tile: 64, step: 4, moveM: 25, budgetMs: 6 } as const;
@@ -85,7 +86,7 @@ export interface LedgeFace { map: THREE.Texture; normal: THREE.Texture; relief: 
 let FACE: LedgeFace | null = null;
 export const ledgeFace = () => FACE;
 export function _setLedgeFace(f: LedgeFace | null) { FACE = f; }
-export async function loadLedgeFace(base = '/'): Promise<LedgeFace | null> {
+export async function loadLedgeFace(base = BASE): Promise<LedgeFace | null> {
   try {
     const meta = await (await fetch(base + 'models/land/ledgeface.json')).json(), tl = new THREE.TextureLoader();
     const [map, normal, hImg] = await Promise.all([tl.loadAsync(base + 'models/land/ledgeface_diff.jpg'), tl.loadAsync(base + 'models/land/ledgeface_nor.jpg'), tl.loadAsync(base + 'models/land/ledgeface_height.png')]);

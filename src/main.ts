@@ -40,6 +40,8 @@ import { roofedAt } from './render/probes/roofs';
 import { seasonAt } from './world/season';
 import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
+import { BASE } from './core/base';
+import { installProgressiveCompile } from './render/progressive';
 installWebGPUCompat();
 
 const P = urlParams();
@@ -67,9 +69,18 @@ if (settings.devOverlay || P.has('overlay')) overlay.toggle();
 const SPAWN = { east: -175, north: 122.45, yaw: -Math.PI / 2 };
 
 const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms') : (_: string) => {};
+/** s15/ship (D-368): the built site's service worker (public/sw.js: the site's files in Cache Storage, so a second visit
+ *  fetches nothing); on a first visit the boot waits (at most 3 s) until it controls the page, so the first visit's files are kept */
+async function siteWorker() {
+  if (!(import.meta as any).env?.PROD || !('serviceWorker' in navigator) || P.has('nosw')) return;
+  try { await navigator.serviceWorker.register(BASE + 'sw.js', { scope: BASE });
+    if (!navigator.serviceWorker.controller) await Promise.race([new Promise(r => navigator.serviceWorker.addEventListener('controllerchange', r, { once: true })), new Promise(r => setTimeout(r, 3000))]); }
+  catch (e) { console.warn('[sw]', e); }
+}
 async function boot() {
   const shell = new Shell(settings, hooks());
   shell.loading('Preparing the renderer…');
+  const swP = siteWorker();
   let renderer: THREE.WebGPURenderer;
   try {
     // reversed-Z on WebGPU; the WebGL2 fallback needs EXT_clip_control for that, so it uses a logarithmic depth buffer (D-007)
@@ -103,10 +114,14 @@ async function boot() {
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
   shell.loading('Loading the plain and the mountain…');
-  await loadScans('/'); // scanned surface detail (session 11, B7 lifted): before any surface material is built
-  const terrain = await Terrain.load('/');
+  await swP;
+  // s15/ship: the terrain's rings and the physics engine load while the scans decode (each was awaited in turn)
+  const terrainP = Terrain.load(BASE), physP = Physics.create();
+  await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
+  TRACE('scans');
+  const terrain = await terrainP;
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
-  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars('/'); sky.meteors.seed = SEED;
+  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars(BASE); sky.meteors.seed = SEED; TRACE('terrain, sky');
   shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-093)
   const weather = new WeatherSystem(SEED);
   if (P.get('weather')) weather.override = P.get('weather') as WeatherOverride;
@@ -123,7 +138,7 @@ async function boot() {
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality, sky.hemi);
   TRACE('pipeline built');
   shell.loading('Raising the Terrace…');
-  const phys = await Physics.create();
+  const phys = await physP;
   TRACE('physics ready');
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
@@ -412,6 +427,8 @@ async function boot() {
   let lastFrameMs = 0; let probeT = 0;
   /** D-337: a frozen test world profiled as the player's loop runs it (the eye rays every 0.25 s, the meter read back without waiting) */
   let PLAYLIKE = false; let passLog: PassLog | null = null;
+  /** s15/ship (D-368): called as a frame starts drawing (the shader-build budget below restarts) */
+  let onDrawStart = () => {}, onDrawEnd = () => {};
 
   function simStep(dt: number, advanceClock = true) {
     if (advanceClock) clock.advance(dt);
@@ -519,7 +536,7 @@ async function boot() {
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the
     // session 2 bench and every renderOnce-based count measured that: 1 draw call, sub-millisecond "frames")
     if (!inAnimationLoop) { const nf = (renderer as any)._nodes?.nodeFrame; if (nf) { nf.update(); (renderer.info as any).frame = nf.frameId; } }
-    tp = pt(); pipeline.render(scene, camera); pa('render', tp);
+    tp = pt(); onDrawStart(); pipeline.render(scene, camera); onDrawEnd(); pa('render', tp);
     lastFrameMs = performance.now() - t0;
     if (firstFrames > 0) { TRACE(`frame ${3 - firstFrames}: render ${lastFrameMs.toFixed(0)} ms`); firstFrames--; }
     // D-376 (UD-31): the world is shown: the people's voices and the talk's model start streaming in (a few frames in, so the
@@ -562,6 +579,13 @@ async function boot() {
   }
   TRACE('world built');
   world.prebuild?.(camera.position); // D-321 rev 3: the arris bands round the spawn, in the load
+  // s15/ship (D-368, UD-31): progressive shader compile (src/render/progressive.ts): the player's loop never waits on a shader;
+  // the world comes in as its shaders finish. Frozen test worlds and the bench keep whole frames; ?synccompile turns it off,
+  // ?buildbudget=<ms> sets the per-frame shader-build budget (40). __parsa.compiling() counts what is still compiling.
+  if (!TEST && !P.has('bench') && !P.has('synccompile') && !NORENDER) {
+    const pc = installProgressiveCompile(renderer, +(P.get('buildbudget') ?? 40));
+    onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
+  }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
   if (TEST) shell.playing(); else shell.title(continued);

@@ -8,13 +8,14 @@ import * as THREE from 'three/webgpu';
 import { attribute, float, vec3 } from 'three/tsl';
 import { propsFor, scanMaterial } from '../../render/scanProps';
 import type { FordDetailSites } from './crossings';
+import { BASE } from '../../core/base';
 
 export const FORD_R = { tiles: 260, steps: 260, boat: 700, lod: [9, 45] } as const;
 export interface FordKit { tiles: THREE.BufferGeometry[][]; boat: THREE.BufferGeometry[] | null }
 let KIT: FordKit | null = null;
 export const fordKit = () => KIT;
 export function _setFordKit(k: FordKit | null) { KIT = k; }
-export async function loadFordKit(base = '/'): Promise<FordKit | null> {
+export async function loadFordKit(base = BASE): Promise<FordKit | null> {
   try {
     const man = await (await fetch(base + 'models/land/manifest.json')).json(), C = man.classes?.ford; if (!C) throw new Error('no ford class');
     const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js'), g = await new GLTFLoader().loadAsync(base + 'models/land/ford.glb');

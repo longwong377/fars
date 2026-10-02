@@ -20,6 +20,7 @@ import { mxNoise3 } from '../../render/mx_noise_cpu';
 import { pcg, unit } from '../plain/fields';
 import { HILL } from '../plain/terrainPlain';
 import { TERRACE_BOX } from '../plain/townGround';
+import { BASE } from '../../core/base';
 
 export type RockClass = 'ledge' | 'ground';
 export interface RockPiece { id: string; cls: RockClass; size: [number, number, number]; lods: THREE.BufferGeometry[]; cell?: number }
@@ -144,7 +145,7 @@ export const rockKitStats = () => ({ ...KSTAT, loaded: !!KIT });
 /** register a kit directly (tests; node has no GLTF loading) */
 export function _setRockKit(k: RockKit | null) { KIT = k; }
 /** load public/models/land (manifest, GLBs, atlases). Never throws: without it the hills keep their texture only (flagged) */
-export async function loadRockKit(base = '/'): Promise<RockKit | null> {
+export async function loadRockKit(base = BASE): Promise<RockKit | null> {
   const t0 = performance.now();
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('bedrock') === '0') { KSTAT.failed = 'off (?bedrock=0)'; return null; }
   try {

@@ -9,6 +9,7 @@ import * as THREE from 'three/webgpu';
 import BARK from '../../data/tree_bark.json';
 import { atlasFromImages, type Atlas } from './atlas';
 import { SPECIES } from './species';
+import { BASE } from '../../core/base';
 
 export interface WoodEntry { row: number; species: string; variant: number; v0: number; nv: number; i0: number; ni: number; tris: number; chains: number; ao_mean: number }
 export interface WoodMeta { stride: number; budget: [number, number]; vertex_floats: number; indices: number; lods: [WoodEntry[], WoodEntry[]] }
@@ -48,7 +49,7 @@ export function woodLevels(meta: WoodMeta, bin: ArrayBuffer, rows: number): [Woo
 }
 
 /** browser: load everything (never throws: a failure leaves the procedural trees, and says so) */
-export async function loadTreeAssets(base = '/', rows = SPECIES.length * 3): Promise<ReturnType<typeof treeAssetStats>> {
+export async function loadTreeAssets(base = BASE, rows = SPECIES.length * 3): Promise<ReturnType<typeof treeAssetStats>> {
   const t0 = performance.now();
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('treeassets') === '0') { OFF = true; return treeAssetStats(); }
   try {

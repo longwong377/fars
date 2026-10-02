@@ -1,3 +1,4 @@
+import { BASE } from '../core/base';
 // The people's Blender-built assets (D-307): strand cards for hair, beards and brows, and garment drape from Blender's
 // cloth simulation. Built by `node tools/blender/build.mjs` from tools/blender/people.json (sources in
 // tools/blender/sources/people_*.ts, Blender scripts tools/blender/hair_atlas.py and cloth.py) into public/models/people/,
@@ -127,7 +128,7 @@ export class BinWriter {
 
 /** browser loader: the people's assets from public/models/people (null for each that is absent or fails: the procedural
  *  pieces are drawn). `?models=0` or `?peoplemodels=0` switches them off. */
-export async function loadPeopleModels(base = '/'): Promise<PeopleModels & { atlasUrl: string | null; normalUrl?: string | null }> {
+export async function loadPeopleModels(base = BASE): Promise<PeopleModels & { atlasUrl: string | null; normalUrl?: string | null }> {
   const off = typeof location !== 'undefined' && (new URLSearchParams(location.search).get('models') === '0' || new URLSearchParams(location.search).get('peoplemodels') === '0');
   if (off) return { cards: null, drape: null, atlasUrl: null };
   const dir = `${base}${PEOPLE_DIR}/`;
@@ -144,7 +145,7 @@ export async function loadPeopleModels(base = '/'): Promise<PeopleModels & { atl
  *  features before a renderer exists here, so they are read from the WebGPU adapter (three's WebGPU backend asks for every
  *  feature the adapter has; without WebGPU none: the transcoder writes RGBA8). Linear data (R shade, G depth, B strand
  *  direction, A coverage), not flipped (row 0 = the top of the atlas), clamped. null if it fails (then no cards are drawn). */
-export async function loadHairAtlas(url: string, base = '/'): Promise<any | null> {
+export async function loadHairAtlas(url: string, base = BASE): Promise<any | null> {
   try {
     const THREE = await import('three/webgpu');
     const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');

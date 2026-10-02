@@ -9065,6 +9065,26 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
   ground_cover.test's 0.35 M triangles and 36 draws.
 - Not done: herders with flocks in the near plain (the people sim's, not this package's files); far-tree "lollipops" (no frame of them seen).
 
+## D-368 The public site: GitHub Pages under /fars/ built by Actions from git alone, progressive shader compile, a service worker (session 15, agent ship; number per the brief, inside the cloud's D-370..D-379 range: the lead may renumber)
+- **Base path:** vite `base` '/fars/' for builds (PARSA_BASE overrides), '/' on the dev server; every public/ fetch through
+  `BASE` (src/core/base.ts); tests/base_paths.test.ts fails on an absolute fetch (the built site broke at the plain on one).
+- **Deploy:** .github/workflows/pages.yml (push to s14-int or manual): node 24, `npm ci --ignore-scripts`,
+  tools/deploy/build_site.mjs (world cache baked in node, vite build, `.nojekyll`, the service worker's build stamp, and a
+  refusal on a file > 100 MB, a site > 1 GB or a local model store in public/models), then upload-pages-artifact + deploy-pages.
+  Proved from a fresh `git clone --depth 1` on T: (npm ci, bake, build: 102 s; dist 1,166 files, 585 MB, largest 43.6 MB).
+- **No cross-origin isolation** (Pages sends no headers; nothing needs SharedArrayBuffer; ONNX runs single-threaded or on
+  WebGPU). The models come from Hugging Face / raw.githubusercontent on the public origin: CORS checked for github.io.
+- **Progressive compile** (src/render/progressive.ts, default in the player's loop; frozen tests and the bench keep whole
+  frames; ?synccompile, ?buildbudget): async pipelines, unready draws skipped, the node builds spread at 40 ms a frame.
+  T4 probe (Terrace scene, 313 draws, empty profile): synchronous first frame 325 s; progressive first frame 0.17 s, longest
+  frame 0.62 s, every draw in at 216 s.
+- **Service worker** (public/sw.js, production only): the site's files in Cache Storage. Chrome's HTTP cache re-fetched all
+  387 MB on a second visit (LRU past its size); with the worker the second visit fetched 3 MB.
+- Measured on the built site, ?norender (the box rule: no full-world rendered page), 100 Mbit/s cap: cold ready 162 s
+  (pre-world 24 s, world build 113 s: arch 42, view 22, settlement 13, plain 10), 444 MB before ready; warm ready 145 s
+  (3 MB network; the world build is CPU). UD-31's 60 s / 20 s are NOT met: the world build, page memory (6.3 GB norender)
+  and the download (444 MB vs 150 MB) belong to the load and cloud work.
+
 ## D-370 The stranger in the simulation: work, language, identity, petitions, hospitality, groups (session 15, cloud; UD-25 mechanics 3, 6-10; UD-24, UD-26; T-F9, T-E13, T-E14)
 - src/people/speech/stranger.ts: the player is an actor ('player') of the economy's causal graph. Every step (seek work, attend, quit, hear, claim, petition, stay, leave, give, join, leave a group) is recorded by day, applied on its day, saved with the economy (snapshot) and replayed; judge() is the simulation's verdict before the person answers (the model never decides).
 - (3) Work: a house hires when it wants hands (its harvest window, a craft's orders, a sick member, a rich house's service, lambing), by its trust, the stranger's tongue and a believed claim; ~1 kg barley a day (a man's ration of 30 qa a month, A in kind, C in kg), paid on the sixth day from its stores, else owed: the remainder at the job's end is a debt in the economy's own ledger (its dues, defaults and suits follow); two days missed: dismissed; the need gone: let go. (6) Comprehension per tongue = 1 - exp(-hours/200), hours weighted by simplification (more for a beginner) and speaking (x1.4), a third from a related tongue, half-life 180 days unused; register() gives simplify, gesture and the translation layer's gloss share by the learner's level and the speaker's patience (trust). (7) A claim (role, origin, kinship) spreads from the first hearer along kin and two of the lane (p 0.15 a day per tie, at most 5 hands), believed by trust in the teller and plausibility (the role's prior; a "Persian" without Persian; deeds against it: a "merchant" carrying sacks); doubt below 0.25 is an event and costs trust; a false kinship is denied at once. (8) A headman (a house of standing of the quarter, by the seed), an official or the court rules after 1-2, 3-8 or 6-15 days: wages (paid, else bound labour in the economy's own way), a plea (spoken_for), relief grain, leave to stay (a sealed document, halmi, A in kind: 180 days). (9) Guest-right by stores, trust and belief; the guest eats 1.2 rations from the host's grain (a poor host goes short: a chain into hunger); after three nights an unpaid guest wears out the welcome, sent away at seven; leaving with less than half repaid in 30 days is ingratitude the host's kin and lane hear, and the house never takes the stranger in again. (10) A treasury gang (0.9 kg a day, half without the document, cut when the treasury cuts rations; the gang's houses come to know the stranger), a caravan in town (drover's silver while it stays), a household (joined when known 5+ days and trusted 0.6+; its workers and eaters).
