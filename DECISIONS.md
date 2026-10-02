@@ -9427,3 +9427,16 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   lane door 16:30 0/14/136 → 1/46/164 (photos of Fars mud-brick villages: ~30/110/190).
 - Tests: tone_look (the deepest darks within 14 levels of plain AgX, was 8: the toe lift is intended), exposure (a moonless
   night's displayed grey < 0.08, was 0.03: the night fill is intended).
+- light v2 (night, D-480 cont.): (1) the night dome (skySystem NIGHT_SKY_ZENITH/HORIZON): a deep-blue zenith over a paler
+  blue-grey horizon replaces the Preetham dome's night tail (the baseline train's cov-000: a brown-grey sky brighter than the
+  land); moonlight brightens it ×(1 + 2.5·up·phase); the fog's horizon colour and the air's in-scatter take the same night sky;
+  the airglow layer's green-grey veil cut to (0.00022, 0.00028, 0.00034). (2) The night fill is now a floor (NIGHT_GREY 0.05 of
+  the daylight grey, at most 10x, taken on the moonless sky so moonlight still adds): the evening falls monotonically from civil
+  twilight. (3) The grade's toe lift rises by NIGHT_LIFT 1.2 at night (pipeline.ts), the dark-adapted eye's reading of shapes.
+  (4) Night clouds (clouds.ts): opacity 1 − T^(1+3·night) so a deck that dims the sky also hides its stars, and a night glow
+  (the night dome at 35° × 1.1) so starlit cloud is soft grey-blue, not black holes. Lab, moonless court 22:30: p50 sRGB 1 → 15,
+  the open plain at 01:30 (cov-000's camera) 0 → 20. All C (UD-29: the night must read). Not fixed: the fan of light at the
+  horizon in cov-000 is the clear sky between cloud streets in perspective (gone with the clouds off); softened, not removed.
+- The outdoor field re-bake (node tools/blender/lightmaps.mjs, 192 s on 6 workers) is byte-identical on this tree: it bakes the
+  geometry (relative sky and sun), which the light changes do not touch. It must re-run after the town/Terrace geometry merges
+  (C1's fill, V4), before the final train.

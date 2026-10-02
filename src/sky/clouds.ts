@@ -59,6 +59,11 @@ export class VolumetricClouds {
    *  D-153): the clouds' ambient in-scatter (cloudLight.ts) */
   readonly ambient = uniform(new THREE.Color(0.5, 0.6, 0.8)); readonly ambientGround = uniform(new THREE.Color(0.3, 0.25, 0.2));
   readonly time = uniform(0);
+  /** D-480: the opacity's exponent (1 by day; 1 + 3·night: alpha = 1 − T^k, so a deck that dims the sky also hides its stars) */
+  readonly nightOpacity = uniform(1);
+  /** D-480: the night deck's own glow (renderer radiance, set from the night dome): starlit cloud reads as soft grey-blue just
+   *  over the sky between, not as black holes in it (the baseline's cov-000; the gaps between cloud streets read as a fan of rays) */
+  readonly nightGlow = uniform(new THREE.Color(0, 0, 0));
   readonly wind = uniform(new THREE.Vector2(3, 0));          // m/s, world x/z
   /** the approaching rain cell (world x, world z, radius m, strength 0..1; strength 0 = none): the cloud above it is
    *  thicker and taller, so the curtain hangs from a darker base (the light march does the darkening). C (session 3). */
@@ -146,8 +151,8 @@ export class VolumetricClouds {
         // sun); the dome behind already carries the in-scatter of the whole ray, so with alpha = the cloud's opacity α:
         //   out = α (J (1 − T_air) + T_air · L_cloud / α) + (1 − α) · dome
         const tAir = exp(air.opticalDepthNode(cameraPosition, cameraPosition.add(dir.mul(t0))).negate());
-        const alpha = float(1).sub(T);
-        out.assign(vec4(air.jNode(dir).mul(vec3(1).sub(tAir)).add(tAir.mul(col.div(max(alpha, 0.001)))), alpha));
+        const alpha = float(1).sub(pow(max(T, 1e-6), this.nightOpacity));
+        out.assign(vec4(air.jNode(dir).mul(vec3(1).sub(tAir)).add(tAir.mul(col.div(max(alpha, 0.001)))).add(this.nightGlow as any), alpha));
       });
       return out;
     })();
