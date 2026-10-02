@@ -75,7 +75,9 @@ export interface TrafficSource { caravan(d: number): { h: number; sacks: number 
   /** D-256: the day's events (E-61's drum arrivals), its sun, weather and month (the quarry's working day) */
   events?: { t: number; id: string; text: string }[]; sun?: { rise: number; set: number }; wx?: { wet: boolean; stormH: [number, number] | null }; month?: number; heatRest?: boolean } };
   /** D-570 (court setting): the court's tents, pitched as each household reaches its camp and struck on the leave day */
-  court?: { tents: Tent[] } | null }
+  court?: { tents: Tent[] } | null;
+  /** D-570: the population's own RoadFolk when it holds the road folk as its people (one instance: their plans and places agree) */
+  folk?: RoadFolk | null }
 /** D-256: one drum's haul: the travel spans (absolute h) out and back, where it is along the routes */
 export interface DrumHaul { key: string; arrive: number; out: [number, number][]; back: [number, number][]; seed: number }
 export class Traffic {
@@ -176,7 +178,7 @@ export class Traffic {
   /** D-570: the hinterland's people on the four roads (roadFolk.ts) */
   readonly folk: RoadFolk;
   constructor(private seed: number, private src: TrafficSource, plan: TownPlan | null) {
-    this.folk = new RoadFolk(seed, src.cal, plan); if (src.court?.tents?.length) this.buildTrain(src.court.tents, plan);
+    this.folk = src.folk ?? new RoadFolk(seed, src.cal, plan); if (src.court?.tents?.length) this.buildTrain(src.court.tents, plan);
     const W = FEAT.road_royal_west.polyline as P2[], S = FEAT.road_south_tirazzish.polyline as P2[], stair = (PLACE.stair_foot?.at ?? [-52, 118.5]) as P2;
     const site = (id: string) => plan?.sites.find(s => s.id === id);
     const st = site('stables'), sto = site('stores');
