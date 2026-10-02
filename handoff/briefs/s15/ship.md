@@ -21,3 +21,12 @@ talking available within the minute (once the cloud work lands), page memory wit
 Box rules: 2 agents max; every browser job via tools/dev/gpu_slot.mjs, every heavy node job (vite build, vitest) via
 tools/dev/cpu_slot.mjs; one heavy process at a time; never kill what you did not start; never lower a threshold; guards on
 every commit; commit every 30-45 min; at the end merge s14-int, test, commit, `mkwt.mjs --done ship`, report <= 250 words.
+
+**Host decided by the user: GitHub Pages** (repo longwong377/fars is public; URL https://longwong377.github.io/fars/).
+- Base path: the site lives under /fars/: vite `base: '/fars/'` for the production build, and every absolute asset URL in code
+  (fetch('/models/...'), '/world-cache/...', '/generated/...') must go through import.meta.env.BASE_URL.
+- No custom headers on Pages: public/_headers is ignored. If workers need cross-origin isolation (SharedArrayBuffer for
+  threaded wasm/onnx), ship a COOP/COEP service worker (the coi-serviceworker pattern, MIT, in the ledger) or run single-threaded.
+- Pages serves no Git LFS and caps a site at 1 GB, 100 MB a file: the built site (~450 MB, largest 26.5 MB) fits.
+- Deploy = push the built site to branch `gh-pages` (tools/deploy/pages.mjs: build, add .nojekyll, push with a fresh orphan
+  commit so the branch does not grow). Build and dry-run it; the lead pushes it after telling the user.
