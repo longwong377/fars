@@ -39,7 +39,9 @@ export class ConstructionView {
   private yard = new THREE.Group(); private yardSig = '';
   /** what the site shows now (tests, overlay) */
   site = { waiting: 0, dressed: 0, capitalsReady: 0, capitalInWork: false, scaffolds: [] as number[] };
-  constructor(arch: THREE.Object3D, private construction: () => Construction | null) {
+  /** D-570: the earth ramp to the column being raised (null: none today) and its colliders (stepped boxes, walkable) */
+  ramp: { col: number; H: number; L: number; dir: number } | null = null; private rampCols: unknown[] = [];
+  constructor(arch: THREE.Object3D, private construction: () => Construction | null, private phys: { addBox(c: { x: number; y: number; z: number }, h: { x: number; y: number; z: number }, rotY?: number): unknown; world: { removeCollider(c: any, wake: boolean): void } } | null = null) {
     this.group.name = 'hall100:construction';
     this.group.add(this.yard); this.yard.name = 'hall100:site';
     // the architecture's static hall columns give way to this view
@@ -164,6 +166,35 @@ export class ConstructionView {
       const deck = Math.max(y + 1.5, top - 1.3); // the carvers stand a man's height below the shaft top
       for (const sz of [-1, 1]) timber.push(new THREE.BoxGeometry(2 * a + 0.3, 0.06, a - r).translate(c.at[0], deck, -c.at[1] + sz * (r + (a - r) / 2)));
     }
+    // D-570: the earth ramp the gang hauls the drums up (BUILD.raiseDays: "to haul one drum up the earth ramp and set it"; the
+    // sim's gangs "hauling a drum up the ramp to column N", "building up the earth ramp"). How the drums went up is not known
+    // (D-022, Q-710): an earth ramp between mud-brick kerbs, 1 in 3.5, along the aisle beside the column's row (clear of its
+    // neighbours), from the hall's floor toward the side with room, up to the scaffold's deck or as far as the hall allows,
+    // a plank bridge from its head to the deck, timber sleepers across its slope and a drum on its way up; walkable (C)
+    const earth: THREE.BufferGeometry[] = []; for (const k of this.rampCols) this.phys?.world.removeCollider(k, false); this.rampCols = []; this.ramp = null;
+    { const ri = t?.raise; const c = ri != null && ri >= 0 ? C.columns[ri] : null;
+      if (c && c.ring === 'hall' && c.drums < c.drumsTotal) {
+        const top = y + o.baseH + shaftH * (c.drums / c.drumsTotal), deck = Math.max(y + 1.5, top - 1.3), want = deck - y, hall = C.columns.filter(q => q.ring === 'hall').map(q => q.at[1]);
+        const nMax = Math.max(...hall) + 3, nMin = Math.min(...hall) - 3, roomN = nMax - c.at[1], roomS = c.at[1] - nMin, dir = roomN >= roomS ? 1 : -1, room = Math.max(roomN, roomS);
+        const L = Math.min(want * 3.5, room), H = L / 3.5, W = 2.4, side = 3.0, e0 = c.at[0] + side, n1 = c.at[1], n0 = n1 + dir * L;
+        if (H > 0.4) { this.ramp = { col: c.i, H, L, dir };
+          // the body: the slope, the two kerbed sides and the head wall (world: x = e, z = -n)
+          const P = (e: number, n: number, h: number) => [e, y + h, -n], q = (a: number[], b: number[], cc: number[], d: number[], out: number[]) => out.push(...a, ...b, ...cc, ...a, ...cc, ...d);
+          const pos: number[] = [], A = P(e0 - W / 2, n0, 0), B = P(e0 + W / 2, n0, 0), Ct = P(e0 + W / 2, n1, H), D = P(e0 - W / 2, n1, H), Cb = P(e0 + W / 2, n1, 0), Db = P(e0 - W / 2, n1, 0);
+          q(A, B, Ct, D, pos); pos.push(...B, ...Cb, ...Ct, ...A, ...D, ...Db); q(Db, D, Ct, Cb, pos);
+          const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+          // (winding by the slope's direction: as written the faces look out when it runs south; flipped when it runs north)
+          if (dir > 0) { const a = g.getAttribute('position').array as Float32Array; for (let i = 0; i < a.length; i += 9) for (let k = 0; k < 3; k++) { const t0 = a[i + 3 + k]; a[i + 3 + k] = a[i + 6 + k]; a[i + 6 + k] = t0; } g.computeVertexNormals(); }
+          earth.push(g);
+          // the sleepers across the slope every 1.1 m, the plank bridge from the head to the deck, a drum part-way up on rollers
+          for (let s = 0.6; s < L - 0.3; s += 1.1) { const h = H * (1 - s / L), ang = Math.atan2(H, L) * dir; timber.push(new THREE.BoxGeometry(W + 0.2, 0.1, 0.16).rotateX(ang).translate(e0, y + h + 0.05, -(n1 + dir * s))); }
+          const a = r + 0.7, bx = (c.at[0] + a + e0 - W / 2) / 2, bw = e0 - W / 2 - (c.at[0] + a) + 0.4; if (bw > 0) timber.push(new THREE.BoxGeometry(bw, 0.08, 1.4).translate(bx, y + H + 0.04, -n1));
+          const sd = L * 0.55, hd = H * (1 - sd / L); rough.push(new THREE.CylinderGeometry(r, r, dh, 18).rotateZ(Math.PI / 2).translate(e0, y + hd + r + 0.12, -(n1 + dir * sd)));
+          for (const k of [-0.6, 0.6]) timber.push(new THREE.CylinderGeometry(0.09, 0.09, W + 0.3, 6).rotateZ(Math.PI / 2).translate(e0, y + H * (1 - (sd + k) / L) + 0.09, -(n1 + dir * (sd + k))));
+          // colliders: steps of 0.2 m up the slope (the player walks it as a stair), and the sides
+          if (this.phys) { const N = Math.ceil(H / 0.2), ds = L / N; for (let j = 0; j < N; j++) { const hTop = H * (j + 1) / N, sMid = L - (j + 0.5) * ds;
+            this.rampCols.push(this.phys.addBox({ x: e0, y: y + hTop / 2, z: -(n1 + dir * sMid) }, { x: W / 2, y: hTop / 2, z: ds / 2 })); } }
+        } } }
     const add = (gs: THREE.BufferGeometry[], mat: string, note: string) => {
       if (!gs.length) return;
       const g = mergeGeometries(gs.map(q => { const n = q.index ? q.toNonIndexed() : q; for (const k of Object.keys(n.attributes)) if (k !== 'position' && k !== 'normal') n.deleteAttribute(k); return n; }))!;
@@ -179,6 +210,7 @@ export class ConstructionView {
     }
     add(dressed, 'limestone', `masons' yard: ${site.dressed} dressed drum(s) ready to raise, ${site.capitalsReady} finished capital(s) (counts from the simulation; layout C)`);
     add(timber, 'scaffold', `timber scaffold(s) at column(s) ${site.scaffolds.map(i => i + 1).join(', ')} (receiving drums / being fluted); form C: no evidence of the method was retrieved (D-022)`);
+    add(earth, 'earth', `the earth ramp to column ${this.ramp ? this.ramp.col + 1 : '-'} (${this.ramp ? this.ramp.H.toFixed(1) : 0} m high, ${this.ramp ? this.ramp.L.toFixed(0) : 0} m long): BUILD.raiseDays "up the earth ramp"; its form and place C (D-570, D-022)`);
     const mk = marksMesh(marks, 'limestone', v<any>('global', 'r_masons_marks').drum.lift, 'hall100:site:marks', 'masons\' marks on the dressed drums\' upper bedding faces (D-212; marks B, shapes B elsewhere, this placement C)');
     if (mk) { mk.userData = { ...mk.userData, building: B, placeholder: false }; this.yard.add(mk); }
   }
