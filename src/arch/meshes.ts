@@ -692,7 +692,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
       });
       const centre = new THREE.Vector3(p.c[0], (p.y0 + p.y1) / 2, -p.c[1]);
       const lod = new MeshLOD(meshes, centre, SW.colossus, SW.hysteresis); lod.name = `${p.building}:colossus:${p.sculpt!.model}`;
-      lod.userData = { tier: p.tier, src: p.src, placeholder: false, building: p.building, ...(CM ? { model: CM.id } : {}), note: `${p.note ?? 'colossus'}; carved form reconstructed from the type (RECOLLECTION), not measured; licensed scans would replace it (NEEDS #10)${CM ? '; its carving (bead rows, collar, mane, feathers after the photographs: layout C) baked in Blender as normal and occlusion maps (D-306)' : ''}` };
+      lod.userData = { tier: p.tier, src: p.src, placeholder: false, building: p.building, ...(CM ? { model: CM.id } : {}), note: CM?.entry.src.includes('SKFB') ? `${p.note ?? 'colossus'}; form and carving from a licensed digital sculpt (${CM.entry.src}; D-365: CC-BY-4.0, ASSET_LEDGER.md), fitted to the colossus box on the jamb block, tier C` : `${p.note ?? 'colossus'}; carved form reconstructed from the type (RECOLLECTION), not measured; licensed scans would replace it (NEEDS #10)${CM ? '; its carving (bead rows, collar, mane, feathers after the photographs: layout C) baked in Blender as normal and occlusion maps (D-306)' : ''}` };
       meshes.forEach((m, k) => { m.name = `${lod.name}:lod${k}`; m.userData = lod.userData; });
       tris += meshes[0].geometry.index!.count / 3;
       group.add(lod);

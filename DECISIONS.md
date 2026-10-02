@@ -9372,3 +9372,29 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 ## D-464 The depth goes live: cloud-s15-depth merged into s14-int on the user's word (session 15/16, cloud lead)
 - The user, after the state-of-the-game report: "i think you should merge". The merge budget rule held it back (the consolidated built site reached ready at the same speed, 99.8 s cold / 69.0 s warm, but page memory rose 5.60 -> 5.83 GB, bench-reports/load_s16_boot.md on cloud-s16-boot); the user's decision takes it in. The memory is owed back: page memory under 5 GB stays the target (gates/budgets.json not loosened).
 - In: D-455..D-462 (the stranger's living loop, the market's stallholders, open deeds and a mind in every person, law and feuds, minds' goals, deeds made physical), D-456 talk-eval fixes, D-457 women's names, B230 adult brides, D-395 talk16 hooks. tsc clean; guards 25/25; the consolidated key tests 113/114 and 40/40 after the last merge (sessions/s15-cloud-report.md). The market and goals merges were not in the built-site measurement: the next Vagon session verifies the live site first.
+## D-365 (s14, monuments): the Gate's E colossi from a licensed sculpt; the protome and W bulls blocked (B360, B361)
+- **Decision (UD-19, UD-20, UD-01; T-R12; B118):** the two E human-headed winged bulls of the Gate of All Nations are no longer
+  the project's signed-distance model: their form and carving come from a licensed digital sculpt, "Persian Lamassu High Poly"
+  by Shahriar Shahrabi (Sketchfab da8a0372d55e41c8a77b8993e0a8fe1f, CC-BY-4.0, 2.54 M triangles; an Assyrian lamassu adjusted
+  by its author after the damaged Persepolis original: the Persian crown, bent wings, four legs, the front), fetched without a
+  login from the Objaverse 1.0 mirror on Hugging Face (tools/blender/scans/scans.json: url, sha256, licence). It is a gate
+  colossus already (fore-part in the round, the flank in relief off a flat back), so it is fitted, not re-cut:
+  tools/blender/scans/colossus_scan.ts welds it, scales it uniformly so hoof to crown top = the reference box's H (D-312's
+  measure; the length then pressed 1.8 % to L), sets the legs' mid-plane on colossus.body.zc and the relief's flat back 2 cm
+  into the jamb's cut-back ground (relief_depth), adds the jamb block of colossusSDF (slab, back and top frames, 36 triangles),
+  simplifies with meshoptimizer to the game's budgets (LOD0 ~49.8 k, LOD1 ~4.95 k with the block) and to a 400 k-triangle high
+  source; tools/blender/bake.py bakes the normal + occlusion maps as for every asset (assets.json colossus_lamassu now points at
+  the scan source). Tier C (a modern sculpt), src SKFB-LAMASSU-SHAHRABI; ASSET_LEDGER.md records the licence and credit.
+  The game's F3 note for a colossus drawn from a licensed sculpt says so (meshes.ts, one conditional: the smallest hook).
+- **Why not a re-sculpt:** the scan route was the brief's approach 1 and the only one that puts carved forms (beard and hair
+  curls, feather rows, bead fringes, hooves, the crown) in the silhouette at 1-3 m; the SDF reviewers scored 1/5 (B118).
+- **Searched and not usable without an account (B360, B361):** every downloadable Achaemenid bull, lion or griffin capital and
+  wingless bull colossus (Sketchfab API, Objaverse 1.0, museum pages); the matching scans are not downloadable or need a
+  Sketchfab login (listed in B360 for the user). The protome head re-cut from a side photograph as a flat-sided block (approach 2,
+  measured and reverted: it read as a box) is in REVIEWS/s14/monuments/.
+- **Tools (node, no browser, light on memory: the box had ~1.5 GB free):** scanlib.ts (GLB reader, typed-array weld, cut,
+  simplify, normals, an orthographic z-buffer preview to PNG), look.ts / look_ply.ts / look_sdf.ts / look_piece.ts (previews of a
+  scan, a pipeline PLY, an SDF piece, a game piece), grid.mjs (a photograph with a pixel grid, to read outlines), inspect.py and
+  probe_render.py (Blender, Cycles renders of a baked GLB at given views).
+- **Not done (honest):** the double-bull protome capitals (210) and the W bulls (2) are D-312's SDF forms with the D-306 maps
+  (B360, B361); B166/B167 (columns2) not started; no full-world render of the change (train views requested).

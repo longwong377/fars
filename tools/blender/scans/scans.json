@@ -1,0 +1,15 @@
+{
+ "_about": "PARSA s14 (D-365): licensed 3D scans and sculpts used as the monuments' source meshes. Each file is fetched by tools/blender/scans/scanlib.ts scanFile() from `url` (the Objaverse 1.0 mirror of the Sketchfab model on Hugging Face: no login) into $FARS_SCANS (default C:/Users/Administrator/fars-assets/scans_s14; not in git) and checked against sha256. Every one is recorded in ASSET_LEDGER.md.",
+ "scans": {
+  "lamassu_hp": {
+   "file": "lamassu_hp_da8a0372.glb",
+   "url": "https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/000-106/da8a0372d55e41c8a77b8993e0a8fe1f.glb",
+   "sha256": "e90efb65d7dedb74f662bcbc99bb81fe2dee89fe53ad20ba701ff0ae6e8dd622",
+   "page": "https://sketchfab.com/3d-models/persian-lamassu-high-poly-da8a0372d55e41c8a77b8993e0a8fe1f",
+   "author": "Shahriar Shahrabi (@shahriyarshahrabi)",
+   "licence": "CC-BY-4.0",
+   "tris": 2543615,
+   "what": "Persian lamassu (human-headed winged bull) of the Gate of All Nations, a digital sculpt by the author: an Assyrian lamassu as the base, adjusted after the damaged Persepolis original (larger, bent wings, the Persian crown, the front). Tier C (a modern reconstruction of the carving, not a scan of the stone)."
+  }
+ }
+}
