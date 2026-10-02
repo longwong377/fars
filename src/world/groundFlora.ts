@@ -63,11 +63,11 @@ export function floraCellItems(seed: number, k: FloraKind, ix: number, iy: numbe
   return out;
 }
 /** s17 (D-560): the roadside weeds of one 8 m cell: thistles and camelthorn (and a few thorn cushions) on the verges of the paths
- *  (verge.ts), whatever the cell's context; 14 candidate points a cell, those on a verge kept by kind share (C) */
+ *  (verge.ts), whatever the cell's context; 24 candidate points a cell (s17: was 14, the verges read thin), those on a verge kept by kind share (C) */
 export const VERGE_FLORA: Record<FloraKind, number> = { thistle: 0.34, camelthorn: 0.2, cushion: 0.05 };
 export function vergeFloraItems(seed: number, k: FloraKind, ix: number, iy: number) {
   const out: FloraItem[] = [];
-  for (let i = 0; i < 14; i++) { const e = (ix + u01(seed, ix, iy, i, 71)) * CELL, nn = (iy + u01(seed, ix, iy, i, 72)) * CELL, z = vergeZone(e, nn); if (z?.zone !== 'verge') continue;
+  for (let i = 0; i < 24; i++) { const e = (ix + u01(seed, ix, iy, i, 71)) * CELL, nn = (iy + u01(seed, ix, iy, i, 72)) * CELL, z = vergeZone(e, nn); if (z?.zone !== 'verge') continue;
     const u = u01(seed, ix, iy, i, 73), kk: FloraKind = u < VERGE_FLORA.thistle ? 'thistle' : u < VERGE_FLORA.thistle + VERGE_FLORA.camelthorn ? 'camelthorn' : u < VERGE_FLORA.thistle + VERGE_FLORA.camelthorn + VERGE_FLORA.cushion ? 'cushion' : 'none' as any;
     if (kk !== k) continue;
     out.push({ e, n: nn, i: 100 + i, sz: (FLORA[k].size[0] + (FLORA[k].size[1] - FLORA[k].size[0]) * u01(seed, ix, iy, i, 74)), yaw: u01(seed, ix, iy, i, 75) * 6.283, ...shapeOf(seed, ix, iy, 100 + i, KIDX[k]) }); }
