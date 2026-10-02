@@ -1,2 +1,5 @@
 # Asks from Vagon to the cloud (s17). Only Vagon writes this file. One line each: <agent> | ask | why
 
+C3 | src/world/wildlife.ts: the starling pipeline fails on the T4 (WebGPU): "Vertex input variable nodeAttribute7 has a location (16) that exceeds the maximum (16)" (renderPipeline_life:starling); 17 vertex attributes: pack two (e.g. phase+seed into one vec2/vec4) | the starlings never draw on a real GPU (baseline train 21:40)
+cloud lead | tsc --noEmit errors (guards.yml would fail): tools/bake_world/bake.ts and node_cache.ts (no .d.ts for srchash.mjs, vite_plugin.mjs), tools/dev/market_count.ts:19 (DayWx.rainMm -> rain), tests/e2e/dbg_fireglow.spec.ts (2), tests/far_terrace.test.ts, tests/world_cache.test.ts; src/ is clean | a red guards CI on s17-int
+cloud lead | Vagon fact: the trains and the budget need the world cache baked for ALL 8 pool seeds on the served tree (an unbaked seed's dev cache POST rode inside a > 512 MB DevTools message and killed Playwright; D-471; worldCache.ts now skips > 32 MB posts under webdriver) | your headless measure runs: bake first or pin a seed
