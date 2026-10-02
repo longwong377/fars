@@ -125,7 +125,7 @@ export const DRAPE = { foldLow: [2, 3] as [number, number], foldHigh: [7, 10] as
    *  chest on the upper garments (count round, m deep, fading out over m above the belt) */
   weave: { fq: [700, 1500] as [number, number], h: [0.0003, 0.00015] as [number, number], alb: 0.16 },
   streak: { f: [14, 170] as [number, number], alb: 0.04, h: [0.00012, 0.00006] as [number, number] },
-  dyeUneven: [0.04, 0.14] as [number, number], lump: 0.0015, hang: { n: 14, h: 0.003, top: 0.3 },
+  dyeUneven: [0.07, 0.18] as [number, number], /* (s17 V3: was 0.04, 0.14: every garment read as one flat dyed sheet at 2-5 m) */ lump: 0.0015, hang: { n: 14, h: 0.003, top: 0.3 },
   /** D-225: hem soil — the last few centimetres of a skirt drag in the dust (share of the skirt's length, extra weight) */
   hemEdge: [0.93, 0.3] as [number, number] };
 
@@ -571,7 +571,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const petal = cr.div(cos(cth.mul(8)).mul(0.28).add(0.72)), eye = float(1).sub(smoothstep(0.05, 0.075, cr));
     const rose = max(float(1).sub(smoothstep(0.21, 0.26, petal)).mul(smoothstep(0.08, 0.1, cr)), eye).mul(pat0).mul(is(m, MAT.cloth_main));
     const trimCol = vHair; // motif colour = the person's trim colour (C)
-    let clothAlb: any = vColor.mul(float(1).add(n3.mul(0.05)).add(n1.mul(DRAPE.streak.alb).mul(band(DRAPE.streak.f[1]))));
+    // (s17 V3, D-500: worn cloth is not one colour: ±11 % in 11 cm mottles and ±6 % in the 7 × 20 cm patches of wear, sweat and
+    // washing, was ±5 %: at 2-5 m a garment read as one flat, plastic sheet; C)
+    let clothAlb: any = vColor.mul(float(1).add(n3.mul(0.11)).add(n2.mul(0.06)).add(n1.mul(DRAPE.streak.alb).mul(band(DRAPE.streak.f[1]))));
     // D-225: uneven dyeing — the chroma varies about the garment's own (linear in the noise: the mean colour is kept)
     const dLum = dot(clothAlb, vec3(0.2126, 0.7152, 0.0722));
     clothAlb = vec3(dLum).add(clothAlb.sub(vec3(dLum)).mul(float(1).add(n2.mul(DRAPE.dyeUneven[0])).add(n1.mul(DRAPE.dyeUneven[1]).mul(band(DRAPE.streak.f[1])))));
