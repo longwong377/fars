@@ -16,11 +16,11 @@
 // goes on (C). A step that finds no time or no person is not laid, and counted (laid/unlaid: tests/econ_plans.test.ts).
 // Tier C throughout: the places are the town's own (the exchange lane of the town, the officials' building, the royal
 // store: town.json facilities), the hours and durations reasoned.
-import { segAt, coldWear, dustWear, type Population, type Seg, type Where } from '../population';
+import { segAt, coldWear, dustWear, wetSpells, type Population, type Seg, type Where } from '../population';
 import { nobodyWith } from '../wardrobe/washing';
 import { checkPlan } from '../planCheck';
 import type { ActivityId } from '../activities';
-import type { Economy, EconEvent } from './world';
+import { marketDayOf, type Economy, type EconEvent, type Stall, type StallGood } from './world';
 import { h32, u01, salt } from '../hash';
 
 /** work under someone's count or order: the person is not sent on the household's errands from it (talk.ts's list, C) */
@@ -34,7 +34,23 @@ export const EXCHANGE = 'market:q_lt_e';
  *  weddings: D-209, D-211) */
 const PROTECT_ACTS = new Set<ActivityId>(['offer', 'sacrifice', 'cut_offering', 'chant', 'tend_fire', 'bury', 'mourn', 'carry_bier']);
 const PROTECT_WHY = /sheep|goat|sacrifice|offering|funeral|the dead|burial|mourn|wedding|bride|feast|birth|midwife/;
-const S = { who: salt('econ-plan-who'), when: salt('econ-plan-when'), dur: salt('econ-plan-dur') };
+const S = { who: salt('econ-plan-who'), when: salt('econ-plan-when'), dur: salt('econ-plan-dur'), stall: salt('econ-plan-stall'), buy: salt('econ-plan-buy') };
+
+/** D-458: a craft's wares at its stall: [what, how laid out] (by the house's workshop: popgeo plots' craft; C) */
+const WARES: Record<string, [string, string]> = {
+  pottery: ['the pots the house fired', 'set out in rows on the ground, the big jars at the back'], metal: ['knives, sickles, needles and pins from the house’s forge', 'laid out on a cloth'],
+  wood: ['bowls, spindles, combs and tool handles the house carved', 'laid out on a mat'], pigment: ['ground colours and a little red ochre', 'in small bowls on a mat'],
+  textile: ['cloth and spun wool from the house’s loom', 'folded on a mat'], brewery: ['the house’s beer', 'in jars in the shade'], '': ['the house’s wares', 'laid out on a mat'] };
+/** D-458: a garden's produce in its season (the plain's crops: lives.json; C) */
+const PRODUCE: Record<string, string[]> = {
+  spring: ['greens, leeks and the first onions', 'eggs and fresh greens', 'cress, herbs and a little curd'], summer: ['cucumbers and onions', 'melons and garlic', 'mulberries and greens'],
+  autumn: ['grapes and pomegranates', 'figs and onions', 'raisins and walnuts'], winter: ['dried fruit and onions'] };
+/** D-458: what a buyer comes for, by the goods on the ground that day: [why, carried home as] */
+const BUY_WHY: Record<StallGood, [string, ActivityId][]> = {
+  wares: [['looking over the stalls for a new cooking pot and haggling for it', 'carry_jar'], ['buying a needle and a knife, after much looking', 'walk'], ['bartering barley for a bowl and a spindle', 'carry_jar']],
+  grain: [['buying a measure of barley at the stalls, the price argued over', 'carry_sack']], fuel: [['buying a bundle of brushwood for the oven', 'carry_sack']],
+  flock: [['buying cheese and a little wool to spin', 'carry_jar']], produce: [['buying onions and greens for the pot', 'carry_jar'], ['bartering a measure of barley for fruit and eggs', 'carry_jar']],
+  beer: [['buying a jar of beer for the evening', 'carry_jar']] };
 
 type Role = 'errand' | 'man' | 'woman' | 'worker' | 'thief' | 'bound' | 'house';
 /** one economy-driven stretch of a person's day, before it is fitted to the day */
@@ -116,6 +132,14 @@ export class EconPlans {
     // (D-347: nor a toddler of kin or friends visiting this house while the step takes the person away)
     { const bs = new Set(before), nw = after.filter(s => !bs.has(s) && s.ev?.startsWith('D-340') && s.place !== P.households[hid].home);
       if (nw.length && !nobodyWith(P, pid, day, Math.min(...nw.map(s => s.t0)), Math.max(...nw.map(s => s.t1)), true)) return 'a visiting little one is with this person'; }
+    // (D-458: nor leave another of the house at a meal or a talk "with the household" with no one of it there: the market's
+    // keepers and buyers take one of the house out at such hours; planCheck's label rule, read off the others' own days)
+    { const bs = new Set(before), nw = after.filter(s => !bs.has(s)); if (nw.length) { const a0 = Math.min(...nw.map(s => s.t0)), a1 = Math.max(...nw.map(s => s.t1));
+      this.checking++; try { for (const x of mem) for (const s of P.plan(x, day)) { if (s.t1 <= a0 || s.t0 >= a1 || s.t1 - s.t0 < 0.1 || s.where === 'road' || !/with the household/.test(s.why)) continue;
+        const e = Math.min(0.05, (s.t1 - s.t0) / 4), m = (s.t0 + s.t1) / 2;
+        const ok = (h: number, me: Seg[]) => segAt(me, h).place === s.place || mem.some(y => y !== x && segAt(P.plan(y, day), h).place === s.place);
+        const held = (me: Seg[]) => ok(m, me) || (ok(s.t0 + e, me) && ok(s.t1 - e, me));
+        if (!held(after) && held(before)) return 'another of the house would be left "with the household" alone'; } } finally { this.checking--; } } }
     for (const h of [1.5, 23.5]) { const a = segAt(before, h), b = segAt(after, h); if (a.place === b.place) continue;
       const kids = mem.filter(x => P.ageOn(x, day) < 10 && P.persons[x].agent < 0 && segAt(P.basePlan(x, day), h).place === a.place);
       if (kids.length && !mem.some(x => P.ageOn(x, day) >= 14 && segAt(P.basePlan(x, day), h).place === a.place)) return 'a child would be alone at night'; }
@@ -123,6 +147,64 @@ export class EconPlans {
   }
 
   // ------------------------------------------------------------------ the day's steps
+  /** D-458: the market grounds of the day: a member of each house the economy has keeping a stall (Economy.stallsOn) keeps it
+   *  at the house's stall on its ground (popgeo.ts places one per selling house), from early morning into the afternoon by
+   *  its goods; and some of the houses that sell nothing come to buy (a short errand: oil, salt, onions, a pot; in kind, not
+   *  in the economy): about one house in five of the town on a dry day out of winter (a daily market where most houses buy
+   *  something every few days), three in ten of a village on its market day (C) */
+  private marketDay(E: Economy, day: number, put: (s: EconStep | null) => void) {
+    const P = this.pop, sellers = new Set<number>(), goodsAt = new Map<string, StallGood[]>();
+    for (const st of E.stallsOn(day)) { const hid = this.hid(st.hh); if (hid === null || !P.households[hid]) continue;
+      const ground = this.exchangeFor(hid, day), s = this.stallStep(E, st, hid, ground, day); if (!s) continue; put(s); sellers.add(hid);
+      (goodsAt.get(ground) ?? goodsAt.set(ground, []).get(ground)!).push(st.good); }
+    const f = E.marketFactor(day);
+    for (const H of P.households) {
+      if (sellers.has(H.id) || !H.members.length || !marketDayOf(P.seed, H.q, day)) continue; const hh = E.hh.get(`h:${H.id}`); if (!hh || hh.dead || day < hh.mourning || day < hh.sickUntil) continue;
+      if (u01(P.seed, S.buy, H.id, day) >= (H.q.startsWith('v_') ? 0.3 : 0.22) * f) continue;
+      const ground = this.exchangeFor(H.id, day), gs = goodsAt.get(ground); if (!gs?.length) continue; const [da, db] = this.dryHours(day, 7, 14); if (db - da < 1.6) continue;
+      const g = gs[h32(P.seed, S.buy, H.id, day + 7919) % gs.length], key = 3000017 + day * 7 + 1, pid = this.pick(H.id, day, 'errand', key, true); if (pid === null) continue;
+      const [why, carry] = BUY_WHY[g][h32(P.seed, S.buy, H.id, day + 104729) % BUY_WHY[g].length], u = u01(P.seed, S.buy, H.id, day + 3);
+      put({ pid, day, kind: 'market_buy', ev: -1, role: 'errand', mode: 'errand', lo: Math.max(da, 7.2 + 4.3 * u01(P.seed, S.buy, H.id, day + 11)), hi: Math.min(13.5, db - 1.6), dest: ground, work: [['exchange', 0.5 + 0.7 * u, why]],
+        goAct: 'walk', goWhy: 'going to the market', backAct: carry, backWhy: 'carrying home what was bought at the market' });
+    }
+  }
+  /** D-458: the keeping of a stall in a member's day: who (the women for the garden's produce and the beer, a steward or a
+   *  servant for a rich house's barley, else whoever of fourteen to fifty-five is free), from when (first light to an hour
+   *  after, the walk on top) and how long (the barley and the wares through the morning into the afternoon; the produce, the
+   *  beer and the fuel sold out by the late morning: C) */
+  private stallStep(E: Economy, st: Stall, hid: number, ground: string, day: number): EconStep | null {
+    const P = this.pop, rich = E.hh.get(st.hh)?.kind === 'rich', g = st.good;
+    const role: Role = g === 'produce' || g === 'beer' ? 'woman' : rich ? 'house' : 'worker';
+    const pid = this.pick(hid, day, role, 5000011 + day * 3, true); if (pid === null) return null;
+    const u = (n: number) => u01(P.seed, S.stall, hid, day * 8 + n), village = ground !== EXCHANGE;
+    // (on a wet day the stall is kept in the longest dry spell of the market's hours, and not at all when it is under 2 h)
+    const [da, db] = this.dryHours(day, 6.4, 15), w = this.walk(`h:${hid}`, `${ground}:${hid}`, day); if (db - da - 2 * w < 2) return null;
+    const lo = Math.max(da, (village ? 7 : 6.6) + 1.2 * u(0));
+    const [a, b] = g === 'wares' || (g === 'grain' && !village) ? [5, 7.5] : g === 'grain' || g === 'flock' ? [3.5, 5] : [2.5, 4], h = Math.min(a + (b - a) * u(2), db - lo - 2 * w - 0.1); if (h < 1.5) return null;
+    const [why, go, carry] = this.stallWhy(st, hid, day, rich, u(1));
+    return { pid, day, kind: 'stall_keep', ev: -1, role, mode: 'summons', lo, hi: lo, dest: `${ground}:${hid}`, work: [['exchange', h, why]],
+      goAct: carry, goWhy: go, backAct: st.took > 0 && g !== 'wares' ? 'walk' : carry, backWhy: st.took > 0 ? 'going home from the market with what the stall took' : 'carrying home what did not sell' };
+  }
+  /** D-458: the longest stretch of [a, b] clear of the day's rain and storm (wetSpells, a margin either side for the walks) */
+  private dryHours(day: number, a: number, b: number): [number, number] {
+    const sp = wetSpells(this.pop.cal.ctx(day).wx).map(([x, y]) => [x - 0.3, y + 0.3]).sort((p, q) => p[0] - q[0]); let best: [number, number] = [a, a], t = a;
+    for (const [x, y] of [...sp, [b, b]]) { const e = Math.min(x, b); if (e - t > best[1] - best[0]) best = [t, e]; t = Math.max(t, y); if (t >= b) break; }
+    return best;
+  }
+  private stallWhy(st: Stall, hid: number, day: number, rich: boolean, u: number): [string, string, ActivityId] {
+    const P = this.pop, season = P.cal.ctx(day).season;
+    switch (st.good) {
+      case 'wares': { const c = P.plotOf(hid)?.craft, W = WARES[c ?? ''] ?? WARES[''];
+        return [`selling ${W[0]} from the house’s stall, ${W[1]}${st.due ? ': the week’s work' : ': what is still on hand'}`, `carrying ${W[0]} to the market to sell`, 'carry_jar']; }
+      case 'grain': return rich ? ['keeping the house’s barley stall at the market for the master: the sacks open, a measuring bowl by them, the price called', 'carrying the master’s barley to the market on a donkey', 'carry_sack']
+        : ['selling the house’s spare barley at the market, measured out by the bowl: more than the house will eat before the harvest', 'carrying sacks of barley to the market to sell', 'carry_sack'];
+      case 'fuel': return ['selling brushwood and dung cakes at the market, the bundles stacked by: the house gathered more than it burns', 'carrying bundles of brushwood to the market to sell', 'carry_sack'];
+      case 'flock': return st.due ? ['selling a lamb of the flock at the market, with cheese and a fleece', 'leading a lamb to the market, the cheese in a basket', 'walk']
+        : ['selling cheese and wool from the flock at the market', 'carrying cheese and wool to the market', 'carry_sack'];
+      case 'produce': { const xs = PRODUCE[season] ?? PRODUCE.spring; return [`selling ${xs[Math.floor(u * xs.length)]} from the house’s garden, spread out on a cloth on the ground`, 'carrying a basket of the garden’s produce to the market', 'carry_jar']; }
+      case 'beer': return [P.plotOf(hid)?.craft === 'brewery' ? 'selling the house’s beer by the jar at the market, a drinking tube for those who drink it there' : 'selling beer the women of the house brewed, by the jar, at the market', 'carrying jars of beer to the market', 'carry_jar'];
+    }
+  }
   /** the economy's events of a day and the bondages in force, each given to a person (cached per day) */
   steps(day: number): Map<number, EconStep[]> {
     const c = this.byDay.get(day); if (c) return c;
@@ -134,6 +216,7 @@ export class EconPlans {
     const m = new Map<number, EconStep[]>(); this.today = m;
     const put = (s: EconStep | null) => { if (!s) return; const xs = m.get(s.pid) ?? m.set(s.pid, []).get(s.pid)!; xs.push(s); };
     for (const e of this.evDay.get(day) ?? []) for (const s of this.stepsOf(E, e, day)) put(s);
+    this.marketDay(E, day, put);
     for (const b of E.boundOn(day)) put(this.boundStep(E, b.hh, b.to, b.ev, day, b.from, b.until));
     for (const b of E.bondages) if (b.until === day && b.from < day) put(this.boundStep(E, b.hh, b.to, b.ev, day, b.from, b.until)); // (the morning a live-in bondage ends)
     // the morning after an arrest: let go from the officials' building until the judgement (world.ts holds him a day)
@@ -446,7 +529,7 @@ export class EconPlans {
     }
     if (!st.after) { // there and back to where the day has the person when they come back, when it is the same place
       const r = this.trip(st, from, h0, from), s1 = segAt(segs, r.t);
-      if (r.t < 23.9 && s1.place === from && s1.where !== 'road' && s1.t1 > r.t + 0.05 && s1.act !== 'sleep') return splice(segs, h0, r.t, r.segs);
+      if (r.t < 23.9 && s1.place === from && s1.where !== 'road' && s1.t1 > r.t + 0.25 && s1.act !== 'sleep') return splice(segs, h0, r.t, r.segs); // (D-458: not back for a scrap of the stretch: the day goes on from the next)
     }
     const t0 = this.trip(st, from, h0, st.dest).t; // (there and the work)
     let tEnd = t0 + (st.after ? st.after[1] : 0);
@@ -462,7 +545,11 @@ export class EconPlans {
       if (st.after) { out.push(this.seg(t, t + st.after[1], home, st.after[0], st.after[2], st)); t += st.after[1];
         const w = this.walk(home, b.place, st.day); if (w > 0) { out.push(this.seg(t, t + w, this.road(home, b.place), 'walk', 'going on with the day', st, 'road')); t += w; } }
       if (t > b.t0 + 1e-6) { tEnd = t; continue; }
-      if (b.t0 > t + 1e-6) out.push(this.seg(t, b.t0, b.place, FREE.has(b.act) ? b.act : 'rest', b.place === home ? 'at home' : 'waiting there for the others', st));
+      // (D-458: back early, the day's own stretches there go on: the sleep through the heat by the threshing floor is slept, not
+      // waited out, and its words still hold)
+      const keep = segs.filter(x => x.t1 > t + 1e-6 && x.t0 < b.t0 - 1e-6);
+      if (b.t0 > t + 1e-6 && keep.length && keep.every(x => x.place === b.place && x.where !== 'road')) out.push(...keep.map(x => ({ ...x, t0: Math.max(t, x.t0), t1: Math.min(b.t0, x.t1) })));
+      else if (b.t0 > t + 1e-6) out.push(this.seg(t, b.t0, b.place, FREE.has(b.act) ? b.act : 'rest', b.place === home ? 'at home' : 'waiting there for the others', st));
       if (h0 >= 24 || b.t0 > 24) return null;
       return splice(segs, h0, b.t0, out.filter(x => x.t1 > x.t0 + 1e-6));
     }

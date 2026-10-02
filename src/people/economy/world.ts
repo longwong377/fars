@@ -8,7 +8,7 @@
 // (Babylonian practice of the period, B); yields, elasticities, detection and judgement odds are C (reasoned, not attested).
 import type { EconWorld, HouseholdNeed, Intent, NeedKind } from './api';
 import { h32, u01, salt } from '../hash';
-import { dateOf } from '../calendar';
+import { dateOf, festivalOn } from '../calendar';
 import { generateYear, type DayWeather } from '../../weather/generator';
 import { START_JDN } from '../../core/calendar';
 import { TrustLedger } from '../speech/trust';
@@ -73,7 +73,17 @@ const SCALE: Record<string, number> = { grain: 10, fuel: 10, cash: 1e4 };
 
 const S = { yield: salt('econ-yield'), plot: salt('econ-plot'), act: salt('econ-act'), ill: salt('econ-ill'), steal: salt('econ-steal'),
   detect: salt('econ-detect'), judge: salt('econ-judge'), kin: salt('econ-kin'), trait: salt('econ-trait'), shock: salt('econ-shock'), craft: salt('econ-craft'),
-  animal: salt('econ-animal'), fire: salt('econ-fire'), levy: salt('econ-levy') };
+  animal: salt('econ-animal'), fire: salt('econ-fire'), levy: salt('econ-levy'), stall: salt('econ-stall'), take: salt('econ-stall-take') };
+/** D-458: what a house sells from a stall at the market (economy/plans.ts lays the keeping of it in a member's day) */
+export type StallGood = 'wares' | 'grain' | 'fuel' | 'flock' | 'produce' | 'beer';
+const STALL_GOODS: StallGood[] = ['wares', 'grain', 'fuel', 'flock', 'produce', 'beer'];
+/** D-458: a stall kept for a day: the house, its goods, the silver it took (sheqel; 0: nothing of the economy's sold), and
+ *  whether the day is the house's own selling day (the craft's weekly sale, the flock's monthly lamb: the takings are that sale) */
+export interface Stall { hh: string; good: StallGood; took: number; due: boolean }
+const S_MKT = salt('econ-market-day');
+/** D-458: the market day of a quarter or village: the town's exchange keeps market every day; a village's ground one day in
+ *  ten, its own (C: the periodic village markets of rural Iran and of the ancient Near East's countryside, by analogy) */
+export function marketDayOf(seed: number, q: string, day: number): boolean { return !q.startsWith('v_') || (day + h32(seed, S_MKT, salt(q))) % 10 === 0; }
 /** a day's labour of a bound man or woman, in silver (sheqel; C: a hired man's wage in the Fortification texts is paid in
  *  grain, ~1 BAR a month; its silver value is C) */
 const BOUND_WAGE = 0.02;
@@ -104,6 +114,10 @@ export class Economy implements EconWorld {
   readonly wx: DayWeather[];
   day = -1;
   market = { grain: 0, goodsDemand: 1, dearEv: -1, slumpEv: -1, cheapEv: -1, hist: [] as number[] };
+  /** D-458: the stalls kept at the market grounds, by day, packed: the house's index * 16 + its goods * 2 + due, and the takings
+   *  in 1e-4 sheqel (kept for every day the economy ran, as its events are: the day plans of a sim whose present lags the
+   *  economy read them; ~12 bytes a stall) */
+  private readonly stalls = new Map<number, [Int32Array, Int32Array]>();
   /** D-340: every bondage for debt or fine, in order (the day plans read it: Economy.boundOn) */
   readonly bondages: Bondage[] = [];
   treasury = { grain: 0, shortEv: -1 };
@@ -239,7 +253,8 @@ export class Economy implements EconWorld {
     });
     const C = this.cdays;
     return { v: 2, seed: this.seed, day: this.day, nEv: this.events.length, debtN: this.debtN, market: { ...this.market, hist: this.market.hist.slice(-11) }, treasury: { ...this.treasury },
-      shocks: [...this.shocks], hires: [this.hires.day, this.hires.n], intents, kinds, z: packJSON({ hh, debts, bound, bondages: this.bondages.map(b => [this.idx.get(b.hh), b.to, b.from, b.until, b.ev]), pending, whole, stub }), ...(this.trust ? { trust: this.trust.snapshot() } : {}), ...(this.str?.active ? { stranger: this.str.snapshot() } : {}),
+      shocks: [...this.shocks], hires: [this.hires.day, this.hires.n], intents, kinds,
+      z: packJSON({ hh, debts, bound, bondages: this.bondages.map(b => [this.idx.get(b.hh), b.to, b.from, b.until, b.ev]), pending, whole, stub, stalls: [...this.stalls].filter(([d]) => d >= keepFrom).map(([d, [c, t]]) => [d, [...c], [...t]]) }), ...(this.trust ? { trust: this.trust.snapshot() } : {}), ...(this.str?.active ? { stranger: this.str.snapshot() } : {}),
       ...(C ? { court: { days: { arrive: C.arrive, leave: C.leave }, ...this.court } } : {}) };
   }
   /** a snapshot back into an economy (D-347), or an older save's seed and intents replayed from day 0 (D-338) */
@@ -258,6 +273,7 @@ export class Economy implements EconWorld {
     e.day = s.day; e.debtN = s.debtN; Object.assign(e.market, s.market); Object.assign(e.treasury, s.treasury); for (const [k, v] of s.shocks) e.shocks.set(k, v); e.hires = { day: s.hires[0], n: s.hires[1] };
     if (s.court) { const { days: _d, ...c } = s.court; Object.assign(e.court, c); }
     for (const [i, to, amt, due, ev, n] of s.debts) H[i].debts.push({ to, amt, due, ev, n });
+    for (const [d, c, t] of s.stalls ?? []) e.stalls.set(d, [Int32Array.from(c), Int32Array.from(t)]);
     for (const [i, to, from, until, ev] of s.bondages) e.bondages.push({ hh: hid(i), to, from, until, ev });
     for (const [i, to, until, ev, done, r] of s.bound) H[i].bound.push({ to, until, ev, done: !!done, rec: e.bondages[r] });
     for (const [day, t, i, a] of s.pending) { const h = H[i], task: any = { ...a, t, hh: h.id };
@@ -319,10 +335,55 @@ export class Economy implements EconWorld {
     let k = 0;
     for (const h of this.hh.values()) { this.household(h, day, wx, k++); }
     this.str?.step(day); // (D-370: the stranger's day, after the households')
+    this.stallDay(day, wx);
     // the day's end: the state rounded to what matters (D-347: a saved day is short, and a loaded one goes on the same)
     for (const h of this.hh.values()) { h.grain = q(h.grain, 10); h.fuel = q(h.fuel, 10); h.cash = q(h.cash, 1e4); h.health = q(h.health, 1e3); }
     this.market.grain = q(this.market.grain, 100); this.treasury.grain = q(this.treasury.grain, 100);
   }
+
+  /** the craft's and the flock's own sales of the day (household()), which their stalls take in */
+  private soldToday = new Map<string, number>();
+  /** D-458: who keeps a stall at the market today, from the house's own stores, and what the stall takes. The town's exchange
+   *  every day, a village's ground on its market day (marketDayOf). A craft house on the day of its week's sale (the takings
+   *  are that sale), and some other days with wares on hand; a rich house's steward or a farm with barley over seven months'
+   *  bread sells some of it (a twentieth of the spare, at most 30 kg, at the market's price less a tenth: into the market's
+   *  barley, as the harvest's sale is); a house with fuel stacked sells some; a flock's monthly lamb, and its cheese and wool;
+   *  a farm's women their garden's greens and fruit out of winter, a ration house's women their beer (a little silver: their
+   *  goods are not in the economy). Fewer in winter, on a wet day, and on a festival (the town at the offering place); none
+   *  from a sick or mourning house. All C (no market texts of Pārsa; the rates set so the town's ground holds about a hundred
+   *  sellers on a dry morning: D-458) */
+  private stallDay(day: number, wx: DayWeather) {
+    const out: Stall[] = [], winter = this.season(day) === 'winter', fest = festivalOn(this.seed, day) !== null, wet = !!wx?.wet;
+    const f = this.marketFactor(day), fDue = (wet ? 0.6 : 1) * (fest ? 0.3 : 1);
+    const pG = this.price('grain', day), pF = this.price('fuel', day), hoard = pG > GRAIN_BASE * 1.3; let k = -1;
+    for (const h of this.hh.values()) { k++;
+      if (h.dead || day < h.sickUntil || day < h.mourning || h.q === 'garrison' || !marketDayOf(this.seed, h.q, day)) continue;
+      const u = u01(this.seed, S.stall, k, day), v = h.q.startsWith('v_'), spare = h.grain - h.eaters * GRAIN_EAT * 210;
+      let good: StallGood | null = null, due = false;
+      if (h.kind === 'craft') { due = day % 7 === k % 7 && this.soldToday.has(h.id); if (due ? u < 0.9 * fDue : h.goods >= 2 && u < 0.13 * f) good = 'wares'; }
+      else if (h.kind === 'herder') { due = this.soldToday.has(h.id); if (due ? u < 0.9 * fDue : h.goods >= 2 && u < 0.08 * f) good = 'flock'; }
+      else if (h.kind === 'rich') { if (spare > 200 && !hoard && u < 0.6 * f) good = 'grain'; }
+      else if (h.kind === 'farmer') { const g = v ? 0.05 : 0.12, fu = v ? 0.02 : 0.05, pr = winter ? 0 : v ? 0.04 : 0.06;
+        if (spare > 50 && u < g * f) good = 'grain'; else if (h.fuel > 25 && u < (g + fu) * f) good = 'fuel'; else if (u < (g + fu + pr) * f) good = 'produce'; }
+      else if (h.kind === 'ration') { if (h.fuel > 25 && u < 0.015 * f) good = 'fuel'; else if (u < 0.035 * f) good = 'beer'; }
+      if (!good) continue;
+      const w = 0.6 + 0.6 * u01(this.seed, S.take, k, day); let took = 0;
+      if (due) took = this.soldToday.get(h.id)!;
+      else if (good === 'grain') { const kg = Math.min(spare * 0.05, 30) * w; h.grain -= kg; this.market.grain += kg; took = kg * pG * 0.9; }
+      else if (good === 'fuel') { const x = Math.min((h.fuel - 20) * 0.3, 5) * w; h.fuel -= x; took = x * pF * 0.9; }
+      else if (good === 'produce' || good === 'beer') took = 0.015 * w;
+      if (!due) h.cash += took;
+      out.push({ hh: h.id, good, took: q(took, 1e4), due });
+    }
+    this.soldToday.clear();
+    this.stalls.set(day, [Int32Array.from(out, x => this.idx.get(x.hh)! * 16 + STALL_GOODS.indexOf(x.good) * 2 + (x.due ? 1 : 0)), Int32Array.from(out, x => Math.round(x.took * 1e4))]);
+  }
+  /** D-458: how the day's weather and feasts thin the market (1: a dry working day out of winter) */
+  marketFactor(day: number): number { const wx = this.wx[day % this.wx.length]; return (this.season(day) === 'winter' ? 0.6 : 1) * (wx?.wet ? 0.35 : 1) * (festivalOn(this.seed, day) ? 0.25 : 1); }
+  /** D-458: the stalls kept on a day (empty when the economy has not reached it, or a loaded economy has forgotten it) */
+  stallsOn(day: number): Stall[] { const x = this.stalls.get(day); if (!x) return []; const H = this.hhList ??= [...this.hh.values()];
+    return [...x[0]].map((c, i) => ({ hh: H[c >> 4].id, good: STALL_GOODS[(c >> 1) & 7], took: x[1][i] / 1e4, due: !!(c & 1) })); }
+  private hhList?: HH[];
 
   private blights(day: number) { // this year's local losses: hail or blight over some quarters (C: a few a year)
     const qs = [...new Set([...this.hh.values()].map(h => h.q))];
@@ -417,12 +478,12 @@ export class Economy implements EconWorld {
     // herders: a lamb sold now and then; crafts: the goods they make sell as the market lets them
     if (h.kind === 'craft' && day % 7 === k % 7 && day >= h.sickUntil) {
       const cd = this.courtDemand(day); h.goods += 1; const sell = u01(this.seed, S.craft, k, day) < this.market.goodsDemand * 0.8 * cd;
-      if (sell && h.goods > 0) { h.goods--; h.cash += this.price('goods', day);
+      if (sell && h.goods > 0) { h.goods--; h.cash += this.price('goods', day); this.soldToday.set(h.id, this.price('goods', day));
         if (cd > 1 && Math.floor(day / 7) % 4 === k % 4) this.ev(day, h.id, 'sold_to_court', [this.court.arrEv], 'court', this.price('goods', day)); } // (D-383: once a month a house's sale is named)
       else if (cd < 1) h.cause.cash = this.court.slackEv; // (D-383: the court gone, the goods made for it do not sell)
       else if (this.market.goodsDemand < 0.8) h.cause.cash = this.market.slumpEv;
     }
-    if (h.kind === 'herder' && day % 30 === k % 30) { h.cash += 0.4 * this.market.goodsDemand + 0.2; h.goods += 1; }
+    if (h.kind === 'herder' && day % 30 === k % 30) { h.cash += 0.4 * this.market.goodsDemand + 0.2; h.goods += 1; this.soldToday.set(h.id, 0.4 * this.market.goodsDemand + 0.2); }
     if (h.kind === 'ration' && day % 30 === k % 30) h.cash += 0.3; // a little silver besides the grain (A in kind, C in amount)
     // D-340: animals lost (a draught ox or cow to sickness or a fall; ewes to wolves or the cold: C, more in winter), and
     // replaced when the household can find the silver (bought, or borrowed for)

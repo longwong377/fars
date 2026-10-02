@@ -83,6 +83,7 @@ async function turn(d: number, hour: number, pid: number, said: string, why: str
 }
 
 const TM = { jump: 0, econ: 0, cand: 0, talk: 0 };
+const MK: Record<string, { tried: number; found: number; days: Set<number>; foundDays: Set<number>; people: number }> = {};
 const end = D0 + DAYS; const t0 = Date.now();
 for (let d = D0; d < end; d++) {
   for (const hour of HOURS) {
@@ -94,6 +95,10 @@ for (let d = D0; d < end; d++) {
       if (hour >= 8 && hour <= 13) for (let k = 0; k < 9; k++) sim.strangerNear(mates, 0.25); }
     // D-455: the stranger's living as a player would make it: a day's carrying at the market when he has no work (hours among
     // the market's people are the work), grain sold at the stalls, bread bought there when his sack is empty
+    // (D-458: the market wanted at this hour, and whether anyone of the sample stood on a market ground: the bot's market days)
+    { const want = hour === 8 && !S.job && !S.group && !S.dayHire?.paid ? 'daywork' : hour === 13 && S.purse.grain >= 25 ? 'sell' : hour === 10.5 && S.purse.grain < 2 && !S.stay && !S.group ? 'buy' : null;
+      if (hour === 8 || hour === 10.5 || hour === 13) { const a = MK[`at ${hour}`] ??= { tried: 0, found: 0, days: new Set<number>(), foundDays: new Set<number>(), people: 0 }; a.tried++; a.days.add(d); a.people += market.length; if (market.length) { a.found++; a.foundDays.add(d); } }
+      if (want) { const m = MK[want] ??= { tried: 0, found: 0, days: new Set<number>(), foundDays: new Set<number>(), people: 0 }; m.tried++; m.days.add(d); m.people += market.length; if (market.length) { m.found++; m.foundDays.add(d); } } }
     if (market.length) {
       if (hour === 8 && !S.job && !S.group && !S.dayHire?.paid) await turn(d, hour, pick(market), 'Is there work for today? I can carry loads.', 'daywork');
       if (S.dayHire?.day === d && !S.dayHire.paid && hour <= 16) for (let k = 0; k < 9; k++) sim.strangerNear(market, 0.25);
@@ -167,9 +172,9 @@ const owedEver = new Map<string, number>(); for (const x of days) for (const o o
 const last = days[days.length - 1];
 const owedStill = last?.owedTo ?? [];
 const report = { seed, days: DAYS, turns: T.length, rows: log.length, secs: (Date.now() - t0) / 1000, counts: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, v.length])), examples: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, v.slice(0, 3)])),
-  acts, sameness, wages: { owedEver: [...owedEver], owedAtEnd: owedStill, stats: last?.stats }, purse: days.filter((_, i) => i % 30 === 0).map(x => ({ day: x.day, cash: +x.purse.cash.toFixed(2), grain: +x.purse.grain.toFixed(1), job: x.job?.e ?? null, stay: x.stay?.h ?? null, group: x.group, halmi: x.halmi, reach: x.reach })), final: last };
+  market: Object.fromEntries(Object.entries(MK).map(([k, m]) => [k, { tried: m.tried, found: m.found, days: m.days.size, foundDays: m.foundDays.size, meanPeople: +(m.people / Math.max(1, m.tried)).toFixed(2) }])), acts, sameness, wages: { owedEver: [...owedEver], owedAtEnd: owedStill, stats: last?.stats }, purse: days.filter((_, i) => i % 30 === 0).map(x => ({ day: x.day, cash: +x.purse.cash.toFixed(2), grain: +x.purse.grain.toFixed(1), job: x.job?.e ?? null, stay: x.stay?.h ?? null, group: x.group, halmi: x.halmi, reach: x.reach })), final: last };
 mkdirSync('.cache/playtest', { recursive: true });
 writeFileSync(`.cache/playtest/year-${seed}.jsonl`, log.map(r => JSON.stringify(r)).join('\n'));
 writeFileSync(`.cache/playtest/year-${seed}-days.jsonl`, days.map(r => JSON.stringify(r)).join('\n'));
 writeFileSync(`.cache/playtest/year-${seed}-audit.json`, JSON.stringify(report, null, 1));
-console.log(JSON.stringify({ counts: report.counts, turns: report.turns, secs: report.secs }, null, 1));
+console.log(JSON.stringify({ counts: report.counts, market: report.market, turns: report.turns, secs: report.secs }, null, 1));
