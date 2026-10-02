@@ -815,7 +815,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
           surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,
           worksite: null, workHours: hour > 6.5 && hour < 17.5, // chisels, querns, dice now come from the people (crowd.onHit)
-          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC }); // D-210: where the animals and insects are heard
+          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC, air: ctx.cond, ground: (ctx.player as { groundKind?: 'stone' }).groundKind, roofed: (ctx.player as { roofed?: boolean }).roofed }); // D-620: the walk's ground and roof (C9) // D-210: where the animals and insects are heard; D-620: the weather for the recorded beds
       }
       pa('w.audio', tp);
     },
@@ -824,7 +824,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     soundLines: () => {
       const o = audio.occlusionOf(lastHandle?.panner), s = lastSpoken;
       return [s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}${o ? ` · occlusion ${o.gainDb.toFixed(1)} dB, ${Math.round(o.cutoffHz)} Hz via ${o.path}` : ''}` : 'speech heard: none yet',
-        ...director.lines(),
+        ...director.lines(), ...sound.recordedLines(),
         ...voices.lines(), ...(neural?.lines() ?? ['neural voices off (?neural=0): formant synthesiser, PLACEHOLDER-QUALITY']), ...farCrowd.lines(),
         `water (D-245, synthesised, C): river ${Number.isFinite(water.near.river) ? `${water.near.river.toFixed(0)} m` : 'none within 150 m'}, canal ${Number.isFinite(water.near.canal) ? `${water.near.canal.toFixed(0)} m` : 'none within 60 m'} · space ${sound.lastSpace}`,
         `animals and insects heard (D-210, synthesised, C): ${sound.heardLines().join(' · ') || 'none in the last minute'}${sound.fliesLevel > 0.05 ? ` · flies ${sound.fliesLevel.toFixed(2)}` : ''}`,
