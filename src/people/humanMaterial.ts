@@ -39,10 +39,12 @@ import { CHEEK_R, NOSE_R } from './bodyShape';
 import type { HumanScans } from './humanScans';
 
 /** height field → shading normal (view space; surface gradient from screen-space derivatives, Mikkelsen 2010) */
-function bumped(h: any) {
+function bumped(h: any, gx: any = null, gy: any = null) {
   const dpdx = positionView.dFdx(), dpdy = positionView.dFdy(), n = normalView;
   const r1 = dpdy.cross(n), r2 = n.cross(dpdx), det = dpdx.dot(r1);
-  const grad = sign(det).mul(h.dFdx().mul(r1).add(h.dFdy().mul(r2)));
+  // (s17 V3: gx, gy an extra height gradient in screen space, given by the caller where a texture's height would step)
+  const hx = gx ? h.dFdx().add(gx) : h.dFdx(), hy = gy ? h.dFdy().add(gy) : h.dFdy();
+  const grad = sign(det).mul(hx.mul(r1).add(hy.mul(r2)));
   return abs(det).mul(n).sub(grad).normalize();
 }
 /** D-307: a bilinear, mip-selected read of a texture by textureLoad (4 loads): no sampler. The human material's fragment
@@ -633,11 +635,17 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const fake = T.simCloth ? 0 : 1;
     // D-322: the settled cloth's folds finer than the mesh (the fold layers: people_cloth's post-step), in the garment's own
     // atlas; faded where a triangle spans a chart's seam (its atlas coordinate jumps: the tubes' back seam, the body UV's)
-    let simFoldH: any = float(0);
+    let simFoldH: any = float(0), foldGx: any = null, foldGy: any = null;
     if (FOLD) { const z = vSkinL.z, lo = step(3.5, z), ok = step(-0.5, z), gi = floor(vSkinL.w.mul(0.5).add(0.25)), fu = vec2(z.sub(lo.mul(4)), vSkinL.w.sub(gi.mul(2))), sd = floor(gi.div(3).add(0.01)), gr = gi.sub(sd.mul(3));
       const seamF = float(1).sub(smoothstep(0.02, 0.05, max(fu.x.fwidth(), fu.y.fwidth())));
-      const fs = texture(FOLD.cloth, fu).depth(lo.add(sd.mul(2)).add(FOLD.foldBase)).rgb;
-      simFoldH = dot(fs, vec3(is(gr, 0), is(gr, 1), is(gr, 2))).sub(0.5).mul(2 * FOLD.foldScale).mul(ok).mul(seamF).mul(kCloth); }
+      // s17 V3 (D-500): the fold layers' slope by central differences two texels apart, carried to the screen by the atlas
+      // coordinate's own derivatives (smooth across texels): the screen derivative of the 8-bit, bilinear height stepped from
+      // texel to texel and drew stair-stepped dark streaks over every dress and sleeve at 1-3 m
+      const layer = lo.add(sd.mul(2)).add(FOLD.foldBase), wsel = vec3(is(gr, 0), is(gr, 1), is(gr, 2)), D = 2 / 1024;
+      const Hs = (ou: number, ov: number) => dot(texture(FOLD.cloth, fu.add(vec2(ou, ov))).depth(layer).rgb, wsel);
+      const kf = float(2 * FOLD.foldScale).mul(ok).mul(seamF).mul(kCloth);
+      const hu = Hs(D, 0).sub(Hs(-D, 0)).div(2 * D).mul(kf), hv = Hs(0, D).sub(Hs(0, -D)).div(2 * D).mul(kf);
+      foldGx = hu.mul(fu.x.dFdx()).add(hv.mul(fu.y.dFdx())); foldGy = hu.mul(fu.x.dFdy()).add(hv.mul(fu.y.dFdy())); }
     const clothH = n2.mul(mix(DRAPE.lump, 0.0012, is(prm, 4))).add(n1.mul(mix(DRAPE.streak.h[0], DRAPE.streak.h[1], isLinen)).mul(band(DRAPE.streak.f[1]))).add(weaveH).add(simFoldH).add(pleatH.mul(fake)).add(robeH.mul(fake)).add(foldH).add(wrinkleH).add(hemH).add(gatherH.mul(fake)).add(hangH.mul(fake)); // linen is smoother than wool
 
     // ---- felt, leather, metal, wood, wicker
@@ -680,7 +688,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45))).mul(mix(float(1), curls.mul(0.45).add(0.55), kShell)).mul(mix(float(1), cardDepth.mul(0.35).add(0.65).mul(mix(float(1), cardAO, CARD.aoAmb)), kCard));
     // shading normal: curls on hair, creases and pores on skin, folds and weave on cloth, fibres on felt, grain on leather
     const h = hairH.mul(kShell).add(skinH.mul(kSkin)).add(clothH.mul(kCloth)).add(feltH.mul(kFelt)).add(leatherH.mul(kLeather));
-    this.normalNode = cardN ? mix(bumped(h), cardN, kCard).normalize() : bumped(h);
+    const bh = bumped(h, foldGx, foldGy); this.normalNode = cardN ? mix(bh, cardN, kCard).normalize() : bh;
     // lighting-model inputs
     const curv = e2.mul(SKIN_CURV_MAX);
     const skinWrap = vec3(...SKIN.scatter).mul(curv).min(SKIN.wrapMax).add(vec3(...SKIN.wrapBase));

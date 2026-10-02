@@ -9494,3 +9494,6 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   a staff (seeded per person); a healed wound or scald of the past (marks.ts war_scar, burn_arm, crooked_arm) as paler,
   glossier patches on the right forearm. Person texel 10 [wound, scar, eye height]; the per-vertex mask rides vExt.w on skin
   (no new varying). crowd.setMarks once a person a day. C.
+- (D-500, step 4) The garments' fold layers bump by their own slope (central differences two texels apart, carried to the
+  screen by the atlas coordinate's derivatives): the screen derivative of the 8-bit bilinear height stair-stepped dark streaks
+  over every dress, sleeve and skirt at 1-3 m.
