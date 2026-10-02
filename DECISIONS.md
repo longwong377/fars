@@ -9398,3 +9398,12 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   probe_render.py (Blender, Cycles renders of a baked GLB at given views).
 - **Not done (honest):** the double-bull protome capitals (210) and the W bulls (2) are D-312's SDF forms with the D-306 maps
   (B360, B361); B166/B167 (columns2) not started; no full-world render of the change (train views requested).
+
+## D-470 (s17, Vagon lead): the BIG box's limits for the day
+- Measured at minute 0: 16 cores, 63 GB (56.9 GB free), Tesla T4 idle, C: 8.5 GB free -> 23 GB after removing 25 clean, fully
+  pushed s13/s14 worktrees (the user: "open up space if you need it"); T: wiped, 210 GB free (train trees and frames go there).
+- MAX_AGENTS=5, GPU_SLOTS=2, MIN_FREE_GB=6 (setx; the user confirmed 5 agents on this box). Trains may run while agents build
+  (the session-15 rule was for the 4-core box). The watchdog's CPU > 90 % still stops new work.
+- mkwt.mjs: base defaults to s17-int; branch is s<N>-<name> from base s<N>-int (was always s14-<name>).
+- Uncommitted leftovers on the box: branch vagon-leftovers-s17 (two empty stray files). Dirty old trees kept as they are:
+  fars-wt/load (KTX2 textures), simhealth-brides, simtalk, visible, visiblebase, light, int.
