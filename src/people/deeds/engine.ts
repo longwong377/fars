@@ -305,7 +305,10 @@ export class DeedWorld {
   /** a person's wound now (the renderer's and the marks' hook) */
   injuryOf(pid: number, day: number) { const i = this.injuries.get(pid); return i && i.until > day ? i : null; }
 
-  save() { return { mine: this.mine, minds: this.minds.save(), inj: [...this.injuries], law: this.law.save(), promises: this.promises, skills: [...this.skills], lays: [...this.lays], dayDone: this.dayDone, n: this.log.length, joint: this.joint.save() }; }
+  // (D-459, the late save 3.66 MB: the overlays of days gone by, the promises settled and the faded feelings are not kept)
+  save() { const d0 = this.dayDone - 1;
+    return { mine: this.mine, minds: this.minds.save(this.dayDone), inj: [...this.injuries].filter(([, v]) => v.until > d0), law: this.law.save(), promises: this.promises.filter(p => !p.kept && !p.broken), skills: [...this.skills],
+      lays: [...this.lays].filter(([k]) => Number(k.split(':')[1]) >= d0), dayDone: this.dayDone, n: this.log.length, joint: this.joint.save() }; }
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.law.load((s as any).law ?? { cases: (s as any).cases }); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
     this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.evSeen = 0; this.joint.load(s.joint); }

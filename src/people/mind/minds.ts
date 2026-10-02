@@ -215,7 +215,13 @@ export class Minds {
     return null;
   }
 
-  save() { const f: [number, [number, Feel, number][]][] = []; for (const [a, m] of this.feel) f.push([a, [...m].map(([k, h]) => [k, h.f, h.day])]); return { f, mem: [...this.memory], own: [...this.own] }; }
+  /** the minds' state for a save: feelings that have not faded to nothing by `day` (D-459: a year kept every brush; the late
+   *  save was 2.76 MB of deeds). The memories are ids into the deed log, which a save does not keep: they start afresh */
+  save(day = Infinity) { const f: [number, [number, Feel, number][]][] = [];
+    for (const [a, m] of this.feel) { const l: [number, Feel, number][] = [];
+      for (const [k, h] of m) { const n = Number.isFinite(day) ? Math.max(0, day - h.day) : 0; let big = 0; for (const x of Object.keys(FADE) as (keyof Feel)[]) big = Math.max(big, Math.abs(h.f[x] * Math.pow(FADE[x], n))); if (big >= 0.02) l.push([k, h.f, h.day]); }
+      if (l.length) f.push([a, l]); }
+    return { f, mem: [] as [number, number[]][], own: [...this.own] }; }
   load(s: ReturnType<Minds['save']> | undefined) { this.feel.clear(); this.memory.clear(); this.own.clear(); if (!s) return;
     for (const [a, l] of s.f) this.feel.set(a, new Map(l.map(([k, f, d]) => [k, { f, day: d }]))); for (const [k, v] of s.mem) this.memory.set(k, v); for (const [k, v] of s.own) this.own.set(k, v); }
 }
