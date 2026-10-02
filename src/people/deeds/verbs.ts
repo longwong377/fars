@@ -56,7 +56,7 @@ export const VERBS: Record<Verb, VerbSense> = {
   complain: { consent: false, want: -0.05, hours: 0, gloss: 'a complaint about someone' },
   intercede: { consent: true, want: -0.1, hours: 0.5, gloss: 'to plead for someone' },
   reconcile: { consent: true, want: 0.05, hours: 0.5, gloss: 'to make peace with someone' },
-  introduce: { consent: true, want: 0.15, hours: 0.2, gloss: 'to meet someone' },
+  introduce: { consent: true, want: 0.15, hours: 0.2, feel: { aff: 0.02 }, gloss: 'to meet someone' },
   attack: { consent: false, want: -1, hours: 0, wrong: 'assault', feel: { anger: 0.6, fear: 0.5, aff: -0.6, resp: -0.1 }, gloss: 'a blow' },
   push: { consent: false, want: -0.6, hours: 0, wrong: 'assault', feel: { anger: 0.35, fear: 0.15, aff: -0.25 }, gloss: 'a shove' },
   embrace: { consent: true, want: -0.1, hours: 0, feel: { aff: 0.06 }, gloss: 'an embrace' },
@@ -81,6 +81,9 @@ export const VERBS: Record<Verb, VerbSense> = {
 /** the words that propose each verb (lower case, the translation layer's English); the first match wins, so the specific go
  *  first. A verb found with an activity word (deeds/parse.ts ACT_WORDS) is the shared work: "help me thresh" is help+thresh */
 export const LEXICON: [Verb, RegExp][] = [
+  // (D-462: an errand first: "go and tell him I thank him" is a message carried; the words inside it are read as its own deed)
+  ['send', /\b(send (him|her|word|a message)|go and (tell|say to|ask)|carry (a|my|this) (message|word)|take (a|my|this) message|run to)\b/],
+  ['bring', /\b((ask|tell) (him|her|them|your \w+) to come|bring (him|her|them|your \w+)( to| here)?|bring me (your|the) (father|mother|son|daughter|husband|wife|brother|sister|elder|master))\b/],
   ['steal', /\b(steal|rob|pinch|snatch|swipe|pilfer|make off with|take (it|this|that|them) without)\b/],
   ['attack', /\b(attack|hit|strike|punch|kick|slap|beat|stab|kill|murder|fight|wrestle|thrash|smack|hurt|wound|knock (him|her|you) down|throw a stone at)\b/],
   ['push', /\b(push|shove|trip|grab (him|her|you))\b/],
@@ -112,11 +115,9 @@ export const LEXICON: [Verb, RegExp][] = [
   ['build', /\b(build|raise a wall|put up a|make a (wall|pen|fence|hut|roof))\b/],
   ['carry', /\b(carry (that|this|it|your|the)|take (that|this) load|let me carry|help you carry|bear (it|the load))\b/],
   ['fetch', /\b(fetch|go get|bring me (some|a|the|water|bread|wine|beer))\b/],
-  ['bring', /\b(bring (him|her|them) (to|here)|bring me (your|the) (father|mother|son|daughter|husband|wife|brother|sister|elder|master))\b/],
-  ['send', /\b(send (him|her|word|a message)|go and tell|carry (a|my) message|run to)\b/],
   ['guard', /\b(guard|keep watch|stand watch|protect (you|your|him|her))\b/],
   ['embrace', /\b(embrace|hug|hold (you|me)|kiss)\b/],
-  ['hire', /\b(i('ll| will) pay you|work for me|i('ll| will) hire|come work for me|be my (servant|guide|porter))\b/],
+  ['hire', /\b(i('ll| will) pay you|work for me|i('ll| will) hire|hire you|come work for me|be my (servant|guide|porter)|guide me|show me the way|carry my (things|load|bags|pack)( for)?)\b/],
   ['teach', /\b(teach me|show me how|how do you (make|weave|bake|brew|plough|thresh|spin|fire)|let me learn)\b/],
   ['learn', /\b(let me teach you|i('ll| will) teach you|i can show you how)\b/],
   ['lend', /\b(lend (you|him|her)|take this (and|but) (pay|give) (it )?back|i('ll| will) lend)\b/],

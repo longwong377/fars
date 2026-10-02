@@ -366,7 +366,7 @@ export class Goals {
       { this.finish(g, day, 'achieved', `${this.name(o)} paid for it`); return; }
     const pe = personaOf(P, g.pid, day), step = g.n, wrong = this.lastDeedBy(g.pid, o), what = wrong >= 0 ? this.W.rec(wrong)?.deed.verb : null;
     const about = what === 'steal' ? 'he stole from me' : what === 'attack' || what === 'push' ? 'he beat me' : what === 'insult' || what === 'mock' ? 'he is a liar and a cheat' : 'he cheated me';
-    if (step === 0 || step === 3) { const t = this.W.minds.friendOf(g.pid, day); if (t !== null && t !== o) this.act(g, { verb: 'tell', actor: g.pid, target: t, third: o, about, aim: `telling of ${this.name(o)}'s wrong` }, day, 18); }
+    if (step === 0 || step === 3) { const t = this.W.minds.friendOf(g.pid, day); if (t !== null && t !== o) this.act(g, { verb: 'tell', actor: g.pid, target: t, third: o, about, aim: `telling of ${this.name(o)}'s wrong`, ...(wrong >= 0 ? { of: wrong } : {}) }, day, 18); } // (a grudge with no deed behind it is talk the hearer may find false: deeds/law.ts)
     else if (step === 1) { const el = this.W.minds.elderOf(g.pid, day); if (el !== null && el !== o && el !== g.pid) this.act(g, { verb: 'complain', actor: g.pid, target: el, third: o, about, aim: `a complaint against ${this.name(o)}` }, day, 10); }
     else if (pe.temper > 0.6 && f.anger > 0.6 && step >= 4) this.act(g, { verb: 'attack', actor: g.pid, target: o, force: 0.35 + 0.3 * this.u(g.id, day, 2) }, day, 17);
     else if (pe.temper > 0.5 && step === 5) this.act(g, { verb: 'break', actor: g.pid, target: o }, day, 21);
@@ -395,7 +395,8 @@ export class Goals {
   private teach(g: Goal, day: number) { const c = g.who;
     if (!this.here(c, day) || this.hid(c, day) !== this.hid(g.pid, day)) { this.finish(g, day, 'abandoned', `${this.name(c)} gone`); return; }
     const act = g.act ?? 'craft', place = g.place ?? `h:${this.hid(g.pid, day)}`;
-    if (this.act(g, { verb: 'teach', actor: g.pid, target: c, act, place, inH: 24 + 10 - 8.5, aim: 'the family\'s work' }, day, 8.5)) g.prog = cl(g.prog + 0.1);
+    // ('learn': the actor teaches the other, as the stranger's "let me teach you"; 'teach' is the actor asking to be taught)
+    if (this.act(g, { verb: 'learn', actor: g.pid, target: c, act, place, inH: 24 + 10 - 8.5, aim: 'the family\'s work' }, day, 8.5)) g.prog = cl(g.prog + 0.1);
     else if (++g.fails > 8) { this.finish(g, day, 'abandoned', `${this.name(c)} would not learn`); return; }
     if (g.prog >= 1) { this.learned.set(c, act); this.finish(g, day, 'achieved', `${this.name(c)} has learned the work`); return; }
     g.next = day + 5 + Math.floor(this.u(g.id, day, 1) * 5);

@@ -115,6 +115,8 @@ export interface StrangerOpts {
   langOf?: (hh: string) => string;
   /** D-391: the world's own reasons a house wants a hand today (the farm calendar's season, the house's open ask for labour), or '' */
   needOf?: (hh: string, day: number) => string;
+  /** D-462: what the stranger has learned to do (deeds/joint.ts lessons: a craft's key -> 0..1) */
+  skillOf?: (k: string) => number;
 }
 
 export class Stranger {
@@ -240,12 +242,15 @@ export class Stranger {
   }
 
   // ---------------------------------------------------------------- (3) work and livelihood
+  /** D-462: his hand at a craft (the lessons he has had: weaving, pots, the forge, wood), 0..1; a craft house takes the best of them */
+  craftSkill(): number { const f = this.opts.skillOf; return f ? Math.max(f('weave'), f('craft'), f('smith'), f('work_wood'), f('tan'), 0) : 0; }
   /** why a house wants a hand today, or '' (C: the harvest's three weeks, a craft's orders, a sick member, a rich house) */
   wantsHand(hh: string, day: number): string {
     const H = this.H(hh); if (!H || H.dead) return '';
     if ((H.kind === 'farmer' || H.kind === 'rich') && day >= H.harvestDay - 8 && day <= H.harvestDay + 14) return 'the harvest';
     if (H.sickUntil > day && H.workers <= 2 && H.kind !== 'ration') return 'a hand while one of the house is sick';
     if (H.kind === 'craft' && this.E.market.goodsDemand >= 0.9) return 'orders to fill';
+    if (H.kind === 'craft' && this.craftSkill() >= 0.35) return 'a skilled hand at the craft'; // (D-462: a learned craft is wanted when the orders are thin too)
     if (H.kind === 'herder' && day % 354 < 60) return 'the lambing';
     if (H.kind === 'rich') return 'the service of a great house';
     if (H.workers === 0 && H.kind !== 'ration') return 'no one left to work';
@@ -263,7 +268,7 @@ export class Stranger {
     // a believed grand claim is not hired to carry sacks (a scribe is, by the rich and the crafts; C)
     if (r.rank >= 0.85 && r.belief > 0.5) return { ok: false, why: 'not work for one of rank' };
     const tongue = this.comp(this.langOf(hh), day);
-    const p = 0.35 + 0.6 * (t - 0.5) + 0.25 * tongue + (this.stay?.host === hh ? 0.25 : 0) + (r.belief > 0.5 && (this.claim?.role === 'craftsman' && H.kind === 'craft' || this.claim?.role === 'scribe' && H.kind === 'rich') ? 0.2 : 0) + (this.halmi >= day ? 0.1 : 0);
+    const p = 0.35 + 0.6 * (t - 0.5) + 0.25 * tongue + (this.stay?.host === hh ? 0.25 : 0) + (r.belief > 0.5 && (this.claim?.role === 'craftsman' && H.kind === 'craft' || this.claim?.role === 'scribe' && H.kind === 'rich') ? 0.2 : 0) + (this.halmi >= day ? 0.1 : 0) + (H.kind === 'craft' ? 0.4 * this.craftSkill() : 0);
     if (t < 0.3) return { ok: false, why: 'they do not trust the stranger' };
     return u01(this.E.seed, S.hire, hashString(hh) | 0, day) < p ? { ok: true, why: need } : { ok: false, why: 'they will not take on a stranger' };
   }
@@ -273,10 +278,10 @@ export class Stranger {
     if (this.attended.has(day)) {
       J.worked++; J.run = 0; this.deeds.labour++; if (H.kind === 'craft') this.deeds.craftWork++;
       // what the hand's day is worth to the house (C): the crop got in, goods made, a sick member's work done
-      if (J.need === 'the harvest') H.grain += 3; else if (H.kind === 'craft') H.goods += 0.15; else if (H.kind === 'herder') H.goods += 0.1;
+      if (J.need === 'the harvest') H.grain += 3; else if (H.kind === 'craft') H.goods += 0.15 * (1 + 2 * this.craftSkill()); else if (H.kind === 'herder') H.goods += 0.1;
       if (J.worked === 3 && H.cause.help !== undefined && H.sickUntil > day) H.cause.help = this.ev('hand_hired', [H.cause.help, J.ev], J.employer, PLAYER);
       this.hear(this.langOf(J.employer), 6, 0.5, true, day);
-      if (!J.host) J.owed += 1;
+      if (!J.host) J.owed += H.kind === 'craft' ? 1 + this.craftSkill() : 1; // (D-462: a skilled hand's day is paid as a craftsman's, up to twice a labourer's: C)
     } else if (++J.run >= MISS_FIRE) { this.endJob('dismissed', day); return; }
     if (day - J.lastPay >= PAYDAY) this.payday(day);
     if (!this.wantsHand(J.employer, day) && day - J.from > 2) this.endJob('let_go', day);
@@ -317,7 +322,7 @@ export class Stranger {
   private deal(s: Extract<SAct, { a: 'buy' | 'sell' }>, apply: boolean): Verdict {
     if (s.hh === MARKET) return this.marketDeal(s, apply);
     const day = Math.min(s.day, this.E.day), H = this.H(s.hh); if (!H || H.dead) return { ok: false, why: 'no such house' };
-    const have = (g: string) => (this.purse as any)[g] ?? 0, skill = 0.35 + 0.3 * this.comp(this.langOf(s.hh), day);
+    const have = (g: string) => (this.purse as any)[g] ?? 0, skill = 0.35 + 0.3 * this.comp(this.langOf(s.hh), day) + (s.good === 'goods' ? 0.25 * this.craftSkill() : 0); // (D-462: one who has made wares knows their worth)
     if (s.a === 'sell' && have(s.good) < s.qty) return { ok: false, why: 'the stranger has not got it' };
     const r = haggle(this.E, s.a === 'buy' ? { buyer: PLAYER, seller: s.hh, good: s.good, qty: s.qty, day, pay: 'cash', skill: { buyer: skill }, apply: false } : { buyer: s.hh, seller: PLAYER, good: s.good, qty: s.qty, day, pay: 'cash', skill: { seller: skill }, apply: false });
     if (!r.ok) return { ok: false, why: r.why === 'seller has no spare' ? 'they have none to spare' : r.why === 'no overlap' ? 'they will not come to a price' : r.why === 'buyer cannot pay' ? 'they cannot pay for it' : r.why ?? 'no deal' };

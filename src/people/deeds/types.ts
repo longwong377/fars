@@ -5,6 +5,8 @@
 // whether the other is willing (their mind: feelings, trust, temper, needs, duties, fear), and what follows (feelings, trust,
 // goods, injuries, rumour, the law, the day plans). The model never decides; it voices.
 import type { ActivityId } from '../activities';
+import type { Job } from './joint';
+import type { Seg } from '../population';
 
 /** a person of the population (pid), or the stranger */
 export type Actor = number | 'player';
@@ -53,6 +55,8 @@ export interface Deed {
   aim?: string;
   /** D-461: the goal it is a step of (mind/goals.ts id), for the chains of cause */
   goal?: number;
+  /** D-461: the deed a telling tells of (its log id): what was seen or suffered, true by the world's own record */
+  of?: number;
 }
 
 /** what follows from a deed, applied by the engine (and recorded, so a save replays it) */
@@ -66,7 +70,10 @@ export type Effect =
   | { k: 'skill'; who: Actor; skill: string; d: number }
   | { k: 'promise'; from: Actor; to: Actor; what: string; due: number }
   | { k: 'work'; hh: string; what: string; amt: number }
-  | { k: 'lay'; pid: number; day: number; h0: number; h1: number; place: string; act: ActivityId; why: string; with?: Actor };
+  | { k: 'lay'; pid: number; day: number; h0: number; h1: number; place: string; act: ActivityId; why: string; with?: Actor }
+  // D-462: an undertaking with its walks laid (deeds/joint.ts), and a person hired by the stranger
+  | { k: 'job'; job: Job; segs: [number, number, Seg][] }
+  | { k: 'hire'; pid: number; said: string };
 
 /** a feeling toward another, -1..1 (affection, anger, fear, gratitude, respect): decays toward the relationship's baseline */
 export interface Feel { aff: number; anger: number; fear: number; grat: number; resp: number }
@@ -78,6 +85,8 @@ export interface Outcome {
   why: string;
   /** the world would allow it, but the other would not (a refusal of their own) */
   refused?: boolean;
+  /** D-462: a refusal in the person's own words (deeds/joint.ts sayNo; the translation layer's English) */
+  say?: string;
   /** the other's inclination, -1..1 (for the brief: eager, willing, reluctant, angry) */
   lean?: number;
   effects: Effect[];

@@ -3,6 +3,9 @@
 // that hour), the stranger says what a curious player would; attendance at work goes through sim.strangerNear; the sim is
 // stepped day by day. Every turn is logged (who, the life record's key lines, the sandbox verdict and what was done, the
 // stand-in's words, what the model was told), then the log is audited for breaks of the illusion or the simulation.
+// D-462: free speech too: the stranger proposes undertakings (a hunt, fishing, a drink, a roof, a lesson, a hire, an errand,
+// a meeting) and goes to them as a player would (most of the time: FORGET of them he forgets), so a year of joint deeds is
+// measured: kept and missed, the catch, the roofs, the skills and what they earned him, the silver paid to the hired.
 // Run: npx tsx tools/dev/playtest_year.ts [seed=1] [days=355]   (out: .cache/playtest/year-<seed>.jsonl and -audit.json)
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { simAt } from '../../tests/sim_fixture';
@@ -12,9 +15,15 @@ import { talkTurn } from '../../src/people/converse/turn';
 import { lifeRecord } from '../../src/people/converse/life';
 import { Approaches } from '../../src/people/converse/approach';
 import { segAt } from '../../src/people/population';
+import { VERBS as VERBS_ } from '../../src/people/deeds/verbs';
 
 const seed = Number(process.argv[2] ?? 1), DAYS = Number(process.argv[3] ?? 355), D0 = 20;
 const HOURS = [8, 10.5, 13, 16, 18.5];
+/** D-462: the share of his undertakings the stranger forgets (the missed meetings are measured too) */
+const FORGET = 0.15;
+const FREE = ['Let\'s go hunting tomorrow morning.', 'Come fishing with me tomorrow at dawn.', 'Come and drink beer with me tonight.', 'Let me help you fix your roof.', 'Teach me to weave.', 'Show me how you make pots.',
+  'Let me help you with your work.', 'Be my porter for a day, I will pay you.', 'Be my guide for two days, I will pay you.', 'Go and tell your friend that I thank him.', 'Bring your friend here to me.', 'Fetch me some bread.',
+  'Meet me here tomorrow.', 'Let us make an offering together.', 'Let us walk together.', 'Eat with me, share my bread.', 'May I visit you at your house this evening?'] as const;
 const sim = simAt(seed, D0, 7, { asks: true });
 const mind = new Mind(); const eng = standInEngine(); (mind as any).engine = eng; mind.model = 'stand-in';
 const appr = new Approaches(sim);
@@ -49,14 +58,14 @@ function lines(pid: number, d: number, hour: number): string[] {
   if (d === D0 && log.length < 3) out.push('I am a merchant from Babylon.');
   else if (!S.job && !S.group && r < 0.25 && hour < 15) out.push(pick(['Could I work for you?', 'Do you need a hand?', 'I am looking for work.']));
   else if (!S.stay && hour >= 16 && r < 0.45) out.push(pick(['May I stay the night with you?', 'Can you put me up?']));
-  else if (r < 0.50) out.push('Where are you from?');
+  else if (r < 0.50) out.push(rnd() < 0.3 ? pick(FREE) : 'Where are you from?');
   else if (r < 0.55) out.push('Sell me two measures of barley.');
   else if (r < 0.60) out.push(pick(['Take this silver.', 'Take these 2 shekels.']));
   else if (r < 0.64) out.push('He owes me my wages.');
   else if (r < 0.67) out.push('I need papers to stay.');
   else if (r < 0.72) out.push('Teach me your word for bread.');
   else if (r < 0.75) out.push('Everyone listen! I am a merchant from Babylon.');
-  else if (r < 0.82) out.push('Can I help you?');
+  else if (r < 0.82) out.push(rnd() < 0.7 ? pick(FREE) : 'Can I help you?');
   else if (r < 0.92) out.push('What have you heard?');
   else if (r < 0.95 && S.stay) out.push('Thank you for your hospitality.');
   else if (r < 0.97 && (job === 'builder' || job === 'porter')) out.push('Put me on the ration list.');
@@ -79,14 +88,24 @@ async function turn(d: number, hour: number, pid: number, said: string, why: str
     sandbox: o.sandbox ? { act: o.sandbox.act, verdict: o.sandbox.verdict, done: o.sandbox.done } : null,
     request: o.request, tag: o.tag, decision: o.decision ? { kind: o.decision.kind, ok: o.decision.ok, reason: o.decision.reason, noop: (o.decision as any).noop } : null,
     sysLen: sys.length, sysHead: log.length % 40 === 0 ? sys : undefined, sysDigits: (sys.replace(/\b(?:of|aged?|\()\s?\d{1,2}\b|year \d+ of King|\d{1,2}\)/g, '').match(/[^\n]{0,30}\d[^\n]{0,20}/g) ?? []).slice(0, 3), refused: o.refused ?? null, saidNo: o.saidNo, answer: o.answer.text, before, after, prompts };
+  if (o.deed) row.deed = { verb: o.deed.deed.verb, act: o.deed.deed.act, out: { ok: o.deed.out.ok, why: o.deed.out.why, say: o.deed.out.say, refused: o.deed.out.refused }, done: !!o.deed.done?.out.ok };
   log.push(row); if (S.job) lastEmployer = S.job.employer; return row;
 }
 
 const TM = { jump: 0, econ: 0, cand: 0, talk: 0 };
+// D-462: time goes forward through the stranger's undertakings: before each jump he goes to those of them that fall before it
+// (stands among the people of each at its middle hour), unless he forgot it
+const kept = new Set<number>(), forgot = new Set<number>();
+function goTo(t: number) {
+  const J = sim.deeds.joint, due = J.jobs.filter(j => j.actor === 'player' && j.state === 'set' && !kept.has(j.id) && !forgot.has(j.id) && j.day * 24 + (j.h0 + j.h1) / 2 < t && j.day * 24 + (j.h0 + j.h1) / 2 > sim.t).sort((a, b) => a.h0 - b.h0);
+  for (const j of due) { if (rnd() < FORGET && j.kind !== 'errand') { forgot.add(j.id); continue; } kept.add(j.id); sim.jumpTo(j.day * 24 + (j.h0 + j.h1) / 2); sim.strangerNear([j.target, ...(j.third !== undefined ? [j.third] : [])], 0.25); }
+  sim.jumpTo(t);
+}
+const MK: Record<string, { tried: number; found: number; days: Set<number>; foundDays: Set<number>; people: number }> = {};
 const end = D0 + DAYS; const t0 = Date.now();
 for (let d = D0; d < end; d++) {
   for (const hour of HOURS) {
-    let tt = Date.now(); sim.jumpTo(d * 24 + hour); TM.jump += Date.now() - tt; tt = Date.now(); const E = sim.econTo(d), S = E.stranger();
+    let tt = Date.now(); goTo(d * 24 + hour); TM.jump += Date.now() - tt; tt = Date.now(); const E = sim.econTo(d), S = E.stranger();
     TM.econ += Date.now() - tt; tt = Date.now(); const { home, work, market } = candidates(d, hour); TM.cand += Date.now() - tt; tt = Date.now();
     // at work: two hours beside the employer's people (or the gang, the house joined)
     if (S.job || S.group) { const want = S.job?.employer ?? (S.group?.kind === 'household' ? S.group.id : null);
@@ -94,6 +113,10 @@ for (let d = D0; d < end; d++) {
       if (hour >= 8 && hour <= 13) for (let k = 0; k < 9; k++) sim.strangerNear(mates, 0.25); }
     // D-455: the stranger's living as a player would make it: a day's carrying at the market when he has no work (hours among
     // the market's people are the work), grain sold at the stalls, bread bought there when his sack is empty
+    // (D-458: the market wanted at this hour, and whether anyone of the sample stood on a market ground: the bot's market days)
+    { const want = hour === 8 && !S.job && !S.group && !S.dayHire?.paid ? 'daywork' : hour === 13 && S.purse.grain >= 25 ? 'sell' : hour === 10.5 && S.purse.grain < 2 && !S.stay && !S.group ? 'buy' : null;
+      if (hour === 8 || hour === 10.5 || hour === 13) { const a = MK[`at ${hour}`] ??= { tried: 0, found: 0, days: new Set<number>(), foundDays: new Set<number>(), people: 0 }; a.tried++; a.days.add(d); a.people += market.length; if (market.length) { a.found++; a.foundDays.add(d); } }
+      if (want) { const m = MK[want] ??= { tried: 0, found: 0, days: new Set<number>(), foundDays: new Set<number>(), people: 0 }; m.tried++; m.days.add(d); m.people += market.length; if (market.length) { m.found++; m.foundDays.add(d); } } }
     if (market.length) {
       if (hour === 8 && !S.job && !S.group && !S.dayHire?.paid) await turn(d, hour, pick(market), 'Is there work for today? I can carry loads.', 'daywork');
       if (S.dayHire?.day === d && !S.dayHire.paid && hour <= 16) for (let k = 0; k < 9; k++) sim.strangerNear(market, 0.25);
@@ -120,9 +143,10 @@ for (let d = D0; d < end; d++) {
     if (hour === 13 && d % 15 === 0 && formerEmployers.size) { const elder = [...work, ...home].find(p => P.persons[p].job === 'elder' || P.persons[p].job === 'official');
       if (elder !== undefined) { const named = [...formerEmployers][0]; const r = sim.strangerAsk(elder, 'He owes me my wages.', named); log.push({ day: d, hour, pid: elder, hh: hhOf(elder, d), why: 'petition-named', said: 'He owes me my wages. (named ' + named + ')', sandbox: r ? { act: r.act, verdict: r.verdict, done: r.verdict.ok ? sim.strangerDo(r.act) : null } : null }); } }
   }
+  goTo(d * 24 + 23.9);
   const E = sim.econTo(d + 1), S = E.stranger(); if (S.job) formerEmployers.add(S.job.employer);
   const owedTo = [...E.hh.values()].filter(h => h.debts.some(x => x.to === 'player' && x.amt > 0.005)).map(h => ({ hh: h.id, amt: +h.debts.filter(x => x.to === 'player').reduce((a, x) => a + x.amt, 0).toFixed(3) }));
-  days.push({ day: d, purse: { ...S.purse }, hungry: S.hungry, job: S.job ? { e: S.job.employer, worked: S.job.worked, owed: S.job.owed, missed: S.job.missed } : null, stay: S.stay ? { h: S.stay.host, n: S.stay.nights, owed: +S.stay.owed.toFixed(3) } : null, group: S.group?.kind ?? null, halmi: S.halmi, owedTo, debtors: S.debtors.length, petitions: S.petitions.length, stats: { ...S.stats }, reach: S.claimReach(), slighted: S.slighted.size });
+  days.push({ day: d, skills: Object.fromEntries(sim.deeds.skills), hires: sim.deeds.joint.hiredNow(d).length, purse: { ...S.purse }, hungry: S.hungry, job: S.job ? { e: S.job.employer, worked: S.job.worked, owed: S.job.owed, missed: S.job.missed } : null, stay: S.stay ? { h: S.stay.host, n: S.stay.nights, owed: +S.stay.owed.toFixed(3) } : null, group: S.group?.kind ?? null, halmi: S.halmi, owedTo, debtors: S.debtors.length, petitions: S.petitions.length, stats: { ...S.stats }, reach: S.claimReach(), slighted: S.slighted.size });
   if ((d - D0) % 30 === 0) console.error(`day ${d} turns ${log.length} ${((Date.now() - t0) / 1000).toFixed(0)} s ${JSON.stringify(TM)} purse ${S.purse.cash.toFixed(2)}c ${S.purse.grain.toFixed(1)}g job ${S.job?.employer ?? '-'} stay ${S.stay?.host ?? '-'}`);
 }
 
@@ -146,6 +170,9 @@ for (const r of T) {
     if (sb.verdict.ok && /^No\b/.test(r.answer) && !['claim', 'hear'].includes(sb.act.a)) add('ok_but_no_words', { ...ex, a: sb.act.a, answer: r.answer });
   }
   if (r.decision && r.sandbox) add('both_deed_and_sandbox', ex);
+  // D-462: a deed agreed in the world's words but refused in the person's, or refused with no words of their own
+  if (r.deed?.out.ok && (VERBS_ as Record<string, { consent: boolean }>)[r.deed.verb]?.consent && !r.deed.done) add('deed_ok_not_done', { ...ex, verb: r.deed.verb, answer: r.answer });
+  if (r.deed && !r.deed.out.ok && r.deed.out.refused && !r.deed.out.say) add('refused_without_words', { ...ex, why: r.deed.out.why });
   if (r.request && /silver|shekel|barley|wages|papers/.test(r.said)) add('grammar_deed_shadows_sandbox', { ...ex, request: r.request, decision: r.decision });
   for (const p of r.prompts) { const s = p.replace(/The stranger says: “[^”]*”/g, ''); const dg = s.match(/[^\n]{0,40}\d[^\n]{0,30}/g)?.filter((x: string) => !/^\s*$/.test(x));
     if (dg?.length) add('digits_told', { ...ex, hits: dg.slice(0, 3) }); const m = MODERN.exec(s); if (m) add('modern_word_told', { ...ex, word: m[0], ctx: s.slice(Math.max(0, m.index - 50), m.index + 40) }); }
@@ -166,10 +193,19 @@ const sameness = { answers: freq(T.map(r => String(r.answer).replace(/I am [^,.]
 const owedEver = new Map<string, number>(); for (const x of days) for (const o of x.owedTo) owedEver.set(o.hh, Math.max(owedEver.get(o.hh) ?? 0, o.amt));
 const last = days[days.length - 1];
 const owedStill = last?.owedTo ?? [];
-const report = { seed, days: DAYS, turns: T.length, rows: log.length, secs: (Date.now() - t0) / 1000, counts: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, v.length])), examples: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, v.slice(0, 3)])),
+// D-462: what a year of joint deeds did
+const JW = sim.deeds.joint, mineJ = JW.jobs.filter(j => j.actor === 'player'), byKind: Record<string, Record<string, number>> = {};
+for (const j of mineJ) { const k = (byKind[j.kind] ??= {}); k[j.state] = (k[j.state] ?? 0) + 1; }
+const deedRows = log.filter(r => r.deed), says: Record<string, number> = {}; for (const r of deedRows) if (r.deed.out.say) says[r.deed.out.say] = (says[r.deed.out.say] ?? 0) + 1;
+const town: Record<string, number> = {}; for (const [k, v] of Object.entries(JW.stats)) if (/^(done|missed|off|set):|kg:|roofs_mended|leak_house_days|hire_|lessons|message_|brought|would_not_come/.test(k)) town[k] = +(+v).toFixed(1);
+const joint = { proposed: deedRows.length, agreed: deedRows.filter(r => r.deed.out.ok).length, done: deedRows.filter(r => r.deed.done).length, byVerb: Object.fromEntries(Object.entries(deedRows.reduce((m: any, r) => { const x = (m[r.deed.verb] ??= { n: 0, ok: 0, done: 0 }); x.n++; if (r.deed.out.ok) x.ok++; if (r.deed.done) x.done++; return m; }, {}))),
+  mine: byKind, kept: kept.size, forgot: forgot.size, skills: Object.fromEntries(sim.deeds.skills), hires: JW.hires.map(h => ({ role: h.role, days: h.until - h.from, paid: h.paid, ended: h.ended ?? null })), news: JW.news.slice(-12), says: Object.entries(says).sort((a, b) => b[1] - a[1]).slice(0, 12), worldStats: town,
+  roofsLeakingAtEnd: P.households.filter(h => (h.zone === 'town' || h.zone === 'plain') && JW.roofOf(`h:${h.id}`, D0 + DAYS) < 0.45).length };
+const report = { seed, days: DAYS, joint, turns: T.length, rows: log.length, secs: (Date.now() - t0) / 1000, counts: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, v.length])), examples: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, v.slice(0, 3)])),
   acts, sameness, wages: { owedEver: [...owedEver], owedAtEnd: owedStill, stats: last?.stats }, purse: days.filter((_, i) => i % 30 === 0).map(x => ({ day: x.day, cash: +x.purse.cash.toFixed(2), grain: +x.purse.grain.toFixed(1), job: x.job?.e ?? null, stay: x.stay?.h ?? null, group: x.group, halmi: x.halmi, reach: x.reach })), final: last };
+(report as any).market = Object.fromEntries(Object.entries(MK).map(([k, m]) => [k, { tried: m.tried, found: m.found, days: m.days.size, foundDays: m.foundDays.size, meanPeople: +(m.people / Math.max(1, m.tried)).toFixed(2) }]));
 mkdirSync('.cache/playtest', { recursive: true });
 writeFileSync(`.cache/playtest/year-${seed}.jsonl`, log.map(r => JSON.stringify(r)).join('\n'));
 writeFileSync(`.cache/playtest/year-${seed}-days.jsonl`, days.map(r => JSON.stringify(r)).join('\n'));
 writeFileSync(`.cache/playtest/year-${seed}-audit.json`, JSON.stringify(report, null, 1));
-console.log(JSON.stringify({ counts: report.counts, turns: report.turns, secs: report.secs }, null, 1));
+console.log(JSON.stringify({ counts: report.counts, market: (report as any).market, turns: report.turns, secs: report.secs, joint }, null, 1));

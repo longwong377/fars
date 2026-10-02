@@ -79,7 +79,7 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   // an open deed, judged by the world and this person's mind before they answer (o.deed: the model's reading, when it made one)
   const dj = strict || sb ? null : sim.strangerDeed(pid, said, o.deed);
   const dSense = dj ? VERBS[dj.deed.verb] : null;
-  const dNote = !dj || !dSense ? '' : dSense.consent ? (dj.out.ok ? `You are willing: ${dj.out.why}.` : `You will not: ${dj.out.why}.`) : dj.out.ok ? `(What he does: ${dSense.gloss}${dj.out.why && dj.out.why !== dSense.gloss ? `; you feel: ${dj.out.why}` : ''}.)` : `(${dj.out.why}.)`;
+  const dNote = !dj || !dSense ? '' : dSense.consent ? (dj.out.ok ? `You are willing: ${dj.out.why}.` : `You will not: ${dj.out.why}.${dj.out.say ? ` (In your words: “${dj.out.say}”)` : ''}`) : dj.out.ok ? `(What he does: ${dSense.gloss}${dj.out.why && dj.out.why !== dSense.gloss ? `; you feel: ${dj.out.why}` : ''}.)` : `(${dj.out.why}.)`;
   const request = strict ?? (sb ? null : looseRequest(said));
   const pre = request ? sim.talk.consider(pid, t, request) : null;
   const sbNote = sb && sb.act.a !== 'hear' && sb.act.a !== 'claim' ? (sb.verdict.ok ? `You may say yes: ${sb.verdict.why}.` : `You cannot do this: ${sb.verdict.why}.`) : '';
@@ -116,9 +116,10 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
     if (saidNo && !(pre && !pre.ok)) decision = sim.talkDecline(pid, ask, tag?.kind === 'refuse' ? tag.arg ?? '' : 'said no', t);
     else {
       decision = sim.talkAct(pid, ask, t);
-      // a yes (or a tag) the simulation does not allow: the person is told why and says so (once)
+      // a yes (or a tag) the simulation does not allow: the person is told why and says so (once; D-456: in the same primed
+      // talk: the memory went into the prime key here and the talk was primed afresh, twice)
       if (!decision.ok && answer.ok && !saidNo) {
-        const again = await mind.answer(L, knows, [], said, o.prose, 64, { memory, userText: `(You cannot do it: ${decision.reason}. Say so to the stranger, in your own words, and end with [refuse].)` });
+        const again = await mind.answer(L, knows, [], said, o.prose, 64, { memory: near ? [] : memory, userText: `(You cannot do it: ${decision.reason}. Say so to the stranger, in your own words, and end with [refuse].)` });
         if (again.ok) { answer = { ...again, totalMs: answer.totalMs + again.totalMs, tries: answer.tries + again.tries }; retold = true; }
       }
     }

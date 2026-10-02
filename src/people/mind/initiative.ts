@@ -98,7 +98,7 @@ export class Initiative implements GoalHost {
       if (!wrong && !KIND_DEEDS.has(v)) continue; const doer = r.deed.actor;
       const tellers = [r.deed.target, ...(r.out.witnesses ?? []).slice(0, 1)].filter((x): x is number => typeof x === 'number' && x !== doer);
       for (const tl of tellers) { if (u01(W.w.seed, S.talk, r.id, tl) >= (wrong ? 0.6 : 0.22)) continue; const f = W.minds.friendOf(tl, day); if (f === null || f === doer) continue;
-        const rec = W.own({ verb: 'tell', actor: tl, target: f, third: doer, about: SAY[v] ?? 'what he did' }, day, k++, 19 + 2 * u01(W.w.seed, S.talk, r.id, tl, 1));
+        const rec = W.own({ verb: 'tell', actor: tl, target: f, third: doer, about: SAY[v] ?? 'what he did', of: r.id }, day, k++, 19 + 2 * u01(W.w.seed, S.talk, r.id, tl, 1));
         done(rec, 'talk'); this.deedDepth.set(rec.id, this.depthOfDeed(r.id) + 1); told++; }
       if (told % 20 === 19) { slice('talk'); yield; resume(); } }
     this.seen = W.next;

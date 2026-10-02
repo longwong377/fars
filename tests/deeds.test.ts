@@ -54,7 +54,7 @@ describe('D-459 deeds in the world (a real town, seed 1, day 60)', () => {
   });
   it('a hunt tomorrow: the one who agrees goes to the hills with him in their plan for tomorrow', () => {
     for (const pid of adults.filter(x => Pop.persons[x].sex === 'm').slice(0, 30)) { const r = sim.strangerDeed(pid, "Let's go hunting tomorrow morning.")!; if (!r.out.ok) continue;
-      sim.strangerDeedDo(r.deed); const tomorrow = Pop.plan(pid, day + 1); expect(tomorrow.some(s => s.act === 'fowl' && s.place === 'hills' && /stranger/.test(s.why))).toBe(true); return; }
+      sim.strangerDeedDo(r.deed); const tomorrow = Pop.plan(pid, day + 1); expect(tomorrow.some(s => s.act === 'fowl' && /^slope:/.test(s.place) && /stranger/.test(s.why))).toBe(true); return; }
     throw new Error('no one would go hunting');
   });
   it('a blow: a wound, the house distrusts him, the elder hears it and fines him; news of it travels', () => {
@@ -78,7 +78,7 @@ describe('D-459 deeds in the world (a real town, seed 1, day 60)', () => {
     expect(own.length).toBeGreaterThan(100);
     expect(new Set(own.map(r => r.deed.verb)).size).toBeGreaterThanOrEqual(5);
     expect(own.filter(r => r.out.ok).length).toBeGreaterThan(30);
-  });
+  }, 300_000); // (a month of the whole town's simulation: ~2 min alone on the 4-core box)
   it('saved and loaded, the minds and the wounds go on', () => {
     const s = JSON.parse(JSON.stringify(sim.save())), b = simAt(1, 60, 10, { asks: true }); b.load(s);
     expect(b.deeds.log.length).toBe(0); expect(b.deeds.cases.length).toBe(sim.deeds.cases.length);

@@ -215,7 +215,7 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   return {
     // (D-456: one with no name of their own in the pools was told "You are (no name recorded: he gives his father’s house)"
     // and asked to answer as that: now they go by their byname, as the period did, or as the man or woman of their house)
-    pid, seed: pop.seed, day, hour, name: spokenName(pop, pid) ? name : byname ? `the ${byname}` : `the ${p.sex === 'm' ? 'man' : 'woman'} of the house`, byname: spokenName(pop, pid) ? byname : null, sex: p.sex, age, origin: ORIGIN_WORDS[p.origin] ?? p.origin, language: lang,
+    pid, seed: pop.seed, day, hour, name: spokenName(pop, pid) ? name : byname ? `the ${byname}` : `the ${p.sex === 'm' ? 'man' : 'woman'} of the house`, byname, sex: p.sex, age, origin: ORIGIN_WORDS[p.origin] ?? p.origin, language: lang,
     otherLanguages: [...new Set([p.origin !== 'Persian' && age >= 12 ? 'some Persian' : '', p.job === 'scribe' ? 'Elamite and Aramaic (writes them)' : '', p.group >= 0 && lang !== 'Elamite' ? 'a little Elamite (the language of the ration tablets)' : ''].filter(Boolean))],
     job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? groupWords(pop.groups[p.group].label) : null,
     rank: p.job === 'guard' && p.rank === 1 ? 'leader of a file of ten' : p.rank > 1 ? 'a leader of the group' : null,
@@ -302,7 +302,7 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
   const who = L.age < 14 ? (L.sex === 'm' ? 'boy' : 'girl') : L.sex === 'm' ? 'man' : 'woman';
   const ev = L.today.events.filter(e => !/^the gangs at work/.test(e)).slice(0, 1);
   const lines = [
-    `You are ${L.name}, ${who} of ${ageWords(L.age)}, ${L.origin}${L.byname ? `, ${L.byname}` : ''}; you speak ${L.language}.`,
+    `You are ${L.name}, ${who} of ${ageWords(L.age)}, ${L.origin}${L.byname && L.name !== `the ${L.byname}` ? `, ${L.byname}` : ''}; you speak ${L.language}.`,
     `Work: ${short(L.job, 16)}${L.rank ? `, ${L.rank}` : ''}. Home: ${L.home.replace(/ \(a household of.*\)$/, '')}.`,
     `In your house: ${kin}.`,
     L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
@@ -325,7 +325,7 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
 export function lifeBrief(L: LifeRecord, prose?: string | null): string {
   const kin = L.household.map(k => `${k.name} (${k.rel}, ${ageWords(k.age)}${k.job !== 'child' ? ', ' + k.job : ''})`).join('; ') || 'none: you live alone or with your work group';
   const lines = [
-    `You are ${L.name}, ${L.age < 14 ? (L.sex === 'm' ? 'a boy' : 'a girl') : L.sex === 'm' ? 'a man' : 'a woman'} of ${ageWords(L.age)}, ${L.origin}${L.byname ? `, ${L.byname}` : ''}. Your language: ${L.language}${L.otherLanguages.length ? '; also ' + L.otherLanguages.join(', ') : ''}.`,
+    `You are ${L.name}, ${L.age < 14 ? (L.sex === 'm' ? 'a boy' : 'a girl') : L.sex === 'm' ? 'a man' : 'a woman'} of ${ageWords(L.age)}, ${L.origin}${L.byname && L.name !== `the ${L.byname}` ? `, ${L.byname}` : ''}. Your language: ${L.language}${L.otherLanguages.length ? '; also ' + L.otherLanguages.join(', ') : ''}.`,
     `Work: ${L.job}${L.group ? ` (${L.group})` : ''}${L.rank ? `, ${L.rank}` : ''}.`,
     `Home: ${L.home}. Household: ${kin}.`,
     L.kinHouses.length ? `Kin in other houses: ${L.kinHouses.join('; ')}.` : '',

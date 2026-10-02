@@ -15,7 +15,7 @@ export interface ParseCtx {
 /** words that are only talk: a question with no deed in it (answered by the person's own life, not a deed) */
 const QUESTION = /^(who|what|where|when|why|how|which|whose|is|are|do|does|did|have|has|was|were|can you tell|tell me (about|of|how|why|what|where|who))\b/;
 /** verbs whose deed is done ABOUT a third person (the addressee hears it) */
-const ABOUT: Set<Verb> = new Set(['tell', 'lie', 'accuse', 'complain', 'intercede', 'reconcile', 'introduce', 'bring', 'warn', 'send']);
+const ABOUT: Set<Verb> = new Set(['tell', 'lie', 'accuse', 'complain', 'intercede', 'reconcile', 'introduce', 'bring', 'warn', 'send', 'fetch']);
 /** verbs of the body that land on whoever is pointed at when the words say him/her/them */
 const BODY: Set<Verb> = new Set(['attack', 'push', 'steal', 'break', 'threaten', 'insult', 'mock', 'curse', 'embrace', 'heal', 'guard', 'carry']);
 const NUM: Record<string, number> = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, ten: 10, some: 1, few: 3 };
@@ -45,7 +45,7 @@ export function parseDeed(said: string, actor: Actor, c: ParseCtx): Deed | null 
   const pron = /\b(him|her|them|that (man|woman|boy|girl|one)|this (man|woman|one))\b/.test(w);
   if (ABOUT.has(verb)) { if (named !== null && named !== c.addressee) d.third = named; else if (pron && c.pointed != null) d.third = c.pointed; }
   else if (BODY.has(verb) && !/\byou\b/.test(w) && pron && c.pointed != null) d.target = c.pointed;
-  else if (named !== null && named !== c.addressee && ['join', 'help', 'heal', 'visit', 'come_with', 'meet', 'fetch', 'embrace', 'court', 'flirt', 'give', 'attack', 'push', 'insult'].includes(verb) && !/\byou\b/.test(w)) d.target = named;
+  else if (named !== null && named !== c.addressee && ['join', 'help', 'heal', 'visit', 'come_with', 'meet', 'embrace', 'court', 'flirt', 'give', 'attack', 'push', 'insult'].includes(verb) && !/\byou\b/.test(w)) d.target = named;
   // where and when
   const pl = c.place?.(said) ?? null; if (pl) d.place = pl;
   const h = c.hour; d.inH = /\btomorrow\b/.test(w) ? 24 - h + (/\b(evening|night)\b/.test(w) ? 19 : 8) : /\b(tonight|this evening)\b/.test(w) ? Math.max(0.5, 19 - h) : /\b(later|this afternoon|after (noon|work))\b/.test(w) ? Math.max(1, 15 - h) : /\b(at dawn|in the morning)\b/.test(w) && h > 9 ? 24 - h + 6.5 : 0;
@@ -53,6 +53,6 @@ export function parseDeed(said: string, actor: Actor, c: ParseCtx): Deed | null 
   if (verb === 'attack') d.force = /\b(kill|murder|stab)\b/.test(w) ? 1 : /\b(beat|thrash|fight|wrestle|kick|wound|hurt)\b/.test(w) ? 0.75 : /\b(slap|smack)\b/.test(w) ? 0.3 : 0.5;
   else if (verb === 'push') d.force = 0.3; else if (VERBS[verb].wrong) d.force = 0.6;
   // what is told, promised or lied about: the words after "that", else the whole
-  if (['tell', 'lie', 'promise', 'warn', 'confide', 'accuse', 'complain', 'threaten'].includes(verb)) { const m = /\bthat\b (.+)$/.exec(said); d.about = (m ? m[1] : said).trim().replace(/[.!?]+$/, ''); }
+  if (['tell', 'lie', 'promise', 'warn', 'confide', 'accuse', 'complain', 'threaten', 'send'].includes(verb)) { const m = /\bthat\b (.+)$/.exec(said); d.about = (m ? m[1] : said).trim().replace(/[.!?]+$/, ''); }
   return d;
 }

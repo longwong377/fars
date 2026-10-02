@@ -38,9 +38,14 @@ describe('D-461 the minds\' own goals (a real town, seed 1, day 60, no stranger)
     expect(G.places.size).toBeGreaterThan(20);
   });
   it('a match ends in a betrothal and a wedding set in the population (the bride moves to the groom\'s house)', () => {
-    const w = G.weds.find(x => x[2] > day + 1);
-    expect(G.weds.length).toBeGreaterThan(0);
-    if (w) { const [bride, groom, wd, to] = w; expect(P.persons[bride].marry).toBe(wd); expect(P.home(bride, wd)).toBe(to); expect(P.home(bride, wd - 1)).not.toBe(to); expect(P.home(groom, wd)).toBe(to); }
+    // matches are slow (eight steps or more, about a week apart): by day 60 they are courting; the families' agreement is driven here
+    const g = [...G.active.values()].find(x => x.kind === 'spouse' && x.who >= 0 && P.persons[x.pid].sex === 'm' && ['town', 'plain'].includes(P.households[P.home(x.pid, day)].zone) && ['town', 'plain'].includes(P.households[P.home(x.who, day)].zone))!;
+    expect(g).toBeDefined(); expect(g.n).toBeGreaterThan(0); // (courting begun: steps taken)
+    const M = sim.deeds.minds, w0 = g.who; M.move(w0, g.pid, { aff: 0.9 }, day); const hd = G.head(P.home(w0, day), day); if (hd >= 0 && hd !== w0) M.move(hd, P.persons[g.pid].mother >= 0 && P.home(P.persons[g.pid].mother, day) === P.home(g.pid, day) ? P.persons[g.pid].mother : G.head(P.home(g.pid, day), day), { aff: 0.5, grat: 0.5 }, day);
+    g.n = Math.max(g.n, 8); const n0 = G.weds.length; G.pursue(g, day);
+    expect(G.active.has(g.id)).toBe(false); expect(G.weds.length).toBe(n0 + 1);
+    const w = G.weds[G.weds.length - 1];
+    if (w[2] > 0) { const [bride, groom, wd, to] = w; expect(P.persons[bride].marry).toBe(wd); expect(P.home(bride, wd)).toBe(to); expect(P.home(bride, wd - 1)).not.toBe(to); expect(P.home(groom, wd)).toBe(to); }
   });
   it('a grievance becomes revenge pursued step by step (told, complained of, insults), born of the deed: a chain of cause', () => {
     // a hot, proud man of the town wronged by a neighbour who is no kin

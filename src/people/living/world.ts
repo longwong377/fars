@@ -16,7 +16,7 @@
 // sim's present. The economy's saved intents from talk are dropped on load and re-derived (payload.src = 'talk').
 // Tier C throughout (DECISIONS D-339, D-341).
 import { h32, u01, salt } from '../hash';
-import { coldWear, dustWear, type Population, type Seg, type Where } from '../population';
+import { coldWear, dustWear, heatStretch, type Population, type Seg, type Where } from '../population';
 import type { ActivityId } from '../activities';
 import type { Intent, NeedKind } from '../economy/api';
 import type { Economy } from '../economy/world';
@@ -46,6 +46,8 @@ type News = { src: string; hand: number; day: number; about?: number; what?: str
 const FREE = new Set<ActivityId>(['rest', 'talk', 'play', 'gamble', 'tend_body', 'queue', 'exchange', 'spin']);
 /** an errand may take this stretch of the day: free, in full daylight in every season, not minding a little one, not a meal (D-344) */
 const DAY_START = 8, DAY_END = 17.5;
+/** the rests "through the heat" too short to be one (planCheck (d)'s label rule) */
+function shortHeat(segs: Seg[]) { let n = 0; for (let i = 0; i < segs.length; i++) if (/through the heat/.test(segs[i].why) && heatStretch(segs, i) < 0.75) n++; return n; }
 function slotOk(s: Seg) { return FREE.has(s.act) && s.where !== 'road' && s.where !== 'away' && !s.place.startsWith('@') && s.t0 >= DAY_START && s.t1 <= 20.5 && s.with === undefined && !MINDING.test(s.why); }
 const MEET_ACTS = new Set<ActivityId>(['rest', 'eat', 'talk', 'queue', 'exchange', 'draw_water', 'wash', 'gamble', 'spin', 'field_work', 'garden_work', 'reap', 'thresh', 'tend_animals', 'herd', 'craft', 'weave', 'grind', 'bake', 'play']);
 const GRAIN_EAT = 0.55; // kg a day per eater: the economy's ration unit (economy/world.ts), for sizing what is given
@@ -109,7 +111,8 @@ export class LivingWorld {
       const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (!over.length || !over.every(slotOk) || !nobodyWith(this.pop, pid, day, L.h0, L.h1)) continue; // (D-347: nor while a little one is with the doer)
       // (D-347: the errand dressed against the cold and the dust by its own hours, as the day's stretches are; was: the base
       // stretch's dress copied, so a walk back into the dust went unwrapped)
-      const mid = L.segs.map(x => ({ ...x })), wx = this.pop.cal.ctx(day).wx; dustWear(mid, wx); coldWear(mid, wx); segs = splice(segs, L.h0, L.h1, mid);
+      const mid = L.segs.map(x => ({ ...x })), wx = this.pop.cal.ctx(day).wx; dustWear(mid, wx); coldWear(mid, wx); const next = splice(segs, L.h0, L.h1, mid);
+      if (shortHeat(next) > shortHeat(segs)) continue; segs = next; // (D-458: nor where it would cut a rest through the heat to a scrap: planCheck's label)
     }
     this.overlaid.set(k, segs); return segs;
   }
