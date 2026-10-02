@@ -30,3 +30,7 @@ answers in their own tongue with the gloss while the model cannot load (blocked 
 files. The only errors: five 404s per load (boot-files.json, textures/ktx.json, textures/low.json, textures/ground/ground.json,
 world-cache/manifest.json): written by tools/deploy/build_site.mjs, not by a bare vite build (C4's pipeline; expected here).
 converse/ui.ts (assigned to C5 by the cloud lead): the note now says why a person answers in their own lines (talk arriving, not fetched, or the card cannot run it).
+Re-run on a build_site dist (23:55; bake fresh, cloud-s17-int merged): 19/19; ready 46 s, reload 36 s. Errors left, none in C5's
+files: 404 textures/ktx.json and textures/ground/ground.json (each load; to C4/V2 via the lead) and one page error on Enter,
+"NotAllowedError: A user gesture is required to request Pointer Lock": src/core/input.ts lock()'s fallback
+`c.requestPointerLock()` (in the catch of the unadjustedMovement try) returns a promise nobody catches (to its owner via the lead).
