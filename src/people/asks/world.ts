@@ -23,7 +23,10 @@ export class AsksWorld {
     if (this.pending) { this.book.load(this.pending.asks); this.net.load(this.pending.rumour); this.pending = null; }
   }
   /** the living world's hook: after the economy's day `d` */
-  day(d: number) { if (!this.on) return; this.build(); this.strangerNews(d); this.book!.advance(d); this.net!.advance(d); this.heard(d); }
+  day(d: number) { for (const _ of this.dayParts(d)); }
+  /** D-388: the same day in its parts (the book built, once after a load; the stranger's news and the asks; the rumours; what
+   *  was heard), yielding between them, for a day advanced across frames (LivingWorld.advanceSliced) */
+  *dayParts(d: number): Generator<void> { if (!this.on) return; this.build(); yield; this.strangerNews(d); yield* this.book!.advanceParts(d); yield; yield* this.net!.advanceParts(d); yield; this.heard(d); }
   /** D-370/D-375: the town talks of the stranger: his notable dealings (taken on, taken in, sent away, ingratitude, thanks, a
    *  tale denied or doubted, a ruling, a house joined) become news from the house they happened at, with the stranger as the
    *  one it is about where it is his deed (so the hearers' trust moves on him, not on the house) */
@@ -39,7 +42,8 @@ export class AsksWorld {
    *  the lenders and employers of the economy read that trust, so gossip costs a house credit and work, true or not (C) */
   private heard(d: number) {
     const T = this.E?.trust; if (!T) return;
-    for (const r of this.net!.rumours) { if (r.last < d) continue; for (const [hh, h] of r.holds) if (h.day === d && h.hand > 0 && h.v.certainty >= 0.3) T.hear(hh, h.v.suspect ?? h.v.about, h.v.kind, d); }
+    // (D-388: the rumours still told, not every rumour of the year: one learned today is among them)
+    for (const r of this.net!.recent) { if (r.last < d) continue; for (const [hh, h] of r.holds) if (h.day === d && h.hand > 0 && h.v.certainty >= 0.3) T.hear(hh, h.v.suspect ?? h.v.about, h.v.kind, d); }
     void STRANGER_DOES;
   }
   get asks(): AskBook { this.build(); return this.book!; }
