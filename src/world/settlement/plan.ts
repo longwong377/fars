@@ -8,7 +8,7 @@ import { ensureAccess } from './access';
 import { cacheGetSync, cachePutSync } from '../cache/worldCache';
 import { Rng } from '../../core/rng';
 import settlementJson from '../../data/settlement.json';
-import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES, ROOM, COURT, YARD, Fitting } from './site';
+import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES, ROOM, COURT, YARD, Fitting, snapSite, restoreSite } from './site';
 import { generateQuarter, QuarterOpts } from './quarter';
 import { ringCompound, yardCompound, roomBlock, openGround } from './compounds';
 import { HOUSE } from './town_rules';
@@ -305,10 +305,7 @@ function gardenGoharSite(): Site {
 
 // ---------------------------------------------------------------------------------------------------------------------
 let cache: TownPlan | null = null;
-/** a site's state that the plan's passes change (connectPlots, settleDoors, ensureAccess, planHouses), as plain data */
-const SITE_STATE = ['cell', 'sub', 'room', 'doors', 'noWall', 'plots', 'fittings', 'lives', 'fixtures', 'blocked', 'roomN'];
-export const snapSite = (s: Site) => ({ id: s.id, ...Object.fromEntries(SITE_STATE.map(k => [k, (s as any)[k]])) });
-export function restoreSite(s: Site, x: Record<string, any>) { for (const k of SITE_STATE) if (k in x) (s as any)[k] = x[k]; }
+export { snapSite, restoreSite } from './site';
 export function buildTownPlan(): TownPlan {
   if (cache) return cache;
   const sites: Site[] = [];

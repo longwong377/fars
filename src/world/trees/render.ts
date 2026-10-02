@@ -77,7 +77,8 @@ function transmissionN(alb: any, nW: any, kappa: any, sunDir: any, sunIrr: any) 
   return alb.mul(vec3(...SHADE.transTint)).mul(sunIrr).mul(t);
 }
 
-export interface KitOptions { impostorPx: number }
+export interface KitOptions { impostorPx: number; /** D-392: no bake at construction: the world's first setDay bakes every row once (it re-baked most of
+ *  the day-105 bake at once, ~1.6 s of the first frame on the T4 box) */ deferBake?: boolean }
 /** impostor tile size (px) by quality: at the near radius a tile texel is about a screen pixel at 960x540 (test) and
  *  about half of one at 1440p (high) */
 export const impostorPx = (q: string) => (q === 'ultra' ? 128 : q === 'high' ? 96 : q === 'medium' ? 80 : 64);
@@ -135,8 +136,8 @@ export class TreeKit {
     this.segTex = dataTex(packSegments(this.models)); this.cardTex = dataTex(packCards(this.models)); this.spTex = dataTex(packSpecies(this.models, this.bark?.layer ?? null));
     this.dither = opts.impostorPx >= 80; // medium and above: temporal AA (impostorPx is the quality's)
     this.baker = new ImpostorBaker(this.models, this.atlas, opts.impostorPx, 1, this.wood, this.dither);
-    this.foliage.setDay(105);
-    const L = this.bakeAll(true);
+    if (!opts.deferBake) this.foliage.setDay(105);
+    const L = opts.deferBake ? this.baker.levels() : this.bakeAll(true);
     this.impCol = mipTex(L.col, true); this.impNrm = mipTex(L.nrm, false);
     this.buildMs = performance.now() - t0;
   }

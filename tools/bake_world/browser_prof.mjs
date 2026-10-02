@@ -15,12 +15,17 @@ const t0 = Date.now(), el = () => +((Date.now() - t0) / 1000).toFixed(1), lines 
 page.on('console', m => { const t = m.text(); if (/^\[boot\]|world-cache|error/i.test(t) && lines.length < 3000) { lines.push(`${el()} ${t.slice(0, 600)}`); if (/world:|ready|world-cache/.test(t)) console.log(el(), t.slice(0, 300)); } });
 page.on('pageerror', e => lines.push(`${el()} pageerror ${String(e).slice(0, 300)}`));
 const cdp = await ctx.newCDPSession(page);
+// HEAP=1: the sampling heap profiler too (what the page still holds at ready, by the function that allocated it)
+if (process.env.HEAP) { await cdp.send('HeapProfiler.enable'); await cdp.send('HeapProfiler.startSampling', { samplingInterval: 262144 }); }
 await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: +(process.env.PROF_US ?? 4000) }); await cdp.send('Profiler.start');
 const url = `${base}?quality=high&trace&norender${extra}`;
 await page.goto(url);
 await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 500 });
 const readyS = el();
 const { profile } = await cdp.send('Profiler.stop');
+if (process.env.HEAP) { const { profile: hp } = await cdp.send('HeapProfiler.stopSampling'); writeFileSync(`${out}.heapprofile`, JSON.stringify(hp));
+  const by = new Map(); const walk = (n, path) => { const k = `${n.callFrame.functionName || '(anon)'} ${n.callFrame.url.replace(/^.*[/](src|deps)[/]/, "$1/")}:${n.callFrame.lineNumber + 1}`; by.set(k, (by.get(k) ?? 0) + n.selfSize); for (const c of n.children) walk(c); }; walk(hp.head);
+  console.log('heap by allocator (MB):'); for (const [k, v] of [...by].sort((a, b) => b[1] - a[1]).slice(0, 40)) console.log((v / 1048576).toFixed(1).padStart(8), k); }
 const err = await page.evaluate(() => window.__parsa.error ?? null);
 const mem = await page.evaluate(() => (performance).memory ? { usedJSHeapMB: Math.round(performance.memory.usedJSHeapSize / 1048576) } : null);
 writeFileSync(`${out}.cpuprofile`, JSON.stringify(profile));

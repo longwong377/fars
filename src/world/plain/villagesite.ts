@@ -10,7 +10,7 @@
 // the pen, the village well in the lane nearest the centre; and each house's life and court fixtures (houseplan.ts: the
 // ladder to the roof, a bench, fuel, fodder, baskets, the roof's things). All C (no village of Achaemenid Fars excavated:
 // the region's courtyard houses by analogy, D-207). Pure data: no three.js, no terrain.
-import { Site, OUT, ROOM, YARD, toLocal, type P2, type Frame } from '../settlement/site';
+import { Site, OUT, ROOM, YARD, toLocal, snapSite, restoreSite, type P2, type Frame } from '../settlement/site';
 import { planHouses } from '../settlement/houseplan';
 import { feature } from './data';
 import type { Compound } from './villages';
@@ -35,6 +35,9 @@ export function villageSite(v: VillageLike, comps: Compound[]): VillageSite {
   const k = key(v, comps); let x = CACHE.get(k); if (x) return x;
   x = buildVillageSite(v, comps); CACHE.set(k, x); return x;
 }
+/** D-392: the built rasters as plain data for the baked world (keyed by the world: their compounds are the seed's), and back */
+export function exportVillageSites() { return [...CACHE].map(([k, x]) => ({ k, meta: x.site.meta, frame: x.site.frame, W: x.site.W, H: x.site.H, st: snapSite(x.site), comps: x.comps, gates: x.gates, pens: x.pens, well: x.well })); }
+export function importVillageSites(d: any[]) { for (const e of d) { if (CACHE.has(e.k)) continue; const s = new Site(e.meta, e.frame, e.W, e.H); restoreSite(s, e.st); CACHE.set(e.k, { site: s, comps: e.comps, gates: e.gates, pens: e.pens, well: e.well }); } }
 /** forget the cached rasters (tests that build villages under another seed) */
 export function clearVillageSites() { CACHE.clear(); }
 

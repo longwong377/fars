@@ -43,6 +43,12 @@ export interface Roof { plot: number; i0: number; j0: number; i1: number; j1: nu
 
 export interface SiteMeta { id: string; feature: string; zone: string; popZone: 'town' | 'plain'; kind: 'quarter' | 'compound'; tier: string; src: string; note: string }
 
+/** D-392: a site's state that its passes change (the plan's connectPlots, settleDoors, ensureAccess, planHouses; a village's
+ *  raster), as plain data for the baked world, and back onto a site made with the same meta, frame and size */
+const SITE_STATE = ['cell', 'sub', 'room', 'doors', 'noWall', 'plots', 'fittings', 'lives', 'fixtures', 'blocked', 'roomN'];
+export const snapSite = (s: Site) => ({ id: s.id, ...Object.fromEntries(SITE_STATE.map(k => [k, (s as any)[k]])) });
+export function restoreSite(s: Site, x: Record<string, any>) { for (const k of SITE_STATE) if (k in x) (s as any)[k] = x[k]; }
+
 export class Site {
   readonly cell: Int32Array; readonly sub: Uint8Array; readonly room: Int32Array;
   readonly doors = new Set<number>();

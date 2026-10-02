@@ -85,7 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
-import { WorldFill } from './fill'; import { townFill, terraceFill } from './fillPlan'; import { villageSite } from './plain/villagesite';
+import { WorldFill } from './fill'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -150,7 +150,7 @@ import { DustSystem, type DustKind } from './dust';
 import { pt, pa } from '../core/prof';
 import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled, prefetchUnits, cachedSync, cacheGetSync, cachePutSync, verifying, verify, prefetchedKeys } from './cache/worldCache';
 /** D-392: the baked units read by the build's sync stages (cacheGetSync), fetched ahead */
-const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones'];
+const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites'];
 import { hashArrays, hashString, hashBytes } from './cache/pack';
 import { packGeo, unpackGeo, geoHash, type GeoPack } from './cache/geo';
 import { mudFace } from '../arch/mudface';
@@ -411,6 +411,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const groundAt = (e: number, n: number) => (nav.walkable(e, n) ? nav.heightAt(e, n) : terrain.heightAt(e, -n));
   const faunaT0 = performance.now();
   const villagesIn: VillageIn[] = plain.data.villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, comps: villageCompounds(v, terrain, seed) }));
+  // D-392: the villages' rasters (the people's routes and the drawn villages share them; built at the first frame before) from
+  // the baked world, or built now and baked
+  { const vs = cacheGetSync<any[]>('vsites', bakeKey); if (vs) importVillageSites(vs); else { for (const v of villagesIn) villageSite(v, v.comps as any); cachePutSync('vsites', bakeKey, exportVillageSites()); } }
   // D-367 (agent fill): the markets, the lanes' and villages' things, washing lines, awnings, the Terrace's yards and standards
   const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
   const fill = new WorldFill(fillItems, { ground: groundAt, phys, nav }); root.add(fill.group);

@@ -36,9 +36,12 @@ export function valueTile(x: number, y: number, z: number, cells: number, seed: 
 
 const remap = (v: number, a: number, b: number, c: number, d: number) => c + ((v - a) / (b - a)) * (d - c);
 
-/** RGBA8 volume of size³ (row-major x, then y, then z) */
+/** RGBA8 volume of size³ (row-major x, then y, then z); D-392: computed once per size and seed (the clouds' atlas and the cover's
+ *  CPU mirror both ask for the 64³ one: ~1.2 s each at load). Read-only: callers copy before changing it */
+const VOLS = new Map<string, Uint8Array>();
 export function cloudNoiseVolume(size = 64, seed = 7): Uint8Array {
-  const out = new Uint8Array(size * size * size * 4);
+  const k = `${size}|${seed}`, hit = VOLS.get(k); if (hit) return hit;
+  const out = new Uint8Array(size * size * size * 4); VOLS.set(k, out);
   for (let z = 0; z < size; z++) for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + 0.5) / size, v = (y + 0.5) / size, w = (z + 0.5) / size;
     // value fbm (3 octaves) as the "Perlin" part, dilated by Worley (Perlin–Worley)

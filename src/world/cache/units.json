@@ -103,6 +103,16 @@
     "src/world/cache/geo.ts"
    ],
    "keyed": "the parts (partsKey), the frame trim loaded, flat mode"
+  },
+  "vsites": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key (world.ts bakeKey)"
   }
  }
 }
