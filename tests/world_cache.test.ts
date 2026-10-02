@@ -24,6 +24,20 @@ describe('world cache: pack', () => {
   });
 });
 
+describe('world cache: geometry (s15, the mud-brick faces)', () => {
+  it('a mud face read back from its packed form is the live one, and its key sees its input', async () => {
+    const THREE = await import('three/webgpu');
+    const { mudFace } = await import('../src/arch/mudface');
+    const { packGeo, unpackGeo, geoHash } = await import('../src/world/cache/geo');
+    const g = new THREE.BoxGeometry(6, 3, 0.8, 2, 2, 1).toNonIndexed(); g.deleteAttribute('uv'); g.translate(3, 1.5, 0);
+    const live = mudFace(g, null, 1), back = unpackGeo(unpack<any>(pack(packGeo(live))));
+    for (const k of Object.keys(live.attributes)) expect(Array.from(back.getAttribute(k).array as any)).toEqual(Array.from(live.getAttribute(k).array as any));
+    expect(Array.from(back.index!.array as any)).toEqual(Array.from(live.index!.array as any));
+    const g2 = g.clone(); (g2.getAttribute('position').array as Float32Array)[0] += 0.001;
+    expect(geoHash(g, 1)).toBe(geoHash(g.clone(), 1)); expect(geoHash(g2, 1)).not.toBe(geoHash(g, 1)); expect(geoHash(g, 0.5)).not.toBe(geoHash(g, 1));
+  });
+});
+
 describe('world cache: source hashes', () => {
   it('follow the import closure (a unit sees the modules its entry imports)', () => {
     const files = closure('.', ['src/people/outfit_worker.ts']).map((f: string) => f.replace(/\\/g, '/'));

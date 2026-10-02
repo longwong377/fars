@@ -1,8 +1,50 @@
 {
  "about": "s14/load (D-354): the baked world's units. A unit's source hash covers its entry modules, every module they import under src/ (tools/bake_world/srchash.mjs), and its data inputs; a change to any of them makes its cache entry stale and the page builds it live. Bump version to invalidate by hand.",
  "units": {
-  "outfits": { "version": 1, "entries": ["src/people/outfit_worker.ts", "src/people/humans.ts"], "inputs": ["public/generated/humans", "public/models/people"] },
-  "impostors": { "version": 1, "entries": ["src/people/impostors.ts", "src/people/outfit_worker.ts"], "inputs": ["public/generated/humans", "public/models/people"], "keyed": "the held jar and sack geometry hashed into the key at load" },
-  "detail": { "version": 1, "entries": ["src/terrain/detail_worker.ts", "src/terrain/terrainDetail.ts", "src/terrain/heightfield.ts"], "inputs": ["public/generated/terrain.json", "public/generated/terrain_near.u16", "public/generated/terrain_mid.u16", "public/generated/terrain_far.u16"] }
+  "outfits": {
+   "version": 1,
+   "entries": [
+    "src/people/outfit_worker.ts",
+    "src/people/humans.ts"
+   ],
+   "inputs": [
+    "public/generated/humans",
+    "public/models/people"
+   ]
+  },
+  "impostors": {
+   "version": 1,
+   "entries": [
+    "src/people/impostors.ts",
+    "src/people/outfit_worker.ts"
+   ],
+   "inputs": [
+    "public/generated/humans",
+    "public/models/people"
+   ],
+   "keyed": "the held jar and sack geometry hashed into the key at load"
+  },
+  "detail": {
+   "version": 1,
+   "entries": [
+    "src/terrain/detail_worker.ts",
+    "src/terrain/terrainDetail.ts",
+    "src/terrain/heightfield.ts"
+   ],
+   "inputs": [
+    "public/generated/terrain.json",
+    "public/generated/terrain_near.u16",
+    "public/generated/terrain_mid.u16",
+    "public/generated/terrain_far.u16"
+   ]
+  },
+  "mudface": {
+   "version": 1,
+   "entries": [
+    "src/arch/mudface.ts",
+    "src/world/cache/geo.ts"
+   ],
+   "keyed": "the parts (partsKey) hashed into the key; each face by the hash of its input geometry and gain"
+  }
  }
 }

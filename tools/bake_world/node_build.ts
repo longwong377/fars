@@ -11,6 +11,10 @@ const g = globalThis as any;
 g.location ??= { search: '?test&trace&quality=high', href: 'http://localhost/?test&trace&quality=high', origin: 'http://localhost', protocol: 'http:', host: 'localhost' };
 g.self ??= g;
 g.navigator ??= { hardwareConcurrency: 4, userAgent: 'node' };
+// images: a 1×1 stand-in that loads at once (three's ImageLoader; no pixels in node, the build only needs them to exist)
+g.document ??= { createElementNS: () => { const L: Record<string, Function[]> = {}; const im: any = { width: 1, height: 1, complete: true, style: {},
+  addEventListener: (t: string, f: Function) => { (L[t] ??= []).push(f); }, removeEventListener: () => {} };
+  Object.defineProperty(im, 'src', { set(v) { im._src = v; setTimeout(() => (L.load ?? []).forEach(f => f.call(im, { target: im })), 0); }, get() { return im._src; } }); return im; } };
 const marks: { stage: string; ms: number; heapMB: number; abMB: number; rssMB: number }[] = [], logs: string[] = [];
 const info = console.info.bind(console), warn = console.warn.bind(console);
 console.info = (...a: any[]) => { const s = a.map(String).join(' '); const m = /^\[boot\] world:(.+?) (\d+) ms$/.exec(s); if (m) { const u = process.memoryUsage(), mb = (x: number) => Math.round(x / 1048576); marks.push({ stage: m[1], ms: +m[2], heapMB: mb(u.heapUsed), abMB: mb(u.arrayBuffers), rssMB: mb(u.rss) }); } logs.push(s.slice(0, 300)); info(...a); };
@@ -18,8 +22,7 @@ console.warn = (...a: any[]) => { logs.push('warn ' + a.map(String).join(' ').sl
 const T0 = performance.now(), step: Record<string, number> = {};
 const lap = async <T>(k: string, f: () => Promise<T> | T) => { const t = performance.now(); const v = await f(); step[k] = Math.round(performance.now() - t); return v; };
 const THREE = await import('three/webgpu');
-const { loadScans } = await lap('import scans', () => import('../../src/render/scans'));
-await lap('loadScans', () => loadScans('/').catch((e: Error) => logs.push('loadScans failed ' + e.message)));
+// (no scans: loadScans is the page's; in node the materials are their CPU mirrors)
 const { Terrain } = await import('../../src/terrain/heightfield');
 const terrain = await lap('terrain', () => Terrain.load('/'));
 const { Physics } = await import('../../src/player/physics');

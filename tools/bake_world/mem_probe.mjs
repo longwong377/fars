@@ -4,7 +4,7 @@
 // private bytes, by process type) is sampled at ready, after the first frames, and after a forced GC.
 //   NOHMR=1 npx vite --port <p> --strictPort   (in this tree), then
 //   node tools/dev/gpu_slot.mjs load -- node tools/bake_world/mem_probe.mjs <port> [out.json]
-//   URLX=&norender (no pixels: the page's own memory only), NOFRAME=1 (stop at ready), Q=high
+//   PROF=<out.cpuprofile> (the main thread's CPU profile to ready), URLX=&norender (no pixels: the page's own memory only), NOFRAME=1 (stop at ready), Q=high
 import { chromium } from '@playwright/test';
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -75,9 +75,12 @@ const pageMem = async () => { const h = await cdp.send('Runtime.getHeapUsage').c
   return { jsHeapMB: h ? Math.round(h.usedSize / 1048576) : null, uasm: ua, ...m }; };
 const url = `http://localhost:${port}/?test&trace&quality=${process.env.Q ?? 'high'}&day=0&hour=5.4&weather=clear${extra}`;
 const res = { url, samples: {} }, save = () => { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, JSON.stringify(res, null, 1)); };
+// PROF=<file.cpuprofile>: the page's main-thread CPU profile from navigation to ready (where the build's time goes)
+if (process.env.PROF) { await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 2000 }); await cdp.send('Profiler.start'); }
 await page.goto(url);
 await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 1000 });
 res.readyS = el(); res.err = await page.evaluate(() => window.__parsa.error ?? null);
+if (process.env.PROF) { const { profile } = await cdp.send('Profiler.stop'); writeFileSync(process.env.PROF, JSON.stringify(profile)); }
 res.samples.ready = { at: el(), procs: procs(), page: await pageMem() }; save();
 if (!res.err && !process.env.NOFRAME && !/norender/.test(extra)) {
   await page.evaluate(() => { window.__parsa.renderer.setAnimationLoop(null); window.__parsa.view(-36.4, 140.5, 1.6, 196, -8); });

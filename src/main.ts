@@ -214,6 +214,20 @@ async function boot() {
     const was = list.map((o: any) => o.visible), ms: Record<string, number> = {}; list.forEach((o: any) => { o.visible = false; });
     try { for (let i = 0; i < list.length; i++) { if (!was[i]) continue; list[i].visible = true; const t = performance.now(); await frame(0, { render: false }); await world.settle?.(camera); await frame(0); ms[list[i].name] = Math.round(performance.now() - t); } }
     finally { list.forEach((o: any, i: number) => { o.visible = was[i]; }); } return ms; };
+  /** D-353 (B98): the first frames compile ~1000 pipelines; in ONE sync submit the T4 watchdog reset the card. D-354: every
+   *  render pipeline a frame needs is created with createRenderPipelineAsync (the browser compiles them on its worker threads,
+   *  several at once; no submit waits on a compile, so the watchdog sees only short submits); a draw whose pipeline is not
+   *  ready is skipped (three's Pipelines.isReady). Whole frames, round after round, until a frame asks for no new pipeline.
+   *  s15 measured on the T4 (box loaded): the boot's first sync frame 879 s + the second 354 s; the parallel rounds 107 s.
+   *  ms per round. */
+  const warmAsync = async () => {
+    const pl: any = (renderer as any)._pipelines, orig = pl.getForRender, ms: Record<string, number> = {}; let pend: Promise<void>[] = [];
+    pl.getForRender = function (ro: any, pr: any) { return orig.call(this, ro, pr ?? pend); };
+    try { for (let round = 0; round < 12; round++) { pend = []; const t = performance.now();
+        await frame(0, { render: false }); await world.settle?.(camera); await frame(0);
+        const n = pend.length; if (n) await Promise.all(pend); ms[`round${round}:${n}`] = Math.round(performance.now() - t); if (!n) break; } }
+    finally { pl.getForRender = orig; }
+    return ms; };
   const api = {
     ready: false, backend, norender: NORENDER, scene, releaseStats, // (scene, releaseStats: the memory probe, D-354)
     setTime: (day: number, hour: number) => clock.set(day, hour),
@@ -257,14 +271,7 @@ async function boot() {
      *  browser compiles them on its worker threads, several at once, and no submit waits on a compile, so the watchdog sees
      *  only short submits); a draw whose pipeline is not ready is skipped (three's Pipelines.isReady). Whole frames, round
      *  after round, until a frame asks for no new pipeline. Opt-in with ?warm=async until it is measured on the T4; D-353's one group at a time stays the default. ms per round. */
-    warmUp: async () => { if (P.get('warm') !== 'async') return warmGroups(); // (opt-in until measured on the T4: D-354)
-      const pl: any = (renderer as any)._pipelines, orig = pl.getForRender, ms: Record<string, number> = {}; let pend: Promise<void>[] = [];
-      pl.getForRender = function (ro: any, pr: any) { return orig.call(this, ro, pr ?? pend); };
-      try { for (let round = 0; round < 12; round++) { pend = []; const t = performance.now();
-          await frame(0, { render: false }); await world.settle?.(camera); await frame(0);
-          const n = pend.length; if (n) await Promise.all(pend); ms[`round${round}:${n}`] = Math.round(performance.now() - t); if (!n) break; } }
-      finally { pl.getForRender = orig; }
-      return ms; },
+    warmUp: async () => (P.get('warm') === 'groups' ? warmGroups() : warmAsync()), // D-354 (s15): the parallel warm-up is the default (?warm=groups: D-353's)
     warmGroups: () => warmGroups(),
     /** D-336: who is heard in which voice (the neural voices' worker, the population's voices, the far crowd) */
     voiceStats: () => { const w = world as any; return { neural: w.neural ? { ...w.neural.stats } : null, pop: w.popVoices ? { ...w.popVoices.stats, lines: w.popVoices.lines() } : null, far: w.farCrowd ? { grains: w.farCrowd.grains, lines: w.farCrowd.lines() } : null }; },
@@ -557,6 +564,9 @@ async function boot() {
   }
   TRACE('world built');
   world.prebuild?.(camera.position); // D-321 rev 3: the arris bands round the spawn, in the load
+  // D-354 (s15): the spawn view's pipelines compiled in parallel before the first frame is shown (the first sync frame was
+  // ~15 min of serial compiles on the T4); ?warm=sync: the old first frame
+  if (!NORENDER && backend === 'WebGPU' && P.get('warm') !== 'sync') { const w = await warmAsync(); TRACE(`boot warm-up ${JSON.stringify(w)}`); }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
   if (TEST) shell.playing(); else shell.title(continued);

@@ -155,7 +155,7 @@ export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
     diff.colorSpace = THREE.SRGBColorSpace; arm.colorSpace = THREE.NoColorSpace; if (nor) nor.colorSpace = THREE.NoColorSpace;
     TEX.set(id, { diff, arm, nor });
   }));
-  await loadGround(base, anisotropy);
+  await loadGround(base, anisotropy, K);
   // D-324: the baked detail maps (a missing file leaves its surface as the scan alone)
   await Promise.all([...new Set(Object.values(WALL_BAKE).map(b => b.tex))].map(async id => { try {
     const kt = ktxOf.has(id); if (kt && !K) return;
@@ -258,11 +258,21 @@ export type GroundCover = keyof typeof GROUND;
 const GROUND_KEYS = Object.keys(GROUND) as GroundCover[];
 /** the array's side (texels); the scans are 2K */
 export const GROUND_RES = 2048;
-let groundArr: THREE.DataArrayTexture | null = null;
+let groundArr: THREE.Texture | null = null;
 /** per layer: the colour's linear mean (src/data/scans.json) and the height channel's mean and sd (measured on load) */
 const GSTAT = new Map<GroundCover, { mean: [number, number, number]; hMean: number; hSd: number }>();
 
-async function loadGround(base: string, anisotropy: number): Promise<void> {
+async function loadGround(base: string, anisotropy: number, K: any = null): Promise<void> {
+  // D-354 (s15, page memory): the layers as one KTX2 array (tools/bake_world/ktx_ground.ts) when it is there: BC7 on the GPU
+  // (64 MB, not 256), no jpg decoded and packed here; the heights' statistics come with it (?scanjpg: the jpgs, A/B)
+  if (K && !new URLSearchParams(location.search).has('scanjpg')) try {
+    const meta = await fetch(`${base}textures/ground/ground.json`).then(r => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null));
+    if (meta?.res === GROUND_RES && meta.layers?.join() === GROUND_KEYS.join()) {
+      const t: THREE.Texture = await K.loadAsync(`${base}textures/ground/ground.ktx2`);
+      for (const k of GROUND_KEYS) GSTAT.set(k, { mean: META[GROUND[k]].meanLinear, hMean: meta.stats[k].hMean, hSd: meta.stats[k].hSd });
+      t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = anisotropy;
+      t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; groundArr = t; return;
+    } } catch (e) { console.warn(`[scans] ground.ktx2: ${(e as Error).message}; the jpgs`); }
   const N = GROUND_KEYS.length, R = GROUND_RES, data = new Uint8Array(R * R * 4 * N);
   const cv = new OffscreenCanvas(R, R), g = cv.getContext('2d', { willReadFrequently: true })!;
   const pixels = async (url: string) => {

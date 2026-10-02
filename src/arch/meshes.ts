@@ -526,7 +526,7 @@ export interface BuiltArch { /** D-330: the carved stone frames (frames.ts; null
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
 /** opts.colossusFront: the colossi's fore-part length (m) to carve with, instead of measuring it against these parts' walls
  *  (the Now view, D-201: the walls are gone, the carving is not) */
-export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number; /** D-334: leave out the wall heads and roof edges */ noRoofEdges?: boolean } = {}): BuiltArch {
+export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number; /** D-334: leave out the wall heads and roof edges */ noRoofEdges?: boolean; /** D-354: mudFace through the baked world */ mud?: typeof mudFace } = {}): BuiltArch {
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; plain: THREE.BufferGeometry[]; parts: Part[] }>();
   // D-334: the wall heads and roof edges (roofedge.ts): render-only boxes drawn with the parts (bevelled, merged per building and
@@ -576,7 +576,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     if (ARRIS_MATS.has(p.material) && !(p.type === 'box' && p.kind === 'step')) jointFaces.push(...chunkFaces(verticalFaces(rg, p.material, p.y1), stairs.get(p)).filter(F => !faceCovered(F, p, index))); // (a chunk against another part has no joints to show)
     if (ARRIS_MATS.has(p.material) && !fg) jointFaces.push(...planarJointFaces(rg, p, stairs.get(p), index)); // D-364: the treads, risers and slabs
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
-    if (hard && !fg && !edgeSet.has(p) && MUD_MATS.has(renderMaterial(p))) rg = mudFace(rg, hard, renderMaterial(p) === 'mudbrick_bare' ? 0.5 : 1); // D-364 (not the roof edges: the string course at the roof line covers the step; nor the wall feet)
+    if (hard && !fg && !edgeSet.has(p) && MUD_MATS.has(renderMaterial(p))) rg = (opts.mud ?? mudFace)(rg, hard, renderMaterial(p) === 'mudbrick_bare' ? 0.5 : 1); // D-364 (not the roof edges: the string course at the roof line covers the step; nor the wall feet)
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}${fg ? '|frame' : ''}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);

@@ -44,3 +44,20 @@ export async function cached<T>(unit: string, key: string, compute: () => T | Pr
   }
   return v;
 }
+
+/** the unit's cached result when its source hash matches, else null (no compute: for a unit gathered during a sync build,
+ *  then put with cachePut). Node: always null. */
+export async function cacheGet<T>(unit: string, key: string): Promise<T | null> {
+  if (!cacheEnabled()) return null;
+  const t0 = performance.now(), [src, man] = await Promise.all([srcHashes(), manifest()]);
+  const s = src?.[unit], e = man?.entries?.[`${unit}|${key}`];
+  if (s && e && e.src === s) try { const r = await fetch('/world-cache/' + e.file); if (r.ok) { const v = unpack<T>(await r.arrayBuffer()); cacheStats.hits[`${unit}|${key}`] = Math.round(performance.now() - t0); return v; } }
+    catch (err) { console.warn(`[world-cache] ${unit}|${key}: unreadable (${(err as Error).message}); building live`); }
+  cacheStats.misses[`${unit}|${key}`] = !s ? 'no source hash' : !e ? 'not baked' : 'stale'; return null;
+}
+/** bake a unit's result gathered live (the dev server checks the source hash again before writing) */
+export async function cachePut(unit: string, key: string, v: unknown): Promise<void> {
+  if (!cacheEnabled() || !(import.meta as any).env?.DEV) return; const s = (await srcHashes())?.[unit]; if (!s) return;
+  try { const body = pack(v); const r = await fetch(`/__world-cache/put?unit=${encodeURIComponent(unit)}&key=${encodeURIComponent(key)}&src=${s}`, { method: 'POST', body: body as any }); if (r.ok) cacheStats.puts.push(`${unit}|${key}`); }
+  catch (err) { console.warn(`[world-cache] ${unit}: not packable (${(err as Error).message})`); }
+}

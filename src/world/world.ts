@@ -146,8 +146,10 @@ import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
 import { DustSystem, type DustKind } from './dust';
 import { pt, pa } from '../core/prof';
-import { cached, prefetchWorldCache, cacheStats } from './cache/worldCache';
-import { hashArrays } from './cache/pack';
+import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled } from './cache/worldCache';
+import { hashArrays, hashString } from './cache/pack';
+import { packGeo, unpackGeo, geoHash, type GeoPack } from './cache/geo';
+import { mudFace } from '../arch/mudface';
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
@@ -185,7 +187,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
-  const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
+  // D-354 (s15): the mud-brick faces (D-364: cut by the lattice and displaced; most of the architecture's build) read from the
+  // baked world when the parts are unchanged (the key: every part, as the probes hash them; each face by its own geometry)
+  const mudKey = hashString(partsJson), mudHit = await cacheGet<Record<string, GeoPack>>('mudface', mudKey), mudNew: Record<string, GeoPack> = {};
+  const mud = (g: THREE.BufferGeometry, hard: any, gain = 1) => { const k = geoHash(g, gain), c = mudHit?.[k]; if (c) return unpackGeo(c);
+    const r = mudFace(g, hard, gain); if (!mudHit && cacheEnabled()) mudNew[k] = packGeo(r); return r; };
+  const arch = buildMeshes(parts, phys, { dynamicDoors: true, mud }); // door leaves: kinematic colliders of the door system
+  if (Object.keys(mudNew).length) void cachePut('mudface', mudKey, mudNew);
   wmark('arch');
   root.add(arch.group);
   // D-321 rev 2: the dressed stone's free arrises as geometry near the eye (worn round, chipped in handling), the maps beyond
