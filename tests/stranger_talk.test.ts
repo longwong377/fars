@@ -128,3 +128,11 @@ describe('words learned one by one (presence.ts thinCaption)', () => {
     const snap = JSON.parse(JSON.stringify(E.snapshot(d - 2))); expect(snap.stranger.vocab.some(([k]: [string]) => k === w.id)).toBe(true);
   }, 300_000);
 });
+describe('a word taught', () => {
+  it('"what is your word for bread?" teaches the word of the person\'s tongue (half of knowing it)', () => {
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const pid = sim.pop.persons.find(p => p.origin === 'Syrian' && p.age >= 20 && sim.pop.present(p.id, d)) ?? sim.pop.persons.find(p => p.age >= 20 && sim.pop.present(p.id, d))!;
+    const r = sim.strangerAsk(pid.id, 'What is your word for bread?')!; expect(r.act.a).toBe('hear');
+    sim.strangerDo(r.act); if ((r.act as any).word) expect(S.vocab.get((r.act as any).word)).toBeGreaterThanOrEqual(3);
+  }, 300_000);
+});

@@ -67,7 +67,7 @@ export type SAct =
   | { a: 'seek_work'; day: number; hh: string }
   | { a: 'quit'; day: number }
   | { a: 'attend'; day: number }
-  | { a: 'hear'; day: number; lang: string; hours: number; simple?: number; spoke?: boolean }
+  | { a: 'hear'; day: number; lang: string; hours: number; simple?: number; spoke?: boolean; /** a word taught (lexicon id) */ word?: string }
   | { a: 'claim'; day: number; hh: string; role: Role; origin?: string; kinOf?: string }
   | { a: 'petition'; day: number; to: Authority; kind: PetitionKind; q?: string; against?: string; for?: string; gift?: number }
   | { a: 'stay'; day: number; hh: string }
@@ -147,7 +147,7 @@ export class Stranger {
     const day = Math.min(s.day, this.E.day);
     switch (s.a) {
       case 'attend': this.attended.add(s.day); return { ok: true, why: 'at work' };
-      case 'hear': this.hear(s.lang, s.hours, s.simple ?? 0, !!s.spoke, day); return { ok: true, why: 'heard' };
+      case 'hear': this.hear(s.lang, s.hours, s.simple ?? 0, !!s.spoke, day); if (s.word) this.heardWord(s.word, Math.ceil(KNOW_AFTER / 2)); return { ok: true, why: 'heard' };
       case 'seek_work': { const v = this.hireCheck(s.hh, day); if (!v.ok) { this.bump('hire_refused'); return v; }
         this.endJob('quit', day); const H = this.H(s.hh)!;
         const e = this.ev('hired_stranger', [H.cause.help, H.cause.food], s.hh, PLAYER);
