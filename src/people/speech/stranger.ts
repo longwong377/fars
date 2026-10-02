@@ -223,6 +223,10 @@ export class Stranger {
   }
   /** wages the economy repaid to the stranger (Economy.due, a debt to 'player') */
   repaid(amt: number) { this.purse.cash += amt; }
+  /** wages a house owes the stranger now: a debt in its ledger, or the job's unpaid days */
+  owesNow(hh: string) { return (this.H(hh)?.debts.some(d => d.to === PLAYER && d.amt > 0.005) ?? false) || (this.job?.employer === hh && this.job.owed > 0.5); }
+  /** the matters judged (kind|against|for -> the day of the ruling): not heard again for 90 days (C) */
+  readonly judged = new Map<string, number>();
   private owedEvents(against?: string) { return this.E.events.filter(e => e && e.kind === 'wage_owed' && e.other === PLAYER && (!against || e.actor === against)).slice(-3).map(e => e.id); }
 
   // ---------------------------------------------------------------- (6) learning the language
@@ -336,7 +340,9 @@ export class Stranger {
   petitionCheck(s: Extract<SAct, { a: 'petition' }>): Verdict {
     if (this.petitions.some(p => p.act.kind === s.kind && p.act.against === s.against && p.act.for === s.for)) return { ok: false, why: 'already before them' };
     if (s.kind === 'leave' && s.to !== 'official') return { ok: false, why: 'only an official seals a document' };
-    if (s.kind === 'wages' && (!s.against || !this.owedEvents(s.against).length)) return { ok: false, why: 'nothing owed by them' };
+    if (s.kind === 'wages' && (!s.against || !this.owesNow(s.against))) return { ok: false, why: 'nothing owed by them' };
+    const k = `${s.kind}|${s.against ?? ''}|${s.for ?? ''}`, last = this.judged.get(k);
+    if (last !== undefined && this.E.day - last < 90) return { ok: false, why: 'the matter was judged already' };
     if ((s.kind === 'plea' || s.kind === 'relief') && !this.H(s.for ?? '')) return { ok: false, why: 'for no house' };
     if (s.to === 'headman' && !this.headOf(s.q ?? this.homeQ() ?? '')) return { ok: false, why: 'no headman found' };
     return { ok: true, why: 'they will hear it' };
@@ -349,6 +355,7 @@ export class Stranger {
     const base = { wages: 0.6, plea: 0.5, relief: 0.4, leave: 0.35 }[s.kind];
     const p = base + 0.5 * stand - 0.3 * against + 0.25 * R.belief * R.rank + Math.min(0.2, (s.gift ?? 0) * 0.5) + (tongue < 0.3 ? -0.15 : 0) + (this.halmi >= day ? 0.1 : 0) + (s.to === 'court' ? -0.05 : 0);
     const ok = u01(this.E.seed, S.pet, P.n, day) < p;
+    this.judged.set(`${s.kind}|${s.against ?? ''}|${s.for ?? ''}`, day);
     const out = this.ev(ok ? 'ruling_for' : 'ruling_against', [P.ev], s.to === 'headman' ? judge ?? 'court' : 'court', PLAYER);
     if (!ok) { if (s.against && T) T.note(s.against, PLAYER, -0.1, day); return; }
     if (s.kind === 'wages' && s.against) { // the debtor pays what it can now; the rest is worked off in the economy's own way
@@ -474,13 +481,13 @@ export class Stranger {
   // ---------------------------------------------------------------- save
   snapshot() {
     return { purse: { ...this.purse }, job: this.job, stay: this.stay, group: this.group, lang: [...this.lang], claim: this.claim, belief: [...this.belief], halmi: this.halmi,
-      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], slighted: [...this.slighted], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
+      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], slighted: [...this.slighted], judged: [...this.judged], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
   }
   static restore(s: any, E: Economy, opts: StrangerOpts = {}): Stranger {
     const X = new Stranger(E, opts); const c = JSON.parse(JSON.stringify(s));
     X.purse = c.purse; X.job = c.job; X.stay = c.stay; X.group = c.group; X.claim = c.claim; X.halmi = c.halmi; X.petN = c.petN; for (const a of c.attended ?? []) X.attended.add(a);
     for (const [k, v] of c.lang) X.lang.set(k, v); for (const [k, v] of c.belief) X.belief.set(k, v);
     X.debtors.push(...c.debtors); X.petitions.push(...c.petitions); Object.assign(X.deeds, c.deeds); Object.assign(X.stats, c.stats);
-    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); return X;
+    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); return X;
   }
 }
