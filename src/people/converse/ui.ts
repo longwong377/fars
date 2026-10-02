@@ -14,14 +14,28 @@ import { toFarsi, FarsiTranslator, type FarsiRoute } from './farsi';
 import type { Turn } from './prompt';
 import { bakedProse, bakedWho } from './bake';
 import { talkTurn } from './turn';
+import { TALK_MODEL } from './models';
+import { Approaches } from './approach';
+import { earshot, ambientFor, rmsDbOf, noteOverheard, EARSHOT, type Listener, type Heard } from './earshot';
 
-export const DEFAULT_MODEL = 'gemma-2-2b-it-q4f16_1-MLC'; // D-296: measured on the T4 (the lab's T-E9 runs): the most natural voice of the 1-3 B models that fit 4 s and the watchdog
+/** D-370: the sandbox step as the translation layer notes it (out of world) */
+const SANDBOX_DONE: Record<string, string> = { seek_work: 'taken on as a hand', stay: 'taken in as a guest', join: 'taken in', petition: 'the petition will be heard', give: 'given', claim: 'they heard who you say you are', leave_stay: 'you leave the house', quit: 'you leave the work', leave_group: 'you leave them', hear: 'they say it slowly for you', buy: 'bought, after haggling', sell: 'sold, after haggling' };
+// D-376 (UD-31): the default is the small model of the talk bundle (models.ts TALK_MODEL, ~285 MB); gemma-2-2b (D-296's choice on
+// the T4, ~1.9 GB) stays one ?model= away for the lab's comparisons
+export const DEFAULT_MODEL = TALK_MODEL;
 export const NEAR_M = 3;
 /** D-336: the Farsi of the opt-in layer by default: the conversation model's own Persian of its reply (measured against NLLB-600M: DECISIONS D-336) */
 export const FARSI_ROUTE: FarsiRoute = 'llm';
 interface Ctx { world: any; camera: THREE.Camera; clock: { dayIndex: number; localHour: number; t: number }; seed: number; englishVoice?: boolean; /** D-336: settings.hearIn (the opt-in layer) */ settings?: { hearIn?: HearIn } }
 export interface Near { pid: number; agent: number | null; name: string; d: number; e: number; n: number }
 
+/** D-370 (UD-25 (10)): everyone within r m of the eye (the people a stranger addressing a group is heard by) */
+export function within(world: any, eye: { e: number; n: number }, r = 6): number[] {
+  const P = world.people; if (!P) return []; const out = new Set<number>();
+  for (const a of P.sim.agents) if (!a.offmap && a.pid >= 0 && Math.hypot(a.pos[0] - eye.e, a.pos[1] - eye.n) <= r) out.add(a.pid);
+  for (const o of P.view?.visible ?? []) if (o.pid >= 0 && Math.hypot(o.e - eye.e, o.n - eye.n) <= r) out.add(o.pid);
+  return [...out];
+}
 /** the nearest person within 3 m of the eye (detailed agents and the population's people drawn around the player) */
 export function nearest(world: any, eye: { e: number; n: number }, r = NEAR_M): Near | null {
   const P = world.people; if (!P) return null; let best: Near | null = null;
@@ -29,6 +43,13 @@ export function nearest(world: any, eye: { e: number; n: number }, r = NEAR_M): 
   for (const a of P.sim.agents) if (!a.offmap && a.pid >= 0) consider(a.pid, a.id, a.pos[0], a.pos[1]);
   for (const o of P.view?.visible ?? []) if (o.pid >= 0) consider(o.pid, null, o.e, o.n);
   return best;
+}
+/** D-379 (UD-25): the people around the eye as listeners (detailed agents and the population's people drawn), with the way they face */
+export function listeners(world: any, eye: { e: number; n: number }, r: number = EARSHOT.maxM): (Listener & { agent: number | null })[] {
+  const P = world.people; if (!P) return []; const out = new Map<number, Listener & { agent: number | null }>();
+  for (const a of P.sim.agents) if (!a.offmap && a.pid >= 0 && Math.hypot(a.pos[0] - eye.e, a.pos[1] - eye.n) <= r) out.set(a.pid, { pid: a.pid, agent: a.id, e: a.pos[0], n: a.pos[1], facing: a.heading });
+  for (const o of P.view?.visible ?? []) if (o.pid >= 0 && !out.has(o.pid) && Math.hypot(o.e - eye.e, o.n - eye.n) <= r) out.set(o.pid, { pid: o.pid, agent: null, e: o.e, n: o.n, facing: o.heading });
+  return [...out.values()];
 }
 
 export function mountConverse(c: Ctx) {
@@ -41,7 +62,7 @@ export function mountConverse(c: Ctx) {
   const small = document.createElement('div'); small.style.cssText = 'font:11px system-ui,sans-serif;opacity:.7;margin-top:4px';
   panel.append(line, input, small); document.body.append(panel);
   const show = (html: string, note = '') => { panel.style.display = 'block'; line.innerHTML = html; small.textContent = note; };
-  const state = { status: gpu ? 'idle' : 'no WebGPU: the people live as before', loaded: false, busy: false, last: null as any, history: new Map<number, Turn[]>(), log: [] as any[], /** D-315: the conversation in progress (person, its id) */ talking: null as null | { pid: number; conv: number } };
+  const state = { approach: null as any, status: gpu ? 'idle' : 'no WebGPU: the people answer in their own lines', progress: 0, loaded: false, busy: false, last: null as any, history: new Map<number, Turn[]>(), log: [] as any[], /** D-315: the conversation in progress (person, its id) */ talking: null as null | { pid: number; conv: number; r: number }, /** D-379: the last words as the world heard them (who heard, the one spoken to, who turned to look; the render side reads it) */ heard: null as null | (Heard & { t: number; words: string }) };
   /** D-315: the conversation ends (the stranger walks off or closes the talk): the person goes back to the day */
   const endTalk = () => { const k = state.talking; if (!k) return; state.talking = null; c.world.people?.sim?.talk.release(k.pid, c.world.people.sim.t); };
   // the baked prose layer (D-296): only for the world it was baked for (seed 1: src/data/lives_baked_s1.json)
@@ -53,23 +74,51 @@ export function mountConverse(c: Ctx) {
   let audio: AudioContext | null = null;
   const play = (data: Float32Array, rate: number) => { audio ??= new AudioContext(); const b = audio.createBuffer(1, data.length, rate); b.getChannelData(0).set(data); const s = audio.createBufferSource(); s.buffer = b; s.connect(audio.destination); s.start(); };
   const eye = () => ({ e: c.camera.position.x, n: -c.camera.position.z });
-  async function ensure() {
-    if (state.loaded || !gpu) return state.loaded;
-    state.status = 'loading'; show('<i>…</i>', `loading ${model} (out of world; cached after the first visit)`);
-    await mind.load(model, p => { small.textContent = `loading the model: ${(p.progress * 100).toFixed(0)}%`; });
-    state.loaded = true; state.status = 'ready'; return true;
+  /** the way the stranger faces (compass degrees: 0 = north, +n) */
+  const yaw = () => { const v = new THREE.Vector3(); c.camera.getWorldDirection(v); return ((Math.atan2(v.x, -v.z) * 180 / Math.PI) + 360) % 360; };
+  /** D-379 (UD-25): the words carry by loudness and distance: who hears, the one spoken to (named, faced, else nearest who
+   *  hears clearly), the bystanders who overhear (a memory row each), who turns to look on a shout */
+  function hear(text: string, rmsDb?: number): { H: Heard; near: Near | null } {
+    const sim = c.world.people?.sim, E = eye(), L = listeners(c.world, E);
+    const H = earshot(L, { ...E, yawDeg: yaw() }, text, pid => sim?.pop.nameOf(pid), { rmsDb, ambientDb: ambientFor(c.clock.localHour) });
+    state.heard = { ...H, t: sim?.t ?? 0, words: text };
+    const to = H.to ? L.find(l => l.pid === H.to!.pid)! : null;
+    return { H, near: to ? { pid: to.pid, agent: to.agent, name: sim.pop.nameOf(to.pid)?.replace(/^\*/, '') ?? '', d: H.to!.d, e: to.e, n: to.n } : null };
+  }
+  // D-376 (UD-31): the model streams in after the world is shown (preload, from main.ts after the first frames), quietly: no
+  // loading UI in the world; the progress is in the out-of-world status only. A WebGPU adapter that cannot hold the model
+  // (no adapter, or a buffer limit under the model's largest shard) leaves the people answering in their own lines
+  let loading: Promise<boolean> | null = null;
+  async function fits(): Promise<boolean> {
+    try { const ad = await (navigator as any).gpu?.requestAdapter(); if (!ad) return false; return (ad.limits?.maxBufferSize ?? 0) >= 256 * 1024 * 1024 && (ad.limits?.maxStorageBufferBindingSize ?? 0) >= 128 * 1024 * 1024; } catch { return false; }
+  }
+  function ensure(): Promise<boolean> {
+    if (state.loaded || !gpu) return Promise.resolve(state.loaded);
+    return loading ??= (async () => { if (!(await fits())) { state.status = 'this GPU cannot hold the model: the people answer in their own lines'; return false; }
+      state.status = 'loading';
+      try { await mind.load(model, p => { state.progress = p.progress; }); state.loaded = true; state.status = 'ready'; return true; }
+      catch (e) { state.status = `the model did not load: ${String(e).slice(0, 120)}`; loading = null; return false; } })();
   }
   /** say `text` to the nearest person: the answer (translation layer) and the heard reply (their own voice) */
-  async function say(text: string, heardMs = 0): Promise<any> {
-    const near = nearest(c.world, eye()); if (!near) { show('<i>No one is near enough to hear you.</i>'); return null; }
-    if (!(await ensure())) return null;
+  async function say(text: string, heardMs = 0, rmsDb?: number): Promise<any> {
+    // D-379: the one spoken to by earshot (the nearest within 3 m when the people are not drawn as listeners)
+    const E = hear(text, rmsDb); const near = E.near ?? (E.H.loudness === 'whisper' ? null : nearest(c.world, eye()));
+    if (!near) { show(E.H.heard.length ? '<i>They hear a voice, but not your words.</i>' : '<i>No one is near enough to hear you.</i>'); return null; }
+    { const sim = c.world.people.sim; noteOverheard(sim.talk, E.H, sim.t, state.talking?.pid === near.pid ? state.talking.conv : sim.t, text); }
+    // D-376: before the model is ready (or where it cannot run) the person still answers: a line of their own in their own
+    // language and voice, chosen by how often they have met the stranger; never a loading screen in the world
+    if (!state.loaded) { void ensure(); return ownLine(near, text); }
     const sim = c.world.people.sim; const day = c.clock.dayIndex, hour = c.clock.localHour;
     const L: LifeRecord = lifeRecord(sim.pop, sim.cal, near.pid, day, hour);
     const key = near.agent ?? -1 - near.pid;
     const hist = state.history.get(near.pid) ?? [];
-    if (state.talking?.pid !== near.pid) { endTalk(); state.talking = { pid: near.pid, conv: sim.t }; }
+    if (state.talking?.pid !== near.pid) { endTalk(); state.talking = { pid: near.pid, conv: sim.t, r: Math.max(NEAR_M, near.d) }; }
     await primeP; state.busy = true; show(`<b>${L.name}</b> <i>…</i>`, 'translation layer');
     // (D-315: the words and the deed together: the pause, the memory, the ask decided by the simulation, the memory row)
+    // D-370 (UD-25 (10)): words to a group ("everyone", "all of you", "good people") reach every house within earshot: a claim
+    // or news is heard by all of them; an ask is answered by the first house that would (the nearest person speaks)
+    if (/^\s*(everyone|all of you|good people|friends|listen|people of)/i.test(text)) { const clear = E.H.heard.filter(h => h.clear).map(h => h.pid), others = (clear.length ? clear : within(c.world, eye())).filter(p => p !== near.pid);
+      for (const g of c.world.people.sim.strangerAskGroup(others, text)) if (g.verdict.ok && (g.act.a === 'claim' || g.act.a === 'hear')) c.world.people.sim.strangerDo(g.act); }
     const t0 = performance.now(); const T = await talkTurn(mind, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid) }); const a = T.answer; state.busy = false;
     hist.push({ role: 'user', content: text }, { role: 'assistant', content: a.ok ? a.text : '' }); state.history.set(near.pid, hist.slice(-8));
     let heard = null as any;
@@ -85,10 +134,25 @@ export function mountConverse(c: Ctx) {
       if (h) heard = { lang: h.lang, layer: h.layer, units: h.units.map(u => u.translit || u.gloss), text: h.text, seconds: h.seconds, backend: 'kokoro', firstMs: h.firstMs, totalMs: performance.now() - tH, fa: fa ? { route: fa.route, ms: fa.ms, hits: fa.hits } : null };
       else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; play(f.data, f.rate); }
       if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => play(r.data, r.rate)).catch(() => {}); } }
-    show(a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`, `translation layer (English, out of world); heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
+    // (D-370: what the sandbox step did, out of world, under the words: taken on, taken in, heard, refused and why)
+    const sb = T.sandbox ? ` <br><i>(${T.sandbox.done?.ok ? SANDBOX_DONE[T.sandbox.act.a] ?? 'done' : T.sandbox.verdict.ok ? 'they would not' : T.sandbox.verdict.why})</i>` : '';
+    show((a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`) + sb, `translation layer (English, out of world); heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
     const row = { pid: near.pid, name: L.name, d: +near.d.toFixed(2), said: text, reply: a.text, ok: a.ok, hits: a.hits, ms: performance.now() - t0 + heardMs, ttft: a.ttftMs, heard, key, ask: T.ask, tag: T.tag, decision: T.decision ? { kind: T.decision.kind, ok: T.decision.ok, reason: T.decision.reason, noop: !!T.decision.noop } : null, memory: T.memory };
     state.last = row; state.log.push(row); return row;
   }
+  /** D-376: the person's own answer while the model is not there: they stop and turn, and answer with a greeting or a word of
+   *  their own in their language and voice (the translation layer gives its sense) */
+  function ownLine(near: Near, text: string) {
+    const sim = c.world.people.sim, day = c.clock.dayIndex; sim.talkAddressed(near.pid);
+    const met = state.history.get(near.pid)?.length ?? 0; state.history.set(near.pid, [...(state.history.get(near.pid) ?? []), { role: 'user', content: text }, { role: 'assistant', content: '' }]);
+    const gloss = met === 0 ? 'Greetings, stranger.' : /\?$/.test(text.trim()) ? 'I do not understand you, stranger.' : 'Go well, stranger.';
+    const agent = near.agent !== null ? sim.agents[near.agent] : null; const f = heardReply(sim.pop, near.pid, day, gloss, c.seed, 24000, agent); play(f.data, f.rate);
+    const name = sim.pop.nameOf(near.pid)?.replace(/^\*/, '') ?? 'They';
+    show(`<b>${name}</b> <i>answers in their own tongue:</i> ${gloss}`, `translation layer (out of world)${state.status === 'loading' ? `; the talk is still arriving (${(state.progress * 100).toFixed(0)} %)` : ''}`);
+    const row = { pid: near.pid, said: text, reply: gloss, ok: true, own: true }; state.last = row; state.log.push(row); return row;
+  }
+  /** D-376: begin streaming the model in (main.ts calls it after the first frames; idempotent) */
+  const preload = () => { if (gpu) void ensure(); };
   const mic = new Mic(); let recording = false;
   addEventListener('keydown', e => {
     if (e.target === input) return;
@@ -99,17 +163,24 @@ export function mountConverse(c: Ctx) {
     if (e.code !== 'KeyV' || !recording) return; recording = false;
     const s = await mic.stop(); if (s.length < 3200) { show('<i>(too short)</i>'); return; }
     ears ??= new Ears(); if (!(ears as any).w) await ears.load();
-    const h = await ears.hear(s); show(`<i>you:</i> ${h.text}`); if (h.text) say(h.text, h.ms);
+    const h = await ears.hear(s); show(`<i>you:</i> ${h.text}`); if (h.text) say(h.text, h.ms, rmsDbOf(s));
   });
   input.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { input.style.display = 'none'; input.blur(); panel.style.display = 'none'; endTalk(); }
     if (e.key === 'Enter' && input.value.trim()) { const t = input.value.trim(); input.value = ''; input.style.display = 'none'; input.blur(); say(t); } });
   input.addEventListener('keyup', e => e.stopPropagation());
   // prime the model with the nearest person's life as the stranger comes near (within 6 m), so the answer costs only the question
   let primeP: Promise<any> = Promise.resolve(); let prefetchedFor = -1;
+  // D-375: someone may come up to the stranger (their house's need, or a friendly house's invitation: approach.ts), checked every
+  // few seconds among the people within 15 m while no talk is going on; they stop and turn, and the panel says who and what
+  let approaches: Approaches | null = null; let approachAt = 0;
   setInterval(() => {
+    if (!state.talking && !state.busy && c.world.people?.sim && performance.now() - approachAt > 4000) { approachAt = performance.now();
+      const sim = c.world.people.sim; approaches ??= new Approaches(sim); const a = approaches.next(within(c.world, eye(), 15));
+      if (a) { sim.talkAddressed(a.pid); state.talking = { pid: a.pid, conv: sim.t, r: 15 } as any; state.approach = a;
+        show(`<b>${sim.pop.nameOf(a.pid)?.replace(/^\*/, '') ?? 'Someone'}</b> <i>${a.opening}.</i>`, 'translation layer (out of world): answer, or walk on'); } }
     // (D-315: the stranger walked away from the one they were talking with: the talk ends, the person goes back to the day)
     if (state.talking && !state.busy) { const k = state.talking, sim = c.world.people?.sim, a = sim?.pop.persons[k.pid]?.agent ?? -1, e = eye();
-      const at = a >= 0 ? sim.agents[a].pos : (c.world.people?.view?.visible ?? []).find((o: any) => o.pid === k.pid); const d = at ? Math.hypot((at.e ?? at[0]) - e.e, (at.n ?? at[1]) - e.n) : Infinity; if (d > NEAR_M + 1.5) endTalk(); }
+      const at = a >= 0 ? sim.agents[a].pos : (c.world.people?.view?.visible ?? []).find((o: any) => o.pid === k.pid); const d = at ? Math.hypot((at.e ?? at[0]) - e.e, (at.n ?? at[1]) - e.n) : Infinity; if (d > k.r + 1.5) endTalk(); }
     { // D-336: the lines of the nearest person's language rendered ahead in their voice (their heard reply starts at once)
       const nv = c.world.neural, n6 = nv?.stats.ready && hearIn() === 'own' ? nearest(c.world, eye(), 6) : null;
       if (n6 && n6.pid !== prefetchedFor) { prefetchedFor = n6.pid; const sim = c.world.people.sim, { neural: v, id } = replyVoice(sim.pop, n6.pid, c.clock.dayIndex, c.seed, n6.agent !== null ? sim.agents[n6.agent] : null);
@@ -118,6 +189,6 @@ export function mountConverse(c: Ctx) {
     const L = lifeRecord(sim.pop, sim.cal, n.pid, c.clock.dayIndex, c.clock.localHour); const mem = sim.talk.recall(n.pid, sim.t, 2);
     const knows = (sim.talk.rows.get(n.pid)?.length ?? 0) > 0 ? 'recognise' : n.agent !== null ? sim.memory.greeting(n.agent, sim.t) : mem.length ? 'nod' : 'none';
     state.busy = true; primeP = mind.prime(L, knows, prose(n.pid), mem).then(ms => { if (ms) state.log.push({ primed: n.pid, ms }); }).catch(() => mind.forget()).finally(() => { state.busy = false; }); }, 500);
-  const api = { state, say, nearest: () => nearest(c.world, eye()), load: ensure, mind, hear: async (samples: number[]) => { ears ??= new Ears(); if (!(ears as any).w) await ears.load(); return ears.hear(Float32Array.from(samples)); } };
+  const api = { state, say, preload, nearest: () => nearest(c.world, eye()), load: ensure, mind, hear: async (samples: number[]) => { ears ??= new Ears(); if (!(ears as any).w) await ears.load(); return ears.hear(Float32Array.from(samples)); } };
   (window as any).__converse = api; return api;
 }

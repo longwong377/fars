@@ -14,6 +14,8 @@ export interface Settings {
   /** D-336 (UD-22): in what the person you speak with is heard: their own period language (the default: the heard world
    *  stays period, §10), or the same in-character reply in Farsi or English, in the person's own voice (out of world, opt-in) */
   hearIn: 'own' | 'fa' | 'en';
+  /** D-376 (UD-31): talking with the people, on by default: the small models (~0.4-0.5 GB) stream in after the world is shown */
+  talk: boolean;
 }
 export const DEFAULT_KEYS: Record<string, string> = {
   forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', interact: 'KeyE', pause: 'Escape', overlay: 'F3',
@@ -24,7 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   quality: 'high', forceWebGL: false, playerMode: 'observer', courtCalendar: 'seasonal', translation: false, fov: 60, headBob: true,
   mouseSensitivity: 1, invertY: false, keys: { ...DEFAULT_KEYS },
   volume: { master: 0.9, ambience: 1, voices: 1, music: 1, effects: 1 }, subtitleSize: 1, lightningWarning: true, colourBlindUI: false,
-  timeScale: 1, devOverlay: false, nowView: false, hearIn: 'own',
+  timeScale: 1, devOverlay: false, nowView: false, hearIn: 'own', talk: true,
 };
 const KEY = 'parsa.settings.v1';
 export function loadSettings(): Settings {
