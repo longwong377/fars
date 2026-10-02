@@ -375,7 +375,19 @@ export class PeopleSim {
       // (D-370: "your word for bread": the person teaches the word of their tongue, when the lexicon has one)
       const want = /\bword for (?:a |an |the )?([a-z]+)/i.exec(said)?.[1]?.toLowerCase(), L = LEX_LABEL[act.lang];
       if (want && L) { const w = unitsFor(L).words.find(x => new RegExp(`\\b${want}`, 'i').test(x.gloss ?? '')); if (w) act.word = w.id; } }
-    return { act, verdict: E.stranger().judge(act) };
+    const verdict = E.stranger().judge(act);
+    // D-391 (the playtest bot: 9-11 of 11 asks for work refused): a house with no work for a stranger says where there is some,
+    // a house of the same quarter that needs a hand (its head named), else the king's works that take men on (C)
+    if (act.a === 'seek_work' && !verdict.ok && verdict.why === 'they need no hands now') verdict.why += `; ${this.workElsewhere(E, act.hh, day)}`;
+    return { act, verdict };
+  }
+  /** where a stranger might find work today, in words (the house asked is left out) */
+  private workElsewhere(E: Economy, not: string, day: number): string {
+    const S = E.stranger(), q = E.hh.get(not)?.q;
+    for (const H of E.hh.values()) { if (H.id === not || H.q !== q || !S.hireCheck(H.id, day).ok) continue;
+      const h = this.pop.households[Number(H.id.slice(2))], head = h?.members.find(m => this.pop.persons[m].sex === 'm' && this.pop.ageOn(m, day) >= 16 && this.pop.present(m, day));
+      if (head !== undefined) return `the house of ${this.pop.nameOf(head)?.replace(/^\*/, '')} in this quarter needs a hand (${S.wantsHand(H.id, day)})`; }
+    return S.joinCheck({ a: 'join', day, kind: 'gang' }, day).ok ? 'the king’s works take on men: the overseers of the gangs put a stranger on the ration list' : 'no one in the quarter needs a hand now';
   }
   /** D-385 (UD-21/UD-25): how the people within ~12 m react to the stranger on sight (converse/sight.ts: greet, nod, stare, bow,
    *  avoid, ignore); a village child who stares may tag along a while (the talk's own 'follow' deed, laid once a day) */
