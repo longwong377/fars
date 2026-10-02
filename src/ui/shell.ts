@@ -123,13 +123,15 @@ export class Shell {
         : this.hooks.hasSave() ? [el('button', { onclick: () => { if (this.hooks.load()) { this.hooks.backdrop?.(false); this.hooks.start(); } } }, 'Continue the saved visit')] : []),
       el('button', { onclick: () => this.settingsPanel(() => this.title(continued)) }, 'Settings'),
       el('button', { onclick: () => this.controls(() => this.title(continued)) }, 'Controls')];
+    // the loading screen, if it is up, fades out over the title rather than vanishing (the world's first frames come in under it)
+    const leaving = root().querySelector('.load') as HTMLElement | null; leaving?.classList.add('leaving'); if (leaving) setTimeout(() => leaving.remove(), 2000);
     root().replaceChildren(el('div', { className: 'front' }, el('div', { className: 'scrim' }),
       el('div', { className: 'col' },
         el('div', { className: 'op-mark' }, OP_PARSA),
         el('h1', { className: 'wordmark' }, 'PĀRSA'),
         el('div', { className: 'dedic' }, DEDICATION),
         el('div', { className: 'menu' }, ...items)),
-      el('div', { className: 'foot' }, ...this.hintSpans())));
+      el('div', { className: 'foot' }, ...this.hintSpans())), ...(leaving ? [leaving] : []));
     start.focus();
   }
   private hintSpans() {
