@@ -1,0 +1,52 @@
+// s14/load (D-354): a compact binary form of plain data (objects, arrays, numbers, strings, booleans, null and typed arrays),
+// for the baked world cache. One JSON header, the typed arrays' bytes after it, each aligned to 8 bytes; unpacking views the
+// arrays straight out of the fetched buffer (no copies). Lossless: unpack(pack(x)) deep-equals x, bit for bit in the arrays.
+const TA: Record<string, any> = { Float32Array, Float64Array, Int8Array, Int16Array, Int32Array, Uint8Array, Uint16Array, Uint32Array, Uint8ClampedArray };
+const MAGIC = 0x4b434150; // 'PACK'
+
+export function pack(value: unknown): Uint8Array {
+  const blobs: [number, ArrayBufferView][] = []; let off = 0;
+  const enc = (v: any): any => {
+    if (v === null || typeof v !== 'object') { if (typeof v === 'number' && !Number.isFinite(v)) return { $n: String(v) }; return v; }
+    if (ArrayBuffer.isView(v)) { const t = v.constructor.name; if (!TA[t]) throw new Error(`pack: ${t} unsupported`);
+      off = (off + 7) & ~7; const r = { $t: t, at: off, n: (v as any).length }; blobs.push([off, v]); off += v.byteLength; return r; }
+    if (Array.isArray(v)) return v.map(enc);
+    if (v instanceof Map || v instanceof Set) throw new Error('pack: Map/Set unsupported');
+    const o: Record<string, any> = {}; for (const k of Object.keys(v)) { if (v[k] === undefined || typeof v[k] === 'function') continue; o[k] = enc(v[k]); } return o;
+  };
+  const head = new TextEncoder().encode(JSON.stringify(enc(value)));
+  const base = (8 + head.length + 7) & ~7, out = new Uint8Array(base + off), dv = new DataView(out.buffer);
+  dv.setUint32(0, MAGIC, true); dv.setUint32(4, head.length, true); out.set(head, 8);
+  for (const [at, b] of blobs) out.set(new Uint8Array(b.buffer, b.byteOffset, b.byteLength), base + at);
+  return out;
+}
+
+export function unpack<T = any>(buf: ArrayBuffer | Uint8Array): T {
+  const u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf), dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  if (dv.getUint32(0, true) !== MAGIC) throw new Error('unpack: not a packed buffer');
+  const hl = dv.getUint32(4, true), base = (8 + hl + 7) & ~7, head = JSON.parse(new TextDecoder().decode(u8.subarray(8, 8 + hl)));
+  // views need their own buffer offset aligned to the element size: a buffer fetched whole starts at 0, so base + at is aligned
+  const aligned = u8.byteOffset % 8 === 0 ? u8 : u8.slice();
+  const dec = (e: any): any => {
+    if (e === null || typeof e !== 'object') return e;
+    if (Array.isArray(e)) return e.map(dec);
+    if (e.$t) { const C = TA[e.$t]; return new C(aligned.buffer, aligned.byteOffset + base + e.at, e.n); }
+    if (e.$n !== undefined && Object.keys(e).length === 1) return Number(e.$n);
+    const o: Record<string, any> = {}; for (const k of Object.keys(e)) o[k] = dec(e[k]); return o;
+  };
+  return dec(head) as T;
+}
+
+/** FNV-1a 64-bit-ish (two 32-bit lanes) over bytes: a content hash for identity checks, not for security */
+export function hashBytes(u8: Uint8Array, seed = 0): string {
+  let a = (0x811c9dc5 ^ seed) | 0, b = (0x9e3779b9 ^ seed) | 0;
+  for (let i = 0; i < u8.length; i++) { const c = u8[i]; a = Math.imul(a ^ c, 16777619); b = Math.imul(b ^ c, 2246822519) ^ (b >>> 13); }
+  return (a >>> 0).toString(16).padStart(8, '0') + (b >>> 0).toString(16).padStart(8, '0');
+}
+export const hashString = (s: string) => hashBytes(new TextEncoder().encode(s));
+/** a content hash over several typed or plain numeric arrays (their values as float64), for keys made of runtime inputs */
+export function hashArrays(...arrs: ArrayLike<number>[]): string {
+  let n = 0; for (const a of arrs) n += a.length + 1;
+  const f = new Float64Array(n); let k = 0; for (const a of arrs) { f[k++] = a.length; for (let i = 0; i < a.length; i++) f[k++] = a[i]; }
+  return hashBytes(new Uint8Array(f.buffer));
+}

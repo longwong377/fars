@@ -206,6 +206,12 @@ async function boot() {
     // castAbove (coverage, D-235): off the grid, cast from that height above the terrain (under a town room's roof) first
     return (Number.isFinite(nh) ? phys.castRayDown(x, z, nh + 1.2) : castAbove != null ? phys.castRayDown(x, z, terrain.heightAt(x, z) + castAbove) : null) ?? phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z);
   };
+  /** D-353 (B98): hide every top-level group and show them one at a time, a frame each, so each submit stays short (measured
+   *  s13: 33 min cumulative on the T4 with no loss). ?warm=groups, or __parsa.warmGroups(). Returns the ms per group. */
+  const warmGroups = async () => { const sc = (world as any).root.parent, list = [...(world as any).root.children, ...sc.children].filter((o: any) => o !== (world as any).root && o.name);
+    const was = list.map((o: any) => o.visible), ms: Record<string, number> = {}; list.forEach((o: any) => { o.visible = false; });
+    try { for (let i = 0; i < list.length; i++) { if (!was[i]) continue; list[i].visible = true; const t = performance.now(); await frame(0, { render: false }); await world.settle?.(camera); await frame(0); ms[list[i].name] = Math.round(performance.now() - t); } }
+    finally { list.forEach((o: any, i: number) => { o.visible = was[i]; }); } return ms; };
   const api = {
     ready: false, backend, norender: NORENDER,
     setTime: (day: number, hour: number) => clock.set(day, hour),
@@ -245,13 +251,19 @@ async function boot() {
         return { frames: n, cpuMs: med(rows.map(r => r.cpu)), serialMs: med(rows.map(r => r.wall)), gpuMs: med(rows.map(r => r.gpu)), pipelinedMs: +pipelined.toFixed(2), cpuMaxMs: +Math.max(...rows.map(r => r.cpu)).toFixed(2), sections: secs, secMax, passes, draws: renderer.info.render.drawCalls, tris: renderer.info.render.triangles };
       } finally { PROF.on = false; PLAYLIKE = false; } },
     renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
-    /** D-353 (B98): the first frames compile ~1000 pipelines; in ONE submit the T4's watchdog resets the card (DXGI_ERROR_DEVICE_HUNG,
-     *  every shot black). Hide every top-level group and show them one at a time, a frame each, so each submit stays short (measured
-     *  s13: 33 min cumulative on the T4 with no loss, the same world in one submit lost the device at ~13 min). Returns the ms per group. */
-    warmUp: async () => { const sc = (world as any).root.parent, list = [...(world as any).root.children, ...sc.children].filter((o: any) => o !== (world as any).root && o.name);
-      const was = list.map((o: any) => o.visible), ms: Record<string, number> = {}; list.forEach((o: any) => { o.visible = false; });
-      try { for (let i = 0; i < list.length; i++) { if (!was[i]) continue; list[i].visible = true; const t = performance.now(); await frame(0, { render: false }); await world.settle?.(camera); await frame(0); ms[list[i].name] = Math.round(performance.now() - t); } }
-      finally { list.forEach((o: any, i: number) => { o.visible = was[i]; }); } return ms; },
+    /** D-353 (B98): the first frames compile ~1000 pipelines; in ONE sync submit the T4 watchdog reset the card. D-354: the warm-up in parallel (?warm=async). Every render pipeline a frame needs is created with createRenderPipelineAsync (the
+     *  browser compiles them on its worker threads, several at once, and no submit waits on a compile, so the watchdog sees
+     *  only short submits); a draw whose pipeline is not ready is skipped (three's Pipelines.isReady). Whole frames, round
+     *  after round, until a frame asks for no new pipeline. Opt-in with ?warm=async until it is measured on the T4; D-353's one group at a time stays the default. ms per round. */
+    warmUp: async () => { if (P.get('warm') !== 'async') return warmGroups(); // (opt-in until measured on the T4: D-354)
+      const pl: any = (renderer as any)._pipelines, orig = pl.getForRender, ms: Record<string, number> = {}; let pend: Promise<void>[] = [];
+      pl.getForRender = function (ro: any, pr: any) { return orig.call(this, ro, pr ?? pend); };
+      try { for (let round = 0; round < 12; round++) { pend = []; const t = performance.now();
+          await frame(0, { render: false }); await world.settle?.(camera); await frame(0);
+          const n = pend.length; if (n) await Promise.all(pend); ms[`round${round}:${n}`] = Math.round(performance.now() - t); if (!n) break; } }
+      finally { pl.getForRender = orig; }
+      return ms; },
+    warmGroups: () => warmGroups(),
     /** D-336: who is heard in which voice (the neural voices' worker, the population's voices, the far crowd) */
     voiceStats: () => { const w = world as any; return { neural: w.neural ? { ...w.neural.stats } : null, pop: w.popVoices ? { ...w.popVoices.stats, lines: w.popVoices.lines() } : null, far: w.farCrowd ? { grains: w.farCrowd.grains, lines: w.farCrowd.lines() } : null }; },
     /** a frame without rendering: the camera placed (view), the world updated (picks after a view or setTime; D-187) */
