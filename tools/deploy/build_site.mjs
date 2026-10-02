@@ -53,6 +53,10 @@ writeFileSync(join(dist, '.nojekyll'), '');
 // the service worker's build stamp (public/sw.js): a new deploy is a new worker, which drops the old build's cache
 { const sw = join(dist, 'sw.js'), id = (() => { try { return execSync('git rev-parse --short HEAD', { cwd: root }).toString().trim(); } catch { return 'nogit'; } })() + '-' + Date.now().toString(36);
   if (existsSync(sw)) writeFileSync(sw, readFileSync(sw, 'utf8').replace('__PARSA_BUILD__', id)); }
+// D-580: every file's content hash (public/sw.js carries a file over from the previous deploy's cache when it is unchanged)
+{ const { createHash } = await import('node:crypto'), man = {}, skip = new Set(['sw.js', 'index.html', 'site.json', 'site-files.json']);
+  const walkH = d => { for (const n of readdirSync(d)) { const p = join(d, n), st = lstatSync(p); if (st.isDirectory()) walkH(p); else { const r = p.slice(dist.length + 1).split('\\').join('/'); if (!skip.has(r)) man[r] = createHash('sha1').update(readFileSync(p)).digest('hex').slice(0, 16); } } };
+  walkH(dist); writeFileSync(join(dist, 'site-files.json'), JSON.stringify(man)); lap(`content hashes: ${Object.keys(man).length} files`); }
 const files = []; const walk = d => { for (const n of readdirSync(d)) { const p = join(d, n), s = lstatSync(p); if (s.isDirectory()) walk(p); else files.push([p.slice(dist.length + 1).split('\\').join('/'), s.size]); } };
 walk(dist);
 const total = files.reduce((a, [, b]) => a + b, 0), big = files.filter(([, b]) => b > 100e6), top = [...files].sort((a, b) => b[1] - a[1]).slice(0, 8);

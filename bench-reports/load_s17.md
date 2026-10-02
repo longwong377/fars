@@ -62,5 +62,9 @@ Total live typed arrays 1.4 GB of the 3.3 GB heap; JS objects ~0.5 GB (sampling 
 - tools/deploy: measure.mjs (page-clock ready, memory by process type at ready and peak, heaps, the heap after GC, the
   scene's arrays, CPU by thread, --css), boot_profile.mjs (--stages, --heap), boot_mem.mjs, boot_list.mjs, serve.mjs HANG=,
   build_site.mjs (NOMINIFY, SOURCEMAP, '*' and '{seed}' in boot_files.txt).
+- public/sw.js + build_site.mjs (site-files.json: every file's content hash): a new deploy takes the files it has unchanged from
+  the previous build's cache. Measured: a cold visit, a rebuild, the same profile again: 34.5 MB in 9 requests (the full-size
+  scans the first visit had not upgraded to yet) instead of the whole site (~350 MB).
+- src/world/cache/pack.ts: the world cache's units are decoded in place (fill and village sites ~0.15 s less in all).
 - Tried and reverted: decoding the town's/plain's sets from the start (no gate): the Terrace's set then waited 18 s instead of
   8 s on 4 cores; starting the Terrace's set during the scans: the scans took 39 s instead of 17 s.
