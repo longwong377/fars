@@ -29,7 +29,7 @@ export function systemPrompt(L: LifeRecord, knows: Knows, prose?: string | null,
   // (a past, a care, the talk of the quarter kept short rather than lost), then lines are dropped least needed first, the
   // past late; whatever is still over loses the last item of its longest list line, so the budget always holds
   let life = lifeBriefShort(L, prose);
-  const build = () => [head, life, ...tail].join('\n'), over = () => approxTokens(build()) > PROMPT_TOKENS;
+  const build = () => spoken([head, life, ...tail].join('\n')), over = () => approxTokens(build()) > PROMPT_TOKENS;
   const listLine = (re: RegExp, keep: number) => { life = life.split('\n').map(l => { if (!re.test(l)) return l; const i = l.indexOf(': '), items = l.slice(i + 2).replace(/\.$/, '').split('; '); return items.length > keep ? `${l.slice(0, i + 2)}${items.slice(0, keep).join('; ')}.` : l; }).join('\n'); };
   for (const [re, keep] of [[/^Talk of the quarter: /, 1], [/^Your house needs: /, 1], [/^Lately: /, 1], [/^On your mind: /, 1], [/^Manner: /, 3], [/^Plain to see on you: /, 1], [/^Before this year: /, 2], [/^Manner: /, 2], [/^Before this year: /, 1]] as [RegExp, number][]) { if (!over()) break; listLine(re, keep); }
   const drop = [/^Talk of the quarter: /m, /^Memories: /m, /^You know well: /m, /^News today: /m, / Earlier: [^\n]*/, /^Friends and kin nearby: /m, /^On your mind: /m, /^Your house needs: /m, /^Lately: /m, /, (?:son|daughter|wife) of [^;\n]+(?=; you speak)/, /^Plain to see on you: /m, /^Before this year: /m];
