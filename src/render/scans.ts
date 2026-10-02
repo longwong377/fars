@@ -286,7 +286,9 @@ async function loadGround(base: string, anisotropy: number, K: any = null): Prom
   // built site's low copies first (lowfirst.ts; drawn up to R like the full ones), the full files swapped in after the world is up
   const url = (id: string, f: string) => `${base}textures/${id}/${f}.jpg`;
   const pick = async (u: string) => { const lo = await lowOf(base, u); return { lo: !!lo, res: fetch(lo ? lo.url : u) }; };
-  const files = GROUND_KEYS.map(k => [pick(url(GROUND[k], 'diff')), pick(url(GROUND[k], 'disp'))]);
+  // (s15/ship D-393: the aerial rock has no displacement map: not asked for, so a visit logs no 404)
+  const none = async () => ({ lo: false, res: Promise.resolve(new Response(null, { status: 404 })) });
+  const files = GROUND_KEYS.map(k => [pick(url(GROUND[k], 'diff')), GROUND[k] === 'aerial_ground_rock' ? none() : pick(url(GROUND[k], 'disp'))]);
   const fill = (k: number, diff: Uint8ClampedArray, disp: Uint8ClampedArray | null) => { const o = k * R * R * 4;
     for (let i = 0; i < R * R * 4; i += 4) { const h = disp ? disp[i] : Math.round(0.2126 * diff[i] + 0.7152 * diff[i + 1] + 0.0722 * diff[i + 2]);
       data[o + i] = diff[i]; data[o + i + 1] = diff[i + 1]; data[o + i + 2] = diff[i + 2]; data[o + i + 3] = h; } };

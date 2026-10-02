@@ -319,7 +319,9 @@ export async function loadSculpt(fetchBuf: (path: string) => Promise<ArrayBuffer
   try {
     const idx = JSON.parse(new TextDecoder().decode(await fetchBuf(SCULPT_INDEX_FILE))) as SculptIndex;
     if (idx.version !== SCULPT_VERSION) throw new Error(`sculpt index version ${idx.version}`);
-    for (const [name, lods] of Object.entries(idx.pieces)) for (let l = 0; l < lods.length; l++) STORE.set(`${name}.${l}`, decodePiece(await fetchBuf(lods[l].file)));
+    // (s15/ship D-393: the pieces fetched at once, not one after another: ~29 s of a cold visit's boot was this loop's round trips)
+    const all = Object.entries(idx.pieces).flatMap(([name, lods]) => lods.map((lod, l) => { const p = fetchBuf(lod.file); p.catch(() => {}); return [`${name}.${l}`, p] as const; }));
+    for (const [k, p] of all) STORE.set(k, decodePiece(await p));
     INDEX = idx; return true;
   } catch (e) { console.warn(`sculpt: precomputed pieces unavailable (${(e as Error).message}); generating at startup (slow)`); return false; }
 }

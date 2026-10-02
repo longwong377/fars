@@ -26,6 +26,8 @@ import { NOW_CAPTION } from './arch/now';
 import { PLACES } from './people/sim';
 import { buildWorld, WorldBuild } from './world/world';
 import { releaseUploadedTextures, releaseStats } from './world/cache/release';
+import { BootProgress } from './shell/progress';
+import { warmBootFiles } from './shell/warm';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -85,6 +87,7 @@ async function siteWorker() {
 async function boot() {
   const shell = new Shell(settings, hooks());
   shell.loading('Preparing the renderer…');
+  const prog = new BootProgress(); if (shell.loadingCard) prog.mount(shell.loadingCard); // D-393: honest progress (the steps done, the bytes received)
   const swP = siteWorker();
   let renderer: THREE.WebGPURenderer;
   try {
@@ -119,14 +122,17 @@ async function boot() {
   const camera = new THREE.PerspectiveCamera(settings.fov, innerWidth / innerHeight, 0.05, 110000); // far ring corners lie 101 km out
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
+  prog.step('renderer');
   shell.loading('Loading the plain and the mountain…');
   await swP;
+  void warmBootFiles(BASE).then(() => TRACE(`warm done ${JSON.stringify((globalThis as any).__warm ?? null)}`)); // D-393: the world's files download while the terrain and the scans decode (the build waited ~30 s for them after)
   // s15/ship: the terrain's rings and the physics engine load while the scans decode (each was awaited in turn)
   const terrainP = Terrain.load(BASE), physP = Physics.create();
   await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
   TRACE('scans');
   const terrain = await terrainP;
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
+  prog.step('ground');
   const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars(BASE); sky.meteors.seed = SEED; TRACE('terrain, sky');
   shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-093)
   const weather = new WeatherSystem(SEED);
@@ -143,6 +149,7 @@ async function boot() {
   TRACE('before pipeline');
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality, sky.hemi);
   TRACE('pipeline built');
+  prog.step('sky');
   shell.loading('Raising the Terrace…');
   const phys = await physP;
   TRACE('physics ready');
@@ -475,6 +482,15 @@ async function boot() {
   }
   let prev = performance.now();
   let shownFrames = 0; // (D-376)
+  /** D-393 (UD-31): the talk streams in from the moment the player can walk: the language model first (285 MB: what makes a
+   *  person answer from their own life), the neural voices after it (Kokoro, ~190 MB: until then a reply is heard in the
+   *  formant voice); both at once shared the line and the text answer came ~77 s after walkable at 100 Mbit/s. Talk off, or a
+   *  GPU that cannot hold the model: the voices start at once */
+  let talkStarted = false;
+  const startTalk = async () => { if (talkStarted) return; talkStarted = true; const t0 = performance.now();
+    while (TALK && !(api as any).converse && performance.now() - t0 < 30_000) await new Promise(r => setTimeout(r, 250)); // (the talk module is imported in parallel with the boot)
+    const c = (api as any).converse; TRACE('talk: model loading');
+    try { if (c?.load) TRACE(`talk: model ${(await c.load()) ? 'ready' : 'not loaded'} (${((performance.now() - t0) / 1000).toFixed(0)} s)`); } finally { (world as any).neural?.start?.(); } };
   let firstFrames = P.has('trace') ? 3 : 0; // ?trace: time the first frames' stages (D-250)
   let inAnimationLoop = false; // set while three's animation loop (which advances the node frame) calls frame()
   const viewDir = new THREE.Vector3();
@@ -554,7 +570,7 @@ async function boot() {
     if (firstFrames > 0) { TRACE(`frame ${3 - firstFrames}: render ${lastFrameMs.toFixed(0)} ms`); firstFrames--; }
     // D-376 (UD-31): the world is shown: the people's voices and the talk's model start streaming in (a few frames in, so the
     // first frames' shader compiles are not slowed by the downloads)
-    if (++shownFrames === 5) { (world as any).neural?.start?.(); setTimeout(() => (api as any).converse?.preload?.(), 1500); }
+    if (++shownFrames === 5) void startTalk();
     // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
     meterT += dt;
     tp = pt(); if (pipeline.meterTarget && !meterBusy && ((TEST && !PLAYLIKE) || meterT > 0.25)) {
@@ -600,7 +616,9 @@ async function boot() {
     onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
-  api.ready = true;
+  prog.finish(); api.ready = true;
+  // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
+  if (NORENDER) void startTalk();
   // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)
   (api as any).lowFirst = () => ({ ...lowFirstStats, pending: lowFirstStats.pending() });
   setTimeout(() => void upgradeLowFirst().then(n => TRACE(`scans upgraded: ${n}`)), 2000);
