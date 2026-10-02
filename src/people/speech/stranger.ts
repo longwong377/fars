@@ -276,13 +276,12 @@ export class Stranger {
    *  ration day, a day worked for a house that feeds its hands; else his own stores; else hunger, which people see */
   private fedOn = -1;
   private eat(day: number) {
-    if (this.fedOn >= day || !this.active) return; this.fedOn = day;
+    if (this.fedOn >= day || !this.active) return; this.fedOn = day; this.night(day);
     const fed = !!this.stay || this.group?.kind === 'household' || (this.group?.kind === 'gang' && this.attended.has(day)) || (!!this.job && this.attended.has(day));
     if (fed) { this.hungry = 0; return; }
     if (this.purse.grain >= 0.8) { this.purse.grain -= 0.8; this.hungry = 0; return; }
     const cost = 0.8 * this.E.price('grain', day); if (this.purse.cash >= cost) { this.purse.cash -= cost; this.hungry = 0; return; }
     if (++this.hungry === 3) this.ev('stranger_hungry', [], PLAYER);
-    this.night(day);
   }
   /** D-370: where the stranger sleeps: a host's or his house's roof, the gang's camp, the caravan's lines; else in the open, where a
    *  winter night chills him (seen, pitied) and the night watch, finding a stranger without a sealed document, questions him and
