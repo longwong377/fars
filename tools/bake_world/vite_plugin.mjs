@@ -8,12 +8,15 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+import { gzipSync } from 'node:zlib';
 import { sourceHashes } from './srchash.mjs';
 
 export const CACHE_DIR = 'public/world-cache';
 export function writeEntry(root, unit, key, src, bytes) {
   const dir = resolve(root, CACHE_DIR); mkdirSync(dir, { recursive: true });
   const file = `${unit}-${key}.bin`.replace(/[^\w.-]/g, '_'), tmp = resolve(dir, file + '.tmp');
+  // s15 (D-386): stored gzipped (the packed arrays shrink 2-15x: the download; worldCache.ts inflates what starts 1f 8b)
+  if (!(bytes[0] === 0x1f && bytes[1] === 0x8b)) bytes = gzipSync(bytes, { level: 6 });
   writeFileSync(tmp, bytes); renameSync(tmp, resolve(dir, file));
   const mf = resolve(dir, 'manifest.json'), M = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8')) : { v: 1, entries: {} };
   M.entries[`${unit}|${key}`] = { src, file, bytes: bytes.length, sha1: createHash('sha1').update(bytes).digest('hex').slice(0, 16), at: new Date().toISOString() };

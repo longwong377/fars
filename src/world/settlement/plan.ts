@@ -4,6 +4,8 @@
 // is reconstruction (C) and names its basis row in settlement.json `town_elements`. No three.js and no terrain here: the
 // builder (build.ts) places it on the ground with terrain.heightAt (D-035).
 import { planHouses } from './houseplan';
+import { cachedSync } from '../cache/worldCache';
+import { registerClass } from '../cache/pack';
 import { ensureAccess } from './access';
 import { Rng } from '../../core/rng';
 import settlementJson from '../../data/settlement.json';
@@ -304,8 +306,13 @@ function gardenGoharSite(): Site {
 
 // ---------------------------------------------------------------------------------------------------------------------
 let cache: TownPlan | null = null;
+registerClass(Site, 'Site'); // (the baked plan's Sites keep their methods)
+/** the town plan (D-386: from the baked world when its sources are unchanged: ~6 s of the build) */
 export function buildTownPlan(): TownPlan {
   if (cache) return cache;
+  return (cache = cachedSync('townplan', 'v1', makeTownPlan));
+}
+function makeTownPlan(): TownPlan {
   const sites: Site[] = [];
   for (const q of QUARTERS) sites.push(quarterSite(q));
   sites.push(officialSite(), storesSite(), stablesSite(), wayStationSite(), areaCGardenSite(), paradiseSite(), gardenGoharSite());
@@ -366,8 +373,7 @@ export function buildTownPlan(): TownPlan {
   const cf = FEATURES.canal_kuh_e_rahmat; water.push({ kind: 'canal', pts: cf.polyline, width: cf.width_m, level: 0.1, row: 'canal_kuh_e_rahmat', feature: 'canal_kuh_e_rahmat', note: cf.note });
   // wells in the sites
   for (const s of sites) for (const f of s.fittings) if (f.kind === 'well') water.push({ kind: 'well', pts: [s.grid(f.u, f.v)], width: 0.9, level: -1.4, row: 'town_wells', feature: f.plot >= 0 ? s.plots[f.plot].feature : s.meta.feature });
-  cache = { sites, props, trees, water, roads, middens, groups, gate: { c: AJORI.c, theta: ajTheta }, fires: [{ ...PRECINCT_FIRE, sched: 'kept' }] };
-  return cache;
+  return { sites, props, trees, water, roads, middens, groups, gate: { c: AJORI.c, theta: ajTheta }, fires: [{ ...PRECINCT_FIRE, sched: 'kept' }] };
 }
 
 /** walled orchards among the town blocks (SELOPERSE: a garden city of blocks among gardens, orchards and fields, B;

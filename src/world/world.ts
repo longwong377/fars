@@ -148,10 +148,12 @@ import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
 import { DustSystem, type DustKind } from './dust';
 import { pt, pa } from '../core/prof';
-import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled } from './cache/worldCache';
+import { cached, prefetchWorldCache, preloadWorldCache, cacheStats, cacheTake, cacheStore, cachedSync } from './cache/worldCache';
 import { hashArrays, hashString } from './cache/pack';
 import { packGeo, unpackGeo, geoHash, type GeoPack } from './cache/geo';
 import { mudFace } from '../arch/mudface';
+/** D-386: the baked world's units the build takes synchronously (preloaded at its start: src/world/cache/worldCache.ts) */
+const SYNC_UNITS = ['townplan', 'mudface', 'fill', 'crossings', 'grime'];
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
@@ -163,6 +165,7 @@ function wmark(stage: string) { if (!WTRACE) return; const t = performance.now()
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
   wLast = performance.now();
   prefetchWorldCache(); // D-354: the baked world's hashes and manifest, while the build starts
+  const preP = preloadWorldCache(SYNC_UNITS); // D-386: the units built synchronously, fetched while the assets load
   void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
@@ -191,11 +194,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
   // D-354 (s15): the mud-brick faces (D-364: cut by the lattice and displaced; most of the architecture's build) read from the
   // baked world when the parts are unchanged (the key: every part, as the probes hash them; each face by its own geometry)
-  const mudKey = hashString(partsJson), mudHit = await cacheGet<Record<string, GeoPack>>('mudface', mudKey), mudNew: Record<string, GeoPack> = {};
-  const mud = (g: THREE.BufferGeometry, hard: any, gain = 1) => { const k = geoHash(g, gain), c = mudHit?.[k]; if (c) return unpackGeo(c);
-    const r = mudFace(g, hard, gain); if (!mudHit && cacheEnabled()) mudNew[k] = packGeo(r); return r; };
+  // (D-386: preloaded with the other synchronous units; a face missing from the entry is built live and the entry rewritten)
+  await preP;
+  const mudKey = hashString(partsJson), mudHit = cacheTake<Record<string, GeoPack>>('mudface', mudKey), mudNew: Record<string, GeoPack> = {};
+  const mud = (g: THREE.BufferGeometry, hard: any, gain = 1) => { const k = geoHash(g, gain), c = mudHit?.[k]; if (c) { mudNew[k] = c; return unpackGeo(c); }
+    const r = mudFace(g, hard, gain); mudNew[k] = packGeo(r); miss++; return r; }; let miss = 0;
   const arch = buildMeshes(parts, phys, { dynamicDoors: true, mud }); // door leaves: kinematic colliders of the door system
-  if (Object.keys(mudNew).length) void cachePut('mudface', mudKey, mudNew);
+  if (miss) cacheStore('mudface', mudKey, mudNew);
   wmark('arch');
   root.add(arch.group);
   // D-321 rev 2: the dressed stone's free arrises as geometry near the eye (worn round, chipped in handling), the maps beyond
@@ -268,7 +273,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   wmark('plain');
   // (D-254: the fire system builds after the plain: the villages' hearths, ovens and lamps join it)
   fire.build(); root.add(fire.group);
-  buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }); // D-366: soot, ash, damp and lane wear (render/grime.ts)
+  buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }, seed); // D-366: soot, ash, damp and lane wear (render/grime.ts; D-386: baked)
   wmark('fire.build');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
@@ -384,7 +389,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const faunaT0 = performance.now();
   const villagesIn: VillageIn[] = plain.data.villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, comps: villageCompounds(v, terrain, seed) }));
   // D-367 (agent fill): the markets, the lanes' and villages' things, washing lines, awnings, the Terrace's yards and standards
-  const fill = new WorldFill([...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items, ...terraceFill(seed)], { ground: groundAt, phys, nav }); root.add(fill.group);
+  // (D-386: the town's and villages' fill plan from the baked world: ~3.5 s)
+  const townItems = cachedSync('fill', `${seed}|${settlement ? 'town' : 'notown'}|${villagesIn.length}`, () => townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items);
+  const fill = new WorldFill([...townItems, ...terraceFill(seed)], { ground: groundAt, phys, nav }); root.add(fill.group);
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
     // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)

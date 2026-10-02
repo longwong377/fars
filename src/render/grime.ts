@@ -15,6 +15,8 @@
 import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, normalWorld, mx_noise_float, mx_worley_noise_float, vec2, vec3, float, mix, smoothstep, max, abs, floor, fract, step, dot, textureLoad, ivec2, int, fwidth, clamp } from 'three/tsl';
 import { roofedNode } from './probes/roofs';
+import { cachedSync } from '../world/cache/worldCache';
+import { hashArrays } from '../world/cache/pack';
 
 /** the grime map's frame: grid (e, n) metres of the index's corner, tile size (m) and index side; atlas tiles per row and rows */
 export const GRIME_MAP = { E0: -4096, N0: -4096, TILE: 32, IDX: 256, PER_ROW: 60, ROWS: 30, Y0: -80, YS: 120 };
@@ -157,8 +159,21 @@ export function uploadGrime(R: GrimeRaster): { tiles: number; dropped: number } 
   return { tiles: slot, dropped };
 }
 /** build and upload the map (world.ts, once the fires, the town and the plain are built) */
-export function buildGrime(S: GrimeSources) { const t0 = typeof performance !== 'undefined' ? performance.now() : 0; const R = grimeRaster(S), u = uploadGrime(R);
-  const info = { ...u, ms: Math.round((typeof performance !== 'undefined' ? performance.now() : 0) - t0) }; (globalThis as any).__parsaGrime = info; return info; }
+export function buildGrime(S: GrimeSources, seed = 1) { const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
+  // D-386: the map from the baked world when its inputs are unchanged (~3 s): the key hashes the fires and the street doors (the
+  // town plan and the ground are the unit's sources, units.json); the atlas kept up to its last used row
+  const key = grimeKey(S, seed), M = GRIME_MAP, W = M.PER_ROW * ST; let live = false;
+  const map = cachedSync('grime', key, () => { live = true; const u = uploadGrime(grimeRaster(S)), rows = Math.ceil(u.tiles / M.PER_ROW) * ST;
+    return { u, idx: idxData.slice(), atlas: atlasData.slice(0, rows * W * 4) }; });
+  if (!live) { idxData.set(map.idx); atlasData.fill(0); atlasData.set(map.atlas); IDX_TEX.needsUpdate = true; ATLAS_TEX.needsUpdate = true; }
+  const info = { ...map.u, ms: Math.round((typeof performance !== 'undefined' ? performance.now() : 0) - t0) }; (globalThis as any).__parsaGrime = info; return info; }
+/** the grime map's runtime inputs as a key (the fires' kinds and places, the street doors) */
+function grimeKey(S: GrimeSources, seed: number) {
+  const f = S.fires ?? [], d = S.doors ?? [], a = new Float64Array(f.length * 4 + d.length * 5); let k = 0;
+  for (const x of f) { a[k++] = x.pos.x; a[k++] = x.pos.y; a[k++] = x.pos.z; a[k++] = x.kind.length * 31 + x.kind.charCodeAt(0); }
+  for (const x of d) { a[k++] = x.hinge[0]; a[k++] = x.hinge[1]; a[k++] = x.closedYaw; a[k++] = x.y; a[k++] = x.h; }
+  return `${seed}|${S.town ? S.town.sites.length : 0}|${hashArrays(a)}`;
+}
 
 // ------------------------------------------------------------------------------------------------ the nodes (GPU)
 /** the map at the pixel (bilinear by hand): vec4(soot, source y 0..1, wear, stain); 0 outside every tile */

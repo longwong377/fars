@@ -28,7 +28,8 @@
     "lint:all": "npm run lint:chrono && npm run lint:lang && npm run lint:activity && npm run lint:music",
     "typecheck": "tsc --noEmit",
     "bench": "playwright test tests/e2e/bench.spec.ts --project=webgpu",
-    "soak": "tsx tools/soak.ts"
+    "soak": "tsx tools/soak.ts",
+    "bake:world": "node --max-old-space-size=8000 --import tsx tools/bake_world/bake.ts"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

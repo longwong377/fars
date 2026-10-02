@@ -16,6 +16,8 @@ class Grow<T extends Float32Array | Uint32Array | Int32Array> {
   push1(x: number) { if (this.n + 1 > this.a.length) this.grow(); this.a[this.n++] = x; }
   private grow() { const b = new (this.a.constructor as any)(Math.max(1024, this.a.length * 2)); b.set(this.a); this.a = b; }
   view() { return this.a.subarray(0, this.n) as T; }
+  /** s15 (D-386): the storage trimmed to its length and returned (no spare capacity kept; a later push grows a copy) */
+  fit() { if (this.a.length !== this.n) this.a = this.a.slice(0, this.n) as T; return this.a; }
 }
 export class Batch {
   private P = new Grow(new Float32Array(3072)); private N = new Grow(new Float32Array(3072)); private Cc = new Grow(new Float32Array(3072));
@@ -127,9 +129,12 @@ export class Batch {
   }
   toGeometry(): THREE.BufferGeometry {
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(this.P.view().slice(), 3)); g.setAttribute('normal', new THREE.BufferAttribute(this.N.view().slice(), 3)); g.setAttribute('color', new THREE.BufferAttribute(this.Cc.view().slice(), 3));
-    for (const a of this.X) g.setAttribute(a.name, new THREE.BufferAttribute(a.g.view().slice(), a.size));
-    const idx = this.I.view(); g.setIndex(this.verts > 65535 ? new THREE.BufferAttribute(idx.slice(), 1) : new THREE.BufferAttribute(Uint16Array.from(idx), 1));
+    // s15 (D-386): the batch's own arrays, trimmed, are the geometry's (they were copied, and the batch kept its doubling
+    // buffers alive for as long as its cluster: ~240 MB in the town and villages); the owner list trimmed too
+    g.setAttribute('position', new THREE.BufferAttribute(this.P.fit(), 3)); g.setAttribute('normal', new THREE.BufferAttribute(this.N.fit(), 3)); g.setAttribute('color', new THREE.BufferAttribute(this.Cc.fit(), 3));
+    for (const a of this.X) g.setAttribute(a.name, new THREE.BufferAttribute(a.g.fit(), a.size));
+    this.O.fit(); const idx = this.I.view(); g.setIndex(this.verts > 65535 ? new THREE.BufferAttribute(this.I.fit(), 1) : new THREE.BufferAttribute(Uint16Array.from(idx), 1));
+    if (this.verts <= 65535) this.I.fit();
     g.computeBoundingSphere(); g.computeBoundingBox();
     return g;
   }

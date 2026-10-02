@@ -3,7 +3,8 @@
 // entry is reported, never used (the page falls back to the live build: src/world/cache/worldCache.ts).
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
-import { pack, unpack, hashArrays } from '../src/world/cache/pack';
+import { gunzipSync } from 'node:zlib';
+import { pack, unpack, hashArrays, registerClass } from '../src/world/cache/pack';
 import { identity } from '../src/world/cache/worldCache';
 import { sourceHashes, closure } from '../tools/bake_world/srchash.mjs';
 import { nodeUnits } from '../tools/bake_world/units';
@@ -21,6 +22,21 @@ describe('world cache: pack', () => {
     const a = { ms: 1, x: new Float32Array([1, 2, 3]) }, b = { ms: 99, x: new Float32Array([1, 2, 3]) }, c = { ms: 1, x: new Float32Array([1, 2, 3.0001]) };
     expect(identity(a)).toBe(identity(b)); expect(identity(a)).not.toBe(identity(c));
     expect(hashArrays([1, 2], [3])).not.toBe(hashArrays([1], [2, 3]));
+  });
+});
+
+describe('world cache: pack, graphs (s15, D-386)', () => {
+  it('keeps shared objects shared, cycles, Maps, Sets and registered classes', () => {
+    class Box { constructor(public w = 1, public h = 2) {} area() { return this.w * this.h; } }
+    registerClass(Box, 'TestBox');
+    const shared = { tag: 'x', a: new Float32Array([1, 2]) }, ring: any = { name: 'ring' }; ring.self = ring;
+    const v = { p: shared, q: [shared, shared.a], m: new Map<any, any>([['k', shared], [3, new Set([1, 'two'])]]), b: new Box(3, 4), ring };
+    const u = unpack<any>(pack(v));
+    expect(u.p).toBe(u.q[0]); expect(u.q[1]).toBe(u.p.a); expect(Array.from(u.p.a)).toEqual([1, 2]);
+    expect(u.m).toBeInstanceOf(Map); expect(u.m.get('k')).toBe(u.p); expect([...u.m.get(3)]).toEqual([1, 'two']);
+    expect(u.b).toBeInstanceOf(Box); expect(u.b.area()).toBe(12); expect(u.ring.self).toBe(u.ring);
+    expect(identity(u)).toBe(identity(v));
+    class Unknown { x = 1 } expect(() => pack({ z: new Unknown() })).toThrow(/unregistered/);
   });
 });
 
@@ -48,6 +64,22 @@ describe('world cache: source hashes', () => {
   });
 });
 
+/** a baked entry's bytes (stored gzipped since D-386) */
+const readEntry = (file: string) => { const b = readFileSync(`public/world-cache/${file}`); const u = b[0] === 0x1f && b[1] === 0x8b ? gunzipSync(b) : b; return new Uint8Array(u.buffer, u.byteOffset, u.byteLength); };
+
+describe('world cache: the town plan (s15, D-386)', () => {
+  it('read back from its packed form is the live plan, its Sites working', async () => {
+    const { buildTownPlan } = await import('../src/world/settlement/plan');
+    const live = buildTownPlan(), back = unpack<any>(pack(live));
+    expect(identity(back)).toBe(identity(live));
+    expect(back.sites[0].grid(1, 2)).toEqual(live.sites[0].grid(1, 2)); expect(back.groups).toBeInstanceOf(Map);
+    const mf = 'public/world-cache/manifest.json', M = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8')) : { entries: {} }, e = M.entries['townplan|v1'];
+    if (!e) { console.warn('[world-cache] townplan|v1: not baked (npx tsx tools/bake_world/bake.ts)'); return; }
+    if (e.src !== (sourceHashes('.') as Record<string, string>).townplan) { console.warn('[world-cache] townplan|v1: stale'); return; }
+    expect(identity(unpack(readEntry(e.file)))).toBe(identity(live));
+  }, 120_000);
+});
+
 describe('world cache: the baked units equal the live build', () => {
   const mf = 'public/world-cache/manifest.json', M = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8')) : { entries: {} };
   const src = sourceHashes('.') as Record<string, string>;
@@ -58,8 +90,8 @@ describe('world cache: the baked units equal the live build', () => {
       expect(identity(unpack(pack(live)))).toBe(identity(live));
       if (!e) { console.warn(`[world-cache] ${u.unit}|${u.key}: not baked (npx tsx tools/bake_world/bake.ts)`); return; }
       if (e.src !== src[u.unit]) { console.warn(`[world-cache] ${u.unit}|${u.key}: stale (the page builds it live)`); return; }
-      const b = readFileSync(`public/world-cache/${e.file}`);
-      expect(identity(unpack(new Uint8Array(b.buffer, b.byteOffset, b.byteLength)))).toBe(identity(live));
+      const b = readEntry(e.file);
+      expect(identity(unpack(b))).toBe(identity(live));
     }, 600_000);
   }
 });

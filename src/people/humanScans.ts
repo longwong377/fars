@@ -36,7 +36,9 @@ function arrayTex(data: Uint8Array, n: number, layers: number, srgb: boolean) {
   const t = new THREE.DataArrayTexture(data, n, n, layers);
   t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType; t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
-  t.anisotropy = 8; t.flipY = false; t.needsUpdate = true; return t;
+  t.anisotropy = 8; t.flipY = false; t.needsUpdate = true;
+  t.userData.release = true; // s15 (D-386): static: once on the GPU the page drops its copy (80 MB; world/cache/release.ts)
+  return t;
 }
 
 /** load and pack the layers; null without a DOM, with `?noscans`, or when the files are missing (the procedural path) */

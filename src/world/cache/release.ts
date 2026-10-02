@@ -12,7 +12,9 @@ function release(t: THREE.Texture) {
   const u = t.userData as any; if (!on || u?.keepData || u?.released) return;
   let b = 0;
   if ((t as any).isCompressedTexture) { for (const m of (t as any).mipmaps ?? []) if (m?.data) { b += m.data.byteLength ?? 0; m.data = null; } }
-  else if (u?.release && (t as any).image?.data) { b = (t as any).image.data.byteLength ?? 0; (t as any).image.data = null; }
+  else if (u?.release && ((t as any).image?.data || (t as any).mipmaps?.length)) { // (s15, D-386: and a DataTexture's own mip chain)
+    if ((t as any).image?.data) { b = (t as any).image.data.byteLength ?? 0; (t as any).image.data = null; }
+    for (const m of (t as any).mipmaps ?? []) if (m?.data) { b += m.data.byteLength ?? 0; m.data = null; } }
   else return;
   u.released = true; releaseStats.textures++; releaseStats.bytes += b;
 }

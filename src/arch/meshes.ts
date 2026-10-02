@@ -402,7 +402,9 @@ function edgeAttributes(g: THREE.BufferGeometry, p: Box) {
 /** A/B for measurements (window.__parsaSurf.bevels(on)): swap the merged part meshes between their bevelled and their
  *  plain geometry */
 const bevelSwap: { mesh: THREE.Mesh; bevelled: THREE.BufferGeometry; plain: THREE.BufferGeometry }[] = [];
-export function setBevels(on: boolean) { for (const s of bevelSwap) s.mesh.geometry = on ? s.bevelled : s.plain; }
+/** s15 (D-386): the flat copies for the A/B are kept only with ?bevelab (they were a second geometry of every architecture mesh) */
+const BEVEL_AB = typeof location !== 'undefined' && new URLSearchParams(location.search).has('bevelab');
+export function setBevels(on: boolean) { if (!BEVEL_AB) console.warn('[bevels] load with ?bevelab for the A/B'); for (const s of bevelSwap) s.mesh.geometry = on ? s.bevelled : s.plain; }
 if (typeof globalThis !== 'undefined') (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), bevels: setBevels };
 
 /** Column geometry in local space (base at y = 0, top at the order's height): the sculpted order (sculpt.ts, D-018).
@@ -597,7 +599,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     const roof = ps.every(p => p.kind === 'roof');
     // a timber roof takes the roof surface: cedar with reed matting on its underside, the ceiling (D-188)
     const m = new THREE.Mesh(g, roof ? roofMaterial(mat === 'timber' && !flatMode ? surfaceMaterial('roof_timber', { arch: true }) : archMaterial(mat as Material)) : extra === 'frame' ? frameMaterial(mat)! : archMaterial(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}${extra ? ':' + extra : ''}`;
-    if (opts.dynamicDoors) bevelSwap.push({ mesh: m, bevelled: g, plain: mergeGeometries(plain)! }); // the world's build only
+    if (opts.dynamicDoors && BEVEL_AB) bevelSwap.push({ mesh: m, bevelled: g, plain: mergeGeometries(plain)! }); // the world's build only (?bevelab)
     m.userData = { tier, src: [...new Set(ps.map(p => p.src))].join(';'), placeholder: ph === '1', building, note: extra === 'frame'
       ? `stone frames (${[...new Set(ps.map(p => p.kind))].join(', ')}): three stepped fasciae round the opening and the cavetto (Egyptian gorge) cornice with its tongues, after the rock tombs' doorways (global.r_frame_profile, C; D-330), carved on the Blender-baked trim (worn, chipped arrises)`
       : `greybox (Phase 2): ${[...new Set(ps.map(p => p.kind))].join(', ')}` };

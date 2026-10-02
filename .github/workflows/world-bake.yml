@@ -1,0 +1,36 @@
+# The baked world (D-354, D-386): every pure-CPU unit of the world build (the town plan, the mud-brick faces, the fill, the
+# grime map, the fords, the hills' landform maps, the fitted costumes) computed by a node build of the world from git alone
+# and checked against the live build (tests/world_cache.test.ts). The deploy (GitHub Pages) runs the same bake before
+# `vite build` (`npm run bake:world`, or `uses: ./.github/workflows/world-bake.yml` and the `world-cache` artifact); the page
+# reads an entry only when its source hash equals the built tree's (world-cache/src.json), else it builds that unit live.
+name: world bake
+on:
+  push:
+    branches: [s14-int, cloud-s15-load, 'cloud-s15-*']
+    paths: ['src/**', 'public/generated/**', 'public/models/**', 'tools/bake_world/**', '.github/workflows/world-bake.yml', 'package-lock.json']
+  workflow_dispatch:
+  workflow_call:
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: bake the world (node build of the world, collected units)
+        run: npm run bake:world
+      - name: the baked units equal the live build
+        run: npx vitest run tests/world_cache.test.ts
+        env:
+          NODE_OPTIONS: --max-old-space-size=6000
+      - uses: actions/upload-artifact@v4
+        with:
+          name: world-cache
+          path: public/world-cache/
+          retention-days: 7

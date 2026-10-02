@@ -1,5 +1,5 @@
 {
- "about": "s14/load (D-354): the baked world's units. A unit's source hash covers its entry modules, every module they import under src/ (tools/bake_world/srchash.mjs), and its data inputs; a change to any of them makes its cache entry stale and the page builds it live. Bump version to invalidate by hand.",
+ "about": "s14/load (D-354): the baked world's units. A unit's source hash covers its entry modules, every module they import under src/ (tools/bake_world/srchash.mjs), and its data inputs; a change to any of them makes its cache entry stale and the page builds it live. Bump version to invalidate by hand. s15 (D-386): the units the build takes synchronously (townplan, mudface, fill, crossings, grime) are preloaded at its start and baked by tools/bake_world/bake.ts from a node build of the world (the collector); 'keyed' says what the runtime key hashes.",
  "units": {
   "outfits": {
    "version": 1,
@@ -42,9 +42,57 @@
    "version": 1,
    "entries": [
     "src/arch/mudface.ts",
-    "src/world/cache/geo.ts"
+    "src/world/cache/geo.ts",
+    "src/arch/meshes.ts"
    ],
    "keyed": "the parts (partsKey) hashed into the key; each face by the hash of its input geometry and gain"
+  },
+  "townplan": {
+   "version": 1,
+   "entries": [
+    "src/world/settlement/plan.ts",
+    "src/world/cache/pack.ts"
+   ],
+   "keyed": "v1 (the plan has no runtime input)"
+  },
+  "fill": {
+   "version": 1,
+   "entries": [
+    "src/world/fillPlan.ts",
+    "src/world/settlement/plan.ts",
+    "src/world/plain/villagesite.ts",
+    "src/world/plain/villages.ts",
+    "src/world/plain/rivers.ts",
+    "src/world/plain/canals.ts"
+   ],
+   "inputs": [
+    "public/generated/terrain.json",
+    "public/generated/terrain_near.u16",
+    "public/generated/terrain_mid.u16",
+    "public/generated/terrain_far.u16"
+   ],
+   "keyed": "the seed, the town on or off, the number of villages"
+  },
+  "crossings": {
+   "version": 1,
+   "entries": [
+    "src/world/plain/crossings.ts"
+   ],
+   "keyed": "the rivers' lines and the village tracks hashed at load"
+  },
+  "grime": {
+   "version": 1,
+   "entries": [
+    "src/render/grime.ts",
+    "src/world/settlement/plan.ts"
+   ],
+   "inputs": [
+    "public/generated/terrain.json",
+    "public/generated/terrain_near.u16",
+    "public/generated/terrain_mid.u16",
+    "public/generated/terrain_far.u16"
+   ],
+   "keyed": "the seed, the fires' kinds and places and the street doors hashed at load"
   }
  }
 }

@@ -10,6 +10,8 @@
 //  - at the Kur, which is too deep to ford from March to May, a round hide boat (Herodotus 1.194's river boats of hide on
 //    a willow frame, B for Mesopotamia; C here) lies upturned on the bank with its pole.
 // The crossing points are where the settlement.json roads, as drawn (settlement/water.ts meander), cut the river centrelines.
+import { cachedSync } from '../cache/worldCache';
+import { hashArrays } from '../cache/pack';
 import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Terrain } from '../../terrain/heightfield';
@@ -60,6 +62,12 @@ export function roadRiverCrossings(rivers: RiverProfile[], roads = settlementRoa
   return out;
 }
 
+/** D-386: the crossings from the baked world when the rivers and tracks are unchanged (the key hashes them; the roads are data
+ *  in the unit's sources): ~3.5 s */
+function crossingsOf(rivers: RiverProfile[], tracks: { id: string; pts: [number, number][]; width: number }[]): Crossing[] {
+  const a: number[] = []; for (const r of rivers) { a.push(r.x.length, ...Array.from(r.x), ...Array.from(r.y)); } for (const t of tracks) { a.push(t.pts.length, t.width); for (const p of t.pts) a.push(p[0], p[1]); }
+  return cachedSync('crossings', `${rivers.map(r => r.id).join(',')}|${hashArrays(a)}`, () => roadRiverCrossings(rivers, settlementRoads(), tracks));
+}
 /** village tracks are straight lines between villages (ribbons.ts trackLines) that know nothing of the rivers: where one runs
  *  along a channel (within 45 deg of the stream) it is moved out onto the bank it is on, 8 m past the channel's top edge;
  *  where it crosses (a steeper angle) it is left to its ford */
@@ -100,7 +108,7 @@ function paint(g: THREE.BufferGeometry, c: THREE.Color, jitter = 0, rng?: Rng, s
  *  limestone, whose albedo the rubble surface shares */
 export function buildCrossings(terrain: Terrain, rivers: RiverProfile[], seed = 1, tracks: { id: string; pts: [number, number][]; width: number }[] = [], share: THREE.Mesh | null = null): CrossingBuild {
   const group = new THREE.Group(); group.name = 'plain-crossings';
-  const court = terrain.meta.court_asl, crossings = roadRiverCrossings(rivers, settlementRoads(), tracks), boxes: Box[] = [];
+  const court = terrain.meta.court_asl, crossings = crossingsOf(rivers, tracks), boxes: Box[] = [];
   const stones: THREE.BufferGeometry[] = [], wood: THREE.BufferGeometry[] = [];
   let nStones = 0, nSteps = 0, nBoats = 0; const detail: FordDetailSites = { tiles: [], steps: [], boats: [], fords: [] };
   for (const c of crossings) {
