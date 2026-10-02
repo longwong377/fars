@@ -69,9 +69,24 @@ function put(unit: string, key: string, s: string | undefined, v: unknown) {
 }
 const why = (s: string | undefined, e: Entry | undefined) => (nodeB?.mode === 'bake' ? 'baking' : !s ? 'no source hash (unit not in units.json, or no dev server)' : !e ? 'not baked' : 'stale');
 export async function verify(unit: string, a0: unknown, b0: unknown) {
-  const a = identity(a0), b = identity(b0), d = a === b ? '' : firstDiff(strip(a0), strip(b0), unit);
+  const a = identity(a0), b = identity(b0), d = a === b ? '' : `${firstDiff(strip(a0), strip(b0), unit)}; ${drift(strip(a0), strip(b0))}`;
   (cacheStats as any).verify = { ...(cacheStats as any).verify, [unit]: a === b ? 'identical' : `MISMATCH ${d}` };
   console.info('[world-cache] verify', unit, a === b ? 'identical' : `MISMATCH at ${d}`);
+}
+/** over the whole of two values: are they the same shape (keys, lengths, strings, integers), and how many numbers differ and by
+ *  how much (node's and the browser's Math.sin differ in the last bit: a float32 attribute can round one ulp apart) */
+function drift(a: any, b: any): string {
+  let shape = true, n = 0, maxAbs = 0, total = 0;
+  const num = (x: number, y: number) => { total++; if (!Object.is(x, y)) { n++; const d = Math.abs(x - y); if (Number.isFinite(d)) maxAbs = Math.max(maxAbs, d / Math.max(1, Math.abs(x))); else shape = false; } };
+  const walk = (x: any, y: any) => {
+    if (ArrayBuffer.isView(x) && ArrayBuffer.isView(y)) { const X = x as any, Y = y as any; if (X.length !== Y.length) { shape = false; return; } for (let i = 0; i < X.length; i++) num(X[i], Y[i]); return; }
+    if (x instanceof Set || x instanceof Map) return walk([...x], y instanceof Set || y instanceof Map ? [...y] : y);
+    if (typeof x === 'number' && typeof y === 'number') { if (Number.isInteger(x) && Number.isInteger(y) && x !== y && Math.abs(x - y) >= 1) shape = false; else num(x, y); return; }
+    if (x === null || y === null || typeof x !== 'object' || typeof y !== 'object') { if (x !== y && !(x === undefined || y === undefined)) shape = false; return; }
+    if (Array.isArray(x)) { if (!Array.isArray(y) || x.length !== y.length) { shape = false; return; } for (let i = 0; i < x.length; i++) walk(x[i], y[i]); return; }
+    for (const k of new Set([...Object.keys(x), ...Object.keys(y)])) walk(x[k], y[k]);
+  };
+  walk(a, b); return `shape ${shape ? 'same' : 'DIFFERENT'}, ${n} of ${total} numbers differ, max relative ${maxAbs.toExponential(1)}`;
 }
 /** where two values first differ (the baked one, then the live one): a path and the two values there */
 function firstDiff(a: any, b: any, path: string, depth = 0): string {
@@ -83,8 +98,8 @@ function firstDiff(a: any, b: any, path: string, depth = 0): string {
   if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return Object.is(a, b) ? '' : `${path}: ${show(a)} vs ${show(b)}`;
   if (Array.isArray(a) !== Array.isArray(b)) return `${path}: array vs object`;
   if (Array.isArray(a)) { if (a.length !== b.length) return `${path}: length ${a.length} vs ${b.length}`; for (let i = 0; i < a.length; i++) { const r = firstDiff(a[i], b[i], `${path}[${i}]`, depth + 1); if (r) return r; } return ''; }
-  const ks = [...new Set([...Object.keys(a), ...Object.keys(b)])];
-  for (const k of ks) { if (!(k in a) || !(k in b)) return `${path}.${k}: ${k in a ? 'only baked' : 'only live'}`; const r = firstDiff(a[k], b[k], `${path}.${k}`, depth + 1); if (r) return r; }
+  const has = (o: any, k: string) => o[k] !== undefined && typeof o[k] !== 'function', ks = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(k => has(a, k) || has(b, k));
+  for (const k of ks) { if (!has(a, k) || !has(b, k)) return `${path}.${k}: ${has(a, k) ? 'only baked' : 'only live'}`; const r = firstDiff(a[k], b[k], `${path}.${k}`, depth + 1); if (r) return r; }
   return '';
 }
 export const verifying = () => param() === 'verify';
