@@ -44,11 +44,16 @@ const u01 = (...v: number[]) => h32(...v) / 4294967296;
 const dayDiff = (a: number, b: number) => ((a - b) % YEAR + YEAR + YEAR / 2) % YEAR - YEAR / 2; // a - b on the year's circle
 
 /** the plot items near grid (e, n) on day-of-year `doy`: the harvest's sheaves and stooks, the plough's ard (pure: the page and the census) */
-export function fieldItems(zm: ZoneMap, e: number, n: number, doy: number, R: number = FIELD_R.near): FieldItem[] {
-  const out: FieldItem[] = [], seen = new Set<number>(), S = FIELD_R.step;
+export function fieldItems(zm: ZoneMap, e: number, n: number, doy: number, R: number = FIELD_R.near, cache?: Map<number, FieldItem[]>): FieldItem[] {
+  const all: FieldItem[] = [], seen = new Set<number>(), S = FIELD_R.step;
   for (let x = Math.floor((e - R) / S) * S; x <= e + R; x += S) for (let y = Math.floor((n - R) / S) * S; y <= n + R; y += S) {
     const p = plotAt(x, -y); if (seen.has(p.h)) continue; seen.add(p.h);
-    const u = landUseAt(zm, x, -y); if (u.use !== 'irrigated' && u.use !== 'rainfed') continue;
+    const hit = cache?.get(p.h); if (hit) { all.push(...hit); continue; }
+    const out: FieldItem[] = []; plotItems(p, x, y, out); cache?.set(p.h, out); all.push(...out);
+  }
+  return all.filter(it => Math.hypot(it.e - e, it.n - n) <= R);
+  function plotItems(p: ReturnType<typeof plotAt>, x: number, y: number, out: FieldItem[]) {
+    const u = landUseAt(zm, x, -y); if (u.use !== 'irrigated' && u.use !== 'rainfed') return;
     const H = HARVEST[u.row], ca = Math.cos(p.angle), sa = Math.sin(p.angle);
     // the plot's own grid in its strip frame (world x, z), from its seed: rows along the strip (the sowing ran with the plough)
     const grid = (sp: number, salt: number, f: (wx: number, wz: number, k: number) => void) => {
@@ -56,7 +61,6 @@ export function fieldItems(zm: ZoneMap, e: number, n: number, doy: number, R: nu
       for (let i = -nu; i <= nu; i++) for (let j = -nv; j <= nv; j++) {
         const ju = (unit(hash2(cellU(i), cellU(j), (p.h + salt) >>> 0)) - 0.5) * sp * 0.5, jv = (unit(hash2(cellU(j), cellU(i), (p.h + salt + 1) >>> 0)) - 0.5) * sp * 0.4;
         const uu = i * sp + ju, vv = j * sp + jv, wx = p.seed[0] + uu * ca - vv * sa, wz = p.seed[1] + uu * sa + vv * ca;
-        if (Math.hypot(wx - e, -wz - n) > R) continue;
         const q = plotAt(wx, wz); if (q.h !== p.h || q.edge < 1.5) continue;
         const vz = vergeZone(wx, -wz); if (vz && vz.zone !== 'verge') continue;
         f(wx, wz, i * 1000 + j); } };
@@ -72,7 +76,6 @@ export function fieldItems(zm: ZoneMap, e: number, n: number, doy: number, R: nu
       let done = false; grid(9, 52, (wx, wz, k) => { if (done || plotAt(wx, wz).edge > 4) return; done = true; out.push({ m: 'wo_ard', e: wx, n: -wz, rot: -p.angle + (u01(p.h, k, 53) - 0.5) * 0.6, s: [1, 1, 1], shade: 0.9 + 0.2 * u01(p.h, 54) }); });
     }
   }
-  return out;
 }
 
 /** each village's floor and fold by day-of-year (pure) */
@@ -105,7 +108,7 @@ export class FieldFill {
   private slots = new Map<M, Slot[][]>();
   private last: [number, number] = [1e9, 1e9]; private lastDoy = -1; private vItems: FieldItem[] = []; private vDoy = -1;
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private up = new THREE.Vector3(0, 1, 0); private p = new THREE.Vector3(); private sc = new THREE.Vector3(); private c = new THREE.Color();
-  readonly missing: string[] = []; drawn = 0;
+  readonly missing: string[] = []; drawn = 0; private plotCache = new Map<number, FieldItem[]>();
   constructor(private zm: ZoneMap, private villages: FieldVillage[], private ground: (e: number, n: number) => number, private open?: (e: number, n: number) => boolean) {
     this.group.name = 'plain-field-fill';
     this.group.userData = { tier: 'C', src: 'RECON', note: 'the farm year near the walker (D-560): sheaves and stooks on the cut cereal plots, the threshing floors\' season (sledge, grain heaps, straw), the straw stacks to spring, an ard at a plot being ploughed, the villages\' thorn folds; all C, modelled (tools/blender/model_props.py)' };
@@ -131,8 +134,8 @@ export class FieldFill {
     if (!this.slots.size) return false;
     if (!force && doy === this.lastDoy && Math.hypot(viewer[0] - this.last[0], viewer[1] - this.last[1]) < FIELD_R.move) return false;
     this.last = [viewer[0], viewer[1]]; this.lastDoy = doy;
-    if (doy !== this.vDoy) { this.vDoy = doy; this.vItems = villageItems(this.villages, doy, this.open); }
-    const items = [...fieldItems(this.zm, viewer[0], viewer[1], doy), ...this.vItems.filter(it => Math.hypot(it.e - viewer[0], it.n - viewer[1]) < FIELD_R.far)];
+    if (doy !== this.vDoy) { this.vDoy = doy; this.vItems = villageItems(this.villages, doy, this.open); this.plotCache.clear(); } if (this.plotCache.size > 4000) this.plotCache.clear();
+    const items = [...fieldItems(this.zm, viewer[0], viewer[1], doy, FIELD_R.near, this.plotCache), ...this.vItems.filter(it => Math.hypot(it.e - viewer[0], it.n - viewer[1]) < FIELD_R.far)];
     items.sort((a, b) => Math.hypot(a.e - viewer[0], a.n - viewer[1]) - Math.hypot(b.e - viewer[0], b.n - viewer[1])); // (the nearest first when a cap is reached)
     for (const L of this.slots.values()) for (const S of L) for (const s of S) s.n = 0;
     let drawn = 0;
