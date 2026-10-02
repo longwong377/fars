@@ -19,6 +19,15 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
   reasons (a 2-4 year old follows the mother; their plans are pinned by people_days, left as they are).
 - The soak per seed (task 4) did not run this session (the box was given to the B230 comparison and the talk work).
 
+## For the Vagon lead (now)
+- **Overlap:** the cloud session on branch `cloud-s15-load` (D-386) is doing your s14-load task (the world build baked at
+  site build time). Its node bake already equals the live build (scene hash 7c9d0d8c, 1,210 meshes; node build 91 s -> 59 s)
+  and adds a GitHub Actions workflow (`.github/workflows/world-bake.yml`). Compare it with s14-load before merging either;
+  the merge note goes at the top of bench-reports/load_s15.md.
+- **Still not wired:** `sim.strangerSeen(near, at)` (people greet, bow, stare or avoid the stranger on sight; a village child
+  tags along). The simulation decides; nothing on screen plays it yet.
+- Decision numbers: the cloud used D-380..D-391; from now on, D-450 and up.
+
 ## The playtest bot's year (a scripted stranger talking for 355 days, seeds 1 and 7), and what was fixed (D-391)
 - **Was broken:** from about day 55 the town refused to talk to him in 85 % of turns (2,146 of 2,520). Every house that privately
   doubted his story lowered his standing with everyone, and the story reached about 9,000 houses. Now a doubt is that house's
