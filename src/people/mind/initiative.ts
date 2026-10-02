@@ -2,7 +2,8 @@
 // (a generator the living world steps across frames, D-388): in order,
 //   1. feelings and needs acted on (minds.ts deeds(): anger, gratitude, a hungry house borrowing, friends visited), except
 //      where a goal of revenge or of peace pursues the pair step by step;
-//   2. the day's life: the house of yesterday's dead visited and comforted by friends, a new child's mother brought food by kin;
+//   2. the day's life: a new child's mother brought food by kin, the house of the dead in grief (the comfort and the help the
+//      economy's deaths, illnesses and fires call for are minds.ts observe's, D-459);
 //   3. goals pursued: every goal whose next step falls today takes it (goals.ts), deeds and laid stretches of the day plans;
 //   4. goals formed: a tenth of the town considered each day (each person every ten days), a goal born of their own state;
 //   5. the places won: tomorrow's work with the master laid and paid;
@@ -49,24 +50,11 @@ export class Initiative implements GoalHost {
     return { v: v < -1 ? -1 : v > 1 ? 1 : v, word };
   }
   depthOfDeed(id: number) { return this.deedDepth.get(id) ?? 1; }
-  private evSeen = -1;
   private frictions(day: number) {
     const W = this.W, P = W.w.pop, M = W.minds, st = this.stats, n = (k: string) => { st.src[k] = (st.src[k] ?? 0) + 1; };
     const C = P.cal?.ctx(day);
     if (C) for (const [a, x] of C.disputes) { if (!P.persons[a] || !P.persons[x.other]) continue;
       const pe = personaOf(P, a, day); M.move(a, x.other, { anger: 0.25 + 0.35 * pe.temper + 0.1 * pe.pride, aff: -0.04 }, day); n('quarrel'); }
-    const E = W.w.econ(day); if (!E) return; if (this.evSeen < 0 || this.evSeen > E.events.length) this.evSeen = E.events.length;
-    const head = (h: string | undefined) => h && /^h:\d+$/.test(h) ? this.goals.head(+h.slice(2), day) : -1;
-    for (; this.evSeen < E.events.length; this.evSeen++) { const e = E.events[this.evSeen]; if (!e || e.day > day + 1) continue;
-      const a = head(e.actor), b = head(e.other); if (a < 0 || b < 0 || a === b) continue;
-      switch (e.kind) {
-        case 'theft': if (u01(W.w.seed, S.life, e.id, 7) < 0.45) { M.move(b, a, { anger: 0.55, aff: -0.3 }, day); n('econ'); } break; // (found out: C)
-        case 'pledge_seized': M.move(b, a, { anger: 0.4, aff: -0.15 }, day); n('econ'); break;
-        case 'suit': M.move(b, a, { anger: 0.3, fear: 0.15 }, day); M.move(a, b, { anger: 0.3, resp: -0.1 }, day); n('econ'); break;
-        case 'default': M.move(b, a, { anger: 0.3, resp: -0.1 }, day); n('econ'); break;
-        case 'loan': M.move(a, b, { grat: 0.3 }, day); n('econ'); break;
-        case 'neighbours_help': M.move(b, a, { grat: 0.45, aff: 0.1 }, day); n('econ'); break;
-      } }
   }
   formed(g: Goal) { this.stats.chains[g.depth] = (this.stats.chains[g.depth] ?? 0) + 1; if (g.depth >= 3 && this.stats.examples.length < 12) this.stats.examples.push(this.chainOf(g)); }
 
@@ -81,16 +69,15 @@ export class Initiative implements GoalHost {
     const own: Deed[] = []; for (const _ of W.minds.deedParts(day, own, 300, (a, b) => this.goals.holds(a, b))) { slice('feeling'); yield; resume(); }
     for (const d of own) { done(W.own(d, day, k++), 'feeling'); if (k % 4 === 0) { slice('feeling'); yield; resume(); } }
     // 2. the day's life: the dead mourned with the house, a new child's mother brought food
-    if (day > 0) { const L = P.lifeOn(day - 1), seenH = new Set<number>();
-      for (const x of L.deaths) { const h = P.home(x, day - 1); if (seenH.has(h) || !['town', 'plain'].includes(P.households[h]?.zone ?? '')) continue; seenH.add(h);
-        const head = this.goals.head(h, day); if (head < 0) continue; const ties = new Set<number>(); for (const m of P.households[h].members) for (const t2 of P.persons[m].ties) if (P.home(t2, day) !== h) ties.add(t2);
-        let n = 0; for (const f of ties) { if (n >= 3 || !P.present(f, day) || P.ageOn(f, day) < 14) continue; if (u01(W.w.seed, S.life, f, day) < 0.6) { done(W.own({ verb: 'comfort', actor: f, target: head, aim: 'to sit with the house of the dead' }, day, k++, 16 + 3 * u01(W.w.seed, S.life, f, day, 1)), 'life'); n++; } } }
+    if (day > 0) { const L = P.lifeOn(day - 1);
       for (const b of L.births) { const mo = P.persons[b]?.mother ?? -1; if (mo < 0 || !P.present(mo, day)) continue; this.mood(mo, day, 0.5, 'glad of the new child');
-        const kin = P.persons[mo].mother; if (kin >= 0 && P.present(kin, day) && P.home(kin, day) !== P.home(mo, day)) done(W.own({ verb: 'give', actor: kin, target: mo, good: 'food', qty: 2, aim: 'food for the mother of the new child' }, day, k++, 11), 'life'); }
+        // (her mother, if she lives in another house, else the head of a kin house: C)
+        const gm = P.persons[mo].mother, hk = P.households[P.home(mo, day)]?.kin.find(k => k !== P.home(mo, day) && P.households[k]), kin = gm >= 0 && P.present(gm, day) && P.home(gm, day) !== P.home(mo, day) ? gm : hk !== undefined ? W.minds.headOf(hk, day) ?? -1 : -1;
+        if (kin >= 0 && kin !== mo) done(W.own({ verb: 'give', actor: kin, target: mo, good: 'food', qty: 2, aim: 'food for the mother of the new child' }, day, k++, 11), 'life'); }
       for (const x of L.deaths) for (const m of P.households[P.home(x, day - 1)]?.members ?? []) if (m !== x && P.present(m, day)) this.mood(m, day, -0.5, 'grieving');
       slice('life'); yield; resume(); }
-    // 2b. the town's own frictions and kindnesses: the calendar's quarrels (E-74) and the economy's wrongs and help move the
-    // feelings of the people of the houses (the heads: C), so anger, grudges and gratitude arise without any stranger
+    // 2b. the town's own frictions: the calendar's quarrels (E-74) move the feelings of the two who quarrel (the economy's wrongs
+    // and help are felt in engine.ts dayParts: minds.observe), so anger and grudges arise without any stranger
     this.frictions(day); slice('frictions'); yield; resume();
     // 3. goals pursued (each on its own day)
     const due = [...this.goals.active.values()].filter(g => g.next <= day); let n = 0;
@@ -157,6 +144,6 @@ export class Initiative implements GoalHost {
 
   save() {
     return { g: this.goals.save(), m: [...this.moods], c: this.cursor, st: { ...this.stats, examples: this.stats.examples.slice(0, 12) } }; }
-  load(s: ReturnType<Initiative['save']> | undefined) { this.evSeen = -1; this.moods.clear(); this.deedDepth.clear(); this.cursor = 0; this.seen = 0; this.goals.load(s?.g);
+  load(s: ReturnType<Initiative['save']> | undefined) { this.moods.clear(); this.deedDepth.clear(); this.cursor = 0; this.seen = 0; this.goals.load(s?.g);
     if (!s) return; for (const [k, v] of s.m) this.moods.set(k, v); this.cursor = s.c; Object.assign(this.stats, s.st); }
 }

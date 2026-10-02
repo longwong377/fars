@@ -196,6 +196,7 @@ describe('language lint: every source that can reach the canvas', () => {
     'src/ui/shell.ts': 'title screen, menus and settings', 'src/ui/overlay.ts': 'dev overlay (F3)',
     'src/world/bench.ts': 'bench mode report (?bench)', 'src/main.ts': 'the boot-failure message',
     'src/people/converse/ui.ts': 'speaking with the people (?converse, D-296): the typing box and the reply in the translation layer (English)', 'src/dev/converseLab.ts': 'the conversation lab page (converse.html, dev only, D-296)',
+    'src/shell/progress.ts': "the loading screen's progress (D-393; English, before the world is shown)",
   };
   const TEXT_3D = /\b(TextGeometry|textPanelGeometry|layoutText|carvedGeometry|carvedBlockGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
   const CANVAS_TEXT = /\b(fillText|strokeText)\b/;
