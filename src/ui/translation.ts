@@ -194,6 +194,7 @@ export class TranslationLayer {
   private panel = el('div', 'tl-panel');
   private mapCanvas = document.createElement('canvas');
   private mode: 'none' | 'map' | 'chronicle' = 'none';
+  private chronSig = ''; private subSig = '';
   private zoom = 0; private drawn = { zoom: -1, e: 0, n: 0, yaw: 0, t: 0 };
   private ray = new THREE.Raycaster(); private lastPick = 0; private picked: { id: string; version: string } | null = null;
   constructor(private settings: () => Settings) {
@@ -214,8 +215,10 @@ export class TranslationLayer {
     // subtitles: shown for 3 s + reading time
     const sb = ctx.subtitle, show = sb && ctx.now - ctx.subtitleAt < 3 + (sb.gloss.length + sb.translit.length) / 18;
     this.sub.hidden = !show;
-    if (show && sb) { const src = sb.lineId ? LINE_BY_ID.get(sb.lineId)?.def.src : undefined;
+    const subSig = show && sb ? `${sb.lineId ?? ''}|${sb.translit}|${sb.gloss}|${ctx.subtitleAt}` : '';
+    if (show && sb && subSig !== this.subSig) { const src = sb.lineId ? LINE_BY_ID.get(sb.lineId)?.def.src : undefined;
       this.sub.replaceChildren(el('div', 'tl-orig', sb.translit), el('div', 'tl-gloss', `“${sb.gloss}”`), el('div', 'tl-meta', `${LANG_NAMES[sb.lang as LangId] ?? sb.lang} · tier ${sb.tier}${src ? ` · ${src}` : ''}`)); }
+    this.subSig = subSig; // (rebuilt only when the line changes: its fade-in plays once)
     // inscriptions under the crosshair
     if (ctx.now - this.lastPick > 0.25 && ctx.inscriptions) {
       this.lastPick = ctx.now; this.ray.setFromCamera(new THREE.Vector2(0, 0), ctx.camera); this.ray.far = 80;
@@ -234,16 +237,30 @@ export class TranslationLayer {
       if (d.zoom !== this.zoom || (ctx.now - d.t > 0.2 && (Math.hypot(p.e - d.e, p.n - d.n) > 2 * this.metresPerPx() || Math.abs(p.yawDeg - d.yaw) > 2))) {
         this.drawMap(ctx); Object.assign(d, { zoom: this.zoom, e: p.e, n: p.n, yaw: p.yawDeg, t: ctx.now });
         const Z = MAP_ZOOMS[this.zoom];
-        this.panel.replaceChildren(el('h2', '', `Map (translation layer): ${Z.name}`), this.mapCanvas, el('div', 'small', this.zoom === 0
+        this.panel.replaceChildren(el('h2', '', `Map · ${Z.name}`), this.mapCanvas, el('div', 'small', this.zoom === 0
           ? 'Grid north up (341° true). Footprints: OpenStreetMap ruin traces and the Phase 4 corrections. Z: wider view. M closes.'
           : 'Grid north up (341° true), centred on you. What the world builds: town plots, roads, water, rivers, canals, villages and sites, as reconstructed. Solid outline: tier A/B; dashed: tier C (reconstructed). Z: next scale. M closes.'));
       }
     } else this.drawn.zoom = -1;
     if (this.mode === 'chronicle') {
-      const list = el('div', 'tl-chron');
-      for (const ev of ctx.events.slice(-40).reverse()) { const p = ctx.places[ev.place]; list.append(el('div', 'row', `${ctx.timeLabel(ev.t)} — ${ev.text}${p ? ` (${placeLabel(ev.place)})` : ''}${ev.tier ? ` · tier ${ev.tier}` : ''}`)); }
-      this.panel.replaceChildren(el('h2', '', 'Chronicle (translation layer)'), list.childElementCount ? list : el('p', 'small', 'Nothing noted yet.'), el('div', 'small', 'Events the simulation records. J closes.'));
-    }
+      // s17 C5 (D-590): a journal, newest first, grouped by day; rebuilt only when the record changes (it was rebuilt every
+      // frame, which also reset its scroll)
+      const evs = ctx.events, last = evs[evs.length - 1], sig = `${evs.length}|${last?.t ?? ''}|${last?.text ?? ''}`;
+      if (sig !== this.chronSig || !this.panel.firstChild) { this.chronSig = sig;
+        const list = el('div', 'tl-chron'); let day = -1;
+        for (const ev of evs.slice(-60).reverse()) {
+          const d = Math.floor(ev.t / 24);
+          if (d !== day) { day = d; list.append(el('div', 'chron-day', `Day ${d + 1}`)); }
+          const lab = ctx.timeLabel(ev.t), time = lab.includes(', ') ? lab.split(', ').pop()! : lab;
+          const row = el('div', 'chron-ev'), body = el('div', 'x', ev.text), meta = el('span', 'm');
+          if (ev.kind) meta.append(el('span', 'kind', ev.kind.replace(/[_-]/g, ' ')));
+          meta.append([ctx.places[ev.place] ? placeLabel(ev.place) : '', ev.tier ? `tier ${ev.tier}` : ''].filter(Boolean).join(' · '));
+          body.append(meta); row.append(el('div', 't', time), body); list.append(row);
+        }
+        const head = el('div', 'chron-head'); head.append(el('h2', '', 'Chronicle'), el('div', 'small', 'What the people of this world did and what befell them, as the simulation records it. Translation layer · J closes.'));
+        this.panel.replaceChildren(head, list.childElementCount ? list : el('p', 'small', 'Nothing noted yet.'));
+      }
+    } else this.chronSig = '';
   }
 
   private inscriptionView(id: string, version: string): HTMLElement[] {
@@ -268,20 +285,24 @@ export class TranslationLayer {
     c.fillStyle = '#1b1712'; c.fillRect(0, 0, W, H);
     if (Z.half && ctx.mapLayers) this.drawLayers(c, ctx.mapLayers(), px, py, sc, [x0, x1, y0, y1]);
     const PRESENT_KEY: Record<string, string> = { museum_modern: '', modern_roof_a1bf0b: '', palace_h: 'palace_h', palace_a3_osm: 'palace_a3', unfinished_gate: 'unfinished_gate', tomb_a2: 'tombs_rahmat' };
-    for (const [k, f] of Object.entries(FOOTPRINTS)) {
+    // the platform first, then the buildings on it, then every label over all of them (D-590: the terrace, last in the file,
+    // was painted over the buildings and their labels)
+    const fps = Object.entries(FOOTPRINTS).sort(([a], [b]) => (b === 'terrace' ? 1 : 0) - (a === 'terrace' ? 1 : 0)), labels: (() => void)[] = [];
+    for (const [k, f] of fps) {
       if (k.startsWith('_') || !(f as any).polygon) continue;
       const pk = PRESENT_KEY[k] ?? k; if (pk === '' || (k !== 'terrace' && !present(pk))) continue;
       c.beginPath(); (f as any).polygon.forEach(([e, n]: [number, number], i: number) => (i ? c.lineTo(px(e), py(n)) : c.moveTo(px(e), py(n)))); c.closePath();
       c.fillStyle = k === 'terrace' ? '#3a332a' : '#6b5e4a'; c.strokeStyle = '#c9a25e'; c.lineWidth = k === 'terrace' ? 2 : 1; c.fill(); c.stroke();
-      if (k !== 'terrace' && !Z.half) { const [ce, cn] = (f as any).centroid; c.fillStyle = '#eee3cf'; c.font = '13px Georgia'; c.textAlign = 'center'; c.fillText(FOOTPRINT_LABEL[k] ?? k.replace(/_/g, ' '), px(ce), py(cn)); }
+      if (k !== 'terrace' && !Z.half) labels.push(() => { const [ce, cn] = (f as any).centroid; c.fillStyle = '#eee3cf'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.textAlign = 'center'; c.fillText(FOOTPRINT_LABEL[k] ?? k.replace(/_/g, ' '), px(ce), py(cn)); });
     }
-    if (Z.half) { c.fillStyle = '#eee3cf'; c.font = '13px Georgia'; c.textAlign = 'center'; c.fillText('Terrace', px(100), py(-10) - (Z.half > 5000 ? 8 : 0)); }
+    c.save(); c.shadowColor = 'rgba(0,0,0,0.9)'; c.shadowBlur = 4; for (const l of labels) l(); c.restore();
+    if (Z.half) { c.fillStyle = '#eee3cf'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.textAlign = 'center'; c.fillText('Terrace', px(100), py(-10) - (Z.half > 5000 ? 8 : 0)); }
     // the visitor: position and facing
     const { e, n, yawDeg } = ctx.player, a = (yawDeg * Math.PI) / 180;
     c.save(); c.translate(px(e), py(n)); c.rotate(a); c.fillStyle = '#ffd27a'; c.beginPath(); c.moveTo(0, -12); c.lineTo(7, 8); c.lineTo(-7, 8); c.closePath(); c.fill(); c.restore();
     // scale bar
     const bar = Z.bar, label = bar >= 1000 ? `${bar / 1000} km` : `${bar} m`;
-    c.strokeStyle = '#eee3cf'; c.lineWidth = 2; c.beginPath(); c.moveTo(30, H - 30); c.lineTo(30 + bar * sc, H - 30); c.stroke(); c.fillStyle = '#eee3cf'; c.textAlign = 'left'; c.font = '13px Georgia'; c.fillText(label, 30, H - 38);
+    c.strokeStyle = '#eee3cf'; c.lineWidth = 2; c.beginPath(); c.moveTo(30, H - 30); c.lineTo(30 + bar * sc, H - 30); c.stroke(); c.fillStyle = '#eee3cf'; c.textAlign = 'left'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.fillText(label, 30, H - 38);
   }
 
   private drawLayers(c: CanvasRenderingContext2D, items: MapItem[], px: (e: number) => number, py: (n: number) => number, sc: number, box: [number, number, number, number]) {
@@ -311,7 +332,7 @@ export class TranslationLayer {
         if (name && !/^unlocated/i.test(name)) labels.push([name + (it.tier === 'C' ? ' (C)' : ''), px(e), py(n)]);
       }
     }
-    c.setLineDash([]); c.fillStyle = '#eee3cf'; c.font = '12px Georgia'; c.textAlign = 'left';
+    c.setLineDash([]); c.fillStyle = '#eee3cf'; c.font = "13px 'Alegreya Sans', sans-serif"; c.textAlign = 'left';
     const used: [number, number][] = []; // skip labels that would overprint an earlier one
     for (const [t, x, y] of labels) { if (used.some(([ux, uy]) => Math.abs(ux - x) < 90 && Math.abs(uy - y) < 14)) continue; used.push([x, y]); c.fillText(t, x + 6, y + 4); }
   }
