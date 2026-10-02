@@ -90,7 +90,7 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   let answer = fact ? await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: [], userText: `The stranger says: “${hearAsPerson(said).text}” (Answer as ${L.name}. What you remember: ${fact} Tell him that, in your own words, keeping what happened and who it was.)` })
     : await mind.answer(L, knows, o.history ?? [], said, o.prose, 64, { memory: near ? [] : memory, note, before, ground });
   const tag = answer.intent ?? null;
-  const ask = request ?? (tagAsked(tag, said) ? tag : null); // (a tag the stranger's words give no cue for is the model's, not an ask)
+  const ask = request ?? (!sb?.act && tagAsked(tag, said) ? tag : null); // (a tag the stranger’s words give no cue for is the model’s, not an ask; D-391: nor one that overrides a sandbox ask)
   // (a "no" in the words: the refuse tag; else, when something was asked, the judge (the loaded model: YES or NO), and the
   // word list only when the judge gives no clear answer)
   let judged: boolean | null = null;

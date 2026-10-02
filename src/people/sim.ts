@@ -157,6 +157,10 @@ export class PeopleSim {
   private econCore(): Economy {
     if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true }); this.econSnap = null;
       // (D-370: the stranger hears each house in the tongue of its head: their origin's home language)
+      // D-391 (the bot: houses asked a stranger for a hand, then refused him when he asked): the season's field work (a pure function of the day: the economy replays the same)
+      this.econ.stranger().opts.needOf = (id: string, day: number) => { const H = this.econ?.hh.get(id);
+        if (H && (H.kind === 'farmer' || H.kind === 'rich')) { const A = this.cal.ctx(day).agri; for (const [e, w] of [['E-40', 'the ploughing and sowing'], ['E-44', 'the spring sowing'], ['E-42', 'the wheat harvest'], ['E-43', 'the threshing'], ['E-45', 'the vintage']] as const) if (A.has(e)) return w; }
+        return ''; };
       this.econ.stranger().opts.langOf = (id: string) => { const H = this.pop.households[Number(id.slice(2))]; const o = H ? this.pop.persons[H.members[0]]?.origin : undefined; return (o && HOME_LANG[o]) || 'Elamite'; }; }
     return this.econ;
   }
@@ -375,6 +379,8 @@ export class PeopleSim {
       // (D-370: "your word for bread": the person teaches the word of their tongue, when the lexicon has one)
       const want = /\bword for (?:a |an |the )?([a-z]+)/i.exec(said)?.[1]?.toLowerCase(), L = LEX_LABEL[act.lang];
       if (want && L) { const w = unitsFor(L).words.find(x => new RegExp(`\\b${want}`, 'i').test(x.gloss ?? '')); if (w) act.word = w.id; } }
+    // D-391 (the bot: a wages petition never named the debtor): one who says "he owes me" means the house that does
+    if (act.a === 'petition' && act.kind === 'wages' && !act.against) act.against = E.stranger().debtor();
     const verdict = E.stranger().judge(act);
     // D-391 (the playtest bot: 9-11 of 11 asks for work refused): a house with no work for a stranger says where there is some,
     // a house of the same quarter that needs a hand (its head named), else the king's works that take men on (C)
