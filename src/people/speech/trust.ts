@@ -43,7 +43,7 @@ const DEEDS: Record<string, Deed> = {
   // D-370: the stranger's deeds (speech/stranger.ts); `other` is the stranger when a house acts on them
   wage_paid: { who: 'other', pub: 0.01, dyad: 0.06 }, wage_owed: { who: 'actor', pub: -0.03, dyad: 0 }, dismissed: { who: 'other', pub: -0.05, dyad: -0.3 },
   hand_hired: { who: 'other', pub: 0.03, dyad: 0.15 }, hosted: { who: 'actor', pub: 0.02, dyad: 0.05 }, guest_repaid: { who: 'actor', pub: 0.05, dyad: 0.25 },
-  ingrate: { who: 'actor', pub: -0.15, dyad: -0.45 }, guest_sent_away: { who: 'other', pub: -0.03, dyad: -0.15 }, claim_doubted: { who: 'other', pub: 0, dyad: -0.3 },
+  ingrate: { who: 'actor', pub: -0.03, dyad: -0.45 }, guest_sent_away: { who: 'other', pub: -0.03, dyad: -0.15 }, claim_doubted: { who: 'other', pub: 0, dyad: -0.3 },
   claim_denied: { who: 'other', pub: -0.10, dyad: -0.5 }, learned_tongue: { who: 'actor', pub: 0.03, dyad: 0.12 }, joined_house: { who: 'other', pub: 0.03, dyad: 0.3 },
   ruling_for: { who: 'other', pub: 0.04, dyad: 0 }, ruling_against: { who: 'other', pub: -0.03, dyad: 0 }, halmi_sealed: { who: 'other', pub: 0.06, dyad: 0 },
 };

@@ -259,7 +259,9 @@ export class Stranger {
   private payday(day: number) {
     const J = this.job!, H = this.H(J.employer)!; J.lastPay = day; if (J.owed <= 0) return;
     const pG = this.E.price('grain', day), due = J.owed * WAGE_GRAIN;
-    const g = Math.min(due, Math.max(0, H.grain - H.eaters * GRAIN_EAT * 15)), rest = (due - g) * pG, c = Math.min(rest, H.cash);
+    // (D-453: a house that pays in silver, or has silver to spare, pays a share of the wage in silver: the hand's silver for the market)
+    const silverShare = J.wage === 'cash' ? 1 : H.cash > due * pG * 4 ? 0.3 : 0, c0 = Math.min(due * silverShare * pG, H.cash);
+    const g = Math.min(due - c0 / pG, Math.max(0, H.grain - H.eaters * GRAIN_EAT * 15)), rest = (due - g) * pG - c0, c = c0 + Math.max(0, Math.min(rest, H.cash - c0));
     H.grain -= g; H.cash -= c; this.purse.grain += g; this.purse.cash += c; const paid = g + c / pG;
     J.owed = Math.max(0, J.owed - paid / WAGE_GRAIN);
     if (paid > 0.01) this.ev('wage_paid', [J.ev], J.employer, PLAYER, +paid.toFixed(2));
@@ -486,13 +488,19 @@ export class Stranger {
     if (H.grain < H.eaters * GRAIN_EAT * 8 && H.cause.food === undefined) H.cause.food = this.ev('guest_strain', [St.ev], St.host, PLAYER); // a poor host goes short
     if (!working && St.nights > CUSTOM_NIGHTS && St.owed > 0.01) { // (a guest who works or gives keeps the welcome)
       if (this.E.trust) this.E.trust.note(St.host, PLAYER, -0.03, day); // patience thins after the custom's three nights (C)
-      if (St.nights >= SENT_AWAY) { this.ev('guest_sent_away', [St.ev], St.host, PLAYER); this.endStay(day); }
+      if (St.nights >= SENT_AWAY) { this.ev('guest_sent_away', [St.ev], St.host, PLAYER); this.endStay(day, true); }
     }
   }
-  private endStay(day: number) {
+  private endStay(day: number, sentAway = false) {
     const St = this.stay; if (!St) return; this.stay = null; if (this.job?.employer === St.host) this.job.host = false;
+    // D-453 (the bot's year: a guest with a full sack who thanked and left was branded an ingrate a month later, house after
+    // house): a guest leaves the host a share of his own grain for his keep, as custom asks (C); what he cannot cover stays owed
+    const pG = this.E.price('grain', day), H = this.H(St.host);
+    if (!sentAway && St.owed > 0.005 && H && !H.dead && this.purse.grain > GRAIN_EAT * 3) { const g = Math.min(this.purse.grain - GRAIN_EAT * 3, St.owed / pG);
+      if (g > 0.05) { this.purse.grain -= g; St.owed = Math.max(0, St.owed - g * pG); this.E.enter({ kind: 'help', from: PLAYER, to: St.host, day, payload: { grain: g, causes: [] } }); } }
     const e = this.ev('guest_left', [St.ev], PLAYER, St.host, St.nights);
-    if (St.owed > 0.005) this.debtors.push({ host: St.host, owed: St.owed, due: day + GRATITUDE_DAYS, ev: e, given: 0 });
+    // (sent away: the house has already said its piece; no second, later mark for the same stay)
+    if (St.owed > 0.005 && !sentAway) this.debtors.push({ host: St.host, owed: St.owed, due: day + GRATITUDE_DAYS, ev: e, given: 0 });
   }
   private give(hh: string, g: number, c: number, day: number): Verdict {
     const v = this.judge({ a: 'give', day, hh, grain: g, cash: c }); if (!v.ok) return v; const H = this.H(hh); if (!H) return { ok: false, why: 'no such house' };

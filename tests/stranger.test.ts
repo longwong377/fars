@@ -109,6 +109,10 @@ describe('D-370 the stranger in the simulation', () => {
     const e3 = town(80), S3 = e3.stranger(); S3.purse.cash = 0; S3.purse.grain = 0;
     S3.do({ a: 'stay', day: 80, hh: host.id }); step(e3, 3); S3.do({ a: 'leave_stay', day: e3.day }); S3.purse.cash = 0; S3.purse.grain = 0;
     step(e3, 31); expect(evs(e3, 'ingrate').length).toBe(0); expect(S3.stayCheck(host.id, e3.day).ok).toBe(true);
+    // D-453: a guest with grain in his sack leaves the host a share for his keep: thanks, not a bad name
+    const e4 = town(80), S4 = e4.stranger(); S4.purse.cash = 0; S4.purse.grain = 200; const h4 = e4.hh.get(host.id)!;
+    S4.do({ a: 'stay', day: 80, hh: host.id }); step(e4, 4); const g4 = h4.grain; S4.do({ a: 'leave_stay', day: e4.day });
+    step(e4, 31); expect(evs(e4, 'ingrate').length).toBe(0); expect(S4.purse.grain).toBeLessThan(200); void g4; expect(e4.events.some(v => v?.kind === 'given' && v.actor === host.id)).toBe(true);
   });
   it('(10) groups: a treasury gang feeds its member; a household takes in a known, trusted hand', () => {
     const e = town(90), S = e.stranger();
