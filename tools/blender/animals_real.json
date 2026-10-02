@@ -1,0 +1,334 @@
+{
+ "about": "V5 D-520: species drawn from ready-made, realistically textured library models (Objaverse = Sketchfab, each under its own licence; ASSET_LEDGER.md) by tools/blender/animals_real.mjs. Per species: uid and shard (huggingface.co/datasets/allenai/objaverse glbs/<shard>/<uid>.glb), name, author, licence, class; optional rot (deg about up, overrides the head-end search), kz (height factor), drop (object-name substrings left out).",
+ "classes": {
+  "large": {
+   "tris": [
+    7000,
+    1400
+   ],
+   "tex": 1024
+  },
+  "medium": {
+   "tris": [
+    6000,
+    1200
+   ],
+   "tex": 1024
+  },
+  "small": {
+   "tris": [
+    5000,
+    1000
+   ],
+   "tex": 1024
+  },
+  "tiny": {
+   "tris": [
+    3000,
+    600
+   ],
+   "tex": 512
+  },
+  "fowl": {
+   "tris": [
+    3200,
+    640
+   ],
+   "tex": 512
+  }
+ },
+ "lod1_per_len": 14,
+ "species": {
+  "donkey": {
+   "class": "medium",
+   "uid": "54b3933b79a84b608c6e498c072061a9",
+   "shard": "000-125",
+   "name": "Wild- Ass",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    0.72,
+    0.64,
+    0.56
+   ]
+  },
+  "onager": {
+   "class": "medium",
+   "uid": "54b3933b79a84b608c6e498c072061a9",
+   "shard": "000-125",
+   "name": "Wild- Ass",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    1,
+    0.8,
+    0.58
+   ]
+  },
+  "sheep": {
+   "class": "small",
+   "uid": "67abff7459f34afca11e3effab62c761",
+   "shard": "000-085",
+   "name": "Sheep",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0"
+  },
+  "goat": {
+   "class": "small",
+   "uid": "2624ac2ce2364930ba2d5f70eb7aa1ea",
+   "shard": "000-049",
+   "name": "Goat",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0"
+  },
+  "cow": {
+   "class": "large",
+   "uid": "dc8185e4e21747fb8b394e40d3ec125a",
+   "shard": "000-121",
+   "name": "Cow",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0"
+  },
+  "horse": {
+   "class": "large",
+   "uid": "d5b01ea213cd490eaf98d0fb68848306",
+   "shard": "000-137",
+   "name": "horse",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0"
+  },
+  "dog": {
+   "class": "small",
+   "uid": "c421cc55801544d1b40d30478fb9d88f",
+   "shard": "000-057",
+   "name": "Dog rigged",
+   "author": "Nyilonelycompany",
+   "licence": "CC-BY-4.0",
+   "drop": [
+    "Circle",
+    "Plane",
+    "Sphere"
+   ]
+  },
+  "dromedary": {
+   "class": "large",
+   "uid": "3a62c9769cf84eef82560b64f87f829a",
+   "shard": "000-015",
+   "name": "Dromader",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tail_r": 0
+  },
+  "hen": {
+   "class": "fowl",
+   "uid": "ce17aabc51ba47bfbc7342a963b095e9",
+   "shard": "000-062",
+   "name": "Chicken",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    0.95,
+    0.85,
+    0.7
+   ]
+  },
+  "cock": {
+   "class": "fowl",
+   "uid": "ce17aabc51ba47bfbc7342a963b095e9",
+   "shard": "000-062",
+   "name": "Chicken",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0"
+  },
+  "wolf": {
+   "class": "medium",
+   "uid": "89ea539d69214bc6ac40cdde06e4fd4c",
+   "shard": "000-079",
+   "name": "wolf",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0"
+  },
+  "lion": {
+   "class": "large",
+   "uid": "5c22becbd9454eb4ac5ef27295ba7883",
+   "shard": "000-141",
+   "name": "lion",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0"
+  },
+  "lioness": {
+   "class": "medium",
+   "uid": "a67e56b654584551a2a65c43418464fa",
+   "shard": "000-135",
+   "name": "lioness",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0"
+  },
+  "cheetah": {
+   "class": "medium",
+   "uid": "118f0648bae148ea94177d25ba16da8e",
+   "shard": "000-005",
+   "name": "cheetah",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0"
+  },
+  "leopard": {
+   "class": "medium",
+   "uid": "2528ea73ca62461c9b300a1ff216521e",
+   "shard": "000-019",
+   "name": "leopard",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0"
+  },
+  "hyena": {
+   "class": "medium",
+   "uid": "f74b47c36a10443388905407958db591",
+   "shard": "000-111",
+   "name": "Hyena",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0"
+  },
+  "fox": {
+   "class": "small",
+   "uid": "18c703d755694c6f9ca108fbcd74ff91",
+   "shard": "000-132",
+   "name": "fox",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0"
+  },
+  "gazelle_m": {
+   "class": "small",
+   "uid": "4afbf4bd95764e32b8a29168cb2549da",
+   "shard": "000-050",
+   "name": "Gazelle",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0"
+  },
+  "stag": {
+   "class": "medium",
+   "uid": "0523afd3e60c42119a726fc6c52eedbc",
+   "shard": "000-000",
+   "name": "deer",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0"
+  },
+  "ox": {
+   "class": "large",
+   "uid": "dc8185e4e21747fb8b394e40d3ec125a",
+   "shard": "000-121",
+   "name": "Cow",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    0.62,
+    0.5,
+    0.42
+   ]
+  },
+  "mule": {
+   "class": "large",
+   "uid": "54b3933b79a84b608c6e498c072061a9",
+   "shard": "000-125",
+   "name": "Wild- Ass",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    0.42,
+    0.32,
+    0.25
+   ]
+  },
+  "calf": {
+   "class": "medium",
+   "uid": "dc8185e4e21747fb8b394e40d3ec125a",
+   "shard": "000-121",
+   "name": "Cow",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0"
+  },
+  "deer": {
+   "class": "medium",
+   "uid": "b2a51a01d28942fea938b5f7766e324d",
+   "shard": "000-017",
+   "name": "Deer Female (Non-commercial)",
+   "author": "Nyilonelycompany",
+   "licence": "CC-BY-NC-4.0"
+  },
+  "gazelle": {
+   "class": "small",
+   "uid": "b2a51a01d28942fea938b5f7766e324d",
+   "shard": "000-017",
+   "name": "Deer Female (Non-commercial)",
+   "author": "Nyilonelycompany",
+   "licence": "CC-BY-NC-4.0",
+   "tint": [
+    1.15,
+    0.95,
+    0.72
+   ]
+  },
+  "wild_goat": {
+   "class": "medium",
+   "uid": "2624ac2ce2364930ba2d5f70eb7aa1ea",
+   "shard": "000-049",
+   "name": "Goat",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    0.95,
+    0.8,
+    0.62
+   ]
+  },
+  "urial": {
+   "class": "medium",
+   "uid": "2624ac2ce2364930ba2d5f70eb7aa1ea",
+   "shard": "000-049",
+   "name": "Goat",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    1,
+    0.78,
+    0.55
+   ]
+  },
+  "donkey_pack": {
+   "class": "medium",
+   "uid": "54b3933b79a84b608c6e498c072061a9",
+   "shard": "000-125",
+   "name": "Wild- Ass",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    0.72,
+    0.64,
+    0.56
+   ],
+   "gear": true
+  },
+  "mule_pack": {
+   "class": "large",
+   "uid": "54b3933b79a84b608c6e498c072061a9",
+   "shard": "000-125",
+   "name": "Wild- Ass",
+   "author": "hendrikReyneke",
+   "licence": "CC-BY-4.0",
+   "tint": [
+    0.42,
+    0.32,
+    0.25
+   ],
+   "gear": true
+  },
+  "horse_saddle": {
+   "class": "large",
+   "uid": "d5b01ea213cd490eaf98d0fb68848306",
+   "shard": "000-137",
+   "name": "horse",
+   "author": "dinomaster",
+   "licence": "CC-BY-4.0",
+   "gear": true
+  }
+ }
+}

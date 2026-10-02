@@ -3,7 +3,8 @@
 // hashes the anatomy, not this file): they are computed at load, per vertex of each level (animalModels.ts rigLevel).
 import { smoothstep } from '../arch/sdf';
 import { ANIMAL_BUILD, type Species } from './animals';
-import { animalForm, type Group, type Prim } from './animalForm';
+import { animalForm, ell, cone, type Group, type Prim, type Form, type V3 } from './animalForm';
+import { realRig, type RealRig } from './animalReal';
 
 /** the rig attributes of a loaded level's vertices (animals.ts: aLeg = (gait phase, leg weight, knee weight, fore/hind),
  *  aPiv = (hip y, z, knee y, z), aHT = (head weight, tail weight, pivot y, z)), from the anatomy: each vertex follows the
@@ -12,21 +13,26 @@ import { animalForm, type Group, type Prim } from './animalForm';
  *  the head's along the neck from its root to its middle (the neck bends along its length, as a neck does, instead of
  *  hinging at one ring). The pivots and angles are the procedural rig's, so every gait, graze and lie cycle of the vertex
  *  shader drives the modelled body unchanged (tests/animal_models.test.ts: no edge torn in any pose). */
-export function rigWeights(sp: Species, pos: ArrayLike<number>): { leg: Float32Array; piv: Float32Array; ht: Float32Array; jig: Float32Array } {
-  const F = animalForm(sp), R = F.rig, B = ANIMAL_BUILD[sp], n = pos.length / 3, g = B.girth;
+export function rigWeights(sp: Species, pos: ArrayLike<number>, F: Form = realForm(sp) ?? animalForm(sp)): { leg: Float32Array; piv: Float32Array; ht: Float32Array; jig: Float32Array } {
+  const R = F.rig, B = ANIMAL_BUILD[sp], n = pos.length / 3, g = B.girth;
   const leg = new Float32Array(n * 4), piv = new Float32Array(n * 4), ht = new Float32Array(n * 4), jig = new Float32Array(n * 4);
   const byG = new Map<Group, Prim[]>(); for (const p of F.prims) { const k = p.group === 'gear' ? 'body' : p.group; if (!byG.has(k)) byG.set(k, []); byG.get(k)!.push(p); }
   const J = jigParts(sp, F);
   const dG = (G: Group, x: number, y: number, z: number) => { let d = 1e9; for (const p of byG.get(G) ?? []) { const lb = Math.sqrt((x - p.c[0]) ** 2 + (y - p.c[1]) ** 2 + (z - p.c[2]) ** 2) - p.R; if (lb > d) continue; const v = p.f(x, y, z); if (v < d) d = v; } return d; };
-  const kS = Math.max(0.012, 0.9 * B.headR), kL = Math.max(0.02, 0.16 * g), kH = Math.max(0.02, 0.16 * g), kT = Math.max(0.01, 0.07 * g);
+  const kS = Math.max(0.012, 0.9 * B.headR), kL = Math.max(0.02, (F.real ? 0.3 : 0.16) * g), kH = Math.max(0.02, (F.real ? 0.3 : 0.16) * g), kT = Math.max(0.01, 0.07 * g);
   const nLeg = R.legs.length, nd = R.neckDir;
   for (let i = 0; i < n; i++) {
     const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
     const db = dG('body', x, y, z), dn = dG('head', x, y, z), dsk = dG('skull', x, y, z), dh = Math.min(dn, dsk), dt = dG('tail', x, y, z);
     let li = 0, dl = 1e9; for (let j = 0; j < nLeg; j++) { const d = dG(`leg${j}` as Group, x, y, z); if (d < dl) { dl = d; li = j; } }
     const L = R.legs[li];
-    const wl = smoothstep(-kL, kL, Math.min(db, dh, dt) - dl) * smoothstep(R.hipY + 0.08 * g, R.hipY - 0.3 * g, y);
-    const wk = smoothstep(R.kneeY + B.leg * 1.4, R.kneeY - B.leg * 1.4, y) * smoothstep(0.2, 0.8, wl);
+    let wl = smoothstep(-kL, kL, Math.min(db, dh, dt) - dl) * smoothstep(R.hipY + 0.08 * g, R.hipY - 0.3 * g, y);
+    // (a library model: no leg weight on the midline, where both sides' legs are equally near (the belly between them); the
+    // knee bent over a band wide enough for its coarser triangles)
+    if (F.real) { const lat = smoothstep(0.05 * F.real.halfW, 0.3 * F.real.halfW, x * Math.sign(L.x || 1)); wl *= 1 - (1 - lat) * smoothstep(R.kneeY * 0.8, R.kneeY * 1.3, y);
+      wl *= smoothstep(-0.02, 0.04, dt - dl); } // (the tail's hair hanging between the hocks follows the tail, not the legs)
+    const kb = F.real ? F.real.kneeBand : B.leg * 1.4;
+    const wk = smoothstep(R.kneeY + kb, R.kneeY - kb, y) * smoothstep(0.2, 0.8, wl);
     leg.set([L.phase, wl, wk, L.fore], i * 4); piv.set([R.hipY, L.z, R.kneeY, L.zk], i * 4);
     const tN = ((x - R.base[0]) * nd[0] + (y - R.base[1]) * nd[1] + (z - R.base[2]) * nd[2]) / R.neck;
     const wh = smoothstep(-kH, kH, Math.min(db, dl, dt) - dh) * smoothstep(-0.25, 0.7, tN) * (1 - wl);
@@ -86,4 +92,37 @@ export function jigParts(sp: Species, F: ReturnType<typeof animalForm>) {
       if (w > 0) { out[3] = w * (0.02 + Math.max(0, loadTop - y)); out[0] *= 1 - w; } } // (a load does not breathe)
     return out;
   };
+}
+
+/** V5 D-520: the rig's form for a library model (animalReal.ts): capsules and an ellipsoid on the model's measured landmarks
+ *  stand in for the anatomy's parts, so rigWeights assigns each vertex to the same groups (torso, four legs, neck, skull,
+ *  tail) by the same distances and blends, and the vertex shader's pivots are the model's own. null: no library model */
+const REAL_FORMS = new Map<RealRig, Form>();
+export function realForm(sp: Species): Form | null {
+  const R = realRig(sp); if (!R) return null;
+  let F = REAL_FORMS.get(R); if (F) return F;
+  const B = ANIMAL_BUILD[sp], prims: Prim[] = [];
+  const put = (s: { f: Prim['f']; c: V3; R: number }, group: Group) => prims.push({ ...s, k: 0.02, group, part: 'coat' });
+  const H = R.backY - R.bellyY, L = B.len;
+  // the torso: the barrel from the quarters to the chest
+  put(ell([0, R.bodyY, 0], [Math.max(R.halfW, 0.3 * H), 0.5 * H, 0.5 * L]), 'body');
+  R.legs.forEach((lg, i) => {
+    const hip: V3 = [lg.xh, R.hipY, lg.z], knee: V3 = [lg.x, R.kneeY, lg.zk], foot: V3 = [lg.foot[0], Math.min(lg.foot[1], 0.04), lg.foot[2]];
+    put(cone(hip, knee, Math.max(1.9 * lg.r, 0.16 * H), 1.15 * lg.r), ('leg' + i) as Group);
+    put(cone(knee, foot, 1.15 * lg.r, 0.9 * lg.r), ('leg' + i) as Group);
+  });
+  const nl = Math.hypot(R.top[1] - R.base[1], R.top[2] - R.base[2]) || 0.3, neckDir: V3 = [0, (R.top[1] - R.base[1]) / nl, (R.top[2] - R.base[2]) / nl];
+  put(cone(R.base, R.top, 0.55 * H, 0.32 * H), 'head');
+  const hl = Math.hypot(R.muzzle[1] - R.top[1], R.muzzle[2] - R.top[2]) || 0.2;
+  put(cone(R.top, R.muzzle, Math.max(0.16 * H, B.headR * 1.4), Math.max(0.09 * H, B.headR * 0.8)), 'skull');
+  const tr = R.tailRoot, tl = Math.max(0.15, 0.8 * tr[1]), tend: V3 = R.tailTip ?? [0, Math.max(0.05, tr[1] - tl), tr[2] - 0.3 * tl]; // (the measured tip of a hanging tail)
+  const tR = R.tailR ?? 0.08; if (tR > 0) put(cone(tr, tend, tR * H, 0.75 * tR * H), 'tail'); // (0: the tail stays with the quarters)
+  // the gear (pack saddle, panniers, sacks, saddle cloth) where the build set it on this back: rigid with the torso, its
+  // loads swinging as pendulums (jigParts), as on the anatomy
+  if (R.gearDy != null && B.gear) { const dy = R.gearDy, kx = R.gearKx ?? 1;
+    for (const p of animalForm(sp).prims) if (p.group === 'gear') prims.push({ ...p, f: (x, y, z) => p.f(x / kx, y - dy, z), c: [p.c[0] * kx, p.c[1] + dy, p.c[2]], R: p.R * Math.max(1, kx) }); }
+  const hd: V3 = [0, (R.muzzle[1] - R.top[1]) / hl, (R.muzzle[2] - R.top[2]) / hl];
+  F = { sp, fam: 'equid', prims, subs: [], min: R.min, max: R.max, bellyY: R.bellyY, backY: R.backY, real: { halfW: R.halfW, kneeBand: Math.max(B.leg * 1.4, 0.45 * R.kneeY) },
+    rig: { bodyY: R.bodyY, hipY: R.hipY, kneeY: R.kneeY, legs: R.legs.map(l => ({ x: l.x, z: l.z, zk: l.zk, phase: l.phase, fore: l.fore })), base: R.base, top: R.top, hd, muzzle: R.muzzle, tailRoot: R.tailRoot, neckDir, neck: nl } };
+  REAL_FORMS.set(R, F); return F;
 }
