@@ -62,7 +62,9 @@ export function tidy(text: string): string {
 /** the prompt for priming (D-296): as the stranger comes near, the model reads the person's life (the system prompt, kept
  *  under ~450 tokens: one read-in well under the GPU watchdog's ~2 s on a 1-2 B model) and the person notices the stranger
  *  (a first turn); WebLLM keeps both in its multi-round KV cache, so the question then costs only its own words. (A split
- *  into several "remember this" turns was measured and dropped: the model learnt to answer "Yes." to everything.) */
+ *  into several "remember this" turns was measured and dropped: the model learnt to answer "Yes." to everything.)
+ *  D-456: the first turn asks for a greeting in their own words: left bare, the 1.5B narrated the scene in 18 of 27 primes
+ *  ("A foreigner approaches, speaking in a different language."), and the talk went on narrating */
 export function primeParts(L: LifeRecord, knows: Knows, prose?: string | null, memory?: string[] | null): { system: string; facts: string[] } {
-  return { system: systemPrompt(L, knows, prose, memory), facts: ['(The stranger comes up to you.)'] };
+  return { system: systemPrompt(L, knows, prose, memory), facts: ['(The stranger comes up to you.) Greet him in a few words of your own.'] };
 }
