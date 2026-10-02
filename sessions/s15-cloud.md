@@ -3,56 +3,19 @@
 Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/s15/cloud.md, then the addendum cloud_talk.md (UD-31).
 
 
-## NEXT SESSION STARTS HERE (handoff, 2026-10-02 ~06:00 UTC)
-Read this section, then `git log origin/cloud-s15-depth -15`. Branch `cloud-s15-depth`; Vagon merges it into s14-int and
-deploys Pages from there (D-370..D-391 are live; D-382 onward wait for Vagon's next merge).
-- **Still running when this session ended** (collect, verify their push, archive with archive_session):
-  the soaks were archived unfinished (seed 1 stuck 3 h in the population phase on the cloud box: re-run on Vagon or alone); B230 the adult-brides branch
-  (session_01YY3WBdP7cdEqwqtZhcadWQ, branch s13-bridesmerge, comparing test failures). D-452 (spouses mutual, names
-  dealt round, visible marks: src/people/marks.ts) and D-454 landed before the handoff; see their DECISIONS rows for numbers.
-  The playtest bot is archived: its script is tools/dev/playtest_year.ts (re-run it after
-  every depth change; it found more real bugs than any test).
-- **Broken / unverified, first:** the 1.5B (D-394) heard only on Vagon's 12 lab prompts, not over the cloud's newer briefs (past, marks); `sim.strangerSeen` reactions not wired on screen; the stranger can barely buy (6/120 buys; silver never
-  accumulates: day labour, the market and selling his grain should make one loop); two converse T-E9 tests time out under
-  load (re-run alone); T-E2/T-E3v after D-452: see its DECISIONS row; approach test once flaky.
-- **Open from D-452:** T-E2 still fails for women (Persian 2.18 %, Elamite 1.65 %; ≤ 1 % needs ~171 and ~101 names, there
-  are 67: needs attested women's names, Hallock/Tavernier indices, or D-236 compositions from attested elements); prompt.ts
-  has no shorten/drop rule for the new "Plain to see on you:" line (add it before the past in both lists); history.ts
-  husbandOf still guesses its own spouse; re-run people_days_r8/r6, court, crafts, court_fill, language (names changed);
-  Vagon render hook: `marksOf(pop, pid, day)[].look` (scar_brow, limp, mourning, with_child, stoop, craft_*...).
-- **Next, in order:** (1) DONE by Vagon (D-394: Qwen2.5-1.5B; the 0.5B was incoherent); (2) wire strangerSeen (Vagon: see For the Vagon lead); (3) the stranger's living loop;
-  (4) playtest bot after each change; (5) the census gaps.
-- **Numbers:** the cloud continues from D-455 (D-450..D-454 used) (Vagon owns D-392..D-449). One DECISIONS row per package.
-- **Box rules learned:** two local agents at most; agents share this working tree, so never let one run git
-  checkout/stash/reset on files it does not own; inline `//` comments inside one-line code have twice swallowed code: put
-  them at the end of the line only.
-
-## Broken, placeholder or unverified on screen (first)
-- **Nothing here has been seen in the browser or heard with a real model.** The cloud has no GPU: every result below is a node
-  test or a node measurement; the talk is tested with the deterministic stand-in model (plumbing only).
-- **UD-31 talk on by default (D-376): unmeasured on a GPU.** Whether Qwen2.5-0.5B keeps T-E9/T-E10 grounding is unknown (the
-  next step if not: Llama-3.2-1B, ~750 MB); Kokoro fp16 vs fp32 sound unheard (A/B: `?neuraldtype=fp32`); the "five frames
-  after the world is shown" start and the 1.5 s delay before the model streams are untested in the page.
-- **Render-side hooks made by the cloud in Vagon's files (smallest possible):** src/world/world.ts (strangerPresence in the
-  audio loop; thinCaption on captions; asks: true; NeuralVoices lazy), src/main.ts (talk mounted by default; start after
-  frame 5), src/ui/shell.ts and src/core/settings.ts (the Talk setting). Review them on merge.
-- **B230 (brides branch):** merged s14-int into it locally (a8fee681, plans.ts conflict resolved: both sides kept); the three
-  named d211 failures are being compared on both trees; NOT pushed to s13-bridesmerge yet.
-- Small children's days have few distinct
-  reasons (a 2-4 year old follows the mother; their plans are pinned by people_days, left as they are).
-- The soak per seed (task 4) did not run this session (the box was given to the B230 comparison and the talk work).
-
-## Landed since the playtest (D-382..D-451)
-- D-450 (the bot's remaining findings): no digits in anything the model is told (2,207 digit runs in 200 briefs -> 0);
-  a gift's trust scaled by its worth to the house (0.1 silver: +0.146 -> +0.018); approaches varied (the commonest opening 77 %
-  -> 22 %, 4 -> 11 distinct); leave papers through an official's interpreter on some days for a newcomer with no words.
-- D-451: a person's past reaches the model (kept in 100 % of first-meeting briefs, was ~0.5 %).
-- D-390 the person census: T-E3r passes (4.51 % -> 0.73 %); T-E3 55 % -> 85 % (small children short of events, by design);
-  T-E2 (namesakes 12.9 %) and T-E3v (visible marks 0 %) still fail; one-sided spouses (~280 men per seed) found in life.ts.
-- D-382 a personality for everyone (shared manner lines 89 % -> 0 %); D-383 the court's coming in the economy; D-384 chains
-  entered by speech (90 of 247 routes); D-387 reconstructed period speech; D-388 the day's rollover sliced (4 ms slices).
-- Load (cloud-s15-load, D-386; not merged here): node world build 93 s -> 61 s from the bake (identical scene hash);
-  ArrayBuffers 1.94 -> 1.56 GB, RSS 2.73 -> 2.36 GB; unverified in a browser.
+## NEXT SESSION STARTS HERE (handoff, 2026-10-02 ~13:30 UTC, cloud lead "Fars 18", session closed by the user)
+Read **sessions/s15-cloud-report.md** first (the state of the game, for the user). Everything of the cloud is consolidated on
+`cloud-s15-depth`; every cloud session of today is merged and archived (D-455..D-463, B230, names, talk eval, talk16).
+- **Live (s14-int 9cb464ee, deployed):** Vagon's s16-candidate + the boot fix (D-463). NOT live: cloud-s15-depth (open deeds,
+  minds, goals, law, physical deeds, market stallholders, names, brides, talk-eval fixes): its built site reaches ready at the
+  same speed but +0.2 GB page memory, so the merge budget kept it off s14-int; the user or Vagon decides.
+- **Open, first:** nothing of today played or seen; B403 the late save 2.28 MB (gate 1 MB) and the restore limit; the minds
+  ~187 ms a game day; too many betrothals; econ_plans layering problems (deeds laid into a mother's day after the child's plan
+  was cached); the deed-reading eval with the model not run (tools/dev/talkeval/deeds.ts, 150 labelled lines); sentences on
+  the stranger not enforced; free speech to women mostly refused by the manners rule; people_days* not run after the merges.
+- **Next, in order:** (1) play it (Vagon); (2) decide the +0.2 GB merge; (3) B403 and the minds' cost; (4) the voice post-filter
+  and the deed-reading eval; (5) betrothals and econ_plans layering.
+- **Numbers:** the cloud continues from D-464 (D-455..D-463 used).
 
 ## For the Vagon lead (now; written 2026-10-02 06:40 UTC after reading s14-int to 72c45ec1)
 - **Merge cloud-s15-depth into s14-int: 25 commits are waiting (D-382..D-391, D-450..D-454).** s14-int is already merged into

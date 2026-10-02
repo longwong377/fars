@@ -8,14 +8,27 @@
 // (3) judgePrompt: a small judge of a reply to an ask (agrees or refuses), asked of the loaded model in two tokens, not a
 //     word list (mind.ts judge). Out of world: English, the model's brief.
 import type { LifeRecord } from './life';
+import { ageWords } from './words';
+import { hearAsPerson } from './hear';
 
 const cut = (s: string, n: number) => { const w = s.split(/\s+/); return w.length <= n ? s : w.slice(0, n).join(' '); };
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 const now = (L: LifeRecord) => cut(L.today.now.replace(/^[a-z_ ]+: /, ''), 12);
-const kinOf = (L: LifeRecord, n = 2) => L.household.slice(0, n).map(k => /^kins|^the old/.test(k.rel) ? `${k.name} (${k.rel})` : `your ${k.rel} ${k.name}`).join(' and ');
+const kinOf = (L: LifeRecord, n = 2) => L.household.slice(0, n).map(k => k.name === 'unnamed' ? `your ${k.rel.replace(/^the /, '')}` : /^kins|^the old/.test(k.rel) ? `${k.name} (${k.rel})` : `your ${k.rel} ${k.name}`).join(' and ');
+/** what a person of the town cannot know: the king's own doings, the far lands' kings, the empire's numbers, the next king */
+const UNKNOWN_Q = /\b(?:(?:the king|xerxes) (?:eat|eats|ate|drink|drinks|drank|say|said|think|thinks|thought|dream|dreamt|sleep|slept|do|does|did|wear|wears|wore)\b|king of the (?!gods)|kings? of (?:india|the indians|the greeks|egypt|the scythians)|how many (?:soldiers|men|people|horses|ships|cities|lands|peoples)\b.*\b(?:king|empire|lands|world)|(?:who|which) will (?:be king|rule|reign|sit on the throne)|be king after|after (?:king )?xerxes|next king)/;
+/** "where do you live", "take me to your house": the place, not the family */
+const WHERE_Q = /\b(?:where (?:do|does) (?:you|your (?:family|house(?:hold)?)) (?:live|stay|sleep)|where is your (?:house|home)|take me (?:to your (?:house|home)|there|home)|show me (?:your house|where you live)|lead me to your (?:house|home))\b/;
 /** the one life fact for the stranger's words (a sentence to the person, second person) */
 export function groundFact(L: LifeRecord, said: string): string {
   const s = said.toLowerCase(); const kin = kinOf(L); const job = cut(L.job, 10);
+  // D-456 (the shipped 1.5B over 200 briefs): a question the person cannot answer (a later or foreign word, what is to come,
+  // the king's own table or the far lands' kings and numbers) got the day's fact and was answered anyway ("The king ate a loaf
+  // of bread", "The king will be changed, for it is written in the stars") or passed over: the fact is now that they do not
+  // know, said first; and "where do you live" read as a question about the family (the place was named in 23 % of answers)
+  const h = hearAsPerson(said);
+  if (h.unknown.length || h.future || UNKNOWN_Q.test(s)) return `you do not know that and cannot guess it: say so plainly first, then speak of your own day: right now: ${now(L)}`;
+  if (WHERE_Q.test(s)) return `you live in ${cut(L.home.replace(/ \(a household of.*\)$/, ''), 16)}; say where it is; right now: ${now(L)}`;
   const pick: [RegExp, () => string][] = [
     // (D-371/D-373: the past, the cares and the house's real debts, before the general rules)
     [/\b(where (are|were) you (from|born)|where do you come from|grow up|grew up|your (father|parents|people)|long ago|before (this|that)|in the old days|the war|remember the)\b/, () => `you are ${L.name}${L.byname ? `, ${L.byname}` : ''}, ${L.origin}; ${L.past.slice(0, 2).map(x => cut(x, 14)).join('; ') || `you live in ${cut(L.home, 10)}`}`],
@@ -23,7 +36,7 @@ export function groundFact(L: LifeRecord, said: string): string {
     [/\b(can i help|need (any|some)thing|what do you need|need help|help you|anything i can do)\b/, () => L.needs.length ? `your house needs ${L.needs[0]}` : `your house wants for nothing just now; right now: ${now(L)}`],
     [/\b(rumou?rs?|gossip|what have you heard|heard anything|talk of the|what do people say)\b/, () => L.news.length ? L.news.join('; ') : `you have heard nothing worth telling; right now: ${now(L)}`],
     [/\b(debts?|owe|owed|owes|silver|loan|lend|borrow|money|price|poor|rich)\b/, () => L.debts.length ? `your house: ${L.debts.slice(0, 2).join('; ')}` : `your house owes no one; right now: ${now(L)}`],
-    [/\b(who are you|your name|yourself|how old)\b/, () => `you are ${L.name}${L.byname ? `, ${L.byname}` : ''}, ${L.age}, ${L.origin}${kin ? `; ${kin} live${L.household.length > 1 ? '' : 's'} with you` : ''}`],
+    [/\b(who are you|your name|yourself|how old)\b/, () => `you are ${L.name}${L.byname && L.name !== `the ${L.byname}` ? `, ${L.byname}` : ''}, ${ageWords(L.age)}, ${L.origin}${kin ? `; ${kin} live${L.household.length > 1 ? '' : 's'} with you` : ''}`],
     [/\b(family|wife|husband|children|child|son|daughter|mother|father|house|live|home|sick|ill)\b/, () => kin ? `in your house: ${kinOf(L, 3)}${L.year.find(y => /sick|died|born|married/.test(y)) ? `; ${L.year.find(y => /sick|died|born|married/.test(y))}` : ''}` : `you live with your work group; your work: ${job}`],
     [/\b(work|job|paid|pay|hard|labou?r|trade|craft)\b/, () => `your work: ${job}${L.group ? ` (${cut(L.group, 6)})` : ''}; right now: ${now(L)}`],
     [/\b(doing|today|eat|eaten|evening|tonight|morning|now|later|busy)\b/, () => `right now: ${now(L)}${L.today.next ? `; after this: ${cut(L.today.next, 10)}` : ''}`],

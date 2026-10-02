@@ -21,13 +21,13 @@ import { HOME_LANG } from './exchanges';
 import { reconstructedUnit } from '../lang/reconstruct';
 
 const S = salt('overheard');
-export interface Exchange { a: number; b: number; day: number; block: number; lang: LangId; /** the topic's key; carried: some spoken word carries it (else the topic is in the translation layer's note only: the lexicon has no word for it in that tongue) */ key: string; carried: boolean; /** D-387: the topic is carried by reconstructed period speech (tier C), the tongue having no attested word for it */ rc?: boolean; src: 'talk' | 'life' | 'market' | 'day' | 'stranger' | 'work'; topic: string; turns: { who: 'a' | 'b'; unit: Unit }[] }
+export interface Exchange { a: number; b: number; day: number; block: number; lang: LangId; /** the topic's key; carried: some spoken word carries it (else the topic is in the translation layer's note only: the lexicon has no word for it in that tongue) */ key: string; carried: boolean; /** D-387: the topic is carried by reconstructed period speech (tier C), the tongue having no attested word for it */ rc?: boolean; src: 'talk' | 'deed' | 'life' | 'market' | 'day' | 'stranger' | 'work'; topic: string; turns: { who: 'a' | 'b'; unit: Unit }[] }
 /** a topic's words: the glosses that carry it (C) */
 const TOPIC_WORDS: Record<string, RegExp> = {
   grain: /\b(bread|grain|barley|wheat|food|provisions|meal)\b/i, silver: /\b(silver|money|wage|pay|gold)\b/i, death: /\b(god|gods|father|son|heaven)\b/i,
   birth: /\b(son|house|good|happiness|well-being)\b/i, wedding: /\b(house|son|good|happiness|wine)\b/i, sickness: /\b(god|gods|protect|well-being|peace)\b/i,
   work: /\b(work|works|stone|bricks|timber|workers|labourers|column|palace|gate)\b/i, king: /\b(king|royal|palace|gate|court)\b/i, festival: /\b(god|gods|wine|bread|meat|sheep)\b/i,
-  harvest: /\b(grain|barley|earth|bread|wheat)\b/i, stranger: /\b(stranger|man|land|country|guest)\b/i, water: /\b(water|river)\b/i, weather: /\b(sky|heaven|earth|water)\b/i,
+  harvest: /\b(grain|barley|earth|bread|wheat)\b/i, deed: /\b(man|bad|evil|good|truth|lie|enemy|friend|judge)\b/i, stranger: /\b(stranger|man|land|country|guest)\b/i, water: /\b(water|river)\b/i, weather: /\b(sky|heaven|earth|water)\b/i,
 };
 /** D-387 (UD-24): what is said of a topic when the shared tongue has no attested word for it, voiced as reconstructed period
  *  speech (lang/reconstruct.ts; tier C): [what the first says, the other's answer] (C) */
@@ -43,6 +43,8 @@ const RC_SAY: Record<string, readonly (readonly [string, string])[]> = {
   festival: [['today is the feast of the god', 'there is meat and wine']],
   harvest: [['the harvest is good this year', 'the barley is in the field'], ['the barley is in the field', 'may the god give rain']],
   stranger: [['a stranger came to the town', 'may the god keep the stranger']],
+  // D-461: the deeds the minds saw and the goals they hold
+  deed: [['a man struck his neighbour', 'may the god judge him'], ['that man is an enemy of the house', 'may the god keep the house'], ['the two houses made peace', 'it is good']],
   water: [['the water is low this month', 'may the god give rain']],
   weather: [['the rain is good for the barley', 'may the god keep the field']],
 };
@@ -65,6 +67,8 @@ export class Overheard {
       const pay = T.intents[0]?.payload ?? {}, asked = Number(pay.grain ?? 0) > 0 ? 'grain' : Number(pay.cash ?? 0) > 0 ? 'silver' : Number(pay.labour ?? 0) > 0 ? 'labour' : pay.tool ? `the loan of ${pay.tool}` : pay.childcare ? 'minding the children' : '';
       const what = (T.kind === 'news' ? evk : asked || T.label || evk || T.kind) || T.kind; const key = /grain|buy|food|barley|harvest/.test(what) ? 'grain' : /death|mourn|funeral/.test(what) ? 'death' : /ill|sick/.test(what) ? 'sickness' : /loan|cash|silver|debt|default/.test(what) ? 'silver' : /labour|work|hire/.test(what) ? 'work' : /theft|suit|arrest/.test(what) ? 'king' : 'grain';
       return ['talk', key, `${T.kind === 'news' ? 'passing on the news' : T.kind === 'loan' ? 'agreeing a loan' : T.kind === 'work' ? 'agreeing a day\'s work' : T.kind === 'trade' ? 'striking a trade' : T.kind === 'help' ? 'asking for help' : 'talking over a visit'} (${what.replace(/_/g, ' ')})`]; }
+    // D-461 (UD-32): the deeds either saw or suffered in the last days, else what either is set on (mind/initiative.ts talkOf)
+    const D = sim.deeds.agency.talkOf(a, b, day); if (D) return ['deed', D[0], D[1]];
     // 2. what has happened to either house this year (the life record's own facts)
     for (const pid of [a, b]) { const L = lifeRecord(P, sim.cal, pid, day, hour), y = L.year[0];
       if (y) { const key = /died|lost|mourning/.test(y) ? 'death' : /born|had a/.test(y) ? 'birth' : /married/.test(y) ? 'wedding' : /sick/.test(y) ? 'sickness' : /harvest/.test(y) ? 'harvest' : /debt|owe|pledge|judge|silver/.test(y) ? 'silver' : /grain|barley|bread|hungry/.test(y) ? 'grain' : 'work';

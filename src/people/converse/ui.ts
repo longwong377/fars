@@ -5,6 +5,9 @@
 // people live as before. The simulation stays the source of truth (D-315, UD-21): the person stops and turns to the
 // stranger while they talk; what the stranger asks them to do is decided by the simulation and done as new steps of their
 // day (turn.ts, people/talk.ts); what passed is remembered in the save and told on to kin and friends.
+import { requestOf } from './intent';
+import { parseDeed } from '../deeds/parse';
+import { fromModel } from '../deeds/extract';
 import * as THREE from 'three/webgpu';
 import { Mind, Ears, Mic, EnglishVoice } from './mind';
 import { lifeRecord, type LifeRecord } from './life';
@@ -82,6 +85,8 @@ export function mountConverse(c: Ctx) {
     const sim = c.world.people?.sim, E = eye(), L = listeners(c.world, E);
     const H = earshot(L, { ...E, yawDeg: yaw() }, text, pid => sim?.pop.nameOf(pid), { rmsDb, ambientDb: ambientFor(c.clock.localHour) });
     state.heard = { ...H, t: sim?.t ?? 0, words: text };
+    // D-395: the heads of those in earshot turn to a shout (crowd.ts plays it: react.ts 'turn')
+    if (H.look.length) c.world.people?.crowd?.reactions?.fromHeard(H.look, [c.camera.position.x, c.camera.position.y, c.camera.position.z]);
     const to = H.to ? L.find(l => l.pid === H.to!.pid)! : null;
     return { H, near: to ? { pid: to.pid, agent: to.agent, name: sim.pop.nameOf(to.pid)?.replace(/^\*/, '') ?? '', d: H.to!.d, e: to.e, n: to.n } : null };
   }
@@ -122,7 +127,12 @@ export function mountConverse(c: Ctx) {
     if (/^\s*(everyone|all of you|good people|friends|listen|people of)/i.test(text)) { const clear = E.H.heard.filter(h => h.clear).map(h => h.pid), others = (clear.length ? clear : within(c.world, eye())).filter(p => p !== near.pid);
       for (const g of c.world.people.sim.strangerAskGroup(others, text)) if (g.verdict.ok && (g.act.a === 'claim' || g.act.a === 'hear')) c.world.people.sim.strangerDo(g.act); }
     const t0 = performance.now(); const ap = state.approach && state.approach.pid === near.pid ? state.approach.opening : undefined; if (ap) state.approach = null;
-    const T = await talkTurn(mind, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid), approached: ap }); const a = T.answer; state.busy = false;
+    // D-459 (UD-32): words the grammar reads as no deed and no ask, and that are not a plain question, are read by the model as a
+    // deed (any deed: the world and the person decide it in the turn)
+    const hourNow = sim.t - Math.floor(sim.t / 24) * 24;
+    const mdj = mind.engine && !/\?\s*$/.test(text) && !requestOf(text) && !sim.strangerAsk(near.pid, text) && !parseDeed(text, 'player', { addressee: near.pid, hour: hourNow }) ? await mind.readDeed(text) : null;
+    const mdeed = mdj ? fromModel(mdj, 'player', { addressee: near.pid, hour: hourNow, said: text, named: w => sim.namedIn(w, near.pid) }) : null;
+    const T = await talkTurn(mind, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid), approached: ap, deed: mdeed }); const a = T.answer; state.busy = false;
     hist.push({ role: 'user', content: text }, { role: 'assistant', content: a.ok ? a.text : '' }); state.history.set(near.pid, hist.slice(-8));
     let heard = null as any;
     if (a.ok) {
@@ -139,7 +149,9 @@ export function mountConverse(c: Ctx) {
       if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => play(r.data, r.rate)).catch(() => {}); } }
     // (D-370: what the sandbox step did, out of world, under the words: taken on, taken in, heard, refused and why)
     const sb = T.sandbox ? ` <br><i>(${T.sandbox.done?.ok ? SANDBOX_DONE[T.sandbox.act.a] ?? 'done' : T.sandbox.verdict.ok ? 'they would not' : T.sandbox.verdict.why})</i>` : '';
-    show((a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`) + sb, `translation layer (English, out of world); heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
+    // D-459: an open deed's outcome, out of world (what was done, or why not)
+    const dd = T.deed ? ` <br><i>(${T.deed.done?.out.ok ? `${T.deed.deed.verb.replace(/_/g, ' ')}${T.deed.deed.act ? `: ${T.deed.deed.act.replace(/_/g, ' ')}` : ''}: done` : T.deed.out.ok ? 'they would not' : T.deed.out.why})</i>` : '';
+    show((a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`) + sb + dd, `translation layer (English, out of world); heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
     const row = { pid: near.pid, name: L.name, d: +near.d.toFixed(2), said: text, reply: a.text, ok: a.ok, hits: a.hits, ms: performance.now() - t0 + heardMs, ttft: a.ttftMs, heard, key, ask: T.ask, tag: T.tag, decision: T.decision ? { kind: T.decision.kind, ok: T.decision.ok, reason: T.decision.reason, noop: !!T.decision.noop } : null, memory: T.memory };
     state.last = row; state.log.push(row); return row;
   }
