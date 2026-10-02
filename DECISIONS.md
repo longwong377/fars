@@ -9437,3 +9437,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   capital_protome). Tier C. The SDF protome stays as the flat-mode swap. The D-305 protome tests read the scan route's
   bounds within 0.08 D and its triangles within the budget. The relief film's hiding went on to 0.85 (opacity ~0.5) and the
   incision's far shade keeps a quarter of the cut's normal and a 0.6 skylight, so the texts read as soft grey script at 5-10 m.
+- **D-512 (V4, under D-510): the glazed-brick bands over the Gate's doorways.** The six 'frieze' parts of the Gate of All
+  Nations (glazed, 4.6 x 0.9 m) drew as flat blue slabs at the player's lens. They now carry the Apadana frieze's band
+  (glazed.ts doorFriezeFaces + the shared band builder): both broad faces, border courses and ground with rosettes, the
+  courses fitted to each part's height (10 courses, 5 rosettes a face), a child mesh of the Apadana frieze (one draw; the
+  Apadana frieze's own test unchanged). Colours, layout C as D-214.

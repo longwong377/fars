@@ -17,6 +17,8 @@ import { surfaceMaterial, setTraffic } from '../../src/render/materials';
 import { loadModels } from '../../src/render/models';
 import { roofEdges, wallFeet } from '../../src/arch/roofedge';
 import { loadReliefAtlas } from '../../src/render/reliefAtlas';
+import { buildGlazedFrieze } from '../../src/arch/glazed';
+import { loadDecorAssets } from '../../src/render/decorAssets';
 import { buildReliefs, buildPhase4Reliefs, loadInscriptionFonts, buildInscriptions } from '../../src/arch/decor';
 import { settleReliefs, buildReliefShadow, ReliefSet } from '../../src/arch/reliefs';
 import { setReliefShadow, refreshReliefShadow } from '../../src/render/reliefShadow';
@@ -30,6 +32,7 @@ import { setReliefShadow, refreshReliefShadow } from '../../src/render/reliefSha
   const errs: string[] = []; (r.backend as any).device?.addEventListener?.('uncapturederror', (e: any) => errs.push(String(e.error?.message).slice(0, 300)));
   await loadScans('/');
   try { await loadModels('/', r); } catch (e) { console.warn('models', e); }
+  try { await loadDecorAssets('/'); } catch (e) { console.warn('decor', e); } // the world's merlons and frame trim (D-330)
   const terrain = await Terrain.load('/');
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0.55, 0.68, 0.85);
   const tm = new TerrainMesh(terrain, 1); scene.add(tm.group);
@@ -41,6 +44,7 @@ import { setReliefShadow, refreshReliefShadow } from '../../src/render/reliefSha
   const built = buildMeshes(parts); scene.add(built.group);
   const arris = new ArrisField(built.arris, m => surfaceMaterial(m, { arch: true, band: true }), ADIST_OFF); scene.add(arris.group);
   const cren = buildStairCrenellations(parts); if (cren) scene.add(cren);
+  const glaze = buildGlazedFrieze(parts); if (glaze) scene.add(glaze);
   const fg = footGeometry(parts, undefined, (e, n) => terrain.heightAt(e, -n));
   if (fg.geo) { const m = new THREE.Mesh(fg.geo, surfaceMaterial('terrace_foot')); m.castShadow = m.receiveShadow = true; scene.add(m); }
   scene.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
