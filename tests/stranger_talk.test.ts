@@ -56,3 +56,16 @@ describe('a talk turn reaches the sandbox (turn.ts)', () => {
     expect((S as any).attended.has(d)).toBe(true);
   }, 300_000);
 });
+describe('the stranger in the people\'s own days (economy/plans.ts)', () => {
+  it('the host cooks more and makes up a bed the evening the stranger is taken in', () => {
+    const sim = new PeopleSim(1, nav, env); const d = 70; sim.jumpTo(d * 24 + 10);
+    const E = sim.econTo(d), S = E.stranger();
+    const host = [...E.hh.values()].find(h => h.kind === 'farmer' && S.stayCheck(h.id, d).ok && sim.pop.households[Number(h.id.slice(2))].members.some(m => sim.pop.persons[m].sex === 'f' && sim.pop.ageOn(m, d) >= 16))!;
+    const v = S.do({ a: 'stay', day: d, hh: host.id }); expect(v.ok).toBe(true);
+    const ev = E.events[v.ev![0]]; const day = ev.day;
+    const members = sim.pop.households[Number(host.id.slice(2))].members;
+    (sim.pop as any).planCache?.clear?.(); (sim.econPlans as any).cache?.clear?.();
+    const segs = members.flatMap(m => sim.pop.plan(m, day)).filter(s => /guest/.test(s.why));
+    expect(segs.length).toBeGreaterThan(0);
+  }, 300_000);
+});

@@ -259,6 +259,25 @@ export class EconPlans {
         step(me, 'errand', errand(7, 17, `h:${other}`, [['talk', this.dur(e, 0.2, 0.5), `bringing barley to ${K}, whose house burnt`]], ['carry_sack', `carrying barley to ${K}, whose house burnt`], ['walk', 'going home'])); break; }
       case 'house_fire': { if (me === null) break;
         step(me, 'man', summons(this.at(e, 7, 8), `h:${me}`, [['clean', this.dur(e, 3, 5), 'clearing the burnt beams and the ash of the roof: the house burnt']], ['walk', 'going home to the burnt house'], ['walk', 'going on with the day'])); break; }
+      // D-370: the stranger's dealings in the people's own days (the host, the employer, the headman, the lane's talk)
+      case 'hosted': { if (me === null) break;
+        step(me, 'woman', errand(16.5, 20, `h:${me}`, [['cook', this.dur(e, 0.6, 1.2), 'cooking a little more: a stranger asked guest-right and the house gave it'], ['clean', 0.3, 'making up a bed for the guest by the hearth']], ['walk', 'going home to see to the guest'], ['rest', 'at home'])); break; }
+      case 'guest_sent_away': { if (me === null) break;
+        step(me, 'man', errand(6, 9, `h:${me}`, [['talk', 0.3, 'telling the stranger the house can keep him no longer: the three nights of the custom are long past and he gives nothing']], ['walk', 'going home'], ['rest', 'at home'])); break; }
+      case 'ingrate': case 'guest_repaid': { if (other === null) break; const lane = `lane:${P.households[other].q}`;
+        step(other, 'woman', errand(9, 18, lane, [['talk', this.dur(e, 0.3, 0.7), e.kind === 'ingrate' ? 'telling the neighbours of the stranger who ate the house’s bread for days and went off without a word of thanks' : 'telling the neighbours of the stranger’s gift, in thanks for the house’s bread']], ['walk', 'going out to the lane'], ['walk', 'going home'])); break; }
+      case 'claim_denied': case 'claim_doubted': { if (me === null) break; const lane = `lane:${P.households[me].q}`;
+        step(me, 'errand', errand(9, 18, lane, [['talk', this.dur(e, 0.2, 0.5), e.kind === 'claim_denied' ? 'telling the neighbours the stranger who claims to be their kin is nothing of the kind' : 'telling the neighbours the stranger’s tale of himself does not hold together']], ['walk', 'going out to the lane'], ['walk', 'going home'])); break; }
+      case 'hired_stranger': { if (me === null) break;
+        step(me, 'man', errand(6, 8.5, `h:${me}`, [['talk', 0.3, 'showing the stranger taken on as a hand what the work is and what the day’s barley will be']], ['walk', 'going home'], ['walk', 'going to the work'])); break; }
+      case 'wage_owed': { if (me === null) break;
+        step(me, 'man', errand(17, 20, `h:${me}`, [['talk', 0.3, 'counting what the house owes the hired stranger; there is not enough barley to pay it this week']], ['walk', 'going home'], ['rest', 'at home'])); break; }
+      case 'stranger_petition': { if (other === null) break;
+        step(other, 'man', errand(7.5, 17, `h:${other}`, [['talk', this.dur(e, 0.3, 0.8), 'hearing a stranger’s petition, as the elder of the quarter']], ['walk', 'going home to hear a petition'], ['walk', 'going back'])); break; }
+      case 'ruling_for': case 'ruling_against': { if (me === null) break;
+        step(me, 'man', errand(7.5, 17, `h:${me}`, [['talk', 0.3, `giving judgement on the stranger’s petition: ${e.kind === 'ruling_for' ? 'for the stranger' : 'against the stranger'}`]], ['walk', 'going home'], ['walk', 'going back'])); break; }
+      case 'joined_house': { if (me === null) break;
+        step(me, 'woman', errand(17, 20.5, `h:${me}`, [['cook', 1, 'cooking a better meal: the stranger is taken into the house'], ['eat', 0.6, 'the meal that takes the stranger into the house']], ['walk', 'going home'], ['rest', 'at home'])); break; }
       case 'haggle_deal': { if (me === null || other === null) break;
         // D-359 (B235): a deal haggled between two houses (speech/haggle.ts, D-351) is walked: the selling house keeps a stall at
         // the market ground for the morning, its goods spread out, and the buying house's errand falls inside it, at the stall,
