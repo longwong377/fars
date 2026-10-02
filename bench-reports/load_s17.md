@@ -50,7 +50,10 @@ plans over frames).
 192 MB scans.ts loadGround (the ground array); 133 + 90 + 10 + 6 MB world-cache units (outfits, detail rings: zero-copy
 views, in use); 80 MB humanScans; 105 MB terrain chunks; 64 MB relief atlases' mip chains; 44 MB relief shadow plan; 34 MB
 tree bark; 34 MB tree impostor bakers; 26 MB outdoor lightmap; ~100 MB town and village geometry (Batch.toGeometry slices).
-Total live typed arrays 1.4 GB of the 3.3 GB heap; JS objects ~0.5 GB (sampling heap profile); the rest is not attributed.
+Total live typed arrays found by site 1.3-1.4 GB. CDP Runtime.getHeapUsage at ready: JS objects 567 MB, ArrayBuffer backing
+stores 2,930 MB: the memory is buffers, and ~1.5 GB of them are not caught by the constructor/fetch/message hooks (the KTX2 and
+Draco workers' results are only 100 MB of them). In ?norender nothing is uploaded, so textures and geometry the render path
+would release after upload (world/cache/release.ts) stay; headless SwiftShader may also transcode KTX2 to RGBA (4x BC7).
 
 ## What C4 changed (D-580)
 - public/sw.js + src/core/prefetch.ts: the service worker fetches a cold visit's files (dist/boot-files.json, in the order the
