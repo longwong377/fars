@@ -43,6 +43,7 @@ export interface TurnOut {
  *  the stranger's words, framed "You remember:", every time there is one; 'top': in the system brief, and with the words only on
  *  a talk's first turn or when asked about earlier meetings (run 1's layout) */
 export const talkOpts = { memory: 'near' as 'near' | 'top', /** D-315 run 4: the picked recall fact, the life fact, the judge */ pick: true };
+const KNOWS = new WeakMap<PeopleSim, Map<string, Knows>>();
 export function verdictNote(d: Decision): string {
   if (d.noop) return `You may say yes: ${d.reason}.`;
   return d.ok ? 'You can do this, if you are willing.' : `You cannot do this: ${d.reason}.`;
@@ -65,7 +66,10 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   const agent = sim.pop.persons[pid]?.agent ?? -1;
   // (run 2: one who had only heard of the stranger was told "You have never seen this stranger" and denied all of it)
   const g0: Knows = agent >= 0 ? sim.memory.greeting(agent, t) : 'none';
-  const knows: Knows = (sim.talk.rows.get(pid)?.length ?? 0) > 0 ? 'recognise' : g0 !== 'none' ? g0 : memory.length ? 'heard' : 'none';
+  // (D-456: how well they know the stranger is fixed at the talk's first turn: counted from this talk's own rows, the second
+  // turn said "You know this stranger's face", the prime changed and the model was primed afresh, the talk so far forgotten)
+  const kk = `${pid}:${o.conv}`, seen = KNOWS.get(sim) ?? new Map<string, Knows>(); KNOWS.set(sim, seen);
+  const knows: Knows = seen.get(kk) ?? ((sim.talk.rows.get(pid) ?? []).some(r => r.conv !== o.conv) ? 'recognise' : g0 !== 'none' ? g0 : memory.length ? 'heard' : 'none'); seen.set(kk, knows);
   // the ask: the grammar's, else a paraphrase by its one cued family (the simulation's word goes with the words either way)
   // D-370: no deed asked in the grammar's words: a step of the sandbox (work, guest-right, a group, who the stranger is, a
   // petition, a gift), read before the loose paraphrases (which take "may I stay the night" for "wait here"); the simulation

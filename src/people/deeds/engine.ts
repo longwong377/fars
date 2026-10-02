@@ -156,7 +156,7 @@ export class DeedWorld {
       case 'steal': { if (!g || tg === undefined) break; const seen = wit.length > 0 || u01(this.w.seed, S.law, day, typeof tg === 'number' ? tg : 0) < 0.3;
         out.push({ k: 'goods', from: tg, to: d.actor, good: g, qty: amt });
         if (tH && seen) out.push({ k: 'rumour', about: d.actor, kind: 'theft', hh: tH }, { k: 'law', offender: d.actor, victim: tg, crime: 'theft', witnessed: wit.length > 0 }); // (unseen: the house finds the loss days later: law.ts)
-        if (!seen && typeof tg === 'number') out.splice(out.findIndex(e => e.k === 'feel' && e.who === tg), 1); // (unseen: the house finds its loss, not the thief)
+        if (!seen && typeof tg === 'number') { const i = out.findIndex(e => e.k === 'feel' && e.who === tg); if (i >= 0) out.splice(i, 1); } // (unseen: the house finds its loss, not the thief)
         break; }
       case 'attack': case 'push': { if (tg === 'player') { if (d.verb === 'attack') out.push({ k: 'injury', pid: 'player', how: force >= 0.7 ? 'cut' : 'bruised', by: d.actor }); break; } // (D-460: the stranger struck by a townsman)
         if (typeof tg !== 'number') break;
