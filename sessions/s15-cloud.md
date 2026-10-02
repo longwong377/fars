@@ -6,9 +6,8 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
 ## NEXT SESSION STARTS HERE (handoff, 2026-10-02 ~13:30 UTC, cloud lead "Fars 18", session closed by the user)
 Read **sessions/s15-cloud-report.md** first (the state of the game, for the user). Everything of the cloud is consolidated on
 `cloud-s15-depth`; every cloud session of today is merged and archived (D-455..D-463, B230, names, talk eval, talk16).
-- **Live (s14-int 9cb464ee, deployed):** Vagon's s16-candidate + the boot fix (D-463). NOT live: cloud-s15-depth (open deeds,
-  minds, goals, law, physical deeds, market stallholders, names, brides, talk-eval fixes): its built site reaches ready at the
-  same speed but +0.2 GB page memory, so the merge budget kept it off s14-int; the user or Vagon decides.
+- **Live (s14-int 36adf02e+, deployed):** everything: Vagon's s16-candidate, the boot fix (D-463) and cloud-s15-depth, merged on
+  the user's word (D-464) although page memory rose 0.2 GB (owed back). **The next session is Vagon only:** sessions/s17-vagon.md.
 - **Open, first:** nothing of today played or seen; B403 the late save 2.28 MB (gate 1 MB) and the restore limit; the minds
   ~187 ms a game day; too many betrothals; econ_plans layering problems (deeds laid into a mother's day after the child's plan
   was cached); the deed-reading eval with the model not run (tools/dev/talkeval/deeds.ts, 150 labelled lines); sentences on
