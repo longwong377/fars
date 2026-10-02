@@ -21,7 +21,7 @@ import { buildTownGround, groundAt4, desireLines } from '../../src/world/plain/t
 import { buildZones, landUseAt, hash2, unit, cellU, type ZoneMap } from '../../src/world/plain/fields';
 import { buildCanals } from '../../src/world/plain/canals';
 import { placeVillages } from '../../src/world/plain/villages';
-import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, type Tree } from '../../src/world/plain/trees';
+import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, fieldTrees, type Tree } from '../../src/world/plain/trees';
 import { trackLines } from '../../src/world/plain/ribbons';
 import { settlementRoads, feature } from '../../src/world/plain/data';
 import { coverCell, COVER } from '../../src/world/plain/groundCover';
@@ -126,7 +126,8 @@ const addTree = (t: Tree, where: string) => { const r = treeInst(t.sp, t.x, 0, -
 for (const q of trees) addTree(q.t, q.where);
 const woodDone = new Set<number>();
 const ensureWood = (e: number, n: number) => { const k = sk(Math.floor(e / 200), Math.floor(n / 200)); if (woodDone.has(k)) return; woodDone.add(k);
-  const cx = (Math.floor(e / 200) + 0.5) * 200, cn = (Math.floor(n / 200) + 0.5) * 200; for (const t of woodlandTrees(Z, cx, -cn, 142)) if (Math.floor(t.x / 200) === Math.floor(e / 200) && Math.floor(t.y / 200) === Math.floor(n / 200)) addTree(t, 'woodland'); };
+  const cx = (Math.floor(e / 200) + 0.5) * 200, cn = (Math.floor(n / 200) + 0.5) * 200; for (const t of woodlandTrees(Z, cx, -cn, 142)) if (Math.floor(t.x / 200) === Math.floor(e / 200) && Math.floor(t.y / 200) === Math.floor(n / 200)) addTree(t, 'woodland');
+  for (const t of fieldTrees(Z, cx, -cn, 142)) if (Math.floor(t.x / 200) === Math.floor(e / 200) && Math.floor(t.y / 200) === Math.floor(n / 200)) addTree(t, 'field'); };
 const treesNear = (e: number, n: number, R: number) => { const out: Obj[] = []; for (let x = Math.floor((e - R) / TI); x <= Math.floor((e + R) / TI); x++) for (let y = Math.floor((n - R) / TI); y <= Math.floor((n + R) / TI); y++) for (const o of tIdx.get(sk(x, y)) ?? []) if (Math.hypot(o.e - e, o.n - n) < R) out.push(o); return out; };
 const vergeOn = !NO_VERGE;
 /** what stands in the 2 m cover cell (ix, iz) (world x = ix * C, world z = iz * C; grid n = -z) */

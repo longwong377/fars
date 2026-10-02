@@ -24,7 +24,8 @@ import { TreeKit, treeInst, speciesSize, type TreeInst } from '../trees/render';
 import { NV } from '../trees/impostor';
 import { VARIANTS, rowOf, allModels } from '../trees/model';
 import { speciesIndex, SPECIES } from '../trees/species';
-import { twinFree, sameLook } from './variety';
+import { twinFree, sameLook, resolveCell } from './variety';
+import { vergeZone } from './verge';
 
 /** a tree of the plain: grid position, species (trees.json id), height and crown width (m), seed */
 export interface Tree { x: number; y: number; sp: string; h: number; w: number; seed: number }
@@ -141,6 +142,29 @@ export function woodlandTrees(zm: ZoneMap, cx: number, cz: number, R: number): T
     const hu = unit(hash2(a, b, 56)), sz = speciesSize(sp, hu, 0.5);
     out.push({ x, y: -z, sp, h: sz.h, w: sp === 'oak' ? 2 * r : sz.w, seed: hash2(a, b, 57) & 0x3fffffff });
   }
+  return out;
+}
+/** s17 (D-560): the lone trees of the fields: on the bunds between the plots (a point of a 40 m jittered cell, kept on a quarter of the cells
+ *  where it falls within 2.5 m of a plot's edge), by the irrigated plots mulberry, poplar, willow and
+ *  plane, by the rain-fed almond, wild pistachio and tamarisk (C: the trees a farmer leaves or plants on a field's edge for
+ *  fodder leaves, fruit, shade and timber); none on the roads and tracks (verge.ts). About 35 a square kilometre of fields,
+ *  evaluated round the camera like the woodland (index.ts: the near set and the mid ring); copies turned (variety.ts) */
+export const FIELD_TREE = { cell: 40, edge: 2.5, keep: 0.26 } as const;
+function fieldTreeCell(zm: ZoneMap, i: number, j: number): (Tree & { e: number; n: number })[] {
+  const C = FIELD_TREE.cell, a = cellU(i), b = cellU(j), x = (i + 0.1 + 0.8 * unit(hash2(a, b, 61))) * C, z = (j + 0.1 + 0.8 * unit(hash2(a, b, 62))) * C;
+  if (unit(hash2(a, b, 63)) > FIELD_TREE.keep) return [];
+  const u = landUseAt(zm, x, z); if ((u.use !== 'irrigated' && u.use !== 'rainfed') || u.plot.edge > FIELD_TREE.edge) return [];
+  if (vergeZone(x, -z)) return [];
+  const su = unit(hash2(a, b, 64)), sp = u.use === 'irrigated' ? (su < 0.4 ? 'mulberry' : su < 0.65 ? 'poplar' : su < 0.82 ? 'willow' : 'plane') : (su < 0.45 ? 'almond' : su < 0.8 ? 'pistachio' : 'tamarisk');
+  const { h, w } = speciesSize(sp, unit(hash2(a, b, 65)) * (sp === 'plane' ? 0.6 : 1), unit(hash2(a, b, 66)));
+  return [{ x, y: -z, sp, h, w, seed: hash2(a, b, 67) & 0x3fffffff, e: x, n: -z }];
+}
+/** the field-edge trees in a square around (x, z) (world) within R */
+export function fieldTrees(zm: ZoneMap, cx: number, cz: number, R: number): Tree[] {
+  const C = FIELD_TREE.cell, out: Tree[] = [], raw = (i: number, j: number) => fieldTreeCell(zm, i, j);
+  for (let i = Math.floor((cx - R) / C); i <= Math.floor((cx + R) / C); i++) for (let j = Math.floor((cz - R) / C); j <= Math.floor((cz + R) / C); j++) {
+    for (const t of resolveCell(i, j, C, raw, treeTwin, (t, k) => ({ ...t, seed: hash2(t.seed >>> 0, k + 1, 97) & 0x3fffffff }))) {
+      if (Math.hypot(t.x - cx, -t.y - cz) > R) continue; const { e, n, ...tr } = t; void e; void n; out.push(tr); } }
   return out;
 }
 /** Per-instance transform done in the vertex shader (used by the near crop tufts, crops.ts): instanced attributes ipos

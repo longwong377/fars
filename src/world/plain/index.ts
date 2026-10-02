@@ -23,7 +23,7 @@ import { cachedSync } from '../cache/worldCache';
 import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
 import { canalBanks, trackLines, tracksMesh } from './ribbons';
-import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, orchardRows, instOf, Tree, TREE_TAG } from './trees';
+import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, fieldTrees, orchardRows, instOf, Tree, TREE_TAG } from './trees';
 import { TRIS } from '../trees/model';
 import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, widenedFrustum, shadowSunDir, treeViewClass, VIEW_CULL, type TreeInst } from '../trees/render';
 import { nearCrops } from './crops';
@@ -158,6 +158,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const q of lineTrees) { const t = q.t; if (Math.abs(t.x - cx) < R && Math.abs(t.y - cy) < R) { const d = Math.hypot(t.x - cx, t.y - cy); if (d < R) list.push({ t, d, where: q.where }); } }
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R + 150) for (const t of treesOfPlot(p)) { const d = Math.hypot(t.x - cx, t.y - cy); if (d < R) list.push({ t, d, where: 'orchard (orchards_gardens)' }); }
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'woodland (woodland rule)' });
+    for (const t of fieldTrees(zones, cam.x, cam.z, R)) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'field-edge tree (D-560, C)' });
     list.sort((a, b) => a.d - b.d);
     const cap = MAX_LOD0 + SHADOW_N + Q.maxNear, kept = list.slice(0, cap);
     const a: TreeInst[] = [], b: TreeInst[] = [], c: TreeInst[] = [];
@@ -195,6 +196,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const R = Q.rMid, recs: TreeInst[] = [];
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R) for (const t of treesOfPlot(p)) recs.push(instOf(t, terrain, 'orchard (orchards_gardens)'));
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) recs.push(instOf(t, terrain, 'woodland (woodland rule)'));
+    for (const t of fieldTrees(zones, cam.x, cam.z, R)) recs.push(instOf(t, terrain, 'field-edge tree (D-560, C)'));
     midCount = mid.set(recs); midC.value.set(cam.x, 0, cam.z);
   };
   const syncTrunks = (p: { x: number; y: number; z: number }) => {
@@ -246,6 +248,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const q of lineTrees) add(q.t);
     for (const p of plots) if (Math.hypot(p.sx - e, p.sz + n) < R + 150) for (const t of treesOfPlot(p)) add(t);
     for (const t of woodlandTrees(zones, e, -n, R)) add(t);
+    for (const t of fieldTrees(zones, e, -n, R)) add(t);
     return out;
   };
   return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),

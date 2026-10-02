@@ -62,3 +62,15 @@ describe('the farm year near the walker (fieldFill.ts)', () => {
     expect(by(300).filter(m => m === 'wo_fodder').length).toBe(4); expect(by(30)).toContain('wo_fodder'); expect(by(110)).not.toContain('wo_fodder');
   });
 });
+import { fieldTrees } from '../src/world/plain/trees';
+describe('the field-edge trees (trees.ts fieldTrees)', () => {
+  const IRR = { data: new Uint8Array(4 * 4 * 4).map((_, i) => (i % 4 === 0 ? 255 : 0)), n: 4, half: 40960, cell: 64 * 320, ground: null } as any;
+  it('a few tens a square kilometre, the same from any window, none on a track', () => {
+    setVergePaths([{ pts: [[-600, 0], [600, 0]], hw: 1.75, kind: 'track' }]);
+    const a = fieldTrees(IRR, 0, 0, 564), b = fieldTrees(IRR, 100, 0, 700).filter(t => Math.hypot(t.x, t.y) <= 564);
+    expect(a.length).toBeGreaterThan(10); expect(a.length).toBeLessThan(120);
+    expect(b.map(t => t.seed).sort()).toEqual(a.map(t => t.seed).sort());
+    for (const t of a) expect(vergeZone(t.x, t.y)).toBeNull();
+    setVergePaths(null);
+  });
+});
