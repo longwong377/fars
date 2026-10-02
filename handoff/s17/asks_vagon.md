@@ -32,3 +32,10 @@ C2 | note + view: -1478,3285,1.6,47,-8,0,10 | the black flame shapes at the walk
 
 C3 | V3 (activities.ts walk/tend_animals variants + workObjects): /ox cart of building stone/ and /holding the stone cart/ with a cart carrying a rough block (m_wo_cart with a block), so the quarry can send carts of stone for the Hall of 100 Columns' door and window frames along the drum route (traffic.ts); today /ox cart/ draws grain sacks, so C3 schedules none | "carts of stone" in the C3 brief
 C3 | V6 (fire): the court camps' hearths are courtCamps.ts campItems(tents) items with m === 'hearth' (every third ridge/black tent, shown while the tent stands): light them at the meal hours when the court is in residence | the camps' evening fires
+C7 | view: -503.4,-1028.7,1.6,69,-12,30,10.5 | a town living room seen from its court through the doorway: furnished for its household by the interiors ring (D-610)? (q_s1-0003)
+C7 | view: -495.7,363.9,1.6,148,-12,30,10.5 | a town kitchen from its court: quern, kneading trough, pots, onions and herbs hung from the poles (D-610) (q_w1-0006)
+C7 | view: -1199.0,-978.5,1.6,231,-12,30,10.5 | a town store from its court: jars, sacks, a bin or chest (D-610) (q_s3-0004)
+C7 | view: 189.5,-54.3,1.6,71,-10,30,10.5 | the Terrace's garrison quarters through its doorway (eye 1.6 over the room's floor): a guard's kit at each mat, spears, shields and bows on the walls (D-610)
+C7 | view: 154.1,-147.8,1.6,251,-10,30,10.5 | a Treasury store through its doorway (eye over the floor): the goods on its benches, one class to the room (D-610)
+C7 | view: 112.0,-203.4,1.6,251,-10,30,10.5 | a harem apartment through its doorway (eye over the floor): carpets, cushions, chests, the spinning, a cradle (D-610)
+C7 | ask: a merge of cloud-s17-c7-interiors moves the houses' furnishing out of their near tiles into src/world/interiors/ring.ts (two meshes round the eye, <= 60 k triangles) | the budget run will show -50 k triangles in the near views and +2 draw calls near houses; the interiors are dark without V6's interior light, judge the composition
