@@ -1,7 +1,7 @@
 # C3 life on the roads — report (cloud, s17; D-570)
 
 **Broken / placeholder / unseen first**
-- Nobody on the roads can be talked to: road folk and drivers are crowd extras, which talk and voices skip (crowd.ts nearPeople, pid < 0). Each mover carries `life` (name, role, home, livelihood) for a hook there (not C3's files).
+- Road folk can't be talked to until C10 lands its side. roadFolk.ts now gives the population a register (2,400 households, ~8,000 people), each member's day (planOf), their place (spotOf) and bindPids. C10 still has to create the persons, plans and popview placement. Through traders and drivers stay as extras.
 - Unseen: nothing rendered yet; seven views asked in asks_vagon.md.
 - Travellers appear and vanish at the Grand Stair's foot after a stay. 150–210 are alive at once (~70–100 extras within 750 m): Vagon's budget should check this.
 - No moving flocks (herders graze the verges) and no stone carts: both wait on V3/V5 variants (asked).
