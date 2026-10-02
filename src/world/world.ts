@@ -163,9 +163,9 @@ const tAsset = <T>(name: string, p: Promise<T>): Promise<T> => (WTRACE ? p.then(
 let wT0 = 0;
 function wmark(stage: string) { (globalThis as any).__bootStage?.('world:' + stage); if (!WTRACE) return; // (D-393: the loading screen's steps)
   const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms', 'busy', (globalThis as any).__bootBusy?.() ?? ''); wLast = t; }
-/** s15/ship (D-393): the world's asset downloads, begun as soon as the page starts (main.ts calls this before the terrain
- *  and the scans, so the models arrive while those decode: they waited ~24 s behind them on a cold visit); buildWorld
- *  takes the same promises (the first call starts them, later calls return them) */
+/** s15/ship (D-393): the world's asset loads in one place (the first call starts them, later calls return the same promises).
+ *  Begun from main.ts before the scans they decoded alongside them and slowed the boot on a 2-core box (192 s vs 148 s):
+ *  main.ts now only warms the files' bytes early (shell/warm.ts) and the decoding stays here */
 let assetsStarted: ReturnType<typeof beginAssets> | null = null;
 export function startWorldAssets(settings?: Settings) { return assetsStarted ??= beginAssets(settings); }
 function beginAssets(settings?: Settings) {
@@ -192,7 +192,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
-  const { sculptP, humansP, probesP, rockKitP, ledgeFaceP, coverKitP, fordKitP, propsP, modelsP, monumentsP, treesP, lifeP, animalsP, reliefAtlasP, decorP, fireOccP } = startWorldAssets(settings); // (D-393: begun by main.ts at boot)
+  const { sculptP, humansP, probesP, rockKitP, ledgeFaceP, coverKitP, fordKitP, propsP, modelsP, monumentsP, treesP, lifeP, animalsP, reliefAtlasP, decorP, fireOccP } = startWorldAssets(settings);
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
   // the parts as tools/build_probes.ts hashes them: before the builders below use them (session 11: hashed after

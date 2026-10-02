@@ -24,8 +24,9 @@ import { DevOverlay } from './ui/overlay';
 import { TranslationLayer } from './ui/translation';
 import { NOW_CAPTION } from './arch/now';
 import { PLACES } from './people/sim';
-import { buildWorld, startWorldAssets, WorldBuild } from './world/world';
+import { buildWorld, WorldBuild } from './world/world';
 import { BootProgress } from './shell/progress';
+import { warmBootFiles } from './shell/warm';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -122,7 +123,7 @@ async function boot() {
   prog.step('renderer');
   shell.loading('Loading the plain and the mountain…');
   await swP;
-  startWorldAssets(settings); // D-393: the world's models download while the terrain and the scans decode (they waited behind them)
+  void warmBootFiles(BASE).then(() => TRACE(`warm done ${JSON.stringify((globalThis as any).__warm ?? null)}`)); // D-393: the world's files download while the terrain and the scans decode (the build waited ~30 s for them after)
   // s15/ship: the terrain's rings and the physics engine load while the scans decode (each was awaited in turn)
   const terrainP = Terrain.load(BASE), physP = Physics.create();
   await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
@@ -599,7 +600,7 @@ async function boot() {
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   prog.finish(); api.ready = true;
   // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
-  if (NORENDER) setTimeout(() => (api as any).converse?.preload?.(), 1500);
+  if (NORENDER) { (world as any).neural?.start?.(); setTimeout(() => (api as any).converse?.preload?.(), 1500); }
   // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)
   (api as any).lowFirst = () => ({ ...lowFirstStats, pending: lowFirstStats.pending() });
   setTimeout(() => void upgradeLowFirst().then(n => TRACE(`scans upgraded: ${n}`)), 2000);

@@ -26,7 +26,10 @@ export const TTS = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 /** the WebLLM app config for the given models (their Hugging Face and GitHub URLs: served locally by localModels()) */
 export function appConfig(ids: string[], origin: string) {
   const local = isLocal(origin);
-  return { cacheBackend: 'cache' as const, model_list: LLMS.filter(m => ids.includes(m.id)).map(m => ({ model: local ? `${origin}/models/mlc-ai/${m.id}` : `https://huggingface.co/mlc-ai/${m.id}`, model_id: m.id, model_lib: local ? `${origin}/models/mlc-libs/${m.lib}` : WASM + m.lib, vram_required_MB: m.vramMB, low_resource_required: true, overrides: { context_window_size: 4096 } })) };
+  // (s15/ship D-393: on a public origin the weights are kept in IndexedDB: Hugging Face serves them from its Xet CDN
+  // (us.aws.cdn.hf.co), whose responses Chrome's Cache Storage refuses (Cache.add/put: "network error", measured 2026-10-02,
+  // while a plain fetch of the same URL succeeds): with the 'cache' backend the talk model never loaded on the site)
+  return { cacheBackend: (local ? 'cache' : 'indexeddb') as 'cache' | 'indexeddb', model_list: LLMS.filter(m => ids.includes(m.id)).map(m => ({ model: local ? `${origin}/models/mlc-ai/${m.id}` : `https://huggingface.co/mlc-ai/${m.id}`, model_id: m.id, model_lib: local ? `${origin}/models/mlc-libs/${m.lib}` : WASM + m.lib, vram_required_MB: m.vramMB, low_resource_required: true, overrides: { context_window_size: 4096 } })) };
 }
 
 /** in a dev tree (localhost), the model files come from the dev server's /models/ (a junction to the asset store outside git,
