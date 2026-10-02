@@ -47,7 +47,7 @@ export class Overheard {
     // 2. what has happened to either house this year (the life record's own facts)
     for (const pid of [a, b]) { const L = lifeRecord(P, sim.cal, pid, day, hour), y = L.year[0];
       if (y) { const key = /died|lost|mourning/.test(y) ? 'death' : /born|had a/.test(y) ? 'birth' : /married/.test(y) ? 'wedding' : /sick/.test(y) ? 'sickness' : /harvest/.test(y) ? 'harvest' : /debt|owe|pledge|judge|silver/.test(y) ? 'silver' : /grain|barley|bread|hungry/.test(y) ? 'grain' : 'work';
-        return ['life', key, `${L.name}: ${y}`]; }
+        return ['life', key, `${L.name}'s house: ${y}`]; }
       if (L.needs[0]) return ['life', /barley|bread/.test(L.needs[0]) ? 'grain' : /silver|debt/.test(L.needs[0]) ? 'silver' : 'work', `${L.name}'s house needs ${L.needs[0].split(';')[0]}`];
     }
     // 3. the market, the day, the stranger, the work
@@ -76,7 +76,9 @@ export class Overheard {
     if (ex) { ex.a = a; ex.b = b; } this.memo.set(k, ex); return ex;
   }
   // ---- the voices' hook (voices.ts pickUnit): the next unit a talking person says, from the exchange with the one they talk with
-  private groups = new Map<string, string[]>(); private cursor = new Map<string, number>();
+  private groups = new Map<string, string[]>(); private cursor = new Map<string, number>(); private topics = new Map<string, string>();
+  /** what a speaker's present exchange is about (the translation layer's note, out of world), or undefined */
+  topicFor(key: string): string | undefined { return this.topics.get(key); }
   /** the people near the listener by the place they are at (the audio loop's list: who talks with whom) */
   noteNear(near: readonly { key: string; group: string | null; talking: boolean }[]) {
     this.groups.clear(); for (const n of near) if (n.group && n.talking) (this.groups.get(n.group) ?? this.groups.set(n.group, []).get(n.group)!).push(n.key);
@@ -89,6 +91,6 @@ export class Overheard {
     const ex = this.exchange(a, b); if (!ex || ex.lang !== lang) return null;
     const mine = ex.turns.filter(t => (t.who === 'a') === (ex.a === a)); if (!mine.length) return null;
     const ck = `${key}|${ex.day}|${ex.block}`, i = this.cursor.get(ck) ?? 0; this.cursor.set(ck, i + 1); if (this.cursor.size > 4000) this.cursor.clear();
-    return i < mine.length ? mine[i].unit : null; // (said all their part: the voices go on as before, a murmur)
+    if (i < mine.length) { this.topics.set(key, ex.topic); return mine[i].unit; } return null; // (said all their part: the voices go on as before, a murmur)
   }
 }
