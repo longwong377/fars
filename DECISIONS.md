@@ -9064,3 +9064,23 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
 - **Ground cover:** the steppe's tufts twice as dense, six tuft pieces of the kit (was four), three swards; LOD at 5.5 / 16 m to stay inside
   ground_cover.test's 0.35 M triangles and 36 draws.
 - Not done: herders with flocks in the near plain (the people sim's, not this package's files); far-tree "lollipops" (no frame of them seen).
+
+## D-374 The public site: GitHub Pages under /fars/ built by Actions from git alone, progressive shader compile, a service worker (session 15, agent ship; number per the brief, inside the cloud's D-370..D-379 range: the lead may renumber)
+- **Base path:** vite `base` '/fars/' for builds (PARSA_BASE overrides), '/' on the dev server; every public/ fetch through
+  `BASE` (src/core/base.ts); tests/base_paths.test.ts fails on an absolute fetch (the built site broke at the plain on one).
+- **Deploy:** .github/workflows/pages.yml (push to s14-int or manual): node 24, `npm ci --ignore-scripts`,
+  tools/deploy/build_site.mjs (world cache baked in node, vite build, `.nojekyll`, the service worker's build stamp, and a
+  refusal on a file > 100 MB, a site > 1 GB or a local model store in public/models), then upload-pages-artifact + deploy-pages.
+  Proved from a fresh `git clone --depth 1` on T: (npm ci, bake, build: 102 s; dist 1,166 files, 585 MB, largest 43.6 MB).
+- **No cross-origin isolation** (Pages sends no headers; nothing needs SharedArrayBuffer; ONNX runs single-threaded or on
+  WebGPU). The models come from Hugging Face / raw.githubusercontent on the public origin: CORS checked for github.io.
+- **Progressive compile** (src/render/progressive.ts, default in the player's loop; frozen tests and the bench keep whole
+  frames; ?synccompile, ?buildbudget): async pipelines, unready draws skipped, the node builds spread at 40 ms a frame.
+  T4 probe (Terrace scene, 313 draws, empty profile): synchronous first frame 325 s; progressive first frame 0.17 s, longest
+  frame 0.62 s, every draw in at 216 s.
+- **Service worker** (public/sw.js, production only): the site's files in Cache Storage. Chrome's HTTP cache re-fetched all
+  387 MB on a second visit (LRU past its size); with the worker the second visit fetched 3 MB.
+- Measured on the built site, ?norender (the box rule: no full-world rendered page), 100 Mbit/s cap: cold ready 162 s
+  (pre-world 24 s, world build 113 s: arch 42, view 22, settlement 13, plain 10), 444 MB before ready; warm ready 145 s
+  (3 MB network; the world build is CPU). UD-31's 60 s / 20 s are NOT met: the world build, page memory (6.3 GB norender)
+  and the download (444 MB vs 150 MB) belong to the load and cloud work.

@@ -41,6 +41,7 @@ import { seasonAt } from './world/season';
 import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 import { BASE } from './core/base';
+import { installProgressiveCompile } from './render/progressive';
 installWebGPUCompat();
 
 const P = urlParams();
@@ -571,28 +572,12 @@ async function boot() {
   }
   TRACE('world built');
   world.prebuild?.(camera.position); // D-321 rev 3: the arris bands round the spawn, in the load
-  // s15/ship (D-374, UD-31): progressive shader compile. The player's loop never waits on a pipeline compile: every render
-  // pipeline is created with createRenderPipelineAsync (the browser compiles them on its own threads, several at once) and a
-  // draw whose pipeline is not ready is skipped this frame (three's Pipelines.isReady), so the first frame is drawn at once
-  // and the world comes in as its shaders finish, the nearest first (the opaque list is drawn front to back), and no submit
-  // waits on a compile (the T4 watchdog). Frozen test worlds and the bench keep the synchronous compile (whole frames);
-  // ?synccompile turns it off. __parsa.compiling() counts the pipelines still compiling.
+  // s15/ship (D-374, UD-31): progressive shader compile (src/render/progressive.ts): the player's loop never waits on a shader;
+  // the world comes in as its shaders finish. Frozen test worlds and the bench keep whole frames; ?synccompile turns it off,
+  // ?buildbudget=<ms> sets the per-frame shader-build budget (40). __parsa.compiling() counts what is still compiling.
   if (!TEST && !P.has('bench') && !P.has('synccompile') && !NORENDER) {
-    const pl: any = (renderer as any)._pipelines, orig = pl.getForRender; let pend: Promise<void>[] = [], live = 0, done = 0;
-    pl.getForRender = function (ro: any, pr: any) { if (pr) return orig.call(this, ro, pr); const n = pend.length, r = orig.call(this, ro, pend);
-      for (let i = n; i < pend.length; i++) { live++; pend[i].then(() => { live--; done++; }, () => { live--; }); } if (pend.length > 256) pend = []; return r; };
-    // and the materials' shader BUILDS (three's node builder, JS on this thread: the bulk of a first frame's CPU) are spread
-    // over frames: once a frame has spent BUDGET ms on its draws, a draw whose render object has never been built waits for
-    // the next frame (?buildbudget=<ms>, 0: all in the first frame). The player walks at a steady frame rate meanwhile.
-    const R: any = renderer, direct = R._renderObjectDirect, BUDGET = +(P.get('buildbudget') ?? 40); let end = Infinity, deferred = 0;
-    if (BUDGET > 0) {
-      R._renderObjectDirect = function (object: any, material: any, scene: any, camera: any, lightsNode: any, group: any, clip: any, passId: any) {
-        if (performance.now() > end) { const ro = this._objects.get(object, material, scene, camera, lightsNode, this._currentRenderContext, clip, passId);
-          if (ro._nodeBuilderState === null) { deferred++; return; } }
-        return direct.call(this, object, material, scene, camera, lightsNode, group, clip, passId); };
-      R._handleObjectFunction = R._renderObjectDirect; onDrawStart = () => { end = performance.now() + BUDGET; }; onDrawEnd = () => { end = Infinity; }; // (renders outside the frame's draw, one-off bakes, are never deferred)
-    }
-    (api as any).compiling = () => ({ live, done, deferred: (() => { const d = deferred; deferred = 0; return d; })() });
+    const pc = installProgressiveCompile(renderer, +(P.get('buildbudget') ?? 40));
+    onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
