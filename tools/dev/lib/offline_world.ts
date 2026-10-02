@@ -124,6 +124,8 @@ export async function buildOfflineWorld(o: { seed?: number; day?: number; hour?:
       if (plain && (plainT += dt) >= 0.5) { plainT = 0; plain.update(0, ctxAt(pp.x, pp.y, pp.z)); }
       // the player: main.ts simStep order
       P.updateTerrain(T, pp);
+      // run: the bots' 3.2 m/s with the wish taken at once (D-630: the player's own gait is brisk at most, with inertia)
+      pl.botSpeed = inp.run ? 3.2 : null;
       pl.update(dt, { forward: inp.forward, right: 0, run: !!inp.run, yaw: inp.yaw, pitch: 0 });
       P.step(Math.max(1 / 240, dt));
       pl.rescueIfUnderground((a, b) => T.surfaceAt(a, b));

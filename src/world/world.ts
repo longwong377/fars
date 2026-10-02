@@ -85,7 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
-import { WorldFill } from './fill'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
+import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { RoofWear } from './settlement/roofwear'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -107,6 +107,7 @@ import { Soundscape, registerRoom } from '../audio/soundscape';
 import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { NavGrid } from '../people/navgrid';
+import { setInteriorPeople } from './interiors/household';
 import { PeopleSim, Env } from '../people/sim';
 import { strangerPresence, thinCaption } from '../people/speech/presence';
 import { Overheard } from '../people/overheard';
@@ -140,7 +141,7 @@ import { CourtCampTents } from './courtCamps';
 import { NearSolids, SOLID_R } from './solids';
 import type { AnimalInst } from '../people/animals';
 import { CAMPS } from '../people/camps';
-import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
+import { Fauna, FAC as FAUNA_FAC, grazingSites, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
 import { quarrySites } from './plain/quarries';
 import { SmokeModel, type SmokeSite } from './hearthSmoke';
@@ -169,6 +170,16 @@ let wLast = 0;
 /** s15/ship: when each asset load resolves (?trace), from the build's start */
 const tAsset = <T>(name: string, p: Promise<T>): Promise<T> => (WTRACE ? p.then(v => { console.info('[boot]', 'asset:' + name, (performance.now() - wT0).toFixed(0), 'ms'); return v; }) : p);
 let wT0 = 0;
+/** D-580 (s17, nothing hangs): a set the world can stand in for (the Blender models, scanned props, decor, reliefs, the hills'
+ *  pieces, monuments, trees, small life) that has not answered in SOFT_S is left to its procedural stand-ins and the build goes
+ *  on, saying which (s16: one disposed decoder made every later KTX2 load wait forever, and the boot with it). The people, the
+ *  carved pieces and the probes are awaited as before (the build cannot stand in for them). Long enough for a slow line:
+ *  a set's bytes come in order through the service worker's prefetch. */
+const SOFT_S = (typeof location !== 'undefined' && +(new URLSearchParams(location.search).get('softs') ?? 0)) || 300; // (?softs=<s>: the hang test, tools/deploy/serve.mjs HANG=)
+const soft = <T>(name: string, p: Promise<T>): Promise<T | undefined> => new Promise<T | undefined>((res, rej) => {
+  const t = setTimeout(() => { console.warn(`[boot] asset ${name}: no answer in ${SOFT_S} s; the world is built without it (its stand-ins)`);
+    (globalThis as any).__bootSoft = [...((globalThis as any).__bootSoft ?? []), name]; res(undefined); }, SOFT_S * 1000); (t as any).unref?.(); // (node: never holds a bake open)
+  p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
 function wmark(stage: string) { (globalThis as any).__bootStage?.('world:' + stage); if (!WTRACE) return; // (D-393: the loading screen's steps)
   const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms', 'busy', (globalThis as any).__bootBusy?.() ?? ''); wLast = t; }
 /** s15/ship (D-393): the world's asset loads in one place (the first call starts them, later calls return the same promises).
@@ -188,14 +199,14 @@ function beginAssets(settings?: Settings) {
   // downloads while the Terrace builds; the build waits for each set just before its first user (arch / the settlement)
   let t1Done: () => void = () => {}; const t1 = new Promise<void>(r => { t1Done = r; });
   const late = <T>(f: () => Promise<T>): Promise<T> => (STREAM_LATE ? t1.then(f) : f());
-  const rockKitP = late(() => tAsset('rockKit', loadRockKit(BASE))), ledgeFaceP = late(() => tAsset('ledgeFace', loadLedgeFace(BASE))), coverKitP = late(() => tAsset('coverKit', loadCoverKit(BASE))), fordKitP = late(() => tAsset('fordKit', loadFordKit(BASE))); // the hills' bedrock pieces (D-335, public/models/land/)
-  const propsP = tAsset('props', loadScanProps(BASE)); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
-  const modelsP = tAsset('models', loadModels(BASE)); // the Blender-built models (D-305, public/models/): in before the architecture is built
-  const monumentsP = late(() => tAsset('monuments', loadMonuments(BASE))); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
-  const treesP = late(() => tAsset('trees', loadTreeAssets(BASE))); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
-  const lifeP = late(() => tAsset('life', loadLifeModels(BASE))); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
-  const reliefAtlasP = tAsset('reliefAtlas', loadReliefAtlas(BASE)); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
-  const decorP = tAsset('decor', loadDecorAssets(BASE)); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
+  const rockKitP = late(() => soft('rockKit', tAsset('rockKit', loadRockKit(BASE)))), ledgeFaceP = late(() => soft('ledgeFace', tAsset('ledgeFace', loadLedgeFace(BASE)))), coverKitP = late(() => soft('coverKit', tAsset('coverKit', loadCoverKit(BASE)))), fordKitP = late(() => soft('fordKit', tAsset('fordKit', loadFordKit(BASE)))); // the hills' bedrock pieces (D-335, public/models/land/)
+  const propsP = soft('props', tAsset('props', loadScanProps(BASE))); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
+  const modelsP = soft('models', tAsset('models', loadModels(BASE))); // the Blender-built models (D-305, public/models/): in before the architecture is built
+  const monumentsP = late(() => soft('monuments', tAsset('monuments', loadMonuments(BASE)))); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
+  const treesP = late(() => soft('trees', tAsset('trees', loadTreeAssets(BASE)))); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
+  const lifeP = late(() => soft('life', tAsset('life', loadLifeModels(BASE)))); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
+  const reliefAtlasP = soft('reliefAtlas', tAsset('reliefAtlas', loadReliefAtlas(BASE))); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
+  const decorP = soft('decor', tAsset('decor', loadDecorAssets(BASE))); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
   const fireOccP = tAsset('fireOcc', loadFireOcc(BASE)); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   // the animals' modelled bodies (D-326, public/models/animals/). s15/ship (D-393): a player's visit fetches them after the
   // assets the build needs (39 MB of 103 files: they download while the world builds, the network otherwise idle) and the
@@ -413,6 +424,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // 'Court calendar = seasonal pattern' is on (D-003)
   const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal', bonds: true, asks: true }); let simStarted = false;
   wmark('sim');
+  settlement?.roofWear.setSource(RoofWear.source(sim.pop.households, (hh, d) => sim.deeds.joint.roofOf(hh, d), () => Math.floor(sim.t / 24))); // s17 C1 (D-550): leaking and fresh roofs
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
   const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
@@ -426,6 +438,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
     villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts),
     rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })) }); // (D-256: the banks and meadows of the land work)
+  setInteriorPeople(sim.pop, hh => { const x = geo.villageOf(hh); return x ? `${plain.data.villages[x.vi].id}-c${x.ci}` : null; }); // s17 C7 (D-610): the rooms furnished for who lives there
   // D-392: the Terrace's core routes between place anchors (the court's walks, searched up front: D-182) read from the baked
   // world; they depend on the walkable grid and the anchors only, keyed by the grid's blocked cells (fires, furnishings); a world of another seed still finds most of its own there
   // (one entry per baked world, all of them merged: a world of another seed finds most of its routes there; this world's own
@@ -446,19 +459,22 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the baked world, or built now and baked
   { const vs = cacheGetSync<any[]>('vsites', bakeKey); if (vs) importVillageSites(vs); else { for (const v of villagesIn) villageSite(v, v.comps as any); cachePutSync('vsites', bakeKey, exportVillageSites()); } }
   // D-367 (agent fill): the markets, the lanes' and villages' things, washing lines, awnings, the Terrace's yards and standards
-  const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
-  const fill = new WorldFill(fillItems, { ground: groundAt, phys, nav }); root.add(fill.group);
+  const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site), Object.values(sim.pop.quarters).filter(q => q.kind === 'town' || q.kind === 'garden').map(q => q.xy)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
+  const fill = new WorldFill([...fillItems, ...(settlement?.roofFill() ?? [])], { ground: groundAt, phys, nav }); root.add(fill.group); // (s17 C1: + the roofs' things)
+  const tethers = new TownTethers(townTethers(settlement?.plan.sites ?? [], fillItems), groundAt); root.add(tethers.group); // s17 C1 (D-550): the households' animals at their tethers
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
     // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)
     const people: [number, number][] = [[0, 0], ...Object.values(FAUNA_FAC) as [number, number][], ...villagesIn.map(v => [v.x, v.y] as [number, number])];
     fauna.setWild((e, n) => landUseAt(plain.data.zones, e, -n).use === 'natural', plain.data.rivers.rivers.map(r => Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number])), people); }
   wmark('fauna');
-  if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); }
+  if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); fauna.addCampLines(sim.pop.court.tents, settlement?.plan ?? null); } // (D-570: the camps' picket lines)
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
   traffic.setQuarries(quarrySites(terrain)); // D-256: the quarrymen at work and the drums hauled to the Terrace
+  // D-570: the herders' flocks out on the stubble, the slopes and the steppe (roadFolk.ts), and drawn far by the fauna
+  traffic.folk.setGrazing(grazingSites((e, n) => landUseAt(plain.data.zones, e, -n).use, (e, n) => Math.hypot(terrain.heightAt(e + 10, -n) - terrain.heightAt(e - 10, -n), terrain.heightAt(e, -n - 10) - terrain.heightAt(e, -n + 10)) / 20, settlement?.plan ?? null)); fauna.flockSource = t => traffic.folk.flocksAt(t);
   const syncTraffic = (cam: THREE.Vector3) => { traffic.at(sim.t, movers, { e: cam.x, n: -cam.z, r: 750 }); const now = new Set<string>();
     for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
       if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }
@@ -470,7 +486,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const roadNext = new Map<string, number>(), roadRng = new Rng(seed, 'road-sounds'); let roadT = -1;
   const roadSounds = (cam: THREE.Vector3) => {
     const t = sim.t * 3600; if (t === roadT) return; roadT = t;
-    for (const m of movers) { if (m.kind === 'quarry' || m.kind === 'drum') continue; const dx = m.e - cam.x, dn = m.n + cam.z; if (dx * dx + dn * dn > 3600) continue;
+    for (const m of movers) { if (m.kind === 'quarry' || m.kind === 'drum' || m.kind === 'foot') continue; const dx = m.e - cam.x, dn = m.n + cam.z; if (dx * dx + dn * dn > 3600) continue;
       const walking = m.act === 'walk', pos = { x: m.e, y: groundAt(m.e, m.n), z: -m.n }, due = (k: string, gap: [number, number], p = 1) => {
         const key = `${m.key}:${k}`, at = roadNext.get(key); if (at === undefined) { roadNext.set(key, t + roadRng.range(0, gap[1])); return false; }
         if (t < at) return false; roadNext.set(key, t + roadRng.range(gap[0], gap[1])); return roadRng.chance(p); };
@@ -510,7 +526,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // session 8: the nearest 48 of the population within 20 m, and no animal
   const solids = new NearSolids(phys);
   { const tap = (A: { onPush: ((a: AnimalInst, M: THREE.Matrix4) => void) | null }) => { const prev = A.onPush; A.onPush = (a, M) => { prev?.(a, M); solids.animal(a, M); }; };
-    tap(crowd.animals); tap(fauna.animals); }
+    tap(crowd.animals); tap(fauna.animals); tap(tethers.animals); }
   const syncPopBodies = () => { const pp = playerAt; if (!pp) return; solids.begin(pp);
     if (!nowView.active) {
       for (const o of view.query([pp.x, -pp.z], SOLID_R + PATH_REACH)) if (o.agent < 0) { const r = crowd.rootOf(o.pid); solids.person(r ? r[0] : o.e, r ? r[1] : o.y, r ? r[2] : -o.n); }
@@ -518,7 +534,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     } else solids.beginAnimals();
     solids.end(); };
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
-  const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
+  const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction, phys) : null; if (building) root.add(building.group);
   // D-361 (B175): the Terrace's far levels from 150 m out (render/far_terrace.ts); ?farterrace=0 draws the near shapes everywhere (A/B)
   const farTerrace = new URLSearchParams(location.search).get('farterrace') === '0' ? null : new FarTerrace([arch.group, reliefs, p4.group, ...(cren ? [cren] : []), foot, ...(building ? [building.group] : [])]);
   // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467
@@ -734,7 +750,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       pa('w.traffic', tp); tp = pt(); crowd.update(time, ctx.camera.position, playerAt, ctx.camera); pa('w.crowd', tp); tp = pt();
       { const day = Math.floor(sim.t / 24), sun = sunTimes(day); // D-210: the animals of the town, the villages, the paradise and the river
         fauna.group.visible = !nowView.active;
-        if (!nowView.active) fauna.update({ t: time, worldT: ctx.clock.t * 86400, hour: ctx.clock.localHour, day, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain }); }
+        if (!nowView.active) fauna.update({ t: time, worldT: ctx.clock.t * 86400, hour: ctx.clock.localHour, day, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain });
+        tethers.group.visible = !nowView.active; if (!nowView.active) tethers.update(time, ctx.clock.localHour, ctx.camera.position, ctx.cond.rain); }
       pa('w.fauna', tp); tp = pt(); { // D-220: what the households burn now → the fires' state and the smoke layer (recomputed when the minute or the wind changes)
         const key = `${ctx.clock.dayIndex}|${Math.floor(ctx.clock.localHour * 60)}|${ctx.cond.windMs.toFixed(1)}|${Math.round(ctx.cond.windDirDeg)}|${Math.round(ctx.sky.sunAlt)}`;
         if (key !== smokeKey) { smokeKey = key; smoke.update(ctx.clock.dayIndex, ctx.clock.localHour, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.sky.sunAlt); }
@@ -760,7 +777,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain, ctx.camera.position);
         devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
-        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); bedrock.rock.group.visible = bedrock.ledges.group.visible = !nowView.active; if (!nowView.active) { bedrock.rock.update(ctx.camera.position, ctx.camera.getWorldDirection(_bdir), dt === 0); bedrock.ledges.update(ctx.camera.position, dt === 0); } fordDetail.update(ctx.camera.position, dt === 0); cover.group.visible = !nowView.active; if (!nowView.active) cover.update(ctx.camera.position, doyOf(ctx.clock.dayIndex), seasonAt(ctx.clock.dayIndex), dt === 0); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; fill.group.visible = !nowView.active; if (!nowView.active) fill.update([ctx.camera.position.x, -ctx.camera.position.z], ctx.clock.localHour, ctx.cond.rain); roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
+        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); bedrock.rock.group.visible = bedrock.ledges.group.visible = !nowView.active; if (!nowView.active) { bedrock.rock.update(ctx.camera.position, ctx.camera.getWorldDirection(_bdir), dt === 0); bedrock.ledges.update(ctx.camera.position, dt === 0); } fordDetail.update(ctx.camera.position, dt === 0); cover.group.visible = !nowView.active; if (!nowView.active) cover.update(ctx.camera.position, doyOf(ctx.clock.dayIndex), seasonAt(ctx.clock.dayIndex), dt === 0); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; fill.group.visible = !nowView.active; if (!nowView.active) fill.update([ctx.camera.position.x, -ctx.camera.position.z], ctx.clock.localHour, ctx.cond.rain, false, ctx.clock.dayIndex); roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       pa('w.life+flora', tp); tp = pt(); shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)
@@ -805,10 +822,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           }
         }
         sound.update(dt, { hour, month, windMs: ctx.cond.windMs, rain: ctx.cond.rain, insideSpace: spaceAt(cam.position.x, cam.position.y, cam.position.z),
-          nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
+          nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: ctx.player.pace === 'brisk',
           surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,
           worksite: null, workHours: hour > 6.5 && hour < 17.5, // chisels, querns, dice now come from the people (crowd.onHit)
-          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC }); // D-210: where the animals and insects are heard
+          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC, air: ctx.cond, ground: (ctx.player as { groundKind?: 'stone' }).groundKind, roofed: (ctx.player as { roofed?: boolean }).roofed }); // D-620: the walk's ground and roof (C9) // D-210: where the animals and insects are heard; D-620: the weather for the recorded beds
       }
       pa('w.audio', tp);
     },
@@ -817,7 +834,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     soundLines: () => {
       const o = audio.occlusionOf(lastHandle?.panner), s = lastSpoken;
       return [s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}${o ? ` · occlusion ${o.gainDb.toFixed(1)} dB, ${Math.round(o.cutoffHz)} Hz via ${o.path}` : ''}` : 'speech heard: none yet',
-        ...director.lines(),
+        ...director.lines(), ...sound.recordedLines(),
         ...voices.lines(), ...(neural?.lines() ?? ['neural voices off (?neural=0): formant synthesiser, PLACEHOLDER-QUALITY']), ...farCrowd.lines(),
         `water (D-245, synthesised, C): river ${Number.isFinite(water.near.river) ? `${water.near.river.toFixed(0)} m` : 'none within 150 m'}, canal ${Number.isFinite(water.near.canal) ? `${water.near.canal.toFixed(0)} m` : 'none within 60 m'} · space ${sound.lastSpace}`,
         `animals and insects heard (D-210, synthesised, C): ${sound.heardLines().join(' · ') || 'none in the last minute'}${sound.fliesLevel > 0.05 ? ` · flies ${sound.fliesLevel.toFixed(2)}` : ''}`,

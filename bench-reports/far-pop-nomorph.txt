@@ -1,0 +1,10 @@
+terrain LOD pops and seams along the coverage routes (tools/dev/far_pop.ts; D-600; 2026-10-02); geomorph off (--no-morph)
+lens 60 deg vertical at 1920x1080; detail bias 1 (high 1, ultra 1.5, medium 0.75, low 0.5, test 0.35); ERR_RAD 0.0013, SPACING_RAD 0.02
+103 routes of 300 m from the coverage points (every 5), 31003 positions 1 m apart, 43 s
+pops (a chunk changing step in view): 569; screen move < 0.5 px 365, 0.5-1 89, 1-2 102, 2-4 13, > 4 0; over 2 px: 13
+  worst pop 2.46 px (cov-050 +231 m: near:5:6 step 8->4 at 3192 m)
+  near ring: 417 pops, worst 2.46 px
+  mid ring: 146 pops, worst 2.17 px
+  far ring: 6 pops, worst 2.18 px
+seams (two drawn chunk edges apart, in view; checked every 10 m): 202675 edge checks; samples over 2 px: 0; worst 1.58 px (cov-445 +300 m: near:0:6@16 | near:0:7@4 at (1536, -1824), 4396 m)
+cost: terrain triangles drawn (all chunks; three culls per chunk) mean 4.33 M, in the view frustum mean 1.69 M, worst 2.04 M

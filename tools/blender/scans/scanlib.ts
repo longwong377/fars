@@ -132,7 +132,10 @@ export function normals(m: Mesh): NMesh {
 export async function simplifyTo(m: Mesh, targetTris: number, opts: { lockBorder?: boolean; error?: number } = {}): Promise<Mesh> {
   const { MeshoptSimplifier: S } = await import('meshoptimizer'); await S.ready;
   if (m.idx.length / 3 <= targetTris) return m;
-  const [ix] = S.simplify(m.idx, m.pos, 3, targetTris * 3, opts.error ?? 1, opts.lockBorder ? ['LockBorder'] : []);
+  let [ix] = S.simplify(m.idx, m.pos, 3, targetTris * 3, opts.error ?? 1, opts.lockBorder ? ['LockBorder'] : []);
+  // D-510: a joined, non-manifold source (the W bull: a grafted head, pressed folds) can stall the edge collapses above the target;
+  // then the sloppy (vertex-clustering) simplifier takes the result the rest of the way (the far level only, in practice)
+  if (ix.length > targetTris * 3 * 1.15) [ix] = S.simplifySloppy(ix, m.pos, 3, null, targetTris * 3, 1);
   return compact({ pos: m.pos, idx: ix });
 }
 

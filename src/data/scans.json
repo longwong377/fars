@@ -796,5 +796,77 @@
    "disp.jpg (height)"
   ],
   "use": "people (src/people/humanScans.ts), not SCAN_USE"
+ },
+ "dirt_floor": {
+  "meanLinear": [
+   0.47199,
+   0.2622,
+   0.12797
+  ],
+  "meanAO": 0.9013,
+  "meanRough": 0.9203,
+  "meanDisp": 0.4954,
+  "sdDisp": 0.0506,
+  "name": "Dirt Floor",
+  "authors": [
+   "eye-candy.xyz"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/dirt_floor",
+  "res": "2k",
+  "tileMetres": 2.07,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
+ },
+ "stone_wall": {
+  "meanLinear": [
+   0.37199,
+   0.29547,
+   0.20269
+  ],
+  "meanAO": 0.8537,
+  "meanRough": 0.8263,
+  "meanDisp": 0.8002,
+  "sdDisp": 0.1057,
+  "name": "Stone Wall",
+  "authors": [
+   "Dario Barresi",
+   "Charlotte Baglioni"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/stone_wall",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)",
+   "nor.jpg (OpenGL, 1K)"
+  ]
+ },
+ "raked_dirt": {
+  "meanLinear": [
+   0.16154,
+   0.12516,
+   0.08122
+  ],
+  "meanAO": 0.8352,
+  "meanRough": 0.8204,
+  "meanDisp": 0.3871,
+  "sdDisp": 0.0816,
+  "name": "Raked Dirt",
+  "authors": [
+   "Dario Barresi",
+   "Dimitrios Savva"
+  ],
+  "licence": "CC0",
+  "source": "https://polyhaven.com/a/raked_dirt",
+  "res": "2k",
+  "tileMetres": 2,
+  "maps": [
+   "diff.jpg (sRGB)",
+   "arm.jpg (R ao, G roughness, B metal)"
+  ]
  }
 }

@@ -10,7 +10,7 @@
 // module's choice, deterministic per (person, place), so a person comes back to the same spot. Rules that are judgements
 // are named where they are made; the dev overlay prints `Spot.what`.
 import type { Population } from './population';
-import { TERRACE_ABSTRACT, SACRIFICE } from './population';
+import { TERRACE_ABSTRACT, SACRIFICE, fieldOffset, NAQSH } from './population';
 import { PRECINCT, ALTAR_SPOT, BURIAL, precinctAt } from '../world/settlement/precinct';
 import { NAV, type NavGrid, type P2 } from './navgrid';
 import { PLACES, deskSeat } from './sim';
@@ -300,10 +300,10 @@ export class PopGeo {
       case 'h': return this.home(pid, +tail, act, indoor, day);
       // (D-359: `lane:<q>:<hid>` / `well:<q>:<hid>`: the lane outside, or the well nearest, that household's door, for a visitor
       // too; `market:<q>[:<hid>]`: the quarter's or village's market ground, at the stall of the selling household)
-      case 'lane': return this.lane(pid, q, day, tail.split(':')[1] ? +tail.split(':')[1] : undefined);
-      case 'well': return this.well(pid, q, day, tail.split(':')[1] ? +tail.split(':')[1] : undefined);
+      case 'lane': case 'well': case 'canal': if (q === 'q_naqsh') return this.naqsh(pid, 'house', false); // (D-640: the keepers' doorstep, their water by the house)
+        if (head === 'well') return this.well(pid, q, day, tail.split(':')[1] ? +tail.split(':')[1] : undefined); if (head === 'canal') return this.canal(pid, q, day);
+        return this.lane(pid, q, day, tail.split(':')[1] ? +tail.split(':')[1] : undefined);
       case 'market': return this.market(pid, q, tail.split(':')[1]);
-      case 'canal': return this.canal(pid, q, day);
       case 'outside': return tail ? this.outside(pid, q, day, 90, 220, 'gathering ground outside') : this.burial(pid, act, day);
       case 'garden': return this.garden(pid, q, day);
       case 'estate': { const x = this.housePlot(parseInt(q, 10), pid); if (!x || !this.plan) return this.none(place, 'estate plot not built'); return this.inPlot(this.plan.sites[x[0]], x[1], pid, place, indoor, 'town', undefined, 'estate: ') ?? this.none(place, 'estate plot empty'); }
@@ -336,6 +336,8 @@ export class PopGeo {
       case 'bank': return this.landWater(pid, q, day, 'bank');
       case 'edge': return this.outside(pid, q, day, 150, 500, 'the field edges beyond the village (C: D-256)');
       case 'slope': return this.slope(pid, q, day);
+      case 'scrub': return this.scrub(pid, day); // (D-640: the town's fuel on Kuh-e Rahmat's lower slopes)
+      case 'naqsh': return this.naqsh(pid, tail, indoor); // (D-640: the keepers of the king's tomb)
       case 'training': return this.outside(pid, q, day, 120, 200, 'practice ground outside the quarter (C)');
       case 'field': case 'threshing': case 'vineyard': case 'orchard': return this.plainPlace(pid, head, tail, day);
       case 'camp': case 'route': return this.band(pid, head, tail);
@@ -614,7 +616,10 @@ export class PopGeo {
    *  edge (the kitchen gardens are not built: C) */
   private garden(pid: number, q: string, day: number): Spot {
     const hd = this.homeDoor(pid, day); const from = hd?.s.frame.c ?? this.pop.quarters[q]?.xy; if (!from || !this.plan) return this.none('garden', 'no house');
-    let best: { si: number; pi: number; c: P2 } | null = null, bd = 450; for (const g of this.gardens) { const d = Math.hypot(g.c[0] - from[0], g.c[1] - from[1]); if (d < bd) { bd = d; best = g; } }
+    // (D-640: a gardener of their own garden among those within 900 m, the nearer the likelier (weight 1 / (d + 150)), so the
+    // orchards and gardens farther from the houses are worked too; was the nearest within 450 m for everyone of a quarter)
+    let best: { si: number; pi: number; c: P2 } | null = null; { const near = this.gardens.map(g => ({ g, d: Math.hypot(g.c[0] - from[0], g.c[1] - from[1]) })).filter(x => x.d < 900);
+      const W = near.reduce((a, x) => a + 1 / (x.d + 150), 0); let u = this.hash(pid, `garden:${q}`, 70) * W; for (const x of near) { u -= 1 / (x.d + 150); if (u <= 0) { best = x.g; break; } } if (!best && near.length) best = near[near.length - 1].g; }
     if (best) return this.inPlot(this.plan.sites[best.si], best.pi, pid, `garden:${q}`, false, 'town', undefined, 'garden: ') ?? this.none('garden', 'empty garden');
     return this.outside(pid, q, day, 15, 60, 'garden ground at the edge of the quarter (not built: C)');
   }
@@ -654,6 +659,31 @@ export class PopGeo {
     if (!c) return this.outside(pid, q, day, 1500, 2500, 'the scrub beyond the fields (no slope within 5 km: C, D-256)');
     return this.openNear(c, 120, pid, `slope:${q}`, 'the scrub of the slopes: wild pistachio, almond and oak (C: D-256)');
   }
+  /** D-640: Kuh-e Rahmat's lower slopes E and S of the Terrace (the coverage set's rahmat:slopes rule: 3-250 m above the plain
+   *  at the Terrace's W foot, under 35°, off the walkable grid, not the plain W and N of the Terrace), on a 40 m lattice; a
+   *  fuel gatherer picks a spot of their own for the day (C: brushwood, thorn and dung on the hill nearest the town) */
+  private scrubPts: P2[] | null = null;
+  private scrub(pid: number, day: number): Spot {
+    if (!this.scrubPts) { const g = this.ground, base = g(-300, 0), out: P2[] = [];
+      for (let e = 60; e <= 1600; e += 40) for (let n = -1100; n <= 700; n += 40) { if (e < 150 && n > -300) continue; if (this.inNav(e, n)) continue;
+        const h = g(e, n) - base, sl = Math.hypot(g(e + 10, n) - g(e - 10, n), g(e, n + 10) - g(e, n - 10)) / 20; if (h < 3 || h > 250 || sl > Math.tan(35 * Math.PI / 180)) continue; out.push([e, n]); }
+      this.scrubPts = out; }
+    const P = this.scrubPts; if (!P.length) return this.none('scrub', 'no slope');
+    const c = P[Math.floor(this.hash(pid, `scrub${day}`, 1) * P.length)];
+    return this.openNear(c, 15, pid, `scrub:${day}`, 'the scrub of Kuh-e Rahmat: brushwood, thorn and dung (C: D-640)');
+  }
+  /** D-640: the keepers of the king's tomb at Naqsh-e Rustam (population.ts tombKeeper; C). The house (not built: inside it
+   *  the keepers are not drawn); the foot of Darius' tomb (592,6129: plain.json), facing the cliff; the watch places below
+   *  the two tombs, the Ka'ba and the Elamite relief and along the cliff foot; six grazing grounds on the open ground below */
+  private naqsh(pid: number, tail: string, indoor: boolean): Spot {
+    const [k, i] = tail.split(':'), N = (e: number, n: number): P2 => [e, n], CLIFF = 6124;
+    const face = (c: P2): P2 => [c[0], CLIFF + 20];
+    if (k === 'house') { if (indoor) return this.none('naqsh:house', 'the keepers’ house: NOT BUILT'); return this.openNear(N(NAQSH.house[0], NAQSH.house[1] - 6), 4, pid, 'naqsh:house', 'before the keepers’ house below the cliff (not built: C, D-640)'); }
+    if (k === 'tomb') { const c = N(592, 6104); return this.openNear(c, 2.5, pid, 'naqsh:tomb', 'at the foot of the tomb of Darius I (C: D-640)', face(c)); }
+    if (k === 'watch') { const W = [N(594, 6100), N(650, 6100), N(546, 6040), N(566, 6078), N(830, 6096), N(470, 6094)], c = W[(+i || 0) % W.length]; return this.openNear(c, 4, pid, `naqsh:watch:${i}`, 'below the tombs of Naqsh-e Rustam (C: D-640)', +i < 2 ? face(c) : undefined); }
+    if (k === 'flock') { const G = [N(470, 6010), N(620, 5960), N(780, 6000), N(900, 5900), N(700, 5860), N(520, 5900)], c = G[(+i || 0) % G.length]; return this.openNear(c, 45, pid, `naqsh:flock:${i}`, 'grazing ground below the cliff of Naqsh-e Rustam (C: D-640)'); }
+    return this.none(`naqsh:${tail}`, 'no rule');
+  }
   /** workers of a workshop group spread over the `n` workshop plots of its crafts nearest its place (C); `forgeDay`: the
    *  worker is at the workshop's forge that day (D-255) */
   private workshop(pid: number, place: string, c: P2, crafts: string[], n: number, indoor: boolean, what: string, forgeDay?: number, atForge = false): Spot {
@@ -690,6 +720,9 @@ export class PopGeo {
    *  village's grazing beyond its fields */
   private pasture(pid: number, tail: string, day: number): Spot {
     if (tail.startsWith('stockyard')) { const k = +(tail.split(':')[1] ?? 0), m = L.job_tasks.shepherd.v.pastures ?? 4, a = (k / m) * Math.PI * 2 + 0.4;
+      // (D-640: the first ground, E of the stockyard, is Kuh-e Rahmat's lower slope S of the Terrace: the flock on the hill's
+      // grass and scrub, 1.2 km from the fold; C)
+      if (k === 0) return this.openNear([420, -900], 160, pid, `pasture:${tail}`, 'pasture 0 of the state herds: the lower slopes of Kuh-e Rahmat S of the Terrace (C: D-640)');
       return this.openNear([FAC.stockyard[0] + Math.cos(a) * 900, FAC.stockyard[1] + Math.sin(a) * 900], 90, pid, `pasture:${tail}`, `pasture ${k} of the state herds (C)`); }
     return this.outside(pid, tail, day, 350, 700, 'grazing beyond the fields (C)');
   }
@@ -698,7 +731,7 @@ export class PopGeo {
   private plainPlace(pid: number, head: string, tail: string, day: number): Spot {
     const parts = tail.split(':');
     if (head === 'field') { const hh = +parts[0], k = +(parts[1] ?? 0), m = this.villageOf(hh); if (!m) return this.none('field', 'village not built');
-      const c = this.vsite(m.vi).comps[m.ci], o: P2 = [300 - k * 150, 200 + k * 120];
+      const c = this.vsite(m.vi).comps[m.ci], o = fieldOffset(this.pop.seed, hh, k); // (D-640: each plot its own bearing and distance)
       return this.openNear([c.x + o[0], c.y + o[1]], 30, pid, `field:${tail}`, `field ${k} of household ${hh}`); }
     const H = this.pop.households[this.pop.home(pid, day)]; const vi = this.vmap.get(parts[0]) ?? (H.zone === 'plain' ? this.villageOf(H.id)?.vi : undefined); if (vi === undefined) return this.none(head, 'village not built');
     const v = this.villages[vi];

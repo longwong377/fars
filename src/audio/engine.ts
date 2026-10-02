@@ -1,6 +1,7 @@
 // Spatial audio engine (brief §11): Web Audio with HRTF panning, per-channel mixer (ambience, voices, music, effects),
 // convolution reverb whose impulse response is generated from each space's dimensions and materials (Sabine RT60),
-// and zone-based reverb switching. All sources are procedural (no recordings needed; CC0 by construction).
+// and zone-based reverb switching. D-620: recorded beds, one-shots, footsteps and measured room impulse responses play where
+// public/audio has them (library.ts, sampler.ts); the procedural sources are the fallback.
 export type Channel = 'ambience' | 'voices' | 'music' | 'effects';
 /** occlusion of one source at the listener (src/audio/occlusion.ts; D-178): dB ≤ 0, low-pass cutoff, the path taken */
 export interface Occlusion { gainDb: number; cutoffHz: number; path: string }
@@ -74,11 +75,17 @@ export class AudioEngine {
     }
     return b;
   }
-  setSpace(s: Space, wetLevel: number) {
-    if (!this.ctx || this.currentSpace === s.id) return;
-    let ir = this.irCache.get(s.id); if (!ir) { ir = this.makeIR(s); this.irCache.set(s.id, ir); }
-    this.conv.buffer = ir; this.currentSpace = s.id; this.wet.gain.setTargetAtTime(wetLevel, this.ctx.currentTime, 0.3);
+  /** D-620: the measured impulse response in use (OpenAIR, tools/audio/irs.mjs), or null while the generated one plays */
+  private irRecorded: AudioBuffer | null = null;
+  /** the space's reverb: a measured impulse response of its kind when one is loaded (D-620), else the one generated from its
+   *  dimensions; the measured one replaces the generated as soon as it is decoded */
+  setSpace(s: Space, wetLevel: number, measured: AudioBuffer | null = null) {
+    if (!this.ctx || (this.currentSpace === s.id && this.irRecorded === measured)) return;
+    let ir = measured; if (!ir) { ir = this.irCache.get(s.id) ?? null; if (!ir) { ir = this.makeIR(s); this.irCache.set(s.id, ir); } }
+    this.conv.buffer = ir; this.currentSpace = s.id; this.irRecorded = measured; this.wet.gain.setTargetAtTime(wetLevel, this.ctx.currentTime, 0.3);
   }
+  /** is the reverb now a measured impulse response? (dev overlay) */
+  get irMeasured() { return this.irRecorded !== null; }
   /** occlusion by the built geometry (world coordinates of source and listener); null = none (tests, no architecture) */
   occluder: ((src: { x: number; y: number; z: number }, lis: { x: number; y: number; z: number }) => Occlusion) | null = null;
   private routed = new Map<PannerNode, Routed>(); private rr: PannerNode[] = []; private rrI = 0;

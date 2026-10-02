@@ -8,10 +8,11 @@
 // colossus.body.zc; the faces that fall inside the jamb block behind the fore-part (x < the block's front face, z below the
 // relief's cut-back ground) dropped, as the carvers left them in the stone. The jamb block itself is the colossusSDF's:
 // a slab, the back frame and the top frame round a relief field cut back by jamb.relief_depth, the fore-part standing free.
-// Usage: npx tsx tools/blender/scans/colossus_scan.ts <outDir> <model: bull|lamassu> <scanId> <highTris> [preview=0]
+// Usage: npx tsx tools/blender/scans/colossus_scan.ts <outDir> <model: bull|lamassu> <scanId|bull_graft> <highTris> [preview=0]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { srow, sculptIndex } from '../../../src/arch/sculpt';
-import { writePLY } from '../lib/ply';
+import { writePLY, readPLY } from '../lib/ply';
+import { execFileSync } from 'node:child_process';
 import { scanFile, readGLB, weld, bbox, filterFaces, transform, merge, normals, simplifyTo, preview, type Mesh, type NMesh } from './scanlib';
 
 const [out, model, scanId, highS, prevS] = process.argv.slice(2);
@@ -23,15 +24,25 @@ const idx = sculptIndex(); if (!idx) throw new Error('public/generated/sculpt.js
 const L2 = RB.L / 2, W2 = RB.W / 2, Ht = RB.H, front = idx.params.colossusFront, xf = L2 - front, zbg = W2 - J.relief_depth;
 const rx0 = -L2 + J.frame_back, ry1 = Ht - J.frame_top;
 
-// ---- the scan, fitted
-const raw = weld(readGLB(scanFile(scanId)), 1e-4);
-const [lo, hi] = bbox(raw.pos);
-const s = Ht / (hi[1] - lo[1]), sx = RB.L / ((hi[0] - lo[0]) * s);
-// the legs' mid-plane: the median z of the vertices in the lowest fifth (hooves and cannons)
-const zs: number[] = []; for (let k = 0; k < raw.pos.length; k += 3) if (raw.pos[k + 1] < lo[1] + 0.2 * (hi[1] - lo[1])) zs.push(raw.pos[k + 2]);
-zs.sort((a, b) => a - b); const zmid = zs[zs.length >> 1];
-const cx = (lo[0] + hi[0]) / 2;
-const fit0 = transform(raw, (x, y, z) => [(x - cx) * s * sx, (y - lo[1]) * s, BD.zc + (z - zmid) * s]);
+// ---- the scan, fitted (or, for 'bull_graft' (D-510, B361), the W bull derived from the lamassu and a bull-head scan, already in
+// this frame: tools/blender/scans/bull_from_lamassu.ts, then Blender bull_graft.py)
+let fit0: Mesh, s = 1, sx = 1, zmid = 0, rawTris = 0;
+if (scanId === 'bull_graft') {
+  const gd = `${out}/graft`; mkdirSync(gd, { recursive: true });
+  execFileSync('npx', ['tsx', 'tools/blender/scans/bull_from_lamassu.ts', gd, '0'], { stdio: 'inherit', shell: true });
+  execFileSync(process.env.BLENDER ?? 'C:/Program Files/Blender Foundation/Blender 5.0/blender.exe', ['-b', '--factory-startup', '--python', 'tools/blender/scans/bull_graft.py', '--', gd, '0', '300'], { stdio: 'inherit' });
+  const g = readPLY(`${gd}/bull_remesh.ply`); rawTris = g.idx.length / 3;
+  fit0 = weld({ pos: g.pos, idx: g.idx }, 5e-4); // the pressed and drawn-in vertices coincide: welded, their zero-area faces dropped (else the simplifier spends the budget on them)
+} else {
+  const raw = weld(readGLB(scanFile(scanId)), 1e-4);
+  const [lo, hi] = bbox(raw.pos);
+  s = Ht / (hi[1] - lo[1]); sx = RB.L / ((hi[0] - lo[0]) * s);
+  // the legs' mid-plane: the median z of the vertices in the lowest fifth (hooves and cannons)
+  const zs: number[] = []; for (let k = 0; k < raw.pos.length; k += 3) if (raw.pos[k + 1] < lo[1] + 0.2 * (hi[1] - lo[1])) zs.push(raw.pos[k + 2]);
+  zs.sort((a, b) => a - b); zmid = zs[zs.length >> 1]; rawTris = raw.idx.length / 3;
+  const cx = (lo[0] + hi[0]) / 2;
+  fit0 = transform(raw, (x, y, z) => [(x - cx) * s * sx, (y - lo[1]) * s, BD.zc + (z - zmid) * s]);
+}
 // the sculpt is a gate colossus already: the fore-part in the round, the flank in relief off a flat back (its wall); that back
 // is set 2 cm into the jamb's relief ground (the lowest z of the flank behind the block's front face)
 let zback = Infinity; for (let k = 0; k < fit0.pos.length; k += 3) if (fit0.pos[k] > -L2 + 0.3 && fit0.pos[k] < xf - 0.2) zback = Math.min(zback, fit0.pos[k + 2]);
@@ -65,7 +76,7 @@ const l0 = normals(await simplifyTo(kept, BUD.colossus_lod0 - bt - 200));
 const l1 = normals(await simplifyTo(kept, BUD.colossus_lod1 - bt - 50, { error: 1 }));
 const stats = {
   high: writePLY(`${out}/high.ply`, withBlock(high)), lod0: writePLY(`${out}/lod0.ply`, withBlock(l0)), lod1: writePLY(`${out}/lod1.ply`, withBlock(l1)),
-  model, scan: scanId, scan_tris: raw.idx.length / 3, kept_tris: kept.idx.length / 3, scale: s, press_x: sx, zmid, zback, dz, front, box: [flo, fhi], ms: Date.now() - t0,
+  model, scan: scanId, scan_tris: rawTris, kept_tris: kept.idx.length / 3, scale: s, press_x: sx, zmid, zback, dz, front, box: [flo, fhi], ms: Date.now() - t0,
 };
 writeFileSync(`${out}/source.json`, JSON.stringify(stats, null, 1));
 console.log(JSON.stringify(stats));

@@ -12,6 +12,7 @@
 // hemisphere's sky, as before.
 import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, cameraPosition, vec3, float, mix, smoothstep, length, dot, normalize, max, exp, mx_noise_float, time, fwidth, color, clamp } from 'three/tsl';
+import { SEASON } from '../../render/materials';
 
 /** sky and horizon radiance the water reflects; set every frame by the plain (index.ts, from the hemisphere light and
  *  the fog colour). Shared by every water material. */
@@ -60,7 +61,9 @@ export function skyReflection(nW: any, dull: any = float(0), bank: { sin: any; t
     // what the far bank sends back, in its own colours: a sunlit sward and reeds at about a third of the clear horizon's
     // luminance (a meadow of albedo ~0.1 in full sun against the horizon sky; C), the crowns of the trees darker
     const Lh = dot(WATER_SKY.horizon as any, vec3(0.2126, 0.7152, 0.0722));
-    const bankRad = vec3(0.28, 0.36, 0.16).mul(Lh).mul(1 / Math.PI), treeRad = vec3(0.1, 0.14, 0.06).mul(Lh).mul(1 / Math.PI);
+    // D-490: the bank's colour follows the season (SEASON, season.ts): the spring sward green, the summer's straw and dust
+    const gs = SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)), bankC = mix(vec3(0.42, 0.36, 0.22), vec3(0.28, 0.36, 0.16), gs), treeC = mix(vec3(0.13, 0.13, 0.07), vec3(0.1, 0.14, 0.06), gs);
+    const bankRad = bankC.mul(Lh).mul(1 / Math.PI), treeRad = treeC.mul(Lh).mul(1 / Math.PI);
     const bl = bank.blur ?? float(0);
     const onBank = float(1).sub(smoothstep(bank.sin.mul(0.8).sub(bl), bank.sin.mul(1.2).add(0.004).add(bl), R.y));
     const onTrees = float(1).sub(smoothstep(bank.treeSin.mul(0.7).sub(bl), bank.treeSin.mul(1.3).add(0.004).add(bl), R.y)).mul(bank.trees);

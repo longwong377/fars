@@ -67,6 +67,13 @@ export interface ClothHull {
 export const BELT_TOP = -0.005 + 0.045 / 2;
 /** the hang zone: the blouse above the belt blends from drawn-in to hanging over this height (m, C) */
 export const BLOUSE = 0.05;
+/** s17 V3 (D-500): the share of the hang the cloth keeps (1: straight down from the widest section above, the D-206 hang;
+ *  it read as a ball of cloth over the belt, a pot belly on every man): a man's tunic now tapers from the chest to the
+ *  belt over BLOUSE_M, with HANG of the overhang */
+export const HANG = 0.55;
+/** the men's and children's taper (m; BLOUSE stays the women's: a dress falls from the bust, and the largest bellies of
+ *  D-363 must stay under it, tests/body_variety) */
+export const BLOUSE_M = 0.15;
 
 /** The head under a felt cap (headHull): the head's radial extent about the cranium's centre (head and neck vertices),
  *  dilated over a 24° cone of directions, so a cap over the ears is a rounded bulge and not an ear-shaped one (the
@@ -121,7 +128,7 @@ export function clothHull(A: HumanAssets, v: HumanVariant): ClothHull {
 
   // ---- torso: horizontal sections about a fixed vertical axis, hull, then the hang from the armpits to the belt
   const s1 = J('spine_01'), s3 = J('spine_03'), beltTop = s1[1] + BELT_TOP, hangTop = J('upperarm_l')[1] - 0.06;
-  const torso = verts([PART.neck, PART.chest, PART.belly, PART.pelvis]);
+  const torso = verts([PART.neck, PART.chest, PART.belly, PART.pelvis]), woman = v.meta.sex === 'f' && v.meta.group !== 'child';
   { let zlo = 9, zhi = -9; for (const i of torso) if (Math.abs(P[i * 3 + 1] - s3[1]) < 0.02) { zlo = Math.min(zlo, P[i * 3 + 2]); zhi = Math.max(zhi, P[i * 3 + 2]); }
     const cz = (zlo + zhi) / 2, B = 96, dy = 0.01, slab = 0.008;
     let y0 = 9, y1 = -9; for (const i of torso) { y0 = Math.min(y0, P[i * 3 + 1]); y1 = Math.max(y1, P[i * 3 + 1]); }
@@ -136,7 +143,7 @@ export function clothHull(A: HumanAssets, v: HumanVariant): ClothHull {
     // drawn-in section just above the belt; below the belt, the section itself (under the skirt)
     const hang = rows.map(r => r.slice()); const kTop = Math.min(ny - 1, Math.max(0, Math.round((hangTop - y0) / dy)));
     for (let k = kTop - 1; k >= 0; k--) for (let b = 0; b < B; b++) hang[k][b] = Math.max(rows[k][b], hang[k + 1][b]);
-    const R = rows.map((r, k) => { const y = y0 + k * dy, w = y > hangTop ? 1 : sstep(beltTop, beltTop + BLOUSE, y); return r.map((x, b) => (y > hangTop ? x : x + (hang[k][b] - x) * w)); });
+    const R = rows.map((r, k) => { const y = y0 + k * dy, w = y > hangTop ? 1 : woman ? sstep(beltTop, beltTop + BLOUSE, y) : sstep(beltTop, beltTop + BLOUSE_M, y) * HANG; return r.map((x, b) => (y > hangTop ? x : x + (hang[k][b] - x) * w)); });
     for (const i of torso) { const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2] - cz, th = Math.atan2(z, x), rv = Math.hypot(x, z);
       const f = clamp((y - y0) / dy, 0, ny - 1), k0 = Math.min(ny - 2, Math.floor(f)), a = f - k0, rt = at(R[k0], th) * (1 - a) + at(R[k0 + 1], th) * a;
       const nY = Nv[i * 3 + 1], r = pushTo(rv, rt, nY, 0.07, y <= hangTop && nY < 0.2), s = rv > 1e-6 ? r / rv : 1; tgt[i * 3] = x * s; tgt[i * 3 + 2] = z * s + cz; if (rv > 1e-6) setDir(i, [x / rv, 0, z / rv], [0, 1, 0]); }

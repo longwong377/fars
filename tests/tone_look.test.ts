@@ -17,6 +17,7 @@ describe('tone look (D-309)', () => {
     console.log('scene → sRGB (plain AgX | look)', xs.map((x, i) => `${x}: ${g0[i].toFixed(0)}|${g1[i].toFixed(0)}`).join('  '));
     for (let i = 1; i < g1.length; i++) expect(g1[i]).toBeGreaterThan(g1[i - 1]);
     expect(grey(1)).toBeGreaterThan(grey(1, ID)); // sunlit limestone: brighter
-    expect(grey(0.002)).toBeLessThan(grey(0.002, ID) + 8); // night stays dark (within 8 levels)
+    // D-480: the toe lift opens deep shade (deep but not black); black stays black and the deepest darks within 14 levels
+    expect(grey(0.002)).toBeLessThan(grey(0.002, ID) + 14); expect(grey(0)).toBeLessThan(1);
   });
 });

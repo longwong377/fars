@@ -23,7 +23,8 @@
 import * as THREE from 'three/webgpu';
 import { Rng } from '../core/rng';
 import { Animals, type AnimalInst, type Species } from '../people/animals';
-import { STAIR_FOOT, type TerraceFoot } from './terraceFoot';
+import { STAIR_FOOT, heapsGeometry, type TerraceFoot, type Heap } from './terraceFoot';
+import { tentStands, type Tent } from '../people/camps';
 /** D-227: the stair foot's animals are drawn from this far (m; the plain views from the Terrace see them at 40-400 m) */
 export const FOOT_DRAW_R = 700;
 import { workGeometry } from '../people/workObjects';
@@ -41,6 +42,20 @@ export const h01 = (seed: number, a: number, b = 0) => { let h = (seed * 2654435
 const smooth = (x: number) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
 const F = faunaData as any;
 /** shares, counts and draw radii (fauna.json; C) */
+/** D-570: the herders' flocks out on the land (roadFolk.ts grazingOn): drawn here beyond the crowd's reach (its performers'
+ *  flocks: within crowd.ts THINGS_DIST) out to FLOCK_FAR m, so the slopes and the stubble are not empty by day (C) */
+export const FLOCK_NEAR = 380, FLOCK_FAR = 2400;
+/** D-570: where flocks graze within 3.5 km of the Terrace (a 200 m grid): the fields' stubble, the slopes (8-40 %), the low steppe;
+ *  each clear of the town's plots for 90 m round and 350 m off the Terrace (C) */
+export function grazingSites(use: (e: number, n: number) => string, slope: (e: number, n: number) => number, plan: TownPlan | null): { e: number; n: number; kind: 'hill' | 'stubble' | 'steppe' }[] {
+  const out: { e: number; n: number; kind: 'hill' | 'stubble' | 'steppe' }[] = [];
+  for (let e = -3400; e <= 3400; e += 200) for (let n = -3400; n <= 3400; n += 200) { if (Math.hypot(e - 80, n - 30) > 3500 || Math.hypot(e - 80, n - 30) < 350) continue;
+    let clear = true; if (plan) for (let k = 0; k < 9 && clear; k++) { const a = k * 0.785, r = k === 8 ? 0 : 90; if (!openGround(plan, e + r * Math.cos(a), n + r * Math.sin(a))) clear = false; } if (!clear) continue;
+    const u = use(e, n), g = slope(e, n); if (u === 'rainfed' || u === 'irrigated') out.push({ e, n, kind: 'stubble' }); else if (u === 'natural') { if (g > 0.08 && g < 0.4) out.push({ e, n, kind: 'hill' }); else if (g <= 0.08) out.push({ e, n, kind: 'steppe' }); } }
+  return out;
+}
+/** D-570: how far the camps' picket lines are drawn (m) */
+export const CAMP_LINE_R = 300;
 export const FAUNA = {
   yardDogTown: F.dog.yard_share_town as number, yardDogVillage: F.dog.yard_share_village as number, strayMiddenShare: F.dog.stray_midden_share as number,
   henTown: F.poultry.yard_share_town as number, henVillage: F.poultry.yard_share_village as number, poultryYard: F.poultry.state_yard_birds as number,
@@ -297,6 +312,26 @@ export class Fauna {
       const team: [number, number, Species][] = v.kind === 'chariot' ? [[0.55, 2.43, 'horse'], [-0.55, 2.43, 'horse']] : [[1.8, 1.2, 'mule'], [2.6, -0.4, 'mule']];
       team.forEach(([x, z, sp], j) => { const graze = v.kind === 'wagon' && fr(c.t / 21 + j * 0.4) < 0.6;
         Object.assign(o, { sp, e: v.e - co * x + s * z, n: v.n + s * x + co * z, x: 0, z: 0, yaw: ch + (v.kind === 'wagon' ? 0.6 * j - 0.3 : 0), phase: 0, walk: 0, graze: graze ? 1 : 0, lie: 0, coat: h01(77, j) }); push(); }); }
+    // D-570: the court camps' picket lines while the camp stands, within CAMP_LINE_R
+    if (this.campLines.length) { const day = c.day ?? 0, at = day * 24 + c.hour; this.campShares(at);
+      for (const H of this.campHeaps) H.mesh.visible = (this.share.get(H.camp) ?? 0) > 0 && Math.hypot(H.c[0] - cam[0], H.c[1] - cam[1]) < CAMP_LINE_R + 300;
+      for (const L of this.campLines) { const sh = this.share.get(L.camp) ?? 0; if (sh <= 0 || Math.hypot(L.c[0] - cam[0], L.c[1] - cam[1]) > CAMP_LINE_R + L.len) continue;
+        const night = c.hour < c.sun.rise - 0.3 || c.hour > c.sun.set + 0.8;
+        for (let k = 0; k < L.slots.length; k++) { const id = L.id * 64 + k; if (h01(this.seed, id, day) > sh * 0.92) continue; const q = L.slots[k];
+          let u = h01(this.seed, id, 5), sp: Species = L.species[0][0]; for (const [x, p] of L.species) { if (u < p) { sp = x; break; } u -= p; }
+          const eat = fr(c.t / (15 + 9 * h01(id, 6)) + h01(id, 7)) < 0.65 ? 1 : 0, lie = night && h01(id, day, 8) < 0.35 ? 1 : 0;
+          Object.assign(o, { sp, e: q[0], n: q[1], x: 0, z: 0, yaw: L.yaw + (h01(id, day, 9) - 0.5) * 0.5, phase: c.t * 1.3 + id, walk: 0, graze: lie ? 0 : eat, lie, coat: h01(this.seed + id, 10) }); push(); }
+        // the camp's dogs by the line (one, two at the larger camps' lines; C): lying through the heat, up and about at the
+        // ends of the day, a few metres out from the animals
+        for (let k = 0; k < 1 + (L.id % 2); k++) { const id = 9000 + L.id * 4 + k, q = L.slots[Math.floor(h01(id, day, 1) * L.slots.length)], h = c.hour, up = (h > c.sun.rise && h < c.sun.rise + 2.5) || (h > c.sun.set - 2 && h < c.sun.set + 1);
+          const a = L.yaw + Math.PI + (h01(id, 2) - 0.5), r = 4 + 3 * h01(id, 3) + (up ? 2 * Math.sin(c.t / 23 + id) : 0);
+          Object.assign(o, { sp: 'dog' as Species, e: q[0] + Math.sin(a) * r, n: q[1] + Math.cos(a) * r, x: 0, z: 0, yaw: a + (up ? c.t / 30 : 0), phase: c.t * 2 + id, walk: up && fr(c.t / 17 + id) > 0.6 ? 0.7 : 0, graze: 0, lie: up ? 0 : 1, coat: h01(id, 4) }); push(); } } }
+    // D-570: the herders' flocks out on the land beyond the crowd's reach: sheep and goats spread over 4-13 m grazing and
+    // drifting by day, packed in the fold and most lying at night
+    if (this.flockSource) for (const F of this.flockSource((c.day ?? 0) * 24 + c.hour)) { const dc = Math.hypot(F.e - cam[0], F.n - cam[1]); if (dc < FLOCK_NEAR || dc > FLOCK_FAR) continue;
+      const N = 14 + Math.floor(10 * h01(F.seed, 1)); for (let j = 0; j < N; j++) { const s0 = F.seed * 31 + j, a = h01(s0, 2) * 6.283 + (F.folded ? 0 : 0.05 * Math.sin(c.t / 40 + j)), r = F.folded ? 1 + 3.5 * Math.sqrt(h01(s0, 3)) : 4 + 9 * Math.sqrt(h01(s0, 3));
+        const lying = F.folded && h01(s0, Math.floor(c.t / 1800)) < 0.75, walking = !F.folded && fr(c.t / (18 + 8 * h01(s0, 4)) + h01(s0, 5)) > 0.8;
+        Object.assign(o, { sp: (h01(s0, 6) < 0.6 ? 'sheep' : 'goat') as Species, e: F.e + r * Math.cos(a), n: F.n + r * Math.sin(a), x: 0, z: 0, yaw: h01(s0, 7) * 6.283 + (walking ? 0.3 * Math.sin(c.t / 9) : 0), phase: c.t * 1.4 + j, walk: walking ? 0.6 : 0, graze: !lying && !walking ? 1 : 0, lie: lying ? 1 : 0, coat: h01(s0, 8) }); push(); } }
     // D-227: the tether lines at the foot of the Grand Stair (terraceFoot.ts), within FOOT_DRAW_R of it
     if (this.foot) { const vis = Math.hypot(STAIR_FOOT[0] - cam[0], STAIR_FOOT[1] - cam[1]) < FOOT_DRAW_R; this.foot.group.visible = vis;
       if (vis) this.foot.update(c.day ?? 0, c.hour, c.t, a => { Object.assign(o, a); push(); }); }
@@ -326,6 +361,39 @@ export class Fauna {
     this.beasts.hyenaMidden = best;
   }
   addTerraceFoot(f: TerraceFoot) { this.foot = f; this.group.add(f.group); }
+  /** D-570: the flocks out on the land (world.ts: traffic.folk.flocksAt), drawn beyond the crowd's reach */
+  flockSource: ((t: number) => { e: number; n: number; seed: number; folded: boolean }[]) | null = null;
+  /** D-570: the court camps' picket lines (court setting): per camp, lines of horses, mules and (at the court's own camp) camels
+   *  tied to a ground rope at the camp's edge, a fodder heap at a line's end and the dung swept along it, filled with the
+   *  share of the camp's tents standing (its households there: court.ts pitches and strikes them, D-252). How the court's
+   *  animals stood is not known (Q-333): the lines, their places, numbers and mixes are C (D-570; the herders' and armies'
+   *  practice by analogy). The royal stud's camp (p_horse) is mostly horses. */
+  campLines: { id: number; camp: string; c: P2; len: number; yaw: number; slots: P2[]; species: [Species, number][] }[] = [];
+  private campHeaps: { camp: string; c: P2; mesh: THREE.Mesh }[] = []; private campTents = new Map<string, Tent[]>(); private share = new Map<string, number>(); private shareAt = NaN;
+  addCampLines(tents: Tent[], plan: TownPlan | null) {
+    for (const t of tents) (this.campTents.get(t.camp) ?? this.campTents.set(t.camp, []).get(t.camp)!).push(t);
+    const MIX: Record<string, [Species, number][]> = { p_horse: [['horse', 0.85], ['mule', 0.15]], court: [['horse', 0.55], ['mule', 0.3], ['camel', 0.15]] }, OTHER: [Species, number][] = [['mule', 0.5], ['horse', 0.3], ['donkey', 0.2]];
+    let id = 0;
+    for (const [camp, T] of this.campTents) {
+      const ce: P2 = [T.reduce((a, t) => a + t.e, 0) / T.length, T.reduce((a, t) => a + t.n, 0) / T.length], R = Math.max(...T.map(t => Math.hypot(t.e - ce[0], t.n - ce[1]) + Math.max(t.w, t.d))) + 9;
+      const want = camp === 'p_horse' ? 10 : Math.max(2, Math.round(T.length / 60)), PITCH = 1.8, N = 18, len = PITCH * (N - 1), heaps: Heap[] = [];
+      const clearOf = (p: P2) => (!plan || openGround(plan, p[0], p[1])) && T.every(t => Math.hypot(t.e - p[0], t.n - p[1]) > Math.max(t.w, t.d) / 2 + 3);
+      for (let a = 0, made = 0; a < 64 && made < want; a++) { const ang = (a * 0.618034 % 1) * Math.PI * 2 + h01(this.seed, 990, a), c: P2 = [ce[0] + Math.cos(ang) * R, ce[1] + Math.sin(ang) * R];
+        const ux = -Math.sin(ang), uy = Math.cos(ang), slots: P2[] = [];
+        for (let k = 0; k < N; k++) { const s = -len / 2 + k * PITCH; slots.push([c[0] + ux * s + Math.cos(ang) * 1.2, c[1] + uy * s + Math.sin(ang) * 1.2]); }
+        const ends: P2[] = [[c[0] - ux * (len / 2 + 3.5), c[1] - uy * (len / 2 + 3.5)], [c[0] + ux * (len / 2 + 2), c[1] + uy * (len / 2 + 2)]];
+        if (![...slots, ...ends].every(clearOf) || this.campLines.some(L => Math.hypot(L.c[0] - c[0], L.c[1] - c[1]) < len + 6)) continue;
+        // (the animals stand on the outer side of the rope, heads in toward it and the camp)
+        this.campLines.push({ id: id++, camp, c, len, yaw: Math.atan2(-Math.cos(ang), -Math.sin(ang)), slots, species: MIX[camp] ?? OTHER }); made++;
+        heaps.push({ kind: 'stake', c: [c[0] - ux * len / 2, c[1] - uy * len / 2], r: 0.05, h: 0.9 }, { kind: 'stake', c: [c[0] + ux * len / 2, c[1] + uy * len / 2], r: 0.05, h: 0.9 }, { kind: 'fodder', c: ends[0], r: 1.3, h: 0.9 });
+        for (let k = 0; k < 3; k++) heaps.push({ kind: 'dung', c: [c[0] + ux * len * (k - 1) * 0.33 + Math.cos(ang) * 4, c[1] + uy * len * (k - 1) * 0.33 + Math.sin(ang) * 4], r: 0.5 + 0.3 * h01(id, k), h: 0.2 + 0.12 * h01(id, k, 2) }); }
+      if (heaps.length) { const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.95 }); mat.vertexColors = true; const m = new THREE.Mesh(heapsGeometry(heaps, this.ground), mat);
+        m.name = `fauna:camp-lines:${camp}`; m.receiveShadow = true; m.visible = false; m.matrixAutoUpdate = false; m.userData = { tier: 'C', src: 'RECON', note: `the picket lines of ${camp}'s animals (D-570, all C): stakes of the ground ropes, a fodder heap, the dung swept up` };
+        this.campHeaps.push({ camp, c: ce, mesh: m }); this.group.add(m); } }
+  }
+  /** the share of each camp's tents standing at hour `at` of the year (cached for the hour) */
+  private campShares(at: number) { const h = Math.floor(at); if (h === this.shareAt) return; this.shareAt = h;
+    for (const [camp, T] of this.campTents) this.share.set(camp, T.filter(t => tentStands(t, at)).length / T.length); }
   /** the listener's surroundings for the soundscape (audio/soundscape.ts Place): houses, water, trees, dung and middens,
    *  animals near (C: the distances at which each counts) */
   placeAt(e: number, n: number): Place {
