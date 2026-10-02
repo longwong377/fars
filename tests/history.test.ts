@@ -110,3 +110,14 @@ describe('D-375 needs and the quarter\'s talk reach what people say (asks on, as
     expect(needs / ppl).toBeGreaterThan(0.8);
   }, 1_800_000);
 });
+describe('D-375 gossip moves trust', () => {
+  it('houses that heard of a theft trust the one it names less than houses that did not', () => {
+    const sim = simAt(1, 120, 12, { asks: true }); const E = sim.econTo(121), R = sim.asksWorld.rumours, T = E.trust!;
+    let lower = 0, n = 0;
+    for (const r of R.rumours) { if (r.truth.kind !== 'theft' && r.truth.kind !== 'default') continue;
+      const about = r.truth.suspect ?? r.truth.about, heard = [...r.holds.entries()].filter(([hh, h]) => h.hand > 0 && hh !== about).slice(0, 5);
+      const H = E.hh.get(about); if (!H) continue; const quiet = [...E.hh.values()].filter(x => x.q === H.q && !r.holds.has(x.id) && x.id !== about).slice(0, 5);
+      for (const [hh] of heard) for (const q of quiet) { n++; if (T.trustOf(hh, about, 120) < T.trustOf(q.id, about, 120)) lower++; } }
+    console.log('[gossip]', lower, '/', n); expect(n).toBeGreaterThan(10); expect(lower / n).toBeGreaterThan(0.6);
+  }, 1_800_000);
+});

@@ -20,7 +20,14 @@ export class AsksWorld {
     if (this.pending) { this.book.load(this.pending.asks); this.net.load(this.pending.rumour); this.pending = null; }
   }
   /** the living world's hook: after the economy's day `d` */
-  day(d: number) { if (!this.on) return; this.build(); this.book!.advance(d); this.net!.advance(d); }
+  day(d: number) { if (!this.on) return; this.build(); this.book!.advance(d); this.net!.advance(d); this.heard(d); }
+  /** D-375: what a house hears it believes, a little: each house that learned a rumour today moves its trust in the house the
+   *  version names (the suspect of a theft, the defaulter, the one in debt) as the trust ledger's news does (trust.ts HEARD);
+   *  the lenders and employers of the economy read that trust, so gossip costs a house credit and work, true or not (C) */
+  private heard(d: number) {
+    const T = this.E?.trust; if (!T) return;
+    for (const r of this.net!.rumours) { if (r.last < d) continue; for (const [hh, h] of r.holds) if (h.day === d && h.hand > 0 && h.v.certainty >= 0.3) T.hear(hh, h.v.suspect ?? h.v.about, h.v.kind, d); }
+  }
   get asks(): AskBook { this.build(); return this.book!; }
   get rumours(): RumourNet { this.build(); return this.net!; }
   openAsksOf(hh: string): Ask[] { return this.on ? this.asks.openOf(hh) : []; }
