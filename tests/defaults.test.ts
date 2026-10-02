@@ -14,9 +14,9 @@ describe('decided defaults (T-K10)', () => {
     const { TALK_MODEL, TALK_MB, LLMS, appConfig } = await import('../src/people/converse/models');
     expect(TALK_MODEL).toBe('Qwen2.5-1.5B-Instruct-q4f16_1-MLC'); expect(LLMS.some(m => m.id === TALK_MODEL)).toBe(true);
     expect(TALK_MB.llm + TALK_MB.kokoroWebgpu + TALK_MB.voices).toBeLessThanOrEqual(1200); expect(TALK_MB.llm + TALK_MB.kokoroWasm + TALK_MB.voices).toBeLessThanOrEqual(1200);
-    expect(appConfig([TALK_MODEL], 'https://example.org').model_list[0].model_lib).toMatch(/Qwen2-0\.5B-Instruct-q4f16_1_cs1k-webgpu\.wasm$/);
+    expect(appConfig([TALK_MODEL], 'https://example.org').model_list[0].model_lib).toMatch(/Qwen2-1.5B-Instruct-q4f16_1_cs1k-webgpu\.wasm$/);
     const main = readFileSync('src/main.ts', 'utf8'), ui = readFileSync('src/people/converse/ui.ts', 'utf8'), world = readFileSync('src/world/world.ts', 'utf8');
-    expect(main).toMatch(/settings\.talk && !P\.has\('test'\)/); expect(main).toMatch(/\+\+shownFrames === 5\) \{ \(world as any\)\.neural\?\.start/);
+    expect(main).toMatch(/settings\.talk && !P\.has\('test'\)/); expect(main).toMatch(/\+\+shownFrames === 5\) void startTalk\(\)/); expect(main).toMatch(/finally \{ \(world as any\)\.neural\?\.start/); // (D-393: the model first, the voices after it)
     expect(ui).toMatch(/export const DEFAULT_MODEL = TALK_MODEL/); expect(world).toMatch(/lazy: true \}\)/);
   });
   it('D-236 / UD-10: the court comes and goes by default (reconstructed, C)', () => {
