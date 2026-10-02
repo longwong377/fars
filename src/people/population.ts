@@ -1340,6 +1340,10 @@ export class Population {
   /** D-459 (UD-32): a death by violence (deeds/engine.ts) under the economy's own rules (killable): the wounded dies the next day;
    *  false when the world cannot take it (a detailed agent, a mother of a small child, the house's last adult): left for dead, lives */
   deedKill(pid: number, d: number): boolean { if (!this.persons[pid] || !this.killable(pid, this.home(pid, d), d + 1)) return false; this.econKill(pid, d + 1); this.planCache.clear(); this.rawCache.clear(); return true; }
+  /** D-461 (UD-32): a person who leaves the town for good of their own will (mind/goals.ts 'leave'): present to day d, gone after.
+   *  Only where the world can take it (as deedKill: not a detailed agent, not a mother of a small child, not the house's last
+   *  adult, not wed or to be wed this year); false otherwise */
+  deedLeave(pid: number, d: number, force = false): boolean { const p = this.persons[pid]; if (!p || p.leave <= d || (!force && (!this.killable(pid, this.home(pid, d), d + 1) || p.marry < 1e9))) return false; p.leave = d; this.planCache.clear(); this.rawCache.clear(); return true; }
   private econKill(pid: number, d: number) {
     const p = this.persons[pid]; this.econDead.set(pid, { day: d, was: p.dies }); this.moveDeath(pid, p.dies, d);
   }
@@ -1784,6 +1788,16 @@ export class Population {
    *  a friend visited, work shared, a wound kept at home. Over the relations' meetings, under the stranger's talk */
   deeds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
   plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  /** D-461: the plan as the town's own minds read it when they judge a deed among themselves: the base day (cached) and the
+   *  deeds' overlay only (the full overlays cost ~10 ms a person on a fresh day; the stranger's deeds keep the full plan) */
+  planLight(pid: number, day: number): Seg[] { const b = this.basePlan(pid, day); return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
+  /** D-461: the light plan only if the planner has built the base day already (no build: ~1.5 ms each), else null */
+  planIfBuilt(pid: number, day: number): Seg[] | null { const b = this.planCache.get(day)?.get(pid); if (!b) return null; return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
+  /** D-461: what a person is doing at an hour as the town's own minds judge it: the built plan, else the hour's common lot
+   *  (asleep at night, at home of an evening, at their work by day: C) */
+  segLight(pid: number, day: number, hour: number): Seg { const b = this.planIfBuilt(pid, day); if (b) return segAt(b, hour);
+    const h = this.home(pid, day), z = this.households[h]?.zone, where: Where = z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town';
+    return hour < 5.5 || hour >= 21.5 ? { t0: hour, t1: hour, place: `h:${h}`, act: 'sleep', why: 'asleep', where } : hour >= 17 || hour < 7 ? { t0: hour, t1: hour, place: `h:${h}`, act: 'rest', why: 'at home', where } : { t0: hour, t1: hour, place: `h:${h}`, act: 'rest', why: 'about the day\'s work', where }; }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }

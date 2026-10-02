@@ -19,6 +19,7 @@ import type { RumourNet } from '../asks/rumour';
 import type { ActivityId } from '../activities';
 import { u01, salt } from '../hash';
 import { Minds, type MindCtx } from '../mind/minds';
+import { Initiative } from '../mind/initiative';
 import { VERBS } from './verbs';
 import type { Actor, Deed, DeedRec, Effect, Outcome, Good } from './types';
 
@@ -26,9 +27,13 @@ export interface WorldPort {
   pop: Population; seed: number;
   /** the economy as built about the day (null before it is) */ econ: (day: number) => Economy | null;
   rumours: () => RumourNet | null;
-  /** the people at the same place as pid at time t (the world's own reading of the plans) */ near: (pid: number, t: number) => number[];
+  /** the people at the same place as pid at time t (the world's own reading of the plans; light: the town's own deeds, D-461) */ near: (pid: number, t: number, light?: boolean) => number[];
 }
 const S = { hour: salt('deed-hour'), law: salt('deed-law'), fight: salt('deed-fight') };
+/** the other's side of a deed in a day plan's words, where the verb alone reads wrong (D-461) */
+const VERB_TO: Partial<Record<string, string>> = { visit: 'a visit from', help: 'helped by', hire: 'working for', court: 'courted by', teach: 'taught by', heal: 'tended by', introduce: 'introduced by', share_food: 'eating with', intercede: 'hearing a plea from', reconcile: 'making peace with' };
+/** the doer's side of a deed in a day plan's words (D-461) */
+const VERB_ING: Partial<Record<string, string>> = { visit: 'visiting', help: 'helping', hire: 'hiring', court: 'courting', teach: 'teaching', heal: 'tending', intercede: 'pleading with', reconcile: 'making peace with', share_food: 'eating with', introduce: 'introducing', come_with: 'going with', repair: 'mending for', build: 'building with', carry: 'carrying for', guard: 'keeping watch for', join: 'together with', meet: 'meeting', fetch: 'fetching for', pray: 'praying with', offer: 'offering with' };
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
 const CHILD_HARM = new Set(['attack', 'push', 'steal', 'threaten', 'curse', 'break']);
 const ROMANCE = new Set(['flirt', 'court', 'embrace']);
@@ -39,8 +44,17 @@ export interface Case { id: number; day: number; due: number; accuser: Actor; ac
 export interface Promise_ { id: number; from: Actor; to: Actor; verb: string; due: number; kept?: boolean; broken?: boolean }
 
 export class DeedWorld {
+  /** the deeds done, the most recent of them (D-461: a window of the last 16 000 to 24 000; a deed's id is its place in the
+   *  whole year's count, read with rec(id)) */
   readonly log: DeedRec[] = [];
+  private base = 0;
+  /** the id the next deed will have */
+  get next() { return this.base + this.log.length; }
+  /** a deed by its id, while it is in the window */
+  rec(id: number): DeedRec | undefined { return this.log[id - this.base]; }
   readonly minds: Minds;
+  /** D-461: what the minds set out to do of their own accord (goals over days and months, moods, the talk of deeds) */
+  readonly agency: Initiative;
   readonly injuries = new Map<number, { how: string; day: number; until: number; by: Actor }>();
   readonly cases: Case[] = [];
   readonly promises: Promise_[] = [];
@@ -50,13 +64,17 @@ export class DeedWorld {
   private mine: { t: number; deed: Deed }[] = [];
   private lays = new Map<string, Seg[]>();
   private dayDone = -1;
+  /** the next case's number (D-461: settled cases are pruned, so not the list's length) */
+  private caseN = 0;
   constructor(readonly w: WorldPort, ctx?: Partial<MindCtx>) {
     const E = (d: number) => w.econ(d), hhOf = (pid: number, d: number) => `h:${w.pop.home(pid, d)}`;
     this.minds = new Minds(w.pop, w.seed, {
       trust: (pid, of, d) => { const e = E(d); if (!e?.trust) return 0.5; const h = hhOf(pid, d); if (!e.hh.has(h)) return 0.5; return e.trust.trustOf(h, of === 'player' ? 'player' : hhOf(of, d), d); },
       need: (pid, d) => { const e = E(d); const n = e?.hh.has(hhOf(pid, d)) ? e.needsOf(hhOf(pid, d)) : []; return { food: n.find(x => x.kind === 'food')?.urgency ?? 0, cash: n.find(x => x.kind === 'cash')?.urgency ?? 0 }; },
+      mood: (pid, d) => this.agency.moodOf(pid, d).v,
       ...ctx,
     });
+    this.agency = new Initiative(this);
   }
   private hh(a: Actor, day: number): string | null { return a === 'player' ? null : `h:${this.w.pop.home(a, day)}`; }
   private name(a: Actor) { return a === 'player' ? 'the stranger' : (this.w.pop.nameOf(a) ?? 'someone').replace(/^\*/, ''); }
@@ -68,8 +86,8 @@ export class DeedWorld {
   /** do the deed (the stranger's, after the person's answer; a mind's, on its day) */
   act(d: Deed, t: number): DeedRec {
     if (d.actor === 'player') this.mine.push({ t, deed: { ...d } });
-    const out = this.resolve(d, t, true), rec: DeedRec = { id: this.log.length, day: Math.floor(t / 24), t, deed: d, out };
-    this.log.push(rec);
+    const out = this.resolve(d, t, true), rec: DeedRec = { id: this.next, day: Math.floor(t / 24), t, deed: d, out };
+    this.log.push(rec); if (this.log.length > 24000) { this.log.splice(0, 8000); this.base += 8000; }
     for (const x of [d.actor, d.target, d.third, ...(out.witnesses ?? [])]) if (typeof x === 'number') this.minds.remember(x, rec.id);
     if (typeof d.actor === 'number') this.minds.own.set(d.actor, (this.minds.own.get(d.actor) ?? 0) + 1);
     this.keepPromises(rec);
@@ -83,11 +101,11 @@ export class DeedWorld {
     if (tg !== null && !this.here(tg, day)) return no(typeof tg === 'number' && P.persons[tg]?.dies <= day ? 'dead' : 'not here');
     if (tg !== null && tg === d.actor) return no('to oneself');
     if ((d.inH ?? 0) > 48) return no('too far ahead to promise');
-    const tAge = typeof tg === 'number' ? P.ageOn(tg, day) : 30;
+    const tAge = typeof tg === 'number' ? P.ageOn(tg, day) : 30, light = d.actor !== 'player';
     // the limits of the world: no courting a child; harm to a child is stopped by the grown-ups near (and remembered)
     if (ROMANCE.has(d.verb) && tAge < 18) return no('a child: never', true, -1);
     if (CHILD_HARM.has(d.verb) && tAge < 12 && typeof tg === 'number') {
-      const wit = this.w.near(tg, t).filter(x => x !== tg && P.ageOn(x, day) >= 16).slice(0, 6);
+      const wit = this.w.near(tg, t, light).filter(x => x !== tg && P.ageOn(x, day) >= 16).slice(0, 6);
       const eff: Effect[] = wit.map(x => ({ k: 'feel', who: x, toward: d.actor, d: { anger: 0.4, aff: -0.3 } } as Effect));
       const h = this.hh(tg, day); if (h) eff.push({ k: 'trust', hh: h, of: d.actor, d: -0.25 }, { k: 'rumour', about: d.actor, kind: 'threat_to_child', hh: h });
       if (apply) this.applyAll(eff, day, d);
@@ -96,7 +114,7 @@ export class DeedWorld {
     // the things: the doer must have what he gives, the other what is taken or asked
     const lack = this.lacks(d, day); if (lack) return no(lack);
     // asleep: words are not heard, and the consenting deeds wait
-    const tSeg = typeof tg === 'number' ? segAt(P.plan(tg, day), hour) : null;
+    const tSeg = typeof tg === 'number' ? (light ? P.segLight(tg, day, hour) : segAt(P.plan(tg, day), hour)) : null;
     if (tSeg?.act === 'sleep' && (d.inH ?? 0) < 1 && !['attack', 'steal', 'break', 'push'].includes(d.verb)) return no('asleep');
     // the other's mind
     const dec = typeof tg === 'number' ? this.minds.decide(tg, d, day, hour) : { lean: 0.5, ok: true, why: '' };
@@ -104,7 +122,8 @@ export class DeedWorld {
       const eff: Effect[] = typeof d.actor === 'number' && typeof tg === 'number' ? [{ k: 'feel', who: d.actor, toward: tg, d: { aff: -0.03 } }] : [];
       if (apply) this.applyAll(eff, day, d); return { ok: false, refused: true, why: dec.why, lean: dec.lean, effects: eff };
     }
-    const wit = typeof tg === 'number' ? this.w.near(tg, t).filter(x => x !== tg && x !== d.actor && P.ageOn(x, day) >= 10).slice(0, 8) : [];
+    // (D-461: the town's own deeds look for witnesses only where there is something to see: a wrong)
+    const wit = typeof tg === 'number' && (!light || sense.wrong) ? this.w.near(tg, t, light).filter(x => x !== tg && x !== d.actor && P.ageOn(x, day) >= 10).slice(0, 8) : [];
     const eff = this.effects(d, t, dec.lean, wit);
     if (apply) this.applyAll(eff, day, d);
     return { ok: true, why: dec.why || sense.gloss, lean: dec.lean, effects: eff, witnesses: wit };
@@ -179,11 +198,12 @@ export class DeedWorld {
     // where the deed takes people: the other (and a mind doer) go to the place and do it for its hours
     if (tg !== undefined && sense.consent && sense.hours > 0.2 && typeof tg === 'number') {
       const at = hour + (d.inH ?? 0), dd = day + Math.floor(at / 24), h0 = at % 24, h1 = Math.min(23.5, h0 + sense.hours);
-      const place = d.place ?? (d.verb === 'visit' ? (typeof d.actor === 'number' ? `h:${P.home(d.actor, dd)}` : `h:${P.home(tg, dd)}`) : segAt(P.plan(tg, dd), h0).place);
+      const place = d.place ?? (d.verb === 'visit' ? (typeof d.actor === 'number' ? `h:${P.home(tg, dd)}` : `h:${P.home(tg, dd)}`) : d.actor === 'player' ? segAt(P.plan(tg, dd), h0).place : P.segLight(tg, dd, h0).place);
       const act: ActivityId = d.act ?? (d.verb === 'visit' || d.verb === 'meet' || d.verb === 'intercede' || d.verb === 'reconcile' || d.verb === 'introduce' ? 'talk' : d.verb === 'share_food' ? 'eat' : d.verb === 'pray' ? 'offer' : d.verb === 'heal' ? 'tend_body' : d.verb === 'carry' ? 'carry_sack' : d.verb === 'come_with' ? 'walk' : 'talk');
-      const why = `${d.verb === 'help' ? 'helping' : d.verb === 'join' ? 'together with' : d.verb.replace(/_/g, ' ')} ${this.name(d.actor)}${d.act ? `: ${d.act.replace(/_/g, ' ')}` : ''}`;
+      const aim = d.aim ? `: ${d.aim}` : '';
+      const why = `${typeof d.actor === 'number' && VERB_TO[d.verb] ? VERB_TO[d.verb] : d.verb === 'help' ? 'helping' : d.verb === 'join' ? 'together with' : d.verb.replace(/_/g, ' ')} ${this.name(d.actor)}${d.act ? `: ${d.act.replace(/_/g, ' ')}` : ''}`;
       if (h1 - h0 > 0.15) { out.push({ k: 'lay', pid: tg, day: dd, h0, h1, place, act, why, with: d.actor });
-        if (typeof d.actor === 'number') out.push({ k: 'lay', pid: d.actor, day: dd, h0, h1, place, act, why: `${d.verb.replace(/_/g, ' ')} with ${this.name(tg)}`, with: tg }); }
+        if (typeof d.actor === 'number') out.push({ k: 'lay', pid: d.actor, day: dd, h0, h1, place, act, why: `${VERB_ING[d.verb] ?? d.verb.replace(/_/g, ' ')} ${this.name(tg)}${aim}`, with: tg }); }
     }
     return out;
   }
@@ -215,10 +235,11 @@ export class DeedWorld {
   }
   private whereOf(place: string, pid: number, day: number): Where {
     if (/^(hills|river|field:|pasture:|flock:|crown_fields|canal:)/.test(place)) return 'plain';
-    const s = this.w.pop.plan(pid, day)[0]; return (s?.where === 'away' || s?.where === 'road' ? 'town' : s?.where) ?? 'town';
+    // (D-461: the house's own ground; was the first stretch of the full plan, every overlay built for each stretch laid: ~10 ms)
+    const P = this.w.pop, h = /^h:(\d+)$/.exec(place), z = P.households[h ? +h[1] : P.home(pid, day)]?.zone; return z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town';
   }
-  /** lay a segment over a person's day (the plans' overlay) */
-  private lay(pid: number, day: number, seg: Seg) { const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); }
+  /** lay a segment over a person's day (the plans' overlay; D-461: the goals lay their own steps through it) */
+  lay(pid: number, day: number, seg: Seg) { const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); }
   private layDays(pid: number, day: number, n: number, act: ActivityId, why: string) { const P = this.w.pop; for (let d = day + 1; d <= day + n; d++) this.lay(pid, d, { t0: 0, t1: 24, place: `h:${P.home(pid, d)}`, act, why, where: P.households[P.home(pid, d)]?.zone === 'plain' ? 'plain' : 'town' }); }
   /** the deeds' overlay of the day plans (Population.deeds) */
   readonly overlay = {
@@ -229,8 +250,8 @@ export class DeedWorld {
   // ---------------------------------------------------------------- the law, promises (day by day)
   private fileCase(offender: Actor, victim: Actor, crime: string, witnessed: boolean, day: number) {
     if (this.cases.some(c => c.accused === offender && c.victim === victim && c.crime === crime && !c.ruled)) return;
-    const due = day + 1 + (u01(this.w.seed, S.law, day, this.cases.length) * 3 | 0);
-    this.cases.push({ id: this.cases.length, day, due, accuser: victim, accused: offender, victim, crime, witnessed });
+    const id = this.caseN++, due = day + 1 + (u01(this.w.seed, S.law, day, id) * 3 | 0);
+    this.cases.push({ id, day, due, accuser: victim, accused: offender, victim, crime, witnessed });
   }
   private rule(c: Case, day: number) {
     // the elder weighs: witnesses, and the quarter's trust in the accused against the accuser (C)
@@ -253,9 +274,16 @@ export class DeedWorld {
     if (day <= this.dayDone) return; this.dayDone = day;
     for (const c of this.cases) if (!c.ruled && c.due <= day) this.rule(c, day);
     this.duesOf(day); yield;
-    const own = this.minds.deeds(day); let k = 0;
-    for (const d of own) { const t = day * 24 + 8 + u01(this.w.seed, S.hour, day, k++) * 12; d.inH = d.inH ?? 0; this.act(d, t); if (k % 40 === 0) yield; }
+    // (D-461: the days gone are dropped from the overlay: the plans read no further back than yesterday)
+    for (const k of this.lays.keys()) if (Number(k.slice(k.indexOf(':') + 1)) < day - 2) this.lays.delete(k);
+    // (and promises settled a month ago, cases ruled a season ago: the save stays small over a year)
+    if (day % 7 === 0) { const keep = this.promises.filter(p => !(p.kept || p.broken) || p.due > day - 30); this.promises.splice(0, this.promises.length, ...keep);
+      const kc = this.cases.filter(c => !c.ruled || c.due > day - 90); this.cases.splice(0, this.cases.length, ...kc); }
+    // the minds' own deeds: feelings and needs acted on (minds.ts), goals pursued and formed, deeds talked of (initiative.ts)
+    yield* this.agency.dayParts(day);
   }
+  /** a mind's own deed done at an hour of the day (initiative.ts) */
+  own(d: Deed, day: number, k: number, hour?: number): DeedRec { const t = day * 24 + (hour ?? 8 + u01(this.w.seed, S.hour, day, k) * 12); d.inH = d.inH ?? 0; return this.act(d, t); }
   day(day: number) { for (const _ of this.dayParts(day)); }
 
   // ---------------------------------------------------------------- reading (the brief, the overlay, the tests)
@@ -264,18 +292,19 @@ export class DeedWorld {
     const out: string[] = [], f = this.minds.feelOf(pid, 'player', day);
     const fl = [f.anger > 0.25 ? 'angry with him' : '', f.fear > 0.25 ? 'afraid of him' : '', f.grat > 0.2 ? 'grateful to him' : '', f.aff > 0.3 ? 'fond of him' : f.aff < -0.2 ? 'dislike him' : '', f.resp > 0.3 ? 'respect him' : ''].filter(Boolean);
     if (fl.length) out.push(`You are ${fl.join(' and ')}.`);
-    const mem = (this.minds.memory.get(pid) ?? []).map(i => this.log[i]).filter(r => r && r.out.ok && (r.deed.actor === 'player' || r.deed.target === 'player') && day - r.day < 60).slice(-2);
+    const mem = (this.minds.memory.get(pid) ?? []).map(i => this.rec(i)).filter((r): r is DeedRec => !!r && r.out.ok && (r.deed.actor === 'player' || r.deed.target === 'player') && day - r.day < 60).slice(-2);
     for (const r of mem) out.push(`${day - r.day === 0 ? 'Today' : day - r.day === 1 ? 'Yesterday' : 'Some days ago'} ${r.deed.actor === 'player' ? `the stranger ${VERBS[r.deed.verb].gloss.replace(/^to /, '')}${r.deed.target === pid ? ' (to you)' : ''}` : `you ${r.deed.verb.replace(/_/g, ' ')} the stranger`}.`);
     const inj = this.injuries.get(pid); if (inj && inj.until > day) out.push(`You are ${inj.how === 'broken' ? 'badly hurt, a bone broken' : inj.how === 'cut' ? 'cut and bandaged' : 'bruised'}, by ${this.name(inj.by)}.`);
+    out.push(...this.agency.briefOf(pid, day)); // (D-461: what they are set on, and their mood)
     return out;
   }
   /** a person's wound now (the renderer's and the marks' hook) */
   injuryOf(pid: number, day: number) { const i = this.injuries.get(pid); return i && i.until > day ? i : null; }
 
-  save() { return { mine: this.mine, minds: this.minds.save(), inj: [...this.injuries], cases: this.cases, promises: this.promises, skills: [...this.skills], lays: [...this.lays], dayDone: this.dayDone, n: this.log.length }; }
+  save() { return { mine: this.mine, minds: this.minds.save(), agency: this.agency.save(), inj: [...this.injuries], cases: this.cases, promises: this.promises, skills: [...this.skills], lays: [...this.lays], dayDone: this.dayDone, n: this.log.length, caseN: this.caseN }; }
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.cases.splice(0, this.cases.length, ...s.cases); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
-    this.lays = new Map(s.lays); this.dayDone = s.dayDone; }
+    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.caseN = s.caseN ?? s.cases.reduce((a, c) => Math.max(a, c.id + 1), 0); this.agency.load(s.agency); }
 }
 
 /** a segment laid into a day: the base is cut around it (the overlays' shared rule) */
