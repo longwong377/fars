@@ -118,3 +118,17 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-370..D-379 | s15 | the cloud depth session (Q-1230..Q-1259, B400..B429) | cloud, branch cloud-s15-depth | reserved |
 | D-380..D-399 | s15 | reserved for Vagon waves (Q-1260..Q-1399, B430..B499) | the lead | reserved |
 | D-380..D-391 | s15 | TAKEN by the cloud depth session's overflow (D-380 errands, D-381 marriages, D-382 persona, D-383 court, D-384 speech chains, D-385 sight, D-386 load (cloud), D-387 period speech, D-388 rollover, D-389 T-E14, D-390 census, D-391 the playtest bot's fixes); D-392.. are Vagon's (s16); the cloud continues from D-450 | cloud, branch cloud-s15-depth | in use |
+| D-470..D-479 | s17 | Vagon lead (Q-1400..Q-1409, B500..B509) | s17-int | in flight |
+| D-480..D-489 | s17 | V1 light (Q-1410..Q-1419, B510..B519) | Vagon worktree | in flight |
+| D-490..D-499 | s17 | V2 materials (Q-1420..Q-1429, B520..B529) | Vagon worktree | in flight |
+| D-500..D-509 | s17 | V3 people (Q-1430..Q-1439, B530..B539) | Vagon worktree | in flight |
+| D-510..D-519 | s17 | V4 terrace (Q-1440..Q-1449, B540..B549) | Vagon worktree | in flight |
+| D-520..D-529 | s17 | V5 animals and weather (Q-1450..Q-1459, B550..B559) | Vagon worktree | in flight |
+| D-530..D-539 | s17 | V6 interiors and fire (Q-1460..Q-1469, B560..B569) | Vagon worktree | in flight |
+| D-540..D-549 | s17 | cloud lead (Step 0, CI, merges) (Q-1470..Q-1479, B570..B579) | cloud-s17-int | in flight |
+| D-550..D-559 | s17 | C1 town fill (Q-1480..Q-1489, B580..B589) | cloud-s17-c1-town | in flight |
+| D-560..D-569 | s17 | C2 plain fill (Q-1490..Q-1499, B590..B599) | cloud-s17-c2-plain | in flight |
+| D-570..D-579 | s17 | C3 life on the roads (Q-1500..Q-1509, B600..B609) | cloud-s17-c3-roads | in flight |
+| D-580..D-589 | s17 | C4 load keeper (Q-1510..Q-1519, B610..B619) | cloud-s17-c4-load | in flight |
+| D-590..D-599 | s17 | C5 screens and intro (Q-1520..Q-1529, B620..B629) | cloud-s17-c5-screens | in flight |
+| D-600..D-609 | s17 | C6 far land (Q-1530..Q-1539, B630..B639) | cloud-s17-c6-far | in flight |
