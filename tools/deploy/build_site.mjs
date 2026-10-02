@@ -23,7 +23,7 @@ if (!process.env.SKIP_BAKE && existsSync(join(root, 'tools/bake_world/bake.ts'))
   try { run('npx tsx tools/bake_world/bake.ts'); lap('world cache baked'); }
   catch (e) { console.warn(`[site] world-cache bake failed (${e.message}); the page builds those units live`); }
 }
-run('npx vite build', { PARSA_BASE: base }); lap('vite build');
+run(`npx vite build${process.env.NOMINIFY ? ' --minify false' : ''}${process.env.SOURCEMAP ? ' --sourcemap' : ''}`, { PARSA_BASE: base }); // (NOMINIFY=1 / SOURCEMAP=1: names and source files for tools/deploy/boot_profile.mjs) lap('vite build');
 
 // textures low first (src/render/lowfirst.ts): a 512-px copy of every scan jpg beside it, and textures/low.json (each full
 // file's size): a first visit loads the copies before it can walk and the full scans after (sharp, in the lockfile)

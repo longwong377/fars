@@ -86,15 +86,52 @@ export function trackLines(villages: Village[]): [number, number][][] {
   return lines.map(([a, b]) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(2, Math.ceil(L / 25)), nx = -(b[1] - a[1]) / L, ny = (b[0] - a[0]) / L, ph = unit(hash2(cellU(a[0]), cellU(b[1]), 95)) * 6.28;
     return Array.from({ length: n + 1 }, (_, k) => { const t = k / n, o = Math.sin(t * L / 700 * 6.28 + ph) * 12 * Math.sin(Math.PI * t); return [a[0] + (b[0] - a[0]) * t + nx * o, a[1] + (b[1] - a[1]) * t + ny * o] as [number, number]; }); });
 }
-export function tracksMesh(lines: [number, number][][], terrain: Terrain, width = feature('villages_unlocated').tracks.width_m as number, name = 'plain-tracks'): THREE.Mesh {
+/** s17 (D-560, for C6's quarries): the quarrymen's worn path from each quarry down to the nearest track or road, found on
+ *  the terrain (A* on a 25 m grid: length weighted by slope, nothing steeper than 1 in 3; the hauling of blocks on sledges
+ *  wants the gentlest way down, C); smoothed, as a track line. `targets`: the lines it may join */
+export const QUARRY_PATH = { cell: 25, maxSlope: 0.33, reach: 9000 } as const;
+export function quarryPaths(sites: { x: number; y: number }[], targets: [number, number][][], terrain: { heightAt(x: number, z: number): number }): [number, number][][] {
+  const out: [number, number][][] = [], C = QUARRY_PATH.cell;
+  for (const q of sites) {
+    // the nearest target point bounds the search box (with a margin for the way round)
+    let bd = Infinity, bp: [number, number] = [q.x, q.y];
+    for (const L of targets) for (let i = 1; i < L.length; i++) { const [ax, ay] = L[i - 1], [bx, by] = L[i], d = distToSegment(q.x, q.y, ax, ay, bx, by);
+      if (d < bd) { bd = d; const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((q.x - ax) * dx + (q.y - ay) * dy) / (dx * dx + dy * dy || 1))); bp = [ax + t * dx, ay + t * dy]; } }
+    if (bd > QUARRY_PATH.reach) continue;
+    const m = Math.max(1500, bd * 0.6), x0 = Math.min(q.x, bp[0]) - m, y0 = Math.min(q.y, bp[1]) - m, nx = Math.ceil((Math.max(q.x, bp[0]) + m - x0) / C) + 1, ny = Math.ceil((Math.max(q.y, bp[1]) + m - y0) / C) + 1;
+    const N = nx * ny, hgt = new Float32Array(N), goal = new Uint8Array(N);
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) hgt[j * nx + i] = terrain.heightAt(x0 + i * C, -(y0 + j * C));
+    for (const L of targets) for (let k = 1; k < L.length; k++) { const [ax, ay] = L[k - 1], [bx, by] = L[k], len = Math.hypot(bx - ax, by - ay);
+      for (let t = 0; t <= len; t += C / 2) { const px = ax + (bx - ax) * t / (len || 1), py = ay + (by - ay) * t / (len || 1), i = Math.round((px - x0) / C), j = Math.round((py - y0) / C); if (i >= 0 && j >= 0 && i < nx && j < ny) goal[j * nx + i] = 1; } }
+    // A* (a binary heap on f), 8 neighbours (g and f in float64: float32 rounding re-fired the same relaxation without end)
+    const g = new Float64Array(N).fill(Infinity), from = new Int32Array(N).fill(-1), hx = Math.round((bp[0] - x0) / C), hy = Math.round((bp[1] - y0) / C);
+    const heap: number[] = [], f = new Float64Array(N), push = (n: number) => { heap.push(n); let c = heap.length - 1; while (c > 0) { const p = (c - 1) >> 1; if (f[heap[p]] <= f[n]) break; heap[c] = heap[p]; c = p; } heap[c] = n; };
+    const pop = () => { const top = heap[0], last = heap.pop()!; if (heap.length) { let c = 0; for (;;) { let l = 2 * c + 1; if (l >= heap.length) break; if (l + 1 < heap.length && f[heap[l + 1]] < f[heap[l]]) l++; if (f[heap[l]] >= f[last]) break; heap[c] = heap[l]; c = l; } heap[c] = last; } return top; };
+    const s0 = Math.round((q.y - y0) / C) * nx + Math.round((q.x - x0) / C); g[s0] = 0; f[s0] = Math.hypot(hx * C - (q.x - x0), hy * C - (q.y - y0)); push(s0);
+    let end = -1;
+    while (heap.length) { const n = pop(); if (goal[n]) { end = n; break; } const i = n % nx, j = (n - i) / nx;
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { if (!di && !dj) continue; const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= nx || b >= ny) continue;
+        const k = b * nx + a, d = C * Math.hypot(di, dj), sl = Math.abs(hgt[k] - hgt[n]) / d; if (sl > QUARRY_PATH.maxSlope && n !== s0) continue;
+        const ng = g[n] + d * (1 + 40 * sl * sl); if (ng < g[k]) { g[k] = ng; from[k] = n; f[k] = ng + Math.hypot((a - hx) * C, (b - hy) * C); push(k); } } }
+    if (end < 0) continue;
+    const pts: [number, number][] = []; for (let n = end; n >= 0; n = from[n]) { const i = n % nx; pts.push([x0 + i * C, y0 + ((n - i) / nx) * C]); }
+    pts.reverse(); pts[0] = [q.x, q.y];
+    // smoothed (three passes of a 3-point average, the ends kept)
+    for (let pass = 0; pass < 3; pass++) for (let k = 1; k < pts.length - 1; k++) pts[k] = [(pts[k - 1][0] + pts[k][0] + pts[k + 1][0]) / 3, (pts[k - 1][1] + pts[k][1] + pts[k + 1][1]) / 3];
+    out.push(pts);
+  }
+  return out;
+}
+/** `steep`: the lines (by index) drawn whatever the slope (the quarry paths: the village tracks are cut where the ground climbs) */
+export function tracksMesh(lines: [number, number][][], terrain: Terrain, width = feature('villages_unlocated').tracks.width_m as number, name = 'plain-tracks', steep: Set<number> = new Set()): THREE.Mesh {
   const w = width / 2;
   const buf = { pos: [] as number[], col: [] as number[], att: [] as number[], idx: [] as number[] };
   // skip stretches that would climb a mountainside (a track goes round, C): cut the line where the ground is steep
-  for (const line of lines) {
+  for (const [li, line] of lines.entries()) {
     let run: [number, number][] = [];
     const flush = () => { if (run.length > 3) ribbon(run, terrain, [[-(w + 1.2), 0.02, -1.4], [-w, 0.05, -1], [w, 0.05, 1], [w + 1.2, 0.02, 1.4]], 18, buf); run = []; };
     for (let i = 0; i < line.length; i++) { const [x, y] = line[i]; const s = Math.abs(terrain.heightAt(x + 10, -y) - terrain.heightAt(x - 10, -y)) / 20 + Math.abs(terrain.heightAt(x, -y - 10) - terrain.heightAt(x, -y + 10)) / 20;
-      if (s > 0.1) flush(); else run.push([x, y]); }
+      if (s > 0.1 && !steep.has(li)) flush(); else run.push([x, y]); }
     flush();
   }
   const mat = surfaceMaterial('earth', { vertexColors: true, variant: 'track', scan: false, modify: (L: Layer) => {

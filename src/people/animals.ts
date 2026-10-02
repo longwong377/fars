@@ -19,8 +19,9 @@
 // a string of pack animals walks nose to tail behind its driver, an ox pair draws a cart behind its carter, a horse carries
 // its rider.
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, positionGeometry, normalGeometry, modelViewMatrix, texture, uv, varying, mix, vec3, vec4, sin, cos, max, min, abs, sign, exp, fract, step, float, uniform } from 'three/tsl';
+import { attribute, positionLocal, positionGeometry, normalGeometry, modelViewMatrix, texture, uv, varying, mix, vec3, vec4, sin, cos, max, min, abs, sign, exp, fract, step, float, uniform, positionViewDirection, dot, pow, luminance } from 'three/tsl';
 import { animalModel } from './animalModels';
+import { realRig, realFrame } from './animalReal';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { nearCascadesOnly } from './humanGPU';
 import { interleave } from './props';
@@ -143,7 +144,9 @@ const FAMILY_OF = (sp: Species) => /^(donkey|horse|mule|onager)/.test(sp) ? 'equ
   : /^gazelle/.test(sp) ? 'antelope' : sp === 'boar' ? 'suid' : /^(camel|dromedary)/.test(sp) ? 'camelid' : /^(dog|wolf|fox|hyena)$/.test(sp) ? 'canid' : /^(lion|lioness|cheetah|leopard)$/.test(sp) ? 'felid' : sp === 'hare' ? 'hare' : 'fowl';
 /** the neck base (head pivot), the head's centre and direction, and the graze angle that brings the muzzle to the ground */
 export function animalFrame(sp: Species) {
-  const B = ANIMAL_BUILD[sp], bodyY = B.h - B.girth * 0.5;
+  const B = ANIMAL_BUILD[sp], RR = realRig(sp);
+  if (RR) return realFrame(RR, GRAZE_PITCH);
+  const bodyY = B.h - B.girth * 0.5;
   // the neck root: at the barrel's centre for the small stock, lower at the breast for the big animals (nb, x girth)
   const base = new THREE.Vector3(0, bodyY + B.girth * (B.nb ?? 0.04), B.len * 0.4);
   const top = base.clone().add(new THREE.Vector3(0, Math.sin(B.neckA), Math.cos(B.neckA)).multiplyScalar(B.neck));
@@ -163,7 +166,9 @@ const backAt = (B: Build, z: number) => B.h - B.girth * 0.5 + B.girth * 0.52 * M
  *  just behind the withers on the saddle cloth, a donkey's further back (C) */
 export function mountSeat(sp: Species): { y: number; z: number } {
   const B = ANIMAL_BUILD[sp], z = B.len * (sp.startsWith('donkey') ? -0.08 : 0.06);
-  return { y: backAt(B, z) + (B.gear === 'saddle' ? 0.025 : 0), z };
+  // (V5 D-520: a library model's back stands where the build measured it: the gear's lift, or the barrel's top over z = 0)
+  const RR = realRig(sp), dy = RR ? RR.gearDy ?? RR.backY - backAt(B, 0) : 0;
+  return { y: backAt(B, z) + dy + (B.gear === 'saddle' ? 0.025 : 0), z };
 }
 /** how far a rider's root is lifted onto the mount (m): the seat's surface minus the riding pose's seat at the rider's
  *  stature (anim RIDE.seatK, measured on the rig: tests/fauna.test.ts) */
@@ -281,12 +286,12 @@ export const gaitOffset = (walkOff: number, fore: number, G: [number, number, nu
 /** rig constants: leg swing and knee flex at a full walk */
 export const RIG = { swing: 0.42, knee: 0.75 } as const;
 /** the lying drop: the belly on the ground */
-export const lieDrop = (sp: Species) => { const B = ANIMAL_BUILD[sp]; return B.h - B.girth * 1.02; };
+export const lieDrop = (sp: Species) => { const B = ANIMAL_BUILD[sp], RR = realRig(sp); return RR ? RR.bellyY - 0.02 : B.h - B.girth * 1.02; }; // (V5 D-520: a library model's own belly)
 /** the lying fold of a species, [fore hip, fore knee, hind hip, hind knee] (rad), from its build: the upper leg turns until
  *  the joint below it reaches the ground once the belly is down, and the lower leg lies flat under the body (fore: the
  *  knee forward, the cannon folded back under the chest; hind: the hock back, the cannon forward under the belly) */
 export function foldOf(sp: Species): [number, number, number, number] {
-  const B = ANIMAL_BUILD[sp], hipY = B.h - B.girth * 0.62, kneeY = hipY * 0.45, u = hipY - kneeY, r = B.leg * 1.5;
+  const B = ANIMAL_BUILD[sp], RR = realRig(sp), hipY = RR ? RR.hipY : B.h - B.girth * 0.62, kneeY = RR ? RR.kneeY : hipY * 0.45, u = hipY - kneeY, r = B.leg * 1.5;
   const a = Math.acos(Math.max(-1, Math.min(1, (hipY - lieDrop(sp) - r) / u))), flat = Math.PI / 2 - 0.12;
   return [-a, flat + a, a, -flat - a];
 }
@@ -500,7 +505,13 @@ export class Animals {
       const N = vN.normalize(), T = vT.sub(N.mul(vT.dot(N))).normalize(), Bt = N.cross(T).mul(vW);
       mat.normalNode = T.mul(m3.x).add(Bt.mul(m3.y)).add(N.mul(m3.z)).normalize() as any;
       mat.aoNode = tn.a as any;
-      mat.colorNode = mix(ta.rgb, attribute('aCoat', 'vec3').mul(ta.rgb).mul(2), ta.a) as any;
+      // (V5 D-520: a library model's own colours lead; the instance's coat scales them about the species' mean coat)
+      const base = model.real ? ta.rgb.mul(attribute('aCoat', 'vec3')) : mix(ta.rgb, attribute('aCoat', 'vec3').mul(ta.rgb).mul(2), ta.a);
+      // V5 D-520: the coat's fuzz: hair scatters light forward at grazing angles, so a furred body's silhouette is lighter and
+      // paler than its face-on hide (the sheen of fur and wool; a cheap stand-in for a sheen lobe, C). Only on the coat (mask)
+      const nv = abs(dot(N, positionViewDirection)).clamp(0, 1), rim = pow(float(1).sub(nv), float(2.5)).mul(ta.a.mul(0.75).add(0.25));
+      mat.colorNode = mix(base, vec3(luminance(base)).mul(1.25).add(base.mul(0.35)), rim.mul(0.55)) as any;
+      mat.roughnessNode = float(0.95).sub(float(1).sub(ta.a).mul(0.35)) as any;
     }
     const mesh = new THREE.InstancedMesh(g, mat, this.cap); mesh.count = 0; mesh.visible = false; mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere();
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `animals:${sp}${model ? `:lod${lod}` : ''}`; mesh.raycast = () => {};
@@ -521,7 +532,8 @@ export class Animals {
     m.mesh.setMatrixAt(i, M); m.state.setXYZW(i, a.phase % (TWO_PI * 64), a.walk, a.graze, a.lie); m.gait.setXY(i, a.gait ?? (a.sp === 'hare' ? 2 : 0), a.coat); // (D-362: y the animal's own seed, its ears' and tail's idle timing)
     m.rot[0].setXYZ(i, e[0], e[1], e[2]); m.rot[1].setXYZ(i, e[4], e[5], e[6]); m.rot[2].setXYZ(i, e[8], e[9], e[10]);
     const c = ANIMAL_BUILD[a.sp].coat, k = Math.min(c.length - 1, Math.floor(a.coat * c.length)); _c.setRGB(c[k][0], c[k][1], c[k][2], THREE.SRGBColorSpace);
-    if (m.coat) m.coat.setXYZ(i, _c.r, _c.g, _c.b); else m.mesh.setColorAt(i, _c);
+    if (m.coat && model?.real) { const mu = coatMean(a.sp); m.coat.setXYZ(i, ...relCoat(_c, mu)); }
+    else if (m.coat) m.coat.setXYZ(i, _c.r, _c.g, _c.b); else m.mesh.setColorAt(i, _c);
     m.box.expandByPoint(_p.setFromMatrixPosition(M));
   }
   end() {
@@ -536,3 +548,16 @@ export class Animals {
     return { draws, instances, triangles, species, dropped: this.dropped, modelled }; }
 }
 const _p = new THREE.Vector3(), _c = new THREE.Color();
+/** V5 D-520: a species' mean coat (linear) and an instance's coat relative to it (the library model's texture is that mean
+ *  animal: a dark sheep is the white fleece scaled down, a pale ox the brown hide scaled up), clamped to what a texture
+ *  scaled per channel still reads as */
+const COAT_MEAN = new Map<Species, THREE.Color>();
+export function coatMean(sp: Species) { let c = COAT_MEAN.get(sp); if (c) return c; const P = ANIMAL_BUILD[sp].coat; c = new THREE.Color(0, 0, 0);
+  for (const q of P) { const k = new THREE.Color().setRGB(q[0], q[1], q[2], THREE.SRGBColorSpace); c.r += k.r / P.length; c.g += k.g / P.length; c.b += k.b / P.length; }
+  COAT_MEAN.set(sp, c); return c; }
+export function relCoat(c: THREE.Color, mu: THREE.Color): [number, number, number] {
+  const l = (x: THREE.Color) => 0.2126 * x.r + 0.7152 * x.g + 0.0722 * x.b, kl = Math.min(1.6, Math.max(0.3, l(c) / Math.max(1e-4, l(mu))));
+  // the brightness follows the coat; the hue only a quarter of the way (a texture tinted fully goes flat)
+  const ch = (a: number, b: number) => 1 + 0.25 * ((a / Math.max(1e-4, l(c))) / (b / Math.max(1e-4, l(mu))) - 1);
+  return [kl * ch(c.r, mu.r), kl * ch(c.g, mu.g), kl * ch(c.b, mu.b)];
+}

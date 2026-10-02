@@ -10,6 +10,16 @@
    "licence": "CC-BY-4.0",
    "tris": 2543615,
    "what": "Persian lamassu (human-headed winged bull) of the Gate of All Nations, a digital sculpt by the author: an Assyrian lamassu as the base, adjusted after the damaged Persepolis original (larger, bent wings, the Persian crown, the front). Tier C (a modern reconstruction of the carving, not a scan of the stone)."
+  },
+  "bull_head": {
+   "file": "bull_head_7902d24b.glb",
+   "url": "https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs/000-050/7902d24b5d8a4708a62ab969d5f58e11.glb",
+   "sha256": "dca33abb995811736d28504ef034268541e831fefe8821ee60a72790eee83cf5",
+   "page": "https://sketchfab.com/3d-models/head-of-a-bull-7902d24b5d8a4708a62ab969d5f58e11",
+   "author": "Kirk Hiatt (@kirkhiatt)",
+   "licence": "CC-BY-4.0",
+   "tris": 12526,
+   "what": "Head of a Bull: a photogrammetric scan of a bull-head sculpture on a round plinth (a naturalistic bull: muzzle, horns, ears, the brow curls). Used for the heads of the Gate of All Nations W bulls (D-510, B361), whose heads are lost on the site. Tier C."
   }
  }
 }

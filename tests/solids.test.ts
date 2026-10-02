@@ -10,15 +10,18 @@ import type { AnimalInst, Species } from '../src/people/animals';
 const flat = async () => { const P = await Physics.create(); P.addBox({ x: 0, y: -0.5, z: 0 }, { x: 200, y: 0.5, z: 200 }); P.step(1 / 60); return P; };
 const inst = (sp: Species, lie = 0): AnimalInst => ({ sp, x: 0, z: 0, yaw: 0, phase: 0, walk: 0, graze: 0, lie, coat: 0 });
 const M = (x: number, z: number, yaw: number) => new THREE.Matrix4().compose(new THREE.Vector3(x, 0, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw), new THREE.Vector3(1, 1, 1));
-/** walk the player toward +x from x = 0 for `sec` s; returns how far it got */
+/** walk the player toward +x from x = 0 for `sec` s; returns how far it got, and the frames its capsule (2 cm slimmer)
+ *  (its foot 8 cm up) overlapped anything solid (D-630: a person met head-on is now eased past, not stopped against; solid means never
+ *  walked through) */
 function walkX(P: Physics, S: NearSolids, feed: () => void, sec = 6) {
-  const pl = new Player(P, 0, 0, 0);
-  for (let i = 0; i < sec * 30; i++) { S.begin(pl.position); feed(); S.end(); pl.update(1 / 30, { forward: 1, right: 0, run: false, yaw: -Math.PI / 2, pitch: 0 }); P.step(1 / 30); }
-  const x = pl.position.x; P.world.removeCollider(pl.collider, false); P.world.removeRigidBody(pl.body); return x;
+  const pl = new Player(P, 0, 0, 0), probe = new P.R.Capsule(0.6, 0.23), rot = { x: 0, y: 0, z: 0, w: 1 }; let overlaps = 0, side = 0;
+  for (let i = 0; i < sec * 30; i++) { S.begin(pl.position); feed(); S.end(); pl.update(1 / 30, { forward: 1, right: 0, run: false, yaw: -Math.PI / 2, pitch: 0 }); P.step(1 / 30);
+    const q = pl.position; if (P.world.intersectionWithShape({ x: q.x, y: q.y + 0.08, z: q.z }, rot, probe, undefined, undefined, pl.collider, pl.body)) overlaps++; if (Math.abs(q.x - 3) < 0.3) side = Math.max(side, Math.abs(q.z)); }
+  const x = pl.position.x; P.world.removeCollider(pl.collider, false); P.world.removeRigidBody(pl.body); return { x, overlaps, side };
 }
 
 describe('people and animals near the player are solid (D-237)', () => {
-  it('a person, an ox (broadside and end-on), a sheep, a dog, a lying donkey stop the walker; a hen does not', async () => {
+  it('a person, an ox (broadside and end-on), a sheep, a dog, a lying donkey: the walker stops or goes round, never through; a hen does not', async () => {
     const cases: [string, (S: NearSolids) => void, number][] = [
       ['person', S => S.person(3, 0, 0), 2.6],
       ['ox broadside', S => { S.beginAnimals(); S.animal(inst('ox'), M(3, 0, 0)); }, 2.8],
@@ -27,8 +30,10 @@ describe('people and animals near the player are solid (D-237)', () => {
       ['dog', S => { S.beginAnimals(); S.animal(inst('dog'), M(3, 0, 0.3)); }, 2.9],
       ['lying donkey', S => { S.beginAnimals(); S.animal(inst('donkey', 1), M(3, 0, 0)); }, 2.9],
     ];
-    for (const [what, feed, stopBefore] of cases) { const P = await flat(), S = new NearSolids(P); const x = walkX(P, S, () => feed(S)); expect(x, what).toBeLessThan(stopBefore); expect(x, what).toBeGreaterThan(1.5); }
-    const P = await flat(), S = new NearSolids(P); const x = walkX(P, S, () => { S.beginAnimals(); S.animal(inst('hen'), M(3, 0, 0)); });
+    for (const [what, feed, stopBefore] of cases) { const P = await flat(), S = new NearSolids(P); const r = walkX(P, S, () => feed(S));
+      expect(r.overlaps, what).toBe(0); expect(r.x, what).toBeGreaterThan(1.5);
+      if (r.x > stopBefore) expect(r.side, `${what}: went round`).toBeGreaterThan(0.3); } // round it, not through it
+    const P = await flat(), S = new NearSolids(P); const { x } = walkX(P, S, () => { S.beginAnimals(); S.animal(inst('hen'), M(3, 0, 0)); });
     expect(x, 'a hen scatters (not solid)').toBeGreaterThan(6);
   });
   it('the nearest are solid, farther than SOLID_R nobody; the pools fill nearest first', async () => {

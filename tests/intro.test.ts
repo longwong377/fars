@@ -96,3 +96,21 @@ describe('the opening plays, skips and hands back (D-590)', async () => {
     intro.play(); run(5); st.paused = true; run(0.1); expect(intro.playing).toBe(false); expect(st.cams.at(-1)).toBeNull();
   });
 });
+
+// the opening never delays walkable (D-590): the title (whose Enter is the only way into the opening) is shown only after
+// the boot has marked the world ready, Enter starts the walk before the opening, and the opening is skippable at once
+describe('the opening never delays walkable (D-590)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const main = readFileSync('src/main.ts', 'utf8'), shell = readFileSync('src/ui/shell.ts', 'utf8');
+  it('the title (the only way into the opening) comes after ready', () => {
+    const ready = main.indexOf('prog.finish(); api.ready = true;'), title = main.indexOf('shell.title(continued)');
+    expect(ready).toBeGreaterThan(0); expect(title).toBeGreaterThan(ready);
+    expect((main.match(/\.intro\?\.\(|hooksImpl\.intro|new Intro\(/g) ?? []).length).toBe(1); // one construction site, inside the hook
+    expect((shell.match(/hooks\.intro\?\.\(\)/g) ?? []).length).toBe(1); // called from one place: the title's Enter
+  });
+  it('Enter starts the walk first, then the opening over it', () => {
+    const begin = shell.slice(shell.indexOf('const begin = () =>'), shell.indexOf('const start = el('));
+    expect(begin.indexOf('this.hooks.start()')).toBeGreaterThan(0);
+    expect(begin.indexOf('this.hooks.intro?.()')).toBeGreaterThan(begin.indexOf('this.hooks.start()'));
+  });
+});

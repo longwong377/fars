@@ -31,10 +31,11 @@ import type { P2 } from './settlement/site';
 import settlement from '../data/settlement.json';
 import places from '../data/people_places.json';
 import type { ActivityId } from '../people/activities';
-import { h01 } from './fauna';
+import { h01, openGround } from './fauna';
 import type { QuarrySite } from './plain/quarries';
 import { hutSleepSpot } from './plain/quarry_camp';
 import { RoadFolk } from './roadFolk';
+import type { Tent } from '../people/camps';
 
 const FEAT = Object.fromEntries((settlement as any).features.map((f: any) => [f.id, f])) as Record<string, any>;
 const PLACE = Object.fromEntries(((places as any).places ?? (places as any)).map((p: any) => [p.id, p])) as Record<string, any>;
@@ -54,7 +55,9 @@ export interface Mover { key: string; kind: 'pack' | 'camel' | 'courier' | 'cart
   look: { id: number; sex: 'm' | 'f'; role: string; dress: 'worker' | 'median' | 'woman' | 'child'; origin: string; seed: number; age?: 'adult' | 'elder' | 'child' };
   /** D-570: who a road traveller is (roadFolk.ts's register): the household's head by name, the person's place in it, home and
    *  livelihood (for the dev overlay, and for the talk system once it reaches the crowd's extras) */
-  life?: { name: string; role: string; home: string; livelihood: string } }
+  life?: { name: string; role: string; home: string; livelihood: string };
+  /** D-570: the population's pid when the traveller is one of its people (roadFolk.ts bindPids) */
+  pid?: number }
 export interface Route { pts: P2[]; cum: number[]; len: number }
 export const route = (pts: P2[]): Route => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; };
 /** a point s metres along a route (clamped) and the heading there (rad, atan2(de, dn)) */
@@ -70,7 +73,11 @@ function foot(L: P2[], q: P2): { i: number; p: P2 } { let best = { i: 0, p: L[0]
 
 export interface TrafficSource { caravan(d: number): { h: number; sacks: number } | null; cal: { ctx(d: number): { couriers: { t: number; treasury: boolean }[]; deliveries: { t: number; id: string; qty: number; place: string }[];
   /** D-256: the day's events (E-61's drum arrivals), its sun, weather and month (the quarry's working day) */
-  events?: { t: number; id: string; text: string }[]; sun?: { rise: number; set: number }; wx?: { wet: boolean; stormH: [number, number] | null }; month?: number; heatRest?: boolean } } }
+  events?: { t: number; id: string; text: string }[]; sun?: { rise: number; set: number }; wx?: { wet: boolean; stormH: [number, number] | null }; month?: number; heatRest?: boolean } };
+  /** D-570 (court setting): the court's tents, pitched as each household reaches its camp and struck on the leave day */
+  court?: { tents: Tent[] } | null;
+  /** D-570: the population's own RoadFolk when it holds the road folk as its people (one instance: their plans and places agree) */
+  folk?: RoadFolk | null }
 /** D-256: one drum's haul: the travel spans (absolute h) out and back, where it is along the routes */
 export interface DrumHaul { key: string; arrive: number; out: [number, number][]; back: [number, number][]; seed: number }
 export class Traffic {
@@ -171,7 +178,7 @@ export class Traffic {
   /** D-570: the hinterland's people on the four roads (roadFolk.ts) */
   readonly folk: RoadFolk;
   constructor(private seed: number, private src: TrafficSource, plan: TownPlan | null) {
-    this.folk = new RoadFolk(seed, src.cal, plan);
+    this.folk = src.folk ?? new RoadFolk(seed, src.cal, plan); if (src.court?.tents?.length) this.buildTrain(src.court.tents, plan);
     const W = FEAT.road_royal_west.polyline as P2[], S = FEAT.road_south_tirazzish.polyline as P2[], stair = (PLACE.stair_foot?.at ?? [-52, 118.5]) as P2;
     const site = (id: string) => plan?.sites.find(s => s.id === id);
     const st = site('stables'), sto = site('stores');
@@ -227,7 +234,46 @@ export class Traffic {
       if (near && Math.hypot(m.e - near.e, m.n - near.n) > near.r) continue; out.push(m); }
     this.drumMovers(t, out, near); this.quarryMovers(t, out, near); // (D-256)
     this.folk.at(t, out, near); // (D-570)
+    this.trainMovers(t, out, near); // (D-570)
     return out;
+  }
+  /** D-570 (court setting; UD-09, UD-10 "king coming and leaving"): the court's baggage train. Every household that lodges in a
+   *  tent brings its baggage along the royal road from the W (the court comes from Susa: the royal road, A; its baggage
+   *  animals: HDT 7.40-41 on Xerxes' train, a claim, B; the rest C): a string of pack animals with a driver (camels for a
+   *  pavilion's household, donkeys and mules for the others), reaching the camp half an hour before the tent is pitched
+   *  (court.ts: the hour each household arrives), along the road to the point nearest its camp and across to the camp; on the
+   *  leave day, after the tents are struck, the strings go back out along the road over the morning and the day (C) */
+  train: { t0: number; dir: 1 | -1; R: Route; key: string; camel: boolean; seed: number }[] = []; private trainMax = 0;
+  private buildTrain(tents: Tent[], plan: TownPlan | null) {
+    const W = FEAT.road_royal_west.polyline as P2[], far = (W.length > 4 ? W.slice(0, 5) : W) as P2[], routes = new Map<string, Route>();
+    const campC = new Map<string, P2>(); for (const t of tents) { const c = campC.get(t.camp); campC.set(t.camp, c ? [c[0] + t.e, c[1] + t.n] : [t.e, t.n]); }
+    const nOf = new Map<string, number>(); for (const t of tents) nOf.set(t.camp, (nOf.get(t.camp) ?? 0) + 1);
+    for (const [k, c] of campC) { const ce: P2 = [c[0] / nOf.get(k)!, c[1] / nOf.get(k)!], f = foot(far, ce);
+      // (in along the road from two of its bends beyond the camp's turning, then off the road to the camp's edge facing it, where
+      // its picket lines stand: fauna.ts; not through the tents)
+      const Rc = Math.max(...tents.filter(t => t.camp === k).map(t => Math.hypot(t.e - ce[0], t.n - ce[1]) + Math.max(t.w, t.d))) + 6, dd = Math.hypot(f.p[0] - ce[0], f.p[1] - ce[1]);
+      const edge: P2 = dd > Rc ? [ce[0] + (f.p[0] - ce[0]) * Rc / dd, ce[1] + (f.p[1] - ce[1]) * Rc / dd] : f.p;
+      const L = far.slice(f.i + 1).reverse(), direct = route([...L.slice(Math.max(0, L.length - 2)), f.p, edge]);
+      // (a camp S of the royal road whose straight leg off it would cross the town's plots: in along the royal road to the
+      // Terrace's W foot and out along the south road to the point nearest the camp; the first route clear of the plots wins)
+      const S = FEAT.road_south_tirazzish.polyline as P2[], fs = foot(S, ce), ds = Math.hypot(fs.p[0] - ce[0], fs.p[1] - ce[1]);
+      const edgeS: P2 = ds > Rc ? [ce[0] + (fs.p[0] - ce[0]) * Rc / ds, ce[1] + (fs.p[1] - ce[1]) * Rc / ds] : fs.p;
+      const viaS = route([W[2], W[1], W[0], [-150, -120], ...S.slice(0, fs.i + 1), fs.p, edgeS]);
+      const clear = (R: Route) => { if (!plan) return true; for (let x = 0; x <= R.len; x += 4) { const q = along(R, x); if (!openGround(plan, q.e, q.n)) return false; } return true; };
+      routes.set(k, clear(direct) ? direct : clear(viaS) ? viaS : direct); }
+    for (const t of tents) { const R = routes.get(t.camp)!, camel = t.kind === 'pavilion', pace = PACE.string, u = h01(this.seed, 8800 + t.i, 1);
+      if (t.pitch !== undefined) this.train.push({ t0: t.pitch - 0.5 - R.len / pace / 3600, dir: 1, R, key: `ct${t.camp}:${t.i}:in`, camel, seed: t.i });
+      if (t.strike !== undefined && t.strike < 1e8) this.train.push({ t0: t.strike + 0.5 + 7 * u * u, dir: -1, R, key: `ct${t.camp}:${t.i}:out`, camel, seed: t.i }); }
+    this.train.sort((a, b) => a.t0 - b.t0); this.trainMax = Math.max(0, ...[...routes.values()].map(R => R.len / PACE.string / 3600));
+  }
+  private trainMovers(t: number, out: Mover[], near?: { e: number; n: number; r: number }) {
+    const T = this.train; if (!T.length) return; let lo = 0, hi = T.length; const from = t - this.trainMax; while (lo < hi) { const m = (lo + hi) >> 1; if (T[m].t0 < from) lo = m + 1; else hi = m; }
+    for (let i = lo; i < T.length && T[i].t0 <= t; i++) { const x = T[i], s = (t - x.t0) * 3600 * PACE.string; if (s > x.R.len) continue;
+      const a = along(x.R, x.dir > 0 ? s : x.R.len - s), hd = x.dir > 0 ? a.heading : a.heading + Math.PI; if (near && Math.hypot(a.e - near.e, a.n - near.n) > near.r) continue;
+      const why = x.camel ? (x.dir > 0 ? 'leading a string of Bactrian camels with the baggage of a household of the court to its camp' : 'leading a string of Bactrian camels with the court’s baggage out along the royal road, the court leaving')
+        : (x.dir > 0 ? 'leading a string of pack donkeys with the baggage of a household of the court to its camp' : 'leading a string of pack donkeys with the court’s baggage out along the royal road, the court leaving');
+      out.push({ key: x.key, kind: x.camel ? 'camel' : 'pack', e: a.e, n: a.n, heading: hd, act: 'walk', why,
+        look: { id: -470000 - (x.seed % 20000), sex: 'm', role: 'porter', dress: x.camel ? 'median' : 'worker', origin: x.camel ? 'Median' : 'Persian', seed: 600000 + (x.seed % 90000) } }); }
   }
   private where(p: Plan, h: number): Mover | null {
     const v = p.kind === 'courier' ? PACE.courier : p.kind === 'cart' ? PACE.cart : PACE.string, sec = (h - p.arrive) * 3600;
