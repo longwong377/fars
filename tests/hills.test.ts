@@ -7,8 +7,8 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import * as THREE from 'three/webgpu';
 import { loadTerrain } from './plainLib';
-import { ledgeRuns, stripGeometry, Ledges, LEDGES, LEDGE_FORM, type LedgeRun } from '../src/world/hills/ledges';
-import { stratY, cliffPkg, bedrockTile, Bedrock, BEDROCK, type BedrockEnv } from '../src/world/hills/bedrock';
+import { ledgeRuns, stripGeometry, Ledges, LEDGES, LEDGE_FORM, LEDGE_FADE, reliefShare, farSink, type LedgeRun } from '../src/world/hills/ledges';
+import { stratY, cliffPkg, bedrockTile, Bedrock, BEDROCK, sinkShare, sinkDepth, reachOf, lodDistances, ROCK_LOD_GAP, LOD_PX, type BedrockEnv } from '../src/world/hills/bedrock';
 import { HILL } from '../src/world/plain/terrainPlain';
 import { TERRACE_BOX } from '../src/world/plain/townGround';
 
@@ -76,16 +76,55 @@ describe('the ground rock (hills/bedrock.ts)', () => {
     const flat = tilesOf(-900, -500, 0, 400).flatMap(([ti, tj]) => bedrockTile(env, ti, tj, 1, sizes)); expect(flat.length).toBe(0); // the plain W of the Terrace
   }, 120_000);
   it('within its budget at the mountain views (<= 0.25 M triangles at the sets\' own levels)', () => {
-    const kit: any = { ledge: [], ground: sizes.ground.map((s, i) => ({ id: 'g' + i, cls: 'ground', size: s, lods: [3000, 600, 80].map(n => { const g = new THREE.BufferGeometry(); g.setIndex(new Array(n * 3).fill(0)); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3)); return g; }) })),
+    const kit: any = { ledge: [], ground: sizes.ground.map((s, i) => ({ id: ['outcrop05', 'slab02', 'talus03', 'scree04'][i] ?? 'g' + i, cls: 'ground', size: s, lods: [3000, 600, 80].map(n => { const g = new THREE.BufferGeometry(); g.setIndex(new Array(n * 3).fill(0)); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3)); return g; }) })),
       atlas: { ground: { map: new THREE.Texture(), normal: new THREE.Texture(), arm: new THREE.Texture(), mean: [0.2, 0.2, 0.2] } } };
     const B = new Bedrock(env, 1, kit);
     for (const [e, no, az] of [[420, 150, 80], [600, -700, 60], [-166.6, 108.9, 117]]) { const yaw = -((az - 341) * Math.PI) / 180;
       B.update(new THREE.Vector3(e, T.surfaceAt(e, -no), -no), new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), true);
       console.log(`bedrock at (${e}, ${no}): ${JSON.stringify(B.stats)}`); expect(B.stats.tris).toBeLessThan(0.25e6); }
-    expect(BEDROCK.R.ground).toBeLessThanOrEqual(BEDROCK.lod[1]);
+    // D-600: beyond the near levels every variant draws its own lod2 (no shape swapped in), to its own reach
+    for (const v of [0, 1, 2, 3]) for (const lod of [2, 3]) expect(B.sets.some(q => q.cls === 'ground' && q.v === v && q.lod === lod)).toBe(true);
+    expect(B.stats.ground).toBeGreaterThan(0);
   }, 120_000);
 });
 void LEDGE_FORM;
+
+describe('D-600: the hills\' rock and ledges change with distance by fades the shader runs every frame, never by a step at a rebuild', () => {
+  it('a ledge tile turns coarse (no relief) only where its relief has faded to 0, and its far end is sunk whole at the reach', () => {
+    // a tile is fine when within NEAR at a rebuild; the walker moves up to moveM before the next: a coarse tile is >= NEAR - moveM away
+    expect(reliefShare(LEDGES.NEAR - LEDGES.moveM)).toBe(0);
+    expect(reliefShare(LEDGES.NEAR * LEDGE_FADE.relief[0])).toBe(1);
+    // the far end: the tallest face (LEDGE_FORM.h max x the 1.2 jitter) and its lip under the ground at R; tiles kept to R + moveM
+    expect(farSink(LEDGES.R)).toBeGreaterThanOrEqual(LEDGE_FORM.h[1] * 1.2 + LEDGE_FORM.lip + 0.5);
+    // continuity: no step of more than 2 cm of sink or 2 % of relief per metre walked
+    for (let d = 0; d < LEDGES.R + 30; d += 0.5) { expect(Math.abs(farSink(d + 0.5) - farSink(d))).toBeLessThan(0.02 * 0.5 * 50); expect(Math.abs(reliefShare(d + 0.5) - reliefShare(d))).toBeLessThan(0.05); }
+  });
+  it('the fine strip with its relief faded out is the coarse strip (the same face, within 6 cm: < 1 px at 70 m)', () => {
+    const tiles = tilesOf(300, 900, -300, 500); let n = 0, worst = 0;
+    for (const [ti, tj] of tiles) { const runs = ledgeRuns(env, ti, tj, 1); if (!runs.length) continue;
+      const f = stripGeometry(runs, env, 1, true, null), c = stripGeometry(runs, env, 1, false, null);
+      // every coarse vertex's face top and foot against the fine strip's nearest vertex of the same row role
+      const top = (g: typeof f, rows: number) => { const o: [number, number, number][] = []; for (let i = 0; i < g.pos.length / 3; i += rows) { const k = (i + rows - 3) * 3; o.push([g.pos[k], g.pos[k + 1], g.pos[k + 2]]); } return o; };
+      const ft = top(f, 8 + 3), ct = top(c, 3 + 3);
+      for (const p of ct) { let best = Infinity; for (const q of ft) best = Math.min(best, Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])); worst = Math.max(worst, best); n++; }
+      if (n > 400) break; }
+    console.log(`ledge coarse vs fine (relief off): ${n} face tops, worst ${(worst * 100).toFixed(1)} cm`);
+    expect(n).toBeGreaterThan(50); expect(worst).toBeLessThan(0.06);
+  }, 120_000);
+  it('a ground rock sinks continuously over the last 15 % of its reach, whole at the reach, and is drawn to the reach + one rebuild step', () => {
+    for (const ext of [2.5, 5, 8, 12]) { const R = reachOf('ground', ext);
+      expect(R).toBeGreaterThanOrEqual(BEDROCK.lod[1]); expect(R).toBeLessThanOrEqual(BEDROCK.R.ground);
+      // at its reach a piece spans no more than farPx pixels at the player's lens (or the reach is the near levels' end or R)
+      if (R > BEDROCK.lod[1] && R < BEDROCK.R.ground) expect((ext / R) * BEDROCK.pxRad).toBeLessThanOrEqual(BEDROCK.farPx + 1e-6);
+      for (let d = 0; d < R + 30; d += 0.5) expect(Math.abs(sinkShare(R, d + 0.5) - sinkShare(R, d))).toBeLessThan(0.03 * 260 / R + 1e-9);
+      expect(sinkShare(R, R)).toBe(1); }
+    const st = { cls: 'ground' as const, v: 0, kind: 'outcrop', p: [0, 0, 0] as [number, number, number], q: [0, 0, 0, 1] as [number, number, number, number], s: [1.5, 1.5, 1.5] as [number, number, number], c: [1, 1, 1] as [number, number, number] };
+    expect(sinkDepth(st)).toBeGreaterThan(1.53 * 1.5); // talus03's 1.53 m height at its scale
+    // the level switches: at the switch distance the two levels' gap spans no more than LOD_PX at the player's lens
+    for (const [id, g] of Object.entries(ROCK_LOD_GAP)) for (const sc of [0.4, 1, 1.6]) { const [d0, d1] = lodDistances(id, sc);
+      expect((g[0] * sc / d0) * BEDROCK.pxRad).toBeLessThanOrEqual(LOD_PX + 1e-9); expect((g[1] * sc / d1) * BEDROCK.pxRad).toBeLessThanOrEqual(LOD_PX + 1e-9); expect(d1).toBeGreaterThan(d0); }
+  });
+});
 
 describe('the stair-foot line (D-335): the roads and the approach meet the ground with no free edge', () => {
   it('every road ribbon near the Terrace ends in a feather sunk under the ground: no vertex of its outline stands above the ground', async () => {
