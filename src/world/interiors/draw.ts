@@ -10,6 +10,7 @@ import type { Batch, RGB } from '../settlement/geom';
 import { lin } from '../settlement/geom';
 import type { Item, Profile } from './plan';
 import { textileOf } from './plan';
+import { ptTabletGeometry } from '../writing';
 
 /** the household textiles (sRGB): four undyed (cream wool, linen, grey-brown, dark brown), five dyed (madder red, indigo,
  *  weld-saffron, a madder-brown, an indigo-weld green): the art direction's palette (sessions/s17-vagon-v2.md) */
@@ -128,7 +129,9 @@ export function drawItem(c: DrawCtx, it: Item): boolean {
     case 'seal_bench': return put(c, C, 'wo_seal_bench', it, [w, h, d], { stone: STONE, wood: WOOD, lapis: [0.15, 0.22, 0.55], pot: CLAY, sand: [0.75, 0.66, 0.5] });
     case 'weigh_table': return put(c, T, 'wo_weigh_table', it, [w, h, d], { '*': WOOD, bronze: BRONZE });
     case 'tablets': { const g = scanShape('basket', 7, [w, h, d], 2); if (g) { const [e, n] = c.grid(it.u, it.v); T.geo(e, n, c.floor(it.u, it.v), g, c.theta + it.rot, lin([0.58, 0.48, 0.32]), c.own); }
-      for (let k = 0; k < 3; k++) put(c, C, 'tool_brick', it, [0.07, 0.025, 0.05], { mud: [0.62, 0.52, 0.4] }, [(k - 1) * 0.08, 0.02], h * 0.8 + 0.01 * k, k * 0.3);
+      // the Fortification tablets' own form (writing.ts: a pillowed tablet, its far level), a few heaped in the basket
+      TAB ??= ptTabletGeometry('full', 2); const [te, tn] = c.grid(it.u, it.v), tc = Math.cos(c.theta + it.rot), ts = Math.sin(c.theta + it.rot);
+      for (let k = 0; k < 4; k++) { const ax = (k - 1.5) * 0.06, az = (k % 2) * 0.03 - 0.015; C.geo(te + ax * tc + az * ts, tn + ax * ts - az * tc, c.floor(it.u, it.v) + h * 0.75 + 0.012 * (k % 2), TAB, c.theta + it.rot + 0.4 * k, lin([0.62, 0.52, 0.4]), c.own); }
       put(c, T, 'tool_stylus', it, [0.01, 0.01, 0.15], { '*': WOOD }, [0.1, -0.05], h); return !!g; }
     case 'cradle': return it.sub === 'basket' ? put(c, T, 'basket_cradle', it, [w * 0.9, 0.18, d * 0.8], { wicker: [0.62, 0.52, 0.34], cloth: tex(c, v) }) : put(c, T, 'cradle', it, [w, h, d], { wood: WOOD, cloth: tex(c, v) });
     case 'toys': { if (it.sub === 'bones') return put(c, C, 'wo_knucklebones', it, [0.15, 0.012, 0.18], { bone: [0.82, 0.78, 0.68] });
@@ -161,6 +164,7 @@ function flat(c: DrawCtx, b: Batch, it: Item, w: number, d: number, y: number, n
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const x0 = -w / 2 + (w * i) / nx, x1 = x0 + w / nx, z0 = -d / 2 + (d * j) / ny, z1 = z0 + d / ny, k = lin(col(i, j));
     b.quad(P(x0, z0), P(x1, z0), P(x1, z1), P(x0, z1), [0, 1, 0], k, k, k, k, c.own); }
 }
+let TAB: THREE.BufferGeometry | null = null;
 const h01v = (v: number, k: number) => ((v * 9301 + k * 49297) % 233280) / 233280;
 /** a jar as a lathe when no model is loaded */
 function drawLathe(c: DrawCtx, it: Item, b: Batch) { const [e, n] = c.grid(it.u, it.v), k = it.h / 0.82, r = it.w / 2; b.lathe(e, n, c.floor(it.u, it.v) - 0.04, [[r * 0.45, 0], [r, 0.25 * k], [r * 0.95, 0.55 * k], [r * 0.45, 0.78 * k], [r * 0.38, 0.82 * k]], 8, lin(CLAY), c.own); return true; }
