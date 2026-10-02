@@ -224,3 +224,7 @@ Run: `nice -n 15 npx tsx tools/dev/minds_year.ts 1,7 354` on the cloud box (4 co
 - Θuxra attack Bakumarda -> Bakumarda set on revenge (a wrong done by Θuxra) -> Bakumarda insult Θuxra -> Θuxra set on revenge (a wrong done by Bakumarda)
 
 **What the minds changed in the world:** 426 betrothals (412 weddings set within the year; the population's own weddings of the year: 285), 957 places with a master held at the end, 54 people left the town for good, 1399 children taught a craft; 137 cases before the elders (open or recent), 33 people wounded.
+
+## After merging cloud-s15-depth (D-460 law, D-462 joint): seed 1 only (seed 7 stopped at the lead's final call)
+- Cost: the minds 186.8 ms a game day on average; month by month 98, 124, 166, 185, 197, 183, 210, 199, 198, 194, 210 ms. Longest slice 424.6 ms, once, in the forgetting (prune) part between days 240 and 270: not explained (not reproduced or profiled); every other part's longest slice was 34 ms or less (pursue 67 ms).
+- Goals 31.4 thousand formed; revenge 610 (71 paid back), reconciliation 175; kin visits abandoned 400 (was 67: the undertakings' own limits, D-462); 514 betrothals (479 weddings set; the population's own 336): too many; 1224 cases before the law (D-460 keeps them); 73 wounded. Save of deeds and minds 1024 KB packed at the year's end (the 1 MB gate of B403 is at its edge).
