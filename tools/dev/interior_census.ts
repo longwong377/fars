@@ -1,0 +1,63 @@
+// s17 C7 (D-610): the census of the furnished rooms: every enterable room of the town's and the villages' houses (and the
+// Terrace's room ranges), planned for its household (src/world/interiors), counted per kind: bare rooms (fewer than
+// MIN_THINGS), things per room, floor covered, identical rooms among neighbours (15 m), things in a doorway's sweep, the
+// triangles per room and of the ring round the eye. `--baseline` counts what houses.ts drew before (a mat, rolls, a pile
+// of rugs; a store's row of jars; the vestibule's water jar and a bench), the same rooms. `--no-pop`: without the population.
+//   npx tsx tools/dev/interior_census.ts [--baseline] [--no-pop] [--json out.json]
+import { readFileSync, writeFileSync } from 'node:fs';
+import { buildTownPlan } from '../../src/world/settlement/plan';
+import { SiteHouses } from '../../src/world/settlement/houses';
+import { HOUSE_KINDS } from '../../src/world/settlement/houseplan';
+import type { RGB } from '../../src/world/settlement/geom';
+import type { Site } from '../../src/world/settlement/site';
+import { roomPlan, roomIn, usesOf, type HouseView, type RoomRect } from '../../src/world/interiors/town';
+import { setInteriorPeople } from '../../src/world/interiors/household';
+import { census, formatCensus, type CRoom } from '../../src/world/interiors/census';
+import { RING_R } from '../../src/world/interiors/ring';
+import { TRIS, type Item, type Plan } from '../../src/world/interiors/plan';
+import { hi } from '../../src/world/settlement/houses';
+
+const args = process.argv.slice(2), BASE = args.includes('--baseline'), NOPOP = args.includes('--no-pop'), JSONOUT = args.includes('--json') ? args[args.indexOf('--json') + 1] : null;
+const t0 = Date.now();
+const houseOf = (s: Site, si: number) => { const n = s.plots.length; return new SiteHouses(s, si, () => 0, new Float32Array(n), new Uint8Array(n), Array.from({ length: n }, () => [0.5, 0.45, 0.35] as RGB), new Int32Array(n), []); };
+const plan = buildTownPlan();
+let villages: { id: string; site: Site }[] = [];
+// the villages (the plain's placement and compounds, as the world builds them)
+{ const { loadTerrain, loadRiversFile } = await import('../../tests/plainLib'); const { buildCanals } = await import('../../src/world/plain/canals'); const { placeVillages, villageCompounds } = await import('../../src/world/plain/villages'); const { villageSite } = await import('../../src/world/plain/villagesite');
+  const T = loadTerrain(), R = loadRiversFile(), canals = buildCanals(T, R.rivers, 1), V = placeVillages(T, R.rivers, canals, 1);
+  villages = V.map(v => ({ id: v.id, site: villageSite(v, villageCompounds(v, T, 1)).site }));
+  if (!NOPOP) { const { Population } = await import('../../src/people/population'); const { PopGeo } = await import('../../src/people/popgeo'); const { NavGrid } = await import('../../src/people/navgrid');
+    const pop = new Population(1), nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
+    const geo = new PopGeo({ pop, nav, town: plan, ground: (e, n) => T.heightAt(e, -n), villages: V, compounds: vi => villageCompounds(V[vi], T, 1), canals: canals.map(c => c.pts), seed: 1 });
+    setInteriorPeople(pop, hh => { const x = geo.villageOf(hh); return x ? `${V[x.vi].id}-c${x.ci}` : null; }); } }
+console.log(`[census] world planned in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+
+/** what houses.ts drew in a room before D-610 (kinds and counts; places along the back wall) */
+function baseline(h: HouseView, r: RoomRect, use: string): Plan {
+  const s = h.s, si = (h as any).si as number, items: Item[] = [], room = roomIn(h, r)!, u0 = s.u0 + r.i0, v0 = s.v0 + r.j0, W = r.i1 - r.i0, D = r.j1 - r.j0;
+  const back = r.drain >= 0 && r.drain < 4 ? [1, 0, 3, 2][r.drain] : 1, L = (back < 2 ? W : D) - 0.9, at = (a: number) => (back < 2 ? [u0 + 0.45 + a, back === 0 ? v0 + 0.4 : v0 + D - 0.4] : [back === 2 ? u0 + 0.4 : u0 + W - 0.4, v0 + 0.45 + a]);
+  const put = (k: Item['k'], a: number) => { const [u, v] = at(a); items.push({ k, u, v, rot: 0, w: 0.5, d: 0.5, h: 0.5, y: 0, vr: 0, wall: back }); };
+  const hh = hi(r.room, si, 5);
+  if (use === 'vestibule') { put('jar_water', 0.15); if (hh < 0.6) put('bench', L / 2); }
+  else if (use === 'store') { const n = Math.max(2, Math.floor(L / 0.62)); for (let k = 0; k < n; k++) put(hi(r.room, k, 2) < 0.65 ? 'jar_store' : 'sack', 0.2 + (L - 0.4) * k / Math.max(1, n - 1)); }
+  else { items.push({ k: 'mat', u: u0 + W / 2, v: v0 + D / 2, rot: 0, w: W - 0.9, d: D - 0.9, h: 0.01, y: 0, vr: 0, wall: -1 }); const nb = 1 + Math.floor(hi(r.room, 7) * 3); for (let k = 0; k < nb; k++) if (0.3 + k * 0.75 + 0.6 <= L) put('roll', 0.3 + k * 0.75); put('rugs', L - 0.35); }
+  let cov = 0; for (const it of items) cov += it.k === 'mat' ? it.w * it.d : 0.25; const fl = Math.max(0.1, (W - 0.6) * (D - 0.6));
+  return { items, floor: fl, covered: Math.min(1, cov / fl), use: room.use, clear: [] };
+}
+const rooms: CRoom[] = [], ringPts: [number, number][] = [];
+const add = (label: string, s: Site, si: number) => { const hs = houseOf(s, si), h = Object.assign(Object.create(hs), { life: (q: number) => (hs as any).life(q), day: 30 }) as HouseView;
+  for (const r of hs.rooms) { const p = s.plots[r.plot]; if (!HOUSE_KINDS.has(p.kind)) continue; const x = roomPlan(h, r); if (!x) continue;
+    const old = (hs as any).roomUse(r) as string, pl = BASE ? baseline(h, r, old === 'none' ? 'living' : old) : x.plan, [e, n] = s.grid((x.room.u0 + x.room.u1) / 2, (x.room.v0 + x.room.v1) / 2);
+    rooms.push({ kind: `${label}/${BASE ? (old === 'none' ? 'living' : old) : x.room.use}`, e, n, room: x.room, plan: pl, tris: (x.prof.from === 'population' ? 1 : 1) * pl.items.reduce((a, it) => a + TRIS[it.k], 0) });
+    if (x.prof.from === 'population') (rooms[rooms.length - 1] as any).pop = true; }
+  for (const p of s.plots) if (p.door && HOUSE_KINDS.has(p.kind)) { const d = s.doorPoints(p)!; ringPts.push(s.grid(...d.out)); } void usesOf; };
+plan.sites.forEach((s, si) => add('town', s, si));
+villages.forEach((v, vi) => add('village', v.site, 1000 + vi));
+const rows = census(rooms, 15, r => !!(r as any).pop);
+console.log(`[census] ${BASE ? 'BASELINE (houses.ts before D-610)' : 'D-610 interiors'}${NOPOP ? ', no population' : ''}: ${rooms.length} rooms in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+console.log(formatCensus(rows));
+// the ring: triangles of the rooms within RING_R of each street door (the eye in the lane)
+const grid = new Map<string, CRoom[]>(), gk = (e: number, n: number) => `${Math.floor(e / RING_R)},${Math.floor(n / RING_R)}`; for (const r of rooms) (grid.get(gk(r.e, r.n)) ?? grid.set(gk(r.e, r.n), []).get(gk(r.e, r.n))!).push(r);
+let worst = 0, sum = 0; for (const [e, n] of ringPts) { let t = 0; const ce = Math.floor(e / RING_R), cn = Math.floor(n / RING_R); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const r of grid.get(`${ce + a},${cn + b}`) ?? []) if (Math.hypot(r.e - e, r.n - n) < RING_R + 3) t += r.tris ?? 0; worst = Math.max(worst, t); sum += t; }
+console.log(`[census] the ring (rooms within ${RING_R} m of a street door): mean ${(sum / Math.max(1, ringPts.length) / 1e3).toFixed(1)} k triangles, worst ${(worst / 1e3).toFixed(1)} k`);
+if (JSONOUT) writeFileSync(JSONOUT, JSON.stringify({ baseline: BASE, rows, ring: { mean: sum / Math.max(1, ringPts.length), worst } }, null, 1));
