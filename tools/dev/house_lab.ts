@@ -21,8 +21,9 @@ import { Settlement } from '../../src/world/settlement/build';
 (async () => {
   const P = new URLSearchParams(location.search);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
-  const adapter = await (navigator as any).gpu.requestAdapter();
-  const r = new THREE.WebGPURenderer({ canvas, antialias: true, requiredLimits: { maxSampledTexturesPerShaderStage: Math.min(48, adapter.limits.maxSampledTexturesPerShaderStage) } } as any); await r.init();
+  // (?webgl: three's WebGL2 backend, for the cloud's SwiftShader Chromium whose WebGPU lacks texture-view swizzles)
+  const adapter = P.has('webgl') ? null : await (navigator as any).gpu.requestAdapter();
+  const r = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: P.has('webgl'), ...(adapter ? { requiredLimits: { maxSampledTexturesPerShaderStage: Math.min(48, adapter.limits.maxSampledTexturesPerShaderStage) } } : {}) } as any); await r.init();
   r.toneMapping = THREE.AgXToneMapping; r.toneMappingExposure = +(P.get('xp') ?? 1); r.shadowMap.enabled = true;
   const errs: string[] = []; (r.backend as any).device?.addEventListener?.('uncapturederror', (e: any) => errs.push(String(e.error?.message).slice(0, 300)));
   const t0 = performance.now();
@@ -36,6 +37,12 @@ import { Settlement } from '../../src/world/settlement/build';
   tm.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).material = ground.material; });
   const fire = new FireSystem(0);
   const town = new Settlement(null, terrain, fire, 'high'); scene.add(town.group);
+  // s17 C1 (?fill): the town's fill (fillPlan.ts / fill.ts) and the households' tethered animals (settlement/tethers.ts)
+  let fill: any = null, teth: any = null;
+  if (P.has('fill')) { const { townFill, terraceFill } = await import('../../src/world/fillPlan'); const { WorldFill } = await import('../../src/world/fill'); const { TownTethers, townTethers } = await import('../../src/world/settlement/tethers');
+    const { Population } = await import('../../src/people/population'); const Q = Object.values(new Population(1).quarters).filter(q => q.kind === 'town' || q.kind === 'garden').map(q => q.xy); // (the sim's market grounds, as world.ts)
+    const items = [...townFill(town.plan.sites, 1, [], Q).items, ...terraceFill(1), ...town.roofFill()], gr = (e: number, n: number) => terrain.heightAt(e, -n);
+    fill = new WorldFill(items, { ground: gr }); scene.add(fill.group); teth = new TownTethers(townTethers(town.plan.sites, items), gr); scene.add(teth.group); }
   const vh = new VillageHouses(villages, villages.map(v => villageCompounds(v, terrain, 1)), terrain, null, null, 1); scene.add(vh.group);
   const sun = new THREE.DirectionalLight(0xfff4e6, 3.2), hemi = new THREE.HemisphereLight(0xbfd6ff, 0x8a7458, 0.9);
   sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); const sc = sun.shadow.camera as THREE.OrthographicCamera; sc.near = 1; sc.far = 3000; sun.shadow.bias = -0.0004;
@@ -65,7 +72,7 @@ import { Settlement } from '../../src/world/settlement/build';
     return [g[0], -g[1], H(g[0], -g[1]) + (a[0] === 'door' ? 1.6 : 7), ((gb % 360) + 360) % 360, a[0] === 'door' ? 4 : -35];
   };
   (window as any).__sites = town.plan.sites.map(s => [s.id, s.frame.c[0].toFixed(0), s.frame.c[1].toFixed(0), s.plots.length]);
-  (window as any).__shot = async (v: { cam: any; fov?: number; sunAz?: number; sunAlt?: number; day?: number; near?: boolean; near0?: number; farOnly?: boolean }) => {
+  (window as any).__shot = async (v: { cam: any; fov?: number; sunAz?: number; sunAlt?: number; day?: number; near?: boolean; near0?: number; farOnly?: boolean; hour?: number }) => {
     const [x, z, y, gb, pitch] = camOf(v.cam);
     cam.position.set(x, y, z); cam.rotation.set((pitch * Math.PI) / 180, -(gb * Math.PI) / 180, 0, 'YXZ'); cam.fov = v.fov ?? 60; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     const d = dirOf(v.sunAz ?? 200, v.sunAlt ?? 45); sun.position.copy(cam.position).addScaledVector(d, 1000); sun.target.position.copy(cam.position);
@@ -75,6 +82,7 @@ import { Settlement } from '../../src/world/settlement/build';
     if (v.farOnly) { town.nearUpdate(1e7, 1e7, 0, true); vh.nearUpdate(1e7, 1e7, 0, true); } else { town.nearUpdate(x, z, 0, true); vh.nearUpdate(x, z, 0, true); }
     town.doors.update(0.1, cam.position, v.day ?? 100, 40, town.nearTile); vh.doors.update(0.1, cam.position, v.day ?? 100, 40, vh.nearTile);
     for (const m of (town as any).casters as THREE.Mesh[]) m.castShadow = true;
+    if (fill) { fill.update([x, -z], v.hour ?? 10, 0, true); teth.update(1000, v.hour ?? 10, cam.position); }
     for (let i = 0; i < 3; i++) await r.renderAsync(scene, cam);
     return { errs: errs.slice(), cam: [x, z, y, gb, pitch].map(q => +q.toFixed(2)), near: { ...town.nearInfo }, vnear: { ...vh.nearInfo } };
   };
