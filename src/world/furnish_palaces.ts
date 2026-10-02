@@ -343,6 +343,20 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
     if (d) { const e0 = d.c[0] - 3.2, n0 = d.c[1] + 1.4; const mat = place(H, 'stored', 'mat', e0, n0, 0, R.mat.size[0] / 2, R.mat.size[1] / 2, R.mat.thick, {}, true); if (mat) mat.solid = false;
       place(H, 'stored', 'stool', e0 + 0.4, n0 + 0.1, 0, S.w / 2, S.w / 2, S.h, {}, false); place(H, 'stored', 'jar', e0 - 1.3, n0 - 0.2, 0, J.r, J.r, J.h, {}, true); place(H, 'stored', 'lamp_stand', e0 - 1.3, n0 + 0.6, 0, LS.r, LS.r, LS.h, {}, true); }
   }
+  // s17 C7 (D-610): with the court away a hall is not abandoned: its keeper's everyday corner inside its nearest doorway (a
+  // reed mat, a stool, a water jar, a lamp stand), as the Tachara's steward has (C; the palaces' caretakers: PF rations of
+  // 'servants of the palace', B; their corner C)
+  const keeperCorner = (room: Room) => { const ds = doorways.filter(q => q.building === room.building); if (!ds.length) return;
+    const mid: [number, number] = [(room.x0 + room.x1) / 2, (room.y0 + room.y1) / 2], d = ds.reduce((a, q) => Math.hypot(q.c[0] - mid[0], q.c[1] - mid[1]) > Math.hypot(a.c[0] - mid[0], a.c[1] - mid[1]) ? a : q);
+    const s2 = (mid[0] - d.c[0]) * d.n[0] + (mid[1] - d.c[1]) * d.n[1] > 0 ? 1 : -1, ine = s2 * d.n[0], inn = s2 * d.n[1], ue = d.u[0], un = d.u[1];
+    const at = (fwd: number, side: number): [number, number] => [d.c[0] + ine * (d.depth / 2 + fwd) + ue * side, d.c[1] + inn * (d.depth / 2 + fwd) + un * side];
+    const th = Math.atan2(un, ue), side = d.width / 2 + 2.2;
+    for (const sg of [1, -1]) { const [e0, n0] = at(1.4, sg * side); const mat = place(room, 'stored', 'mat', e0, n0, th, R.mat.size[0] / 2, R.mat.size[1] / 2, R.mat.thick, {}, true); if (!mat) continue; mat.solid = false;
+      const [se, sn] = at(1.6, sg * (side - 0.9)); place(room, 'stored', 'stool', se, sn, 0, S.w / 2, S.w / 2, S.h, {}, true);
+      const [je, jn] = at(0.5, sg * (side + 1.3)); place(room, 'stored', 'jar', je, jn, 0, J.r, J.r, J.h, {}, true);
+      const [le, ln] = at(2.6, sg * (side + 1.2)); place(room, 'stored', 'lamp_stand', le, ln, 0, LS.r, LS.r, LS.h, {}, true); break; }
+  };
+  if (A) keeperCorner(A);
   // ---- HADISH: laid out for the king's table with the court in residence; under covers while it is away (its apartments,
   // where most would be stored, are not modelled: Q-087)
   const HD = rooms['hadish:hall'];
@@ -351,6 +365,7 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
     alongWalls(HD, 'stored', 'couch_covered', CO.len / 2, CO.w / 2, CO.head, 3, 'W', { metal: 'gilt' });
     alongWalls(HD, 'stored', 'carpet_rolls', CR.len / 2, CR.r * 3.2, CR.r * 5, 3, 'E', { count: 6 });
     alongWalls(HD, 'stored', 'hanging_rolls', HR.len / 2, HR.r * 3, HR.r * 3.5, 2, 'S', { count: 4 }); alongWalls(HD, 'stored', 'chest', CH.len / 2, CH.w / 2, CH.h, 2, 'N');
+    keeperCorner(HD);
   }
   // ---- HAREM hall: the same, smaller
   const HM = rooms['harem:hall'];
@@ -358,6 +373,7 @@ export function palaceFurnishingPlan(parts: Part[], manifest: Manifest, doorways
     carpets(HM, 'use'); couchSets(HM, 2, 'WE'); hangings(HM, 'use'); corners(HM, 'use', 'lamp_stand', LS.r, LS.h);
     alongWalls(HM, 'stored', 'couch_covered', CO.len / 2, CO.w / 2, CO.head, 2, 'W', { metal: 'silver' });
     alongWalls(HM, 'stored', 'carpet_rolls', CR.len / 2, CR.r * 3.2, CR.r * 5, 1, 'E', { count: 6 }); alongWalls(HM, 'stored', 'chest', CH.len / 2, CH.w / 2, CH.h, 1, 'E');
+    keeperCorner(HM);
   }
   return out;
 }

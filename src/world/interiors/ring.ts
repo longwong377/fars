@@ -12,7 +12,7 @@ import { Batch, type RGB } from '../settlement/geom';
 import type { Site } from '../settlement/site';
 import { toLocal } from '../settlement/site';
 import type { HouseLife } from '../settlement/houseplan';
-import { roomPlan, seasonOfDay, type RoomRect, type HouseView } from './town';
+import { roomPlan, seasonOfDay, interiorsOn, type RoomRect, type HouseView } from './town';
 import { drawItem, type DrawCtx } from './draw';
 import { peopleVersion } from './household';
 import type { Item, Profile } from './plan';
@@ -49,7 +49,7 @@ const plain = () => new Batch().addAttr('ao', 1, [1]);
 
 export class InteriorRing {
   readonly group = new THREE.Group();
-  private cache = new Map<string, Built>();
+  private cache = new Map<string, Built | null>(); private pending = false;
   private key = ''; private last: [number, number] = [1e9, 1e9]; private season = '';
   private meshes: { clay: THREE.Mesh | null; cloth: THREE.Mesh | null } = { clay: null, cloth: null };
   private mats: { clay: THREE.Material; cloth: THREE.Material } | null = null;
@@ -81,19 +81,23 @@ export class InteriorRing {
     for (const src of SOURCES) out.push(...src.near(e, n, r, day)); return out;
   }
   /** move the ring with the eye (world x, z; the day for the season): rebuild when the set of rooms within reach changed */
-  update(x: number, z: number, day = 0, force = false) {
-    const e = x, n = -z, season = seasonOfDay(day) + ':' + peopleVersion; if (!force && Math.hypot(e - this.last[0], n - this.last[1]) < 2 && season === this.season) return;
-    if (season !== this.season) { this.season = season; for (const b of this.cache.values()) { b.clay?.dispose(); b.cloth?.dispose(); } this.cache.clear(); this.key = ''; }
+  update(x: number, z: number, day = 0, force = false, budgetMs = 6) {
+    if (!interiorsOn) return; // (?interiors=0: houses.ts draws its own few things, to compare)
+    const e = x, n = -z, season = seasonOfDay(day) + ':' + peopleVersion; if (!force && !this.pending && Math.hypot(e - this.last[0], n - this.last[1]) < 2 && season === this.season) return;
+    if (season !== this.season) { this.season = season; for (const b of this.cache.values()) { b?.clay?.dispose(); b?.cloth?.dispose(); } this.cache.clear(); this.key = ''; }
     this.last = [e, n]; const t0 = performance.now();
     const want = this.allNear(e, n, RING_R, day), keep = new Set(want.map(w => w.key));
     // (hysteresis: a room shown stays until it is RING_R + RING_HYST away)
     if (this.key) for (const w of this.allNear(e, n, RING_R + RING_HYST, day)) if (!keep.has(w.key) && this.key.includes(`|${w.key}|`)) { want.push(w); keep.add(w.key); }
     want.sort((a, b) => (a.key < b.key ? -1 : 1)); const key = '|' + want.map(w => w.key).join('|') + '|';
-    if (key === this.key && !force) return; this.key = key;
-    for (const k of [...this.cache.keys()]) if (!keep.has(k)) { const b = this.cache.get(k)!; b.clay?.dispose(); b.cloth?.dispose(); this.cache.delete(k); }
-    const parts: Built[] = []; let tris = 0;
-    for (const w of [...want].sort((a, b) => a.d - b.d)) { if (tris > RING_MAX_TRIS) break; let b = this.cache.get(w.key); if (!b) { const nb = w.build(); if (!nb) continue; b = nb; this.cache.set(w.key, b); this.info.builds++; } parts.push(b); tris += b.tris; }
-    this.swap(parts); this.info.ms = performance.now() - t0;
+    if (key === this.key && !force && !this.pending) return; this.key = key;
+    for (const k of [...this.cache.keys()]) if (!keep.has(k)) { const b = this.cache.get(k); b?.clay?.dispose(); b?.cloth?.dispose(); this.cache.delete(k); }
+    // the rooms not yet built: the nearest first, a few milliseconds a frame (the rest on the next frames; a jump or a test: all)
+    const parts: Built[] = []; let tris = 0, missing = false;
+    for (const w of [...want].sort((a, b) => a.d - b.d)) { if (tris > RING_MAX_TRIS) break; let b = this.cache.get(w.key);
+      if (b === undefined) { if (!force && this.info.rooms > 0 && performance.now() - t0 > budgetMs) { missing = true; continue; } b = w.build(); this.cache.set(w.key, b); this.info.builds++; }
+      if (b) { parts.push(b); tris += b.tris; } }
+    this.pending = missing; if (!missing) this.swap(parts); this.info.ms = performance.now() - t0;
   }
   private swap(parts: Built[]) {
     this.mats ??= { clay: Object.assign(surfaceMaterial('house_plaster', { vertexColors: true, arch: true }), { aoNode: attribute('ao', 'float') }), cloth: Object.assign(surfaceMaterial('house_timber', { vertexColors: true }), { aoNode: attribute('ao', 'float') }) };
