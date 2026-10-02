@@ -36,7 +36,7 @@ export const SETTLEMENT_SURFACES: Record<string, SurfaceDef> = {
   house_timber: { albedo: [0.5, 0.43, 0.34], roughness: 0.8, porosity: 0.55, noiseScale: 5, noiseAmp: 0.16, streaks: { amp: 0.1, freq: 9, stretch: 0.06 }, bump: { amp: 0.0015, freq: 7 }, micro: { amp: 0.0004, freq: 70, alb: 0.07 }, tier: 'C', note: 'poplar (and plane) poles and planks, weathered grey-brown outside (C: poplar is the region\'s building timber, RECOLLECTION; the palaces\' cedar was not for town houses); brush, matting, cloth by colour' },
   // bare mud brick where the plaster has fallen: Achaemenid bricks ~33 cm square and ~10-12 cm thick (Iranica, search
   // extract: B), laid in mud mortar joints ~2 cm (C)
-  house_brick: { albedo: [0.62, 0.53, 0.41], roughness: 0.95, porosity: 0.85, noiseScale: 1.2, noiseAmp: 0.12, joints: { course: 0.13, block: 0.35, width: 0.02, dark: 0.3 }, blockTone: 0.1, bump: { amp: 0.004, freq: 3 }, micro: { amp: 0.0006, freq: 50, alb: 0.06 }, tier: 'B/C', note: 'bare mud brick where the plaster has fallen: bricks ~33 cm square (Iranica, search extract, B), mud joints ~2 cm (C)' },
+  house_brick: { albedo: [0.62, 0.53, 0.41], roughness: 0.95, porosity: 0.85, noiseScale: 1.2, noiseAmp: 0.12, bump: { amp: 0.002, freq: 3 }, /* D-490: the courses are the Clay Block Wall scan's (scans.ts) */ micro: { amp: 0.0006, freq: 50, alb: 0.06 }, tier: 'B/C', note: 'bare mud brick where the plaster has fallen: bricks ~33 cm square (Iranica, search extract, B), mud joints ~2 cm (C)' },
   bank: { albedo: [0.554, 0.462, 0.352], roughness: 0.95, porosity: 0.9, noiseScale: 0.5, noiseAmp: 0.12, bump: { amp: 0.01, freq: 1.2 }, herbs: 0.8, tier: 'C', note: 'canal bank: dug earth (C)' },
 };
 let done = false;

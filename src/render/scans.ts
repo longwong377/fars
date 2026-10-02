@@ -9,7 +9,7 @@
 // Tier C (the scans are modern stone and earth standing in for the grain of 467's; the tint is the evidence's).
 // In node (tests, bakes) no texture is loaded and applyScan is the identity, so every CPU mirror of materials.ts still holds.
 import * as THREE from 'three/webgpu';
-import { texture, positionWorld, normalWorld, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
+import { texture, positionWorld, normalWorld, vec2, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
 import SCANS from '../data/scans.json';
 import { loadBlockFace } from './blockface';
 import { BASE } from '../core/base';
@@ -34,13 +34,15 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // R/B 1σ 0.07 over 10 cm, against 0.18 for Rock Wall 02, whose green lichen and orange patches drew a dirty camouflage over
   // fresh ashlar) with a second tile of 6-8 m multiplied in, so a block no longer repeats its 1.6-2 m tile's smudges (the
   // session-11 lens render). Fresh 467 stone (≈50 years from the quarry, D-230) at a lighter blend than the ruin's (Now view)
-  limestone: { scan: 'rock_boulder_dry', scale: 1.7, scale2: 7.3, alb: 0.45, height: 0.004, rough: 0.5, nor: 1.5 },
-  limestone_merlon: { scan: 'rock_boulder_dry', scale: 1.7, scale2: 7.3, alb: 0.45, height: 0.004, rough: 0.5, nor: 1.5 },
-  limestone_carved: { scan: 'rock_boulder_dry', scale: 1.3, scale2: 5.9, alb: 0.35, height: 0.0015, rough: 0.4, nor: 0.5 },
+  // D-490: the scan's lichen-grey and rust mottle at 45 % of its chroma, half its own buff mean laid in (the sun-bleached grey-cream
+  // of the art direction; the probe frames read cold grey marble)
+  limestone: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 1.7, scale2: 7.3, alb: 0.45, height: 0.004, rough: 0.5, nor: 1.5 },
+  limestone_merlon: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 1.7, scale2: 7.3, alb: 0.45, height: 0.004, rough: 0.5, nor: 1.5 },
+  limestone_carved: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 1.3, scale2: 5.9, alb: 0.35, height: 0.0015, rough: 0.4, nor: 0.5 },
   limestone_dark: { scan: 'rock_surface', scale: 1.4, alb: 0.35, height: 0.001, rough: 0.3 },
-  terrace: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.5, height: 0.006, rough: 0.5, nor: 1.8 },
-  terrace_foot: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.6, height: 0.01, rough: 0.5, nor: 2.2 }, // (the foot's rougher-dressed blocks)
-  stone_rough: { scan: 'rock_boulder_dry', scale: 1.7, scale2: 7.3, alb: 0.5, height: 0.004, rough: 0.5 }, // D-321: the blocks being worked (the Terrace's stone, quarry-fresh)
+  terrace: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 2.1, scale2: 8.9, alb: 0.5, height: 0.006, rough: 0.5, nor: 1.8 },
+  terrace_foot: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 2.1, scale2: 8.9, alb: 0.6, height: 0.01, rough: 0.5, nor: 2.2 }, // (the foot's rougher-dressed blocks)
+  stone_rough: { scan: 'rock_boulder_dry', chroma: 0.45, hue: 0.5, scale: 1.7, scale2: 7.3, alb: 0.5, height: 0.004, rough: 0.5 }, // D-321: the blocks being worked (the Terrace's stone, quarry-fresh)
   terrace_now: { scan: 'rock_boulder_dry', scale: 2.1, scale2: 8.9, alb: 0.8, height: 0.008, rough: 0.5, nor: 2.2 },
   stone_plain: { scan: 'rock_wall_02', scale: 1.6, alb: 0.6, height: 0.005, rough: 0.5 },
   takht_stone: { scan: 'rock_wall_02', scale: 2.0, alb: 0.7, height: 0.006, rough: 0.5 },
@@ -54,7 +56,7 @@ export const SCAN_USE: Record<string, ScanUse> = {
   mudbrick_bare: { scan: 'clay_block_wall', scale: 1.9, alb: 0.5, height: 0.003, rough: 0.4 }, // D-334: the walls under construction
   // D-334: the palaces' roofs and exposed tops: the rolled clay-and-straw coat (a clay plaster scan; the roller, straw and cracks baked)
   roof_earth: { scan: 'clay_plaster', scale: 2.4, scale2: 10.3, alb: 0.6, height: 0.003, rough: 0.4 },
-  house_brick: { scan: 'brown_mud_dry', scale: 1.5, alb: 0.6, height: 0.004, rough: 0.4 },
+  house_brick: { scan: 'clay_block_wall', scale: 1.8, alb: 1.0, chroma: 0.7, height: 0.006, rough: 0.6 }, // D-490: the bare bricks are the scan's (a real mud-brick wall's courses, ~13 cm at this tile), not procedural joints over a gravel soil
   baked_brick: { scan: 'clay_block_wall', scale: 1.5, alb: 0.5, height: 0.003, rough: 0.4 },
   // D-490 (s17 V2): the town's and villages' mud render takes Dirt Floor (a smoothed earthen coat: pores, grit, specks of
   // straw and lime; clay_plaster's flat brown read as a painted plane past 10 m) with a second, larger tile turned in, the
@@ -195,9 +197,12 @@ export function setScanTexturesForTest(on = true): void {
 }
 
 /** triplanar sample of a texture at `scale` metres per tile (world space, weights from the world normal) */
-function tri(t: THREE.Texture, scale: number) {
+function tri(t: THREE.Texture, scale: number, rot = 0) {
   const p = positionWorld.div(scale), w0 = pow(abs(normalWorld), vec3(4)), w = w0.div(max(dot(w0, vec3(1)), float(1e-4)));
-  return texture(t, p.zy).mul(w.x).add(texture(t, p.xz).mul(w.y)).add(texture(t, p.xy).mul(w.z));
+  if (!rot) return texture(t, p.zy).mul(w.x).add(texture(t, p.xz).mul(w.y)).add(texture(t, p.xy).mul(w.z));
+  // D-490: each projection's uv turned by rot and offset (the larger tile's repeat no longer lines up with the small one's axes)
+  const c = Math.cos(rot), s = Math.sin(rot), R = (a: any, b: any) => vec2(a.mul(c).sub(b.mul(s)).add(0.37), a.mul(s).add(b.mul(c)).add(0.71));
+  return texture(t, R(p.z, p.y)).mul(w.x).add(texture(t, R(p.x, p.z)).mul(w.y)).add(texture(t, R(p.x, p.y)).mul(w.z));
 }
 
 /** the layer with the scan's detail laid over it (identity when the surface has no scan or none is loaded) */
@@ -217,7 +222,7 @@ export function applyScan<L extends { alb: any; rough: any; height: any | null; 
   if (!scansOn || !u || !T || !M) return applyBake(name, L);
   const mean = vec3(...M.meanLinear);
   let det = tri(T.diff, u.scale).rgb.div(mean);
-  if (u.scale2) det = det.mul(tri(T.diff, u.scale2).rgb.div(mean)); // the larger tile breaks the small one's repeat
+  if (u.scale2) det = det.mul(tri(T.diff, u.scale2, 0.61).rgb.div(mean)); // the larger tile breaks the small one's repeat
   if (u.chroma !== undefined && u.chroma < 1) det = mix(vec3(dot(det, vec3(0.2126, 0.7152, 0.0722))), det, u.chroma); // D-490
   const R = u.rock, RT = R && TEX.get(R.scan), RM = R && META[R.scan];
   if (R && RT && RM) { // slope-driven rock: full below ny0 (~37°), none above ny1 (~23°)
