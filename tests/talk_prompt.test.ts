@@ -16,6 +16,7 @@ import { lifeRecord } from '../src/people/converse/life';
 import { fenceHits } from '../src/people/converse/fence';
 import { spoken, numberWords, ordinalWords } from '../src/people/converse/spoken';
 import { standInEngine } from './talk_standin';
+import { simAt } from './sim_fixture';
 
 describe('numbers as a person says them (spoken.ts)', () => {
   it('words for counts, ordinals, halves and thousands; text without digits unchanged', () => {
@@ -48,12 +49,12 @@ beforeAll(() => { nav = new NavGrid(new Int16Array(readFileSync('public/generate
 const FULL = !!process.env.TALK_FULL, FIRST_DAYS = 40;
 describe('the prompts the model reads (stand-in model, T-E9 and T-E10 sets)', () => {
   it('every person of both sets: the system prompt, with memory lines in digits, within PROMPT_TOKENS and without a digit', () => {
-    const sim = new PeopleSim(1, nav, env); let max = 0;
+    const sim = simAt(1, 355, 10); let max = 0; // (the cached world at the year's end: every day's plans and dealings are there)
     const mem = ['17 days ago in the morning the foreign stranger spoke with you. He said: “Show me the well.” You showed him the way.', '2 days ago your wife told you: a foreign stranger asked for water on day 21; she gave him 1.5 measures of barley.'];
     const people = [...buildTestSet(sim.pop, 1, 72), ...buildTalkSet(sim.pop, sim.cal, 1, 64)];
     for (const c of people) { const p = systemPrompt(lifeRecord(sim.pop, sim.cal, c.pid, c.day, c.hour), 'recognise', null, mem); max = Math.max(max, approxTokens(p)); expect(p, `pid ${c.pid}`).not.toMatch(/\d/); }
     expect(max).toBeLessThanOrEqual(PROMPT_TOKENS);
-  }, 300_000);
+  }, FULL ? 3_600_000 : 600_000);
   it('through the talk (stand-in): every system prompt within PROMPT_TOKENS, every turn within TURN_TOKENS, no digits read or said; no stand-in reply refused', async () => {
     const eng = standInEngine(); const m = new Mind(); (m as any).engine = eng; m.model = 'stand-in';
     const sim = new PeopleSim(1, nav, env); const refused: string[] = [];
