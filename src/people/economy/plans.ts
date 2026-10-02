@@ -58,12 +58,18 @@ export interface Laid { step: EconStep; ok: boolean; why?: string }
 export class EconPlans {
   private byDay = new Map<number, Map<number, EconStep[]>>();
   private cache = new Map<string, Seg[]>();
-  private evDay = new Map<number, EconEvent[]>(); private scanned = 0;
+  private evDay = new Map<number, EconEvent[]>(); private scanned = 0; private lastE: Economy | null = null;
   /** every step fitted so far and whether it was laid (for the tests and the dev overlay) */
   readonly laid = new Map<string, Laid[]>();
   constructor(readonly pop: Population, private econTo: (day: number) => Economy) {}
   /** forget everything read from the economy (a load, or an intervention entered into it) */
-  reset() { this.byDay.clear(); this.cache.clear(); this.evDay.clear(); this.scanned = 0; this.laid.clear(); }
+  reset() { this.byDay.clear(); this.cache.clear(); this.evDay.clear(); this.scanned = 0; this.laid.clear(); this.lastE = null; }
+  /** D-460: read the economy's new events; a day already worked out that a new event belongs to (its day, or the morning
+   *  after) is forgotten and worked out again (a stranger taken in after the day's plans were first read, for one) */
+  private scan(E: Economy) {
+    for (; this.scanned < E.events.length; this.scanned++) { const e = E.events[this.scanned]; if (!e?.actor) continue; /* (a loaded economy keeps only the recent days whole, D-347) */ (this.evDay.get(e.day) ?? this.evDay.set(e.day, []).get(e.day)!).push(e);
+      for (const d of [e.day, e.day + 1]) if (this.byDay.delete(d)) for (const k of [...this.cache.keys()]) if (k.endsWith(`:${d}`)) this.cache.delete(k); }
+  }
 
   // ------------------------------------------------------------------ Population.plan's hook
   touches(pid: number, day: number) { return this.checking === 0 && this.steps(day).has(pid); }
@@ -125,12 +131,12 @@ export class EconPlans {
   // ------------------------------------------------------------------ the day's steps
   /** the economy's events of a day and the bondages in force, each given to a person (cached per day) */
   steps(day: number): Map<number, EconStep[]> {
-    const c = this.byDay.get(day); if (c) return c;
-    const E = this.econTo(day + 1); // (an accusation is dated the morning after the theft it follows)
+    { const c = this.byDay.get(day); if (c) { if (this.lastE) this.scan(this.lastE); const c2 = this.byDay.get(day); if (c2) return c2; } }
+    const E = this.econTo(day + 1); this.lastE = E; // (an accusation is dated the morning after the theft it follows)
     // (asked while the living world is itself stepping the economy (its re-entry guard): the day is not decided yet; nothing
     // is laid and nothing cached, so the next ask after the step sees it)
     if (E.day < day) return new Map();
-    for (; this.scanned < E.events.length; this.scanned++) { const e = E.events[this.scanned]; if (!e?.actor) continue; /* (a loaded economy keeps only the recent days whole, D-347) */ (this.evDay.get(e.day) ?? this.evDay.set(e.day, []).get(e.day)!).push(e); }
+    this.scan(E);
     const m = new Map<number, EconStep[]>(); this.today = m;
     const put = (s: EconStep | null) => { if (!s) return; const xs = m.get(s.pid) ?? m.set(s.pid, []).get(s.pid)!; xs.push(s); };
     for (const e of this.evDay.get(day) ?? []) for (const s of this.stepsOf(E, e, day)) put(s);
