@@ -82,23 +82,32 @@ export function pastOf(pop: Population, pid: number, day: number, kin: KinLike[]
   else if (!here && p.zone !== 'transient' && age >= 18 && p.arrive <= 0) { const yrs = 1 + Math.floor(u(4) * Math.min(25, age - 15)); out.push({ ago: yrs, text: p.persian ? 'moved down to Pārsa from the family\'s old village' : 'came to Pārsa for the king\'s work and stayed', tier: 'C', kind: 'work' }); }
   // parents: in the house (the sim's own), else dead or far (C: by age)
   const mother = kin.find(k => k.rel === 'mother'), father = kin.find(k => k.rel === 'father');
+  // (keyed by the mother, so brothers and sisters remember the same deaths in the same years; by the eldest of them for the odds)
+  const pk = p.mother >= 0 ? 7_000_000 + p.mother : pid, eldest = p.mother >= 0 ? Math.max(age, ...pop.childrenOf(p.mother).map(c => pop.ageOn(c, day))) : age;
   if (age >= 20) for (const [rel, inHouse, k] of [['father', !!father, 5], ['mother', !!mother, 6]] as const) {
-    if (inHouse) continue; const alive = u(k, S.par) < Math.max(0, 0.9 - age / 70);
-    if (!alive) { const ago = Math.max(1, Math.floor(u(k + 10, S.par) * Math.min(age - 10, 30))); out.push({ ago, text: `${rel === 'father' ? 'the father' : 'the mother'} died`, tier: 'C', kind: 'loss' }); }
+    if (inHouse) continue; const alive = u01(seed, S.par, pk, k) < Math.max(0, 0.9 - eldest / 70);
+    if (!alive) { const ago = Math.max(1, Math.floor(u01(seed, S.par, pk, k + 10) * Math.min(eldest - 10, 30))); if (ago < age) out.push({ ago, text: `${rel === 'father' ? 'the father' : 'the mother'} died`, tier: 'C', kind: 'loss' }); }
   }
   // marriage and children: from the house's real children (their ages bind the marriage), plus children lost young and grown children married away
   const spouse = kin.find(k => k.rel === 'wife' || k.rel === 'husband');
   const kids = kin.filter(k => k.rel === 'son' || k.rel === 'daughter').sort((a, b) => b.age - a.age);
   if (spouse && age >= 18) {
-    const minYrs = kids.length ? kids[0].age + 1 : 0, maxYrs = Math.max(minYrs, age - 17);
-    const wed = Math.max(minYrs, Math.min(maxYrs, minYrs + Math.floor(u(1, S.wed) * 4)));
+    // (the couple's one marriage and its losses: keyed by the pair, bound by the younger's age, so husband and wife tell the same)
+    const ck = Math.min(pid, spouse.pid), uc = (k: number, s: number) => u01(seed, s, ck, k);
+    // (the couple's children counted the same from either side: members of the house who are the wife's, or of the children's
+    // generation, at least fourteen years younger than the younger of the two)
+    const wife = p.sex === 'f' ? pid : spouse.pid, young = Math.min(age, spouse.age), H = pop.households[pop.home(pid, day)];
+    const coupleKids = (H?.members ?? []).filter(m => m !== pid && m !== spouse.pid && pop.present(m, day) && (pop.persons[m].mother === wife || ((pop.persons[m].kin || pop.persons[m].job === 'child') && pop.ageOn(m, day) <= young - 14))).map(m => pop.ageOn(m, day));
+    const eldestKid = Math.max(-1, ...coupleKids, ...kids.map(k => k.age));
+    const minYrs = eldestKid >= 0 ? eldestKid + 1 : 0, maxYrs = Math.max(minYrs, young - 17);
+    const wed = Math.max(minYrs, Math.min(maxYrs, minYrs + Math.floor(uc(1, S.wed) * 4)));
     if (wed > 0) out.push({ ago: wed, text: `married ${spouse.rel === 'wife' ? 'his wife' : 'her husband'}`, tier: 'C', kind: 'family' });
     for (const c of kids) if (c.age < wed) out.push({ ago: c.age, text: `a ${c.rel} was born`, tier: 'C', kind: 'family' });
     // children lost young: about a third of births before five (C); one or two remembered
-    const span = Math.max(0, wed - 1), lost = span >= 2 ? Math.min(3, Math.floor(u(1, S.lost) * (1 + span / 6))) : 0;
-    for (let i = 0; i < lost; i++) { const ago = 1 + Math.floor(u(10 + i, S.lost) * span); out.push({ ago, text: `lost a ${u(20 + i, S.lost) < 0.5 ? 'son' : 'daughter'} in ${u(30 + i, S.lost) < 0.5 ? 'the first year' : 'early childhood'}`, tier: 'C', kind: 'loss' }); }
+    const span = Math.max(0, wed - 1), lost = span >= 2 ? Math.min(3, Math.floor(uc(1, S.lost) * (1 + span / 6))) : 0;
+    for (let i = 0; i < lost; i++) { const ago = 1 + Math.floor(uc(10 + i, S.lost) * span); out.push({ ago, text: `lost a ${uc(20 + i, S.lost) < 0.5 ? 'son' : 'daughter'} in ${uc(30 + i, S.lost) < 0.5 ? 'the first year' : 'early childhood'}`, tier: 'C', kind: 'loss' }); }
     // grown children married away (the older parents of the house; C)
-    if (age >= 40 && wed >= 20) { const n = 1 + Math.floor(u(2, S.kids) * 3); for (let i = 0; i < n; i++) { const yrs = Math.max(1, Math.floor(u(3 + i, S.kids) * (wed - 18))); out.push({ ago: yrs, text: `married off a ${u(9 + i, S.kids) < 0.5 ? 'daughter to a house of the quarter' : 'son, who set up his own house'}`, tier: 'C', kind: 'family' }); } }
+    if (Math.min(age, spouse.age) >= 38 && wed >= 20) { const n = 1 + Math.floor(uc(2, S.kids) * 3); for (let i = 0; i < n; i++) { const yrs = Math.max(1, Math.floor(uc(3 + i, S.kids) * (wed - 18))); out.push({ ago: yrs, text: `married off a ${uc(9 + i, S.kids) < 0.5 ? 'daughter to a house of the quarter' : 'son, who set up his own house'}`, tier: 'C', kind: 'family' }); } }
   } else if (!spouse && age >= 30 && p.sex === 'f' && u(5, S.wed) < 0.6) out.push({ ago: Math.max(1, Math.floor(u(6, S.wed) * (age - 20))), text: 'was widowed', tier: 'C', kind: 'loss' });
   // work
   const own = Math.max(1, Math.min(age - 14, 1 + Math.floor(u(1, S.work) * 20)));

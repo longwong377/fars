@@ -14,6 +14,7 @@ import { Rng } from '../../core/rng';
 import { pastOf, pastWords } from '../history';
 import { aimsOf } from '../aims';
 import type { Economy } from '../economy/world';
+import { personaOf } from '../persona';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
 export interface LifeRecord {
@@ -119,12 +120,6 @@ function relOf(pop: Population, me: Person, o: Person, members: number[]): strin
   return m ? 'kinsman of the house' : 'kinswoman of the house';
 }
 
-const TEMPER = [
-  ['quiet and wary of strangers', 'slow to speak, careful with words'], ['patient and dry', 'answers briefly, sometimes with a dry joke'],
-  ['warm and talkative', 'likes to talk about the family and the neighbours'], ['proud of the work', 'talks about the work, exact about measures and names'],
-  ['anxious', 'worries aloud about rations, weather and the sick'], ['cheerful', 'quick to laugh, teases'], ['pious', 'swears by the gods and gives thanks often'],
-  ['blunt and impatient', 'short answers, wants to get back to work'], ['curious about strangers', 'asks the stranger where they come from'],
-];
 const OATHS: Record<string, string[]> = {
   Persian: ['by Auramazda', 'the gods willing'], Median: ['by Auramazda', 'by the gods'], Elamite: ['by Humban', 'by Napiriša'],
   Babylonian: ['by Marduk', 'by Nabû'], Syrian: ['by Hadad', 'by the gods'], Egyptian: ['by Ptah', 'by Amun'], Ionian: ['by Zeus', 'by the gods'],
@@ -178,10 +173,11 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   // absent father's name drawn once per mother); A for the practice in the Babylonian and Persepolis documents, C for the father
   const byname = bynameOf(pop, pid, day, household.find(k => k.rel === 'father')?.pid ?? -1);
   if (real) debts = real.debts; // (the seeded draws are still made: the speech and oath draws after them stay as they were)
-  const [temper, habit] = TEMPER[Math.min(TEMPER.length - 1, Math.floor(p.trait * TEMPER.length))];
+  // D-382: the person's own facets (persona.ts, its own seeded stream: the draws of `r` here are unchanged)
+  const P = personaOf(pop, pid, day), temper = P.temperament;
   const oaths = OATHS[p.origin] ?? ['by the gods'];
-  const speech = [habit, `oath: “${oaths[Math.floor(r.next() * oaths.length)]}”`, age < 13 ? 'speaks like a child: short, plain, about play, family and food' : age > 55 ? 'speaks slowly, remembers older days under the king’s father' : r.next() < 0.5 ? 'plain speech of the town' : 'plain speech, some words of the work',
-    p.job === 'official' || p.job === 'scribe' ? 'formal, uses titles' : 'addresses the stranger as “stranger” or “friend”'];
+  const speech = [P.speech, `oath: “${oaths[Math.floor(r.next() * oaths.length)]}”`, age < 13 ? 'speaks like a child: short, plain, about play, family and food' : age > 55 ? 'speaks slowly, remembers older days under the king’s father' : r.next() < 0.5 ? 'plain speech of the town' : 'plain speech, some words of the work',
+    p.job === 'official' || p.job === 'scribe' ? 'formal, uses titles' : 'addresses the stranger as “stranger” or “friend”', `dislikes ${P.dislike}`];
   // today (the plan is the simulation's; the reason words are its own English, out of world)
   const C = cal.ctx(day); const dt = dateOf(day); const M = MONTHS[dt.month - 1];
   const segs: Seg[] = pop.present(pid, day) ? pop.plan(pid, day) : [];
@@ -216,7 +212,10 @@ export function bynameOf(pop: Population, pid: number, day: number, fatherHint =
 /** D-375: what the house needs (its open asks, as it would put them to a stranger when it would at all) and what it has
  *  heard (the rumours it holds: the version that reached it, with its certainty), in the town's words */
 const NEED_WORDS: Record<string, string> = { grain: 'barley to feed the house', fuel: 'fuel for the hearth', silver: 'silver for a debt', labour: 'hands for the work', healer: 'someone to tend the sick', company: 'company in mourning', animal: 'a beast for the plough', justice: 'justice for a theft', shelter: 'a roof', time: 'time to pay a debt', petition: 'someone to speak for the house', lost_child: 'a lost child found' };
-const NEWS_WORDS: Record<string, string> = { death: 'a death in', illness: 'sickness in', theft: 'a theft at', default: 'a debt unpaid by', house_fire: 'a fire at', hunger: 'hunger in', suit: 'a suit against', arrest: 'an arrest at', pledge_seized: 'a pledge taken from', debt_labour: 'one bound for debt from', animal_lost: 'an ox lost by', loan: 'a loan to', acquitted: 'an acquittal for', scandal: 'a scandal in', player_deed: 'the stranger\'s doings with' };
+const NEWS_WORDS: Record<string, string> = { death: 'a death in', illness: 'sickness in', theft: 'a theft at', default: 'a debt unpaid by', house_fire: 'a fire at', hunger: 'hunger in', suit: 'a suit against', arrest: 'an arrest at', pledge_seized: 'a pledge taken from', debt_labour: 'one bound for debt from', animal_lost: 'an ox lost by', loan: 'a loan to', acquitted: 'an acquittal for', scandal: 'a scandal in', player_deed: 'the stranger\'s doings with',
+  // (D-375: the town's talk of the stranger)
+  hosted: 'the stranger taken in as a guest by', guest_sent_away: 'the stranger sent away by', ingrate: 'the stranger leaving without a word of thanks to', guest_repaid: 'the stranger\'s gift in thanks to',
+  claim_denied: 'the stranger\'s lie found out by', claim_doubted: 'the stranger\'s tale doubted by', hired_stranger: 'the stranger hired as a hand by', dismissed: 'the stranger dismissed by', ruling_for: 'a ruling for the stranger against', ruling_against: 'a ruling against the stranger, in a matter of', joined_house: 'the stranger taken into', learned_tongue: 'the stranger speaking the tongue of' };
 function talkOf(pop: Population, hh: number, day: number, age: number): { needs: string[]; news: string[] } {
   const A = age >= 12 ? pop.asksNow?.(`h:${hh}`, day) ?? null : null; if (!A) return { needs: [], news: [] };
   const needs = A.asks.sort((a, b) => b.urgency - a.urgency).slice(0, 2).map(a => { const v = a.voices.find(x => x.to === 'stranger');

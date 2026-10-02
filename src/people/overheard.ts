@@ -9,21 +9,42 @@
 // Each speaker in their own voice (voices.ts, keyed by person). Never the same exchange twice for a pair in a day. Pure: a
 // function of the seed, the pair, the day and the hour block; nothing here changes the simulation (the talk itself is the
 // living world's). Out of world: the topic line (English) is the translation layer's.
+// D-387 (UD-24): where the shared tongue has no attested word for the topic (no word for grain in Old Persian), the topic is
+// said in reconstructed period speech (lang/reconstruct.ts: attested words where they fit, else cognate or rule-built forms;
+// tier C, glossed), one or two sentences of fact and answer, so the exchange carries its topic in words.
 import type { PeopleSim } from './sim';
 import { unitsFor, voiceLang, type Unit } from '../audio/voices';
 import type { LangId } from '../lang/lexicon';
 import { lifeRecord } from './converse/life';
 import { h32, u01, salt } from './hash';
 import { HOME_LANG } from './exchanges';
+import { reconstructedUnit } from '../lang/reconstruct';
 
 const S = salt('overheard');
-export interface Exchange { a: number; b: number; day: number; block: number; lang: LangId; /** the topic's key; carried: some spoken word carries it (else the topic is in the translation layer's note only: the lexicon has no word for it in that tongue) */ key: string; carried: boolean; src: 'talk' | 'life' | 'market' | 'day' | 'stranger' | 'work'; topic: string; turns: { who: 'a' | 'b'; unit: Unit }[] }
+export interface Exchange { a: number; b: number; day: number; block: number; lang: LangId; /** the topic's key; carried: some spoken word carries it (else the topic is in the translation layer's note only: the lexicon has no word for it in that tongue) */ key: string; carried: boolean; /** D-387: the topic is carried by reconstructed period speech (tier C), the tongue having no attested word for it */ rc?: boolean; src: 'talk' | 'life' | 'market' | 'day' | 'stranger' | 'work'; topic: string; turns: { who: 'a' | 'b'; unit: Unit }[] }
 /** a topic's words: the glosses that carry it (C) */
 const TOPIC_WORDS: Record<string, RegExp> = {
   grain: /\b(bread|grain|barley|wheat|food|provisions|meal)\b/i, silver: /\b(silver|money|wage|pay|gold)\b/i, death: /\b(god|gods|father|son|heaven)\b/i,
   birth: /\b(son|house|good|happiness|well-being)\b/i, wedding: /\b(house|son|good|happiness|wine)\b/i, sickness: /\b(god|gods|protect|well-being|peace)\b/i,
   work: /\b(work|works|stone|bricks|timber|workers|labourers|column|palace|gate)\b/i, king: /\b(king|royal|palace|gate|court)\b/i, festival: /\b(god|gods|wine|bread|meat|sheep)\b/i,
   harvest: /\b(grain|barley|earth|bread|wheat)\b/i, stranger: /\b(stranger|man|land|country|guest)\b/i, water: /\b(water|river)\b/i, weather: /\b(sky|heaven|earth|water)\b/i,
+};
+/** D-387 (UD-24): what is said of a topic when the shared tongue has no attested word for it, voiced as reconstructed period
+ *  speech (lang/reconstruct.ts; tier C): [what the first says, the other's answer] (C) */
+const RC_SAY: Record<string, readonly (readonly [string, string])[]> = {
+  grain: [['barley is dear this month', 'may the god give a good harvest'], ['bread is dear this year', 'the king gives the rations']],
+  silver: [['the house owes silver', 'I give you silver and you give me barley'], ['give me silver until the harvest', 'I give you silver']],
+  death: [['the father of the house died', 'may the god keep his house'], ['the mother of the house died', 'may the god keep the children']],
+  birth: [['a son was born in the house', 'may the god keep the child'], ['a daughter was born in the house', 'may the god keep the mother']],
+  wedding: [['the son took a wife', 'may the god give them many sons']],
+  sickness: [['the child is sick', 'may the god keep the child'], ['the father is sick', 'may the god keep the house']],
+  work: [['the work is heavy this month', 'the king gives the rations'], ['the workers are many', 'the work is great']],
+  king: [['the king builds a great house', 'the workers are many'], ['the king gives the rations', 'may the god keep the king']],
+  festival: [['today is the feast of the god', 'there is meat and wine']],
+  harvest: [['the harvest is good this year', 'the barley is in the field'], ['the barley is in the field', 'may the god give rain']],
+  stranger: [['a stranger came to the town', 'may the god keep the stranger']],
+  water: [['the water is low this month', 'may the god give rain']],
+  weather: [['the rain is good for the barley', 'may the god keep the field']],
 };
 const OPEN = /\b(peace|well-being|greet|hail|rejoic|lord|master)\b/i, CLOSE = /\b(farewell|go|fare well|peace|god|gods|protect)\b/i;
 
@@ -68,10 +89,13 @@ export class Overheard {
       const r = (n: number) => u01(this.sim.seed, S, h32(x, y, day), block * 16 + tr * 4 + n), pick = (l: Unit[], n: number) => l.length ? l[Math.floor(r(n) * l.length)] : null;
       const turns: Exchange['turns'] = [], add = (who: 'a' | 'b', u: Unit | null) => { if (u) turns.push({ who, unit: u }); };
       add('a', pick(opens, 0)); add('b', pick(opens, 1));
+      // D-387: no attested word for the topic in this tongue: the topic said in reconstructed period speech (C)
+      const say = topicWords.length ? null : (RC_SAY[key] ?? RC_SAY.king)[Math.floor(r(9) * (RC_SAY[key] ?? RC_SAY.king).length)];
+      if (say) { add('a', reconstructedUnit(say[0], lang)); if (r(10) < 0.8) add('b', reconstructedUnit(say[1], lang)); }
       add('a', pick(topicWords, 2)); add('a', pick(topicWords.filter(w => w.id !== turns[turns.length - 1]?.unit.id), 3));
       add('b', pick(topicWords, 5) ?? pick(U.lines, 6)); add(r(7) < 0.5 ? 'a' : 'b', pick(closes, 8));
       const sig = turns.map(t => t.unit.id).join('|'); if (!turns.length || said.has(sig)) continue;
-      said.add(sig); this.said.set(`${x}:${y}:${day}`, said); ex = { a, b, day, block, lang, key, carried: turns.some(t => t.unit.kind === 'word' && re.test(t.unit.gloss ?? '')), src, topic, turns: turns.map(t => ({ ...t, who: t.who === 'a' ? (a === x ? 'a' : 'b') : (a === x ? 'b' : 'a') })) as Exchange['turns'] };
+      said.add(sig); this.said.set(`${x}:${y}:${day}`, said); ex = { a, b, day, block, lang, key, carried: turns.some(t => t.unit.kind === 'word' && re.test(t.unit.gloss ?? '')) || turns.some(t => t.unit.id.startsWith('rc:')), rc: turns.some(t => t.unit.id.startsWith('rc:')) || undefined, src, topic, turns: turns.map(t => ({ ...t, who: t.who === 'a' ? (a === x ? 'a' : 'b') : (a === x ? 'b' : 'a') })) as Exchange['turns'] };
     }
     if (ex) { ex.a = a; ex.b = b; } this.memo.set(k, ex); return ex;
   }

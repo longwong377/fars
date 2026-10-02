@@ -12,6 +12,7 @@ import { dateOf } from '../calendar';
 import { generateYear, type DayWeather } from '../../weather/generator';
 import { START_JDN } from '../../core/calendar';
 import { TrustLedger } from '../speech/trust';
+import { packJSON, unpackJSON } from '../savepack';
 import { Stranger, PLAYER } from '../speech/stranger';
 import { COURT, type CourtDays } from './court';
 import { courtYear } from '../courtYear';
@@ -229,12 +230,13 @@ export class Economy implements EconWorld {
     });
     const C = this.cdays;
     return { v: 2, seed: this.seed, day: this.day, nEv: this.events.length, debtN: this.debtN, market: { ...this.market, hist: this.market.hist.slice(-11) }, treasury: { ...this.treasury },
-      shocks: [...this.shocks], hires: [this.hires.day, this.hires.n], hh, debts, bound, bondages: this.bondages.map(b => [this.idx.get(b.hh), b.to, b.from, b.until, b.ev]), pending, intents, kinds, whole, stub, ...(this.trust ? { trust: this.trust.snapshot() } : {}), ...(this.str?.active ? { stranger: this.str.snapshot() } : {}),
+      shocks: [...this.shocks], hires: [this.hires.day, this.hires.n], intents, kinds, z: packJSON({ hh, debts, bound, bondages: this.bondages.map(b => [this.idx.get(b.hh), b.to, b.from, b.until, b.ev]), pending, whole, stub }), ...(this.trust ? { trust: this.trust.snapshot() } : {}), ...(this.str?.active ? { stranger: this.str.snapshot() } : {}),
       ...(C ? { court: { days: { arrive: C.arrive, leave: C.leave }, ...this.court } } : {}) };
   }
   /** a snapshot back into an economy (D-347), or an older save's seed and intents replayed from day 0 (D-338) */
   static restore(s: any, seeds: HHSeed[], opts: { life?: EconLife; trust?: boolean; court?: CourtDays | boolean } = {}): Economy {
     if (s.v !== 2) { const e = new Economy(s.seed, seeds, { interventions: s.intents, life: opts.life, trust: opts.trust, ...(opts.court ? { court: opts.court } : {}) }); for (let d = 0; d <= s.day; d++) e.step(d); return e; }
+    if (s.z) s = { ...s, ...unpackJSON(s.z), z: undefined }; // (D-378: the households' columns and the kept events, deflated; an older v2 save has them plain)
     // (D-383: the court's days come back with the save; a save made without them takes the caller's)
     const court: CourtDays | boolean | undefined = s.court?.days ?? opts.court;
     const e = new Economy(s.seed, seeds, { life: opts.life, ...(court ? { court } : {}) }), H = [...e.hh.values()], hid = (i: number) => H[i].id;

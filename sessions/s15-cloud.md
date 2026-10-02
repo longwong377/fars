@@ -11,15 +11,45 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
 - **Render-side hooks made by the cloud in Vagon's files (smallest possible):** src/world/world.ts (strangerPresence in the
   audio loop; thinCaption on captions; asks: true; NeuralVoices lazy), src/main.ts (talk mounted by default; start after
   frame 5), src/ui/shell.ts and src/core/settings.ts (the Talk setting). Review them on merge.
-- **B400 (open, pre-existing on s14-int):** the day-300 save is 3.7 MB (line 1 MB); the trust ledger is 3.0 MB of it.
-- **B401 (open, pre-existing on s14-int):** econ_plans "lays steps on a seeded week" 58.2 % vs 60 %.
 - **talk_world 450-token check:** failed at 453 (one T-E9 case: a girl in a house of six); fixed by naming a large house to its
-  first three (D-374), re-run pending at the time of writing.
+  first three (D-374); re-run in the verification batch.
 - **B230 (brides branch):** merged s14-int into it locally (a8fee681, plans.ts conflict resolved: both sides kept); the three
   named d211 failures are being compared on both trees; NOT pushed to s13-bridesmerge yet.
 - Small children's days have few distinct
   reasons (a 2-4 year old follows the mother; their plans are pinned by people_days, left as they are).
 - The soak per seed (task 4) did not run this session (the box was given to the B230 comparison and the talk work).
+
+## The playtest bot's year (a scripted stranger talking for 355 days, seeds 1 and 7), and what was fixed (D-391)
+- **Was broken:** from about day 55 the town refused to talk to him in 85 % of turns (2,146 of 2,520). Every house that privately
+  doubted his story lowered his standing with everyone, and the story reached about 9,000 houses. Now a doubt is that house's
+  own view (its kin hear it); telling the same story again records nothing new; a penniless guest is no ingrate. The bot's
+  re-run for the before/after share is pending at the time of writing.
+- "Lead me to the market / the court / the smith" was unknown in 86 of 93 asks. Now the market, the court and the
+  workshops by craft are known places.
+- Asking for work was refused 9-11 times out of 11 with no lead. Now a house with no work names a house in the quarter that needs a hand,
+  or says the king's works take men on.
+- A child following the mother between two close errands no longer appears for 3 minutes at another place without a walk
+  (econ_plans, 1 in 2,784 person-days).
+- Still open from the bot: the prompt carries digits ("17 years ago", "day 21"), which a model could repeat aloud; "bank" (a
+  river bank) flagged as a modern word (a false positive).
+
+## Since the first draft (more parallel work: two local agents and cloud sessions at a time)
+- B400 CLOSED (D-378): the day-300 save 3.74 MB -> 756 KB, lossless. B401 CLOSED (D-380, a cloud session): 79.1 % of the
+  economy's steps laid in real people's days (was 58.2 %). B234 CLOSED: the trust gate in conversation.
+- The proximity mic, simulation side (D-379): earshot by loudness and distance, the addressee by name or facing, bystanders
+  overhear and tell on, a shout turns heads. Render side: `__converse.say(text, heardMs, rmsDb)`, `state.heard.look`.
+- People come up to the stranger with their house's need, or a friendly house invites him in the evening (D-375 approaches);
+  the town talks of his deeds (rumours with him as the subject, trust moves); a family remembers one past (couples, siblings).
+- The stranger learns words one by one (known words are no longer glossed; "your word for bread" teaches it), must eat (hunger
+  is seen and pitied), buys and sells by haggling, addresses groups; his deeds are in the chronicle (key J).
+- Landed since: marriages in the economy (D-381: bride-gifts, dowries and divorce silver paid between the houses, borrowed or
+  owed when short; 215 chains through weddings), reactions on sight (D-385: greet by name, bow, avoid, stare, nod; village
+  children tag along), complex asks need words (the tongue opens doors), nights in the open (chill, the night watch, the sealed
+  document), the stranger must eat, an approaching person is told why they came; COVERAGE.md regenerated (guards green).
+- Render hooks still to wire (Vagon): `sim.strangerSeen(near, at)` (play the reaction kind), `__converse.say(text, ms, rmsDb)` and
+  `state.heard.look` (the mic and the heads that turn).
+- In flight at the time of writing: personality facets for everyone (D-382), the court in the economy (D-383, cloud), entering chains by speech (D-384, cloud), a playtest bot's
+  year of talk (cloud, report), the soaks and full measurements (cloud), B230 (cloud, on s13-bridesmerge).
 
 ## What a player would now meet differently
 - **Talking is on by default** (no flag): the models (~0.4-0.5 GB) stream in after the world appears; before that, a person

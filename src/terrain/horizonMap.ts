@@ -1,3 +1,4 @@
+import { BASE } from '../core/base';
 // Terrain horizon map (session 4, D-156; triage item 7): for every texel of three nested square grids around the
 // Terrace, the elevation of the skyline in 36 azimuths, so the sun and the moon can set behind Kuh-e Rahmat, the
 // western ranges and every ridge of the plain. Before, only the near terrain ring (±2 km) cast shadows and only within the
@@ -226,7 +227,7 @@ export function decodeHorizonMap(meta: HorizonMeta, bytes: Uint8Array): HorizonM
   return new HorizonMap(meta, levels);
 }
 /** load the baked map (browser: fetch + DecompressionStream; null when absent) */
-export async function loadHorizonMap(base = '/'): Promise<HorizonMap | null> {
+export async function loadHorizonMap(base = BASE): Promise<HorizonMap | null> {
   try {
     const mr = await fetch(`${base}generated/horizon_map.json`); if (!mr.ok) throw new Error(`HTTP ${mr.status}`);
     const meta: HorizonMeta = await mr.json();
