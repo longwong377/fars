@@ -11,7 +11,7 @@ import { attribute, positionLocal, positionWorld, textureLoad, ivec2, int, float
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, POLE_GAP, seasonOf, type HB } from './houses';
 import { TownDoors } from './towndoors';
 import { RoofWear } from './roofwear';
-import { WallWear } from './wallwear';
+import { WallWear, doorLamps } from './wallwear';
 import { livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
 import { Batch, RGB, lin } from './geom';
@@ -250,6 +250,8 @@ export class Settlement {
     // or two after dark, lit again before dawn), no `group` (its light stays in the room: not part of the town's fire light
     // on the smoke, D-227). Not driven by the household's own evening (C)
     for (const p of plots) { const L = hs.lampSpot(p.idx); if (!L) continue; this.fire.add('lamp', new THREE.Vector3(L[0], L[2], -L[1]), { tier: 'C', src: 'RECON', note: `${p.id}: a clay saucer lamp on a ledge in the living room (saucer lamps B by analogy, Q-516; that every house burned one in the evening C, Q-560; D-234)`, sched: 'home', body: false }); this.info.lamps++; }
+    // s17 C1 (D-550): the evening lamps at the street doors (wallwear.ts doorLamps; the fire system lights them)
+    for (const L of doorLamps(hs)) { this.fire.add('lamp', new THREE.Vector3(L.e, L.y, -L.n), { tier: 'C', src: 'RECON', note: `${L.plot}: a clay saucer lamp on a peg by the street door, lit at dusk (saucer lamps B by analogy, Q-516; at the door C; D-550)`, sched: 'home' }); this.info.lamps++; }
     hs.buildFar(cl.far);
     // wall colliders (the plan's walls: the same boxes as before D-234, so the walk and the people agree)
     for (const w of s.walls()) { if (w.door) continue; const sp = hs.wallSpan(w), along = w.v0 === w.v1, len = along ? w.u1 - w.u0 : w.v1 - w.v0;

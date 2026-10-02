@@ -51,3 +51,17 @@ describe('the walls\' wear (wallwear.ts)', () => {
     expect(W.stats.soot).toBeGreaterThan(5); expect(W.stats.splash).toBeGreaterThan(5); expect(W.stats.fresh).toBeGreaterThan(0);
   }, 300_000);
 });
+
+import { townFill } from '../src/world/fillPlan';
+import { WorldFill } from '../src/world/fill';
+import { loadModelsNode } from './lib/models_node';
+describe('the lanes at night (s17 C1)', () => {
+  it('lamps at the street doors; the washing, stools and drying wool brought in at dusk', () => {
+    const lamps = ((town as any).fire.fires as { kind: string; note: string }[]).filter(f => f.kind === 'lamp' && /street door/.test(f.note));
+    console.log(`[night] ${lamps.length} door lamps`); expect(lamps.length).toBeGreaterThan(400);
+    loadModelsNode(); const items = [...townFill(town.plan.sites, 1).items, ...town.roofFill()], F = new WorldFill(items as any, { ground: () => 0 });
+    const ln = items.find(i => i.m === 'fill_line')!; const count = () => { let n = 0; F.group.traverse((o: any) => { if (o.isInstancedMesh && o.visible && /fill:(fill_line|stool):/.test(o.name)) n += o.count; }); return n; };
+    F.update([ln.e, ln.n], 11, 0, true); const day = count(); F.update([ln.e, ln.n], 22, 0, true); const night = count();
+    console.log(`[night] lines and stools drawn by day ${day}, at night ${night}`); expect(day).toBeGreaterThan(0); expect(night).toBe(0);
+  }, 300_000);
+});

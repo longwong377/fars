@@ -154,7 +154,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
     if (u01(...key, 21) < 0.42) { const T = wpick(TOOL_W, u01(...key, 22)), [zmin, zmax] = TOOLS[T], L = 0.18 + 0.1 * u01(...key, 23), [u, v] = at(-(1.0 + 0.3 * u01(...key, 24)), zmax * Math.sin(L) + 0.05);
       if (ok(u, v, 0.6)) { put(T, u, v, -di, -dj, 1, 'gap', { tilt: -Math.PI / 2 - L, dy: -zmin * Math.cos(L), rot: 0 }); fixRot(-di, -dj, (u01(...key, 25) - 0.5) * 0.5); st.door++; } }
     if (u01(...key, 31) < 0.18) { const [u, v] = at(0.95 + 0.2 * u01(...key, 32), 0.02); if (open(s.at(s.ci(u), s.cj(v)))) { put('fill_skin', u, v, -di, -dj, 0.9 + 0.2 * u01(...key, 33), 'gap'); fixRot(-di, -dj, 0); st.door++; } }
-    if (u01(...key, 26) < 0.22 && w >= 2.4) { const [u, v] = at(1.1 + 0.3 * u01(...key, 27), 0.4); if (ok(u, v, 0.6)) { put('stool', u, v, -di, -dj, 0.95 + 0.1 * u01(...key, 28), 'gap'); fixRot(-di, -dj, u01(...key, 29) * 6.28); st.door++; } }
+    if (u01(...key, 26) < 0.22 && w >= 2.4) { const [u, v] = at(1.1 + 0.3 * u01(...key, 27), 0.4); if (ok(u, v, 0.6)) { put('stool', u, v, -di, -dj, 0.95 + 0.1 * u01(...key, 28), 'gap', { day: true }); fixRot(-di, -dj, u01(...key, 29) * 6.28); st.door++; } }
     const life = s.lives?.[P.idx]; if (life?.animal && w >= 2.8 && u01(...key, 30) < (life.animal === 'donkey' ? 0.6 : 0.3)) { const [u, v] = at(1.6, 0.35);
       if (ok(u, v, 1.2) && !nearDoor(u, v, 1.2)) { put('peg', u, v, -di, -dj, 1, 'gap', { tether: life.animal, plot: P.id }); fixRot(-di, -dj, 0); st.door++; st.tethers = (st.tethers ?? 0) + 1;
         // the armful of straw thrown down for it at the wall's foot by its head, the droppings behind (C)
@@ -238,7 +238,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
         const mu = wu - di * w / 2, mv = wv - dj * w / 2;
         if (!lines.some(([a, b]) => Math.hypot(a - mu, b - mv) < 7)) { lines.push([mu, mv]);
           const [e, n] = toG(mu, mv), [de, dn] = dirG(-di, -dj);
-          items.push({ m: 'fill_line', e, n, dy: Math.min(0, P.height - 2.7), rot: Math.atan2(dn, de), s: [(w + 0.1) / 3, 1, 1], col: { cloth_a: cloth(u01(...key, 8)), cloth_b: cloth(u01(...key, 9)) }, at: 'line' }); st.line++; } }
+          items.push({ m: 'fill_line', e, n, dy: Math.min(0, P.height - 2.7), rot: Math.atan2(dn, de), s: [(w + 0.1) / 3, 1, 1], col: { cloth_a: cloth(u01(...key, 8)), cloth_b: cloth(u01(...key, 9)) }, day: true, at: 'line' }); st.line++; } } // (s17 C1: the washing brought in at dusk)
       // frontage goods
       const ws = P.kind === 'workshop' && P.craft ? CRAFT_GOODS[P.craft] : null;
       const p = ws ? 0.3 : c === SQUARE ? 0.06 : 0.12;
@@ -275,7 +275,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       const gu = wu - di * off + dj * along, gv = wv - dj * off - di * along;
       if (nearDoor(gu, gv, 1.1) || nearTaken(gu, gv, 1.0) || !open(s.at(s.ci(gu), s.cj(gv)))) continue;
       const sc = tool ? 1 : 0.86 + 0.24 * u01(...key, 4), col = LITTLE_COL[m]?.(u01(...key, 5));
-      put(m, gu, gv, -di, -dj, sc, 'gap', { ...(col ? { col } : {}), ...(tool ? { tilt: -Math.PI / 2 - L, dy: -tool[0] * Math.cos(L) } : {}) });
+      put(m, gu, gv, -di, -dj, sc, 'gap', { ...(col ? { col } : {}), ...(tool ? { tilt: -Math.PI / 2 - L, dy: -tool[0] * Math.cos(L) } : {}), ...(m === 'stool' ? { day: true } : {}) }); // (stools taken in at dusk)
       fixRot(-di, -dj, tool || AGAINST[m] !== undefined ? (u01(...key, 6) - 0.5) * 0.3 : (u01(...key, 6) - 0.5) * 1.2); addB(items.length - 1); st.gap = (st.gap ?? 0) + 1; } }
   if (!outside) for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i; if (s.cell[k] !== LANE) continue;
     const key = [sid, k, 91], u = s.cu(i) + (u01(...key, 1) - 0.5) * 0.7, v = s.cv(j) + (u01(...key, 2) - 0.5) * 0.7, [e, n] = toG(u, v);

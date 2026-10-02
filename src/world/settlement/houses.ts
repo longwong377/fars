@@ -894,7 +894,7 @@ export class SiteHouses {
   /** s17 C1 (D-550): the roof's stores and work (houseplan.ts roof_jars, roof_drying, roof_line) as fill items at their absolute
    *  heights (fill.ts draws them instanced: the near tiles' triangle budget is the houses' own): jars of water and stores, dung
    *  cakes or washed wool spread to dry on a reed mat, a line of washing between two sticks (C) */
-  roofFill(): { m: string; e: number; n: number; y: number; dy: number; rot: number; s: [number, number, number]; col?: Record<string, RGB>; at: string; tilt?: number }[] {
+  roofFill(): { m: string; e: number; n: number; y: number; dy: number; rot: number; s: [number, number, number]; col?: Record<string, RGB>; at: string; tilt?: number; day?: boolean }[] {
     const out: ReturnType<SiteHouses['roofFill']> = [], s = this.s, CL: RGB[] = [[0.8, 0.74, 0.62], [0.86, 0.82, 0.72], [0.58, 0.22, 0.16], [0.28, 0.32, 0.46], [0.72, 0.58, 0.3], [0.74, 0.68, 0.56]];
     const yaw = (a: number, u: number, v: number) => { const c0 = s.grid(u, v), c1 = s.grid(u + Math.cos(a), v + Math.sin(a)); return Math.atan2(c1[1] - c0[1], c1[0] - c0[0]); };
     const put = (m: string, u: number, v: number, y: number, rot: number, sc: [number, number, number], col?: Record<string, RGB>) => { const [e, n] = s.grid(u, v); out.push({ m, e, n, y, dy: 0, rot, s: sc, ...(col ? { col } : {}), at: 'roof' }); };
@@ -903,9 +903,9 @@ export class SiteHouses {
       if (f.kind === 'roof_jars') { const n = 2 + alt % 3; for (let k = 0; k < n; k++) { const o = (k - (n - 1) / 2) * 0.55, big = (k + alt) % 2 === 0, sc = (big ? 0.82 : 0.95) * (0.9 + 0.2 * hi(f.plot, 50 + k));
         put(big ? 'jar_store' : 'jar_water', sp.u + ca * o, sp.v + sa * o, sp.y, hi(f.plot, 40 + k) * 6.283, [sc, sc, sc]); } }
       else if (f.kind === 'roof_drying') { put('mat', sp.u, sp.v, sp.y + 0.004, r3, [0.9, 1, 0.92]);
-        if (alt % 3 === 2) put('wo_fleece', sp.u, sp.v, sp.y + 0.01, r3 + 0.3, [1.6, 1, 1.5], { wool: CL[alt % 2], wool_d: CL[1] });
+        if (alt % 3 === 2) { put('wo_fleece', sp.u, sp.v, sp.y + 0.01, r3 + 0.3, [1.6, 1, 1.5], { wool: CL[alt % 2], wool_d: CL[1] }); out[out.length - 1].day = true; } // (the wool taken in at dusk)
         else for (let k = 0; k < 3; k++) { const o = (k - 1) * 0.55; put('wo_dung_cakes', sp.u + ca * o, sp.v + sa * o, sp.y + 0.012, r3 + 1.4 + 0.5 * hi(f.plot, 70 + k), [0.9, 1, 0.9]); } }
-      else { const L = Math.min(f.len, 2.6) / 3; put('fill_line', sp.u, sp.v, sp.y - 0.9, r3, [L, 1, 1], { cloth_a: CL[alt % CL.length], cloth_b: CL[(alt >> 2) % CL.length] }); } }
+      else { const L = Math.min(f.len, 2.6) / 3; put('fill_line', sp.u, sp.v, sp.y - 0.9, r3, [L, 1, 1], { cloth_a: CL[alt % CL.length], cloth_b: CL[(alt >> 2) % CL.length] }); out[out.length - 1].day = true; } }
     return out;
   }
   private roofSpot(f: Fixture): { u: number; v: number; y: number } | null {
