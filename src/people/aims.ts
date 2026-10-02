@@ -51,7 +51,7 @@ export function aimsOf(pop: Population, cal: EventCalendar | null, pid: number, 
     else if (eh.kind === 'farmer' && (month === 2 || month === 3)) hopes.push([3, 'a good harvest']); }
   if (age >= 55 && H.members.some(m => pop.ageOn(m, day) < 14 && m !== pid)) hopes.push([4, 'to see the grandchildren grown']);
   if (p.pupilOf !== undefined) hopes.push([5, 'to write the signs as well as the master']);
-  if (age < 14 && age >= 4) hopes.push([3, cal && cal.ctx(Math.min(day + 7, 353)).festival ? 'the festival coming' : pick(['to be big enough to go to the fields', 'a toy of their own', 'to see the king\'s horses', 'honey cakes at the next feast'], u01(pop.seed, S, pid))]);
+  if (age < 14 && age >= 4) hopes.push([3, cal && cal.ctx(Math.min(day + 7, 353)).festival ? 'the festival coming' : pick(['to be big enough to go to the fields', 'a toy of your own', 'to see the king\'s horses', 'honey cakes at the next feast'], u01(pop.seed, S, pid))]);
   if (p.job === 'craftsman' && age >= 18) hopes.push([3, 'a good name for their work in the market']);
   if (p.group >= 0 && !p.persian && age >= 18 && !hopes.length) hopes.push([2, 'to go home one day to their own country']);
   // the ordinary hopes of a quiet house (low weight; family first, then the work; C)

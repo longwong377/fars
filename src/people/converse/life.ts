@@ -176,10 +176,7 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     const owes = r.next() < 0.6; debts.push(`${owes ? 'owes' : 'is owed'} ${what[Math.floor(r.next() * what.length)]} ${owes ? 'to' : 'by'} ${spokenName(pop, o)}`); }
   // D-372: the byname: a married woman by her husband, everyone else by the father (in the house, the mother's husband, or the
   // absent father's name drawn once per mother); A for the practice in the Babylonian and Persepolis documents, C for the father
-  const sp = spouseIn(pop, p, H.members), fatherK = household.find(k => k.rel === 'father');
-  const fatherPid = fatherK?.pid ?? (p.mother >= 0 ? spouseIn(pop, pop.persons[p.mother], pop.households[pop.home(p.mother, day)]?.members ?? []) : -1);
-  const fName = fatherPid >= 0 ? spokenName(pop, fatherPid) : pop.absentFatherName(pid);
-  const byname = p.sex === 'f' && sp >= 0 && age >= 16 && spokenName(pop, sp) ? `wife of ${spokenName(pop, sp)}` : fName ? `${p.sex === 'm' ? 'son' : 'daughter'} of ${fName}` : null;
+  const byname = bynameOf(pop, pid, day, household.find(k => k.rel === 'father')?.pid ?? -1);
   if (real) debts = real.debts; // (the seeded draws are still made: the speech and oath draws after them stay as they were)
   const [temper, habit] = TEMPER[Math.min(TEMPER.length - 1, Math.floor(p.trait * TEMPER.length))];
   const oaths = OATHS[p.origin] ?? ['by the gods'];
@@ -207,6 +204,15 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   };
 }
 
+/** D-372: how a person is told from their namesakes: a married woman by her husband, everyone else by the father (in the house,
+ *  the mother's husband, or the absent father's name drawn once per mother); A for the practice, C for the father */
+export function bynameOf(pop: Population, pid: number, day: number, fatherHint = -1): string | null {
+  const p = pop.persons[pid], H = pop.households[pop.home(pid, day)], sp = H ? spouseIn(pop, p, H.members) : -1;
+  if (p.sex === 'f' && sp >= 0 && pop.ageOn(pid, day) >= 16 && spokenName(pop, sp)) return `wife of ${spokenName(pop, sp)}`;
+  const fp = fatherHint >= 0 ? fatherHint : p.mother >= 0 ? spouseIn(pop, pop.persons[p.mother], pop.households[pop.home(p.mother, day)]?.members ?? []) : -1;
+  const f = fp >= 0 && spokenName(pop, fp) ? spokenName(pop, fp) : pop.absentFatherName(pid); // (a real father may share his son's name; an absent one is redrawn)
+  return f ? `${p.sex === 'm' ? 'son' : 'daughter'} of ${f}` : null;
+}
 /** D-375: what the house needs (its open asks, as it would put them to a stranger when it would at all) and what it has
  *  heard (the rumours it holds: the version that reached it, with its certainty), in the town's words */
 const NEED_WORDS: Record<string, string> = { grain: 'barley to feed the house', fuel: 'fuel for the hearth', silver: 'silver for a debt', labour: 'hands for the work', healer: 'someone to tend the sick', company: 'company in mourning', animal: 'a beast for the plough', justice: 'justice for a theft', shelter: 'a roof', time: 'time to pay a debt', petition: 'someone to speak for the house', lost_child: 'a lost child found' };
@@ -215,21 +221,23 @@ function talkOf(pop: Population, hh: number, day: number, age: number): { needs:
   const A = age >= 12 ? pop.asksNow?.(`h:${hh}`, day) ?? null : null; if (!A) return { needs: [], news: [] };
   const needs = A.asks.sort((a, b) => b.urgency - a.urgency).slice(0, 2).map(a => { const v = a.voices.find(x => x.to === 'stranger');
     return `${NEED_WORDS[a.kind] ?? a.kind}${v?.willing ? `; would ask even a stranger, offering ${v.offers}` : '; would not ask a stranger'}`; });
-  const news = A.rumours.filter(r => r.version.about !== `h:${hh}`).sort((a, b) => b.since - a.since).slice(0, 2).map(r => { const who = houseOf(pop, r.version.about) ?? 'a house of the quarter';
+  const news = [...new Map(A.rumours.filter(r => r.version.about !== `h:${hh}`).sort((a, b) => b.since - a.since).map(r => [`${r.version.kind}|${r.version.about}`, r] as const)).values()].slice(0, 2).map(r => { const who = houseOf(pop, r.version.about, day) ?? 'a house of the quarter';
     return `heard of ${NEWS_WORDS[r.version.kind] ?? r.version.kind} ${who}${r.version.certainty < 0.5 ? ' (not sure it is true)' : ''}`; });
   return { needs, news };
 }
 /** D-371: silver in the words of the town (no digits: the §10 lint) */
 const silverWords = (x: number) => x < 0.15 ? 'a little silver' : x < 0.6 ? 'some silver' : x < 1.5 ? 'about a shekel' : x < 4 ? 'a few shekels' : x < 12 ? 'many shekels' : 'a great sum of silver';
-const houseOf = (pop: Population, id: string) => { if (id === 'treasury') return 'the king\'s treasury'; if (id === 'player') return 'the stranger'; if (!/^h:\d+$/.test(id)) return null;
-  const H = pop.households[Number(id.slice(2))]; const head = H?.members.find(m => pop.persons[m].age >= 16) ?? H?.members[0]; const n = head !== undefined ? spokenName(pop, head) : null; return n ? `the house of ${n}` : 'a house of the quarter'; };
+const houseOf = (pop: Population, id: string, day = 0) => { if (id === 'treasury') return 'the king\'s treasury'; if (id === 'player') return 'the stranger'; if (!/^h:\d+$/.test(id)) return null;
+  const H = pop.households[Number(id.slice(2))]; const head = H?.members.find(m => pop.persons[m].age >= 16 && pop.persons[m].sex === 'm') ?? H?.members.find(m => pop.persons[m].age >= 16) ?? H?.members[0]; const n = head !== undefined ? spokenName(pop, head) : null;
+  // (D-372: with the head's byname: 209 names are shared by 43,000 people, and "the house of Ašbatašda" may be another's than one's father's)
+  const by = n && head !== undefined ? bynameOf(pop, head, day) : null; return n ? `the house of ${n}${by && !/^wife/.test(by) ? ` ${by}` : ''}` : 'a house of the quarter'; };
 /** D-371: what the economy says of a house: its debts (owed and owing) and its dealings of the last two months, in the town's
  *  words, from the economy's own state and events (no seeded fakes) */
 export function econFacts(pop: Population, E: Economy, hh: number, day: number): { debts: string[]; year: string[] } {
   const id = `h:${hh}`, H = E.hh.get(id); if (!H) return { debts: [], year: [] };
   const debts: string[] = [];
-  for (const d of H.debts) if (d.amt > 0.01) { const who = houseOf(pop, d.to); if (who) debts.push(`owes ${silverWords(d.amt)} to ${who}${d.due <= day + 14 ? ', due soon' : ''}`); }
-  let owedBy = 0; for (const o of E.hh.values()) if (o !== H) for (const d of o.debts) if (d.to === id && d.amt > 0.01 && owedBy < 2) { const who = houseOf(pop, o.id); if (who) { debts.push(`is owed ${silverWords(d.amt)} by ${who}`); owedBy++; } }
+  for (const d of H.debts) if (d.amt > 0.01) { const who = houseOf(pop, d.to, day); if (who) debts.push(`owes ${silverWords(d.amt)} to ${who}${d.due <= day + 14 ? ', due soon' : ''}`); }
+  let owedBy = 0; for (const o of E.hh.values()) if (o !== H) for (const d of o.debts) if (d.to === id && d.amt > 0.01 && owedBy < 2) { const who = houseOf(pop, o.id, day); if (who) { debts.push(`is owed ${silverWords(d.amt)} by ${who}`); owedBy++; } }
   const WORDS: Record<string, (o: string | null) => string | null> = {
     harvest_poor: () => 'the harvest was poor', harvest_good: () => 'the harvest was good', default: o => `could not pay ${o ?? 'a creditor'} when the debt fell due`,
     pledge_seized: o => o ? `${o} took a pledge for a debt` : null, suit: o => o ? `${o} went to the judge over a debt` : null, time_granted: () => 'the judge gave the house time to pay',
@@ -241,7 +249,7 @@ export function econFacts(pop: Population, E: Economy, hh: number, day: number):
   const year: string[] = [], seen = new Set<string>();
   for (let i = E.events.length - 1; i >= 0 && year.length < 3; i--) { const v = E.events[i]; if (!v) continue; if (v.day < day - 60) break; if (v.day > day) continue;
     if (v.actor !== id && !(v.kind === 'theft' && v.other === id)) continue; const k = v.kind === 'theft' ? 'robbed' : v.kind; if (seen.has(k)) continue;
-    const w = WORDS[k]?.(v.other ? houseOf(pop, v.other) : null); if (w) { seen.add(k); year.push(w); } }
+    const w = WORDS[k]?.(v.other ? houseOf(pop, v.other, day) : null); if (w) { seen.add(k); year.push(w); } }
   return { debts: debts.slice(0, 3), year };
 }
 
@@ -277,7 +285,7 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     L.needs.length ? `Your house needs: ${L.needs.join('; ')}.` : '',
     L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
     L.past.length ? `Before this year: ${L.past.slice(0, 2).join('; ')}.` : '',
-    L.worries.length || L.hopes.length ? `On your mind: ${[...L.worries.map(w => `worried about ${w}`), ...L.hopes.map(h => `hoping for ${h}`)].slice(0, 3).join('; ')}.` : '',
+    L.worries.length || L.hopes.length ? `On your mind: ${[...L.worries.map(w => `worried about ${w}`), ...L.hopes.map(h => /^(that|to) /.test(h) ? `hoping ${h}` : `hoping for ${h}`)].slice(0, 3).join('; ')}.` : '',
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
     `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${L.today.now.replace(/^[a-z ]+: /, '')}${L.today.next ? `; after this: ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
     ev.length ? `News today: ${ev.join('; ')}.` : '',

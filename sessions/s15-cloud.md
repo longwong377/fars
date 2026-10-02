@@ -45,6 +45,9 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
   deeds reach another house (T-E13's second part); comprehension 0.6-0.9 in the tongue lived in.
 - Hopes/worries: 287 of 300 people have something on their mind (42 kinds). Asks in talk: 40/40 houses with open asks speak of
   them; 2,043 rumours held at day 120. Gossip -> trust: 530/565 pairs.
+- Overheard talk (T-E12's metric, D-377): 97.5 % of 240 exchanges grounded, in a shared tongue, own voices, unrepeated; the
+  topic carried by the spoken words in 62.5 % (no Old Persian word for grain or silver is attested: the note carries it).
+- Samples of what people are told and what they say: sessions/s15-cloud-samples.md (tools/dev/talk_samples.ts).
 - Test cost: a world jumped to day 150 ~80 s; loaded from the cached fixture ~1 s (D-374).
 
 ## Tests run (node; this branch)

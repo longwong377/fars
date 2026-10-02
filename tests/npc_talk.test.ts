@@ -30,13 +30,13 @@ describe('T-E12 overheard exchanges (D-377)', () => {
         const shared = lang === 'arc' || (own(a) === lang && own(b) === lang);
         const grounded = !!ex.topic && ex.turns.some(t => t.unit.kind === 'word' && TOPIC.test(t.unit.gloss ?? ''));
         const voices = voiceIdentity(null, a, P, day, 1).seed !== voiceIdentity(null, b, P, day, 1).seed;
-        rows.push({ ok: grounded && shared && voices && ex.turns.length >= 3, grounded, shared, voices, src: ex.src, topic: ex.topic, lang, n: ex.turns.length, sig: `${a}:${b}:${day}|${ex.turns.map(t => t.unit.id).join(',')}` });
+        rows.push({ ok: grounded && shared && voices && ex.turns.length >= 3, carried: ex.carried, grounded, shared, voices, src: ex.src, topic: ex.topic, lang, n: ex.turns.length, sig: `${a}:${b}:${day}|${ex.turns.map(t => t.unit.id).join(',')}` });
       }
     }
     const sigs = new Map<string, number>(); for (const r of rows) if (r.sig) sigs.set(r.sig, (sigs.get(r.sig) ?? 0) + 1);
     for (const r of rows) if (r.sig && sigs.get(r.sig)! > 1) { r.ok = false; r.repeat = true; }
     const share = rows.filter(r => r.ok).length / rows.length, src: Record<string, number> = {}; for (const r of rows) src[r.src] = (src[r.src] ?? 0) + 1;
-    console.log('[T-E12]', JSON.stringify({ n: rows.length, share: +(share * 100).toFixed(1), src, repeats: rows.filter(r => r.repeat).length, ungrounded: rows.filter(r => r.grounded === false).length, langs: [...new Set(rows.map(r => r.lang))], ex: [...new Set(rows.map(r => r.topic))].slice(0, 12) }));
+    console.log('[T-E12]', JSON.stringify({ n: rows.length, share: +(share * 100).toFixed(1), src, repeats: rows.filter(r => r.repeat).length, ungrounded: rows.filter(r => r.grounded === false).length, carriedInWords: +(rows.filter(r => r.carried).length / rows.length * 100).toFixed(1), langs: [...new Set(rows.map(r => r.lang))], ex: [...new Set(rows.map(r => r.topic))].slice(0, 12) }));
     expect(rows.length).toBeGreaterThanOrEqual(60); expect(share).toBeGreaterThanOrEqual(0.9);
   }, 1_800_000);
 });

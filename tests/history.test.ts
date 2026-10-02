@@ -123,7 +123,7 @@ describe('D-375 gossip moves trust', () => {
 });
 describe('D-375 rumours leave a house without help', () => {
   it('with asks on, some help is withheld from houses shunned over what was heard; with asks off, none', () => {
-    const on = simAt(1, 120, 12, { asks: true }); on.econTo(121); const s = (on.living.stats as any).shunned ?? 0;
+    const on = simAt(1, 120, 12, { asks: true }); on.econTo(121); const s0 = (on.living.stats as any).shunned ?? 0, o0 = on.living.stats.offers; on.econTo(135); const s = ((on.living.stats as any).shunned ?? 0) - s0; (on.living.stats as any).offers -= o0; // (the counts are not in the save: counted over days run after it)
     console.log('[shun]', s, 'offers', on.living.stats.offers);
     expect(s).toBeGreaterThan(0); expect(s).toBeLessThan(on.living.stats.offers * 0.5);
   }, 1_800_000);

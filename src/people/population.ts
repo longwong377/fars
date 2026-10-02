@@ -1695,8 +1695,9 @@ export class Population {
   nameOf(pid: number): string | null { return nameFor(this.seed, this.persons[pid]); }
   /** D-372: a father's name for one whose father is not in the population (dead, or far): drawn once per mother (so brothers and
    *  sisters share it) or per person, from the attested names of their origin (C) */
-  absentFatherName(pid: number): string | null { const p = this.persons[pid]; const key = p.mother >= 0 ? p.mother : pid;
-    return nameFor(this.seed, { ...p, id: 5_000_000 + key, sex: 'm', nm: undefined } as Person)?.replace(/^\*/, '') ?? null; }
+  absentFatherName(pid: number): string | null { const p = this.persons[pid]; const key = p.mother >= 0 ? p.mother : pid, own = this.nameOf(pid)?.replace(/^\*/, '');
+    // (never the son's own name: a second draw then; C)
+    for (let k = 0; k < 4; k++) { const n = nameFor(this.seed, { ...p, id: 5_000_000 + key + k * 7_000_003, sex: 'm', nm: undefined } as Person)?.replace(/^\*/, '') ?? null; if (!n || n !== own) return n; } return null; }
 
   // ================================================================== guard rota (lives.json guard_rota; D-023)
   /** 0 = watch A (6–14), 1 = B (14–22), 2 = C (22–6), 3 = off after the night watch, 4 = off */

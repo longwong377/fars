@@ -17,7 +17,7 @@ import { h32, u01, salt } from './hash';
 import { HOME_LANG } from './exchanges';
 
 const S = salt('overheard');
-export interface Exchange { a: number; b: number; day: number; block: number; lang: LangId; src: 'talk' | 'life' | 'market' | 'day' | 'stranger' | 'work'; topic: string; turns: { who: 'a' | 'b'; unit: Unit }[] }
+export interface Exchange { a: number; b: number; day: number; block: number; lang: LangId; /** the topic's key; carried: some spoken word carries it (else the topic is in the translation layer's note only: the lexicon has no word for it in that tongue) */ key: string; carried: boolean; src: 'talk' | 'life' | 'market' | 'day' | 'stranger' | 'work'; topic: string; turns: { who: 'a' | 'b'; unit: Unit }[] }
 /** a topic's words: the glosses that carry it (C) */
 const TOPIC_WORDS: Record<string, RegExp> = {
   grain: /\b(bread|grain|barley|wheat|food|provisions|meal)\b/i, silver: /\b(silver|money|wage|pay|gold)\b/i, death: /\b(god|gods|father|son|heaven)\b/i,
@@ -71,7 +71,7 @@ export class Overheard {
       add('a', pick(topicWords, 2)); add('a', pick(topicWords.filter(w => w.id !== turns[turns.length - 1]?.unit.id), 3));
       add('b', pick(topicWords, 5) ?? pick(U.lines, 6)); add(r(7) < 0.5 ? 'a' : 'b', pick(closes, 8));
       const sig = turns.map(t => t.unit.id).join('|'); if (!turns.length || said.has(sig)) continue;
-      said.add(sig); this.said.set(`${x}:${y}:${day}`, said); ex = { a, b, day, block, lang, src, topic, turns: turns.map(t => ({ ...t, who: t.who === 'a' ? (a === x ? 'a' : 'b') : (a === x ? 'b' : 'a') })) as Exchange['turns'] };
+      said.add(sig); this.said.set(`${x}:${y}:${day}`, said); ex = { a, b, day, block, lang, key, carried: turns.some(t => t.unit.kind === 'word' && re.test(t.unit.gloss ?? '')), src, topic, turns: turns.map(t => ({ ...t, who: t.who === 'a' ? (a === x ? 'a' : 'b') : (a === x ? 'b' : 'a') })) as Exchange['turns'] };
     }
     if (ex) { ex.a = a; ex.b = b; } this.memo.set(k, ex); return ex;
   }
