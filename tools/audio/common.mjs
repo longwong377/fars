@@ -33,7 +33,7 @@ export function updateManifest(root, section, entries, replace = false) {
   const p = join(root, 'public/audio/manifest.json'); mkdirSync(join(root, 'public/audio'), { recursive: true });
   const m = existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : { version: 1, note: 'D-620: the recordings the world plays (src/audio/library.ts); written by tools/audio/fetch.mjs and irs.mjs; every file in ASSET_LEDGER.md', sections: {} };
   m.sections[section] = replace ? entries : { ...(m.sections[section] ?? {}), ...entries };
-  const sorted = {}; for (const k of Object.keys(m.sections[section]).sort()) sorted[k] = m.sections[section][k]; m.sections[section] = sorted;
+  const sorted = {}; for (const k of Object.keys(m.sections[section]).sort()) if (m.sections[section][k]) sorted[k] = m.sections[section][k]; m.sections[section] = sorted; // (null drops a key)
   writeFileSync(p, JSON.stringify(m, null, 1) + '\n');
 }
 export { execFileSync };

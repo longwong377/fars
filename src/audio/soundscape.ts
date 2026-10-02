@@ -352,7 +352,7 @@ export class Soundscape {
   }
   thunder(delay: number, strength: number) {
     const e = this.e; if (!e.ctx) return; const c = e.ctx, t = c.currentTime + delay;
-    if (this.shots.flat('thunder', { gain: Math.min(1, 0.35 + 0.65 * strength) }, delay)) return; // D-620: a recorded peal
+    if (this.shots.flat('thunder', { gain: 5 * Math.min(1, 0.35 + 0.65 * strength) }, delay)) return; // (as loud as the synthesised roll's 0.8 peak) // D-620: a recorded peal
     const s = c.createBufferSource(); s.buffer = e.noiseBuffer(6, 'brown'); const g = c.createGain(), f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 180 + 400 * strength;
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(Math.min(1, 0.6 * strength + 0.2), t + 0.08); g.gain.exponentialRampToValueAtTime(0.001, t + 5.5);
     s.connect(f); f.connect(g); g.connect(e.ch.effects); s.start(t); s.stop(t + 6);

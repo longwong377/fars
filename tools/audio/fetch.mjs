@@ -31,6 +31,7 @@ const LOCK_P = join(ROOT, 'tools/audio/fetch_lock.json');
 const UA = 'PARSA-time-capsule/1.0 (personal non-commercial project; https://github.com/longwong377/fars) node-fetch';
 export const SPEECH_MAX = 5.5;
 const arg = n => process.argv.includes(n), argv = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
+const SOURCES = (argv('--sources') ?? 'freesound,commons,archive,esc50').split(','), KEEP_PROV = arg('--keep-provisional');
 const ONLY = argv('--only')?.split(',') ?? null, REFRESH = arg('--refresh'), DRY = arg('--dry'), ALLOW_SA = process.env.ALLOW_SA === '1';
 const TMP = join(tmpdir(), 'fars-audio-fetch'); mkdirSync(TMP, { recursive: true });
 
@@ -46,7 +47,7 @@ export function licenceClass(s) {
   return nc ? 'CC BY-NC' : 'CC BY';
 }
 const LIC_RANK = { 'CC0': 0, 'CC BY': 1, 'CC BY-NC': 2, 'CC BY-SA': 3, 'CC BY-NC-SA': 4 };
-const norm = s => ' ' + String(s ?? '').toLowerCase().replace(/<[^>]*>/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
+const norm = s => ' ' + String(s ?? '').toLowerCase().replace(/<[^>]*>/g, ' ').replace(/[^a-z]+/g, ' ').trim() + ' '; // (digits split words: 'glass2' is 'glass')
 /** the reject words (whole words or phrases) a candidate's text names */
 export function rejectedBy(text, words) { const t = norm(text); return words.filter(w => t.includes(norm(w))); }
 
@@ -104,6 +105,51 @@ async function archive(q) {
   return out;
 }
 
+/** ESC-50 (K. J. Piczak, 2015; github.com/karolpiczak/ESC-50, read from raw.githubusercontent.com, which the cloud reaches):
+ *  2,000 five-second clips cut from freesound recordings, 40 per class, each with its own licence and credit in the dataset's
+ *  LICENSE (CC0, CC BY or CC BY-NC). An item names its class and, optionally, title patterns (`esc50: { category, title }`).
+ *  One-shots and steps take clips as they are; a bed with `compose` is built from many clips crossfaded (PROVISIONAL: a
+ *  patchwork of recordings; the full fetch replaces it with a long field recording unless --keep-provisional) */
+const ESC = 'https://raw.githubusercontent.com/karolpiczak/ESC-50/master/';
+let escRows = null;
+async function esc50Rows() {
+  if (escRows) return escRows; escRows = [];
+  const csv = await get(ESC + 'meta/esc50.csv'), lic = await get(ESC + 'LICENSE'); if (!csv || !lic) return escRows;
+  const cred = new Map(); for (const m of lic.matchAll(/\[(\d+-\d+-[A-Z])\.ogg\]: clip derived from (.*) \((http[^)]+)\) by (.*?) \[([^\]]+)\]/g)) cred.set(m[1], { title: m[2], page: m[3], author: m[4], lic: m[5] });
+  for (const line of csv.split('\n').slice(1)) { const [file, , , category] = line.split(','); if (!file) continue; const c = cred.get(file.replace(/-\d+\.wav$/, '')); if (c) escRows.push({ file, category, ...c }); }
+  return escRows;
+}
+async function esc50(item) {
+  const spec = item.esc50; if (!spec) return [];
+  const rows = (await esc50Rows()).filter(r => r.category === spec.category && (!spec.title || spec.title.some(t => new RegExp(t, 'i').test(r.title))));
+  const words = [...LIST.reject, ...(item.reject ?? []), ...(spec.reject ?? [])];
+  const clips = rows.map(r => ({ src: 'esc50', id: r.file, title: r.title, text: r.title, licence: licenceClass(r.lic), author: r.author, page: r.page, audio: ESC + 'audio/' + r.file, dur: 5, score: 1, rejected: [] }))
+    .filter(c => c.licence && !rejectedBy(c.text, words).length);
+  if (item.section !== 'beds') return clips;
+  if (!spec.compose || clips.length < 8) return [];
+  const worst = clips.reduce((w, c) => LIC_RANK[c.licence] > LIC_RANK[w] ? c.licence : w, 'CC0');
+  return [{ src: 'esc50', id: `compose:${spec.category}:${item.key}`, title: `${clips.length} ESC-50 '${spec.category}' clips crossfaded`, text: '', licence: worst, author: [...new Set(clips.map(c => c.author))].join(', '), page: 'https://github.com/karolpiczak/ESC-50', audio: 'compose', dur: null, score: -1, clips, provisional: true, rejected: [] }];
+}
+/** a bed from many short clips: each trimmed of its silence and levelled (mean -28 dB), chained with 1.5 s crossfades */
+async function compose(clips, take = 120) {
+  const parts = [];
+  for (const c of clips) {
+    const raw = await get(c.audio, 'buf'); if (!raw) continue; const f = join(TMP, `esc_${c.id}`); writeFileSync(f, raw);
+    const g = join(TMP, `escn_${c.id}`);
+    ff(['-i', f, '-af', 'silenceremove=start_periods=1:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse,aresample=48000', '-ac', '2', '-c:a', 'pcm_f32le', '-f', 'wav', g]);
+    const d = probeDur(g); if (d < 3) continue;
+    const mv = +(/mean_volume: (-?[\d.]+) dB/.exec(ffReport(FF(), ['-i', g, '-af', 'volumedetect', '-f', 'null', '-']))?.[1] ?? -28);
+    parts.push({ g, d, gain: Math.max(-12, Math.min(18, -28 - mv)) });
+    if (parts.reduce((a, p) => a + p.d - 1.5, 0) > take + 6) break;
+  }
+  if (parts.length < 2) return null;
+  const inputs = parts.flatMap(p => ['-i', p.g]), pre = parts.map((p, i) => `[${i}]volume=${p.gain.toFixed(1)}dB[v${i}]`);
+  let chain = '[v0]'; const xf = []; for (let i = 1; i < parts.length; i++) { const o = i === parts.length - 1 ? '[out]' : `[x${i}]`; xf.push(`${chain}[v${i}]acrossfade=d=1.5:c1=qsin:c2=qsin${o}`); chain = `[x${i}]`; }
+  const out = join(TMP, `compose_${Date.now()}.wav`); ff([...inputs, '-filter_complex', [...pre, ...xf].join(';'), '-map', '[out]', '-c:a', 'pcm_f32le', out]);
+  const buf = readFileSync(out), f = join(TMP, `${sha(buf).slice(0, 16)}.wav`); writeFileSync(f, buf); rmSync(out); for (const p of parts) rmSync(p.g, { force: true });
+  return { file: f, sha256: sha(buf), used: clips.filter(c => parts.some(p => p.g.endsWith(c.id))) };
+}
+
 // ------------------------------------------------------------------------------------------------ audio
 const FF = () => ffmpegPath();
 function ff(args) { const r = spawnSync(FF(), ['-hide_banner', '-v', 'error', '-y', ...args], { encoding: 'utf8', maxBuffer: 1 << 28 }); if (r.status !== 0) throw new Error(`ffmpeg: ${r.stderr?.slice(-400)}`); }
@@ -139,24 +185,32 @@ function events(file, minLen, maxLen) {
   return out.sort((p, q) => q.peak - p.peak);
 }
 const sha = b => createHash('sha256').update(b).digest('hex');
+const extOf = e => e.ext ?? (/\.(ogg|mp3|wav|flac|oga|opus)(\?|$)/i.exec(e.audio)?.[1] ?? 'bin').toLowerCase();
 
 // ------------------------------------------------------------------------------------------------ resolve, process
 async function candidates(item) {
   const isBed = item.section === 'beds', minDur = isBed ? Math.min(60, item.take ?? 120) : 0.2, maxDur = isBed ? 3600 : 60, words = [...LIST.reject, ...(item.reject ?? [])];
   const seen = new Set(), all = [];
   for (const q of item.q) {
-    for (const src of [() => freesound(q, minDur, maxDur), () => commons(q), () => archive(q)]) {
+    for (const src of [['freesound', () => freesound(q, minDur, maxDur)], ['commons', () => commons(q)], ['archive', () => archive(q)]].filter(([n]) => SOURCES.includes(n)).map(([, f]) => f)) {
       for (const c of await src()) { if (seen.has(c.src + c.id)) continue; seen.add(c.src + c.id);
         c.q = q; c.rejected = !c.licence ? ['licence'] : rejectedBy(c.text, words); if (c.dur != null && (c.dur < minDur || c.dur > maxDur)) c.rejected.push(`length ${c.dur}`); all.push(c); }
     }
     if (all.filter(c => !c.rejected.length).length >= item.variants * 3) break;
   }
+  if (SOURCES.includes('esc50')) for (const c of await esc50(item)) if (!seen.has(c.src + c.id)) { seen.add(c.src + c.id); all.push(c); }
   return all.filter(c => !c.rejected.length).sort((a, b) => (LIC_RANK[a.licence] - LIC_RANK[b.licence]) || (b.score - a.score));
 }
 /** download and check one candidate; returns the lock entry or null */
 async function take(item, c) {
+  if (c.audio === 'compose') {
+    const r = await compose(c.clips, item.take ?? 120); if (!r) return null;
+    const sp = speechiness(pcm(r.file, 16000)); if (sp > SPEECH_MAX) { console.log(`   reject ${c.id}: speechiness ${sp.toFixed(2)}`); return null; }
+    const used = r.used.map(u => ({ id: u.id, title: u.title, author: u.author, licence: u.licence, page: u.page, audio: u.audio }));
+    return { key: item.key, section: item.section, src: 'esc50', id: c.id, title: `${used.length} ESC-50 clips crossfaded`, licence: used.reduce((w, u) => LIC_RANK[u.licence] > LIC_RANK[w] ? u.licence : w, 'CC0'), author: [...new Set(used.map(u => u.author))].join(', '), page: c.page, audio: 'compose', sha256: r.sha256, ext: 'wav', dur: +probeDur(r.file).toFixed(2), provisional: true, clips: used, q: 'esc50' };
+  }
   const raw = await get(c.audio, 'buf'); if (!raw || raw.length < 2000) return null;
-  const ext = (/\.(ogg|mp3|wav|flac|oga|opus)(\?|$)/i.exec(c.audio)?.[1] ?? 'bin').toLowerCase(), f = join(TMP, `${sha(raw).slice(0, 16)}.${ext}`); writeFileSync(f, raw);
+  const ext = extOf(c), f = join(TMP, `${sha(raw).slice(0, 16)}.${ext}`); writeFileSync(f, raw);
   const dur = probeDur(f); if (!(dur > 0)) return null;
   const e = { key: item.key, section: item.section, src: c.src, id: c.id, title: c.title, licence: c.licence, author: c.author, page: c.page, audio: c.audio, sha256: sha(raw), dur: +dur.toFixed(2), q: c.q };
   if (item.section === 'beds') {
@@ -172,7 +226,7 @@ function encode(item, lockEntries) {
   // the item's old files go first (a re-run with fewer variants leaves none behind)
   for (const f of readdirSync(outDir)) if (f.startsWith(`${item.key}_`) && /^\d/.test(f.slice(item.key.length + 1))) rmSync(join(outDir, f));
   for (const [vi, e] of lockEntries.entries()) {
-    const src = join(TMP, `${e.sha256.slice(0, 16)}.${(/\.(ogg|mp3|wav|flac|oga|opus)(\?|$)/i.exec(e.audio)?.[1] ?? 'bin').toLowerCase()}`);
+    const src = join(TMP, `${e.sha256.slice(0, 16)}.${extOf(e)}`);
     if (!existsSync(src)) { console.warn(`   missing download for ${e.key} (${e.id}): run without --encode-only`); continue; }
     const base = { src: `${e.src}:${e.id}`, licence: e.licence, author: e.author, url: e.page };
     const dur = probeDur(src);
@@ -199,11 +253,12 @@ function encode(item, lockEntries) {
 }
 
 // ------------------------------------------------------------------------------------------------ ledger
-function ledger(lock) {
+export function ledger(lock) {
   const p = join(ROOT, 'ASSET_LEDGER.md'), B = '<!-- D-620 recordings: begin (tools/audio/fetch.mjs writes this block) -->', E = '<!-- D-620 recordings: end -->';
-  const rows = Object.values(lock.items).flat().map(e => `| Recording \`${e.key}\` (${e.section}; public/audio/${e.section}/${e.key}_*.ogg) | ${e.src}: [${String(e.title).replace(/\|/g, '/')}](${e.page}) sha256 ${e.sha256.slice(0, 12)} | ${e.licence} | ${String(e.author).replace(/\|/g, '/')} | C (a present-day recording standing for the period's sound) |`);
-  const block = `${B}\n\n## Recorded sound (D-620)\n| Asset | Source | Licence | Credit | Tier |\n|---|---|---|---|---|\n${rows.join('\n')}\n\n${E}`;
-  let s = readFileSync(p, 'utf8'); s = s.includes(B) ? s.replace(new RegExp(`${B}[\\s\\S]*?${E}`), block) : s.trimEnd() + '\n\n' + block + '\n'; writeFileSync(p, s);
+  const rows = Object.values(lock.items).flat().flatMap(e => e.clips ? e.clips.map(c => ({ ...c, key: e.key, section: e.section, src: 'esc50', title: `${c.title} (ESC-50 ${c.id}; part of a PROVISIONAL patchwork bed)`, sha256: e.sha256 })) : [e]).map(e => `| Recording \`${e.key}\` (${e.section}; public/audio/${e.section}/${e.key}_*.ogg) | ${e.src}: [${String(e.title).replace(/\|/g, '/')}](${e.page}) sha256 ${e.sha256.slice(0, 12)} | ${e.licence} | ${String(e.author).replace(/\|/g, '/')} | C (a present-day recording standing for the period's sound) |`);
+  const esc = Object.values(lock.items).flat().some(e => e.src === 'esc50') ? ['| ESC-50: Dataset for Environmental Sound Classification (the clips marked esc50 below are cut from it; each row credits the freesound recording the clip came from) | github.com/karolpiczak/ESC-50 (K. J. Piczak, Proc. ACM Multimedia 2015; doi:10.7910/DVN/YDEPUT) | dataset CC BY-NC 3.0; each clip under its own licence (row) | Karol J. Piczak | — |'] : [];
+  const block = `${B}\n\n## Recorded sound (D-620)\n| Asset | Source | Licence | Credit | Tier |\n|---|---|---|---|---|\n${[...esc, ...rows].join('\n')}\n\n${E}`;
+  let s = readFileSync(p, 'utf8'); const a = s.indexOf(B), z = s.indexOf(E); s = a >= 0 && z > a ? s.slice(0, a) + block + s.slice(z + E.length) : s.trimEnd() + '\n\n' + block + '\n'; writeFileSync(p, s);
 }
 
 // ------------------------------------------------------------------------------------------------ main
@@ -213,18 +268,24 @@ async function main() {
   for (const item of items) {
     let have = lock.items[item.key] ?? [];
     const want = item.section === 'beds' ? item.variants : Math.min(item.variants, 3); // one-shot variants come from events within a recording
-    if (REFRESH || have.length < want) {
+    // a provisional bed (ESC-50 patchwork) counts only with --keep-provisional: otherwise the search looks for a real one
+    const firm = have.filter(e => !e.provisional || KEEP_PROV);
+    if (REFRESH || firm.length < want) {
       console.log(`${item.section}/${item.key}: searching (${item.q.join(' | ')})`);
-      const cs = await candidates(item), picked = [...(REFRESH ? [] : have)], authors = new Set(picked.map(e => e.author));
+      const cs = (await candidates(item)).filter(c => !(c.provisional && firm.length > 0)), picked = [...(REFRESH ? [] : firm)], authors = new Set(picked.map(e => e.author));
       const order = [...cs.filter(c => !authors.has(c.author)), ...cs.filter(c => authors.has(c.author))];
       for (const c of order) { if (picked.length >= want) break; if (picked.some(e => e.src === c.src && e.id === c.id)) continue;
         if (DRY) { console.log(`   would take ${c.licence} ${c.src} ${c.id} "${c.title}" by ${c.author}`); picked.push({ ...c, sha256: '' }); continue; }
         const e = await take(item, c); if (e) { picked.push(e); authors.add(e.author); console.log(`   took ${e.licence} ${e.src} ${e.id} "${e.title}" by ${e.author} (${e.dur} s${e.speechiness != null ? `, speechiness ${e.speechiness}` : ''})`); } }
+      // a real recording found: the patchwork goes; none: keep it (or take it, cs ends with it)
+      if (picked.some(e => !e.provisional)) for (let i = picked.length - 1; i >= 0; i--) if (picked[i].provisional) picked.splice(i, 1);
+      if (!picked.length && !REFRESH) picked.push(...have.filter(e => e.provisional));
       if (!DRY) have = lock.items[item.key] = picked;
       if (picked.length < 1) failed.push(item.key);
     } else {
       // in the lock: make sure the download is here (and unchanged)
-      for (const e of have) { const ext = (/\.(ogg|mp3|wav|flac|oga|opus)(\?|$)/i.exec(e.audio)?.[1] ?? 'bin').toLowerCase(), f = join(TMP, `${e.sha256.slice(0, 16)}.${ext}`);
+      for (const e of have) { const f = join(TMP, `${e.sha256.slice(0, 16)}.${extOf(e)}`);
+        if (!existsSync(f) && e.audio === 'compose') { const r = await compose(e.clips, item.take ?? 120); if (r) { e.sha256 = r.sha256; } continue; }
         if (!existsSync(f)) { const raw = await get(e.audio, 'buf'); if (raw && sha(raw) === e.sha256) writeFileSync(f, raw); else console.warn(`   ${item.key}: ${e.id} changed or gone at the source (re-run with --only ${item.key} --refresh)`); } }
     }
     if (!DRY) writeFileSync(LOCK_P, JSON.stringify(lock, null, 1) + '\n');
@@ -234,6 +295,7 @@ async function main() {
   const sections = { beds: {}, oneshots: {}, foot: {} };
   for (const item of LIST.items) { const es = lock.items[item.key]; if (!es?.length) continue; try { const recs = encode(item, es); if (recs.length) sections[item.section][item.key] = recs; } catch (err) { console.warn(`   ${item.key}: encode failed: ${err.message}`); failed.push(item.key); } }
   for (const [s, v] of Object.entries(sections)) updateManifest(ROOT, s, v, !ONLY);
+  if (ONLY) for (const it of LIST.items) if (ONLY.includes(it.key) && !sections[it.section][it.key]) updateManifest(ROOT, it.section, { [it.key]: null });
   ledger(lock);
   const bytes = Object.values(sections).flatMap(o => Object.values(o).flat()).reduce((a, r) => a + r.bytes, 0);
   console.log(`\n${Object.values(sections).reduce((a, o) => a + Object.keys(o).length, 0)} sets encoded, ${(bytes / 2 ** 20).toFixed(1)} MB; failed or empty: ${[...new Set(failed)].join(', ') || 'none'}`);

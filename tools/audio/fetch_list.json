@@ -2,7 +2,7 @@
  "meta": {
   "what": "D-620: every recording the world plays (src/audio/soundplan.ts BED_LAYERS, ONESHOT_SETS, FOOT_SURFACES); tools/audio/fetch.mjs resolves each item by search, downloads, cuts, normalises, encodes to public/audio and writes the manifest, tools/audio/fetch_lock.json and the ASSET_LEDGER rows",
   "licences": "CC0 first; then CC BY; then CC BY-NC (CLAUDE.md section 12: personal, non-commercial use). No SA or ND unless ALLOW_SA=1. Every file credited in ASSET_LEDGER.md",
-  "sources": "freesound (API with FREESOUND_TOKEN, else its search pages), Wikimedia Commons (API), archive.org (advanced search); in that order of preference, CC0 before CC BY at each",
+  "sources": "freesound (API with FREESOUND_TOKEN, else its search pages), Wikimedia Commons (API), archive.org (advanced search); in that order of preference, CC0 before CC BY at each; ESC-50 (github.com/karolpiczak/ESC-50 via raw.githubusercontent.com, reachable from the cloud): 5 s clips by class for the items with `esc50`, beds with `compose` as PROVISIONAL patchworks the full fetch replaces",
   "beds": "cut to `take` s (default 120) after skipping 2 s, stereo 48 kHz, high-passed at 40 Hz, loudness-normalised to -23 LUFS (two-pass, linear), Ogg Opus 48 kb/s",
   "oneshots_foot": "split into events by silence (each between 0.06 s and `max` s), the loudest `variants` kept, mono, peak -3 dBFS, Ogg Opus 40 kb/s",
   "reject": "any recording whose title, tags or description name a modern sound or speech (REJECT below, plus the item's own), and any bed whose envelope has the syllable-rate modulation of speech (speechiness > 5.5 dB: tools/audio/fetch.mjs speechiness)",
@@ -86,7 +86,29 @@
   "zipper",
   "keys",
   "shopping",
-  "market"
+  "market",
+  "factory",
+  "intensive",
+  "industrial",
+  "texas",
+  "park",
+  "pavement",
+  "street",
+  "sidewalk",
+  "glass",
+  "drink",
+  "shower",
+  "bathtub",
+  "kitchen",
+  "sink",
+  "faucet",
+  "toilet",
+  "blaafarveverket",
+  "office",
+  "studio",
+  "apartment",
+  "flat",
+  "birmingham"
  ],
  "items": [
   {
@@ -280,7 +302,11 @@
    ],
    "note": "warm nights (Apr-Oct): crickets, a nightjar, a jackal far off",
    "reject": [],
-   "need_any": []
+   "need_any": [],
+   "esc50": {
+    "category": "crickets",
+    "compose": true
+   }
   },
   {
    "section": "beds",
@@ -307,7 +333,11 @@
    ],
    "note": "orchards and gardens: birds in the trees, leaves, bees, water in a channel",
    "reject": [],
-   "need_any": []
+   "need_any": [],
+   "esc50": {
+    "category": "chirping_birds",
+    "compose": true
+   }
   },
   {
    "section": "beds",
@@ -471,7 +501,11 @@
    ],
    "note": "a hearth or a cooking fire (played at each fire, positioned)",
    "reject": [],
-   "need_any": []
+   "need_any": [],
+   "esc50": {
+    "category": "crackling_fire",
+    "compose": true
+   }
   },
   {
    "section": "beds",
@@ -515,7 +549,11 @@
     "metal",
     "gutter"
    ],
-   "need_any": []
+   "need_any": [],
+   "esc50": {
+    "category": "rain",
+    "compose": true
+   }
   },
   {
    "section": "beds",
@@ -536,7 +574,11 @@
     "metal",
     "gutter"
    ],
-   "need_any": []
+   "need_any": [],
+   "esc50": {
+    "category": "thunderstorm",
+    "compose": true
+   }
   },
   {
    "section": "beds",
@@ -575,7 +617,16 @@
     "sink",
     "pipe"
    ],
-   "need_any": []
+   "need_any": [],
+   "esc50": {
+    "category": "water_drops",
+    "compose": true,
+    "reject": [
+     "bathtub",
+     "tap",
+     "sink"
+    ]
+   }
   },
   {
    "section": "beds",
@@ -595,7 +646,16 @@
     "door",
     "whistle"
    ],
-   "need_any": []
+   "need_any": [],
+   "esc50": {
+    "category": "wind",
+    "compose": true,
+    "reject": [
+     "door",
+     "vent",
+     "rigging"
+    ]
+   }
   },
   {
    "section": "beds",
@@ -806,7 +866,10 @@
    ],
    "note": "a sheep or goat bleating",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "sheep"
+   }
   },
   {
    "section": "oneshots",
@@ -820,7 +883,10 @@
    ],
    "note": "a splash, a jar filled",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "pouring_water"
+   }
   },
   {
    "section": "oneshots",
@@ -845,7 +911,10 @@
    ],
    "note": "a dog barking",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "dog"
+   }
   },
   {
    "section": "oneshots",
@@ -858,7 +927,10 @@
    ],
    "note": "hens clucking",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "hen"
+   }
   },
   {
    "section": "oneshots",
@@ -871,7 +943,15 @@
    ],
    "note": "a cock crowing",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "rooster",
+    "title": [
+     "cock",
+     "rooster",
+     "crow"
+    ]
+   }
   },
   {
    "section": "oneshots",
@@ -884,7 +964,15 @@
    ],
    "note": "a boar's grunt in the reeds",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "pig",
+    "title": [
+     "grunt",
+     "oink",
+     "snort"
+    ]
+   }
   },
   {
    "section": "oneshots",
@@ -1057,7 +1145,10 @@
    ],
    "note": "cattle lowing",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "cow"
+   }
   },
   {
    "section": "oneshots",
@@ -1070,7 +1161,13 @@
    ],
    "note": "bees at the hives",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "insects",
+    "title": [
+     "bee"
+    ]
+   }
   },
   {
    "section": "oneshots",
@@ -1161,7 +1258,13 @@
    ],
    "note": "a wooden door turning on its pivot",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "door_wood_creaks",
+    "title": [
+     "door"
+    ]
+   }
   },
   {
    "section": "oneshots",
@@ -1292,7 +1395,13 @@
     "zoo",
     "cage"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "chirping_birds",
+    "title": [
+     "sparrow"
+    ]
+   }
   },
   {
    "section": "oneshots",
@@ -1326,7 +1435,10 @@
     "zoo",
     "cage"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "crickets"
+   }
   },
   {
    "section": "oneshots",
@@ -1343,7 +1455,15 @@
     "zoo",
     "cage"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "rooster",
+    "title": [
+     "cock",
+     "rooster",
+     "crow"
+    ]
+   }
   },
   {
    "section": "oneshots",
@@ -1360,7 +1480,10 @@
     "zoo",
     "cage"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "dog"
+   }
   },
   {
    "section": "oneshots",
@@ -1394,7 +1517,10 @@
     "zoo",
     "cage"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "crow"
+   }
   },
   {
    "section": "oneshots",
@@ -1462,7 +1588,10 @@
     "zoo",
     "cage"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "frog"
+   }
   },
   {
    "section": "oneshots",
@@ -1547,7 +1676,15 @@
     "zoo",
     "cage"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "pig",
+    "title": [
+     "grunt",
+     "oink",
+     "snort"
+    ]
+   }
   },
   {
    "section": "oneshots",
@@ -1580,7 +1717,16 @@
    "reject": [
     "rain"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "thunderstorm",
+    "title": [
+     "thunder",
+     "lightn",
+     "storm",
+     "vihar"
+    ]
+   }
   },
   {
    "section": "oneshots",
@@ -1593,7 +1739,10 @@
    ],
    "note": "a log popping in the fire",
    "reject": [],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "crackling_fire"
+   }
   },
   {
    "section": "oneshots",
@@ -1661,7 +1810,20 @@
     "sneakers",
     "stiletto"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "footsteps",
+    "title": [
+     "stairs",
+     "pavement",
+     "street",
+     "walking slow"
+    ],
+    "reject": [
+     "wood",
+     "wooden"
+    ]
+   }
   },
   {
    "section": "foot",
@@ -1700,7 +1862,16 @@
     "sneakers",
     "stiletto"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "footsteps",
+    "title": [
+     "dirt",
+     "woodland",
+     "shieling",
+     "hut"
+    ]
+   }
   },
   {
    "section": "foot",
@@ -1737,7 +1908,15 @@
     "sneakers",
     "stiletto"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "footsteps",
+    "title": [
+     "gravel",
+     "grus",
+     "rocks"
+    ]
+   }
   },
   {
    "section": "foot",
@@ -1755,7 +1934,13 @@
     "sneakers",
     "stiletto"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "footsteps",
+    "title": [
+     "grass"
+    ]
+   }
   },
   {
    "section": "foot",
@@ -1773,7 +1958,14 @@
     "sneakers",
     "stiletto"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "footsteps",
+    "title": [
+     "leaves",
+     "l\\\\xf6v"
+    ]
+   }
   },
   {
    "section": "foot",
@@ -1809,7 +2001,14 @@
     "sneakers",
     "stiletto"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "footsteps",
+    "title": [
+     "snow",
+     "ice"
+    ]
+   }
   },
   {
    "section": "foot",
@@ -1827,7 +2026,14 @@
     "sneakers",
     "stiletto"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "footsteps",
+    "title": [
+     "wood(?!land)",
+     "wooden"
+    ]
+   }
   },
   {
    "section": "foot",
@@ -1846,7 +2052,13 @@
     "sneakers",
     "stiletto"
    ],
-   "split": true
+   "split": true,
+   "esc50": {
+    "category": "footsteps",
+    "title": [
+     "carpet"
+    ]
+   }
   },
   {
    "section": "foot",

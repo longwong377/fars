@@ -21,6 +21,9 @@ export const REPEAT_S = 60;
 const LOOKAHEAD = 2;
 /** the beds' level on the ambience channel at gain 1 (recordings at -23 LUFS; C, by ear against the synthesised wind) */
 export const BED_LEVEL = 0.55;
+/** one-shots and steps are cut to a -3 dBFS peak (tools/audio/fetch.mjs); played at these gains they peak where the synthesised
+ *  designs they replace did (a bark's sawtooth at 0.06 through its formants, a step's noise burst at 0.07; C) */
+export const SHOT_LEVEL = 0.12, FOOT_LEVEL = 0.1;
 const EQ_N = 64, EQ_IN = new Float32Array(EQ_N), EQ_OUT = new Float32Array(EQ_N);
 for (let i = 0; i < EQ_N; i++) { const a = (i / (EQ_N - 1)) * Math.PI / 2; EQ_IN[i] = Math.sin(a); EQ_OUT[i] = Math.cos(a); }
 
@@ -123,7 +126,7 @@ export class Shots {
   at(set: string, pos: { x: number; y: number; z: number }, o: ShotOpts = {}, delay = 0): boolean {
     const c = this.e.ctx; if (!c) return false;
     const xs = this.lib.ready('oneshots', set, 1); if (!xs.length) { this.synthesised++; return false; }
-    const x = this.picker(set).pick(xs), t = c.currentTime + delay, rate = 1 + this.rng.range(-0.06, 0.06), gain = (o.gain ?? 1) * 10 ** (this.rng.range(-2, 2) / 20);
+    const x = this.picker(set).pick(xs), t = c.currentTime + delay, rate = 1 + this.rng.range(-0.06, 0.06), gain = SHOT_LEVEL * (o.gain ?? 1) * 10 ** (this.rng.range(-2, 2) / 20);
     const p = this.e.panner(pos.x, pos.y + (o.h ?? 0.5), pos.z, o.ref ?? 3, o.max ?? 300);
     const d = this.voice(x.buf, p, t, gain, rate); this.e.route(p, o.channel ?? 'effects', t + d); this.played++; return true;
   }
@@ -131,14 +134,14 @@ export class Shots {
   flat(set: string, o: ShotOpts = {}, delay = 0): boolean {
     const c = this.e.ctx; if (!c) return false;
     const xs = this.lib.ready('oneshots', set, 1); if (!xs.length) { this.synthesised++; return false; }
-    const x = this.picker(set).pick(xs); this.voice(x.buf, this.e.ch[o.channel ?? 'effects'], c.currentTime + delay, (o.gain ?? 1) * 10 ** (this.rng.range(-2, 2) / 20), 1 + this.rng.range(-0.04, 0.04)); this.played++; return true;
+    const x = this.picker(set).pick(xs); this.voice(x.buf, this.e.ch[o.channel ?? 'effects'], c.currentTime + delay, SHOT_LEVEL * (o.gain ?? 1) * 10 ** (this.rng.range(-2, 2) / 20), 1 + this.rng.range(-0.04, 0.04)); this.played++; return true;
   }
   /** a footstep on a surface at a pace, or false */
   step(surface: FootSurface, run: boolean): boolean {
     const c = this.e.ctx; if (!c) return false;
     let xs = run ? this.lib.ready('foot', `${surface}_run`, 0) : []; const asRun = run && xs.length > 0;
     if (!xs.length) xs = this.lib.ready('foot', `${surface}_walk`, 0); if (!xs.length) return false;
-    const x = this.picker(`foot:${surface}`).pick(xs), gain = (run && !asRun ? 1.4 : 1) * 0.5 * 10 ** (this.rng.range(-1.5, 1.5) / 20);
+    const x = this.picker(`foot:${surface}`).pick(xs), gain = (run && !asRun ? 1.4 : 1) * FOOT_LEVEL * 10 ** (this.rng.range(-1.5, 1.5) / 20);
     this.voice(x.buf, this.e.ch.effects, c.currentTime + 0.005, gain, 1 + this.rng.range(-0.04, 0.04)); this.played++; return true;
   }
 }
