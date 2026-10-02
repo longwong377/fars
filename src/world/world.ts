@@ -148,6 +148,8 @@ import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
 import { DustSystem, type DustKind } from './dust';
 import { pt, pa } from '../core/prof';
+import { TreeKit } from './trees/render';
+import { newGameStart } from '../core/newGame';
 import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled, prefetchUnits, cachedSync, cacheGetSync, cachePutSync, verifying, verify, prefetchedKeys } from './cache/worldCache';
 /** D-392: the baked units read by the build's sync stages (cacheGetSync), fetched ahead */
 const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites'];
@@ -278,6 +280,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const noTown = typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown');
   const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);
   wmark('settlement');
+  // D-392: the far trees' impostors for the game's first day baked in a worker while the rest builds (main.ts's start: ?day,
+  // the tests' day 0, else the new game's day; a continued game's other day bakes at its first frame as before)
+  const prebakeTrees = () => { const P = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams(); const d = P.has('day') || P.has('test') || P.has('bench') ? +(P.get('day') ?? 0) : newGameStart(seed, settings?.courtCalendar === 'seasonal').day; TreeKit.peek()?.prebake(doyOf(d)); };
+  prebakeTrees();
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
@@ -285,6 +291,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const plain = await buildPlain(scene, terrain, phys, { quality: q, seed, town: settlement?.plan ?? null,
     camps: settings?.courtCalendar === 'seasonal' ? CAMPS.filter(c => c.id !== 'court').map(c => ({ c: c.c, r: c.r })) : [], drains: waterworks.plan.drains.map(d => ({ at: d.at as [number, number], n: d.n as [number, number] })), fire, bakeKey }); root.add(plain.group); // (D-199: the retinue's camps on trodden ground)
   wmark('plain');
+  prebakeTrees(); // (?notown: the plain made the kit)
   // (D-254: the fire system builds after the plain: the villages' hearths, ovens and lamps join it)
   fire.build(); root.add(fire.group);
   buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }, bakeKey); // D-366: soot, ash, damp and lane wear (render/grime.ts)
