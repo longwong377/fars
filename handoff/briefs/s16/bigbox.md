@@ -18,7 +18,7 @@ whole views -> bulk fixes -> render again. No asset hunting, no process, no per-
 |---|---|---|
 | light | sun, sky, haze, exposure, bounce, shadows, contact shadow and AO that make it read as a photograph | src/render/pipeline.ts, toneLook.ts, ssgi.ts, sunShadows.ts, airlight.ts, envmap.ts, src/sky/** |
 | ground | earth, dust, paths, rocks and plants that sit IN the ground (blend, scatter density, wear), no tiling | src/terrain/**, src/world/groundRocks.ts, groundFlora.ts, roadLitter.ts, src/world/plain/**, src/render/scans.ts |
-| town | lanes and houses: wall wear and repair, roofs, doors, clutter, washing, life at the thresholds | src/settlement/**, src/world/fill*.ts, furnish.ts, src/render/grime.ts |
+| town | lanes and houses: wall wear and repair, roofs, doors, clutter, washing, life at the thresholds | src/world/settlement/**, src/world/fill*.ts, furnish.ts, src/render/grime.ts |
 | terrace | the stone: capitals and colossi off CG (2/5 in s12), block joints, weathering, paint, scale cues | src/arch/**, src/render/masonry.ts, monuments.ts, blockface.ts, reliefAtlas.ts |
 | people | bodies, skin, cloth, hair and motion at 2-30 m; crowds that read as people, not mannequins | src/people/human*.ts, body*.ts, drape.ts, looks.ts, outfits.ts, impostors.ts, popview.ts, anim.ts |
 | interiors | rooms lit by doors and hearths, furnished, lived in | src/arch/rooms.ts, terrace_rooms.ts, src/world/furnish_palaces.ts, fire*.ts |
