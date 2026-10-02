@@ -85,7 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
-import { WorldFill } from './fill'; import { townFill, terraceFill } from './fillPlan'; import { villageSite } from './plain/villagesite';
+import { WorldFill } from './fill'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -148,9 +148,17 @@ import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
 import { DustSystem, type DustKind } from './dust';
 import { pt, pa } from '../core/prof';
-import { cached, prefetchWorldCache, cacheStats } from './cache/worldCache';
+import { TreeKit } from './trees/render';
+import { newGameStart } from '../core/newGame';
+import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled, prefetchUnits, cachedSync, cacheGetSync, cachePutSync, verifying, verify, prefetchedKeys } from './cache/worldCache';
+/** D-392: the baked units read by the build's sync stages (cacheGetSync), fetched ahead */
+const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones', 'vsites'];
+import { hashArrays, hashString, hashBytes } from './cache/pack';
+import { packGeo, unpackGeo, geoHash, type GeoPack } from './cache/geo';
+import { mudFace } from '../arch/mudface';
+import { isFlatMode, type ArchBake } from '../arch/meshes';
+import { frameMaterial } from '../render/decorAssets';
 import { BASE } from '../core/base';
-import { hashArrays } from './cache/pack';
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
@@ -201,6 +209,9 @@ function beginAssets(settings?: Settings) {
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
   wLast = wT0 = performance.now();
   prefetchWorldCache(); // D-354: the baked world's hashes and manifest, while the build starts
+  // D-392: the identity of this world's seeded and set-up stages in the baked world (the build is deterministic in these)
+  const bakeKey = `${seed}|${settings?.quality ?? 'high'}|${settings?.courtCalendar ?? 'evidence'}|${typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown') ? 'notown' : 'town'}`;
+  const unitsP = prefetchUnits([...SYNC_UNITS, ...WORLD_UNITS.map(u => `${u}|${bakeKey}`)]); // D-392: the sync stages' baked units, fetched while the assets load
   void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
@@ -215,8 +226,20 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   await sculptP; // precomputed carved pieces (D-018; begun with the assets)
   wmark('sculpt');
   await modelsP; await propsP; await decorP; if (!STREAM_LATE) await animalsP; // (D-393: the town's, the plain's and the hills' sets are awaited before the settlement)
-  wmark('assets awaited');
-  const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
+  await unitsP; wmark('assets awaited');
+  // D-354 (s15): the mud-brick faces (D-364: cut by the lattice and displaced; most of the architecture's build) read from the
+  // baked world when the parts are unchanged (the key: every part, as the probes hash them; each face by its own geometry)
+  // D-392: and the whole of the parts' render geometry (bevelled, faced, merged; arrises and joint faces) when the parts, the
+  // stone-frame trim and the flat mode are as baked: then no mud face is fetched or cut at all
+  const mudKey = hashString(partsJson), archKey = hashString(`${partsJson}|trim:${!!frameMaterial('limestone_dark')}|flat:${isFlatMode()}`);
+  const archHit = cacheGetSync<ArchBake>('arch', archKey);
+  const mudHit = archHit ? null : await cacheGet<Record<string, GeoPack>>('mudface', mudKey), mudNew: Record<string, GeoPack> = {};
+  const mud = (g: THREE.BufferGeometry, hard: any, gain = 1) => { const k = geoHash(g, gain), c = mudHit?.[k]; if (c) return unpackGeo(c);
+    const r = mudFace(g, hard, gain); if (!mudHit && cacheEnabled()) mudNew[k] = packGeo(r); return r; };
+  const arch = buildMeshes(parts, phys, { dynamicDoors: true, mud, bake: { get: () => archHit, put: b => cachePutSync('arch', archKey, b) } }); // door leaves: kinematic colliders of the door system
+  if (Object.keys(mudNew).length) void cachePut('mudface', mudKey, mudNew);
+  // ?worldcache=verify (D-392): the baked architecture against a live build of it (no colliders, no door swap)
+  if (archHit && verifying()) buildMeshes(parts, undefined, { bake: { get: () => null, put: b => void verify('arch', archHit, b) } });
   wmark('arch');
   root.add(arch.group);
   // D-321 rev 2: the dressed stone's free arrises as geometry near the eye (worn round, chipped in handling), the maps beyond
@@ -281,16 +304,21 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   await treesP; await lifeP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP; wmark('late assets awaited'); // (D-393)
   const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);
   wmark('settlement');
+  // D-392: the far trees' impostors for the game's first day baked in a worker while the rest builds (main.ts's start: ?day,
+  // the tests' day 0, else the new game's day; a continued game's other day bakes at its first frame as before)
+  const prebakeTrees = () => { const P = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams(); const d = P.has('day') || P.has('test') || P.has('bench') ? +(P.get('day') ?? 0) : newGameStart(seed, settings?.courtCalendar === 'seasonal').day; TreeKit.peek()?.prebake(doyOf(d)); };
+  prebakeTrees();
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
   const plain = await buildPlain(scene, terrain, phys, { quality: q, seed, town: settlement?.plan ?? null,
-    camps: settings?.courtCalendar === 'seasonal' ? CAMPS.filter(c => c.id !== 'court').map(c => ({ c: c.c, r: c.r })) : [], drains: waterworks.plan.drains.map(d => ({ at: d.at as [number, number], n: d.n as [number, number] })), fire }); root.add(plain.group); // (D-199: the retinue's camps on trodden ground)
+    camps: settings?.courtCalendar === 'seasonal' ? CAMPS.filter(c => c.id !== 'court').map(c => ({ c: c.c, r: c.r })) : [], drains: waterworks.plan.drains.map(d => ({ at: d.at as [number, number], n: d.n as [number, number] })), fire, bakeKey }); root.add(plain.group); // (D-199: the retinue's camps on trodden ground)
   wmark('plain');
+  prebakeTrees(); // (?notown: the plain made the kit)
   // (D-254: the fire system builds after the plain: the villages' hearths, ovens and lamps join it)
   fire.build(); root.add(fire.group);
-  buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }); // D-366: soot, ash, damp and lane wear (render/grime.ts)
+  buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }, bakeKey); // D-366: soot, ash, damp and lane wear (render/grime.ts)
   wmark('fire.build');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch(BASE + p)).arrayBuffer());
@@ -398,15 +426,28 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
     villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts),
     rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })) }); // (D-256: the banks and meadows of the land work)
-  const view = new PopView(sim, geo, seed); crowd.view = view;
+  // D-392: the Terrace's core routes between place anchors (the court's walks, searched up front: D-182) read from the baked
+  // world; they depend on the walkable grid and the anchors only, keyed by the grid's blocked cells (fires, furnishings); a world of another seed still finds most of its own there
+  // (one entry per baked world, all of them merged: a world of another seed finds most of its routes there; this world's own
+  // entry means every route its court's first days walk is in: the search and the plans drawn for it are skipped)
+  const navCore = (geo as any).navCore as Map<string, unknown> | undefined, navKey = hashBytes((nav as any).dyn ?? new Uint8Array(0));
+  let navOwn = false;
+  if (navCore) for (const k of prefetchedKeys('navcore')) { if (!k.startsWith(navKey + '|')) continue; const m = cacheGetSync<Map<string, unknown>>('navcore', k);
+    if (m instanceof Map) { for (const [a, v] of m) navCore.set(a, v); if (k === `${navKey}|${seed}`) navOwn = true; } }
+  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view;
+  if (navCore && !navOwn) cachePutSync('navcore', `${navKey}|${seed}`, navCore);
   wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
   // that travel with their drivers and riders (world/traffic.ts; drawn as crowd extras performing with their animals)
   const groundAt = (e: number, n: number) => (nav.walkable(e, n) ? nav.heightAt(e, n) : terrain.heightAt(e, -n));
   const faunaT0 = performance.now();
   const villagesIn: VillageIn[] = plain.data.villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, comps: villageCompounds(v, terrain, seed) }));
+  // D-392: the villages' rasters (the people's routes and the drawn villages share them; built at the first frame before) from
+  // the baked world, or built now and baked
+  { const vs = cacheGetSync<any[]>('vsites', bakeKey); if (vs) importVillageSites(vs); else { for (const v of villagesIn) villageSite(v, v.comps as any); cachePutSync('vsites', bakeKey, exportVillageSites()); } }
   // D-367 (agent fill): the markets, the lanes' and villages' things, washing lines, awnings, the Terrace's yards and standards
-  const fill = new WorldFill([...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items, ...terraceFill(seed)], { ground: groundAt, phys, nav }); root.add(fill.group);
+  const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
+  const fill = new WorldFill(fillItems, { ground: groundAt, phys, nav }); root.add(fill.group);
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
     // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)

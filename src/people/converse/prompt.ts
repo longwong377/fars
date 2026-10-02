@@ -21,14 +21,22 @@ export interface Remembered { lines: string[] }
 export function systemPrompt(L: LifeRecord, knows: Knows, prose?: string | null, memory?: string[] | null, withIntents = true): string {
   const met = knows === 'recognise' ? 'You know this stranger’s face.' : knows === 'heard' ? 'You have not met this stranger yourself, but you have heard of him.' : knows === 'nod' ? 'You have seen this stranger about.' : 'You have never seen this stranger.';
   const mem = (memory ?? []).filter(Boolean);
-  const head = 'You are a person of Parsa, the king’s seat, in year 19 of King Xerxes.';
+  const head = 'You are a person of Parsa, the king’s seat, in the nineteenth year of King Xerxes.';
   const tail = [`A plainly dressed stranger with a foreign accent comes up to you. ${met}`, ...(mem.length ? [`What you remember of the stranger: ${mem.join(' ')}`] : []), FENCE_SHORT, ...(withIntents ? [INTENT_LINE] : [])];
   // the life brief, cut line by line (least needed first) until the whole fits the budget
-  let life = lifeBriefShort(L, prose); const drop = [/^Talk of the quarter: /m, /^Before this year: /m, /^On your mind: /m, /^Your house needs: /m, /^Memories: /m, /^You know well: /m, /^News today: /m, /^Friends and kin nearby: /m, /^Lately: /m, / Earlier: [^\n]*/, /, (?:son|daughter|wife) of [^;\n]+(?=; you speak)/];
-  const build = () => [head, life, ...tail].join('\n');
-  for (const re of drop) { if (approxTokens(build()) <= PROMPT_TOKENS) break; life = life.split('\n').map(l => re.source.startsWith('^') ? (re.test(l) ? '' : l) : l.replace(re, '')).filter(Boolean).join('\n'); }
+  // D-451 (the census: the past reached the model in 1 brief of 200): long list lines are first cut to their first items
+  // (a past, a care, the talk of the quarter kept short rather than lost), then lines are dropped least needed first, the
+  // past late; whatever is still over loses the last item of its longest list line, so the budget always holds
+  let life = lifeBriefShort(L, prose);
+  const build = () => [head, life, ...tail].join('\n'), over = () => approxTokens(build()) > PROMPT_TOKENS;
+  const listLine = (re: RegExp, keep: number) => { life = life.split('\n').map(l => { if (!re.test(l)) return l; const i = l.indexOf(': '), items = l.slice(i + 2).replace(/\.$/, '').split('; '); return items.length > keep ? `${l.slice(0, i + 2)}${items.slice(0, keep).join('; ')}.` : l; }).join('\n'); };
+  for (const [re, keep] of [[/^Talk of the quarter: /, 1], [/^Your house needs: /, 1], [/^Lately: /, 1], [/^On your mind: /, 1], [/^Manner: /, 3], [/^Plain to see on you: /, 1], [/^Before this year: /, 2], [/^Manner: /, 2], [/^Before this year: /, 1]] as [RegExp, number][]) { if (!over()) break; listLine(re, keep); }
+  const drop = [/^Talk of the quarter: /m, /^Memories: /m, /^You know well: /m, /^News today: /m, / Earlier: [^\n]*/, /^Friends and kin nearby: /m, /^On your mind: /m, /^Your house needs: /m, /^Lately: /m, /, (?:son|daughter|wife) of [^;\n]+(?=; you speak)/, /^Plain to see on you: /m, /^Before this year: /m];
+  for (const re of drop) { if (!over()) break; life = life.split('\n').map(l => re.source.startsWith('^') ? (re.test(l) ? '' : l) : l.replace(re, '')).filter(Boolean).join('\n'); }
   // (D-372: still over with every line dropped: a large house is named to its first three)
-  if (approxTokens(build()) > PROMPT_TOKENS) life = life.replace(/^(In your house: [^,\n]+, [^,\n]+, [^,\n]+), [^\n]*$/m, '$1.');
+  if (over()) life = life.replace(/^(In your house: [^,\n]+, [^,\n]+, [^,\n]+), [^\n]*$/m, '$1.');
+  for (let g = 0; g < 40 && over(); g++) { const ls = life.split('\n'), i = ls.map((l, k) => [k, /; |, /.test(l.slice(l.indexOf(': ') + 2)) ? l.length : -1]).sort((a, b) => b[1] - a[1])[0];
+    if (!i || i[1] < 0) break; const l = ls[i[0]], cut = Math.max(l.lastIndexOf('; '), l.lastIndexOf(', ')); ls[i[0]] = l.slice(0, cut) + '.'; life = ls.join('\n'); }
   let out = build();
   // still over (a long memory): the older of the memory lines goes
   if (approxTokens(out) > PROMPT_TOKENS && mem.length > 1) { tail[1] = `What you remember of the stranger: ${mem[mem.length - 1]}`; out = [head, life, ...tail].join('\n'); }

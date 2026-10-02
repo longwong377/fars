@@ -17,7 +17,8 @@ import { buildCanals, Canal } from './canals';
 import { placeVillages, villageCompounds, Village } from './villages';
 import { VillageHouses } from './villagehouses';
 import type { FireSystem } from '../fire';
-import { buildZones, ZoneMap } from './fields';
+import { buildZones, ZoneMap, ZONE } from './fields';
+import { cachedSync } from '../cache/worldCache';
 import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
 import { canalBanks, trackLines, tracksMesh } from './ribbons';
@@ -66,7 +67,7 @@ export interface PlainBuild {
    *  that draw them after the view cull */
   nearTrees(): { placed: TreeInst[][]; sets: NearTreeSet[]; models: TreeKit['models'] };
 }
-export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null; /** the court setting's retinue camps (D-199): trodden ground */ camps?: { c: [number, number]; r: number }[]; /** D-227: the Terrace's drain mouths (herbs below them) */ drains?: { at: [number, number]; n: [number, number] }[]; /** D-254: the villages' hearths, ovens and lamps join it (before it builds) */ fire?: FireSystem | null }): Promise<PlainBuild> {
+export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null; /** the court setting's retinue camps (D-199): trodden ground */ camps?: { c: [number, number]; r: number }[]; /** D-227: the Terrace's drain mouths (herbs below them) */ drains?: { at: [number, number]; n: [number, number] }[]; /** D-254: the villages' hearths, ovens and lamps join it (before it builds) */ fire?: FireSystem | null; /** D-392: the world's identity in the baked world (world.ts) */ bakeKey?: string }): Promise<PlainBuild> {
   const t0 = performance.now(), Q = PLAIN_QUALITY[opts.quality] ?? PLAIN_QUALITY.high;
   const group = new THREE.Group(); group.name = 'plain';
   group.userData = tag(feature('fields_irrigated_pulvar'), 'the Marvdasht plain, 467 BCE (plain.json)');
@@ -76,8 +77,10 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const villages = placeVillages(terrain, rivers.rivers, canals, opts.seed);
   // the town's used ground (D-190): only with the town as built (?notown and the plain tests keep the D-040 boundary)
   const townGround = opts.town ? buildTownGround(opts.town, opts.camps ?? [], opts.drains ?? []) : null;
-  const zones = buildZones({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
+  const zoneIn = () => ({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
     sites: opts.town?.sites.map(s => ({ c: s.frame.c as [number, number], theta: s.frame.theta, W: s.W, H: s.H })) });
+  // D-392: the zone map read from the baked world (keyed by the world's inputs, world.ts bakeKey) when unchanged
+  const zones: ZoneMap = opts.bakeKey ? { data: cachedSync('zones', opts.bakeKey, () => buildZones(zoneIn()).data), n: ZONE.n, half: ZONE.half, cell: ZONE.cell, ground: townGround ?? null } : buildZones(zoneIn());
   const tGen = performance.now() - t0;
   // terrain: the plain's field / crop / woodland layer on the existing chunks (no new draw calls)
   const tDet = performance.now(), detail = await detailP, detailWaitMs = performance.now() - tDet;
@@ -97,7 +100,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   // D-254: the villages as built (villagehouses.ts: one raster per village shared with the people; the town's house generator)
   const vb = new VillageHouses(villages, villages.map(v => villageCompounds(v, terrain, opts.seed)), terrain, phys, opts.fire ?? null, opts.seed); group.add(vb.group);
   // trees (D-120): one kit (models, leaf atlas, impostor atlas) shared with the town gardens
-  const kit = TreeKit.get({ impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
+  const kit = TreeKit.get({ deferBake: true, impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
   const nearC = uniform(new THREE.Vector3(1e9, 0, 1e9)), nearR = uniform(0); // the 3-D set: centre and radius
   const midC = ground.paintC, midR = ground.treeR; // the mid ring: centre and radius (the terrain paints woodland beyond it)
   const lineTrees = [...riparianTrees(rivers.rivers, opts.seed).map(t => ({ t, where: 'riparian woodland (river_*.riparian)' })), ...canalTrees(canals, opts.seed).map(t => ({ t, where: 'canal tree line' }))];

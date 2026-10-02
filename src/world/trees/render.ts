@@ -77,7 +77,8 @@ function transmissionN(alb: any, nW: any, kappa: any, sunDir: any, sunIrr: any) 
   return alb.mul(vec3(...SHADE.transTint)).mul(sunIrr).mul(t);
 }
 
-export interface KitOptions { impostorPx: number }
+export interface KitOptions { impostorPx: number; /** D-392: no bake at construction: the world's first setDay bakes every row once (it re-baked most of
+ *  the day-105 bake at once, ~1.6 s of the first frame on the T4 box) */ deferBake?: boolean }
 /** impostor tile size (px) by quality: at the near radius a tile texel is about a screen pixel at 960x540 (test) and
  *  about half of one at 1440p (high) */
 export const impostorPx = (q: string) => (q === 'ultra' ? 128 : q === 'high' ? 96 : q === 'medium' ? 80 : 64);
@@ -135,13 +136,14 @@ export class TreeKit {
     this.segTex = dataTex(packSegments(this.models)); this.cardTex = dataTex(packCards(this.models)); this.spTex = dataTex(packSpecies(this.models, this.bark?.layer ?? null));
     this.dither = opts.impostorPx >= 80; // medium and above: temporal AA (impostorPx is the quality's)
     this.baker = new ImpostorBaker(this.models, this.atlas, opts.impostorPx, 1, this.wood, this.dither);
-    this.foliage.setDay(105);
-    const L = this.bakeAll(true);
+    if (!opts.deferBake) this.foliage.setDay(105);
+    const L = opts.deferBake ? this.baker.levels() : this.bakeAll(true);
     this.impCol = mipTex(L.col, true); this.impNrm = mipTex(L.nrm, false);
     this.buildMs = performance.now() - t0;
   }
   /** re-bake the impostor rows whose foliage group changed (force: all); returns the new mip levels */
   private bakeAll(force = false) {
+    if (this.mainStale) { force = true; this.mainStale = false; } // (D-392: the drawn levels came from the worker)
     const t0 = performance.now(), st = groupStates(this.foliage.data);
     let n = 0;
     this.models.forEach((m, r) => { const g = groupIndex(m.species.group), s = st[g], prev = this.baked[r];
@@ -159,6 +161,10 @@ export class TreeKit {
     if (doy === this.foliage.doy) return;
     const prev = this.foliage.doy; this.foliage.setDay(doy);
     const st = groupStates(this.foliage.data);
+    // D-392: the world's first day baked in the worker while the world built (prebake): adopted as it is, no bake here
+    if (this.pre && this.pre.doy === doy && this.pre.done && !this.baked.length) { this.pre = null; this.mainStale = true;
+      this.models.forEach((m, r) => { const g = st[groupIndex(m.species.group)]; this.baked[r] = { leaf: [...g.leaf] as any, blossom: [...g.blossom] as any }; }); return; }
+    this.pre = null;
     const changed = this.models.some((m, r) => { const s = st[groupIndex(m.species.group)], p = this.baked[r]; return !p || p.leaf.some((v, i) => Math.abs(v - s.leaf[i]) >= 0.004) || p.blossom.some((v, i) => Math.abs(v - s.blossom[i]) >= 0.004); });
     if (!changed) return;
     const step = Number.isNaN(prev) ? 99 : Math.min(Math.abs(doy - prev), 365 - Math.abs(doy - prev)), w = step <= 1 ? this.bakeWorker() : null;
@@ -167,6 +173,16 @@ export class TreeKit {
     this.apply(this.bakeAll());
   }
   private reqId = 0; private worker: Worker | null | undefined; private workerAtlas = false;
+  /** D-392: a bake of a coming first day in the worker (prebake), and whether the main thread's working images are behind the
+   *  drawn levels (after adopting one: its next bake bakes every row) */
+  private pre: { doy: number; id: number; done: boolean } | null = null; private mainStale = false;
+  /** D-392: start baking the impostors for this day of the year in the worker now (the world's first day, while the rest of
+   *  the world builds), so the first setDay of that day finds them done; only before any bake (a kit built with deferBake) */
+  prebake(doy: number) {
+    if (this.baked.length || this.pre) return false; const w = this.bakeWorker(); if (!w) return false;
+    const id = ++this.reqId; this.pre = { doy, id, done: false };
+    w.postMessage({ id, px: this.baker.px, dither: this.dither, table: foliageTable(doy), atlas: this.atlas, wood: this.wood }); this.workerAtlas = true; return true;
+  }
   private apply(L: { col: { data: Uint8Array; width: number; height: number }[]; nrm: { data: Uint8Array; width: number; height: number }[] }) {
     for (const [tex, lv] of [[this.impCol, L.col], [this.impNrm, L.nrm]] as const) { tex.mipmaps = lv.map(l => ({ data: l.data, width: l.width, height: l.height })) as any; (tex.image as any).data = lv[0].data; tex.needsUpdate = true; }
   }
@@ -175,7 +191,7 @@ export class TreeKit {
     try {
       if (typeof Worker === 'undefined' || typeof window === 'undefined') return (this.worker = null);
       const w = new Worker(new URL('./bake_worker.ts', import.meta.url), { type: 'module' });
-      w.onmessage = (e: MessageEvent) => { if (e.data.id !== this.reqId) return; this.apply(e.data); this.bakes++; this.asyncBakes++; };
+      w.onmessage = (e: MessageEvent) => { if (e.data.id !== this.reqId) return; this.apply(e.data); this.bakes++; this.asyncBakes++; const pre = this.pre; if (pre && pre.id === e.data.id) pre.done = true; };
       w.onerror = () => { this.worker = null; };
       return (this.worker = w);
     } catch { return (this.worker = null); }

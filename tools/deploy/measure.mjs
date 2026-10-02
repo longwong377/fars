@@ -6,7 +6,7 @@
 // walk), to the first 3 frames, to every shader compiled (progressive compile: __parsa.compiling().live == 0), the bytes
 // fetched before ready and in the first 60 s, the page's memory (every Chrome process of the profile), and the boot trace.
 import { chromium } from '@playwright/test';
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -24,8 +24,21 @@ const host = `http://127.0.0.2:${port}`; // not "localhost": the site must take 
 for (let i = 0; i < 50; i++) { try { if ((await fetch(`${host}/fars/`)).ok) break; } catch {} await new Promise(r => setTimeout(r, 200)); }
 const served = async (reset = false) => (await fetch(`${host}/__served`, { method: reset ? 'POST' : 'GET' })).json();
 const prof = opt('--profile', null) ?? mkdtempSync(join(tmpdir(), 'parsa-visit-'));
-const memGB = () => { try { const ps = `(Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | ? { $_.CommandLine -like '*${prof.split(/[\\/]/).pop()}*' } | % { (Get-Process -Id $_.ProcessId).WorkingSet64 } | Measure-Object -Sum).Sum`;
-  return +(+execFileSync('powershell', ['-NoProfile', '-Command', ps], { encoding: 'utf8' }).trim() / 2 ** 30).toFixed(2); } catch { return NaN; } };
+// D-463 (s16): the memory probe is asynchronous and never overlaps itself. It was execFileSync('powershell') every 5 s: on the
+// busy 4-core box one Get-CimInstance call took about as long as the interval, so node's event loop was blocked nearly all the
+// time, Playwright could not answer Chrome (each new worker waits for it to attach, and the CDP backlog is not read), and the page
+// sat idle with no ready (measured on Linux with the probe replaced by a 6-s blocking call: the same idle hang). Windows:
+// PowerShell over the profile's chrome.exe processes; elsewhere ps over the processes whose command line names the profile.
+const profTag = prof.split(/[\\/]/).pop();
+const memNow = () => new Promise(res => {
+  const done = (e, out) => res(e ? NaN : +out);
+  if (process.platform === 'win32') {
+    const ps = `(Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | ? { $_.CommandLine -like '*${profTag}*' } | % { (Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue).WorkingSet64 } | Measure-Object -Sum).Sum`;
+    execFile('powershell', ['-NoProfile', '-Command', ps], { encoding: 'utf8', timeout: 60_000 }, (e, o) => done(e, +(+String(o).trim() / 2 ** 30).toFixed(2)));
+  } else execFile('ps', ['-eo', 'rss=,args='], { encoding: 'utf8', maxBuffer: 64 << 20, timeout: 60_000 }, (e, o) => done(e, +(String(o).split('\n').filter(l => l.includes(profTag)).reduce((x, l) => x + (parseInt(l, 10) || 0), 0) / 2 ** 20).toFixed(2)));
+});
+let memBusy = false;
+const memGB = async () => { if (memBusy) return NaN; memBusy = true; try { return await memNow(); } finally { memBusy = false; } };
 const ext = new Map(); // the model hosts' traffic (Hugging Face, GitHub raw): requests and bytes per host
 async function talkCheck(page, s) {
   const T = { hosts: null, rows: [] };
@@ -55,7 +68,7 @@ for (const v of visits) {
     try { const z = await q.sizes(); x.b += z.responseBodySize; } catch {} });
   page.on('requestfailed', q => { const u = new URL(q.url()); if (u.host.startsWith('127.0.0.2')) return; const x = ext.get(u.host) ?? { n: 0, b: 0, f: 0 }; x.f++; ext.set(u.host, x); console.log('[net] failed', q.url().slice(0, 160), q.failure()?.errorText); });
   page.on('crash',() => console.log('[page] CRASHED at', ((Date.now() - t0) / 1000).toFixed(1), 's')); page.on('close', () => console.log('[page] closed'));
-  let peak = 0; const poll = setInterval(() => { const m = memGB(); if (m > peak) peak = m; }, 5000);
+  let peak = 0; const poll = setInterval(() => { void memGB().then(m => { if (m > peak) peak = m; }); }, 5000);
   let t0 = Date.now(); const s = () => +((Date.now() - t0) / 1000).toFixed(1), r = {};
   await page.goto(`${host}/fars/?quality=${q}&trace${extra ? '&' + extra : ''}`);
   await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 250 });
@@ -78,7 +91,7 @@ for (const v of visits) {
   r.first60sMB = +(log2.filter(e => e.t <= 60000).reduce((x, e) => x + (e.b ?? 0), 0) / 1048576).toFixed(1);
   r.notModified = log2.filter(e => e.s === 304).length; r.missing = log2.filter(e => e.s === 404).map(e => e.p).slice(0, 20);
   r.top = [...log2].sort((x, y) => (y.b ?? 0) - (x.b ?? 0)).slice(0, 10).map(e => `${e.p} ${((e.b ?? 0) / 1048576).toFixed(1)}`);
-  clearInterval(poll); r.memGB = Math.max(peak, memGB()); r.boot = boot; r.errors = errs.slice(0, 15);
+  clearInterval(poll); r.memGB = Math.max(peak, (await memGB()) || 0) || null; r.boot = boot; r.errors = errs.slice(0, 15);
   out.visits[v] = r; console.log(v, JSON.stringify({ ...r, boot: undefined, served: undefined, errors: r.errors.filter(e => !/KTX2Loader/.test(e)).slice(0, 5) }));
   await ctx.close();
 }

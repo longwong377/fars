@@ -4,11 +4,36 @@
  "value": 378,
  "n": 3,
  "enterable": 0.5,
+ "enterableSpeech": 0.6222222222222222,
+ "enterableSpeechMin": 0.5333333333333333,
+ "speechSampled": 90,
+ "speechRoutes": {
+  "relief": {
+   "tried": 90,
+   "entered": 10
+  },
+  "gift": {
+   "tried": 15,
+   "entered": 3
+  },
+  "work_off": {
+   "tried": 36,
+   "entered": 28
+  },
+  "hand": {
+   "tried": 24,
+   "entered": 14
+  },
+  "buy_goods": {
+   "tried": 14,
+   "entered": 7
+  }
+ },
  "pass": true,
  "status": "PASS",
- "commit": "c2228c39",
- "dep": "c9cbe65f435a",
- "generated": "2026-09-30T17:49:42.412Z",
+ "commit": "3ea5e4e2",
+ "dep": "f8b5b27e27c0",
+ "generated": "2026-10-02T03:30:39.519Z",
  "perSeed": [
   {
    "seed": 1,
@@ -74,6 +99,616 @@
     "cold_hearth": 279,
     "house_fire": 36,
     "neighbours_help": 72
+   },
+   "enterableSpeech": 0.6,
+   "speech": {
+    "sampled": 30,
+    "entered": 18,
+    "byRoute": {
+     "relief": {
+      "tried": 30,
+      "entered": 1
+     },
+     "gift": {
+      "tried": 3,
+      "entered": 0
+     },
+     "work_off": {
+      "tried": 16,
+      "entered": 12
+     },
+     "hand": {
+      "tried": 7,
+      "entered": 5
+     },
+     "buy_goods": {
+      "tried": 4,
+      "entered": 1
+     }
+    },
+    "byLeaf": {
+     "buy_fuel": {
+      "n": 4,
+      "entered": 0,
+      "by": {}
+     },
+     "released": {
+      "n": 2,
+      "entered": 0,
+      "by": {}
+     },
+     "loan_refused": {
+      "n": 9,
+      "entered": 8,
+      "by": {
+       "work_off": 8
+      }
+     },
+     "pledge_seized": {
+      "n": 2,
+      "entered": 1,
+      "by": {
+       "work_off": 1
+      }
+     },
+     "wage_work": {
+      "n": 2,
+      "entered": 2,
+      "by": {
+       "hand": 2
+      }
+     },
+     "hired_by_neighbour": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "hand": 1
+      }
+     },
+     "kin_help": {
+      "n": 2,
+      "entered": 1,
+      "by": {
+       "hand": 1
+      }
+     },
+     "repaid": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "work_off": 1
+      }
+     },
+     "loan": {
+      "n": 2,
+      "entered": 2,
+      "by": {
+       "work_off": 2
+      }
+     },
+     "sell": {
+      "n": 4,
+      "entered": 1,
+      "by": {
+       "buy_goods": 1
+      }
+     },
+     "buy": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "hand": 1,
+       "relief": 1
+      }
+     }
+    },
+    "trials": [
+     {
+      "shape": "animal_lost>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>tax_arrears>default>pledge_seized>suit>debt_labour>bound_labour>released",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>petition>petition_refused>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>petition>petition_refused>default>pledge_seized",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>wage_work",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "stay_refusedx2",
+        "hire_refusedx2",
+        "hostedx1",
+        "hired_strangerx1"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>hired_by_neighbour",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hire_refusedx2",
+        "stay_refusedx2",
+        "hired_strangerx1"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>pledge_seized>suit>debt_labour>bound_labour>kin_help",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "hand": [
+        "stay_refusedx3",
+        "hire_refusedx3"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>repaid",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>loan",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>petition>petition_refused>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>kin_help",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hired_strangerx1",
+        "stay_refusedx2",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>petition>petition_refused>default>cold_hearth>buy_fuel",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hire_refusedx3",
+        "stay_refusedx2"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>loan",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "loan>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>cold_hearth>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>wage_work",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hired_strangerx1",
+        "stay_refusedx2",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [
+       "buy_goods"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand",
+       "relief"
+      ],
+      "told": {
+       "hand": [
+        "stay_refusedx3",
+        "hire_refusedx2",
+        "hired_strangerx1"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>tax_arrears>petition>petition_refused>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>cold_hearth>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>tax_arrears>default>pledge_seized>suit>debt_labour>bound_labour>released",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "cold_hearth>loan>cold_hearth>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "loan>default>pledge_seized",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     }
+    ]
    },
    "crisis": {
     "thefts": 87,
@@ -170,6 +805,654 @@
     "neighbours_help": 55,
     "hunger": 1
    },
+   "enterableSpeech": 0.7333333333333333,
+   "speech": {
+    "sampled": 30,
+    "entered": 22,
+    "byRoute": {
+     "hand": {
+      "tried": 13,
+      "entered": 7
+     },
+     "relief": {
+      "tried": 30,
+      "entered": 5
+     },
+     "gift": {
+      "tried": 5,
+      "entered": 1
+     },
+     "work_off": {
+      "tried": 8,
+      "entered": 8
+     },
+     "buy_goods": {
+      "tried": 4,
+      "entered": 3
+     }
+    },
+    "byLeaf": {
+     "buy": {
+      "n": 10,
+      "entered": 6,
+      "by": {
+       "hand": 4,
+       "relief": 3
+      }
+     },
+     "kin_help": {
+      "n": 2,
+      "entered": 1,
+      "by": {
+       "hand": 1
+      }
+     },
+     "buy_fuel": {
+      "n": 2,
+      "entered": 0,
+      "by": {}
+     },
+     "pledge_seized": {
+      "n": 3,
+      "entered": 3,
+      "by": {
+       "work_off": 3
+      }
+     },
+     "repaid": {
+      "n": 2,
+      "entered": 2,
+      "by": {
+       "work_off": 2
+      }
+     },
+     "sell": {
+      "n": 4,
+      "entered": 3,
+      "by": {
+       "buy_goods": 3,
+       "relief": 1
+      }
+     },
+     "relief": {
+      "n": 2,
+      "entered": 2,
+      "by": {
+       "relief": 1,
+       "gift": 1
+      }
+     },
+     "loan_refused": {
+      "n": 2,
+      "entered": 2,
+      "by": {
+       "work_off": 2
+      }
+     },
+     "remitted": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "work_off": 1
+      }
+     },
+     "wage_work": {
+      "n": 2,
+      "entered": 2,
+      "by": {
+       "hand": 2
+      }
+     }
+    },
+    "trials": [
+     {
+      "shape": "hail>harvest_poor>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "stay_refusedx3",
+        "hired_strangerx1",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>kin_help>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "hand": [
+        "stay_refusedx3",
+        "hire_refusedx3"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>kin_help",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hire_refusedx2",
+        "stay_refusedx2",
+        "hired_strangerx1"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "levy>levy_arrears>default>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>loan>default>pledge_seized",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hired_strangerx1",
+        "stay_refusedx2",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>repaid",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>tax_arrears>default>levy_arrears>default>pledge_seized",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [
+       "buy_goods"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand",
+       "relief"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hire_refusedx2",
+        "stay_refusedx2",
+        "hired_strangerx1"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "relief"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hire_refusedx2",
+        "stay_refusedx2",
+        "hired_strangerx1"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "loan>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>tax_arrears>levy_arrears>default>loan_refused>petition>relief",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "relief"
+      ],
+      "told": {
+       "hand": [
+        "stay_refusedx3",
+        "hire_refusedx3"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>theft>robbed>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "relief"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hire_refusedx3",
+        "stay_refusedx2"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>theft>robbed>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "stay_refusedx2",
+        "hire_refusedx3",
+        "hostedx1"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>petition>petition_refused>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "hand": [
+        "stay_refusedx3",
+        "hired_strangerx1",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>buy",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [
+       "buy_goods",
+       "relief"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>default>loan_refused>petition>relief",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [
+       "gift"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>levy_arrears>petition>remitted",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [
+       "buy_goods"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>wage_work",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hired_strangerx1",
+        "stay_refusedx2",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "hand": [
+        "stay_refusedx3",
+        "hired_strangerx1",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>pledge_seized>suit>debt_labour>bound_labour>kin_help",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "hail>harvest_poor>wage_work",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand"
+      ],
+      "told": {
+       "hand": [
+        "stay_refusedx2",
+        "hired_strangerx1",
+        "hostedx1",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>tax_arrears>petition>petition_refused>default>levy_arrears>repaid",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>tax_arrears>default>levy_arrears>petition>petition_refused>default>pledge_seized",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     }
+    ]
+   },
    "crisis": {
     "thefts": 453,
     "accusations": 233,
@@ -258,6 +1541,610 @@
     "cold_hearth": 305,
     "house_fire": 25,
     "neighbours_help": 50
+   },
+   "enterableSpeech": 0.5333333333333333,
+   "speech": {
+    "sampled": 30,
+    "entered": 16,
+    "byRoute": {
+     "relief": {
+      "tried": 30,
+      "entered": 4
+     },
+     "gift": {
+      "tried": 7,
+      "entered": 2
+     },
+     "buy_goods": {
+      "tried": 6,
+      "entered": 3
+     },
+     "hand": {
+      "tried": 4,
+      "entered": 2
+     },
+     "work_off": {
+      "tried": 12,
+      "entered": 8
+     }
+    },
+    "byLeaf": {
+     "buy_fuel": {
+      "n": 5,
+      "entered": 0,
+      "by": {}
+     },
+     "sell": {
+      "n": 6,
+      "entered": 3,
+      "by": {
+       "buy_goods": 3
+      }
+     },
+     "kin_help": {
+      "n": 4,
+      "entered": 2,
+      "by": {
+       "hand": 1,
+       "relief": 2,
+       "gift": 1
+      }
+     },
+     "released": {
+      "n": 3,
+      "entered": 0,
+      "by": {}
+     },
+     "loan_refused": {
+      "n": 5,
+      "entered": 5,
+      "by": {
+       "work_off": 5
+      }
+     },
+     "loan": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "work_off": 1
+      }
+     },
+     "repaid": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "work_off": 1
+      }
+     },
+     "buy": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "hand": 1,
+       "relief": 1
+      }
+     },
+     "hired_by_neighbour": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "gift": 1
+      }
+     },
+     "accusation": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "relief": 1
+      }
+     },
+     "pledge_seized": {
+      "n": 1,
+      "entered": 0,
+      "by": {}
+     },
+     "land_sold": {
+      "n": 1,
+      "entered": 1,
+      "by": {
+       "work_off": 1
+      }
+     }
+    },
+    "trials": [
+     {
+      "shape": "loan>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>kin_help",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand",
+       "relief"
+      ],
+      "told": {
+       "hand": [
+        "stay_refusedx2",
+        "hired_strangerx1",
+        "hostedx1",
+        "hire_refusedx2"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [
+       "buy_goods"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [
+       "buy_goods"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>pledge_seized>suit>debt_labour>bound_labour>released",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "loan>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>kin_help",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "hand": [
+        "stay_refusedx2",
+        "hire_refusedx2",
+        "hostedx1",
+        "hired_strangerx1"
+       ],
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>cold_hearth>loan",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>kin_help",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [
+       "relief",
+       "gift"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>sell",
+      "family": "market",
+      "routes": [
+       "buy_goods",
+       "relief"
+      ],
+      "enteredBy": [
+       "buy_goods"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>repaid",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>buy",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [
+       "hand",
+       "relief"
+      ],
+      "told": {
+       "hand": [
+        "hostedx1",
+        "hire_refusedx2",
+        "stay_refusedx2",
+        "hired_strangerx1"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "loan>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>tax_arrears>default>loan_refused>petition>petition_refused>hired_by_neighbour",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [
+       "gift"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "illness>nursed_by_kin>tax_arrears>default>pledge_seized>suit>debt_labour>bound_labour>kin_help",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "animal_lost>cold_hearth>buy_fuel",
+      "family": "want",
+      "routes": [
+       "relief",
+       "gift"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "tax_arrears>default>pledge_seized>suit>debt_labour>bound_labour>released",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>theft>robbed>accusation",
+      "family": "theft",
+      "routes": [
+       "relief"
+      ],
+      "enteredBy": [
+       "relief"
+      ],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>loan>default>pledge_seized",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>cold_hearth>loan_refused",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "blight>harvest_poor>land_sold",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [
+       "work_off"
+      ],
+      "told": {
+       "relief": [
+        "ruling_againstx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>loan>cold_hearth>buy_fuel",
+      "family": "harvest",
+      "routes": [
+       "hand",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "hand": [
+        "stay_refusedx3",
+        "hire_refusedx3"
+       ],
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     },
+     {
+      "shape": "harvest_poor>tax_arrears>default>pledge_seized>suit>debt_labour>bound_labour>released",
+      "family": "debt",
+      "routes": [
+       "work_off",
+       "relief"
+      ],
+      "enteredBy": [],
+      "told": {
+       "relief": [
+        "ruling_forx1",
+        "reliefx1"
+       ]
+      }
+     }
+    ]
    },
    "crisis": {
     "thefts": 92,

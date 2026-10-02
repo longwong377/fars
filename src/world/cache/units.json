@@ -1,8 +1,118 @@
 {
  "about": "s14/load (D-354): the baked world's units. A unit's source hash covers its entry modules, every module they import under src/ (tools/bake_world/srchash.mjs), and its data inputs; a change to any of them makes its cache entry stale and the page builds it live. Bump version to invalidate by hand.",
  "units": {
-  "outfits": { "version": 1, "entries": ["src/people/outfit_worker.ts", "src/people/humans.ts"], "inputs": ["public/generated/humans", "public/models/people"] },
-  "impostors": { "version": 1, "entries": ["src/people/impostors.ts", "src/people/outfit_worker.ts"], "inputs": ["public/generated/humans", "public/models/people"], "keyed": "the held jar and sack geometry hashed into the key at load" },
-  "detail": { "version": 1, "entries": ["src/terrain/detail_worker.ts", "src/terrain/terrainDetail.ts", "src/terrain/heightfield.ts"], "inputs": ["public/generated/terrain.json", "public/generated/terrain_near.u16", "public/generated/terrain_mid.u16", "public/generated/terrain_far.u16"] }
+  "outfits": {
+   "version": 1,
+   "entries": [
+    "src/people/outfit_worker.ts",
+    "src/people/humans.ts"
+   ],
+   "inputs": [
+    "public/generated/humans",
+    "public/models/people"
+   ]
+  },
+  "impostors": {
+   "version": 1,
+   "entries": [
+    "src/people/impostors.ts",
+    "src/people/outfit_worker.ts"
+   ],
+   "inputs": [
+    "public/generated/humans",
+    "public/models/people"
+   ],
+   "keyed": "the held jar and sack geometry hashed into the key at load"
+  },
+  "detail": {
+   "version": 1,
+   "entries": [
+    "src/terrain/detail_worker.ts",
+    "src/terrain/terrainDetail.ts",
+    "src/terrain/heightfield.ts"
+   ],
+   "inputs": [
+    "public/generated/terrain.json",
+    "public/generated/terrain_near.u16",
+    "public/generated/terrain_mid.u16",
+    "public/generated/terrain_far.u16"
+   ]
+  },
+  "mudface": {
+   "version": 1,
+   "entries": [
+    "src/arch/mudface.ts",
+    "src/world/cache/geo.ts"
+   ],
+   "keyed": "the parts (partsKey) hashed into the key; each face by the hash of its input geometry and gain"
+  },
+  "townplan": {
+   "version": 1,
+   "entries": [
+    "src/world/settlement/plan.ts",
+    "src/world/cache/pack.ts"
+   ],
+   "about": "D-392: the town sites state after the doors, access and house passes"
+  },
+  "grime": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key: seed, quality, court calendar, town (world.ts bakeKey)"
+  },
+  "fill": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key (world.ts bakeKey)"
+  },
+  "zones": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key (world.ts bakeKey)"
+  },
+  "navcore": {
+   "version": 1,
+   "entries": [
+    "src/people/popgeo.ts"
+   ],
+   "inputs": [
+    "public/generated/nav.json",
+    "public/generated/nav.i16",
+    "public/generated/nav_edges.u8"
+   ],
+   "keyed": "the walkable grid blocked cells (nav.dyn) hashed; the anchor pairs in the Map"
+  },
+  "arch": {
+   "version": 1,
+   "entries": [
+    "src/arch/meshes.ts",
+    "src/world/cache/geo.ts"
+   ],
+   "keyed": "the parts (partsKey), the frame trim loaded, flat mode"
+  },
+  "vsites": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key (world.ts bakeKey)"
+  }
  }
 }

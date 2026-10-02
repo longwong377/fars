@@ -138,20 +138,27 @@ export async function loadScans(base = BASE, anisotropy = 8): Promise<void> {
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noscans')) { scansOn = false; return; }
   const L = new THREE.TextureLoader(), ids = [...new Set(Object.values(SCAN_USE).flatMap(u => u.rock ? [u.scan, u.rock.scan] : [u.scan]))];
   const withNor = new Set(Object.values(SCAN_USE).filter(u => u.nor).map(u => u.scan));
+  // D-334: the KTX2 bakes (UASTC, their own mips) through the KTX2 loader, as blockface.ts; D-354 (s15, page memory): the scans
+  // too, where tools/bake_world/ktx_scans.ts encoded them (textures/ktx.json): BC7 on the GPU, a quarter of RGBA8's memory,
+  // and no decoded jpg kept by the page (?scanjpg: the jpgs, A/B)
+  const ktxOf = new Set(Object.values(WALL_BAKE).filter(b => b.ktx).map(b => b.tex));
+  const ktxScans = new Set<string>(new URLSearchParams(location.search).has('scanjpg') ? [] : await fetch(`${base}textures/ktx.json`).then(r => (r.ok ? r.json() : null)).then(j => Object.keys(j?.maps ?? {})).catch(() => []));
+  let K: any = null;
+  if (ktxOf.size || ktxScans.size) try { const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
+    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
+    K = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); K.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); } catch { K = null; }
+  const map = async (id: string, f: string): Promise<THREE.Texture> => {
+    if (K && ktxScans.has(`${id}/${f}`)) try { const t: THREE.Texture = await K.loadAsync(`${base}textures/${id}/${f}.ktx2`); t.magFilter = THREE.LinearFilter; return t; } // (once uploaded, no page copy: world/cache/release.ts)
+    catch (e) { console.warn(`[scans] ${id}/${f}.ktx2: ${(e as Error).message}; the jpg`); }
+    const t = await loadScanTexture(base, `${base}textures/${id}/${f}.jpg`, L); t.generateMipmaps = true; return t; }; // (s15/ship: low copies first on the built site, lowfirst.ts)
   await Promise.all(ids.map(async id => {
-    const [diff, arm, nor] = await Promise.all(['diff', 'arm', ...(withNor.has(id) ? ['nor'] : [])].map(f => loadScanTexture(base, `${base}textures/${id}/${f}.jpg`, L))); // (s15/ship: low copies first on the built site, lowfirst.ts)
-    for (const t of [diff, arm, nor]) if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; }
+    const [diff, arm, nor] = await Promise.all(['diff', 'arm', ...(withNor.has(id) ? ['nor'] : [])].map(f => map(id, f)));
+    for (const t of [diff, arm, nor]) if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true; }
     diff.colorSpace = THREE.SRGBColorSpace; arm.colorSpace = THREE.NoColorSpace; if (nor) nor.colorSpace = THREE.NoColorSpace;
     TEX.set(id, { diff, arm, nor });
   }));
-  await loadGround(base, anisotropy);
+  await loadGround(base, anisotropy, K);
   // D-324: the baked detail maps (a missing file leaves its surface as the scan alone)
-  // D-334: the KTX2 bakes (UASTC, their own mips) through the KTX2 loader, as blockface.ts
-  const ktxOf = new Set(Object.values(WALL_BAKE).filter(b => b.ktx).map(b => b.tex));
-  let K: any = null;
-  if (ktxOf.size) try { const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
-    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
-    K = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); K.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); } catch { K = null; }
   await Promise.all([...new Set(Object.values(WALL_BAKE).map(b => b.tex))].map(async id => { try {
     const kt = ktxOf.has(id); if (kt && !K) return;
     const t: THREE.Texture = kt ? await K.loadAsync(`${base}textures/${id}/bake.ktx2`) : await L.loadAsync(`${base}textures/${id}/bake.jpg`);
@@ -253,11 +260,21 @@ export type GroundCover = keyof typeof GROUND;
 const GROUND_KEYS = Object.keys(GROUND) as GroundCover[];
 /** the array's side (texels); the scans are 2K */
 export const GROUND_RES = 2048;
-let groundArr: THREE.DataArrayTexture | null = null;
+let groundArr: THREE.Texture | null = null;
 /** per layer: the colour's linear mean (src/data/scans.json) and the height channel's mean and sd (measured on load) */
 const GSTAT = new Map<GroundCover, { mean: [number, number, number]; hMean: number; hSd: number }>();
 
-async function loadGround(base: string, anisotropy: number): Promise<void> {
+async function loadGround(base: string, anisotropy: number, K: any = null): Promise<void> {
+  // D-354 (s15, page memory): the layers as one KTX2 array (tools/bake_world/ktx_ground.ts) when it is there: BC7 on the GPU
+  // (64 MB, not 256), no jpg decoded and packed here; the heights' statistics come with it (?scanjpg: the jpgs, A/B)
+  if (K && !new URLSearchParams(location.search).has('scanjpg')) try {
+    const meta = await fetch(`${base}textures/ground/ground.json`).then(r => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null));
+    if (meta?.res === GROUND_RES && meta.layers?.join() === GROUND_KEYS.join()) {
+      const t: THREE.Texture = await K.loadAsync(`${base}textures/ground/ground.ktx2`);
+      for (const k of GROUND_KEYS) GSTAT.set(k, { mean: META[GROUND[k]].meanLinear, hMean: meta.stats[k].hMean, hSd: meta.stats[k].hSd });
+      t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = anisotropy;
+      t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; groundArr = t; return;
+    } } catch (e) { console.warn(`[scans] ground.ktx2: ${(e as Error).message}; the jpgs`); }
   const N = GROUND_KEYS.length, R = GROUND_RES, data = new Uint8Array(R * R * 4 * N);
   const cv = new OffscreenCanvas(R, R), g = cv.getContext('2d', { willReadFrequently: true })!;
   const pixels = async (url: string | Promise<Response>) => {
@@ -295,6 +312,7 @@ async function loadGround(base: string, anisotropy: number): Promise<void> {
   t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType; t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter;
   t.generateMipmaps = true; t.anisotropy = anisotropy; t.needsUpdate = true;
+  t.userData.release = true; // D-354 (s15, page memory): once on the GPU the page drops its 192 MB copy (static; world/cache/release.ts)
   groundArr = t;
 }
 export const groundLoaded = () => groundArr !== null;

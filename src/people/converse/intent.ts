@@ -100,7 +100,10 @@ const FAMILIES: [Deed, RegExp][] = [
   ['go_home', /\b(go|head|get|run|return|hurry)\b.{0,20}\b(home|your house)\b/i],
 ];
 /** the kinds of ask the stranger's words carry a cue of */
-export function cues(said: string): Deed[] { const s = said.replace(/[’]/g, "'"); return FAMILIES.filter(([, re]) => re.test(s)).map(([k]) => k); }
+// D-391 (the playtest bot): questions about the person's own past or origin are not asks to be led anywhere ("where are you
+// from?", "where were you born?"), and "looking for work / a place to sleep" is not "looking for" a place
+const NOT_LEAD = /\bwhere (are|were|do|did|was) (you|your)\b(?!.*\b(going|go|take|lead|show)\b)|\bwhence\b|\b(looking for|find|seek(ing)?) (work|a job|a hand|employment|a place to (sleep|stay)|lodging|shelter|a bed)\b/i;
+export function cues(said: string): Deed[] { const s = said.replace(/[’]/g, "'"), notLead = NOT_LEAD.test(s); return FAMILIES.filter(([k, re]) => re.test(s) && !(k === 'lead_to' && notLead)).map(([k]) => k); }
 /** a paraphrase the grammar does not read, taken by its family when only one is cued (its object: the words after the cue) */
 export function looseRequest(said: string): Intent | null {
   if (/^\s*(who|what|when|why|which|whose|how (old|many|much|long|are|is|was))\b/i.test(said)) return null; // (a question about them, not an ask)

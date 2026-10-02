@@ -1,0 +1,25 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>GPU memory micro-probe</title>
+<script type="module">
+// s15/load (D-354): what one texture or buffer byte costs the GPU process on this machine (Dawn on D3D12): the probe
+// (tools/bake_world/gpu_mem_probe.mjs) samples the GPU process before and after each step. Steps via window.__step(kind, n).
+const ad = await navigator.gpu.requestAdapter(), dev = await ad.requestDevice({ requiredFeatures: ad.features.has('texture-compression-bc') ? ['texture-compression-bc'] : [] });
+const keep = [];
+window.__step = async (kind, n) => {
+  for (let i = 0; i < n; i++) {
+    if (kind === 'tex' || kind === 'texmip' || kind === 'texnowrite') {
+      const S = 2048, mips = kind === 'texmip' ? 12 : 1, t = dev.createTexture({ size: [S, S], format: 'rgba8unorm', mipLevelCount: mips, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT });
+      if (kind !== 'texnowrite') for (let m = 0; m < mips; m++) { const s = Math.max(1, S >> m); dev.queue.writeTexture({ texture: t, mipLevel: m }, new Uint8Array(s * s * 4).fill(i), { bytesPerRow: s * 4 }, [s, s]); }
+      keep.push(t);
+    } else if (kind === 'bc7') {
+      const S = 2048, t = dev.createTexture({ size: [S, S], format: 'bc7-rgba-unorm', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+      dev.queue.writeTexture({ texture: t }, new Uint8Array(S * S).fill(i), { bytesPerRow: S * 4 }, [S, S]); keep.push(t);
+    } else if (kind === 'buf') {
+      const b = dev.createBuffer({ size: 16 << 20, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST }); dev.queue.writeBuffer(b, 0, new Uint8Array(16 << 20).fill(i)); keep.push(b);
+    }
+  }
+  await dev.queue.onSubmittedWorkDone(); return keep.length;
+};
+window.__ready = true;
+</script>

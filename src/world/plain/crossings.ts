@@ -40,14 +40,23 @@ function segHit(ax: number, ay: number, bx: number, by: number, cx: number, cy: 
 /** every point where a present road, as drawn, crosses a river centreline; crossings of one road within 60 m merge */
 export function roadRiverCrossings(rivers: RiverProfile[], roads = settlementRoads(), tracks: { id: string; pts: [number, number][]; width: number }[] = []): Crossing[] {
   const out: Crossing[] = [];
+  // D-392 (s15/load): each river's segments in a 250 m grid, so a road segment tests only the segments near it (the same
+  // segments in the same order as the full scan: the same crossings; the full scan was ~7 s of the plain's build)
+  const G = 250, grids = rivers.map(rv => { const m = new Map<number, number[]>();
+    for (let k = 1; k < rv.x.length; k++) { const i0 = Math.floor(Math.min(rv.x[k - 1], rv.x[k]) / G), i1 = Math.floor(Math.max(rv.x[k - 1], rv.x[k]) / G), j0 = Math.floor(Math.min(rv.y[k - 1], rv.y[k]) / G), j1 = Math.floor(Math.max(rv.y[k - 1], rv.y[k]) / G);
+      for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const c = (i + 32768) * 65536 + j + 32768; (m.get(c) ?? m.set(c, []).get(c)!).push(k); } }
+    return m; });
+  const near = (m: Map<number, number[]>, x0: number, x1: number, y0: number, y1: number) => { const ks = new Set<number>();
+    for (let i = Math.floor(x0 / G); i <= Math.floor(x1 / G); i++) for (let j = Math.floor(y0 / G); j <= Math.floor(y1 / G); j++) for (const k of m.get((i + 32768) * 65536 + j + 32768) ?? []) ks.add(k);
+    return [...ks].sort((a, b) => a - b); };
   // roads are drawn meandered (settlement/water.ts); the village tracks' lines are already as drawn (ribbons.ts trackLines)
   for (const r of [...roads.map(q => ({ ...q, drawn: meander(q.pts as [number, number][], 8) })), ...tracks.map(q => ({ ...q, drawn: q.pts }))]) {
     const P = r.drawn;
-    for (const rv of rivers) {
+    for (const [ri, rv] of rivers.entries()) {
       // bounding box prefilter per road segment
       for (let s = 1; s < P.length; s++) {
         const [ax, ay] = P[s - 1], [bx, by] = P[s], x0 = Math.min(ax, bx) - 30, x1 = Math.max(ax, bx) + 30, y0 = Math.min(ay, by) - 30, y1 = Math.max(ay, by) + 30;
-        for (let k = 1; k < rv.x.length; k++) {
+        for (const k of near(grids[ri], x0, x1, y0, y1)) {
           if (Math.max(rv.x[k - 1], rv.x[k]) < x0 || Math.min(rv.x[k - 1], rv.x[k]) > x1 || Math.max(rv.y[k - 1], rv.y[k]) < y0 || Math.min(rv.y[k - 1], rv.y[k]) > y1) continue;
           const h = segHit(ax, ay, bx, by, rv.x[k - 1], rv.y[k - 1], rv.x[k], rv.y[k]); if (!h) continue;
           if (out.some(c => c.road === r.id && c.river === rv.id && Math.hypot(c.x - h[0], c.y - h[1]) < 60)) continue;

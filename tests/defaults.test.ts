@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { DEFAULT_SETTINGS } from '../src/core/settings';
-import { chooseWorldSeed } from '../src/core/seed';
+import { chooseWorldSeed, newWorldSeed, WORLD_SEED_POOL } from '../src/core/seed';
 import { newGameStart } from '../src/core/newGame';
 import { courtYear } from '../src/people/courtYear';
 import { sunTimes } from '../src/people/calendar';
@@ -29,10 +29,13 @@ describe('decided defaults (T-K10)', () => {
     expect(main).toMatch(/Math\.sin\(player\.bobPhase \* 2\) \* 0\.018/);
     expect(main).not.toMatch(/camera\.rotation\.z\s*=|rotateZ\(/); // no camera roll
   });
-  it('D-236: a new world seed per new game (not the fixed seed 1) when no seed is given', () => {
+  it('D-236 (D-392): a first visit draws a world from the baked pool (more than one world across visits); a new game draws afresh', () => {
     const m = new Map<string, string>(), store = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); } };
-    const seeds = new Set(Array.from({ length: 20 }, () => { m.clear(); return chooseWorldSeed(null, false, store); }));
-    expect(seeds.size).toBeGreaterThan(18);
+    const seeds = new Set(Array.from({ length: 64 }, () => { m.clear(); return chooseWorldSeed(null, false, store); }));
+    expect([...seeds].every(s => WORLD_SEED_POOL.includes(s))).toBe(true);
+    expect(seeds.size).toBeGreaterThan(4);
+    const fresh = new Set(Array.from({ length: 20 }, () => newWorldSeed(store)));
+    expect(fresh.size).toBeGreaterThan(18);
   });
   it('D-239 (D-252): a new game begins at dawn 1–3 days before the court\'s seed-chosen arrival; the arrival is the seed\'s alone', () => {
     const seen = new Set<number>();
