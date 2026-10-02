@@ -242,7 +242,7 @@ export class Joint {
     const people = [tg, ...(typeof d.actor === 'number' ? [d.actor] : [])];
     for (const p of people) { const w = p === tg ? other(d.actor) : other(tg);
       // (the same ground for both: popgeo sets each one's own spot on it)
-      segs.push(...this.walkThere(p, day, h0, h1, place, `${what} with ${w}`, job.act, home.where, bow, d.actor !== 'player')); }
+      segs.push(...this.walkThere(p, day, h0, h1, place, `${what} with ${w}${p !== tg && d.aim ? `: ${d.aim}` : ''}`, job.act, home.where, bow, d.actor !== 'player')); } // (D-461: the doer's own aim, when a goal of theirs it serves)
     return { job, segs };
   }
   /** the walk to a place, the work there and the walk back, fitted into the person's day (C: walkH, the planner's own walk) */
@@ -325,7 +325,7 @@ export class Joint {
         if (withP && E?.hasStranger) { const S = E.stranger(); S.do({ a: 'hear', day: Math.min(day, E.day), lang: S.langOf(j.hh), hours: j.h1 - j.h0, simple: 0.5, spoke: true }); this.h.trust(j.hh, 'player', 0.03, day); }
         return 'beer drunk at the house of an evening, and talk'; }
       case 'meal': { if (H && H.grain > 3) H.grain -= 0.4; if (withP && purse) purse.grain += 0; both({ aff: 0.08 }); return 'a meal shared'; }
-      case 'lesson': { const k = skillKey(j.act), s0 = this.h.skill(k), inc = 0.12 * (1 - s0); this.h.addSkill(k, inc); this.bump('lessons'); both({ resp: 0.03, aff: 0.03 });
+      case 'lesson': { const k = skillKey(j.act), s0 = this.h.skill(k), inc = j.actor === 'player' ? 0.12 * (1 - s0) : 0; if (inc) this.h.addSkill(k, inc); // (D-461: the skill kept is the stranger's: a townsman's lesson is not his) this.bump('lessons'); both({ resp: 0.03, aff: 0.03 });
         return `taught ${j.act.replace(/_/g, ' ')} (the stranger's hand at it: ${skillWord(s0 + inc)})`; }
       case 'teach': { both({ resp: 0.06, aff: 0.03 }); if (H) H.goods += 0.02; return 'shown something new by the stranger'; }
       case 'meet': case 'visit': case 'walk': { both({ aff: 0.05, resp: 0.03 }); if (j.kind === 'visit' && H && H.grain > 3) H.grain -= 0.3; if (withP) this.h.trust(j.hh, j.actor, 0.02, day); return j.kind === 'meet' ? 'met at the hour named' : j.kind === 'visit' ? 'a visit, bread and talk' : 'a walk together'; }
@@ -462,7 +462,8 @@ export class Joint {
     return out;
   }
 
-  save() { return { jobs: this.jobs.filter(j => j.state === 'set' || j.day > (this.jobs[this.jobs.length - 1]?.day ?? 0) - 30), hires: this.hires, roofs: [...this.roofs], news: this.news.slice(-60), notes: [...this.notes], stats: this.stats, settledT: this.settledT, nextId: this.nextId }; }
+  // (D-461: the town's own undertakings settled more than three days ago are not kept: the goals make tens of thousands a year)
+  save() { const last = this.jobs[this.jobs.length - 1]?.day ?? 0; return { jobs: this.jobs.filter(j => j.state === 'set' || j.day > last - (j.actor === 'player' || j.target === 'player' ? 30 : 3)), hires: this.hires, roofs: [...this.roofs], news: this.news.slice(-60), notes: [...this.notes], stats: this.stats, settledT: this.settledT, nextId: this.nextId }; }
   load(s: ReturnType<Joint['save']> | undefined) { if (!s) return; this.jobs.splice(0, this.jobs.length, ...s.jobs); this.nextId = s.nextId; this.mine = this.jobs.filter(j => j.state === 'set' && j.actor === 'player'); this.open.clear(); for (const j of this.jobs) if (j.state === 'set') this.index(j); this.hires.splice(0, this.hires.length, ...s.hires);
     this.roofs.clear(); for (const [k, v] of s.roofs) this.roofs.set(k, v); this.news.splice(0, this.news.length, ...s.news); this.notes = new Map(s.notes); Object.assign(this.stats, s.stats); this.settledT = s.settledT; }
 }

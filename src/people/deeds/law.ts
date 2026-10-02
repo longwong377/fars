@@ -179,7 +179,8 @@ export class Law {
         const hearer = tg, third = d.third ?? (d.verb === 'accuse' ? tg : undefined); if (typeof hearer !== 'number' || third === undefined || third === d.actor) break;
         const words = (d.about ?? d.said ?? '').toLowerCase(), bad = d.verb === 'accuse' || /steal|stole|thief|lie|liar|cheat|beat|hit|kill|adulter|curse|witch/.test(words);
         if (!bad && d.verb !== 'lie') break;
-        const crime = /beat|hit|kill|struck/.test(words) ? 'assault' : 'theft', true_ = d.verb !== 'lie' && this.guilty(third, null, crime, day) || d.verb !== 'lie' && this.marks.some(m => m.who === third && day - m.day < 120);
+        // (D-461: a telling of a deed the teller saw or suffered (d.of) is true by the world's own record)
+        const crime = /beat|hit|kill|struck/.test(words) ? 'assault' : 'theft', true_ = d.verb !== 'lie' && (d.of !== undefined || this.guilty(third, null, crime, day) || this.marks.some(m => m.who === third && day - m.day < 120));
         if (!true_ && hearer !== third) this.claims.push({ id: this.claims.length, deed: rec.id, day, liar: d.actor, hearer, third, until: day + 40 });
         break; }
       case 'give': case 'return': this.paid(rec); break;
@@ -192,10 +193,12 @@ export class Law {
   /** a wrong before the watch, a guard, or the grown men of the lane: the offender seized in the act (C) */
   private seize(rec: DeedRec, crime: string): boolean {
     const d = rec.deed, P = this.p.pop, day = rec.day, hour = rec.t - day * 24, wit = rec.out.witnesses ?? [];
-    const guard = wit.find(x => P.persons[x].job === 'guard' || ['stand_guard', 'patrol'].includes(segAt(P.plan(x, day), hour).act));
-    const tg = d.target, terrace = typeof tg === 'number' && segAt(P.plan(tg, day), hour).where === 'terrace';
+    // (D-461: the town's own deeds read the light plan, as the minds do: a full plan of a fresh house is 20-100 ms)
+    const segOf = (x: number) => d.actor === 'player' ? segAt(P.plan(x, day), hour) : P.segLight(x, day, hour);
+    const guard = wit.find(x => P.persons[x].job === 'guard' || ['stand_guard', 'patrol'].includes(segOf(x).act));
+    const tg = d.target, terrace = typeof tg === 'number' && segOf(tg).where === 'terrace';
     const men = wit.filter(x => P.persons[x].sex === 'm' && P.ageOn(x, day) >= 18 && P.ageOn(x, day) < 60).length;
-    const onDuty = typeof tg === 'number' && (P.persons[tg].job === 'guard' && ['stand_guard', 'patrol'].includes(segAt(P.plan(tg, day), hour).act));
+    const onDuty = typeof tg === 'number' && (P.persons[tg].job === 'guard' && ['stand_guard', 'patrol'].includes(segOf(tg).act));
     const p = onDuty ? 0.95 : guard !== undefined ? 0.85 : terrace ? 0.7 : men >= 2 ? 0.3 : 0; // (a guard struck at his post: the next post sees it)
     if (u01(this.p.seed, S.seize, rec.id) >= p) return false;
     const hearH = Math.ceil(hour + 0.5), why = `held by ${guard !== undefined || onDuty ? 'the watch' : 'the men of the lane, then the watch'} at the officials' building for ${crime === 'theft' ? 'a theft' : crime === 'damage' ? 'damage done' : crime === 'killing' ? 'a killing' : 'a blow struck'}, until the king's judges hear it`;

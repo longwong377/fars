@@ -134,18 +134,21 @@ describe('D-460 between the town\'s own houses: a feud, a lie found out, a month
     const pairs: [number, number][] = [];
     for (const H of P.households) { const m = H.members.filter(x => P.present(x, DAY) && P.ageOn(x, DAY) >= 18 && P.home(x, DAY) === H.id && awake(sim, x, DAY, 10)); if (m.length >= 2) pairs.push([m[0], m[1]]); if (pairs.length >= 8) break; }
     const liarT = P.persons.find(p => P.present(p.id, DAY) && P.ageOn(p.id, DAY) >= 25 && !pairs.some(q => q.includes(p.id)))!.id;
+    // (D-461: the town tells of what it sees on its own, and an unproven grudge may be a claim too: only this test's lies are counted)
+    const n0 = sim.deeds.next;
     pairs.forEach(([h, th], i) => sim.deeds.act({ verb: 'lie', actor: i % 2 ? liarT : 'player', target: h, third: th, about: 'he stole a goat from the temple herd' }, sim.t));
-    expect(L.claims.length).toBe(pairs.length);
+    const mine = () => L.claims.filter(c => c.deed >= n0 && c.deed < n0 + pairs.length);
+    expect(mine().length).toBe(pairs.length);
     step(sim, DAY + 20);
-    const found = L.claims.filter(c => c.found !== undefined);
+    const found = mine().filter(c => c.found !== undefined);
     expect(found.length).toBeGreaterThanOrEqual(pairs.length / 2);
     expect(found.some(c => c.liar === 'player')).toBe(true); expect(found.some(c => c.liar === liarT)).toBe(true);
     for (const c of found) { expect(M.feelOf(c.hearer, c.liar, DAY + 20).anger).toBeGreaterThan(0); expect(L.record(c.hearer, c.liar, DAY + 20)?.why).toMatch(/liar/); }
   }, 900_000);
   it('the town alone for a month: its own quarrels, thefts and blows run their courses (losses noticed, cases heard, feuds settled)', () => {
-    const sim = simAt(1, DAY, 10, { asks: true, }), L = sim.deeds.law, n0 = sim.deeds.log.length;
+    const sim = simAt(1, DAY, 10, { asks: true, }), L = sim.deeds.law, n0 = sim.deeds.next;
     step(sim, DAY + 30);
-    const own = sim.deeds.log.slice(n0).filter(r => r.deed.actor !== 'player');
+    const own = sim.deeds.log.filter(r => r.id >= n0 && r.deed.actor !== 'player'); // (D-461: the log is a window of the latest deeds, read by id)
     expect(new Set(own.map(r => r.deed.verb)).size).toBeGreaterThanOrEqual(8);
     expect(own.some(r => r.deed.verb === 'steal' && r.out.ok)).toBe(true);
     expect(L.losses.filter(l => l.noticed).length + L.cases.length).toBeGreaterThan(0);

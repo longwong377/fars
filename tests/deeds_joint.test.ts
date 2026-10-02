@@ -135,14 +135,14 @@ describe('D-462 joint deeds in a real town (seed 1, day 60)', () => {
 
   it('an errand: the message walks to the third person and is delivered as his own deed; the answer comes back', () => {
     const d = Math.floor(sim.t / 24) + 1; sim.jumpTo(d * 24 + 9);
-    const n0 = J.news.length, l0 = sim.deeds.log.length;
+    const n0 = J.news.length, l0 = sim.deeds.next; // (D-461: the log is a window, read by id)
     let msgr = -1; for (const pid of adults) { if (!Pop.persons[pid].ties.length) continue; const r = sim.strangerDeed(pid, 'Go and tell your friend that I thank him for his kindness.'); if (!r?.out.ok || r.deed.verb !== 'send') continue; sim.strangerDeedDo(r.deed); msgr = pid; break; }
     expect(msgr).toBeGreaterThanOrEqual(0);
     const j = J.jobs[J.jobs.length - 1]; expect(j).toMatchObject({ kind: 'errand', verb: 'send', target: msgr });
     expect(Pop.plan(msgr, j.day).some(s => s.place === j.place && /carrying a message/.test(s.why))).toBe(true);
     sim.jumpTo(j.day * 24 + j.h1 + 1);
     expect(j.state).toBe('done'); expect(J.news.length).toBeGreaterThan(n0);
-    expect(sim.deeds.log.slice(l0).some(r => r.deed.actor === 'player' && r.deed.target === j.third)).toBe(true);
+    expect(sim.deeds.log.some(r => r.id >= l0 && r.deed.actor === 'player' && r.deed.target === j.third)).toBe(true);
   });
 
   it('a meeting at the hour named: kept when he comes, missed when he does not', () => {

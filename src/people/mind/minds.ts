@@ -33,6 +33,7 @@ export interface MindCtx {
   /** the economy's trust of the person's house in the doer (0..1), 0.5 when unknown */ trust: (pid: number, of: Actor, day: number) => number;
   /** how short the person's house is of food and of silver (0..1) */ need: (pid: number, day: number) => { food: number; cash: number };
   /** the relations layer's affection between two adults, when it runs */ relAff?: (a: number, b: number, day: number) => number | null;
+  /** D-461: the person's mood now, -1 (grief, bitterness) .. 1 (joy) (initiative.ts moodOf) */ mood?: (pid: number, day: number) => number;
   /** D-460: what the person's house knows of the doer's wrongs (deeds/law.ts record: convictions, lies found, blows), -1..0 */ record?: (pid: number, of: Actor, day: number) => { v: number; why: string } | null;
   /** D-460: the elder of the person's quarter (deeds/law.ts) */ elder?: (pid: number, day: number) => number | null;
 }
@@ -70,6 +71,20 @@ export class Minds {
     for (const x of Object.keys(FADE) as (keyof Feel)[]) f[x] = cl((h ? h.f[x] * Math.pow(FADE[x], n) : 0) + (d[x] ?? 0), -1.5, 1.5);
     m.set(k, { f, day });
   }
+  /** D-461: forget what has faded back near rest (anger, fear and gratitude under 0.03, a liking or a regard moved by less than
+   *  0.06: a single visit's warmth, a word heard of someone), and keep the 24 strongest feelings of anyone who holds more (an
+   *  elder who hears every complaint of the quarter): the state stays small over a year. A seventh of the people a day (part) */
+  prune(day: number, part = 0, parts = 1) { for (const _ of this.pruneParts(day, part, parts)); }
+  /** the same in slices (a yield every 600 people pruned) */
+  *pruneParts(day: number, part = 0, parts = 1): Generator<void> { let i = 0, c = 0;
+    for (const [a, m] of this.feel) { if (i++ % parts !== part) continue; if (++c % 600 === 0) yield;
+      for (const [k, h] of m) { const n = Math.max(0, day - h.day), f = (x: keyof Feel) => Math.abs(h.f[x] * Math.pow(FADE[x], n));
+        if (f('anger') < 0.03 && f('fear') < 0.03 && f('grat') < 0.03 && f('aff') < 0.06 && f('resp') < 0.06) m.delete(k); }
+      if (m.size > 24) { const sal = (h: Held) => { const n = Math.max(0, day - h.day); let s = 0; for (const x of Object.keys(FADE) as (keyof Feel)[]) s += Math.abs(h.f[x] * Math.pow(FADE[x], n)); return s; };
+        const keep = [...m].sort((x, y) => sal(y[1]) - sal(x[1])).slice(0, 24); m.clear(); for (const [k, h] of keep) m.set(k, h); }
+      if (!m.size) this.feel.delete(a); } }
+  /** how many people hold feelings, and how many feelings in all (a measure) */
+  get size() { let n = 0; for (const m of this.feel.values()) n += m.size; return { people: this.feel.size, feelings: n }; }
   remember(pid: number, id: number) { const l = this.memory.get(pid) ?? []; l.push(id); if (l.length > 40) l.shift(); this.memory.set(pid, l); }
   /** the people a person has strong feelings about now (for the brief and the initiative) */
   strongest(pid: number, day: number, n = 3): { other: Actor; f: Feel; sal: number }[] {
@@ -82,9 +97,10 @@ export class Minds {
   decide(pid: number, d: Deed, day: number, hour: number): Decision {
     const P = this.pop, p = P.persons[pid], sense = VERBS[d.verb], doer = d.actor;
     const f = this.feelOf(pid, doer, day), pe = personaOf(P, pid, day), age = P.ageOn(pid, day);
-    // (the stranger's deeds read the person's day as it is now; the town's own deeds, drawn by the hundred a day, read only the
-    // hour: building a stranger's plan cascades through a household, ~20 ms, the cost of the minds: D-459)
-    const seg = doer === 'player' ? segAt(P.plan(pid, day), hour) : { act: hour < 5.5 || hour > 21.75 ? 'sleep' : 'rest', why: '' } as { act: string; why: string }, why: [number, string][] = [];
+    // (the stranger's deeds read the person's day as it is now; the town's own deeds, drawn by the hundred a day, read the plan
+    // only where the planner has built it, else the hour's common lot: building a plan cascades through a household, ~20 ms,
+    // the cost of the minds: D-459, D-461 Population.segLight)
+    const seg = doer === 'player' ? segAt(P.plan(pid, day), hour) : P.segLight(pid, day, hour), why: [number, string][] = [];
     let lean = sense.want; why.push([sense.want, sense.want >= 0.3 ? `${sense.gloss} is welcome to anyone` : sense.want <= -0.3 ? `no one likes ${sense.gloss}` : '']);
     const add = (x: number, w: string) => { lean += x; why.push([x, w]); };
     add(0.5 * f.aff, f.aff > 0.25 ? 'fond of him' : f.aff < -0.2 ? 'dislikes him' : '');
@@ -107,6 +123,9 @@ export class Minds {
     const nd = this.ctx.need(pid, day);
     if (['help', 'give', 'lend', 'carry', 'repair', 'heal', 'hire', 'guard'].includes(d.verb)) add(0.35 * Math.max(nd.food, nd.cash), nd.food > 0.5 ? 'the house is short' : '');
     if (['ask_for', 'borrow'].includes(d.verb)) add(-0.6 * Math.max(nd.food, nd.cash), nd.food > 0.5 || nd.cash > 0.5 ? 'the house has little to spare' : '');
+    // D-461: the mood: a glad heart says yes more readily; grief keeps to the house and wants no company but comfort
+    const mood = this.ctx.mood?.(pid, day) ?? 0;
+    if (sense.consent && Math.abs(mood) > 0.15) add(['visit', 'join', 'share_food', 'come_with', 'meet', 'court', 'flirt'].includes(d.verb) ? 0.35 * mood : 0.15 * mood, mood > 0.3 ? 'glad at heart' : mood < -0.4 ? 'in no mood for it' : '');
     // the day: what they are doing now
     if (sense.consent && sense.hours > 0.3) {
       if (seg.act === 'sleep') add(-1.5, 'asleep');
@@ -160,13 +179,20 @@ export class Minds {
 
   // ---------------------------------------------------------------- initiative: what a mind does of its own accord
   /** the deeds the town's minds take up on a day (with or without the stranger): drawn over the state, at most `max` */
-  deeds(day: number, max = 300): Deed[] {
-    const P = this.pop, out: Deed[] = this.queued.splice(0, this.queued.length).slice(0, max >> 1), rng = (pid: number, k: number) => u01(this.seed, S.own, pid, day, k);
+  deeds(day: number, max = 300, held?: (pid: number, other: number) => boolean): Deed[] { const out: Deed[] = []; for (const _ of this.deedParts(day, out, max, held)); return out; }
+  /** the same, in slices (D-461: a generator yielding every few hundred people, for the living world's sliced days); first the
+   *  deeds the world's events called for (observe) */
+  *deedParts(day: number, out: Deed[], max = 300, held?: (pid: number, other: number) => boolean): Generator<void> {
+    out.push(...this.queued.splice(0, this.queued.length).slice(0, max >> 1));
+    const P = this.pop, rng = (pid: number, k: number) => u01(this.seed, S.own, pid, day, k); let c = 0;
     // (1) feelings acted on: every person who holds a strong feeling about someone (the minds' own state)
-    for (const [pid, m] of this.feel) { if (out.length >= max) break; if (!P.persons[pid] || !P.present(pid, day) || P.ageOn(pid, day) < 8) continue;
+    for (const [pid, m] of this.feel) { if (out.length >= max) break; if (++c % 500 === 0) yield; if (!P.persons[pid] || !P.present(pid, day) || P.ageOn(pid, day) < 8) continue;
       for (const [k] of m) { const o: Actor = k === -1 ? 'player' : k; if (o !== 'player' && (!P.persons[o] || !P.present(o, day))) continue;
-        const f = this.feelOf(pid, o, day), pe = personaOf(P, pid, day), u = rng(pid, k + 1);
-        if (f.anger > 0.45) { const hot = pe.temper > 0.65;
+        if (o !== 'player' && held?.(pid, o)) continue; // (D-461: a goal of revenge or of peace pursues this one, step by step)
+        { const h = m.get(k)!, n = Math.max(0, day - h.day); if (h.f.anger * Math.pow(FADE.anger, n) < 0.15 && h.f.grat * Math.pow(FADE.grat, n) < 0.3 && h.f.fear * Math.pow(FADE.fear, n) < 0.4) continue; } // (D-461: nothing to act on: the rest is not read)
+        const f = this.feelOf(pid, o, day), u = rng(pid, k + 1);
+        // (D-461: a grudge is acted on every few days, not every day it is held: C; the rest of the days it smoulders)
+        if (f.anger > 0.45) { if (rng(pid, k + 7) >= 0.35) continue; const hot = personaOf(P, pid, day).temper > 0.65;
           out.push(hot && f.anger > 0.7 && u < 0.25 ? { verb: 'attack', actor: pid, target: o, force: 0.4 } : u < 0.45 ? { verb: 'insult', actor: pid, target: o } : u < 0.7 && o !== 'player' ? { verb: 'complain', actor: pid, target: this.elderOf(pid, day) ?? o, third: o } : { verb: 'avoid', actor: pid, target: o });
           continue; }
         if (f.anger > 0.15 && f.aff > 0.3 && u < 0.08) { out.push({ verb: 'reconcile', actor: pid, target: o }); continue; }
@@ -175,7 +201,7 @@ export class Minds {
       } }
     // (2) needs and ties: a sample of the town each day (a seeded tenth), so every house's turn comes round
     const n = P.persons.length, start = Math.floor(u01(this.seed, S.pick, day) * n), step = 7919;
-    for (let i = 0, x = start; i < Math.min(n, 4000) && out.length < max; i++, x = (x + step) % n) {
+    for (let i = 0, x = start; i < Math.min(n, 4000) && out.length < max; i++, x = (x + step) % n) { if (i % 500 === 499) yield;
       const p = P.persons[x]; if (!P.present(x, day) || P.ageOn(x, day) < 16) continue;
       const u = rng(x, 0), nd = this.ctx.need(x, day);
       // a hungry house borrows from a friend or kin; the desperate and the hard, rarely, steal (C)
@@ -191,7 +217,7 @@ export class Minds {
       if (u < 0.0007) { const pe = personaOf(P, x, day), t = this.neighbourOf(x, day); if (t !== null && pe.piety < 0.4 && pe.temper > 0.5) out.push({ verb: 'steal', actor: x, target: t, good: u < 0.00025 ? 'silver' : 'grain', qty: u < 0.00025 ? 4 : 8 }); continue; }
       void p;
     }
-    return out.slice(0, max);
+    out.splice(max);
   }
   /** a friend or kinsman in another house (Population ties, then kin houses) */
   friendOf(pid: number, day: number): number | null {
@@ -216,12 +242,13 @@ export class Minds {
   }
 
   /** the minds' state for a save: feelings that have not faded to nothing by `day` (D-459: a year kept every brush; the late
-   *  save was 2.76 MB of deeds). The memories are ids into the deed log, which a save does not keep: they start afresh */
-  save(day = Infinity) { const f: [number, [number, Feel, number][]][] = [];
-    for (const [a, m] of this.feel) { const l: [number, Feel, number][] = [];
-      for (const [k, h] of m) { const n = Number.isFinite(day) ? Math.max(0, day - h.day) : 0; let big = 0; for (const x of Object.keys(FADE) as (keyof Feel)[]) big = Math.max(big, Math.abs(h.f[x] * Math.pow(FADE[x], n))); if (big >= 0.02) l.push([k, h.f, h.day]); }
+   *  save was 2.76 MB of deeds), rounded to a millionth, as arrays (D-461). The memories are ids into the deed log, which a
+   *  save does not keep: they start afresh */
+  save(day = Infinity) { const r = (x: number) => Math.round(x * 1e6) / 1e6, f: [number, number[][]][] = [];
+    for (const [a, m] of this.feel) { const l: number[][] = [];
+      for (const [k, h] of m) { const n = Number.isFinite(day) ? Math.max(0, day - h.day) : 0; let big = 0; for (const x of Object.keys(FADE) as (keyof Feel)[]) big = Math.max(big, Math.abs(h.f[x] * Math.pow(FADE[x], n))); if (big >= 0.02) l.push([k, r(h.f.aff), r(h.f.anger), r(h.f.fear), r(h.f.grat), r(h.f.resp), h.day]); }
       if (l.length) f.push([a, l]); }
     return { f, mem: [] as [number, number[]][], own: [...this.own] }; }
   load(s: ReturnType<Minds['save']> | undefined) { this.feel.clear(); this.memory.clear(); this.own.clear(); if (!s) return;
-    for (const [a, l] of s.f) this.feel.set(a, new Map(l.map(([k, f, d]) => [k, { f, day: d }]))); for (const [k, v] of s.mem) this.memory.set(k, v); for (const [k, v] of s.own) this.own.set(k, v); }
+    for (const [a, l] of s.f) this.feel.set(a, new Map((l as unknown[][]).map(x => x.length === 3 ? [x[0] as number, { f: x[1] as Feel, day: x[2] as number }] : [x[0] as number, { f: { aff: x[1], anger: x[2], fear: x[3], grat: x[4], resp: x[5] } as Feel, day: x[6] as number }]))); for (const [k, v] of s.mem) this.memory.set(k, v); for (const [k, v] of s.own) this.own.set(k, v); }
 }

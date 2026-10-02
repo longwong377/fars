@@ -51,6 +51,12 @@ export interface Deed {
   said?: string;
   /** how sure the reading of the words is, 0..1 (the grammar's or the model's) */
   sure?: number;
+  /** D-461: the intention it serves, in words (shown in the day plans: "visiting Arta: to ask for his daughter") */
+  aim?: string;
+  /** D-461: the goal it is a step of (mind/goals.ts id), for the chains of cause */
+  goal?: number;
+  /** D-461: the deed a telling tells of (its log id): what was seen or suffered, true by the world's own record */
+  of?: number;
 }
 
 /** what follows from a deed, applied by the engine (and recorded, so a save replays it) */

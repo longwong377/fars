@@ -178,11 +178,14 @@ export class PeopleSim {
   readonly deeds: DeedWorld;
   /** D-459: the people at the same place as pid at time t: their house, their friends, their kin, the stranger's company (the
    *  people the world can know were there; a whole-town scan is not needed for witnesses) */
-  peopleWith(pid: number, t: number): number[] {
+  peopleWith(pid: number, t: number, light = false): number[] {
     const P = this.pop, day = Math.floor(t / 24), h = t - day * 24; if (!P.persons[pid]) return [];
-    const at = segAt(P.plan(pid, day), h).place, cand = new Set<number>([...P.membersOn(P.home(pid, day), day), ...P.persons[pid].ties]);
-    const H = P.households[P.home(pid, day)]; if (H) for (const k of H.kin) for (const m of P.households[k]?.members ?? []) cand.add(m);
-    return [...cand].filter(x => x !== pid && P.persons[x] && P.present(x, day) && segAt(P.plan(x, day), h).place === at);
+    // (D-461: light, for the town's own deeds among themselves: the house and the friends on the light plans, ~0.2 ms a person;
+    // the full reading builds every overlay of some forty people's days, ~110 ms a deed)
+    const placeOf = (x: number) => light ? P.segLight(x, day, h).place : segAt(P.plan(x, day), h).place;
+    const at = placeOf(pid), cand = new Set<number>([...P.membersOn(P.home(pid, day), day), ...P.persons[pid].ties]);
+    const H = P.households[P.home(pid, day)]; if (H && !light) for (const k of H.kin) for (const m of P.households[k]?.members ?? []) cand.add(m);
+    return [...cand].filter(x => x !== pid && P.persons[x] && P.present(x, day) && placeOf(x) === at);
   }
   /** D-459 (UD-32): the stranger's words to a person read as a deed (the grammar; the model's reading comes in through
    *  strangerDeedFrom), judged by the world and the person's mind, nothing done yet */
@@ -264,7 +267,7 @@ export class PeopleSim {
     this.asksWorld = new AsksWorld(this.pop, seed, () => this.econCore(), opts.asks === true);
     // D-459 (UD-32): the minds and their deeds, stepped with the living world's days after the asks and rumours (the town lives
     // with or without the stranger); the deeds' overlay goes into the plans
-    this.deeds = new DeedWorld({ pop: this.pop, seed, econ: d => this.econ && this.econ.day >= d - 1 ? this.econ : null, rumours: () => this.asksWorld.on ? this.asksWorld.rumours : null, near: (pid, t) => this.peopleWith(pid, t) });
+    this.deeds = new DeedWorld({ pop: this.pop, seed, econ: d => this.econ && this.econ.day >= d - 1 ? this.econ : null, rumours: () => this.asksWorld.on ? this.asksWorld.rumours : null, near: (pid, t, light) => this.peopleWith(pid, t, light) });
     this.pop.deeds = this.deeds.overlay; const mindsOn = opts.minds !== false;
     this.living.onDay = d => { const a = this.asksWorld.dayParts(d), b = mindsOn ? this.deeds.dayParts(d) : null; return (function* () { yield* a; if (b) yield* b; })(); };
     this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
