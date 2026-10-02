@@ -8,7 +8,8 @@
 - FOUND AND FIXED: the plain's grass tufts drew black flames (uncut alpha cards on a black atlas) in every render since s12.
 - Residual copies: 67 of ~260,000 instances near the paths still have a twin within 20 m (cross-plot orchard chains, cells
   whose own bump collides); not zero.
-- Draw calls: fieldFill adds up to ~27 instanced draws in the harvest weeks (3 models x 3 parts x 3 levels); not measured on
+- Draw calls: fieldFill is its own group beside the plain (the plain's <= 40-mesh gate was full: it broke the gate once its
+  models loaded; now at most 16 meshes, 1-2 drawn in April, ~6 in the harvest weeks); outside the plain gate, not measured on
   the T4 (C4 / Vagon budget).
 - Beyond ~35 m the plain is still the terrain shader's paint (fields, bunds); objects there are trees, folds, floors, stacks.
 
