@@ -11,3 +11,12 @@ C5 | view: -155,70,14,53,5,0,6.72 | intro shot 4 'terrace' (midpoint): the W fac
 C5 | view: 127,56,9.5,146,-16,0,6.92 | intro shot 5 'work' (midpoint): the Hall of 100 Columns' site from 9 m over its N forecourt: the gangs at work at rise+1.3 h
 C5 | view: -213,122.45,9,71,6,0,7.07 | intro shot 6 'walk' (2/3): the approach to the spawn from 9 m, facing the Grand Stair
 C5 | view: -322,90,5,51,5,0,5.22 | the title's drifting backdrop (midpoint): the Terrace W face against the dawn on the right of the frame, the menu's glass on the left
+cloud lead | V6 is now interior LIGHT and fire only; furnishing every room (town, villages, palaces, Treasury, tents) moved to cloud agent C7 (sessions/s17-vagon-v2.md); src/world/furnish_palaces.ts is C7's | so interiors everywhere are covered from now, not after light v1
+
+C6 | view: 420,150,1.6,80,6,30,9 | the hills' ground rock now reaches 1 km and the ledges fade by the frame (D-600): Kuh-e Rahmat's W face from its lower slope, is any slope still blank or does rock pop?
+C6 | view: -166.6,108.9,1.6,117,7.5,150,16 | the mountain behind the Terrace from the stair foot (rock 260 m-1 km now drawn, D-600)
+C6 | view: -2500,600,1.6,85,2,30,8 | the Terrace and Kuh-e Rahmat from the plain 2.5 km W (far Terrace levels D-361, terrain geomorph D-600)
+C6 | view: 0,40,13.6,250,1,30,17.5 | the far ranges W across the plain from the Terrace top (skyline, far ring)
+C6 | walk: any 300 m walk toward Kuh-e Rahmat recorded at 2 fps | the geomorph (no terrain LOD pop) and the rock fades, if the train can record a walk
+cloud lead | ownership audit (sessions/s17-vagon-v2.md "Orphans assigned"): V2 now owns water's look (plain/waterShade.ts, settlement water shading); V1 skyVis.ts, eyeRays.ts; V3 render/sss.ts; V4 reliefShadow.ts, incision.ts, decorAssets.ts; V6 fireGlow.ts | these had no owner
+cloud lead | new cloud agents: C8 sound (recorded beds; Vagon will be asked to run tools/audio/fetch.mjs, the cloud cannot download), C9 the walk (src/player/**), C10 life everywhere (WHERE people are and what they do: population, popgeo, sim, living; V3 keeps how they look and move; a new activity kind comes to V3 as an ask) | people present everywhere, sound and the walk had no owner

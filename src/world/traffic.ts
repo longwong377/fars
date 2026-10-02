@@ -34,6 +34,7 @@ import type { ActivityId } from '../people/activities';
 import { h01 } from './fauna';
 import type { QuarrySite } from './plain/quarries';
 import { hutSleepSpot } from './plain/quarry_camp';
+import { RoadFolk } from './roadFolk';
 
 const FEAT = Object.fromEntries((settlement as any).features.map((f: any) => [f.id, f])) as Record<string, any>;
 const PLACE = Object.fromEntries(((places as any).places ?? (places as any)).map((p: any) => [p.id, p])) as Record<string, any>;
@@ -48,10 +49,11 @@ export const DRUM_GROUND: P2 = [150, 272];
 /** a string's length along the road (m): five animals nose to tail and the driver (C) */
 const STRING_M = 13, CAMEL_M = 16, CART_M = 9;
 
-export interface Mover { key: string; kind: 'pack' | 'camel' | 'courier' | 'cart' | 'drum' | 'quarry'; e: number; n: number; heading: number; act: ActivityId; why: string;
-  look: { id: number; sex: 'm'; role: string; dress: 'worker' | 'median'; origin: string; seed: number } }
-interface Route { pts: P2[]; cum: number[]; len: number }
-const route = (pts: P2[]): Route => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; };
+export interface Mover { key: string; kind: 'pack' | 'camel' | 'courier' | 'cart' | 'drum' | 'quarry' | 'foot'; e: number; n: number; heading: number; act: ActivityId; why: string;
+  /** (D-570: the road folk's women and children: roadFolk.ts) */
+  look: { id: number; sex: 'm' | 'f'; role: string; dress: 'worker' | 'median' | 'woman' | 'child'; origin: string; seed: number; age?: 'adult' | 'elder' | 'child' } }
+export interface Route { pts: P2[]; cum: number[]; len: number }
+export const route = (pts: P2[]): Route => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; };
 /** a point s metres along a route (clamped) and the heading there (rad, atan2(de, dn)) */
 export function along(R: Route, s: number): { e: number; n: number; heading: number } {
   const x = Math.max(0, Math.min(R.len, s)); let i = 1; while (i < R.cum.length - 1 && R.cum[i] < x) i++;
@@ -163,7 +165,10 @@ export class Traffic {
       out.push({ key: `qm:${i}`, kind: 'quarry', e: at[0], n: at[1], heading: act === 'quarry' || inHut ? head : Q.rot + 2 * Math.PI * (i / DRUM.quarrymen), act, why, look });
     }
   }
+  /** D-570: the hinterland's people on the four roads (roadFolk.ts) */
+  readonly folk: RoadFolk;
   constructor(private seed: number, private src: TrafficSource, plan: TownPlan | null) {
+    this.folk = new RoadFolk(seed, src.cal);
     const W = FEAT.road_royal_west.polyline as P2[], S = FEAT.road_south_tirazzish.polyline as P2[], stair = (PLACE.stair_foot?.at ?? [-52, 118.5]) as P2;
     const site = (id: string) => plan?.sites.find(s => s.id === id);
     const st = site('stables'), sto = site('stores');
@@ -218,6 +223,7 @@ export class Traffic {
     for (const dd of [d - 1, d]) for (const p of this.dayPlans(dd)) { const h = t - dd * 24, m = this.where(p, h); if (!m) continue;
       if (near && Math.hypot(m.e - near.e, m.n - near.n) > near.r) continue; out.push(m); }
     this.drumMovers(t, out, near); this.quarryMovers(t, out, near); // (D-256)
+    this.folk.at(t, out, near); // (D-570)
     return out;
   }
   private where(p: Plan, h: number): Mover | null {
