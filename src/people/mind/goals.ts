@@ -46,6 +46,7 @@ export interface Goal {
   /** what started it, in words, and its source: 'deed:<log id>', 'goal:<id>', 'life', 'econ', 'aim', 'mind' */ why: string; cause: string;
   /** how deep in a chain of causes (1: born of the person's state alone) */ depth: number;
   /** the work it is about, read once (teach: the father's work and its place) */ act?: ActivityId; place?: string;
+  /** the house it was born in (the index of the houses' goals) */ hh?: number;
   /** the end: the day, how, why */ end?: number; out?: 'achieved' | 'abandoned'; endWhy?: string;
 }
 /** what the goals need of the world beyond the deed engine (initiative.ts gives it) */
@@ -138,10 +139,11 @@ export class Goals {
       return this.make(pid, 'care', m, day, 40, `${this.name(m)} lies sick`, 'life');
     // a grievance or a quarrel held (the minds' feelings): peace with kin and friends, else getting even, for the hot and proud
     for (const s of this.W.minds.strongest(pid, day, 2)) { if (typeof s.other !== 'number' || !this.here(s.other, day) || has('revenge', s.other) || has('reconcile', s.other)) continue;
-      const rest = this.W.minds.rest(pid, s.other, day), pe = personaOf(P, pid, day), cause = this.lastDeedBy(pid, s.other);
-      if (s.f.anger > 0.25 && rest.aff >= 0.3 && u(2) < 0.5) return this.make(pid, 'reconcile', s.other, day, 60, `a quarrel with ${this.name(s.other)}`, cause >= 0 ? `deed:${cause}` : 'mind');
-      if (s.f.anger > 0.35 && rest.aff < 0.3 && pe.temper + pe.pride <= 0.95 && pe.warmth > 0.5 && u(14) < 0.25) return this.make(pid, 'reconcile', s.other, day, 60, `bad blood with ${this.name(s.other)}`, cause >= 0 ? `deed:${cause}` : 'mind');
-      if (s.f.anger > 0.45 && rest.aff < 0.3 && pe.temper + pe.pride > 0.95 && u(3) < 0.55) return this.make(pid, 'revenge', s.other, day, 90, `a wrong done by ${this.name(s.other)}`, cause >= 0 ? `deed:${cause}` : 'mind'); }
+      if (s.f.anger <= 0.25) continue; const rest = this.W.minds.rest(pid, s.other, day), cause = this.lastDeedBy(pid, s.other);
+      if (rest.aff >= 0.3 && u(2) < 0.5) return this.make(pid, 'reconcile', s.other, day, 60, `a quarrel with ${this.name(s.other)}`, cause >= 0 ? `deed:${cause}` : 'mind');
+      if (s.f.anger <= 0.35 || rest.aff >= 0.3) continue; const pe = personaOf(P, pid, day);
+      if (pe.temper + pe.pride <= 0.95 && pe.warmth > 0.5 && u(14) < 0.25) return this.make(pid, 'reconcile', s.other, day, 60, `bad blood with ${this.name(s.other)}`, cause >= 0 ? `deed:${cause}` : 'mind');
+      if (s.f.anger > 0.45 && pe.temper + pe.pride > 0.95 && u(3) < 0.55) return this.make(pid, 'revenge', s.other, day, 90, `a wrong done by ${this.name(s.other)}`, cause >= 0 ? `deed:${cause}` : 'mind'); }
     const eh = town ? this.eh(pid, day) : null, isHead = town && this.head(this.hid(pid, day), day) === pid;
     // the house's debt: the head takes it on
     if (eh && isHead && eh.debts.some(d => d.amt > 0.05) && !this.houseHas(pid, 'debt', day) && u(4) < 0.5) {
@@ -169,28 +171,32 @@ export class Goals {
     if (age >= 16 && !has('pilgrimage') && u(11) < 0.035) { const why = P.mourning(pid, day) ? 'the dead of the house' : mem.some(m => P.sick(m, day)) ? 'the sick of the house' : (P.dueIn(pid, day) ?? -1) > 0 ? 'the birth to come' : this.ended.some(g => g.pid === pid && g.out === 'achieved' && day - (g.end ?? 0) < 20) ? 'thanks for a good thing' : '';
       if (why && personaOf(P, pid, day).piety > 0.68) return this.make(pid, 'pilgrimage', -1, day, 45, why, 'life'); }
     // the house mended: rebuilt after a fire, or the roof and walls before the rains (late summer: C)
-    if (eh && isHead && !this.houseHas(pid, 'repair', day)) { const fire = eh.lastFire > day - 20 && eh.lastFire <= day, m = dateOf(day).month;
-      if ((fire && u(16) < 0.8) || ((m === 5 || m === 6) && u(16) < 0.03)) return this.make(pid, 'repair', -1, day, 45, fire ? 'the house burnt' : 'the roof and walls before the rains', fire ? 'econ' : 'aim'); }
+    if (eh && isHead) { const fire = eh.lastFire > day - 20 && eh.lastFire <= day, m = dateOf(day).month;
+      if (((fire && u(16) < 0.8) || ((m === 5 || m === 6) && u(16) < 0.03)) && !this.houseHas(pid, 'repair', day)) return this.make(pid, 'repair', -1, day, 45, fire ? 'the house burnt' : 'the roof and walls before the rains', fire ? 'econ' : 'aim'); }
     // a visit to kin in another house: a child born there, or long unseen
-    if (town && age >= 16 && !has('kinvisit') && u(17) < 0.012) { const H = P.households[this.hid(pid, day)], ks = (H.kin ?? []).filter(k => k !== H.id && P.households[k] && ['town', 'plain'].includes(P.households[k].zone));
+    if (town && age >= 16 && !has('kinvisit') && u(17) < 0.007) { const H = P.households[this.hid(pid, day)], ks = (H.kin ?? []).filter(k => k !== H.id && P.households[k] && ['town', 'plain'].includes(P.households[k].zone));
       if (ks.length) { const born = ks.find(k => P.households[k].births.some(b => b <= day && day - b < 20)), k = born ?? ks[Math.floor(u(18) * ks.length)], hd = this.head(k, day);
         if (hd >= 0 && hd !== pid) return this.make(pid, 'kinvisit', hd, day, 20, born !== undefined ? `a child born in ${this.name(hd)}'s house` : `kin at ${this.name(hd)}'s house long unseen`, born !== undefined ? 'life' : 'aim'); } }
     // leaving for good: a young person with nothing to hold them (C: rare)
-    if (age >= 18 && age <= 35 && !has('leave') && P.persons[pid].marry >= 1e9) { const bound = !!eh?.bound.some(b => !b.done), spurned = this.ended.filter(g => g.pid === pid && g.kind === 'spouse' && g.out === 'abandoned').length >= 1, home = p.group >= 0 && !p.persian;
+    if (age >= 18 && age <= 35 && u(12) < 0.03 && !has('leave') && P.persons[pid].marry >= 1e9) { const bound = !!eh?.bound.some(b => !b.done), spurned = this.ended.filter(g => g.pid === pid && g.kind === 'spouse' && g.out === 'abandoned').length >= 1, home = p.group >= 0 && !p.persian;
       if ((bound || spurned || home) && u(12) < (home ? 0.004 : 0.03)) return this.make(pid, 'leave', -1, day, 60, bound ? 'the house bound for its debt' : spurned ? 'the match refused' : 'longing for home', 'life'); }
     return null;
   }
-  private houseHas(pid: number, kind: GoalKind, day: number) { const h = this.hid(pid, day); for (const g of this.active.values()) if (g.kind === kind && this.hid(g.pid, day) === h) return true; return false; }
+  /** the goals of each house, by kind (an index: the check was a walk over every goal, for every head considered) */
+  private byHouse = new Map<number, GoalKind[]>();
+  private houseHas(pid: number, kind: GoalKind, day: number) { return !!this.byHouse.get(this.hid(pid, day))?.includes(kind); }
   private lastDeedBy(victim: number, doer: number): number { const mem = this.W.minds.memory.get(victim) ?? []; for (let i = mem.length - 1; i >= 0; i--) { const r = this.W.rec(mem[i]); if (r && r.deed.actor === doer && r.deed.target === victim) return r.id; } return -1; }
   make(pid: number, kind: GoalKind, who: number, day: number, span: number, why: string, cause: string): Goal {
     const depth = cause.startsWith('deed:') ? this.host.depthOfDeed(Number(cause.slice(5))) + 1 : cause.startsWith('goal:') ? (this.depth.get(Number(cause.slice(5))) ?? 1) + 1 : 1;
-    const g: Goal = { id: this.nextId++, pid, kind, who, born: day, until: Math.min(REGNAL_DAYS + 60, day + span), next: day + 1, prog: 0, n: 0, fails: 0, why, cause, depth };
+    const g: Goal = { id: this.nextId++, pid, kind, who, born: day, until: Math.min(REGNAL_DAYS + 60, day + span), next: day + 1, prog: 0, n: 0, fails: 0, why, cause, depth, hh: this.hid(pid, day) };
+    (this.byHouse.get(g.hh!) ?? this.byHouse.set(g.hh!, []).get(g.hh!)!).push(kind);
     this.active.set(g.id, g); (this.byPid.get(pid) ?? this.byPid.set(pid, []).get(pid)!).push(g.id); this.depth.set(g.id, depth); this.stats[kind][0]++; this.ever.add(pid);
     if (cause.startsWith('goal:')) this.host.formed(g); // (a chain: born of another goal's end)
     return g;
   }
   private finish(g: Goal, day: number, out: 'achieved' | 'abandoned', why: string) {
     g.end = day; g.out = out; g.endWhy = why; this.active.delete(g.id); const l = this.byPid.get(g.pid); if (l) { l.splice(l.indexOf(g.id), 1); if (!l.length) this.byPid.delete(g.pid); }
+    const hk = this.byHouse.get(g.hh ?? -1); if (hk) { const i = hk.indexOf(g.kind); if (i >= 0) hk.splice(i, 1); if (!hk.length) this.byHouse.delete(g.hh!); }
     this.stats[g.kind][out === 'achieved' ? 1 : 2]++; this.ended.push(g); if (this.ended.length > 400) this.ended.splice(0, this.ended.length - 300);
     // the heart follows: a thing won gladdens, a thing given up embitters (C)
     const big = ['spouse', 'work', 'debt', 'leave', 'care'].includes(g.kind) ? 1 : 0.6;
@@ -247,7 +253,7 @@ export class Goals {
     if (g.n % 3 === 0) { const healer = P.healer(P.households[this.hid(g.pid, day)]?.q ?? ''); if (healer >= 0 && healer !== g.pid && this.here(healer, day)) {
       if (this.act(g, { verb: 'visit', actor: g.pid, target: healer, aim: `to fetch the healer for ${this.name(w)}` }, day, 17)) this.act(g, { verb: 'heal', actor: healer, target: w, place: h, aim: 'called to the sickbed' }, day, 18); } }
     if (g.n % 4 === 1 && personaOf(P, g.pid, day).piety > 0.5) this.lay(g.pid, day + 1, 7, 8, 'offering_place', 'offer', `praying for ${this.name(w)}, who is sick`);
-    g.next = day + 2;
+    g.next = day + 3;
   }
   private debt(g: Goal, day: number) { const eh = this.eh(g.pid, day); if (!eh) { this.finish(g, day, 'abandoned', 'the house gone'); return; }
     if (!eh.debts.some(d => d.amt > 0.05)) { this.finish(g, day, 'achieved', 'the debt paid'); return; }
@@ -452,9 +458,9 @@ export class Goals {
 
   save() { return { n: this.nextId, a: [...this.active.values()], p: [...this.places], w: this.weds, l: this.left, t: [...this.learned], s: this.stats, e: this.ended.slice(-60) }; }
   load(s: ReturnType<Goals['save']> | undefined) {
-    this.active.clear(); this.byPid.clear(); this.places.clear(); this.weds.length = 0; this.left.length = 0; this.learned.clear(); this.ended.length = 0; this.depth.clear(); this.nextId = 0;
+    this.active.clear(); this.byPid.clear(); this.byHouse.clear(); this.places.clear(); this.weds.length = 0; this.left.length = 0; this.learned.clear(); this.ended.length = 0; this.depth.clear(); this.nextId = 0;
     for (const k of KINDS) this.stats[k] = [0, 0, 0]; if (!s) return;
-    this.nextId = s.n; for (const g of s.a) { this.active.set(g.id, g); (this.byPid.get(g.pid) ?? this.byPid.set(g.pid, []).get(g.pid)!).push(g.id); this.depth.set(g.id, g.depth); }
+    this.nextId = s.n; for (const g of s.a) { this.active.set(g.id, g); (this.byPid.get(g.pid) ?? this.byPid.set(g.pid, []).get(g.pid)!).push(g.id); this.depth.set(g.id, g.depth); if (g.hh !== undefined) (this.byHouse.get(g.hh) ?? this.byHouse.set(g.hh, []).get(g.hh)!).push(g.kind); }
     for (const [k, v] of s.p) this.places.set(k, v); for (const [k, v] of s.t) this.learned.set(k, v); this.ended.push(...s.e); for (const g of s.e) this.depth.set(g.id, g.depth);
     Object.assign(this.stats, s.s);
     // the world as the minds changed it: their weddings and their leavers put into the fresh population again

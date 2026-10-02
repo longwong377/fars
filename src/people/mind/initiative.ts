@@ -29,13 +29,13 @@ const TOLD = new Set<Verb>(['tell', 'lie', 'warn', 'complain', 'accuse', 'avoid'
 const SAY: Partial<Record<Verb, string>> = { steal: 'he stole from the house', attack: 'he beat a man', push: 'he struck a man', insult: 'he cursed a man to his face', mock: 'he mocked a man, the liar', curse: 'he cursed a house',
   threaten: 'he threatened to beat a man', break: 'he broke what was not his, the cheat', give: 'he was generous: he gave', help: 'he was kind: he helped', heal: 'he was kind to the sick', reconcile: 'they made peace: he was good about it',
   hire: 'he gave a man work, a good master', repair: 'he helped mend a house', carry: 'he was kind: he carried the load', share_food: 'he was generous with his bread' };
-export interface MindStats { days: number; ms: number; maxSlice: number; slices: number; /** the longest slice of each part of the day (ms) */ parts: Record<string, number>; deeds: Record<string, number>; done: Record<string, number>; src: Record<string, number>; chains: Record<number, number>; examples: string[] }
+export interface MindStats { days: number; ms: number; maxSlice: number; slices: number; /** the longest slice of each part of the day (ms) */ parts: Record<string, number>; /** the whole time of each part (ms) */ tot: Record<string, number>; deeds: Record<string, number>; done: Record<string, number>; src: Record<string, number>; chains: Record<number, number>; examples: string[] }
 
 export class Initiative implements GoalHost {
   readonly goals: Goals;
   private moods = new Map<number, [number, number, string][]>();
   private cursor = 0; private seen = 0; private deedDepth = new Map<number, number>();
-  readonly stats: MindStats = { days: 0, ms: 0, maxSlice: 0, slices: 0, parts: {}, deeds: {}, done: {}, src: {}, chains: {}, examples: [] };
+  readonly stats: MindStats = { days: 0, ms: 0, maxSlice: 0, slices: 0, parts: {}, tot: {}, deeds: {}, done: {}, src: {}, chains: {}, examples: [] };
   constructor(readonly W: DeedWorld) { this.goals = new Goals(W, this); }
 
   // ------------------------------------------------------------------ moods
@@ -61,7 +61,7 @@ export class Initiative implements GoalHost {
   // ------------------------------------------------------------------ the day
   *dayParts(day: number): Generator<void> {
     const W = this.W, P = W.w.pop, st = this.stats; let t = performance.now(), k = 0;
-    const slice = (part: string) => { const n = performance.now(), ms = n - t; st.ms += ms; st.slices++; if (ms > st.maxSlice) st.maxSlice = ms; if (ms > (st.parts[part] ?? 0)) st.parts[part] = ms; };
+    const slice = (part: string) => { const n = performance.now(), ms = n - t; st.ms += ms; st.slices++; if (ms > st.maxSlice) st.maxSlice = ms; if (ms > (st.parts[part] ?? 0)) st.parts[part] = ms; st.tot[part] = (st.tot[part] ?? 0) + ms; };
     const resume = () => { t = performance.now(); };
     const done = (rec: DeedRec, src: string) => { const v = rec.deed.verb; st.deeds[v] = (st.deeds[v] ?? 0) + 1; if (rec.out.ok) st.done[v] = (st.done[v] ?? 0) + 1; st.src[src] = (st.src[src] ?? 0) + 1;
       const g = rec.deed.goal !== undefined ? this.goals.depth.get(rec.deed.goal) : undefined; if (g && g > 1) this.deedDepth.set(rec.id, g); };
@@ -103,7 +103,7 @@ export class Initiative implements GoalHost {
       if (told % 20 === 19) { slice('talk'); yield; resume(); } }
     this.seen = W.next;
     // 7. a week's forgetting
-    W.minds.prune(day, day % 7, 7); slice('prune'); yield; resume();
+    for (const _ of W.minds.pruneParts(day, day % 7, 7)) { slice('prune'); yield; resume(); } slice('prune'); yield; resume();
     if (day % 7 === 0) { for (const [p, l] of this.moods) if (l.every(x => day - x[0] > 40)) this.moods.delete(p);
       if (this.deedDepth.size > 20000) { const lo = W.next - 10000; for (const id of this.deedDepth.keys()) if (id < lo) this.deedDepth.delete(id); } }
     st.days++; slice('end');

@@ -73,8 +73,8 @@ describe('D-459 deeds in the world (a real town, seed 1, day 60)', () => {
     expect(sim.strangerDeed(g, 'Marry me.')!.out.ok).toBe(false);
   });
   it('the town lives without him: a month of the minds\' own deeds, of many kinds, between its people', () => {
-    const n0 = sim.deeds.log.length; sim.jumpTo((day + 30) * 24 + 10); sim.econTo(day + 30);
-    const own = sim.deeds.log.slice(n0).filter(r => r.deed.actor !== 'player');
+    const n0 = sim.deeds.next; sim.jumpTo((day + 30) * 24 + 10); sim.econTo(day + 30);
+    const own = sim.deeds.log.filter(r => r.id >= n0 && r.deed.actor !== 'player'); // (D-461: the log is a window of the latest deeds, read by id)
     expect(own.length).toBeGreaterThan(100);
     expect(new Set(own.map(r => r.deed.verb)).size).toBeGreaterThanOrEqual(5);
     expect(own.filter(r => r.out.ok).length).toBeGreaterThan(30);

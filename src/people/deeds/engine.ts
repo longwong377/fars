@@ -250,7 +250,7 @@ export class DeedWorld {
     // nor in the open while it rains or the dust is up: the deed is done in words, its stretch of the day is not laid. A wound
     // kept at home is laid whatever)
     const P = this.w.pop;
-    if (seg.act !== 'lie_ill') { if (P.ageOn(pid, day) < 3 || P.hday(P.home(pid, day), day).minder === pid) return false;
+    if (seg.act !== 'lie_ill') { if (P.ageOn(pid, day) < 3 || (P.persons[pid].job === 'child' && P.hday(P.home(pid, day), day).minder === pid)) return false; // (the minder is a child of the house)
       const wx = P.cal?.ctx(day).wx, open = OPEN_PLACE.test(seg.place) || /^(offering_place|hills|river|mountain|road:)/.test(seg.place) || OUTDOOR_ACT.has(seg.act);
       if (wx && open && (wetHours(wx, seg.t0, seg.t1) > 0 || (wx.dustH && wx.dustH[0] < seg.t1 && wx.dustH[1] > seg.t0))) return false; }
     const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); return true; }

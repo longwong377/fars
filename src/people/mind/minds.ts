@@ -72,8 +72,10 @@ export class Minds {
   /** D-461: forget what has faded back near rest (anger, fear and gratitude under 0.03, a liking or a regard moved by less than
    *  0.06: a single visit's warmth, a word heard of someone), and keep the 24 strongest feelings of anyone who holds more (an
    *  elder who hears every complaint of the quarter): the state stays small over a year. A seventh of the people a day (part) */
-  prune(day: number, part = 0, parts = 1) { let i = 0;
-    for (const [a, m] of this.feel) { if (i++ % parts !== part) continue;
+  prune(day: number, part = 0, parts = 1) { for (const _ of this.pruneParts(day, part, parts)); }
+  /** the same in slices (a yield every 600 people pruned) */
+  *pruneParts(day: number, part = 0, parts = 1): Generator<void> { let i = 0, c = 0;
+    for (const [a, m] of this.feel) { if (i++ % parts !== part) continue; if (++c % 600 === 0) yield;
       for (const [k, h] of m) { const n = Math.max(0, day - h.day), f = (x: keyof Feel) => Math.abs(h.f[x] * Math.pow(FADE[x], n));
         if (f('anger') < 0.03 && f('fear') < 0.03 && f('grat') < 0.03 && f('aff') < 0.06 && f('resp') < 0.06) m.delete(k); }
       if (m.size > 24) { const sal = (h: Held) => { const n = Math.max(0, day - h.day); let s = 0; for (const x of Object.keys(FADE) as (keyof Feel)[]) s += Math.abs(h.f[x] * Math.pow(FADE[x], n)); return s; };
@@ -183,7 +185,8 @@ export class Minds {
         if (o !== 'player' && held?.(pid, o)) continue; // (D-461: a goal of revenge or of peace pursues this one, step by step)
         { const h = m.get(k)!, n = Math.max(0, day - h.day); if (h.f.anger * Math.pow(FADE.anger, n) < 0.15 && h.f.grat * Math.pow(FADE.grat, n) < 0.3 && h.f.fear * Math.pow(FADE.fear, n) < 0.4) continue; } // (D-461: nothing to act on: the rest is not read)
         const f = this.feelOf(pid, o, day), u = rng(pid, k + 1);
-        if (f.anger > 0.45) { const hot = personaOf(P, pid, day).temper > 0.65;
+        // (D-461: a grudge is acted on every few days, not every day it is held: C; the rest of the days it smoulders)
+        if (f.anger > 0.45) { if (rng(pid, k + 7) >= 0.35) continue; const hot = personaOf(P, pid, day).temper > 0.65;
           out.push(hot && f.anger > 0.7 && u < 0.25 ? { verb: 'attack', actor: pid, target: o, force: 0.4 } : u < 0.45 ? { verb: 'insult', actor: pid, target: o } : u < 0.7 && o !== 'player' ? { verb: 'complain', actor: pid, target: this.elderOf(pid, day) ?? o, third: o } : { verb: 'avoid', actor: pid, target: o });
           continue; }
         if (f.anger > 0.15 && f.aff > 0.3 && u < 0.08) { out.push({ verb: 'reconcile', actor: pid, target: o }); continue; }
