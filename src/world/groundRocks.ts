@@ -65,7 +65,8 @@ export function rockCell(seed: number, k: RockKind, ix: number, iy: number, nv: 
   const raw = (x: number, y: number) => { const key = ((x + 32768) * 65536 + (y + 32768)) * 2 + (k === 'stone' ? 0 : 1); let l = memo?.get(key); if (l) return l;
     const cx = ctxOf(x, y), w = ROCKS[k].where[cx]; l = [...(w ? rockCellItems(seed, k, x, y, w, nv) : []), ...(k === 'stone' && cx !== 'none' && cx !== 'water' ? vergeRockItems(seed, x, y, nv) : [])];
     if (memo) { if (memo.size > 80000) memo.clear(); memo.set(key, l); } return l; };
-  return resolveCell(ix, iy, CELL, raw, twinR, (t, j) => ({ ...t, yaw: bumpYaw(t.yaw, j) }));
+  const rk = -1 - (((ix + 32768) * 65536 + (iy + 32768)) * 2 + (k === 'stone' ? 0 : 1)), hit = memo?.get(rk); if (hit) return hit; // (the resolved cell: the same wherever the viewer is)
+  const res = resolveCell(ix, iy, CELL, raw, twinR, (t, j) => ({ ...t, yaw: bumpYaw(t.yaw, j) })); memo?.set(rk, res); return res;
 }
 interface Slot { prop: ScanProp; lod: 0 | 1; mesh: THREE.InstancedMesh; fpos: THREE.InstancedBufferAttribute; n: number }
 export class GroundRocks {

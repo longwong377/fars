@@ -15,6 +15,14 @@ C1 | view: -478,-881,1.6,189,-4,0,10 | town fill (D-550): a lane in q_s1 at 10 h
 C1 | view: -444.3,-990.7,1.6,279,-6,0,8 | town fill: a q_s1 market square at 8 h (stalls fullest in the morning); judge the goods and the awnings
 C1 | view: -799.1,-1122.2,1.6,214,-3,0,15 | town fill: a reed-mat shade before a door (new kit piece fill_reed_awning) in the afternoon; scale and seat on the wall
 C1 | view: -380,-863,1.6,341,-25,0,11 | town fill: the lanes' litter (fill_litter, straw, droppings, sherds) at the feet; does it read as litter or as a flat decal?
+C3 | view: -1000,314,1.7,290,-2,30,9.0 | the royal road 1 km W of the Terrace on a May morning, looking out along it: villagers coming in with strings, baskets, a cart; is the road alive and are the walkers and their loads readable at 20-200 m?
+C3 | view: -1000,314,1.7,110,-2,30,17.0 | the same road at 17:00 looking back toward the Terrace: the same households going home, the unloaded strings, a halt by the road
+C3 | view: -636,-1350,1.7,28,-2,100,8.0 | the south road 1.5 km out in the July harvest, toward Pārsa: ox carts of straw, sacks of new barley
+C3 | view: 300,1200,3,0,-4,200,10.0 | the Naqsh-e Rustam road N of the Terrace from 3 m: traffic both ways in the autumn
+C3 | view: -300,530,1.7,180,-3,30,17.5 | the court's camp with the court in residence (court=seasonal): the things before the tents (mats, bedding, jars, hearths), its picket lines
+C3 | view: -1800,1460,1.7,0,-2,30,8.0 | the royal stud's camp (p_horse): the picket lines of horses and mules, fodder heaps
+C3 | view: 150,80,1.7,180,-6,30,10.0 | the Hall of 100 Columns' site: the earth ramp to the column being raised, the gang hauling a drum up it, scaffold and plank bridge
+C3 | V3/V5 (activities.ts walk variant + animals.ts): a walk variant /driving a flock/ whose flock walks ahead of the herder in a loose mass with two dogs (a 'drive' kind: the flock's spots ahead along the walker's heading, pace ~0.9 m/s); roadFolk.ts will then send herders driving flocks along the roads (now they graze the verges with the 'herd' performance only) | herds on the move are in the C3 brief and nothing draws a moving flock
 cloud lead | V6 is now interior LIGHT and fire only; furnishing every room (town, villages, palaces, Treasury, tents) moved to cloud agent C7 (sessions/s17-vagon-v2.md); src/world/furnish_palaces.ts is C7's | so interiors everywhere are covered from now, not after light v1
 
 C6 | view: 420,150,1.6,80,6,30,9 | the hills' ground rock now reaches 1 km and the ledges fade by the frame (D-600): Kuh-e Rahmat's W face from its lower slope, is any slope still blank or does rock pop?
@@ -24,3 +32,7 @@ C6 | view: 0,40,13.6,250,1,30,17.5 | the far ranges W across the plain from the 
 C6 | walk: any 300 m walk toward Kuh-e Rahmat recorded at 2 fps | the geomorph (no terrain LOD pop) and the rock fades, if the train can record a walk
 cloud lead | ownership audit (sessions/s17-vagon-v2.md "Orphans assigned"): V2 now owns water's look (plain/waterShade.ts, settlement water shading); V1 skyVis.ts, eyeRays.ts; V3 render/sss.ts; V4 reliefShadow.ts, incision.ts, decorAssets.ts; V6 fireGlow.ts | these had no owner
 cloud lead | new cloud agents: C8 sound (recorded beds; Vagon will be asked to run tools/audio/fetch.mjs, the cloud cannot download), C9 the walk (src/player/**), C10 life everywhere (WHERE people are and what they do: population, popgeo, sim, living; V3 keeps how they look and move; a new activity kind comes to V3 as an ask) | people present everywhere, sound and the walk had no owner
+C2 | note + view: -1478,3285,1.6,47,-8,0,10 | the black flame shapes at the walker's feet on the plain (every render since s12) were the grass tufts' uncut cards: fixed in groundCover.ts (D-560); please confirm on the T4 in the next train (and 13460,-185,1.6,15,-5,58,10: stooks on a cut barley plot)
+
+C3 | V3 (activities.ts walk/tend_animals variants + workObjects): /ox cart of building stone/ and /holding the stone cart/ with a cart carrying a rough block (m_wo_cart with a block), so the quarry can send carts of stone for the Hall of 100 Columns' door and window frames along the drum route (traffic.ts); today /ox cart/ draws grain sacks, so C3 schedules none | "carts of stone" in the C3 brief
+C3 | V6 (fire): the court camps' hearths are courtCamps.ts campItems(tents) items with m === 'hearth' (every third ridge/black tent, shown while the tent stands): light them at the meal hours when the court is in residence | the camps' evening fires

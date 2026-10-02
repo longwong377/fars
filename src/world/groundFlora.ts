@@ -112,7 +112,8 @@ export function floraCell(seed: number, k: FloraKind, ix: number, iy: number, ct
   const raw = (x: number, y: number) => { const key = ((x + 32768) * 65536 + (y + 32768)) * 4 + KIDX[k]; let l = memo?.get(key); if (l) return l;
     const cx = ctxOf(x, y), w = FLORA[k].where[cx]; l = [...(w ? floraCellItems(seed, k, x, y, w) : []), ...(cx !== 'none' && cx !== 'water' ? vergeFloraItems(seed, k, x, y) : [])];
     if (memo) { if (memo.size > 60000) memo.clear(); memo.set(key, l); } return l; };
-  return resolveCell(ix, iy, CELL, raw, twinF, (t, j) => ({ ...t, yaw: bumpYaw(t.yaw, j) }));
+  const rk = -1 - (((ix + 32768) * 65536 + (iy + 32768)) * 4 + KIDX[k]), hit = memo?.get(rk); if (hit) return hit; // (the resolved cell: the same wherever the viewer is)
+  const res = resolveCell(ix, iy, CELL, raw, twinF, (t, j) => ({ ...t, yaw: bumpYaw(t.yaw, j) })); memo?.set(rk, res); return res;
 }
 
 export class GroundFlora {
