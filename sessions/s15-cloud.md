@@ -17,7 +17,7 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
   first three (D-374), re-run pending at the time of writing.
 - **B230 (brides branch):** merged s14-int into it locally (a8fee681, plans.ts conflict resolved: both sides kept); the three
   named d211 failures are being compared on both trees; NOT pushed to s13-bridesmerge yet.
-- The rumour stances "flee" (8,378 at day 120) and "avoid" (587) still drive nothing; small children's days have few distinct
+- Small children's days have few distinct
   reasons (a 2-4 year old follows the mother; their plans are pinned by people_days, left as they are).
 - The soak per seed (task 4) did not run this session (the box was given to the B230 comparison and the talk work).
 
@@ -35,7 +35,8 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
   elder, an official or the court (wages, a plea, relief, a sealed document), join a treasury gang, a caravan, a household;
   your comprehension of each tongue grows and the subtitles thin as you learn.
 - **Gossip has teeth:** a house that hears a rumour of a theft or a default trusts the house it names less, and the economy's
-  lenders and employers read that trust.
+  lenders and employers read that trust; a house shunned over a rumour, or in a quarter feared for its sickness, gets no help
+  from those who shun it (8 % of offers withheld at day 120).
 
 ## Numbers
 - Depth audit (tools/dev/depth_audit.ts; 60 people, seeds 1, 7, 42, day 150; share thin): history 0.58 -> 0; talk material

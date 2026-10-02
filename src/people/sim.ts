@@ -207,6 +207,7 @@ export class PeopleSim {
     this.asksWorld = new AsksWorld(this.pop, seed, () => this.econCore(), opts.asks === true); this.living.onDay = d => this.asksWorld.day(d);
     this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
     this.pop.ledger = d => this.econ && this.econ.day >= d - 1 ? this.econ : null; // (D-371: the life record's real debts and dealings)
+    this.living.shuns = (g, a, into) => { if (!this.asksWorld.on) return false; const R = this.asksWorld.rumours; if (R.stanceOf(g, a).includes('avoid')) return true; const q = this.econ?.hh.get(a)?.q; return into && !!q && R.stanceOf(g, 'q:' + q).includes('flee'); }; // (flee: keyed by the quarter of the sickness) // (D-375)
     this.pop.asksNow = (hh, d) => this.asksWorld.on && this.econ && this.econ.day >= d - 1 ? { asks: this.asksWorld.openAsksOf(hh), rumours: this.asksWorld.rumours.knownBy(hh, d) } : null; // (D-375)
     // D-347: laundry days and baths in the plans (clear of the living world's errands), and the wardrobes that read them
     this.washPlans = new WashPlans(this.pop, seed, (pid, d) => this.living.windows(pid, d)); if (opts.washing !== false) this.pop.wash = this.washPlans;

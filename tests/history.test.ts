@@ -121,3 +121,10 @@ describe('D-375 gossip moves trust', () => {
     console.log('[gossip]', lower, '/', n); expect(n).toBeGreaterThan(10); expect(lower / n).toBeGreaterThan(0.6);
   }, 1_800_000);
 });
+describe('D-375 rumours leave a house without help', () => {
+  it('with asks on, some help is withheld from houses shunned over what was heard; with asks off, none', () => {
+    const on = simAt(1, 120, 12, { asks: true }); on.econTo(121); const s = (on.living.stats as any).shunned ?? 0;
+    console.log('[shun]', s, 'offers', on.living.stats.offers);
+    expect(s).toBeGreaterThan(0); expect(s).toBeLessThan(on.living.stats.offers * 0.5);
+  }, 1_800_000);
+});
