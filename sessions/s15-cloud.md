@@ -3,29 +3,19 @@
 Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/s15/cloud.md, then the addendum cloud_talk.md (UD-31).
 
 
-## NEXT SESSION STARTS HERE (handoff, 2026-10-02 ~09:30 UTC, cloud lead "Fars 18")
-Read this, then `git log origin/cloud-s15-depth -15`. **UD-32 governs the cloud now:** "I want my voice to be able to do
-anything and an actual brain in every npc in a sandbox world" and "it shouldnt be at all dependent on the player ... an organic
-sandbox with or without the player". The user also said "prove the voice as well at the same time".
-- **Landed (this branch):** D-455 the stranger's living loop (market stalls, a day's hire, bread by the loaf); D-459 the open-deeds
-  core: src/people/deeds/ (57 verbs, grammar + model JSON schema, the engine) and src/people/mind/minds.ts (feelings, memory,
-  decisions, initiative, the economy's events felt). Without the stranger a month (seed 1, days 60-90) has ~3,700 deeds by ~3,300
-  people in 7 kinds (kin helping sick and burnt houses, comfort in mourning, gifts, meals, visits, insults, keeping away) and
-  cases before the elders, for ~72 ms of CPU a game day (tools/dev/minds_month.ts). The page reads free speech into a deed with
-  the model (Mind.readDeed, WebLLM JSON mode) when the grammar finds none: unheard (Vagon).
-- **Sessions running (each its own machine; merge their branches into this one when they report):**
-  D-456 talk eval on the shipped 1.5B (session_01JvEym34pgDHVAb13K6ZAxi, cloud-s15-talkeval: interim 55 % of 407 turns clean,
-  fixes in, after-run then the deed-reading eval); D-457 women's names (session_01TKQsWenzGTJf1KNQptNaoV, cloud-s15-names);
-  D-458 market stallholders (session_013E7vWSWMxRnv1eMCZxF7wv, cloud-s15-market); D-460 law and feuds
-  (session_01VsnxVbmdWbN9at5ghUbVfa, cloud-s15-law); D-461 minds' goals at scale (session_01Gt3UYsr9x5YELtkvv2y2Rp,
-  cloud-s15-minds); D-462 deeds made physical (session_01X78J4wqvaLNLwjGmdgQaM4, cloud-s15-joint); B230 brides
-  (session_01YY3WBdP7cdEqwqtZhcadWQ, s13-bridesmerge).
-- **Broken / open:** the NPCs' own deeds judge busyness by the hour only (the cost; D-461 to make it smarter cheaply); the
-  talk_world 450-token test times out under vitest (337 s, 6 s under tsx: unexplained, parked); nothing seen or heard in the
-  browser; Vagon has not merged D-382 onward.
-- **Numbers:** the cloud continues from D-463 (D-455..D-462 used).
-- **Box rules learned:** agents share one working tree locally, so prefer cloud sessions (own machines); inline `//` comments
-  inside one-line code have swallowed code: end of line only.
+## NEXT SESSION STARTS HERE (handoff, 2026-10-02 ~13:30 UTC, cloud lead "Fars 18", session closed by the user)
+Read **sessions/s15-cloud-report.md** first (the state of the game, for the user). Everything of the cloud is consolidated on
+`cloud-s15-depth`; every cloud session of today is merged and archived (D-455..D-463, B230, names, talk eval, talk16).
+- **Live (s14-int 9cb464ee, deployed):** Vagon's s16-candidate + the boot fix (D-463). NOT live: cloud-s15-depth (open deeds,
+  minds, goals, law, physical deeds, market stallholders, names, brides, talk-eval fixes): its built site reaches ready at the
+  same speed but +0.2 GB page memory, so the merge budget kept it off s14-int; the user or Vagon decides.
+- **Open, first:** nothing of today played or seen; B403 the late save 2.28 MB (gate 1 MB) and the restore limit; the minds
+  ~187 ms a game day; too many betrothals; econ_plans layering problems (deeds laid into a mother's day after the child's plan
+  was cached); the deed-reading eval with the model not run (tools/dev/talkeval/deeds.ts, 150 labelled lines); sentences on
+  the stranger not enforced; free speech to women mostly refused by the manners rule; people_days* not run after the merges.
+- **Next, in order:** (1) play it (Vagon); (2) decide the +0.2 GB merge; (3) B403 and the minds' cost; (4) the voice post-filter
+  and the deed-reading eval; (5) betrothals and econ_plans layering.
+- **Numbers:** the cloud continues from D-464 (D-455..D-463 used).
 
 ## For the Vagon lead (now; written 2026-10-02 06:40 UTC after reading s14-int to 72c45ec1)
 - **Merge cloud-s15-depth into s14-int: 25 commits are waiting (D-382..D-391, D-450..D-454).** s14-int is already merged into

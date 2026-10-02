@@ -42,10 +42,17 @@ the target.
 7. **Most free speech to women is refused** by the period-manners rule (10 of 18 refusals in the bot's run): probably too
    strict.
 8. **Women's names:** the new names are reconstructions from attested name parts (tier C); no newly attested name was added.
-9. **Tests that time out on the cloud box** (no assertion failed): year-wide people_days r6/r8 cases, the court letters
+9. **The save is too big (B403):** the late-year save is 2.28 MB against a 1 MB gate (3.66 MB before today's pruning);
+   the minds session measured its own part at 1,024 KB at year end. The 2 s restore limit also failed.
+10. **Too many betrothals** by the minds (514 vs 336 weddings a year); revenge mostly cools off unpaid; chains of cause are
+   2-3 deep at most.
+11. **Day plans and deeds disagree in places** (econ_plans: 206 layering problems after the market merge, 15 on depth alone:
+   a child shown apart from its mother when a deed is laid into her day after the child's plan was cached; some moves
+   without a walk).
+12. **Tests that time out on the cloud box** (no assertion failed): year-wide people_days r6/r8 cases, the court letters
    case, talk_world's prompt sweep under vitest. Three people_days_r6 assertion failures (infant/minding/mourning) predate
    today's work and belong to the depth track.
-10. **Adult brides (B230):** merged; its comparison against the newest main line (r7-r11 day tests) was not finished.
+13. **Adult brides (B230):** merged; its comparison against the newest main line (r7-r11 day tests) was not finished.
 
 ## What a player would meet (if it works on screen as in the tests)
 
@@ -66,6 +73,14 @@ the target.
 
 ## Numbers (node, seed 1 unless noted)
 
+- **Goals (no stranger, a full year, seeds 1 and 7):** 31-33 thousand goals formed, 86-89 % achieved; 17 thousand of 27.6
+  thousand people aged 14+ held one; 222-255 thousand deeds by the minds; 426-447 betrothals (too many: the population's
+  own weddings are 336), 957-1039 places won, 54-67 people left the town, ~1,400 children taught a craft.
+- **The minds' cost after all merges:** ~187 ms of CPU per game day on average (98 ms in month 1, ~200 ms from day 120; one
+  unexplained 425 ms slice). Sliced across frames, but heavier than this morning's 72 ms.
+- **The market:** the town's exchange on day 60 at 9 h: 9 -> 190 people; 144 stalls; a village market of 47 stalls; the bot
+  found the market 16 of 33 times it wanted it (was 4 of 62).
+
 - Voice (shipped Qwen2.5-1.5B, exact weights, CPU; same 80 people before -> after today's fixes): clean turns 53.5 -> 75.8 %;
   people clean on all 5 turns 3 -> 33; "where do you live" names the place 26 -> 61 %; unknowable questions honestly
   deflected 14 -> 64 %; digits 4 -> 0; invented names 10 -> 2 (bench-reports/talk_eval_s15.md).
@@ -80,7 +95,16 @@ the target.
 
 - `s14-int` (live): Vagon's s16-candidate + the boot fix (D-463).
 - `cloud-s15-depth` (everything consolidated, not yet live): D-455..D-462, names, talk eval, talk16 hooks, brides; guards green.
-- Merge order for the next lead: built-site check of cloud-s15-depth (in progress, see below) -> merge into s14-int -> play.
+- **The consolidated built site was measured** (cloud-s16-boot + cloud-s15-depth before the market and goals merges): it reaches
+  ready in 99.8 s cold / 69.0 s warm (unchanged), but page memory rose 5.60 -> 5.83 GB. The merge budget rule (a merge that
+  makes memory worse does not go in) kept it OFF s14-int: **your call or Vagon's** whether depth is worth +0.2 GB, or to
+  find the memory first. Recommendation: merge it (the slice needs the depth), then cut memory (the animals and assets).
+
+## Tests at the end (cloud box, node)
+
+- Consolidated key batch (deeds, law, joint, the stranger's living, stranger, talk, approach, sight, react, names, history):
+  113/114 (the one: react's village case timed out, 186 s vs 120 s, no assertion failed). talk_prompt 5/5 (no digits reach
+  the model). Guards 25/25. Not run after the last merges: people_days* (year-long; hours each on this box), econ_plans.
 
 ## The sessions of today (all reported, merged and archived unless noted)
 
@@ -89,10 +113,10 @@ the target.
 | D-455 the stranger's living loop (lead) | market stalls, day's hire, bread by the loaf |
 | D-456 voice eval on the shipped model | 53.5 -> 75.8 % clean turns; deed-reading eval not run |
 | D-457 women's names | namesakes under 1 % |
-| D-458 market stallholders | PENDING |
+| D-458 market stallholders | the market full of people: day 60 at 9 h 9 -> 190 people, 144 stalls; quieter in winter/festivals |
 | D-459 open deeds and minds (lead) | the core: 57 verbs, minds for everyone, the town acts alone |
 | D-460 law, feuds, consequences | thefts found out, lies found out, feuds, the watch, judges |
-| D-461 minds' long-term goals | PENDING |
+| D-461 minds' long-term goals | 14 kinds of goal pursued step by step; 31-33 thousand goals a year, 86-89 % achieved |
 | D-462 deeds made physical | hunts, roofs, lessons, hiring, errands into the economy |
 | D-463 built-site boot hang | two causes fixed; site live again |
 | B230 adult brides (inherited) | merged; comparison unfinished |
