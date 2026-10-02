@@ -20,6 +20,7 @@ import type { ActivityId } from '../activities';
 import { u01, salt } from '../hash';
 import { Minds, type MindCtx } from '../mind/minds';
 import { VERBS } from './verbs';
+import { Joint, sayNo, HIRE_WAGE } from './joint';
 import type { Actor, Deed, DeedRec, Effect, Outcome, Good } from './types';
 
 export interface WorldPort {
@@ -32,6 +33,9 @@ const S = { hour: salt('deed-hour'), law: salt('deed-law'), fight: salt('deed-fi
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
 const CHILD_HARM = new Set(['attack', 'push', 'steal', 'threaten', 'curse', 'break']);
 const ROMANCE = new Set(['flirt', 'court', 'embrace']);
+/** deeds the people near take note of and tell (a wrong, and words or touches that make talk); the rest need no witnesses
+ *  (D-462: finding the people near costs their day plans: a visit or a meal shared was 70 % of a month's simulation) */
+const NOTED = new Set(['mock', 'accuse', 'embrace', 'flirt', 'court', 'praise', 'apologize', 'reconcile', 'bless', 'warn', 'lie', 'tell', 'give', 'return']);
 /** a ruling's fine in silver by the wrong (C: a shekel or so for a blow, two for a beating, the worth twice over for a theft) */
 const FINE: Record<string, number> = { theft: 0.5, assault: 1, damage: 0.6, insult: 0.15, threats: 0.2, cursing: 0.15 };
 
@@ -50,6 +54,8 @@ export class DeedWorld {
   private mine: { t: number; deed: Deed }[] = [];
   private lays = new Map<string, Seg[]>();
   private dayDone = -1;
+  /** D-462: the undertakings agreed (deeds/joint.ts): the walks, the work at its place, kept or missed, and what comes of it */
+  readonly joint: Joint;
   constructor(readonly w: WorldPort, ctx?: Partial<MindCtx>) {
     const E = (d: number) => w.econ(d), hhOf = (pid: number, d: number) => `h:${w.pop.home(pid, d)}`;
     this.minds = new Minds(w.pop, w.seed, {
@@ -57,6 +63,10 @@ export class DeedWorld {
       need: (pid, d) => { const e = E(d); const n = e?.hh.has(hhOf(pid, d)) ? e.needsOf(hhOf(pid, d)) : []; return { food: n.find(x => x.kind === 'food')?.urgency ?? 0, cash: n.find(x => x.kind === 'cash')?.urgency ?? 0 }; },
       ...ctx,
     });
+    this.joint = new Joint({ pop: w.pop, seed: w.seed, econ: E, feel: (a, b, d, day) => this.minds.move(a, b, d, day), feelOf: (a, b, day) => this.minds.feelOf(a, b, day),
+      trust: (hh, of, d, day) => { const e = E(day); if (e?.trust && e.hh.has(hh)) e.trust.note(hh, of === 'player' ? 'player' : this.hh(of, day)!, d, day); },
+      lay: (pid, day, s) => this.lay(pid, day, s), unlay: (pid, from, why) => this.unlay(pid, from, why), name: a => this.name(a), act: (d, t) => this.act(d, t),
+      decide: (pid, d, day, h) => this.minds.decide(pid, d, day, h), skill: k => this.skills.get(k) ?? 0, addSkill: (k, d) => this.skills.set(k, Math.min(1, (this.skills.get(k) ?? 0) + d)) });
   }
   private hh(a: Actor, day: number): string | null { return a === 'player' ? null : `h:${this.w.pop.home(a, day)}`; }
   private name(a: Actor) { return a === 'player' ? 'the stranger' : (this.w.pop.nameOf(a) ?? 'someone').replace(/^\*/, ''); }
@@ -95,18 +105,23 @@ export class DeedWorld {
     }
     // the things: the doer must have what he gives, the other what is taken or asked
     const lack = this.lacks(d, day); if (lack) return no(lack);
+    // D-462: the undertaking's own limits (the hour promised already, a teacher who does not do the work, the silver for a hire)
+    const cant = this.joint.cannot(d, t) ?? (d.verb === 'hire' && d.actor === 'player' && (this.w.econ(day)?.hasStranger ? this.w.econ(day)!.stranger().purse.cash : 0) < HIRE_WAGE.porter ? 'the stranger has not the silver to pay' : null);
+    if (cant) return { ...no(cant, /promised|does not do|roof is sound/.test(cant)), say: sayNo(cant, d.verb) };
     // asleep: words are not heard, and the consenting deeds wait
     const tSeg = typeof tg === 'number' ? segAt(P.plan(tg, day), hour) : null;
     if (tSeg?.act === 'sleep' && (d.inH ?? 0) < 1 && !['attack', 'steal', 'break', 'push'].includes(d.verb)) return no('asleep');
     // the other's mind
-    const dec = typeof tg === 'number' ? this.minds.decide(tg, d, day, hour) : { lean: 0.5, ok: true, why: '' };
+    // (an undertaking is weighed at its own hour: the hunt at dawn tomorrow, not against what they do now: D-462)
+    const wh = (d.inH ?? 0) >= 0.5 && this.joint.kindOf(d) ? this.joint.when(d, t) : null;
+    const dec = typeof tg === 'number' ? this.minds.decide(tg, d, wh?.day ?? day, wh?.h0 ?? hour) : { lean: 0.5, ok: true, why: '' };
     if (sense.consent && !dec.ok) {
       const eff: Effect[] = typeof d.actor === 'number' && typeof tg === 'number' ? [{ k: 'feel', who: d.actor, toward: tg, d: { aff: -0.03 } }] : [];
-      if (apply) this.applyAll(eff, day, d); return { ok: false, refused: true, why: dec.why, lean: dec.lean, effects: eff };
+      if (apply) this.applyAll(eff, day, d); return { ok: false, refused: true, why: dec.why, say: sayNo(dec.why, d.verb), lean: dec.lean, effects: eff };
     }
-    const wit = typeof tg === 'number' ? this.w.near(tg, t).filter(x => x !== tg && x !== d.actor && P.ageOn(x, day) >= 10).slice(0, 8) : [];
+    const wit = typeof tg === 'number' && (sense.wrong || NOTED.has(d.verb)) ? this.w.near(tg, t).filter(x => x !== tg && x !== d.actor && P.ageOn(x, day) >= 10).slice(0, 8) : [];
     const eff = this.effects(d, t, dec.lean, wit);
-    if (apply) this.applyAll(eff, day, d);
+    if (apply) this.applyAll(eff, day, d, t);
     return { ok: true, why: dec.why || sense.gloss, lean: dec.lean, effects: eff, witnesses: wit };
   }
   private lacks(d: Deed, day: number): string | null {
@@ -172,12 +187,17 @@ export class DeedWorld {
       case 'reconcile': if (typeof tg === 'number') { const o = d.third ?? d.actor; out.push({ k: 'feel', who: tg, toward: o, d: { anger: -0.3, aff: 0.05 } }); if (typeof o === 'number') out.push({ k: 'feel', who: o, toward: tg, d: { anger: -0.3, aff: 0.05 } }); } break;
       case 'introduce': if (typeof tg === 'number' && typeof d.third === 'number') out.push({ k: 'feel', who: tg, toward: d.third, d: { aff: 0.06 } }, { k: 'feel', who: d.third, toward: tg, d: { aff: 0.06 } }); break;
       case 'heal': if (typeof tg === 'number') { const inj = this.injuries.get(tg); if (inj) inj.until = Math.max(day, inj.until - 3); } break;
-      case 'teach': if (d.actor === 'player') out.push({ k: 'skill', who: 'player', skill: d.act ?? 'craft', d: 0.12 }); break;
+      case 'teach': if (d.actor === 'player' && !this.joint.kindOf(d)) out.push({ k: 'skill', who: 'player', skill: d.act ?? 'craft', d: 0.12 }); break;
       case 'help': case 'repair': case 'build': case 'carry': case 'guard':
-        if (tH) out.push({ k: 'work', hh: tH, what: d.act ?? d.verb, amt: VERBS[d.verb].hours }); break;
+        if (tH && !this.joint.kindOf(d)) out.push({ k: 'work', hh: tH, what: d.act ?? d.verb, amt: VERBS[d.verb].hours }); break;
+      case 'hire': if (d.actor === 'player' && typeof tg === 'number') out.push({ k: 'hire', pid: tg, said: d.said ?? d.about ?? '' }); break;
+      case 'dismiss': if (d.actor === 'player' && typeof tg === 'number' && this.joint.hiredNow(day).some(h => h.pid === tg)) out.push({ k: 'hire', pid: tg, said: '@dismiss' }); break;
     }
+    // D-462: an undertaking (deeds/joint.ts): the walks there and back, the work at its place, kept or missed, and what comes of it
+    const J = sense.consent && typeof tg === 'number' && d.verb !== 'hire' ? this.joint.plan(d, t) : null;
+    if (J) { out.push({ k: 'job', job: J.job, segs: J.segs }); return out; }
     // where the deed takes people: the other (and a mind doer) go to the place and do it for its hours
-    if (tg !== undefined && sense.consent && sense.hours > 0.2 && typeof tg === 'number') {
+    if (tg !== undefined && d.verb !== 'hire' && sense.consent && sense.hours > 0.2 && typeof tg === 'number') {
       const at = hour + (d.inH ?? 0), dd = day + Math.floor(at / 24), h0 = at % 24, h1 = Math.min(23.5, h0 + sense.hours);
       const place = d.place ?? (d.verb === 'visit' ? (typeof d.actor === 'number' ? `h:${P.home(d.actor, dd)}` : `h:${P.home(tg, dd)}`) : segAt(P.plan(tg, dd), h0).place);
       const act: ActivityId = d.act ?? (d.verb === 'visit' || d.verb === 'meet' || d.verb === 'intercede' || d.verb === 'reconcile' || d.verb === 'introduce' ? 'talk' : d.verb === 'share_food' ? 'eat' : d.verb === 'pray' ? 'offer' : d.verb === 'heal' ? 'tend_body' : d.verb === 'carry' ? 'carry_sack' : d.verb === 'come_with' ? 'walk' : 'talk');
@@ -188,7 +208,7 @@ export class DeedWorld {
     return out;
   }
 
-  private applyAll(eff: Effect[], day: number, d: Deed) {
+  private applyAll(eff: Effect[], day: number, d: Deed, t = day * 24 + 12) {
     const E = this.w.econ(day), R = this.w.rumours(), P = this.w.pop;
     for (const e of eff) switch (e.k) {
       case 'feel': this.minds.move(e.who, e.toward, e.d, day); break;
@@ -202,6 +222,8 @@ export class DeedWorld {
       case 'skill': this.skills.set(e.skill, Math.min(1, (this.skills.get(e.skill) ?? 0) + e.d)); break;
       case 'promise': this.promises.push({ id: this.promises.length, from: e.from, to: e.to, verb: e.what === 'return' ? 'return' : 'give', due: e.due }); break;
       case 'work': if (E) { const H = E.hh.get(e.hh); if (H) { if (/reap|thresh|field|plough|irrigat|garden|pick/.test(e.what)) H.grain += 0.8 * e.amt; else if (/craft|weave|spin|smith|work_wood|pot/.test(e.what)) H.goods += 0.05 * e.amt; } } break;
+      case 'job': this.joint.add(e.job, e.segs); break;
+      case 'hire': if (e.said === '@dismiss') this.joint.dismiss(e.pid, day); else this.joint.hire(e.pid, e.said, t); break;
       case 'lay': this.lay(e.pid, e.day, { t0: e.h0, t1: e.h1, place: e.place, act: e.act, why: e.why, where: this.whereOf(e.place, e.pid, e.day) }); break;
     }
     void d;
@@ -219,6 +241,8 @@ export class DeedWorld {
   }
   /** lay a segment over a person's day (the plans' overlay) */
   private lay(pid: number, day: number, seg: Seg) { const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); }
+  /** take back the segments laid from a day on whose reason matches (a hire ended: D-462) */
+  private unlay(pid: number, from: number, why: RegExp) { for (const [k, l] of this.lays) { const [p, d] = k.split(':').map(Number); if (p !== pid || d < from) continue; const r = l.filter(s => !why.test(s.why)); if (r.length) this.lays.set(k, r); else this.lays.delete(k); } }
   private layDays(pid: number, day: number, n: number, act: ActivityId, why: string) { const P = this.w.pop; for (let d = day + 1; d <= day + n; d++) this.lay(pid, d, { t0: 0, t1: 24, place: `h:${P.home(pid, d)}`, act, why, where: P.households[P.home(pid, d)]?.zone === 'plain' ? 'plain' : 'town' }); }
   /** the deeds' overlay of the day plans (Population.deeds) */
   readonly overlay = {
@@ -252,8 +276,8 @@ export class DeedWorld {
   *dayParts(day: number): Generator<void> {
     if (day <= this.dayDone) return; this.dayDone = day;
     for (const c of this.cases) if (!c.ruled && c.due <= day) this.rule(c, day);
-    this.duesOf(day); yield;
-    const own = this.minds.deeds(day); let k = 0;
+    this.duesOf(day); this.joint.day(day); yield;
+    const own = [...this.minds.deeds(day), ...this.joint.initiative(day)]; let k = 0;
     for (const d of own) { const t = day * 24 + 8 + u01(this.w.seed, S.hour, day, k++) * 12; d.inH = d.inH ?? 0; this.act(d, t); if (k % 40 === 0) yield; }
   }
   day(day: number) { for (const _ of this.dayParts(day)); }
@@ -265,17 +289,18 @@ export class DeedWorld {
     const fl = [f.anger > 0.25 ? 'angry with him' : '', f.fear > 0.25 ? 'afraid of him' : '', f.grat > 0.2 ? 'grateful to him' : '', f.aff > 0.3 ? 'fond of him' : f.aff < -0.2 ? 'dislike him' : '', f.resp > 0.3 ? 'respect him' : ''].filter(Boolean);
     if (fl.length) out.push(`You are ${fl.join(' and ')}.`);
     const mem = (this.minds.memory.get(pid) ?? []).map(i => this.log[i]).filter(r => r && r.out.ok && (r.deed.actor === 'player' || r.deed.target === 'player') && day - r.day < 60).slice(-2);
-    for (const r of mem) out.push(`${day - r.day === 0 ? 'Today' : day - r.day === 1 ? 'Yesterday' : 'Some days ago'} ${r.deed.actor === 'player' ? `the stranger ${VERBS[r.deed.verb].gloss.replace(/^to /, '')}${r.deed.target === pid ? ' (to you)' : ''}` : `you ${r.deed.verb.replace(/_/g, ' ')} the stranger`}.`);
+    for (const r of mem) out.push(`${day - r.day === 0 ? 'Today' : day - r.day === 1 ? 'Yesterday' : 'Some days ago'} ${r.deed.actor === 'player' ? `${VERBS[r.deed.verb].consent ? `the stranger asked ${r.deed.target === pid ? 'you' : 'someone'} ${VERBS[r.deed.verb].gloss}` : `from the stranger, ${VERBS[r.deed.verb].gloss}${r.deed.target === pid ? ' (to you)' : ''}`}` : `you ${r.deed.verb.replace(/_/g, ' ')} the stranger`}.`);
+    out.push(...this.joint.briefOf(pid, day));
     const inj = this.injuries.get(pid); if (inj && inj.until > day) out.push(`You are ${inj.how === 'broken' ? 'badly hurt, a bone broken' : inj.how === 'cut' ? 'cut and bandaged' : 'bruised'}, by ${this.name(inj.by)}.`);
     return out;
   }
   /** a person's wound now (the renderer's and the marks' hook) */
   injuryOf(pid: number, day: number) { const i = this.injuries.get(pid); return i && i.until > day ? i : null; }
 
-  save() { return { mine: this.mine, minds: this.minds.save(), inj: [...this.injuries], cases: this.cases, promises: this.promises, skills: [...this.skills], lays: [...this.lays], dayDone: this.dayDone, n: this.log.length }; }
+  save() { return { mine: this.mine, minds: this.minds.save(), inj: [...this.injuries], cases: this.cases, promises: this.promises, skills: [...this.skills], lays: [...this.lays], dayDone: this.dayDone, n: this.log.length, joint: this.joint.save() }; }
   load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
     this.cases.splice(0, this.cases.length, ...s.cases); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
-    this.lays = new Map(s.lays); this.dayDone = s.dayDone; }
+    this.lays = new Map(s.lays); this.dayDone = s.dayDone; this.joint.load(s.joint); }
 }
 
 /** a segment laid into a day: the base is cut around it (the overlays' shared rule) */
