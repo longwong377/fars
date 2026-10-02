@@ -4,6 +4,7 @@
 // pyproj-derived grid `xy` from the data, never src/core/geo.ts (which drifts ~80 m at 40 km).
 import plainJson from '../../data/plain.json';
 import settlementJson from '../../data/settlement.json';
+import { BASE } from '../../core/base';
 
 export const PLAIN: any = plainJson;
 export const SETTLEMENT: any = settlementJson;
@@ -55,7 +56,7 @@ export function parseRivers(j: any): RiversData {
     channel: r.channel, topWidth: r.top_width_m, carveRadius: r.carve_radius_m }));
   return { rivers, nrAncientFootAsl: j.naqsh_e_rustam.ancient_foot_asl };
 }
-export async function loadRivers(fetcher: (p: string) => Promise<any> = async p => (await fetch('/' + p)).json()): Promise<RiversData> {
+export async function loadRivers(fetcher: (p: string) => Promise<any> = async p => (await fetch(BASE + p)).json()): Promise<RiversData> {
   return parseRivers(await fetcher('generated/rivers.json'));
 }
 
