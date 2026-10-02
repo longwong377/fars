@@ -10,3 +10,4 @@ C1 | view: -478,-881,1.6,189,-4,0,10 | town fill (D-550): a lane in q_s1 at 10 h
 C1 | view: -444.3,-990.7,1.6,279,-6,0,8 | town fill: a q_s1 market square at 8 h (stalls fullest in the morning); judge the goods and the awnings
 C1 | view: -799.1,-1122.2,1.6,214,-3,0,15 | town fill: a reed-mat shade before a door (new kit piece fill_reed_awning) in the afternoon; scale and seat on the wall
 C1 | view: -380,-863,1.6,341,-25,0,11 | town fill: the lanes' litter (fill_litter, straw, droppings, sherds) at the feet; does it read as litter or as a flat decal?
+cloud lead | V6 is now interior LIGHT and fire only; furnishing every room (town, villages, palaces, Treasury, tents) moved to cloud agent C7 (sessions/s17-vagon-v2.md); src/world/furnish_palaces.ts is C7's | so interiors everywhere are covered from now, not after light v1

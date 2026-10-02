@@ -70,6 +70,7 @@ heavy node jobs through tools/dev/cpu_slot):
 | C4 | load keeper (UD-31) | under a minute and under 5 GB while both sides add assets; the shared decoder (871d8aab) re-landed with a passing headless load; animals and far models after walkable; Pages under 1 GB | src/render/models.ts, a new src/render/loaders.ts, the boot sequence in src/main.ts, public/sw.js, tools/deploy/**, .github/workflows/pages.yml |
 | C5 | screens and intro | loading screen, title, menus, settings, subtitles, translation-layer text, the chronicle (J); the wordless intro (starts when walkable, skippable, nothing hints at the fate, §1.1) written as a camera path, judged in Vagon's train | src/shell/**, src/ui/**, src/shell/intro.ts (hook in main.ts via C4) |
 | C6 | far land | hills, skyline, far terrain levels and the far Terrace (B175), no pop-in (node pop-in checks; looks judged on the train) | src/world/hills/**, src/terrain/terrainMesh.ts, horizonMap.ts, horizonShadow.ts, heightfield.ts (the far levels) |
+| C7 | interiors everywhere | every enterable room in the town, villages, palaces, Treasury, storerooms, workshops and tents furnished for its use and household (the sim's crafts, wealth, season), no two neighbours alike; the room's light stays V6's | a new src/world/interiors/**, src/world/furnish.ts, furnish_palaces.ts, tools/blender/interior_*; one-call hooks in the room owners' files |
 The cloud lead: Step 0, then merging C1-C6 into cloud-s17-int, the CI runs, and answering Vagon's asks.
 
 ## Vagon (the day)
@@ -100,7 +101,7 @@ s14-int + cloud-s17-int + s14-monuments (713ed04: the Gate colossi's scan route 
 | V3 | people | bodies, skin, cloth, hair, motion at 2-30 m; crowds read as people; marks and wounds from the sim's hooks; new performances from the CMU mocap route (D-333) | src/people/** except animal*.ts and converse/** | min 20 |
 | V4 | terrace | stone, capitals, reliefs, colossi, block joints off CG; s14-monuments finished; Blender GPU bakes for the Terrace | src/arch/** except rooms.ts, terrace_rooms.ts; src/render/monuments.ts, reliefAtlas.ts | hour 1.5 |
 | V5 | animals and weather | the animals' looks and motion (src/people/animal*.ts, beasts.ts, lifeModels.ts); rain, wet ground, dust, smoke, breath; the season's look (season.ts, plain/seasonal.ts) | as listed + src/world/weatherVfx.ts, rainShafts.ts, dust*.ts, *Smoke.ts, breath.ts, src/weather/** | hour 1.5 |
-| V6 | interiors and fire | rooms lit by doors, hearths, lamps, torches, furnished and lived in | src/arch/rooms.ts, terrace_rooms.ts, src/world/furnish_palaces.ts, fire.ts, fireOcc.ts, firePlaces.ts | when V1 lands light v1 |
+| V6 | interior light and fire | rooms lit by doors, hearths, lamps and torches (the furnishing is the cloud's C7) | src/arch/rooms.ts, terrace_rooms.ts (geometry and light), fire.ts, fireOcc.ts, firePlaces.ts | when V1 lands light v1 |
 
 ## Rules for both sides
 - **One owner per file**, across both sides (the two tables). A change in someone else's file goes through the asks files.
@@ -143,7 +144,7 @@ s14-int + cloud-s17-int + s14-monuments (713ed04: the Gate colossi's scan route 
 
 ## Reserved numbers (write into handoff/reserved_numbers.md in Step 0)
 Ten each (D-x0..D-x9, and the matching Q and B blocks): Vagon lead D-470, V1 D-480, V2 D-490, V3 D-500, V4 D-510, V5 D-520,
-V6 D-530; cloud lead D-540, C1 D-550, C2 D-560, C3 D-570, C4 D-580, C5 D-590, C6 D-600. Q from Q-1400 and B from B500 in the
+V6 D-530; cloud lead D-540, C1 D-550, C2 D-560, C3 D-570, C4 D-580, C5 D-590, C6 D-600, C7 D-610. Q from Q-1400 and B from B500 in the
 same order (Vagon lead Q-1400..1409 / B500..B509, V1 Q-1410 / B510, ...).
 
 ## If an agent frees up (in order)

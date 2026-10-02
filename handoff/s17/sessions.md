@@ -8,3 +8,4 @@
 | C4 load keeper | cloud-s17-c4-load | session_01BgGevr8PSbjinTK6TESPJF |
 | C5 screens and intro | cloud-s17-c5-screens | session_018hcWvKrXxnswBzonFXNd9L |
 | C6 far land | cloud-s17-c6-far | session_016sGqy9wHZTGeCWgGpZsYGZ |
+| C7 interiors everywhere | cloud-s17-c7-interiors | (launching) |
