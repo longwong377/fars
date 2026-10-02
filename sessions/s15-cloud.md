@@ -28,8 +28,13 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
   the town talks of his deeds (rumours with him as the subject, trust moves); a family remembers one past (couples, siblings).
 - The stranger learns words one by one (known words are no longer glossed; "your word for bread" teaches it), must eat (hunger
   is seen and pitied), buys and sells by haggling, addresses groups; his deeds are in the chronicle (key J).
-- In flight at the time of writing: personality facets for everyone (D-382), reactions on sight (D-385), marriages in the
-  economy (D-381, cloud), the court in the economy (D-383, cloud), entering chains by speech (D-384, cloud), a playtest bot's
+- Landed since: marriages in the economy (D-381: bride-gifts, dowries and divorce silver paid between the houses, borrowed or
+  owed when short; 215 chains through weddings), reactions on sight (D-385: greet by name, bow, avoid, stare, nod; village
+  children tag along), complex asks need words (the tongue opens doors), nights in the open (chill, the night watch, the sealed
+  document), the stranger must eat, an approaching person is told why they came; COVERAGE.md regenerated (guards green).
+- Render hooks still to wire (Vagon): `sim.strangerSeen(near, at)` (play the reaction kind), `__converse.say(text, ms, rmsDb)` and
+  `state.heard.look` (the mic and the heads that turn).
+- In flight at the time of writing: personality facets for everyone (D-382), the court in the economy (D-383, cloud), entering chains by speech (D-384, cloud), a playtest bot's
   year of talk (cloud, report), the soaks and full measurements (cloud), B230 (cloud, on s13-bridesmerge).
 
 ## What a player would now meet differently
