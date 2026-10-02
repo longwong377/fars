@@ -25,6 +25,7 @@ import { HorizonMap, HORIZON_LAYOUT, loadHorizonMap } from '../terrain/horizonMa
 import { horizonAtlasTexture, horizonVisibility, type HorizonAtlases } from '../terrain/horizonShadow';
 import { Air, AIR_ALBEDO, EYE_SKY, seasonalDust } from './aerial';
 import { jdnToJulian } from '../core/calendar';
+import { GRADE } from '../render/toneLook';
 import { domeRadiance, overcastChroma, OVERCAST_CCT } from './horizon';
 /** the measured mean overcast colour (6358 K daylight, Lee & Hernández-Andrés 2005) in the renderer's colour (D-224) */
 const OVERCAST_RGB = xyToRenderer(...daylightXY(OVERCAST_CCT));
@@ -385,6 +386,7 @@ export class SkySystem {
     this.planets.update(jdUT, camPos, s.altitude, cloudCover);
     // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)
     const moonUp = smoothstepJS(-2, 8, mo.altitude);
+    GRADE.nightLift = 1 - 0.75 * moonUp * Math.min(1, ph.fraction * 1.5) * this.eclipse.light;
     const nightK = night * (1 + NIGHT_MOON_SKY * moonUp * ph.fraction * this.eclipse.light) * (1 - 0.6 * cloudCover);
     this.uMW.value = night * Math.pow(1 - cloudCover, 1.5) * (1 - 0.92 * moonUp * Math.min(1, ph.fraction * 1.6) * this.eclipse.light); // (the Milky Way comes back as an eclipse darkens the moon)
     this.milkyWay.position.copy(camPos); this.milkyWay.visible = this.uMW.value > 0.002;

@@ -151,7 +151,9 @@ export class VolumetricClouds {
         // sun); the dome behind already carries the in-scatter of the whole ray, so with alpha = the cloud's opacity α:
         //   out = α (J (1 − T_air) + T_air · L_cloud / α) + (1 − α) · dome
         const tAir = exp(air.opticalDepthNode(cameraPosition, cameraPosition.add(dir.mul(t0))).negate());
-        const alpha = float(1).sub(pow(max(T, 1e-6), this.nightOpacity));
+        // D-480: the deck fades out between 30 and 60 km (the last ~3 deg over the horizon), where a march at a grazing angle
+        // smeared the noise into streets that converged on the vanishing point: a fan of rays (the baseline's cov-000)
+        const alpha = float(1).sub(pow(max(T, 1e-6), this.nightOpacity)).mul(float(1).sub(smoothstep(30000, 60000, t0)));
         out.assign(vec4(air.jNode(dir).mul(vec3(1).sub(tAir)).add(tAir.mul(col.div(max(alpha, 0.001)))).add(this.nightGlow as any), alpha));
       });
       return out;
