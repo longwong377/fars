@@ -9469,3 +9469,9 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - The court's camps: before every standing tent its things (courtCamps.ts campItems: mats or a carpet, bedding rolls, water jars, baggage, a chest, a hearth and pot at every third tent; the modelled props), shown only while that tent stands; picket lines of horses, mules and camels at every camp (fauna.ts addCampLines; 10 at the royal stud's camp), filled with the share of the camp's tents standing. All C (Q-333).
 - The Hall of 100 Columns' site: the earth ramp the sim's gangs haul drums up (BUILD.raiseDays) to the column being raised, along the aisle beside its row, sleepers, a drum on rollers, a plank bridge to the scaffold; walkable (stepped colliders). C (D-022, Q-710). Census: ~500 at the site per working hour, ~4,300 at the camps in residence (the population's plans).
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView.
+## D-490 (s17, V2 materials): scans lead the town's surfaces
+- First pass (house_lab frames shots/a2, uncommitted): the houses' render takes Dirt Floor (was clay_plaster: a flat brown
+  plane past 10 m), the footings Stone Wall (the procedural Worley fieldstones, a CG voronoi at every lane's foot, are gone),
+  the flat roofs and wall tops Raked Dirt (the kahgel's chopped straw; the roofs had no scan at all). ScanUse gains `chroma`
+  (the scan's colour variation kept, the palette leading the hue) and `hue` (a share of the scan's own mean hue). House
+  plaster's broad tone 1σ 0.07 -> 0.10; the wall bake's normal 1.1 -> 0.8. New scans in ASSET_LEDGER.md; only the maps used ship.
