@@ -41,9 +41,14 @@ export function plotProfile(h: HouseView, plot: number): Profile {
   const s = h.s, p = s.plots[plot], L = h.life(plot), village = s.meta.popZone === 'plain';
   return houseProfile(p.id, p.kind, p.craft ?? null, L.standing, p.capacity, L.animal, seasonOfDay(h.day), village ? 'village' : 'town');
 }
+/** which of its household's lived-in rooms a room is: the living room 0, the rooms slept in after it by their order (C) */
+export function slotOf(h: HouseView, r: RoomRect): number {
+  const u = usesOf(h, r.plot), rank = (q: number) => (u.get(q) === 'living' ? 0 : u.get(q) === 'sleeping' ? 1 : 2);
+  const lived = [...u.keys()].filter(q => rank(q) < 2).sort((a, b) => rank(a) - rank(b) || a - b); const i = lived.indexOf(r.room); return i < 0 ? 0 : i;
+}
 /** a house room's plan (the census and the hook alike) */
 export function roomPlan(h: HouseView, r: RoomRect): { room: RoomIn; plan: Plan; prof: Profile } | null {
-  const room = roomIn(h, r); if (!room) return null; const prof = plotProfile(h, r.plot); return { room, plan: planRoom(room, prof), prof };
+  const room = roomIn(h, r); if (!room) return null; const prof = { ...plotProfile(h, r.plot), slot: slotOf(h, r) }; return { room, plan: planRoom(room, prof), prof };
 }
 
 /** the furnishing on (off: `?interiors=0` in the page, INTERIORS=0 in node: houses.ts draws its own few things, to compare) */

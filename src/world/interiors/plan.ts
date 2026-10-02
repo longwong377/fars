@@ -31,6 +31,7 @@ export interface Profile {
   /** the season's band (houses.ts seasonOf): the near tiles are rebuilt when it turns */ season: 'harvest' | 'warm' | 'cold';
   /** where the profile came from: the population's household (B for the people, C for their things) or the plot alone */ from: 'population' | 'plot';
   /** a town house, a village house or a room of the Terrace's ranges */ place: 'town' | 'village' | 'terrace';
+  /** which of the household's lived-in rooms this is (0 its main room; the household's one cradle, loom and tablets are there) */ slot?: number;
 }
 /** a thing in a room */
 export type Kind =
@@ -246,17 +247,18 @@ function recipe(c: Ctx) {
       if (!living && poor && h('gb') < 0.6 && p.season !== 'cold') onFloor(c, 'grass_bed', 0.95, 0.62, 0.85, { note: 'a bed of dry grass with a blanket over it (C)' });
       // 3. what marks this household: the infant's cradle, the weaver's loom, the scribe's tablets, the women's spinning,
       //    the children's toys, the tools of the men's work
-      if (p.infants > 0) onWall(c, 'cradle', 0.9, 0.62, 0.32, 0.6, { sub: st > 0.5 ? 'wood' : 'basket', note: st > 0.5 ? 'a wooden cradle with its swaddling cloth (C)' : 'a basket cradle (C)' });
-      if (wantLoom && living) { if (!(W >= 2.4 && D >= 2.4 && onWall(c, 'loom_upright', 1.5, 0.3, 1.8, 0.5, { note: 'an upright loom against the wall, a cloth on it (C)' }))) onWall(c, 'wool', 0.62, 0.54, 0.14, 0.7, { note: 'fleeces and washed wool for the loom (C)' }); }
+      const main = (p.slot ?? 0) === 0, second = (p.slot ?? 0) === 1;
+      if (p.infants > 0 && (main || (second && p.infants > 1))) onWall(c, 'cradle', 0.9, 0.62, 0.32, 0.6, { sub: st > 0.5 ? 'wood' : 'basket', note: st > 0.5 ? 'a wooden cradle with its swaddling cloth (C)' : 'a basket cradle (C)' });
+      if (wantLoom && living && main) { if (!(W >= 2.4 && D >= 2.4 && onWall(c, 'loom_upright', 1.5, 0.3, 1.8, 0.5, { note: 'an upright loom against the wall, a cloth on it (C)' }))) onWall(c, 'wool', 0.62, 0.54, 0.14, 0.7, { note: 'fleeces and washed wool for the loom (C)' }); }
       // 4. what the household's standing buys: quilts piled, a ledge of bedding, chests, cushions, a tray-table, stools
       const piles = Math.round(1 + 2 * st + (cold ? 1 : 0) + h('pile'));
       if (!poor || h('rugs') < 0.6) onWall(c, 'rugs', 0.56, 0.44, 0.05 * (2 + piles * 1.5), 0.9, { n: 2 + Math.round(piles * 1.5), note: 'quilts and rugs folded in a pile (C)' });
       if (st > 0.35 && h('bed') < 0.4 + st) onWall(c, 'bedding', 0.75, 0.5, 0.35 + 0.15 * st, 0.75, { note: 'the household\'s quilts and cushions stacked on a low mud ledge (C)' });
       if (st > 0.55 && h('chest') < 0.8) onWall(c, 'chest', 0.9 + 0.2 * st, 0.52, 0.55, 0.55, { note: 'a wooden chest for the clothes and the household\'s valuables (C)' });
       if (rich && h('chest2') < 0.5) onWall(c, 'chest', 0.8, 0.5, 0.5, 0.2, { note: 'a second chest (C)' });
-      if (jobs.has('scribe') || jobs.has('official') || jobs.has('steward')) onWall(c, 'tablets', 0.42, 0.3, 0.12, 0.25, { note: 'a basket of clay tablets and the scribe\'s stylus (the Fortification archive, A for the tablets; at home C)' });
-      if (p.women > 0 && h('spin') < 0.75) onWall(c, 'spinning', 0.4, 0.36, 0.32, 0.4, { note: 'a basket of combed wool with the spindle and the distaff stuck in it (spinning: women\'s work in the PF textile texts, B; C)' });
-      if (p.children > 0 && h('toys') < 0.7) onWall(c, 'toys', 0.5, 0.4, 0.15, 0.85, { sub: ['wheeled', 'bones', 'bow'][Math.floor(h('tk') * 3)], note: 'a child\'s toys: a clay animal on wheels, knucklebones, a toy bow (wheeled clay animals and astragali known in the region and period: RECOLLECTION, NOT SEEN; C)' });
+      if (main && (jobs.has('scribe') || jobs.has('official') || jobs.has('steward'))) onWall(c, 'tablets', 0.42, 0.3, 0.12, 0.25, { note: 'a basket of clay tablets and the scribe\'s stylus (the Fortification archive, A for the tablets; at home C)' });
+      if (p.women > (p.slot ?? 0) && h('spin') < 0.75) onWall(c, 'spinning', 0.4, 0.36, 0.32, 0.4, { note: 'a basket of combed wool with the spindle and the distaff stuck in it (spinning: women\'s work in the PF textile texts, B; C)' });
+      if (p.children > 2 * (p.slot ?? 0) && h('toys') < 0.7) onWall(c, 'toys', 0.5, 0.4, 0.15, 0.85, { sub: ['wheeled', 'bones', 'bow'][Math.floor(h('tk') * 3)], note: 'a child\'s toys: a clay animal on wheels, knucklebones, a toy bow (wheeled clay animals and astragali known in the region and period: RECOLLECTION, NOT SEEN; C)' });
       if (living) lean(farmer || herder ? 1 + (h('l2') < 0.5 ? 1 : 0) : (h('l1') < 0.4 ? 1 : 0));
       const cush = poor ? 0 : Math.round((living ? 1 : 0) + 3 * st * (0.6 + 0.4 * h('cu'))); for (let i = 0; i < cush; i++) onWall(c, 'cushion', 0.5, 0.42, 0.14, 0.35 + 0.15 * i, { note: 'a cushion of wool stuffed in a woven cover (C)' });
       if (living) {
@@ -268,6 +270,7 @@ function recipe(c: Ctx) {
         if (!poor || h('herbs') < 0.3) hang(c, h('ho') < 0.5 ? 'herbs' : 'onions', (r.ceil ?? 2.3) - 0.65, 0.35, 0.5, { note: h('ho') < 0.5 ? 'a bunch of herbs drying from the poles (C)' : 'onions plaited on a cord, hung from the poles (C)' });
       }
       const pegs = poor ? 1 : clamp(Math.round(1 + st * 2 + p.members / 6 + h('pg') - 0.5), 1, 4); for (let i = 0; i < pegs; i++) hang(c, 'peg_cloth', 1.4 + 0.15 * h('py' + i), 0.5, 0.9, { note: 'clothes and a bag hung on wooden pegs in the wall (C)' });
+      if (st > 0.6 && h('lamp2') < 0.7) hang(c, 'lamp', 1.1, 0.2, 0.04, { note: 'a second saucer lamp on its ledge of mud, unlit by day (saucer lamps B by analogy, Q-516; C)' });
       if (rich && h('jars') < 0.6) for (let i = 0; i < 2; i++) onWall(c, 'jar_neck', 0.3, 0.3, 0.44, 0.95 - 0.1 * i, { note: 'jars of oil and wine (C)' });
       if (!rich && h('sacks') < 0.3) onWall(c, 'sack', 0.42, 0.42, 0.6, 0.95, { note: 'a sack of barley (C)' });
       break; }
@@ -279,7 +282,7 @@ export const ROOM_BUDGET: Record<Use, number> = { living: 2200, sleeping: 1600, 
 
 /** plan a room's things (deterministic per room id and household) */
 export function planRoom(r: RoomIn, p: Profile, budgetScale = 1): Plan {
-  const c = newCtx(r, p, ROOM_BUDGET[r.use] * budgetScale); if (!c) return emptyPlan(r);
+  const c = newCtx(r, p, ROOM_BUDGET[r.use] * budgetScale * (0.65 + 0.8 * p.standing)); if (!c) return emptyPlan(r); // (the poor own less; the rich more)
   clearZones(c); recipe(c);
   // a small room whose floor is full keeps more off it: the household's things on pegs and from the poles (C)
   const min = r.use === 'living' ? 8 : r.use === 'sleeping' ? 6 : r.use === 'store' ? 4 : 0, ceil = r.ceil ?? 2.3;

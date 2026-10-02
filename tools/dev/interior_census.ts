@@ -49,7 +49,7 @@ const add = (label: string, s: Site, si: number) => { const hs = houseOf(s, si),
   for (const r of hs.rooms) { const p = s.plots[r.plot]; if (!HOUSE_KINDS.has(p.kind)) continue; const x = roomPlan(h, r); if (!x) continue;
     const old = (hs as any).roomUse(r) as string, pl = BASE ? baseline(h, r, old === 'none' ? 'living' : old) : x.plan, [e, n] = s.grid((x.room.u0 + x.room.u1) / 2, (x.room.v0 + x.room.v1) / 2);
     rooms.push({ kind: `${label}/${BASE ? (old === 'none' ? 'living' : old) : x.room.use}`, e, n, room: x.room, plan: pl, tris: (x.prof.from === 'population' ? 1 : 1) * pl.items.reduce((a, it) => a + TRIS[it.k], 0) });
-    if (x.prof.from === 'population') (rooms[rooms.length - 1] as any).pop = true; }
+    if (x.prof.from === 'population') (rooms[rooms.length - 1] as any).pop = true; (rooms[rooms.length - 1] as any).st = x.prof.standing; (rooms[rooms.length - 1] as any).jobs = x.prof.jobs; }
   for (const p of s.plots) if (p.door && HOUSE_KINDS.has(p.kind)) { const d = s.doorPoints(p)!; ringPts.push(s.grid(...d.out)); } void usesOf; };
 plan.sites.forEach((s, si) => add('town', s, si));
 villages.forEach((v, vi) => add('village', v.site, 1000 + vi));
@@ -71,4 +71,9 @@ console.log(formatCensus(rows));
 const grid = new Map<string, CRoom[]>(), gk = (e: number, n: number) => `${Math.floor(e / RING_R)},${Math.floor(n / RING_R)}`; for (const r of rooms) (grid.get(gk(r.e, r.n)) ?? grid.set(gk(r.e, r.n), []).get(gk(r.e, r.n))!).push(r);
 let worst = 0, sum = 0; for (const [e, n] of ringPts) { let t = 0; const ce = Math.floor(e / RING_R), cn = Math.floor(n / RING_R); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const r of grid.get(`${ce + a},${cn + b}`) ?? []) if (Math.hypot(r.e - e, r.n - n) < RING_R + 3) t += r.tris ?? 0; worst = Math.max(worst, t); sum += t; }
 console.log(`[census] the ring (rooms within ${RING_R} m of a street door): mean ${(sum / Math.max(1, ringPts.length) / 1e3).toFixed(1)} k triangles, worst ${(worst / 1e3).toFixed(1)} k`);
+// the household's standing in its rooms: things per living room and sleeping room by standing (the poor sparse, the rich full)
+for (const use of ['living', 'sleeping']) { const rs = rooms.filter(r => r.room.use === use && (r as any).st !== undefined), b = [0, 0.3, 0.55, 0.75, 1.01];
+  console.log(`[census] ${use} rooms, things by the household's standing: ` + b.slice(0, -1).map((lo, i) => { const q = rs.filter(r => (r as any).st >= lo && (r as any).st < b[i + 1]); return `${lo}-${b[i + 1] > 1 ? 1 : b[i + 1]}: ${(q.reduce((a, r) => a + r.plan.items.length, 0) / Math.max(1, q.length)).toFixed(1)} (${q.length})`; }).join(', ')); }
+const withK = (k: string) => rooms.filter(r => r.plan.items.some(i => i.k === k)).length;
+console.log(`[census] rooms with a loom ${withK('loom_upright') + withK('loom_ground')}, a cradle ${withK('cradle')}, toys ${withK('toys')}, tablets ${withK('tablets')}, an anvil ${withK('anvil')}, a potter's wheel ${withK('wheel')}, spinning ${withK('spinning')}, tools leaning ${withK('tool_lean')}`);
 if (JSONOUT) writeFileSync(JSONOUT, JSON.stringify({ baseline: BASE, rows, ring: { mean: sum / Math.max(1, ringPts.length), worst } }, null, 1));

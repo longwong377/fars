@@ -140,7 +140,8 @@ export function drawItem(c: DrawCtx, it: Item): boolean {
     case 'herbs': case 'onions': { // hung from the ceiling poles by a cord (interior_props.py's strings when loaded)
       if (put(c, T, it.k === 'herbs' ? 'i_herbs' : 'i_onions', it, [it.k === 'herbs' ? 0.16 : 0.15, h, it.k === 'herbs' ? 0.16 : 0.15], { leaf: sh([0.4, 0.44, 0.25], 0.85 + 0.3 * v), bulb: sh([0.74, 0.55, 0.36], 0.9 + 0.2 * v), stem: [0.62, 0.55, 0.36], cord: TEXTILE[2] }, [0, 0.04], 0)) return true;
       return put(c, T, 'tool_broom', it, [0.16, 0.14, h], { straw: it.k === 'herbs' ? [0.42, 0.45, 0.26] : [0.66, 0.5, 0.34], cord: TEXTILE[2] }, [0, 0], 0, 0, 0.05); }
-    case 'lamp': return put(c, C, 'lamp', it, [0.17, 0.035, 0.14], { clay: [0.6, 0.42, 0.3] });
+    case 'lamp': { if (it.wall >= 0) { const [e, n] = c.grid(it.u, it.v), y = c.floor(it.u, it.v) + it.y; C.box(e, n, c.theta + it.rot, 0.18, 0.12, y - 0.08, y, lin([0.4, 0.33, 0.25]), lin([0.46, 0.38, 0.29]), c.own); } // (a ledge of mud under a lamp on the wall)
+      return put(c, C, 'lamp', it, [0.17, 0.035, 0.14], { clay: [0.6, 0.42, 0.3] }); }
     case 'shield': return put(c, T, 'shield', it, [w, h, d], { hide: sh(HIDE, 0.8 + 0.3 * v), cord: TEXTILE[2], bronze: BRONZE }, [0, 0.02], 0, 0, 0);
     case 'arrows': { let ok = false; for (let k = 0; k < 7; k++) ok = put(c, T, 'tool_arrow', it, [0.02, 0.02, Math.min(0.75, w)], { reed: [0.66, 0.58, 0.4], bronze: BRONZE, feather: [0.5, 0.46, 0.4] }, [0, (k - 3) * 0.035], 0.012 * (k % 2), Math.PI / 2) || ok;
       put(c, T, 'tool_rope', it, [0.03, 0.03, 0.3], { cord: TEXTILE[2] }, [0, 0], 0.03, 0); return ok; }
