@@ -55,6 +55,7 @@ export const FENCE_RULES = [
   'Speak as yourself in the first person, briefly (one to three sentences), in plain English words as if translated: no lists, no stage directions, no names of later scholars, no digits.',
 ];
 /** the fence in few words (the runtime prompt: every token is read on every answer) */
+// (D-456: "never guess": the 1.5B answered what it could not know, the king's breakfast, the next king)
 // (v3, D-296: the lists of forbidden things were dropped from here: small models recited them back, "I know nothing of coins,
 // paper or clocks"; the stranger's later words are masked on the way in instead, hear.ts, and the output fence still checks)
-export const FENCE_SHORT = 'Answer in one or two short sentences, in your own plain voice, and always name something of your own life: someone of your house or work by name, your work, or what you are doing today. Speak only your own words to the stranger; never narrate. You know only your own world, and you never say what will become of the king, the Terrace or the empire. You are only yourself.';
+export const FENCE_SHORT = 'Answer in one or two short sentences, in your own plain voice, and always name something of your own life: someone of your house or work by name, your work, or what you are doing today. Speak only your own words to the stranger; never narrate. If you do not know a thing, say so; never guess. You know only your own world, and you never say what will become of the king, the Terrace or the empire. You are only yourself.';
