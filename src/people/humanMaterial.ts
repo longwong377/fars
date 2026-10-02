@@ -168,7 +168,7 @@ export const LASH = { u0: 0.704, u1: 0.762, clumps: 72 };
  *  threads per metre (DRAPE.weave.fq; tools/build_humans_scans.py) */
 export const SCAN = { darkY: [0.17, 0.075] as [number, number],
   cloth: { alb: [0.9, 1, 0.9, 0.9], h: [0.00045, 0.0007, 0.0006, 0.0004] } };
-export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, bumpMass: 0.002, kk: [0.09, 0.06] as [number, number] };
+export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, bumpMass: 0.002, kk: [0.13, 0.09] as [number, number] }; // (s17 V3: kk ×1.45, the sheen of oiled dark hair in the sun)
 /** D-307 (C): the strand cards. Albedo = hair colour × the atlas' shade × 2 (its mean is 0.5) × a back strand's darkening
  *  (depth 0 → back); the coverage is tested at `alphaTest`, the value the atlas' coverage-preserving mips were made for
  *  (tools/blender/sources/people_hair_post.ts: a card keeps its density at every distance; the first render's hashed test

@@ -106,7 +106,7 @@ const IRIS_P: Record<string, number[]> = { default: [0.3, 0.36, 0.24, 0.1], Thra
 const NORTH = new Set(['Ionian', 'Lydian', 'Carian', 'Lycian', 'Cappadocian', 'Sogdian', 'Bactrian', 'Median']);
 /** hair (sRGB): black-brown to dark brown (C; the reliefs paint hair dark blue, a convention); greying with age. Measured
  *  dark hair is about 0.02–0.05 linear albedo; the first range (0.003 linear) rendered beards as flat black masks */
-const HAIR: RGB[] = [[0.13, 0.1, 0.08], [0.16, 0.115, 0.085], [0.2, 0.14, 0.095], [0.24, 0.165, 0.11]];
+const HAIR: RGB[] = [[0.15, 0.115, 0.09], [0.19, 0.137, 0.1], [0.24, 0.17, 0.115], [0.29, 0.2, 0.13]]; // (s17 V3: lifted ~18 %: beards and hair read as matte black blobs in the sun; C)
 
 /** statures (m) by sex, mean and sd (C: no skeletal series from Achaemenid Fars was read; values typical of Iron Age
  *  West Asian series; OPEN_QUESTIONS Q-066) */
