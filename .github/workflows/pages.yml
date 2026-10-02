@@ -1,5 +1,5 @@
 # s15/ship (D-368, UD-31): the public site https://longwong377.github.io/fars/, built by GitHub Actions from git alone (the
-# Vagon desktop is not permanent: nothing built there is uploaded). Pages source = GitHub Actions (set by the user).
+# Vagon desktop is not permanent: nothing built there is uploaded). Pages source should be GitHub Actions (see the deploy job).
 # The guards, lint and tsc run in guards.yml; this job only builds and deploys (tools/deploy/build_site.mjs).
 name: pages
 on:
@@ -10,6 +10,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -40,5 +41,17 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Measured 2026-10-02: the repo's Pages source is still "deploy from a branch" (s14-int): GitHub's own Jekyll run
+      # ("pages build and deployment") deploys the raw source tree on the same push and, finishing ~8 s after this job,
+      # replaced the built site (the URL served /src/main.ts). Until the source is switched to GitHub Actions (Settings >
+      # Pages > Source), wait for that run of this commit to finish and deploy last. With the source switched it never runs.
+      - name: wait for the branch deploy of this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 60); do
+            n=$(gh api "repos/${{ github.repository }}/actions/runs?head_sha=${{ github.sha }}&per_page=50" --jq '[.workflow_runs[] | select(.name=="pages build and deployment" and .status!="completed")] | length')
+            echo "branch deploys still running: $n"; [ "$n" = "0" ] && break; sleep 10
+          done
       - id: deployment
         uses: actions/deploy-pages@v4
