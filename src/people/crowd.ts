@@ -51,6 +51,8 @@ import { CrowdImpostors, rowOf, frameOf, impFallback, IMP_GAITS } from './impost
 import type { AnimId } from './anim';
 import type { NearPerson } from '../audio/voices';
 import { voiceIdentity, nearPerson, type VoiceIdentity } from './talkers';
+import { Reactions, reactPose, SIGHT_POLL_S } from './react';
+import { SIGHT_M, type Near } from './converse/sight';
 /** poses in which people sit, kneel or lie (the seat pass rests them on the ground; coats and back-carried weapons are
  *  laid aside) */
 const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake', ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].ground === 'seat')]);
@@ -604,7 +606,8 @@ export class Crowd {
    *  ploughman on his furrow), or null when they are not in the pool (world.ts puts the collision capsules there) */
   rootOf(pid: number): readonly [number, number, number, number] | null { const p = this.byPid.get(pid); return p && p.vpFrame === this.frame ? p.root : null; }
   update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
-    const t0 = performance.now(); this.now = time; const dt = Math.max(0, Math.min(0.5, time - this.lastTime)); this.lastTime = time;
+    const t0 = performance.now(); this.now = time; const dt = Math.max(0, Math.min(0.5, time - this.lastTime)); this.lastTime = time; this.reactions.clock = time;
+    if (playerPos && this.sim && time >= this.reactions.nextPoll) this.pollSight(time, playerPos, cam); // (D-395: the people react to the stranger on sight)
     if (camera) { this.lastCamera = camera; camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
     this.frame++;
     // the air's temperature now (the sim's weather; once a frame), for the dress of the cold
@@ -807,6 +810,9 @@ export class Crowd {
         po.rot.head = [pitch, Math.max(-1, Math.min(1, yaw)) * (greet === 'none' ? 0.8 : 1), h[2]]; f.look = this.toChar(p, [cam.x, cam.y, cam.z]); }
     }
     if (d > 6) p.nodAt = -1;
+    // D-395: a reaction to the stranger (on sight: greet, bow, nod, stare, avoid) or to a shout (the head turns), over the pose
+    const R = this.reactions.on.size && anim !== 'sleep' ? this.reactions.active(p.pid >= 0 ? p.pid : p.key, time) : null;
+    if (R) { const L = this.toChar(p, R.at); f.look = reactPose(R, time, po, L, this.humans.A.variants[p.look.variant].eyeY, !prop1 && !prop2) ? L : null; }
     if (lod < 2) { // face detail only where it can be seen
       // blinks every 2–6 s (150 ms), saccades
       const bt = time - p.blinkAt; if (bt > 0.15) { const r = ((p.slot * 7919 + Math.floor(time * 3)) % 97) / 97; p.blinkAt = time + 2 + 4 * r; }
@@ -860,6 +866,15 @@ export class Crowd {
   private toChar(p: Person, w: ArrayLike<number>) {
     const dx = w[0] - p.root[0], dy = w[1] - p.root[1], dz = w[2] - p.root[2], c = Math.cos(p.root[3]), s = Math.sin(p.root[3]), k = 1 / p.look.scale, o = p.lookC;
     o[0] = (c * dx - s * dz) * k; o[1] = dy * k; o[2] = (s * dx + c * dz) * k; return o;
+  }
+  /** D-395 (UD-21, UD-25): the reactions to the stranger played on the people (react.ts); converse/ui.ts adds the heads that turn to a shout */
+  readonly reactions = new Reactions();
+  /** D-395: PeopleSim.strangerSeen polled for the people drawn within SIGHT_M of the player (about once a second) */
+  private pollSight(time: number, pl: THREE.Vector3, cam: THREE.Vector3) {
+    this.reactions.nextPoll = time + SIGHT_POLL_S; const near: Near[] = [];
+    for (const p of this.persons.values()) if (p.pid >= 0 && Math.hypot(p.root[0] - pl.x, p.root[2] - pl.z) <= SIGHT_M) near.push({ pid: p.pid, e: p.root[0], n: -p.root[2] });
+    if (!near.length) return;
+    try { this.reactions.fromSights(this.sim!.strangerSeen(near, { e: pl.x, n: -pl.z }), time, [pl.x, cam.y, pl.z]); } catch (e) { console.warn('[crowd] strangerSeen', e); }
   }
   /** the air's temperature (°C) the crowd dresses for */
   airC = 20;

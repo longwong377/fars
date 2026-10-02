@@ -5,7 +5,8 @@
 import type { MLCEngineInterface } from '@mlc-ai/web-llm';
 import { appConfig } from './models';
 import { fenceHits, type FenceHit } from './fence';
-import { primeParts, tidy, type Knows, type Turn } from './prompt';
+import { primeParts, tidy, userTurn, type Knows, type Turn } from './prompt';
+import { spoken } from './spoken';
 import { hearAsPerson } from './hear';
 import type { LifeRecord } from './life';
 import { parseIntent, type Intent } from './intent';
@@ -72,14 +73,14 @@ export class Mind {
     const h = hearAsPerson(said); // the fence on the way in (hear.ts): later words reach the person as "…"
     // (D-315: the simulation's word on what was asked, when the stranger asked for something: "(You can do it.)" / "(You
     // cannot: on watch ...)"; the person's own words and tag follow)
-    let msgs: Msg[] = [...this.conv, { role: 'user', content: opts.userText ?? `${opts.before ? opts.before + '\n' : ''}The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''}${opts.note ? ` (${opts.note})` : ''} (Answer as ${L.name}, from your own life${opts.ground ? `: ${opts.ground}` : ''}.)` }];
+    let msgs: Msg[] = [...this.conv, { role: 'user', content: userTurn(L.name, h, opts) }];
     while (tries < 2) {
       tries++; raw = '';
       const stream = await e.chat.completions.create({ messages: msgs, stream: true, stream_options: { include_usage: true }, max_tokens: maxTokens, temperature: 0.7, top_p: 0.9, frequency_penalty: 0.3, presence_penalty: 0.1, ...this.extra() } as any) as any;
       for await (const ch of stream) { const d = ch.choices?.[0]?.delta?.content ?? ''; if (d && ttft < 0) ttft = performance.now() - t0; raw += d;
         if (ch.usage) { tokens += ch.usage.completion_tokens; prefill = ch.usage.extra?.prefill_tokens_per_s ?? prefill; decode = ch.usage.extra?.decode_tokens_per_s ?? decode; } }
       msgs = [...msgs, { role: 'assistant', content: raw }];
-      const pi = parseIntent(raw); intent = pi.intent; text = tidy(pi.words); hits = fenceHits(text); // (D-315: the tag read and taken out before the words are tidied and fenced)
+      const pi = parseIntent(raw); intent = pi.intent; text = tidy(pi.words); hits = fenceHits(text); text = spoken(text); // (D-315: the tag read and taken out before the words are tidied and fenced; D-395: a count the model wrote in digits is said in words)
       if (!hits.length && text.length > 1) break;
       const words = [...new Set(hits.map(h => `“${h.term}”`))].join(', ');
       msgs.push({ role: 'user', content: hits.length ? `(Say that again as yourself: you do not know ${words}, and you never speak of what is to come.)` : '(Answer me as yourself, briefly.)' });
