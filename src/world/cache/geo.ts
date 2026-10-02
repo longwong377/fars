@@ -1,7 +1,9 @@
 // s15/load (D-354): a BufferGeometry as plain data for the baked world (pack.ts): its attributes' arrays, item sizes and
 // normalisation, its index and groups; and back. Lossless (the arrays are the geometry's own).
 import * as THREE from 'three/webgpu';
-import { hashBytes, hashString } from './pack';
+import { hashBytes, hashString, registerPackClass } from './pack';
+// three's vectors in packed data (the architecture's arris edges and joint faces): revived as Vector3
+registerPackClass('v3', v => v instanceof THREE.Vector3, v => [v.x, v.y, v.z], a => new THREE.Vector3(a[0], a[1], a[2]));
 export type GeoPack = { a: Record<string, [ArrayLike<number>, number, boolean]>; i: ArrayLike<number> | null; g: [number, number, number][] };
 export function packGeo(g: THREE.BufferGeometry): GeoPack {
   const a: GeoPack['a'] = {}; for (const k of Object.keys(g.attributes)) { const x = g.getAttribute(k) as THREE.BufferAttribute; if ((x as any).isInterleavedBufferAttribute) throw new Error('packGeo: interleaved'); a[k] = [x.array as any, x.itemSize, x.normalized]; }

@@ -45,6 +45,64 @@
     "src/world/cache/geo.ts"
    ],
    "keyed": "the parts (partsKey) hashed into the key; each face by the hash of its input geometry and gain"
+  },
+  "townplan": {
+   "version": 1,
+   "entries": [
+    "src/world/settlement/plan.ts",
+    "src/world/cache/pack.ts"
+   ],
+   "about": "D-392: the town sites state after the doors, access and house passes"
+  },
+  "grime": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key: seed, quality, court calendar, town (world.ts bakeKey)"
+  },
+  "fill": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key (world.ts bakeKey)"
+  },
+  "zones": {
+   "version": 1,
+   "entries": [
+    "src/world/world.ts"
+   ],
+   "inputs": [
+    "public/generated"
+   ],
+   "keyed": "the world key (world.ts bakeKey)"
+  },
+  "navcore": {
+   "version": 1,
+   "entries": [
+    "src/people/popgeo.ts"
+   ],
+   "inputs": [
+    "public/generated/nav.json",
+    "public/generated/nav.i16",
+    "public/generated/nav_edges.u8"
+   ],
+   "keyed": "the walkable grid blocked cells (nav.dyn) hashed; the anchor pairs in the Map"
+  },
+  "arch": {
+   "version": 1,
+   "entries": [
+    "src/arch/meshes.ts",
+    "src/world/cache/geo.ts"
+   ],
+   "keyed": "the parts (partsKey), the frame trim loaded, flat mode"
   }
  }
 }

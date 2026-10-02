@@ -5,7 +5,8 @@
 //                                         the next load reads it (the cache bakes itself; tools/bake_world/bake.mjs does the
 //                                         same in node). Only when the posted src equals the tree's own hash.
 // public/world-cache is not watched (a write must never reload a page mid-render).
-import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync, rmSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { sourceHashes } from './srchash.mjs';
@@ -13,10 +14,13 @@ import { sourceHashes } from './srchash.mjs';
 export const CACHE_DIR = 'public/world-cache';
 export function writeEntry(root, unit, key, src, bytes) {
   const dir = resolve(root, CACHE_DIR); mkdirSync(dir, { recursive: true });
-  const file = `${unit}-${key}.bin`.replace(/[^\w.-]/g, '_'), tmp = resolve(dir, file + '.tmp');
-  writeFileSync(tmp, bytes); renameSync(tmp, resolve(dir, file));
+  // s15 (D-392): gzipped (the geometry's per-part attributes repeat: the architecture 83 MB -> 5 MB; the page inflates it with
+  // DecompressionStream as it streams in, node with zlib); the manifest marks it gz
+  const file = `${unit}-${key}.bin.gz`.replace(/[^\w.-]/g, '_'), tmp = resolve(dir, file + '.tmp');
+  const gz = gzipSync(bytes, { level: 6 }); writeFileSync(tmp, gz); renameSync(tmp, resolve(dir, file));
   const mf = resolve(dir, 'manifest.json'), M = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8')) : { v: 1, entries: {} };
-  M.entries[`${unit}|${key}`] = { src, file, bytes: bytes.length, sha1: createHash('sha1').update(bytes).digest('hex').slice(0, 16), at: new Date().toISOString() };
+  const old = M.entries[`${unit}|${key}`]; if (old?.file && old.file !== file) rmSync(resolve(dir, old.file), { force: true });
+  M.entries[`${unit}|${key}`] = { src, file, gz: true, gzBytes: gz.length, bytes: bytes.length, sha1: createHash('sha1').update(bytes).digest('hex').slice(0, 16), at: new Date().toISOString() };
   writeFileSync(mf + '.tmp', JSON.stringify(M, null, 1)); renameSync(mf + '.tmp', mf);
   return file;
 }

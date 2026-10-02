@@ -24,6 +24,7 @@ function faceCovered(F: JointFace, p: Part, index: PartIndex): boolean {
   return true;
 }
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { packGeo, unpackGeo, type GeoPack } from '../world/cache/geo';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
 import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod, protomeBox, protomeMesh, voluteBox, voluteMesh } from './sculpt';
@@ -73,6 +74,7 @@ export let carvedMaterial: (m: Material) => THREE.Material = m => surfaceMateria
  *  (`y0`, `pbox`: the wall-foot band and floor wear, D-157) */
 let archMaterial: (m: Material) => THREE.Material = m => surfaceMaterial(m, { arch: true });
 let flatMode = false;
+export const isFlatMode = () => flatMode; // (D-392: in the baked architecture's key)
 export function useFlatMaterials(flat: boolean) {
   flatMode = flat;
   material = flat ? flatMaterial : (m => surfaceMaterial(m)); carvedMaterial = flat ? flatMaterial : (m => surfaceMaterial(CARVED[m] ?? m));
@@ -402,7 +404,12 @@ function edgeAttributes(g: THREE.BufferGeometry, p: Box) {
 /** A/B for measurements (window.__parsaSurf.bevels(on)): swap the merged part meshes between their bevelled and their
  *  plain geometry */
 const bevelSwap: { mesh: THREE.Mesh; bevelled: THREE.BufferGeometry; plain: THREE.BufferGeometry }[] = [];
-export function setBevels(on: boolean) { for (const s of bevelSwap) s.mesh.geometry = on ? s.bevelled : s.plain; }
+export function setBevels(on: boolean) { if (!bevelSwap.length) console.warn('[arch] no plain geometry kept: load with ?bevelswap (D-392)'); for (const s of bevelSwap) s.mesh.geometry = on ? s.bevelled : s.plain; }
+/** D-392 (s15/load): the plain twins are built only for that A/B (?bevelswap): nothing else draws them (page memory, load) */
+const KEEP_PLAIN = typeof location !== 'undefined' && new URLSearchParams(location.search).has('bevelswap');
+/** D-392: the parts' render geometry as the baked world keeps it (per merged mesh: its key, geometry and what its userData
+ *  names; the arris edges and joint faces; the bevel counts), read back instead of bevelling, cutting and merging again */
+export type ArchBake = { meshes: { key: string; g: GeoPack; src: string; kinds: string; roof: boolean }[]; arris: ArrisEdge[]; jointFaces: JointFace[]; bstats: BevelStats; frames: FrameGeoStats | null; tris: number };
 if (typeof globalThis !== 'undefined') (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), bevels: setBevels };
 
 /** Column geometry in local space (base at y = 0, top at the order's height): the sculpted order (sculpt.ts, D-018).
@@ -526,8 +533,9 @@ export interface BuiltArch { /** D-330: the carved stone frames (frames.ts; null
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
 /** opts.colossusFront: the colossi's fore-part length (m) to carve with, instead of measuring it against these parts' walls
  *  (the Now view, D-201: the walls are gone, the carving is not) */
-export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number; /** D-334: leave out the wall heads and roof edges */ noRoofEdges?: boolean; /** D-354: mudFace through the baked world */ mud?: typeof mudFace } = {}): BuiltArch {
+export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number; /** D-334: leave out the wall heads and roof edges */ noRoofEdges?: boolean; /** D-354: mudFace through the baked world */ mud?: typeof mudFace; /** D-392: the parts' render geometry through the baked world */ bake?: { get(): ArchBake | null; put(b: ArchBake): void } } = {}): BuiltArch {
   const group = new THREE.Group(); group.name = 'architecture';
+  const baked = opts.bake?.get() ?? null;
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; plain: THREE.BufferGeometry[]; parts: Part[] }>();
   // D-334: the wall heads and roof edges (roofedge.ts): render-only boxes drawn with the parts (bevelled, merged per building and
   // material; no colliders: solid false), and the modelled pieces instanced below. Not in the Now view (its parts carry `now`)
@@ -537,7 +545,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   const index = new PartIndex(all), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
   // D-364 (B186): the mud-brick faces bowed by one world field (mudface.ts), faded against the parts set into them; not in flat
   // mode (plan overlays) nor the Now view (no mud brick stands there)
-  const hard = flatMode || parts.some(p => (p as any).now) || (typeof process !== 'undefined' && process.env?.MUDFACE === '0') ? null : new HardIndex(all); // (MUDFACE=0, node: the A/B)
+  const hard = baked || flatMode || parts.some(p => (p as any).now) || (typeof process !== 'undefined' && process.env?.MUDFACE === '0') ? null : new HardIndex(all); // (MUDFACE=0, node: the A/B)
   const stairs = stairRows(parts), arris: ArrisEdge[] = [], jointFaces: JointFace[] = [];
   if (opts.dynamicDoors) bevelSwap.length = 0;
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
@@ -545,7 +553,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   let colliders = 0;
   // D-330: the stone frames of doors, windows and niches carved (stepped fasciae, the cavetto cornice) on the Blender trim,
   // when it is loaded; their boxes stay the colliders
-  const frames = !flatMode && frameMaterial('limestone_dark') ? frameGeometries(parts, index) : null;
+  const frames = !baked && !flatMode && frameMaterial('limestone_dark') ? frameGeometries(parts, index) : null;
   for (const p of all) {
     if (p.type === 'column') {
       const k = `${p.building}|${p.order.id}|${p.order.base}|${p.order.capital}|${p.order.shaftD}|${p.order.height}|${p.built.toFixed(2)}`;
@@ -563,14 +571,15 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     if (p.type === 'box' && p.sculpt) continue; // rendered as sculpture below; the box is the collider only
     if (COLLIDER_ONLY.has(p.kind)) continue; // D-276: storage jars and querns: drawn round by world/furnish.ts; the box is the collider
     if (leaf) continue; // drawn (and moved) by the door system
+    if (baked) continue; // D-392: the render geometry comes from the baked world
     // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall). The render geometry is the part's
     // own, with its free arrises bevelled (D-157); the collider above stays the plain box
     // rev 4 (D-321): a dressed-stone prism's render geometry carries the arris attributes and records its free arrises
     const pa = p.type === 'prism' && ARRIS_MATS.has(p.material) ? prismArrisGeometry(p, index) : null;
     const fg = p.type === 'box' ? frames?.byPart.get(p) : undefined;
-    const plain = fg ?? g.clone(); let rg = fg ?? (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : pa?.geo) ?? g.clone();
-    if (edgeSet.has(p)) { edgeAttributes(rg, p as Box); if (plain !== rg) edgeAttributes(plain, p as Box); } // D-334: the roof edges' own (no probes: ~4 k boxes)
-    else { partAttributes(rg, p, index, stairs.get(p)); if (plain !== rg) partAttributes(plain, p, index, stairs.get(p)); }
+    const plain = fg ?? (KEEP_PLAIN ? g.clone() : g); let rg = fg ?? (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : pa?.geo) ?? g.clone();
+    if (edgeSet.has(p)) { edgeAttributes(rg, p as Box); if (plain !== rg && KEEP_PLAIN) edgeAttributes(plain, p as Box); } // D-334: the roof edges' own (no probes: ~4 k boxes)
+    else { partAttributes(rg, p, index, stairs.get(p)); if (plain !== rg && KEEP_PLAIN) partAttributes(plain, p, index, stairs.get(p)); }
     if (pa && p.type === 'prism') arris.push(...finishProtoEdges(p, p.material, pa.edges, rg));
     // rev 4: the joints of its vertical faces, grooved near the eye (the steps: stairJointEdges below)
     if (ARRIS_MATS.has(p.material) && !(p.type === 'box' && p.kind === 'step')) jointFaces.push(...chunkFaces(verticalFaces(rg, p.material, p.y1), stairs.get(p)).filter(F => !faceCovered(F, p, index))); // (a chunk against another part has no joints to show)
@@ -579,28 +588,33 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     if (hard && !fg && !edgeSet.has(p) && MUD_MATS.has(renderMaterial(p))) rg = (opts.mud ?? mudFace)(rg, hard, renderMaterial(p) === 'mudbrick_bare' ? 0.5 : 1); // D-364 (not the roof edges: the string course at the roof line covers the step; nor the wall feet)
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}${fg ? '|frame' : ''}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
-    if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
+    if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); if (KEEP_PLAIN) e.plain.push(plain); e.parts.push(p);
   }
   // the timber ceilings under the roofs (D-188): render geometry only, merged per building (no colliders, no bevels)
-  for (const p of ceilingTimbers(parts)) {
+  for (const p of baked ? [] : ceilingTimbers(parts)) {
     const g = p.kind === 'ceiling_joist' ? joistGeometry(p) : boxGeometry(p); for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
     partAttributes(g, p, index);
     const key = `${p.building}|${p.material}|${p.tier}|0|ceiling`;
-    if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(g); e.plain.push(g.clone()); e.parts.push(p);
+    if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(g); if (KEEP_PLAIN) e.plain.push(g.clone()); e.parts.push(p);
   }
-  let tris = 0;
+  let tris = 0; const bakeOut: { key: string; g: THREE.BufferGeometry; src: string; kinds: string; roof: boolean }[] = [];
   for (const [key, { geos, plain, parts: ps }] of byKey) {
-    const [building, mat, tier, ph, extra] = key.split('|');
     // (D-364: the mud-brick faces are indexed, the roof edges merged with them not: the latter take a sequential index)
     if (geos.some(q => q.index) && geos.some(q => !q.index)) for (const q of geos) if (!q.index) q.setIndex(new THREE.BufferAttribute(Uint32Array.from({ length: q.getAttribute('position').count }, (_, i) => i), 1));
     const g = mergeGeometries(geos)!; tris += (g.index ? g.index.count : g.getAttribute('position').count) / 3;
     const roof = ps.every(p => p.kind === 'roof');
+    bakeOut.push({ key, g, src: [...new Set(ps.map(p => p.src))].join(';'), kinds: [...new Set(ps.map(p => p.kind))].join(', '), roof });
+  }
+  if (baked) { for (const m of baked.meshes) bakeOut.push({ key: m.key, g: unpackGeo(m.g), src: m.src, kinds: m.kinds, roof: m.roof }); arris.push(...baked.arris); jointFaces.push(...baked.jointFaces); Object.assign(bstats, baked.bstats); tris = baked.tris; }
+  else opts.bake?.put({ meshes: bakeOut.map(m => ({ key: m.key, g: packGeo(m.g), src: m.src, kinds: m.kinds, roof: m.roof })), arris, jointFaces, bstats, frames: frames?.stats ?? null, tris });
+  for (const { key, g, src, kinds, roof } of bakeOut) {
+    const [building, mat, tier, ph, extra] = key.split('|');
     // a timber roof takes the roof surface: cedar with reed matting on its underside, the ceiling (D-188)
     const m = new THREE.Mesh(g, roof ? roofMaterial(mat === 'timber' && !flatMode ? surfaceMaterial('roof_timber', { arch: true }) : archMaterial(mat as Material)) : extra === 'frame' ? frameMaterial(mat)! : archMaterial(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}${extra ? ':' + extra : ''}`;
-    if (opts.dynamicDoors) bevelSwap.push({ mesh: m, bevelled: g, plain: mergeGeometries(plain)! }); // the world's build only
-    m.userData = { tier, src: [...new Set(ps.map(p => p.src))].join(';'), placeholder: ph === '1', building, note: extra === 'frame'
-      ? `stone frames (${[...new Set(ps.map(p => p.kind))].join(', ')}): three stepped fasciae round the opening and the cavetto (Egyptian gorge) cornice with its tongues, after the rock tombs' doorways (global.r_frame_profile, C; D-330), carved on the Blender-baked trim (worn, chipped arrises)`
-      : `greybox (Phase 2): ${[...new Set(ps.map(p => p.kind))].join(', ')}` };
+    const plain = byKey.get(key)?.plain; if (opts.dynamicDoors && KEEP_PLAIN && plain?.length) bevelSwap.push({ mesh: m, bevelled: g, plain: mergeGeometries(plain)! }); // the world's build only
+    m.userData = { tier, src, placeholder: ph === '1', building, note: extra === 'frame'
+      ? `stone frames (${kinds}): three stepped fasciae round the opening and the cavetto (Egyptian gorge) cornice with its tongues, after the rock tombs' doorways (global.r_frame_profile, C; D-330), carved on the Blender-baked trim (worn, chipped arrises)`
+      : `greybox (Phase 2): ${kinds}` };
     group.add(m);
   }
   const SW = srow('lod', 'switch');
@@ -686,5 +700,5 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   }
   let roofEdgesOut: BuiltArch['roofEdges'];
   if (RE) { const P = buildPieces(RE.pieces, flatMode); group.add(P.group); tris += P.triangles; roofEdgesOut = { ...RE, pieceTriangles: P.triangles }; }
-  return { group, triangles: tris, colliders, bevel: bstats, arris, jointFaces, roofEdges: roofEdgesOut, frames: frames?.stats ?? null };
+  return { group, triangles: tris, colliders, bevel: bstats, arris, jointFaces, roofEdges: roofEdgesOut, frames: baked ? baked.frames : frames?.stats ?? null };
 }

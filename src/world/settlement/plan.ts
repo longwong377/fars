@@ -5,6 +5,7 @@
 // builder (build.ts) places it on the ground with terrain.heightAt (D-035).
 import { planHouses } from './houseplan';
 import { ensureAccess } from './access';
+import { cacheGetSync, cachePutSync } from '../cache/worldCache';
 import { Rng } from '../../core/rng';
 import settlementJson from '../../data/settlement.json';
 import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES, ROOM, COURT, YARD, Fitting } from './site';
@@ -304,6 +305,10 @@ function gardenGoharSite(): Site {
 
 // ---------------------------------------------------------------------------------------------------------------------
 let cache: TownPlan | null = null;
+/** a site's state that the plan's passes change (connectPlots, settleDoors, ensureAccess, planHouses), as plain data */
+const SITE_STATE = ['cell', 'sub', 'room', 'doors', 'noWall', 'plots', 'fittings', 'lives', 'fixtures', 'blocked', 'roomN'];
+export const snapSite = (s: Site) => ({ id: s.id, ...Object.fromEntries(SITE_STATE.map(k => [k, (s as any)[k]])) });
+export function restoreSite(s: Site, x: Record<string, any>) { for (const k of SITE_STATE) if (k in x) (s as any)[k] = x[k]; }
 export function buildTownPlan(): TownPlan {
   if (cache) return cache;
   const sites: Site[] = [];
@@ -316,8 +321,13 @@ export function buildTownPlan(): TownPlan {
   // parapet from the standing. Hashes of the plot ids only: the plan's streams, plots, doors and hearths are unchanged
   // D-249 (Q-640): every place of a house joined to its street door, and no door narrowed by a wall meeting its jamb (a door
   // so narrowed moves along its wall or to the next edge between the same places); no random draw
-  for (const s of sites) { s.connectPlots(); s.settleDoors(); ensureAccess(s); }
-  for (const s of sites) planHouses(s);
+  // D-392 (s15/load): the doors settled, every place reached and the houses' lives, read from the baked world (the sites'
+  // state after these passes; the source hash covers this module and every one it imports) when unchanged
+  const snap = cacheGetSync<Record<string, any>[]>('townplan', 'sites');
+  if (snap && snap.length === sites.length && snap.every((x, i) => x.id === sites[i].id)) sites.forEach((s, i) => restoreSite(s, snap[i]));
+  else { for (const s of sites) { s.connectPlots(); s.settleDoors(); ensureAccess(s); }
+    for (const s of sites) planHouses(s);
+    cachePutSync('townplan', 'sites', sites.map(snapSite)); }
   const props: Prop[] = [], trees: TreeSpot[] = [], water: WaterPiece[] = [], middens: Midden[] = [], groups = new Map<string, P2[]>();
   // site-local fittings that are really features of the ground (trees, water, middens) become plan entries
   for (const s of sites) for (const f of s.fittings) {

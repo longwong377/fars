@@ -15,6 +15,7 @@
 import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, normalWorld, mx_noise_float, mx_worley_noise_float, vec2, vec3, float, mix, smoothstep, max, abs, floor, fract, step, dot, textureLoad, ivec2, int, fwidth, clamp } from 'three/tsl';
 import { roofedNode } from './probes/roofs';
+import { cacheGetSync, cachePutSync } from '../world/cache/worldCache';
 
 /** the grime map's frame: grid (e, n) metres of the index's corner, tile size (m) and index side; atlas tiles per row and rows */
 export const GRIME_MAP = { E0: -4096, N0: -4096, TILE: 32, IDX: 256, PER_ROW: 60, ROWS: 30, Y0: -80, YS: 120 };
@@ -64,11 +65,15 @@ export class GrimeRaster {
   band(pts: [number, number][], hw: number, w: number) {
     for (let s = 1; s < pts.length; s++) { const [a, b] = [pts[s - 1], pts[s]], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 1e-3) continue;
       const ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
-      for (let j = Math.floor(Math.min(a[1], b[1]) - hw); j <= Math.ceil(Math.max(a[1], b[1]) + hw); j++) for (let i = Math.floor(Math.min(a[0], b[0]) - hw); i <= Math.ceil(Math.max(a[0], b[0]) + hw); i++) {
+      // D-392 (s15/load): the segment in pieces of <= 4 m, each piece's own box (a long diagonal's one box was most of the
+      // cells, ~5 s of the build); a cell seen twice takes the same max again (the distance is to the whole segment)
+      const np = Math.max(1, Math.ceil(L / 4));
+      for (let q = 0; q < np; q++) { const c0x = a[0] + ux * L * q / np, c0y = a[1] + uy * L * q / np, c1x = a[0] + ux * L * (q + 1) / np, c1y = a[1] + uy * L * (q + 1) / np;
+      for (let j = Math.floor(Math.max(Math.min(a[1], b[1]), Math.min(c0y, c1y)) - hw); j <= Math.ceil(Math.min(Math.max(a[1], b[1]), Math.max(c0y, c1y)) + hw); j++) for (let i = Math.floor(Math.max(Math.min(a[0], b[0]), Math.min(c0x, c1x)) - hw); i <= Math.ceil(Math.min(Math.max(a[0], b[0]), Math.max(c0x, c1x)) + hw); i++) {
         const px = i + 0.5 - a[0], py = j + 0.5 - a[1], t = px * ux + py * uy; if (t < -hw || t > L + hw) continue;
         const d = t < 0 ? Math.hypot(px, py) : t > L ? Math.hypot(px - ux * L, py - uy * L) : Math.abs(px * uy - py * ux); if (d >= hw) continue;
         const c = this.cell(i + 0.5, j + 0.5, true); if (!c) continue; const [T, k] = c; T[k + 2] = Math.max(T[k + 2], w * (1 - (d / hw) ** 2));
-      } }
+      } } }
   }
 }
 
@@ -157,7 +162,12 @@ export function uploadGrime(R: GrimeRaster): { tiles: number; dropped: number } 
   return { tiles: slot, dropped };
 }
 /** build and upload the map (world.ts, once the fires, the town and the plain are built) */
-export function buildGrime(S: GrimeSources) { const t0 = typeof performance !== 'undefined' ? performance.now() : 0; const R = grimeRaster(S), u = uploadGrime(R);
+/** D-392: with bakeKey (the world's inputs: seed, quality, settings), the maps read from the baked world when unchanged */
+export function buildGrime(S: GrimeSources, bakeKey?: string) { const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
+  const hit = bakeKey ? cacheGetSync<{ idx: Float32Array; atlas: Uint8Array; tiles: number; dropped: number }>('grime', bakeKey) : null;
+  let u: { tiles: number; dropped: number };
+  if (hit && hit.idx.length === idxData.length && hit.atlas.length === atlasData.length) { idxData.set(hit.idx); atlasData.set(hit.atlas); IDX_TEX.needsUpdate = true; ATLAS_TEX.needsUpdate = true; u = { tiles: hit.tiles, dropped: hit.dropped }; }
+  else { u = uploadGrime(grimeRaster(S)); if (bakeKey) cachePutSync('grime', bakeKey, { idx: idxData, atlas: atlasData, ...u }); }
   const info = { ...u, ms: Math.round((typeof performance !== 'undefined' ? performance.now() : 0) - t0) }; (globalThis as any).__parsaGrime = info; return info; }
 
 // ------------------------------------------------------------------------------------------------ the nodes (GPU)

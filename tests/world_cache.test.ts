@@ -3,6 +3,7 @@
 // entry is reported, never used (the page falls back to the live build: src/world/cache/worldCache.ts).
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { pack, unpack, hashArrays } from '../src/world/cache/pack';
 import { identity } from '../src/world/cache/worldCache';
 import { sourceHashes, closure } from '../tools/bake_world/srchash.mjs';
@@ -58,8 +59,30 @@ describe('world cache: the baked units equal the live build', () => {
       expect(identity(unpack(pack(live)))).toBe(identity(live));
       if (!e) { console.warn(`[world-cache] ${u.unit}|${u.key}: not baked (npx tsx tools/bake_world/bake.ts)`); return; }
       if (e.src !== src[u.unit]) { console.warn(`[world-cache] ${u.unit}|${u.key}: stale (the page builds it live)`); return; }
-      const b = readFileSync(`public/world-cache/${e.file}`);
+      let b = readFileSync(`public/world-cache/${e.file}`); if (e.gz) b = gunzipSync(b);
       expect(identity(unpack(new Uint8Array(b.buffer, b.byteOffset, b.byteLength)))).toBe(identity(live));
     }, 600_000);
   }
+});
+
+describe('world cache: s15 (D-392) the whole build baked', () => {
+  it('packs Sets, Maps and three vectors (revived as Vector3)', async () => {
+    const THREE = await import('three/webgpu'); await import('../src/world/cache/geo');
+    const v = { s: new Set([3, 1, 2]), m: new Map<string, any>([['a', [[1, 2], [3, 4]]], ['b', null]]), e: [{ a: new THREE.Vector3(1, -2, 3.5), n: 1 }] };
+    const u = unpack<any>(pack(v));
+    expect(u.s).toBeInstanceOf(Set); expect([...u.s]).toEqual([3, 1, 2]);
+    expect(u.m).toBeInstanceOf(Map); expect(u.m.get('a')).toEqual([[1, 2], [3, 4]]); expect(u.m.get('b')).toBe(null);
+    expect(u.e[0].a).toBeInstanceOf(THREE.Vector3); expect(u.e[0].a.toArray()).toEqual([1, -2, 3.5]);
+    expect(identity(u)).toBe(identity(v));
+  });
+  it('the town plan read back from its baked state is the plan computed live', async () => {
+    const { buildTownPlan, snapSite, restoreSite } = await import('../src/world/settlement/plan');
+    const P = buildTownPlan(), snaps = P.sites.map(snapSite), back = unpack<any[]>(pack(snaps));
+    for (const [i, s] of P.sites.entries()) {
+      const t = Object.create(Object.getPrototypeOf(s)); Object.assign(t, s); restoreSite(t, back[i]);
+      expect(identity(snapSite(t))).toBe(identity(snaps[i]));
+      expect(t.doors).toBeInstanceOf(Set); expect(t.cell).toBeInstanceOf(Int32Array);
+      expect(t.cellGrid(5)).toEqual(s.cellGrid(5));
+    }
+  }, 300_000);
 });

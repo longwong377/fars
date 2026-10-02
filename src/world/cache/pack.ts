@@ -1,8 +1,11 @@
-// s14/load (D-354): a compact binary form of plain data (objects, arrays, numbers, strings, booleans, null and typed arrays),
+// s14/load (D-354): a compact binary form of plain data (objects, arrays, numbers, strings, booleans, null, typed arrays, Sets, Maps),
 // for the baked world cache. One JSON header, the typed arrays' bytes after it, each aligned to 8 bytes; unpacking views the
 // arrays straight out of the fetched buffer (no copies). Lossless: unpack(pack(x)) deep-equals x, bit for bit in the arrays.
 const TA: Record<string, any> = { Float32Array, Float64Array, Int8Array, Int16Array, Int32Array, Uint8Array, Uint16Array, Uint32Array, Uint8ClampedArray };
 const MAGIC = 0x4b434150; // 'PACK'
+/** s15 (D-392): classes packed by name and revived on unpack (geo.ts registers three's Vector3): test, to plain data, back */
+const CLS = new Map<string, { test: (v: any) => boolean; to: (v: any) => any; from: (x: any) => any }>();
+export function registerPackClass(name: string, test: (v: any) => boolean, to: (v: any) => any, from: (x: any) => any) { CLS.set(name, { test, to, from }); }
 
 export function pack(value: unknown): Uint8Array {
   const blobs: [number, ArrayBufferView][] = []; let off = 0;
@@ -11,7 +14,9 @@ export function pack(value: unknown): Uint8Array {
     if (ArrayBuffer.isView(v)) { const t = v.constructor.name; if (!TA[t]) throw new Error(`pack: ${t} unsupported`);
       off = (off + 7) & ~7; const r = { $t: t, at: off, n: (v as any).length }; blobs.push([off, v]); off += v.byteLength; return r; }
     if (Array.isArray(v)) return v.map(enc);
-    if (v instanceof Map || v instanceof Set) throw new Error('pack: Map/Set unsupported');
+    for (const [name, c] of CLS) if (c.test(v)) return { $c: name, v: enc(c.to(v)) };
+    if (v instanceof Set) return { $set: [...v].map(enc) }; // (s15: Sets and Maps, the town plan's doors)
+    if (v instanceof Map) return { $map: [...v].map(([k, x]) => [enc(k), enc(x)]) };
     const o: Record<string, any> = {}; for (const k of Object.keys(v)) { if (v[k] === undefined || typeof v[k] === 'function') continue; o[k] = enc(v[k]); } return o;
   };
   const head = new TextEncoder().encode(JSON.stringify(enc(value)));
@@ -32,6 +37,9 @@ export function unpack<T = any>(buf: ArrayBuffer | Uint8Array): T {
     if (Array.isArray(e)) return e.map(dec);
     if (e.$t) { const C = TA[e.$t]; return new C(aligned.buffer, aligned.byteOffset + base + e.at, e.n); }
     if (e.$n !== undefined && Object.keys(e).length === 1) return Number(e.$n);
+    if (e.$c && Object.keys(e).length === 2) { const c = CLS.get(e.$c); if (!c) throw new Error(`unpack: class ${e.$c} not registered`); return c.from(dec(e.v)); }
+    if (e.$set && Object.keys(e).length === 1) return new Set(e.$set.map(dec));
+    if (e.$map && Object.keys(e).length === 1) return new Map(e.$map.map(([k, x]: any) => [dec(k), dec(x)]));
     const o: Record<string, any> = {}; for (const k of Object.keys(e)) o[k] = dec(e[k]); return o;
   };
   return dec(head) as T;
