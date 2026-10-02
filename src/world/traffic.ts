@@ -55,7 +55,9 @@ export interface Mover { key: string; kind: 'pack' | 'camel' | 'courier' | 'cart
   look: { id: number; sex: 'm' | 'f'; role: string; dress: 'worker' | 'median' | 'woman' | 'child'; origin: string; seed: number; age?: 'adult' | 'elder' | 'child' };
   /** D-570: who a road traveller is (roadFolk.ts's register): the household's head by name, the person's place in it, home and
    *  livelihood (for the dev overlay, and for the talk system once it reaches the crowd's extras) */
-  life?: { name: string; role: string; home: string; livelihood: string } }
+  life?: { name: string; role: string; home: string; livelihood: string };
+  /** D-570: the population's pid when the traveller is one of its people (roadFolk.ts bindPids) */
+  pid?: number }
 export interface Route { pts: P2[]; cum: number[]; len: number }
 export const route = (pts: P2[]): Route => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; };
 /** a point s metres along a route (clamped) and the heading there (rad, atan2(de, dn)) */
