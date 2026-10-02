@@ -14,7 +14,12 @@ import type { Relations, Meet } from './world';
 
 const FREE = new Set<ActivityId>(['rest', 'talk', 'play', 'gamble', 'tend_body', 'queue', 'exchange', 'spin']);
 const DAY_START = 8, DAY_END = 17.5;
-const free = (s: Seg) => FREE.has(s.act) && !/the heat|household/.test(s.why) && s.where !== 'road' && s.where !== 'away' && !s.place.startsWith('@') && s.with === undefined && !MINDING.test(s.why);
+// (D-349: the families' agreement may also be held in the evening, after the meal and before sleep, as the town's evening visits
+// are: a groom and a bride's father who both work are free together only then; the 'with the household' hours are open to it)
+const EVE_END = 21;
+const free = (s: Seg, loose = false) => FREE.has(s.act) && !(loose ? /the heat/ : /the heat|household/).test(s.why) && s.where !== 'road' && s.where !== 'away' && !s.place.startsWith('@') && s.with === undefined && !MINDING.test(s.why);
+/** (D-349) touching free stretches at one place joined into one (talk with the household, then rest at home): the families' meeting only */
+const runs = (base: Seg[]) => { const out: Seg[] = []; for (const s of base) { const p = out[out.length - 1]; if (p && free(p, true) && free(s, true) && p.place === s.place && Math.abs(p.t1 - s.t0) < 1e-6) out[out.length - 1] = { ...p, t1: s.t1 }; else out.push(s); } return out; };
 // (D-359: each part tagged, so the dev overlay and the visibility count (tools/dev/visible_week.ts) find it)
 const sg = (t0: number, t1: number, place: string, act: ActivityId, why: string, where: Where, withP?: number): Seg => ({ t0, t1, place, act, why, where, ...(withP !== undefined ? { with: withP } : {}), ev: 'D-348 relations (C)' });
 interface Lay { h0: number; h1: number; segs: Seg[]; meet: Meet }
@@ -36,7 +41,12 @@ export class RelPlans {
   overlay(pid: number, day: number, base: Seg[]): Seg[] {
     const k = `${pid}:${day}`; const c = this.overlaid.get(k); if (c) return c;
     let segs = base; for (const m of this.index(day).by.get(pid) ?? []) for (const [who, L] of this.layOf(m) ?? []) { if (who !== pid) continue;
-      const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (over.length && over.every(free)) segs = splice(segs, L.h0, L.h1, L.segs); }
+      const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (over.length && over.every(s => free(s, L.meet.kind === 'negotiate'))) segs = splice(segs, L.h0, L.h1, L.segs); }
+    // (D-350, s15, B230: the courting by the well names her well as the suitor's part does, `well:<q>:<her house>` (D-359): her water
+    // is drawn at the same well, the one nearest her house, which her bare `well:<q>` already meant; the two strings differed)
+    for (const m of this.index(day).by.get(pid) ?? []) if (m.kind === 'court' && m.b === pid) for (const [who, L] of this.layOf(m) ?? []) { if (who === pid) continue;
+      const t = L.segs.find(x => x.act === 'talk' && x.place.startsWith('well:')); if (!t) continue; const bare = t.place.split(':').slice(0, 2).join(':');
+      segs = segs.map(x => x.act === 'draw_water' && x.place === bare && x.t0 <= t.t0 + 1e-6 && x.t1 >= t.t1 - 1e-6 ? { ...x, place: t.place } : x); }
     if (this.overlaid.size > 20000) this.overlaid.clear(); this.overlaid.set(k, segs); return segs;
   }
   /** the day's meetings as laid (pid → its parts): for the tests and the dev overlay */
@@ -57,16 +67,16 @@ export class RelPlans {
   private where(h: number): Where { return this.pop.households[h]?.zone === 'plain' ? 'plain' : 'town'; }
   /** a visitor's part: walk there, the stay, walk back, within one free stretch of his base day */
   private visit(pid: number, d: number, place: string, W: Where, a: number, b: number, why: string, withP: number, meet: Meet): [number, Lay] | null {
-    const P = this.pop, base = P.basePlan(pid, d);
-    for (const s of base) { if (!free(s) || s.t0 > a || s.t1 < b) continue; const w = P.walkH(s.place, place, d, s.where, W); if (s.t0 > a - w + 1e-9 || s.t1 < b + w - 1e-9 || a - w < DAY_START || !clear(P, base, d, a - w, b + w)) continue;
+    const P = this.pop, base = P.washedPlan(pid, d), loose = meet.kind === 'negotiate';
+    for (const s of loose ? runs(base) : base) { if (!free(s, loose) || s.t0 > a || s.t1 < b) continue; const w = P.walkH(s.place, place, d, s.where, W); if (s.t0 > a - w + 1e-9 || s.t1 < b + w - 1e-9 || a - w < DAY_START || !clear(P, base, d, a - w, b + w)) continue;
       const segs = [...(w > 0.01 ? [sg(a - w, a, `road:${W}`, 'walk', `on the way to ${place.startsWith('well:') ? 'the well' : place.startsWith('lane:') ? 'the lane' : 'the house'}`, 'road')] : []), sg(a, b, place, 'talk', why, W, withP), ...(w > 0.01 ? [sg(b, b + w, `road:${s.where}`, 'walk', 'walking back', 'road')] : [])];
       if (!segs.every(x => x.where === 'road' || reasonOk(x.act, x.why))) return null; return [pid, { h0: a - w, h1: b + w, segs, meet }]; }
     return null;
   }
   /** a host's part: at home (or in the lane before the house), free over [a, b] */
   private host(pid: number, d: number, place: string, W: Where, a: number, b: number, why: string, withP: number, meet: Meet, atHome = true): [number, Lay] | null {
-    const P = this.pop, home = P.households[P.home(pid, d)]?.home, base = P.basePlan(pid, d), s = base.find(x => x.t0 <= a + 1e-9 && x.t1 >= b - 1e-9);
-    if (!s || !free(s) || (atHome && s.place !== home) || !clear(P, base, d, a, b)) return null; return [pid, { h0: a, h1: b, segs: [sg(a, b, place, 'talk', why, W, withP)], meet }];
+    const P = this.pop, home = P.households[P.home(pid, d)]?.home, base = P.washedPlan(pid, d), s = (meet.kind === 'negotiate' ? runs(base) : base).find(x => x.t0 <= a + 1e-9 && x.t1 >= b - 1e-9);
+    if (!s || !free(s, meet.kind === 'negotiate') || (atHome && s.place !== home) || !clear(P, base, d, a, b)) return null; return [pid, { h0: a, h1: b, segs: [sg(a, b, place, 'talk', why, W, withP)], meet }];
   }
   private lay(x: Meet, d: number, busy: Set<number>): [number, Lay][] | null {
     const P = this.pop; // (busy: the companions who have another meeting first that day)
@@ -74,17 +84,18 @@ export class RelPlans {
     const hh = P.home(x.b, d), H = P.households[hh]; if (!H || (H.zone !== 'town' && H.zone !== 'plain')) return null;
     const W = this.where(hh), home = H.home, lane = `lane:${H.q}`;
     const len = x.kind === 'negotiate' ? 1.5 : x.kind === 'court' ? 0.75 : 0.5;
+    const step = x.kind === 'negotiate' ? 0.1 : 0.5; // (D-349: the families' meeting is fitted to both free stretches to the six minutes; the half-hour grid missed nearly all)
     // the time: the first free stretch of the host's base day in daylight long enough for the meeting
     if (x.kind === 'court') { // a walk beside her to the well when she draws water there
-      for (const s of P.basePlan(x.b, d)) { if (s.act !== 'draw_water' || !s.place.startsWith('well:') || s.with !== undefined || s.t0 < DAY_START || s.t1 > DAY_END || s.t1 - s.t0 < 0.1) continue;
+      for (const s of P.washedPlan(x.b, d)) { if (s.act !== 'draw_water' || !s.place.startsWith('well:') || s.with !== undefined || s.t0 < DAY_START || s.t1 > DAY_END || s.t1 - s.t0 < 0.1) continue;
         // (D-359: at her well, the one nearest her house: `well:<q>:<her house>`; a bare well:<q> is drawn at the visitor's own)
         const v = this.visit(x.a, d, `${s.place.split(':').slice(0, 2).join(':')}:${hh}`, W, s.t0, s.t1, 'talking with her by the well as she draws the water: courting', x.b, x); if (v) return [v]; } }
-    for (const s of P.basePlan(x.b, d)) {
-      if (!free(s) || s.place !== home) continue;
-      for (let a = Math.max(s.t0, DAY_START + 0.5); a + len <= Math.min(s.t1, DAY_END); a += 0.5) {
+    for (const s of x.kind === 'negotiate' ? runs(P.washedPlan(x.b, d)) : P.washedPlan(x.b, d)) {
+      if (!free(s, x.kind === 'negotiate') || s.place !== home) continue;
+      for (let a = Math.max(s.t0, DAY_START + 0.5); a + len <= Math.min(s.t1, x.kind === 'negotiate' ? EVE_END : DAY_END); a += step) {
         const b = a + len, parts: [number, Lay][] = [];
         if (x.kind === 'court') { const h = this.host(x.b, d, home, W, a, b, 'talking with her suitor, her family by', x.a, x); const v = h && this.visit(x.a, d, home, W, a, b, 'visiting her family’s house, courting her', x.b, x); if (!h || !v) continue; parts.push(h, v); }
-        else if (x.kind === 'lovers') { const h = this.host(x.b, d, lane, W, a, b, 'talking apart in the lane with a lover', x.a, x); const v = h && this.visit(x.a, d, `${lane}:${hh}`, W, a, b, 'talking apart in the lane with a lover', x.b, x); if (!h || !v) continue; parts.push(h, v); } /* (D-359: the visitor at the lane outside her door) */
+        else if (x.kind === 'lovers') { const h = this.host(x.b, d, `${lane}:${hh}`, W, a, b, 'talking apart in the lane with a lover', x.a, x); const v = h && this.visit(x.a, d, `${lane}:${hh}`, W, a, b, 'talking apart in the lane with a lover', x.b, x); if (!h || !v) continue; parts.push(h, v); } /* (D-359: the visitor at the lane outside her door; D-350, s15: and she there too, the same place named alike) */
         else { const h = this.host(x.b, d, home, W, a, b, 'talking over the marriage with his family: the bride-gift and the dowry', x.a, x); const v = h && this.visit(x.a, d, home, W, a, b, 'visiting her father’s house to agree the marriage: the bride-gift and the dowry', x.b, x); if (!h || !v) continue; parts.push(h, v);
           if (x.hostKin !== undefined && !busy.has(x.hostKin)) { const k = this.host(x.hostKin, d, home, W, a, b, 'talking over the marriage of the daughter of the house with the groom’s family', x.a, x); if (k) parts.push(k); }
           if (x.c !== undefined && !busy.has(x.c)) { const c = this.visit(x.c, d, home, W, a, b, 'visiting the bride’s house with his son to agree the marriage', x.a, x); if (c) parts.push(c); } }

@@ -41,14 +41,14 @@ describe('S1 (A, B): rain', () => {
     expect(days).toBeGreaterThan(15); expect(pd).toBeGreaterThan(100_000); expect(over).toBe(0); expect(bad.slice(0, 5)).toEqual([]);
     expect(openPieces, 'passing showers are still waited out in the open').toBeGreaterThan(0);
   }, 300_000);
-  it('the field work is not begun into rain that covers it (dryTask); 21408 Karkišša on Tebetu 26 (day 292) is kept in by the rain', () => {
+  it('the field work is not begun into rain that covers it (dryTask); a farmer of the plain, 7036, on Tebetu 26 (day 292) is kept in by the rain (D-349: was 21408 Karkišša before the redraw of the brides moved the ids)', () => {
     let tasks = 0, off = 0;
     for (let d = 0; d < 354; d++) { const C = P.cal.ctx(d); if (!C.wx.rain) continue;
       for (let h = d % 3; h < P.households.length; h += 3) { if (P.households[h].zone !== 'plain') continue; const hd = P.hday(h, d); if (hd.wetOff) off++; const T = hd.task; if (!T) continue; tasks++;
         expect(rainSpells(C.wx).some(([a, b]) => T.h0 >= a && T.h0 < b), `${h} d${d} ${T.kind} begins in the rain at ${T.h0.toFixed(2)}`).toBe(false);
         expect(rainHours(C.wx, T.h0, T.h1), `${h} d${d}`).toBeLessThan(0.5 * (T.h1 - T.h0)); } }
     expect(tasks).toBeGreaterThan(1000); expect(off).toBeGreaterThan(500);
-    const segs: Seg[] = P.plan(21408, 291); expect(segs.some(s => s.place.startsWith('field:'))).toBe(false); expect(segs.some(s => s.act === 'shelter')).toBe(false);
+    const segs: Seg[] = P.plan(7036, 291); expect(segs.some(s => s.place.startsWith('field:'))).toBe(false); expect(segs.some(s => s.act === 'shelter')).toBe(false);
     expect(segs.some(s => /kept in by the rain/.test(s.why))).toBe(true);
   }, 300_000);
   it('rain in the work sends the worker home: every walk "home out of the rain" ends at home, and the time there is spent under the roof', () => {
@@ -81,11 +81,11 @@ describe('S3 (A), S2 (B): every planner uses the age on the day', () => {
         for (const s of segs) expect(s.with === m && s.where !== 'road' && s.place !== P.households[P.home(pid, d)].home, `${pid} d${d} at ${s.place} ${s.why}`).toBe(false); } }
     expect(five).toBeGreaterThan(300); expect(eight).toBeGreaterThan(300);
   }, 300_000);
-  it('39742 Ratukka (13 months, Abu 30, day 148) plays, eats at the household\'s meals and is nursed a few times; her line says her mother is recovering. 1906 (8, day 233) has a day of his own', () => {
-    const g: Seg[] = P.plan(39742, 147); expect(P.ageOn(39742, 147)).toBe(1); expect(infantLike(g)).toBe(false);
+  it('4544 (13 months, Abu 30, day 148; D-349: was 39742 Ratukka) plays, eats at the household\'s meals and is nursed a few times; her line says her mother is recovering. 3298 (8, day 233; D-349: was 1906) has a day of his own', () => {
+    const g: Seg[] = P.plan(4544, 147); expect(P.ageOn(4544, 147)).toBe(1); expect(infantLike(g)).toBe(false);
     expect(g.filter(s => s.act === 'eat' && /a meal with the household/.test(s.why)).length).toBeGreaterThanOrEqual(2);
     expect(g.filter(s => /^nursed by/.test(s.why)).length).toBeLessThanOrEqual(4); expect(g.some(s => /recovering from an illness/.test(s.why))).toBe(true);
-    const b: Seg[] = P.plan(1906, 232); expect(P.ageOn(1906, 232)).toBe(8); expect(b.some(s => s.place.startsWith('ws:'))).toBe(false); expect(b.filter(s => s.with !== undefined).length).toBe(0);
+    const b: Seg[] = P.plan(3298, 232); expect(P.ageOn(3298, 232)).toBe(8); expect(b.some(s => s.place.startsWith('ws:'))).toBe(false); expect(b.filter(s => s.with !== undefined).length).toBe(0);
   });
 });
 
@@ -105,8 +105,8 @@ describe('S2 (A): minding is planned from the little one\'s side', () => {
         if (/while (she|he|they) sleeps?/.test(s.why)) expect(withMe.every((x: number) => segAt(P.plan(x, d), mid).act === 'sleep'), `${pid} d${d} ${s.why}`).toBe(true); } }
     expect(hip).toBeGreaterThan(200);
   }, 300_000);
-  it('234 Maza (Addaru 19) and 2868 Utira (Kislimu 3): the little one they mind is with them', () => {
-    for (const [pid, d] of [[234, 343], [2868, 238]]) { let n = 0; for (const s of P.plan(pid, d) as Seg[]) { if (!MINDING.test(s.why)) continue; n++;
+  it('2 (Addaru 19) and 3 (Kislimu 3; D-349: were 234 Maza and 2868 Utira): the little one they mind is with them', () => {
+    for (const [pid, d] of [[2, 343], [3, 238]]) { let n = 0; for (const s of P.plan(pid, d) as Seg[]) { if (!MINDING.test(s.why)) continue; n++;
       const kid = P.membersOn(P.home(pid, d), d).find((x: number) => P.ageOn(x, d) <= 4)!; for (const t of [s.t0 + 0.005, (s.t0 + s.t1) / 2, s.t1 - 0.005]) { const g = segAt(P.plan(kid, d), t); expect(g.with, `${pid} ${t.toFixed(2)}`).toBe(pid); expect(g.place).toBe(s.place); } }
       expect(n).toBeGreaterThan(0); }
   });
@@ -208,8 +208,8 @@ describe('S8 (A), S7 and S8 (B): labels', () => {
       const others = P.membersOn(P.home(pid, d), d).filter((x: number) => x !== pid); expect(others.some((x: number) => (P.plan(x, d) as Seg[]).some(s => s.act === 'eat' && s.place === P.households[P.home(pid, d)].home && s.t0 < 11)), `${pid} d${d}`).toBe(true); }
     expect(n).toBeGreaterThan(500);
   }, 300_000);
-  it('the shadow tool\'s household line marks a member who is ill (39742\'s mother on Abu 30)', async () => {
-    const T = await import('../tools/shadow_days'); const r = T.populationDay(sim, W, 39742, 147); expect(r.head[1]).toMatch(/39738 homemaker f32 \(ill today\)/);
+  it('the shadow tool\'s household line marks a member who is ill (4544\'s mother on Abu 30; D-349: was 39742\'s)', async () => {
+    const T = await import('../tools/shadow_days'); const r = T.populationDay(sim, W, 4544, 147); expect(r.head[1]).toMatch(/4537 homemaker f38 \(ill today\)/);
   });
 });
 

@@ -51,9 +51,9 @@ describe('S1: a farming man is not idle at home on a working day', () => {
       for (const pid of ableFarmMen(d, 5)) { n++; expect(daylightRest(pid, d), `${pid} day ${d}`).toBeLessThanOrEqual(3.75); } }
     expect(n).toBeGreaterThan(5000);
   }, 180_000);
-  it('31224 Tuppipi on Nisanu 22 (day 21, the failing day of round 4) works: the season\'s other work, and under 3 h of daylight rest', () => {
-    const T = P.hday(P.home(31224, 21), 21).task; expect(T).not.toBeNull(); expect(daylightRest(31224, 21)).toBeLessThan(3);
-    expect((P.plan(31224, 21) as Seg[]).some(s => s.place === T.place && s.act === T.act)).toBe(true);
+  it('7054 on Nisanu 22 (day 21, the failing day of round 4; D-350, s15: was 31224 Tuppipi before the brides\' redraw) works: the season\'s other work, and under 3 h of daylight rest', () => {
+    const T = P.hday(P.home(7054, 21), 21).task; expect(T).not.toBeNull(); expect(daylightRest(7054, 21)).toBeLessThan(3);
+    expect((P.plan(7054, 21) as Seg[]).some(s => s.place === T.place && s.act === T.act)).toBe(true);
   });
   it('the season\'s other work follows its rows: the threshing floor readied only in the 12 days before the barley harvest (E-41), the sesame cut only in month 6', () => {
     for (let d = 0; d < 354; d += 2) { const C = P.cal.ctx(d); for (let h = 0; h < P.households.length; h += 23) { const T = P.hday(h, d).task; if (!T || T.kind !== 'other') continue;
@@ -120,15 +120,15 @@ describe('S4: the herders\' band is families, and their days differ', () => {
 });
 
 describe('S5: an infant sleeps through much of the mother\'s work', () => {
-  it('babies under four months sleep about 14-17 h in 24 (median) and are seldom awake 2 h at a stretch; 22239 (two months, day 30) sleeps 14 h or more', () => {
+  it('babies under four months sleep about 14-17 h in 24 (median) and are seldom awake 2 h at a stretch; 9350 (two months, day 30; D-350, s15: was 22239) sleeps 14 h or more', () => {
     const sleeps: number[] = [], runs: number[] = [];
     for (const d of [29, 120, 250, 339]) for (let pid = 0; pid < P.persons.length; pid += 3) { const p = P.persons[pid]; if (!(p.born >= 0 || p.age === 0) || !P.present(pid, d) || p.zone === 'transient') continue;
       const ageD = p.born >= 0 ? d - p.born : d + 354 - p.bday; if (ageD < 2 || ageD >= 120) continue; let sl = 0, run = 0, lg = 0;
       for (const s of P.plan(pid, d) as Seg[]) { if (s.act === 'sleep') { sl += s.t1 - s.t0; run = 0; } else { run += s.t1 - s.t0; if (s.act !== 'eat') lg = Math.max(lg, run); } } sleeps.push(sl); runs.push(lg); }
     sleeps.sort((a, b) => a - b); runs.sort((a, b) => a - b); expect(sleeps.length).toBeGreaterThan(200);
     const med = sleeps[sleeps.length >> 1]; expect(med).toBeGreaterThanOrEqual(14); expect(med).toBeLessThanOrEqual(17); expect(runs[Math.floor(runs.length * 0.9)]).toBeLessThan(2.1);
-    let s22 = 0; for (const s of P.plan(22239, 29) as Seg[]) if (s.act === 'sleep') s22 += s.t1 - s.t0; expect(s22).toBeGreaterThanOrEqual(14);
-    expect((P.plan(22239, 29) as Seg[]).some(s => s.act === 'sleep' && /asleep on the mother’s back|asleep, carried on the mother’s back|asleep in the mother’s lap|asleep on a mat beside the mother/.test(s.why) && s.t0 > 7 && s.t1 < 17)).toBe(true);
+    let s22 = 0; for (const s of P.plan(9350, 29) as Seg[]) if (s.act === 'sleep') s22 += s.t1 - s.t0; expect(s22).toBeGreaterThanOrEqual(14);
+    expect((P.plan(9350, 29) as Seg[]).some(s => s.act === 'sleep' && /asleep on the mother’s back|asleep, carried on the mother’s back|asleep in the mother’s lap|asleep on a mat beside the mother/.test(s.why) && s.t0 > 7 && s.t1 < 17)).toBe(true);
   }, 120_000);
 });
 
@@ -141,9 +141,9 @@ describe('S6, S7, S10: children at the floor, women in winter, planner artefacts
       const s: Seg[] = P.plan(pid, d); for (let i = 0; i < s.length; i++) { if (s[i].place.startsWith('threshing:')) expect(s[i].act).not.toBe('field_work');
         if (s[i].where === 'road' && s[i].carry && (s[i + 1]?.place.startsWith('threshing:') || s[i - 1]?.place.startsWith('threshing:'))) expect(s[i].carry, `${pid} d${d}`).not.toMatch(/hoe/); } } }
   }, 120_000);
-  it('a woman at home on a winter day spins or weaves for hours (18904 on Kislimu 19; the baker #122 on her winter day off)', () => {
+  it('a woman at home on a winter day spins or weaves for hours (7037 on Kislimu 19 (D-350, s15: was 18904); the baker #122 on her winter day off)', () => {
     const spin = (pid: number, d: number) => (P.plan(pid, d) as Seg[]).filter(s => s.act === 'spin' || s.act === 'weave').reduce((a, s) => a + s.t1 - s.t0, 0);
-    expect(spin(18904, 254)).toBeGreaterThanOrEqual(1); const b = sim.agents[122].pid; expect(spin(b, 271)).toBeGreaterThanOrEqual(1.5); expect(daylightRest(b, 271)).toBeLessThan(4);
+    expect(spin(7037, 254)).toBeGreaterThanOrEqual(1); const b = sim.agents[122].pid; expect(spin(b, 271)).toBeGreaterThanOrEqual(1.5); expect(daylightRest(b, 271)).toBeLessThan(4);
     let n = 0, sp = 0, rs = 0; for (let pid = 0; pid < P.persons.length; pid += 7) { const p = P.persons[pid]; if (p.sex !== 'f' || p.job !== 'homemaker' || p.age < 14 || p.age > 59 || !P.present(pid, 271) || P.sick(pid, 271) || P.gaveBirth(pid, 271) >= 0) continue; n++; sp += spin(pid, 271); rs += daylightRest(pid, 271); }
     expect(sp / n).toBeGreaterThan(2.5); expect(rs / n).toBeLessThan(2);
   }, 120_000);

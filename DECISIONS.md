@@ -8847,6 +8847,57 @@ D-348, final round: people_days_r6 "no two meals within an hour" (child 28825, d
 and water brought along" meal 20 minutes after the household's meal (economy/plans.ts feed); it is skipped when a meal is
 within the hour. The lead's redraw of brides among women of 18+ (289-336 weddings a year) is on branch s13-relations2-brides,
 not here: it moves person ids and 9 more pinned people_days_r6 tests fail there (not re-pinned).
+D-348 revised (the lead, final round): the bride pool is redrawn among women of 18 and over. Daughters now marry away from 18
+(lives.json family.daughter_married_by_age from 18 to 23, home_until_age.daughter 23), so unmarried daughters of 18-23 are
+at home to be brides; brides 17-26 at the year's start and 18 by the first courting day. This moves person ids after the
+first household that draws a daughter differently (accepted by the lead): pinned people in the tests and the baked prose
+rows no longer name the same person (the prose rows are skipped by their who-check until re-baked). Weddings over seeds
+1-8: 289-336 a year (7 per 1,000; 353 before; E-73 has 8-10, unsourced); Q-1050 answered by it. And people_days_r6 "no two
+meals within an hour" (child 28825, day 21): the economy's step laid a "bread and water brought along" meal 20 minutes after
+the household's meal (economy/plans.ts feed); the brought meal is now skipped when a meal is within the hour of it.
+NOT MERGED WITH IT (branch s13-relations2-brides): the redraw moves person ids, and people_days_r6 then fails 15 tests where
+the base fails 6; the 9 new are pinned people and days (21408 Karkišša d292, 39742 Ratukka d148 x2, 234 Maza, #9 Attemira,
+"on her hip", the safety net's bread and water 5894 d21, the 38-41 °C lane, the scribes' sons) and relations_plans' one
+laid negotiation (0 of 129 after the redraw). Re-pinning them (and the pinned people of the other people_days files, not
+run) was beyond the round's budget; the fix of the meal (above) is on s13-relations2.
+D-349 (s13 agent brides; branch s13-brides = 032df61d + 902ebbaf, the adult-brides redraw): the redraw merged; what it broke,
+fixed or re-pinned. (1) The families' agreement (relations/plans.ts): before the redraw it was laid on 1 of 129 agreement
+days, after it 0; the cause (tools/dev/negotiate_trace.ts, seed 1): a groom and a bride's father who both work are free together
+only after work, and the meeting was held to 8-17.5 h, on a half-hour grid, and kept out of the hours "with the household".
+Now the agreement alone may be held to 21 h (after the evening meal, as the town's evening visits already are), is fitted to
+the six minutes, may take the hours with the household, and joins touching free stretches at one place: laid on 44 of 157
+agreements (the rest: the bride never 1.5 h free at home, 31, or the groom busy). Courting and lovers keep 8-17.5 and the
+half-hour grid (unchanged). relations_plans: its daylight check is now per kind (agreements to 21 h), and the agreement test
+asks for 12 laid (it breaks at 12) where it asked for 1. (2) Re-pins in people_days_r6 (tools/dev/repin_find.ts: the first ids
+that show the test's own property; the checks unchanged): 21408 Karkišša d291 -> 7036 (a farmer of the plain kept in by the
+rain); 39742 Ratukka d147 -> 4544 (a girl of one, her mother 4537 ill: the shadow tool's line now matches "4537 homemaker f38
+(ill today)"); 1906 d232 -> 3298 (a boy of eight with a day of his own); 234 Maza d343 / 2868 Utira d238 -> 2 / 3 (the
+little one minded is with them). (3) Four of the "new" failures were not moved ids but planner faults the new people showed,
+fixed at the cause (population.ts): the meals' safety net checked its time before insertAt stepped past the road, the water
+and the bread, so it landed 23 min before a servant's midday meal (5894 d21): the landed time is checked again and the net
+undone if it is within the hour; it no longer cuts a spell under 1 h in two (it goes at the spell's end: an elder's "little
+grinding" counted twice, 19329 d101); a guard with no patrol to relieve him eats his bread at the post no sooner than an hour
+after his breakfast (313 d341, 59 min); the men's morning knucklebones in the lane last at most 2 h with the walk home
+(3096 d84, 2.08 h). Result: people_days_r6 7 failed / 25 passed (base 032df61d: 6 failed, the same 6); the one new is
+"the little ones" (B229). NOT DONE: the other ten people_days files fail 34 tests on this branch (a 2-worker run on a loaded
+box; many are pinned people: 22239, 18904, 31224, 41397, 27094, #28/78, #104/324, 3885, 46220, 17959, 44627, 44216, 1888,
+#114/1287, 2036, household 9660, guard #76); the base was not run on them (a 1-worker base run was stopped for the budget),
+so which are new is not known (B230). The baked prose rows stay skipped by their who-check until re-baked (902ebbaf).
+
+D-350 (s13 agent bridesmerge; branch s13-bridesmerge = s13-brides 2929ab64 + main 08868d73): (1) B229 fixed at the cause
+(population.ts Population.mindAfter, called in plan() after the washing, the economy and the relations): mindDay writes the
+minder's and the little ones' pieces from the mothers' raw days; a later layer (the economy's 'follow': a mother sent to a
+kin's sickbed takes her little ones) then moved the little ones and left the minder "minding the little ones" at home
+(28536 day 181, 8.39-9.69 and 10.01-11.51). The minder's minding stretches are now cut where the little ones with her
+change and worded from those who are with her (the same words, one function mindWords for both); none with her: her own
+time at home ("playing in the courtyard", "at home" at 13). people_days_r6 S2 "the little ones only for two or more" passes;
+the S2 "no minding, no apart" test still fails on 'apart' (little ones with a mother at an exchange: the base's failure, the
+economy's class) and S3 45438 d148 (the base's). (2) After the merge, relations_plans failed: two courting visits were
+reported laid (RelPlans.lays) and then refused by overlay under the house's laundry (D-347's washing layer, merged into main
+with the relations, is laid before them in plan()). The meetings are now fitted to Population.washedPlan (the base day with
+the washing), so a meeting laid is a meeting in both plans. (3) tools/dev/household_day.ts prints a household's day (the
+minder, the little ones, the mother's plan and raw plan).
+D-350 (continued, s15 cloud, B230): the brides branch measured against origin/s14-int (merged in, f2382381) on people_days, d211 and r3-r6, one file at a time on both trees. The branch's own failures were three planner faults and moved ids. (1) A child of 10 or more at a wedding (more of them since daughters stay home to 23: 13425 d305, her sister's) played 4.1 h unbroken at the groom's house: she now rests through the hot hour with the grown-ups (under 10: the nap, as before) and the drum evening's piece says "at the wedding". (2) The house's water on a day of the household's all-day work: the waterer threshed from 5.5 h to the evening wind and slept through the heat, so the house went without (r3 62 of 5,577 house-days, main 47): the water pass's last fallback has her leave the floor 0.22 h plus the walk early and go home by the well (17 left). (3) D-349's bread at a short spell's end landed in the next piece (guard #12, d328, the forecourt): it is eaten in the spell's last 20 min at its place. (4) relations/plans.ts: since D-359's per-house places the suitor stood at well:<q>:<her house> and she at well:<q> (17 meetings apart, also at a8fee681): her draw is named with her house's well while he is there, and the lovers' host part is at the lane outside her door. Re-pins (tools/dev/repin_find_b230.ts; the checks unchanged): see B230; d211's workshop trade for the boys of 13-15 is the brewer's (no male weaver of seed 1 has a son of 12-15 after the redraw; main had one).
 D-351 (s13 trust; UD-25 (1) and (4), UD-26): reputation and trust, haggling and barter, node side. src/people/speech/trust.ts: a TrustLedger read
 off the economy's event graph (deeds of repaying, defaulting, theft, arrest, acquittal, kin's help, hiring, gifts, the stranger's own help; news
 heard via living/world.ts tell()), three decaying layers (personal standing, dyad, group: quarter, trade, kin name; half-life 150 days), trustOf(a, b)
@@ -9264,7 +9315,7 @@ Everyone else who hears clearly gets a TalkWorld.overheard row (saved as talk.ov
 - **Persian women (Iranian pool) 47 -> 143 names.** D-236's rule: each name is an attested first element + an attested feminine second element, in the two-member pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā). New first elements, each in an attested name: *ama- (Amestris), *paru- (Parysatis), *aspa- (Aspacanā, DB), *vinda- (Vindafarnā, DB), *xšaθra- (xšaçapāvā, DB). New second elements, each the second member of an attested woman's name: *-zauštrī (Artazostre), *-tausā (Atossa), *-strī (Amestris), *-šyāti (Parysatis; šiyāti- in DNa), *-gaunā (Rhodogune). The royal names themselves are not composed again (*Rtazauštrī, *Hutausā, *Amāstrī, *Parušyāti, *Raudagaunā stay out).
 - **Elamite women: a pool of their own.** 9 compositions of an Elamite deity + -utu, after the Middle Elamite woman's name Nahhunte-utu (the queen's own name stays out): Hupan-, Napiriša-, Šimut-, Mašti-, Kiririša-, Inšušinak-, Pinikir-, Hutran-, Ruhurater-utu. As D-452 did for the men, Elamite women also draw on the Iranian women's names (population.ts NAME_POOLS 'f:Elamite'); before this they drew on every woman's name of every origin, Babylonian and Egyptian included. Pool 67 -> 152.
 - **T-E2 (tools/dev/person_census.ts, seeds 1, 7, 42, day 150): f:Persian 2.18 % -> 0.72 %, f:Elamite 1.65 % -> 0.72 % (pass); worst group now m:Persian 0.94 % (pass). T-E2h 0 on all three seeds.** (D-452's "~171 and ~101 names" was a slip: ≤ 1 % of 17,065 is 170 women a name, so ~101 names were enough for each group.)
-- Tests: person_census 9/9; guards 25/25. language: its one failure at HEAD (src/shell/progress.ts, D-393, not registered as out-of-world DOM text) fixed by registering it in tests/language.test.ts. people_days_r8, people_days_r6, court, crafts, court_fill: running at commit time (results in the next commit).
+- Tests: person_census 9/9; guards 25/25. language: its one failure at HEAD (src/shell/progress.ts, D-393, not registered as out-of-world DOM text) fixed by registering it in tests/language.test.ts. crafts 4/4, court_fill 12/12, people_days_r8 the names block (D-193) 2/2 (its year-wide rest ran 2 h on the cloud box without finishing: no result). court 8/9: the year-wide Treasury letters case times out (750 s against 600 s; no assertion fails, it reads no names). people_days_r6 27/32: two year-wide cases time out (rain, dust) and three fail on assertions (infant planning d148, minding d101, the mourning minder), the same three failing at the base d61e507 before this change: not D-457, open for the depth track.
 
 ## D-395 The 1.5B's prompts tightened; reactions on sight and heads turning to a shout are played (session 16, talk16)
 - Every message to the model goes through converse/spoken.ts (numbers in words: "seventeen years ago", ages, day counts); the system prompt keeps its hard 450-token cap and the stranger's turn its own 220 (prompt.ts userTurn: a "no" said once, the house's dealings cut first); the fence no longer refuses a river bank, "two thousand sheep", "400 men", an assistant, a job, instructions or "the brief rain" (a counted number in digits is said in words, a year or an era still refused). tests/talk_prompt.test.ts (stand-in model, T-E9 + T-E10 asks). Render side: people/react.ts plays PeopleSim.strangerSeen (polled by the crowd about once a second while there is a player: greet with a nod and a raised hand by name, bow from the chest, nod, stare, avoid with the head turned away and the eyes down) and earshot's shout lookers (converse/ui.ts -> crowd.reactions 'turn'), as head, neck and chest layers over the work; tests/react.test.ts and tests/e2e/react.spec.ts (human lab, real GPU). Tier C gestures. Unheard with the real model; not yet seen in the world.
