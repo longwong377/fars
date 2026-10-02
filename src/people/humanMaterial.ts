@@ -39,10 +39,12 @@ import { CHEEK_R, NOSE_R } from './bodyShape';
 import type { HumanScans } from './humanScans';
 
 /** height field → shading normal (view space; surface gradient from screen-space derivatives, Mikkelsen 2010) */
-function bumped(h: any) {
+function bumped(h: any, gx: any = null, gy: any = null) {
   const dpdx = positionView.dFdx(), dpdy = positionView.dFdy(), n = normalView;
   const r1 = dpdy.cross(n), r2 = n.cross(dpdx), det = dpdx.dot(r1);
-  const grad = sign(det).mul(h.dFdx().mul(r1).add(h.dFdy().mul(r2)));
+  // (s17 V3: gx, gy an extra height gradient in screen space, given by the caller where a texture's height would step)
+  const hx = gx ? h.dFdx().add(gx) : h.dFdx(), hy = gy ? h.dFdy().add(gy) : h.dFdy();
+  const grad = sign(det).mul(hx.mul(r1).add(hy.mul(r2)));
   return abs(det).mul(n).sub(grad).normalize();
 }
 /** D-307: a bilinear, mip-selected read of a texture by textureLoad (4 loads): no sampler. The human material's fragment
@@ -88,7 +90,12 @@ export interface HumanTextures {
  *  (w: the abdomen's height in bind space, m), 7 [grime brightness, scale, hat height (D-189), flags], 8 felt/headgear (w: the
  *  abdomen's front z in bind space, m), 9 wear [garment age, fit (m), fold amplitude (mm) + phase, hem soil] (looks.wearTexel, D-189).
  *  stubble (1.w): 0 none, 0..1 shaven stubble, 2 = bearded (the skin under the beard reads as roots) */
-export const PERSON_TEXELS = 10;
+export const PERSON_TEXELS = 11;
+/** s17 V3 (D-500): texel 10 [wound, scar, the variant's eye height (m, bind), 0]: the marks of the sim's hooks drawn on the
+ *  skin (crowd.ts setMarks). wound: 1 a linen bandage round the head (a cut), 2 round the left forearm, 3 a splinted right
+ *  forearm (a broken bone); scar: 1 an old healed wound or scald on the right forearm */
+export const MARK = { headY: 0.05, headHalf: [0.016, 0.03] as [number, number], arm: [0.8, 0.97] as [number, number],
+  linen: [0.5, 0.45, 0.37] as RGB, blood: [0.32, 0.1, 0.07] as RGB };
 /** reference skin tone the baked albedo was authored for (sRGB; tools/humans/skin.ts REF_TONE) */
 export const REF_TONE: [number, number, number] = [0.72, 0.53, 0.42];
 /** drape: a slack cloth vertex drops this far (m) when its main bone is horizontal (wide sleeves, seated skirts; C) */
@@ -118,7 +125,7 @@ export const DRAPE = { foldLow: [2, 3] as [number, number], foldHigh: [7, 10] as
    *  chest on the upper garments (count round, m deep, fading out over m above the belt) */
   weave: { fq: [700, 1500] as [number, number], h: [0.0003, 0.00015] as [number, number], alb: 0.16 },
   streak: { f: [14, 170] as [number, number], alb: 0.04, h: [0.00012, 0.00006] as [number, number] },
-  dyeUneven: [0.04, 0.14] as [number, number], lump: 0.0015, hang: { n: 14, h: 0.003, top: 0.3 },
+  dyeUneven: [0.07, 0.18] as [number, number], /* (s17 V3: was 0.04, 0.14: every garment read as one flat dyed sheet at 2-5 m) */ lump: 0.0015, hang: { n: 14, h: 0.003, top: 0.3 },
   /** D-225: hem soil — the last few centimetres of a skirt drag in the dust (share of the skirt's length, extra weight) */
   hemEdge: [0.93, 0.3] as [number, number] };
 
@@ -161,7 +168,7 @@ export const LASH = { u0: 0.704, u1: 0.762, clumps: 72 };
  *  threads per metre (DRAPE.weave.fq; tools/build_humans_scans.py) */
 export const SCAN = { darkY: [0.17, 0.075] as [number, number],
   cloth: { alb: [0.9, 1, 0.9, 0.9], h: [0.00045, 0.0007, 0.0006, 0.0004] } };
-export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, bumpMass: 0.002, kk: [0.09, 0.06] as [number, number] };
+export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, bumpMass: 0.002, kk: [0.13, 0.09] as [number, number] }; // (s17 V3: kk ×1.45, the sheen of oiled dark hair in the sun)
 /** D-307 (C): the strand cards. Albedo = hair colour × the atlas' shade × 2 (its mean is 0.5) × a back strand's darkening
  *  (depth 0 → back); the coverage is tested at `alphaTest`, the value the atlas' coverage-preserving mips were made for
  *  (tools/blender/sources/people_hair_post.ts: a card keeps its density at every distance; the first render's hashed test
@@ -376,13 +383,28 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       vBind.assign(s.xyz);
       // the garment's fading susceptibility (its colour texel's w) and the bind normal's up component (D-189)
       const kFade = colT.w.mul(clothC).mul(step(colSlot, 4.5)); // (texels 5, 6 and 8 carry other data in w: D-292)
-      vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x)); vExt.assign(vec4(hext.y, hext.w, nB.y, kFade));
+      vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x));
+      // s17 V3: the marks (texel 10), a per-vertex mask carried on skin in vExt.w (cloth's fading share there; 0 on skin):
+      // + bandage coverage, − a healed scar
+      const mk = row(10), wound = mk.x, skinV = is(hmat.x, MAT.skin);
+      const headBand = is(wound, 1).mul(is(si.x, HB.head)).mul(float(1).sub(smoothstep(MARK.headHalf[0], MARK.headHalf[1], abs(s.y.sub(mk.z.add(MARK.headY))))));
+      const armBand = is(wound, 2).mul(is(si.x, HB.lowerarm_l)).add(is(wound, 3).mul(is(si.x, HB.lowerarm_r))).mul(smoothstep(MARK.arm[0], MARK.arm[1], sw.x));
+      const scarV = is(mk.y, 1).mul(is(si.x, HB.lowerarm_r)).mul(smoothstep(0.55, 0.9, sw.x));
+      const bandV = max(headBand, armBand);
+      vExt.assign(vec4(hext.y, hext.w, nB.y, kFade.add(skinV.mul(bandV.sub(scarV.mul(float(1).sub(bandV)))))));
       // joint wrinkles: how much the two main bones of a mixed-weight cloth vertex are turned against each other
       const bA = int(si.x).mul(3), bB = int(si.y).mul(3);
       const yA = vec3(boneTex.load(ivec2(bA, int(slot))).y, boneTex.load(ivec2(bA.add(1), int(slot))).y, boneTex.load(ivec2(bA.add(2), int(slot))).y);
       const yB = vec3(boneTex.load(ivec2(bB, int(slot))).y, boneTex.load(ivec2(bB.add(1), int(slot))).y, boneTex.load(ivec2(bB.add(2), int(slot))).y);
       const mixW = sw.x.mul(sw.y).mul(4).clamp(0, 1), bend = float(1).sub(dot(normalize(yA), normalize(yB))).mul(2).clamp(0, 1).mul(mixW).mul(clothC).mul(float(1).sub(skirtV));
-      vWear.assign(vec4(wear.x, bend, ampPh, wear.w));
+      // s17 V3 (D-500): the living colour of a face (C): blood under the thin skin of the nose, the cheeks and the ears, the
+      // lips' colour held down (the baked map read as lipstick in the sun), on head and jaw skin; carried in vWear.y and z
+      // (cloth's joint bend and skirt folds: unused on skin)
+      const hd = is(si.x, HB.head).add(is(si.x, HB.jaw)).mul(skinV), ey = mk.z, ax = abs(s.x), fr0 = smoothstep(0.1, 0.5, nB.z);
+      const box = (x0: number, x1: number, y0: number, y1: number, e: number) => smoothstep(x0 - e, x0, ax).mul(float(1).sub(smoothstep(x1, x1 + e, ax))).mul(smoothstep(y0 - e, y0, s.y.sub(ey))).mul(float(1).sub(smoothstep(y1, y1 + e, s.y.sub(ey))));
+      const flush = max(max(box(-1, 0.014, -0.055, -0.012, 0.016).mul(fr0).mul(0.55), box(0.026, 0.055, -0.055, -0.018, 0.014).mul(fr0).mul(0.65)), box(0.066, 0.2, -0.045, 0.012, 0.01).mul(0.8)).mul(hd);
+      const lips = box(-1, 0.022, -0.088, -0.066, 0.006).mul(fr0).mul(hd);
+      vWear.assign(vec4(wear.x, bend.add(flush), ampPh.mul(float(1).sub(skinV)).add(lips), wear.w));
       // D-304: the body variant's light- and dark-toned skin layers (one term per variant: arithmetic, no lookup texture)
       // D-322: the garments' fold atlas coordinate (fuv: x ≥ 2 on the lower levels of detail, which read the second layer; < 0
       // none) and the channel of the person's group
@@ -453,6 +475,17 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     skinAlb = mix(skinAlb, skinAlb.mul(vHair.mul(2.2).add(0.35).min(1)), vAux.y.mul(stubV).mul(0.55)); // shaven stubble
     skinAlb = mix(skinAlb, vHair.mul(0.7), vAux.y.mul(roots).mul(0.9)); // under a beard: roots
     skinAlb = mix(skinAlb, vHair.mul(0.55), e1.mul(kSkin).mul(bits('wearsHair')).mul(0.9)); // scalp under worn hair
+    // s17 V3 (D-500): the marks — a linen bandage (its weave, a rusty stain where a cut bled through) and a healed scar's
+    // paler, glossier skin in patches
+    const kBand = smoothstep(0.3, 0.6, vExt.w).mul(kSkin), kScar = smoothstep(0.2, 0.6, vExt.w.negate()).mul(kSkin).mul(smoothstep(0.35, 0.65, n2.mul(0.5).add(0.5)));
+    const bandWeave = sin(P.x.add(P.z).mul(900)).mul(sin(P.y.mul(900))).mul(0.06).mul(band(900));
+    const bandCol = vec3(...MARK.linen).mul(float(0.92).add(n2.mul(0.08)).add(bandWeave));
+    skinAlb = mix(skinAlb, mix(bandCol, vec3(...MARK.blood), smoothstep(0.55, 0.85, n1).mul(0.6)), kBand);
+    skinAlb = mix(skinAlb, skinAlb.mul(vec3(1.18, 1.02, 0.97)).add(0.025), kScar.mul(0.8));
+    // s17 V3: the face's living colour (vWear.y: flush; vWear.z: the lips) — skin only
+    const flushK = vWear.y.mul(kSkin).clamp(0, 1), lipsK = vWear.z.mul(kSkin).clamp(0, 1), sLum = dot(skinAlb, vec3(0.2126, 0.7152, 0.0722));
+    skinAlb = skinAlb.mul(mix(vec3(1), vec3(1.07, 0.88, 0.86), flushK.mul(0.55)));
+    skinAlb = mix(skinAlb, mix(vec3(sLum), skinAlb, 0.55).mul(vec3(1.04, 0.97, 0.96)), lipsK.mul(0.6));
     const oil = sD.g, transl = sD.a;
     const poreH = n1.mul(SKIN.pores[0][1]).mul(band(SKIN.pores[0][0])).add(n2.mul(SKIN.pores[1][1]).mul(band(SKIN.pores[1][0])));
     const skinH = sD.r.sub(0.5).mul(2 * SKIN.crease).add(sD.b.sub(0.5).mul(2 * SKIN.age).mul(age01)).add(poreH);
@@ -538,7 +571,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const petal = cr.div(cos(cth.mul(8)).mul(0.28).add(0.72)), eye = float(1).sub(smoothstep(0.05, 0.075, cr));
     const rose = max(float(1).sub(smoothstep(0.21, 0.26, petal)).mul(smoothstep(0.08, 0.1, cr)), eye).mul(pat0).mul(is(m, MAT.cloth_main));
     const trimCol = vHair; // motif colour = the person's trim colour (C)
-    let clothAlb: any = vColor.mul(float(1).add(n3.mul(0.05)).add(n1.mul(DRAPE.streak.alb).mul(band(DRAPE.streak.f[1]))));
+    // (s17 V3, D-500: worn cloth is not one colour: ±11 % in 11 cm mottles and ±6 % in the 7 × 20 cm patches of wear, sweat and
+    // washing, was ±5 %: at 2-5 m a garment read as one flat, plastic sheet; C)
+    let clothAlb: any = vColor.mul(float(1).add(n3.mul(0.11)).add(n2.mul(0.06)).add(n1.mul(DRAPE.streak.alb).mul(band(DRAPE.streak.f[1]))));
     // D-225: uneven dyeing — the chroma varies about the garment's own (linear in the noise: the mean colour is kept)
     const dLum = dot(clothAlb, vec3(0.2126, 0.7152, 0.0722));
     clothAlb = vec3(dLum).add(clothAlb.sub(vec3(dLum)).mul(float(1).add(n2.mul(DRAPE.dyeUneven[0])).add(n1.mul(DRAPE.dyeUneven[1]).mul(band(DRAPE.streak.f[1])))));
@@ -546,7 +581,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // sun-bleaching (D-189): up-facing outer cloth of an old garment fades toward a paler, greyer colour, by the dye's
     // susceptibility (weld fast, indigo slowly); linings (cavity 150/255) and the undersides keep their dye
     const upF = smoothstep(-0.25, 0.75, vExt.z).mul(smoothstep(0.66, 0.8, vAux.x)).mul(n3.mul(0.3).add(0.85));
-    const fadeAmt = vWear.x.mul(vExt.w).mul(upF).mul(DRAPE.fade).clamp(0, 0.8);
+    const fadeAmt = vWear.x.mul(vExt.w.max(0).mul(kCloth)).mul(upF).mul(DRAPE.fade).clamp(0, 0.8);
     const cLum = dot(clothAlb, vec3(0.2126, 0.7152, 0.0722));
     clothAlb = mix(clothAlb, mix(vec3(cLum), clothAlb, 0.4).mul(1.25).add(0.012).min(0.8), fadeAmt);
     const nb = normalize(cross(P.dFdx(), P.dFdy()).add(vec3(0, 1e-9, 0))), ax = abs(nb.x), az = abs(nb.z);
@@ -613,11 +648,17 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const fake = T.simCloth ? 0 : 1;
     // D-322: the settled cloth's folds finer than the mesh (the fold layers: people_cloth's post-step), in the garment's own
     // atlas; faded where a triangle spans a chart's seam (its atlas coordinate jumps: the tubes' back seam, the body UV's)
-    let simFoldH: any = float(0);
+    let simFoldH: any = float(0), foldGx: any = null, foldGy: any = null;
     if (FOLD) { const z = vSkinL.z, lo = step(3.5, z), ok = step(-0.5, z), gi = floor(vSkinL.w.mul(0.5).add(0.25)), fu = vec2(z.sub(lo.mul(4)), vSkinL.w.sub(gi.mul(2))), sd = floor(gi.div(3).add(0.01)), gr = gi.sub(sd.mul(3));
       const seamF = float(1).sub(smoothstep(0.02, 0.05, max(fu.x.fwidth(), fu.y.fwidth())));
-      const fs = texture(FOLD.cloth, fu).depth(lo.add(sd.mul(2)).add(FOLD.foldBase)).rgb;
-      simFoldH = dot(fs, vec3(is(gr, 0), is(gr, 1), is(gr, 2))).sub(0.5).mul(2 * FOLD.foldScale).mul(ok).mul(seamF).mul(kCloth); }
+      // s17 V3 (D-500): the fold layers' slope by central differences two texels apart, carried to the screen by the atlas
+      // coordinate's own derivatives (smooth across texels): the screen derivative of the 8-bit, bilinear height stepped from
+      // texel to texel and drew stair-stepped dark streaks over every dress and sleeve at 1-3 m
+      const layer = lo.add(sd.mul(2)).add(FOLD.foldBase), wsel = vec3(is(gr, 0), is(gr, 1), is(gr, 2)), D = 2 / 1024;
+      const Hs = (ou: number, ov: number) => dot(texture(FOLD.cloth, fu.add(vec2(ou, ov))).depth(layer).rgb, wsel);
+      const kf = float(2 * FOLD.foldScale).mul(ok).mul(seamF).mul(kCloth);
+      const hu = Hs(D, 0).sub(Hs(-D, 0)).div(2 * D).mul(kf), hv = Hs(0, D).sub(Hs(0, -D)).div(2 * D).mul(kf);
+      foldGx = hu.mul(fu.x.dFdx()).add(hv.mul(fu.y.dFdx())); foldGy = hu.mul(fu.x.dFdy()).add(hv.mul(fu.y.dFdy())); }
     const clothH = n2.mul(mix(DRAPE.lump, 0.0012, is(prm, 4))).add(n1.mul(mix(DRAPE.streak.h[0], DRAPE.streak.h[1], isLinen)).mul(band(DRAPE.streak.f[1]))).add(weaveH).add(simFoldH).add(pleatH.mul(fake)).add(robeH.mul(fake)).add(foldH).add(wrinkleH).add(hemH).add(gatherH.mul(fake)).add(hangH.mul(fake)); // linen is smoother than wool
 
     // ---- felt, leather, metal, wood, wicker
@@ -652,7 +693,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     this.colorNode = alb;
     // roughness: skin broad lobe (the oily lobe is separate), eyes wet, cloth by fibre, dust makes things matte
     this.roughnessNode = soilMask.mul(0.15).add(kSkin.mul(float(SKIN.roughSheen).sub(oil.mul(0.08)).add(n1.mul(0.06).mul(band(SKIN.pores[0][0])))).add(kEye.mul(mix(0.1, 0.035, irisM))).add(kHair.mul(0.5)).add(kTeeth.mul(0.25)).add(kMouth.mul(0.3))
-      .add(kLeather.mul(0.55)).add(kFelt.mul(0.95)).add(kMetal.mul(0.32)).add(kLash.mul(0.6)).add(kWood.mul(0.55)).add(kWicker.mul(0.85)).add(kCloth.mul(mix(0.92, 0.8, isLinen))).add(grimeMask.mul(0.2))).min(1);
+      .add(kLeather.mul(0.55)).add(kFelt.mul(0.95)).add(kMetal.mul(0.32)).add(kLash.mul(0.6)).add(kWood.mul(0.55)).add(kWicker.mul(0.85)).add(kCloth.mul(mix(0.92, 0.8, isLinen))).add(grimeMask.mul(0.2)).add(kBand.mul(0.4)).sub(kScar.mul(0.12))).min(1);
     this.metalnessNode = kMetal;
     // specular F0 (dielectrics): skin 0.028, cornea 0.025, hair cuticle 0.046, others 0.04 (setupSpecular)
     this.f0Node = float(0.04).sub(kSkin.mul(0.04 - SKIN.f0)).sub(kEye.mul(0.04 - EYE.f0)).add(kHair.mul(0.006));
@@ -660,7 +701,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45))).mul(mix(float(1), curls.mul(0.45).add(0.55), kShell)).mul(mix(float(1), cardDepth.mul(0.35).add(0.65).mul(mix(float(1), cardAO, CARD.aoAmb)), kCard));
     // shading normal: curls on hair, creases and pores on skin, folds and weave on cloth, fibres on felt, grain on leather
     const h = hairH.mul(kShell).add(skinH.mul(kSkin)).add(clothH.mul(kCloth)).add(feltH.mul(kFelt)).add(leatherH.mul(kLeather));
-    this.normalNode = cardN ? mix(bumped(h), cardN, kCard).normalize() : bumped(h);
+    const bh = bumped(h, foldGx, foldGy); this.normalNode = cardN ? mix(bh, cardN, kCard).normalize() : bh;
     // lighting-model inputs
     const curv = e2.mul(SKIN_CURV_MAX);
     const skinWrap = vec3(...SKIN.scatter).mul(curv).min(SKIN.wrapMax).add(vec3(...SKIN.wrapBase));

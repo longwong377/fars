@@ -9408,6 +9408,26 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - Uncommitted leftovers on the box: branch vagon-leftovers-s17 (two empty stray files). Dirty old trees kept as they are:
   fars-wt/load (KTX2 textures), simhealth-brides, simtalk, visible, visiblebase, light, int.
 
+## D-500 (s17 V3 people): people that read as people at 2-30 m, first pass
+- Posture: the CMU captures' anterior pelvic tilt (3-34° mean; the women's walk 34°, idle_e 14°) is taken off the pelvis and
+  given back to the thighs and spine per clip (mocap.ts tiltFix; the motion about the mean kept): the sway-back that pushed
+  every belly out and the shoulders back is gone. Relaxed hands curl more (humanRig REST). C.
+- Cloth: a man's tunic or robe tapers from the chest to the belt (drape.ts BLOUSE_M 0.15 m, HANG 0.55 of the overhang): the
+  D-206 straight hang read as a ball of cloth over the belt, a pot belly on every man; women's dresses keep the hang.
+  people_cloth rebuilt on the new hull. C.
+- Shadows: the coarse shadow casters (LOD 2 for the near people) are drawn 1.4 cm inside their surface (humanMaterial
+  SHADOW_SHRINK): their stair-stepped self-shadow blotched every sunlit face and tunic at 1-10 m.
+- Hair cards: the alpha test per card class (CARD.byClass): beards 0.36 with a steady test (the 0.9 dither left the hanging
+  beard a see-through net at 1-2 m); scalp hair 0.44; brows as D-323.
+- Skin ramp warmer (B/R 0.55-0.64 from 0.6-0.7: grey and waxen under the high sun) and an outdoor tan read further along the
+  ramp (the three old draws kept: nobody's look changes otherwise); undyed wool and linen warmer, less chalk-white. C.
+- Probe: tools/dev/people_probe.mjs (humanlab, the player's lens, 2/10/30 m, one load ~1 min); shots in shots/v3/.
+- (D-500, second step) The head's shadow caster drawn 3.2 cm in (SHADOW_SHRINK_HEAD): the coarse nose and brow no longer blot
+  the cheeks and eyes. Talkers' arms taken 45 % back to a standing capture's (the CMU lecturers flung a hand to head height).
+  people_cloth rebuilt and reproduced on the new hull. C3's asks: walk variants /driving a flock/ (animal kind 'drive': a
+  loose mass 2-9 m ahead of the herder, two dogs at its flanks, 0.9 m/s; the hook in animals.ts, V5's file) and /ox cart of
+  building stone/, /emptied stone cart/, /holding the stone cart/ (work object cart_stone: one rough-cut block on chocks).
+
 ## D-550 The town filled: no bare lane, court or roof (s17 cloud C1, town fill)
 - Census first (tools/dev/fill_census.ts, tests/fill_census.test.ts): baseline lanes 20.1 % of cells with nothing within 3 m, the longest bare run 147 m, 107 courts with < 3 fixtures, 111 roofs bare, 230 identical same-model pairs within 15 m; draws at a lane point 51 mean, 56 k triangles.
 - fillPlan.ts: a gap pass (a household thing wherever a lane wall has nothing within 2.4 m: jars, pots, basins, stools, rolled mats, tools leaned on the wall, dung cakes drying, fuel, repair mud and bricks; never the same model within 6 m; lanes kept passable), a litter pass (straw, sherds, twigs, ash dumps, knucklebones in the open middle of wide lanes), door things (tools, stools, the donkey's peg), market goods sold out through the afternoon (fullest in the morning), detwin() (no clone within 15 m). fill.ts: tilt (leaned tools), until, new part materials, the small things at one level only.
@@ -9540,3 +9560,16 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   lane door 16:30 0/14/136 → 1/46/164 (photos of Fars mud-brick villages: ~30/110/190).
 - Tests: tone_look (the deepest darks within 14 levels of plain AgX, was 8: the toe lift is intended), exposure (a moonless
   night's displayed grey < 0.08, was 0.03: the night fill is intended).
+- (D-500, step 3) The sim's hooks on the body (handoff/briefs/s16/deeds_render.md): a wound of the deeds (DeedWorld.injuryOf)
+  drawn as a linen bandage round the head or the left forearm (a cut) or a splinted right forearm, or a broken leg's limp with
+  a staff (seeded per person); a healed wound or scald of the past (marks.ts war_scar, burn_arm, crooked_arm) as paler,
+  glossier patches on the right forearm. Person texel 10 [wound, scar, eye height]; the per-vertex mask rides vExt.w on skin
+  (no new varying). crowd.setMarks once a person a day. C.
+- (D-500, step 4) The garments' fold layers bump by their own slope (central differences two texels apart, carried to the
+  screen by the atlas coordinate's derivatives): the screen derivative of the 8-bit bilinear height stair-stepped dark streaks
+  over every dress, sleeve and skirt at 1-3 m.
+- (D-500, step 5) The face's living colour (C): blood under the thin skin of the nose, cheeks and ears, the baked lips' colour
+  held down (they read as lipstick in the sun), laid per vertex from the eye height on head and jaw skin. Headbands fitted to
+  the head at each edge (one rim stood the upper edge off the sloping forehead: a halo). A skirted walker's knee folds less in
+  the swing (SKIRT_KNEE): the heel no longer kicks out through the back of a long dress or robe. people_cloth rebuilt and
+  reproduced; the Cycles impostors re-rendered on the new posture and garments.
