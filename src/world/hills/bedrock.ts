@@ -14,6 +14,7 @@
 // cached; three levels per piece (lod2 shared by every ledge far off), shadows from the levels within the cascades' reach.
 // Tiers: the limestone and its bedding B (KR-BEDROCK: the Terrace is cut from it); every ledge's and stone's place C.
 import * as THREE from 'three/webgpu';
+import { sharedDraco } from '../../render/loaders';
 import { texture, uv, vec3, vec2, dot, attribute, float, uniform, positionLocal, smoothstep, distance } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
 import { mxNoise3 } from '../../render/mx_noise_cpu';
@@ -152,8 +153,8 @@ export async function loadRockKit(base = BASE): Promise<RockKit | null> {
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('bedrock') === '0') { KSTAT.failed = 'off (?bedrock=0)'; return null; }
   try {
     const man = await (await fetch(base + 'models/land/manifest.json')).json();
-    const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
-    const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
+    const [{ GLTFLoader }, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base)]); // (D-392: the page's decoders)
+    const loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
     const kit: RockKit = { ledge: [], ground: [], atlas: {} };
     for (const cls of ['ledge', 'ground'] as RockClass[]) {
       const C = man.classes?.[cls]; if (!C) continue;
@@ -170,7 +171,7 @@ export async function loadRockKit(base = BASE): Promise<RockKit | null> {
       const mean = meanColour(map), Y = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
       kit.atlas[cls] = { map, normal, arm, mean, cellK: [0, 1, 2, 3].map(i => Y(mean) / Math.max(0.01, Y(meanColour(map, i)))) };
     }
-    draco.dispose(); KIT = kit; KSTAT.pieces = kit.ledge.length + kit.ground.length;
+    KIT = kit; KSTAT.pieces = kit.ledge.length + kit.ground.length;
   } catch (e) { KSTAT.failed = String((e as Error).message ?? e); console.warn(`[bedrock] no rock kit (${KSTAT.failed}): the hills keep their texture only`); KIT = null; }
   KSTAT.ms = Math.round(performance.now() - t0); return KIT;
 }

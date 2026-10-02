@@ -154,6 +154,9 @@ async function boot() {
   shell.loading('Raising the Terrace…');
   const phys = await physP;
   TRACE('physics ready');
+  // D-580: the ground's chunks round the spawn built while the world's build waits for its assets (the main thread idles ~8 s
+  // there on a cold visit), not in the first frame after ready (2.8 s of terrain.update in frame 0, measured)
+  setTimeout(() => { const [ex, ez] = [SPAWN.east, -SPAWN.north]; tmesh.update(new THREE.Vector3(ex, terrain.surfaceAt(ex, ez) + 1.6, ez)); }, 0);
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
   phys.updateTerrain(terrain, { x: sx, y: 0, z: sz }); phys.step(1 / 60);
