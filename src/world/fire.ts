@@ -66,6 +66,9 @@ export function flameFootprint(w: number, d: number, pxPerRad: number): { k: num
   const px = (w / Math.max(d, 1e-3)) * pxPerRad, k = Math.max(1, FLAME_MIN_PX / Math.max(px, 1e-6));
   return { k, flux: 1 / (k * k) };
 }
+/** D-530: the coal bed's diameter (m) and its height over the fire's base (m) for the open fires; drawn within COAL_RANGE m */
+const COAL_R: Partial<Record<FireKind, [number, number]>> = { hearth: [0.62, 0.07], brazier: [0.5, 0.97], altar: [0.7, 0.05] };
+export const COAL_RANGE = 60;
 /** height of the flame's base above `base` (the floor, or a torch's bracket) */
 const LIFT: Record<FireKind, number> = { torch: 0.35, brazier: 1.02, hearth: 0.15, oven: 0.25, lamp: 0.05, kiln: 0.6, altar: 0 };
 /** renderer candela per unit of a fire's `power` (session 3, perceptual at night; D-117 addendum: a lamp's 3.2 renderer cd
@@ -151,10 +154,16 @@ export class FireSystem {
   private uSky = uniform(new THREE.Color(0.3, 0.3, 0.3)); private uSun = uniform(new THREE.Color(0, 0, 0)); private uSunDir = uniform(new THREE.Vector3(0, 1, 0));
   setSkyLight(sky: SmokeSky | null | undefined) {
     if (!sky?.horizon || !sky.sun) return; smokeSkyRadiance(sky, this.uSky.value);
+    { // D-530: the daylight outside the town's doorways (horizontal irradiance, renderer units)
+      const alt = sky.state.sunDir.y; this.dayE = (sky.sun.visible ? sky.sun.intensity * Math.max(0, alt) : 0) + (sky.hemi ? sky.hemi.intensity : 0);
+      if (sky.hemi) this.daySky.copy(sky.hemi.color); }
     this.lightScale = sky.fireScale ?? 1; // cast light pre-exposed for night: scaled with the sky's gain in twilight and day (D-117)
     this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir);
   }
   private smokeAlpha!: THREE.InstancedBufferAttribute;
+  /** D-530: daylight ports (townPorts: x, y, z, nx, nz) and the daylight outside them */
+  private ports: Float32Array = new Float32Array(0); private dayE = 0; private daySky = new THREE.Color(1, 1, 1); private portNear: number[] = []; private portEye = new THREE.Vector3(1e9, 0, 0);
+  setPorts(p: Float32Array) { this.ports = p; this.portEye.set(1e9, 0, 0); }
   private lightScale = 1;
   private rng = new Rng(1, 'fire');
   private uLit = uniform(1);
@@ -289,7 +298,26 @@ export class FireSystem {
   /** build GPU objects once all fires are registered */
   build() {
     this.buildBodies(); this.built = true;
-    this.makeFlames(null); this.buildSmoke();
+    this.makeFlames(null); this.buildSmoke(); this.buildCoals();
+  }
+  /** D-530: the glowing bed of coals under the open fires (hearth, brazier, altar): a flat disc of embers whose glow breathes
+   *  in patches, the light's colour at ~1000-1300 K (C); the flame stands on it */
+  private coals: THREE.InstancedMesh | null = null; private coalIdx: number[] = []; private coalOn = new Int8Array(0).fill(-1);
+  private buildCoals() {
+    this.coalIdx = this.fires.map((f, i) => (COAL_R[f.kind] ? i : -1)).filter(i => i >= 0); this.coalOn = new Int8Array(this.coalIdx.length).fill(-1);
+    if (!this.coalIdx.length) return;
+    const g = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), n = this.coalIdx.length;
+    const sd = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); this.coalIdx.forEach((fi, k) => (sd.array[k] = this.fires[fi].seed)); g.setAttribute('aSeed', sd);
+    const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    const u = uv(), seed = attribute('aSeed', 'float'), rr = length(u.sub(0.5)).mul(2);
+    const cell = mx_noise_float(vec3(u.mul(9), seed)).mul(0.5).add(0.5), breathe = mx_noise_float(vec3(u.mul(3.5), time.mul(0.35).add(seed))).mul(0.5).add(0.5);
+    const g0 = float(1).sub(smoothstep(0.25, 1.0, rr)).mul(smoothstep(0.35, 0.8, cell.mul(0.6).add(breathe.mul(0.6))));
+    const col = mix(vec3(0.55, 0.06, 0.01), vec3(1.0, 0.32, 0.05), smoothstep(0.3, 0.9, g0));
+    m.colorNode = vec4(col.mul(g0.mul(1.6)).mul(this.uLit), g0); m.opacityNode = g0;
+    this.coals = new THREE.InstancedMesh(g, m, n); this.coals.frustumCulled = false; this.coals.renderOrder = 4; this.coals.name = 'fire:coals';
+    this.coals.userData = { tier: 'C', src: 'RECON', note: 'the bed of glowing coals under an open fire (procedural glow; D-530)' };
+    const m4 = new THREE.Matrix4(); this.coalIdx.forEach((_, k) => this.coals!.setMatrixAt(k, m4.makeScale(0, 0, 0)));
+    this.group.add(this.coals);
   }
   private makeFlames(mat: THREE.Material | null) {
     const n = Math.max(1, this.fires.length);
@@ -299,12 +327,22 @@ export class FireSystem {
     this.flux = new THREE.InstancedBufferAttribute(new Float32Array(n).fill(1), 1); plane.setAttribute('aFlux', this.flux);
     if (mat) { this.flames = new THREE.InstancedMesh(plane, mat, n); this.flames.frustumCulled = false; this.flames.renderOrder = 5; this.flames.userData = mat.userData.flamesUD; this.group.add(this.flames); return; }
     const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
-    const u = uv(), seed = attribute('aSeed', 'float');
-    const n1 = mx_noise_float(vec3(u.x.mul(3), u.y.mul(2.5).sub(time.mul(2.2)), seed)).mul(0.5).add(0.5);
-    const shape = smoothstep(0.0, 0.5, length(vec2(u.x.sub(0.5).mul(2.0), u.y.sub(0.35).mul(1.1)))).oneMinus().mul(smoothstep(0.5, 1.0, u.y).oneMinus());
-    const a = max(float(0), shape.mul(n1.mul(1.6)).sub(0.25)).mul(this.uLit);
-    const hot = mix(vec3(1.0, 0.35, 0.05), vec3(1.0, 0.85, 0.5), smoothstep(0.2, 0.9, a));
-    m.colorNode = vec4(hot.mul(a.mul(3.0)).mul(attribute('aFlux', 'float')), a); m.opacityNode = a;
+    // D-530: a flame of tongues (was one soft noisy blob): the column narrows as it rises and is torn sideways by two
+    // octaves of turbulence that rise through it, a bright yellow-white core low in the flame cooling through orange to a
+    // deep red at the tongues' tips and edges (the blackbody ramp of a wood flame, C)
+    const u = uv(), seed = attribute('aSeed', 'float'), tt = time.add(seed.mul(3.7));
+    const x = u.x.sub(0.5).mul(2), y = u.y;
+    const n1 = mx_noise_float(vec3(x.mul(1.6), y.mul(2.2).sub(tt.mul(2.6)), seed)), n2 = mx_noise_float(vec3(x.mul(4.2), y.mul(5.5).sub(tt.mul(5.2)), seed.add(7.3)));
+    const xd = x.add(n1.mul(0.38).add(n2.mul(0.14)).mul(y.mul(1.2).add(0.1)));
+    const wy = pow(float(1).sub(y).max(0), 0.85).mul(0.62).mul(smoothstep(0.0, 0.12, y).mul(0.5).add(0.5));
+    const r = xd.abs().div(max(wy, 0.02));
+    const top = float(1).sub(smoothstep(0.45, 0.95, y.add(n1.mul(0.22)).add(n2.mul(0.08))));
+    const dens = float(1).sub(smoothstep(0.5, 1.0, r)).mul(top).mul(n2.mul(0.35).add(0.85)).max(0);
+    const core = float(1).sub(smoothstep(0.0, 0.55, r)).mul(float(1).sub(smoothstep(0.08, 0.5, y.add(n1.mul(0.1))))).max(0);
+    const a = smoothstep(0.04, 0.4, dens).mul(this.uLit);
+    const temp = dens.mul(0.75).add(core.mul(0.7)).min(1.4);
+    const hot = mix(mix(vec3(0.7, 0.1, 0.015), vec3(1.0, 0.38, 0.06), smoothstep(0.1, 0.55, temp)), vec3(1.0, 0.8, 0.42), smoothstep(0.6, 1.2, temp)).add(vec3(0.25, 0.2, 0.12).mul(core));
+    m.colorNode = vec4(hot.mul(a.mul(2.4).add(core.mul(2.2))).mul(attribute('aFlux', 'float')), a); m.opacityNode = a;
     this.flames = new THREE.InstancedMesh(plane, m, n); this.flames.frustumCulled = false; this.flames.renderOrder = 5;
     this.flames.userData = { tier: 'C', src: 'RECON', note: 'flame billboards (procedural); fire placements C unless noted' };
     m.userData.flamesUD = this.flames.userData;
@@ -353,6 +391,11 @@ export class FireSystem {
       m4.compose(f.pos, q, scl0.set(s.flameW * sc * k, s.flameH * sc * flick * k, 1)); this.flames.setMatrixAt(i, m4);
     });
     this.flames.instanceMatrix.needsUpdate = true; this.flux.needsUpdate = true;
+    if (this.coals) { const cp = camera.position; let ch = false;
+      this.coalIdx.forEach((fi, k) => { const f = this.fires[fi], on = f.lit && f.pos.distanceToSquared(cp) < COAL_RANGE * COAL_RANGE ? 1 : 0;
+        if (on === this.coalOn[k]) return; this.coalOn[k] = on; ch = true; const R = COAL_R[f.kind]!;
+        m4.compose(scl0.set(f.pos.x, f.pos.y - LIFT[f.kind] + R[1], f.pos.z), q.identity(), new THREE.Vector3(R[0] * on, 1, R[0] * on)); this.coals!.setMatrixAt(k, m4); });
+      if (ch) this.coals.instanceMatrix.needsUpdate = true; }
     // lights to the nearest lit fires (the fire light model, fireLight)
     const legacy = FIRE_AB.legacy && this.lights.length > this.forwardN, nF = legacy ? this.lights.length : this.forwardN;
     const lit_ = this.lightedFires(camera.position);
@@ -382,6 +425,7 @@ export class FireSystem {
       B.set(FIRE_RGB.r * I, FIRE_RGB.g * I, FIRE_RGB.b * I, R.mode);
       if (R.room) { C.set(R.room.x0, R.room.x1, R.room.z0, R.room.z1); D.set(R.room.y0, R.room.y1, this.useOcc ? f.occ : -1, 0); } else D.set(0, 0, this.useOcc ? f.occ : -1, 0);
     }
+    this.lightPorts(camera.position, legacy);
     // smoke puffs near the camera, closed-form in time (D-220: frozen renders show them), nearest smoking fires first
     const wind = windWorld(windDirDeg, windMs), u = Math.max(1, windMs), cp = camera.position, camQ = camera.quaternion;
     const near: { i: number; d2: number; g: number }[] = [];
@@ -401,6 +445,26 @@ export class FireSystem {
       }
     }
     this.smokeN = k; this.smoke.count = k; this.smoke.visible = k > 0; this.smoke.instanceMatrix.needsUpdate = true; this.smokeAlpha.needsUpdate = true; this.smokeGlow.needsUpdate = true;
+  }
+  /** D-530: the daylight through the town's doorways into their rooms. A doorway lets in the sky and the light the sunlit
+   *  ground and walls outside throw back: as seen from inside, a bright opening of ~2 m² whose radiance is ~PORT_RHO × the
+   *  daylight outside / π. Each of the nearest ports within PORT_R gets one of the composite's deferred lights left free by
+   *  the fires (Lambert, inverse square, cut off at PORT_CUT): the floor and walls inside the door catch it and the room's
+   *  far corners fall off into a readable dark (C; the light-probe field holds no town room interiors) */
+  private lightPorts(eye: THREE.Vector3, legacy: boolean) {
+    const P = this.ports, np = P.length / 5; if (!np || legacy || this.glowN === 0) return;
+    const I = this.dayE * PORT_RHO * PORT_AREA / Math.PI; if (I <= 1e-6) return;
+    if (eye.distanceToSquared(this.portEye) > 1) { this.portEye.copy(eye); const c: { k: number; d: number }[] = [];
+      for (let k = 0; k < np; k++) { const dx = P[k * 5] - eye.x, dy = P[k * 5 + 1] - eye.y, dz = P[k * 5 + 2] - eye.z, d = dx * dx + dy * dy + dz * dz; if (d < PORT_R * PORT_R) c.push({ k, d }); }
+      c.sort((a, b) => a.d - b.d); this.portNear = c.slice(0, GLOW_MAX).map(x => x.k); }
+    // the bounce takes the ground's warm ochre, the sky part the sky's colour (C)
+    const r = (0.55 * this.daySky.r + 0.45 * 1.0) * I, g = (0.55 * this.daySky.g + 0.45 * 0.78) * I, b = (0.55 * this.daySky.b + 0.45 * 0.55) * I;
+    let k = 0;
+    for (let j = 0; j < GLOW_MAX && k < this.portNear.length; j++) {
+      const B = FIRE_GLOW.B[j]; if (B.x + B.y + B.z > 0) continue;
+      const q = this.portNear[k++] * 5, A = FIRE_GLOW.A[j], D = FIRE_GLOW.D[j];
+      A.set(P[q], P[q + 1], P[q + 2], PORT_CUT); B.set(r, g, b, 0); D.set(0, 0, -1, 0); FIRE_GLOW.n++;
+    }
   }
   /** the lit fires that get a light for an eye at `p`: the nearest `lights.length` (forward) + glow (deferred, D-355) within 90 m */
   private lightedFires(p: THREE.Vector3): FireSource[] {
@@ -422,6 +486,9 @@ export class FireSystem {
   stats() { return { fires: this.fires.length, lit: this.fires.filter(f => f.lit).length, smoke: this.smokeN }; }
 }
 
+/** D-530: the daylight ports: the outside's reflectance seen through a doorway (sunlit ground and walls with the sky), the
+ *  opening's area (m²), the light's cut-off (m) and how far from the eye ports are lit (m) */
+export const PORT_RHO = 0.35, PORT_AREA = 2.0, PORT_CUT = 7, PORT_R = 30;
 /** D-530: how many of the nearest fire lights cast shadows at high/ultra, their cube maps' reach (m), the soft filter's
  *  radius (texels; a flame a few decimetres across), and how often (frames) each is redrawn while it keeps its fire */
 export const FIRE_SHADOW_LIGHTS = 2, FIRE_SHADOW_FAR = 30, FIRE_SHADOW_RADIUS = 6, FIRE_SHADOW_REFRESH = 24;

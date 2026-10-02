@@ -21,7 +21,7 @@ import { VillageHouses } from '../../src/world/plain/villagehouses';
 import { FireSystem } from '../../src/world/fire';
 import { FORWARD_FIRE_LIGHTS, GLOW_MAX } from '../../src/render/fireGlow';
 import { loadFireOcc } from '../../src/world/fireOcc';
-import { placeFires } from '../../src/world/firePlaces';
+import { placeFires, townPorts } from '../../src/world/firePlaces';
 import { Settlement } from '../../src/world/settlement/build';
 import { SkySystem } from '../../src/sky/skySystem';
 import { Pipeline } from '../../src/render/pipeline';
@@ -84,6 +84,7 @@ import { PalaceFurnishings } from '../../src/world/furnish_palaces';
   const town = new Settlement(null, terrain, fire, 'high'); scene.add(town.group);
   const vh = new VillageHouses(villages, villages.map(v => villageCompounds(v, terrain, 1)), terrain, null, fire, 1); scene.add(vh.group);
   fire.build(); scene.add(fire.group);
+  if (P.get('ports') !== '0') { const pts = townPorts(town.plan.sites, (e, n) => terrain.heightAt(e, -n)); fire.setPorts(pts); marks.push('ports ' + pts.length / 5); }
   mark('town');
   await loadProbes('/');
   const sky = new SkySystem(scene, 4096, 'high'); await sky.loadStars('/');

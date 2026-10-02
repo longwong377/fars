@@ -5,6 +5,7 @@ import type { Doorway } from '../arch/parts';
 import { v } from '../arch/spec';
 import placesJson from '../data/people_places.json';
 import { fireLight, type FireKind, type FireSchedule } from './fire';
+import { ROOM } from './settlement/site';
 
 /** what placeFires needs of a fire system */
 export interface FireSink { add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; body?: boolean; stands?: () => boolean }): void }
@@ -81,4 +82,32 @@ export function addCampHearths(fire: FireSink & { extend?(): void }, items: { m:
     fire.add('hearth', gw(it.e, it.n, y), { tier: 'C', src: 'RECON', sched: 'home', body: false, stands: () => standing(it.tent), note: 'a court camp\'s cooking hearth before its tent, lit for the meals while the tent stands (C, D-530)' }); k++; }
   fire.extend?.();
   return k;
+}
+
+/** D-530: the town's doorways into roofed rooms as daylight ports (FireSystem.setPorts): for every doorway in a house wall,
+ *  between a roofed room and the open, a point in the opening (PORT_IN m out from the wall line, PORT_H m over the
+ *  ground) and the normal into the room. World x, y, z, nx, nz per port. Sites as settlement/site.ts has them; H(e, n) the ground */
+export const PORT_IN = 0.15, PORT_H = 1.0;
+export function townPorts(sites: any[], H: (e: number, n: number) => number): Float32Array {
+  const out: number[] = [];
+  for (const s of sites) {
+    const W = s.W, Hh = s.H, at = (i: number, j: number) => (i >= 0 && j >= 0 && i < W && j < Hh ? s.sub[j * W + i] : 0);
+    for (const w of s.walls() as { u0: number; v0: number; u1: number; v1: number; door: boolean }[]) {
+      if (!w.door) continue;
+      const along = w.v0 === w.v1, um = (w.u0 + w.u1) / 2, vm = (w.v0 + w.v1) / 2;
+      // the cells either side of the wall's edge
+      const sides: [number, number, number, number][] = along
+        ? [[Math.floor(um - s.u0), Math.round(w.v0 - s.v0) - 1, 0, -1], [Math.floor(um - s.u0), Math.round(w.v0 - s.v0), 0, 1]]
+        : [[Math.round(w.u0 - s.u0) - 1, Math.floor(vm - s.v0), -1, 0], [Math.round(w.u0 - s.u0), Math.floor(vm - s.v0), 1, 0]];
+      // a doorway between a roofed room and the open (a court, a yard, the lane): its light stands in the opening, PORT_IN
+      // m out toward the open side (the room's own wall round the door is grazed, not lit in a hot spot)
+      const r0 = at(sides[0][0], sides[0][1]) === ROOM, r1 = at(sides[1][0], sides[1][1]) === ROOM; if (r0 === r1) continue;
+      { const [, , du, dv] = r0 ? sides[0] : sides[1];
+        const p = s.grid(um - du * PORT_IN, vm - dv * PORT_IN), q = s.grid(um + du, vm + dv);
+        const nx = q[0] - p[0], nn = q[1] - p[1], l = Math.hypot(nx, nn) || 1;
+        out.push(p[0], H(p[0], p[1]) + PORT_H, -p[1], nx / l, -nn / l);
+      }
+    }
+  }
+  return new Float32Array(out);
 }

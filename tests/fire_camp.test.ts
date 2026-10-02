@@ -28,3 +28,17 @@ describe('court camp hearths (D-530)', () => {
     expect(fire.fires[1].lit).toBe(false);
   });
 });
+
+import { townPorts } from '../src/world/firePlaces';
+import { ROOM, COURT } from '../src/world/settlement/site';
+describe('daylight ports (D-530)', () => {
+  it('one port per doorway between a roofed room and the open, standing in the opening, its normal into the room', () => {
+    // a 4 × 4 site: cells (1, 1) a room, (1, 2) a court; a door wall on their shared edge (v = 2) and one between two rooms
+    const W = 4, Hh = 4, sub = new Uint8Array(W * Hh); sub[1 * W + 1] = ROOM; sub[2 * W + 1] = COURT; sub[1 * W + 2] = ROOM; sub[0 * W + 2] = ROOM;
+    const s = { W, H: Hh, u0: 0, v0: 0, sub, grid: (u: number, v: number) => [u, v], walls: () => [{ u0: 1, v0: 2, u1: 2, v1: 2, door: true }, { u0: 2, v0: 1, u1: 3, v1: 1, door: true }, { u0: 0, v0: 3, u1: 1, v1: 3, door: false }] };
+    const p = townPorts([s], () => 10);
+    expect(p.length).toBe(5);
+    expect(p[0]).toBeCloseTo(1.5); expect(p[1]).toBeCloseTo(11); expect(p[2]).toBeCloseTo(-2.15); // in the opening, a little toward the court
+    expect(p[3]).toBeCloseTo(0); expect(p[4]).toBeCloseTo(1); // into the room: grid n falls (−v), world z = −n rises
+  });
+});

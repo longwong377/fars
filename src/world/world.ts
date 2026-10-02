@@ -59,7 +59,7 @@ import { buildGlazedFrieze } from '../arch/glazed';
 import { updateReliefs, settleReliefs, buildReliefShadow, ReliefSet } from '../arch/reliefs';
 import { setReliefShadow, refreshReliefShadow } from '../render/reliefShadow';
 import { FireSystem, fireLight, type FireKind } from './fire';
-import { placeFires } from './firePlaces';
+import { placeFires, townPorts } from './firePlaces';
 import { loadFireOcc } from './fireOcc';
 export { apadanaTorches, inDoorway } from './firePlaces';
 import { buildTreasuryGoods, buildScribesRoom, buildRoomFittings } from './furnish';
@@ -318,6 +318,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   prebakeTrees(); // (?notown: the plain made the kit)
   // (D-254: the fire system builds after the plain: the villages' hearths, ovens and lamps join it)
   fire.build(); root.add(fire.group);
+  if (settlement) fire.setPorts(townPorts(settlement.plan.sites, (e, n) => terrain.heightAt(e, -n))); // D-530: daylight through the town's doorways (firePlaces.ts)
   buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }, bakeKey); // D-366: soot, ash, damp and lane wear (render/grime.ts)
   wmark('fire.build');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd

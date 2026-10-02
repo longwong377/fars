@@ -17,6 +17,6 @@ console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) /
 for (const v of V) {
   const res = await p.evaluate(v => window.__shot(v), v).catch(e => ({ err: String(e) }));
   await p.screenshot({ timeout: 600000, path: `${OUT}/${v.n}-${TAG}.png` });
-  console.log(v.n, JSON.stringify({ x: +res.exposure?.toFixed(3), ev: +res.ev?.toFixed(2), alt: +res.sunAlt?.toFixed(1), fireE: +res.fireE?.toPrecision(3), pvw: +res.pvw?.toFixed(2), pve: +res.pve?.toFixed(3), fires: res.fires, cam: res.cam, err: res.err, errs: res.errs?.length }), ((Date.now() - t0) / 1000).toFixed(0));
+  console.log(v.n, JSON.stringify({ x: +res.exposure?.toFixed(3), ev: +res.ev?.toFixed(2), alt: +res.sunAlt?.toFixed(1), fireE: +res.fireE?.toPrecision(3), pvw: +res.pvw?.toFixed(2), pve: +res.pve?.toFixed(3), fires: res.fires, cam: res.cam, err: res.err, errs: res.errs?.length, e0: res.errs?.[0]?.slice(0, 160) }), ((Date.now() - t0) / 1000).toFixed(0));
 }
 console.log(logs.slice(0, 12).join('\n')); await b.close();
