@@ -1,13 +1,13 @@
 {
  "id": "T-E10",
- "value": 99.4,
+ "value": 100,
  "n": 158,
- "commit": "c26daf9d",
+ "commit": "ff9bdabf",
  "tool": "tests/talk_world.test.ts",
  "unit": "%",
  "status": "PLUMBING PASS (stand-in model; the real model unmeasured)",
  "model": "stand-in (tests/talk_standin.ts)",
- "pass": 157,
+ "pass": 158,
  "requests": [
   64,
   64
@@ -17,7 +17,7 @@
   64
  ],
  "heard": [
-  29,
+  30,
   30
  ],
  "kinds": {
@@ -58,7 +58,7 @@
    64
   ],
   "heard": [
-   29,
+   30,
    30
   ]
  },
@@ -67,18 +67,7 @@
   "refused": 26,
   "noop": 15
  },
- "fails": [
-  {
-   "i": 153,
-   "kind": "heard",
-   "job": "steward",
-   "say": "Have you heard anything of me, a foreigner?",
-   "reply": "Yes, stranger. In the month Θāigraciš you spoke with me and said “What do people say of the stranger?”.",
-   "why": [
-    "does not recall: bread|trade|exchange"
-   ]
-  }
- ],
+ "fails": [],
  "sample": [
   {
    "i": 0,
@@ -113,7 +102,7 @@
    "job": "camp",
    "hour": 20.54,
    "say": "I am thirsty.",
-   "reply": "Yes, stranger, I will. I am Dātazātā.",
+   "reply": "Yes, stranger, I will. I am Hustūnā.",
    "deed": "give:water DONE: gave water"
   },
   {
@@ -122,7 +111,7 @@
    "job": "treasury",
    "hour": 7.59,
    "say": "I will give you my bread for some water.",
-   "reply": "Yes, stranger, I will. I am Raučaduxçā.",
+   "reply": "Yes, stranger, I will. I am Busasa.",
    "deed": "trade:some water for my bread DONE: traded bread for water"
   },
   {
@@ -140,15 +129,15 @@
    "job": "official",
    "hour": 17.44,
    "say": "Remain here until I come back.",
-   "reply": "Yes, stranger, I will. I am .",
+   "reply": "Yes, stranger, I will. I am the son of Muška.",
    "deed": "wait_here ok (nothing to change): was staying here anyway"
   },
   {
    "i": 7,
    "kind": "go_home",
    "job": "storekeeper",
-   "hour": 22.41,
-   "say": "Head home now, friend.",
+   "hour": 22.45,
+   "say": "Go home, friend, you look tired.",
    "reply": "No, stranger, I cannot: is sick and lying down.",
    "deed": "go_home refused: is sick and lying down"
   },
@@ -156,8 +145,8 @@
    "i": 8,
    "kind": "follow",
    "job": "servant",
-   "hour": 9.39,
-   "say": "Keep me company along the road, friend.",
+   "hour": 9.35,
+   "say": "Walk with me for a while.",
    "reply": "No, stranger, I cannot: a woman of the house does not go off with a strange man.",
    "deed": "follow refused: a woman of the house does not go off with a strange man"
   },
@@ -165,28 +154,28 @@
    "i": 9,
    "kind": "lead_to",
    "job": "miller",
-   "hour": 14.4,
-   "say": "Where is the storehouse?",
-   "reply": "No, stranger, I cannot: a woman of the house does not walk a strange man about; she points the way. [refuse: a woman of the house does not walk a strange man about; she points the way]",
-   "deed": "lead_to:storehouse refused: a woman of the house does not walk a strange man about; she points the way"
+   "hour": 14.66,
+   "say": "Take me to the brewery, please.",
+   "reply": "No, stranger, I cannot: at the mill for the ration group; she cannot leave it.",
+   "deed": "lead_to:brewery, please refused: at the mill for the ration group; she cannot leave it"
   },
   {
    "i": 10,
    "kind": "fetch",
    "job": "weaver",
-   "hour": 19.41,
-   "say": "Could Bagačiθrā come and meet me?",
+   "hour": 19.36,
+   "say": "Could you fetch your son for me?",
    "reply": "No, stranger, I cannot: it is dark: nobody walks about with a stranger at night.",
-   "deed": "fetch:Bagačiθrā refused: it is dark: nobody walks about with a stranger at night"
+   "deed": "fetch:your son refused: it is dark: nobody walks about with a stranger at night"
   },
   {
    "i": 11,
    "kind": "give",
    "job": "brewer",
-   "hour": 6.74,
-   "say": "I am thirsty.",
-   "reply": "Yes, stranger, I will. I am Bēl-ēṭir.",
-   "deed": "give:water DONE: gave water"
+   "hour": 6.41,
+   "say": "Have you any bread to spare?",
+   "reply": "Yes, stranger, I will. I am Haturka.",
+   "deed": "give:you any bread DONE: gave bread"
   }
  ],
  "note": "the seeded request-and-recall set (src/people/converse/talkset.ts): 64 requests over every class, every kind, hours 5-22, a quarter in paraphrases the grammar does not read; each person asked the next day in the RELOADED save what passed, and every second one’s kin or friend three days later what they heard. Answered by a deterministic stand-in (tests/talk_standin.ts) that reads only the prompt: this measures the plumbing (the ask read, the simulation deciding, the plan changed and surviving the reload, the memory and gossip reaching the prompt), not a real model (the lab GPU run: converseLab.ts talkSet)."
