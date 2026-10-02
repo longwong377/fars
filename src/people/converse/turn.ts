@@ -116,9 +116,10 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
     if (saidNo && !(pre && !pre.ok)) decision = sim.talkDecline(pid, ask, tag?.kind === 'refuse' ? tag.arg ?? '' : 'said no', t);
     else {
       decision = sim.talkAct(pid, ask, t);
-      // a yes (or a tag) the simulation does not allow: the person is told why and says so (once)
+      // a yes (or a tag) the simulation does not allow: the person is told why and says so (once; D-456: in the same primed
+      // talk: the memory went into the prime key here and the talk was primed afresh, twice)
       if (!decision.ok && answer.ok && !saidNo) {
-        const again = await mind.answer(L, knows, [], said, o.prose, 64, { memory, userText: `(You cannot do it: ${decision.reason}. Say so to the stranger, in your own words, and end with [refuse].)` });
+        const again = await mind.answer(L, knows, [], said, o.prose, 64, { memory: near ? [] : memory, userText: `(You cannot do it: ${decision.reason}. Say so to the stranger, in your own words, and end with [refuse].)` });
         if (again.ok) { answer = { ...again, totalMs: answer.totalMs + again.totalMs, tries: answer.tries + again.tries }; retold = true; }
       }
     }

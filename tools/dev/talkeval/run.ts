@@ -6,6 +6,7 @@
 //   npx tsx tools/dev/talkeval/run.ts <out.jsonl> [people=200] [workers=10] [url=http://127.0.0.1:8765]
 import { writeFileSync, appendFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { post } from './http';
 import { simAt } from '../../../tests/sim_fixture';
 import { Mind } from '../../../src/people/converse/mind';
 import { talkTurn, type TurnOut } from '../../../src/people/converse/turn';
@@ -27,7 +28,7 @@ function httpEngine(calls: any[]) {
   return { chat: { completions: { create: async (req: any) => {
     const msgs = req.messages, seed = parseInt(createHash('sha1').update(JSON.stringify(msgs)).digest('hex').slice(0, 8), 16);
     const body = { messages: msgs, max_tokens: req.max_tokens ?? 64, temperature: req.temperature ?? 0.7, top_p: req.top_p ?? 0.8, frequency_penalty: req.frequency_penalty ?? 0, presence_penalty: req.presence_penalty ?? 0, repetition_penalty: 1.1, seed };
-    const t0 = Date.now(); const r = await fetch(url, { method: 'POST', body: JSON.stringify(body) }); const j: any = await r.json();
+    const t0 = Date.now(); const j: any = await post(url, body);
     calls.push({ kind: msgs[0]?.role === 'system' && /^You are a person of Parsa/.test(msgs[0].content) ? 'talk' : 'judge', last: msgs[msgs.length - 1].content, text: j.text, ms: Date.now() - t0, ...j });
     const usage = { completion_tokens: j.completion_tokens, prompt_tokens: j.prompt_tokens, extra: { prefill_tokens_per_s: (j.prompt_tokens - j.cached_tokens) / Math.max(j.prefill_s, 1e-6), decode_tokens_per_s: j.completion_tokens / Math.max(j.total_s - j.ttft_s, 1e-6) } };
     if (req.stream) return (async function* () { yield { choices: [{ delta: { content: j.text } }] }; yield { choices: [], usage }; })();
