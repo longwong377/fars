@@ -31,7 +31,7 @@ const DEEDS: Record<string, Deed> = {
   nursed_by_kin: { who: 'other', pub: 0.05, dyad: 0.30 },
   hired_by_neighbour: { who: 'other', pub: 0.04, dyad: 0.20 },
   given: { who: 'other', pub: 0.06, dyad: 0.30 },
-  lent_by_stranger: { who: 'other', pub: 0.05, dyad: 0.25 },
+  lent_by_stranger: { who: 'other', pub: 0.05, dyad: 0.25 }, lent_by_neighbour: { who: 'other', pub: 0.05, dyad: 0.25 },
   hired_by_stranger: { who: 'other', pub: 0.04, dyad: 0.20 },
   loan: { who: 'other', pub: 0.03, dyad: 0.10 },
   spoken_for: { who: 'actor', pub: 0.10, dyad: 0, thank: true }, // speaking for a house: its standing rises; the speaker is thanked

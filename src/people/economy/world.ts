@@ -170,10 +170,10 @@ export class Economy implements EconWorld {
       const e = ev(p.deal ? 'haggle_deal' : 'given', g + c); if (cz.length) { if (g > 0) to.cause.food = e; if (f > 0) to.cause.fuel = e; if (c > 0) to.cause.cash = e; if (Number(p.labour ?? 0) > 0) to.cause.help = e; }
     } else if (i.kind === 'loan') {
       const c = Number(p.cash ?? 0); to.cash += c; changes.push(`${i.to}.cash+${c}`); // the player's loan: no interest, no court
-      const e = ev('lent_by_stranger', c); if (cz.length && c > 0) to.cause.cash = e;
+      const e = ev(this.hh.has(i.from) ? 'lent_by_neighbour' : 'lent_by_stranger', c); // (D-371: a neighbour's loan made in talk is not the stranger's) if (cz.length && c > 0) to.cause.cash = e;
     } else if (i.kind === 'petition') { // speaking for a household before the judge: the next judgement over it is lenient
       (to as any).advocate = d + Number(p.days ?? 30); changes.push(`${i.to}.advocate`); ev('spoken_for');
-    } else if (i.kind === 'work') { const g = Number(p.grain ?? 0); to.grain += g; changes.push(`${i.to}.grain+${g}`); const e = ev('hired_by_stranger', g); if (cz.length && g > 0) to.cause.food = e;
+    } else if (i.kind === 'work') { const g = Number(p.grain ?? 0); to.grain += g; changes.push(`${i.to}.grain+${g}`); const e = ev(this.hh.has(i.from) ? 'hired_by_neighbour' : 'hired_by_stranger', g); if (cz.length && g > 0) to.cause.food = e;
     } else { ev(i.kind); changes.push(`${i.to}.${i.kind}`); }
     return { ok: true, changes };
   }
