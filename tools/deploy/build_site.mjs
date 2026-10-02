@@ -23,7 +23,7 @@ if (!process.env.SKIP_BAKE && existsSync(join(root, 'tools/bake_world/bake.ts'))
   try { run('npx tsx tools/bake_world/bake.ts'); lap('world cache baked'); }
   catch (e) { console.warn(`[site] world-cache bake failed (${e.message}); the page builds those units live`); }
 }
-run('npx vite build', { PARSA_BASE: base }); lap('vite build');
+run(`npx vite build${process.env.NOMINIFY ? ' --minify false' : ''}${process.env.SOURCEMAP ? ' --sourcemap' : ''}`, { PARSA_BASE: base }); // (NOMINIFY=1 / SOURCEMAP=1: names and source files for tools/deploy/boot_profile.mjs) lap('vite build');
 
 // textures low first (src/render/lowfirst.ts): a 512-px copy of every scan jpg beside it, and textures/low.json (each full
 // file's size): a first visit loads the copies before it can walk and the full scans after (sharp, in the lockfile)
@@ -36,9 +36,16 @@ run('npx vite build', { PARSA_BASE: base }); lap('vite build');
       man[`${id}/${f.replace(/\.jpg$/, '')}`] = [meta.width, meta.height]; full += lstatSync(src).size; low += lstatSync(out).size; } }
   writeFileSync(join(T, 'low.json'), JSON.stringify(man));
   lap(`textures low first: ${Object.keys(man).length} copies, ${(low / 1048576).toFixed(1)} MB for ${(full / 1048576).toFixed(1)} MB of scans`); }
-// D-393: the files the page warms from its first seconds (src/shell/warm.ts): the measured list, those this build has
+// D-393, D-580: the files the page prefetches from its first seconds (src/core/prefetch.ts): the measured list in the order the
+// page asks for them (tools/deploy/boot_list.mjs), those this build has; '*' expanded here (hashed world-cache units), '{seed}'
+// kept for the page (a world's own units; counted by the first seed this build baked)
 { const want = readFileSync(join(root, 'tools/deploy/boot_files.txt'), 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
-  const have = want.filter(p => existsSync(join(dist, p))); let b = 0; for (const p of have) b += lstatSync(join(dist, p)).size;
+  const esc = x => x.replace(/[.+?^$()|[\]\\]/g, '\\$&');
+  const expand = p => { const d = p.slice(0, p.lastIndexOf('/')), re = new RegExp('^' + esc(p.slice(d.length + 1)).replace('\\{seed\\}', '{seed}').split('*').join('([0-9a-f]+)').replace('{seed}', '(?<seed>\\d+)') + '$');
+    const fs = existsSync(join(dist, d)) ? readdirSync(join(dist, d)) : [];
+    return [...new Set(fs.map(f => re.exec(f)).filter(Boolean).map(m => `${d}/${m.groups?.seed ? m[0].replace(new RegExp(`(?<=[-_])${m.groups.seed}(?=[_.])`), '{seed}') : m[0]}`))]; };
+  const have = [...new Set(want.flatMap(expand))], sizeOf = p => { const f = expand(p.replace('{seed}', '*'))[0] ?? p; try { return lstatSync(join(dist, f.replace('{seed}', ''))).size; } catch { return 0; } };
+  let b = 0; for (const p of have) b += sizeOf(p);
   writeFileSync(join(dist, 'boot-files.json'), JSON.stringify(have));
   lap(`boot files to warm: ${have.length} of ${want.length} listed, ${(b / 1048576).toFixed(1)} MB`); }
 // GitHub Pages: no Jekyll (it would drop files and folders starting with _), the limits checked

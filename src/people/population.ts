@@ -34,6 +34,25 @@ const PLOT_BY_ID = new Map(TOWN_PLOTS.map(x => [x.id, x]));
 /** D-256: the usual walk out from a village to the grounds of the land work (m; C): the river meadow and the fallow the cows
  *  graze, the bank where men fish, the field edges where the snares are set, the slopes where nuts and acorns are gathered */
 export const LAND_FAR: Record<string, number> = { meadow: 900, bank: 1200, edge: 450, slope: 2500 };
+/** D-640 (s17 C10, UD-08/UD-36): where a plain household's plot k lies from its house (m, grid e/n; C). Was one offset for
+ *  every household, [300 - 150k, 200 + 120k]: every field of every village lay 250-470 m NE of its house, so the fields the
+ *  plain draws round each village were worked on one side only and empty everywhere else. Now each plot has a bearing and a
+ *  distance of its own (seed, household, plot): scattered holdings all round the village, 0.2-1.8 km out, nearer ones more
+ *  often (the radius uniform: the ground near the village is worked more densely, as the plain's patchwork thins outward;
+ *  scattered plots of a household: the village fields of the region in every period, C). Shared with popgeo.ts, so the
+ *  plan's walk out is as long as the walk the view draws */
+export function fieldOffset(seed: number, hh: number, plot: number): [number, number] {
+  const a = u01(seed, salt('field-bearing'), hh, plot) * Math.PI * 2, d = 200 + 1600 * u01(seed, salt('field-dist'), hh, plot);
+  return [Math.cos(a) * d, Math.sin(a) * d];
+}
+/** D-640: the brushwood and the dung of the hill: Kuh-e Rahmat's lower slopes E and S of the Terrace, where the town's
+ *  children and servants go for fuel (the near ground of a town of thousands is stripped bare; the hill's scrub is the
+ *  nearest: C). Its middle, for the plan's walk (popgeo.ts finds the spot on the slopes) */
+export const SCRUB_XY: [number, number] = [800, -300];
+/** D-640: the keepers of the king's tomb at Naqsh-e Rustam (plain.json naqsh_e_rustam: the tomb of Darius I at grid 592,6129,
+ *  the façade attributed to Xerxes at 652,6129, the Ka'ba at 543,6017): their house E of the tombs at the cliff foot (not
+ *  built: C), the middle of the ground below the cliff for the plan's walks */
+export const NAQSH = { house: [722, 6086] as [number, number], mid: [640, 6010] as [number, number] };
 /** D-256: a plain household keeps a cow (and her calf) with this share (fauna.json cattle.household_share_plain; C) */
 export const COW_SHARE: number = (faunaJson as any).cattle.household_share_plain;
 /** D-256: the months the cows are in milk (fauna.json cattle.milk_months: calving in late winter, milk through the summer; C) */
@@ -173,7 +192,7 @@ export const DEPOT_EARLY_H = 1;
 /** out of doors: the planners' own list (Planner.dustVeil, coldWear): the roads, the lanes, the wells, the fields, the
  *  canal, the pasture, the fuel ground, the threshing floor, the gardens, the stockyard, the Terrace's open courts, works and
  *  posts; not a house, a workshop, a store, a hall or a tent */
-export const OPEN_PLACE = /^(lane:|well:|market:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:)/;
+export const OPEN_PLACE = /^(lane:|well:|market:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:|scrub:|naqsh:(?:tomb|watch|flock))/; // (D-640: the hill's scrub, the ground below the tombs)
 /** at the house but out of doors: on the roof, in the courtyard, at the wall where the dung cakes dry, on the doorstep */
 /** D-461: the day's work of a trade, as the town's own minds guess it when no plan is built (Population.segLight; C) */
 const LIGHT_WORK: Partial<Record<string, ActivityId>> = { farmer: 'field_work', gardener: 'garden_work', builder: 'lay_brick', porter: 'carry_sack', camp: 'bake', weaver: 'weave', craftsman: 'craft', scribe: 'write_tablet',
@@ -748,6 +767,13 @@ export class Population {
         const gang = x.kind === 'construction_gang'; const sex: 'm' | 'f' = gang ? 'm' : r.chance(0.6) ? 'f' : 'm';
         const pid = this.person({ sex, age: this.ageIn(r, gang ? 18 : 8, 45), job: gang ? 'builder' : sex === 'f' ? 'weaver' : 'porter', sub: gang ? 'labour' : sex === 'f' ? '' : 'town', hh, origin: 'Lycian', arrive: x.day, gang: gang ? 1 : -1, squad: 20 + (k >> 3), work: gang ? 'hall100_site' : 'ws_textile' });
         this.join(g, pid); if (gang) { this.builders.push(pid); this.gangs[1].members.push(pid); } } }
+    // ---------------- D-640 (s17 C10): the keepers of the king's tomb at Naqsh-e Rustam: two magi and two young men of their
+    // order, living in a house by the tombs. Arrian (Anabasis 6.29.7) has magi keeping Cyrus' tomb at Pasargadae from father to
+    // son, given a sheep a day and wine and flour for the offering (B for Pasargadae); the Fortification tablets issue rations
+    // for offerings at royal tombs (šumar: B). The keepers of Darius' tomb here are by analogy (C). Their own stream: no one
+    // else's life changes
+    { const hh = this.hh('q_naqsh', 'terrace', true, 'naqsh:house'); this.households[hh].xy = [...NAQSH.house];
+      for (let i = 0; i < 4; i++) { const r = new HStream(this.seed, salt('naqsh-keepers'), i); this.person({ sex: 'm', age: i < 2 ? this.ageIn(r, 38, 62) : this.ageIn(r, 15, 24), job: 'priest', hh, origin: 'Persian', idx: i, work: 'naqsh' }); } }
     // ---------------- ties: kin households in the same quarter/village, a friend at work, a neighbour (C)
     const byQ = new Map<string, number[]>(); for (const h of this.households) if (h.zone === 'town' || h.zone === 'plain') (byQ.get(h.q) ?? byQ.set(h.q, []).get(h.q)!).push(h.id);
     for (const [, list] of byQ) for (let i = 0; i < list.length; i++) { const r = this.rng(-50000 - list[i]); const n = r.int(1, 3);
@@ -761,6 +787,11 @@ export class Population {
         if (p.sex === 'f' && p.age >= 14) this.quarters[H.q]?.women.push(p.id); }
     }
     for (const q of Object.values(this.quarters)) if (!q.farmers.length) q.farmers = [];
+    // D-640 (s17 C10): the walled gardens beside the estates of Bagh-e Firuzi (the paradise behind the Tol-e Ajori gate) and
+    // Dasht-e Gohar had no one working them: half the estates' gardeners there work the garden next door (partetaš workers
+    // on the Fortification tablets: B for paradises and their workers, C for these men and this share). A hash, not the
+    // generator's stream: nobody else's life changes
+    for (const p of this.persons) if (p.job === 'gardener' && p.work.startsWith('estate:') && u01(this.seed, salt('paradise-hands'), p.id) < 0.5) { const q = this.households[p.hh].q; if (q === 'q_firuzi' || q === 'q_gohar') p.work = `garden:${q}`; }
   }
   private townCount() { let n = 0; for (const h of this.households) if (h.zone === 'town') n += h.members.length; return n; }
 
@@ -1786,7 +1817,10 @@ export class Population {
     // (NaN: every walk to them and the rest of the day had NaN times) and `garden:<q>:trees` fell through to the Terrace
     if (place.endsWith(':trees')) { const b = this.pos(place.slice(0, -6), d); return [b[0] + 90, b[1] + 120]; }
     if (place === 'offering_place:altar') return this.facilities.offering_place; // (D-209: the altar stands in the precinct)
-    const k = place.indexOf(':'); if (k > 0) { const tail = place.slice(k + 1); if (place.startsWith('field:') || place.startsWith('estate:')) { const H = this.households[parseInt(tail, 10)]; const plot = +(tail.split(':')[1] ?? 0); return [H.xy[0] + 300 - plot * 150, H.xy[1] + 200 + plot * 120]; }
+    const k = place.indexOf(':'); if (k > 0) { const tail = place.slice(k + 1); if (place.startsWith('field:') || place.startsWith('estate:')) { const hid = parseInt(tail, 10), H = this.households[hid]; const plot = +(tail.split(':')[1] ?? 0); if (place.startsWith('field:')) { const o = fieldOffset(this.seed, hid, plot); return [H.xy[0] + o[0], H.xy[1] + o[1]]; } return [H.xy[0] + 300 - plot * 150, H.xy[1] + 200 + plot * 120]; }
+      if (place.startsWith('scrub:')) return SCRUB_XY; // (D-640)
+      if (place.startsWith('naqsh:')) return place === 'naqsh:house' ? NAQSH.house : NAQSH.mid; // (D-640)
+      if (tail === 'q_naqsh') return NAQSH.house; // (D-640: the keepers' doorstep and water are at their house)
       // D-256: the land work's grounds lie out from the village (popgeo.ts finds them in the built land: the river meadow, the
       // bank, the field edge, the slopes); here only their usual distance, for the walk (C)
       const far = LAND_FAR[place.slice(0, k)]; if (far && this.quarters[tail]) { const c = this.quarters[tail].xy; return [c[0] + far, c[1]]; }
@@ -2138,7 +2172,7 @@ class Planner {
     this.p = P.persons[pid]; this.C = P.cal.ctx(d); this.r = new HStream(P.seed, S.plan, pid, d);
     this.age = P.ageOn(pid, d); this.ageD = P.ageDays(pid, d);
     this.hh = P.households[P.home(pid, d)];
-    this.home = this.p.job === 'guard' ? 'garrison_sleep' : this.hh.home; this.homeW = this.p.job === 'guard' ? 'terrace' : this.hh.zone === 'plain' ? 'plain' : 'town';
+    this.home = this.p.job === 'guard' ? 'garrison_sleep' : this.hh.home; this.homeW = this.p.job === 'guard' ? 'terrace' : this.hh.zone === 'plain' || this.hh.home === 'naqsh:house' /* D-640 */ ? 'plain' : 'town';
   }
   private add(t1: number, place: string, act: ActivityId, why: string, where: Where, split = false) {
     t1 = Math.min(24, t1); const last = this.segs[this.segs.length - 1];
@@ -3960,7 +3994,8 @@ class Planner {
       const k = this.choose(w); const t0 = this.t; done[k] = (done[k] ?? 0) + 1;
       if (k === 'learn') this.atHome(Math.min(lim, this.t + r.range(0.6, 1.4)), learnAt![0], learnAt![1]);
       else if (k === 'water') this.well(this.t + r.range(0.15, 0.3), age < 9 ? 'fetching water with a small jar' : 'fetching water for the household');
-      else if (k === 'fuel') { const o = plain ? `outside:${q}` : 'outside'; this.go(o, W, 'out for fuel'); this.add(Math.max(this.t + 0.4, Math.min(until - P.walkH(o, this.home, d, W, W), this.t + r.range(0.7, 1.4))), o, 'gather', 'gathering dung and brushwood for the fire', W); this.go(this.home, W, 'carrying the fuel home', 'carry_sack'); }
+      else if (k === 'fuel') { const o = plain ? `outside:${q}` : `scrub:${q}`; // (D-640: the town's fuel from the hill's scrub; was 'outside', which is the burial ground)
+        this.go(o, W, 'out for fuel'); this.add(Math.max(this.t + 0.4, Math.min(until - P.walkH(o, this.home, d, W, W), this.t + r.range(0.7, 1.4))), o, 'gather', 'gathering dung and brushwood for the fire', W); this.go(this.home, W, 'carrying the fuel home', 'carry_sack'); }
       else if (k === 'grind') this.atHome(Math.min(lim, this.t + r.range(0.4, 1)), 'grind', 'grinding beside the mother at the quern');
       else if (k === 'spin') { if (age >= 10 && out && lim - this.t > 0.8 && r.chance(0.4)) { this.go(l, W); this.add(Math.max(this.t + 0.4, Math.min(lim - P.walkH(l, this.home, d, W, W), this.t + r.range(0.6, 1.4))), l, 'spin', 'spinning with the women outside the door', W); this.go(this.home, W); }
         else this.atHome(Math.min(lim, this.t + r.range(0.5, 1.3)), 'spin', age >= 10 ? 'spinning wool with a drop spindle' : 'learning to spin beside the women'); }
@@ -4506,7 +4541,31 @@ class Planner {
    *  Herodotus 1.140 "the Magi kill with their own hands every creature, except dogs and men"), and attends the households'
    *  sacrifices that fall to him (Population.sacrificesOn). Not through the rain: the fire is fed through it (sheltered, C),
    *  the rest waits for it to pass or is put off */
+  /** D-640: a keeper of the king's tomb at Naqsh-e Rustam (Population.generate: by analogy with Cyrus' tomb, C). The two
+   *  magi make the morning offering at the foot of Darius' tomb, keep watch below the tombs through the day and go along the
+   *  cliff foot in the afternoon, sweeping the ground before the tombs; the two young men take the tomb's sheep out to graze
+   *  the ground below the cliff, a different stretch each part of the day, and bring them in at dusk. Rain sends them in
+   *  (workBlock); a storm that holds the day keeps them at the house */
+  private tombKeeper(): Seg[] {
+    const C = this.C, p = this.p, d = this.d, W: Where = 'plain', old = p.idx < 2;
+    if (dayStorm(C)) return this.homeDay(stormWord(C.wx, this.sun.rise - 0.5, this.sun.set + 0.5));
+    this.morning(this.sun.rise + 0.4);
+    if (old) {
+      const T = 'naqsh:tomb';
+      if (wetHours(C.wx, this.t, this.t + 1.2) === 0) { this.go(T, W, 'to the foot of the king’s tomb'); this.add(this.t + 0.5, T, 'offer', 'the day’s offering at the foot of the king’s tomb: the sheep, wine and flour set out, the barsom in hand (by analogy with Cyrus’ tomb, Arrian 6.29: C)', W);
+        this.add(this.t + 0.25, T, 'chant', 'chanting before the tomb without words (Herodotus 1.132: a magus chants; the words are not attested)', W); }
+      const k = (d + p.idx) % 2, am = `naqsh:watch:${k}`, pm = `naqsh:watch:${2 + ((d + p.idx) % 4)}`;
+      this.go(am, W, 'to his place below the tombs'); this.workBlock(am, W, 'rest', 'sitting watch below the king’s tomb', this.t, 12.5, true, am, 12, 'the midday meal below the cliff: bread, cheese and water');
+      this.go(pm, W, 'along the cliff foot'); this.workBlock(pm, W, (d + p.idx) % 2 === 0 ? 'clean' : 'rest', (d + p.idx) % 2 === 0 ? 'sweeping the ground before the tombs' : 'sitting watch below the tombs', this.t, this.sun.set - 1, true, pm);
+    } else {
+      const g = (b: number) => `naqsh:flock:${(d * 3 + b + p.idx) % 6}`;
+      for (let b = 0; b < 3; b++) { const t1 = b === 0 ? 11.5 : b === 1 ? 15 : this.sun.set - 0.6; if (this.t >= t1 - 0.3) continue; const f = g(b); this.go(f, W, b ? 'moving the sheep on' : 'taking the tomb’s sheep out');
+        this.workBlock(f, W, 'herd', 'grazing the sheep of the king’s tomb on the ground below the cliff', this.t, t1, true, f, 12, 'bread and water with the sheep'); }
+    }
+    this.go(this.home, this.homeW, old ? 'home to the keepers’ house' : 'bringing the sheep in to the keepers’ house'); this.evening(Math.max(this.t, this.sun.set - 0.5)); return this.finish();
+  }
   private priest(): Seg[] {
+    if (this.p.work === 'naqsh') return this.tombKeeper(); // (D-640)
     const C = this.C, p = this.p, P = this.P, d = this.d, duty = p.idx === d % 3, wet = wetSpells(C.wx), ALT = 'offering_place:altar';
     const rainy = (a: number, b: number) => wet.some(([x, y]) => x < b && y > a), after = (t: number) => { for (const [x, y] of wet) if (x < t + 0.8 && y > t) t = y + 0.1; return t; };
     const walk = P.walkH(this.home, 'offering_place', d, this.homeW, 'town');
@@ -4602,7 +4661,7 @@ class Planner {
     if (turn && !nightTurn) { this.go(canal, 'town', 'to the channel'); this.dispute(canal, 'town'); this.add(this.t + 2.5, canal, 'irrigate', 'his turn of water from the channel (CE-19)', 'town'); }
     // the morning's work and the afternoon's (lives.json job_tasks.gardener, by season): beds, runnels, trees, produce to
     // the store, dung from the stockyard, silt out of the channel
-    const fruit = [4, 5, 6].includes(C.month), estate = g.startsWith('estate:'), trees = `${g}:trees`, store = estate ? this.home : 'royal_store';
+    const fruit = [4, 5, 6].includes(C.month), estate = g.startsWith('estate:') || g === 'garden:q_firuzi' || g === 'garden:q_gohar' /* (D-640: the estates' produce to their own stores) */, trees = `${g}:trees`, store = estate ? this.home : 'royal_store';
     const W = L.job_tasks.gardener.v[C.season] as Record<'beds' | 'channels' | 'trees' | 'produce' | 'manure' | 'clear', number>;
     const block = (t1: number) => {
       if (this.t >= t1 - 0.3) return; const k = this.choose(W);
@@ -4733,7 +4792,8 @@ class Planner {
       if ((k === 'well' || k === 'fuel' || k === 'wash' || k === 'errand') && (wetHours(this.C.wx, this.t, this.t + need) > 0 || this.t + need > this.lightEnd())) { this.atHome(Math.min(lim, this.t + r.range(0.5, 1)), estate ? 'carry_jar' : p.sex === 'f' ? 'spin' : 'craft', estate ? 'carrying jars in the estate stores' : p.sex === 'f' ? 'spinning for the household' : 'mending the house’s tools and baskets'); continue; }
       if (k === 'well') this.well(this.t + 0.5, why);
       else if (k === 'wash') { const c = `canal:${this.hh.q}`; this.go(c, W, 'to the water with the washing', 'carry_sack'); this.add(this.t + r.range(0.8, 1.5), c, 'wash', why, W); this.go(this.home, W, 'carrying the washing home', 'carry_sack'); }
-      else if (k === 'fuel' && !fuel) { fuel++; const o = W === 'plain' ? `outside:${this.hh.q}` : 'outside'; this.go(o, W, 'out beyond the town for fuel'); this.add(this.t + r.range(0.7, 1.3), o, 'gather', why, W); this.go(this.home, W, 'carrying the fuel home', 'carry_sack'); }
+      else if (k === 'fuel' && !fuel) { fuel++; const o = W === 'plain' ? `outside:${this.hh.q}` : `scrub:${this.hh.q}`; // (D-640: was 'outside', the burial ground)
+        this.go(o, W, 'out beyond the town for fuel'); this.add(this.t + r.range(0.7, 1.3), o, 'gather', why, W); this.go(this.home, W, 'carrying the fuel home', 'carry_sack'); }
       else if (k === 'errand' && !(this.C.wx.dustH && this.C.wx.dustH[0] < this.t + 1.3 && this.C.wx.dustH[1] > this.t)) { const l = `lane:${this.hh.q}`; this.go(l, W, 'to the lane with a measure of barley', 'carry_sack'); this.add(this.t + r.range(0.3, 0.8), l, 'exchange', why, W); this.go(this.home, W, 'carrying home what it fetched', 'carry_jar'); }
       else this.atHome(Math.min(lim, this.t + r.range(0.8, 2)), a === 'gather' || k === 'errand' ? 'talk' : a, a === 'gather' || k === 'errand' ? 'waiting on the master' : why); }
     this.evening(this.t); return this.finish();

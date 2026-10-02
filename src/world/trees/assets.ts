@@ -66,9 +66,20 @@ export async function loadTreeAssets(base = BASE, rows = SPECIES.length * 3): Pr
     };
     /** PNG rows are top-down; the atlas's row 0 is v = 0 */
     const flip = (p: { d: Uint8ClampedArray; W: number; H: number }) => { const o = new Uint8Array(p.W * p.H * 4); for (let j = 0; j < p.H; j++) o.set(p.d.subarray((p.H - 1 - j) * p.W * 4, (p.H - j) * p.W * 4), j * p.W * 4); return o; };
-    const [col, tilt, wj, wb] = await Promise.all([pixels('leaf_col.webp'), pixels('leaf_tilt.webp'), fetch(url('wood.json')).then(q => q.json()), fetch(url('wood.bin')).then(q => q.arrayBuffer())]);
+    // s17 (D-560): the leaf atlas decoded and assembled in a worker (atlas_worker.ts: ~2 s of main-thread JS at load, C4's boot
+    // profile), on the main thread where no worker can
+    const blobOf = async (f: string) => { const q = await fetch(url(f)); if (!q.ok || !(q.headers.get('content-type') ?? '').startsWith('image/')) throw new Error(`${f}: ${q.status}`); const b = await q.blob(); STATS.bytes += b.size; return b; };
+    const inWorker = async (): Promise<ReturnType<typeof atlasFromImages> | null> => {
+      if (typeof Worker === 'undefined' || typeof OffscreenCanvas === 'undefined') return null;
+      const [colB, tiltB] = await Promise.all([blobOf('leaf_col.webp'), blobOf('leaf_tilt.webp')]);
+      const w = new Worker(new URL('./atlas_worker.ts', import.meta.url), { type: 'module' });
+      try { return await new Promise((res, rej) => { w.onmessage = (e: MessageEvent) => (e.data.error ? rej(new Error(e.data.error)) : res(e.data.atlas)); w.onerror = ev => rej(new Error(ev.message || 'atlas worker failed')); w.postMessage({ col: colB, tilt: tiltB, shadeB: manifest.shadeB }); }); }
+      finally { w.terminate(); }
+    };
+    const onMain = async () => { const [col, tilt] = await Promise.all([pixels('leaf_col.webp'), pixels('leaf_tilt.webp')]); return atlasFromImages(flip(col), flip(tilt), col.W, col.H, [0, manifest.shadeB], tilt.W, tilt.H); };
+    const [atlas, wj, wb] = await Promise.all([inWorker().catch(e => { console.warn(`[trees] atlas worker: ${(e as Error).message}; on the main thread`); return null; }).then(a => a ?? onMain()),
+      fetch(url('wood.json')).then(q => q.json()), fetch(url('wood.bin')).then(q => q.arrayBuffer())]);
     STATS.bytes += wb.byteLength;
-    const atlas = atlasFromImages(flip(col), flip(tilt), col.W, col.H, [0, manifest.shadeB], tilt.W, tilt.H);
     const wood = woodLevels(wj, wb, rows);
     const bark = await loadBark(base, pixels).catch(e => { console.warn(`[trees] bark scans: ${(e as Error).message}`); return null; });
     ASSETS = { manifest, atlas, wood, bark }; STATS.loaded = true;

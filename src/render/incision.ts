@@ -9,7 +9,7 @@
 // What it is not: the stone mesh is not cut, so a sign seen edge-on has no notch in the stone's silhouette, and the sun's
 // shadow map does not resolve the millimetre walls (their self-shadow is the normal's own N·L).
 import * as THREE from 'three/webgpu';
-import { attribute, texture, positionWorld, cameraPosition, modelWorldMatrix, cameraViewMatrix, vec2, vec3, vec4, float, Fn, Loop, If, Break, int, normalize, dot, cross, clamp, smoothstep, max } from 'three/tsl';
+import { attribute, texture, positionWorld, cameraPosition, modelWorldMatrix, cameraViewMatrix, vec2, vec3, vec4, float, Fn, Loop, If, Break, int, normalize, dot, cross, clamp, smoothstep, max, min, fwidth, mix } from 'three/tsl';
 import type { Atlas } from '../arch/carving';
 
 export interface IncisionNodes { mask: any; normalView: any; ao: any; depth: any }
@@ -19,6 +19,10 @@ export function incisionNodes(A: Atlas): IncisionNodes {
   const tex = A.tex, W = A.width, H = A.height, TPE = A.tpe, MAXD = A.maxDepthEm;
   const uv0 = attribute('carveUV', 'vec2'), em = attribute('carveEm', 'float');
   const depthAt = (p: any) => texture(tex, p).level(float(0)).r.mul(MAXD).mul(em);
+  // D-510: the pixel's footprint in atlas texels (the signs aliased into salt-and-pepper speckle from a few metres: the atlas
+  // has no mips and the mask is alpha-tested); the mask is taken over the footprint (5 taps), so a stroke under a pixel wide
+  // widens into a steady soft line instead of flickering dots
+  const foot = max(fwidth(uv0.x).mul(W), fwidth(uv0.y).mul(H));
   const out = Fn(() => {
     const T = normalize(modelWorldMatrix.mul(vec4(attribute('carveT', 'vec3'), 0)).xyz).toVar(), B = normalize(modelWorldMatrix.mul(vec4(attribute('carveB', 'vec3'), 0)).xyz).toVar(), N = normalize(cross(T, B)).toVar();
     const V = normalize(cameraPosition.sub(positionWorld)).toVar();
@@ -43,10 +47,15 @@ export function incisionNodes(A: Atlas): IncisionNodes {
     const nW = normalize(T.mul(gx).add(B.mul(gy)).add(N));
     const nV = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
     const depth = depthAt(p);
-    const ao = float(1).sub(smoothstep(0, float(0.05).mul(em), depth).mul(0.3));
-    return vec4(nV, ao);
+    // D-510: beyond ~1 texel a pixel the walls' normals alias (mip 0 only): the cut eases to the face's normal and a mean shade
+    const far = smoothstep(1, 3, foot).mul(0.75);
+    const nF = normalize(mix(nV, normalize(cameraViewMatrix.mul(vec4(N, 0)).xyz), far));
+    const ao = mix(float(1).sub(smoothstep(0, float(0.05).mul(em), depth).mul(0.3)), float(0.6), far);
+    return vec4(nF, ao);
   })();
-  const mask = depthAt(uv0).greaterThan(float(0.0002).mul(em)).select(float(1), float(0));
+  const r = min(foot, 6).mul(0.5), ox = vec2(r.div(W), 0), oy = vec2(0, r.div(H));
+  const dm = max(max(depthAt(uv0), max(depthAt(uv0.add(ox)), depthAt(uv0.sub(ox)))), max(depthAt(uv0.add(oy)), depthAt(uv0.sub(oy))));
+  const mask = dm.greaterThan(float(0.0002).mul(em)).select(float(1), float(0));
   return { mask, normalView: out.xyz, ao: out.w, depth: depthAt(uv0) };
 }
 export type { THREE };

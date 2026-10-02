@@ -46,9 +46,12 @@ export function makePlayerBody(crowd?: Crowd): THREE.Group {
   (g as any).playerRig = { crowd, rig, input, slots, lastPhase: NaN, moving: 0, t: 0, meshes: [vis.mesh, shadow.mesh] } as PlayerRig;
   return g;
 }
-/** pose the body: walk while the step phase advances, idle otherwise (blended over ~0.3 s) */
-export function animateBody(g: THREE.Group, phase: number, speed: number, dt = 1 / 60) {
+/** pose the body: walk while the step phase advances, idle otherwise (blended over ~0.3 s), at the body's own speed (D-630).
+ *  Crouched (crouch > 0.3) the visible body is hidden and only its shadow is drawn: the kit has no crouch pose yet and the
+ *  standing torso would surround the lowered eye (PLACEHOLDER in that state only, C) */
+export function animateBody(g: THREE.Group, phase: number, speed: number, dt = 1 / 60, crouch = 0) {
   const P = (g as any).playerRig as PlayerRig | undefined; if (!P) return;
+  P.meshes[0].visible = crouch < 0.3;
   const moved = Number.isFinite(P.lastPhase) && Math.abs(phase - P.lastPhase) > 1e-4; P.lastPhase = phase;
   P.moving += ((moved ? 1 : 0) - P.moving) * Math.min(1, dt / 0.3); P.t += dt;
   const walk = pose('walk', P.t, phase, 0.4, { v: Math.max(0.5, Math.min(2.2, speed)), style: 'man' }), idle = pose('idle', P.t, phase, 0.4), k = P.moving * Math.min(1, speed / 1.35);

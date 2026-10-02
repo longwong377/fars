@@ -8,12 +8,14 @@
 // computed from the anatomy (animalForm.rigWeights: the procedural rig's pivots and cycles drive the modelled body). A
 // species whose model is absent, failed or switched off (?animals=0, ?models=0) draws its procedural stand-in.
 import * as THREE from 'three/webgpu';
+import { sharedKTX2, sharedDraco } from '../render/loaders';
 import type { Species } from './animals';
 import { rigWeights } from './animalRig';
 import { BASE } from '../core/base';
+import { setRealRig, type RealRig } from './animalReal';
 
-export interface AnimalAsset { inHash: string; class: string; files: Record<string, { bytes: number; sha256: string }>; tris: [number, number]; tex: number; lod1At: number; tier: string; src: string }
-export interface AnimalModel { sp: Species; lods: THREE.BufferGeometry[]; albedo: THREE.Texture; nrm: THREE.Texture; lod1At: number; tris: number[] }
+export interface AnimalAsset { inHash: string; class: string; files: Record<string, { bytes: number; sha256: string }>; tris: [number, number]; tex: number; lod1At: number; tier: string; src: string; real?: boolean; rig?: RealRig }
+export interface AnimalModel { sp: Species; lods: THREE.BufferGeometry[]; albedo: THREE.Texture; nrm: THREE.Texture; lod1At: number; tris: number[]; real?: boolean }
 const MODELS = new Map<Species, AnimalModel>();
 const LOAD = { ms: 0, loaded: [] as string[], failed: [] as string[], off: false, bytes: 0 };
 export const animalModelStats = () => ({ ...LOAD, count: MODELS.size });
@@ -27,11 +29,8 @@ export async function loadAnimalModels(base = BASE): Promise<ReturnType<typeof a
   let man: { assets: Record<string, AnimalAsset> };
   try { const r = await fetch(base + 'models/animals/manifest.json'); if (!r.ok) throw new Error(`manifest ${r.status}`); man = await r.json(); }
   catch (e) { console.warn(`[animals] no manifest (${(e as Error).message}): procedural stand-ins drawn`); return animalModelStats(); }
-  const [{ GLTFLoader }, { DRACOLoader }, { KTX2Loader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js'), import('three/addons/loaders/KTX2Loader.js')]);
-  const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco);
-  // the transcoder's target: the adapter's compressed formats (as render/models.ts: the world loads before it has a renderer)
-  const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
-  const ktx = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); ktx.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any);
+  const [{ GLTFLoader }, draco, ktx] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base), sharedKTX2(base)]); // (D-392: the page's decoders)
+  const loader = new GLTFLoader().setDRACOLoader(draco);
   await Promise.all(Object.entries(man.assets).map(async ([sp, e]) => {
     try {
       const dir = base + 'models/animals/';
@@ -40,11 +39,12 @@ export async function loadAnimalModels(base = BASE): Promise<ReturnType<typeof a
       for (const n of ['lod0', 'lod1']) { const m = g.scene.getObjectByName(n) as THREE.Mesh | undefined; if (!m?.isMesh) throw new Error(`level ${n} missing`); lods.push(m.geometry); }
       for (const t of [albedo, nrm]) { t.anisotropy = 8; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true; }
       albedo.colorSpace = THREE.SRGBColorSpace; nrm.colorSpace = THREE.NoColorSpace;
-      MODELS.set(sp as Species, { sp: sp as Species, lods, albedo, nrm, lod1At: e.lod1At, tris: e.tris }); LOAD.loaded.push(sp);
+      setRealRig(sp, e.real && e.rig ? e.rig : null); // V5 D-520: a library model's own rig landmarks
+      MODELS.set(sp as Species, { sp: sp as Species, lods, albedo, nrm, lod1At: e.lod1At, tris: e.tris, real: !!e.real }); LOAD.loaded.push(sp);
       LOAD.bytes += Object.values(e.files).reduce((a, f) => a + f.bytes, 0);
     } catch (err) { LOAD.failed.push(sp); console.warn(`[animals] ${sp}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
-  draco.dispose(); ktx.dispose();
+  // (D-392: the page's shared decoders stay up)
   LOAD.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__animalModels = { stats: animalModelStats, species: () => [...MODELS.keys()] };
   return animalModelStats();

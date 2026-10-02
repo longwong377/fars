@@ -11,7 +11,7 @@ import * as THREE from 'three/webgpu';
 import { FireSystem } from '../src/world/fire';
 import { Settlement } from '../src/world/settlement/build';
 import { newHB, HOUSE_PARTS, P, NEAR_R, TILE } from '../src/world/settlement/houses';
-import { fixturesOf, livesOf, blockedOf, HOUSE_KINDS } from '../src/world/settlement/houseplan';
+import { fixturesOf, livesOf, blockedOf, HOUSE_KINDS, ROOF_FIX } from '../src/world/settlement/houseplan';
 import { plotCells, passable } from '../src/world/settlement/walk';
 import { ROOM, COURT, YARD, EAVE_LIP, type Site } from '../src/world/settlement/site';
 import { heightRaster, rasterAt } from './lib/townLos';
@@ -73,7 +73,7 @@ describe('doors, courts and the people (D-234)', () => {
   it('fixtures stand in their own plot, off every doorway; the people\'s court spots avoid them; nothing moved the plan (hearths, doors, capacities)', () => {
     const bad: string[] = []; let nf = 0, nb = 0;
     for (const s of town.plan.sites) { const bl = blockedOf(s);
-      for (const f of fixturesOf(s)) { nf++; if (f.kind === 'fleece' || f.kind === 'roller' || f.kind === 'roof_fuel' || f.kind === 'roof_mats' || f.kind === 'portico') continue; // (roof things; the portico's court was checked two cells deep when it was laid out)
+      for (const f of fixturesOf(s)) { nf++; if (ROOF_FIX.has(f.kind) || f.kind === 'portico') continue; // (roof things; the portico's court was checked two cells deep when it was laid out)
         // on the plot's cells or its edge (walls): the cell half a metre into the court from the fixture's point
         const k = s.k(s.ci(f.u + Math.cos(f.rot) * 0.5), s.cj(f.v + Math.sin(f.rot) * 0.5)); if (f.kind !== 'drain' && f.kind !== 'niche' && s.cell[k] !== f.plot) bad.push(`${s.plots[f.plot].id} ${f.kind}: not in its plot`); }
       for (const k of bl) { nb++; if (!(s.sub[k] === COURT || s.sub[k] === YARD)) bad.push(`${s.id} blocked cell ${k} not a court`);

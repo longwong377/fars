@@ -13,18 +13,20 @@
 // All C (the rules and densities); the grasses' species by the scans' forms (C). Positions are a hash of (seed, 2 m cell);
 // three levels by distance, drawn from one atlas (one material): one InstancedMesh per piece and level.
 import * as THREE from 'three/webgpu';
-import { texture, uv, vec3, dot, attribute } from 'three/tsl';
+import { sharedDraco } from '../../render/loaders';
+import { texture, uv, vec3, dot, attribute, max, smoothstep } from 'three/tsl';
 import { mxNoise2 } from '../../render/mx_noise_cpu';
 import { landUseAt, type ZoneMap } from './fields';
 import { cropState } from './seasonal';
 import { BASE } from '../../core/base';
+import { vergeZone } from './verge';
 
 export type CoverKind = 'tuft' | 'sward' | 'stubble' | 'dung';
 /** reach (m), level distances (m), cell (m), rebuild step (m moved) */
 export const COVER = { R: 34, lod: [5.5, 16], cell: 2, moveM: 3 } as const;
 /** per kind: the pieces drawn (ids in public/models/land/cover.json), the size range (m, largest extent), the most instances per piece */
 export const COVER_KINDS: Record<CoverKind, { ids: string[]; size: [number, number]; cap: number }> = {
-  tuft: { ids: ['tuft_m2b', 'tuft_m2c', 'tuft_m2d', 'tuft_m2e', 'tuft_m1a', 'tuft_m1c'], size: [0.22, 0.5], cap: 1100 }, // D-356: six pieces (was 4), the steppe twice as dense
+  tuft: { ids: ['tuft_m2b', 'tuft_m2c', 'tuft_m2d', 'tuft_m2e', 'tuft_m1a', 'tuft_m1c'], size: [0.22, 0.5], cap: 1800 }, // (s17: 1800, was 1100: the verges) // D-356: six pieces (was 4), the steppe twice as dense
   sward: { ids: ['sward_bmj', 'sward_bmk', 'sward_bmm'], size: [0.12, 0.22], cap: 1200 },
   stubble: { ids: ['stubble_a', 'stubble_c'], size: [0.6, 0.8], cap: 900 },
   dung: { ids: ['dung_pat', 'dung_horse', 'dung_sheep'], size: [0.16, 0.3], cap: 250 },
@@ -55,6 +57,21 @@ export function coverCell(env: CoverEnv, ix: number, iz: number, seed: number, d
     const c = col ?? (kind === 'dung' ? COL.dung : mixC(COL.straw, COL.green, Math.min(1, gs * (0.85 + 0.3 * u01(seed, ix, iz, i, 6)))));
     out.push({ kind, v, x, y: y - 0.01, z, yaw: yaw ?? u01(seed, ix, iz, i, 7) * Math.PI * 2, s, c: lin(c, f) });
   };
+  // s17 (D-560, verge.ts): the paths: the tread worn bare but for dung (and the tracks' sward strip between the ruts), the verge
+  // the rankest ground of the plain (dense grasses, standing dry after June), whatever the plot beside it holds
+  const vz = vergeZone(cx, -cz);
+  if (vz) {
+    const K = vz.hit.kind, dungP = K === 'road' ? 0.2 : K === 'track' ? 0.12 : 0.06;
+    const keep = (i: number, want: 'median' | 'verge') => { const x = (ix + u01(seed, ix, iz, i, 1)) * C, z = (iz + u01(seed, ix, iz, i, 2)) * C, q = vergeZone(x, -z);
+      return want === 'verge' ? !q || q.zone === 'verge' : q?.zone === want; };
+    const vgs = Math.min(1, gs * 1.1), vcol = (i: number) => mixC(COL.straw, COL.green, Math.min(1, vgs * (0.8 + 0.35 * u01(seed, ix, iz, i, 6))));
+    if (vz.zone === 'verge') {
+      const n = 6 + (h32(seed, ix, iz, 60) % 5); // (6-10 a 2 m cell, larger than the steppe's: a rank strip, never cut or grazed bare)
+      for (let i = 0; i < n; i++) if (keep(60 + i, 'verge')) put(u01(seed, ix, iz, i, 61) < 0.2 ? 'sward' : 'tuft', 60 + i, 1.2 + 0.6 * u01(seed, ix, iz, i, 62), vcol(60 + i));
+    } else if (vz.zone === 'median') { const n = 1 + (h32(seed, ix, iz, 63) % 2); for (let i = 0; i < n; i++) if (keep(64 + i, 'median')) put('sward', 64 + i, 0.8, vcol(64 + i)); }
+    if (u01(seed, ix, iz, 12) < (vz.zone === 'verge' ? 0.04 : dungP)) put('dung', 40, 1.1);
+    return out;
+  }
   const crop = u.use === 'irrigated' || u.use === 'rainfed';
   const st = crop ? cropState(u.row, doy + u.offsetDays) : null;
   const wild = !crop || u.row === 'fallow';
@@ -84,8 +101,8 @@ export function _setCoverKit(k: CoverKit | null) { KIT = k; }
 export async function loadCoverKit(base = BASE): Promise<CoverKit | null> {
   try {
     const man = await (await fetch(base + 'models/land/manifest.json')).json(); const C = man.classes?.cover; if (!C) throw new Error('no cover class');
-    const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
-    const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
+    const [{ GLTFLoader }, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base)]); // (D-392: the page's decoders)
+    const loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
     const [g, map, normal, arm] = await Promise.all([loader.loadAsync(`${base}models/land/cover.glb`), tl.loadAsync(`${base}models/land/cover_diff.jpg`), tl.loadAsync(`${base}models/land/cover_nor.jpg`), tl.loadAsync(`${base}models/land/cover_arm.jpg`)]);
     map.colorSpace = THREE.SRGBColorSpace; for (const t of [map, normal, arm]) { t.flipY = false; t.anisotropy = 4; t.needsUpdate = true; }
     const want = new Set(Object.values(COVER_KINDS).flatMap(k => k.ids)), pieces: CoverPiece[] = [];
@@ -94,10 +111,11 @@ export async function loadCoverKit(base = BASE): Promise<CoverKit | null> {
         m.updateMatrixWorld(true); const geo = m.geometry.clone(); geo.applyMatrix4(m.matrixWorld); for (const k of Object.keys(geo.attributes)) if (!['position', 'normal', 'uv'].includes(k)) geo.deleteAttribute(k);
         if (!geo.getAttribute('normal')) geo.computeVertexNormals(); geo.computeBoundingBox(); geo.computeBoundingSphere(); return geo; });
       const b = lods[0].boundingBox!; pieces.push({ id: pc.id, kind: pc.kind, size: [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z], lods }); }
-    draco.dispose();
+    // (D-392: the shared decoder stays up)
     let mean: [number, number, number] = [0.25, 0.25, 0.2];
-    try { const im = map.image as HTMLImageElement, cv = new OffscreenCanvas(16, 16), c2 = cv.getContext('2d')!; c2.drawImage(im, 0, 0, 16, 16); const d = c2.getImageData(0, 0, 16, 16).data; let r = 0, gg = 0, bb = 0;
-      const L = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; for (let i = 0; i < d.length; i += 4) { r += L(d[i]); gg += L(d[i + 1]); bb += L(d[i + 2]); } mean = [r / 256, gg / 256, bb / 256]; } catch { /* default */ }
+    // (s17: the mean of the drawn pixels only, the atlas's black ground left out: it is cut away, D-560)
+    try { const im = map.image as HTMLImageElement, cv = new OffscreenCanvas(128, 128), c2 = cv.getContext('2d')!; c2.drawImage(im, 0, 0, 128, 128); const d = c2.getImageData(0, 0, 128, 128).data; let r = 0, gg = 0, bb = 0, k = 0;
+      const L = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; for (let i = 0; i < d.length; i += 4) { if (Math.max(d[i], d[i + 1], d[i + 2]) < 12) continue; r += L(d[i]); gg += L(d[i + 1]); bb += L(d[i + 2]); k++; } if (k) mean = [r / k, gg / k, bb / k]; } catch { /* default */ }
     KIT = { pieces, map, normal, arm, mean };
   } catch (e) { console.warn('[cover] no ground cover kit:', (e as Error).message); KIT = null; }
   return KIT;
@@ -116,6 +134,10 @@ export class GroundCover {
     const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
     const t = texture(kit.map, uv()).rgb, meanY = Math.max(0.02, 0.2126 * kit.mean[0] + 0.7152 * kit.mean[1] + 0.0722 * kit.mean[2]);
     mat.colorNode = attribute('ctint', 'vec3').mul(dot(t, vec3(0.2126, 0.7152, 0.0722)).div(meanY).clamp(0, 2.5)); mat.normalMap = kit.normal; mat.normalScale.set(1, -1);
+    // s17 (D-560): the atlas is the scans' blades on black (a JPEG: no alpha), and the tufts are the scans' alpha cards: without
+    // a cut-out every card drew its black ground round the blades (black flames at the walker's feet, in every render since
+    // s12). The cut-out is the albedo's own brightness (the black is 0; the stubble and dung cell is opaque)
+    const rawT = texture(kit.map, uv()); mat.opacityNode = smoothstep(0.012, 0.045, max(rawT.r, max(rawT.g, rawT.b))); mat.alphaTest = 0.5;
     const a = texture(kit.arm, uv()); mat.roughnessNode = a.g.mul(0.3).add(0.65); mat.aoNode = a.r.mul(0.5).add(0.5); mat.name = 'ground-cover';
     for (const [kind, K] of Object.entries(COVER_KINDS) as [CoverKind, typeof COVER_KINDS[CoverKind]][]) K.ids.forEach((id, v) => {
       const p = kit.pieces.find(q => q.id === id); if (!p) return;

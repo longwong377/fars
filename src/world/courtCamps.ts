@@ -14,6 +14,11 @@ import { CAMP_BY_ID, TENT_KINDS, type Tent, type TentKind } from '../people/camp
 import type { Physics } from '../player/physics';
 import { tentForm, RIG, type V3 } from './tentForms';
 import { tentModel, withBakedMap } from '../render/decorAssets';
+import { registerTentInteriors } from './interiors/tents';
+import { beforeDoor } from '../people/camps';
+import { model, modelParts, aoFactor } from '../render/scanProps';
+import { propMaterial } from '../render/materials';
+import { CLOTHS } from './fillPlan';
 
 /** tent cloth for the shared surface model (weather wetting, relief): undyed wool, linen or goat hair; colour per tent
  *  from the vertex colours (C) */
@@ -111,14 +116,17 @@ type Lvl = { mesh: THREE.InstancedMesh; tris: number; of: number[] /* instance �
  *  from the hour its household reaches the camp until the leave day (D-252); colliders near the player for the tents standing */
 export class CourtCampTents {
   readonly group = new THREE.Group();
-  readonly info = { tents: 0, tris: 0, meshes: 0, colliders: 0, liveColliders: 0, buildMs: 0, standing: 0, modelled: [] as string[], byLevel: [0, 0, 0] };
+  readonly info = { tents: 0, tris: 0, meshes: 0, colliders: 0, liveColliders: 0, buildMs: 0, standing: 0, modelled: [] as string[], byLevel: [0, 0, 0], dressing: 0 };
+  /** D-570: the things before the standing tents */
+  dressing: CampDressing | null = null;
   private cols: { c: [number, number]; r: number; boxes: Col[]; live: any[] | null; from: number; to: number; on: boolean; n: number }[] = [];
   private tNow = NaN;
   private tents: Tent[]; private M: THREE.Matrix4[] = []; private colour: THREE.Color[] = []; private group_of: number[] = []; private level: Uint8Array;
   private kinds = new Map<TentKind, { idx: number[]; levels: (Lvl | null)[]; rigs: (Lvl | null)[]; clothK: THREE.Color }>();
   private eye: [number, number] | null = null; private dirty = true;
-  constructor(tents: Tent[], groundAt: (e: number, n: number) => number, private phys: Physics | null = null) {
-    const t0 = performance.now(); Object.assign(SURFACES, TENT_SURFACES); this.tents = tents; this.level = new Uint8Array(tents.length).fill(2);
+  constructor(tents: Tent[], private ground: (e: number, n: number) => number, private phys: Physics | null = null) {
+    const groundAt = ground; const t0 = performance.now(); Object.assign(SURFACES, TENT_SURFACES); this.tents = tents; this.level = new Uint8Array(tents.length).fill(2);
+    registerTentInteriors(tents, ground, ti => this.cols[this.group_of[ti]]?.on ?? false); // s17 C7 (D-610): the inside of the standing tents (interiors/tents.ts)
     this.group.name = 'court-camps'; this.group.userData = { tier: 'C', src: 'RECON;HDT', note: 'the court’s camps (court setting only, D-199): tents in lines (camps.ts), all C; Q-333' };
     // each tent's placement: on the ground's plane under its four corners (the frame tilts with a slope of ≤ 5 %), its colour
     for (const t of tents) {
@@ -198,12 +206,79 @@ export class CourtCampTents {
    *  hour of the year (D-252); the levels by the player's distance (re-assigned when the player has moved 1.5 m) */
   update(x: number, z: number, budget = 400, t?: number) {
     if (t !== undefined) this.setTime(t);
-    const e = x, n = -z;
+    const e = x, n = -z, pitched = this.dirty;
     if (!this.eye || Math.hypot(this.eye[0] - e, this.eye[1] - n) > 1.5 || this.dirty) { this.eye = [e, n]; this.assign(); }
+    // D-570: the things before the standing tents (built once the props are in: scanProps loads them before the world's builders)
+    if (!this.dressing && model('mat')) { this.dressing = new CampDressing(this.tents, this.ground, ti => this.cols[this.group_of[ti]]?.on ?? false); this.group.add(this.dressing.group); this.info.dressing = this.dressing.items.length; }
+    this.dressing?.update(e, n, pitched);
     if (!this.phys) return;
     for (const c of this.cols) { if (!c.on) continue; const d = Math.hypot(c.c[0] - e, c.c[1] - n) - c.r;
       if (d < 150 && (!c.live || c.live.length < c.boxes.length) && budget > 0) { c.live ??= [];
         while (c.live.length < c.boxes.length && budget-- > 0) { const q = c.boxes[c.live.length]; c.live.push(this.phys.addBox({ x: q.x, y: q.y, z: q.z }, { x: q.hx, y: q.hy, z: q.hz }, q.rot)); this.info.liveColliders++; } }
       else if (d > 250 && c.live) { for (const k of c.live) this.phys.world.removeCollider(k, false); this.info.liveColliders -= c.live.length; c.live = null; } }
+  }
+}
+
+// ------------------------------------------------------------------------------------------------ the camps lived in (D-570)
+// What stands before a pitched tent while its household lives in it (all C, D-570: nothing of a court camp at Persepolis is
+// known, Q-333; the herders' and soldiers' camps of the region by analogy): a mat or a carpet before the door, the bedding rolled
+// and aired, a water jar, the baggage (sacks, bales, a chest before a pavilion), and at every third tent a cooking hearth with
+// its pot and the fuel by it; at the black tents the milk pot and fodder. The project's modelled props (tools/blender/
+// model_props.py, fill_props.py; ASSET_LEDGER.md), placed by rule per tent and shown only while that tent stands (D-252).
+/** what each part is made of (fill.ts's table, the parts these props use): [material kind, default sRGB colour] */
+const DRESS_PART: Record<string, [string, RGB]> = {
+  wood: ['wood', [0.47, 0.37, 0.27]], wood_d: ['wood', [0.38, 0.3, 0.22]], mud: ['mud', [0.6, 0.48, 0.36]], dung: ['mud', [0.36, 0.3, 0.22]], stone: ['stone', [0.74, 0.7, 0.62]],
+  cloth: ['textile', [0.72, 0.64, 0.5]], cord: ['textile', [0.58, 0.5, 0.36]], textile: ['textile', [0.7, 0.6, 0.46]], textile_a: ['textile', [0.78, 0.7, 0.56]], textile_b: ['textile', [0.55, 0.22, 0.16]],
+  cloth_a: ['textile', [0.82, 0.78, 0.68]], cloth_b: ['textile', [0.6, 0.3, 0.2]], linen: ['textile', [0.84, 0.8, 0.7]], red: ['textile', [0.56, 0.2, 0.15]],
+  wicker: ['wicker', [0.64, 0.54, 0.36]], grain: ['mud', [0.78, 0.66, 0.42]], reed: ['reed', [0.72, 0.62, 0.42]], matting: ['reed', [0.72, 0.62, 0.42]], clay: ['clay', [0.66, 0.46, 0.32]],
+};
+const TEXTILE = /^(cloth|textile|linen|red)/;
+export interface CampItem { m: string; e: number; n: number; rot: number; s: number; tent: number; cloth: RGB }
+/** the things before each tent (tent index into `tents`), by its kind; pure in the tent */
+export function campItems(tents: Tent[]): CampItem[] {
+  const out: CampItem[] = [];
+  tents.forEach((t, ti) => { const a = (t.heading * Math.PI) / 180, j = (k: number) => jit(t.i * 7 + k, 31), cl = (k: number) => CLOTHS[Math.floor(j(k) * CLOTHS.length)];
+    const add = (m: string, out_: number, across: number, rot = 0, s = 1, k = 0) => { const [e, n] = beforeDoor(t, out_, across); out.push({ m, e, n, rot: a + rot, s: s * (0.9 + 0.2 * j(40 + k)), tent: ti, cloth: cl(k) }); };
+    const side = j(1) < 0.5 ? 1 : -1, hw = t.w / 2;
+    if (t.kind === 'pavilion') { add('carpet', 1.4, 0, 0, 1, 1); add('chest', 0.5, side * (hw - 0.6), 0.2, 1, 2); add('jar_store', 0.6, -side * (hw - 0.4), 0, 1, 3); add('stool', 2.6, side * 0.9, j(4) * 6, 1, 4); if (j(5) < 0.6) add('rug_folded', 0.7, side * (hw - 1.6), 0.1, 1, 5); }
+    else if (t.kind === 'black') { add('mat', 1.0, 0, 0, 1, 1); add('roll', 0.5, side * (hw - 0.8), Math.PI / 2, 1, 2); add('milkpot', 0.6, -side * (hw - 0.6), 0, 1, 3); add('bale', -0.4, side * (hw + 0.7), 0.3, 1, 4); add('jar_water', 0.8, -side * (hw - 1.4), 0, 1, 6); if (j(7) < 0.5) add('wo_fodder', 2.4, side * (hw + 0.4), j(8) * 6, 1, 7); }
+    else { add('mat', 0.9, 0, 0, 0.9, 1); add('roll', 0.45, side * 1.4, Math.PI / 2, 1, 2); if (j(3) < 0.55) add('roll', 0.45, side * 1.9, Math.PI / 2 + 0.1, 1, 3); add('jar_water', 0.6, -side * 1.7, 0, 1, 4); add('sack', -1.2, side * (hw + 0.5), 0.2, 1, 5); if (j(6) < 0.5) add('bale', -2.4, side * (hw + 0.5), 0, 1, 6); }
+    if (t.kind !== 'pavilion' && t.i % 3 === 0) { add('hearth', 3.4, -side * 0.6, 0, 1, 8); add('cookpot', 3.4, -side * 0.6, j(9) * 6, 1, 9); add('fill_bundle', 3.6, -side * 2.0, j(10) * 6, 1, 10); }
+  });
+  return out;
+}
+/** the levels by the eye's distance (m) and how far the things are drawn */
+export const DRESS_R = { lod0: 8, lod1: 25, far: 60, move: 3 } as const;
+/** the camps' things drawn round the eye (one InstancedMesh per model, part and level), only before the standing tents */
+export class CampDressing {
+  readonly group = new THREE.Group(); readonly items: CampItem[]; readonly missing: string[] = []; drawn = 0;
+  private y: Float32Array; private grid = new Map<string, number[]>(); private slots = new Map<string, { mesh: THREE.InstancedMesh; part: string; col: THREE.Color }[][]>();
+  private eye: [number, number] = [1e9, 1e9]; private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private up = new THREE.Vector3(0, 1, 0); private p = new THREE.Vector3(); private sc = new THREE.Vector3(); private c = new THREE.Color();
+  constructor(tents: Tent[], ground: (e: number, n: number) => number, private standing: (tent: number) => boolean) {
+    this.group.name = 'court-camps:dressing'; this.items = campItems(tents); this.y = new Float32Array(this.items.length);
+    const count = new Map<string, number>();
+    this.items.forEach((it, i) => { this.y[i] = ground(it.e, it.n); count.set(it.m, (count.get(it.m) ?? 0) + 1); const k = `${Math.floor(it.e / 32)},${Math.floor(it.n / 32)}`; (this.grid.get(k) ?? this.grid.set(k, []).get(k)!).push(i); });
+    for (const [m, n] of count) { if (!model(m)) { this.missing.push(m); continue; } const cap = Math.min(n, 600), levels: { mesh: THREE.InstancedMesh; part: string; col: THREE.Color }[][] = [];
+      for (let l = 0; l < 3; l++) { const parts = modelParts(m, l); const L: { mesh: THREE.InstancedMesh; part: string; col: THREE.Color }[] = []; if (!parts) { levels.push(L); continue; }
+        for (const [part, g0] of Object.entries(parts)) { const def = DRESS_PART[part] ?? ['clay', [0.6, 0.5, 0.4]], g = new THREE.BufferGeometry(), N = g0.getAttribute('position').count, col = new Float32Array(N * 3);
+          for (let i = 0; i < N; i++) col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = aoFactor(g0, i);
+          g.setAttribute('position', g0.getAttribute('position')); if (!g0.getAttribute('normal')) g0.computeVertexNormals(); g.setAttribute('normal', g0.getAttribute('normal')); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); if (g0.index) g.setIndex(g0.index); g.computeBoundingSphere();
+          const mesh = new THREE.InstancedMesh(g, propMaterial(def[0], { vertexColors: true }), cap); mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false; mesh.receiveShadow = true; mesh.castShadow = l < 2 && /carpet|chest|jar_store|bale|hearth/.test(m);
+          mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); mesh.name = `court-camps:${m}:${part}:lod${l}`;
+          mesh.userData = { tier: 'C', src: 'RECON', note: `${m} (${part}) before a court tent (D-570): placed by rule per tent while it stands, modelled (tools/blender/model_props.py)` };
+          this.group.add(mesh); L.push({ mesh, part, col: new THREE.Color().setRGB(...def[1], THREE.SRGBColorSpace) }); }
+        levels.push(L); }
+      this.slots.set(m, levels); }
+  }
+  /** rebuild the instances round the eye (grid e, n) when it has moved DRESS_R.move m or `force` (a tent pitched or struck) */
+  update(e: number, n: number, force = false) {
+    if (!force && Math.hypot(e - this.eye[0], n - this.eye[1]) < DRESS_R.move) return; this.eye = [e, n];
+    const cnt = new Map<THREE.InstancedMesh, number>(); this.drawn = 0; const R = DRESS_R.far, c0 = Math.floor((e - R) / 32), c1 = Math.floor((e + R) / 32), r0 = Math.floor((n - R) / 32), r1 = Math.floor((n + R) / 32);
+    for (let ci = c0; ci <= c1; ci++) for (let ri = r0; ri <= r1; ri++) for (const i of this.grid.get(`${ci},${ri}`) ?? []) { const it = this.items[i], d = Math.hypot(it.e - e, it.n - n);
+      if (d > R || !Number.isFinite(this.y[i]) || !this.standing(it.tent)) continue; const lv = d < DRESS_R.lod0 ? 0 : d < DRESS_R.lod1 ? 1 : 2, L = this.slots.get(it.m)?.[lv]; if (!L?.length) continue;
+      this.q.setFromAxisAngle(this.up, Math.PI - it.rot); this.m4.compose(this.p.set(it.e, this.y[i], -it.n), this.q, this.sc.set(it.s, it.s, it.s)); this.drawn++;
+      for (const S of L) { const k = cnt.get(S.mesh) ?? 0; if (k >= S.mesh.instanceMatrix.count) continue; S.mesh.setMatrixAt(k, this.m4);
+        if (TEXTILE.test(S.part)) this.c.setRGB(...lin(it.cloth)).multiplyScalar(1); else this.c.copy(S.col); S.mesh.setColorAt(k, this.c); cnt.set(S.mesh, k + 1); } }
+    for (const [, levels] of this.slots) for (const L of levels) for (const S of L) { const k = cnt.get(S.mesh) ?? 0; S.mesh.count = k; S.mesh.visible = k > 0; if (k) { S.mesh.instanceMatrix.needsUpdate = true; S.mesh.instanceColor!.needsUpdate = true; } }
   }
 }

@@ -65,7 +65,7 @@ const SEAT_POINTS: [number, number, number, number][] = [
 export const PLANTED = new Set(['idle', 'inspect', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'talk', 'chisel', 'draw_water',
   ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].ground === 'feet')]);
 /** relaxed resting curl per finger joint (rad) and a full grip (C: hand-set to look natural) */
-const REST = [0.18, 0.22, 0.14], GRIP = [1.25, 1.45, 0.9], THUMB_REST = [0.08, 0.12, 0.1], THUMB_GRIP = [0.35, 0.55, 0.5];
+const REST = [0.34, 0.46, 0.3], GRIP = [1.25, 1.45, 0.9], THUMB_REST = [0.14, 0.2, 0.16], THUMB_GRIP = [0.35, 0.55, 0.5];
 /** lids: upper lid travel to close (rad), lower lid; eye rotation limits */
 export const LID_CLOSE = 0.42, LID_LOWER = 0.12, EYE_YAW_MAX = 0.55, EYE_PITCH_MAX = 0.35;
 

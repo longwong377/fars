@@ -24,11 +24,22 @@ import { TreeKit, treeInst, speciesSize, type TreeInst } from '../trees/render';
 import { NV } from '../trees/impostor';
 import { VARIANTS, rowOf, allModels } from '../trees/model';
 import { speciesIndex, SPECIES } from '../trees/species';
+import { twinFree, sameLook, resolveCell } from './variety';
+import { vergeZone } from './verge';
 
 /** a tree of the plain: grid position, species (trees.json id), height and crown width (m), seed */
 export interface Tree { x: number; y: number; sp: string; h: number; w: number; seed: number }
 
 // ---------------------------------------------------------------- placement
+/** s17 (D-560): no two trees of one model within 20 m at the same size, proportions and turn (variety.ts): a twin's seed is
+ *  re-hashed (its variant, turn and tint follow from the seed: trees/render.ts treeInst) */
+const LOOK = new WeakMap<Tree, { row: number; s: number; asp: number; yaw: number }>();
+const look = (t: Tree) => { let l = LOOK.get(t); if (!l) { const r = treeInst(t.sp, 0, 0, 0, t.h, t.w, t.seed); LOOK.set(t, l = { row: r.row, s: r.sy, asp: r.sxz / r.sy, yaw: r.yaw }); } return l; };
+export const treeTwin = (a: Tree, b: Tree) => { const A = look(a), B = look(b); return A.row === B.row && sameLook(A, B); };
+export function treesTwinFree(list: Tree[], fixed: Tree[] = []): Tree[] {
+  const P = (t: Tree) => ({ ...t, e: t.x, n: t.y });
+  return twinFree(list.map(P), treeTwin, (t, k) => ({ ...t, seed: hash2(t.seed >>> 0, k + 1, 97) & 0x3fffffff }), 20, fixed.map(P)).map(({ e, n, ...t }) => { void e; void n; return t; });
+}
 export function riparianTrees(rivers: RiverProfile[], seed = 1): Tree[] {
   const out: Tree[] = []; const rng = new Rng(seed, 'plain-riparian');
   for (const r of rivers) {
@@ -48,7 +59,7 @@ export function riparianTrees(rivers: RiverProfile[], seed = 1): Tree[] {
       }
     }
   }
-  return out;
+  return treesTwinFree(out);
 }
 export function canalTrees(canals: Canal[], seed = 1): Tree[] {
   const out: Tree[] = []; const rng = new Rng(seed, 'plain-canal-trees');
@@ -63,7 +74,7 @@ export function canalTrees(canals: Canal[], seed = 1): Tree[] {
       out.push({ x, y, sp, h, w, seed: rng.int(0, 1 << 30) });
     }
   }
-  return out;
+  return treesTwinFree(out);
 }
 /** orchard species of a plot (orchards_gardens + crops.fruit_trees: fig, apple, pear, mulberry, pomegranate; shares C) */
 const ORCHARD: [string, number][] = [['fig', 0.22], ['apple', 0.2], ['pear', 0.18], ['mulberry', 0.13], ['pomegranate', 0.27]];
@@ -71,6 +82,25 @@ export function orchardSpecies(plotHash: number) { let u = unit(hash2(plotHash, 
 export const ORCHARD_SPACING = () => feature('orchards_gardens').rule.tree_spacing_m as number;
 /** orchard trees of one plot on a 7 m grid in the plot's strip frame (orchards_gardens rule), as the terrain shader sees the plot */
 export function orchardPlotTrees(zm: ZoneMap, seedX: number, seedZ: number): Tree[] {
+  // s17 (D-560): twins are turned against this plot's own earlier trees and the raw trees of the neighbouring orchard plots
+  // with a lower hash (found on the same grid, 21 m beyond the plot), so a row across a plot boundary holds no copies either
+  const own = orchardPlotTreesRaw(zm, seedX, seedZ); if (!own.length) return own;
+  const p = plotAt(seedX, seedZ), sp = ORCHARD_SPACING(), ca = Math.cos(p.angle), sa = Math.sin(p.angle), near = new Map<number, [number, number]>();
+  const nu = Math.ceil((p.w * 1.6 + 21) / sp), nv = Math.ceil((p.l * 1.6 + 21) / sp);
+  for (let i = -nu; i <= nu; i++) for (let j = -nv; j <= nv; j++) { const u = i * sp, v = j * sp, x = seedX + u * ca - v * sa, z = seedZ + u * sa + v * ca, q = plotAt(x, z);
+    if (q.h >= p.h || near.has(q.h) || !own.some(t => Math.hypot(t.x - x, -t.y - z) < 21)) continue; near.set(q.h, plotAnchor(q.seed[0], q.seed[1], q.h, [x, z])); }
+  const fixed: Tree[] = []; for (const [, s0] of near) fixed.push(...treesTwinFree(orchardPlotTreesRaw(zm, s0[0], s0[1]))); // (as that plot turned its own: nearly always as drawn)
+  return treesTwinFree(own, fixed);
+}
+/** a plot's anchor (world x, z): its seed when the seed lies in the plot, else the first point of a 2 m spiral out from the
+ *  seed that does. s17 (D-560): an anisotropic Voronoi seed can lie in its neighbour; the plot's orchard was then the
+ *  neighbour's trees again on a second grid (overlapping trunks, every one a copy), and its own ground stood empty */
+export function plotAnchor(seedX: number, seedZ: number, h: number, inside?: [number, number]): [number, number] {
+  if (plotAt(seedX, seedZ).h === h) return [seedX, seedZ];
+  for (let r = 2; r <= 160; r += 2) for (let k = 0, n = Math.ceil(2 * Math.PI * r / 2); k < n; k++) { const a = (k / n) * 2 * Math.PI, x = seedX + Math.cos(a) * r, z = seedZ + Math.sin(a) * r; if (plotAt(x, z).h === h) return [x, z]; }
+  return inside ?? [seedX, seedZ]; // (a plot drawn far from its seed: the point it was found at)
+}
+function orchardPlotTreesRaw(zm: ZoneMap, seedX: number, seedZ: number): Tree[] {
   const pu = landUseAt(zm, seedX, seedZ); if (pu.row !== 'orchard_floor') return [];
   const p = pu.plot, sp = ORCHARD_SPACING();
   const ca = Math.cos(p.angle), sa = Math.sin(p.angle), out: Tree[] = [];
@@ -93,7 +123,7 @@ export function orchardPlots(zm: ZoneMap, villages: Village[]): { sx: number; sz
     const d = Math.hypot(dx, dy); if (d < v.r || d > v.r + ring) continue;
     const x = v.x + dx, z = -(v.y + dy), pu = landUseAt(zm, x, z);
     if (pu.row !== 'orchard_floor' || seen.has(pu.plot.h)) continue;
-    seen.add(pu.plot.h); out.push({ sx: pu.plot.seed[0], sz: pu.plot.seed[1], angle: pu.plot.angle, w: pu.plot.w, l: pu.plot.l, h: pu.plot.h });
+    seen.add(pu.plot.h); const [ax, az] = plotAnchor(pu.plot.seed[0], pu.plot.seed[1], pu.plot.h, [x, z]); out.push({ sx: ax, sz: az, angle: pu.plot.angle, w: pu.plot.w, l: pu.plot.l, h: pu.plot.h });
   }
   return out;
 }
@@ -112,6 +142,29 @@ export function woodlandTrees(zm: ZoneMap, cx: number, cz: number, R: number): T
     const hu = unit(hash2(a, b, 56)), sz = speciesSize(sp, hu, 0.5);
     out.push({ x, y: -z, sp, h: sz.h, w: sp === 'oak' ? 2 * r : sz.w, seed: hash2(a, b, 57) & 0x3fffffff });
   }
+  return out;
+}
+/** s17 (D-560): the lone trees of the fields: on the bunds between the plots (a point of a 40 m jittered cell, kept on a quarter of the cells
+ *  where it falls within 2.5 m of a plot's edge), by the irrigated plots mulberry, poplar, willow and
+ *  plane, by the rain-fed almond, wild pistachio and tamarisk (C: the trees a farmer leaves or plants on a field's edge for
+ *  fodder leaves, fruit, shade and timber); none on the roads and tracks (verge.ts). About 35 a square kilometre of fields,
+ *  evaluated round the camera like the woodland (index.ts: the near set and the mid ring); copies turned (variety.ts) */
+export const FIELD_TREE = { cell: 40, edge: 2.5, keep: 0.26 } as const;
+function fieldTreeCell(zm: ZoneMap, i: number, j: number): (Tree & { e: number; n: number })[] {
+  const C = FIELD_TREE.cell, a = cellU(i), b = cellU(j), x = (i + 0.1 + 0.8 * unit(hash2(a, b, 61))) * C, z = (j + 0.1 + 0.8 * unit(hash2(a, b, 62))) * C;
+  if (unit(hash2(a, b, 63)) > FIELD_TREE.keep) return [];
+  const u = landUseAt(zm, x, z); if ((u.use !== 'irrigated' && u.use !== 'rainfed') || u.plot.edge > FIELD_TREE.edge) return [];
+  if (vergeZone(x, -z)) return [];
+  const su = unit(hash2(a, b, 64)), sp = u.use === 'irrigated' ? (su < 0.4 ? 'mulberry' : su < 0.65 ? 'poplar' : su < 0.82 ? 'willow' : 'plane') : (su < 0.45 ? 'almond' : su < 0.8 ? 'pistachio' : 'tamarisk');
+  const { h, w } = speciesSize(sp, unit(hash2(a, b, 65)) * (sp === 'plane' ? 0.6 : 1), unit(hash2(a, b, 66)));
+  return [{ x, y: -z, sp, h, w, seed: hash2(a, b, 67) & 0x3fffffff, e: x, n: -z }];
+}
+/** the field-edge trees in a square around (x, z) (world) within R */
+export function fieldTrees(zm: ZoneMap, cx: number, cz: number, R: number): Tree[] {
+  const C = FIELD_TREE.cell, out: Tree[] = [], raw = (i: number, j: number) => fieldTreeCell(zm, i, j);
+  for (let i = Math.floor((cx - R) / C); i <= Math.floor((cx + R) / C); i++) for (let j = Math.floor((cz - R) / C); j <= Math.floor((cz + R) / C); j++) {
+    for (const t of resolveCell(i, j, C, raw, treeTwin, (t, k) => ({ ...t, seed: hash2(t.seed >>> 0, k + 1, 97) & 0x3fffffff }))) {
+      if (Math.hypot(t.x - cx, -t.y - cz) > R) continue; const { e, n, ...tr } = t; void e; void n; out.push(tr); } }
   return out;
 }
 /** Per-instance transform done in the vertex shader (used by the near crop tufts, crops.ts): instanced attributes ipos
