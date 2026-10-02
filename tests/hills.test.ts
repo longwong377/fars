@@ -8,7 +8,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import * as THREE from 'three/webgpu';
 import { loadTerrain } from './plainLib';
 import { ledgeRuns, stripGeometry, Ledges, LEDGES, LEDGE_FORM, LEDGE_FADE, reliefShare, farSink, type LedgeRun } from '../src/world/hills/ledges';
-import { stratY, cliffPkg, bedrockTile, Bedrock, BEDROCK, sinkShare, sinkDepth, reachOf, type BedrockEnv } from '../src/world/hills/bedrock';
+import { stratY, cliffPkg, bedrockTile, Bedrock, BEDROCK, sinkShare, sinkDepth, reachOf, lodDistances, ROCK_LOD_GAP, LOD_PX, type BedrockEnv } from '../src/world/hills/bedrock';
 import { HILL } from '../src/world/plain/terrainPlain';
 import { TERRACE_BOX } from '../src/world/plain/townGround';
 
@@ -76,7 +76,7 @@ describe('the ground rock (hills/bedrock.ts)', () => {
     const flat = tilesOf(-900, -500, 0, 400).flatMap(([ti, tj]) => bedrockTile(env, ti, tj, 1, sizes)); expect(flat.length).toBe(0); // the plain W of the Terrace
   }, 120_000);
   it('within its budget at the mountain views (<= 0.25 M triangles at the sets\' own levels)', () => {
-    const kit: any = { ledge: [], ground: sizes.ground.map((s, i) => ({ id: 'g' + i, cls: 'ground', size: s, lods: [3000, 600, 80].map(n => { const g = new THREE.BufferGeometry(); g.setIndex(new Array(n * 3).fill(0)); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3)); return g; }) })),
+    const kit: any = { ledge: [], ground: sizes.ground.map((s, i) => ({ id: ['outcrop05', 'slab02', 'talus03', 'scree04'][i] ?? 'g' + i, cls: 'ground', size: s, lods: [3000, 600, 80].map(n => { const g = new THREE.BufferGeometry(); g.setIndex(new Array(n * 3).fill(0)); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(9), 3)); return g; }) })),
       atlas: { ground: { map: new THREE.Texture(), normal: new THREE.Texture(), arm: new THREE.Texture(), mean: [0.2, 0.2, 0.2] } } };
     const B = new Bedrock(env, 1, kit);
     for (const [e, no, az] of [[420, 150, 80], [600, -700, 60], [-166.6, 108.9, 117]]) { const yaw = -((az - 341) * Math.PI) / 180;
@@ -120,6 +120,9 @@ describe('D-600: the hills\' rock and ledges change with distance by fades the s
       expect(sinkShare(R, R)).toBe(1); }
     const st = { cls: 'ground' as const, v: 0, kind: 'outcrop', p: [0, 0, 0] as [number, number, number], q: [0, 0, 0, 1] as [number, number, number, number], s: [1.5, 1.5, 1.5] as [number, number, number], c: [1, 1, 1] as [number, number, number] };
     expect(sinkDepth(st)).toBeGreaterThan(1.53 * 1.5); // talus03's 1.53 m height at its scale
+    // the level switches: at the switch distance the two levels' gap spans no more than LOD_PX at the player's lens
+    for (const [id, g] of Object.entries(ROCK_LOD_GAP)) for (const sc of [0.4, 1, 1.6]) { const [d0, d1] = lodDistances(id, sc);
+      expect((g[0] * sc / d0) * BEDROCK.pxRad).toBeLessThanOrEqual(LOD_PX + 1e-9); expect((g[1] * sc / d1) * BEDROCK.pxRad).toBeLessThanOrEqual(LOD_PX + 1e-9); expect(d1).toBeGreaterThan(d0); }
   });
 });
 
