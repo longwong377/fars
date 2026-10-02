@@ -14,15 +14,16 @@ import type { Physics } from '../../player/physics';
 import type { Quality } from '../../core/settings';
 import { loadRivers, RiversData, feature, tag, settlementRoads } from './data';
 import { buildCanals, Canal } from './canals';
-import { placeVillages, villageCompounds, Village } from './villages';
+import { placeVillages, villageCompounds, threshingFloor, Village } from './villages';
+import { FieldFill } from './fieldFill';
 import { VillageHouses } from './villagehouses';
 import type { FireSystem } from '../fire';
-import { buildZones, ZoneMap, ZONE } from './fields';
+import { buildZones, ZoneMap, ZONE, landUseAt } from './fields';
 import { cachedSync } from '../cache/worldCache';
 import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
 import { canalBanks, trackLines, tracksMesh } from './ribbons';
-import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, orchardRows, instOf, Tree, TREE_TAG } from './trees';
+import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, fieldTrees, orchardRows, instOf, Tree, TREE_TAG } from './trees';
 import { TRIS } from '../trees/model';
 import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, widenedFrustum, shadowSunDir, treeViewClass, VIEW_CULL, type TreeInst } from '../trees/render';
 import { nearCrops } from './crops';
@@ -31,7 +32,8 @@ import { buildQuarries } from './quarries';
 import { buildCrossings, keepOffChannels, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
-import { buildTownGround } from './townGround';
+import { buildTownGround, desireLines } from './townGround';
+import { setVergePaths } from './verge';
 import { bakeTerrainDetail } from '../../terrain/terrainDetail';
 import type { TownPlan } from '../settlement/plan';
 
@@ -95,10 +97,17 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const margins = riparianMargins(rv.profiles, canals, terrain, opts.quality, floodDepth); group.add(margins.mesh);
   const cb = canalBanks(canals, terrain); group.add(cb);
   const tLines = keepOffChannels(trackLines(villages), rivers.rivers); const tr = tracksMesh(tLines, terrain); group.add(tr);
+  // s17 (D-560): the paths' treads and verges for the cover, flora, rocks and crops (verge.ts)
+  setVergePaths([...settlementRoads().map(r => ({ pts: r.pts, hw: r.width / 2, kind: 'road' as const })), ...tLines.map(pts => ({ pts, hw: (feature('villages_unlocated').tracks.width_m as number) / 2, kind: 'track' as const })),
+    ...(opts.town ? desireLines(opts.town).map(l => ({ pts: [l.a, l.b] as [number, number][], hw: l.w / 2, kind: 'path' as const })) : [])]);
   if (PLAIN_DRAWS_SETTLEMENT_ROADS) for (const r of settlementRoads()) group.add(tracksMesh([r.pts], terrain, r.width, 'plain-road-' + r.id)); // off by default (D-040)
   // villages
   // D-254: the villages as built (villagehouses.ts: one raster per village shared with the people; the town's house generator)
-  const vb = new VillageHouses(villages, villages.map(v => villageCompounds(v, terrain, opts.seed)), terrain, phys, opts.fire ?? null, opts.seed); group.add(vb.group);
+  const comps = villages.map(v => villageCompounds(v, terrain, opts.seed));
+  const vb = new VillageHouses(villages, comps, terrain, phys, opts.fire ?? null, opts.seed); group.add(vb.group);
+  // s17 (D-560): the farm year near the walker (fieldFill.ts): the harvest's sheaves and stooks, the floors' threshing and straw, ards, folds
+  const fieldFill = new FieldFill(zones, villages.map((v, i) => ({ id: v.id, x: v.x, y: v.y, r: v.r, floor: threshingFloor(v, comps[i], opts.seed) })), (e, n) => terrain.surfaceAt(e, -n),
+    (e, n) => landUseAt(zones, e, -n).use === 'natural' && !villages.some(v => Math.hypot(v.x - e, v.y - n) < v.r + 20)); group.add(fieldFill.group);
   // trees (D-120): one kit (models, leaf atlas, impostor atlas) shared with the town gardens
   const kit = TreeKit.get({ deferBake: true, impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
   const nearC = uniform(new THREE.Vector3(1e9, 0, 1e9)), nearR = uniform(0); // the 3-D set: centre and radius
@@ -149,6 +158,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const q of lineTrees) { const t = q.t; if (Math.abs(t.x - cx) < R && Math.abs(t.y - cy) < R) { const d = Math.hypot(t.x - cx, t.y - cy); if (d < R) list.push({ t, d, where: q.where }); } }
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R + 150) for (const t of treesOfPlot(p)) { const d = Math.hypot(t.x - cx, t.y - cy); if (d < R) list.push({ t, d, where: 'orchard (orchards_gardens)' }); }
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'woodland (woodland rule)' });
+    for (const t of fieldTrees(zones, cam.x, cam.z, R)) list.push({ t, d: Math.hypot(t.x - cx, t.y - cy), where: 'field-edge tree (D-560, C)' });
     list.sort((a, b) => a.d - b.d);
     const cap = MAX_LOD0 + SHADOW_N + Q.maxNear, kept = list.slice(0, cap);
     const a: TreeInst[] = [], b: TreeInst[] = [], c: TreeInst[] = [];
@@ -186,6 +196,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const R = Q.rMid, recs: TreeInst[] = [];
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R) for (const t of treesOfPlot(p)) recs.push(instOf(t, terrain, 'orchard (orchards_gardens)'));
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) recs.push(instOf(t, terrain, 'woodland (woodland rule)'));
+    for (const t of fieldTrees(zones, cam.x, cam.z, R)) recs.push(instOf(t, terrain, 'field-edge tree (D-560, C)'));
     midCount = mid.set(recs); midC.value.set(cam.x, 0, cam.z);
   };
   const syncTrunks = (p: { x: number; y: number; z: number }) => {
@@ -212,7 +223,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     if (Math.hypot(cam.x - lastMid.x, cam.z - lastMid.z) > (Q.rMid - Q.r3) * 0.25) { lastMid = cam.clone(); rebuildMid(cam); }
     if (Math.hypot(cam.x - lastNear.x, cam.z - lastNear.z) > Q.r3 * 0.08) { lastNear = cam.clone(); rebuildNear(cam); }
     cullNear(ctx.camera);
-    crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
+    fieldFill.update([cam.x, -cam.z], doyOf(day)); crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
     // shadow casting only near the camera (the CSM cascades end at 600 m; a far caster would still be drawn into every
     // cascade its bounding sphere touches): village cells, Naqsh-e Rustam and the quarries
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
@@ -225,7 +236,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     void dt;
   };
   const placedTris = () => placed.a.length * TRIS.lod0 + (placed.b.length + placed.c.length) * TRIS.lod1;
-  const stats = () => ({ fords: fords.crossings.length, fordStones: fords.stats.stones, canals: canals.length, villages: villages.length, compounds: vb.info.compounds, villageTris: vb.info.farTris, villageNearTris: vb.nearInfo.tris, villageNearTiles: vb.nearInfo.tiles, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
+  const stats = () => ({ fieldFill: fieldFill.drawn, fords: fords.crossings.length, fordStones: fords.stats.stones, canals: canals.length, villages: villages.length, compounds: vb.info.compounds, villageTris: vb.info.farTris, villageNearTris: vb.nearInfo.tris, villageNearTiles: vb.nearInfo.tiles, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
     nearTrees: placed.a.length + placed.b.length + placed.c.length, lod0Trees: placed.a.length, shadowTrees: placed.a.length + placed.b.length, nearTreeTris: placedTris(), nearR: Math.round(nearR.value),
     nearTreesDrawn: lod0.drawn() + lod1s.drawn() + lod1n.drawn(), shadowTreesDrawn: lod0.count() + lod1s.count(),
     midTrees: midCount, orchardRows: orch.userData.rows, treeKitMs: Math.round(kit.buildMs), treeBakeMs: Math.round(kit.bakeMs), treeBakes: kit.bakes,
@@ -237,6 +248,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const q of lineTrees) add(q.t);
     for (const p of plots) if (Math.hypot(p.sx - e, p.sz + n) < R + 150) for (const t of treesOfPlot(p)) add(t);
     for (const t of woodlandTrees(zones, e, -n, R)) add(t);
+    for (const t of fieldTrees(zones, e, -n, R)) add(t);
     return out;
   };
   return { group, data: { rivers, canals, villages, zones, fords: fords.detail }, update, villageHouses: vb, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),

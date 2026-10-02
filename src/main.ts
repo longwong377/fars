@@ -27,7 +27,8 @@ import { PLACES } from './people/sim';
 import { buildWorld, WorldBuild } from './world/world';
 import { releaseUploadedTextures, releaseStats } from './world/cache/release';
 import { BootProgress } from './shell/progress';
-import { warmBootFiles } from './shell/warm';
+import { prefetchBootFiles } from './core/prefetch';
+import { Intro, TitleDrift, type IntroDeps } from './shell/intro';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -125,7 +126,7 @@ async function boot() {
   prog.step('renderer');
   shell.loading('Loading the plain and the mountain…');
   await swP;
-  void warmBootFiles(BASE).then(() => TRACE(`warm done ${JSON.stringify((globalThis as any).__warm ?? null)}`)); // D-393: the world's files download while the terrain and the scans decode (the build waited ~30 s for them after)
+  void prefetchBootFiles(BASE, SEED).then(s => { (globalThis as any).__warm = s; TRACE(`prefetch done ${JSON.stringify(s)}`); }); // D-580 (was D-393's warming): the world's files download while the terrain and the scans decode
   // s15/ship: the terrain's rings and the physics engine load while the scans decode (each was awaited in turn)
   const terrainP = Terrain.load(BASE), physP = Physics.create();
   await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
@@ -200,6 +201,10 @@ async function boot() {
 
   const notices: string[] = []; // out-of-world save and load notices (T-H3s, T-H3v)
   setSaveProblemHandler(m => { notices.push(m); console.warn('[save]', m); shell.notice(m); });
+  let titleDrift: TitleDrift | null = null;
+  const introDeps = (): IntroDeps => ({ setCam: c => { freeCam = c; }, heightAt: (x, z) => terrain.heightAt(x, z), camera, player: () => ({ ...player.eye, yaw: input.yaw, pitch: input.pitch }),
+    look: (yaw, pitch) => { input.yaw = yaw; input.pitch = pitch; }, paused: () => shell.mode !== 'playing', getTime: () => ({ day: clock.dayIndex, hour: clock.localHour }), setTime: (d, h) => clock.set(d, h), fov: () => settings.fov,
+    rigClear: m => { const pp = (world as any).people; if (pp) pp.crowd.rigClear = m; } });
   Object.assign(hooksImpl, {
     start: () => { shell.playing(); input.lock(); world.audio?.unlock(); },
     resume: () => { shell.playing(); input.lock(); },
@@ -213,6 +218,9 @@ async function boot() {
     getTime: () => ({ day: clock.dayIndex, hour: clock.localHour, label: clock.label() }),
     setTime: (d: number, h: number) => clock.set(d, h),
     getWeather: () => weather.override, setWeather: (w: string) => { weather.override = w as WeatherOverride; },
+    // s17 C5 (D-590): the wordless opening as a new visit begins, and the title's drifting backdrop (src/shell/intro.ts); test worlds skip both, ?nointro the opening
+    intro: () => { if (!TEST && !P.has('nointro')) new Intro(introDeps()).play(); },
+    backdrop: (on: boolean) => { if (TEST) return; titleDrift ??= new TitleDrift(introDeps()); if (on) titleDrift.start(); else titleDrift.stop(); },
   });
   // autosave (audit D M9; T-H3): every AUTOSAVE_MS of real time while the visit is on (playing or paused), and when the page
   // is hidden or closed; frozen test worlds only with ?autosave
@@ -616,7 +624,7 @@ async function boot() {
     onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
-  prog.finish(); api.ready = true;
+  prog.finish(); api.ready = true; (api as any).readyAt = Math.round(performance.now()); // (D-580: the page clock at ready; the harness sees it late when the main thread is busy)
   // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
   if (NORENDER) void startTalk();
   // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)
