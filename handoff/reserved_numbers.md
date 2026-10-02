@@ -132,3 +132,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-580..D-589 | s17 | C4 load keeper (Q-1510..Q-1519, B610..B619) | cloud-s17-c4-load | in flight |
 | D-590..D-599 | s17 | C5 screens and intro (Q-1520..Q-1529, B620..B629) | cloud-s17-c5-screens | in flight |
 | D-600..D-609 | s17 | C6 far land (Q-1530..Q-1539, B630..B639) | cloud-s17-c6-far | in flight |
+| D-610..D-619 | s17 | C7 interiors everywhere (Q-1540..Q-1549, B640..B649) | cloud-s17-c7-interiors | in flight |

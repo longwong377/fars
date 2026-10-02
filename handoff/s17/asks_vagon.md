@@ -6,3 +6,4 @@ C5 | view: -155,70,14,53,5,0,6.72 | intro shot 4 'terrace' (midpoint): the W fac
 C5 | view: 127,56,9.5,146,-16,0,6.92 | intro shot 5 'work' (midpoint): the Hall of 100 Columns' site from 9 m over its N forecourt: the gangs at work at rise+1.3 h
 C5 | view: -213,122.45,9,71,6,0,7.07 | intro shot 6 'walk' (2/3): the approach to the spawn from 9 m, facing the Grand Stair
 C5 | view: -322,90,5,51,5,0,5.22 | the title's drifting backdrop (midpoint): the Terrace W face against the dawn on the right of the frame, the menu's glass on the left
+cloud lead | V6 is now interior LIGHT and fire only; furnishing every room (town, villages, palaces, Treasury, tents) moved to cloud agent C7 (sessions/s17-vagon-v2.md); src/world/furnish_palaces.ts is C7's | so interiors everywhere are covered from now, not after light v1
