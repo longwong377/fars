@@ -93,6 +93,15 @@
     "public/generated/terrain_far.u16"
    ],
    "keyed": "the seed, the fires' kinds and places and the street doors hashed at load"
+  },
+  "reliefshadow": {
+   "version": 1,
+   "entries": [
+    "src/arch/reliefs.ts",
+    "src/arch/relief_shadow.ts",
+    "src/arch/relief_field.ts"
+   ],
+   "keyed": "the shadow items (every relief figure's kind, seed and frame) hashed at load"
   }
  }
 }

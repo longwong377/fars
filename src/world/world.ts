@@ -153,7 +153,7 @@ import { hashArrays, hashString } from './cache/pack';
 import { packGeo, unpackGeo, geoHash, type GeoPack } from './cache/geo';
 import { mudFace } from '../arch/mudface';
 /** D-386: the baked world's units the build takes synchronously (preloaded at its start: src/world/cache/worldCache.ts) */
-const SYNC_UNITS = ['townplan', 'mudface', 'fill', 'crossings', 'grime'];
+const SYNC_UNITS = ['townplan', 'mudface', 'fill', 'crossings', 'grime', 'reliefshadow'];
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */

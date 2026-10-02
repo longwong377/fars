@@ -93,6 +93,7 @@ export async function loadMonuments(base = '/', anisotropy = 8): Promise<ReturnT
       MON.set(id, { id, entry: e, meshes, maps }); LOAD.loaded.push(id);
     } catch (err) { LOAD.failed.push(id); console.warn(`[monuments] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
+  K?.dispose?.(); // D-386: the transcoder's workers and their wasm heaps go once the maps are in (they stayed for the page's life)
   LOAD.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__monuments = { stats: monumentStats };
   return monumentStats();

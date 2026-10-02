@@ -34,6 +34,7 @@ export async function loadModels(base = '/', renderer?: THREE.WebGPURenderer): P
   catch (e) { console.warn(`[models] no manifest (${(e as Error).message}): procedural stand-ins drawn`); return modelStats(); }
   const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
   const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco);
+  let ktx: any = null;
   if (Object.values(man.assets).some(a => a.textures === 'ktx2')) {
     const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
     // the transcoder's target format needs the GPU's compressed formats: from the renderer when given, else (the world loads
@@ -45,7 +46,7 @@ export async function loadModels(base = '/', renderer?: THREE.WebGPURenderer): P
       const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
       gpu = { isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) };
     }
-    k.detectSupport(gpu as any); loader.setKTX2Loader(k); LOAD.ktx2 = { ...(k as any).workerConfig };
+    k.detectSupport(gpu as any); loader.setKTX2Loader(k); LOAD.ktx2 = { ...(k as any).workerConfig }; ktx = k;
   }
   await Promise.all(Object.entries(man.assets).map(async ([id, e]) => {
     try {
@@ -63,7 +64,7 @@ export async function loadModels(base = '/', renderer?: THREE.WebGPURenderer): P
       MODELS.set(id, { id, entry: e, lods, maps }); LOAD.loaded.push(id);
     } catch (err) { LOAD.failed.push(id); console.warn(`[models] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
-  draco.dispose();
+  draco.dispose(); ktx?.dispose(); // (D-386: the KTX2 transcoder's workers too: they stayed for the page's life)
   LOAD.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__models = { stats: modelStats, ab };
   return modelStats();

@@ -12,6 +12,8 @@ import { rasterize, rtinErrors, extractLod, LodMesh, Box, FigureDef } from './re
 import { ATLAS_LODS, ATLAS_INDEX, atlasEntry, atlasUV, type AtlasEntry } from './relief_atlas';
 import { paintedStoneMaterial } from '../render/materials';
 import { planReliefShadow, stampField, type ShadowItem, type ReliefShadowData } from './relief_shadow';
+import { cacheTake, cacheStore } from '../world/cache/worldCache';
+import { hashString } from '../world/cache/pack';
 export { FIGURE_KINDS, PIGMENT, DELEGATIONS } from './relief_figures';
 export type { KindInfo } from './relief_figures';
 
@@ -489,11 +491,16 @@ let shadowData: ReliefShadowData | null = null;
 /** plan the relief shadow atlas for these sets and fill it: fields from the worker pool as they come (the texture is uploaded
  *  as they land), or synchronously (node, no workers). `onChange` is told when the atlas changes (the renderer's texture) */
 export function buildReliefShadow(sets: ReliefSet[], onChange?: (d: ReliefShadowData) => void): ReliefShadowData {
-  const D = planReliefShadow(shadowItems(sets)); shadowData = D;
-  const wp = workers(), t0 = performance.now();
+  // D-386: the whole atlas, every field stamped, from the baked world when the reliefs are unchanged (7 s of rasterising in
+  // node; in the page 3 workers' time after load, the shadows arriving piece by piece). The key: the items, hashed
+  const items = shadowItems(sets), key = hashString(JSON.stringify(items)), hit = cacheTake<ReliefShadowData>('reliefshadow', key);
+  if (hit) { hit.jobs = new Map(); shadowData = hit; onChange?.(hit); return hit; }
+  const D = planReliefShadow(items); shadowData = D;
+  const wp = workers(), t0 = performance.now(); let left = D.jobs.size;
+  const done = () => { if (--left === 0) cacheStore('reliefshadow', key, { ...D, jobs: new Map() }); };
   for (const [k, j] of [...D.jobs]) {
-    if (wp) wp.requestField(k + '|F', j.kind, j.seed, j.n, f => { stampField(D, k, f); onChange?.(D); });
-    else { stampField(D, k, rasterize(defOf(j.kind, j.seed), j.n, true)); }
+    if (wp) wp.requestField(k + '|F', j.kind, j.seed, j.n, f => { stampField(D, k, f); onChange?.(D); done(); });
+    else { stampField(D, k, rasterize(defOf(j.kind, j.seed), j.n, true)); done(); }
   }
   if (!wp) { genStats.ms += performance.now() - t0; onChange?.(D); }
   return D;
