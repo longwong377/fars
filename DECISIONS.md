@@ -9378,3 +9378,16 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - fillPlan.ts: a gap pass (a household thing wherever a lane wall has nothing within 2.4 m: jars, pots, basins, stools, rolled mats, tools leaned on the wall, dung cakes drying, fuel, repair mud and bricks; never the same model within 6 m; lanes kept passable), a litter pass (straw, sherds, twigs, ash dumps, knucklebones in the open middle of wide lanes), door things (tools, stools, the donkey's peg), market goods sold out through the afternoon (fullest in the morning), detwin() (no clone within 15 m). fill.ts: tilt (leaned tools), until, new part materials, the small things at one level only.
 - houseplan.ts: every court >= 3 things, every roof something in every season (drawn after every earlier choice: nothing earlier moves). settlement/tethers.ts: the households' donkeys, goats and sheep tied in the court at night and by the door by day (Animals rig; hooks: 3 lines in world.ts).
 - After: lanes 0.0 % bare (longest 1 m), courts 1447/1447, roofs 1447/1447, clones 0; draws at a lane point 77 mean (+26), triangles 74 k (+33 %). All C (D-207; the region's vernacular lanes).
+
+## D-560 The plain filled near the walker: the roadside, no copies within 20 m, the census (session 17, cloud C2)
+- tools/dev/plain_census.ts measures, per plain area of data/areas.json, the ground within 30 m of every road, village track and
+  town desire line (146 km within 14 km of the Terrace), from the page's own placement code: bare 2 m cells, bare verge runs,
+  repeated instances (same model within 20 m at the same size, proportions, turn and lean) and the fields' state by date.
+- src/world/plain/verge.ts: one path index read by the cover, flora, rocks and crops: the tread worn (no tuft, crop or plant;
+  dung; on the tracks a sward strip between the ruts), the verge (to 3.5 m) the rankest ground (2-4 tufts a 2 m cell standing
+  dry after June, thistles and camelthorn, stones thrown to the edge). Baseline (18 Apr): the longest bare verge 88 m
+  (track_37), young wheat and tufts grew on the village tracks; now no bare verge run over 2 m in any area (C).
+- src/world/plain/variety.ts: a copy of an earlier instance within 20 m is turned (golden-angle steps), deterministically and
+  whatever the viewer's place; plants lean (to ~9 deg) and vary in spread (0.8-1.25), stones in height (0.8-1.15).
+  Repeats 11,000 of 260,000 instances near the paths -> 67. Found and fixed with it: an orchard plot whose Voronoi seed lay
+  in its neighbour drew the neighbour's trees again on a second grid (overlapping trunks) and stood empty itself (plotAnchor).

@@ -31,7 +31,8 @@ import { buildQuarries } from './quarries';
 import { buildCrossings, keepOffChannels, type FordDetailSites } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
-import { buildTownGround } from './townGround';
+import { buildTownGround, desireLines } from './townGround';
+import { setVergePaths } from './verge';
 import { bakeTerrainDetail } from '../../terrain/terrainDetail';
 import type { TownPlan } from '../settlement/plan';
 
@@ -95,6 +96,9 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const margins = riparianMargins(rv.profiles, canals, terrain, opts.quality, floodDepth); group.add(margins.mesh);
   const cb = canalBanks(canals, terrain); group.add(cb);
   const tLines = keepOffChannels(trackLines(villages), rivers.rivers); const tr = tracksMesh(tLines, terrain); group.add(tr);
+  // s17 (D-560): the paths' treads and verges for the cover, flora, rocks and crops (verge.ts)
+  setVergePaths([...settlementRoads().map(r => ({ pts: r.pts, hw: r.width / 2, kind: 'road' as const })), ...tLines.map(pts => ({ pts, hw: (feature('villages_unlocated').tracks.width_m as number) / 2, kind: 'track' as const })),
+    ...(opts.town ? desireLines(opts.town).map(l => ({ pts: [l.a, l.b] as [number, number][], hw: l.w / 2, kind: 'path' as const })) : [])]);
   if (PLAIN_DRAWS_SETTLEMENT_ROADS) for (const r of settlementRoads()) group.add(tracksMesh([r.pts], terrain, r.width, 'plain-road-' + r.id)); // off by default (D-040)
   // villages
   // D-254: the villages as built (villagehouses.ts: one raster per village shared with the people; the town's house generator)

@@ -18,6 +18,7 @@ import { mxNoise2 } from '../../render/mx_noise_cpu';
 import { landUseAt, type ZoneMap } from './fields';
 import { cropState } from './seasonal';
 import { BASE } from '../../core/base';
+import { vergeZone } from './verge';
 
 export type CoverKind = 'tuft' | 'sward' | 'stubble' | 'dung';
 /** reach (m), level distances (m), cell (m), rebuild step (m moved) */
@@ -55,6 +56,21 @@ export function coverCell(env: CoverEnv, ix: number, iz: number, seed: number, d
     const c = col ?? (kind === 'dung' ? COL.dung : mixC(COL.straw, COL.green, Math.min(1, gs * (0.85 + 0.3 * u01(seed, ix, iz, i, 6)))));
     out.push({ kind, v, x, y: y - 0.01, z, yaw: yaw ?? u01(seed, ix, iz, i, 7) * Math.PI * 2, s, c: lin(c, f) });
   };
+  // s17 (D-560, verge.ts): the paths: the tread worn bare but for dung (and the tracks' sward strip between the ruts), the verge
+  // the rankest ground of the plain (dense grasses, standing dry after June), whatever the plot beside it holds
+  const vz = vergeZone(cx, -cz);
+  if (vz) {
+    const K = vz.hit.kind, dungP = K === 'road' ? 0.2 : K === 'track' ? 0.12 : 0.06;
+    const keep = (i: number, want: 'median' | 'verge') => { const x = (ix + u01(seed, ix, iz, i, 1)) * C, z = (iz + u01(seed, ix, iz, i, 2)) * C, q = vergeZone(x, -z);
+      return want === 'verge' ? !q || q.zone === 'verge' : q?.zone === want; };
+    const vgs = Math.min(1, gs * 1.1), vcol = (i: number) => mixC(COL.straw, COL.green, Math.min(1, vgs * (0.8 + 0.35 * u01(seed, ix, iz, i, 6))));
+    if (vz.zone === 'verge') {
+      const n = 2 + (h32(seed, ix, iz, 60) % 3);
+      for (let i = 0; i < n; i++) if (keep(60 + i, 'verge')) put(u01(seed, ix, iz, i, 61) < 0.2 ? 'sward' : 'tuft', 60 + i, 1.05 + 0.35 * u01(seed, ix, iz, i, 62), vcol(60 + i));
+    } else if (vz.zone === 'median') { const n = 1 + (h32(seed, ix, iz, 63) % 2); for (let i = 0; i < n; i++) if (keep(64 + i, 'median')) put('sward', 64 + i, 0.8, vcol(64 + i)); }
+    if (u01(seed, ix, iz, 12) < (vz.zone === 'verge' ? 0.04 : dungP)) put('dung', 40, 1.1);
+    return out;
+  }
   const crop = u.use === 'irrigated' || u.use === 'rainfed';
   const st = crop ? cropState(u.row, doy + u.offsetDays) : null;
   const wild = !crop || u.row === 'fallow';
