@@ -10,6 +10,7 @@ import { surfaceMaterial } from '../../render/materials';
 import { attribute, positionLocal, positionWorld, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, POLE_GAP, seasonOf, type HB } from './houses';
 import { TownDoors } from './towndoors';
+import { RoofWear } from './roofwear';
 import { livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
 import { Batch, RGB, lin } from './geom';
@@ -77,6 +78,8 @@ export class Settlement {
   readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, lamps: 0, trees: 0, buildMs: 0, phases: {} as Record<string, number> };
   /** D-234: each site's houses (far and near levels), the near tiles built (tile → meshes), the street doors */
   readonly houses: SiteHouses[] = [];
+  /** s17 C1 (D-550): the roofs' wear from the simulation (world.ts gives it the sim's roofOf) */
+  readonly roofWear!: RoofWear;
   private clusterOfSite = new Map<string, Cluster>();
   private near = new Map<number, NearTile>();
   /** the near tiles shown, merged into one mesh per material (5 draws, 2 of them casting, whatever the number of tiles) */
@@ -119,6 +122,7 @@ export class Settlement {
       this.cols.push(col); this.buildSite(s, si, cl, () => B(cl, 'stone'), col, H);
     });
     this.doors = new TownDoors(this.houses.flatMap(h => h.doors), phys); this.group.add(this.doors.group);
+    this.roofWear = new RoofWear(this.houses); this.group.add(this.roofWear.group); // s17 C1 (D-550): leaking and fresh roofs from the sim (setSource)
     phase('sites');
     // props (Takht-e Rustam, the Dasht-e Gohar hall)
     const groupBase = new Map<string, number>(); for (const [g, pts] of this.plan.groups) groupBase.set(g, Math.min(...pts.map(p => H(p[0], p[1]))));
@@ -397,7 +401,7 @@ export class Settlement {
     const cp = ctx.camera.position;
     const day = ctx.clock?.dayIndex ?? 0; if (seasonOf(day) !== seasonOf(this.nearDay)) this.resetNear(); this.nearDay = day;
     this.nearUpdate(cp.x, cp.z, 1);
-    this.doors?.update(dt, cp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30, this.nearTile);
+    this.doors?.update(dt, cp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30, this.nearTile); this.roofWear?.update(day, cp);
     for (const m of this.casters) { const bs = m.geometry.boundingSphere!; m.castShadow = bs.center.distanceTo(cp) - bs.radius < SHADOW_RANGE; }
     this.trees.update(ctx.camera, ctx.clock?.dayIndex ?? 0, ctx.cond?.windMs ?? 2); this.wr.update(ctx.camera.position);
     this.haze.update(dt, ctx.camera, ctx.sky?.sunAlt ?? 30, ctx.cond?.windMs ?? 2, ctx.cond?.windDirDeg ?? 0, ctx.clock?.localHour ?? 12, ctx.skyLight);

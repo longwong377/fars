@@ -1,0 +1,30 @@
+// s17 C1 (D-550): the roofs' wear from the simulation (src/world/settlement/roofwear.ts): every town house has a roof spot over
+// its main room; the households' plots map to it; a roof below the leak line draws a dark slumped patch with a drip jar on the
+// floor under it, a freshly plastered one a pale patch; the patch sits on the roof (not in the air, not in the room).
+import { describe, it, expect, beforeAll } from 'vitest';
+import { FireSystem } from '../src/world/fire';
+import { Settlement } from '../src/world/settlement/build';
+import { RoofWear } from '../src/world/settlement/roofwear';
+import { Population } from '../src/people/population';
+import { hashString } from '../src/core/rng';
+import { loadTerrain } from './plainLib';
+
+let town: Settlement;
+beforeAll(() => { town = new Settlement(null, loadTerrain(), new FireSystem(0), 'test'); }, 300_000);
+
+describe('the roofs\' wear', () => {
+  it('a spot on every house, the households mapped, leaking and fresh roofs drawn', () => {
+    const W = town.roofWear, pop = new Population(1), plots = new Set(W.spots.map(s => s.plot));
+    expect(W.spots.length).toBeGreaterThan(1200);
+    const town_hh = pop.households.filter(h => h?.plot && h.zone === 'town'), mapped = town_hh.filter(h => plots.has(h.plot!)).length;
+    console.log(`[roofwear] ${W.spots.length} roofs; ${mapped} of ${town_hh.length} town households on one`);
+    expect(mapped / town_hh.length).toBeGreaterThan(0.8);
+    // a stub of the joint deeds' roofs: a tenth leaking, a fifth fresh
+    W.setSource(RoofWear.source(pop.households, hh => { const u = hashString(hh) / 4294967296; return u < 0.1 ? 0.3 : u < 0.3 ? 0.97 : 0.7; }, () => 10));
+    const c = W.census(); console.log('[roofwear] census', JSON.stringify(c)); expect(c.leaking).toBeGreaterThan(50); expect(c.fresh).toBeGreaterThan(100);
+    const sp = W.spots.find(s => { const hh = pop.households.find(h => h?.plot === s.plot); return hh && hashString(`h:${hh.id}`) / 4294967296 < 0.1; })!;
+    expect(W.update(1, { x: sp.e, z: -sp.n })).toBe(true); expect(W.stats.drawnLeak).toBeGreaterThan(0);
+    expect(sp.y - sp.floor).toBeGreaterThan(2.0); expect(sp.y - sp.floor).toBeLessThan(5.5);
+    expect(W.update(1, { x: sp.e + 1, z: -sp.n })).toBe(false);
+  }, 300_000);
+});
