@@ -37,6 +37,7 @@ await shot('marks', { fn: m => { const L = window.__lab; L.lineup([{ ...m[1], se
 await shot('d03-macro', { fn: m => { const L = window.__lab; L.lineup(m.slice(0, 3), 0.9, true); L.at(4); L.frameFace(0, 0.32, 0.08); }, arg: MIX });
 await shot('d03-macro-w', { fn: m => { const L = window.__lab; L.lineup(m.slice(0, 3), 0.9, true); L.at(4); L.frameFace(1, 0.32, -0.06); }, arg: MIX });
 for (const [k, tt] of [0, 0.18, 0.36, 0.54].entries()) await shot('walkseq' + k, { fn: ([m, tt]) => { const L = window.__lab; L.lineup([{ ...m[0], anim: 'walk' }, { ...m[1], anim: 'walk' }, { ...m[2], anim: 'walk' }], 1.4, false); L.at(3 + tt); L.view(3.2, 1.2, 1.8, 0, 0.9, 0); }, arg: [MIX, tt] });
+await shot('d03-court', { fn: () => { const L = window.__lab; L.lineup([{ dress: 'guard', sex: 'm', role: 'guard', seed: 12, anim: 'guard' }, { dress: 'court_woman', sex: 'f', role: 'court', seed: 60 }, { dress: 'child', sex: 'm', role: 'child', seed: 23 }, { dress: 'envoy_short', sex: 'm', role: 'envoy', seed: 56, delegation: 'scythians' }, { dress: 'woman', sex: 'f', role: 'baker', seed: 22, age: 'elder' }], 1.0, true); L.at(4); L.view(0.3, 1.6, 3.6, 0, 1.0, 0); }, arg: null });
 // 10 m: a group, mixed activities
 await shot('d10', { fn: m => { const L = window.__lab; const A = ['walk', 'idle', 'talk', 'carry_shoulder', 'idle', 'walk', 'talk'];
   L.lineup(m.map((s, i) => ({ ...s, anim: A[i] })), 1.3, false); L.at(7.7); L.view(1.5, 1.62, 10, 0, 1.0, 0); }, arg: MIX });
