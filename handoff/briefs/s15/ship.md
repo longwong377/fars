@@ -34,3 +34,9 @@ every commit; commit every 30-45 min; at the end merge s14-int, test, commit, `m
   actions/upload-pages-artifact + actions/deploy-pages. Every game asset is committed (public/: 1,122 files); the language and
   voice models load from Hugging Face on a public origin. Write and dry-run it (act-free: a local npm ci + build in a clean
   clone); the lead pushes the branch that triggers it after telling the user.
+
+**The user's rule for the URL: act as if this desktop does not exist; it all has to be cloud.** The deployed site is built only
+by GitHub Actions from the repo (a clean checkout, npm ci); nothing produced on this machine is uploaded or required (no local
+world-cache, no local models, no junctions, no T: paths). The world cache is generated inside the Actions build (node) or
+computed live by the page; models come from Hugging Face's CDN. Prove it from a fresh `git clone` into an empty folder, never
+from a working tree here.
