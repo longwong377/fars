@@ -34,8 +34,8 @@ lanes, roofs, courtyards, fields and roadsides are under-dressed.
 - Load the live site (s14-int) with the fixed harness (`node tools/deploy/measure.mjs dist --visits cold --params norender`)
   and once with rendering; walk a lane, talk to three people, try five free deeds. Note what breaks.
 - Baseline render in ONE load (`node tools/dev/render_train.mjs`): the coverage points over every walkable area
-  (tools/dev/coverage_points.ts) + the moments, at the player's lens, morning / late afternoon / overcast. This set is the
-  scoreboard. Rank by screen share what reads as CG or as empty.
+  (tools/dev/coverage_points.ts) + the moments, at the player's lens, morning / late afternoon / overcast, plus a night (moon,
+  hearths and torches), a rain or dust day and a winter day (calendar, src/world/season.ts). This set is the scoreboard. Rank by screen share what reads as CG or as empty.
 
 **Hours 1-9: bulk, many agents at once** (the 16-core box; UD-28: no cap on agents; at most two heavy renders at once through
 gpu_slot). Each agent owns a class, iterates on probe pages (seconds per load), and gets whole-world views only on the train.
@@ -49,7 +49,11 @@ gpu_slot). Each agent owns a class, iterates on probe pages (seconds per load), 
 | plain fill | fields, canals, orchards, villages, threshing floors, camps and roadsides dressed and alive | src/world/plain/**, src/world/trees/** |
 | terrace | stone, capitals, reliefs and colossi off CG; block joints, weathering, paint; the Blender wave placed and judged | src/arch/**, src/render/masonry.ts, monuments.ts, blockface.ts, reliefAtlas.ts |
 | people | bodies, skin, cloth, hair, motion at 2-30 m; crowds read as people; marks and wounds; the new performances (drink, dance, hunt_bow, wrestle, swim, plaster_roof) | src/people/human*.ts, body*.ts, drape.ts, looks.ts, outfits.ts, impostors.ts, popview.ts, anim.ts, activities.ts |
-| interiors | rooms lit by doors and hearths, furnished, lived in | src/arch/rooms.ts, terrace_rooms.ts, src/world/furnish_palaces.ts, fire*.ts |
+| interiors | rooms lit by doors and hearths, furnished, lived in | src/arch/rooms.ts, terrace_rooms.ts, src/world/furnish_palaces.ts |
+| land and water far | the hills and mountains, the skyline, the river Pulvar and the canals (water, banks, reeds), the far distance with no pop-in | src/world/hills/**, src/terrain far levels, water in src/world/plain/canals.ts, riparian.ts, solids.ts |
+| animals and life | herds, flocks, draught oxen, donkeys, horses, dogs, birds, wildlife and small life that look and move right | src/world/fauna.ts, beasts.ts, wildlife.ts, smallLife.ts, lifeModels.ts, src/people/animal*.ts |
+| atmosphere and night | weather that reads: rain shafts, wet ground, dust and dust devils, hearth and land smoke, breath in winter; night lit by moon, hearths, lamps and torches; the seasons (winter, harvest) | src/world/weatherVfx.ts, rainShafts.ts, dust*.ts, *Smoke.ts, breath.ts, fire.ts, fireOcc.ts, firePlaces.ts, season.ts, src/weather/** |
+| works and camps | the Hall of a Hundred Columns' building site (gangs, scaffolds, stone, ramps), the court's camps and tents, visitors, the roads' traffic and caravans | src/world/construction.ts, courtCamps.ts, tentForms.ts, visitor/**, traffic.ts, terraceFoot.ts |
 
 Assets: scan libraries and asset packs first (Poly Haven, ambientCG, Sketchfab CC0/CC-BY; every asset in ASSET_LEDGER.md),
 compressed as they land (KTX2, Draco, LODs, impostors). Blender (tools/blender/) only to fill what no library has, fast; the
@@ -62,8 +66,8 @@ and the art direction, re-points agents at whatever still reads worst, merges (r
 before/after frames and what still breaks first.
 
 ## Done (tonight)
-Every coverage view, morning and evening, looks like a top modern AAA open-world game and is filled: no empty lane, bare roof,
-blank field or naked roadside; people at work everywhere the sim puts them. Not one showcase view.
+Every coverage view, morning, evening, night, rain or dust and winter, looks like a top modern AAA open-world game and is filled: no empty lane, bare roof,
+blank field, naked roadside, empty hill or still water; people and animals at work everywhere the sim puts them. Not one showcase view.
 
 ## Also on the list if an agent frees up (all GPU/Blender)
 - Hooks the simulation exposes that nothing renders yet: visible marks `marksOf(pop, pid, day)[].look`; wounds
