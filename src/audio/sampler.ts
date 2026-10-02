@@ -19,8 +19,12 @@ export const MIN_STRETCH = 9;
 export const FADE = 3;
 export const REPEAT_S = 60;
 const LOOKAHEAD = 2;
-/** the beds' level on the ambience channel at gain 1 (recordings at -23 LUFS; C, by ear against the synthesised wind) */
-export const BED_LEVEL = 0.55;
+/** the beds' level on the ambience channel at gain 1 (recordings at -23 LUFS; measured against the synthesised scenes, below) */
+export const BED_LEVEL = 1.0;
+/** a layer's own gain over BED_LEVEL, measured (tools/dev/sound_mix.ts: each scene's total with the recordings matched to its
+ *  total without them, the synthesis's levels being the ones the gates were set on): at 0.55 the beds came in ~5 dB under
+ *  the scenes they replace, the rain ~13 dB under the synthesised rain (which tests hold audible over the wind) */
+export const LAYER_GAIN: Partial<Record<string, number>> = { rain_light: 2.5, rain_heavy: 2.5, rain_roof: 2, wind_gusts: 1.5, dust_wind: 1.5 };
 /** one-shots and steps are cut to a -3 dBFS peak (tools/audio/fetch.mjs); played at these gains they peak where the synthesised
  *  designs they replace did (a bark's sawtooth at 0.06 through its formants, a step's noise burst at 0.07; C) */
 export const SHOT_LEVEL = 0.12, FOOT_LEVEL = 0.1;
@@ -33,7 +37,7 @@ export class BedDeck {
   readonly out: GainNode; target = 0; level = 0;
   /** the stretches scheduled (tests: the repeat rule), the files held */
   readonly log: Played[] = []; private next = -1; private held = new Set<string>(); private lastFile = '';
-  constructor(readonly e: AudioEngine, readonly lib: SoundLibrary, readonly layer: string, private rng: Rng, dest?: AudioNode, readonly level0 = BED_LEVEL) {
+  constructor(readonly e: AudioEngine, readonly lib: SoundLibrary, readonly layer: string, private rng: Rng, dest?: AudioNode, readonly level0 = BED_LEVEL * (LAYER_GAIN[layer] ?? 1)) {
     this.out = e.ctx!.createGain(); this.out.gain.value = 0; this.out.connect(dest ?? e.ch.ambience);
   }
   /** is any of the bed's recordings decoded (it can play)? */
@@ -110,6 +114,11 @@ class Picker {
   }
 }
 
+/** a surface without its own recording borrows the nearest one's (by hardness and grain; C) */
+export const FOOT_NEAR: Partial<Record<FootSurface, FootSurface[]>> = {
+  plaster: ['stone', 'wood'], dust: ['earth', 'gravel'], mud: ['earth', 'grass'], water: ['gravel', 'earth'], gravel: ['earth'], earth: ['gravel', 'dust'],
+  grass: ['leaves', 'earth'], leaves: ['grass', 'earth'], snow: ['gravel'], wood: ['plaster', 'stone'], rug: ['plaster', 'earth'], stone: ['plaster'],
+};
 export interface ShotOpts { h?: number; ref?: number; max?: number; gain?: number; dur?: number; channel?: 'effects' | 'ambience' }
 /** the one-shot sets and footsteps from recordings; each call says whether it played (false: the caller synthesises) */
 export class Shots {
@@ -140,7 +149,9 @@ export class Shots {
   step(surface: FootSurface, run: boolean): boolean {
     const c = this.e.ctx; if (!c) return false;
     let xs = run ? this.lib.ready('foot', `${surface}_run`, 0) : []; const asRun = run && xs.length > 0;
-    if (!xs.length) xs = this.lib.ready('foot', `${surface}_walk`, 0); if (!xs.length) return false;
+    // the surface's own walk, else the nearest surface that has one (FOOT_NEAR, C) before the synthesis
+    for (const s of [surface, ...(FOOT_NEAR[surface] ?? [])]) { if (xs.length) break; if (this.lib.has('foot', `${s}_walk`)) xs = this.lib.ready('foot', `${s}_walk`, 0); }
+    if (!xs.length) return false;
     const x = this.picker(`foot:${surface}`).pick(xs), gain = (run && !asRun ? 1.4 : 1) * FOOT_LEVEL * 10 ** (this.rng.range(-1.5, 1.5) / 20);
     this.voice(x.buf, this.e.ch.effects, c.currentTime + 0.005, gain, 1 + this.rng.range(-0.04, 0.04)); this.played++; return true;
   }

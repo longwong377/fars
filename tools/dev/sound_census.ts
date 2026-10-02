@@ -8,6 +8,7 @@
 // Usage: npx tsx tools/dev/sound_census.ts [--strict (exit 1 unless everything is fetched)] [--json out.json]
 import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { HOUR_BANDS, WEATHERS } from './coverage_time';
+import { FOOT_NEAR } from '../../src/audio/sampler';
 import { bedPlan, bedTime, airOf, soundPlace, footSurface, FOOT_SURFACES, ONESHOT_SETS, IR_KINDS, BED_LAYERS, SEASONS, type SoundPlace, type Where } from '../../src/audio/soundplan';
 
 /** the sound place each coverage stratum stands in (by its prefix; the longest match wins) */
@@ -58,11 +59,12 @@ export function census() {
   const cellCount = (s: Status) => cells.filter(c => worst(c) === s).length;
   const layerStatus = Object.fromEntries(BED_LAYERS.map(l => [l, status('beds', l)]));
   const foot = Object.fromEntries(FOOT_SURFACES.map(s => [s, status('foot', `${s}_walk`)]));
+  const footPlayable = Object.fromEntries(FOOT_SURFACES.map(s => [s, foot[s] === 'fetched' ? 'own' : (FOOT_NEAR[s] ?? []).find(n => foot[n] === 'fetched') ?? '-']));
   const shots = Object.fromEntries(ONESHOT_SETS.map(s => [s, status('oneshots', s)]));
   const irs = Object.fromEntries(IR_KINDS.map(k => [k, status('ir', k)]));
   // the footstep surfaces the refinement can reach (every one must be reachable from some world state or the walk's hook)
   const reach = new Set<string>(); for (const pl of Object.keys(WHERE) as SoundPlace[]) for (const m of [0, 3, 6, 9]) for (const wx of WEATHERS) for (const b of ['stone', 'earth', 'plaster'] as const) reach.add(footSurface(b, WHERE[pl], m, airOf(wx)));
-  return { strata: strata.length, cells: cells.length, fetched: cellCount('fetched'), listed: cellCount('listed'), missing: cellCount('missing'), placeErr, layerStatus, foot, shots, irs,
+  return { footPlayable, strata: strata.length, cells: cells.length, fetched: cellCount('fetched'), listed: cellCount('listed'), missing: cellCount('missing'), placeErr, layerStatus, foot, shots, irs,
     footReached: [...reach].sort(), bandsAsTimes: Object.fromEntries(HOUR_BANDS.map(b => [b, bedTime(b)])), cellsList: cells };
 }
 
@@ -72,6 +74,7 @@ if (process.argv[1]?.endsWith('sound_census.ts')) {
   console.log(`sound census (D-620): ${r.strata} coverage strata × ${HOUR_BANDS.length} hour bands × ${WEATHERS.length} weathers × ${SEASONS.length} seasons = ${r.cells} cells`);
   console.log(`  cells whose every bed is recorded and fetched: ${r.fetched}; listed in the fetch list but not fetched yet: ${r.listed}; with a bed nobody lists: ${r.missing}`);
   console.log('  ' + line('bed layers', r.layerStatus)); console.log('  ' + line('footstep surfaces (walk)', r.foot));
+  console.log(`  footsteps heard from recordings (own set, or the nearest surface's): ${Object.entries(r.footPlayable).map(([k, v]) => `${k}${v === 'own' ? '' : v === '-' ? ' SYNTH' : `<-${v}`}`).join(', ')}`);
   console.log('  ' + line('one-shot sets', r.shots)); console.log('  ' + line('room impulse responses', r.irs));
   console.log(`  footstep surfaces reached by the refinement without the walk's hook: ${r.footReached.join(', ')} (wood and water need the hook)`);
   if (r.placeErr.length) console.log(`  PLACE TABLE WRONG: ${r.placeErr.join(', ')}`);

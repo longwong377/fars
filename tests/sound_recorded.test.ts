@@ -127,7 +127,8 @@ describe('beds, one-shots and footsteps from recordings (D-620)', () => {
     sound.strike('hammer', { x: 5, y: 0, z: 0 }); expect(sound.shots.synthesised).toBe(1); // no hammer recording: the synthesis
     expect(ctx.nodes.filter(n => n.kind === 'oscillator').length).toBeGreaterThan(osc0);
     // footsteps: the gravel set on the hillside
-    const st = new Shots(e, lib); expect(st.step('gravel', false)).toBe(true); expect(st.step('grass', false)).toBe(false);
+    const st = new Shots(e, lib); expect(st.step('gravel', false)).toBe(true); expect(st.step('water', false)).toBe(true); // (the gravel's, the nearest)
+    expect(st.step('rug', false)).toBe(false); // (nothing near recorded: the synthesis)
   });
 });
 

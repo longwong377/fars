@@ -447,7 +447,7 @@ export class Soundscape {
       if (f.lit && d < 40 && !n) { const bed = new NoiseStream(e, 'pink', { seg: 4, fade: 0.4, sampleRate: 8000 }); const lf = c.createBiquadFilter(); lf.type = 'lowpass'; lf.frequency.value = 900;
         const g = c.createGain(); g.gain.value = 0; const pan = e.panner(f.pos.x, f.pos.y, f.pos.z, 1.5, 60); bed.out.connect(lf); lf.connect(g); g.connect(pan); e.route(pan, 'effects'); n = { gain: g, pan, bed }; this.fireNodes.set(f.id, n); }
       if (n) { // D-620: the hearth's recording at the fire when it is loaded (its own deck, never shared); the stream below is the fallback
-        let dk = this.fireDecks.get(f.id); if (!dk && f.lit && d < 40 && this.lib.has('beds', 'hearth')) this.fireDecks.set(f.id, dk = new BedDeck(e, this.lib, 'hearth', this.rng, n.pan, 1.2));
+        let dk = this.fireDecks.get(f.id); if (!dk && f.lit && d < 40 && this.lib.has('beds', 'hearth')) this.fireDecks.set(f.id, dk = new BedDeck(e, this.lib, 'hearth', this.rng, n.pan, 2.2)); // (2.2: the synthesised fire's level at 3 m, tools/dev/sound_mix.ts)
         if (dk) { dk.target = f.lit && d < 40 ? 1 : 0; dk.tick(dt); if (dk.target === 0 && dk.level < 0.003) { dk.out.disconnect(); this.fireDecks.delete(f.id); } }
         const fireRec = !!dk && dk.playable();
         if (f.lit && d < 40 && !fireRec) n.bed.tick(); // D-245: each fire's own stream, never a shared loop (audit D: two fires played one 3 s loop)
