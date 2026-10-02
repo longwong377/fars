@@ -12,8 +12,7 @@ deploys Pages from there (D-370..D-391 are live; D-382 onward wait for Vagon's n
   dealt round, visible marks: src/people/marks.ts) and D-454 landed before the handoff; see their DECISIONS rows for numbers.
   The playtest bot (session_01Bo2awCHnnWMLyESsfn6MWD) is idle: its script is tools/dev/playtest_year.ts (re-run it after
   every depth change; it found more real bugs than any test).
-- **Broken / unverified, first:** nothing heard with a real model (Qwen2.5-0.5B grounding unknown: Vagon's GPU run; fallback
-  Llama-3.2-1B); `sim.strangerSeen` reactions not wired on screen; the stranger can barely buy (6/120 buys; silver never
+- **Broken / unverified, first:** the 1.5B (D-394) heard only on Vagon's 12 lab prompts, not over the cloud's newer briefs (past, marks); `sim.strangerSeen` reactions not wired on screen; the stranger can barely buy (6/120 buys; silver never
   accumulates: day labour, the market and selling his grain should make one loop); two converse T-E9 tests time out under
   load (re-run alone); T-E2/T-E3v after D-452: see its DECISIONS row; approach test once flaky.
 - **Open from D-452:** T-E2 still fails for women (Persian 2.18 %, Elamite 1.65 %; ≤ 1 % needs ~171 and ~101 names, there
@@ -21,7 +20,7 @@ deploys Pages from there (D-370..D-391 are live; D-382 onward wait for Vagon's n
   has no shorten/drop rule for the new "Plain to see on you:" line (add it before the past in both lists); history.ts
   husbandOf still guesses its own spouse; re-run people_days_r8/r6, court, crafts, court_fill, language (names changed);
   Vagon render hook: `marksOf(pop, pid, day)[].look` (scar_brow, limp, mourning, with_child, stoop, craft_*...).
-- **Next, in order:** (1) the real model on the GPU (Vagon); (2) wire strangerSeen; (3) the stranger's living loop;
+- **Next, in order:** (1) DONE by Vagon (D-394: Qwen2.5-1.5B; the 0.5B was incoherent); (2) wire strangerSeen (Vagon: see For the Vagon lead); (3) the stranger's living loop;
   (4) playtest bot after each change; (5) the census gaps.
 - **Numbers:** the cloud continues from D-455 (D-450..D-454 used) (Vagon owns D-392..D-449). One DECISIONS row per package.
 - **Box rules learned:** two local agents at most; agents share this working tree, so never let one run git
@@ -55,14 +54,23 @@ deploys Pages from there (D-370..D-391 are live; D-382 onward wait for Vagon's n
 - Load (cloud-s15-load, D-386; not merged here): node world build 93 s -> 61 s from the bake (identical scene hash);
   ArrayBuffers 1.94 -> 1.56 GB, RSS 2.73 -> 2.36 GB; unverified in a browser.
 
-## For the Vagon lead (now)
-- **Overlap:** the cloud session on branch `cloud-s15-load` (D-386) is doing your s14-load task (the world build baked at
-  site build time). Its node bake already equals the live build (scene hash 7c9d0d8c, 1,210 meshes; node build 91 s -> 59 s)
-  and adds a GitHub Actions workflow (`.github/workflows/world-bake.yml`). Compare it with s14-load before merging either;
-  the merge note goes at the top of bench-reports/load_s15.md.
-- **Still not wired:** `sim.strangerSeen(near, at)` (people greet, bow, stare or avoid the stranger on sight; a village child
-  tags along). The simulation decides; nothing on screen plays it yet.
-- Decision numbers: the cloud used D-380..D-391; from now on, D-450 and up.
+## For the Vagon lead (now; written 2026-10-02 06:40 UTC after reading s14-int to 72c45ec1)
+- **Merge cloud-s15-depth into s14-int: 25 commits are waiting (D-382..D-391, D-450..D-454).** s14-int is already merged into
+  this branch (6b5b87f2; only DECISIONS conflicted, kept as a union; guards 25/25, defaults/talk_view/sight 14/14), so the
+  merge should be clean. What a player meets: a personality for everyone, the court in the economy, chains entered by speech,
+  period speech overheard, a past for everyone that reaches the model, mutual spouses, names dealt round, visible marks,
+  guest-right that cannot be farmed, no digits in anything the model reads.
+- **D-394 seen and agreed** (Qwen2.5-1.5B; thank you for the lab table). The cloud's grounding work was all checked against the
+  deterministic stand-in only; the 1.5B is now the model every prompt here is written for (≤ 450 tokens, D-296).
+- **Render hooks waiting on you (simulation side done, nothing on screen yet):**
+  1. `sim.strangerSeen(near, at)` a few times a game minute: play `kind` (greet by name, bow, nod, stare, avoid, ignore) on
+     the person; `follow` = a village child tags along (src/people/converse/sight.ts).
+  2. The mic: `__converse.say(text, heardMs, rmsDb)` and `state.heard.look` (the heads that turn: D-379).
+  3. Visible marks: `marksOf(pop, pid, day)[].look` (scar_brow, limp, mourning, with_child, stoop, craft_*; src/people/marks.ts).
+- **Load overlap:** cloud-s15-load (D-386, the node bake, .github/workflows/world-bake.yml) vs your s14-load: compare before
+  merging either (notes at the top of bench-reports/load_s15.md). Your D-393 report says walkable ≤ 60 s needs exactly that bake.
+- The cloud continues from D-455. Questions for the cloud: write them in this section on s14-int or here; the next cloud session
+  reads it first.
 
 ## The playtest bot's year (a scripted stranger talking for 355 days, seeds 1 and 7), and what was fixed (D-391)
 - **Was broken:** from about day 55 the town refused to talk to him in 85 % of turns (2,146 of 2,520). Every house that privately
