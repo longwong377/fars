@@ -9431,3 +9431,18 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - The court's baggage train (traffic.ts trainMovers; UD-09/UD-10): a string per tented household (camels for a pavilion's) along the royal road to its camp's edge, reaching it half an hour before its tent is pitched (court.ts's arrival hours: days 10-15, up to ~650 households in six hours), and out along the road on the leave day after the tents are struck; the southern camps by the south road where a straight leg would cross the town's plots. C (HDT 7.40-41's train a claim, B).
 - Road folk as population people (the lead, after the merge: talk to anyone, UD-08/UD-31): roadFolk.ts made pure and given hinterlandRegister / planOf / spotOf / bindPids (600 households a road, reused only time-disjoint); the persons, their plans and their placement by popview are C10's (asked).
 - Hooks in world.ts (lead's file): no hoof sounds for walkers; fauna.addCampLines; physics to ConstructionView.
+
+## D-580 The load keeper: the files in need order, one decoder, nothing hangs, and where the load goes (session 17, cloud C4; UD-31)
+- The built site's cold load measured on the cloud's 4-core box (bench-reports/load_s17.md): 79.1 s at the day's start; on the
+  s17 tip with everyone's work ~70 s page clock / ~80-85 s as the harness sees it. UD-31's < 60 s is not met here; the main
+  thread is the bottleneck (58-71 CPU-s to ready, ~90 % busy) and its work is in other owners' builders: the per-stage table by
+  source file went to C2, C10 and the lead. Page memory 5.5-5.7 GB (the ground array 192 MB the largest holder: Vagon asked to
+  run ktx_ground.ts). Pages 628 MB.
+- The service worker prefetches a cold visit's files in the order the page asks for them (public/sw.js, src/core/prefetch.ts,
+  tools/deploy/boot_list.mjs); every byte in by 34 s instead of 80 s. On the grown tip no measurable time difference on this
+  CPU-bound box (n=3 each, the box's spread is +-8 s); kept for lines where the network is the long pole.
+- The shared KTX2/Draco decoders re-landed (871d8aab) with an idle reaper: no hang, -0.1 GB, time neutral.
+- A stand-in-able asset set that never answers no longer hangs the boot (300 s, then its stand-ins; tested with a hung file).
+- The spawn's terrain chunks built in the build's idle wait; the measuring tools (measure.mjs, boot_profile.mjs --stages/--heap,
+  boot_mem.mjs) say where time, CPU and memory go. The loading screen's animations cost a software-composited browser ~1 core
+  for the whole load: sent to C5.
