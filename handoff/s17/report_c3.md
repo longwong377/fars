@@ -11,7 +11,7 @@
 
 **What a player now sees**: the four roads busy all day in dry weather (villagers with strings of donkeys, baskets, jars, brushwood, ox carts, families at festivals, traders and camels on the royal road), going in in the morning and home in the afternoon, halting by the road; herders with flocks on the verges; a lively halt at the stair foot; the court's camps with things before every tent and picket lines of horses and mules; an earth ramp with a drum on rollers at the column being raised.
 
-**Census** (tools/dev/road_census.ts): roads empty 99 % of daylight before; after, longest empty spell 1.7 min (30 days, 10 s steps, dry daylight); site ~500 at work per hour; camps ~4,300 in residence.
+**Census** (tools/dev/road_census.ts): roads empty 99 % of daylight before; after, longest empty spell 1.7 min (30 days, 10 s steps, dry daylight); site ~500 at work per hour; camps ~4,300 in residence; the plain's fields 6,400 at 06 h rising to 11,400 by 08 h (the population's own farmers, drawn by popview); ~330 herders out with the flocks 08-15 h.
 
 **Files**: src/world/roadFolk.ts (new), tools/dev/camp_probe.* (new), traffic.ts, courtCamps.ts, fauna.ts, construction.ts; world.ts (3 one-line hooks); tools/dev/road_census.ts; tests/road_folk.test.ts, camp_life.test.ts, construction_view.test.ts.
 
