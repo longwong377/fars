@@ -95,7 +95,7 @@ export async function loadCoverKit(base = BASE): Promise<CoverKit | null> {
         m.updateMatrixWorld(true); const geo = m.geometry.clone(); geo.applyMatrix4(m.matrixWorld); for (const k of Object.keys(geo.attributes)) if (!['position', 'normal', 'uv'].includes(k)) geo.deleteAttribute(k);
         if (!geo.getAttribute('normal')) geo.computeVertexNormals(); geo.computeBoundingBox(); geo.computeBoundingSphere(); return geo; });
       const b = lods[0].boundingBox!; pieces.push({ id: pc.id, kind: pc.kind, size: [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z], lods }); }
-    draco.dispose();
+    // (D-392: the shared decoder stays up)
     let mean: [number, number, number] = [0.25, 0.25, 0.2];
     try { const im = map.image as HTMLImageElement, cv = new OffscreenCanvas(16, 16), c2 = cv.getContext('2d')!; c2.drawImage(im, 0, 0, 16, 16); const d = c2.getImageData(0, 0, 16, 16).data; let r = 0, gg = 0, bb = 0;
       const L = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; for (let i = 0; i < d.length; i += 4) { r += L(d[i]); gg += L(d[i + 1]); bb += L(d[i + 2]); } mean = [r / 256, gg / 256, bb / 256]; } catch { /* default */ }

@@ -32,7 +32,7 @@ export async function loadReliefAtlas(base = BASE, renderer?: THREE.WebGPURender
     MAPS = { nao, paint };
     const maps = MAPS; setReliefAtlas(true, () => paintedStoneMaterial(maps));
     STATE.loaded = true;
-    k.dispose();
+    // (D-392: the shared transcoder stays up)
   } catch (e) { STATE.error = String((e as Error).message ?? e); console.warn(`[reliefs] atlas not loaded (${STATE.error}): the vertex-painted levels are drawn`); }
   STATE.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__reliefAtlas = { stats: reliefAtlasStats };

@@ -42,7 +42,7 @@ export async function loadAnimalModels(base = BASE): Promise<ReturnType<typeof a
       LOAD.bytes += Object.values(e.files).reduce((a, f) => a + f.bytes, 0);
     } catch (err) { LOAD.failed.push(sp); console.warn(`[animals] ${sp}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
-  draco.dispose(); ktx.dispose();
+  // (D-392: the page's shared decoders stay up)
   LOAD.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__animalModels = { stats: animalModelStats, species: () => [...MODELS.keys()] };
   return animalModelStats();

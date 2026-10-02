@@ -48,7 +48,7 @@ export async function loadDecorAssets(base = BASE): Promise<typeof decorStats> {
   if (A.merlon) jobs.push(glb('models/decor/merlon.glb').then(m => { S.merlon = m; decorStats.loaded.push('merlon'); }).catch(e => { decorStats.failed.push(`merlon: ${e?.message ?? e}`); }));
   if (A.tents) for (const f of Object.keys(A.tents.files ?? {})) { const kind = /tent_(\w+)\.glb$/.exec(f)?.[1]; if (!kind) continue;
     jobs.push(glb(f).then(m => { S.tents[kind] = m; decorStats.loaded.push(`tent_${kind}`); }).catch(e => { decorStats.failed.push(`tent_${kind}: ${e?.message ?? e}`); })); }
-  await Promise.all(jobs); draco.dispose(); k2.dispose();
+  await Promise.all(jobs); // (D-392: the shared decoders stay up)
   for (const f of decorStats.failed) console.warn(`[decor] ${f}: its procedural stand-in is drawn`);
   decorStats.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__decor = { stats: decorStats };
