@@ -112,3 +112,10 @@ the asks; the tag line is a cost (~50 tokens of every brief) that the 1.5B barel
   the 64-token cap.
 - Re-run: `python3 tools/dev/talkeval/qwen_mlc.py <mlc dir> check`, then `... serve 8765 &`,
   `npx tsx tools/dev/talkeval/run.ts out.jsonl 200 12`, `npx tsx tools/dev/talkeval/score.ts before.jsonl after.jsonl --same`.
+
+## Tests
+talk_world + stranger_talk + converse, run alone after the after-run: 55/58 pass. The 3 failures are timeouts (120 s) of tests
+that call `buildTestSet(pop, 1, 72)`, which takes ~560 s on this box with D-456 and ~554 s without it (measured both ways):
+not a regression, the box. The one real assertion D-456 broke (converse: "a reply grounded in the person’s life passes",
+for a person with no name, "I am the son of Manakka") is fixed (be4d8314: the byname's names count as theirs) and checked
+directly; T-E10 (the stand-in's plumbing number) 99.4 % -> 100 %. Guards 25/25.
