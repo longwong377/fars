@@ -267,11 +267,14 @@ def a_litter():
     """the litter of a lane that people and animals use every day (C): spilled straw and chaff, a scatter of donkey droppings,
     two sherds of a broken jar and a few twigs, flat on the ground over 1.4 x 1.0 m, nothing higher than 4 cm"""
     rnd = random.Random(1500); st = []
-    ch = heap(0.32, 0.018, -0.15, 0.05, seed=1501, lump=0.5, name='chaff'); xform(ch, scale=(1.5, 1.0, 1.0)); st.append(ch)
-    for k in range(46):
-        a = rnd.uniform(0, TAU); d = 0.62 * math.sqrt(rnd.random()); x, z = 0.7 * d * math.cos(a), 0.5 * d * math.sin(a); t = rnd.uniform(0, TAU); L = rnd.uniform(0.08, 0.22)
-        y = 0.003 + rnd.uniform(0, 0.012)
-        st.append(pathG([(x, y, z), (x + L * 0.5 * math.cos(t), y + 0.004, z + L * 0.5 * math.sin(t)), (x + L * math.cos(t + 0.2), y, z + L * math.sin(t + 0.2))], [0.0022, 0.0018, 0.0008], 3, 'w', scale=(1.0, 0.45)))
+    for i, (cx, cz, r) in enumerate([(-0.25, 0.05, 0.13), (0.2, -0.15, 0.1), (-0.5, -0.2, 0.08)]): st.append(heap(r, 0.022, cx, cz, seed=1501 + i, lump=0.6, name='chaff'))
+    # (s17: the straws in three clumps where they were dropped and trodden, thick enough to read at 5-10 m, a few lying loose)
+    clumps = [(-0.25, 0.05, 0.3), (0.2, -0.15, 0.22), (-0.5, -0.2, 0.18)]
+    for k in range(90):
+        cx, cz, cr = clumps[k % 3] if k < 75 else (0.0, 0.0, 0.6)
+        a = rnd.uniform(0, TAU); d = cr * math.sqrt(rnd.random()); x, z = cx + d * math.cos(a), cz + 0.8 * d * math.sin(a); t = rnd.uniform(0, TAU); L = rnd.uniform(0.1, 0.26)
+        y = 0.004 + rnd.uniform(0, 0.02 if k < 75 else 0.006)
+        st.append(pathG([(x, y, z), (x + L * 0.5 * math.cos(t), y + 0.005, z + L * 0.5 * math.sin(t)), (x + L * math.cos(t + 0.25), y, z + L * math.sin(t + 0.25))], [0.0035, 0.003, 0.0015], 3, 'w', scale=(1.0, 0.5)))
     dung = []
     for k in range(9):
         a = rnd.uniform(0, TAU); d = rnd.uniform(0.05, 0.25); x, z = 0.35 + d * math.cos(a), -0.1 + d * math.sin(a); r = rnd.uniform(0.022, 0.035)

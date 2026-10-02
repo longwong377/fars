@@ -61,7 +61,8 @@ export class WorldFill {
           g.setAttribute('position', g0.getAttribute('position')); g.setAttribute('normal', g0.getAttribute('normal') ?? (g0.computeVertexNormals(), g0.getAttribute('normal'))); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); if (g0.index) g.setIndex(g0.index);
           g.computeBoundingSphere();
           const mat = propMaterial(def[0], { vertexColors: true, metal: def[2] ?? 0, rough: def[0] === 'metal' ? 0.45 : undefined });
-          const mesh = new THREE.InstancedMesh(g, mat, cap); mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false; mesh.receiveShadow = true; mesh.castShadow = SHADOW.has(m) && l < 2;
+          // (s17 C1: every thing knee-high or more casts its shadow at the near levels: an unshadowed jar reads pasted on)
+          const mesh = new THREE.InstancedMesh(g, mat, cap); mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false; mesh.receiveShadow = true; mesh.castShadow = (SHADOW.has(m) && l < 2) || (l < 2 && M.box.max.y - M.box.min.y > 0.3);
           mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); mesh.name = `fill:${m}:${part}:lod${l}`;
           mesh.userData = { tier: 'C', src: 'RECON', note: `${m} (${part}), the fill (D-367): placed by rule, modelled (tools/blender/${m.startsWith('fill_') ? 'fill_props' : 'model_props'}.py)` };
           this.group.add(mesh); this.meshes++; L.push({ mesh, part, n: 0 }); }

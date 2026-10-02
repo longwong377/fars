@@ -25,7 +25,7 @@ export const TARGETS = {
   scaffold: { wood: [6000, 1800, 600], cord: [1200, 300, 0] },
   rubble: { mud: [1200, 400, 150], brick: [1600, 500, 160] },
   // s17 C1 (D-550): the lanes' and doorways' lesser things
-  litter: { straw: [1400, 420, 140], dung: [500, 160, 60], clay: [120, 60, 24], wood: [150, 60, 24] },
+  litter: { straw: [2200, 600, 200], dung: [500, 160, 60], clay: [120, 60, 24], wood: [150, 60, 24] },
   matlean: { reed: [2400, 700, 180] },
   basket_tall: { wicker: [1600, 500, 160], cord: [160, 60, 24] },
   winnow: { wicker: [1200, 360, 120] },
