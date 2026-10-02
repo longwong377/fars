@@ -320,7 +320,7 @@ export class Joint {
           else if (CRAFTS.test(a)) { const g = 0.05 * hrs * (1 + (withP ? 2 * this.h.skill(skillKey(a)) : 0.5)); H.goods += g; what = 'more wares made'; }
           else if (/^(herd|shear|milk|tend_animals)$/.test(a)) { H.goods += 0.02 * hrs; what = 'the animals seen to'; }
           else if (HOME_WORK.test(a)) { H.health = Math.min(1, H.health + 0.004); what = a === 'bake' ? 'the bread baked' : a === 'grind' ? 'the flour ground' : a === 'brew' ? 'the beer brewed' : 'the house\'s work done'; if (withP && purse && (a === 'bake' || a === 'cook')) { const g = Math.min(0.5, H.grain * 0.01); H.grain -= g; purse.grain += g; what += ', and a loaf for the stranger'; } } }
-        both({ grat: 0.08, aff: 0.03 }); if (j.actor !== j.target) this.h.trust(j.hh, j.actor, 0.03, day); if (withP) this.h.addSkill(skillKey(a), 0.02); return what; }
+        both({ grat: 0.08, aff: 0.03 }); if (j.actor !== j.target) this.h.trust(j.hh, j.actor, 0.03, day); if (withP && CRAFTS.test(a)) this.h.addSkill(skillKey(a), 0.02); return what; } // (a craft worked beside them teaches a little; the field and the house do not)
       case 'drink': { const host = H, g = 0.6; if (host && host.grain > g * 4) host.grain -= g; both({ aff: 0.12, anger: -0.1 });
         if (withP && E?.hasStranger) { const S = E.stranger(); S.do({ a: 'hear', day: Math.min(day, E.day), lang: S.langOf(j.hh), hours: j.h1 - j.h0, simple: 0.5, spoke: true }); this.h.trust(j.hh, 'player', 0.03, day); }
         return 'beer drunk at the house of an evening, and talk'; }
