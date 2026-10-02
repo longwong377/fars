@@ -16,6 +16,12 @@
   popgeo hook: V3's file).
 - Pre-existing test failures (fail on the base commit too): court_fill (2), crafts (1), people_children (1).
 
+- **Fixed (was blocking the merge):** public/models is gitignored, so my 7 new GLBs were missing from git until 8114ecc6
+  (force-added; tests pass in a clean worktree). Any later kit piece must be `git add -f`'d.
+- Coordination: C7 owns room interiors (I place only the leak's drip jar in a room); C3 keeps my tether layer for now (fold
+  into fauna.ts if the frame budget tightens); C2 keeps my village wall pass and dresses only beyond the compounds (threshing
+  floors, straw stacks, folds: possible overlap only near a floor's straw stacks, not handled).
+
 ## What a player now sees differently
 - Every lane wall has something at its foot every few metres: jars, pots, basins, stools, rolled and leaned reed mats, tall
   baskets, winnowing trays, tools leaned on the wall (hoe, broom, fork, staff), dung cakes drying, fuel, repair mud and bricks;
