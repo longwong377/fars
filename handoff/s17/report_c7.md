@@ -8,8 +8,9 @@
   is empty; seen only through a doorway, this should not show, but a long view down a court into a far doorway could.
 - Carpets and woven mats in the houses are vertex-coloured grids (a pattern in the palace carpets' scheme), not the palace
   carpet's pile texture. Textiles are flat vertex colours (the household's palette), no weave map.
-- Palaces: furnish_palaces.ts was already full (D-325); added only the keepers' corners in the Apadana, Hadish and harem hall
-  while the court is away. Not re-censused per room.
+- Palaces (now in the census): in residence 37-79 things a hall; with the court away the Hadish and harem halls keep a keeper's
+  corner and their stores (15-25 things); the Apadana stands empty and the Tachara hall keeps only its steward's corner (the
+  earlier decision, tests/palace_furnish.test.ts); the Tachara's small side rooms stay thin while stored (7 of 10 under 8 things).
 - Workrooms of one craft standing side by side still share their set of things 4 % of the time; ridge tents 16 % (the same set,
   never the same layout).
 
@@ -30,7 +31,8 @@ interior_probe.*, tests/interiors.test.ts. Hooks in others' files (one call each
 furnish() returns early), settlement/build.ts (the ring's group; its update in nearUpdate), world.ts (setInteriorPeople),
 courtCamps.ts (registerTentInteriors).
 
-**Tests**: tests/interiors.test.ts 5/5; tests/houses.test.ts 9/9 (worst tile 49.2 k); guards pass. tests/scribes_room.test.ts: 2 of 4
+**Tests**: tests/interiors.test.ts 6/6 (incl. the walking grid: the ring adds no solid to a site; 0 of 1381 Terrace sleeping and
+working places under a thing); tests/palace_furnish.test.ts 10/10; tests/houses.test.ts 9/9 (worst tile 49.2 k); guards pass. tests/scribes_room.test.ts: 2 of 4
 fail here (the Aramaic secretary's year plan, 'ws:1' vs 'treasury_desk'), sim assertions my files do not touch (furnish.ts only gained
 one import); the comparison run on the pre-C7 base was lost to a container restart, so not proven pre-existing.
 **For C4**: the ring adds two draw calls (interiors:clay, interiors:cloth) and up to 60 k triangles near houses; the houses' near

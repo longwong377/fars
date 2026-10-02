@@ -64,6 +64,13 @@ villages.forEach((v, vi) => add('village', v.site, 1000 + vi));
 // the court camps' tents (court setting: standing while the court is in residence)
 { const { Population } = await import('../../src/people/population'); const { planTent } = await import('../../src/world/interiors/tents');
   for (const t of (new Population(1, { court: true }) as any).court.tents as any[]) { const x = planTent(t); rooms.push({ kind: `tent/${t.kind}`, e: t.e, n: t.n, room: x.room, plan: BASE ? { ...x.plan, items: [], covered: 0 } : x.plan, tris: BASE ? 0 : x.plan.items.reduce((a: number, it: Item) => a + TRIS[it.k], 0) }); } }
+// the palaces' rooms (furnish_palaces.ts: the court's use, and stored while it is away), counted per room and state
+{ const { buildTerrace } = await import('../../src/arch/terrace'); const { palaceFurnishingPlan } = await import('../../src/world/furnish_palaces');
+  const { parts, manifest, doorways } = buildTerrace(), by = new Map<string, any[]>();
+  for (const it of palaceFurnishingPlan(parts, manifest, doorways)) { const k = `${it.building}:${it.room}:${it.state}`; (by.get(k) ?? by.set(k, []).get(k)!).push(it); }
+  for (const [k, its] of by) { const [b, id, st] = k.split(':'), e = its.reduce((a, q) => a + q.e, 0) / its.length, n = its.reduce((a, q) => a + q.n, 0) / its.length;
+    const items: Item[] = its.map(q => ({ k: (q.kind === 'carpet' || q.kind === 'mat' ? 'carpet' : 'chest') as any, sub: q.kind, u: q.e, v: q.n, rot: q.theta, w: q.hu * 2, d: q.hv * 2, h: q.h, y: 0, vr: 0, wall: -1 }));
+    rooms.push({ kind: `palace/${b}/${st}`, e, n, room: { id: `palace:${k}`, u0: e - 50, u1: e + 50, v0: n - 50, v1: n + 50, doors: [], back: 1, use: 'living' }, plan: { items, floor: 1, covered: 0, use: 'living', clear: [] }, tris: 0 }); void id; } }
 const rows = census(rooms, 15, r => !!(r as any).pop);
 console.log(`[census] ${BASE ? 'BASELINE (houses.ts before D-610)' : 'D-610 interiors'}${NOPOP ? ', no population' : ''}: ${rooms.length} rooms in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 console.log(formatCensus(rows));

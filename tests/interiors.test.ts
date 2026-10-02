@@ -81,3 +81,19 @@ describe('the Terrace\'s rooms and the court\'s tents (D-610)', () => {
   }, 120_000);
 });
 
+describe('the walking grid and the people\'s places stay clear (D-610)', () => {
+  it('the ring adds no collider or solid to a site; no thing (but a flat one) on a Terrace sleeping or working place', async () => {
+    const { siteSolids, resetSiteCaches } = await import('../src/world/settlement/walk'); const { terraceRooms } = await import('../src/arch/terrace_rooms'); const { planTerraceRoom } = await import('../src/world/interiors/terrace');
+    const { FLAT, HUNG } = await import('../src/world/interiors/plan');
+    const plan = buildTownPlan(), s = plan.sites[0], n = s.plots.length; resetSiteCaches(s); const before = JSON.stringify(siteSolids(s));
+    new SiteHouses(s, 0, () => 0, new Float32Array(n), new Uint8Array(n), Array.from({ length: n }, () => [0.5, 0.45, 0.35] as RGB), new Int32Array(n), []);
+    const ring = new InteriorRing(), p = s.plots.find(q => q.door && HOUSE_KINDS.has(q.kind))!, [e, n2] = s.grid(...s.doorPoints(p)!.out); ring.update(e, -n2, 30, true);
+    expect(ring.info.rooms).toBeGreaterThan(0); resetSiteCaches(s); expect(JSON.stringify(siteSolids(s))).toBe(before);
+    let spots = 0, covered = 0;
+    for (const { room, fit } of terraceRooms()) { const x = planTerraceRoom(room, fit);
+      for (const [pe, pn] of [...fit.sleep, ...fit.work]) { spots++; if (x.plan.items.some(it => { if (FLAT.has(it.k) || HUNG.has(it.k) || it.y > 0.05) return false; const c = Math.abs(Math.cos(it.rot)) > 0.5, hw = (c ? it.w : it.d) / 2, hd = (c ? it.d : it.w) / 2; return Math.abs(pe - it.u) < hw && Math.abs(pn - it.v) < hd; })) covered++; } }
+    console.log(`[interiors] Terrace: ${covered} of ${spots} sleeping and working places under a thing`);
+    expect(covered).toBe(0);
+  }, 120_000);
+});
+
