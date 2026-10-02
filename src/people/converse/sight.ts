@@ -30,7 +30,7 @@ export const SIGHT_M = 12;
 export const BOW_AT = 0.5;
 export const AVOID_TRUST = 0.35;
 /** rumours of the stranger that make a house keep away (his ingratitude, a tale of his found false) */
-const BAD_NEWS = new Set(['ingrate', 'claim_denied', 'claim_doubted']);
+const BAD_NEWS = new Set(['ingrate', 'claim_denied', 'claim_doubted', /* D-460 (deeds/law.ts): */ 'theft', 'assault', 'damage', 'threats', 'lie_found', 'convicted']);
 const CURIOUS = 8, WARY = 0; // talk.ts TEMPER order (wary, dry, warm, proud, anxious, cheerful, pious, blunt, curious)
 /** the chance a village child who stares runs after the stranger a while (C) */
 export const CHILD_FOLLOW = 0.35;
@@ -69,7 +69,7 @@ export function reactions(sim: PeopleSim, near: readonly Near[], stranger: { e: 
     // (2) distrust: kept away from
     if (trust < AVOID_TRUST) { out.push(r('avoid', `the house distrusts him (trust ${trust.toFixed(2)})`)); continue; }
     if (reg?.doubted) { out.push(r('avoid', 'the house knows his tale for a lie')); continue; }
-    if (bad) { out.push(r('avoid', `the house has heard of his ${bad.version.kind === 'ingrate' ? 'ingratitude' : 'lie'} (rumour ${bad.rumour})`)); continue; }
+    if (bad) { out.push(r('avoid', `the house has heard of his ${({ ingrate: 'ingratitude', theft: 'theft', assault: 'violence', damage: 'damage done', threats: 'threats', convicted: 'conviction' } as Record<string, string>)[bad.version.kind] ?? 'lie'} (rumour ${bad.rumour})`)); continue; }
     // (3) those who know him
     if (talked) { out.push(r('greet', 'has talked with him', { name: sim.talk.name(x.pid), byName: true })); continue; }
     if (mem === 'recognise') { out.push(r('greet', 'knows him by sight')); continue; }
