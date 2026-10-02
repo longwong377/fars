@@ -8,6 +8,7 @@ import { writeFileSync } from 'node:fs';
 import { DEED_SCHEMA, deedPrompt } from '../../../src/people/deeds/extract';
 import { parseDeed } from '../../../src/people/deeds/parse';
 import { DEED_LINES, type DeedLine } from './deed_lines';
+import { post } from './http';
 
 const [out = 'deed_eval.json', url = 'http://127.0.0.1:8765'] = process.argv.slice(2);
 const props = DEED_SCHEMA.properties as Record<string, any>;
@@ -31,8 +32,8 @@ async function main() {
   const rows: any[] = []; const t0 = Date.now();
   for (const l of DEED_LINES) {
     const p = deedPrompt(l.said), messages = [{ role: 'system', content: p.system }, { role: 'user', content: p.user }];
-    const c: any = await (await fetch(url + '/deed', { method: 'POST', body: JSON.stringify({ messages, fields }) })).json();
-    const f: any = await (await fetch(url, { method: 'POST', body: JSON.stringify({ messages, max_tokens: 110, temperature: 0, repetition_penalty: 1.0, seed: 1 }) })).json();
+    const c: any = await post(url + '/deed', { messages, fields });
+    const f: any = await post(url, { messages, max_tokens: 110, temperature: 0, repetition_penalty: 1.0, seed: 1 });
     let fj: any = null, parseErr = ''; const m = /\{[\s\S]*?\}/.exec(f.text); try { fj = m ? JSON.parse(m[0]) : null; if (!m) parseErr = 'no json'; } catch (e) { parseErr = 'bad json'; }
     const g = fromGrammar(l.said), cg = c.json as Got, fg = closed(fj);
     rows.push({ said: l.said, want: l, grammar: g, constrained: cg, free: fg, freeText: f.text, parseErr, ok: { grammar: score(l, g), constrained: score(l, cg), free: score(l, fg) },
