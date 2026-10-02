@@ -20,7 +20,7 @@ const V = [
   // a village from 30 m and 200 m
   { n: 'village30', cam: 'village:0:40:2:180', fov: 60 }, { n: 'village200', cam: 'village:0:200:8:180', fov: 45 },
   // s17 C1 (?fill): lanes with the fill (x, z = -n, eye, true bearing, pitch)
-  { n: 'fill-lane', cam: [-478, 881, 1.6, 189, -4], fov: 60, hour: 10 }, { n: 'fill-market', cam: [-444.3, 990.7, 1.6, 279, -6], fov: 60, hour: 8, sunAz: 110, sunAlt: 30 },
+  { n: 'fill-lane', cam: [-470.4, 1030.8, 1.6, 197, -5], fov: 60, hour: 10 }, { n: 'fill-market', cam: [-444.3, 990.7, 1.6, 279, -6], fov: 60, hour: 8, sunAz: 110, sunAlt: 30 },
   { n: 'fill-litter', cam: [-380, 863, 1.6, 341, -25], fov: 60, hour: 11 }, { n: 'fill-door', cam: 'door:q_s1:7', fov: 55, hour: 10 },
 ];
 // (SWIFT=1: the cloud's SwiftShader, Playwright's own Chromium; crude pictures only)
@@ -35,5 +35,5 @@ console.log('ready', await p.evaluate(() => window.__ready), (Date.now() - t0) /
 if (process.env.SITES) console.log(JSON.stringify(await p.evaluate(() => window.__sites)));
 for (const v of V) { if (ONLYV && !ONLYV.includes(v.n)) continue;
   const res = await p.evaluate(v => window.__shot(v), v);
-  await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/houselab-${v.n}-${TAG}.png` }); console.log(v.n, JSON.stringify(res), (Date.now() - t0) / 1000); }
+  await p.screenshot({ timeout: 600000, path: `${process.env.OUT ?? 'shots'}/houselab-${v.n}-${TAG}.png` }); console.log(v.n, JSON.stringify(res), (Date.now() - t0) / 1000); if (process.env.LOGS) console.log(logs.splice(0).slice(0, 8).join('\n')); }
 console.log(logs.slice(0, 12).join('\n')); await b.close();

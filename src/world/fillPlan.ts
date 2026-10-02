@@ -275,7 +275,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       fixRot(-di, -dj, tool || AGAINST[m] !== undefined ? (u01(...key, 6) - 0.5) * 0.3 : (u01(...key, 6) - 0.5) * 1.2); addB(items.length - 1); st.gap = (st.gap ?? 0) + 1; } }
   if (!outside) for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i; if (s.cell[k] !== LANE) continue;
     const key = [sid, k, 91], u = s.cu(i) + (u01(...key, 1) - 0.5) * 0.7, v = s.cv(j) + (u01(...key, 2) - 0.5) * 0.7, [e, n] = toG(u, v);
-    if (nearB(e, n, 2.8) || nearTaken(u, v, 1.0) || nearDoor(u, v, 0.8)) continue;
+    if (nearB(e, n, 2.3) || nearTaken(u, v, 1.0) || nearDoor(u, v, 0.8)) continue;
     const m = pickNot(LITTER, u01(...key, 3), e, n, () => true); if (!m) continue;
     const [a, b] = LITTER_S[m] ?? [0.8, 1.1], sc = a + (b - a) * u01(...key, 4), fl = m === 'wo_spoil' ? 0.35 + 0.2 * u01(...key, 5) : 1;
     items.push({ m, e, n, dy: m === 'tool_stick' ? 0.01 : 0, rot: u01(...key, 6) * 6.283, s: [sc, sc * fl, sc], at: 'litter', ...(m === 'wo_spoil' ? { col: { earth: ASH[Math.floor(u01(...key, 7) * ASH.length)] } } : {}) });
@@ -288,7 +288,7 @@ const TOOL_W: [string, number][] = [['tool_hoe', 3], ['tool_broom', 3], ['tool_f
 /** s17 C1: the sim's market ground: spreads within this of the quarter's point (m; popgeo stands sellers within 30 cells) */
 const MARKET_R = 14;
 /** the gap fill: within this of the wall's foot nothing stands -> one thing (m): ~5 m between things along a wall at most */
-const GAP_R = 2.4;
+const GAP_R = 1.9;
 const LITTLE: [string, number][] = [['jar_water', 3], ['tool_broom', 1.6], ['sack', 2], ['wo_dung_cakes', 1.6], ['cookpot', 1.2], ['fill_bundle', 2], ['basin', 1], ['tool_hoe', 1.4], ['firewood_lean', 2],
   ['stool', 1], ['roll', 1], ['dung_stack', 1.4], ['wo_mud_heap', 0.9], ['tool_fork', 0.7], ['sack_lying', 1], ['wo_fodder', 0.8], ['wo_brick_stack', 0.6],
   ['tool_staff', 0.7], ['brush_pile', 0.8], ['quern', 0.5], ['fill_rubble', 0.6], ['jar_neck', 0.6],
