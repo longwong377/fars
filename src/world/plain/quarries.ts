@@ -71,11 +71,13 @@ function quarryRockPieces(S: QuarrySite, gAt: (u: number, v: number) => number, 
   for (let i = 0; i < Q.chips.floor; i++) put(rng.range(-Q.width / 2, Q.width / 2), rng.range(Q.floor[0] + 1, Q.floor[1]), rng.range(Q.chips.scale[0], Q.chips.scale[1] * 0.7), rng.range(0.5, 1), 0.3, true, y0 + 0.06);
   return out;
 }
-export interface QuarryBuild { group: THREE.Group; sites: QuarrySite[]; boxes: { c: THREE.Vector3; h: THREE.Vector3; rot: number }[]; /** D-600: the outcrop and the chips once the rock kit has loaded, and their level by the camera's distance */ update: (cam: THREE.Vector3) => void }
+export interface QuarryBuild { group: THREE.Group; /** D-600: the drums and the rock, added beside the plain's group */ extra: THREE.Group; sites: QuarrySite[]; boxes: { c: THREE.Vector3; h: THREE.Vector3; rot: number }[]; /** D-600: the outcrop and the chips once the rock kit has loaded, and their level by the camera's distance */ update: (cam: THREE.Vector3) => void }
 export function buildQuarries(terrain: Terrain, seed = 1): QuarryBuild {
   const group = new THREE.Group(); group.name = 'plain-quarries';
   const sites: QuarrySite[] = [], boxes: QuarryBuild['boxes'] = [], geos: THREE.BufferGeometry[] = [], ranges: { id: string; moved: number; geos: number }[] = [];
   const rocks: { S: QuarrySite; y0: number; pieces: QPiece[] }[] = [];
+  /** the drums and the rock: their own group beside the plain's (the plain's D-039 handful of meshes unchanged) */
+  const extra = new THREE.Group(); extra.name = 'quarries-detail';
   for (const S of quarrySites(terrain)) {
     const { id, moved, rot } = S;
     sites.push(S); const first = geos.length;
@@ -143,13 +145,15 @@ export function buildQuarries(terrain: Terrain, seed = 1): QuarryBuild {
         g.computeBoundingSphere(); return g; });
       const m = new THREE.Mesh(levels[2], mat); m.name = `plain-quarries:rock:${r.S.id}`; m.castShadow = m.receiveShadow = true;
       m.userData = tag({ tier: 'C', src: 'POLYHAVEN-CC0' }, 'the quarry\'s outcrop, spoil heaps and chips (D-600): CC0 rock scans (Poly Haven, hills/bedrock.ts kit) re-tinted to the limestone palette; every place C');
-      group.add(m); return { m, levels, x: r.S.x, z: -r.S.y }; });
+      extra.add(m); return { m, levels, x: r.S.x, z: -r.S.y }; });
   };
   const gap = ROCK_LOD_GAP.outcrop05 ?? [0.07, 0.64], sMax = QUARRY.ridge.scale[1], dNear = (gap[0] * sMax * BEDROCK.pxRad) / 2, dMid = (gap[1] * sMax * BEDROCK.pxRad) / 2;
   const update = (cam: THREE.Vector3) => {
+    const cast = near(cam); extra.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = cast; }); // (as the plain's own: casters only near)
     if (!rockMeshes) { const kit = rockKit(); if (!kit) return; rockMeshes = build(kit); }
     for (const R of rockMeshes) { const d = Math.hypot(R.x - cam.x, R.z - cam.z), g = R.levels[d < dNear ? 0 : d < dMid ? 1 : 2]; if (R.m.geometry !== g) R.m.geometry = g; }
   };
+  const near = (cam: THREE.Vector3) => sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900);
   // column drums roughed out at the quarry (the Terrace's columns were raised from drums: construction.ts, traffic.ts's
   // hauls): lying on the floor by the way out, and one standing half-freed on the lowest bench; per quarry one draw (C)
   const drumMat = surfaceMaterial('limestone_carved');
@@ -161,7 +165,7 @@ export function buildQuarries(terrain: Terrain, seed = 1): QuarryBuild {
     for (let k = 0; k < D.lying; k++) { const u = (k % 2 ? 1 : -1) * rng.range(3, 6), v = rng.range(10, 14); drum(u, v, terrain.heightAt(...(([a, b]) => [a, -b] as [number, number])(S.at(u, v))) - 0.12, true, rng.range(-0.4, 0.4)); }
     drum(-QUARRY.width / 2 + 4, -QUARRY.front - QUARRY.block.d / 2, r.y0 + QUARRY.rise - QUARRY.block.h, false, 0);
     const m = new THREE.Mesh(mergeGeometries(parts.map(g => g.toNonIndexed()))!, drumMat); m.name = `plain-quarries:drums:${S.id}`; m.castShadow = m.receiveShadow = true;
-    m.userData = tag({ tier: 'C', src: 'RECON' }, 'column drums roughed out at the quarry, waiting for the sledge (D-600; C)'); group.add(m);
+    m.userData = tag({ tier: 'C', src: 'RECON' }, 'column drums roughed out at the quarry, waiting for the sledge (D-600; C)'); extra.add(m);
   }
-  return { group, sites, boxes, update };
+  return { group, extra, sites, boxes, update };
 }

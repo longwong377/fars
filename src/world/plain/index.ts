@@ -128,7 +128,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   group.add(crops.mesh);
   // Naqsh-e Rustam and the quarries
   const nr = buildNaqsh(terrain, rivers.nrAncientFootAsl); group.add(nr.group);
-  const qb = buildQuarries(terrain, opts.seed); group.add(qb.group);
+  const qb = buildQuarries(terrain, opts.seed); group.add(qb.group); scene.add(qb.extra); // (D-600: the quarries' drums and rock beside the plain's group)
   // the fords where the roads meet the Pulvar and the Kur (D-257, C)
   const fords = buildCrossings(terrain, rivers.rivers, opts.seed, tLines.map((pts, i) => ({ id: `track_${i}`, pts, width: feature('villages_unlocated').tracks.width_m as number })), (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
   // Naqsh-e Rustam's meshes cast shadows near the cliff, except the relief sets', which manage their own (their shadow proxies are the only relief
