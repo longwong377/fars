@@ -105,3 +105,13 @@ describe('addressing a group (UD-25 (10))', () => {
     if (w[0].verdict.ok) { sim.strangerDo(w[0].act); expect(S.job?.employer).toBe(`h:${sim.pop.home(w[0].pid, d)}`); }
   }, 300_000);
 });
+describe('the trust gate (B234)', () => {
+  it('a house that distrusts the stranger will not talk; the model is never asked', async () => {
+    const d = 60, sim = simAt(1, d, 11), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
+    const E = sim.econTo(d); const pid = sim.pop.persons.find(p => p.job === 'farmer' && p.age >= 25 && sim.pop.present(p.id, d))!.id, hh = `h:${sim.pop.home(pid, d)}`;
+    E.trust!.note(hh, 'player', -0.9, d); E.trust!.note(hh, 'player', -0.9, d);
+    let asked = 0; const ans = m.answer.bind(m); (m as any).answer = async (...a: any[]) => { asked++; return ans(...(a as [any, any, any, any, any, any, any])); };
+    const o = await talkTurn(m, sim, pid, 'Good morning, friend.', { conv: sim.t });
+    expect(o.refused).toBe('distrust'); expect(asked).toBe(0); expect(o.answer.text).toMatch(/turns away/);
+  }, 300_000);
+});
