@@ -19,14 +19,23 @@
 import settlement from '../data/settlement.json';
 import namesData from '../data/names.json';
 import type { ActivityId } from '../people/activities';
-import { h01, openGround } from './fauna';
 import type { TownPlan } from './settlement/plan';
-import { route, along, type Route, type Mover } from './traffic';
+import { toLocal } from './settlement/site';
+import type { Route, Mover } from './traffic';
+// (pure: no three.js, no world module at run time, so the population and the sim (a worker) can import this file; h01 is
+// fauna.ts's hash, route/along traffic.ts's, openGround fauna.ts's, copied for that reason)
+const h01 = (seed: number, a: number, b = 0) => { let h = (seed * 2654435761) ^ Math.imul(a + 0x9e37, 0x85ebca6b) ^ Math.imul(b + 0x7f4a, 0xc2b2ae35); h = Math.imul(h ^ (h >>> 16), 0x45d9f3b); h = Math.imul(h ^ (h >>> 13), 0x45d9f3b); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+const route = (pts: [number, number][]): Route => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; };
+const along = (R: Route, s: number): { e: number; n: number; heading: number } => {
+  const x = Math.max(0, Math.min(R.len, s)); let i = 1; while (i < R.cum.length - 1 && R.cum[i] < x) i++;
+  const a = R.pts[i - 1], b = R.pts[i], L = R.cum[i] - R.cum[i - 1] || 1, f = (x - R.cum[i - 1]) / L;
+  return { e: a[0] + (b[0] - a[0]) * f, n: a[1] + (b[1] - a[1]) * f, heading: Math.atan2(b[0] - a[0], b[1] - a[1]) }; };
+const openGround = (plan: TownPlan, e: number, n: number) => { for (const s of plan.sites) { const [u, v] = toLocal(s.frame, e, n), i = s.ci(u), j = s.cj(v); if (!s.inb(i, j)) continue; if (s.cell[s.k(i, j)] >= 0) return false; } return true; };
 
 type P2 = [number, number];
 const FEAT = Object.fromEntries((settlement as any).features.map((f: any) => [f.id, f])) as Record<string, any>;
 /** households on each road's register (C) */
-export const ROAD_HH = 2400;
+export const ROAD_HH = 600;
 /** the Terrace's middle (grid m) and the radius of "near Pārsa" the streams keep busy (C: what the Terrace's edge and the
  *  plain round it see) */
 export const PARSA: P2 = [80, 30], NEAR = 2500;
@@ -55,6 +64,19 @@ export function household(seed: number, road: number, hh: number): Household {
   const u = (k: number) => h01(seed, 7000 + road * 1000 + hh, k), R = ROADS[road];
   let x = u(1), live: Livelihood = 'farmer'; for (const [l, p] of LIVE) { if (x < p) { live = l; break; } x -= p; }
   return { road, hh, home: R.homes[Math.floor(u(2) * R.homes.length)], live, head: MEN[Math.floor(u(3) * MEN.length)] ?? 'a man', kids: Math.floor(u(4) * 4), elder: u(5) < 0.25 };
+}
+export type Member = 'head' | 'wife' | 'son' | 'daughter' | 'elder';
+/** the household's people (C): the man, his wife, a son and a daughter as the household has children, an old parent */
+export const membersOf = (H: Household): Member[] => ['head', 'wife', ...(H.kids > 0 ? ['son'] : []), ...(H.kids > 1 ? ['daughter'] : []), ...(H.elder ? ['elder'] : [])] as Member[];
+/** D-570: the hinterland's register for the population (pids, homes and days the sim knows): every household of the four roads
+ *  and its people with their sex and age (pure in the seed; the ages C: the man 25-55, his wife 4-10 years younger, the son
+ *  and the daughter 6-17, the old parent 58-75) */
+export function hinterlandRegister(seed: number) {
+  const out: { road: number; roadId: string; hh: number; home: string; live: Livelihood; members: { m: Member; sex: 'm' | 'f'; age: number; name: string | null }[] }[] = [];
+  ROADS.forEach((R, ri) => { for (let hh = 0; hh < ROAD_HH; hh++) { const H = household(seed, ri, hh), u = (k: number) => h01(seed, 7500 + ri * 1000 + hh, k), man = 25 + Math.floor(30 * u(1));
+    out.push({ road: ri, roadId: R.id, hh, home: H.home, live: H.live, members: membersOf(H).map(m => ({ m, sex: m === 'wife' || m === 'daughter' ? 'f' as const : 'm' as const, name: m === 'head' ? H.head : null,
+      age: m === 'head' ? man : m === 'wife' ? Math.max(16, man - 4 - Math.floor(6 * u(2))) : m === 'elder' ? 58 + Math.floor(17 * u(3)) : 6 + Math.floor(11 * u(m === 'son' ? 4 : 5)) })) }); } });
+  return out;
 }
 /** a member's look (the same person every day: seeded by road, household and member) */
 const lookOf = (seed: number, H: Household, m: 'head' | 'wife' | 'son' | 'daughter' | 'elder' | 'hand', live = H.live): Mover['look'] => {
@@ -117,7 +139,7 @@ const THROUGH = [
 ];
 
 interface Trip { key: string; road: number; dir: 1 | -1; path: Route; t0: number; pace: number; halt: { s: number; a: number; b: number; why: string; act: ActivityId } | null;
-  people: { look: Mover['look']; act: ActivityId; why: string; life?: Mover['life'] }[]; kind: Mover['kind'];
+  people: { look: Mover['look']; act: ActivityId; why: string; life?: Mover['life']; m?: Member }[]; kind: Mover['kind']; hh?: number;
   /** where the trip runs along each road it uses: path s = s0 + sign * x, x the metres out from the road's Pārsa end */
   on: { ri: number; s0: number; sign: 1 | -1 }[];
   /** (cached by at(): the stay at the stair foot, and the hour after which the trip is over) */
@@ -184,9 +206,16 @@ export class RoadFolk {
     ROADS.forEach((R, ri) => {
       const P = this.paths[ri], xs: number[] = []; for (let x = 60; x < P.road; x += 125) { const p = along(P.out, P.tail + x); if (Math.hypot(p.e - PARSA[0], p.n - PARSA[1]) < NEAR + 60) xs.push(x); }
       let f = 0; const h0 = base + sun.rise + 0.1, h1 = base + sun.set - 0.1;
-      // (the fill's households: of the other half of the register than today's comers, not yesterday's overnight guests, each once)
-      const taken = new Set<number>((this.inboundOf(d - 1).recs.get(ri) ?? []).filter(x => x.E.overnight).map(x => x.H.hh)); let fk = 0;
-      const pickF = () => { for (let g = 0; g < 200; g++) { const hh = 2 * Math.floor(h01(this.seed, 37000 + ri * 97 + d, fk++) * ROAD_HH / 2) + ((d + 1) & 1); if (!taken.has(hh)) { taken.add(hh); return hh; } } return 2 * (fk % (ROAD_HH / 2)) + ((d + 1) & 1); };
+      // (the fill's households: not those at their kin's (yesterday's and today's overnight guests), none on the road twice at
+      // once: each household's trips today kept apart by an hour; a household takes a second trip only when the register runs
+      // short, never overlapping its first)
+      const away = new Set<number>([...(this.inboundOf(d - 1).recs.get(ri) ?? []), ...(inb.recs.get(ri) ?? [])].filter(x => x.E.overnight).map(x => x.H.hh));
+      for (const v of this.vergeFlocks(d)) if (v.ri === ri) away.add(v.H.hh); // (the herders on the verges today)
+      const busy = new Map<number, [number, number][]>(), span = (tr: Trip): [number, number] => [tr.t0 - 1, tr.t0 + tr.path.len / tr.pace / 3600 + (tr.halt ? tr.halt.b - tr.halt.a : 0) + 1];
+      for (const tr of T!) if (tr.road === ri && tr.hh !== undefined) (busy.get(tr.hh) ?? busy.set(tr.hh, []).get(tr.hh)!).push(span(tr));
+      let fk = 0;
+      const pickF = (iv: [number, number]) => { for (const second of [false, true]) for (let g = 0; g < 400; g++) { const hh = Math.floor(h01(this.seed, 37000 + ri * 97 + d + (second ? 500 : 0), fk++) * ROAD_HH);
+        const B = busy.get(hh); if (away.has(hh) || (B && (!second || B.some(([a, b]) => a < iv[1] && b > iv[0])))) continue; (B ?? busy.set(hh, []).get(hh)!).push(iv); return hh; } return -1; };
       for (let pass = 0; pass < 3; pass++) for (const x of (pass === 1 ? [...xs].reverse() : xs)) {
         const ts: number[] = []; for (const tr of T!) for (const o of tr.on) if (o.ri === ri) { const s = o.s0 + o.sign * x; if (s >= 0 && s <= tr.path.len) ts.push(passAt(tr, s)); }
         ts.push(h0 - PASS_SPACING / 120, h1 + PASS_SPACING / 120); ts.sort((a, b) => a - b);
@@ -195,7 +224,9 @@ export class RoadFolk {
           for (let q = 1; q <= n; q++) { const at = t0g + gap * (q + 0.3 * (h01(this.seed, 41000 + ri, d * 4000 + f) - 0.5)) / (n + 1);
             if (wet(at - base)) continue;
             const inward = at - base < 11.5;
-            const H = household(this.seed, ri, pickF()), E0 = errandOf(this.seed, H, d - 1 - (f % 3), month, false);
+            const P0 = this.paths[ri], sx = inward ? P0.road - x : P0.tail + x, est: [number, number] = [at - sx / FOLK_PACE.cart / 3600 - 1, at + (P0.inn.len - sx) / FOLK_PACE.cart / 3600 + 1];
+            const hh = pickF(est); if (hh < 0) continue;
+            const H = household(this.seed, ri, hh), E0 = errandOf(this.seed, H, d - 1 - (f % 3), month, false);
             const E: Errand = inward ? E0 : { ...E0, overnight: true, outWhy: E0.overnight ? E0.outWhy : E0.outWhy.map(w => w.replace(/^walking home to ([^,]*)/, 'walking home to $1 after two nights with kin in Pārsa')) };
             let tr = this.trip(`rf${d}:${ri}:f${f}`, ri, inward ? 1 : -1, 0, H, E, inward ? 'in' : 'out'); const s = tr.on[0].s0 + tr.on[0].sign * x;
             tr = { ...tr, t0: at - s / tr.pace / 3600, halt: null }; T!.push(tr); f++; ts.splice(i, 0, at); i++; } }
@@ -205,13 +236,13 @@ export class RoadFolk {
   }
   private trip(key: string, ri: number, dir: 1 | -1, t0: number, H: Household, E: Errand, leg: 'in' | 'out'): Trip {
     const P = this.paths[ri], path = dir === 1 ? P.inn : P.out, acts = leg === 'in' ? E.inAct : E.outAct, whys = leg === 'in' ? E.inWhy : E.outWhy;
-    const people = E.who.filter(w => (w !== 'son' && w !== 'daughter') || H.kids > 0).map((w, i) => ({ look: lookOf(this.seed, H, w), act: acts[i] ?? 'walk', why: whys[i] ?? whys[0], life: lifeOf(H, w) }));
+    const has = membersOf(H), people = E.who.map((w, i) => ({ w, i })).filter(x => has.includes(x.w)).map(({ w, i }) => ({ look: lookOf(this.seed, H, w), act: acts[i] ?? 'walk', why: whys[i] ?? whys[0], life: lifeOf(H, w), m: w }));
     // a halt on the way (C: a third of the trips): bread or a rest by the road, in the outer half of the near road
     const u = h01(this.seed, 39000 + ri, Math.floor(t0 * 60)), halt = u < 0.33 ? (() => { const s = path.len * (dir === 1 ? 0.15 + 0.35 * u * 3 : 0.5 + 0.35 * u * 3), a = t0 + s / E.pace / 3600, dur = 0.12 + 0.25 * h01(this.seed, 39500 + ri, Math.floor(t0 * 60));
       const string = /string|ox cart|driving the ewes/.test(people[0]?.why ?? '');
       return { s, a, b: a + dur, act: (string ? 'tend_animals' : u < 0.16 ? 'eat' : 'rest') as ActivityId, why: string ? (/ox cart/.test(people[0].why) ? 'holding the ox cart by the road while the oxen rest' : 'holding the string by the road while the donkeys rest') : u < 0.16 ? 'bread and onions by the road on the way' : 'resting by the road on the way' }; })() : null;
     const kind: Mover['kind'] = /string of pack|unloaded string/.test(people[0]?.why ?? '') ? 'pack' : /ox cart/.test(people[0]?.why ?? '') ? 'cart' : 'foot';
-    return { key, road: ri, dir, path, t0, pace: E.pace, halt, people, kind, on: [dir === 1 ? { ri, s0: P.road, sign: -1 } : { ri, s0: P.tail, sign: 1 }] };
+    return { key, road: ri, dir, path, t0, pace: E.pace, halt, people, kind, hh: H.hh, on: [dir === 1 ? { ri, s0: P.road, sign: -1 } : { ri, s0: P.tail, sign: 1 }] };
   }
   private throughTrip(d: number, g: number, t0: number, dir: 1 | -1): Trip {
     const T = THROUGH[h01(this.seed, 40000 + d, g) < 0.25 ? 1 : 0], camel = T === THROUGH[1], seedN = d * 997 + g;
@@ -237,35 +268,93 @@ export class RoadFolk {
         if (ok) V!.push({ key: `rv${d}:${ri}:${k}`, ri, x0, side, t0: d * 24 + t0, t1: d * 24 + t1, H }); } });
     this.verges.set(d, V); if (this.verges.size > 4) this.verges.delete(this.verges.keys().next().value!); return V;
   }
+  /** where a trip's group is at time t: its leader's point and heading, and what they do there when not walking (a halt, the
+   *  stay at the stair foot); null when the trip is not under way */
+  private pos(T: Trip, t: number): { a: { e: number; n: number; heading: number }; act: ActivityId | null; why: string; at: boolean } | null {
+    // at the stair foot (the roads' Pārsa end): a third of the trips stay a while there first or last (selling, holding the string,
+    // a word before the road home), at their own spot on the approach, walked to from the road's end (C)
+    if (T.tEnd === undefined) { if (T.foot === undefined) T.foot = T.key.startsWith('rf') ? footStay(this.seed, T.key) : null; T.tEnd = T.t0 + T.path.len / T.pace / 3600 + (T.halt ? T.halt.b - T.halt.a : 0) + (T.foot ? 1 : 0); }
+    if (t > T.tEnd || t < T.t0 - 1) return null; // (the stay and the walk to it are under an hour either side)
+    const F = T.foot ?? null, walkF = F ? Math.hypot(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) / T.pace / 3600 : 0;
+    let s: number, act: ActivityId | null = null, why = '', at: { e: number; n: number; heading: number } | null = null;
+    if (t < T.t0) { if (!F || T.dir !== -1 || t < T.t0 - walkF - F.stay) return null; // (outbound: the stay, then the walk to the road's end)
+      const u = Math.max(0, (t - (T.t0 - walkF)) / Math.max(1e-6, walkF)); at = { e: F.spot[0] + (FOOT_IN[0] - F.spot[0]) * u, n: F.spot[1] + (FOOT_IN[1] - F.spot[1]) * u, heading: Math.atan2(FOOT_IN[0] - F.spot[0], FOOT_IN[1] - F.spot[1]) };
+      if (t < T.t0 - walkF) { act = T.kind === 'pack' ? 'tend_animals' : T.kind === 'cart' ? 'tend_animals' : 'talk'; why = T.kind === 'pack' ? 'holding the string at the stair foot before the road home' : T.kind === 'cart' ? 'holding the ox cart at the stair foot before the road home' : 'a word with acquaintances at the stair foot before the road home'; } s = 0; }
+    else if (T.halt && t >= T.halt.a && t < T.halt.b) { s = T.halt.s; act = T.halt.act; why = T.halt.why; }
+    else s = ((t - T.t0) - (T.halt && t >= T.halt.b ? T.halt.b - T.halt.a : 0)) * 3600 * T.pace;
+    if (s > T.path.len) { if (!F || T.dir !== 1) return null; const tEnd = T.t0 + T.path.len / T.pace / 3600 + (T.halt ? T.halt.b - T.halt.a : 0), u = (t - tEnd) / Math.max(1e-6, walkF);
+      if (t > tEnd + walkF + F.stay) return null; at = { e: FOOT_IN[0] + (F.spot[0] - FOOT_IN[0]) * Math.min(1, u), n: FOOT_IN[1] + (F.spot[1] - FOOT_IN[1]) * Math.min(1, u), heading: Math.atan2(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) };
+      if (u >= 1) { act = T.kind === 'pack' ? 'tend_animals' : T.kind === 'cart' ? 'tend_animals' : 'exchange'; why = T.kind === 'pack' ? 'holding the string at the stair foot while the goods are sold' : T.kind === 'cart' ? 'holding the ox cart at the stair foot while the load is sold' : 'selling what was brought at the stair foot, to the porters, the guards and the scribes’ servants'; } }
+    return { a: at ?? along(T.path, s), act, why, at: !!at };
+  }
+  /** the i-th of a trip's people where the group is: the others behind the first (a string's driver leads), a pace to the side */
+  private member(T: Trip, i: number, a: { e: number; n: number; heading: number }, act: ActivityId | null, why: string, atFoot: boolean): Mover {
+    const p = T.people[i], c = Math.cos(a.heading), sn = Math.sin(a.heading), string = T.kind !== 'foot', back = i === 0 ? 0 : (string ? 3.5 : 1.4) * i, side = i === 0 ? 0 : (i % 2 ? 0.8 : -0.8);
+    return { key: `${T.key}:${i}`, kind: i === 0 ? T.kind : 'foot', e: a.e - sn * back + c * side, n: a.n - c * back - sn * side, heading: a.heading, act: act && (i === 0 || act !== 'tend_animals') ? act : act ? 'rest' : p.act,
+      why: act ? (i === 0 ? why : atFoot ? 'waiting with the others at the stair foot' : 'resting by the road on the way') : p.why, look: p.look, life: p.life,
+      ...(this.pidOf && p.m && T.hh !== undefined ? { pid: this.pidOf(T.road, T.hh, p.m) } : {}) };
+  }
+  // ---------------------------------------------------------------- D-570: the road folk as people of the population
+  /** (road, household, member) → the population's pid (-1: none); set by the population once it has made them */
+  private pidOf: ((road: number, hh: number, m: Member) => number) | null = null;
+  /** the population binds its pids: from then on Traffic leaves those people to the population view, which places them by spotOf */
+  bindPids(f: (road: number, hh: number, m: Member) => number) { this.pidOf = f; }
+  /** a household's trips of day d (indexed per day) */
+  private byHH = new Map<number, Map<string, Trip[]>>();
+  private tripsOf(road: number, hh: number, d: number): Trip[] {
+    if (d < 0) return []; let M = this.byHH.get(d); if (!M) { M = new Map(); for (const T of this.dayTrips(d)) if (T.hh !== undefined) { const k = `${T.road}:${T.hh}`; (M.get(k) ?? M.set(k, []).get(k)!).push(T); }
+      this.byHH.set(d, M); if (this.byHH.size > 4) this.byHH.delete(this.byHH.keys().next().value!); }
+    return M.get(`${road}:${hh}`) ?? [];
+  }
+  /** where a member of the register is at time t (h) when on the road or at the stair foot (or on the verge with the flock), with
+   *  what they do and why; null when they are at home or in Pārsa (off the map) */
+  spotOf(road: number, hh: number, m: Member, t: number): (Mover & { moving: boolean }) | null {
+    const d = Math.floor(t / 24);
+    for (const dd of [d, d - 1]) for (const T of this.tripsOf(road, hh, dd)) { const i = T.people.findIndex(p => p.m === m); if (i < 0) continue; const q = this.pos(T, t); if (!q) continue;
+      const mv = this.member(T, i, q.a, q.act, q.why, q.at); return { ...mv, moving: !q.act && !(q.at && mv.act !== 'walk') }; }
+    for (const v of this.vergeFlocks(d)) if (v.ri === road && v.H.hh === hh && (m === 'head' || m === 'son') && t >= v.t0 && t <= v.t1) { const g = this.vergeMovers(v, t).find(x => x.key.endsWith(m === 'head' ? ':0' : ':1')); if (g) return { ...g, moving: false }; }
+    return null;
+  }
+  /** a member's day (d) as the population's plan blocks: the trips (place `road:<road id>`, the person's own act and why, from
+   *  the first moment they are on the road or at the stair foot to the last), and between them off the map at home, in Pārsa on
+   *  the household's business, or at kin's in Pārsa overnight (C) */
+  planOf(road: number, hh: number, m: Member, d: number): { t0: number; t1: number; place: string; act: ActivityId; why: string }[] {
+    const H = household(this.seed, road, hh), R = ROADS[road], base = d * 24, out: { t0: number; t1: number; place: string; act: ActivityId; why: string }[] = [];
+    const legs: { a: number; b: number; act: ActivityId; why: string; dir: 1 | -1 }[] = [];
+    for (const T of this.tripsOf(road, hh, d)) { const p = T.people.find(x => x.m === m); if (!p) continue; this.pos(T, T.t0); const F = T.foot ?? null;
+      const walkF = F ? Math.hypot(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) / T.pace / 3600 : 0, run = T.path.len / T.pace / 3600 + (T.halt ? T.halt.b - T.halt.a : 0);
+      const a = T.dir === -1 && F ? T.t0 - walkF - F.stay : T.t0, b = T.dir === 1 && F ? T.t0 + run + walkF + F.stay : T.t0 + run;
+      legs.push({ a: a - base, b: b - base, act: p.act, why: p.why, dir: T.dir }); }
+    for (const v of this.vergeFlocks(d)) if (v.ri === road && v.H.hh === hh && (m === 'head' || m === 'son')) legs.push({ a: v.t0 - base, b: v.t1 - base, act: 'herd', why: 'grazing the household’s flock on the road’s verge', dir: 1 });
+    legs.sort((x, y) => x.a - y.a);
+    const yday = (this.inboundOf(d - 1).recs.get(road) ?? []).some(x => x.E.overnight && x.H.hh === hh && x.E.who.includes(m));
+    let t = 0, where = yday ? `at kin’s in Pārsa for the night` : `at home in ${H.home}`;
+    for (const L of legs) { const a = Math.max(t, Math.max(0, L.a)); if (a > t + 1e-6) out.push({ t0: t, t1: a, place: `hinterland:${road}:${hh}`, act: 'offmap', why: where });
+      const b = Math.min(24, Math.max(a, L.b)); if (b > a) out.push({ t0: a, t1: b, place: `road:${R.id}`, act: L.act, why: L.why }); t = b;
+      where = L.dir === -1 ? `at home in ${H.home}` : L.why.startsWith('grazing') ? `at home in ${H.home}` : `in Pārsa on the household’s business`; }
+    // (a comer with no road home today is at kin's in Pārsa for the night)
+    if (where.startsWith('in Pārsa') && !legs.some(L => L.dir === -1 && L.a > 0)) where = `at kin’s in Pārsa for the night`;
+    if (t < 24) out.push({ t0: t, t1: 24, place: `hinterland:${road}:${hh}`, act: 'offmap', why: where });
+    return out;
+  }
+  /** the herder (and his son) on the verge at time t */
+  private vergeMovers(v: { key: string; ri: number; x0: number; side: number; t0: number; t1: number; H: Household }, t: number): Mover[] {
+    const P = this.paths[v.ri], x = v.x0 + 25 * Math.sin((t - v.t0) * 0.45), a = along(P.out, P.tail + x), c = Math.cos(a.heading), sn = Math.sin(a.heading), e = a.e + c * v.side, n = a.n - sn * v.side;
+    const pid = (m: Member) => (this.pidOf ? { pid: this.pidOf(v.ri, v.H.hh, m) } : {});
+    const out: Mover[] = [{ key: `${v.key}:0`, kind: 'foot', e, n, heading: a.heading + Math.PI / 2 * Math.sign(v.side), act: 'herd', why: `grazing the household’s sheep and goats on the road’s verge on the way in from ${v.H.home}, to sell wethers at Pārsa`, look: lookOf(this.seed, v.H, 'head'), life: lifeOf(v.H, 'head'), ...pid('head') }];
+    if (v.H.kids) out.push({ key: `${v.key}:1`, kind: 'foot', e: e + c * Math.sign(v.side) * 9 + sn * 6, n: n - sn * Math.sign(v.side) * 9 + c * 6, heading: a.heading, act: 'herd', why: 'watching the flock on the verge with his father, keeping it off the road', look: lookOf(this.seed, v.H, 'son'), life: lifeOf(v.H, 'son'), ...pid('son') });
+    return out;
+  }
   /** everyone of the road streams at time t (h), within `near` (all if omitted), appended to `out` */
   at(t: number, out: Mover[], near?: { e: number; n: number; r: number }) {
     const d = Math.floor(t / 24);
-    for (const v of this.vergeFlocks(d)) { if (t < v.t0 || t > v.t1) continue; const P = this.paths[v.ri], x = v.x0 + 25 * Math.sin((t - v.t0) * 0.45), a = along(P.out, P.tail + x), c = Math.cos(a.heading), sn = Math.sin(a.heading);
-      const e = a.e + c * v.side, n = a.n - sn * v.side; if (near && Math.hypot(e - near.e, n - near.n) > near.r + 20) continue;
-      out.push({ key: `${v.key}:0`, kind: 'foot', e, n, heading: a.heading + Math.PI / 2 * Math.sign(v.side), act: 'herd', why: `grazing the household’s sheep and goats on the road’s verge on the way in from ${v.H.home}, to sell wethers at Pārsa`, look: lookOf(this.seed, v.H, 'head'), life: lifeOf(v.H, 'head') });
-      if (v.H.kids) out.push({ key: `${v.key}:1`, kind: 'foot', e: e + c * Math.sign(v.side) * 9 + sn * 6, n: n - sn * Math.sign(v.side) * 9 + c * 6, heading: a.heading, act: 'herd', why: 'watching the flock on the verge with his father, keeping it off the road', look: lookOf(this.seed, v.H, 'son'), life: lifeOf(v.H, 'son') }); }
+    for (const v of this.vergeFlocks(d)) { if (t < v.t0 || t > v.t1) continue; for (const mv of this.vergeMovers(v, t)) { if ((mv.pid ?? -1) >= 0) continue;
+      if (near && Math.hypot(mv.e - near.e, mv.n - near.n) > near.r + 20) continue; out.push(mv); } }
     for (const dd of [d - 1, d]) { if (dd < 0) continue; for (const T of this.dayTrips(dd)) {
-      // at the stair foot (the roads' Pārsa end): a third of the trips stay a while there first or last (selling, holding the string,
-      // a word before the road home), at their own spot on the approach, walked to from the road's end (C)
-      if (T.tEnd === undefined) { if (T.foot === undefined) T.foot = T.key.startsWith('rf') ? footStay(this.seed, T.key) : null; T.tEnd = T.t0 + T.path.len / T.pace / 3600 + (T.halt ? T.halt.b - T.halt.a : 0) + (T.foot ? 1 : 0); }
-      if (t > T.tEnd || t < T.t0 - 1) continue; // (the stay and the walk to it are under an hour either side)
-      const F = T.foot ?? null, walkF = F ? Math.hypot(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) / T.pace / 3600 : 0;
-      let s: number, act: ActivityId | null = null, why = '', at: { e: number; n: number; heading: number } | null = null;
-      if (t < T.t0) { if (!F || T.dir !== -1 || t < T.t0 - walkF - F.stay) continue; // (outbound: the stay, then the walk to the road's end)
-        const u = Math.max(0, (t - (T.t0 - walkF)) / Math.max(1e-6, walkF)); at = { e: F.spot[0] + (FOOT_IN[0] - F.spot[0]) * u, n: F.spot[1] + (FOOT_IN[1] - F.spot[1]) * u, heading: Math.atan2(FOOT_IN[0] - F.spot[0], FOOT_IN[1] - F.spot[1]) };
-        if (t < T.t0 - walkF) { act = T.kind === 'pack' ? 'tend_animals' : T.kind === 'cart' ? 'tend_animals' : 'talk'; why = T.kind === 'pack' ? 'holding the string at the stair foot before the road home' : T.kind === 'cart' ? 'holding the ox cart at the stair foot before the road home' : 'a word with acquaintances at the stair foot before the road home'; } s = 0; }
-      else if (T.halt && t >= T.halt.a && t < T.halt.b) { s = T.halt.s; act = T.halt.act; why = T.halt.why; }
-      else s = ((t - T.t0) - (T.halt && t >= T.halt.b ? T.halt.b - T.halt.a : 0)) * 3600 * T.pace;
-      if (s > T.path.len) { if (!F || T.dir !== 1) continue; const tEnd = T.t0 + T.path.len / T.pace / 3600 + (T.halt ? T.halt.b - T.halt.a : 0), u = (t - tEnd) / Math.max(1e-6, walkF);
-        if (t > tEnd + walkF + F.stay) continue; at = { e: FOOT_IN[0] + (F.spot[0] - FOOT_IN[0]) * Math.min(1, u), n: FOOT_IN[1] + (F.spot[1] - FOOT_IN[1]) * Math.min(1, u), heading: Math.atan2(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) };
-        if (u >= 1) { act = T.kind === 'pack' ? 'tend_animals' : T.kind === 'cart' ? 'tend_animals' : 'exchange'; why = T.kind === 'pack' ? 'holding the string at the stair foot while the goods are sold' : T.kind === 'cart' ? 'holding the ox cart at the stair foot while the load is sold' : 'selling what was brought at the stair foot, to the porters, the guards and the scribes’ servants'; } }
-      const a = at ?? along(T.path, s);
+      const q = this.pos(T, t); if (!q) continue; const { a, act, why, at } = q;
       if (near && Math.hypot(a.e - near.e, a.n - near.n) > near.r + 20) continue;
-      const c = Math.cos(a.heading), sn = Math.sin(a.heading), string = T.kind !== 'foot';
-      T.people.forEach((p, i) => { // the others walk behind the first (a string's driver leads; beside it at a halt), a pace to the side
-        const back = i === 0 ? 0 : (string ? 3.5 : 1.4) * i, side = i === 0 ? 0 : (i % 2 ? 0.8 : -0.8);
-        out.push({ key: `${T.key}:${i}`, kind: i === 0 ? T.kind : 'foot', e: a.e - sn * back + c * side, n: a.n - c * back - sn * side, heading: a.heading, act: act && (i === 0 || act !== 'tend_animals') ? act : act ? 'rest' : p.act,
-          why: act ? (i === 0 ? why : at ? 'waiting with the others at the stair foot' : 'resting by the road on the way') : p.why, look: p.look, life: p.life }); });
+      T.people.forEach((p, i) => { if (this.pidOf && p.m && T.hh !== undefined && this.pidOf(T.road, T.hh, p.m) >= 0) return; // (a person of the population: popview draws them, from spotOf)
+        out.push(this.member(T, i, a, act, why, !!at)); });
     } }
     return out;
   }

@@ -11,6 +11,7 @@ import { campItems } from '../src/world/courtCamps';
 import { Fauna, openGround } from '../src/world/fauna';
 import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
 import { siteCensus } from '../tools/dev/road_census';
+import { Traffic, along } from '../src/world/traffic';
 
 const inTent = (t: Tent, e: number, n: number, pad = 0.2) => { const a = t.heading * Math.PI / 180, fe = Math.sin(a), fn = Math.cos(a), de = e - t.e, dn = n - t.n, v = de * fe + dn * fn, u = de * fn - dn * fe; return Math.abs(u) < t.w / 2 + pad && Math.abs(v) < t.d / 2 + pad; };
 let pop: Population, tents: Tent[], plan: TownPlan;
@@ -36,6 +37,13 @@ describe('the court’s camps lived in (D-570)', () => {
     const court = tents.filter(t => t.camp === 'court'), on = court.find(t => t.pitch !== undefined)!, mid = ((on.pitch ?? 0) + (on.strike ?? 9000)) / 2;
     expect(shares(mid).get('court')).toBeGreaterThan(0.5); expect(shares((on.pitch ?? 0) - 48).get('court')).toBeLessThan(0.05);
     expect(court.filter(t => tentStands(t, mid)).length).toBeGreaterThan(court.length / 2);
+  });
+  it('the court’s baggage train: a string per tented household in along the royal road to its camp’s edge before the tent is pitched, and out on the leave day, off the town’s plots', () => {
+    const T = new Traffic(1, pop as any, plan); expect(T.train.length).toBe(2 * tents.length);
+    const seen = new Set<string>(); for (const x of T.train) { const k = x.R.pts.map(p => p.join()).join(';'); if (seen.has(k)) continue; seen.add(k);
+      for (let s = 0; s <= x.R.len; s += 4) { const p = along(x.R, s); expect(openGround(plan, p.e, p.n), `${x.key} at ${p.e.toFixed(0)},${p.n.toFixed(0)}`).toBe(true); expect(tents.some(t => inTent(t, p.e, p.n, 0.5)), `${x.key} through a tent`).toBe(false); } }
+    const on = tents.find(t => t.pitch !== undefined)!, x = T.train.find(q => q.key.endsWith(`:${on.i}:in`))!; const m = T.at((on.pitch ?? 0) - 0.6).find(q => q.key === x.key)!;
+    expect(m).toBeTruthy(); expect(Math.hypot(m.e - x.R.pts[x.R.pts.length - 1][0], m.n - x.R.pts[x.R.pts.length - 1][1])).toBeLessThan(400);
   });
   it('the building site and the camps are peopled by the population’s own plans', () => {
     const on = tents.find(t => t.camp === 'court' && t.pitch !== undefined)!, d = Math.floor(((on.pitch ?? 0) + 48) / 24);
