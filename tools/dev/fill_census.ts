@@ -100,9 +100,9 @@ if (isMain) {
     // (--roofs: + the roofs' things, houses.ts roofFill, from a built Settlement on the real terrain)
     let roof: FillItem[] = []; if (process.argv.includes('--roofs')) { const { loadTerrain } = await import('../../tests/plainLib'); const { FireSystem } = await import('../../src/world/fire'); const { Settlement } = await import('../../src/world/settlement/build');
       roof = new Settlement(null, loadTerrain(), new FireSystem(0), 'test').roofFill() as FillItem[]; }
-    const F = new WorldFill([...items, ...roof], { ground: () => 0 }), S: { draws: number; tris: number; drawn: number }[] = [];
+    const F = new WorldFill([...items, ...roof], { ground: () => 0 }), S: { draws: number; tris: number; drawn: number; dropped: number }[] = [];
     for (const s of sites) { if (s.meta.kind !== 'quarter') continue; let q = 0; for (let j = 0; j < s.H; j += 7) for (let i = 0; i < s.W; i += 7) if (s.cell[s.k(i, j)] === LANE && q++ % 25 === 0) { F.update(s.grid(s.cu(i), s.cv(j)), 9, 0, true); S.push(F.stats()); } }
     const avg = (f: (x: typeof S[0]) => number) => Math.round(S.reduce((a, x) => a + f(x), 0) / S.length), max = (f: (x: typeof S[0]) => number) => Math.max(...S.map(f));
-    console.log(`cost (${S.length} lane views, 9 h): draws mean ${avg(x => x.draws)} max ${max(x => x.draws)}; triangles mean ${avg(x => x.tris)} max ${max(x => x.tris)}; things drawn mean ${avg(x => x.drawn)}; missing ${JSON.stringify(F.missing)}`); }
+    console.log(`cost (${S.length} lane views, 9 h): draws mean ${avg(x => x.draws)} max ${max(x => x.draws)}; triangles mean ${avg(x => x.tris)} max ${max(x => x.tris)}; things drawn mean ${avg(x => x.drawn)}; parts dropped at the cap max ${max(x => x.dropped)}; missing ${JSON.stringify(F.missing)}`); }
   const j = process.argv.indexOf('--json'); if (j > 0) writeFileSync(process.argv[j + 1], JSON.stringify(c, null, 1));
 }

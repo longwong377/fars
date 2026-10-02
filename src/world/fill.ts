@@ -44,7 +44,7 @@ export class WorldFill {
   private slots = new Map<string, Slot[][]>(); // model -> level -> parts
   private last: [number, number] = [1e9, 1e9]; private lastDay = -1;
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private qt = new THREE.Quaternion(); private xAxis = new THREE.Vector3(1, 0, 0); private up = new THREE.Vector3(0, 1, 0); private p = new THREE.Vector3(); private sc = new THREE.Vector3();
-  readonly missing: string[] = []; drawn = 0; meshes = 0; solids = 0;
+  readonly missing: string[] = []; drawn = 0; meshes = 0; solids = 0; /** parts not drawn last update: their model's instance cap was full */ dropped = 0;
   constructor(readonly items: FillItem[], private env: FillEnv) {
     this.group.name = 'fill';
     this.group.userData = { tier: 'C', src: 'RECON', note: 'the fill (D-367): market stalls and their goods, the lanes\' fuel, jars, sacks and rubble, awnings over doors, washing lines across the lanes, the masons\' waste, the goods at the stair foot and the standards on the Terrace: placed by rule (fillPlan.ts), modelled props (C)' };
@@ -81,7 +81,7 @@ export class WorldFill {
     this.last = [viewer[0], viewer[1]]; this.lastDay = day;
     for (const L of this.slots.values()) for (const S of L) for (const s of S) s.n = 0;
     const R = Math.max(FILL_R.big, ROOF_R), i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
-    let drawn = 0;
+    let drawn = 0; this.dropped = 0;
     for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) for (const k of this.grid.get(this.key(i, j)) ?? []) {
       const it = this.items[k], y = this.y[k]; if (!Number.isFinite(y) || (it.day && (!open || wet || (it.until !== undefined && hour >= it.until))) || (wet && it.m === 'fill_line')) continue;
       const d = Math.hypot(it.e - viewer[0], it.n - viewer[1]), one = ONE_LEVEL[it.at]; if (d > (one ? one[1] : BIG.has(it.m) ? FILL_R.big : it.at === 'roof' ? ROOF_R : FILL_R.small)) continue;
@@ -89,7 +89,7 @@ export class WorldFill {
       const L = levels[one ? one[0] : d < FILL_R.lod0 ? 0 : d < FILL_R.lod1 ? 1 : 2];
       this.q.setFromAxisAngle(this.up, it.rot); if (it.tilt) this.q.multiply(this.qt.setFromAxisAngle(this.xAxis, it.tilt)); this.m4.compose(this.p.set(it.e, y + it.dy, -it.n), this.q, this.sc.set(it.s[0], it.s[1], it.s[2]));
       const shade = 0.88 + 0.24 * (((k * 2654435761) >>> 0) / 4294967296);
-      for (const s of L) { if (s.n >= s.mesh.instanceMatrix.count) continue;
+      for (const s of L) { if (s.n >= s.mesh.instanceMatrix.count) { this.dropped++; continue; }
         const c = it.col?.[s.part] ?? (PART[s.part]?.[1] ?? [0.6, 0.5, 0.4]);
         s.mesh.setMatrixAt(s.n, this.m4); _c.setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace).multiplyScalar(shade); s.mesh.setColorAt(s.n, _c); s.n++; }
       drawn++;
@@ -99,5 +99,5 @@ export class WorldFill {
   }
   stats() { let draws = 0, tris = 0; this.group.traverse(o => { const m = o as THREE.InstancedMesh; if (m.isInstancedMesh && m.visible) { draws++; tris += m.count * ((m.geometry.index?.count ?? m.geometry.getAttribute('position').count) / 3); } });
     const by: Record<string, number> = {}; for (const it of this.items) by[it.at] = (by[it.at] ?? 0) + 1;
-    return { items: this.items.length, by, drawn: this.drawn, draws, tris: Math.round(tris), meshes: this.meshes, solids: this.solids, missing: this.missing }; }
+    return { items: this.items.length, by, drawn: this.drawn, dropped: this.dropped, draws, tris: Math.round(tris), meshes: this.meshes, solids: this.solids, missing: this.missing }; }
 }
