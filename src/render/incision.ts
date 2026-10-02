@@ -48,9 +48,9 @@ export function incisionNodes(A: Atlas): IncisionNodes {
     const nV = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
     const depth = depthAt(p);
     // D-510: beyond ~1 texel a pixel the walls' normals alias (mip 0 only): the cut eases to the face's normal and a mean shade
-    const far = smoothstep(1, 3, foot);
+    const far = smoothstep(1, 3, foot).mul(0.75);
     const nF = normalize(mix(nV, normalize(cameraViewMatrix.mul(vec4(N, 0)).xyz), far));
-    const ao = mix(float(1).sub(smoothstep(0, float(0.05).mul(em), depth).mul(0.3)), float(0.78), far);
+    const ao = mix(float(1).sub(smoothstep(0, float(0.05).mul(em), depth).mul(0.3)), float(0.6), far);
     return vec4(nF, ao);
   })();
   const r = min(foot, 6).mul(0.5), ox = vec2(r.div(W), 0), oy = vec2(0, r.div(H));
