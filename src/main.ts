@@ -410,6 +410,8 @@ async function boot() {
   let lastFrameMs = 0; let probeT = 0;
   /** D-337: a frozen test world profiled as the player's loop runs it (the eye rays every 0.25 s, the meter read back without waiting) */
   let PLAYLIKE = false; let passLog: PassLog | null = null;
+  /** s15/ship (D-374): called as a frame starts drawing (the shader-build budget below restarts) */
+  let onDrawStart = () => {}, onDrawEnd = () => {};
 
   function simStep(dt: number, advanceClock = true) {
     if (advanceClock) clock.advance(dt);
@@ -516,7 +518,7 @@ async function boot() {
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the
     // session 2 bench and every renderOnce-based count measured that: 1 draw call, sub-millisecond "frames")
     if (!inAnimationLoop) { const nf = (renderer as any)._nodes?.nodeFrame; if (nf) { nf.update(); (renderer.info as any).frame = nf.frameId; } }
-    tp = pt(); pipeline.render(scene, camera); pa('render', tp);
+    tp = pt(); onDrawStart(); pipeline.render(scene, camera); onDrawEnd(); pa('render', tp);
     lastFrameMs = performance.now() - t0;
     if (firstFrames > 0) { TRACE(`frame ${3 - firstFrames}: render ${lastFrameMs.toFixed(0)} ms`); firstFrames--; }
     // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
@@ -566,7 +568,18 @@ async function boot() {
     const pl: any = (renderer as any)._pipelines, orig = pl.getForRender; let pend: Promise<void>[] = [], live = 0, done = 0;
     pl.getForRender = function (ro: any, pr: any) { if (pr) return orig.call(this, ro, pr); const n = pend.length, r = orig.call(this, ro, pend);
       for (let i = n; i < pend.length; i++) { live++; pend[i].then(() => { live--; done++; }, () => { live--; }); } if (pend.length > 256) pend = []; return r; };
-    (api as any).compiling = () => ({ live, done });
+    // and the materials' shader BUILDS (three's node builder, JS on this thread: the bulk of a first frame's CPU) are spread
+    // over frames: once a frame has spent BUDGET ms on its draws, a draw whose render object has never been built waits for
+    // the next frame (?buildbudget=<ms>, 0: all in the first frame). The player walks at a steady frame rate meanwhile.
+    const R: any = renderer, direct = R._renderObjectDirect, BUDGET = +(P.get('buildbudget') ?? 40); let end = Infinity, deferred = 0;
+    if (BUDGET > 0) {
+      R._renderObjectDirect = function (object: any, material: any, scene: any, camera: any, lightsNode: any, group: any, clip: any, passId: any) {
+        if (performance.now() > end) { const ro = this._objects.get(object, material, scene, camera, lightsNode, this._currentRenderContext, clip, passId);
+          if (ro._nodeBuilderState === null) { deferred++; return; } }
+        return direct.call(this, object, material, scene, camera, lightsNode, group, clip, passId); };
+      R._handleObjectFunction = R._renderObjectDirect; onDrawStart = () => { end = performance.now() + BUDGET; }; onDrawEnd = () => { end = Infinity; }; // (renders outside the frame's draw, one-off bakes, are never deferred)
+    }
+    (api as any).compiling = () => ({ live, done, deferred: (() => { const d = deferred; deferred = 0; return d; })() });
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;

@@ -39,7 +39,7 @@ for (const v of visits) {
   if (!r.error) {
     await page.evaluate(() => new Promise(res => { let n = 0; const f = () => (++n >= 3 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); })); r.framesS = s();
     // every shader compiled (progressive compile), or 20 min
-    const t1 = Date.now(); while (Date.now() - t1 < 1_200_000) { const c = await page.evaluate(() => window.__parsa.compiling?.() ?? null); if (!c) break; r.compiled = c.done; if (c.live === 0 && Date.now() - t1 > 3000) break; await page.waitForTimeout(1000); }
+    const t1 = Date.now(); while (Date.now() - t1 < 1_200_000) { const c = await page.evaluate(() => window.__parsa.compiling?.() ?? null); if (!c) break; r.compiled = c.done; r.deferredLast = c.deferred; if (c.live === 0 && !c.deferred && Date.now() - t1 > 3000) break; await page.waitForTimeout(1000); }
     r.settledS = s();
     r.frameMs = await page.evaluate(() => new Promise(res => { const t = []; let last = performance.now(); const end = last + 5000;
       const f = now => { t.push(now - last); last = now; if (now < end) requestAnimationFrame(f); else { t.sort((x, y) => x - y); res(+t[t.length >> 1].toFixed(1)); } }; requestAnimationFrame(f); }));
