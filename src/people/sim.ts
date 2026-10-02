@@ -393,7 +393,10 @@ export class PeopleSim {
       if (want && L) { const w = unitsFor(L).words.find(x => new RegExp(`\\b${want}`, 'i').test(x.gloss ?? '')); if (w) act.word = w.id; } }
     // D-391 (the bot: a wages petition never named the debtor): one who says "he owes me" means the house that does
     if (act.a === 'petition' && act.kind === 'wages' && !act.against) act.against = E.stranger().debtor();
-    const verdict = E.stranger().judge(act);
+    // D-453 (the bot's year: "papers to stay" 0 of 82, no official among the people met): a householder asked for leave to stay
+    // takes the plea to the officials for the stranger (the elder of the quarter's word carried up, C): put to the officials
+    const carried = act.a === 'petition' && act.kind === 'leave' && act.to !== 'official'; if (carried) act.to = 'official';
+    const verdict = E.stranger().judge(act); if (carried && verdict.ok) verdict.why += '; you will take his plea to the officials yourself';
     // D-391 (the playtest bot: 9-11 of 11 asks for work refused): a house with no work for a stranger says where there is some,
     // a house of the same quarter that needs a hand (its head named), else the king's works that take men on (C)
     if (act.a === 'seek_work' && !verdict.ok && verdict.why === 'they need no hands now') verdict.why += `; ${this.workElsewhere(E, act.hh, day)}`;
