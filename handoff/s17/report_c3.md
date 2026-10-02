@@ -8,7 +8,7 @@
 - Hinterland households are their own register, not the population: their errands come from the calendar, not the economy.
 - tests/land_work.test.ts fails on clean cloud-s17-int too, so it's pre-existing.
 
-**What a player sees**: all four roads busy in dry daylight: strings, baskets, jars, brushwood, ox carts, festival families, traders and camels. People go in at morning and home in the afternoon, halt by the road and sell at the stair foot. Herders graze the verges. The court's camps have things before every tent and picket lines of animals. The Hall of 100 Columns has an earth ramp with a drum on rollers. When the court arrives, its baggage train fills the royal road, and leaves the same way.
+**What a player sees**: all four roads busy in dry daylight: strings, baskets, jars, brushwood, ox carts, festival families, traders and camels. People go in at morning and home in the afternoon, halt by the road and sell at the stair foot. Herders graze the verges, and some take their flocks out for 12-day spells on the stubble, slopes and steppe, folded at night. Fauna draws those flocks out to 2.4 km. Dogs lie by the camps' picket lines. There are more larks, kestrels, egrets, magpies, crows and doves, kept inside the bird triangle gate. The court's camps have things before every tent and picket lines of animals. The Hall of 100 Columns has an earth ramp with a drum on rollers. When the court arrives, its baggage train fills the royal road, and leaves the same way.
 
 **Census** (road_census.ts): roads were empty 99 % of daylight; now the longest gap is 1.7 min (30 days). The site has ~500 people at work an hour; the camps ~4,300.
 
