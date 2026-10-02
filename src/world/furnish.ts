@@ -10,6 +10,7 @@ import { Rng } from '../core/rng';
 import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
 import { ptTabletGeometry, bullaGeometry, clayMaterial, writtenMeta } from './writing';
 import { propMaterial, propMaterialMulti } from '../render/materials';
+import { registerTerraceInteriors } from './interiors/terrace';
 import { scanShape, modelFit, mergedModel, model, modelParts } from '../render/scanProps';
 /** D-325: a modelled form fitted to the box of the procedural form it replaces (base, footprint centre and size kept), its
  *  parts merged (position, normal); null when the model is not loaded */
@@ -317,6 +318,7 @@ function mergeStatic(group: THREE.Group, names: string[], name: string, kindOf: 
  *  analogy); number and place by rule (C) */
 export function buildRoomFittings(b: string, R: { mats: number[][]; jars: number[][]; querns: number[][]; lamps: number[][] }): THREE.Group {
   const group = new THREE.Group(); group.name = `${b}:rooms`;
+  registerTerraceInteriors(); // s17 C7 (D-610): the rooms' furnishing beyond these fittings, round the eye (interiors/terrace.ts)
   const F = v<any>('global', 'r_room_fittings');
   const mat = (rgb: [number, number, number], rough: number) => new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace), roughness: rough, metalness: 0 });
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), one = new THREE.Vector3(1, 1, 1), names: string[] = [];

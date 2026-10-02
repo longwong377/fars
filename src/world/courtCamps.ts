@@ -14,6 +14,7 @@ import { CAMP_BY_ID, TENT_KINDS, type Tent, type TentKind } from '../people/camp
 import type { Physics } from '../player/physics';
 import { tentForm, RIG, type V3 } from './tentForms';
 import { tentModel, withBakedMap } from '../render/decorAssets';
+import { registerTentInteriors } from './interiors/tents';
 import { beforeDoor } from '../people/camps';
 import { model, modelParts, aoFactor } from '../render/scanProps';
 import { propMaterial } from '../render/materials';
@@ -125,6 +126,7 @@ export class CourtCampTents {
   private eye: [number, number] | null = null; private dirty = true;
   constructor(tents: Tent[], private ground: (e: number, n: number) => number, private phys: Physics | null = null) {
     const groundAt = ground; const t0 = performance.now(); Object.assign(SURFACES, TENT_SURFACES); this.tents = tents; this.level = new Uint8Array(tents.length).fill(2);
+    registerTentInteriors(tents, ground, ti => this.cols[this.group_of[ti]]?.on ?? false); // s17 C7 (D-610): the inside of the standing tents (interiors/tents.ts)
     this.group.name = 'court-camps'; this.group.userData = { tier: 'C', src: 'RECON;HDT', note: 'the court’s camps (court setting only, D-199): tents in lines (camps.ts), all C; Q-333' };
     // each tent's placement: on the ground's plane under its four corners (the frame tilts with a slope of ≤ 5 %), its colour
     for (const t of tents) {

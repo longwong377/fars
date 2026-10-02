@@ -107,6 +107,7 @@ import { Soundscape, registerRoom } from '../audio/soundscape';
 import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { NavGrid } from '../people/navgrid';
+import { setInteriorPeople } from './interiors/household';
 import { PeopleSim, Env } from '../people/sim';
 import { strangerPresence, thinCaption } from '../people/speech/presence';
 import { Overheard } from '../people/overheard';
@@ -140,7 +141,7 @@ import { CourtCampTents } from './courtCamps';
 import { NearSolids, SOLID_R } from './solids';
 import type { AnimalInst } from '../people/animals';
 import { CAMPS } from '../people/camps';
-import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
+import { Fauna, FAC as FAUNA_FAC, grazingSites, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
 import { quarrySites } from './plain/quarries';
 import { SmokeModel, type SmokeSite } from './hearthSmoke';
@@ -427,6 +428,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
     villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts),
     rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })) }); // (D-256: the banks and meadows of the land work)
+  setInteriorPeople(sim.pop, hh => { const x = geo.villageOf(hh); return x ? `${plain.data.villages[x.vi].id}-c${x.ci}` : null; }); // s17 C7 (D-610): the rooms furnished for who lives there
   // D-392: the Terrace's core routes between place anchors (the court's walks, searched up front: D-182) read from the baked
   // world; they depend on the walkable grid and the anchors only, keyed by the grid's blocked cells (fires, furnishings); a world of another seed still finds most of its own there
   // (one entry per baked world, all of them merged: a world of another seed finds most of its routes there; this world's own
@@ -461,6 +463,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
   traffic.setQuarries(quarrySites(terrain)); // D-256: the quarrymen at work and the drums hauled to the Terrace
+  // D-570: the herders' flocks out on the stubble, the slopes and the steppe (roadFolk.ts), and drawn far by the fauna
+  traffic.folk.setGrazing(grazingSites((e, n) => landUseAt(plain.data.zones, e, -n).use, (e, n) => Math.hypot(terrain.heightAt(e + 10, -n) - terrain.heightAt(e - 10, -n), terrain.heightAt(e, -n - 10) - terrain.heightAt(e, -n + 10)) / 20, settlement?.plan ?? null)); fauna.flockSource = t => traffic.folk.flocksAt(t);
   const syncTraffic = (cam: THREE.Vector3) => { traffic.at(sim.t, movers, { e: cam.x, n: -cam.z, r: 750 }); const now = new Set<string>();
     for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
       if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }
@@ -808,10 +812,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           }
         }
         sound.update(dt, { hour, month, windMs: ctx.cond.windMs, rain: ctx.cond.rain, insideSpace: spaceAt(cam.position.x, cam.position.y, cam.position.z),
-          nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
+          nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: ctx.player.pace === 'brisk',
           surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,
           worksite: null, workHours: hour > 6.5 && hour < 17.5, // chisels, querns, dice now come from the people (crowd.onHit)
-          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC }); // D-210: where the animals and insects are heard
+          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC, air: ctx.cond, ground: (ctx.player as { groundKind?: 'stone' }).groundKind, roofed: (ctx.player as { roofed?: boolean }).roofed }); // D-620: the walk's ground and roof (C9) // D-210: where the animals and insects are heard; D-620: the weather for the recorded beds
       }
       pa('w.audio', tp);
     },
@@ -820,7 +824,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     soundLines: () => {
       const o = audio.occlusionOf(lastHandle?.panner), s = lastSpoken;
       return [s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}${o ? ` · occlusion ${o.gainDb.toFixed(1)} dB, ${Math.round(o.cutoffHz)} Hz via ${o.path}` : ''}` : 'speech heard: none yet',
-        ...director.lines(),
+        ...director.lines(), ...sound.recordedLines(),
         ...voices.lines(), ...(neural?.lines() ?? ['neural voices off (?neural=0): formant synthesiser, PLACEHOLDER-QUALITY']), ...farCrowd.lines(),
         `water (D-245, synthesised, C): river ${Number.isFinite(water.near.river) ? `${water.near.river.toFixed(0)} m` : 'none within 150 m'}, canal ${Number.isFinite(water.near.canal) ? `${water.near.canal.toFixed(0)} m` : 'none within 60 m'} · space ${sound.lastSpace}`,
         `animals and insects heard (D-210, synthesised, C): ${sound.heardLines().join(' · ') || 'none in the last minute'}${sound.fliesLevel > 0.05 ? ` · flies ${sound.fliesLevel.toFixed(2)}` : ''}`,

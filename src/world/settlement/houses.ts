@@ -18,6 +18,8 @@
 // Street door leaves are the town door system (TownDoors, build.ts): instanced, turning on their pivot posts, shut at night.
 // Every face carries an owner: (plot or fixture description index) × 32 + part, so F3 names the house, the part, its tier
 // and its sources (HOUSE_PARTS). All tier C: no house of Achaemenid Fars is excavated; the analogues are named per part.
+import { interiorsOn } from '../interiors/town';
+import { registerHouses } from '../interiors/ring';
 import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
 import { hashString } from '../../core/rng';
@@ -113,7 +115,7 @@ export class SiteHouses {
   private fixByPlot = new Map<number, Fixture[]>(); private fitByPlot = new Map<number, Site['fittings']>(); private wallsByTile = new Map<number, WallEl[]>(); private roomsByTile = new Map<number, RoomEl[]>();
   private cs: number; private sn: number;
   constructor(readonly s: Site, readonly si: number, readonly H: (e: number, n: number) => number, readonly base: Float32Array, readonly local: Uint8Array, readonly pcol: RGB[], readonly pdesc: Int32Array, desc: { tier: string; src: string; note: string }[]) {
-    this.cs = Math.cos(s.frame.theta); this.sn = Math.sin(s.frame.theta);
+    this.cs = Math.cos(s.frame.theta); this.sn = Math.sin(s.frame.theta); registerHouses(this); // s17 C7 (D-610): the rooms round the eye furnished (interiors/ring.ts)
     this.lives = livesOf(s); this.fixtures = fixturesOf(s);
     this.plotTile = new Int32Array(s.plots.length); this.big = new Uint8Array(s.plots.length);
     for (const p of s.plots) { const [i0, j0, i1, j1] = p.rect; this.big[p.idx] = p.area > 1500 || !HOUSE_KINDS.has(p.kind) && p.area > 600 ? 1 : 0; this.plotTile[p.idx] = this.tileAt(s.u0 + (i0 + i1) / 2, s.v0 + (j0 + j1) / 2); }
@@ -835,6 +837,7 @@ export class SiteHouses {
    *  of workshops their stock. Dark volumes otherwise: the visitor walking in would find them empty */
   private furnish(r: RoomEl, B: HB) {
     const s = this.s, p = s.plots[r.plot]; if (!HOUSE_KINDS.has(p.kind)) return;
+    if (interiorsOn) return; // s17 C7 (D-610): the rooms round the eye are furnished by src/world/interiors/ring.ts
     const u0 = s.u0 + r.i0, u1 = s.u0 + r.i1, v0 = s.v0 + r.j0, v1 = s.v0 + r.j1, W2 = u1 - u0, D2 = v1 - v0; if (W2 < 2 || D2 < 2) return;
     const use = this.roomUse(r), vest = use === 'vestibule', h = hi(r.room, this.si, 5), own = this.owner(r.plot, P.fixture);
     const gy = (u: number, v: number) => this.gl(u, v);

@@ -18,7 +18,7 @@ export interface Settings {
   talk: boolean;
 }
 export const DEFAULT_KEYS: Record<string, string> = {
-  forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', interact: 'KeyE', pause: 'Escape', overlay: 'F3',
+  forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', slow: 'AltLeft', crouch: 'KeyC', interact: 'KeyE', pause: 'Escape', overlay: 'F3',
   map: 'KeyM', mapZoom: 'KeyZ', chronicle: 'KeyJ', // translation layer only (out-of-world)
   nowView: 'KeyN', // the Now view (out-of-world, D-201)
 };

@@ -42,6 +42,18 @@ export const h01 = (seed: number, a: number, b = 0) => { let h = (seed * 2654435
 const smooth = (x: number) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
 const F = faunaData as any;
 /** shares, counts and draw radii (fauna.json; C) */
+/** D-570: the herders' flocks out on the land (roadFolk.ts grazingOn): drawn here beyond the crowd's reach (its performers'
+ *  flocks: within crowd.ts THINGS_DIST) out to FLOCK_FAR m, so the slopes and the stubble are not empty by day (C) */
+export const FLOCK_NEAR = 380, FLOCK_FAR = 2400;
+/** D-570: where flocks graze within 3.5 km of the Terrace (a 200 m grid): the fields' stubble, the slopes (8-40 %), the low steppe;
+ *  each clear of the town's plots for 90 m round and 350 m off the Terrace (C) */
+export function grazingSites(use: (e: number, n: number) => string, slope: (e: number, n: number) => number, plan: TownPlan | null): { e: number; n: number; kind: 'hill' | 'stubble' | 'steppe' }[] {
+  const out: { e: number; n: number; kind: 'hill' | 'stubble' | 'steppe' }[] = [];
+  for (let e = -3400; e <= 3400; e += 200) for (let n = -3400; n <= 3400; n += 200) { if (Math.hypot(e - 80, n - 30) > 3500 || Math.hypot(e - 80, n - 30) < 350) continue;
+    let clear = true; if (plan) for (let k = 0; k < 9 && clear; k++) { const a = k * 0.785, r = k === 8 ? 0 : 90; if (!openGround(plan, e + r * Math.cos(a), n + r * Math.sin(a))) clear = false; } if (!clear) continue;
+    const u = use(e, n), g = slope(e, n); if (u === 'rainfed' || u === 'irrigated') out.push({ e, n, kind: 'stubble' }); else if (u === 'natural') { if (g > 0.08 && g < 0.4) out.push({ e, n, kind: 'hill' }); else if (g <= 0.08) out.push({ e, n, kind: 'steppe' }); } }
+  return out;
+}
 /** D-570: how far the camps' picket lines are drawn (m) */
 export const CAMP_LINE_R = 300;
 export const FAUNA = {
@@ -308,7 +320,18 @@ export class Fauna {
         for (let k = 0; k < L.slots.length; k++) { const id = L.id * 64 + k; if (h01(this.seed, id, day) > sh * 0.92) continue; const q = L.slots[k];
           let u = h01(this.seed, id, 5), sp: Species = L.species[0][0]; for (const [x, p] of L.species) { if (u < p) { sp = x; break; } u -= p; }
           const eat = fr(c.t / (15 + 9 * h01(id, 6)) + h01(id, 7)) < 0.65 ? 1 : 0, lie = night && h01(id, day, 8) < 0.35 ? 1 : 0;
-          Object.assign(o, { sp, e: q[0], n: q[1], x: 0, z: 0, yaw: L.yaw + (h01(id, day, 9) - 0.5) * 0.5, phase: c.t * 1.3 + id, walk: 0, graze: lie ? 0 : eat, lie, coat: h01(this.seed + id, 10) }); push(); } } }
+          Object.assign(o, { sp, e: q[0], n: q[1], x: 0, z: 0, yaw: L.yaw + (h01(id, day, 9) - 0.5) * 0.5, phase: c.t * 1.3 + id, walk: 0, graze: lie ? 0 : eat, lie, coat: h01(this.seed + id, 10) }); push(); }
+        // the camp's dogs by the line (one, two at the larger camps' lines; C): lying through the heat, up and about at the
+        // ends of the day, a few metres out from the animals
+        for (let k = 0; k < 1 + (L.id % 2); k++) { const id = 9000 + L.id * 4 + k, q = L.slots[Math.floor(h01(id, day, 1) * L.slots.length)], h = c.hour, up = (h > c.sun.rise && h < c.sun.rise + 2.5) || (h > c.sun.set - 2 && h < c.sun.set + 1);
+          const a = L.yaw + Math.PI + (h01(id, 2) - 0.5), r = 4 + 3 * h01(id, 3) + (up ? 2 * Math.sin(c.t / 23 + id) : 0);
+          Object.assign(o, { sp: 'dog' as Species, e: q[0] + Math.sin(a) * r, n: q[1] + Math.cos(a) * r, x: 0, z: 0, yaw: a + (up ? c.t / 30 : 0), phase: c.t * 2 + id, walk: up && fr(c.t / 17 + id) > 0.6 ? 0.7 : 0, graze: 0, lie: up ? 0 : 1, coat: h01(id, 4) }); push(); } } }
+    // D-570: the herders' flocks out on the land beyond the crowd's reach: sheep and goats spread over 4-13 m grazing and
+    // drifting by day, packed in the fold and most lying at night
+    if (this.flockSource) for (const F of this.flockSource((c.day ?? 0) * 24 + c.hour)) { const dc = Math.hypot(F.e - cam[0], F.n - cam[1]); if (dc < FLOCK_NEAR || dc > FLOCK_FAR) continue;
+      const N = 14 + Math.floor(10 * h01(F.seed, 1)); for (let j = 0; j < N; j++) { const s0 = F.seed * 31 + j, a = h01(s0, 2) * 6.283 + (F.folded ? 0 : 0.05 * Math.sin(c.t / 40 + j)), r = F.folded ? 1 + 3.5 * Math.sqrt(h01(s0, 3)) : 4 + 9 * Math.sqrt(h01(s0, 3));
+        const lying = F.folded && h01(s0, Math.floor(c.t / 1800)) < 0.75, walking = !F.folded && fr(c.t / (18 + 8 * h01(s0, 4)) + h01(s0, 5)) > 0.8;
+        Object.assign(o, { sp: (h01(s0, 6) < 0.6 ? 'sheep' : 'goat') as Species, e: F.e + r * Math.cos(a), n: F.n + r * Math.sin(a), x: 0, z: 0, yaw: h01(s0, 7) * 6.283 + (walking ? 0.3 * Math.sin(c.t / 9) : 0), phase: c.t * 1.4 + j, walk: walking ? 0.6 : 0, graze: !lying && !walking ? 1 : 0, lie: lying ? 1 : 0, coat: h01(s0, 8) }); push(); } }
     // D-227: the tether lines at the foot of the Grand Stair (terraceFoot.ts), within FOOT_DRAW_R of it
     if (this.foot) { const vis = Math.hypot(STAIR_FOOT[0] - cam[0], STAIR_FOOT[1] - cam[1]) < FOOT_DRAW_R; this.foot.group.visible = vis;
       if (vis) this.foot.update(c.day ?? 0, c.hour, c.t, a => { Object.assign(o, a); push(); }); }
@@ -338,6 +361,8 @@ export class Fauna {
     this.beasts.hyenaMidden = best;
   }
   addTerraceFoot(f: TerraceFoot) { this.foot = f; this.group.add(f.group); }
+  /** D-570: the flocks out on the land (world.ts: traffic.folk.flocksAt), drawn beyond the crowd's reach */
+  flockSource: ((t: number) => { e: number; n: number; seed: number; folded: boolean }[]) | null = null;
   /** D-570: the court camps' picket lines (court setting): per camp, lines of horses, mules and (at the court's own camp) camels
    *  tied to a ground rope at the camp's edge, a fodder heap at a line's end and the dung swept along it, filled with the
    *  share of the camp's tents standing (its households there: court.ts pitches and strikes them, D-252). How the court's

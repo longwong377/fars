@@ -173,7 +173,7 @@ export class RoadFolk {
       const P = this.paths[ri], used = new Set<number>(); let k = 0;
       // (no household twice at once: a day's comers are drawn from the half of the register of the day's parity, the households
       // still at their kin's or going home from them from the other half: dayTrips)
-      const pick = () => { for (let g = 0; g < 80; g++) { const hh = 2 * Math.floor(h01(this.seed, 31000 + ri * 97 + d, k++) * ROAD_HH / 2) + (d & 1); if (!used.has(hh)) { used.add(hh); return hh; } } return 2 * (k % (ROAD_HH / 2)) + (d & 1); };
+      const pick = () => { for (let g = 0; g < 80; g++) { const hh = 2 * Math.floor(h01(this.seed, 31000 + ri * 97 + d, k++) * ROAD_HH / 2) + (d & 1); if (!used.has(hh) && !this.grazingOn(ri, hh, d)) { used.add(hh); return hh; } } return 2 * (k % (ROAD_HH / 2)) + (d & 1); };
       const list: InRec[] = []; recs.set(ri, list);
       for (let h = w0, g = 0; g < 400 && h < w1; g++) { const wt = wet(h);
         if (!wt || h01(this.seed, 33000 + ri, d * 400 + g) < 0.3) {
@@ -215,7 +215,7 @@ export class RoadFolk {
       for (const tr of T!) if (tr.road === ri && tr.hh !== undefined) (busy.get(tr.hh) ?? busy.set(tr.hh, []).get(tr.hh)!).push(span(tr));
       let fk = 0;
       const pickF = (iv: [number, number]) => { for (const second of [false, true]) for (let g = 0; g < 400; g++) { const hh = Math.floor(h01(this.seed, 37000 + ri * 97 + d + (second ? 500 : 0), fk++) * ROAD_HH);
-        const B = busy.get(hh); if (away.has(hh) || (B && (!second || B.some(([a, b]) => a < iv[1] && b > iv[0])))) continue; (B ?? busy.set(hh, []).get(hh)!).push(iv); return hh; } return -1; };
+        const B = busy.get(hh); if (away.has(hh) || this.grazingOn(ri, hh, d) || (B && (!second || B.some(([a, b]) => a < iv[1] && b > iv[0])))) continue; (B ?? busy.set(hh, []).get(hh)!).push(iv); return hh; } return -1; };
       for (let pass = 0; pass < 3; pass++) for (const x of (pass === 1 ? [...xs].reverse() : xs)) {
         const ts: number[] = []; for (const tr of T!) for (const o of tr.on) if (o.ri === ri) { const s = o.s0 + o.sign * x; if (s >= 0 && s <= tr.path.len) ts.push(passAt(tr, s)); }
         ts.push(h0 - PASS_SPACING / 120, h1 + PASS_SPACING / 120); ts.sort((a, b) => a - b);
@@ -258,7 +258,7 @@ export class RoadFolk {
     if (!wx.wet) ROADS.forEach((R, ri) => { const P = this.paths[ri], n = 2 + (h01(this.seed, 43000 + ri, d) < 0.5 ? 1 : 0);
       const busy = new Set((this.inboundOf(d).recs.get(ri) ?? []).map(x => x.H.hh));
       for (let k = 0; k < n; k++) { const u = (q: number) => h01(this.seed, 43100 + ri * 10 + k, d * 8 + q); let hh = 2 * Math.floor(u(1) * ROAD_HH / 2) + (d & 1), H = household(this.seed, ri, hh);
-        for (let g = 0; g < 80 && (H.live !== 'herder' || busy.has(hh)); g++) { hh = (hh + 14) % ROAD_HH; H = household(this.seed, ri, hh); } busy.add(hh);
+        for (let g = 0; g < 80 && (H.live !== 'herder' || busy.has(hh) || this.grazingOn(ri, hh, d)); g++) { hh = (hh + 14) % ROAD_HH; H = household(this.seed, ri, hh); } busy.add(hh);
         const t0 = sun.rise + 1 + 3 * u(2), t1 = Math.min(sun.set - 1, t0 + 3 + 3 * u(3));
         // (a stretch of verge clear of the town's plots for the drift and the flock about the herder: both sides tried, then on)
         let x0 = 600 + (P.road - 900) * (k + u(4)) / n, side = (u(5) < 0.5 ? 1 : -1) * (10 + 4 * u(6)), ok = false;
@@ -294,6 +294,42 @@ export class RoadFolk {
       why: act ? (i === 0 ? why : atFoot ? 'waiting with the others at the stair foot' : 'resting by the road on the way') : p.why, look: p.look, life: p.life,
       ...(this.pidOf && p.m && T.hh !== undefined ? { pid: this.pidOf(T.road, T.hh, p.m) } : {}) };
   }
+  // ---------------------------------------------------------------- D-570: the herders' flocks out on the land
+  /** where flocks graze (world.ts gives them: fauna.ts grazingSites): the stubble after the harvest, the lower slopes of Kuh-e
+   *  Rahmat and the hills, the steppe; none: no grazers drawn (their days still kept) */
+  private graze: Record<'hill' | 'stubble' | 'steppe', P2[]> = { hill: [], stubble: [], steppe: [] };
+  setGrazing(sites: { e: number; n: number; kind: 'hill' | 'stubble' | 'steppe' }[]) { this.graze = { hill: [], stubble: [], steppe: [] }; for (const x of sites) this.graze[x.kind].push([x.e, x.n]); }
+  /** a herder household's grazing spell on day d (C): about half the register's herders take their flock out for twelve days in
+   *  thirty-six, camping by it with the son: on the stubble after the harvest (regnal months 3-7, June to October), on the
+   *  slopes in spring and autumn (1-2, 8-10), a few on the low steppe in the cold months (11-12, 0) and lambing at home else */
+  grazingOn(ri: number, hh: number, d: number): { kind: 'hill' | 'stubble' | 'steppe'; spell: number } | null {
+    const H = household(this.seed, ri, hh); if (H.live !== 'herder' || h01(this.seed, 44000 + ri, hh) >= 0.5) return null;
+    const off = Math.floor(36 * h01(this.seed, 44100 + ri, hh)), k = Math.floor((d + off) / 36), day = (d + off) - k * 36; if (day >= 12) return null;
+    const month = this.cal.ctx(Math.max(0, d)).month ?? 1, kind = month >= 3 && month <= 7 ? 'stubble' : (month >= 1 && month <= 2) || (month >= 8 && month <= 10) ? 'hill' : 'steppe';
+    if (kind === 'steppe' && h01(this.seed, 44200 + ri, hh) > 0.4) return null;
+    return { kind, spell: k };
+  }
+  /** the flocks out on day d with their herders' place: the spell's site, the flock drifting over it by day, folded at night */
+  grazersOn(d: number) { const out: { ri: number; hh: number; H: Household; kind: 'hill' | 'stubble' | 'steppe'; at: P2; phi: number }[] = [];
+    ROADS.forEach((_, ri) => { for (let hh = 0; hh < ROAD_HH; hh++) { const g = this.grazingOn(ri, hh, d); if (!g) continue; const L = this.graze[g.kind]; if (!L.length) continue;
+      out.push({ ri, hh, H: household(this.seed, ri, hh), kind: g.kind, at: L[Math.floor(h01(this.seed, 44300 + ri * ROAD_HH + hh, g.spell) * L.length)], phi: 6.28 * h01(this.seed, 44400 + ri, hh) }); } });
+    return out; }
+  private grazeDay = -1; private grazeList: ReturnType<RoadFolk['grazersOn']> = [];
+  private grazers(d: number) { if (d !== this.grazeDay) { this.grazeDay = d; this.grazeList = this.grazersOn(d); } return this.grazeList; }
+  /** a grazer at time t: the herder (and his son) by the flock; the flock's middle for fauna.ts's far flocks */
+  private grazerMovers(g: ReturnType<RoadFolk['grazersOn']>[number], t: number): Mover[] {
+    const d = Math.floor(t / 24), h = t - d * 24, sun = this.cal.ctx(Math.max(0, d)).sun ?? { rise: 6, set: 18 }, day = h > sun.rise - 0.3 && h < sun.set + 0.3;
+    const e = g.at[0] + (day ? 60 * Math.sin(t * 0.13 + g.phi) : 0), n = g.at[1] + (day ? 60 * Math.cos(t * 0.09 + g.phi) : 0), hd = t * 0.13 + g.phi;
+    const what = g.kind === 'stubble' ? 'on the stubble of the harvested fields' : g.kind === 'hill' ? 'on the slopes' : 'on the steppe';
+    const pid = (m: Member) => (this.pidOf ? { pid: this.pidOf(g.ri, g.hh, m) } : {});
+    const out: Mover[] = [{ key: `rg${g.ri}:${g.hh}:0`, kind: 'foot', e, n, heading: hd, act: 'herd', why: day ? `grazing the household’s sheep and goats ${what}, out from ${g.H.home} with the flock` : 'watching the flock in its thorn fold through the night, by turns', look: lookOf(this.seed, g.H, 'head'), life: lifeOf(g.H, 'head'), ...pid('head') }];
+    if (g.H.kids) out.push({ key: `rg${g.ri}:${g.hh}:1`, kind: 'foot', e: e + 11 * Math.cos(g.phi), n: n + 11 * Math.sin(g.phi), heading: hd + 1, act: day ? 'herd' : 'sleep', why: day ? 'with his father and the flock, keeping the strays in with his sling' : 'asleep by the fold in his cloak', look: lookOf(this.seed, g.H, 'son'), life: lifeOf(g.H, 'son'), ...pid('son') });
+    return out;
+  }
+  /** the flocks out at time t, for fauna.ts to draw beyond the crowd's reach: middle, seed, folded */
+  flocksAt(t: number): { e: number; n: number; seed: number; folded: boolean }[] {
+    const d = Math.floor(t / 24); return this.grazers(d).map(g => { const m = this.grazerMovers(g, t)[0]; return { e: m.e, n: m.n + 2, seed: g.ri * ROAD_HH + g.hh, folded: m.act !== 'herd' || /night/.test(m.why) }; });
+  }
   // ---------------------------------------------------------------- D-570: the road folk as people of the population
   /** (road, household, member) → the population's pid (-1: none); set by the population once it has made them */
   private pidOf: ((road: number, hh: number, m: Member) => number) | null = null;
@@ -312,6 +348,7 @@ export class RoadFolk {
     const d = Math.floor(t / 24);
     for (const dd of [d, d - 1]) for (const T of this.tripsOf(road, hh, dd)) { const i = T.people.findIndex(p => p.m === m); if (i < 0) continue; const q = this.pos(T, t); if (!q) continue;
       const mv = this.member(T, i, q.a, q.act, q.why, q.at); return { ...mv, moving: !q.act && !(q.at && mv.act !== 'walk') }; }
+    if (m === 'head' || m === 'son') for (const g of this.grazers(d)) if (g.ri === road && g.hh === hh) { const mv = this.grazerMovers(g, t).find(x => x.key.endsWith(m === 'head' ? ':0' : ':1')); if (mv) return { ...mv, moving: false }; }
     for (const v of this.vergeFlocks(d)) if (v.ri === road && v.H.hh === hh && (m === 'head' || m === 'son') && t >= v.t0 && t <= v.t1) { const g = this.vergeMovers(v, t).find(x => x.key.endsWith(m === 'head' ? ':0' : ':1')); if (g) return { ...g, moving: false }; }
     return null;
   }
@@ -320,6 +357,12 @@ export class RoadFolk {
    *  the household's business, or at kin's in Pārsa overnight (C) */
   planOf(road: number, hh: number, m: Member, d: number): { t0: number; t1: number; place: string; act: ActivityId; why: string }[] {
     const H = household(this.seed, road, hh), R = ROADS[road], base = d * 24, out: { t0: number; t1: number; place: string; act: ActivityId; why: string }[] = [];
+    const G = this.grazingOn(road, hh, d);
+    if (G && (m === 'head' || m === 'son')) { // (out with the flock: by it all day, the fold at night; place graze:<kind>, popview asks spotOf)
+      const sun = this.cal.ctx(Math.max(0, d)).sun ?? { rise: 6, set: 18 }, a = sun.rise - 0.3, b = sun.set + 0.3, pl = `graze:${G.kind}`;
+      return [{ t0: 0, t1: a, place: pl, act: m === 'head' ? 'herd' : 'sleep', why: m === 'head' ? 'watching the flock in its thorn fold through the night, by turns' : 'asleep by the fold in his cloak' },
+        { t0: a, t1: b, place: pl, act: 'herd', why: m === 'head' ? `grazing the household’s sheep and goats, out from ${H.home} with the flock` : 'with his father and the flock, keeping the strays in with his sling' },
+        { t0: b, t1: 24, place: pl, act: m === 'head' ? 'herd' : 'sleep', why: m === 'head' ? 'watching the flock in its thorn fold through the night, by turns' : 'asleep by the fold in his cloak' }]; }
     const legs: { a: number; b: number; act: ActivityId; why: string; dir: 1 | -1 }[] = [];
     for (const T of this.tripsOf(road, hh, d)) { const p = T.people.find(x => x.m === m); if (!p) continue; this.pos(T, T.t0); const F = T.foot ?? null;
       const walkF = F ? Math.hypot(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) / T.pace / 3600 : 0, run = T.path.len / T.pace / 3600 + (T.halt ? T.halt.b - T.halt.a : 0);
@@ -348,6 +391,7 @@ export class RoadFolk {
   /** everyone of the road streams at time t (h), within `near` (all if omitted), appended to `out` */
   at(t: number, out: Mover[], near?: { e: number; n: number; r: number }) {
     const d = Math.floor(t / 24);
+    for (const g of this.grazers(d)) for (const mv of this.grazerMovers(g, t)) { if ((mv.pid ?? -1) >= 0) continue; if (near && Math.hypot(mv.e - near.e, mv.n - near.n) > near.r + 20) continue; out.push(mv); }
     for (const v of this.vergeFlocks(d)) { if (t < v.t0 || t > v.t1) continue; for (const mv of this.vergeMovers(v, t)) { if ((mv.pid ?? -1) >= 0) continue;
       if (near && Math.hypot(mv.e - near.e, mv.n - near.n) > near.r + 20) continue; out.push(mv); } }
     for (const dd of [d - 1, d]) { if (dd < 0) continue; for (const T of this.dayTrips(dd)) {

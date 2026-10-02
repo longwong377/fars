@@ -20,4 +20,14 @@ Hall of a Hundred Columns, then down to the eye at the spawn), letterboxed, any 
 (Cormorant Garamond, Alegreya Sans, OFL); index.html (3 font preloads); src/main.ts (hook: introDeps + two hook entries,
 C4's file); tests/intro.test.ts (new); tests/language.test.ts (one registry line); tools/dev/shell_probe.*, skyline_gen.ts.
 
-**Tests.** intro 9/9; language lint (lint:lang) + intro 31/31; guards 25/25; tsc: no errors in touched files.
+**Tests.** intro 11/11 (paths, control flow, and "never delays walkable": the title, the only way in, comes after ready; Enter starts the walk before the opening); lint:lang + intro 37/37; guards 25/25; tsc clean in touched files. No s17-renders yet: the intro is unseen.
+
+**The first minutes on the built site (tools/dev/first_minutes.mjs; `npx vite build`, served as Pages, headless, ?norender&seed=1, 22:30).**
+All 19 steps pass: ready 73 s; title; the loading screen leaves; Enter -> the opening plays -> a key skips it (the clock to
+sunrise + 1.45 h) -> letterbox gone -> walk 4 m in 3 s -> Esc (pointer lock left) pauses -> settings, all 5 tabs, the field of
+view applies, Esc back -> save -> reload (ready again) -> "Continue the visit" -> no opening, walking -> talk: the nearest person
+answers in their own tongue with the gloss while the model cannot load (blocked here), no hang. No console error from C5's
+files. The only errors: five 404s per load (boot-files.json, textures/ktx.json, textures/low.json, textures/ground/ground.json,
+world-cache/manifest.json): written by tools/deploy/build_site.mjs, not by a bare vite build (C4's pipeline; expected here).
+For converse/ui.ts's owner: when the model failed to load, the panel's note does not say so (it says only "translation layer
+(out of world)"); it should say the people answer in their own lines because the talk's model could not be fetched.

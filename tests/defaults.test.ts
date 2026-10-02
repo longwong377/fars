@@ -1,5 +1,6 @@
 // Decided defaults are the defaults (MASTER_PLAN T-K10, the second critique §4.1): every DECISIONS entry that sets a default
 // names this test, and this test reads the code, so a decision cannot be logged while the build keeps the old behaviour.
+import { BOB_AMP, BREATH_AMP } from '../src/player/motion';
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { DEFAULT_SETTINGS } from '../src/core/settings';
@@ -26,7 +27,9 @@ describe('decided defaults (T-K10)', () => {
     expect(DEFAULT_SETTINGS.fov).toBe(60);
     expect(DEFAULT_SETTINGS.headBob).toBe(true);
     const main = readFileSync('src/main.ts', 'utf8');
-    expect(main).toMatch(/Math\.sin\(player\.bobPhase \* 2\) \* 0\.018/);
+    // D-630: the head (src/player/motion.ts) carries the bob: ±1.8 cm at walking pace and above, eased out when still
+    expect(BOB_AMP).toBe(0.018); expect(Math.max(BOB_AMP, BREATH_AMP)).toBeLessThanOrEqual(0.02); // (the breath fades in as the bob fades out)
+    expect(main).toMatch(/head\.update\(dt, \{ phase: player\.bobPhase[^\n]*bob: settings\.headBob \}/);
     expect(main).not.toMatch(/camera\.rotation\.z\s*=|rotateZ\(/); // no camera roll
   });
   it('D-236 (D-392): a first visit draws a world from the baked pool (more than one world across visits); a new game draws afresh', () => {
