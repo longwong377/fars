@@ -1,6 +1,7 @@
 # C3 life on the roads — report (cloud, s17; D-570)
 
 **Broken / placeholder / unseen first**
+- Nobody on the roads can be spoken to: the road folk (and the caravans' drivers) are the crowd's extras, which the talk and voice systems skip (crowd.ts nearPeople: pid < 0). Each mover now carries `life` (the head's attested name, the person's place in the household, home, livelihood) and its errand in `why`, ready for a talk hook in crowd.ts/converse (not C3's files): for the lead.
 - Unseen: nothing of this has been rendered. Views asked in handoff/s17/asks_vagon.md (C3 lines: two royal-road views, the south road at harvest, the Naqsh road, the court camp, the royal stud's lines, the site's ramp).
 - Road travellers end at the Grand Stair's foot (all four roads) and appear/vanish there after a stay; the town's lanes are not on their route. ~150-210 road folk alive at once, ~20-40 at the foot: the frame budget must be checked on Vagon (extras within 750 m of the camera: ~70-100 people plus strings).
 - Moving flocks: no performance draws a flock walking with its herder; herders graze the verges instead (ask to V3/V5 for a 'drive' variant).

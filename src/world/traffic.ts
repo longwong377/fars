@@ -51,7 +51,10 @@ const STRING_M = 13, CAMEL_M = 16, CART_M = 9;
 
 export interface Mover { key: string; kind: 'pack' | 'camel' | 'courier' | 'cart' | 'drum' | 'quarry' | 'foot'; e: number; n: number; heading: number; act: ActivityId; why: string;
   /** (D-570: the road folk's women and children: roadFolk.ts) */
-  look: { id: number; sex: 'm' | 'f'; role: string; dress: 'worker' | 'median' | 'woman' | 'child'; origin: string; seed: number; age?: 'adult' | 'elder' | 'child' } }
+  look: { id: number; sex: 'm' | 'f'; role: string; dress: 'worker' | 'median' | 'woman' | 'child'; origin: string; seed: number; age?: 'adult' | 'elder' | 'child' };
+  /** D-570: who a road traveller is (roadFolk.ts's register): the household's head by name, the person's place in it, home and
+   *  livelihood (for the dev overlay, and for the talk system once it reaches the crowd's extras) */
+  life?: { name: string; role: string; home: string; livelihood: string } }
 export interface Route { pts: P2[]; cum: number[]; len: number }
 export const route = (pts: P2[]): Route => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; };
 /** a point s metres along a route (clamped) and the heading there (rad, atan2(de, dn)) */
