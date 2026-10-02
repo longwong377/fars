@@ -17,7 +17,11 @@ const kinOf = (L: LifeRecord, n = 2) => L.household.slice(0, n).map(k => /^kins|
 export function groundFact(L: LifeRecord, said: string): string {
   const s = said.toLowerCase(); const kin = kinOf(L); const job = cut(L.job, 10);
   const pick: [RegExp, () => string][] = [
-    [/\b(who are you|your name|yourself|how old|where are you from|where do you come from)\b/, () => `you are ${L.name}, ${L.age}, ${L.origin}${kin ? `; ${kin} live${L.household.length > 1 ? '' : 's'} with you` : ''}`],
+    // (D-371/D-373: the past, the cares and the house's real debts, before the general rules)
+    [/\b(where (are|were) you (from|born)|where do you come from|grow up|grew up|your (father|parents|people)|long ago|before (this|that)|in the old days|the war|remember the)\b/, () => `you are ${L.name}${L.byname ? `, ${L.byname}` : ''}, ${L.origin}; ${L.past.slice(0, 2).map(x => cut(x, 14)).join('; ') || `you live in ${cut(L.home, 10)}`}`],
+    [/\b(worr(y|ied|ies)|troubl(e|es|ed)|afraid|fear|hope|wish|dream|happy|sad|how are you|how is (life|it)|what do you want)\b/, () => [...L.worries.map(w => `you are worried about ${w}`), ...L.hopes.map(h => `you hope for ${h}`)].slice(0, 2).join('; ') || `right now: ${now(L)}`],
+    [/\b(debts?|owe|owed|owes|silver|loan|lend|borrow|money|price|poor|rich)\b/, () => L.debts.length ? `your house: ${L.debts.slice(0, 2).join('; ')}` : `your house owes no one; right now: ${now(L)}`],
+    [/\b(who are you|your name|yourself|how old)\b/, () => `you are ${L.name}${L.byname ? `, ${L.byname}` : ''}, ${L.age}, ${L.origin}${kin ? `; ${kin} live${L.household.length > 1 ? '' : 's'} with you` : ''}`],
     [/\b(family|wife|husband|children|child|son|daughter|mother|father|house|live|home|sick|ill)\b/, () => kin ? `in your house: ${kinOf(L, 3)}${L.year.find(y => /sick|died|born|married/.test(y)) ? `; ${L.year.find(y => /sick|died|born|married/.test(y))}` : ''}` : `you live with your work group; your work: ${job}`],
     [/\b(work|job|paid|pay|hard|labou?r|trade|craft)\b/, () => `your work: ${job}${L.group ? ` (${cut(L.group, 6)})` : ''}; right now: ${now(L)}`],
     [/\b(doing|today|eat|eaten|evening|tonight|morning|now|later|busy)\b/, () => `right now: ${now(L)}${L.today.next ? `; after this: ${cut(L.today.next, 10)}` : ''}`],

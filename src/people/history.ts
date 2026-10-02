@@ -124,5 +124,7 @@ export function pastOf(pop: Population, pid: number, day: number, kin: KinLike[]
 export function pastWords(evs: PastEvent[], n = 4): string[] {
   const rank: Record<PastEvent['kind'], number> = { loss: 0, realm: 1, family: 2, town: 3, incident: 4, work: 5, birth: 6 };
   const yrs = (a: number) => a === 1 ? 'last year' : `${a} years ago`;
-  return [...evs].sort((a, b) => rank[a.kind] - rank[b.kind] || a.ago - b.ago).slice(0, n).map(e => e.kind === 'birth' ? e.text : `${e.text}, ${yrs(e.ago)}`);
+  // (the birth first: "where are you from" is answered from it; then the most telling)
+  const birth = evs.filter(e => e.kind === 'birth'), rest = evs.filter(e => e.kind !== 'birth').sort((a, b) => rank[a.kind] - rank[b.kind] || a.ago - b.ago);
+  return [...birth, ...rest].slice(0, n).map(e => e.kind === 'birth' ? e.text : `${e.text}, ${yrs(e.ago)}`);
 }
