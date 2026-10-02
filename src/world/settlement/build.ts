@@ -9,6 +9,7 @@ import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
 import { attribute, positionLocal, positionWorld, textureLoad, ivec2, int, float, step, vec2, fract, smoothstep, fwidth, mix, clamp } from 'three/tsl';
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, NEAR0, NEAR0_HYST, HOUSE_PARTS, POLE_GAP, seasonOf, type HB } from './houses';
+import { interiorRing } from '../interiors/ring';
 import { TownDoors } from './towndoors';
 import { RoofWear } from './roofwear';
 import { WallWear } from './wallwear';
@@ -100,7 +101,7 @@ export class Settlement {
     const t0 = performance.now();
     this.fire = fire;
     registerSettlementSurfaces();
-    this.group.name = 'settlement';
+    this.group.name = 'settlement'; this.group.add(interiorRing.group); // s17 C7 (D-610): the furnished rooms round the eye
     this.group.userData = { tier: 'C', src: 'RECON', note: 'settlement (Phase 6): zones and named features from settlement.json; town layout reconstructed (C)' };
     this.plan = buildTownPlan();
     let tp = performance.now(); const phase = (n: string) => { const t = performance.now(); this.info.phases[n] = Math.round(t - tp); tp = t; }; phase('plan');
@@ -312,6 +313,7 @@ export class Settlement {
   /** the full near level's radius (NEAR0; probes set it to compare the levels, D-324b) */
   near0 = NEAR0;
   nearUpdate(x: number, z: number, prefetch = 1, sync = false) {
+    interiorRing.update(x, z, this.nearDay, sync); // s17 C7 (D-610)
     let tiles = 0, tris = 0; const want: number[] = []; let lost = true;
     for (const hs of this.houses) { const s = hs.s, rs = Math.hypot(s.W, s.H) / 2;
       if (Math.hypot(s.frame.c[0] - x, -s.frame.c[1] - z) > rs + NEAR_R + 120) { for (const [k, n] of this.near) if (n.hs === hs) this.dropNear(k); continue; }

@@ -107,6 +107,7 @@ import { Soundscape, registerRoom } from '../audio/soundscape';
 import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { NavGrid } from '../people/navgrid';
+import { setInteriorPeople } from './interiors/household';
 import { PeopleSim, Env } from '../people/sim';
 import { strangerPresence, thinCaption } from '../people/speech/presence';
 import { Overheard } from '../people/overheard';
@@ -427,6 +428,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
     villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts),
     rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })) }); // (D-256: the banks and meadows of the land work)
+  setInteriorPeople(sim.pop, hh => { const x = geo.villageOf(hh); return x ? `${plain.data.villages[x.vi].id}-c${x.ci}` : null; }); // s17 C7 (D-610): the rooms furnished for who lives there
   // D-392: the Terrace's core routes between place anchors (the court's walks, searched up front: D-182) read from the baked
   // world; they depend on the walkable grid and the anchors only, keyed by the grid's blocked cells (fires, furnishings); a world of another seed still finds most of its own there
   // (one entry per baked world, all of them merged: a world of another seed finds most of its routes there; this world's own
