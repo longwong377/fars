@@ -147,6 +147,8 @@ import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
 import { DustSystem, type DustKind } from './dust';
 import { pt, pa } from '../core/prof';
+import { cached, prefetchWorldCache, cacheStats } from './cache/worldCache';
+import { hashArrays } from './cache/pack';
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
@@ -157,6 +159,7 @@ let wLast = 0;
 function wmark(stage: string) { if (!WTRACE) return; const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms'); wLast = t; }
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
   wLast = performance.now();
+  prefetchWorldCache(); // D-354: the baked world's hashes and manifest, while the build starts
   void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
@@ -423,8 +426,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   { const t = performance.now(), pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
     // D-331: the atlas rendered in Blender/Cycles from the full-detail people; the CPU bake of the far bodies when it is absent
     const cyc = await loadImpostorAtlas(humans.A, humans.O);
-    crowd.imp = new CrowdImpostors(cyc ?? bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
+    // D-354: the CPU bake read from the baked world when its sources and the held props' geometry are unchanged
+    const props = { jar: pg('jar'), sack: pg('sack') }, pkey = hashArrays(props.jar.pos, props.jar.idx, props.sack.pos, props.sack.idx);
+    crowd.imp = new CrowdImpostors(cyc ?? await cached('impostors', pkey, () => bakeImpostors(humans.A, humans.O, props))); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
   wmark('crowd.imp');
+  if (WTRACE) console.info('[boot]', 'world-cache', JSON.stringify(cacheStats)); // D-354: which units came from the baked world
   // the people and animals near the player are solid (brief §6: player collision with crowds and animals; D-237): pools of
   // kinematic capsules follow the nearest of them within SOLID_R, where the crowd draws them (the view's spot and the
   // cycle's own path: the ploughman up to PATH_REACH from his spot along the furrow; D-142 × D-143), the crowd's extras

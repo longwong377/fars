@@ -15,6 +15,7 @@
 // Output: RGBA8 per sample: R gully 0..1, G curvature 128 + k·CURV_SCALE (convex > 128), B slope / 1.5, A log10 area.
 // Everything but the DEM itself is C.
 import type { Terrain } from './heightfield';
+import { cached } from '../world/cache/worldCache';
 /** what the bake reads of a ring (a Ring, or its copy in a worker) */
 export interface RingLike { h: Float32Array; n: number; cell: number; half: number }
 
@@ -108,7 +109,7 @@ const plainRing = (r: RingLike): RingLike => ({ h: r.h, n: r.n, cell: r.cell, ha
 const started = new WeakMap<Terrain, Promise<Detail>>();
 /** the same bake, started once per terrain (world.ts starts it before the town builds; the plain awaits it) */
 export function bakeTerrainDetail(terrain: Terrain): Promise<Detail> {
-  let p = started.get(terrain); if (!p) { p = bakeNow(terrain); started.set(terrain, p); } return p;
+  let p = started.get(terrain); if (!p) { p = cached('detail', 'rings', () => bakeNow(terrain)); started.set(terrain, p); } return p; // D-354: the baked world's copy when unchanged
 }
 function bakeNow(terrain: Terrain): Promise<Detail> {
   const job = { near: plainRing(terrain.near), mid: plainRing(terrain.mid) };

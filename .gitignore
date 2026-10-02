@@ -22,6 +22,7 @@ data/makehuman/
 public/models
 tools/dev/decor_probe_tents.json
 .wtport
+public/world-cache/
 .agent
 .vite/
 .cache/

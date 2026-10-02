@@ -7,6 +7,7 @@ import { MeshoptSimplifier } from 'three/addons/libs/meshopt_simplifier.module.j
 import { buildOutfits, type OutfitBuild } from './outfits';
 import { HumanGPU } from './humanGPU';
 import { loadHumanScans } from './humanScans';
+import { cached } from '../world/cache/worldCache';
 import { loadPeopleModels, loadHairAtlas, PEOPLE_DIR, type PeopleModels } from './peopleModels';
 
 export interface HumanSystem { A: HumanAssets; O: OutfitBuild; gpu: HumanGPU; ms: { load: number; outfits: number; gpu: number; worker: boolean } }
@@ -34,7 +35,7 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   const models: PeopleModels = { cards: hairAtlas ? pm.cards : null, drape: pm.drape }; // (no atlas, no cards: they would draw untextured)
   for (const t of [skin, eye]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
   const useWorker = typeof Worker !== 'undefined' && typeof window !== 'undefined';
-  const outfits = useWorker ? outfitsInWorker(meta, bin.slice(0), models) : null;
+  const outfits = useWorker ? cached('outfits', 'all', () => outfitsInWorker(meta, bin.slice(0), models)) : null; // D-354: the baked world's copy when unchanged
   const A = decodeHumanAssets(meta, bin);
   const t1 = performance.now();
   let O: OutfitBuild;

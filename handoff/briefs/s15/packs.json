@@ -367,5 +367,65 @@
   "done": "In a node session on a day-300 save, every conversation's grounding facts come from the simulation (0 seeded fakes), and a scripted set of 30 player interventions (buy, haggle, give, lend, petition, host, ask for help) each change simulation state and enter a T-F9 chain; T-E9/T-E10 measured with the stand-in.",
   "train": [],
   "notes": "RESUME/REPAIR (session 15): branch s14-simtalk (merged with s14-int at cc660894) fails 3 of 5 tests in tests/simtalk.test.ts (log: C:/Users/Administrator/fars-train/logs/simtalk.log): (1) a grounding fact puts modern digits in the stranger's words (\"138 BAR\", lint kind modern/digits): render quantities in the period way, no digits; (2) 30 scripted interventions: 22 join a causal chain, need >= 27; (3) T-E10 stand-in 86.7 % < 90. A 4th failure was a 300 s timeout on a loaded box (econAskOf talk set): re-run alone before treating it as real. Never lower a threshold. Fix the causes, re-run the file through cpu_slot (LONG=1), commit."
+ },
+ {
+  "name": "load",
+  "title": "Load time: from ~15 min to about a minute",
+  "hours": 5,
+  "needs": "gpu",
+  "ud": [
+   "UD-15",
+   "UD-28"
+  ],
+  "thresholds": [
+   "T-R14"
+  ],
+  "d": 354,
+  "q": [
+   1080,
+   1089
+  ],
+  "b": [
+   250,
+   259
+  ],
+  "goal": "The game opens in about a minute instead of ~15, so the player (and every render this week) is not waiting. This multiplies everything else this week does.",
+  "owns": [
+   "src/world/world.ts (the build path and its timing marks only)",
+   "new src/world/cache/** (the baked world loader)",
+   "new tools/bake_world/**",
+   "src/main.ts warmUp (D-353) only"
+  ],
+  "reads": [
+   "src/render/pipeline.ts",
+   "src/render/materials.ts",
+   "src/world/fire.ts",
+   "tools/dev/load_probe.mjs",
+   "tools/dev/renderless_probe.mjs"
+  ],
+  "entry": [
+   "src/world/world.ts: its 11 performance.now marks; log them as one load trace first and split world build (~9 min on 4 cores) from pipeline compiles",
+   "src/main.ts: __parsa.warmUp() (D-353, batches of pipelines; the T4 watchdog)",
+   "the CPU impostor fallback (~12 s; src/people/impostors.ts) and the SDF/marching-cubes paths (sdf.ts, relief_figures.ts, outfits.ts, hills/bedrock.ts): bake their outputs to disk"
+  ],
+  "ids": [
+   "D-250",
+   "D-253",
+   "D-299",
+   "D-353",
+   "B125",
+   "B228"
+  ],
+  "commands": [
+   "node tools/dev/mkwt.mjs load",
+   "node tools/dev/gpu_slot.mjs load -- node tools/dev/load_probe.mjs (a load trace; ?norender for build-only timing)",
+   "a node bake script: node tools/bake_world/bake.mjs -> public/world-cache/*.bin + manifest (gitignored if > 50 MB; regenerable, like npm run terrain)"
+  ],
+  "done": "A cold page load to the first rendered frame at high on this T4 in <= 120 s (measured, trace committed), the baked world identical to the built one (a node test compares placements/bounds hashes), and a fallback to the live build when the cache is stale (hash of the sources).",
+  "train": [
+   "dawn-stair-top",
+   "lane-with-child"
+  ],
+  "notes": "RESUME (session 15): branch s14-load (merged with s14-int at 3e8cb596; tests/world_cache.test.ts being run by the lead) caches only 3 units (outfits, impostors, terrain detail: src/world/cache/units.json). The world build is still ~9 min on this 4-core box and the shaders ~5 min. Do the whole thing: (1) a load trace (tools/bake_world/load_trace.mjs) to rank where the 9 min go; (2) bake EVERY pure-CPU build step over ~2 s to the cache (settlement plan and houses geometry, the Terrace meshes, merged instance buffers, the population start state, fill/grime maps, probe tables), stale entries rebuilt live; (3) cut shader compile time (fewer material variants sharing pipelines, parallel compile via ?warm=async made default if it holds); (4) measure cold and warm loads at the end. Done line: a warm load (cache filled) of the full world <= 120 s to first frame on the T4, measured. NO browser or full-world load of yours until the lead says the current render train is finished (a render is running now; memory is tight); node work, the trace analysis from code and node-side timings first. The cloud session owns src/people/** except the render-side files: for people state, only cache what you read, do not edit people sim files (smallest hook, reported)."
  }
 ]
