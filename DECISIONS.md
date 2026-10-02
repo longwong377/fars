@@ -9438,3 +9438,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   live and the dev server's cache POSTs carry the bodies inside Network.requestWillBeSent (45 MB, 62 MB, ... one > 512 MB).
 - Fix: trains and budget run on a tree baked for all 8 worlds (`npx tsx tools/bake_world/bake.ts`, as the site build does);
   worldCache.ts no longer POSTs a unit > 32 MB in dev under navigator.webdriver (it says so in the console).
+- D-471 addendum: the first budget baseline (5fc087ea, all 8 worlds baked, cold profile, Q=high): ready 55 s, first frames
+  56.5 s, page 7.65 GB, frame 286 ms. Measured while the baseline scoreboard rendered on the same T4 and the agents ran probes:
+  frame time and ready are pessimistic; a quiet pass with --accept will tighten them (the baseline only tightens).
+  The lead's trains and budget run outside the GPU-slot queue (NOSLOT=1 / budget.mjs directly): with 5 agents queueing probes
+  for 2 slots the lead's jobs waited behind them.
