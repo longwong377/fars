@@ -350,6 +350,16 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
         const look = !walking && fr((t + i * 3.1) / 9) > 0.8;
         out.push({ sp: s, x: A[0] + dx * w, z: A[1] + dz * w, yaw, phase: (TWO_PI * Math.hypot(dx, dz) * w) / B.stride + TWO_PI * h1(k, i), walk: walking ? Math.min(1, (u - tg) * 2, (T - u) * 2) : 0, graze: walking || look ? 0 : 1, lie: 0, coat: h1(seed + i, 7) }); }
       break; }
+    // s17 V3 (C3's ask; the smallest hook in V5's file): a flock driven along a road, a loose mass walking ahead of the
+    // herder (2-9 m ahead, 5 m wide), each animal drifting within it, now and then snatching a bite; all at the drive's pace
+    case 'drive': { const n = spec.n ?? 12, pace = spec.pace ?? 0.9;
+      for (let i = 0; i < n; i++) { const s = sp(i), B = ANIMAL_BUILD[s], u = h1(i, seed), v = h1(seed, i + 17);
+        const x = 2.5 * (2 * u - 1) * (0.6 + 0.4 * v) + 0.5 * Math.sin(t * 0.11 + i * 1.7), z = 2.2 + 6.5 * v + 0.6 * Math.sin(t * 0.09 + i * 2.9);
+        const bite = fr(t / (9 + 5 * u) + v) < 0.12;
+        out.push({ sp: s, x, z, yaw: 0.25 * Math.sin(t * 0.13 + i * 2.1), phase: (TWO_PI * t * pace) / B.stride + TWO_PI * u, walk: bite ? 0.35 : 1, graze: bite ? 1 : 0, lie: 0, coat: h1(seed + i, 7) }); }
+      if (spec.dogs) for (let i = 0; i < spec.dogs; i++) { const B = ANIMAL_BUILD.dog, side = i % 2 ? -1 : 1, z = 3.5 + 3 * Math.sin(t * 0.21 + i * 2.4 + seed), x = side * (3.4 + 0.6 * Math.sin(t * 0.37 + i));
+        out.push({ sp: 'dog', x, z, yaw: 0.5 * Math.cos(t * 0.21 + i * 2.4 + seed) * side, phase: (TWO_PI * t * pace * 1.3) / B.stride + i, walk: 1, graze: 0, lie: 0, coat: h1(seed + i, 11) }); }
+      break; }
     case 'team': { const s = path?.s ?? 0; for (let i = 0; i < 2; i++) out.push({ sp: sp(i), x: i ? -0.55 : 0.55, z: 3.35, yaw: 0, phase: (TWO_PI * s) / ANIMAL_BUILD[sp(i)].stride + i * 0.9, walk: 1, graze: 0, lie: 0, coat: h1(seed + i, 5), follow: true }); break; }
     case 'circle': { const a = path?.yaw ?? 0, n = spec.n ?? 2;
       for (let i = 0; i < n; i++) { const r = 2.1 + 0.8 * i, ph = a + 0.25; const x = r * Math.sin(ph), z = r * Math.cos(ph);

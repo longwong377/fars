@@ -946,7 +946,7 @@ export class Crowd {
     }
     // (D-256: a herd of cows lows, less often and heard further, LOW_S; a penned flock or herd calls too)
     const cattle = A.species.includes('cow');
-    if ((A.kind === 'flock' || A.kind === 'fold') && d < (cattle ? 150 : 60) && list.length && this.snd.next() < dt / (cattle ? LOW_S : BLEAT_S)) { const an = list[Math.floor(this.snd.next() * list.length)]; const c = Math.cos(b[3]), s = Math.sin(b[3]);
+    if ((A.kind === 'flock' || A.kind === 'fold' || A.kind === 'drive') && d < (cattle ? 150 : 60) && list.length && this.snd.next() < dt / (cattle ? LOW_S : BLEAT_S)) { const an = list[Math.floor(this.snd.next() * list.length)]; const c = Math.cos(b[3]), s = Math.sin(b[3]);
       if (an.sp !== 'dog') this.onHit?.(cattle ? 'low' : 'bleat', new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + (cattle ? 1.0 : 0.5), b[2] - s * an.x + c * an.z)); }
     if (d < 150 && list.length && this.onHit) { const at = (an: { x: number; z: number }, h: number) => { const c = Math.cos(b[3]), s = Math.sin(b[3]); return new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + h, b[2] - s * an.x + c * an.z); };
       const br = list.find(an => BRAYERS.has(an.sp)); if (br && this.snd.next() < dt / BRAY_S) this.onHit('bray', at(br, 1.1));

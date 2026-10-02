@@ -9475,3 +9475,22 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   the flat roofs and wall tops Raked Dirt (the kahgel's chopped straw; the roofs had no scan at all). ScanUse gains `chroma`
   (the scan's colour variation kept, the palette leading the hue) and `hue` (a share of the scan's own mean hue). House
   plaster's broad tone 1σ 0.07 -> 0.10; the wall bake's normal 1.1 -> 0.8. New scans in ASSET_LEDGER.md; only the maps used ship.
+## D-500 (s17 V3 people): people that read as people at 2-30 m, first pass
+- Posture: the CMU captures' anterior pelvic tilt (3-34° mean; the women's walk 34°, idle_e 14°) is taken off the pelvis and
+  given back to the thighs and spine per clip (mocap.ts tiltFix; the motion about the mean kept): the sway-back that pushed
+  every belly out and the shoulders back is gone. Relaxed hands curl more (humanRig REST). C.
+- Cloth: a man's tunic or robe tapers from the chest to the belt (drape.ts BLOUSE_M 0.15 m, HANG 0.55 of the overhang): the
+  D-206 straight hang read as a ball of cloth over the belt, a pot belly on every man; women's dresses keep the hang.
+  people_cloth rebuilt on the new hull. C.
+- Shadows: the coarse shadow casters (LOD 2 for the near people) are drawn 1.4 cm inside their surface (humanMaterial
+  SHADOW_SHRINK): their stair-stepped self-shadow blotched every sunlit face and tunic at 1-10 m.
+- Hair cards: the alpha test per card class (CARD.byClass): beards 0.36 with a steady test (the 0.9 dither left the hanging
+  beard a see-through net at 1-2 m); scalp hair 0.44; brows as D-323.
+- Skin ramp warmer (B/R 0.55-0.64 from 0.6-0.7: grey and waxen under the high sun) and an outdoor tan read further along the
+  ramp (the three old draws kept: nobody's look changes otherwise); undyed wool and linen warmer, less chalk-white. C.
+- Probe: tools/dev/people_probe.mjs (humanlab, the player's lens, 2/10/30 m, one load ~1 min); shots in shots/v3/.
+- (D-500, second step) The head's shadow caster drawn 3.2 cm in (SHADOW_SHRINK_HEAD): the coarse nose and brow no longer blot
+  the cheeks and eyes. Talkers' arms taken 45 % back to a standing capture's (the CMU lecturers flung a hand to head height).
+  people_cloth rebuilt and reproduced on the new hull. C3's asks: walk variants /driving a flock/ (animal kind 'drive': a
+  loose mass 2-9 m ahead of the herder, two dogs at its flanks, 0.9 m/s; the hook in animals.ts, V5's file) and /ox cart of
+  building stone/, /emptied stone cart/, /holding the stone cart/ (work object cart_stone: one rough-cut block on chocks).
