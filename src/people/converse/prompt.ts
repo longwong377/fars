@@ -27,6 +27,8 @@ export function systemPrompt(L: LifeRecord, knows: Knows, prose?: string | null,
   let life = lifeBriefShort(L, prose); const drop = [/^Before this year: /m, /^On your mind: /m, /^Memories: /m, /^You know well: /m, /^News today: /m, /^Friends and kin nearby: /m, /^Lately: /m, / Earlier: [^\n]*/, /, (?:son|daughter|wife) of [^;\n]+(?=; you speak)/];
   const build = () => [head, life, ...tail].join('\n');
   for (const re of drop) { if (approxTokens(build()) <= PROMPT_TOKENS) break; life = life.split('\n').map(l => re.source.startsWith('^') ? (re.test(l) ? '' : l) : l.replace(re, '')).filter(Boolean).join('\n'); }
+  // (D-372: still over with every line dropped: a large house is named to its first three)
+  if (approxTokens(build()) > PROMPT_TOKENS) life = life.replace(/^(In your house: [^,\n]+, [^,\n]+, [^,\n]+), [^\n]*$/m, '$1.');
   let out = build();
   // still over (a long memory): the older of the memory lines goes
   if (approxTokens(out) > PROMPT_TOKENS && mem.length > 1) { tail[1] = `What you remember of the stranger: ${mem[mem.length - 1]}`; out = [head, life, ...tail].join('\n'); }

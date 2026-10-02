@@ -2,6 +2,7 @@
 // told the verdict before answering, and the step is done after a yes (converse/turn.ts). Stand-in model (tests/talk_standin.ts):
 // this measures the plumbing, not whether a real model keeps to the verdict.
 import { describe, it, expect, beforeAll } from 'vitest';
+import { simAt } from './sim_fixture';
 import { readFileSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, type Env } from '../src/people/sim';
@@ -32,8 +33,7 @@ const W = new WeatherSystem(1), env = (t: number): Env => { const dd = Math.floo
 beforeAll(() => { nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8'))); }, 120_000);
 describe('a talk turn reaches the sandbox (turn.ts)', () => {
   it('asked for guest-right, the person is told the verdict, and the stay is in the economy and the save', async () => {
-    const sim = new PeopleSim(1, nav, env), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
-    const d = 60; sim.jumpTo(d * 24 + 17);
+    const d = 60, sim = simAt(1, d, 17), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
     const E = sim.econTo(d), S = E.stranger();
     // a farmer at home whose house would take a guest today
     const pid = sim.pop.persons.find(p => p.job === 'farmer' && p.age >= 25 && sim.pop.present(p.id, d) && S.stayCheck(`h:${sim.pop.home(p.id, d)}`, d).ok)!.id;
@@ -48,7 +48,7 @@ describe('a talk turn reaches the sandbox (turn.ts)', () => {
     expect(o2.sandbox?.verdict.ok).toBe(false); expect(o2.sandbox?.done).toBeNull(); expect(o2.answer.text.toLowerCase()).toMatch(/no|cannot/);
   }, 600_000);
   it('presence: two hours beside the employer\'s people make an attended day (the game\'s strangerNear hook)', () => {
-    const sim = new PeopleSim(1, nav, env); const d = 45; sim.jumpTo(d * 24 + 9);
+    const d = 45, sim = simAt(1, d, 9);
     const E = sim.econTo(d), S = E.stranger();
     const boss = [...E.hh.values()].find(h => h.kind === 'farmer' && S.hireCheck(h.id, d).ok)!.id; S.do({ a: 'seek_work', day: d, hh: boss });
     const mates = sim.pop.households[Number(boss.slice(2))].members;
@@ -58,7 +58,7 @@ describe('a talk turn reaches the sandbox (turn.ts)', () => {
 });
 describe('the stranger in the people\'s own days (economy/plans.ts)', () => {
   it('the host cooks more and makes up a bed the evening the stranger is taken in', () => {
-    const sim = new PeopleSim(1, nav, env); const d = 70; sim.jumpTo(d * 24 + 10);
+    const d = 70, sim = simAt(1, d, 10);
     const E = sim.econTo(d), S = E.stranger();
     const host = [...E.hh.values()].find(h => h.kind === 'farmer' && S.stayCheck(h.id, d).ok && sim.pop.households[Number(h.id.slice(2))].members.some(m => sim.pop.persons[m].sex === 'f' && sim.pop.ageOn(m, d) >= 16))!;
     const v = S.do({ a: 'stay', day: d, hh: host.id }); expect(v.ok).toBe(true);
@@ -72,7 +72,7 @@ describe('the stranger in the people\'s own days (economy/plans.ts)', () => {
 describe('the render side\'s hooks (speech/presence.ts)', () => {
   it('overheard lines thin as the stranger learns; time near the employer\'s people makes an attended day', async () => {
     const { strangerPresence, thinCaption } = await import('../src/people/speech/presence');
-    const sim = new PeopleSim(1, nav, env); const d = 45; sim.jumpTo(d * 24 + 9); const E = sim.econTo(d), S = E.stranger();
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
     const c = { key: 'p1', unit: 'el-greet-1', lang: 'el', translit: 'x', gloss: 'may the god keep you well this day friend', tier: 'C', t0: 0, t1: 2 };
     expect(thinCaption(sim, c).gloss).toBe(c.gloss); // a beginner reads it all
     S.hear('Elamite', 600, 1, true, d); const thin = thinCaption(sim, c).gloss; expect(thin.split(' ').filter(w => w !== '…').length).toBeLessThan(c.gloss.split(' ').length);

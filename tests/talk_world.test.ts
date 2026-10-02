@@ -10,6 +10,7 @@
 //     PLUMBING's: a stand-in cannot say whether a real 1-2 B model keeps to the tag, the note and the memory (the lab's GPU
 //     run, converseLab.ts talkSet, does).
 import { describe, it, expect, beforeAll } from 'vitest';
+import { simAt } from './sim_fixture';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { NavGrid } from '../src/people/navgrid';
@@ -124,7 +125,7 @@ describe('the simulation decides and the day changes (talk.ts)', () => {
     expect(Math.hypot(a.pos[0] - lead[0], a.pos[1] - lead[1]), 'gone back from the stranger').toBeGreaterThan(5);
   });
   it('a conversation holds the person: stopped, facing the stranger, the task waiting; after it they go on', () => {
-    const sim = fresh(); sim.jumpTo(150 * 24 + 9); for (let i = 0; i < 10; i++) sim.step(3);
+    const sim = simAt(1, 150, 9); for (let i = 0; i < 10; i++) sim.step(3);
     const a = sim.agents.find(x => !x.offmap && x.task && !x.walking && x.role !== 'guard')!; const until = a.task!.until; const pos = [...a.pos];
     sim.player = [a.pos[0] + 2, a.pos[1] + 1]; sim.talkAddressed(a.pid); for (let i = 0; i < 10; i++) sim.step(2);
     expect(a.pos).toEqual(pos); expect(sim.performance(a).act).toBe('talk'); expect(Math.abs(((a.heading - Math.atan2(2, 1) * 180 / Math.PI) + 540) % 360 - 180)).toBeLessThan(1);
@@ -135,9 +136,9 @@ describe('the simulation decides and the day changes (talk.ts)', () => {
     expect(te[te.length - 1]).toBe(h.t1! + 2.5 * L);
   });
   it('every event survives a save and a reload: the plans laid, the pauses, the memory rows, the stranger’s possessions', async () => {
-    const sim = fresh(); const m = mind(); const d = 151;
+    const d = 151; const sim = simAt(1, d, 10.5); const m = mind(); // (D-374: the cached world at the day)
     const kid = find(sim, d, 10.5, x => sim.pop.persons[x].job === 'homemaker' && segAt(sim.pop.plan(x, d), 10.5).place.startsWith('h:') && sim.pop.persons[x].agent < 0);
-    sim.jumpTo(d * 24 + 10.5); const o = await talkTurn(m, sim, kid, 'I am thirsty.', { conv: sim.t });
+    const o = await talkTurn(m, sim, kid, 'I am thirsty.', { conv: sim.t });
     expect(o.decision?.ok, o.decision?.reason).toBe(true); expect(sim.talk.possessions()).toContain('water');
     const saved = JSON.parse(JSON.stringify(sim.save())); expect(saved.talk.events.length).toBeGreaterThan(0);
     const b = fresh(); b.load(saved);
@@ -190,9 +191,9 @@ describe('after the GPU runs: the picked facts and the judge (ground.ts, talk.ts
     const { isRecallQuestion, groundFact } = await import('../src/people/converse/ground');
     for (const q of ['Do you remember me, friend? What did I ask of you?', 'We met yesterday, did we not? What passed between us?', 'Have you seen me before?', 'Have you heard anything of me, a foreigner?', 'Has anyone spoken to you of me?', 'What do people say of the stranger?']) expect(isRecallQuestion(q), q).toBe(true);
     for (const q of ['Who are you, friend?', 'Where can I find water?', 'Come with me, friend.']) expect(isRecallQuestion(q), q).toBe(false);
-    const sim = fresh(); const m = mind(); const d = 153;
+    const d = 153; const sim = simAt(1, d, 10.5); const m = mind();
     const p = find(sim, d, 10.5, x => sim.pop.persons[x].job === 'homemaker' && sim.pop.persons[x].agent < 0 && segAt(sim.pop.plan(x, d), 10.5).place.startsWith('h:') && sim.pop.membersOn(sim.pop.home(x, d), d).length >= 3);
-    sim.jumpTo(d * 24 + 10.5); await talkTurn(m, sim, p, 'I am thirsty.', { conv: sim.t });
+    await talkTurn(m, sim, p, 'I am thirsty.', { conv: sim.t });
     const f = sim.talk.recallFact(p, (d + 1) * 24 + 10); expect(f.kind).toBe('own'); expect(f.fact).toMatch(/^Yesterday in the morning you asked me for water, and I gave you water\.$/);
     const kin = sim.pop.membersOn(sim.pop.home(p, d), d).find(x => x !== p && sim.pop.ageOn(x, d) >= 8)!; const h = sim.talk.recallFact(kin, (d + 1) * 24 + 12);
     expect(h.kind).toBe('heard'); expect(h.fact).toContain(sim.talk.name(p)); expect(h.fact).toMatch(/told me that you asked (him|her) for water, and (he|she) gave you water/);

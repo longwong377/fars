@@ -1,5 +1,6 @@
 // D-371: every person has a past before this year, bound to the household as the simulation has it (history.ts).
 import { describe, it, expect } from 'vitest';
+import { simAt } from './sim_fixture';
 import { Population } from '../src/people/population';
 import { EventCalendar } from '../src/people/calendar';
 import { lifeRecord } from '../src/people/converse/life';
@@ -51,7 +52,7 @@ describe('D-371 the life record speaks from the economy\'s real debts and dealin
   it('with a sim, debts and recent dealings come from the economy (no seeded fakes, no digits)', async () => {
     const { readFileSync } = await import('node:fs'); const { NavGrid } = await import('../src/people/navgrid'); const { PeopleSim } = await import('../src/people/sim');
     const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
-    const sim = new PeopleSim(1, nav, (() => ({ rain: 0, lightning: 0, windMs: 2, tempC: 20, dust: 0 })) as any); sim.jumpTo(120 * 24 + 12); const E = sim.econTo(121);
+    const sim = simAt(1, 120, 12); const E = sim.econTo(121); void nav; void PeopleSim;
     const debtor = [...E.hh.values()].find(h => h.debts.some(d => d.amt > 0.05) && sim.pop.households[Number(h.id.slice(2))]?.members.some(m => sim.pop.ageOn(m, 120) >= 20 && sim.pop.present(m, 120)))!;
     const pid = sim.pop.households[Number(debtor.id.slice(2))].members.find(m => sim.pop.ageOn(m, 120) >= 20 && sim.pop.present(m, 120))!;
     const L = lifeRecord(sim.pop, sim.cal, pid, 120, 12);
@@ -86,7 +87,7 @@ describe('D-373 hopes and worries from each person\'s own state', () => {
     const { aimsOf } = await import('../src/people/aims');
     const { readFileSync } = await import('node:fs'); const { NavGrid } = await import('../src/people/navgrid'); const { PeopleSim } = await import('../src/people/sim');
     const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
-    const sim = new PeopleSim(1, nav, (() => ({ rain: 0, lightning: 0, windMs: 2, tempC: 20, dust: 0 })) as any); sim.jumpTo(120 * 24 + 12); const E = sim.econTo(121);
+    const sim = simAt(1, 120, 12); const E = sim.econTo(121); void nav; void PeopleSim;
     const people = sim.pop.persons.filter(p => sim.pop.present(p.id, 120) && sim.pop.ageOn(p.id, 120) >= 4).sort((a, b) => u01(1, salt('aims-t'), a.id) - u01(1, salt('aims-t'), b.id)).slice(0, 300);
     let some = 0; const kinds = new Set<string>();
     for (const P of people) { const A = aimsOf(sim.pop, sim.cal, P.id, 120, E); if (A.hopes.length + A.worries.length) some++;
