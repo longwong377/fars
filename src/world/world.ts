@@ -811,7 +811,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
           surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,
           worksite: null, workHours: hour > 6.5 && hour < 17.5, // chisels, querns, dice now come from the people (crowd.onHit)
-          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC, air: ctx.cond }); // D-210: where the animals and insects are heard; D-620: the weather for the recorded beds
+          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC, air: ctx.cond, ground: (ctx.player as { groundKind?: 'stone' }).groundKind, roofed: (ctx.player as { roofed?: boolean }).roofed }); // D-620: the walk's ground and roof (C9) // D-210: where the animals and insects are heard; D-620: the weather for the recorded beds
       }
       pa('w.audio', tp);
     },
