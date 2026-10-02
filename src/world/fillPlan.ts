@@ -13,7 +13,7 @@
 //  3. Washing lines across the narrow lanes between two houses' walls (washing: PF wool and linen; the line C).
 //  4. The Terrace: the masons' yard's waste (chips, quarry blocks, rubble), the goods set down at the stair foot, the
 //     garrison's water jars and fuel, the Treasury store's sacks and jars, standards at the gates and stairs (C).
-import { LANE, SQUARE, OUT, type Site, type Plot, type Craft } from './settlement/site';
+import { LANE, SQUARE, OUT, toLocal, type Site, type Plot, type Craft } from './settlement/site';
 import placesJson from '../data/people_places.json';
 
 export type RGB = [number, number, number];
@@ -80,15 +80,35 @@ export const rotFacing = (de: number, dn: number) => Math.atan2(de, -dn);
 export interface FillStats { market: number; stalls: number; lane: number; door: number; line: number; terrace: number; squares: number; /** s17 C1: the gap fill along the walls and the lanes' litter */ gap?: number; litter?: number; tethers?: number }
 
 /** the town's fill from its sites (every quarter; compounds have no lanes or squares) */
-export function townFill(sites: Site[], seed = 1, villages: Site[] = []): { items: FillItem[]; stats: FillStats } {
+export function townFill(sites: Site[], seed = 1, villages: Site[] = [], markets: [number, number][] = []): { items: FillItem[]; stats: FillStats } {
   const items: FillItem[] = [], st: FillStats = { market: 0, stalls: 0, lane: 0, door: 0, line: 0, terrace: 0, squares: 0, gap: 0, litter: 0, tethers: 0 };
-  for (const s of sites) siteFill(s, seed, items, st);
+  // s17 C1 (D-550): the simulation's market grounds (Population.quarters' points: where popgeo stands each selling household's
+  // stall, market:<q>:<hid>, D-359), each to the site it lies in
+  const mk = new Map<Site, [number, number][]>(); for (const xy of markets) { const s = sites.find(x => { const [u, v] = toLocal(x.frame, xy[0], xy[1]); return x.inb(x.ci(u), x.cj(v)); }); if (s) (mk.get(s) ?? mk.set(s, []).get(s)!).push(toLocal(s.frame, xy[0], xy[1])); else openMarket(xy, sites, seed, items, st); }
+  for (const s of sites) siteFill(s, seed, items, st, false, mk.get(s));
   for (const s of villages) siteFill(s, seed, items, st, true);
   detwin(items);
   return { items, stats: st };
 }
 
 const open = (c: number) => c === LANE || c === SQUARE || c === OUT;
+/** s17 C1 (D-550): a market on the open ground outside the quarters (popgeo openNear: the sellers within ~20 m of the point):
+ *  two rows of spreads and stalls facing across a 6 m way, every 2.8 m over 26 m, turned by a hash; spots on a plot's cells
+ *  are left out (C: an open-air market by a town's edge, the region's periodic markets, RECOLLECTION) */
+function openMarket(xy: [number, number], sites: Site[], seed: number, items: FillItem[], st: FillStats) {
+  const k0 = h32(seed, Math.round(xy[0]), Math.round(xy[1]), 77), a = u01(k0, 1) * Math.PI, ca = Math.cos(a), sa = Math.sin(a);
+  const free = (e: number, n: number) => { for (const s of sites) { const [u, v] = toLocal(s.frame, e, n), i = s.ci(u), j = s.cj(v); if (s.inb(i, j) && s.cell[s.k(i, j)] >= 0) return false; } return true; };
+  for (const side of [-1, 1]) for (let t = -13; t <= 13; t += 2.8) { const k = h32(k0, side + 2, Math.round(t * 10));
+    if (u01(k, 9) < 0.12) continue; // (a gap: a seller not come today)
+    const e = xy[0] + ca * t - sa * side * 3, n = xy[1] + sa * t + ca * side * 3, fe = sa * side, fn = -ca * side; // (facing the way)
+    if (!free(e, n) || !free(e - fe * 1.2, n - fn * 1.2)) continue;
+    const stall = u01(k, 1) < 0.3, trade = tradeOf(u01(k, 2)), rot = rotFacing(fe, fn), rx = fn, rv = -fe; // (the spread's local +x: its front turned clockwise)
+    if (stall) { items.push({ m: 'fill_stall', e: e - fe * 0.4, n: n - fn * 0.4, dy: 0, rot, s: [1, 1, 1], col: { cloth: cloth(u01(k, 3)) }, solid: [1.2, 0.85], at: 'market' }); st.stalls++; st.market++; }
+    else { items.push({ m: 'mat', e, n, dy: 0, rot: rot + (u01(k, 4) - 0.5) * 0.2, s: [0.62, 1, 0.66], day: true, at: 'market' }); st.market++; }
+    const ce = stall ? e - fe * 0.4 : e, cn = stall ? n - fn * 0.4 : n;
+    for (const [m, x, y, z, sc, col] of TRADES[trade](u01(k, 5))) { const zz = stall ? z : (z - 0.6) * 0.45, xx = stall ? x : x * 0.62, sj = sc * (0.93 + 0.14 * u01(k, x * 10, z * 10, 5)), gone = u01(k, x * 10, z * 10, 6);
+      items.push({ m, e: ce + rx * xx + fe * zz, n: cn + rv * xx + fn * zz, dy: stall ? y : 0.012, rot: rot + (u01(k, x * 10, z * 10) - 0.5) * 0.5, s: [sj, sj, sj], col, day: true, ...(gone < 0.45 ? { until: 12.5 + 6 * gone / 0.45 } : {}), at: 'market' }); st.market++; } }
+}
 /** s17 C1 (D-550): no two things of the same model within 15 m that look the same (scale within 3 %, the same colours, turned
  *  within 10 degrees, the same lean): each later twin is turned and sized a step further from its earlier twin (a tool's lean
  *  changed instead of its turn, so it stays against its wall) */
@@ -104,7 +124,7 @@ export function detwin(items: FillItem[], R = 15) {
     const kk = key(a.e, a.n); (G.get(kk) ?? G.set(kk, []).get(kk)!).push(k); });
 }
 /** one site's fill; `outside`: the open ground round a village's compounds counts as its lanes (villages have no lanes) */
-export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats, outside = false) {
+export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats, outside = false, markets: [number, number][] = []) {
   const W = s.W, H = s.H, sid = strHash(s.id) ^ seed, th = s.frame.theta, C = Math.cos(th), S = Math.sin(th), first = items.length;
   const toG = (u: number, v: number) => s.grid(u, v), dirG = (du: number, dv: number): [number, number] => [du * C - dv * S, du * S + dv * C];
   const doorEdge = (i: number, j: number, di: number, dj: number) => s.doors.has(dj === 1 ? s.eh(i, j) : dj === -1 ? s.eh(i, j - 1) : di === 1 ? s.ev(i, j) : s.ev(i - 1, j));
@@ -169,6 +189,29 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
         items.push({ m, e, n, dy: y, rot: rotFacing(de, dn) + jit, s: [sj, sj, sj], col, day: true, ...(gone < 0.45 ? { until: 12.5 + 6 * gone / 0.45 } : {}), at: 'market' }); st.market++; }
     }
   }
+
+  // 1b. s17 C1 (D-550): the simulation's market grounds (D-359: the sellers stand within 30 m of the quarter's point, each at
+  // their household's spread): along the walls within MARKET_R of the point, every 2.6 m, a seller's spread on a reed mat (a
+  // trade's goods, set out by day, sold out through the afternoon), a stall with its awning where the lane is wide; clear of
+  // doors and fittings, the lane left passable (C: the analogues as for the squares' markets)
+  for (const [mu, mv] of markets) for (const R of [MARKET_R, MARKET_R * 2]) { const spots: [number, number][] = [];
+    if (R > MARKET_R && items.some(it => it.at === 'market' && Math.hypot(...toLocal(s.frame, it.e, it.n).map((x, q) => x - [mu, mv][q]) as [number, number]) < MARKET_R)) break; // (the near ring held the market)
+    const cand: { u: number; v: number; du: number; dv: number; w: number; d: number }[] = [];
+    for (let j = Math.max(0, s.cj(mv) - R); j <= Math.min(H - 1, s.cj(mv) + R); j++) for (let i = Math.max(0, s.ci(mu) - R); i <= Math.min(W - 1, s.ci(mu) + R); i++) {
+      const c = s.cell[j * W + i]; if (!open(c)) continue; const d = Math.hypot(s.cu(i) - mu, s.cv(j) - mv); if (d > R) continue; // (a compound's point: the open ground along its wall)
+      for (const [di, dj] of DIRS) { if (s.at(i + di, j + dj) < 0 || doorEdge(i, j, di, dj)) continue; const w = c === OUT ? 12 : clear(i, j, di, dj); if (w < 2.4) continue; // (a compound's raster ends 2 m out: beyond it the ground is open)
+        cand.push({ u: s.cu(i) + di * 0.5, v: s.cv(j) + dj * 0.5, du: -di, dv: -dj, w, d }); } }
+    cand.sort((a, b) => a.d - b.d);
+    for (const c of cand) { if (spots.length >= 16) break; if (spots.some(([a, b]) => Math.hypot(a - c.u, b - c.v) < 2.6)) continue;
+      const k = h32(sid, Math.round(c.u * 10), Math.round(c.v * 10), 5), stall = c.w >= 5 && u01(k, 1) < 0.35, off = stall ? 1.15 : 0.75;
+      const cu = c.u + c.du * off, cv = c.v + c.dv * off; if (nearDoor(cu, cv, 1.6) || nearTaken(cu, cv, 1.6) || !open(s.at(s.ci(cu), s.cj(cv)))) continue;
+      spots.push([c.u, c.v]); const trade = tradeOf(u01(k, 2)), rx = -c.dv, rv = c.du, [de, dn] = dirG(c.du, c.dv);
+      if (stall) { put('fill_stall', cu, cv, c.du, c.dv, 1, 'market', { col: { cloth: cloth(u01(k, 3)) }, solid: [1.2, 0.85] }); st.stalls++; st.market++; }
+      else { put('mat', cu, cv, c.du, c.dv, [0.62, 1, 0.66], 'market', { day: true }); fixRot(-c.dv, c.du, (u01(k, 4) - 0.5) * 0.2); st.market++; }
+      for (const [m, x, y, z, sc, col] of TRADES[trade](u01(k, 5))) { // (on a mat the goods sit on the ground, pulled in to the mat's 1.2 x 0.8 m)
+        const zz = stall ? z : (z - 0.6) * 0.45, xx = stall ? x : x * 0.62, gu = cu + rx * xx + c.du * zz, gv = cv + rv * xx + c.dv * zz, [e, n] = toG(gu, gv);
+        if (!open(s.at(s.ci(gu), s.cj(gv)))) continue; const sj = sc * (0.93 + 0.14 * u01(k, x * 10, z * 10, 5)), gone = u01(k, x * 10, z * 10, 6);
+        items.push({ m, e, n, dy: stall ? y : 0.012, rot: rotFacing(de, dn) + (u01(k, x * 10, z * 10) - 0.5) * 0.5, s: [sj, sj, sj], col, day: true, ...(gone < 0.45 ? { until: 12.5 + 6 * gone / 0.45 } : {}), at: 'market' }); st.market++; } } }
 
   // 2. the lane frontage and 3. the washing lines
   const lines: [number, number][] = [];
@@ -242,6 +285,8 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
 /** s17 C1: the tools leaned on the walls: [model, its length's start and end along the model's z (m)] */
 const TOOLS: Record<string, [number, number]> = { tool_hoe: [-0.45, 0.84], tool_fork: [-0.55, 1.48], tool_broom: [-0.1, 0.56], tool_staff: [-0.12, 1.5], tool_goad: [-0.12, 1.2] };
 const TOOL_W: [string, number][] = [['tool_hoe', 3], ['tool_broom', 3], ['tool_fork', 1.5], ['tool_staff', 2]];
+/** s17 C1: the sim's market ground: spreads within this of the quarter's point (m; popgeo stands sellers within 30 cells) */
+const MARKET_R = 14;
 /** the gap fill: within this of the wall's foot nothing stands -> one thing (m): ~5 m between things along a wall at most */
 const GAP_R = 2.4;
 const LITTLE: [string, number][] = [['jar_water', 3], ['tool_broom', 1.6], ['sack', 2], ['wo_dung_cakes', 1.6], ['cookpot', 1.2], ['fill_bundle', 2], ['basin', 1], ['tool_hoe', 1.4], ['firewood_lean', 2],
