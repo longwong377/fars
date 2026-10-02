@@ -49,7 +49,7 @@ export interface Plan { items: Item[]; floor: number; covered: number; use: Use;
 
 /** triangles a thing costs at the near level (the models' lod2 and the kit's lathes, as drawn: draw.ts) */
 export const TRIS: Record<Kind, number> = {
-  mat: 105, carpet: 164, fleece: 302, hide: 172, grass_bed: 300, roll: 62, rugs: 24, bedding: 210, cushion: 100, chest: 446, stool: 288, low_table: 300, bench: 264,
+  mat: 170, carpet: 400, fleece: 302, hide: 172, grass_bed: 300, roll: 62, rugs: 24, bedding: 210, cushion: 100, chest: 446, stool: 288, low_table: 300, bench: 264,
   jar_store: 90, jar_neck: 80, jar_water: 88, sack: 114, sack_lying: 166, bin: 314, basket: 72, bale: 288, grain: 230,
   cookpot: 86, bowls: 60, jug: 266, basin: 276, kneading: 136, quern: 120, mortar: 278, bread: 72, milkpot: 100,
   loom_ground: 714, loom_upright: 145, spinning: 140, bolts: 212, wool: 302,
@@ -100,6 +100,7 @@ function wallOrder(c: Ctx): Side[] { const b = c.r.back, opp: Side = ([1, 0, 3, 
  *  middle, 1 the other corner), trying a few spots; false when no wall has room */
 export function onWall(c: Ctx, k: Kind, w: number, d: number, h: number, pref: number, extra: Partial<Item> = {}, walls = wallOrder(c)): boolean {
   if (c.spent + TRIS[k] > c.budget) return false;
+  pref = (pref + 0.3 * (h01(`${c.seed}:pref:${k}:${c.items.length}`) - 0.5) + 1) % 1; // (the same recipe never lays two rooms out alike)
   for (const side of walls) {
     const lo = side < 2 ? c.x0 : c.y0, hi = side < 2 ? c.x1 : c.y1, L = hi - lo; if (L < w + 0.1) continue;
     const tries = [pref, (pref + 0.33) % 1, (pref + 0.66) % 1, 1 - pref, (pref + 0.15) % 1, (pref + 0.5) % 1, (pref + 0.85) % 1];
@@ -225,6 +226,9 @@ function recipe(c: Ctx) {
         default: lean(2); onWall(c, 'bench', 1.4, 0.5, 0.5, 0.4); onWall(c, 'basket', 0.4, 0.34, 0.14, 0.8);
       }
       onWall(c, 'jar_water', 0.4, 0.4, 0.5, 0.95); if (h('peg') < 0.6) hang(c, 'peg_cloth', 1.45, 0.5, 0.9);
+      // the workshop's own odds and ends, its master's choice (C): a stool, a broom, a sack of stock, a jug, a basket
+      const odds: [Kind, number, number, number][] = [['stool', 0.42, 0.42, 0.42], ['broom', 0.2, 0.18, 0.66], ['sack', 0.42, 0.42, 0.6], ['jug', 0.18, 0.16, 0.18], ['basket', 0.4, 0.34, 0.14], ['jar_neck', 0.3, 0.3, 0.44], ['bowls', 0.3, 0.3, 0.12]];
+      for (let i = 0; i < odds.length; i++) if (h('odd' + i) < 0.45) { const [k, w, d, hh] = odds[i]; if (k === 'broom') inCorner(c, k, w, d, hh); else onWall(c, k, w, d, hh, h('op' + i)); }
       onFloor(c, 'mat', clamp(W * 0.5, 0.9, 1.6), clamp(D * 0.4, 0.8, 1.2), 0.85, { note: 'a mat where the master sits at the work (C)' });
       break; }
     case 'living': case 'sleeping': {
@@ -276,7 +280,12 @@ export const ROOM_BUDGET: Record<Use, number> = { living: 2200, sleeping: 1600, 
 /** plan a room's things (deterministic per room id and household) */
 export function planRoom(r: RoomIn, p: Profile, budgetScale = 1): Plan {
   const c = newCtx(r, p, ROOM_BUDGET[r.use] * budgetScale); if (!c) return emptyPlan(r);
-  clearZones(c); recipe(c); return planOf(c);
+  clearZones(c); recipe(c);
+  // a small room whose floor is full keeps more off it: the household's things on pegs and from the poles (C)
+  const min = r.use === 'living' ? 8 : r.use === 'sleeping' ? 6 : r.use === 'store' ? 4 : 0, ceil = r.ceil ?? 2.3;
+  for (let i = 0; c.items.length < min && i < 4; i++) { const x = h01(`${c.seed}:small:${i}`); if (x < 0.4) hang(c, 'peg_cloth', 1.4 + 0.15 * x, 0.5, 0.9, { note: 'clothes and a bag hung on a peg (C)' }); else hang(c, x < 0.7 ? 'onions' : 'herbs', ceil - 0.7, 0.35, 0.55, { note: 'kept hung from the poles (C)' }); }
+  for (let i = 0; c.items.length < min && i < 3; i++) onWall(c, (['bowls', 'jug', 'basket'] as Kind[])[i], 0.3, 0.28, 0.14, h01(`${c.seed}:smallw:${i}`), { note: 'the household\'s small things along the wall (C)' });
+  return planOf(c);
 }
 /** a room's planning state (null: too small to furnish); `pre` boxes already taken (fittings another builder draws:
  *  u0, v0, u1, v1, and 1 for a flat one) */

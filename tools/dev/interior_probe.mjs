@@ -12,6 +12,9 @@ await p.waitForFunction(() => window.__ready, null, { timeout: 1800000 });
 console.log('ready', JSON.stringify(await p.evaluate(() => window.__ready)), (Date.now() - t0) / 1000, 's');
 const S = await p.evaluate(() => window.__site);
 let V = process.env.V ? JSON.parse(process.env.V) : [];
+const RM = await p.evaluate(() => window.__rooms ?? []);
+if (!V.length && process.env.ROOMS) for (const use of process.env.ROOMS.split(',')) { const R = RM.filter(q => q.use === use)[+(process.env.PICK ?? 3)] ?? RM.find(q => q.use === use); if (!R) continue;
+  const az = (90 - R.theta * 180 / Math.PI + 360) % 360; V.push({ name: `room-${use}-${R.id.split(':').slice(1).join('_')}`, e: R.c[0] - Math.sin(az * Math.PI / 180) * 2.6, n: R.c[1] - Math.cos(az * Math.PI / 180) * 2.6, eye: 4.6, az, pitch: -58, fov: 62, at: R.c }); }
 if (!V.length && S.doors) for (const k of [3, 11, 19]) { const d = S.doors[k % S.doors.length], [e, n] = d.in, [oe, on] = d.out, az = Math.atan2(e - oe, n - on) * 180 / Math.PI;
   V.push({ name: `above-${d.id}`, e: e - Math.sin(az * Math.PI / 180) * 6, n: n - Math.cos(az * Math.PI / 180) * 6, eye: 9, az, pitch: -52, fov: 60, at: [e, n] });
   V.push({ name: `door-${d.id}`, e: oe, n: on, eye: 1.6, az, pitch: -12, fov: 70, at: [e, n] }); }

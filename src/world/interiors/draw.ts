@@ -51,8 +51,16 @@ const tex = (c: DrawCtx, vr: number) => TEXTILE[textileOf(c.prof, vr)];
 export function drawItem(c: DrawCtx, it: Item): boolean {
   const v = it.vr, w = it.w, d = it.d, h = it.h, C = c.clay, T = c.cloth;
   switch (it.k) {
-    case 'mat': return put(c, T, 'mat', it, [w, 0.012, d], { matting: sh(REED, 0.9 + 0.2 * v) }, [0, 0], 0.015);
-    case 'carpet': return put(c, T, 'carpet', it, [w, 0.014, d], { pile: tex(c, 0.05 + v * 0.1), fringe: TEXTILE[1] }, [0, 0], 0.03);
+    case 'mat': { // the reed mat's model over a woven base (its far level is strands: the floor showed between them)
+      flat(c, T, it, w - 0.04, d - 0.04, 0.012, 8, 4, (i, j) => sh(REED, (0.8 + 0.1 * v) * (1 + 0.07 * (((i + j) & 1) - 0.5) + 0.05 * Math.sin(i * 2.3 + v * 9))));
+      put(c, T, 'mat', it, [w, 0.012, d], { matting: sh(REED, 0.9 + 0.2 * v) }, [0, 0], 0.016); return true; }
+    case 'carpet': { // a knotted pile carpet in the palace carpets' scheme (SITE_SPEC r_palace_furnishings: a field of squares, a
+      // motif in each, a border between bands; the household's own dye for the field)
+      const K = CARPET, field = v < 0.5 ? K.field : mix(K.field, tex(c, v), 0.5), nx = 14, ny = Math.max(6, Math.round(14 * d / w)), bx = Math.max(1, Math.round(nx * 0.12)), by = Math.max(1, Math.round(ny * 0.14));
+      flat(c, T, it, w, d, 0.02, nx, ny, (i, j) => { const ei = Math.min(i, nx - 1 - i), ej = Math.min(j, ny - 1 - j);
+        if (ei === 0 || ej === 0) return K.band; if (ei < bx || ej < by) return ((i + j) & 1) ? K.border : sh(K.border, 1.25);
+        const qi = i - bx, qj = j - by; return (qi % 3 === 1 && qj % 3 === 1) ? K.motif : ((Math.floor(qi / 3) + Math.floor(qj / 3)) & 1) ? field : sh(field, 0.78); });
+      return true; }
     case 'fleece': return put(c, T, 'wo_fleece', it, [w, 0.1, d], { wool: sh(WOOL, 0.85 + 0.2 * v), wool_d: sh(WOOL, 0.7) }, [0, 0], 0.02, v * 6.28);
     case 'hide': return put(c, T, 'wo_hides', it, [w, 0.08, d], { hide: sh(HIDE, 0.85 + 0.25 * v), hide_d: sh(HIDE, 0.65) }, [0, 0], 0.02, v * 6.28);
     case 'grass_bed': return put(c, T, 'wo_grass_bed', it, [w, 0.08, d], { grass: sh(STRAW, 0.9 + 0.15 * v) }, [0, 0], 0.01);
@@ -142,6 +150,15 @@ export function drawItem(c: DrawCtx, it: Item): boolean {
       put(c, C, 'glass_bowl', it, [0.18, 0.07, 0.18], { glass: [0.56, 0.62, 0.58] }, [w * 0.32, -0.03]); return a; }
   }
   return false;
+}
+/** the palace carpets' colours (SITE_SPEC global.r_palace_furnishings.carpet.colours, sRGB) */
+const CARPET = { field: [0.46, 0.1, 0.08] as RGB, motif: [0.78, 0.62, 0.33] as RGB, border: [0.2, 0.24, 0.38] as RGB, band: [0.74, 0.6, 0.32] as RGB };
+/** a flat woven thing as a grid of quads, each its own colour (a mat's weave, a carpet's pattern), `y` over the floor */
+function flat(c: DrawCtx, b: Batch, it: Item, w: number, d: number, y: number, nx: number, ny: number, col: (i: number, j: number) => RGB) {
+  const th = c.theta + it.rot, cs = Math.cos(th), sn = Math.sin(th), [e, n] = c.grid(it.u, it.v), Y = c.floor(it.u, it.v) + it.y + y;
+  const P = (x: number, z: number) => [e + x * cs + z * sn, Y, -(n + x * sn - z * cs)];
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const x0 = -w / 2 + (w * i) / nx, x1 = x0 + w / nx, z0 = -d / 2 + (d * j) / ny, z1 = z0 + d / ny, k = lin(col(i, j));
+    b.quad(P(x0, z0), P(x1, z0), P(x1, z1), P(x0, z1), [0, 1, 0], k, k, k, k, c.own); }
 }
 const h01v = (v: number, k: number) => ((v * 9301 + k * 49297) % 233280) / 233280;
 /** a jar as a lathe when no model is loaded */

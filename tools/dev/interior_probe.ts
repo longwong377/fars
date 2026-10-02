@@ -28,6 +28,8 @@ import type { RGB } from '../../src/world/settlement/geom';
     (window as any).__hs = new SiteHouses(s, si, () => 0, new Float32Array(n), new Uint8Array(n), Array.from({ length: n }, () => [0.5, 0.45, 0.35] as RGB), new Int32Array(n), []);
     for (const w of s.walls()) { const a = s.grid(w.u0, w.v0), b = s.grid(w.u1, w.v1), L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 0.05) continue;
       walls.push(new THREE.Matrix4().compose(new THREE.Vector3((a[0] + b[0]) / 2, 0.6, -(a[1] + b[1]) / 2), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(b[1] - a[1], b[0] - a[0])), new THREE.Vector3(L + w.thick, 1.2, w.thick))); }
+    const hs = (window as any).__hs, { roomIn } = await import('../../src/world/interiors/town'); const hv = Object.assign(Object.create(hs), { life: (q: number) => hs.life(q), day: 30 });
+    (window as any).__rooms = hs.rooms.map((rr: any) => { const ri = roomIn(hv, rr); return ri ? { id: ri.id, use: ri.use, c: s.grid((ri.u0 + ri.u1) / 2, (ri.v0 + ri.v1) / 2), w: ri.u1 - ri.u0, d: ri.v1 - ri.v0, theta: s.frame.theta } : null; }).filter((x: any) => x);
     (window as any).__site = { c: s.frame.c, doors: s.plots.filter(p => p.door).slice(0, 40).map(p => ({ id: p.id, out: s.grid(...s.doorPoints(p)!.out), in: s.grid(...s.doorPoints(p)!.inside) })) };
   } else {
     registerTerraceInteriors();

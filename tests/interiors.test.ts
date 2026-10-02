@@ -65,3 +65,19 @@ describe('the census of the town\'s rooms (D-610)', () => {
     ring.update(1e7, 1e7, 30); expect(ring.info.rooms).toBe(0);
   });
 });
+
+describe('the Terrace\'s rooms and the court\'s tents (D-610)', () => {
+  it('every Terrace room furnished after its fittings (a guard\'s kit at each mat, goods on the stores\' benches), every tent for its household, nothing through a tent\'s cloth', async () => {
+    const { terracePlans } = await import('../src/world/interiors/terrace'); const { planTent } = await import('../src/world/interiors/tents'); const { Population } = await import('../src/people/population');
+    const T = terracePlans().filter(x => x.src.use !== 'passage');
+    for (const x of T) { expect(x.plan.items.length).toBeGreaterThan(3); expect(inDoorway(x.room, x.plan.items)).toEqual([]); }
+    const q = T.filter(x => x.src.use === 'quarters'); expect(q.reduce((a, x) => a + x.plan.items.filter(i => i.k === 'sack_lying' || i.k === 'rugs').length, 0)).toBeGreaterThan(300);
+    expect(T.filter(x => x.src.use === 'store' && x.src.building === 'treasury').every(x => x.plan.items.some(i => i.y > 0.2))).toBe(true); // (goods on the benches)
+    const tents = (new Population(1, { court: true }) as any).court.tents as any[]; let n = 0;
+    for (const t of tents.slice(0, 400)) { const x = planTent(t); n += x.plan.items.length; expect(inDoorway(x.room, x.plan.items)).toEqual([]);
+      if (t.kind === 'ridge') for (const it of x.plan.items) expect(it.y + it.h).toBeLessThan(t.h); }
+    console.log(`[interiors] Terrace: ${T.length} rooms, ${T.reduce((a, x) => a + x.plan.items.length, 0)} things; tents: ${n / 400} things a tent`);
+    expect(n / 400).toBeGreaterThan(6);
+  }, 120_000);
+});
+

@@ -61,6 +61,9 @@ villages.forEach((v, vi) => add('village', v.site, 1000 + vi));
     const items = BASE ? pre : [...pre, ...x.plan.items], fl = x.plan.floor; let cov = 0; for (const it of items) if (it.y < 0.05 && !['peg_cloth', 'herbs', 'onions', 'lamp'].includes(it.k)) cov += it.w * it.d;
     // (a dormitory counts its things per sleeping place: a room of ninety mats is not furnished by ninety mats alone)
     rooms.push({ kind: `terrace/${room.building}/${room.use}`, e, n, room: x.room, plan: { ...x.plan, items: BASE ? pre : [...x.plan.items, ...pre.filter(q => q.k !== 'mat')], covered: Math.min(1, cov / fl) }, tris: BASE ? 0 : x.plan.items.reduce((a, it) => a + TRIS[it.k], 0) }); } }
+// the court camps' tents (court setting: standing while the court is in residence)
+{ const { Population } = await import('../../src/people/population'); const { planTent } = await import('../../src/world/interiors/tents');
+  for (const t of (new Population(1, { court: true }) as any).court.tents as any[]) { const x = planTent(t); rooms.push({ kind: `tent/${t.kind}`, e: t.e, n: t.n, room: x.room, plan: BASE ? { ...x.plan, items: [], covered: 0 } : x.plan, tris: BASE ? 0 : x.plan.items.reduce((a: number, it: Item) => a + TRIS[it.k], 0) }); } }
 const rows = census(rooms, 15, r => !!(r as any).pop);
 console.log(`[census] ${BASE ? 'BASELINE (houses.ts before D-610)' : 'D-610 interiors'}${NOPOP ? ', no population' : ''}: ${rooms.length} rooms in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 console.log(formatCensus(rows));
