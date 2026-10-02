@@ -9445,3 +9445,9 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   herd-30m, cold-morning. Frames judged: shots/wx-*-w6.png (not committed).
 - Not mine, seen in the probe: the wet plain is darker but matte (no sheen, no puddles: the ground material, V2/C2); the
   ground flora draws black spiky cards on the plain (groundFlora, C2).
+
+## D-522 (s17, V5): the season's palette in one place (season.ts SEASON_PALETTE)
+- The herb layer's green and straw and the stubble's colours lived as copies in materials.ts, terrainPlain.ts (twice),
+  water.ts and groundCover.ts; they now read season.ts SEASON_PALETTE (one-line hooks in each). Spring green moved from an
+  olive (0.31, 0.36, 0.18) that read as summer khaki to a young green (0.34, 0.45, 0.16); straw a little warmer. How much of
+  the ground the herbs cover stays the ground materials' (C2, V2). Probe: shots/pp-small-spring-field-s1.png.
