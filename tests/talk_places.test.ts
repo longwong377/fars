@@ -3,7 +3,7 @@
 // talk world resolves the place (their quarter's market, the officials' building, a house whose plot is that workshop).
 import { describe, it, expect } from 'vitest';
 import { simAt } from './sim_fixture';
-import { requestOf } from '../src/people/converse/intent';
+import { requestOf, looseRequest, cues } from '../src/people/converse/intent';
 
 describe('places a stranger asks to be led to (D-391)', () => {
   it('the market, the court and the workshops are known', () => {
@@ -24,4 +24,9 @@ describe('places a stranger asks to be led to (D-391)', () => {
       expect(r.verdict.why).toMatch(/needs a hand|king’s works|no one in the quarter/); }
     expect(n).toBe(5);
   }, 600_000);
+  it('questions about one\'s origin, and looking for work, are not asks to be led (D-391)', () => {
+    for (const said of ['Where are you from?', 'Where were you born?', 'Where do you come from, friend?', 'I am looking for work.', 'I am looking for a place to sleep.'])
+      { expect(cues(said), said).not.toContain('lead_to'); expect(looseRequest(said)?.kind ?? null, said).not.toBe('lead_to'); }
+    expect(looseRequest('I am looking for the river.')?.kind).toBe('lead_to'); expect(cues('Where are you going? Show me the well.')).toContain('lead_to');
+  });
 });

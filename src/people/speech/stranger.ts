@@ -103,6 +103,8 @@ interface Belief { b: number; day: number; hand: number; doubted?: boolean }
 export interface StrangerOpts {
   /** the tongue spoken in a household (the head's origin; default: keyed by the seed, the town's own mix) */
   langOf?: (hh: string) => string;
+  /** D-391: the world's own reasons a house wants a hand today (the farm calendar's season, the house's open ask for labour), or '' */
+  needOf?: (hh: string, day: number) => string;
 }
 
 export class Stranger {
@@ -213,7 +215,7 @@ export class Stranger {
     if (H.kind === 'herder' && day % 354 < 60) return 'the lambing';
     if (H.kind === 'rich') return 'the service of a great house';
     if (H.workers === 0 && H.kind !== 'ration') return 'no one left to work';
-    return '';
+    return this.opts.needOf?.(hh, day) ?? '';
   }
   private canPay(hh: string) { const H = this.H(hh)!; return H.grain > H.eaters * GRAIN_EAT * 20 + WAGE_GRAIN * PAYDAY || H.cash > this.E.price('grain', this.E.day) * WAGE_GRAIN * PAYDAY; }
   hireCheck(hh: string, day: number): Verdict {
@@ -266,6 +268,8 @@ export class Stranger {
   /** wages the economy repaid to the stranger (Economy.due, a debt to 'player') */
   repaid(amt: number) { this.purse.cash += amt; }
   /** wages a house owes the stranger now: a debt in its ledger, or the job's unpaid days */
+  /** D-391: the house that owes the stranger (his employer first, else any house with a debt to him), or undefined */
+  debtor(): string | undefined { if (this.job && this.owesNow(this.job.employer)) return this.job.employer; for (const H of this.E.hh.values()) if (H.debts.some(d => d.to === PLAYER && d.amt > 0.005)) return H.id; return undefined; }
   owesNow(hh: string) { return (this.H(hh)?.debts.some(d => d.to === PLAYER && d.amt > 0.005) ?? false) || (this.job?.employer === hh && this.job.owed > 0.5); }
   /** the matters judged (kind|against|for -> the day of the ruling): not heard again for 90 days (C) */
   readonly judged = new Map<string, number>();
@@ -555,7 +559,9 @@ export class Stranger {
     else if (this.owesNow(hh)) out.push('your house owes the stranger wages from his work');
     if (this.group?.kind === 'household' && this.group.id === hh) out.push('the stranger lives in your house now, as one of it');
     if (this.slighted.has(hh)) out.push('the stranger once ate your bread and went off without a word of thanks');
-    if (C && b) out.push(b.doubted || b.b < 0.35 ? `the stranger says he is ${roleWords[C.role] ?? C.role}${C.origin ? ` from ${C.origin}` : ''}, but you do not believe it` : `you have heard the stranger is ${roleWords[C.role] ?? C.role}${C.origin ? ` from ${C.origin}` : ''}`);
+    const LAND: Record<string, string> = { Persian: 'Persia', Median: 'Media', Elamite: 'Elam', Babylonian: 'Babylon', Syrian: 'Syria', Ionian: 'Ionia', Egyptian: 'Egypt' };
+    const from = C?.origin ? ` from ${LAND[C.origin] ?? C.origin}` : ''; // (D-391: "from Babylon", not "from Babylonian")
+    if (C && b) out.push(b.doubted || b.b < 0.35 ? `the stranger says he is ${roleWords[C.role] ?? C.role}${from}, but you do not believe it` : `you have heard the stranger is ${roleWords[C.role] ?? C.role}${from}`);
     if (this.hungry >= 2) out.push('the stranger looks hungry and worn, as if he has not eaten for days');
     if (this.chilled >= day - 3) out.push('the stranger is coughing and shivering from nights in the open');
     const c = this.comp(this.langOf(hh), day);
@@ -565,7 +571,7 @@ export class Stranger {
   // ---------------------------------------------------------------- the day (Economy.step, after the households)
   step(day: number) {
     for (const s of this.acts.get(day) ?? []) this.apply(s); this.acts.delete(day);
-    for (const P of [...this.petitions]) if (P.due === day) { this.petitions.splice(this.petitions.indexOf(P), 1); this.rule(P, day); }
+    for (const P of [...this.petitions]) if (P.due <= day) { this.petitions.splice(this.petitions.indexOf(P), 1); this.rule(P, day); } // (<=: a day the economy stepped past is not skipped, D-391)
     // the stranger's days are settled STR_LAG days behind (work, nights, a group's day): the living world steps the economy
     // up to three days ahead of the present for the day plans, and the player has not yet lived those days (as LIFE_LAG)
     const x = day - STR_LAG;
