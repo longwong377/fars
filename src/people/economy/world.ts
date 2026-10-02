@@ -12,6 +12,7 @@ import { dateOf } from '../calendar';
 import { generateYear, type DayWeather } from '../../weather/generator';
 import { START_JDN } from '../../core/calendar';
 import { TrustLedger } from '../speech/trust';
+import { packJSON, unpackJSON } from '../savepack';
 import { Stranger, PLAYER } from '../speech/stranger';
 
 export type HHKind = 'farmer' | 'ration' | 'craft' | 'herder' | 'rich';
@@ -216,11 +217,12 @@ export class Economy implements EconWorld {
       if (refs.has(e.id) || (KEEP_STUB[e.kind] !== undefined && e.day > this.day - KEEP_STUB[e.kind])) { stub[0].push(e.id - ls); stub[1].push(e.day - lsd); stub[2].push(ki(e.kind)); ls = e.id; lsd = e.day; }
     });
     return { v: 2, seed: this.seed, day: this.day, nEv: this.events.length, debtN: this.debtN, market: { ...this.market, hist: this.market.hist.slice(-11) }, treasury: { ...this.treasury },
-      shocks: [...this.shocks], hires: [this.hires.day, this.hires.n], hh, debts, bound, bondages: this.bondages.map(b => [this.idx.get(b.hh), b.to, b.from, b.until, b.ev]), pending, intents, kinds, whole, stub, ...(this.trust ? { trust: this.trust.snapshot() } : {}), ...(this.str?.active ? { stranger: this.str.snapshot() } : {}) };
+      shocks: [...this.shocks], hires: [this.hires.day, this.hires.n], intents, kinds, z: packJSON({ hh, debts, bound, bondages: this.bondages.map(b => [this.idx.get(b.hh), b.to, b.from, b.until, b.ev]), pending, whole, stub }), ...(this.trust ? { trust: this.trust.snapshot() } : {}), ...(this.str?.active ? { stranger: this.str.snapshot() } : {}) };
   }
   /** a snapshot back into an economy (D-347), or an older save's seed and intents replayed from day 0 (D-338) */
   static restore(s: any, seeds: HHSeed[], opts: { life?: EconLife; trust?: boolean } = {}): Economy {
     if (s.v !== 2) { const e = new Economy(s.seed, seeds, { interventions: s.intents, life: opts.life, trust: opts.trust }); for (let d = 0; d <= s.day; d++) e.step(d); return e; }
+    if (s.z) s = { ...s, ...unpackJSON(s.z), z: undefined }; // (D-378: the households' columns and the kept events, deflated; an older v2 save has them plain)
     const e = new Economy(s.seed, seeds, { life: opts.life }), H = [...e.hh.values()], hid = (i: number) => H[i].id;
     const uncol = (c: any, set: (h: HH, v: number | undefined) => void) => { if (!c) return;
       const dec = (v: number | null) => v === null ? undefined : c.k ? v / c.k : v; // (q(): Math.round(x * k) / k, the same double)

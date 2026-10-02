@@ -41,6 +41,7 @@ import type { Intent as EconIntent } from './economy/api';
 import { HOME_LANG } from './exchanges';
 import type { SAct, Verdict } from './speech/stranger';
 import { strangerAsk } from './speech/verbs';
+import { packJSON, unpackJSON } from './savepack';
 /** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
  *  scribe's, the Aramaic secretary's, the pupil's; grid position and heading (deg cw from grid N) */
 export function deskSeat(who: 'elamite' | 'aramaic' | 'pupil' | 'visitor'): { at: P2; heading: number } {
@@ -167,8 +168,8 @@ export class PeopleSim {
   private econSave() {
     const day = Math.floor(this.t / 24), life = this.pop.econLifeSave(day - 7);
     const asks = this.asksWorld.save(), ax = asks ? { asks } : {};
-    if (this.econ) return { econ: this.econ.snapshot(day - 2), living: this.living.save(day), ...(life ? { life } : {}), ...ax };
-    if (this.econSnap) return { econ: this.econSnap, living: this.living.save(day), ...(life ? { life } : {}), ...ax };
+    if (this.econ) return { econ: this.econ.snapshot(day - 2), living: { z: packJSON(this.living.save(day)) }, ...(life ? { life } : {}), ...ax };
+    if (this.econSnap) return { econ: this.econSnap, living: { z: packJSON(this.living.save(day)) }, ...(life ? { life } : {}), ...ax };
     const iv = this.econIv.filter(i => i.payload?.src !== 'talk'); return iv.length ? { econ: { seed: this.seed, intents: iv } } : {};
   }
   /** the economy stepped (by the living world, the talk entered) to at least day d: the day plans read a day's decisions (EconPlans, D-340) */
@@ -790,7 +791,7 @@ export class PeopleSim {
   save() {
     const talk = this.talk.save(); // D-315: only when the stranger has done something (no event: the save is as before)
     const wardrobe = this.wardrobes.ledger.length ? this.wardrobes.save() : undefined; // D-347: the wardrobes' ledger (only when something was made, bought, mended...)
-    return { ...(talk ? { talk } : {}), ...(this.bonds.acted ? { bonds: this.bonds.save() } : {}), ...this.econSave(), ...(wardrobe ? { wardrobe } : {}), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
+    return { ...(talk ? { talk } : {}), ...(this.bonds.acted ? { bonds: this.bonds.save() } : {}), ...this.econSave(), ...(wardrobe ? { wardrobe } : {}), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: { z: packJSON(this.pop.relationsSnapshot()) }, // (D-378: the talk state and the relations deflated)
       events: this.events.slice(-SAVED_EVENTS).map(e => ({ ...e })), // the chronicle (translation layer) survives a reload (H workstream: T-H3r)
       // the route cache (5 m buckets: which route a trip takes depends on it) and the player's watching hours: without them a
       // loaded world went its own way within minutes (T-H3r)
@@ -807,8 +808,8 @@ export class PeopleSim {
     // with the talk state; an older save re-derives (D-341)
     this.econ = null; this.econSnap = s.econ?.v === 2 ? s.econ : null;
     this.econIv = s.econ && s.econ.v !== 2 ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : [];
-    this.asksWorld.load(s.asks); if (s.living) this.living.load(s.living); else this.living.reset(); this.econPlans.reset(); this.wardrobes.load(s.wardrobe);
-    if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
+    this.asksWorld.load(s.asks); if (s.living) this.living.load(s.living.z ? unpackJSON(s.living.z) : s.living); else this.living.reset(); this.econPlans.reset(); this.wardrobes.load(s.wardrobe);
+    if (s.relations) this.pop.relationsRestore(s.relations.z ? unpackJSON(s.relations.z) : s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
     if (s.bonds || this.bonds.acted) { this.bonds.load(s.bonds); this.bondPlans.reset(); } // (without the player's acts the relations are the seed's: nothing to redo)
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }
