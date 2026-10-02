@@ -39,7 +39,7 @@ describe('the simulation\'s market grounds (market:<q>:<hid>, D-359)', () => {
   it('every town quarter\'s market point has its sellers\' spreads and stalls about it', () => {
     const sites = buildTownPlan().sites, Q = Object.values(new Population(1).quarters).filter(q => q.kind === 'town' || q.kind === 'garden');
     const { items } = townFill(sites, 1, [], Q.map(q => q.xy));
-    for (const q of Q) { const n = items.filter(i => (i.m === 'fill_stall' || i.m === 'mat') && i.at === 'market' && Math.hypot(i.e - q.xy[0], i.n - q.xy[1]) < 30).length; expect(n, q.id).toBeGreaterThanOrEqual(6); }
+    for (const q of Q) { const n = items.filter(i => (i.m === 'fill_stall' || i.m === 'fill_stall_reed' || i.m === 'mat') && i.at === 'market' && Math.hypot(i.e - q.xy[0], i.n - q.xy[1]) < 30).length; expect(n, q.id).toBeGreaterThanOrEqual(6); }
     const goods = items.filter(i => i.at === 'market' && i.day && i.m !== 'mat'); expect(goods.filter(g => g.until !== undefined).length / goods.length).toBeGreaterThan(0.3);
   }, 120_000);
 });

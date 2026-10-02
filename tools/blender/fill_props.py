@@ -340,6 +340,28 @@ def a_reed_awning():
     cord = ties([[(x, hp, D), (x, hp + 0.03, D - 0.05)] for x in (-W / 2 + 0.08, W / 2 - 0.08)])
     return dict(wood=join(wood, 'wood'), reed=mat, cord=join(cord, 'cord'))
 
+@fill()
+def a_stall_reed():
+    """a market stall of the poorer kind (C): a reed-mat shade on four crooked poles (front 2.0 m, back 1.8 m), the mat's
+    ends hanging loose, a low mud-brick bench as the counter (0.4 m) with a plank on it; 2.2 m wide (x), 1.5 m deep (z: the
+    front toward +z)"""
+    W, D, hf, hb = 2.2, 1.5, 2.0, 1.8
+    wood = []
+    for i, (x, z, h) in enumerate(((-W / 2, D / 2, hf), (W / 2, D / 2, hf), (-W / 2, -D / 2, hb), (W / 2, -D / 2, hb))):
+        wood.append(log((x, -0.2, z), (x + 0.03 * (i % 2 * 2 - 1), h + 0.04, z), 0.04, 0.033, 7, 'pole', seed=1580 + i))
+    for z, h in ((D / 2, hf), (-D / 2, hb)): wood.append(log((-W / 2 - 0.12, h - 0.03, z), (W / 2 + 0.12, h - 0.03, z), 0.03, 0.028, 6, 'rail', seed=1586 + int(z * 10)))
+    plank = box(W - 0.35, 0.34, 0.045, G((0, 0.4, D / 2 - 0.3)), 'plank', bevel=0.008); displace(plank, 0.004, 0.08, seed=1589); wood.append(plank)
+    bench = box(W - 0.3, 0.38, 0.38, G((0, 0.0, D / 2 - 0.3)), 'bench', bevel=0.03); displace(bench, 0.012, 0.12, seed=1590)
+    def roof(u, s):
+        t = (s + D / 2) / D; y = hb + (hf - hb) * t + 0.02
+        sag = 0.06 * math.sin(math.pi * min(1, max(0, t))) * math.cos(math.pi * u / (W + 0.4)); ridge = 0.004 * math.sin(u * 120)
+        return (u, y - sag + ridge, s)
+    mat = sheet(W + 0.4, D + 0.3, 40, 18, roof, 'mat', t=0.012)
+    # (the mat's loose front end: short, its frayed lower edge ragged, swung a little out)
+    hang = sheet(W + 0.4, 0.22, 40, 4, lambda u, s: (u, hf + 0.01 - (s + 0.11) * (1 + 0.35 * (0.5 + 0.5 * math.sin(u * 17 + 1.3)) * (s + 0.11) / 0.22), D / 2 + 0.16 + 0.12 * (s + 0.11)), 'hang', t=0.012)
+    cord = ties([[(x, hf - 0.03, D / 2), (x + 0.02, hf + 0.02, D / 2 - 0.05)] for x in (-W / 2, W / 2)])
+    return dict(wood=join(wood, 'wood'), mud=bench, reed=join([mat, hang], 'reed'), cord=join(cord, 'cord'))
+
 @fill(ground=False)
 def a_skin():
     """a goatskin water bag hung on a wooden peg driven into the wall by a door (C): the peg at 1.55 m, the skin's legs tied,

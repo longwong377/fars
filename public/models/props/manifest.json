@@ -10236,6 +10236,60 @@
     0.18943078443408012
    ],
    "tex": 0
+  },
+  "m_fill_stall_reed": {
+   "file": "models/props/m_fill_stall_reed.glb",
+   "of": "fill_stall_reed",
+   "role": "model",
+   "parts": [
+    "wood",
+    "mud",
+    "reed",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/fill_props.py (D-367)",
+   "bytes": 157352,
+   "sha256": "e7db860f7058648e37e95b3cc770679973cf459fd90c06c37753743afb18e6f3",
+   "tris": {
+    "lod0": 4400,
+    "lod1": 1632,
+    "lod2": 612
+   },
+   "partTris": {
+    "lod0__wood": 1868,
+    "lod0__mud": 108,
+    "lod0__reed": 2400,
+    "lod0__cord": 24,
+    "lod1__wood": 800,
+    "lod1__mud": 108,
+    "lod1__reed": 700,
+    "lod1__cord": 24,
+    "lod2__wood": 300,
+    "lod2__mud": 60,
+    "lod2__reed": 240,
+    "lod2__cord": 12
+   },
+   "box": [
+    [
+     -1.3005040884017944,
+     -0.1759570688009262,
+     -0.9008001685142517
+    ],
+    [
+     1.3002398014068604,
+     2.0500528812408447,
+     0.9424245953559875
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    2.600743889808655,
+    2.226009950041771,
+    1.8432247638702393
+   ],
+   "tex": 0
   }
  }
 }

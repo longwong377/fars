@@ -22,8 +22,8 @@ const PART: Record<string, [string, RGB, number?]> = {
   earth: ['mud', [0.56, 0.48, 0.38]], mud_wet: ['mud', [0.44, 0.36, 0.27]], hide: ['leather', [0.62, 0.48, 0.34]], hide_d: ['leather', [0.48, 0.36, 0.25]], bone: ['stone', [0.86, 0.82, 0.72]],
   s0: ['clay', [0.68, 0.45, 0.3]], s1: ['clay', [0.62, 0.41, 0.28]], s2: ['clay', [0.72, 0.52, 0.36]], s3: ['clay', [0.58, 0.38, 0.27]], nut: ['wood', [0.52, 0.38, 0.24]],
 };
-const BIG = new Set(['fill_stall', 'fill_awning', 'fill_reed_awning', 'fill_line', 'fill_standard', 'fill_scaffold']);
-const SHADOW = new Set(['fill_stall', 'fill_awning', 'fill_reed_awning', 'fill_matlean', 'fill_standard', 'fill_scaffold', 'fill_chips', 'fill_block', 'fill_line', 'timber_stack', 'jar_store', 'wo_drying_rack', 'brush_pile']);
+const BIG = new Set(['fill_stall', 'fill_stall_reed', 'fill_awning', 'fill_reed_awning', 'fill_line', 'fill_standard', 'fill_scaffold']);
+const SHADOW = new Set(['fill_stall', 'fill_stall_reed', 'fill_awning', 'fill_reed_awning', 'fill_matlean', 'fill_standard', 'fill_scaffold', 'fill_chips', 'fill_block', 'fill_line', 'timber_stack', 'jar_store', 'wo_drying_rack', 'brush_pile']);
 /** s17 C1 (D-550): the gap fill's and the litter's small things are drawn at one level only (their lod1 holds the form at a few
  *  hundred triangles; the litter is flat junk at lod2) and not beyond their range (m), so the many kinds they add cost one draw
  *  per part, not three: [level, range] */

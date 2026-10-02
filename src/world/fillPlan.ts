@@ -103,7 +103,7 @@ function openMarket(xy: [number, number], sites: Site[], seed: number, items: Fi
     const e = xy[0] + ca * t - sa * side * 3, n = xy[1] + sa * t + ca * side * 3, fe = sa * side, fn = -ca * side; // (facing the way)
     if (!free(e, n) || !free(e - fe * 1.2, n - fn * 1.2)) continue;
     const stall = u01(k, 1) < 0.3, trade = tradeOf(u01(k, 2)), rot = rotFacing(fe, fn), rx = fn, rv = -fe; // (the spread's local +x: its front turned clockwise)
-    if (stall) { items.push({ m: 'fill_stall', e: e - fe * 0.4, n: n - fn * 0.4, dy: 0, rot, s: [1, 1, 1], col: { cloth: cloth(u01(k, 3)) }, solid: [1.2, 0.85], at: 'market' }); st.stalls++; st.market++; }
+    if (stall) { const reed = u01(k, 8) < 0.4; items.push({ m: reed ? 'fill_stall_reed' : 'fill_stall', e: e - fe * 0.4, n: n - fn * 0.4, dy: 0, rot, s: [1, 1, 1], ...(reed ? {} : { col: { cloth: cloth(u01(k, 3)) } }), solid: reed ? [1.1, 0.8] : [1.2, 0.85], at: 'market' }); st.stalls++; st.market++; }
     else { items.push({ m: 'mat', e, n, dy: 0, rot: rot + (u01(k, 4) - 0.5) * 0.2, s: [0.62, 1, 0.66], day: true, at: 'market' }); st.market++; }
     const ce = stall ? e - fe * 0.4 : e, cn = stall ? n - fn * 0.4 : n;
     for (const [m, x, y, z, sc, col] of TRADES[trade](u01(k, 5))) { const zz = stall ? z : (z - 0.6) * 0.45, xx = stall ? x : x * 0.62, sj = sc * (0.93 + 0.14 * u01(k, x * 10, z * 10, 5)), gone = u01(k, x * 10, z * 10, 6);
@@ -178,7 +178,8 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       placed.push([c.u, c.v]); st.stalls++;
       const tu = u01(sid, Math.round(c.u * 10), Math.round(c.v * 10), 3), trade = tradeOf(tu);
       const k = h32(sid, Math.round(c.u * 10), Math.round(c.v * 10));
-      put('fill_stall', c.u, c.v, c.du, c.dv, 1, 'market', { col: { cloth: cloth(u01(k, 1)) }, solid: [1.2, 0.85] }); st.market++;
+      if (u01(k, 7) < 0.35) put('fill_stall_reed', c.u, c.v, c.du, c.dv, 1, 'market', { solid: [1.1, 0.8] }); // (s17 C1: a third the poorer reed-mat kind)
+      else put('fill_stall', c.u, c.v, c.du, c.dv, 1, 'market', { col: { cloth: cloth(u01(k, 1)) }, solid: [1.2, 0.85] }); st.market++;
       // the goods in the stall's frame: x along the wall (to the right of the front), z out of it
       const rx = -c.dv, rv = c.du; // the stall's local +x in (u, v): its front (du, dv) turned clockwise
       for (const [m, x, y, z, sc, col] of TRADES[trade](u01(k, 2))) {
@@ -206,7 +207,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       const k = h32(sid, Math.round(c.u * 10), Math.round(c.v * 10), 5), stall = c.w >= 5 && u01(k, 1) < 0.35, off = stall ? 1.15 : 0.75;
       const cu = c.u + c.du * off, cv = c.v + c.dv * off; if (nearDoor(cu, cv, 1.6) || nearTaken(cu, cv, 1.6) || !open(s.at(s.ci(cu), s.cj(cv)))) continue;
       spots.push([c.u, c.v]); const trade = tradeOf(u01(k, 2)), rx = -c.dv, rv = c.du, [de, dn] = dirG(c.du, c.dv);
-      if (stall) { put('fill_stall', cu, cv, c.du, c.dv, 1, 'market', { col: { cloth: cloth(u01(k, 3)) }, solid: [1.2, 0.85] }); st.stalls++; st.market++; }
+      if (stall) { if (u01(k, 8) < 0.4) put('fill_stall_reed', cu, cv, c.du, c.dv, 1, 'market', { solid: [1.1, 0.8] }); else put('fill_stall', cu, cv, c.du, c.dv, 1, 'market', { col: { cloth: cloth(u01(k, 3)) }, solid: [1.2, 0.85] }); st.stalls++; st.market++; }
       else { put('mat', cu, cv, c.du, c.dv, [0.62, 1, 0.66], 'market', { day: true }); fixRot(-c.dv, c.du, (u01(k, 4) - 0.5) * 0.2); st.market++; }
       for (const [m, x, y, z, sc, col] of TRADES[trade](u01(k, 5))) { // (on a mat the goods sit on the ground, pulled in to the mat's 1.2 x 0.8 m)
         const zz = stall ? z : (z - 0.6) * 0.45, xx = stall ? x : x * 0.62, gu = cu + rx * xx + c.du * zz, gv = cv + rv * xx + c.dv * zz, [e, n] = toG(gu, gv);

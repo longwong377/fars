@@ -31,6 +31,7 @@ export const TARGETS = {
   winnow: { wicker: [1200, 360, 120] },
   reed_awning: { wood: [1800, 600, 220], reed: [1800, 520, 180], cord: [80, 40, 16] },
   skin: { wood: [120, 50, 20], hide: [900, 300, 100], cord: [120, 50, 20] },
+  stall_reed: { wood: [2400, 800, 300], mud: [400, 150, 60], reed: [2400, 700, 240], cord: [60, 30, 12] },
 };
 const want = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const src = readFileSync('tools/blender/fill_props.py', 'utf8');
