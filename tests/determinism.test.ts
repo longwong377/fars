@@ -26,7 +26,7 @@ describe('determinism', () => {
     expect(chooseWorldSeed(null, true, store)).toBe(WORLD_SEED_DEFAULT);
     expect(m.size).toBe(0);
     const a = chooseWorldSeed(null, false, store);
-    expect(Number.isInteger(a) && a >= 1).toBe(true);
+    expect(Number.isInteger(a) && a >= 1).toBe(true); // (D-392: from the baked pool)
     expect(chooseWorldSeed(null, false, store)).toBe(a); // the same world on the next visit
     const drawn = new Set([a]); for (let i = 0; i < 50; i++) drawn.add(newWorldSeed(store));
     expect(drawn.size).toBeGreaterThan(48); // fresh each time

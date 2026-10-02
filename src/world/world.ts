@@ -148,7 +148,7 @@ import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
 import { DustSystem, type DustKind } from './dust';
 import { pt, pa } from '../core/prof';
-import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled, prefetchUnits, cachedSync, cacheGetSync, cachePutSync, verifying, verify } from './cache/worldCache';
+import { cached, prefetchWorldCache, cacheStats, cacheGet, cachePut, cacheEnabled, prefetchUnits, cachedSync, cacheGetSync, cachePutSync, verifying, verify, prefetchedKeys } from './cache/worldCache';
 /** D-392: the baked units read by the build's sync stages (cacheGetSync), fetched ahead */
 const SYNC_UNITS = ['townplan', 'navcore', 'arch'], WORLD_UNITS = ['grime', 'fill', 'zones'];
 import { hashArrays, hashString, hashBytes } from './cache/pack';
@@ -397,11 +397,14 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })) }); // (D-256: the banks and meadows of the land work)
   // D-392: the Terrace's core routes between place anchors (the court's walks, searched up front: D-182) read from the baked
   // world; they depend on the walkable grid and the anchors only, keyed by the grid's blocked cells (fires, furnishings); a world of another seed still finds most of its own there
-  const navCore = (geo as any).navCore as Map<string, unknown> | undefined, navKey = hashBytes((nav as any).dyn ?? new Uint8Array(0)), navHit = navCore ? cacheGetSync<Map<string, unknown>>('navcore', navKey) : null;
-  if (navCore && navHit instanceof Map) for (const [k, v] of navHit) navCore.set(k, v);
-  const navN0 = navCore?.size ?? 0;
-  const view = new PopView(sim, geo, seed); crowd.view = view;
-  if (navCore && (!navHit || navCore.size > navN0)) cachePutSync('navcore', navKey, navCore);
+  // (one entry per baked world, all of them merged: a world of another seed finds most of its routes there; this world's own
+  // entry means every route its court's first days walk is in: the search and the plans drawn for it are skipped)
+  const navCore = (geo as any).navCore as Map<string, unknown> | undefined, navKey = hashBytes((nav as any).dyn ?? new Uint8Array(0));
+  let navOwn = false;
+  if (navCore) for (const k of prefetchedKeys('navcore')) { if (!k.startsWith(navKey + '|')) continue; const m = cacheGetSync<Map<string, unknown>>('navcore', k);
+    if (m instanceof Map) { for (const [a, v] of m) navCore.set(a, v); if (k === `${navKey}|${seed}`) navOwn = true; } }
+  const view = new PopView(sim, geo, seed, { warm: !navOwn }); crowd.view = view;
+  if (navCore && !navOwn) cachePutSync('navcore', `${navKey}|${seed}`, navCore);
   wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
   // that travel with their drivers and riders (world/traffic.ts; drawn as crowd extras performing with their animals)

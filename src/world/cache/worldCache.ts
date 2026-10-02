@@ -115,12 +115,14 @@ export async function prefetchUnits(units: string[]): Promise<void> {
   if (!cacheEnabled()) return;
   const [src, man] = await Promise.all([srcHashes(), manifest()]); preSrc = src ?? {};
   if (!src || !man) return; const want = new Set(units);
-  await Promise.all(Object.entries(man.entries ?? {}).map(async ([k, e]: [string, Entry]) => { const unit = k.slice(0, k.indexOf("|"));
+  await Promise.all(Object.entries<Entry>(man.entries ?? {}).map(async ([k, e]) => { const unit = k.slice(0, k.indexOf("|"));
     if (!(want.has(unit) || want.has(k)) || src[unit] !== e.src || pre.has(k)) return;
     try { const b = await readEntry(e); if (b) pre.set(k, b); } catch (err) { console.warn(`[world-cache] ${k}: unreadable (${(err as Error).message})`); } }));
   // this browser's own copies of the keyed ones the site has not baked (D-392: a world of its own seed)
   await Promise.all(units.filter(u => u.includes('|') && !pre.has(u)).map(async k => { const unit = k.slice(0, k.indexOf('|')), b = await localGet(unit, k.slice(unit.length + 1), src[unit]); if (b) pre.set(k, b); }));
 }
+/** the keys of a unit fetched ahead (prefetchUnits) and not yet read */
+export const prefetchedKeys = (unit: string) => [...pre.keys()].filter(k => k.startsWith(unit + '|')).map(k => k.slice(unit.length + 1));
 /** a prefetched unit's result, or null (then compute it and cachePutSync it) */
 export function cacheGetSync<T>(unit: string, key: string): T | null {
   if (!cacheEnabled()) return null;

@@ -164,10 +164,12 @@ export class PopView {
   readonly stats = { candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0, noRoom: 0, stepsIn: 0, inside: 0 };
   private out: ViewPerson[] = []; private nOut = 0;
   private anchorsBuilt = false; private homes: Float64Array | null = null;
-  constructor(readonly sim: PeopleSim, readonly geo: PopGeo, readonly seed = 1) { this.pop = sim.pop;
+  /** opts.warm false (D-392): the court's routes are in the geo's core cache already (the baked world's, searched for this
+   *  very world): no search, and no plans of the court's first days drawn now (they stepped the economy ~150 days ahead at load) */
+  constructor(readonly sim: PeopleSim, readonly geo: PopGeo, readonly seed = 1, opts: { warm?: boolean } = {}) { this.pop = sim.pop;
     // D-182: with the court resident its people's routes are searched now (a one-time cost with the court setting only:
     // stats.warmMs), so that the morning's walks do not outrun their routes (pop-in)
-    if (this.pop.court) { const t0 = performance.now(); const K = this.pop.court; this.stats.warmed = geo.warmCore(K.anchorPairs([K.firstDay, K.firstDay + 1])); this.stats.warmMs = performance.now() - t0; } }
+    if (this.pop.court && opts.warm !== false) { const t0 = performance.now(); const K = this.pop.court; this.stats.warmed = geo.warmCore(K.anchorPairs([K.firstDay, K.firstDay + 1])); this.stats.warmMs = performance.now() - t0; } }
   private str(s: string) { let i = this.strIx.get(s); if (i === undefined) { i = this.strings.length; this.strings.push(s); this.strIx.set(s, i); } return i; }
   /** each person's home and work anchor (grid), for choosing who can be near */
   private buildAnchors() {
