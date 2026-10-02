@@ -68,7 +68,7 @@ export class DeedWorld {
     this.joint = new Joint({ pop: w.pop, seed: w.seed, econ: E, feel: (a, b, d, day) => this.minds.move(a, b, d, day), feelOf: (a, b, day) => this.minds.feelOf(a, b, day),
       trust: (hh, of, d, day) => { const e = E(day); if (e?.trust && e.hh.has(hh)) e.trust.note(hh, of === 'player' ? 'player' : this.hh(of, day)!, d, day); },
       lay: (pid, day, s) => this.lay(pid, day, s), unlay: (pid, from, why) => this.unlay(pid, from, why), name: a => this.name(a), act: (d, t) => this.act(d, t),
-      decide: (pid, d, day, h) => this.minds.decide(pid, d, day, h), skill: k => this.skills.get(k) ?? 0, addSkill: (k, d) => this.skills.set(k, Math.min(1, (this.skills.get(k) ?? 0) + d)) });
+      decide: (pid, d, day, h) => this.minds.decide(pid, d, day, h), skill: k => this.skills.get(k) ?? 0, hurt: (pid, day) => { const i = this.injuries.get(pid); return !!i && i.until > day && i.how !== 'bruised'; }, addSkill: (k, d) => this.skills.set(k, Math.min(1, (this.skills.get(k) ?? 0) + d)) });
   }
   private hh(a: Actor, day: number): string | null { return a === 'player' ? null : `h:${this.w.pop.home(a, day)}`; }
   private name(a: Actor) { return a === 'player' ? 'the stranger' : (this.w.pop.nameOf(a) ?? 'someone').replace(/^\*/, ''); }

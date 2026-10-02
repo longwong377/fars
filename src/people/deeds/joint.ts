@@ -50,6 +50,8 @@ export interface JointHost {
   act(d: Deed, t: number): { out: { ok: boolean; why: string; refused?: boolean } };
   decide(pid: number, d: Deed, day: number, hour: number): { ok: boolean; why: string; lean: number };
   skill(k: string): number; addSkill(k: string, d: number): void;
+  /** wounded and kept at home that day (the engine's injuries) */
+  hurt(pid: number, day: number): boolean;
 }
 
 export type JobKind = 'hunt' | 'fish' | 'work' | 'roof' | 'drink' | 'meal' | 'lesson' | 'teach' | 'meet' | 'visit' | 'pray' | 'walk' | 'errand' | 'guard';
@@ -169,15 +171,17 @@ export class Joint {
   }
   /** the proper place of an undertaking for the target (the hills, the river bank, the field, the house, the teacher's bench) */
   placeOf(d: Deed, k: JobKind, day: number, h0: number, t = day * 24 + h0): string {
-    const P = this.h.pop, tg = d.target as number, home = this.homeOf(tg, day), atNow = segAt(P.plan(tg, day), h0);
-    const tD = Math.floor(t / 24), here = segAt(P.plan(tg, tD), t - tD * 24); // (where they stand as the words are said)
+    const P = this.h.pop, tg = d.target as number, home = this.homeOf(tg, day), npc = d.actor !== 'player';
+    // (the town's own: no plan read, the cost of it (the lead, D-459): the house and its field stand for where they are)
+    const atNow: Seg = npc ? { t0: h0, t1: h0 + 1, place: home.place, act: 'rest', why: '', where: home.where } : segAt(P.plan(tg, day), h0);
+    const tD = Math.floor(t / 24), here = npc ? atNow : segAt(P.plan(tg, tD), t - tD * 24); // (where they stand as the words are said)
     const hostHome = typeof d.actor === 'number' ? this.homeOf(d.actor, day).place : home.place;
     switch (k) {
       case 'hunt': return d.place && /^(slope|edge|meadow):/.test(d.place) ? d.place : `slope:${home.q}`;
       case 'fish': return d.place && /^(bank|canal):/.test(d.place) ? d.place : `bank:${home.q}`;
       case 'roof': return home.place;
       case 'drink': case 'meal': case 'visit': return d.place && d.place !== 'hills' && d.place !== 'river' ? d.place : d.verb === 'visit' && typeof d.actor === 'number' ? hostHome : home.place;
-      case 'work': { const a = d.act ?? atNow.act; if (a && FIELD.test(a)) return P.households[P.home(tg, day)]?.zone === 'plain' || /^field:/.test(atNow.place) ? (/^field:/.test(atNow.place) ? atNow.place : `field:${P.home(tg, day)}:0`) : atNow.place;
+      case 'work': { const a = d.act ?? atNow.act; if (a && FIELD.test(a)) return npc || P.households[P.home(tg, day)]?.zone === 'plain' || /^field:/.test(atNow.place) ? (/^field:/.test(atNow.place) ? atNow.place : `field:${P.home(tg, day)}:0`) : atNow.place;
         return d.act && HOME_WORK.test(d.act) ? home.place : atNow.where === 'road' ? home.place : atNow.place; }
       case 'lesson': { const a = d.act ?? 'craft'; const s = this.doesAt(tg, a, day); return s ?? home.place; }
       case 'teach': return home.place;
@@ -226,7 +230,7 @@ export class Joint {
     const P = this.h.pop, { day, h0 } = this.when(d, t), h1 = Math.min(23.6, h0 + HOURS[k]), home = this.homeOf(tg, day);
     const place = k === 'errand' ? this.errandPlace(d, day, h0) : this.placeOf(d, k, day, h0, t);
     const said = (d.about ?? d.said ?? '').toLowerCase(), bow = k === 'hunt' && /\bbow|arrow|shoot/.test(said);
-    const act: ActivityId = k === 'hunt' ? 'fowl' : k === 'fish' ? 'fish' : k === 'roof' ? 'mould_brick' : k === 'drink' || k === 'meal' ? 'eat' : k === 'pray' ? 'offer' : k === 'lesson' ? ((d.act && (CRAFT[d.act] ?? [d.act])[0]) as ActivityId) ?? 'craft' : k === 'work' ? (d.act ?? segAt(P.plan(tg, day), h0).act) : k === 'guard' ? 'rest' : 'talk';
+    const act: ActivityId = k === 'hunt' ? 'fowl' : k === 'fish' ? 'fish' : k === 'roof' ? 'mould_brick' : k === 'drink' || k === 'meal' ? 'eat' : k === 'pray' ? 'offer' : k === 'lesson' ? ((d.act && (CRAFT[d.act] ?? [d.act])[0]) as ActivityId) ?? 'craft' : k === 'work' ? (d.act ?? (d.actor === 'player' ? segAt(P.plan(tg, day), h0).act : 'clean')) : k === 'guard' ? 'rest' : 'talk';
     const job: Job = { id: -1, kind: k, verb: d.verb, actor: d.actor, target: tg, ...(typeof d.third === 'number' ? { third: d.third } : {}), act: act === 'sleep' || act === 'offmap' ? 'talk' : act, place, day, h0, h1, hh: home.hh, state: 'set',
       ...(d.about || d.said ? { about: d.about ?? d.said } : {}), ...(d.good ? { good: d.good } : {}) };
     if (d.actor === 'player' && (d.inH ?? 0) < 0.3 && day === Math.floor(t / 24) && Math.abs(h0 - (t - day * 24)) < 0.3) job.came = true; // (now: he is there, talking to them)
@@ -238,12 +242,13 @@ export class Joint {
     const people = [tg, ...(typeof d.actor === 'number' ? [d.actor] : [])];
     for (const p of people) { const w = p === tg ? other(d.actor) : other(tg);
       // (the same ground for both: popgeo sets each one's own spot on it)
-      segs.push(...this.walkThere(p, day, h0, h1, place, `${what} with ${w}`, job.act, home.where, bow)); }
+      segs.push(...this.walkThere(p, day, h0, h1, place, `${what} with ${w}`, job.act, home.where, bow, d.actor !== 'player')); }
     return { job, segs };
   }
   /** the walk to a place, the work there and the walk back, fitted into the person's day (C: walkH, the planner's own walk) */
-  private walkThere(pid: number, day: number, h0: number, h1: number, place: string, why: string, act: ActivityId, W0: Where, bow = false): [number, number, Seg][] {
-    const P = this.h.pop, plan = P.plan(pid, day), from = segAt(plan, Math.max(0, h0 - 0.05)), back = segAt(plan, Math.min(23.95, h1 + 0.05));
+  private walkThere(pid: number, day: number, h0: number, h1: number, place: string, why: string, act: ActivityId, W0: Where, bow = false, npc = false): [number, number, Seg][] {
+    const P = this.h.pop, H = this.homeOf(pid, day), atHome: Seg = { t0: 0, t1: 24, place: H.place, act: 'rest', why: '', where: H.where };
+    const plan = npc ? null : P.plan(pid, day), from = plan ? segAt(plan, Math.max(0, h0 - 0.05)) : atHome, back = plan ? segAt(plan, Math.min(23.95, h1 + 0.05)) : atHome; // (the town's own: from home and back)
     const W = whereOf(place, W0), fromPlace = from.where === 'road' ? this.homeOf(pid, day).place : from.place, backPlace = back.where === 'road' ? this.homeOf(pid, day).place : back.place;
     const w1 = fromPlace === place ? 0 : P.walkH(fromPlace, place, day, from.where === 'road' ? W0 : from.where, W), w2 = backPlace === place ? 0 : P.walkH(place, backPlace, day, W, back.where === 'road' ? W0 : back.where);
     const out: [number, number, Seg][] = [], t0 = Math.max(0.1, h0 - w1), t2 = Math.min(23.9, h1 + w2);
@@ -288,7 +293,7 @@ export class Joint {
   private resolve(j: Job) {
     const P = this.h.pop, day = j.day, mid = (j.h0 + j.h1) / 2, E = this.h.econ(day);
     // the parties: alive, here, and keeping the undertaking (a wound laid over it, a death, a journey call it off)
-    const there = (p: number) => { const x = P.persons[p]; if (!x || x.dies <= day || !P.present(p, day)) return false; const s = segAt(P.plan(p, day), mid); return s.place === j.place || s.place === `@stranger` || (s.act === j.act && s.why.includes('with')); };
+    const there = (p: number) => { const x = P.persons[p]; if (!x || x.dies <= day || !P.present(p, day)) return false; if (j.actor !== 'player') return !this.h.hurt(p, day); const s = segAt(P.plan(p, day), mid); return s.place === j.place || s.place === `@stranger` || (s.act === j.act && s.why.includes('with')); };
     if (!there(j.target) || (typeof j.actor === 'number' && !there(j.actor))) { j.state = 'off'; j.out = 'called off'; this.bump(`off:${j.kind}`); return; }
     if (j.actor === 'player' && !j.came && j.kind !== 'errand') { this.missed(j); return; }
     j.state = 'done'; this.bump(`done:${j.kind}`); const out = this.payOff(j, E);
