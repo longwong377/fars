@@ -68,7 +68,7 @@ export class Initiative implements GoalHost {
     // 1. feelings and needs
     const own: Deed[] = []; for (const _ of W.minds.deedParts(day, own, 300, (a, b) => this.goals.holds(a, b))) { slice('feeling'); yield; resume(); }
     for (const d of own) { done(W.own(d, day, k++), 'feeling'); if (k % 4 === 0) { slice('feeling'); yield; resume(); } }
-    // 2. the day's life: the dead mourned with the house, a new child's mother brought food
+    // 2. the day's life: a new child's mother brought food by kin; the houses of the dead in grief
     if (day > 0) { const L = P.lifeOn(day - 1);
       for (const b of L.births) { const mo = P.persons[b]?.mother ?? -1; if (mo < 0 || !P.present(mo, day)) continue; this.mood(mo, day, 0.5, 'glad of the new child');
         // (her mother, if she lives in another house, else the head of a kin house: C)
@@ -82,19 +82,19 @@ export class Initiative implements GoalHost {
     // 3. goals pursued (each on its own day)
     const due = [...this.goals.active.values()].filter(g => g.next <= day); let n = 0;
     for (const g of due) { if (!this.goals.active.has(g.id)) continue; const l0 = W.next; n += this.goals.pursue(g, day) + 1;
-      for (let i = l0; i < W.next; i++) done(W.rec(i)!, 'goal');
+      for (let i = l0; i < W.next; i++) { const r = W.rec(i); if (r) done(r, 'goal'); }
       if (n >= 3) { n = 0; slice('pursue'); yield; resume(); } }
     // 4. goals formed: a tenth of the town
     const N = P.persons.length, per = Math.ceil(N / 10);
     for (let i = 0; i < per; i++) { const pid = (this.cursor + i) % N, l0 = W.next; const g = this.goals.consider(pid, day); if (g) this.formed(g);
-      for (let j = l0; j < W.next; j++) done(W.rec(j)!, 'goal');
+      for (let j = l0; j < W.next; j++) { const r = W.rec(j); if (r) done(r, 'goal'); }
       if (i % 100 === 99) { slice('form'); yield; resume(); } }
     this.cursor = (this.cursor + per) % N;
     // 5. the places won
     this.goals.placesDay(day); slice('places'); yield; resume();
     // 6. the talk of deeds
     if (this.seen > W.next) this.seen = 0; const end = W.next; let told = 0;
-    for (let i = Math.max(this.seen, end - W.log.length); i < end && told < 220; i++) { const r = W.rec(i)!; if (!r.out.ok || TOLD.has(r.deed.verb) || r.day !== day) continue; const v = r.deed.verb, wrong = !!VERBS[v].wrong;
+    for (let i = Math.max(this.seen, end - W.log.length); i < end && told < 220; i++) { const r = W.rec(i); if (!r || !r.out.ok || TOLD.has(r.deed.verb) || r.day !== day) continue; const v = r.deed.verb, wrong = !!VERBS[v].wrong;
       if (!wrong && !KIND_DEEDS.has(v)) continue; const doer = r.deed.actor;
       const tellers = [r.deed.target, ...(r.out.witnesses ?? []).slice(0, 1)].filter((x): x is number => typeof x === 'number' && x !== doer);
       for (const tl of tellers) { if (u01(W.w.seed, S.talk, r.id, tl) >= (wrong ? 0.6 : 0.22)) continue; const f = W.minds.friendOf(tl, day); if (f === null || f === doer) continue;

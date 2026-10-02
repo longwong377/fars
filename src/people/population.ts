@@ -175,6 +175,9 @@ export const DEPOT_EARLY_H = 1;
  *  posts; not a house, a workshop, a store, a hall or a tent */
 export const OPEN_PLACE = /^(lane:|well:|market:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:)/;
 /** at the house but out of doors: on the roof, in the courtyard, at the wall where the dung cakes dry, on the doorstep */
+/** D-461: the day's work of a trade, as the town's own minds guess it when no plan is built (Population.segLight; C) */
+const LIGHT_WORK: Partial<Record<string, ActivityId>> = { farmer: 'field_work', gardener: 'garden_work', builder: 'lay_brick', porter: 'carry_sack', camp: 'bake', weaver: 'weave', craftsman: 'craft', scribe: 'write_tablet',
+  treasury: 'polish_metal', official: 'inspect', storekeeper: 'weigh', miller: 'grind', brewer: 'brew', groom: 'tend_animals', shepherd: 'herd', herder: 'herd', servant: 'clean', steward: 'inspect', homemaker: 'spin', caretaker: 'clean', messenger: 'walk' };
 /** a minder's words for her stretches with the little ones (planCheck.ts MINDING, which imports this file) */
 const MIND_WHY = /^(minding (the little|her little|his little)|carrying (the little|her little|his little)|(out to the lane|home) with (the little|her little|his little))/;
 export const OPEN_WHY = /\broof\b|in the courtyard|courtyard before|on the wall to dry|on the doorstep|animals out|on the open ground|(weaving at the ground loom|spinning wool|playing|talking with the men of the band|sitting|minding the little ones|resting) by the (new )?tents?\b|by the fire (with the (band|family)|, telling|while)/;
@@ -1828,10 +1831,14 @@ export class Population {
   /** D-461: the light plan only if the planner has built the base day already (no build: ~1.5 ms each), else null */
   planIfBuilt(pid: number, day: number): Seg[] | null { const b = this.planCache.get(day)?.get(pid); if (!b) return null; return this.deeds?.touches(pid, day) ? this.deeds.overlay(pid, day, b) : b; }
   /** D-461: what a person is doing at an hour as the town's own minds judge it: the built plan, else the hour's common lot
-   *  (asleep at night, at home of an evening, at their work by day: C) */
+   *  by their age and trade (asleep at night, at home of an evening, by day a working man or woman at their work, a child at
+   *  play, the old at rest; the festival a day off: C). No plan is built (a fresh house's plans are 1.5 to 70 ms) */
   segLight(pid: number, day: number, hour: number): Seg { const b = this.planIfBuilt(pid, day); if (b) return segAt(b, hour);
-    const h = this.home(pid, day), z = this.households[h]?.zone, where: Where = z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town';
-    return hour < 5.5 || hour >= 21.5 ? { t0: hour, t1: hour, place: `h:${h}`, act: 'sleep', why: 'asleep', where } : hour >= 17 || hour < 7 ? { t0: hour, t1: hour, place: `h:${h}`, act: 'rest', why: 'at home', where } : { t0: hour, t1: hour, place: `h:${h}`, act: 'rest', why: 'about the day\'s work', where }; }
+    const h = this.home(pid, day), z = this.households[h]?.zone, where: Where = z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town', at = `h:${h}`;
+    const s = (act: ActivityId, why: string): Seg => ({ t0: hour, t1: hour, place: at, act, why, where });
+    if (hour < 5.5 || hour >= 21.5) return s('sleep', 'asleep'); if (hour >= 17 || hour < 7) return s('rest', 'at home');
+    const age = this.ageOn(pid, day), act = LIGHT_WORK[this.persons[pid].job]; if (age < 12) return s('play', 'playing'); if (age >= 62 || !act || this.cal?.ctx(day).festival) return s('rest', 'at home');
+    return hour >= 12 && hour < 13.5 ? s('eat', 'the midday meal') : s(act, 'at the day\'s work'); }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }

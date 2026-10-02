@@ -215,9 +215,9 @@ export class Goals {
     const rec = this.W.own({ ...d, goal: g.id }, day, this.k++, hour); return rec.out.ok;
   }
   /** a stretch of a person's day laid by a goal (tomorrow or later: today's plans may have been read already) */
-  private lay(pid: number, day: number, t0: number, t1: number, place: string, act: ActivityId, why: string) {
+  private lay(pid: number, day: number, t0: number, t1: number, place: string, act: ActivityId, why: string): boolean {
     const z = /^h:(\d+)$/.exec(place), where = z ? (this.P.households[+z[1]]?.zone === 'plain' ? 'plain' : 'town') : /^(offering_place|hills|river|mountain|field:|pasture:)/.test(place) ? 'plain' : 'town';
-    this.W.lay(pid, day, { t0, t1, place, act, why, where });
+    return this.W.lay(pid, day, { t0, t1, place, act, why, where }); // (false: not laid: a little one's or a minder's day, or rain or dust in the open)
   }
   private wage(from: number, to: number, day: number, amt = WAGE): boolean {
     const E = this.E(day), F = E?.hh.get(`h:${this.hid(from, day)}`), T = E?.hh.get(`h:${this.hid(to, day)}`); if (!F || !T || F === T) return false;
@@ -234,7 +234,7 @@ export class Goals {
   private hireDay(g: Goal, boss: number, day: number, aim: string): boolean {
     const dec = this.W.minds.decide(boss, { verb: 'help', actor: g.pid, target: boss }, day, 9); if (!dec.ok) return false;
     const at = this.bossWork(boss, day); const act: ActivityId = CRAFT_ACTS.has(at.act) ? at.act : 'carry_sack';
-    if (!this.act(g, { verb: 'hire', actor: boss, target: g.pid, act, place: at.place, inH: 24, aim }, day, 8)) return false;
+    if (!this.act(g, { verb: 'hire', actor: boss, target: g.pid, act, place: at.place, inH: 13, aim }, day, 19)) return false; // (asked of an evening, for the next morning)
     return this.wage(boss, g.pid, day);
   }
 
@@ -267,7 +267,7 @@ export class Goals {
   private dowry(g: Goal, day: number) { const w = g.who;
     if (!this.here(w, day) || !this.unwed(w, day)) { this.finish(g, day, 'achieved', `${this.name(w)} betrothed`); return; }
     // the house's stores put by (spinning and weaving of an evening for the women; a day hired out for the men: C)
-    if (this.P.persons[g.pid].sex === 'f') { this.lay(g.pid, day + 1, 16, 18, `h:${this.hid(g.pid, day)}`, 'spin', `spinning for ${this.name(w)}'s dowry`); g.prog = cl(g.prog + 0.06); }
+    if (this.P.persons[g.pid].sex === 'f') { if (this.lay(g.pid, day + 1, 16, 18, `h:${this.hid(g.pid, day)}`, 'spin', `spinning for ${this.name(w)}'s dowry`)) g.prog = cl(g.prog + 0.06); }
     else { const boss = this.employer(g, day); if (boss >= 0 && this.hireDay(g, boss, day, `a day's work: ${this.name(w)}'s dowry`)) g.prog = cl(g.prog + 0.08); }
     if (g.prog >= 1) { this.finish(g, day, 'achieved', `the dowry for ${this.name(w)} put by`); if (!this.of(w).some(x => x.kind === 'spouse')) this.make(w, 'spouse', -1, day, 220, 'the dowry put by', `goal:${g.id}`); return; }
     g.next = day + 3 + Math.floor(this.u(g.id, day, 1) * 4);
@@ -328,7 +328,7 @@ export class Goals {
       const dec = this.W.minds.decide(m, { verb: 'help', actor: g.pid, target: m }, day, 10);
       if (dec.ok) { const at = this.bossWork(m, day), act: ActivityId = CRAFT_ACTS.has(at.act) ? at.act : 'carry_sack', d0 = Math.floor(this.u(g.id, day, 2) * 7);
         this.places.set(g.pid, { master: m, act, place: at.place, days: [d0, (d0 + 3) % 7], from: day + 1, goal: g.id });
-        this.act(g, { verb: 'hire', actor: m, target: g.pid, act, place: at.place, inH: 24, aim: 'taking him on' }, day, 9);
+        this.act(g, { verb: 'hire', actor: m, target: g.pid, act, place: at.place, inH: 13, aim: 'taking him on' }, day, 19);
         this.finish(g, day, 'achieved', `taken on by ${this.name(m)}`); return; }
       g.fails++; }
     const ok = g.n === 0 ? this.act(g, { verb: 'visit', actor: g.pid, target: m, aim: 'to ask for work' }, day, 18)
@@ -382,7 +382,7 @@ export class Goals {
     // the offering vowed is saved for a few days (C), then a morning at the offering place, with a kinsman if one will come
     if (g.n < 2) { g.next = day + 3 + Math.floor(this.u(g.id, day, 1) * 5); return; }
     const t0 = 6.5 + this.u(g.id, day, 2);
-    this.lay(g.pid, day + 1, t0, t0 + 3, 'offering_place', 'offer', `an offering vowed: ${g.why}`);
+    if (!this.lay(g.pid, day + 1, t0, t0 + 3, 'offering_place', 'offer', `an offering vowed: ${g.why}`)) { g.next = day + 1; return; } // (a dry morning waited for)
     const k = this.members(g.pid, day).find(m => this.P.ageOn(m, day) >= 14); if (k !== undefined) this.act(g, { verb: 'come_with', actor: g.pid, target: k, place: 'offering_place', act: 'offer', inH: 24 + t0 - 19, aim: `the offering vowed: ${g.why}` }, day, 19);
     this.finish(g, day + 1, 'achieved', 'the offering made');
   }
@@ -396,7 +396,7 @@ export class Goals {
   }
   private repair(g: Goal, day: number) { const h = `h:${this.hid(g.pid, day)}`;
     if (g.prog >= 1) { this.finish(g, day, 'achieved', g.why === 'the house burnt' ? 'the house rebuilt' : 'the house mended'); return; }
-    this.lay(g.pid, day + 1, 7, 11, h, 'mould_brick', g.why === 'the house burnt' ? 'rebuilding the house after the fire' : 'mending the house before the rains'); g.prog = cl(g.prog + 0.2);
+    if (!this.lay(g.pid, day + 1, 7, 11, h, 'mould_brick', g.why === 'the house burnt' ? 'rebuilding the house after the fire' : 'mending the house before the rains')) { g.next = day + 1; return; } g.prog = cl(g.prog + 0.2);
     const helper = g.n % 2 === 0 ? this.W.minds.friendOf(g.pid, day) : null; // (a friend or kinsman asked to lend a hand: their own mind decides)
     if (helper !== null && this.W.minds.decide(helper, { verb: 'help', actor: g.pid, target: helper }, day, 18).ok
       && this.act(g, { verb: 'repair', actor: helper, target: g.pid, act: 'mould_brick', place: h, inH: 24 + 7 - 18, aim: g.why === 'the house burnt' ? 'the house after the fire' : 'the house before the rains' }, day, 18)) g.prog = cl(g.prog + 0.1);
@@ -425,8 +425,7 @@ export class Goals {
   placesDay(day: number) {
     for (const [pid, pl] of this.places) { if (!this.here(pid, day + 1) || !this.here(pl.master, day + 1)) { this.places.delete(pid); continue; }
       const wd = (day + 1) % 7; if (wd !== pl.days[0] && wd !== pl.days[1]) continue;
-      this.lay(pid, day + 1, 8, 12.5, pl.place, pl.act, `working for ${this.name(pl.master)} (taken on, paid by the day)`);
-      this.wage(pl.master, pid, day); }
+      if (this.lay(pid, day + 1, 8, 12.5, pl.place, pl.act, `working for ${this.name(pl.master)} (taken on, paid by the day)`)) this.wage(pl.master, pid, day); }
   }
 
   /** what a person is set on, in the brief's words (out of world), with how far it has gone */

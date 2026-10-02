@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { simAt } from './sim_fixture';
 import { KINDS, type Goal } from '../src/people/mind/goals';
 import { personaOf } from '../src/people/persona';
+import { wetHours } from '../src/people/population';
 
 describe('D-461 the minds\' own goals (a real town, seed 1, day 60, no stranger)', () => {
   const sim = simAt(1, 60, 10, { asks: true }), day = 60, P = sim.pop, A = sim.deeds.agency, G = A.goals;
@@ -24,12 +25,15 @@ describe('D-461 the minds\' own goals (a real town, seed 1, day 60, no stranger)
   });
   it('a goal plays out in the day plans: tending the sick, lessons, work with the master, with the reason in words', () => {
     const P1 = (pid: number) => P.plan(pid, day + 1);
-    const care = [...G.active.values()].find(g => g.kind === 'care' && g.next === day + 1) ?? [...G.active.values()].find(g => g.kind === 'care');
+    // (a stretch is never laid over the house's minder's day, nor in the open in rain or dust: engine.ts lay)
+    const free = (pid: number) => P.hday(P.home(pid, day + 1), day + 1).minder !== pid;
+    const care = [...G.active.values()].find(g => g.kind === 'care' && g.next === day + 1 && free(g.pid)) ?? [...G.active.values()].find(g => g.kind === 'care' && free(g.pid));
     expect(care).toBeDefined();
     const g = care!; G.pursue(g, day); // (today's step lays tomorrow)
     if (G.active.has(g.id)) expect(P1(g.pid).some(s => s.act === 'tend_body' && /sick/.test(s.why))).toBe(true);
     // a place won: two mornings a week at the master's work, paid
-    const placed = [...G.places].find(([, pl]) => [pl.days[0], pl.days[1]].includes((day + 1) % 7));
+    const wx = P.cal.ctx(day + 1).wx, dry = wetHours(wx, 8, 12.5) === 0 && !(wx.dustH && wx.dustH[0] < 12.5 && wx.dustH[1] > 8);
+    const placed = dry ? [...G.places].find(([pid, pl]) => [pl.days[0], pl.days[1]].includes((day + 1) % 7) && free(pid)) : undefined;
     if (placed) { G.placesDay(day); expect(P1(placed[0]).some(s => /working for/.test(s.why))).toBe(true); }
     expect(G.places.size).toBeGreaterThan(20);
   });

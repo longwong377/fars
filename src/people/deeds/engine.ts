@@ -13,7 +13,7 @@
 // Tier C throughout (DECISIONS D-459): the law's fines and the elder's hearing are reconstructed from the Achaemenid evidence of
 // royal judges and fines in silver (B for the institution, C for the amounts and the village elder's part).
 import type { Population, Seg, Where } from '../population';
-import { segAt } from '../population';
+import { segAt, OPEN_PLACE, wetHours } from '../population';
 import type { Economy } from '../economy/world';
 import type { RumourNet } from '../asks/rumour';
 import type { ActivityId } from '../activities';
@@ -30,6 +30,8 @@ export interface WorldPort {
   /** the people at the same place as pid at time t (the world's own reading of the plans; light: the town's own deeds, D-461) */ near: (pid: number, t: number, light?: boolean) => number[];
 }
 const S = { hour: salt('deed-hour'), law: salt('deed-law'), fight: salt('deed-fight') };
+/** the work done out of doors wherever it is laid (D-461: not laid in the rain or the dust) */
+const OUTDOOR_ACT = new Set(['mould_brick', 'lay_brick', 'field_work', 'plough', 'reap', 'thresh', 'dig_canal', 'irrigate', 'herd', 'garden_work', 'pick_fruit', 'fowl', 'fish', 'offer', 'quarry', 'carry_sack', 'haul']);
 /** the other's side of a deed in a day plan's words, where the verb alone reads wrong (D-461) */
 const VERB_TO: Partial<Record<string, string>> = { visit: 'a visit from', help: 'helped by', hire: 'working for', court: 'courted by', teach: 'taught by', heal: 'tended by', introduce: 'introduced by', share_food: 'eating with', intercede: 'hearing a plea from', reconcile: 'making peace with' };
 /** the doer's side of a deed in a day plan's words (D-461) */
@@ -243,7 +245,15 @@ export class DeedWorld {
     const P = this.w.pop, m = /^h:(\d+)$/.exec(place), z = P.households[m ? +m[1] : P.home(pid, day)]?.zone; return z === 'plain' ? 'plain' : z === 'terrace' ? 'terrace' : 'town';
   }
   /** lay a segment over a person's day (the plans' overlay; D-461: the goals lay their own steps through it) */
-  lay(pid: number, day: number, seg: Seg) { const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); }
+  lay(pid: number, day: number, seg: Seg): boolean {
+    // (D-461: never over a little one's day (it keeps its mother's), nor the house's minder's (the little ones are with her),
+    // nor in the open while it rains or the dust is up: the deed is done in words, its stretch of the day is not laid. A wound
+    // kept at home is laid whatever)
+    const P = this.w.pop;
+    if (seg.act !== 'lie_ill') { if (P.ageOn(pid, day) < 3 || P.hday(P.home(pid, day), day).minder === pid) return false;
+      const wx = P.cal?.ctx(day).wx, open = OPEN_PLACE.test(seg.place) || /^(offering_place|hills|river|mountain|road:)/.test(seg.place) || OUTDOOR_ACT.has(seg.act);
+      if (wx && open && (wetHours(wx, seg.t0, seg.t1) > 0 || (wx.dustH && wx.dustH[0] < seg.t1 && wx.dustH[1] > seg.t0))) return false; }
+    const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); return true; }
   private layDays(pid: number, day: number, n: number, act: ActivityId, why: string) { const P = this.w.pop; for (let d = day + 1; d <= day + n; d++) this.lay(pid, d, { t0: 0, t1: 24, place: `h:${P.home(pid, d)}`, act, why, where: P.households[P.home(pid, d)]?.zone === 'plain' ? 'plain' : 'town' }); }
   /** the deeds' overlay of the day plans (Population.deeds) */
   readonly overlay = {
