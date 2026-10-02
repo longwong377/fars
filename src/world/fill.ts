@@ -8,6 +8,7 @@
 import * as THREE from 'three/webgpu';
 import { model, modelParts, aoFactor } from '../render/scanProps';
 import { propMaterial } from '../render/materials';
+import { seasonOf } from './settlement/houses';
 import type { FillItem, RGB } from './fillPlan';
 
 /** what each part name is made of: [the material's kind, the default sRGB colour, metalness] */
@@ -74,16 +75,18 @@ export class WorldFill {
   }
   private key(i: number, j: number) { return (i + 4096) * 8192 + (j + 4096); }
   /** rebuild round the viewer (grid e, n) when it has moved FILL_R.move m, the market opened or closed (local hour) or rain began or stopped */
-  update(viewer: [number, number], hour: number, rain = 0, force = false): boolean {
+  update(viewer: [number, number], hour: number, rain = 0, force = false, dayIndex?: number): boolean {
+    // (s17 C1: the season's things: seasonOf's three seasons as bits, 1 harvest, 2 warm, 4 cold; all when no day is given)
+    const ss = dayIndex === undefined ? 7 : seasonOf(dayIndex) === 'harvest' ? 1 : seasonOf(dayIndex) === 'warm' ? 2 : 4;
     // (in rain the goods are taken in and the washing too; s17 C1: through the afternoon, hour by hour, sold goods go)
-    const open = hour >= 6.5 && hour < 19, day = (open ? 1 : 0) + (rain > 0.15 ? 2 : 0) + (open && hour >= 12.5 ? 4 * Math.floor(hour - 11.5) : 0), wet = (day & 2) !== 0;
+    const open = hour >= 6.5 && hour < 19, day = (open ? 1 : 0) + (rain > 0.15 ? 2 : 0) + (open && hour >= 12.5 ? 4 * Math.floor(hour - 11.5) : 0) + 1000 * ss, wet = (day & 2) !== 0;
     if (!force && day === this.lastDay && Math.hypot(viewer[0] - this.last[0], viewer[1] - this.last[1]) < FILL_R.move) return false;
     this.last = [viewer[0], viewer[1]]; this.lastDay = day;
     for (const L of this.slots.values()) for (const S of L) for (const s of S) s.n = 0;
     const R = Math.max(FILL_R.big, ROOF_R), i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
     let drawn = 0; this.dropped = 0;
     for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) for (const k of this.grid.get(this.key(i, j)) ?? []) {
-      const it = this.items[k], y = this.y[k]; if (!Number.isFinite(y) || (it.day && (!open || wet || (it.until !== undefined && hour >= it.until))) || (wet && it.m === 'fill_line')) continue;
+      const it = this.items[k], y = this.y[k]; if (!Number.isFinite(y) || (it.seas !== undefined && !(it.seas & ss)) || (it.day && (!open || wet || (it.until !== undefined && hour >= it.until))) || (wet && it.m === 'fill_line')) continue;
       const d = Math.hypot(it.e - viewer[0], it.n - viewer[1]), one = ONE_LEVEL[it.at]; if (d > (one ? one[1] : BIG.has(it.m) ? FILL_R.big : it.at === 'roof' ? ROOF_R : FILL_R.small)) continue;
       const levels = this.slots.get(it.m); if (!levels) continue;
       const L = levels[one ? one[0] : d < FILL_R.lod0 ? 0 : d < FILL_R.lod1 ? 1 : 2];

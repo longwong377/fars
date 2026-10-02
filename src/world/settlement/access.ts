@@ -6,12 +6,12 @@
 // and a reached cell: a place of the same plot first, else the lane (the plot's street door then moves there when its own
 // lane is out of reach). The new door's opening must stay clear (>= 0.8 m) with no fitting in its way. Deterministic,
 // no random draw. Pure data; the plan (plan.ts) calls it before the houses' fixtures are placed.
-import { Site, ROOM, type P2 } from './site';
+import { Site, ROOM, LANE, type P2 } from './site';
 import { siteReach, cellHasRoom, resetSiteCaches, openCode, BODY_MIN } from './walk';
 
 export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: number; left: number } {
   if (s.meta.kind !== 'quarter') return { opened: 0, resited: 0, left: 0 }; // (the walled compounds: every place reached, reach_census.ts)
-  const N = s.W * s.H, W = s.W; let opened = 0, resited = 0, left = 0;
+  const N = s.W * s.H, W = s.W; let opened = 0, resited = 0, left = 0, cut = 0;
   const cellsOf = (e: number): [number, number] => e < N ? [e, e + W] : [e - N, e - N + 1];
   const fits = s.fittings.filter(f => f.kind !== 'tree' && f.kind !== 'channel' && f.kind !== 'ditch' && f.kind !== 'pool' && f.kind !== 'midden' && f.kind !== 'pen_dung');
   const inWay = (e: number) => { const [a, b] = cellsOf(e), p: P2 = [s.cu(a % W), s.cv((a / W) | 0)], q: P2 = [s.cu(b % W), s.cv((b / W) | 0)];
@@ -40,6 +40,33 @@ export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: num
     }
     if (!changed) break;
   }
+  // (s17 C1, D-550, B580) a house still shut in at a pinched frontage (each of its lane edges narrowed at both jambs by the
+  // neighbours' wall ends: C9's walk bots) gets a door on a lane edge whose crossing walls stop short of the door's line
+  // (Site.jambs), kept only when the house is then reached; the street door moves there. Both houses' plans otherwise intact
+  if (left) { resetSiteCaches(s); let r = siteReach(s);
+    for (const p of s.plots) { if (!p.door || p.kind === 'garden') continue; const cells = byPlot.get(p.idx); if (!cells || cells.some(k => r[k]) || !cells.some(k => cellHasRoom(s, k, BODY_MIN))) continue;
+      let done = false;
+      for (const k of cells) { if (done) break; const i = k % W, j = (k / W) | 0;
+        for (const di of [1, -1]) { if (!s.inb(i + di, j)) continue; const kk = s.k(i + di, j); if (!openCode(s.cell[kk]) || !r[kk]) continue; // (doors in walls along v: the only ones the crossing walls narrow)
+          const e = s.edgeBetween(k, kk); if (s.noWall.has(e) || inWay(e)) continue; const vi = di > 0 ? i + 1 : i, J = [j * (W + 1) + vi, (j + 1) * (W + 1) + vi];
+          const had = s.doors.has(e), hadJ = J.map(x => s.jambs.has(x)); s.doors.add(e); for (const x of J) s.jambs.add(x); resetSiteCaches(s); const r2 = siteReach(s);
+          if (r2[k] && s.doorClear(e) >= min) { p.door = { cell: k, out: kk }; r = r2; opened++; resited++; left -= cells.length; done = true; break; }
+          // (the lead's call: the player must walk in) still pinched by a third house's wall end across the lane corner: that
+          // house's corner cell is cut back to the lane (a cut-back corner, common in the region's mud-brick lanes: C), kept
+          // only when this house is then reached and the other keeps every place it had reached
+          { const cand: number[] = []; for (let b2 = -1; b2 <= 1; b2++) for (let a2 = -1; a2 <= 1; a2++) { const ni = (kk % W) + a2, nj = ((kk / W) | 0) + b2; if (!s.inb(ni, nj)) continue; const n = s.k(ni, nj), q = s.cell[n];
+              if (q < 0 || n === k) continue; const Q = s.plots[q]; if (!Q || (q !== p.idx && Q.door && (Q.door.cell === n || Q.door.out === n)) || (byPlot.get(q)?.length ?? 0) <= 8) continue; cand.push(n); } // (this house's own corner too)
+            const sets: number[][] = [...cand.map(n => [n]), ...cand.flatMap((n, x) => cand.slice(x + 1).map(m => [n, m]))];
+            for (const set of sets) { const saved = set.map(n => [n, s.cell[n], s.sub[n], s.room[n]] as const), qs = [...new Set(set.map(n => s.cell[n]))];
+              const before = qs.map(q => (byPlot.get(q) ?? []).filter(x => !set.includes(x) && r2[x]).length);
+              for (const n of set) { s.cell[n] = LANE; s.sub[n] = 0; s.room[n] = -1; } resetSiteCaches(s); const r3 = siteReach(s);
+              if (r3[k] && s.doorClear(e) >= min && qs.every((q, x) => q === p.idx || (byPlot.get(q) ?? []).filter(y => !set.includes(y) && r3[y]).length >= before[x])) {
+                for (const q of qs) byPlot.set(q, (byPlot.get(q) ?? []).filter(x => !set.includes(x))); p.door = { cell: k, out: kk }; r = r3; opened++; resited++; left -= cells.length; done = true; cut += set.length; break; }
+              for (const [n, c0, s0, m0] of saved) { s.cell[n] = c0; s.sub[n] = s0; s.room[n] = m0; } }
+            if (!done) resetSiteCaches(s); }
+          if (done) break;
+          if (!had) s.doors.delete(e); J.forEach((x, q) => { if (!hadJ[q]) s.jambs.delete(x); }); } }
+      resetSiteCaches(s); } }
   resetSiteCaches(s);
   return { opened, resited, left };
 }

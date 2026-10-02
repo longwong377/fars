@@ -31,6 +31,20 @@ function plume(prof: (t: number) => number, fadeBottom: boolean): THREE.BufferGe
   g.setAttribute('aOp', new THREE.Float32BufferAttribute(op, 1)); g.setIndex(idx); g.computeBoundingSphere(); return g;
 }
 
+/** s17 C1 (D-550): the evening lamps at the street doors: a clay saucer lamp set on a peg in the wall beside the door, lit as
+ *  the light fails and out an hour or two after dark (the fire system's 'home' schedule; its light and flame are the fire
+ *  system's, V6), at about two houses in five, more of the better-off (C: lamps at doors by analogy with the region's
+ *  vernacular, RECOLLECTION; saucer lamps B, Q-516). Grid e, n and the lamp's height */
+export function doorLamps(hs: SiteHouses): { plot: string; e: number; n: number; y: number }[] {
+  const s = hs.s, out: { plot: string; e: number; n: number; y: number }[] = [];
+  for (const p of s.plots) { if (!HOUSE_KINDS.has(p.kind) || !p.door) continue; const L = hs.lives[p.idx], d = s.doorPoints(p); if (!L || !d) continue;
+    if (h01(p.id, 10) > 0.25 + 0.35 * L.standing) continue;
+    const nu = d.out[0] - d.inside[0], nv = d.out[1] - d.inside[1], t = p.outerT / 2 + 0.12, side = -(L.hinge ?? 1); // (beside the jamb away from the hinge)
+    const u = d.mid[0] + nu * t - nv * side * 0.8, v = d.mid[1] + nv * t + nu * side * 0.8, [e, n] = s.grid(u, v);
+    out.push({ plot: p.id, e, n, y: hs.base[p.idx] + 1.62 }); }
+  return out;
+}
+
 export class WallWear {
   readonly group = new THREE.Group();
   readonly faces: DoorFace[] = [];

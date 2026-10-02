@@ -16,7 +16,7 @@ for (const d of days) {
   const rows = [...by.entries()].sort((a, b) => Math.max(...b[1]) - Math.max(...a[1]));
   const tot = HOURS.map((_, i) => rows.reduce((a, r) => a + r[1][i], 0)), ktot = HOURS.map((_, i) => [...keep.values()].reduce((a, r) => a + r[i], 0));
   const C = sim.cal.ctx(d);
-  console.log(`seed ${seed} day ${d} (${C.season}, rain ${C.wx.rainMm ?? '?'}) ${((Date.now() - t0) / 1000).toFixed(0)} s; hours ${HOURS.join(' ')}`);
+  console.log(`seed ${seed} day ${d} (${C.season}, rain ${C.wx.rain ? C.wx.rain.join('-') + ' h' : 'none'}) ${((Date.now() - t0) / 1000).toFixed(0)} s; hours ${HOURS.join(' ')}`);
   console.log(`  WHOLE: ${tot.join(' ')}  (stallholders ${ktot.join(' ')})  grounds ${rows.length}`);
   for (const [g, n] of rows.slice(0, 12)) console.log(`  ${g.padEnd(22)} ${n.map(x => String(x).padStart(3)).join(' ')}  keepers ${(keep.get(g) ?? []).map(x => String(x).padStart(3)).join(' ')} stalls ${stalls.get(g)?.size ?? 0}`);
 }
