@@ -5,6 +5,18 @@ import { ADIST_OFF } from '../render/blockface';
 import { arrisEdgesOfBox, edgeSeed, aseedOf, ARRIS_MATS, type ArrisEdge } from './arris';
 import { prismArrisGeometry, finishProtoEdges } from './arris_prism';
 import { verticalFaces, chunkFaces, type JointFace } from './arris_joints';
+import { planarFaces, planarBounds, planarWorld } from './arris_slabs';
+import { mudFace, HardIndex, MUD_MATS } from './mudface';
+/** D-364: the treads, risers and slabs of a dressed-stone part whose joints the near field grooves (arris_slabs.ts); a chunk whose
+ *  every sample, 3 cm out of the face, lies inside another part (a riser's back against the next step, a slab under a floor) left out */
+function planarJointFaces(rg: THREE.BufferGeometry, p: Part, stair: [number, number, number, number] | undefined, index: PartIndex): JointFace[] {
+  if (p.type === 'column') return [];
+  const PB = rg.getAttribute('pbox'), pbox: [number, number, number, number] = PB ? [PB.getX(0), PB.getY(0), PB.getZ(0), PB.getW(0)] : [0, 0, -1, -1];
+  return planarFaces(rg, p.material, stair).filter(pf => { const [u0, u1, v0, v1] = planarBounds(pf);
+    for (const fu of [0.1, 0.5, 0.9]) for (const fv of [0.1, 0.5, 0.9]) { const q = planarWorld(pf, u0 + (u1 - u0) * fu, v0 + (v1 - v0) * fv).addScaledVector(pf.N, 0.03); if (!index.inside(q.x, q.y, q.z, p)) return true; }
+    return false; })
+    .map(pf => ({ n: pf.N, d: pf.d, t0: 0, t1: 0, y0: p.y0, y1: p.y1, surf: p.material, y0attr: pf.y0, pbox, ytop: p.y1, stair, pf }));
+}
 /** rev 4: a wall chunk every sample of which lies against (3 cm in front of it is inside) another part */
 function faceCovered(F: JointFace, p: Part, index: PartIndex): boolean {
   for (const ft of [0.1, 0.5, 0.9]) for (const fy of [0.1, 0.5, 0.9]) { const t = F.t0 + (F.t1 - F.t0) * ft, y = F.y0 + (F.y1 - F.y0) * fy, x = F.n.z * t + F.n.x * (F.d + 0.03), z = -F.n.x * t + F.n.z * (F.d + 0.03);
@@ -523,6 +535,9 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   if (RE) RE.boxes.push(...wallFeet(parts)); // D-334: the wall feet (the floor coat or the skirting against the foot)
   const all: Part[] = RE ? [...parts, ...RE.boxes] : parts, edgeSet = new Set<Part>(RE?.boxes ?? []);
   const index = new PartIndex(all), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
+  // D-364 (B186): the mud-brick faces bowed by one world field (mudface.ts), faded against the parts set into them; not in flat
+  // mode (plan overlays) nor the Now view (no mud brick stands there)
+  const hard = flatMode || parts.some(p => (p as any).now) || (typeof process !== 'undefined' && process.env?.MUDFACE === '0') ? null : new HardIndex(all); // (MUDFACE=0, node: the A/B)
   const stairs = stairRows(parts), arris: ArrisEdge[] = [], jointFaces: JointFace[] = [];
   if (opts.dynamicDoors) bevelSwap.length = 0;
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
@@ -553,13 +568,15 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     // rev 4 (D-321): a dressed-stone prism's render geometry carries the arris attributes and records its free arrises
     const pa = p.type === 'prism' && ARRIS_MATS.has(p.material) ? prismArrisGeometry(p, index) : null;
     const fg = p.type === 'box' ? frames?.byPart.get(p) : undefined;
-    const plain = fg ?? g.clone(), rg = fg ?? (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : pa?.geo) ?? g.clone();
+    const plain = fg ?? g.clone(); let rg = fg ?? (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : pa?.geo) ?? g.clone();
     if (edgeSet.has(p)) { edgeAttributes(rg, p as Box); if (plain !== rg) edgeAttributes(plain, p as Box); } // D-334: the roof edges' own (no probes: ~4 k boxes)
     else { partAttributes(rg, p, index, stairs.get(p)); if (plain !== rg) partAttributes(plain, p, index, stairs.get(p)); }
     if (pa && p.type === 'prism') arris.push(...finishProtoEdges(p, p.material, pa.edges, rg));
     // rev 4: the joints of its vertical faces, grooved near the eye (the steps: stairJointEdges below)
     if (ARRIS_MATS.has(p.material) && !(p.type === 'box' && p.kind === 'step')) jointFaces.push(...chunkFaces(verticalFaces(rg, p.material, p.y1), stairs.get(p)).filter(F => !faceCovered(F, p, index))); // (a chunk against another part has no joints to show)
+    if (ARRIS_MATS.has(p.material) && !fg) jointFaces.push(...planarJointFaces(rg, p, stairs.get(p), index)); // D-364: the treads, risers and slabs
     if (p.type === 'box' && rg.userData.arris && ARRIS_MATS.has(p.material)) arris.push(...arrisEdgesOfBox(p, rg.userData.arris.edges, BOX_EDGES, rg.userData.arris.r, rg));
+    if (hard && !fg && !edgeSet.has(p) && MUD_MATS.has(renderMaterial(p))) rg = mudFace(rg, hard, renderMaterial(p) === 'mudbrick_bare' ? 0.5 : 1); // D-364 (not the roof edges: the string course at the roof line covers the step; nor the wall feet)
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${renderMaterial(p)}|${p.tier}|${p.placeholder ? 1 : 0}${edgeSet.has(p) && p.material === "timber" ? "|edge" : ""}${fg ? '|frame' : ''}`; // (D-334: the roof edges' timber its own mesh: a building's timber roofs keep the roof surface; the rest merges with the building's own)
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
@@ -574,7 +591,9 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   let tris = 0;
   for (const [key, { geos, plain, parts: ps }] of byKey) {
     const [building, mat, tier, ph, extra] = key.split('|');
-    const g = mergeGeometries(geos)!; tris += g.getAttribute('position').count / 3;
+    // (D-364: the mud-brick faces are indexed, the roof edges merged with them not: the latter take a sequential index)
+    if (geos.some(q => q.index) && geos.some(q => !q.index)) for (const q of geos) if (!q.index) q.setIndex(new THREE.BufferAttribute(Uint32Array.from({ length: q.getAttribute('position').count }, (_, i) => i), 1));
+    const g = mergeGeometries(geos)!; tris += (g.index ? g.index.count : g.getAttribute('position').count) / 3;
     const roof = ps.every(p => p.kind === 'roof');
     // a timber roof takes the roof surface: cedar with reed matting on its underside, the ceiling (D-188)
     const m = new THREE.Mesh(g, roof ? roofMaterial(mat === 'timber' && !flatMode ? surfaceMaterial('roof_timber', { arch: true }) : archMaterial(mat as Material)) : extra === 'frame' ? frameMaterial(mat)! : archMaterial(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}${extra ? ':' + extra : ''}`;

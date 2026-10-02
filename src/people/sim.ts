@@ -205,7 +205,7 @@ export class PeopleSim {
     // D-347: laundry days and baths in the plans (clear of the living world's errands), and the wardrobes that read them
     this.washPlans = new WashPlans(this.pop, seed, (pid, d) => this.living.windows(pid, d)); if (opts.washing !== false) this.pop.wash = this.washPlans;
     this.wardrobes = new Wardrobes(this.pop, seed, (pid, d) => this.pop.plan(pid, d));
-    this.bonds = new Relations(this.pop, seed); this.bondPlans = new RelPlans(this.bonds, this.pop); if (opts.bonds) this.pop.bonds = this.bondPlans;
+    this.bonds = new Relations(this.pop, seed); this.bondPlans = new RelPlans(this.bonds, this.pop); if (opts.bonds) { this.pop.bonds = this.bondPlans; this.living.attachRelations(this.bonds); } // (D-359: the relations stepped with the days, into the economy and the households)
     this.talk.onChange = pid => { const a = this.pop.persons[pid]?.agent ?? -1; if (a >= 0) this.planCache.delete(a); };
     for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
   }

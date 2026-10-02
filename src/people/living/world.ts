@@ -25,6 +25,7 @@ import { MINDING, reasonOk } from '../planCheck';
 import { dateOf } from '../calendar';
 import { nobodyWith } from '../wardrobe/washing';
 import { haggleRound } from '../speech/haggle';
+import type { Relations } from '../relations/world';
 
 const S = salt('living-talk');
 /** households in want who look for help each day (seeded share of the town's and the plain's), and the most talks a day */
@@ -68,6 +69,21 @@ export class LivingWorld {
   private busy = new Set<string>();
   /** D-352: called after each simulated day (the asks and the rumours of src/people/asks ride on it) */
   onDay?: (d: number) => void;
+  // ---------------------------------------------------------------- D-359 (B227, B226): the relations stepped with the days
+  private rel: Relations | null = null; private relAt = new Map<number, Intent[]>(); private relFloor = -1;
+  /** relation intents entered into the economy (bride-gifts, dowries, divorce silver, news) */
+  relEntered = 0;
+  /** step the relations layer from here, a week ahead of the economy's day (so its weddings move the bride before any plan of
+   *  the wedding's week is drawn: Population.addWedding), its intents entered into the economy on their own day, before the
+   *  economy's step (the sim sets it with SimOpts.bonds, the world's setting; tests without it are unchanged) */
+  attachRelations(rel: Relations) { this.rel = rel; rel.opts.joinPop = true;
+    // (each intent kept by the day it enters: its own, or the first day not yet stepped when it came late, from a player's act;
+    // one dated before a load's day is in the saved economy already; kept, so a re-derivation from day 0 enters them again)
+    rel.opts.econ = i => { if (i.day <= this.relFloor) return; const at = Math.max(i.day, this.upTo + (this.running ? 0 : 1)); (this.relAt.get(at) ?? this.relAt.set(at, []).get(at)!).push(i); }; }
+  private relDay(E: Economy, d: number) {
+    const R = this.rel; if (!R) return; R.advance(d + 7);
+    for (const i of this.relAt.get(d) ?? []) { E.enter({ ...i, day: d, payload: { ...i.payload } }); this.relEntered++; }
+  }
   private byQ = new Map<string, number[]>();
   private upTo = -1; private running = false;
   /** plans asked for and talk simulated (for the dev overlay and the cost report) */
@@ -108,7 +124,7 @@ export class LivingWorld {
   /** resume from a save: the economy (restored, or built from its saved intents and stepped) at the saved day, the talk state restored */
   load(s: LivingSave) {
     this.reset(); const E = this.econ(); this.running = true; try { for (let d = E.day + 1; d <= s.upTo; d++) E.step(d); } finally { this.running = false; }
-    this.upTo = s.upTo; this.evSeen = s.evSeen; this.nextId = s.nextId; this.talks.push(...s.talks);
+    this.upTo = s.upTo; this.relFloor = s.upTo; for (const k of [...this.relAt.keys()]) if (k <= s.upTo) this.relAt.delete(k); this.evSeen = s.evSeen; this.nextId = s.nextId; this.talks.push(...s.talks);
     const T = s.strs; for (const [k, v] of s.laid) this.laid.set(k, T ? (v as any[]).map(([h0, h1, g]) => ({ h0, h1, segs: g.map((x: any[]) => ({ t0: x[0], t1: x[1], place: T[x[2]], act: T[x[3]], why: T[x[4]], where: T[x[5]], ...(x.length > 6 ? { ev: T[x[6]] } : {}) })) })) : v as any);
     for (const [k, v] of s.news) this.news.set(k, v); for (const k of s.busy) this.busy.add(k);
   }
@@ -122,7 +138,7 @@ export class LivingWorld {
       const E = this.econ();
       // player events first seen now: their news starts on the first day not yet simulated (fixed, and saved with the event)
       for (const e of this.playerEvents()) if (e.newsFrom === undefined) e.newsFrom = Math.max(e.day + 1, this.upTo + 1);
-      while (this.upTo < day) { const d = ++this.upTo; const t0 = performance.now(); E.step(d); this.stats.msEcon += performance.now() - t0; const t1 = performance.now(); this.simulate(E, d); this.stats.msSim += performance.now() - t1; this.stats.days++; this.onDay?.(d); }
+      while (this.upTo < day) { const d = ++this.upTo; const t0 = performance.now(); this.relDay(E, d); E.step(d); this.stats.msEcon += performance.now() - t0; const t1 = performance.now(); this.simulate(E, d); this.stats.msSim += performance.now() - t1; this.stats.days++; this.onDay?.(d); }
     } finally { this.running = false; }
   }
 

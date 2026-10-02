@@ -28,7 +28,10 @@ Getting lost is allowed. Weight comes from ordinary, often named, lives. The wor
 3. Primary sources win; conflicts logged in `research/OPEN_QUESTIONS.md`.
 4. Verify by measurement; screenshots find problems, never prove correctness.
 5. Fidelity is fixed; if a target can't be met: measure, try ≥3 approaches, ship most faithful, log in `BLOCKERS.md`.
-6. Accuracy beats beauty.
+6. Accuracy beats beauty where the evidence is clear and it costs the illusion nothing; otherwise immersion governs (UD-29). The
+   references ground the place in reality; they are not a 1:1 target. The lead is the director: fill every blank with the most
+   probable reconstruction and take artistic liberties where the vision needs them (tier C, reasoning in F3). A detail slightly
+   off never outranks a world that does not yet feel real. Judge the AAA bar from knowledge of top games; never ask the user for it.
 7. Honesty: a phase is done only when its gate passes. Placeholders flagged in dev overlay, PROGRESS.md, reports.
    Every report leads with what is broken or placeholder.
 
@@ -112,8 +115,10 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   (`C:/Program Files/KTX-Software/bin/ktx.exe`) for its KTX2 textures.
 
 ## Box safeguards (session 15; the session-14 freeze)
-- At most 4 agents at once (`tools/dev/mkwt.mjs` refuses a 5th; `--done <name>` when one finishes). gpu_slot/cpu_slot wait while
-  free memory < 4 GB. `node tools/dev/watchdog.mjs [--loop]` reports a slot held > 45 min with no output (pids to kill), low
+- At most 2 agents at once on the 4-core box (the user, session 15, after 4 agents pinned the CPU at 100 % and made the app
+  unusable; `tools/dev/mkwt.mjs` refuses a 3rd; `--done <name>` when one finishes). gpu_slot/cpu_slot wait while free memory
+  < 4 GB or CPU > 75 % busy; one GPU slot; every slot job at below-normal priority. The watchdog alerts on CPU > 90 %: act at
+  once (stop work you started), never call it an expected peak. `node tools/dev/watchdog.mjs [--loop]` reports a slot held > 45 min with no output (pids to kill), low
   memory, too many agents: the lead runs it every 30 min (the user, session 15) and passes any problem to the user at once, alone.
 - No full-world render while agents build: the render train refuses while any agent is active (FORCE=1); it runs between waves.
 

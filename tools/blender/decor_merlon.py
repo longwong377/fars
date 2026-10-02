@@ -71,3 +71,13 @@ for key, tex_type in (('pits', 'VORONOI'), ('grain', 'CLOUDS')):
 bpy.ops.object.shade_smooth()
 bpy.ops.wm.ply_export(filepath=job['high'], export_selected_objects=False, apply_modifiers=True, export_normals=False, export_uv=False, export_colors='NONE', export_triangulated_mesh=True)
 log('high', len(o.data.vertices), 'verts', len(o.data.polygons), 'faces', f'{time.time() - t0:.1f} s')
+# D-364: the near level: the high source decimated to ~`near_tris` triangles, so within ~15 m the chips and the worn arrises are
+# the merlon's own silhouette and cast their shadows (B145; the baked low level, 204 triangles, stays for the distance). bake.py
+# bakes the high source's pits and grain onto it as onto the low level
+near_tris = job.get('near_tris', 3000)
+o.select_set(True); bpy.context.view_layer.objects.active = o
+dm = o.modifiers.new('near', 'DECIMATE'); dm.decimate_type = 'COLLAPSE'; dm.ratio = min(1.0, near_tris / max(1, len(o.data.polygons))); dm.use_collapse_triangulate = True
+bpy.ops.object.modifier_apply(modifier='near')
+near = job['high'].replace('high.ply', 'near.ply')
+bpy.ops.wm.ply_export(filepath=near, export_selected_objects=False, apply_modifiers=True, export_normals=False, export_uv=False, export_colors='NONE', export_triangulated_mesh=True)
+log('near', len(o.data.vertices), 'verts', len(o.data.polygons), 'faces', f'{time.time() - t0:.1f} s')

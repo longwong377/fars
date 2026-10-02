@@ -52,6 +52,7 @@ export function buildReliefs(m: Manifest): THREE.Group {
   for (const f of apadanaFacades(m)) for (let aa = -f.length / 2 + C.width / 2; aa < f.length / 2; aa += C.width * 1.15) crenMats.push(facadeMatrix(f, aa, topAt(aa), 1).multiply(new THREE.Matrix4().makeTranslation(0, 0, -0.5)));
   const ci = new THREE.InstancedMesh(cren, MM?.mat ?? surfaceMaterial('limestone_merlon'), crenMats.length); crenMats.forEach((mm, i) => ci.setMatrixAt(i, mm)); ci.castShadow = true; ci.receiveShadow = true;
   ci.userData = { tier: 'C', src: 'IR-PERS;RECON', note: `four-stepped crenellations (motif B, size C)${MM ? MERLON_NOTE : ''}` }; ci.name = 'crenellations'; ci.computeBoundingSphere(); g.add(ci);
+  if (MM?.near) ci.add(new MerlonNear(ci, crenMats, MM.near)); // D-364: the modelled near level within MERLON_NEAR m
   return g;
 }
 /** Phase 4 reliefs (D-049): the Tachara, Hadish and Tripylon stair façades and the door jambs of the Tachara, Hadish,
@@ -114,6 +115,7 @@ export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | nu
     mesh.setMatrixAt(i, m);
   });
   mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = 'stair-crenellations'; mesh.computeBoundingSphere();
+  if (MM?.near) { const mats = plan.map((_, i) => { const q = new THREE.Matrix4(); mesh.getMatrixAt(i, q); return q; }); mesh.add(new MerlonNear(mesh, mats, MM.near)); } // D-364
   mesh.userData = { tier: 'C', src: 'IR-PERS;SI-ARCH;RECON', note: `four-stepped merlons on the stair parapets of ${CR.buildings.join(', ')} (motif B on the Apadana stairs; here by the Persepolis stair convention, size C; D-065)${MM ? MERLON_NOTE : ''}` };
   return mesh;
 }
@@ -124,12 +126,40 @@ const MERLON_NOTE = '; the merlon modelled in Blender (tools/blender/decor.mjs m
 /** D-330: the Blender merlon (public/models/decor/merlon.glb: the game's merlon at merlonModelDepth() with baked normal + AO)
  *  with its 'mzd' attribute (the distances to the front and back faces, as crenellationGeometry writes them), and its
  *  material; null when not loaded (the procedural merlon is drawn) */
-export function merlonMesh(): { geo: THREE.BufferGeometry; mat: THREE.Material } | null {
+export function merlonMesh(): { geo: THREE.BufferGeometry; mat: THREE.Material; /** D-364: the near level (the high source decimated: real chips and worn arrises; null in builds before it) */ near: { geo: THREE.BufferGeometry; mat: THREE.Material } | null } | null {
   const M = merlonModel(); if (!M) return null;
-  const g = M.lods[0].clone(), P = g.getAttribute('position'), D = merlonModelDepth(), a = new Float32Array(P.count * 2);
-  for (let i = 0; i < P.count; i++) { a[2 * i] = P.getZ(i); a[2 * i + 1] = D - P.getZ(i); }
-  g.setAttribute('mzd', new THREE.BufferAttribute(a, 2));
-  return { geo: g, mat: withBakedMap('limestone_merlon', M.maps[0], 'merlon') };
+  const lvl = (k: number) => { const g = M.lods[k].clone(), P = g.getAttribute('position'), D = merlonModelDepth(), a = new Float32Array(P.count * 2);
+    for (let i = 0; i < P.count; i++) { a[2 * i] = P.getZ(i); a[2 * i + 1] = D - P.getZ(i); }
+    g.setAttribute('mzd', new THREE.BufferAttribute(a, 2)); return g; };
+  return { geo: lvl(0), mat: withBakedMap('limestone_merlon', M.maps[0], 'merlon'), near: M.lods[1] ? { geo: lvl(1), mat: withBakedMap('limestone_merlon', M.maps[1], 'merlon-near') } : null };
+}
+/** D-364: within this distance (m, from the eye to the merlon's centre) the merlon is drawn by its modelled near level */
+export const MERLON_NEAR = 16;
+/** D-364: the near level of an instanced merlon draw: a child of the far InstancedMesh (which keeps its type, bounds and tests)
+ *  that, before the frame's draws, moves the instances within MERLON_NEAR of the view camera from the far mesh to its own
+ *  near InstancedMesh (the far one keeps the rest: never both, never neither). Only perspective cameras switch (the shadow pass
+ *  draws what the view drew, as meshes.ts InstancedLOD) */
+export class MerlonNear extends THREE.Object3D {
+  readonly isLOD = true; autoUpdate = true; readonly near: THREE.InstancedMesh;
+  private on: Uint8Array; private first = true; private ctr: Float32Array;
+  constructor(private far: THREE.InstancedMesh, private mats: THREE.Matrix4[], lvl: { geo: THREE.BufferGeometry; mat: THREE.Material }, private R = MERLON_NEAR, private hyst = 1.5) {
+    super(); this.name = far.name + ':near';
+    this.near = new THREE.InstancedMesh(lvl.geo, lvl.mat, mats.length); this.near.count = 0; this.near.castShadow = this.near.receiveShadow = true;
+    this.near.name = far.name + ':near-level'; this.near.userData = { ...far.userData, note: (far.userData.note ?? '') + '; within ' + R + ' m the modelled merlon itself (its chips and worn arrises as geometry, D-364)' };
+    this.near.frustumCulled = false; this.add(this.near); this.on = new Uint8Array(mats.length); this.ctr = new Float32Array(mats.length * 3);
+    lvl.geo.computeBoundingBox(); const c0 = lvl.geo.boundingBox!.getCenter(new THREE.Vector3()), c = new THREE.Vector3();
+    mats.forEach((m, i) => { c.copy(c0).applyMatrix4(m); this.ctr.set([c.x, c.y, c.z], i * 3); });
+    // (the far mesh's world matrix is its parent's: the near mesh is a child of this, a child of the far mesh: identities)
+  }
+  update(camera: THREE.Camera) {
+    if (!(camera as THREE.PerspectiveCamera).isPerspectiveCamera) return;
+    const e = camera.matrixWorld.elements, px = e[12], py = e[13], pz = e[14], C = this.ctr; let changed = this.first; this.first = false;
+    for (let i = 0; i < this.on.length; i++) { const d = Math.hypot(C[3 * i] - px, C[3 * i + 1] - py, C[3 * i + 2] - pz), w = this.on[i] ? (d < this.R + this.hyst ? 1 : 0) : (d < this.R - this.hyst ? 1 : 0); if (w !== this.on[i]) { this.on[i] = w; changed = true; } }
+    if (!changed) return;
+    let nf = 0, nn = 0;
+    for (let i = 0; i < this.on.length; i++) { if (this.on[i]) this.near.setMatrixAt(nn++, this.mats[i]); else this.far.setMatrixAt(nf++, this.mats[i]); }
+    this.far.count = nf; this.near.count = nn; this.far.instanceMatrix.needsUpdate = true; this.near.instanceMatrix.needsUpdate = true; this.near.visible = nn > 0;
+  }
 }
 /** the merlons' chamfer (m, C) */
 export const CREN_BEVEL = 0.012;
