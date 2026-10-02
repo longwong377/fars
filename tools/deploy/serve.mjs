@@ -22,10 +22,10 @@ const take = n => new Promise(res => { const step = () => { const now = Date.now
   if (tokens >= n || tokens >= rate * 0.05) { tokens -= n; res(); } else setTimeout(step, Math.max(1, ((n - tokens) / rate) * 1000)); }; step(); });
 const throttle = () => new Transform({ async transform(chunk, _e, cb) { if (!rate) return cb(null, chunk);
   for (let o = 0; o < chunk.length; o += 16384) { const c = chunk.subarray(o, o + 16384); await take(c.length); this.push(c); } cb(); } });
-const t0 = Date.now(); let log = [];
+let t0 = Date.now(), log = [];
 createServer((req, res) => {
   const url = new URL(req.url ?? '/', 'http://x');
-  if (url.pathname === '/__served') { if (req.method === 'POST') log = []; res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(log)); return; }
+  if (url.pathname === '/__served') { if (req.method === 'POST') { log = []; t0 = Date.now(); } res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(log)); return; }
   if (!url.pathname.startsWith(base)) { res.statusCode = 404; res.end('not under ' + base); return; }
   let rel = decodeURIComponent(url.pathname.slice(base.length)); if (rel === '' || rel.endsWith('/')) rel += 'index.html';
   const file = normalize(join(dist, rel)); if (!file.startsWith(dist) || !existsSync(file) || statSync(file).isDirectory()) { res.statusCode = 404; res.end('404'); log.push({ p: rel, s: 404, t: Date.now() - t0 }); return; }

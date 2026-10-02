@@ -556,6 +556,18 @@ async function boot() {
   }
   TRACE('world built');
   world.prebuild?.(camera.position); // D-321 rev 3: the arris bands round the spawn, in the load
+  // s15/ship (D-374, UD-31): progressive shader compile. The player's loop never waits on a pipeline compile: every render
+  // pipeline is created with createRenderPipelineAsync (the browser compiles them on its own threads, several at once) and a
+  // draw whose pipeline is not ready is skipped this frame (three's Pipelines.isReady), so the first frame is drawn at once
+  // and the world comes in as its shaders finish, the nearest first (the opaque list is drawn front to back), and no submit
+  // waits on a compile (the T4 watchdog). Frozen test worlds and the bench keep the synchronous compile (whole frames);
+  // ?synccompile turns it off. __parsa.compiling() counts the pipelines still compiling.
+  if (!TEST && !P.has('bench') && !P.has('synccompile') && !NORENDER) {
+    const pl: any = (renderer as any)._pipelines, orig = pl.getForRender; let pend: Promise<void>[] = [], live = 0, done = 0;
+    pl.getForRender = function (ro: any, pr: any) { if (pr) return orig.call(this, ro, pr); const n = pend.length, r = orig.call(this, ro, pend);
+      for (let i = n; i < pend.length; i++) { live++; pend[i].then(() => { live--; done++; }, () => { live--; }); } if (pend.length > 256) pend = []; return r; };
+    (api as any).compiling = () => ({ live, done });
+  }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
   if (TEST) shell.playing(); else shell.title(continued);
