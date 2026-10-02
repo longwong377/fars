@@ -42,8 +42,8 @@ const DEEDS: Record<string, Deed> = {
   debt_labour: { who: 'other', pub: -0.10, dyad: 0 }, time_granted: { who: 'other', pub: 0.03, dyad: 0 },
   // D-370: the stranger's deeds (speech/stranger.ts); `other` is the stranger when a house acts on them
   wage_paid: { who: 'other', pub: 0.01, dyad: 0.06 }, wage_owed: { who: 'actor', pub: -0.03, dyad: 0 }, dismissed: { who: 'other', pub: -0.05, dyad: -0.3 },
-  hand_hired: { who: 'other', pub: 0.03, dyad: 0.15 }, hosted: { who: 'actor', pub: 0.02, dyad: 0.05 }, guest_repaid: { who: 'actor', pub: 0.05, dyad: 0.25 },
-  ingrate: { who: 'actor', pub: -0.15, dyad: -0.45 }, guest_sent_away: { who: 'other', pub: -0.03, dyad: -0.15 }, claim_doubted: { who: 'other', pub: 0, dyad: -0.3 },
+  hand_hired: { who: 'other', pub: 0.03, dyad: 0.15 }, hosted: { who: 'actor', pub: 0, dyad: 0.05 }, guest_repaid: { who: 'actor', pub: 0.05, dyad: 0.25 },
+  ingrate: { who: 'actor', pub: -0.03, dyad: -0.45 }, guest_sent_away: { who: 'other', pub: -0.03, dyad: -0.15 }, claim_doubted: { who: 'other', pub: 0, dyad: -0.3 },
   claim_denied: { who: 'other', pub: -0.10, dyad: -0.5 }, learned_tongue: { who: 'actor', pub: 0.03, dyad: 0.12 }, joined_house: { who: 'other', pub: 0.03, dyad: 0.3 },
   ruling_for: { who: 'other', pub: 0.04, dyad: 0 }, ruling_against: { who: 'other', pub: -0.03, dyad: 0 }, halmi_sealed: { who: 'other', pub: 0.06, dyad: 0 },
 };
@@ -55,7 +55,9 @@ const Q = 1e4, q4 = (x: number) => Math.round(x * Q) / Q;
 const decay = (r: Rec | undefined, day: number) => !r ? 0 : day > r.d ? r.v * Math.pow(0.5, (day - r.d) / HALF_LIFE) : r.v;
 
 /** the economy as the ledger reads it (structural: Economy satisfies it) */
-export interface TrustSource { readonly events: EconEvent[]; readonly hh: Map<string, { q: string; kind: string; kin: string[] }> }
+export interface TrustSource { readonly events: EconEvent[]; readonly hh: Map<string, { q: string; kind: string; kin: string[] }>; /** D-450: a gift's weight to the house (0..1), when the source knows it */ giftWeight?(id: number): number | undefined }
+/** D-450: the least share of a gift's full weight (a token gift is still a kindness) */
+const GIFT_FLOOR = 0.1;
 
 export class TrustLedger {
   readonly personal = new Map<string, Rec>(); readonly dyad = new Map<string, Rec>(); readonly group = new Map<string, Rec>();
@@ -75,11 +77,13 @@ export class TrustLedger {
     const doer = D.who === 'actor' ? e.actor : e.other, other = D.who === 'actor' ? e.other : e.actor;
     if (!doer || SYSTEM_IDS.has(doer)) return; this.counts[e.kind] = (this.counts[e.kind] ?? 0) + 1;
     const day = Math.max(0, e.day), bump = (m: Map<string, Rec>, k: string, dv: number) => this.bump(m, k, dv, day);
-    bump(this.personal, doer, D.pub);
+    // (D-450: a gift moves the house by its worth to the house, not by its being a gift: 0.1 silver once bought as much trust as a sack of barley)
+    const w = e.kind === 'given' ? this.src.giftWeight?.(e.id) : undefined, scale = w === undefined ? 1 : Math.max(GIFT_FLOOR, Math.min(1, w));
+    bump(this.personal, doer, D.pub * scale);
     const H = this.src.hh.get(doer);
-    if (H) { bump(this.group, 'q:' + H.q, D.pub * 0.25); bump(this.group, 'k:' + H.kind, D.pub * 0.1); for (const k of H.kin) bump(this.group, 'kin:' + k, D.pub * 0.15); }
+    if (H) { bump(this.group, 'q:' + H.q, D.pub * scale * 0.25); bump(this.group, 'k:' + H.kind, D.pub * scale * 0.1); for (const k of H.kin) bump(this.group, 'kin:' + k, D.pub * scale * 0.15); }
     if (D.thank && other && !SYSTEM_IDS.has(other)) bump(this.personal, other, 0.03);
-    if (other && D.dyad && !SYSTEM_IDS.has(other)) bump(this.dyad, `${other}>${doer}`, D.dyad);
+    if (other && D.dyad && !SYSTEM_IDS.has(other)) bump(this.dyad, `${other}>${doer}`, D.dyad * scale);
   }
   /** news heard: `hearer` (a household) heard of a deed of kind `what` by `about`; its own view of them moves (the living world's tell()) */
   hear(hearer: string, about: string, what: string, day: number) {

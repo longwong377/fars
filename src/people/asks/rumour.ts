@@ -17,6 +17,7 @@
 import type { Economy, EconEvent } from '../economy/world';
 import type { Intent } from '../economy/api';
 import { u01, salt } from '../hash';
+import { jclone } from './jclone';
 
 const S = { tell: salt('rum-tell'), dist: salt('rum-dist'), wit: salt('rum-wit'), act: salt('rum-act'), trade: salt('rum-trade'), sus: salt('rum-suspect'), drift: salt('rum-kind') };
 export type Tie = 'kin' | 'neighbour' | 'work' | 'trade' | 'origin';
@@ -52,8 +53,13 @@ export class RumourNet {
   private ties = new Map<string, [string, Tie][]>(); private ids: string[]; private idx = new Map<string, number>();
   /** the rumours still being told (something learned in the last days) */
   private active: Rumour[] = [];
+  /** D-388: the rumours still being told, in the order they were born (every rumour learned by anyone since the last advance
+   *  but one is among them): for a reader of the day's news that need not walk every rumour of the year */
+  get recent(): readonly Rumour[] { return this.active; }
   private evSeen = 0; private upTo = -1; private nextId = 0; private injected: { day: number; hh: string; kind: string; amount: number; about: string; suspect?: string }[] = [];
   private byQ = new Map<string, string[]>(); private byQK = new Map<string, string[]>();
+  /** D-388: each house's place in its quarter's list and in its quarter-and-trade list (was: indexOf over the list, per house) */
+  private posQ = new Map<string, number>(); private posQK = new Map<string, number>();
   /** the quarter's run of sickness (illness and death news on its houses): the day of each, for the flight rule */
   private sick = new Map<string, number[]>();
   /** the stance of a house toward another: who avoids whom, who presses whom (read by the plans and the voice layer) */
@@ -61,15 +67,15 @@ export class RumourNet {
   stats = { born: 0, tellings: 0, acts: {} as Record<string, number>, hopsKnown: [] as number[], hopsTrue: [] as number[], hopsLogErr: [] as number[], reach: [] as { r: number; days: number[] }[], sal: {} as Record<string, number> };
   constructor(readonly econ: Economy, readonly seed: number, readonly opts: RumourOpts = {}) {
     this.ids = [...econ.hh.keys()]; this.ids.forEach((id, i) => this.idx.set(id, i));
-    for (const h of econ.hh.values()) { (this.byQ.get(h.q) ?? this.byQ.set(h.q, []).get(h.q)!).push(h.id); const k = h.q + '|' + h.kind; (this.byQK.get(k) ?? this.byQK.set(k, []).get(k)!).push(h.id); }
+    for (const h of econ.hh.values()) { const q = this.byQ.get(h.q) ?? this.byQ.set(h.q, []).get(h.q)!; if (!this.posQ.has(h.id)) this.posQ.set(h.id, q.length); q.push(h.id); const k = h.q + '|' + h.kind, w = this.byQK.get(k) ?? this.byQK.set(k, []).get(k)!; if (!this.posQK.has(h.id)) this.posQK.set(h.id, w.length); w.push(h.id); }
   }
   get day() { return this.upTo; }
   /** the standing ties of a house: kin, the lane (three each side), the trade (three of the same kind in the quarter), two seeded trade partners of other kinds */
   tiesOf(id: string): [string, Tie][] {
     let t = this.ties.get(id); if (t) return t; t = []; const h = this.econ.hh.get(id)!, seen = new Set<string>([id]); const add = (x: string, k: Tie) => { if (x && !seen.has(x) && this.econ.hh.has(x)) { seen.add(x); t!.push([x, k]); } };
     for (const k of h.kin) add(k, 'kin');
-    const q = this.byQ.get(h.q)!, i = q.indexOf(id); for (const d of [-1, 1, -2, 2, -3, 3]) if (q[i + d]) add(q[i + d], 'neighbour');
-    const w = this.byQK.get(h.q + '|' + h.kind)!, j = w.indexOf(id); for (const d of [1, -1, 2]) add(w[(j + d + w.length) % w.length], 'work');
+    const q = this.byQ.get(h.q)!, i = this.posQ.get(id) ?? -1; for (const d of [-1, 1, -2, 2, -3, 3]) if (q[i + d]) add(q[i + d], 'neighbour');
+    const w = this.byQK.get(h.q + '|' + h.kind)!, j = this.posQK.get(id) ?? -1; for (const d of [1, -1, 2]) add(w[(j + d + w.length) % w.length], 'work');
     for (let k = 0; k < 2; k++) add(this.ids[Math.floor(u01(this.seed, S.trade, this.idx.get(id)!, k) * this.ids.length)], 'trade');
     this.ties.set(id, t); return t;
   }
@@ -89,7 +95,7 @@ export class RumourNet {
   private learn(r: Rumour, hh: string, day: number, hand: number, from: string, tie: Tie, v: Version) {
     if (!this.econ.hh.get(hh) || this.econ.hh.get(hh)!.dead) return; const old = r.holds.get(hh);
     if (old) { old.v.certainty = cl(old.v.certainty + 0.1); return; } // a second teller: what was heard is trusted more
-    const acts = this.decide(r, hh, hand, tie, v, day); const h: Hold = { hh, day, hand, from, tie, v, acts }; r.holds.set(hh, h); r.front.push(hh); r.last = Math.max(r.last, day);
+    const acts = this.decide(r, hh, hand, tie, v, day); const h: Hold = { hh, day, hand, from, tie, v, acts }; r.holds.set(hh, h); this.seq.get(r)?.all.push(h); r.front.push(hh); r.last = Math.max(r.last, day);
     if (hand > 0) { this.stats.hopsKnown[hand] = (this.stats.hopsKnown[hand] ?? 0) + 1; const t = r.truth; const same = v.kind === t.kind && v.about === t.about && v.suspect === t.suspect && Math.abs(v.amount / Math.max(1e-9, t.amount) - 1) < 0.25;
       if (same) this.stats.hopsTrue[hand] = (this.stats.hopsTrue[hand] ?? 0) + 1; this.stats.hopsLogErr[hand] = (this.stats.hopsLogErr[hand] ?? 0) + Math.abs(Math.log(Math.max(1e-9, v.amount) / Math.max(1e-9, t.amount))); }
   }
@@ -112,7 +118,7 @@ export class RumourNet {
     if (/^(theft|arrest|default|debt_labour|pledge_seized)$/.test(v.kind) || r.scandal > 0.5) { const tgt = v.suspect ?? subj;
       if (u(2) < 0.3 + 0.4 * r.scandal * v.certainty && tgt !== hh) { acts.push('avoid'); this.bumpAct('avoid'); this.setStance(hh, tgt, 'avoid'); } }
     if (v.kind === 'default' || v.kind === 'theft') { if (h.debts.length === 0 && this.econ.hh.get(subj)?.debts.some(d => d.to === hh) && u(3) < 0.6) { acts.push('demand'); this.bumpAct('demand'); this.setStance(hh, subj, 'demand'); } }
-    if (v.kind === 'illness' || v.kind === 'death') { const q = this.econ.hh.get(subj)?.q; if (q) { const l = (this.sick.get(q) ?? []).filter(d => d > day - 10); l.push(day); this.sick.set(q, l);
+    if (v.kind === 'illness' || v.kind === 'death') { const q = this.econ.hh.get(subj)?.q; if (q) { const l = this.sickRun(q, day); l.push(day); if (day < (this.sickMin.get(q) ?? Infinity)) this.sickMin.set(q, day);
       if (l.length >= Math.max(8, 0.06 * (this.byQ.get(q)?.length ?? 0)) && h.q === q && (this.fled.get(hh) ?? -99) < day - 30 && u(4) < 0.12 * v.certainty && !acts.includes('flee')) { this.fled.set(hh, day); acts.push('flee'); this.bumpAct('flee'); this.setStance(hh, 'q:' + q, 'flee'); } } }
     return acts;
   }
@@ -122,18 +128,29 @@ export class RumourNet {
     return kind === 'illness' ? day < h.sickUntil : kind === 'death' ? day < h.mourning : kind === 'animal_lost' ? h.noOx >= 0 : lean;
   }
   private helped = new Map<number, number>(); private fled = new Map<string, number>();
+  /** D-388: the quarter's sick days within ten days of `day` (the list filtered only when its oldest falls out: it was filtered
+   *  at every hearing, and a run of sickness is heard by hundreds), and the oldest day in each list */
+  private sickMin = new Map<string, number>();
+  private sickRun(q: string, day: number): number[] {
+    let l = this.sick.get(q); if (!l) { l = []; this.sick.set(q, l); this.sickMin.set(q, Infinity); return l; }
+    let m = this.sickMin.get(q); if (m === undefined) { m = Infinity; for (const d of l) if (d < m) m = d; }
+    if (m <= day - 10) { l = l.filter(d => d > day - 10); this.sick.set(q, l); m = Infinity; for (const d of l) if (d < m) m = d; }
+    this.sickMin.set(q, m); return l;
+  }
   private bumpAct(a: string) { this.stats.acts[a] = (this.stats.acts[a] ?? 0) + 1; }
   private setStance(a: string, b: string, act: Act) { const k = a + '>' + b; (this.stance.get(k) ?? this.stance.set(k, new Set()).get(k)!).add(act); }
   stanceOf(hh: string, about: string): Act[] { return [...(this.stance.get(hh + '>' + about) ?? [])]; }
 
   // ---- the days ----
   /** move the news of the economy's day `day` (call after Economy.step(day) and AskBook.advance, once a day, in order) */
-  advance(day: number) {
+  advance(day: number) { for (const _ of this.advanceParts(day)); }
+  /** D-388: the same, yielding every few rumours told (a day advanced across frames: LivingWorld.advanceSliced) */
+  *advanceParts(day: number): Generator<void> {
     if (day <= this.upTo) return; this.upTo = day; const evs = this.econ.events;
     const fresh = evs.slice(this.evSeen).filter(e => e && e.actor); this.evSeen = evs.length;
     for (const e of fresh) this.fromEvent(e);
     this.active = this.active.filter(r => day - r.last <= TELL_DAYS + 1);
-    for (const r of this.active) this.spread(r, day);
+    const act = this.active; for (let i = 0, n = act.length; i < n; i++) { this.spread(act[i], day); if ((i & 7) === 7) yield; }
     if (day % 7 === 0) this.sampleReach(day);
   }
   private fromEvent(e: EconEvent) {
@@ -157,7 +174,7 @@ export class RumourNet {
   }
   private spread(r: Rumour, day: number) {
     if (!r.front.length) return; const tellers = r.front.filter(h => { const x = r.holds.get(h)!; return day - x.day <= TELL_DAYS && x.hand < MAXHAND && day >= x.day; }); // (told the day they learned, and for three days)
-    const live = [...r.holds.values()].filter(x => day - x.day <= TELL_DAYS && x.hand < MAXHAND && x.day <= day).map(x => x.hh);
+    const live = this.liveOf(r, day);
     const learnedToday: [string, Hold][] = [];
     for (const t of new Set([...tellers, ...live])) { const x = r.holds.get(t)!; if (x.day >= day) continue; // (no telling the day it was heard: news takes a day to walk)
       for (const [o, tie] of this.tiesToday(t)) {
@@ -168,6 +185,16 @@ export class RumourNet {
     }
     r.front = r.front.filter(h => day - r.holds.get(h)!.day < TELL_DAYS);
     for (const [o, x] of learnedToday) this.learn(r, o, day, x.hand, x.from, x.tie, x.v);
+  }
+  /** D-388: the holds of a rumour still telling (learned in the last TELL_DAYS days, not past MAXHAND hands), in the order they
+   *  were learned, as the scan of all its holds gave them; the holds older than TELL_DAYS before a day already passed are
+   *  skipped for good (the days only go forward), so a rumour known by hundreds costs its newest holds, not all of them */
+  private seq = new WeakMap<Rumour, { all: Hold[]; lo: number }>();
+  private liveOf(r: Rumour, day: number): string[] {
+    let s = this.seq.get(r); if (!s) { s = { all: [...r.holds.values()], lo: 0 }; this.seq.set(r, s); }
+    if (s.all.length !== r.holds.size) { s.all = [...r.holds.values()]; s.lo = 0; } // (learn() appends to it; anything else rebuilds it)
+    while (s.lo < s.all.length && s.all[s.lo].day < day - TELL_DAYS) s.lo++;
+    const out: string[] = []; for (let i = s.lo; i < s.all.length; i++) { const x = s.all[i]; if (day - x.day <= TELL_DAYS && x.hand < MAXHAND && x.day <= day) out.push(x.hh); } return out;
   }
   private sampleReach(day: number) { // kept small: the share of houses knowing each young rumour at days 1, 3, 7 of its life, recorded once
     for (const r of this.rumours) { if (day - r.day < 7 || day - r.day >= 14) continue; if (this.stats.reach.some(x => x.r === r.id)) continue;
@@ -180,12 +207,12 @@ export class RumourNet {
   }
   /** the state for the save: the rumours with their holders, the ledger, the counters */
   save() {
-    return { upTo: this.upTo, evSeen: this.evSeen, nextId: this.nextId, injected: this.injected, stats: this.stats, sick: [...this.sick], helped: [...this.helped], fled: [...this.fled], stance: [...this.stance].map(([k, v]) => [k, [...v]]),
+    return { upTo: this.upTo, evSeen: this.evSeen, nextId: this.nextId, injected: this.injected, stats: this.stats, sick: [...this.sick].map(([q, l]) => [q, l.slice()] as [string, number[]]), helped: [...this.helped], fled: [...this.fled], stance: [...this.stance].map(([k, v]) => [k, [...v]]),
       rumours: this.rumours.map(r => ({ ...r, holds: [...r.holds.values()] })) };
   }
   load(s: ReturnType<RumourNet['save']>) {
-    this.rumours.length = 0; this.upTo = s.upTo; this.evSeen = s.evSeen; this.nextId = s.nextId; this.injected = JSON.parse(JSON.stringify(s.injected)); this.stats = JSON.parse(JSON.stringify(s.stats));
-    this.sick = new Map(JSON.parse(JSON.stringify(s.sick))); this.helped = new Map(s.helped); this.fled = new Map(s.fled); this.stance.clear(); for (const [k, v] of s.stance as [string, Act[]][]) this.stance.set(k, new Set(v));
-    this.active = []; for (const r of JSON.parse(JSON.stringify(s.rumours)) as (Omit<Rumour, 'holds'> & { holds: Hold[] })[]) { const x = { ...r, holds: new Map(r.holds.map(h => [h.hh, h] as [string, Hold])) }; this.rumours.push(x); if (s.upTo - x.last <= TELL_DAYS + 1) this.active.push(x); }
+    this.rumours.length = 0; this.upTo = s.upTo; this.evSeen = s.evSeen; this.nextId = s.nextId; this.injected = jclone(s.injected); this.stats = jclone(s.stats);
+    this.sick = new Map(jclone(s.sick)); this.sickMin.clear(); this.helped = new Map(s.helped); this.fled = new Map(s.fled); this.stance.clear(); for (const [k, v] of s.stance as [string, Act[]][]) this.stance.set(k, new Set(v));
+    this.active = []; for (const r of jclone(s.rumours) as (Omit<Rumour, 'holds'> & { holds: Hold[] })[]) { const x = { ...r, holds: new Map(r.holds.map(h => [h.hh, h] as [string, Hold])) }; this.rumours.push(x); if (s.upTo - x.last <= TELL_DAYS + 1) this.active.push(x); }
   }
 }

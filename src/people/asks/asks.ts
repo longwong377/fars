@@ -15,6 +15,7 @@
 import type { Economy, EconEvent } from '../economy/world';
 import type { Intent, NeedKind } from '../economy/api';
 import { h32, u01, salt } from '../hash';
+import { jclone } from './jclone';
 
 const S = { who: salt('ask-who'), pride: salt('ask-pride'), child: salt('ask-child'), found: salt('ask-found') };
 export type AskKind = 'grain' | 'fuel' | 'water' | 'silver' | 'labour' | 'healer' | 'company' | 'animal' | 'justice' | 'shelter' | 'time' | 'petition' | 'lost_child';
@@ -110,13 +111,16 @@ export class AskBook {
   private escalate(a: Ask, ev: number, kind: string, day: number) { a.status = 'escalated'; a.escalation = { ev, kind, day }; bump(this.stats.escalated, a.kind); this.opts.onEscalate?.(a); }
 
   /** derive the asks of the economy's day `day` (call after Economy.step(day), once a day, in order) */
-  advance(day: number) {
-    if (day <= this.upTo) return; const E = this.econ, evs = E.events; this.upTo = day;
+  advance(day: number) { for (const _ of this.advanceParts(day)); }
+  /** D-388: the same, yielding every few hundred houses and asks (a day advanced across frames: LivingWorld.advanceSliced) */
+  *advanceParts(day: number): Generator<void> {
+    if (day <= this.upTo) return; const E = this.econ, evs = E.events; this.upTo = day; let n = 0;
     const fresh = evs.slice(this.evSeen).filter(e => e && e.actor); this.evSeen = evs.length;
     for (const e of fresh) for (const k of new Set([e.actor, e.other])) if (k && this.qOf.has(k)) { const l = this.hist.get(k); if (l) l.push(e); else this.hist.set(k, [e]); }
     if (day % 15 === 0) for (const [k, l] of this.hist) { const f = l.filter(e => e.day >= day - HIST); if (f.length) this.hist.set(k, f); else this.hist.delete(k); }
     // 1. the ask of each need in want
     for (const h of E.hh.values()) {
+      if ((++n & 1023) === 0) yield;
       if (h.dead) continue; const eat = h.eaters * GRAIN_EAT;
       for (const n of E.needsOf(h.id)) { const k = NEEDS[n.kind], g = GATE[n.kind]; if (!k || !g) continue; const sk = h.id + '|' + n.kind;
         if (n.urgency < g[0]) { this.since.delete(sk); continue; } const s0 = this.since.get(sk) ?? day; this.since.set(sk, s0); if (day - s0 < g[1]) continue;
@@ -134,10 +138,11 @@ export class AskBook {
       else if (e.kind === 'suit' && e.other && E.hh.has(e.other)) this.begin(e.other, 'petition', day, 0.7, 1, 'advocate', 'voice', { need: 'event', ev: e.id, evKind: e.kind }, mk('petition', e.other, { days: 120 }));
     }
     // 3. a child lost (this layer's own seeded event, C: ~1 a year per 1000 houses with children)
-    if (this.opts.kids) for (const h of E.hh.values()) { if (h.dead || this.opts.kids(h.id) <= 0) continue;
-      if (u01(this.seed, S.child, this.idOf(h.id), day) < 0.0003) this.begin(h.id, 'lost_child', day, 1, 1, 'search', 'party', { need: 'event', evKind: 'lost_child' }, null); }
+    if (this.opts.kids) for (const h of E.hh.values()) { if (h.dead || u01(this.seed, S.child, this.idOf(h.id), day) >= 0.0003 || this.opts.kids(h.id) <= 0) continue; // (D-388: the draw first; the count of little ones only for the few it picks)
+      this.begin(h.id, 'lost_child', day, 1, 1, 'search', 'party', { need: 'event', evKind: 'lost_child' }, null); }
     // 4. the open asks: met, escalated, lapsed
     for (const a of [...this.open.values()]) {
+      if ((++n & 127) === 0) yield;
       const h = E.hh.get(a.hh)!; if (!h) continue; const urg = this.urgencyOf(a, h, day); a.urgency = urg; a.peak = Math.max(a.peak, urg);
       if (a.kind === 'lost_child') { // found by the quarter's searching: more houses, more eyes; three nights and it is grave
         const eyes = (this.qn.get(h.q) ?? 1) / 40;
@@ -204,8 +209,8 @@ export class AskBook {
     return { upTo: this.upTo, evSeen: this.evSeen, nextId: this.nextId, asks: this.asks, stats: this.stats, cool: [...this.cool], since: [...this.since], hist };
   }
   load(s: ReturnType<AskBook['save']>) {
-    this.asks.length = 0; this.open.clear(); this.upTo = s.upTo; this.evSeen = s.evSeen; this.nextId = s.nextId; this.stats = JSON.parse(JSON.stringify(s.stats)); this.cool = new Map(s.cool); this.since = new Map(s.since);
-    this.hist = new Map(JSON.parse(JSON.stringify(s.hist)));
-    for (const a of JSON.parse(JSON.stringify(s.asks)) as Ask[]) { this.asks.push(a); if (a.status === 'open' || a.status === 'escalated') this.open.set(a.hh + '|' + a.kind, a); }
+    this.asks.length = 0; this.open.clear(); this.upTo = s.upTo; this.evSeen = s.evSeen; this.nextId = s.nextId; this.stats = jclone(s.stats); this.cool = new Map(s.cool); this.since = new Map(s.since);
+    this.hist = new Map(jclone(s.hist));
+    for (const a of jclone(s.asks) as Ask[]) { this.asks.push(a); if (a.status === 'open' || a.status === 'escalated') this.open.set(a.hh + '|' + a.kind, a); }
   }
 }

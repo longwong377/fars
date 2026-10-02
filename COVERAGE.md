@@ -402,7 +402,7 @@ Cell: status; the evidence's value and n; its file, commit, session age and depe
 | T-E12 | E | world | >= 90 % (n ≥ 60) | **NOT-MEASURED** | – | – | – | – | – | – |  | tests/npc_talk.test.ts |
 | T-E13 | E | world | >= 50 % (n ≥ 60) | **STALE** | 66.7 | – | E/T-E13.json | c2228c393027776b729e728eafe6575d941cde21 | 0 s | – | no dependency hash | tests/living_world.test.ts |
 | T-E14 | E | world | >= 90 % (n ≥ 60) | **NOT-MEASURED** | – | – | – | – | – | – |  | tests/speech_sandbox.test.ts |
-| T-F9 | F | world | >= 50 chains per year (and >= 50 % enterable) (n ≥ 3) | **STALE** | 378 | 3 | F/T-F9.json | c2228c39 | 0 s | c9cbe65f435a | dependency hash c9cbe65f435a ≠ tree | tests/emergence.test.ts |
+| T-F9 | F | world | >= 50 chains per year (and >= 50 % enterable) (n ≥ 3) | **STALE** | 378 | 3 | F/T-F9.json | 3ea5e4e2 | 0 s | f8b5b27e27c0 | dependency hash f8b5b27e27c0 ≠ tree | tests/emergence.test.ts |
 | T-E15 | E | world | >= 99 % unique (n ≥ 3) | **NOT-MEASURED** | – | – | – | – | – | – |  | tests/body_variety.test.ts |
 | T-R14 | R | session | >= 10 views per load (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | sessions/ |
 | T-R15 | R | session | >= 80 % (n ≥ 1) | **NOT-MEASURED** | – | – | – | – | – | – |  | sessions/ |

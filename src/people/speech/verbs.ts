@@ -30,6 +30,8 @@ export function strangerAsk(words: string, c: VerbCtx): SAct | null {
   if (/\b(join|work in|be (one )?of) (your|the|a) (gang|crew|work ?gang|workmen|labou?r gang)\b|\bput me on the (rolls|ration list)\b/.test(w)) return { a: 'join', day, kind: 'gang', q: c.q ?? undefined };
   if (hh && /\b(become|be|join) (one of|part of|a member of|a son of|a daughter of)? ?(your|this) (family|household|house)\b|\btake me into your (house|household|family)\b/.test(w)) return { a: 'join', day, kind: 'household', hh };
   if (/\b(leave|quit) (the|your)? ?(gang|caravan|crew)\b/.test(w)) return { a: 'leave_group', day };
+  // D-455: a day's hire (porterage at the market, loads carried): paid at evening in silver, no house's season needed
+  if (/\b(loads? to carry|need (a )?porters?|carry (your |the |any )?loads?|day'?s (work|wage|hire)|day labou?r)\b/.test(w) || (/\b(hire|work|carry|labou?r)\b/.test(w) && /\b(for (the|a|one) day|for today|today)\b/.test(w))) return { a: 'daywork', day };
   // work
   if (hh && /\b(hire me|give me (some )?work|take me on|i('m| am) looking for work|(can|may|could) i work for you|do you need (a |an extra |more )?(hand|hands|help|workers?|labou?rers?)|i (can|will) work for (you|food|bread|grain))\b/.test(w)) return { a: 'seek_work', day, hh };
   if (/\b(i quit|i('ll| will) not work for you|i('m| am) leaving (your|this) (work|service)|i will work no more)\b/.test(w)) return { a: 'quit', day };
@@ -37,7 +39,9 @@ export function strangerAsk(words: string, c: VerbCtx): SAct | null {
   if (hh && /\b((can|may|could) i (stay|sleep|rest|spend the night|lodge)( here| with you| in your house| tonight)?|do you have (a place|room|a corner) (for me )?to sleep|(can|could) you (put me up|take me in)|guest[- ]right|i ask (your )?hospitality|shelter for the night)\b/.test(w)) return { a: 'stay', day, hh };
   if (/\b(thank you for (your )?(hospitality|the bed|the meals?)|i must (go|leave|be on my way)|i('ll| will) (leave|go) (now|tomorrow))\b/.test(w)) return { a: 'leave_stay', day };
   // buying and selling (haggled by the simulation: speech/haggle.ts)
-  const qtyOf = (w: string) => { const m = /\b(\d+|a|one|two|three|four|five|ten)\s+(measures?|sacks?|loads?|jars?|loaves?)\b/.exec(w); const n = m ? ({ a: 1, one: 1, two: 2, three: 3, four: 4, five: 5, ten: 10 } as Record<string, number>)[m[1]] ?? Number(m[1]) : 1; return Math.min(30, n) * (m && /sack|load/.test(m[2]) ? 30 : 10); };
+  // (D-455: a loaf is half a kilo of the grain's worth, bread with no count a day's two loaves, C; a measure 10 kg, a sack or load 30)
+  const qtyOf = (w: string) => { const m = /\b(\d+|a|one|two|three|four|five|ten)\s+(measures?|sacks?|loads?|jars?|loaves?|loaf)\b/.exec(w); const n = m ? ({ a: 1, one: 1, two: 2, three: 3, four: 4, five: 5, ten: 10 } as Record<string, number>)[m[1]] ?? Number(m[1]) : 1;
+    if (m && /loa(f|ves)/.test(m[2])) return Math.min(30, n) * 0.5; if (!m && /\b(bread|loaf|loaves)\b/.test(w)) return 1; return Math.min(30, n) * (m && /sack|load/.test(m[2]) ? 30 : 10); };
   const goodOf = (w: string) => /\b(barley|grain|bread|flour|wheat)\b/.test(w) ? 'grain' as const : /\b(fuel|firewood|wood|dung|brushwood)\b/.test(w) ? 'fuel' as const : /\b(cloth|jar|pot|goods|wares|basket|tools?)\b/.test(w) ? 'goods' as const : null;
   if (hh && /\b(sell me|i('d| would)? (want|like) to buy|can i buy|could i buy|how much (for|is)|what do you want for|i('ll| will) buy)\b/.test(w)) { const g = goodOf(w); if (g) return { a: 'buy', day, hh, good: g, qty: g === 'goods' ? 1 : qtyOf(w) }; }
   if (hh && /\b(i('ll| will) sell you|will you buy|do you want to buy|buy (my|this|these)|i have .{1,20} to sell)\b/.test(w)) { const g = goodOf(w); if (g) return { a: 'sell', day, hh, good: g, qty: g === 'goods' ? 1 : qtyOf(w) }; }
