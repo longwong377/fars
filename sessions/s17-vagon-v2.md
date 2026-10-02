@@ -9,8 +9,8 @@ The user (2026-10-02, cloud): one day, a cloud session and a Vagon session worki
 The user: "by the end of this day I want every inch of the world to look AAA and ... filled in" (UD-36). One lead cannot judge
 ~3,000 views in a day, so the day is judged on a **frozen scoreboard** that stands for every inch, and measured on the whole
 coverage set where a machine can measure it:
-- **The scoreboard (judged by eye, same views at dawn of the day and at its end):** ~36 views = tests/data/coverage_points.json
-  at STRIDE 14 (they already span every area, month, hour band and weather: the file's meta.time), minus any `now` view
+- **The scoreboard (judged by eye, same views at dawn of the day and at its end):** 46 views (tests/data/scoreboard_s17.json) = coverage_points.json
+  at STRIDE 14 + a Rahmat point + a lane and a court (they already span every area, month, hour band and weather: the file's meta.time), minus any `now` view
   (UD-20), plus the six first-minute views a new player sees (spawn, the first lane, the first person, the Terrace stair, the
   town from the plain, a night). Frozen in `tests/data/scoreboard_s17.json` for the whole day: no reseeding mid-day.
 - **Done:** every scoreboard view judged "a top modern open world, filled" by the lead against the AAA bar and the references;
@@ -49,7 +49,8 @@ Step 0 (the cloud lead, first ~2 h; Vagon pulls it at its minute 0):
 1. `tests/data/scoreboard_s17.json` + `tools/dev/scoreboard.mjs` (coverage.spec on those ids: add `IDS=`; output
    `shots/scoreboard/<stamp>/` + index), and a `--push-frames` step that commits the jpgs to s17-renders.
 2. render_train.mjs: accept coverage ids (coverage.spec, not only moments.spec); drop `now` views by default (UD-20).
-3. `gates/box.json`: the box's limits (MAX_AGENTS, GPU_SLOTS, MIN_FREE_GB, TRAIN_WHILE_AGENTS) read by boxguard, gpu_slot, mkwt.
+3. Box limits: none needed in code: boxguard, mkwt and gpu_slot already read MAX_AGENTS, GPU_SLOTS, MIN_FREE_GB from the
+   environment, and scoreboard.mjs does not refuse while agents build (render_train needs FORCE=1). Vagon sets them (sessions/s17-vagon-start.md).
 4. A Blender shim so `tools/blender/build.mjs` runs in the cloud: `BLENDER=tools/blender/bpy_cli.sh` (a `blender -b --python
    x.py -- args` front end over the bpy module; DEVICE=CPU). Prove it on one housekit and one fill_props asset; byte-compare
    against the Vagon build where one exists. KTX2: try the npm `ktx2-encoder` (basis WASM); if it fails, leave the textures
