@@ -25,6 +25,17 @@ if (!process.env.SKIP_BAKE && existsSync(join(root, 'tools/bake_world/bake.ts'))
 }
 run('npx vite build', { PARSA_BASE: base }); lap('vite build');
 
+// textures low first (src/render/lowfirst.ts): a 512-px copy of every scan jpg beside it, and textures/low.json (each full
+// file's size): a first visit loads the copies before it can walk and the full scans after (sharp, in the lockfile)
+{ const sharp = (await import('sharp')).default, T = join(dist, 'textures'), man = {}; let full = 0, low = 0;
+  for (const id of existsSync(T) ? readdirSync(T) : []) { const d = join(T, id); if (!lstatSync(d).isDirectory()) continue;
+    for (const f of readdirSync(d)) { if (!f.endsWith('.jpg') || f.endsWith('.low.jpg')) continue;
+      const src = join(d, f), meta = await sharp(src).metadata(), out = join(d, f.replace(/\.jpg$/, '.low.jpg'));
+      if (!meta.width || meta.width <= 512) continue;
+      await sharp(src).resize({ width: 512, height: Math.round(512 * meta.height / meta.width) }).jpeg({ quality: 85 }).toFile(out);
+      man[`${id}/${f.replace(/\.jpg$/, '')}`] = [meta.width, meta.height]; full += lstatSync(src).size; low += lstatSync(out).size; } }
+  writeFileSync(join(T, 'low.json'), JSON.stringify(man));
+  lap(`textures low first: ${Object.keys(man).length} copies, ${(low / 1048576).toFixed(1)} MB for ${(full / 1048576).toFixed(1)} MB of scans`); }
 // GitHub Pages: no Jekyll (it would drop files and folders starting with _), the limits checked
 writeFileSync(join(dist, '.nojekyll'), '');
 // the service worker's build stamp (public/sw.js): a new deploy is a new worker, which drops the old build's cache

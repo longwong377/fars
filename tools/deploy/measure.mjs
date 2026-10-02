@@ -36,7 +36,7 @@ for (const v of visits) {
   await page.goto(`${host}/fars/?quality=${q}&trace${extra ? '&' + extra : ''}`);
   await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 250 });
   r.error = await page.evaluate(() => window.__parsa.error ?? null); r.readyS = s(); console.log(v, 'ready', r.readyS, 's', r.error ?? '');
-  const log1 = await served(); r.beforeReadyMB = +(log1.reduce((x, e) => x + (e.b ?? 0), 0) / 1048576).toFixed(1); r.requests = log1.length; r.lastByteBeforeReadyS = +(Math.max(0, ...log1.map(e => e.t)) / 1000).toFixed(1);
+  const log1 = await served(); r.beforeReadyMB = +(log1.reduce((x, e) => x + (e.b ?? 0), 0) / 1048576).toFixed(1); r.requests = log1.length; r.served = log1.map(e => [e.p, e.b ?? 0, e.t]); r.lastByteBeforeReadyS = +(Math.max(0, ...log1.map(e => e.t)) / 1000).toFixed(1);
   if (!r.error) {
     await page.evaluate(() => new Promise(res => { let n = 0; const f = () => (++n >= 3 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); })); r.framesS = s();
     // every shader compiled (progressive compile), or 20 min
@@ -51,7 +51,7 @@ for (const v of visits) {
   r.notModified = log2.filter(e => e.s === 304).length; r.missing = log2.filter(e => e.s === 404).map(e => e.p).slice(0, 20);
   r.top = [...log2].sort((x, y) => (y.b ?? 0) - (x.b ?? 0)).slice(0, 10).map(e => `${e.p} ${((e.b ?? 0) / 1048576).toFixed(1)}`);
   clearInterval(poll); r.memGB = Math.max(peak, memGB()); r.boot = boot; r.errors = errs.slice(0, 15);
-  out.visits[v] = r; console.log(v, JSON.stringify({ ...r, boot: undefined }));
+  out.visits[v] = r; console.log(v, JSON.stringify({ ...r, boot: undefined, served: undefined, errors: r.errors.filter(e => !/KTX2Loader/.test(e)).slice(0, 5) }));
   await ctx.close();
 }
 writeFileSync(join(dist, '..', 'visits.json'), JSON.stringify(out, null, 1)); console.log(JSON.stringify(out, null, 1));
