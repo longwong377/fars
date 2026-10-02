@@ -14,6 +14,10 @@
 - The other 4 of the 6 x 404 seen on Vagon were not seen here. tools/deploy/boot_probe.mjs prints each failing URL; run it
   there to name them.
 
+- **The shared KTX2/Draco decoder is not landed.** Its own hang is found and fixed (below), but it gave no time gain here
+  and +0.19 GB of memory. The fixed re-land is commit 871d8aab, reverted in the next commit. Cherry-pick it to measure on a
+  many-core machine.
+
 ## Cause (reproduced)
 measure.mjs polled memory with `execFileSync('powershell', Get-CimInstance Win32_Process …)` on a 5 s interval. On a busy
 4-core Windows box one call takes about as long as the interval, so node's event loop is blocked almost all the time.
@@ -54,3 +58,23 @@ Here 2 per visit, both optional and handled:
 
 An unbaked pool seed causes no 404. Its seeded units (zones, grime, vsites, fill) are manifest misses: built live, then
 kept in Cache Storage (`parsa-world-cache-v1`, 5 entries after the cold visit).
+
+## The shared decoder (cb3f0389 + 601f5b60): a second, real hang
+With the shared loader re-landed, the built site hung here too: the boot stopped after `asset:props` at 31 s, with
+3 x `blob: … net::ERR_ABORTED` and the renderer idle. Cause: `src/render/scans.ts` still ended `loadScans` with
+`K?.dispose?.()` on its KTX2 loader. 601f5b60 removed the other modules' disposes and missed this one. With the shared loader,
+K is the page's only transcoder. three's `dispose()` terminates the pool and revokes the worker's blob URL. Every later KTX2
+load (decor, models, reliefs, people, …) then made a worker from the revoked URL and waited forever. So Vagon's two hangs had
+two causes: the harness (without the shared loader) and this dispose (with it).
+
+The fix (commit 871d8aab): that dispose is removed, and `render/loaders.ts` makes `dispose()` a no-op on both shared loaders,
+so it cannot recur.
+
+| build | seed | cold ready | warm ready | memory (cold) |
+|---|---|---|---|---|
+| shared decoder, fixed | 13013 | 106.9 s, then 99.5 s | 68.2 s | 5.74 GB, 5.79 GB |
+| without it (as pushed) | 13013 | 100.7 s | | 5.60 GB |
+| without it (as pushed) | 5150 | 100.1 s | 70.3 s | 5.59 GB |
+
+There is no time gain on this 4-core container. Ready is gated by the last asset (`asset:animals` at ~73-83 s), not by
+decode. Memory is +0.15-0.2 GB. By the merge budget it does not go in: reverted right after 871d8aab.

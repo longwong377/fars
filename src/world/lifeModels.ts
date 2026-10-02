@@ -8,7 +8,6 @@
 // before the world is built; a model absent, failed or switched off (?life=0, ?models=0) leaves its builder's procedural
 // stand-in drawn and flagged PLACEHOLDER. The GLB parser is the module's own so the tests read the same files in node.
 import * as THREE from 'three/webgpu';
-import { sharedKTX2 } from '../render/loaders';
 import { texture, uv, vec3, normalMap, mix, float, attribute } from 'three/tsl';
 import { BASE } from '../core/base';
 
@@ -59,7 +58,9 @@ export async function loadLifeModels(base = BASE): Promise<ReturnType<typeof lif
   let man: { assets: Record<string, LifeAsset> };
   try { const r = await fetch(base + 'models/life/manifest.json'); if (!r.ok) throw new Error(`manifest ${r.status}`); man = await r.json(); }
   catch (e) { console.warn(`[life] no manifest (${(e as Error).message}): procedural stand-ins drawn`); return lifeModelStats(); }
-  const ktx = await sharedKTX2(base); // (D-392: the page's transcoder)
+  const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
+  const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
+  const ktx = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); ktx.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any);
   await Promise.all(Object.entries(man.assets).map(async ([id, e]) => {
     try {
       const dir = base + 'models/life/';
@@ -69,7 +70,7 @@ export async function loadLifeModels(base = BASE): Promise<ReturnType<typeof lif
       MODELS.set(id, { id, entry: e, levels: parseLifeGLB(ab), albedo, nrm }); LOAD.loaded.push(id); LOAD.bytes += Object.values(e.files).reduce((a, f) => a + f.bytes, 0);
     } catch (err) { LOAD.failed.push(id); console.warn(`[life] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
-  LOAD.ms = Math.round(performance.now() - t0);
+  ktx.dispose(); LOAD.ms = Math.round(performance.now() - t0);
   if (typeof window !== 'undefined') (window as any).__lifeModels = { stats: lifeModelStats, ids: () => [...MODELS.keys()] };
   return lifeModelStats();
 }

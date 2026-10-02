@@ -9,7 +9,6 @@
 // Tier C (the scans are modern stone and earth standing in for the grain of 467's; the tint is the evidence's).
 // In node (tests, bakes) no texture is loaded and applyScan is the identity, so every CPU mirror of materials.ts still holds.
 import * as THREE from 'three/webgpu';
-import { sharedKTX2 } from './loaders';
 import { texture, positionWorld, normalWorld, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
 import SCANS from '../data/scans.json';
 import { loadBlockFace } from './blockface';
@@ -145,7 +144,9 @@ export async function loadScans(base = BASE, anisotropy = 8): Promise<void> {
   const ktxOf = new Set(Object.values(WALL_BAKE).filter(b => b.ktx).map(b => b.tex));
   const ktxScans = new Set<string>(new URLSearchParams(location.search).has('scanjpg') ? [] : await fetch(`${base}textures/ktx.json`).then(r => (r.ok ? r.json() : null)).then(j => Object.keys(j?.maps ?? {})).catch(() => []));
   let K: any = null;
-  if (ktxOf.size || ktxScans.size) try { K = await sharedKTX2(base); } catch { K = null; } // (D-392: the page's transcoder)
+  if (ktxOf.size || ktxScans.size) try { const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
+    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
+    K = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); K.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any); } catch { K = null; }
   const map = async (id: string, f: string): Promise<THREE.Texture> => {
     if (K && ktxScans.has(`${id}/${f}`)) try { const t: THREE.Texture = await K.loadAsync(`${base}textures/${id}/${f}.ktx2`); t.magFilter = THREE.LinearFilter; return t; } // (once uploaded, no page copy: world/cache/release.ts)
     catch (e) { console.warn(`[scans] ${id}/${f}.ktx2: ${(e as Error).message}; the jpg`); }
@@ -163,7 +164,7 @@ export async function loadScans(base = BASE, anisotropy = 8): Promise<void> {
     const t: THREE.Texture = kt ? await K.loadAsync(`${base}textures/${id}/bake.ktx2`) : await L.loadAsync(`${base}textures/${id}/bake.jpg`);
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; if (!kt) t.generateMipmaps = true; else t.magFilter = THREE.LinearFilter;
     t.minFilter = THREE.LinearMipmapLinearFilter; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; BAKE.set(id, t); } catch { /* not built: the scan alone */ } }));
-  // (D-463: K is the page's shared transcoder: never disposed here; its dispose ended every later KTX2 load in the page)
+  K?.dispose?.();
 }
 export const scansLoaded = () => TEX.size > 0;
 /** D-334: the baked detail maps loaded (their ids), for the probes and the dev overlay */

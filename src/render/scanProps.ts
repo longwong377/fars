@@ -9,7 +9,6 @@
 //  - fitProp(): a level scaled to a builder's box (as models.ts fitLevel), for the procedural generators' own sizes.
 // The generators keep their placement, counts, sizes and tiers: only the shape and the surface change.
 import * as THREE from 'three/webgpu';
-import { sharedDraco } from './loaders';
 import { texture, uv, vec3, float, dot, attribute } from 'three/tsl';
 import { BASE } from '../core/base';
 
@@ -38,8 +37,8 @@ export async function loadScanProps(base = BASE): Promise<ReturnType<typeof scan
   let man: { assets: Record<string, PropEntry> };
   try { const r = await fetch(base + 'models/props/manifest.json'); if (!r.ok) throw new Error(`manifest ${r.status}`); man = await r.json(); }
   catch (e) { console.warn(`[props] no manifest (${(e as Error).message}): procedural stand-ins drawn`); return scanPropStats(); }
-  const [{ GLTFLoader }, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base)]); // (D-392: the page's decoders)
-  const loader = new GLTFLoader().setDRACOLoader(draco);
+  const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
+  const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco);
   await Promise.all(Object.entries(man.assets).map(async ([id, e]) => {
     try {
       if ((e as ModelEntry).parts) { // D-325: the project's modelled props (plain GLBs parsed here: no loader, no Draco)
@@ -61,7 +60,7 @@ export async function loadScanProps(base = BASE): Promise<ReturnType<typeof scan
       PROPS.set(id, { id, entry: e, lods, map, normal, arm, mean: meanColour(map), size }); LOAD.loaded.push(id);
     } catch (err) { LOAD.failed.push(id); console.warn(`[props] ${id}: ${(err as Error).message}; its procedural stand-in is drawn`); }
   }));
-  // (D-392: the shared decoder stays up)
+  draco.dispose();
   // D-325: the props' own maps (the carpets' knotted pile: tools/blender/carpet_pile.py)
   await Promise.all(['carpet_pile_n'].map(async n => { try { const t = await new THREE.TextureLoader().loadAsync(`${base}models/props/${n}.png`);
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; PROP_TEX.set(n, t); } catch { LOAD.failed.push(n); } }));
