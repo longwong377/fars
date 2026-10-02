@@ -150,7 +150,8 @@ export class RumourNet {
     const z = (u(1) + u(2) + u(3) - 1.5) * 2;                                   // ~N(0,1)
     const amount = Math.max(1e-3, v.amount * Math.exp(SIGMA * z + 0.06 * (r.scandal + r.sal) * (hand > 1 ? 1 : 0.4)));
     let kind = v.kind; if (HARDEN[kind] && u(4) < 0.06 * (1 + r.sal)) kind = HARDEN[kind];
-    let suspect = v.suspect; if (suspect && u(5) < 0.1) { const lane = this.byQ.get(this.econ.hh.get(to)!.q)!; suspect = lane[Math.floor(u(6) * lane.length)]; }
+    // (the stranger is unmistakable: his deeds keep him as their subject)
+    let suspect = v.suspect; if (suspect && suspect !== 'player' && u(5) < 0.1) { const lane = this.byQ.get(this.econ.hh.get(to)!.q)!; suspect = lane[Math.floor(u(6) * lane.length)]; }
     let about = v.about; if (u(7) < 0.03) { const lane = this.byQ.get(this.econ.hh.get(about)?.q ?? '') ?? []; if (lane.length) about = lane[Math.floor(u(8) * lane.length)]; } // the wrong house named (C)
     void from; return { kind, amount, about, suspect, certainty: cl(v.certainty * 0.88) };
   }
