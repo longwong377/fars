@@ -12,30 +12,25 @@
 //         year, oldest first, are the same sequence of event kinds (history.ts EVENT_KINDS, the locked list);
 //   T-E3v people showing a trace of their history a walker can see or hear, on a seeded sample: the "Before this year" line
 //         surviving into the talk prompt (heard when spoken to), mourning dress (the wardrobe's mourning set), a limp from a
-//         hurt (popview impairOf: injuryOn, or the lasting lameness, which history.ts now gives a cause). Reported apart: the
-//         share shown UNPROMPTED (seen without speaking), since a conversation is a trace only for the one who asks.
+//         hurt (popview impairOf: injuryOn, or the lasting lameness, which history.ts now gives a cause), and (D-452) the marks
+//         of marks.ts (scars of the past's falls and scalds, a war wound, the hair cut in mourning, with child, a craft's marks,
+//         a stoop). Reported apart: the share shown UNPROMPTED (seen without speaking), since a conversation is a trace only
+//         for the one who asks, and the share the renderer DRAWS today (mourning dress, the limp).
 // It writes no evidence file (the coverage board is generated from those); tests/person_census.test.ts prints the values.
 // CLI: npx tsx tools/dev/person_census.ts [seed] [day]
 import type { Population, Person } from '../../src/people/population';
-import { ALL_NAMES } from '../../src/people/population';
+import { ALL_NAMES, DB_MEN, nameRoot, sameRoot } from '../../src/people/population';
 import namesData from '../../src/data/names.json';
 import { pastOf, townYears, REALM, EVENT_KINDS, type PastEvent, type KinLike } from '../../src/people/history';
 import { IMPAIR } from '../../src/people/popview';
+import { relOf, spouseIn } from '../../src/people/converse/life';
+import { marksOf } from '../../src/people/marks';
 import { h32, u01, salt } from '../../src/people/hash';
 
 // ------------------------------------------------------------------ names
-const ATTESTED = new Set<string>((namesData as any).names.map((n: any) => n.name));
-/** a name's root: no diacritics, no asterisk (reconstructed form), no doubled letters, lower case, letters only */
-export function nameRoot(n: string): string {
-  return n.replace(/^\*/, '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1+/g, '$1');
-}
-/** two roots the same, or one letter apart (substitution, insertion or deletion) */
-export function sameRoot(a: string, b: string): boolean {
-  if (a === b) return true; if (Math.abs(a.length - b.length) > 1 || Math.min(a.length, b.length) < 3) return false;
-  let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
-  if (a.length === b.length) return a.slice(i + 1) === b.slice(i + 1);
-  return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
-}
+const ATTESTED = new Set<string>([...(namesData as any).names.map((n: any) => n.name), ...DB_MEN]); // (D-452: and the Bisitun men, ARIo)
+// (nameRoot and sameRoot live with the names in population.ts since D-452: the deal there avoids what is counted here)
+export { nameRoot, sameRoot };
 
 export interface NameCensus { groups: { key: string; n: number; unnamed: number; top: { name: string; share: number; attested: boolean }[] }[]; worst: number; worstGroup: string; sameHouse: number; sameHouseByRel: Record<string, number>; examples: string[] }
 export function nameCensus(pop: Population, day: number): NameCensus {
@@ -62,24 +57,7 @@ export function nameCensus(pop: Population, day: number): NameCensus {
   return { groups: groups.sort((a, b) => b.n - a.n), worst, worstGroup, sameHouse, sameHouseByRel, examples };
 }
 
-// ------------------------------------------------------------------ kin (mirrors converse/life.ts relOf, which is private there)
-function spouseIn(pop: Population, me: Person, members: number[]): number {
-  if (me.spouse !== undefined && members.includes(me.spouse)) return me.spouse;
-  if (me.kin || me.age < 16) return -1;
-  const c = members.filter(x => { const o = pop.persons[x]; return x !== me.id && o.sex !== me.sex && o.age >= 16 && !o.kin && o.mother !== me.id && me.mother !== x && Math.abs(o.age - me.age) < 22 && (me.sex === 'f' ? me.wife : o.wife); });
-  return c.length ? c.sort((a, b) => Math.abs(pop.persons[a].age - me.age) - Math.abs(pop.persons[b].age - me.age))[0] : -1;
-}
-function relOf(pop: Population, me: Person, o: Person, members: number[]): string {
-  const m = o.sex === 'm'; const sp = spouseIn(pop, me, members);
-  if (o.mother === me.id || (sp >= 0 && o.mother === sp && o.age < me.age - 12)) return m ? 'son' : 'daughter';
-  if (me.mother === o.id) return 'mother';
-  if (sp === o.id) return m ? 'husband' : 'wife';
-  if (me.mother >= 0 && me.mother === o.mother) return m ? 'brother' : 'sister';
-  if (me.mother >= 0 && spouseIn(pop, pop.persons[me.mother], members) === o.id) return 'father';
-  if ((o.kin || o.job === 'child') && o.age < me.age - 14 && me.age >= 16) return m ? 'son' : 'daughter';
-  if ((me.kin || me.job === 'child') && o.age > me.age + 14 && o.age < me.age + 50 && !o.kin && o.job !== 'elder') return m ? 'father' : 'mother';
-  return 'other';
-}
+// ------------------------------------------------------------------ kin (D-452: life.ts's own relOf and spouseIn, no longer a mirror)
 /** the household as life.ts gives it to pastOf (members living in the house on the day, with their relation and age) */
 export function kinOf(pop: Population, pid: number, day: number): KinLike[] {
   const p = pop.persons[pid], hh = pop.home(pid, day), H = pop.households[hh];
@@ -178,17 +156,20 @@ export function limps(pop: Population, pid: number, day: number): 'hurt' | 'lame
   const u = h32(pop.seed, S_IMPAIR, pid) / 4294967296, age = pop.ageOn(pid, day);
   return p.sex === 'm' && age >= IMPAIR.lame.ages[0] && age <= IMPAIR.lame.ages[1] && u < IMPAIR.lame.share ? 'lame' : null;
 }
-export interface TraceCensus { n: number; any: number; unprompted: number; talk: number; mourning: number; limp: number; lameWithCause: number; lame: number }
+export interface TraceCensus { n: number; any: number; unprompted: number; drawn: number; talk: number; marked: number; mourning: number; limp: number; lameWithCause: number; lame: number; byLook: Record<string, number> }
 /** on a seeded sample; `talkLine(pid)` says whether the "Before this year" line reaches the model (the test passes the
- *  real prompt builder; the tool stays free of the conversation modules) */
+ *  real prompt builder; the tool stays free of the conversation modules). D-452: the marks of marks.ts count (a scar, a limp,
+ *  mourning, a craft's marks, each with its cause in the past): `unprompted` is the share with a mark seen without speaking
+ *  (far), `drawn` the share the renderer shows today (mourning dress and the limp: popview), the rest waiting on the render hook */
 export function traceCensus(pop: Population, day: number, n: number, talkLine: (pid: number) => boolean): TraceCensus {
   const ids = pop.persons.filter(p => pop.present(p.id, day) && p.dies > day).sort((a, b) => u01(pop.seed, salt('census-trace'), a.id) - u01(pop.seed, salt('census-trace'), b.id)).slice(0, n).map(p => p.id);
-  let any = 0, unp = 0, talk = 0, mourn = 0, limp = 0;
-  for (const pid of ids) { const t = talkLine(pid), m = pop.mourning(pid, day) > 0, l = !!limps(pop, pid, day);
-    if (t) talk++; if (m) mourn++; if (l) limp++; if (t || m || l) any++; if (m || l) unp++; }
+  let any = 0, unp = 0, drawn = 0, talk = 0, marked = 0, mourn = 0, limp = 0; const byLook: Record<string, number> = {};
+  for (const pid of ids) { const t = talkLine(pid), m = pop.mourning(pid, day) > 0, l = !!limps(pop, pid, day), ms = marksOf(pop, pid, day);
+    for (const x of ms) byLook[x.look] = (byLook[x.look] ?? 0) + 1;
+    if (t) talk++; if (m) mourn++; if (l) limp++; if (ms.length) marked++; if (t || m || l || ms.length) any++; if (m || l || ms.some(x => x.far)) unp++; if (m || l) drawn++; }
   // every lasting lameness in the population, and how many of them the person's past explains
   let lame = 0, cause = 0; for (const p of pop.persons) if (pop.present(p.id, day) && limps(pop, p.id, day) === 'lame') { lame++; if (pastOf(pop, p.id, day, kinOf(pop, p.id, day)).some(e => /lame/.test(e.text))) cause++; }
-  return { n: ids.length, any: any / ids.length, unprompted: unp / ids.length, talk: talk / ids.length, mourning: mourn / ids.length, limp: limp / ids.length, lame, lameWithCause: cause };
+  return { n: ids.length, any: any / ids.length, unprompted: unp / ids.length, drawn: drawn / ids.length, talk: talk / ids.length, marked: marked / ids.length, mourning: mourn / ids.length, limp: limp / ids.length, lame, lameWithCause: cause, byLook };
 }
 export { EVENT_KINDS, ALL_NAMES };
 

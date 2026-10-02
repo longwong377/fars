@@ -12,6 +12,7 @@ import type { EventCalendar } from '../calendar';
 import { HOME_LANG } from '../exchanges';
 import { Rng } from '../../core/rng';
 import { pastOf, pastWords } from '../history';
+import { marksOf, marksWords } from '../marks';
 import { aimsOf } from '../aims';
 import type { Economy } from '../economy/world';
 import { personaOf } from '../persona';
@@ -28,6 +29,8 @@ export interface LifeRecord {
   year: string[];
   /** D-371: before this year: the person's past, bound to the household as the simulation has it (history.ts) */
   past: string[];
+  /** D-452: what a walker can see on them and why (marks.ts marksOf: a scar, a limp, mourning, a craft's marks), so the talk can explain it */
+  marks?: string[];
   /** D-373: what they hope for and what worries them now, from their own state (aims.ts) */
   hopes: string[]; worries: string[];
   /** D-375: the house's open needs as it would put them to a stranger (the asks layer), and the quarter's talk the house holds (rumours) */
@@ -85,12 +88,29 @@ const BEARING = ['north', 'north-east', 'east', 'south-east', 'south', 'south-we
 /** a person's name as spoken (the pool's reconstruction mark * is out of world: the F3 overlay shows it) */
 export function spokenName(pop: Population, pid: number): string | null { const n = pop.nameOf(pid); return n ? n.replace(/^\*/, '') : null; }
 /** the household member who is this person's husband or wife: the sim's own spouse when it has one, else the one adult of the
- *  other sex of about the same generation where one of the two is a married woman (C) */
-function spouseIn(pop: Population, me: Person, members: number[]): number {
+ *  other sex of about the same generation where one of the two is a married woman (C). D-452: the guess is a pairing of the
+ *  whole house (couples), so it is mutual: a wife names as her husband the man who names her as his wife, never another man
+ *  (before, each person took the nearest in age, and ~280 men a seed had a "wife" who named another husband) */
+export function spouseIn(pop: Population, me: Person, members: number[]): number {
   if (me.spouse !== undefined && members.includes(me.spouse)) return me.spouse;
   if (me.kin || me.age < 16) return -1;
-  const c = members.filter(x => { const o = pop.persons[x]; return x !== me.id && o.sex !== me.sex && o.age >= 16 && !o.kin && o.mother !== me.id && me.mother !== x && Math.abs(o.age - me.age) < 22 && (me.sex === 'f' ? me.wife : o.wife); });
-  return c.length ? c.sort((a, b) => Math.abs(pop.persons[a].age - me.age) - Math.abs(pop.persons[b].age - me.age))[0] : -1;
+  // (one not in the list given, as a wife who joined by marriage looked up in the house's first members: paired with them)
+  return couples(pop, members.includes(me.id) ? members : [...members, me.id]).get(me.id) ?? -1;
+}
+const canWed = (a: Person, b: Person) => a.id !== b.id && a.sex !== b.sex && a.age >= 16 && b.age >= 16 && !a.kin && !b.kin && a.mother !== b.id && b.mother !== a.id && Math.abs(a.age - b.age) < 22 && (a.sex === 'f' ? !!a.wife : !!b.wife);
+const COUPLES = new WeakMap<number[], Map<number, number>>();
+/** D-452: the couples of a house: first the sim's own marriages (spouse fields, both in the house), then the closest-in-age
+ *  pairs of a married woman and a man who may be her husband, each person in at most one pair (greedy by age gap, then id) */
+export function couples(pop: Population, members: number[]): Map<number, number> {
+  const hit = COUPLES.get(members); if (hit) return hit;
+  const m = new Map<number, number>(), inH = new Set(members);
+  for (const x of members) { const p = pop.persons[x]; if (p.spouse !== undefined && inH.has(p.spouse) && !m.has(x) && !m.has(p.spouse)) { m.set(x, p.spouse); m.set(p.spouse, x); } }
+  const free = members.filter(x => !m.has(x)).map(x => pop.persons[x]).filter(p => p.age >= 16 && !p.kin && (p.spouse === undefined || !inH.has(p.spouse)));
+  const W = free.filter(p => p.sex === 'f' && p.wife), M = free.filter(p => p.sex === 'm'), pairs: [number, number, number][] = [];
+  for (const w of W) for (const h of M) if (canWed(w, h)) pairs.push([Math.abs(w.age - h.age), w.id, h.id]);
+  pairs.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  for (const [, w, h] of pairs) if (!m.has(w) && !m.has(h)) { m.set(w, h); m.set(h, w); }
+  COUPLES.set(members, m); return m;
 }
 export function homeWords(pop: Population, h: number): string {
   const H = pop.households[h]; const q = pop.quarters[H.q];
@@ -105,10 +125,12 @@ export function homeWords(pop: Population, h: number): string {
   return `a mud-brick house in the town ${km < 0.6 ? 'at the foot of the Terrace' : `${b} of the Terrace, ${walk} from its stair`}`;
 }
 
+/** a group's label in words: no count in brackets, and "treasury workers' group 7" as "the seventh treasury workers' group" (D-452: no digits) */
+function groupWords(label: string): string { const l = label.replace(/\s*\(\d+\)/, ''), m = /^(.*) group (\d+)$/.exec(l); return m ? `the ${ordWords(+m[2])} ${m[1]} group` : spellDigits(l); }
 function jobWords(p: Person): string { return SUBS[`${p.job}/${p.sub}`] ?? JOBS[p.job] ?? p.job; }
 
 /** a relation word from the household's own facts (mother, children, marriage flags, ages; C where it guesses a spouse) */
-function relOf(pop: Population, me: Person, o: Person, members: number[]): string {
+export function relOf(pop: Population, me: Person, o: Person, members: number[]): string {
   const m = o.sex === 'm'; const sp = spouseIn(pop, me, members);
   if (o.mother === me.id || (sp >= 0 && o.mother === sp && o.age < me.age - 12)) return m ? 'son' : 'daughter';
   if (me.mother === o.id) return 'mother';
@@ -193,9 +215,9 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   return {
     pid, seed: pop.seed, day, hour, name, byname, sex: p.sex, age, origin: ORIGIN_WORDS[p.origin] ?? p.origin, language: lang,
     otherLanguages: [...new Set([p.origin !== 'Persian' && age >= 12 ? 'some Persian' : '', p.job === 'scribe' ? 'Elamite and Aramaic (writes them)' : '', p.group >= 0 && lang !== 'Elamite' ? 'a little Elamite (the language of the ration tablets)' : ''].filter(Boolean))],
-    job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? pop.groups[p.group].label.replace(/\s*\(\d+\)/, '') : null,
+    job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? groupWords(pop.groups[p.group].label) : null,
     rank: p.job === 'guard' && p.rank === 1 ? 'leader of a file of ten' : p.rank > 1 ? 'a leader of the group' : null,
-    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${numWords(all.length + 1)} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)).map(spellDigits), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), quarrels, debts, temperament: temper, speech,
+    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${numWords(all.length + 1)} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)).map(spellDigits), marks: marksWords(marksOf(pop, pid, day)).map(spellDigits), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), quarrels, debts, temperament: temper, speech,
     today: { date: `the ${ordWords(dt.dom)} day of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), the nineteenth year of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
     knows, tier: 'C',
   };
@@ -285,6 +307,7 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     L.needs.length ? `Your house needs: ${L.needs.join('; ')}.` : '',
     L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
     L.past.length ? `Before this year: ${L.past.slice(0, 2).join('; ')}.` : '',
+    L.marks?.length ? `Plain to see on you: ${L.marks[0]}.` : '',
     L.worries.length || L.hopes.length ? `On your mind: ${[...L.worries.map(w => `worried about ${w}`), ...L.hopes.map(h => /^(that|to) /.test(h) ? `hoping ${h}` : `hoping for ${h}`)].slice(0, 3).join('; ')}.` : '',
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
     `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), the nineteenth year of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${L.today.now.replace(/^[a-z ]+: /, '')}${L.today.next ? `; after this: ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
@@ -306,6 +329,7 @@ export function lifeBrief(L: LifeRecord, prose?: string | null): string {
     L.friends.length ? `People you know: ${L.friends.map(f => `${f.name} (${f.how}; ${f.feeling})`).join('; ')}.` : '',
     L.needs.length ? `The house needs: ${L.needs.join('; ')}.` : '', L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
     L.past.length ? `Before this year: ${L.past.join('; ')}.` : '',
+    L.marks?.length ? `Plain to see on you: ${L.marks.join('; ')}.` : '',
     L.worries.length ? `Worries: ${L.worries.join('; ')}.` : '', L.hopes.length ? `Hopes: ${L.hopes.join('; ')}.` : '',
     L.year.length ? `This year: ${L.year.join('; ')}.` : '',
     L.quarrels.length ? `Quarrels: ${L.quarrels.join('; ')}.` : '', L.debts.length ? `Debts: ${L.debts.join('; ')}.` : '',
