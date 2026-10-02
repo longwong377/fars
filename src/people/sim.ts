@@ -155,7 +155,7 @@ export class PeopleSim {
   /** D-341: the economy is stepped day by day by the living world, with the people's talk entered into it (living/world.ts) */
   economy(): Economy { this.living.advance(Math.floor(this.t / 24)); return this.econCore(); }
   private econCore(): Economy {
-    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true }); this.econSnap = null;
+    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true, court: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true, court: true }); this.econSnap = null;
       // (D-370: the stranger hears each house in the tongue of its head: their origin's home language)
       // D-391 (the bot: houses asked a stranger for a hand, then refused him when he asked): the season's field work (a pure function of the day: the economy replays the same)
       this.econ.stranger().opts.needOf = (id: string, day: number) => { const H = this.econ?.hh.get(id);
@@ -173,7 +173,7 @@ export class PeopleSim {
    *  days whole), the talk's state, and the illnesses and deaths it laid on the people. A world that has not built its economy
    *  saves only the intents that are not the talk's (as before) */
   private econSave() {
-    const day = Math.floor(this.t / 24), life = this.pop.econLifeSave(day - 7);
+    this.living.settle(); const day = Math.floor(this.t / 24), life = this.pop.econLifeSave(day - 7);
     const asks = this.asksWorld.save(), ax = asks ? { asks } : {};
     if (this.econ) return { econ: this.econ.snapshot(day - 2), living: { z: packJSON(this.living.save(day)) }, ...(life ? { life } : {}), ...ax };
     if (this.econSnap) return { econ: this.econSnap, living: { z: packJSON(this.living.save(day)) }, ...(life ? { life } : {}), ...ax };
@@ -181,6 +181,18 @@ export class PeopleSim {
   }
   /** the economy stepped (by the living world, the talk entered) to at least day d: the day plans read a day's decisions (EconPlans, D-340) */
   econTo(d: number): Economy { this.living.advance(d); return this.econCore(); }
+  /** D-388 (UD-30): the days ahead made ready within about `ms` of work, for the frame loop to call each frame with what is
+   *  left of its budget: the living world (economy, relations, talk, asks, rumours) stepped to the day after tomorrow, a part
+   *  at a time (LivingWorld.advanceSliced), then tomorrow's plans of the sim's people read once (the caches warmed), so the
+   *  day's turn finds them made. The same results as stepping on demand. True when nothing is left to do */
+  stepAhead(ms: number): boolean {
+    const end = performance.now() + ms, day = Math.floor(this.t / 24) + 1;
+    if (!this.living.advanceSliced(day + 1, ms)) return false;
+    if (this.ahead.day !== day) this.ahead = { day, i: 0 };
+    while (this.ahead.i < this.agents.length) { if (performance.now() >= end) return false; const pid = this.agents[this.ahead.i++].pid; if (pid >= 0 && this.pop.present(pid, day)) this.pop.plan(pid, day); }
+    return true;
+  }
+  private ahead = { day: -1, i: 0 };
   /** D-340: the economy's decisions laid over the day plans (Population.plan; off with SimOpts.economy === false) */
   readonly econPlans: EconPlans;
   readonly cal: EventCalendar;
@@ -212,7 +224,7 @@ export class PeopleSim {
     this.cal = new EventCalendar(seed, this.pop, env, !!opts.court); this.pop.attach(this.cal);
     this.talk = new TalkWorld(this.pop, seed, id => id in PLACES); this.pop.talk = this.talk;
     this.living = new LivingWorld(this.pop, seed, () => this.econCore(), () => this.talk.events); this.talk.living = this.living;
-    this.asksWorld = new AsksWorld(this.pop, seed, () => this.econCore(), opts.asks === true); this.living.onDay = d => this.asksWorld.day(d);
+    this.asksWorld = new AsksWorld(this.pop, seed, () => this.econCore(), opts.asks === true); this.living.onDay = d => this.asksWorld.dayParts(d);
     this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
     this.pop.ledger = d => this.econ && this.econ.day >= d - 1 ? this.econ : null; // (D-371: the life record's real debts and dealings)
     this.living.shuns = (g, a, into) => { if (!this.asksWorld.on) return false; const R = this.asksWorld.rumours; if (R.stanceOf(g, a).includes('avoid')) return true; const q = this.econ?.hh.get(a)?.q; return into && !!q && R.stanceOf(g, 'q:' + q).includes('flee'); }; // (flee: keyed by the quarter of the sickness) // (D-375)
