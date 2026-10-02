@@ -9412,6 +9412,9 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   <= 40 meshes; the plain was at exactly 40). Now one InstancedMesh per model and level (parts merged, one 3-kind material,
   lod1 and lod2): at most 16, only the season's drawn (April: the folds, 1-2 draws), in its own group beside the plain's
   as the town's fill is; the plain gate is unchanged and passes. Its draws are outside that gate: C4's budget counts them.
+- Boot (C4's profile: the plain 8.1 s of main-thread JS): the town's ground (0.7 s), the zones (1.5 s, baked before) and the
+  orchard plots (2.0 s) are baked together in the world's 'zones' unit (+0.23 MB gzipped; its source hash covers the plain's
+  modules); the compounds (0.4 s, 0.7 MB gzipped) are not; desire lines computed once a plan (0.4 s saved on every boot).
 
 ## D-590 The front end and the opening: one type system, a loading screen that is the place's own dawn, and a wordless in-engine intro (session 17, cloud C5; UD-37)
 - Screens (src/ui/shell.ts, shell.css): Cormorant Garamond (display) and Alegreya Sans (interface), SIL OFL, self-hosted in public/fonts (ASSET_LEDGER); the title and the pause menu are a column of glass over the live world with the place's name in Old Persian (𐎱𐎠𐎼𐎿, p-a-r-s, as carved in DB I 5 and passim), settings a tabbed sheet (World, Display, Sound, Language, Keys; Esc goes back), controls with readable key names; the chronicle (J) a journal grouped by day and rebuilt only when it changes (it was rebuilt every frame); subtitles without the box, eased in once per line.

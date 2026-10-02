@@ -78,11 +78,19 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const canals = buildCanals(terrain, rivers.rivers, opts.seed);
   const villages = placeVillages(terrain, rivers.rivers, canals, opts.seed);
   // the town's used ground (D-190): only with the town as built (?notown and the plain tests keep the D-040 boundary)
-  const townGround = opts.town ? buildTownGround(opts.town, opts.camps ?? [], opts.drains ?? []) : null;
-  const zoneIn = () => ({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
+  const zoneIn = (townGround: ReturnType<typeof buildTownGround> | null) => ({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
     sites: opts.town?.sites.map(s => ({ c: s.frame.c as [number, number], theta: s.frame.theta, W: s.W, H: s.H })) });
+  // s17 (D-560, C4's boot profile): the town's ground (0.7 s; 0.23 MB gzipped), the zones (1.5 s) and the orchard plots (2.0 s)
+  // are pure results of the world's inputs: baked together in the world's 'zones' unit (its source hash covers
+  // every plain module), built live on a miss
+  type PlainBake = { zones: Uint8Array; ground: ReturnType<typeof buildTownGround> | null; plots: ReturnType<typeof orchardPlots> | null };
+  const bakeLive = (): PlainBake => { const ground = opts.town ? buildTownGround(opts.town, opts.camps ?? [], opts.drains ?? []) : null;
+    const zd = buildZones(zoneIn(ground)).data, zm: ZoneMap = { data: zd, n: ZONE.n, half: ZONE.half, cell: ZONE.cell, ground };
+    return { zones: zd, ground, plots: orchardPlots(zm, villages) }; }; // (the compounds, 0.4 s, are not: 0.7 MB gzipped)
+  const baked: PlainBake = opts.bakeKey ? cachedSync('zones', opts.bakeKey, bakeLive) : bakeLive();
+  const townGround = baked.ground;
   // D-392: the zone map read from the baked world (keyed by the world's inputs, world.ts bakeKey) when unchanged
-  const zones: ZoneMap = opts.bakeKey ? { data: cachedSync('zones', opts.bakeKey, () => buildZones(zoneIn()).data), n: ZONE.n, half: ZONE.half, cell: ZONE.cell, ground: townGround ?? null } : buildZones(zoneIn());
+  const zones: ZoneMap = { data: baked.zones, n: ZONE.n, half: ZONE.half, cell: ZONE.cell, ground: townGround ?? null };
   const tGen = performance.now() - t0;
   // terrain: the plain's field / crop / woodland layer on the existing chunks (no new draw calls)
   const tDet = performance.now(), detail = await detailP, detailWaitMs = performance.now() - tDet;
@@ -116,7 +124,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const lineTrees = [...riparianTrees(rivers.rivers, opts.seed).map(t => ({ t, where: 'riparian woodland (river_*.riparian)' })), ...canalTrees(canals, opts.seed).map(t => ({ t, where: 'canal tree line' }))];
   const far = new ImpostorSet(kit, lineTrees.length, { c: nearC, r: nearR }, 20000, 'plain-trees-far'); group.add(far.mesh);
   far.set(lineTrees.map(q => instOf(q.t, terrain, q.where)));
-  const plots = orchardPlots(zones, villages);
+  const plots = baked.plots ?? orchardPlots(zones, villages);
   const orch = orchardRows(kit, plots, terrain, { c: midC, r: midR }, nearR, 16000); group.add(orch);
   const mid = new ImpostorSet(kit, Q.maxMid, { c: nearC, r: nearR }, 1e6, 'plain-trees-mid'); group.add(mid.mesh);
   // the nearest trees (within SHADOW_R, at most SHADOW_N) cast shadows; the rest of the 3D set does not (shadow passes cost
