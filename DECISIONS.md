@@ -9514,3 +9514,22 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   is gone (the atlas has no mips and is alpha-tested).
 - Probe page tools/dev/v4_probe.{ts,html,mjs} (palace probe + reliefs, inscriptions, relief shadow; vite HMR blocked so an
   edit in the tree does not kill a run).
+## D-480 (s17, V1 light): light v1, the art direction's light and tone
+- Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
+  shade deep but readable): exposure 2.6→3.2, power 1.4→1.25 (the old curve crushed lane shade to sRGB 0-15), saturation
+  0.9→1.15, a warm white balance (`warm` 0.04), a split tone (shade cool, light amber, `split` 0.6) and a toe lift (`lift`
+  0.8: c + lift·c(1−c)³, black stays black). All six are uniforms (TONE_U) so the lab sweeps them without a reload. The
+  pipeline fades the warm balance and the split through civil twilight to a slightly cool night (NIGHT_WARM −0.02). C.
+- Night fill (skySystem.ts NIGHT_FILL 5): in full darkness the skylight on the ground and walls is raised 5x after the dome's
+  calibration, the air and the clouds (the eye is at its limit there, so the camera does not take it back): a starlit court reads
+  as dim shapes (lab: p50 sRGB 1→9) while the dome, stars and fires keep their values. C (game liberty, UD-29).
+- Seasonal dust and an ochre air (aerial.ts seasonalDust, DUST_TINT; skySystem): the dry season's background dust from June
+  (0.3 by mid-July, 0.25 through September, gone by late November; 0.4 haze per dust for the dome and the sun), and the dust's
+  share of the in-scatter tinted ochre [1.12, 1, 0.72] (luminance 1). Spring air unchanged (clean after the rain). C.
+- The light lab (src/render/probes/light_lab.{ts,html,mjs}): the town, villages and terrain in the game's materials under the
+  game's own SkySystem, post pipeline at high, sun cascades, probes and outdoor field, and main.ts's exposure law with the frame
+  meter; ~5 min a load (shader compiles) then ~1 s a view; per view: day, hour, weather, tone, ab switches, post debug view,
+  hemi multiplier, fixed exposure. Measured (lab, 17 April, tone_stats lower 60 %): court noon p5/p50/p95 3/68/155 → 24/109/178,
+  lane door 16:30 0/14/136 → 1/46/164 (photos of Fars mud-brick villages: ~30/110/190).
+- Tests: tone_look (the deepest darks within 14 levels of plain AgX, was 8: the toe lift is intended), exposure (a moonless
+  night's displayed grey < 0.08, was 0.03: the night fill is intended).

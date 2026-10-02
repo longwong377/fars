@@ -23,7 +23,8 @@ import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
 import { HorizonMap, HORIZON_LAYOUT, loadHorizonMap } from '../terrain/horizonMap';
 import { horizonAtlasTexture, horizonVisibility, type HorizonAtlases } from '../terrain/horizonShadow';
-import { Air, AIR_ALBEDO, EYE_SKY } from './aerial';
+import { Air, AIR_ALBEDO, EYE_SKY, seasonalDust } from './aerial';
+import { jdnToJulian } from '../core/calendar';
 import { domeRadiance, overcastChroma, OVERCAST_CCT } from './horizon';
 /** the measured mean overcast colour (6358 K daylight, Lee & Hernández-Andrés 2005) in the renderer's colour (D-224) */
 const OVERCAST_RGB = xyToRenderer(...daylightXY(OVERCAST_CCT));
@@ -41,6 +42,11 @@ export const GROUND_SUNLIT = 0.85;
  *  cover). The ground's reflectance under a snow cover s (weather 0..1) is mix(GROUND_RHO, SNOW_RHO, s): the skylight
  *  from below, the clouds' base and the air's in-scatter all take it (D-219: the snow render's brown sky and brown fill) */
 export const SNOW_RHO: [number, number, number] = [0.82, 0.83, 0.86];
+/** D-480 (light v1, the art direction: night dark and readable, never black or blue-grey soup): a game's night fill (C): the
+ *  skylight that reaches the ground and the walls is raised by this factor in full darkness (the eye's adaptation is already at its
+ *  limit there: the camera does not compensate), so a starlit lane reads as dim shapes, while the dome, the stars and the fires
+ *  keep their values (it is applied after the dome's calibration, the air and the clouds) */
+export const NIGHT_FILL = 5;
 export const groundRho = (snowCover: number): [number, number, number] => { const s = Math.min(1, Math.max(0, snowCover)); return [0, 1, 2].map(c => GROUND_RHO[c] + (SNOW_RHO[c] - GROUND_RHO[c]) * s) as [number, number, number]; };
 const _mdir = new THREE.Vector3();
 export class SkySystem {
@@ -327,7 +333,10 @@ export class SkySystem {
     pos.needsUpdate = true;
   }
 
-  update(jdUT: number, camPos: THREE.Vector3, cloudCover: number, haze: number, wind?: { ms: number; fromDeg: number; tSeconds: number }, view?: THREE.Vector3) {
+  update(jdUT: number, camPos: THREE.Vector3, cloudCover: number, haze0: number, wind?: { ms: number; fromDeg: number; tSeconds: number }, view?: THREE.Vector3) {
+    // D-480: the dry season's dust (aerial.ts seasonalDust) whitens the dome and dims the sun as haze would (C: 0.4 haze per dust)
+    { const j = jdnToJulian(Math.floor(jdUT + 0.5)); this.air.seasonDust = seasonalDust(j.m, j.d); }
+    const haze = haze0 + 0.4 * this.air.seasonDust;
     const s = sunHorizon(jdUT), mo = moonHorizon(jdUT), ph = moonPhase(jdUT);
     const sd = azAltToWorld(s.azimuth, s.altitude), md = azAltToWorld(mo.azimuth, mo.altitude);
     this.state.sunDir.set(sd[0], sd[1], sd[2]); this.state.sunAlt = s.altitude;
@@ -496,6 +505,7 @@ export class SkySystem {
     { const cx = camPos.x + C.wind.value.x * C.time.value, cz = camPos.z + C.wind.value.y * C.time.value;
       if (!this.coverAt || Math.hypot(cx - this.coverAt[0], cz - this.coverAt[1]) > 500) { this.coverAt = [cx, cz]; this.coverFactor = C.mesh.visible ? localWeatherFactor(cx, cz) : 1; }
       C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).dome, this.coverFactor); } // the weather's cover is the observed DOME cover (D-145)
+    this.hemi.intensity *= 1 + (NIGHT_FILL - 1) * night; // D-480: the night fill (after everything that reads the physical skylight)
     if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.updateGalactic(jdUT); this.lastStarJD = jdUT; }
   }
 }
