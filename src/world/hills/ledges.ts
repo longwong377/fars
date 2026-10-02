@@ -10,14 +10,14 @@
 // Every tile's strips are built once (cached); the drawn geometry is the tiles within reach merged into two meshes (near:
 // fine and displaced; far: coarse), rebuilt as the viewer moves. Tiers: the bedding B (KR-BEDROCK), each ledge's place C.
 import * as THREE from 'three/webgpu';
-import { texture, uv, vec3, dot, attribute, float } from 'three/tsl';
+import { texture, uv, vec3, dot, attribute, float, uniform, positionLocal, smoothstep, distance } from 'three/tsl';
 import { HILL } from '../plain/terrainPlain';
 import { stratY, cliffPkg, riserBreak, type BedrockEnv } from './bedrock';
 import { TERRACE_BOX } from '../plain/townGround';
 import { BASE } from '../../core/base';
 
 /** reach (m): strips drawn to R, fine (displaced) within NEAR; tile (m, as the bedrock's), grid step (m); rebuild step (m) */
-export const LEDGES = { R: 1600, NEAR: 70, CAST: 600, /** solid (player colliders) within */ SOLID: 45, tile: 64, step: 4, moveM: 25, budgetMs: 6 } as const;
+export const LEDGES = { R: 1600, NEAR: 95, CAST: 600, /** solid (player colliders) within */ SOLID: 45, tile: 64, step: 4, moveM: 25, budgetMs: 6 } as const;
 /** the strip's form (C): face height range (m) by package, its lean back (m per m of height), the lip, the buried foot; the
  *  strike noise's thresholds for presence; the face's share of the baked image's height (the rest is the ground above) */
 export const LEDGE_FORM = { h: [1.6, 4.2] as [number, number], lean: 0.14, lip: 0.45, footOut: 0.5, footDown: 0.4, brk: [0.5, 0.85] as [number, number], minSlope: 0.26, fullSlope: 0.5, faceV: 0.93 } as const;
@@ -110,8 +110,8 @@ function reliefAt(f: LedgeFace | null, u: number, v: number): number {
 
 /** the strip geometry of runs: positions, normals (computed), uv, colour (palette tint x occlusion). fine: 0.5 m along, eight
  *  face rows and the relief as displacement; coarse: every run point (~2 m), three face rows */
-export function stripGeometry(runs: LedgeRun[], env: BedrockEnv, seed: number, fine: boolean, face: LedgeFace | null = ledgeFace()): { pos: Float32Array; uv: Float32Array; col: Float32Array; idx: Uint32Array } {
-  const pos: number[] = [], uvs: number[] = [], col: number[] = [], idx: number[] = [];
+export function stripGeometry(runs: LedgeRun[], env: BedrockEnv, seed: number, fine: boolean, face: LedgeFace | null = ledgeFace()): { pos: Float32Array; uv: Float32Array; col: Float32Array; disp: Float32Array; idx: Uint32Array } {
+  const pos: number[] = [], uvs: number[] = [], col: number[] = [], disp: number[] = [], idx: number[] = [];
   const F = LEDGE_FORM, faceRows = fine ? 8 : 3, uLen = (face ? face.width_m / face.height_m : 9.7); // the image's width in its heights
   const tint = new THREE.Color();
   for (const run of runs) {
@@ -132,14 +132,16 @@ export function stripGeometry(runs: LedgeRun[], env: BedrockEnv, seed: number, f
       // downhill (horizontal unit) from the ground's gradient over ±3 m
       const d = 3, gx = (env.ground(x + d, z) - env.ground(x - d, z)) / (2 * d), gz = (env.ground(x, z + d) - env.ground(x, z - d)) / (2 * d), s = Math.hypot(gx, gz) || 1e-3;
       const dx = -gx / s, dz = -gz / s, g0 = env.ground(x, z), h = H[i], u = u0 + arc / (uLen * Hk * 1.0 / F.faceV) ;
-      const put = (px: number, py: number, pz: number, vv: number, ao: number) => { pos.push(px, py, pz); uvs.push(u, vv); col.push(tint.r * ao, tint.g * ao, tint.b * ao); };
+      const put = (px: number, py: number, pz: number, vv: number, ao: number, ox = 0, oz = 0) => { pos.push(px, py, pz); uvs.push(u, vv); col.push(tint.r * ao, tint.g * ao, tint.b * ao); disp.push(ox, 0, oz); };
       // foot: out in front, buried
       put(x + dx * F.footOut, env.ground(x + dx * F.footOut, z + dz * F.footOut) - F.footDown, z + dz * F.footOut, 0, 0.55);
       // the face: from the ground up to its top, leaning back; the relief pushes it out (fine only)
       for (let j = 0; j < faceRows; j++) { const f = j / (faceRows - 1), vv = f * F.faceV, back = f * h * F.lean;
         // the scan's relief (m about its local mean) at the ledge's scale (this face's height over the image's)
         const out = fine && face ? (reliefAt(face, u, vv) - 0.5) * 2 * face.relief_m * (h / face.height_m) * Math.min(1, f * 4) : 0;
-        put(x - dx * (back - out), g0 - 0.05 + f * h, z - dz * (back - out), vv, 0.6 + 0.4 * f); }
+        // (D-600: the relief is an offset the shader fades out toward LEDGES.NEAR, so the fine strip meets the coarse one
+        // with no pop; it was baked into the position and dropped at the tile's switch: up to 0.58 m, ~8 px at 70 m)
+        put(x - dx * back, g0 - 0.05 + f * h, z - dz * back, vv, 0.6 + 0.4 * f, dx * out, dz * out); }
       // the lip, rounded back over the top
       const bt = h * F.lean + F.lip * Math.min(1, h);
       put(x - dx * bt, g0 + h + 0.03 * Math.min(1, h), z - dz * bt, F.faceV + 0.06, 1);
@@ -150,11 +152,24 @@ export function stripGeometry(runs: LedgeRun[], env: BedrockEnv, seed: number, f
         for (let r = 0; r < rows - 1; r++) idx.push(s0 + r, s1 + r, s0 + r + 1, s0 + r + 1, s1 + r, s1 + r + 1); }
     }
   }
-  return { pos: new Float32Array(pos), uv: new Float32Array(uvs), col: new Float32Array(col), idx: new Uint32Array(idx) };
+  return { pos: new Float32Array(pos), uv: new Float32Array(uvs), col: new Float32Array(col), disp: new Float32Array(disp), idx: new Uint32Array(idx) };
 }
 
+/** D-600: the viewer the strips' fades are measured from (set by Ledges.update every frame; the shadow pass sees the same) */
+export const LEDGE_VIEWER = uniform(new THREE.Vector3(1e7, 0, 1e7));
+/** the fades by the vertex's distance from the viewer (m): the relief offset full to 0.5 NEAR, gone by 0.9 NEAR (the
+ *  fine strips are drawn for tiles within NEAR at each rebuild, so a tile is coarse no nearer than NEAR - moveM = 70 m and its
+ *  relief is 0 there; NEAR was 70 m before D-600); the far end:
+ *  sunk SINK m into the ground over the last 15 % of R (the tiles were dropped whole every 25 m: a 5 m face, ~3 px at 1.6 km) */
+export const LEDGE_FADE = { relief: [0.37, 0.72] as [number, number], far: [0.85, 1] as [number, number], sink: 7 } as const;
+export const reliefShare = (d: number) => 1 - smooth(LEDGES.NEAR * LEDGE_FADE.relief[0], LEDGES.NEAR * LEDGE_FADE.relief[1], d);
+export const farSink = (d: number) => LEDGE_FADE.sink * smooth(LEDGES.R * LEDGE_FADE.far[0], LEDGES.R * LEDGE_FADE.far[1], d);
 function ledgeMaterial(face: LedgeFace | null): THREE.MeshStandardNodeMaterial {
-  const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.9, metalness: 0, side: THREE.DoubleSide }); // (no vertexColors: colorNode reads the colour itself; with the flag three multiplies it in twice)
+  const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
+  const d = distance(positionLocal.xz, LEDGE_VIEWER.xz);
+  const rel = float(1).sub(smoothstep(float(LEDGES.NEAR * LEDGE_FADE.relief[0]), float(LEDGES.NEAR * LEDGE_FADE.relief[1]), d));
+  const sink = smoothstep(float(LEDGES.R * LEDGE_FADE.far[0]), float(LEDGES.R * LEDGE_FADE.far[1]), d).mul(LEDGE_FADE.sink);
+  m.positionNode = positionLocal.add(attribute('disp', 'vec3').mul(rel)).sub(vec3(0, sink, 0)); // (no vertexColors: colorNode reads the colour itself; with the flag three multiplies it in twice)
   if (face) { const t = texture(face.map, uv()).rgb, meanY = Math.max(0.02, 0.2126 * face.mean[0] + 0.7152 * face.mean[1] + 0.0722 * face.mean[2]);
     m.colorNode = attribute('color', 'vec3').mul(dot(t, vec3(0.2126, 0.7152, 0.0722)).div(meanY).clamp(0, 1.7)); m.normalMap = face.normal; } // (clamped: the lit bed tops read as white patches at 2.2)
   else m.colorNode = attribute('color', 'vec3').mul(float(1));
@@ -187,22 +202,23 @@ export class Ledges {
     const key = `${ti}:${tj}:${fine ? 1 : 0}`; let s = this.strips.get(key); if (!s) { s = stripGeometry(runs, this.env, this.seed, fine); this.strips.set(key, s); } return s;
   }
   update(cam: THREE.Vector3, force = false): boolean {
+    LEDGE_VIEWER.value.copy(cam);
     if (!force && !this.pending && Math.hypot(cam.x - this.last.x, cam.z - this.last.z) < LEDGES.moveM) return false;
     const t0 = performance.now(); this.last = { x: cam.x, z: cam.z }; this.pending = false; this.budgetT = force ? Infinity : t0 + LEDGES.budgetMs;
-    const T = LEDGES.tile, R = LEDGES.R, parts: Record<'near' | 'mid' | 'far', ReturnType<typeof stripGeometry>[]> = { near: [], mid: [], far: [] };
+    const T = LEDGES.tile, R = LEDGES.R + LEDGES.moveM, parts: Record<'near' | 'mid' | 'far', ReturnType<typeof stripGeometry>[]> = { near: [], mid: [], far: [] };
     let tiles = 0, nr = 0;
     for (let ti = Math.floor((cam.x - R) / T); ti <= Math.floor((cam.x + R) / T); ti++) for (let tj = Math.floor((cam.z - R) / T); tj <= Math.floor((cam.z + R) / T); tj++) {
       const d = Math.hypot(Math.max(0, Math.abs((ti + 0.5) * T - cam.x) - T / 2), Math.max(0, Math.abs((tj + 0.5) * T - cam.z) - T / 2)); if (d > R) continue;
       const runs = this.tileRuns(ti, tj); if (!runs) continue; tiles++; if (!runs.length) continue; nr += runs.length;
       const fine = d < LEDGES.NEAR; (fine ? parts.near : d < LEDGES.CAST ? parts.mid : parts.far).push(this.strip(ti, tj, fine, runs));
       const sk = ti + ':' + tj;
-      if (this.phys && d < LEDGES.SOLID && !this.solids.has(sk)) { const g = this.strip(ti, tj, true, runs); if (g.idx.length) this.solids.set(sk, this.phys.addTrimesh(g.pos, g.idx, { ledge: sk })); }
+      if (this.phys && d < LEDGES.SOLID && !this.solids.has(sk)) { const g = this.strip(ti, tj, true, runs); if (g.idx.length) { const p = g.pos.slice(); for (let i = 0; i < p.length; i++) p[i] += g.disp[i]; this.solids.set(sk, this.phys.addTrimesh(p, g.idx, { ledge: sk })); } } // (the relief in full: SOLID is inside the fade's start)
     }
     const merge = (m: THREE.Mesh, ps: ReturnType<typeof stripGeometry>[]) => {
       const nv = ps.reduce((a, p) => a + p.pos.length / 3, 0), ni = ps.reduce((a, p) => a + p.idx.length, 0);
-      const pos = new Float32Array(nv * 3), uvA = new Float32Array(nv * 2), col = new Float32Array(nv * 3), idx = new Uint32Array(ni); let ov = 0, oi = 0;
-      for (const p of ps) { pos.set(p.pos, ov * 3); uvA.set(p.uv, ov * 2); col.set(p.col, ov * 3); for (let i = 0; i < p.idx.length; i++) idx[oi + i] = p.idx[i] + ov; ov += p.pos.length / 3; oi += p.idx.length; }
-      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uvA, 2)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const pos = new Float32Array(nv * 3), uvA = new Float32Array(nv * 2), col = new Float32Array(nv * 3), disp = new Float32Array(nv * 3), idx = new Uint32Array(ni); let ov = 0, oi = 0;
+      for (const p of ps) { pos.set(p.pos, ov * 3); uvA.set(p.uv, ov * 2); col.set(p.col, ov * 3); disp.set(p.disp, ov * 3); for (let i = 0; i < p.idx.length; i++) idx[oi + i] = p.idx[i] + ov; ov += p.pos.length / 3; oi += p.idx.length; }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uvA, 2)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('disp', new THREE.BufferAttribute(disp, 3));
       g.setIndex(new THREE.BufferAttribute(idx, 1)); if (nv) g.computeVertexNormals(); g.computeBoundingSphere();
       m.geometry.dispose(); m.geometry = g; m.visible = ni > 0; return ni / 3;
     };

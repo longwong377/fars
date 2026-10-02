@@ -55,7 +55,10 @@ export function laneExtras(): P2[] {
  *  itself), each join adding wear to the branch it joins and every branch between it and the stair (0.25 a spur, up to
  *  0.6 on a trunk); each site keeps one clear run to its nearest neighbouring site (the quarters' own traffic, 0.2); the
  *  facilities join the net the same way. All C (which runs wear, and how much) */
-export function desireLines(plan: TownPlan): { a: P2; b: P2; w: number }[] {
+const DESIRE = new WeakMap<TownPlan, { a: P2; b: P2; w: number }[]>();
+/** s17 (D-560): computed once a plan (~0.4 s): the town ground and the roadside index (verge.ts) both read them */
+export function desireLines(plan: TownPlan): { a: P2; b: P2; w: number }[] { let l = DESIRE.get(plan); if (!l) DESIRE.set(plan, l = desireLinesOf(plan)); return l; }
+function desireLinesOf(plan: TownPlan): { a: P2; b: P2; w: number }[] {
   const walk = new TownWalk(plan.sites), ex = laneExtras(), stair = ex[0], townPl = ex[1];
   const sites = plan.sites.map(s => ({ c: s.frame.c as P2, exits: siteExits(s) })).filter(s => s.exits.length);
   const mouth = (i: number, to: P2) => sites[i].exits.reduce((b, p) => (Math.hypot(p[0] - to[0], p[1] - to[1]) < Math.hypot(b[0] - to[0], b[1] - to[1]) ? p : b));

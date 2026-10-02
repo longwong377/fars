@@ -36,6 +36,10 @@ whole (grep an id when you need one).
 - You own only your brief's files. A needed change elsewhere: the smallest hook (an import, one call), named in your report,
   or a line in handoff/s17/asks_vagon.md (if Vagon owns it) / your report (if another cloud agent does).
 
+## Built assets
+public/models is in .gitignore (old junction rule): every GLB, texture or manifest you build must be added with `git add -f`,
+or it exists only in your container (C1's first round broke tests this way). Check `git ls-files <path>` before pushing.
+
 ## Records
 One DECISIONS row for your package with your reserved D number; Q and B rows only from your ranges; rows appended at the end
 of the table, never renumbered; ASSET_LEDGER.md row for every asset you add. No edits to PROGRESS, HANDOFF, TASKS, COVERAGE.
