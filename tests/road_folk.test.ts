@@ -39,6 +39,11 @@ describe('the road folk (D-570)', () => {
     const F = traffic.folk as any; for (const P of [...F.paths.flatMap((p: any) => [p.inn, p.out]), F.through.sw, F.through.ws]) for (let s = 0; s <= P.len; s += 3) { const p = along(P, s);
       expect(inside(TERRACE, p.e, p.n), `on the Terrace at ${p.e.toFixed(0)},${p.n.toFixed(0)}`).toBe(false); expect(inPlot(plan, p.e, p.n), `in a plot at ${p.e.toFixed(0)},${p.n.toFixed(0)}`).toBe(null); }
   });
+  it('herders graze their flocks on the verges, off the Terrace and the town’s plots', () => {
+    let n = 0; for (let d = 0; d < 360; d += 9) for (const v of traffic.folk.vergeFlocks(d)) { const out: Mover[] = []; for (let t = v.t0; t <= v.t1; t += 0.25) { out.length = 0; traffic.folk.at(t, out);
+      for (const m of out.filter(q => q.key.startsWith(v.key))) { n++; expect(m.act).toBe('herd'); expect(inside(TERRACE, m.e, m.n)).toBe(false); expect(inPlot(plan, m.e, m.n), `${m.key} at ${m.e.toFixed(0)},${m.n.toFixed(0)}`).toBe(null); } } }
+    expect(n).toBeGreaterThan(100);
+  });
   it('the households that come in go home the same afternoon (or next morning from their kin), as the same people', () => {
     const F = traffic.folk as any, T = F.dayTrips(110) as any[], ins = T.filter(t => /:i\d+$/.test(t.key)), outs = T.filter(t => /:o\d+$/.test(t.key));
     expect(ins.length).toBeGreaterThan(80); expect(outs.length).toBeGreaterThan(40);

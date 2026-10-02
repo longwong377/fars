@@ -168,7 +168,7 @@ export class Traffic {
   /** D-570: the hinterland's people on the four roads (roadFolk.ts) */
   readonly folk: RoadFolk;
   constructor(private seed: number, private src: TrafficSource, plan: TownPlan | null) {
-    this.folk = new RoadFolk(seed, src.cal);
+    this.folk = new RoadFolk(seed, src.cal, plan);
     const W = FEAT.road_royal_west.polyline as P2[], S = FEAT.road_south_tirazzish.polyline as P2[], stair = (PLACE.stair_foot?.at ?? [-52, 118.5]) as P2;
     const site = (id: string) => plan?.sites.find(s => s.id === id);
     const st = site('stables'), sto = site('stores');

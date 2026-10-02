@@ -19,7 +19,8 @@
 import settlement from '../data/settlement.json';
 import namesData from '../data/names.json';
 import type { ActivityId } from '../people/activities';
-import { h01 } from './fauna';
+import { h01, openGround } from './fauna';
+import type { TownPlan } from './settlement/plan';
 import { route, along, type Route, type Mover } from './traffic';
 
 type P2 = [number, number];
@@ -40,7 +41,7 @@ const FOOT_IN: P2 = [-104, 141];
  *  Pārsa end, then the way on foot to the place (C) */
 const ROADS: { id: string; w: number; homes: string[]; tail: P2[]; to: string }[] = [
   { id: 'road_royal_west', w: 1, to: 'the stair foot', tail: [[-110, 60], FOOT_IN], homes: ['a village by the Kur bridge', 'a village of the Kur’s west bank', 'Bessitme on the royal road', 'a hamlet by the Bagh-e Firuzi', 'a village under the Kuh-e Ayub', 'a herders’ hamlet of the western hills'] },
-  { id: 'road_south_tirazzish', w: 0.8, to: 'the town', tail: [[-60, -170]], homes: ['Tirazziš', 'a village of the southern plain', 'a hamlet by the salt flats', 'a village on the Tirazziš road', 'a potters’ village of the south'] },
+  { id: 'road_south_tirazzish', w: 0.8, to: 'the stair foot', tail: [[-150, -120], [-130, 0], [-110, 60], FOOT_IN], homes: ['Tirazziš', 'a village of the southern plain', 'a hamlet by the salt flats', 'a village on the Tirazziš road', 'a potters’ village of the south'] },
   { id: 'road_pasargadae', w: 0.6, to: 'the stair foot', tail: [[150, 272], [-60, 300], [-130, 200], FOOT_IN], homes: ['a village of the Pulvar valley', 'Pasargadae', 'a village under the Tang-e Bulaghi', 'a hamlet of the Pulvar’s east bank'] },
   { id: 'road_naqsh_e_rustam', w: 0.5, to: 'the stair foot', tail: [[150, 272], [-60, 300], [-130, 200], FOOT_IN], homes: ['a village under Naqsh-e Rustam', 'a hamlet by the Pulvar ford', 'a village of the northern fields', 'a hamlet by the rock tombs'] },
 ];
@@ -127,7 +128,7 @@ type InRec = { H: Household; E: Errand; tArr: number; t0: number };
 export class RoadFolk {
   private paths: { inn: Route; out: Route; road: number; tail: number }[] = []; private through: { sw: Route; ws: Route; w: number; c: number; s: number } | null = null;
   private days = new Map<number, Trip[]>(); private inbound = new Map<number, { trips: Trip[]; recs: Map<number, InRec[]> }>();
-  constructor(private seed: number, private cal: { ctx(d: number): any }) {
+  constructor(private seed: number, private cal: { ctx(d: number): any }, private plan: TownPlan | null = null) {
     for (const R of ROADS) { const cut = farCut(FEAT[R.id].polyline as P2[]), road = route(cut).len, tail = route([cut[0], ...R.tail]).len;
       const inn = route([...cut.slice().reverse(), ...R.tail]); this.paths.push({ inn, out: route([...inn.pts].reverse()), road, tail }); }
     // the through road: in along the royal road to its Pārsa end, round the Terrace's W foot to the south road and out (C)
@@ -208,23 +209,59 @@ export class RoadFolk {
     const X = this.through!, on: Trip['on'] = dir === 1 ? [{ ri: 0, s0: X.w, sign: -1 }, { ri: 1, s0: X.w + X.c, sign: 1 }] : [{ ri: 1, s0: X.s, sign: -1 }, { ri: 0, s0: X.s + X.c, sign: 1 }];
     return { key: `rt${d}:${g}`, road: dir === 1 ? 0 : 1, dir, path: dir === 1 ? X.sw : X.ws, t0, pace: FOLK_PACE.string, halt: null, people: [{ look, act: 'walk', why: dir === 1 ? T.why : T.back }], kind: camel ? 'camel' : 'pack', on };
   }
+  /** the herders of the register grazing their flocks on the road verges on the way in (2-3 a road a dry day, out from the
+   *  town's edge; a man and his son, from mid-morning for three to six hours, drifting along the verge: C) */
+  private verges = new Map<number, { key: string; ri: number; x0: number; side: number; t0: number; t1: number; H: Household }[]>();
+  vergeFlocks(d: number) {
+    let V = this.verges.get(d); if (V) return V; V = []; const C = this.cal.ctx(Math.max(0, d)), sun = C.sun ?? { rise: 6, set: 18 }, wx = C.wx ?? {};
+    if (!wx.wet) ROADS.forEach((R, ri) => { const P = this.paths[ri], n = 2 + (h01(this.seed, 43000 + ri, d) < 0.5 ? 1 : 0);
+      for (let k = 0; k < n; k++) { const u = (q: number) => h01(this.seed, 43100 + ri * 10 + k, d * 8 + q); let hh = Math.floor(u(1) * ROAD_HH), H = household(this.seed, ri, hh);
+        for (let g = 0; g < 40 && H.live !== 'herder'; g++) { hh = (hh + 7) % ROAD_HH; H = household(this.seed, ri, hh); }
+        const t0 = sun.rise + 1 + 3 * u(2), t1 = Math.min(sun.set - 1, t0 + 3 + 3 * u(3));
+        // (a stretch of verge clear of the town's plots for the drift and the flock about the herder: both sides tried, then on)
+        let x0 = 600 + (P.road - 900) * (k + u(4)) / n, side = (u(5) < 0.5 ? 1 : -1) * (10 + 4 * u(6)), ok = false;
+        const clear = (x: number, sd: number) => { for (let dx = -40; dx <= 40; dx += 8) for (const w of [sd - 10 * Math.sign(sd), sd, sd + 12 * Math.sign(sd)]) { const a = along(P.out, P.tail + x + dx), c = Math.cos(a.heading), sn = Math.sin(a.heading);
+          if (this.plan && !openGround(this.plan, a.e + c * w, a.n - sn * w)) return false; } return true; };
+        for (let g = 0; g < 12 && !ok; g++) { if (clear(x0, side)) ok = true; else if (clear(x0, -side)) { side = -side; ok = true; } else x0 = 600 + ((x0 - 600 + 230) % Math.max(1, P.road - 900)); }
+        if (ok) V!.push({ key: `rv${d}:${ri}:${k}`, ri, x0, side, t0: d * 24 + t0, t1: d * 24 + t1, H }); } });
+    this.verges.set(d, V); if (this.verges.size > 4) this.verges.delete(this.verges.keys().next().value!); return V;
+  }
   /** everyone of the road streams at time t (h), within `near` (all if omitted), appended to `out` */
   at(t: number, out: Mover[], near?: { e: number; n: number; r: number }) {
     const d = Math.floor(t / 24);
+    for (const v of this.vergeFlocks(d)) { if (t < v.t0 || t > v.t1) continue; const P = this.paths[v.ri], x = v.x0 + 25 * Math.sin((t - v.t0) * 0.45), a = along(P.out, P.tail + x), c = Math.cos(a.heading), sn = Math.sin(a.heading);
+      const e = a.e + c * v.side, n = a.n - sn * v.side; if (near && Math.hypot(e - near.e, n - near.n) > near.r + 20) continue;
+      out.push({ key: `${v.key}:0`, kind: 'foot', e, n, heading: a.heading + Math.PI / 2 * Math.sign(v.side), act: 'herd', why: `grazing the household’s sheep and goats on the road’s verge on the way in from ${v.H.home}, to sell wethers at Pārsa`, look: lookOf(this.seed, v.H, 'head') });
+      if (v.H.kids) out.push({ key: `${v.key}:1`, kind: 'foot', e: e + c * Math.sign(v.side) * 9 + sn * 6, n: n - sn * Math.sign(v.side) * 9 + c * 6, heading: a.heading, act: 'herd', why: 'watching the flock on the verge with his father, keeping it off the road', look: lookOf(this.seed, v.H, 'son') }); }
     for (const dd of [d - 1, d]) { if (dd < 0) continue; for (const T of this.dayTrips(dd)) {
-      if (t < T.t0) continue; let s: number, act: ActivityId | null = null, why = '';
-      if (T.halt && t >= T.halt.a && t < T.halt.b) { s = T.halt.s; act = T.halt.act; why = T.halt.why; }
+      // at the stair foot (the roads' Pārsa end): a third of the trips stay a while there first or last (selling, holding the string,
+      // a word before the road home), at their own spot on the approach, walked to from the road's end (C)
+      const F = T.road >= 0 && T.key.startsWith('rf') ? footStay(this.seed, T.key) : null, walkF = F ? Math.hypot(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) / T.pace / 3600 : 0;
+      let s: number, act: ActivityId | null = null, why = '', at: { e: number; n: number; heading: number } | null = null;
+      if (t < T.t0) { if (!F || T.dir !== -1 || t < T.t0 - walkF - F.stay) continue; // (outbound: the stay, then the walk to the road's end)
+        const u = Math.max(0, (t - (T.t0 - walkF)) / Math.max(1e-6, walkF)); at = { e: F.spot[0] + (FOOT_IN[0] - F.spot[0]) * u, n: F.spot[1] + (FOOT_IN[1] - F.spot[1]) * u, heading: Math.atan2(FOOT_IN[0] - F.spot[0], FOOT_IN[1] - F.spot[1]) };
+        if (t < T.t0 - walkF) { act = T.kind === 'pack' ? 'tend_animals' : T.kind === 'cart' ? 'tend_animals' : 'talk'; why = T.kind === 'pack' ? 'holding the string at the stair foot before the road home' : T.kind === 'cart' ? 'holding the ox cart at the stair foot before the road home' : 'a word with acquaintances at the stair foot before the road home'; } s = 0; }
+      else if (T.halt && t >= T.halt.a && t < T.halt.b) { s = T.halt.s; act = T.halt.act; why = T.halt.why; }
       else s = ((t - T.t0) - (T.halt && t >= T.halt.b ? T.halt.b - T.halt.a : 0)) * 3600 * T.pace;
-      if (s > T.path.len) continue; const a = along(T.path, s);
+      if (s > T.path.len) { if (!F || T.dir !== 1) continue; const tEnd = T.t0 + T.path.len / T.pace / 3600 + (T.halt ? T.halt.b - T.halt.a : 0), u = (t - tEnd) / Math.max(1e-6, walkF);
+        if (t > tEnd + walkF + F.stay) continue; at = { e: FOOT_IN[0] + (F.spot[0] - FOOT_IN[0]) * Math.min(1, u), n: FOOT_IN[1] + (F.spot[1] - FOOT_IN[1]) * Math.min(1, u), heading: Math.atan2(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) };
+        if (u >= 1) { act = T.kind === 'pack' ? 'tend_animals' : T.kind === 'cart' ? 'tend_animals' : 'exchange'; why = T.kind === 'pack' ? 'holding the string at the stair foot while the goods are sold' : T.kind === 'cart' ? 'holding the ox cart at the stair foot while the load is sold' : 'selling what was brought at the stair foot, to the porters, the guards and the scribes’ servants'; } }
+      const a = at ?? along(T.path, s);
       if (near && Math.hypot(a.e - near.e, a.n - near.n) > near.r + 20) continue;
       const c = Math.cos(a.heading), sn = Math.sin(a.heading), string = T.kind !== 'foot';
       T.people.forEach((p, i) => { // the others walk behind the first (a string's driver leads; beside it at a halt), a pace to the side
         const back = i === 0 ? 0 : (string ? 3.5 : 1.4) * i, side = i === 0 ? 0 : (i % 2 ? 0.8 : -0.8);
         out.push({ key: `${T.key}:${i}`, kind: i === 0 ? T.kind : 'foot', e: a.e - sn * back + c * side, n: a.n - c * back - sn * side, heading: a.heading, act: act && (i === 0 || act !== 'tend_animals') ? act : act ? 'rest' : p.act,
-          why: act ? (i === 0 ? why : 'resting by the road on the way') : p.why, look: p.look }); });
+          why: act ? (i === 0 ? why : at ? 'waiting with the others at the stair foot' : 'resting by the road on the way') : p.why, look: p.look }); });
     } }
     return out;
   }
+}
+/** a trip's stay at the stair foot (a third of the trips; 0.2-0.45 h) and its spot on the approach between the tether lines (C) */
+export function footStay(seed: number, key: string): { stay: number; spot: P2 } | null {
+  let h = 2166136261; for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619) >>> 0;
+  if (h01(seed, h % 1000003, 1) >= 0.35) return null;
+  return { stay: 0.2 + 0.25 * h01(seed, h % 1000003, 2), spot: [-148 + 40 * h01(seed, h % 1000003, 3), 104 + 30 * h01(seed, h % 1000003, 4)] };
 }
 /** a road's polyline cut where it leaves NEAR + 500 m of Pārsa (its Pārsa end first) */
 function farCut(L: P2[]): P2[] {
