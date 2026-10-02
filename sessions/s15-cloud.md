@@ -11,8 +11,6 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
 - **Render-side hooks made by the cloud in Vagon's files (smallest possible):** src/world/world.ts (strangerPresence in the
   audio loop; thinCaption on captions; asks: true; NeuralVoices lazy), src/main.ts (talk mounted by default; start after
   frame 5), src/ui/shell.ts and src/core/settings.ts (the Talk setting). Review them on merge.
-- **talk_world 450-token check:** failed at 453 (one T-E9 case: a girl in a house of six); fixed by naming a large house to its
-  first three (D-374); re-run in the verification batch.
 - **B230 (brides branch):** merged s14-int into it locally (a8fee681, plans.ts conflict resolved: both sides kept); the three
   named d211 failures are being compared on both trees; NOT pushed to s13-bridesmerge yet.
 - Small children's days have few distinct
@@ -90,6 +88,7 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
 - Test cost: a world jumped to day 150 ~80 s; loaded from the cached fixture ~1 s (D-374).
 
 ## Tests run (node; this branch)
+After D-391 (03:3x-04:xx): econ_plans, stranger_talk, speech_sandbox, talk_world 52/52 (the 450-token prompt check and the walk check included); stranger, approach, trust, talk_places 20/20; the integration batch before the fixes 106/107 (the one failure fixed in D-391).
 stranger 9/9; stranger_talk 25/25; history 9/9; defaults 7/7; sim_fixture 1/1; trust, haggle, asks, emergence 20/20;
 living_world 22/23 (B400 save size, pre-existing); econ_plans 3/4 (B401, pre-existing); converse 10/11 (the test-set timeout
 under load; the same 4.5 min on s14-int); talk_view 2/2; talk_world 13/14 before the D-374 prompt fix.
