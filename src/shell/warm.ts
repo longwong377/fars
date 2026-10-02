@@ -8,6 +8,9 @@
 export const warmStats = { files: 0, done: 0, failed: 0, bytes: 0, ms: 0 };
 export async function warmBootFiles(base: string, concurrency = 6): Promise<void> {
   const t0 = performance.now();
+  // (opt-in, ?warm: on the 4-thread measuring box the warming slowed the terrain and scans' decode (19 s -> 37 s) more than
+  // it saved; a many-core machine may gain: measure there before turning it on)
+  if (!new URLSearchParams(location.search).has('warm')) { (globalThis as any).__warm = { skipped: 'off (?warm turns it on)' }; return; }
   if (!navigator.serviceWorker?.controller) { (globalThis as any).__warm = { ...warmStats, skipped: 'no service worker in control' }; return; }
   let list: string[];
   try { const r = await fetch(base + 'boot-files.json'); if (!r.ok) return; list = await r.json(); } catch { return; }

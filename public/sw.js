@@ -28,7 +28,10 @@ self.addEventListener('fetch', e => {
     let done; inflight.set(key, new Promise(ok => { done = ok; }));
     const end = () => { inflight.delete(key); done(); };
     try { const res = await fetch(r.url, { credentials: 'same-origin' });
-      if (res.ok && res.status === 200 && res.type === 'basic') e.waitUntil(c.put(key, res.clone()).catch(() => {}).finally(end)); else end();
+      // (D-393: stored from the body's bytes: Chrome refused to store a network-backed response over ~10 MB here, Cache.put()
+      // "network error" for the 14-44 MB files, so every visit fetched them again; a response made from the bytes is stored)
+      if (res.ok && res.status === 200 && res.type === 'basic') { const copy = res.clone();
+        e.waitUntil(copy.arrayBuffer().then(b => c.put(key, new Response(b, { status: 200, headers: copy.headers }))).catch(() => {}).finally(end)); } else end();
       return res; }
     catch (err) { end(); throw err; }
   })());

@@ -88,7 +88,7 @@ export function mountConverse(c: Ctx) {
   // D-376 (UD-31): the model streams in after the world is shown (preload, from main.ts after the first frames), quietly: no
   // loading UI in the world; the progress is in the out-of-world status only. A WebGPU adapter that cannot hold the model
   // (no adapter, or a buffer limit under the model's largest shard) leaves the people answering in their own lines
-  let loading: Promise<boolean> | null = null;
+  let loading: Promise<boolean> | null = null; let loadTries = 0;
   async function fits(): Promise<boolean> {
     try { const ad = await (navigator as any).gpu?.requestAdapter(); if (!ad) return false; return (ad.limits?.maxBufferSize ?? 0) >= 256 * 1024 * 1024 && (ad.limits?.maxStorageBufferBindingSize ?? 0) >= 128 * 1024 * 1024; } catch { return false; }
   }
@@ -97,7 +97,9 @@ export function mountConverse(c: Ctx) {
     return loading ??= (async () => { if (!(await fits())) { state.status = 'this GPU cannot hold the model: the people answer in their own lines'; return false; }
       state.status = 'loading';
       try { await mind.load(model, p => { state.progress = p.progress; }); state.loaded = true; state.status = 'ready'; return true; }
-      catch (e) { state.status = `the model did not load: ${String(e).slice(0, 120)}`; loading = null; return false; } })();
+      catch (e) { state.status = `the model did not load: ${String(e).slice(0, 120)}`; loading = null;
+        // (s15/ship D-393: a fetch from Hugging Face's CDN failed once on a cold visit under load: tried again, three times, 20 s apart)
+        if (++loadTries < 4) setTimeout(() => void ensure(), 20_000); return false; } })();
   }
   /** say `text` to the nearest person: the answer (translation layer) and the heard reply (their own voice) */
   async function say(text: string, heardMs = 0, rmsDb?: number): Promise<any> {
