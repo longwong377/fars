@@ -14,6 +14,7 @@
 // cached; three levels per piece (lod2 shared by every ledge far off), shadows from the levels within the cascades' reach.
 // Tiers: the limestone and its bedding B (KR-BEDROCK: the Terrace is cut from it); every ledge's and stone's place C.
 import * as THREE from 'three/webgpu';
+import { sharedDraco } from '../../render/loaders';
 import { texture, uv, vec3, dot, attribute, float } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
 import { mxNoise3 } from '../../render/mx_noise_cpu';
@@ -150,8 +151,8 @@ export async function loadRockKit(base = BASE): Promise<RockKit | null> {
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('bedrock') === '0') { KSTAT.failed = 'off (?bedrock=0)'; return null; }
   try {
     const man = await (await fetch(base + 'models/land/manifest.json')).json();
-    const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
-    const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
+    const [{ GLTFLoader }, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base)]); // (D-392: the page's decoders)
+    const loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
     const kit: RockKit = { ledge: [], ground: [], atlas: {} };
     for (const cls of ['ledge', 'ground'] as RockClass[]) {
       const C = man.classes?.[cls]; if (!C) continue;

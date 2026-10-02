@@ -8,6 +8,7 @@
 // procedural stand-in it replaces (the frame boxes, crenellationGeometry, the tent shells), and decorStats says so.
 // `?nodecor` switches all of it off (A/B). In node (tests) nothing loads.
 import * as THREE from 'three/webgpu';
+import { sharedKTX2, sharedDraco } from './loaders';
 import { texture, uv, normalMap, normalView, vec3, float } from 'three/tsl';
 import { surfaceMaterial } from './materials';
 import META from '../data/decor_assets.json';
@@ -31,10 +32,8 @@ export async function loadDecorAssets(base = BASE): Promise<typeof decorStats> {
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('nodecor')) { decorStats.off = S.off = true; return decorStats; }
   const t0 = performance.now();
   const man: any = META;
-  const [{ GLTFLoader }, { DRACOLoader }, { KTX2Loader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js'), import('three/addons/loaders/KTX2Loader.js')]);
-  const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
-  const k2 = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); k2.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any);
-  const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), gl = new GLTFLoader().setDRACOLoader(draco).setKTX2Loader(k2);
+  const [{ GLTFLoader }, k2, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedKTX2(base), sharedDraco(base)]); // (D-392: the page's decoders)
+  const gl = new GLTFLoader().setDRACOLoader(draco).setKTX2Loader(k2);
   const glb = async (file: string): Promise<DecorModel> => {
     const g = await gl.loadAsync(base + file), lods: THREE.BufferGeometry[] = [], maps: THREE.Texture[] = [], names: string[] = [];
     g.scene.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return; const map = (m.material as THREE.MeshStandardMaterial).normalMap; if (!map) throw new Error(`${file}: ${m.name} has no map`);
@@ -45,7 +44,7 @@ export async function loadDecorAssets(base = BASE): Promise<typeof decorStats> {
   const jobs: Promise<void>[] = [];
   const A = man.assets ?? {};
   if (A.trim) jobs.push(k2.loadAsync(base + 'models/decor/frame_trim.ktx2').then((t: THREE.Texture) => {
-    t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; S.trim = t; decorStats.loaded.push('trim'); }).catch(e => { decorStats.failed.push(`trim: ${e?.message ?? e}`); }));
+    t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; S.trim = t; decorStats.loaded.push('trim'); }).catch((e: any) => { decorStats.failed.push(`trim: ${e?.message ?? e}`); }));
   if (A.merlon) jobs.push(glb('models/decor/merlon.glb').then(m => { S.merlon = m; decorStats.loaded.push('merlon'); }).catch(e => { decorStats.failed.push(`merlon: ${e?.message ?? e}`); }));
   if (A.tents) for (const f of Object.keys(A.tents.files ?? {})) { const kind = /tent_(\w+)\.glb$/.exec(f)?.[1]; if (!kind) continue;
     jobs.push(glb(f).then(m => { S.tents[kind] = m; decorStats.loaded.push(`tent_${kind}`); }).catch(e => { decorStats.failed.push(`tent_${kind}: ${e?.message ?? e}`); })); }

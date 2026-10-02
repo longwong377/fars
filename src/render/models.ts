@@ -12,6 +12,7 @@
 // A/B in the browser: window.__models.ab(false) swaps every model's instances back to the procedural geometry and material
 // (same instances, same frame), ab(true) returns them (tests/e2e/blender_hero.spec.ts renders both).
 import * as THREE from 'three/webgpu';
+import { sharedKTX2, sharedDraco } from './loaders';
 import { texture, uv, normalMap, normalView } from 'three/tsl';
 import { surfaceMaterial } from './materials';
 import { BASE } from '../core/base';
@@ -33,20 +34,13 @@ export async function loadModels(base = BASE, renderer?: THREE.WebGPURenderer): 
   let man: ModelManifest;
   try { const r = await fetch(base + 'models/manifest.json'); if (!r.ok) throw new Error(`manifest ${r.status}`); man = await r.json(); }
   catch (e) { console.warn(`[models] no manifest (${(e as Error).message}): procedural stand-ins drawn`); return modelStats(); }
-  const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
-  const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco);
+  const [{ GLTFLoader }, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base)]); // (D-392: the page's decoders)
+  const loader = new GLTFLoader().setDRACOLoader(draco);
   if (Object.values(man.assets).some(a => a.textures === 'ktx2')) {
-    const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
     // the transcoder's target format needs the GPU's compressed formats: from the renderer when given, else (the world loads
     // the models before it has one) from the WebGPU adapter, whose features three's WebGPU backend requests in full (D-306);
-    // without either the maps transcode to uncompressed RGBA (correct, 4x the memory)
-    const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/');
-    let gpu: { isWebGPURenderer: true; hasFeature: (f: string) => boolean } | THREE.WebGPURenderer | null = renderer ?? null;
-    if (!gpu) {
-      const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
-      gpu = { isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) };
-    }
-    k.detectSupport(gpu as any); loader.setKTX2Loader(k); LOAD.ktx2 = { ...(k as any).workerConfig };
+    // without either the maps transcode to uncompressed RGBA (correct, 4x the memory). D-392: the page's one transcoder
+    const k = await sharedKTX2(base, renderer ?? undefined); loader.setKTX2Loader(k); LOAD.ktx2 = { ...(k as any).workerConfig };
   }
   await Promise.all(Object.entries(man.assets).map(async ([id, e]) => {
     try {

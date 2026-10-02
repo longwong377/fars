@@ -9,6 +9,7 @@
 //  - fitProp(): a level scaled to a builder's box (as models.ts fitLevel), for the procedural generators' own sizes.
 // The generators keep their placement, counts, sizes and tiers: only the shape and the surface change.
 import * as THREE from 'three/webgpu';
+import { sharedDraco } from './loaders';
 import { texture, uv, vec3, float, dot, attribute } from 'three/tsl';
 import { BASE } from '../core/base';
 
@@ -37,8 +38,8 @@ export async function loadScanProps(base = BASE): Promise<ReturnType<typeof scan
   let man: { assets: Record<string, PropEntry> };
   try { const r = await fetch(base + 'models/props/manifest.json'); if (!r.ok) throw new Error(`manifest ${r.status}`); man = await r.json(); }
   catch (e) { console.warn(`[props] no manifest (${(e as Error).message}): procedural stand-ins drawn`); return scanPropStats(); }
-  const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
-  const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco);
+  const [{ GLTFLoader }, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base)]); // (D-392: the page's decoders)
+  const loader = new GLTFLoader().setDRACOLoader(draco);
   await Promise.all(Object.entries(man.assets).map(async ([id, e]) => {
     try {
       if ((e as ModelEntry).parts) { // D-325: the project's modelled props (plain GLBs parsed here: no loader, no Draco)
