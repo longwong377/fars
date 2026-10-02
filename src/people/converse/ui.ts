@@ -15,6 +15,7 @@ import type { Turn } from './prompt';
 import { bakedProse, bakedWho } from './bake';
 import { talkTurn } from './turn';
 import { TALK_MODEL } from './models';
+import { Approaches } from './approach';
 import { earshot, ambientFor, rmsDbOf, noteOverheard, EARSHOT, type Listener, type Heard } from './earshot';
 
 /** D-370: the sandbox step as the translation layer notes it (out of world) */
@@ -61,7 +62,7 @@ export function mountConverse(c: Ctx) {
   const small = document.createElement('div'); small.style.cssText = 'font:11px system-ui,sans-serif;opacity:.7;margin-top:4px';
   panel.append(line, input, small); document.body.append(panel);
   const show = (html: string, note = '') => { panel.style.display = 'block'; line.innerHTML = html; small.textContent = note; };
-  const state = { status: gpu ? 'idle' : 'no WebGPU: the people answer in their own lines', progress: 0, loaded: false, busy: false, last: null as any, history: new Map<number, Turn[]>(), log: [] as any[], /** D-315: the conversation in progress (person, its id) */ talking: null as null | { pid: number; conv: number; r: number }, /** D-379: the last words as the world heard them (who heard, the one spoken to, who turned to look; the render side reads it) */ heard: null as null | (Heard & { t: number; words: string }) };
+  const state = { approach: null as any, status: gpu ? 'idle' : 'no WebGPU: the people answer in their own lines', progress: 0, loaded: false, busy: false, last: null as any, history: new Map<number, Turn[]>(), log: [] as any[], /** D-315: the conversation in progress (person, its id) */ talking: null as null | { pid: number; conv: number; r: number }, /** D-379: the last words as the world heard them (who heard, the one spoken to, who turned to look; the render side reads it) */ heard: null as null | (Heard & { t: number; words: string }) };
   /** D-315: the conversation ends (the stranger walks off or closes the talk): the person goes back to the day */
   const endTalk = () => { const k = state.talking; if (!k) return; state.talking = null; c.world.people?.sim?.talk.release(k.pid, c.world.people.sim.t); };
   // the baked prose layer (D-296): only for the world it was baked for (seed 1: src/data/lives_baked_s1.json)
@@ -169,7 +170,14 @@ export function mountConverse(c: Ctx) {
   input.addEventListener('keyup', e => e.stopPropagation());
   // prime the model with the nearest person's life as the stranger comes near (within 6 m), so the answer costs only the question
   let primeP: Promise<any> = Promise.resolve(); let prefetchedFor = -1;
+  // D-375: someone may come up to the stranger (their house's need, or a friendly house's invitation: approach.ts), checked every
+  // few seconds among the people within 15 m while no talk is going on; they stop and turn, and the panel says who and what
+  let approaches: Approaches | null = null; let approachAt = 0;
   setInterval(() => {
+    if (!state.talking && !state.busy && c.world.people?.sim && performance.now() - approachAt > 4000) { approachAt = performance.now();
+      const sim = c.world.people.sim; approaches ??= new Approaches(sim); const a = approaches.next(within(c.world, eye(), 15));
+      if (a) { sim.talkAddressed(a.pid); state.talking = { pid: a.pid, conv: sim.t, r: 15 } as any; state.approach = a;
+        show(`<b>${sim.pop.nameOf(a.pid)?.replace(/^\*/, '') ?? 'Someone'}</b> <i>${a.opening}.</i>`, 'translation layer (out of world): answer, or walk on'); } }
     // (D-315: the stranger walked away from the one they were talking with: the talk ends, the person goes back to the day)
     if (state.talking && !state.busy) { const k = state.talking, sim = c.world.people?.sim, a = sim?.pop.persons[k.pid]?.agent ?? -1, e = eye();
       const at = a >= 0 ? sim.agents[a].pos : (c.world.people?.view?.visible ?? []).find((o: any) => o.pid === k.pid); const d = at ? Math.hypot((at.e ?? at[0]) - e.e, (at.n ?? at[1]) - e.n) : Infinity; if (d > k.r + 1.5) endTalk(); }
