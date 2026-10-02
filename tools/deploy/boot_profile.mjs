@@ -2,6 +2,7 @@
 // same cap), opens an empty profile with the CPU profiler on the page's main thread from navigation to ready + `--tail` s,
 // and prints the self time per function in windows of `--win` s (the boot trace's stages beside them).
 //   node tools/deploy/boot_profile.mjs [dist] [--mbps 100] [--params norender] [--win 5] [--tail 10] [--top 8]
+//   --heap: instead, a sampling heap profile at ready: the live bytes by the function that allocated them (self and with callees)
 import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
@@ -20,12 +21,27 @@ const prof = mkdtempSync(join(tmpdir(), 'parsa-prof-'));
 const ctx = await chromium.launchPersistentContext(prof, { channel: process.env.PW_CHANNEL ?? 'chromium', headless: true, args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'], viewport: { width: 1280, height: 720 } });
 const page = ctx.pages()[0] ?? await ctx.newPage(), boot = [];
 const cdp = await ctx.newCDPSession(page);
-await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 2000 }); await cdp.send('Profiler.start');
+const HEAP = a.includes('--heap');
+if (HEAP) { await cdp.send('HeapProfiler.enable'); await cdp.send('HeapProfiler.startSampling', { samplingInterval: 256 * 1024 }); }
+else { await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 2000 }); await cdp.send('Profiler.start'); }
 const t0 = Date.now();
 page.on('console', m => { const t = m.text(); if (t.startsWith('[boot]')) boot.push([(Date.now() - t0) / 1000, t.slice(7, 90)]); });
 await page.goto(`${host}/fars/?quality=high&trace&${extra}`);
 await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 1_800_000, polling: 250 });
 const readyS = (Date.now() - t0) / 1000, readyAt = await page.evaluate(() => window.__parsa.readyAt ?? null);
+if (HEAP) {
+  await cdp.send('HeapProfiler.collectGarbage'); const { profile: hp } = await cdp.send('HeapProfiler.getSamplingProfile'); await ctx.close();
+  writeFileSync(join(dist, '..', 'boot-heap.json'), JSON.stringify(hp));
+  const self = new Map(), incl = new Map(); let total = 0;
+  const walk = (n, stack) => { const f = n.callFrame, k = `${f.functionName || '(anon)'} ${f.url.split('/').pop()}:${f.lineNumber + 1}`; const b = n.selfSize;
+    total += b; self.set(k, (self.get(k) ?? 0) + b); const st = new Set([...stack, k]); for (const x of st) incl.set(x, (incl.get(x) ?? 0) + b); for (const c of n.children) walk(c, st); };
+  walk(hp.head, new Set());
+  const MB = b => (b / 1048576).toFixed(0).padStart(6);
+  console.log(`ready ${readyS.toFixed(1)} s; sampled live heap ${MB(total)} MB`); console.log('by allocating function (self):');
+  for (const [k, v] of [...self].sort((x, y) => y[1] - x[1]).slice(0, top)) console.log(`${MB(v)} MB  ${k.slice(0, 120)}`);
+  console.log('with callees:'); for (const [k, v] of [...incl].sort((x, y) => y[1] - x[1]).slice(0, top * 2)) console.log(`${MB(v)} MB  ${k.slice(0, 120)}`);
+  process.exit(0);
+}
 await page.waitForTimeout(tail * 1000);
 const { profile } = await cdp.send('Profiler.stop');
 await ctx.close(); try { rmSync(prof, { recursive: true, force: true }); } catch {}
