@@ -13,4 +13,6 @@
 
 **Files**: src/audio/{soundplan,library,sampler}.ts (new), soundscape.ts, engine.ts; src/world/world.ts (hook: `air: ctx.cond`; overlay); tools/audio/{fetch.mjs, fetch_list.json, fetch_lock.json, irs.mjs, common.mjs}; tools/dev/{sound_census,sound_mix}.ts; public/audio/**; tests/sound_recorded.test.ts; DECISIONS D-620; ASSET_LEDGER (rooms + the D-620 block).
 
-**Tests**: sound_recorded 13/13; audio, audio_population, door_sounds, occlusion, waterworks, farcrowd, voices_unique pass; lint:lang 26/26; guards pass; 183/183 files decode in headless Chromium at their listed lengths.
+**Census also covers activity foley**: all 25 work sounds the performances ask for are listed (5 fetched; footsteps, fire and murmur are layers). **Rooms**: the 8 measured impulse responses play per room kind (hall_large for the great halls, hall_medium, room_small, court for courts and lanes, gorge for the slopes, open, wood, chamber), tested end to end.
+
+**Tests**: sound_recorded 14/14; audio, audio_population, door_sounds, occlusion, waterworks, farcrowd, voices_unique pass; lint:lang 26/26; guards pass; 183/183 files decode in headless Chromium at their listed lengths.

@@ -6,11 +6,19 @@
 // (fetched: in git and playing). The synthesis plays whatever is not fetched (soundscape.ts), so a gap is heard as the
 // old synthesiser, not as silence.
 // Usage: npx tsx tools/dev/sound_census.ts [--strict (exit 1 unless everything is fetched)] [--json out.json]
-import { readFileSync, existsSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { HOUR_BANDS, WEATHERS } from './coverage_time';
 import { FOOT_NEAR } from '../../src/audio/sampler';
 import { bedPlan, bedTime, airOf, soundPlace, footSurface, FOOT_SURFACES, ONESHOT_SETS, IR_KINDS, BED_LAYERS, SEASONS, type SoundPlace, type Where } from '../../src/audio/soundplan';
 
+/** every work sound the people's activities ask for (the performances' `sound:` and `hitKind`, src/**), and how each is heard:
+ *  a one-shot set, or a layer (footsteps: the step sets; fire: the hearth bed; murmur: the voices system's) */
+export function activitySounds(dir = 'src'): string[] {
+  const out = new Set<string>(), walk = (d: string) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (/\.ts$/.test(f)) for (const m of readFileSync(p, 'utf8').matchAll(/(?:\bsound|hitKind)\s*[:=]\s*'([a-z_]+)'/g)) out.add(m[1]); } };
+  walk(dir); return [...out].sort();
+}
+export const ACTIVITY_LAYERS: Record<string, string> = { footsteps: 'foot', fire: 'beds:hearth', murmur: 'voices' };
 /** the sound place each coverage stratum stands in (by its prefix; the longest match wins) */
 export const STRATUM_PLACE: [string, SoundPlace][] = [
   ['terrace', 'terrace'], ['terrace:stairs', 'terrace'], ['approach', 'plain'], ['rahmat', 'hillside'],
@@ -61,10 +69,11 @@ export function census() {
   const foot = Object.fromEntries(FOOT_SURFACES.map(s => [s, status('foot', `${s}_walk`)]));
   const footPlayable = Object.fromEntries(FOOT_SURFACES.map(s => [s, foot[s] === 'fetched' ? 'own' : (FOOT_NEAR[s] ?? []).find(n => foot[n] === 'fetched') ?? '-']));
   const shots = Object.fromEntries(ONESHOT_SETS.map(s => [s, status('oneshots', s)]));
+  const acts = Object.fromEntries(activitySounds().map(k => [k, ACTIVITY_LAYERS[k] ? 'fetched' as Status : status('oneshots', k)]));
   const irs = Object.fromEntries(IR_KINDS.map(k => [k, status('ir', k)]));
   // the footstep surfaces the refinement can reach (every one must be reachable from some world state or the walk's hook)
   const reach = new Set<string>(); for (const pl of Object.keys(WHERE) as SoundPlace[]) for (const m of [0, 3, 6, 9]) for (const wx of WEATHERS) for (const b of ['stone', 'earth', 'plaster'] as const) reach.add(footSurface(b, WHERE[pl], m, airOf(wx)));
-  return { footPlayable, strata: strata.length, cells: cells.length, fetched: cellCount('fetched'), listed: cellCount('listed'), missing: cellCount('missing'), placeErr, layerStatus, foot, shots, irs,
+  return { acts, footPlayable, strata: strata.length, cells: cells.length, fetched: cellCount('fetched'), listed: cellCount('listed'), missing: cellCount('missing'), placeErr, layerStatus, foot, shots, irs,
     footReached: [...reach].sort(), bandsAsTimes: Object.fromEntries(HOUR_BANDS.map(b => [b, bedTime(b)])), cellsList: cells };
 }
 
@@ -75,11 +84,12 @@ if (process.argv[1]?.endsWith('sound_census.ts')) {
   console.log(`  cells whose every bed is recorded and fetched: ${r.fetched}; listed in the fetch list but not fetched yet: ${r.listed}; with a bed nobody lists: ${r.missing}`);
   console.log('  ' + line('bed layers', r.layerStatus)); console.log('  ' + line('footstep surfaces (walk)', r.foot));
   console.log(`  footsteps heard from recordings (own set, or the nearest surface's): ${Object.entries(r.footPlayable).map(([k, v]) => `${k}${v === 'own' ? '' : v === '-' ? ' SYNTH' : `<-${v}`}`).join(', ')}`);
-  console.log('  ' + line('one-shot sets', r.shots)); console.log('  ' + line('room impulse responses', r.irs));
+  console.log('  ' + line('one-shot sets', r.shots));
+  console.log('  ' + line(`activity foley (every work sound the performances ask for; footsteps, fire, murmur are layers)`, r.acts)); console.log('  ' + line('room impulse responses', r.irs));
   console.log(`  footstep surfaces reached by the refinement without the walk's hook: ${r.footReached.join(', ')} (wood and water need the hook)`);
   if (r.placeErr.length) console.log(`  PLACE TABLE WRONG: ${r.placeErr.join(', ')}`);
-  const done = r.missing === 0 && r.listed === 0 && !r.placeErr.length && [r.foot, r.shots, r.irs].every(o => count(o, 'fetched') === Object.keys(o).length);
-  const listed = r.missing === 0 && !r.placeErr.length && [r.foot, r.shots, r.irs, r.layerStatus].every(o => count(o, 'missing') === 0);
+  const done = r.missing === 0 && r.listed === 0 && !r.placeErr.length && [r.foot, r.shots, r.irs, r.acts].every(o => count(o, 'fetched') === Object.keys(o).length);
+  const listed = r.missing === 0 && !r.placeErr.length && [r.foot, r.shots, r.irs, r.layerStatus, r.acts].every(o => count(o, 'missing') === 0);
   console.log(`  DONE (every cell recorded and fetched): ${done ? 'yes' : 'no'}; every need listed for the fetch: ${listed ? 'yes' : 'no'}`);
   const j = process.argv.indexOf('--json'); if (j > 0) { const { cellsList, ...rest } = r; void cellsList; writeFileSync(process.argv[j + 1], JSON.stringify(rest, null, 1)); }
   if (process.argv.includes('--strict') && !done) process.exit(1);

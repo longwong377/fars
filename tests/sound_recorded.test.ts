@@ -4,10 +4,10 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { AudioEngine } from '../src/audio/engine';
-import { Soundscape, STRIKE_KINDS, BIRDS, STRIKE_AT } from '../src/audio/soundscape';
+import { Soundscape, STRIKE_KINDS, BIRDS, STRIKE_AT, registerRoom } from '../src/audio/soundscape';
 import { SoundLibrary, DECODED_BUDGET, type Manifest } from '../src/audio/library';
 import { BedDeck, BedMixer, Shots, REPEAT_S } from '../src/audio/sampler';
-import { BED_LAYERS, ONESHOT_SETS, FOOT_SURFACES, IR_KINDS, bedPlan, bedTime, airOf, soundPlace, footSurface, speciesSlug, seasonOf } from '../src/audio/soundplan';
+import { BED_LAYERS, ONESHOT_SETS, FOOT_SURFACES, IR_KINDS, irKindFor, bedPlan, bedTime, airOf, soundPlace, footSurface, speciesSlug, seasonOf } from '../src/audio/soundplan';
 import { Rng } from '../src/core/rng';
 import { MockContext } from '../tools/dev/audio_graph';
 import { census, WHERE } from '../tools/dev/sound_census';
@@ -56,6 +56,8 @@ describe('the plan and the fetch list agree (D-620)', () => {
     expect(r.placeErr).toEqual([]); expect(r.missing).toBe(0); expect(r.cells).toBe(r.strata * 8 * 9 * 4);
     expect(Object.values(r.irs).every(s => s === 'fetched')).toBe(true);
     expect(Object.keys(r.irs).sort()).toEqual([...IR_KINDS].sort());
+    // every work sound an activity asks for has a one-shot set or a layer (a new activity without foley fails here)
+    expect(Object.entries(r.acts).filter(([, v]) => v === 'missing')).toEqual([]); expect(Object.keys(r.acts).length).toBeGreaterThan(15);
   });
   it('places, times, seasons and surfaces', () => {
     expect(bedTime('pre-dawn')).toBe('night'); expect(bedTime('noon')).toBe('day'); expect(bedTime('dusk')).toBe('dusk');
@@ -129,6 +131,19 @@ describe('beds, one-shots and footsteps from recordings (D-620)', () => {
     // footsteps: the gravel set on the hillside
     const st = new Shots(e, lib); expect(st.step('gravel', false)).toBe(true); expect(st.step('water', false)).toBe(true); // (the gravel's, the nearest)
     expect(st.step('rug', false)).toBe(false); // (nothing near recorded: the synthesis)
+  });
+});
+
+describe('the rooms: measured impulse responses by room kind (D-620)', () => {
+  it('a great hall takes the measured hall IR once decoded; the open plain takes the open one; the Sabine one before', async () => {
+    const { ctx, e } = engineOn(), ir = Object.fromEntries(IR_KINDS.map(k => [k, [{ file: `ir/${k}.ogg`, dur: 2 }]]));
+    const { lib } = fakeLib(ctx, { ir }); registerRoom('apadana', 60, 60, 20);
+    const sound = new Soundscape(e, lib), u = (space: string, x = 0, z = 0) => sound.update(1 / 30, { hour: 12, month: 3, windMs: 3, rain: 0, insideSpace: space, nearColumns: false, stepPhase: 0, running: false, surface: 'stone', fires: [], listener: { x, y: 15, z }, worksite: null, workHours: false });
+    u('apadana'); expect(e.irMeasured).toBe(false); // (the library not started: the generated tail)
+    lib.start(ctx as unknown as BaseAudioContext); await flush(); u('apadana'); await flush(); u('apadana');
+    expect(e.irMeasured).toBe(true); expect(e.currentSpace).toBe('apadana');
+    expect(irKindFor({ id: 'apadana', volume: 60 * 60 * 20 }, 'hall')).toBe('hall_large'); expect(irKindFor({ id: 'open', volume: 2e6 }, 'plain')).toBe('open');
+    expect(irKindFor({ id: 'open', volume: 2e6 }, 'hillside')).toBe('gorge'); expect(irKindFor({ id: 'street', volume: 420 }, 'town')).toBe('court');
   });
 });
 
