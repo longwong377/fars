@@ -4,7 +4,8 @@ The user, 2026-10-02: "by the end of this day I want every inch of the world to 
 filled in ie; this needs to be a beautiful lived in gorgeous world by the end of today whatever you need to adjust to get us
 there you're the boss" (UD-36). The bar: the look of a top modern AAA open-world game (RDR2, Ghost of Tsushima, AC Origins),
 not "a photograph" (UD-35). Nothing on screen may read as procedural (UD-33); fill the blanks in bulk with ready-made real
-assets, no per-object research (UD-34). The cloud does not run today (asset libraries are blocked there; Vagon has them).
+assets, no per-object research (UD-34) — but never a pack object whose shape belongs to another culture or period (UD-37:
+"that's how you get roman buildings in iran"). The cloud does not run today (asset libraries are blocked there; Vagon has them).
 
 ## Why it looks bad now (read once, then act)
 The scans and the Blender wave exist but were proven by node tests, almost never judged in whole views (7+ BLOCKERS rows: "not
@@ -53,11 +54,20 @@ gpu_slot). Each agent owns a class, iterates on probe pages (seconds per load), 
 | land and water far | the hills and mountains, the skyline, the river Pulvar and the canals (water, banks, reeds), the far distance with no pop-in | src/world/hills/**, src/terrain far levels, water in src/world/plain/canals.ts, riparian.ts, solids.ts |
 | animals and life | herds, flocks, draught oxen, donkeys, horses, dogs, birds, wildlife and small life that look and move right | src/world/fauna.ts, beasts.ts, wildlife.ts, smallLife.ts, lifeModels.ts, src/people/animal*.ts |
 | atmosphere and night | weather that reads: rain shafts, wet ground, dust and dust devils, hearth and land smoke, breath in winter; night lit by moon, hearths, lamps and torches; the seasons (winter, harvest) | src/world/weatherVfx.ts, rainShafts.ts, dust*.ts, *Smoke.ts, breath.ts, fire.ts, fireOcc.ts, firePlaces.ts, season.ts, src/weather/** |
+| screens and cinematic | the out-of-world layer at the AAA standard: the loading screen (honest progress, beautiful), the title and menus, settings, the translation-layer text and subtitles, the chronicle (key J); and a gorgeous wordless intro cinematic: the plain at dawn, the river, the town waking, the Terrace in the first sun, the people at their work, ending where the player's walk begins (no narrator, no title card that hints at the place's fate, §1.1; in-engine, skippable, streamed while the world loads) | src/shell/**, src/ui/**, src/main.ts (the intro), a new src/shell/intro.ts |
 | works and camps | the Hall of a Hundred Columns' building site (gangs, scaffolds, stone, ramps), the court's camps and tents, visitors, the roads' traffic and caravans | src/world/construction.ts, courtCamps.ts, tentForms.ts, visitor/**, traffic.ts, terraceFoot.ts |
 
-Assets: scan libraries and asset packs first (Poly Haven, ambientCG, Sketchfab CC0/CC-BY; every asset in ASSET_LEDGER.md),
-compressed as they land (KTX2, Draco, LODs, impostors). Blender (tools/blender/) only to fill what no library has, fast; the
-existing Blender wave reused wherever it reads AAA in place. The scan's own colour and pattern lead (flip the scans.ts rule).
+**Where assets come from (UD-37).**
+- **Scan libraries (Poly Haven, ambientCG and the like) supply only what has no culture:** materials and nature: earth, sand,
+  rock, mud brick and plaster surfaces, limestone, wood grain, wool and linen weaves, grass, weeds, reeds, trees, sky. Every
+  one in ASSET_LEDGER.md; the scan's own colour and pattern lead (flip the scans.ts rule), re-tinted to the palette.
+- **Everything whose SHAPE carries a culture is ours, built in Blender (tools/blender/) to the project's period kit:**
+  buildings, walls, roofs, doors, stairs, columns, furniture, pottery, baskets, tools, weapons, clothing, jewellery, tents,
+  carts, people. Built fast, in bulk, from the kit the project already has (the house kit, column and capital models, the jar
+  and prop forms, the garments) and research/SITE_SPEC.md's measures, then surfaced with the scanned materials. No pack
+  building, pot, chair or costume, however good it looks: a Roman arch, a Moroccan tagine, a medieval barrel or a Greek
+  amphora is rejected on sight.
+- Everything compressed as it lands (KTX2, Draco, LODs, impostors).
 
 **Every ~45 min: the render train** re-renders the scoreboard with every merge in. The lead judges by eye against the AAA bar
 and the art direction, re-points agents at whatever still reads worst, merges (records as unions) and runs the merge budget.
