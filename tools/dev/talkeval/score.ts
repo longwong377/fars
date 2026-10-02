@@ -75,8 +75,11 @@ export function checkRow(r: Row) {
   return { fails, info };
 }
 
+const load = (p: string): Row[] => readFileSync(p, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)).filter(r => !r.error);
+/** --same: only the people every run has, each with all five turns (a fair before/after on the same people) */
+let SAME: Set<string> | null = null;
 function summarise(path: string) {
-  const rows: Row[] = readFileSync(path, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)).filter(r => !r.error);
+  const rows: Row[] = load(path).filter(r => !SAME || SAME.has(`${r.seed}:${r.pid}`));
   const byClass: Record<string, { n: number; ex: Row[] }> = {}, byKind: Record<string, [number, number]> = {}, info: Record<string, number> = {};
   const people = new Set<string>(), badPeople = new Set<string>(); let pass = 0;
   for (const r of rows) {
@@ -99,6 +102,8 @@ function summarise(path: string) {
 }
 
 const args = process.argv.slice(2), md = args.indexOf('--md'), mdPath = md >= 0 ? args[md + 1] : null, runs = args.filter((a, i) => !a.startsWith('--') && i !== md + 1 || md < 0 && !a.startsWith('--'));
+if (args.includes('--same')) { const sets = runs.map(p => { const c = new Map<string, number>(); for (const r of load(p)) c.set(`${r.seed}:${r.pid}`, (c.get(`${r.seed}:${r.pid}`) ?? 0) + 1); return new Set([...c].filter(([, n]) => n === 5).map(([k]) => k)); });
+  SAME = new Set([...sets[0]].filter(k => sets.every(s => s.has(k)))); }
 const S = runs.map(summarise);
 writeFileSync(runs[0].replace(/\.jsonl$/, '') + '.score.json', JSON.stringify(S, null, 1));
 const classes = [...new Set(S.flatMap(s => Object.keys(s.classes)))].sort((a, b) => (S[0].classes[b]?.n ?? 0) - (S[0].classes[a]?.n ?? 0));
