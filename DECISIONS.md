@@ -9495,3 +9495,5 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - The spawn's terrain chunks built in the build's idle wait; the measuring tools (measure.mjs, boot_profile.mjs --stages/--heap,
   boot_mem.mjs) say where time, CPU and memory go. The loading screen's animations cost a software-composited browser ~1 core
   for the whole load: sent to C5.
+
+- Also (assigned by the cloud lead): src/people/converse/ui.ts's note when a person answers in their own lines now says why, out of world: the talk still arriving (with its share), the talk's model could not be fetched (reload to retry), or the graphics card cannot run it. Text only; the talk's behaviour is unchanged. tools/dev/first_minutes.mjs drives a player's first minutes on the built site end to end (19 steps).
