@@ -168,8 +168,24 @@ export function planHouses(s: Site) {
     if (rng.chance(0.08) && p.kind !== 'workshop') { const c3 = court.filter(k => free(k)); if (c3.length) { const k = rng.pick(c3); fx({ kind: 'cradle', u: s.cu(k % s.W), v: s.cv((k / s.W) | 0), rot: rng.range(0, 6.28), len: 1, note: 'a wooden cradle in the shade of the wall (C)' }, [k]); } }
     // 9. a drain hole through the outer wall at the court's low corner, with its wet stain in the lane (C)
     { const lane = outerE.filter(e => e.k >= 0 && s.cell[e.k] < 0); if (lane.length) { const e = rng.pick(lane); S.fixtures!.push({ kind: 'drain', plot: p.idx, row: FIX_ROW.drain, u: e.u, v: e.v, rot: Math.atan2(-e.nv, -e.nu), len: 0.2, note: 'a drain hole through the court wall into the lane, its outfall stained (Babylonian houses drained courts and bathrooms: SX, B analogue; C)' }); } }
+    // 10. s17 C1 (D-550): no bare court and no bare roof. A court with fewer than three things gets the commonest of a
+    // household's (fuel against the wall, dung cakes drying on it, baskets, a line of washing) until it has three; a roof with
+    // nothing on it in every season (the mats are rolled there only while the nights are slept on the roof) gets its fuel stack.
+    // Drawn from the plot's stream after every earlier choice, so nothing above changes (C, as above)
+    { const mine = S.fixtures!.filter(f => f.plot === p.idx), courtN = mine.filter(f => !ROOF_FIX.has(f.kind) && f.kind !== 'niche' && f.kind !== 'drain').length;
+      const adds: (() => boolean)[] = [
+        () => { const e = rng.pick(wallSpots(outerE).length ? wallSpots(outerE) : wallSpots(facade).length ? wallSpots(facade) : [null]); if (!e) return false; fx({ kind: 'firewood', u: e.u, v: e.v, rot: Math.atan2(e.nv, e.nu), len: rng.range(0.8, 1.6), h: rng.range(0.5, 1.1), alt: rng.int(0, 2), note: 'brushwood and thorn fuel stacked against the wall (C)' }, [e.kk]); return true; },
+        () => { const e = rng.pick(outerE.length ? outerE : facade); if (!e) return false; S.fixtures!.push({ kind: 'dungcakes', plot: p.idx, row: FIX_ROW.dungcakes, u: e.u, v: e.v, rot: Math.atan2(e.nv, e.nu), len: rng.range(1.2, 2.4), h: rng.range(0.9, 1.5), alt: rng.int(8, 22), note: 'dung cakes pressed on the wall to dry for fuel (C)' }); return true; },
+        () => { const c2 = court.filter(k => free(k)); if (!c2.length) return false; const k = rng.pick(c2); fx({ kind: 'baskets', u: s.cu(k % s.W), v: s.cv((k / s.W) | 0), rot: rng.range(0, 6.28), len: 1, alt: rng.int(0, 5), note: 'baskets, a sieve and a broom of twigs (C)' }, [k]); return true; },
+        () => { const c2 = court.filter(k => free(k)); if (!c2.length) return false; const k = rng.pick(c2); fx({ kind: 'mortar', u: s.cu(k % s.W), v: s.cv((k / s.W) | 0), rot: rng.range(0, 6.28), len: 1, note: 'a stone mortar and a wooden pestle for pounding grain (C)' }, [k]); return true; },
+        () => { if (outerE.length + facade.length < 2) return false; const e = rng.pick(outerE.length >= 2 ? outerE : facade); S.fixtures!.push({ kind: 'line', plot: p.idx, row: FIX_ROW.line, u: e.u, v: e.v, rot: Math.atan2(e.nv, e.nu), len: rng.range(2, 3.2), h: 1.9, alt: rng.int(0, 7), note: 'a cord with washed cloth hung to dry (wool and linen: PF textile work, B; the line C)' }); return true; },
+      ];
+      let n = courtN; for (let a = 0; a < adds.length && n < 3; a++) if (!mine.some(f => f.kind === ['firewood', 'dungcakes', 'baskets', 'mortar', 'line'][a]) && adds[a]()) n++;
+      if (!mine.some(f => f.kind === 'roller' || f.kind === 'roof_fuel' || f.kind === 'fleece')) S.fixtures!.push({ kind: 'roof_fuel', plot: p.idx, row: FIX_ROW.roof_fuel, u: 0, v: 0, rot: rng.range(0, 6.28), len: rng.range(1, 2.2), alt: rng.int(0, 99), note: 'fuel stacked on the roof: brushwood, thorn, dung cakes (C)' }); }
   }
 }
+/** the fixtures that stand on the roof or hang from its parapet (the rest are the court's) */
+export const ROOF_FIX = new Set<FixKind>(['roller', 'roof_fuel', 'roof_mats', 'fleece']);
 /** facade edges grouped into straight runs (same normal, contiguous along the wall) */
 function runsOf(edges: Edge[]): Edge[][] {
   const key = (e: Edge) => `${e.nu},${e.nv},${e.nu ? e.u.toFixed(2) : e.v.toFixed(2)}`, groups = new Map<string, Edge[]>();
