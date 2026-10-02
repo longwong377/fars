@@ -33,7 +33,7 @@ describe('the road folk (D-570)', () => {
   }, 120_000);
   it('every traveller has a purpose, a look, and the paths keep off the Terrace and the town’s plots', () => {
     const out: Mover[] = [], seen = new Set<string>();
-    for (let h = 5; h < 19; h += 0.25) { traffic.folk.at(110 * 24 + h, out); for (const m of out) { if (seen.has(m.key)) continue; seen.add(m.key);
+    for (let h = 5; h < 19; h += 0.25) { traffic.folk.at(110 * 24 + h, out); const ids = out.map(m => m.look.id); expect(new Set(ids).size, `a person twice at ${h} h`).toBe(ids.length); for (const m of out) { if (seen.has(m.key)) continue; seen.add(m.key);
       expect(m.why.length, m.key).toBeGreaterThan(12); expect(['m', 'f']).toContain(m.look.sex); expect(Number.isFinite(m.e) && Number.isFinite(m.n)).toBe(true); } out.length = 0; }
     expect(seen.size).toBeGreaterThan(500);
     const F = traffic.folk as any; for (const P of [...F.paths.flatMap((p: any) => [p.inn, p.out]), F.through.sw, F.through.ws]) for (let s = 0; s <= P.len; s += 3) { const p = along(P, s);

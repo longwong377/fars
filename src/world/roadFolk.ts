@@ -26,7 +26,7 @@ import { route, along, type Route, type Mover } from './traffic';
 type P2 = [number, number];
 const FEAT = Object.fromEntries((settlement as any).features.map((f: any) => [f.id, f])) as Record<string, any>;
 /** households on each road's register (C) */
-export const ROAD_HH = 600;
+export const ROAD_HH = 2400;
 /** the Terrace's middle (grid m) and the radius of "near Pārsa" the streams keep busy (C: what the Terrace's edge and the
  *  plain round it see) */
 export const PARSA: P2 = [80, 30], NEAR = 2500;
@@ -117,7 +117,9 @@ const THROUGH = [
 interface Trip { key: string; road: number; dir: 1 | -1; path: Route; t0: number; pace: number; halt: { s: number; a: number; b: number; why: string; act: ActivityId } | null;
   people: { look: Mover['look']; act: ActivityId; why: string }[]; kind: Mover['kind'];
   /** where the trip runs along each road it uses: path s = s0 + sign * x, x the metres out from the road's Pārsa end */
-  on: { ri: number; s0: number; sign: 1 | -1 }[] }
+  on: { ri: number; s0: number; sign: 1 | -1 }[];
+  /** (cached by at(): the stay at the stair foot, and the hour after which the trip is over) */
+  foot?: { stay: number; spot: P2 } | null; tEnd?: number }
 /** the pass of a trip at path position s (absolute h), its halt counted */
 const passAt = (T: Trip, s: number) => T.t0 + s / T.pace / 3600 + (T.halt && s > T.halt.s ? T.halt.b - T.halt.a : 0);
 /** the spacing (min) the coverage fill keeps between passes at every reference point of a road, both ways together, in dry
@@ -145,7 +147,9 @@ export class RoadFolk {
     // few hurrying. A trader passing through takes some slots on the royal and the south roads
     ROADS.forEach((R, ri) => {
       const P = this.paths[ri], used = new Set<number>(); let k = 0;
-      const pick = () => { for (let g = 0; g < 50; g++) { const hh = Math.floor(h01(this.seed, 31000 + ri * 97 + d, k++) * ROAD_HH); if (!used.has(hh)) { used.add(hh); return hh; } } return k % ROAD_HH; };
+      // (no household twice at once: a day's comers are drawn from the half of the register of the day's parity, the households
+      // still at their kin's or going home from them from the other half: dayTrips)
+      const pick = () => { for (let g = 0; g < 80; g++) { const hh = 2 * Math.floor(h01(this.seed, 31000 + ri * 97 + d, k++) * ROAD_HH / 2) + (d & 1); if (!used.has(hh)) { used.add(hh); return hh; } } return 2 * (k % (ROAD_HH / 2)) + (d & 1); };
       const list: InRec[] = []; recs.set(ri, list);
       for (let h = w0, g = 0; g < 400 && h < w1; g++) { const wt = wet(h);
         if (!wt || h01(this.seed, 33000 + ri, d * 400 + g) < 0.3) {
@@ -167,7 +171,8 @@ export class RoadFolk {
     ROADS.forEach((R, ri) => {
       let g = 0;
       for (const [j, x] of (inb.recs.get(ri) ?? []).entries()) { if (x.E.overnight) continue; const t = x.tArr + x.E.stay[0] + (x.E.stay[1] - x.E.stay[0]) * h01(this.seed, 35000 + ri, d * 400 + j);
-        if (t - base < sun.set + 0.6 && !wet(t - base)) T!.push(this.trip(`rf${d}:${ri}:o${g++}`, ri, -1, t, x.H, x.E, 'out')); }
+        // (the same household going home: no stay at the foot before it, it had its time there coming in)
+        if (t - base < sun.set + 0.6 && !wet(t - base)) T!.push({ ...this.trip(`rf${d}:${ri}:o${g++}`, ri, -1, t, x.H, x.E, 'out'), foot: null }); }
       if (d > 0) for (const [j, x] of (this.inboundOf(d - 1).recs.get(ri) ?? []).entries()) if (x.E.overnight) { const t = sun.rise + 0.3 + 3 * h01(this.seed, 36000 + ri, d * 400 + j);
         if (!wet(t)) T!.push(this.trip(`rf${d}:${ri}:o${g++}`, ri, -1, base + t, x.H, x.E, 'out')); }
     });
@@ -177,6 +182,9 @@ export class RoadFolk {
     ROADS.forEach((R, ri) => {
       const P = this.paths[ri], xs: number[] = []; for (let x = 60; x < P.road; x += 125) { const p = along(P.out, P.tail + x); if (Math.hypot(p.e - PARSA[0], p.n - PARSA[1]) < NEAR + 60) xs.push(x); }
       let f = 0; const h0 = base + sun.rise + 0.1, h1 = base + sun.set - 0.1;
+      // (the fill's households: of the other half of the register than today's comers, not yesterday's overnight guests, each once)
+      const taken = new Set<number>((this.inboundOf(d - 1).recs.get(ri) ?? []).filter(x => x.E.overnight).map(x => x.H.hh)); let fk = 0;
+      const pickF = () => { for (let g = 0; g < 200; g++) { const hh = 2 * Math.floor(h01(this.seed, 37000 + ri * 97 + d, fk++) * ROAD_HH / 2) + ((d + 1) & 1); if (!taken.has(hh)) { taken.add(hh); return hh; } } return 2 * (fk % (ROAD_HH / 2)) + ((d + 1) & 1); };
       for (let pass = 0; pass < 3; pass++) for (const x of (pass === 1 ? [...xs].reverse() : xs)) {
         const ts: number[] = []; for (const tr of T!) for (const o of tr.on) if (o.ri === ri) { const s = o.s0 + o.sign * x; if (s >= 0 && s <= tr.path.len) ts.push(passAt(tr, s)); }
         ts.push(h0 - PASS_SPACING / 120, h1 + PASS_SPACING / 120); ts.sort((a, b) => a - b);
@@ -185,7 +193,7 @@ export class RoadFolk {
           for (let q = 1; q <= n; q++) { const at = t0g + gap * (q + 0.3 * (h01(this.seed, 41000 + ri, d * 4000 + f) - 0.5)) / (n + 1);
             if (wet(at - base)) continue;
             const inward = at - base < 11.5;
-            const H = household(this.seed, ri, Math.floor(h01(this.seed, 37000 + ri * 97 + d, f) * ROAD_HH)), E0 = errandOf(this.seed, H, d - 1 - (f % 3), month, false);
+            const H = household(this.seed, ri, pickF()), E0 = errandOf(this.seed, H, d - 1 - (f % 3), month, false);
             const E: Errand = inward ? E0 : { ...E0, overnight: true, outWhy: E0.overnight ? E0.outWhy : E0.outWhy.map(w => w.replace(/^walking home to ([^,]*)/, 'walking home to $1 after two nights with kin in Pārsa')) };
             let tr = this.trip(`rf${d}:${ri}:f${f}`, ri, inward ? 1 : -1, 0, H, E, inward ? 'in' : 'out'); const s = tr.on[0].s0 + tr.on[0].sign * x;
             tr = { ...tr, t0: at - s / tr.pace / 3600, halt: null }; T!.push(tr); f++; ts.splice(i, 0, at); i++; } }
@@ -205,7 +213,7 @@ export class RoadFolk {
   }
   private throughTrip(d: number, g: number, t0: number, dir: 1 | -1): Trip {
     const T = THROUGH[h01(this.seed, 40000 + d, g) < 0.25 ? 1 : 0], camel = T === THROUGH[1], seedN = d * 997 + g;
-    const look: Mover['look'] = { id: -260000 - (seedN % 30000), sex: 'm', role: 'porter', dress: camel ? 'median' : 'worker', origin: camel ? (h01(this.seed, seedN, 3) < 0.5 ? 'Bactrian' : 'Arachosian') : 'Persian', seed: 400000 + (seedN % 90000), age: 'adult' };
+    const look: Mover['look'] = { id: -400000 - (seedN % 60000), sex: 'm', role: 'porter', dress: camel ? 'median' : 'worker', origin: camel ? (h01(this.seed, seedN, 3) < 0.5 ? 'Bactrian' : 'Arachosian') : 'Persian', seed: 500000 + (seedN % 90000), age: 'adult' };
     const X = this.through!, on: Trip['on'] = dir === 1 ? [{ ri: 0, s0: X.w, sign: -1 }, { ri: 1, s0: X.w + X.c, sign: 1 }] : [{ ri: 1, s0: X.s, sign: -1 }, { ri: 0, s0: X.s + X.c, sign: 1 }];
     return { key: `rt${d}:${g}`, road: dir === 1 ? 0 : 1, dir, path: dir === 1 ? X.sw : X.ws, t0, pace: FOLK_PACE.string, halt: null, people: [{ look, act: 'walk', why: dir === 1 ? T.why : T.back }], kind: camel ? 'camel' : 'pack', on };
   }
@@ -215,8 +223,9 @@ export class RoadFolk {
   vergeFlocks(d: number) {
     let V = this.verges.get(d); if (V) return V; V = []; const C = this.cal.ctx(Math.max(0, d)), sun = C.sun ?? { rise: 6, set: 18 }, wx = C.wx ?? {};
     if (!wx.wet) ROADS.forEach((R, ri) => { const P = this.paths[ri], n = 2 + (h01(this.seed, 43000 + ri, d) < 0.5 ? 1 : 0);
-      for (let k = 0; k < n; k++) { const u = (q: number) => h01(this.seed, 43100 + ri * 10 + k, d * 8 + q); let hh = Math.floor(u(1) * ROAD_HH), H = household(this.seed, ri, hh);
-        for (let g = 0; g < 40 && H.live !== 'herder'; g++) { hh = (hh + 7) % ROAD_HH; H = household(this.seed, ri, hh); }
+      const busy = new Set((this.inboundOf(d).recs.get(ri) ?? []).map(x => x.H.hh));
+      for (let k = 0; k < n; k++) { const u = (q: number) => h01(this.seed, 43100 + ri * 10 + k, d * 8 + q); let hh = 2 * Math.floor(u(1) * ROAD_HH / 2) + (d & 1), H = household(this.seed, ri, hh);
+        for (let g = 0; g < 80 && (H.live !== 'herder' || busy.has(hh)); g++) { hh = (hh + 14) % ROAD_HH; H = household(this.seed, ri, hh); } busy.add(hh);
         const t0 = sun.rise + 1 + 3 * u(2), t1 = Math.min(sun.set - 1, t0 + 3 + 3 * u(3));
         // (a stretch of verge clear of the town's plots for the drift and the flock about the herder: both sides tried, then on)
         let x0 = 600 + (P.road - 900) * (k + u(4)) / n, side = (u(5) < 0.5 ? 1 : -1) * (10 + 4 * u(6)), ok = false;
@@ -236,7 +245,9 @@ export class RoadFolk {
     for (const dd of [d - 1, d]) { if (dd < 0) continue; for (const T of this.dayTrips(dd)) {
       // at the stair foot (the roads' Pārsa end): a third of the trips stay a while there first or last (selling, holding the string,
       // a word before the road home), at their own spot on the approach, walked to from the road's end (C)
-      const F = T.road >= 0 && T.key.startsWith('rf') ? footStay(this.seed, T.key) : null, walkF = F ? Math.hypot(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) / T.pace / 3600 : 0;
+      if (T.tEnd === undefined) { if (T.foot === undefined) T.foot = T.key.startsWith('rf') ? footStay(this.seed, T.key) : null; T.tEnd = T.t0 + T.path.len / T.pace / 3600 + (T.halt ? T.halt.b - T.halt.a : 0) + (T.foot ? 1 : 0); }
+      if (t > T.tEnd || t < T.t0 - 1) continue; // (the stay and the walk to it are under an hour either side)
+      const F = T.foot ?? null, walkF = F ? Math.hypot(F.spot[0] - FOOT_IN[0], F.spot[1] - FOOT_IN[1]) / T.pace / 3600 : 0;
       let s: number, act: ActivityId | null = null, why = '', at: { e: number; n: number; heading: number } | null = null;
       if (t < T.t0) { if (!F || T.dir !== -1 || t < T.t0 - walkF - F.stay) continue; // (outbound: the stay, then the walk to the road's end)
         const u = Math.max(0, (t - (T.t0 - walkF)) / Math.max(1e-6, walkF)); at = { e: F.spot[0] + (FOOT_IN[0] - F.spot[0]) * u, n: F.spot[1] + (FOOT_IN[1] - F.spot[1]) * u, heading: Math.atan2(FOOT_IN[0] - F.spot[0], FOOT_IN[1] - F.spot[1]) };
