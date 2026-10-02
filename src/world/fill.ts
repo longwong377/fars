@@ -28,6 +28,8 @@ const SHADOW = new Set(['fill_stall', 'fill_awning', 'fill_reed_awning', 'fill_m
  *  hundred triangles; the litter is flat junk at lod2) and not beyond their range (m), so the many kinds they add cost one draw
  *  per part, not three: [level, range] */
 const ONE_LEVEL: Record<string, [number, number]> = { gap: [1, 40], litter: [2, 30] };
+/** s17 C1: the roofs' things are mostly seen from above and afar (the Terrace, the next roof): drawn to this range (m) */
+const ROOF_R = 120;
 export const FILL_R = { small: 55, big: 110, lod0: 7, lod1: 22, move: 3 } as const;
 const CELL = 32;
 const _c = new THREE.Color();
@@ -78,11 +80,11 @@ export class WorldFill {
     if (!force && day === this.lastDay && Math.hypot(viewer[0] - this.last[0], viewer[1] - this.last[1]) < FILL_R.move) return false;
     this.last = [viewer[0], viewer[1]]; this.lastDay = day;
     for (const L of this.slots.values()) for (const S of L) for (const s of S) s.n = 0;
-    const R = FILL_R.big, i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
+    const R = Math.max(FILL_R.big, ROOF_R), i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
     let drawn = 0;
     for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) for (const k of this.grid.get(this.key(i, j)) ?? []) {
       const it = this.items[k], y = this.y[k]; if (!Number.isFinite(y) || (it.day && (!open || wet || (it.until !== undefined && hour >= it.until))) || (wet && it.m === 'fill_line')) continue;
-      const d = Math.hypot(it.e - viewer[0], it.n - viewer[1]), one = ONE_LEVEL[it.at]; if (d > (one ? one[1] : BIG.has(it.m) ? FILL_R.big : FILL_R.small)) continue;
+      const d = Math.hypot(it.e - viewer[0], it.n - viewer[1]), one = ONE_LEVEL[it.at]; if (d > (one ? one[1] : BIG.has(it.m) ? FILL_R.big : it.at === 'roof' ? ROOF_R : FILL_R.small)) continue;
       const levels = this.slots.get(it.m); if (!levels) continue;
       const L = levels[one ? one[0] : d < FILL_R.lod0 ? 0 : d < FILL_R.lod1 ? 1 : 2];
       this.q.setFromAxisAngle(this.up, it.rot); if (it.tilt) this.q.multiply(this.qt.setFromAxisAngle(this.xAxis, it.tilt)); this.m4.compose(this.p.set(it.e, y + it.dy, -it.n), this.q, this.sc.set(it.s[0], it.s[1], it.s[2]));
