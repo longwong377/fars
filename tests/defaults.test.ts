@@ -9,11 +9,11 @@ import { courtYear } from '../src/people/courtYear';
 import { sunTimes } from '../src/people/calendar';
 
 describe('decided defaults (T-K10)', () => {
-  it('D-376 / UD-31: talking with the people is on by default, with the small model, its bundle under 600 MB, streamed after the first frames', async () => {
+  it('D-376 / UD-31: talking with the people is on by default, with the talk model (D-394: Qwen2.5-1.5B), its bundle under 1200 MB, streamed while the player walks', async () => {
     expect(DEFAULT_SETTINGS.talk).toBe(true);
     const { TALK_MODEL, TALK_MB, LLMS, appConfig } = await import('../src/people/converse/models');
-    expect(TALK_MODEL).toBe('Qwen2.5-0.5B-Instruct-q4f16_1-MLC'); expect(LLMS.some(m => m.id === TALK_MODEL)).toBe(true);
-    expect(TALK_MB.llm + TALK_MB.kokoroWebgpu + TALK_MB.voices).toBeLessThanOrEqual(600); expect(TALK_MB.llm + TALK_MB.kokoroWasm + TALK_MB.voices).toBeLessThanOrEqual(600);
+    expect(TALK_MODEL).toBe('Qwen2.5-1.5B-Instruct-q4f16_1-MLC'); expect(LLMS.some(m => m.id === TALK_MODEL)).toBe(true);
+    expect(TALK_MB.llm + TALK_MB.kokoroWebgpu + TALK_MB.voices).toBeLessThanOrEqual(1200); expect(TALK_MB.llm + TALK_MB.kokoroWasm + TALK_MB.voices).toBeLessThanOrEqual(1200);
     expect(appConfig([TALK_MODEL], 'https://example.org').model_list[0].model_lib).toMatch(/Qwen2-0\.5B-Instruct-q4f16_1_cs1k-webgpu\.wasm$/);
     const main = readFileSync('src/main.ts', 'utf8'), ui = readFileSync('src/people/converse/ui.ts', 'utf8'), world = readFileSync('src/world/world.ts', 'utf8');
     expect(main).toMatch(/settings\.talk && !P\.has\('test'\)/); expect(main).toMatch(/\+\+shownFrames === 5\) \{ \(world as any\)\.neural\?\.start/);
