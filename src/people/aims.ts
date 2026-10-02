@@ -39,6 +39,12 @@ export function aimsOf(pop: Population, cal: EventCalendar | null, pid: number, 
   if ((p.job === 'farmer' || p.job === 'gardener') && age >= 14) { if (month >= 11 || month <= 1) worries.push([3, 'whether the rains come for the barley']); else if (month <= 3) worries.push([3, 'hail or blight before the harvest is in']); }
   if ((p.job === 'shepherd' || p.job === 'herder') && (month >= 9 || month <= 0)) worries.push([3, 'the cold for the lambs']);
   if (p.job === 'builder' && age >= 16) worries.push([2, 'an accident at the stone']);
+  // (the Terrace's own people: the work's own worries, low weight; C)
+  const JOB_WORRY: Record<string, string[]> = { guard: ['the inspection of the watch', 'a quarrel in the file of ten', 'a long night on the gate'], scribe: ['an account that will not come out right', 'a tablet broken before it was sealed'],
+    porter: ['a strained back', 'a sack split on the stair'], official: ['an account sent up to Šušan that is short', 'the king\'s officials coming to inspect'], storekeeper: ['the counts of the stores', 'rats in the grain'],
+    treasury: ['a weight that does not tally', 'a careless hand at the precious things'], weaver: ['the wool running short for the work group', 'a pattern gone wrong'], miller: ['the quern stone wearing thin'],
+    servant: ['the master\'s temper'], messenger: ['a lame horse on the road', 'a sealed letter lost'], groom: ['a horse gone lame'], caretaker: ['oil running short for the lamps'], priest: ['the fire going out', 'an offering not accepted'] };
+  if (JOB_WORRY[p.job] && age >= 16) worries.push([1, pick(JOB_WORRY[p.job], u01(pop.seed, S, pid, 2))]);
   // ---- hopes
   if (p.marry > day && p.marry < 1e8 && p.spouse !== undefined) hopes.push([9, `the wedding with ${name(pop, p.spouse) ?? 'the one agreed'}`]);
   const daughter = mem.find(m => { const q = pop.persons[m]; return q.sex === 'f' && q.mother >= 0 && (q.mother === pid || pop.persons[q.mother]?.hh === p.hh) && pop.ageOn(m, day) >= 18 && pop.ageOn(m, day) <= 23 && q.marry > 1e8; });
