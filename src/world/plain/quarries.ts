@@ -45,6 +45,7 @@ export function quarrySites(terrain: { heightAt(x: number, z: number): number })
 export const QUARRY = { width: 30, front: 4, back: 30, step: 5, rise: 2.0, benches: 3, floor: [-4, 12] as [number, number],
   block: { w: 2.2, d: 1.4, h: 1.1, gap: 0.22, lifted: 0.3, /** per bench (the frame budget: the stone shares the fords' unculled draw) */ most: 8 },
   /** spoil heaps: centre (u, v), radius, height (piles of the talus scan, 2-3 overlapping, fresh pale chips) */ heaps: [[-23, 9, 8, 2.4], [22, 11, 7, 2.0], [-12, 21, 6, 1.6]] as [number, number, number, number][],
+  /** column drums: radius, height (the Apadana's shafts ~1.6-1.9 m across, C), segments, how many lie by the way out */ drum: { r: 0.9, h: 1.1, seg: 18, lying: 3 },
   /** the outcrop: pieces either side and behind, their scale (x the outcrop scan's 4 m) and sunk share */ ridge: { side: 9, behind: 9, top: 4, scale: [4.2, 6] as [number, number], sink: 0.15 },
   /** chips on the heaps and the floor: count per heap, on the floor, their scale */ chips: { heap: 24, floor: 30, scale: [0.07, 0.24] as [number, number] } } as const;
 /** a rock piece of the workings: variant, world position, yaw, scale (x, y, z), tint, level class ('ridge' or 'chip') */
@@ -129,24 +130,38 @@ export function buildQuarries(terrain: Terrain, seed = 1): QuarryBuild {
   // the outcrop's pieces stand as solids too (their footprint, a little inside the scan's extent)
   for (const r of rocks) for (const q of r.pieces) if (!q.chip) { const w = 4.04 * q.s[0] * 0.35, d = 3.75 * q.s[2] * 0.35, h = 1.33 * q.s[1];
     boxes.push({ c: new THREE.Vector3(q.p[0], q.p[1] + h / 2, q.p[2]), h: new THREE.Vector3(w, h / 2, d), rot: q.yaw }); }
-  // the rock: three merged levels (one drawn), built when the kit is there; a level changes where the outcrop's largest
-  // piece's gap between levels spans 2 px (bedrock.ts ROCK_LOD_GAP)
-  let levels: THREE.Mesh[] | null = null;
+  // the rock: per quarry one mesh (culled on its own) with three merged levels, built when the kit is there; a level changes
+  // where the outcrop's largest piece's gap between levels spans 2 px (bedrock.ts ROCK_LOD_GAP)
+  let rockMeshes: { m: THREE.Mesh; levels: THREE.BufferGeometry[]; x: number; z: number }[] | null = null;
   const build = (kit: RockKit) => {
     const mat = rockMaterialOf(kit, 'ground'); if (!mat || !kit.ground.length) return [];
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
-    return [0, 1, 2].map(l => { const parts: THREE.BufferGeometry[] = [];
-      for (const r of rocks) for (const pc of r.pieces) { m4.compose(new THREE.Vector3(...pc.p), q.setFromAxisAngle(up, pc.yaw), new THREE.Vector3(...pc.s)); parts.push(bakedRockPiece(kit, 'ground', pc.v, pc.chip ? 2 : l, m4, pc.c)); }
-      const g = mergeGeometries(parts.map(p => { for (const k of Object.keys(p.attributes)) if (!['position', 'normal', 'uv', 'rtint', 'rorg'].includes(k)) p.deleteAttribute(k); return p; }))!;
-      const m = new THREE.Mesh(g, mat); m.name = `plain-quarries:rock:lod${l}`; m.castShadow = m.receiveShadow = true; m.visible = false;
-      m.userData = tag({ tier: 'C', src: 'POLYHAVEN-CC0' }, 'the quarries\' outcrop and spoil chips (D-600): CC0 rock scans (Poly Haven, hills/bedrock.ts kit) re-tinted to the limestone palette; every place C'); group.add(m); return m; });
+    return rocks.map(r => {
+      const levels = [0, 1, 2].map(l => { const parts: THREE.BufferGeometry[] = [];
+        for (const pc of r.pieces) { m4.compose(new THREE.Vector3(...pc.p), q.setFromAxisAngle(up, pc.yaw), new THREE.Vector3(...pc.s)); parts.push(bakedRockPiece(kit, 'ground', pc.v, pc.chip ? 2 : l, m4, pc.c)); }
+        const g = mergeGeometries(parts.map(p => { for (const k of Object.keys(p.attributes)) if (!['position', 'normal', 'uv', 'rtint', 'rorg'].includes(k)) p.deleteAttribute(k); return p; }))!;
+        g.computeBoundingSphere(); return g; });
+      const m = new THREE.Mesh(levels[2], mat); m.name = `plain-quarries:rock:${r.S.id}`; m.castShadow = m.receiveShadow = true;
+      m.userData = tag({ tier: 'C', src: 'POLYHAVEN-CC0' }, 'the quarry\'s outcrop, spoil heaps and chips (D-600): CC0 rock scans (Poly Haven, hills/bedrock.ts kit) re-tinted to the limestone palette; every place C');
+      group.add(m); return { m, levels, x: r.S.x, z: -r.S.y }; });
   };
   const gap = ROCK_LOD_GAP.outcrop05 ?? [0.07, 0.64], sMax = QUARRY.ridge.scale[1], dNear = (gap[0] * sMax * BEDROCK.pxRad) / 2, dMid = (gap[1] * sMax * BEDROCK.pxRad) / 2;
   const update = (cam: THREE.Vector3) => {
-    if (!levels) { const kit = rockKit(); if (!kit) return; levels = build(kit); }
-    if (!levels.length) return;
-    const d = Math.min(...sites.map(s => Math.hypot(s.x - cam.x, -s.y - cam.z))), l = d < dNear ? 0 : d < dMid ? 1 : 2;
-    levels.forEach((m, i) => { m.visible = i === l; });
+    if (!rockMeshes) { const kit = rockKit(); if (!kit) return; rockMeshes = build(kit); }
+    for (const R of rockMeshes) { const d = Math.hypot(R.x - cam.x, R.z - cam.z), g = R.levels[d < dNear ? 0 : d < dMid ? 1 : 2]; if (R.m.geometry !== g) R.m.geometry = g; }
   };
+  // column drums roughed out at the quarry (the Terrace's columns were raised from drums: construction.ts, traffic.ts's
+  // hauls): lying on the floor by the way out, and one standing half-freed on the lowest bench; per quarry one draw (C)
+  const drumMat = surfaceMaterial('limestone_carved');
+  for (const r of rocks) {
+    const S = r.S, rng = new Rng(seed, S.id + ':drums'), parts: THREE.BufferGeometry[] = [], D = QUARRY.drum;
+    const drum = (u: number, v: number, y: number, lying: boolean, yaw: number) => { const [px, py] = S.at(u, v), c = new THREE.CylinderGeometry(D.r, D.r * 1.02, D.h, D.seg, 1);
+      if (lying) c.rotateZ(Math.PI / 2); c.rotateY(S.rot + yaw); c.translate(px, y + (lying ? D.r : D.h / 2), -py); parts.push(c);
+      boxes.push({ c: new THREE.Vector3(px, y + (lying ? D.r : D.h / 2), -py), h: lying ? new THREE.Vector3(D.h / 2, D.r, D.r) : new THREE.Vector3(D.r * 0.8, D.h / 2, D.r * 0.8), rot: S.rot + yaw }); };
+    for (let k = 0; k < D.lying; k++) { const u = (k % 2 ? 1 : -1) * rng.range(3, 6), v = rng.range(10, 14); drum(u, v, terrain.heightAt(...(([a, b]) => [a, -b] as [number, number])(S.at(u, v))) - 0.12, true, rng.range(-0.4, 0.4)); }
+    drum(-QUARRY.width / 2 + 4, -QUARRY.front - QUARRY.block.d / 2, r.y0 + QUARRY.rise - QUARRY.block.h, false, 0);
+    const m = new THREE.Mesh(mergeGeometries(parts.map(g => g.toNonIndexed()))!, drumMat); m.name = `plain-quarries:drums:${S.id}`; m.castShadow = m.receiveShadow = true;
+    m.userData = tag({ tier: 'C', src: 'RECON' }, 'column drums roughed out at the quarry, waiting for the sledge (D-600; C)'); group.add(m);
+  }
   return { group, sites, boxes, update };
 }
