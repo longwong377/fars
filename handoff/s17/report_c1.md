@@ -22,6 +22,9 @@
   into fauna.ts if the frame budget tightens); C2 keeps my village wall pass and dresses only beyond the compounds (threshing
   floors, straw stacks, folds: possible overlap only near a floor's straw stacks, not handled).
 
+- **Reach (C9's walk bots):** plot spots now only on cells a body reaches from the street door (walk.ts plotCells); the pen
+  q_s2-0181 fixed. **B580 open:** five houses shut in at pinched frontages (pre-existing; the fix reshapes neighbours' walls).
+
 ## What a player now sees differently
 - Every lane wall has something at its foot every few metres: jars, pots, basins, stools, rolled and leaned reed mats, tall
   baskets, winnowing trays, tools leaned on the wall (hoe, broom, fork, staff), dung cakes drying, fuel, repair mud and bricks;
