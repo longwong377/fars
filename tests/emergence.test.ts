@@ -11,8 +11,9 @@ import { Economy } from '../src/people/economy/world';
 import { chains, householdsOf, type Chain } from '../src/people/economy/chains';
 import type { Intent } from '../src/people/economy/api';
 import { u01, salt } from '../src/people/hash';
+import { enterBySpeech } from '../tools/dev/enter_chains';
 
-const SEEDS = [1, 7, 42], YEAR = 354, N_INT = 10;
+const SEEDS = [1, 7, 42], YEAR = 354, N_INT = 10, N_SPEECH = 30;
 const run = (seed: number, hs: ReturnType<typeof householdsOf>, iv: Intent[] = []) => { const e = new Economy(seed, hs, { interventions: iv }); for (let d = 0; d < YEAR; d++) e.step(d); return e; };
 
 /** a seeded intervention entering a chain at its first household event: grain and silver given (action) on odd samples,
@@ -44,15 +45,21 @@ describe('T-F9 emergent consequence chains', () => {
       const iv = intervention(e, c, i); const x = run(seed, hs, [iv]); const k = leafKey(e, c.leaf), d0 = e.events[c.leaf].day;
       if (!x.events.some(v => leafKey(x, v.id) === k && Math.abs(v.day - d0) <= 10)) entered++;
     }
+    // D-384 enterableSpeech: a larger seeded sample entered by the stranger's own verbs (tools/dev/enter_chains.ts: the routes
+    // by a fixed rule from the chain, judged by the simulation as in play); `enterable` above keeps its meaning
+    const sp = enterBySpeech(seed, hs, e, cs, N_SPEECH, YEAR);
     const kinds: Record<string, number> = {}; for (const v of e.events) kinds[v.kind] = (kinds[v.kind] ?? 0) + 1;
     results.push({ seed, households: hs.length, events: e.events.length, chains: cs.length, shapes: new Set(cs.map(c => c.shape)).size, roots: [...roots],
       longest: Math.max(0, ...cs.map(c => c.path.length)), enterable: entered / Math.max(1, sample.length), sampled: sample.length, kinds,
+      enterableSpeech: sp.share, speech: { sampled: sp.sampled, entered: sp.entered, byRoute: sp.byRoute, byLeaf: sp.byLeaf,
+        trials: sp.trials.map(t => ({ shape: t.shape, family: t.family, routes: t.routes, enteredBy: t.enteredBy, told: t.refused })) },
       // D-340: the crisis end, counted per year (thefts, arrests, judgements, petitions, bondages)
       crisis: Object.fromEntries(Object.entries({ thefts: ['theft'], accusations: ['accusation'], arrests: ['arrest'], theftJudgements: ['acquitted', 'fined', 'beaten'], debtSuits: ['suit'], debtJudgements: ['time_granted', 'debt_labour'], bondages: ['bound_labour'], petitions: ['petition'], reliefs: ['relief'], remissions: ['remitted'], refusals: ['petition_refused'], loansRefused: ['loan_refused'], fires: ['house_fire'], animalsLost: ['animal_lost'], levies: ['levy'], goodHarvests: ['harvest_good'] }).map(([k, xs]) => [k, xs.reduce((a, x) => a + (kinds[x] ?? 0), 0)])),
       examples: cs.slice(0, 5).map(c => c.path.map(i => `${e.events[i].kind}(${e.events[i].actor})`).join(' -> ')) });
     expect(cs.length).toBeGreaterThan(0);
     expect(roots.size).toBeGreaterThanOrEqual(2);
     expect(entered).toBeGreaterThan(0);
+    expect(sp.entered).toBeGreaterThan(0);
   }, 600_000);
   it('records the measurement', () => {
     // strict: distinct shapes over the whole world (r.chains counts shape@leaf-household)
@@ -62,7 +69,11 @@ describe('T-F9 emergent consequence chains', () => {
     // the tool's dependency hash, so the board can judge it)
     let commit = 'none'; try { commit = execSync('git rev-parse --short HEAD').toString().trim() + (execSync('git status --porcelain -- src tests tools data').toString().trim() ? '-dirty' : ''); } catch { /* no git */ }
     const pass = min >= 50 && ent >= 0.5;
-    writeFileSync('REVIEWS/evidence/F/T-F9.json', JSON.stringify({ id: 'T-F9', tool: 'tests/emergence.test.ts', value: min, n: results.length, enterable: ent, pass, status: pass ? 'PASS' : 'FAIL', commit, dep: depHashFor('tests/emergence.test.ts'), generated: new Date().toISOString(), perSeed: results }, null, 1) + '\n');
-    console.log(JSON.stringify(results.map(r => ({ seed: r.seed, hh: r.households, chains: r.chains, shapes: r.shapes, enterable: r.enterable, crisis: r.crisis, ex: r.examples.slice(0, 2) }))));
+    // D-384: the speech measure, pooled over the seeds (reported beside the old one; `pass` stays on the old fields)
+    const spN = results.reduce((a, r) => a + r.speech.sampled, 0), spE = results.reduce((a, r) => a + r.speech.entered, 0);
+    const spRoute: Record<string, { tried: number; entered: number }> = {};
+    for (const r of results) for (const [k, v] of Object.entries(r.speech.byRoute as Record<string, { tried: number; entered: number }>)) { const o = spRoute[k] ??= { tried: 0, entered: 0 }; o.tried += v.tried; o.entered += v.entered; }
+    writeFileSync('REVIEWS/evidence/F/T-F9.json', JSON.stringify({ id: 'T-F9', tool: 'tests/emergence.test.ts', value: min, n: results.length, enterable: ent, enterableSpeech: spE / Math.max(1, spN), enterableSpeechMin: Math.min(...results.map(r => r.enterableSpeech)), speechSampled: spN, speechRoutes: spRoute, pass, status: pass ? 'PASS' : 'FAIL', commit, dep: depHashFor('tests/emergence.test.ts'), generated: new Date().toISOString(), perSeed: results }, null, 1) + '\n');
+    console.log(JSON.stringify(results.map(r => ({ seed: r.seed, hh: r.households, chains: r.chains, shapes: r.shapes, enterable: r.enterable, enterableSpeech: r.enterableSpeech, crisis: r.crisis, ex: r.examples.slice(0, 2) }))));
   });
 });

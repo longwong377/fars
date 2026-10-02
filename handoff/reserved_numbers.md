@@ -117,3 +117,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-368..D-369 | s15 | reserved for the lead (Q-1220..Q-1229, B390..B399) | the lead | reserved |
 | D-370..D-379 | s15 | the cloud depth session (Q-1230..Q-1259, B400..B429) | cloud, branch cloud-s15-depth | reserved |
 | D-380..D-399 | s15 | reserved for Vagon waves (Q-1260..Q-1399, B430..B499) | the lead | reserved |
+| D-380..D-394 | s15 | TAKEN by the cloud depth session's overflow (its agents and sessions: D-380 errands, D-381 marriages, D-382 persona, D-383 court, D-384 speech chains, D-385 sight, D-386 load, D-387 period speech, D-388 rollover, D-389 T-E14, D-390 census, D-391 trust fixes; D-392..D-394 spare); Vagon waves from D-395 | cloud, branch cloud-s15-depth | in use |

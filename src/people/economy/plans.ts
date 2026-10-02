@@ -399,7 +399,7 @@ export class EconPlans {
     }
     if (st.mode === 'follow') { // a little one goes along with the mother on her economy stretches
       const mo = +st.from!, mp = this.pop.plan(mo, st.day), runs: [number, number][] = [];
-      for (const s of mp) if (s.ev?.startsWith('D-340')) { const l = runs[runs.length - 1]; if (l && Math.abs(l[1] - s.t0) < 1e-6) l[1] = s.t1; else runs.push([s.t0, s.t1]); }
+      for (const s of mp) if (s.ev?.startsWith('D-340')) { const l = runs[runs.length - 1]; if (l && s.t0 - l[1] < 0.5) l[1] = s.t1; else runs.push([s.t0, s.t1]); } // (two stretches close together are one outing: the little one stays with her between them)
       let out = segs, any = false;
       for (const [a, b] of runs) { if (segAt(segs, a + 1e-4).with !== mo && segAt(segs, Math.max(a, b - 1e-4)).with !== mo) continue;
         const copy = mp.filter(s => s.t1 > a && s.t0 < b).map(s => ({ ...s, t0: Math.max(a, s.t0), t1: Math.min(b, s.t1), with: mo, ev: `D-340 economy: with_mother (C)`,
