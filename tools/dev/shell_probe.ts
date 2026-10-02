@@ -27,11 +27,13 @@ if (screen === 'loading') {
 else if (screen === 'pause') shell.pause();
 else if (screen === 'settings') { (shell as any).lastTab = +(P.get('tab') ?? 0); shell.settingsPanel(() => shell.pause()); }
 else if (screen === 'controls') shell.controls();
-else if (screen === 'chronicle' || screen === 'subtitle') {
+else if (screen === 'chronicle' || screen === 'subtitle' || screen === 'insc' || screen === 'map') {
   settings.translation = true; shell.playing();
   const { TranslationLayer } = await import('../../src/ui/translation');
   const tl = new TranslationLayer(() => settings);
   if (screen === 'chronicle') tl.toggle('chronicle');
+  if (screen === 'map') tl.toggle('map');
+  if (screen === 'insc') (tl as any).picked = { id: P.get('id') ?? 'XPa', version: P.get('ver') ?? 'op' };
   const ev = (t: number, kind: string, text: string) => ({ t, kind, text, place: '', tier: 'C' });
   const events = [ev(30.2, 'birth', 'Irdabama, wife of the potter Ukpiš, bore a daughter in the lane of the potters.'), ev(31.5, 'trade', 'Barley rose to 1 shekel for 30 qa at the market by the N gate.'),
     ev(40.1, 'visitor', 'A caravan from Susa came in by the W road: 14 asses, cloth and dried fish.'), ev(52.9, 'work', 'The haulers of the Hall of a Hundred Columns raised a column drum on the ramp.'),

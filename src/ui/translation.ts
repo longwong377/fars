@@ -237,7 +237,7 @@ export class TranslationLayer {
       if (d.zoom !== this.zoom || (ctx.now - d.t > 0.2 && (Math.hypot(p.e - d.e, p.n - d.n) > 2 * this.metresPerPx() || Math.abs(p.yawDeg - d.yaw) > 2))) {
         this.drawMap(ctx); Object.assign(d, { zoom: this.zoom, e: p.e, n: p.n, yaw: p.yawDeg, t: ctx.now });
         const Z = MAP_ZOOMS[this.zoom];
-        this.panel.replaceChildren(el('h2', '', `Map (translation layer): ${Z.name}`), this.mapCanvas, el('div', 'small', this.zoom === 0
+        this.panel.replaceChildren(el('h2', '', `Map · ${Z.name}`), this.mapCanvas, el('div', 'small', this.zoom === 0
           ? 'Grid north up (341° true). Footprints: OpenStreetMap ruin traces and the Phase 4 corrections. Z: wider view. M closes.'
           : 'Grid north up (341° true), centred on you. What the world builds: town plots, roads, water, rivers, canals, villages and sites, as reconstructed. Solid outline: tier A/B; dashed: tier C (reconstructed). Z: next scale. M closes.'));
       }
@@ -285,13 +285,17 @@ export class TranslationLayer {
     c.fillStyle = '#1b1712'; c.fillRect(0, 0, W, H);
     if (Z.half && ctx.mapLayers) this.drawLayers(c, ctx.mapLayers(), px, py, sc, [x0, x1, y0, y1]);
     const PRESENT_KEY: Record<string, string> = { museum_modern: '', modern_roof_a1bf0b: '', palace_h: 'palace_h', palace_a3_osm: 'palace_a3', unfinished_gate: 'unfinished_gate', tomb_a2: 'tombs_rahmat' };
-    for (const [k, f] of Object.entries(FOOTPRINTS)) {
+    // the platform first, then the buildings on it, then every label over all of them (D-590: the terrace, last in the file,
+    // was painted over the buildings and their labels)
+    const fps = Object.entries(FOOTPRINTS).sort(([a], [b]) => (b === 'terrace' ? 1 : 0) - (a === 'terrace' ? 1 : 0)), labels: (() => void)[] = [];
+    for (const [k, f] of fps) {
       if (k.startsWith('_') || !(f as any).polygon) continue;
       const pk = PRESENT_KEY[k] ?? k; if (pk === '' || (k !== 'terrace' && !present(pk))) continue;
       c.beginPath(); (f as any).polygon.forEach(([e, n]: [number, number], i: number) => (i ? c.lineTo(px(e), py(n)) : c.moveTo(px(e), py(n)))); c.closePath();
       c.fillStyle = k === 'terrace' ? '#3a332a' : '#6b5e4a'; c.strokeStyle = '#c9a25e'; c.lineWidth = k === 'terrace' ? 2 : 1; c.fill(); c.stroke();
-      if (k !== 'terrace' && !Z.half) { const [ce, cn] = (f as any).centroid; c.fillStyle = '#eee3cf'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.textAlign = 'center'; c.fillText(FOOTPRINT_LABEL[k] ?? k.replace(/_/g, ' '), px(ce), py(cn)); }
+      if (k !== 'terrace' && !Z.half) labels.push(() => { const [ce, cn] = (f as any).centroid; c.fillStyle = '#eee3cf'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.textAlign = 'center'; c.fillText(FOOTPRINT_LABEL[k] ?? k.replace(/_/g, ' '), px(ce), py(cn)); });
     }
+    c.save(); c.shadowColor = 'rgba(0,0,0,0.9)'; c.shadowBlur = 4; for (const l of labels) l(); c.restore();
     if (Z.half) { c.fillStyle = '#eee3cf'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.textAlign = 'center'; c.fillText('Terrace', px(100), py(-10) - (Z.half > 5000 ? 8 : 0)); }
     // the visitor: position and facing
     const { e, n, yawDeg } = ctx.player, a = (yawDeg * Math.PI) / 180;
