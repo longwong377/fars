@@ -329,12 +329,12 @@ export class Law {
     const rec = (o: Actor) => this.marks.filter(m => m.who === o && (m.kind === 'convicted' || m.kind === 'seized') && (m.hhs.includes(l.hh) || m.q === this.qOf(l.hh))).length;
     const cand: { who: Actor; s: number }[] = [];
     const thQ = this.qOf(this.side(l.thief, day)), vQ = this.qOf(l.hh);
-    cand.push({ who: l.thief, s: 0.3 + (thQ === vQ ? 0.15 : 0) + 0.2 * rec(l.thief) + 0.5 * (0.5 - tr(l.thief)) + 0.35 * u01(this.p.seed, S.sus, l.id, 1) });
+    cand.push({ who: l.thief, s: 0.22 + (thQ === vQ ? 0.1 : 0) + 0.2 * rec(l.thief) + 0.5 * (0.5 - tr(l.thief)) + 0.35 * u01(this.p.seed, S.sus, l.id, 1) });
     if (l.thief !== 'player' && !this.stranger.expelled && this.p.strangerAbout(day)) cand.push({ who: 'player', s: 0.25 + 0.2 * rec('player') + 0.5 * (0.5 - tr('player')) + 0.35 * u01(this.p.seed, S.sus, l.id, 2) }); // (the stranger is the first one a lane suspects)
     // a neighbour the house already distrusts, or one with a record
     const H = P.households[this.hid(l.hh)], lane = P.households.filter(x => x.q === H?.q && x.id !== H?.id && x.members.length);
     for (let k = 0; k < 3 && lane.length; k++) { const n = lane[Math.floor(u01(this.p.seed, S.sus, l.id, 10 + k) * lane.length)], who = this.head(`h:${n.id}`, day); if (who === null || who === l.thief) continue;
-      cand.push({ who, s: 0.12 + 0.2 * rec(who) + 0.6 * (0.5 - tr(who)) + 0.35 * u01(this.p.seed, S.sus, l.id, 20 + k) }); }
+      cand.push({ who, s: 0.16 + 0.2 * rec(who) + 0.6 * (0.5 - tr(who)) + 0.35 * u01(this.p.seed, S.sus, l.id, 20 + k) }); }
     return cand.sort((a, b) => b.s - a.s)[0] ?? null;
   }
   /** the truth of a theft comes out: the thief named, a wrong suspicion cleared, a case brought against the thief */
