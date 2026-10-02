@@ -42,6 +42,7 @@ import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 import { BASE } from './core/base';
 import { installProgressiveCompile } from './render/progressive';
+import { upgradeLowFirst, lowFirstStats } from './render/lowfirst';
 installWebGPUCompat();
 
 const P = urlParams();
@@ -534,7 +535,7 @@ async function boot() {
     pipeline.flash.value = world.flash?.() ?? 0;
     // session 9 (G8): heat shimmer and mirage on hot, bright, dry afternoons (26-36 C, the sun over 15 deg, little cloud; C)
     pipeline.heat.value = Math.min(1, Math.max(0, (cond.tempC - 26) / 10)) * Math.min(1, Math.max(0, (sky.state.sunAlt - 15) / 15)) * Math.max(0, 1 - cond.cloud * 1.5) * Math.max(0, 1 - cond.wetness * 2);
-    if (opts.render === false || NORENDER) { if (NORENDER) lastFrameMs = performance.now() - t0; return; }
+    if (opts.render === false || NORENDER) { if (NORENDER) { lastFrameMs = performance.now() - t0; if (firstFrames > 0) firstFrames--; } return; }
     // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the
     // session 2 bench and every renderOnce-based count measured that: 1 draw call, sub-millisecond "frames")
@@ -591,6 +592,9 @@ async function boot() {
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
+  // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)
+  (api as any).lowFirst = () => ({ ...lowFirstStats, pending: lowFirstStats.pending() });
+  setTimeout(() => void upgradeLowFirst().then(n => TRACE(`scans upgraded: ${n}`)), 2000);
   if (TEST) shell.playing(); else shell.title(continued);
   void lastSave; void gridToLatLon; void YEAR_DAYS;
 }
