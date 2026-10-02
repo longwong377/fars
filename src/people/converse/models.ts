@@ -25,7 +25,8 @@ export const TTS = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 
 /** the WebLLM app config for the given models (their Hugging Face and GitHub URLs: served locally by localModels()) */
 export function appConfig(ids: string[], origin: string) {
-  const local = isLocal(origin);
+  // (?hfmodels on the dev server: the public paths, for a model the local store does not hold: the lab's comparisons, D-393)
+  const local = isLocal(origin) && !(typeof location !== 'undefined' && new URLSearchParams(location.search).has('hfmodels'));
   // (s15/ship D-393: on a public origin the weights are kept in IndexedDB: Hugging Face serves them from its Xet CDN
   // (us.aws.cdn.hf.co), whose responses Chrome's Cache Storage refuses (Cache.add/put: "network error", measured 2026-10-02,
   // while a plain fetch of the same URL succeeds): with the 'cache' backend the talk model never loaded on the site)

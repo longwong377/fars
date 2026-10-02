@@ -7,7 +7,27 @@ empty profile, `?norender&quality=high&trace`. Box: Vagon, 2 cores / 4 threads, 
 cache write. Run through `node tools/dev/gpu_slot.mjs` (tools/deploy/measure.mjs --visits cold,warm --talk).
 Readiness means `__parsa.ready`: the world is built, the title is shown, and the player can walk.
 
-## The final run (commit 1db7a51a + build stamp)
+## Latest run (commit ee9e76ad): downloads in the order the build uses them, the language model before the voices
+Cold visit: **walkable at 148 s**, **227 MB in the first 60 s**, 341 MB before walkable, page memory 7.8 GB, **no console
+errors**. The arch build started at 34 s (47 s before this change). The town's, plain's and hills' set (life, monuments,
+trees, land kits: started once the Terrace's set was in) arrived at 68-70 s, and the settlement waited 15 s for it. The
+animals arrived at 102 s, while the build ran. The talk model started loading 0.3 s after the world was built and was
+**ready 50 s later** (77 s before, when it shared the line with Kokoro). Its 3 turns all answered, the first two in the
+formant voice while Kokoro was still downloading and the last in Kokoro.
+
+## Which talk model to ship (the converse lab, tools/dev/converse_drive.mjs, the 12 test-set prompts of benchLLM, T4)
+| model | download | first token (median) | whole answer (median / p90) | fence refusals | answers |
+|---|---|---|---|---|---|
+| Qwen2.5-0.5B (the current default) | 276 MB | 79 ms | 0.6 / 0.9 s | 2 of 12 | mostly broken: ",.", "I am years old", wrong names, stage directions |
+| Qwen2.5-1.5B | 951 MB | 179 ms | 1.0 / 1.7 s | 0 of 12 | grounded and plain: "I carry grain and loads up the stair", "It is the year 19 of King Xerxes" |
+| Llama-3.2-1B | ~700 MB | not measured | | | the local copy is incomplete (438 MB): WebLLM aborted |
+**Ship Qwen2.5-1.5B.** The 0.5B's answers break the illusion more often than they hold it, and its fence refusals (the
+person shrugs) are the model's fault, not the fence's: "ancient times" is a real anachronism for a speaker in 467. The cost is
+download time: at 100 Mbit/s the 1.5B takes ~80 s against ~23 s for the 0.5B, so talk is ready ~1.5-2 min after walkable. Until
+then the person's own lines answer. Load times on this box (248 s / 319 s) are dominated by its CPU and disk, not by the
+models. TALK_MODEL is the cloud's (models.ts, D-376): a one-line change.
+
+## The run before it (commit 1db7a51a + build stamp)
 | visit | ready (walkable) | downloaded before ready | first 60 s | page memory |
 |---|---|---|---|---|
 | cold (empty profile) | **155 s** | 334 MB | **235 MB** | 7.4 GB |
@@ -61,7 +81,8 @@ Runs differ by up to about +/-20 s on this box from CPU noise alone (Defender, o
   would freeze the game for 25 s while it looks playable. What it needs is the bake (s14-load): view/PopGeo 25 s, plain 15,
   settlement 14, arch 14, fauna 7, nav 5 as baked data. On a fast 8-core desktop the same CPU is maybe half: an estimate,
   not measured.
-- **First-minute download <= 150 MB: not met (235 MB cold).** The build needs about 290 MB before it can run. Moving more
+- **First-minute download <= 150 MB: not met (227 MB cold).** At 100 Mbit/s the download is not what limits the boot:
+  the network sits idle through the ~85 s CPU build. Shifting fetches later only to fit the number would cost walk time. The build needs about 290 MB before it can run. Moving more
   off the critical path needs per-class late swaps: monuments (23 MB), relief atlas nao (26.5 MB), KTX2 low mips (115 MB of
   KTX2). The KTX2 swaps change texture dimensions and cannot be verified without rendering, which this box does not allow.
 - The warm visit target (<= 20 s) is CPU-bound in the same way.
