@@ -70,27 +70,24 @@
    "ledger": "Baked column capital protome (public/models/capital_protome.glb; D-305)"
   },
   "colossus_bull": {
-   "title": "W doorway bulls of the Gate of All Nations (2), with the carving of the photographs (D-306)",
+   "title": "W doorway bulls of the Gate of All Nations (2): the licensed lamassu sculpt's bull body (CC-BY-4.0, Shahriar Shahrabi; D-365), its wing pressed into the flank and its human head replaced by a licensed bull-head scan (CC-BY-4.0, Kirk Hiatt), on the jamb block of colossus.jamb (D-510, B361)",
    "source": {
-    "script": "tools/blender/sources/colossus.ts",
+    "script": "tools/blender/scans/colossus_scan.ts",
     "args": [
      "bull",
-     "0.008",
-     "1000",
-     "1"
+     "bull_graft",
+     "400000"
     ],
-    "args_note": "model; cell 0.008 m (the game's LOD0 cell is 0.014 m, sculpture.json colossus.mc.cell: the carving's beads are 4.4-5 cm across, 5-6 cells, and the lamassu's feather barbs 1.8 cm apart, 2 cells: those read through the bake's antialiased normals, not as geometry); lock template 1000 triangles (a colossus lock is 6.4 cm: the groove needs ~1000); carving 1 = tools/blender/carving.json colossus_bull. Technical, C",
+    "args_note": "model; bull_graft = tools/blender/scans/bull_from_lamassu.ts (the lamassu fitted as colossus_lamassu, the wing pressed, the human head drawn into the neck, the bull head set on the shoulders) then Blender tools/blender/scans/bull_graft.py (the pressed wing relaxed, the head closed and smoothed, joined); high source 400 k triangles; the levels the result simplified to the game budget less the jamb block. Technical, C",
     "inputs": [
-     "src/data/sculpture.json",
-     "src/arch/sdf.ts",
-     "src/arch/sculpt_models.ts",
-     "src/arch/sculpt.ts",
-     "public/generated/sculpt.json",
-     "public/generated/sculpt_colossus_bull_0.bin",
-     "public/generated/sculpt_colossus_bull_1.bin",
+     "tools/blender/scans/scans.json",
+     "tools/blender/scans/scanlib.ts",
+     "tools/blender/scans/bull_from_lamassu.ts",
+     "tools/blender/scans/bull_graft.py",
      "tools/blender/lib/ply.ts",
-     "tools/blender/carving.json",
-     "tools/blender/lib/carving.ts"
+     "src/data/sculpture.json",
+     "src/arch/sculpt.ts",
+     "public/generated/sculpt.json"
     ],
     "spec_values": [
      [
@@ -134,8 +131,8 @@
    },
    "budget_note": "triangles: sculpture.json colossus.mc lod0/lod1 (the game's own); GLB <= 6 MB and GPU <= 10.5 MB each, from the measured KTX2 build (D-306: ~3 MB and 9.1-9.6 MB, of which ~3.5 MB is the 49 k-triangle level's vertex buffers the procedural piece already cost) with a margin",
    "tier": "C",
-   "src": "RECON;IR-PERS;PHOTO-GATE",
-   "ledger": "Baked Gate colossus, bull (public/models/colossus_bull.glb; D-306)"
+   "src": "SKFB-LAMASSU-SHAHRABI;SKFB-BULLHEAD-HIATT;IR-PERS;PHOTO-GATE",
+   "ledger": "Baked Gate colossus, bull (public/models/colossus_bull.glb; D-510"
   },
   "colossus_lamassu": {
    "title": "E human-headed winged bulls of the Gate of All Nations (2), from a licensed digital sculpt of the Persepolis lamassu (CC-BY-4.0, Shahriar Shahrabi; D-365), on the jamb block of colossus.jamb",
@@ -198,7 +195,7 @@
    "budget_note": "triangles: sculpture.json colossus.mc lod0/lod1 (the game's own); GLB <= 6 MB and GPU <= 10.5 MB each, from the measured KTX2 build (D-306: ~3 MB and 9.1-9.6 MB, of which ~3.5 MB is the 49 k-triangle level's vertex buffers the procedural piece already cost) with a margin",
    "tier": "C",
    "src": "SKFB-LAMASSU-SHAHRABI;IR-PERS;PHOTO-GATE",
-   "ledger": "Baked Gate colossus, human-headed winged bull, from the CC-BY-4.0 sculpt by Shahriar Shahrabi (public/models/colossus_lamassu.glb; D-365)"
+   "ledger": "Baked Gate colossus, human-headed winged bull (public/models/colossus_lamassu.glb; D-365"
   },
   "capital_volute": {
    "title": "vertical double-volute member of the composite capital (every composite capital), with the rosette-ended rolls and ringed barrels of the photographed capital (D-306)",

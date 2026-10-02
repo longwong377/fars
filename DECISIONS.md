@@ -9494,3 +9494,23 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   people_cloth rebuilt and reproduced on the new hull. C3's asks: walk variants /driving a flock/ (animal kind 'drive': a
   loose mass 2-9 m ahead of the herder, two dogs at its flanks, 0.9 m/s; the hook in animals.ts, V5's file) and /ox cart of
   building stone/, /emptied stone cart/, /holding the stone cart/ (work object cart_stone: one rough-cut block on chocks).
+## D-510 (s17, V4 terrace): the Gate's W bulls from the licensed sculpts (B361 closed); relief paint as a wash; inscriptions steady
+- **W bulls (B361):** the two W doorway bulls are no longer the signed-distance model. Their body is the licensed lamassu
+  sculpt's (D-365, fitted the same way), with its wing pressed into the flank and back (a clamp to a rounded top line and to a
+  flank surface filled from the flank round it, then relaxed in Blender with the border held) and its human head, crown and
+  beard drawn into a point inside the new neck; the head and neck are a licensed scan, "Head of a Bull" by Kirk Hiatt
+  (CC-BY-4.0, Sketchfab 7902d24b, Objaverse 1.0 mirror; scans.json bull_head), its plinth cut, turned 44° to face out, x2.0,
+  set on the shoulders. Route: colossus_scan.ts `bull bull_graft` = bull_from_lamassu.ts (node) + bull_graft.py (Blender),
+  welded, simplified, baked (build.mjs: 47.1 k / 2.5 k triangles, 2.66 MB, GPU ~9.2 MB). simplifyTo falls back to
+  meshoptimizer's sloppy simplifier when the edge collapses stall above target (the far level of a joined source). Tier C (a
+  composite: the W bulls' heads are lost; a naturalistic head on the sculpt's Assyrianising body). Voxel remesh measured and
+  dropped: the sculpt is not watertight and OpenVDB returned a double shell. The D-306 test now checks a scan-route colossus
+  against the reference box, not the SDF piece's triangle count; the colossi's ledger keys match their rows.
+- **Relief paint (immersion, UD-29/UD-36):** the film's hiding 3.4 -> 1.25 (opacity 0.97 -> ~0.66-0.71): the paint reads as
+  a mineral wash over the carved stone, the stone's grain and the carving's shading through it, instead of flat saturated
+  cut-outs. Pigments, coverage and losses unchanged (polychromy.json).
+- **Inscriptions:** the incised signs' mask is taken over the pixel's footprint (5 taps) and the cut's normal and shade ease to
+  the face's beyond ~1 atlas texel a pixel (incision.ts): the salt-and-pepper speckle of the Tachara and Gate texts at 5-10 m
+  is gone (the atlas has no mips and is alpha-tested).
+- Probe page tools/dev/v4_probe.{ts,html,mjs} (palace probe + reliefs, inscriptions, relief shadow; vite HMR blocked so an
+  edit in the tree does not kill a run).
