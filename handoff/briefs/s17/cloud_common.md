@@ -21,7 +21,9 @@ whole (grep an id when you need one).
   too slow on 4 cores goes to Vagon via handoff/s17/asks_vagon.md.
 - Heavy node jobs one at a time (`node tools/dev/cpu_slot.mjs <label> -- <cmd>` if it runs here; else just one at a time).
   Tests: the files you touched and their importers (`npx vitest run <files>`), then `npm run guards` before every commit.
-- First: `git fetch --unshallow --tags` if the clone is shallow (the ratchet guard needs the history), `npm ci`.
+- First: `git fetch --unshallow --tags` if the clone is shallow (the ratchet guard needs the history), then
+  `npm ci --ignore-scripts && git config core.hooksPath .githooks` (onnxruntime's postinstall download is blocked here; the
+  talk model is not needed in the cloud; the second command is what the skipped `prepare` script does).
 
 ## Branches and sync
 - Work on your branch (named in your brief), started from origin/cloud-s17-int. Commit and PUSH at least hourly
