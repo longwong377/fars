@@ -3,16 +3,16 @@
  "assets": {
   "capital_protome": {
    "file": "models/capital_protome.glb",
-   "inHash": "3fa9cac3248248272d8d3c4d13d9e02422f5edb8245950dff45c107e96b5024a",
-   "outHash": "27f9585db3b02ad035ec3acf36d5bc8e3d32468f2ad4f54bf1a2abaaf379e327",
-   "bytes": 3302984,
-   "gpuBytes": 6491971,
+   "inHash": "5fff800c6b47b4bfdee7067aa7eff13c3439b0b51b3fd57f9efb9e83be78275b",
+   "outHash": "1ab6d0c3685cc8ad599b9f63903bd0947c99b58fb1d2d11994dcdeac4efacdf8",
+   "bytes": 3144236,
+   "gpuBytes": 6291151,
    "textures": "ktx2",
    "lods": [
     {
      "name": "lod0",
-     "tris": 8788,
-     "verts": 12728,
+     "tris": 8145,
+     "verts": 9478,
      "attrs": [
       "NORMAL",
       "POSITION",
@@ -24,14 +24,14 @@
       "w": 2048,
       "h": 2048,
       "format": "ktx2",
-      "bytes": 3029097
+      "bytes": 2918592
      },
-     "ao_mean": 0.5243
+     "ao_mean": 0.4711
     },
     {
      "name": "lod1",
-     "tris": 1074,
-     "verts": 1727,
+     "tris": 562,
+     "verts": 1082,
      "attrs": [
       "NORMAL",
       "POSITION",
@@ -43,23 +43,18 @@
       "w": 256,
       "h": 256,
       "format": "ktx2",
-      "bytes": 77826
+      "bytes": 80325
      },
-     "ao_mean": 0.863
+     "ao_mean": 0.8015
     }
    ],
    "packing": "normalTexture: RGB = tangent-space normal (MikkTSpace, OpenGL +Y), A = ambient occlusion (linear)",
    "tier": "C",
-   "src": "RECON;IR-COL;PHOTO-CAP",
+   "src": "RECON;IR-COL;PHOTO-CAP;SKFB-LAMASSU-SHAHRABI;SKFB-BULLHEAD-HIATT",
    "blender": "5.0.1",
    "device": "CPU",
-   "bake_s": 84.2,
-   "build_s": 481,
-   "reproduced": {
-    "outHash": "27f9585db3b02ad035ec3acf36d5bc8e3d32468f2ad4f54bf1a2abaaf379e327",
-    "device": "CPU",
-    "blender": "5.0.1"
-   }
+   "bake_s": 42.7,
+   "build_s": 70
   },
   "capital_volute": {
    "file": "models/capital_volute.glb",

@@ -9428,3 +9428,12 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   is gone (the atlas has no mips and is alpha-tested).
 - Probe page tools/dev/v4_probe.{ts,html,mjs} (palace probe + reliefs, inscriptions, relief shadow; vite HMR blocked so an
   edit in the tree does not kill a run).
+- **D-511 (V4, under D-510): the double-bull protome capitals from the licensed sculpts (B360 closed).** The protome of every
+  bull and composite capital (210) is two kneeling bull fore-parts back to back cut from the D-510 W bull (the lamassu
+  sculpt's chest, curl rows and forelegs with the bull-head scan): cut at the shoulder where the colossus stands in the round
+  (x 0.32 m), the forelegs folded back under the chest through a 0.24 m band at 1.3 m (a kneeling bull is low), mirrored,
+  fitted to the game's protome box (the game fits each level to protomeBox: unchanged), simplified to the game's protome
+  budgets (8.1 k / 0.56 k triangles), baked by bake_cols.py (tools/blender/scans/protome_scan.ts; assets.json
+  capital_protome). Tier C. The SDF protome stays as the flat-mode swap. The D-305 protome tests read the scan route's
+  bounds within 0.08 D and its triangles within the budget. The relief film's hiding went on to 0.85 (opacity ~0.5) and the
+  incision's far shade keeps a quarter of the cut's normal and a 0.6 skylight, so the texts read as soft grey script at 5-10 m.
