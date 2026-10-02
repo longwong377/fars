@@ -20,7 +20,9 @@
 //   - everything else that is want (buy, buy_fuel, kin_help, hired_by_neighbour, wage_work, petition, relief,
 //     petition_refused, cold_hearth, hunger, death, neighbours_help, ...): RELIEF from the headman, with a GIFT of what the
 //     stranger carries as a second try.
-// Petitions carry a small gift to the headman (0.4 sheqel of the stranger's 1: C, the customary present to a hearer).
+// Petitions carry a small gift to the headman (0.4 sheqel of the stranger's 1: C, the customary present to a hearer). The
+// stranger arrives on the route's first day with a little of the house's tongue and of Aramaic (PRIOR_HOURS): a stranger with
+// no words is not followed in a petition or a bargain at all (Stranger.understood), which would measure only that.
 import { Economy } from '../../src/people/economy/world';
 import type { Chain } from '../../src/people/economy/chains';
 import type { HHSeed } from '../../src/people/economy/world';
@@ -83,12 +85,25 @@ export function actsFor(e: Economy, r: Route, p: Plan, leafDay: number): SAct[] 
 
 export interface Trial { leaf: number; shape: string; leafKind: string; family: string; routes: Route[]; enteredBy: Route[]; refused: Record<string, string[]> }
 
-/** run the economy with the stranger's scripted steps up to `to` */
-function runWith(seed: number, hs: HHSeed[], acts: SAct[], to: number) {
-  const x = new Economy(seed, hs); const S = x.stranger(); const why: string[] = [];
-  for (const a of acts) S.do(a);
-  for (let d = 0; d <= to; d++) x.step(d);
-  for (const [k, n] of Object.entries(S.stats)) if (/refused|ruling_|^relief$|^hired_stranger$|^hosted$/.test(k)) why.push(`${k}x${n}`);
+/** the hours of talk heard (simplified, answered) before a route begins: ~0.3 comprehension of the house's tongue and of Aramaic */
+export const PRIOR_HOURS = 50;
+/** run the economy with the stranger's scripted steps up to `to`. The stranger arrives on the day of its first step (so its
+ *  bread before then costs it nothing and touches no one), knowing a little of the house's tongue and of Aramaic (complex asks,
+ *  a petition or a bargain, need some words: Stranger.understood); each step is done on its day (live play: after the
+ *  households' day, as a queued step is), a gift clamped to what the stranger has then */
+function runWith(seed: number, hs: HHSeed[], acts: SAct[], to: number, who: string) {
+  const x = new Economy(seed, hs), why: string[] = [], first = Math.min(...acts.map(a => a.day));
+  const byDay = new Map<number, SAct[]>(); for (const a of acts) { const l = byDay.get(a.day); if (l) l.push(a); else byDay.set(a.day, [a]); }
+  let S: ReturnType<Economy['stranger']> | undefined;
+  for (let d = 0; d <= to; d++) {
+    x.step(d);
+    if (d === first) { S = x.stranger(); S.hear(S.langOf(who), PRIOR_HOURS, 1, true, d); S.hear('Aramaic', PRIOR_HOURS, 1, true, d); }
+    for (const a of byDay.get(d) ?? []) {
+      if (a.a === 'give') S!.do({ ...a, grain: Math.min(a.grain ?? 0, S!.purse.grain), cash: Math.min(a.cash ?? 0, S!.purse.cash) });
+      else S!.do(a);
+    }
+  }
+  if (S) for (const [k, n] of Object.entries(S.stats)) if (/refused|ruling_|^relief$|^hired_stranger$|^hosted$|not_understood/.test(k)) why.push(`${k}x${n}`);
   return { x, why };
 }
 const keyOf = (e: Economy, id: number) => { const v = e.events[id]; return `${v.actor}|${v.kind}|${v.other ?? ''}`; };
@@ -101,7 +116,7 @@ export function enterBySpeech(seed: number, hs: HHSeed[], base: Economy, cs: Cha
     const p = planFor(base, c), lv = base.events[c.leaf], k = keyOf(base, c.leaf), to = Math.min(year - 1, lv.day + WINDOW);
     const t: Trial = { leaf: c.leaf, shape: c.shape, leafKind: lv.kind, family: p.family, routes: p.routes, enteredBy: [], refused: {} };
     for (const r of p.routes) {
-      const { x, why } = runWith(seed, hs, actsFor(base, r, p, lv.day), to);
+      const { x, why } = runWith(seed, hs, actsFor(base, r, p, lv.day), to, p.who);
       if (why.length) t.refused[r] = why;
       if (!x.events.some(v => v && v.day >= lv.day - WINDOW && v.day <= lv.day + WINDOW && keyOf(x, v.id) === k)) t.enteredBy.push(r);
     }
