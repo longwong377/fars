@@ -17,6 +17,18 @@ Branch `cloud-s15-depth` (pushed; the Vagon lead merges). Brief: handoff/briefs/
   reasons (a 2-4 year old follows the mother; their plans are pinned by people_days, left as they are).
 - The soak per seed (task 4) did not run this session (the box was given to the B230 comparison and the talk work).
 
+## Landed since the playtest (D-382..D-451)
+- D-450 (the bot's remaining findings): no digits in anything the model is told (2,207 digit runs in 200 briefs -> 0);
+  a gift's trust scaled by its worth to the house (0.1 silver: +0.146 -> +0.018); approaches varied (the commonest opening 77 %
+  -> 22 %, 4 -> 11 distinct); leave papers through an official's interpreter on some days for a newcomer with no words.
+- D-451: a person's past reaches the model (kept in 100 % of first-meeting briefs, was ~0.5 %).
+- D-390 the person census: T-E3r passes (4.51 % -> 0.73 %); T-E3 55 % -> 85 % (small children short of events, by design);
+  T-E2 (namesakes 12.9 %) and T-E3v (visible marks 0 %) still fail; one-sided spouses (~280 men per seed) found in life.ts.
+- D-382 a personality for everyone (shared manner lines 89 % -> 0 %); D-383 the court's coming in the economy; D-384 chains
+  entered by speech (90 of 247 routes); D-387 reconstructed period speech; D-388 the day's rollover sliced (4 ms slices).
+- Load (cloud-s15-load, D-386; not merged here): node world build 93 s -> 61 s from the bake (identical scene hash);
+  ArrayBuffers 1.94 -> 1.56 GB, RSS 2.73 -> 2.36 GB; unverified in a browser.
+
 ## For the Vagon lead (now)
 - **Overlap:** the cloud session on branch `cloud-s15-load` (D-386) is doing your s14-load task (the world build baked at
   site build time). Its node bake already equals the live build (scene hash 7c9d0d8c, 1,210 meshes; node build 91 s -> 59 s)
