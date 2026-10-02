@@ -134,6 +134,10 @@ describe('the volute member and the colossi in the game (D-306)', () => {
   for (const [id, name] of [['capital_volute', 'volute'], ['colossus_bull', 'colossus_bull'], ['colossus_lamassu', 'colossus_lamassu']] as const) {
     it(`${id}: the levels keep the game's triangles and stand where the game's pieces do (bounds within the Draco quantisation)`, () => {
       const { json } = parseGLB(readFileSync(`public/${MAN.assets[id].file}`));
+      // D-510: a colossus from the scan route (tools/blender/scans/colossus_scan.ts) is its own form, placed by colossusPlacement
+      // in the reference box: it stands inside the box, its triangles its own
+      if (REG.assets[id].source.script.includes('scans/')) { for (const lod of [0, 1] as const) { const a = json.accessors[json.meshes.find((m: any) => m.name === `lod${lod}`).primitives[0].attributes.POSITION];
+        const B = new THREE.Box3().setFromArray(piece(name, lod).pos); for (let k = 0; k < 3; k++) { expect(a.min[k]).toBeGreaterThan(B.min.getComponent(k) - 0.35); expect(a.max[k]).toBeLessThan(B.max.getComponent(k) + 0.35); } } return; }
       for (const lod of [0, 1] as const) {
         // Blender's weld (bake.py) drops a triangle whose corners coincide, or that repeats another's three corners (the
         // lamassu's LOD1 has one, left by the simplifier): the rest are the game's own
