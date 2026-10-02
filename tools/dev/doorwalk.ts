@@ -42,6 +42,8 @@ function walk(pts: P2[], floor0: number): { ok: boolean; at: P2; why: string; t:
   const p = pl.position, why = touching(pl); kill(pl); return { ok: false, at: [p.x, -p.z], why, t };
 }
 const floorAt = (e: number, n: number, hint: number) => P.castRayDown(e, -n, hint + 1.2) ?? hint;
+/** room for the standing capsule at (e, n) on the floor there */
+const standable = (p: P2) => { const f = floorAt(p[0], p[1], T.surfaceAt(p[0], -p[1]) + 3); return !P.world.intersectionWithShape({ x: p[0], y: f + 0.87 + 0.04, z: -p[1] }, { x: 0, y: 0, z: 0, w: 1 }, new P.R.Capsule(0.6, 0.25)); };
 interface Res { doors: number; entered: number; failures: string[]; shut: string[] }
 const res: Record<string, Res> = { terrace: { doors: 0, entered: 0, failures: [], shut: [] }, town: { doors: 0, entered: 0, failures: [], shut: [] } };
 const t0 = Date.now();
@@ -82,5 +84,27 @@ for (let q = 0; q < all.length && res.town.doors < TOWN_N; q += stride) {
   }
   if (both) res.town.entered++;
 }
+// ---- the doors inside the plots (room to court, room to room: the walls the plan cuts a door in), N spread evenly
+res.rooms = { doors: 0, entered: 0, failures: [], shut: [] };
+const inner: { s: (typeof plan.sites)[number]; w: any }[] = [];
+for (const s of plan.sites) if (Math.hypot(s.frame.c[0], s.frame.c[1]) < 3500) for (const w of s.walls()) if (w.door && w.kind !== 'outer' && w.kind !== 'facade') inner.push({ s, w });
+const stride2 = Math.max(1, inner.length / TOWN_N), t2 = Date.now();
+for (let q = 0; q < inner.length && res.rooms.doors < TOWN_N; q += stride2) {
+  const { s, w } = inner[Math.floor(q)], du = w.u1 - w.u0, dv = w.v1 - w.v0, L = Math.hypot(du, dv) || 1, mu = (w.u0 + w.u1) / 2, mv = (w.v0 + w.v1) / 2;
+  const mid = s.grid(mu, mv), a = s.grid(mu - dv / L * 1.2, mv + du / L * 1.2), b = s.grid(mu + dv / L * 1.2, mv - du / L * 1.2);
+  if (!tw.locate(...a) || !tw.locate(...b)) continue;
+  const route = tw.route(a, b); if (!route || route.length > 8) continue; // joined only the long way round: not through this door
+  P.updateTerrain(T, { x: mid[0], y: 0, z: -mid[1] }); W.settlement!.streamColliders(mid[0], -mid[1], Infinity); P.step(1e-4);
+  if (!standable(a) || !standable(b)) { res.rooms.shut.push(`${s.meta.id} ${w.kind} door at (${mid[0].toFixed(1)}, ${mid[1].toFixed(1)}): a fitting stands 1.2 m in`); continue; }
+  res.rooms.doors++;
+  P.updateTerrain(T, { x: mid[0], y: 0, z: -mid[1] }); W.settlement!.streamColliders(mid[0], -mid[1], Infinity); P.step(1e-4);
+  let both = true;
+  for (const [from, to] of [[a, b], [b, a]] as const) {
+    const g = T.surfaceAt(from[0], -from[1]), r = walk(from === a ? route : route.slice().reverse(), floorAt(from[0], from[1], g + 3));
+    if (!r.ok) { both = false; res.rooms.failures.push(`${s.meta.id} ${w.kind} door at (${mid[0].toFixed(1)}, ${mid[1].toFixed(1)}) (route ${route.map(q => `(${q[0].toFixed(1)}, ${q[1].toFixed(1)})`).join(' ')}): stopped at (${r.at[0].toFixed(1)}, ${r.at[1].toFixed(1)}) touching ${r.why}`); }
+  }
+  if (both) res.rooms.entered++;
+}
+console.log(`rooms: ${res.rooms.entered} / ${res.rooms.doors} doors inside the plots walked both ways along the town's route (${((Date.now() - t2) / 1000).toFixed(0)} s); ${res.rooms.shut.length} skipped: a fitting stands where the walk would start or end`); for (const f of res.rooms.failures.slice(0, 30)) console.log('   ', f);
 console.log(`town: ${res.town.entered} / ${res.town.doors} street doors walked both ways (${((Date.now() - t1) / 1000).toFixed(0)} s)`); for (const f of res.town.failures.slice(0, 40)) console.log('   ', f);
 const jf = argv.indexOf('--json'); if (jf >= 0) writeFileSync(argv[jf + 1], JSON.stringify({ people: PEOPLE, res }, null, 1));

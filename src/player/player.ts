@@ -58,7 +58,7 @@ export class Player {
   /** the body's horizontal velocity (m/s; inertia: motion.ts approach) and its realised speed last update */
   vel = { x: 0, z: 0 }; speed = 0; pace: Pace = 'walk';
   /** the grade under the feet along the motion (rise / run, smoothed; > 0 uphill) */
-  grade = 0;
+  grade = 0; private gRise = 0; private gRun = 0;
   /** crouched now (the collider), and the eye's eased crouch (0 … 1) */
   crouched = false; crouchEase = 0; private half = CAPSULE_HALF;
   private shapes: { stand: RAPIER.Shape; crouch: RAPIER.Shape };
@@ -134,8 +134,8 @@ export class Player {
     const desired = { x: vx * dt, y: this.vy * dt, z: vz * dt };
     // a step-up carried the body across faster than it walks: it pays the distance back before moving on, so the climb
     // keeps the walking pace (the eye glides over both: stepEase)
-    const paying = this.stepDebt > 0;
-    if (this.stepDebt > 0) { const want0 = Math.hypot(desired.x, desired.z), pay = Math.min(this.stepDebt, want0); this.stepDebt -= pay;
+    const paying = this.stepDebt > 0; let paid = 0;
+    if (this.stepDebt > 0) { const want0 = Math.hypot(desired.x, desired.z), pay = Math.min(this.stepDebt, want0); this.stepDebt -= pay; paid = pay;
       if (want0 > 1e-9) { const k = (want0 - pay) / want0; desired.x *= k; desired.z *= k; } if (want0 < 1e-6) this.stepDebt = Math.max(0, this.stepDebt - dt); }
     this.controller.computeColliderMovement(this.collider, desired);
     let m: { x: number; y: number; z: number } = this.controller.computedMovement();
@@ -216,12 +216,17 @@ export class Player {
       if (!n || n.y >= FLOOR_NY) continue; const l = Math.hypot(n.x, n.z); if (l < 1e-6) continue;
       if (c!.witness1 && c!.witness1.y - feet < STEP_UP + 0.02) continue; // a riser the body climbs, not a wall
       const nx = n.x / l, nz = n.z / l, into = this.vel.x * nx + this.vel.z * nz; if (into < 0) { this.vel.x -= into * nx; this.vel.z -= into * nz; } }
-    this.speed = stepped ? Math.hypot(this.vel.x, this.vel.z) : horiz / Math.max(dt, 1e-6);
-    if (this.grounded && horiz > 1e-4) { const g = (stepped ? Math.max(0, m.y) : m.y) / horiz; this.grade += (Math.max(-1, Math.min(1, g)) - this.grade) * Math.min(1, dt / 0.25); }
-    else if (this.grounded) this.grade *= Math.exp(-dt / 0.25);
+    // the walk goes on through a step-up and its payback: the stride, the speed and the grade count the distance the step
+    // carried as walked when it is paid back, not when it was jumped (legs, head and footfalls keep their rhythm)
+    const walked = stepped ? Math.hypot(this.vel.x, this.vel.z) * dt : horiz + paid;
+    this.speed = walked / Math.max(dt, 1e-6);
+    // the grade from the rise and the distance walked, each averaged over ~0.4 s (a step-up's rise and its payback are
+    // one tread: averaged together they read as the stair's own grade)
+    if (this.grounded) { const k = Math.min(1, dt / 0.4); this.gRise += (m.y - this.gRise) * k; this.gRun += (walked - this.gRun) * k;
+      this.grade = this.gRun > 0.004 * (dt * 60) ? Math.max(-1, Math.min(1, this.gRise / this.gRun)) : this.grade * Math.exp(-dt / 0.25); }
     if (stepped || this.grade > 0.15) this.stairT = 0.4; else this.stairT = Math.max(0, this.stairT - dt);
     if (this.grounded) {
-      this.bobPhase += horiz * (Math.PI / stepLength(this.grade)); // one step ≈ 0.75 m on the level, shorter on stairs and slopes
+      this.bobPhase += walked * (Math.PI / stepLength(this.grade)); // one step ≈ 0.75 m on the level, shorter on stairs and slopes
       const i = Math.floor(this.bobPhase / Math.PI);
       if (i !== this.stepIdx) { this.stepIdx = i; this.footfalls++; const q = this.body.translation();
         this.onStep?.({ foot: (i & 1) as 0 | 1, speed: this.speed, pace: this.pace, crouched: this.crouched, stair: this.stairT > 0, x: q.x, y: this.feetY, z: q.z }); }

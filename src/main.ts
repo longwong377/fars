@@ -519,7 +519,7 @@ async function boot() {
       const e = player.eye;
       const h = head.update(dt, { phase: player.bobPhase, speed: player.speed, grounded: player.grounded, landed: player.landed, bob: settings.headBob }, input.yaw); // D-630 (D-238: ±1.8 cm, no roll)
       camera.position.set(e.x + h.x, e.y + h.y, e.z + h.z); camera.rotation.set(input.pitch, input.yaw, 0, 'YXZ');
-      body.visible = true; body.position.set(e.x, player.feetY, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, player.speed, dt, player.crouchEase);
+      body.visible = true; body.position.set(e.x, player.feetY + player.stepEase.y, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, player.speed, dt, player.crouchEase);
       // keep the camera ahead of the torso when looking down
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }
