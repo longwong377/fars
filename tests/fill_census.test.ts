@@ -43,3 +43,11 @@ describe('the simulation\'s market grounds (market:<q>:<hid>, D-359)', () => {
     const goods = items.filter(i => i.at === 'market' && i.day && i.m !== 'mat'); expect(goods.filter(g => g.until !== undefined).length / goods.length).toBeGreaterThan(0.3);
   }, 120_000);
 });
+
+import { houseSigs, houseCensus } from '../tools/dev/house_census';
+describe('house variety (s17 C1)', () => {
+  it('no two neighbouring houses with the same street face; height follows standing', () => {
+    const sites = buildTownPlan().sites, { items } = townFill(sites, 1), c = houseCensus(houseSigs(sites, items));
+    console.log('[house_census]', JSON.stringify(c)); expect(c.alike).toBe(0); expect(c.twins).toBe(0); expect(c.heightByStanding).toBeGreaterThan(0.4);
+  }, 120_000);
+});

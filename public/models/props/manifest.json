@@ -10290,6 +10290,294 @@
     1.8432247638702393
    ],
    "tex": 0
+  },
+  "m_i_cushion": {
+   "file": "models/props/m_i_cushion.glb",
+   "of": "i_cushion",
+   "role": "model",
+   "parts": [
+    "textile",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/interior_props.py (D-610)",
+   "bytes": 40976,
+   "sha256": "cc369771fcd3e264f896a1164f133fc1ed736214d917164edcb327bee0f92626",
+   "tris": {
+    "lod0": 1068,
+    "lod1": 400,
+    "lod2": 100
+   },
+   "partTris": {
+    "lod0__textile": 768,
+    "lod0__cord": 300,
+    "lod1__textile": 300,
+    "lod1__cord": 100,
+    "lod2__textile": 70,
+    "lod2__cord": 30
+   },
+   "box": [
+    [
+     -0.2639999985694885,
+     -0.008991795592010021,
+     -0.21227213740348816
+    ],
+    [
+     0.2639999985694885,
+     0.13989152014255524,
+     0.21227213740348816
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.527999997138977,
+    0.14888331573456526,
+    0.4245442748069763
+   ],
+   "tex": 0
+  },
+  "m_i_onions": {
+   "file": "models/props/m_i_onions.glb",
+   "of": "i_onions",
+   "role": "model",
+   "parts": [
+    "bulb",
+    "stem",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/interior_props.py (D-610)",
+   "bytes": 61004,
+   "sha256": "18bec6d035fccc6dc52043c4c3f8533843496de0ae736fea92da00bf0044a3ee",
+   "tris": {
+    "lod0": 1295,
+    "lod1": 696,
+    "lod2": 178
+   },
+   "partTris": {
+    "lod0__bulb": 832,
+    "lod0__stem": 404,
+    "lod0__cord": 59,
+    "lod1__bulb": 520,
+    "lod1__stem": 147,
+    "lod1__cord": 29,
+    "lod2__bulb": 130,
+    "lod2__stem": 27,
+    "lod2__cord": 21
+   },
+   "box": [
+    [
+     -0.057986605912446976,
+     0.056527696549892426,
+     -0.07072333991527557
+    ],
+    [
+     0.08346929401159286,
+     0.6639231443405151,
+     0.06712713092565536
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.14145589992403984,
+    0.6073954477906227,
+    0.13785047084093094
+   ],
+   "tex": 0
+  },
+  "m_i_herbs": {
+   "file": "models/props/m_i_herbs.glb",
+   "of": "i_herbs",
+   "role": "model",
+   "parts": [
+    "leaf",
+    "stem",
+    "cord"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/interior_props.py (D-610)",
+   "bytes": 79104,
+   "sha256": "f593c26d6bcd6579977f509ba98898c7995650eb02c6567154134ee9764a5e3f",
+   "tris": {
+    "lod0": 1596,
+    "lod1": 618,
+    "lod2": 114
+   },
+   "partTris": {
+    "lod0__leaf": 1280,
+    "lod0__stem": 224,
+    "lod0__cord": 92,
+    "lod1__leaf": 450,
+    "lod1__stem": 130,
+    "lod1__cord": 38,
+    "lod2__leaf": 80,
+    "lod2__stem": 16,
+    "lod2__cord": 18
+   },
+   "box": [
+    [
+     -0.0472058430314064,
+     -0.028181161731481552,
+     -0.055685512721538544
+    ],
+    [
+     0.05046967417001724,
+     0.4505883455276489,
+     0.043485354632139206
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.09767551720142365,
+    0.4787695072591305,
+    0.09917086735367775
+   ],
+   "tex": 0
+  },
+  "m_i_low_table": {
+   "file": "models/props/m_i_low_table.glb",
+   "of": "i_low_table",
+   "role": "model",
+   "parts": [
+    "wood"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/interior_props.py (D-610)",
+   "bytes": 36152,
+   "sha256": "3e3c0d0f0a340bd2cc526852ff58d369c7baef59d370b8d241a9cc6fa3f8c3c6",
+   "tris": {
+    "lod0": 924,
+    "lod1": 400,
+    "lod2": 120
+   },
+   "partTris": {
+    "lod0__wood": 924,
+    "lod1__wood": 400,
+    "lod2__wood": 120
+   },
+   "box": [
+    [
+     -0.36052024364471436,
+     -0.00030029466142877936,
+     -0.2503225803375244
+    ],
+    [
+     0.3603580594062805,
+     0.3053321838378906,
+     0.25039932131767273
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.7208783030509949,
+    0.3056324784993194,
+    0.5007219016551971
+   ],
+   "tex": 0
+  },
+  "m_i_wheel": {
+   "file": "models/props/m_i_wheel.glb",
+   "of": "i_wheel",
+   "role": "model",
+   "parts": [
+    "stone",
+    "wood",
+    "clay"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/interior_props.py (D-610)",
+   "bytes": 23620,
+   "sha256": "c5f7b49c7aa083e9d2046037b5786ef78ca94cdeab729f0234d9701b1d94f026",
+   "tris": {
+    "lod0": 328,
+    "lod1": 328,
+    "lod2": 150
+   },
+   "partTris": {
+    "lod0__stone": 80,
+    "lod0__wood": 188,
+    "lod0__clay": 60,
+    "lod1__stone": 80,
+    "lod1__wood": 188,
+    "lod1__clay": 60,
+    "lod2__stone": 50,
+    "lod2__wood": 70,
+    "lod2__clay": 30
+   },
+   "box": [
+    [
+     -0.3093646466732025,
+     -0.0028251209296286106,
+     -0.31432580947875977
+    ],
+    [
+     0.3070012629032135,
+     0.44053998589515686,
+     0.309308260679245
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.616365909576416,
+    0.44336510682478547,
+    0.6236340701580048
+   ],
+   "tex": 0
+  },
+  "m_i_bedding": {
+   "file": "models/props/m_i_bedding.glb",
+   "of": "i_bedding",
+   "role": "model",
+   "parts": [
+    "mud",
+    "textile_a",
+    "textile_b"
+   ],
+   "licence": "CC0 1.0",
+   "author": "the project: a script-built model, no third-party source",
+   "source": "tools/blender/interior_props.py (D-610)",
+   "bytes": 53004,
+   "sha256": "d4882e4e9fc1e2de0cf9b2d8f8294c35a7d1ca59d3cb05e3ecf1251ba0a2f235",
+   "tris": {
+    "lod0": 1092,
+    "lod1": 738,
+    "lod2": 210
+   },
+   "partTris": {
+    "lod0__mud": 108,
+    "lod0__textile_a": 564,
+    "lod0__textile_b": 420,
+    "lod1__mud": 108,
+    "lod1__textile_a": 300,
+    "lod1__textile_b": 330,
+    "lod2__mud": 40,
+    "lod2__textile_a": 80,
+    "lod2__textile_b": 90
+   },
+   "box": [
+    [
+     -0.37504905462265015,
+     -0.0009957748698070645,
+     -0.25111123919487
+    ],
+    [
+     0.37559574842453003,
+     0.5858449935913086,
+     0.25070643424987793
+    ]
+   ],
+   "ao": true,
+   "size_m": [
+    0.7506448030471802,
+    0.5868407684611157,
+    0.5018176734447479
+   ],
+   "tex": 0
   }
  }
 }
