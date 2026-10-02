@@ -42,6 +42,11 @@ export class RelPlans {
     const k = `${pid}:${day}`; const c = this.overlaid.get(k); if (c) return c;
     let segs = base; for (const m of this.index(day).by.get(pid) ?? []) for (const [who, L] of this.layOf(m) ?? []) { if (who !== pid) continue;
       const over = base.filter(s => s.t1 > L.h0 + 1e-9 && s.t0 < L.h1 - 1e-9); if (over.length && over.every(s => free(s, L.meet.kind === 'negotiate'))) segs = splice(segs, L.h0, L.h1, L.segs); }
+    // (D-350, s15, B230: the courting by the well names her well as the suitor's part does, `well:<q>:<her house>` (D-359): her water
+    // is drawn at the same well, the one nearest her house, which her bare `well:<q>` already meant; the two strings differed)
+    for (const m of this.index(day).by.get(pid) ?? []) if (m.kind === 'court' && m.b === pid) for (const [who, L] of this.layOf(m) ?? []) { if (who === pid) continue;
+      const t = L.segs.find(x => x.act === 'talk' && x.place.startsWith('well:')); if (!t) continue; const bare = t.place.split(':').slice(0, 2).join(':');
+      segs = segs.map(x => x.act === 'draw_water' && x.place === bare && x.t0 <= t.t0 + 1e-6 && x.t1 >= t.t1 - 1e-6 ? { ...x, place: t.place } : x); }
     if (this.overlaid.size > 20000) this.overlaid.clear(); this.overlaid.set(k, segs); return segs;
   }
   /** the day's meetings as laid (pid → its parts): for the tests and the dev overlay */
@@ -90,7 +95,7 @@ export class RelPlans {
       for (let a = Math.max(s.t0, DAY_START + 0.5); a + len <= Math.min(s.t1, x.kind === 'negotiate' ? EVE_END : DAY_END); a += step) {
         const b = a + len, parts: [number, Lay][] = [];
         if (x.kind === 'court') { const h = this.host(x.b, d, home, W, a, b, 'talking with her suitor, her family by', x.a, x); const v = h && this.visit(x.a, d, home, W, a, b, 'visiting her family’s house, courting her', x.b, x); if (!h || !v) continue; parts.push(h, v); }
-        else if (x.kind === 'lovers') { const h = this.host(x.b, d, lane, W, a, b, 'talking apart in the lane with a lover', x.a, x); const v = h && this.visit(x.a, d, `${lane}:${hh}`, W, a, b, 'talking apart in the lane with a lover', x.b, x); if (!h || !v) continue; parts.push(h, v); } /* (D-359: the visitor at the lane outside her door) */
+        else if (x.kind === 'lovers') { const h = this.host(x.b, d, `${lane}:${hh}`, W, a, b, 'talking apart in the lane with a lover', x.a, x); const v = h && this.visit(x.a, d, `${lane}:${hh}`, W, a, b, 'talking apart in the lane with a lover', x.b, x); if (!h || !v) continue; parts.push(h, v); } /* (D-359: the visitor at the lane outside her door; D-350, s15: and she there too, the same place named alike) */
         else { const h = this.host(x.b, d, home, W, a, b, 'talking over the marriage with his family: the bride-gift and the dowry', x.a, x); const v = h && this.visit(x.a, d, home, W, a, b, 'visiting her father’s house to agree the marriage: the bride-gift and the dowry', x.b, x); if (!h || !v) continue; parts.push(h, v);
           if (x.hostKin !== undefined && !busy.has(x.hostKin)) { const k = this.host(x.hostKin, d, home, W, a, b, 'talking over the marriage of the daughter of the house with the groom’s family', x.a, x); if (k) parts.push(k); }
           if (x.c !== undefined && !busy.has(x.c)) { const c = this.visit(x.c, d, home, W, a, b, 'visiting the bride’s house with his son to agree the marriage', x.a, x); if (c) parts.push(c); } }
