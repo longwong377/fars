@@ -17,7 +17,7 @@ describe('D-375 approaches', () => {
 });
 describe('D-375 the town talks of the stranger', () => {
   it('a guest who left without thanks is talked of beyond the house, and those who hear trust him less', () => {
-    const d = 100, sim = simAt(1, d, 10, { asks: true }); const E = sim.econTo(d), S = E.stranger();
+    const d = 100, sim = simAt(1, d, 10, { asks: true }); const E = sim.econTo(d), S = E.stranger(); S.purse.cash = 2; // (with the means to give back)
     const host = [...E.hh.values()].find(h => h.kind === 'farmer' && S.stayCheck(h.id, d).ok)!;
     S.do({ a: 'stay', day: d, hh: host.id }); sim.econTo(d + 8); S.do({ a: 'leave_stay', day: E.day }); sim.econTo(d + 60);
     expect(E.events.some(v => v.kind === 'ingrate' && v.other === host.id)).toBe(true);
