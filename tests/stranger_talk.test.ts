@@ -86,7 +86,7 @@ describe('the render side\'s hooks (speech/presence.ts)', () => {
 describe('the house knows its dealings with the stranger (factsFor, in the turn)', () => {
   it('the host is told the stranger is their guest, what is believed of him, and to speak simply', async () => {
     const d = 60, sim = simAt(1, d, 17), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
-    const E = sim.econTo(d), S = E.stranger();
+    const E = sim.econTo(d), S = E.stranger(); S.hear('Aramaic', 800, 1, true, d);
     const pid = sim.pop.persons.find(p => p.job === 'farmer' && p.age >= 25 && sim.pop.present(p.id, d) && S.stayCheck(`h:${sim.pop.home(p.id, d)}`, d).ok)!.id, hh = `h:${sim.pop.home(pid, d)}`;
     S.do({ a: 'claim', day: d, hh, role: 'merchant', origin: 'Babylon' }); S.do({ a: 'stay', day: d, hh });
     const f = S.factsFor(hh, d); expect(f.some(x => /guest of your house/.test(x))).toBe(true); expect(f.some(x => /merchant from Babylon/.test(x))).toBe(true); expect(f.some(x => /simple words|simply/.test(x))).toBe(true);
@@ -97,11 +97,49 @@ describe('the house knows its dealings with the stranger (factsFor, in the turn)
 });
 describe('addressing a group (UD-25 (10))', () => {
   it('a claim to a group is heard by every house present; an ask finds the first house that says yes', () => {
-    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger(); S.hear('Aramaic', 800, 1, true, d);
     const farmers = sim.pop.persons.filter(p => p.job === 'farmer' && p.age >= 20 && sim.pop.present(p.id, d)).slice(0, 12).map(p => p.id);
     const c = sim.strangerAskGroup(farmers, 'I am a merchant from Babylon.'); expect(c.length).toBeGreaterThan(3);
     for (const x of c) sim.strangerDo(x.act); expect(S.belief.size).toBeGreaterThanOrEqual(c.length);
     const w = sim.strangerAskGroup(farmers, 'Do you need hands for the harvest?'); expect(w.length).toBe(1);
     if (w[0].verdict.ok) { sim.strangerDo(w[0].act); expect(S.job?.employer).toBe(`h:${sim.pop.home(w[0].pid, d)}`); }
+  }, 300_000);
+});
+describe('the trust gate (B234)', () => {
+  it('a house that distrusts the stranger will not talk; the model is never asked', async () => {
+    const d = 60, sim = simAt(1, d, 11), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
+    const E = sim.econTo(d); const pid = sim.pop.persons.find(p => p.job === 'farmer' && p.age >= 25 && sim.pop.present(p.id, d))!.id, hh = `h:${sim.pop.home(pid, d)}`;
+    E.trust!.note(hh, 'player', -0.9, d); E.trust!.note(hh, 'player', -0.9, d);
+    let asked = 0; const ans = m.answer.bind(m); (m as any).answer = async (...a: any[]) => { asked++; return ans(...(a as [any, any, any, any, any, any, any])); };
+    const o = await talkTurn(m, sim, pid, 'Good morning, friend.', { conv: sim.t });
+    expect(o.refused).toBe('distrust'); expect(asked).toBe(0); expect(o.answer.text).toMatch(/turns away/);
+  }, 300_000);
+});
+
+describe('words learned one by one (presence.ts thinCaption)', () => {
+  it('a word heard often with its sense shown stops being glossed; the vocabulary is saved', async () => {
+    const { thinCaption } = await import('../src/people/speech/presence');
+    const { unitsFor } = await import('../src/audio/voices');
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const w = unitsFor('arc').words.find(x => /peace/.test(x.gloss))!;
+    const cap = { key: 'p1', unit: w.id, lang: 'arc', translit: w.translit, gloss: w.gloss, tier: 'C', t0: 0, t1: 1 };
+    for (let i = 0; i < 6; i++) expect(thinCaption(sim, cap).gloss.length).toBeGreaterThan(0);
+    expect(thinCaption(sim, cap).gloss).toBe(''); // known now
+    const snap = JSON.parse(JSON.stringify(E.snapshot(d - 2))); expect(snap.stranger.vocab.some(([k]: [string]) => k === w.id)).toBe(true);
+  }, 300_000);
+});
+describe('a word taught', () => {
+  it('"what is your word for bread?" teaches the word of the person\'s tongue (half of knowing it)', () => {
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const pid = sim.pop.persons.find(p => p.origin === 'Syrian' && p.age >= 20 && sim.pop.present(p.id, d)) ?? sim.pop.persons.find(p => p.age >= 20 && sim.pop.present(p.id, d))!;
+    const r = sim.strangerAsk(pid.id, 'What is your word for bread?')!; expect(r.act.a).toBe('hear');
+    sim.strangerDo(r.act); if ((r.act as any).word) expect(S.vocab.get((r.act as any).word)).toBeGreaterThanOrEqual(3);
+  }, 300_000);
+});
+describe('the stranger in the chronicle', () => {
+  it('his deeds are told in the translation layer\'s journal', () => {
+    const d = 60, sim = simAt(1, d, 17); const E = sim.econTo(d), S = E.stranger(); sim.step(1);
+    const host = [...E.hh.values()].find(h => h.kind === 'farmer' && S.stayCheck(h.id, d).ok)!; sim.strangerDo({ a: 'stay', day: d, hh: host.id });
+    sim.step(60); const j = sim.events.filter(e => e.kind === 'stranger'); expect(j.some(e => /took you in as a guest/.test(e.text))).toBe(true);
   }, 300_000);
 });

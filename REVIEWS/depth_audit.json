@@ -7,7 +7,7 @@
   7,
   42
  ],
- "generated": "2026-10-02T00:32:53.226Z",
+ "generated": "2026-10-02T02:20:19.823Z",
  "thinShare": {
   "home": 0,
   "family": 0,
@@ -41,18 +41,21 @@
    "workSegs": 12,
    "workPlaces": 4,
    "year": [
-    "the house of Hupannana gave them grain or help"
+    "the house of Hupannana son of Utira gave them grain or help"
    ],
    "past": [
+    "born in a village of the Elamite lowlands",
     "lost a son in early childhood, 14 years ago",
     "lost a son in the first year, 22 years ago",
-    "lost a son in early childhood, 22 years ago",
-    "the father died, 27 years ago"
+    "lost a son in early childhood, 22 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -69,11 +72,10 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 14,
-   "econEvents": 30,
+   "econEvents": 28,
    "econKinds": [
     "given",
-    "mourning",
-    "lent_by_neighbour"
+    "mourning"
    ],
    "econDebts": 0,
    "ties": 5,
@@ -113,18 +115,21 @@
    "workSegs": 5,
    "workPlaces": 3,
    "year": [
-    "the house of Bakadušda gave them grain or help"
+    "the house of Bakadušda son of Irtima gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "lost a son in the first year, 2 years ago",
     "lost a daughter in the first year, 11 years ago",
-    "the father died, 16 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
+    "the father died, 16 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -141,7 +146,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 9,
-   "econEvents": 14,
+   "econEvents": 15,
    "econKinds": [
     "given",
     "nursed_by_kin",
@@ -185,17 +190,20 @@
    "workSegs": 4,
    "workPlaces": 3,
    "year": [
-    "the house of Miššabadda gave them grain or help"
+    "the house of Miššabadda son of Manyakka gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "lived through a year of locusts on the plain, 2 years ago",
-    "was bitten by a dog in the lane, 3 years ago",
-    "born in this village"
+    "was bitten by a dog in the lane, 3 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 3,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -257,18 +265,21 @@
    "workPlaces": 2,
    "year": [
     "was sick for 3 days in the last month",
-    "the house of Tiššantamma gave them grain or help"
+    "the house of Tiššantamma son of Mikrašba gave them grain or help"
    ],
    "past": [
+    "born in Anšan, the old royal town to the west",
     "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
     "remembers the king's great march to the Yauna beyond the sea, 13 years ago",
-    "lived through a year of locusts on the plain, 2 years ago",
-    "lived through a summer of sickness in the town, when many children died, 7 years ago"
+    "lived through a year of locusts on the plain, 2 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 2,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -334,18 +345,21 @@
    "workSegs": 12,
    "workPlaces": 4,
    "year": [
-    "the house of Mardunuya gave them grain or help"
+    "the house of Mardunuya son of Bakabana gave them grain or help"
    ],
    "past": [
+    "born in a village by the lake of the salt marsh",
     "married her husband, last year",
     "lived through a year of locusts on the plain, 2 years ago",
-    "lived through a summer of sickness in the town, when many children died, 7 years ago",
-    "nursed a sister's child through a winter, 3 years ago"
+    "lived through a summer of sickness in the town, when many children died, 7 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -407,15 +421,18 @@
    "workPlaces": 1,
    "year": [],
    "past": [
+    "born in this village",
     "lost a son in early childhood, 2 years ago",
     "lost a son in the first year, 3 years ago",
-    "the father died, 7 years ago",
-    "lost a son in early childhood, 8 years ago"
+    "the father died, 7 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -476,7 +493,7 @@
    "workSegs": 0,
    "workPlaces": 0,
    "year": [
-    "the house of Pirriyašba gave them grain or help"
+    "the house of Pirriyašba son of Ašbatašda gave them grain or help"
    ],
    "past": [
     "born in Bactra"
@@ -485,6 +502,9 @@
     "friends": 3,
     "year": 1,
     "past": 1,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -501,7 +521,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 5,
-   "econEvents": 15,
+   "econEvents": 16,
    "econKinds": [
     "buy_fuel",
     "given",
@@ -547,18 +567,21 @@
    "workSegs": 7,
    "workPlaces": 3,
    "year": [
-    "the house of Tanetamun gave them grain or help"
+    "the house of Ankhhor son of Psamtek gave them grain or help"
    ],
    "past": [
+    "born in a village on a canal of the Babylonian country",
     "lost a son in early childhood, 5 years ago",
     "the father died, 11 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 3,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -575,7 +598,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 15,
-   "econEvents": 23,
+   "econEvents": 21,
    "econKinds": [
     "given",
     "nursed_by_kin",
@@ -620,18 +643,21 @@
    "workPlaces": 1,
    "year": [
     "was sick for 2 days in the last month",
-    "the house of Babena gave them grain or help"
+    "the house of Babena son of Sunkana gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "the mother died, 14 years ago",
     "the father died, 24 years ago",
-    "was widowed, 42 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
+    "was widowed, 42 years ago"
    ],
    "facts": {
     "friends": 3,
     "year": 2,
     "past": 4,
+    "needs": 1,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -648,7 +674,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 8,
-   "econEvents": 40,
+   "econEvents": 43,
    "econKinds": [
     "given",
     "buy_fuel",
@@ -704,15 +730,18 @@
     "was sick for 1 day in the last month"
    ],
    "past": [
+    "born in the town below the Terrace",
     "lived through a year of locusts on the plain, 2 years ago",
     "lived through a summer of sickness in the town, when many children died, 7 years ago",
-    "was lost a whole afternoon in the lanes and found by a neighbour, 9 years ago",
-    "born in the town below the Terrace"
+    "was lost a whole afternoon in the lanes and found by a neighbour, 9 years ago"
    ],
    "facts": {
     "friends": 2,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 0,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -729,7 +758,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 7,
-   "econEvents": 25,
+   "econEvents": 24,
    "econKinds": [
     "haggle_deal",
     "lent_by_neighbour",
@@ -774,17 +803,20 @@
    "workSegs": 1,
    "workPlaces": 1,
    "year": [
-    "the house of Bakadušda gave them grain or help"
+    "the house of Bakadušda son of Irtima gave them grain or help"
    ],
    "past": [
+    "born in a herders' camp in the hills of Pārsa",
     "lived through a year of locusts on the plain, 2 years ago",
-    "saw the king's horses go up to the Terrace, last year",
-    "born in a herders' camp in the hills of Pārsa"
+    "saw the king's horses go up to the Terrace, last year"
    ],
    "facts": {
     "friends": 1,
     "year": 1,
     "past": 3,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -801,7 +833,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 10,
-   "econEvents": 14,
+   "econEvents": 15,
    "econKinds": [
     "given",
     "nursed_by_kin",
@@ -845,18 +877,21 @@
    "workSegs": 1,
    "workPlaces": 1,
    "year": [
-    "the house of Bakerabba gave them grain or help"
+    "the house of Bakerabba son of Irdaša gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "the mother died, 23 years ago",
     "the father died, 26 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 2,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -873,7 +908,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 8,
-   "econEvents": 18,
+   "econEvents": 19,
    "econKinds": [
     "buy_fuel",
     "haggle_deal",
@@ -918,18 +953,21 @@
    "workSegs": 6,
    "workPlaces": 2,
    "year": [
-    "the house of Mitranka gave them grain or help"
+    "the house of Mitranka son of Ašbatašda gave them grain or help"
    ],
    "past": [
+    "born in a herders' camp in the hills of Pārsa",
     "the father died, last year",
     "lost a daughter in early childhood, 4 years ago",
-    "lost a son in the first year, 8 years ago",
-    "the mother died, 10 years ago"
+    "lost a son in the first year, 8 years ago"
    ],
    "facts": {
     "friends": 2,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -946,10 +984,10 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 9,
-   "econEvents": 13,
+   "econEvents": 16,
    "econKinds": [
-    "mourning",
     "given",
+    "mourning",
     "visit",
     "harvest_good"
    ],
@@ -991,18 +1029,21 @@
    "workSegs": 8,
    "workPlaces": 4,
    "year": [
-    "the house of Miššabadda gave them grain or help"
+    "the house of Miššabadda son of Bakabada gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "married her husband, last year",
     "lived through a year of locusts on the plain, 2 years ago",
-    "lived through a summer of sickness in the town, when many children died, 7 years ago",
-    "borrowed silver in a bad year and was years paying it back, 2 years ago"
+    "lived through a summer of sickness in the town, when many children died, 7 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1019,11 +1060,11 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 14,
-   "econEvents": 16,
+   "econEvents": 20,
    "econKinds": [
-    "buy_fuel",
-    "buy",
     "given",
+    "buy_fuel",
+    "haggle_deal",
     "mourning",
     "nursed_by_kin"
    ],
@@ -1065,18 +1106,21 @@
    "workSegs": 2,
    "workPlaces": 1,
    "year": [
-    "the house of Bakerabba gave them grain or help"
+    "the house of Bakerabba son of Ziššukka gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "the father died, 7 years ago",
     "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago",
-    "remembers the death of the old king Dārayavauš and the accession of Xšayāršā, 19 years ago"
+    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1139,18 +1183,21 @@
    "workSegs": 8,
    "workPlaces": 4,
    "year": [
-    "the house of Irdabada gave them grain or help"
+    "the house of Irdabada son of Mitranka gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "lived through a year of locusts on the plain, 2 years ago",
     "lived through a summer of sickness in the town, when many children died, 7 years ago",
-    "borrowed silver in a bad year and was years paying it back, last year",
-    "born in this village"
+    "borrowed silver in a bad year and was years paying it back, last year"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1171,7 +1218,9 @@
    "econKinds": [
     "nursed_by_kin",
     "haggle_deal",
-    "given"
+    "buy",
+    "given",
+    "kin_help"
    ],
    "econDebts": 0,
    "ties": 5,
@@ -1214,15 +1263,18 @@
     "was sick for 6 days in the last month"
    ],
    "past": [
+    "born in this village",
     "lived through a year of locusts on the plain, 2 years ago",
     "lived through a summer of sickness in the town, when many children died, 7 years ago",
-    "saw the king's horses go up to the Terrace, 4 years ago",
-    "born in this village"
+    "saw the king's horses go up to the Terrace, 4 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 1,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 1,
     "events": 6,
@@ -1239,7 +1291,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 13,
-   "econEvents": 64,
+   "econEvents": 68,
    "econKinds": [
     "nursed_by_kin",
     "given",
@@ -1289,15 +1341,18 @@
    "workPlaces": 3,
    "year": [],
    "past": [
+    "born in this village",
     "married her husband, 2 years ago",
     "lived through a year of locusts on the plain, 2 years ago",
-    "lived through a summer of sickness in the town, when many children died, 7 years ago",
-    "fell sick with a fever that nearly took them, last year"
+    "lived through a summer of sickness in the town, when many children died, 7 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1314,7 +1369,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 12,
-   "econEvents": 12,
+   "econEvents": 13,
    "econKinds": [
     "given",
     "buy_fuel"
@@ -1357,18 +1412,21 @@
    "workSegs": 9,
    "workPlaces": 3,
    "year": [
-    "the house of Bakezza gave them grain or help"
+    "the house of Bakezza son of Irdabada gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "a daughter was born, last year",
     "married her husband, 2 years ago",
-    "lived through a year of locusts on the plain, 2 years ago",
-    "lived through a summer of sickness in the town, when many children died, 7 years ago"
+    "lived through a year of locusts on the plain, 2 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1385,7 +1443,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 14,
-   "econEvents": 19,
+   "econEvents": 21,
    "econKinds": [
     "visit",
     "harvest_poor",
@@ -1433,14 +1491,17 @@
    "workPlaces": 5,
    "year": [],
    "past": [
+    "born in a village of the Elamite lowlands",
     "lived through a year of locusts on the plain, 2 years ago",
-    "was lost a whole afternoon in the lanes and found by a neighbour, 3 years ago",
-    "born in a village of the Elamite lowlands"
+    "was lost a whole afternoon in the lanes and found by a neighbour, 3 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 3,
+    "needs": 0,
+    "news": 0,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1457,7 +1518,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 14,
-   "econEvents": 14,
+   "econEvents": 17,
    "econKinds": [
     "nursed_by_kin",
     "given",
@@ -1504,15 +1565,18 @@
    "workPlaces": 2,
    "year": [],
    "past": [
+    "born in a village of the Elamite lowlands",
     "was widowed, 16 years ago",
     "the father died, 24 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1529,7 +1593,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 11,
-   "econEvents": 100,
+   "econEvents": 103,
    "econKinds": [
     "loan",
     "harvest_poor",
@@ -1537,8 +1601,8 @@
     "repaid",
     "mourning",
     "buy_fuel",
-    "land_sold",
-    "loan_refused"
+    "loan_refused",
+    "land_sold"
    ],
    "econDebts": 0,
    "ties": 4,
@@ -1578,18 +1642,21 @@
    "workSegs": 12,
    "workPlaces": 5,
    "year": [
-    "the house of Irtuppiya gave them grain or help"
+    "the house of Irtuppiya son of Miššabadda gave them grain or help"
    ],
    "past": [
+    "born in a village by the lake of the salt marsh",
     "lost a daughter in early childhood, 3 years ago",
     "the father died, 5 years ago",
-    "the mother died, 6 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
+    "the mother died, 6 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1606,7 +1673,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 12,
-   "econEvents": 14,
+   "econEvents": 18,
    "econKinds": [
     "harvest_poor",
     "given",
@@ -1652,20 +1719,23 @@
    "workSegs": 3,
    "workPlaces": 1,
    "year": [
-    "the house of Bakabana gave them grain or help"
+    "the house of Bakabana son of Irtima gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "lost a son in the first year, 2 years ago",
     "the father died, 3 years ago",
-    "the mother died, 21 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
+    "the mother died, 21 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 1,
+    "news": 2,
+    "cares": 3,
     "quarrels": 0,
-    "debts": 0,
+    "debts": 1,
     "events": 6,
     "earlier": 5
    },
@@ -1680,16 +1750,17 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 11,
-   "econEvents": 33,
+   "econEvents": 39,
    "econKinds": [
     "given",
     "harvest_poor",
-    "hired_by_neighbour",
     "buy_fuel",
+    "lent_by_neighbour",
     "nursed_by_kin",
+    "loan",
     "mourning"
    ],
-   "econDebts": 0,
+   "econDebts": 1,
    "ties": 4,
    "debtsSeeded": false,
    "today": "eat: the midday meal with the household",
@@ -1734,6 +1805,9 @@
     "friends": 3,
     "year": 0,
     "past": 1,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1750,17 +1824,16 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 5,
-   "econEvents": 19,
+   "econEvents": 21,
    "econKinds": [
     "nursed_by_kin",
     "harvest_poor",
     "illness",
+    "given",
     "buy_fuel",
     "mourning",
-    "given",
     "visit",
-    "lent_by_neighbour",
-    "kin_help"
+    "lent_by_neighbour"
    ],
    "econDebts": 0,
    "ties": 0,
@@ -1802,17 +1875,20 @@
    "workSegs": 2,
    "workPlaces": 1,
    "year": [
-    "the house of Irtuppiya gave them grain or help"
+    "the house of Irtuppiya son of Irdabada gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "lived through the spring the river broke its banks and took the fields by the ford, 2 years ago",
-    "had a fever one winter, last year",
-    "born in this village"
+    "had a fever one winter, last year"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 3,
+    "needs": 0,
+    "news": 0,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1829,7 +1905,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 13,
-   "econEvents": 14,
+   "econEvents": 15,
    "econKinds": [
     "given"
    ],
@@ -1874,15 +1950,18 @@
     "had a daughter, Ina-Esagil-banât, born in the month Ādukanaiša"
    ],
    "past": [
+    "born in Memphis",
     "the mother died, 19 years ago",
     "the father died, 24 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -1899,13 +1978,12 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 13,
-   "econEvents": 24,
+   "econEvents": 27,
    "econKinds": [
     "given",
     "mourning",
     "illness",
     "nursed_by_kin",
-    "haggle_deal",
     "buy_fuel"
    ],
    "econDebts": 0,
@@ -1946,18 +2024,21 @@
    "workSegs": 6,
    "workPlaces": 2,
    "year": [
-    "the house of Ašbatašda gave them grain or help"
+    "the house of Ašbatašda son of Umanna gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "lost a daughter in the first year, last year",
     "the father died, 4 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 3,
     "quarrels": 0,
     "debts": 1,
     "events": 6,
@@ -1973,8 +2054,8 @@
    ],
    "sameNextDay": false,
    "sameOtherSeason": false,
-   "actsOtherSeason": 9,
-   "econEvents": 28,
+   "actsOtherSeason": 10,
+   "econEvents": 30,
    "econKinds": [
     "given",
     "buy_fuel",
@@ -2028,18 +2109,21 @@
    "workPlaces": 4,
    "year": [
     "was sick for 1 day in the last month",
-    "the house of Mardunuya gave them grain or help"
+    "the house of Mardunuya son of Bakumarda gave them grain or help"
    ],
    "past": [
+    "born in a village up the valley of the river Pulvar",
     "lived through the spring the river broke its banks and took the fields by the ford, 2 years ago",
     "lived through a summer of sickness in the town, when many children died, 4 years ago",
-    "lived through a great fire in the lanes of the town, 4 years ago",
-    "was lost a whole afternoon in the lanes and found by a neighbour, 8 years ago"
+    "lived through a great fire in the lanes of the town, 4 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 2,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 0,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2100,18 +2184,21 @@
    "workSegs": 11,
    "workPlaces": 4,
    "year": [
-    "the house of Umanna gave them grain or help"
+    "the house of Umanna son of Bakadušda gave them grain or help"
    ],
    "past": [
+    "born in a village by the lake of the salt marsh",
     "lived through the spring the river broke its banks and took the fields by the ford, 2 years ago",
     "lived through a summer of sickness in the town, when many children died, 4 years ago",
-    "lived through a great fire in the lanes of the town, 4 years ago",
-    "kept the house alone a season while the men were away, last year"
+    "lived through a great fire in the lanes of the town, 4 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2173,15 +2260,18 @@
    "workPlaces": 4,
    "year": [],
    "past": [
+    "born in the town below the Terrace",
     "lost a daughter in the first year, 8 years ago",
     "the mother died, 9 years ago",
-    "the father died, 18 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
+    "the father died, 18 years ago"
    ],
    "facts": {
     "friends": 3,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 2,
     "events": 6,
@@ -2198,7 +2288,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 7,
-   "econEvents": 100,
+   "econEvents": 104,
    "econKinds": [
     "given",
     "mourning",
@@ -2248,15 +2338,18 @@
    "workPlaces": 4,
    "year": [],
    "past": [
+    "born in the town below the Terrace",
     "the mother died, 8 years ago",
     "the father died, 15 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 2,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2273,13 +2366,14 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 14,
-   "econEvents": 40,
+   "econEvents": 50,
    "econKinds": [
     "buy_fuel",
     "harvest_good",
     "given",
     "lent_by_neighbour",
-    "haggle_deal"
+    "haggle_deal",
+    "buy"
    ],
    "econDebts": 0,
    "ties": 3,
@@ -2320,15 +2414,18 @@
    "workPlaces": 3,
    "year": [],
    "past": [
+    "born in this village",
     "lived through the spring the river broke its banks and took the fields by the ford, 2 years ago",
     "lived through a summer of sickness in the town, when many children died, 4 years ago",
-    "lived through a great fire in the lanes of the town, 4 years ago",
-    "was bitten by a dog in the lane, 6 years ago"
+    "lived through a great fire in the lanes of the town, 4 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2345,13 +2442,17 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 11,
-   "econEvents": 9,
+   "econEvents": 17,
    "econKinds": [
     "buy",
     "harvest_poor",
     "nursed_by_kin",
     "given",
-    "buy_fuel"
+    "buy_fuel",
+    "theft",
+    "robbed",
+    "accusation",
+    "lent_by_neighbour"
    ],
    "econDebts": 0,
    "ties": 6,
@@ -2391,13 +2492,16 @@
    "workSegs": 0,
    "workPlaces": 0,
    "year": [
-    "the house of Haturka gave them grain or help"
+    "the house of Haturka son of Mitranka gave them grain or help"
    ],
    "past": [],
    "facts": {
     "friends": 3,
     "year": 1,
     "past": 0,
+    "needs": 0,
+    "news": 0,
+    "cares": 0,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2414,7 +2518,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 4,
-   "econEvents": 20,
+   "econEvents": 21,
    "econKinds": [
     "mourning",
     "given",
@@ -2461,18 +2565,21 @@
    "workSegs": 5,
    "workPlaces": 2,
    "year": [
-    "the house of Pirriyašba gave them grain or help"
+    "the house of Pirriyašba son of Ašbatašda gave them grain or help"
    ],
    "past": [
+    "born in Anšan, the old royal town to the west",
     "lived through the spring the river broke its banks and took the fields by the ford, 2 years ago",
     "lived through a summer of sickness in the town, when many children died, 4 years ago",
-    "lived through a great fire in the lanes of the town, 4 years ago",
-    "saw the king's horses go up to the Terrace, last year"
+    "lived through a great fire in the lanes of the town, 4 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2489,16 +2596,14 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 11,
-   "econEvents": 19,
+   "econEvents": 17,
    "econKinds": [
-    "harvest_poor",
     "given",
+    "harvest_poor",
     "nursed_by_kin",
     "illness",
     "buy_fuel",
-    "theft",
-    "robbed",
-    "buy"
+    "kin_help"
    ],
    "econDebts": 0,
    "ties": 5,
@@ -2540,18 +2645,21 @@
    "year": [
     "Bagabāmā, daughter, died in the month Ādukanaiša",
     "is sick today",
-    "the house of Tiššantamma gave them grain or help"
+    "the house of Tiššantamma son of Ašbatašda gave them grain or help"
    ],
    "past": [
+    "born in the town below the Terrace",
     "the mother died, 11 years ago",
     "the father died, 16 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 3,
     "past": 4,
+    "needs": 1,
+    "news": 2,
+    "cares": 4,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2567,7 +2675,7 @@
    ],
    "sameNextDay": false,
    "sameOtherSeason": false,
-   "actsOtherSeason": 14,
+   "actsOtherSeason": 16,
    "econEvents": 48,
    "econKinds": [
     "buy_fuel",
@@ -2613,18 +2721,21 @@
    "workSegs": 6,
    "workPlaces": 3,
    "year": [
-    "the house of Ziššukka gave them grain or help"
+    "the house of Ziššukka son of Irtuppiya gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "the father died, last year",
     "lost a daughter in the first year, last year",
-    "lost a son in the first year, 3 years ago",
-    "the mother died, 5 years ago"
+    "lost a son in the first year, 3 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 1,
     "debts": 0,
     "events": 6,
@@ -2641,9 +2752,10 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 8,
-   "econEvents": 36,
+   "econEvents": 43,
    "econKinds": [
     "given",
+    "lent_by_neighbour",
     "illness",
     "nursed_by_kin",
     "buy_fuel"
@@ -2687,15 +2799,18 @@
    "workPlaces": 4,
    "year": [],
    "past": [
+    "born in Anšan, the old royal town to the west",
     "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
     "remembers the king's great march to the Yauna beyond the sea, 13 years ago",
-    "remembers the death of the old king Dārayavauš and the accession of Xšayāršā, 19 years ago",
-    "a daughter was born, 4 years ago"
+    "remembers the death of the old king Dārayavauš and the accession of Xšayāršā, 19 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2755,15 +2870,18 @@
    "workPlaces": 3,
    "year": [],
    "past": [
+    "born in a village of Upper Egypt",
     "was widowed, 4 years ago",
     "the father died, 13 years ago",
-    "the mother died, 28 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
+    "the mother died, 28 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2780,8 +2898,9 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 14,
-   "econEvents": 7,
+   "econEvents": 12,
    "econKinds": [
+    "given",
     "illness",
     "nursed_by_kin",
     "haggle_deal",
@@ -2826,15 +2945,18 @@
    "workPlaces": 6,
    "year": [],
    "past": [
+    "born in Sippar",
     "the father died, 3 years ago",
     "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago",
-    "the siege and the fall of Babylon after the rising; the temple's houses broken up, 17 years ago"
+    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
    ],
    "facts": {
     "friends": 3,
     "year": 0,
     "past": 4,
+    "needs": 1,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2851,7 +2973,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 13,
-   "econEvents": 11,
+   "econEvents": 12,
    "econKinds": [
     "given",
     "mourning",
@@ -2896,13 +3018,16 @@
    "workSegs": 0,
    "workPlaces": 0,
    "year": [
-    "the house of Bakerabba gave them grain or help"
+    "the house of Bakerabba son of Bakubeša gave them grain or help"
    ],
    "past": [],
    "facts": {
     "friends": 2,
     "year": 1,
     "past": 0,
+    "needs": 0,
+    "news": 0,
+    "cares": 0,
     "quarrels": 0,
     "debts": 0,
     "events": 6,
@@ -2919,7 +3044,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 5,
-   "econEvents": 37,
+   "econEvents": 40,
    "econKinds": [
     "harvest_poor",
     "given",
@@ -2930,9 +3055,9 @@
     "buy_fuel",
     "petition",
     "petition_refused",
+    "kin_help",
     "default",
-    "pledge_seized",
-    "kin_help"
+    "pledge_seized"
    ],
    "econDebts": 0,
    "ties": 0,
@@ -2974,17 +3099,20 @@
    "workSegs": 5,
    "workPlaces": 3,
    "year": [
-    "the house of Ašbatašda gave them grain or help"
+    "the house of Ašbatašda son of Hupannana gave them grain or help"
    ],
    "past": [
+    "born in a village of the Elamite lowlands",
     "lived through a year so good the barley lay in heaps unsold, 3 years ago",
-    "was bitten by a dog in the lane, 2 years ago",
-    "born in a village of the Elamite lowlands"
+    "was bitten by a dog in the lane, 2 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 3,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3001,14 +3129,14 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 6,
-   "econEvents": 46,
+   "econEvents": 48,
    "econKinds": [
     "buy_fuel",
     "buy",
+    "haggle_deal",
     "illness",
     "nursed_by_kin",
-    "given",
-    "haggle_deal"
+    "given"
    ],
    "econDebts": 0,
    "ties": 3,
@@ -3055,6 +3183,9 @@
     "friends": 2,
     "year": 0,
     "past": 1,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3071,13 +3202,12 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 5,
-   "econEvents": 16,
+   "econEvents": 12,
    "econKinds": [
     "buy_fuel",
     "given",
     "mourning",
-    "nursed_by_kin",
-    "haggle_deal"
+    "nursed_by_kin"
    ],
    "econDebts": 0,
    "ties": 0,
@@ -3119,18 +3249,21 @@
    "workSegs": 2,
    "workPlaces": 1,
    "year": [
-    "the house of Tiššantamma gave them grain or help"
+    "the house of Tiššantamma son of Ašbatašda gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "lost a daughter in early childhood, 7 years ago",
     "the father died, 24 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "marched with the levy in the king's war beyond the sea, and came home, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 3,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 3,
     "quarrels": 1,
     "debts": 0,
     "events": 5,
@@ -3147,7 +3280,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 8,
-   "econEvents": 39,
+   "econEvents": 45,
    "econKinds": [
     "mourning",
     "given",
@@ -3196,15 +3329,18 @@
    "workPlaces": 3,
    "year": [],
    "past": [
+    "born in this village",
     "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
     "remembers the king's great march to the Yauna beyond the sea, 13 years ago",
-    "lived through a year so good the barley lay in heaps unsold, 3 years ago",
-    "lived through a year the barley failed and the stores were opened, 12 years ago"
+    "lived through a year so good the barley lay in heaps unsold, 3 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3221,11 +3357,12 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 9,
-   "econEvents": 10,
+   "econEvents": 13,
    "econKinds": [
     "buy",
     "harvest_good",
     "mourning",
+    "given",
     "nursed_by_kin",
     "illness",
     "buy_fuel"
@@ -3268,18 +3405,21 @@
    "workSegs": 3,
    "workPlaces": 2,
    "year": [
-    "the house of Pirriyašba gave them grain or help"
+    "the house of Pirriyašba son of Bakadušda gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "the mother died, 5 years ago",
     "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago",
-    "married his wife, 2 years ago"
+    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3341,17 +3481,20 @@
    "workPlaces": 3,
    "year": [
     "Irtuppiya, brother, died in the month Ādukanaiša",
-    "the house of Ašbatašda gave them grain or help",
-    "paid back the house of Pirrena"
+    "the house of Ašbatašda son of Ziššukka gave them grain or help",
+    "paid back the house of Pirrena son of Manyakka"
    ],
    "past": [
-    "was lost a whole afternoon in the lanes and found by a neighbour, 2 years ago",
-    "born in a herders' camp in the hills of Pārsa"
+    "born in a herders' camp in the hills of Pārsa",
+    "was lost a whole afternoon in the lanes and found by a neighbour, 2 years ago"
    ],
    "facts": {
     "friends": 1,
     "year": 3,
     "past": 2,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3368,7 +3511,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 5,
-   "econEvents": 41,
+   "econEvents": 43,
    "econKinds": [
     "given",
     "death",
@@ -3418,18 +3561,21 @@
    "workSegs": 9,
    "workPlaces": 4,
    "year": [
-    "the house of Irtuppiya gave them grain or help"
+    "the house of Irtuppiya son of Mikrašba gave them grain or help"
    ],
    "past": [
+    "born in a village up the valley of the river Pulvar",
     "the mother died, 12 years ago",
     "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago",
-    "remembers the death of the old king Dārayavauš and the accession of Xšayāršā, 19 years ago"
+    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 1,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3446,7 +3592,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 3,
-   "econEvents": 11,
+   "econEvents": 14,
    "econKinds": [
     "harvest_poor",
     "buy_fuel",
@@ -3495,15 +3641,18 @@
     "was sick for 4 days in the last month"
    ],
    "past": [
+    "born in a village of the plain here",
     "a kinsman did not come back from the war beyond the sea, 12 years ago",
     "the mother died, 19 years ago",
-    "marched with the levy in the king's war beyond the sea, and came home, 13 years ago",
-    "remembers the death of the old king Dārayavauš and the accession of Xšayāršā, 19 years ago"
+    "marched with the levy in the king's war beyond the sea, and came home, 13 years ago"
    ],
    "facts": {
     "friends": 3,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 3,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3520,7 +3669,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 9,
-   "econEvents": 8,
+   "econEvents": 10,
    "econKinds": [
     "given",
     "tax_arrears",
@@ -3568,14 +3717,17 @@
    "workPlaces": 3,
    "year": [],
    "past": [
+    "born in this village",
     "lived through a year so good the barley lay in heaps unsold, 3 years ago",
-    "was bitten by a dog in the lane, 2 years ago",
-    "born in this village"
+    "was bitten by a dog in the lane, 2 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 3,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3592,7 +3744,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 6,
-   "econEvents": 8,
+   "econEvents": 9,
    "econKinds": [
     "given",
     "buy",
@@ -3638,19 +3790,22 @@
    "workSegs": 15,
    "workPlaces": 5,
    "year": [
-    "the house of Miššabadda gave them grain or help",
+    "the house of Bakadušda son of Upirradda gave them grain or help",
     "the ox was lost"
    ],
    "past": [
+    "born in this village",
     "the father died, last year",
     "lost a daughter in early childhood, 11 years ago",
-    "lost a son in early childhood, 14 years ago",
-    "lost a son in early childhood, 15 years ago"
+    "lost a son in early childhood, 14 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 2,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 3,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3667,13 +3822,13 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 11,
-   "econEvents": 17,
+   "econEvents": 23,
    "econKinds": [
     "mourning",
     "harvest_poor",
     "animal_lost",
-    "animal_bought",
     "given",
+    "animal_bought",
     "illness",
     "nursed_by_kin",
     "haggle_deal",
@@ -3719,15 +3874,18 @@
    "workPlaces": 4,
    "year": [],
    "past": [
+    "born in this village",
     "lost a son in the first year, 3 years ago",
     "the mother died, 14 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 3,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3744,10 +3902,11 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 13,
-   "econEvents": 8,
+   "econEvents": 11,
    "econKinds": [
     "harvest_poor",
     "nursed_by_kin",
+    "given",
     "sell",
     "buy_fuel",
     "illness"
@@ -3791,18 +3950,21 @@
    "workPlaces": 4,
    "year": [
     "had a daughter, Farnaduxçā, born in the month Θāigraciš",
-    "the house of Pirrena gave them grain or help"
+    "the house of Pirrena son of Mitranka gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "married her husband, 2 years ago",
     "lived through a year so good the barley lay in heaps unsold, 3 years ago",
-    "lived through a year the barley failed and the stores were opened, 12 years ago",
-    "lived through a great fire in the lanes of the town, 13 years ago"
+    "lived through a year the barley failed and the stores were opened, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 2,
     "past": 4,
+    "needs": 1,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3819,10 +3981,10 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 1,
-   "econEvents": 23,
+   "econEvents": 28,
    "econKinds": [
-    "harvest_poor",
     "given",
+    "harvest_poor",
     "mourning",
     "death",
     "illness",
@@ -3868,18 +4030,21 @@
    "workSegs": 5,
    "workPlaces": 2,
    "year": [
-    "the house of Mitranka gave them grain or help"
+    "the house of Mitranka son of Bakabana gave them grain or help"
    ],
    "past": [
+    "born in a herders' camp in the hills of Pārsa",
     "married his wife, 2 years ago",
     "lived through a year so good the barley lay in heaps unsold, 3 years ago",
-    "lived through a year the barley failed and the stores were opened, 12 years ago",
-    "lived through a great fire in the lanes of the town, 13 years ago"
+    "lived through a year the barley failed and the stores were opened, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 2,
     "events": 5,
@@ -3896,10 +4061,10 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 8,
-   "econEvents": 34,
+   "econEvents": 36,
    "econKinds": [
-    "harvest_poor",
     "given",
+    "harvest_poor",
     "nursed_by_kin",
     "buy_fuel",
     "loan",
@@ -3943,17 +4108,20 @@
    "workSegs": 4,
    "workPlaces": 2,
    "year": [
-    "the house of Miššabadda gave them grain or help"
+    "the house of Miššabadda son of Mitranka gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "lived through a year so good the barley lay in heaps unsold, 3 years ago",
-    "was lost a whole afternoon in the lanes and found by a neighbour, 3 years ago",
-    "born in this village"
+    "was lost a whole afternoon in the lanes and found by a neighbour, 3 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 3,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -3970,7 +4138,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 5,
-   "econEvents": 49,
+   "econEvents": 55,
    "econKinds": [
     "illness",
     "nursed_by_kin",
@@ -4017,15 +4185,18 @@
    "workPlaces": 3,
    "year": [],
    "past": [
+    "born in this village",
     "the mother died, 11 years ago",
     "the father died, 20 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -4090,16 +4261,19 @@
    "workPlaces": 0,
    "year": [
     "was sick for 3 days in the last month",
-    "the house of Bakadušda gave them grain or help"
+    "the house of Bakadušda son of Ašbatašda gave them grain or help"
    ],
    "past": [
-    "was lost a whole afternoon in the lanes and found by a neighbour, last year",
-    "born in this village"
+    "born in this village",
+    "was lost a whole afternoon in the lanes and found by a neighbour, last year"
    ],
    "facts": {
     "friends": 3,
     "year": 2,
     "past": 2,
+    "needs": 0,
+    "news": 0,
+    "cares": 1,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -4116,7 +4290,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 5,
-   "econEvents": 11,
+   "econEvents": 12,
    "econKinds": [
     "given",
     "mourning",
@@ -4162,18 +4336,21 @@
    "workSegs": 14,
    "workPlaces": 3,
    "year": [
-    "the house of Utira gave them grain or help"
+    "the house of Utira son of Sunkana gave them grain or help"
    ],
    "past": [
+    "born in a village of the plain here",
     "married her husband, last year",
     "lived through a year so good the barley lay in heaps unsold, 3 years ago",
-    "lived through a year the barley failed and the stores were opened, 12 years ago",
-    "lived through a great fire in the lanes of the town, 13 years ago"
+    "lived through a year the barley failed and the stores were opened, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 3,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -4190,7 +4367,7 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 7,
-   "econEvents": 23,
+   "econEvents": 24,
    "econKinds": [
     "buy_fuel",
     "buy",
@@ -4238,15 +4415,18 @@
    "workPlaces": 1,
    "year": [],
    "past": [
+    "born in this village",
     "the mother died, 11 years ago",
     "the father died, 22 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
+    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 0,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
@@ -4267,7 +4447,6 @@
    "econKinds": [
     "given",
     "mourning",
-    "hired_by_neighbour",
     "buy_fuel"
    ],
    "econDebts": 0,
@@ -4308,20 +4487,23 @@
    "workSegs": 8,
    "workPlaces": 2,
    "year": [
-    "the house of Bakerabba gave them grain or help"
+    "the house of Bakerabba son of Pirriyašba gave them grain or help"
    ],
    "past": [
+    "born in a herders' camp in the hills of Pārsa",
     "lost a son in the first year, 3 years ago",
     "a kinsman did not come back from the war beyond the sea, 12 years ago",
-    "remembers the king's great march to the Yauna beyond the sea, 13 years ago",
-    "remembers the death of the old king Dārayavauš and the accession of Xšayāršā, 19 years ago"
+    "remembers the king's great march to the Yauna beyond the sea, 13 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
-    "debts": 0,
+    "debts": 1,
     "events": 5,
     "earlier": 5
    },
@@ -4336,17 +4518,18 @@
    "sameNextDay": false,
    "sameOtherSeason": false,
    "actsOtherSeason": 8,
-   "econEvents": 34,
+   "econEvents": 43,
    "econKinds": [
+    "given",
     "nursed_by_kin",
     "illness",
     "haggle_deal",
-    "given",
     "buy_fuel",
     "mourning",
-    "sell"
+    "sell",
+    "loan"
    ],
-   "econDebts": 0,
+   "econDebts": 1,
    "ties": 6,
    "debtsSeeded": false,
    "today": "eat: the midday meal with the household, back from the vineyard",
@@ -4384,18 +4567,21 @@
    "workSegs": 4,
    "workPlaces": 2,
    "year": [
-    "the house of Bakubeša gave them grain or help"
+    "the house of Bakubeša son of Bakezza gave them grain or help"
    ],
    "past": [
+    "born in this village",
     "the father died, 7 years ago",
     "the mother died, 11 years ago",
-    "was widowed, 23 years ago",
-    "remembers the army coming back from the war beyond the sea, fewer than went, 12 years ago"
+    "was widowed, 23 years ago"
    ],
    "facts": {
     "friends": 4,
     "year": 1,
     "past": 4,
+    "needs": 0,
+    "news": 2,
+    "cares": 2,
     "quarrels": 0,
     "debts": 0,
     "events": 5,
