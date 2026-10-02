@@ -9,6 +9,8 @@
 
 **What a player now hears differently**: measured reverb in every hall, court, lane, slope, orchard and on the plain (OpenAIR); recorded dogs, cocks, hens, cattle, sheep, pigs and the boar, frogs, crows, crickets, bees, a door's creak, thunder, a fire's pops, water poured; footsteps recorded on every surface (4 by the nearest surface's set); recorded rain, drips, gusts, hearths, warm-night crickets and orchard birds.
 
+**Size**: public/audio 5.1 MB now, ~33 MB after the fetch; budget 40 MB agreed with C4 (the site is 634 MB of its 900 MB target; audio is not in the service worker's prefetch and is cached only when played).
+
 **Views asked**: none. Asks: run the fetch; listen in a lane and the Apadana.
 
 **Files**: src/audio/{soundplan,library,sampler}.ts (new), soundscape.ts, engine.ts; src/world/world.ts (hook: `air: ctx.cond`; overlay); tools/audio/{fetch.mjs, fetch_list.json, fetch_lock.json, irs.mjs, common.mjs}; tools/dev/{sound_census,sound_mix}.ts; public/audio/**; tests/sound_recorded.test.ts; DECISIONS D-620; ASSET_LEDGER (rooms + the D-620 block).
