@@ -11,6 +11,7 @@ import { MONTHS, dateOf, seasonOf } from '../calendar';
 import type { EventCalendar } from '../calendar';
 import { HOME_LANG } from '../exchanges';
 import { Rng } from '../../core/rng';
+import { pastOf, pastWords } from '../history';
 
 export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
 export interface LifeRecord {
@@ -21,6 +22,8 @@ export interface LifeRecord {
   household: Kin[]; kinHouses: string[]; friends: { name: string; how: string; feeling: string }[];
   /** the year so far, in order: what happened to this person and their house (sim facts) */
   year: string[];
+  /** D-371: before this year: the person's past, bound to the household as the simulation has it (history.ts) */
+  past: string[];
   /** quarrels and small obligations (disputes: sim facts; debts: seeded, C) */
   quarrels: string[]; debts: string[];
   temperament: string; speech: string[];
@@ -180,7 +183,7 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     otherLanguages: [...new Set([p.origin !== 'Persian' && age >= 12 ? 'some Persian' : '', p.job === 'scribe' ? 'Elamite and Aramaic (writes them)' : '', p.group >= 0 && lang !== 'Elamite' ? 'a little Elamite (the language of the ration tablets)' : ''].filter(Boolean))],
     job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? pop.groups[p.group].label.replace(/\s*\(\d+\)/, '') : null,
     rank: p.job === 'guard' && p.rank === 1 ? 'leader of a file of ten' : p.rank > 1 ? 'a leader of the group' : null,
-    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${all.length + 1} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, quarrels, debts, temperament: temper, speech,
+    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${all.length + 1} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)), quarrels, debts, temperament: temper, speech,
     today: { date: `day ${dt.dom} of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), year 19 of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
     knows, tier: 'C',
   };
@@ -215,6 +218,7 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     `In your house: ${kin}.`,
     L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
     [...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].length ? `Lately: ${[...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].join('; ')}.` : '',
+    L.past.length ? `Before this year: ${L.past.slice(0, 2).join('; ')}.` : '',
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
     `Today: ${L.today.date.replace(/ \(Babylonian [^)]*\), year 19 of King Xerxes/, '')}, ${L.today.season}, ${L.today.weather}.\nRight now: ${L.today.now.replace(/^[a-z ]+: /, '')}${L.today.next ? `; after this: ${L.today.next}` : ''}.${L.today.earlier.length ? ` Earlier: ${L.today.earlier.slice(-1).join('; ')}.` : ''}`,
     ev.length ? `News today: ${ev.join('; ')}.` : '',
@@ -233,6 +237,7 @@ export function lifeBrief(L: LifeRecord, prose?: string | null): string {
     `Home: ${L.home}. Household: ${kin}.`,
     L.kinHouses.length ? `Kin in other houses: ${L.kinHouses.join('; ')}.` : '',
     L.friends.length ? `People you know: ${L.friends.map(f => `${f.name} (${f.how}; ${f.feeling})`).join('; ')}.` : '',
+    L.past.length ? `Before this year: ${L.past.join('; ')}.` : '',
     L.year.length ? `This year: ${L.year.join('; ')}.` : '',
     L.quarrels.length ? `Quarrels: ${L.quarrels.join('; ')}.` : '', L.debts.length ? `Debts: ${L.debts.join('; ')}.` : '',
     `Temperament: ${L.temperament}. Speech: ${L.speech.join('; ')}.`,
