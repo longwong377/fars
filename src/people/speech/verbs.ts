@@ -36,6 +36,11 @@ export function strangerAsk(words: string, c: VerbCtx): SAct | null {
   // hospitality
   if (hh && /\b((can|may|could) i (stay|sleep|rest|spend the night|lodge)( here| with you| in your house| tonight)?|do you have (a place|room|a corner) (for me )?to sleep|(can|could) you (put me up|take me in)|guest[- ]right|i ask (your )?hospitality|shelter for the night)\b/.test(w)) return { a: 'stay', day, hh };
   if (/\b(thank you for (your )?(hospitality|the bed|the meals?)|i must (go|leave|be on my way)|i('ll| will) (leave|go) (now|tomorrow))\b/.test(w)) return { a: 'leave_stay', day };
+  // buying and selling (haggled by the simulation: speech/haggle.ts)
+  const qtyOf = (w: string) => { const m = /\b(\d+|a|one|two|three|four|five|ten)\s+(measures?|sacks?|loads?|jars?|loaves?)\b/.exec(w); const n = m ? ({ a: 1, one: 1, two: 2, three: 3, four: 4, five: 5, ten: 10 } as Record<string, number>)[m[1]] ?? Number(m[1]) : 1; return Math.min(30, n) * (m && /sack|load/.test(m[2]) ? 30 : 10); };
+  const goodOf = (w: string) => /\b(barley|grain|bread|flour|wheat)\b/.test(w) ? 'grain' as const : /\b(fuel|firewood|wood|dung|brushwood)\b/.test(w) ? 'fuel' as const : /\b(cloth|jar|pot|goods|wares|basket|tools?)\b/.test(w) ? 'goods' as const : null;
+  if (hh && /\b(sell me|i('d| would)? (want|like) to buy|can i buy|could i buy|how much (for|is)|what do you want for|i('ll| will) buy)\b/.test(w)) { const g = goodOf(w); if (g) return { a: 'buy', day, hh, good: g, qty: g === 'goods' ? 1 : qtyOf(w) }; }
+  if (hh && /\b(i('ll| will) sell you|will you buy|do you want to buy|buy (my|this|these)|i have .{1,20} to sell)\b/.test(w)) { const g = goodOf(w); if (g) return { a: 'sell', day, hh, good: g, qty: g === 'goods' ? 1 : qtyOf(w) }; }
   // gifts (amounts in the translation layer's words: a shekel of silver, a measure of grain; C)
   const gift = /\b(take|accept|here is|have) (this|these|a|some|my)? ?(\d+(?:\.\d+)?|a|one|some)? ?(shekels?|silver|coins?|grain|barley|bread|measures?)\b/.exec(w);
   if (gift && (c.named ?? hh)) { const n = gift[3] && /\d/.test(gift[3]) ? Number(gift[3]) : 1, silver = /shekel|silver|coin/.test(gift[4]);

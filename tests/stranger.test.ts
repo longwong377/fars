@@ -135,4 +135,14 @@ describe('D-370 the stranger in the simulation', () => {
     const none = new Economy(1, hs, { trust: true }); for (let d = 0; d <= 100; d++) none.step(d);
     expect(none.events.some(v => v.actor === PLAYER || v.other === PLAYER)).toBe(false);
   });
+  it('(4) haggling: the stranger buys barley from a house with some to spare and sells it again, paid from and into his own stores', () => {
+    const e = town(60), S = e.stranger(); S.purse.cash = 5;
+    const seller = [...e.hh.values()].find(h => h.kind === 'farmer' && h.grain > h.eaters * 0.55 * 60 && S.judge({ a: 'buy', day: 60, hh: h.id, good: 'grain', qty: 20 }).ok)!;
+    const g0 = seller.grain, c0 = S.purse.cash; const v = S.do({ a: 'buy', day: 60, hh: seller.id, good: 'grain', qty: 20 });
+    expect(v.ok).toBe(true); expect(S.purse.grain).toBe(20); expect(S.purse.cash).toBeLessThan(c0); expect(seller.grain).toBeCloseTo(g0 - 20, 5);
+    expect(e.events.some(x => x.kind === 'haggle_deal' && x.actor === seller.id)).toBe(true);
+    expect(S.judge({ a: 'sell', day: 60, hh: seller.id, good: 'grain', qty: 50 }).ok).toBe(false); // not his to sell
+    const buyer = [...e.hh.values()].find(h => h.cash > 1 && S.judge({ a: 'sell', day: 60, hh: h.id, good: 'grain', qty: 10 }).ok);
+    if (buyer) { const c1 = S.purse.cash; expect(S.do({ a: 'sell', day: 60, hh: buyer.id, good: 'grain', qty: 10 }).ok).toBe(true); expect(S.purse.cash).toBeGreaterThan(c1); expect(S.purse.grain).toBe(10); }
+  });
 });

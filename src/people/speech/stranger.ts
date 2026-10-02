@@ -31,6 +31,7 @@
 import type { Economy, EconEvent } from '../economy/world';
 import { h32, u01, salt } from '../hash';
 import { hashString } from '../../core/rng';
+import { haggle } from './haggle';
 
 export const PLAYER = 'player';
 const ROLE_WORDS: Record<string, string> = { labourer: 'a labourer', craftsman: 'a craftsman', merchant: 'a merchant', scribe: 'a scribe', pilgrim: 'a pilgrim', envoy: 'an envoy of the king', soldier: 'a soldier', healer: 'a healer', kin: 'kin of a house here' };
@@ -71,7 +72,8 @@ export type SAct =
   | { a: 'leave_stay'; day: number }
   | { a: 'give'; day: number; hh: string; grain?: number; cash?: number }
   | { a: 'join'; day: number; kind: GroupKind; q?: string; hh?: string }
-  | { a: 'leave_group'; day: number };
+  | { a: 'leave_group'; day: number }
+  | { a: 'buy' | 'sell'; day: number; hh: string; good: 'grain' | 'fuel' | 'goods'; qty: number };
 export interface Verdict { ok: boolean; why: string; /** the economy events it made (when applied) */ ev?: number[] }
 
 interface Job { employer: string; from: number; wage: 'grain' | 'cash'; worked: number; missed: number; run: number; owed: number; lastPay: number; ev: number; need: string; host?: boolean }
@@ -88,7 +90,7 @@ export interface StrangerOpts {
 
 export class Stranger {
   /** the stranger's own stores: wages, rations, drover's pay (what a gift is taken from) */
-  purse = { grain: 0, cash: 1 };
+  purse = { grain: 0, cash: 1, fuel: 0, goods: 0 };
   job: Job | null = null; stay: Stay | null = null; group: Group | null = null;
   /** hours of comprehensible hearing per language, and the day each was last used */
   readonly lang = new Map<string, { x: number; d: number }>();
@@ -123,6 +125,7 @@ export class Stranger {
       case 'petition': return this.petitionCheck(s);
       case 'give': { const g = s.grain ?? 0, c = s.cash ?? 0; return g > this.purse.grain + 1e-9 || c > this.purse.cash + 1e-9 ? { ok: false, why: 'the stranger has not got it' } : { ok: true, why: 'a gift' }; }
       case 'claim': return { ok: true, why: 'said' };
+      case 'buy': case 'sell': return this.deal(s, false);
       default: return { ok: true, why: '' };
     }
   }
@@ -159,6 +162,7 @@ export class Stranger {
       case 'join': { const v = this.joinCheck(s, day); if (!v.ok) { this.bump('join_refused'); return v; }
         this.leaveGroup(day); return this.joinGroup(s, day, v.why); }
       case 'leave_group': this.leaveGroup(day); return { ok: true, why: 'left' };
+      case 'buy': case 'sell': return this.deal(s, true);
     }
   }
 
@@ -229,6 +233,22 @@ export class Stranger {
   /** the matters judged (kind|against|for -> the day of the ruling): not heard again for 90 days (C) */
   readonly judged = new Map<string, number>();
   private owedEvents(against?: string) { return this.E.events.filter(e => e && e.kind === 'wage_owed' && e.other === PLAYER && (!against || e.actor === against)).slice(-3).map(e => e.id); }
+
+  // ---------------------------------------------------------------- (4) haggling, the stranger's side (D-370)
+  /** buy from a house or sell to it, haggled by speech/haggle.ts (the house's need, trust and skill against the stranger's: the
+   *  stranger haggles at a middling skill, worse while the tongue is poor), paid from and into the stranger's own stores */
+  private deal(s: Extract<SAct, { a: 'buy' | 'sell' }>, apply: boolean): Verdict {
+    const day = Math.min(s.day, this.E.day), H = this.H(s.hh); if (!H || H.dead) return { ok: false, why: 'no such house' };
+    const have = (g: string) => (this.purse as any)[g] ?? 0, skill = 0.35 + 0.3 * this.comp(this.langOf(s.hh), day);
+    if (s.a === 'sell' && have(s.good) < s.qty) return { ok: false, why: 'the stranger has not got it' };
+    const r = haggle(this.E, s.a === 'buy' ? { buyer: PLAYER, seller: s.hh, good: s.good, qty: s.qty, day, pay: 'cash', skill: { buyer: skill }, apply: false } : { buyer: s.hh, seller: PLAYER, good: s.good, qty: s.qty, day, pay: 'cash', skill: { seller: skill }, apply: false });
+    if (!r.ok) return { ok: false, why: r.why === 'seller has no spare' ? 'they have none to spare' : r.why === 'no overlap' ? 'they will not come to a price' : r.why === 'buyer cannot pay' ? 'they cannot pay for it' : r.why ?? 'no deal' };
+    if (s.a === 'buy' && this.purse.cash < r.price) return { ok: false, why: 'the stranger has not the silver for it' };
+    if (!apply) return { ok: true, why: `a deal at about ${r.price.toFixed(2)} of silver` };
+    for (const i of r.intents) this.E.enter(i);
+    const sign = s.a === 'buy' ? 1 : -1; this.purse.cash -= sign * r.price; (this.purse as any)[s.good] = have(s.good) + sign * s.qty; this.deeds.trades++;
+    return { ok: true, why: 'a deal', ev: [this.E.events.length - 1] };
+  }
 
   // ---------------------------------------------------------------- (6) learning the language
   langOf(hh: string): string {

@@ -19,6 +19,7 @@ describe('the grammar of the stranger\'s asks (verbs.ts)', () => {
     ['Can you put me up?', 'stay'], ['I am a merchant from Babylon.', 'claim', 'merchant'], ['I come from Egypt.', 'claim', 'pilgrim'], ['I am your kinsman.', 'claim', 'kin'],
     ['Can I join the caravan?', 'join', 'caravan'], ['Put me on the ration list.', 'join', 'gang'], ['Take me into your household.', 'join', 'household'],
     ['Take these 2 shekels.', 'give'], ['He owes me my wages.', 'petition', 'wages'], ['I need papers to stay.', 'petition', 'leave'], ['Speak for that family.', 'petition', 'plea'],
+    ['Sell me two measures of barley.', 'buy'], ['How much for your firewood?', 'buy'], ['Will you buy my grain?', 'sell'],
     ['Teach me your word for bread.', 'hear'], ['Thank you for your hospitality.', 'leave_stay'], ['I quit.', 'quit'], ['Where is the well?', null], ['Nice weather.', null],
   ];
   for (const [w, a, x] of cases) it(w, () => { const s = strangerAsk(w, c) as any; expect(s?.a ?? null).toBe(a); if (x) expect(s.role ?? s.kind).toBe(x); });

@@ -17,7 +17,7 @@ import { talkTurn } from './turn';
 import { TALK_MODEL } from './models';
 
 /** D-370: the sandbox step as the translation layer notes it (out of world) */
-const SANDBOX_DONE: Record<string, string> = { seek_work: 'taken on as a hand', stay: 'taken in as a guest', join: 'taken in', petition: 'the petition will be heard', give: 'given', claim: 'they heard who you say you are', leave_stay: 'you leave the house', quit: 'you leave the work', leave_group: 'you leave them', hear: 'they say it slowly for you' };
+const SANDBOX_DONE: Record<string, string> = { seek_work: 'taken on as a hand', stay: 'taken in as a guest', join: 'taken in', petition: 'the petition will be heard', give: 'given', claim: 'they heard who you say you are', leave_stay: 'you leave the house', quit: 'you leave the work', leave_group: 'you leave them', hear: 'they say it slowly for you', buy: 'bought, after haggling', sell: 'sold, after haggling' };
 // D-376 (UD-31): the default is the small model of the talk bundle (models.ts TALK_MODEL, ~285 MB); gemma-2-2b (D-296's choice on
 // the T4, ~1.9 GB) stays one ?model= away for the lab's comparisons
 export const DEFAULT_MODEL = TALK_MODEL;
