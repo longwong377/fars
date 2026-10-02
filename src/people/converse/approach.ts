@@ -38,7 +38,7 @@ const KIND_W: Record<string, number> = { company: 0.45 };
 const COMPANY_DAYS = 4;
 
 export class Approaches {
-  private last = -1e9; private byHouse = new Map<string, number>();
+  private last = -1e9; private byHouse = new Map<string, number>(); private invited = new Map<string, number>();
   constructor(private sim: PeopleSim, readonly everyH = 1.5, readonly houseDays = 4) {}
   /** the person who comes up to the stranger now, from those near (pids within a few tens of metres), or null */
   next(near: readonly number[], t = this.sim.t): Approach | null {
@@ -51,17 +51,19 @@ export class Approaches {
       if ((this.byHouse.get(hh) ?? -1e9) > day - this.houseDays) continue;
       const seg = segAt(P.plan(pid, day), hour); if (!seg || !FREE.has(seg.act)) continue;
       const trust = E.trust ? E.trust.trustOf(hh, 'player', day) : 0.5; if (trust < 0.45) continue;
-      const ask = sim.asksWorld.openAsksOf(hh).filter(a => a.voices.find(v => v.to === 'stranger')?.willing && !(a.kind === 'company' && day - a.day0 > COMPANY_DAYS))
+      // (D-454: no ask for silver the stranger plainly has not got: an ask he cannot meet, every few days, reads as a loop)
+      const purse = E.hasStranger ? E.stranger().purse.cash : 0;
+      const ask = sim.asksWorld.openAsksOf(hh).filter(a => a.voices.find(v => v.to === 'stranger')?.willing && !(a.kind === 'company' && day - a.day0 > COMPANY_DAYS) && !(a.kind === 'silver' && purse < 0.5))
         .sort((a, b) => b.urgency * (KIND_W[b.kind] ?? 1) - a.urgency * (KIND_W[a.kind] ?? 1))[0];
       // (D-375: a friendly house with stores to spare, in the evening, invites the stranger to eat and stay: guest-right offered)
       if (!ask) { const St = E.hasStranger ? E.stranger() : null;
-        if (trust >= 0.7 && hour >= 16.5 && St && St.stay?.host !== hh && St.stayCheck(hh, day).ok) { const v = (trust - 0.6) * (0.6 + 0.4 * u01(sim.seed, S, pid, day * 24 + Math.floor(hour), 1));
+        if (trust >= 0.7 && hour >= 16.5 && St && !St.stay && (this.invited.get(hh) ?? -1e9) <= day - 30 && St.stayCheck(hh, day).ok) { const v = (trust - 0.6) * (0.6 + 0.4 * u01(sim.seed, S, pid, day * 24 + Math.floor(hour), 1)); // (D-454: not when he has a bed; a house invites at most once a month)
           if (v + 0.3 > bv) { bv = v + 0.3; best = { pid, hh, kind: 'invite', ask: null, trust, opening: 'comes up to you and asks you to eat with the house tonight, and to stay if you need a roof' }; } }
         continue; }
       const v = ask.urgency * (KIND_W[ask.kind] ?? 1) * (0.5 + trust) * (0.6 + 0.4 * u01(sim.seed, S, pid, day * 24 + Math.floor(hour)));
       if (v > bv) { bv = v; const off = ask.voices.find(x => x.to === 'stranger')!.offers; best = { pid, hh, kind: 'ask', ask, trust, opening: openingOf(ask.kind, off, u01(sim.seed, S, pid, day, 2)) }; }
     }
-    if (best && bv > 0.35) { this.last = t; this.byHouse.set(best.hh, day); return best; }
+    if (best && bv > 0.35) { this.last = t; this.byHouse.set(best.hh, day); if (best.kind === 'invite') this.invited.set(best.hh, day); return best; }
     return null;
   }
 }

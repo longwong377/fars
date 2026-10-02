@@ -439,7 +439,7 @@ export class Stranger {
     if (s.kind === 'leave' && s.to !== 'official') return { ok: false, why: 'only an official seals a document' };
     if (s.kind === 'wages' && (!s.against || !this.owesNow(s.against))) return { ok: false, why: 'nothing owed by them' };
     const k = `${s.kind}|${s.against ?? ''}|${s.for ?? ''}`, last = this.judged.get(k);
-    if (last !== undefined && this.E.day - last < 90) return { ok: false, why: 'the matter was judged already' };
+    if (last !== undefined && this.E.day - last < 90) return { ok: false, why: s.kind === 'leave' && this.halmi >= this.E.day ? 'he holds sealed papers already' : 'the matter was judged already' };
     if ((s.kind === 'plea' || s.kind === 'relief') && !this.H(s.for ?? '')) return { ok: false, why: 'for no house' };
     if (s.to === 'headman' && !this.headOf(s.q ?? this.homeQ() ?? '')) return { ok: false, why: 'no headman found' };
     return { ok: true, why: 'they will hear it' };
@@ -476,7 +476,16 @@ export class Stranger {
     if (spare < GRAIN_EAT * 4 && !(this.claim?.role === 'pilgrim' && r.belief > 0.5)) return { ok: false, why: 'they have barely bread for their own' };
     if (H.mourning > day) return { ok: false, why: 'a house in mourning' };
     const p = 0.55 + 0.8 * (r.trust - 0.5) + 0.25 * r.belief * r.rank + (this.hungry >= 2 || this.chilled >= day - 3 ? 0.15 : 0) /* (pity for a hungry or chilled stranger: C) */ + (this.claim?.role === 'pilgrim' && r.belief > 0.5 ? 0.15 : 0) + (this.tongueMet.has(hh) ? 0.1 : 0) + (H.kind === 'rich' ? 0.1 : 0) - (H.kind === 'ration' ? 0.1 : 0);
-    return u01(this.E.seed, S.host, hashString(hh) | 0, day) < p ? { ok: true, why: 'guest-right' } : { ok: false, why: 'they will not take a stranger in' };
+    // D-454 (the bot's year: a new bed every two days at 70-80 houses): the town learns a man who goes from house to house;
+    // each host beyond two in the last month makes the next door slower to open (C)
+    const wander = this.hostsSince(day - 30), w = 0.12 * Math.max(0, wander - 2);
+    if (u01(this.E.seed, S.host, hashString(hh) | 0, day) < p - w) return { ok: true, why: 'guest-right' };
+    return { ok: false, why: w > 0 && u01(this.E.seed, S.host, hashString(hh) | 0, day) < p ? 'they have heard he goes from house to house' : 'they will not take a stranger in' };
+  }
+  /** the distinct houses that took the stranger in since a day (the economy's own 'hosted' events, newest first) */
+  hostsSince(d0: number): number {
+    const seen = new Set<string>(), ev = this.E.events; for (let i = ev.length - 1; i >= 0; i--) { const e = ev[i]; if (!e) continue; if (e.day < d0) break; if (e.kind === 'hosted' && e.other === PLAYER) seen.add(e.actor); }
+    return seen.size;
   }
   private stayNight(day: number) {
     const St = this.stay!; const H = this.H(St.host);

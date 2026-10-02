@@ -26,7 +26,7 @@ import { MONTHS, dateOf } from './calendar';
 import type { Deed, Intent } from './converse/intent';
 import { hearAsPerson } from './converse/hear';
 import { approxTokens } from './converse/tokens';
-import { numWords } from './converse/words';
+import { numWords, spellDigits } from './converse/words';
 /** the longest memory row, in tokens (the brief: <= ~60 each) */
 export const ROW_TOKENS = 58;
 
@@ -469,7 +469,7 @@ export class TalkWorld {
         for (const via of mine) { if (!first.has(via)) continue; const at = firstAt(via, new Rng(this.seed, `gossip:${src}:${Math.round(k.conv * 3600)}:${via}`)) + g.range(24, 72); if (at <= t && (!best || at < best.at)) best = { at, via }; }
         if (best) got.push({ k, ...best }); }
       if (!got.length) continue;
-      const top = [...got].sort((a, b) => (b.k.deed ? 1 : 0) - (a.k.deed ? 1 : 0) || (a.k.over ? 1 : 0) - (b.k.over ? 1 : 0) || b.at - a.at)[0]; const n = got.length, sx = P.persons[src].sex; const times = n > 1 ? ` ${n === 2 ? 'twice' : `${n} times`}` : '';
+      const top = [...got].sort((a, b) => (b.k.deed ? 1 : 0) - (a.k.deed ? 1 : 0) || (a.k.over ? 1 : 0) - (b.k.over ? 1 : 0) || b.at - a.at)[0]; const n = got.length, sx = P.persons[src].sex; const times = n > 1 ? ` ${n === 2 ? 'twice' : `${numWords(n)} times`}` : '';
       const d0 = Math.floor(top.k.t / 24);
       out.push(top.via < 0 ? { src, k: top.k, d0, t: top.at, from: src, hand: 1, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} your ${this.relWord(pid, src, d0)} ${this.name(src)} told you: this same stranger ${summary3(top.k, sx, undefined, times)}.`, 44) }
         : { src, k: top.k, d0, t: top.at, from: top.via, hand: 2, deed: !!top.k.deed, text: fit(`${cap(when(top.at, t))} you heard from ${this.name(top.via)}: this same stranger ${summary3(top.k, sx, this.name(src), times)}.`, 44) });
@@ -564,8 +564,9 @@ export function when(t: number, now: number): string {
   if (d === n) return now - t < 0.75 ? 'just now' : `today ${part}`; if (n - d === 1) return `yesterday ${part}`; if (n - d < 8) return `${numWords(n - d)} days ago`; // (D-450: no digits in what a person is told)
   const M = MONTHS[dateOf(d).month - 1]; return `in the month ${M.op.replace(/\s*\(\?\)/, '')}`;
 }
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const cap = (s: string) => { const t = spellDigits(s); return t.charAt(0).toUpperCase() + t.slice(1); }; // (D-454: no digits in what a person is told)
 /** the first words of what was said, without the stranger's later words (hear.ts masks them on the way in; here: dropped) */
 function gist(s: string, n: number): string { const w = s.replace(/[“”"]/g, '').replace(/\s+/g, ' ').trim().split(' '); return w.slice(0, n).join(' ').replace(/[,;:]$/, '') + (w.length > n ? '…' : ''); }
-function fit(s: string, _w: number): string { let t = s; while (approxTokens(t) > ROW_TOKENS && t.split(' ').length > 12) t = cut(t, t.split(' ').length - 3); return t; }
-function cut(s: string, words: number): string { const w = s.split(' '); return w.length <= words ? s : w.slice(0, words).join(' ').replace(/[,;:]$/, '') + '…'; }
+function fit(s: string, _w: number): string { let t = spellDigits(s); // (D-454: the stranger's own words recalled with their numbers spelt: a small model repeats digits)
+  while (approxTokens(t) > ROW_TOKENS && t.split(' ').length > 12) t = cut(t, t.split(' ').length - 3); return t; }
+function cut(s: string, words: number): string { const w = spellDigits(s).split(' '); return w.length <= words ? w.join(' ') : w.slice(0, words).join(' ').replace(/[,;:]$/, '') + '…'; }
