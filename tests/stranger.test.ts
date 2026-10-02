@@ -145,4 +145,12 @@ describe('D-370 the stranger in the simulation', () => {
     const buyer = [...e.hh.values()].find(h => h.cash > 1 && S.judge({ a: 'sell', day: 60, hh: h.id, good: 'grain', qty: 10 }).ok);
     if (buyer) { const c1 = S.purse.cash; expect(S.do({ a: 'sell', day: 60, hh: buyer.id, good: 'grain', qty: 10 }).ok).toBe(true); expect(S.purse.cash).toBeGreaterThan(c1); expect(S.purse.grain).toBe(10); }
   });
+  it('the stranger must eat: his own stores, a host, work; with nothing he goes hungry and people see it', () => {
+    const e = town(60), S = e.stranger(); S.purse = { grain: 1.6, cash: 0, fuel: 0, goods: 0 }; S.do({ a: 'hear', day: 60, lang: 'Elamite', hours: 0.1 });
+    step(e, 3 + STR_LAG); expect(S.purse.grain).toBeCloseTo(0, 5); expect(S.hungry).toBeGreaterThanOrEqual(1);
+    step(e, 3); expect(e.events.some(v => v.kind === 'stranger_hungry')).toBe(true);
+    const hh = [...e.hh.values()].find(h => h.kind === 'farmer')!.id; expect(S.factsFor(hh, e.day).some(f => /hungry/.test(f))).toBe(true);
+    const host = [...e.hh.values()].find(h => h.kind === 'farmer' && S.stayCheck(h.id, e.day).ok)!; S.do({ a: 'stay', day: e.day, hh: host.id });
+    step(e, 1 + STR_LAG); expect(S.hungry).toBe(0);
+  });
 });
