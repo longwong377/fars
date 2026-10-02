@@ -533,6 +533,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-29 | immersion governs priority; the references ground the place, not a 1:1 target; the lead directs and takes artistic liberties where the vision needs them (tier C, reasoning in F3) | §3 rule 6 as amended (CLAUDE.md); §6 order (packages chosen from whole-view judgement) | T-R15 |
 | UD-30 | less process: guards protect only the user's words and the thresholds' direction; short briefs; one line per package; the playable slice orders the work | CLAUDE.md |
 | UD-31 | a public URL, playable in under a minute on a good GPU, talking on by default, by the end of session 15 | CLAUDE.md |
+| UD-32 | the voice can do anything; an actual brain in every person; an organic sandbox with or without the player (open deeds in any words, decided by each mind; the minds act on their own) | src/people/deeds/engine.ts, src/people/mind/minds.ts, tests/deeds.test.ts |
 
 ## 13. Revision log
 
