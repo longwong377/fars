@@ -59,6 +59,12 @@ function skylineSvg(): string {
   const fills = ['#8e88a6', '#5d5872', '#332d3f', '#16121a'], warm = ['#c99a86', '#8a6668', '#4a3640', '#1d151a'];
   let rnd = 7; const r = () => ((rnd = (rnd * 16807) % 2147483647) / 2147483647);
   const stars = Array.from({ length: 140 }, () => `<circle cx="${(r() * W).toFixed(0)}" cy="${(r() * H0 * 0.8).toFixed(0)}" r="${(0.4 + r() * 1.1).toFixed(2)}" opacity="${(0.25 + r() * 0.7).toFixed(2)}"/>`).join('');
+  // the Terrace and its roofed halls as one dark mass at Rahmat's foot, the parapet's edge catching the first light as the dawn comes
+  const terraceSvg = () => { const t = (skyline as any).terrace as number[] | undefined; if (!t) return '';
+    const pts = t.map((a, i) => [((i + 0.5) * W) / cols, a > -1 ? H0 - a * S : H0 + 2] as const);
+    const d = `M0,${H0 + 2} ` + pts.map(([x, y]) => `L${x.toFixed(1)},${y.toFixed(1)}`).join(' ') + ` L${W},${H0 + 2} Z`;
+    const edge = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+    return `<path d="${d}" fill="#221c26"/><path d="${d}" fill="#3a2a2c" style="opacity: calc(var(--dawn, 0) * .6)"/><path d="${edge}" fill="none" stroke="#f2c793" stroke-width="1" style="opacity: calc(var(--dawn, 0) * .5)"/>`; };
   const layers = [...skyline.layers].reverse(); // far first
   // each ridge fades into the haze lying at its foot (aerial perspective: the valley air between the ridges), more for the far ones
   const hazeIds = layers.map((_, k) => `hz${k}`);
@@ -77,7 +83,8 @@ function skylineSvg(): string {
   <g fill="#fff" style="opacity: calc(1 - var(--dawn, 0) * 1.3)">${stars}</g>
   <rect width="${W}" height="${H}" fill="url(#glow)" style="opacity: calc(.15 + var(--dawn, 0) * .85)"/>
   ${layers.map((l, k) => { const i = layers.length - 1 - k, d = path(l); // band index, 0 nearest
-    return `<path d="${d}" fill="${fills[3 - i]}"/><path d="${d}" fill="${warm[3 - i]}" style="opacity: calc(var(--dawn, 0) * ${(0.55 - i * 0.12).toFixed(2)})"/><path d="${d}" fill="url(#${hazeIds[k]})"/><path d="${d}" fill="url(#${hazeIds[k]}w)" style="opacity: var(--dawn, 0)"/>`; }).join('\n  ')}
+    const terr = i === 1 ? terraceSvg() : ''; // the Terrace stands at the foot of Rahmat, in front of band 1
+    return `<path d="${d}" fill="${fills[3 - i]}"/><path d="${d}" fill="${warm[3 - i]}" style="opacity: calc(var(--dawn, 0) * ${(0.55 - i * 0.12).toFixed(2)})"/><path d="${d}" fill="url(#${hazeIds[k]})"/><path d="${d}" fill="url(#${hazeIds[k]}w)" style="opacity: var(--dawn, 0)"/>${terr}`; }).join('\n  ')}
   <rect y="${H0}" width="${W}" height="${H - H0}" fill="url(#ground)"/>
   <rect y="${H0}" width="${W}" height="${H - H0}" fill="url(#groundw)" style="opacity: calc(var(--dawn, 0) * .7)"/>
 </svg>`;
