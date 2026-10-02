@@ -10,6 +10,7 @@
 // The generators keep their placement, counts, sizes and tiers: only the shape and the surface change.
 import * as THREE from 'three/webgpu';
 import { texture, uv, vec3, float, dot, attribute } from 'three/tsl';
+import { BASE } from '../core/base';
 
 export interface PropEntry { file: string; role: string; licence: string; source: string; bytes: number; sha256: string; srcTris: number; tris: Record<string, number>; size_m: number[]; tex: number }
 export interface ScanProp { id: string; entry: PropEntry; lods: THREE.BufferGeometry[]; map: THREE.Texture | null; normal: THREE.Texture | null; arm: THREE.Texture | null; mean: [number, number, number]; size: [number, number, number] }
@@ -30,7 +31,7 @@ function meanColour(t: THREE.Texture | null): [number, number, number] {
 }
 
 /** load every prop of the manifest (browser). Never throws: a failed prop leaves its builder's stand-in (and says so). */
-export async function loadScanProps(base = '/'): Promise<ReturnType<typeof scanPropStats>> {
+export async function loadScanProps(base = BASE): Promise<ReturnType<typeof scanPropStats>> {
   const t0 = performance.now();
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('props') === '0') { LOAD.off = true; modelsOff = true; return scanPropStats(); }
   let man: { assets: Record<string, PropEntry> };

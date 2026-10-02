@@ -119,7 +119,8 @@ export function mountConverse(c: Ctx) {
     // or news is heard by all of them; an ask is answered by the first house that would (the nearest person speaks)
     if (/^\s*(everyone|all of you|good people|friends|listen|people of)/i.test(text)) { const clear = E.H.heard.filter(h => h.clear).map(h => h.pid), others = (clear.length ? clear : within(c.world, eye())).filter(p => p !== near.pid);
       for (const g of c.world.people.sim.strangerAskGroup(others, text)) if (g.verdict.ok && (g.act.a === 'claim' || g.act.a === 'hear')) c.world.people.sim.strangerDo(g.act); }
-    const t0 = performance.now(); const T = await talkTurn(mind, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid) }); const a = T.answer; state.busy = false;
+    const t0 = performance.now(); const ap = state.approach && state.approach.pid === near.pid ? state.approach.opening : undefined; if (ap) state.approach = null;
+    const T = await talkTurn(mind, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid), approached: ap }); const a = T.answer; state.busy = false;
     hist.push({ role: 'user', content: text }, { role: 'assistant', content: a.ok ? a.text : '' }); state.history.set(near.pid, hist.slice(-8));
     let heard = null as any;
     if (a.ok) {

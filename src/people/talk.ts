@@ -61,9 +61,9 @@ export const OVER_KEEP = 2;
 export const TOLD_KEEP = 8;
 export interface Decision { ok: boolean; reason: string; kind: Deed; arg?: string; segs?: Seg[]; h0: number; h1: number; other?: number; otherSegs?: Seg[]; otherH?: [number, number]; item?: string; paid?: string; noop?: boolean }
 
-const WORK_FREE = new Set<ActivityId>(['rest', 'eat', 'talk', 'play', 'gamble', 'walk', 'tend_body', 'queue', 'sleep', 'shelter', 'exchange']);
+export const WORK_FREE = new Set<ActivityId>(['rest', 'eat', 'talk', 'play', 'gamble', 'walk', 'tend_body', 'queue', 'sleep', 'shelter', 'exchange']);
 /** work done under someone's count or order: leaving it is not the person's to decide (C) */
-const SUPERVISED = new Set(['guard', 'builder', 'porter', 'camp', 'scribe', 'treasury', 'official', 'messenger', 'storekeeper', 'miller', 'weaver', 'brewer', 'groom', 'caretaker', 'priest', 'servant', 'shepherd']);
+export const SUPERVISED = new Set(['guard', 'builder', 'porter', 'camp', 'scribe', 'treasury', 'official', 'messenger', 'storekeeper', 'miller', 'weaver', 'brewer', 'groom', 'caretaker', 'priest', 'servant', 'shepherd']);
 const DUTY_WORDS: Record<string, string> = {
   guard: 'on watch: a spearman does not leave his post until he is relieved', builder: 'the foreman counts the gang at the work; he cannot leave it',
   porter: 'the loads are counted by the scribe; he cannot leave them', camp: 'the camp grinds and bakes for the gangs; she cannot leave the work',
@@ -88,6 +88,8 @@ const PLACE_WORDS: [RegExp, (q: string, hh: number) => string][] = [
   [/\b(stair|stairs|terrace|palace|gate|hall|king'?s house)\b/, () => 'terrace_edge'], [/\b(your house|your home|home|house)\b/, (_q, hh) => `h:${hh}`],
   [/\b(lane|street|doorstep)\b/, q => `lane:${q}`],
 ];
+const CRAFT_WORDS: [RegExp, string][] = [[/\b(bakery|baker|bakers|oven|bread)\b/, 'bakery'], [/\b(smith|smithy|forge|metal|bronze|iron)\b/, 'metal'], [/\b(carpenter|joiner|woodworker|wood)\b/, 'wood'],
+  [/\b(weaver|weavers|loom|cloth|textile|dyer)\b/, 'textile'], [/\b(potter|pottery|kiln|pots)\b/, 'pottery'], [/\b(pigment|paint)\b/, 'pigment']];
 const INNER_TERRACE = /\b(treasury|apadana|palace of|harem|king'?s rooms|throne|inside the|up the terrace|on the terrace)\b/;
 const RELS = ['wife', 'husband', 'mother', 'father', 'son', 'daughter', 'brother', 'sister', 'child', 'children', 'boy', 'girl', 'man', 'woman'];
 
@@ -146,6 +148,13 @@ export class TalkWorld {
     const w = ` ${words.toLowerCase()} `; const hh = this.pop.home(pid, day); const q = this.pop.households[hh].q;
     // a named person's house ("Bakezza's house")
     const nm = /([\p{L}’'-]{3,})['’]s (house|home)/u.exec(words); if (nm) { const o = this.findPerson(pid, day, nm[1]); if (o !== null) return `h:${this.pop.home(o, day)}`; }
+    // D-391 (the playtest bot: 86 of 93 "lead me to" asks unknown): the market, the court, and a workshop by its craft (the
+    // town's plots: bakery, metal, wood, brewery, textile, pottery), the one in the asker's own quarter first (C)
+    if (/\b(market|bazaar|stalls?|marketplace)\b/.test(w)) return `market:${q}`;
+    if (/\b(court|judges?|magistrate)\b/.test(w)) return 'official_bldg';
+    const craft = CRAFT_WORDS.find(([re]) => re.test(w))?.[1];
+    if (craft) { const P = this.pop, all = P.households.map((_, i) => i).filter(i => P.plotOf(i)?.craft === craft && P.membersOn(i, day).length);
+      const mine = all.filter(i => P.households[i].q === q); const pick = (mine.length ? mine : all)[0]; if (pick !== undefined) return `h:${pick}`; }
     for (const [re, f] of PLACE_WORDS) if (re.test(w)) return f(q, hh);
     return null;
   }

@@ -43,7 +43,7 @@ export function verdictNote(d: Decision): string {
   return d.ok ? 'You can do this, if you are willing.' : `You cannot do this: ${d.reason}.`;
 }
 /** one turn: the stranger says `said` to person `pid` now (sim.t); conv: the conversation's id (its first turn's time) */
-export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: string, o: { conv: number; history?: Turn[]; prose?: string | null } = { conv: sim.t }): Promise<TurnOut> {
+export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: string, o: { conv: number; history?: Turn[]; prose?: string | null; /** D-375: why this person came up to the stranger (approach.ts opening) */ approached?: string } = { conv: sim.t }): Promise<TurnOut> {
   const t = sim.t, day = Math.floor(t / 24), hour = t - day * 24;
   // D-370 (B234): the trust gate. A house that distrusts the stranger (a guest who left without thanks, a claim found false,
   // wages left unpaid by him, rumours) will not talk: the person turns away without a word from the model; a wary one is curt
@@ -78,8 +78,9 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   // (run 2: the simulation's "no" after the stranger's words was often not kept; said first, plainly, it goes with the memory)
   // D-370: the house's own dealings with the stranger and how much of their tongue he has (the sim's state, not the model's)
   const sFacts = E0 && E0.hasStranger ? E0.stranger().factsFor(hh0, day) : [];
+  const came = o.approached ? `(You came up to the stranger yourself: you ${o.approached.replace(/^comes up to you and /, '').replace(/\basks\b/, 'want to ask')}. Say so in your own words.)` : '';
   const wary = trust0 < 0.4 ? '(You do not trust this stranger: be short with him and give nothing away.)' : '';
-  const before = [wary, sFacts.length ? `(${sFacts.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join('. ')}.)` : '', near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
+  const before = [came, wary, sFacts.length ? `(${sFacts.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join('. ')}.)` : '', near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
     near && pre && !pre.ok && !pre.noop ? `(Whatever he asks, you must say no: ${pre.reason}.)` : ''].filter(Boolean).join('\n') || undefined;
   // (after run 3: asked about earlier meetings, the simulation picks the ONE remembered fact and the model only says it in
   // its own words; otherwise the one life fact most relevant to the words goes next to them: ground.ts)

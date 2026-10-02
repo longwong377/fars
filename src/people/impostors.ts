@@ -24,6 +24,7 @@ import { MAT, HB, unpackLookBits } from './humanFormat';
 import type { PersonLook } from './looks';
 import { DRAPE } from './humanMaterial';
 import { WORK_META, type WorkAnim } from './workAnims';
+import { BASE } from '../core/base';
 
 /** atlas layout: 8 views round the person; one row per dress and frame; cells of CELL² texels over W × H metres; the rows
  *  laid out in `cols` columns of blocks (D-229: 56 frames × 6 dresses = 336 rows; 4 columns keep the atlas 1024 × 2688,
@@ -301,7 +302,7 @@ export function impostorLooks(A: HumanAssets, O: OutfitBuild) {
  *  or null (absent, laid out for other frames or dresses than this build's, or a texture failed: the caller bakes on the
  *  CPU). `?impostors=cpu` forces the CPU bake. */
 export const IMP_DIR = 'models/impostors';
-export async function loadImpostorAtlas(A: HumanAssets, O: OutfitBuild, base = '/'): Promise<ImpostorAtlas | null> {
+export async function loadImpostorAtlas(A: HumanAssets, O: OutfitBuild, base = BASE): Promise<ImpostorAtlas | null> {
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('impostors') === 'cpu') return null;
   const t0 = performance.now();
   try {

@@ -9,12 +9,12 @@
 // In node the build computes every unit live; with a collector (collectWorldCache: tools/bake_world/bake.ts) each unit's
 // result is packed as it is made, and the bake writes them all. Paths go through the site's base (GitHub Pages: /fars/).
 import { pack, unpack, hashBytes } from './pack';
+import { BASE } from '../../core/base';
 
 type Manifest = { v: number; entries: Record<string, { src: string; file: string; bytes: number; sha1: string }> };
 export const cacheStats: { hits: Record<string, number>; misses: Record<string, string>; puts: string[]; preloadMs?: number; preloadMB?: number } = { hits: {}, misses: {}, puts: [] };
 // (node reads the cache too when a tool sets globalThis.__worldCacheOn: tools/bake_world/node_build.ts WORLDCACHE=1, the A/B)
 const browser = (typeof window !== 'undefined' || (globalThis as any).__worldCacheOn === true) && typeof fetch !== 'undefined' && typeof location !== 'undefined';
-const BASE: string = ((import.meta as any).env?.BASE_URL as string | undefined) ?? '/';
 const url = (p: string) => `${BASE}world-cache/${p}`;
 let srcP: Promise<Record<string, string> | null> | null = null, manP: Promise<Manifest | null> | null = null;
 /** an entry's bytes, inflated when stored gzipped (D-386) */

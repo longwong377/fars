@@ -12,6 +12,7 @@
 // stay the evidence's.
 import * as THREE from 'three/webgpu';
 import type { HumanVariantMeta } from './humanFormat';
+import { BASE } from '../core/base';
 
 export interface ScanLayerMeta { id: string; layer: number; tile?: number; fabric?: string; k?: number }
 /** D-307: skin and cloth are one array texture (the skin's layers first, the cloth's from `clothBase`): one binding and one
@@ -42,7 +43,7 @@ function arrayTex(data: Uint8Array, n: number, layers: number, srgb: boolean) {
 }
 
 /** load and pack the layers; null without a DOM, with `?noscans`, or when the files are missing (the procedural path) */
-export async function loadHumanScans(base = '/', folds: FoldSource | null = null): Promise<HumanScans | null> {
+export async function loadHumanScans(base = BASE, folds: FoldSource | null = null): Promise<HumanScans | null> {
   if (typeof document === 'undefined' || typeof createImageBitmap === 'undefined') return null;
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noscans')) return null;
   try {

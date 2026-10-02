@@ -12,6 +12,8 @@ import * as THREE from 'three/webgpu';
 import { texture, positionWorld, normalWorld, vec3, float, int, abs, pow, mix, dot, max, smoothstep } from 'three/tsl';
 import SCANS from '../data/scans.json';
 import { loadBlockFace } from './blockface';
+import { BASE } from '../core/base';
+import { loadScanTexture, lowOf, addUpgrade } from './lowfirst';
 
 export interface ScanUse { scan: string; scale: number; alb: number; height: number; rough: number; scale2?: number;
   /** roughness also follows the scan's luminance detail: × (1 + roughLum·(lum − 1)) (a burnished floor: the trowel's smooth strokes
@@ -130,7 +132,7 @@ const TEX = new Map<string, { diff: THREE.Texture; arm: THREE.Texture; nor?: THR
 export let scansOn = true;
 
 /** load every scan used (awaited before the world builds its materials); a no-op without a DOM (node) */
-export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
+export async function loadScans(base = BASE, anisotropy = 8): Promise<void> {
   if (typeof document === 'undefined') return;
   await loadBlockFace(base, anisotropy); // D-321: the Blender-carved block faces (independent of ?noscans; ?noblockface)
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noscans')) { scansOn = false; return; }
@@ -148,10 +150,10 @@ export async function loadScans(base = '/', anisotropy = 8): Promise<void> {
   const map = async (id: string, f: string): Promise<THREE.Texture> => {
     if (K && ktxScans.has(`${id}/${f}`)) try { const t: THREE.Texture = await K.loadAsync(`${base}textures/${id}/${f}.ktx2`); t.magFilter = THREE.LinearFilter; return t; } // (once uploaded, no page copy: world/cache/release.ts)
     catch (e) { console.warn(`[scans] ${id}/${f}.ktx2: ${(e as Error).message}; the jpg`); }
-    const t = await L.loadAsync(`${base}textures/${id}/${f}.jpg`); t.generateMipmaps = true; return t; };
+    const t = await loadScanTexture(base, `${base}textures/${id}/${f}.jpg`, L); t.generateMipmaps = true; return t; }; // (s15/ship: low copies first on the built site, lowfirst.ts)
   await Promise.all(ids.map(async id => {
     const [diff, arm, nor] = await Promise.all(['diff', 'arm', ...(withNor.has(id) ? ['nor'] : [])].map(f => map(id, f)));
-    for (const t of [diff, arm, nor]) if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true; }
+    for (const t of [diff, arm, nor]) if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.minFilter = THREE.LinearMipmapLinearFilter; } // (D-386 merge: KTX2 when encoded, else s15/ship's low copies first)
     diff.colorSpace = THREE.SRGBColorSpace; arm.colorSpace = THREE.NoColorSpace; if (nor) nor.colorSpace = THREE.NoColorSpace;
     TEX.set(id, { diff, arm, nor });
   }));
@@ -275,15 +277,25 @@ async function loadGround(base: string, anisotropy: number, K: any = null): Prom
     } } catch (e) { console.warn(`[scans] ground.ktx2: ${(e as Error).message}; the jpgs`); }
   const N = GROUND_KEYS.length, R = GROUND_RES, data = new Uint8Array(R * R * 4 * N);
   const cv = new OffscreenCanvas(R, R), g = cv.getContext('2d', { willReadFrequently: true })!;
-  const pixels = async (url: string) => {
-    const r = await fetch(url); if (!r.ok || !(r.headers.get('content-type') ?? '').startsWith('image/')) return null; // (a dev server answers a missing file with its page)
+  const pixels = async (url: string | Promise<Response>) => {
+    const r = await (typeof url === 'string' ? fetch(url) : url); if (!r.ok || !(r.headers.get('content-type') ?? '').startsWith('image/')) return null; // (a dev server answers a missing file with its page)
     const bm = await createImageBitmap(await r.blob(), { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
     g.clearRect(0, 0, R, R); g.drawImage(bm, 0, 0, R, R); bm.close(); return g.getImageData(0, 0, R, R).data;
   };
+  // s15/ship: every layer's files fetched at once (they were fetched one after another, each after the last one's decode), the
+  // built site's low copies first (lowfirst.ts; drawn up to R like the full ones), the full files swapped in after the world is up
+  const url = (id: string, f: string) => `${base}textures/${id}/${f}.jpg`;
+  const pick = async (u: string) => { const lo = await lowOf(base, u); return { lo: !!lo, res: fetch(lo ? lo.url : u) }; };
+  const files = GROUND_KEYS.map(k => [pick(url(GROUND[k], 'diff')), pick(url(GROUND[k], 'disp'))]);
+  const fill = (k: number, diff: Uint8ClampedArray, disp: Uint8ClampedArray | null) => { const o = k * R * R * 4;
+    for (let i = 0; i < R * R * 4; i += 4) { const h = disp ? disp[i] : Math.round(0.2126 * diff[i] + 0.7152 * diff[i + 1] + 0.0722 * diff[i + 2]);
+      data[o + i] = diff[i]; data[o + i + 1] = diff[i + 1]; data[o + i + 2] = diff[i + 2]; data[o + i + 3] = h; } };
   for (let k = 0; k < N; k++) {
-    const id = GROUND[GROUND_KEYS[k]], diff = await pixels(`${base}textures/${id}/diff.jpg`);
+    const id = GROUND[GROUND_KEYS[k]], [fd, fh] = await Promise.all(files[k]), diff = await pixels(fd.res);
     if (!diff) throw new Error(`ground scan ${id}: no diff.jpg`);
-    const disp = await pixels(`${base}textures/${id}/disp.jpg`), o = k * R * R * 4;
+    const disp = await pixels(fh.res), o = k * R * R * 4;
+    if (fd.lo || fh.lo) addUpgrade(async () => { const d2 = await pixels(url(id, 'diff')), h2 = disp ? await pixels(url(id, 'disp')) : null; if (!d2 || !groundArr) return;
+      fill(k, d2, h2); (groundArr as THREE.DataArrayTexture).addLayerUpdate(k); groundArr.needsUpdate = true; });
     let s = 0, s2 = 0, n = 0;
     for (let i = 0; i < R * R * 4; i += 4) {
       // the height: the displacement map, or (no map: the aerial rock) the colour's luminance
