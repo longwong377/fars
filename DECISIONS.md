@@ -9398,6 +9398,10 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - trees.ts fieldTrees: lone trees on the bunds between the plots (~35 a km2 of fields; mulberry, poplar, willow and plane by
   the irrigated plots, almond, wild pistachio and tamarisk by the rain-fed; none on a road or track), evaluated round the
   camera like the woodland (the near set and the mid ring to 900 m): the field sheet broken at mid distance (C).
+- groundCover.ts: the grass tufts' cards cut out by the albedo's brightness (the cover atlas is the scans' blades on black, a
+  JPEG without alpha: since s12 every tuft at the walker's feet drew its card's black ground as a black flame; seen in the
+  cloud's crude WebGL probe and in the s12 frames); the tint normaliser averages the drawn pixels only. Verges 6-10 tufts a
+  2 m cell at 1.2-1.8x (tuft cap 1800). Fixed fieldFill's model keys (the registry is keyed wo_*, not m_wo_*: nothing drew).
 
 ## D-590 The front end and the opening: one type system, a loading screen that is the place's own dawn, and a wordless in-engine intro (session 17, cloud C5; UD-37)
 - Screens (src/ui/shell.ts, shell.css): Cormorant Garamond (display) and Alegreya Sans (interface), SIL OFL, self-hosted in public/fonts (ASSET_LEDGER); the title and the pause menu are a column of glass over the live world with the place's name in Old Persian (𐎱𐎠𐎼𐎿, p-a-r-s, as carved in DB I 5 and passim), settings a tabbed sheet (World, Display, Sound, Language, Keys; Esc goes back), controls with readable key names; the chronicle (J) a journal grouped by day and rebuilt only when it changes (it was rebuilt every frame); subtitles without the box, eased in once per line.

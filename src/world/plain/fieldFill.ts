@@ -110,9 +110,9 @@ export class FieldFill {
     this.group.name = 'plain-field-fill';
     this.group.userData = { tier: 'C', src: 'RECON', note: 'the farm year near the walker (D-560): sheaves and stooks on the cut cereal plots, the threshing floors\' season (sledge, grain heaps, straw), the straw stacks to spring, an ard at a plot being ploughed, the villages\' thorn folds; all C, modelled (tools/blender/model_props.py)' };
     for (const m of MODELS) {
-      if (!model('m_' + m)) { this.missing.push(m); continue; }
+      if (!model(m)) { this.missing.push(m); continue; } // (the registry is keyed by the model's `of`: wo_*)
       const levels: Slot[][] = [];
-      for (let l = 0; l < 3; l++) { const parts = modelParts('m_' + m, l); if (!parts) break; const L: Slot[] = [];
+      for (let l = 0; l < 3; l++) { const parts = modelParts(m, l); if (!parts) break; const L: Slot[] = [];
         for (const [part, g0] of Object.entries(parts)) { const def = PART[part] ?? ['clay', [0.6, 0.5, 0.4]] as [string, RGB], g = new THREE.BufferGeometry(), N = g0.getAttribute('position').count, col = new Float32Array(N * 3);
           for (let i = 0; i < N; i++) { const a = aoFactor(g0, i); col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = a; }
           g.setAttribute('position', g0.getAttribute('position')); g.setAttribute('normal', g0.getAttribute('normal') ?? (g0.computeVertexNormals(), g0.getAttribute('normal'))); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); if (g0.index) g.setIndex(g0.index);
