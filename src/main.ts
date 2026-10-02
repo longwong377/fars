@@ -47,6 +47,7 @@ import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 import { BASE } from './core/base';
 import { installProgressiveCompile } from './render/progressive';
+import { installShaderLog, installDeviceCounters } from './dev/shaderLog';
 import { upgradeLowFirst, lowFirstStats } from './render/lowfirst';
 installWebGPUCompat();
 
@@ -91,6 +92,7 @@ async function boot() {
   shell.loading('Preparing the renderer…');
   const prog = new BootProgress(); if (shell.loadingCard) prog.mount(shell.loadingCard); // D-393: honest progress (the steps done, the bytes received)
   const swP = siteWorker();
+  if (P.has('shaderlog')) installDeviceCounters(); // dev (D-473): GPU shader modules and pipelines created, before the device exists
   let renderer: THREE.WebGPURenderer;
   try {
     // reversed-Z on WebGPU; the WebGL2 fallback needs EXT_clip_control for that, so it uses a logarithmic depth buffer (D-007)
@@ -107,12 +109,7 @@ async function boot() {
   }
   const backend = (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2';
   releaseUploadedTextures(renderer); // D-354 (s15, page memory): a static texture's page copy dropped once it is on the GPU
-  if (P.has('shaderlog')) { // dev (D-250): which object and material each new render pipeline came from, with its WGSL size
-    const pl: any = (renderer as any)._pipelines, orig = pl.getForRender.bind(pl), seen = new Set<any>(); (window as any).__shaderLog = [];
-    pl.getForRender = (ro: any, pr: any) => { const r = orig(ro, pr); if (r && !seen.has(r)) { seen.add(r); const m = ro.material, o = ro.object;
-      (window as any).__shaderLog.push({ obj: o?.name || o?.parent?.name || o?.type, mat: m?.name || m?.type, note: String(m?.userData?.note ?? m?.userData?.surface ?? '').slice(0, 60), pass: ro.context?.depth === false ? 'nodepth' : (ro.context?.textures?.length ? 'mrt' + ro.context.textures.length : ''), shadow: !!ro.object?.isShadow || String(ro.passId ?? ''), frag: r.fragmentProgram?.code?.length ?? 0, vert: r.vertexProgram?.code?.length ?? 0, fid: r.fragmentProgram?.id, vid: r.vertexProgram?.id, key: r.cacheKey,
-        ...(P.get('shaderlog') && new RegExp(P.get('shaderlog')!).test(o?.name ?? '') ? { fcode: r.fragmentProgram?.code, vcode: r.vertexProgram?.code } : {}) }); } return r; };
-  }
+  if (P.has('shaderlog')) installShaderLog(renderer, P.get('shaderlog')); // dev (D-250, D-473): which object and material each new render pipeline came from, and why
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2) * Q.pixelRatio);
   renderer.setSize(innerWidth, innerHeight, false);
   renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.0;

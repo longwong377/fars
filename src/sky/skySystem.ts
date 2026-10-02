@@ -49,6 +49,9 @@ export const SNOW_RHO: [number, number, number] = [0.82, 0.83, 0.86];
 export const NIGHT_FILL = 5;
 export const groundRho = (snowCover: number): [number, number, number] => { const s = Math.min(1, Math.max(0, snowCover)); return [0, 1, 2].map(c => GROUND_RHO[c] + (SNOW_RHO[c] - GROUND_RHO[c]) * s) as [number, number, number]; };
 const _mdir = new THREE.Vector3();
+/** D-473: the sun kept in the scene at intensity 0 while down (on: the default); off is the old switch (A/B: __parsaSunKept) */
+export const SUN_KEPT = { on: true };
+if (typeof window !== 'undefined') (window as any).__parsaSunKept = SUN_KEPT;
 export class SkySystem {
   readonly sky = new SkyMesh();
   readonly sun = new THREE.DirectionalLight(0xffffff, 3);
@@ -416,10 +419,14 @@ export class SkySystem {
     if (!this.sunYZ || this.sunYZ.tau !== A.aerosolTau) { const z = A.sunColorAt(OBSERVER_ALT, 90), m = Math.max(z[0], z[1], z[2]); this.sunYZ = { tau: A.aerosolTau, y: (0.2126 * z[0] + 0.7152 * z[1] + 0.0722 * z[2]) / m }; }
     { const scY = 0.2126 * sc[0] + 0.7152 * sc[1] + 0.0722 * sc[2];
       if (scM > 1e-6 && scY > 1e-9) { const f = this.sunYZ.y / scY; this.sun.color.setRGB(Math.max(0, sc[0]) * f, Math.max(0, sc[1]) * f, Math.max(0, sc[2]) * f); } }
-    this.sun.intensity = G * sunI;
+    // D-473: the sun stays in the scene below the horizon at intensity 0 (was visible = false): the set of visible lights is
+    // part of every lit material's shader key, so sunset and sunrise rebuilt and recompiled every lit pipeline (minutes on the
+    // T4; a night view after a day view paid it again). Its shadow maps are not redrawn while it is down (sunShadows.ts).
+    const sunUp = alt > -1;
+    this.sun.intensity = sunUp || !SUN_KEPT.on ? G * sunI : 0;
     this.sun.position.copy(camPos).addScaledVector(this.state.sunDir, 800);
     this.sun.target.position.copy(camPos);
-    this.sun.visible = alt > -1;
+    this.sun.visible = SUN_KEPT.on || sunUp; this.sun.shadow.autoUpdate = sunUp;
     this.moonLight.intensity = G * moonI; // colour: a perceptual blue (Purkinje shift, C)
     this.moonLight.position.copy(camPos).addScaledVector(this.state.moonDir, 800); this.moonLight.target.position.copy(camPos);
     this.twilight = smoothstepJS(-14, 4, alt);
