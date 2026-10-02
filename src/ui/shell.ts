@@ -43,7 +43,7 @@ export function keyName(code: string): string {
 }
 /** what each action is, for the controls and the keys tab */
 const ACTION_NAMES: Record<string, string> = {
-  forward: 'Walk forward', back: 'Walk back', left: 'Step left', right: 'Step right', run: 'Walk faster (hold)', interact: 'Open a door · speak to someone',
+  forward: 'Walk forward', back: 'Walk back', left: 'Step left', right: 'Step right', run: 'Walk faster (hold)', slow: 'Walk carefully (hold)', crouch: 'Crouch (toggle)', interact: 'Open a door · speak to someone',
   pause: 'Menu', overlay: 'Evidence overlay (tiers, sources)', map: 'Map (translation layer)', mapZoom: 'Map scale (translation layer)',
   chronicle: 'Chronicle (translation layer)', nowView: 'The ruin today (Now view)',
 };
