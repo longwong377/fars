@@ -916,7 +916,7 @@ export class PeopleSim {
     // with the talk state; an older save re-derives (D-341)
     this.econ = null; this.econSnap = s.econ?.v === 2 ? s.econ : null;
     this.econIv = s.econ && s.econ.v !== 2 ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : [];
-    this.asksWorld.load(s.asks); if (s.deeds) this.deeds.load(unpackJSON(s.deeds.z) as any); // (D-459) if (s.living) this.living.load(s.living.z ? unpackJSON(s.living.z) : s.living); else this.living.reset(); this.econPlans.reset(); this.wardrobes.load(s.wardrobe);
+    this.asksWorld.load(s.asks); if (s.deeds) this.deeds.load(unpackJSON(s.deeds.z) as any); /* (D-459) */ if (s.living) this.living.load(s.living.z ? unpackJSON(s.living.z) : s.living); else this.living.reset(); this.econPlans.reset(); this.wardrobes.load(s.wardrobe);
     if (s.relations) this.pop.relationsRestore(s.relations.z ? unpackJSON(s.relations.z) : s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
     if (s.bonds || this.bonds.acted) { this.bonds.load(s.bonds); this.bondPlans.reset(); } // (without the player's acts the relations are the seed's: nothing to redo)
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });

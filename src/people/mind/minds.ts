@@ -123,7 +123,7 @@ export class Minds {
   private queued: Deed[] = [];
   /** the head of a house on a day: its eldest man of working age, else its eldest adult */
   headOf(h: number, day: number): number | null {
-    const P = this.pop; if (!P.households[h]) return null; const m = P.membersOn(h, day).filter(x => P.present(x, day) && P.persons[x].dies > day + 1 && P.ageOn(x, day) >= 16); // (not the one dying) if (!m.length) return null;
+    const P = this.pop; if (!P.households[h]) return null; const m = P.membersOn(h, day).filter(x => P.present(x, day) && P.persons[x].dies > day + 1 && P.ageOn(x, day) >= 16); /* (not the one dying) */ if (!m.length) return null;
     return [...m].sort((a, b) => (P.persons[b].sex === 'm' && P.ageOn(b, day) < 65 ? 1 : 0) - (P.persons[a].sex === 'm' && P.ageOn(a, day) < 65 ? 1 : 0) || P.ageOn(b, day) - P.ageOn(a, day))[0];
   }
   /** the economy's events of a day, felt by the people of the houses they name (C: who feels what toward whom):
