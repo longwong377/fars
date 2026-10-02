@@ -32,6 +32,7 @@ import type { Economy, EconEvent } from '../economy/world';
 import { h32, u01, salt } from '../hash';
 import { hashString } from '../../core/rng';
 import { haggle } from './haggle';
+import { dateOf } from '../calendar';
 
 export const PLAYER = 'player';
 /** D-370: the stranger's own deeds as the chronicle tells them (the translation layer's journal, key J: out of world) */
@@ -43,7 +44,7 @@ export function chronicleLine(kind: string, house: string): string | null {
     learned_tongue: `${house} notices you now speak their tongue.`, stranger_petition: `Your petition was heard by ${house}.`, ruling_for: `The ruling went for you.`, ruling_against: `The ruling went against you.`,
     halmi_sealed: 'You were given a sealed document: leave to stay and to draw rations.', joined_gang: 'You joined a work gang of the king\'s stores.', left_gang: 'You left the work gang.',
     joined_caravan: 'You hired on as a drover with a caravan in town.', left_caravan: 'The caravan left without you.', joined_house: `${house} took you in as one of the house.`, left_house: `You left ${house}.`,
-    stranger_hungry: 'You have not eaten for days.', gang_ration_cut: 'The gang\'s rations were cut.', haggle_deal: `You struck a bargain with ${house}.` };
+    stranger_hungry: 'You have not eaten for days.', stranger_chilled: 'Nights in the open have chilled you to the bone.', questioned_by_watch: 'The night watch found you sleeping in the open and questioned you.', held_by_watch: 'The night watch held you till morning: you have no sealed document.', gang_ration_cut: 'The gang\'s rations were cut.', haggle_deal: `You struck a bargain with ${house}.` };
   return T[kind] ?? null;
 }
 const ROLE_WORDS: Record<string, string> = { labourer: 'a labourer', craftsman: 'a craftsman', merchant: 'a merchant', scribe: 'a scribe', pilgrim: 'a pilgrim', envoy: 'an envoy of the king', soldier: 'a soldier', healer: 'a healer', kin: 'kin of a house here' };
@@ -281,6 +282,17 @@ export class Stranger {
     if (this.purse.grain >= 0.8) { this.purse.grain -= 0.8; this.hungry = 0; return; }
     const cost = 0.8 * this.E.price('grain', day); if (this.purse.cash >= cost) { this.purse.cash -= cost; this.hungry = 0; return; }
     if (++this.hungry === 3) this.ev('stranger_hungry', [], PLAYER);
+    this.night(day);
+  }
+  /** D-370: where the stranger sleeps: a host's or his house's roof, the gang's camp, the caravan's lines; else in the open, where a
+   *  winter night chills him (seen, pitied) and the night watch, finding a stranger without a sealed document, questions him and
+   *  now and then holds him till morning (C; the Fortification texts' travel documents, A in kind) */
+  chilled = -1;
+  private night(day: number) {
+    if (this.stay || this.group) return; const m = dateOf(day).month, winter = m >= 10 || m <= 0;
+    if (winter && u01(this.E.seed, S.host, 77, day) < 0.35) { if (this.chilled < day - 3) this.ev('stranger_chilled', [], PLAYER); this.chilled = day; }
+    if (this.halmi < day && u01(this.E.seed, S.pet, 78, day) < 0.12) { const held = u01(this.E.seed, S.pet, 79, day) < 0.3;
+      this.ev(held ? 'held_by_watch' : 'questioned_by_watch', [], 'court', PLAYER); if (held && this.E.trust) this.E.trust.note('court', PLAYER, -0.02, day); }
   }
 
   // ---------------------------------------------------------------- (6) learning the language
@@ -432,7 +444,7 @@ export class Stranger {
     const spare = H.grain - H.eaters * GRAIN_EAT * 15;
     if (spare < GRAIN_EAT * 4 && !(this.claim?.role === 'pilgrim' && r.belief > 0.5)) return { ok: false, why: 'they have barely bread for their own' };
     if (H.mourning > day) return { ok: false, why: 'a house in mourning' };
-    const p = 0.55 + 0.8 * (r.trust - 0.5) + 0.25 * r.belief * r.rank + (this.hungry >= 2 ? 0.15 : 0) /* (pity for a hungry stranger: C) */ + (this.claim?.role === 'pilgrim' && r.belief > 0.5 ? 0.15 : 0) + (this.tongueMet.has(hh) ? 0.1 : 0) + (H.kind === 'rich' ? 0.1 : 0) - (H.kind === 'ration' ? 0.1 : 0);
+    const p = 0.55 + 0.8 * (r.trust - 0.5) + 0.25 * r.belief * r.rank + (this.hungry >= 2 || this.chilled >= day - 3 ? 0.15 : 0) /* (pity for a hungry or chilled stranger: C) */ + (this.claim?.role === 'pilgrim' && r.belief > 0.5 ? 0.15 : 0) + (this.tongueMet.has(hh) ? 0.1 : 0) + (H.kind === 'rich' ? 0.1 : 0) - (H.kind === 'ration' ? 0.1 : 0);
     return u01(this.E.seed, S.host, hashString(hh) | 0, day) < p ? { ok: true, why: 'guest-right' } : { ok: false, why: 'they will not take a stranger in' };
   }
   private stayNight(day: number) {
@@ -527,6 +539,7 @@ export class Stranger {
     if (this.slighted.has(hh)) out.push('the stranger once ate your bread and went off without a word of thanks');
     if (C && b) out.push(b.doubted || b.b < 0.35 ? `the stranger says he is ${roleWords[C.role] ?? C.role}${C.origin ? ` from ${C.origin}` : ''}, but you do not believe it` : `you have heard the stranger is ${roleWords[C.role] ?? C.role}${C.origin ? ` from ${C.origin}` : ''}`);
     if (this.hungry >= 2) out.push('the stranger looks hungry and worn, as if he has not eaten for days');
+    if (this.chilled >= day - 3) out.push('the stranger is coughing and shivering from nights in the open');
     const c = this.comp(this.langOf(hh), day);
     out.push(c < 0.2 ? 'the stranger hardly knows your tongue: use very few, simple words and point and gesture' : c < 0.5 ? 'the stranger knows a little of your tongue: speak simply and slowly' : 'the stranger speaks your tongue well enough');
     return out;
@@ -550,13 +563,13 @@ export class Stranger {
   // ---------------------------------------------------------------- save
   snapshot() {
     return { purse: { ...this.purse }, job: this.job, stay: this.stay, group: this.group, lang: [...this.lang], claim: this.claim, belief: [...this.belief], halmi: this.halmi,
-      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], hungry: this.hungry, fedOn: this.fedOn, slighted: [...this.slighted], judged: [...this.judged], vocab: [...this.vocab], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
+      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], hungry: this.hungry, fedOn: this.fedOn, chilled: this.chilled, slighted: [...this.slighted], judged: [...this.judged], vocab: [...this.vocab], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
   }
   static restore(s: any, E: Economy, opts: StrangerOpts = {}): Stranger {
     const X = new Stranger(E, opts); const c = JSON.parse(JSON.stringify(s));
     X.purse = c.purse; X.job = c.job; X.stay = c.stay; X.group = c.group; X.claim = c.claim; X.halmi = c.halmi; X.petN = c.petN; for (const a of c.attended ?? []) X.attended.add(a);
     for (const [k, v] of c.lang) X.lang.set(k, v); for (const [k, v] of c.belief) X.belief.set(k, v);
     X.debtors.push(...c.debtors); X.petitions.push(...c.petitions); Object.assign(X.deeds, c.deeds); Object.assign(X.stats, c.stats);
-    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); for (const [k, v] of c.vocab ?? []) X.vocab.set(k, v); X.hungry = c.hungry ?? 0; X.fedOn = c.fedOn ?? -1; return X;
+    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); for (const [k, v] of c.vocab ?? []) X.vocab.set(k, v); X.hungry = c.hungry ?? 0; X.chilled = c.chilled ?? -1; X.fedOn = c.fedOn ?? -1; return X;
   }
 }
