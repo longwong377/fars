@@ -2,7 +2,7 @@
 // GPU (fetch served from public/, no renderer). It ranks where the build's CPU time goes on this box (a node mirror of the
 // page's build; the page adds its workers and the GPU uploads). Run through the CPU slot:
 //   node tools/dev/cpu_slot.mjs load -- npx tsx tools/bake_world/node_build.ts [out.json]
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname } from 'node:path';
 import './node_env';
 import { useNodeCache } from './node_cache';
@@ -24,6 +24,9 @@ const phys = await lap('physics', () => Physics.create());
 const { WeatherSystem } = await import('../../src/weather/weatherState');
 const weather = new WeatherSystem(+(process.env.SEED ?? (await import('../../src/core/rng')).WORLD_SEED_DEFAULT));
 const { buildWorld } = await lap('import world', () => import('../../src/world/world'));
+// the stone frames' trim is a KTX2 texture node cannot transcode; the page has it whenever the file is there, and only its
+// presence shapes the geometry (the frames are carved when it is loaded): so here too (the architecture's baked key holds it)
+if (existsSync('public/models/decor/frame_trim.ktx2')) (await import('../../src/render/decorAssets')).setDecorForTest({ trim: true });
 const scene = new THREE.Scene();
 let err: string | null = null;
 // the page's own settings and seed: the defaults (a first visit), the quality from the query; SEED=<n> another world

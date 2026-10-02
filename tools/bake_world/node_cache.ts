@@ -13,7 +13,7 @@ export function useNodeCache(root: string, mode: 'bake' | 'read') {
   const manifest = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8')) : { v: 1, entries: {} };
   const src = sourceHashes(root) as Record<string, string>;
   setNodeCacheBackend({ mode, src, manifest,
-    read: f => { const p = resolve(dir, f); if (!existsSync(p)) return null; let b = readFileSync(p); if (f.endsWith('.gz')) b = gunzipSync(b); return new Uint8Array(b.buffer, b.byteOffset, b.byteLength); },
+    read: f => { const p = resolve(dir, f); if (!existsSync(p)) return null; let b = readFileSync(p); if (b[0] === 0x1f && b[1] === 0x8b) b = gunzipSync(b); return new Uint8Array(b.buffer, b.byteOffset, b.byteLength); },
     write: (unit, key, s, bytes) => { const file = writeEntry(root, unit, key, s, bytes); manifest.entries[`${unit}|${key}`] = { src: s, file, bytes: bytes.length, sha1: '' }; } });
   return src;
 }

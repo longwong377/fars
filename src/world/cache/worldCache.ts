@@ -38,9 +38,10 @@ export function prefetchWorldCache() { if (cacheEnabled()) { void srcHashes(); v
 
 async function readEntry(e: Entry): Promise<ArrayBuffer | Uint8Array | null> {
   if (nodeB) return nodeB.mode === 'read' ? nodeB.read(e.file) : null;
-  const r = await fetch(BASE + 'world-cache/' + e.file); if (!r.ok || !r.body) return null;
-  // D-392: gzipped at bake time (writeEntry), inflated here as it streams in
-  return e.gz ? new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer() : r.arrayBuffer();
+  const r = await fetch(BASE + 'world-cache/' + e.file); if (!r.ok) return null;
+  // D-392: gzipped at bake time (writeEntry), inflated here unless the host already did (by the magic bytes)
+  const b = await r.arrayBuffer(), u = new Uint8Array(b, 0, Math.min(2, b.byteLength));
+  return u[0] === 0x1f && u[1] === 0x8b ? new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer() : b;
 }
 // D-392: this browser's own copies of the units it had to compute (a world of its own seed: the site bakes the default world
 // only), in the Cache Storage under the unit, key and source hash: the next visit reads them (one kept per unit; ?worldcache=0

@@ -15,7 +15,7 @@ const t0 = Date.now(), el = () => +((Date.now() - t0) / 1000).toFixed(1), lines 
 page.on('console', m => { const t = m.text(); if (/^\[boot\]|world-cache|error/i.test(t) && lines.length < 3000) { lines.push(`${el()} ${t.slice(0, 600)}`); if (/world:|ready|world-cache/.test(t)) console.log(el(), t.slice(0, 300)); } });
 page.on('pageerror', e => lines.push(`${el()} pageerror ${String(e).slice(0, 300)}`));
 const cdp = await ctx.newCDPSession(page);
-await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 1000 }); await cdp.send('Profiler.start');
+await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: +(process.env.PROF_US ?? 4000) }); await cdp.send('Profiler.start');
 const url = `${base}?quality=high&trace&norender${extra}`;
 await page.goto(url);
 await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 500 });

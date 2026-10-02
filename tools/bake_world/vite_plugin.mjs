@@ -15,8 +15,9 @@ export const CACHE_DIR = 'public/world-cache';
 export function writeEntry(root, unit, key, src, bytes) {
   const dir = resolve(root, CACHE_DIR); mkdirSync(dir, { recursive: true });
   // s15 (D-392): gzipped (the geometry's per-part attributes repeat: the architecture 83 MB -> 5 MB; the page inflates it with
-  // DecompressionStream as it streams in, node with zlib); the manifest marks it gz
-  const file = `${unit}-${key}.bin.gz`.replace(/[^\w.-]/g, '_'), tmp = resolve(dir, file + '.tmp');
+  // DecompressionStream, node with zlib; by its magic bytes: a host may also send it with its own Content-Encoding, the dev
+  // server does for a .gz name, so the name stays .bin); the manifest marks it gz
+  const file = `${unit}-${key}.bin`.replace(/[^\w.-]/g, '_'), tmp = resolve(dir, file + '.tmp');
   const gz = gzipSync(bytes, { level: 6 }); writeFileSync(tmp, gz); renameSync(tmp, resolve(dir, file));
   const mf = resolve(dir, 'manifest.json'), M = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8')) : { v: 1, entries: {} };
   const old = M.entries[`${unit}|${key}`]; if (old?.file && old.file !== file) rmSync(resolve(dir, old.file), { force: true });
