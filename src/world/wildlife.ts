@@ -317,7 +317,10 @@ export class Birds {
         let flyMorph: THREE.Material | null = null;
         const mk = (key: string, g0: THREE.BufferGeometry, m: THREE.Material, meta: Record<string, unknown>) => {
           const g = g0.clone(), data = new THREE.InstancedInterleavedBuffer(new Float32Array(sp.count * BIRD_STRIDE), BIRD_STRIDE); data.setUsage(THREE.DynamicDrawUsage);
-          for (const [nm, sz, off] of [['phase', 1, 0], ['flapAmt', 1, 1], ['standAmt', 1, 2], ['bRx', 3, 3], ['bRy', 3, 6], ['bRz', 3, 9]] as const) g.setAttribute(nm, new THREE.InterleavedBufferAttribute(data, sz, off));
+          // (D-570: the instance's 12 floats (phase, flap, stand, the bird's three axes) as three vec4s, bA bB bC: WebGPU on the T4
+          // allows 16 vertex inputs and the starlings (1,500 instances: their matrices are four more inputs) used 17; birdIn() reads
+          // them; tests/vertex_inputs.test.ts keeps every life pipeline at <= 16)
+          for (const [nm, off] of [['bA', 0], ['bB', 4], ['bC', 8]] as const) g.setAttribute(nm, new THREE.InterleavedBufferAttribute(data, 4, off));
           // D-362: the flying levels that have a standing twin (the same vertices and UVs: tools/blender/life_birds.py builds both
           // poses from one topology) carry its positions and normals: the morph at take-off and landing (B179)
           const tw = model && key.startsWith('fly') ? model.levels[`stand${key.slice(3)}`] : undefined;
@@ -334,7 +337,7 @@ export class Birds {
           for (const [key, g] of Object.entries(model.levels)) mk(key, g, key.startsWith('stand') ? stand : fly, { placeholder: false, model: v, note2: `${e.name}: modelled (tools/blender/life_birds.py; D-332), plumage and proportions from field guides (C)` });
         } else {
           const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: 0.8, side: THREE.DoubleSide });
-          const wing = attribute('wing', 'float'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
+          const wing = attribute('wing', 'float'), phase = attribute('bA', 'vec4').x, flap = attribute('bA', 'vec4').y;
           // the stand-in's wingbeat: tips rise and fall (±60°), scaled by the instance's flap amount; gliding birds hold a slight dihedral
           const beat = sin(this.uTime.mul(sp.flapHz * Math.PI * 2).add(phase)).mul(flap).mul(0.9).add(0.12);
           m.positionNode = positionLocal.add(vec3(0, abs(wing).mul(beat).mul(float(sp.span * 0.5)), 0));
@@ -543,6 +546,9 @@ export class Jackals {
   }
 }
 
+/** D-570: a bird instance's packed inputs (three vec4s: phase, flap, stand, then the bird's x, y and z axes in the world) */
+export function birdIn() { const a = attribute('bA', 'vec4'), b = attribute('bB', 'vec4'), c = attribute('bC', 'vec4');
+  return { phase: a.x, flap: a.y, stand: a.z, Rx: vec3(a.w, b.x, b.y), Ry: vec3(b.z, b.w, c.x), Rz: vec3(c.y, c.z, c.w) }; }
 /** the modelled wingbeat (Birds.flapNode; exported for the probe pages). D-362 (B179): the wing turns in the bird's own frame
  *  (positionGeometry; three applies the instance matrix before the material's positionNode, so the old arithmetic on
  *  positionLocal measured the wing's span from the world's x axis), the displacement carried to the world by the instance's
@@ -550,8 +556,8 @@ export class Jackals {
  *  positions and normals and the instance's stand amount blends the poses (the wings open as the bird lifts: no pop) */
 export function birdFlapNode(uTime: any, hz: number, sx: number, morph = false) {
   return Fn(() => {
-    const L = attribute('life', 'vec4'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
-    const st = morph ? attribute('standAmt', 'float').clamp(0, 1) : float(0), fly = float(1).sub(st);
+    const L = attribute('life', 'vec4'), { phase, flap, stand, Rx, Ry, Rz } = birdIn();
+    const st = morph ? stand.clamp(0, 1) : float(0), fly = float(1).sub(st);
     const pg: any = morph ? mix(positionGeometry, attribute('standPos', 'vec3'), st) : positionGeometry;
     const ng: any = morph ? mix(normalGeometry, attribute('standNrm', 'vec3'), st) : normalGeometry;
     const beat = sin(uTime.mul(hz * Math.PI * 2).add(phase)).mul(flap).mul(0.85).add(0.1).mul(fly), th = beat.mul(L.x.mul(0.45).add(0.55));
@@ -559,7 +565,6 @@ export function birdFlapNode(uTime: any, hz: number, sx: number, morph = false) 
     const p = vec3(x.add(sg.mul(d.mul(cos(th)).sub(d))), pg.y.add(d.mul(sin(th))), pg.z), dp = p.sub(positionGeometry);
     // the normal: turned about the bird's long axis by the wing's angle (sign(x) th) beyond the shoulder
     const a = sg.mul(th).mul(L.y).mul(step(float(sx), abs(x))), ca = cos(a), sa = sin(a), n = vec3(ng.x.mul(ca).sub(ng.y.mul(sa)), ng.x.mul(sa).add(ng.y.mul(ca)), ng.z);
-    const Rx = attribute('bRx', 'vec3'), Ry = attribute('bRy', 'vec3'), Rz = attribute('bRz', 'vec3');
     normalLocal.assign(Rx.mul(n.x).add(Ry.mul(n.y)).add(Rz.mul(n.z)).normalize());
     return positionLocal.add(Rx.mul(dp.x)).add(Ry.mul(dp.y)).add(Rz.mul(dp.z));
   })();
