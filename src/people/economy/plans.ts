@@ -164,9 +164,19 @@ export class EconPlans {
       const ground = this.exchangeFor(H.id, day), gs = goodsAt.get(ground); if (!gs?.length) continue; const [da, db] = this.dryHours(day, 7, 14); if (db - da < 1.6) continue;
       const g = gs[h32(P.seed, S.buy, H.id, day + 7919) % gs.length], key = 3000017 + day * 7 + 1, pid = this.pick(H.id, day, 'errand', key, true); if (pid === null) continue;
       const [why, carry] = BUY_WHY[g][h32(P.seed, S.buy, H.id, day + 104729) % BUY_WHY[g].length], u = u01(P.seed, S.buy, H.id, day + 3);
-      put({ pid, day, kind: 'market_buy', ev: -1, role: 'errand', mode: 'errand', lo: Math.max(da, 7.2 + 4.3 * u01(P.seed, S.buy, H.id, day + 11)), hi: Math.min(13.5, db - 1.6), dest: ground, work: [['exchange', 0.5 + 0.7 * u, why]],
+      const lo = Math.max(da, 7.2 + 4.3 * u01(P.seed, S.buy, H.id, day + 11)), hi = Math.min(13.5, db - 1.6), dur = 0.5 + 0.7 * u;
+      if (!this.freeRun(pid, day, lo, hi, dur + 2 * this.walk(`h:${H.id}`, ground, day) + 0.1)) continue; // (only a buyer whose own day has the time: an errand given and never laid is no buyer)
+      put({ pid, day, kind: 'market_buy', ev: -1, role: 'errand', mode: 'errand', lo, hi, dest: ground, work: [['exchange', dur, why]],
         goAct: 'walk', goWhy: 'going to the market', backAct: carry, backWhy: 'carrying home what was bought at the market' });
     }
+  }
+  /** D-458: a stretch of the person's own day free for an errand (rest, talk, the house's work, at one place) starting in [lo, hi] and lasting `need` */
+  private freeRun(pid: number, day: number, lo: number, hi: number, need: number): boolean {
+    let a = -1, b = -1;
+    for (const s of this.pop.basePlan(pid, day)) { const ok = FREE.has(s.act) && s.where !== 'road' && !s.place.startsWith('@') && s.with === undefined;
+      if (!ok) { a = -1; continue; } if (a < 0 || Math.abs(b - s.t0) > 1e-6) a = s.t0; b = s.t1;
+      if (Math.min(b, hi + need) - Math.max(a, lo) >= need && Math.max(a, lo) <= hi) return true; }
+    return false;
   }
   /** D-458: the keeping of a stall in a member's day: who (the women for the garden's produce and the beer, a steward or a
    *  servant for a rich house's barley, else whoever of fourteen to fifty-five is free), from when (first light to an hour
