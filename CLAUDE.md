@@ -134,6 +134,8 @@ people at distance) are the first targets. Judge whole views at the player's len
 ## Guards and process (UD-30, session 15: "do whatever you think is best" after the critique of too much process)
 - `npm run guards` runs before every commit (`.githooks/pre-commit`) and keeps only what protects the user: no direction in
   USER_DIRECTIONS.md reworded or dropped, no threshold in gates/thresholds.json loosened or removed. Never bypass the hook.
+- **This Vagon box is not permanent:** nothing may live only on it. Agents push their own branch on every commit; the lead
+  pushes int after every merge; deploys build on GitHub Actions from git alone (Pages, https://longwong377.github.io/fars/).
 - Briefs are a short paragraph: goal as the player meets it, files owned, done line, the box rules. No templates.
 - Records: one DECISIONS line per package (the lead gives each agent a D number); no reserved ranges, evidence paperwork or
   per-change verification. Status messages only when something changed.
