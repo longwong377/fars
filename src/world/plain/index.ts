@@ -140,7 +140,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   group.add(crops.mesh);
   // Naqsh-e Rustam and the quarries
   const nr = buildNaqsh(terrain, rivers.nrAncientFootAsl); group.add(nr.group);
-  const qb = buildQuarries(terrain, opts.seed); group.add(qb.group);
+  const qb = buildQuarries(terrain, opts.seed); group.add(qb.group); scene.add(qb.extra); // (D-600: the quarries' drums and rock beside the plain's group)
   // the fords where the roads meet the Pulvar and the Kur (D-257, C)
   const fords = buildCrossings(terrain, rivers.rivers, opts.seed, tLines.map((pts, i) => ({ id: `track_${i}`, pts, width: feature('villages_unlocated').tracks.width_m as number })), (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
   // Naqsh-e Rustam's meshes cast shadows near the cliff, except the relief sets', which manage their own (their shadow proxies are the only relief
@@ -241,7 +241,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
     const nrNear = Math.hypot(600 - cam.x, -6124 - cam.z) < 1200; for (const m of nrCasters) m.castShadow = nrNear;
     nr.texts.visible = Math.hypot(600 - cam.x, -6124 - cam.z) < 600; // the DNa/DNb carving (~0.2 M triangles) only near the cliff
-    const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
+    qb.update(cam); const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
     const fNear = qNear || fords.crossings.some(c => Math.hypot(c.x - cam.x, -c.y - cam.z) < 600); // the quarries share the fords' mesh (D-257) fords.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = fNear; });
     const pp = ctx.player?.position ?? cam; syncColliders(pp, cam); syncTrunks(pp);
     vb.update(dt, cam, pp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30);
