@@ -13,7 +13,7 @@
 #  beam0..1   an adzed timber lintel: unit box (x along, y up from 0, z across), faceted, sagging, knots
 #  leaf0..2   a street door leaf of 3/4/5 poplar planks (unit width 1 across the opening, height 1), two battens behind,
 #             the pivot post at x = 0 (its own piece post: unit length), a wooden pull
-import bpy, bmesh, json, math, sys, random
+import bpy, bmesh, json, math, sys, random, os
 from mathutils import Vector, noise
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
@@ -195,6 +195,29 @@ def leaf(variant):
         plank_box(verts, faces, shade, 0.08, W - 0.04, y, y + 0.055, 0.028, 0.055, variant * 10 + 7 + int(y * 10), 0.86, NY=2)
     plank_box(verts, faces, shade, W - 0.2, W - 0.14, 0.5, 0.57, 0.055, 0.09, variant * 10 + 9, 0.86, NY=2)
     ob = mesh_from(verts, faces, shade, f'leaf{variant}'); return ob
+
+def leaf_b(variant):
+    # s17 C1 (D-550): the street door seen from the lane in three more forms, so no two doors in a lane are alike (C): leaf3
+    # four planks of uneven width ledged on the outside by two rails; leaf4 three wide planks and a narrow one replaced (paler,
+    # newer), a single outside rail high up; leaf5 six narrow planks (a better-off house) with a wide middle rail and a top rail
+    r = random.Random(200 + variant)
+    widths = {3: (0.3, 0.2, 0.26, 0.24), 4: (0.31, 0.31, 0.12, 0.26), 5: (1 / 6,) * 6}[variant]
+    W = 1.0; x0 = 0.05; tot = sum(widths); scale = (W - 0.06 - x0 + 0.05) / tot
+    verts, faces, shade = [], [], []
+    x = x0
+    for k, wd in enumerate(widths):
+        w = wd * scale; a = x + 0.003 + 0.004 * r.random(); b = x + w - 0.003 - 0.004 * r.random(); x += w
+        kk = (0.95, 1.03, 0.9, 1.0, 0.97, 1.02)[k % 6] * (0.95 + 0.1 * r.random())
+        if variant == 4 and k == 2: kk = 1.2  # the replaced plank: fresh poplar
+        plank_box(verts, faces, shade, a, b, 0.005 + 0.006 * (k % 2), 0.975 - 0.005 * (k % 3), -0.028, 0.028, 200 + variant * 10 + k, kk)
+    for y in (0.16, 0.8):  # the inside battens, as on every leaf
+        plank_box(verts, faces, shade, 0.08, W - 0.04, y, y + 0.055, 0.028, 0.055, 200 + variant * 10 + 7 + int(y * 10), 0.86, NY=2)
+    rails = {3: ((0.22, 0.07), (0.72, 0.07)), 4: ((0.84, 0.065),), 5: ((0.46, 0.1), (0.9, 0.055))}[variant]
+    for i, (y, h) in enumerate(rails):  # the outside ledges (the lane side, -z)
+        plank_box(verts, faces, shade, 0.07, W - 0.05, y, y + h, -0.056, -0.028, 260 + variant * 10 + i, 0.82, NY=2)
+    plank_box(verts, faces, shade, W - 0.22, W - 0.15, 0.5, 0.58, -0.085, -0.056, 280 + variant, 0.8, NY=2)  # the pull, outside
+    plank_box(verts, faces, shade, W - 0.2, W - 0.14, 0.5, 0.57, 0.055, 0.09, 290 + variant, 0.86, NY=2)
+    return mesh_from(verts, faces, shade, f'leaf{variant}')
 
 def beam(seed):
     # an adzed timber lintel: a rounded-rectangle section (unit box, x along), sagging a little, the arrises eased and the
@@ -498,6 +521,7 @@ def main():
     for s in range(2): obs[f'log{s}'] = log(s + 11)
     for s in range(2): obs[f'tannur{s}'] = tannur(s + 21)
     for v in range(3): obs[f'leaf{v}'] = leaf(v)
+    for v in range(3, 6): obs[f'leaf{v}'] = leaf_b(v)  # s17 C1 (D-550)
     for v in range(2): obs[f'beam{v}'] = beam(31 + v)
     # D-324: the finished kit
     for s in range(3): obs[f'crestL{s}'] = crest_lod(s + 1)
@@ -513,7 +537,9 @@ def main():
     pairs = {}
     for s in range(3): ring, br = brick_patch(101 + s); obs[f'bpl{s}'] = ring; obs[f'bbr{s}'] = br; pairs[f'bpl{s}'] = br; pairs[f'bbr{s}'] = ring
     # AO baked with each piece alone, on a ground plane where it stands on the ground (tannur) or against its wall (crest)
+    only0 = [x for x in os.environ.get('HOUSEKIT_ONLY', '').split(',') if x]
     for name, ob in obs.items():
+        if only0 and name not in only0: continue
         others = []
         if name in pairs: others.append(pairs[name])
         if name.startswith('bench') or name.startswith('stone') or name.startswith('sill') or name.startswith('pebble'):
@@ -535,7 +561,11 @@ def main():
             if o.name in obs or any(o is q for q in obs.values()): continue
             bpy.data.objects.remove(o)
     out = {'about': 'D-311 house kit (tools/blender/housekit.py): pieces modelled and AO-baked in Blender 5 (Cycles, vertex AO), game axes y-up; tier C', 'pieces': {}}
-    for name, ob in obs.items(): out['pieces'][name] = export(ob, name.startswith('leaf') or name.startswith('beam') or name.startswith('jamb'))
+    only = [x for x in os.environ.get('HOUSEKIT_ONLY', '').split(',') if x]
+    if only and os.path.exists(OUT): out = json.load(open(OUT))  # (s17: rebuild only the named pieces, the rest kept as they are)
+    for name, ob in obs.items():
+        if only and name not in only: continue
+        out['pieces'][name] = export(ob, name.startswith('leaf') or name.startswith('beam') or name.startswith('jamb'))
     print('[housekit] outward normals', {k: round(check_normals(k, ob), 2) for k, ob in obs.items() if not k.startswith('bpl') and not k.startswith('bbr') and not k.startswith('rpatch') and not k.startswith('rill')})
     with open(OUT, 'w') as f: json.dump(out, f, separators=(',', ':'))
     print('[housekit] wrote', OUT, {k: v['tris'] for k, v in out['pieces'].items()})
