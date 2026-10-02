@@ -39,3 +39,11 @@ describe('D-371 a past for everyone', () => {
     expect(texts.size).toBeLessThanOrEqual(3);
   });
 });
+describe('D-371 children have playmates (a lookup; no plan changes)', () => {
+  it('most children of 3-10 in the town and villages have a playmate of their lane, near their age, not of their house', () => {
+    const kids = sample.filter(pid => { const a = pop.ageOn(pid, day), H = pop.households[pop.home(pid, day)]; return a >= 3 && a <= 10 && (H.zone === 'town' || H.zone === 'plain'); });
+    let with_ = 0; for (const k of kids) { const m = pop.playmatesOf(k, day); if (m.length) with_++;
+      for (const o of m) { expect(Math.abs(pop.ageOn(o, day) - pop.ageOn(k, day))).toBeLessThanOrEqual(2); expect(pop.home(o, day)).not.toBe(pop.home(k, day)); expect(pop.households[pop.home(o, day)].q).toBe(pop.households[pop.home(k, day)].q); } }
+    expect(kids.length).toBeGreaterThan(20); expect(with_ / kids.length).toBeGreaterThan(0.8);
+  });
+});

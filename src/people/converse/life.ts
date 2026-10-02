@@ -140,6 +140,8 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
   const friends = p.ties.filter(o => pop.persons[o].hh !== hh && pop.present(o, day) && spokenName(pop, o)).slice(0, 4).map(o => { const O = pop.persons[o]; const a = pop.affinity(pid, o, day);
     const how = pop.households[p.hh].kin.includes(O.hh) ? 'kin' : p.group >= 0 && O.group === p.group ? 'works in the same group' : 'a neighbour';
     return { name: spokenName(pop, o)!, how: `${how}, ${jobWords(O)}`, feeling: a < 0 ? 'on bad terms since a quarrel' : a > 0.5 ? 'close' : 'friendly' }; });
+  // (D-371: a small child's friends are the children it plays with in the lane)
+  if (age < 12) for (const o of pop.playmatesOf(pid, day)) if (friends.length < 4 && spokenName(pop, o)) friends.push({ name: spokenName(pop, o)!, how: `plays with them in the ${pop.households[pop.home(o, day)].zone === 'plain' ? 'village' : 'lane'}, a ${pop.persons[o].sex === 'm' ? 'boy' : 'girl'} of ${pop.ageOn(o, day)}`, feeling: 'close' });
   // the year so far (the regnal year starts at day 0, the month of Nisanu: sim facts only)
   const year: string[] = [], quarrels: string[] = [];
   const when = (d: number) => { const k = day - d; return k === 0 ? 'today' : k === 1 ? 'yesterday' : k < 8 ? `${k} days ago` : k < 45 ? `about ${Math.round(k / 7)} weeks ago` : `in the month ${MONTHS[dateOf(d).month - 1].op}`; };
