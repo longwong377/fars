@@ -25,6 +25,7 @@ import { TranslationLayer } from './ui/translation';
 import { NOW_CAPTION } from './arch/now';
 import { PLACES } from './people/sim';
 import { buildWorld, WorldBuild } from './world/world';
+import { releaseUploadedTextures, releaseStats } from './world/cache/release';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -85,6 +86,7 @@ async function boot() {
     await renderer.init();
   }
   const backend = (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2';
+  releaseUploadedTextures(renderer); // D-354 (s15, page memory): a static texture's page copy dropped once it is on the GPU
   if (P.has('shaderlog')) { // dev (D-250): which object and material each new render pipeline came from, with its WGSL size
     const pl: any = (renderer as any)._pipelines, orig = pl.getForRender.bind(pl), seen = new Set<any>(); (window as any).__shaderLog = [];
     pl.getForRender = (ro: any, pr: any) => { const r = orig(ro, pr); if (r && !seen.has(r)) { seen.add(r); const m = ro.material, o = ro.object;
@@ -213,7 +215,7 @@ async function boot() {
     try { for (let i = 0; i < list.length; i++) { if (!was[i]) continue; list[i].visible = true; const t = performance.now(); await frame(0, { render: false }); await world.settle?.(camera); await frame(0); ms[list[i].name] = Math.round(performance.now() - t); } }
     finally { list.forEach((o: any, i: number) => { o.visible = was[i]; }); } return ms; };
   const api = {
-    ready: false, backend, norender: NORENDER,
+    ready: false, backend, norender: NORENDER, scene, releaseStats, // (scene, releaseStats: the memory probe, D-354)
     setTime: (day: number, hour: number) => clock.set(day, hour),
     setWeather: (w: WeatherOverride) => { weather.override = w; },
     /** place the camera at grid (east, north) with eye height above ground (or absolute asl), true-north azimuth + pitch in degrees */

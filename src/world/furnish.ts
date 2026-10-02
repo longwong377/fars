@@ -273,15 +273,27 @@ function scrollGeometry(): THREE.BufferGeometry {
  *  one vertex-coloured mesh (per-vertex roughness), so the room costs one draw for them (session 8: D-221's furnishings
  *  took the scribes' room from 9 to 17 draws). Each piece's name, place and F3 record stay on an empty anchor, and the merged
  *  mesh's note lists them */
+/** D-354: a piece whose k copies would put more vertices than this into the merged mesh stays instanced */
+const MERGE_MAX_VERTS = 40000;
 function mergeStatic(group: THREE.Group, names: string[], name: string, kindOf: (piece: string) => string = () => 'clay') {
   // D-301: each piece keeps its material's kind (aKind: its scan, materials.ts propMaterialMulti), still one draw
-  const geos: THREE.BufferGeometry[] = [], kinds: string[] = [], notes: string[] = [], m4 = new THREE.Matrix4(), mi = new THREE.Matrix4();
+  const geos: THREE.BufferGeometry[] = [], kinds: string[] = [], notes: string[] = [], m4 = new THREE.Matrix4(), mi = new THREE.Matrix4(), kept: THREE.InstancedMesh[] = [];
   for (const n of names) {
     const o = group.getObjectByName(n) as THREE.Mesh | undefined; if (!o || !o.isMesh) continue;
     const mat = o.material as THREE.MeshStandardMaterial, col = mat.color ?? new THREE.Color(1, 1, 1), rough = mat.roughness ?? 0.8;
     o.updateMatrix(); const base = strip(o.geometry.clone()); if (!base.getAttribute('normal')) base.computeVertexNormals();
     const inst = (o as any).isInstancedMesh ? (o as unknown as THREE.InstancedMesh) : null, k = inst ? inst.count : 1, kind = kindOf(n);
     if (!kinds.includes(kind)) kinds.push(kind); const ki = kinds.indexOf(kind);
+    // D-354 (s15, page memory): a modelled piece repeated many times stays instanced (one more draw) instead of baked k times
+    // into the merged mesh (the Garrison's merged mats and bedding were 131 MB, the Harem's 42 MB, held by the page and the GPU)
+    const nv0 = base.getAttribute('position').count;
+    if (inst && k > 1 && nv0 * k > MERGE_MAX_VERTS) {
+      const c = new Float32Array(nv0 * 3), r = new Float32Array(nv0).fill(rough), kk = new Float32Array(nv0).fill(ki);
+      for (let v = 0; v < nv0; v++) { c[v * 3] = col.r; c[v * 3 + 1] = col.g; c[v * 3 + 2] = col.b; }
+      base.setAttribute('color', new THREE.BufferAttribute(c, 3)); base.setAttribute('aRough', new THREE.BufferAttribute(r, 1)); base.setAttribute('aKind', new THREE.BufferAttribute(kk, 1));
+      const im = new THREE.InstancedMesh(base, o.material, k); im.instanceMatrix.copy(inst.instanceMatrix); o.matrix.decompose(im.position, im.quaternion, im.scale);
+      im.castShadow = im.receiveShadow = true; im.name = `${name}:${n.split(':').pop()}`; im.userData = { ...o.userData }; im.computeBoundingSphere(); kept.push(im);
+    } else
     for (let i = 0; i < k; i++) {
       const g = base.clone(); if (inst) { inst.getMatrixAt(i, mi); m4.multiplyMatrices(o.matrix, mi); } else m4.copy(o.matrix);
       g.applyMatrix4(m4); const nv = g.getAttribute('position').count, c = new Float32Array(nv * 3), r = new Float32Array(nv).fill(rough), kk = new Float32Array(nv).fill(ki);
@@ -291,6 +303,7 @@ function mergeStatic(group: THREE.Group, names: string[], name: string, kindOf: 
     const anchor = new THREE.Object3D(); anchor.name = o.name; anchor.position.copy(o.position); anchor.rotation.copy(o.rotation); anchor.userData = o.userData;
     notes.push(`${n.replace(/^scribes:/, '')}: ${o.userData?.note ?? ''}`); group.remove(o); group.add(anchor);
   }
+  for (const im of kept) { im.material = propMaterialMulti(kinds); group.add(im); }
   if (!geos.length) return;
   const mesh = new THREE.Mesh(mergeGeometries(geos)!, propMaterialMulti(kinds)); mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true;
   mesh.userData = { tier: 'C', src: 'IR-TREAS;MATCULT-R;RECON', note: `the room's small furnishings, merged into one draw (each piece's record is on its named anchor; each keeps its material's scan, D-301): ${notes.join(' | ')}` };
