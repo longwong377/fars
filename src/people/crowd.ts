@@ -42,6 +42,8 @@ import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTE
 import { h32, salt } from './hash';
 import { marksOf } from './marks';
 const S_MARK = salt('crowd-marks');
+/** s17 V3: the dresses with a skirt to the ankle (anim.ts Gait.skirt) */
+const LONG_SKIRT = new Set(['woman', 'persian', 'guard', 'king', 'court_woman', 'envoy']);
 import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim, CAPTURED_WORK } from './workAnims';
@@ -382,7 +384,7 @@ export class Crowd {
       blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0], act: '', actPlaceholder: false, nodAt: -1,
       prop2: null, propM2: new THREE.Matrix4(), ip: [0, 0], perf: null, why: '', animT: seed % 100, animK: (seed % 1000) / 159, base: [0, 0, 0, 0], path: null,
       pid: agent ? agent.pid : -1, vp: null, vpFrame: -10, gaitPh: (seed % 628) / 100,
-      gait: { v: 1.2, style: gaitStyleOf(v.meta) }, legK: legScale(v.joints) * look.scale, gx: NaN, gz: NaN };
+      gait: { v: 1.2, style: gaitStyleOf(v.meta), skirt: LONG_SKIRT.has(look.dress) }, legK: legScale(v.joints) * look.scale, gx: NaN, gz: NaN };
     this.persons.set(key, p); if (agent) this.byAgent.set(agent.id, p); return p;
   }
   /** attached people by agent id (no string keys in the per-frame pool scan) */

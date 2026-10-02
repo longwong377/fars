@@ -397,7 +397,14 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const yA = vec3(boneTex.load(ivec2(bA, int(slot))).y, boneTex.load(ivec2(bA.add(1), int(slot))).y, boneTex.load(ivec2(bA.add(2), int(slot))).y);
       const yB = vec3(boneTex.load(ivec2(bB, int(slot))).y, boneTex.load(ivec2(bB.add(1), int(slot))).y, boneTex.load(ivec2(bB.add(2), int(slot))).y);
       const mixW = sw.x.mul(sw.y).mul(4).clamp(0, 1), bend = float(1).sub(dot(normalize(yA), normalize(yB))).mul(2).clamp(0, 1).mul(mixW).mul(clothC).mul(float(1).sub(skirtV));
-      vWear.assign(vec4(wear.x, bend, ampPh, wear.w));
+      // s17 V3 (D-500): the living colour of a face (C): blood under the thin skin of the nose, the cheeks and the ears, the
+      // lips' colour held down (the baked map read as lipstick in the sun), on head and jaw skin; carried in vWear.y and z
+      // (cloth's joint bend and skirt folds: unused on skin)
+      const hd = is(si.x, HB.head).add(is(si.x, HB.jaw)).mul(skinV), ey = mk.z, ax = abs(s.x), fr0 = smoothstep(0.1, 0.5, nB.z);
+      const box = (x0: number, x1: number, y0: number, y1: number, e: number) => smoothstep(x0 - e, x0, ax).mul(float(1).sub(smoothstep(x1, x1 + e, ax))).mul(smoothstep(y0 - e, y0, s.y.sub(ey))).mul(float(1).sub(smoothstep(y1, y1 + e, s.y.sub(ey))));
+      const flush = max(max(box(-1, 0.014, -0.055, -0.012, 0.016).mul(fr0).mul(0.55), box(0.026, 0.055, -0.055, -0.018, 0.014).mul(fr0).mul(0.65)), box(0.066, 0.2, -0.045, 0.012, 0.01).mul(0.8)).mul(hd);
+      const lips = box(-1, 0.022, -0.088, -0.066, 0.006).mul(fr0).mul(hd);
+      vWear.assign(vec4(wear.x, bend.add(flush), ampPh.mul(float(1).sub(skinV)).add(lips), wear.w));
       // D-304: the body variant's light- and dark-toned skin layers (one term per variant: arithmetic, no lookup texture)
       // D-322: the garments' fold atlas coordinate (fuv: x ≥ 2 on the lower levels of detail, which read the second layer; < 0
       // none) and the channel of the person's group
@@ -475,6 +482,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const bandCol = vec3(...MARK.linen).mul(float(0.92).add(n2.mul(0.08)).add(bandWeave));
     skinAlb = mix(skinAlb, mix(bandCol, vec3(...MARK.blood), smoothstep(0.55, 0.85, n1).mul(0.6)), kBand);
     skinAlb = mix(skinAlb, skinAlb.mul(vec3(1.18, 1.02, 0.97)).add(0.025), kScar.mul(0.8));
+    // s17 V3: the face's living colour (vWear.y: flush; vWear.z: the lips) — skin only
+    const flushK = vWear.y.mul(kSkin).clamp(0, 1), lipsK = vWear.z.mul(kSkin).clamp(0, 1), sLum = dot(skinAlb, vec3(0.2126, 0.7152, 0.0722));
+    skinAlb = skinAlb.mul(mix(vec3(1), vec3(1.07, 0.88, 0.86), flushK.mul(0.55)));
+    skinAlb = mix(skinAlb, mix(vec3(sLum), skinAlb, 0.55).mul(vec3(1.04, 0.97, 0.96)), lipsK.mul(0.6));
     const oil = sD.g, transl = sD.a;
     const poreH = n1.mul(SKIN.pores[0][1]).mul(band(SKIN.pores[0][0])).add(n2.mul(SKIN.pores[1][1]).mul(band(SKIN.pores[1][0])));
     const skinH = sD.r.sub(0.5).mul(2 * SKIN.crease).add(sD.b.sub(0.5).mul(2 * SKIN.age).mul(age01)).add(poreH);

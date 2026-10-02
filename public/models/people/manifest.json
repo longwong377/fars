@@ -16,7 +16,7 @@
      "bytes": 1092862
     }
    },
-   "inHash": "f42cf78b37a0c96e06d60000b7db648e82dd8d9663c41d9e87dcb81e05ebd9ab",
+   "inHash": "649c9f65d043e046ce146ff90e7fe3e140109adb458be17b79388040b52fc7a1",
    "bytes": 1713716,
    "gpuBytes": 0,
    "stats": {
@@ -1139,7 +1139,7 @@
    "src": "IR-CAND;IR-WOMEN;RELIEF-R",
    "blender": "5.0.1",
    "ktx": "ktx version: v4.4.2",
-   "build_s": 525,
+   "build_s": 405,
    "reproduced": {
     "files": {
      "people_cloth.json": "5ae821080e064a0f6740f07853b6829cb457e8ce9984b0839b63621dd03d5217",

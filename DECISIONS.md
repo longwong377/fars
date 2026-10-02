@@ -9497,3 +9497,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - (D-500, step 4) The garments' fold layers bump by their own slope (central differences two texels apart, carried to the
   screen by the atlas coordinate's derivatives): the screen derivative of the 8-bit bilinear height stair-stepped dark streaks
   over every dress, sleeve and skirt at 1-3 m.
+- (D-500, step 5) The face's living colour (C): blood under the thin skin of the nose, cheeks and ears, the baked lips' colour
+  held down (they read as lipstick in the sun), laid per vertex from the eye height on head and jaw skin. Headbands fitted to
+  the head at each edge (one rim stood the upper edge off the sloping forehead: a halo). A skirted walker's knee folds less in
+  the swing (SKIRT_KNEE): the heel no longer kicks out through the back of a long dress or robe. people_cloth rebuilt and
+  reproduced; the Cycles impostors re-rendered on the new posture and garments.
