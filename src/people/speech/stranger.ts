@@ -41,6 +41,8 @@ const GRAIN_EAT = 0.55;
 export const WAGE_GRAIN = 1.0;
 /** the stranger's days are settled this many days behind the economy's (Stranger.step) */
 export const STR_LAG = 4;
+/** hearings of a word, its sense shown, before the stranger knows it (C: a handful of meetings in context) */
+export const KNOW_AFTER = 6;
 const PAYDAY = 6, MISS_FIRE = 2, CUSTOM_NIGHTS = 3, SENT_AWAY = 7, GRATITUDE_DAYS = 30;
 const DROVER_CASH = 0.05, GANG_GRAIN = 0.9;
 /** the languages, by family (a related tongue is learned a third as fast from the other: C) */
@@ -65,7 +67,7 @@ export type SAct =
   | { a: 'seek_work'; day: number; hh: string }
   | { a: 'quit'; day: number }
   | { a: 'attend'; day: number }
-  | { a: 'hear'; day: number; lang: string; hours: number; simple?: number; spoke?: boolean }
+  | { a: 'hear'; day: number; lang: string; hours: number; simple?: number; spoke?: boolean; /** a word taught (lexicon id) */ word?: string }
   | { a: 'claim'; day: number; hh: string; role: Role; origin?: string; kinOf?: string }
   | { a: 'petition'; day: number; to: Authority; kind: PetitionKind; q?: string; against?: string; for?: string; gift?: number }
   | { a: 'stay'; day: number; hh: string }
@@ -103,6 +105,13 @@ export class Stranger {
   readonly deeds = { labour: 0, craftWork: 0, trades: 0, gifts: 0, tended: 0, gang: 0 };
   /** the steps still to come (by day), and what each verb did: the measured report */
   private acts = new Map<number, SAct[]>(); private petN = 0; private tongueMet = new Set<string>();
+  /** D-370 (UD-25 (6)): the words of each tongue the stranger has heard with their sense shown, and how often; a word heard
+   *  KNOW_AFTER times (or taught: 'hear' with simple 1) is known: the translation layer stops glossing it (presence.ts) */
+  readonly vocab = new Map<string, number>();
+  /** D-370: days in a row the stranger has gone without bread (fed by a host, a house joined, a gang's ration, else his own stores) */
+  hungry = 0;
+  heardWord(id: string, n = 1) { this.vocab.set(id, (this.vocab.get(id) ?? 0) + n); }
+  knows(id: string) { return (this.vocab.get(id) ?? 0) >= KNOW_AFTER; }
   /** the hosts the stranger left without thanks: they do not take the stranger in again */
   readonly slighted = new Set<string>();
   readonly stats: Record<string, number> = {};
@@ -140,7 +149,7 @@ export class Stranger {
     const day = Math.min(s.day, this.E.day);
     switch (s.a) {
       case 'attend': this.attended.add(s.day); return { ok: true, why: 'at work' };
-      case 'hear': this.hear(s.lang, s.hours, s.simple ?? 0, !!s.spoke, day); return { ok: true, why: 'heard' };
+      case 'hear': this.hear(s.lang, s.hours, s.simple ?? 0, !!s.spoke, day); if (s.word) this.heardWord(s.word, Math.ceil(KNOW_AFTER / 2)); return { ok: true, why: 'heard' };
       case 'seek_work': { const v = this.hireCheck(s.hh, day); if (!v.ok) { this.bump('hire_refused'); return v; }
         this.endJob('quit', day); const H = this.H(s.hh)!;
         const e = this.ev('hired_stranger', [H.cause.help, H.cause.food], s.hh, PLAYER);
@@ -248,6 +257,18 @@ export class Stranger {
     for (const i of r.intents) this.E.enter(i);
     const sign = s.a === 'buy' ? 1 : -1; this.purse.cash -= sign * r.price; (this.purse as any)[s.good] = have(s.good) + sign * s.qty; this.deeds.trades++;
     return { ok: true, why: 'a deal', ev: [this.E.events.length - 1] };
+  }
+
+  /** the stranger's bread for the day (a man's ration of ~0.8 kg, C): the host's table, the house he belongs to, the gang's
+   *  ration day, a day worked for a house that feeds its hands; else his own stores; else hunger, which people see */
+  private fedOn = -1;
+  private eat(day: number) {
+    if (this.fedOn >= day || !this.active) return; this.fedOn = day;
+    const fed = !!this.stay || this.group?.kind === 'household' || (this.group?.kind === 'gang' && this.attended.has(day)) || (!!this.job && this.attended.has(day));
+    if (fed) { this.hungry = 0; return; }
+    if (this.purse.grain >= 0.8) { this.purse.grain -= 0.8; this.hungry = 0; return; }
+    const cost = 0.8 * this.E.price('grain', day); if (this.purse.cash >= cost) { this.purse.cash -= cost; this.hungry = 0; return; }
+    if (++this.hungry === 3) this.ev('stranger_hungry', [], PLAYER);
   }
 
   // ---------------------------------------------------------------- (6) learning the language
@@ -399,7 +420,7 @@ export class Stranger {
     const spare = H.grain - H.eaters * GRAIN_EAT * 15;
     if (spare < GRAIN_EAT * 4 && !(this.claim?.role === 'pilgrim' && r.belief > 0.5)) return { ok: false, why: 'they have barely bread for their own' };
     if (H.mourning > day) return { ok: false, why: 'a house in mourning' };
-    const p = 0.55 + 0.8 * (r.trust - 0.5) + 0.25 * r.belief * r.rank + (this.claim?.role === 'pilgrim' && r.belief > 0.5 ? 0.15 : 0) + (this.tongueMet.has(hh) ? 0.1 : 0) + (H.kind === 'rich' ? 0.1 : 0) - (H.kind === 'ration' ? 0.1 : 0);
+    const p = 0.55 + 0.8 * (r.trust - 0.5) + 0.25 * r.belief * r.rank + (this.hungry >= 2 ? 0.15 : 0) /* (pity for a hungry stranger: C) */ + (this.claim?.role === 'pilgrim' && r.belief > 0.5 ? 0.15 : 0) + (this.tongueMet.has(hh) ? 0.1 : 0) + (H.kind === 'rich' ? 0.1 : 0) - (H.kind === 'ration' ? 0.1 : 0);
     return u01(this.E.seed, S.host, hashString(hh) | 0, day) < p ? { ok: true, why: 'guest-right' } : { ok: false, why: 'they will not take a stranger in' };
   }
   private stayNight(day: number) {
@@ -493,6 +514,7 @@ export class Stranger {
     if (this.group?.kind === 'household' && this.group.id === hh) out.push('the stranger lives in your house now, as one of it');
     if (this.slighted.has(hh)) out.push('the stranger once ate your bread and went off without a word of thanks');
     if (C && b) out.push(b.doubted || b.b < 0.35 ? `the stranger says he is ${roleWords[C.role] ?? C.role}${C.origin ? ` from ${C.origin}` : ''}, but you do not believe it` : `you have heard the stranger is ${roleWords[C.role] ?? C.role}${C.origin ? ` from ${C.origin}` : ''}`);
+    if (this.hungry >= 2) out.push('the stranger looks hungry and worn, as if he has not eaten for days');
     const c = this.comp(this.langOf(hh), day);
     out.push(c < 0.2 ? 'the stranger hardly knows your tongue: use very few, simple words and point and gesture' : c < 0.5 ? 'the stranger knows a little of your tongue: speak simply and slowly' : 'the stranger speaks your tongue well enough');
     return out;
@@ -504,7 +526,7 @@ export class Stranger {
     // the stranger's days are settled STR_LAG days behind (work, nights, a group's day): the living world steps the economy
     // up to three days ahead of the present for the day plans, and the player has not yet lived those days (as LIFE_LAG)
     const x = day - STR_LAG;
-    if (x >= 0) { if (this.job && x >= this.job.from) this.workDay(x); if (this.stay && x >= this.stay.from) this.stayNight(x); if (this.group && x >= this.group.from) this.groupDay(x);
+    if (x >= 0) { if (this.job && x >= this.job.from) this.workDay(x); if (this.stay && x >= this.stay.from) this.stayNight(x); if (this.group && x >= this.group.from) this.groupDay(x); this.eat(x);
       for (const a of this.attended) if (a <= x) this.attended.delete(a); }
     this.gratitude(day); this.spread(day); this.tongueDay(day);
   }
@@ -516,13 +538,13 @@ export class Stranger {
   // ---------------------------------------------------------------- save
   snapshot() {
     return { purse: { ...this.purse }, job: this.job, stay: this.stay, group: this.group, lang: [...this.lang], claim: this.claim, belief: [...this.belief], halmi: this.halmi,
-      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], slighted: [...this.slighted], judged: [...this.judged], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
+      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], hungry: this.hungry, fedOn: this.fedOn, slighted: [...this.slighted], judged: [...this.judged], vocab: [...this.vocab], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
   }
   static restore(s: any, E: Economy, opts: StrangerOpts = {}): Stranger {
     const X = new Stranger(E, opts); const c = JSON.parse(JSON.stringify(s));
     X.purse = c.purse; X.job = c.job; X.stay = c.stay; X.group = c.group; X.claim = c.claim; X.halmi = c.halmi; X.petN = c.petN; for (const a of c.attended ?? []) X.attended.add(a);
     for (const [k, v] of c.lang) X.lang.set(k, v); for (const [k, v] of c.belief) X.belief.set(k, v);
     X.debtors.push(...c.debtors); X.petitions.push(...c.petitions); Object.assign(X.deeds, c.deeds); Object.assign(X.stats, c.stats);
-    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); return X;
+    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); for (const [k, v] of c.vocab ?? []) X.vocab.set(k, v); X.hungry = c.hungry ?? 0; X.fedOn = c.fedOn ?? -1; return X;
   }
 }

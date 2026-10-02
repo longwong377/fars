@@ -128,3 +128,19 @@ describe('D-375 rumours leave a house without help', () => {
     expect(s).toBeGreaterThan(0); expect(s).toBeLessThan(on.living.stats.offers * 0.5);
   }, 1_800_000);
 });
+describe('D-371 a family remembers the same past', () => {
+  it('husband and wife tell the same marriage and the same children lost; brothers and sisters the same parents\' deaths', () => {
+    let couples = 0, sibs = 0;
+    for (const pid of sample.slice(0, 300)) {
+      const L = lifeRecord(pop, cal, pid, day, 12), sp = L.household.find(k => k.rel === 'wife' || k.rel === 'husband'); const mine = pastOf(pop, pid, day, L.household);
+      if (sp) { const L2 = lifeRecord(pop, cal, sp.pid, day, 12), theirs = pastOf(pop, sp.pid, day, L2.household);
+        const fam = (ev: typeof mine) => ev.filter(e => /^married (his|her)|^lost a (son|daughter)|^married off/.test(e.text)).map(e => `${e.ago}:${e.text.replace(/his wife|her husband/, 'spouse')}`).sort().join('|');
+        if (L2.household.some(k => k.pid === pid && (k.rel === 'wife' || k.rel === 'husband'))) { couples++; expect(fam(theirs)).toBe(fam(mine)); } }
+      const P = pop.persons[pid]; if (P.mother >= 0 && pop.ageOn(pid, day) >= 20) for (const b of pop.childrenOf(P.mother)) { if (b === pid || pop.ageOn(b, day) < 20) continue; sibs++;
+        const dead = (x: number) => pastOf(pop, x, day, lifeRecord(pop, cal, x, day, 12).household).filter(e => /^the (father|mother) died/.test(e.text) && e.ago < Math.min(pop.ageOn(pid, day), pop.ageOn(b, day))).map(e => `${e.ago}:${e.text}`).sort().join('|');
+        const inHouse = (x: number) => lifeRecord(pop, cal, x, day, 12).household.some(k => k.rel === 'father' || k.rel === 'mother');
+        if (!inHouse(pid) && !inHouse(b)) expect(dead(b)).toBe(dead(pid)); }
+    }
+    expect(couples).toBeGreaterThan(10); console.log('[family] couples', couples, 'sibling pairs', sibs);
+  });
+});

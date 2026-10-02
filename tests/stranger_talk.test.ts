@@ -105,3 +105,34 @@ describe('addressing a group (UD-25 (10))', () => {
     if (w[0].verdict.ok) { sim.strangerDo(w[0].act); expect(S.job?.employer).toBe(`h:${sim.pop.home(w[0].pid, d)}`); }
   }, 300_000);
 });
+describe('the trust gate (B234)', () => {
+  it('a house that distrusts the stranger will not talk; the model is never asked', async () => {
+    const d = 60, sim = simAt(1, d, 11), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
+    const E = sim.econTo(d); const pid = sim.pop.persons.find(p => p.job === 'farmer' && p.age >= 25 && sim.pop.present(p.id, d))!.id, hh = `h:${sim.pop.home(pid, d)}`;
+    E.trust!.note(hh, 'player', -0.9, d); E.trust!.note(hh, 'player', -0.9, d);
+    let asked = 0; const ans = m.answer.bind(m); (m as any).answer = async (...a: any[]) => { asked++; return ans(...(a as [any, any, any, any, any, any, any])); };
+    const o = await talkTurn(m, sim, pid, 'Good morning, friend.', { conv: sim.t });
+    expect(o.refused).toBe('distrust'); expect(asked).toBe(0); expect(o.answer.text).toMatch(/turns away/);
+  }, 300_000);
+});
+
+describe('words learned one by one (presence.ts thinCaption)', () => {
+  it('a word heard often with its sense shown stops being glossed; the vocabulary is saved', async () => {
+    const { thinCaption } = await import('../src/people/speech/presence');
+    const { unitsFor } = await import('../src/audio/voices');
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const w = unitsFor('arc').words.find(x => /peace/.test(x.gloss))!;
+    const cap = { key: 'p1', unit: w.id, lang: 'arc', translit: w.translit, gloss: w.gloss, tier: 'C', t0: 0, t1: 1 };
+    for (let i = 0; i < 6; i++) expect(thinCaption(sim, cap).gloss.length).toBeGreaterThan(0);
+    expect(thinCaption(sim, cap).gloss).toBe(''); // known now
+    const snap = JSON.parse(JSON.stringify(E.snapshot(d - 2))); expect(snap.stranger.vocab.some(([k]: [string]) => k === w.id)).toBe(true);
+  }, 300_000);
+});
+describe('a word taught', () => {
+  it('"what is your word for bread?" teaches the word of the person\'s tongue (half of knowing it)', () => {
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const pid = sim.pop.persons.find(p => p.origin === 'Syrian' && p.age >= 20 && sim.pop.present(p.id, d)) ?? sim.pop.persons.find(p => p.age >= 20 && sim.pop.present(p.id, d))!;
+    const r = sim.strangerAsk(pid.id, 'What is your word for bread?')!; expect(r.act.a).toBe('hear');
+    sim.strangerDo(r.act); if ((r.act as any).word) expect(S.vocab.get((r.act as any).word)).toBeGreaterThanOrEqual(3);
+  }, 300_000);
+});

@@ -12,6 +12,7 @@ import { WeatherSystem } from '../../src/weather/weatherState';
 import { lifeRecord } from '../../src/people/converse/life';
 import { HOME_LANG } from '../../src/people/exchanges';
 import { u01, salt } from '../../src/people/hash';
+import { simAt } from '../../tests/sim_fixture';
 import type { Seg } from '../../src/people/population';
 
 const [DAY, N] = [Number(process.argv[2] ?? 150), Number(process.argv[3] ?? 20)];
@@ -23,7 +24,8 @@ type Axis = typeof AXES[number];
 const people: any[] = [];
 for (const seed of SEEDS) {
   const W = new WeatherSystem(seed), env = (t: number): Env => { const dd = Math.floor(t / 24), c = W.conditions(dd, t - dd * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
-  const t0 = Date.now(); const sim = new PeopleSim(seed, nav, env); sim.jumpTo(DAY * 24 + 12); const P = sim.pop, E = sim.econTo(DAY + 1);
+  // (D-374/D-375: the world as the game runs it, asks and rumour on, from the cached test world: ~1 s once built)
+  const t0 = Date.now(); const sim = simAt(seed, DAY, 12, { asks: true }); void env; void PeopleSim; void nav; const P = sim.pop, E = sim.econTo(DAY + 1);
   const pool = P.persons.filter(p => P.present(p.id, DAY)).map(p => p.id);
   const pick = [...pool].sort((a, b) => u01(seed, salt('depth-audit'), a) - u01(seed, salt('depth-audit'), b)).slice(0, N);
   const speechSeen = new Map<string, number>();
@@ -36,7 +38,7 @@ for (const seed of SEEDS) {
     const eid = `h:${hid}`, ev = E.events.filter(v => v && (v.actor === eid || v.other === eid));
     const sig = (x: Seg[]) => x.map(s => `${s.act}@${Math.round(s.t0)}`).join(',');
     const sp = L.speech.join('|'); speechSeen.set(sp, (speechSeen.get(sp) ?? 0) + 1);
-    const facts = { friends: L.friends.length, year: L.year.length, past: L.past.length, quarrels: L.quarrels.length, debts: L.debts.length, events: L.today.events.length, earlier: L.today.earlier.length };
+    const facts = { friends: L.friends.length, year: L.year.length, past: L.past.length, needs: L.needs.length, news: L.news.length, cares: L.hopes.length + L.worries.length, quarrels: L.quarrels.length, debts: L.debts.length, events: L.today.events.length, earlier: L.today.earlier.length };
     const r = {
       seed, pid, name: L.name, age, sex: p.sex, job: p.job, origin: p.origin, zone: H?.zone, home: L.home, household: L.household.length, kinHouses: L.kinHouses.length,
       planSegs: plan.length, acts: acts.size, whys: whys.size, generic, workSegs: work.length, workPlaces: new Set(work.map(s => s.place)).size,

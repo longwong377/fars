@@ -9,6 +9,8 @@
 import type { PeopleSim } from '../sim';
 import { u01, salt } from '../hash';
 import { hashString } from '../../core/rng';
+import { unitsFor } from '../../audio/voices';
+import type { LangId } from '../../lang/lexicon';
 
 const NEAR_M = 30, EVERY_H = 0.05;
 const LANG_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian', grc: 'Greek', egy: 'Egyptian' };
@@ -29,6 +31,11 @@ export function strangerPresence(sim: PeopleSim, near: readonly Near[], at: { x:
 export function thinCaption<C extends { lang: string; gloss: string; t0: number; t1: number; unit: string }>(sim: PeopleSim, c: C): C {
   const l = LANG_NAME[c.lang]; const E = sim.ledgerNow(); if (!l || !E) return c;
   const day = Math.floor(sim.t / 24), S2 = E.stranger(); S2.do({ a: 'hear', day, lang: l, hours: Math.max(0, c.t1 - c.t0) / 3600, simple: 0, spoke: false });
+  // the words of this unit (a word, or a line's entries): each heard with its sense shown counts towards knowing it; a unit
+  // whose every word is known is not glossed at all (the stranger understands it); otherwise the gloss thins with the tongue
+  const U = unitsFor(c.lang as LangId), u = U.words.find(x => x.id === c.unit) ?? U.lines.find(x => x.id === c.unit), parts = u?.parts ?? [c.unit];
+  if (parts.every(p => S2.knows(p))) return { ...c, gloss: '' };
+  for (const p of parts) S2.heardWord(p);
   const comp = S2.comp(l, day), keep = 1 - Math.pow(comp, 1.3); if (keep >= 0.999) return c;
   const k = hashString(c.unit) | 0, words = c.gloss.split(/\s+/);
   const out = words.map((w, i) => u01(sim.seed, S, k, i) < keep ? w : '…').join(' ').replace(/(…\s*){2,}/g, '… ');

@@ -52,7 +52,7 @@ export class RumourNet {
   private ties = new Map<string, [string, Tie][]>(); private ids: string[]; private idx = new Map<string, number>();
   /** the rumours still being told (something learned in the last days) */
   private active: Rumour[] = [];
-  private evSeen = 0; private upTo = -1; private nextId = 0; private injected: { day: number; hh: string; kind: string; amount: number; about: string }[] = [];
+  private evSeen = 0; private upTo = -1; private nextId = 0; private injected: { day: number; hh: string; kind: string; amount: number; about: string; suspect?: string }[] = [];
   private byQ = new Map<string, string[]>(); private byQK = new Map<string, string[]>();
   /** the quarter's run of sickness (illness and death news on its houses): the day of each, for the flight rule */
   private sick = new Map<string, number[]>();
@@ -94,8 +94,8 @@ export class RumourNet {
       if (same) this.stats.hopsTrue[hand] = (this.stats.hopsTrue[hand] ?? 0) + 1; this.stats.hopsLogErr[hand] = (this.stats.hopsLogErr[hand] ?? 0) + Math.abs(Math.log(Math.max(1e-9, v.amount) / Math.max(1e-9, t.amount))); }
   }
   /** a player's deed in the world becomes news (the living world's news of it carries on; this carries it past three hands) */
-  inject(day: number, hh: string, kind: string, amount: number, about = hh) { this.injected.push({ day, hh, kind, amount, about }); this.birthInjected(day, hh, kind, amount, about); }
-  private birthInjected(day: number, hh: string, kind: string, amount: number, about: string) { this.born('player_deed', -1, day, hh, { kind, amount, about, certainty: 1 }, this.econ.hh.get(hh)?.q); }
+  inject(day: number, hh: string, kind: string, amount: number, about = hh, suspect?: string) { this.injected.push({ day, hh, kind, amount, about, ...(suspect ? { suspect } : {}) }); this.birthInjected(day, hh, kind, amount, about, suspect); }
+  private birthInjected(day: number, hh: string, kind: string, amount: number, about: string, suspect?: string) { this.born('player_deed', -1, day, hh, { kind, amount, about, certainty: 1, ...(suspect ? { suspect } : {}) }, this.econ.hh.get(hh)?.q); }
   /** the relations layer's scandal news (Relations.news: who it is about, what) carried along the same ties; `hhOf` maps a person to their household */
   fromRelations(news: { day: number; about: number[]; ev: number; what: string }[], hhOf: (pid: number) => string | undefined) {
     for (const n of news) { if (n.day > this.upTo + 1) continue; const a = hhOf(n.about[0]); if (!a || !this.econ.hh.has(a) || this.rumours.some(r => r.src === 'scandal' && r.ev === n.ev)) continue;
@@ -150,7 +150,8 @@ export class RumourNet {
     const z = (u(1) + u(2) + u(3) - 1.5) * 2;                                   // ~N(0,1)
     const amount = Math.max(1e-3, v.amount * Math.exp(SIGMA * z + 0.06 * (r.scandal + r.sal) * (hand > 1 ? 1 : 0.4)));
     let kind = v.kind; if (HARDEN[kind] && u(4) < 0.06 * (1 + r.sal)) kind = HARDEN[kind];
-    let suspect = v.suspect; if (suspect && u(5) < 0.1) { const lane = this.byQ.get(this.econ.hh.get(to)!.q)!; suspect = lane[Math.floor(u(6) * lane.length)]; }
+    // (the stranger is unmistakable: his deeds keep him as their subject)
+    let suspect = v.suspect; if (suspect && suspect !== 'player' && u(5) < 0.1) { const lane = this.byQ.get(this.econ.hh.get(to)!.q)!; suspect = lane[Math.floor(u(6) * lane.length)]; }
     let about = v.about; if (u(7) < 0.03) { const lane = this.byQ.get(this.econ.hh.get(about)?.q ?? '') ?? []; if (lane.length) about = lane[Math.floor(u(8) * lane.length)]; } // the wrong house named (C)
     void from; return { kind, amount, about, suspect, certainty: cl(v.certainty * 0.88) };
   }
