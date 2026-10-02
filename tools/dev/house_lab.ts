@@ -40,7 +40,8 @@ import { Settlement } from '../../src/world/settlement/build';
   // s17 C1 (?fill): the town's fill (fillPlan.ts / fill.ts) and the households' tethered animals (settlement/tethers.ts)
   let fill: any = null, teth: any = null;
   if (P.has('fill')) { const { townFill, terraceFill } = await import('../../src/world/fillPlan'); const { WorldFill } = await import('../../src/world/fill'); const { TownTethers, townTethers } = await import('../../src/world/settlement/tethers');
-    const items = [...townFill(town.plan.sites, 1).items, ...terraceFill(1)], gr = (e: number, n: number) => terrain.heightAt(e, -n);
+    const { Population } = await import('../../src/people/population'); const Q = Object.values(new Population(1).quarters).filter(q => q.kind === 'town' || q.kind === 'garden').map(q => q.xy); // (the sim's market grounds, as world.ts)
+    const items = [...townFill(town.plan.sites, 1, [], Q).items, ...terraceFill(1), ...town.roofFill()], gr = (e: number, n: number) => terrain.heightAt(e, -n);
     fill = new WorldFill(items, { ground: gr }); scene.add(fill.group); teth = new TownTethers(townTethers(town.plan.sites, items), gr); scene.add(teth.group); }
   const vh = new VillageHouses(villages, villages.map(v => villageCompounds(v, terrain, 1)), terrain, null, null, 1); scene.add(vh.group);
   const sun = new THREE.DirectionalLight(0xfff4e6, 3.2), hemi = new THREE.HemisphereLight(0xbfd6ff, 0x8a7458, 0.9);

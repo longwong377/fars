@@ -20,7 +20,7 @@ const V = [
   // a village from 30 m and 200 m
   { n: 'village30', cam: 'village:0:40:2:180', fov: 60 }, { n: 'village200', cam: 'village:0:200:8:180', fov: 45 },
   // s17 C1 (?fill): lanes with the fill (x, z = -n, eye, true bearing, pitch)
-  { n: 'fill-lane', cam: [-470.4, 1030.8, 1.6, 197, -5], fov: 60, hour: 10 }, { n: 'fill-market', cam: [-444.3, 990.7, 1.6, 279, -6], fov: 60, hour: 8, sunAz: 110, sunAlt: 30 },
+  { n: 'fill-lane', cam: [-470.4, 1030.8, 1.6, 197, -5], fov: 60, hour: 10 }, { n: 'fill-market', cam: [-641, 1036, 1.7, 341, -8], fov: 60, hour: 8, sunAz: 110, sunAlt: 30 },
   { n: 'fill-litter', cam: [-380, 863, 1.6, 341, -25], fov: 60, hour: 11 }, { n: 'fill-door', cam: 'door:q_s1:7', fov: 55, hour: 10 },
 ];
 // (SWIFT=1: the cloud's SwiftShader, Playwright's own Chromium; crude pictures only)
