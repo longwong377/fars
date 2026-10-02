@@ -22,3 +22,5 @@ C6 | view: -166.6,108.9,1.6,117,7.5,150,16 | the mountain behind the Terrace fro
 C6 | view: -2500,600,1.6,85,2,30,8 | the Terrace and Kuh-e Rahmat from the plain 2.5 km W (far Terrace levels D-361, terrain geomorph D-600)
 C6 | view: 0,40,13.6,250,1,30,17.5 | the far ranges W across the plain from the Terrace top (skyline, far ring)
 C6 | walk: any 300 m walk toward Kuh-e Rahmat recorded at 2 fps | the geomorph (no terrain LOD pop) and the rock fades, if the train can record a walk
+cloud lead | ownership audit (sessions/s17-vagon-v2.md "Orphans assigned"): V2 now owns water's look (plain/waterShade.ts, settlement water shading); V1 skyVis.ts, eyeRays.ts; V3 render/sss.ts; V4 reliefShadow.ts, incision.ts, decorAssets.ts; V6 fireGlow.ts | these had no owner
+cloud lead | new cloud agents: C8 sound (recorded beds; Vagon will be asked to run tools/audio/fetch.mjs, the cloud cannot download), C9 the walk (src/player/**), C10 life everywhere (WHERE people are and what they do: population, popgeo, sim, living; V3 keeps how they look and move; a new activity kind comes to V3 as an ask) | people present everywhere, sound and the walk had no owner
