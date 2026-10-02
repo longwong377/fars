@@ -9414,6 +9414,12 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   the flat roofs and wall tops Raked Dirt (the kahgel's chopped straw; the roofs had no scan at all). ScanUse gains `chroma`
   (the scan's colour variation kept, the palette leading the hue) and `hue` (a share of the scan's own mean hue). House
   plaster's broad tone 1σ 0.07 -> 0.10; the wall bake's normal 1.1 -> 0.8. New scans in ASSET_LEDGER.md; only the maps used ship.
+- Second pass (judged under light v1 in the light lab, shots/L1, L2): the bare brick of the losses takes Clay Block Wall
+  (a real mud-brick wall's courses; procedural joints off); the lanes, courts and tracks Dirt Floor with half its buff (the
+  courts read as pale concrete); the limestone's scan at 45 % chroma with half its buff mean (cold grey marble in the terrace
+  probe); every second tile turned 35° and offset (detile); the block faces' claw hatching fades to a third past ~4 m (a
+  regular diagonal hatching over every block at 5-30 m); the houses' foot damp 0.1 -> 0.2 and run-off 0.12 -> 0.2; the water's
+  far-bank reflection follows SEASON (was a hard-coded green).
 
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,

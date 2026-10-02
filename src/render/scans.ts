@@ -74,7 +74,9 @@ export const SCAN_USE: Record<string, ScanUse> = {
   // this entry is the 'earth' of other meshes (the Now view's stumps, the lab ground): dust, not the cracked earth of D-295
   earth: { scan: 'dirt', scale: 2.0, scale2: 9, alb: 0.8, height: 0.008, rough: 0.5 },
   court_fill: { scan: 'gravelly_sand', scale: 2.0, scale2: 9, alb: 0.7, height: 0.006, rough: 0.5 },
-  road: { scan: 'rocky_trail_02', scale: 2.0, scale2: 8.3, alb: 0.85, height: 0.01, rough: 0.5 }, // D-302: trodden earth and fine gravel (was sandy_gravel_02: too fine to read)
+  // D-490: the town's lanes, courts and tracks take Dirt Floor (trodden and swept packed earth: pores, grit, chaff), half its own
+  // buff laid over the ground's vertex colour (the court floors read as pale concrete under light v1 with Rocky Trail 02's fine grit)
+  road: { scan: 'dirt_floor', scale: 1.9, scale2: 8.3, alb: 0.9, chroma: 0.6, hue: 0.35, height: 0.008, rough: 0.5 }, // D-302: trodden earth and fine gravel (was sandy_gravel_02: too fine to read)
   bank: { scan: 'dry_ground_rocks', scale: 2.5, scale2: 11, alb: 0.8, height: 0.015, rough: 0.5 },
   refuse: { scan: 'dry_ground_rocks', scale: 2.0, alb: 0.7, height: 0.01, rough: 0.5 },
   timber: { scan: 'rough_wood', scale: 1.2, alb: 0.6, height: 0.002, rough: 0.5 },
