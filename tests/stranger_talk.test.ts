@@ -95,3 +95,13 @@ describe('the house knows its dealings with the stranger (factsFor, in the turn)
     expect(seen.join(' ')).toMatch(/guest of your house/);
   }, 300_000);
 });
+describe('addressing a group (UD-25 (10))', () => {
+  it('a claim to a group is heard by every house present; an ask finds the first house that says yes', () => {
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const farmers = sim.pop.persons.filter(p => p.job === 'farmer' && p.age >= 20 && sim.pop.present(p.id, d)).slice(0, 12).map(p => p.id);
+    const c = sim.strangerAskGroup(farmers, 'I am a merchant from Babylon.'); expect(c.length).toBeGreaterThan(3);
+    for (const x of c) sim.strangerDo(x.act); expect(S.belief.size).toBeGreaterThanOrEqual(c.length);
+    const w = sim.strangerAskGroup(farmers, 'Do you need hands for the harvest?'); expect(w.length).toBe(1);
+    if (w[0].verdict.ok) { sim.strangerDo(w[0].act); expect(S.job?.employer).toBe(`h:${sim.pop.home(w[0].pid, d)}`); }
+  }, 300_000);
+});

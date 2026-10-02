@@ -372,6 +372,16 @@ export class PeopleSim {
   }
   /** D-370: the economy if it is built (no side effect): the render side's hooks read the stranger's state from it */
   ledgerNow(): Economy | null { return this.econ; }
+  /** D-370 (UD-25 (10), addressing groups): the stranger speaks to several people at once (everyone within earshot). A claim,
+   *  a lesson or news is heard by every house present; an ask (work, guest-right, a sale, a house) is answered by the first of
+   *  them whose house says yes (their trust and state decide, as one by one); nothing is done until strangerDo */
+  strangerAskGroup(pids: readonly number[], said: string): { pid: number; act: SAct; verdict: Verdict }[] {
+    const seen = new Set<number>(), out: { pid: number; act: SAct; verdict: Verdict }[] = [];
+    for (const pid of pids) { const h = this.pop.home(pid, Math.floor(this.t / 24)); if (seen.has(h)) continue; seen.add(h); const r = this.strangerAsk(pid, said); if (!r) continue;
+      if (r.act.a === 'claim' || r.act.a === 'hear' || r.act.a === 'petition') { out.push({ pid, ...r }); continue; }
+      if (r.verdict.ok) return [{ pid, ...r }]; if (!out.length) out.push({ pid, ...r }); }
+    return out;
+  }
   /** D-370: the step done (recorded in the economy, saved, replayed) */
   strangerDo(act: SAct): Verdict { return this.econTo(act.day).stranger().do(act); }
   /** D-370: the hours the stranger spent today beside the people they work with (attendance, reported once a day at 2 h) */

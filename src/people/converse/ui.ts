@@ -27,6 +27,13 @@ export const FARSI_ROUTE: FarsiRoute = 'llm';
 interface Ctx { world: any; camera: THREE.Camera; clock: { dayIndex: number; localHour: number; t: number }; seed: number; englishVoice?: boolean; /** D-336: settings.hearIn (the opt-in layer) */ settings?: { hearIn?: HearIn } }
 export interface Near { pid: number; agent: number | null; name: string; d: number; e: number; n: number }
 
+/** D-370 (UD-25 (10)): everyone within r m of the eye (the people a stranger addressing a group is heard by) */
+export function within(world: any, eye: { e: number; n: number }, r = 6): number[] {
+  const P = world.people; if (!P) return []; const out = new Set<number>();
+  for (const a of P.sim.agents) if (!a.offmap && a.pid >= 0 && Math.hypot(a.pos[0] - eye.e, a.pos[1] - eye.n) <= r) out.add(a.pid);
+  for (const o of P.view?.visible ?? []) if (o.pid >= 0 && Math.hypot(o.e - eye.e, o.n - eye.n) <= r) out.add(o.pid);
+  return [...out];
+}
 /** the nearest person within 3 m of the eye (detailed agents and the population's people drawn around the player) */
 export function nearest(world: any, eye: { e: number; n: number }, r = NEAR_M): Near | null {
   const P = world.people; if (!P) return null; let best: Near | null = null;
@@ -85,6 +92,10 @@ export function mountConverse(c: Ctx) {
     if (state.talking?.pid !== near.pid) { endTalk(); state.talking = { pid: near.pid, conv: sim.t }; }
     await primeP; state.busy = true; show(`<b>${L.name}</b> <i>…</i>`, 'translation layer');
     // (D-315: the words and the deed together: the pause, the memory, the ask decided by the simulation, the memory row)
+    // D-370 (UD-25 (10)): words to a group ("everyone", "all of you", "good people") reach every house within earshot: a claim
+    // or news is heard by all of them; an ask is answered by the first house that would (the nearest person speaks)
+    if (/^\s*(everyone|all of you|good people|friends|listen|people of)/i.test(text)) { const others = within(c.world, eye()).filter(p => p !== near.pid);
+      for (const g of c.world.people.sim.strangerAskGroup(others, text)) if (g.verdict.ok && (g.act.a === 'claim' || g.act.a === 'hear')) c.world.people.sim.strangerDo(g.act); }
     const t0 = performance.now(); const T = await talkTurn(mind, sim, near.pid, text, { conv: state.talking!.conv, history: hist, prose: prose(near.pid) }); const a = T.answer; state.busy = false;
     hist.push({ role: 'user', content: text }, { role: 'assistant', content: a.ok ? a.text : '' }); state.history.set(near.pid, hist.slice(-8));
     let heard = null as any;
