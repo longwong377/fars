@@ -62,3 +62,22 @@ describe('D-371 the life record speaks from the economy\'s real debts and dealin
     expect(fake).toBe(0);
   }, 600_000);
 });
+describe('D-372 bynames tell namesakes apart', () => {
+  it('a name with its byname is shared by far fewer neighbours than the bare name; brothers and sisters share the father', () => {
+    const byQ = new Map<string, Map<string, number>>(), bare = new Map<string, Map<string, number>>();
+    const people = sample.filter(pid => { const H = pop.households[pop.home(pid, day)]; return H.zone === 'town' || H.zone === 'plain'; }).slice(0, 250);
+    let withBy = 0;
+    for (const pid of people) { const L = lifeRecord(pop, cal, pid, day, 12); if (L.byname) withBy++; const q = pop.households[pop.home(pid, day)].q;
+      for (const [m, k] of [[byQ, `${L.name} ${L.byname}`], [bare, L.name]] as const) { const x = m.get(q) ?? m.set(q, new Map()).get(q)!; x.set(k, (x.get(k) ?? 0) + 1); } }
+    expect(withBy / people.length).toBeGreaterThan(0.95);
+    // every person of the quarter, not the sample: namesakes in the quarter by bare name vs with the byname
+    const q0 = pop.households[pop.home(people[0], day)].q, all = pop.persons.filter(p => pop.present(p.id, day) && pop.households[pop.home(p.id, day)].q === q0).slice(0, 400).map(p => p.id);
+    const count = (key: (pid: number) => string) => { const m = new Map<string, number>(); for (const pid of all) m.set(key(pid), (m.get(key(pid)) ?? 0) + 1); return all.filter(pid => m.get(key(pid))! > 1).length / all.length; };
+    const sBare = count(pid => lifeRecord(pop, cal, pid, day, 12).name), sBy = count(pid => { const L = lifeRecord(pop, cal, pid, day, 12); return `${L.name} ${L.byname}`; });
+    console.log('[byname] namesakes in a quarter of', all.length, ': bare', sBare.toFixed(3), 'with byname', sBy.toFixed(3));
+    expect(sBy).toBeLessThan(sBare * 0.5);
+    const kids = all.filter(pid => pop.persons[pid].mother >= 0 && pop.ageOn(pid, day) < 14); const byMother = new Map<number, Set<string>>();
+    for (const k of kids) { const L = lifeRecord(pop, cal, k, day, 12); const s = byMother.get(pop.persons[k].mother) ?? byMother.set(pop.persons[k].mother, new Set()).get(pop.persons[k].mother)!; s.add(L.byname!.replace(/^(son|daughter) of /, '')); }
+    for (const s of byMother.values()) expect(s.size).toBe(1);
+  }, 600_000);
+});
