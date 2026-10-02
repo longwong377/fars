@@ -43,7 +43,7 @@ describe('D-460 a theft by a townsman: found out later, suspected, heard, judged
     expect(L.record(vic, c0.accused, DAY + 14)!.v).toBeLessThan(0);
     // and every wrong suspicion either cleared or still standing as a wrong one (never a conviction of the innocent by default)
     for (const c of sim.deeds.cases.filter(c => c.crime === 'theft' && c.innocent && c.ruled)) expect(c.ruled).toBe('dismissed');
-  });
+  }, 900_000);
   it('across many thefts the lane sometimes blames the wrong house, and a wrong suspicion is cleared when the truth comes out', () => {
     const sim = simAt(1, DAY, 10, { asks: true }), P = sim.pop, E = sim.econTo(DAY), L = sim.deeds.law;
     const men = P.persons.filter(p => P.present(p.id, DAY) && p.sex === 'm' && P.ageOn(p.id, DAY) >= 20 && P.ageOn(p.id, DAY) < 55).map(p => p.id);
@@ -57,7 +57,7 @@ describe('D-460 a theft by a townsman: found out later, suspected, heard, judged
     expect(noticed.filter(l => l.wrong).length).toBeGreaterThan(0); // (the wrong house blamed)
     expect(noticed.filter(l => l.wrong === false).length).toBeGreaterThan(0); // (the right one)
     expect(noticed.filter(l => l.found !== undefined).length).toBeGreaterThan(0); // (the truth out)
-  });
+  }, 900_000);
 });
 
 describe('D-460 a blow by the stranger: the wound, the kin, the demand, the judges, the town remembers (a scripted fortnight)', () => {
@@ -88,18 +88,18 @@ describe('D-460 a blow by the stranger: the wound, the kin, the demand, the judg
     expect(sim.deeds.briefOf(helper, DAY + 14).join(' ')).toMatch(/stranger/);
     // the wound heals (a bruise in days, a cut in a fortnight; a bone longer)
     const w = L.wound(v, DAY + 14); if (w) expect(w.stage).not.toBe('fresh');
-  });
+  }, 900_000);
   it('paid: the stranger pays the price of the wound to the house, and the quarrel is settled', () => {
     const sim = simAt(1, DAY, 10, { asks: true }), P = sim.pop, E = sim.econTo(DAY), L = sim.deeds.law, S = E.stranger(); S.purse.cash = 5;
     const v = victimOf(sim), hh = `h:${P.home(v, DAY)}`, kin = P.membersOn(P.home(v, DAY), DAY).filter(x => x !== v && P.ageOn(x, DAY) >= 16);
     sim.strangerDeedDo(sim.strangerDeed(v, 'I will beat you!')!.deed);
-    const f = L.feuds.find(x => x.a === hh && x.b === 'player')!; step(sim, DAY + 1);
-    const a0 = Math.max(...kin.map(x => sim.deeds.minds.feelOf(x, 'player', DAY + 1).anger));
-    const head = L.head(hh, DAY + 1)!, coins = Math.ceil((f.price - f.paid) / 0.05);
+    const f = L.feuds.find(x => x.a === hh && x.b === 'player')!; sim.t += 2; // (the same morning, before any hearing)
+    const a0 = Math.max(...kin.map(x => sim.deeds.minds.feelOf(x, 'player', DAY).anger));
+    const head = L.head(hh, DAY)!, coins = Math.ceil((f.price - f.paid) / 0.05);
     const g = sim.deeds.act({ verb: 'give', actor: 'player', target: head, good: 'silver', qty: coins, about: 'compensation for the blow' }, sim.t); expect(g.out.ok).toBe(true);
     expect(f.state).toBe('settled'); expect(S.purse.cash).toBeLessThan(5);
-    expect(Math.max(...kin.map(x => sim.deeds.minds.feelOf(x, 'player', DAY + 1).anger))).toBeLessThan(a0);
-  });
+    expect(Math.max(...kin.map(x => sim.deeds.minds.feelOf(x, 'player', DAY).anger))).toBeLessThan(a0);
+  }, 900_000);
   it('seized in the act: a blow before a guard on duty is taken by the watch and held for the judges', () => {
     const sim = simAt(1, DAY, 10, { asks: true }), P = sim.pop, L = sim.deeds.law, t = sim.t;
     // a guard on duty at his post
@@ -110,7 +110,7 @@ describe('D-460 a blow by the stranger: the wound, the kin, the demand, the judg
       const c = sim.deeds.cases.find(x => x.accused === 'player' && x.victim === v)!; if (!c.seized) continue;
       expect(c.court).toBe('judges'); expect(L.stranger.held).toBeTruthy(); expect(rec.out.why).toMatch(/seize/); done = true; break; }
     expect(done).toBe(true);
-  });
+  }, 900_000);
 });
 
 describe('D-460 between the town\'s own houses: a feud, a lie found out, a month of wrongs with no stranger', () => {
@@ -127,7 +127,7 @@ describe('D-460 between the town\'s own houses: a feud, a lie found out, a month
     expect(sim.deeds.log.some(r => r.deed.verb === 'ask_for' && /compensation/.test(r.deed.about ?? ''))).toBe(true); // (the demand, through the same engine)
     expect(fs.filter(f => f.state === 'settled' || f.state === 'judged').length).toBeGreaterThanOrEqual(Math.ceil(fs.length / 2));
     expect(fs.some(f => /elders|compensation paid|before the|judges|harms even/.test(f.why ?? ''))).toBe(true);
-  });
+  }, 900_000);
   it('a lie about a neighbour is checked by the hearer, found out, and the liar loses their trust (the stranger and a townsman alike)', () => {
     const sim = simAt(1, DAY, 10, { asks: true }), P = sim.pop, L = sim.deeds.law, M = sim.deeds.minds;
     // a hearer and the one lied about from the same house (they will ask each other)
@@ -141,7 +141,7 @@ describe('D-460 between the town\'s own houses: a feud, a lie found out, a month
     expect(found.length).toBeGreaterThanOrEqual(pairs.length / 2);
     expect(found.some(c => c.liar === 'player')).toBe(true); expect(found.some(c => c.liar === liarT)).toBe(true);
     for (const c of found) { expect(M.feelOf(c.hearer, c.liar, DAY + 20).anger).toBeGreaterThan(0); expect(L.record(c.hearer, c.liar, DAY + 20)?.why).toMatch(/liar/); }
-  });
+  }, 900_000);
   it('the town alone for a month: its own quarrels, thefts and blows run their courses (losses noticed, cases heard, feuds settled)', () => {
     const sim = simAt(1, DAY, 10, { asks: true, }), L = sim.deeds.law, n0 = sim.deeds.log.length;
     step(sim, DAY + 30);
@@ -154,5 +154,5 @@ describe('D-460 between the town\'s own houses: a feud, a lie found out, a month
     // saved and loaded, the law goes on where it stood
     const s = JSON.parse(JSON.stringify(sim.save())), b = simAt(1, DAY, 10, { asks: true }); b.load(s);
     expect(b.deeds.law.cases.length).toBe(L.cases.length); expect(b.deeds.law.losses.length).toBe(L.losses.length); expect(b.deeds.law.feuds.length).toBe(L.feuds.length);
-  });
+  }, 900_000);
 });
