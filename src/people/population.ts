@@ -2283,6 +2283,17 @@ class Planner {
       const parts: Seg[] = [...(a > s.t0 + 1e-6 ? [{ ...s, t1: a }] : []), { t0: a, t1: a + walk, place: `road:${W}`, act: 'walk', why: 'to the well with the jar', where: 'road' },
         { t0: a + walk, t1: a + walk + 0.22, place: w, act: 'draw_water', why: 'drawing the house’s water', where: W }, { t0: a + walk + 0.22, t1: a + trip, place: `road:${W}`, act: 'carry_jar_head', why: 'carrying water home', where: 'road' }];
       if (a + trip < s.t1 - 1e-6) parts.push({ ...s, t0: a + trip }); segs.splice(i, 1, ...parts); i += parts.length - 1; need--; }
+    // still short on a day of the household's work out of the house (the threshing floor from dawn to the evening wind, the
+    // reaping): she leaves the work a little early and goes home by the well (the walk home carries the water, as from the
+    // lane above). D-350 (s15, B230): people_days_r3's houses without water were threshing days, the waterer at the floor
+    // from 5.5 h to 18.45 h and asleep through the heat (C)
+    const T = H.task;
+    for (let i = 0; T && i + 2 < segs.length && need > 0; i++) { const s = segs[i], nx = segs[i + 1];
+      if (s.place !== T.place || s.with !== undefined || s.act === 'sleep' || s.act === 'eat' || nx.where !== 'road' || nx.act !== 'walk' || segs[i + 2].place !== this.home) continue;
+      const wk = this.P.walkH(s.place, w, this.d, W, W), cut = wk + 0.22; if (s.t1 - s.t0 < cut + 0.3 || s.t1 > this.sun.set + 0.3 || s.t1 < this.sun.rise || (rain && rain[0] < s.t1 + 0.1 && rain[1] > s.t1 - cut) || busy(s.t1 - cut, nx.t1)) continue;
+      const a = s.t1 - cut; segs.splice(i, 2, { ...s, t1: a }, { t0: a, t1: a + wk, place: `road:${W}`, act: 'walk', why: 'to the well with the jar', where: 'road' },
+        { t0: a + wk, t1: s.t1, place: w, act: 'draw_water', why: 'drawing the house’s water', where: W }, { ...nx, act: 'carry_jar_head', why: 'carrying water home' });
+      i += 3; need--; }
   }
   /** no walk that arrives home and goes straight out again (S10, r4: "a walk split in two"; her walk home and back out to the
    *  well made one walk from the well to the well for the child with her): water carried home is poured into the house jar,
@@ -2558,7 +2569,9 @@ class Planner {
       const sh = tt >= 0 ? segAt(segs, tt) : null, bw = sh && outdoors(sh) && /out of the rain/.test(sh.why) && wetHours(this.C.wx, tt, tt + 0.35) > 0 ? 'bread and water, out of the rain' : 'bread and water'; // (in the fold's shelter: planCheck (a))
       // (D-349: a short spell is not cut in two by the bread: it is eaten at the spell's end; and insertAt steps past the road,
       // the water and the bread, so where it lands is checked again: servant 5894, day 21, 23 min before the household's midday meal)
-      if (tt >= 0) { const q = segAt(segs, tt); if (q.t1 - q.t0 < 1 && tt > q.t0 + 0.05 && q.t1 - tt > 0.4 && q.act !== 'sleep' && clearOf(q.t1)) tt = q.t1; }
+      // (D-350, s15: in the spell's last 20 minutes, at its place: at its end it was laid into the next piece, a guard's bread at his
+      // hearth moved into the forecourt, where the talk with another file began: agent #12, day 328)
+      if (tt >= 0) { const q = segAt(segs, tt), e = q.t1 - 0.35; if (q.t1 - q.t0 < 1 && tt > q.t0 + 0.05 && q.t1 - tt > 0.4 && q.act !== 'sleep' && clearOf(e)) tt = e; }
       const snap = segs.slice();
       let t = tt === -2 ? -1 : this.insertAt(segs, tt, 0.35, 'eat', bw, s => s.act === 'stand_guard' || s.act === 'patrol' || (s.act === 'sleep' && tt > s.t0 + 1e-6));
       if (t >= 0 && !clearOf(t)) { segs.splice(0, segs.length, ...snap); return; }
@@ -3348,13 +3361,13 @@ class Planner {
     const heat = this.C.heatRest;
     // (the afternoon: talk, then a rest in the shade, then talk again until the supper; the children play; C)
     const rest0 = Math.min(WP.supper[0] - 0.3, WP.feast[1] + 0.8 + 0.6 * u01(P.seed, S.marry, this.pid, d, 4)), rest1 = Math.min(WP.supper[0] - 0.2, rest0 + (heat ? 1.6 : 1) + 0.4 * u01(P.seed, S.marry, this.pid, d, 5));
-    if (kid) { yard(rest0, 'play', 'playing in the courtyard with the other children at the wedding', 'playing indoors with the other children at the wedding'); if (this.age < 10 && rest1 > this.t + 0.3) yard(rest1, 'sleep', 'a sleep in the shade of the courtyard at the wedding', 'a sleep indoors at the wedding'); yard(WP.supper[0], 'play', 'playing in the courtyard with the other children at the wedding', 'playing indoors with the other children at the wedding'); }
+    if (kid) { yard(rest0, 'play', 'playing in the courtyard with the other children at the wedding', 'playing indoors with the other children at the wedding'); if (rest1 > this.t + 0.3) { if (this.age < 10) yard(rest1, 'sleep', 'a sleep in the shade of the courtyard at the wedding', 'a sleep indoors at the wedding'); else yard(rest1, 'rest', 'resting in the shade of the courtyard at the wedding', 'resting indoors at the wedding'); } /* (D-350, s15: a child of 10 or more rests through the hot hour with the grown-ups, so the afternoon is not one spell of play of 4 h: 13425 d305, at her sister's wedding) */ yard(WP.supper[0], 'play', 'playing in the courtyard with the other children at the wedding', 'playing indoors with the other children at the wedding'); }
     else { yard(rest0, 'talk', 'with the kin of both houses at the wedding, in the courtyard', 'with the kin of both houses at the wedding, indoors');
       if (rest1 > this.t + 0.3) yard(rest1, 'rest', heat ? 'resting through the heat in the shade of the courtyard at the wedding' : 'resting in the shade of the courtyard at the wedding', 'resting indoors at the wedding');
       yard(WP.supper[0], 'talk', 'with the kin of both houses at the wedding, in the courtyard', 'with the kin of both houses at the wedding, indoors'); }
     yard(WP.supper[1], 'eat', 'the wedding supper in the courtyard', 'the wedding supper indoors, out of the weather');
     const drum = !kid && f && this.age >= 14 && this.age <= 55 && u01(P.seed, S.marry, this.pid, d, 3) < L.wedding.drum_women;
-    yard(WP.drum[1], drum || role === 'bride' ? 'talk' : kid ? 'play' : 'talk', drum ? 'singing and beating the frame drum for the bride with the women, in the courtyard (M-22)' : role === 'bride' ? 'sitting with the women as they sing and drum for her, in the courtyard' : kid ? 'playing in the courtyard while the women sing and drum' : 'at the wedding in the courtyard while the women sing and drum',
+    yard(WP.drum[1], drum || role === 'bride' ? 'talk' : kid ? 'play' : 'talk', drum ? 'singing and beating the frame drum for the bride with the women, in the courtyard (M-22)' : role === 'bride' ? 'sitting with the women as they sing and drum for her, in the courtyard' : kid ? 'playing in the courtyard at the wedding while the women sing and drum' : 'at the wedding in the courtyard while the women sing and drum',
       drum ? 'singing for the bride with the women, indoors, the drum laid by' : role === 'bride' ? 'sitting with the women as they sing for her, indoors' : kid ? 'playing indoors while the women sing' : 'at the wedding indoors while the women sing');
     // ---- the night: the bride's kin walk home; the house of the feast and the couple stay
     if (role === 'from') { this.go(this.home, this.homeW, 'going home from the wedding'); const bed = Math.max(this.t + 0.1, this.bed());
