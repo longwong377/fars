@@ -93,6 +93,9 @@ export const PERSON_TEXELS = 10;
 export const REF_TONE: [number, number, number] = [0.72, 0.53, 0.42];
 /** drape: a slack cloth vertex drops this far (m) when its main bone is horizontal (wide sleeves, seated skirts; C) */
 export const SAG_MAX = 0.1;
+/** s17 V3 (D-500): how far inside its surface a shadow-only caster is drawn (m; C, measured against the LOD 2 body's
+ *  deviation from the full-detail one on faces and garments) */
+export const SHADOW_SHRINK = 0.014;
 /** Cloth wear and drape (D-189, C). Skirts: the hem is folded per person (two low orders round the hem at every LOD, two
  *  higher orders near the camera, where the 40-segment tube can carry them) and fitted (ease at the hem), growing with
  *  the square of the way down the skirt. Fading: sun-bleaching on up-facing cloth (the garment's age × its dye's
@@ -171,7 +174,12 @@ export const CARD = { back: 0.55, alphaTest: 0.5, tilt: 0.9,
    *  gradient noise, offset each frame), so TRAA resolves a card's edge to its coverage: with a fixed threshold, minified
    *  locks passed or failed whole pixels and every hairline, beard edge and brow read as jagged pixel noise at 1.5 m
    *  (the D-323 GPU portraits). The D-307 hashed test was static per pixel: TRAA had nothing to average. */
-  dither: 0.9 };
+  dither: 0.9,
+  /** s17 V3 (D-500): per card class (tools/blender/people.json layers' cls: 0, 1 scalp hair, 2, 3 the long beard, 4 the brows,
+   *  5 the bun, 6 the short beard) the test's [threshold, dither]: the beards' wide dither left the hanging beard a see-through net at 1-2 m (a
+   *  moving head's TRAA history does not hold it), so beards test lower and steadier and read as a mass; the scalp hair
+   *  between; the brows keep the D-323 values (a steady test cut them into dashes) */
+  byClass: [[0.44, 0.5], [0.44, 0.5], [0.36, 0.2], [0.36, 0.2], [0.5, 0.9], [0.44, 0.5], [0.4, 0.3]] as [number, number][] };
 
 class HumanLightingModel extends THREE.PhysicalLightingModel {
   constructor(private S: Record<string, any>) { super(); }
@@ -345,6 +353,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const keep = shown.mul(float(1).sub(hideHead));
       const far = vec3(0, -1e4, 0);
       p.assign(mix(far, p, keep));
+      // s17 V3 (D-500): the shadow casters are coarser bodies (LOD 2 for the full-detail people): where their surface stood
+      // outside the drawn one they shadowed it (stair-stepped blotches over every sunlit face and tunic at 1-10 m); each caster
+      // is drawn SHADOW_SHRINK m inside its own surface, so a body shadows others and its own folds, not its own skin
+      if (opts.shadowOnly) p.subAssign(n.mul(SHADOW_SHRINK).mul(scale));
       normalLocal.assign(n);
       if (builder.needsPreviousData()) {
         const Q = skinned(prevTex);
@@ -487,10 +499,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // ---- D-307: strand cards (hair class, PRM_CARD): the atlas cell of the card's class, the person's hair style and the
     // card's column; shade, depth, strand direction and coverage from it
     const CA = T.hairAtlas && T.cards ? T.cards : null;
-    let kCard: any = float(0), cardAlb: any = vec3(0), cardCov: any = float(1), cardDepth: any = float(1), cardT: any = vec3(0, -1, 0), cardN: any = null, cardAO: any = float(1);
+    let cardCls: any = float(4), kCard: any = float(0), cardAlb: any = vec3(0), cardCov: any = float(1), cardDepth: any = float(1), cardT: any = vec3(0, -1, 0), cardN: any = null, cardAO: any = float(1);
     if (CA) {
       kCard = step(PRM_CARD - 0.5, prm).mul(kHair);
-      const cellV = floor(vAux.y.mul(255).add(0.5)), cls = floor(cellV.div(8)), colC = cellV.sub(cls.mul(8));
+      const cellV = floor(vAux.y.mul(255).add(0.5)), cls = floor(cellV.div(8)), colC = cellV.sub(cls.mul(8)); cardCls = cls;
       let rowC: any = float(0); CA.classRows.forEach((rs, c) => rs.forEach((r, st) => { if (r) rowC = rowC.add(is(cls, c).mul(is(hairStyle, st)).mul(r)); }));
       const auv = vec2(colC.add(U.x.clamp(0.004, 0.996)).div(CA.cols), rowC.add(U.y.clamp(0.004, 0.996)).div(CA.rows));
       const at = loadBilinear(T.hairAtlas!, auv, [CA.w, CA.h], CA.levels); // (textureLoad: no sampler)
@@ -684,7 +696,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const lashCut = max(step(lashW, clumpC), step(0.9, tl)).mul(float(1).sub(bits('kohl').mul(step(tl, KOHL.band)))); // (kohl: the root band solid)
     // D-307: a card is cut where the atlas' coverage is under the test its mips were made for (a fixed threshold: TRAA
     // antialiases the edges; a per-pixel hashed threshold read as speckled noise in the first review)
-    const cardThr = interleavedGradientNoise(screenCoordinate.xy.add(vec2(float(frameId).mod(64).mul(5.588238)))).sub(0.5).mul(CARD.dither).add(CARD.alphaTest);
+    let cThr: any = float(0), cDith: any = float(0); CARD.byClass.forEach(([t, d], c) => { cThr = cThr.add(is(cardCls, c).mul(t)); cDith = cDith.add(is(cardCls, c).mul(d)); });
+    const cardThr = interleavedGradientNoise(screenCoordinate.xy.add(vec2(float(frameId).mod(64).mul(5.588238)))).sub(0.5).mul(cDith).add(cThr);
     const cardCut = step(cardCov, cardThr);
     this.maskNode = float(1).sub(kShell.mul(max(edgeCut, silCut))).sub(kCard.mul(cardCut)).sub(kLash.mul(lashCut)).greaterThan(0.5);
     // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and

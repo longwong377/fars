@@ -44,8 +44,8 @@ export const DYES: Record<string, { strong: Lab; weak: Lab; fade: number; tier: 
   woad: { strong: [34, -3, -21], weak: [50, -6, -16], fade: 0.3, tier: 'C', note: 'woad/indigo blue (indigotin at Pazyryk, B; colour C)' },
   weld: { strong: [70, 0, 50], weak: [76, -2, 36], fade: 0.9, tier: 'C', note: 'weld yellow (NOT SEEN; fugitive)' },
   green: { strong: [45, -17, 18], weak: [60, -11, 15], fade: 0.7, tier: 'C', note: 'green (weld over woad, NOT SEEN; the yellow fades first)' },
-  wool: { strong: [74, 1, 12], weak: [60, 2, 10], fade: 0.1, tier: 'C', note: 'undyed wool, clean cream to worn and dingy' },
-  linen: { strong: [81, 0, 7], weak: [66, 1, 10], fade: 0.1, tier: 'C', note: 'linen, bleached to unbleached and worn' },
+  wool: { strong: [71, 2, 14], weak: [57, 3, 13], fade: 0.1, tier: 'C', note: 'undyed wool, clean cream to worn and dingy' },
+  linen: { strong: [77, 1, 10], weak: [63, 2, 13], fade: 0.1, tier: 'C', note: 'linen, bleached to unbleached and worn' },
   // D-206: the dark end of undyed brown wool, greyer than a tan (the tan it was, [36-50, 6-7, 16-17], is the colour of
   // skin: ΔE*ab under 12 against the wearer's skin for a fifth of the working men's garments; C, Q-360)
   brown: { strong: [30, 4, 9], weak: [43, 4, 10], fade: 0.2, tier: 'C', note: 'brown (undyed dark wool, greyish; a tannin tan would read as skin)' },
@@ -54,7 +54,7 @@ export const DYES: Record<string, { strong: Lab; weak: Lab; fade: number; tier: 
   ochre: { strong: [60, 9, 38], weak: [68, 6, 28], fade: 0.4, tier: 'B', note: 'yellow of the Susa guard robes (SUSA-ARCH)' },
 };
 /** the sun-bleached undyed ground a dye fades toward (C) */
-export const FADED: Lab = [70, 2, 12];
+export const FADED: Lab = [68, 3, 13]; // (s17 V3: undyed cloth warmer and less chalk-white: it read as plaster in the sun; C)
 /** a garment's colour: dye strength s (0 weak … 1 strong), fading f (0 new … 1 old, × the dye's susceptibility), value
  *  jitter dL (L* units) and chroma factor dC (one dye bath is not another) */
 export function dyeColour(key: string, s: number, f: number, dL = 0, dC = 1): RGB {
@@ -84,7 +84,9 @@ const FELT: RGB[] = [L(0.54, 0.47, 0.37), L(0.5, 0.44, 0.35), L(0.33, 0.27, 0.21
 /** skin tones (sRGB) along a pigmentation ramp p 0 (light) … 1 (dark), D-155. The old ramp was too orange (blue/red
  *  0.47–0.6 in sRGB against ~0.65–0.7 for measured facial skin colour under daylight); the new stops keep G/R ≈ 0.76 and
  *  B/R ≈ 0.6–0.7 (C: after published facial skin colour measurements, not read in full). */
-export const SKIN_RAMP: RGB[] = [[0.82, 0.66, 0.56], [0.76, 0.59, 0.49], [0.68, 0.51, 0.41], [0.58, 0.42, 0.33], [0.46, 0.32, 0.24], [0.34, 0.23, 0.17]];
+export const SKIN_RAMP: RGB[] = [[0.84, 0.66, 0.54], [0.78, 0.58, 0.46], [0.7, 0.5, 0.38], [0.6, 0.41, 0.3], [0.47, 0.31, 0.22], [0.34, 0.22, 0.155]];
+// (s17 V3, D-500: B/R 0.6-0.7 read grey and waxen under the high sun and AgX at 2 m, a mannequin's skin; the stops keep G/R
+// ≈ 0.72 with B/R ≈ 0.55-0.64, the warmth of sun-lived skin in AC Origins' Egypt, which the brief's AAA bar asks for; C)
 /** Mean pigmentation p by origin (C, OPEN_QUESTIONS Q-240): the physical variety of a cosmopolitan centre. No skin colour
  *  of any people of the empire is attested (the reliefs are painted by convention), so the means follow the modern
  *  regional cline of skin reflectance with ultraviolet exposure (Jablonski & Chaplin 2000: darker toward the tropics),
@@ -195,7 +197,10 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   // pigmentation: one draw (the old tone pick's), mapped through a normal quantile about the origin's mean; outdoor
   // workers a little darker (sun), with the old per-channel draws
   const toneU = rng.next(), toneP = (ORIGIN_TONE[p.origin ?? 'Persian'] ?? 0.42) + TONE_SD * Math.log(Math.max(1e-6, toneU) / Math.max(1e-6, 1 - toneU)) / 1.702;
-  const skinS = rampAt(toneP).map(x => x * (outdoor ? rng.range(0.9, 0.98) : 1)) as RGB;
+  // (s17 V3: the sun's tan of outdoor work: darker and warmer, the ramp read a little further on, not a grey dimming; C)
+  // (the three draws of the old per-channel dimming kept, so every other choice of the look stays as it was)
+  const dim = outdoor ? [rng.range(0.9, 0.98), rng.range(0.9, 0.98), rng.range(0.9, 0.98)] : [1, 1, 1], tan = outdoor ? 0.55 * (0.98 - dim[0]) + 0.03 : 0;
+  const skinS = rampAt(toneP + tan).map((x, c) => x * (outdoor ? [0.97, 0.955, 0.94][c] : 1)) as RGB;
   const elder = group === 'elder';
   const hairS = rng.pick(HAIR).map(x => x) as RGB; const grey = elder ? rng.range(0.25, 0.7) : child ? 0 : rng.chance(0.08) ? rng.range(0.05, 0.2) : 0;
   const hair = hairS.map(x => lin(x + (0.42 - x) * grey)) as RGB;

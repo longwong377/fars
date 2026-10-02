@@ -9407,3 +9407,18 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - mkwt.mjs: base defaults to s17-int; branch is s<N>-<name> from base s<N>-int (was always s14-<name>).
 - Uncommitted leftovers on the box: branch vagon-leftovers-s17 (two empty stray files). Dirty old trees kept as they are:
   fars-wt/load (KTX2 textures), simhealth-brides, simtalk, visible, visiblebase, light, int.
+
+## D-500 (s17 V3 people): people that read as people at 2-30 m, first pass
+- Posture: the CMU captures' anterior pelvic tilt (3-34° mean; the women's walk 34°, idle_e 14°) is taken off the pelvis and
+  given back to the thighs and spine per clip (mocap.ts tiltFix; the motion about the mean kept): the sway-back that pushed
+  every belly out and the shoulders back is gone. Relaxed hands curl more (humanRig REST). C.
+- Cloth: a man's tunic or robe tapers from the chest to the belt (drape.ts BLOUSE_M 0.15 m, HANG 0.55 of the overhang): the
+  D-206 straight hang read as a ball of cloth over the belt, a pot belly on every man; women's dresses keep the hang.
+  people_cloth rebuilt on the new hull. C.
+- Shadows: the coarse shadow casters (LOD 2 for the near people) are drawn 1.4 cm inside their surface (humanMaterial
+  SHADOW_SHRINK): their stair-stepped self-shadow blotched every sunlit face and tunic at 1-10 m.
+- Hair cards: the alpha test per card class (CARD.byClass): beards 0.36 with a steady test (the 0.9 dither left the hanging
+  beard a see-through net at 1-2 m); scalp hair 0.44; brows as D-323.
+- Skin ramp warmer (B/R 0.55-0.64 from 0.6-0.7: grey and waxen under the high sun) and an outdoor tan read further along the
+  ramp (the three old draws kept: nobody's look changes otherwise); undyed wool and linen warmer, less chalk-white. C.
+- Probe: tools/dev/people_probe.mjs (humanlab, the player's lens, 2/10/30 m, one load ~1 min); shots in shots/v3/.
