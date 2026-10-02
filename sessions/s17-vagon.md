@@ -1,5 +1,7 @@
 # Session 17 (Vagon only, ONE DAY): every inch AAA and filled in. START HERE
 
+> **Revised (cloud audit, 2026-10-02): run sessions/s17-vagon-v2.md instead; why: sessions/s17-audit.md.** This page is kept as written.
+
 The user, 2026-10-02: "by the end of this day I want every inch of the world to look AAA and I want every inch of the world
 filled in ie; this needs to be a beautiful lived in gorgeous world by the end of today whatever you need to adjust to get us
 there you're the boss" (UD-36). The bar: the look of a top modern AAA open-world game (RDR2, Ghost of Tsushima, AC Origins),
