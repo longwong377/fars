@@ -19,8 +19,13 @@ const V = [
   { n: 'terrace-w1', cam: 'far:q_w1:180:18:150', fov: 30 }, { n: 'eaves100', cam: 'far:q_s1:100:30:200', fov: 18, sunAz: 150, sunAlt: 40 }, { n: 'terrace-s3', cam: 'far:q_s3:260:25:60', fov: 30 },
   // a village from 30 m and 200 m
   { n: 'village30', cam: 'village:0:40:2:180', fov: 60 }, { n: 'village200', cam: 'village:0:200:8:180', fov: 45 },
+  // s17 C1 (?fill): lanes with the fill (x, z = -n, eye, true bearing, pitch)
+  { n: 'fill-lane', cam: [-478, 881, 1.6, 189, -4], fov: 60, hour: 10 }, { n: 'fill-market', cam: [-444.3, 990.7, 1.6, 279, -6], fov: 60, hour: 8, sunAz: 110, sunAlt: 30 },
+  { n: 'fill-litter', cam: [-380, 863, 1.6, 341, -25], fov: 60, hour: 11 }, { n: 'fill-door', cam: 'door:q_s1:7', fov: 55, hour: 10 },
 ];
-const b = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'] });
+// (SWIFT=1: the cloud's SwiftShader, Playwright's own Chromium; crude pictures only)
+const b = await chromium.launch(process.env.SWIFT ? { headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader'] }
+  : { channel: 'chrome', headless: true, args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist'] });
 const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const logs = [];
 p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.type() + ' ' + m.text().slice(0, 300)); }); p.on('pageerror', e => logs.push('pageerror ' + e));
 const t0 = Date.now();

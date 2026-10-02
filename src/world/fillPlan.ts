@@ -24,6 +24,7 @@ export interface FillItem { m: string; e: number; n: number; dy: number; rot: nu
   /** shown only by day (market goods: set out ~6.5 h, taken in ~19 h) */ day?: boolean;
   /** a solid footprint (half sizes along the item's x and z, m) for the player and the people */ solid?: [number, number];
   /** where: 'market' | 'lane' | 'door' | 'line' | 'terrace' | 'litter' (stats, F3) */ at: string;
+  /** s17 C1 (D-550): an absolute height (m) instead of the ground's + dy (a roof's things: houses.ts roofFill) */ y?: number;
   /** s17 C1 (D-550): a turn about the item's own x after its turn about up (radians): a tool leaned on a wall (-pi/2 - lean) */ tilt?: number;
   /** s17 C1: market goods sold out by this local hour (the stall fullest in the morning, thinning through the afternoon) */ until?: number;
   /** s17 C1: an animal tethered here by day (its peg is the item; fauna draws the animal: townTethers) */ tether?: 'donkey' | 'goats' | 'sheep'; /** the plot whose household it is (the tether's) */ plot?: string }

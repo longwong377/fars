@@ -48,7 +48,7 @@ export class WorldFill {
     this.group.userData = { tier: 'C', src: 'RECON', note: 'the fill (D-367): market stalls and their goods, the lanes\' fuel, jars, sacks and rubble, awnings over doors, washing lines across the lanes, the masons\' waste, the goods at the stair foot and the standards on the Terrace: placed by rule (fillPlan.ts), modelled props (C)' };
     this.y = new Float32Array(items.length);
     const count = new Map<string, number>();
-    items.forEach((it, i) => { const y = env.ground(it.e, it.n); this.y[i] = Number.isFinite(y) && !(it.at === 'terrace' && env.nav?.walkable && !env.nav.walkable(it.e, it.n)) ? y : NaN; /* (a Terrace item off the walkable floor, in a wall or a hall: not drawn) */ count.set(it.m, (count.get(it.m) ?? 0) + 1);
+    items.forEach((it, i) => { const y = it.y ?? env.ground(it.e, it.n); this.y[i] = Number.isFinite(y) && !(it.at === 'terrace' && env.nav?.walkable && !env.nav.walkable(it.e, it.n)) ? y : NaN; /* (a Terrace item off the walkable floor, in a wall or a hall: not drawn) */ count.set(it.m, (count.get(it.m) ?? 0) + 1);
       const k = this.key(Math.floor(it.e / CELL), Math.floor(it.n / CELL)); (this.grid.get(k) ?? this.grid.set(k, []).get(k)!).push(i);
       if (it.solid && Number.isFinite(this.y[i])) { const [hx, hz] = it.solid;
         env.phys?.addBox({ x: it.e, y: this.y[i] + it.dy + 0.5, z: -it.n }, { x: hx * it.s[0], y: 0.5, z: hz * it.s[2] }, it.rot); env.nav?.blockDisc(it.e, it.n, Math.max(hx, hz) * it.s[0]); this.solids++; } });

@@ -28,3 +28,12 @@ describe('the roofs\' wear', () => {
     expect(W.update(1, { x: sp.e + 1, z: -sp.n })).toBe(false);
   }, 300_000);
 });
+
+describe('the roofs\' things (houses.ts roofFill, drawn by the fill)', () => {
+  it('stand on the roofs: jars, drying mats, washing lines', () => {
+    const R = town.roofFill(), by: Record<string, number> = {}; for (const r of R) by[r.m] = (by[r.m] ?? 0) + 1;
+    console.log('[roofFill]', R.length, JSON.stringify(by));
+    expect(R.length).toBeGreaterThan(1500); expect(by.mat).toBeGreaterThan(400); expect(by.fill_line).toBeGreaterThan(150);
+    for (const r of R.slice(0, 400)) { const g = town.plan.sites.length; void g; expect(Number.isFinite(r.y)).toBe(true); }
+  }, 300_000);
+});

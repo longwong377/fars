@@ -78,6 +78,8 @@ export class Settlement {
   readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, lamps: 0, trees: 0, buildMs: 0, phases: {} as Record<string, number> };
   /** D-234: each site's houses (far and near levels), the near tiles built (tile → meshes), the street doors */
   readonly houses: SiteHouses[] = [];
+  /** s17 C1 (D-550): the roofs' stores and work as fill items (absolute heights; world.ts adds them to the fill) */
+  roofFill() { return this.houses.flatMap(h => h.roofFill()); }
   /** s17 C1 (D-550): the roofs' wear from the simulation (world.ts gives it the sim's roofOf) */
   readonly roofWear!: RoofWear;
   private clusterOfSite = new Map<string, Cluster>();
