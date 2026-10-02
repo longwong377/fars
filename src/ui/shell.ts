@@ -21,9 +21,13 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string,
 export class Shell {
   mode: 'loading' | 'title' | 'playing' | 'paused' = 'loading';
   constructor(private settings: Settings, private hooks: ShellHooks) {}
+  /** the loading card (s15/ship D-393: kept across the boot's messages, so the progress bar mounted in it stays) */
+  loadingCard: HTMLElement | null = null; private loadingMsg: HTMLElement | null = null;
   loading(msg: string) {
+    if (this.mode === 'loading' && this.loadingCard?.isConnected && this.loadingMsg) { this.loadingMsg.textContent = msg; return; }
     this.mode = 'loading';
-    root().replaceChildren(el('div', { className: 'panel' }, el('div', { className: 'card title' }, el('h1', {}, 'PĀRSA'), el('div', { className: 'sub' }, msg))));
+    this.loadingMsg = el('div', { className: 'sub' }, msg); this.loadingCard = el('div', { className: 'card title' }, el('h1', {}, 'PĀRSA'), this.loadingMsg);
+    root().replaceChildren(el('div', { className: 'panel' }, this.loadingCard));
   }
   /** `continued`: the saved visit was loaded at start (the world stands as it was left) */
   title(continued = false) {
@@ -111,6 +115,7 @@ export class Shell {
       sel('Player mode', s.playerMode, [['observer', 'Observer'], ['visitor', 'Visitor (sealed travel authorisation)']], v => { s.playerMode = v as any; }),
       sel('Court calendar', s.courtCalendar, [['seasonal', 'The court comes and goes: in residence in spring (reconstructed, C; default)'], ['evidence', 'Evidence-strict: the king absent all year']], v => { s.courtCalendar = v as any; }),
       check('Translation layer (subtitles, inscriptions, map, chronicle)', s.translation, v => { s.translation = v; }),
+      check('Talk with the people (T to type, hold V to speak; downloads ~0.5 GB of small models once, after the world appears; reload to apply)', s.talk, v => { s.talk = v; }),
       check('Now view: the ruin as it stands today (from memory of the site, tier C; key N)', s.nowView, v => { s.nowView = v; }),
       el('h2', {}, 'Display'),
       sel('Quality', s.quality, [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['ultra', 'Ultra (full target)']], v => { s.quality = v as any; }),

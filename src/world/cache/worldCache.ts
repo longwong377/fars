@@ -5,14 +5,15 @@
 // computes the unit live (the fallback) and, on the dev server, posts the result back so the next load reads it.
 // ?worldcache=0 skips the cache (A/B timing, and the live build's own check); node (tests, tools) always builds live.
 import { pack, unpack, hashBytes } from './pack';
+import { BASE } from '../../core/base';
 
 type Manifest = { v: number; entries: Record<string, { src: string; file: string; bytes: number; sha1: string }> };
 export const cacheStats: { hits: Record<string, number>; misses: Record<string, string>; puts: string[] } = { hits: {}, misses: {}, puts: [] };
 const browser = typeof window !== 'undefined' && typeof fetch !== 'undefined' && typeof location !== 'undefined';
 let srcP: Promise<Record<string, string> | null> | null = null, manP: Promise<Manifest | null> | null = null;
 const getJson = (u: string) => fetch(u, { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).catch(() => null);
-const srcHashes = () => (srcP ??= getJson('/world-cache/src.json'));
-const manifest = () => (manP ??= getJson('/world-cache/manifest.json'));
+const srcHashes = () => (srcP ??= getJson(BASE + 'world-cache/src.json'));
+const manifest = () => (manP ??= getJson(BASE + 'world-cache/manifest.json'));
 /** timings inside a unit's result, left out of its identity hash */
 const VOLATILE = new Set(['ms', 'parts']);
 const strip = (v: any): any => (v === null || typeof v !== 'object' || ArrayBuffer.isView(v) ? v : Array.isArray(v) ? v.map(strip) : Object.fromEntries(Object.entries(v).filter(([k]) => !VOLATILE.has(k)).map(([k, x]) => [k, strip(x)])));
@@ -30,7 +31,7 @@ export async function cached<T>(unit: string, key: string, compute: () => T | Pr
   const t0 = performance.now(), [src, man] = await Promise.all([srcHashes(), manifest()]);
   const s = src?.[unit], e = man?.entries?.[`${unit}|${key}`];
   if (s && e && e.src === s) {
-    try { const r = await fetch('/world-cache/' + e.file); if (r.ok) { const v = unpack<T>(await r.arrayBuffer()); cacheStats.hits[`${unit}|${key}`] = Math.round(performance.now() - t0);
+    try { const r = await fetch(BASE + 'world-cache/' + e.file); if (r.ok) { const v = unpack<T>(await r.arrayBuffer()); cacheStats.hits[`${unit}|${key}`] = Math.round(performance.now() - t0);
       if (new URLSearchParams(location.search).get('worldcache') === 'verify') { const a = identity(v), b = identity(await compute()); (cacheStats as any).verify = { ...(cacheStats as any).verify, [unit]: a === b ? 'identical' : `MISMATCH ${a} != ${b}` }; console.info('[world-cache] verify', unit, a === b ? 'identical' : 'MISMATCH'); }
       return v; } }
     catch (err) { console.warn(`[world-cache] ${unit}|${key}: unreadable (${(err as Error).message}); building live`); }

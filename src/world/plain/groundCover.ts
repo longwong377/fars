@@ -17,6 +17,7 @@ import { texture, uv, vec3, dot, attribute } from 'three/tsl';
 import { mxNoise2 } from '../../render/mx_noise_cpu';
 import { landUseAt, type ZoneMap } from './fields';
 import { cropState } from './seasonal';
+import { BASE } from '../../core/base';
 
 export type CoverKind = 'tuft' | 'sward' | 'stubble' | 'dung';
 /** reach (m), level distances (m), cell (m), rebuild step (m moved) */
@@ -80,7 +81,7 @@ export interface CoverKit { pieces: CoverPiece[]; map: THREE.Texture; normal: TH
 let KIT: CoverKit | null = null;
 export const coverKit = () => KIT;
 export function _setCoverKit(k: CoverKit | null) { KIT = k; }
-export async function loadCoverKit(base = '/'): Promise<CoverKit | null> {
+export async function loadCoverKit(base = BASE): Promise<CoverKit | null> {
   try {
     const man = await (await fetch(base + 'models/land/manifest.json')).json(); const C = man.classes?.cover; if (!C) throw new Error('no cover class');
     const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);

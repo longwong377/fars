@@ -8,6 +8,7 @@
 import * as THREE from 'three/webgpu';
 import { uniform, uniformArray, textureLoad, ivec2, int, vec2, vec3, vec4, float, mix, max, min, clamp, floor, smoothstep, step, dot, abs, Fn, Loop } from 'three/tsl';
 import { OutMeta, OUT_TEX_W, OUT_TEXELS, OUT_BIAS, OUT_VALID, A_S, A_U, TINT_MAX, afternoonWeight } from './outdoor';
+import { BASE } from '../../core/base';
 
 let META: OutMeta | null = null, TEX: THREE.DataTexture | null = null, ROWS: any = null, DATA: Uint8Array | null = null;
 /** the afternoon weight of the sun channel (0 morning … 1 afternoon), set per frame (setOutdoorSun) */
@@ -20,7 +21,7 @@ export const outdoorMeta = () => META;
 export const outdoorData = () => DATA;
 const NROW = 6;
 
-export async function loadOutdoor(base = '/'): Promise<OutMeta | null> {
+export async function loadOutdoor(base = BASE): Promise<OutMeta | null> {
   try {
     const [mj, bin] = await Promise.all([fetch(`${base}lightmaps/outdoor.json`), fetch(`${base}lightmaps/outdoor.lmz`)]);
     if (!mj.ok || !bin.ok) throw new Error(`HTTP ${mj.status}/${bin.status}`);

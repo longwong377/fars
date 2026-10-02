@@ -17,6 +17,7 @@
 // player act dated before the simulated present replays from day 0. Tier C throughout (law.ts; DECISIONS D-346).
 import type { Population } from '../population';
 import type { Intent } from '../economy/api';
+import type { Economy } from '../economy/world';
 import { u01, salt } from '../hash';
 import { REGNAL_DAYS, festivalOn } from '../calendar';
 import { REL } from './law';
@@ -46,6 +47,10 @@ export interface RelOpts { econ?: (i: Intent) => void; player?: { sex: 'm' | 'f'
   /** D-359 (B226): this layer's weddings join the population (Population.addWedding: the bride lives in the groom's house and
    *  both houses keep the wedding day); set by the living world when it steps this layer (living/world.ts) */
   joinPop?: boolean }
+
+/** D-381 (B227): a marriage payment between two houses, settled on its day against the houses' own silver in the economy */
+interface Pay { day: number; kind: 'betrothal' | 'wedding' | 'divorce'; what: string; from: number; to: number; amt: number; ev: number; key: number }
+interface Settled { cash: number; goods: number; causes: number[] }
 
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
 const key = (a: number, b: number) => a < b ? a * 262144 + b : b * 262144 + a;
@@ -77,6 +82,10 @@ export class Relations {
   private busy = new Set<number>();
   private pendingShow: [number, number, number][] = [];
   private week = -1;
+  /** D-381: the economy's betrothal event of each pair (its wedding names it as a cause) */
+  private econEv = new Map<number, number>();
+  /** D-381 (B227): the marriage payments as they reached the economy: houses that paid, borrowed, or owe the rest */
+  econStats = { betrothal: 0, wedding: 0, divorce: 0, silver: 0, goods: 0, borrowed: 0, owed: 0, replayed: 0 };
   stats = { pairs: 0, slights: 0, helps: 0, bedWeeks: 0, newsTold: 0, intents: 0 };
   constructor(readonly pop: Population, readonly seed: number, readonly opts: RelOpts = {}) {} // (the layer is built on first use: a Simulation that never asks pays nothing)
   private ready = false;
@@ -86,6 +95,7 @@ export class Relations {
   private reset() { this.ready = true;
     this.pairs.clear(); this.player.clear(); this.events.length = 0; this.news.length = 0; this.pregnancies.length = 0; this.meets.clear(); this.wed.clear(); this.homeOv.clear(); this.rep.clear();
     this.arranged.clear(); this.ownWed.clear(); this.busy.clear(); this.pendingShow = [];
+    this.econEv.clear(); this.econStats = { betrothal: 0, wedding: 0, divorce: 0, silver: 0, goods: 0, borrowed: 0, owed: 0, replayed: 0 };
     this.moodEv.clear(); this.pregBy.clear(); this.bedWeeks.clear(); this.lovBed.clear(); this.week = -1; this.contacts.clear(); this.edges = [];
     this.stats = { pairs: 0, slights: 0, helps: 0, bedWeeks: 0, newsTold: 0, intents: 0 };
     const P = this.pop, seen = new Set<number>();
@@ -179,6 +189,56 @@ export class Relations {
   private wealth(hh: number) { const jobs = this.pop.households[hh]?.members.map(m => this.pop.persons[m].job as string) ?? []; return jobs.some(j => j === 'official' || j === 'steward') ? 'rich' : jobs.some(j => j === 'farmer' || j === 'gardener') ? 'farmer' : jobs.some(j => j === 'craftsman' || j === 'weaver') ? 'craft' : jobs.some(j => j === 'shepherd' || j === 'herder') ? 'herder' : 'ration'; }
   private rank(hh: number) { return ({ rich: 3, craft: 2, farmer: 1.5, herder: 1, ration: 1 } as Record<string, number>)[this.wealth(hh)]; }
   private intent(i: Intent) { this.stats.intents++; this.opts.econ?.(i); }
+
+  // ---------------------------------------------------------------- D-381 (B227): the marriage payments in the economy
+  // The bride-gift (the groom's house to the bride's father's, on the agreement's day), the dowry (the bride's house to the new
+  // couple's, on the wedding day) and the divorce silver (the husband's house to her kin) are intents through opts.econ, as
+  // before; what they carry is settled when the economy enters them, on their own day before its step (the living world reads
+  // the payload then: LivingWorld.relDay), against the houses' silver as it stands that morning (Population.ledger gives the
+  // economy): the payer's silver above a reserve, then a household good or two (cloth, a jar: a dowry is mostly things), then
+  // the rest borrowed from kin or the quarter's rich as the economy lends (its credit limit), else owed to the receiving house
+  // and paid over time (the economy's dues follow it). Each is an economy event naming both houses ('betrothal', 'wedding',
+  // 'divorce'), caused by what the payer's silver last answered to (a loan, a harvest) and by the betrothal for the wedding;
+  // the intent's gift names it as its cause, so the marriages join the economy's chains (chains.ts; T-F9). With no economy
+  // (a bare Relations) the payload is the full sum, as it was. Amounts and rules: law.ts (C).
+  private pay(kind: 'trade' | 'help', p: Pay) {
+    let r: Settled | null = null; const s = () => r ??= this.settle(p);
+    const payload: Intent['payload'] = { src: 'relations', what: p.what, ev: p.ev };
+    for (const [k, f] of [['cash', () => s()?.cash ?? p.amt], ['goods', () => s()?.goods ?? 0], ['causes', () => s()?.causes ?? []]] as const) Object.defineProperty(payload, k, { enumerable: true, get: f });
+    this.intent({ kind, from: `h:${p.from}`, to: `h:${p.to}`, day: p.day, payload });
+  }
+  private settle(p: Pay): Settled | null {
+    const E = this.opts.joinPop ? this.pop.ledger?.(p.day) : null; if (!E || E.day < p.day - 1) return null; // (not yet the economy's day: asked again when it is)
+    // (a day the economy has stepped already: the same payment entered again after a replay of the relations; nothing moves twice)
+    if (E.day >= p.day) { this.econStats.replayed++; return { cash: 0, goods: 0, causes: [] }; }
+    const from = E.hh.get(`h:${p.from}`), to = `h:${p.to}`, d = p.day, causes: (number | undefined)[] = [from?.cause.cash];
+    if (p.kind === 'wedding') causes.unshift(this.econEv.get(p.key) ?? this.findEv(E, to, `h:${p.from}`));
+    let cash = p.amt, goods = 0, owed = 0;
+    if (from && !from.dead) {
+      const spare = Math.max(0, from.cash - (from.kind === 'rich' ? 10 : 1)); cash = Math.min(p.amt, spare); from.cash -= cash;
+      for (const gp = E.price('goods', d); cash + goods * gp < p.amt - 1e-9 && goods < 2 && from.goods > 0;) { from.goods--; goods++; }
+      let rest = Math.max(0, p.amt - cash - goods * E.price('goods', d));
+      if (rest > 1e-9 && p.kind !== 'wedding') { const L = this.lender(E, from, to, rest);
+        if (L) { L.cash -= rest; const ln = E.record(d, from.id, 'loan', [from.cause.cash], L.id, rest); E.owe(from.id, L.id, rest * 1.1, d + 60 + (p.ev % 60), ln); causes[causes.length - 1] = ln; cash += rest; rest = 0; this.econStats.borrowed++; } }
+      owed = rest;
+    }
+    const ev = E.record(d, `h:${p.from}`, p.kind, causes, to, p.amt);
+    if (owed > 1e-9 && from) { E.owe(from.id, to, owed, d + REL.paidOverDays, ev); this.econStats.owed++; }
+    if (p.kind === 'betrothal') this.econEv.set(p.key, ev);
+    this.econStats[p.kind]++; this.econStats.silver += cash; this.econStats.goods += goods;
+    return { cash: +cash.toFixed(4), goods, causes: [ev] };
+  }
+  /** who lends a house the rest of a marriage payment: its kin first, then the quarter's rich, with the silver to spare, and
+   *  only within the economy's own credit limit (debts under 4 sheqels: Economy.creditOk; C) */
+  private lender(E: Economy, h: { id: string; kin: string[]; q: string; debts: { amt: number }[]; badUntil: number }, not: string, amt: number) {
+    if (h.badUntil > E.day || h.debts.reduce((a, x) => a + x.amt, 0) + amt >= 4) return null;
+    const ok = (L: { id: string; dead: number; cash: number; kind: string } | undefined) => !!L && !L.dead && L.id !== h.id && L.id !== not && L.cash - amt >= (L.kind === 'rich' ? 10 : 3);
+    for (const k of h.kin) { const L = E.hh.get(k); if (ok(L)) return L!; }
+    for (const L of E.hh.values()) if (L.kind === 'rich' && L.q === h.q && ok(L)) return L;
+    return null;
+  }
+  /** the economy's betrothal event between two houses (a world loaded after the agreement: this layer re-derived it without one) */
+  private findEv(E: Economy, actor: string, other: string) { for (let i = E.events.length - 1; i >= 0; i--) { const e = E.events[i]; if (e?.kind === 'betrothal' && e.actor === actor && e.other === other) return e.id; } return undefined; }
 
   // ================================================================ the weeks
   /** simulate every week that starts on or before `day` */
@@ -290,7 +350,7 @@ export class Relations {
     pr.status = 'betrothed'; pr.since = d;
     const [a, b] = REL.weddingAfter; let wd = d + a + Math.floor(u01(this.seed, S.ev, pr.a, pr.b, d) * (b - a)); while (festivalOn(this.seed, wd)) wd++; pr.wedDay = wd;
     const e = this.ev(d, 'betroth', pr, man, woman, 'the families agree: a bride-gift to her house, a dowry to go with her');
-    const gift = REL.bridewealth[this.wealth(hm)]; if (gift && hm !== hw) this.intent({ kind: 'trade', from: `h:${hm}`, to: `h:${hw}`, day: d, payload: { cash: gift, src: 'relations', what: 'bride-gift', ev: e.id } });
+    const gift = REL.bridewealth[this.wealth(hm)]; if (gift && hm !== hw) this.pay('trade', { day: d, kind: 'betrothal', what: 'bride-gift', from: hm, to: hw, amt: gift, ev: e.id, key: key(pr.a, pr.b) });
   }
   private wedding(pr: Pair) {
     const d = pr.wedDay, woman = this.sexOf(pr.a) === 'f' ? pr.a : pr.b, man = woman === pr.a ? pr.b : pr.a;
@@ -299,7 +359,7 @@ export class Relations {
     const hw = woman === PLAYER ? this.homeOf(man, d) : this.homeOf(woman, d), hm = man === PLAYER ? hw : this.homeOf(man, d); // (the stranger has no house: he or she joins the spouse's)
     const e = this.ev(d, 'wed', pr, man, woman, 'married: she goes to his house with her dowry');
     if (man === PLAYER || woman === PLAYER) this.move(PLAYER, d, man === PLAYER ? hw : hm);
-    else if (hm !== hw) { this.move(woman, d, hm); if (this.opts.joinPop) this.joined += this.pop.addWedding(woman, man, d, hm) ? 1 : 0; const dw = REL.dowry[this.wealth(hw)]; if (dw) this.intent({ kind: 'help', from: `h:${hw}`, to: `h:${hm}`, day: d, payload: { cash: dw, src: 'relations', what: 'dowry', ev: e.id } }); }
+    else if (hm !== hw) { this.move(woman, d, hm); if (this.opts.joinPop) this.joined += this.pop.addWedding(woman, man, d, hm) ? 1 : 0; const dw = REL.dowry[this.wealth(hw)]; if (dw) this.pay('help', { day: d, kind: 'wedding', what: 'dowry', from: hw, to: hm, amt: dw, ev: e.id, key: key(pr.a, pr.b) }); }
   }
   private divorce(pr: Pair, d: number) {
     const P = this.pop, woman = this.sexOf(pr.a) === 'f' ? pr.a : pr.b, man = woman === pr.a ? pr.b : pr.a;
@@ -310,7 +370,7 @@ export class Relations {
     if (woman === PLAYER || man === PLAYER) return;
     const hNow = this.homeOf(woman, d), W = P.persons[woman], back = W.hh !== hNow ? W.hh : (P.households[hNow].kin[0] ?? -1);
     if (back >= 0 && P.households[back]) this.move(woman, d, back);
-    if (!hers && back >= 0) this.intent({ kind: 'help', from: `h:${hNow}`, to: `h:${back}`, day: d, payload: { cash: REL.divorceSilver, src: 'relations', what: 'divorce silver', ev: e.id } });
+    if (!hers && back >= 0 && back !== hNow) this.pay('help', { day: d, kind: 'divorce', what: 'divorce silver', from: hNow, to: back, amt: REL.divorceSilver, ev: e.id, key: key(pr.a, pr.b) });
     this.scandal(d, [man, woman], e.id, 'the divorce');
   }
   private affairWeek(pr: Pair, K: number, w: number, d: number) {

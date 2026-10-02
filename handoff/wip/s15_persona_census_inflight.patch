@@ -1,0 +1,685 @@
+diff --git a/src/people/converse/life.ts b/src/people/converse/life.ts
+index ee9a0fa0..b72a7f89 100644
+--- a/src/people/converse/life.ts
++++ b/src/people/converse/life.ts
+@@ -14,6 +14,7 @@ import { Rng } from '../../core/rng';
+ import { pastOf, pastWords } from '../history';
+ import { aimsOf } from '../aims';
+ import type { Economy } from '../economy/world';
++import { personaOf } from '../persona';
+ 
+ export interface Kin { pid: number; name: string; rel: string; age: number; job: string; alive: boolean }
+ export interface LifeRecord {
+@@ -119,12 +120,6 @@ function relOf(pop: Population, me: Person, o: Person, members: number[]): strin
+   return m ? 'kinsman of the house' : 'kinswoman of the house';
+ }
+ 
+-const TEMPER = [
+-  ['quiet and wary of strangers', 'slow to speak, careful with words'], ['patient and dry', 'answers briefly, sometimes with a dry joke'],
+-  ['warm and talkative', 'likes to talk about the family and the neighbours'], ['proud of the work', 'talks about the work, exact about measures and names'],
+-  ['anxious', 'worries aloud about rations, weather and the sick'], ['cheerful', 'quick to laugh, teases'], ['pious', 'swears by the gods and gives thanks often'],
+-  ['blunt and impatient', 'short answers, wants to get back to work'], ['curious about strangers', 'asks the stranger where they come from'],
+-];
+ const OATHS: Record<string, string[]> = {
+   Persian: ['by Auramazda', 'the gods willing'], Median: ['by Auramazda', 'by the gods'], Elamite: ['by Humban', 'by Napiriša'],
+   Babylonian: ['by Marduk', 'by Nabû'], Syrian: ['by Hadad', 'by the gods'], Egyptian: ['by Ptah', 'by Amun'], Ionian: ['by Zeus', 'by the gods'],
+@@ -178,10 +173,11 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
+   // absent father's name drawn once per mother); A for the practice in the Babylonian and Persepolis documents, C for the father
+   const byname = bynameOf(pop, pid, day, household.find(k => k.rel === 'father')?.pid ?? -1);
+   if (real) debts = real.debts; // (the seeded draws are still made: the speech and oath draws after them stay as they were)
+-  const [temper, habit] = TEMPER[Math.min(TEMPER.length - 1, Math.floor(p.trait * TEMPER.length))];
++  // D-382: the person's own facets (persona.ts, its own seeded stream: the draws of `r` here are unchanged)
++  const P = personaOf(pop, pid, day), temper = P.temperament;
+   const oaths = OATHS[p.origin] ?? ['by the gods'];
+-  const speech = [habit, `oath: “${oaths[Math.floor(r.next() * oaths.length)]}”`, age < 13 ? 'speaks like a child: short, plain, about play, family and food' : age > 55 ? 'speaks slowly, remembers older days under the king’s father' : r.next() < 0.5 ? 'plain speech of the town' : 'plain speech, some words of the work',
+-    p.job === 'official' || p.job === 'scribe' ? 'formal, uses titles' : 'addresses the stranger as “stranger” or “friend”'];
++  const speech = [P.speech, `oath: “${oaths[Math.floor(r.next() * oaths.length)]}”`, age < 13 ? 'speaks like a child: short, plain, about play, family and food' : age > 55 ? 'speaks slowly, remembers older days under the king’s father' : r.next() < 0.5 ? 'plain speech of the town' : 'plain speech, some words of the work',
++    p.job === 'official' || p.job === 'scribe' ? 'formal, uses titles' : 'addresses the stranger as “stranger” or “friend”', `dislikes ${P.dislike}`];
+   // today (the plan is the simulation's; the reason words are its own English, out of world)
+   const C = cal.ctx(day); const dt = dateOf(day); const M = MONTHS[dt.month - 1];
+   const segs: Seg[] = pop.present(pid, day) ? pop.plan(pid, day) : [];
+diff --git a/src/people/history.ts b/src/people/history.ts
+index 9fd3c85a..72260851 100644
+--- a/src/people/history.ts
++++ b/src/people/history.ts
+@@ -18,13 +18,15 @@
+ import type { Population, Person } from './population';
+ import { h32, u01, salt } from './hash';
+ 
+-const S = { born: salt('past-born'), kids: salt('past-kids'), lost: salt('past-lost'), work: salt('past-work'), inc: salt('past-inc'), town: salt('past-town'), war: salt('past-war'), par: salt('past-par'), wed: salt('past-wed') };
+-export interface PastEvent { ago: number; text: string; tier: 'A' | 'B' | 'C'; kind: 'realm' | 'town' | 'birth' | 'family' | 'work' | 'incident' | 'loss' }
++const S = { impair: salt('popview-impair'), kid: salt('past-kid'), sib: salt('past-sib'), born: salt('past-born'), kids: salt('past-kids'), lost: salt('past-lost'), work: salt('past-work'), inc: salt('past-inc'), town: salt('past-town'), war: salt('past-war'), par: salt('past-par'), wed: salt('past-wed') };
++/** the event kinds, locked (T-E3r's anti-proxy: sequences are compared by these; never split them finer to pass) */
++export const EVENT_KINDS = ['realm', 'town', 'birth', 'family', 'work', 'incident', 'loss'] as const;
++export interface PastEvent { ago: number; text: string; tier: 'A' | 'B' | 'C'; kind: typeof EVENT_KINDS[number] }
+ export interface KinLike { pid: number; rel: string; age: number }
+ 
+ /** the realm's years before 467 (years ago), and who lived them (A/B: Herodotus, the Babylonian chronicles and tablets, the
+  *  Persepolis building sequence; the exact year of the Babylonian risings is 484, B) */
+-const REALM: { ago: number; text: string; tier: 'A' | 'B'; who: (p: Person, age: number) => boolean; lived?: (p: Person) => string | null }[] = [
++export const REALM: { ago: number; text: string; tier: 'A' | 'B'; who: (p: Person, age: number) => boolean; lived?: (p: Person) => string | null }[] = [
+   { ago: 19, tier: 'A', text: 'the death of the old king Dārayavauš and the accession of Xšayāršā', who: (_p, a) => a >= 26 },
+   { ago: 18, tier: 'B', text: 'the rising in Egypt put down by the king\'s brother', who: (p, a) => a >= 28 && (p.origin === 'Egyptian' || p.job === 'guard'),
+     lived: p => p.origin === 'Egyptian' ? 'the soldiers coming through the towns of the river after the rising in Egypt' : null },
+@@ -60,12 +62,31 @@ const WORK: Record<string, (p: Person, own: number) => string | null> = {
+   treasury: (_p, o) => `came to the Treasury\'s work ${o} years ago`, weaver: (_p, o) => `has woven in the work group for ${o} years`,
+   homemaker: () => null, child: () => null, elder: () => null,
+ };
++/** the jobs of the king's works at Pārsa itself: begun only after coming to Pārsa (D-390) */
++const PARSA_WORK = new Set(['builder', 'guard', 'porter', 'official', 'treasury', 'weaver']);
++/** popview's lasting lameness (IMPAIR.lame, D-215), mirrored here so the draw stays the same; the census checks they agree */
++const LAME = { share: 0.006, ages: [22, 60] as [number, number] };
++const LAMED = ['was lamed for life when a wall he was raising came down on his leg', 'was lamed for life by a fall from a roof', 'was lamed for life when an ox trampled him at the threshing', 'was lamed for life when a loaded cart went over his foot'];
++const CHILDHOOD = ['was lost a whole afternoon in the lanes and found by a neighbour', 'was bitten by a dog in the lane', 'had a fever one winter', 'saw the king\'s horses go up to the Terrace',
++  'fell from the roof and cut the head open', 'was scalded at the hearth and carries the mark', 'had a tooth knocked out at play', 'followed a caravan out past the last houses and was fetched back',
++  'nearly drowned in the channel and was pulled out by an older child', 'found a lost kid of the flock in the hills', 'was stung by a scorpion under a stone', 'broke a jar of oil and was beaten for it'];
++const FIRST_TASK = { m: [['mind the goats with the older boys', 'scare the birds off the sown fields', 'carry water to the men in the fields'], ['run errands to the market for the house', 'fetch water from the well', 'carry bread to the father at work']],
++  f: [['carry water from the well in a small jar', 'gather dung for the hearth', 'mind the little ones while the mother worked'], ['help at the quern', 'fetch water from the well', 'spin with a small spindle']] };
++const SIBLING: [string, PastEvent['kind']][] = [['a sister was married into a house of another village', 'family'], ['a brother went away with a work group and was not seen again', 'loss'], ['a brother died of a fever', 'loss'],
++  ['a sister died in childbirth', 'loss'], ['a brother was married, and the families feasted', 'family'], ['a sister came home widowed with her children', 'family']];
++/** the husband of a woman in the population, when he lives in her house (mirrors life.ts spouseIn) */
++function husbandOf(pop: Population, w: number, day: number): number {
++  const me = pop.persons[w], H = pop.households[pop.home(w, day)]; if (!H) return -1; const mem = H.members.filter(x => pop.home(x, day) === H.id && pop.persons[x].dies > day);
++  if (me.spouse !== undefined && mem.includes(me.spouse)) return me.spouse; if (me.kin || me.age < 16 || !me.wife) return -1;
++  const c = mem.filter(x => { const o = pop.persons[x]; return x !== w && o.sex === 'm' && o.age >= 16 && !o.kin && o.mother !== w && me.mother !== x && Math.abs(o.age - me.age) < 22; }); return c.length ? c[0] : -1;
++}
+ const pick = <T>(xs: T[], u: number) => xs[Math.min(xs.length - 1, Math.floor(u * xs.length))];
+ 
+-/** the town's own remembered years for a world seed (C): 3 of them in the last 30 years */
++/** the town's own remembered years for a world seed (C): 3 of them in the last 30 years, one in each third (D-390: never two in
++ *  one year, nor all three in the last few) */
+ export function townYears(seed: number): { ago: number; text: string }[] {
+   const out: { ago: number; text: string }[] = [], used = new Set<number>();
+-  for (let k = 0; out.length < 3 && k < 12; k++) { const i = h32(seed, S.town, k) % TOWN_YEARS.length; if (used.has(i)) continue; used.add(i); out.push({ ago: 2 + (h32(seed, S.town, k, 1) % 28), text: TOWN_YEARS[i] }); }
++  for (let k = 0; out.length < 3 && k < 12; k++) { const i = h32(seed, S.town, k) % TOWN_YEARS.length; if (used.has(i)) continue; used.add(i); out.push({ ago: 2 + 9 * out.length + (h32(seed, S.town, k, 1) % 9), text: TOWN_YEARS[i] }); }
+   return out.sort((a, b) => a.ago - b.ago);
+ }
+ 
+@@ -78,15 +99,20 @@ export function pastOf(pop: Population, pid: number, day: number, kin: KinLike[]
+   const places = BIRTHPLACE[p.origin] ?? ['a land far to the west']; const here = p.persian && p.zone !== 'transient' && u(1) < 0.6;
+   out.push({ ago: age, text: here ? `born ${p.zone === 'plain' ? 'in this village' : 'in the town below the Terrace'}` : `born in ${pick(places, u(2))}`, tier: 'C', kind: 'birth' });
+   // how they came here (a work group's, a traveller's arrival: the sim's own day when it is this year)
+-  if (!here && p.group >= 0 && p.arrive <= 0 && age >= 16) { const yrs = 1 + Math.floor(u(3) * Math.min(15, age - 14)); out.push({ ago: yrs, text: `came to Pārsa with a work group sent from ${pick(places, u(2))}`, tier: 'C', kind: 'work' }); }
+-  else if (!here && p.zone !== 'transient' && age >= 18 && p.arrive <= 0) { const yrs = 1 + Math.floor(u(4) * Math.min(25, age - 15)); out.push({ ago: yrs, text: p.persian ? 'moved down to Pārsa from the family\'s old village' : 'came to Pārsa for the king\'s work and stayed', tier: 'C', kind: 'work' }); }
++  let arrived = Infinity;
++  if (!here && p.group >= 0 && p.arrive <= 0 && age >= 16) { const yrs = arrived = 1 + Math.floor(u(3) * Math.min(15, age - 14)); out.push({ ago: yrs, text: `came to Pārsa with a work group sent from ${pick(places, u(2))}`, tier: 'C', kind: 'work' }); }
++  else if (!here && p.zone !== 'transient' && age >= 18 && p.arrive <= 0) { const yrs = arrived = 1 + Math.floor(u(4) * Math.min(25, age - 15)); out.push({ ago: yrs, text: p.persian ? 'moved down to Pārsa from the family\'s old village' : 'came to Pārsa for the king\'s work and stayed', tier: 'C', kind: 'work' }); }
+   // parents: in the house (the sim's own), else dead or far (C: by age)
+   const mother = kin.find(k => k.rel === 'mother'), father = kin.find(k => k.rel === 'father');
+   // (keyed by the mother, so brothers and sisters remember the same deaths in the same years; by the eldest of them for the odds)
+-  const pk = p.mother >= 0 ? 7_000_000 + p.mother : pid, eldest = p.mother >= 0 ? Math.max(age, ...pop.childrenOf(p.mother).map(c => pop.ageOn(c, day))) : age;
+-  if (age >= 20) for (const [rel, inHouse, k] of [['father', !!father, 5], ['mother', !!mother, 6]] as const) {
++  // (D-390: a mother in the population was alive when the year began, and so is a father living with her: neither died before
++  // it; a parent's death is never before the birth of the youngest of the mother's children, a father's at most a year before)
++  const sibs = p.mother >= 0 ? pop.childrenOf(p.mother).filter(c => pop.persons[c].born <= day).map(c => pop.ageOn(c, day)) : [];
++  const pk = p.mother >= 0 ? 7_000_000 + p.mother : pid, eldest = Math.max(age, ...sibs), youngest = Math.min(age, ...sibs);
++  const fatherLives = p.mother >= 0 && husbandOf(pop, p.mother, day) >= 0;
++  if (age >= 20) for (const [rel, inHouse, k] of [['father', !!father || fatherLives, 5], ['mother', !!mother || p.mother >= 0, 6]] as const) {
+     if (inHouse) continue; const alive = u01(seed, S.par, pk, k) < Math.max(0, 0.9 - eldest / 70);
+-    if (!alive) { const ago = Math.max(1, Math.floor(u01(seed, S.par, pk, k + 10) * Math.min(eldest - 10, 30))); if (ago < age) out.push({ ago, text: `${rel === 'father' ? 'the father' : 'the mother'} died`, tier: 'C', kind: 'loss' }); }
++    if (!alive) { const ago = Math.max(1, Math.floor(u01(seed, S.par, pk, k + 10) * Math.min(eldest - 10, 30, youngest + (rel === 'father' ? 1 : 0)))); if (ago < age) out.push({ ago, text: `${rel === 'father' ? 'the father' : 'the mother'} died`, tier: 'C', kind: 'loss' }); }
+   }
+   // marriage and children: from the house's real children (their ages bind the marriage), plus children lost young and grown children married away
+   const spouse = kin.find(k => k.rel === 'wife' || k.rel === 'husband');
+@@ -96,12 +122,14 @@ export function pastOf(pop: Population, pid: number, day: number, kin: KinLike[]
+     const ck = Math.min(pid, spouse.pid), uc = (k: number, s: number) => u01(seed, s, ck, k);
+     // (the couple's children counted the same from either side: members of the house who are the wife's, or of the children's
+     // generation, at least fourteen years younger than the younger of the two)
+-    const wife = p.sex === 'f' ? pid : spouse.pid, young = Math.min(age, spouse.age), H = pop.households[pop.home(pid, day)];
+-    const coupleKids = (H?.members ?? []).filter(m => m !== pid && m !== spouse.pid && pop.present(m, day) && (pop.persons[m].mother === wife || ((pop.persons[m].kin || pop.persons[m].job === 'child') && pop.ageOn(m, day) <= young - 14))).map(m => pop.ageOn(m, day));
+-    const eldestKid = Math.max(-1, ...coupleKids, ...kids.map(k => k.age));
+-    const minYrs = eldestKid >= 0 ? eldestKid + 1 : 0, maxYrs = Math.max(minYrs, young - 17);
+-    const wed = Math.max(minYrs, Math.min(maxYrs, minYrs + Math.floor(uc(1, S.wed) * 4)));
+-    if (wed > 0) out.push({ ago: wed, text: `married ${spouse.rel === 'wife' ? 'his wife' : 'her husband'}`, tier: 'C', kind: 'family' });
++    // (D-390: the same children from either side: every child either spouse counts as a son or daughter of the house, so the
++    // couple's marriage is one year; when the eldest is too old for the younger spouse to be a parent, a second marriage)
++    const wife = p.sex === 'f' ? pid : spouse.pid, young = Math.min(age, spouse.age), hid = pop.home(pid, day), H = pop.households[hid], olderP = Math.max(p.age, pop.persons[spouse.pid].age);
++    const coupleKids = [...new Set([...(H?.members ?? []), ...(H?.joins ?? [])])].filter(m => { const o = pop.persons[m]; return m !== pid && m !== spouse.pid && pop.home(m, day) === hid && o.born <= day && o.dies > day && o.arrive <= day && (o.mother === wife || ((!!o.kin || o.job === 'child') && o.age <= olderP - 13)); }).map(m => pop.ageOn(m, day));
++    const eldestKid = Math.max(-1, ...coupleKids, ...kids.map(k => k.age)), again = eldestKid + 1 > young - 14;
++    const minYrs = eldestKid >= 0 && !again ? eldestKid + 1 : 0, maxYrs = Math.max(minYrs, young - 17);
++    const wed = again ? Math.max(1, Math.min(young - 16, 1 + Math.floor(uc(1, S.wed) * Math.max(1, young - 17)))) : Math.max(minYrs, Math.min(maxYrs, minYrs + Math.floor(uc(1, S.wed) * 4)));
++    if (wed > 0) out.push({ ago: wed, text: again ? 'married again, after a first marriage ended in a death, and the children came into one house' : `married ${spouse.rel === 'wife' ? 'his wife' : 'her husband'}`, tier: 'C', kind: 'family' });
+     for (const c of kids) if (c.age < wed) out.push({ ago: c.age, text: `a ${c.rel} was born`, tier: 'C', kind: 'family' });
+     // children lost young: about a third of births before five (C); one or two remembered
+     const span = Math.max(0, wed - 1), lost = span >= 2 ? Math.min(3, Math.floor(uc(1, S.lost) * (1 + span / 6))) : 0;
+@@ -110,7 +138,7 @@ export function pastOf(pop: Population, pid: number, day: number, kin: KinLike[]
+     if (Math.min(age, spouse.age) >= 38 && wed >= 20) { const n = 1 + Math.floor(uc(2, S.kids) * 3); for (let i = 0; i < n; i++) { const yrs = Math.max(1, Math.floor(uc(3 + i, S.kids) * (wed - 18))); out.push({ ago: yrs, text: `married off a ${uc(9 + i, S.kids) < 0.5 ? 'daughter to a house of the quarter' : 'son, who set up his own house'}`, tier: 'C', kind: 'family' }); } }
+   } else if (!spouse && age >= 30 && p.sex === 'f' && u(5, S.wed) < 0.6) out.push({ ago: Math.max(1, Math.floor(u(6, S.wed) * (age - 20))), text: 'was widowed', tier: 'C', kind: 'loss' });
+   // work
+-  const own = Math.max(1, Math.min(age - 14, 1 + Math.floor(u(1, S.work) * 20)));
++  const own = Math.max(1, Math.min(age - 14, PARSA_WORK.has(p.job) ? arrived : Infinity, 1 + Math.floor(u(1, S.work) * 20)));
+   if (age >= 16) { const w = (WORK[p.job] ?? (() => null))(p, own); if (w) out.push({ ago: own, text: w, tier: 'C', kind: 'work' }); }
+   // the realm's years, as lived or remembered
+   for (const R of REALM) { if (!R.who(p, age)) continue; const lived = R.lived?.(p) ?? null;
+@@ -122,10 +150,21 @@ export function pastOf(pop: Population, pid: number, day: number, kin: KinLike[]
+   const local = here || p.zone === 'plain' || p.zone === 'town';
+   if (local) for (const T of townYears(seed)) if (T.ago < age - 4) out.push({ ago: T.ago, text: `lived through ${T.text}`, tier: 'C', kind: 'town' });
+   // one or two incidents of their own
+-  if (age >= 16) { const pool = [...(INCIDENTS[p.job] ?? []), ...INCIDENTS.any], n = 1 + (u(1, S.inc) < 0.4 ? 1 : 0);
++  // (D-390: one to three, by the person, at their own years: the four most recent events of two people rarely the same kinds)
++  if (age >= 16) { const pool = [...(INCIDENTS[p.job] ?? []), ...INCIDENTS.any], n = 1 + (u(1, S.inc) < 0.5 ? 1 : 0) + (age >= 28 && u(8, S.inc) < 0.35 ? 1 : 0);
+     for (let i = 0; i < n; i++) out.push({ ago: 1 + Math.floor(u(2 + i, S.inc) * Math.min(20, age - 15)), text: pick(pool, u(5 + i, S.inc)), tier: 'C', kind: 'incident' }); }
+-  // children: a little of their own
+-  if (age < 16 && age >= 6) out.push({ ago: Math.max(1, Math.floor(u(1, S.inc) * (age - 4))), text: pick(['was lost a whole afternoon in the lanes and found by a neighbour', 'was bitten by a dog in the lane', 'had a fever one winter', 'saw the king\'s horses go up to the Terrace'], u(2, S.inc)), tier: 'C', kind: 'incident' });
++  // D-390: a lasting lameness the street shows (popview impairOf, D-215: the same draw) has its cause in the past
++  if (p.sex === 'm' && p.agent < 0 && p.job !== 'guard' && p.job !== 'messenger' && age >= LAME.ages[0] && age <= LAME.ages[1] && h32(seed, S.impair, pid) / 4294967296 < LAME.share)
++    out.push({ ago: 1 + Math.floor(u(1, S.kid) * (age - 17)), text: pick(LAMED, u(2, S.kid)), tier: 'C', kind: 'incident' });
++  // D-390: a childhood of one's own (everyone of six and over remembers one thing of it; a child more): weaned, the younger
++  // brothers and sisters born (the population's own, by the mother), the first tasks, the scrapes
++  if (age >= 3 && age < 16) { const wean = 2 + (u(3, S.kid) < 0.5 ? 1 : 0); if (age - wean >= 1) out.push({ ago: age - wean, text: 'was weaned from the breast', tier: 'C', kind: 'family' }); }
++  if (age >= 6) { const at = 3 + Math.floor(u(4, S.kid) * Math.min(9, age - 4)); out.push({ ago: Math.max(1, age - at), text: pick(CHILDHOOD, u(5, S.kid)), tier: 'C', kind: 'incident' }); }
++  if (age >= 3 && age < 16) { out.push({ ago: age - 1, text: pick(['took the first steps', 'walked before the first year was out', 'was slow to walk, and the mother feared for it'], u(11, S.kid)), tier: 'C', kind: 'family' });
++    out.push({ ago: 1 + Math.floor(u(7, S.kid) * Math.min(age - 2, 6)), text: pick(CHILDHOOD, u(8, S.kid)), tier: 'C', kind: 'incident' }); }
++  if (age >= 7) { const first = 5 + Math.floor(u(9, S.kid) * 3), task = pick((p.sex === 'm' ? FIRST_TASK.m : FIRST_TASK.f)[p.zone === 'plain' ? 0 : 1], u(10, S.kid)); if (age - first >= 1) out.push({ ago: age - first, text: `began to ${task}`, tier: 'C', kind: 'work' }); }
++  if (p.mother >= 0) for (const c of pop.childrenOf(p.mother)) { const ca = pop.persons[c].born <= day ? pop.ageOn(c, day) : -1; if (c !== pid && ca >= 1 && ca < age) out.push({ ago: ca, text: `a ${pop.persons[c].sex === 'm' ? 'brother' : 'sister'} was born`, tier: 'C', kind: 'family' }); }
++  else if (age >= 18) { const n = Math.floor(u(1, S.sib) * 3); for (let i = 0; i < n; i++) { const e = pick(SIBLING, u(2 + i, S.sib)); out.push({ ago: 1 + Math.floor(u(5 + i, S.sib) * Math.min(25, age - 15)), text: e[0], tier: 'C', kind: e[1] }); } }
+   return out.filter(e => e.ago >= 1 && e.ago <= age).sort((a, b) => b.ago - a.ago);
+ }
+ 
+diff --git a/src/people/persona.ts b/src/people/persona.ts
+new file mode 100644
+index 00000000..453c5dbb
+--- /dev/null
++++ b/src/people/persona.ts
+@@ -0,0 +1,139 @@
++// D-382 (UD-08): a personality for everyone. A person is a set of independent facets drawn once from the world seed and the
++// person's id (warmth, talkativeness, humour, piety, curiosity about strangers, pride, worry, temper), plus a habit of speech,
++// a favourite subject (from their work, house, origin and age), a dislike and a small habit of the body while talking. The
++// population's own `trait` stays one axis: it picks the core temper in the same nine-way order as before (talk.ts reads that
++// order for how readily a person refuses a stranger), and the core pulls its matching facet up so the two never disagree.
++//
++// Tier C throughout: the facets are ordinary human variety; the subjects, habits and gestures are drawn from the life of a
++// Persian royal town of 467 (vines, barley, the king's horses, the road stations, the reign of the king's father). The words
++// are the model's brief (out of world): no modern idiom, nothing after 467, no digits.
++import type { Population } from './population';
++import { Rng } from '../core/rng';
++
++export type Humour = 'none' | 'dry' | 'teasing' | 'merry';
++export interface Persona {
++  /** 0..1 each; `trait` is the population's own number (the core temper's axis) */
++  trait: number; warmth: number; talk: number; humour: Humour; piety: number; curiosity: number; pride: number; worry: number; temper: number;
++  core: number; habit: string; subject: string; dislike: string; gesture: string;
++  /** the short manner: "<temper>, <two facets>" and "<habit>; talks most of <subject>; <gesture>" */
++  temperament: string; speech: string;
++}
++
++/** the nine core tempers, in the order talk.ts's TEMPER_REFUSE reads (wary, dry, warm, proud, anxious, cheerful, pious, blunt, curious) */
++const CORE: string[][] = [
++  ['quiet and wary of strangers', 'guarded with strangers', 'shy and slow to trust'],
++  ['patient and dry', 'unhurried and dry', 'calm, sparing with words'],
++  ['warm and talkative', 'open-hearted', 'friendly and easy'],
++  ['proud of the work', 'exacting about the work', 'serious about the craft'],
++  ['anxious', 'uneasy, quick to fear the worst', 'restless and fretful'],
++  ['cheerful', 'light-hearted', 'good-humoured'],
++  ['pious', 'devout', 'careful of the gods'],
++  ['blunt and impatient', 'brusque', 'short-tempered and plain'],
++  ['curious about strangers', 'eager for news', 'inquisitive'],
++];
++/** the facet each core pulls up (or, for the blunt, the temper; the wary, curiosity down) */
++const PULL: (keyof Persona | null)[] = ['curiosity', null, 'warmth', 'pride', 'worry', 'humour', 'piety', 'temper', 'curiosity'];
++
++const HAB_QUIET = ['answers in few words', 'leaves long pauses before answering', 'speaks low, as if someone might overhear', 'says little, then all at once', 'answers a question with a question', 'looks away while speaking'];
++const HAB_TALK = ['tells everything as a story', 'talks fast and loses the thread', 'calls on the neighbours as witnesses', 'repeats the stranger’s words before answering', 'gives every name and every kinsman', 'goes back to the start when interrupted'];
++const HAB_ANY = ['speaks in proverbs', 'counts things off on the fingers', 'laughs before answering', 'corrects the stranger’s words', 'ends with “is it not so?”', 'compares everything to the old days', 'puts every matter in measures and days'];
++const HAB_PIOUS = ['swears by the gods at every turn', 'thanks the gods for every good thing', 'touches the ground or the brow at a holy name'];
++const HAB_CHILD = ['asks the stranger questions back', 'speaks all in one breath', 'boasts about what the family has', 'repeats what the grown-ups say', 'goes shy, then talks fast', 'giggles behind a hand', 'tells things that did not quite happen'];
++const HAB_OLD = ['leaves long pauses before answering', 'speaks in proverbs', 'tells the same story twice', 'compares everything to the old days', 'calls the stranger “child”'];
++
++const SUBJ_JOB: Record<string, string[]> = {
++  farmer: ['the vines', 'the barley and the water in the channels', 'the sesame crop', 'the oxen and the ploughing', 'the rain and the year’s harvest'],
++  gardener: ['the vines', 'the fruit trees of the estate', 'the water channels and who takes too much', 'the pomegranates'],
++  groom: ['the king’s horses', 'a horse with a temper', 'the fodder and the stalls', 'the road and the stations along it'],
++  messenger: ['the road and the stations along it', 'the fast horses of the post', 'what is said in Šušan'],
++  shepherd: ['the flocks and the lambing', 'wolves in the hills', 'the summer pastures'], herder: ['the flocks and the summer pastures', 'the hill tracks', 'wolves and dogs'],
++  builder: ['the columns of the new hall', 'the stone and how it is cut', 'the overseer of the gang', 'the bricks and the rations'],
++  guard: ['the watches and the men of the file', 'spears and shields', 'the officers', 'the king’s visits'],
++  scribe: ['the tablets and the reckoning of rations', 'the signs and how they are written', 'the officials and their seals'],
++  official: ['the reckoning of rations', 'the seals and the orders', 'the court and its ways'], storekeeper: ['the stores and what comes in', 'the jars and measures'],
++  weaver: ['the wool and the dyes', 'the loom and the patterns', 'the rations of the women'], miller: ['the bread and the price of barley', 'the querns and the flour'],
++  brewer: ['the beer and the festivals', 'the dates and the barley for brewing'], camp: ['the bread and the price of barley', 'the gangs and their appetite'],
++  treasury: ['the fine work of the Treasury', 'the gold and the silver weighed', 'the skill of the hands'], priest: ['the offerings and the right days', 'the gods of the land', 'the old hymns'],
++  caretaker: ['the lamps and the oil', 'the great halls at night'], craftsman: ['the work of the hands', 'the tools and the trade'], servant: ['the master’s household', 'the kitchen and the stores'],
++  steward: ['the estate and its yields', 'the workers and their rations'], homemaker: ['the children and the neighbours', 'the bread and the price of barley', 'the spinning and the wool'],
++  traveller: ['the road and the towns along it', 'what is said in other lands'], elder: ['the old days under the king’s father', 'the house and its dead'], porter: ['the loads and the stair', 'the rations and the overseers'],
++};
++const SUBJ_CRAFT: Record<string, string[]> = { oil: ['the sesame and the oil press'], smith: ['the forge and the bronze'], stone: ['the stone and how it is cut'], brick: ['the bricks and the moulds'], sealcutter: ['the seals and their cutting'], shiner: ['the gold and its polish'] };
++const HOMELAND: Record<string, string> = { Median: 'Media', Elamite: 'Šušan and the lowlands', Babylonian: 'Babylon', Syrian: 'the land across the river', Egyptian: 'Egypt', Ionian: 'the sea coast of the Yauna',
++  Lydian: 'Sardis', Carian: 'Caria', Lycian: 'Lycia', Bactrian: 'Bactra', Sogdian: 'the Sogdian country', Thracian: 'Thrace', Cappadocian: 'Cappadocia' };
++const SUBJ_ANY = ['the price of barley', 'the year’s rain', 'the festivals', 'the neighbours’ doings', 'the king’s builders', 'dreams and their meaning', 'good food', 'the comings and goings on the road'];
++const SUBJ_CHILD = ['a game of knucklebones', 'the dogs of the lane', 'the donkeys', 'the honey cakes of the festival', 'a bird’s nest', 'the soldiers on the Terrace', 'the big boys’ games', 'a new lamb'];
++
++const DISLIKE = ['dust storms', 'being hurried', 'boasters', 'idle talk', 'the winter cold', 'flies in summer', 'quarrels in the lane', 'liars', 'waste of bread', 'the overseers’ shouting', 'debts left unpaid', 'mean neighbours', 'the heat of high summer', 'drunkenness'];
++const DISLIKE_CHILD = ['being sent for water', 'the dark', 'the big boys', 'bitter herbs', 'being kept in the house', 'a neighbour’s dog'];
++
++const GEST = ['shades the eyes', 'rubs the back of the neck', 'points with the chin', 'looks at the ground', 'touches the stranger’s arm', 'stands very close', 'turns a bead on a cord', 'keeps the hands busy', 'nods along', 'folds the arms'];
++const GEST_M = ['scratches his beard', 'tugs at his beard', 'hitches up his belt'];
++const GEST_F = ['wipes her hands on her apron', 'pulls her shawl closer', 'settles her head-cloth'];
++const GEST_JOB: Record<string, string[]> = { guard: ['leans on his spear'], builder: ['dusts the stone chips off', 'leans on the tool'], weaver: ['turns the spindle while talking'], scribe: ['rubs clay off the fingers'], farmer: ['leans on the hoe'], gardener: ['leans on the hoe'], groom: ['wipes the hands on the tunic'], miller: ['brushes flour off the arms'], camp: ['brushes flour off the arms'] };
++const GEST_CHILD = ['hops from foot to foot', 'twists the hem of the tunic', 'hides behind the door post', 'picks at a scab', 'stares at the stranger’s clothes'];
++const GEST_OLD = ['leans on a stick', 'peers closely', 'cups an ear'];
++
++const clamp = (x: number) => Math.max(0, Math.min(1, x));
++const pick = <T>(u: number, a: readonly T[]) => a[Math.min(a.length - 1, Math.floor(u * a.length))];
++/** a weighted pick over [weight, list] pairs, with one uniform number per pick so the draws stay fixed */
++function wpick(u: number, v: number, sets: [number, readonly string[]][]): string {
++  const live = sets.filter(s => s[0] > 0 && s[1].length); let w = live.reduce((a, s) => a + s[0], 0) * u;
++  for (const s of live) { if ((w -= s[0]) < 0) return pick(v, s[1]); }
++  return pick(v, live[live.length - 1][1]);
++}
++
++/** the persona of person `pid` (its age, house and work as on `day`; facets are fixed per person and world seed) */
++export function personaOf(pop: Population, pid: number, day: number): Persona {
++  const p = pop.persons[pid], age = pop.ageOn(pid, day), child = age < 13, old = age > 55, male = p.sex === 'm';
++  const r = new Rng((Math.imul(pop.seed >>> 0, 2654435761) ^ (pid * 40503 + 17)) >>> 0, 'persona');
++  // every draw first, in a fixed order, so no choice below shifts another facet
++  const u = Array.from({ length: 22 }, () => r.next());
++  const core = Math.min(CORE.length - 1, Math.floor(p.trait * CORE.length));
++  const kids = pop.childrenOf(pid).filter(c => pop.persons[c].dies > day && pop.persons[c].born <= day);
++  const smallKids = kids.filter(c => pop.ageOn(c, day) < 6).length, farKids = kids.filter(c => pop.ageOn(c, day) >= 16 && pop.home(c, day) !== pop.home(pid, day));
++  const F = {
++    warmth: clamp(u[0] + (child ? 0.1 : 0)), talk: clamp(u[1] + (child ? 0.15 : 0) - (p.job === 'guard' || p.job === 'scribe' ? 0.1 : 0)),
++    piety: clamp(u[2] + (p.job === 'priest' ? 0.4 : 0) + (old ? 0.2 : 0) - (child ? 0.2 : 0)),
++    curiosity: clamp(u[3] + (age < 25 ? 0.2 : 0) + (p.job === 'traveller' || p.job === 'messenger' ? 0.15 : 0) - (old ? 0.1 : 0)),
++    pride: clamp(u[4] + (p.rank > 0 || p.job === 'treasury' || p.job === 'official' ? 0.2 : 0)), worry: clamp(u[5] + (smallKids ? 0.15 : 0) - (child ? 0.2 : 0)),
++    temper: clamp(u[6] - (old ? 0.1 : 0)),
++  };
++  const humourU = u[7];
++  // the core pulls its facet up (or the wary's curiosity down), so the line never contradicts itself
++  const pull = PULL[core];
++  if (core === 0) F.curiosity = Math.min(F.curiosity, 0.3);
++  else if (pull && pull !== 'humour') (F as any)[pull] = Math.max((F as any)[pull], 0.75);
++  const humour: Humour = core === 5 ? (humourU < 0.5 ? 'merry' : 'teasing') : core === 1 ? 'dry' : humourU < 0.35 ? 'none' : humourU < 0.6 ? 'dry' : humourU < 0.85 ? 'teasing' : 'merry';
++  // two more facets, the strongest that differ from the core's own (the order breaks ties; a seeded jitter keeps it from one rank)
++  const adj: [number, string][] = [
++    [Math.abs(F.warmth - 0.5) + u[8] * 0.15, F.warmth > 0.5 ? (core === 2 ? '' : 'kindly') : 'cool with people'],
++    [Math.abs(F.temper - 0.5) + u[9] * 0.15, F.temper > 0.5 ? (core === 7 ? '' : 'quick to anger') : 'slow to anger'],
++    [Math.abs(F.pride - 0.5) + u[10] * 0.15, F.pride > 0.5 ? (core === 3 ? '' : child ? 'proud of the family' : 'proud of the house') : 'humble'],
++    [Math.abs(F.worry - 0.5) + u[11] * 0.15, F.worry > 0.5 ? (core === 4 ? '' : 'a worrier') : 'carefree'],
++    [Math.abs(F.piety - 0.5) + u[12] * 0.15, F.piety > 0.5 ? (core === 6 ? '' : 'god-fearing') : 'easy about the gods'],
++    [Math.abs(F.curiosity - 0.5) + u[13] * 0.15, F.curiosity > 0.5 ? (core === 8 ? '' : 'curious') : core === 0 ? '' : 'incurious'],
++    [humour === 'none' ? 0.25 + u[14] * 0.15 : 0.3 + u[14] * 0.2, core === 5 || core === 1 ? '' : humour === 'none' ? 'humourless' : humour === 'dry' ? 'with a dry wit' : humour === 'teasing' ? 'a teaser' : 'given to laughter'],
++  ];
++  const two = adj.filter(a => a[1]).sort((a, b) => b[0] - a[0]).slice(0, 2).map(a => a[1]);
++  // the habit of speech: the talkative and the quiet each have their own; the pious swear; children and the old their own way
++  const habit = child ? pick(u[16], HAB_CHILD) : wpick(u[16], u[17], [[F.talk < 0.4 ? 3 : 0.5, HAB_QUIET], [F.talk > 0.6 ? 3 : 0.5, HAB_TALK], [2, HAB_ANY], [F.piety > 0.7 ? 2.5 : 0, HAB_PIOUS], [old ? 3 : 0, HAB_OLD], [humour === 'merry' ? 1.5 : 0, ['laughs before answering', 'makes a joke of everything']]]);
++  // the favourite subject: the work first, then the house, the homeland, the old days, and the town's common talk
++  const jobS = [...(SUBJ_CRAFT[p.sub] ?? []), ...(SUBJ_JOB[p.job] ?? [])];
++  const homeS = HOMELAND[p.origin] ? [`home in ${HOMELAND[p.origin]}`, `the food of ${HOMELAND[p.origin]}`] : [];
++  const famS = [...(farKids.length ? [`a ${pop.persons[farKids[0]].sex === 'm' ? 'son' : 'daughter'} in another house`] : []), ...(smallKids ? ['the little ones of the house'] : []), ...(kids.length > 2 ? ['the children and their marriages'] : [])];
++  const subject = child ? wpick(u[18], u[19], [[4, SUBJ_CHILD], [p.job === 'child' && homeS.length ? 1 : 0, homeS], [1, ['the baby of the house', 'what the father brings home']]])
++    : wpick(u[18], u[19], [[5, jobS], [famS.length ? 2 : 0, famS], [homeS.length ? 2 : 0, homeS], [old ? 3 : 0, ['the old days under the king’s father', 'the building of the Terrace when it was new', 'the dead of the house']], [1.5, SUBJ_ANY]]);
++  const dislike = child ? pick(u[20], DISLIKE_CHILD) : pick(u[20], DISLIKE);
++  const gesture = child ? pick(u[21], GEST_CHILD) : wpick(u[21], (u[21] * 7.31) % 1, [[3, GEST], [male && age >= 18 ? 1.5 : 0, GEST_M], [!male ? 1.5 : 0, GEST_F], [GEST_JOB[p.job] ? 1.5 : 0, GEST_JOB[p.job] ?? []], [old ? 2 : 0, GEST_OLD]]);
++  // the short brief's budget (~450 tokens): the manner stays near the old line's length (<= 27 words before the oath)
++  const words = (x: string) => x.split(/\s+/).length, base = pick(u[15], CORE[core]);
++  let temperament = `${base}, ${two.join(' and ')}`, speech = `${habit}; talks most of ${subject}; ${gesture}`;
++  if (words(temperament) + words(speech) > 27) temperament = `${base}, ${two[0]}`;
++  if (words(temperament) + words(speech) > 27) speech = `${habit}; talks of ${subject}; ${gesture}`;
++  if (words(temperament) + words(speech) > 27) speech = `${habit}; talks of ${subject}`;
++  return { trait: p.trait, ...F, humour, core, habit, subject, dislike, gesture, temperament, speech };
++}
++
++/** the manner line as the short brief gives it, without the oath */
++export const mannerOf = (P: Persona) => `${P.temperament}; ${P.speech}`;
+diff --git a/tests/person_census.test.ts b/tests/person_census.test.ts
+new file mode 100644
+index 00000000..102b5eab
+--- /dev/null
++++ b/tests/person_census.test.ts
+@@ -0,0 +1,58 @@
++// D-390: the person census (tools/dev/person_census.ts) for T-E2, T-E2h, T-E3, T-E3r, T-E3v on 3 seeds. The thresholds stay as
++// written in gates/thresholds.json; this test measures and prints each value against its line and asserts only what is
++// built (determinism, the checks themselves, the kinds locked), like tests/emergence.test.ts. It writes no evidence file.
++import { describe, it, expect } from 'vitest';
++import { Population } from '../src/people/population';
++import { EventCalendar } from '../src/people/calendar';
++import { lifeRecord } from '../src/people/converse/life';
++import { systemPrompt } from '../src/people/converse/prompt';
++import { pastOf, EVENT_KINDS } from '../src/people/history';
++import { nameCensus, historyCensus, traceCensus, nameRoot, sameRoot, kinOf, checkPast } from '../tools/dev/person_census';
++import TH from '../gates/thresholds.json';
++
++const SEEDS = [1, 7, 42], DAY = 150, N_TRACE = 200;
++const line = (id: string) => { const t = ((TH as any).thresholds ?? TH as any).find((x: any) => x.id === id); return `${t.op} ${t.value} ${t.unit}`; };
++const out = (s: string) => process.stdout.write(s + '\n');
++const pct = (x: number) => +(100 * x).toFixed(2);
++
++describe('D-390 the person census', () => {
++  it('names are compared by root: diacritics, asterisks, doubled letters and one letter apart', () => {
++    expect(nameRoot('*Ašbatašda')).toBe(nameRoot('Asbatasda')); expect(nameRoot('Iršanna')).toBe(nameRoot('Irsana'));
++    expect(sameRoot(nameRoot('Mardonda'), nameRoot('Mardunda'))).toBe(true); expect(sameRoot(nameRoot('Bakabana'), nameRoot('Bakabada'))).toBe(true);
++    expect(sameRoot(nameRoot('Bakabana'), nameRoot('Irdabama'))).toBe(false);
++  });
++  it('the event kinds are the locked list (T-E3r anti-proxy)', () => {
++    expect([...EVENT_KINDS]).toEqual(['realm', 'town', 'birth', 'family', 'work', 'incident', 'loss']);
++  });
++  it('the consistency check catches what it names (a planted past)', () => {
++    const pop = new Population(1), pid = pop.persons.find(p => pop.present(p.id, DAY) && pop.ageOn(p.id, DAY) === 30 && p.sex === 'm')!.id, kin = kinOf(pop, pid, DAY);
++    const bad = checkPast(pop, pid, DAY, [{ ago: 0, text: 'x', tier: 'C', kind: 'incident' }, { ago: 40, text: 'y', tier: 'C', kind: 'incident' }, { ago: 7, text: 'remembers z', tier: 'A', kind: 'realm' },
++      { ago: 25, text: 'married his wife', tier: 'C', kind: 'family' }], kin, { sibs: new Map(), spouse: null }, 1);
++    for (const r of ['after-archive', 'before-birth', 'realm-date', 'too-young']) expect(bad).toContain(r);
++  });
++  const res: any[] = [];
++  for (const seed of SEEDS) it(`seed ${seed}: the whole population on day ${DAY}`, () => {
++    const pop = new Population(seed);
++    const cal = new EventCalendar(seed, pop, () => ({ rain: 0, lightning: 0, windMs: 2, tempC: 20, dust: 0 }) as any); pop.attach(cal);
++    const N = nameCensus(pop, DAY), H = historyCensus(pop, DAY);
++    const T = traceCensus(pop, DAY, N_TRACE, pid => /^Before this year: /m.test(systemPrompt(lifeRecord(pop, cal, pid, DAY, 12), 'none')));
++    res.push({ seed, N, H, T });
++    // what is built: deterministic, every person counted, the past never after the archive's last year
++    const pid = pop.persons.find(p => pop.present(p.id, DAY) && pop.ageOn(p.id, DAY) > 40)!.id;
++    expect(JSON.stringify(pastOf(pop, pid, DAY, kinOf(pop, pid, DAY)))).toBe(JSON.stringify(pastOf(pop, pid, DAY, kinOf(pop, pid, DAY))));
++    expect(H.n).toBeGreaterThan(30000); expect(H.byRule['after-archive'] ?? 0).toBe(0); expect(N.groups.length).toBeGreaterThan(0);
++  }, 600_000);
++  it('prints each value against its line', () => {
++    const worst = (f: (r: any) => number, hi: boolean) => (hi ? Math.max : Math.min)(...res.map(f));
++    out(`[census] T-E2  largest name share in a (sex, origin) group > 2000: ${pct(worst(r => r.N.worst, true))} % (line ${line('T-E2')}); per seed ${res.map(r => `${r.seed}: ${pct(r.N.worst)} % ${r.N.worstGroup}`).join(', ')}`);
++    for (const g of res[0].N.groups) out(`[census]   seed 1 ${g.key} n ${g.n} unnamed ${g.unnamed}: ${g.top.map((t: any) => `${t.name}${t.attested ? '' : ' (recalled)'} ${pct(t.share)} %`).join(', ')}`);
++    out(`[census] T-E2h household members sharing a name by root: ${worst(r => r.N.sameHouse, true)} (line ${line('T-E2h')}); per seed ${res.map(r => `${r.seed}: ${r.N.sameHouse} ${JSON.stringify(r.N.sameHouseByRel)}`).join('; ')}`);
++    out(`[census]   e.g. ${res[0].N.examples.slice(0, 3).join(' | ')}`);
++    out(`[census] T-E3  people with >= 5 consistent events: ${pct(worst(r => r.H.share, false))} % (line ${line('T-E3')}); per seed ${res.map(r => `${r.seed}: ${pct(r.H.share)} % (adults ${pct(r.H.shareAdults)} %, >=5 events ${pct(r.H.withFive / r.H.n)} %, consistent ${pct(r.H.consistent / r.H.n)} %, mean ${r.H.meanEvents.toFixed(1)} events)`).join('; ')}`);
++    out(`[census]   broken rules ${res.map(r => `${r.seed}: ${JSON.stringify(r.H.byRule)}`).join('; ')}; one-sided spouses (life.ts relOf: a 'wife' who names another husband) ${res.map(r => r.H.oneSided).join(', ')}; fewer than 5 by age ${JSON.stringify(res[0].H.thin)}`);
++    for (const e of res[0].H.examples) out(`[census]   ${e.slice(0, 400)}`);
++    out(`[census] T-E3r pairs sharing the last-4 kind sequence: ${pct(worst(r => r.H.seqPairs, true))} % (line ${line('T-E3r')}); per seed ${res.map(r => `${r.seed}: ${pct(r.H.seqPairs)} % of ${r.H.seqPeople} people, ${r.H.seqDistinct} sequences (first-4 variant ${pct(r.H.firstPairs)} %)`).join('; ')}; top ${JSON.stringify(res[0].H.seqTop.slice(0, 3))}`);
++    out(`[census] T-E3v people with a trace a walker can see or hear: ${pct(worst(r => r.T.any, false))} % (line ${line('T-E3v')}); unprompted (seen without speaking) ${pct(worst(r => r.T.unprompted, false))} %; per seed ${res.map(r => `${r.seed}: talk ${pct(r.T.talk)} %, mourning ${pct(r.T.mourning)} %, limp ${pct(r.T.limp)} %, lame ${r.T.lame} of which ${r.T.lameWithCause} with a cause in the past`).join('; ')}`);
++    expect(res.length).toBe(SEEDS.length);
++  });
++});
+diff --git a/tests/persona.test.ts b/tests/persona.test.ts
+new file mode 100644
+index 00000000..dcf47f30
+--- /dev/null
++++ b/tests/persona.test.ts
+@@ -0,0 +1,61 @@
++// D-382 (UD-08): a personality for everyone (src/people/persona.ts). Deterministic per world seed and person; no two people of
++// a quarter share a manner line (the short brief's "Manner:" words); the facets follow age and work where they are made to.
++import { describe, it, expect } from 'vitest';
++import { Population } from '../src/people/population';
++import { EventCalendar } from '../src/people/calendar';
++import { lifeRecord } from '../src/people/converse/life';
++import { personaOf, mannerOf } from '../src/people/persona';
++import { fenceHits } from '../src/people/converse/fence';
++import { u01, salt } from '../src/people/hash';
++
++const pop = new Population(1), day = 150;
++const sample = pop.persons.filter(p => pop.present(p.id, day)).sort((a, b) => u01(1, salt('persona-t'), a.id) - u01(1, salt('persona-t'), b.id)).slice(0, 1000).map(p => p.id);
++/** the manner line before D-382: one of nine (temper, habit) pairs by the trait */
++const OLD = ['quiet and wary of strangers; slow to speak, careful with words', 'patient and dry; answers briefly, sometimes with a dry joke', 'warm and talkative; likes to talk about the family and the neighbours', 'proud of the work; talks about the work, exact about measures and names', 'anxious; worries aloud about rations, weather and the sick', 'cheerful; quick to laugh, teases', 'pious; swears by the gods and gives thanks often', 'blunt and impatient; short answers, wants to get back to work', 'curious about strangers; asks the stranger where they come from'];
++/** the share of people whose exact line is shared with someone else of their quarter, worst quarter (of at least 20 sampled) and overall */
++function shared(line: (pid: number) => string) {
++  const byQ = new Map<string, string[]>(); for (const pid of sample) { const q = pop.households[pop.home(pid, day)].q; (byQ.get(q) ?? byQ.set(q, []).get(q)!).push(line(pid)); }
++  let worst = 0, dup = 0, n = 0;
++  for (const ls of byQ.values()) { const c = new Map<string, number>(); for (const l of ls) c.set(l, (c.get(l) ?? 0) + 1); const d = ls.filter(l => c.get(l)! > 1).length; dup += d; n += ls.length; if (ls.length >= 20) worst = Math.max(worst, d / ls.length); }
++  return { worst, all: dup / n, quarters: byQ.size };
++}
++
++describe('D-382 a personality for everyone', () => {
++  it('is deterministic per seed and person, and differs between seeds', () => {
++    for (const pid of sample.slice(0, 50)) expect(JSON.stringify(personaOf(pop, pid, day))).toBe(JSON.stringify(personaOf(pop, pid, day)));
++    const other = new Population(2); let same = 0; for (const pid of sample.slice(0, 50)) if (pid < other.persons.length && mannerOf(personaOf(other, pid, day)) === mannerOf(personaOf(pop, pid, day))) same++;
++    expect(same).toBeLessThan(3);
++  });
++  it('no manner line is shared by 2 % of a quarter (before D-382: nine lines for the whole town)', () => {
++    const before = shared(pid => OLD[Math.min(8, Math.floor(pop.persons[pid].trait * 9))]), after = shared(pid => mannerOf(personaOf(pop, pid, day)));
++    console.log(`[persona] shared manner lines within a quarter (${after.quarters} quarters, ${sample.length} people): before worst ${(100 * before.worst).toFixed(1)} %, all ${(100 * before.all).toFixed(1)} %; after worst ${(100 * after.worst).toFixed(1)} %, all ${(100 * after.all).toFixed(1)} %`);
++    expect(before.all).toBeGreaterThan(0.5);
++    expect(after.worst).toBeLessThan(0.02); expect(after.all).toBeLessThan(0.02);
++  });
++  it('the line is short, has no digits, modern words or out-of-world words; the life record carries it with the oath', () => {
++    for (const pid of sample) {
++      const P = personaOf(pop, pid, day), m = mannerOf(P);
++      expect(m.split(/\s+/).length, m).toBeLessThanOrEqual(27); expect(m).not.toMatch(/\d/);
++      expect(fenceHits(`${m}; dislikes ${P.dislike}`), m).toEqual([]);
++      expect(m).not.toMatch(/\b(okay|guy|kids|job|mom|dad|stress|nervous breakdown|boss|minute|hour|week)s?\b/i);
++    }
++    const cal = new EventCalendar(1, pop, () => ({ rain: 0, lightning: 0, windMs: 2, tempC: 20, dust: 0 }) as any); pop.attach(cal);
++    for (const pid of sample.slice(0, 20)) { const L = lifeRecord(pop, cal, pid, day, 10), P = personaOf(pop, pid, day);
++      expect(L.temperament).toBe(P.temperament); expect(L.speech[0]).toBe(P.speech); expect(L.speech[1]).toMatch(/^oath: /); expect(L.speech).toContain(`dislikes ${P.dislike}`); }
++  });
++  it('facets follow age and work: the old more pious, the young more curious, priests devout, grooms talk of horses, children like children', () => {
++    const mean = (ids: number[], f: (pid: number) => number) => ids.reduce((a, x) => a + f(x), 0) / Math.max(1, ids.length);
++    const all = pop.persons.filter(p => pop.present(p.id, day)).map(p => p.id), age = (x: number) => pop.ageOn(x, day);
++    const old = all.filter(x => age(x) > 55), mid = all.filter(x => age(x) >= 25 && age(x) <= 45), young = all.filter(x => age(x) >= 16 && age(x) < 25);
++    expect(mean(old, x => personaOf(pop, x, day).piety)).toBeGreaterThan(mean(mid, x => personaOf(pop, x, day).piety) + 0.08);
++    expect(mean(young, x => personaOf(pop, x, day).curiosity)).toBeGreaterThan(mean(mid, x => personaOf(pop, x, day).curiosity) + 0.08);
++    const priests = all.filter(x => pop.persons[x].job === 'priest'); if (priests.length) expect(mean(priests, x => personaOf(pop, x, day).piety)).toBeGreaterThan(0.75);
++    const grooms = all.filter(x => pop.persons[x].job === 'groom'); expect(grooms.length).toBeGreaterThan(0);
++    expect(mean(grooms, x => /horse|road/.test(personaOf(pop, x, day).subject) ? 1 : 0)).toBeGreaterThan(0.4);
++    const farmers = all.filter(x => ['farmer', 'gardener'].includes(pop.persons[x].job)); expect(mean(farmers, x => /vine|barley|sesame|oxen|rain|fruit|water|pomegranate/.test(personaOf(pop, x, day).subject) ? 1 : 0)).toBeGreaterThan(0.4);
++    for (const x of all.filter(x => age(x) < 13).slice(0, 200)) expect(personaOf(pop, x, day).gesture).not.toMatch(/beard|apron|stick/);
++    for (const x of all.filter(x => pop.persons[x].sex === 'f').slice(0, 300)) expect(personaOf(pop, x, day).gesture).not.toMatch(/beard|his /);
++    // the trait stays the core temper's axis (talk.ts reads its nine-way order)
++    for (const x of sample.slice(0, 200)) expect(personaOf(pop, x, day).core).toBe(Math.min(8, Math.floor(pop.persons[x].trait * 9)));
++  });
++});
+diff --git a/tools/dev/person_census.ts b/tools/dev/person_census.ts
+index d853538d..866feead 100644
+--- a/tools/dev/person_census.ts
++++ b/tools/dev/person_census.ts
+@@ -1,23 +1,203 @@
+-// dev: completeness of every person's life (the user's standard: every person has a name, a home, a family, a job and a
+-// history; nothing copy-pasted). Prints shares over the whole population (seed 1, court absent unless --court).
+-import { readFileSync } from 'node:fs';
+-import { NavGrid } from '../../src/people/navgrid';
+-import { PeopleSim, Env } from '../../src/people/sim';
+-import { WeatherSystem } from '../../src/weather/weatherState';
+-import { nameFor } from '../../src/people/population';
+-const court = process.argv.includes('--court');
+-const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
+-const W = new WeatherSystem(1), env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d % W.days.length, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
+-const sim = new PeopleSim(1, nav, env, { court }); const P: any = sim.pop;
+-const N = P.persons.length; let named = 0, home = 0, plot = 0, kin = 0, job = 0, alone = 0; const names = new Map<string, number>(), jobs = new Map<string, number>();
+-const byOrigin = new Map<string, { n: number; named: number; distinct: Set<string> }>();
+-for (const p of P.persons) {
+-  const nm = nameFor(1, p); if (nm) { named++; names.set(nm, (names.get(nm) ?? 0) + 1); }
+-  const o = byOrigin.get(`${p.origin}/${p.sex}`) ?? { n: 0, named: 0, distinct: new Set<string>() }; o.n++; if (nm) { o.named++; o.distinct.add(nm); } byOrigin.set(`${p.origin}/${p.sex}`, o);
+-  const H = P.households[p.hh]; if (H) { home++; if (H.plot || H.zone !== 'town') plot++; if (H.members.length > 1) kin++; else alone++; }
+-  if (p.job) { job++; jobs.set(p.job, (jobs.get(p.job) ?? 0) + 1); }
+-}
+-const top = [...names].sort((a, b) => b[1] - a[1]).slice(0, 8);
+-console.log(JSON.stringify({ persons: N, named: +(named / N).toFixed(3), distinctNames: names.size, topNames: top, withHousehold: +(home / N).toFixed(3), onAPlotOrPlace: +(plot / N).toFixed(3), livingWithOthers: +(kin / N).toFixed(3), livingAlone: alone, withJobOrRole: +(job / N).toFixed(3), jobs: jobs.size }, null, 1));
+-console.log('by origin/sex: n, named share, distinct names, persons per name');
+-for (const [k, o] of [...byOrigin].sort((a, b) => b[1].n - a[1].n).slice(0, 14)) console.log(`  ${k}: ${o.n}, ${(o.named / o.n).toFixed(2)}, ${o.distinct.size}, ${(o.named / Math.max(1, o.distinct.size)).toFixed(0)}`);
++// D-390 (UD-08: "nothing fake, nothing copy pasted ... every person needs a home and a life and a family ... and a name and a
++// history"): THE PERSON CENSUS, the tool gates/thresholds.json names for T-E2, T-E2h, T-E3, T-E3r and T-E3v. It measures the
++// whole population of a seed on a day (every person present), not chosen people:
++//   T-E2  the largest share of one name (compared by root) in a (sex, origin) group of over 2,000 people, each group's top
++//         names reported with whether the name is attested (names.json) or recalled from the literature (names_recalled.json);
++//   T-E2h living members of one household (present on the day, same house) sharing a name by root (diacritics, the leading
++//         asterisk, doubled letters and case removed; two names one letter apart count as one). No practice is exempted: the
++//         population holds no paternal grandfather links, so papponymy cannot be told from a clash (stricter than the line);
++//   T-E3  people with >= 5 history events (history.ts pastOf, plus this year's from the simulation's own facts) and none
++//         inconsistent with their age, their kin or the archive's dates (the rules below, each counted by name);
++//   T-E3r pairs of people (among those with four events or more before this year) whose four most recent events before this
++//         year, oldest first, are the same sequence of event kinds (history.ts EVENT_KINDS, the locked list);
++//   T-E3v people showing a trace of their history a walker can see or hear, on a seeded sample: the "Before this year" line
++//         surviving into the talk prompt (heard when spoken to), mourning dress (the wardrobe's mourning set), a limp from a
++//         hurt (popview impairOf: injuryOn, or the lasting lameness, which history.ts now gives a cause). Reported apart: the
++//         share shown UNPROMPTED (seen without speaking), since a conversation is a trace only for the one who asks.
++// It writes no evidence file (the coverage board is generated from those); tests/person_census.test.ts prints the values.
++// CLI: npx tsx tools/dev/person_census.ts [seed] [day]
++import type { Population, Person } from '../../src/people/population';
++import { ALL_NAMES } from '../../src/people/population';
++import namesData from '../../src/data/names.json';
++import { pastOf, townYears, REALM, EVENT_KINDS, type PastEvent, type KinLike } from '../../src/people/history';
++import { IMPAIR } from '../../src/people/popview';
++import { h32, u01, salt } from '../../src/people/hash';
++
++// ------------------------------------------------------------------ names
++const ATTESTED = new Set<string>((namesData as any).names.map((n: any) => n.name));
++/** a name's root: no diacritics, no asterisk (reconstructed form), no doubled letters, lower case, letters only */
++export function nameRoot(n: string): string {
++  return n.replace(/^\*/, '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1+/g, '$1');
++}
++/** two roots the same, or one letter apart (substitution, insertion or deletion) */
++export function sameRoot(a: string, b: string): boolean {
++  if (a === b) return true; if (Math.abs(a.length - b.length) > 1 || Math.min(a.length, b.length) < 3) return false;
++  let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
++  if (a.length === b.length) return a.slice(i + 1) === b.slice(i + 1);
++  return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
++}
++
++export interface NameCensus { groups: { key: string; n: number; unnamed: number; top: { name: string; share: number; attested: boolean }[] }[]; worst: number; worstGroup: string; sameHouse: number; sameHouseByRel: Record<string, number>; examples: string[] }
++export function nameCensus(pop: Population, day: number): NameCensus {
++  const present = pop.persons.filter(p => pop.present(p.id, day) && p.dies > day);
++  const byG = new Map<string, Person[]>(); for (const p of present) { const k = `${p.sex}:${p.origin}`; (byG.get(k) ?? byG.set(k, []).get(k)!).push(p); }
++  const groups: NameCensus['groups'] = []; let worst = 0, worstGroup = '';
++  for (const [key, ps] of byG) {
++    if (ps.length <= 2000) continue; const c = new Map<string, { n: number; name: string }>(); let unnamed = 0;
++    for (const p of ps) { const nm = pop.nameOf(p.id); if (!nm) { unnamed++; continue; } const r = nameRoot(nm); const x = c.get(r) ?? c.set(r, { n: 0, name: nm.replace(/^\*/, '') }).get(r)!; x.n++; }
++    const top = [...c.values()].sort((a, b) => b.n - a.n).slice(0, 5).map(x => ({ name: x.name, share: x.n / ps.length, attested: ATTESTED.has(x.name) }));
++    groups.push({ key, n: ps.length, unnamed, top }); if ((top[0]?.share ?? 0) > worst) { worst = top[0].share; worstGroup = key; }
++  }
++  // living household members sharing a name (by root)
++  let sameHouse = 0; const sameHouseByRel: Record<string, number> = {}, examples: string[] = [];
++  const homes = new Map<number, number[]>(); for (const p of present) { const h = pop.home(p.id, day); (homes.get(h) ?? homes.set(h, []).get(h)!).push(p.id); }
++  for (const [h, ms] of homes) {
++    const named = ms.map(m => ({ m, n: pop.nameOf(m) })).filter(x => x.n).map(x => ({ ...x, r: nameRoot(x.n!) }));
++    for (let i = 0; i < named.length; i++) for (let j = i + 1; j < named.length; j++) if (sameRoot(named[i].r, named[j].r)) {
++      sameHouse++; const a = pop.persons[named[i].m], b = pop.persons[named[j].m];
++      const rel = a.mother === b.id || b.mother === a.id ? 'mother-child' : a.mother >= 0 && a.mother === b.mother ? 'siblings' : pop.households[h].zone === 'terrace' || a.group >= 0 ? 'work group' : 'other';
++      sameHouseByRel[rel] = (sameHouseByRel[rel] ?? 0) + 1; if (examples.length < 6) examples.push(`${pop.households[h].zone} house ${h}: ${named[i].n} / ${named[j].n} (${rel})`);
++    }
++  }
++  return { groups: groups.sort((a, b) => b.n - a.n), worst, worstGroup, sameHouse, sameHouseByRel, examples };
++}
++
++// ------------------------------------------------------------------ kin (mirrors converse/life.ts relOf, which is private there)
++function spouseIn(pop: Population, me: Person, members: number[]): number {
++  if (me.spouse !== undefined && members.includes(me.spouse)) return me.spouse;
++  if (me.kin || me.age < 16) return -1;
++  const c = members.filter(x => { const o = pop.persons[x]; return x !== me.id && o.sex !== me.sex && o.age >= 16 && !o.kin && o.mother !== me.id && me.mother !== x && Math.abs(o.age - me.age) < 22 && (me.sex === 'f' ? me.wife : o.wife); });
++  return c.length ? c.sort((a, b) => Math.abs(pop.persons[a].age - me.age) - Math.abs(pop.persons[b].age - me.age))[0] : -1;
++}
++function relOf(pop: Population, me: Person, o: Person, members: number[]): string {
++  const m = o.sex === 'm'; const sp = spouseIn(pop, me, members);
++  if (o.mother === me.id || (sp >= 0 && o.mother === sp && o.age < me.age - 12)) return m ? 'son' : 'daughter';
++  if (me.mother === o.id) return 'mother';
++  if (sp === o.id) return m ? 'husband' : 'wife';
++  if (me.mother >= 0 && me.mother === o.mother) return m ? 'brother' : 'sister';
++  if (me.mother >= 0 && spouseIn(pop, pop.persons[me.mother], members) === o.id) return 'father';
++  if ((o.kin || o.job === 'child') && o.age < me.age - 14 && me.age >= 16) return m ? 'son' : 'daughter';
++  if ((me.kin || me.job === 'child') && o.age > me.age + 14 && o.age < me.age + 50 && !o.kin && o.job !== 'elder') return m ? 'father' : 'mother';
++  return 'other';
++}
++/** the household as life.ts gives it to pastOf (members living in the house on the day, with their relation and age) */
++export function kinOf(pop: Population, pid: number, day: number): KinLike[] {
++  const p = pop.persons[pid], hh = pop.home(pid, day), H = pop.households[hh];
++  const mem = [...new Set([...H.members, ...H.joins])].filter(x => pop.home(x, day) === hh);
++  return mem.filter(x => x !== pid && pop.persons[x].born <= day && pop.persons[x].dies > day && pop.persons[x].arrive <= day).map(x => ({ pid: x, rel: relOf(pop, p, pop.persons[x], mem), age: pop.ageOn(x, day) }));
++}
++
++// ------------------------------------------------------------------ history: events and their consistency
++/** this year's events from the simulation's own facts (life.ts lifeRecord `year`, without the economy's dealings), ago 0 */
++export function yearEvents(pop: Population, pid: number, day: number): PastEvent[] {
++  const p = pop.persons[pid], out: PastEvent[] = [], H = pop.households[pop.home(pid, day)];
++  const ev = (kind: PastEvent['kind'], text: string) => out.push({ ago: 0, text, tier: 'C', kind });
++  if (p.arrive > 0 && p.arrive <= day) ev('work', 'came to Pārsa this year');
++  if (p.marry <= day && p.spouse !== undefined && !p.moved) ev('family', 'was married this year');
++  if (p.moved && p.marry <= day) ev('loss', 'moved to kin after a death');
++  for (const x of pop.childrenOf(pid)) { const c = pop.persons[x]; if (c.born >= 0 && c.born <= day) ev(c.dies <= day ? 'loss' : 'family', c.dies <= day ? 'lost a child born this year' : 'a child born this year'); }
++  for (const x of [...H.members, ...H.joins]) { const o = pop.persons[x]; if (x !== pid && o.dies <= day && o.dies >= 0 && o.born < o.dies && !(o.mother === pid && o.born >= 0)) ev('loss', 'a death in the house this year'); }
++  let sick = false; for (let d = Math.max(0, day - 30); d < day && !sick; d++) if (pop.sick(pid, d)) sick = true; if (sick) ev('incident', 'was sick this month');
++  return out;
++}
++
++export const RULES = ['after-archive', 'before-birth', 'too-young', 'realm-date', 'town-date', 'mother-age', 'marriage-before-eldest', 'loss-before-marriage', 'married-off-early', 'arrival-before-job', 'parent-alive', 'parent-dead-before-sibling', 'widowed-married', 'siblings-disagree', 'couple-disagree', 'levy'] as const;
++export type Rule = typeof RULES[number];
++const MIN_AGE_AT: Partial<Record<PastEvent['kind'], number>> = { work: 5, incident: 2 };
++const PARSA_JOB = /Terrace|building gangs|for the stores|administration|Treasury|work group for|garrison/;
++const ARRIVAL = /^came to Pārsa|^moved down to Pārsa/;
++
++/** the rules a person's past breaks (empty: consistent); `past` is pastOf with the household */
++export function checkPast(pop: Population, pid: number, day: number, past: PastEvent[], kin: KinLike[], peers: { sibs: Map<number, PastEvent[]>; spouse: PastEvent[] | null }, seed: number): Rule[] {
++  const p = pop.persons[pid], age = pop.ageOn(pid, day), bad = new Set<Rule>(), town = townYears(seed);
++  const realmAgo = new Set(REALM.map(r => r.ago));
++  for (const e of past) {
++    if (e.ago < 1) bad.add('after-archive');
++    if (e.ago > age || (e.kind !== 'birth' && e.kind !== 'loss' && e.kind !== 'realm' && e.kind !== 'town' && e.ago >= age)) bad.add('before-birth');
++    const at = age - e.ago, min = e.kind === 'family' ? (/^married|^a (son|daughter) was born/.test(e.text) ? 14 : undefined) : MIN_AGE_AT[e.kind]; if (min !== undefined && at < min && !(e.kind === 'work' && /since (boyhood|childhood)|every year of life/.test(e.text))) bad.add('too-young');
++    if (e.kind === 'realm') { if (!realmAgo.has(e.ago)) bad.add('realm-date'); if (/^remembers/.test(e.text) && at < 5) bad.add('too-young'); }
++    if (e.kind === 'town' && !town.some(t => t.ago === e.ago && e.text.endsWith(t.text))) bad.add('town-date');
++    if (/marched with the levy/.test(e.text) && (p.sex !== 'm' || at < 17)) bad.add('levy');
++  }
++  // mother 14-45 at each child's birth (the population's own children, and the history's "a son/daughter was born")
++  if (p.sex === 'f') { for (const c of pop.childrenOf(pid)) { const ca = pop.ageOn(c, day), at = age - ca; if (pop.persons[c].born < 0 && (at < 14 || at > 45)) bad.add('mother-age'); }
++    for (const e of past) if (/^a (son|daughter) was born/.test(e.text) && (age - e.ago < 14 || age - e.ago > 45)) bad.add('mother-age'); }
++  const wed = past.find(e => /^married (his wife|her husband)/.test(e.text)), wedAny = past.find(e => /^married (his wife|her husband|again)/.test(e.text));
++  const kids = kin.filter(k => k.rel === 'son' || k.rel === 'daughter');
++  if (wed && kids.length && wed.ago <= Math.max(...kids.map(k => k.age))) bad.add('marriage-before-eldest');
++  if (wedAny) for (const e of past) { if (/^lost a (son|daughter)/.test(e.text) && e.ago >= wedAny.ago) bad.add('loss-before-marriage'); if (/^married off/.test(e.text) && e.ago > wedAny.ago - 14) bad.add('married-off-early'); }
++  const arr = past.find(e => ARRIVAL.test(e.text)), job = past.find(e => e.kind === 'work' && PARSA_JOB.test(e.text));
++  if (arr && job && job.ago > arr.ago) bad.add('arrival-before-job');
++  if (past.some(e => e.text === 'the mother died') && (kin.some(k => k.rel === 'mother') || (p.mother >= 0 && pop.present(p.mother, day) && pop.persons[p.mother].dies > day))) bad.add('parent-alive');
++  if (past.some(e => e.text === 'the father died') && (kin.some(k => k.rel === 'father') || (p.mother >= 0 && (() => { const M = pop.persons[p.mother], mh = pop.home(p.mother, day);
++    const mem = pop.households[mh].members.filter(x => pop.home(x, day) === mh && pop.persons[x].dies > day); const f = spouseIn(pop, M, mem); return f >= 0 && pop.persons[f].sex === 'm'; })()))) bad.add('parent-alive');
++  // (a parent dead before a brother or sister of the same mother was born)
++  if (p.mother >= 0) { const young = Math.min(...pop.childrenOf(p.mother).filter(c => pop.persons[c].born <= day).map(c => pop.ageOn(c, day)));
++    for (const e of past) if ((e.text === 'the mother died' && e.ago > young) || (e.text === 'the father died' && e.ago > young + 1)) bad.add('parent-dead-before-sibling'); }
++  if (past.some(e => e.text === 'was widowed') && kin.some(k => k.rel === 'husband')) bad.add('widowed-married');
++  for (const [, sp] of peers.sibs) for (const t of ['the father died', 'the mother died']) { const a = past.find(e => e.text === t), b = sp.find(e => e.text === t); if (a && b && a.ago !== b.ago) bad.add('siblings-disagree'); }
++  if (peers.spouse && wedAny) { const w2 = peers.spouse.find(e => /^married (his wife|her husband|again)/.test(e.text)); if (w2 && w2.ago !== wedAny.ago) { bad.add('couple-disagree'); } }
++  return [...bad];
++}
++
++export interface HistoryCensus { n: number; withFive: number; consistent: number; pass: number; share: number; shareAdults: number; byRule: Record<string, number>; meanEvents: number; thin: Record<string, number>;
++  oneSided: number; seqPeople: number; seqPairs: number; seqDistinct: number; seqTop: [string, number][]; firstPairs: number; examples: string[] }
++/** T-E3 and T-E3r over every person present on the day */
++export function historyCensus(pop: Population, day: number): HistoryCensus {
++  const seed = pop.seed, ids = pop.persons.filter(p => pop.present(p.id, day) && p.dies > day).map(p => p.id);
++  const kinM = new Map<number, KinLike[]>(), pastM = new Map<number, PastEvent[]>();
++  for (const pid of ids) { const k = kinOf(pop, pid, day); kinM.set(pid, k); pastM.set(pid, pastOf(pop, pid, day, k)); }
++  const byRule: Record<string, number> = {}, thin: Record<string, number> = {}, examples: string[] = [];
++  let oneSided = 0, withFive = 0, consistent = 0, pass = 0, adults = 0, adultPass = 0, total = 0;
++  const seqs = new Map<string, number>(), firsts = new Map<string, number>(); let seqPeople = 0;
++  for (const pid of ids) {
++    const past = pastM.get(pid)!, kin = kinM.get(pid)!, p = pop.persons[pid], age = pop.ageOn(pid, day);
++    const sibs = new Map<number, PastEvent[]>(); if (p.mother >= 0) for (const c of pop.childrenOf(p.mother)) if (c !== pid && pastM.has(c)) sibs.set(c, pastM.get(c)!);
++    const spk = kin.find(k => k.rel === 'wife' || k.rel === 'husband'), mutual = !!spk && !!kinM.get(spk.pid)?.some(k => k.pid === pid && (k.rel === 'wife' || k.rel === 'husband'));
++    if (spk && !mutual) oneSided++; const spouse = spk && mutual ? pastM.get(spk.pid) ?? null : null;
++    const bad = checkPast(pop, pid, day, past, kin, { sibs, spouse }, seed); for (const r of bad) byRule[r] = (byRule[r] ?? 0) + 1;
++    const all = past.length + yearEvents(pop, pid, day).length; total += all;
++    const five = all >= 5; if (five) withFive++; if (!bad.length) consistent++; const ok = five && !bad.length; if (ok) pass++;
++    if (age >= 16) { adults++; if (ok) adultPass++; }
++    if (!five) { const band = age < 3 ? '0-2' : age < 10 ? '3-9' : age < 16 ? '10-15' : age < 25 ? '16-24' : age < 40 ? '25-39' : '40+'; thin[band] = (thin[band] ?? 0) + 1; }
++    for (const r of bad) if (!examples.some(x => x.startsWith(r + ':'))) examples.push(r + ': ' + `${pid} (${p.sex} ${age} ${p.origin} ${p.job}) | ${past.map(e => `${e.ago}:${e.text}`).join('; ')}`);
++    const rest = past.filter(e => e.kind !== 'birth');
++    if (rest.length >= 4) { seqPeople++; const k = rest.slice(-4).map(e => e.kind).join('>'); seqs.set(k, (seqs.get(k) ?? 0) + 1); const f = rest.slice(0, 4).map(e => e.kind).join('>'); firsts.set(f, (firsts.get(f) ?? 0) + 1); }
++  }
++  const pairShare = (m: Map<string, number>) => { let s = 0; for (const c of m.values()) s += c * (c - 1) / 2; return seqPeople > 1 ? s / (seqPeople * (seqPeople - 1) / 2) : 0; };
++  return { n: ids.length, withFive, consistent, pass, share: pass / ids.length, shareAdults: adultPass / Math.max(1, adults), byRule, meanEvents: total / ids.length, thin,
++    oneSided, seqPeople, seqPairs: pairShare(seqs), seqDistinct: seqs.size, seqTop: [...seqs].sort((a, b) => b[1] - a[1]).slice(0, 5), firstPairs: pairShare(firsts), examples };
++}
++
++// ------------------------------------------------------------------ T-E3v: a trace a walker can see or hear
++const S_IMPAIR = salt('popview-impair');
++/** the limp popview draws (impairOf), without building a view: a hurt at work this year, or the lasting lameness */
++export function limps(pop: Population, pid: number, day: number): 'hurt' | 'lame' | null {
++  const p = pop.persons[pid]; if (p.agent >= 0 || p.job === 'guard' || p.job === 'messenger') return null;
++  if (pop.injuryOn?.(pid, day)) return 'hurt';
++  const u = h32(pop.seed, S_IMPAIR, pid) / 4294967296, age = pop.ageOn(pid, day);
++  return p.sex === 'm' && age >= IMPAIR.lame.ages[0] && age <= IMPAIR.lame.ages[1] && u < IMPAIR.lame.share ? 'lame' : null;
++}
++export interface TraceCensus { n: number; any: number; unprompted: number; talk: number; mourning: number; limp: number; lameWithCause: number; lame: number }
++/** on a seeded sample; `talkLine(pid)` says whether the "Before this year" line reaches the model (the test passes the
++ *  real prompt builder; the tool stays free of the conversation modules) */
++export function traceCensus(pop: Population, day: number, n: number, talkLine: (pid: number) => boolean): TraceCensus {
++  const ids = pop.persons.filter(p => pop.present(p.id, day) && p.dies > day).sort((a, b) => u01(pop.seed, salt('census-trace'), a.id) - u01(pop.seed, salt('census-trace'), b.id)).slice(0, n).map(p => p.id);
++  let any = 0, unp = 0, talk = 0, mourn = 0, limp = 0;
++  for (const pid of ids) { const t = talkLine(pid), m = pop.mourning(pid, day) > 0, l = !!limps(pop, pid, day);
++    if (t) talk++; if (m) mourn++; if (l) limp++; if (t || m || l) any++; if (m || l) unp++; }
++  // every lasting lameness in the population, and how many of them the person's past explains
++  let lame = 0, cause = 0; for (const p of pop.persons) if (pop.present(p.id, day) && limps(pop, p.id, day) === 'lame') { lame++; if (pastOf(pop, p.id, day, kinOf(pop, p.id, day)).some(e => /lame/.test(e.text))) cause++; }
++  return { n: ids.length, any: any / ids.length, unprompted: unp / ids.length, talk: talk / ids.length, mourning: mourn / ids.length, limp: limp / ids.length, lame, lameWithCause: cause };
++}
++export { EVENT_KINDS, ALL_NAMES };
++
++// ------------------------------------------------------------------ CLI
++if (process.argv[1]?.endsWith('person_census.ts')) {
++  const seed = Number(process.argv[2] ?? 1), day = Number(process.argv[3] ?? 150);
++  void (async () => {
++    const { Population } = await import('../../src/people/population');
++    const pop = new Population(seed);
++    console.log(JSON.stringify({ seed, day, names: nameCensus(pop, day), history: historyCensus(pop, day) }, null, 1));
++  })();
++}

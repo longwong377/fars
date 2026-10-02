@@ -181,7 +181,10 @@ export class PopulationVoices {
     s.p = p; s.seen = now; return s;
   }
   /** a unit this person has not said (nor any word of it) in the last 60 s, preferring one nobody near said in the last 30 s */
+  /** D-377 (UD-23): what a person says next in the exchange with the one they talk with (people/overheard.ts), else null */
+  script: ((key: string, group: string | null, lang: LangId | null) => Unit | null) | null = null;
   private pickUnit(s: Slot, lang: LangId | null, now: number): Unit | null {
+    const sc = this.script?.(s.p.key, s.p.group, lang); if (sc) return sc;
     const U = lang ? unitsFor(lang) : { lines: [] as Unit[], words: WORDLESS }, fresh = (u: Unit) => u.parts.every(id => (s.recent.get(id) ?? -1e9) < now - 60) && (s.recent.get(u.id) ?? -1e9) < now - 60;
     for (let k = 0; k < 16; k++) {
       const pool = U.lines.length && s.rng.chance(0.3) ? U.lines : U.words; if (!pool.length) continue;

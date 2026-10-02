@@ -108,6 +108,8 @@ import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { NavGrid } from '../people/navgrid';
 import { PeopleSim, Env } from '../people/sim';
+import { strangerPresence, thinCaption } from '../people/speech/presence';
+import { Overheard } from '../people/overheard';
 import { Crowd, PATH_REACH } from '../people/crowd';
 import { PopGeo } from '../people/popgeo';
 import { PopView } from '../people/popview';
@@ -147,6 +149,7 @@ import { TerraceFoot } from './terraceFoot';
 import { DustSystem, type DustKind } from './dust';
 import { pt, pa } from '../core/prof';
 import { cached, prefetchWorldCache, cacheStats } from './cache/worldCache';
+import { BASE } from '../core/base';
 import { hashArrays } from './cache/pack';
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
@@ -155,27 +158,53 @@ export const LOD_RADIUS = 1e9;
 const WTRACE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('trace');
 let wLast = 0;
 /** boot stage timing with ?trace (D-248: where a page load goes) */
-function wmark(stage: string) { if (!WTRACE) return; const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms'); wLast = t; }
+/** s15/ship: when each asset load resolves (?trace), from the build's start */
+const tAsset = <T>(name: string, p: Promise<T>): Promise<T> => (WTRACE ? p.then(v => { console.info('[boot]', 'asset:' + name, (performance.now() - wT0).toFixed(0), 'ms'); return v; }) : p);
+let wT0 = 0;
+function wmark(stage: string) { (globalThis as any).__bootStage?.('world:' + stage); if (!WTRACE) return; // (D-393: the loading screen's steps)
+  const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms', 'busy', (globalThis as any).__bootBusy?.() ?? ''); wLast = t; }
+/** s15/ship (D-393): the world's asset loads in one place (the first call starts them, later calls return the same promises).
+ *  Begun from main.ts before the scans they decoded alongside them and slowed the boot on a 2-core box (192 s vs 148 s):
+ *  main.ts now only warms the files' bytes early (shell/warm.ts) and the decoding stays here */
+let assetsStarted: ReturnType<typeof beginAssets> | null = null;
+/** D-393: a player's visit (not ?test, not ?bench; ?late=0 turns it off): what is not needed to stand and walk streams in late */
+const STREAM_LATE = typeof location !== 'undefined' && (q => !q.has('test') && !q.has('bench') && q.get('late') !== '0')(new URLSearchParams(location.search));
+export function startWorldAssets(settings?: Settings) { return assetsStarted ??= beginAssets(settings); }
+function beginAssets(settings?: Settings) {
+  // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
+  const q0 = settings?.quality ?? 'high';
+  const humansP = tAsset('humans', loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' }));
+  const probesP = tAsset('probes', loadProbes(BASE)); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
+  // s15/ship (D-393): a player's visit fetches in the order the build uses: the Terrace's assets first (the Blender models, the
+  // scanned props, the decor, the relief atlas), then (once those are in) what the town, the plain and the hills need, which
+  // downloads while the Terrace builds; the build waits for each set just before its first user (arch / the settlement)
+  let t1Done: () => void = () => {}; const t1 = new Promise<void>(r => { t1Done = r; });
+  const late = <T>(f: () => Promise<T>): Promise<T> => (STREAM_LATE ? t1.then(f) : f());
+  const rockKitP = late(() => tAsset('rockKit', loadRockKit(BASE))), ledgeFaceP = late(() => tAsset('ledgeFace', loadLedgeFace(BASE))), coverKitP = late(() => tAsset('coverKit', loadCoverKit(BASE))), fordKitP = late(() => tAsset('fordKit', loadFordKit(BASE))); // the hills' bedrock pieces (D-335, public/models/land/)
+  const propsP = tAsset('props', loadScanProps(BASE)); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
+  const modelsP = tAsset('models', loadModels(BASE)); // the Blender-built models (D-305, public/models/): in before the architecture is built
+  const monumentsP = late(() => tAsset('monuments', loadMonuments(BASE))); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
+  const treesP = late(() => tAsset('trees', loadTreeAssets(BASE))); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
+  const lifeP = late(() => tAsset('life', loadLifeModels(BASE))); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
+  const reliefAtlasP = tAsset('reliefAtlas', loadReliefAtlas(BASE)); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
+  const decorP = tAsset('decor', loadDecorAssets(BASE)); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
+  const fireOccP = tAsset('fireOcc', loadFireOcc(BASE)); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
+  // the animals' modelled bodies (D-326, public/models/animals/). s15/ship (D-393): a player's visit fetches them after the
+  // assets the build needs (39 MB of 103 files: they download while the world builds, the network otherwise idle) and the
+  // build does not wait for them: a species drawn before its model is in is its procedural stand-in, rebuilt as the model on
+  // arrival (animals.ts). The tests and the bench keep them in before the first frame (STREAM_LATE false)
+  void Promise.all([modelsP, propsP, decorP, reliefAtlasP]).catch(() => null).then(() => t1Done());
+  const animalsP = STREAM_LATE ? Promise.all([treesP, lifeP, monumentsP, rockKitP]).catch(() => null).then(() => tAsset('animals', loadAnimalModels(BASE))) : tAsset('animals', loadAnimalModels(BASE));
+  const sculptP = loadSculpt(async p => { const r = await fetch(BASE + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
+  return { sculptP, humansP, probesP, rockKitP, ledgeFaceP, coverKitP, fordKitP, propsP, modelsP, monumentsP, treesP, lifeP, animalsP, reliefAtlasP, decorP, fireOccP };
+}
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
-  wLast = performance.now();
+  wLast = wT0 = performance.now();
   prefetchWorldCache(); // D-354: the baked world's hashes and manifest, while the build starts
   void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
-  // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
-  const q0 = settings?.quality ?? 'high';
-  const humansP = loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' });
-  const probesP = loadProbes('/'); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
-  const rockKitP = loadRockKit('/'), ledgeFaceP = loadLedgeFace('/'), coverKitP = loadCoverKit('/'), fordKitP = loadFordKit('/'); // the hills' bedrock pieces (D-335, public/models/land/)
-  const propsP = loadScanProps('/'); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
-  const modelsP = loadModels('/'); // the Blender-built models (D-305, public/models/): in before the architecture is built
-  const monumentsP = loadMonuments('/'); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
-  const treesP = loadTreeAssets('/'); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
-  const lifeP = loadLifeModels('/'); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
-  const animalsP = loadAnimalModels('/'); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
-  const reliefAtlasP = loadReliefAtlas('/'); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
-  const decorP = loadDecorAssets('/'); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
-  const fireOccP = loadFireOcc('/'); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
+  const { sculptP, humansP, probesP, rockKitP, ledgeFaceP, coverKitP, fordKitP, propsP, modelsP, monumentsP, treesP, lifeP, animalsP, reliefAtlasP, decorP, fireOccP } = startWorldAssets(settings);
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
   // the parts as tools/build_probes.ts hashes them: before the builders below use them (session 11: hashed after
@@ -183,8 +212,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const partsJson = partsKey(parts);
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
-  await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
-  await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
+  await sculptP; // precomputed carved pieces (D-018; begun with the assets)
+  wmark('sculpt');
+  await modelsP; await propsP; await decorP; if (!STREAM_LATE) await animalsP; // (D-393: the town's, the plain's and the hills' sets are awaited before the settlement)
+  wmark('assets awaited');
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);
@@ -193,13 +224,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   arris.addFaces(arch.jointFaces, (x, z) => terrain.heightAt(x, z)); // rev 4: the walls' joints grooved near the eye (none under the ground)
   // the seal inscriptions impressed in clay (door sealings, tablets) are drawn from the period-script fonts: loaded before
   // the first clay object bakes the writing atlas (writing.ts, D-179)
-  await loadWritingFonts(async p => (await fetch('/' + p)).arrayBuffer());
+  await loadWritingFonts(async p => (await fetch(BASE + p)).arrayBuffer());
   const doors = new DoorSystem(parts, phys); root.add(doors.group); // D-051
   { // stale probes still light the halls, but say so (the unit test tests/probes.test.ts fails on the same condition)
     const pf = await probesP, h = pf?.partsHash;
     if (pf && h) try { const d = new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(partsJson))); const now = [...d].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16);
       if (now !== h) console.warn(`[probes] baked for parts ${h}, the architecture is ${now}: rerun npx tsx tools/build_probes.ts`); } catch { /* no SubtleCrypto (insecure context) */ } }
-  await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
+  await loadInscriptionFonts(async p => (await fetch(BASE + p)).arrayBuffer());
   await reliefAtlasP;
   const reliefs = buildReliefs(manifest); root.add(reliefs);
   wmark('reliefs');
@@ -247,6 +278,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets;
   // the plain's villages join it too, D-254: it builds after the plain)
   const noTown = typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown');
+  await treesP; await lifeP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP; wmark('late assets awaited'); // (D-393)
   const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);
   wmark('settlement');
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
@@ -261,7 +293,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   buildGrime({ fires: fire.fires, doors: settlement?.doors?.doors ?? [], town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n) }); // D-366: soot, ash, damp and lane wear (render/grime.ts)
   wmark('fire.build');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
-  const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
+  const nav = await NavGrid.load(async p => (await fetch(BASE + p)).arrayBuffer());
   wmark('nav');
   // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
   // (D-210: and the crows at the town's middens, the kites over the middens and the stockyard)
@@ -351,7 +383,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
   // Phase 5 (D-021): the whole population and the year's calendar; the court is absent unless the out-of-world setting
   // 'Court calendar = seasonal pattern' is on (D-003)
-  const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal', bonds: true }); let simStarted = false;
+  const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal', bonds: true, asks: true }); let simStarted = false;
   wmark('sim');
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
@@ -468,17 +500,17 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     if (settlement) settlement.doors.onSound = doorSound; plain.villageHouses.doors.onSound = doorSound; }
   // speech + crowd murmur (D-011): murmur from everyone whose activity sounds as talk; lines only from the lexicons
   // voices: eSpeak-NG clips pre-rendered from the lexicon IPA (tools/build_speech.py) first, the formant synthesiser for anything missing
-  const voiceManifest = await fetch('/voices/manifest.json').then(r => (r.ok ? r.json() : { clips: {} })).catch(() => ({ clips: {} }));
+  const voiceManifest = await fetch(BASE + 'voices/manifest.json').then(r => (r.ok ? r.json() : { clips: {} })).catch(() => ({ clips: {} }));
   // D-336 (UD-22): every person's own natural voice (Kokoro-82M in a worker, WebGPU or WASM; ?neural=0 keeps the formant
   // synthesiser, which also speaks while the model loads or when it cannot): the scripted lines and the population's voices
   const NP = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-  const neural = NP.get('neural') !== '0' && typeof Worker !== 'undefined' ? new NeuralVoices({ device: (NP.get('neuraldevice') as 'webgpu' | 'wasm' | null) ?? undefined }) : null;
+  const neural = NP.get('neural') !== '0' && typeof Worker !== 'undefined' ? new NeuralVoices({ device: (NP.get('neuraldevice') as 'webgpu' | 'wasm' | null) ?? undefined, dtype: NP.get('neuraldtype') ?? undefined, lazy: true }) : null; // (D-376: lazy: started after the first frames, main.ts)
   const speech = new Speech(audio, [...(neural ? [new NeuralBackend(neural)] : []), new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]);
   // D-245: voices from everyone the crowd places near the listener (detailed agents, the population, impostors), not only the
   // 135 on the Terrace; published words only, each person their own voice; a grain bed for the talkers beyond (audio/voices.ts)
-  const voices = new PopulationVoices(audio, { seed }); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
+  const voices = new PopulationVoices(audio, { seed }); const overheard = new Overheard(sim); voices.script = (k, g, l) => overheard.next(k, g, l); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
   // what a person near says reaches the translation layer (out of world; T-K3c), unless a scripted line was shown lately
-  let scriptedSubAt = -1e9; voices.onCaption = c => { if (c.lang === 'wordless' || time - scriptedSubAt < 4) return;
+  let scriptedSubAt = -1e9; voices.onCaption = c0 => { if (c0.lang === 'wordless' || time - scriptedSubAt < 4) return; const c1 = thinCaption(sim, c0), tp = overheard.topicFor(c0.key), c = { ...c1, lang: c0.lang, gloss: tp ? `${c1.gloss}${c1.gloss ? ' ' : ''}(talking of ${tp})` : c1.gloss }; // (D-377: what they talk of; D-370: the gloss thins as the stranger learns the tongue)
     lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
   // D-245: the rivers and canals sound near their banks (audio/water.ts; T-G3e)
   const water = new WaterSound(audio, [...plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2, kind: 'river' as const })),
@@ -707,6 +739,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         const p = ctx.player.position, feet = ctx.player.feetY;
         { // D-245: the population's voices (the Now view has no people of 467), the jaw moving with the voice; the water
           const near = nowView.active ? [] : crowd.nearPeople(cam.position, voices.bedR, nearBuf);
+          if (ctx.player) strangerPresence(sim, near, cam.position); // (D-370: time beside the employer's people makes an attended day)
+          overheard.noteNear(near); // (D-377: who talks with whom, for the exchanges overheard)
           voices.coughEvery = [0, 1, 2, 10, 11].includes(ctx.cond.day.climMonth) ? 500 : [5, 6, 7].includes(ctx.cond.day.climMonth) ? 1800 : 1200; // winter colds (C)
           voices.update(dt, near, cam.position, k => (scriptedUntil.get(k) ?? -1) > time);
           // session 10 (GB56): the talkers from 60 m to FAR_R as a distant murmur (the wide gather twice a second: it builds a

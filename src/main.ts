@@ -25,6 +25,8 @@ import { TranslationLayer } from './ui/translation';
 import { NOW_CAPTION } from './arch/now';
 import { PLACES } from './people/sim';
 import { buildWorld, WorldBuild } from './world/world';
+import { BootProgress } from './shell/progress';
+import { warmBootFiles } from './shell/warm';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -40,6 +42,9 @@ import { roofedAt } from './render/probes/roofs';
 import { seasonAt } from './world/season';
 import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
+import { BASE } from './core/base';
+import { installProgressiveCompile } from './render/progressive';
+import { upgradeLowFirst, lowFirstStats } from './render/lowfirst';
 installWebGPUCompat();
 
 const P = urlParams();
@@ -66,10 +71,23 @@ if (settings.devOverlay || P.has('overlay')) overlay.toggle();
 // spawn: on the approach from the plain, west of the Grand Stair, facing the Terrace (grid east)
 const SPAWN = { east: -175, north: 122.45, yaw: -Math.PI / 2 };
 
-const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms') : (_: string) => {};
+// s15/ship: with ?trace each mark also says how much of the main thread was busy (long tasks) so far: CPU-bound vs waiting on the network
+let BUSY = 0; if (P.has('trace') && typeof PerformanceObserver !== 'undefined') try { new PerformanceObserver(l => { for (const e of l.getEntries()) BUSY += e.duration; }).observe({ type: 'longtask', buffered: true }); } catch { /* no long-task timing */ }
+const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms', 'busy', BUSY.toFixed(0)) : (_: string) => {};
+(globalThis as any).__bootBusy = () => Math.round(BUSY); // (world.ts's marks print it)
+/** s15/ship (D-368): the built site's service worker (public/sw.js: the site's files in Cache Storage, so a second visit
+ *  fetches nothing); on a first visit the boot waits (at most 3 s) until it controls the page, so the first visit's files are kept */
+async function siteWorker() {
+  if (!(import.meta as any).env?.PROD || !('serviceWorker' in navigator) || P.has('nosw')) return;
+  try { await navigator.serviceWorker.register(BASE + 'sw.js', { scope: BASE });
+    if (!navigator.serviceWorker.controller) await Promise.race([new Promise(r => navigator.serviceWorker.addEventListener('controllerchange', r, { once: true })), new Promise(r => setTimeout(r, 3000))]); }
+  catch (e) { console.warn('[sw]', e); }
+}
 async function boot() {
   const shell = new Shell(settings, hooks());
   shell.loading('Preparing the renderer…');
+  const prog = new BootProgress(); if (shell.loadingCard) prog.mount(shell.loadingCard); // D-393: honest progress (the steps done, the bytes received)
+  const swP = siteWorker();
   let renderer: THREE.WebGPURenderer;
   try {
     // reversed-Z on WebGPU; the WebGL2 fallback needs EXT_clip_control for that, so it uses a logarithmic depth buffer (D-007)
@@ -102,11 +120,18 @@ async function boot() {
   const camera = new THREE.PerspectiveCamera(settings.fov, innerWidth / innerHeight, 0.05, 110000); // far ring corners lie 101 km out
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
+  prog.step('renderer');
   shell.loading('Loading the plain and the mountain…');
-  await loadScans('/'); // scanned surface detail (session 11, B7 lifted): before any surface material is built
-  const terrain = await Terrain.load('/');
+  await swP;
+  void warmBootFiles(BASE).then(() => TRACE(`warm done ${JSON.stringify((globalThis as any).__warm ?? null)}`)); // D-393: the world's files download while the terrain and the scans decode (the build waited ~30 s for them after)
+  // s15/ship: the terrain's rings and the physics engine load while the scans decode (each was awaited in turn)
+  const terrainP = Terrain.load(BASE), physP = Physics.create();
+  await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
+  TRACE('scans');
+  const terrain = await terrainP;
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
-  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars('/'); sky.meteors.seed = SEED;
+  prog.step('ground');
+  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars(BASE); sky.meteors.seed = SEED; TRACE('terrain, sky');
   shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-093)
   const weather = new WeatherSystem(SEED);
   if (P.get('weather')) weather.override = P.get('weather') as WeatherOverride;
@@ -122,8 +147,9 @@ async function boot() {
   TRACE('before pipeline');
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality, sky.hemi);
   TRACE('pipeline built');
+  prog.step('sky');
   shell.loading('Raising the Terrace…');
-  const phys = await Physics.create();
+  const phys = await physP;
   TRACE('physics ready');
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
@@ -398,7 +424,10 @@ async function boot() {
       advance: (s: number) => api.advanceWorld(s, 0.5), tick: () => api.tick() }); } return covPass as import('./dev/coverage').CoveragePass; };
   (window as any).__parsa = api;
   // D-296 (UD-18): speaking with the people, on request (?converse; loaded on demand, nothing without it)
-  if (P.has('converse')) import('./people/converse/ui').then(m => { (api as any).converse = m.mountConverse({ world, camera, clock, seed: SEED, settings }); }).catch(e => api.errors.push('converse: ' + e));
+  // D-376 (UD-31): talking is on by default (settings.talk; ?converse=0 or the setting off turns it off; tests and benches load
+  // nothing): mounted now, its models streamed in after the first frames (below), never before the world is shown
+  const TALK = P.has('converse') ? P.get('converse') !== '0' : settings.talk && !P.has('test') && !P.has('bench');
+  if (TALK) import('./people/converse/ui').then(m => { (api as any).converse = m.mountConverse({ world, camera, clock, seed: SEED, settings }); }).catch(e => api.errors.push('converse: ' + e));
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
@@ -409,6 +438,8 @@ async function boot() {
   let lastFrameMs = 0; let probeT = 0;
   /** D-337: a frozen test world profiled as the player's loop runs it (the eye rays every 0.25 s, the meter read back without waiting) */
   let PLAYLIKE = false; let passLog: PassLog | null = null;
+  /** s15/ship (D-368): called as a frame starts drawing (the shader-build budget below restarts) */
+  let onDrawStart = () => {}, onDrawEnd = () => {};
 
   function simStep(dt: number, advanceClock = true) {
     if (advanceClock) clock.advance(dt);
@@ -441,6 +472,16 @@ async function boot() {
     return open / dirs.length;
   }
   let prev = performance.now();
+  let shownFrames = 0; // (D-376)
+  /** D-393 (UD-31): the talk streams in from the moment the player can walk: the language model first (285 MB: what makes a
+   *  person answer from their own life), the neural voices after it (Kokoro, ~190 MB: until then a reply is heard in the
+   *  formant voice); both at once shared the line and the text answer came ~77 s after walkable at 100 Mbit/s. Talk off, or a
+   *  GPU that cannot hold the model: the voices start at once */
+  let talkStarted = false;
+  const startTalk = async () => { if (talkStarted) return; talkStarted = true; const t0 = performance.now();
+    while (TALK && !(api as any).converse && performance.now() - t0 < 30_000) await new Promise(r => setTimeout(r, 250)); // (the talk module is imported in parallel with the boot)
+    const c = (api as any).converse; TRACE('talk: model loading');
+    try { if (c?.load) TRACE(`talk: model ${(await c.load()) ? 'ready' : 'not loaded'} (${((performance.now() - t0) / 1000).toFixed(0)} s)`); } finally { (world as any).neural?.start?.(); } };
   let firstFrames = P.has('trace') ? 3 : 0; // ?trace: time the first frames' stages (D-250)
   let inAnimationLoop = false; // set while three's animation loop (which advances the node frame) calls frame()
   const viewDir = new THREE.Vector3();
@@ -510,14 +551,17 @@ async function boot() {
     pipeline.flash.value = world.flash?.() ?? 0;
     // session 9 (G8): heat shimmer and mirage on hot, bright, dry afternoons (26-36 C, the sun over 15 deg, little cloud; C)
     pipeline.heat.value = Math.min(1, Math.max(0, (cond.tempC - 26) / 10)) * Math.min(1, Math.max(0, (sky.state.sunAlt - 15) / 15)) * Math.max(0, 1 - cond.cloud * 1.5) * Math.max(0, 1 - cond.wetness * 2);
-    if (opts.render === false || NORENDER) { if (NORENDER) lastFrameMs = performance.now() - t0; return; }
+    if (opts.render === false || NORENDER) { if (NORENDER) { lastFrameMs = performance.now() - t0; if (firstFrames > 0) firstFrames--; } return; }
     // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the
     // session 2 bench and every renderOnce-based count measured that: 1 draw call, sub-millisecond "frames")
     if (!inAnimationLoop) { const nf = (renderer as any)._nodes?.nodeFrame; if (nf) { nf.update(); (renderer.info as any).frame = nf.frameId; } }
-    tp = pt(); pipeline.render(scene, camera); pa('render', tp);
+    tp = pt(); onDrawStart(); pipeline.render(scene, camera); onDrawEnd(); pa('render', tp);
     lastFrameMs = performance.now() - t0;
     if (firstFrames > 0) { TRACE(`frame ${3 - firstFrames}: render ${lastFrameMs.toFixed(0)} ms`); firstFrames--; }
+    // D-376 (UD-31): the world is shown: the people's voices and the talk's model start streaming in (a few frames in, so the
+    // first frames' shader compiles are not slowed by the downloads)
+    if (++shownFrames === 5) void startTalk();
     // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
     meterT += dt;
     tp = pt(); if (pipeline.meterTarget && !meterBusy && ((TEST && !PLAYLIKE) || meterT > 0.25)) {
@@ -555,8 +599,20 @@ async function boot() {
   }
   TRACE('world built');
   world.prebuild?.(camera.position); // D-321 rev 3: the arris bands round the spawn, in the load
+  // s15/ship (D-368, UD-31): progressive shader compile (src/render/progressive.ts): the player's loop never waits on a shader;
+  // the world comes in as its shaders finish. Frozen test worlds and the bench keep whole frames; ?synccompile turns it off,
+  // ?buildbudget=<ms> sets the per-frame shader-build budget (40). __parsa.compiling() counts what is still compiling.
+  if (!TEST && !P.has('bench') && !P.has('synccompile') && !NORENDER) {
+    const pc = installProgressiveCompile(renderer, +(P.get('buildbudget') ?? 40));
+    onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
+  }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
-  api.ready = true;
+  prog.finish(); api.ready = true;
+  // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
+  if (NORENDER) void startTalk();
+  // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)
+  (api as any).lowFirst = () => ({ ...lowFirstStats, pending: lowFirstStats.pending() });
+  setTimeout(() => void upgradeLowFirst().then(n => TRACE(`scans upgraded: ${n}`)), 2000);
   if (TEST) shell.playing(); else shell.title(continued);
   void lastSave; void gridToLatLon; void YEAR_DAYS;
 }

@@ -7,13 +7,14 @@ import * as THREE from 'three/webgpu';
 import { ATLAS_INDEX } from '../arch/relief_atlas';
 import { setReliefAtlas } from '../arch/reliefs';
 import { paintedStoneMaterial, type ReliefAtlasMaps } from './materials';
+import { BASE } from '../core/base';
 
 const STATE = { loaded: false, ms: 0, error: '', formats: {} as Record<string, string>, layers: 0, off: false };
 export const reliefAtlasStats = () => ({ ...STATE, defs: Object.keys(ATLAS_INDEX.defs ?? {}).length, bytes: ATLAS_INDEX.bytes });
 let MAPS: ReliefAtlasMaps | null = null;
 export const reliefAtlasMaps = () => MAPS;
 
-export async function loadReliefAtlas(base = '/', renderer?: THREE.WebGPURenderer): Promise<ReturnType<typeof reliefAtlasStats>> {
+export async function loadReliefAtlas(base = BASE, renderer?: THREE.WebGPURenderer): Promise<ReturnType<typeof reliefAtlasStats>> {
   const t0 = performance.now();
   const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
   if (q && (q.get('reliefatlas') === '0' || q.get('models') === '0')) { STATE.off = true; return reliefAtlasStats(); }

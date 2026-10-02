@@ -158,7 +158,7 @@ export class EconPlans {
     return n ? `${n.replace(/^\*/, '')}’s house` : 'a neighbour’s house';
   }
   /** who of the household goes (a seeded choice among those who can; null: nobody can) */
-  pick(hid: number, day: number, role: Role, key: number): number | null {
+  pick(hid: number, day: number, role: Role, key: number, market = false): number | null {
     const P = this.pop; if (!P.households[hid]) return null;
     // (a rich house's own business, the pledges and the suits, may go by its servants and stewards: D-340, C)
     const mem = P.membersOn(hid, day).filter(x => P.present(x, day) && P.persons[x].agent < 0 && (!SUPERVISED.has(P.persons[x].job) || (role === 'house' && /^(servant|steward)$/.test(P.persons[x].job))) && !P.sick(x, day));
@@ -171,10 +171,16 @@ export class EconPlans {
     else if (role === 'bound') { const kids = mem.filter(x => age(x) >= 10 && age(x) <= 25 && P.persons[x].kin); pool = kids.length ? kids : mem.filter(x => age(x) >= 12 && age(x) <= 45); }
     else pool = mem.filter(x => age(x) >= 12 && age(x) <= 70);
     if (!pool.length && role !== 'bound' && role !== 'errand') pool = mem.filter(x => age(x) >= 16 && age(x) <= 70);
+    // D-380 (B401): the house sends whoever is not tied to a little one that day: a woman nursing a baby under one (its feeds
+    // keep her near it), one minding a child of the house in their own day, a mother with a little one at her side (it goes
+    // where she goes) are sent last; a woman's errand of the house (the stall, the haggle, the kin's sickbed) falls to a girl
+    // of thirteen or more, or for the market to a grown man, when every woman is so tied (C)
+    const kids = mem.filter(x => age(x) < 14), littles = kids.filter(x => age(x) <= 4).map(x => P.persons[x].mother);
+    const tied = (x: number) => (P.nurslings(x, day).some(c => age(c) === 0) ? 2 : 0) + (kids.some(c => c !== x && P.basePlan(c, day).some(s => s.with === x)) || littles.includes(x) ? 1 : 0);
+    if (role === 'woman' && pool.length && pool.every(x => tied(x) > 0)) pool = [...pool, ...mem.filter(x => !pool.includes(x) && ((!m(x) && age(x) >= 13) || (market && m(x) && age(x) >= 16 && age(x) <= 70)))];
     if (!pool.length) return null;
     const free = pool.filter(x => (this.today.get(x)?.length ?? 0) < 2); if (free.length) pool = free;
-    // (a mother with a little one at her side is sent last: the little one goes where she goes, C)
-    const littles = mem.filter(x => age(x) <= 4).map(x => P.persons[x].mother), unburdened = pool.filter(x => !littles.includes(x)); if (unburdened.length) pool = unburdened;
+    const t = new Map(pool.map(x => [x, tied(x)])), least = Math.min(...t.values()); pool = pool.filter(x => t.get(x) === least);
     return pool.sort((a, b) => a - b)[h32(this.pop.seed, S.who, key, hid) % pool.length];
   }
   whereOf(place: string): Where {
@@ -205,8 +211,8 @@ export class EconPlans {
   /** the steps one event lays on the day (possibly none) */
   private stepsOf(E: Economy, e: EconEvent, day: number): EconStep[] {
     const P = this.pop, me = this.hid(e.actor), other = this.hid(e.other); const out: EconStep[] = [];
-    const step = (hid: number | null, role: Role, s: Omit<EconStep, 'pid' | 'day' | 'kind' | 'ev' | 'role'>, key = e.id) => {
-      if (hid === null) return; const pid = this.pick(hid, day, role, key); if (pid === null) return; out.push({ pid, day, kind: e.kind, ev: e.id, role, ...s }); };
+    const step = (hid: number | null, role: Role, s: Omit<EconStep, 'pid' | 'day' | 'kind' | 'ev' | 'role'>, key = e.id, market = false) => {
+      if (hid === null) return; const pid = this.pick(hid, day, role, key, market); if (pid === null) return; out.push({ pid, day, kind: e.kind, ev: e.id, role, ...s }); };
     const errand = (lo: number, hi: number, dest: string, work: EconStep['work'], go: [ActivityId, string], back: [ActivityId, string]) =>
       ({ mode: 'errand' as const, lo, hi, dest, work, goAct: go[0], goWhy: go[1], backAct: back[0], backWhy: back[1] });
     const summons = (lo: number, dest: string, work: EconStep['work'], go: [ActivityId, string], back: [ActivityId, string], after?: EconStep['after']) =>
@@ -259,6 +265,25 @@ export class EconPlans {
         step(me, 'errand', errand(7, 17, `h:${other}`, [['talk', this.dur(e, 0.2, 0.5), `bringing barley to ${K}, whose house burnt`]], ['carry_sack', `carrying barley to ${K}, whose house burnt`], ['walk', 'going home'])); break; }
       case 'house_fire': { if (me === null) break;
         step(me, 'man', summons(this.at(e, 7, 8), `h:${me}`, [['clean', this.dur(e, 3, 5), 'clearing the burnt beams and the ash of the roof: the house burnt']], ['walk', 'going home to the burnt house'], ['walk', 'going on with the day'])); break; }
+      // D-370: the stranger's dealings in the people's own days (the host, the employer, the headman, the lane's talk)
+      case 'hosted': { if (me === null) break;
+        step(me, 'woman', errand(16.5, 20, `h:${me}`, [['cook', this.dur(e, 0.6, 1.2), 'cooking a little more: a stranger asked guest-right and the house gave it'], ['clean', 0.3, 'making up a bed for the guest by the hearth']], ['walk', 'going home to see to the guest'], ['rest', 'at home'])); break; }
+      case 'guest_sent_away': { if (me === null) break;
+        step(me, 'man', errand(6, 9, `h:${me}`, [['talk', 0.3, 'telling the stranger the house can keep him no longer: the three nights of the custom are long past and he gives nothing']], ['walk', 'going home'], ['rest', 'at home'])); break; }
+      case 'ingrate': case 'guest_repaid': { if (other === null) break; const lane = `lane:${P.households[other].q}`;
+        step(other, 'woman', errand(9, 18, lane, [['talk', this.dur(e, 0.3, 0.7), e.kind === 'ingrate' ? 'telling the neighbours of the stranger who ate the house’s bread for days and went off without a word of thanks' : 'telling the neighbours of the stranger’s gift, in thanks for the house’s bread']], ['walk', 'going out to the lane'], ['walk', 'going home'])); break; }
+      case 'claim_denied': case 'claim_doubted': { if (me === null) break; const lane = `lane:${P.households[me].q}`;
+        step(me, 'errand', errand(9, 18, lane, [['talk', this.dur(e, 0.2, 0.5), e.kind === 'claim_denied' ? 'telling the neighbours the stranger who claims to be their kin is nothing of the kind' : 'telling the neighbours the stranger’s tale of himself does not hold together']], ['walk', 'going out to the lane'], ['walk', 'going home'])); break; }
+      case 'hired_stranger': { if (me === null) break;
+        step(me, 'man', errand(6, 8.5, `h:${me}`, [['talk', 0.3, 'showing the stranger taken on as a hand what the work is and what the day’s barley will be']], ['walk', 'going home'], ['walk', 'going to the work'])); break; }
+      case 'wage_owed': { if (me === null) break;
+        step(me, 'man', errand(17, 20, `h:${me}`, [['talk', 0.3, 'counting what the house owes the hired stranger; there is not enough barley to pay it this week']], ['walk', 'going home'], ['rest', 'at home'])); break; }
+      case 'stranger_petition': { if (other === null) break;
+        step(other, 'man', errand(7.5, 17, `h:${other}`, [['talk', this.dur(e, 0.3, 0.8), 'hearing a stranger’s petition, as the elder of the quarter']], ['walk', 'going home to hear a petition'], ['walk', 'going back'])); break; }
+      case 'ruling_for': case 'ruling_against': { if (me === null) break;
+        step(me, 'man', errand(7.5, 17, `h:${me}`, [['talk', 0.3, `giving judgement on the stranger’s petition: ${e.kind === 'ruling_for' ? 'for the stranger' : 'against the stranger'}`]], ['walk', 'going home'], ['walk', 'going back'])); break; }
+      case 'joined_house': { if (me === null) break;
+        step(me, 'woman', errand(17, 20.5, `h:${me}`, [['cook', 1, 'cooking a better meal: the stranger is taken into the house'], ['eat', 0.6, 'the meal that takes the stranger into the house']], ['walk', 'going home'], ['rest', 'at home'])); break; }
       case 'haggle_deal': { if (me === null || other === null) break;
         // D-359 (B235): a deal haggled between two houses (speech/haggle.ts, D-351) is walked: the selling house keeps a stall at
         // the market ground for the morning, its goods spread out, and the buying house's errand falls inside it, at the stall,
@@ -270,15 +295,15 @@ export class EconPlans {
         const grain = (e.amt ?? 0) > 0, what = grain ? 'barley' : 'brushwood and dung cakes', B = this.headName(me, day), Sh = this.headName(other, day);
         const stall = `${this.exchangeFor(other, day)}:${other}`, n0 = out.length;
         step(other, 'woman', errand(7, 16, stall, [['exchange', this.dur(e, 1, 1.8, 1), `selling ${what} from a stall at the market, ${grain ? 'the sacks open, a measuring bowl by them' : 'the bundles stacked by'}: someone of ${B} haggles over them`]],
-          ['carry_sack', `carrying ${grain ? 'sacks of barley' : 'bundles of brushwood'} to the market to sell`], ['walk', 'going home from the market with the price']), nx.id);
+          ['carry_sack', `carrying ${grain ? 'sacks of barley' : 'bundles of brushwood'} to the market to sell`], ['walk', 'going home from the market with the price']), nx.id, true);
         const sel = out.length > n0 ? out[out.length - 1] : null; if (sel) { sel.kind = 'haggle_sell'; sel.ev = nx.id; }
-        const n1 = out.length, bp = this.pick(me, day, 'woman', e.id);
+        const n1 = out.length, bp = this.pick(me, day, 'woman', e.id, true);
         // (the stall is kept over an hour both the seller and the buyer are free in their own days, so they meet there)
         if (sel && bp !== null) { const fa = this.pop.basePlan(sel.pid, day), fb = this.pop.basePlan(bp, day), ok = (p: Seg[], h: number) => { const x = segAt(p, h); return FREE.has(x.act) && x.where !== 'road' && !x.place.startsWith('@') && x.with === undefined; };
           for (let h = 8.5; h <= 15; h += 0.25) if ([0, 0.4, 0.8, 1.2].every(k => ok(fa, h + k) && ok(fb, h + k) && ok(fb, h - 0.6) && ok(fa, h - 0.6))) { sel.cover = [h, h + 0.8]; break; } }
         step(me, 'woman', { ...errand(7, 15, stall, [['exchange', this.dur(e, 0.4, 0.8, 2), `haggling over ${what} at the stall of ${Sh}: offer and counter-offer until the price is agreed`]],
           ['walk', `going to the market for ${grain ? 'barley' : 'fuel'}`], ['carry_sack', `carrying home the ${grain ? 'barley' : 'fuel'} bought at the market`]), ...(sel ? { with: sel.pid } : { dest: `h:${other}`, work: [['exchange', this.dur(e, 0.4, 0.8, 2), `haggling at ${Sh} over ${what}: offer and counter-offer until the price is agreed`]] as EconStep['work'] }),
-          alt: { dest: `h:${other}`, work: [['exchange', this.dur(e, 0.4, 0.8, 2), `haggling at ${Sh} over ${what}: offer and counter-offer until the price is agreed`]] } });
+          alt: { dest: `h:${other}`, work: [['exchange', this.dur(e, 0.4, 0.8, 2), `haggling at ${Sh} over ${what}: offer and counter-offer until the price is agreed`]] } }, e.id, true);
         if (out.length > n1) out[out.length - 1].kind = 'haggle_buy'; break; }
       case 'theft': { if (me === null || other === null) break; const V = this.headName(other, day);
         step(me, 'thief', { mode: 'night', lo: this.at(e, 0.5, 2.5), hi: 4, dest: `h:${other}`, work: [['carry_sack', 0.15, `taking barley from the store of ${V} in the dark`]], goAct: 'walk', goWhy: 'going out in the dark while the house sleeps', backAct: 'carry_sack', backWhy: 'carrying the stolen barley home in the dark' }); break; }
@@ -374,7 +399,7 @@ export class EconPlans {
     }
     if (st.mode === 'follow') { // a little one goes along with the mother on her economy stretches
       const mo = +st.from!, mp = this.pop.plan(mo, st.day), runs: [number, number][] = [];
-      for (const s of mp) if (s.ev?.startsWith('D-340')) { const l = runs[runs.length - 1]; if (l && Math.abs(l[1] - s.t0) < 1e-6) l[1] = s.t1; else runs.push([s.t0, s.t1]); }
+      for (const s of mp) if (s.ev?.startsWith('D-340')) { const l = runs[runs.length - 1]; if (l && s.t0 - l[1] < 0.5) l[1] = s.t1; else runs.push([s.t0, s.t1]); } // (two stretches close together are one outing: the little one stays with her between them)
       let out = segs, any = false;
       for (const [a, b] of runs) { if (segAt(segs, a + 1e-4).with !== mo && segAt(segs, Math.max(a, b - 1e-4)).with !== mo) continue;
         const copy = mp.filter(s => s.t1 > a && s.t0 < b).map(s => ({ ...s, t0: Math.max(a, s.t0), t1: Math.min(b, s.t1), with: mo, ev: `D-340 economy: with_mother (C)`,
