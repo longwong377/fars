@@ -137,7 +137,8 @@ people at distance) are the first targets. Judge whole views at the player's len
 - Briefs are a short paragraph: goal as the player meets it, files owned, done line, the box rules. No templates.
 - Records: one DECISIONS line per package (the lead gives each agent a D number); no reserved ranges, evidence paperwork or
   per-change verification. Status messages only when something changed.
-- **The goal that orders all work: the playable slice.** A URL that loads in about 2 minutes and runs smoothly on the T4; walk
+- **The goal that orders all work: the playable slice (UD-31: by the end of session 15).** A public URL anyone opens, walkable
+  in under a minute on a good GPU, talking to people on by default (small models, streamed); formerly: a URL that loads in about 2 minutes and runs smoothly on the T4; walk
   into a lane and it looks real; talk to anyone and they answer from their own life in their own voice; follow them home. Every
   package is judged by whether it moves the slice forward, and none may make load or frame rate worse.
 

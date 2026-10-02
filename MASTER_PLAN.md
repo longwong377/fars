@@ -532,6 +532,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-28 | agents on Opus 5.5, no caps; finish within a week; the plan, agents and workflow optimized (context packs, disjoint ownership, the render train, slots, stop rules) | §6 order (ROADMAP.md, the week plan; handoff/agent_template.md operating model; tools/dev/render_train.mjs) | T-R14 |
 | UD-29 | immersion governs priority; the references ground the place, not a 1:1 target; the lead directs and takes artistic liberties where the vision needs them (tier C, reasoning in F3) | §3 rule 6 as amended (CLAUDE.md); §6 order (packages chosen from whole-view judgement) | T-R15 |
 | UD-30 | less process: guards protect only the user's words and the thresholds' direction; short briefs; one line per package; the playable slice orders the work | CLAUDE.md |
+| UD-31 | a public URL, playable in under a minute on a good GPU, talking on by default, by the end of session 15 | CLAUDE.md |
 
 ## 13. Revision log
 
