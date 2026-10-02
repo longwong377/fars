@@ -97,7 +97,7 @@ export class EconPlans {
   private dress(segs: Seg[], day: number): Seg[] {
     const wx = this.pop.cal.ctx(day).wx, out: Seg[] = []; let run: Seg[] = [];
     const flush = () => { if (!run.length) return; coldWear(run, wx); dustWear(run, wx); out.push(...run); run = []; };
-    for (const s of segs) { if (s.ev?.startsWith('D-340')) run.push(s); else { flush(); out.push(s); } } flush(); return out;
+    for (const s of segs) { if (s.ev?.startsWith('D-340')) run.push({ ...s }); else { flush(); out.push(s); } } flush(); return out; // (D-383: copies: the wear is decided in place, and a step tried and refused must not undress the stretches of one already laid)
   }
   private issues(pid: number, day: number, segs: Seg[]) { const m = new Map<string, number>(); this.checking++; try { for (const x of checkPlan(this.pop, pid, day, segs, null)) m.set(x.kind, (m.get(x.kind) ?? 0) + 1); } finally { this.checking--; } return m; }
   /** why the step may not be laid (empty: it may): it must add none of the plan checks' issues (planCheck.ts: weather, light,
@@ -395,10 +395,16 @@ export class EconPlans {
       const mo = +st.from!, mp = this.pop.plan(mo, st.day), runs: [number, number][] = [];
       for (const s of mp) if (s.ev?.startsWith('D-340')) { const l = runs[runs.length - 1]; if (l && Math.abs(l[1] - s.t0) < 1e-6) l[1] = s.t1; else runs.push([s.t0, s.t1]); }
       let out = segs, any = false;
-      for (const [a, b] of runs) { if (segAt(segs, a + 1e-4).with !== mo && segAt(segs, Math.max(a, b - 1e-4)).with !== mo) continue;
+      for (const [a, b0] of runs) { let b = b0; if (segAt(segs, a + 1e-4).with !== mo && segAt(segs, Math.max(a, b - 1e-4)).with !== mo) continue;
         const copy = mp.filter(s => s.t1 > a && s.t0 < b).map(s => ({ ...s, t0: Math.max(a, s.t0), t1: Math.min(b, s.t1), with: mo, ev: `D-340 economy: with_mother (C)`,
           act: (s.where === 'road' ? 'walk' : s.act === 'sleep' ? 'sleep' : 'play') as ActivityId,
           why: s.where === 'road' ? 'carried along with the mother' : s.act === 'sleep' ? 'asleep beside the mother' : 'playing beside the mother while she is busy there' }));
+        // (D-383: the little one is where the mother's run ends; when its own day goes on elsewhere, it walks there, as the
+        // walk the run replaced did)
+        const last = [...copy].reverse().find(s => s.where !== 'road'), nx = segAt(out, Math.min(24 - 1e-4, b + 1e-4));
+        if (last && b < 24 - 1e-6 && nx.where !== 'road' && !nx.place.startsWith('@') && nx.place !== last.place) {
+          const w = Math.min(this.walk(last.place, nx.place, st.day), nx.t1 - b - 0.05);
+          if (w > 0) copy.push({ ...this.seg(b, b + w, this.road(last.place, nx.place), 'walk', 'walking on with the others of the house', st, 'road') }); b += Math.max(0, w); }
         out = splice(out, a, b, copy); any = true; }
       return any ? out : null;
     }
