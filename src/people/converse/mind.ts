@@ -43,12 +43,13 @@ export class Mind {
     this.conv = msgs; this.primedFor = key; return performance.now() - t0;
   }
   /** D-315: the judge: did this reply agree to what was asked? (the loaded model, two tokens, greedy; outside the person's
-   *  talk, which is primed again for the next answer). null: no clear answer */
+   *  talk). null: no clear answer. D-456: the talk stays primed (it was primed afresh after every judge, and the person forgot
+   *  the talk so far): the next answer sends the whole talk again and WebLLM reads it in anew */
   judges = 0;
   async judge(asked: string, reply: string): Promise<boolean | null> {
     if (!this.engine) return null; this.judges++;
     const r = await this.engine.chat.completions.create({ messages: judgePrompt(asked, reply), max_tokens: 3, temperature: 0, ...this.extra() } as any) as any;
-    this.primedFor = ''; const a = String(r.choices?.[0]?.message?.content ?? '').trim().toUpperCase();
+    const a = String(r.choices?.[0]?.message?.content ?? '').trim().toUpperCase();
     return /^Y/.test(a) ? true : /^N/.test(a) ? false : null;
   }
   /** forget the primed person (another comes near) */
