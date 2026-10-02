@@ -470,7 +470,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const roadNext = new Map<string, number>(), roadRng = new Rng(seed, 'road-sounds'); let roadT = -1;
   const roadSounds = (cam: THREE.Vector3) => {
     const t = sim.t * 3600; if (t === roadT) return; roadT = t;
-    for (const m of movers) { if (m.kind === 'quarry' || m.kind === 'drum') continue; const dx = m.e - cam.x, dn = m.n + cam.z; if (dx * dx + dn * dn > 3600) continue;
+    for (const m of movers) { if (m.kind === 'quarry' || m.kind === 'drum' || m.kind === 'foot') continue; const dx = m.e - cam.x, dn = m.n + cam.z; if (dx * dx + dn * dn > 3600) continue;
       const walking = m.act === 'walk', pos = { x: m.e, y: groundAt(m.e, m.n), z: -m.n }, due = (k: string, gap: [number, number], p = 1) => {
         const key = `${m.key}:${k}`, at = roadNext.get(key); if (at === undefined) { roadNext.set(key, t + roadRng.range(0, gap[1])); return false; }
         if (t < at) return false; roadNext.set(key, t + roadRng.range(gap[0], gap[1])); return roadRng.chance(p); };
