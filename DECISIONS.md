@@ -9422,3 +9422,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - Skin ramp warmer (B/R 0.55-0.64 from 0.6-0.7: grey and waxen under the high sun) and an outdoor tan read further along the
   ramp (the three old draws kept: nobody's look changes otherwise); undyed wool and linen warmer, less chalk-white. C.
 - Probe: tools/dev/people_probe.mjs (humanlab, the player's lens, 2/10/30 m, one load ~1 min); shots in shots/v3/.
+- (D-500, second step) The head's shadow caster drawn 3.2 cm in (SHADOW_SHRINK_HEAD): the coarse nose and brow no longer blot
+  the cheeks and eyes. Talkers' arms taken 45 % back to a standing capture's (the CMU lecturers flung a hand to head height).
+  people_cloth rebuilt and reproduced on the new hull. C3's asks: walk variants /driving a flock/ (animal kind 'drive': a
+  loose mass 2-9 m ahead of the herder, two dogs at its flanks, 0.9 m/s; the hook in animals.ts, V5's file) and /ox cart of
+  building stone/, /emptied stone cart/, /holding the stone cart/ (work object cart_stone: one rough-cut block on chocks).

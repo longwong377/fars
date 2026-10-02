@@ -95,7 +95,7 @@ export const REF_TONE: [number, number, number] = [0.72, 0.53, 0.42];
 export const SAG_MAX = 0.1;
 /** s17 V3 (D-500): how far inside its surface a shadow-only caster is drawn (m; C, measured against the LOD 2 body's
  *  deviation from the full-detail one on faces and garments) */
-export const SHADOW_SHRINK = 0.014;
+export const SHADOW_SHRINK = 0.014, SHADOW_SHRINK_HEAD = 0.032;
 /** Cloth wear and drape (D-189, C). Skirts: the hem is folded per person (two low orders round the hem at every LOD, two
  *  higher orders near the camera, where the 40-segment tube can carry them) and fitted (ease at the hem), growing with
  *  the square of the way down the skirt. Fading: sun-bleaching on up-facing cloth (the garment's age × its dye's
@@ -356,7 +356,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       // s17 V3 (D-500): the shadow casters are coarser bodies (LOD 2 for the full-detail people): where their surface stood
       // outside the drawn one they shadowed it (stair-stepped blotches over every sunlit face and tunic at 1-10 m); each caster
       // is drawn SHADOW_SHRINK m inside its own surface, so a body shadows others and its own folds, not its own skin
-      if (opts.shadowOnly) p.subAssign(n.mul(SHADOW_SHRINK).mul(scale));
+      // (the head's caster further in: the coarse caster's nose and brow laid stair-stepped blots across cheeks and eyes at
+      // conversation distance; a head still shadows the ground and the shoulders)
+      if (opts.shadowOnly) { const headV = step(4.5, si.x).mul(step(si.x, 12.5)); p.subAssign(n.mul(mix(float(SHADOW_SHRINK), float(SHADOW_SHRINK_HEAD), headV)).mul(scale)); }
       normalLocal.assign(n);
       if (builder.needsPreviousData()) {
         const Q = skinned(prevTex);
