@@ -1,9 +1,11 @@
 # C2 plain fill — report (s17, cloud, branch cloud-s17-c2-plain, D-560)
 
 **Broken / placeholder / unseen first**
-- UNSEEN: nothing here has been rendered. The cloud's headless Chromium loses its WebGPU device on the ground probe (blank
-  frame, after a `swizzle` API mismatch worked around locally). Three views asked in asks_vagon.md (track verge April, P22
-  harvest June, floor and straw October); the probe now takes `?tracks&fill`.
+- SEEN ONLY CRUDELY: the cloud's WebGPU loses its device; the ground probe now takes `?webgl` (three's WebGL2 backend on
+  SwiftShader), which gave two crude frames: the track verge (worn tread, denser verge) and the grass. Not seen at all: the
+  stooks/threshing fill (its model keys were wrong until the last commit), the field-edge trees, anything on the T4. Views
+  asked in asks_vagon.md.
+- FOUND AND FIXED: the plain's grass tufts drew black flames (uncut alpha cards on a black atlas) in every render since s12.
 - Residual copies: 67 of ~260,000 instances near the paths still have a twin within 20 m (cross-plot orchard chains, cells
   whose own bump collides); not zero.
 - Draw calls: fieldFill adds up to ~27 instanced draws in the harvest weeks (3 models x 3 parts x 3 levels); not measured on
@@ -18,6 +20,8 @@
 - No copies: plants lean and vary in spread, stones in height, and any copy within 20 m is turned (variety.ts). Repeats near
   paths ~11,000 -> 67. Fixed a real bug with it: orchard plots whose Voronoi seed lay in a neighbour drew the neighbour's
   trees twice on two grids (overlapping trunks) and stood empty themselves.
+- Grass at the feet reads as grass (no black flames); the verges are a dense strip (6-10 tufts a 2 m cell).
+- Lone trees on the field bunds (~35/km2, by irrigation) break the crop sheet at mid distance.
 - The farm year: sheaves in the rows and stooks on every cut cereal plot in its own harvest weeks (late May-July), threshing
   floors in use doy 150-250 (trodden sheaves, sledge, grain heaps growing), straw stacks to March, an ard at plots being
   ploughed, a thorn fold by every village.

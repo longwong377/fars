@@ -29,8 +29,8 @@ import { CURV_SCALE } from '../../src/terrain/terrainDetail';
 (async () => {
   const P = new URLSearchParams(location.search);
   const canvas = document.getElementById('c') as HTMLCanvasElement;
-  const adapter = await (navigator as any).gpu.requestAdapter();
-  const r = new THREE.WebGPURenderer({ canvas, antialias: true, requiredLimits: { maxSampledTexturesPerShaderStage: Math.min(48, adapter.limits.maxSampledTexturesPerShaderStage) } } as any); await r.init();
+  const adapter = P.has('webgl') ? null : await (navigator as any).gpu.requestAdapter();
+  const r = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: P.has('webgl'), requiredLimits: adapter ? { maxSampledTexturesPerShaderStage: Math.min(48, adapter.limits.maxSampledTexturesPerShaderStage) } : undefined } as any); await r.init(); // (?webgl: three's WebGL2 backend, for a box without WebGPU)
   r.toneMapping = THREE.AgXToneMapping; r.toneMappingExposure = +(P.get('xp') ?? 1);
   const errs: string[] = []; (r.backend as any).device?.addEventListener?.('uncapturederror', (e: any) => errs.push(String(e.error?.message).slice(0, 300)));
   await loadScans('/');

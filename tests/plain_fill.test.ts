@@ -74,3 +74,18 @@ describe('the field-edge trees (trees.ts fieldTrees)', () => {
     setVergePaths(null);
   });
 });
+import * as THREE from 'three/webgpu';
+import { registerModel } from '../src/render/scanProps';
+import { FieldFill } from '../src/world/plain/fieldFill';
+describe('FieldFill draws the loaded models', () => {
+  it('stooks and sheaves drawn on an irrigated plain in the harvest weeks; the fold all year', () => {
+    const IRR = { data: new Uint8Array(4 * 4 * 4).map((_, i) => (i % 4 === 0 ? 255 : 0)), n: 4, half: 40960, cell: 64 * 320, ground: null } as any;
+    const box = () => { const g = new THREE.BoxGeometry(1, 1, 1); g.computeBoundingBox(); return g; };
+    for (const of of ['wo_sheaves', 'wo_stooks', 'wo_threshing_floor', 'wo_grain_heap', 'wo_fodder', 'wo_sledge', 'wo_ard', 'wo_fold'])
+      registerModel('m_' + of, { of, parts: ['straw'] } as any, { lod0__straw: box(), lod1__straw: box(), lod2__straw: box() });
+    const f = new FieldFill(IRR, [{ id: 'v', x: 0, y: 0, r: 60, floor: [100, 0] }], () => 0);
+    expect(f.missing).toEqual([]);
+    f.update([300, 300], 158, true); expect(f.drawn).toBeGreaterThan(20);
+    f.update([300, 300], 107, true); const spring = f.drawn; expect(spring).toBeGreaterThanOrEqual(0); expect(spring).toBeLessThan(5);
+  });
+});
