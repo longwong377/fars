@@ -37,3 +37,17 @@ describe('the roofs\' things (houses.ts roofFill, drawn by the fill)', () => {
     for (const r of R.slice(0, 400)) { const g = town.plan.sites.length; void g; expect(Number.isFinite(r.y)).toBe(true); }
   }, 300_000);
 });
+
+import { toLocal, LANE, SQUARE, OUT } from '../src/world/settlement/site';
+describe('the walls\' wear (wallwear.ts)', () => {
+  it('a face per house door on its lane side; smoke and splash drawn; a fresh coat follows the sim\'s replastered roofs', () => {
+    const W = town.wallWear, sites = town.plan.sites; expect(W.faces.length).toBeGreaterThan(1300);
+    let bad = 0; for (const f of W.faces.slice(0, 600)) { const s = sites.find(x => x.plots.some(p => p.id === f.plot))!, ne = Math.sin(f.yaw), nn = -Math.cos(f.yaw);
+      const at = (d: number) => { const [u, v] = toLocal(s.frame, f.e + ne * d, f.n + nn * d); return s.at(s.ci(u), s.cj(v)); }, o = at(0.5), i = at(-0.6);
+      if (!(o === LANE || o === SQUARE || o === OUT) || i < 0) bad++; }
+    console.log(`[wallwear] ${W.faces.length} door faces, ${bad} of 600 not on a lane face`); expect(bad).toBeLessThan(12);
+    const pop = new Population(1); W.setSource(RoofWear.source(pop.households, hh => hashString(hh) / 4294967296 < 0.3 ? 0.97 : 0.7, () => 1));
+    const f0 = W.faces[0]; W.update(1, { x: f0.e, z: -f0.n }, true); console.log('[wallwear]', JSON.stringify(W.stats));
+    expect(W.stats.soot).toBeGreaterThan(5); expect(W.stats.splash).toBeGreaterThan(5); expect(W.stats.fresh).toBeGreaterThan(0);
+  }, 300_000);
+});

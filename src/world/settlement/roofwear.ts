@@ -59,7 +59,9 @@ export class RoofWear {
       m.userData = { tier: 'C', src: 'RECON', note: 'a jar set under the leaking roof to catch the drips (C; D-550)' }; this.jars.push(m); this.group.add(m); }
   }
   /** the simulation's roofs: `roofOf(plotId)` -> 0..1 today (the household living there; 1 when none) */
-  setSource(roofOf: (plot: string) => number) { this.roofOf = roofOf; this.lastDay = -1; }
+  setSource(roofOf: (plot: string) => number) { this.roofOf = roofOf; this.lastDay = -1; this.onSource?.(roofOf); }
+  /** s17 C1: others that follow the same roofs (the walls' fresh coat: wallwear.ts) */
+  onSource: ((roofOf: (plot: string) => number) => void) | null = null;
   /** households (Population.households: id, plot) and the sim's joint deeds' roofOf(hh, day); `today` the sim's day */
   static source(households: ArrayLike<{ id: number; plot?: string } | undefined>, roofOf: (hh: string, day: number) => number, today: () => number) {
     const byPlot = new Map<string, number>(); for (let i = 0; i < households.length; i++) { const H = households[i]; if (H?.plot) byPlot.set(H.plot, H.id); }
