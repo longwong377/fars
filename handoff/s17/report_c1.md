@@ -36,6 +36,12 @@
   fullest in the morning and sell out through the afternoon.
 - Roofs from the sim: a leaking roof (roofOf < 0.45) shows dark slumped plaster and a drip jar under it; a fresh coat shows pale.
 
+- House variety (tools/dev/house_census.ts): neighbouring houses with the same street face 66 of 1463 pairs -> 0; height
+  follows standing (r 0.15 -> 0.61; the poorer build lower, never higher: the tile gate). Doors in 6 forms.
+- Wear per house (wallwear.ts, instanced decals): smoke over the street doors by age, plaster and trade; splashed feet by the
+  doorways; a fresh coat over the door and the facade's top when the sim has just replastered the roof.
+- Night: 558 doorway lamps (the fire system lights them); washing, stools and drying wool brought in at dusk.
+
 ## Census (tools/dev/fill_census.ts; tests/fill_census.test.ts)
 | | before | after |
 |---|---|---|
@@ -63,3 +69,5 @@ DECISIONS (D-550), handoff/s17/asks_vagon.md.
 ## Tests run
 fill 6/6, fill_census 3/3, roofwear 2/2, houses 9/9, houselod, model_props, settlement, fauna, visitor_access, world_cache
 green; guards 25/25; lint:chrono OK; tsc clean on touched files.
+
+- Also failing on the base, not mine: fire_occ (the Terrace bake's parts hash is stale).
