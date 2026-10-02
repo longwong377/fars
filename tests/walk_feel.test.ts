@@ -75,6 +75,18 @@ describe('the head', () => {
   });
 });
 
+describe('people in the way', () => {
+  for (const off of [0, 0.12, -0.12]) it(`a person standing in a 2 m doorway (${off} m off its middle) is eased past, on the freer side`, () => {
+    const P = flatWorld();
+    P.addBox({ x: -1.5, y: 1.5, z: -4 }, { x: 0.5, y: 1.5, z: 0.4 }); P.addBox({ x: 1.5, y: 1.5, z: -4 }, { x: 0.5, y: 1.5, z: 0.4 }); // jambs: a 2 m opening
+    const who = P.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(off, 0, -4)); P.world.createCollider(R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), who);
+    P.step(DT); const pl = new Player(P, 0, 0, 0); go(pl, P, 10);
+    let side = 0; for (let i = 0; i < 60 * 8 && pl.position.z > -6; i++) { go(pl, P, 1, { forward: 1 }); if (Math.abs(pl.position.z + 4) < 0.2) side = pl.position.x - off; }
+    expect(pl.position.z).toBeLessThan(-6);
+    if (off) expect(Math.sign(side)).toBe(-Math.sign(off));
+  });
+});
+
 describe('stairs and crouching', () => {
   it('the Grand Stair\'s low risers (0.108 / 0.31): climbed smoothly, a step a tread or so, slower than on the level', () => {
     const P = flatWorld(); for (let k = 0; k < 30; k++) P.addBox({ x: 0, y: (k + 1) * 0.108 / 2, z: -2 - k * 0.31 - 50 }, { x: 2, y: (k + 1) * 0.108 / 2, z: 50 });
