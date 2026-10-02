@@ -7,7 +7,7 @@
 // GitHub Pages: no custom headers (no COOP/COEP: the page runs without cross-origin isolation; nothing in it needs
 // SharedArrayBuffer), no Git LFS, 1 GB a site, 100 MB a file. The script fails when the dist breaks a limit.
 import { execSync } from 'node:child_process';
-import { existsSync, readdirSync, statSync, writeFileSync, lstatSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync, lstatSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const root = resolve(process.cwd()), dist = join(root, 'dist'), base = process.env.PARSA_BASE ?? '/fars/';
@@ -27,6 +27,9 @@ run('npx vite build', { PARSA_BASE: base }); lap('vite build');
 
 // GitHub Pages: no Jekyll (it would drop files and folders starting with _), the limits checked
 writeFileSync(join(dist, '.nojekyll'), '');
+// the service worker's build stamp (public/sw.js): a new deploy is a new worker, which drops the old build's cache
+{ const sw = join(dist, 'sw.js'), id = (() => { try { return execSync('git rev-parse --short HEAD', { cwd: root }).toString().trim(); } catch { return 'nogit'; } })() + '-' + Date.now().toString(36);
+  if (existsSync(sw)) writeFileSync(sw, readFileSync(sw, 'utf8').replace('__PARSA_BUILD__', id)); }
 const files = []; const walk = d => { for (const n of readdirSync(d)) { const p = join(d, n), s = lstatSync(p); if (s.isDirectory()) walk(p); else files.push([p.slice(dist.length + 1).split('\\').join('/'), s.size]); } };
 walk(dist);
 const total = files.reduce((a, [, b]) => a + b, 0), big = files.filter(([, b]) => b > 100e6), top = [...files].sort((a, b) => b[1] - a[1]).slice(0, 8);

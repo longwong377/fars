@@ -68,9 +68,18 @@ if (settings.devOverlay || P.has('overlay')) overlay.toggle();
 const SPAWN = { east: -175, north: 122.45, yaw: -Math.PI / 2 };
 
 const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms') : (_: string) => {};
+/** s15/ship (D-374): the built site's service worker (public/sw.js: the site's files in Cache Storage, so a second visit
+ *  fetches nothing); on a first visit the boot waits (at most 3 s) until it controls the page, so the first visit's files are kept */
+async function siteWorker() {
+  if (!(import.meta as any).env?.PROD || !('serviceWorker' in navigator) || P.has('nosw')) return;
+  try { await navigator.serviceWorker.register(BASE + 'sw.js', { scope: BASE });
+    if (!navigator.serviceWorker.controller) await Promise.race([new Promise(r => navigator.serviceWorker.addEventListener('controllerchange', r, { once: true })), new Promise(r => setTimeout(r, 3000))]); }
+  catch (e) { console.warn('[sw]', e); }
+}
 async function boot() {
   const shell = new Shell(settings, hooks());
   shell.loading('Preparing the renderer…');
+  const swP = siteWorker();
   let renderer: THREE.WebGPURenderer;
   try {
     // reversed-Z on WebGPU; the WebGL2 fallback needs EXT_clip_control for that, so it uses a logarithmic depth buffer (D-007)
@@ -104,6 +113,7 @@ async function boot() {
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
   shell.loading('Loading the plain and the mountain…');
+  await swP;
   await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
   const terrain = await Terrain.load(BASE);
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
