@@ -9372,3 +9372,16 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 ## D-464 The depth goes live: cloud-s15-depth merged into s14-int on the user's word (session 15/16, cloud lead)
 - The user, after the state-of-the-game report: "i think you should merge". The merge budget rule held it back (the consolidated built site reached ready at the same speed, 99.8 s cold / 69.0 s warm, but page memory rose 5.60 -> 5.83 GB, bench-reports/load_s16_boot.md on cloud-s16-boot); the user's decision takes it in. The memory is owed back: page memory under 5 GB stays the target (gates/budgets.json not loosened).
 - In: D-455..D-462 (the stranger's living loop, the market's stallholders, open deeds and a mind in every person, law and feuds, minds' goals, deeds made physical), D-456 talk-eval fixes, D-457 women's names, B230 adult brides, D-395 talk16 hooks. tsc clean; guards 25/25; the consolidated key tests 113/114 and 40/40 after the last merge (sessions/s15-cloud-report.md). The market and goals merges were not in the built-site measurement: the next Vagon session verifies the live site first.
+
+## D-560 The plain filled near the walker: the roadside, no copies within 20 m, the census (session 17, cloud C2)
+- tools/dev/plain_census.ts measures, per plain area of data/areas.json, the ground within 30 m of every road, village track and
+  town desire line (146 km within 14 km of the Terrace), from the page's own placement code: bare 2 m cells, bare verge runs,
+  repeated instances (same model within 20 m at the same size, proportions, turn and lean) and the fields' state by date.
+- src/world/plain/verge.ts: one path index read by the cover, flora, rocks and crops: the tread worn (no tuft, crop or plant;
+  dung; on the tracks a sward strip between the ruts), the verge (to 3.5 m) the rankest ground (2-4 tufts a 2 m cell standing
+  dry after June, thistles and camelthorn, stones thrown to the edge). Baseline (18 Apr): the longest bare verge 88 m
+  (track_37), young wheat and tufts grew on the village tracks; now no bare verge run over 2 m in any area (C).
+- src/world/plain/variety.ts: a copy of an earlier instance within 20 m is turned (golden-angle steps), deterministically and
+  whatever the viewer's place; plants lean (to ~9 deg) and vary in spread (0.8-1.25), stones in height (0.8-1.15).
+  Repeats 11,000 of 260,000 instances near the paths -> 67. Found and fixed with it: an orchard plot whose Voronoi seed lay
+  in its neighbour drew the neighbour's trees again on a second grid (overlapping trunks) and stood empty itself (plotAnchor).

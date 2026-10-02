@@ -3,13 +3,13 @@
 // 30 m of it is sampled on the ground cover's own 2 m cells (groundCover.ts COVER.cell), and each cell is asked: does any
 // object stand in it? Objects: the ground cover (tufts, sward, stubble, dung), the flora (thorn cushions, camelthorn,
 // thistles), the loose rocks (stones, boulders), the standing crop (crops.ts grid: any clump with height or stubble today),
-// the trees (river and canal lines, orchards, woodland; the crown's inner half), the roadside fill (plain/verge.ts) when present.
+// the trees (river and canal lines, orchards, woodland; the crown's inner half); with the roadside rules (plain/verge.ts).
 // Reported per plain area of data/areas.json (village, river-reach, near-ground, plain-sector: the first that holds the cell):
 //  - bare: share of the cells within 30 m of a path (off its tread) with no object;
 //  - roadside: along each path, both verges (the 2 m cells at tread + 1 m and + 3 m) in 2 m steps: the longest run with
 //    both verge cells empty, and the length in runs over 15 m;
 //  - repeats: trees, rocks and flora within 30 m of a path that have a twin within 20 m (same model and variant, scale within
-//    6 %, yaw within 15 deg, tilt within 4 deg): reads as a copy-paste;
+//    6 %, proportions within 6 %, yaw within 15 deg, lean within 4 deg): reads as a copy-paste;
 //  - fields: the cropped cells' state today (standing green, ripening, stubble, tilled/bare plough) by month.
 // Cells the census leaves out: water and its 8 m margin (riparian.ts reeds own it), built ground, the Terrace, the town's
 // sites and zones (C1's), and the tread of the path itself (worn bare on purpose).
@@ -27,14 +27,14 @@ import { settlementRoads, feature } from '../../src/world/plain/data';
 import { coverCell, COVER } from '../../src/world/plain/groundCover';
 import { cropState, YEAR } from '../../src/world/plain/seasonal';
 import { PLAIN_QUALITY } from '../../src/world/plain/index';
-import { FLORA, floraCellItems, type FloraKind } from '../../src/world/groundFlora';
-import { ROCKS, rockCellItems, type RockKind } from '../../src/world/groundRocks';
+import { FLORA, floraCell, type FloraKind } from '../../src/world/groundFlora';
+import { ROCKS, rockCell, type RockKind } from '../../src/world/groundRocks';
 import { CELL as SCELL, type CellCtx } from '../../src/world/smallLife';
 import { treeInst } from '../../src/world/trees/render';
 import { FOOTPRINTS } from '../../src/arch/spec';
 import { toLocal } from '../../src/world/settlement/site';
 import { DOY_AT_DAY0, SEASON_TABLE } from '../../src/world/season';
-import * as verge from '../../src/world/plain/verge';
+import { setVergePaths } from '../../src/world/plain/verge';
 
 const arg = (k: string, d: string) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const DOY = +arg('--doy', String(DOY_AT_DAY0 + 5)), SEED = +arg('--seed', '1'), MAXKM = +arg('--max-km', '14'), OUT = arg('--json', '');
@@ -71,11 +71,13 @@ const ctxCache = new Map<number, CellCtx>(), ctxCell = (ix: number, iy: number) 
 
 // ------------------------------------------------------------------ the paths
 const tracks = trackLines(villages), tw = feature('villages_unlocated').tracks.width_m as number;
-const paths: { id: string; pts: [number, number][]; hw: number }[] = [
-  ...settlementRoads().map(r => ({ id: r.id, pts: r.pts, hw: r.width / 2 })),
-  ...tracks.map((pts, i) => ({ id: `track_${i}`, pts: pts as [number, number][], hw: tw / 2 })),
-  ...desireLines(plan).map((l, i) => ({ id: `desire_${i}`, pts: [l.a, l.b] as [number, number][], hw: l.w / 2 })),
+const paths: { id: string; pts: [number, number][]; hw: number; kind: 'road' | 'track' | 'path' }[] = [
+  ...settlementRoads().map(r => ({ id: r.id, pts: r.pts, hw: r.width / 2, kind: 'road' as const })),
+  ...tracks.map((pts, i) => ({ id: `track_${i}`, pts: pts as [number, number][], hw: tw / 2, kind: 'track' as const })),
+  ...desireLines(plan).map((l, i) => ({ id: `desire_${i}`, pts: [l.a, l.b] as [number, number][], hw: l.w / 2, kind: 'path' as const })),
 ].map(p => ({ ...p, pts: p.pts.filter(q => Math.hypot(q[0], q[1]) < MAXKM * 1000) })).filter(p => p.pts.length > 1);
+// the page's roadside rules (verge.ts), off with --no-verge (the baseline)
+if (!NO_VERGE) setVergePaths(paths.map(p => ({ pts: p.pts, hw: p.hw, kind: p.kind })));
 // a coarse index of all path segments: the tread test (a cell on any path's tread is left out)
 const pIdx = new Map<number, { a: [number, number]; b: [number, number]; hw: number }[]>(); const PI_ = 40;
 for (const p of paths) for (let i = 1; i < p.pts.length; i++) { const a = p.pts[i - 1], b = p.pts[i];
@@ -94,13 +96,14 @@ const areaAt = (e: number, n: number): string | null => { if (excluded.some(a =>
 // ------------------------------------------------------------------ the objects in a 2 m cell
 const season = seasonOf(DOY);
 const covEnv = { ground, zones: Z, trodden: (x: number, z: number) => groundAt4(G, x, -z)[1], blocked: (x: number, z: number) => { const c = ctxCell(Math.floor(x / SCELL), Math.floor(-z / SCELL)); return c === 'none' || c === 'water'; } };
-interface Obj { cls: string; key: string; e: number; n: number; s: number; yaw: number; tilt?: number; r: number }
-const smallObjs = new Map<number, Obj[]>(); // per 8 m small cell: flora + rocks
+interface Obj { cls: string; key: string; e: number; n: number; s: number; yaw: number; asp: number; lean: [number, number]; r: number }
+const smallObjs = new Map<number, Obj[]>(), floraMemo = new Map<number, any[]>(), rockMemo = new Map<number, any[]>(); // per 8 m small cell: flora + rocks
 const NV: Record<RockKind, number> = { stone: 12, boulder: 6 }; // public/models/props/manifest.json roles (stone; boulder + outcrop)
 const smallCell = (ix: number, iy: number) => { const k = (ix + 32768) * 65536 + (iy + 32768); let l = smallObjs.get(k); if (l) return l; l = [];
   const cx = ctxCell(ix, iy);
-  for (const f of Object.keys(FLORA) as FloraKind[]) { const w = FLORA[f].where[cx]; if (!w) continue; for (const it of floraCellItems(SEED, f, ix, iy, w)) l.push({ cls: 'flora', key: f, e: it.e, n: it.n, s: it.sz, yaw: it.yaw, tilt: 0, r: it.sz * 0.4 }); }
-  for (const r of Object.keys(ROCKS) as RockKind[]) { const w = ROCKS[r].where[cx]; if (!w) continue; for (const it of rockCellItems(SEED, r, ix, iy, w, NV[r])) l.push({ cls: 'rock', key: `${r}:${it.vi}`, e: it.e, n: it.n, s: it.sz, yaw: it.yaw, tilt: (it as any).tilt ?? 0, r: it.sz * 0.4 }); }
+  void cx;
+  for (const f of Object.keys(FLORA) as FloraKind[]) for (const it of floraCell(SEED, f, ix, iy, ctxCell, floraMemo)) l.push({ cls: 'flora', key: f, e: it.e, n: it.n, s: it.sz, yaw: it.yaw, asp: it.asp, lean: it.lean, r: it.sz * 0.4 });
+  for (const r of Object.keys(ROCKS) as RockKind[]) for (const it of rockCell(SEED, r, ix, iy, NV[r], ctxCell, rockMemo)) l.push({ cls: 'rock', key: `${r}:${it.vi}`, e: it.e, n: it.n, s: it.sz, yaw: it.yaw, asp: it.sy, lean: it.tilt, r: it.sz * 0.4 });
   smallObjs.set(k, l); return l; };
 const coverMemo = new Map<number, number>();
 const coverCount = (ix: number, iz: number) => { const k = (ix + 32768) * 65536 + (iz + 32768); let c = coverMemo.get(k); if (c === undefined) { c = coverCell(covEnv, ix, iz, SEED, DOY, season).length; coverMemo.set(k, c); } return c; };
@@ -118,24 +121,18 @@ const cropIn = (x0: number, z0: number) => { const sp = Q.cropStep; let n = 0;
 const trees: { t: Tree; where: string }[] = [...riparianTrees(RV.rivers, SEED).map(t => ({ t, where: 'riparian' })), ...canalTrees(canals, SEED).map(t => ({ t, where: 'canal' }))];
 for (const p of orchardPlots(Z, villages)) if (Math.hypot(p.sx, p.sz) < MAXKM * 1000) for (const t of orchardPlotTrees(Z, p.sx, p.sz)) trees.push({ t, where: 'orchard' });
 const tIdx = new Map<number, Obj[]>(); const TI = 20;
-const addTree = (t: Tree, where: string) => { const r = treeInst(t.sp, t.x, 0, -t.y, t.h, t.w, t.seed); const o: Obj = { cls: 'tree:' + where, key: `tree:${r.row}`, e: t.x, n: t.y, s: r.sy, yaw: r.yaw, r: t.w * 0.25 };
+const addTree = (t: Tree, where: string) => { const r = treeInst(t.sp, t.x, 0, -t.y, t.h, t.w, t.seed); const o: Obj = { cls: 'tree:' + where, key: `tree:${r.row}`, e: t.x, n: t.y, s: r.sy, yaw: r.yaw, asp: r.sxz / r.sy, lean: [0, 0], r: t.w * 0.25 };
   const k = sk(Math.floor(t.x / TI), Math.floor(t.y / TI)); let l = tIdx.get(k); if (!l) tIdx.set(k, l = []); l.push(o); };
 for (const q of trees) addTree(q.t, q.where);
 const woodDone = new Set<number>();
 const ensureWood = (e: number, n: number) => { const k = sk(Math.floor(e / 200), Math.floor(n / 200)); if (woodDone.has(k)) return; woodDone.add(k);
   const cx = (Math.floor(e / 200) + 0.5) * 200, cn = (Math.floor(n / 200) + 0.5) * 200; for (const t of woodlandTrees(Z, cx, -cn, 142)) if (Math.floor(t.x / 200) === Math.floor(e / 200) && Math.floor(t.y / 200) === Math.floor(n / 200)) addTree(t, 'woodland'); };
 const treesNear = (e: number, n: number, R: number) => { const out: Obj[] = []; for (let x = Math.floor((e - R) / TI); x <= Math.floor((e + R) / TI); x++) for (let y = Math.floor((n - R) / TI); y <= Math.floor((n + R) / TI); y++) for (const o of tIdx.get(sk(x, y)) ?? []) if (Math.hypot(o.e - e, o.n - n) < R) out.push(o); return out; };
-const vergeOn = !NO_VERGE && typeof (verge as any).vergeCell === 'function';
-const vergeEnv = vergeOn ? (verge as any).censusEnv?.({ paths, ground, zones: Z, ctx: (e: number, n: number) => ctxCell(Math.floor(e / SCELL), Math.floor(n / SCELL)) }) : null;
-const vergeMemo = new Map<number, Obj[]>();
-const vergeObjs = (ix: number, iz: number): Obj[] => { if (!vergeEnv) return []; const k = (ix + 32768) * 65536 + (iz + 32768); let l = vergeMemo.get(k); if (l) return l;
-  l = ((verge as any).vergeCell(vergeEnv, ix, iz, SEED, DOY, season) as any[]).map(it => ({ cls: 'verge', key: `verge:${it.kind}:${it.v}`, e: it.x, n: -it.z, s: it.s, yaw: it.yaw, tilt: it.tilt ?? 0, r: it.s * 0.4 })); vergeMemo.set(k, l); return l; };
-
+const vergeOn = !NO_VERGE;
 /** what stands in the 2 m cover cell (ix, iz) (world x = ix * C, world z = iz * C; grid n = -z) */
 const cellObjects = (ix: number, iz: number) => {
   const x0 = ix * C, z0 = iz * C, e0 = x0, n1 = -z0, n0 = n1 - C; let n = coverCount(ix, iz), crop = 0;
   if (n === 0) { const sx = Math.floor((e0 + 1) / SCELL), sy = Math.floor((n0 + 1) / SCELL); for (const o of smallCell(sx, sy)) if (o.e >= e0 && o.e < e0 + C && o.n >= n0 && o.n < n1) n++; }
-  if (n === 0) { n += vergeObjs(ix, iz).length; }
   if (n === 0) { crop = cropIn(x0, z0); n += crop; }
   if (n === 0) { ensureWood(e0 + 1, n0 + 1); n += treesNear(e0 + 1, n0 + 1, 12).filter(o => Math.hypot(o.e - e0 - 1, o.n - n0 - 1) < o.r + 1).length; }
   return n;
@@ -173,20 +170,20 @@ for (const p of paths) {
         const B = S(id2); B.cells++; samples++; if (cellObjects(ix, iz) === 0) B.bare++;
         const fs = fieldState(pe, -pn); if (fs) B.field[fs] = (B.field[fs] ?? 0) + 1;
         // the instances standing near the path (for the repeat test)
-        if (off < 12) { for (const o of [...smallCell(Math.floor(pe / SCELL), Math.floor(pn / SCELL)).filter(o => o.cls !== 'x'), ...treesNear(pe, pn, 6), ...vergeObjs(ix, iz)]) { const ik = `${o.key}:${o.e.toFixed(2)}:${o.n.toFixed(2)}`; if (!instSeen.has(ik)) { instSeen.add(ik); inst.push(o); } } }
+        if (off < 12) { for (const o of [...smallCell(Math.floor(pe / SCELL), Math.floor(pn / SCELL)).filter(o => o.cls !== 'x'), ...treesNear(pe, pn, 6)]) { const ik = `${o.key}:${o.e.toFixed(2)}:${o.n.toFixed(2)}`; if (!instSeen.has(ik)) { instSeen.add(ik); inst.push(o); } } }
       }
     }
   }
 }
-// repeats: a twin within 20 m (same model and variant, scale within 6 %, yaw within 15 deg, tilt within 4 deg)
+// repeats: a twin within 20 m (same model and variant, scale and proportions within 6 %, yaw within 15 deg, lean within 4 deg)
 const rIdx = new Map<number, Obj[]>(); for (const o of inst) { const k = sk(Math.floor(o.e / 20), Math.floor(o.n / 20)); let l = rIdx.get(k); if (!l) rIdx.set(k, l = []); l.push(o); }
 const repByCls: Record<string, [number, number]> = {};
 for (const o of inst) { let twin = false;
   for (let x = Math.floor(o.e / 20) - 1; x <= Math.floor(o.e / 20) + 1 && !twin; x++) for (let y = Math.floor(o.n / 20) - 1; y <= Math.floor(o.n / 20) + 1 && !twin; y++) for (const q of rIdx.get(sk(x, y)) ?? []) {
     if (q === o || q.key !== o.key || Math.hypot(q.e - o.e, q.n - o.n) > 20) continue;
     const dy = Math.abs(((q.yaw - o.yaw) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI);
-    if (Math.abs(q.s / o.s - 1) < 0.06 && dy < 0.26 && Math.abs((q.tilt ?? 0) - (o.tilt ?? 0)) < 0.07) { twin = true; break; } }
-  const c = o.cls.startsWith('tree') ? 'tree' : o.cls; const r = repByCls[c] ??= [0, 0]; r[1]++; if (twin) r[0]++;
+    if (Math.abs(q.s / o.s - 1) < 0.06 && Math.abs(q.asp / o.asp - 1) < 0.06 && dy < 0.26 && Math.hypot(q.lean[0] - o.lean[0], q.lean[1] - o.lean[1]) < 0.07) { twin = true; break; } }
+  const c = o.cls; const r = repByCls[c] ??= [0, 0]; r[1]++; if (twin) r[0]++;
   const id = areaAt(o.e, o.n); if (id) { const A = S(id); A.inst++; if (twin) A.reps++; } }
 
 // ------------------------------------------------------------------ report

@@ -17,6 +17,8 @@ import type { P2 } from '../people/navgrid';
 import { CELL, type CellCtx, type SmallWorld } from './smallLife';
 import { scanProp, scanMaterial, fitProp, type ScanProp } from '../render/scanProps';
 import { lifeModel, lifeMaterial } from './lifeModels';
+import { vergeZone } from './plain/verge';
+import { resolveCell, sameLook, bumpYaw } from './plain/variety';
 /** D-332: the months (0 = January) the modelled flowers show: the tragacanth's (C: Astragalus flowers in late spring),
  *  camelthorn's (summer) */
 export const FLORA_BLOOM = { cushion: [0, 0, 0, 0.3, 1, 0.6, 0, 0, 0, 0, 0, 0], camelthorn: [0, 0, 0, 0, 0, 0.8, 1, 0.7, 0.2, 0, 0, 0] };
@@ -42,14 +44,33 @@ export const FLORA_SCANS: Record<FloraKind, { ids: string[]; fit: 'box' | 'heigh
   thistle: { ids: ['nettle_plant_v1', 'nettle_plant_v2', 'nettle_plant_v5', 'nettle_plant_v6'], fit: 'height' },
 };
 export const FLORA_LOD_NEAR = 12;
+/** one plant: grid (e, n), index, size (m), yaw; s17 (D-560): its proportions (asp: width over height, 0.8-1.25) and its lean
+ *  (radians about grid e and n, up to ~9 deg): no two plants of a model within 20 m stand as copies of each other */
+export interface FloraItem { e: number; n: number; i: number; sz: number; yaw: number; asp: number; lean: [number, number] }
+function shapeOf(seed: number, ix: number, iy: number, i: number, k: number): { asp: number; lean: [number, number] } {
+  const a = u01(seed, ix, iy, i, k, 91) * 6.283, m = 0.16 * Math.sqrt(u01(seed, ix, iy, i, k, 92));
+  return { asp: 0.8 + 0.45 * u01(seed, ix, iy, i, k, 93), lean: [Math.cos(a) * m, Math.sin(a) * m] };
+}
 /** the plants of kind k in one 8 m cell (ix, iy) of context weights w (FLORA[k].where[ctx]): grid (e, n), index i, size sz (m),
  *  yaw; a hash of (seed, cell, index), the same in the page and the census (tools/dev/plain_census.ts) */
 export function floraCellItems(seed: number, k: FloraKind, ix: number, iy: number, w: [number, number, number]) {
-  const out: { e: number; n: number; i: number; sz: number; yaw: number }[] = [];
+  const out: FloraItem[] = [];
   if (u01(seed, ix, iy, KIDX[k], 31) >= w[0]) return out;
   const n = w[1] + (h32(seed, ix, iy, KIDX[k], 32) % (w[2] - w[1] + 1));
-  for (let i = 0; i < n; i++) out.push({ e: (ix + u01(seed, ix, iy, i, KIDX[k], 33)) * CELL, n: (iy + u01(seed, ix, iy, i, KIDX[k], 34)) * CELL, i,
-    sz: FLORA[k].size[0] + (FLORA[k].size[1] - FLORA[k].size[0]) * u01(seed, ix, iy, i, KIDX[k], 35), yaw: u01(seed, ix, iy, i, 36) * 6.283 });
+  for (let i = 0; i < n; i++) { const e = (ix + u01(seed, ix, iy, i, KIDX[k], 33)) * CELL, nn = (iy + u01(seed, ix, iy, i, KIDX[k], 34)) * CELL;
+    const vz = vergeZone(e, nn)?.zone; if (vz === 'tread' || vz === 'median') continue; // (s17: nothing grows on a worn tread)
+    out.push({ e, n: nn, i, sz: FLORA[k].size[0] + (FLORA[k].size[1] - FLORA[k].size[0]) * u01(seed, ix, iy, i, KIDX[k], 35), yaw: u01(seed, ix, iy, i, 36) * 6.283, ...shapeOf(seed, ix, iy, i, KIDX[k]) }); }
+  return out;
+}
+/** s17 (D-560): the roadside weeds of one 8 m cell: thistles and camelthorn (and a few thorn cushions) on the verges of the paths
+ *  (verge.ts), whatever the cell's context; 14 candidate points a cell, those on a verge kept by kind share (C) */
+export const VERGE_FLORA: Record<FloraKind, number> = { thistle: 0.34, camelthorn: 0.2, cushion: 0.05 };
+export function vergeFloraItems(seed: number, k: FloraKind, ix: number, iy: number) {
+  const out: FloraItem[] = [];
+  for (let i = 0; i < 14; i++) { const e = (ix + u01(seed, ix, iy, i, 71)) * CELL, nn = (iy + u01(seed, ix, iy, i, 72)) * CELL, z = vergeZone(e, nn); if (z?.zone !== 'verge') continue;
+    const u = u01(seed, ix, iy, i, 73), kk: FloraKind = u < VERGE_FLORA.thistle ? 'thistle' : u < VERGE_FLORA.thistle + VERGE_FLORA.camelthorn ? 'camelthorn' : u < VERGE_FLORA.thistle + VERGE_FLORA.camelthorn + VERGE_FLORA.cushion ? 'cushion' : 'none' as any;
+    if (kk !== k) continue;
+    out.push({ e, n: nn, i: 100 + i, sz: (FLORA[k].size[0] + (FLORA[k].size[1] - FLORA[k].size[0]) * u01(seed, ix, iy, i, 74)), yaw: u01(seed, ix, iy, i, 75) * 6.283, ...shapeOf(seed, ix, iy, 100 + i, KIDX[k]) }); }
   return out;
 }
 /** the unit box a scan is fitted to, as the procedural unit forms: the cushion a dome 1 x 0.55 x 1; the others unit height, their own proportions */
@@ -84,6 +105,16 @@ function thistleGeometry() { const s = new THREE.BoxGeometry(0.012, 1, 0.012); s
   const l1 = new THREE.BoxGeometry(0.16, 0.008, 0.04); l1.translate(0, 0.3, 0); const l2 = new THREE.BoxGeometry(0.04, 0.008, 0.14); l2.translate(0, 0.55, 0);
   return build([s, l1, l2, h], [0, 0, 0, 1]); }
 
+/** s17 (D-560): the plants of kind k drawn in cell (ix, iy): its context's stands and the roadside weeds, with any copy of an
+ *  earlier plant within 20 m turned (variety.ts); `ctxOf` the cells' context, `memo` caches raw cells (per kind) */
+const twinF = (a: FloraItem, b: FloraItem) => sameLook({ s: a.sz, asp: a.asp, yaw: a.yaw, lean: a.lean }, { s: b.sz, asp: b.asp, yaw: b.yaw, lean: b.lean });
+export function floraCell(seed: number, k: FloraKind, ix: number, iy: number, ctxOf: (ix: number, iy: number) => CellCtx, memo?: Map<number, FloraItem[]>): FloraItem[] {
+  const raw = (x: number, y: number) => { const key = ((x + 32768) * 65536 + (y + 32768)) * 4 + KIDX[k]; let l = memo?.get(key); if (l) return l;
+    const cx = ctxOf(x, y), w = FLORA[k].where[cx]; l = [...(w ? floraCellItems(seed, k, x, y, w) : []), ...(cx !== 'none' && cx !== 'water' ? vergeFloraItems(seed, k, x, y) : [])];
+    if (memo) { if (memo.size > 60000) memo.clear(); memo.set(key, l); } return l; };
+  return resolveCell(ix, iy, CELL, raw, twinF, (t, j) => ({ ...t, yaw: bumpYaw(t.yaw, j) }));
+}
+
 export class GroundFlora {
   readonly group = new THREE.Group();
   readonly meshes = new Map<FloraKind, THREE.InstancedMesh>();
@@ -92,7 +123,7 @@ export class GroundFlora {
   private uBloomC = uniform(0); private uBloomA = uniform(0); private uHeads = uniform(1);
   /** D-332: per kind the modelled levels (near, far) */
   readonly model = new Map<FloraKind, { near: THREE.InstancedMesh; far: THREE.InstancedMesh }>();
-  private cells = new Map<number, CellCtx>();
+  private cells = new Map<number, CellCtx>(); private rawMemo = new Map<number, FloraItem[]>(); private ctxOf = (ix: number, iy: number) => this.ctx(ix, iy);
   private scanCounts: Record<FloraKind, number[]> = { cushion: [], camelthorn: [], thistle: [] };
   private last: { e: number; n: number; month: number } = { e: 1e9, n: 1e9, month: -1 };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private eu = new THREE.Euler(); private v = new THREE.Vector3(); private s = new THREE.Vector3();
@@ -167,16 +198,17 @@ export class GroundFlora {
       if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > FLORA_R + CELL) continue;
       const cx = this.ctx(ix, iy);
       for (const k of Object.keys(FLORA) as FloraKind[]) {
-        const w = FLORA[k].where[cx]; if (!w) continue;
+        void cx; const items = floraCell(this.seed, k, ix, iy, this.ctxOf, this.rawMemo); if (!items.length) continue;
         const sc = this.scanCounts[k];
         const mesh = this.meshes.get(k)!, fpos = mesh.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute;
-        for (const it of floraCellItems(this.seed, k, ix, iy, w)) { if (counts[k] >= FLORA[k].max) break;
+        for (const it of items) { if (counts[k] >= FLORA[k].max) break;
           const { e, n: nn, i, sz } = it, y = this.world.ground(e, nn); if (!Number.isFinite(y)) continue;
           // D-356: plants stand upright, so on a slope the stem is set at the lowest ground under the plant's footprint (a
           // tragacanth dome on the hills' slopes showed daylight under its downhill side)
           const fr = (k === 'cushion' ? 0.5 : 0.3) * sz, low = Math.min(y, ...[this.world.ground(e + fr, nn), this.world.ground(e - fr, nn), this.world.ground(e, nn + fr), this.world.ground(e, nn - fr)].filter(Number.isFinite));
-          this.eu.set(0, it.yaw, 0); this.q.setFromEuler(this.eu); this.v.set(e, low - 0.03, -nn);
-          this.m4.compose(this.v, this.q, k === 'cushion' ? this.s.set(sz, sz, sz) : this.s.set(sz * 0.8, sz, sz * 0.8));
+          // (s17: leaning (about grid e: world x; about grid n: world -z), then turned; a lean lifts one side: sunk by it)
+          this.eu.set(it.lean[0], it.yaw, -it.lean[1], 'YXZ'); this.q.setFromEuler(this.eu); this.v.set(e, low - 0.03 - Math.hypot(it.lean[0], it.lean[1]) * fr * 0.5, -nn);
+          const sh = it.asp; this.m4.compose(this.v, this.q, k === 'cushion' ? this.s.set(sz * sh, sz, sz * sh) : this.s.set(sz * 0.8 * sh, sz, sz * 0.8 * sh)); // (the height in its range, the spread by asp)
           const c = counts[k]++; mesh.setMatrixAt(c, this.m4); fpos.setXYZ(c, e, y, -nn);
           const Mo = this.model.get(k); if (Mo) { const nearL = Math.hypot(e - viewer[0], nn - viewer[1]) < FLORA_LOD_NEAR, im = nearL ? Mo.near : Mo.far, j2 = mn[k][nearL ? 0 : 1]++;
             im.setMatrixAt(j2, this.m4); (im.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute).setXYZ(j2, e, y, -nn); }
