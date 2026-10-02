@@ -32,7 +32,8 @@ export interface Tree { x: number; y: number; sp: string; h: number; w: number; 
 // ---------------------------------------------------------------- placement
 /** s17 (D-560): no two trees of one model within 20 m at the same size, proportions and turn (variety.ts): a twin's seed is
  *  re-hashed (its variant, turn and tint follow from the seed: trees/render.ts treeInst) */
-const look = (t: Tree) => { const r = treeInst(t.sp, 0, 0, 0, t.h, t.w, t.seed); return { row: r.row, s: r.sy, asp: r.sxz / r.sy, yaw: r.yaw }; };
+const LOOK = new WeakMap<Tree, { row: number; s: number; asp: number; yaw: number }>();
+const look = (t: Tree) => { let l = LOOK.get(t); if (!l) { const r = treeInst(t.sp, 0, 0, 0, t.h, t.w, t.seed); LOOK.set(t, l = { row: r.row, s: r.sy, asp: r.sxz / r.sy, yaw: r.yaw }); } return l; };
 export const treeTwin = (a: Tree, b: Tree) => { const A = look(a), B = look(b); return A.row === B.row && sameLook(A, B); };
 export function treesTwinFree(list: Tree[], fixed: Tree[] = []): Tree[] {
   const P = (t: Tree) => ({ ...t, e: t.x, n: t.y });
