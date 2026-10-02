@@ -10,6 +10,7 @@ import type { Terrain } from '../../terrain/heightfield';
 import { ZoneMap, landUseAt, hash2, unit, cellU } from './fields';
 import { YEAR, ROW } from './seasonal';
 import { cerealClumpGeometry } from './cropForms';
+import { vergeZone } from './verge';
 
 // D-356: the plant drawn is the modelled cereal clump (cropForms.ts); until session 14 a clump of 10 one-triangle blades
 export interface NearCrops { mesh: THREE.Mesh; update(cam: THREE.Vector3, terrain: Terrain): boolean; count(): number }
@@ -67,6 +68,7 @@ export function nearCrops(zm: ZoneMap, cropTex: THREE.DataTexture, day: any, win
         const u = landUseAt(zm, x, z);
         if (u.use === 'natural' || u.row === 'orchard_floor') continue;
         if (u.plot.edge < 0.35 || u.plot.dEdge < 1.6) continue; // bunds and district tracks stay clear
+        const vz = vergeZone(x, -z)?.zone; if (vz === 'tread' || vz === 'median') continue; // s17 (D-560): nothing sown on the roads and tracks
         if (u.row === 'vineyard') { // vines only in their rows (2.5 m apart), as the shader draws them
           const across = ((x - u.plot.dSeed[0]) * Math.cos(u.plot.angle) + (z - u.plot.dSeed[1]) * Math.sin(u.plot.angle));
           const fr = ((across / 2.5) % 1 + 1) % 1; if (Math.abs(fr - 0.5) > 0.12) continue; } // the shader's rows are centred where fract = 0.5

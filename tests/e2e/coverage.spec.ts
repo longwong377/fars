@@ -17,6 +17,7 @@ import { depHash } from '../../tools/dev/coverage_dep';
 // a pilot over all states and areas)  FOV=photo (40°) instead of the player's  LIFE=0 (skip the life probe)
 // VARIETY=N (before the points: the first N variety places, each at the same hour on the file's days; D-236)  POINTS=0 (variety only)
 // TIMEOUT (s, default 7000; a run stops starting views 10 min before it)  OUT (default shots/coverage.json)
+// SET=<file> a fixed view set (tests/data/scoreboard_s17.json; tools/dev/scoreboard.mjs)  FULL_DIR=<dir> also keep each full PNG
 const PTS = JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8'));
 const Q = process.env.Q ?? 'test', FRAMES = +(process.env.FRAMES ?? (Q === 'test' ? 3 : 6)), TIMEOUT = +(process.env.TIMEOUT ?? 7000);
 const OUT = process.env.OUT ?? 'shots/coverage.json', VOUT = OUT.replace(/\.json$/, '_variety.json');
@@ -75,6 +76,13 @@ test('coverage', async ({ page }, info) => {
   const start = +(process.env.START ?? 0), stride = +(process.env.STRIDE ?? 1), off = +(process.env.OFFSET ?? 0), chunk = +(process.env.CHUNK ?? 40);
   const end = Math.min(all.length, +(process.env.END ?? all.length));
   const work = process.env.POINTS === '0' ? [] : all.map((p, i) => ({ p, i })).filter(({ p, i }) => i >= start && i < end && (i - off) % stride === 0 && (process.env.REDO || done[tag(p.id)]?.seed !== PTS.meta.seed)).slice(0, chunk).map(x => x.p);
+  // SET=<file> (session 17): a fixed view set {ids: coverage point ids, extra: point-shaped views} rendered whole, every run,
+  // ordered by world state (one setTime/setWeather per state); stride, chunk and the done-skip do not apply
+  if (process.env.SET) {
+    const S = JSON.parse(readFileSync(process.env.SET, 'utf8')), want = new Set(S.ids ?? []);
+    work.length = 0; work.push(...all.filter(p => want.has(p.id)), ...(S.extra ?? []));
+    work.sort((a, b) => a.day - b.day || a.hour - b.hour || String(a.w).localeCompare(String(b.w)));
+  }
   const vwork = variety ? (PTS.variety as any[]).slice(0, variety) : [];
   console.log(`coverage: ${work.length} views (of ${all.length}; ${Object.keys(done).length} done) + ${vwork.length} variety places × ${vwork[0]?.days.length ?? 0} days at Q=${Q}, ${FRAMES} frames, fov ${fovArg ?? 'player'}`);
   if (!work.length && !vwork.length) return;
@@ -108,6 +116,7 @@ test('coverage', async ({ page }, info) => {
     const t1 = Date.now();
     try {
       const r = await shoot(page, v, v.day, v.hour, v.w, state);
+      if (process.env.FULL_DIR) { mkdirSync(process.env.FULL_DIR, { recursive: true }); writeFileSync(`${process.env.FULL_DIR}/${v.id}.png`, r.png); } // SET runs: the full frame
       writeFileSync(`shots/coverage/${v.id}-${Q}.jpg`, Buffer.from(r.th.jpg, 'base64')); if (r.fm.maskPng) writeFileSync(`shots/coverage/${v.id}-${Q}-mask.png`, Buffer.from(r.fm.maskPng, 'base64'));
       const f = r.fm.frame ?? {};
       const rec = { id: v.id, place: v.place, area: v.area, sub: v.sub, state: v.state, month: v.month, band: v.band, weather: v.weather, day: v.day, hour: v.hour, w: v.w, forced: !!v.forced,
