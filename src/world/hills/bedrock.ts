@@ -207,6 +207,16 @@ function rockMaterial(A: RockAtlas, name: string): THREE.MeshStandardNodeMateria
   m.name = name; return m;
 }
 
+/** D-600: the gap (m, unit scale; 99th percentile of the vertices above the ground) between a ground piece's levels 0-1 and
+ *  1-2 (tools/dev/rock_lod_gap.mjs on public/models/land/ground.glb). A level is drawn from where its gap at the piece's scale
+ *  spans LOD_PX at the player's lens: the fixed 50 / 260 m swapped levels up to ~8 / ~4 px apart for the largest pieces */
+export const ROCK_LOD_GAP: Record<string, [number, number]> = { outcrop05: [0.068, 0.636], slab02: [0.124, 0.834], talus03: [0.125, 0.648], scree04: [0.086, 0.328] };
+export const LOD_PX = 2;
+/** the distances (m) where a piece of this id and scale changes to level 1 and to level 2 (unknown ids: BEDROCK.lod) */
+export function lodDistances(id: string | undefined, scale: number): [number, number] {
+  const g = id ? ROCK_LOD_GAP[id] : undefined; if (!g) return [BEDROCK.lod[0], BEDROCK.lod[1]];
+  return [(g[0] * scale * BEDROCK.pxRad) / LOD_PX, (g[1] * scale * BEDROCK.pxRad) / LOD_PX];
+}
 /** how deep a piece sinks at the end of its reach (m): as before D-600 (four times its scale), and at least its own height
  *  (a large rock on a slope kept a corner up) */
 export const sinkDepth = (st: RockSite) => Math.max(st.s[1] * 4, st.s[1] * 1.6 + 0.5);
@@ -220,6 +230,7 @@ export class Bedrock {
   private tiles = new Map<number, RockSite[]>();
   private last = { x: 1e9, z: 1e9, yaw: 1e9 };
   private sizes: { ledge: [number, number, number][]; ground: [number, number, number][] };
+  private ids: { ledge: string[]; ground: string[] };
   private cellK: Partial<Record<RockClass, number[]>> = {};
   stats = { tiles: 0, ledges: 0, ground: 0, drawn: 0, tris: 0, ms: 0 };
   readonly active: boolean;
@@ -227,6 +238,7 @@ export class Bedrock {
   constructor(private env: BedrockEnv, private seed: number, kit: RockKit | null = rockKit()) {
     this.group.name = 'bedrock';
     this.sizes = { ledge: kit?.ledge.map(p => p.size) ?? [], ground: kit?.ground.map(p => p.size) ?? [] };
+    this.ids = { ledge: kit?.ledge.map(p => p.id) ?? [], ground: kit?.ground.map(p => p.id) ?? [] };
     this.active = !!kit && (kit.ledge.length > 0 || kit.ground.length > 0);
     for (const cls of ['ledge', 'ground'] as RockClass[]) this.cellK[cls] = (kit?.[cls] ?? []).map(p => kit?.atlas[cls]?.cellK?.[p.cell ?? 0] ?? 1);
     this.group.userData = { tier: 'B/C', src: 'KR-BEDROCK;COP-DEM;POLYHAVEN-CC0', placeholder: !this.active,
@@ -279,7 +291,8 @@ export class Bedrock {
         if (d > reach + BEDROCK.moveM) continue; // (beyond its reach the shader has sunk it whole; the margin covers the next rebuild's walk)
         // beyond the near levels, what lies well outside the view (and cannot cast into it) is left out
         if (dir && d > BEDROCK.lod[0] * 2 && (dx * hx + dz * hz) / d < cone && d > BEDROCK.castR * 0.25) continue;
-        const lod = d < BEDROCK.lod[0] ? 0 : d < BEDROCK.lod[1] ? 1 : d < BEDROCK.castR ? 2 : 3;
+        const [d0, d1] = st.cls === 'ground' ? lodDistances(this.ids.ground[st.v], Math.max(st.s[0], st.s[1], st.s[2])) : [BEDROCK.lod[0], BEDROCK.lod[1]];
+        const lod = d < d0 ? 0 : d < d1 ? 1 : d < BEDROCK.castR ? 2 : 3;
         if (lod < 0) continue;
         const si = idx.get(`${st.cls}:${lod >= 2 && st.cls === 'ledge' ? -1 : st.v}:${lod}`); if (si === undefined) continue;
         const S = this.sets[si]; if (counts[si] >= S.cap) continue;
