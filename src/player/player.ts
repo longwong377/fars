@@ -40,6 +40,8 @@ export interface PlayerInput { forward: number; right: number; run: boolean; yaw
   slow?: boolean;
   /** crouch wanted (the body stands up again only where there is room) */
   crouch?: boolean }
+/** the footsteps' ground from a floor collider's userData (physics.ts terrain chunks, meshes.ts buildings, ledges, cliffs) */
+function groundOf(u: any): 'stone' | undefined { if (!u || u.terrain) return undefined; return u.building || u.ledge || /cliff/.test(u.what ?? '') ? 'stone' : undefined; }
 /** a footfall (one per step while grounded): for the footsteps' sound (C8) and the tests */
 export interface Footfall { foot: 0 | 1; speed: number; pace: Pace; crouched: boolean; stair: boolean; x: number; y: number; z: number }
 
@@ -66,6 +68,11 @@ export class Player {
   landed = 0;
   /** the walk bots' pace (m/s) in place of the paces, and inertia off for them (their steering is yaw only) */
   botSpeed: number | null = null;
+  /** the ground underfoot for the footsteps (C8, src/audio/soundplan.ts FootSurface): 'stone' on built floors, ledges and
+   *  the rock faces; undefined on the terrain and the town's ground (the soundscape reads those from place and season) */
+  groundKind: 'stone' | undefined = undefined;
+  /** under a roof (a ray straight up from the body meets something built within 30 m) */
+  roofed = false; private roofT = 0;
   /** called at each footfall */
   /** easing past someone met head-on: the time left and the turn's sign (away from the side the other stands to) */
   dodgeT = 0; private dodgeSide = -1; private dodgeA = 0;
@@ -189,6 +196,11 @@ export class Player {
       v.y += (-w * w * e.y - 2 * w * v.y) * h; e.y += v.y * h; }
     this.body.setNextKinematicTranslation({ x: p.x + m.x, y: p.y + m.y, z: p.z + m.z });
     this.grounded = grounded; this.landed = 0;
+    // what the feet stand on (C8's footsteps): the floor contact's collider; a roof overhead, looked for 4 times a second
+    if (grounded) for (let i = 0; i < this.controller.numComputedCollisions(); i++) { const c = this.controller.computedCollision(i);
+      if (c?.collider && c.normal1.y >= FLOOR_NY) { this.groundKind = groundOf((c.collider as any).userData); break; } }
+    if ((this.roofT -= dt) <= 0) { this.roofT = 0.25; const R = this.phys.R, hit = this.phys.world.castRay(new R.Ray({ x: p.x, y: p.y + 1, z: p.z }, { x: 0, y: 1, z: 0 }), 30, true, undefined, undefined, this.collider, this.body);
+      this.roofed = !!hit && !(hit.collider as any).userData?.terrain && hit.collider.shapeType() !== R.ShapeType.Capsule; }
     if (!this.grounded && wasGrounded) this.fallStartY = p.y;
     if (this.grounded && !wasGrounded && this.fallStartY !== null) { this.lastFall = this.fallStartY - p.y; this.maxFall = Math.max(this.maxFall, this.lastFall); this.landed = Math.max(0, this.lastFall); this.fallStartY = null; }
     const horiz = Math.hypot(m.x, m.z); this.distanceWalked += horiz;
