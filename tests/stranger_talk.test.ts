@@ -136,3 +136,10 @@ describe('a word taught', () => {
     sim.strangerDo(r.act); if ((r.act as any).word) expect(S.vocab.get((r.act as any).word)).toBeGreaterThanOrEqual(3);
   }, 300_000);
 });
+describe('the stranger in the chronicle', () => {
+  it('his deeds are told in the translation layer\'s journal', () => {
+    const d = 60, sim = simAt(1, d, 17); const E = sim.econTo(d), S = E.stranger(); sim.step(1);
+    const host = [...E.hh.values()].find(h => h.kind === 'farmer' && S.stayCheck(h.id, d).ok)!; sim.strangerDo({ a: 'stay', day: d, hh: host.id });
+    sim.step(60); const j = sim.events.filter(e => e.kind === 'stranger'); expect(j.some(e => /took you in as a guest/.test(e.text))).toBe(true);
+  }, 300_000);
+});

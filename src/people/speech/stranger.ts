@@ -34,6 +34,18 @@ import { hashString } from '../../core/rng';
 import { haggle } from './haggle';
 
 export const PLAYER = 'player';
+/** D-370: the stranger's own deeds as the chronicle tells them (the translation layer's journal, key J: out of world) */
+export function chronicleLine(kind: string, house: string): string | null {
+  const T: Record<string, string> = { hired_stranger: `You were taken on as a hand by ${house}.`, wage_paid: `${house} paid you your wages.`, wage_owed: `${house} could not pay what it owes you.`,
+    dismissed: `${house} dismissed you for the days you did not come.`, let_go: `${house} let you go: the work is done.`, left_work: `You left the work at ${house}.`, hand_hired: `Your work kept ${house} going while one of them lay sick.`,
+    hosted: `${house} took you in as a guest.`, guest_left: `You left ${house}.`, guest_sent_away: `${house} sent you away: you had given nothing back.`, ingrate: `${house} speaks of you as one who ate their bread and left without thanks.`,
+    guest_repaid: `${house} thanks you for your gift.`, stranger_claim: `You told ${house} who you are.`, claim_doubted: `${house} does not believe what you say of yourself.`, claim_denied: `${house} says you are no kin of theirs.`,
+    learned_tongue: `${house} notices you now speak their tongue.`, stranger_petition: `Your petition was heard by ${house}.`, ruling_for: `The ruling went for you.`, ruling_against: `The ruling went against you.`,
+    halmi_sealed: 'You were given a sealed document: leave to stay and to draw rations.', joined_gang: 'You joined a work gang of the king\'s stores.', left_gang: 'You left the work gang.',
+    joined_caravan: 'You hired on as a drover with a caravan in town.', left_caravan: 'The caravan left without you.', joined_house: `${house} took you in as one of the house.`, left_house: `You left ${house}.`,
+    stranger_hungry: 'You have not eaten for days.', gang_ration_cut: 'The gang\'s rations were cut.', haggle_deal: `You struck a bargain with ${house}.` };
+  return T[kind] ?? null;
+}
 const ROLE_WORDS: Record<string, string> = { labourer: 'a labourer', craftsman: 'a craftsman', merchant: 'a merchant', scribe: 'a scribe', pilgrim: 'a pilgrim', envoy: 'an envoy of the king', soldier: 'a soldier', healer: 'a healer', kin: 'kin of a house here' };
 const S = { hire: salt('str-hire'), tell: salt('str-tell'), pet: salt('str-pet'), host: salt('str-host'), lang: salt('str-lang'), head: salt('str-head'), car: salt('str-car'), nb: salt('str-nb') };
 const GRAIN_EAT = 0.55;
