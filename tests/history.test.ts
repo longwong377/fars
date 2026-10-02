@@ -81,3 +81,18 @@ describe('D-372 bynames tell namesakes apart', () => {
     for (const s of byMother.values()) expect(s.size).toBe(1);
   }, 600_000);
 });
+describe('D-373 hopes and worries from each person\'s own state', () => {
+  it('almost everyone has something on their mind; a worry about a debt is a real debt; no digits', async () => {
+    const { aimsOf } = await import('../src/people/aims');
+    const { readFileSync } = await import('node:fs'); const { NavGrid } = await import('../src/people/navgrid'); const { PeopleSim } = await import('../src/people/sim');
+    const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
+    const sim = new PeopleSim(1, nav, (() => ({ rain: 0, lightning: 0, windMs: 2, tempC: 20, dust: 0 })) as any); sim.jumpTo(120 * 24 + 12); const E = sim.econTo(121);
+    const people = sim.pop.persons.filter(p => sim.pop.present(p.id, 120) && sim.pop.ageOn(p.id, 120) >= 4).sort((a, b) => u01(1, salt('aims-t'), a.id) - u01(1, salt('aims-t'), b.id)).slice(0, 300);
+    let some = 0; const kinds = new Set<string>();
+    for (const P of people) { const A = aimsOf(sim.pop, sim.cal, P.id, 120, E); if (A.hopes.length + A.worries.length) some++;
+      for (const x of [...A.hopes, ...A.worries]) { expect(x).not.toMatch(/\d/); kinds.add(x.replace(/[A-Z][^\s']+('s)?/g, 'N')); }
+      if (A.worries.some(w => /debt/.test(w))) expect(E.hh.get(`h:${sim.pop.home(P.id, 120)}`)!.debts.some(d => d.amt > 0.05)).toBe(true); }
+    console.log('[aims]', some, '/', people.length, 'kinds', kinds.size);
+    expect(some / people.length).toBeGreaterThan(0.85); expect(kinds.size).toBeGreaterThan(12);
+  }, 600_000);
+});
