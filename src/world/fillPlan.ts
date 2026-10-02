@@ -26,6 +26,7 @@ export interface FillItem { m: string; e: number; n: number; dy: number; rot: nu
   /** where: 'market' | 'lane' | 'door' | 'line' | 'terrace' | 'litter' (stats, F3) */ at: string;
   /** s17 C1 (D-550): an absolute height (m) instead of the ground's + dy (a roof's things: houses.ts roofFill) */ y?: number;
   /** s17 C1 (D-550): a turn about the item's own x after its turn about up (radians): a tool leaned on a wall (-pi/2 - lean) */ tilt?: number;
+  /** s17 C1: drawn only in these seasons (houses.ts seasonOf as bits: 1 harvest, 2 warm, 4 cold; all when absent) */ seas?: number;
   /** s17 C1: market goods sold out by this local hour (the stall fullest in the morning, thinning through the afternoon) */ until?: number;
   /** s17 C1: an animal tethered here by day (its peg is the item; fauna draws the animal: townTethers) */ tether?: 'donkey' | 'goats' | 'sheep'; /** the plot whose household it is (the tether's) */ plot?: string }
 
@@ -276,7 +277,13 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       if (nearDoor(gu, gv, 1.1) || nearTaken(gu, gv, 1.0) || !open(s.at(s.ci(gu), s.cj(gv)))) continue;
       const sc = tool ? 1 : 0.86 + 0.24 * u01(...key, 4), col = LITTLE_COL[m]?.(u01(...key, 5));
       put(m, gu, gv, -di, -dj, sc, 'gap', { ...(col ? { col } : {}), ...(tool ? { tilt: -Math.PI / 2 - L, dy: -tool[0] * Math.cos(L) } : {}), ...(m === 'stool' ? { day: true } : {}) }); // (stools taken in at dusk)
-      fixRot(-di, -dj, tool || AGAINST[m] !== undefined ? (u01(...key, 6) - 0.5) * 0.3 : (u01(...key, 6) - 0.5) * 1.2); addB(items.length - 1); st.gap = (st.gap ?? 0) + 1; } }
+      fixRot(-di, -dj, tool || AGAINST[m] !== undefined ? (u01(...key, 6) - 0.5) * 0.3 : (u01(...key, 6) - 0.5) * 1.2); addB(items.length - 1); st.gap = (st.gap ?? 0) + 1;
+      // s17 C1: the year in the lanes: here and there the thing by the wall is the season's: after the harvest sheaves, a sack
+      // of the household's grain share, straw; in the cold the fuel stacked higher; the year's other months keep the thing above
+      const su = u01(...key, 40), SEAS = su < 0.22 ? HARVEST_W : su < 0.38 ? COLD_W : null;
+      if (SEAS && !tool) { const m2 = wpick(SEAS, u01(...key, 41)), d2 = LITTLE_D[m2] ?? 0.5; if (w - d2 - 0.3 >= 1.6 || (w >= 2 && d2 <= 0.45)) {
+        const base = items[items.length - 1], mask = SEAS === HARVEST_W ? 1 : 4; base.seas = 7 & ~mask; const o2 = 0.3 + d2 / 2, [e2, n2] = toG(wu - di * o2 + dj * along, wv - dj * o2 - di * along);
+        items.push({ ...base, m: m2, e: e2, n: n2, seas: mask, s: [base.s[0], base.s[1], base.s[2]], col: m2 === 'wo_sheaf' ? undefined : base.col, rot: base.rot + 0.3 }); delete items[items.length - 1].col; addB(items.length - 1); st.gap = (st.gap ?? 0) + 1; } } } }
   if (!outside) for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i; if (s.cell[k] !== LANE) continue;
     const key = [sid, k, 91], u = s.cu(i) + (u01(...key, 1) - 0.5) * 0.7, v = s.cv(j) + (u01(...key, 2) - 0.5) * 0.7, [e, n] = toG(u, v);
     if (nearB(e, n, 2.3) || nearB(e, n, 2.6, 'peg') || nearTaken(u, v, 1.0) || nearDoor(u, v, 0.8)) continue;
@@ -289,6 +296,9 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
 /** s17 C1: the tools leaned on the walls: [model, its length's start and end along the model's z (m)] */
 const TOOLS: Record<string, [number, number]> = { tool_hoe: [-0.45, 0.84], tool_fork: [-0.55, 1.48], tool_broom: [-0.1, 0.56], tool_staff: [-0.12, 1.5], tool_goad: [-0.12, 1.2] };
 const TOOL_W: [string, number][] = [['tool_hoe', 3], ['tool_broom', 3], ['tool_fork', 1.5], ['tool_staff', 2]];
+/** s17 C1: the season's things by the walls (the harvest's, the cold's) */
+const HARVEST_W: [string, number][] = [['wo_sheaf', 3], ['sack', 2], ['fill_grain', 1], ['wo_fodder', 2]];
+const COLD_W: [string, number][] = [['fill_bundle', 3], ['brush_pile', 1.5], ['firewood_lean', 2], ['dung_stack', 1.5]];
 /** s17 C1: the sim's market ground: spreads within this of the quarter's point (m; popgeo stands sellers within 30 cells) */
 const MARKET_R = 14;
 /** the gap fill: within this of the wall's foot nothing stands -> one thing (m): ~5 m between things along a wall at most */
@@ -297,7 +307,7 @@ const LITTLE: [string, number][] = [['jar_water', 3], ['tool_broom', 1.6], ['sac
   ['stool', 1], ['roll', 1], ['dung_stack', 1.4], ['wo_mud_heap', 0.9], ['tool_fork', 0.7], ['sack_lying', 1], ['wo_fodder', 0.8], ['wo_brick_stack', 0.6],
   ['tool_staff', 0.7], ['brush_pile', 0.8], ['quern', 0.5], ['fill_rubble', 0.6], ['jar_neck', 0.6],
   ['fill_matlean', 1.4], ['fill_basket_tall', 1.4], ['fill_winnow', 1.0]];
-const LITTLE_D: Record<string, number> = { ...DEPTH, cookpot: 0.36, basin: 0.47, stool: 0.45, wo_dung_cakes: 0.46, milkpot: 0.3, wo_mud_heap: 0.8, wo_fodder: 0.75, kneading_trough: 0.5, wo_brick_stack: 0.7, quern: 1.0, wo_fleece: 0.54,
+const LITTLE_D: Record<string, number> = { ...DEPTH, wo_sheaf: 0.3, cookpot: 0.36, basin: 0.47, stool: 0.45, wo_dung_cakes: 0.46, milkpot: 0.3, wo_mud_heap: 0.8, wo_fodder: 0.75, kneading_trough: 0.5, wo_brick_stack: 0.7, quern: 1.0, wo_fleece: 0.54,
   tool_hoe: 0.4, tool_broom: 0.25, tool_fork: 0.45, tool_staff: 0.4, tool_goad: 0.35, fill_matlean: 0.65, fill_basket_tall: 0.45, fill_winnow: 0.3 };
 /** models whose back stands against the wall (their own -z to the wall): set this far out from the wall's face (m) */
 const AGAINST: Record<string, number> = { fill_matlean: 0.27, fill_winnow: -0.04 };

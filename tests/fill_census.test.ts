@@ -62,3 +62,17 @@ describe('every plot\'s spots reachable from its street door (C9 walk bots; B580
     expect(bad).not.toContain('q_s2-0181'); expect(bad.length).toBeLessThanOrEqual(5);
   }, 300_000);
 });
+
+import { WorldFill } from '../src/world/fill';
+import { loadModelsNode } from './lib/models_node';
+describe('the year in the lanes (s17 C1)', () => {
+  it('sheaves after the harvest, the fuel stacked higher in the cold, the same spots dressed every season', () => {
+    loadModelsNode(); const sites = buildTownPlan().sites, { items } = townFill(sites, 1), F = new WorldFill(items, { ground: () => 0 });
+    const sh = items.find(i => i.m === 'wo_sheaf')!; expect(sh.seas).toBe(1);
+    const count = (day: number, re: RegExp) => { F.update([sh.e, sh.n], 10, 0, true, day); let n = 0; F.group.traverse((o: any) => { if (o.isInstancedMesh && o.visible && re.test(o.name)) n += o.count; }); return n; };
+    const harvest = count(60, /fill:wo_sheaf:/), warm = count(130, /fill:wo_sheaf:/), cold = count(250, /fill:wo_sheaf:/);
+    console.log(`[seasons] sheaves drawn: harvest ${harvest}, warm ${warm}, cold ${cold}; seasonal items ${items.filter(i => i.seas !== undefined).length}`);
+    expect(harvest).toBeGreaterThan(0); expect(warm).toBe(0); expect(cold).toBe(0);
+    const c = census(sites, items); expect(c.lane.longestBare).toBeLessThanOrEqual(3);
+  }, 300_000);
+});
