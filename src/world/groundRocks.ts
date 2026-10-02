@@ -27,6 +27,20 @@ function h32(...v: number[]) { let h = 2166136261 >>> 0; for (const x of v) { h 
 const u01 = (...v: number[]) => h32(...v) / 4294967296;
 const KIDX: Record<RockKind, number> = { stone: 11, boulder: 12 };
 
+/** the rocks of kind k in one 8 m cell (ix, iy) of context weights w (ROCKS[k].where[ctx]), for nv scan variants: grid (e, n),
+ *  index i, variant vi, size sz (m, largest extent); a hash of (seed, cell, index), the same in the page and the census
+ *  (tools/dev/plain_census.ts) */
+export function rockCellItems(seed: number, k: RockKind, ix: number, iy: number, w: [number, number, number], nv: number) {
+  const out: { e: number; n: number; i: number; vi: number; sz: number; yaw: number }[] = [];
+  if (u01(seed, ix, iy, KIDX[k], 31) >= w[0]) return out;
+  const n = w[1] + (h32(seed, ix, iy, KIDX[k], 32) % (w[2] - w[1] + 1));
+  for (let i = 0; i < n; i++) {
+    // size: small ones common (a power law over the range), the scan's own proportions kept, scaled to its largest extent
+    const t = u01(seed, ix, iy, i, KIDX[k], 35), sz = ROCKS[k].size[0] + (ROCKS[k].size[1] - ROCKS[k].size[0]) * t * t;
+    out.push({ e: (ix + u01(seed, ix, iy, i, KIDX[k], 33)) * CELL, n: (iy + u01(seed, ix, iy, i, KIDX[k], 34)) * CELL, i, vi: h32(seed, ix, iy, i, KIDX[k], 37) % nv, sz, yaw: u01(seed, ix, iy, i, 36) * 6.283 });
+  }
+  return out;
+}
 interface Slot { prop: ScanProp; lod: 0 | 1; mesh: THREE.InstancedMesh; fpos: THREE.InstancedBufferAttribute; n: number }
 export class GroundRocks {
   readonly group = new THREE.Group();
@@ -76,15 +90,12 @@ export class GroundRocks {
       let total = 0;
       for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
         const dc = Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]); if (dc > R + CELL) continue;
-        const w = ROCKS[k].where[this.ctx(ix, iy)]; if (!w || u01(this.seed, ix, iy, KIDX[k], 31) >= w[0]) continue;
-        const n = w[1] + (h32(this.seed, ix, iy, KIDX[k], 32) % (w[2] - w[1] + 1));
-        for (let i = 0; i < n; i++) {
-          const e = (ix + u01(this.seed, ix, iy, i, KIDX[k], 33)) * CELL, nn = (iy + u01(this.seed, ix, iy, i, KIDX[k], 34)) * CELL;
+        const w = ROCKS[k].where[this.ctx(ix, iy)]; if (!w) continue;
+        for (const it of rockCellItems(this.seed, k, ix, iy, w, nv)) {
+          const { e, n: nn, i, vi, sz } = it;
           const dist = Math.hypot(e - viewer[0], nn - viewer[1]); if (dist > R) continue;
           const y = this.world.ground(e, nn); if (!Number.isFinite(y)) continue;
-          const vi = h32(this.seed, ix, iy, i, KIDX[k], 37) % nv, si = vi * 2 + (dist < LOD_NEAR ? 0 : 1), S = slots[si]; if (counts[si] >= S.n) continue;
-          // size: small ones common (a power law over the range), the scan's own proportions kept, scaled to its largest extent
-          const t = u01(this.seed, ix, iy, i, KIDX[k], 35), sz = ROCKS[k].size[0] + (ROCKS[k].size[1] - ROCKS[k].size[0]) * t * t;
+          const si = vi * 2 + (dist < LOD_NEAR ? 0 : 1), S = slots[si]; if (counts[si] >= S.n) continue;
           const ext = Math.max(S.prop.size[0], S.prop.size[2], 1e-3), sc = sz / ext;
           // bedded: a stone sits a tenth of its height in the ground, a boulder a fifth; tilted a little (C)
           const hgt = S.prop.size[1] * sc, sink = hgt * (k === 'stone' ? 0.1 : 0.2);
@@ -93,7 +104,7 @@ export class GroundRocks {
           // the `rock` context's >30 % slopes: 0.4-0.8 m of daylight under it). Now each piece is bedded in the ground's plane
           // over its footprint (the ground sampled at its four quarter points, the plane's normal its up), and seated at the
           // lowest of those samples less the sink, so no edge stands clear of the drawn ground (C for the bedding)
-          const yaw = u01(this.seed, ix, iy, i, 36) * 6.283, rr = 0.5 * sz, gE = this.world.ground(e + rr, nn), gW = this.world.ground(e - rr, nn), gN = this.world.ground(e, nn + rr), gS = this.world.ground(e, nn - rr);
+          const yaw = it.yaw, rr = 0.5 * sz, gE = this.world.ground(e + rr, nn), gW = this.world.ground(e - rr, nn), gN = this.world.ground(e, nn + rr), gS = this.world.ground(e, nn - rr);
           const fin = Number.isFinite(gE) && Number.isFinite(gW) && Number.isFinite(gN) && Number.isFinite(gS);
           const dx = fin ? (gE - gW) / (2 * rr) : 0, dn = fin ? (gN - gS) / (2 * rr) : 0, low = fin ? Math.min(y, (gE + gW + gN + gS) / 4) : y;
           this.up.set(-dx, 1, dn).normalize(); this.qs.setFromUnitVectors(this.Y, this.up); // (world z = -north)

@@ -42,6 +42,16 @@ export const FLORA_SCANS: Record<FloraKind, { ids: string[]; fit: 'box' | 'heigh
   thistle: { ids: ['nettle_plant_v1', 'nettle_plant_v2', 'nettle_plant_v5', 'nettle_plant_v6'], fit: 'height' },
 };
 export const FLORA_LOD_NEAR = 12;
+/** the plants of kind k in one 8 m cell (ix, iy) of context weights w (FLORA[k].where[ctx]): grid (e, n), index i, size sz (m),
+ *  yaw; a hash of (seed, cell, index), the same in the page and the census (tools/dev/plain_census.ts) */
+export function floraCellItems(seed: number, k: FloraKind, ix: number, iy: number, w: [number, number, number]) {
+  const out: { e: number; n: number; i: number; sz: number; yaw: number }[] = [];
+  if (u01(seed, ix, iy, KIDX[k], 31) >= w[0]) return out;
+  const n = w[1] + (h32(seed, ix, iy, KIDX[k], 32) % (w[2] - w[1] + 1));
+  for (let i = 0; i < n; i++) out.push({ e: (ix + u01(seed, ix, iy, i, KIDX[k], 33)) * CELL, n: (iy + u01(seed, ix, iy, i, KIDX[k], 34)) * CELL, i,
+    sz: FLORA[k].size[0] + (FLORA[k].size[1] - FLORA[k].size[0]) * u01(seed, ix, iy, i, KIDX[k], 35), yaw: u01(seed, ix, iy, i, 36) * 6.283 });
+  return out;
+}
 /** the unit box a scan is fitted to, as the procedural unit forms: the cushion a dome 1 x 0.55 x 1; the others unit height, their own proportions */
 function scanUnit(k: FloraKind, p: ScanProp): [number, number, number] {
   if (FLORA_SCANS[k].fit === 'box') return [1, 0.55, 1];
@@ -157,16 +167,15 @@ export class GroundFlora {
       if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > FLORA_R + CELL) continue;
       const cx = this.ctx(ix, iy);
       for (const k of Object.keys(FLORA) as FloraKind[]) {
-        const w = FLORA[k].where[cx]; if (!w || u01(this.seed, ix, iy, KIDX[k], 31) >= w[0]) continue;
+        const w = FLORA[k].where[cx]; if (!w) continue;
         const sc = this.scanCounts[k];
-        const n = w[1] + (h32(this.seed, ix, iy, KIDX[k], 32) % (w[2] - w[1] + 1)), mesh = this.meshes.get(k)!, fpos = mesh.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute;
-        for (let i = 0; i < n && counts[k] < FLORA[k].max; i++) {
-          const e = (ix + u01(this.seed, ix, iy, i, KIDX[k], 33)) * CELL, nn = (iy + u01(this.seed, ix, iy, i, KIDX[k], 34)) * CELL, y = this.world.ground(e, nn); if (!Number.isFinite(y)) continue;
-          const sz = FLORA[k].size[0] + (FLORA[k].size[1] - FLORA[k].size[0]) * u01(this.seed, ix, iy, i, KIDX[k], 35);
+        const mesh = this.meshes.get(k)!, fpos = mesh.geometry.getAttribute('fpos') as THREE.InstancedBufferAttribute;
+        for (const it of floraCellItems(this.seed, k, ix, iy, w)) { if (counts[k] >= FLORA[k].max) break;
+          const { e, n: nn, i, sz } = it, y = this.world.ground(e, nn); if (!Number.isFinite(y)) continue;
           // D-356: plants stand upright, so on a slope the stem is set at the lowest ground under the plant's footprint (a
           // tragacanth dome on the hills' slopes showed daylight under its downhill side)
           const fr = (k === 'cushion' ? 0.5 : 0.3) * sz, low = Math.min(y, ...[this.world.ground(e + fr, nn), this.world.ground(e - fr, nn), this.world.ground(e, nn + fr), this.world.ground(e, nn - fr)].filter(Number.isFinite));
-          this.eu.set(0, u01(this.seed, ix, iy, i, 36) * 6.283, 0); this.q.setFromEuler(this.eu); this.v.set(e, low - 0.03, -nn);
+          this.eu.set(0, it.yaw, 0); this.q.setFromEuler(this.eu); this.v.set(e, low - 0.03, -nn);
           this.m4.compose(this.v, this.q, k === 'cushion' ? this.s.set(sz, sz, sz) : this.s.set(sz * 0.8, sz, sz * 0.8));
           const c = counts[k]++; mesh.setMatrixAt(c, this.m4); fpos.setXYZ(c, e, y, -nn);
           const Mo = this.model.get(k); if (Mo) { const nearL = Math.hypot(e - viewer[0], nn - viewer[1]) < FLORA_LOD_NEAR, im = nearL ? Mo.near : Mo.far, j2 = mn[k][nearL ? 0 : 1]++;
