@@ -16,6 +16,11 @@ deploys Pages from there (D-370..D-391 are live; D-382 onward wait for Vagon's n
   Llama-3.2-1B); `sim.strangerSeen` reactions not wired on screen; the stranger can barely buy (6/120 buys; silver never
   accumulates: day labour, the market and selling his grain should make one loop); two converse T-E9 tests time out under
   load (re-run alone); T-E2/T-E3v after D-452: see its DECISIONS row; approach test once flaky.
+- **Open from D-452:** T-E2 still fails for women (Persian 2.18 %, Elamite 1.65 %; ≤ 1 % needs ~171 and ~101 names, there
+  are 67: needs attested women's names, Hallock/Tavernier indices, or D-236 compositions from attested elements); prompt.ts
+  has no shorten/drop rule for the new "Plain to see on you:" line (add it before the past in both lists); history.ts
+  husbandOf still guesses its own spouse; re-run people_days_r8/r6, court, crafts, court_fill, language (names changed);
+  Vagon render hook: `marksOf(pop, pid, day)[].look` (scar_brow, limp, mourning, with_child, stoop, craft_*...).
 - **Next, in order:** (1) the real model on the GPU (Vagon); (2) wire strangerSeen; (3) the stranger's living loop;
   (4) playtest bot after each change; (5) the census gaps.
 - **Numbers:** the cloud continues from D-455 (D-450..D-454 used) (Vagon owns D-392..D-449). One DECISIONS row per package.
