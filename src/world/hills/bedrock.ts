@@ -75,13 +75,13 @@ export function bedrockTile(env: BedrockEnv, ti: number, tj: number, seed: numbe
   let smax = 0; for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++) { const x = x0 + i * T / 4, z = z0 + j * T / 4, d = 4;
     smax = Math.max(smax, Math.hypot(env.ground(x + d, z) - env.ground(x - d, z), env.ground(x, z + d) - env.ground(x, z - d)) / (2 * d)); }
   if (smax < 0.14) return out;
-  const Y = new Float32Array(n * n), S = new Float32Array(n * n);
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) { const x = x0 + c * G, z = z0 + r * G, y = env.ground(x, z); Y[r * n + c] = y; S[r * n + c] = stratY(x, y, z); }
+  // (the stratigraphic grid only for the ledge pieces: D-600, a ground-only tile costs ~1/4 without it)
+  const nL = sizes.ledge.length, Y = new Float32Array(nL ? n * n : 0), S = new Float32Array(nL ? n * n : 0);
+  if (nL) for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) { const x = x0 + c * G, z = z0 + r * G, y = env.ground(x, z); Y[r * n + c] = y; S[r * n + c] = stratY(x, y, z); }
   const slopeAt = (x: number, z: number) => { const d = 3; return { gx: (env.ground(x + d, z) - env.ground(x - d, z)) / (2 * d), gz: (env.ground(x, z + d) - env.ground(x, z - d)) / (2 * d) }; };
   const quatYaw = (yaw: number): [number, number, number, number] => [0, Math.sin(yaw / 2), 0, Math.cos(yaw / 2)];
   const q = new THREE.Quaternion(), qa = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), nv = new THREE.Vector3();
   // ------------------------------------------------ ledges: marching squares on each cliff package's riser foot
-  const nL = sizes.ledge.length;
   if (nL) for (let r = 0; r < n - 1; r++) for (let c = 0; c < n - 1; c++) {
     const k0 = r * n + c, s00 = S[k0], s10 = S[k0 + 1], s01 = S[k0 + n], s11 = S[k0 + n + 1];
     const lo = Math.min(s00, s10, s01, s11), hi = Math.max(s00, s10, s01, s11);
