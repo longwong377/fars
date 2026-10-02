@@ -21,9 +21,13 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string,
 export class Shell {
   mode: 'loading' | 'title' | 'playing' | 'paused' = 'loading';
   constructor(private settings: Settings, private hooks: ShellHooks) {}
+  /** the loading card (s15/ship D-393: kept across the boot's messages, so the progress bar mounted in it stays) */
+  loadingCard: HTMLElement | null = null; private loadingMsg: HTMLElement | null = null;
   loading(msg: string) {
+    if (this.mode === 'loading' && this.loadingCard?.isConnected && this.loadingMsg) { this.loadingMsg.textContent = msg; return; }
     this.mode = 'loading';
-    root().replaceChildren(el('div', { className: 'panel' }, el('div', { className: 'card title' }, el('h1', {}, 'PĀRSA'), el('div', { className: 'sub' }, msg))));
+    this.loadingMsg = el('div', { className: 'sub' }, msg); this.loadingCard = el('div', { className: 'card title' }, el('h1', {}, 'PĀRSA'), this.loadingMsg);
+    root().replaceChildren(el('div', { className: 'panel' }, this.loadingCard));
   }
   /** `continued`: the saved visit was loaded at start (the world stands as it was left) */
   title(continued = false) {

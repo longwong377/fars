@@ -36,6 +36,11 @@ run('npx vite build', { PARSA_BASE: base }); lap('vite build');
       man[`${id}/${f.replace(/\.jpg$/, '')}`] = [meta.width, meta.height]; full += lstatSync(src).size; low += lstatSync(out).size; } }
   writeFileSync(join(T, 'low.json'), JSON.stringify(man));
   lap(`textures low first: ${Object.keys(man).length} copies, ${(low / 1048576).toFixed(1)} MB for ${(full / 1048576).toFixed(1)} MB of scans`); }
+// D-393: the files the page warms from its first seconds (src/shell/warm.ts): the measured list, those this build has
+{ const want = readFileSync(join(root, 'tools/deploy/boot_files.txt'), 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+  const have = want.filter(p => existsSync(join(dist, p))); let b = 0; for (const p of have) b += lstatSync(join(dist, p)).size;
+  writeFileSync(join(dist, 'boot-files.json'), JSON.stringify(have));
+  lap(`boot files to warm: ${have.length} of ${want.length} listed, ${(b / 1048576).toFixed(1)} MB`); }
 // GitHub Pages: no Jekyll (it would drop files and folders starting with _), the limits checked
 writeFileSync(join(dist, '.nojekyll'), '');
 // the service worker's build stamp (public/sw.js): a new deploy is a new worker, which drops the old build's cache

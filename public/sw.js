@@ -4,6 +4,9 @@
 // Same-origin GETs under this scope only (the models on Hugging Face are cached by their own loaders). The build stamps
 // BUILD (tools/deploy/build_site.mjs): a new deploy is a new worker, which drops the old build's cache when it activates.
 const BUILD = '__PARSA_BUILD__', CACHE = 'parsa-site-' + BUILD;
+// D-393: a file already on its way (the page's early warming, src/shell/warm.ts, and then its loader) is fetched once: the
+// second request waits for the first to be stored and is answered from the cache
+const inflight = new Map();
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k.startsWith('parsa-site-') && k !== CACHE) await caches.delete(k);
@@ -20,8 +23,16 @@ self.addEventListener('fetch', e => {
       catch (err) { const h = await c.match(key); if (h) return h; throw err; } }
     const hit = await c.match(key);
     if (hit) return hit;
-    const res = await fetch(r.url, { credentials: 'same-origin' });
-    if (res.ok && res.status === 200 && res.type === 'basic') e.waitUntil(c.put(key, res.clone()).catch(() => {}));
-    return res;
+    const was = inflight.get(key);
+    if (was) { await was; const h = await c.match(key); if (h) return h; }
+    let done; inflight.set(key, new Promise(ok => { done = ok; }));
+    const end = () => { inflight.delete(key); done(); };
+    try { const res = await fetch(r.url, { credentials: 'same-origin' });
+      // (D-393: stored from the body's bytes: Chrome refused to store a network-backed response over ~10 MB here, Cache.put()
+      // "network error" for the 14-44 MB files, so every visit fetched them again; a response made from the bytes is stored)
+      if (res.ok && res.status === 200 && res.type === 'basic') { const copy = res.clone();
+        e.waitUntil(copy.arrayBuffer().then(b => c.put(key, new Response(b, { status: 200, headers: copy.headers }))).catch(() => {}).finally(end)); } else end();
+      return res; }
+    catch (err) { end(); throw err; }
   })());
 });
