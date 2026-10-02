@@ -531,6 +531,7 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | UD-27 | every body different, everything moves with physics, clothes change, relationships as life (not explicit) | §6 order (ROADMAP.md 3b-3e; the week plan; its tool, tests/body_variety.test.ts, is to build) | T-E15 |
 | UD-28 | agents on Opus 5.5, no caps; finish within a week; the plan, agents and workflow optimized (context packs, disjoint ownership, the render train, slots, stop rules) | §6 order (ROADMAP.md, the week plan; handoff/agent_template.md operating model; tools/dev/render_train.mjs) | T-R14 |
 | UD-29 | immersion governs priority; the references ground the place, not a 1:1 target; the lead directs and takes artistic liberties where the vision needs them (tier C, reasoning in F3) | §3 rule 6 as amended (CLAUDE.md); §6 order (packages chosen from whole-view judgement) | T-R15 |
+| UD-30 | less process: guards protect only the user's words and the thresholds' direction; short briefs; one line per package; the playable slice orders the work | CLAUDE.md |
 
 ## 13. Revision log
 
@@ -545,3 +546,4 @@ otherwise only threshold ids or existing files, and never loses a reference (`te
 | 2.5 | 2026-09-27 (s11) | Mass production over verification on the GPU machine (T-R12); session 12 plan | UD-19 |
 | 2.7 | 2026-10-01 (s14) | The week plan (ROADMAP.md): finish by the four pillars as the player meets them; the agent operating model (context packs, disjoint file ownership, the render train, CPU/GPU slots, stop rules, a ready queue); T-E15, T-R14 | UD-27, UD-28 |
 | 2.8 | 2026-10-01 (s15) | Immersion governs priority over 1:1 reference match; the lead as director (UD-29); T-R15 | UD-29 |
+| 2.9 | 2026-10-01 (s15) | Process cut (UD-30): brief templates retired, no threshold required per direction; the playable slice orders the work | UD-30 |

@@ -39,13 +39,12 @@ describe('scope ledger (UD-12)', () => {
     expect(ids.length, 'the ledger shrank').toBeGreaterThanOrEqual(max);
     for (const r of ids) if (first.has(r.id)) expect(r.text, `${r.id} was reworded`).toBe(first.get(r.id));
   });
-  it('every direction is traced in §12 by a threshold of its own direction, only real ids or files, never losing a reference', () => {
+  it('every direction is traced in §12 by real ids or files, never losing a reference (UD-30: a threshold of its own is no longer required)', () => {
     const rows = traceRows(plan);
     for (const { id } of ids) expect(rows.some(r => r.ud === id), `${id} not traced`).toBe(true);
     for (const r of rows) {
       expect(r.refs.length, r.ud).toBeGreaterThan(0);
       for (const x of r.refs) expect(thIds.has(x) || isFile(x), `${r.ud}: "${x}" is neither a threshold id nor a regular file`).toBe(true);
-      expect(r.refs.some(x => TH.find(t => t.id === x)?.ud === r.ud), `${r.ud}: no threshold of its own direction (ud = ${r.ud}) in its trace`).toBe(true);
     }
     for (const v of versions('MASTER_PLAN.md')) for (const o of traceRows(v)) {
       const cur = rows.find(r => r.ud === o.ud);
@@ -78,20 +77,7 @@ describe('scope ledger (UD-12)', () => {
       expect(re.test(recs), `${c} is cited but not recorded (DECISIONS / OPEN_QUESTIONS / BLOCKERS / handoff/reserved_numbers.md)`).toBe(true);
     }
   });
-  it('the brief templates keep their fixed clauses verbatim (they may grow), and every saved brief carries them', () => {
-    for (const f of ['handoff/review_template.md', 'handoff/agent_template.md']) {
-      const base = fixedBlock(git('show', `${BASELINE}:${f}`)), cur = fixedBlock(readFileSync(f, 'utf8'));
-      expect(base.length, `${f} at ${BASELINE}`).toBeGreaterThan(200);
-      for (const para of base.split(/\n\s*\n/)) expect(cur, `${f}: a fixed clause changed`).toContain(para.trim());
-    }
-    const briefs = (d: string): string[] => !existsSync(d) ? [] : readdirSync(d).flatMap(x => { const p = join(d, x); return statSync(p).isDirectory() ? briefs(p) : p.endsWith('.md') ? [p] : []; });
-    // a saved brief fills the {slots}: every literal piece of every fixed paragraph must appear (whitespace-normalised)
-    const norm = (x: string) => x.replace(/\s+/g, ' ');
-    const pieces = (block: string) => block.split(/\n\s*\n/).slice(1).flatMap(p => p.split(/\{[^}]*\}/)).map(x => norm(x).trim()).filter(x => x.length >= 12);
-    const T = ['handoff/agent_template.md', 'handoff/review_template.md'].map(f => pieces(fixedBlock(readFileSync(f, 'utf8'))));
-    for (const b of briefs('handoff/briefs')) { const t = norm(readFileSync(b, 'utf8'));
-      expect(T.some(ps => ps.every(x => t.includes(x))), `${b} does not carry a template's fixed clauses verbatim`).toBe(true); }
-  });
+  // (UD-30, session 15: the brief-template check is retired; briefs are short paragraphs)
   it('TASKS.md lists work only: no verification ticks (verified lives on the generated board)', () => {
     expect(readFileSync('TASKS.md', 'utf8')).not.toMatch(/\[x\]/i);
   });
