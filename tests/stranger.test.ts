@@ -109,6 +109,10 @@ describe('D-370 the stranger in the simulation', () => {
     const e3 = town(80), S3 = e3.stranger(); S3.purse.cash = 0; S3.purse.grain = 0;
     S3.do({ a: 'stay', day: 80, hh: host.id }); step(e3, 3); S3.do({ a: 'leave_stay', day: e3.day }); S3.purse.cash = 0; S3.purse.grain = 0;
     step(e3, 31); expect(evs(e3, 'ingrate').length).toBe(0); expect(S3.stayCheck(host.id, e3.day).ok).toBe(true);
+    // D-453: a guest with grain in his sack leaves the host a share for his keep: thanks, not a bad name
+    const e4 = town(80), S4 = e4.stranger(); S4.purse.cash = 0; S4.purse.grain = 200; const h4 = e4.hh.get(host.id)!;
+    S4.do({ a: 'stay', day: 80, hh: host.id }); step(e4, 4); const g4 = h4.grain; S4.do({ a: 'leave_stay', day: e4.day });
+    step(e4, 31); expect(evs(e4, 'ingrate').length).toBe(0); expect(S4.purse.grain).toBeLessThan(200); void g4; expect(e4.events.some(v => v?.kind === 'given' && v.actor === host.id)).toBe(true);
   });
   it('(10) groups: a treasury gang feeds its member; a household takes in a known, trusted hand', () => {
     const e = town(90), S = e.stranger();
@@ -165,7 +169,11 @@ describe('D-370 the stranger in the simulation', () => {
   });
   it('complex asks need words: a stranger with none of the tongue is not understood in a petition or a bargain; gestures do for bread and a bed', () => {
     const e = new Economy(1, hs, { trust: true }); for (let d = 0; d <= 60; d++) e.step(d); const S = e.stranger(); S.purse.cash = 5;
-    expect(S.judge({ a: 'petition', day: 60, to: 'official', kind: 'leave' }).why).toMatch(/cannot follow/);
+    expect(S.judge({ a: 'petition', day: 60, to: 'official', kind: 'relief' }).why).toMatch(/cannot follow/);
+    // D-450: leave to stay before an official goes through the official's interpreter on the days one is at hand (seeded)
+    const days = Array.from({ length: 20 }, (_, i) => 41 + i).map(d => S.understood({ a: 'petition', day: d, to: 'official', kind: 'leave' }, d));
+    expect(days.some(Boolean)).toBe(true); expect(days.every(Boolean)).toBe(false);
+    expect(S.understood({ a: 'petition', day: 60, to: 'headman', kind: 'leave' }, 60)).toBe(false);
     const h = [...e.hh.values()].find(x => x.kind === 'farmer' && S.stayCheck(x.id, 60).ok)!; expect(S.judge({ a: 'stay', day: 60, hh: h.id }).ok).toBe(true);
     S.hear('Aramaic', 400, 1, true, 60); expect(S.judge({ a: 'petition', day: 60, to: 'official', kind: 'leave' }).ok).toBe(true);
   });

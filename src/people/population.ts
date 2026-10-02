@@ -386,6 +386,7 @@ export class Population {
     this.housePlots();
     this.crafts();
     if (opts.court) this.court = new CourtResidents(this); // D-182 hook
+    assignNames(seed, this.persons, this.households); // D-452: the names dealt round, not drawn
   }
   attach(cal: EventCalendar) { this.cal = cal; }
   /** D-348: after the households are drawn, every wife is made 18 or more and every mother 18 or more years older than each
@@ -1973,13 +1974,28 @@ export class Population {
 /** the licensed evidence (names.json, A) and the names recalled from the published literature where it holds none for a sex or
  *  origin (names_recalled.json, C: NOT SEEN; D-202) */
 export const ALL_NAMES: any[] = [...(namesData as any).names, ...(namesRecalled as any).names];
+/** D-452: the men of Darius' Bisitun inscription whose names may go to ordinary men (see NAME_POOLS) */
+export const DB_MEN = ['Vidarna', 'Vaumisa', 'Dādarši', 'Taxmaspāda', 'Artavardiya', 'Vivāna', 'Vindafarnā', 'Utāna', 'Θuxra', 'Bagabuxša', 'Gaubaruva',
+  'Dātuvahya', 'Ardumaniš', 'Vahuka', 'Bagābigna', 'Upadarma', 'Vahyasparuva', 'Cincaxri', 'Aspacanā'];
 const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
   // attested outside names.json, in the project's research: Herdkama "the Egyptian", chief of a team of 100 labourers in a
   // Treasury text (research/PEOPLE.md, PT-WAGE: SX, C; the name looks Iranian, the label is Egyptian: kept as given)
   (m.get('m:Egyptian') ?? m.set('m:Egyptian', []).get('m:Egyptian')!).push('Herdkama');
+  // D-452: the men named in Darius' Bisitun inscription (DB, Old Persian text, ORACC ARIo Q007134, CC0: data/corpus/ario.jsonl;
+  // name form A, the ARIo form with the syllabic r written ar and the glide marks dropped), not the kings and their fathers
+  // (Vištāspa, Aršāma, ...) nor the nine "liars" whose names the king cursed (Gaumāta, Āçina, Nidintabaira, Martiya, Fravartiš,
+  // Ciçantaxma, Vahyazdāta, Araxa, Frāda) nor Imaniš, Aθamaita and Skunxa; Marduniya is left out as the pool's Mardunuya.
+  // Their use for ordinary men of 467 is C: names recur in the tablets as in any town
+  m.get('m:Iranian')!.push(...DB_MEN);
+  // D-452: the CDLI PF names whose language tools/names_licensed.py could not tell (65 men, A as names) belong to no one origin:
+  // in the Fortification texts Iranian and Elamite names stand side by side among the same people (C), so Persian and Elamite
+  // men both draw on them, and Elamite men on the Iranian names too (the three names read as Elamite were 12.8 % each of them)
+  const unknown = m.get('m:unknown') ?? []; m.get('m:Iranian')!.push(...unknown);
+  m.set('m:Elamite', [...(m.get('m:Elamite') ?? []), ...m.get('m:Iranian')!]);
   return m; })();
 /** every attested name of each sex (not the notable, not the uncertain readings), of whatever origin */
 const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex]) NAME_ALL[n.sex].push(n.name);
+NAME_ALL.m.push(...DB_MEN);
 // (D-202: Bactrians and Sogdians speak Iranian languages; Ionians draw on the Greek names, Carians, Lydians and Lycians on their
 // own; Thracians and Cappadocians, with no names recalled, on all the names of their sex, as foreign workers in the tablets do)
 const ORIGIN_POOL: Record<string, string> = { Persian: 'Iranian', Median: 'Iranian', Bactrian: 'Iranian', Sogdian: 'Iranian', Elamite: 'Elamite', Babylonian: 'Babylonian', Syrian: 'West Semitic', Egyptian: 'Egyptian', Indian: 'Indian',
@@ -1995,11 +2011,55 @@ export const THIN_NAME_POOL = 8;
  *  attested name at all (Greek, Lydian, Carian, ...) stay unnamed */
 export function nameFor(seed: number, p: Person): string | null {
   if (p.nm !== undefined) return p.nm;
+  const a = ASSIGNED.get(p); if (a !== undefined) return a;
   const og = ORIGIN_POOL[p.origin]; if (!og) return null; const own = NAME_POOLS.get(`${p.sex}:${og}`) ?? [], u = u01(seed, S.name, p.id);
   if (own.length >= THIN_NAME_POOL) return own[Math.floor(u * own.length)];
   const share = own.length / THIN_NAME_POOL; if (u < share) return own[Math.floor(u / share * own.length)];
   // (no attested names of that sex to speak of: unnamed. D-193's licensed evidence holds no woman's name; D-202 adds recalled ones)
   const all = NAME_ALL[p.sex] ?? []; return all.length >= THIN_NAME_POOL ? all[Math.floor(u01(seed, S.name, p.id, 1) * all.length)] : null;
+}
+/** a name's root: no diacritics, no asterisk (reconstructed form), no doubled letters, lower case, letters only (D-390, the census) */
+export function nameRoot(n: string): string {
+  return n.replace(/^\*/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1+/g, '$1');
+}
+/** two roots the same, or one letter apart (substitution, insertion or deletion) */
+export function sameRoot(a: string, b: string): boolean {
+  if (a === b) return true; if (Math.abs(a.length - b.length) > 1 || Math.min(a.length, b.length) < 3) return false;
+  let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  if (a.length === b.length) return a.slice(i + 1) === b.slice(i + 1);
+  return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
+}
+/** D-452: the names given out by assignNames (the population's own people), by person */
+const ASSIGNED = new WeakMap<Person, string | null>();
+/** D-452 (T-E2, T-E2h; UD-08 "nothing copy pasted"): the names of a population, given out instead of drawn one by one. Each
+ *  pool of eight or more names (and the all-names pool of a sex whose origin has none) is shuffled by the seed and dealt round
+ *  in turn to its people taken quarter by quarter and house by house, so every name of a pool goes to as many people as any
+ *  other (within one), a quarter repeats a name only when it holds more people of the pool than the pool has names, and no
+ *  name goes to one whose house (the first, or the one married into) already holds that name or one a letter from it: the
+ *  next name of the deal is taken instead and the skipped one dealt after. Thin pools (fewer than eight, mixed with the
+ *  names of all origins: nameFor) and the named slice keep their draw. Deterministic by the seed; C for the assignment */
+export function assignNames(seed: number, persons: Person[], households: Household[]) {
+  const deal = new Map<string, { pool: string[]; people: Person[] }>();
+  const thin: Person[] = [];
+  for (const p of persons) { if (p.nm !== undefined) continue; const og = ORIGIN_POOL[p.origin]; if (!og) continue;
+    const own = NAME_POOLS.get(`${p.sex}:${og}`) ?? [], pool = own.length >= THIN_NAME_POOL ? own : own.length === 0 && (NAME_ALL[p.sex]?.length ?? 0) >= THIN_NAME_POOL ? NAME_ALL[p.sex] : null;
+    if (!pool) { thin.push(p); continue; } const k = `${p.sex}:${own.length ? og : '*'}`; (deal.get(k) ?? deal.set(k, { pool, people: [] }).get(k)!).people.push(p); }
+  const houseRoots = new Map<number, string[]>(), rootsOf = (h: number) => houseRoots.get(h) ?? houseRoots.set(h, []).get(h)!;
+  for (const [k, { pool, people }] of [...deal].sort((a, b) => a[0] < b[0] ? -1 : 1)) {
+    const ks = salt(k), order = pool.map((n, i) => ({ n, r: nameRoot(n), u: u01(seed, S.name, ks, i) })).sort((a, b) => a.u - b.u);
+    const q = (p: Person) => households[p.hh]?.q ?? '';
+    people.sort((a, b) => (q(a) < q(b) ? -1 : q(a) > q(b) ? 1 : 0) || a.hh - b.hh || u01(seed, S.name, ks, 1e6 + a.id) - u01(seed, S.name, ks, 1e6 + b.id) || a.id - b.id);
+    const queue = order.slice(); // the deal: the head of the queue goes next, and back to the end once given
+    for (const p of people) {
+      const houses = [p.hh, ...(p.hh2 >= 0 ? [p.hh2] : [])], taken = houses.flatMap(rootsOf);
+      let i = 0; while (i < queue.length && taken.some(t => sameRoot(t, queue[i].r))) i++; if (i === queue.length) i = 0;
+      const [x] = queue.splice(i, 1); queue.push(x); ASSIGNED.set(p, x.n); for (const h of houses) rootsOf(h).push(x.r);
+    }
+  }
+  // (a thin pool keeps its draw, drawn again, up to eight times, while the house already holds the name or one a letter from it)
+  for (const p of thin) { const houses = [p.hh, ...(p.hh2 >= 0 ? [p.hh2] : [])], taken = houses.flatMap(rootsOf); let n: string | null = null;
+    for (let t = 0; t < 8; t++) { n = nameFor(seed, t ? { ...p, id: p.id + t * 9_000_011 } : p); if (!n || !taken.some(x => sameRoot(x, nameRoot(n!)))) break; }
+    ASSIGNED.set(p, n); if (n) for (const h of houses) rootsOf(h).push(nameRoot(n)); }
 }
 
 // ------------------------------------------------------------------ the planner: one person, one day

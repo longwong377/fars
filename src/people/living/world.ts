@@ -68,7 +68,7 @@ export class LivingWorld {
   private news = new Map<number, News[]>(); private evSeen = 0; private nextId = 0; private atWork = new Map<string, number[]>(); private workDay = -1; private crews = new Map<string, number[]>(); private srcOf = new Map<number, string>(); private gangs = new Map<number, number[]>();
   private busy = new Set<string>();
   /** D-352: called after each simulated day (the asks and the rumours of src/people/asks ride on it) */
-  onDay?: (d: number) => void;
+  onDay?: (d: number) => void | Iterable<unknown>;
   // ---------------------------------------------------------------- D-359 (B227, B226): the relations stepped with the days
   private rel: Relations | null = null; private relAt = new Map<number, Intent[]>(); private relFloor = -1;
   /** relation intents entered into the economy (bride-gifts, dowries, divorce silver, news) */
@@ -99,9 +99,9 @@ export class LivingWorld {
   get day() { return this.upTo; }
 
   // ---------------------------------------------------------------- the plan hook (talk.ts TalkWorld asks)
-  touches(pid: number, day: number) { this.advance(day); return this.laid.has(`${pid}:${day}`); }
+  touches(pid: number, day: number) { this.advance(day, false); return this.laid.has(`${pid}:${day}`); }
   /** the hours of a person's day taken by errands laid for them (D-347: the laundry and the bath keep clear of them) */
-  windows(pid: number, day: number): [number, number][] { this.advance(day); return (this.laid.get(`${pid}:${day}`) ?? []).map(L => [L.h0, L.h1]); }
+  windows(pid: number, day: number): [number, number][] { this.advance(day, false); return (this.laid.get(`${pid}:${day}`) ?? []).map(L => [L.h0, L.h1]); }
   overlay(pid: number, day: number, base: Seg[]): Seg[] {
     const k = `${pid}:${day}`; const c = this.overlaid.get(k); if (c) return c;
     // laid only where the base day is free over the whole window (the raw day found the slot; relabel and care may differ)
@@ -117,6 +117,7 @@ export class LivingWorld {
   /** the talk state for the save (D-344): what the days to come still need — the last KEEP days' talks, errands and news,
    *  the counters — so a load resumes at once instead of re-deriving from day 0; the economy replays its own intents (talk's too) */
   save(from = this.upTo - KEEP): LivingSave {
+    this.settle(); // (D-388: a day begun across frames is finished first)
     // D-347: from the sim's present day (the sim passes it; errands of days before it are never laid again), the errands'
     // stretches with their places and words as indices into one table of strings (they repeat)
     const lo = Math.max(from, this.upTo - KEEP), strs: string[] = [], si = new Map<string, number>(), s = (x: string) => { let i = si.get(x); if (i === undefined) { i = strs.length; strs.push(x); si.set(x, i); } return i; };
@@ -131,18 +132,45 @@ export class LivingWorld {
     const T = s.strs; for (const [k, v] of s.laid) this.laid.set(k, T ? (v as any[]).map(([h0, h1, g]) => ({ h0, h1, segs: g.map((x: any[]) => ({ t0: x[0], t1: x[1], place: T[x[2]], act: T[x[3]], why: T[x[4]], where: T[x[5]], ...(x.length > 6 ? { ev: T[x[6]] } : {}) })) })) : v as any);
     for (const [k, v] of s.news) this.news.set(k, v); for (const k of s.busy) this.busy.add(k);
   }
-  reset() { this.talks.length = 0; this.laid.clear(); this.overlaid.clear(); this.news.clear(); this.busy.clear(); this.nextId = 0; this.upTo = -1; this.evSeen = 0; }
+  reset() { this.pend = null; this.talks.length = 0; this.laid.clear(); this.overlaid.clear(); this.news.clear(); this.busy.clear(); this.nextId = 0; this.upTo = -1; this.evSeen = 0; }
 
   // ---------------------------------------------------------------- the days
   /** run the economy and the talk up to `day` (inclusive); arrangements reach 3 days past it and are laid already */
-  advance(day: number) {
-    if (this.running || day <= this.upTo) return; this.running = true;
+  advance(day: number, settle = true) {
+    if (this.running) return;
+    // (D-388: a day begun across frames (advanceSliced) is finished before anything reads the economy; the errands laid for
+    // the days it has begun are whole already, so a plan's read of those days (settle false) need not wait for it)
+    if (this.pend && (settle || day > this.upTo)) this.settle();
+    if (day <= this.upTo) return; this.running = true;
     try {
       const E = this.econ();
       // player events first seen now: their news starts on the first day not yet simulated (fixed, and saved with the event)
       for (const e of this.playerEvents()) if (e.newsFrom === undefined) e.newsFrom = Math.max(e.day + 1, this.upTo + 1);
-      while (this.upTo < day) { const d = ++this.upTo; const t0 = performance.now(); this.relDay(E, d); E.step(d); this.stats.msEcon += performance.now() - t0; const t1 = performance.now(); this.simulate(E, d); this.stats.msSim += performance.now() - t1; this.stats.days++; this.onDay?.(d); }
+      while (this.upTo < day) { const d = ++this.upTo; for (const _ of this.dayParts(E, d)); }
     } finally { this.running = false; }
+  }
+  /** D-388: one day of the living world in parts (the relations' week and the economy's step; the talk, meeting by meeting;
+   *  the asks and the rumours), yielding between them; run whole by advance(), or across frames by advanceSliced() */
+  private *dayParts(E: Economy, d: number): Generator<void> {
+    let t0 = performance.now(); this.relDay(E, d); this.stats.msEcon += performance.now() - t0; yield; t0 = performance.now(); E.step(d); this.stats.msEcon += performance.now() - t0; yield;
+    let t1 = performance.now(); for (const _ of this.simulateParts(E, d)) { this.stats.msSim += performance.now() - t1; yield; t1 = performance.now(); } this.stats.msSim += performance.now() - t1;
+    this.stats.days++; const r = this.onDay?.(d); if (r) for (const _ of r) yield;
+  }
+  private pend: Generator<void> | null = null;
+  /** finish the day begun across frames, if any */
+  settle() { if (!this.pend || this.running) return; this.running = true; try { while (!this.pend.next().done); } finally { this.pend = null; this.running = false; } }
+  /** D-388 (UD-30): advance toward `day` within about `ms` of work (each part is whole: the longest is the relations' week,
+   *  ~0.2 s once in seven days). The same days, in the same order, with the same results as advance(day): any read of the
+   *  economy meanwhile finishes the day begun first. True when the world has reached `day` */
+  advanceSliced(day: number, ms: number): boolean {
+    if (this.running) return false; const end = performance.now() + ms;
+    for (;;) {
+      if (!this.pend) { if (this.upTo >= day) return true;
+        this.running = true; try { const E = this.econ(); for (const e of this.playerEvents()) if (e.newsFrom === undefined) e.newsFrom = Math.max(e.day + 1, this.upTo + 1); this.pend = this.dayParts(E, ++this.upTo); } finally { this.running = false; } }
+      this.running = true; let done = false; try { done = !!this.pend.next().done; } catch (e) { this.pend = null; throw e; } finally { this.running = false; }
+      if (done) this.pend = null;
+      if (performance.now() >= end) return !this.pend && this.upTo >= day;
+    }
   }
 
   private plan(pid: number, day: number) { this.stats.plans++; return this.pop.basePlan(pid, day); }
@@ -179,7 +207,8 @@ export class LivingWorld {
     if (!best) return null; const l = this.atWork.get(best.place) ?? this.atWork.set(best.place, []).get(best.place)!; if (!l.includes(pid)) l.push(pid); return best.place;
   }
 
-  private simulate(E: Economy, day: number) {
+  /** the talk of a day, yielding after each meeting tried (D-388) */
+  private *simulateParts(E: Economy, day: number): Generator<void> {
     const P = this.pop; let meets = 0;
     if (E.trust) haggleRound(E, day); // D-351: the day's haggles between households (speech/haggle.ts), before the talk
     for (const [pid, l] of this.news) { const k = l.filter(x => day - x.day <= 3); if (k.length) this.news.set(pid, k); else this.news.delete(pid); }
@@ -199,8 +228,8 @@ export class LivingWorld {
       const x = l.find(y => y.hand < (y.src.startsWith('player:') ? 3 : 2)); if (!x || !this.eligible(pid, day)) continue;
       const cands = this.company(pid, day).filter(q => !(this.news.get(q) ?? []).some(y => y.src === x.src));
       for (let k = 0; k < Math.min(x.src.startsWith('player:') ? 6 : 2, cands.length) && meets < MAX_MEETS; k++) {
-        const q = cands[k]; meets++; const m = this.meet(pid, q, day); if (!m) continue; this.stats.meetings++;
-        this.tell(E, pid, q, x, m, day); this.ask(E, pid, q, m, day); break;
+        const q = cands[k]; meets++; const m = this.meet(pid, q, day); if (!m) { yield; continue; } this.stats.meetings++;
+        this.tell(E, pid, q, x, m, day); this.ask(E, pid, q, m, day); yield; break;
       }
     }
     // wants: a seeded share of the town's and the plain's households look for help from the people they meet
@@ -210,10 +239,10 @@ export class LivingWorld {
       const asker = this.adultOf(h, day, 0); if (asker < 0) continue; this.stats.asks++;
       const cands = this.company(asker, day);
       for (let k = 0; k < Math.min(CANDIDATES, cands.length) && meets < MAX_MEETS; k++) {
-        meets++; const m = this.meet(asker, cands[k], day); if (!m) continue; this.stats.meetings++;
+        meets++; const m = this.meet(asker, cands[k], day); if (!m) { yield; continue; } this.stats.meetings++;
         const fresh = (this.news.get(asker) ?? []).find(y => y.hand < 2 && !(this.news.get(cands[k]) ?? []).some(z => z.src === y.src));
         if (fresh) this.tell(E, asker, cands[k], fresh, m, day);
-        this.ask(E, asker, cands[k], m, day) || this.ask(E, cands[k], asker, m, day); break;
+        this.ask(E, asker, cands[k], m, day) || this.ask(E, cands[k], asker, m, day); yield; break;
       }
     }
   }
