@@ -40,6 +40,19 @@ export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: num
     }
     if (!changed) break;
   }
+  // (s17 C1, D-550, B580) a house still shut in at a pinched frontage (each of its lane edges narrowed at both jambs by the
+  // neighbours' wall ends: C9's walk bots) gets a door on a lane edge whose crossing walls stop short of the door's line
+  // (Site.jambs), kept only when the house is then reached; the street door moves there. Both houses' plans otherwise intact
+  if (left) { resetSiteCaches(s); let r = siteReach(s);
+    for (const p of s.plots) { if (!p.door || p.kind === 'garden') continue; const cells = byPlot.get(p.idx); if (!cells || cells.some(k => r[k]) || !cells.some(k => cellHasRoom(s, k, BODY_MIN))) continue;
+      let done = false;
+      for (const k of cells) { if (done) break; const i = k % W, j = (k / W) | 0;
+        for (const di of [1, -1]) { if (!s.inb(i + di, j)) continue; const kk = s.k(i + di, j); if (!openCode(s.cell[kk]) || !r[kk]) continue; // (doors in walls along v: the only ones the crossing walls narrow)
+          const e = s.edgeBetween(k, kk); if (s.noWall.has(e) || inWay(e)) continue; const vi = di > 0 ? i + 1 : i, J = [j * (W + 1) + vi, (j + 1) * (W + 1) + vi];
+          const had = s.doors.has(e), hadJ = J.map(x => s.jambs.has(x)); s.doors.add(e); for (const x of J) s.jambs.add(x); resetSiteCaches(s); const r2 = siteReach(s);
+          if (r2[k] && s.doorClear(e) >= min) { p.door = { cell: k, out: kk }; r = r2; opened++; resited++; left -= cells.length; done = true; break; }
+          if (!had) s.doors.delete(e); J.forEach((x, q) => { if (!hadJ[q]) s.jambs.delete(x); }); } }
+      resetSiteCaches(s); } }
   resetSiteCaches(s);
   return { opened, resited, left };
 }
