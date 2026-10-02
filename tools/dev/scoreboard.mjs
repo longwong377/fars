@@ -29,10 +29,19 @@ function index(dir, set, cov) {
 if (cmd === 'run') {
   const set = resolve(opt('--set', 'tests/data/scoreboard_s17.json')), tree = resolve(opt('--tree', '.')), label = opt('--label', 'scoreboard');
   const S = JSON.parse(readFileSync(set, 'utf8')), n = (S.ids?.length ?? 0) + (S.extra?.length ?? 0);
+  // s17 (D-472): ONE full-world train at a time, and only with 16 GB free. Four train pages at once (7-10 GB each while
+  // building) plus six agents' probes hung WMI, reset the T4 (device removed) and took the Claude app down (23:20 UTC).
+  mkdirSync(ROOT, { recursive: true });
+  const LOCK = join(ROOT, 'train.lock'), alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
+  if (existsSync(LOCK)) { const o = JSON.parse(readFileSync(LOCK, 'utf8')); if (alive(o.pid)) { console.error(`refused: train ${o.label} (pid ${o.pid}) is running since ${o.since}; one full-world train at a time`); process.exit(3); } }
+  const freeGB = (await import('node:os')).freemem() / 2 ** 30;
+  if (freeGB < 16 && !process.env.FORCE) { console.error(`refused: ${freeGB.toFixed(1)} GB free < 16 GB (a train page peaks near 10 GB)`); process.exit(3); }
+  writeFileSync(LOCK, JSON.stringify({ pid: process.pid, label, since: new Date().toISOString() }));
+  process.on('exit', () => { try { if (JSON.parse(readFileSync(LOCK, 'utf8')).pid === process.pid) writeFileSync(LOCK, '{"pid":0}'); } catch {} });
   const dir = join(ROOT, 'sb', `${stampNow()}-${label}`); mkdirSync(dir, { recursive: true });
   const out = join(dir, 'coverage.json'), slot = join(tree, 'tools/dev/gpu_slot.mjs');
   const env = { ...process.env, PW_CHANNEL: process.env.PW_CHANNEL ?? 'chrome', SET: set, FULL_DIR: dir, OUT: out, Q: opt('--q', 'high'),
-    TIMEOUT: String(1200 + 180 * n), PW_TIMEOUT: String(1200 + 180 * n), E2E_PORT: opt('--port', '5182'), NOHMR: '1' };
+    TIMEOUT: String(2400 + 900 * n), PW_TIMEOUT: String(2400 + 900 * n), // the T4: ~17 min to ready, up to ~13 min a new view state E2E_PORT: opt('--port', '5182'), NOHMR: '1' };
   console.log(`scoreboard ${label}: ${n} views on ${tree} -> ${dir}`);
   const t0 = Date.now();
   const pw = ['npx', 'playwright', 'test', 'tests/e2e/coverage.spec.ts', `--project=${process.env.PW_PROJECT ?? 'gpu'}`];
