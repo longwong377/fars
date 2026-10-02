@@ -31,7 +31,7 @@ export const STEPS: BootStep[] = [
 
 export class BootProgress {
   private at = 0; private done = 0; private bytes = 0; private cached = 0; private t0 = performance.now(); private obs: PerformanceObserver | null = null;
-  private el: { bar: HTMLElement; step: HTMLElement; net: HTMLElement } | null = null;
+  private el: { bar: HTMLElement; step: HTMLElement; net: HTMLElement; pct: HTMLElement; screen: HTMLElement } | null = null;
   private total = STEPS.reduce((a, s) => a + s.w, 0);
   constructor() {
     try { this.obs = new PerformanceObserver(l => { for (const e of l.getEntries() as PerformanceResourceTiming[]) { const b = e.encodedBodySize || e.transferSize || 0; this.bytes += b; if (!e.transferSize && e.encodedBodySize) this.cached += b; } this.paint(); });
@@ -48,18 +48,24 @@ export class BootProgress {
   /** the share done, 0..1 */
   get frac() { return Math.min(1, this.done / this.total); }
   get mb() { return this.bytes / 1048576; }
-  /** mount the bar under the loading card's subtitle (the card is the shell's) */
+  /** mount the bar under the loading card's subtitle (the card is the shell's). s17 C5 (D-590): the step's name large, the
+   *  share done as a percentage, the bytes and the clock beneath; the screen's dawn (--dawn on the loading screen) rises
+   *  with the share done, so the picture itself is the progress */
   mount(card: HTMLElement) {
-    const d = (c: string) => { const e = document.createElement('div'); e.className = c; return e; };
-    const wrap = d('boot-progress'), track = d('boot-track'), bar = d('boot-bar'), step = d('boot-step'), net = d('boot-net');
-    track.append(bar); wrap.append(track, step, net); card.append(wrap); this.el = { bar, step, net }; this.paint();
+    const d = (c: string, tag = 'div') => { const e = document.createElement(tag); e.className = c; return e; };
+    const wrap = d('boot-progress'), head = d('boot-head'), step = d('boot-step'), pct = d('boot-pct'), track = d('boot-track'), bar = d('boot-bar'), net = d('boot-net');
+    head.append(step, pct); track.append(bar); wrap.append(head, track, net); card.append(wrap);
+    this.el = { bar, step, net, pct, screen: (card.closest('.load') as HTMLElement | null) ?? card }; this.paint();
   }
   private paint() {
     if (!this.el) return; const s = STEPS[this.at], secs = (performance.now() - this.t0) / 1000;
     this.el.bar.style.width = `${(this.frac * 100).toFixed(1)}%`;
-    this.el.step.textContent = this.at >= STEPS.length - 1 ? 'Ready' : `${s.label}… (step ${this.at + 1} of ${STEPS.length - 1})`;
+    this.el.pct.textContent = `${Math.floor(this.frac * 100)} %`;
+    this.el.screen.style.setProperty('--dawn', this.frac.toFixed(3));
+    this.el.step.textContent = this.at >= STEPS.length - 1 ? 'Ready' : `${s.label}…`;
     const fromNet = (this.bytes - this.cached) / 1048576, fromCache = this.cached / 1048576;
-    this.el.net.textContent = `${fromNet.toFixed(0)} MB downloaded${fromCache >= 1 ? `, ${fromCache.toFixed(0)} MB from this browser` : ''} · ${secs.toFixed(0)} s`;
+    this.el.net.replaceChildren(Object.assign(document.createElement('span'), { textContent: `${fromNet.toFixed(0)} MB downloaded${fromCache >= 1 ? ` · ${fromCache.toFixed(0)} MB from this browser` : ''} · ${secs.toFixed(0)} s` }),
+      Object.assign(document.createElement('span'), { className: 'steps', textContent: this.at >= STEPS.length - 1 ? '' : `step ${this.at + 1} of ${STEPS.length - 1}` }));
   }
   finish() { this.step('ready'); this.obs?.disconnect(); (globalThis as any).__bootStage = undefined; }
 }

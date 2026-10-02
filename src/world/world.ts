@@ -85,7 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
-import { WorldFill } from './fill'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
+import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -448,13 +448,14 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // D-367 (agent fill): the markets, the lanes' and villages' things, washing lines, awnings, the Terrace's yards and standards
   const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
   const fill = new WorldFill(fillItems, { ground: groundAt, phys, nav }); root.add(fill.group);
+  const tethers = new TownTethers(townTethers(settlement?.plan.sites ?? [], fillItems), groundAt); root.add(tethers.group); // s17 C1 (D-550): the households' animals at their tethers
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
     // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)
     const people: [number, number][] = [[0, 0], ...Object.values(FAUNA_FAC) as [number, number][], ...villagesIn.map(v => [v.x, v.y] as [number, number])];
     fauna.setWild((e, n) => landUseAt(plain.data.zones, e, -n).use === 'natural', plain.data.rivers.rivers.map(r => Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number])), people); }
   wmark('fauna');
-  if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); }
+  if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); fauna.addCampLines(sim.pop.court.tents, settlement?.plan ?? null); } // (D-570: the camps' picket lines)
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
@@ -470,7 +471,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const roadNext = new Map<string, number>(), roadRng = new Rng(seed, 'road-sounds'); let roadT = -1;
   const roadSounds = (cam: THREE.Vector3) => {
     const t = sim.t * 3600; if (t === roadT) return; roadT = t;
-    for (const m of movers) { if (m.kind === 'quarry' || m.kind === 'drum') continue; const dx = m.e - cam.x, dn = m.n + cam.z; if (dx * dx + dn * dn > 3600) continue;
+    for (const m of movers) { if (m.kind === 'quarry' || m.kind === 'drum' || m.kind === 'foot') continue; const dx = m.e - cam.x, dn = m.n + cam.z; if (dx * dx + dn * dn > 3600) continue;
       const walking = m.act === 'walk', pos = { x: m.e, y: groundAt(m.e, m.n), z: -m.n }, due = (k: string, gap: [number, number], p = 1) => {
         const key = `${m.key}:${k}`, at = roadNext.get(key); if (at === undefined) { roadNext.set(key, t + roadRng.range(0, gap[1])); return false; }
         if (t < at) return false; roadNext.set(key, t + roadRng.range(gap[0], gap[1])); return roadRng.chance(p); };
@@ -510,7 +511,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // session 8: the nearest 48 of the population within 20 m, and no animal
   const solids = new NearSolids(phys);
   { const tap = (A: { onPush: ((a: AnimalInst, M: THREE.Matrix4) => void) | null }) => { const prev = A.onPush; A.onPush = (a, M) => { prev?.(a, M); solids.animal(a, M); }; };
-    tap(crowd.animals); tap(fauna.animals); }
+    tap(crowd.animals); tap(fauna.animals); tap(tethers.animals); }
   const syncPopBodies = () => { const pp = playerAt; if (!pp) return; solids.begin(pp);
     if (!nowView.active) {
       for (const o of view.query([pp.x, -pp.z], SOLID_R + PATH_REACH)) if (o.agent < 0) { const r = crowd.rootOf(o.pid); solids.person(r ? r[0] : o.e, r ? r[1] : o.y, r ? r[2] : -o.n); }
@@ -518,7 +519,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     } else solids.beginAnimals();
     solids.end(); };
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
-  const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
+  const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction, phys) : null; if (building) root.add(building.group);
   // D-361 (B175): the Terrace's far levels from 150 m out (render/far_terrace.ts); ?farterrace=0 draws the near shapes everywhere (A/B)
   const farTerrace = new URLSearchParams(location.search).get('farterrace') === '0' ? null : new FarTerrace([arch.group, reliefs, p4.group, ...(cren ? [cren] : []), foot, ...(building ? [building.group] : [])]);
   // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467
@@ -734,7 +735,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       pa('w.traffic', tp); tp = pt(); crowd.update(time, ctx.camera.position, playerAt, ctx.camera); pa('w.crowd', tp); tp = pt();
       { const day = Math.floor(sim.t / 24), sun = sunTimes(day); // D-210: the animals of the town, the villages, the paradise and the river
         fauna.group.visible = !nowView.active;
-        if (!nowView.active) fauna.update({ t: time, worldT: ctx.clock.t * 86400, hour: ctx.clock.localHour, day, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain }); }
+        if (!nowView.active) fauna.update({ t: time, worldT: ctx.clock.t * 86400, hour: ctx.clock.localHour, day, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain });
+        tethers.group.visible = !nowView.active; if (!nowView.active) tethers.update(time, ctx.clock.localHour, ctx.camera.position, ctx.cond.rain); }
       pa('w.fauna', tp); tp = pt(); { // D-220: what the households burn now → the fires' state and the smoke layer (recomputed when the minute or the wind changes)
         const key = `${ctx.clock.dayIndex}|${Math.floor(ctx.clock.localHour * 60)}|${ctx.cond.windMs.toFixed(1)}|${Math.round(ctx.cond.windDirDeg)}|${Math.round(ctx.sky.sunAlt)}`;
         if (key !== smokeKey) { smokeKey = key; smoke.update(ctx.clock.dayIndex, ctx.clock.localHour, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.sky.sunAlt); }
