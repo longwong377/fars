@@ -100,6 +100,7 @@ export function whenLines(label: string): string[] {
 export class Shell {
   mode: 'loading' | 'title' | 'playing' | 'paused' = 'loading';
   constructor(private settings: Settings, private hooks: ShellHooks) {
+    (globalThis as any).__shell = this; // (the first-minutes driver, tools/dev/first_minutes.mjs: the pause a headless page cannot reach by Esc)
     // Esc in a sub-screen (settings, controls) goes back a step; the pointer lock's own Esc still pauses the walk
     addEventListener('keydown', e => { if (e.key === 'Escape' && this.back && (this.mode === 'paused' || this.mode === 'title')) { const b = this.back; this.back = null; b(); e.preventDefault(); } });
   }
