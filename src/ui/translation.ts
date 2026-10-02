@@ -290,15 +290,15 @@ export class TranslationLayer {
       const pk = PRESENT_KEY[k] ?? k; if (pk === '' || (k !== 'terrace' && !present(pk))) continue;
       c.beginPath(); (f as any).polygon.forEach(([e, n]: [number, number], i: number) => (i ? c.lineTo(px(e), py(n)) : c.moveTo(px(e), py(n)))); c.closePath();
       c.fillStyle = k === 'terrace' ? '#3a332a' : '#6b5e4a'; c.strokeStyle = '#c9a25e'; c.lineWidth = k === 'terrace' ? 2 : 1; c.fill(); c.stroke();
-      if (k !== 'terrace' && !Z.half) { const [ce, cn] = (f as any).centroid; c.fillStyle = '#eee3cf'; c.font = '13px Georgia'; c.textAlign = 'center'; c.fillText(FOOTPRINT_LABEL[k] ?? k.replace(/_/g, ' '), px(ce), py(cn)); }
+      if (k !== 'terrace' && !Z.half) { const [ce, cn] = (f as any).centroid; c.fillStyle = '#eee3cf'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.textAlign = 'center'; c.fillText(FOOTPRINT_LABEL[k] ?? k.replace(/_/g, ' '), px(ce), py(cn)); }
     }
-    if (Z.half) { c.fillStyle = '#eee3cf'; c.font = '13px Georgia'; c.textAlign = 'center'; c.fillText('Terrace', px(100), py(-10) - (Z.half > 5000 ? 8 : 0)); }
+    if (Z.half) { c.fillStyle = '#eee3cf'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.textAlign = 'center'; c.fillText('Terrace', px(100), py(-10) - (Z.half > 5000 ? 8 : 0)); }
     // the visitor: position and facing
     const { e, n, yawDeg } = ctx.player, a = (yawDeg * Math.PI) / 180;
     c.save(); c.translate(px(e), py(n)); c.rotate(a); c.fillStyle = '#ffd27a'; c.beginPath(); c.moveTo(0, -12); c.lineTo(7, 8); c.lineTo(-7, 8); c.closePath(); c.fill(); c.restore();
     // scale bar
     const bar = Z.bar, label = bar >= 1000 ? `${bar / 1000} km` : `${bar} m`;
-    c.strokeStyle = '#eee3cf'; c.lineWidth = 2; c.beginPath(); c.moveTo(30, H - 30); c.lineTo(30 + bar * sc, H - 30); c.stroke(); c.fillStyle = '#eee3cf'; c.textAlign = 'left'; c.font = '13px Georgia'; c.fillText(label, 30, H - 38);
+    c.strokeStyle = '#eee3cf'; c.lineWidth = 2; c.beginPath(); c.moveTo(30, H - 30); c.lineTo(30 + bar * sc, H - 30); c.stroke(); c.fillStyle = '#eee3cf'; c.textAlign = 'left'; c.font = "italic 15px 'Cormorant Garamond', Georgia, serif"; c.fillText(label, 30, H - 38);
   }
 
   private drawLayers(c: CanvasRenderingContext2D, items: MapItem[], px: (e: number) => number, py: (n: number) => number, sc: number, box: [number, number, number, number]) {
@@ -328,7 +328,7 @@ export class TranslationLayer {
         if (name && !/^unlocated/i.test(name)) labels.push([name + (it.tier === 'C' ? ' (C)' : ''), px(e), py(n)]);
       }
     }
-    c.setLineDash([]); c.fillStyle = '#eee3cf'; c.font = '12px Georgia'; c.textAlign = 'left';
+    c.setLineDash([]); c.fillStyle = '#eee3cf'; c.font = "13px 'Alegreya Sans', sans-serif"; c.textAlign = 'left';
     const used: [number, number][] = []; // skip labels that would overprint an earlier one
     for (const [t, x, y] of labels) { if (used.some(([ux, uy]) => Math.abs(ux - x) < 90 && Math.abs(uy - y) < 14)) continue; used.push([x, y]); c.fillText(t, x + 6, y + 4); }
   }

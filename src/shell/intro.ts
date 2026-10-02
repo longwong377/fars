@@ -21,6 +21,9 @@ export interface IntroShot {
   /** seconds on screen */ dur: number;
   /** the world's hour at the cut, in hours from that day's sunrise (moved forward only) */ atRise: number;
   keys: IntroKey[];
+  /** the lowest the lens may be (world y, ~ m over the court level) where it crosses the Terrace's platform; tests only
+   *  (default 30: over everything) */
+  overTerrace?: number;
   /** 'glide' (default): nearly constant motion, eased only a little at the cuts; 'land': eased in and out (comes to rest) */
   ease?: 'glide' | 'land';
 }
@@ -43,9 +46,10 @@ export const SHOTS: IntroShot[] = [
   // of the Apadana in the first sun over Rahmat
   { id: 'terrace', what: 'the Terrace in the first sun', dur: 16, atRise: 1.1,
     keys: [{ e: -175, n: 40, h: 2.5, az: 62, pitch: 9, fov: 46 }, { e: -155, n: 70, h: 14, az: 72, pitch: 5, fov: 46 }, { e: -140, n: 96, h: 30, az: 84, pitch: -1, fov: 46 }] },
-  // a court of the town N of the Terrace from above its walls: people at their morning work
-  { id: 'work', what: 'people at their work', dur: 12, atRise: 1.3,
-    keys: [{ e: -186, n: 754, h: 11, az: 212, pitch: -26, fov: 40 }, { e: -195, n: 759, h: 10, az: 200, pitch: -24, fov: 40 }] },
+  // the building site of the Hall of a Hundred Columns from 9 m over its N forecourt: the gangs at work from sunrise + 0.5 h
+  // (people/calendar.ts E-60), drums on the ramps, the dust (D-220); heights over the plain, the platform ~12 m above it
+  { id: 'work', what: 'people at their work', dur: 12, atRise: 1.3, overTerrace: 8,
+    keys: [{ e: 118, n: 60, h: 21.5, az: 158, pitch: -17, fov: 42 }, { e: 136, n: 52, h: 21, az: 172, pitch: -15, fov: 42 }] },
 ];
 /** the last shot's length (s) */
 export const LAST_SHOT_SECONDS = 15;

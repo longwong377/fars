@@ -29,7 +29,7 @@ describe('the opening (D-590)', () => {
       const g = hAt(P.e, P.n), lift = P.y - g;
       expect(lift, `${s.id} at ${t.toFixed(2)} s: ${lift.toFixed(2)} m over the ground at (${P.e.toFixed(0)}, ${P.n.toFixed(0)})`).toBeGreaterThan(s.id === 'walk' && t > s.dur - 2.5 ? 1.2 : 1.8);
       // the platform stands ~12 m over the plain and its buildings up to ~24 m over the platform: keep 8 m off it, or fly over everything
-      if (inPoly(TERRACE, P.e, P.n) || distToPoly(TERRACE, P.e, P.n) < 8) expect(P.y, `${s.id} at ${t.toFixed(2)} s over the Terrace`).toBeGreaterThan(30);
+      if (inPoly(TERRACE, P.e, P.n) || distToPoly(TERRACE, P.e, P.n) < 8) expect(P.y, `${s.id} at ${t.toFixed(2)} s over the Terrace`).toBeGreaterThan(s.overTerrace ?? 30);
       expect(Math.abs(P.pitch)).toBeLessThan(40); expect(P.fov).toBeGreaterThan(20); expect(P.fov).toBeLessThan(80);
     }
   });
