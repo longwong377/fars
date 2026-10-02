@@ -156,7 +156,10 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
     if (u01(...key, 31) < 0.18) { const [u, v] = at(0.95 + 0.2 * u01(...key, 32), 0.02); if (open(s.at(s.ci(u), s.cj(v)))) { put('fill_skin', u, v, -di, -dj, 0.9 + 0.2 * u01(...key, 33), 'gap'); fixRot(-di, -dj, 0); st.door++; } }
     if (u01(...key, 26) < 0.22 && w >= 2.4) { const [u, v] = at(1.1 + 0.3 * u01(...key, 27), 0.4); if (ok(u, v, 0.6)) { put('stool', u, v, -di, -dj, 0.95 + 0.1 * u01(...key, 28), 'gap'); fixRot(-di, -dj, u01(...key, 29) * 6.28); st.door++; } }
     const life = s.lives?.[P.idx]; if (life?.animal && w >= 2.8 && u01(...key, 30) < (life.animal === 'donkey' ? 0.6 : 0.3)) { const [u, v] = at(1.6, 0.35);
-      if (ok(u, v, 1.2) && !nearDoor(u, v, 1.2)) { put('peg', u, v, -di, -dj, 1, 'gap', { tether: life.animal, plot: P.id }); fixRot(-di, -dj, 0); st.door++; st.tethers = (st.tethers ?? 0) + 1; } }
+      if (ok(u, v, 1.2) && !nearDoor(u, v, 1.2)) { put('peg', u, v, -di, -dj, 1, 'gap', { tether: life.animal, plot: P.id }); fixRot(-di, -dj, 0); st.door++; st.tethers = (st.tethers ?? 0) + 1;
+        // the armful of straw thrown down for it at the wall's foot by its head, the droppings behind (C)
+        const [fu, fv] = at(1.6, 0.15); put('wo_fodder', fu, fv, -di, -dj, 0.55 + 0.2 * u01(...key, 34), 'gap'); fixRot(-di, -dj, u01(...key, 35) * 6.28);
+        const [lu, lv] = at(2.9, 0.9); if (open(s.at(s.ci(lu), s.cj(lv)))) { put('fill_litter', lu, lv, -di, -dj, 0.7, 'litter'); fixRot(-di, -dj, u01(...key, 36) * 6.28); } } }
   };
   /** the last item's turn: facing (du, dv) out of the wall turned by `jit` (radians) */
   const fixRot = (du: number, dv: number, jit: number) => { const [de, dn] = dirG(du, dv); items[items.length - 1].rot = rotFacing(de, dn) + jit; };
