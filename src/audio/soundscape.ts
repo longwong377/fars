@@ -15,6 +15,9 @@
 import { AudioEngine, Space } from './engine';
 import { NoiseStream } from './beds';
 import { Rng } from '../core/rng';
+import { SoundLibrary } from './library';
+import { BedMixer, BedDeck, Shots } from './sampler';
+import { bedPlan, footSurface, irKindFor, soundPlace, speciesSlug, type Air, type FootSurface, type Where } from './soundplan';
 
 export const SPACES: Record<string, Space> = {
   open: { id: 'open', volume: 2e6, surface: 1e6, alpha: 0.9 },
@@ -226,6 +229,16 @@ function tone(e: AudioEngine, out: AudioNode, t: number, dur: number, type: Osci
   const c = e.ctx!, o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
   g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + 0.02);
 }
+/** D-620: where a kind's recording is placed: the source's height over the feet (m), the panner's reference and maximum
+ *  distance (m) — the same as its synthesised design's below */
+export const STRIKE_AT: Record<string, [number, number, number]> = {
+  hoe: [0.1, 3, 120], sickle: [0.4, 2, 50], loom: [0.2, 2, 60], trowel: [0.2, 2, 60], adze: [0.5, 3, 150], mould: [0.2, 2, 60], wash: [0.2, 2, 80], broom: [0.1, 2, 40],
+  bow: [1.5, 3, 120], water: [0.3, 2, 60], hammer: [0.7, 4, 400], bellows: [0.6, 2, 60], quench: [0.5, 2, 80], chase: [0.3, 1.5, 60], clink: [1, 1.5, 30], drill: [0.3, 1.5, 30],
+  scrape: [0.7, 2, 50], pound: [0.3, 3, 120], bray: [1.1, 6, 600], bark: [0.5, 5, 400], cluck: [0.25, 1.5, 40], cockcrow: [0.4, 5, 500], grunt: [0.4, 3, 150], low: [1, 6, 700],
+  buzz: [0.5, 1.5, 25], howl: [0.8, 60, 3500], roar: [0.8, 120, 6000], whoop: [0.8, 30, 1500], saw: [0.8, 25, 900], hoof: [0, 3, 90], snort: [1.3, 3, 120], whinny: [1.5, 6, 600],
+  camel: [1.8, 4, 250], wheel: [0.5, 3, 150], door: [1, 2, 60], door_shut: [1, 3, 80], door_bar: [1, 3, 80], swifts: [0, 8, 250], bleat: [0.6, 4, 250],
+  chisel: [1, 3, 300], quern: [0.4, 2, 60], dice: [0.2, 1.5, 40],
+};
 /** the work sounds of the activity performances (D-142; all procedural, C). Returns false for other kinds */
 export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: number; z: number }, rng: Rng): boolean {
   const c = e.ctx; if (!c) return false; const t = c.currentTime, j = rng.next();
@@ -310,7 +323,14 @@ export class Soundscape {
   private rainTail = -1; private fliesTail = -1; private roofGain?: GainNode;
   private rng = new Rng(1, 'soundscape'); private nextStep = 0; private nextChisel = 0; private started = false;
   lastSpace = 'open';
-  constructor(readonly e: AudioEngine) {}
+  /** D-620: the recordings (library.ts), the beds playing from them, the one-shots and footsteps; the last plan (overlay) */
+  readonly lib: SoundLibrary; readonly beds: BedMixer; readonly shots: Shots;
+  private fireDecks = new Map<string, BedDeck>(); private lastStepAt = -1; lastFoot: FootSurface | '' = ''; lastPlace = '';
+  constructor(readonly e: AudioEngine, lib?: SoundLibrary) {
+    this.lib = lib ?? new SoundLibrary((import.meta as any).env?.BASE_URL ?? '/'); this.beds = new BedMixer(e, this.lib); this.shots = new Shots(e, this.lib);
+    this.ownLib = !lib;
+  }
+  private ownLib: boolean;
   private start() {
     const e = this.e, c = e.ctx!; this.started = true;
     // wind (≤ ~2 kHz after its low-pass) and the whistle from one pink stream at 16 kHz; rain (high-passed at 900 Hz) white at 32 kHz
@@ -332,6 +352,7 @@ export class Soundscape {
   }
   thunder(delay: number, strength: number) {
     const e = this.e; if (!e.ctx) return; const c = e.ctx, t = c.currentTime + delay;
+    if (this.shots.flat('thunder', { gain: Math.min(1, 0.35 + 0.65 * strength) }, delay)) return; // D-620: a recorded peal
     const s = c.createBufferSource(); s.buffer = e.noiseBuffer(6, 'brown'); const g = c.createGain(), f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 180 + 400 * strength;
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(Math.min(1, 0.6 * strength + 0.2), t + 0.08); g.gain.exponentialRampToValueAtTime(0.001, t + 5.5);
     s.connect(f); f.connect(g); g.connect(e.ch.effects); s.start(t); s.stop(t + 6);
@@ -342,6 +363,7 @@ export class Soundscape {
    *  stone, a twig broom, a bowstring, a sheep's or goat's bleat, a splash) */
   strike(kind: string, pos: { x: number; y: number; z: number }) {
     const e = this.e, c = e.ctx; if (!c) return; const t = c.currentTime;
+    const at = STRIKE_AT[kind]; if (at && this.shots.at(kind, pos, { h: at[0], ref: at[1], max: at[2] })) return; // D-620: its recording
     if (workStrike(e, kind, pos, this.rng)) return;
     if (kind === 'chisel') { // iron/bronze chisel on limestone (C)
       const p = e.panner(pos.x, pos.y + 1, pos.z, 3, 300), o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = 2200 + this.rng.next() * 900;
@@ -356,10 +378,16 @@ export class Soundscape {
       e.route(p, 'effects', t + 0.8);
     }
   }
+  /** dev overlay (F3): the recordings (D-620): what loaded, which beds play from recordings and which are still synthesised */
+  recordedLines(): string[] {
+    return [this.lib.line(), `${this.beds.line()} · place ${this.lastPlace} · step ${this.lastFoot || '-'} · reverb ${this.e.irMeasured ? 'measured (OpenAIR, CC BY 4.0)' : 'generated (Sabine, C)'}`,
+      `one-shots: ${this.shots.played} recorded, ${this.shots.synthesised} synthesised (no recording loaded)`];
+  }
   /** dev overlay (F3): the animal and insect voices heard in the last minute, with their tiers (D-210) */
   heardLines(): string[] { const now = this.e.ctx?.currentTime ?? 0; return [...this.heard].filter(([, t]) => now - t < 60).map(([id]) => `${id} [${AMBIENT_TIER(id)}]`); }
-  footstep(surface: 'stone' | 'earth' | 'plaster', run: boolean) {
+  footstep(surface: 'stone' | 'earth' | 'plaster', run: boolean, kind?: FootSurface) {
     const e = this.e; if (!e.ctx) return; const c = e.ctx, t = c.currentTime;
+    if (kind && this.shots.step(kind, run)) return; // D-620: a recorded step on the surface's own kind
     const s = c.createBufferSource(); s.buffer = e.noiseBuffer(0.12, surface === 'earth' ? 'brown' : 'white');
     const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = surface === 'stone' ? 1800 : surface === 'plaster' ? 1200 : 400; f.Q.value = 1.2;
     const g = c.createGain(); g.gain.setValueAtTime((run ? 0.12 : 0.07) * (surface === 'earth' ? 1.6 : 1), t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
@@ -368,18 +396,30 @@ export class Soundscape {
   update(dt: number, ctx: { hour: number; month: number; windMs: number; rain: number; insideSpace: string; nearColumns: boolean; stepPhase: number; running: boolean; surface: 'stone' | 'earth' | 'plaster';
     fires: { id: string; lit: boolean; pos: { x: number; y: number; z: number } }[]; listener: { x: number; y: number; z: number }; worksite: { x: number; y: number; z: number } | null; workHours: boolean;
     /** D-210: the listener's surroundings (world/fauna.ts placeAt), the day's sunrise and sunset (h), the air temperature (°C) */
-    place?: Place; sun?: { rise: number; set: number }; tempC?: number }) {
+    place?: Place; sun?: { rise: number; set: number }; tempC?: number;
+    /** D-620: the weather's conditions (weatherState Conditions: dust, snow, mist, wetness), and the walk's hooks (C9): under a
+     *  roof in the town, and the ground kind underfoot */
+    air?: Partial<Air>; roofed?: boolean; ground?: FootSurface }) {
     const e = this.e; if (!e.ctx || e.ctx.state !== 'running') return; if (!this.started) this.start();
     const c = e.ctx, t = c.currentTime;
+    // D-620: the recordings start loading only now (the world is walking and sound is on), never during the load
+    if (this.ownLib && typeof window !== 'undefined') this.lib.start(c);
+    const where: Where = { e: ctx.listener.x, n: -ctx.listener.z, feetY: ctx.listener.y - 1.6, insideSpace: ctx.insideSpace, place: ctx.place, roofed: ctx.roofed };
+    const air: Air = { ...ctx.air, rain: ctx.rain, windMs: ctx.windMs }, sPlace = soundPlace(where); this.lastPlace = sPlace;
+    const plan = bedPlan(where, ctx.hour, ctx.month, air, ctx.sun); this.beds.update(dt, plan);
+    const rec = this.beds.recorded, placeRec = plan.length > 0 && rec.has(plan[0].layer), rainRec = rec.has('rain_light') || rec.has('rain_heavy'), roofRec = rec.has('rain_roof');
     // D-245: in the lanes of the town and the villages the open air has the walls' short slap (SPACES.street, C)
     const street = ctx.insideSpace === 'open' && (ctx.place?.town ?? 0) > 0.75; this.lastSpace = street ? 'street' : ctx.insideSpace;
-    const sp = street ? SPACES.street : SPACES[ctx.insideSpace] ?? SPACES.open; e.setSpace(sp, street ? 0.12 : ctx.insideSpace === 'open' ? 0.05 : 0.35);
+    const sp = street ? SPACES.street : SPACES[ctx.insideSpace] ?? SPACES.open;
+    const ir = this.lib.ready('ir', irKindFor(ctx.roofed && ctx.insideSpace === 'open' ? { id: 'room', volume: 60 } : sp, sPlace), 0)[0]?.buf ?? null; // D-620: the measured room
+    e.setSpace(sp, street ? 0.12 : ctx.insideSpace === 'open' ? (ctx.roofed ? 0.3 : 0.05) : 0.35, ir);
     const inside = ctx.insideSpace !== 'open' && ctx.insideSpace !== 'portico';
-    this.windGain!.gain.setTargetAtTime(Math.min(0.5, 0.03 + ctx.windMs * 0.04) * (inside ? 0.25 : 1), t, 0.5);
+    // D-620: a recorded place bed carries its own wind: the synthesised wind stays as the gusts' moving part, lower
+    this.windGain!.gain.setTargetAtTime(Math.min(0.5, 0.03 + ctx.windMs * 0.04) * (inside ? 0.25 : 1) * (placeRec ? 0.35 : 1), t, 0.5);
     this.windFilter!.frequency.setTargetAtTime(250 + ctx.windMs * 120, t, 0.5);
     this.whistleGain!.gain.setTargetAtTime(ctx.nearColumns ? Math.min(0.08, Math.max(0, ctx.windMs - 3) * 0.015) : 0, t, 0.8);
-    this.rainGain!.gain.setTargetAtTime(ctx.rain * (inside ? 0.12 : 0.35), t, 0.4);
-    const covered = inside || ctx.insideSpace === 'portico'; this.roofGain!.gain.setTargetAtTime(covered ? ctx.rain * 0.5 : 0, t, 0.4);
+    this.rainGain!.gain.setTargetAtTime(ctx.rain * (inside ? 0.12 : 0.35) * (rainRec ? 0.15 : 1), t, 0.4);
+    const covered = inside || ctx.insideSpace === 'portico'; this.roofGain!.gain.setTargetAtTime(covered ? ctx.rain * 0.5 * (roofRec ? 0.15 : 1) : 0, t, 0.4);
     if (covered && ctx.rain > 0.08 && this.rng.chance(Math.min(1, dt * (1 + 6 * ctx.rain)))) { // a drip off the edge (or a spout's stream at a heavier rain)
       const f = 900 + 900 * this.rng.next(); chirp(e, e.ch.ambience, t + 0.01, f, f * 0.55, 0.05, 0.025 * Math.min(1, ctx.rain * 2)); }
     // the beds' streams run while they can be heard (a silent bed schedules nothing)
@@ -391,7 +431,8 @@ export class Soundscape {
       if (this.rng.next() < b.rate * w * dt) {
         const [d0, d1] = b.far ?? [15, 95], ang = this.rng.next() * Math.PI * 2, dist = d0 + this.rng.next() * (d1 - d0);
         const p = e.panner(ctx.listener.x + Math.cos(ang) * dist, ctx.listener.y + (b.where === 'water' || b.where === 'town' ? 0.5 : 3 + this.rng.next() * 15), ctx.listener.z + Math.sin(ang) * dist, 6, Math.max(400, d1 * 1.5));
-        p.connect(this.birdBus!); b.call(e, p, t + 0.02, this.rng); this.heard.set(b.id, t);
+        const recd = this.shots.at(speciesSlug(b.id), { x: p.positionX.value, y: p.positionY.value, z: p.positionZ.value }, { h: 0, ref: 6, max: Math.max(400, d1 * 1.5), gain: (inside ? 0.25 : 1) * (1 - ctx.rain * 0.8), channel: 'ambience' }, 0.02);
+        if (!recd) { p.connect(this.birdBus!); b.call(e, p, t + 0.02, this.rng); } this.heard.set(b.id, t); // D-620: its recorded call first
       }
     }
     // flies (D-210): by day in the warm months where dung, middens or animals are close (C)
@@ -405,8 +446,12 @@ export class Soundscape {
       let n = this.fireNodes.get(f.id);
       if (f.lit && d < 40 && !n) { const bed = new NoiseStream(e, 'pink', { seg: 4, fade: 0.4, sampleRate: 8000 }); const lf = c.createBiquadFilter(); lf.type = 'lowpass'; lf.frequency.value = 900;
         const g = c.createGain(); g.gain.value = 0; const pan = e.panner(f.pos.x, f.pos.y, f.pos.z, 1.5, 60); bed.out.connect(lf); lf.connect(g); g.connect(pan); e.route(pan, 'effects'); n = { gain: g, pan, bed }; this.fireNodes.set(f.id, n); }
-      if (n) { if (f.lit && d < 40) n.bed.tick(); // D-245: each fire's own stream, never a shared loop (audit D: two fires played one 3 s loop)
-        n.gain.gain.setTargetAtTime(f.lit && d < 40 ? FIRE_BED * (0.7 + 0.3 * this.rng.next()) : 0, t, 0.05); if (this.rng.next() < dt * 6 && f.lit && d < 25) { // crackle pops
+      if (n) { // D-620: the hearth's recording at the fire when it is loaded (its own deck, never shared); the stream below is the fallback
+        let dk = this.fireDecks.get(f.id); if (!dk && f.lit && d < 40 && this.lib.has('beds', 'hearth')) this.fireDecks.set(f.id, dk = new BedDeck(e, this.lib, 'hearth', this.rng, n.pan, 1.2));
+        if (dk) { dk.target = f.lit && d < 40 ? 1 : 0; dk.tick(dt); if (dk.target === 0 && dk.level < 0.003) { dk.out.disconnect(); this.fireDecks.delete(f.id); } }
+        const fireRec = !!dk && dk.playable();
+        if (f.lit && d < 40 && !fireRec) n.bed.tick(); // D-245: each fire's own stream, never a shared loop (audit D: two fires played one 3 s loop)
+        n.gain.gain.setTargetAtTime(f.lit && d < 40 && !fireRec ? FIRE_BED * (0.7 + 0.3 * this.rng.next()) : 0, t, 0.05); if (!fireRec && this.rng.next() < dt * 6 && f.lit && d < 25) { // crackle pops
           const s = c.createBufferSource(); s.buffer = e.noiseBuffer(0.02, 'white'); const g = c.createGain(); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03); s.connect(g); g.connect(n.pan); s.start(t); } }
     }
     // generic worksite chisels only when no simulated masons drive `strike` (kept for audio tests without people)
@@ -417,6 +462,10 @@ export class Soundscape {
       g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06); o.connect(g); g.connect(p); e.route(p, 'effects', t + 0.6); o.start(t); o.stop(t + 0.08);
     }
     // footsteps from the player's gait phase (two per stride)
-    const stepIdx = Math.floor(ctx.stepPhase / Math.PI); if (stepIdx !== this.nextStep) { if (this.nextStep !== 0) this.footstep(ctx.surface, ctx.running); this.nextStep = stepIdx; }
+    // D-620: the surface's own kind (the walk's hook, else refined from the place, season and wet); a run when the steps come
+    // faster than 0.36 s apart (a walk's step is ~0.5 s)
+    const stepIdx = Math.floor(ctx.stepPhase / Math.PI); if (stepIdx !== this.nextStep) {
+      if (this.nextStep !== 0) { const run = ctx.running || (this.lastStepAt > 0 && t - this.lastStepAt < 0.36), kind = footSurface(ctx.ground ?? ctx.surface, where, ctx.month, air); this.lastFoot = kind; this.footstep(ctx.surface, run, kind); }
+      this.nextStep = stepIdx; this.lastStepAt = t; }
   }
 }

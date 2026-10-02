@@ -1,0 +1,1958 @@
+{
+ "meta": {
+  "what": "D-620: every recording the world plays (src/audio/soundplan.ts BED_LAYERS, ONESHOT_SETS, FOOT_SURFACES); tools/audio/fetch.mjs resolves each item by search, downloads, cuts, normalises, encodes to public/audio and writes the manifest, tools/audio/fetch_lock.json and the ASSET_LEDGER rows",
+  "licences": "CC0 first; then CC BY; then CC BY-NC (CLAUDE.md section 12: personal, non-commercial use). No SA or ND unless ALLOW_SA=1. Every file credited in ASSET_LEDGER.md",
+  "sources": "freesound (API with FREESOUND_TOKEN, else its search pages), Wikimedia Commons (API), archive.org (advanced search); in that order of preference, CC0 before CC BY at each",
+  "beds": "cut to `take` s (default 120) after skipping 2 s, stereo 48 kHz, high-passed at 40 Hz, loudness-normalised to -23 LUFS (two-pass, linear), Ogg Opus 48 kb/s",
+  "oneshots_foot": "split into events by silence (each between 0.06 s and `max` s), the loudest `variants` kept, mono, peak -3 dBFS, Ogg Opus 40 kb/s",
+  "reject": "any recording whose title, tags or description name a modern sound or speech (REJECT below, plus the item's own), and any bed whose envelope has the syllable-rate modulation of speech (speechiness > 5.5 dB: tools/audio/fetch.mjs speechiness)",
+  "budget": "public/audio <= 40 MB on disk (D-620, agreed for C4: nothing loads before walkable; beds load when first wanted)"
+ },
+ "reject": [
+  "car",
+  "cars",
+  "traffic",
+  "engine",
+  "motor",
+  "motorbike",
+  "scooter",
+  "airplane",
+  "aeroplane",
+  "plane",
+  "aircraft",
+  "jet",
+  "helicopter",
+  "train",
+  "tram",
+  "railway",
+  "siren",
+  "car horn",
+  "radio",
+  "tv",
+  "television",
+  "phone",
+  "music",
+  "song",
+  "singing",
+  "guitar",
+  "piano",
+  "drum",
+  "church",
+  "mosque",
+  "azan",
+  "adhan",
+  "prayer",
+  "speech",
+  "speaking",
+  "talking",
+  "talk",
+  "conversation",
+  "voice",
+  "voices",
+  "chatter",
+  "crowd",
+  "people",
+  "walla",
+  "announcement",
+  "school",
+  "playground",
+  "city",
+  "urban",
+  "highway",
+  "motorway",
+  "construction",
+  "generator",
+  "chainsaw",
+  "lawnmower",
+  "mower",
+  "tractor",
+  "hum",
+  "air conditioning",
+  "fridge",
+  "synth",
+  "synthesized",
+  "electronic",
+  "beat",
+  "game",
+  "cartoon",
+  "robot",
+  "gun",
+  "gunshot",
+  "firework",
+  "fireworks",
+  "asphalt",
+  "plastic",
+  "glass bottle",
+  "zipper",
+  "keys",
+  "shopping",
+  "market"
+ ],
+ "items": [
+  {
+   "section": "beds",
+   "key": "town_dawn",
+   "variants": 2,
+   "take": 120,
+   "q": [
+    "rooster village dawn ambience",
+    "farm morning roosters birds ambience",
+    "village dawn birds roosters"
+   ],
+   "note": "first light in the lanes: cocks, sparrows, a door, a dog far off; no voices",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "town_day",
+   "variants": 2,
+   "take": 120,
+   "q": [
+    "village ambience animals distant",
+    "rural village daytime ambience donkey",
+    "farmyard ambience distant animals",
+    "mountain village ambience"
+   ],
+   "note": "the lanes by day: distant work (hammering, a quern), doors, donkeys, hens, dogs, sparrows; no intelligible voices (the people are the voices system)",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "town_dusk",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "village evening ambience birds dogs",
+    "farm evening ambience",
+    "rural evening ambience swallows"
+   ],
+   "note": "dusk in the lanes: swifts and swallows, sheep brought in, a dog, the first crickets",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "town_night",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "village night ambience crickets dogs distant",
+    "rural night crickets dog barking distant",
+    "night farm ambience crickets"
+   ],
+   "note": "night in the lanes: crickets, a dog far off, an owl; still air",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "village_dawn",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "farm dawn ambience rooster sheep",
+    "countryside dawn rooster"
+   ],
+   "note": "a village at first light: cocks, sheep and goats, birds",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "village_day",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "farm ambience sheep goats",
+    "countryside farm ambience animals",
+    "goats bells pasture ambience"
+   ],
+   "note": "a village by day: sheep and goats, hens, a donkey, bells, open air",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "village_night",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "countryside night crickets",
+    "night field crickets frogs"
+   ],
+   "note": "a village at night: crickets, a far dog",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "plain_spring_day",
+   "variants": 2,
+   "take": 120,
+   "q": [
+    "skylark field ambience",
+    "meadow spring birds skylark",
+    "field ambience larks insects"
+   ],
+   "note": "the plain in spring: skylarks over the green crop, partridges, insects, a light wind in the grass",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "plain_summer_day",
+   "variants": 2,
+   "take": 120,
+   "q": [
+    "grasshoppers dry field ambience",
+    "cicadas field summer ambience",
+    "dry grass wind insects summer"
+   ],
+   "note": "the plain in summer: grasshoppers and cicadas in the heat, dry wind in stubble",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "plain_autumn_day",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "autumn field ambience crows",
+    "open field wind crows autumn",
+    "countryside autumn ambience birds"
+   ],
+   "note": "the plain in autumn: wind over stubble and ploughland, crows, larks",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "plain_winter_day",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "winter field wind ambience",
+    "open field cold wind",
+    "winter countryside ambience crows"
+   ],
+   "note": "the plain in winter: cold wind, crows, little else",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "plain_dawn",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "dawn chorus countryside field",
+    "early morning field birds ambience"
+   ],
+   "note": "dawn over the fields: larks rising, partridges calling",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "plain_dusk",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "evening field ambience birds crickets",
+    "dusk countryside ambience"
+   ],
+   "note": "dusk over the fields: the last birds, the first crickets",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "plain_night_warm",
+   "variants": 2,
+   "take": 120,
+   "q": [
+    "crickets night field",
+    "summer night crickets ambience",
+    "night insects field ambience"
+   ],
+   "note": "warm nights (Apr-Oct): crickets, a nightjar, a jackal far off",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "plain_night_cold",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "winter night ambience wind quiet",
+    "cold night wind field"
+   ],
+   "note": "cold nights: still or a low wind, an owl",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "orchard_day",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "orchard birds ambience",
+    "garden birds ambience summer trees",
+    "woodland birds ambience leaves wind"
+   ],
+   "note": "orchards and gardens: birds in the trees, leaves, bees, water in a channel",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "orchard_night",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "night garden crickets owl",
+    "trees night ambience crickets"
+   ],
+   "note": "orchards at night: crickets, owls, leaves",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "river_day",
+   "variants": 2,
+   "take": 120,
+   "q": [
+    "river flowing ambience birds",
+    "stream flowing water ambience",
+    "river bank ambience reeds"
+   ],
+   "note": "the Pulvar's bank by day: flowing water over gravel, reeds, warblers, frogs",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "river_night",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "river night frogs",
+    "stream night crickets frogs",
+    "river flowing night"
+   ],
+   "note": "the river at night: water, frogs, crickets",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "canal",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "small stream trickle",
+    "water trickle irrigation channel",
+    "brook trickling water"
+   ],
+   "note": "an irrigation channel: a small trickle (water.ts places it at the channel)",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "terrace_day",
+   "variants": 2,
+   "take": 120,
+   "q": [
+    "wind stone ruins ambience",
+    "mountain wind open ambience",
+    "wind on hilltop ambience",
+    "desert wind light"
+   ],
+   "note": "the Terrace by day: wind over stone and through the columns, swifts and swallows, far sounds of the town below",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "terrace_night",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "night wind open hill",
+    "desert night ambience wind",
+    "quiet night wind ambience"
+   ],
+   "note": "the Terrace at night: wind over stone, crickets far below, an owl",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "hall_tone",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "large hall room tone empty",
+    "cathedral room tone",
+    "empty stone hall ambience"
+   ],
+   "note": "inside a great hall: the still air of a large stone room, far outside sounds through the doorways",
+   "reject": [
+    "organ",
+    "choir",
+    "mass",
+    "service"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "hillside_day",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "mountain wind ambience birds",
+    "rocky hillside wind",
+    "mountain ambience chukar"
+   ],
+   "note": "Kuh-e Rahmat's slopes by day: wind over rock, chukar and partridges, a kestrel",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "hillside_night",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "mountain night wind",
+    "mountain night ambience crickets"
+   ],
+   "note": "the slopes at night: wind, crickets, a jackal",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "room_tone",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "small room tone quiet",
+    "room tone old house"
+   ],
+   "note": "a small room: still air, the world outside muffled",
+   "reject": [
+    "fridge",
+    "hum",
+    "fan",
+    "computer",
+    "electrical",
+    "buzz"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "hearth",
+   "variants": 2,
+   "take": 120,
+   "q": [
+    "fireplace crackling fire",
+    "campfire crackling",
+    "wood fire burning crackle"
+   ],
+   "note": "a hearth or a cooking fire (played at each fire, positioned)",
+   "reject": [],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "worksite",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "stone carving chisel hammer",
+    "stonemason chisel",
+    "stone masonry work hammer chisel"
+   ],
+   "note": "the masons at the Hall of 100 Columns: chisels and mallets on limestone, many hands, no machines",
+   "reject": [
+    "grinder",
+    "angle",
+    "power",
+    "drill",
+    "saw",
+    "machine",
+    "compressor"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "rain_light",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "light rain ambience",
+    "gentle rain on ground",
+    "rain drizzle ambience"
+   ],
+   "note": "light rain on earth and stone",
+   "reject": [
+    "window",
+    "car",
+    "umbrella",
+    "tent",
+    "roof",
+    "metal",
+    "gutter"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "rain_heavy",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "heavy rain ambience",
+    "downpour rain",
+    "rainstorm heavy rain"
+   ],
+   "note": "heavy rain",
+   "reject": [
+    "window",
+    "car",
+    "umbrella",
+    "tent",
+    "metal",
+    "gutter"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "rain_roof",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "rain on roof inside",
+    "rain on wooden roof",
+    "rain heard indoors"
+   ],
+   "note": "rain heard from inside under a roof of timber and mud",
+   "reject": [
+    "metal",
+    "tin",
+    "car",
+    "skylight",
+    "window"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "drips",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "water drips after rain",
+    "dripping water outdoors",
+    "rain dripping from trees"
+   ],
+   "note": "drips from eaves and trees after rain, in mist",
+   "reject": [
+    "tap",
+    "faucet",
+    "sink",
+    "pipe"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "wind_gusts",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "strong wind gusts",
+    "windstorm gusts howling",
+    "gale wind"
+   ],
+   "note": "storm gusts",
+   "reject": [
+    "microphone",
+    "mic",
+    "window",
+    "door",
+    "whistle"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "dust_wind",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "desert wind sand",
+    "sandstorm wind",
+    "dry wind dust"
+   ],
+   "note": "a dust wind from the plain: dry, gritty, gusting",
+   "reject": [
+    "microphone",
+    "mic"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "beds",
+   "key": "snow_hush",
+   "variants": 1,
+   "take": 120,
+   "q": [
+    "snow ambience quiet winter",
+    "winter snow quiet wind",
+    "snowy forest ambience quiet"
+   ],
+   "note": "the hush of snow: muffled, a faint wind",
+   "reject": [
+    "footsteps",
+    "shovel",
+    "car"
+   ],
+   "need_any": []
+  },
+  {
+   "section": "oneshots",
+   "key": "chisel",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "chisel stone hit",
+    "stone chisel hammer"
+   ],
+   "note": "an iron chisel struck into limestone",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "quern",
+   "variants": 6,
+   "max": 3,
+   "q": [
+    "grinding stone mill hand",
+    "stone grinding grain",
+    "mortar pestle stone grinding"
+   ],
+   "note": "a hand quern: stone rubbing on stone",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "dice",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "dice roll wooden table",
+    "knucklebones",
+    "dice throw"
+   ],
+   "note": "knucklebones thrown on a hard floor",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "hoe",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "hoe digging soil",
+    "digging earth spade",
+    "shovel dirt dig"
+   ],
+   "note": "a hoe biting soil",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "sickle",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "cutting grass sickle",
+    "scythe cutting grass",
+    "cutting dry grass"
+   ],
+   "note": "a sickle through stalks",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "loom",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "loom weaving wooden",
+    "weaving loom beater"
+   ],
+   "note": "the weaver's sword beating the weft",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "trowel",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "trowel plaster",
+    "trowel scrape mortar"
+   ],
+   "note": "a trowel tapping and smoothing plaster",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "adze",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "axe chopping wood",
+    "wood chopping hatchet",
+    "adze wood"
+   ],
+   "note": "an adze biting timber",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "mould",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "mud slap",
+    "wet clay slap",
+    "mud squelch"
+   ],
+   "note": "wet mud slapped into a brick mould",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "wash",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "laundry washing by hand water",
+    "wet cloth slap",
+    "washing clothes river"
+   ],
+   "note": "wet cloth beaten on a stone, a splash",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "broom",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "broom sweeping",
+    "sweeping floor broom"
+   ],
+   "note": "a twig broom sweeping",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "bow",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "bow arrow release",
+    "bow string twang"
+   ],
+   "note": "a bowstring released",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "bleat",
+   "variants": 8,
+   "max": 3,
+   "q": [
+    "sheep bleat",
+    "goat bleat"
+   ],
+   "note": "a sheep or goat bleating",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "water",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "water splash bucket",
+    "water pour jar",
+    "splash water"
+   ],
+   "note": "a splash, a jar filled",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "bray",
+   "variants": 6,
+   "max": 8,
+   "q": [
+    "donkey bray"
+   ],
+   "note": "a donkey braying",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "bark",
+   "variants": 8,
+   "max": 2,
+   "q": [
+    "dog bark single",
+    "dog barking"
+   ],
+   "note": "a dog barking",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "cluck",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "chicken cluck",
+    "hen clucking"
+   ],
+   "note": "hens clucking",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "cockcrow",
+   "variants": 6,
+   "max": 5,
+   "q": [
+    "rooster crow",
+    "cock crowing"
+   ],
+   "note": "a cock crowing",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "grunt",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "wild boar grunt",
+    "pig grunt"
+   ],
+   "note": "a boar's grunt in the reeds",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "howl",
+   "variants": 6,
+   "max": 10,
+   "q": [
+    "jackal howl",
+    "jackals howling",
+    "wolf howl"
+   ],
+   "note": "jackals howling at night",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "roar",
+   "variants": 6,
+   "max": 10,
+   "q": [
+    "lion roar"
+   ],
+   "note": "a lion roaring far off",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "whoop",
+   "variants": 6,
+   "max": 8,
+   "q": [
+    "hyena whoop",
+    "hyena call"
+   ],
+   "note": "a hyena's whoop",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "saw",
+   "variants": 6,
+   "max": 8,
+   "q": [
+    "leopard sawing call",
+    "leopard call"
+   ],
+   "note": "a leopard's sawing call",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "hammer",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "blacksmith hammer anvil",
+    "anvil strike"
+   ],
+   "note": "the smith's hammer on the anvil",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "bellows",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "bellows blacksmith",
+    "bellows air"
+   ],
+   "note": "the smith's bellows",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "quench",
+   "variants": 6,
+   "max": 3,
+   "q": [
+    "hot metal quench water",
+    "quench sizzle steam"
+   ],
+   "note": "hot iron in water",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "chase",
+   "variants": 6,
+   "max": 1,
+   "q": [
+    "metal tap small hammer",
+    "jeweller hammer tapping"
+   ],
+   "note": "the goldsmith's chasing taps",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "clink",
+   "variants": 6,
+   "max": 1,
+   "q": [
+    "metal clink small",
+    "coins clink"
+   ],
+   "note": "a bronze weight laid in the balance's pan",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "drill",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "bow drill",
+    "hand drill stone"
+   ],
+   "note": "the seal cutter's bow drill",
+   "reject": [
+    "electric",
+    "power",
+    "cordless"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "scrape",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "scraping leather",
+    "scrape hide"
+   ],
+   "note": "the tanner's scraper on a wet hide",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "pound",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "mortar pestle pounding",
+    "pounding grain"
+   ],
+   "note": "a pestle in the stone mortar",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "low",
+   "variants": 6,
+   "max": 4,
+   "q": [
+    "cow moo",
+    "cattle mooing"
+   ],
+   "note": "cattle lowing",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "buzz",
+   "variants": 6,
+   "max": 4,
+   "q": [
+    "bees buzzing hive",
+    "bee buzz"
+   ],
+   "note": "bees at the hives",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "swifts",
+   "variants": 6,
+   "max": 4,
+   "q": [
+    "swifts screaming",
+    "common swift call"
+   ],
+   "note": "a swift party screaming past",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "hoof",
+   "variants": 10,
+   "max": 0.6,
+   "q": [
+    "horse hooves dirt",
+    "donkey hooves walking",
+    "hooves walking"
+   ],
+   "note": "hooves on a dirt road",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "snort",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "horse snort"
+   ],
+   "note": "a horse snorting",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "whinny",
+   "variants": 6,
+   "max": 3,
+   "q": [
+    "horse whinny",
+    "horse neigh"
+   ],
+   "note": "a horse whinnying",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "camel",
+   "variants": 6,
+   "max": 4,
+   "q": [
+    "camel grunt",
+    "camel growl"
+   ],
+   "note": "a camel grumbling",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "wheel",
+   "variants": 6,
+   "max": 2,
+   "q": [
+    "wooden cart creak",
+    "cart wheel creaking"
+   ],
+   "note": "a cart's wooden wheel creaking",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "door",
+   "variants": 6,
+   "max": 3,
+   "q": [
+    "wooden door creak open",
+    "old door creak"
+   ],
+   "note": "a wooden door turning on its pivot",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "door_shut",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "wooden door close thud",
+    "heavy door shut"
+   ],
+   "note": "a wooden door coming shut",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "door_bar",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "wooden bar latch",
+    "wooden beam drop"
+   ],
+   "note": "the bar dropped into its brackets",
+   "reject": [
+    "metal",
+    "lock"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "see_see_partridge",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "partridge call",
+    "see-see partridge"
+   ],
+   "note": "see-see partridges calling on the slope",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "chukar",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "chukar partridge call",
+    "chukar"
+   ],
+   "note": "chukars calling",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "hoopoe",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "hoopoe call",
+    "eurasian hoopoe"
+   ],
+   "note": "a hoopoe's oop-oop",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "bee_eater",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "bee-eater call",
+    "european bee-eater"
+   ],
+   "note": "bee-eaters overhead",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "swallow",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "barn swallow call",
+    "swallows twittering"
+   ],
+   "note": "swallows twittering",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "house_sparrow",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "house sparrow chirp",
+    "sparrows chirping"
+   ],
+   "note": "sparrows chirping",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "golden_jackal",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "golden jackal howl",
+    "jackal howl"
+   ],
+   "note": "jackals howling",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "crickets",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "cricket chirp",
+    "field cricket"
+   ],
+   "note": "a cricket chirping",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "cocks_at_first_light",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "rooster crowing distant",
+    "rooster crow"
+   ],
+   "note": "cocks crowing at first light",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "dogs_barking_in_the_night",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "dog barking distant night",
+    "dogs barking far"
+   ],
+   "note": "dogs barking far off at night",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "a_donkey_braying",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "donkey braying distant",
+    "donkey bray"
+   ],
+   "note": "a donkey braying",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "hooded_crows",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "hooded crow call",
+    "crow caw"
+   ],
+   "note": "crows cawing",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "black_kite",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "black kite call",
+    "kite bird call"
+   ],
+   "note": "a black kite's whinnying call",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "scops_owl",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "scops owl",
+    "eurasian scops owl"
+   ],
+   "note": "a scops owl's note",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "little_owl",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "little owl call",
+    "athene noctua"
+   ],
+   "note": "a little owl calling",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "marsh_frogs",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "marsh frog",
+    "frogs croaking"
+   ],
+   "note": "marsh frogs croaking",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "cicadas",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "cicada",
+    "cicada singing"
+   ],
+   "note": "cicadas in the heat",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "common_quail",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "common quail call",
+    "quail call"
+   ],
+   "note": "a quail's wet-my-lips",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "nightjar",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "nightjar churring",
+    "european nightjar"
+   ],
+   "note": "a nightjar churring",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "reed_warbler",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "reed warbler",
+    "great reed warbler"
+   ],
+   "note": "reed warblers in the reeds",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "wild_boar_grunting",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "wild boar grunting",
+    "boar grunt"
+   ],
+   "note": "a boar grunting",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "skylark",
+   "variants": 5,
+   "max": 10,
+   "q": [
+    "skylark song",
+    "eurasian skylark"
+   ],
+   "note": "a skylark's song overhead",
+   "reject": [
+    "captive",
+    "zoo",
+    "cage"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "thunder",
+   "variants": 6,
+   "max": 12,
+   "q": [
+    "thunder clap",
+    "thunder rumble distant",
+    "thunderstorm thunder"
+   ],
+   "note": "thunder: near cracks and far rumbles",
+   "reject": [
+    "rain"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "fire_pop",
+   "variants": 6,
+   "max": 0.8,
+   "q": [
+    "fire crackle pop",
+    "wood fire pop"
+   ],
+   "note": "a log popping in the fire",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "child_laugh",
+   "variants": 6,
+   "max": 3,
+   "q": [
+    "child laugh",
+    "children laughing"
+   ],
+   "note": "children laughing at play (laughter only: no words)",
+   "reject": [
+    "talk",
+    "speak",
+    "speech",
+    "word",
+    "english",
+    "say"
+   ],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "pot_clink",
+   "variants": 6,
+   "max": 1.5,
+   "q": [
+    "clay pot clink",
+    "ceramic pot hit",
+    "pottery clink"
+   ],
+   "note": "clay pots and jars knocked together",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "oneshots",
+   "key": "herd_bells",
+   "variants": 6,
+   "max": 6,
+   "q": [
+    "sheep bells",
+    "goat bells",
+    "cow bells herd"
+   ],
+   "note": "bells on a moving herd",
+   "reject": [],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "stone_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps stone",
+    "footsteps on stone floor",
+    "footsteps cobblestone"
+   ],
+   "note": "walking on stone (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "plaster_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps tile floor",
+    "footsteps hard floor indoor"
+   ],
+   "note": "walking on plaster (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "earth_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps dirt path",
+    "footsteps soil",
+    "footsteps earth"
+   ],
+   "note": "walking on earth (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "dust_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps dry dirt",
+    "footsteps sand path dusty"
+   ],
+   "note": "walking on dust (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "gravel_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps gravel"
+   ],
+   "note": "walking on gravel (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "grass_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps grass"
+   ],
+   "note": "walking on grass (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "leaves_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps dry leaves"
+   ],
+   "note": "walking on leaves (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "mud_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps mud"
+   ],
+   "note": "walking on mud (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "snow_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps snow"
+   ],
+   "note": "walking on snow (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "wood_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps wooden floor"
+   ],
+   "note": "walking on wood (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "rug_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps carpet",
+    "footsteps rug soft"
+   ],
+   "note": "walking on rug (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "water_walk",
+   "variants": 10,
+   "max": 0.9,
+   "q": [
+    "footsteps shallow water",
+    "wading water steps"
+   ],
+   "note": "walking on water (barefoot or soft leather shoes where found)",
+   "reject": [
+    "heels",
+    "high heel",
+    "boots",
+    "sneakers",
+    "stiletto"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "stone_run",
+   "variants": 8,
+   "max": 0.7,
+   "q": [
+    "running stone footsteps",
+    "running footsteps hard floor"
+   ],
+   "note": "running on stone",
+   "reject": [
+    "heels",
+    "boots",
+    "sneakers",
+    "treadmill"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "earth_run",
+   "variants": 8,
+   "max": 0.7,
+   "q": [
+    "running dirt footsteps"
+   ],
+   "note": "running on earth",
+   "reject": [
+    "heels",
+    "boots",
+    "sneakers",
+    "treadmill"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "gravel_run",
+   "variants": 8,
+   "max": 0.7,
+   "q": [
+    "running gravel footsteps"
+   ],
+   "note": "running on gravel",
+   "reject": [
+    "heels",
+    "boots",
+    "sneakers",
+    "treadmill"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "grass_run",
+   "variants": 8,
+   "max": 0.7,
+   "q": [
+    "running grass footsteps"
+   ],
+   "note": "running on grass",
+   "reject": [
+    "heels",
+    "boots",
+    "sneakers",
+    "treadmill"
+   ],
+   "split": true
+  },
+  {
+   "section": "foot",
+   "key": "dust_run",
+   "variants": 8,
+   "max": 0.7,
+   "q": [
+    "running sand footsteps",
+    "running dirt path"
+   ],
+   "note": "running on dust",
+   "reject": [
+    "heels",
+    "boots",
+    "sneakers",
+    "treadmill"
+   ],
+   "split": true
+  }
+ ]
+}

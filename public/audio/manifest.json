@@ -1,0 +1,112 @@
+{
+ "version": 1,
+ "note": "D-620: the recordings the world plays (src/audio/library.ts); written by tools/audio/fetch.mjs and irs.mjs; every file in ASSET_LEDGER.md",
+ "sections": {
+  "ir": {
+   "chamber": [
+    {
+     "file": "ir/chamber.ogg",
+     "dur": 1.002,
+     "bytes": 9716,
+     "src": "openair:maes-howe/stereo/mh3_000_ortf_48k.wav",
+     "licence": "CC BY 4.0",
+     "author": "OpenAIR (www.openairlib.net), University of York",
+     "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/maes-howe/stereo/mh3_000_ortf_48k.wav",
+     "venue": "Maeshowe (a stone chambered tomb, Orkney)",
+     "why": "a small stone chamber: rock-cut tombs, storerooms of stone"
+    }
+   ],
+   "court": [
+    {
+     "file": "ir/court.ogg",
+     "dur": 1.107,
+     "bytes": 7838,
+     "src": "openair:cliffords-tower/examples/RIR_1_w_channel.wav",
+     "licence": "CC BY 4.0",
+     "author": "OpenAIR (www.openairlib.net), University of York",
+     "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/cliffords-tower/examples/RIR_1_w_channel.wav",
+     "venue": "Clifford's Tower, York (a roofless stone keep)",
+     "why": "walls without a roof: the Terrace's courts and porticoes, the town's lanes and courtyards"
+    }
+   ],
+   "gorge": [
+    {
+     "file": "ir/gorge.ogg",
+     "dur": 2.506,
+     "bytes": 21042,
+     "src": "openair:trollers-gill/mono/dales_site1_4way_mono.wav",
+     "licence": "CC BY 4.0",
+     "author": "OpenAIR (www.openairlib.net), University of York",
+     "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/trollers-gill/mono/dales_site1_4way_mono.wav",
+     "venue": "Trollers Gill (a limestone gorge, Yorkshire Dales)",
+     "why": "limestone rock faces: Kuh-e Rahmat's slopes, the Naqsh-e Rustam cliff, the quarries"
+    }
+   ],
+   "hall_large": [
+    {
+     "file": "ir/hall_large.ogg",
+     "dur": 4.506,
+     "bytes": 41664,
+     "src": "openair:elveden-hall-suffolk-england/stereo/1a_marble_hall.wav",
+     "licence": "CC BY 4.0",
+     "author": "OpenAIR (www.openairlib.net), University of York",
+     "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/stereo/1a_marble_hall.wav",
+     "venue": "Elveden Hall, the marble hall (Suffolk)",
+     "why": "a great columned hall of stone and plaster: the Apadana, the Hall of 100 Columns, the Gate"
+    }
+   ],
+   "hall_medium": [
+    {
+     "file": "ir/hall_medium.ogg",
+     "dur": 3.006,
+     "bytes": 27885,
+     "src": "openair:falkland-palace-royal-tennis-court/stereo/falkland_tennis_court_ortf.wav",
+     "licence": "CC BY 4.0",
+     "author": "OpenAIR (www.openairlib.net), University of York",
+     "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/falkland-palace-royal-tennis-court/stereo/falkland_tennis_court_ortf.wav",
+     "venue": "Falkland Palace royal tennis court (Scotland)",
+     "why": "a roofed stone hall of middle size: the Tachara, the Hadish, the Harem, the Treasury"
+    }
+   ],
+   "open": [
+    {
+     "file": "ir/open.ogg",
+     "dur": 1.506,
+     "bytes": 10362,
+     "src": "openair:koli-national-park-summer/mono/koli_summer_site1_4way_mono.wav",
+     "licence": "CC BY 4.0",
+     "author": "OpenAIR (www.openairlib.net), University of York",
+     "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/koli-national-park-summer/mono/koli_summer_site1_4way_mono.wav",
+     "venue": "Koli National Park in summer (open ground by a lake, Finland)",
+     "why": "open ground with far reflections: the plain"
+    }
+   ],
+   "room_small": [
+    {
+     "file": "ir/room_small.ogg",
+     "dur": 1.206,
+     "bytes": 11385,
+     "src": "openair:elveden-hall-suffolk-england/stereo/18a_smoking_room.wav",
+     "licence": "CC BY 4.0",
+     "author": "OpenAIR (www.openairlib.net), University of York",
+     "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/elveden-hall-suffolk-england/stereo/18a_smoking_room.wav",
+     "venue": "Elveden Hall, the smoking room",
+     "why": "a furnished room: the town's and villages' rooms, storerooms, workshops"
+    }
+   ],
+   "wood": [
+    {
+     "file": "ir/wood.ogg",
+     "dur": 1.506,
+     "bytes": 9918,
+     "src": "openair:wheldrake-wood/examples/Forest_IR_M30_S1R2.wav",
+     "licence": "CC BY 4.0",
+     "author": "OpenAIR (www.openairlib.net), University of York",
+     "url": "https://webfiles.york.ac.uk/OPENAIR/IRs/wheldrake-wood/examples/Forest_IR_M30_S1R2.wav",
+     "venue": "Wheldrake Wood (Yorkshire)",
+     "why": "among trees: the orchards, the gardens, the paradise"
+    }
+   ]
+  }
+ }
+}
