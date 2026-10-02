@@ -13,6 +13,7 @@
 // All C (the rules and densities); the grasses' species by the scans' forms (C). Positions are a hash of (seed, 2 m cell);
 // three levels by distance, drawn from one atlas (one material): one InstancedMesh per piece and level.
 import * as THREE from 'three/webgpu';
+import { sharedDraco } from '../../render/loaders';
 import { texture, uv, vec3, dot, attribute } from 'three/tsl';
 import { mxNoise2 } from '../../render/mx_noise_cpu';
 import { landUseAt, type ZoneMap } from './fields';
@@ -84,8 +85,8 @@ export function _setCoverKit(k: CoverKit | null) { KIT = k; }
 export async function loadCoverKit(base = BASE): Promise<CoverKit | null> {
   try {
     const man = await (await fetch(base + 'models/land/manifest.json')).json(); const C = man.classes?.cover; if (!C) throw new Error('no cover class');
-    const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js')]);
-    const draco = new DRACOLoader().setDecoderPath(base + 'models/lib/draco/'), loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
+    const [{ GLTFLoader }, draco] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), sharedDraco(base)]); // (D-392: the page's decoders)
+    const loader = new GLTFLoader().setDRACOLoader(draco), tl = new THREE.TextureLoader();
     const [g, map, normal, arm] = await Promise.all([loader.loadAsync(`${base}models/land/cover.glb`), tl.loadAsync(`${base}models/land/cover_diff.jpg`), tl.loadAsync(`${base}models/land/cover_nor.jpg`), tl.loadAsync(`${base}models/land/cover_arm.jpg`)]);
     map.colorSpace = THREE.SRGBColorSpace; for (const t of [map, normal, arm]) { t.flipY = false; t.anisotropy = 4; t.needsUpdate = true; }
     const want = new Set(Object.values(COVER_KINDS).flatMap(k => k.ids)), pieces: CoverPiece[] = [];
@@ -94,7 +95,7 @@ export async function loadCoverKit(base = BASE): Promise<CoverKit | null> {
         m.updateMatrixWorld(true); const geo = m.geometry.clone(); geo.applyMatrix4(m.matrixWorld); for (const k of Object.keys(geo.attributes)) if (!['position', 'normal', 'uv'].includes(k)) geo.deleteAttribute(k);
         if (!geo.getAttribute('normal')) geo.computeVertexNormals(); geo.computeBoundingBox(); geo.computeBoundingSphere(); return geo; });
       const b = lods[0].boundingBox!; pieces.push({ id: pc.id, kind: pc.kind, size: [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z], lods }); }
-    draco.dispose();
+    // (D-392: the shared decoder stays up)
     let mean: [number, number, number] = [0.25, 0.25, 0.2];
     try { const im = map.image as HTMLImageElement, cv = new OffscreenCanvas(16, 16), c2 = cv.getContext('2d')!; c2.drawImage(im, 0, 0, 16, 16); const d = c2.getImageData(0, 0, 16, 16).data; let r = 0, gg = 0, bb = 0;
       const L = (v: number) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; for (let i = 0; i < d.length; i += 4) { r += L(d[i]); gg += L(d[i + 1]); bb += L(d[i + 2]); } mean = [r / 256, gg / 256, bb / 256]; } catch { /* default */ }
