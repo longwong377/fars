@@ -69,8 +69,23 @@ function put(unit: string, key: string, s: string | undefined, v: unknown) {
 }
 const why = (s: string | undefined, e: Entry | undefined) => (nodeB?.mode === 'bake' ? 'baking' : !s ? 'no source hash (unit not in units.json, or no dev server)' : !e ? 'not baked' : 'stale');
 export async function verify(unit: string, a0: unknown, b0: unknown) {
-  const a = identity(a0), b = identity(b0); (cacheStats as any).verify = { ...(cacheStats as any).verify, [unit]: a === b ? 'identical' : `MISMATCH ${a} != ${b}` };
-  console.info('[world-cache] verify', unit, a === b ? 'identical' : 'MISMATCH');
+  const a = identity(a0), b = identity(b0), d = a === b ? '' : firstDiff(strip(a0), strip(b0), unit);
+  (cacheStats as any).verify = { ...(cacheStats as any).verify, [unit]: a === b ? 'identical' : `MISMATCH ${d}` };
+  console.info('[world-cache] verify', unit, a === b ? 'identical' : `MISMATCH at ${d}`);
+}
+/** where two values first differ (the baked one, then the live one): a path and the two values there */
+function firstDiff(a: any, b: any, path: string, depth = 0): string {
+  const show = (x: any) => { try { return JSON.stringify(x, (_k, v) => (ArrayBuffer.isView(v) ? `<${v.constructor.name} ${(v as any).length}>` : v instanceof Set || v instanceof Map ? `<${v.constructor.name} ${v.size}>` : v))?.slice(0, 160); } catch { return String(x).slice(0, 160); } };
+  if (depth > 40) return `${path} (deep)`;
+  if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) { const A = a as any, B = b as any; if (A.length !== B.length || A.constructor !== B.constructor) return `${path}: ${A.constructor.name}[${A.length}] vs ${B.constructor.name}[${B.length}]`;
+    for (let i = 0; i < A.length; i++) if (!Object.is(A[i], B[i])) { let n = 0; for (let j = i; j < A.length; j++) if (!Object.is(A[j], B[j])) n++; return `${path}[${i}]: ${A[i]} vs ${B[i]} (${n} of ${A.length} differ)`; } return ''; }
+  if (a instanceof Set || a instanceof Map) return firstDiff([...a], b instanceof Set || b instanceof Map ? [...b] : b, path, depth + 1);
+  if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return Object.is(a, b) ? '' : `${path}: ${show(a)} vs ${show(b)}`;
+  if (Array.isArray(a) !== Array.isArray(b)) return `${path}: array vs object`;
+  if (Array.isArray(a)) { if (a.length !== b.length) return `${path}: length ${a.length} vs ${b.length}`; for (let i = 0; i < a.length; i++) { const r = firstDiff(a[i], b[i], `${path}[${i}]`, depth + 1); if (r) return r; } return ''; }
+  const ks = [...new Set([...Object.keys(a), ...Object.keys(b)])];
+  for (const k of ks) { if (!(k in a) || !(k in b)) return `${path}.${k}: ${k in a ? 'only baked' : 'only live'}`; const r = firstDiff(a[k], b[k], `${path}.${k}`, depth + 1); if (r) return r; }
+  return '';
 }
 export const verifying = () => param() === 'verify';
 
