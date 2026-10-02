@@ -24,7 +24,8 @@ import { DevOverlay } from './ui/overlay';
 import { TranslationLayer } from './ui/translation';
 import { NOW_CAPTION } from './arch/now';
 import { PLACES } from './people/sim';
-import { buildWorld, WorldBuild } from './world/world';
+import { buildWorld, startWorldAssets, WorldBuild } from './world/world';
+import { BootProgress } from './shell/progress';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -84,6 +85,7 @@ async function siteWorker() {
 async function boot() {
   const shell = new Shell(settings, hooks());
   shell.loading('Preparing the renderer…');
+  const prog = new BootProgress(); if (shell.loadingCard) prog.mount(shell.loadingCard); // D-393: honest progress (the steps done, the bytes received)
   const swP = siteWorker();
   let renderer: THREE.WebGPURenderer;
   try {
@@ -117,14 +119,17 @@ async function boot() {
   const camera = new THREE.PerspectiveCamera(settings.fov, innerWidth / innerHeight, 0.05, 110000); // far ring corners lie 101 km out
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
+  prog.step('renderer');
   shell.loading('Loading the plain and the mountain…');
   await swP;
+  startWorldAssets(settings); // D-393: the world's models download while the terrain and the scans decode (they waited behind them)
   // s15/ship: the terrain's rings and the physics engine load while the scans decode (each was awaited in turn)
   const terrainP = Terrain.load(BASE), physP = Physics.create();
   await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
   TRACE('scans');
   const terrain = await terrainP;
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
+  prog.step('ground');
   const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars(BASE); sky.meteors.seed = SEED; TRACE('terrain, sky');
   shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-093)
   const weather = new WeatherSystem(SEED);
@@ -141,6 +146,7 @@ async function boot() {
   TRACE('before pipeline');
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality, sky.hemi);
   TRACE('pipeline built');
+  prog.step('sky');
   shell.loading('Raising the Terrace…');
   const phys = await physP;
   TRACE('physics ready');
@@ -591,7 +597,9 @@ async function boot() {
     onDrawStart = pc.drawStart; onDrawEnd = pc.drawEnd; (api as any).compiling = pc.stats;
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
-  api.ready = true;
+  prog.finish(); api.ready = true;
+  // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
+  if (NORENDER) setTimeout(() => (api as any).converse?.preload?.(), 1500);
   // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)
   (api as any).lowFirst = () => ({ ...lowFirstStats, pending: lowFirstStats.pending() });
   setTimeout(() => void upgradeLowFirst().then(n => TRACE(`scans upgraded: ${n}`)), 2000);

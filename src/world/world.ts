@@ -161,13 +161,14 @@ let wLast = 0;
 /** s15/ship: when each asset load resolves (?trace), from the build's start */
 const tAsset = <T>(name: string, p: Promise<T>): Promise<T> => (WTRACE ? p.then(v => { console.info('[boot]', 'asset:' + name, (performance.now() - wT0).toFixed(0), 'ms'); return v; }) : p);
 let wT0 = 0;
-function wmark(stage: string) { if (!WTRACE) return; const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms', 'busy', (globalThis as any).__bootBusy?.() ?? ''); wLast = t; }
-export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
-  wLast = wT0 = performance.now();
-  prefetchWorldCache(); // D-354: the baked world's hashes and manifest, while the build starts
-  void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
-  const root = new THREE.Group(); root.name = 'world'; scene.add(root);
-  const t0 = performance.now();
+function wmark(stage: string) { (globalThis as any).__bootStage?.('world:' + stage); if (!WTRACE) return; // (D-393: the loading screen's steps)
+  const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms', 'busy', (globalThis as any).__bootBusy?.() ?? ''); wLast = t; }
+/** s15/ship (D-393): the world's asset downloads, begun as soon as the page starts (main.ts calls this before the terrain
+ *  and the scans, so the models arrive while those decode: they waited ~24 s behind them on a cold visit); buildWorld
+ *  takes the same promises (the first call starts them, later calls return them) */
+let assetsStarted: ReturnType<typeof beginAssets> | null = null;
+export function startWorldAssets(settings?: Settings) { return assetsStarted ??= beginAssets(settings); }
+function beginAssets(settings?: Settings) {
   // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
   const q0 = settings?.quality ?? 'high';
   const humansP = tAsset('humans', loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' }));
@@ -182,6 +183,16 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const reliefAtlasP = tAsset('reliefAtlas', loadReliefAtlas(BASE)); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
   const decorP = tAsset('decor', loadDecorAssets(BASE)); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
   const fireOccP = tAsset('fireOcc', loadFireOcc(BASE)); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
+  const sculptP = loadSculpt(async p => { const r = await fetch(BASE + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
+  return { sculptP, humansP, probesP, rockKitP, ledgeFaceP, coverKitP, fordKitP, propsP, modelsP, monumentsP, treesP, lifeP, animalsP, reliefAtlasP, decorP, fireOccP };
+}
+export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
+  wLast = wT0 = performance.now();
+  prefetchWorldCache(); // D-354: the baked world's hashes and manifest, while the build starts
+  void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
+  const root = new THREE.Group(); root.name = 'world'; scene.add(root);
+  const t0 = performance.now();
+  const { sculptP, humansP, probesP, rockKitP, ledgeFaceP, coverKitP, fordKitP, propsP, modelsP, monumentsP, treesP, lifeP, animalsP, reliefAtlasP, decorP, fireOccP } = startWorldAssets(settings); // (D-393: begun by main.ts at boot)
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
   // the parts as tools/build_probes.ts hashes them: before the builders below use them (session 11: hashed after
@@ -189,7 +200,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const partsJson = partsKey(parts);
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
-  await loadSculpt(async p => { const r = await fetch(BASE + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
+  await sculptP; // precomputed carved pieces (D-018; begun with the assets)
   wmark('sculpt');
   await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
   wmark('assets awaited');

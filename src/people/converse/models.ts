@@ -31,7 +31,8 @@ export function appConfig(ids: string[], origin: string) {
 
 /** in a dev tree (localhost), the model files come from the dev server's /models/ (a junction to the asset store outside git,
  *  laid out as Hugging Face's own paths); on a public URL they come from Hugging Face and GitHub, cached by the browser */
-export const isLocal = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+// (s15/ship D-393: the dev server only: a built site served on localhost has no /models/ store and takes the public paths)
+export const isLocal = (origin: string) => !!(import.meta as any).env?.DEV && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 export function localModels(origin: string) {
   if (!isLocal(origin)) return;
   const g = globalThis as any; if (g.__modelsLocal) return; g.__modelsLocal = true; const real = g.fetch.bind(g);
