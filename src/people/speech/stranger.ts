@@ -56,6 +56,8 @@ export const WAGE_GRAIN = 1.0;
 export const STR_LAG = 4;
 /** hearings of a word, its sense shown, before the stranger knows it (C: a handful of meetings in context) */
 export const KNOW_AFTER = 6;
+/** the comprehension a complex ask needs to be followed (C) */
+export const TONGUE_MIN = 0.15;
 const PAYDAY = 6, MISS_FIRE = 2, CUSTOM_NIGHTS = 3, SENT_AWAY = 7, GRATITUDE_DAYS = 30;
 const DROVER_CASH = 0.05, GANG_GRAIN = 0.9;
 /** the languages, by family (a related tongue is learned a third as fast from the other: C) */
@@ -139,7 +141,18 @@ export class Stranger {
     return this.apply(s);
   }
   /** the simulation's answer to a proposed step, without doing it (the words the person says are told this first) */
+  /** D-370: can the house follow a complex ask in the stranger's words (a petition, a tale of who he is, a bargain, joining a
+   *  house): his comprehension of their tongue, or of Aramaic before an official or the court (the empire's lingua franca: B),
+   *  at least TONGUE_MIN; simple asks (bread, a bed, work, a gift) go with gestures (C) */
+  understood(s: SAct, day: number): boolean {
+    const hh = 'hh' in s ? s.hh : 'q' in s && s.q ? this.headOf(s.q) : undefined;
+    const own = hh ? this.comp(this.langOf(hh), day) : 0, ara = this.comp('Aramaic', day);
+    if (s.a === 'petition') return Math.max(s.to === 'headman' ? own : 0, ara, s.to === 'headman' ? 0 : this.comp('Elamite', day)) >= TONGUE_MIN;
+    return Math.max(own, ara * 0.6) >= TONGUE_MIN;
+  }
   judge(s: SAct): Verdict {
+    const complex = s.a === 'petition' || (s.a === 'claim' && !!(s as any).origin) || s.a === 'buy' || s.a === 'sell' || (s.a === 'join' && s.kind === 'household');
+    if (complex && !this.understood(s, Math.min(s.day, this.E.day))) return { ok: false, why: 'they cannot follow what you ask: you have too few of their words' };
     switch (s.a) {
       case 'seek_work': return this.hireCheck(s.hh, s.day);
       case 'stay': return this.stayCheck(s.hh, s.day);
@@ -160,6 +173,8 @@ export class Stranger {
     // (judged on the step's own day, the day the person was told the verdict: the living world runs the economy a few days
     // ahead of the present for the day plans, so E.day may already be later; the events are dated by the economy)
     const day = Math.min(s.day, this.E.day);
+    const complex = s.a === 'petition' || (s.a === 'claim' && !!s.origin) || s.a === 'buy' || s.a === 'sell' || (s.a === 'join' && s.kind === 'household');
+    if (complex && !this.understood(s, day)) { this.bump('not_understood'); return { ok: false, why: 'they cannot follow what you ask: you have too few of their words' }; }
     switch (s.a) {
       case 'attend': this.attended.add(s.day); return { ok: true, why: 'at work' };
       case 'hear': this.hear(s.lang, s.hours, s.simple ?? 0, !!s.spoke, day); if (s.word) this.heardWord(s.word, Math.ceil(KNOW_AFTER / 2)); return { ok: true, why: 'heard' };

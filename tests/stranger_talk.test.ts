@@ -86,7 +86,7 @@ describe('the render side\'s hooks (speech/presence.ts)', () => {
 describe('the house knows its dealings with the stranger (factsFor, in the turn)', () => {
   it('the host is told the stranger is their guest, what is believed of him, and to speak simply', async () => {
     const d = 60, sim = simAt(1, d, 17), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
-    const E = sim.econTo(d), S = E.stranger();
+    const E = sim.econTo(d), S = E.stranger(); S.hear('Aramaic', 800, 1, true, d);
     const pid = sim.pop.persons.find(p => p.job === 'farmer' && p.age >= 25 && sim.pop.present(p.id, d) && S.stayCheck(`h:${sim.pop.home(p.id, d)}`, d).ok)!.id, hh = `h:${sim.pop.home(pid, d)}`;
     S.do({ a: 'claim', day: d, hh, role: 'merchant', origin: 'Babylon' }); S.do({ a: 'stay', day: d, hh });
     const f = S.factsFor(hh, d); expect(f.some(x => /guest of your house/.test(x))).toBe(true); expect(f.some(x => /merchant from Babylon/.test(x))).toBe(true); expect(f.some(x => /simple words|simply/.test(x))).toBe(true);
@@ -97,7 +97,7 @@ describe('the house knows its dealings with the stranger (factsFor, in the turn)
 });
 describe('addressing a group (UD-25 (10))', () => {
   it('a claim to a group is heard by every house present; an ask finds the first house that says yes', () => {
-    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger();
+    const d = 45, sim = simAt(1, d, 9); const E = sim.econTo(d), S = E.stranger(); S.hear('Aramaic', 800, 1, true, d);
     const farmers = sim.pop.persons.filter(p => p.job === 'farmer' && p.age >= 20 && sim.pop.present(p.id, d)).slice(0, 12).map(p => p.id);
     const c = sim.strangerAskGroup(farmers, 'I am a merchant from Babylon.'); expect(c.length).toBeGreaterThan(3);
     for (const x of c) sim.strangerDo(x.act); expect(S.belief.size).toBeGreaterThanOrEqual(c.length);
