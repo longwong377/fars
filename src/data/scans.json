@@ -868,56 +868,5 @@
    "diff.jpg (sRGB)",
    "arm.jpg (R ao, G roughness, B metal)"
   ]
- },
- "old_planks_02": {
-  "meanLinear": [
-   0.12277,
-   0.0914,
-   0.06369
-  ],
-  "meanAO": 0.8463,
-  "meanRough": 0.6743,
-  "meanDisp": 0.7147,
-  "sdDisp": 0.0912,
-  "name": "Old Planks 02",
-  "authors": [
-   "Rob Tuytel"
-  ],
-  "licence": "CC0",
-  "source": "https://polyhaven.com/a/old_planks_02",
-  "res": "2k",
-  "tileMetres": 2,
-  "maps": [
-   "diff.jpg (sRGB)",
-   "arm.jpg (R ao, G roughness, B metal)",
-   "nor.jpg (OpenGL)",
-   "disp.jpg (height, linear)"
-  ]
- },
- "weathered_brown_planks": {
-  "meanLinear": [
-   0.12008,
-   0.07377,
-   0.04396
-  ],
-  "meanAO": 0.9489,
-  "meanRough": 0.6542,
-  "meanDisp": 0.5947,
-  "sdDisp": 0.0781,
-  "name": "Weathered Brown Planks",
-  "authors": [
-   "Dimitrios Savva",
-   "Rico Cilliers"
-  ],
-  "licence": "CC0",
-  "source": "https://polyhaven.com/a/weathered_brown_planks",
-  "res": "2k",
-  "tileMetres": 1.8,
-  "maps": [
-   "diff.jpg (sRGB)",
-   "arm.jpg (R ao, G roughness, B metal)",
-   "nor.jpg (OpenGL)",
-   "disp.jpg (height, linear)"
-  ]
  }
 }

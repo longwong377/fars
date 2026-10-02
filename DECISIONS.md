@@ -9514,6 +9514,13 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   is gone (the atlas has no mips and is alpha-tested).
 - Probe page tools/dev/v4_probe.{ts,html,mjs} (palace probe + reliefs, inscriptions, relief shadow; vite HMR blocked so an
   edit in the tree does not kill a run).
+- Second pass (judged under light v1 in the light lab, shots/L1, L2): the bare brick of the losses takes Clay Block Wall
+  (a real mud-brick wall's courses; procedural joints off); the lanes, courts and tracks Dirt Floor with half its buff (the
+  courts read as pale concrete); the limestone's scan at 45 % chroma with half its buff mean (cold grey marble in the terrace
+  probe); every second tile turned 35° and offset (detile); the block faces' claw hatching fades to a third past ~4 m (a
+  regular diagonal hatching over every block at 5-30 m); the houses' foot damp 0.1 -> 0.2 and run-off 0.12 -> 0.2; the water's
+  far-bank reflection follows SEASON (was a hard-coded green).
+
 ## D-480 (s17, V1 light): light v1, the art direction's light and tone
 - Tone (toneLook.ts): the fitted AgX look re-graded for the art direction (AC Origins / RDR2: rich, warm, controlled highlights,
   shade deep but readable): exposure 2.6→3.2, power 1.4→1.25 (the old curve crushed lane shade to sRGB 0-15), saturation
