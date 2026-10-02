@@ -17,8 +17,11 @@ export class NeuralVoices {
   /** the clips kept (a clip of ~1.5 s is ~140 kB; 1200 is ~170 MB at most, most units are shorter) */
   maxClips = 1200;
   readonly ready: Promise<boolean>;
-  constructor(o: { device?: 'webgpu' | 'wasm' | 'webnn-gpu'; dtype?: string } = {}) {
-    this.ready = new Promise(res => {
+  /** D-376 (UD-31): lazy: the worker and the model's download wait for start() (main.ts calls it after the first frames) */
+  private go: (() => void) | null = null;
+  start() { const g = this.go; this.go = null; g?.(); }
+  constructor(o: { device?: 'webgpu' | 'wasm' | 'webnn-gpu'; dtype?: string; lazy?: boolean } = {}) {
+    this.ready = new Promise(res => { const begin = () => {
       try { this.w = new Worker(new URL('./neural_worker.ts', import.meta.url), { type: 'module', name: typeof location !== 'undefined' && /[?&]neuraldebug/.test(location.search) ? 'debug' : 'voices' }); } catch (e) { this.stats.lastError = String(e); res(false); return; }
       this.w.onmessage = (e: MessageEvent) => { const m = e.data;
         if (m.type === 'loaded') { this.stats.ready = true; this.stats.device = m.device; this.stats.loadMs = m.ms; res(true); return; }
@@ -29,7 +32,7 @@ export class NeuralVoices {
         else { if (m.error !== 'dropped') { this.stats.errors++; this.stats.lastError = m.error; } if (p.key) this.inflight.delete(p.key); p.res(null); } };
       this.w.onerror = e => { this.stats.lastError = String(e.message ?? e); res(false); };
       this.w.postMessage({ type: 'load', device: o.device, dtype: o.dtype });
-    });
+    }; if (o.lazy) this.go = begin; else begin(); });
   }
   private put(k: string, pcm: Float32Array) { this.clips.set(k, pcm); if (this.clips.size > this.maxClips) this.clips.delete(this.clips.keys().next().value!); this.stats.cached = this.clips.size; }
   private ask(m: any, key: string | null): Promise<{ pcm: Float32Array; rate: number; ms: number } | null> {

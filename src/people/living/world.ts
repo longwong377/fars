@@ -84,6 +84,9 @@ export class LivingWorld {
     const R = this.rel; if (!R) return; R.advance(d + 7);
     for (const i of this.relAt.get(d) ?? []) { E.enter({ ...i, day: d, payload: { ...i.payload } }); this.relEntered++; }
   }
+  /** D-375: does the giver's house shun the asker's over what it has heard (set by PeopleSim from the rumours; `into`: the help
+   *  would go into the asker's house) */
+  shuns: ((giver: string, asker: string, into: boolean) => boolean) | null = null;
   private byQ = new Map<string, number[]>();
   private upTo = -1; private running = false;
   /** plans asked for and talk simulated (for the dev overlay and the cost report) */
@@ -258,7 +261,11 @@ export class LivingWorld {
       else if (this.childcare(asker, giver, day)) { offer = { kind: 'help', intents: [{ kind: 'help', from: `h:${g}`, to: `h:${h}`, day, payload: { childcare: 1, src: 'talk' } }] }; label = 'childcare'; }
       else if (u01(this.seed, S, h, day, 41) < 0.35) { offer = { kind: 'loan', intents: [{ kind: 'help', from: `h:${g}`, to: `h:${h}`, day, payload: { tool: TOOLS[h32(this.seed, S, h, day) % TOOLS.length], src: 'talk' } }] }; label = 'tool'; }
     }
-    if (!offer) return false; this.stats.offers++;
+    if (!offer) return false;
+    // D-375: what the giver's house has heard: it keeps away from a house it shuns over a rumour (a theft, a debt: 'avoid') or fears
+    // for its sickness ('flee': no hands or childcare sent into it), so a rumour, true or not, leaves a house without help (C)
+    if (this.shuns?.(`h:${g}`, `h:${h}`, offer.kind === 'work' || label === 'childcare')) { (this.stats as any).shunned = ((this.stats as any).shunned ?? 0) + 1; return false; }
+    this.stats.offers++;
     const helpsAtHome = offer.kind === 'work' || label === 'tool';
     const T: LivingTalk = { id: this.nextId++, day, h: m.h, place: m.place, a: asker, b: giver, intents: offer.intents, kind: offer.kind, label: label || undefined,
       doer: offer.kind === 'visit' || (offer.kind === 'work' && !label) ? asker : giver, target: offer.kind === 'visit' || (offer.kind === 'work' && !label) ? `h:${g}` : `h:${h}` };

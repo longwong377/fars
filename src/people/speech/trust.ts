@@ -13,6 +13,7 @@
 // Tiers: every weight here is C (reasoned: a village's reputation economy, by analogy with Achaemenid-period Babylonian
 // creditor practice; B for the direction of each deed's effect, C for the sizes).
 import type { EconEvent } from '../economy/world';
+import { Cols, ColsReader } from '../savepack';
 
 export const HALF_LIFE = 150;
 export const SYSTEM_IDS = new Set(['court', 'treasury', 'market', 'weather', 'caravan']);
@@ -31,7 +32,7 @@ const DEEDS: Record<string, Deed> = {
   nursed_by_kin: { who: 'other', pub: 0.05, dyad: 0.30 },
   hired_by_neighbour: { who: 'other', pub: 0.04, dyad: 0.20 },
   given: { who: 'other', pub: 0.06, dyad: 0.30 },
-  lent_by_stranger: { who: 'other', pub: 0.05, dyad: 0.25 },
+  lent_by_stranger: { who: 'other', pub: 0.05, dyad: 0.25 }, lent_by_neighbour: { who: 'other', pub: 0.05, dyad: 0.25 },
   hired_by_stranger: { who: 'other', pub: 0.04, dyad: 0.20 },
   loan: { who: 'other', pub: 0.03, dyad: 0.10 },
   spoken_for: { who: 'actor', pub: 0.10, dyad: 0, thank: true }, // speaking for a house: its standing rises; the speaker is thanked
@@ -39,10 +40,18 @@ const DEEDS: Record<string, Deed> = {
   // the court's judgements are about the one judged (`other`); the judge is a system, never a person
   acquitted: { who: 'other', pub: 0.15, dyad: 0 }, arrest: { who: 'other', pub: -0.15, dyad: 0 },
   debt_labour: { who: 'other', pub: -0.10, dyad: 0 }, time_granted: { who: 'other', pub: 0.03, dyad: 0 },
+  // D-370: the stranger's deeds (speech/stranger.ts); `other` is the stranger when a house acts on them
+  wage_paid: { who: 'other', pub: 0.01, dyad: 0.06 }, wage_owed: { who: 'actor', pub: -0.03, dyad: 0 }, dismissed: { who: 'other', pub: -0.05, dyad: -0.3 },
+  hand_hired: { who: 'other', pub: 0.03, dyad: 0.15 }, hosted: { who: 'actor', pub: 0.02, dyad: 0.05 }, guest_repaid: { who: 'actor', pub: 0.05, dyad: 0.25 },
+  ingrate: { who: 'actor', pub: -0.15, dyad: -0.45 }, guest_sent_away: { who: 'other', pub: -0.03, dyad: -0.15 }, claim_doubted: { who: 'other', pub: -0.03, dyad: -0.3 },
+  claim_denied: { who: 'other', pub: -0.10, dyad: -0.5 }, learned_tongue: { who: 'actor', pub: 0.03, dyad: 0.12 }, joined_house: { who: 'other', pub: 0.03, dyad: 0.3 },
+  ruling_for: { who: 'other', pub: 0.04, dyad: 0 }, ruling_against: { who: 'other', pub: -0.03, dyad: 0 }, halmi_sealed: { who: 'other', pub: 0.06, dyad: 0 },
 };
 /** what hearing of a deed does to the hearer's own view of the one it is about (hear()) */
-const HEARD: Record<string, number> = { theft: -0.25, default: -0.2, repaid: 0.08, acquitted: 0.08, loan: 0.03, debt_labour: -0.05, tax_arrears: -0.04, suit: -0.04 };
+const HEARD: Record<string, number> = { ingrate: -0.2, claim_denied: -0.15, claim_doubted: -0.06, guest_repaid: 0.05, theft: -0.25, default: -0.2, repaid: 0.08, acquitted: 0.08, loan: 0.03, debt_labour: -0.05, tax_arrears: -0.04, suit: -0.04 };
 const clamp = (x: number, a = -1, b = 1) => Math.max(a, Math.min(b, x));
+/** D-378: a record's value is kept on a 1e-4 grid (each bump rounds), so a save writes it as a whole number, losslessly */
+const Q = 1e4, q4 = (x: number) => Math.round(x * Q) / Q;
 const decay = (r: Rec | undefined, day: number) => !r ? 0 : day > r.d ? r.v * Math.pow(0.5, (day - r.d) / HALF_LIFE) : r.v;
 
 /** the economy as the ledger reads it (structural: Economy satisfies it) */
@@ -55,7 +64,7 @@ export class TrustLedger {
   cursor = 0; readonly counts: Record<string, number> = {};
   constructor(private src: TrustSource) {}
 
-  private bump(m: Map<string, Rec>, k: string, dv: number, day: number) { m.set(k, { v: clamp(decay(m.get(k), day) + dv), d: day }); }
+  private bump(m: Map<string, Rec>, k: string, dv: number, day: number) { m.set(k, { v: q4(clamp(decay(m.get(k), day) + dv)), d: day }); }
   /** read the events since the last read (idempotent; called by every reader, so the state is always a function of the
    *  events so far, whoever asks first) */
   sync() {
@@ -101,16 +110,61 @@ export class TrustLedger {
   /** the per-household summary for the dev overlay */
   summary(id: string, day: number) { return { standing: +this.standing(id, day).toFixed(3), group: +this.groupOf(id, day).toFixed(3) }; }
 
-  // ---- save (full precision: a loaded ledger replays the same) ----
-  snapshot() {
-    this.sync();
+  // ---- save (lossless: a loaded ledger replays the same) ----
+  /** D-378 (B400): the records as varint columns, each deflated (savepack.ts). A key is a prefix (from a string table) and a
+   *  household number ('h:N'), or a whole string; a dyad is two such keys; values (on the 1e-4 grid) as integers, days as
+   *  integers. A ledger with a record off the grid (one restored from an older save) is written in the older, plain form. */
+  snapshot() { this.sync(); return this.packed() ?? this.plain(); }
+  private plain() {
     const r = (m: Map<string, Rec>) => [...m].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([k, x]) => [k, x.v, x.d]);
     return { cursor: this.cursor, personal: r(this.personal), dyad: r(this.dyad), group: r(this.group), cool: [...this.cool], counts: { ...this.counts } };
   }
+  private packed() {
+    const ok = (x: Rec) => Number.isInteger(x.d) && x.d >= 0 && Math.abs(x.v) <= 1 && q4(x.v) === x.v;
+    for (const m of [this.personal, this.dyad, this.group]) for (const x of m.values()) if (!ok(x)) return null;
+    for (const d of this.cool.values()) if (!Number.isInteger(d) || d < 0) return null;
+    for (const k of this.dyad.keys()) if (!k.includes('>')) return null;
+    const strs: string[] = [], si = new Map<string, number>(), str = (x: string) => { let i = si.get(x); if (i === undefined) { i = strs.length; strs.push(x); si.set(x, i); } return i; };
+    const split = (k: string): [number, number] => { const m = /^(.*?)h:(0|[1-9]\d{0,14})$/.exec(k); return m ? [str(m[1]), +m[2] + 1] : [str(k), 0]; };
+    const C = new Cols();
+    // a map of single keys, sorted by [prefix, number], the number delta-coded within a prefix (columns base .. base+3)
+    const one = (base: number, l: [string, number, number][]) => {
+      const r = l.map(([k, v, d]) => [...split(k), v, d]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      C.u(0, r.length); let pp = -1, pn = 0;
+      for (const [p, n, v, d] of r) { C.u(base, p); if (p !== pp) { pn = 0; pp = p; } C.s(base + 1, n - pn); pn = n; C.s(base + 2, v); C.u(base + 3, d); }
+    };
+    const recs = (m: Map<string, Rec>) => [...m].map(([k, x]): [string, number, number] => [k, Math.round(x.v * Q), x.d]);
+    one(1, recs(this.personal)); one(5, recs(this.group)); one(9, [...this.cool].map(([k, d]): [string, number, number] => [k, 0, d]));
+    // dyads 'a>b', sorted by a then b: a's number delta-coded, b's delta-coded within one a
+    const dy = [...this.dyad].map(([k, x]) => { const i = k.indexOf('>'); return [...split(k.slice(0, i)), ...split(k.slice(i + 1)), Math.round(x.v * Q), x.d]; })
+      .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || a[3] - b[3]);
+    C.u(0, dy.length); let pa = 0, pb = 0, pp = -1;
+    for (const [ap, an, bp, bn, v, d] of dy) {
+      C.u(13, ap); C.s(14, an - pa); const same = an === pa && ap === pp; pa = an; pp = ap;
+      C.u(15, bp); C.s(16, same ? bn - pb : bn); pb = bn; C.s(17, v); C.u(18, d);
+    }
+    return { v: 2, cursor: this.cursor, counts: { ...this.counts }, strs, z: C.pack() };
+  }
+  /** a snapshot back into a ledger: the packed form (D-378) or the older plain one */
   static restore(s: any, src: TrustSource): TrustLedger {
-    const L = new TrustLedger(src); L.cursor = s.cursor;
+    const L = new TrustLedger(src); L.cursor = s.cursor; Object.assign(L.counts, s.counts);
+    if (s.v === 2) {
+      const R = new ColsReader(s.z), key = (p: number, n: number) => s.strs[p] + (n ? 'h:' + (n - 1) : '');
+      const one = (base: number, set: (k: string, v: number, d: number) => void) => {
+        const len = R.u(0); let pp = -1, pn = 0;
+        for (let i = 0; i < len; i++) { const p = R.u(base); if (p !== pp) { pn = 0; pp = p; } pn += R.s(base + 1); set(key(p, pn), R.s(base + 2) / Q, R.u(base + 3)); }
+      };
+      one(1, (k, v, d) => L.personal.set(k, { v, d })); one(5, (k, v, d) => L.group.set(k, { v, d })); one(9, (k, _v, d) => L.cool.set(k, d));
+      const len = R.u(0); let pa = 0, pb = 0, pp = -1;
+      for (let i = 0; i < len; i++) {
+        const ap = R.u(13), an = pa + R.s(14), same = an === pa && ap === pp; pa = an; pp = ap;
+        const bp = R.u(15), bn = (same ? pb : 0) + R.s(16); pb = bn;
+        L.dyad.set(key(ap, an) + '>' + key(bp, bn), { v: R.s(17) / Q, d: R.u(18) });
+      }
+      return L;
+    }
     for (const [m, l] of [[L.personal, s.personal], [L.dyad, s.dyad], [L.group, s.group]] as const) for (const [k, v, d] of l) m.set(k, { v, d });
     for (const [k, d] of s.cool) L.cool.set(k, d);
-    Object.assign(L.counts, s.counts); return L;
+    return L;
   }
 }

@@ -3,6 +3,9 @@
 export interface LlmSpec { id: string; lib: string; params: string; licence: string; vramMB: number }
 const WASM = 'https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0_2_84/base/';
 export const LLMS: LlmSpec[] = [
+  // D-376 (UD-31): the default: 285 MB of weights (8 shards + a 7 MB tokenizer), ~945 MB of VRAM; the talk bundle's whole
+  // download (this, Kokoro's 163 / 92 MB model and its 28 MB of style voices) stays under 600 MB
+  { id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', lib: 'Qwen2-0.5B-Instruct-q4f16_1_cs1k-webgpu.wasm', params: '0.5B', licence: 'Apache-2.0', vramMB: 945 },
   { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', lib: 'Qwen2-1.5B-Instruct-q4f16_1_cs1k-webgpu.wasm', params: '1.5B', licence: 'Apache-2.0', vramMB: 1630 },
   { id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC', lib: 'Llama-3.2-1B-Instruct-q4f16_1_cs1k-webgpu.wasm', params: '1.2B', licence: 'Llama 3.2 Community License', vramMB: 879 },
   { id: 'Llama-3.2-3B-Instruct-q4f16_1-MLC', lib: 'Llama-3.2-3B-Instruct-q4f16_1_cs1k-webgpu.wasm', params: '3.2B', licence: 'Llama 3.2 Community License', vramMB: 2264 },
@@ -13,6 +16,11 @@ export const LLMS: LlmSpec[] = [
   { id: 'Qwen2.5-7B-Instruct-q4f16_1-MLC', lib: 'Qwen2-7B-Instruct-q4f16_1_cs1k-webgpu.wasm', params: '7.6B', licence: 'Apache-2.0', vramMB: 5107 },
 ];
 export const ASRS = ['onnx-community/whisper-base', 'onnx-community/whisper-small'] as const;
+/** D-376 (UD-31): the talk on by default: the model every visitor gets, and the bundle's download in MB (Hugging Face's files:
+ *  the LLM's shards and tokenizer, Kokoro's fp16 model (WebGPU with shader-f16) or its q8 model (WASM), the 54 style voices of
+ *  510 x 256 floats; Whisper base q8 (encoder 23 + merged decoder 54) only when the microphone is turned on) */
+export const TALK_MODEL = 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
+export const TALK_MB = { llm: 285, kokoroWebgpu: 163, kokoroWasm: 92, voices: 28, whisperOnMic: 77 } as const;
 export const TTS = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 
 /** the WebLLM app config for the given models (their Hugging Face and GitHub URLs: served locally by localModels()) */
@@ -29,5 +37,6 @@ export function localModels(origin: string) {
   const g = globalThis as any; if (g.__modelsLocal) return; g.__modelsLocal = true; const real = g.fetch.bind(g);
   const map = (u: string) => u.startsWith('https://huggingface.co/') ? `${origin}/models/${u.slice(23)}` : u.startsWith(WASM) ? `${origin}/models/mlc-libs/${u.slice(WASM.length)}` : null;
   g.fetch = (input: any, init?: any) => { const u = typeof input === 'string' ? input : input?.url; const m = u ? map(u) : null;
-    return m ? real(m, init) : real(input, init); };
+    // (D-376: a model the local store does not hold, the new small default among them, comes from the network)
+    return m ? real(m, init).then((r: Response) => r.ok ? r : real(input, init)) : real(input, init); };
 }

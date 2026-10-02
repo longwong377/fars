@@ -25,3 +25,4 @@ tools/dev/decor_probe_tents.json
 public/world-cache/
 .agent
 .vite/
+.cache/

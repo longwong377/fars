@@ -1,0 +1,6 @@
+{
+ "about": "The merge budget (session 15; tools/dev/budget.mjs). A merge into s14-int that makes any metric worse than its baseline by more than the tolerance does not go in. The baseline only tightens (a pass with --accept keeps the better value). Targets: UD-31 (a public URL walkable in under a minute on a good GPU) and the 5 GB page.",
+ "target": { "readyS": 40, "framesS": 60, "memGB": 5, "frameMs": 33 },
+ "tolerance": 0.05,
+ "baseline": null
+}

@@ -407,7 +407,10 @@ async function boot() {
       advance: (s: number) => api.advanceWorld(s, 0.5), tick: () => api.tick() }); } return covPass as import('./dev/coverage').CoveragePass; };
   (window as any).__parsa = api;
   // D-296 (UD-18): speaking with the people, on request (?converse; loaded on demand, nothing without it)
-  if (P.has('converse')) import('./people/converse/ui').then(m => { (api as any).converse = m.mountConverse({ world, camera, clock, seed: SEED, settings }); }).catch(e => api.errors.push('converse: ' + e));
+  // D-376 (UD-31): talking is on by default (settings.talk; ?converse=0 or the setting off turns it off; tests and benches load
+  // nothing): mounted now, its models streamed in after the first frames (below), never before the world is shown
+  const TALK = P.has('converse') ? P.get('converse') !== '0' : settings.talk && !P.has('test') && !P.has('bench');
+  if (TALK) import('./people/converse/ui').then(m => { (api as any).converse = m.mountConverse({ world, camera, clock, seed: SEED, settings }); }).catch(e => api.errors.push('converse: ' + e));
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
@@ -450,6 +453,7 @@ async function boot() {
     return open / dirs.length;
   }
   let prev = performance.now();
+  let shownFrames = 0; // (D-376)
   let firstFrames = P.has('trace') ? 3 : 0; // ?trace: time the first frames' stages (D-250)
   let inAnimationLoop = false; // set while three's animation loop (which advances the node frame) calls frame()
   const viewDir = new THREE.Vector3();
@@ -527,6 +531,9 @@ async function boot() {
     tp = pt(); pipeline.render(scene, camera); pa('render', tp);
     lastFrameMs = performance.now() - t0;
     if (firstFrames > 0) { TRACE(`frame ${3 - firstFrames}: render ${lastFrameMs.toFixed(0)} ms`); firstFrames--; }
+    // D-376 (UD-31): the world is shown: the people's voices and the talk's model start streaming in (a few frames in, so the
+    // first frames' shader compiles are not slowed by the downloads)
+    if (++shownFrames === 5) { (world as any).neural?.start?.(); setTimeout(() => (api as any).converse?.preload?.(), 1500); }
     // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
     meterT += dt;
     tp = pt(); if (pipeline.meterTarget && !meterBusy && ((TEST && !PLAYLIKE) || meterT > 0.25)) {
