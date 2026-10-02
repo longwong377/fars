@@ -92,7 +92,7 @@ describe('D-370 the stranger in the simulation', () => {
     expect(evs(e, 'stranger_petition').length).toBe(2);
   });
   it('(9) hospitality: the guest eats from the host\'s grain; leaving with no return is ingratitude the lane hears', () => {
-    const e = town(80), S = e.stranger();
+    const e = town(80), S = e.stranger(); S.purse.cash = 2; // (he has the means to give back and does not)
     const host = [...e.hh.values()].find(h => h.kind === 'farmer' && S.stayCheck(h.id, 80).ok)!; const g0 = host.grain;
     S.do({ a: 'stay', day: 80, hh: host.id }); expect(evs(e, 'hosted').length).toBe(1);
     step(e, 5); expect(host.grain).toBeLessThan(g0); expect(S.stay!.owed).toBeGreaterThan(0);
@@ -105,6 +105,10 @@ describe('D-370 the stranger in the simulation', () => {
     const e2 = town(80), S2 = e2.stranger(); S2.purse.cash = 2;
     S2.do({ a: 'stay', day: 80, hh: host.id }); step(e2, 4); S2.do({ a: 'leave_stay', day: e2.day }); S2.do({ a: 'give', day: e2.day, hh: host.id, cash: 0.5 });
     step(e2, 31); expect(evs(e2, 'guest_repaid').length).toBe(1); expect(evs(e2, 'ingrate').length).toBe(0);
+    // D-391: a guest with nothing to give is no ingrate (the host thinks a little less of him; the lane hears nothing)
+    const e3 = town(80), S3 = e3.stranger(); S3.purse.cash = 0; S3.purse.grain = 0;
+    S3.do({ a: 'stay', day: 80, hh: host.id }); step(e3, 3); S3.do({ a: 'leave_stay', day: e3.day }); S3.purse.cash = 0; S3.purse.grain = 0;
+    step(e3, 31); expect(evs(e3, 'ingrate').length).toBe(0); expect(S3.stayCheck(host.id, e3.day).ok).toBe(true);
   });
   it('(10) groups: a treasury gang feeds its member; a household takes in a known, trusted hand', () => {
     const e = town(90), S = e.stranger();

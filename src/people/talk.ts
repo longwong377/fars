@@ -88,6 +88,8 @@ const PLACE_WORDS: [RegExp, (q: string, hh: number) => string][] = [
   [/\b(stair|stairs|terrace|palace|gate|hall|king'?s house)\b/, () => 'terrace_edge'], [/\b(your house|your home|home|house)\b/, (_q, hh) => `h:${hh}`],
   [/\b(lane|street|doorstep)\b/, q => `lane:${q}`],
 ];
+const CRAFT_WORDS: [RegExp, string][] = [[/\b(bakery|baker|bakers|oven|bread)\b/, 'bakery'], [/\b(smith|smithy|forge|metal|bronze|iron)\b/, 'metal'], [/\b(carpenter|joiner|woodworker|wood)\b/, 'wood'],
+  [/\b(weaver|weavers|loom|cloth|textile|dyer)\b/, 'textile'], [/\b(potter|pottery|kiln|pots)\b/, 'pottery'], [/\b(pigment|paint)\b/, 'pigment']];
 const INNER_TERRACE = /\b(treasury|apadana|palace of|harem|king'?s rooms|throne|inside the|up the terrace|on the terrace)\b/;
 const RELS = ['wife', 'husband', 'mother', 'father', 'son', 'daughter', 'brother', 'sister', 'child', 'children', 'boy', 'girl', 'man', 'woman'];
 
@@ -146,6 +148,13 @@ export class TalkWorld {
     const w = ` ${words.toLowerCase()} `; const hh = this.pop.home(pid, day); const q = this.pop.households[hh].q;
     // a named person's house ("Bakezza's house")
     const nm = /([\p{L}’'-]{3,})['’]s (house|home)/u.exec(words); if (nm) { const o = this.findPerson(pid, day, nm[1]); if (o !== null) return `h:${this.pop.home(o, day)}`; }
+    // D-391 (the playtest bot: 86 of 93 "lead me to" asks unknown): the market, the court, and a workshop by its craft (the
+    // town's plots: bakery, metal, wood, brewery, textile, pottery), the one in the asker's own quarter first (C)
+    if (/\b(market|bazaar|stalls?|marketplace)\b/.test(w)) return `market:${q}`;
+    if (/\b(court|judges?|magistrate)\b/.test(w)) return 'official_bldg';
+    const craft = CRAFT_WORDS.find(([re]) => re.test(w))?.[1];
+    if (craft) { const P = this.pop, all = P.households.map((_, i) => i).filter(i => P.plotOf(i)?.craft === craft && P.membersOn(i, day).length);
+      const mine = all.filter(i => P.households[i].q === q); const pick = (mine.length ? mine : all)[0]; if (pick !== undefined) return `h:${pick}`; }
     for (const [re, f] of PLACE_WORDS) if (re.test(w)) return f(q, hh);
     return null;
   }

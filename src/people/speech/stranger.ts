@@ -343,6 +343,8 @@ export class Stranger {
     const changed = !this.claim || this.claim.role !== s.role || this.claim.origin !== s.origin;
     if (changed && this.claim) { // a second, different story: those who heard the first doubt both (C)
       for (const [hh, b] of this.belief) { b.b *= 0.5; if (b.b < 0.25 && !b.doubted) this.doubt(hh, 'claim_doubted', day); } }
+    // the same story told again to a house that has it already: nothing new is said (D-391: not a fresh claim each greeting)
+    const had = this.belief.get(s.hh); if (!changed && had && s.role !== 'kin') return { ok: true, why: had.doubted || had.b < 0.5 ? 'doubted' : 'believed', ev: [] };
     const e = this.ev('stranger_claim', [], PLAYER, s.hh);
     if (changed) this.claim = { role: s.role, origin: s.origin, kinOf: s.kinOf, day, ev: e, to: s.hh };
     // the house told hears it from the stranger's own mouth
@@ -493,6 +495,8 @@ export class Stranger {
     for (let i = this.debtors.length - 1; i >= 0; i--) { const d = this.debtors[i]; if (day < d.due && d.given < d.owed) continue;
       this.debtors.splice(i, 1);
       if (d.given >= d.owed * 0.5) this.ev('guest_repaid', [d.ev], PLAYER, d.host);
+      // a guest with nothing to give owes thanks, not bread: the host thinks less of him, the lane hears nothing (D-391, C)
+      else if (this.purse.cash + this.purse.grain * this.E.price('grain', day) < (d.owed - d.given) * 0.5) { if (this.E.trust) this.E.trust.note(d.host, PLAYER, -0.04, day); }
       else { this.slighted.add(d.host); this.ev('ingrate', [d.ev], PLAYER, d.host); const H = this.H(d.host); if (H && this.E.trust) for (const k of [...H.kin, ...(this.quarters().get(H.q) ?? []).slice(0, 6)]) this.E.trust.hear(k, PLAYER, 'ingrate', day); } }
   }
 
