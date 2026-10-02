@@ -61,9 +61,9 @@ export const OVER_KEEP = 2;
 export const TOLD_KEEP = 8;
 export interface Decision { ok: boolean; reason: string; kind: Deed; arg?: string; segs?: Seg[]; h0: number; h1: number; other?: number; otherSegs?: Seg[]; otherH?: [number, number]; item?: string; paid?: string; noop?: boolean }
 
-const WORK_FREE = new Set<ActivityId>(['rest', 'eat', 'talk', 'play', 'gamble', 'walk', 'tend_body', 'queue', 'sleep', 'shelter', 'exchange']);
+export const WORK_FREE = new Set<ActivityId>(['rest', 'eat', 'talk', 'play', 'gamble', 'walk', 'tend_body', 'queue', 'sleep', 'shelter', 'exchange']);
 /** work done under someone's count or order: leaving it is not the person's to decide (C) */
-const SUPERVISED = new Set(['guard', 'builder', 'porter', 'camp', 'scribe', 'treasury', 'official', 'messenger', 'storekeeper', 'miller', 'weaver', 'brewer', 'groom', 'caretaker', 'priest', 'servant', 'shepherd']);
+export const SUPERVISED = new Set(['guard', 'builder', 'porter', 'camp', 'scribe', 'treasury', 'official', 'messenger', 'storekeeper', 'miller', 'weaver', 'brewer', 'groom', 'caretaker', 'priest', 'servant', 'shepherd']);
 const DUTY_WORDS: Record<string, string> = {
   guard: 'on watch: a spearman does not leave his post until he is relieved', builder: 'the foreman counts the gang at the work; he cannot leave it',
   porter: 'the loads are counted by the scribe; he cannot leave them', camp: 'the camp grinds and bakes for the gangs; she cannot leave the work',

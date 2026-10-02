@@ -42,6 +42,7 @@ import { HOME_LANG } from './exchanges';
 import type { SAct, Verdict } from './speech/stranger';
 import { chronicleLine } from './speech/stranger';
 import { strangerAsk } from './speech/verbs';
+import { reactions as sightReactions, type Near, type Sight } from './converse/sight';
 import { unitsFor, LEX_LABEL } from '../audio/voices';
 import { packJSON, unpackJSON } from './savepack';
 /** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
@@ -375,6 +376,13 @@ export class PeopleSim {
       const want = /\bword for (?:a |an |the )?([a-z]+)/i.exec(said)?.[1]?.toLowerCase(), L = LEX_LABEL[act.lang];
       if (want && L) { const w = unitsFor(L).words.find(x => new RegExp(`\\b${want}`, 'i').test(x.gloss ?? '')); if (w) act.word = w.id; } }
     return { act, verdict: E.stranger().judge(act) };
+  }
+  /** D-385 (UD-21/UD-25): how the people within ~12 m react to the stranger on sight (converse/sight.ts: greet, nod, stare, bow,
+   *  avoid, ignore); a village child who stares may tag along a while (the talk's own 'follow' deed, laid once a day) */
+  strangerSeen(near: readonly Near[], at: { e: number; n: number }): Sight[] {
+    const out = sightReactions(this, near, at, this.t), day = Math.floor(this.t / 24);
+    for (const s of out) if (s.follow && !this.talk.events.some(e => e.pid === s.pid && e.day === day && e.kind === 'follow')) s.follow = this.talkAct(s.pid, { kind: 'follow' }).ok;
+    return out;
   }
   /** D-370: the economy if it is built (no side effect): the render side's hooks read the stranger's state from it */
   ledgerNow(): Economy | null { return this.econ; }
