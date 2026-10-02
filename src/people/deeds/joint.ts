@@ -463,7 +463,7 @@ export class Joint {
   }
 
   // (D-461: the town's own undertakings settled more than three days ago are not kept: the goals make tens of thousands a year)
-  save() { const last = this.jobs[this.jobs.length - 1]?.day ?? 0; return { jobs: this.jobs.filter(j => j.state === 'set' || j.day > last - (j.actor === 'player' || j.target === 'player' ? 30 : 3)), hires: this.hires, roofs: [...this.roofs], news: this.news.slice(-60), notes: [...this.notes], stats: this.stats, settledT: this.settledT, nextId: this.nextId }; }
+  save() { const last = this.jobs[this.jobs.length - 1]?.day ?? 0; return { jobs: this.jobs.filter(j => j.state === 'set' || j.day > last - (j.actor === 'player' ? 30 : 3)), hires: this.hires, roofs: [...this.roofs], news: this.news.slice(-60), notes: [...this.notes], stats: this.stats, settledT: this.settledT, nextId: this.nextId }; }
   load(s: ReturnType<Joint['save']> | undefined) { if (!s) return; this.jobs.splice(0, this.jobs.length, ...s.jobs); this.nextId = s.nextId; this.mine = this.jobs.filter(j => j.state === 'set' && j.actor === 'player'); this.open.clear(); for (const j of this.jobs) if (j.state === 'set') this.index(j); this.hires.splice(0, this.hires.length, ...s.hires);
     this.roofs.clear(); for (const [k, v] of s.roofs) this.roofs.set(k, v); this.news.splice(0, this.news.length, ...s.news); this.notes = new Map(s.notes); Object.assign(this.stats, s.stats); this.settledT = s.settledT; }
 }
