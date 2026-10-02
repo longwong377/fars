@@ -9,6 +9,7 @@
 // stand-in drawn and flagged PLACEHOLDER. The GLB parser is the module's own so the tests read the same files in node.
 import * as THREE from 'three/webgpu';
 import { texture, uv, vec3, normalMap, mix, float, attribute } from 'three/tsl';
+import { BASE } from '../core/base';
 
 export interface LifeAsset { class: 'birds' | 'small' | 'flora'; name: string; of: string; files: Record<string, { bytes: number; sha256: string }>; tris: Record<string, number>; tex: number | [number, number];
   L?: number; S?: number; sx?: number; half?: number; [k: string]: unknown }
@@ -51,7 +52,7 @@ export function parseLifeGLB(ab: ArrayBuffer): Record<string, THREE.BufferGeomet
 export const levelTris = (g: THREE.BufferGeometry) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
 
 /** load every model of the manifest (browser). Never throws. */
-export async function loadLifeModels(base = '/'): Promise<ReturnType<typeof lifeModelStats>> {
+export async function loadLifeModels(base = BASE): Promise<ReturnType<typeof lifeModelStats>> {
   const t0 = performance.now();
   if (typeof location !== 'undefined') { const q = new URLSearchParams(location.search); if (q.get('life') === '0' || q.get('models') === '0') { LOAD.off = true; return lifeModelStats(); } }
   let man: { assets: Record<string, LifeAsset> };

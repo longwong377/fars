@@ -10,6 +10,7 @@
 import * as THREE from 'three/webgpu';
 import type { Species } from './animals';
 import { rigWeights } from './animalRig';
+import { BASE } from '../core/base';
 
 export interface AnimalAsset { inHash: string; class: string; files: Record<string, { bytes: number; sha256: string }>; tris: [number, number]; tex: number; lod1At: number; tier: string; src: string }
 export interface AnimalModel { sp: Species; lods: THREE.BufferGeometry[]; albedo: THREE.Texture; nrm: THREE.Texture; lod1At: number; tris: number[] }
@@ -20,7 +21,7 @@ let rigged = new Set<Species>();
 
 /** load every species of the manifest (browser). Never throws: a missing manifest or a failed species leaves the procedural
  *  stand-in in place (and says so in the stats). */
-export async function loadAnimalModels(base = '/'): Promise<ReturnType<typeof animalModelStats>> {
+export async function loadAnimalModels(base = BASE): Promise<ReturnType<typeof animalModelStats>> {
   const t0 = performance.now();
   if (typeof location !== 'undefined') { const q = new URLSearchParams(location.search); if (q.get('animals') === '0' || q.get('models') === '0') { LOAD.off = true; return animalModelStats(); } }
   let man: { assets: Record<string, AnimalAsset> };

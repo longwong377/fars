@@ -11,6 +11,7 @@ import * as THREE from 'three/webgpu';
 import { texture, uv, normalMap, normalView, vec3, float } from 'three/tsl';
 import { surfaceMaterial } from './materials';
 import META from '../data/decor_assets.json';
+import { BASE } from '../core/base';
 
 export interface DecorModel { lods: THREE.BufferGeometry[]; maps: THREE.Texture[]; names: string[] }
 const S = { trim: null as THREE.Texture | null, merlon: null as DecorModel | null, tents: {} as Record<string, DecorModel>, off: false };
@@ -25,7 +26,7 @@ export function setDecorForTest(v: { trim?: boolean; merlon?: DecorModel | null;
   if (v.merlon !== undefined) S.merlon = v.merlon; if (v.tents) S.tents = v.tents;
 }
 
-export async function loadDecorAssets(base = '/'): Promise<typeof decorStats> {
+export async function loadDecorAssets(base = BASE): Promise<typeof decorStats> {
   if (typeof document === 'undefined') return decorStats;
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('nodecor')) { decorStats.off = S.off = true; return decorStats; }
   const t0 = performance.now();

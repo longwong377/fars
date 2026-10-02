@@ -5,6 +5,7 @@
 // the same geometry as the page (loadMonumentsNode), and a missing or failed asset leaves the builder's procedural stand-in
 // (flagged PLACEHOLDER) in place: nothing is ever missing. `?monuments=0` switches them off (A/B).
 import * as THREE from 'three/webgpu';
+import { BASE } from '../core/base';
 
 export interface MonumentEntry { file: string; sha256: string; bytes: number; tris: Record<string, number>; maps: Record<string, { file: string; w: number; h: number; bytes: number; sha256: string; srgb?: boolean }>; tier: string; src: string; note: string; blender: string; device: string; inHash: string; stats?: Record<string, number> }
 export interface MonumentManifest { about: string; assets: Record<string, MonumentEntry> }
@@ -68,7 +69,7 @@ export function parseMonumentGLB(ab: ArrayBuffer): Record<string, THREE.BufferGe
 }
 
 /** load every monument of the manifest (browser). Never throws. */
-export async function loadMonuments(base = '/', anisotropy = 8): Promise<ReturnType<typeof monumentStats>> {
+export async function loadMonuments(base = BASE, anisotropy = 8): Promise<ReturnType<typeof monumentStats>> {
   const t0 = performance.now();
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('monuments') === '0') { LOAD.off = true; return monumentStats(); }
   let man: MonumentManifest;

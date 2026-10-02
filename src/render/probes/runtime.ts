@@ -22,6 +22,7 @@ import { SPEC } from '../../arch/spec';
 import { EYE_SKY } from '../../sky/aerial';
 import { setRoofBoxes, ROOFS_PRESENT, roofsPresent } from './roofs';
 import { loadOutdoor, outdoorAmbient, setOutdoorSun, outdoorSummary } from './outdoor_runtime';
+import { BASE } from '../../core/base';
 
 let FIELD: ProbeField | null = null;
 /** atlas bands: S channel, U channel, tint above + validity, reach, tint below (field.ts atlasData) */
@@ -45,7 +46,7 @@ const RHO_OPEN = (() => { const a = SURFACES.court_fill.albedo; return lum(srgbT
 export const probeField = () => FIELD;
 export const probeMeta = () => META;
 /** load the baked field (call before the first frame is rendered: the shaders are built with the volumes as constants) */
-export async function loadProbes(base = '/'): Promise<ProbeField | null> {
+export async function loadProbes(base = BASE): Promise<ProbeField | null> {
   await loadOutdoor(base); // D-357: the Terrace's and the town's outdoor light field (outdoor_runtime.ts)
   try {
     const [mj, bin] = await Promise.all([fetch(`${base}generated/probes.json`), fetch(`${base}generated/probes.f16`)]);

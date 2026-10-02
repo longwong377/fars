@@ -40,6 +40,7 @@ import { roofedAt } from './render/probes/roofs';
 import { seasonAt } from './world/season';
 import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
+import { BASE } from './core/base';
 installWebGPUCompat();
 
 const P = urlParams();
@@ -103,10 +104,10 @@ async function boot() {
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
   shell.loading('Loading the plain and the mountain…');
-  await loadScans('/'); // scanned surface detail (session 11, B7 lifted): before any surface material is built
-  const terrain = await Terrain.load('/');
+  await loadScans(BASE); // scanned surface detail (session 11, B7 lifted): before any surface material is built
+  const terrain = await Terrain.load(BASE);
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
-  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars('/'); sky.meteors.seed = SEED;
+  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars(BASE); sky.meteors.seed = SEED;
   shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-093)
   const weather = new WeatherSystem(SEED);
   if (P.get('weather')) weather.override = P.get('weather') as WeatherOverride;

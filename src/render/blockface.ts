@@ -10,6 +10,7 @@
 import * as THREE from 'three/webgpu';
 import { texture, vec2, float, int, clamp, sqrt, max, dFdx, dFdy, mix, uniform, step, smoothstep, fract, floor } from 'three/tsl';
 import META from '../data/blockface.json';
+import { BASE } from '../core/base';
 
 export const BLOCKFACE = META as unknown as { res: number; size_m: number; strip_rows: number; strip_px: number;
   layers: { id: string; kind: string; hscale: number; ao_mean: number; h_mean: number; h_sd: number; slope_sd: number; note: string }[];
@@ -27,7 +28,7 @@ export const blockFaceStats = { ms: 0, format: '', error: '' };
 
 /** load the set (browser; awaited with the scans before any surface material builds). Never throws: without it the
  *  procedural tool marks of materials.ts stand (and blockFaceStats.error says why) */
-export async function loadBlockFace(base = '/', anisotropy = 8): Promise<void> {
+export async function loadBlockFace(base = BASE, anisotropy = 8): Promise<void> {
   if (typeof document === 'undefined') return;
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noblockface')) { blockFaceOn = false; return; }
   const t0 = performance.now();
