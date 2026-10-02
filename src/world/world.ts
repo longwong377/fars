@@ -107,6 +107,7 @@ import { Soundscape, registerRoom } from '../audio/soundscape';
 import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { NavGrid } from '../people/navgrid';
+import { setInteriorPeople } from './interiors/household';
 import { PeopleSim, Env } from '../people/sim';
 import { strangerPresence, thinCaption } from '../people/speech/presence';
 import { Overheard } from '../people/overheard';
@@ -140,7 +141,7 @@ import { CourtCampTents } from './courtCamps';
 import { NearSolids, SOLID_R } from './solids';
 import type { AnimalInst } from '../people/animals';
 import { CAMPS } from '../people/camps';
-import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
+import { Fauna, FAC as FAUNA_FAC, grazingSites, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
 import { quarrySites } from './plain/quarries';
 import { SmokeModel, type SmokeSite } from './hearthSmoke';
@@ -169,6 +170,16 @@ let wLast = 0;
 /** s15/ship: when each asset load resolves (?trace), from the build's start */
 const tAsset = <T>(name: string, p: Promise<T>): Promise<T> => (WTRACE ? p.then(v => { console.info('[boot]', 'asset:' + name, (performance.now() - wT0).toFixed(0), 'ms'); return v; }) : p);
 let wT0 = 0;
+/** D-580 (s17, nothing hangs): a set the world can stand in for (the Blender models, scanned props, decor, reliefs, the hills'
+ *  pieces, monuments, trees, small life) that has not answered in SOFT_S is left to its procedural stand-ins and the build goes
+ *  on, saying which (s16: one disposed decoder made every later KTX2 load wait forever, and the boot with it). The people, the
+ *  carved pieces and the probes are awaited as before (the build cannot stand in for them). Long enough for a slow line:
+ *  a set's bytes come in order through the service worker's prefetch. */
+const SOFT_S = (typeof location !== 'undefined' && +(new URLSearchParams(location.search).get('softs') ?? 0)) || 300; // (?softs=<s>: the hang test, tools/deploy/serve.mjs HANG=)
+const soft = <T>(name: string, p: Promise<T>): Promise<T | undefined> => new Promise<T | undefined>((res, rej) => {
+  const t = setTimeout(() => { console.warn(`[boot] asset ${name}: no answer in ${SOFT_S} s; the world is built without it (its stand-ins)`);
+    (globalThis as any).__bootSoft = [...((globalThis as any).__bootSoft ?? []), name]; res(undefined); }, SOFT_S * 1000); (t as any).unref?.(); // (node: never holds a bake open)
+  p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
 function wmark(stage: string) { (globalThis as any).__bootStage?.('world:' + stage); if (!WTRACE) return; // (D-393: the loading screen's steps)
   const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms', 'busy', (globalThis as any).__bootBusy?.() ?? ''); wLast = t; }
 /** s15/ship (D-393): the world's asset loads in one place (the first call starts them, later calls return the same promises).
@@ -188,14 +199,14 @@ function beginAssets(settings?: Settings) {
   // downloads while the Terrace builds; the build waits for each set just before its first user (arch / the settlement)
   let t1Done: () => void = () => {}; const t1 = new Promise<void>(r => { t1Done = r; });
   const late = <T>(f: () => Promise<T>): Promise<T> => (STREAM_LATE ? t1.then(f) : f());
-  const rockKitP = late(() => tAsset('rockKit', loadRockKit(BASE))), ledgeFaceP = late(() => tAsset('ledgeFace', loadLedgeFace(BASE))), coverKitP = late(() => tAsset('coverKit', loadCoverKit(BASE))), fordKitP = late(() => tAsset('fordKit', loadFordKit(BASE))); // the hills' bedrock pieces (D-335, public/models/land/)
-  const propsP = tAsset('props', loadScanProps(BASE)); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
-  const modelsP = tAsset('models', loadModels(BASE)); // the Blender-built models (D-305, public/models/): in before the architecture is built
-  const monumentsP = late(() => tAsset('monuments', loadMonuments(BASE))); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
-  const treesP = late(() => tAsset('trees', loadTreeAssets(BASE))); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
-  const lifeP = late(() => tAsset('life', loadLifeModels(BASE))); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
-  const reliefAtlasP = tAsset('reliefAtlas', loadReliefAtlas(BASE)); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
-  const decorP = tAsset('decor', loadDecorAssets(BASE)); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
+  const rockKitP = late(() => soft('rockKit', tAsset('rockKit', loadRockKit(BASE)))), ledgeFaceP = late(() => soft('ledgeFace', tAsset('ledgeFace', loadLedgeFace(BASE)))), coverKitP = late(() => soft('coverKit', tAsset('coverKit', loadCoverKit(BASE)))), fordKitP = late(() => soft('fordKit', tAsset('fordKit', loadFordKit(BASE)))); // the hills' bedrock pieces (D-335, public/models/land/)
+  const propsP = soft('props', tAsset('props', loadScanProps(BASE))); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
+  const modelsP = soft('models', tAsset('models', loadModels(BASE))); // the Blender-built models (D-305, public/models/): in before the architecture is built
+  const monumentsP = late(() => soft('monuments', tAsset('monuments', loadMonuments(BASE)))); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
+  const treesP = late(() => soft('trees', tAsset('trees', loadTreeAssets(BASE)))); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
+  const lifeP = late(() => soft('life', tAsset('life', loadLifeModels(BASE)))); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
+  const reliefAtlasP = soft('reliefAtlas', tAsset('reliefAtlas', loadReliefAtlas(BASE))); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
+  const decorP = soft('decor', tAsset('decor', loadDecorAssets(BASE))); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
   const fireOccP = tAsset('fireOcc', loadFireOcc(BASE)); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   // the animals' modelled bodies (D-326, public/models/animals/). s15/ship (D-393): a player's visit fetches them after the
   // assets the build needs (39 MB of 103 files: they download while the world builds, the network otherwise idle) and the
@@ -427,6 +438,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
     villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts),
     rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })) }); // (D-256: the banks and meadows of the land work)
+  setInteriorPeople(sim.pop, hh => { const x = geo.villageOf(hh); return x ? `${plain.data.villages[x.vi].id}-c${x.ci}` : null; }); // s17 C7 (D-610): the rooms furnished for who lives there
   // D-392: the Terrace's core routes between place anchors (the court's walks, searched up front: D-182) read from the baked
   // world; they depend on the walkable grid and the anchors only, keyed by the grid's blocked cells (fires, furnishings); a world of another seed still finds most of its own there
   // (one entry per baked world, all of them merged: a world of another seed finds most of its routes there; this world's own
@@ -461,6 +473,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
   traffic.setQuarries(quarrySites(terrain)); // D-256: the quarrymen at work and the drums hauled to the Terrace
+  // D-570: the herders' flocks out on the stubble, the slopes and the steppe (roadFolk.ts), and drawn far by the fauna
+  traffic.folk.setGrazing(grazingSites((e, n) => landUseAt(plain.data.zones, e, -n).use, (e, n) => Math.hypot(terrain.heightAt(e + 10, -n) - terrain.heightAt(e - 10, -n), terrain.heightAt(e, -n - 10) - terrain.heightAt(e, -n + 10)) / 20, settlement?.plan ?? null)); fauna.flockSource = t => traffic.folk.flocksAt(t);
   const syncTraffic = (cam: THREE.Vector3) => { traffic.at(sim.t, movers, { e: cam.x, n: -cam.z, r: 750 }); const now = new Set<string>();
     for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
       if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }
@@ -763,7 +777,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain, ctx.camera.position);
         devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
-        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); bedrock.rock.group.visible = bedrock.ledges.group.visible = !nowView.active; if (!nowView.active) { bedrock.rock.update(ctx.camera.position, ctx.camera.getWorldDirection(_bdir), dt === 0); bedrock.ledges.update(ctx.camera.position, dt === 0); } fordDetail.update(ctx.camera.position, dt === 0); cover.group.visible = !nowView.active; if (!nowView.active) cover.update(ctx.camera.position, doyOf(ctx.clock.dayIndex), seasonAt(ctx.clock.dayIndex), dt === 0); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; fill.group.visible = !nowView.active; if (!nowView.active) fill.update([ctx.camera.position.x, -ctx.camera.position.z], ctx.clock.localHour, ctx.cond.rain); roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
+        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex)), ctx.cond.wetness); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); rocks.update([ctx.camera.position.x, -ctx.camera.position.z]); bedrock.rock.group.visible = bedrock.ledges.group.visible = !nowView.active; if (!nowView.active) { bedrock.rock.update(ctx.camera.position, ctx.camera.getWorldDirection(_bdir), dt === 0); bedrock.ledges.update(ctx.camera.position, dt === 0); } fordDetail.update(ctx.camera.position, dt === 0); cover.group.visible = !nowView.active; if (!nowView.active) cover.update(ctx.camera.position, doyOf(ctx.clock.dayIndex), seasonAt(ctx.clock.dayIndex), dt === 0); flora.group.visible = !nowView.active; if (!nowView.active) litter.update([ctx.camera.position.x, -ctx.camera.position.z]); litter.mesh.visible = !nowView.active; fill.group.visible = !nowView.active; if (!nowView.active) fill.update([ctx.camera.position.x, -ctx.camera.position.z], ctx.clock.localHour, ctx.cond.rain, false, ctx.clock.dayIndex); roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       pa('w.life+flora', tp); tp = pt(); shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)
@@ -808,7 +822,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           }
         }
         sound.update(dt, { hour, month, windMs: ctx.cond.windMs, rain: ctx.cond.rain, insideSpace: spaceAt(cam.position.x, cam.position.y, cam.position.z),
-          nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
+          nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: ctx.player.pace === 'brisk',
           surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,
           worksite: null, workHours: hour > 6.5 && hour < 17.5, // chisels, querns, dice now come from the people (crowd.onHit)
           place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC, air: ctx.cond, ground: (ctx.player as { groundKind?: 'stone' }).groundKind, roofed: (ctx.player as { roofed?: boolean }).roofed }); // D-620: the walk's ground and roof (C9) // D-210: where the animals and insects are heard; D-620: the weather for the recorded beds

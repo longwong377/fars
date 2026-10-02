@@ -107,6 +107,9 @@ export function planHouses(s: Site) {
     const life = lifeOf(p); S.lives[p.idx] = life;
     if (!HOUSE_KINDS.has(p.kind)) continue;
     p.parapet = parapetOf(p, life.standing);
+    // s17 C1 (D-550): the poorer build lower rooms (up to ~0.4 m below the plan's height for the poorest; the better-off keep
+    // it; C): the house's height follows its standing as its plot's size does (never higher: the near tiles' triangle gate)
+    p.height = +(p.height + 0.55 * Math.min(0, life.standing - 0.75)).toFixed(2);
     const rng = new Rng(hashString(p.id), 'house-fixtures');
     const [i0, j0, i1, j1] = p.rect;
     // the court: its cells, its facade edges (room | court of this plot) and its outer-wall edges
@@ -191,6 +194,16 @@ export function planHouses(s: Site) {
       if (rng.chance(0.22)) S.fixtures!.push({ kind: 'roof_line', plot: p.idx, row: FIX_ROW.roof_line, u: 0, v: 0, rot: rng.range(0, 6.28), len: rng.range(2.2, 3.2), alt: rng.int(0, 99), note: 'a line of washing strung between two sticks across the roof (C)' });
       if (!mine.some(f => f.kind === 'roller' || f.kind === 'roof_fuel' || f.kind === 'fleece')) S.fixtures!.push({ kind: 'roof_fuel', plot: p.idx, row: FIX_ROW.roof_fuel, u: 0, v: 0, rot: rng.range(0, 6.28), len: rng.range(1, 2.2), alt: rng.int(0, 99), note: 'fuel stacked on the roof: brushwood, thorn, dung cakes (C)' }); }
   }
+  unlikeNeighbours(s);
+}
+/** s17 C1 (D-550): no two neighbouring houses (street doors within 12 m) with the same street face: where a house's height and
+ *  parapet both fall in its neighbour's buckets (25 cm, 10 cm), its parapet is built a course higher (C) */
+function unlikeNeighbours(s: Site) {
+  const hs = s.plots.filter(p => HOUSE_KINDS.has(p.kind) && p.door).map(p => { const d = s.doorPoints(p); return d ? { p, u: d.out[0], v: d.out[1] } : null; }).filter(Boolean) as { p: Plot; u: number; v: number }[];
+  const same = (a: Plot, b: Plot) => Math.round(a.height / 0.25) === Math.round(b.height / 0.25) && Math.round(a.parapet / 0.1) === Math.round(b.parapet / 0.1);
+  for (let i = 0; i < hs.length; i++) for (let t = 0; t < 4; t++) { const A = hs[i]; let clash = false;
+    for (let j = 0; j < i; j++) { const B = hs[j]; if (Math.hypot(A.u - B.u, A.v - B.v) <= 12 && same(A.p, B.p)) { clash = true; break; } }
+    if (!clash) break; A.p.parapet = +(A.p.parapet + (t % 2 ? -0.24 : 0.12)).toFixed(2); if (A.p.parapet < 0.15) A.p.parapet = +(A.p.parapet + 0.36).toFixed(2); }
 }
 /** the fixtures that stand on the roof or hang from its parapet (the rest are the court's) */
 export const ROOF_FIX = new Set<FixKind>(['roller', 'roof_fuel', 'roof_mats', 'fleece', 'roof_jars', 'roof_drying', 'roof_line']);

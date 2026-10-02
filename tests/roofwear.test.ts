@@ -37,3 +37,31 @@ describe('the roofs\' things (houses.ts roofFill, drawn by the fill)', () => {
     for (const r of R.slice(0, 400)) { const g = town.plan.sites.length; void g; expect(Number.isFinite(r.y)).toBe(true); }
   }, 300_000);
 });
+
+import { toLocal, LANE, SQUARE, OUT } from '../src/world/settlement/site';
+describe('the walls\' wear (wallwear.ts)', () => {
+  it('a face per house door on its lane side; smoke and splash drawn; a fresh coat follows the sim\'s replastered roofs', () => {
+    const W = town.wallWear, sites = town.plan.sites; expect(W.faces.length).toBeGreaterThan(1300);
+    let bad = 0; for (const f of W.faces.slice(0, 600)) { const s = sites.find(x => x.plots.some(p => p.id === f.plot))!, ne = Math.sin(f.yaw), nn = -Math.cos(f.yaw);
+      const at = (d: number) => { const [u, v] = toLocal(s.frame, f.e + ne * d, f.n + nn * d); return s.at(s.ci(u), s.cj(v)); }, o = at(0.5), i = at(-0.6);
+      if (!(o === LANE || o === SQUARE || o === OUT) || i < 0) bad++; }
+    console.log(`[wallwear] ${W.faces.length} door faces, ${bad} of 600 not on a lane face`); expect(bad).toBeLessThan(12);
+    const pop = new Population(1); W.setSource(RoofWear.source(pop.households, hh => hashString(hh) / 4294967296 < 0.3 ? 0.97 : 0.7, () => 1));
+    const f0 = W.faces[0]; W.update(1, { x: f0.e, z: -f0.n }, true); console.log('[wallwear]', JSON.stringify(W.stats));
+    expect(W.stats.soot).toBeGreaterThan(5); expect(W.stats.splash).toBeGreaterThan(5); expect(W.stats.fresh).toBeGreaterThan(0);
+  }, 300_000);
+});
+
+import { townFill } from '../src/world/fillPlan';
+import { WorldFill } from '../src/world/fill';
+import { loadModelsNode } from './lib/models_node';
+describe('the lanes at night (s17 C1)', () => {
+  it('lamps at the street doors; the washing, stools and drying wool brought in at dusk', () => {
+    const lamps = ((town as any).fire.fires as { kind: string; note: string }[]).filter(f => f.kind === 'lamp' && /street door/.test(f.note));
+    console.log(`[night] ${lamps.length} door lamps`); expect(lamps.length).toBeGreaterThan(400);
+    loadModelsNode(); const items = [...townFill(town.plan.sites, 1).items, ...town.roofFill()], F = new WorldFill(items as any, { ground: () => 0 });
+    const ln = items.find(i => i.m === 'fill_line')!; const count = () => { let n = 0; F.group.traverse((o: any) => { if (o.isInstancedMesh && o.visible && /fill:(fill_line|stool):/.test(o.name)) n += o.count; }); return n; };
+    F.update([ln.e, ln.n], 11, 0, true); const day = count(); F.update([ln.e, ln.n], 22, 0, true); const night = count();
+    console.log(`[night] lines and stools drawn by day ${day}, at night ${night}`); expect(day).toBeGreaterThan(0); expect(night).toBe(0);
+  }, 300_000);
+});

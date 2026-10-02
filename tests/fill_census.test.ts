@@ -43,3 +43,36 @@ describe('the simulation\'s market grounds (market:<q>:<hid>, D-359)', () => {
     const goods = items.filter(i => i.at === 'market' && i.day && i.m !== 'mat'); expect(goods.filter(g => g.until !== undefined).length / goods.length).toBeGreaterThan(0.3);
   }, 120_000);
 });
+
+import { houseSigs, houseCensus } from '../tools/dev/house_census';
+describe('house variety (s17 C1)', () => {
+  it('no two neighbouring houses with the same street face; height follows standing', () => {
+    const sites = buildTownPlan().sites, { items } = townFill(sites, 1), c = houseCensus(houseSigs(sites, items));
+    console.log('[house_census]', JSON.stringify(c)); expect(c.alike).toBe(0); expect(c.twins).toBe(0); expect(c.heightByStanding).toBeGreaterThan(0.4);
+  }, 120_000);
+});
+
+import { plotCells, siteSearch } from '../src/world/settlement/walk';
+describe('every plot\'s spots reachable from its street door (C9 walk bots; B580)', () => {
+  it('no plot spot behind a neck narrower than a body; at most the three shut houses of B580', () => {
+    const sites = buildTownPlan().sites, bad: string[] = [];
+    for (const s of sites) { if (s.meta.kind !== 'quarter') continue; for (const p of s.plots) { if (!p.door) continue; const c = plotCells(s, p.idx), all = [...c.open, ...c.rooms];
+      if (all.filter((k, i) => i % 7 === 0).some(k => !siteSearch(s, p.door!.out, k))) bad.push(p.id); } }
+    console.log('[reach] plots with a spot not reached from their door:', bad.join(' ') || 'none');
+    expect(bad).not.toContain('q_s2-0181'); expect(bad.length).toBeLessThanOrEqual(3);
+  }, 300_000);
+});
+
+import { WorldFill } from '../src/world/fill';
+import { loadModelsNode } from './lib/models_node';
+describe('the year in the lanes (s17 C1)', () => {
+  it('sheaves after the harvest, the fuel stacked higher in the cold, the same spots dressed every season', () => {
+    loadModelsNode(); const sites = buildTownPlan().sites, { items } = townFill(sites, 1), F = new WorldFill(items, { ground: () => 0 });
+    const sh = items.find(i => i.m === 'wo_sheaf')!; expect(sh.seas).toBe(1);
+    const count = (day: number, re: RegExp) => { F.update([sh.e, sh.n], 10, 0, true, day); let n = 0; F.group.traverse((o: any) => { if (o.isInstancedMesh && o.visible && re.test(o.name)) n += o.count; }); return n; };
+    const harvest = count(60, /fill:wo_sheaf:/), warm = count(130, /fill:wo_sheaf:/), cold = count(250, /fill:wo_sheaf:/);
+    console.log(`[seasons] sheaves drawn: harvest ${harvest}, warm ${warm}, cold ${cold}; seasonal items ${items.filter(i => i.seas !== undefined).length}`);
+    expect(harvest).toBeGreaterThan(0); expect(warm).toBe(0); expect(cold).toBe(0);
+    const c = census(sites, items); expect(c.lane.longestBare).toBeLessThanOrEqual(3);
+  }, 300_000);
+});

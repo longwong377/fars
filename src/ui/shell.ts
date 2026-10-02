@@ -43,7 +43,7 @@ export function keyName(code: string): string {
 }
 /** what each action is, for the controls and the keys tab */
 const ACTION_NAMES: Record<string, string> = {
-  forward: 'Walk forward', back: 'Walk back', left: 'Step left', right: 'Step right', run: 'Walk faster (hold)', interact: 'Open a door · speak to someone',
+  forward: 'Walk forward', back: 'Walk back', left: 'Step left', right: 'Step right', run: 'Walk faster (hold)', slow: 'Walk carefully (hold)', crouch: 'Crouch (toggle)', interact: 'Open a door · speak to someone',
   pause: 'Menu', overlay: 'Evidence overlay (tiers, sources)', map: 'Map (translation layer)', mapZoom: 'Map scale (translation layer)',
   chronicle: 'Chronicle (translation layer)', nowView: 'The ruin today (Now view)',
 };
@@ -100,6 +100,7 @@ export function whenLines(label: string): string[] {
 export class Shell {
   mode: 'loading' | 'title' | 'playing' | 'paused' = 'loading';
   constructor(private settings: Settings, private hooks: ShellHooks) {
+    (globalThis as any).__shell = this; // (the first-minutes driver, tools/dev/first_minutes.mjs: the pause a headless page cannot reach by Esc)
     // Esc in a sub-screen (settings, controls) goes back a step; the pointer lock's own Esc still pauses the walk
     addEventListener('keydown', e => { if (e.key === 'Escape' && this.back && (this.mode === 'paused' || this.mode === 'title')) { const b = this.back; this.back = null; b(); e.preventDefault(); } });
   }

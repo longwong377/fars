@@ -18,6 +18,8 @@
 // Street door leaves are the town door system (TownDoors, build.ts): instanced, turning on their pivot posts, shut at night.
 // Every face carries an owner: (plot or fixture description index) × 32 + part, so F3 names the house, the part, its tier
 // and its sources (HOUSE_PARTS). All tier C: no house of Achaemenid Fars is excavated; the analogues are named per part.
+import { interiorsOn } from '../interiors/town';
+import { registerHouses } from '../interiors/ring';
 import { Batch, RGB, lin } from './geom';
 import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM, COURT, YARD } from './site';
 import { hashString } from '../../core/rng';
@@ -113,7 +115,7 @@ export class SiteHouses {
   private fixByPlot = new Map<number, Fixture[]>(); private fitByPlot = new Map<number, Site['fittings']>(); private wallsByTile = new Map<number, WallEl[]>(); private roomsByTile = new Map<number, RoomEl[]>();
   private cs: number; private sn: number;
   constructor(readonly s: Site, readonly si: number, readonly H: (e: number, n: number) => number, readonly base: Float32Array, readonly local: Uint8Array, readonly pcol: RGB[], readonly pdesc: Int32Array, desc: { tier: string; src: string; note: string }[]) {
-    this.cs = Math.cos(s.frame.theta); this.sn = Math.sin(s.frame.theta);
+    this.cs = Math.cos(s.frame.theta); this.sn = Math.sin(s.frame.theta); registerHouses(this); // s17 C7 (D-610): the rooms round the eye furnished (interiors/ring.ts)
     this.lives = livesOf(s); this.fixtures = fixturesOf(s);
     this.plotTile = new Int32Array(s.plots.length); this.big = new Uint8Array(s.plots.length);
     for (const p of s.plots) { const [i0, j0, i1, j1] = p.rect; this.big[p.idx] = p.area > 1500 || !HOUSE_KINDS.has(p.kind) && p.area > 600 ? 1 : 0; this.plotTile[p.idx] = this.tileAt(s.u0 + (i0 + i1) / 2, s.v0 + (j0 + j1) / 2); }
@@ -835,6 +837,7 @@ export class SiteHouses {
    *  of workshops their stock. Dark volumes otherwise: the visitor walking in would find them empty */
   private furnish(r: RoomEl, B: HB) {
     const s = this.s, p = s.plots[r.plot]; if (!HOUSE_KINDS.has(p.kind)) return;
+    if (interiorsOn) return; // s17 C7 (D-610): the rooms round the eye are furnished by src/world/interiors/ring.ts
     const u0 = s.u0 + r.i0, u1 = s.u0 + r.i1, v0 = s.v0 + r.j0, v1 = s.v0 + r.j1, W2 = u1 - u0, D2 = v1 - v0; if (W2 < 2 || D2 < 2) return;
     const use = this.roomUse(r), vest = use === 'vestibule', h = hi(r.room, this.si, 5), own = this.owner(r.plot, P.fixture);
     const gy = (u: number, v: number) => this.gl(u, v);
@@ -894,7 +897,7 @@ export class SiteHouses {
   /** s17 C1 (D-550): the roof's stores and work (houseplan.ts roof_jars, roof_drying, roof_line) as fill items at their absolute
    *  heights (fill.ts draws them instanced: the near tiles' triangle budget is the houses' own): jars of water and stores, dung
    *  cakes or washed wool spread to dry on a reed mat, a line of washing between two sticks (C) */
-  roofFill(): { m: string; e: number; n: number; y: number; dy: number; rot: number; s: [number, number, number]; col?: Record<string, RGB>; at: string; tilt?: number }[] {
+  roofFill(): { m: string; e: number; n: number; y: number; dy: number; rot: number; s: [number, number, number]; col?: Record<string, RGB>; at: string; tilt?: number; day?: boolean }[] {
     const out: ReturnType<SiteHouses['roofFill']> = [], s = this.s, CL: RGB[] = [[0.8, 0.74, 0.62], [0.86, 0.82, 0.72], [0.58, 0.22, 0.16], [0.28, 0.32, 0.46], [0.72, 0.58, 0.3], [0.74, 0.68, 0.56]];
     const yaw = (a: number, u: number, v: number) => { const c0 = s.grid(u, v), c1 = s.grid(u + Math.cos(a), v + Math.sin(a)); return Math.atan2(c1[1] - c0[1], c1[0] - c0[0]); };
     const put = (m: string, u: number, v: number, y: number, rot: number, sc: [number, number, number], col?: Record<string, RGB>) => { const [e, n] = s.grid(u, v); out.push({ m, e, n, y, dy: 0, rot, s: sc, ...(col ? { col } : {}), at: 'roof' }); };
@@ -903,9 +906,9 @@ export class SiteHouses {
       if (f.kind === 'roof_jars') { const n = 2 + alt % 3; for (let k = 0; k < n; k++) { const o = (k - (n - 1) / 2) * 0.55, big = (k + alt) % 2 === 0, sc = (big ? 0.82 : 0.95) * (0.9 + 0.2 * hi(f.plot, 50 + k));
         put(big ? 'jar_store' : 'jar_water', sp.u + ca * o, sp.v + sa * o, sp.y, hi(f.plot, 40 + k) * 6.283, [sc, sc, sc]); } }
       else if (f.kind === 'roof_drying') { put('mat', sp.u, sp.v, sp.y + 0.004, r3, [0.9, 1, 0.92]);
-        if (alt % 3 === 2) put('wo_fleece', sp.u, sp.v, sp.y + 0.01, r3 + 0.3, [1.6, 1, 1.5], { wool: CL[alt % 2], wool_d: CL[1] });
+        if (alt % 3 === 2) { put('wo_fleece', sp.u, sp.v, sp.y + 0.01, r3 + 0.3, [1.6, 1, 1.5], { wool: CL[alt % 2], wool_d: CL[1] }); out[out.length - 1].day = true; } // (the wool taken in at dusk)
         else for (let k = 0; k < 3; k++) { const o = (k - 1) * 0.55; put('wo_dung_cakes', sp.u + ca * o, sp.v + sa * o, sp.y + 0.012, r3 + 1.4 + 0.5 * hi(f.plot, 70 + k), [0.9, 1, 0.9]); } }
-      else { const L = Math.min(f.len, 2.6) / 3; put('fill_line', sp.u, sp.v, sp.y - 0.9, r3, [L, 1, 1], { cloth_a: CL[alt % CL.length], cloth_b: CL[(alt >> 2) % CL.length] }); } }
+      else { const L = Math.min(f.len, 2.6) / 3; put('fill_line', sp.u, sp.v, sp.y - 0.9, r3, [L, 1, 1], { cloth_a: CL[alt % CL.length], cloth_b: CL[(alt >> 2) % CL.length] }); out[out.length - 1].day = true; } }
     return out;
   }
   private roofSpot(f: Fixture): { u: number; v: number; y: number } | null {
