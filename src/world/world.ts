@@ -140,7 +140,7 @@ import { CourtCampTents } from './courtCamps';
 import { NearSolids, SOLID_R } from './solids';
 import type { AnimalInst } from '../people/animals';
 import { CAMPS } from '../people/camps';
-import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
+import { Fauna, FAC as FAUNA_FAC, grazingSites, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
 import { quarrySites } from './plain/quarries';
 import { SmokeModel, type SmokeSite } from './hearthSmoke';
@@ -461,6 +461,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
   traffic.setQuarries(quarrySites(terrain)); // D-256: the quarrymen at work and the drums hauled to the Terrace
+  // D-570: the herders' flocks out on the stubble, the slopes and the steppe (roadFolk.ts), and drawn far by the fauna
+  traffic.folk.setGrazing(grazingSites((e, n) => landUseAt(plain.data.zones, e, -n).use, (e, n) => Math.hypot(terrain.heightAt(e + 10, -n) - terrain.heightAt(e - 10, -n), terrain.heightAt(e, -n - 10) - terrain.heightAt(e, -n + 10)) / 20, settlement?.plan ?? null)); fauna.flockSource = t => traffic.folk.flocksAt(t);
   const syncTraffic = (cam: THREE.Vector3) => { traffic.at(sim.t, movers, { e: cam.x, n: -cam.z, r: 750 }); const now = new Set<string>();
     for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
       if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }
