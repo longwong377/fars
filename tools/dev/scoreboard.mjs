@@ -41,7 +41,7 @@ if (cmd === 'run') {
   const dir = join(ROOT, 'sb', `${stampNow()}-${label}`); mkdirSync(dir, { recursive: true });
   const out = join(dir, 'coverage.json'), slot = join(tree, 'tools/dev/gpu_slot.mjs');
   const env = { ...process.env, PW_CHANNEL: process.env.PW_CHANNEL ?? 'chrome', SET: set, FULL_DIR: dir, OUT: out, Q: opt('--q', 'high'),
-    TIMEOUT: String(2400 + 900 * n), PW_TIMEOUT: String(2400 + 900 * n), // the T4: ~17 min to ready, up to ~13 min a new view state E2E_PORT: opt('--port', '5182'), NOHMR: '1' };
+    TIMEOUT: String(2400 + 900 * n), PW_TIMEOUT: String(2400 + 900 * n), E2E_PORT: opt('--port', '5182'), NOHMR: '1' }; // T4: ~17 min to ready, ~13 min a new state
   console.log(`scoreboard ${label}: ${n} views on ${tree} -> ${dir}`);
   const t0 = Date.now();
   const pw = ['npx', 'playwright', 'test', 'tests/e2e/coverage.spec.ts', `--project=${process.env.PW_PROJECT ?? 'gpu'}`];
