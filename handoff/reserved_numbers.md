@@ -133,3 +133,6 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-590..D-599 | s17 | C5 screens and intro (Q-1520..Q-1529, B620..B629) | cloud-s17-c5-screens | in flight |
 | D-600..D-609 | s17 | C6 far land (Q-1530..Q-1539, B630..B639) | cloud-s17-c6-far | in flight |
 | D-610..D-619 | s17 | C7 interiors everywhere (Q-1540..Q-1549, B640..B649) | cloud-s17-c7-interiors | in flight |
+| D-620..D-629 | s17 | C8 sound (Q-1550..Q-1559, B650..B659) | cloud-s17-c8-sound | in flight |
+| D-630..D-639 | s17 | C9 the walk (Q-1560..Q-1569, B660..B669) | cloud-s17-c9-walk | in flight |
+| D-640..D-649 | s17 | C10 life everywhere (Q-1570..Q-1579, B670..B679) | cloud-s17-c10-life | in flight |
