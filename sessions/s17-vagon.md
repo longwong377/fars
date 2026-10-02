@@ -40,7 +40,7 @@ The rules for the session:
 5. **Every ~45 min the render train** re-renders the scoreboard with every merge in; judge by eye against the AAA bar (RDR2,
    Ghost of Tsushima, AC Origins) and the references. The merge budget still applies: memory is already 0.83 GB over, so
    heavier real assets need compression (KTX2, Draco, LODs, impostors) as they land.
-6. **Done** = every coverage view reads as a photograph to a fresh reviewer, not one showcase view. Leave sessions/s17.md
+6. **Done** = every coverage view looks like a top modern AAA open-world game (RDR2, Ghost of Tsushima, AC Origins) to a fresh reviewer, not one showcase view (UD-35: not "reads as a photograph"). Leave sessions/s17.md
    with the before/after frames and what still breaks first.
 
 ## State at hand-off (s14-int 36adf02e, deployed to https://longwong377.github.io/fars/)
