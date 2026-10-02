@@ -91,14 +91,15 @@ const open = (c: number) => c === LANE || c === SQUARE || c === OUT;
 /** s17 C1 (D-550): no two things of the same model within 15 m that look the same (scale within 3 %, the same colours, turned
  *  within 10 degrees, the same lean): each later twin is turned and sized a step further from its earlier twin (a tool's lean
  *  changed instead of its turn, so it stays against its wall) */
+export const sameLook = (a: FillItem, b: FillItem) => a.m === b.m && Math.abs(a.s[0] - b.s[0]) < 0.03 * Math.max(a.s[0], b.s[0]) && Math.abs(a.s[1] - b.s[1]) < 0.03 * Math.max(a.s[1], b.s[1])
+  && Math.abs((a.tilt ?? 0) - (b.tilt ?? 0)) < 0.05 && Math.abs(Math.atan2(Math.sin(a.rot - b.rot), Math.cos(a.rot - b.rot))) < 0.175 && JSON.stringify(a.col ?? {}) === JSON.stringify(b.col ?? {});
 export function detwin(items: FillItem[], R = 15) {
   const G = new Map<number, number[]>(), key = (e: number, n: number) => (Math.floor(e / R) + 8192) * 16384 + Math.floor(n / R) + 8192;
-  const same = (a: FillItem, b: FillItem) => a.m === b.m && Math.abs(a.s[0] - b.s[0]) < 0.03 * a.s[0] && Math.abs(a.s[1] - b.s[1]) < 0.03 * a.s[1] && Math.abs((a.tilt ?? 0) - (b.tilt ?? 0)) < 0.05
-    && Math.abs(Math.atan2(Math.sin(a.rot - b.rot), Math.cos(a.rot - b.rot))) < 0.175 && JSON.stringify(a.col ?? {}) === JSON.stringify(b.col ?? {});
+  const same = sameLook;
   items.forEach((a, k) => { const i0 = Math.floor(a.e / R), j0 = Math.floor(a.n / R);
     const twin = () => { for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (const q of G.get((i0 + x + 8192) * 16384 + j0 + y + 8192) ?? []) { const b = items[q]; if (Math.hypot(a.e - b.e, a.n - b.n) < R && same(a, b)) return b; } return null; };
-    for (let t = 0; t < 8; t++) { const b = twin(); if (!b) break; const f = 1 + 0.045 * (t % 2 ? -1 : 1) * (1 + (t >> 1) * 0.5);
-      a.s = [b.s[0] * f, b.s[1] * f, b.s[2] * f]; if (a.tilt !== undefined) a.tilt = b.tilt! + (t % 2 ? -0.06 : 0.06); else if (a.m !== 'fill_stall' && a.m !== 'fill_line' && a.m !== 'fill_awning') a.rot += 0.4; }
+    for (let t = 0; t < 16; t++) { const b = twin(); if (!b) break; const f = 1 + 0.045 * (t % 2 ? -1 : 1) * (1 + (t >> 1) * 0.5);
+      a.s = [b.s[0] * f, b.s[1] * f, b.s[2] * f]; if (a.tilt !== undefined) a.tilt = b.tilt! + (t % 2 ? -0.06 : 0.06); else if (a.m !== 'fill_stall' && a.m !== 'fill_line' && a.m !== 'fill_awning' && a.m !== 'fill_reed_awning') a.rot += 0.4 + 0.11 * t; }
     const kk = key(a.e, a.n); (G.get(kk) ?? G.set(kk, []).get(kk)!).push(k); });
 }
 /** one site's fill; `outside`: the open ground round a village's compounds counts as its lanes (villages have no lanes) */
@@ -131,6 +132,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
     const ok = (u: number, v: number, r: number) => open(s.at(s.ci(u), s.cj(v))) && !nearTaken(u, v, r);
     if (u01(...key, 21) < 0.42) { const T = wpick(TOOL_W, u01(...key, 22)), [zmin, zmax] = TOOLS[T], L = 0.18 + 0.1 * u01(...key, 23), [u, v] = at(-(1.0 + 0.3 * u01(...key, 24)), zmax * Math.sin(L) + 0.05);
       if (ok(u, v, 0.6)) { put(T, u, v, -di, -dj, 1, 'gap', { tilt: -Math.PI / 2 - L, dy: -zmin * Math.cos(L), rot: 0 }); fixRot(-di, -dj, (u01(...key, 25) - 0.5) * 0.5); st.door++; } }
+    if (u01(...key, 31) < 0.18) { const [u, v] = at(0.95 + 0.2 * u01(...key, 32), 0.02); if (open(s.at(s.ci(u), s.cj(v)))) { put('fill_skin', u, v, -di, -dj, 0.9 + 0.2 * u01(...key, 33), 'gap'); fixRot(-di, -dj, 0); st.door++; } }
     if (u01(...key, 26) < 0.22 && w >= 2.4) { const [u, v] = at(1.1 + 0.3 * u01(...key, 27), 0.4); if (ok(u, v, 0.6)) { put('stool', u, v, -di, -dj, 0.95 + 0.1 * u01(...key, 28), 'gap'); fixRot(-di, -dj, u01(...key, 29) * 6.28); st.door++; } }
     const life = s.lives?.[P.idx]; if (life?.animal && w >= 2.8 && u01(...key, 30) < (life.animal === 'donkey' ? 0.6 : 0.3)) { const [u, v] = at(1.6, 0.35);
       if (ok(u, v, 1.2) && !nearDoor(u, v, 1.2)) { put('peg', u, v, -di, -dj, 1, 'gap', { tether: life.animal, plot: P.id }); fixRot(-di, -dj, 0); st.door++; st.tethers = (st.tethers ?? 0) + 1; } }
@@ -176,7 +178,9 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       if (doorEdge(i, j, di, dj)) { // a street door
         const isWs = P.kind === 'workshop', aw = (isWs ? 0.6 : 0.12 + 0.2 * (P.kind === 'house_large' ? 1 : 0));
         if (w >= 3 && c === LANE && u01(...key, 1) < aw && P.height >= 2.6) { const dep = Math.min(1.7, w - 1.8);
-          put('fill_awning', wu - di * 0.28, wv - dj * 0.28, -di, -dj, [0.9 + 0.2 * u01(...key, 2), Math.min(1, (P.height - 0.1) / 2.4), dep / 1.7], 'door', { col: { cloth: cloth(u01(...key, 3)) } }); st.door++; }
+          // (s17 C1: a house's shade is as often a reed mat on poles as a cloth; a workshop's mostly cloth)
+          if (u01(...key, 17) < (isWs ? 0.25 : 0.55)) put('fill_reed_awning', wu - di * 0.28, wv - dj * 0.28, -di, -dj, [0.95 + 0.2 * u01(...key, 2), Math.min(1, (P.height - 0.1) / 2.35), dep / 1.6], 'door');
+          else put('fill_awning', wu - di * 0.28, wv - dj * 0.28, -di, -dj, [0.9 + 0.2 * u01(...key, 2), Math.min(1, (P.height - 0.1) / 2.4), dep / 1.7], 'door', { col: { cloth: cloth(u01(...key, 3)) } }); st.door++; }
         else if (u01(...key, 4) < 0.3) { const side = u01(...key, 5) < 0.5 ? -1 : 1, ou = wu - di * 0.32 + side * dj * 0.95, ov = wv - dj * 0.32 - side * di * 0.95;
           if (!nearTaken(ou, ov, 0.8) && open(s.at(s.ci(ou), s.cj(ov)))) { put('jar_water', ou, ov, -di, -dj, 0.75 + 0.2 * u01(...key, 6), 'door'); st.door++; } }
         doorThings(i, j, di, dj, w, P, key);
@@ -219,12 +223,12 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       const w = clear(i, j, di, dj), key = [sid, k, di + 2 * dj + 3, 77];
       const along = (u01(...key, 1) - 0.5) * 0.6, fits = (m: string) => { const d = LITTLE_D[m] ?? 0.5; return w - d - 0.3 >= 1.6 || (w >= 2 && d <= 0.45); };
       const m = pickNot(LITTLE, u01(...key, 2), fe, fn, fits); if (!m) continue;
-      const tool = TOOLS[m], dep = LITTLE_D[m] ?? 0.5, L = 0.18 + 0.1 * u01(...key, 3), off = tool ? tool[1] * Math.sin(L) + 0.05 : 0.3 + dep / 2;
+      const tool = TOOLS[m], dep = LITTLE_D[m] ?? 0.5, L = 0.18 + 0.1 * u01(...key, 3), off = tool ? tool[1] * Math.sin(L) + 0.05 : AGAINST[m] !== undefined ? AGAINST[m] + 0.02 : 0.3 + dep / 2;
       const gu = wu - di * off + dj * along, gv = wv - dj * off - di * along;
       if (nearDoor(gu, gv, 1.1) || nearTaken(gu, gv, 1.0) || !open(s.at(s.ci(gu), s.cj(gv)))) continue;
       const sc = tool ? 1 : 0.86 + 0.24 * u01(...key, 4), col = LITTLE_COL[m]?.(u01(...key, 5));
       put(m, gu, gv, -di, -dj, sc, 'gap', { ...(col ? { col } : {}), ...(tool ? { tilt: -Math.PI / 2 - L, dy: -tool[0] * Math.cos(L) } : {}) });
-      fixRot(-di, -dj, tool ? (u01(...key, 6) - 0.5) * 0.5 : (u01(...key, 6) - 0.5) * 1.2); addB(items.length - 1); st.gap = (st.gap ?? 0) + 1; } }
+      fixRot(-di, -dj, tool || AGAINST[m] !== undefined ? (u01(...key, 6) - 0.5) * 0.3 : (u01(...key, 6) - 0.5) * 1.2); addB(items.length - 1); st.gap = (st.gap ?? 0) + 1; } }
   if (!outside) for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i; if (s.cell[k] !== LANE) continue;
     const key = [sid, k, 91], u = s.cu(i) + (u01(...key, 1) - 0.5) * 0.7, v = s.cv(j) + (u01(...key, 2) - 0.5) * 0.7, [e, n] = toG(u, v);
     if (nearB(e, n, 2.8) || nearTaken(u, v, 1.0) || nearDoor(u, v, 0.8)) continue;
@@ -240,15 +244,20 @@ const TOOL_W: [string, number][] = [['tool_hoe', 3], ['tool_broom', 3], ['tool_f
 /** the gap fill: within this of the wall's foot nothing stands -> one thing (m): ~5 m between things along a wall at most */
 const GAP_R = 2.4;
 const LITTLE: [string, number][] = [['jar_water', 3], ['tool_broom', 1.6], ['sack', 2], ['wo_dung_cakes', 1.6], ['cookpot', 1.2], ['fill_bundle', 2], ['basin', 1], ['tool_hoe', 1.4], ['firewood_lean', 2],
-  ['stool', 1], ['roll', 1], ['dung_stack', 1.4], ['milkpot', 0.8], ['wo_mud_heap', 0.9], ['tool_fork', 0.7], ['sack_lying', 1], ['wo_fodder', 0.8], ['kneading_trough', 0.4], ['wo_brick_stack', 0.6],
-  ['tool_staff', 0.7], ['brush_pile', 0.8], ['quern', 0.5], ['fill_rubble', 0.6], ['jar_neck', 0.6], ['fill_produce', 0.3], ['wo_fleece', 0.4]];
+  ['stool', 1], ['roll', 1], ['dung_stack', 1.4], ['wo_mud_heap', 0.9], ['tool_fork', 0.7], ['sack_lying', 1], ['wo_fodder', 0.8], ['wo_brick_stack', 0.6],
+  ['tool_staff', 0.7], ['brush_pile', 0.8], ['quern', 0.5], ['fill_rubble', 0.6], ['jar_neck', 0.6],
+  ['fill_matlean', 1.4], ['fill_basket_tall', 1.4], ['fill_winnow', 1.0]];
 const LITTLE_D: Record<string, number> = { ...DEPTH, cookpot: 0.36, basin: 0.47, stool: 0.45, wo_dung_cakes: 0.46, milkpot: 0.3, wo_mud_heap: 0.8, wo_fodder: 0.75, kneading_trough: 0.5, wo_brick_stack: 0.7, quern: 1.0, wo_fleece: 0.54,
-  tool_hoe: 0.4, tool_broom: 0.25, tool_fork: 0.45, tool_staff: 0.4, tool_goad: 0.35 };
+  tool_hoe: 0.4, tool_broom: 0.25, tool_fork: 0.45, tool_staff: 0.4, tool_goad: 0.35, fill_matlean: 0.65, fill_basket_tall: 0.45, fill_winnow: 0.3 };
+/** models whose back stands against the wall (their own -z to the wall): set this far out from the wall's face (m) */
+const AGAINST: Record<string, number> = { fill_matlean: 0.27, fill_winnow: -0.04 };
 const LITTLE_COL: Record<string, (u: number) => Record<string, RGB>> = { roll: u => ({ textile: cloth(u) }), fill_produce: u => ({ fruit: pick(FRUIT, u) }),
   wo_fleece: u => ({ wool: pick(FLEECE, u), wool_d: pick(FLEECE, (u * 7) % 1) }) };
 const FLEECE: RGB[] = [[0.82, 0.77, 0.66], [0.76, 0.7, 0.58], [0.34, 0.28, 0.23], [0.55, 0.45, 0.34]];
-const LITTER: [string, number][] = [['wo_fodder', 3], ['sherds', 3], ['wo_brushwood', 1.5], ['wo_spoil', 1.5], ['wo_dung_cakes', 0.8], ['tool_stick', 0.6], ['wo_knucklebones', 0.25]];
-const LITTER_S: Record<string, [number, number]> = { wo_fodder: [0.45, 0.8], sherds: [1.6, 2.6], wo_brushwood: [0.55, 0.9], wo_spoil: [0.45, 0.8], wo_dung_cakes: [0.7, 1.0], tool_stick: [0.8, 1.2], wo_knucklebones: [1, 1.2] };
+// (the modelled litter holds the straw, sherds, droppings and twigs: the other kinds only where it is not used within 6 m,
+// so a view's draws stay few)
+const LITTER: [string, number][] = [['fill_litter', 6], ['wo_spoil', 1.5], ['wo_dung_cakes', 0.6], ['wo_knucklebones', 0.25]];
+const LITTER_S: Record<string, [number, number]> = { fill_litter: [0.8, 1.25], wo_fodder: [0.45, 0.8], sherds: [1.6, 2.6], wo_brushwood: [0.55, 0.9], wo_spoil: [0.45, 0.8], wo_dung_cakes: [0.7, 1.0], tool_stick: [0.8, 1.2], wo_knucklebones: [1, 1.2] };
 /** a dump of hearth ash and swept earth: grey to the lane's khaki (sRGB) */
 const ASH: RGB[] = [[0.5, 0.48, 0.45], [0.58, 0.54, 0.48], [0.62, 0.55, 0.44], [0.42, 0.4, 0.38]];
 

@@ -13,7 +13,7 @@ import { writeFileSync } from 'node:fs';
 import { buildTownPlan } from '../../src/world/settlement/plan';
 import { LANE, SQUARE, COURT, YARD, toLocal, type Site } from '../../src/world/settlement/site';
 import { HOUSE_KINDS } from '../../src/world/settlement/houseplan';
-import { townFill, type FillItem } from '../../src/world/fillPlan';
+import { townFill, sameLook, type FillItem } from '../../src/world/fillPlan';
 
 const ROOF_KINDS = new Set(['roller', 'roof_fuel', 'roof_mats', 'fleece', 'roof_jars', 'roof_drying', 'roof_patch']);
 const LANE_SIDE = new Set(['drain', 'niche']);
@@ -74,8 +74,7 @@ export function census(sites: Site[], items: FillItem[]): Census {
   // repeats
   const IG = new Map<string, FillItem[]>(), ik = (e: number, n: number) => `${Math.floor(e / 15)},${Math.floor(n / 15)}`;
   for (const it of items) { const k = ik(it.e, it.n); (IG.get(k) ?? IG.set(k, []).get(k)!).push(it); }
-  const same = (a: FillItem, b: FillItem) => a.m === b.m && Math.abs(a.s[0] - b.s[0]) < 0.03 * a.s[0] && Math.abs(a.s[1] - b.s[1]) < 0.03 * a.s[1] && JSON.stringify(a.col ?? {}) === JSON.stringify(b.col ?? {})
-    && Math.abs(Math.atan2(Math.sin(a.rot - b.rot), Math.cos(a.rot - b.rot))) < 0.175 && Math.abs((a.tilt ?? 0) - (b.tilt ?? 0)) < 0.05;
+  const same = sameLook;
   let clones = 0, near4 = 0;
   for (const a of items) { const i0 = Math.floor(a.e / 15), j0 = Math.floor(a.n / 15); let n4 = false;
     for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (const b of IG.get(`${i0 + x},${j0 + y}`) ?? []) { if (b === a) continue; const d = Math.hypot(a.e - b.e, a.n - b.n);

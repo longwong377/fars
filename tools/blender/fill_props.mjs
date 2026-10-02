@@ -24,6 +24,13 @@ export const TARGETS = {
   block: { stone: [2400, 700, 250], wood: [500, 160, 60] },
   scaffold: { wood: [6000, 1800, 600], cord: [1200, 300, 0] },
   rubble: { mud: [1200, 400, 150], brick: [1600, 500, 160] },
+  // s17 C1 (D-550): the lanes' and doorways' lesser things
+  litter: { straw: [1400, 420, 140], dung: [500, 160, 60], clay: [120, 60, 24], wood: [150, 60, 24] },
+  matlean: { reed: [2400, 700, 180] },
+  basket_tall: { wicker: [1600, 500, 160], cord: [160, 60, 24] },
+  winnow: { wicker: [1200, 360, 120] },
+  reed_awning: { wood: [1800, 600, 220], reed: [1800, 520, 180], cord: [80, 40, 16] },
+  skin: { wood: [120, 50, 20], hide: [900, 300, 100], cord: [120, 50, 20] },
 };
 const want = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const src = readFileSync('tools/blender/fill_props.py', 'utf8');
