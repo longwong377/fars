@@ -21,7 +21,7 @@ cradles, toys, tools in the corners; the smith's anvil and bellows, the potter's
 the squad's spears and shields; the Treasury's goods on its benches. Nothing in a doorway; a body can cross every room.
 
 **Census** (tools/dev/interior_census.ts, 23 008 rooms; --baseline = houses.ts before): bare rooms 66.9 % -> 1.1 %, things
-per room 4.6 -> 10.6, same set as a neighbour within 15 m 57 % -> 2.2 %, same set and layout 19.7 % -> 0.0 %, things in a
+per room 4.6 -> 10.8 (a living room: 10.5 for the poorest households, 17.3 for the richest), same set as a neighbour within 15 m 57 % -> 1.6 %, same set and layout 19.7 % -> 0.0 %, things in a
 doorway's sweep 1604 -> 0, rooms a body cannot cross 1.9 % -> 0 %. Houses' worst near tile 59.9 k -> 49.2 k triangles.
 
 **Files**: src/world/interiors/** (plan, household, town, terrace, tents, draw, ring, census), furnish.ts (1 call),
@@ -30,4 +30,8 @@ interior_probe.*, tests/interiors.test.ts. Hooks in others' files (one call each
 furnish() returns early), settlement/build.ts (the ring's group; its update in nearUpdate), world.ts (setInteriorPeople),
 courtCamps.ts (registerTentInteriors).
 
-**Tests**: tests/interiors.test.ts 5/5; tests/houses.test.ts 9/9 (worst tile 49.2 k); guards pass.
+**Tests**: tests/interiors.test.ts 5/5; tests/houses.test.ts 9/9 (worst tile 49.2 k); guards pass. tests/scribes_room.test.ts: 2 of 4
+fail here (the Aramaic secretary's year plan, 'ws:1' vs 'treasury_desk'), sim assertions my files do not touch (furnish.ts only gained
+one import); the comparison run on the pre-C7 base was lost to a container restart, so not proven pre-existing.
+**For C4**: the ring adds two draw calls (interiors:clay, interiors:cloth) and up to 60 k triangles near houses; the houses' near
+tiles lost ~50 k in exchange.
