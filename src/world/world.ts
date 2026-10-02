@@ -108,6 +108,7 @@ import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { NavGrid } from '../people/navgrid';
 import { PeopleSim, Env } from '../people/sim';
+import { strangerPresence, thinCaption } from '../people/speech/presence';
 import { Crowd, PATH_REACH } from '../people/crowd';
 import { PopGeo } from '../people/popgeo';
 import { PopView } from '../people/popview';
@@ -472,7 +473,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // 135 on the Terrace; published words only, each person their own voice; a grain bed for the talkers beyond (audio/voices.ts)
   const voices = new PopulationVoices(audio, { seed }); voices.neural = neural; farCrowd.neural = neural; const nearBuf: NearPerson[] = []; const scriptedUntil = new Map<string, number>();
   // what a person near says reaches the translation layer (out of world; T-K3c), unless a scripted line was shown lately
-  let scriptedSubAt = -1e9; voices.onCaption = c => { if (c.lang === 'wordless' || time - scriptedSubAt < 4) return;
+  let scriptedSubAt = -1e9; voices.onCaption = c0 => { if (c0.lang === 'wordless' || time - scriptedSubAt < 4) return; const c = { ...thinCaption(sim, c0), lang: c0.lang }; // (D-370: the gloss thins as the stranger learns the tongue)
     lastSubtitle = { lineId: c.unit, lang: c.lang, translit: c.translit, gloss: c.gloss, tier: c.tier, speakerId: c.key, backend: neural?.stats.ready ? 'kokoro' : 'formant' }; };
   // D-245: the rivers and canals sound near their banks (audio/water.ts; T-G3e)
   const water = new WaterSound(audio, [...plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2, kind: 'river' as const })),
@@ -701,6 +702,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         const p = ctx.player.position, feet = ctx.player.feetY;
         { // D-245: the population's voices (the Now view has no people of 467), the jaw moving with the voice; the water
           const near = nowView.active ? [] : crowd.nearPeople(cam.position, voices.bedR, nearBuf);
+          if (ctx.player) strangerPresence(sim, near, cam.position); // (D-370: time beside the employer's people makes an attended day)
           voices.coughEvery = [0, 1, 2, 10, 11].includes(ctx.cond.day.climMonth) ? 500 : [5, 6, 7].includes(ctx.cond.day.climMonth) ? 1800 : 1200; // winter colds (C)
           voices.update(dt, near, cam.position, k => (scriptedUntil.get(k) ?? -1) > time);
           // session 10 (GB56): the talkers from 60 m to FAR_R as a distant murmur (the wide gather twice a second: it builds a

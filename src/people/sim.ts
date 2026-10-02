@@ -368,6 +368,8 @@ export class PeopleSim {
     if (!act) return null; if (act.a === 'hear') act.lang = E.stranger().langOf(hh ?? `h:${h}`);
     return { act, verdict: E.stranger().judge(act) };
   }
+  /** D-370: the economy if it is built (no side effect): the render side's hooks read the stranger's state from it */
+  ledgerNow(): Economy | null { return this.econ; }
   /** D-370: the step done (recorded in the economy, saved, replayed) */
   strangerDo(act: SAct): Verdict { return this.econTo(act.day).stranger().do(act); }
   /** D-370: the hours the stranger spent today beside the people they work with (attendance, reported once a day at 2 h) */

@@ -15,6 +15,8 @@ import type { Turn } from './prompt';
 import { bakedProse, bakedWho } from './bake';
 import { talkTurn } from './turn';
 
+/** D-370: the sandbox step as the translation layer notes it (out of world) */
+const SANDBOX_DONE: Record<string, string> = { seek_work: 'taken on as a hand', stay: 'taken in as a guest', join: 'taken in', petition: 'the petition will be heard', give: 'given', claim: 'they heard who you say you are', leave_stay: 'you leave the house', quit: 'you leave the work', leave_group: 'you leave them', hear: 'they say it slowly for you' };
 export const DEFAULT_MODEL = 'gemma-2-2b-it-q4f16_1-MLC'; // D-296: measured on the T4 (the lab's T-E9 runs): the most natural voice of the 1-3 B models that fit 4 s and the watchdog
 export const NEAR_M = 3;
 /** D-336: the Farsi of the opt-in layer by default: the conversation model's own Persian of its reply (measured against NLLB-600M: DECISIONS D-336) */
@@ -85,7 +87,9 @@ export function mountConverse(c: Ctx) {
       if (h) heard = { lang: h.lang, layer: h.layer, units: h.units.map(u => u.translit || u.gloss), text: h.text, seconds: h.seconds, backend: 'kokoro', firstMs: h.firstMs, totalMs: performance.now() - tH, fa: fa ? { route: fa.route, ms: fa.ms, hits: fa.hits } : null };
       else { const f = heardReply(sim.pop, near.pid, day, a.text, c.seed, 24000, agent); heard = { lang: f.lang, layer: 'own', units: f.units.map(u => u.translit || u.gloss), seconds: f.seconds, backend: 'formant' }; play(f.data, f.rate); }
       if (c.englishVoice || P.has('english')) { en ??= new EnglishVoice(); en.load().then(() => en!.say(a.text)).then(r => play(r.data, r.rate)).catch(() => {}); } }
-    show(a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`, `translation layer (English, out of world); heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
+    // (D-370: what the sandbox step did, out of world, under the words: taken on, taken in, heard, refused and why)
+    const sb = T.sandbox ? ` <br><i>(${T.sandbox.done?.ok ? SANDBOX_DONE[T.sandbox.act.a] ?? 'done' : T.sandbox.verdict.ok ? 'they would not' : T.sandbox.verdict.why})</i>` : '';
+    show((a.ok ? `<b>${L.name}</b>: ${a.text}` : `<b>${L.name}</b> <i>shrugs and turns back to the work.</i>`) + sb, `translation layer (English, out of world); heard: ${heard ? (heard.layer === 'own' ? `${heard.lang} “${heard.units.join(' … ')}” (the person's own words, tier C: not a rendering of this English)` : `${heard.layer === 'fa' ? 'Farsi' : 'English'} (opt-in, in their own voice): “${heard.text}”`) : 'nothing'}; ${((performance.now() - t0 + heardMs) / 1000).toFixed(1)} s${T.decision ? `; ${T.decision.kind}: ${T.decision.ok ? (T.decision.noop ? 'nothing to change' : 'done') : 'refused'} (${T.decision.reason})` : ''}`);
     const row = { pid: near.pid, name: L.name, d: +near.d.toFixed(2), said: text, reply: a.text, ok: a.ok, hits: a.hits, ms: performance.now() - t0 + heardMs, ttft: a.ttftMs, heard, key, ask: T.ask, tag: T.tag, decision: T.decision ? { kind: T.decision.kind, ok: T.decision.ok, reason: T.decision.reason, noop: !!T.decision.noop } : null, memory: T.memory };
     state.last = row; state.log.push(row); return row;
   }

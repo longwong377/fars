@@ -69,3 +69,16 @@ describe('the stranger in the people\'s own days (economy/plans.ts)', () => {
     expect(segs.length).toBeGreaterThan(0);
   }, 300_000);
 });
+describe('the render side\'s hooks (speech/presence.ts)', () => {
+  it('overheard lines thin as the stranger learns; time near the employer\'s people makes an attended day', async () => {
+    const { strangerPresence, thinCaption } = await import('../src/people/speech/presence');
+    const sim = new PeopleSim(1, nav, env); const d = 45; sim.jumpTo(d * 24 + 9); const E = sim.econTo(d), S = E.stranger();
+    const c = { key: 'p1', unit: 'el-greet-1', lang: 'el', translit: 'x', gloss: 'may the god keep you well this day friend', tier: 'C', t0: 0, t1: 2 };
+    expect(thinCaption(sim, c).gloss).toBe(c.gloss); // a beginner reads it all
+    S.hear('Elamite', 600, 1, true, d); const thin = thinCaption(sim, c).gloss; expect(thin.split(' ').filter(w => w !== '…').length).toBeLessThan(c.gloss.split(' ').length);
+    const boss = [...E.hh.values()].find(h => h.kind === 'farmer' && S.hireCheck(h.id, d).ok)!.id; S.do({ a: 'seek_work', day: d, hh: boss });
+    const mates = sim.pop.households[Number(boss.slice(2))].members.map(m => ({ key: `p${m}`, x: 3, z: 4 }));
+    strangerPresence(sim, mates, { x: 0, z: 0 }); for (let k = 0; k < 12; k++) { sim.t += 0.2; strangerPresence(sim, mates, { x: 0, z: 0 }); }
+    expect((S as any).attended.has(d)).toBe(true);
+  }, 300_000);
+});
