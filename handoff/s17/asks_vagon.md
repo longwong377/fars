@@ -11,6 +11,10 @@ C5 | view: -155,70,14,53,5,0,6.72 | intro shot 4 'terrace' (midpoint): the W fac
 C5 | view: 127,56,9.5,146,-16,0,6.92 | intro shot 5 'work' (midpoint): the Hall of 100 Columns' site from 9 m over its N forecourt: the gangs at work at rise+1.3 h
 C5 | view: -213,122.45,9,71,6,0,7.07 | intro shot 6 'walk' (2/3): the approach to the spawn from 9 m, facing the Grand Stair
 C5 | view: -322,90,5,51,5,0,5.22 | the title's drifting backdrop (midpoint): the Terrace W face against the dawn on the right of the frame, the menu's glass on the left
+C1 | view: -478,-881,1.6,189,-4,0,10 | town fill (D-550): a lane in q_s1 at 10 h: a donkey tethered by a door, tools leaned, jars, mats, litter; does the lane read lived in, anything floating or sunk?
+C1 | view: -444.3,-990.7,1.6,279,-6,0,8 | town fill: a q_s1 market square at 8 h (stalls fullest in the morning); judge the goods and the awnings
+C1 | view: -799.1,-1122.2,1.6,214,-3,0,15 | town fill: a reed-mat shade before a door (new kit piece fill_reed_awning) in the afternoon; scale and seat on the wall
+C1 | view: -380,-863,1.6,341,-25,0,11 | town fill: the lanes' litter (fill_litter, straw, droppings, sherds) at the feet; does it read as litter or as a flat decal?
 C3 | view: -1000,314,1.7,290,-2,30,9.0 | the royal road 1 km W of the Terrace on a May morning, looking out along it: villagers coming in with strings, baskets, a cart; is the road alive and are the walkers and their loads readable at 20-200 m?
 C3 | view: -1000,314,1.7,110,-2,30,17.0 | the same road at 17:00 looking back toward the Terrace: the same households going home, the unloaded strings, a halt by the road
 C3 | view: -636,-1350,1.7,28,-2,100,8.0 | the south road 1.5 km out in the July harvest, toward Pārsa: ox carts of straw, sacks of new barley

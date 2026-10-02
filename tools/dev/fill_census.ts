@@ -13,7 +13,7 @@ import { writeFileSync } from 'node:fs';
 import { buildTownPlan } from '../../src/world/settlement/plan';
 import { LANE, SQUARE, COURT, YARD, toLocal, type Site } from '../../src/world/settlement/site';
 import { HOUSE_KINDS } from '../../src/world/settlement/houseplan';
-import { townFill, type FillItem } from '../../src/world/fillPlan';
+import { townFill, sameLook, type FillItem } from '../../src/world/fillPlan';
 
 const ROOF_KINDS = new Set(['roller', 'roof_fuel', 'roof_mats', 'fleece', 'roof_jars', 'roof_drying', 'roof_patch']);
 const LANE_SIDE = new Set(['drain', 'niche']);
@@ -74,8 +74,7 @@ export function census(sites: Site[], items: FillItem[]): Census {
   // repeats
   const IG = new Map<string, FillItem[]>(), ik = (e: number, n: number) => `${Math.floor(e / 15)},${Math.floor(n / 15)}`;
   for (const it of items) { const k = ik(it.e, it.n); (IG.get(k) ?? IG.set(k, []).get(k)!).push(it); }
-  const same = (a: FillItem, b: FillItem) => a.m === b.m && Math.abs(a.s[0] - b.s[0]) < 0.03 * a.s[0] && Math.abs(a.s[1] - b.s[1]) < 0.03 * a.s[1] && JSON.stringify(a.col ?? {}) === JSON.stringify(b.col ?? {})
-    && Math.abs(Math.atan2(Math.sin(a.rot - b.rot), Math.cos(a.rot - b.rot))) < 0.175 && Math.abs((a.tilt ?? 0) - (b.tilt ?? 0)) < 0.05;
+  const same = sameLook;
   let clones = 0, near4 = 0;
   for (const a of items) { const i0 = Math.floor(a.e / 15), j0 = Math.floor(a.n / 15); let n4 = false;
     for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (const b of IG.get(`${i0 + x},${j0 + y}`) ?? []) { if (b === a) continue; const d = Math.hypot(a.e - b.e, a.n - b.n);
@@ -98,9 +97,12 @@ if (isMain) {
   for (const q of c.quarters) console.log(`  ${q.id.padEnd(22)} lane bare ${(q.laneBare * 100).toFixed(1).padStart(5)} %  longest ${String(q.longestBare).padStart(4)} m  courts ${q.courtsDressed}  roofs ${q.roofsDressed}`);
   // --cost: the drawn fill (WorldFill, the real models) at every 25th lane point sampled over the town by day: draws, triangles
   if (process.argv.includes('--cost')) { const { loadModelsNode } = await import('../../tests/lib/models_node'); const { WorldFill } = await import('../../src/world/fill'); loadModelsNode();
-    const F = new WorldFill(items, { ground: () => 0 }), S: { draws: number; tris: number; drawn: number }[] = [];
+    // (--roofs: + the roofs' things, houses.ts roofFill, from a built Settlement on the real terrain)
+    let roof: FillItem[] = []; if (process.argv.includes('--roofs')) { const { loadTerrain } = await import('../../tests/plainLib'); const { FireSystem } = await import('../../src/world/fire'); const { Settlement } = await import('../../src/world/settlement/build');
+      roof = new Settlement(null, loadTerrain(), new FireSystem(0), 'test').roofFill() as FillItem[]; }
+    const F = new WorldFill([...items, ...roof], { ground: () => 0 }), S: { draws: number; tris: number; drawn: number; dropped: number }[] = [];
     for (const s of sites) { if (s.meta.kind !== 'quarter') continue; let q = 0; for (let j = 0; j < s.H; j += 7) for (let i = 0; i < s.W; i += 7) if (s.cell[s.k(i, j)] === LANE && q++ % 25 === 0) { F.update(s.grid(s.cu(i), s.cv(j)), 9, 0, true); S.push(F.stats()); } }
     const avg = (f: (x: typeof S[0]) => number) => Math.round(S.reduce((a, x) => a + f(x), 0) / S.length), max = (f: (x: typeof S[0]) => number) => Math.max(...S.map(f));
-    console.log(`cost (${S.length} lane views, 9 h): draws mean ${avg(x => x.draws)} max ${max(x => x.draws)}; triangles mean ${avg(x => x.tris)} max ${max(x => x.tris)}; things drawn mean ${avg(x => x.drawn)}; missing ${JSON.stringify(F.missing)}`); }
+    console.log(`cost (${S.length} lane views, 9 h): draws mean ${avg(x => x.draws)} max ${max(x => x.draws)}; triangles mean ${avg(x => x.tris)} max ${max(x => x.tris)}; things drawn mean ${avg(x => x.drawn)}; parts dropped at the cap max ${max(x => x.dropped)}; missing ${JSON.stringify(F.missing)}`); }
   const j = process.argv.indexOf('--json'); if (j > 0) writeFileSync(process.argv[j + 1], JSON.stringify(c, null, 1));
 }

@@ -85,7 +85,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora, RoseBeds } from './groundFlora';
 import { RoadLitter } from './roadLitter';
-import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
+import { WorldFill } from './fill'; import { TownTethers, townTethers } from './settlement/tethers'; import { RoofWear } from './settlement/roofwear'; import { townFill, terraceFill } from './fillPlan'; import { villageSite, importVillageSites, exportVillageSites } from './plain/villagesite';
 import { GroundRocks } from './groundRocks';
 import { Bedrock, loadRockKit } from './hills/bedrock';
 import { Ledges, loadLedgeFace } from './hills/ledges';
@@ -414,6 +414,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // 'Court calendar = seasonal pattern' is on (D-003)
   const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal', bonds: true, asks: true }); let simStarted = false;
   wmark('sim');
+  settlement?.roofWear.setSource(RoofWear.source(sim.pop.households, (hh, d) => sim.deeds.joint.roofOf(hh, d), () => Math.floor(sim.t / 24))); // s17 C1 (D-550): leaking and fresh roofs
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
   const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
@@ -448,8 +449,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the baked world, or built now and baked
   { const vs = cacheGetSync<any[]>('vsites', bakeKey); if (vs) importVillageSites(vs); else { for (const v of villagesIn) villageSite(v, v.comps as any); cachePutSync('vsites', bakeKey, exportVillageSites()); } }
   // D-367 (agent fill): the markets, the lanes' and villages' things, washing lines, awnings, the Terrace's yards and standards
-  const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
-  const fill = new WorldFill(fillItems, { ground: groundAt, phys, nav }); root.add(fill.group);
+  const fillItems = cachedSync('fill', bakeKey, () => [...townFill(settlement?.plan.sites ?? [], seed, villagesIn.map(v => villageSite(v, v.comps as any).site), Object.values(sim.pop.quarters).filter(q => q.kind === 'town' || q.kind === 'garden').map(q => q.xy)).items, ...terraceFill(seed)]); // (D-392: the plan from the baked world)
+  const fill = new WorldFill([...fillItems, ...(settlement?.roofFill() ?? [])], { ground: groundAt, phys, nav }); root.add(fill.group); // (s17 C1: + the roofs' things)
   const tethers = new TownTethers(townTethers(settlement?.plan.sites ?? [], fillItems), groundAt); root.add(tethers.group); // s17 C1 (D-550): the households' animals at their tethers
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
   { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
