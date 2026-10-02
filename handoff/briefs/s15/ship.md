@@ -28,5 +28,9 @@ every commit; commit every 30-45 min; at the end merge s14-int, test, commit, `m
 - No custom headers on Pages: public/_headers is ignored. If workers need cross-origin isolation (SharedArrayBuffer for
   threaded wasm/onnx), ship a COOP/COEP service worker (the coi-serviceworker pattern, MIT, in the ledger) or run single-threaded.
 - Pages serves no Git LFS and caps a site at 1 GB, 100 MB a file: the built site (~450 MB, largest 26.5 MB) fits.
-- Deploy = push the built site to branch `gh-pages` (tools/deploy/pages.mjs: build, add .nojekyll, push with a fresh orphan
-  commit so the branch does not grow). Build and dry-run it; the lead pushes it after telling the user.
+- Deploy by **GitHub Actions** (the user set Pages source = GitHub Actions; this Vagon machine is not permanent, so the build must
+  come from git alone): .github/workflows/pages.yml builds on push to s14-int (node 24, npm ci, the world bake if node-side,
+  vite build with base /fars/; skip guards/lint/tsc in the deploy job, they run in guards.yml) and deploys with
+  actions/upload-pages-artifact + actions/deploy-pages. Every game asset is committed (public/: 1,122 files); the language and
+  voice models load from Hugging Face on a public origin. Write and dry-run it (act-free: a local npm ci + build in a clean
+  clone); the lead pushes the branch that triggers it after telling the user.
