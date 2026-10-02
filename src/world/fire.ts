@@ -23,7 +23,8 @@ export type FireSchedule = 'night' | 'home' | 'bake' | 'day' | 'kept';
 export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string; sched?: FireSchedule; group?: string; plot?: string;
   /** D-254: a fire whose flame, beyond SLOW_R of the eye, is redrawn one frame in SLOW_N (its flicker is not seen from there;
    *  the villages' ~8,000 hearths and lamps) */ slow?: boolean;
-  /** its tile in the baked fire-light occlusion atlas (D-222), −1 when not baked (the town's fires); set on first use */ occ?: number }
+  /** its tile in the baked fire-light occlusion atlas (D-222), −1 when not baked (the town's fires); set on first use */ occ?: number;
+  /** D-530: a fire that burns only while this says so (a court camp's hearth while its tent stands), on top of its schedule */ stands?: () => boolean }
 const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; range: number; smoke: number }> = {
   torch: { flameH: 0.45, flameW: 0.22, power: 1.2, range: 14, smoke: 0.2 },
   brazier: { flameH: 0.7, flameW: 0.55, power: 2.4, range: 22, smoke: 0.5 },
@@ -175,6 +176,12 @@ export class FireSystem {
    *  composite's deferred term (render/fireGlow.ts; high/ultra), not as forward lights */
   constructor(maxLights: number, shadowLights = 0, shadowMapSize = 512, glowLights = 0) {
     this.glowN = Math.min(glowLights, GLOW_MAX);
+    // D-530: at high and ultra (the deferred term on) the nearest FIRE_SHADOW_LIGHTS fires cast soft shadows (cube maps
+    // rendered when the light moves to another fire and refreshed in turn, not every frame: the fires and the walls stand
+    // still), where the adapter binds enough textures (B24: 16 failed); ?fireshadows=K sets K
+    const qs = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
+    if (!shadowLights && glowLights > 0 && !qs?.has('fireshadows') && TEX_LIMIT.n >= 32) shadowLights = Math.min(FIRE_SHADOW_LIGHTS, maxLights);
+    this.shadowN = shadowLights; this.shadowOf = new Array(shadowLights).fill(null);
     this.group.name = 'fire';
     // ?fireocc=0 (diagnostic, D-222): the fire lights without the baked occlusion
     const useOcc = this.useOcc = fireOcc() !== null && !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('fireocc') === '0');
@@ -187,7 +194,7 @@ export class FireSystem {
       // every lit material's shader key, so a light switched on or off rebuilt and recompiled every lit pipeline (seconds to
       // minutes on the T4) each time the number of lit fires within reach changed
       const l = new THREE.PointLight(FIRE_RGB, 0, 20, 2); l.castShadow = i < shadowLights; this.lights.push(l); this.group.add(l); l.visible = i < maxLights;
-      if (l.castShadow) { l.shadow.mapSize.set(shadowMapSize, shadowMapSize); l.shadow.camera.near = 0.1; l.shadow.camera.far = 50; l.shadow.bias = -0.0005; (l.shadow as any).normalBias = 0.05; }
+      if (l.castShadow) { l.shadow.mapSize.set(shadowMapSize, shadowMapSize); l.shadow.camera.near = 0.05; l.shadow.camera.far = 50; l.shadow.bias = -0.002; (l.shadow as any).normalBias = 0.03; l.shadow.radius = FIRE_SHADOW_RADIUS; l.shadow.autoUpdate = false; l.shadow.needsUpdate = true; }
       // the light confined to its side of a hall's walls (D-216, roomMask): the light's colour × intensity × the mask
       const c = new THREE.Color(), box = uniform(new THREE.Vector4(0, 0, 0, 0)), ys = uniform(new THREE.Vector2(0, 0)), mode = uniform(0);
       // and in the shade of the architecture for the Terrace's fixed fires (D-222, B24: the baked occlusion atlas, fireOcc.ts)
@@ -200,6 +207,8 @@ export class FireSystem {
   /** per light: the room box its light is confined to (world x0, x1, z0, z1; y0, y1) and the mode (+1 inside it only, −1
    *  outside it only, 0 unconfined) */
   private lightRoom: { box: any; ys: any; mode: any; lp: any; tile: any }[] = [];
+  /** D-530: the shadow-casting forward lights and the fire each one's cube map was last drawn for */
+  private shadowN = 0; private shadowOf: (FireSource | null)[] = [];
   /** deferred fire lights (D-355; render/fireGlow.ts) */
   private glowN = 0;
   private forwardN = 0;
@@ -219,7 +228,7 @@ export class FireSystem {
   }
   /** `base` = where the object stands (floor) or, for torches, the bracket point on the wall */
   /** `meta.body: false` = the caller draws the fire's body itself (the settlement merges its hearths and ovens) */
-  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; plot?: string; body?: boolean; slow?: boolean }) {
+  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; plot?: string; body?: boolean; slow?: boolean; stands?: () => boolean }) {
     const lift = LIFT[kind];
     const { body, ...m } = meta;
     this.fires.push({ id: `${kind}-${this.fires.length}`, kind, pos: base.clone().add(new THREE.Vector3(0, lift, 0)), lit: false, seed: this.rng.next() * 100, ...m });
@@ -268,14 +277,27 @@ export class FireSystem {
       }
     }
   }
+  private built = false;
+  /** D-530: fires registered after build() (the court camps' hearths: their tents are laid out by the people's sim, which is
+   *  made after the fire system builds): `add` them, then call this; the flame billboards are re-made for the larger count
+   *  (the same material: no new pipeline). Bodies are the caller's (body: false) */
+  extend() {
+    if (!this.built || !this.flames || this.flames.count >= this.fires.length) return;
+    const old = this.flames; this.group.remove(old); old.geometry.dispose(); this.makeFlames(old.material as THREE.Material);
+    this.drawnLit = null;
+  }
   /** build GPU objects once all fires are registered */
   build() {
-    this.buildBodies();
+    this.buildBodies(); this.built = true;
+    this.makeFlames(null); this.buildSmoke();
+  }
+  private makeFlames(mat: THREE.Material | null) {
     const n = Math.max(1, this.fires.length);
     const plane = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0);
     const seedAttr = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); this.fires.forEach((f, i) => (seedAttr.array[i] = f.seed));
     plane.setAttribute('aSeed', seedAttr);
     this.flux = new THREE.InstancedBufferAttribute(new Float32Array(n).fill(1), 1); plane.setAttribute('aFlux', this.flux);
+    if (mat) { this.flames = new THREE.InstancedMesh(plane, mat, n); this.flames.frustumCulled = false; this.flames.renderOrder = 5; this.flames.userData = mat.userData.flamesUD; this.group.add(this.flames); return; }
     const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
     const u = uv(), seed = attribute('aSeed', 'float');
     const n1 = mx_noise_float(vec3(u.x.mul(3), u.y.mul(2.5).sub(time.mul(2.2)), seed)).mul(0.5).add(0.5);
@@ -285,7 +307,10 @@ export class FireSystem {
     m.colorNode = vec4(hot.mul(a.mul(3.0)).mul(attribute('aFlux', 'float')), a); m.opacityNode = a;
     this.flames = new THREE.InstancedMesh(plane, m, n); this.flames.frustumCulled = false; this.flames.renderOrder = 5;
     this.flames.userData = { tier: 'C', src: 'RECON', note: 'flame billboards (procedural); fire placements C unless noted' };
+    m.userData.flamesUD = this.flames.userData;
     this.group.add(this.flames);
+  }
+  private buildSmoke() {
     // smoke puffs: soft quads, per-instance alpha
     const SMAX = SMOKE_MAX; const sq = new THREE.PlaneGeometry(1, 1);
     this.smokeAlpha = new THREE.InstancedBufferAttribute(new Float32Array(SMAX), 1); sq.setAttribute('aAlpha', this.smokeAlpha);
@@ -308,7 +333,7 @@ export class FireSystem {
     const lit = sunAlt < 4;
     const SL = this.simLit;
     this.fires.forEach((f, i) => { const sl = SL ? SL[i] : -1;
-      f.lit = (sl >= 0 ? sl === 1 : hour === undefined || !f.sched || f.sched === 'night' ? lit : scheduleLit(f.sched, hour, sunAlt, f.seed)) && !(rain > 0.6 && (f.kind === 'brazier' || f.kind === 'hearth')); });
+      f.lit = (sl >= 0 ? sl === 1 : hour === undefined || !f.sched || f.sched === 'night' ? lit : scheduleLit(f.sched, hour, sunAlt, f.seed)) && !(rain > 0.6 && (f.kind === 'brazier' || f.kind === 'hearth')) && (!f.stands || f.stands()); });
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
     // flames: cylindrical billboards (yaw only) facing the camera, no narrower than FLAME_MIN_PX with their light conserved
     const viewH = typeof innerHeight === 'number' ? innerHeight : 1080, fov = (camera as THREE.PerspectiveCamera).fov ?? 70;
@@ -341,6 +366,9 @@ export class FireSystem {
       { const u = this.lightRoom[i]; if (f.occ === undefined) f.occ = tileOf(fireOcc(), l.position.x, l.position.y, l.position.z); u.tile.value = f.occ; u.lp.value.copy(l.position); }
       const flick = 0.8 + 0.2 * (Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 17.3 + f.seed * 3) * 0.5);
       l.intensity = L.candela * flick * this.lightScale; l.distance = L.cutoff; l.decay = L.decay;
+      if (i < this.shadowN) { const cam = l.shadow.camera as THREE.PerspectiveCamera, far = Math.min(L.cutoff, FIRE_SHADOW_FAR);
+        // redrawn when the light takes another fire, and one light in turn every FIRE_SHADOW_REFRESH frames (people passing)
+        if (this.shadowOf[i] !== f || (frame % FIRE_SHADOW_REFRESH) === i) { this.shadowOf[i] = f; if (cam.far !== far) { cam.far = far; cam.updateProjectionMatrix(); } l.shadow.needsUpdate = true; } }
     });
     // the next nearest lit fires: the composite's deferred term (D-355), the same light model without the specular
     FIRE_GLOW.n = 0;
@@ -393,6 +421,14 @@ export class FireSystem {
   }
   stats() { return { fires: this.fires.length, lit: this.fires.filter(f => f.lit).length, smoke: this.smokeN }; }
 }
+
+/** D-530: how many of the nearest fire lights cast shadows at high/ultra, their cube maps' reach (m), the soft filter's
+ *  radius (texels; a flame a few decimetres across), and how often (frames) each is redrawn while it keeps its fire */
+export const FIRE_SHADOW_LIGHTS = 2, FIRE_SHADOW_FAR = 30, FIRE_SHADOW_RADIUS = 6, FIRE_SHADOW_REFRESH = 24;
+/** the adapter's sampled-texture limit per shader stage (read once at load; 0 until known or without WebGPU): the fire
+ *  shadows' cube maps need room beyond the scanned surfaces (B24) */
+export const TEX_LIMIT = { n: 0 };
+if (typeof navigator !== 'undefined' && (navigator as any).gpu) (navigator as any).gpu.requestAdapter().then((a: any) => { TEX_LIMIT.n = a?.limits?.maxSampledTexturesPerShaderStage ?? 0; }).catch(() => {});
 
 /** lit state of a scheduled fire (C). `seed` (0..100) staggers the fires so a town lights up over an hour, not at once. */
 /** light a fire scatters off the surroundings into an eye facing away from it, as a share of the facing value (C: a

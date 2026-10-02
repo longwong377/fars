@@ -7,7 +7,7 @@ import placesJson from '../data/people_places.json';
 import { fireLight, type FireKind, type FireSchedule } from './fire';
 
 /** what placeFires needs of a fire system */
-export interface FireSink { add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; body?: boolean }): void }
+export interface FireSink { add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; body?: boolean; stands?: () => boolean }): void }
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 /** does a wall torch's place lie in a doorway of the building (D-217)? Within its width (+0.5 m) along the wall and its
  *  depth (+1 m) across it */
@@ -69,4 +69,16 @@ export function terraceFireLights(m: any, parts: any[], doorways: Doorway[] = []
   const out: { kind: FireKind; pos: [number, number, number] }[] = [];
   placeFires({ add(kind, base) { const L = fireLight(kind); out.push({ kind, pos: [base.x, base.y + L.height, base.z].map(v => Math.round(v * 1000) / 1000) as [number, number, number] }); } }, m, parts, doorways);
   return out;
+}
+
+/** D-530 (C3's ask): the court camps' cooking hearths (courtCamps.ts campItems, m === 'hearth', drawn by the camps' dressing)
+ *  lit at the meal hours (the 'home' schedule: the evening meal as the light goes and the fire relit before dawn) while their
+ *  tent stands (`standing(tentIndex)`: the court in residence, D-252). Call once the court's tents exist (they are laid out
+ *  by the people's sim, after the fire system builds), then the fire system's extend(); returns the number added. All C */
+export function addCampHearths(fire: FireSink & { extend?(): void }, items: { m: string; e: number; n: number; tent: number }[], ground: (e: number, n: number) => number, standing: (tent: number) => boolean): number {
+  let k = 0;
+  for (const it of items) { if (it.m !== 'hearth') continue; const y = ground(it.e, it.n); if (!Number.isFinite(y)) continue;
+    fire.add('hearth', gw(it.e, it.n, y), { tier: 'C', src: 'RECON', sched: 'home', body: false, stands: () => standing(it.tent), note: 'a court camp\'s cooking hearth before its tent, lit for the meals while the tent stands (C, D-530)' }); k++; }
+  fire.extend?.();
+  return k;
 }
