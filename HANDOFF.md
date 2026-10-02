@@ -1,5 +1,5 @@
-# HANDOFF — session 15 in progress (2026-10-02): read sessions/s15.md first (kept current: broken first, who does what, next steps).
-# Goal UD-31: https://longwong377.github.io/fars/ walkable in < 1 min on a good GPU, talking on, built by GitHub Actions from git only.
+# HANDOFF — end of session 15 (2026-10-02): read sessions/s15.md "START HERE" first.
+# LIVE: https://longwong377.github.io/fars/ (Actions deploys every push to s14-int). Goal UD-31: walkable < 1 min (now 162 s cold), talking on.
 
 # HANDOFF — end of session 14 (2026-10-01): read sessions/s14.md first (broken first, merged, unmerged branches, next steps).
 # The week plan is ROADMAP.md top section; agents follow handoff/agent_template.md "Operating model"; briefs in handoff/briefs/s14/.

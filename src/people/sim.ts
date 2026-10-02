@@ -155,7 +155,7 @@ export class PeopleSim {
   /** D-341: the economy is stepped day by day by the living world, with the people's talk entered into it (living/world.ts) */
   economy(): Economy { this.living.advance(Math.floor(this.t / 24)); return this.econCore(); }
   private econCore(): Economy {
-    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true }); this.econSnap = null;
+    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true, court: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true, court: true }); this.econSnap = null;
       // (D-370: the stranger hears each house in the tongue of its head: their origin's home language)
       // D-391 (the bot: houses asked a stranger for a hand, then refused him when he asked): the season's field work (a pure function of the day: the economy replays the same)
       this.econ.stranger().opts.needOf = (id: string, day: number) => { const H = this.econ?.hh.get(id);
