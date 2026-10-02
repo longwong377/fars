@@ -59,15 +59,16 @@ export function drawItem(c: DrawCtx, it: Item): boolean {
     case 'roll': return put(c, T, 'roll', it, [w, h, d], { textile: tex(c, v) }, [0, 0], 0);
     case 'rugs': case 'bedding': { // folded quilts and rugs in a pile (a ledge of mud under the household's bedding)
       const n = it.k === 'rugs' ? Math.max(2, it.n ?? 3) : 4 + Math.round(v * 3); let y = 0;
+      if (it.k === 'bedding' && put(c, T, 'i_bedding', it, [w, h, d], { mud: [0.5, 0.42, 0.32], textile_a: tex(c, v), textile_b: tex(c, (v + 0.37) % 1) })) return true;
       if (it.k === 'bedding') { put(c, C, 'bin', it, [w, 0.16, d], { mud: [0.5, 0.42, 0.32] }, [0, 0], -0.02) || C.box(...c.grid(it.u, it.v), c.theta + it.rot, w / 2, d / 2, c.floor(it.u, it.v) - 0.02, c.floor(it.u, it.v) + 0.14, lin([0.44, 0.37, 0.28]), lin([0.5, 0.42, 0.32]), c.own); y = 0.14; }
       let ok = true; for (let k = 0; k < n; k++) { const t = h01v(v, k), th = 0.045 + 0.02 * t; ok = put(c, T, 'rug_folded', it, [w * (0.92 + 0.08 * t), th, d * (0.9 + 0.1 * t)], { textile: tex(c, (v + k * 0.37) % 1) }, [(t - 0.5) * 0.04, 0], y, (t - 0.5) * 0.12) && ok; y += th * 0.92; }
       if (it.k === 'bedding') put(c, T, 'roll', it, [w * 0.9, 0.24, 0.26], { textile: tex(c, (v + 0.5) % 1) }, [0, 0.06], y);
       return ok; }
-    case 'cushion': return put(c, T, 'rug_folded', it, [w, h, d], { textile: tex(c, v) }, [0, 0], 0, (v - 0.5) * 0.5) || put(c, T, 'roll', it, [w, h, d], { textile: tex(c, v) });
+    case 'cushion': return put(c, T, 'i_cushion', it, [w, h, d], { textile: tex(c, v), cord: tex(c, (v + 0.41) % 1) }, [0, 0], 0, (v - 0.5) * 0.5) || put(c, T, 'rug_folded', it, [w, h, d], { textile: tex(c, v) }, [0, 0], 0, (v - 0.5) * 0.5);
     case 'chest': return put(c, T, 'chest', it, [w, h, d], { wood: sh(WOOD, 0.85 + 0.3 * v), lid: sh(WOOD_D, 0.9 + 0.3 * v), bronze: BRONZE });
     case 'stool': return put(c, T, 'stool', it, [w, h, d], { wood: sh(WOOD, 0.8 + 0.35 * v) }, [0, 0], 0, (v - 0.5) * 0.6);
     case 'low_table': { // a low wooden tray-table (the stool's form at a table's span), bowls and bread on it
-      const ok = put(c, T, 'stool', it, [w, h, d], { wood: sh(WOOD, 0.75 + 0.3 * v) });
+      const ok = put(c, T, 'i_low_table', it, [w, h, d], { wood: sh(WOOD, 0.75 + 0.3 * v) }) || put(c, T, 'stool', it, [w, h, d], { wood: sh(WOOD, 0.75 + 0.3 * v) });
       put(c, C, 'bowl', it, [0.18, 0.08, 0.18], { clay: sh(CLAY, 0.9 + 0.2 * v) }, [-w * 0.2, 0.04], h); put(c, C, 'bowl', it, [0.16, 0.07, 0.16], { clay: sh(CLAY_D, 1.2) }, [w * 0.15, -0.06], h);
       if (v > 0.4) put(c, C, 'jug', it, [0.15, 0.17, 0.13], { clay: sh(CLAY, 0.85) }, [w * 0.32, 0.08], h);
       return ok; }
@@ -110,6 +111,7 @@ export function drawItem(c: DrawCtx, it: Item): boolean {
     case 'vat': return put(c, C, 'vat', it, [w, h, d], { clay: sh(CLAY, 0.85 + 0.2 * v) }, [0, 0], -0.04);
     case 'pots': return put(c, C, 'fill_pots', it, [w, h, d], { reed: REED, clay: sh(CLAY, 0.9 + 0.2 * v) });
     case 'wheel': { // the potter's turntable: a stone pivot and a heavy clay-plastered wooden wheel, a pot on it
+      if (put(c, C, 'i_wheel', it, [w, h, d], { stone: STONE, wood: sh(WOOD_D, 1.1), clay: [0.6, 0.47, 0.37] })) return true;
       const [e, n] = c.grid(it.u, it.v), y = c.floor(it.u, it.v); C.lathe(e, n, y - 0.02, [[0.16, 0], [0.18, 0.1], [0.08, 0.14], [0.06, 0.3]], 7, lin(STONE), c.own);
       T.lathe(e, n, y + 0.3, [[0.04, 0], [0.3, 0.01], [0.31, 0.07], [0.28, 0.09], [0.05, 0.09]], 12, lin(sh(WOOD_D, 1.1)), c.own);
       put(c, C, 'jar_neck', it, [0.22, 0.3, 0.22], { clay: [0.6, 0.47, 0.37] }, [0, 0], 0.39); return true; }
@@ -128,9 +130,16 @@ export function drawItem(c: DrawCtx, it: Item): boolean {
       put(c, T, 'peg', it, [0.05, 0.05, 0.22], { wood: WOOD_D }, [0, 0.06], 0, 0, 0);
       return put(c, T, 'hung_cloth', it, [w, h, 0.09], { cloth: tex(c, v) }, [0, -0.02], -h + 0.05); }
     case 'herbs': case 'onions': { // hung from the ceiling poles by a cord (interior_props.py's strings when loaded)
-      if (put(c, T, it.k === 'herbs' ? 'i_herbs' : 'i_onions', it, [w * 0.6, h, 0.16], { '*': it.k === 'herbs' ? [0.42, 0.45, 0.26] : [0.72, 0.55, 0.36], cord: TEXTILE[2], stem: [0.5, 0.48, 0.3] }, [0, 0], 0)) return true;
-      return put(c, T, 'tool_broom', it, [0.16, 0.14, h], { straw: it.k === 'herbs' ? [0.42, 0.45, 0.26] : [0.66, 0.5, 0.34], cord: TEXTILE[2] }, [0, 0], 0, 0, Math.PI / 2); }
+      if (put(c, T, it.k === 'herbs' ? 'i_herbs' : 'i_onions', it, [it.k === 'herbs' ? 0.16 : 0.15, h, it.k === 'herbs' ? 0.16 : 0.15], { leaf: sh([0.4, 0.44, 0.25], 0.85 + 0.3 * v), bulb: sh([0.74, 0.55, 0.36], 0.9 + 0.2 * v), stem: [0.62, 0.55, 0.36], cord: TEXTILE[2] }, [0, 0.04], 0)) return true;
+      return put(c, T, 'tool_broom', it, [0.16, 0.14, h], { straw: it.k === 'herbs' ? [0.42, 0.45, 0.26] : [0.66, 0.5, 0.34], cord: TEXTILE[2] }, [0, 0], 0, 0, 0.05); }
     case 'lamp': return put(c, C, 'lamp', it, [0.17, 0.035, 0.14], { clay: [0.6, 0.42, 0.3] });
+    case 'shield': return put(c, T, 'shield', it, [w, h, d], { hide: sh(HIDE, 0.8 + 0.3 * v), cord: TEXTILE[2], bronze: BRONZE }, [0, 0.02], 0, 0, 0);
+    case 'arrows': { let ok = false; for (let k = 0; k < 7; k++) ok = put(c, T, 'tool_arrow', it, [0.02, 0.02, Math.min(0.75, w)], { reed: [0.66, 0.58, 0.4], bronze: BRONZE, feather: [0.5, 0.46, 0.4] }, [0, (k - 3) * 0.035], 0.012 * (k % 2), Math.PI / 2) || ok;
+      put(c, T, 'tool_rope', it, [0.03, 0.03, 0.3], { cord: TEXTILE[2] }, [0, 0], 0.03, 0); return ok; }
+    case 'vessels': { // stone and metal vessels of the Treasury's finds (an alabastron, a phiale, a glass bowl: B types)
+      const a = put(c, C, 'alabastron', it, [0.15, 0.26, 0.15], { stone: [0.86, 0.82, 0.74] }, [-w * 0.3, 0]);
+      put(c, C, 'phiale', it, [0.2, 0.04, 0.2], { metal: v < 0.5 ? [0.72, 0.72, 0.7] : [0.66, 0.5, 0.26] }, [0.02, 0.02]);
+      put(c, C, 'glass_bowl', it, [0.18, 0.07, 0.18], { glass: [0.56, 0.62, 0.58] }, [w * 0.32, -0.03]); return a; }
   }
   return false;
 }

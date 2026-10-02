@@ -40,7 +40,8 @@ export type Kind =
   | 'cookpot' | 'bowls' | 'jug' | 'basin' | 'kneading' | 'quern' | 'mortar' | 'bread' | 'milkpot'
   | 'loom_ground' | 'loom_upright' | 'spinning' | 'bolts' | 'wool'
   | 'tool_lean' | 'anvil' | 'bellows' | 'timber' | 'vat' | 'pots' | 'wheel' | 'pigments' | 'mould' | 'seal_bench' | 'weigh_table' | 'tablets'
-  | 'cradle' | 'toys' | 'peg_cloth' | 'herbs' | 'onions' | 'broom' | 'lamp';
+  | 'cradle' | 'toys' | 'peg_cloth' | 'herbs' | 'onions' | 'broom' | 'lamp'
+  | 'shield' | 'arrows' | 'vessels';
 /** a placed thing: centre (u, v) in the site frame, turn (radians CCW from +u: the thing's x along it), footprint (w along
  *  its x, d across), height h, base y above the floor, a variant 0..1, the wall it stands against (−1: free) */
 export interface Item { k: Kind; u: number; v: number; rot: number; w: number; d: number; h: number; y: number; vr: number; wall: number; note?: string; sub?: string; n?: number }
@@ -48,12 +49,13 @@ export interface Plan { items: Item[]; floor: number; covered: number; use: Use;
 
 /** triangles a thing costs at the near level (the models' lod2 and the kit's lathes, as drawn: draw.ts) */
 export const TRIS: Record<Kind, number> = {
-  mat: 105, carpet: 164, fleece: 302, hide: 172, grass_bed: 300, roll: 62, rugs: 24, bedding: 140, cushion: 60, chest: 446, stool: 288, low_table: 120, bench: 264,
+  mat: 105, carpet: 164, fleece: 302, hide: 172, grass_bed: 300, roll: 62, rugs: 24, bedding: 210, cushion: 100, chest: 446, stool: 288, low_table: 300, bench: 264,
   jar_store: 90, jar_neck: 80, jar_water: 88, sack: 114, sack_lying: 166, bin: 314, basket: 72, bale: 288, grain: 230,
   cookpot: 86, bowls: 60, jug: 266, basin: 276, kneading: 136, quern: 120, mortar: 278, bread: 72, milkpot: 100,
   loom_ground: 714, loom_upright: 145, spinning: 140, bolts: 212, wool: 302,
-  tool_lean: 60, anvil: 294, bellows: 130, timber: 100, vat: 300, pots: 412, wheel: 160, pigments: 712, mould: 60, seal_bench: 158, weigh_table: 428, tablets: 96,
-  cradle: 180, toys: 204, peg_cloth: 62, herbs: 90, onions: 120, broom: 63, lamp: 40,
+  tool_lean: 60, anvil: 294, bellows: 130, timber: 100, vat: 300, pots: 412, wheel: 230, pigments: 712, mould: 60, seal_bench: 158, weigh_table: 428, tablets: 96,
+  cradle: 180, toys: 204, peg_cloth: 62, herbs: 114, onions: 178, broom: 63, lamp: 40,
+  shield: 438, arrows: 300, vessels: 340,
 };
 /** things that lie flat on the floor: they may lie in a walking line (not in a door's leaf sweep) */
 export const FLAT = new Set<Kind>(['mat', 'carpet', 'fleece', 'hide', 'grass_bed']);
@@ -64,7 +66,7 @@ const h01 = (s: string) => hashString(s) / 4294967296;
 const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
 
 /** the occupancy of a room's floor on a 0.1 m grid: 0 free, 1 a walking line (flat things only), 2 taken or a door's sweep */
-class Floor {
+export class Floor {
   readonly nx: number; readonly ny: number; readonly g: Uint8Array;
   constructor(readonly x0: number, readonly y0: number, readonly x1: number, readonly y1: number) { this.nx = Math.max(1, Math.round((x1 - x0) / 0.1)); this.ny = Math.max(1, Math.round((y1 - y0) / 0.1)); this.g = new Uint8Array(this.nx * this.ny); }
   private span(a0: number, a1: number, lo: number, n: number): [number, number] { return [clamp(Math.floor((a0 - lo) / 0.1 + 1e-6), 0, n), clamp(Math.ceil((a1 - lo) / 0.1 - 1e-6), 0, n)]; }
@@ -81,11 +83,11 @@ class Floor {
 }
 
 /** the room as the planner sees it: inner faces, the walls' runs, the clear zones */
-interface Ctx { r: RoomIn; p: Profile; f: Floor; items: Item[]; seed: string; x0: number; x1: number; y0: number; y1: number; budget: number; spent: number; taken: Set<string>; clear: number[][] }
+export interface Ctx { r: RoomIn; p: Profile; f: Floor; items: Item[]; seed: string; x0: number; x1: number; y0: number; y1: number; budget: number; spent: number; taken: Set<string>; clear: number[][] }
 const NORM: [number, number][] = [[0, 1], [0, -1], [1, 0], [-1, 0]]; // into the room from each side
 
 /** the rectangle a thing of footprint (w along the wall, d out of it) takes against wall `side` at `a` along it */
-function wallBox(c: Ctx, side: Side, a: number, w: number, d: number, gap = 0.04): [number, number, number, number] {
+export function wallBox(c: Ctx, side: Side, a: number, w: number, d: number, gap = 0.04): [number, number, number, number] {
   return side === 0 ? [a - w / 2, c.y0 + gap, a + w / 2, c.y0 + gap + d] : side === 1 ? [a - w / 2, c.y1 - gap - d, a + w / 2, c.y1 - gap]
     : side === 2 ? [c.x0 + gap, a - w / 2, c.x0 + gap + d, a + w / 2] : [c.x1 - gap - d, a - w / 2, c.x1 - gap, a + w / 2];
 }
@@ -96,7 +98,7 @@ function wallOrder(c: Ctx): Side[] { const b = c.r.back, opp: Side = ([1, 0, 3, 
 
 /** put a thing against a wall: the first free place along the walls in order (or `pref` along each: 0 a corner, 0.5 the
  *  middle, 1 the other corner), trying a few spots; false when no wall has room */
-function onWall(c: Ctx, k: Kind, w: number, d: number, h: number, pref: number, extra: Partial<Item> = {}, walls = wallOrder(c)): boolean {
+export function onWall(c: Ctx, k: Kind, w: number, d: number, h: number, pref: number, extra: Partial<Item> = {}, walls = wallOrder(c)): boolean {
   if (c.spent + TRIS[k] > c.budget) return false;
   for (const side of walls) {
     const lo = side < 2 ? c.x0 : c.y0, hi = side < 2 ? c.x1 : c.y1, L = hi - lo; if (L < w + 0.1) continue;
@@ -110,7 +112,7 @@ function onWall(c: Ctx, k: Kind, w: number, d: number, h: number, pref: number, 
   return false;
 }
 /** put a thing in a corner (tall things leaning: tools, a broom, a rolled loom) */
-function inCorner(c: Ctx, k: Kind, w: number, d: number, h: number, extra: Partial<Item> = {}): boolean {
+export function inCorner(c: Ctx, k: Kind, w: number, d: number, h: number, extra: Partial<Item> = {}): boolean {
   if (c.spent + TRIS[k] > c.budget) return false;
   const cs: [Side, number][] = [[c.r.back, 0], [c.r.back, 1], ...wallOrder(c).slice(1).flatMap(s => [[s, 0], [s, 1]] as [Side, number][])];
   const o = Math.floor(h01(c.seed + ':corner:' + c.items.length) * cs.length);
@@ -120,7 +122,7 @@ function inCorner(c: Ctx, k: Kind, w: number, d: number, h: number, extra: Parti
   return false;
 }
 /** lay a flat thing on the floor, centred as near the room's middle (or its back half) as the doorways' sweeps allow */
-function onFloor(c: Ctx, k: Kind, w: number, d: number, back = 0.5, extra: Partial<Item> = {}): boolean {
+export function onFloor(c: Ctx, k: Kind, w: number, d: number, back = 0.5, extra: Partial<Item> = {}): boolean {
   if (c.spent + TRIS[k] > c.budget) return false;
   const along = c.r.back < 2; // the thing's length along the back wall
   const W = along ? w : d, D = along ? d : w, cu = (c.x0 + c.x1) / 2, cv = (c.y0 + c.y1) / 2, [bu, bv] = NORM[c.r.back];
@@ -132,7 +134,7 @@ function onFloor(c: Ctx, k: Kind, w: number, d: number, back = 0.5, extra: Parti
   return false;
 }
 /** a thing hung off the floor: from the ceiling poles near a wall, or on a peg (no floor taken) */
-function hang(c: Ctx, k: Kind, y: number, w: number, h: number, extra: Partial<Item> = {}): boolean {
+export function hang(c: Ctx, k: Kind, y: number, w: number, h: number, extra: Partial<Item> = {}): boolean {
   if (c.spent + TRIS[k] > c.budget) return false;
   const walls = wallOrder(c), side = walls[Math.floor(h01(`${c.seed}:hang:${c.items.length}`) * 3)], lo = side < 2 ? c.x0 : c.y0, hi = side < 2 ? c.x1 : c.y1;
   // clear of the doorways in that wall and of the other hung things
@@ -146,7 +148,7 @@ function hang(c: Ctx, k: Kind, y: number, w: number, h: number, extra: Partial<I
 
 /** the zones of a room kept clear: each doorway's leaf sweep (2) and its approach strip into the room (1); a walking
  *  line (1) from each doorway to the room's middle */
-function clearZones(c: Ctx) {
+export function clearZones(c: Ctx) {
   const { r, f } = c, cu = (c.x0 + c.x1) / 2, cv = (c.y0 + c.y1) / 2;
   for (const d of r.doors) { const [nu, nv] = NORM[d.side], sweep = d.w + 0.2, appr = Math.min(1.5, ((d.side < 2 ? c.y1 - c.y0 : c.x1 - c.x0)) * 0.6);
     const fu = d.side === 2 ? c.x0 : d.side === 3 ? c.x1 : d.at, fv = d.side === 0 ? c.y0 : d.side === 1 ? c.y1 : d.at;
@@ -273,12 +275,31 @@ export const ROOM_BUDGET: Record<Use, number> = { living: 2200, sleeping: 1600, 
 
 /** plan a room's things (deterministic per room id and household) */
 export function planRoom(r: RoomIn, p: Profile, budgetScale = 1): Plan {
+  const c = newCtx(r, p, ROOM_BUDGET[r.use] * budgetScale); if (!c) return emptyPlan(r);
+  clearZones(c); recipe(c); return planOf(c);
+}
+/** a room's planning state (null: too small to furnish); `pre` boxes already taken (fittings another builder draws:
+ *  u0, v0, u1, v1, and 1 for a flat one) */
+export function newCtx(r: RoomIn, p: Profile, budget: number, pre: number[][] = []): Ctx | null {
   const ins = r.inset ?? 0.3, x0 = r.u0 + ins, x1 = r.u1 - ins, y0 = r.v0 + ins, y1 = r.v1 - ins;
-  const c: Ctx = { r, p, f: new Floor(x0, y0, x1, y1), items: [], seed: `${r.id}`, x0, x1, y0, y1, budget: ROOM_BUDGET[r.use] * budgetScale, spent: 0, taken: new Set(), clear: [] };
-  if (x1 - x0 < 0.8 || y1 - y0 < 0.8) return { items: [], floor: Math.max(0, (x1 - x0) * (y1 - y0)), covered: 0, use: r.use, clear: [] };
-  clearZones(c); recipe(c);
-  let cov = 0; for (const it of c.items) if (!HUNG.has(it.k)) cov += it.w * it.d;
-  return { items: c.items, floor: (x1 - x0) * (y1 - y0), covered: Math.min(1, cov / ((x1 - x0) * (y1 - y0))), use: r.use, clear: c.clear };
+  if (x1 - x0 < 0.8 || y1 - y0 < 0.8) return null;
+  const c: Ctx = { r, p, f: new Floor(x0, y0, x1, y1), items: [], seed: `${r.id}`, x0, x1, y0, y1, budget, spent: 0, taken: new Set(), clear: [] };
+  for (const b of pre) if (b[4]) c.f.markFlat(b[0], b[1], b[2], b[3]); else c.f.mark(b[0], b[1], b[2], b[3], 2);
+  return c;
+}
+export const emptyPlan = (r: RoomIn): Plan => ({ items: [], floor: Math.max(0, (r.u1 - r.u0 - 0.6) * (r.v1 - r.v0 - 0.6)), covered: 0, use: r.use, clear: [] });
+/** the recipe of a room's use on a planning state (the Terrace's rooms call it after their own things) */
+export const runRecipe = (c: Ctx) => recipe(c);
+export function planOf(c: Ctx): Plan {
+  const { x0, x1, y0, y1 } = c; let cov = 0; for (const it of c.items) if (!HUNG.has(it.k)) cov += it.w * it.d;
+  return { items: c.items, floor: (x1 - x0) * (y1 - y0), covered: Math.min(1, cov / ((x1 - x0) * (y1 - y0))), use: c.r.use, clear: c.clear };
+}
+/** put a thing at a given place (the Terrace's kit at the head of each mat, the goods on a bench); false when it is taken */
+export function putAt(c: Ctx, k: Kind, u: number, v: number, rot: number, w: number, d: number, h: number, y = 0, extra: Partial<Item> = {}, check = true): boolean {
+  if (c.spent + TRIS[k] > c.budget) return false; const ca = Math.abs(Math.cos(rot)) > 0.5, hw = (ca ? w : d) / 2, hd = (ca ? d : w) / 2;
+  if (check && !c.f.free(u - hw, v - hd, u + hw, v + hd, FLAT.has(k))) return false;
+  if (check && !HUNG.has(k) && y < 0.05) { if (FLAT.has(k)) c.f.markFlat(u - hw, v - hd, u + hw, v + hd); else c.f.mark(u - hw, v - hd, u + hw, v + hd, 2); }
+  c.items.push({ k, u, v, rot, w, d, h, y, vr: h01(`${c.seed}:${k}:${c.items.length}`), wall: -1, ...extra }); c.spent += TRIS[k]; return true;
 }
 
 /** a room's set of things and their layout, for the census of identical rooms: the kinds counted, and the places to 0.25 m

@@ -13,9 +13,9 @@ import type { Site } from '../settlement/site';
 import { toLocal } from '../settlement/site';
 import type { HouseLife } from '../settlement/houseplan';
 import { roomPlan, seasonOfDay, type RoomRect, type HouseView } from './town';
-import { drawItem } from './draw';
+import { drawItem, type DrawCtx } from './draw';
 import { peopleVersion } from './household';
-import type { Item } from './plan';
+import type { Item, Profile } from './plan';
 
 /** what the ring reads of a SiteHouses (settlement/houses.ts) */
 interface Houses { s: Site; rooms: readonly (RoomRect & { R: number })[]; gl(u: number, v: number): number; lampSpot(plot: number): [number, number, number] | null }
@@ -27,7 +27,22 @@ export const RING_R = 22, RING_HYST = 6;
 /** the ring's triangles at most (the nearest rooms first): two draws of at most this many */
 export const RING_MAX_TRIS = 60_000;
 interface Desc { tier: string; src: string; note: string; placeholder?: boolean }
-interface Built { clay: THREE.BufferGeometry | null; cloth: THREE.BufferGeometry | null; co: Int32Array; to: Int32Array; desc: Desc[]; tris: number; items: number }
+export interface Built { clay: THREE.BufferGeometry | null; cloth: THREE.BufferGeometry | null; co: Int32Array; to: Int32Array; desc: Desc[]; tris: number; items: number }
+/** a room within reach: its key, its distance from the eye and how to build it */
+export interface NearRoom { key: string; d: number; build: () => Built | null }
+/** a kind of rooms the ring furnishes (the houses register themselves; the Terrace's ranges through furnish.ts) */
+export interface RoomSource { near(e: number, n: number, r: number, day: number): NearRoom[] }
+const SOURCES: RoomSource[] = [];
+export function addRoomSource(src: RoomSource) { if (!SOURCES.includes(src)) SOURCES.push(src); }
+/** a plan's things drawn into a room's own batches (`label` names the room in F3) */
+export function drawPlanned(items: Item[], label: string, at: { grid: (u: number, v: number) => [number, number]; theta: number; floor: (u: number, v: number) => number; prof: Profile }, extra?: (ctx: DrawCtx & { own: number }, own: (it: Item) => number) => number): Built {
+  const clay = plaster(), cloth = plain(), desc: Desc[] = [];
+  const own = (it: Item) => { desc.push({ tier: 'C', src: 'RECON;D-610', note: `${label}: ${it.note ?? it.k}` }); return desc.length - 1; };
+  const ctx = { ...at, clay, cloth, own: 0 }; clay.set('ao', 0.2); cloth.set('ao', 0.2); let n = 0;
+  for (const it of items) { ctx.own = own(it); if (drawItem(ctx, it)) n++; }
+  if (extra) n += extra(ctx, own);
+  return { clay: clay.tris ? clay.toGeometry() : null, cloth: cloth.tris ? cloth.toGeometry() : null, co: clay.owner.slice(), to: cloth.owner.slice(), desc, tris: clay.tris + cloth.tris, items: n };
+}
 
 const plaster = () => new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); // (houses.ts plasterBatch)
 const plain = () => new Batch().addAttr('ao', 1, [1]);
@@ -50,34 +65,34 @@ export class InteriorRing {
         out.push({ h, room, key: `${s.id}:${room.plot}:${room.room}`, d }); } }
     return out;
   }
-  /** one room's things, drawn into its own batches (cached until the season turns) */
+  /** one house room's things, drawn into its own batches (cached until the season turns) */
   build(h: HouseView & Houses, room: RoomRect & { R: number }): Built | null {
-    const x = roomPlan(h, room); if (!x) return null;
-    const clay = plaster(), cloth = plain(), desc: Desc[] = [], s = h.s;
-    const own = (it: Item) => { desc.push({ tier: 'C', src: 'RECON;D-610', note: `${s.plots[room.plot].id} (${x.room.use}${x.prof.from === 'population' ? ', the household of the population' : ''}): ${it.note ?? it.k}` }); return desc.length - 1; };
-    const ctx = { grid: (u: number, v: number) => s.grid(u, v), theta: s.frame.theta, floor: (u: number, v: number) => h.gl(u, v) + 0.1, clay, cloth, own: 0, prof: x.prof };
-    clay.set('ao', 0.2); cloth.set('ao', 0.2); let n = 0;
-    for (const it of x.plan.items) { ctx.own = own(it); if (drawItem(ctx, it)) n++; }
-    const L = h.lampSpot(room.plot); if (L) { const [lu, lv] = toLocal(s.frame, L[0], L[1]);
-      if (lu > x.room.u0 && lu < x.room.u1 && lv > x.room.v0 && lv < x.room.v1) { // the house's saucer lamp on its ledge of mud (its flame: the fire system's, houses.ts lampSpot)
-        const tone: RGB = (h as any).tone?.(room.plot, 1, false) ?? [0.4, 0.33, 0.25], lamp: Item = { k: 'lamp', u: lu, v: lv, rot: 0, w: 0.17, d: 0.14, h: 0.035, y: 0, vr: 0.5, wall: -1, note: 'the house\'s saucer lamp on a ledge of mud (saucer lamps B by analogy, Q-516; burned every evening C)' };
-        ctx.own = own(lamp); clay.box(L[0], L[1], s.frame.theta, 0.18, 0.18, L[2] - 0.1, L[2] - 0.02, [tone[0] * 0.7, tone[1] * 0.7, tone[2] * 0.7], [tone[0] * 0.8, tone[1] * 0.8, tone[2] * 0.8], ctx.own);
-        drawItem({ ...ctx, floor: () => L[2] - 0.02 }, lamp); n++; } }
-    return { clay: clay.tris ? clay.toGeometry() : null, cloth: cloth.tris ? cloth.toGeometry() : null, co: clay.owner.slice(), to: cloth.owner.slice(), desc, tris: clay.tris + cloth.tris, items: n };
+    const x = roomPlan(h, room); if (!x) return null; const s = h.s;
+    return drawPlanned(x.plan.items, `${s.plots[room.plot].id} (${x.room.use}${x.prof.from === 'population' ? ', the household of the population' : ''})`, { grid: (u, v) => s.grid(u, v), theta: s.frame.theta, floor: (u, v) => h.gl(u, v) + 0.1, prof: x.prof }, (ctx, own) => {
+      const L = h.lampSpot(room.plot); if (!L) return 0; const [lu, lv] = toLocal(s.frame, L[0], L[1]);
+      if (!(lu > x.room.u0 && lu < x.room.u1 && lv > x.room.v0 && lv < x.room.v1)) return 0; // the house's saucer lamp on its ledge of mud (its flame: the fire system's, houses.ts lampSpot)
+      const tone: RGB = (h as any).tone?.(room.plot, 1, false) ?? [0.4, 0.33, 0.25], lamp: Item = { k: 'lamp', u: lu, v: lv, rot: 0, w: 0.17, d: 0.14, h: 0.035, y: 0, vr: 0.5, wall: -1, note: 'the house\'s saucer lamp on a ledge of mud (saucer lamps B by analogy, Q-516; burned every evening C)' };
+      ctx.own = own(lamp); ctx.clay.box(L[0], L[1], s.frame.theta, 0.18, 0.18, L[2] - 0.1, L[2] - 0.02, [tone[0] * 0.7, tone[1] * 0.7, tone[2] * 0.7], [tone[0] * 0.8, tone[1] * 0.8, tone[2] * 0.8], ctx.own);
+      drawItem({ ...ctx, floor: () => L[2] - 0.02 }, lamp); return 1; });
+  }
+  /** every room within r of grid (e, n): the houses' and the other sources' */
+  allNear(e: number, n: number, r: number, day: number): NearRoom[] {
+    const out: NearRoom[] = this.roomsNear(e, n, r, day).map(w => ({ key: w.key, d: w.d, build: () => this.build(w.h, w.room) }));
+    for (const src of SOURCES) out.push(...src.near(e, n, r, day)); return out;
   }
   /** move the ring with the eye (world x, z; the day for the season): rebuild when the set of rooms within reach changed */
   update(x: number, z: number, day = 0, force = false) {
     const e = x, n = -z, season = seasonOfDay(day) + ':' + peopleVersion; if (!force && Math.hypot(e - this.last[0], n - this.last[1]) < 2 && season === this.season) return;
     if (season !== this.season) { this.season = season; for (const b of this.cache.values()) { b.clay?.dispose(); b.cloth?.dispose(); } this.cache.clear(); this.key = ''; }
     this.last = [e, n]; const t0 = performance.now();
-    const want = this.roomsNear(e, n, RING_R, day), keep = new Set(want.map(w => w.key));
+    const want = this.allNear(e, n, RING_R, day), keep = new Set(want.map(w => w.key));
     // (hysteresis: a room shown stays until it is RING_R + RING_HYST away)
-    if (this.key) for (const w of this.roomsNear(e, n, RING_R + RING_HYST, day)) if (!keep.has(w.key) && this.key.includes(`|${w.key}|`)) { want.push(w); keep.add(w.key); }
+    if (this.key) for (const w of this.allNear(e, n, RING_R + RING_HYST, day)) if (!keep.has(w.key) && this.key.includes(`|${w.key}|`)) { want.push(w); keep.add(w.key); }
     want.sort((a, b) => (a.key < b.key ? -1 : 1)); const key = '|' + want.map(w => w.key).join('|') + '|';
     if (key === this.key && !force) return; this.key = key;
     for (const k of [...this.cache.keys()]) if (!keep.has(k)) { const b = this.cache.get(k)!; b.clay?.dispose(); b.cloth?.dispose(); this.cache.delete(k); }
     const parts: Built[] = []; let tris = 0;
-    for (const w of [...want].sort((a, b) => a.d - b.d)) { if (tris > RING_MAX_TRIS) break; let b = this.cache.get(w.key); if (!b) { const nb = this.build(w.h, w.room); if (!nb) continue; b = nb; this.cache.set(w.key, b); this.info.builds++; } parts.push(b); tris += b.tris; }
+    for (const w of [...want].sort((a, b) => a.d - b.d)) { if (tris > RING_MAX_TRIS) break; let b = this.cache.get(w.key); if (!b) { const nb = w.build(); if (!nb) continue; b = nb; this.cache.set(w.key, b); this.info.builds++; } parts.push(b); tris += b.tris; }
     this.swap(parts); this.info.ms = performance.now() - t0;
   }
   private swap(parts: Built[]) {

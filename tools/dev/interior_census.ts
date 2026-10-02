@@ -53,6 +53,14 @@ const add = (label: string, s: Site, si: number) => { const hs = houseOf(s, si),
   for (const p of s.plots) if (p.door && HOUSE_KINDS.has(p.kind)) { const d = s.doorPoints(p)!; ringPts.push(s.grid(...d.out)); } void usesOf; };
 plan.sites.forEach((s, si) => add('town', s, si));
 villages.forEach((v, vi) => add('village', v.site, 1000 + vi));
+// the Terrace's room ranges: the fittings rooms.ts lays (the baseline) and the furnishing after them
+{ const { terraceRooms } = await import('../../src/arch/terrace_rooms'); const { planTerraceRoom } = await import('../../src/world/interiors/terrace');
+  for (const { room, fit } of terraceRooms()) { if (room.use === 'passage') continue; const x = planTerraceRoom(room, fit), e = (room.x[0] + room.x[1]) / 2, n = (room.y[0] + room.y[1]) / 2;
+    const pre: Item[] = [...fit.mats.map(m => ({ k: 'mat' as const, u: m.c[0], v: m.c[1], rot: 0, w: m.size[0], d: m.size[1], h: 0.02, y: 0, vr: 0, wall: -1 })), ...fit.jars.map(j => ({ k: 'jar_store' as const, u: j[0], v: j[1], rot: 0, w: 0.5, d: 0.5, h: 0.8, y: 0, vr: 0, wall: -1 })),
+      ...fit.querns.map(j => ({ k: 'quern' as const, u: j[0], v: j[1], rot: 0, w: 0.5, d: 0.4, h: 0.2, y: 0, vr: 0, wall: -1 })), ...fit.benches.map(b => ({ k: 'bench' as const, u: b.c[0], v: b.c[1], rot: 0, w: b.size[0], d: b.size[1], h: 0.5, y: 0, vr: 0, wall: -1 }))];
+    const items = BASE ? pre : [...pre, ...x.plan.items], fl = x.plan.floor; let cov = 0; for (const it of items) if (it.y < 0.05 && !['peg_cloth', 'herbs', 'onions', 'lamp'].includes(it.k)) cov += it.w * it.d;
+    // (a dormitory counts its things per sleeping place: a room of ninety mats is not furnished by ninety mats alone)
+    rooms.push({ kind: `terrace/${room.building}/${room.use}`, e, n, room: x.room, plan: { ...x.plan, items: BASE ? pre : [...x.plan.items, ...pre.filter(q => q.k !== 'mat')], covered: Math.min(1, cov / fl) }, tris: BASE ? 0 : x.plan.items.reduce((a, it) => a + TRIS[it.k], 0) }); } }
 const rows = census(rooms, 15, r => !!(r as any).pop);
 console.log(`[census] ${BASE ? 'BASELINE (houses.ts before D-610)' : 'D-610 interiors'}${NOPOP ? ', no population' : ''}: ${rooms.length} rooms in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 console.log(formatCensus(rows));
