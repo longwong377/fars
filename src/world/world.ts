@@ -167,6 +167,8 @@ function wmark(stage: string) { (globalThis as any).__bootStage?.('world:' + sta
  *  Begun from main.ts before the scans they decoded alongside them and slowed the boot on a 2-core box (192 s vs 148 s):
  *  main.ts now only warms the files' bytes early (shell/warm.ts) and the decoding stays here */
 let assetsStarted: ReturnType<typeof beginAssets> | null = null;
+/** D-393: a player's visit (not ?test, not ?bench; ?late=0 turns it off): what is not needed to stand and walk streams in late */
+const STREAM_LATE = typeof location !== 'undefined' && (q => !q.has('test') && !q.has('bench') && q.get('late') !== '0')(new URLSearchParams(location.search));
 export function startWorldAssets(settings?: Settings) { return assetsStarted ??= beginAssets(settings); }
 function beginAssets(settings?: Settings) {
   // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
@@ -179,10 +181,14 @@ function beginAssets(settings?: Settings) {
   const monumentsP = tAsset('monuments', loadMonuments(BASE)); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
   const treesP = tAsset('trees', loadTreeAssets(BASE)); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
   const lifeP = tAsset('life', loadLifeModels(BASE)); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
-  const animalsP = tAsset('animals', loadAnimalModels(BASE)); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
   const reliefAtlasP = tAsset('reliefAtlas', loadReliefAtlas(BASE)); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
   const decorP = tAsset('decor', loadDecorAssets(BASE)); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
   const fireOccP = tAsset('fireOcc', loadFireOcc(BASE)); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
+  // the animals' modelled bodies (D-326, public/models/animals/). s15/ship (D-393): a player's visit fetches them after the
+  // assets the build needs (39 MB of 103 files: they download while the world builds, the network otherwise idle) and the
+  // build does not wait for them: a species drawn before its model is in is its procedural stand-in, rebuilt as the model on
+  // arrival (animals.ts). The tests and the bench keep them in before the first frame (STREAM_LATE false)
+  const animalsP = STREAM_LATE ? Promise.all([modelsP, propsP, treesP, lifeP, decorP, reliefAtlasP]).catch(() => null).then(() => tAsset('animals', loadAnimalModels(BASE))) : tAsset('animals', loadAnimalModels(BASE));
   const sculptP = loadSculpt(async p => { const r = await fetch(BASE + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   return { sculptP, humansP, probesP, rockKitP, ledgeFaceP, coverKitP, fordKitP, propsP, modelsP, monumentsP, treesP, lifeP, animalsP, reliefAtlasP, decorP, fireOccP };
 }
@@ -202,7 +208,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await sculptP; // precomputed carved pieces (D-018; begun with the assets)
   wmark('sculpt');
-  await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
+  await modelsP; await propsP; await treesP; if (!STREAM_LATE) await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
   wmark('assets awaited');
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');

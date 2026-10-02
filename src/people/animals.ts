@@ -427,8 +427,11 @@ export class Animals {
   /** D-220: called for every animal pushed (the world's dust: a walking animal raises dust on dry earth) */
   onPush: ((a: AnimalInst, M: THREE.Matrix4) => void) | null = null;
   private mesh(sp: Species, lod: number): Slot {
-    const key = `${sp}:${lod}`; let m = this.meshes.get(key); if (m) return m;
-    const model = animalModel(sp);
+    const key = `${sp}:${lod}`; let m = this.meshes.get(key); const model = animalModel(sp);
+    if (m && (m.coat || !model)) return m;
+    // (s15/ship D-393: the modelled bodies stream in after the world is up: a species first drawn as its procedural stand-in
+    // is rebuilt as the model once it has arrived)
+    if (m) { this.group.remove(m.mesh); m.mesh.geometry.dispose(); (m.mesh.material as THREE.Material).dispose(); this.meshes.delete(key); }
     const g = model ? model.lods[lod].clone() : animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp), B0 = ANIMAL_BUILD[sp];
     if (model) interleave(g, ['aLeg', 'aPiv', 'aHT', 'aJig']);
     // per instance, in one interleaved buffer: the state (gait phase, walk, graze, lie), the instance's rotation (its

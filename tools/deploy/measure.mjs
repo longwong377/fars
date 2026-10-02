@@ -16,6 +16,9 @@ const dist = resolve(a[0] && !a[0].startsWith('--') ? a[0] : 'dist'), mbps = opt
 const visits = (opt('--visits', 'cold,warm')).split(','), extra = opt('--params', '');
 const here = new URL('.', import.meta.url).pathname.replace(/^\/(\w:)/, '$1');
 const srv = spawn(process.execPath, [join(here, 'serve.mjs'), dist, String(port), '/fars/'], { env: { ...process.env, ...(mbps ? { MBPS: mbps } : {}) }, stdio: ['ignore', 'inherit', 'inherit'] });
+// (D-393: the server stands for a remote host: above the browser's priority, so the page's own CPU load on this 4-thread box
+// does not slow its downloads; measured below normal under gpu_slot, the served rate fell to a third of the cap)
+try { (await import('node:os')).setPriority(srv.pid, (await import('node:os')).constants.priority.PRIORITY_ABOVE_NORMAL); } catch (e) { console.log('[measure] server priority unchanged:', e.message); }
 const stop = () => { try { srv.kill(); } catch {} }; process.on('exit', stop);
 const host = `http://127.0.0.2:${port}`; // not "localhost": the site must take the public origin's paths (models from Hugging Face)
 for (let i = 0; i < 50; i++) { try { if ((await fetch(`${host}/fars/`)).ok) break; } catch {} await new Promise(r => setTimeout(r, 200)); }
@@ -28,7 +31,7 @@ async function talkCheck(page, s) {
   const T = { hosts: null, rows: [] };
   const toPerson = () => page.evaluate(() => { const P = window.__parsa.people(); const a = P?.agents.find(x => !x.offmap); if (!a) return null; window.__parsa.teleport(a.e + 0.8, a.n); return a.name; });
   const say = async text => { const who = await toPerson(); await page.evaluate(() => window.__parsa.tick()); const t0 = Date.now();
-    const row = await page.evaluate(t => window.__converse.say(t).then(r => r && { name: r.name, reply: r.reply, own: !!r.own, ok: r.ok, ms: Math.round(r.ms ?? 0), ttft: r.ttft ? Math.round(r.ttft) : null, heard: r.heard?.backend ?? null }), text).catch(e => ({ error: String(e).slice(0, 200) }));
+    const row = await page.evaluate(t => window.__converse.say(t).then(r => r && { name: r.name, reply: r.reply, own: !!r.own, ok: r.ok, ms: Math.round(r.ms ?? 0), ttft: r.ttft ? Math.round(r.ttft) : null, heard: r.heard?.backend ?? null, hits: (r.hits ?? []).slice(0, 4).map(h => typeof h === 'string' ? h : JSON.stringify(h).slice(0, 80)) }), text).catch(e => ({ error: String(e).slice(0, 200) }));
     return { atS: s(), to: who, text, wallMs: Date.now() - t0, ...(row ?? { none: true }) }; };
   for (let i = 0; i < 40 && !(await page.evaluate(() => !!window.__converse)); i++) await page.waitForTimeout(500);
   if (!(await page.evaluate(() => !!window.__converse))) { T.error = 'no __converse (talk off?)'; return T; }
@@ -37,7 +40,7 @@ async function talkCheck(page, s) {
   while (Date.now() - t1 < 900_000) { st = await page.evaluate(() => ({ ...window.__converse.state, log: undefined, history: undefined, heard: undefined, last: undefined }));
     if (st.loaded || /cannot|did not load/.test(st.status ?? '')) break; await page.waitForTimeout(2000); }
   T.status = st?.status; T.loaded = !!st?.loaded; T.loadedAtS = s();
-  if (T.loaded) T.rows.push(await say('Where is your home, and who lives there with you?'));
+  if (T.loaded) for (const q of ['Where is your home, and who lives there with you?', 'What did you eat this morning?', 'Is the work hard today?']) T.rows.push(await say(q));
   T.hosts = Object.fromEntries([...ext].map(([h, x]) => [h, { n: x.n, MB: +(x.b / 1048576).toFixed(1), failed: x.f }]));
   console.log('talk', JSON.stringify(T)); return T;
 }
@@ -56,7 +59,8 @@ for (const v of visits) {
   let t0 = Date.now(); const s = () => +((Date.now() - t0) / 1000).toFixed(1), r = {};
   await page.goto(`${host}/fars/?quality=${q}&trace${extra ? '&' + extra : ''}`);
   await page.waitForFunction(() => window.__parsa?.ready === true || window.__parsa?.error, null, { timeout: 3_600_000, polling: 250 });
-  r.error = await page.evaluate(() => window.__parsa.error ?? null); r.readyS = s(); console.log(v, 'ready', r.readyS, 's', r.error ?? '');
+  r.error = await page.evaluate(() => window.__parsa.error ?? null); r.swControl = await page.evaluate(() => !!navigator.serviceWorker?.controller); r.warm = await page.evaluate(() => window.__warm ?? null);
+  r.siteCache = await page.evaluate(async () => { try { const ks = await caches.keys(), out = {}; for (const k of ks) out[k] = (await (await caches.open(k)).keys()).length; const e = await navigator.storage.estimate(); return { caches: out, usageMB: Math.round(e.usage / 1048576), quotaMB: Math.round(e.quota / 1048576) }; } catch (e) { return String(e); } }); r.readyS = s(); console.log(v, 'ready', r.readyS, 's', r.error ?? '');
   const log1 = await served(); r.beforeReadyMB = +(log1.reduce((x, e) => x + (e.b ?? 0), 0) / 1048576).toFixed(1); r.requests = log1.length; r.served = log1.map(e => [e.p, e.b ?? 0, e.t]); r.lastByteBeforeReadyS = +(Math.max(0, ...log1.map(e => e.t)) / 1000).toFixed(1);
   if (!r.error) {
     await page.evaluate(() => new Promise(res => { let n = 0; const f = () => (++n >= 3 ? res() : requestAnimationFrame(f)); requestAnimationFrame(f); })); r.framesS = s();
