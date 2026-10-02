@@ -1,7 +1,7 @@
 // D-348 (ROADMAP 3e, steps 2 and 4): the relations in the day plans and in the simulation's save. On the sim of seed 1: over
 // two weeks the courting visits, walks by the well and lovers' words are laid into both people's plans, each part names the
 // other and the two are at the same place, and no plan issue appears that the plan without them does not have (planCheck);
-// the families' agreement is laid at the bride's house on its day; the Simulation owns the Relations, saves only the player's
+// the families' agreement is laid at the bride's house on its day (D-349: also in the evening, to 21 h; courting and lovers in daylight, 8-17.5); the Simulation owns the Relations, saves only the player's
 // acts and a reload replays them. Measures go to bench-reports/relations-plans.json.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -27,7 +27,7 @@ describe('relations in the day plans and the save (D-348)', () => {
     for (let d = 120; d <= 134; d++) { meets += (R.meets.get(d) ?? []).length;
       for (const [pid, L] of RP.lays(d)) { parts++; const segs = P.plan(pid, d);
         for (const l of L) { kinds[l.meet.kind] = (kinds[l.meet.kind] ?? 0) + 1; const mine = segs.find(s => s.act === 'talk' && s.with !== undefined && s.t0 >= l.h0 - 1e-6 && s.t1 <= l.h1 + 1e-6); expect(mine).toBeDefined();
-          const o = segAt(P.plan(mine!.with!, d), (mine!.t0 + mine!.t1) / 2); if (o.place !== mine!.place) apart++; expect(mine!.t0).toBeGreaterThanOrEqual(8); expect(mine!.t1).toBeLessThanOrEqual(17.5 + 1e-6); }
+          const o = segAt(P.plan(mine!.with!, d), (mine!.t0 + mine!.t1) / 2); if (o.place !== mine!.place) apart++; expect(mine!.t0).toBeGreaterThanOrEqual(8); expect(mine!.t1).toBeLessThanOrEqual((l.meet.kind === 'negotiate' ? 21 : 17.5) + 1e-6); }
         const b = P.bonds; P.bonds = null; const base = P.plan(pid, d); P.bonds = b; const was = new Set(checkPlan(P, pid, d, base, null).map(i => i.kind));
         for (const i of checkPlan(P, pid, d, segs, null)) if (!was.has(i.kind)) { newIssues++; notes.push(`${d} ${pid} ${i.kind} ${i.note}`); } } }
     Object.assign(OUT, { days: [120, 134], meetsDrawn: meets, partsLaid: parts, byKind: kinds, apart, newIssues, notes: notes.slice(0, 10) }); write();
@@ -38,7 +38,7 @@ describe('relations in the day plans and the save (D-348)', () => {
     const P = S.pop, R = S.bonds, RP = S.bondPlans; R.advance(353); let tried = 0, laid = 0;
     for (const e of R.events) { if (e.kind !== 'betroth' || e.a === PLAYER) continue; tried++; const L = RP.lays(e.day).get(e.a)?.find(l => l.meet.kind === 'negotiate'); if (!L) continue; laid++;
       const s = P.plan(e.a, e.day).find(x => x.act === 'talk' && x.with === e.b)!; expect(s.place).toBe(P.households[P.home(e.b, e.day)].home); if (laid >= 12) break; }
-    Object.assign(OUT, { negotiationsTried: tried, negotiationsLaid: laid }); write(); expect(laid).toBeGreaterThan(0);
+    Object.assign(OUT, { negotiationsTried: tried, negotiationsLaid: laid }); write(); expect(laid).toBe(12); // (D-349: a dozen laid, where one of 129 was before)
   }, 900_000);
 
   it('the Simulation owns the Relations; the save keeps only the player’s acts and a reload replays them', () => {

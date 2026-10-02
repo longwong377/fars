@@ -134,7 +134,9 @@ describe('5 (shadow review r9): the reviewers\' findings at their rules', () => 
     for (let d = 0; d < 354; d += 7) for (let pid = 0; pid < P.persons.length; pid++) { const p = P.persons[pid]; if (p.job !== 'child' || p.sex !== 'm' || p.agent >= 0 || !P.present(pid, d)) continue; const a = P.ageOn(pid, d); if (a < 13 || a > 15) continue;
       const H = P.households[P.home(pid, d)]; if (H.zone !== 'town') continue; const fa = P.membersOn(H.id, d).find((x: number) => x !== pid && P.persons[x].sex === 'm' && !P.persons[x].kin && P.ageOn(x, d) >= a + 16); if (fa === undefined) continue;
       const r = (by[P.persons[fa].job] ??= [0, 0]); r[0]++; if ((P.plan(pid, d) as Seg[]).some(s => s.with === fa)) r[1]++; }
-    for (const j of ['builder', 'weaver']) { expect(by[j]?.[0] ?? 0, j).toBeGreaterThan(30); expect(by[j][1] / by[j][0], j).toBeGreaterThan(0.1); }
+    // (D-350, s15: the workshop trade checked is the brewer's since the brides' redraw (D-349): on seed 1 the nine male weavers have no
+    // son of 12-15 left (the main line had one); the brewers, the same rule's other workshop ('the weaver's loom, the brewer's vats'), have two)
+    for (const j of ['builder', 'brewer']) { expect(by[j]?.[0] ?? 0, j).toBeGreaterThan(30); expect(by[j][1] / by[j][0], j).toBeGreaterThan(0.1); }
   }, 900_000);
   it('A S6 / B S4, A S4, A S7, A S8, A S9: one errand to a house, the breakfast words, the house\'s water, the storm\'s word, the travellers\' rations (every 9th day, every 5th person)', () => {
     const days = [...Array(354).keys()].filter(d => d % 9 === 4); const ids = all().filter(i => i % 5 === 1);
