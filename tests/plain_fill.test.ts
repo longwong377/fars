@@ -45,3 +45,20 @@ describe('no copies within 20 m (variety.ts)', () => {
     for (let k = 0; k < 200; k++) { const x0 = k * 137.1, z0 = k * -91.7, p = plotAt(x0, z0), [x, z] = plotAnchor(p.seed[0], p.seed[1], p.h, [x0, z0]); expect(plotAt(x, z).h).toBe(p.h); }
   });
 });
+import { fieldItems, villageItems, HARVEST } from '../src/world/plain/fieldFill';
+describe('the farm year near the walker (fieldFill.ts)', () => {
+  const IRR = { data: new Uint8Array(4 * 4 * 4).map((_, i) => (i % 4 === 0 ? 255 : 0)), n: 4, half: 40960, cell: 64 * 320, ground: null } as any; // irrigated everywhere
+  const count = (doy: number, m: string) => fieldItems(IRR, 0, 0, doy).filter(it => it.m === m).length;
+  it('sheaves and stooks only in the harvest weeks, none in spring', () => {
+    expect(count(107, 'wo_sheaves') + count(107, 'wo_stooks')).toBe(0);
+    const h = HARVEST.barley!; let sheaves = 0, stooks = 0; for (const d of [h + 2, h + 8, h + 14, HARVEST.wheat! + 6]) { sheaves += count(d, 'wo_sheaves'); stooks += count(d, 'wo_stooks'); }
+    expect(sheaves).toBeGreaterThan(20); expect(stooks).toBeGreaterThan(20);
+    expect(count(240, 'wo_sheaves') + count(240, 'wo_stooks')).toBe(0);
+  });
+  it('the floor threshes in summer, the straw stands in stacks to spring, the fold all year', () => {
+    const V = [{ id: 'v', x: 0, y: 0, r: 60, floor: [100, 0] as [number, number] }], by = (d: number) => villageItems(V, d).map(i => i.m);
+    expect(by(107)).not.toContain('wo_threshing_floor'); expect(by(107)).toContain('wo_fold');
+    expect(by(190)).toContain('wo_threshing_floor'); expect(by(190)).toContain('wo_grain_heap');
+    expect(by(300).filter(m => m === 'wo_fodder').length).toBe(4); expect(by(30)).toContain('wo_fodder'); expect(by(110)).not.toContain('wo_fodder');
+  });
+});

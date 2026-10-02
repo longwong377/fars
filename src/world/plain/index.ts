@@ -14,10 +14,11 @@ import type { Physics } from '../../player/physics';
 import type { Quality } from '../../core/settings';
 import { loadRivers, RiversData, feature, tag, settlementRoads } from './data';
 import { buildCanals, Canal } from './canals';
-import { placeVillages, villageCompounds, Village } from './villages';
+import { placeVillages, villageCompounds, threshingFloor, Village } from './villages';
+import { FieldFill } from './fieldFill';
 import { VillageHouses } from './villagehouses';
 import type { FireSystem } from '../fire';
-import { buildZones, ZoneMap, ZONE } from './fields';
+import { buildZones, ZoneMap, ZONE, landUseAt } from './fields';
 import { cachedSync } from '../cache/worldCache';
 import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
@@ -102,7 +103,11 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   if (PLAIN_DRAWS_SETTLEMENT_ROADS) for (const r of settlementRoads()) group.add(tracksMesh([r.pts], terrain, r.width, 'plain-road-' + r.id)); // off by default (D-040)
   // villages
   // D-254: the villages as built (villagehouses.ts: one raster per village shared with the people; the town's house generator)
-  const vb = new VillageHouses(villages, villages.map(v => villageCompounds(v, terrain, opts.seed)), terrain, phys, opts.fire ?? null, opts.seed); group.add(vb.group);
+  const comps = villages.map(v => villageCompounds(v, terrain, opts.seed));
+  const vb = new VillageHouses(villages, comps, terrain, phys, opts.fire ?? null, opts.seed); group.add(vb.group);
+  // s17 (D-560): the farm year near the walker (fieldFill.ts): the harvest's sheaves and stooks, the floors' threshing and straw, ards, folds
+  const fieldFill = new FieldFill(zones, villages.map((v, i) => ({ id: v.id, x: v.x, y: v.y, r: v.r, floor: threshingFloor(v, comps[i], opts.seed) })), (e, n) => terrain.surfaceAt(e, -n),
+    (e, n) => landUseAt(zones, e, -n).use === 'natural' && !villages.some(v => Math.hypot(v.x - e, v.y - n) < v.r + 20)); group.add(fieldFill.group);
   // trees (D-120): one kit (models, leaf atlas, impostor atlas) shared with the town gardens
   const kit = TreeKit.get({ deferBake: true, impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene); kit.lod0R.value = Q.lod0R; kit.configure(opts.quality);
   const nearC = uniform(new THREE.Vector3(1e9, 0, 1e9)), nearR = uniform(0); // the 3-D set: centre and radius
@@ -216,7 +221,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     if (Math.hypot(cam.x - lastMid.x, cam.z - lastMid.z) > (Q.rMid - Q.r3) * 0.25) { lastMid = cam.clone(); rebuildMid(cam); }
     if (Math.hypot(cam.x - lastNear.x, cam.z - lastNear.z) > Q.r3 * 0.08) { lastNear = cam.clone(); rebuildNear(cam); }
     cullNear(ctx.camera);
-    crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
+    fieldFill.update([cam.x, -cam.z], doyOf(day)); crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
     // shadow casting only near the camera (the CSM cascades end at 600 m; a far caster would still be drawn into every
     // cascade its bounding sphere touches): village cells, Naqsh-e Rustam and the quarries
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
@@ -229,7 +234,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     void dt;
   };
   const placedTris = () => placed.a.length * TRIS.lod0 + (placed.b.length + placed.c.length) * TRIS.lod1;
-  const stats = () => ({ fords: fords.crossings.length, fordStones: fords.stats.stones, canals: canals.length, villages: villages.length, compounds: vb.info.compounds, villageTris: vb.info.farTris, villageNearTris: vb.nearInfo.tris, villageNearTiles: vb.nearInfo.tiles, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
+  const stats = () => ({ fieldFill: fieldFill.drawn, fords: fords.crossings.length, fordStones: fords.stats.stones, canals: canals.length, villages: villages.length, compounds: vb.info.compounds, villageTris: vb.info.farTris, villageNearTris: vb.nearInfo.tris, villageNearTiles: vb.nearInfo.tiles, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
     nearTrees: placed.a.length + placed.b.length + placed.c.length, lod0Trees: placed.a.length, shadowTrees: placed.a.length + placed.b.length, nearTreeTris: placedTris(), nearR: Math.round(nearR.value),
     nearTreesDrawn: lod0.drawn() + lod1s.drawn() + lod1n.drawn(), shadowTreesDrawn: lod0.count() + lod1s.count(),
     midTrees: midCount, orchardRows: orch.userData.rows, treeKitMs: Math.round(kit.buildMs), treeBakeMs: Math.round(kit.bakeMs), treeBakes: kit.bakes,

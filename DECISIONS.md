@@ -9385,3 +9385,7 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   whatever the viewer's place; plants lean (to ~9 deg) and vary in spread (0.8-1.25), stones in height (0.8-1.15).
   Repeats 11,000 of 260,000 instances near the paths -> 67. Found and fixed with it: an orchard plot whose Voronoi seed lay
   in its neighbour drew the neighbour's trees again on a second grid (overlapping trunks) and stood empty itself (plotAnchor).
+- src/world/plain/fieldFill.ts: the farm year near the walker from the period kit (model_props.py): sheaves lying in the rows
+  for 9 days after each cereal plot's own harvest day and stooks drying days 3-18; each village's threshing floor in use doy
+  150-250 (the trodden sheaves, the sledge, grain heaps growing through the weeks, straw heaped), straw stacks from then to
+  March; an ard at the edge of each plot being ploughed; a thorn fold out on the open ground by every village (all C).
