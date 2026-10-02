@@ -1,4 +1,4 @@
-// s15/ship (D-374): a static server for the built site, as GitHub Pages serves it (no dev server, no custom headers):
+// s15/ship (D-368): a static server for the built site, as GitHub Pages serves it (no dev server, no custom headers):
 // the dist under a base path, gzip for text types, Cache-Control max-age=600 with ETag/Last-Modified (Pages' own), and an
 // optional shared download cap to model the player's line.
 //   node tools/deploy/serve.mjs [dist=dist] [port=4180] [base=/fars/]   MBPS=100: cap the total download at 100 Mbit/s

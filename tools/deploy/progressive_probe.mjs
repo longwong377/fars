@@ -1,4 +1,4 @@
-// s15/ship (D-374): run tools/deploy/progressive_probe.html in sync and progressive mode on the real GPU, each in a fresh
+// s15/ship (D-368): run tools/deploy/progressive_probe.html in sync and progressive mode on the real GPU, each in a fresh
 // profile (no shader cache), and print the results. Serve the tree first (npx vite --port <port>).
 //   node tools/dev/gpu_slot.mjs ship -- node tools/deploy/progressive_probe.mjs <port> [modes=sync,progressive]
 import { chromium } from '@playwright/test';

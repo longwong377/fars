@@ -1,4 +1,4 @@
-# Brief s15/ship (D-374): a public URL, playable in under a minute on a good GPU (UD-31)
+# Brief s15/ship (D-368): a public URL, playable in under a minute on a good GPU (UD-31)
 
 Goal as the player meets it: open a URL; within a minute on a good GPU (a modern gaming PC, 100 Mbps) you are standing in the
 world and can walk; everything else streams in while you walk; talking to people works within that minute (the cloud session

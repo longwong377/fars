@@ -69,7 +69,7 @@ if (settings.devOverlay || P.has('overlay')) overlay.toggle();
 const SPAWN = { east: -175, north: 122.45, yaw: -Math.PI / 2 };
 
 const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms') : (_: string) => {};
-/** s15/ship (D-374): the built site's service worker (public/sw.js: the site's files in Cache Storage, so a second visit
+/** s15/ship (D-368): the built site's service worker (public/sw.js: the site's files in Cache Storage, so a second visit
  *  fetches nothing); on a first visit the boot waits (at most 3 s) until it controls the page, so the first visit's files are kept */
 async function siteWorker() {
   if (!(import.meta as any).env?.PROD || !('serviceWorker' in navigator) || P.has('nosw')) return;
@@ -427,7 +427,7 @@ async function boot() {
   let lastFrameMs = 0; let probeT = 0;
   /** D-337: a frozen test world profiled as the player's loop runs it (the eye rays every 0.25 s, the meter read back without waiting) */
   let PLAYLIKE = false; let passLog: PassLog | null = null;
-  /** s15/ship (D-374): called as a frame starts drawing (the shader-build budget below restarts) */
+  /** s15/ship (D-368): called as a frame starts drawing (the shader-build budget below restarts) */
   let onDrawStart = () => {}, onDrawEnd = () => {};
 
   function simStep(dt: number, advanceClock = true) {
@@ -579,7 +579,7 @@ async function boot() {
   }
   TRACE('world built');
   world.prebuild?.(camera.position); // D-321 rev 3: the arris bands round the spawn, in the load
-  // s15/ship (D-374, UD-31): progressive shader compile (src/render/progressive.ts): the player's loop never waits on a shader;
+  // s15/ship (D-368, UD-31): progressive shader compile (src/render/progressive.ts): the player's loop never waits on a shader;
   // the world comes in as its shaders finish. Frozen test worlds and the bench keep whole frames; ?synccompile turns it off,
   // ?buildbudget=<ms> sets the per-frame shader-build budget (40). __parsa.compiling() counts what is still compiling.
   if (!TEST && !P.has('bench') && !P.has('synccompile') && !NORENDER) {

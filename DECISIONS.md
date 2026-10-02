@@ -9065,7 +9065,7 @@ Two moments runs lost the device (DXGI_ERROR_DEVICE_HUNG, ~13 min after the worl
   ground_cover.test's 0.35 M triangles and 36 draws.
 - Not done: herders with flocks in the near plain (the people sim's, not this package's files); far-tree "lollipops" (no frame of them seen).
 
-## D-374 The public site: GitHub Pages under /fars/ built by Actions from git alone, progressive shader compile, a service worker (session 15, agent ship; number per the brief, inside the cloud's D-370..D-379 range: the lead may renumber)
+## D-368 The public site: GitHub Pages under /fars/ built by Actions from git alone, progressive shader compile, a service worker (session 15, agent ship; number per the brief, inside the cloud's D-370..D-379 range: the lead may renumber)
 - **Base path:** vite `base` '/fars/' for builds (PARSA_BASE overrides), '/' on the dev server; every public/ fetch through
   `BASE` (src/core/base.ts); tests/base_paths.test.ts fails on an absolute fetch (the built site broke at the plain on one).
 - **Deploy:** .github/workflows/pages.yml (push to s14-int or manual): node 24, `npm ci --ignore-scripts`,

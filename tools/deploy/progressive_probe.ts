@@ -1,4 +1,4 @@
-// s15/ship (D-374) probe (not shipped): src/render/progressive.ts on the GPU, on a scene of the game's own materials (the
+// s15/ship (D-368) probe (not shipped): src/render/progressive.ts on the GPU, on a scene of the game's own materials (the
 // Terrace's parts and carved members, the terrain, sun shadows: as tools/dev/terrace_probe.ts) without the full world.
 // ?mode=sync (three's default: the first frame compiles everything) | progressive (&budget=<ms>). Reports, from the moment the
 // scene is built: the first frame's wall time, frames drawn, the longest frame, and the time until every draw is built and

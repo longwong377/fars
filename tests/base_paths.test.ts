@@ -1,4 +1,4 @@
-// s15/ship (D-374): the public site lives under /fars/ (GitHub Pages), so no shipped module may fetch a public/ file by an
+// s15/ship (D-368): the public site lives under /fars/ (GitHub Pages), so no shipped module may fetch a public/ file by an
 // absolute '/' path: every one goes through BASE (src/core/base.ts). The built site failed at the plain on one such fetch.
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';

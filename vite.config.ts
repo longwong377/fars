@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import worldCache from './tools/bake_world/vite_plugin.mjs'; // D-354: the baked world's hashes and its self-bake
 // COOP/COEP so SharedArrayBuffer is available to simulation workers (brief §6 Delivery); mirrored in public/_headers.
 const headers = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' };
-// s15/ship (D-374): the production build lives under /fars/ on GitHub Pages (PARSA_BASE overrides; the dev server stays at /)
+// s15/ship (D-368): the production build lives under /fars/ on GitHub Pages (PARSA_BASE overrides; the dev server stays at /)
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? (process.env.PARSA_BASE ?? '/fars/') : '/',
   plugins: [worldCache()],

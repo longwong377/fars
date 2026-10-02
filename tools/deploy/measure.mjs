@@ -1,4 +1,4 @@
-// s15/ship (D-374): time a player's first and second visit to the BUILT site (no dev server), on this machine's GPU.
+// s15/ship (D-368): time a player's first and second visit to the BUILT site (no dev server), on this machine's GPU.
 //   node tools/dev/gpu_slot.mjs ship -- node tools/deploy/measure.mjs [dist=dist] [--mbps 100] [--q high] [--warm-only <profile>]
 // It serves the dist as GitHub Pages does (tools/deploy/serve.mjs: /fars/, gzip, max-age=600 + ETag), optionally capped to
 // --mbps megabits a second, opens the installed Chrome on the T4 with an EMPTY profile (cold: no HTTP or shader cache), then

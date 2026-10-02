@@ -1,4 +1,4 @@
-// s15/ship (D-374): the site's own files kept in the browser's Cache Storage, so a second visit loads nothing over the network.
+// s15/ship (D-368): the site's own files kept in the browser's Cache Storage, so a second visit loads nothing over the network.
 // The HTTP cache cannot do it: the first minute fetches ~400 MB, past Chrome's HTTP-cache size, and its LRU evicts the early
 // files while the late ones arrive (measured: a second visit fetched every file again). Cache Storage has the origin's quota.
 // Same-origin GETs under this scope only (the models on Hugging Face are cached by their own loaders). The build stamps

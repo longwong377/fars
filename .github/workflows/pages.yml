@@ -1,4 +1,4 @@
-# s15/ship (D-374, UD-31): the public site https://longwong377.github.io/fars/, built by GitHub Actions from git alone (the
+# s15/ship (D-368, UD-31): the public site https://longwong377.github.io/fars/, built by GitHub Actions from git alone (the
 # Vagon desktop is not permanent: nothing built there is uploaded). Pages source = GitHub Actions (set by the user).
 # The guards, lint and tsc run in guards.yml; this job only builds and deploys (tools/deploy/build_site.mjs).
 name: pages

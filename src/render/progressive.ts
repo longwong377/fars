@@ -1,4 +1,4 @@
-// s15/ship (D-374, UD-31): progressive shader compile, so the player's loop never waits on a shader.
+// s15/ship (D-368, UD-31): progressive shader compile, so the player's loop never waits on a shader.
 //  1. Every render pipeline is created with createRenderPipelineAsync (the browser compiles them on its own threads, several at
 //     once) and a draw whose pipeline is not ready is skipped this frame (three's Pipelines.isReady): the first frame is drawn
 //     at once and the world comes in as its shaders finish, and no submit waits on a compile (the T4 watchdog, D-353).

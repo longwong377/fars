@@ -1,4 +1,4 @@
-// s15/ship (D-374): the static site for GitHub Pages (https://longwong377.github.io/fars/), from a clean checkout alone.
+// s15/ship (D-368): the static site for GitHub Pages (https://longwong377.github.io/fars/), from a clean checkout alone.
 //   node tools/deploy/build_site.mjs            bake the world cache in node, vite build under /fars/, check the host's limits
 //   PARSA_BASE=/ node tools/deploy/build_site.mjs   the same at the root of a host (a local static check)
 //   SKIP_BAKE=1 ...                              no node bake (the page then builds every unit live)
