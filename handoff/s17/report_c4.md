@@ -1,7 +1,7 @@
 # C4 load keeper (cloud, s17) — report
 
-**Not met / broken first.** Cold ready < 60 s is met only on the page's own clock (57-60 s on tip 329bbbb1); the harness sees 70-74 s
-(the first frames' world.update, ~8 s of people plans, C10's). The work is CPU in other owners' builders (plain fields + tree atlas C2 ~6 s,
+**Not met / broken first.** Cold ready < 60 s is now met on the latest tip (9e2f5201 + C4): harness 60.1 / 53.2 s, page 50.0 / 43.9 s (n=2, after a
+container restart onto a new host, so part may be the machine; the tip before: harness 70-74 s). The ~8 s first-frame people plans (C10) remain. The work is CPU in other owners' builders (plain fields + tree atlas C2 ~6 s,
 first-frame people plans C10 ~6 s, ground packing V2 ~7 s, settlement ~4.5 s); the table is in bench-reports/load_s17.md and
 went to C2, C10 and the lead. Page memory 5.5-5.7 GB (target 5): the ground's 192 MB array is the largest holder (Vagon asked
 to run ktx_ground.ts). C5's loading-screen animations cost ~1 core during the load (C5 fixed it: 62 -> 5 CPU-s). Nothing measured on a GPU.

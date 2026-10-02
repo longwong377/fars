@@ -1,7 +1,7 @@
 # s17 load (C4, D-580): the built site's cold load on the cloud's 4-core box
 
 ## Broken or not met first
-- **UD-31's < 60 s is met only on the page's own clock.** Cold ready on the s17 tip (329bbbb1) with everyone's work in: **57-60 s
+- **UD-31's < 60 s: met on the latest tip (harness 53-60 s, page 44-50 s, n=2; a new container host, so part may be the machine), not before it.** Earlier: Cold ready on the s17 tip (329bbbb1) with everyone's work in: **57-60 s
   on the page's clock, 70-74 s as the harness sees it** (earlier today ~70 s / 80-85 s) (the main thread is busy for ~10 s after ready: the first frames). The day began at 79.1 s (harness;
   a smaller world). The main thread is the bottleneck: 58-71 CPU-s of JS and native work to ready, ~90 % busy, spread over the
   builders of other owners (table below). Nothing measured here is on a GPU: Vagon's T4 numbers are asked for.
@@ -25,6 +25,7 @@ Chromium 141 on the cloud container: 4 cores, 15 GB, no GPU)
 | s17 tip (C1, C2, C3, C5 merged) + C4, prefetch on, n=3 | 76.8-93.5 | 64.7 / 70.2 / 80.0 | 337 MB | 5.53-5.63 | |
 | same dist, `?prefetch=0`, n=3 | 79.3-86.3 | 65.4 / 73.4 / 73.6 | 337 MB | 5.64-5.71 | no measurable difference now |
 | s17 tip 329bbbb1 (C5's lighter loading screen, C10, C9 merged) + C4, n=2 | 73.5 / 70.5 | 60.2 / 57.7 | 339 MB | 5.68-5.77 | compositor 62 -> 5 CPU-s |
+| tip 9e2f5201 (C2's plain bake + atlas worker, C6, C10 merged) + C4, no 404s, n=2 (new container host after a restart) | **60.1 / 53.2** | **50.0 / 43.9** | 338 MB | 5.78-5.81 | main thread 38 CPU-s (was 53-71) |
 | + the talk's start at the first idle moment, n=2 | 73.7 / 70.8 | 60.3 / 57.4 | 339 MB | 5.76-5.80 | the gap after ready is the first frames (C10) |
 | shared decoder + reaper, n=2 | 82.7 / 86.5 | 68.8 / 73.7 | 334 MB | 5.55 / 5.59 | renderer 4.9 GB (5.0-5.05 before) |
 | loading screen animations off (`--css`) | 76.7 | 63.7 | 337 MB | 5.64 | compositor 62 -> 1 CPU-s |
