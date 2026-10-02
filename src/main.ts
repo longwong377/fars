@@ -473,6 +473,15 @@ async function boot() {
   }
   let prev = performance.now();
   let shownFrames = 0; // (D-376)
+  /** D-393 (UD-31): the talk streams in from the moment the player can walk: the language model first (285 MB: what makes a
+   *  person answer from their own life), the neural voices after it (Kokoro, ~190 MB: until then a reply is heard in the
+   *  formant voice); both at once shared the line and the text answer came ~77 s after walkable at 100 Mbit/s. Talk off, or a
+   *  GPU that cannot hold the model: the voices start at once */
+  let talkStarted = false;
+  const startTalk = async () => { if (talkStarted) return; talkStarted = true; const t0 = performance.now();
+    while (TALK && !(api as any).converse && performance.now() - t0 < 30_000) await new Promise(r => setTimeout(r, 250)); // (the talk module is imported in parallel with the boot)
+    const c = (api as any).converse; TRACE('talk: model loading');
+    try { if (c?.load) TRACE(`talk: model ${(await c.load()) ? 'ready' : 'not loaded'} (${((performance.now() - t0) / 1000).toFixed(0)} s)`); } finally { (world as any).neural?.start?.(); } };
   let firstFrames = P.has('trace') ? 3 : 0; // ?trace: time the first frames' stages (D-250)
   let inAnimationLoop = false; // set while three's animation loop (which advances the node frame) calls frame()
   const viewDir = new THREE.Vector3();
@@ -552,7 +561,7 @@ async function boot() {
     if (firstFrames > 0) { TRACE(`frame ${3 - firstFrames}: render ${lastFrameMs.toFixed(0)} ms`); firstFrames--; }
     // D-376 (UD-31): the world is shown: the people's voices and the talk's model start streaming in (a few frames in, so the
     // first frames' shader compiles are not slowed by the downloads)
-    if (++shownFrames === 5) { (world as any).neural?.start?.(); setTimeout(() => (api as any).converse?.preload?.(), 1500); }
+    if (++shownFrames === 5) void startTalk();
     // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
     meterT += dt;
     tp = pt(); if (pipeline.meterTarget && !meterBusy && ((TEST && !PLAYLIKE) || meterT > 0.25)) {
@@ -600,7 +609,7 @@ async function boot() {
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   prog.finish(); api.ready = true;
   // (D-393: a ?norender page shows no frames, so the talk's model streams in from here instead of after the 5th frame)
-  if (NORENDER) { (world as any).neural?.start?.(); setTimeout(() => (api as any).converse?.preload?.(), 1500); }
+  if (NORENDER) void startTalk();
   // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)
   (api as any).lowFirst = () => ({ ...lowFirstStats, pending: lowFirstStats.pending() });
   setTimeout(() => void upgradeLowFirst().then(n => TRACE(`scans upgraded: ${n}`)), 2000);

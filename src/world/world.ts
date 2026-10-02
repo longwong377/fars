@@ -175,12 +175,17 @@ function beginAssets(settings?: Settings) {
   const q0 = settings?.quality ?? 'high';
   const humansP = tAsset('humans', loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' }));
   const probesP = tAsset('probes', loadProbes(BASE)); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
-  const rockKitP = tAsset('rockKit', loadRockKit(BASE)), ledgeFaceP = tAsset('ledgeFace', loadLedgeFace(BASE)), coverKitP = tAsset('coverKit', loadCoverKit(BASE)), fordKitP = tAsset('fordKit', loadFordKit(BASE)); // the hills' bedrock pieces (D-335, public/models/land/)
+  // s15/ship (D-393): a player's visit fetches in the order the build uses: the Terrace's assets first (the Blender models, the
+  // scanned props, the decor, the relief atlas), then (once those are in) what the town, the plain and the hills need, which
+  // downloads while the Terrace builds; the build waits for each set just before its first user (arch / the settlement)
+  let t1Done: () => void = () => {}; const t1 = new Promise<void>(r => { t1Done = r; });
+  const late = <T>(f: () => Promise<T>): Promise<T> => (STREAM_LATE ? t1.then(f) : f());
+  const rockKitP = late(() => tAsset('rockKit', loadRockKit(BASE))), ledgeFaceP = late(() => tAsset('ledgeFace', loadLedgeFace(BASE))), coverKitP = late(() => tAsset('coverKit', loadCoverKit(BASE))), fordKitP = late(() => tAsset('fordKit', loadFordKit(BASE))); // the hills' bedrock pieces (D-335, public/models/land/)
   const propsP = tAsset('props', loadScanProps(BASE)); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
   const modelsP = tAsset('models', loadModels(BASE)); // the Blender-built models (D-305, public/models/): in before the architecture is built
-  const monumentsP = tAsset('monuments', loadMonuments(BASE)); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
-  const treesP = tAsset('trees', loadTreeAssets(BASE)); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
-  const lifeP = tAsset('life', loadLifeModels(BASE)); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
+  const monumentsP = late(() => tAsset('monuments', loadMonuments(BASE))); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
+  const treesP = late(() => tAsset('trees', loadTreeAssets(BASE))); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
+  const lifeP = late(() => tAsset('life', loadLifeModels(BASE))); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
   const reliefAtlasP = tAsset('reliefAtlas', loadReliefAtlas(BASE)); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
   const decorP = tAsset('decor', loadDecorAssets(BASE)); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
   const fireOccP = tAsset('fireOcc', loadFireOcc(BASE)); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
@@ -188,7 +193,8 @@ function beginAssets(settings?: Settings) {
   // assets the build needs (39 MB of 103 files: they download while the world builds, the network otherwise idle) and the
   // build does not wait for them: a species drawn before its model is in is its procedural stand-in, rebuilt as the model on
   // arrival (animals.ts). The tests and the bench keep them in before the first frame (STREAM_LATE false)
-  const animalsP = STREAM_LATE ? Promise.all([modelsP, propsP, treesP, lifeP, decorP, reliefAtlasP]).catch(() => null).then(() => tAsset('animals', loadAnimalModels(BASE))) : tAsset('animals', loadAnimalModels(BASE));
+  void Promise.all([modelsP, propsP, decorP, reliefAtlasP]).catch(() => null).then(() => t1Done());
+  const animalsP = STREAM_LATE ? Promise.all([treesP, lifeP, monumentsP, rockKitP]).catch(() => null).then(() => tAsset('animals', loadAnimalModels(BASE))) : tAsset('animals', loadAnimalModels(BASE));
   const sculptP = loadSculpt(async p => { const r = await fetch(BASE + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   return { sculptP, humansP, probesP, rockKitP, ledgeFaceP, coverKitP, fordKitP, propsP, modelsP, monumentsP, treesP, lifeP, animalsP, reliefAtlasP, decorP, fireOccP };
 }
@@ -208,7 +214,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await sculptP; // precomputed carved pieces (D-018; begun with the assets)
   wmark('sculpt');
-  await modelsP; await propsP; await treesP; if (!STREAM_LATE) await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
+  await modelsP; await propsP; await decorP; if (!STREAM_LATE) await animalsP; // (D-393: the town's, the plain's and the hills' sets are awaited before the settlement)
   wmark('assets awaited');
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
@@ -272,6 +278,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets;
   // the plain's villages join it too, D-254: it builds after the plain)
   const noTown = typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown');
+  await treesP; await lifeP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP; wmark('late assets awaited'); // (D-393)
   const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);
   wmark('settlement');
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
