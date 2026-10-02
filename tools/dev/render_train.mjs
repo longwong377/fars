@@ -33,7 +33,8 @@ if (cmd === 'request') {
   const rs = reqs(); if (!rs.length) { console.log('queue empty'); process.exit(0); }
   const tree = resolve(opt('--tree') ?? '.'), stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const extra = rs.flatMap(r => r.extra), xf = join(ROOT, `extra-${stamp}.json`); writeFileSync(xf, JSON.stringify(extra));
-  const only = [...new Set([...rs.flatMap(r => r.views), ...extra.map(s => s.n)])];
+  // UD-20: never the present-day ruins views (now-*, calib-24-now) unless NOW=1
+  const only = [...new Set([...rs.flatMap(r => r.views), ...extra.map(s => s.n)])].filter(n => process.env.NOW || !/(^|--)(now-|calib-24-now)/.test(n));
   console.log(`train ${stamp}: ${only.length} views for ${rs.map(r => r.agent).join(', ')} on ${tree}`);
   const env = { ...process.env, PW_CHANNEL: 'chrome', BATCH: '1', NOHMR: '1', Q: opt('--q') ?? 'high', TAG: `train${stamp}`,
     ONLY: only.join(','), EXTRA: extra.length ? xf : '', TIMEOUT: String(900 + 120 * only.length), PW_TIMEOUT: String(900 + 120 * only.length),
