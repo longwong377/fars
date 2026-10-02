@@ -9689,3 +9689,8 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - Rule (CLAUDE.md box safeguards): two full-world pages at most, never parallel shards; scoreboard.mjs holds
   T:/fars-train/train.lock and refuses under 16 GB free; agents' browsers only through gpu_slot. Train timeout raised to
   2400 + 900 s a view (the T4's real rate).
+- **D-512 (V4, under D-510): the glazed-brick bands over the Gate's doorways.** The six 'frieze' parts of the Gate of All
+  Nations (glazed, 4.6 x 0.9 m) drew as flat blue slabs at the player's lens. They now carry the Apadana frieze's band
+  (glazed.ts doorFriezeFaces + the shared band builder): both broad faces, border courses and ground with rosettes, the
+  courses fitted to each part's height (10 courses, 5 rosettes a face), a child mesh of the Apadana frieze (one draw; the
+  Apadana frieze's own test unchanged). Colours, layout C as D-214.
