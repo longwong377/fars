@@ -29,7 +29,7 @@ describe('far levels (D-361)', () => {
     cam.fov = 15; cam.updateProjectionMatrix(); expect(far.switchAt(cam, 2)).toBeGreaterThan(d2 * 3); // a long lens: further out
     cam.fov = 60; cam.updateProjectionMatrix();
     far.reset(); expect(m.geometry).toBe(near);
-    const other = new THREE.SphereGeometry(5, 64, 48); m.geometry = other; at(d2 * 1.2 + 6); // the owner swapped the near geometry
+    const other = new THREE.SphereGeometry(5, 64, 48); m.geometry = other as any; at(d2 * 1.2 + 6); // the owner swapped the near geometry
     expect(m.geometry.getAttribute('position')).toBe(other.getAttribute('position'));
   });
   it('instanced meshes: the far level carries the instanced attributes (shared) and the instances keep their places', () => {

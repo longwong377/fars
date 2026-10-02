@@ -21,9 +21,11 @@ import { sunTimes } from '../../src/people/calendar';
 
 export interface CovPoint { id: string; area: string; sub: string; e: number; n: number; band: string; day: number; hour: number }
 export const R_VIEW = 60;
+/** in sight across open ground (the plain, the hill, the far land: a person is seen well beyond 60 m there): reported beside */
+export const R_SIGHT = 250;
 const IDLE = new Set<ActivityId>(['rest', 'sleep', 'eat', 'talk', 'gamble', 'play', 'shelter', 'queue', 'offmap', 'lie_ill', 'mourn'] as ActivityId[]);
 export interface Drawn { pid: number; e: number; n: number; act: ActivityId; moving: boolean; why: string }
-export interface PointCount { work: number; idle: number; moving: number; nearest: number; acts: Record<string, number> }
+export interface PointCount { work: number; idle: number; moving: number; nearest: number; sight: number; acts: Record<string, number> }
 
 /** everyone drawn at (day, hour): the population view's people and the detailed agents on the map (as people_trace.traceAt) */
 export function drawnAt(W: TraceWorld, day: number, hour: number): Drawn[] {
@@ -38,9 +40,9 @@ export function countAt(pts: readonly { e: number; n: number }[], drawn: readonl
   const C = 64, key = (i: number, j: number) => i * 100003 + j, H = new Map<number, Drawn[]>();
   for (const d of drawn) { const k = key(Math.floor(d.e / C), Math.floor(d.n / C)); (H.get(k) ?? H.set(k, []).get(k)!).push(d); }
   return pts.map(p => {
-    const r: PointCount = { work: 0, idle: 0, moving: 0, nearest: Infinity, acts: {} }, i0 = Math.floor(p.e / C), j0 = Math.floor(p.n / C);
-    for (let i = i0 - 1; i <= i0 + 1; i++) for (let j = j0 - 1; j <= j0 + 1; j++) for (const d of H.get(key(i, j)) ?? []) {
-      const dd = Math.hypot(d.e - p.e, d.n - p.n); if (dd > R_VIEW) continue;
+    const r: PointCount = { work: 0, idle: 0, moving: 0, nearest: Infinity, sight: 0, acts: {} }, i0 = Math.floor(p.e / C), j0 = Math.floor(p.n / C), k = Math.ceil(R_SIGHT / C);
+    for (let i = i0 - k; i <= i0 + k; i++) for (let j = j0 - k; j <= j0 + k; j++) for (const d of H.get(key(i, j)) ?? []) {
+      const dd = Math.hypot(d.e - p.e, d.n - p.n); if (dd <= R_SIGHT) r.sight++; if (dd > R_VIEW) continue;
       if (d.moving && ACTIVITIES[d.act]?.moving !== false) r.moving++; else if (IDLE.has(d.act)) r.idle++; else r.work++;
       const a = d.moving ? 'walk' : d.act; r.acts[a] = (r.acts[a] ?? 0) + 1;
     }
@@ -60,12 +62,12 @@ if (process.argv[1]?.replace(/\\/g, '/').endsWith('tools/dev/life_census.ts')) {
   const t0 = performance.now(), P = (JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8')).points as CovPoint[]);
   const W = buildTraceWorld(seed); console.log(`world ${((performance.now() - t0) / 1000).toFixed(0)} s, ${P.length} points`);
   // per point: moments by day, moments empty, work/idle/moving sums, the acts seen
-  const per = P.map(p => ({ id: p.id, area: p.area, sub: p.sub, e: p.e, n: p.n, moments: 0, empty: 0, work: 0, idle: 0, moving: 0, workMoments: 0, nearestEmpty: [] as number[], acts: {} as Record<string, number>, byBand: {} as Record<string, [number, number]> }));
+  const per = P.map(p => ({ id: p.id, area: p.area, sub: p.sub, e: p.e, n: p.n, moments: 0, empty: 0, sightEmpty: 0, work: 0, idle: 0, moving: 0, workMoments: 0, nearestEmpty: [] as number[], acts: {} as Record<string, number>, byBand: {} as Record<string, [number, number]> }));
   const moments: { day: number; hour: number; drawn: number; s: number }[] = [];
   for (const d of days) for (const h of hours) {
     if (!isDay(d, h)) continue; const m0 = performance.now(), k = `${d}/${h}`, hit = cached.get(k), dr = hit ? [] : drawnAt(W, d, h), cs = hit ?? countAt(P, dr), b = bandOf(d, h);
     if (cache && !hit) appendFileSync(cache, JSON.stringify({ k, cs }) + '\n');
-    cs.forEach((c, i) => { const q = per[i]; q.moments++; const n = c.work + c.idle + c.moving; if (!n) { q.empty++; q.nearestEmpty.push(Math.round(c.nearest)); } if (c.work) q.workMoments++;
+    cs.forEach((c, i) => { const q = per[i]; q.moments++; const n = c.work + c.idle + c.moving; if (!n) { q.empty++; q.nearestEmpty.push(Math.round(c.nearest)); } if (!c.sight) q.sightEmpty++; if (c.work) q.workMoments++;
       q.work += c.work; q.idle += c.idle; q.moving += c.moving; for (const [k, v] of Object.entries(c.acts)) q.acts[k] = (q.acts[k] ?? 0) + v;
       const bb = q.byBand[b] ?? (q.byBand[b] = [0, 0]); bb[0]++; if (!n) bb[1]++; });
     moments.push({ day: d, hour: h, drawn: dr.length, s: (performance.now() - m0) / 1000 }); console.log(`day ${d} ${h} h (${b}): ${dr.length} drawn, ${cs.filter(c => !(c.work + c.idle + c.moving)).length}/${P.length} points empty, ${((performance.now() - m0) / 1000).toFixed(0)} s`);
@@ -75,21 +77,30 @@ if (process.argv[1]?.replace(/\\/g, '/').endsWith('tools/dev/life_census.ts')) {
   if (own) { const dayPts = P.map((p, i) => ({ p, i })).filter(x => isDay(x.p.day, x.p.hour)).sort((a, b) => a.p.day * 24 + a.p.hour - (b.p.day * 24 + b.p.hour));
     for (const { p } of dayPts) { const c = countAt([p], drawnAt(W, p.day, p.hour))[0]; ownRows.push({ id: p.id, sub: p.sub, day: p.day, hour: p.hour, n: c.work + c.idle + c.moving, work: c.work, nearest: Math.round(c.nearest) }); } }
   // by sub-area and band
-  const bySub: Record<string, { points: number; moments: number; empty: number; work: number; idle: number; moving: number; workMoments: number }> = {};
+  const bySub: Record<string, { points: number; moments: number; empty: number; sightEmpty: number; work: number; idle: number; moving: number; workMoments: number }> = {};
   const byBand: Record<string, [number, number]> = {};
-  for (const q of per) { const s = bySub[q.sub] ?? (bySub[q.sub] = { points: 0, moments: 0, empty: 0, work: 0, idle: 0, moving: 0, workMoments: 0 }); s.points++; s.moments += q.moments; s.empty += q.empty; s.work += q.work; s.idle += q.idle; s.moving += q.moving; s.workMoments += q.workMoments;
+  for (const q of per) { const s = bySub[q.sub] ?? (bySub[q.sub] = { points: 0, moments: 0, empty: 0, sightEmpty: 0, work: 0, idle: 0, moving: 0, workMoments: 0 }); s.points++; s.moments += q.moments; s.empty += q.empty; s.sightEmpty += q.sightEmpty; s.work += q.work; s.idle += q.idle; s.moving += q.moving; s.workMoments += q.workMoments;
     for (const [b, [n, e]] of Object.entries(q.byBand)) { const bb = byBand[b] ?? (byBand[b] = [0, 0]); bb[0] += n; bb[1] += e; } }
   const pct = (a: number, b: number) => b ? (100 * a / b).toFixed(0).padStart(3) + ' %' : '   -';
-  console.log(`\nsub-area                        points  empty  work-in-view  people/moment (work idle moving)`);
+  console.log(`\nsub-area                        points  empty  work-in-view  people/moment (work idle moving)  none-in-250m`);
   for (const [k, s] of Object.entries(bySub).sort((a, b) => b[1].empty / b[1].moments - a[1].empty / a[1].moments))
-    console.log(`${k.padEnd(32)}${String(s.points).padStart(5)}  ${pct(s.empty, s.moments)}  ${pct(s.workMoments, s.moments)}       ${(s.work / s.moments).toFixed(1).padStart(5)} ${(s.idle / s.moments).toFixed(1).padStart(5)} ${(s.moving / s.moments).toFixed(1).padStart(5)}`);
+    console.log(`${k.padEnd(32)}${String(s.points).padStart(5)}  ${pct(s.empty, s.moments)}  ${pct(s.workMoments, s.moments)}       ${(s.work / s.moments).toFixed(1).padStart(5)} ${(s.idle / s.moments).toFixed(1).padStart(5)} ${(s.moving / s.moments).toFixed(1).padStart(5)}   ${pct(s.sightEmpty, s.moments)}`);
   console.log('\nband: empty share'); for (const [b, [n, e]] of Object.entries(byBand)) console.log(`  ${b.padEnd(10)} ${pct(e, n)} of ${n}`);
   const T = per.reduce((a, q) => [a[0] + q.moments, a[1] + q.empty, a[2] + (q.empty === q.moments && q.moments ? 1 : 0), a[3] + (q.empty ? 1 : 0)], [0, 0, 0, 0]);
   console.log(`\nALL: ${T[1]} of ${T[0]} point-moments empty (${pct(T[1], T[0])}); points empty at every moment: ${T[2]}; points empty at some moment: ${T[3]} of ${per.length}`);
+  // the done line (D-640): points where the sim has a reason for people to be, nobody within 60 m at every daytime moment. Not
+  // counted, with the reason: the coverage set's edge checks (terrain rings, not places), the far open ground and the open
+  // plain between fields, roads and villages (no one's work is there), the roads and the quarries (their people are the roads'
+  // travellers and the quarrymen of world/traffic.ts, C3's, not in this count)
+  const NO_REASON = /^(edge:|far:open|far:quarries|plain:open|plain:roads)/;
+  const reasoned = per.filter(q => !NO_REASON.test(q.sub) && q.moments), always = reasoned.filter(q => q.empty === q.moments), sightAlways = reasoned.filter(q => q.sightEmpty === q.moments);
+  const RM = reasoned.reduce((a, q) => [a[0] + q.moments, a[1] + q.empty], [0, 0]);
+  console.log(`\nWITH A REASON: ${reasoned.length} points; empty at every daytime moment (60 m): ${always.length}; nobody even within 250 m at every moment: ${sightAlways.length}; point-moments empty ${pct(RM[1], RM[0])}`);
+  console.log(`  always empty: ${always.map(q => `${q.id} ${q.sub}`).join(', ')}`);
   const worst = [...per].filter(q => q.empty).sort((a, b) => b.empty / b.moments - a.empty / a.moments || a.work - b.work);
   console.log('\nemptiest points by day:'); for (const q of worst.slice(0, 40)) console.log(`  ${q.id} ${q.sub.padEnd(28)} ${q.empty}/${q.moments} empty, nearest ${q.nearestEmpty.join(',')} m  (${q.e.toFixed(0)}, ${q.n.toFixed(0)})`);
   if (own) { const e = ownRows.filter(r => !r.n); console.log(`\nown moments: ${e.length} of ${ownRows.length} daytime points empty at their own moment`); for (const r of e) console.log(`  ${r.id} ${r.sub} day ${r.day} ${r.hour.toFixed(1)} h, nearest ${r.nearest} m`); }
   mkdirSync('bench-reports', { recursive: true });
-  writeFileSync(json, JSON.stringify({ seed, days, hours, r: R_VIEW, moments, all: { pointMoments: T[0], empty: T[1], alwaysEmpty: T[2], sometimesEmpty: T[3] }, bySub, byBand, points: per.map(q => ({ ...q, acts: undefined })), own: own ? ownRows : undefined }, null, 0) + '\n');
+  writeFileSync(json, JSON.stringify({ seed, days, hours, r: R_VIEW, moments, all: { pointMoments: T[0], empty: T[1], alwaysEmpty: T[2], sometimesEmpty: T[3] }, reasoned: { points: reasoned.length, alwaysEmpty: always.map(q => q.id), sightAlwaysEmpty: sightAlways.map(q => q.id), pointMoments: RM[0], empty: RM[1] }, bySub, byBand, points: per.map(q => ({ ...q, acts: undefined })), own: own ? ownRows : undefined }, null, 0) + '\n');
   console.log(`\n${json}; ${((performance.now() - t0) / 1000).toFixed(0)} s`);
 }

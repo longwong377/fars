@@ -16,7 +16,7 @@ import { birdFlapNode } from '../../../src/world/wildlife';
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0.55, 0.68, 0.85);
   const uTime = uniform(0), layout: Record<string, [number, number, number]> = {};
   const inst = (g: THREE.BufferGeometry, m: THREE.Material, pos: THREE.Vector3, yaw: number, shadow = true) => {
-    const gg = g.clone(); gg.setAttribute('phase', new THREE.InstancedBufferAttribute(new Float32Array([Math.random() * 6]), 1)); gg.setAttribute('flapAmt', new THREE.InstancedBufferAttribute(new Float32Array([1]), 1));
+    const gg = g.clone(); gg.setAttribute('bA', new THREE.InstancedBufferAttribute(new Float32Array([Math.random() * 6, 1, 0, 1]), 4)); gg.setAttribute('bB', new THREE.InstancedBufferAttribute(new Float32Array([0, 0, 0, 1]), 4)); gg.setAttribute('bC', new THREE.InstancedBufferAttribute(new Float32Array([0, 0, 0, 1]), 4)); // (phase, flap, stand and the identity axes: wildlife.ts birdIn, D-570)
     const im = new THREE.InstancedMesh(gg, m, 1); im.setMatrixAt(0, new THREE.Matrix4().compose(pos, new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0)), new THREE.Vector3(1, 1, 1))); im.castShadow = shadow; im.receiveShadow = true; im.frustumCulled = false; scene.add(im);
   };
   let bx = 0, sx = 0, fx = 0, sbx = 0;

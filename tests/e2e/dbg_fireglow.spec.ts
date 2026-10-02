@@ -15,7 +15,7 @@ test('fire glow: the deferred fire term compiles and lights the line-up', async 
     return page.evaluate(async () => { const c = document.querySelector('canvas')!; const bmp = await createImageBitmap(c); const o = new OffscreenCanvas(bmp.width, bmp.height), x = o.getContext('2d')!; x.drawImage(bmp, 0, 0);
       const d = x.getImageData(bmp.width * 0.3, bmp.height * 0.3, bmp.width * 0.4, bmp.height * 0.5).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; return s / (d.length / 4); }); };
   const off = await meanLum('none');
-  await page.evaluate(async () => { const m: any = await import('/src/render/fireGlow.ts'), F: any = await import('/src/world/fire.ts'); const G = m.FIRE_GLOW, L = F.fireLight('brazier'), I = L.candela * F.FIRE_FLICKER_MEAN;
+  await page.evaluate(async () => { const u = ['/src/render/fireGlow.ts', '/src/world/fire.ts'], m: any = await import(/* @vite-ignore */ u[0]), F: any = await import(/* @vite-ignore */ u[1]); const G = m.FIRE_GLOW, L = F.fireLight('brazier'), I = L.candela * F.FIRE_FLICKER_MEAN;
     G.A[0].set(0, 1.4, 1.5, L.cutoff); G.B[0].set(1.0 * I, 0.52 * I, 0.18 * I, 0); G.D[0].set(0, 0, -1, 0); G.n = 1; });
   const on = await meanLum('on');
   await page.evaluate(() => { (globalThis as any).__parsaSurf.fireglow.value = 0; });
