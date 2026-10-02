@@ -320,7 +320,12 @@ export class Fauna {
         for (let k = 0; k < L.slots.length; k++) { const id = L.id * 64 + k; if (h01(this.seed, id, day) > sh * 0.92) continue; const q = L.slots[k];
           let u = h01(this.seed, id, 5), sp: Species = L.species[0][0]; for (const [x, p] of L.species) { if (u < p) { sp = x; break; } u -= p; }
           const eat = fr(c.t / (15 + 9 * h01(id, 6)) + h01(id, 7)) < 0.65 ? 1 : 0, lie = night && h01(id, day, 8) < 0.35 ? 1 : 0;
-          Object.assign(o, { sp, e: q[0], n: q[1], x: 0, z: 0, yaw: L.yaw + (h01(id, day, 9) - 0.5) * 0.5, phase: c.t * 1.3 + id, walk: 0, graze: lie ? 0 : eat, lie, coat: h01(this.seed + id, 10) }); push(); } } }
+          Object.assign(o, { sp, e: q[0], n: q[1], x: 0, z: 0, yaw: L.yaw + (h01(id, day, 9) - 0.5) * 0.5, phase: c.t * 1.3 + id, walk: 0, graze: lie ? 0 : eat, lie, coat: h01(this.seed + id, 10) }); push(); }
+        // the camp's dogs by the line (one, two at the larger camps' lines; C): lying through the heat, up and about at the
+        // ends of the day, a few metres out from the animals
+        for (let k = 0; k < 1 + (L.id % 2); k++) { const id = 9000 + L.id * 4 + k, q = L.slots[Math.floor(h01(id, day, 1) * L.slots.length)], h = c.hour, up = (h > c.sun.rise && h < c.sun.rise + 2.5) || (h > c.sun.set - 2 && h < c.sun.set + 1);
+          const a = L.yaw + Math.PI + (h01(id, 2) - 0.5), r = 4 + 3 * h01(id, 3) + (up ? 2 * Math.sin(c.t / 23 + id) : 0);
+          Object.assign(o, { sp: 'dog' as Species, e: q[0] + Math.sin(a) * r, n: q[1] + Math.cos(a) * r, x: 0, z: 0, yaw: a + (up ? c.t / 30 : 0), phase: c.t * 2 + id, walk: up && fr(c.t / 17 + id) > 0.6 ? 0.7 : 0, graze: 0, lie: up ? 0 : 1, coat: h01(id, 4) }); push(); } } }
     // D-570: the herders' flocks out on the land beyond the crowd's reach: sheep and goats spread over 4-13 m grazing and
     // drifting by day, packed in the fold and most lying at night
     if (this.flockSource) for (const F of this.flockSource((c.day ?? 0) * 24 + c.hour)) { const dc = Math.hypot(F.e - cam[0], F.n - cam[1]); if (dc < FLOCK_NEAR || dc > FLOCK_FAR) continue;
