@@ -267,7 +267,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
     for (let t = 0; t < L.length; t++) { const m = L[(k0 + t) % L.length][0]; if (fits(m) && !nearB(e, n, 6, m)) return m; } return null; };
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i, c = s.cell[k]; if (c !== LANE && !(outside && c === OUT)) continue;
     for (const [di, dj] of DIRS) { const pc = s.at(i + di, j + dj); if (pc < 0 || !s.plots[pc] || doorEdge(i, j, di, dj)) continue;
-      const wu = s.cu(i) + di * 0.5, wv = s.cv(j) + dj * 0.5, [fe, fn] = toG(wu - di * 0.4, wv - dj * 0.4); if (nearB(fe, fn, GAP_R)) continue;
+      const wu = s.cu(i) + di * 0.5, wv = s.cv(j) + dj * 0.5, [fe, fn] = toG(wu - di * 0.4, wv - dj * 0.4); if (nearB(fe, fn, GAP_R) || nearB(fe, fn, 2.9, 'peg')) continue; // (nor under a tethered animal)
       const w = clear(i, j, di, dj), key = [sid, k, di + 2 * dj + 3, 77];
       const along = (u01(...key, 1) - 0.5) * 0.6, fits = (m: string) => { const d = LITTLE_D[m] ?? 0.5; return w - d - 0.3 >= 1.6 || (w >= 2 && d <= 0.45); };
       const m = pickNot(LITTLE, u01(...key, 2), fe, fn, fits); if (!m) continue;
@@ -279,7 +279,7 @@ export function siteFill(s: Site, seed: number, items: FillItem[], st: FillStats
       fixRot(-di, -dj, tool || AGAINST[m] !== undefined ? (u01(...key, 6) - 0.5) * 0.3 : (u01(...key, 6) - 0.5) * 1.2); addB(items.length - 1); st.gap = (st.gap ?? 0) + 1; } }
   if (!outside) for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = j * W + i; if (s.cell[k] !== LANE) continue;
     const key = [sid, k, 91], u = s.cu(i) + (u01(...key, 1) - 0.5) * 0.7, v = s.cv(j) + (u01(...key, 2) - 0.5) * 0.7, [e, n] = toG(u, v);
-    if (nearB(e, n, 2.3) || nearTaken(u, v, 1.0) || nearDoor(u, v, 0.8)) continue;
+    if (nearB(e, n, 2.3) || nearB(e, n, 2.6, 'peg') || nearTaken(u, v, 1.0) || nearDoor(u, v, 0.8)) continue;
     const m = pickNot(LITTER, u01(...key, 3), e, n, () => true); if (!m) continue;
     const [a, b] = LITTER_S[m] ?? [0.8, 1.1], sc = a + (b - a) * u01(...key, 4), fl = m === 'wo_spoil' ? 0.35 + 0.2 * u01(...key, 5) : 1;
     items.push({ m, e, n, dy: m === 'tool_stick' ? 0.01 : 0, rot: u01(...key, 6) * 6.283, s: [sc, sc * fl, sc], at: 'litter', ...(m === 'wo_spoil' ? { col: { earth: ASH[Math.floor(u01(...key, 7) * ASH.length)] } } : {}) });
