@@ -158,27 +158,30 @@ export const LOD_RADIUS = 1e9;
 const WTRACE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('trace');
 let wLast = 0;
 /** boot stage timing with ?trace (D-248: where a page load goes) */
-function wmark(stage: string) { if (!WTRACE) return; const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms'); wLast = t; }
+/** s15/ship: when each asset load resolves (?trace), from the build's start */
+const tAsset = <T>(name: string, p: Promise<T>): Promise<T> => (WTRACE ? p.then(v => { console.info('[boot]', 'asset:' + name, (performance.now() - wT0).toFixed(0), 'ms'); return v; }) : p);
+let wT0 = 0;
+function wmark(stage: string) { if (!WTRACE) return; const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms', 'busy', (globalThis as any).__bootBusy?.() ?? ''); wLast = t; }
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
-  wLast = performance.now();
+  wLast = wT0 = performance.now();
   prefetchWorldCache(); // D-354: the baked world's hashes and manifest, while the build starts
   void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
   // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
   const q0 = settings?.quality ?? 'high';
-  const humansP = loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' });
-  const probesP = loadProbes(BASE); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
-  const rockKitP = loadRockKit(BASE), ledgeFaceP = loadLedgeFace(BASE), coverKitP = loadCoverKit(BASE), fordKitP = loadFordKit(BASE); // the hills' bedrock pieces (D-335, public/models/land/)
-  const propsP = loadScanProps(BASE); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
-  const modelsP = loadModels(BASE); // the Blender-built models (D-305, public/models/): in before the architecture is built
-  const monumentsP = loadMonuments(BASE); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
-  const treesP = loadTreeAssets(BASE); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
-  const lifeP = loadLifeModels(BASE); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
-  const animalsP = loadAnimalModels(BASE); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
-  const reliefAtlasP = loadReliefAtlas(BASE); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
-  const decorP = loadDecorAssets(BASE); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
-  const fireOccP = loadFireOcc(BASE); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
+  const humansP = tAsset('humans', loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' }));
+  const probesP = tAsset('probes', loadProbes(BASE)); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
+  const rockKitP = tAsset('rockKit', loadRockKit(BASE)), ledgeFaceP = tAsset('ledgeFace', loadLedgeFace(BASE)), coverKitP = tAsset('coverKit', loadCoverKit(BASE)), fordKitP = tAsset('fordKit', loadFordKit(BASE)); // the hills' bedrock pieces (D-335, public/models/land/)
+  const propsP = tAsset('props', loadScanProps(BASE)); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
+  const modelsP = tAsset('models', loadModels(BASE)); // the Blender-built models (D-305, public/models/): in before the architecture is built
+  const monumentsP = tAsset('monuments', loadMonuments(BASE)); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
+  const treesP = tAsset('trees', loadTreeAssets(BASE)); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
+  const lifeP = tAsset('life', loadLifeModels(BASE)); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
+  const animalsP = tAsset('animals', loadAnimalModels(BASE)); // the animals' modelled bodies (D-326, public/models/animals/): in before the first frame draws one
+  const reliefAtlasP = tAsset('reliefAtlas', loadReliefAtlas(BASE)); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
+  const decorP = tAsset('decor', loadDecorAssets(BASE)); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
+  const fireOccP = tAsset('fireOcc', loadFireOcc(BASE)); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   const { parts, manifest, doorways } = buildTerrace();
   wmark('{ parts, manifest, doorways }');
   // the parts as tools/build_probes.ts hashes them: before the builders below use them (session 11: hashed after
@@ -187,7 +190,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch(BASE + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
+  wmark('sculpt');
   await modelsP; await propsP; await treesP; await animalsP; await lifeP; await decorP; await rockKitP; await ledgeFaceP; await coverKitP; await fordKitP; await monumentsP;
+  wmark('assets awaited');
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   wmark('arch');
   root.add(arch.group);

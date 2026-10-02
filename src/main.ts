@@ -42,6 +42,7 @@ import { installSunCascades } from './render/sunShadows';
 import { loadScans } from './render/scans';
 import { BASE } from './core/base';
 import { installProgressiveCompile } from './render/progressive';
+import { upgradeLowFirst, lowFirstStats } from './render/lowfirst';
 installWebGPUCompat();
 
 const P = urlParams();
@@ -68,7 +69,10 @@ if (settings.devOverlay || P.has('overlay')) overlay.toggle();
 // spawn: on the approach from the plain, west of the Grand Stair, facing the Terrace (grid east)
 const SPAWN = { east: -175, north: 122.45, yaw: -Math.PI / 2 };
 
-const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms') : (_: string) => {};
+// s15/ship: with ?trace each mark also says how much of the main thread was busy (long tasks) so far: CPU-bound vs waiting on the network
+let BUSY = 0; if (P.has('trace') && typeof PerformanceObserver !== 'undefined') try { new PerformanceObserver(l => { for (const e of l.getEntries()) BUSY += e.duration; }).observe({ type: 'longtask', buffered: true }); } catch { /* no long-task timing */ }
+const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms', 'busy', BUSY.toFixed(0)) : (_: string) => {};
+(globalThis as any).__bootBusy = () => Math.round(BUSY); // (world.ts's marks print it)
 /** s15/ship (D-368): the built site's service worker (public/sw.js: the site's files in Cache Storage, so a second visit
  *  fetches nothing); on a first visit the boot waits (at most 3 s) until it controls the page, so the first visit's files are kept */
 async function siteWorker() {
@@ -531,7 +535,7 @@ async function boot() {
     pipeline.flash.value = world.flash?.() ?? 0;
     // session 9 (G8): heat shimmer and mirage on hot, bright, dry afternoons (26-36 C, the sun over 15 deg, little cloud; C)
     pipeline.heat.value = Math.min(1, Math.max(0, (cond.tempC - 26) / 10)) * Math.min(1, Math.max(0, (sky.state.sunAlt - 15) / 15)) * Math.max(0, 1 - cond.cloud * 1.5) * Math.max(0, 1 - cond.wetness * 2);
-    if (opts.render === false || NORENDER) { if (NORENDER) lastFrameMs = performance.now() - t0; return; }
+    if (opts.render === false || NORENDER) { if (NORENDER) { lastFrameMs = performance.now() - t0; if (firstFrames > 0) firstFrames--; } return; }
     // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the
     // session 2 bench and every renderOnce-based count measured that: 1 draw call, sub-millisecond "frames")
@@ -588,6 +592,9 @@ async function boot() {
   }
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
+  // s15/ship (D-368): the full scans replace the built site's low copies, one by one, once the world is up (lowfirst.ts)
+  (api as any).lowFirst = () => ({ ...lowFirstStats, pending: lowFirstStats.pending() });
+  setTimeout(() => void upgradeLowFirst().then(n => TRACE(`scans upgraded: ${n}`)), 2000);
   if (TEST) shell.playing(); else shell.title(continued);
   void lastSave; void gridToLatLon; void YEAR_DAYS;
 }
