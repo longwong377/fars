@@ -5,7 +5,6 @@
 // the same geometry as the page (loadMonumentsNode), and a missing or failed asset leaves the builder's procedural stand-in
 // (flagged PLACEHOLDER) in place: nothing is ever missing. `?monuments=0` switches them off (A/B).
 import * as THREE from 'three/webgpu';
-import { sharedKTX2 } from './loaders';
 import { BASE } from '../core/base';
 
 export interface MonumentEntry { file: string; sha256: string; bytes: number; tris: Record<string, number>; maps: Record<string, { file: string; w: number; h: number; bytes: number; sha256: string; srgb?: boolean }>; tier: string; src: string; note: string; blender: string; device: string; inHash: string; stats?: Record<string, number> }
@@ -80,7 +79,9 @@ export async function loadMonuments(base = BASE, anisotropy = 8): Promise<Return
   // KTX2 maps (UASTC): the transcoder picks the GPU's block format from the WebGPU adapter (as models.ts; decoders in /models/lib/)
   let K: any = null;
   if (Object.values(man.assets).some(a => Object.values(a.maps).some(m => m.file.endsWith('.ktx2')))) {
-    K = await sharedKTX2(base); // (D-392: the page's transcoder)
+    const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
+    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
+    K = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/'); K.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any);
   }
   await Promise.all(Object.entries(man.assets).map(async ([id, e]) => {
     try {

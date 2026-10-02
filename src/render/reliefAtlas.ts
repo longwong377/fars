@@ -4,7 +4,6 @@
 // (world.ts awaits it before the reliefs are built). Never throws: a missing or failed atlas, ?reliefatlas=0 or ?models=0
 // leave the legacy vertex-painted levels (arch/reliefs.ts), so a relief is never missing.
 import * as THREE from 'three/webgpu';
-import { sharedKTX2 } from './loaders';
 import { ATLAS_INDEX } from '../arch/relief_atlas';
 import { setReliefAtlas } from '../arch/reliefs';
 import { paintedStoneMaterial, type ReliefAtlasMaps } from './materials';
@@ -21,7 +20,12 @@ export async function loadReliefAtlas(base = BASE, renderer?: THREE.WebGPURender
   if (q && (q.get('reliefatlas') === '0' || q.get('models') === '0')) { STATE.off = true; return reliefAtlasStats(); }
   if (!((ATLAS_INDEX.version ?? 0) > 0)) { STATE.error = 'no atlas built'; return reliefAtlasStats(); }
   try {
-    const k = await sharedKTX2(base, renderer ?? undefined); // (D-392: the page's transcoder; the renderer's target format when given)
+    const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
+    const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/');
+    // the transcoder's target format from the renderer, else from the WebGPU adapter (as render/models.ts)
+    let gpu: any = renderer ?? null;
+    if (!gpu) { const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null); gpu = { isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) }; }
+    k.detectSupport(gpu);
     const [nao, paint] = await Promise.all([k.loadAsync(base + ATLAS_INDEX.files.nao), k.loadAsync(base + ATLAS_INDEX.files.paint)]);
     for (const [t, cs] of [[nao, THREE.NoColorSpace], [paint, THREE.SRGBColorSpace]] as const) {
       t.colorSpace = cs; t.anisotropy = 8; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
