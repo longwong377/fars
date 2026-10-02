@@ -104,7 +104,7 @@ the target.
 
 - Consolidated key batch (deeds, law, joint, the stranger's living, stranger, talk, approach, sight, react, names, history):
   113/114 (the one: react's village case timed out, 186 s vs 120 s, no assertion failed). talk_prompt 5/5 (no digits reach
-  the model). Guards 25/25. Not run after the last merges: people_days* (year-long; hours each on this box), econ_plans.
+  the model). After the last merge (goals): minds, deeds, deeds_law, deeds_joint 40/40; tsc clean; guards 25/25. Not run after the last merges: people_days* (year-long; hours each on this box), econ_plans.
 
 ## The sessions of today (all reported, merged and archived unless noted)
 
