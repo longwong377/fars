@@ -42,6 +42,13 @@ process.on('SIGINT', () => { free(); process.exit(130); }); process.on('SIGTERM'
 try { setPriority(constants.priority.PRIORITY_BELOW_NORMAL); } catch {} // children inherit the class (Windows): the app stays responsive
 const child = spawn(cmd[0], cmd.slice(1), { stdio: ['inherit', 'pipe', 'pipe'], shell: true, env: process.env });
 pipeWithProgress(child, slot); recordChild(slot, child);
+// Runtime memory ceiling (session 15: a full-world page grew to 10 GB after its start-time check and froze the box twice):
+// if free memory falls under KILL_FREE_GB while this job runs, the slot ends its own job tree at once and frees the slot.
+const KILL_FREE_GB = +(process.env.KILL_FREE_GB ?? 2);
+const ceiling = setInterval(() => { if (freeGB() < KILL_FREE_GB) {
+  console.error(`[slot] ${label}: free memory ${freeGB().toFixed(1)} GB < ${KILL_FREE_GB} GB: ending this job to keep the box alive`);
+  try { spawn('taskkill', ['/T', '/F', '/PID', String(child.pid)], { stdio: 'ignore' }); } catch {} } }, 2000);
+child.on('exit', () => clearInterval(ceiling));
 // Chrome raises its own GPU process above the class it inherits: every 15 s, put this job's Playwright Chromes (their
 // profiles are playwright_* temp dirs) back to below normal so the Claude app keeps the CPU (session 15)
 const DEPRIO = "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | ? { $_.CommandLine -like '*playwright*' } | % { try { (Get-Process -Id $_.ProcessId).PriorityClass = 'BelowNormal' } catch {} }";
