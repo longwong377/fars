@@ -85,6 +85,8 @@ export function mountConverse(c: Ctx) {
     const sim = c.world.people?.sim, E = eye(), L = listeners(c.world, E);
     const H = earshot(L, { ...E, yawDeg: yaw() }, text, pid => sim?.pop.nameOf(pid), { rmsDb, ambientDb: ambientFor(c.clock.localHour) });
     state.heard = { ...H, t: sim?.t ?? 0, words: text };
+    // D-395: the heads of those in earshot turn to a shout (crowd.ts plays it: react.ts 'turn')
+    if (H.look.length) c.world.people?.crowd?.reactions?.fromHeard(H.look, [c.camera.position.x, c.camera.position.y, c.camera.position.z]);
     const to = H.to ? L.find(l => l.pid === H.to!.pid)! : null;
     return { H, near: to ? { pid: to.pid, agent: to.agent, name: sim.pop.nameOf(to.pid)?.replace(/^\*/, '') ?? '', d: H.to!.d, e: to.e, n: to.n } : null };
   }

@@ -10,6 +10,7 @@ import { FENCE_SHORT } from './fence';
 import { lifeBriefShort, type LifeRecord } from './life';
 import { INTENT_LINE } from './intent';
 import { approxTokens } from './tokens';
+import { spoken } from './spoken';
 
 export interface Turn { role: 'user' | 'assistant'; content: string }
 export type Knows = 'none' | 'nod' | 'recognise' | 'heard';
@@ -39,8 +40,31 @@ export function systemPrompt(L: LifeRecord, knows: Knows, prose?: string | null,
     if (!i || i[1] < 0) break; const l = ls[i[0]], cut = Math.max(l.lastIndexOf('; '), l.lastIndexOf(', ')); ls[i[0]] = l.slice(0, cut) + '.'; life = ls.join('\n'); }
   let out = build();
   // still over (a long memory): the older of the memory lines goes
-  if (approxTokens(out) > PROMPT_TOKENS && mem.length > 1) { tail[1] = `What you remember of the stranger: ${mem[mem.length - 1]}`; out = [head, life, ...tail].join('\n'); }
+  if (approxTokens(out) > PROMPT_TOKENS && mem.length > 1) { tail[1] = `What you remember of the stranger: ${mem[mem.length - 1]}`; out = build(); }
+  // (D-395: the cap is hard: the life's last lines go, never its first with the name and the work)
+  for (let ls = life.split('\n'); approxTokens(out) > PROMPT_TOKENS && ls.length > 2;) { ls = ls.slice(0, -1); life = ls.join('\n'); out = build(); }
   return out;
+}
+
+/** D-395: the ceiling of one turn of the stranger's as the model reads it (tokens: the system prompt is read in once when
+ *  the person is primed; each answer then reads only this turn, so prompt + turn stays under the watchdog's read-in) */
+export const TURN_TOKENS = 220;
+/** the stranger's turn as the model reads it (mind.ts): what goes before his words (the memory, the house's dealings), his
+ *  words as the person hears them (hear.ts), the simulation's word on an ask, and the closing note with the one life fact.
+ *  D-395: numbers in words; over TURN_TOKENS the parts that matter least go first (before, then the life fact) */
+export function userTurn(name: string, h: { text: string; note?: string | null }, o: { userText?: string; before?: string; note?: string; ground?: string } = {}): string {
+  if (o.userText) return spoken(o.userText);
+  const build = (before?: string, ground?: string) => spoken(`${before ? before + '\n' : ''}The stranger says: “${h.text}”${h.note ? ` (${h.note}.)` : ''}${o.note ? ` (${o.note})` : ''} (Answer as ${name}, from your own life${ground ? `: ${ground}` : ''}.)`);
+  // (a "no" said twice, before the words and in the simulation's note after them, is said once: after them)
+  const lines = (o.before ?? '').split('\n').filter(l => { const m = /^\(Whatever he asks, you must say no: (.*)\.\)$/.exec(l); return l && !(m && o.note?.includes(m[1])); });
+  let s = build(lines.join('\n'), o.ground); if (approxTokens(s) <= TURN_TOKENS) return s;
+  // over the cap: the house's dealings and the stranger's looks go first, then why they came up, then the rest in order
+  // (came, wary, facts, memory, no: the memory and the "no" last)
+  const rank = (l: string) => /^\(The stranger |^\([A-Z][^)]*(?:sold|bought|gave|owes|lent)/.test(l) ? 0 : /^\(You came up/.test(l) ? 1 : 2;
+  const order = lines.map((l, i) => ({ l, i, r: rank(l) })).sort((a, b) => a.r - b.r || a.i - b.i); const keep = new Set(lines.map((_, i) => i));
+  for (const x of order) { if (approxTokens(s) <= TURN_TOKENS) break; keep.delete(x.i); s = build(lines.filter((_, i) => keep.has(i)).join('\n'), o.ground); }
+  if (approxTokens(s) > TURN_TOKENS) s = build(undefined, undefined);
+  return s;
 }
 
 /** the messages for one answer (the talk so far kept short: the last few turns) */
