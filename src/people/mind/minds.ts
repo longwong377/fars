@@ -33,6 +33,8 @@ export interface MindCtx {
   /** the economy's trust of the person's house in the doer (0..1), 0.5 when unknown */ trust: (pid: number, of: Actor, day: number) => number;
   /** how short the person's house is of food and of silver (0..1) */ need: (pid: number, day: number) => { food: number; cash: number };
   /** the relations layer's affection between two adults, when it runs */ relAff?: (a: number, b: number, day: number) => number | null;
+  /** D-460: what the person's house knows of the doer's wrongs (deeds/law.ts record: convictions, lies found, blows), -1..0 */ record?: (pid: number, of: Actor, day: number) => { v: number; why: string } | null;
+  /** D-460: the elder of the person's quarter (deeds/law.ts) */ elder?: (pid: number, day: number) => number | null;
 }
 
 export class Minds {
@@ -92,6 +94,9 @@ export class Minds {
     // fear: a frightened person gives way to small demands and keeps away from the rest
     if (f.fear > 0.3) add(['give', 'ask_for', 'borrow', 'fetch', 'carry', 'dismiss'].includes(d.verb) ? 0.3 * f.fear : -0.4 * f.fear, 'afraid of him');
     const tr = this.ctx.trust(pid, doer, day); add(0.6 * (tr - 0.5), tr < 0.35 ? 'the house does not trust him' : tr > 0.65 ? 'the house trusts him' : '');
+    // D-460: his record as the house knows it (a thief, a liar, a man who strikes people), and the custom that a wound is paid for
+    const rec = sense.consent || d.verb === 'ask_for' ? this.ctx.record?.(pid, doer, day) : null; if (rec) add(0.8 * rec.v, rec.v < -0.1 ? rec.why : '');
+    if (d.verb === 'ask_for' && /compensation|blood-price/.test(d.about ?? '')) add(0.55 + 0.3 * Math.max(0, f.fear) - 0.25 * (pe.pride - 0.5), 'the custom: a wound is paid for');
     // temper and facets
     if (sense.consent) { add(0.25 * (pe.warmth - 0.5), pe.warmth > 0.7 ? 'warm by nature' : pe.warmth < 0.3 ? (doer === 'player' ? 'cold to strangers' : 'cold by nature') : '');
       if (doer === 'player') add(0.2 * (pe.curiosity - 0.5), pe.curiosity > 0.7 ? 'curious about the stranger' : ''); }
@@ -176,7 +181,13 @@ export class Minds {
       if (nd.food > 0.75 && u < 0.08) { const t = this.friendOf(x, day); if (t !== null) { const pe = personaOf(P, x, day);
         out.push(nd.food > 0.92 && pe.piety < 0.35 && pe.temper > 0.55 && u < 0.012 ? { verb: 'steal', actor: x, target: t, good: 'grain', qty: 5 } : { verb: 'borrow', actor: x, target: t, good: 'grain', qty: 10 }); } continue; }
       // a friend visited, a meal shared, of an evening (C: a few times a month for most)
-      if (u > 0.985) { const t = this.friendOf(x, day); if (t !== null) out.push({ verb: u > 0.995 ? 'share_food' : 'visit', actor: x, target: t, inH: 0 }); }
+      if (u > 0.985) { const t = this.friendOf(x, day); if (t !== null) out.push({ verb: u > 0.995 ? 'share_food' : 'visit', actor: x, target: t, inH: 0 }); continue; }
+      // D-460: the everyday between neighbours and friends (C: rates per person-day): a hand with the work, thanks and praise
+      // for kindness, and friction: a sharp word or mockery from the hot-tempered over water, a wall, a debt; rarely, the hard
+      // and impious take what is not theirs while the house is out
+      if (u > 0.975) { const t = this.friendOf(x, day); if (t !== null) out.push(u > 0.981 ? { verb: 'help', actor: x, target: t } : { verb: u > 0.978 ? 'praise' : 'thank', actor: x, target: t }); continue; }
+      if (u > 0.969) { const pe = personaOf(P, x, day), t = this.neighbourOf(x, day); if (t !== null && pe.temper > 0.55) out.push({ verb: u > 0.972 ? 'insult' : 'mock', actor: x, target: t, force: 0.3 + 0.4 * pe.temper }); continue; }
+      if (u < 0.0007) { const pe = personaOf(P, x, day), t = this.neighbourOf(x, day); if (t !== null && pe.piety < 0.4 && pe.temper > 0.5) out.push({ verb: 'steal', actor: x, target: t, good: u < 0.00025 ? 'silver' : 'grain', qty: u < 0.00025 ? 4 : 8 }); continue; }
       void p;
     }
     return out.slice(0, max);
@@ -188,8 +199,16 @@ export class Minds {
     if (c.length) return c[Math.floor(u01(this.seed, S.pick, pid, day, 1) * c.length)];
     return null;
   }
+  /** a grown person of another house in the same quarter (a neighbour of the lane; seeded by the day) */
+  neighbourOf(pid: number, day: number): number | null {
+    const P = this.pop, h = P.home(pid, day), q = P.households[h]?.q; if (!q) return null;
+    for (const k of [1, -1, 2, -2, 3]) { const H = P.households[h + k]; if (!H || H.q !== q || !H.members.length) continue;
+      const m = H.members.filter(x => P.present(x, day) && P.persons[x].dies > day && P.ageOn(x, day) >= 16 && P.home(x, day) === H.id); if (m.length) return m[Math.floor(u01(this.seed, S.pick, pid, day, 7 + k) * m.length)]; }
+    return null;
+  }
   /** the elder of the person's quarter (the one a complaint is taken to), if one is known */
   elderOf(pid: number, day: number): number | null {
+    if (this.ctx.elder) return this.ctx.elder(pid, day);
     const P = this.pop, q = P.households[P.home(pid, day)]?.q; if (!q) return null;
     for (const H of P.households) { if (H.q !== q) continue; for (const m of H.members) if (P.persons[m].job === 'elder' && P.present(m, day)) return m; }
     return null;
