@@ -9680,3 +9680,12 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   for the whole load: sent to C5.
 
 - Also (assigned by the cloud lead): src/people/converse/ui.ts's note when a person answers in their own lines now says why, out of world: the talk still arriving (with its share), the talk's model could not be fetched (reload to retry), or the graphics card cannot run it. Text only; the talk's behaviour is unchanged. tools/dev/first_minutes.mjs drives a player's first minutes on the built site end to end (19 steps).
+
+## D-472 (s17, Vagon lead): the 23:20 crash and the one-train rule
+- What happened: the baseline train ran ~13 min a view (shader compiles); to go faster the lead started 3 more train shards
+  in parallel (4 full-world pages) while 6 agents ran probe browsers. Memory spiked, WMI hung (tasklist/taskkill timed out),
+  the T4 was reset (Dawn: device removed) and the Claude app died, stopping all six agents. Lost: the baseline train (one
+  frame published); no code (every agent had pushed; small uncommitted edits stayed in their trees; agents resumed).
+- Rule (CLAUDE.md box safeguards): two full-world pages at most, never parallel shards; scoreboard.mjs holds
+  T:/fars-train/train.lock and refuses under 16 GB free; agents' browsers only through gpu_slot. Train timeout raised to
+  2400 + 900 s a view (the T4's real rate).
