@@ -78,3 +78,21 @@ so it cannot recur.
 
 There is no time gain on this 4-core container. Ready is gated by the last asset (`asset:animals` at ~73-83 s), not by
 decode. Memory is +0.15-0.2 GB. By the merge budget it does not go in: reverted right after 871d8aab.
+
+## The consolidated world (the lead's check, 11:50 UTC)
+Scratch merge, local only: cloud-s16-boot 5e8f8e93 + origin/cloud-s15-depth 32bec5b4 (deeds, minds, law, joint deeds, the
+talk-eval fixes, names, brides) = 724128eb, with DECISIONS.md merged as a union of both sides. Built with BAKE_SEEDS=1 (world 1
+baked in 175 s, site build 237 s). Measured with the fixed measure.mjs: cold, then warm, `?norender&seed=13013`, 100 Mbit,
+headless Chromium.
+
+| build | cold ready | warm ready | memory cold / warm | fetched before ready (cold) |
+|---|---|---|---|---|
+| cloud-s16-boot (above) | 100.7 s (100.1 s, seed 5150) | 70.3 s | 5.60 / 5.47 GB | 323 MB |
+| consolidated 724128eb | **99.8 s** | **69.0 s** | **5.83 / 5.67 GB** | 321 MB, 755 requests |
+
+- **It still reaches ready.** No page errors other than the 2 known optional 404s.
+- **Time: unchanged.**
+- **Memory: +0.2 GB** cold and warm. That moves further from the 5 GB target and is the cost to watch.
+- `world:view` (the court's route warm-up) went from ~10 s to ~24 s of wall time. Its navcore unit is still a cache hit, and
+  main-thread busy did not grow (3.8 s vs 4.3 s), so the stage is waiting, not computing. It does not move ready, which is
+  still gated by the last asset (animals).
