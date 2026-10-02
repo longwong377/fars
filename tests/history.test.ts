@@ -97,3 +97,16 @@ describe('D-373 hopes and worries from each person\'s own state', () => {
     expect(some / people.length).toBeGreaterThan(0.85); expect(kinds.size).toBeGreaterThan(12);
   }, 600_000);
 });
+describe('D-375 needs and the quarter\'s talk reach what people say (asks on, as in the game)', () => {
+  it('a house with open asks speaks of them; people speak of the rumours they hold; no digits', () => {
+    const sim = simAt(1, 120, 12, { asks: true }); sim.econTo(121);
+    const A = sim.asksWorld.asks, R = sim.asksWorld.rumours;
+    const houses = [...new Set([...(A as any).open.values()].map((a: any) => a.hh))].slice(0, 40) as string[];
+    expect(houses.length).toBeGreaterThan(5);
+    let needs = 0, news = 0, ppl = 0;
+    for (const hh of houses) { const m = sim.pop.households[Number(hh.slice(2))].members.find(x => sim.pop.ageOn(x, 120) >= 16 && sim.pop.present(x, 120)); if (m === undefined) continue; ppl++;
+      const L = lifeRecord(sim.pop, sim.cal, m, 120, 12); if (L.needs.length) needs++; if (L.news.length) news++; for (const x of [...L.needs, ...L.news]) expect(x).not.toMatch(/\d/); }
+    console.log('[asks] people', ppl, 'with needs', needs, 'with news', news, 'rumours', R.rumours.length);
+    expect(needs / ppl).toBeGreaterThan(0.8);
+  }, 1_800_000);
+});

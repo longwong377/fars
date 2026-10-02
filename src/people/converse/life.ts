@@ -28,6 +28,8 @@ export interface LifeRecord {
   past: string[];
   /** D-373: what they hope for and what worries them now, from their own state (aims.ts) */
   hopes: string[]; worries: string[];
+  /** D-375: the house's open needs as it would put them to a stranger (the asks layer), and the quarter's talk the house holds (rumours) */
+  needs: string[]; news: string[];
   /** quarrels and small obligations (disputes: sim facts; debts: seeded, C) */
   quarrels: string[]; debts: string[];
   temperament: string; speech: string[];
@@ -199,12 +201,24 @@ export function lifeRecord(pop: Population, cal: EventCalendar, pid: number, day
     otherLanguages: [...new Set([p.origin !== 'Persian' && age >= 12 ? 'some Persian' : '', p.job === 'scribe' ? 'Elamite and Aramaic (writes them)' : '', p.group >= 0 && lang !== 'Elamite' ? 'a little Elamite (the language of the ration tablets)' : ''].filter(Boolean))],
     job: jobWords(p), work: cur?.place ?? '', group: p.group >= 0 ? pop.groups[p.group].label.replace(/\s*\(\d+\)/, '') : null,
     rank: p.job === 'guard' && p.rank === 1 ? 'leader of a file of ten' : p.rank > 1 ? 'a leader of the group' : null,
-    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${all.length + 1} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)), ...aimsOf(pop, cal, pid, day, E), quarrels, debts, temperament: temper, speech,
+    home: homeWords(pop, hh) + (others > 0 ? ` (a household of ${all.length + 1} with the others of the ${p.job === 'herder' ? 'band' : 'group'})` : ''), zone: H.zone, household, kinHouses, friends, year, past: pastWords(pastOf(pop, pid, day, household)), ...aimsOf(pop, cal, pid, day, E), ...talkOf(pop, hh, day, age), quarrels, debts, temperament: temper, speech,
     today: { date: `day ${dt.dom} of the month ${M.op.replace(/\s*\(\?\)/, '')} (Babylonian ${M.bab}), year 19 of King Xerxes`, season: seasonOf(C.month), weather, now: cur ? `${cur.act.replace(/_/g, ' ')}: ${unparen(cur.why)}` : 'away from Parsa', place: cur ? cur.where : 'away', next: next ? unparen(next.why) : null, earlier, events },
     knows, tier: 'C',
   };
 }
 
+/** D-375: what the house needs (its open asks, as it would put them to a stranger when it would at all) and what it has
+ *  heard (the rumours it holds: the version that reached it, with its certainty), in the town's words */
+const NEED_WORDS: Record<string, string> = { grain: 'barley to feed the house', fuel: 'fuel for the hearth', silver: 'silver for a debt', labour: 'hands for the work', healer: 'someone to tend the sick', company: 'company in mourning', animal: 'a beast for the plough', justice: 'justice for a theft', shelter: 'a roof', time: 'time to pay a debt', petition: 'someone to speak for the house', lost_child: 'a lost child found' };
+const NEWS_WORDS: Record<string, string> = { death: 'a death in', illness: 'sickness in', theft: 'a theft at', default: 'a debt unpaid by', house_fire: 'a fire at', hunger: 'hunger in', suit: 'a suit against', arrest: 'an arrest at', pledge_seized: 'a pledge taken from', debt_labour: 'one bound for debt from', animal_lost: 'an ox lost by', loan: 'a loan to', acquitted: 'an acquittal for', scandal: 'a scandal in', player_deed: 'the stranger\'s doings with' };
+function talkOf(pop: Population, hh: number, day: number, age: number): { needs: string[]; news: string[] } {
+  const A = age >= 12 ? pop.asksNow?.(`h:${hh}`, day) ?? null : null; if (!A) return { needs: [], news: [] };
+  const needs = A.asks.sort((a, b) => b.urgency - a.urgency).slice(0, 2).map(a => { const v = a.voices.find(x => x.to === 'stranger');
+    return `${NEED_WORDS[a.kind] ?? a.kind}${v?.willing ? `; would ask even a stranger, offering ${v.offers}` : '; would not ask a stranger'}`; });
+  const news = A.rumours.filter(r => r.version.about !== `h:${hh}`).sort((a, b) => b.since - a.since).slice(0, 2).map(r => { const who = houseOf(pop, r.version.about) ?? 'a house of the quarter';
+    return `heard of ${NEWS_WORDS[r.version.kind] ?? r.version.kind} ${who}${r.version.certainty < 0.5 ? ' (not sure it is true)' : ''}`; });
+  return { needs, news };
+}
 /** D-371: silver in the words of the town (no digits: the §10 lint) */
 const silverWords = (x: number) => x < 0.15 ? 'a little silver' : x < 0.6 ? 'some silver' : x < 1.5 ? 'about a shekel' : x < 4 ? 'a few shekels' : x < 12 ? 'many shekels' : 'a great sum of silver';
 const houseOf = (pop: Population, id: string) => { if (id === 'treasury') return 'the king\'s treasury'; if (id === 'player') return 'the stranger'; if (!/^h:\d+$/.test(id)) return null;
@@ -260,6 +274,8 @@ export function lifeBriefShort(L: LifeRecord, prose?: string | null): string {
     `In your house: ${kin}.`,
     L.friends.length ? `Friends and kin nearby: ${L.friends.slice(0, 2).map(f => `${f.name} (${f.how.split(',')[0]}${f.feeling === 'close' ? '' : '; ' + f.feeling})`).join(', ')}.` : '',
     [...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].length ? `Lately: ${[...L.year.slice(0, 2), ...L.quarrels.slice(-1), ...L.debts].join('; ')}.` : '',
+    L.needs.length ? `Your house needs: ${L.needs.join('; ')}.` : '',
+    L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
     L.past.length ? `Before this year: ${L.past.slice(0, 2).join('; ')}.` : '',
     L.worries.length || L.hopes.length ? `On your mind: ${[...L.worries.map(w => `worried about ${w}`), ...L.hopes.map(h => `hoping for ${h}`)].slice(0, 3).join('; ')}.` : '',
     `Manner: ${L.temperament}; ${L.speech[0]}; ${L.speech[1]}.`,
@@ -280,6 +296,7 @@ export function lifeBrief(L: LifeRecord, prose?: string | null): string {
     `Home: ${L.home}. Household: ${kin}.`,
     L.kinHouses.length ? `Kin in other houses: ${L.kinHouses.join('; ')}.` : '',
     L.friends.length ? `People you know: ${L.friends.map(f => `${f.name} (${f.how}; ${f.feeling})`).join('; ')}.` : '',
+    L.needs.length ? `The house needs: ${L.needs.join('; ')}.` : '', L.news.length ? `Talk of the quarter: ${L.news.join('; ')}.` : '',
     L.past.length ? `Before this year: ${L.past.join('; ')}.` : '',
     L.worries.length ? `Worries: ${L.worries.join('; ')}.` : '', L.hopes.length ? `Hopes: ${L.hopes.join('; ')}.` : '',
     L.year.length ? `This year: ${L.year.join('; ')}.` : '',
