@@ -17,6 +17,7 @@
 // Nothing here is after 467 or hints at what comes (the fate rule); no modern place names (places as the period named them).
 import type { Population, Person } from './population';
 import { h32, u01, salt } from './hash';
+import { spouseIn } from './converse/life';
 
 const S = { impair: salt('popview-impair'), kid: salt('past-kid'), sib: salt('past-sib'), born: salt('past-born'), kids: salt('past-kids'), lost: salt('past-lost'), work: salt('past-work'), inc: salt('past-inc'), town: salt('past-town'), war: salt('past-war'), par: salt('past-par'), wed: salt('past-wed') };
 /** the event kinds, locked (T-E3r's anti-proxy: sequences are compared by these; never split them finer to pass) */
@@ -74,11 +75,12 @@ const FIRST_TASK = { m: [['mind the goats with the older boys', 'scare the birds
   f: [['carry water from the well in a small jar', 'gather dung for the hearth', 'mind the little ones while the mother worked'], ['help at the quern', 'fetch water from the well', 'spin with a small spindle']] };
 const SIBLING: [string, PastEvent['kind']][] = [['a sister was married into a house of another village', 'family'], ['a brother went away with a work group and was not seen again', 'loss'], ['a brother died of a fever', 'loss'],
   ['a sister died in childbirth', 'loss'], ['a brother was married, and the families feasted', 'family'], ['a sister came home widowed with her children', 'family']];
-/** the husband of a woman in the population, when he lives in her house (mirrors life.ts spouseIn) */
+/** the husband of a woman in the population, when he lives in her house: life.ts spouseIn over the house's present members
+ *  (D-452's couples: mutual, so a father here is the man who names her as his wife) */
 function husbandOf(pop: Population, w: number, day: number): number {
-  const me = pop.persons[w], H = pop.households[pop.home(w, day)]; if (!H) return -1; const mem = H.members.filter(x => pop.home(x, day) === H.id && pop.persons[x].dies > day);
-  if (me.spouse !== undefined && mem.includes(me.spouse)) return me.spouse; if (me.kin || me.age < 16 || !me.wife) return -1;
-  const c = mem.filter(x => { const o = pop.persons[x]; return x !== w && o.sex === 'm' && o.age >= 16 && !o.kin && o.mother !== w && me.mother !== x && Math.abs(o.age - me.age) < 22; }); return c.length ? c[0] : -1;
+  const H = pop.households[pop.home(w, day)]; if (!H) return -1;
+  const mem = H.members.filter(x => pop.home(x, day) === H.id && pop.persons[x].dies > day), s = spouseIn(pop, pop.persons[w], mem);
+  return s >= 0 && pop.persons[s].sex === 'm' ? s : -1;
 }
 const pick = <T>(xs: T[], u: number) => xs[Math.min(xs.length - 1, Math.floor(u * xs.length))];
 

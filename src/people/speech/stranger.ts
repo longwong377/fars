@@ -45,7 +45,8 @@ export function chronicleLine(kind: string, house: string): string | null {
     learned_tongue: `${house} notices you now speak their tongue.`, stranger_petition: `Your petition was heard by ${house}.`, ruling_for: `The ruling went for you.`, ruling_against: `The ruling went against you.`,
     halmi_sealed: 'You were given a sealed document: leave to stay and to draw rations.', joined_gang: 'You joined a work gang of the king\'s stores.', left_gang: 'You left the work gang.',
     joined_caravan: 'You hired on as a drover with a caravan in town.', left_caravan: 'The caravan left without you.', joined_house: `${house} took you in as one of the house.`, left_house: `You left ${house}.`,
-    stranger_hungry: 'You have not eaten for days.', stranger_chilled: 'Nights in the open have chilled you to the bone.', questioned_by_watch: 'The night watch found you sleeping in the open and questioned you.', held_by_watch: 'The night watch held you till morning: you have no sealed document.', gang_ration_cut: 'The gang\'s rations were cut.', haggle_deal: `You struck a bargain with ${house}.` };
+    stranger_hungry: 'You have not eaten for days.', stranger_chilled: 'Nights in the open have chilled you to the bone.', questioned_by_watch: 'The night watch found you sleeping in the open and questioned you.', held_by_watch: 'The night watch held you till morning: you have no sealed document.', gang_ration_cut: 'The gang\'s rations were cut.', haggle_deal: `You struck a bargain with ${house}.`,
+    day_hired: 'You were taken on for the day to carry loads at the market.', day_paid: 'You were paid for a day\'s carrying at the market.', bought_at_market: 'You bought at the market stalls.', sold_at_market: 'You sold grain to the grain sellers at the market.' };
   return T[kind] ?? null;
 }
 const ROLE_WORDS: Record<string, string> = { labourer: 'a labourer', craftsman: 'a craftsman', merchant: 'a merchant', scribe: 'a scribe', pilgrim: 'a pilgrim', envoy: 'an envoy of the king', soldier: 'a soldier', healer: 'a healer', kin: 'kin of a house here' };
@@ -61,6 +62,13 @@ export const KNOW_AFTER = 6;
 export const TONGUE_MIN = 0.15;
 const PAYDAY = 6, MISS_FIRE = 2, CUSTOM_NIGHTS = 3, SENT_AWAY = 7, GRATITUDE_DAYS = 30;
 const DROVER_CASH = 0.05, GANG_GRAIN = 0.9;
+/** D-455: the market ground's stalls as a party to a deal (the town market of Economy: its grain stock, its price) */
+export const MARKET = 'market';
+/** D-455: a day's hire at the market (porterage, loads carried), paid at evening: a thirtieth of a shekel (B: the Neo-Babylonian
+ *  hire contracts' shekel a month for a hired man; C for Pārsa) after three hours at the work */
+export const DAY_WAGE = 1 / 30, DAY_HOURS = 3;
+/** D-455: the stalls' margin over the market's own price, and what they give for grain brought in (C; a house gets 0.9) */
+const STALL_SELL = 1.12, STALL_BUY = 0.82;
 /** the languages, by family (a related tongue is learned a third as fast from the other: C) */
 export const LANGS = ['Old Persian', 'Elamite', 'Aramaic', 'Babylonian', 'Greek', 'Egyptian'] as const;
 const FAMILY: Record<string, string> = { 'Old Persian': 'ir', Median: 'ir', Elamite: 'el', Aramaic: 'sem', Babylonian: 'sem', Greek: 'gr', Egyptian: 'eg', Lydian: 'an' };
@@ -91,7 +99,8 @@ export type SAct =
   | { a: 'give'; day: number; hh: string; grain?: number; cash?: number }
   | { a: 'join'; day: number; kind: GroupKind; q?: string; hh?: string }
   | { a: 'leave_group'; day: number }
-  | { a: 'buy' | 'sell'; day: number; hh: string; good: 'grain' | 'fuel' | 'goods'; qty: number };
+  | { a: 'buy' | 'sell'; day: number; /** a household, or MARKET (the stalls of the market ground) */ hh: string; good: 'grain' | 'fuel' | 'goods'; qty: number }
+  | { a: 'daywork'; day: number } | { a: 'daypaid'; day: number };
 export interface Verdict { ok: boolean; why: string; /** the economy events it made (when applied) */ ev?: number[] }
 
 interface Job { employer: string; from: number; wage: 'grain' | 'cash'; worked: number; missed: number; run: number; owed: number; lastPay: number; ev: number; need: string; host?: boolean }
@@ -128,6 +137,8 @@ export class Stranger {
   readonly vocab = new Map<string, number>();
   /** D-370: days in a row the stranger has gone without bread (fed by a host, a house joined, a gang's ration, else his own stores) */
   hungry = 0;
+  /** D-455: today's hire at the market (the day, the event), and whether it is paid */
+  dayHire: { day: number; ev: number; paid?: boolean } | null = null;
   heardWord(id: string, n = 1) { this.vocab.set(id, (this.vocab.get(id) ?? 0) + n); }
   knows(id: string) { return (this.vocab.get(id) ?? 0) >= KNOW_AFTER; }
   /** the hosts the stranger left without thanks: they do not take the stranger in again */
@@ -162,7 +173,8 @@ export class Stranger {
     return Math.max(own, ara * 0.6) >= TONGUE_MIN;
   }
   judge(s: SAct): Verdict {
-    const complex = s.a === 'petition' || (s.a === 'claim' && !!(s as any).origin) || s.a === 'buy' || s.a === 'sell' || (s.a === 'join' && s.kind === 'household');
+    // (D-455: at the stalls a measure is pointed at and silver held out: a market deal goes with gestures, C)
+    const complex = s.a === 'petition' || (s.a === 'claim' && !!(s as any).origin) || ((s.a === 'buy' || s.a === 'sell') && s.hh !== MARKET) || (s.a === 'join' && s.kind === 'household');
     if (complex && !this.understood(s, Math.min(s.day, this.E.day))) return { ok: false, why: 'they cannot follow what you ask: you have too few of their words' };
     switch (s.a) {
       case 'seek_work': return this.hireCheck(s.hh, s.day);
@@ -172,6 +184,7 @@ export class Stranger {
       case 'give': { const g = s.grain ?? 0, c = s.cash ?? 0; return g > this.purse.grain + 1e-9 || c > this.purse.cash + 1e-9 ? { ok: false, why: 'the stranger has not got it' } : { ok: true, why: 'a gift' }; }
       case 'claim': return { ok: true, why: 'said' };
       case 'buy': case 'sell': return this.deal(s, false);
+      case 'daywork': return this.dayCheck(s.day);
       default: return { ok: true, why: '' };
     }
   }
@@ -184,7 +197,7 @@ export class Stranger {
     // (judged on the step's own day, the day the person was told the verdict: the living world runs the economy a few days
     // ahead of the present for the day plans, so E.day may already be later; the events are dated by the economy)
     const day = Math.min(s.day, this.E.day);
-    const complex = s.a === 'petition' || (s.a === 'claim' && !!s.origin) || s.a === 'buy' || s.a === 'sell' || (s.a === 'join' && s.kind === 'household');
+    const complex = s.a === 'petition' || (s.a === 'claim' && !!s.origin) || ((s.a === 'buy' || s.a === 'sell') && s.hh !== MARKET) || (s.a === 'join' && s.kind === 'household');
     if (complex && !this.understood(s, day)) { this.bump('not_understood'); return { ok: false, why: 'they cannot follow what you ask: you have too few of their words' }; }
     switch (s.a) {
       case 'attend': this.attended.add(s.day); return { ok: true, why: 'at work' };
@@ -211,7 +224,19 @@ export class Stranger {
         this.leaveGroup(day); return this.joinGroup(s, day, v.why); }
       case 'leave_group': this.leaveGroup(day); return { ok: true, why: 'left' };
       case 'buy': case 'sell': return this.deal(s, true);
+      case 'daywork': { const v = this.dayCheck(day); if (!v.ok) { this.bump('daywork_refused'); return v; }
+        const e = this.ev('day_hired', [this.E.market.dearEv], MARKET, PLAYER); this.dayHire = { day: s.day, ev: e }; return { ok: true, why: v.why, ev: [e] }; }
+      case 'daypaid': { const D = this.dayHire; if (!D || D.day !== s.day || D.paid) return { ok: false, why: 'no hire to pay' };
+        D.paid = true; this.purse.cash += DAY_WAGE; this.deeds.labour++; const e = this.ev('day_paid', [D.ev], MARKET, PLAYER, DAY_WAGE); return { ok: true, why: 'paid for the day', ev: [e] }; }
     }
+  }
+  /** D-455: is there a day's hire at the market (no regular work or group, not already hired today, and loads to carry today:
+   *  most days, fewer in the dead of winter and on a dear market's slack trade; a seeded draw by day, C) */
+  dayCheck(day: number): Verdict {
+    if (this.job || this.group) return { ok: false, why: 'you have work already' };
+    if (this.dayHire?.day === day) return { ok: false, why: this.dayHire.paid ? 'paid for today already: come back tomorrow' : 'taken on already today' };
+    const m = dateOf(day).month, winter = m >= 10 || m <= 0, slack = this.E.market.goodsDemand < 0.8;
+    return u01(this.E.seed, salt('str-day'), day) < 0.8 - (winter ? 0.25 : 0) - (slack ? 0.2 : 0) ? { ok: true, why: 'taken on for the day: loads to carry at the market, paid at evening' } : { ok: false, why: 'no loads to carry today: the porters stand idle' };
   }
 
   // ---------------------------------------------------------------- (3) work and livelihood
@@ -290,6 +315,7 @@ export class Stranger {
   /** buy from a house or sell to it, haggled by speech/haggle.ts (the house's need, trust and skill against the stranger's: the
    *  stranger haggles at a middling skill, worse while the tongue is poor), paid from and into the stranger's own stores */
   private deal(s: Extract<SAct, { a: 'buy' | 'sell' }>, apply: boolean): Verdict {
+    if (s.hh === MARKET) return this.marketDeal(s, apply);
     const day = Math.min(s.day, this.E.day), H = this.H(s.hh); if (!H || H.dead) return { ok: false, why: 'no such house' };
     const have = (g: string) => (this.purse as any)[g] ?? 0, skill = 0.35 + 0.3 * this.comp(this.langOf(s.hh), day);
     if (s.a === 'sell' && have(s.good) < s.qty) return { ok: false, why: 'the stranger has not got it' };
@@ -300,6 +326,34 @@ export class Stranger {
     for (const i of r.intents) this.E.enter(i);
     const sign = s.a === 'buy' ? 1 : -1; this.purse.cash -= sign * r.price; (this.purse as any)[s.good] = have(s.good) + sign * s.qty; this.deeds.trades++;
     return { ok: true, why: 'a deal', ev: [this.E.events.length - 1] };
+  }
+
+  /** D-455: a deal at the market ground's stalls: grain and fuel at the market's own price with the stalls' margin (bettered a
+   *  little by the stranger's haggling in the tongue), grain sold to the grain sellers below it; the grain moves to and from the
+   *  town market's stock (Economy.market), as the households' own buying and selling does; wares are the craftsmen's (the
+   *  craft house with most to sell is haggled with, as at its stall) */
+  private marketDeal(s: Extract<SAct, { a: 'buy' | 'sell' }>, apply: boolean): Verdict {
+    const day = Math.min(s.day, this.E.day), M = this.E.market, skill = Math.max(...LANGS.map(l => this.comp(l, day)), 0);
+    if (s.good === 'goods') {
+      if (s.a === 'sell') return this.deal({ ...s, hh: [...this.E.hh.values()].filter(H => !H.dead && H.kind === 'rich' && H.cash > 1).sort((a, b) => b.cash - a.cash || (a.id < b.id ? -1 : 1))[0]?.id ?? '' }, apply);
+      const C = [...this.E.hh.values()].filter(H => !H.dead && H.kind === 'craft' && H.goods >= s.qty).sort((a, b) => b.goods - a.goods || (a.id < b.id ? -1 : 1))[0];
+      return C ? this.deal({ ...s, hh: C.id }, apply) : { ok: false, why: 'the craftsmen have no wares on their stalls today' };
+    }
+    const unit = this.E.price(s.good, day), qty = s.qty;
+    if (s.a === 'buy') {
+      if (s.good === 'grain' && M.grain < qty + this.E.hh.size * 2) return { ok: false, why: 'the grain sellers have hardly any left: barley is scarce' };
+      const price = +(qty * unit * (STALL_SELL - 0.1 * skill)).toFixed(4);
+      if (this.purse.cash < price) return { ok: false, why: `the stranger has not the silver for it (${silverSpoken(price)})` };
+      if (!apply) return { ok: true, why: `the stall asks ${silverSpoken(price)}` };
+      if (s.good === 'grain') M.grain -= qty; this.purse.cash -= price; this.purse[s.good] += qty; this.deeds.trades++;
+      return { ok: true, why: 'bought at the market', ev: [this.ev('bought_at_market', [M.dearEv], PLAYER, MARKET, price)] };
+    }
+    if (this.purse[s.good] < qty) return { ok: false, why: 'the stranger has not got it' };
+    if (s.good === 'fuel') return { ok: false, why: 'no one at the market buys fuel from a stranger' };
+    const price = +(qty * unit * (STALL_BUY + 0.06 * skill)).toFixed(4);
+    if (!apply) return { ok: true, why: `the grain sellers give ${silverSpoken(price)}` };
+    M.grain += qty; this.purse.grain -= qty; this.purse.cash += price; this.deeds.trades++;
+    return { ok: true, why: 'sold at the market', ev: [this.ev('sold_at_market', [M.cheapEv], PLAYER, MARKET, price)] };
   }
 
   /** the stranger's bread for the day (a man's ration of ~0.8 kg, C): the host's table, the house he belongs to, the gang's
@@ -606,20 +660,20 @@ export class Stranger {
     this.gratitude(day); this.spread(day); this.tongueDay(day);
   }
   /** the events a snapshot must keep (the state names them) */
-  refs(): number[] { return [this.job?.ev, this.stay?.ev, this.group?.ev, this.claim?.ev, ...this.debtors.map(d => d.ev), ...this.petitions.map(p => p.ev)].filter((x): x is number => x !== undefined); }
+  refs(): number[] { return [this.dayHire?.ev, this.job?.ev, this.stay?.ev, this.group?.ev, this.claim?.ev, ...this.debtors.map(d => d.ev), ...this.petitions.map(p => p.ev)].filter((x): x is number => x !== undefined); }
   /** live: is there anything to save */
-  get active() { return !!(this.job || this.stay || this.group || this.claim || this.lang.size || this.acts.size || this.debtors.length || this.petitions.length || this.halmi >= 0); }
+  get active() { return !!(this.job || this.stay || this.group || this.claim || this.lang.size || this.acts.size || this.debtors.length || this.petitions.length || this.halmi >= 0 || this.dayHire || this.deeds.trades); } // (D-455: a day's hire or a deal at the stalls is a life begun too)
 
   // ---------------------------------------------------------------- save
   snapshot() {
     return { purse: { ...this.purse }, job: this.job, stay: this.stay, group: this.group, lang: [...this.lang], claim: this.claim, belief: [...this.belief], halmi: this.halmi,
-      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], hungry: this.hungry, fedOn: this.fedOn, chilled: this.chilled, slighted: [...this.slighted], judged: [...this.judged], vocab: [...this.vocab], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b) };
+      debtors: this.debtors, petitions: this.petitions, deeds: { ...this.deeds }, acts: [...this.acts].sort((a, b) => a[0] - b[0]).flatMap(x => x[1]), petN: this.petN, tongueMet: [...this.tongueMet], hungry: this.hungry, fedOn: this.fedOn, chilled: this.chilled, slighted: [...this.slighted], judged: [...this.judged], vocab: [...this.vocab], stats: { ...this.stats }, attended: [...this.attended].sort((a, b) => a - b), dayHire: this.dayHire };
   }
   static restore(s: any, E: Economy, opts: StrangerOpts = {}): Stranger {
     const X = new Stranger(E, opts); const c = JSON.parse(JSON.stringify(s));
     X.purse = c.purse; X.job = c.job; X.stay = c.stay; X.group = c.group; X.claim = c.claim; X.halmi = c.halmi; X.petN = c.petN; for (const a of c.attended ?? []) X.attended.add(a);
     for (const [k, v] of c.lang) X.lang.set(k, v); for (const [k, v] of c.belief) X.belief.set(k, v);
     X.debtors.push(...c.debtors); X.petitions.push(...c.petitions); Object.assign(X.deeds, c.deeds); Object.assign(X.stats, c.stats);
-    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); for (const [k, v] of c.vocab ?? []) X.vocab.set(k, v); X.hungry = c.hungry ?? 0; X.chilled = c.chilled ?? -1; X.fedOn = c.fedOn ?? -1; return X;
+    for (const a of c.acts) X.do(a); for (const t of c.tongueMet) X.tongueMet.add(t); for (const t of c.slighted ?? []) X.slighted.add(t); for (const [k, v] of c.judged ?? []) X.judged.set(k, v); for (const [k, v] of c.vocab ?? []) X.vocab.set(k, v); X.hungry = c.hungry ?? 0; X.chilled = c.chilled ?? -1; X.fedOn = c.fedOn ?? -1; X.dayHire = c.dayHire ?? null; return X;
   }
 }

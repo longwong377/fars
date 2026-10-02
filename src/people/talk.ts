@@ -441,7 +441,7 @@ export class TalkWorld {
     const own = (this.rows.get(pid) ?? []).filter(r => r.t <= t + 1e-9).map(r => ({ t: r.t, text: this.rowText(r, t), w: r.folded ? 0.5 : (r.deed ? 4 : 3) }));
     const heard = this.heard(pid, t).map(x => ({ t: x.t, text: x.text, w: (x.deed ? 2 : 1) - (x.hand === 2 ? 0.25 : 0) }));
     const over = (this.over.get(pid) ?? []).filter(r => r.t <= t + 1e-9).map(r => ({ t: r.t, text: this.overText(r, t), w: 2.5 }));
-    return [...own, ...over, ...heard].sort((a, b) => b.w - a.w || b.t - a.t).slice(0, max).sort((a, b) => a.t - b.t).map(x => x.text);
+    return [...own, ...over, ...heard].sort((a, b) => b.w - a.w || b.t - a.t).slice(0, max).sort((a, b) => a.t - b.t).map(x => spellDigits(x.text)); // (D-455: every memory line spelt: rowText's own quote kept "2 shekels")
   }
   /** a row as the person's own memory (their words for it: out of world, the model's brief) */
   rowText(r: MemRow, now: number): string {

@@ -24,11 +24,11 @@ const pick = <T,>(a: readonly T[]) => a[Math.floor(rnd() * a.length)];
 const P = sim.pop;
 const hhOf = (pid: number, d: number) => `h:${P.home(pid, d)}`;
 const met = new Set<number>(); let lastEmployer: string | null = null; const formerEmployers = new Set<string>();
-const MODERN = /\b(ok|okay|km|kilomet|metres?|meters?|percent|%|dollars?|euro|police|gun|phone|car|money|bank|stranger's tongue|economy|simulation|trust|verdict|player|npc|household id|h:\d+)\b/i;
+const MODERN = /\b(ok|okay|km|kilomet|metres?|meters?|percent|%|dollars?|euro|police|gun|phone|car|money|stranger's tongue|economy|simulation|verdict|player|npc|household id|h:\d+)\b/i;
 
 const dayPick = { d: -1, plans: new Map<number, any[]>() };
 function candidates(d: number, hour: number) {
-  const E = sim.econTo(d), home: number[] = [], work: number[] = [];
+  const E = sim.econTo(d), home: number[] = [], work: number[] = [], market: number[] = [];
   if (dayPick.d !== d) { dayPick.d = d; dayPick.plans.clear(); let k = 0;
     while (dayPick.plans.size < 220 && k++ < 5000) { const p = P.persons[Math.floor(rnd() * P.persons.length)];
       if (!P.present(p.id, d) || P.ageOn(p.id, d) < 14 || p.dies <= d || !E.hh.has(hhOf(p.id, d))) continue; dayPick.plans.set(p.id, P.plan(p.id, d)); }
@@ -36,9 +36,10 @@ function candidates(d: number, hour: number) {
     const S = E.stranger(); for (const h of [S.job?.employer, S.stay?.host]) if (h) for (const m of P.households[Number(h.slice(2))].members) if (P.present(m, d) && P.ageOn(m, d) >= 14) dayPick.plans.set(m, P.plan(m, d)); }
   for (const [id, plan] of dayPick.plans) { const p = P.persons[id];
     const s = segAt(plan, hour); if (!s || s.where === 'away' || s.where === 'road') continue;
+    if (/^market:/.test(s.place)) market.push(p.id); // (D-455: the people on the market ground now: the stalls)
     if (/home|house|hearth|courtyard/.test(s.place) || ['rest', 'eat', 'cook', 'spin', 'grind', 'bake', 'clean', 'tend_body', 'wash'].includes(s.act)) home.push(p.id); else work.push(p.id);
   }
-  return { home, work };
+  return { home, work, market };
 }
 /** what a curious player says to this person now */
 function lines(pid: number, d: number, hour: number): string[] {
@@ -86,11 +87,19 @@ const end = D0 + DAYS; const t0 = Date.now();
 for (let d = D0; d < end; d++) {
   for (const hour of HOURS) {
     let tt = Date.now(); sim.jumpTo(d * 24 + hour); TM.jump += Date.now() - tt; tt = Date.now(); const E = sim.econTo(d), S = E.stranger();
-    TM.econ += Date.now() - tt; tt = Date.now(); const { home, work } = candidates(d, hour); TM.cand += Date.now() - tt; tt = Date.now();
+    TM.econ += Date.now() - tt; tt = Date.now(); const { home, work, market } = candidates(d, hour); TM.cand += Date.now() - tt; tt = Date.now();
     // at work: two hours beside the employer's people (or the gang, the house joined)
     if (S.job || S.group) { const want = S.job?.employer ?? (S.group?.kind === 'household' ? S.group.id : null);
       const mates = want ? P.households[Number(want.slice(2))].members.filter(m => P.present(m, d)) : P.persons.filter(p => p.job === (S.group?.kind === 'gang' ? 'builder' : 'traveller') && P.present(p.id, d)).slice(0, 5).map(p => p.id);
       if (hour >= 8 && hour <= 13) for (let k = 0; k < 9; k++) sim.strangerNear(mates, 0.25); }
+    // D-455: the stranger's living as a player would make it: a day's carrying at the market when he has no work (hours among
+    // the market's people are the work), grain sold at the stalls, bread bought there when his sack is empty
+    if (market.length) {
+      if (hour === 8 && !S.job && !S.group && !S.dayHire?.paid) await turn(d, hour, pick(market), 'Is there work for today? I can carry loads.', 'daywork');
+      if (S.dayHire?.day === d && !S.dayHire.paid && hour <= 16) for (let k = 0; k < 9; k++) sim.strangerNear(market, 0.25);
+      if (hour === 13 && S.purse.grain >= 25) await turn(d, hour, pick(market), 'Will you buy my grain? I have two measures to sell.', 'sell-market');
+      if (hour === 10.5 && S.purse.grain < 2 && !S.stay && !S.group) await turn(d, hour, pick(market), 'Sell me four loaves of bread.', 'buy-market');
+    }
     // someone may come up to the stranger
     const near = [...home, ...work].filter(() => rnd() < 0.05);
     const ap = appr.next(near, sim.t);
@@ -113,7 +122,7 @@ for (let d = D0; d < end; d++) {
   }
   const E = sim.econTo(d + 1), S = E.stranger(); if (S.job) formerEmployers.add(S.job.employer);
   const owedTo = [...E.hh.values()].filter(h => h.debts.some(x => x.to === 'player' && x.amt > 0.005)).map(h => ({ hh: h.id, amt: +h.debts.filter(x => x.to === 'player').reduce((a, x) => a + x.amt, 0).toFixed(3) }));
-  days.push({ day: d, purse: { ...S.purse }, job: S.job ? { e: S.job.employer, worked: S.job.worked, owed: S.job.owed, missed: S.job.missed } : null, stay: S.stay ? { h: S.stay.host, n: S.stay.nights, owed: +S.stay.owed.toFixed(3) } : null, group: S.group?.kind ?? null, halmi: S.halmi, owedTo, debtors: S.debtors.length, petitions: S.petitions.length, stats: { ...S.stats }, reach: S.claimReach(), slighted: S.slighted.size });
+  days.push({ day: d, purse: { ...S.purse }, hungry: S.hungry, job: S.job ? { e: S.job.employer, worked: S.job.worked, owed: S.job.owed, missed: S.job.missed } : null, stay: S.stay ? { h: S.stay.host, n: S.stay.nights, owed: +S.stay.owed.toFixed(3) } : null, group: S.group?.kind ?? null, halmi: S.halmi, owedTo, debtors: S.debtors.length, petitions: S.petitions.length, stats: { ...S.stats }, reach: S.claimReach(), slighted: S.slighted.size });
   if ((d - D0) % 30 === 0) console.error(`day ${d} turns ${log.length} ${((Date.now() - t0) / 1000).toFixed(0)} s ${JSON.stringify(TM)} purse ${S.purse.cash.toFixed(2)}c ${S.purse.grain.toFixed(1)}g job ${S.job?.employer ?? '-'} stay ${S.stay?.host ?? '-'}`);
 }
 

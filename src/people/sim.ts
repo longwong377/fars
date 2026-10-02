@@ -40,7 +40,7 @@ import { RelPlans } from './relations/plans';
 import type { Intent as EconIntent } from './economy/api';
 import { HOME_LANG } from './exchanges';
 import type { SAct, Verdict } from './speech/stranger';
-import { chronicleLine } from './speech/stranger';
+import { chronicleLine, MARKET, DAY_HOURS } from './speech/stranger';
 import { strangerAsk } from './speech/verbs';
 import { reactions as sightReactions, type Near, type Sight } from './converse/sight';
 import { unitsFor, LEX_LABEL } from '../audio/voices';
@@ -386,8 +386,13 @@ export class PeopleSim {
   strangerAsk(pid: number, said: string, named: string | null = null): { act: SAct; verdict: Verdict } | null {
     const day = Math.floor(this.t / 24), E = this.econTo(day), P = this.pop.persons[pid]; if (!P) return null;
     const h = this.pop.home(pid, day), hh = E.hh.has(`h:${h}`) ? `h:${h}` : null;
-    const act = strangerAsk(said, { day, hh, q: hh ? E.hh.get(hh)!.q : null, job: P.job, named });
-    if (!act) return null; if (act.a === 'hear') { act.lang = E.stranger().langOf(hh ?? `h:${h}`);
+    // D-455: on the market ground a deal is with the stalls (the market's grain, its price), and work asked for is a day's
+    // carrying, paid at evening (the person asked is at a stall or crossing the market: their plan's place now)
+    const atMarket = /^market:/.test(segAt(this.pop.plan(pid, day), this.t - day * 24)?.place ?? '');
+    const asked = strangerAsk(said, { day, hh, q: hh ? E.hh.get(hh)!.q : null, job: P.job, named });
+    if (!asked) return null;
+    const act: SAct = atMarket && (asked.a === 'buy' || asked.a === 'sell') ? { ...asked, hh: MARKET } : atMarket && asked.a === 'seek_work' ? { a: 'daywork', day } : asked;
+    if (act.a === 'hear') { act.lang = E.stranger().langOf(hh ?? `h:${h}`);
       // (D-370: "your word for bread": the person teaches the word of their tongue, when the lexicon has one)
       const want = /\bword for (?:a |an |the )?([a-z]+)/i.exec(said)?.[1]?.toLowerCase(), L = LEX_LABEL[act.lang];
       if (want && L) { const w = unitsFor(L).words.find(x => new RegExp(`\\b${want}`, 'i').test(x.gloss ?? '')); if (w) act.word = w.id; } }
@@ -400,6 +405,10 @@ export class PeopleSim {
     // D-391 (the playtest bot: 9-11 of 11 asks for work refused): a house with no work for a stranger says where there is some,
     // a house of the same quarter that needs a hand (its head named), else the king's works that take men on (C)
     if (act.a === 'seek_work' && !verdict.ok && verdict.why === 'they need no hands now') verdict.why += `; ${this.workElsewhere(E, act.hh, day)}`;
+    // D-455: a house with nothing to spare says where it is sold (the market's stalls), and a day's hire is had there too
+    if (act.a === 'buy' && act.hh !== MARKET && !verdict.ok && verdict.why === 'they have none to spare') verdict.why += act.good === 'goods' ? '; the craftsmen sell wares at their stalls in the market' : '; the sellers at the market sell it by the measure';
+    if (act.a === 'sell' && act.hh !== MARKET && !verdict.ok && act.good === 'grain') verdict.why += '; the grain sellers at the market buy grain';
+    if (act.a === 'seek_work' && !verdict.ok && !/^you|already/.test(verdict.why)) verdict.why += '; porters are hired by the day at the market';
     return { act, verdict };
   }
   /** where a stranger might find work today, in words (the house asked is left out) */
@@ -432,13 +441,20 @@ export class PeopleSim {
   /** D-370: the step done (recorded in the economy, saved, replayed) */
   strangerDo(act: SAct): Verdict { return this.econTo(act.day).stranger().do(act); }
   /** D-370: the hours the stranger spent today beside the people they work with (attendance, reported once a day at 2 h) */
-  private strWork = { day: -1, h: 0, done: false };
+  private strWork = { day: -1, h: 0, done: false }; private strDay = { day: -1, h: 0 };
   /** D-370 (the game's hook, a few times a game minute): the people within ~30 m of the player and the game hours since the last
    *  call. Between 6 and 18 h, time spent near a member of the employer's house (or of the household joined; for a gang, any
    *  builder or porter; with a caravan, any traveller) counts as work; two hours make the day attended (C) */
   strangerNear(pids: readonly number[], dtH: number) {
     const day = Math.floor(this.t / 24), h = this.t - day * 24; if (h < 6 || h > 18 || !this.econ) return;
-    const S = this.econ.stranger(), J = S.job, G = S.group; if (!J && !G) return;
+    const S = this.econ.stranger(), J = S.job, G = S.group;
+    // D-455: a day's hire at the market: hours spent on the market ground (among people whose place now is a market) are the
+    // work; DAY_HOURS of them and the porter is paid at once
+    const D = S.dayHire; if (!J && !G && D && D.day === day && !D.paid) {
+      if (this.strDay.day !== day) this.strDay = { day, h: 0 };
+      if (pids.some(p => this.pop.persons[p] && /^market:/.test(segAt(this.pop.plan(p, day), h)?.place ?? ''))) this.strDay.h += dtH;
+      if (this.strDay.h >= DAY_HOURS) S.do({ a: 'daypaid', day }); return; }
+    if (!J && !G) return;
     if (this.strWork.day !== day) this.strWork = { day, h: 0, done: false }; if (this.strWork.done) return;
     const want = J ? J.employer : G?.kind === 'household' ? G.id : null;
     const at = pids.some(p => { const P = this.pop.persons[p]; if (!P) return false; if (want) return `h:${this.pop.home(p, day)}` === want;
