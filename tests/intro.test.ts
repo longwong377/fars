@@ -3,7 +3,7 @@
 // (60-90 s), each cut moves the world's time forward, and the last shot lands exactly on the player's eye.
 import { describe, it, expect } from 'vitest';
 import { loadTerrain } from './plainLib';
-import { SHOTS, INTRO_SECONDS, shotPose, shotToPlayer, type IntroShot } from '../src/shell/intro';
+import { SHOTS, INTRO_SECONDS, shotPose, shotToPlayer, TITLE_DRIFT, type IntroShot } from '../src/shell/intro';
 import { FOOTPRINTS } from '../src/arch/spec';
 
 const T = loadTerrain();
@@ -23,8 +23,8 @@ describe('the opening (D-590)', () => {
   it('moves the world forward in time, shot by shot', () => {
     for (let i = 1; i < all.length; i++) expect(all[i].atRise, all[i].id).toBeGreaterThan(all[i - 1].atRise);
   });
-  it('keeps the lens above the terrain and clear of the Terrace (sampled every 0.05 s)', () => {
-    for (const s of all) for (let t = 0; t <= s.dur; t += 0.05) {
+  it('keeps the lens above the terrain and clear of the Terrace (sampled every 0.05 s; the title backdrop too)', () => {
+    for (const s of [...all, TITLE_DRIFT]) for (let t = 0; t <= s.dur; t += 0.05) {
       const P = shotPose(s, t / s.dur, hAt, 0); // no clamp: the path itself must clear
       const g = hAt(P.e, P.n), lift = P.y - g;
       expect(lift, `${s.id} at ${t.toFixed(2)} s: ${lift.toFixed(2)} m over the ground at (${P.e.toFixed(0)}, ${P.n.toFixed(0)})`).toBeGreaterThan(s.id === 'walk' && t > s.dur - 2.5 ? 1.2 : 1.8);
@@ -46,5 +46,53 @@ describe('the opening (D-590)', () => {
       for (let t = 0.05; t <= s.dur; t += 0.05) { const P = shotPose(s, t / s.dur, hAt);
         expect(Math.hypot(P.e - prev.e, P.n - prev.n, P.y - prev.y) / 0.05, `${s.id} speed at ${t.toFixed(2)}`).toBeLessThan(40);
         expect(Math.abs(P.az - prev.az) / 0.05, `${s.id} turn at ${t.toFixed(2)}`).toBeLessThan(15); prev = P; } }
+  });
+});
+
+// the opening's control flow with the page stubbed (no DOM in the node tests): the camera driven, time moved forward only,
+// any key after the first 0.8 s skips, the menu ends it, and the player's look and lens come back exactly
+describe('the opening plays, skips and hands back (D-590)', async () => {
+  const { Intro } = await import('../src/shell/intro');
+  const { sunTimes } = await import('../src/people/calendar');
+  const setup = (hour0: number) => {
+    let now = 0, rafQ: (() => void)[] = []; const listeners = new Map<string, Function>();
+    const fake = (): any => ({ className: '', style: { setProperty() {}, opacity: '' }, classList: { add() {}, remove() {} }, append() {}, remove() {} });
+    (globalThis as any).document = { createElement: fake, body: { append() {}, classList: { add() {}, remove() {} } } };
+    (globalThis as any).requestAnimationFrame = (f: () => void) => { rafQ.push(f); return rafQ.length; };
+    (globalThis as any).cancelAnimationFrame = () => {};
+    (globalThis as any).addEventListener = (t: string, f: Function) => listeners.set(t, f);
+    (globalThis as any).removeEventListener = (t: string) => listeners.delete(t);
+    (globalThis as any).setTimeout = () => 0;
+    const nowSpy = () => now; (performance as any).now = nowSpy;
+    const st = { cams: [] as any[], time: { day: 1, hour: hour0 }, look: null as any, fov: 60, ended: false, paused: false };
+    const cam = { fov: 60, updateProjectionMatrix() {} };
+    const intro = new Intro({ setCam: c => st.cams.push(c), heightAt: (x, z) => T.heightAt(x, z), camera: cam,
+      player: () => ({ x: -175, y: T.heightAt(-175, -122.45) + 1.6, z: -122.45, yaw: -Math.PI / 2, pitch: 0 }), look: (y, p) => { st.look = [y, p]; },
+      paused: () => st.paused, getTime: () => st.time, setTime: (d, h) => { st.time = { day: d, hour: h }; }, fov: () => 60, onEnd: () => { st.ended = true; } });
+    const run = (seconds: number) => { for (let t = 0; t < seconds; t += 1 / 30) { now += 1000 / 30; const q = rafQ; rafQ = []; for (const f of q) f(); } };
+    return { intro, st, run, cam, key: (k = 'a') => listeners.get('keydown')?.({ type: 'keydown', key: k, stopPropagation() {}, preventDefault() {} }) };
+  };
+  it('plays every shot in order, moving the time forward, and lands on the eye with the look restored', () => {
+    const { intro, st, run } = setup(sunTimes(1).rise - 0.4);
+    intro.play(); run(INTRO_SECONDS + 1);
+    expect(intro.playing).toBe(false); expect(st.ended).toBe(true);
+    expect(intro.log.map(l => l.shot)).toEqual([...SHOTS.map(s => s.id), 'walk', 'end']);
+    for (let i = 1; i < intro.log.length; i++) expect(intro.log[i].hour).toBeGreaterThanOrEqual(intro.log[i - 1].hour);
+    expect(st.cams.at(-1)).toBeNull(); expect(st.look).toEqual([-Math.PI / 2, 0]);
+    const lastCam = st.cams.at(-2); expect(lastCam.x).toBeCloseTo(-175, 1); expect(lastCam.z).toBeCloseTo(-122.45, 1); expect(lastCam.yaw).toBeCloseTo(-Math.PI / 2, 3);
+  });
+  it('never moves a later world back in time', () => {
+    const { intro, st, run } = setup(15);
+    intro.play(); run(INTRO_SECONDS + 1); expect(st.time.hour).toBe(15);
+  });
+  it('ignores the click that began it, then any key skips (a short dip, then the walk at the last shot\'s hour)', () => {
+    const { intro, st, run, key } = setup(sunTimes(1).rise - 0.4);
+    intro.play(); run(0.3); key(); run(0.2); expect(intro.playing).toBe(true);
+    run(2); key(); run(0.6); expect(intro.playing).toBe(false);
+    expect(st.time.hour).toBeCloseTo(sunTimes(1).rise + 1.45, 5); expect(st.cams.at(-1)).toBeNull();
+  });
+  it('ends at once when the menu opens', () => {
+    const { intro, st, run } = setup(sunTimes(1).rise - 0.4);
+    intro.play(); run(5); st.paused = true; run(0.1); expect(intro.playing).toBe(false); expect(st.cams.at(-1)).toBeNull();
   });
 });

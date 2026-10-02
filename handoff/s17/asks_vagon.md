@@ -5,3 +5,4 @@ C5 | view: -165,850,20,153,-10,0,5.97 | intro shot 3 'town' (midpoint): the town
 C5 | view: -155,70,14,53,5,0,6.72 | intro shot 4 'terrace' (midpoint): the W face and Grand Stair, crane rising; is the Terrace sunlit at rise+1.1 h?
 C5 | view: -190,756,10.5,187,-25,0,6.92 | intro shot 5 'work' (midpoint): a court N of the Terrace from 10 m: people at work at rise+1.3 h
 C5 | view: -213,122.45,9,71,6,0,7.07 | intro shot 6 'walk' (2/3): the approach to the spawn from 9 m, facing the Grand Stair
+C5 | view: -322,90,5,51,5,0,5.22 | the title's drifting backdrop (midpoint): the Terrace W face against the dawn on the right of the frame, the menu's glass on the left

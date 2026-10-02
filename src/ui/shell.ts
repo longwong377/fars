@@ -18,6 +18,8 @@ export interface ShellHooks {
   seed(): number; newWorld(): void;
   /** s17 C5 (D-590): the wordless opening (src/shell/intro.ts), played as a new visit begins; absent: none */
   intro?(): void;
+  /** the title's drifting camera over the live world (D-590): on while the title shows; absent: the player's own view */
+  backdrop?(on: boolean): void;
 }
 
 const root = () => document.getElementById('shell')!;
@@ -113,11 +115,12 @@ export class Shell {
   /** `continued`: the saved visit was loaded at start (the world stands as it was left) */
   title(continued = false) {
     this.mode = 'title'; this.back = null;
-    const begin = () => { this.hooks.start(); if (!continued && introPreference() !== 'never') this.hooks.intro?.(); };
+    this.hooks.backdrop?.(true);
+    const begin = () => { this.hooks.backdrop?.(false); this.hooks.start(); if (!continued && introPreference() !== 'never') this.hooks.intro?.(); };
     const start = el('button', { className: 'primary', onclick: begin }, continued ? 'Continue the visit' : 'Enter');
     const items: HTMLElement[] = [start,
       ...(continued ? [el('button', { onclick: () => this.hooks.newVisit() }, 'Begin a new visit')]
-        : this.hooks.hasSave() ? [el('button', { onclick: () => { if (this.hooks.load()) this.hooks.start(); } }, 'Continue the saved visit')] : []),
+        : this.hooks.hasSave() ? [el('button', { onclick: () => { if (this.hooks.load()) { this.hooks.backdrop?.(false); this.hooks.start(); } } }, 'Continue the saved visit')] : []),
       el('button', { onclick: () => this.settingsPanel(() => this.title(continued)) }, 'Settings'),
       el('button', { onclick: () => this.controls(() => this.title(continued)) }, 'Controls')];
     root().replaceChildren(el('div', { className: 'front' }, el('div', { className: 'scrim' }),

@@ -190,3 +190,27 @@ export class Intro {
     this.d.onEnd?.();
   }
 }
+
+/** the title's backdrop (D-590): the camera drifts slowly across the approach W of the Terrace, the Grand Stair, the Gate and
+ *  the Apadana against the eastern sky on the right of the frame (the menu's glass covers the left), there and back, until
+ *  the player enters; then the camera is the player's again. The world's clock runs as it does (the title is not paused). */
+export const TITLE_DRIFT: IntroShot = { id: 'title', what: 'the title backdrop', dur: 70, atRise: -9,
+  keys: [{ e: -330, n: 55, h: 4.5, az: 66, pitch: 5, fov: 44 }, { e: -315, n: 125, h: 5.5, az: 74, pitch: 5, fov: 44 }] };
+export class TitleDrift {
+  private raf = 0; private t0 = 0; on = false;
+  constructor(private d: IntroDeps) {}
+  start() {
+    if (this.on) return; this.on = true; this.t0 = performance.now();
+    const loop = () => { if (!this.on) return;
+      const t = (performance.now() - this.t0) / 1000, ph = (t / TITLE_DRIFT.dur) % 2, u = ph < 1 ? ph : 2 - ph; // there and back
+      const P = shotPose({ ...TITLE_DRIFT, ease: 'land' }, u, (e, n) => this.d.heightAt(e, -n));
+      this.d.setCam({ x: P.e, y: P.y, z: -P.n, yaw: yawOf(P.az), pitch: (P.pitch * Math.PI) / 180 });
+      if (Math.abs(this.d.camera.fov - P.fov) > 1e-3) { this.d.camera.fov = P.fov; this.d.camera.updateProjectionMatrix(); }
+      this.raf = requestAnimationFrame(loop); };
+    loop();
+  }
+  stop() {
+    if (!this.on) return; this.on = false; cancelAnimationFrame(this.raf);
+    this.d.setCam(null); this.d.camera.fov = this.d.fov(); this.d.camera.updateProjectionMatrix();
+  }
+}

@@ -28,7 +28,7 @@ import { buildWorld, WorldBuild } from './world/world';
 import { releaseUploadedTextures, releaseStats } from './world/cache/release';
 import { BootProgress } from './shell/progress';
 import { warmBootFiles } from './shell/warm';
-import { Intro } from './shell/intro';
+import { Intro, TitleDrift, type IntroDeps } from './shell/intro';
 import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -201,6 +201,10 @@ async function boot() {
 
   const notices: string[] = []; // out-of-world save and load notices (T-H3s, T-H3v)
   setSaveProblemHandler(m => { notices.push(m); console.warn('[save]', m); shell.notice(m); });
+  let titleDrift: TitleDrift | null = null;
+  const introDeps = (): IntroDeps => ({ setCam: c => { freeCam = c; }, heightAt: (x, z) => terrain.heightAt(x, z), camera, player: () => ({ ...player.eye, yaw: input.yaw, pitch: input.pitch }),
+    look: (yaw, pitch) => { input.yaw = yaw; input.pitch = pitch; }, paused: () => shell.mode !== 'playing', getTime: () => ({ day: clock.dayIndex, hour: clock.localHour }), setTime: (d, h) => clock.set(d, h), fov: () => settings.fov,
+    rigClear: m => { const pp = (world as any).people; if (pp) pp.crowd.rigClear = m; } });
   Object.assign(hooksImpl, {
     start: () => { shell.playing(); input.lock(); world.audio?.unlock(); },
     resume: () => { shell.playing(); input.lock(); },
@@ -214,10 +218,9 @@ async function boot() {
     getTime: () => ({ day: clock.dayIndex, hour: clock.localHour, label: clock.label() }),
     setTime: (d: number, h: number) => clock.set(d, h),
     getWeather: () => weather.override, setWeather: (w: string) => { weather.override = w as WeatherOverride; },
-    // s17 C5 (D-590): the wordless opening as a new visit begins (src/shell/intro.ts); test worlds and ?nointro skip it
-    intro: () => { if (TEST || P.has('nointro')) return; new Intro({ setCam: c => { freeCam = c; }, heightAt: (x, z) => terrain.heightAt(x, z), camera, player: () => ({ ...player.eye, yaw: input.yaw, pitch: input.pitch }),
-      look: (yaw, pitch) => { input.yaw = yaw; input.pitch = pitch; }, paused: () => shell.mode !== 'playing', getTime: () => ({ day: clock.dayIndex, hour: clock.localHour }), setTime: (d, h) => clock.set(d, h), fov: () => settings.fov,
-      rigClear: m => { const pp = (world as any).people; if (pp) pp.crowd.rigClear = m; } }).play(); },
+    // s17 C5 (D-590): the wordless opening as a new visit begins, and the title's drifting backdrop (src/shell/intro.ts); test worlds skip both, ?nointro the opening
+    intro: () => { if (!TEST && !P.has('nointro')) new Intro(introDeps()).play(); },
+    backdrop: (on: boolean) => { if (TEST) return; titleDrift ??= new TitleDrift(introDeps()); if (on) titleDrift.start(); else titleDrift.stop(); },
   });
   // autosave (audit D M9; T-H3): every AUTOSAVE_MS of real time while the visit is on (playing or paused), and when the page
   // is hidden or closed; frozen test worlds only with ?autosave
