@@ -9480,3 +9480,18 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
 - Input (src/core/input.ts): raw mouse (pointer lock asks for unadjustedMovement), pointer-lock jumps dropped (one event > 200 px and > 12× the recent motion); gamepad (standard mapping): left stick walks, analog (pace by deflection), right stick looks (dead zone 0.14, square response, eased 70 ms; 2.4 / 1.6 rad/s), L3 brisk, B crouch, A act, Start menu. Keys slow/crouch in Settings → Keys.
 - Footfalls: Player.onStep({ foot, speed, pace, crouched, stair, x, y, z }) one per step (C8's hook); world.ts passes running = pace brisk to the soundscape's footsteps (one line).
 - Measured (node, offline world): tools/dev/walkfeel.ts (the slice and six Terrace walkthroughs at the player's gait): 125/125 targets, 0 snags (before: 117/125, 15 snags in the Tachara and Treasury doorways); eye jerk ≤ 5.8 mm/frame² across (was 20-31), ≤ 16 up and down (was 60, a 0.5 m threshold). tools/dev/doorwalk.ts (every enterable door both ways at the player's gait): Terrace 130/130 (treasury:E sealed, not walked), town street doors 594/594, doors inside the plots 506/506 (the 6 earlier failures were the tool starting walks on top of tall fittings). Unit: tests/walk_feel.test.ts.
+
+## D-580 The load keeper: the files in need order, one decoder, nothing hangs, and where the load goes (session 17, cloud C4; UD-31)
+- The built site's cold load measured on the cloud's 4-core box (bench-reports/load_s17.md): 79.1 s at the day's start; on the
+  s17 tip with everyone's work ~70 s page clock / ~80-85 s as the harness sees it. UD-31's < 60 s is not met here; the main
+  thread is the bottleneck (58-71 CPU-s to ready, ~90 % busy) and its work is in other owners' builders: the per-stage table by
+  source file went to C2, C10 and the lead. Page memory 5.5-5.7 GB (the ground array 192 MB the largest holder: Vagon asked to
+  run ktx_ground.ts). Pages 628 MB.
+- The service worker prefetches a cold visit's files in the order the page asks for them (public/sw.js, src/core/prefetch.ts,
+  tools/deploy/boot_list.mjs); every byte in by 34 s instead of 80 s. On the grown tip no measurable time difference on this
+  CPU-bound box (n=3 each, the box's spread is +-8 s); kept for lines where the network is the long pole.
+- The shared KTX2/Draco decoders re-landed (871d8aab) with an idle reaper: no hang, -0.1 GB, time neutral.
+- A stand-in-able asset set that never answers no longer hangs the boot (300 s, then its stand-ins; tested with a hung file).
+- The spawn's terrain chunks built in the build's idle wait; the measuring tools (measure.mjs, boot_profile.mjs --stages/--heap,
+  boot_mem.mjs) say where time, CPU and memory go. The loading screen's animations cost a software-composited browser ~1 core
+  for the whole load: sent to C5.

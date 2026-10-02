@@ -2,6 +2,7 @@
 // same cap), opens an empty profile with the CPU profiler on the page's main thread from navigation to ready + `--tail` s,
 // and prints the self time per function in windows of `--win` s (the boot trace's stages beside them).
 //   node tools/deploy/boot_profile.mjs [dist] [--mbps 100] [--params norender] [--win 5] [--tail 10] [--top 8]
+//   --stages: the main thread's self time per boot stage (the world's marks), by source file and function (a SOURCEMAP=1 dist)
 //   --heap: instead, a sampling heap profile at ready: the live bytes by the function that allocated them (self and with callees)
 import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
@@ -54,6 +55,23 @@ for (let i = 0; i < profile.samples.length; i++) { t += profile.timeDeltas[i]; c
   const key = `${name} ${f.url.split('/').pop()}:${f.lineNumber + 1}`.replace(/^\(anon\)  :0$/, '(native/idle)');
   const w = Math.floor((t - t00) / 1e6 / win), m = W.get(w) ?? new Map(); m.set(key, (m.get(key) ?? 0) + (profile.timeDeltas[i + 1] ?? 0) / 1000); W.set(w, m); }
 console.log(`ready ${readyS.toFixed(1)} s (harness), page clock ${readyAt ? (readyAt / 1000).toFixed(1) : '?'} s`);
+if (a.includes('--stages')) {
+  // each sample's frame mapped to its source (the dist's .map files), its self time charged to the boot stage it fell in
+  const { TraceMap, originalPositionFor } = await import('@jridgewell/trace-mapping'), { readFileSync, existsSync } = await import('node:fs');
+  const maps = new Map(), src = f => { const file = f.url.split('/').pop(); if (!file?.endsWith('.js')) return null;
+    if (!maps.has(file)) { const m = join(dist, 'assets', file + '.map'); maps.set(file, existsSync(m) ? new TraceMap(readFileSync(m, 'utf8')) : null); }
+    const tm = maps.get(file); if (!tm) return null; const o = originalPositionFor(tm, { line: f.lineNumber + 1, column: f.columnNumber }); return o.source ? o.source.replace(/^(\.\.\/)+/, '') : null; };
+  // the stages: the boot trace's marks in the profile's clock (harness seconds since navigation ~ the profile's start)
+  const marks = boot.filter(([, l]) => /^(world:|scans|terrain|physics|world built|frame \d: world)/.test(l)).map(([s, l]) => [s, l.split(' ').slice(0, 2).join(' ').replace(/ \d+$/, '')]);
+  const stageAt = s => { let k = 'boot'; for (const [t, l] of marks) { if (t >= s) return l; } return 'after ready'; };
+  const per = new Map(); let tt = profile.startTime;
+  for (let i = 0; i < profile.samples.length; i++) { tt += profile.timeDeltas[i]; const n = byId.get(profile.samples[i]), f = n.callFrame; if (!f.url) continue;
+    const st = stageAt((tt - t00) / 1e6), file = src(f) ?? f.url.split('/').pop(), m = per.get(st) ?? new Map(), k = file.replace(/^node_modules\//, 'nm:');
+    m.set(k, (m.get(k) ?? 0) + (profile.timeDeltas[i + 1] ?? 0) / 1000); per.set(st, m); }
+  for (const [st, m] of per) { const tot = [...m.values()].reduce((x, y) => x + y, 0); if (tot < 300) continue;
+    console.log(`\n${st}: ${(tot / 1000).toFixed(1)} s of JS`); for (const [k, v] of [...m].sort((x, y) => y[1] - x[1]).slice(0, top)) console.log(`   ${(v / 1000).toFixed(2).padStart(6)} s  ${k}`); }
+  process.exit(0);
+}
 for (const w of [...W.keys()].sort((x, y) => x - y)) { const m = W.get(w), busy = [...m].filter(([k]) => !/^\((idle|program|garbage|native\/idle)/.test(k)).reduce((x, [, v]) => x + v, 0);
   const st = boot.filter(([s]) => s >= w * win && s < (w + 1) * win).map(([, l]) => l.split(' ').slice(0, 2).join(' ')).join(' | ');
   console.log(`${String(w * win).padStart(4)} s busy ${(busy / (win * 10)).toFixed(0).padStart(3)} %  ${st}`);

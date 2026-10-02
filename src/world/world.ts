@@ -170,6 +170,16 @@ let wLast = 0;
 /** s15/ship: when each asset load resolves (?trace), from the build's start */
 const tAsset = <T>(name: string, p: Promise<T>): Promise<T> => (WTRACE ? p.then(v => { console.info('[boot]', 'asset:' + name, (performance.now() - wT0).toFixed(0), 'ms'); return v; }) : p);
 let wT0 = 0;
+/** D-580 (s17, nothing hangs): a set the world can stand in for (the Blender models, scanned props, decor, reliefs, the hills'
+ *  pieces, monuments, trees, small life) that has not answered in SOFT_S is left to its procedural stand-ins and the build goes
+ *  on, saying which (s16: one disposed decoder made every later KTX2 load wait forever, and the boot with it). The people, the
+ *  carved pieces and the probes are awaited as before (the build cannot stand in for them). Long enough for a slow line:
+ *  a set's bytes come in order through the service worker's prefetch. */
+const SOFT_S = (typeof location !== 'undefined' && +(new URLSearchParams(location.search).get('softs') ?? 0)) || 300; // (?softs=<s>: the hang test, tools/deploy/serve.mjs HANG=)
+const soft = <T>(name: string, p: Promise<T>): Promise<T | undefined> => new Promise<T | undefined>((res, rej) => {
+  const t = setTimeout(() => { console.warn(`[boot] asset ${name}: no answer in ${SOFT_S} s; the world is built without it (its stand-ins)`);
+    (globalThis as any).__bootSoft = [...((globalThis as any).__bootSoft ?? []), name]; res(undefined); }, SOFT_S * 1000); (t as any).unref?.(); // (node: never holds a bake open)
+  p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
 function wmark(stage: string) { (globalThis as any).__bootStage?.('world:' + stage); if (!WTRACE) return; // (D-393: the loading screen's steps)
   const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms', 'busy', (globalThis as any).__bootBusy?.() ?? ''); wLast = t; }
 /** s15/ship (D-393): the world's asset loads in one place (the first call starts them, later calls return the same promises).
@@ -189,14 +199,14 @@ function beginAssets(settings?: Settings) {
   // downloads while the Terrace builds; the build waits for each set just before its first user (arch / the settlement)
   let t1Done: () => void = () => {}; const t1 = new Promise<void>(r => { t1Done = r; });
   const late = <T>(f: () => Promise<T>): Promise<T> => (STREAM_LATE ? t1.then(f) : f());
-  const rockKitP = late(() => tAsset('rockKit', loadRockKit(BASE))), ledgeFaceP = late(() => tAsset('ledgeFace', loadLedgeFace(BASE))), coverKitP = late(() => tAsset('coverKit', loadCoverKit(BASE))), fordKitP = late(() => tAsset('fordKit', loadFordKit(BASE))); // the hills' bedrock pieces (D-335, public/models/land/)
-  const propsP = tAsset('props', loadScanProps(BASE)); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
-  const modelsP = tAsset('models', loadModels(BASE)); // the Blender-built models (D-305, public/models/): in before the architecture is built
-  const monumentsP = late(() => tAsset('monuments', loadMonuments(BASE))); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
-  const treesP = late(() => tAsset('trees', loadTreeAssets(BASE))); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
-  const lifeP = late(() => tAsset('life', loadLifeModels(BASE))); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
-  const reliefAtlasP = tAsset('reliefAtlas', loadReliefAtlas(BASE)); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
-  const decorP = tAsset('decor', loadDecorAssets(BASE)); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
+  const rockKitP = late(() => soft('rockKit', tAsset('rockKit', loadRockKit(BASE)))), ledgeFaceP = late(() => soft('ledgeFace', tAsset('ledgeFace', loadLedgeFace(BASE)))), coverKitP = late(() => soft('coverKit', tAsset('coverKit', loadCoverKit(BASE)))), fordKitP = late(() => soft('fordKit', tAsset('fordKit', loadFordKit(BASE)))); // the hills' bedrock pieces (D-335, public/models/land/)
+  const propsP = soft('props', tAsset('props', loadScanProps(BASE))); // the CC0 scanned props (D-310, public/models/props/): in before any builder asks for them
+  const modelsP = soft('models', tAsset('models', loadModels(BASE))); // the Blender-built models (D-305, public/models/): in before the architecture is built
+  const monumentsP = late(() => soft('monuments', tAsset('monuments', loadMonuments(BASE)))); // D-329: the Blender-built monuments (Tol-e Ajori, Naqsh-e Rustam: public/models/monuments/)
+  const treesP = late(() => soft('trees', tAsset('trees', loadTreeAssets(BASE)))); // the Blender-built trees (D-327, public/models/trees/): in before any tree layer builds its kit
+  const lifeP = late(() => soft('life', tAsset('life', loadLifeModels(BASE)))); // the birds', small creatures' and ground flora's modelled forms (D-332, public/models/life/): in before their builders
+  const reliefAtlasP = soft('reliefAtlas', tAsset('reliefAtlas', loadReliefAtlas(BASE))); // the carved-relief atlas (D-320, public/models/reliefs/): in before the reliefs are built
+  const decorP = soft('decor', tAsset('decor', loadDecorAssets(BASE))); // D-330: the frames' trim, the merlon, the tents (public/models/decor/): in before the architecture and the camps
   const fireOccP = tAsset('fireOcc', loadFireOcc(BASE)); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   // the animals' modelled bodies (D-326, public/models/animals/). s15/ship (D-393): a player's visit fetches them after the
   // assets the build needs (39 MB of 103 files: they download while the world builds, the network otherwise idle) and the
