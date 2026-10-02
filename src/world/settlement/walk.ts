@@ -387,6 +387,14 @@ export class TownWalk {
 }
 const dedupe = (pts: P2[]) => pts.filter((p, i) => i === 0 || Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) > 1e-3);
 
+/** a plot's cells a body reaches from its door cell by the routes' own room tests (cellRoom, edgeRoom: 4-connected) */
+export function reachFromDoor(s: Site, plot: number, door: number): Set<number> {
+  const seen = new Set<number>([door]), q = [door], W = s.W;
+  for (let x = 0; x < q.length; x++) { const k = q[x], i = k % W, j = (k / W) | 0;
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) { const i2 = i + di, j2 = j + dj; if (!s.inb(i2, j2)) continue; const k2 = j2 * W + i2;
+      if (seen.has(k2) || s.cell[k2] !== plot || cellRoom(s, k2) < BODY_MIN || edgeRoom(s, Math.min(k, k2), di ? 0 : 1) < BODY_MIN) continue; seen.add(k2); q.push(k2); } }
+  return seen;
+}
 /** the cells of each plot by use (court or yard cells: open to the sky; room cells: roofed), indexed once per site
  *  (leftover ground absorbed into a plot can lie outside its main rectangle, so the whole raster is scanned) */
 const PLOT_CELLS = new Map<Site, { open: number[]; rooms: number[] }[]>();
@@ -397,6 +405,10 @@ export function plotCells(s: Site, idx: number): { open: number[]; rooms: number
     // D-234: a court cell with a fixture in it (a ladder's foot, a bench, fodder, a manger: houseplan.ts) is not a spot to
     // stand in, unless the court has no other cell
     const bl = s.blocked; if (bl?.size) for (const x of t) { const o = x.open.filter(k => !bl.has(k)); if (o.length) x.open = o; }
+    // s17 C1 (D-550): only the cells a body reaches from the plot's street door (C9's walk bots: a pen's far end lay behind a
+    // neck narrower than a body, its spots unreachable); a plot with no door, or none reached, keeps its cells
+    s.plots.forEach((p, i) => { if (!p.door) return; const R = reachFromDoor(s, p.idx, p.door.cell), x = t![i];
+      const o = x.open.filter(k => R.has(k)), r = x.rooms.filter(k => R.has(k)); if (o.length + r.length) { x.open = o; x.rooms = r; } });
     PLOT_CELLS.set(s, t); }
   return t[idx];
 }

@@ -4,13 +4,14 @@
 // Terrace and the town's plots, and the day's trips a pure function of the seed and the calendar.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { Traffic, along, type Mover } from '../src/world/traffic';
-import { RoadFolk, household, ROAD_HH } from '../src/world/roadFolk';
+import { RoadFolk, household, hinterlandRegister, ROAD_HH } from '../src/world/roadFolk';
 import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
 import { toLocal } from '../src/world/settlement/site';
 import { Population } from '../src/people/population';
 import { EventCalendar } from '../src/people/calendar';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { census } from '../tools/dev/road_census';
+import { grazingSites, openGround } from '../src/world/fauna';
 import footprints from '../src/data/geo/footprints.json';
 
 const TERRACE = (footprints as any).terrace.polygon as number[][];
@@ -56,5 +57,27 @@ describe('the road folk (D-570)', () => {
     expect(a.map(t => `${t.key}@${t.t0.toFixed(4)}`).join()).toBe(b.map(t => `${t.key}@${t.t0.toFixed(4)}`).join());
     expect(a.map(t => t.t0.toFixed(4)).join()).not.toBe(c.map(t => t.t0.toFixed(4)).join());
     const lives = new Set(Array.from({ length: ROAD_HH }, (_, i) => household(1, 0, i).live)); expect(lives.size).toBeGreaterThanOrEqual(6);
+  });
+  it('the register is the population’s to take: households with their people, each member’s day as plan blocks that agree with where Traffic puts them', () => {
+    const Rg = hinterlandRegister(1), persons = Rg.reduce((a, h) => a + h.members.length, 0);
+    expect(Rg.length).toBe(4 * ROAD_HH); expect(persons).toBeGreaterThan(Rg.length * 2.5); expect(persons).toBeLessThan(12000);
+    const F = new RoadFolk(1, pop.cal, plan), d = 110; let onRoad = 0, agree = 0, checked = 0;
+    for (const h of Rg.filter((_, i) => i % 7 === 0)) for (const mm of h.members) { const P = F.planOf(h.road, h.hh, mm.m, d);
+      expect(P[0].t0).toBe(0); expect(P[P.length - 1].t1).toBe(24); for (let i = 1; i < P.length; i++) expect(P[i].t0).toBeCloseTo(P[i - 1].t1, 9);
+      for (const sg of P) { if (!sg.why) throw new Error('no why'); const mid = d * 24 + (sg.t0 + sg.t1) / 2, sp = F.spotOf(h.road, h.hh, mm.m, mid); checked++;
+        if (sg.place.startsWith('road:')) { onRoad++; if (sp) agree++; } else expect(sp, `${h.road}:${h.hh}:${mm.m} ${sg.why} at ${(sg.t0 + sg.t1) / 2}`).toBe(null); } }
+    expect(onRoad).toBeGreaterThan(20); expect(agree / onRoad).toBeGreaterThan(0.97);
+    // bound to pids, they leave the extras: Traffic draws only the unbound (the traders passing through)
+    const G = new RoadFolk(1, pop.cal, plan); G.bindPids((r, hh, m) => r * 10000 + hh * 8 + ['head', 'wife', 'son', 'daughter', 'elder'].indexOf(m));
+    const out: Mover[] = []; G.at(d * 24 + 10, out); expect(out.length).toBeGreaterThan(0); expect(out.every(m => m.key.startsWith('rt'))).toBe(true);
+  });
+  it('herders take their flocks out on the stubble, the slopes and the steppe for spells, folded at night, and are then on no road trip', () => {
+    const sites = grazingSites((e, n) => (n > 600 ? 'rainfed' : 'natural'), (e, n) => (e > 400 ? 0.2 : 0.03), plan);
+    expect(sites.length).toBeGreaterThan(300); for (const x of sites) for (let k = 0; k < 8; k++) expect(openGround(plan, x.e + 90 * Math.cos(k * 0.785), x.n + 90 * Math.sin(k * 0.785))).toBe(true);
+    const F = new RoadFolk(1, pop.cal, plan); F.setGrazing(sites);
+    for (const d of [30, 110, 250, 330]) { const G = F.grazersOn(d); expect(G.length, `day ${d}`).toBeGreaterThan(10); expect(G.length).toBeLessThan(90);
+      const grazing = new Set(G.map(g => `${g.ri}:${g.hh}`)); for (const T of F.dayTrips(d) as any[]) if (T.hh !== undefined) expect(grazing.has(`${T.road}:${T.hh}`), `${T.key} grazing too`).toBe(false);
+      const g = G[0], P = F.planOf(g.ri, g.hh, 'head', d); expect(P.every(x => x.place.startsWith('graze:'))).toBe(true); expect(F.spotOf(g.ri, g.hh, 'head', d * 24 + 12)?.act).toBe('herd');
+      const fl = F.flocksAt(d * 24 + 12); expect(fl.length).toBe(G.length); expect(fl.every(f => !f.folded)).toBe(true); expect(F.flocksAt(d * 24 + 1).every(f => f.folded)).toBe(true); }
   });
 });

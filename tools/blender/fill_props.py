@@ -258,6 +258,124 @@ def a_rubble():
         br.append(xform(b, (x, y, z), (rnd.uniform(-0.5, 0.5), rnd.uniform(-0.5, 0.5), rnd.uniform(0, TAU))))
     return dict(mud=h, brick=join(br, 'brick'))
 
+# ------------------------------------------------------------------------------------------------------------- s17 C1 (D-550)
+# The lanes' and doorways' lesser things, made so that no lane, door or wall of the town stands bare (all C: the region's
+# vernacular, RECOLLECTION, NOT SEEN; reed matting and baskets: Hasanlu and the Babylonian houses' matting impressions, B
+# analogues; the water skin: the reliefs' and the tablets' skins for water and wine, B).
+@fill()
+def a_litter():
+    """the litter of a lane that people and animals use every day (C): spilled straw and chaff, a scatter of donkey droppings,
+    two sherds of a broken jar and a few twigs, flat on the ground over 1.4 x 1.0 m, nothing higher than 4 cm"""
+    rnd = random.Random(1500); st = []
+    for i, (cx, cz, r) in enumerate([(-0.25, 0.05, 0.13), (0.2, -0.15, 0.1), (-0.5, -0.2, 0.08)]): st.append(heap(r, 0.022, cx, cz, seed=1501 + i, lump=0.6, name='chaff'))
+    # (s17: the straws in three clumps where they were dropped and trodden, thick enough to read at 5-10 m, a few lying loose)
+    clumps = [(-0.25, 0.05, 0.3), (0.2, -0.15, 0.22), (-0.5, -0.2, 0.18)]
+    for k in range(90):
+        cx, cz, cr = clumps[k % 3] if k < 75 else (0.0, 0.0, 0.6)
+        a = rnd.uniform(0, TAU); d = cr * math.sqrt(rnd.random()); x, z = cx + d * math.cos(a), cz + 0.8 * d * math.sin(a); t = rnd.uniform(0, TAU); L = rnd.uniform(0.1, 0.26)
+        y = 0.004 + rnd.uniform(0, 0.02 if k < 75 else 0.006)
+        st.append(pathG([(x, y, z), (x + L * 0.5 * math.cos(t), y + 0.005, z + L * 0.5 * math.sin(t)), (x + L * math.cos(t + 0.25), y, z + L * math.sin(t + 0.25))], [0.0035, 0.003, 0.0015], 3, 'w', scale=(1.0, 0.5)))
+    dung = []
+    for k in range(9):
+        a = rnd.uniform(0, TAU); d = rnd.uniform(0.05, 0.25); x, z = 0.35 + d * math.cos(a), -0.1 + d * math.sin(a); r = rnd.uniform(0.022, 0.035)
+        b = stone_lump(r, 1510 + k, 'd', flat=0.55); displace(b, 0.004, 0.02, seed=1520 + k); q = G((x, 0, z)); dung.append(xform(b, (q.x, q.y, 0), (0, 0, rnd.uniform(0, TAU))))
+    clay = []
+    for k in range(2):
+        sh = grid(0.11, 0.08, 5, 4, 'sh'); 
+        for v in sh.data.vertices: v.co.z = 0.012 * (1 - (v.co.x / 0.06) ** 2)
+        solidify(sh, 0.008, 0); q = G((-0.45 + 0.6 * k, 0.004, 0.28 - 0.5 * k)); clay.append(xform(sh, (q.x, q.y, 0.004), (0.15 * k, 0, rnd.uniform(0, TAU))))
+    tw = [pathG([(-0.5 + 0.3 * k, 0.008, -0.3 + 0.2 * k), (-0.3 + 0.32 * k, 0.012, -0.22 + 0.15 * k), (-0.12 + 0.3 * k, 0.008, -0.27 + 0.2 * k)], [0.006, 0.005, 0.003], 4, 'tw') for k in range(3)]
+    return dict(straw=join(st, 'straw'), dung=join(dung, 'dung'), clay=join(clay, 'clay'), wood=join(tw, 'wood'))
+
+@fill()
+def a_matlean():
+    """reed mats leaned on a wall (C): one rolled and stood on end, one flat and tilted against the wall behind it; the mat's
+    plain weave in ridges, its edges bound; the wall is the game's -z, the mats' feet 0.25-0.45 m out from it"""
+    rnd = random.Random(1530)
+    roll = lathe([(0.0, 0.0), (0.105, 0.0), (0.11, 0.02), (0.108, 0.8), (0.112, 1.55), (0.1, 1.58), (0.0, 1.58)], 20, 'roll', wobble=0.006, seed=1531)
+    for v in roll.data.vertices:
+        rr = math.hypot(v.co.x, v.co.y)
+        if rr > 0.05: k = 1 + 0.035 * math.sin(math.atan2(v.co.y, v.co.x) * 18) + 0.02 * math.sin(v.co.z * 60); v.co.x *= k; v.co.y *= k
+    q = G((0.35, 0, 0.3)); xform(roll, (q.x, q.y, 0), (math.radians(-9), 0, 0))
+    W, Hh, lean = 1.0, 1.7, math.radians(14)
+    flat = grid(W, Hh, 18, 30, 'flat')
+    for v in flat.data.vertices:
+        u, s = v.co.x, v.co.y + Hh / 2; ridge = 0.004 * math.sin(s * 140)
+        v.co = G((u - 0.25, s * math.cos(lean), 0.06 + (Hh - s) * math.sin(lean) - 0.3 + ridge))
+    solidify(flat, 0.006, 0)
+    return dict(reed=join([roll, flat], 'reed'))
+
+@fill()
+def a_basket_tall():
+    """a tall coiled carrying basket for grain or dung (C): flared, 0.55 m high, 0.42 across the mouth, two rope handles"""
+    o = [(0.15, 0.0), (0.17, 0.02), (0.19, 0.18), (0.205, 0.38), (0.215, 0.55)]
+    b = vessel(o, 0.014, 32, 'b', 0.008, seed=1540)
+    for v in b.data.vertices: k = 1 + 0.012 * math.sin(v.co.z * 140); v.co.x *= k; v.co.y *= k
+    cord = [pathG([(x * 0.2, 0.5, 0.0), (x * 0.25, 0.43, 0.06), (x * 0.25, 0.43, -0.06), (x * 0.2, 0.5, 0.0)], 0.009, 5, 'h') for x in (-1, 1)]
+    return dict(wicker=b, cord=join(cord, 'cord'))
+
+@fill()
+def a_winnow():
+    """a round winnowing tray of coiled reed leaned on a wall (C): 0.62 m across, a low rim, its back to the wall (-z)"""
+    o = [(0.0, 0.0), (0.24, 0.0), (0.29, 0.025), (0.31, 0.06)]
+    t = vessel(o, 0.01, 36, 't', 0.006, seed=1550)
+    for v in t.data.vertices: k = 1 + 0.01 * math.sin(math.hypot(v.co.x, v.co.y) * 150); v.co.z *= k
+    # stood on its edge, leaning back 15 degrees onto the wall behind it
+    xform(t, (0, 0, 0), (math.radians(90 - 15), 0, 0)); q = G((0, 0.3, 0.12)); xform(t, (q.x, q.y, q.z))
+    return dict(wicker=t)
+
+@fill()
+def a_reed_awning():
+    """a shade of reed matting on poles before a door (C): the mat's back edge on pegs under the eave at 2.3 m, its front on a
+    pole frame 1.6 m out at 2.0 m, sagging a little; 2.2 m wide; poles lashed with cord"""
+    W, D, hw, hp = 2.2, 1.6, 2.3, 2.0
+    wood = [log((x, -0.2, D), (x, hp + 0.05, D), 0.04, 0.034, 7, 'pole', seed=1560 + i) for i, x in enumerate((-W / 2 + 0.08, W / 2 - 0.08))]
+    wood.append(log((-W / 2 - 0.05, hp, D), (W / 2 + 0.05, hp, D), 0.03, 0.028, 6, 'rail', seed=1565))
+    wood += [log((x, hw - 0.04, 0.05), (x, hp + 0.02, D + 0.05), 0.022, 0.02, 6, 'rafter', seed=1566 + i) for i, x in enumerate((-W / 2 + 0.25, 0.0, W / 2 - 0.25))]
+    def roof(u, s):
+        t = (s + D / 2) / D; y = hw + (hp - hw) * t + 0.03
+        sag = 0.05 * math.sin(math.pi * t) * math.cos(math.pi * u / (W + 0.3)); ridge = 0.004 * math.sin(u * 120)
+        return (u, y - sag + ridge, 0.05 + t * D)
+    mat = sheet(W + 0.2, D + 0.15, 40, 18, lambda u, s: roof(u, -s), 'mat', t=0.012)
+    cord = ties([[(x, hp, D), (x, hp + 0.03, D - 0.05)] for x in (-W / 2 + 0.08, W / 2 - 0.08)])
+    return dict(wood=join(wood, 'wood'), reed=mat, cord=join(cord, 'cord'))
+
+@fill()
+def a_stall_reed():
+    """a market stall of the poorer kind (C): a reed-mat shade on four crooked poles (front 2.0 m, back 1.8 m), the mat's
+    ends hanging loose, a low mud-brick bench as the counter (0.4 m) with a plank on it; 2.2 m wide (x), 1.5 m deep (z: the
+    front toward +z)"""
+    W, D, hf, hb = 2.2, 1.5, 2.0, 1.8
+    wood = []
+    for i, (x, z, h) in enumerate(((-W / 2, D / 2, hf), (W / 2, D / 2, hf), (-W / 2, -D / 2, hb), (W / 2, -D / 2, hb))):
+        wood.append(log((x, -0.2, z), (x + 0.03 * (i % 2 * 2 - 1), h + 0.04, z), 0.04, 0.033, 7, 'pole', seed=1580 + i))
+    for z, h in ((D / 2, hf), (-D / 2, hb)): wood.append(log((-W / 2 - 0.12, h - 0.03, z), (W / 2 + 0.12, h - 0.03, z), 0.03, 0.028, 6, 'rail', seed=1586 + int(z * 10)))
+    plank = box(W - 0.35, 0.34, 0.045, G((0, 0.4, D / 2 - 0.3)), 'plank', bevel=0.008); displace(plank, 0.004, 0.08, seed=1589); wood.append(plank)
+    bench = box(W - 0.3, 0.38, 0.38, G((0, 0.0, D / 2 - 0.3)), 'bench', bevel=0.03); displace(bench, 0.012, 0.12, seed=1590)
+    def roof(u, s):
+        t = (s + D / 2) / D; y = hb + (hf - hb) * t + 0.02
+        sag = 0.06 * math.sin(math.pi * min(1, max(0, t))) * math.cos(math.pi * u / (W + 0.4)); ridge = 0.004 * math.sin(u * 120)
+        return (u, y - sag + ridge, s)
+    mat = sheet(W + 0.4, D + 0.3, 40, 18, roof, 'mat', t=0.012)
+    # (the mat's loose front end: short, its frayed lower edge ragged, swung a little out)
+    hang = sheet(W + 0.4, 0.22, 40, 4, lambda u, s: (u, hf + 0.01 - (s + 0.11) * (1 + 0.35 * (0.5 + 0.5 * math.sin(u * 17 + 1.3)) * (s + 0.11) / 0.22), D / 2 + 0.16 + 0.12 * (s + 0.11)), 'hang', t=0.012)
+    cord = ties([[(x, hf - 0.03, D / 2), (x + 0.02, hf + 0.02, D / 2 - 0.05)] for x in (-W / 2, W / 2)])
+    return dict(wood=join(wood, 'wood'), mud=bench, reed=join([mat, hang], 'reed'), cord=join(cord, 'cord'))
+
+@fill(ground=False)
+def a_skin():
+    """a goatskin water bag hung on a wooden peg driven into the wall by a door (C): the peg at 1.55 m, the skin's legs tied,
+    its belly full and sagging to 0.95 m; the wall is the game's -z"""
+    peg = log((0, 1.55, -0.05), (0, 1.6, 0.14), 0.022, 0.018, 6, 'peg', seed=1570)
+    # the body hangs from the tied neck: a full belly low and wide, the four leg stumps tied off and sticking out at the
+    # shoulders and the haunches, flattened against the wall
+    E = [('ELLIPSOID', (0, 0.0, -0.06), 0.2, (1.15, 0.55, 1.0), 2), ('ELLIPSOID', (0, 0.0, 0.12), 0.1, (0.8, 0.5, 1.2), 2)]
+    for sx in (-1, 1): E += [('ELLIPSOID', (sx * 0.1, 0.0, 0.06), 0.065, (1.0, 0.65, 0.8), 2), ('ELLIPSOID', (sx * 0.15, 0.0, -0.16), 0.07, (1.0, 0.65, 0.8), 2)]
+    sk = meta(E, res=0.012, name='skin')
+    displace(sk, 0.007, 0.05, seed=1571); q = G((0, 1.2, 0.08)); xform(sk, (q.x, q.y, q.z), (0, 0, 0), (1.0, 1.0, 1.1))
+    cord = [pathG([(0, 1.58, 0.1), (0.03, 1.48, 0.1), (0, 1.4, 0.09)], 0.008, 5, 'c'), pathG([(0, 1.58, 0.1), (-0.04, 1.47, 0.08), (-0.02, 1.38, 0.08)], 0.008, 5, 'c')]
+    return dict(wood=peg, hide=sk, cord=join(cord, 'cord'))
+
 # ======================================================================================================== driver
 if __name__ == '__main__':
     job = json.load(open(sys.argv[sys.argv.index('--') + 1]))

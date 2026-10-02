@@ -45,7 +45,7 @@ export interface SiteMeta { id: string; feature: string; zone: string; popZone: 
 
 /** D-392: a site's state that its passes change (the plan's connectPlots, settleDoors, ensureAccess, planHouses; a village's
  *  raster), as plain data for the baked world, and back onto a site made with the same meta, frame and size */
-const SITE_STATE = ['cell', 'sub', 'room', 'doors', 'noWall', 'plots', 'fittings', 'lives', 'fixtures', 'blocked', 'roomN'];
+const SITE_STATE = ['cell', 'sub', 'room', 'doors', 'noWall', 'plots', 'fittings', 'lives', 'fixtures', 'blocked', 'roomN', 'jambs'];
 export const snapSite = (s: Site) => ({ id: s.id, ...Object.fromEntries(SITE_STATE.map(k => [k, (s as any)[k]])) });
 export function restoreSite(s: Site, x: Record<string, any>) { for (const k of SITE_STATE) if (k in x) (s as any)[k] = x[k]; }
 
@@ -54,6 +54,10 @@ export class Site {
   readonly doors = new Set<number>();
   /** edges where no wall stands at all (another structure closes them, e.g. the Tol-e Ajori gate body) */
   readonly noWall = new Set<number>();
+  /** s17 C1 (D-550, B580): grid vertices (j * (W + 1) + i) at the jambs of a door in a wall along v whose crossing walls stop
+   *  short of the door's line (the door's own wall closes the corner), so the opening keeps its full width: set where a house
+   *  would otherwise be shut in at a pinched frontage (access.ts) */
+  jambs = new Set<number>();
   readonly plots: Plot[] = []; readonly fittings: Fitting[] = [];
   /** D-234 (houseplan.ts planHouses): each plot's house life, the court and roof fixtures, and the court cells a fixture
    *  stands in (the people do not stand there) */
@@ -161,6 +165,7 @@ export class Site {
   /** how far walls across the door's line reach into a door opening at vertex (i, j): the half thickness of a wall meeting
    *  the vertex at right angles to the door's wall (a wall run along the door's line ends at the jamb: walls()) */
   jambIntrusion(h: boolean, i: number, j: number): number {
+    if (!h && this.jambs.has(j * (this.W + 1) + i)) return 0;
     return h ? Math.max(this.vWallT(i, j - 1), this.vWallT(i, j)) / 2 : Math.max(this.hWallT(i - 1, j), this.hWallT(i, j)) / 2;
   }
   /** the clear width of the opening a door edge belongs to (runs of collinear door edges are one opening, split where a
@@ -378,10 +383,11 @@ export class Site {
     for (let j = 0; j < H; j++) for (let i = 0; i <= W; i++) { const e = vE[j * (W + 1) + i]; if (!e || e.door) continue; for (const jj of [j, j + 1]) hv[vk(i, jj)] = Math.max(hv[vk(i, jj)], e.thick / 2); }
     const out: Wall[] = [];
     for (let j = 0; j <= H; j++) { let i = 0; while (i < W) { const e = hE[j * W + i]; if (!e) { i++; continue; } let i1 = i + 1; while (i1 < W && hE[j * W + i1]?.key === e.key) i1++;
-      const ext0 = e.door || (i > 0 && hE[j * W + i - 1]?.door) ? 0 : hv[vk(i, j)], ext1 = e.door || (i1 < W && hE[j * W + i1]?.door) ? 0 : hv[vk(i1, j)];
+      // (B580: at a jamb vertex the crossing wall stops short of the door's line instead of running through the corner)
+      const ext0 = e.door || (i > 0 && hE[j * W + i - 1]?.door) ? 0 : this.jambs.has(vk(i, j)) ? -hv[vk(i, j)] : hv[vk(i, j)], ext1 = e.door || (i1 < W && hE[j * W + i1]?.door) ? 0 : this.jambs.has(vk(i1, j)) ? -hv[vk(i1, j)] : hv[vk(i1, j)];
       out.push({ u0: this.u0 + i - ext0, v0: this.v0 + j, u1: this.u0 + i1 + ext1, v1: this.v0 + j, thick: e.thick, kind: e.kind, sides: e.sides, door: e.door }); i = i1; } }
     for (let i = 0; i <= W; i++) { let j = 0; while (j < H) { const e = vE[j * (W + 1) + i]; if (!e) { j++; continue; } let j1 = j + 1; while (j1 < H && vE[j1 * (W + 1) + i]?.key === e.key) j1++;
-      const tr0 = e.door ? 0 : hu[vk(i, j)], tr1 = e.door ? 0 : hu[vk(i, j1)];
+      const tr0 = e.door || this.jambs.has(vk(i, j)) ? 0 : hu[vk(i, j)], tr1 = e.door || this.jambs.has(vk(i, j1)) ? 0 : hu[vk(i, j1)];
       if (j1 - j - tr0 - tr1 > 0.02) out.push({ u0: this.u0 + i, v0: this.v0 + j + tr0, u1: this.u0 + i, v1: this.v0 + j1 - tr1, thick: e.thick, kind: e.kind, sides: e.sides, door: e.door }); j = j1; } }
     return out;
   }

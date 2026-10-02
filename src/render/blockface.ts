@@ -8,6 +8,7 @@
 // surface carries its own tool marks and arrises. In node (tests, bakes) nothing loads and every function here is the
 // identity (the CPU mirrors of materials.ts hold). Tier C (Q-484, Q-930).
 import * as THREE from 'three/webgpu';
+import { sharedKTX2 } from './loaders';
 import { texture, vec2, float, int, clamp, sqrt, max, dFdx, dFdy, mix, uniform, step, smoothstep, fract, floor, fwidth } from 'three/tsl';
 import META from '../data/blockface.json';
 import { BASE } from '../core/base';
@@ -33,15 +34,11 @@ export async function loadBlockFace(base = BASE, anisotropy = 8): Promise<void> 
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('noblockface')) { blockFaceOn = false; return; }
   const t0 = performance.now();
   try {
-    const { KTX2Loader } = await import('three/addons/loaders/KTX2Loader.js');
-    // the transcoder's target format from the adapter's features (as models.ts: the scans load before the renderer exists)
-    const ad = await (globalThis as any).navigator?.gpu?.requestAdapter?.().catch(() => null);
-    const k = new KTX2Loader().setTranscoderPath(base + 'models/lib/basis/');
-    k.detectSupport({ isWebGPURenderer: true, hasFeature: (f: string) => !!ad?.features?.has(f) } as any);
+    const k = await sharedKTX2(base); // (D-392: the page's transcoder; its target format from the adapter's features)
     const t = await k.loadAsync(base + 'textures/blockface/blockface.ktx2') as THREE.Texture;
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = anisotropy; t.colorSpace = THREE.NoColorSpace;
     t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true;
-    blockFaceStats.format = String((t as any).format); TEX = t; k.dispose();
+    blockFaceStats.format = String((t as any).format); TEX = t;
   } catch (e) { blockFaceStats.error = String((e as Error)?.message ?? e); console.warn('[blockface] not loaded:', blockFaceStats.error); }
   blockFaceStats.ms = Math.round(performance.now() - t0);
 }

@@ -10,15 +10,15 @@
 //  - the plough: while a plot is being ploughed (seasonal.ts tilled) an ard lies at its edge, unyoked;
 //  - the flocks: a thorn fold on the open ground near every village, all year (the flocks folded at night, C).
 // Drawn within FIELD_R of the viewer, regenerated when the viewer has moved FIELD_R.move m or the day changed; one InstancedMesh
-// per model, part and level. A model that did not load is not drawn (stats().missing; PLACEHOLDER: nothing stands in).
+// per model and level (the parts merged, one material). A model that did not load is not drawn (stats().missing; PLACEHOLDER: nothing stands in).
 import * as THREE from 'three/webgpu';
 import { model, modelParts, aoFactor } from '../../render/scanProps';
-import { propMaterial } from '../../render/materials';
+import { propMaterialMulti } from '../../render/materials';
 import { landUseAt, plotAt, hash2, unit, cellU, type ZoneMap } from './fields';
 import { cropState, YEAR, type CropRow } from './seasonal';
 import { vergeZone } from './verge';
 
-export const FIELD_R = { near: 130, far: 260, lod0: 12, lod1: 45, move: 8, step: 18 } as const;
+export const FIELD_R = { near: 130, far: 260, lod1: 45, move: 8, step: 18 } as const;
 /** the cereals' harvest day (seasonal.ts winterCereal's `harvest`) */
 export const HARVEST: Partial<Record<CropRow, number>> = { barley: 150, wheat: 178, emmer_spelt: 178 };
 /** the threshing season on the floors (doy) and the straw stacks' (to the next March) */
@@ -28,7 +28,8 @@ type RGB = [number, number, number];
 const PART: Record<string, [string, RGB]> = {
   straw: ['reed', [0.78, 0.67, 0.42]], straw_d: ['reed', [0.62, 0.53, 0.34]], ears: ['reed', [0.74, 0.6, 0.33]], earth: ['mud', [0.56, 0.47, 0.36]],
   grain: ['mud', [0.76, 0.62, 0.38]], chaff: ['reed', [0.82, 0.74, 0.55]], wood: ['wood', [0.47, 0.37, 0.27]], wood_d: ['wood', [0.38, 0.3, 0.22]],
-  cord: ['textile', [0.58, 0.5, 0.36]], iron: ['metal', [0.3, 0.29, 0.28]], thorn: ['wood', [0.42, 0.36, 0.28]], thorn_d: ['wood', [0.33, 0.28, 0.22]],
+  cord: ['reed', [0.58, 0.5, 0.36]], iron: ['wood', [0.3, 0.29, 0.28]], // (the cord and the share's iron under the reed's and wood's grain: 3 kinds, 3 scans in the one material)
+  thorn: ['wood', [0.42, 0.36, 0.28]], thorn_d: ['wood', [0.33, 0.28, 0.22]],
 };
 const MODELS = ['wo_sheaves', 'wo_stooks', 'wo_threshing_floor', 'wo_grain_heap', 'wo_fodder', 'wo_sledge', 'wo_ard', 'wo_fold'] as const;
 type M = typeof MODELS[number];
@@ -102,30 +103,38 @@ export function villageItems(villages: FieldVillage[], doy: number, ground?: (e:
   return out;
 }
 
-interface Slot { mesh: THREE.InstancedMesh; part: string; n: number }
+/** the material kinds the parts are made of, in one material (materials.ts propMaterialMulti: aKind picks the kind's scan) */
+const KINDS = [...new Set(Object.values(PART).map(p => p[0]))];
+/** the levels drawn: the model's lod1 within FIELD_R.lod1, its lod2 beyond (lod0's detail is lost under the straw at 1.6 m) */
+const LEVELS = [1, 2] as const;
+interface Slot { mesh: THREE.InstancedMesh; n: number }
 export class FieldFill {
+  /** s17 (D-560): its own group (the world adds it beside the plain's, as the town's fill): at most 16 meshes, one per model
+   *  and level with the parts merged, and only the season's drawn (spring: the folds alone) */
   readonly group = new THREE.Group();
-  private slots = new Map<M, Slot[][]>();
+  private slots = new Map<M, Slot[]>();
   private last: [number, number] = [1e9, 1e9]; private lastDoy = -1; private vItems: FieldItem[] = []; private vDoy = -1;
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private up = new THREE.Vector3(0, 1, 0); private p = new THREE.Vector3(); private sc = new THREE.Vector3(); private c = new THREE.Color();
   readonly missing: string[] = []; drawn = 0; private plotCache = new Map<number, FieldItem[]>();
   constructor(private zm: ZoneMap, private villages: FieldVillage[], private ground: (e: number, n: number) => number, private open?: (e: number, n: number) => boolean) {
     this.group.name = 'plain-field-fill';
     this.group.userData = { tier: 'C', src: 'RECON', note: 'the farm year near the walker (D-560): sheaves and stooks on the cut cereal plots, the threshing floors\' season (sledge, grain heaps, straw), the straw stacks to spring, an ard at a plot being ploughed, the villages\' thorn folds; all C, modelled (tools/blender/model_props.py)' };
+    const mat = propMaterialMulti(KINDS), col = new THREE.Color();
     for (const m of MODELS) {
       if (!model(m)) { this.missing.push(m); continue; } // (the registry is keyed by the model's `of`: wo_*)
-      const levels: Slot[][] = [];
-      for (let l = 0; l < 3; l++) { const parts = modelParts(m, l); if (!parts) break; const L: Slot[] = [];
-        for (const [part, g0] of Object.entries(parts)) { const def = PART[part] ?? ['clay', [0.6, 0.5, 0.4]] as [string, RGB], g = new THREE.BufferGeometry(), N = g0.getAttribute('position').count, col = new Float32Array(N * 3);
-          for (let i = 0; i < N; i++) { const a = aoFactor(g0, i); col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = a; }
-          g.setAttribute('position', g0.getAttribute('position')); g.setAttribute('normal', g0.getAttribute('normal') ?? (g0.computeVertexNormals(), g0.getAttribute('normal'))); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); if (g0.index) g.setIndex(g0.index);
-          g.computeBoundingSphere();
-          const mat = propMaterial(def[0], { vertexColors: true, metal: def[0] === 'metal' ? 0.6 : 0 });
-          const mesh = new THREE.InstancedMesh(g, mat, CAP[m]); mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false; mesh.receiveShadow = true; mesh.castShadow = l < 2 && m !== 'wo_sheaves';
-          mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(CAP[m] * 3), 3); mesh.name = `field:${m}:${part}:lod${l}`; mesh.userData = this.group.userData;
-          this.group.add(mesh); L.push({ mesh, part, n: 0 }); }
-        levels.push(L); }
-      if (levels.length === 3) this.slots.set(m, levels); else this.missing.push(m);
+      const L: Slot[] = [];
+      for (const lvl of LEVELS) { const parts = modelParts(m, lvl); if (!parts) break;
+        const P: number[] = [], N: number[] = [], C: number[] = [], K: number[] = [], R: number[] = [], I: number[] = [];
+        for (const [part, g0] of Object.entries(parts)) { const def = PART[part] ?? ['mud', [0.6, 0.5, 0.4]] as [string, RGB], pos = g0.getAttribute('position'), nor = g0.getAttribute('normal') ?? (g0.computeVertexNormals(), g0.getAttribute('normal')), base = P.length / 3;
+          col.setRGB(def[1][0], def[1][1], def[1][2], THREE.SRGBColorSpace); const ki = Math.max(0, KINDS.indexOf(def[0])), rough = part === 'iron' ? 0.5 : 0.85;
+          for (let i = 0; i < pos.count; i++) { const a = aoFactor(g0, i); P.push(pos.getX(i), pos.getY(i), pos.getZ(i)); N.push(nor.getX(i), nor.getY(i), nor.getZ(i)); C.push(col.r * a, col.g * a, col.b * a); K.push(ki); R.push(rough); }
+          if (g0.index) for (let i = 0; i < g0.index.count; i++) I.push(base + g0.index.getX(i)); else for (let i = 0; i < pos.count; i++) I.push(base + i); }
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+        g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3)); g.setAttribute('aKind', new THREE.Float32BufferAttribute(K, 1)); g.setAttribute('aRough', new THREE.Float32BufferAttribute(R, 1)); g.setIndex(I); g.computeBoundingSphere();
+        const mesh = new THREE.InstancedMesh(g, mat, CAP[m]); mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false; mesh.receiveShadow = true; mesh.castShadow = lvl === 1 && m !== 'wo_sheaves';
+        mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(CAP[m] * 3), 3); mesh.name = `field:${m}:lod${lvl}`; mesh.userData = this.group.userData;
+        this.group.add(mesh); L.push({ mesh, n: 0 }); }
+      if (L.length === LEVELS.length) this.slots.set(m, L); else this.missing.push(m);
     }
     if (this.missing.length) this.group.userData = { ...this.group.userData, placeholder: this.missing.length === MODELS.length, note: `${this.group.userData.note}; not loaded (not drawn): ${this.missing.join(', ')}` };
   }
@@ -137,18 +146,17 @@ export class FieldFill {
     if (doy !== this.vDoy) { this.vDoy = doy; this.vItems = villageItems(this.villages, doy, this.open); this.plotCache.clear(); } if (this.plotCache.size > 4000) this.plotCache.clear();
     const items = [...fieldItems(this.zm, viewer[0], viewer[1], doy, FIELD_R.near, this.plotCache), ...this.vItems.filter(it => Math.hypot(it.e - viewer[0], it.n - viewer[1]) < FIELD_R.far)];
     items.sort((a, b) => Math.hypot(a.e - viewer[0], a.n - viewer[1]) - Math.hypot(b.e - viewer[0], b.n - viewer[1])); // (the nearest first when a cap is reached)
-    for (const L of this.slots.values()) for (const S of L) for (const s of S) s.n = 0;
+    for (const L of this.slots.values()) for (const s of L) s.n = 0;
     let drawn = 0;
     for (const it of items) {
-      const levels = this.slots.get(it.m); if (!levels) continue;
+      const L = this.slots.get(it.m); if (!L) continue;
       const d = Math.hypot(it.e - viewer[0], it.n - viewer[1]); if (d > (BIG.has(it.m) ? FIELD_R.far : FIELD_R.near)) continue;
       const y = this.ground(it.e, it.n); if (!Number.isFinite(y)) continue;
-      const L = levels[d < FIELD_R.lod0 ? 0 : d < FIELD_R.lod1 ? 1 : 2]; if (L.some(s => s.n >= CAP[it.m])) continue;
+      const s = L[d < FIELD_R.lod1 ? 0 : 1]; if (s.n >= CAP[it.m]) continue;
       this.q.setFromAxisAngle(this.up, it.rot); this.m4.compose(this.p.set(it.e, y - 0.02, -it.n), this.q, this.sc.set(it.s[0], it.s[1], it.s[2]));
-      for (const s of L) { const c = PART[s.part]?.[1] ?? [0.6, 0.5, 0.4]; s.mesh.setMatrixAt(s.n, this.m4); this.c.setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace).multiplyScalar(it.shade); s.mesh.setColorAt(s.n, this.c); s.n++; }
-      drawn++;
+      s.mesh.setMatrixAt(s.n, this.m4); this.c.setRGB(it.shade, it.shade, it.shade); s.mesh.setColorAt(s.n, this.c); s.n++; drawn++;
     }
-    for (const L of this.slots.values()) for (const S of L) for (const s of S) { s.mesh.count = s.n; s.mesh.visible = s.n > 0; if (s.n) { s.mesh.instanceMatrix.needsUpdate = true; s.mesh.instanceColor!.needsUpdate = true; } }
+    for (const L of this.slots.values()) for (const s of L) { s.mesh.count = s.n; s.mesh.visible = s.n > 0; if (s.n) { s.mesh.instanceMatrix.needsUpdate = true; s.mesh.instanceColor!.needsUpdate = true; } }
     this.drawn = drawn; return true;
   }
   stats() { return { drawn: this.drawn, missing: this.missing }; }

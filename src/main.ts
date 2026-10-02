@@ -18,6 +18,7 @@ import { WeatherSystem, WeatherOverride } from './weather/weatherState';
 import { Physics } from './player/physics';
 import { Player } from './player/player';
 import { makePlayerBody, animateBody } from './player/body';
+import { Head } from './player/motion';
 import { shadowsSeePeople } from './people/humanGPU';
 import { Shell } from './ui/shell';
 import { DevOverlay } from './ui/overlay';
@@ -154,6 +155,9 @@ async function boot() {
   shell.loading('Raising the Terrace…');
   const phys = await physP;
   TRACE('physics ready');
+  // D-580: the ground's chunks round the spawn built while the world's build waits for its assets (the main thread idles ~8 s
+  // there on a cold visit), not in the first frame after ready (2.8 s of terrain.update in frame 0, measured)
+  setTimeout(() => { const [ex, ez] = [SPAWN.east, -SPAWN.north]; tmesh.update(new THREE.Vector3(ex, terrain.surfaceAt(ex, ez) + 1.6, ez)); }, 0);
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
   phys.updateTerrain(terrain, { x: sx, y: 0, z: sz }); phys.step(1 / 60);
@@ -173,6 +177,7 @@ async function boot() {
   let lastSub: any = null, lastSubAt = -1e9; const inscGroup = [world.root.getObjectByName('inscriptions') ?? null, world.root.getObjectByName('nr-inscriptions') ?? null,
     world.root.getObjectByName('treasury_scribes_room') ?? null, world.root.getObjectByName('doors') ?? null]; // the last two: writing on objects (D-179)
   const body = makePlayerBody((world as any).people?.crowd); scene.add(body);
+  const head = new Head(); // the head on the walking body (D-630)
 
   let lastSave: string | null = null;
   function state() {
@@ -464,7 +469,7 @@ async function boot() {
     // the first __parsa.view() the people's simulation stayed at the page-load time: a setTime (or advanceWorld) moved the
     // sun but not the people (the coverage pilot found every walker frozen over 2 s of world time)
     if (freeCam) { world.simulate?.(dt, clock); return; }
-    const ax = input.locked ? input.axes() : botInput;
+    const ax = input.active() ? input.axes() : botInput;
     if (botInput.yawDeg !== undefined) { input.yaw = -((botInput.yawDeg - 341) * Math.PI) / 180; input.pitch = ((botInput.pitchDeg ?? 0) * Math.PI) / 180; }
     phys.updateTerrain(terrain, player.position);
     player.update(dt, { ...ax, yaw: input.yaw, pitch: input.pitch });
@@ -515,9 +520,9 @@ async function boot() {
     if (freeCam) { camera.position.set(freeCam.x, freeCam.y, freeCam.z); camera.rotation.set(freeCam.pitch, freeCam.yaw, 0, 'YXZ'); body.visible = false; }
     else {
       const e = player.eye;
-      const bob = settings.headBob && player.grounded ? Math.sin(player.bobPhase * 2) * 0.018 : 0; // ±1.8 cm (D-238: comfort; T-K3 < 2 cm)
-      camera.position.set(e.x, e.y + bob, e.z); camera.rotation.set(input.pitch, input.yaw, 0, 'YXZ');
-      body.visible = true; body.position.set(e.x, player.feetY, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, 1.35, dt);
+      const h = head.update(dt, { phase: player.bobPhase, speed: player.speed, grounded: player.grounded, landed: player.landed, bob: settings.headBob }, input.yaw); // D-630 (D-238: ±1.8 cm, no roll)
+      camera.position.set(e.x + h.x, e.y + h.y, e.z + h.z); camera.rotation.set(input.pitch, input.yaw, 0, 'YXZ');
+      body.visible = true; body.position.set(e.x, player.feetY + player.stepEase.y, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, player.speed, dt, player.crouchEase);
       // keep the camera ahead of the torso when looking down
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }
