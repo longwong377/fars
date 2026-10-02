@@ -1,0 +1,58 @@
+// D-370: the stranger's words reach the sandbox: the grammar (speech/verbs.ts) proposes, the simulation decides, the person is
+// told the verdict before answering, and the step is done after a yes (converse/turn.ts). Stand-in model (tests/talk_standin.ts):
+// this measures the plumbing, not whether a real model keeps to the verdict.
+import { describe, it, expect, beforeAll } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { NavGrid } from '../src/people/navgrid';
+import { PeopleSim, type Env } from '../src/people/sim';
+import { WeatherSystem } from '../src/weather/weatherState';
+import { Mind } from '../src/people/converse/mind';
+import { talkTurn } from '../src/people/converse/turn';
+import { strangerAsk } from '../src/people/speech/verbs';
+import { standInEngine } from './talk_standin';
+
+const c = { day: 50, hh: 'h:7', q: 'q1', job: 'farmer' };
+describe('the grammar of the stranger\'s asks (verbs.ts)', () => {
+  const cases: [string, string | null, string?][] = [
+    ['Could I work for you? I am strong.', 'seek_work'], ['Do you need a hand with the harvest?', 'seek_work'], ['May I stay the night with you?', 'stay'],
+    ['Can you put me up?', 'stay'], ['I am a merchant from Babylon.', 'claim', 'merchant'], ['I come from Egypt.', 'claim', 'pilgrim'], ['I am your kinsman.', 'claim', 'kin'],
+    ['Can I join the caravan?', 'join', 'caravan'], ['Put me on the ration list.', 'join', 'gang'], ['Take me into your household.', 'join', 'household'],
+    ['Take these 2 shekels.', 'give'], ['He owes me my wages.', 'petition', 'wages'], ['I need papers to stay.', 'petition', 'leave'], ['Speak for that family.', 'petition', 'plea'],
+    ['Teach me your word for bread.', 'hear'], ['Thank you for your hospitality.', 'leave_stay'], ['I quit.', 'quit'], ['Where is the well?', null], ['Nice weather.', null],
+  ];
+  for (const [w, a, x] of cases) it(w, () => { const s = strangerAsk(w, c) as any; expect(s?.a ?? null).toBe(a); if (x) expect(s.role ?? s.kind).toBe(x); });
+  it('an official is asked for a document; a farmer for a petition sends it to the headman', () => {
+    expect((strangerAsk('I need a sealed document.', { ...c, job: 'official' }) as any).to).toBe('official');
+    expect((strangerAsk('Speak for that family.', c) as any).to).toBe('headman');
+  });
+});
+
+let nav: NavGrid;
+const W = new WeatherSystem(1), env = (t: number): Env => { const dd = Math.floor(t / 24), x = W.conditions(dd, t - dd * 24); return { rain: x.rain, lightning: x.lightning, windMs: x.windMs, tempC: x.tempC, dust: x.dust }; };
+beforeAll(() => { nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8'))); }, 120_000);
+describe('a talk turn reaches the sandbox (turn.ts)', () => {
+  it('asked for guest-right, the person is told the verdict, and the stay is in the economy and the save', async () => {
+    const sim = new PeopleSim(1, nav, env), m = new Mind(); (m as any).engine = standInEngine(); m.model = 'stand-in';
+    const d = 60; sim.jumpTo(d * 24 + 17);
+    const E = sim.econTo(d), S = E.stranger();
+    // a farmer at home whose house would take a guest today
+    const pid = sim.pop.persons.find(p => p.job === 'farmer' && p.age >= 25 && sim.pop.present(p.id, d) && S.stayCheck(`h:${sim.pop.home(p.id, d)}`, d).ok)!.id;
+    const o = await talkTurn(m, sim, pid, 'May I stay the night with you?', { conv: sim.t });
+    expect(o.sandbox?.act.a).toBe('stay'); expect(o.sandbox?.verdict.ok).toBe(true);
+    expect(o.sandbox?.done?.ok).toBe(true); expect(S.stay?.host).toBe(`h:${sim.pop.home(pid, d)}`);
+    expect(S.comp(S.langOf(S.stay!.host), d)).toBeGreaterThan(0); // the turn was heard
+    const snap = JSON.parse(JSON.stringify(E.snapshot(d - 2))); expect(snap.stranger.stay.host).toBe(S.stay!.host);
+    // a house that cannot: the person is told no and nothing is done
+    const poorPid = sim.pop.persons.find(p => p.age >= 25 && sim.pop.present(p.id, d) && !S.stayCheck(`h:${sim.pop.home(p.id, d)}`, d).ok && `h:${sim.pop.home(p.id, d)}` !== S.stay!.host && E.hh.has(`h:${sim.pop.home(p.id, d)}`))!.id;
+    const o2 = await talkTurn(m, sim, poorPid, 'May I stay the night with you?', { conv: sim.t });
+    expect(o2.sandbox?.verdict.ok).toBe(false); expect(o2.sandbox?.done).toBeNull(); expect(o2.answer.text.toLowerCase()).toMatch(/no|cannot/);
+  }, 600_000);
+  it('presence: two hours beside the employer\'s people make an attended day (the game\'s strangerNear hook)', () => {
+    const sim = new PeopleSim(1, nav, env); const d = 45; sim.jumpTo(d * 24 + 9);
+    const E = sim.econTo(d), S = E.stranger();
+    const boss = [...E.hh.values()].find(h => h.kind === 'farmer' && S.hireCheck(h.id, d).ok)!.id; S.do({ a: 'seek_work', day: d, hh: boss });
+    const mates = sim.pop.households[Number(boss.slice(2))].members;
+    for (let k = 0; k < 9; k++) { sim.t += 0.25; sim.strangerNear(mates, 0.25); }
+    expect((S as any).attended.has(d)).toBe(true);
+  }, 300_000);
+});

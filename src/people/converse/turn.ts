@@ -17,6 +17,7 @@ import { lifeRecord } from './life';
 import { groundFact, isRecallQuestion } from './ground';
 import { hearAsPerson } from './hear';
 import { requestOf, looseRequest, tagAsked, wordsRefuse, type Intent, type Deed } from './intent';
+import type { SAct, Verdict } from '../speech/stranger';
 
 export interface TurnOut {
   pid: number; said: string; answer: Answer; knows: Knows; memory: string[];
@@ -26,6 +27,9 @@ export interface TurnOut {
   /** the words said no (the person's own), and whether the answer was asked again to match a refusal */
   saidNo: boolean; retold: boolean;
   /** a question about earlier meetings: the fact the simulation picked (the model only rephrased it) */ fact?: string; judged?: boolean | null;
+  /** D-370: a step of the sandbox the words proposed (work, guest-right, a group, a claim, a petition, a gift), the
+   *  simulation's verdict told to the person first, and what was done after their answer */
+  sandbox?: { act: SAct; verdict: Verdict; done: Verdict | null };
 }
 /** the simulation's word on an ask, as the person is told it (the model's brief: out of world) */
 /** D-315 (the GPU runs): where the memory of the stranger goes. 'near' (the default after run 2): in the turn, just before
@@ -47,14 +51,19 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   const g0: Knows = agent >= 0 ? sim.memory.greeting(agent, t) : 'none';
   const knows: Knows = (sim.talk.rows.get(pid)?.length ?? 0) > 0 ? 'recognise' : g0 !== 'none' ? g0 : memory.length ? 'heard' : 'none';
   // the ask: the grammar's, else a paraphrase by its one cued family (the simulation's word goes with the words either way)
-  const request = requestOf(said) ?? looseRequest(said);
+  // D-370: no deed asked in the grammar's words: a step of the sandbox (work, guest-right, a group, who the stranger is, a
+  // petition, a gift), read before the loose paraphrases (which take "may I stay the night" for "wait here"); the simulation
+  // decides it now and the person is told its verdict, as with a deed
+  const strict = requestOf(said), sb = strict ? null : sim.strangerAsk(pid, said);
+  const request = strict ?? (sb ? null : looseRequest(said));
   const pre = request ? sim.talk.consider(pid, t, request) : null;
+  const sbNote = sb && sb.act.a !== 'hear' && sb.act.a !== 'claim' ? (sb.verdict.ok ? `You may say yes: ${sb.verdict.why}.` : `You cannot do this: ${sb.verdict.why}.`) : '';
   // (the first GPU run: a 2 B model ignores the memory at the head of a long brief: on the first turn of a talk, or asked
   // about earlier meetings, the memory that matters most goes with the stranger's words too)
   const near = talkOpts.memory === 'near';
   const first = !(sim.talk.rows.get(pid) ?? []).some(r => r.conv === o.conv); const top = sim.talk.recall(pid, t, 1)[0];
   const remind = !near && top && (first || /\b(remember|before|met|heard|know me|say of|spoken)\b/i.test(said)) ? `What you remember of the stranger: ${top}` : '';
-  const note = [pre ? verdictNote(pre) : '', remind].filter(Boolean).join(' ') || undefined;
+  const note = [pre ? verdictNote(pre) : '', sbNote, remind].filter(Boolean).join(' ') || undefined;
   // (run 2: the simulation's "no" after the stranger's words was often not kept; said first, plainly, it goes with the memory)
   const before = [near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
     near && pre && !pre.ok && !pre.noop ? `(Whatever he asks, you must say no: ${pre.reason}.)` : ''].filter(Boolean).join('\n') || undefined;
@@ -86,5 +95,10 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   }
   const deed = decision ? { kind: decision.kind as Deed, arg: decision.arg ?? decision.event.arg, ok: decision.ok, reason: decision.reason, item: decision.item } : undefined;
   sim.talk.remember(pid, t, o.conv, said, answer.ok ? answer.text : '', deed);
-  return { pid, said, answer, knows, memory, request, tag, ask, decision, saidNo, retold, fact, judged };
+  // D-370: the sandbox step is done when the simulation allowed it and the person did not say no in their own words; every
+  // turn is also a minute of the person's tongue in the stranger's ear (simplified by their patience)
+  let sandbox: TurnOut['sandbox'];
+  if (sb) { const no = answer.ok && (tag?.kind === 'refuse' || wordsRefuse(answer.text)); sandbox = { ...sb, done: sb.verdict.ok && (!no || sb.act.a === 'claim' || sb.act.a === 'hear') ? sim.strangerDo(sb.act) : null }; }
+  sim.strangerHeard(pid, 1);
+  return { pid, said, answer, knows, memory, request, tag, ask, decision, saidNo, retold, fact, judged, ...(sandbox ? { sandbox } : {}) };
 }

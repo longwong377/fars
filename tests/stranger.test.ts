@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { Population } from '../src/people/population';
 import { Economy } from '../src/people/economy/world';
 import { householdsOf, chains } from '../src/people/economy/chains';
-import { PLAYER, type SAct } from '../src/people/speech/stranger';
+import { PLAYER, STR_LAG, type SAct } from '../src/people/speech/stranger';
 
 const pop = new Population(1), hs = householdsOf(pop);
 const town = (to: number, acts: SAct[] = []) => { const e = new Economy(1, hs, { trust: true }); const S = e.stranger(); for (const a of acts) S.do(a); for (let d = 0; d <= to; d++) e.step(d); return e; };
@@ -22,7 +22,7 @@ describe('D-370 the stranger in the simulation', () => {
     const boss = hireAny(e, h => h.kind === 'farmer' && h.harvestDay >= 42 && h.harvestDay <= 50 && h.grain > 200);
     expect(boss).not.toBeNull();
     const g0 = S.purse.grain, bg0 = e.hh.get(boss!)!.grain;
-    step(e, 13, d => S.do({ a: 'attend', day: d }));
+    step(e, 13, d => S.do({ a: 'attend', day: d })); step(e, STR_LAG); // (settled STR_LAG days behind)
     expect(evs(e, 'wage_paid').length).toBeGreaterThanOrEqual(2);
     expect(S.purse.grain + S.purse.cash * 40).toBeGreaterThan(g0 + 5);
     expect(e.hh.get(boss!)!.grain).not.toBe(bg0);
@@ -34,7 +34,7 @@ describe('D-370 the stranger in the simulation', () => {
   it('(3) work: a house that cannot pay owes the wage in the economy\'s own ledger, and the court can be asked for it (8)', () => {
     const e = town(40), S = e.stranger();
     const boss = hireAny(e, h => h.kind === 'farmer' && h.harvestDay >= 44 && h.harvestDay <= 52)!; const B = e.hh.get(boss)!;
-    step(e, 7, d => { S.do({ a: 'attend', day: d }); B.grain = Math.min(B.grain, B.eaters * 0.55 * 15); B.cash = 0; });
+    step(e, 7 + STR_LAG, d => { if (d < e.day + 8) S.do({ a: 'attend', day: d }); B.grain = Math.min(B.grain, B.eaters * 0.55 * 15); B.cash = 0; });
     expect(evs(e, 'wage_owed').length).toBeGreaterThan(0);
     S.do({ a: 'quit', day: e.day });
     expect(B.debts.some(d => d.to === PLAYER)).toBe(true);
@@ -70,7 +70,7 @@ describe('D-370 the stranger in the simulation', () => {
     step(e, 20); const r = S.claimReach(); expect(r.heard).toBeGreaterThan(3);
     const b0 = S.belief.get(first.id)!.b;
     const boss = hireAny(e, h => h.id === first.id) ?? hireAny(e, h => h.kind === 'farmer' && Math.abs(h.harvestDay - e.day) < 6)!;
-    step(e, 12, d => S.do({ a: 'attend', day: d }));
+    step(e, 12, d => S.do({ a: 'attend', day: d })); step(e, STR_LAG, d => S.do({ a: 'attend', day: d }));
     expect(S.consistency(e.day)).toBeLessThan(0);
     expect(S.belief.get(boss)!.b).toBeLessThan(Math.max(b0, 0.5));
     // a false claim of kinship, made to the very house named, is denied at once and costs trust
@@ -109,12 +109,12 @@ describe('D-370 the stranger in the simulation', () => {
   it('(10) groups: a treasury gang feeds its member; a household takes in a known, trusted hand', () => {
     const e = town(90), S = e.stranger();
     expect(S.do({ a: 'join', day: 90, kind: 'gang' }).ok).toBe(true);
-    step(e, 10, d => S.do({ a: 'attend', day: d })); expect(S.purse.grain).toBeGreaterThan(3);
+    step(e, 10 + STR_LAG, d => S.do({ a: 'attend', day: d })); expect(S.purse.grain).toBeGreaterThan(3);
     S.do({ a: 'leave_group', day: e.day });
     const host = [...e.hh.values()].find(h => h.kind === 'farmer' && h.workers < 3 && S.stayCheck(h.id, e.day).ok)!;
     expect(S.judge({ a: 'join', day: e.day, kind: 'household', hh: host.id }).ok).toBe(false); // a stranger they hardly know
     S.do({ a: 'stay', day: e.day, hh: host.id }); S.purse.cash = 3;
-    step(e, 6, d => { if (d % 2 === 0) S.do({ a: 'give', day: d, hh: host.id, cash: 0.3 }); });
+    step(e, 6 + STR_LAG, d => { if (d % 2 === 0) S.do({ a: 'give', day: d, hh: host.id, cash: 0.3 }); });
     e.trust!.note(host.id, PLAYER, 0.3, e.day); // (a friendship the test does not wait months for)
     const w0 = host.workers, v = S.do({ a: 'join', day: e.day, kind: 'household', hh: host.id });
     expect(v.ok).toBe(true); expect(host.workers).toBe(w0 + 1); expect(evs(e, 'joined_house').length).toBe(1);
