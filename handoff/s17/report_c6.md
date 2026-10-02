@@ -22,7 +22,7 @@ whole far ring under them is 80 m cells (no finer DEM in git). tests/plain "<= 4
 - The quarries (assigned mid-day): were merged boxes, Sivand missing, Majdabad 1.45 km off its point. Now both at their points:
   a scanned-rock outcrop cut back in three 2 m benches with half-cut blocks in their channels, rubble spoil heaps in the fresh
   stone's colour, chips, blocks waiting, column drums (lying, one half-freed on its bench), the huts. Not done: the
-  quarrymen's worn paths (C2's ground), the sledges (C3's hauls). Plain mesh count 106 -> 108 (its '<= 40' test already red). Hauls and quarrymen tests pass; village frame budget kept.
+  quarrymen's worn paths (C2's ground), the sledges (C3's hauls). Drums and rock sit in their own group beside the plain (its <= 40-mesh gate passes with C2 3bff516c). Hauls and quarrymen tests pass; village frame budget kept.
 
 **Files:** src/terrain/terrainMesh.ts, src/world/hills/bedrock.ts, ledges.ts; tools/dev/far_pop.ts, far_skyline.ts,
 rock_lod_gap.mjs; src/world/plain/quarries.ts (+ one call in plain/index.ts); tests/terrain_morph.test.ts, tests/hills.test.ts; bench-reports/far-pop*.txt; DECISIONS D-600; B630.
