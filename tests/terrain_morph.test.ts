@@ -3,7 +3,7 @@
 // coverage routes in pixels: tools/dev/far_pop.ts (bench-reports/far-pop.txt).
 import { describe, it, expect } from 'vitest';
 import { loadTerrain } from './plainLib';
-import { stepErrors, pickStep, morphShare, decimatedAt, TERRAIN_LOD } from '../src/terrain/terrainMesh';
+import { stepErrors, pickStep, morphShare, decimatedAt, ringNormalData, decodeRingNormal, TERRAIN_LOD } from '../src/terrain/terrainMesh';
 
 const T = loadTerrain(), chunks = T.chunks();
 
@@ -30,5 +30,17 @@ describe('terrain geomorph (D-600)', () => {
       const h = ch.ring.at(ch.r0 + i, ch.c0 + j), c = decimatedAt(ch.ring, ch.r0, ch.c0, ch.cells, s * 2, i, j);
       if (i % (s * 2) === 0 && j % (s * 2) === 0) expect(Math.abs(c - h)).toBeLessThan(1e-4);
     }
+  });
+  it('the ring normal maps carry each ring\'s full-resolution normal within 0.6 deg, and a flat sample exactly up', () => {
+    for (const ring of [T.near, T.mid]) {
+      const d = ringNormalData(ring), n = ring.n, H = (r: number, c: number) => ring.at(Math.min(n - 1, Math.max(0, r)), Math.min(n - 1, Math.max(0, c)));
+      let worst = 0;
+      for (let k = 0; k < 4000; k++) { const r = (k * 7919) % n, c = (k * 104729) % n;
+        const dx = (H(r, c + 1) - H(r, c - 1)) / (2 * ring.cell), dz = (H(r + 1, c) - H(r - 1, c)) / (2 * ring.cell), l = Math.hypot(dx, 1, dz);
+        const [x, y, z] = decodeRingNormal(d[(r * n + c) * 2], d[(r * n + c) * 2 + 1]);
+        worst = Math.max(worst, Math.acos(Math.min(1, (x * -dx + y + z * -dz) / l)) * 180 / Math.PI); }
+      console.log(`ring of ${ring.cell} m: worst normal error ${worst.toFixed(2)} deg`); expect(worst).toBeLessThan(0.6);
+    }
+    expect(decodeRingNormal(127, 127)).toEqual([0, 1, 0]);
   });
 });
