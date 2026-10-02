@@ -104,6 +104,9 @@ for (let d = D0; d < end; d++) {
         await turn(d, hour, pid, said, hour < 16 ? 'at work' : 'at home');
       }
     }
+    // selling: once a day, the stranger offers grain to the house nearby that is shortest of it
+    if (hour === 13 && S.purse.grain >= 20) { const poor = [...home, ...work].map(p => ({ p, H: E.hh.get(hhOf(p, d)) })).filter(x => x.H).sort((a, b) => a.H!.grain / a.H!.eaters - b.H!.grain / b.H!.eaters)[0];
+      if (poor) await turn(d, hour, poor.p, 'Will you buy my grain? I have two measures to sell.', 'sell'); }
     // petitions for wages: also put to an elder with the debtor named, as the game would have to (named is a sim.strangerAsk arg)
     if (hour === 13 && d % 15 === 0 && formerEmployers.size) { const elder = [...work, ...home].find(p => P.persons[p].job === 'elder' || P.persons[p].job === 'official');
       if (elder !== undefined) { const named = [...formerEmployers][0]; const r = sim.strangerAsk(elder, 'He owes me my wages.', named); log.push({ day: d, hour, pid: elder, hh: hhOf(elder, d), why: 'petition-named', said: 'He owes me my wages. (named ' + named + ')', sandbox: r ? { act: r.act, verdict: r.verdict, done: r.verdict.ok ? sim.strangerDo(r.act) : null } : null }); } }
