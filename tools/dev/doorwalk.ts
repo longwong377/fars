@@ -41,9 +41,11 @@ function walk(pts: P2[], floor0: number): { ok: boolean; at: P2; why: string; t:
   }
   const p = pl.position, why = touching(pl); kill(pl); return { ok: false, at: [p.x, -p.z], why, t };
 }
+// the floor a walk starts on: cast from 1.2 m over the hint (the town: 0.3 m over the terrain; from higher up the cast
+// landed on tall fittings and walls, s17)
 const floorAt = (e: number, n: number, hint: number) => P.castRayDown(e, -n, hint + 1.2) ?? hint;
 /** room for the standing capsule at (e, n) on the floor there */
-const standable = (p: P2) => { const f = floorAt(p[0], p[1], T.surfaceAt(p[0], -p[1]) + 3); return !P.world.intersectionWithShape({ x: p[0], y: f + 0.87 + 0.04, z: -p[1] }, { x: 0, y: 0, z: 0, w: 1 }, new P.R.Capsule(0.6, 0.25)); };
+const standable = (p: P2) => { const f = floorAt(p[0], p[1], T.surfaceAt(p[0], -p[1]) + 0.3); return !P.world.intersectionWithShape({ x: p[0], y: f + 0.87 + 0.04, z: -p[1] }, { x: 0, y: 0, z: 0, w: 1 }, new P.R.Capsule(0.6, 0.25)); };
 interface Res { doors: number; entered: number; failures: string[]; shut: string[] }
 const res: Record<string, Res> = { terrace: { doors: 0, entered: 0, failures: [], shut: [] }, town: { doors: 0, entered: 0, failures: [], shut: [] } };
 const t0 = Date.now();
@@ -79,7 +81,7 @@ for (let q = 0; q < all.length && res.town.doors < TOWN_N; q += stride) {
   P.updateTerrain(T, { x: mid[0], y: 0, z: -mid[1] }); W.settlement!.streamColliders(mid[0], -mid[1], Infinity); P.step(1e-4);
   let both = true;
   for (const [from, to] of [[a, b], [b, a]] as const) {
-    const g = T.surfaceAt(from[0], -from[1]), r = walk([from, mid, to], floorAt(from[0], from[1], g + 3));
+    const g = T.surfaceAt(from[0], -from[1]), r = walk([from, mid, to], floorAt(from[0], from[1], g + 0.3));
     if (!r.ok) { both = false; res.town.failures.push(`${s.meta.id} plot ${p.idx} door at (${mid[0].toFixed(1)}, ${mid[1].toFixed(1)}) ${from === a ? 'in' : 'out'}: stopped at (${r.at[0].toFixed(1)}, ${r.at[1].toFixed(1)}) touching ${r.why}`); }
   }
   if (both) res.town.entered++;
@@ -100,7 +102,7 @@ for (let q = 0; q < inner.length && res.rooms.doors < TOWN_N; q += stride2) {
   P.updateTerrain(T, { x: mid[0], y: 0, z: -mid[1] }); W.settlement!.streamColliders(mid[0], -mid[1], Infinity); P.step(1e-4);
   let both = true;
   for (const [from, to] of [[a, b], [b, a]] as const) {
-    const g = T.surfaceAt(from[0], -from[1]), r = walk(from === a ? route : route.slice().reverse(), floorAt(from[0], from[1], g + 3));
+    const g = T.surfaceAt(from[0], -from[1]), r = walk(from === a ? route : route.slice().reverse(), floorAt(from[0], from[1], g + 0.3));
     if (!r.ok) { both = false; res.rooms.failures.push(`${s.meta.id} ${w.kind} door at (${mid[0].toFixed(1)}, ${mid[1].toFixed(1)}) (route ${route.map(q => `(${q[0].toFixed(1)}, ${q[1].toFixed(1)})`).join(' ')}): stopped at (${r.at[0].toFixed(1)}, ${r.at[1].toFixed(1)}) touching ${r.why}`); }
   }
   if (both) res.rooms.entered++;
