@@ -1,0 +1,286 @@
+// D-459 (UD-32): THE DEED ENGINE. One judge for every deed of every actor: the stranger's (from his words, deeds/parse.ts or
+// the model's reading, deeds/extract.ts) and every person's own (their mind's initiative, mind/minds.ts deeds(), day by day,
+// with or without the stranger). For a deed at time t:
+//   1. can it be done: the doer and the other alive and here, awake for what needs them awake, the goods in hand, within two
+//      days; the period's limits (no courting a child, no harm to a child: the grown-ups near stop it);
+//   2. is the other willing (deeds that need consent): their mind decides (Minds.decide);
+//   3. what follows: feelings both ways, the house's trust, goods moved through the economy's own stores, wounds (a death only
+//      under the population's own rules), news through the rumour net, a complaint to the quarter's elder and a ruling (a fine
+//      in silver, paid house to house; C), promises held to their day, a skill learned, work done for a house, and the day
+//      plans: the people the deed takes somewhere go there and do it (an overlay of the plans, like the economy's and the talk's).
+// Witnesses (the people at the same place) remember, and a wrong they saw becomes news. Everything is logged; the stranger's
+// deeds are saved with the log, the minds' are drawn again from the same state (seeded), so a reload goes on the same.
+// Tier C throughout (DECISIONS D-459): the law's fines and the elder's hearing are reconstructed from the Achaemenid evidence of
+// royal judges and fines in silver (B for the institution, C for the amounts and the village elder's part).
+import type { Population, Seg, Where } from '../population';
+import { segAt } from '../population';
+import type { Economy } from '../economy/world';
+import type { RumourNet } from '../asks/rumour';
+import type { ActivityId } from '../activities';
+import { u01, salt } from '../hash';
+import { Minds, type MindCtx } from '../mind/minds';
+import { VERBS } from './verbs';
+import type { Actor, Deed, DeedRec, Effect, Outcome, Good } from './types';
+
+export interface WorldPort {
+  pop: Population; seed: number;
+  /** the economy as built about the day (null before it is) */ econ: (day: number) => Economy | null;
+  rumours: () => RumourNet | null;
+  /** the people at the same place as pid at time t (the world's own reading of the plans) */ near: (pid: number, t: number) => number[];
+}
+const S = { hour: salt('deed-hour'), law: salt('deed-law'), fight: salt('deed-fight') };
+const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
+const CHILD_HARM = new Set(['attack', 'push', 'steal', 'threaten', 'curse', 'break']);
+const ROMANCE = new Set(['flirt', 'court', 'embrace']);
+/** a ruling's fine in silver by the wrong (C: a shekel or so for a blow, two for a beating, the worth twice over for a theft) */
+const FINE: Record<string, number> = { theft: 0.5, assault: 1, damage: 0.6, insult: 0.15, threats: 0.2, cursing: 0.15 };
+
+export interface Case { id: number; day: number; due: number; accuser: Actor; accused: Actor; victim: Actor; crime: string; witnessed: boolean; ruled?: 'fined' | 'dismissed'; fine?: number }
+export interface Promise_ { id: number; from: Actor; to: Actor; verb: string; due: number; kept?: boolean; broken?: boolean }
+
+export class DeedWorld {
+  readonly log: DeedRec[] = [];
+  readonly minds: Minds;
+  readonly injuries = new Map<number, { how: string; day: number; until: number; by: Actor }>();
+  readonly cases: Case[] = [];
+  readonly promises: Promise_[] = [];
+  /** what the stranger has learned to do (activity -> 0..1) */
+  readonly skills = new Map<string, number>();
+  /** the stranger's deeds (replayed on load) */
+  private mine: { t: number; deed: Deed }[] = [];
+  private lays = new Map<string, Seg[]>();
+  private dayDone = -1;
+  constructor(readonly w: WorldPort, ctx?: Partial<MindCtx>) {
+    const E = (d: number) => w.econ(d), hhOf = (pid: number, d: number) => `h:${w.pop.home(pid, d)}`;
+    this.minds = new Minds(w.pop, w.seed, {
+      trust: (pid, of, d) => { const e = E(d); if (!e?.trust) return 0.5; const h = hhOf(pid, d); if (!e.hh.has(h)) return 0.5; return e.trust.trustOf(h, of === 'player' ? 'player' : hhOf(of, d), d); },
+      need: (pid, d) => { const e = E(d); const n = e?.hh.has(hhOf(pid, d)) ? e.needsOf(hhOf(pid, d)) : []; return { food: n.find(x => x.kind === 'food')?.urgency ?? 0, cash: n.find(x => x.kind === 'cash')?.urgency ?? 0 }; },
+      ...ctx,
+    });
+  }
+  private hh(a: Actor, day: number): string | null { return a === 'player' ? null : `h:${this.w.pop.home(a, day)}`; }
+  private name(a: Actor) { return a === 'player' ? 'the stranger' : (this.w.pop.nameOf(a) ?? 'someone').replace(/^\*/, ''); }
+  private here(a: Actor, day: number) { if (a === 'player') return true; const P = this.w.pop, p = P.persons[a]; return !!p && p.dies > day && P.present(a, day); }
+
+  // ---------------------------------------------------------------- judging
+  /** the simulation's word on a deed, without doing it (what the person is told before they answer) */
+  judge(d: Deed, t: number): Outcome { return this.resolve(d, t, false); }
+  /** do the deed (the stranger's, after the person's answer; a mind's, on its day) */
+  act(d: Deed, t: number): DeedRec {
+    if (d.actor === 'player') this.mine.push({ t, deed: { ...d } });
+    const out = this.resolve(d, t, true), rec: DeedRec = { id: this.log.length, day: Math.floor(t / 24), t, deed: d, out };
+    this.log.push(rec);
+    for (const x of [d.actor, d.target, d.third, ...(out.witnesses ?? [])]) if (typeof x === 'number') this.minds.remember(x, rec.id);
+    if (typeof d.actor === 'number') this.minds.own.set(d.actor, (this.minds.own.get(d.actor) ?? 0) + 1);
+    this.keepPromises(rec);
+    return rec;
+  }
+  private resolve(d: Deed, t: number, apply: boolean): Outcome {
+    const P = this.w.pop, day = Math.floor(t / 24), hour = t - day * 24, sense = VERBS[d.verb];
+    const no = (why: string, refused = false, lean?: number): Outcome => ({ ok: false, why, refused, lean, effects: [] });
+    const tg = d.target ?? null;
+    if (!this.here(d.actor, day)) return no('not here');
+    if (tg !== null && !this.here(tg, day)) return no(typeof tg === 'number' && P.persons[tg]?.dies <= day ? 'dead' : 'not here');
+    if (tg !== null && tg === d.actor) return no('to oneself');
+    if ((d.inH ?? 0) > 48) return no('too far ahead to promise');
+    const tAge = typeof tg === 'number' ? P.ageOn(tg, day) : 30;
+    // the limits of the world: no courting a child; harm to a child is stopped by the grown-ups near (and remembered)
+    if (ROMANCE.has(d.verb) && tAge < 18) return no('a child: never', true, -1);
+    if (CHILD_HARM.has(d.verb) && tAge < 12 && typeof tg === 'number') {
+      const wit = this.w.near(tg, t).filter(x => x !== tg && P.ageOn(x, day) >= 16).slice(0, 6);
+      const eff: Effect[] = wit.map(x => ({ k: 'feel', who: x, toward: d.actor, d: { anger: 0.4, aff: -0.3 } } as Effect));
+      const h = this.hh(tg, day); if (h) eff.push({ k: 'trust', hh: h, of: d.actor, d: -0.25 }, { k: 'rumour', about: d.actor, kind: 'threat_to_child', hh: h });
+      if (apply) this.applyAll(eff, day, d);
+      return { ok: false, why: 'the grown-ups near pull you away from the child', effects: eff, witnesses: wit };
+    }
+    // the things: the doer must have what he gives, the other what is taken or asked
+    const lack = this.lacks(d, day); if (lack) return no(lack);
+    // asleep: words are not heard, and the consenting deeds wait
+    const tSeg = typeof tg === 'number' ? segAt(P.plan(tg, day), hour) : null;
+    if (tSeg?.act === 'sleep' && (d.inH ?? 0) < 1 && !['attack', 'steal', 'break', 'push'].includes(d.verb)) return no('asleep');
+    // the other's mind
+    const dec = typeof tg === 'number' ? this.minds.decide(tg, d, day, hour) : { lean: 0.5, ok: true, why: '' };
+    if (sense.consent && !dec.ok) {
+      const eff: Effect[] = typeof d.actor === 'number' && typeof tg === 'number' ? [{ k: 'feel', who: d.actor, toward: tg, d: { aff: -0.03 } }] : [];
+      if (apply) this.applyAll(eff, day, d); return { ok: false, refused: true, why: dec.why, lean: dec.lean, effects: eff };
+    }
+    const wit = typeof tg === 'number' ? this.w.near(tg, t).filter(x => x !== tg && x !== d.actor && P.ageOn(x, day) >= 10).slice(0, 8) : [];
+    const eff = this.effects(d, t, dec.lean, wit);
+    if (apply) this.applyAll(eff, day, d);
+    return { ok: true, why: dec.why || sense.gloss, lean: dec.lean, effects: eff, witnesses: wit };
+  }
+  private lacks(d: Deed, day: number): string | null {
+    const E = this.w.econ(day), g = d.good, q = d.qty ?? 1; if (!g || !E) return null;
+    const have = (a: Actor): number => {
+      if (a === 'player') { if (!E.hasStranger) return 0; const p = E.stranger().purse as Record<string, number>; return g === 'silver' ? p.cash : g === 'bread' || g === 'food' ? p.grain : p[g === 'grain' ? 'grain' : g === 'fuel' ? 'fuel' : 'goods'] ?? 0; }
+      const H = E.hh.get(this.hh(a, day)!); if (!H) return 0;
+      return g === 'silver' ? H.cash : g === 'grain' || g === 'bread' || g === 'food' ? H.grain : g === 'fuel' ? H.fuel : H.goods; };
+    const amt = g === 'silver' ? q * 0.05 : g === 'bread' ? q * 0.5 : q;
+    if (['give', 'lend', 'return'].includes(d.verb) && have(d.actor) < amt) return d.actor === 'player' ? 'the stranger has not got it' : 'has not got it';
+    if (['steal', 'ask_for', 'borrow'].includes(d.verb) && d.target !== undefined && have(d.target) < amt) return 'they have none of it';
+    return null;
+  }
+
+  // ---------------------------------------------------------------- what follows
+  private effects(d: Deed, t: number, lean: number, wit: number[]): Effect[] {
+    const P = this.w.pop, day = Math.floor(t / 24), hour = t - day * 24, sense = VERBS[d.verb], tg = d.target, out: Effect[] = [];
+    const tH = tg !== undefined ? this.hh(tg, day) : null, aH = this.hh(d.actor, day), force = d.force ?? 0.5;
+    const scale = sense.wrong ? 0.4 + force : 1;
+    // feelings: the other's toward the doer (the deed's own sense, scaled), and the doer's (a mind) toward the other
+    if (typeof tg === 'number' && sense.feel) { const f: Record<string, number> = {}; for (const [k, v] of Object.entries(sense.feel)) f[k] = v * scale; out.push({ k: 'feel', who: tg, toward: d.actor, d: f }); }
+    if (typeof d.actor === 'number' && tg !== undefined) out.push({ k: 'feel', who: d.actor, toward: tg, d: sense.wrong ? { anger: -0.25 } : sense.feel?.aff ? { aff: sense.feel.aff * 0.5 } : {} });
+    // the house's trust in the doer
+    if (tH && sense.feel) { const tr = sense.wrong ? -0.08 - 0.15 * force : (sense.feel.grat ?? 0) * 0.4 + (sense.feel.aff ?? 0) * 0.2 - Math.max(0, sense.feel.anger ?? 0) * 0.2; if (Math.abs(tr) > 0.003) out.push({ k: 'trust', hh: tH, of: d.actor, d: tr }); }
+    // witnesses: a wrong seen angers them a little and becomes news
+    for (const x of wit) if (sense.wrong) out.push({ k: 'feel', who: x, toward: d.actor, d: { anger: 0.12, aff: -0.08, fear: d.verb === 'attack' ? 0.1 : 0 } });
+    const g = d.good, q = d.qty ?? (g === 'silver' ? 1 : 2), amt = g === 'silver' ? q * 0.05 : g === 'bread' ? q * 0.5 : q; // (a coin is a twentieth of a shekel, a loaf half a kilo: C)
+    switch (d.verb) {
+      case 'give': case 'return': if (g && tg !== undefined) out.push({ k: 'goods', from: d.actor, to: tg, good: g, qty: amt }); break;
+      case 'lend': if (g && tg !== undefined) { out.push({ k: 'goods', from: d.actor, to: tg, good: g, qty: amt }, { k: 'promise', from: tg, to: d.actor, what: 'return', due: day + 30 }); } break;
+      case 'borrow': if (g && tg !== undefined) { out.push({ k: 'goods', from: tg, to: d.actor, good: g, qty: amt }, { k: 'promise', from: d.actor, to: tg, what: 'return', due: day + 30 }); } break;
+      case 'ask_for': if (g && tg !== undefined) out.push({ k: 'goods', from: tg, to: d.actor, good: g, qty: amt }); break;
+      case 'steal': { if (!g || tg === undefined) break; const seen = wit.length > 0 || u01(this.w.seed, S.law, day, typeof tg === 'number' ? tg : 0) < 0.3;
+        out.push({ k: 'goods', from: tg, to: d.actor, good: g, qty: amt });
+        if (tH) { out.push({ k: 'rumour', about: seen ? d.actor : tg, kind: 'theft', hh: tH }); if (seen) out.push({ k: 'law', offender: d.actor, victim: tg, crime: 'theft', witnessed: wit.length > 0 }); }
+        if (!seen && typeof tg === 'number') out.splice(out.findIndex(e => e.k === 'feel' && e.who === tg), 1); // (unseen: the house finds its loss, not the thief)
+        break; }
+      case 'attack': case 'push': { if (typeof tg !== 'number') break;
+        // the other fights back or runs; men near pull them apart (C)
+        const u = u01(this.w.seed, S.fight, day, tg, Math.floor(hour * 10)), stopped = wit.some(x => P.persons[x].sex === 'm' && P.ageOn(x, day) >= 16 && P.ageOn(x, day) < 60) && u < 0.7;
+        const f = stopped ? force * 0.5 : force;
+        if (d.verb === 'attack') out.push({ k: 'injury', pid: tg, how: f >= 0.95 ? 'killed' : f >= 0.7 ? 'broken' : f >= 0.45 ? 'cut' : 'bruised', by: d.actor });
+        if (d.verb === 'attack' && P.persons[tg].sex === 'm' && P.ageOn(tg, day) >= 16 && P.ageOn(tg, day) < 55 && u > 0.5) out.push({ k: 'injury', pid: d.actor, how: u > 0.85 ? 'cut' : 'bruised', by: tg });
+        if (tH) out.push({ k: 'rumour', about: d.actor, kind: 'assault', hh: tH }, { k: 'law', offender: d.actor, victim: tg, crime: 'assault', witnessed: wit.length > 0 });
+        break; }
+      case 'break': if (tH) out.push({ k: 'goods', from: tg!, to: 'world', good: 'goods', qty: 0.5 }, { k: 'rumour', about: d.actor, kind: 'damage', hh: tH }, { k: 'law', offender: d.actor, victim: tg!, crime: 'damage', witnessed: wit.length > 0 }); break;
+      case 'insult': case 'threaten': case 'curse': if (tH && (wit.length || force > 0.7)) out.push({ k: 'rumour', about: d.actor, kind: d.verb, hh: tH }); break;
+      case 'accuse': case 'complain': { const who = d.third ?? (d.verb === 'accuse' ? tg : undefined); if (who === undefined || who === d.actor) break;
+        // to an elder or an official: a case; to anyone else: news against the accused
+        const auth = typeof tg === 'number' && ['elder', 'official', 'steward', 'scribe'].includes(P.persons[tg].job);
+        const hh = this.hh(who, day) ?? (tH ?? 'h:0');
+        if (auth) out.push({ k: 'law', offender: who, victim: d.actor, crime: /steal|stole|theft|thief/.test(d.about ?? d.said ?? '') ? 'theft' : /hit|beat|struck|attack/.test(d.about ?? d.said ?? '') ? 'assault' : 'insult', witnessed: false });
+        else if (tH) out.push({ k: 'rumour', about: who, kind: /steal|stole|theft|thief/.test(d.about ?? d.said ?? '') ? 'theft' : 'wrong', hh });
+        if (typeof tg === 'number') out.push({ k: 'feel', who: tg, toward: who, d: { aff: -0.08, resp: -0.05 } });
+        break; }
+      case 'tell': case 'lie': case 'warn': { if (typeof tg !== 'number') break; const about = d.third;
+        if (about !== undefined) { const bad = /steal|stole|thief|lie|liar|cheat|beat|hit|kill|adulter|curse|witch/.test((d.about ?? d.said ?? '').toLowerCase()), good = /kind|good|honest|help|brave|generous|gave/.test((d.about ?? d.said ?? '').toLowerCase());
+          if (bad || good) out.push({ k: 'feel', who: tg, toward: about, d: bad ? { aff: -0.12, resp: -0.08 } : { aff: 0.08, resp: 0.05 } });
+          if (bad && tH) out.push({ k: 'rumour', about, kind: d.verb === 'lie' ? 'slander' : 'wrong', hh: tH }); }
+        break; }
+      case 'promise': if (tg !== undefined) out.push({ k: 'promise', from: d.actor, to: tg, what: d.about ?? 'a promise', due: day + 3 }); break;
+      case 'intercede': if (typeof tg === 'number' && d.third !== undefined) out.push({ k: 'feel', who: tg, toward: d.third, d: { anger: -0.15 * Math.max(0.2, lean + 0.5), aff: 0.05 } }); break;
+      case 'reconcile': if (typeof tg === 'number') { const o = d.third ?? d.actor; out.push({ k: 'feel', who: tg, toward: o, d: { anger: -0.3, aff: 0.05 } }); if (typeof o === 'number') out.push({ k: 'feel', who: o, toward: tg, d: { anger: -0.3, aff: 0.05 } }); } break;
+      case 'introduce': if (typeof tg === 'number' && typeof d.third === 'number') out.push({ k: 'feel', who: tg, toward: d.third, d: { aff: 0.06 } }, { k: 'feel', who: d.third, toward: tg, d: { aff: 0.06 } }); break;
+      case 'heal': if (typeof tg === 'number') { const inj = this.injuries.get(tg); if (inj) inj.until = Math.max(day, inj.until - 3); } break;
+      case 'teach': if (d.actor === 'player') out.push({ k: 'skill', who: 'player', skill: d.act ?? 'craft', d: 0.12 }); break;
+      case 'help': case 'repair': case 'build': case 'carry': case 'guard':
+        if (tH) out.push({ k: 'work', hh: tH, what: d.act ?? d.verb, amt: VERBS[d.verb].hours }); break;
+    }
+    // where the deed takes people: the other (and a mind doer) go to the place and do it for its hours
+    if (tg !== undefined && sense.consent && sense.hours > 0.2 && typeof tg === 'number') {
+      const at = hour + (d.inH ?? 0), dd = day + Math.floor(at / 24), h0 = at % 24, h1 = Math.min(23.5, h0 + sense.hours);
+      const place = d.place ?? (d.verb === 'visit' ? (typeof d.actor === 'number' ? `h:${P.home(d.actor, dd)}` : `h:${P.home(tg, dd)}`) : segAt(P.plan(tg, dd), h0).place);
+      const act: ActivityId = d.act ?? (d.verb === 'visit' || d.verb === 'meet' || d.verb === 'intercede' || d.verb === 'reconcile' || d.verb === 'introduce' ? 'talk' : d.verb === 'share_food' ? 'eat' : d.verb === 'pray' ? 'offer' : d.verb === 'heal' ? 'tend_body' : d.verb === 'carry' ? 'carry_sack' : d.verb === 'come_with' ? 'walk' : 'talk');
+      const why = `${d.verb === 'help' ? 'helping' : d.verb === 'join' ? 'together with' : d.verb.replace(/_/g, ' ')} ${this.name(d.actor)}${d.act ? `: ${d.act.replace(/_/g, ' ')}` : ''}`;
+      if (h1 - h0 > 0.15) { out.push({ k: 'lay', pid: tg, day: dd, h0, h1, place, act, why, with: d.actor });
+        if (typeof d.actor === 'number') out.push({ k: 'lay', pid: d.actor, day: dd, h0, h1, place, act, why: `${d.verb.replace(/_/g, ' ')} with ${this.name(tg)}`, with: tg }); }
+    }
+    return out;
+  }
+
+  private applyAll(eff: Effect[], day: number, d: Deed) {
+    const E = this.w.econ(day), R = this.w.rumours(), P = this.w.pop;
+    for (const e of eff) switch (e.k) {
+      case 'feel': this.minds.move(e.who, e.toward, e.d, day); break;
+      case 'trust': if (E?.trust) E.trust.note(e.hh, e.of === 'player' ? 'player' : this.hh(e.of, day)!, e.d, day); break;
+      case 'goods': if (E) this.moveGoods(E, e.from, e.to, e.good, e.qty, day); break;
+      case 'injury': { if (typeof e.pid !== 'number') break; if (e.how === 'killed' && P.deedKill(e.pid, day)) { this.injuries.set(e.pid, { how: 'killed', day, until: 1e9, by: e.by }); break; }
+        const how = e.how === 'killed' ? 'broken' : e.how; this.injuries.set(e.pid, { how, day, until: day + (how === 'broken' ? 40 : how === 'cut' ? 12 : 4), by: e.by });
+        if (how === 'broken' || how === 'cut') this.layDays(e.pid, day, how === 'broken' ? 10 : 2, 'lie_ill', `wounded: ${how === 'broken' ? 'a bone broken' : 'a cut'} by ${this.name(e.by)}`); break; }
+      case 'rumour': { const about = e.about === 'player' ? undefined : this.hh(e.about, day) ?? undefined; if (R && E?.hh.has(e.hh)) R.inject(day, e.hh, e.kind, 1, about ?? e.hh, e.about === 'player' ? 'player' : about); break; }
+      case 'law': this.fileCase(e.offender, e.victim, e.crime, e.witnessed, day); break;
+      case 'skill': this.skills.set(e.skill, Math.min(1, (this.skills.get(e.skill) ?? 0) + e.d)); break;
+      case 'promise': this.promises.push({ id: this.promises.length, from: e.from, to: e.to, verb: e.what === 'return' ? 'return' : 'give', due: e.due }); break;
+      case 'work': if (E) { const H = E.hh.get(e.hh); if (H) { if (/reap|thresh|field|plough|irrigat|garden|pick/.test(e.what)) H.grain += 0.8 * e.amt; else if (/craft|weave|spin|smith|work_wood|pot/.test(e.what)) H.goods += 0.05 * e.amt; } } break;
+      case 'lay': this.lay(e.pid, e.day, { t0: e.h0, t1: e.h1, place: e.place, act: e.act, why: e.why, where: this.whereOf(e.place, e.pid, e.day) }); break;
+    }
+    void d;
+  }
+  private moveGoods(E: Economy, from: Actor | 'world', to: Actor | 'world', g: Good, q: number, day: number) {
+    const purse = E.hasStranger ? E.stranger().purse as Record<string, number> : null;
+    const field = (gg: Good) => gg === 'silver' ? 'cash' : gg === 'grain' || gg === 'bread' || gg === 'food' ? 'grain' : gg === 'fuel' ? 'fuel' : 'goods';
+    const take = (a: Actor | 'world') => { if (a === 'world') return; if (a === 'player') { if (purse) purse[field(g)] = Math.max(0, (purse[field(g)] ?? 0) - q); return; } const H = E.hh.get(this.hh(a, day)!) as any; if (H) H[field(g)] = Math.max(0, H[field(g)] - q); };
+    const put = (a: Actor | 'world') => { if (a === 'world') return; if (a === 'player') { if (purse) purse[field(g)] = (purse[field(g)] ?? 0) + q; return; } const H = E.hh.get(this.hh(a, day)!) as any; if (H) H[field(g)] += q; };
+    take(from); put(to);
+  }
+  private whereOf(place: string, pid: number, day: number): Where {
+    if (/^(hills|river|field:|pasture:|flock:|crown_fields|canal:)/.test(place)) return 'plain';
+    const s = this.w.pop.plan(pid, day)[0]; return (s?.where === 'away' || s?.where === 'road' ? 'town' : s?.where) ?? 'town';
+  }
+  /** lay a segment over a person's day (the plans' overlay) */
+  private lay(pid: number, day: number, seg: Seg) { const k = `${pid}:${day}`; const l = this.lays.get(k) ?? []; l.push(seg); this.lays.set(k, l); }
+  private layDays(pid: number, day: number, n: number, act: ActivityId, why: string) { const P = this.w.pop; for (let d = day + 1; d <= day + n; d++) this.lay(pid, d, { t0: 0, t1: 24, place: `h:${P.home(pid, d)}`, act, why, where: P.households[P.home(pid, d)]?.zone === 'plain' ? 'plain' : 'town' }); }
+  /** the deeds' overlay of the day plans (Population.deeds) */
+  readonly overlay = {
+    touches: (pid: number, day: number) => this.lays.has(`${pid}:${day}`),
+    overlay: (pid: number, day: number, base: Seg[]): Seg[] => { let out = base; for (const s of this.lays.get(`${pid}:${day}`) ?? []) out = cutIn(out, s); return out; },
+  };
+
+  // ---------------------------------------------------------------- the law, promises (day by day)
+  private fileCase(offender: Actor, victim: Actor, crime: string, witnessed: boolean, day: number) {
+    if (this.cases.some(c => c.accused === offender && c.victim === victim && c.crime === crime && !c.ruled)) return;
+    const due = day + 1 + (u01(this.w.seed, S.law, day, this.cases.length) * 3 | 0);
+    this.cases.push({ id: this.cases.length, day, due, accuser: victim, accused: offender, victim, crime, witnessed });
+  }
+  private rule(c: Case, day: number) {
+    // the elder weighs: witnesses, and the quarter's trust in the accused against the accuser (C)
+    const E = this.w.econ(day), tq = (a: Actor, of: Actor) => { const h = this.hh(a, day); return E?.trust && h && E.hh.has(h) ? E.trust.trustOf(h, of === 'player' ? 'player' : this.hh(of, day)!, day) : 0.5; };
+    const weight = (c.witnessed ? 0.5 : 0) + tq(c.victim, c.accused) * -0.6 + 0.35 + (u01(this.w.seed, S.law, c.id, 9) - 0.5) * 0.3;
+    if (weight > 0) { c.ruled = 'fined'; c.fine = FINE[c.crime] ?? 0.2;
+      if (E) this.moveGoods(E, c.accused, c.victim, 'silver', c.fine, day);
+      const h = this.hh(c.victim, day); if (h && E?.trust) E.trust.note(h, c.accused === 'player' ? 'player' : this.hh(c.accused, day)!, -0.05, day);
+      if (typeof c.victim === 'number') this.minds.move(c.victim, c.accused, { anger: -0.3 }, day); }
+    else { c.ruled = 'dismissed'; if (typeof c.victim === 'number') this.minds.move(c.victim, c.accused, { anger: 0.1 }, day); }
+  }
+  private keepPromises(rec: DeedRec) { const d = rec.deed; if (!rec.out.ok) return;
+    for (const p of this.promises) if (!p.kept && !p.broken && p.from === d.actor && p.to === d.target && (p.verb === d.verb || (p.verb === 'give' && ['give', 'help', 'return', 'repair', 'carry', 'fetch', 'visit', 'meet', 'come_with'].includes(d.verb)))) { p.kept = true; if (typeof p.to === 'number') this.minds.move(p.to, p.from, { aff: 0.05, resp: 0.05 }, rec.day); } }
+  private duesOf(day: number) { const E = this.w.econ(day);
+    for (const p of this.promises) if (!p.kept && !p.broken && p.due < day) { p.broken = true;
+      if (typeof p.to === 'number') { this.minds.move(p.to, p.from, { anger: 0.2, resp: -0.1, aff: -0.05 }, day); const h = this.hh(p.to, day); if (h && E?.trust) E.trust.note(h, p.from === 'player' ? 'player' : this.hh(p.from, day)!, -0.06, day); } } }
+
+  /** a day of the town's own deeds (the minds' initiative), the elders' rulings and the promises' days: sliced (a generator) */
+  *dayParts(day: number): Generator<void> {
+    if (day <= this.dayDone) return; this.dayDone = day;
+    for (const c of this.cases) if (!c.ruled && c.due <= day) this.rule(c, day);
+    this.duesOf(day); yield;
+    const own = this.minds.deeds(day); let k = 0;
+    for (const d of own) { const t = day * 24 + 8 + u01(this.w.seed, S.hour, day, k++) * 12; d.inH = d.inH ?? 0; this.act(d, t); if (k % 40 === 0) yield; }
+  }
+  day(day: number) { for (const _ of this.dayParts(day)); }
+
+  // ---------------------------------------------------------------- reading (the brief, the overlay, the tests)
+  /** what a person holds against or for the stranger and what they remember of deeds (the brief's lines, out of world) */
+  briefOf(pid: number, day: number): string[] {
+    const out: string[] = [], f = this.minds.feelOf(pid, 'player', day);
+    const fl = [f.anger > 0.25 ? 'angry with him' : '', f.fear > 0.25 ? 'afraid of him' : '', f.grat > 0.2 ? 'grateful to him' : '', f.aff > 0.3 ? 'fond of him' : f.aff < -0.2 ? 'dislike him' : '', f.resp > 0.3 ? 'respect him' : ''].filter(Boolean);
+    if (fl.length) out.push(`You are ${fl.join(' and ')}.`);
+    const mem = (this.minds.memory.get(pid) ?? []).map(i => this.log[i]).filter(r => r && r.out.ok && (r.deed.actor === 'player' || r.deed.target === 'player') && day - r.day < 60).slice(-2);
+    for (const r of mem) out.push(`${day - r.day === 0 ? 'Today' : day - r.day === 1 ? 'Yesterday' : 'Some days ago'} ${r.deed.actor === 'player' ? `the stranger ${VERBS[r.deed.verb].gloss.replace(/^to /, '')}${r.deed.target === pid ? ' (to you)' : ''}` : `you ${r.deed.verb.replace(/_/g, ' ')} the stranger`}.`);
+    const inj = this.injuries.get(pid); if (inj && inj.until > day) out.push(`You are ${inj.how === 'broken' ? 'badly hurt, a bone broken' : inj.how === 'cut' ? 'cut and bandaged' : 'bruised'}, by ${this.name(inj.by)}.`);
+    return out;
+  }
+  /** a person's wound now (the renderer's and the marks' hook) */
+  injuryOf(pid: number, day: number) { const i = this.injuries.get(pid); return i && i.until > day ? i : null; }
+
+  save() { return { mine: this.mine, minds: this.minds.save(), inj: [...this.injuries], cases: this.cases, promises: this.promises, skills: [...this.skills], lays: [...this.lays], dayDone: this.dayDone, n: this.log.length }; }
+  load(s: ReturnType<DeedWorld['save']> | undefined) { if (!s) return; this.mine = s.mine; this.minds.load(s.minds); this.injuries.clear(); for (const [k, v] of s.inj) this.injuries.set(k, v);
+    this.cases.splice(0, this.cases.length, ...s.cases); this.promises.splice(0, this.promises.length, ...s.promises); this.skills.clear(); for (const [k, v] of s.skills) this.skills.set(k, v);
+    this.lays = new Map(s.lays); this.dayDone = s.dayDone; }
+}
+
+/** a segment laid into a day: the base is cut around it (the overlays' shared rule) */
+export function cutIn(base: Seg[], s: Seg): Seg[] {
+  const out: Seg[] = [];
+  for (const b of base) { if (b.t1 <= s.t0 || b.t0 >= s.t1) { out.push(b); continue; } if (b.t0 < s.t0) out.push({ ...b, t1: s.t0 }); if (b.t1 > s.t1) out.push({ ...b, t0: s.t1 }); }
+  out.push(s); return out.sort((a, b) => a.t0 - b.t0);
+}

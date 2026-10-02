@@ -1337,6 +1337,9 @@ export class Population {
     if (this.childrenOf(pid).some(c => this.present(c, d) && this.ageOn(c, d) < 3)) return false;
     return this.membersOn(hid, d).some(x => x !== pid && this.present(x, d + 1) && this.ageOn(x, d) >= 16 && this.persons[x].dies > d + 30);
   }
+  /** D-459 (UD-32): a death by violence (deeds/engine.ts) under the economy's own rules (killable): the wounded dies the next day;
+   *  false when the world cannot take it (a detailed agent, a mother of a small child, the house's last adult): left for dead, lives */
+  deedKill(pid: number, d: number): boolean { if (!this.persons[pid] || !this.killable(pid, this.home(pid, d), d + 1)) return false; this.econKill(pid, d + 1); this.planCache.clear(); this.rawCache.clear(); return true; }
   private econKill(pid: number, d: number) {
     const p = this.persons[pid]; this.econDead.set(pid, { day: d, was: p.dies }); this.moveDeath(pid, p.dies, d);
   }
@@ -1777,7 +1780,10 @@ export class Population {
   wash: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
   /** D-348: courting visits, the families' agreement, lovers' meetings laid over the plans (people/relations/plans.ts RelPlans; the sim sets it; Population.rel is the older affinity map) */
   bonds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[]; dueOf(pid: number, day: number): number | undefined } | null = null;
-  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
+  /** D-459 (UD-32): the deeds of the minds and the stranger laid over the plans (people/deeds/engine.ts DeedWorld; the sim sets it):
+   *  a friend visited, work shared, a wound kept at home. Over the relations' meetings, under the stranger's talk */
+  deeds: { touches(pid: number, day: number): boolean; overlay(pid: number, day: number, base: Seg[]): Seg[] } | null = null;
+  plan(pid: number, day: number): Seg[] { let b = this.basePlan(pid, day); const e = this.econ?.touches(pid, day); if (this.wash?.touches(pid, day)) b = this.wash.overlay(pid, day, b); if (e) b = this.econ!.overlay(pid, day, b); if (this.bonds?.touches(pid, day)) b = this.bonds.overlay(pid, day, b); if (this.deeds?.touches(pid, day)) b = this.deeds.overlay(pid, day, b); return this.talk?.touches(pid, day) ? this.talk.overlay(pid, day, b) : b; }
   /** the day plan as the world makes it, with nothing of the stranger's in it (D-315) */
   basePlan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }

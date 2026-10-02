@@ -18,6 +18,8 @@ import { groundFact, isRecallQuestion } from './ground';
 import { hearAsPerson } from './hear';
 import { requestOf, looseRequest, tagAsked, wordsRefuse, type Intent, type Deed } from './intent';
 import type { SAct, Verdict } from '../speech/stranger';
+import type { Deed as OpenDeed, DeedRec, Outcome } from '../deeds/types';
+import { VERBS } from '../deeds/verbs';
 
 export interface TurnOut {
   pid: number; said: string; answer: Answer; knows: Knows; memory: string[];
@@ -30,6 +32,9 @@ export interface TurnOut {
   /** D-370: a step of the sandbox the words proposed (work, guest-right, a group, a claim, a petition, a gift), the
    *  simulation's verdict told to the person first, and what was done after their answer */
   sandbox?: { act: SAct; verdict: Verdict; done: Verdict | null };
+  /** D-459 (UD-32): any other deed the words do or propose (deeds/parse.ts or the model's reading), the world's and the person's
+   *  word on it told to them first, and what was done */
+  deed?: { deed: OpenDeed; out: Outcome; done: DeedRec | null };
   /** D-370 (B234): the person would not talk at all ('distrust') */
   refused?: string;
 }
@@ -43,7 +48,7 @@ export function verdictNote(d: Decision): string {
   return d.ok ? 'You can do this, if you are willing.' : `You cannot do this: ${d.reason}.`;
 }
 /** one turn: the stranger says `said` to person `pid` now (sim.t); conv: the conversation's id (its first turn's time) */
-export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: string, o: { conv: number; history?: Turn[]; prose?: string | null; /** D-375: why this person came up to the stranger (approach.ts opening) */ approached?: string } = { conv: sim.t }): Promise<TurnOut> {
+export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: string, o: { conv: number; history?: Turn[]; prose?: string | null; /** D-375: why this person came up to the stranger (approach.ts opening) */ approached?: string; /** D-459: the model's reading of the words as a deed (deeds/extract.ts), when it made one */ deed?: OpenDeed | null } = { conv: sim.t }): Promise<TurnOut> {
   const t = sim.t, day = Math.floor(t / 24), hour = t - day * 24;
   // D-370 (B234): the trust gate. A house that distrusts the stranger (a guest who left without thanks, a claim found false,
   // wages left unpaid by him, rumours) will not talk: the person turns away without a word from the model; a wary one is curt
@@ -66,6 +71,11 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   // petition, a gift), read before the loose paraphrases (which take "may I stay the night" for "wait here"); the simulation
   // decides it now and the person is told its verdict, as with a deed
   const strict = requestOf(said), sb = strict ? null : sim.strangerAsk(pid, said);
+  // D-459 (UD-32): anything else the words do or propose (help with the roof, a hunt tomorrow, a blow, a lie about a neighbour):
+  // an open deed, judged by the world and this person's mind before they answer (o.deed: the model's reading, when it made one)
+  const dj = strict || sb ? null : sim.strangerDeed(pid, said, o.deed);
+  const dSense = dj ? VERBS[dj.deed.verb] : null;
+  const dNote = !dj || !dSense ? '' : dSense.consent ? (dj.out.ok ? `You are willing: ${dj.out.why}.` : `You will not: ${dj.out.why}.`) : dj.out.ok ? `(What he does: ${dSense.gloss}${dj.out.why && dj.out.why !== dSense.gloss ? `; you feel: ${dj.out.why}` : ''}.)` : `(${dj.out.why}.)`;
   const request = strict ?? (sb ? null : looseRequest(said));
   const pre = request ? sim.talk.consider(pid, t, request) : null;
   const sbNote = sb && sb.act.a !== 'hear' && sb.act.a !== 'claim' ? (sb.verdict.ok ? `You may say yes: ${sb.verdict.why}.` : `You cannot do this: ${sb.verdict.why}.`) : '';
@@ -74,13 +84,14 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   const near = talkOpts.memory === 'near';
   const first = !(sim.talk.rows.get(pid) ?? []).some(r => r.conv === o.conv); const top = sim.talk.recall(pid, t, 1)[0];
   const remind = !near && top && (first || /\b(remember|before|met|heard|know me|say of|spoken)\b/i.test(said)) ? `What you remember of the stranger: ${top}` : '';
-  const note = [pre ? verdictNote(pre) : '', sbNote, remind].filter(Boolean).join(' ') || undefined;
+  const note = [pre ? verdictNote(pre) : '', sbNote, dNote, remind].filter(Boolean).join(' ') || undefined;
   // (run 2: the simulation's "no" after the stranger's words was often not kept; said first, plainly, it goes with the memory)
   // D-370: the house's own dealings with the stranger and how much of their tongue he has (the sim's state, not the model's)
   const sFacts = E0 && E0.hasStranger ? E0.stranger().factsFor(hh0, day) : [];
+  const dBrief = sim.deeds.briefOf(pid, day);
   const came = o.approached ? `(You came up to the stranger yourself: you ${o.approached.replace(/^comes up to you and /, '').replace(/\basks\b/, 'want to ask')}. Say so in your own words.)` : '';
   const wary = trust0 < 0.4 ? '(You do not trust this stranger: be short with him and give nothing away.)' : '';
-  const before = [came, wary, sFacts.length ? `(${sFacts.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join('. ')}.)` : '', near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
+  const before = [came, wary, dBrief.length ? `(${dBrief.join(' ')})` : '', sFacts.length ? `(${sFacts.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join('. ')}.)` : '', near && memory.length ? `(You remember: ${memory.join(' ')} If the stranger asks about it, tell him what you remember, in your own words.)` : '',
     near && pre && !pre.ok && !pre.noop ? `(Whatever he asks, you must say no: ${pre.reason}.)` : ''].filter(Boolean).join('\n') || undefined;
   // (after run 3: asked about earlier meetings, the simulation picks the ONE remembered fact and the model only says it in
   // its own words; otherwise the one life fact most relevant to the words goes next to them: ground.ts)
@@ -114,6 +125,10 @@ export async function talkTurn(mind: Mind, sim: PeopleSim, pid: number, said: st
   // turn is also a minute of the person's tongue in the stranger's ear (simplified by their patience)
   let sandbox: TurnOut['sandbox'];
   if (sb) { const no = answer.ok && (tag?.kind === 'refuse' || wordsRefuse(answer.text)); sandbox = { ...sb, done: sb.verdict.ok && (!no || sb.act.a === 'claim' || sb.act.a === 'hear') ? sim.strangerDo(sb.act) : null }; }
+  // D-459: the deed is done when the world allows it and, where it needs the person's will, they did not say no in their words;
+  // a deed done TO them (a blow, an insult, a theft) is done by the stranger whatever they answer
+  let deedOut: TurnOut['deed'];
+  if (dj) { const no = answer.ok && (tag?.kind === 'refuse' || wordsRefuse(answer.text)); const done = dj.out.ok && (!dSense!.consent || !no) ? sim.strangerDeedDo(dj.deed) : null; deedOut = { ...dj, done }; }
   sim.strangerHeard(pid, 1);
-  return { pid, said, answer, knows, memory, request, tag, ask, decision, saidNo, retold, fact, judged, ...(sandbox ? { sandbox } : {}) };
+  return { pid, said, answer, knows, memory, request, tag, ask, decision, saidNo, retold, fact, judged, ...(sandbox ? { sandbox } : {}), ...(deedOut ? { deed: deedOut } : {}) };
 }
