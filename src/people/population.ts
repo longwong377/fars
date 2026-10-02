@@ -1992,6 +1992,9 @@ const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n 
   // men both draw on them, and Elamite men on the Iranian names too (the three names read as Elamite were 12.8 % each of them)
   const unknown = m.get('m:unknown') ?? []; m.get('m:Iranian')!.push(...unknown);
   m.set('m:Elamite', [...(m.get('m:Elamite') ?? []), ...m.get('m:Iranian')!]);
+  // D-457: the same for women: Elamite women draw on their own few names (composed on Elamite theonyms, C) and the Iranian
+  // women's names, as the men do; they drew on every woman's name of every origin before (T-E2 1.65 %)
+  m.set('f:Elamite', [...(m.get('f:Elamite') ?? []), ...(m.get('f:Iranian') ?? [])]);
   return m; })();
 /** every attested name of each sex (not the notable, not the uncertain readings), of whatever origin */
 const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex]) NAME_ALL[n.sex].push(n.name);
