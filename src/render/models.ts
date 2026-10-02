@@ -14,6 +14,7 @@
 import * as THREE from 'three/webgpu';
 import { texture, uv, normalMap, normalView } from 'three/tsl';
 import { surfaceMaterial } from './materials';
+import { BASE } from '../core/base';
 
 export interface ModelLevel { name: string; tris: number; verts: number; attrs: string[]; map: { w: number; h: number; format: string; bytes: number } | null; ao_mean: number }
 export interface ModelEntry { file: string; inHash: string; outHash: string; bytes: number; gpuBytes: number; textures: 'png' | 'ktx2'; lods: ModelLevel[]; tier: string; src: string; blender: string; device: string }
@@ -26,7 +27,7 @@ export const modelStats = () => ({ ...LOAD, count: MODELS.size });
 
 /** load every model of the manifest (browser). `renderer` is needed only for KTX2 maps (the transcoder picks the GPU's
  *  format). Never throws: a missing manifest or a failed model leaves the procedural stand-ins in place (and says so). */
-export async function loadModels(base = '/', renderer?: THREE.WebGPURenderer): Promise<ReturnType<typeof modelStats>> {
+export async function loadModels(base = BASE, renderer?: THREE.WebGPURenderer): Promise<ReturnType<typeof modelStats>> {
   const t0 = performance.now();
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('models') === '0') { LOAD.off = true; return modelStats(); }
   let man: ModelManifest;

@@ -44,8 +44,11 @@ async function reload() { lost++; K = null; try { await load(lost > 1 ? 'wasm' :
 self.onmessage = async (e: MessageEvent) => {
   const m = e.data;
   if (m.type === 'load') {
-    const t0 = performance.now(); const want = m.device ?? ((navigator as any).gpu ? 'webgpu' : 'wasm');
-    try { await load(want, m.dtype ?? (want === 'webgpu' ? 'fp32' : 'q8')); }
+    // D-376 (UD-31): the lighter weights: fp16 (163 MB) on a WebGPU adapter with shader-f16, else the q8 model (92 MB) on WASM;
+    // fp32 (326 MB) only when asked for (?neuraldtype=fp32 through the client)
+    const ad = (navigator as any).gpu ? await (navigator as any).gpu.requestAdapter().catch(() => null) : null, f16 = !!ad?.features?.has?.('shader-f16');
+    const t0 = performance.now(); const want = m.device ?? (ad && f16 ? 'webgpu' : 'wasm');
+    try { await load(want, m.dtype ?? (want === 'webgpu' ? 'fp16' : 'q8')); }
     catch (err) { if (want === 'wasm') { post({ type: 'error', error: String(err) }); return; } try { await load('wasm', 'q8'); } catch (e2) { post({ type: 'error', error: String(e2) }); return; } }
     // warm the kernels (the first call compiles them)
     await K!.raw('ha.', new Float32Array(256), 1);

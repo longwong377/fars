@@ -2,7 +2,9 @@ import { defineConfig } from 'vite';
 import worldCache from './tools/bake_world/vite_plugin.mjs'; // D-354: the baked world's hashes and its self-bake
 // COOP/COEP so SharedArrayBuffer is available to simulation workers (brief §6 Delivery); mirrored in public/_headers.
 const headers = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' };
-export default defineConfig({
+// s15/ship (D-368): the production build lives under /fars/ on GitHub Pages (PARSA_BASE overrides; the dev server stays at /)
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? (process.env.PARSA_BASE ?? '/fars/') : '/',
   plugins: [worldCache()],
   cacheDir: process.env.VITE_CACHE_DIR ?? '.vite', // per tree (session 14): worktrees share node_modules by junction, and a shared optimize cache gave 504 Outdated Optimize Dep across trees
   // agents' worktrees (.claude/worktrees) are never watched: their edits reloaded the lead's pages mid-measurement (session 9);
@@ -12,4 +14,4 @@ export default defineConfig({
   build: { target: 'es2022', chunkSizeWarningLimit: 4000 },
   worker: { format: 'es' },
   optimizeDeps: { exclude: ['@dimforge/rapier3d-compat'] },
-});
+}));

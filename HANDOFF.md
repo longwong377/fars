@@ -1,3 +1,6 @@
+# HANDOFF — end of session 15 (2026-10-02): read sessions/s15.md "START HERE" first.
+# LIVE: https://longwong377.github.io/fars/ (Actions deploys every push to s14-int). Goal UD-31: walkable < 1 min (now 162 s cold), talking on.
+
 # HANDOFF — end of session 14 (2026-10-01): read sessions/s14.md first (broken first, merged, unmerged branches, next steps).
 # The week plan is ROADMAP.md top section; agents follow handoff/agent_template.md "Operating model"; briefs in handoff/briefs/s14/.
 # HARD RULE learned: at most 4 agents at once on this 16 GB box (9 crashed the session and froze the app for hours).

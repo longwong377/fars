@@ -46,6 +46,9 @@ export const REL = {
   bridewealth: { rich: 60, farmer: 10, craft: 12, herder: 8, ration: 5 } as Record<string, number>,
   dowry: { rich: 120, farmer: 20, craft: 25, herder: 15, ration: 10 } as Record<string, number>,
   divorceSilver: 60,
+  /** D-381: what a house cannot pay of a bride-gift, a dowry or the divorce silver it owes, paid over this many days (dowries
+   *  and their balances paid later are common in the Neo-Babylonian agreements: B analogy; the term C) */
+  paidOverDays: 240,
   /** conception: the chance a cycle of a fertile woman of 20-29 with regular intimacy conceives (C, ~0.2 in natural-fertility
    *  populations); by age; much reduced while she nurses a child under one (lactational amenorrhoea) */
   fecund: 0.2, fecundAge: [[18, 0.85], [20, 1], [30, 0.9], [35, 0.7], [40, 0.4], [44, 0.15], [45, 0]] as [number, number][], nursing: 0.12,

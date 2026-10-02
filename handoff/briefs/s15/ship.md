@@ -1,0 +1,42 @@
+# Brief s15/ship (D-368): a public URL, playable in under a minute on a good GPU (UD-31)
+
+Goal as the player meets it: open a URL; within a minute on a good GPU (a modern gaming PC, 100 Mbps) you are standing in the
+world and can walk; everything else streams in while you walk; talking to people works within that minute (the cloud session
+makes talking on by default with small streamed models; you integrate and test it in the browser).
+
+You own: vite.config.ts, index.html, src/main.ts boot sequence (spawn-first ordering; the load agent owns warmUp and
+src/world/cache/**: hook, do not rewrite), src/shell/** (loading screen, settings), new tools/deploy/**, public/_headers.
+Not yours: src/people/converse/**, src/audio/neural/** (cloud), src/world/cache/**, tools/bake_world/** (load agent).
+
+Do: (1) `vite build` clean and served by a static server (no dev server): fix what breaks; the models' paths on a public
+origin (models.ts isLocal) must work; COOP/COEP headers as needed for workers. (2) Spawn first: the boot builds and shows the
+player's surroundings first, the rest streams in by distance while they walk; no full-world wait before the first frame.
+(3) Download budget: what the first minute fetches <= ~150 MB (KTX2/Draco/brotli; split by distance). (4) Measure a cold
+first visit (empty browser profile) and a warm one on the static build, wall time to walkable, on this T4 box; report the
+numbers per phase (download, build, shader compile). (5) tools/deploy: a script that produces the static site and its
+headers for a static host (Hugging Face static Space, Cloudflare Pages or GitHub Pages: check file-size limits against the
+largest asset); do NOT publish anything: the lead asks the user first.
+Done line: cold first visit to walkable <= 60 s on this box with the static build (state the network assumption), warm <= 20 s,
+talking available within the minute (once the cloud work lands), page memory within the load agent's 5 GB.
+Box rules: 2 agents max; every browser job via tools/dev/gpu_slot.mjs, every heavy node job (vite build, vitest) via
+tools/dev/cpu_slot.mjs; one heavy process at a time; never kill what you did not start; never lower a threshold; guards on
+every commit; commit every 30-45 min; at the end merge s14-int, test, commit, `mkwt.mjs --done ship`, report <= 250 words.
+
+**Host decided by the user: GitHub Pages** (repo longwong377/fars is public; URL https://longwong377.github.io/fars/).
+- Base path: the site lives under /fars/: vite `base: '/fars/'` for the production build, and every absolute asset URL in code
+  (fetch('/models/...'), '/world-cache/...', '/generated/...') must go through import.meta.env.BASE_URL.
+- No custom headers on Pages: public/_headers is ignored. If workers need cross-origin isolation (SharedArrayBuffer for
+  threaded wasm/onnx), ship a COOP/COEP service worker (the coi-serviceworker pattern, MIT, in the ledger) or run single-threaded.
+- Pages serves no Git LFS and caps a site at 1 GB, 100 MB a file: the built site (~450 MB, largest 26.5 MB) fits.
+- Deploy by **GitHub Actions** (the user set Pages source = GitHub Actions; this Vagon machine is not permanent, so the build must
+  come from git alone): .github/workflows/pages.yml builds on push to s14-int (node 24, npm ci, the world bake if node-side,
+  vite build with base /fars/; skip guards/lint/tsc in the deploy job, they run in guards.yml) and deploys with
+  actions/upload-pages-artifact + actions/deploy-pages. Every game asset is committed (public/: 1,122 files); the language and
+  voice models load from Hugging Face on a public origin. Write and dry-run it (act-free: a local npm ci + build in a clean
+  clone); the lead pushes the branch that triggers it after telling the user.
+
+**The user's rule for the URL: act as if this desktop does not exist; it all has to be cloud.** The deployed site is built only
+by GitHub Actions from the repo (a clean checkout, npm ci); nothing produced on this machine is uploaded or required (no local
+world-cache, no local models, no junctions, no T: paths). The world cache is generated inside the Actions build (node) or
+computed live by the page; models come from Hugging Face's CDN. Prove it from a fresh `git clone` into an empty folder, never
+from a working tree here.

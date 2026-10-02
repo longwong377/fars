@@ -38,6 +38,13 @@ import { Wardrobes } from './wardrobe/world';
 import { Relations, type PlayerAct, type ActResult } from './relations/world';
 import { RelPlans } from './relations/plans';
 import type { Intent as EconIntent } from './economy/api';
+import { HOME_LANG } from './exchanges';
+import type { SAct, Verdict } from './speech/stranger';
+import { chronicleLine } from './speech/stranger';
+import { strangerAsk } from './speech/verbs';
+import { reactions as sightReactions, type Near, type Sight } from './converse/sight';
+import { unitsFor, LEX_LABEL } from '../audio/voices';
+import { packJSON, unpackJSON } from './savepack';
 /** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
  *  scribe's, the Aramaic secretary's, the pupil's; grid position and heading (deg cw from grid N) */
 export function deskSeat(who: 'elamite' | 'aramaic' | 'pupil' | 'visitor'): { at: P2; heading: number } {
@@ -148,7 +155,9 @@ export class PeopleSim {
   /** D-341: the economy is stepped day by day by the living world, with the people's talk entered into it (living/world.ts) */
   economy(): Economy { this.living.advance(Math.floor(this.t / 24)); return this.econCore(); }
   private econCore(): Economy {
-    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true }); this.econSnap = null; }
+    if (!this.econ) { this.econ = this.econSnap ? Economy.restore(this.econSnap, householdsOf(this.pop), { life: this.econLife(), trust: true }) : new Economy(this.seed, householdsOf(this.pop), { interventions: this.econIv, life: this.econLife(), trust: true }); this.econSnap = null;
+      // (D-370: the stranger hears each house in the tongue of its head: their origin's home language)
+      this.econ.stranger().opts.langOf = (id: string) => { const H = this.pop.households[Number(id.slice(2))]; const o = H ? this.pop.persons[H.members[0]]?.origin : undefined; return (o && HOME_LANG[o]) || 'Elamite'; }; }
     return this.econ;
   }
   /** D-347: the economy's illness and death reach the people (sickbed, funeral, the person gone); not with the economy off */
@@ -162,8 +171,8 @@ export class PeopleSim {
   private econSave() {
     const day = Math.floor(this.t / 24), life = this.pop.econLifeSave(day - 7);
     const asks = this.asksWorld.save(), ax = asks ? { asks } : {};
-    if (this.econ) return { econ: this.econ.snapshot(day - 2), living: this.living.save(day), ...(life ? { life } : {}), ...ax };
-    if (this.econSnap) return { econ: this.econSnap, living: this.living.save(day), ...(life ? { life } : {}), ...ax };
+    if (this.econ) return { econ: this.econ.snapshot(day - 2), living: { z: packJSON(this.living.save(day)) }, ...(life ? { life } : {}), ...ax };
+    if (this.econSnap) return { econ: this.econSnap, living: { z: packJSON(this.living.save(day)) }, ...(life ? { life } : {}), ...ax };
     const iv = this.econIv.filter(i => i.payload?.src !== 'talk'); return iv.length ? { econ: { seed: this.seed, intents: iv } } : {};
   }
   /** the economy stepped (by the living world, the talk entered) to at least day d: the day plans read a day's decisions (EconPlans, D-340) */
@@ -201,6 +210,9 @@ export class PeopleSim {
     this.living = new LivingWorld(this.pop, seed, () => this.econCore(), () => this.talk.events); this.talk.living = this.living;
     this.asksWorld = new AsksWorld(this.pop, seed, () => this.econCore(), opts.asks === true); this.living.onDay = d => this.asksWorld.day(d);
     this.econPlans = new EconPlans(this.pop, d => this.econTo(d)); if (opts.economy !== false) this.pop.econ = this.econPlans;
+    this.pop.ledger = d => this.econ && this.econ.day >= d - 1 ? this.econ : null; // (D-371: the life record's real debts and dealings)
+    this.living.shuns = (g, a, into) => { if (!this.asksWorld.on) return false; const R = this.asksWorld.rumours; if (R.stanceOf(g, a).includes('avoid')) return true; const q = this.econ?.hh.get(a)?.q; return into && !!q && R.stanceOf(g, 'q:' + q).includes('flee'); }; // (flee: keyed by the quarter of the sickness) // (D-375)
+    this.pop.asksNow = (hh, d) => this.asksWorld.on && this.econ && this.econ.day >= d - 1 ? { asks: this.asksWorld.openAsksOf(hh), rumours: this.asksWorld.rumours.knownBy(hh, d) } : null; // (D-375)
     // D-347: laundry days and baths in the plans (clear of the living world's errands), and the wardrobes that read them
     this.washPlans = new WashPlans(this.pop, seed, (pid, d) => this.living.windows(pid, d)); if (opts.washing !== false) this.pop.wash = this.washPlans;
     this.wardrobes = new Wardrobes(this.pop, seed, (pid, d) => this.pop.plan(pid, d));
@@ -352,6 +364,71 @@ export class PeopleSim {
     const r = this.talk.act(pid, t, intent);
     for (const q of [pid, r.other ?? -1]) { const ai = q >= 0 ? this.pop.persons[q]?.agent ?? -1 : -1; if (ai < 0) continue; const a = this.agents[ai]; this.planCache.delete(ai); if (r.ok && !r.noop) this.begin(a, this.decide(a), false); }
     return r;
+  }
+  /** D-370 (UD-25): the step of the sandbox the stranger's words to person `pid` propose (work, guest-right, a group, a claim,
+   *  a petition, a gift; speech/verbs.ts), with the simulation's verdict on it; nothing is done until strangerDo */
+  strangerAsk(pid: number, said: string, named: string | null = null): { act: SAct; verdict: Verdict } | null {
+    const day = Math.floor(this.t / 24), E = this.econTo(day), P = this.pop.persons[pid]; if (!P) return null;
+    const h = this.pop.home(pid, day), hh = E.hh.has(`h:${h}`) ? `h:${h}` : null;
+    const act = strangerAsk(said, { day, hh, q: hh ? E.hh.get(hh)!.q : null, job: P.job, named });
+    if (!act) return null; if (act.a === 'hear') { act.lang = E.stranger().langOf(hh ?? `h:${h}`);
+      // (D-370: "your word for bread": the person teaches the word of their tongue, when the lexicon has one)
+      const want = /\bword for (?:a |an |the )?([a-z]+)/i.exec(said)?.[1]?.toLowerCase(), L = LEX_LABEL[act.lang];
+      if (want && L) { const w = unitsFor(L).words.find(x => new RegExp(`\\b${want}`, 'i').test(x.gloss ?? '')); if (w) act.word = w.id; } }
+    const verdict = E.stranger().judge(act);
+    // D-391 (the playtest bot: 9-11 of 11 asks for work refused): a house with no work for a stranger says where there is some,
+    // a house of the same quarter that needs a hand (its head named), else the king's works that take men on (C)
+    if (act.a === 'seek_work' && !verdict.ok && verdict.why === 'they need no hands now') verdict.why += `; ${this.workElsewhere(E, act.hh, day)}`;
+    return { act, verdict };
+  }
+  /** where a stranger might find work today, in words (the house asked is left out) */
+  private workElsewhere(E: Economy, not: string, day: number): string {
+    const S = E.stranger(), q = E.hh.get(not)?.q;
+    for (const H of E.hh.values()) { if (H.id === not || H.q !== q || !S.hireCheck(H.id, day).ok) continue;
+      const h = this.pop.households[Number(H.id.slice(2))], head = h?.members.find(m => this.pop.persons[m].sex === 'm' && this.pop.ageOn(m, day) >= 16 && this.pop.present(m, day));
+      if (head !== undefined) return `the house of ${this.pop.nameOf(head)?.replace(/^\*/, '')} in this quarter needs a hand (${S.wantsHand(H.id, day)})`; }
+    return S.joinCheck({ a: 'join', day, kind: 'gang' }, day).ok ? 'the king’s works take on men: the overseers of the gangs put a stranger on the ration list' : 'no one in the quarter needs a hand now';
+  }
+  /** D-385 (UD-21/UD-25): how the people within ~12 m react to the stranger on sight (converse/sight.ts: greet, nod, stare, bow,
+   *  avoid, ignore); a village child who stares may tag along a while (the talk's own 'follow' deed, laid once a day) */
+  strangerSeen(near: readonly Near[], at: { e: number; n: number }): Sight[] {
+    const out = sightReactions(this, near, at, this.t), day = Math.floor(this.t / 24);
+    for (const s of out) if (s.follow && !this.talk.events.some(e => e.pid === s.pid && e.day === day && e.kind === 'follow')) s.follow = this.talkAct(s.pid, { kind: 'follow' }).ok;
+    return out;
+  }
+  /** D-370: the economy if it is built (no side effect): the render side's hooks read the stranger's state from it */
+  ledgerNow(): Economy | null { return this.econ; }
+  /** D-370 (UD-25 (10), addressing groups): the stranger speaks to several people at once (everyone within earshot). A claim,
+   *  a lesson or news is heard by every house present; an ask (work, guest-right, a sale, a house) is answered by the first of
+   *  them whose house says yes (their trust and state decide, as one by one); nothing is done until strangerDo */
+  strangerAskGroup(pids: readonly number[], said: string): { pid: number; act: SAct; verdict: Verdict }[] {
+    const seen = new Set<number>(), out: { pid: number; act: SAct; verdict: Verdict }[] = [];
+    for (const pid of pids) { const h = this.pop.home(pid, Math.floor(this.t / 24)); if (seen.has(h)) continue; seen.add(h); const r = this.strangerAsk(pid, said); if (!r) continue;
+      if (r.act.a === 'claim' || r.act.a === 'hear' || r.act.a === 'petition') { out.push({ pid, ...r }); continue; }
+      if (r.verdict.ok) return [{ pid, ...r }]; if (!out.length) out.push({ pid, ...r }); }
+    return out;
+  }
+  /** D-370: the step done (recorded in the economy, saved, replayed) */
+  strangerDo(act: SAct): Verdict { return this.econTo(act.day).stranger().do(act); }
+  /** D-370: the hours the stranger spent today beside the people they work with (attendance, reported once a day at 2 h) */
+  private strWork = { day: -1, h: 0, done: false };
+  /** D-370 (the game's hook, a few times a game minute): the people within ~30 m of the player and the game hours since the last
+   *  call. Between 6 and 18 h, time spent near a member of the employer's house (or of the household joined; for a gang, any
+   *  builder or porter; with a caravan, any traveller) counts as work; two hours make the day attended (C) */
+  strangerNear(pids: readonly number[], dtH: number) {
+    const day = Math.floor(this.t / 24), h = this.t - day * 24; if (h < 6 || h > 18 || !this.econ) return;
+    const S = this.econ.stranger(), J = S.job, G = S.group; if (!J && !G) return;
+    if (this.strWork.day !== day) this.strWork = { day, h: 0, done: false }; if (this.strWork.done) return;
+    const want = J ? J.employer : G?.kind === 'household' ? G.id : null;
+    const at = pids.some(p => { const P = this.pop.persons[p]; if (!P) return false; if (want) return `h:${this.pop.home(p, day)}` === want;
+      return G?.kind === 'gang' ? P.job === 'builder' || P.job === 'porter' : P.job === 'traveller'; });
+    if (!at) return; this.strWork.h += dtH;
+    if (this.strWork.h >= 2) { this.strWork.done = true; S.do({ a: 'attend', day }); }
+  }
+  /** D-370: a talk is heard: its minutes go to the stranger's ear for the person's tongue, simplified by their patience */
+  strangerHeard(pid: number, minutes: number) {
+    const day = Math.floor(this.t / 24), E = this.econTo(day), S = E.stranger(), hh = `h:${this.pop.home(pid, day)}`, l = S.langOf(hh);
+    const r = S.register(l, day, E.trust ? E.trust.trustOf(hh, 'player', day) : 0.5); S.do({ a: 'hear', day, lang: l, hours: minutes / 60, simple: r.simplify, spoke: true }); return r;
   }
   /** D-315: the person said no in their own words (the simulation would have let them): kept as a refusal of their own */
   talkDecline(pid: number, intent: Intent, why: string, t = this.t) { return this.talk.decline(pid, t, intent, why); }
@@ -594,12 +671,20 @@ export class PeopleSim {
     this.t = tHours; this.evT = tHours < this.evT ? tHours - 24 : Math.max(this.evT, tHours - 24); this.events$();
     for (const a of this.agents) { if (a.carry === 'sack' && a.sackTo) this.stock[a.sackTo] += 1; a.carry = null; a.sackTo = undefined; a.relieved = true; this.begin(a, this.decide(a), true); } // (a camp sack in hand is set down at its place: S6 r5)
   }
+  private strChron = -1;
   private events$() {
     const day = Math.floor(this.t / 24), hour = this.t - day * 24;
     const C = this.cal.ctx(day);
     // the calendar's events (rations, deliveries, couriers, offerings, construction, life …) enter the chronicle as time passes
     if (this.evT < 0) this.evT = this.t - 1e-9;
     if (this.t > this.evT) { for (const e of this.cal.eventsBetween(this.evT, this.t)) this.log(e.kind, e.text, e.place, e.id, e.t, e.tier); this.evT = this.t; }
+    // D-370: the stranger's own deeds enter the chronicle as the economy records them (out of world: the translation layer's journal)
+    if (this.econ?.hasStranger) { const ev = this.econ.events; if (this.strChron < 0) this.strChron = ev.length;
+      for (; this.strChron < ev.length; this.strChron++) { const v = ev[this.strChron]; if (!v || (v.actor !== 'player' && v.other !== 'player')) continue;
+        const other = v.actor === 'player' ? v.other : v.actor, hid = other && /^h:\d+$/.test(other) ? Number(other.slice(2)) : -1, H = hid >= 0 ? this.pop.households[hid] : null;
+        const head = H ? H.members.find(m => this.pop.persons[m].sex === 'm' && this.pop.ageOn(m, day) >= 16) ?? H.members[0] : undefined;
+        const line = chronicleLine(v.kind, head !== undefined ? `the house of ${this.pop.nameOf(head)?.replace(/^\*/, '') ?? 'a man of the quarter'}` : 'the court');
+        if (line) this.log('stranger', line, H?.home ?? '', `econ:${v.id}`, Math.min(this.t, v.day * 24 + 12), 'C'); } }
     // the camp's barley sent up from the storehouse to the depot in the morning when the depot is low (lives.json
     // camp_women_needed.camp_grain_up; C)
     if (day !== this.lastGrainDay && hour >= 6.5) { this.lastGrainDay = day;
@@ -739,7 +824,7 @@ export class PeopleSim {
   save() {
     const talk = this.talk.save(); // D-315: only when the stranger has done something (no event: the save is as before)
     const wardrobe = this.wardrobes.ledger.length ? this.wardrobes.save() : undefined; // D-347: the wardrobes' ledger (only when something was made, bought, mended...)
-    return { ...(talk ? { talk } : {}), ...(this.bonds.acted ? { bonds: this.bonds.save() } : {}), ...this.econSave(), ...(wardrobe ? { wardrobe } : {}), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
+    return { ...(talk ? { talk } : {}), ...(this.bonds.acted ? { bonds: this.bonds.save() } : {}), ...this.econSave(), ...(wardrobe ? { wardrobe } : {}), t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: { z: packJSON(this.pop.relationsSnapshot()) }, // (D-378: the talk state and the relations deflated)
       events: this.events.slice(-SAVED_EVENTS).map(e => ({ ...e })), // the chronicle (translation layer) survives a reload (H workstream: T-H3r)
       // the route cache (5 m buckets: which route a trip takes depends on it) and the player's watching hours: without them a
       // loaded world went its own way within minutes (T-H3r)
@@ -756,8 +841,8 @@ export class PeopleSim {
     // with the talk state; an older save re-derives (D-341)
     this.econ = null; this.econSnap = s.econ?.v === 2 ? s.econ : null;
     this.econIv = s.econ && s.econ.v !== 2 ? (s.econ.intents as EconIntent[]).filter(i => s.living || i.payload?.src !== 'talk') : [];
-    this.asksWorld.load(s.asks); if (s.living) this.living.load(s.living); else this.living.reset(); this.econPlans.reset(); this.wardrobes.load(s.wardrobe);
-    if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
+    this.asksWorld.load(s.asks); if (s.living) this.living.load(s.living.z ? unpackJSON(s.living.z) : s.living); else this.living.reset(); this.econPlans.reset(); this.wardrobes.load(s.wardrobe);
+    if (s.relations) this.pop.relationsRestore(s.relations.z ? unpackJSON(s.relations.z) : s.relations); this.memory.restore(s.memory); this.evT = s.t; this.talk.load(s.talk); this.planCache.clear();
     if (s.bonds || this.bonds.acted) { this.bonds.load(s.bonds); this.bondPlans.reset(); } // (without the player's acts the relations are the seed's: nothing to redo)
     this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }

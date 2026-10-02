@@ -29,7 +29,7 @@ describe('talk that changes the world (T-E13)', () => {
     S = mk(); const t0 = performance.now(); const r = S.living.report(D0, D1); const ms = performance.now() - t0;
     const E = S.economy(); const base = new Economy(1, householdsOf(S.pop)); for (let d = 0; d <= E.day; d++) base.step(d);
     const kinds = (e: Economy, re: RegExp) => e.events.filter(v => re.test(v.kind)).length;
-    const talkEv = E.events.filter(v => v.kind === 'given' || v.kind === 'news' || v.kind === 'visit' || v.kind === 'lent_by_stranger' || v.kind === 'hired_by_stranger').length;
+    const talkEv = E.events.filter(v => v.kind === 'given' || v.kind === 'news' || v.kind === 'visit' || v.kind === 'lent_by_stranger' || v.kind === 'hired_by_stranger' || v.kind === 'lent_by_neighbour' || v.kind === 'hired_by_neighbour').length;
     Object.assign(OUT, { week: [D0, D1], days: S.living.day + 1, ms: Math.round(ms), msPerDay: +(ms / (S.living.day + 1)).toFixed(1), stats: S.living.stats, noPlayer: r,
       economy: { talkEvents: talkEv, withTalk: { events: E.events.length, hunger: kinds(E, /^hunger$/), illness: kinds(E, /^illness$/), death: kinds(E, /^death$/), theft: kinds(E, /theft|steal/) },
         withoutTalk: { events: base.events.length, hunger: kinds(base, /^hunger$/), illness: kinds(base, /^illness$/), death: kinds(base, /^death$/), theft: kinds(base, /theft|steal/) } } });

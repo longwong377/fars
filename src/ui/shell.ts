@@ -111,6 +111,7 @@ export class Shell {
       sel('Player mode', s.playerMode, [['observer', 'Observer'], ['visitor', 'Visitor (sealed travel authorisation)']], v => { s.playerMode = v as any; }),
       sel('Court calendar', s.courtCalendar, [['seasonal', 'The court comes and goes: in residence in spring (reconstructed, C; default)'], ['evidence', 'Evidence-strict: the king absent all year']], v => { s.courtCalendar = v as any; }),
       check('Translation layer (subtitles, inscriptions, map, chronicle)', s.translation, v => { s.translation = v; }),
+      check('Talk with the people (T to type, hold V to speak; downloads ~0.5 GB of small models once, after the world appears; reload to apply)', s.talk, v => { s.talk = v; }),
       check('Now view: the ruin as it stands today (from memory of the site, tier C; key N)', s.nowView, v => { s.nowView = v; }),
       el('h2', {}, 'Display'),
       sel('Quality', s.quality, [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['ultra', 'Ultra (full target)']], v => { s.quality = v as any; }),

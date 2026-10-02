@@ -8,6 +8,7 @@
 import * as THREE from 'three/webgpu';
 import { uniform, uniformArray, textureLoad, ivec2, int, vec2, vec3, vec4, float, mix, max, min, clamp, floor, smoothstep, step, dot, abs, Fn, Loop } from 'three/tsl';
 import { OutMeta, OUT_TEX_W, OUT_TEXELS, OUT_BIAS, OUT_VALID, A_S, A_U, TINT_MAX, afternoonWeight } from './outdoor';
+import { BASE } from '../../core/base';
 
 let META: OutMeta | null = null, TEX: THREE.DataTexture | null = null, ROWS: any = null, DATA: Uint8Array | null = null;
 /** the afternoon weight of the sun channel (0 morning … 1 afternoon), set per frame (setOutdoorSun) */
@@ -20,7 +21,7 @@ export const outdoorMeta = () => META;
 export const outdoorData = () => DATA;
 const NROW = 6;
 
-export async function loadOutdoor(base = '/'): Promise<OutMeta | null> {
+export async function loadOutdoor(base = BASE): Promise<OutMeta | null> {
   try {
     const [mj, bin] = await Promise.all([fetch(`${base}lightmaps/outdoor.json`), fetch(`${base}lightmaps/outdoor.lmz`)]);
     if (!mj.ok || !bin.ok) throw new Error(`HTTP ${mj.status}/${bin.status}`);
@@ -56,6 +57,10 @@ export function outdoorSummary() { return META ? `outdoor light (C, D-357): ${ME
 export function outdoorAmbient(p: any, n: any, S: any, U: any, hemi: any, directSky = false, off: any = n): { E: any; w: any } {
   if (!META || !TEX || !ROWS || !ENABLED || !META.regions.length) return { E: hemi, w: float(0) };
   const T = TEX, V = ROWS, NR = META.regions.length, TW = OUT_TEX_W;
+  // one Fn round the whole lookup (session 15): the accumulators below assign, and TSL drops assigns made outside a Fn's
+  // stack; the post pipeline (pipeline.ts: the composite's skylight, the reflections' sky) built this outside any Fn, so the
+  // field never reached those passes ("No stack defined for assign operation", 40 errors a load)
+  const body = Fn((): any => {
   const load = (idx: any) => { const y = floor(idx.div(TW)); return textureLoad(T, ivec2(int(idx.sub(y.mul(TW))), int(y))); };
   // the region holding p (first match; the regions do not overlap where it matters: the town's sites lie apart)
   const find = Fn(([pp]: [any]) => { const vi = float(0).toVar(), found = float(0).toVar();
@@ -115,5 +120,8 @@ export function outdoorAmbient(p: any, n: any, S: any, U: any, hemi: any, direct
   const w = inside.mul(wy).mul(we).mul(smoothstep(OUT_VALID[0], OUT_VALID[1], wsum)).mul(outdoorOn);
   const tint = vec3(tr, max(float(1).sub(tr.mul(0.2126)).sub(tb.mul(0.0722)).div(0.7152), 0), tb);
   const E = directSky ? S.mul(eS).mul(float(1).sub(fb)) : S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
-  return { E: mix(hemi, E, w), w };
+  return (vec4 as any)(mix(hemi, E, w), w);
+  });
+  const r = (body as any)();
+  return { E: r.xyz, w: r.w };
 }
