@@ -20,4 +20,4 @@ Hall of a Hundred Columns, then down to the eye at the spawn), letterboxed, any 
 (Cormorant Garamond, Alegreya Sans, OFL); index.html (3 font preloads); src/main.ts (hook: introDeps + two hook entries,
 C4's file); tests/intro.test.ts (new); tests/language.test.ts (one registry line); tools/dev/shell_probe.*, skyline_gen.ts.
 
-**Tests.** intro 9/9; language lint (lint:lang) + intro 35/35 after merging cloud-s17-int (21:45); guards 25/25; tsc: no errors in touched files. No s17-renders branch yet (21:45): the intro is still unseen.
+**Tests.** intro 11/11 (paths, control flow, and "never delays walkable": the title, the only way in, comes after ready; Enter starts the walk before the opening); lint:lang + intro 37/37; guards 25/25; tsc clean in touched files. No s17-renders yet: the intro is unseen.
