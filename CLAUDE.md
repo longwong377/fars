@@ -136,6 +136,9 @@ people at distance) are the first targets. Judge whole views at the player's len
   USER_DIRECTIONS.md reworded or dropped, no threshold in gates/thresholds.json loosened or removed. Never bypass the hook.
 - **This Vagon box is not permanent:** nothing may live only on it. Agents push their own branch on every commit; the lead
   pushes int after every merge; deploys build on GitHub Actions from git alone (Pages, https://longwong377.github.io/fars/).
+- **The merge budget:** after every merge into int, `node tools/dev/gpu_slot.mjs budget -- node tools/dev/budget.mjs --tree ../fars-wt/int`
+  (load to ready, first frames, page memory, frame time vs gates/budgets.json). A merge that makes any of them worse does not
+  go in, however good it looks alone; a pass with --accept tightens the baseline (it never loosens: tests/budgets_ratchet).
 - Briefs are a short paragraph: goal as the player meets it, files owned, done line, the box rules. No templates.
 - Records: one DECISIONS line per package (the lead gives each agent a D number); no reserved ranges, evidence paperwork or
   per-change verification. Status messages only when something changed.
