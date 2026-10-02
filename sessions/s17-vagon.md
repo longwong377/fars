@@ -4,6 +4,41 @@ The user (2026-10-02, after the cloud's report): "I want to do a vagon only sess
 work". No cloud sessions run alongside. The depth is done and merged; this session is the look, the bodies, the performances
 and seeing everything in the browser.
 
+## The goal and how it is judged (UD-33)
+The user: "i want every inch of the world to look AAA/real", and the rule agreed with them: **nothing on screen may read as
+procedural.** Every surface and object is a real scan or a hand-modelled asset made from references. Code-made content stays
+only where AAA games use it too: physically based sky, light, atmosphere and water; the placement and variation of real
+assets; simulation (wind, cloth, crowds). Placement stays computed from the evidence (site spec, DEM, the town's layout).
+
+Why it still looks bad although the scans were downloaded and the Blender wave built hundreds of models: the assets were proven
+by node tests and probe pages, almost never judged in whole views at the player's eye (at least 7 BLOCKERS rows: "not seen in
+the game's renderer"; nothing judged since s14); the scans only add grain under the old procedural tint and layout
+(src/render/scans.ts), so surfaces keep their CG colour (blind reviews of the Terrace's materials, the interiors and the land:
+1-3/5, every frame "reads as CG", after the scans); the light was never tuned against the references; and what fills the
+screen (town walls, the ground, people at 2-30 m) is the weakest part.
+
+The rules for the session:
+1. **Render before anything else.** One load: the coverage points over every walkable area (tools/dev/coverage_points.ts,
+   tests/e2e/coverage.spec.ts) plus the moments, at the player's lens, morning / late afternoon / overcast, each frame beside its
+   reference photo (references/). That set is the scoreboard for the whole session.
+2. **Rank by share of the screen.** What reads as CG over the most pixels goes first (expected: light and tone; town walls and
+   roofs; ground, paths and rocks; people; then the Terrace's stone). Nothing small while something big still reads as CG.
+3. **The procedural kill list** (code-made content that is seen; ~50 source files): materials and noise shading
+   (src/render/materials.ts, scans.ts, blockface.ts, mx_noise_cpu.ts, monuments.ts); the town's surfaces, houses and kit
+   (src/world/settlement/*, furnish*.ts, roadLitter.ts); ground, flora, trees and the plain (src/world/groundFlora.ts,
+   trees/*, plain/*, src/terrain/terrainMesh.ts's shading); the Terrace's carved and modelled stone (src/arch/reliefs.ts,
+   relief_figures.ts, sculpt.ts, column_models.ts, decor.ts, meshes.ts); people's bodies, outfits and props
+   (src/people/body.ts, outfits.ts, props.ts, peopleModels.ts) and the animals; small life and wildlife. Each is replaced by
+   CC0 scans (Poly Haven, ambientCG and the like; every asset in ASSET_LEDGER.md) or by Blender assets from tools/blender/
+   modelled from the references, the scan's colour and pattern leading (flip the scans.ts rule).
+4. **Seen or not done.** A replacement counts only when it is right in a whole-view render at the player's lens; no new
+   assets until the existing ones are judged in place (most of the Blender wave never has been).
+5. **Every ~45 min the render train** re-renders the scoreboard with every merge in; judge by eye against the AAA bar (RDR2,
+   Ghost of Tsushima, AC Origins) and the references. The merge budget still applies: memory is already 0.83 GB over, so
+   heavier real assets need compression (KTX2, Draco, LODs, impostors) as they land.
+6. **Done** = every coverage view reads as a photograph to a fresh reviewer, not one showcase view. Leave sessions/s17.md
+   with the before/after frames and what still breaks first.
+
 ## State at hand-off (s14-int 36adf02e, deployed to https://longwong377.github.io/fars/)
 - Merged and live: everything of the cloud (D-455..D-464: open deeds and minds, goals, law, physical deeds, market
   stallholders, names, brides, talk-eval fixes) on top of Vagon's s16-candidate, the bake (D-392) and the boot fix (D-463).
