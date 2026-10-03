@@ -46,7 +46,8 @@ export class Comet {
     const uv: any = attribute('tuv', 'vec2'), u = uv.x, v = uv.y;
     // the tail: the dust's yellow-white near the head, the gas's blue farther out; fading along it and across it (C)
     const col = vec3(1.0, 0.94, 0.8).mul(float(1).sub(u)).add(vec3(0.62, 0.78, 1.0).mul(u));
-    m.colorNode = vec4(col.mul(pow(float(1).sub(u), 1.6)).mul(exp(v.mul(v).mul(-3.5))).mul(this.bright), 1);
+    // (soft across: a Gaussian whose edge is the strip's; along: rising out of the coma, then a long fade: a diffuse fan, not a streak)
+    m.colorNode = vec4(col.mul(pow(float(1).sub(u), 2.2)).mul(float(1).sub(exp(u.mul(-18)))).mul(exp(v.mul(v).mul(-2.2))).mul(this.bright), 1);
     this.tail = new THREE.Mesh(g, m); this.tail.frustumCulled = false;
     const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3));
     const pm = new THREE.PointsNodeMaterial({ transparent: false, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false, sizeAttenuation: false });
@@ -66,9 +67,9 @@ export class Comet {
     this.group.position.copy(camPos);
     const { H, T } = cometDirs(jdUT, sunDir, c), R = this.radius, L = (c.tail * Math.PI) / 180;
     const fl = Math.pow(10, -0.4 * (c.mag - 1));
-    this.comaBright.value = Math.min(2.2, fl) * show; this.bright.value = Math.min(0.5, 0.18 * fl) * show;
+    this.comaBright.value = Math.min(2.2, fl) * show; this.bright.value = Math.min(0.16, 0.06 * fl) * show;
     const q = new THREE.Vector3(), t = new THREE.Vector3(), side = new THREE.Vector3();
-    for (let k = 0; k <= SEG; k++) { const a = (k / SEG) * L, w = (0.25 + 2.2 * (k / SEG)) * Math.PI / 180;
+    for (let k = 0; k <= SEG; k++) { const a = (k / SEG) * L, w = (0.4 + 4.6 * Math.pow(k / SEG, 0.8)) * Math.PI / 180;
       q.copy(H).multiplyScalar(Math.cos(a)).addScaledVector(T, Math.sin(a)).normalize(); // along the great circle away from the sun
       t.copy(T).multiplyScalar(Math.cos(a)).addScaledVector(H, -Math.sin(a)); side.crossVectors(q, t).normalize();
       for (const [j, sgn] of [[0, -1], [1, 1]] as const) { const o = (k * 2 + j) * 3, v = q.clone().addScaledVector(side, sgn * w).normalize().multiplyScalar(R);
