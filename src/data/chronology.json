@@ -353,7 +353,7 @@
   },
   {
    "id": "north_official_complex",
-   "name": "~1 ha building N of the \"Frataraka\" complex",
+   "name": "the official hall north of the Terrace (~1 ha)",
    "builder": "Achaemenid",
    "state": "present",
    "present": true,
