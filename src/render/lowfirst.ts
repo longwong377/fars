@@ -35,6 +35,40 @@ export async function loadScanTexture(base: string, url: string, loader: THREE.T
   UPG.push(async () => { const full = await bitmap(url); (t.image as ImageBitmap)?.close?.(); t.image = full; t.needsUpdate = true; });
   return t;
 }
+/** D-740 (s18 C9): KTX2 low first. A KTX2 scan (UASTC, BC7 on the GPU) listed in textures/ktx_low.json has an ETC1S twin
+ *  `<map>.low.ktx2` at the same size with the same mips (a quarter to a fifth of the bytes; Basis transcodes both to the same
+ *  GPU format, BC7 on the T4): a first visit loads the twin and, after the world is up, the UASTC file's mips replace the twin's
+ *  in the same GPU texture (three re-uploads a non-render-target texture in place). Before, the KTX2 scans bypassed low first
+ *  (+34 MB before ready, s17 D-580), so the rest stayed jpgs at 4x the GPU memory. A cached full file loads at once; ?fullscans
+ *  or a twin that does not match (size, mips, format) keeps the full file. */
+let lowKtxP: Promise<Set<string> | null> | null = null;
+function lowKtxList(base: string): Promise<Set<string> | null> {
+  if (typeof location === 'undefined' || new URLSearchParams(location.search).has('fullscans')) return Promise.resolve(null);
+  return (lowKtxP ??= fetch(`${base}textures/ktx_low.json`).then(r => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null))
+    .then(j => (j?.maps ? new Set(Object.keys(j.maps)) : null)).catch(() => null));
+}
+/** the twin to load first for a KTX2 url (`${base}textures/<key>.ktx2`), or null */
+export async function lowKtxOf(base: string, url: string): Promise<string | null> {
+  const pre = `${base}textures/`; if (!url.startsWith(pre) || !url.endsWith('.ktx2') || url.endsWith('.low.ktx2')) return null;
+  const L = await lowKtxList(base), k = url.slice(pre.length, -5); if (!L?.has(k) || await cached(url)) return null;
+  return url.replace(/\.ktx2$/, '.low.ktx2');
+}
+/** wrap a KTX2Loader's loadAsync with low first (loaders.ts: the page's one transcoder) */
+export function lowFirstKTX2(loader: any, base: string) {
+  if (loader.__lowFirst) return loader; loader.__lowFirst = true;
+  const load = loader.loadAsync.bind(loader);
+  loader.loadAsync = async (url: string, onProgress?: any) => {
+    const low = await lowKtxOf(base, url).catch(() => null); if (!low) return load(url, onProgress);
+    let t: any; try { t = await load(low, onProgress); } catch { return load(url, onProgress); }
+    lowFirstStats.low++;
+    UPG.push(async () => { const f: any = await load(url);
+      const same = f.image?.width === t.image?.width && f.image?.height === t.image?.height && (f.image?.depth ?? 1) === (t.image?.depth ?? 1) && f.format === t.format && f.mipmaps?.length === t.mipmaps?.length;
+      if (!same) { f.dispose?.(); throw new Error(`${url}: the low twin does not match (kept)`); }
+      t.mipmaps = f.mipmaps; t.image = f.image; if (t.userData) t.userData.released = false; t.needsUpdate = true; lowFirstStats.full++; });
+    return t;
+  };
+  return loader;
+}
 /** a later upgrade of something built from low copies (the ground layers' array) */
 export function addUpgrade(f: () => Promise<void>) { UPG.push(f); }
 /** swap in the full scans, one at a time, each after an idle moment (call once the world is up) */
