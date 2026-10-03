@@ -1,12 +1,18 @@
 # s18 C3 report: the river and the plain (D-670, branch cloud-s18-c3-plain)
 
 ## Broken, placeholder or unseen (first)
+- **Final cloud frames (9f951f0e, SwiftShader WebGL2; c3_frames/final_*):** no black screen; the ground before the Terrace now in
+  broad green and straw patches to 700 m, but the plain still reads open and sparse at noon; the river smoother (grey-blue with
+  streaks, no blotches); the drift line and shallow bed not visible at that range. Tree and bush impostors untouched (the
+  review's "blobby": they start at 225 m at 96 px a view; form and light need a T4 owner).
 - **Unseen on the T4:** the terrain shader's field work (vigour, headlands, irrigation basins, drill rows, soil moisture,
   wandering bunds, earthwork relief, holdings at 0.3-2 km, steppe patches and Artemisia stands), the calmer river surface,
   the wind on crops/reeds/trees, the river works and shore models. Judged only in crude SwiftShader WebGL2 frames
   (handoff/s18/c3_frames) and by node tests; check compile time and frame cost on the T4.
-- **The plain's static triangles sit at 1.99 M of 2 M** (plain.test): the merged Naqsh relief figures added ~0.5 M; I bought
-  the margin back with coarser far river sections. The next addition to the plain group trips it.
+- **The plain's static triangles 1.88 M of 2 M** (plain.test; was 2.009 M after the merged Naqsh reliefs): far orchard plots keep
+  one direction of tree lines, the static field-tree set to 6.5 km, coarser river sections. The ground cover is denser
+  (review: "sparse weed sprites") at nearer LODs, inside its 0.35 M frame budget.
+- **terrace_foot 'a third of the foot keeps herb'** fails from a72a9a3e (C2, D-675: the lower town to the Terrace's foot; bisected).
 - **Failing, not mine (fail on head without my last changes):** plain_d223 field share 0.397 < 0.4 (the town's growth: irrigated
   census px -4.1 k, town site and trodden +3.6 k; passes at the pre-C3 base), plain_d223 radial worn path (townGround),
   land_work planCheck and timber carts.
@@ -49,4 +55,5 @@
   riding the river's level, 127 shadufs, field ditches; the fishermen's shore (traps, skiffs, nets; 'fish'/'mend' spots);
   qanats; millet; holdings vary the far plain and the range before the Terrace is patchy; plain.fieldWork(e, n, r, day) for
   C1 (each plot's village, crop, stage and workers' spots; herders on the range); planted trees for C10 (trees/planted.ts).
-
+- **Resume (lead 3, after the blind review):** the water's shallows (bed silt/gravel, riffle tint, drift line); field edges
+  feathered into a shared weedy band and plot shades +-12 %; denser near cover; triangle margin to 1.88 M.
