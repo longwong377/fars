@@ -42,6 +42,8 @@ const VERB_TO: Partial<Record<string, string>> = { visit: 'a visit from', help: 
 /** the doer's side of a deed in a day plan's words (D-461) */
 const VERB_ING: Partial<Record<string, string>> = { visit: 'visiting', help: 'helping', hire: 'hiring', court: 'courting', teach: 'learning from', learn: 'teaching', heal: 'tending', intercede: 'pleading with', reconcile: 'making peace with', share_food: 'eating with', introduce: 'introducing', come_with: 'going with', repair: 'mending for', build: 'building with', carry: 'carrying for', guard: 'keeping watch for', join: 'together with', meet: 'meeting', fetch: 'fetching for', pray: 'praying with', offer: 'offering with' };
 const cl = (x: number, lo = -1, hi = 1) => x < lo ? lo : x > hi ? hi : x;
+/** D-720: the days a day's laid stretches are kept after it (in the running world; a save keeps from the day before its own) */
+const LAYS_KEPT = 60;
 /** D-720: the deeds a save keeps ten days of (wrongs, courting, peace made): what a person would still tell of (the save's 600 KB) */
 const KEPT = new Set(['attack', 'steal', 'break', 'curse', 'accuse', 'threaten', 'insult', 'push', 'court', 'reconcile']);
 const CHILD_HARM = new Set(['attack', 'push', 'steal', 'threaten', 'curse', 'break']);
@@ -377,7 +379,9 @@ export class DeedWorld {
     yield;
     // (D-461: the days gone are dropped from the overlay: the plans read no further back than yesterday; promises settled a
     // month ago too)
-    for (const k of this.lays.keys()) if (Number(k.slice(k.indexOf(':') + 1)) < day - 2) this.lays.delete(k);
+    // (D-720, C7's determinism: a day's laid stretches stay readable for LAYS_KEPT days after it (the day as it was lived: planCheck,
+    // the talk's yesterday, a day jump read back); dropped two days on, a day read after the world passed it lost its visits)
+    for (const k of this.lays.keys()) if (Number(k.slice(k.indexOf(':') + 1)) < day - LAYS_KEPT) this.lays.delete(k);
     if (day % 7 === 0) { const keep = this.promises.filter(p => !(p.kept || p.broken) || p.due > day - 30); this.promises.splice(0, this.promises.length, ...keep); }
     // what the law moves people to do (D-460) and the undertakings' own steps (D-462), then the minds' own (initiative.ts:
     // feelings and needs acted on, goals pursued and formed, deeds talked of)
@@ -426,7 +430,7 @@ export class DeedWorld {
       // D-720: the deeds of the last ten days and the count of all (a save loaded began the ids again at 0: the memories' ids then
       // read other deeds, the town's talk of deeds (initiative.ts, from its last id seen) stopped until the count caught up, and
       // what a person had lately done or suffered was gone); kept lean: the outcome's effects and witnesses are spent
-      next: this.next, recent }; }
+      next: this.next, recent, ev: this.evSeen }; }
   /** the deeds kept over a save (D-720): ten days of the weighty ones (wrongs, courting, peace, care), as tuples
    *  [id, t×10, verb, actor, target, third, ok, act] (the save's 600 KB: ~2,900 deeds a day would be ~85 KB a day whole) */
   private recentSave(d0: number) { const out: unknown[][] = [];
