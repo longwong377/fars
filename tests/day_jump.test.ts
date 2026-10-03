@@ -35,6 +35,7 @@ describe('the day change (D-650)', () => {
   }, 900_000);
   it('the day turned with tomorrow made ready each step is the day turned on demand', () => {
     const D0 = 60;
+    simAt(1, D0, 22, opts); // (the cache made first, as above: right after a source change the first call jumps, the second loads)
     const A = simAt(1, D0, 22, opts), B = simAt(1, D0, 22, opts); B.aheadMs = 3;
     let readyBy = -1;
     for (let i = 0; i < 6 * 60; i++) { // three hours of 30-second steps through midnight
