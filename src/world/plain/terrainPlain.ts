@@ -187,6 +187,7 @@ export class PlainGround {
       const major = max(length(dpx), length(dpy)).max(1e-4), minor = abs(dpx.x.mul(dpy.y).sub(dpx.y.mul(dpy.x))).div(major);
       const fw = length(fwidth(p)); // metres per pixel (|dx| + |dy|: the fine features' fade, as before)
       const near = float(1).sub(smoothstep(3.0, 10.0, fw));
+      const bl = (lam: number) => float(1).sub(smoothstep(0.15, 0.35, fw.div(lam))); // an octave of period lam m: gone where it spans under ~3-7 px
       // a plot keeps its own state while it spans pixels across the view (minor < ~6-20 m); along the view a pixel mixes
       // ~major/40 m plots, whose mean keeps ~sqrt(40/major) of one plot's contrast (C)
       const plotKeep = float(1).sub(smoothstep(6.0, 20.0, minor)).mul(clamp(sqrt(float(40).div(major)), 0, 1));
@@ -288,15 +289,27 @@ export class PlainGround {
       const soil0 = attribute('color', 'vec3').mul(float(1).add(mx_noise_float(positionWorld.mul(0.25)).mul(0.08)));
       const soil = soil0.mul(det(dustC)); // D-302: the loam with the dust scan's grain (wet: the mud's)
       const hgt = S.x.mul(1.5);
-      const young = lin(0.30, 0.42, 0.15), mature = lin(0.22, 0.33, 0.13), ripe = lin(0.72, 0.60, 0.33), stubble = lin(0.66, 0.60, 0.46);
-      const green = mix(young, mature, smoothstep(0.2, 0.8, hgt)).mul(det(G.green));
-      const straw = mix(stubble, ripe, smoothstep(0.15, 0.4, hgt)).mul(det(G.straw));
+      // D-670 (the "flat saturated-green rectangles"): the greens a little greyer and olive (young cereal under a dry sky, C); each
+      // plot its own hue (bluer barley, yellower wheat and emmer, sowing date and soil: C); the stand's vigour uneven inside a
+      // plot (thin and yellowish where the soil is poorer or the water did not reach, lush in the low corners: +-20 % cover over
+      // ~8-25 m, C), each octave band-limited by the pixel
+      const young = lin(0.34, 0.42, 0.2), mature = lin(0.26, 0.34, 0.17), ripe = lin(0.72, 0.60, 0.33), stubble = lin(0.66, 0.60, 0.46);
+      const hue = unitN(hash2N(ph, uint(11), 44)).mul(plotKeep);
+      const vig = mx_noise_float(vec3(p.x.mul(0.042), 3.1, p.y.mul(0.042))).mul(bl(24)).add(mx_noise_float(vec3(p.x.mul(0.13), 9.2, p.y.mul(0.13))).mul(0.5).mul(bl(8)));
+      const green = mix(young, mature, smoothstep(0.2, 0.8, hgt)).mul(det(G.green)).mul(mix(vec3(0.93, 1.0, 1.07), vec3(1.06, 1.0, 0.86), hue))
+        .mul(mix(vec3(1.13, 1.02, 0.8), vec3(0.94, 1.0, 1.0), smoothstep(-0.7, 0.5, vig)));
+      const straw = mix(stubble, ripe, smoothstep(0.15, 0.4, hgt)).mul(det(G.straw)).mul(float(1).add(vig.mul(0.07))).mul(mix(vec3(1), vec3(0.9, 0.98, 0.82), smoothstep(0.3, 0.9, vig).mul(smoothstep(0.3, 0.6, hgt))));
       // vineyard rows (ROW.vineyard): leaves in stripes 2.5 m apart along the strip; tilled furrows 0.6 m apart (near only)
       const isVine = step(ROW.vineyard - 0.5, k).mul(step(k, ROW.vineyard + 0.5)).mul(near);
       const across = uv.x.mul(sw);
       const vineRow = smoothstep(0.55, 0.85, abs(fract(across.div(2.5)).sub(0.5)).mul(2).oneMinus().add(0.3));
       // D-302: a crop's or the stubble's cover edge follows its scan's height (plants stand in tufts and gaps, not a flat tint)
-      const gCov = hblend(mix(S.y, S.y.mul(vineRow).mul(1.6).min(1), isVine), G.green.h), sCov = hblend(S.z, G.straw.h).min(float(1).sub(gCov));
+      // D-670: the crop in drill rows 0.6 m apart along the strip (the seeder plough of Mesopotamia and Iran, C), open while the
+      // stand is young and closing as it grows; fades by the pixel
+      const along = uv.y.mul(sl), rowShape = abs(fract(across.div(0.6)).sub(0.5)).mul(2);
+      const rowOpen = float(1).sub(smoothstep(0.25, 0.8, hgt)).mul(float(1).sub(smoothstep(0.04, 0.15, fw))).mul(float(1).sub(isVine));
+      const vigC = clamp(float(0.84).add(vig.mul(0.2)), 0.45, 1.15).mul(mix(float(1), smoothstep(0.05, 0.6, rowShape).mul(0.7).add(0.3), rowOpen));
+      const gCov = hblend(mix(S.y.mul(vigC).min(1), S.y.mul(vineRow).mul(1.6).min(1), isVine), G.green.h), sCov = hblend(S.z, G.straw.h).min(float(1).sub(gCov));
       const furrow = sin(across.div(0.6).mul(Math.PI * 2)).mul(0.5).add(0.5);
       const tilled = S.w.mul(near);
       const bare = float(1).sub(gCov).sub(sCov).max(0);
@@ -309,8 +322,28 @@ export class PlainGround {
       let plotAlb: any = soilT.mul(bare).add(green.mul(gCov).mul(speck)).add(straw.mul(sCov).mul(speck)).mul(tint);
       let plotH: any = mix(G.dust.h, G.tilled.h, S.w).mul(bare).add(G.green.h.mul(gCov)).add(G.straw.h.mul(sCov)).mul(0.012);
       // bunds on plot edges (0.35 m) and a track along district edges (2.5 m wide), near only, in fields
-      const bund = float(1).sub(smoothstep(0.3, 0.6, edge)).mul(near).mul(mask); // earth bunds between plots, ~1 m wide (C)
-      const track = float(1).sub(smoothstep(1.0, 1.6, dEdge)).mul(near).mul(mask);
+      // D-670 (the "dark dotted seam" across the near plain): the bund and the district track were cut at a fixed width in metres,
+      // so past ~100 m, under a pixel wide, they aliased into dotted lines; now each is drawn by its pixel coverage (a line under
+      // a pixel fades to its share of the pixel instead of breaking into dots)
+      const fwEd = fwidth(edge).max(0.01), fwDd = fwidth(dEdge).max(0.01);
+      const bund = float(1).sub(smoothstep(float(0.45).sub(fwEd), float(0.45).add(fwEd), edge)).mul(clamp(float(0.45).div(fwEd), 0, 1)).mul(near).mul(mask); // earth bunds between plots, ~1 m wide (C)
+      // D-670: the plot's margin, a headland of weeds and grass the plough turns on, 1-3 m wide and ragged (its width varies
+      // along the edge), drawn by its pixel coverage at any distance (a fine line far off, not cut at a radius); and in the
+      // irrigated plots the basins (kart) the water is let into, low ridges every ~11-15 m across and ~18-28 m along the strip,
+      // each basin its own wetness (just watered: darker), C
+      const edgeW = edge.add(mx_noise_float(vec3(p.x.mul(0.11), 4.2, p.y.mul(0.11))).mul(0.9));
+      const mw = unitN(hash2N(ph, uint(13), 45)).mul(1.8).add(1.0), fwE = fwidth(edgeW).max(0.02);
+      const margin = float(1).sub(smoothstep(mw.sub(fwE), mw.add(fwE), edgeW)).mul(mask).mul(float(1).sub(wOrch));
+      const bw = vec2(float(11).add(unitN(hash2N(ph, uint(17), 46)).mul(4)), float(18).add(unitN(hash2N(ph, uint(19), 47)).mul(10)));
+      const bq = vec2(across, along).div(bw), bi = floor(bq), bd = abs(fract(bq).sub(0.5)).mul(2).oneMinus().mul(bw.mul(0.5)); // metres to the nearest ridge
+      const fwB = fwidth(bq).mul(bw).max(0.02), ridge = max(float(1).sub(smoothstep(float(0.25).sub(fwB.x), float(0.25).add(fwB.x), bd.x)), float(1).sub(smoothstep(float(0.25).sub(fwB.y), float(0.25).add(fwB.y), bd.y)));
+      const basinOn = wI.mul(mask).mul(step(k, ROW.fallow - 0.5)).mul(plotKeep);
+      const wetB = step(0.72, unitN(hash2N(cellUN(bi.x.add(ph.toFloat().mod(977))), cellUN(bi.y), 48))).mul(basinOn).mul(SEASON.green.min(1));
+      const track = float(1).sub(smoothstep(float(1.3).sub(fwDd), float(1.3).add(fwDd), dEdge)).mul(clamp(float(1.3).div(fwDd), 0, 1)).mul(near).mul(mask);
+      plotAlb = mix(plotAlb, plotAlb.mul(vec3(0.8, 0.84, 0.86)), wetB.mul(0.8));
+      const weedC = mix(mix(lin(...SEASON_PALETTE.straw).mul(det(G.straw)), lin(...SEASON_PALETTE.green).mul(det(G.green)), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001))), soil, 0.3);
+      plotAlb = mix(plotAlb, weedC.mul(float(1).add(vig.mul(0.08))), margin.mul(0.75));
+      plotAlb = mix(plotAlb, mix(soil.mul(1.04), weedC, 0.35), ridge.mul(basinOn).mul(0.7));
       plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2).mul(det(G.green)), 0.45), bund.mul(0.85));
       plotAlb = mix(plotAlb, soil0.mul(det(G.packed)).mul(1.15).add(vec3(0.02, 0.018, 0.012)), track.mul(0.9));
       plotH = mix(plotH, G.packed.h.mul(0.01), track.mul(0.9));
@@ -347,7 +380,6 @@ export class PlainGround {
       // boundary: the herbs hold on in the less-trodden patches (wear ±60 % over 10-35 m), the bare earth varies in tone
       // (dry dust lighter, damp, dung- and ash-stained ground darker: ±10 % over ~4 m, ±6 % over ~1.2 m, darker warm
       // patches over ~8 m), each octave fading to its mean where its period spans under ~3-7 px (C)
-      const bl = (lam: number) => float(1).sub(smoothstep(0.15, 0.35, fw.div(lam)));
       const wearN = mx_noise_float(vec3(p.x.mul(0.03), 2.7, p.y.mul(0.03))).add(mx_noise_float(vec3(p.x.mul(0.09), 5.1, p.y.mul(0.09))).mul(0.5).mul(bl(11)));
       const trEff = clamp(trample.mul(float(1).add(wearN.mul(0.6))), 0, 1);
       const packed = soil0.mul(det(mix(G.packed.c, G.mud.c, wetG))).mul(1.12).add(vec3(0.015, 0.012, 0.008)); // D-302: the trodden-earth scan

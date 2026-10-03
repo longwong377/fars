@@ -14,7 +14,7 @@ import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
 import { TownWalk, siteMoves, openCode } from '../src/world/settlement/walk';
 import { ROOM, toLocal, type Site } from '../src/world/settlement/site';
 import { PopGeo, routeAt, type Spot, type Route } from '../src/people/popgeo';
-import { PopView, MIN_PACE, MAX_PACE, CHILD_H, HAND_SNAP, handReach, PAIR_FOLLOW, PAIR_GAP } from '../src/people/popview';
+import { PopView, MIN_PACE, MAX_PACE, CHILD_H, HAND_SNAP, handReach, PAIR_FOLLOW, PAIR_GAP, SPREAD_R } from '../src/people/popview';
 import { buildCanals } from '../src/world/plain/canals';
 import { placeVillages, villageCompounds } from '../src/world/plain/villages';
 import { loadTerrain, loadRiversFile } from './plainLib';
@@ -120,7 +120,7 @@ describe('population view: the plans in the built world (D-143)', () => {
           if (g > Math.max(...Object.values(PAIR_GAP)) + 0.05) bad.push(`p${s.pid} paired with p${seg.with} at ${seg.place}: ${g.toFixed(2)} m from the partner`); continue; }
         if (s.mode === 1 && seg.where !== 'road' && !o.moving) { stays++; const sp = geo.spot(s.pid, seg.place, seg.act, d, h, planIndoors(seg, P.cal.ctx(d).wx, sunTimes(d), h) /* D-244: the plan's roof */), aside = Math.hypot(s.sepE - sp.e, s.sepN - sp.n);
           if (!s.what.includes('leaves')) { if (Math.hypot(s.sepE - o.e, s.sepN - o.n) > 0.01) bad.push(`p${s.pid} at ${seg.place}: drawn ${Math.hypot(s.sepE - o.e, s.sepN - o.n).toFixed(2)} m off its place`);
-            if (aside > 5.1) bad.push(`p${s.pid} at ${seg.place}: ${aside.toFixed(2)} m from its spot`); } }
+            if (aside > (s.spot?.inside ? SPREAD_R.inside : SPREAD_R.out) + 0.1) bad.push(`p${s.pid} at ${seg.place}: ${aside.toFixed(2)} m from its spot`); } }
         if (s.mode === 2 && s.route && seg.where === 'road') { walks++; const r: Route = s.route; let best = Infinity; const q = { e: 0, n: 0, heading: 0 };
           // (D-215: a small child walking hand in hand is at its carer's side, within HAND_SNAP of its own route)
           for (let k = 0; k <= 200; k++) { routeAt(r, r.len * k / 200, q); best = Math.min(best, Math.hypot(q.e - o.e, q.n - o.n)); } if (best > r.len / 200 + 0.05 + (o.hand === 2 ? HAND_SNAP + handReach(1.44).gap : 0)) bad.push(`p${s.pid} walking ${best.toFixed(2)} m off its route`);

@@ -9,6 +9,9 @@
 import { Site, ROOM, LANE, type P2 } from './site';
 import { siteReach, cellHasRoom, resetSiteCaches, openCode, BODY_MIN } from './walk';
 
+/** s18 C2 (D-660): the clear width a door through a cut-back corner may keep (m): a narrow door, wider than a body turned
+ *  sideways and the player's capsule (0.56 m; a poor house's door: C) */
+const NARROW_DOOR = 0.6;
 export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: number; left: number } {
   if (s.meta.kind !== 'quarter') return { opened: 0, resited: 0, left: 0 }; // (the walled compounds: every place reached, reach_census.ts)
   const N = s.W * s.H, W = s.W; let opened = 0, resited = 0, left = 0, cut = 0;
@@ -76,6 +79,43 @@ export function ensureAccess(s: Site, min = 0.8): { opened: number; resited: num
             if (!done) resetSiteCaches(s); }
           if (done) break;
           if (!had) s.doors.delete(e); J.forEach((x, q) => { if (!hadJ[q]) s.jambs.delete(x); }); } }
+      resetSiteCaches(s); } }
+  // s18 C2 (D-660, B580) the last two: a house landlocked by its neighbours' courts whose one lane contact is a corner cell,
+  // where the two crossing walls (0.7 m thick) leave a slot of 0.02-0.3 m whatever door is cut. Up to three connected cells
+  // at that corner (a neighbour's or the house's own; never a door's cell, never a plot left under 8 cells) are cut back to
+  // the lane, the door goes through the cut from the house, kept only when the house is then reached and every other plot
+  // keeps every place it had reached, and at least half the house's cells with room for a body are then reached (the cut that reaches most kept) (a cut-back corner, the region's mud-brick lanes: C)
+  if (left) { resetSiteCaches(s); let r = siteReach(s);
+    for (const p of s.plots) { if (!p.door || p.kind === 'garden') continue; const cells = byPlot.get(p.idx); if (!cells || cells.some(k => r[k]) || !cells.some(k => cellHasRoom(s, k, BODY_MIN))) continue;
+      const roomy = cells.filter(k => cellHasRoom(s, k, BODY_MIN)).length, own = new Set(cells), nb4 = (k: number) => { const i = k % W, j = (k / W) | 0, o: number[] = []; for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (s.inb(i + a, j + b)) o.push(s.k(i + a, j + b)); return o; };
+      const isDoorCell = (n: number) => { const q = s.cell[n]; const Q = q >= 0 ? s.plots[q] : null; return !!Q?.door && (Q.door.cell === n || Q.door.out === n); };
+      const open = (n: number) => openCode(s.cell[n]) && r[n];
+      // the corner cells: plot cells (this house's or a neighbour's) next to a reached lane cell and within two cells of the house
+      const near = (n: number) => { const i = n % W, j = (n / W) | 0; return cells.some(k => Math.abs(k % W - i) <= 2 && Math.abs(((k / W) | 0) - j) <= 2); };
+      const cand = new Set<number>(); for (const k of cells) for (const a of nb4(k)) for (const n of [a, ...nb4(a)]) if (s.cell[n] >= 0 && !isDoorCell(n) && near(n) && (byPlot.get(s.cell[n])?.length ?? 0) > 8) cand.add(n);
+      const C = [...cand].sort((a, b) => a - b), sets: number[][] = [];
+      const grow = (set: number[]) => { if (set.length && set.some(n => nb4(n).some(open))) sets.push(set); if (set.length === 3) return; const last = set.length ? set[set.length - 1] : -1;
+        for (const n of C) if (n > last && (!set.length || set.some(m => nb4(m).includes(n)))) grow([...set, n]); };
+      grow([]); sets.sort((a, b) => a.length - b.length);
+      let best: { set: number[]; m: number; n: number; got: number; extra: number[] } | null = null;
+      for (const set of sets) { if (best && set.length > best.set.length && best.got >= roomy) break; const qs = [...new Set(set.map(n => s.cell[n]))], saved = set.map(n => [n, s.cell[n], s.sub[n], s.room[n]] as const);
+        const before = qs.map(q => (byPlot.get(q) ?? []).filter(x => !set.includes(x) && r[x]).length);
+        for (const n of set) { s.cell[n] = LANE; s.sub[n] = 0; s.room[n] = -1; }
+        for (const n of set) for (const m of nb4(n)) { if (!own.has(m) || set.includes(m)) continue;
+          const e = s.edgeBetween(m, n); if (s.noWall.has(e) || inWay(e)) continue; const had = s.doors.has(e); s.doors.add(e); resetSiteCaches(s); let r2 = siteReach(s);
+          const got = cells.filter(k => !set.includes(k) && r2[k]).length;
+          if (r2[m] && got >= 0.5 * roomy && (!best || got > best.got) && s.doorClear(e) >= Math.min(min, NARROW_DOOR)) {
+            // (a neighbour's room the cut left without its way out gets an inner door to a reached place of its own, as above)
+            const extra: number[] = []; for (const q of qs) { if (q === p.idx) continue; const lost = (byPlot.get(q) ?? []).filter(y => !set.includes(y) && r[y] && !r2[y]);
+              for (const k of lost) { if (r2[k]) continue; for (const kk of nb4(k)) { if (s.cell[kk] !== q || !r2[kk]) continue; const e2 = s.edgeBetween(k, kk); if (s.doors.has(e2) || s.noWall.has(e2) || !s.edgeWall(k, kk) || inWay(e2)) continue;
+                s.doors.add(e2); if (s.doorClear(e2) < min) { s.doors.delete(e2); continue; } resetSiteCaches(s); const r3 = siteReach(s); if (!r3[k]) { s.doors.delete(e2); resetSiteCaches(s); continue; } extra.push(e2); r2 = r3; break; } } }
+            if (qs.every((q, x) => (byPlot.get(q) ?? []).filter(y => !set.includes(y) && r2[y]).length >= before[x])) best = { set, m, n, got, extra: [...extra] };
+            for (const e2 of extra) s.doors.delete(e2); }
+          if (!had) s.doors.delete(e); }
+        for (const [n, c0, s0, m0] of saved) { s.cell[n] = c0; s.sub[n] = s0; s.room[n] = m0; } }
+      if (best) { const { set, m, n } = best, qs = [...new Set(set.map(x => s.cell[x]))]; for (const x of set) { s.cell[x] = LANE; s.sub[x] = 0; s.room[x] = -1; }
+        s.doors.add(s.edgeBetween(m, n)); for (const e2 of best.extra) s.doors.add(e2); for (const q of qs) byPlot.set(q, (byPlot.get(q) ?? []).filter(x => !set.includes(x))); p.door = { cell: m, out: n };
+        resetSiteCaches(s); r = siteReach(s); opened++; resited++; left -= cells.length; cut += set.length; }
       resetSiteCaches(s); } }
   resetSiteCaches(s);
   return { opened, resited, left };

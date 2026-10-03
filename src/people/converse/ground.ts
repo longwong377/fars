@@ -10,6 +10,7 @@
 import type { LifeRecord } from './life';
 import { ageWords } from './words';
 import { hearAsPerson } from './hear';
+import { toYou } from '../deeds/lately';
 
 const cut = (s: string, n: number) => { const w = s.split(/\s+/); return w.length <= n ? s : w.slice(0, n).join(' '); };
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -40,7 +41,9 @@ export function groundFact(L: LifeRecord, said: string): string {
     [/\b(family|wife|husband|children|child|son|daughter|mother|father|house|live|home|sick|ill)\b/, () => kin ? `in your house: ${kinOf(L, 3)}${L.year.find(y => /sick|died|born|married/.test(y)) ? `; ${L.year.find(y => /sick|died|born|married/.test(y))}` : ''}` : `you live with your work group; your work: ${job}`],
     [/\b(work|job|paid|pay|hard|labou?r|trade|craft)\b/, () => `your work: ${job}${L.group ? ` (${cut(L.group, 6)})` : ''}; right now: ${now(L)}`],
     [/\b(doing|today|eat|eaten|evening|tonight|morning|now|later|busy)\b/, () => `right now: ${now(L)}${L.today.next ? `; after this: ${cut(L.today.next, 10)}` : ''}`],
-    [/\b(news|happened|harvest|quarrel|lately|quarter|year)\b/, () => [...L.year.slice(0, 1), ...L.quarrels.slice(-1), ...L.today.events.slice(0, 1)].filter(Boolean).map(x => cut(x, 14)).join('; ') || `right now: ${now(L)}`],
+    // (D-720: what was lately done by and to them among the neighbours, before the year's facts and the day's events)
+    [/\b(news|happened|harvest|quarrel|lately|quarter|year|neighbou?rs?)\b/, () => [...(L.lately ?? []).slice(0, 1).map(toYou), ...L.year.slice(0, 1), ...L.quarrels.slice(-1), ...(L.yesterday ?? []).slice(0, 1).map(y => `yesterday: ${y}`), ...L.today.events.slice(0, 1)].filter(Boolean).slice(0, 3).map(x => cut(x, 14)).join('; ') || `right now: ${now(L)}`],
+    [/\byesterday\b/, () => L.yesterday?.length ? `yesterday: ${L.yesterday.slice(0, 2).map(y => cut(y, 10)).join('; ')}` : `yesterday was like today; right now: ${now(L)}`],
     [/\b(terrace|water|well|villages?|where|far|place|river|town)\b/, () => `you live in ${cut(L.home.replace(/ \(a household of.*\)$/, ''), 14)}; right now: ${now(L)}`],
     [/\b(gods?|pray|king|festival|xerxes|offering)\b/, () => `${L.speech.find(x => /^oath/.test(x))?.replace(/^oath: /, 'you swear ') ?? 'you swear by the gods'}; ${kin ? `${kin} of your house` : `your work: ${job}`}`],
   ];

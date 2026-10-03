@@ -9866,3 +9866,52 @@ Cause: tools/deploy/measure.mjs polled page memory with a synchronous `execFileS
   added ~10-15 s to tonight's "first frames seen 58.9 s" (page clock: ready 41.6 s, frame 2 rendered 48.6 s). Now taken at ready.
 - fireOcc's "+2.6 s" is when its promise resolved under a busier main thread; the build awaits it only after the palace,
   long after: it never blocked. Its half-float decode now uses a 64 K table instead of 1.7 M conversions.
+## D-730 (s18, cloud lead): the Pasargadae and Naqsh-e Rustam roads go round Kuh-e Rahmat's spur
+road_pasargadae and road_naqsh_e_rustam (settlement.json) redrawn round Kuh-e Rahmat's north spur: they climbed straight over it (~290 m and ~100 m) and the Pasargadae road drew the bright streak down Rahmat's face (C4's find). Least-cost courses on a 40 m grid (slope penalty, river cells a ford, the town's plots clear): shared out of town and over the Takht-e Rustam ford, then the Pasargadae road up the east bank (a second ford ~2.5 km E). settlement.test green; religion.test (3 tests, slow) left to C7 on the merged head (C).
+
+## D-670 The river meanders, the fields have texture, the plain stands filled to the far views (session 18, cloud C3)
+- The Pulvar and the Kur were ruler-straight: plain.json's courses are OSM lines with ~450 m vertices, and build_terrain.py
+  carved and rivers.ts drew straight reaches between them. tools/plain/meander.ts (run once after build_terrain.py) rounds the
+  course and gives it a reconstructed meander train (C): sine-generated bends (Langbein & Leopold), arc wavelength ~11-19
+  widths, swing 0.2-1.3 rad by reach, a third harmonic for skew, a slow +-110 m belt wander; Pulvar length x1.17, Kur x1.04
+  (the Kur hemmed by its canals). It fills the old straight trench (never above the old floodplain), carves the new course
+  (radius top/2 + 1.42 cells) and rewrites rivers.json with the base course (base_x/y/bank) and the samples it changed
+  (prior). The canals and villages are placed on that base course and prior ground (data.ts baseCourse/priorTerrain), so no
+  village moves (all 37 identical for seed 1; the meanders keep 30 m off every pool seed's canals beyond their heads, 60 m
+  off its villages, 14 m off the roads and cross each road where it did); canal heads are joined to the water in 25 m steps
+  (7 of 37 shortened where a bend reaches them).
+- Banks (rivers.ts BEND): point bars on the inner side of a bend (slope up to 2x gentler, gravel and sand in the shader), cut
+  banks steeper and raised up to 0.7 m, +-15 % slope and 0-0.3 m top along any reach, calm within 70-150 m of every ford; the
+  water's edge follows each side's slope; sections every R/4 (8-20 m) near, R/3 (12-45 m) far (banks 266k -> 192k tris).
+  Reeds in 3-9 m clumps with gaps and their own heights, on the upper slope (knee-deep at the flood), few on bars and cut
+  banks; bank trees stand back of the bars.
+- Fields (terrainPlain.ts): greyer olive greens, a hue per plot, uneven vigour inside a plot, drill rows while young, a ragged
+  1-3 m weedy headland drawn by coverage at any distance, irrigation basins (11-15 x 18-28 m) with ridges and their own
+  wetness (all C). The plot bunds and district tracks drawn by pixel coverage: cut at a width in metres they aliased into the
+  "dark dotted seam" across the near plain.
+- The far plain: field-edge trees (now ~17 a km2 of fields) and a new fallow scrub (almond, tamarisk, pistachio; thinned near
+  the Terrace) within 8 km stand in the static far impostor set (they ended at the 900 m mid ring); the villages' floors,
+  stacks, heaps and folds drawn to 2.2 km; crop guards' reed shelters at irrigated plot edges and herders' wattle pens with
+  their huts on the fallow (the kit's models), to 2.2 km (fieldFill.ts LAND). Census (plain_census, 18 Apr): bare 3.0 % and
+  repeats 0.0 % as in s17; field trees near paths 25 -> 77.
+
+## D-720 Follow thirty: the people answer from their own lives without the model, and the town's deeds and yesterday reach their talk (session 18, cloud C8; UD-07, UD-08, UD-11, UD-21, UD-24, UD-32)
+- Measured (tools/dev/follow30.ts; REVIEWS/follow30.json): thirty people drawn by seed across the town, the villages, the Terrace's
+  staff, the road folk, the court in residence and the camps (seeds 1, 7, 42; day 60 with five days run live; the world as world.ts
+  builds it), each followed through the day, the next day and the day a season on, and asked five things (who, house, work, the
+  year, cares) through talkTurn. Before: 0 of 150 replies from their own life (ui.ts ownLine's three glosses answered everyone
+  whenever the model was not loaded: a first visit for minutes, any card that cannot hold it, the cloud); news "heard of wrong the
+  house of X" (the deeds' rumour kinds had no words); the court's people told they came "with a newly sent work group", lived in
+  "the garrison quarters", with nine unrelated tent-fellows as "kinswoman of the house" and no friend; 18 of 30 with nothing done
+  by or to them that they could tell; no townsfolk deed reached anyone's brief (briefOf carried the stranger's deeds only).
+- Fixed for everyone: converse/ownlines.ts OwnMind plays the person in the SAME turn as the model (the trust gate, the simulation's
+  word on an ask, deeds, the sandbox, memory and gossip are the simulation's): first-person answers from the life record in their
+  manner (temperament, oath, age; a question back, an oath, a proverb once a talk), a refusal said and tagged; ui.ts uses it
+  whenever the model is not loaded. deeds/lately.ts: what each person lately did, had done to them, was talked of in or saw among
+  the townsfolk (the minds' memories), worded from their side and registered into lifeRecord (the Lately line, ground.ts, own
+  lines); life.ts yesterday (their own plan's doings of the day before that today does not repeat). The deeds' save keeps the
+  count of all deeds and ten days of the log (a loaded save began the ids again at 0: memories read other deeds and the town's
+  talk of deeds stopped until the count caught up). Tier C throughout.
+- Not fixed (other owners or by design): the court's retinue servants can spend a whole day at the camp at rest and knucklebones
+  (court.ts: asked of the lead); the minds' deeds touch ~600 people a day of 81,000 (initiative.ts caps feeling-driven deeds at 300
+  a day, D-462's cost): most people have no deed of the townsfolk to tell in a given week; aims.ts "a trade for X" reads oddly.

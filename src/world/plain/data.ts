@@ -5,6 +5,7 @@
 import plainJson from '../../data/plain.json';
 import settlementJson from '../../data/settlement.json';
 import { BASE } from '../../core/base';
+import { curvatureDrop } from '../../terrain/heightfield';
 
 export const PLAIN: any = plainJson;
 export const SETTLEMENT: any = settlementJson;
@@ -48,12 +49,50 @@ export interface RiverProfile {
   /** bank-top level (m asl, true) and the bare-earth floodplain it was derived from */ bank: Float64Array; floodplain: Float64Array;
   channel: { bed_width_m: number; side_slope_h_per_v: number; bank_height_m: number };
   topWidth: number; carveRadius: { far: number; mid: number };
+  /** D-670: the course before the meander train (tools/plain/meander.ts), every 20 m: the canals' off-takes and the villages
+   *  are placed on it as before, so the meanders move no village and no canal (their heads are joined to the water as drawn) */
+  base?: { x: Float64Array; y: Float64Array; bank: Float64Array };
+  /** D-670: the samples the meanders changed (shared by both rivers; priorTerrain) */
+  prior?: PriorSamples;
 }
+/** the river on its pre-meander course (D-670; the river itself where there is none) */
+export const baseCourse = (r: RiverProfile): RiverProfile => r.base ? { ...r, x: r.base.x, y: r.base.y, bank: r.base.bank, floodplain: r.base.bank } : r;
 export interface RiversData { rivers: RiverProfile[]; nrAncientFootAsl: number }
+/** D-670: the heightfield samples tools/plain/meander.ts changed, as build_terrain.py left them (raw u16 per ring) */
+export interface PriorSamples { mid: Map<number, number>; far: Map<number, number> }
+const b64u16 = (s: string) => { const bin = atob(s), u = new Uint16Array(bin.length >> 1); for (let i = 0; i < u.length; i++) u[i] = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); return u; };
+function parsePrior(p: any): PriorSamples | undefined {
+  if (!p) return undefined; const out: any = {};
+  for (const k of ['mid', 'far']) { const d = b64u16(p[k].d), v = b64u16(p[k].v), m = new Map<number, number>(); let i = 0, j = 0;
+    let at = 0; while (j < v.length) { let dl = d[i++]; if (dl === 0) { dl = d[i] * 65536 + d[i + 1]; i += 2; } at += dl; m.set(at, v[j++]); }
+    out[k] = m; }
+  return out as PriorSamples;
+}
+const PRIOR_VIEW = new WeakMap<object, { aslAt(x: number, z: number): number }>();
+/** D-670: the ground as build_terrain.py left it, before the meanders were carved (the canals and the villages are placed
+ *  on it, so the meanders move none of them: the people's homes and the frozen views keep their places); the terrain
+ *  itself where nothing changed. Only aslAt (what canals.ts and villages.ts read). */
+export function priorTerrain(terrain: { aslAt(x: number, z: number): number; meta: any; mid: any; far: any; near: any }, prior: PriorSamples | undefined): { aslAt(x: number, z: number): number } {
+  if (!prior) return terrain; const hit = PRIOR_VIEW.get(terrain); if (hit) return hit;
+  const ringH = (ring: any, m: Map<number, number>, x: number, z: number) => {
+    const { n, cell, half } = ring, gx = (x + half) / cell, gy = (z + half) / cell;
+    const c0 = Math.max(0, Math.min(n - 2, Math.floor(gx))), r0 = Math.max(0, Math.min(n - 2, Math.floor(gy)));
+    const fx = Math.max(0, Math.min(1, gx - c0)), fy = Math.max(0, Math.min(1, gy - r0)), off = ring.meta.asl_min - terrain.meta.court_asl;
+    const at = (r: number, c: number) => { const i = r * n + c, raw = m.get(i); if (raw === undefined) return ring.h[i];
+      const cx = c * cell - half, cz = r * cell - half; return Math.fround(off + raw * ring.meta.step - curvatureDrop(cx, cz)); };
+    return (at(r0, c0) * (1 - fx) + at(r0, c0 + 1) * fx) * (1 - fy) + (at(r0 + 1, c0) * (1 - fx) + at(r0 + 1, c0 + 1) * fx) * fy;
+  };
+  const view = { aslAt(x: number, z: number) {
+    const h = terrain.near.contains(x, z, 8) ? terrain.near.heightAt(x, z) : terrain.mid.contains(x, z, 32) ? ringH(terrain.mid, prior.mid, x, z) : ringH(terrain.far, prior.far, x, z);
+    return h + curvatureDrop(x, z) + terrain.meta.court_asl; } };
+  PRIOR_VIEW.set(terrain, view); return view;
+}
 export function parseRivers(j: any): RiversData {
+  const prior = parsePrior(j.prior);
   const rivers = Object.entries(j.rivers).map(([id, r]: [string, any]) => ({
     id: id as RiverProfile['id'], x: Float64Array.from(r.x), y: Float64Array.from(r.y), bank: Float64Array.from(r.bank), floodplain: Float64Array.from(r.floodplain),
-    channel: r.channel, topWidth: r.top_width_m, carveRadius: r.carve_radius_m }));
+    channel: r.channel, topWidth: r.top_width_m, carveRadius: r.carve_radius_m,
+    base: r.base_x ? { x: Float64Array.from(r.base_x), y: Float64Array.from(r.base_y), bank: Float64Array.from(r.base_bank) } : undefined, prior }));
   return { rivers, nrAncientFootAsl: j.naqsh_e_rustam.ancient_foot_asl };
 }
 export async function loadRivers(fetcher: (p: string) => Promise<any> = async p => (await fetch(BASE + p)).json()): Promise<RiversData> {

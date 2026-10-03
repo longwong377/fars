@@ -317,6 +317,7 @@ export class Birds {
         let flyMorph: THREE.Material | null = null;
         const mk = (key: string, g0: THREE.BufferGeometry, m: THREE.Material, meta: Record<string, unknown>) => {
           const g = g0.clone(), data = new THREE.InstancedInterleavedBuffer(new Float32Array(sp.count * BIRD_STRIDE), BIRD_STRIDE); data.setUsage(THREE.DynamicDrawUsage);
+          packBirdUV(g); // (D-740: the uv in life.zw: one vertex input and one buffer less on every bird pipeline)
           // (D-570: the instance's 12 floats (phase, flap, stand, the bird's three axes) as three vec4s, bA bB bC: WebGPU on the T4
           // allows 16 vertex inputs and the starlings (1,500 instances: their matrices are four more inputs) used 17; birdIn() reads
           // them; tests/vertex_inputs.test.ts keeps every life pipeline at <= 16)
@@ -331,9 +332,9 @@ export class Birds {
           mesh.userData = { tier: sp.tier, src: model ? 'SOUND-R;RECON' : 'SOUND-R', note: `${sp.name}; flight paths procedural (C)`, ...meta }; levels.set(key, { key, mesh, data, n: 0 }); this.group.add(mesh);
         };
         if (model) {
-          const e = model.entry, fly = lifeMaterial(model, { fallback: sp.colour }), stand = lifeMaterial(model, { fallback: sp.colour });
+          const e = model.entry, uvNode = BIRD_UV(), fly = lifeMaterial(model, { fallback: sp.colour, uvNode }), stand = lifeMaterial(model, { fallback: sp.colour, uvNode });
           fly.positionNode = this.flapNode(sp.flapHz, e.sx ?? sp.span * 0.05);
-          if (model.levels.stand0) { const fm = lifeMaterial(model, { fallback: sp.colour }); fm.positionNode = birdFlapNode(this.uTime, sp.flapHz, e.sx ?? sp.span * 0.05, true); flyMorph = fm; }
+          if (model.levels.stand0) { const fm = lifeMaterial(model, { fallback: sp.colour, uvNode }); fm.positionNode = birdFlapNode(this.uTime, sp.flapHz, e.sx ?? sp.span * 0.05, true); flyMorph = fm; }
           for (const [key, g] of Object.entries(model.levels)) mk(key, g, key.startsWith('stand') ? stand : fly, { placeholder: false, model: v, note2: `${e.name}: modelled (tools/blender/life_birds.py; D-332), plumage and proportions from field guides (C)` });
         } else {
           const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: 0.8, side: THREE.DoubleSide });
@@ -546,6 +547,15 @@ export class Jackals {
   }
 }
 
+/** D-740 (s18 C9): a bird model's uv goes in its 'life' attribute's z and w (COLOR_0: x the wing weight, y on the wing; z, w
+ *  unread by the birds' shaders), the 'uv' attribute dropped: one vertex input and one vertex buffer less on every bird
+ *  pipeline (the starlings' flying levels 15 -> 14 of WebGPU's 16 with TRAA's previous matrix; tests/pipeline_limits.test.ts) */
+export function packBirdUV(g: THREE.BufferGeometry) {
+  const U = g.getAttribute('uv'), L = g.getAttribute('life'); if (!U || !L || U.count !== L.count) return;
+  const a = new Float32Array(L.count * 4); for (let k = 0; k < L.count; k++) { a[k * 4] = L.getX(k); a[k * 4 + 1] = L.getY(k); a[k * 4 + 2] = U.getX(k); a[k * 4 + 3] = U.getY(k); }
+  g.setAttribute('life', new THREE.BufferAttribute(a, 4)); g.deleteAttribute('uv');
+}
+export const BIRD_UV = () => attribute('life', 'vec4').zw;
 /** D-570: a bird instance's packed inputs (three vec4s: phase, flap, stand, then the bird's x, y and z axes in the world) */
 export function birdIn() { const a = attribute('bA', 'vec4'), b = attribute('bB', 'vec4'), c = attribute('bC', 'vec4');
   return { phase: a.x, flap: a.y, stand: a.z, Rx: vec3(a.w, b.x, b.y), Ry: vec3(b.z, b.w, c.x), Rz: vec3(c.y, c.z, c.w) }; }
