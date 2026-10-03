@@ -1,10 +1,11 @@
 // The score (D-760; UD-38, UD-39): an original orchestral score, out of world (the user's words add non-diegetic music to
 // the out-of-world layer; the world's own sound and its players lead, src/audio/music.ts). Two uses:
-//  - the main theme under the opening (src/shell/film.ts, src/shell/intro.ts): playTheme();
+//  - the opening: the title film carries the main theme (src/shell/film.ts); the in-engine opening plays "First Light"
+//    (src/shell/intro.ts), which starts the director when it ends (src/ui/shell.ts starts it on visits without an opening);
 //  - in the world, a director that now and then plays one cue fitting the hour, the place and the weather, never one heard
 //    lately, never the same twice running, with long silences between (minutes, not seconds), fading in and out.
-// Every cue streams (an <audio> element: nothing is fetched until it plays; the catalogue is a few KB). Volume: the
-// settings' master x music; the player can turn the score off (scorePreference, a setting of its own, D-760).
+// Every cue streams (Opus in WebM; the opening's cue also in AAC) (an <audio> element: nothing is fetched until it plays; the catalogue is a few KB). Volume: the
+// settings' master x the score's own volume; the player can turn the score off (Settings › Sound › Score, D-760).
 // Built offline by tools/score/build.ts from recorded instruments (tools/score/orchestra.ts); the catalogue is
 // public/audio/score/manifest.json.
 import { sunTimes } from '../people/calendar';
@@ -16,9 +17,13 @@ const PREF = 'parsa.score.v1';
 const listeners = new Set<(p: ScorePreference) => void>();
 export function scorePreference(): ScorePreference { try { return localStorage.getItem(PREF) === 'off' ? 'off' : 'on'; } catch { return 'on'; } }
 export function setScorePreference(p: ScorePreference) { try { localStorage.setItem(PREF, p); } catch { /* storage unavailable */ } for (const f of listeners) f(p); }
+/** the score's own volume (0..1; the settings' "Music in the world" is the people's playing, not this) */
+const VOL = 'parsa.scoreVolume.v1';
+export function scoreVolume(): number { try { const v = parseFloat(localStorage.getItem(VOL) ?? ''); return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.8; } catch { return 0.8; } }
+export function setScoreVolume(v: number) { try { localStorage.setItem(VOL, String(Math.max(0, Math.min(1, v)))); } catch { /* storage unavailable */ } }
 
 // ------------------------------------------------------------------------------------------------------------ catalogue
-export interface CueInfo { title: string; tags: string[]; seconds: number; marks?: Record<string, number>; bytes?: { ogg: number; m4a: number } }
+export interface CueInfo { title: string; tags: string[]; seconds: number; marks?: Record<string, number>; bytes?: { webm?: number; m4a?: number } }
 export interface Catalogue { cues: Record<string, CueInfo> }
 const BASE = `${(import.meta as any).env?.BASE_URL ?? '/'}audio/score/`;
 let catalogue: Promise<Catalogue | null> | null = null;
@@ -26,9 +31,12 @@ export function loadCatalogue(): Promise<Catalogue | null> {
   catalogue ??= fetch(`${BASE}manifest.json`).then(r => (r.ok ? r.json() : null)).catch(() => null);
   return catalogue;
 }
-/** Ogg Opus where the browser plays it, AAC otherwise */
-function ext(): 'ogg' | 'm4a' { try { return new Audio().canPlayType('audio/ogg; codecs=opus') ? 'ogg' : 'm4a'; } catch { return 'ogg'; } }
-const level = () => { const v = loadSettings().volume; return Math.max(0, Math.min(1, v.master * v.music)); };
+/** Opus (WebM) where the browser plays it; else AAC, which only the opening's cue has (a browser with neither hears no score) */
+export function opusOK(): boolean { try { return new Audio().canPlayType('audio/webm; codecs="opus"') !== ''; } catch { return true; } }
+function ext(): 'webm' | 'm4a' { return opusOK() ? 'webm' : 'm4a'; }
+/** what the score sounds at: the master volume x the score's own, nothing when it is off */
+export const scoreLevel = () => scorePreference() === 'off' ? 0 : Math.max(0, Math.min(1, loadSettings().volume.master * scoreVolume()));
+const level = scoreLevel;
 
 // ---------------------------------------------------------------------------------------------------------------- a track
 /** one cue playing: an <audio> element whose volume follows the settings and its own fade */
@@ -41,7 +49,7 @@ export class ScoreTrack {
   }
   private tick() {
     if (this.rate) { this.fade += this.rate * 0.05; if ((this.rate > 0 && this.fade >= this.target) || (this.rate < 0 && this.fade <= this.target)) { this.fade = this.target; this.rate = 0; if (this.fade <= 0) this.stop(); } }
-    this.el.volume = Math.max(0, Math.min(1, this.fade * this.gain * level() * (scorePreference() === 'off' ? 0 : 1)));
+    this.el.volume = Math.max(0, Math.min(1, this.fade * this.gain * level()));
   }
   /** start (fading in over `seconds`; 0: at once) */
   play(seconds = 0, from = 0): Promise<void> {
@@ -56,8 +64,6 @@ export class ScoreTrack {
   stop() { window.clearInterval(this.timer); this.el.pause(); this.el.removeAttribute('src'); try { this.el.load(); } catch { /* */ } this.ended = true; }
 }
 
-/** the main theme, for the opening; preloaded when asked for (the opening's only fetch before the walk) */
-export function themeTrack(): ScoreTrack { return new ScoreTrack('main_theme', 1, 'auto'); }
 
 // ------------------------------------------------------------------------------------------------------------ choosing
 export interface ScoreContext { hour: number; rise: number; set: number; place: 'terrace' | 'town' | 'plain' | 'road'; rain: boolean }
@@ -104,7 +110,7 @@ export function chooseCue(cat: Catalogue, c: ScoreContext, history: { id: string
 // ------------------------------------------------------------------------------------------------------------ director
 export interface ScoreDeps {
   /** the world's day and local hour */ getTime(): { day: number; hour: number };
-  /** the player's eye (world x, y, z) */ player(): { x: number; y: number; z: number };
+  /** the player's eye (world x, y, z); without it the score takes the town */ player?(): { x: number; y: number; z: number };
   /** raining now (optional) */ raining?(): boolean;
   /** the world is being walked (not the title, not the menu): cues start only then */ active?(): boolean;
 }
@@ -134,9 +140,9 @@ export class ScoreDirector {
     if (this.track && !this.track.ended) return;
     if (this.track?.ended) { this.track = null; this.nextAt = now + this.wait(DIRECTOR.gap); return; }
     if (now < this.nextAt || scorePreference() === 'off' || level() === 0 || (this.d.active && !this.d.active())) return;
-    const cat = await loadCatalogue(); if (!cat) return;
-    const t = this.d.getTime(), st = sunTimes(t.day), p = this.d.player();
-    const ctx: ScoreContext = { hour: t.hour, rise: st.rise, set: st.set, place: placeOf(p.x, -p.z), rain: this.d.raining?.() ?? false };
+    const cat = await loadCatalogue(); if (!cat || !opusOK()) return;
+    const t = this.d.getTime(), st = sunTimes(t.day), p = this.d.player?.();
+    const ctx: ScoreContext = { hour: t.hour, rise: st.rise, set: st.set, place: p ? placeOf(p.x, -p.z) : 'town', rain: this.d.raining?.() ?? false };
     const id = chooseCue(cat, ctx, this.history, now, this.r());
     if (!id) { this.nextAt = now + 60; return; }
     this.history.push({ id, at: now });

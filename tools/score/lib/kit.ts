@@ -50,7 +50,8 @@ function voicings(c: Chord, n: number, lo: number, hi: number): number[][] {
 export function pad(chs: ChordAt[], lo: string, hi: string, n: number, centre?: string, opts: { tie?: boolean; split?: number } = {}): LNote[] {
   const L = pc(lo), H = pc(hi), C = centre ? pc(centre) : (L + H) / 2; let prev: number[] | null = null; const out: LNote[] = [];
   for (const c of chs) {
-    const vs = voicings(c, n, L, H); if (!vs.length) throw new Error(`no voicing of ${c.sym} with ${n} voices in ${lo}-${hi}`);
+    let vs = voicings(c, n, L, H); for (let w = 1; !vs.length && w <= 6; w++) vs = voicings(c, n, L - w, H + w); // widen a little where the range is too tight for the chord
+    if (!vs.length) throw new Error(`no voicing of ${c.sym} with ${n} voices in ${lo}-${hi}`);
     let best = vs[0], cost = Infinity;
     for (const v of vs) { const k = prev ? v.reduce((a, p, i) => a + Math.abs(p - prev![i]), 0) : Math.abs(v.reduce((a, p) => a + p, 0) / n - C); if (k < cost) { cost = k; best = v; } }
     const split = opts.split ?? c.d; // re-articulate long chords every `split` beats (a sustained section breathes)
@@ -67,7 +68,8 @@ export function pad(chs: ChordAt[], lo: string, hi: string, n: number, centre?: 
 export function bass(chs: ChordAt[], lo: string, hi: string, figure: 'root' | 'pulse' | 'walk' | 'doum' = 'root'): LNote[] {
   const L = pc(lo), H = pc(hi); let prev = (L + H) / 2; const out: LNote[] = [];
   for (const c of chs) {
-    let best = L, d = Infinity; for (let p = L; p <= H; p++) if (p % 12 === c.bass && Math.abs(p - prev) < d) { d = Math.abs(p - prev); best = p; }
+    let best = -1, d = Infinity; for (let p = L; p <= H; p++) if (p % 12 === c.bass && Math.abs(p - prev) < d) { d = Math.abs(p - prev); best = p; }
+    if (best < 0) throw new Error(`bass: no ${c.sym} bass in ${lo}-${hi}: give the range an octave`);
     prev = best; const fifth = best + 7 <= H ? best + 7 : best - 5;
     if (figure === 'root') out.push({ b: c.b, d: c.d, p: best });
     else if (figure === 'pulse') for (let s = 0; s < c.d; s++) out.push({ b: c.b + s, d: 1, p: best, acc: s === 0 ? '>' : undefined });
@@ -83,7 +85,7 @@ export function arp(chs: ChordAt[], lo: string, hi: string, pattern: number[], s
   for (const c of chs) {
     const tones: number[] = []; for (let p = L; p <= H; p++) if (c.tones.includes(p % 12)) tones.push(p);
     const bassFirst = tones.findIndex(p => p % 12 === c.bass), seq = bassFirst > 0 ? tones.slice(bassFirst) : tones;
-    for (let k = 0, s = 0; s < c.d - 1e-6; k++, s += step) { const i = pattern[k % pattern.length]; const p = seq[i % seq.length] + 12 * Math.floor(i / seq.length); if (p <= H + 12) out.push({ b: c.b + s, d: ring, p: Math.min(p, H) }); }
+    for (let k = 0, s = 0; s < c.d - 1e-6; k++, s += step) { const i = pattern[k % pattern.length]; const p = seq[i % seq.length] + 12 * Math.floor(i / seq.length); let q = p; while (q > H) q -= 12; out.push({ b: c.b + s, d: ring, p: q }); }
   }
   return out;
 }

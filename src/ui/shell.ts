@@ -7,6 +7,7 @@ import { Settings, saveSettings, DEFAULT_KEYS } from '../core/settings';
 import { YEAR_DAYS } from '../core/clock';
 import skyline from '../shell/skyline.json';
 import { introPreference, setIntroPreference, type IntroPreference } from '../shell/intro';
+import { scorePreference, setScorePreference, scoreVolume, setScoreVolume, startScore, type ScorePreference } from '../audio/score';
 
 export interface ShellHooks {
   start(): void; resume(): void; save(): boolean; load(): boolean; applySettings(s: Settings): void;
@@ -44,8 +45,8 @@ export function keyName(code: string): string {
 /** what each action is, for the controls and the keys tab */
 const ACTION_NAMES: Record<string, string> = {
   forward: 'Walk forward', back: 'Walk back', left: 'Step left', right: 'Step right', run: 'Walk faster (hold)', slow: 'Walk carefully (hold)', crouch: 'Crouch (toggle)', interact: 'Open a door · speak to someone',
-  pause: 'Menu', overlay: 'Evidence overlay (tiers, sources)', map: 'Map (translation layer)', mapZoom: 'Map scale (translation layer)',
-  chronicle: 'Chronicle (translation layer)', nowView: 'The ruin today (Now view)',
+  pause: 'Menu', overlay: 'Notes on the reconstruction', map: 'Map', mapZoom: 'Map scale',
+  chronicle: 'Chronicle', nowView: 'The ruins today',
 };
 
 /** the loading screen's backdrop: the dawn over the real skyline (layers far to near), as SVG markup */
@@ -116,7 +117,7 @@ export class Shell {
     this.loadingCard = el('div', { className: 'foot' }, this.loadingMsg);
     screen.append(el('div', { className: 'vignette' }), el('div', { className: 'grain' }),
       el('div', { className: 'brand' }, el('div', { className: 'op-mark' }, OP_PARSA), el('h1', { className: 'wordmark' }, 'PĀRSA'), el('div', { className: 'dedic' }, DEDICATION)),
-      el('div', { className: 'advice' }, el('b', {}, 'Before you enter'), 'Sound is half of this place: headphones, if you have them. There is no map, no marker and no guide. Walk, listen, and ask the people.'),
+      el('div', { className: 'advice' }, el('b', {}, 'Before you enter'), 'Sound is half of this place: headphones, if you have them. Nothing in the world will point the way. Walk, listen, and ask the people.'),
       this.loadingCard);
     root().replaceChildren(screen);
   }
@@ -124,11 +125,13 @@ export class Shell {
   title(continued = false) {
     this.mode = 'title'; this.back = null;
     this.hooks.backdrop?.(true);
-    const begin = () => { this.hooks.backdrop?.(false); this.hooks.start(); if (!continued && introPreference() !== 'never') this.hooks.intro?.(); };
+    const begin = () => { this.hooks.backdrop?.(false); this.hooks.start(); const opening = !continued && introPreference() !== 'never';
+      if (opening) this.hooks.intro?.(); // (the opening starts the score in the world when it ends: src/shell/intro.ts)
+      else if (!TEST()) startScore({ getTime: () => this.hooks.getTime(), active: () => this.mode === 'playing' }); };
     const start = el('button', { className: 'primary', onclick: begin }, continued ? 'Continue the visit' : 'Enter');
     const items: HTMLElement[] = [start,
       ...(continued ? [el('button', { onclick: () => this.hooks.newVisit() }, 'Begin a new visit')]
-        : this.hooks.hasSave() ? [el('button', { onclick: () => { if (this.hooks.load()) { this.hooks.backdrop?.(false); this.hooks.start(); } } }, 'Continue the saved visit')] : []),
+        : this.hooks.hasSave() ? [el('button', { onclick: () => { if (this.hooks.load()) { this.hooks.backdrop?.(false); this.hooks.start(); if (!TEST()) startScore({ getTime: () => this.hooks.getTime(), active: () => this.mode === 'playing' }); } } }, 'Continue the saved visit')] : []),
       el('button', { onclick: () => this.settingsPanel(() => this.title(continued)) }, 'Settings'),
       el('button', { onclick: () => this.controls(() => this.title(continued)) }, 'Controls')];
     // the loading screen, if it is up, fades out over the title rather than vanishing (the world's first frames come in under it)
@@ -193,7 +196,7 @@ export class Shell {
     const rows = Object.keys(DEFAULT_KEYS).map(a => el('div', { className: 'row' }, el('label', {}, ACTION_NAMES[a] ?? a), el('div', { className: 'ctl' }, el('span', { className: 'keycap' }, keyName(k[a] ?? DEFAULT_KEYS[a])))));
     rows.splice(4, 0, el('div', { className: 'row' }, el('label', {}, 'Look'), el('div', { className: 'ctl' }, el('span', { className: 'keycap' }, 'Mouse'))));
     this.sheet('Controls', null, el('div', { className: 'grid' }, ...rows,
-      el('p', { className: 'small' }, 'There is no map, compass or marker in the world: find your way by the mountain, the sun and the sound of the town. The map and the chronicle belong to the translation layer (Settings › Language), outside the world. Change any key in Settings › Keys.')), back);
+      el('p', { className: 'small' }, 'Nothing in the world points the way: find it by the mountain, the sun and the sound of the town. If you want them, a map and a chronicle come with the translation layer (Settings › Language). Any key can be changed in Settings › Keys.')), back);
   }
   /** a full sheet: header (title, tabs), body, footer (back) */
   private sheet(title: string, tabs: { name: string; body: () => HTMLElement }[] | null, body: HTMLElement | null, back: () => void, tab = 0) {
@@ -239,12 +242,12 @@ export class Shell {
       sel('Weather', this.hooks.getWeather(), [['auto', 'From the climate (seeded)'], ['clear', 'Clear'], ['overcast', 'Overcast'], ['rain', 'Rain'], ['storm', 'Thunderstorm'], ['snow', 'Snow'], ['dust', 'Dust storm'], ['mist', 'Morning mist']], v => this.hooks.setWeather(v)),
       sel('Who you are', s.playerMode, [['observer', 'An observer'], ['visitor', 'A visitor with a sealed travel authorisation']], v => { s.playerMode = v as any; }),
       sel('The court', s.courtCalendar, [['seasonal', 'Comes and goes: in residence in spring (reconstructed)'], ['evidence', 'Evidence only: the king absent all year']], v => { s.courtCalendar = v as any; }),
-      sel('The opening', introPreference(), [['new', 'Play it when a new visit begins'], ['never', 'Never play it']], v => setIntroPreference(v as IntroPreference), 'The wordless opening that leads you to the foot of the Terrace. Any key skips it.'),
+      sel('The opening', introPreference(), [['new', 'Play it when a new visit begins'], ['never', 'Never play it']], v => setIntroPreference(v as IntroPreference), 'The title film and the opening that lead you to the foot of the Terrace. Any key skips them.'),
       check('Now view', s.nowView, v => { s.nowView = v; }, 'The ruin as it stands today, from memory of the site (tier C). Key N.'),
     ); };
     const display = () => grid(
-      sel('Quality', s.quality, [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['ultra', 'Ultra (full target)']], v => { s.quality = v as any; }),
-      check('Force WebGL2', s.forceWebGL, v => { s.forceWebGL = v; }, 'For browsers whose WebGPU fails. Takes effect on reload.'),
+      sel('Quality', s.quality, [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['ultra', 'Ultra']], v => { s.quality = v as any; }),
+      check('Force WebGL2', s.forceWebGL, v => { s.forceWebGL = v; }, 'For browsers where WebGPU fails. Takes effect when the page reloads.'),
       range('Field of view', s.fov, 50, 100, 1, v => { s.fov = v; }, v => `${v}°`),
       check('Head bob', s.headBob, v => { s.headBob = v; }),
       range('Mouse sensitivity', s.mouseSensitivity, 0.2, 3, 0.05, v => { s.mouseSensitivity = v; }, v => v.toFixed(2)),
@@ -253,12 +256,15 @@ export class Shell {
       check('Colour-blind-safe interface colours', s.colourBlindUI, v => { s.colourBlindUI = v; document.body.classList.toggle('cb', v); }),
     );
     const sound = () => grid(
-      ...(['master', 'ambience', 'voices', 'music', 'effects'] as const).map(ch => range(ch[0].toUpperCase() + ch.slice(1), s.volume[ch], 0, 1, 0.01, v => { s.volume[ch] = v; }, pct)),
+      ...(['master', 'ambience', 'voices', 'music', 'effects'] as const).map(ch => range(({ master: 'Master', ambience: 'Ambience', voices: 'Voices', music: 'Music in the world', effects: 'Effects' })[ch], s.volume[ch], 0, 1, 0.01, v => { s.volume[ch] = v; }, pct,
+        ch === 'music' ? 'What the people of the town and the court play and sing.' : undefined)),
+      sel('Score', scorePreference(), [['on', 'On'], ['off', 'Off']], v => setScorePreference(v as ScorePreference), 'The original score: the title theme, and now and then a piece for the hour and the place, with long silences between.'),
+      range('Score volume', scoreVolume(), 0, 1, 0.01, v => setScoreVolume(v), pct),
     );
     const language = () => grid(
       check('Translation layer', s.translation, v => { s.translation = v; }, 'Subtitles, the readings of inscriptions, the map (M) and the chronicle (J). Outside the world; off by default.'),
       range('Subtitle size', s.subtitleSize, 0.75, 2, 0.05, v => { s.subtitleSize = v; }, v => `${Math.round(v * 100)} %`),
-      check('Talk with the people', s.talk, v => { s.talk = v; }, 'T to type, hold V to speak. Downloads about 0.5 GB of small models once, after the world appears. Reload to apply.'),
+      check('Talk with the people', s.talk, v => { s.talk = v; }, 'T to type, hold V to speak. Downloads about 1 GB once, after the world appears. Takes effect when the page reloads.'),
       // D-336 (UD-22): out of world; off by default (the heard world stays period)
       sel('Hear the people you speak with in', s.hearIn, [['own', 'Their own language (default)'], ['fa', 'Farsi, in character, in their own voice'], ['en', 'English, in character, in their own voice']], v => { s.hearIn = v as any; }),
     );
